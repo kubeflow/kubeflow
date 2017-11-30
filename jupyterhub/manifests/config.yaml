@@ -1,0 +1,109 @@
+# Copyright 2017 The Kubernetes Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: v1
+data:
+  jupyterhub_config.py: |
+    import json
+    import os
+    from kubespawner.spawner import KubeSpawner
+    from oauthenticator.github import GitHubOAuthenticator
+
+    class KubeFormSpawner(KubeSpawner):
+      def _options_form_default(self):
+        return """
+        <label for="image">Image</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <input name="image" placeholder="repo/image:tag"></input>
+        <br/><br/>
+
+        <label for="cpu_guarantee">CPU</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <input name="cpu_guarantee" placeholder="200m, 1.0, 2.5, etc"></input>
+        <br/><br/>
+
+        <label for="mem_guarantee">Memory</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <input name="mem_guarantee" placeholder="100Mi, 1.5Gi"></input>
+        <br/><br/>
+
+        <label for="extra_resource_limits">Extra Resource Limits</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <input name="extra_resource_limits" placeholder='{"nvidia.com/gpu": "3"}'></input>
+        <br/><br/>
+        """
+
+      def options_from_form(self, formdata):
+        options = {}
+        options['image'] = formdata.get('image', ['gcr.io/kubeflow/tensorflow-notebook'])[0].strip()
+        options['cpu_guarantee'] = formdata.get('cpu_guarantee', ['200m'])[0].strip()
+        options['mem_guarantee'] = formdata.get('mem_guarantee', ['1Gi'])[0].strip()
+        options['extra_resource_limits'] = formdata.get('extra_resource_limits', [''])[0].strip()
+        return options
+
+      def get_image_spec(self):
+        image = super().singleuser_image_spec
+        if self.user_options.get('image'):
+          image = self.user_options['image']
+        return image
+
+      @property
+      def cpu_guarantee(self):
+        cpu = "1"
+        if self.user_options.get('cpu_guarantee'):
+          cpu = self.user_options['cpu_guarantee']
+        return cpu
+
+      @property
+      def mem_guarantee(self):
+        mem = "1Gi"
+        if self.user_options.get('mem_guarantee'):
+          mem = self.user_options['mem_guarantee']
+        return mem
+
+      @property
+      def extra_resource_limits(self):
+        extra = ""
+        if self.user_options.get('extra_resource_limits'):
+          extra = json.loads(self.user_options['extra_resource_limits'])
+        return extra
+
+    ###################################################
+    ### JupyterHub Options
+    ###################################################
+    c.JupyterHub.ip = '0.0.0.0'
+    c.JupyterHub.hub_ip = '0.0.0.0'
+    # Don't try to cleanup servers on exit - since in general for k8s, we want
+    # the hub to be able to restart without losing user containers
+    c.JupyterHub.cleanup_servers = False
+    ###################################################
+
+    ###################################################
+    ### Spawner Options
+    ###################################################
+    c.JupyterHub.spawner_class = KubeFormSpawner
+    c.KubeSpawner.singleuser_image_spec = 'gcr.io/kubeflow/tensorflow-notebook'
+    c.KubeSpawner.cmd = 'start-singleuser.sh'
+    c.KubeSpawner.args = ['--allow-root']
+    # First pulls can be really slow, so let's give it a big timeout
+    c.KubeSpawner.start_timeout = 60 * 10
+    ###################################################
+
+    ###################################################
+    ### Authenticator Options
+    ###################################################
+    c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'
+    # c.JupyterHub.authenticator_class = GitHubOAuthenticator
+    # c.GitHubOAuthenticator.oauth_callback_url = '<placeholder>'
+    # c.GitHubOAuthenticator.client_id = '<placeholder>'
+    # c.GitHubOAuthenticator.client_secret = '<placeholder>'
+kind: ConfigMap
+metadata:
+  name: jupyterhub-config
