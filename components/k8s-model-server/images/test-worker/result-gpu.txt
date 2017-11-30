@@ -1,0 +1,38 @@
+outputs {
+  key: "classes"
+  value {
+    dtype: DT_STRING
+    tensor_shape {
+      dim {
+        size: 1
+      }
+      dim {
+        size: 5
+      }
+    }
+    string_val: "sleeping bag"
+    string_val: "Border terrier"
+    string_val: "tabby, tabby cat"
+    string_val: "quilt, comforter, comfort, puff"
+    string_val: "studio couch, day bed"
+  }
+}
+outputs {
+  key: "scores"
+  value {
+    dtype: DT_FLOAT
+    tensor_shape {
+      dim {
+        size: 1
+      }
+      dim {
+        size: 5
+      }
+    }
+    float_val: 8.51593017578
+    float_val: 7.85044574738
+    float_val: 5.88767147064
+    float_val: 5.70612812042
+    float_val: 5.55422496796
+  }
+}

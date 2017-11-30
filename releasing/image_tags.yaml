@@ -1,0 +1,1119 @@
+images:
+- name: gcr.io/kubeflow-images-public/centraldashboard
+  versions:
+  - digest: sha256:3b0a17231c1e8f0c1f6b2eda70bb212998506008176ec0ab066ffc0e7c3854bc
+    tags:
+    - v0.4.0
+  - digest: sha256:9a410ef29484aa6d8b2acacbed8cc708bbf928436b67f1ab326eaf096424139a
+    tags:
+    - v0.3.0
+- name: gcr.io/kubeflow-images-public/chainer-operator
+  versions:
+  - digest: sha256:2cd5d5adbb97373f0ef978f39618cb43d214973aadee0d1b01dae61a9d0c48cc
+    tags:
+    - v0.3.0
+    timestamp:
+      datetime: '2018-09-26 15:19:13+09:00'
+      day: 26
+      hour: 15
+      microsecond: 0
+      minute: 19
+      month: 9
+      second: 13
+      year: 2018
+- name: gcr.io/kubeflow-images-public/katib/earlystopping-medianstopping
+  versions:
+  - digest: sha256:7020b138465117d8fe24ed717456689fc961a12504c3a7769558e1696cf74b3a
+    tags:
+    - v0.4.0
+    timestamp:
+      datetime: '2019-01-02 20:00:28-08:00'
+      day: 2
+      hour: 20
+      microsecond: 0
+      minute: 0
+      month: 1
+      second: 28
+      year: 2019
+- name: gcr.io/kubeflow-images-public/katib/katib-ui
+  versions:
+  - digest: sha256:7b655bdbcb75370f2eb2a47427bfa8df2c3ab8c9c2ea8000ca564ef6d4177dc9
+    tags:
+    - v0.4.0
+    timestamp:
+      datetime: '2019-01-02 20:01:26-08:00'
+      day: 2
+      hour: 20
+      microsecond: 0
+      minute: 1
+      month: 1
+      second: 26
+      year: 2019
+- name: gcr.io/kubeflow-images-public/katib/metrics-collector
+  versions:
+  - digest: sha256:6c4be5eedba27d509e194e59a2b951d3769e3936963221671b3d948d74551714
+    tags:
+    - v0.4.0
+    timestamp:
+      datetime: '2019-01-02 20:04:24-08:00'
+      day: 2
+      hour: 20
+      microsecond: 0
+      minute: 4
+      month: 1
+      second: 24
+      year: 2019
+- name: gcr.io/kubeflow-images-public/katib/studyjob-controller
+  versions:
+  - digest: sha256:84fbef8d809d8a32c308606a0fcfe44ef0fbbc35e76655dd57ade05d6df5e3d8
+    tags:
+    - v0.4.0
+    timestamp:
+      datetime: '2019-01-02 20:01:39-08:00'
+      day: 2
+      hour: 20
+      microsecond: 0
+      minute: 1
+      month: 1
+      second: 39
+      year: 2019
+- name: gcr.io/kubeflow-images-public/katib/suggestion-bayesianoptimization
+  versions:
+  - digest: sha256:ddcf562d36f4602c23372ed65e20e0161016cc517fc5489e7cf9cd94fd316d93
+    tags:
+    - v0.4.0
+    timestamp:
+      datetime: '2019-01-02 20:00:36-08:00'
+      day: 2
+      hour: 20
+      microsecond: 0
+      minute: 0
+      month: 1
+      second: 36
+      year: 2019
+- name: gcr.io/kubeflow-images-public/katib/suggestion-grid
+  versions:
+  - digest: sha256:920bfb2bb43afc6f5743bc9a822ac934d0091769e5abaec31d82e341cc5f5f9c
+    tags:
+    - v0.4.0
+    timestamp:
+      datetime: '2019-01-02 20:00:38-08:00'
+      day: 2
+      hour: 20
+      microsecond: 0
+      minute: 0
+      month: 1
+      second: 38
+      year: 2019
+- name: gcr.io/kubeflow-images-public/katib/suggestion-hyperband
+  versions:
+  - digest: sha256:53ccf880f57d974e9657d0cd07abf9f0085d0742e8440b9e49d9c4b0f8fdcb3c
+    tags:
+    - v0.4.0
+    timestamp:
+      datetime: '2019-01-02 20:00:40-08:00'
+      day: 2
+      hour: 20
+      microsecond: 0
+      minute: 0
+      month: 1
+      second: 40
+      year: 2019
+- name: gcr.io/kubeflow-images-public/katib/suggestion-random
+  versions:
+  - digest: sha256:309c8e1f2564c57c9c153be3d336abae17c93dca947e30e03bc765b5d7f56659
+    tags:
+    - v0.4.0
+    timestamp:
+      datetime: '2019-01-02 20:00:59-08:00'
+      day: 2
+      hour: 20
+      microsecond: 0
+      minute: 0
+      month: 1
+      second: 59
+      year: 2019
+- name: gcr.io/kubeflow-images-public/katib/tfevent-metrics-collector
+  versions:
+  - digest: sha256:f088ba5427daef22a420ae9405cec4061edb93380f3d5ef456f783224ab3c03c
+    tags:
+    - v0.4.0
+    timestamp:
+      datetime: '2019-01-02 20:06:20-08:00'
+      day: 2
+      hour: 20
+      microsecond: 0
+      minute: 6
+      month: 1
+      second: 20
+      year: 2019
+- name: gcr.io/kubeflow-images-public/katib/vizier-core
+  versions:
+  - digest: sha256:e1a429e00432d80ce45f3191c414e4070e5e1169d10ee4feac272b9d838d3e94
+    tags:
+    - v0.4.0
+    timestamp:
+      datetime: '2019-01-02 20:00:51-08:00'
+      day: 2
+      hour: 20
+      microsecond: 0
+      minute: 0
+      month: 1
+      second: 51
+      year: 2019
+- name: gcr.io/kubeflow-images-public/katib/vizier-core-rest
+  versions:
+  - digest: sha256:fbb9c84bde820ece2b967e66c1191010d14f8acc6beb3f9919b634833286776b
+    tags:
+    - v0.4.0
+    timestamp:
+      datetime: '2019-01-02 20:00:25-08:00'
+      day: 2
+      hour: 20
+      microsecond: 0
+      minute: 0
+      month: 1
+      second: 25
+      year: 2019
+- name: gcr.io/kubeflow-images-public/kubebench/kubebench-controller
+  versions:
+  - digest: sha256:cc816c66064b90cd21db35c7efe591da081d01e09abc4da3189beef78ea1ac27
+    tags:
+    - v0.4.0
+    timestamp:
+      datetime: '2018-12-18 00:03:52-08:00'
+      day: 18
+      hour: 0
+      microsecond: 0
+      minute: 3
+      month: 12
+      second: 52
+      year: 2018
+  - digest: sha256:275d44380f23019f77222f23a3816786759b752e5db9ccb0da24f5471b0eff96
+    tags:
+    - v0.3.0
+- name: gcr.io/kubeflow-images-public/kubebench/kubebench-dashboard
+  versions:
+  - digest: sha256:5c6acd089aebfec6996a3d1480c6a33cb03b9b2d1e1e0396f0bc50e96c9de2d1
+    tags:
+    - v0.4.0
+    timestamp:
+      datetime: '2018-12-18 00:04:00-08:00'
+      day: 18
+      hour: 0
+      microsecond: 0
+      minute: 4
+      month: 12
+      second: 0
+      year: 2018
+- name: gcr.io/kubeflow-images-public/kubebench/kubebench-operator
+  versions:
+  - digest: sha256:8239d2c76b1f996675ce9c2416fca22c510da266345978f1bea0790cb9d7c83e
+    tags:
+    - v0.4.0
+    timestamp:
+      datetime: '2018-12-18 00:04:05-08:00'
+      day: 18
+      hour: 0
+      microsecond: 0
+      minute: 4
+      month: 12
+      second: 5
+      year: 2018
+- name: gcr.io/kubeflow-images-public/pytorch-operator
+  versions:
+  - digest: sha256:a51b91ab69f61b709b747089bee34c692b9fdbf016f518a040696502a317ce26
+    tags:
+    - v0.4.0
+  - digest: sha256:33aa95a3aa0108d5bc631fa3f8a04e646d4eef08a0e8c4695842f92ef0c79027
+    tags:
+    - v0.3.0
+- name: gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu
+  versions:
+  - digest: sha256:bd3d2ae9a4e07b2b58910e99a26676ab31f4ba5ae2a633fbde5ce8dee8b63024
+    tags:
+    - latest
+    - v20180301-pr317
+    - v0.3.0
+  - digest: sha256:034585dbc888ea974cd63056db0223ea0e1d4c827cc0a235e45cd0f6703fdbf0
+    tags:
+    - v-base-b321075-822
+    - v0.3.1
+    timestamp:
+      datetime: '2018-10-18 13:29:27-07:00'
+      day: 18
+      hour: 13
+      microsecond: 0
+      minute: 29
+      month: 10
+      second: 27
+      year: 2018
+  - digest: sha256:3e547beeeb4eaafd47ccdfb1ee72e80ba76ed88a5a6db7af64d893dde0cb028e
+    tags:
+    - v-base-d1ee37b-955
+    - v0.4.0
+    timestamp:
+      datetime: '2018-12-11 12:58:44-08:00'
+      day: 11
+      hour: 12
+      microsecond: 0
+      minute: 58
+      month: 12
+      second: 44
+      year: 2018
+- name: gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-gpu
+  versions:
+  - digest: sha256:24a32e6a533a6e7d46a649cbff247ebd86dee078d37489035d9bc440a9e2487f
+    tags:
+    - latest
+    - v20180301-pr317
+    - v0.3.0
+  - digest: sha256:1cda81f21e8ea3fe3c1a753c7115388aaecf4f31e6611a04811bfe4e47b4539c
+    tags:
+    - v-base-d1ee37b-955
+    - v0.4.0
+    timestamp:
+      datetime: '2018-12-11 13:00:22-08:00'
+      day: 11
+      hour: 13
+      microsecond: 0
+      minute: 0
+      month: 12
+      second: 22
+      year: 2018
+  - digest: sha256:ff7ee6e7a9aae82270bc3a6c00492a20afe5f005c9057058b3022d101eaa6cbe
+    tags:
+    - v-base-b321075-822
+    - v0.3.1
+    timestamp:
+      datetime: '2018-10-18 13:33:39-07:00'
+      day: 18
+      hour: 13
+      microsecond: 0
+      minute: 33
+      month: 10
+      second: 39
+      year: 2018
+- name: gcr.io/kubeflow-images-public/tensorflow-1.11.0-notebook-cpu
+  versions:
+  - digest: sha256:eb7cedcd28ec47e94175bb27c516375ffbac05e46f02b6257762d89168711567
+    tags:
+    - v-base-d1ee37b-955
+    - v0.4.0
+    timestamp:
+      datetime: '2018-12-11 13:03:39-08:00'
+      day: 11
+      hour: 13
+      microsecond: 0
+      minute: 3
+      month: 12
+      second: 39
+      year: 2018
+- name: gcr.io/kubeflow-images-public/tensorflow-1.11.0-notebook-gpu
+  versions:
+  - digest: sha256:5a7d1b199a65b1e35db208dbb2de8566dfb5ce928ffc511d66d640ee2e56054c
+    tags:
+    - v-base-d1ee37b-955
+    - v0.4.0
+    timestamp:
+      datetime: '2018-12-11 13:04:18-08:00'
+      day: 11
+      hour: 13
+      microsecond: 0
+      minute: 4
+      month: 12
+      second: 18
+      year: 2018
+- name: gcr.io/kubeflow-images-public/tensorflow-1.12.0-notebook-cpu
+  versions:
+  - digest: sha256:9d400875a7496f7047f630be018fcb31118e50b161a2c9826bd7bfeabde6e834
+    tags:
+    - v-base-d1ee37b-955
+    - v0.4.0
+    timestamp:
+      datetime: '2018-12-11 12:59:48-08:00'
+      day: 11
+      hour: 12
+      microsecond: 0
+      minute: 59
+      month: 12
+      second: 48
+      year: 2018
+- name: gcr.io/kubeflow-images-public/tensorflow-1.12.0-notebook-gpu
+  versions:
+  - digest: sha256:d9176e3740a69e516b5029e669ddb353ab7a45ebe7f9c1c8cc339e92b7395647
+    tags:
+    - v-base-d1ee37b-955
+    - v0.4.0
+    timestamp:
+      datetime: '2018-12-11 13:15:28-08:00'
+      day: 11
+      hour: 13
+      microsecond: 0
+      minute: 15
+      month: 12
+      second: 28
+      year: 2018
+- name: gcr.io/kubeflow-images-public/tensorflow-1.4.1-notebook-cpu
+  versions:
+  - digest: sha256:b062d728574c8daeb667c1a61a496c79be8c30cfbcc0feb443e5b5fc685923f4
+    tags:
+    - v-base-d1ee37b-955
+    - v0.4.0
+    timestamp:
+      datetime: '2018-12-11 12:57:38-08:00'
+      day: 11
+      hour: 12
+      microsecond: 0
+      minute: 57
+      month: 12
+      second: 38
+      year: 2018
+  - digest: sha256:f7fbde2e30a81d87df8987efb55ffeb9d3eb8d8436e9f4e4179a5aaf1557a860
+    tags:
+    - latest
+    - v20180619-c79194b3
+    - v0.2.0
+    timestamp:
+      datetime: '2018-06-19 10:40:06-07:00'
+      day: 19
+      hour: 10
+      microsecond: 0
+      minute: 40
+      month: 6
+      second: 6
+      year: 2018
+  - digest: sha256:f4162d2f77648d170c9cc5b99df5e94d98786046ffaa12afb230b236ac60eea5
+    tags:
+    - latest
+    - v20180707-5a11c84d
+    - v0.2.1
+    timestamp:
+      datetime: '2018-07-07 09:34:09-07:00'
+      day: 7
+      hour: 9
+      microsecond: 0
+      minute: 34
+      month: 7
+      second: 9
+      year: 2018
+  - digest: sha256:13911046b7c56de9d6198c6fbe7dee798f5e210f1c454c10a054cb959e28df15
+    tags:
+    - v-base-b321075-822
+    - v0.3.1
+    timestamp:
+      datetime: '2018-10-18 13:30:59-07:00'
+      day: 18
+      hour: 13
+      microsecond: 0
+      minute: 30
+      month: 10
+      second: 59
+      year: 2018
+  - digest: sha256:f5de229918aa3230feaae4b64a9c0aea7fe236a3d440dc5a246ee608bc18e6e0
+    tags:
+    - latest
+    - v20180301-pr317
+    - v0.3.0
+    timestamp:
+      datetime: '2018-09-26 15:11:42-07:00'
+      day: 26
+      hour: 15
+      microsecond: 0
+      minute: 11
+      month: 9
+      second: 42
+      year: 2018
+- name: gcr.io/kubeflow-images-public/tensorflow-1.4.1-notebook-gpu
+  versions:
+  - digest: sha256:882a116f03a66826fc6c1ac9d56966d562a093bfdce1bcb4513b6b82e3790ce9
+    tags:
+    - v-base-b321075-822
+    - v0.3.1
+    timestamp:
+      datetime: '2018-10-18 13:34:01-07:00'
+      day: 18
+      hour: 13
+      microsecond: 0
+      minute: 34
+      month: 10
+      second: 1
+      year: 2018
+  - digest: sha256:f932fc3b9f1492ffa8bca2026e2e9ffb9ba40f96cc46b82dd639991e7ebed90a
+    tags:
+    - v-base-d1ee37b-955
+    - v0.4.0
+    timestamp:
+      datetime: '2018-12-11 13:03:13-08:00'
+      day: 11
+      hour: 13
+      microsecond: 0
+      minute: 3
+      month: 12
+      second: 13
+      year: 2018
+  - digest: sha256:5743117cd1a7ed5976cf02b889db75437e3d37886a3fb32bb3bfdf59b3d067d3
+    tags:
+    - latest
+    - v20180301-pr317
+    - v0.3.0
+    timestamp:
+      datetime: '2018-09-26 15:16:25-07:00'
+      day: 26
+      hour: 15
+      microsecond: 0
+      minute: 16
+      month: 9
+      second: 25
+      year: 2018
+  - digest: sha256:25ffa1588551ddd452ed9f89725346d5c21770db88284b0195058f0fce20632e
+    tags:
+    - latest
+    - v20180707-5a11c84d
+    - v0.2.1
+    timestamp:
+      datetime: '2018-07-07 09:28:07-07:00'
+      day: 7
+      hour: 9
+      microsecond: 0
+      minute: 28
+      month: 7
+      second: 7
+      year: 2018
+- name: gcr.io/kubeflow-images-public/tensorflow-1.5.1-notebook-cpu
+  versions:
+  - digest: sha256:1c5d18d73b3ff06be24d961c815fd9d662d225b266b36ac5140a28a7beeac0a0
+    tags:
+    - latest
+    - v20180707-5a11c84d
+    - v0.2.1
+    timestamp:
+      datetime: '2018-07-07 09:34:49-07:00'
+      day: 7
+      hour: 9
+      microsecond: 0
+      minute: 34
+      month: 7
+      second: 49
+      year: 2018
+  - digest: sha256:6e89d0c567fd6ab17a050034f58fc213a42840c162834d8dad14d27c67636bad
+    tags:
+    - v-base-d1ee37b-955
+    - v0.4.0
+    timestamp:
+      datetime: '2018-12-11 13:00:00-08:00'
+      day: 11
+      hour: 13
+      microsecond: 0
+      minute: 0
+      month: 12
+      second: 0
+      year: 2018
+  - digest: sha256:c62d2057a83dbc87461b1a36672897ed03543ec51a94464e2dea3539083c78e2
+    tags:
+    - v-base-b321075-822
+    - v0.3.1
+    timestamp:
+      datetime: '2018-10-18 13:29:24-07:00'
+      day: 18
+      hour: 13
+      microsecond: 0
+      minute: 29
+      month: 10
+      second: 24
+      year: 2018
+  - digest: sha256:8582e9b65e3e3d1fa16e91d89e2a2cb981a03008223c137dd842311ec496da90
+    tags:
+    - latest
+    - v20180301-pr317
+    - v0.3.0
+    timestamp:
+      datetime: '2018-09-26 15:11:50-07:00'
+      day: 26
+      hour: 15
+      microsecond: 0
+      minute: 11
+      month: 9
+      second: 50
+      year: 2018
+  - digest: sha256:9bbd319374e73f7632e0ffe4d8b52c5280c2c8ea00032629c91e03121d1ab4c3
+    tags:
+    - latest
+    - v20180619-c79194b3
+    - v0.2.0
+    timestamp:
+      datetime: '2018-06-19 10:40:09-07:00'
+      day: 19
+      hour: 10
+      microsecond: 0
+      minute: 40
+      month: 6
+      second: 9
+      year: 2018
+- name: gcr.io/kubeflow-images-public/tensorflow-1.5.1-notebook-gpu
+  versions:
+  - digest: sha256:c66a4d81e46a641806e8d8c87f6d950417973d4bc440cde4492d6478ada094b8
+    tags:
+    - v-base-d1ee37b-955
+    - v0.4.0
+    timestamp:
+      datetime: '2018-12-11 13:04:46-08:00'
+      day: 11
+      hour: 13
+      microsecond: 0
+      minute: 4
+      month: 12
+      second: 46
+      year: 2018
+  - digest: sha256:eea72345728b29cfe77d859c3a4c7907fea2ccf71947f5580080592dc31a4017
+    tags:
+    - latest
+    - v20180619-c79194b3
+    - v0.2.0
+    timestamp:
+      datetime: '2018-06-19 10:08:08-07:00'
+      day: 19
+      hour: 10
+      microsecond: 0
+      minute: 8
+      month: 6
+      second: 8
+      year: 2018
+  - digest: sha256:6a81400e8a08568e6f622660affad5ce48d6e512eb7967a79ee632732b2a6156
+    tags:
+    - v-base-b321075-822
+    - v0.3.1
+    timestamp:
+      datetime: '2018-10-18 13:33:13-07:00'
+      day: 18
+      hour: 13
+      microsecond: 0
+      minute: 33
+      month: 10
+      second: 13
+      year: 2018
+  - digest: sha256:8a601b729df6dab2ccd2c59a284ccce42dc2b035fae85d7354ecdc0c761f6da7
+    tags:
+    - latest
+    - v20180707-5a11c84d
+    - v0.2.1
+    timestamp:
+      datetime: '2018-07-07 09:29:40-07:00'
+      day: 7
+      hour: 9
+      microsecond: 0
+      minute: 29
+      month: 7
+      second: 40
+      year: 2018
+  - digest: sha256:c30a0067bfdc53aaae6b0bc87ea5c6a59005c3d282319a5ec8d605bca36b143c
+    tags:
+    - latest
+    - v20180301-pr317
+    - v0.3.0
+    timestamp:
+      datetime: '2018-09-26 15:12:33-07:00'
+      day: 26
+      hour: 15
+      microsecond: 0
+      minute: 12
+      month: 9
+      second: 33
+      year: 2018
+- name: gcr.io/kubeflow-images-public/tensorflow-1.6.0-notebook-cpu
+  versions:
+  - digest: sha256:1bdc75e21e30ad4a06d868002bc70ea991e0998a8cb2306bdcaae90aa3fbb317
+    tags:
+    - latest
+    - v20180301-pr317
+    - v0.3.0
+    timestamp:
+      datetime: '2018-09-26 15:10:13-07:00'
+      day: 26
+      hour: 15
+      microsecond: 0
+      minute: 10
+      month: 9
+      second: 13
+      year: 2018
+  - digest: sha256:dadb6730d9aadb7b024e3ebe0c4c76ff46e4b56f0c12367db3afbd4c1a732550
+    tags:
+    - latest
+    - v20180619-c79194b3
+    - v0.2.0
+    timestamp:
+      datetime: '2018-06-19 10:13:37-07:00'
+      day: 19
+      hour: 10
+      microsecond: 0
+      minute: 13
+      month: 6
+      second: 37
+      year: 2018
+  - digest: sha256:8df95a6e81610595347c6cb00be6fe06f1504933392deea848181463a42cc0e4
+    tags:
+    - v-base-b321075-822
+    - v0.3.1
+    timestamp:
+      datetime: '2018-10-18 13:35:30-07:00'
+      day: 18
+      hour: 13
+      microsecond: 0
+      minute: 35
+      month: 10
+      second: 30
+      year: 2018
+  - digest: sha256:160383f1bfc246ac9021900a9e44f4cfd8bf83aeccf82cd9518125197bcf8e7a
+    tags:
+    - v-base-d1ee37b-955
+    - v0.4.0
+    timestamp:
+      datetime: '2018-12-11 13:00:15-08:00'
+      day: 11
+      hour: 13
+      microsecond: 0
+      minute: 0
+      month: 12
+      second: 15
+      year: 2018
+  - digest: sha256:ee61d16658d6baa0bb6f18ad0d456de66d3931b2f0484bbd185f4af96170f5d6
+    tags:
+    - latest
+    - v20180707-5a11c84d
+    - v0.2.1
+    timestamp:
+      datetime: '2018-07-07 09:23:39-07:00'
+      day: 7
+      hour: 9
+      microsecond: 0
+      minute: 23
+      month: 7
+      second: 39
+      year: 2018
+- name: gcr.io/kubeflow-images-public/tensorflow-1.6.0-notebook-gpu
+  versions:
+  - digest: sha256:e1ffb27e9b831f5ad7db447e5cb1b4b6ecc135a3b95cbf7b4226fcf8f184be3b
+    tags:
+    - latest
+    - v20180619-c79194b3
+    - v0.2.0
+    timestamp:
+      datetime: '2018-06-19 10:35:55-07:00'
+      day: 19
+      hour: 10
+      microsecond: 0
+      minute: 35
+      month: 6
+      second: 55
+      year: 2018
+  - digest: sha256:ecdbb3094ee4c61538133f48a1e2d1806a222203bb25ad87ccfc5f3594438f5f
+    tags:
+    - latest
+    - v20180301-pr317
+    - v0.3.0
+    timestamp:
+      datetime: '2018-09-26 15:16:28-07:00'
+      day: 26
+      hour: 15
+      microsecond: 0
+      minute: 16
+      month: 9
+      second: 28
+      year: 2018
+  - digest: sha256:6f4348ffb5bc3c78acf2895f56fc58ba4406d93449baadffdf927671d121637e
+    tags:
+    - v-base-b321075-822
+    - v0.3.1
+    timestamp:
+      datetime: '2018-10-18 13:34:59-07:00'
+      day: 18
+      hour: 13
+      microsecond: 0
+      minute: 34
+      month: 10
+      second: 59
+      year: 2018
+  - digest: sha256:bc343131c6ef4bdf29f7e54b945438b756b969aab1d786e16553b5209ca4e4b8
+    tags:
+    - latest
+    - v20180707-5a11c84d
+    - v0.2.1
+    timestamp:
+      datetime: '2018-07-07 09:26:14-07:00'
+      day: 7
+      hour: 9
+      microsecond: 0
+      minute: 26
+      month: 7
+      second: 14
+      year: 2018
+  - digest: sha256:55818d555f26811bd0e3e7249e2a11c37e3a619e16c1033dae3da9ac245bdb13
+    tags:
+    - v-base-d1ee37b-955
+    - v0.4.0
+    timestamp:
+      datetime: '2018-12-11 13:29:19-08:00'
+      day: 11
+      hour: 13
+      microsecond: 0
+      minute: 29
+      month: 12
+      second: 19
+      year: 2018
+- name: gcr.io/kubeflow-images-public/tensorflow-1.7.0-notebook-cpu
+  versions:
+  - digest: sha256:290798da8685d93f988a3f18983fdc361b58e5e3d0b33e591d8ee7a0f381b032
+    tags:
+    - v-base-d1ee37b-955
+    - v0.4.0
+    timestamp:
+      datetime: '2018-12-11 13:00:51-08:00'
+      day: 11
+      hour: 13
+      microsecond: 0
+      minute: 0
+      month: 12
+      second: 51
+      year: 2018
+  - digest: sha256:01d4be10c25c9b44a3818eedb603eb97dcfbdb8368a1c6186780a142889e3687
+    tags:
+    - latest
+    - v20180619-c79194b3
+    - v0.2.0
+    timestamp:
+      datetime: '2018-06-19 10:12:10-07:00'
+      day: 19
+      hour: 10
+      microsecond: 0
+      minute: 12
+      month: 6
+      second: 10
+      year: 2018
+  - digest: sha256:ff71fc8c4581daa174cfcb2242499c7dd9b64bbe5740a9009e0549960507f728
+    tags:
+    - latest
+    - v20180707-5a11c84d
+    - v0.2.1
+    timestamp:
+      datetime: '2018-07-07 09:34:38-07:00'
+      day: 7
+      hour: 9
+      microsecond: 0
+      minute: 34
+      month: 7
+      second: 38
+      year: 2018
+  - digest: sha256:db4c58f79b954b3fd9b7a5a9c24e7309e7b31b53375182312c5d29c5a17fb47f
+    tags:
+    - latest
+    - v20180301-pr317
+    - v0.3.0
+    timestamp:
+      datetime: '2018-09-26 15:08:57-07:00'
+      day: 26
+      hour: 15
+      microsecond: 0
+      minute: 8
+      month: 9
+      second: 57
+      year: 2018
+  - digest: sha256:bb43d94c6e88bf7b522c5264aa74d87f245044c90cefa8665ce6be0ef14e5b20
+    tags:
+    - v-base-b321075-822
+    - v0.3.1
+    timestamp:
+      datetime: '2018-10-18 13:34:05-07:00'
+      day: 18
+      hour: 13
+      microsecond: 0
+      minute: 34
+      month: 10
+      second: 5
+      year: 2018
+- name: gcr.io/kubeflow-images-public/tensorflow-1.7.0-notebook-gpu
+  versions:
+  - digest: sha256:0ae57edd37a72fd3296d3f59e2c2edc7a25529bced1e9941d6a8d9a80e769561
+    tags:
+    - v-base-b321075-822
+    - v0.3.1
+    timestamp:
+      datetime: '2018-10-18 13:36:10-07:00'
+      day: 18
+      hour: 13
+      microsecond: 0
+      minute: 36
+      month: 10
+      second: 10
+      year: 2018
+  - digest: sha256:c51a7af0e48d553b8e39c6610b9761f30221f64d6c0b425d122d59f91dcd9e01
+    tags:
+    - latest
+    - v20180707-5a11c84d
+    - v0.2.1
+    timestamp:
+      datetime: '2018-07-07 09:29:00-07:00'
+      day: 7
+      hour: 9
+      microsecond: 0
+      minute: 29
+      month: 7
+      second: 0
+      year: 2018
+  - digest: sha256:e93bee9d389bf43d473c297f5e76bfdfb3e1bcf922a1e5e3745ec7fd0e7c4b75
+    tags:
+    - v-base-d1ee37b-955
+    - v0.4.0
+    timestamp:
+      datetime: '2018-12-11 13:46:08-08:00'
+      day: 11
+      hour: 13
+      microsecond: 0
+      minute: 46
+      month: 12
+      second: 8
+      year: 2018
+  - digest: sha256:2495fd5a62e6e1746255d0973f455171f5d939655bcb839b203c38032bf1f3e2
+    tags:
+    - latest
+    - v20180619-c79194b3
+    - v0.2.0
+    timestamp:
+      datetime: '2018-06-19 10:45:14-07:00'
+      day: 19
+      hour: 10
+      microsecond: 0
+      minute: 45
+      month: 6
+      second: 14
+      year: 2018
+  - digest: sha256:33fb8610bd83e80020d6a2bfca44f8b447e171455eafa12e5da2499bd9f2b30a
+    tags:
+    - latest
+    - v20180301-pr317
+    - v0.3.0
+    timestamp:
+      datetime: '2018-09-26 15:16:39-07:00'
+      day: 26
+      hour: 15
+      microsecond: 0
+      minute: 16
+      month: 9
+      second: 39
+      year: 2018
+- name: gcr.io/kubeflow-images-public/tensorflow-1.8.0-notebook-cpu
+  versions:
+  - digest: sha256:34be48e7c812f6fa68f6321587a90b571e8cd138614ab5ad4331e993f50beeae
+    tags:
+    - latest
+    - v20180619-c79194b3
+    - v0.2.0
+    timestamp:
+      datetime: '2018-06-19 10:11:42-07:00'
+      day: 19
+      hour: 10
+      microsecond: 0
+      minute: 11
+      month: 6
+      second: 42
+      year: 2018
+  - digest: sha256:e53348bd9b804f01e932f833cb608aaa587169fccfe84235043db81680a6440a
+    tags:
+    - latest
+    - v20180301-pr317
+    - v0.3.0
+    timestamp:
+      datetime: '2018-09-26 15:14:23-07:00'
+      day: 26
+      hour: 15
+      microsecond: 0
+      minute: 14
+      month: 9
+      second: 23
+      year: 2018
+  - digest: sha256:3bc4339e04c5ab822e46bf5fcb1fd18c11ce0b2e8bd45a1cfb038d14bffa9a5b
+    tags:
+    - latest
+    - v20180707-5a11c84d
+    - v0.2.1
+    timestamp:
+      datetime: '2018-07-07 09:25:06-07:00'
+      day: 7
+      hour: 9
+      microsecond: 0
+      minute: 25
+      month: 7
+      second: 6
+      year: 2018
+  - digest: sha256:4bd736b85cd7503566edbc7ad2b1b861ee5f9d5388cf833456cfe6a4b0b462d8
+    tags:
+    - v-base-b321075-822
+    - v0.3.1
+    timestamp:
+      datetime: '2018-10-18 13:35:39-07:00'
+      day: 18
+      hour: 13
+      microsecond: 0
+      minute: 35
+      month: 10
+      second: 39
+      year: 2018
+  - digest: sha256:c331adb72b4b49c99e593d587ed34b1da450a2739d05e40910eb8b1f4f05f66c
+    tags:
+    - v-base-d1ee37b-955
+    - v0.4.0
+    timestamp:
+      datetime: '2018-12-11 12:58:48-08:00'
+      day: 11
+      hour: 12
+      microsecond: 0
+      minute: 58
+      month: 12
+      second: 48
+      year: 2018
+- name: gcr.io/kubeflow-images-public/tensorflow-1.8.0-notebook-gpu
+  versions:
+  - digest: sha256:2db8d824f0528d0576b2d61e3d5b6c14ede523e9dd6e97335680fc73f1e013b8
+    tags:
+    - latest
+    - v20180301-pr317
+    - v0.3.0
+    timestamp:
+      datetime: '2018-09-26 15:17:58-07:00'
+      day: 26
+      hour: 15
+      microsecond: 0
+      minute: 17
+      month: 9
+      second: 58
+      year: 2018
+  - digest: sha256:ac990c52f1efd603092339d83f43d0ac64be3a422533a654ea9fd3e1130a14f4
+    tags:
+    - v-base-b321075-822
+    - v0.3.1
+    timestamp:
+      datetime: '2018-10-18 13:33:23-07:00'
+      day: 18
+      hour: 13
+      microsecond: 0
+      minute: 33
+      month: 10
+      second: 23
+      year: 2018
+  - digest: sha256:63b30b10b0b597a4d52701c8bb2cfa40826ce39f9b33d66a3648c30e2e0e28d3
+    tags:
+    - latest
+    - v20180707-5a11c84d
+    - v0.2.1
+    timestamp:
+      datetime: '2018-07-07 09:29:53-07:00'
+      day: 7
+      hour: 9
+      microsecond: 0
+      minute: 29
+      month: 7
+      second: 53
+      year: 2018
+  - digest: sha256:6b928a95e2109eb45d078fce8a757c2218a2965f653a6ed1a492ee5cf497c012
+    tags:
+    - latest
+    - v20180619-c79194b3
+    - v0.2.0
+    timestamp:
+      datetime: '2018-06-19 10:46:20-07:00'
+      day: 19
+      hour: 10
+      microsecond: 0
+      minute: 46
+      month: 6
+      second: 20
+      year: 2018
+  - digest: sha256:541d8604090b55ae87d01010bd1e015b37827b178d8676a13d6ecee892733ef6
+    tags:
+    - v-base-d1ee37b-955
+    - v0.4.0
+    timestamp:
+      datetime: '2018-12-11 13:05:48-08:00'
+      day: 11
+      hour: 13
+      microsecond: 0
+      minute: 5
+      month: 12
+      second: 48
+      year: 2018
+- name: gcr.io/kubeflow-images-public/tensorflow-1.9.0-notebook-cpu
+  versions:
+  - digest: sha256:c9f2a8f167bfee049d3afd30ee5cc9c6bfeee43137f8ccee84bcb7ba2b783bf1
+    tags:
+    - v-base-b321075-822
+    - v0.3.1
+    timestamp:
+      datetime: '2018-10-18 13:33:11-07:00'
+      day: 18
+      hour: 13
+      microsecond: 0
+      minute: 33
+      month: 10
+      second: 11
+      year: 2018
+  - digest: sha256:f4c83e9aba38e60c07329ddf26984ea93ac752915e45496fba79b5d648a827c9
+    tags:
+    - v-base-d1ee37b-955
+    - v0.4.0
+    timestamp:
+      datetime: '2018-12-11 13:26:19-08:00'
+      day: 11
+      hour: 13
+      microsecond: 0
+      minute: 26
+      month: 12
+      second: 19
+      year: 2018
+  - digest: sha256:94c6d15c49dfa8999f850ab08a12be72d9333a766b2551ced53d45af5eb9f8d9
+    tags:
+    - latest
+    - v20180301-pr317
+    - v0.3.0
+- name: gcr.io/kubeflow-images-public/tensorflow-1.9.0-notebook-gpu
+  versions:
+  - digest: sha256:14cf0049e0935974dfd8e2b4a7ba49e29f5c920cf15241f11deed78b11ca6f7d
+    tags:
+    - v-base-b321075-822
+    - v0.3.1
+    timestamp:
+      datetime: '2018-10-18 13:32:31-07:00'
+      day: 18
+      hour: 13
+      microsecond: 0
+      minute: 32
+      month: 10
+      second: 31
+      year: 2018
+  - digest: sha256:cb1c4a51c041925ef14f6558da25d5eaa769b74305cc1c089541435b57c0e679
+    tags:
+    - v-base-d1ee37b-955
+    - v0.4.0
+    timestamp:
+      datetime: '2018-12-11 13:04:27-08:00'
+      day: 11
+      hour: 13
+      microsecond: 0
+      minute: 4
+      month: 12
+      second: 27
+      year: 2018
+  - digest: sha256:15e1f791e814d35f9434cd73eb0d13497faedb0930ec341db71b56e8dbc1f20a
+    tags:
+    - latest
+    - v20180301-pr317
+    - v0.3.0
+- name: gcr.io/kubeflow-images-public/tf_operator
+  versions:
+  - digest: sha256:95a360e82bb3ed76f4c31b8d463e4d342e1b8023d20d6650f8653599bf4b57ab
+    tags:
+    - v0.4.0
+  - digest: sha256:4f20e349f79059a009ef75aea158ca0c555fcc4a22e7c80a7cb9bff54fbab6c1
+    tags:
+    - v0.2.0
+  - digest: sha256:9007f398a8da9287e4693f7cb01e711c94d1404e8bf91885837fdd5fe3cca35
+    tags:
+    - v0.3.0

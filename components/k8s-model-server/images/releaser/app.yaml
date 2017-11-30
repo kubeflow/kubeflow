@@ -1,0 +1,61 @@
+apiVersion: 0.1.0
+environments:
+  lunkai-dev:
+    destination:
+      namespace: kubeflow-testing
+      server: https://35.199.146.53
+    k8sVersion: v1.7.0
+    path: lunkai-dev
+  lunkai-dev2:
+    destination:
+      namespace: kubeflow-testing
+      server: https://35.194.21.181
+    k8sVersion: v1.7.0
+    path: lunkai-dev2
+  prow:
+    destination:
+      namespace: kubeflow-testing
+      server: https://35.196.185.88
+    k8sVersion: v1.7.0
+    path: prow
+  releasing:
+    destination:
+      namespace: kubeflow-releasing
+      server: https://35.226.49.107
+    k8sVersion: v1.7.0
+    path: releasing
+  testing:
+    destination:
+      namespace: kubeflow-test-infra
+      server: https://35.185.54.227
+    k8sVersion: v1.7.0
+    path: testing
+kind: ksonnet.io/app
+libraries:
+  core:
+    gitVersion:
+      commitSha: 5c35580d76092788b089cb447be3f3097cffe60b
+      refSpec: master
+    name: core
+    registry: kubeflow
+  tf-serving:
+    gitVersion:
+      commitSha: d5580b6fec1df321d6a29a7b4d9fde55f98105a8
+      refSpec: master
+    name: tf-serving
+    registry: kubeflow
+name: test-infra
+registries:
+  incubator:
+    gitVersion:
+      commitSha: ea3408d44c2d8ea4d321364e5533d5c60e74bce0
+      refSpec: master
+    protocol: github
+    uri: github.com/ksonnet/parts/tree/master/incubator
+  kubeflow:
+    gitVersion:
+      commitSha: d5580b6fec1df321d6a29a7b4d9fde55f98105a8
+      refSpec: master
+    protocol: github
+    uri: github.com/google/kubeflow/tree/master/kubeflow
+version: 0.0.1

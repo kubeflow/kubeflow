@@ -1,0 +1,35 @@
+{
+   "name": "seldon",
+   "apiVersion": "0.0.1",
+   "kind": "ksonnet.io/parts",
+   "description": "Seldon ML Deployment\n",
+   "author": "seldon-core team <devext@seldon.io>",
+   "contributors": [
+      {
+         "name": "Clive Cox",
+         "email": "cc@seldon.io"
+      }
+   ],
+   "repository": {
+      "type": "git",
+      "url": "https://github.com/kubeflow/kubeflow"
+   },
+   "bugs": {
+      "url": "https://github.com/SeldonIO/seldon-core/issues"
+   },
+   "keywords": [
+      "kubernetes",
+      "machine learning",
+      "deployment"
+   ],
+   "quickStart": {
+      "prototype": "io.ksonnet.pkg.seldon",
+      "componentName": "seldon",
+      "flags": {
+         "name": "seldon",
+         "namespace": "default"
+      },
+      "comment": "Seldon Core Components."
+   },
+   "license": "Apache 2.0"
+}

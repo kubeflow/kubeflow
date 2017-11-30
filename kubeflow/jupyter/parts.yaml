@@ -1,0 +1,36 @@
+{
+   "name": "jupyter",
+   "apiVersion": "0.0.1",
+   "kind": "ksonnet.io/parts",
+   "description": "Notebooks/Jupyter component of Kubeflow.\n",
+   "author": "kubeflow team <kubeflow-team@google.com>",
+   "contributors": [
+      {
+         "name": "Jeremy Lewi",
+         "email": "jlewi@google.com"
+      }
+   ],
+   "repository": {
+      "type": "git",
+      "url": "https://github.com/kubeflow/kubeflow"
+   },
+   "bugs": {
+      "url": "https://github.com/kubeflow/kubeflow/issues"
+   },
+   "keywords": [
+      "kubeflow",
+      "jupyter",
+      "notebooks"
+   ],
+   "quickStart": {
+      "prototype": "io.ksonnet.pkg.jupyter",
+      "componentName": "jupyter",
+      "flags": {
+         "name": "jupyter",
+         "namespace": "default",
+         "disks": ""
+      },
+      "comment": "Jupyter Kubeflow component."
+   },
+   "license": "Apache 2.0"
+}

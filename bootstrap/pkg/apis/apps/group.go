@@ -1,0 +1,178 @@
+// Copyright 2018 The Kubeflow Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// Package apps contains apps API versions
+package apps
+
+import (
+	"fmt"
+	log "github.com/sirupsen/logrus"
+	"io"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
+)
+
+const (
+	DefaultNamespace = "kubeflow"
+	DefaultPlatform  = "none"
+	// TODO: find the latest tag dynamically
+	DefaultVersion = "v0.4.1"
+	DefaultKfRepo  = "$GOPATH/src/github.com/kubeflow/kubeflow/kubeflow"
+	KfConfigFile   = "app.yaml"
+)
+
+type ResourceEnum string
+
+const (
+	ALL      ResourceEnum = "all"
+	K8S      ResourceEnum = "k8s"
+	PLATFORM ResourceEnum = "platform"
+	NONE     ResourceEnum = "none"
+)
+
+type CliOption string
+
+const (
+	EMAIL       CliOption = "email"
+	IPNAME      CliOption = "ipName"
+	MOUNT_LOCAL CliOption = "mount-local"
+	VERBOSE     CliOption = "verbose"
+	NAMESPACE   CliOption = "namespace"
+	VERSION     CliOption = "version"
+	REPO        CliOption = "repo"
+	PROJECT     CliOption = "project"
+	APPNAME     CliOption = "appname"
+	APPDIR      CliOption = "appDir"
+	KAPP        CliOption = "KApp"
+	KSAPP       CliOption = "KsApp"
+)
+
+//
+// KfApp is used by commands under bootstrap/cmd/{bootstrap,kfctl}. KfApp provides a common
+// API for different implementations like KsApp, GcpApp, MinikubeApp, etc.
+//
+type KfApp interface {
+	Apply(resources ResourceEnum, options map[string]interface{}) error
+	Delete(resources ResourceEnum, options map[string]interface{}) error
+	Generate(resources ResourceEnum, options map[string]interface{}) error
+	Init(options map[string]interface{}) error
+}
+
+func KubeConfigPath() string {
+	kubeconfigEnv := os.Getenv("KUBECONFIG")
+	if kubeconfigEnv == "" {
+		home := os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
+		if home == "" {
+			for _, h := range []string{"HOME", "USERPROFILE"} {
+				if home = os.Getenv(h); home != "" {
+					break
+				}
+			}
+		}
+		kubeconfigPath := filepath.Join(home, ".kube", "config")
+		return kubeconfigPath
+	}
+	return kubeconfigEnv
+}
+
+// BuildOutOfClusterConfig returns k8s config
+func BuildOutOfClusterConfig() (*rest.Config, error) {
+	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
+	loadingRules.ExplicitPath = KubeConfigPath()
+	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		loadingRules, &clientcmd.ConfigOverrides{}).ClientConfig()
+	if err != nil {
+		return nil, err
+	}
+	return config, nil
+}
+
+func ServerVersion() (host string, version string, err error) {
+	restApi, err := BuildOutOfClusterConfig()
+	if err != nil {
+		return "", "", fmt.Errorf("couldn't build out-of-cluster config. Error: %v", err)
+	}
+	clnt, clntErr := kubernetes.NewForConfig(restApi)
+	if clntErr != nil {
+		return "", "", fmt.Errorf("couldn't get clientset. Error: %v", err)
+	}
+	serverVersion, serverVersionErr := clnt.ServerVersion()
+	if serverVersionErr != nil {
+		return "", "", fmt.Errorf("couldn't get server version info. Error: %v", serverVersionErr)
+	}
+	re := regexp.MustCompile("^v[0-9]+.[0-9]+.[0-9]+")
+	version = re.FindString(serverVersion.String())
+	return restApi.Host, "version:" + version, nil
+}
+
+func GetClientConfig() (*clientcmdapi.Config, error) {
+	kubeconfig := KubeConfigPath()
+	config, configErr := clientcmd.LoadFromFile(kubeconfig)
+	if configErr != nil {
+		return nil, fmt.Errorf("could not load config Error: %v", configErr)
+
+	}
+	return config, nil
+}
+
+// GetClientOutOfCluster returns a k8s clientset to the request from outside of cluster
+func GetClientOutOfCluster() (kubernetes.Interface, error) {
+	config, err := BuildOutOfClusterConfig()
+	if err != nil {
+		log.Fatalf("Can not get kubernetes config: %v", err)
+	}
+
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		log.Fatalf("Can not get kubernetes client: %v", err)
+	}
+
+	return clientset, nil
+}
+
+// capture replaces os.Stdout with a writer that buffers any data written
+// to os.Stdout. Call the returned function to cleanup and get the data
+// as a string.
+func capture() func() (string, error) {
+	r, w, err := os.Pipe()
+	if err != nil {
+		panic(err)
+	}
+
+	done := make(chan error, 1)
+
+	save := os.Stdout
+	os.Stdout = w
+
+	var buf strings.Builder
+
+	go func() {
+		_, err := io.Copy(&buf, r)
+		_ = r.Close()
+		done <- err
+	}()
+
+	return func() (string, error) {
+		os.Stdout = save
+		_ = w.Close()
+		err := <-done
+		return buf.String(), err
+	}
+}

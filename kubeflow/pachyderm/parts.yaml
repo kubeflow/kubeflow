@@ -1,0 +1,22 @@
+{
+   "name": "pachyderm",
+   "apiVersion": "0.0.1",
+   "kind": "ksonnet.io/parts",
+   "description": "Pacyderm http://www.pachyderm.io/.\n",
+   "author": "kubeflow-team <kubeflow-discuss@googlegroups.com>",
+   "contributors": [
+   ],
+   "repository": {
+      "type": "git",
+      "url": "https://github.com/kubeflow/kubeflow"
+   },
+   "bugs": {
+      "url": "https://github.com/kubeflow/kubeflow/issues"
+   },
+   "keywords": [
+      "kubernetes",
+      "kubeflow",
+      "machine learning"
+   ],
+   "license": "Apache 2.0",
+}

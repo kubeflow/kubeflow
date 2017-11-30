@@ -1,0 +1,41 @@
+{
+   "name": "openmpi",
+   "apiVersion": "0.0.1",
+   "kind": "ksonnet.io/parts",
+   "description": "Prototypes for running openmpi jobs.\n",
+   "author": "Jie Zhang <jiez@uber.com>",
+   "contributors": [
+      {
+         "name": "Jie Zhang",
+         "email": "jiez@uber.com"
+      },
+      {
+        "name": "Shingo Omura",
+        "email": "everpeace@gmail.com"
+      }
+   ],
+   "repository": {
+      "type": "git",
+      "url": "https://github.com/kubeflow/kubeflow"
+   },
+   "bugs": {
+      "url": "https://github.com/kubeflow/kubeflow/issues"
+   },
+   "keywords": [
+      "kubeflow",
+      "kubernetes",
+      "mpi",
+      "openmpi",
+      "horovod"
+   ],
+   "quickStart": {
+      "prototype": "io.ksonnet.pkg.kubeflow",
+      "componentName": "openmpi",
+      "flags": {
+         "name": "openmpi",
+         "namespace": "default",
+      },
+      "comment": "Prototypes for running openmpi jobs."
+   },
+   "license": "Apache 2.0"
+}

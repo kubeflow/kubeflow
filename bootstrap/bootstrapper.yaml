@@ -1,0 +1,73 @@
+---
+# Namespace for bootstrapper
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kubeflow-admin
+---
+# Make kubeflow-admin admin
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: kubeflow-cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: kubeflow-admin
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
+---
+# Store ksonnet apps
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kubeflow-ksonnet-pvc
+  namespace: kubeflow-admin
+  labels:
+    app: kubeflow-ksonnet
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1beta2
+kind: StatefulSet
+metadata:
+  name: kubeflow-bootstrapper
+  namespace: kubeflow-admin
+spec:
+  selector:
+    matchLabels:
+      app: kubeflow-bootstrapper
+  serviceName: kubeflow-bootstrapper
+  template:
+    metadata:
+      name: kubeflow-bootstrapper
+      labels:
+        app: kubeflow-bootstrapper
+    spec:
+      containers:
+      - name: kubeflow-bootstrapper
+        image: gcr.io/kubeflow-images-public/bootstrapper-minikube:v20180813-cbc1c06-dirty-b82a7f
+        workingDir: /opt/bootstrap
+        command: [ "/opt/kubeflow/bootstrapper"]
+        args: [
+          "--in-cluster",
+          "--namespace=kubeflow",
+          "--apply",
+          # change config here if you want to use customized config.
+          # "--config=/opt/kubeflow/default.yaml"
+          # app-dir: path to store your ks apps in pod's PersistentVolume
+          # "--app-dir=/opt/bootstrap"
+          ]
+        volumeMounts:
+        - name: kubeflow-ksonnet-pvc
+          mountPath: /opt/bootstrap
+      volumes:
+      - name: kubeflow-ksonnet-pvc
+        persistentVolumeClaim:
+          claimName: kubeflow-ksonnet-pvc

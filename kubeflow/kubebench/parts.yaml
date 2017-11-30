@@ -1,0 +1,33 @@
+{
+   "name": "kubebench",
+   "apiVersion": "0.0.1",
+   "kind": "ksonnet.io/parts",
+   "description": "Kubebench is a benchmark tool for Kubeflow jobs.\n",
+   "author": "Cisco Systems, Inc.",
+   "contributors": [
+      {
+         "name": "Xinyuan Huang",
+         "email": "xinyuahu@cisco.com"
+      },
+      {
+         "name": "Andrey Velichkevich",
+         "email": "andrey.velichkevich@gmail.com"
+      },
+      {
+         "name": "Kirill Prosvirov",
+         "email": "prosvirov.k@gmail.com"
+      }
+   ],
+   "repository": {
+      "type": "git",
+      "url": "https://github.com/kubeflow/kubebench"
+   },
+   "bugs": {
+      "url": "https://github.com/kubeflow/kubebench/issues"
+   },
+   "keywords": [
+      "kubeflow",
+      "benchmark"
+   ],
+   "license": "Apache 2.0"
+}

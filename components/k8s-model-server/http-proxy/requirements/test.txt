@@ -1,0 +1,3 @@
+-r production.txt
+pytest==2.8.7
+pytest-tornado==0.4.5

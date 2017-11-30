@@ -1,0 +1,39 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: external-dns
+  namespace: gcp-deploy
+spec:
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: external-dns
+    spec:
+      serviceAccountName: external-dns
+      containers:
+      - name: external-dns
+        image: registry.opensource.zalan.do/teapot/external-dns:latest
+        args:
+        - --source=service
+        - --source=ingress
+        # will make ExternalDNS see only the hosted zones matching provided domain, omit to process all available hosted zones
+        - --domain-filter=kubeflow.dev
+        - --provider=google
+        # Use this to specify a project different from the one external-dns is running inside
+        - --google-project=kubeflow-dns
+        - --policy=upsert-only # would prevent ExternalDNS from deleting any records, omit to enable full synchronization
+        - --registry=txt
+        - --txt-owner-id=jlewi@google.com
+        env:
+          - name: GOOGLE_APPLICATION_CREDENTIALS
+            value: "/etc/secrets/gcp-sa.json"
+        volumeMounts:
+          - name: sa
+            mountPath: "/etc/secrets"
+            readOnly: true
+      volumes:
+      - name: sa
+        secret:
+          secretName: gcp-sa

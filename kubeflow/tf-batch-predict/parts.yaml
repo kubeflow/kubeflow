@@ -1,0 +1,35 @@
+{
+   "name": "tf-batch-predict",
+   "apiVersion": "0.0.1",
+   "kind": "ksonnet.io/parts",
+   "description": "Batch Predict performs inferences in batch mode.\n",
+   "author": "kubeflow team <kubeflow-team@google.com>",
+   "contributors": [
+      {
+         "name": "Yixin Shi",
+         "email": "yxshi@google.com"
+      }
+   ],
+   "repository": {
+      "type": "git",
+      "url": "https://github.com/kubeflow/kubeflow"
+   },
+   "bugs": {
+      "url": "https://github.com/kubeflow/kubeflow/issues"
+   },
+   "keywords": [
+      "kubeflow",
+      "tensorflow",
+      "batch predict",
+   ],
+   "quickStart": {
+      "prototype": "io.ksonnet.pkg.tf-batch-predict",
+      "componentName": "tf-batch-predict",
+      "flags": {
+         "name": "tf-batch-predict",
+         "namespace": "default"
+      },
+      "comment": "Run TF batch predict"
+   },
+   "license": "Apache 2.0"
+}

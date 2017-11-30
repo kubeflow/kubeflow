@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="theme-color" content="#000000">
+  <link rel="manifest" href="%PUBLIC_URL%/manifest.json">
+  <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Google+Sans">
+  <script type="text/javascript">
+    var gapiPromise = (() => {
+      return new Promise((resolve, reject) => {
+        window.triggerGapiLoaded = () => {
+          resolve();
+        };
+      });
+    })();
+    window.gapiPromise = gapiPromise;
+  </script>
+  <script src="https://apis.google.com/js/client.js?onload=triggerGapiLoaded" async defer></script>
+  <title>Deploy Kubeflow</title>
+
+  <style>
+    body {
+      font-family: 'roboto', sans-serif;
+      margin: 0;
+    }
+    #root {
+      height: 100vh;
+      width: 100vw;
+    }
+  </style>
+</head>
+
+<body>
+  <noscript>
+    You need to enable JavaScript to run this app.
+  </noscript>
+  <div id="root"></div>
+</body>
+
+</html>
