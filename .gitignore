@@ -1,0 +1,32 @@
+# pkg and bin directories currently contain build artifacts
+# only so we exclude them.
+bin/
+vendor/
+
+.vscode/
+
+# Compiled python files.
+*.pyc
+
+# Emacs temporary files
+*~
+
+# Other temporary files
+.DS_Store
+
+# Files created by Gogland IDE
+.idea/
+
+# Exclude wheel files for now.
+# The only wheel file is the TF wheel one which is quite large.
+# We don't want to check that into source control because it could be
+# quite large.
+*.whl
+
+# Bazel files
+**/bazel-*
+# Examples egg
+examples/tf_sample/tf_sample.egg-info/
+examples/.ipynb_checkpoints/
+
+**/.ipynb_checkpoints
