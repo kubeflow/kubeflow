@@ -42,8 +42,8 @@ data:
 
       def options_from_form(self, formdata):
         options = {}
-        options['image'] = formdata.get('image', ['gcr.io/kubeflow/tensorflow-notebook'])[0].strip()
-        options['cpu_guarantee'] = formdata.get('cpu_guarantee', ['200m'])[0].strip()
+        options['image'] = formdata.get('image', ['gcr.io/kubeflow/tensorflow-notebook-cpu'])[0].strip()
+        options['cpu_guarantee'] = formdata.get('cpu_guarantee', ['500m'])[0].strip()
         options['mem_guarantee'] = formdata.get('mem_guarantee', ['1Gi'])[0].strip()
         options['extra_resource_limits'] = formdata.get('extra_resource_limits', [''])[0].strip()
         return options
