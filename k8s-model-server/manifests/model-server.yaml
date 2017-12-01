@@ -1,0 +1,64 @@
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ==============================================================================
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: model-server
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: model-server
+  template:
+    metadata:
+      labels:
+        app: model-server
+    spec:
+      containers:
+      - name: model-server
+        image: gcr.io/kubeflow/model-server:1.0
+        imagePullPolicy: Always
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "1"
+          limits:
+            memory: "4Gi"
+            cpu: "4"
+        command:
+        - /bin/sh
+        - -c
+        args:
+        - /usr/bin/tensorflow_model_server
+          --port=9000 --model_name=inception --model_base_path=gs://kubeflow-models/inception/
+        ports:
+        - containerPort: 9000
+      securityContext:
+        runAsUser: 1000
+        fsGroup: 1000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: model-service
+  name: model-service
+spec:
+  ports:
+  - port: 9000
+    targetPort: 9000
+  selector:
+    app: model-server
+  type: LoadBalancer
