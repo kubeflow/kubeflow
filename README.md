@@ -7,17 +7,17 @@ The Kubeflow project is a new open source Github repo dedicated to reducing fric
 * A Tensorboard instance
 * A TF Serving container
 
-This document details the steps needed to run the kubeflow project in different environments, such as Minikube (local laptop). Google Kubernetes Engine, etc. 
+This document details the steps needed to run the Kubeflow project in different environments, such as Minikube (local laptop). Google Kubernetes Engine, etc. 
 
 ## Quick Start
 
-In order to quickly setup all components of the stack, run:
+In order to quickly set up all components of the stack, run:
 
 ```commandline
 kubectl apply -f manifests/ -R
 ```
 
-The above command sets up JupyterHub, an API for training using Tensorflow, and a set of deployment files for serivng. 
+The above command sets up JupyterHub, an API for training using Tensorflow, and a set of deployment files for serving. 
 Used together, these serve as configuration that can help a user go from training to serving using Tensorflow with minimal
 effort in a portable fashion between different environments. You can refer to the instructions for using each of these components below. 
 
@@ -25,9 +25,8 @@ effort in a portable fashion between different environments. You can refer to th
 
 ### Minikube
 
-[Minikube](https://github.com/kubernetes/minikube) is a tool that makes it easy to run Kubernetes locally. Minikube runs a single-
-node Kubernetes cluster inside a VM on your laptop for users looking to try out Kubernetes or develop with it day-to-day. 
-The below steps apply to a minikube cluster - the latest version as of writing this documetation is 0.23.0. You must also have 
+[Minikube](https://github.com/kubernetes/minikube) is a tool that makes it easy to run Kubernetes locally. Minikube runs a single-node Kubernetes cluster inside a VM on your laptop for users looking to try out Kubernetes or develop with it day-to-day. 
+The below steps apply to a minikube cluster - the latest version as of writing this documentation is 0.23.0. You must also have 
 kubectl configured to access minikube.
 
 ### Google Kubernetes Engine
