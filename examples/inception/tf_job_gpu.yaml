@@ -1,7 +1,7 @@
 apiVersion: tensorflow.org/v1alpha1
 kind: TfJob
 metadata:
-  name: inception-flowers-171201-044136
+  name: inception-flowers-171201-062456
   namespace: default
 spec:
   replicaSpecs:
@@ -16,16 +16,16 @@ spec:
           - --dataset_split_name=train
           - --dataset_dir=gs://cloud-ml-dev_jlewi/inception/data/flowers
           - --model_name=inception_v3
-          - --train_dir=gs://cloud-ml-dev_jlewi/inception/jobs/inception-flowers-171201-044136
+          - --train_dir=gs://cloud-ml-dev_jlewi/inception/jobs/inception-flowers-171201-062456
           - --clone_on_cpu=False
           - --num_ps_tasks=1
-          - --worker_replicas=1
-          image: gcr.io/cloud-ml-dev/tf-models-cpu:983db88-dirty-540c7a1
+          - --worker_replicas=2
+          image: gcr.io/cloud-ml-dev/tf-models-cpu:983db88-dirty-df69518
           name: tensorflow
           workingDir: /tensorflow_models/research/slim
         restartPolicy: OnFailure
     tfReplicaType: MASTER
-  - replicas: 1
+  - replicas: 2
     template:
       spec:
         containers:
@@ -36,11 +36,11 @@ spec:
           - --dataset_split_name=train
           - --dataset_dir=gs://cloud-ml-dev_jlewi/inception/data/flowers
           - --model_name=inception_v3
-          - --train_dir=gs://cloud-ml-dev_jlewi/inception/jobs/inception-flowers-171201-044136
+          - --train_dir=gs://cloud-ml-dev_jlewi/inception/jobs/inception-flowers-171201-062456
           - --clone_on_cpu=False
           - --num_ps_tasks=1
-          - --worker_replicas=1
-          image: gcr.io/cloud-ml-dev/tf-models-gpu:983db88-dirty-164e5e3
+          - --worker_replicas=2
+          image: gcr.io/cloud-ml-dev/tf-models-gpu:983db88-dirty-5895cd7
           name: tensorflow
           resources:
             limits:
@@ -51,5 +51,5 @@ spec:
   - replicas: 1
     tfReplicaType: PS
   tensorBoard:
-    logDir: gs://cloud-ml-dev_jlewi/inception/jobs/inception-flowers-171201-044136
-  tfImage: gcr.io/cloud-ml-dev/tf-models-cpu:983db88-dirty-540c7a1
+    logDir: gs://cloud-ml-dev_jlewi/inception/jobs/inception-flowers-171201-062456
+  tfImage: gcr.io/cloud-ml-dev/tf-models-cpu:983db88-dirty-df69518
