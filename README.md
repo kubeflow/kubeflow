@@ -1,6 +1,6 @@
 # Kubeflow
 
-The Kubeflow project is project dedicated to making Machine Learning on Kubernetes easy, portable and scalable. Contained in this repository are:
+The Kubeflow project is dedicated to making Machine Learning on Kubernetes easy, portable and scalable. Contained in this repository are:
 
 * JupyterHub to create & manage interactive Jupyter notebooks
 * A Tensorflow Custom Resource (CRD) that can be configured to use CPUs or GPUs, and adjusted to the size of a cluster with a single setting
@@ -105,22 +105,4 @@ TODO(owensk)
 
 ## Roadmap
 
-We plan to map to Kubernetes releases, and have a new Kubeflow release every 90 days (or so). Our goals for the coming year include:
-- March:
-  - Templatized deployments (e.g. deployment/configuration based on cluster specs)
-  - Predictive recommendations
-  - Template models that run on Kubeflow
-  - TF.transform for programatically transforming data
-  - Evaluation of TensorFlow models with sliced metrics
-- June:
-  - Pipeline orchestration
-  - Metadata standard to be used for visualization and data validation
-  - Model validation and next-day eval functionality. 
-- September:
-  - Move/copy sampled data from another source (for local training)
-  - Pipeline monitoring of jobs
-  - Logging framework for skew detection
-- December
-  - Pipeline frontend
-
-However, these are just initial thoughts - we would love to collaborate with the community to establish the right next steps!
+TBD
