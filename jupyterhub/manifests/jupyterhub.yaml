@@ -42,7 +42,7 @@ spec:
     spec:
       containers:
       - name: tf-hub
-        image: gcr.io/kubeflow/jupyterhub:1.0
+        image: gcr.io/kubeflow/tensorflow-notebook-cpu:latest
         command: ["jupyterhub", "-f", "/etc/config/jupyterhub_config.py"]
         volumeMounts:
         - name: config-volume
