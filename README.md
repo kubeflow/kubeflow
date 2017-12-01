@@ -18,7 +18,7 @@ Our goal is to help folks use ML more easily, by letting Kubernetes to do what i
 
 Because ML practitioners use so many different types of tools, it is a key goal that you can customize the stack to whatever your requirements (within reason), and let the system take care of the "boring stuff." While we have started with a narrow set of technologies, we are working with many different projects to include additional tooling.
 
-Ultimately, we want to have a single deployable artifact (a manifest) that gives you an easy to use ML stack _anywhere_ Kubernetes is already running and can self configure based on the cluster it deploys into.
+Ultimately, we want to have a set of simple manifests that give you an easy to use ML stack _anywhere_ Kubernetes is already running and can self configure based on the cluster it deploys into.
 
 ## Quick Start
 
