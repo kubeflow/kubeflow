@@ -1,0 +1,52 @@
+apiVersion: tensorflow.org/v1alpha1
+kind: TfJob
+metadata:
+  name: inception-flowers-171201-060812
+  namespace: default
+spec:
+  replicaSpecs:
+  - replicas: 1
+    template:
+      spec:
+        containers:
+        - command:
+          - python
+          - train_image_classifier.py
+          - --dataset_name=flowers
+          - --dataset_split_name=train
+          - --dataset_dir=gs://cloud-ml-dev_jlewi/inception/data/flowers
+          - --model_name=inception_v3
+          - --train_dir=gs://cloud-ml-dev_jlewi/inception/jobs/inception-flowers-171201-060812
+          - --clone_on_cpu=True
+          - --num_ps_tasks=1
+          - --worker_replicas=2
+          image: gcr.io/cloud-ml-dev/tf-models-cpu:983db88-dirty-44b8f77
+          name: tensorflow
+          workingDir: /tensorflow_models/research/slim
+        restartPolicy: OnFailure
+    tfReplicaType: MASTER
+  - replicas: 2
+    template:
+      spec:
+        containers:
+        - command:
+          - python
+          - train_image_classifier.py
+          - --dataset_name=flowers
+          - --dataset_split_name=train
+          - --dataset_dir=gs://cloud-ml-dev_jlewi/inception/data/flowers
+          - --model_name=inception_v3
+          - --train_dir=gs://cloud-ml-dev_jlewi/inception/jobs/inception-flowers-171201-060812
+          - --clone_on_cpu=True
+          - --num_ps_tasks=1
+          - --worker_replicas=2
+          image: gcr.io/cloud-ml-dev/tf-models-cpu:983db88-dirty-44b8f77
+          name: tensorflow
+          workingDir: /tensorflow_models/research/slim
+        restartPolicy: OnFailure
+    tfReplicaType: WORKER
+  - replicas: 1
+    tfReplicaType: PS
+  tensorBoard:
+    logDir: gs://cloud-ml-dev_jlewi/inception/jobs/inception-flowers-171201-060812
+  tfImage: gcr.io/cloud-ml-dev/tf-models-cpu:983db88-dirty-44b8f77
