@@ -1,7 +1,7 @@
 apiVersion: tensorflow.org/v1alpha1
 kind: TfJob
 metadata:
-  name: inception-171202-004416
+  name: inception-171202-005529
   namespace: default
 spec:
   replicaSpecs:
@@ -21,7 +21,7 @@ spec:
           workingDir: /opt/tf-benchmarks/scripts/tf_cnn_benchmarks
         restartPolicy: OnFailure
     tfReplicaType: MASTER
-  - replicas: 1
+  - replicas: 3
     template:
       spec:
         containers:
