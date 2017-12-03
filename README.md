@@ -14,7 +14,7 @@ This document details the steps needed to run the Kubeflow project in different 
 In order to quickly set up all components of the stack, run:
 
 ```commandline
-kubectl apply -f manifests/ -R
+kubectl apply -f components/ -R
 ```
 
 The above command sets up JupyterHub, an API for training using Tensorflow, and a set of deployment files for serving. 
