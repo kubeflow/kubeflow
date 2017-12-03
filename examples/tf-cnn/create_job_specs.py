@@ -54,7 +54,14 @@ if __name__ == "__main__":
   args = parser.parse_args()
 
   namespace = "default"
-  job_name = "inception-"+ datetime.datetime.now().strftime("%y%m%d-%H%M%S")
+  job_name = "inception-" + datetime.datetime.now().strftime("%y%m%d-%H%M%S")
+  if args.use_gpu:
+    job_name += "-gpu"
+  else:
+    job_name += "-cpu"
+
+  job_name += "-{0}".format(args.num_workers)
+
   body = {}
   body['apiVersion'] = TF_JOB_GROUP + "/" + TF_JOB_VERSION
   body['kind'] = TF_JOB_KIND

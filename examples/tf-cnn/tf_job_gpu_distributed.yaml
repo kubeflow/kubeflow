@@ -1,7 +1,7 @@
 apiVersion: tensorflow.org/v1alpha1
 kind: TfJob
 metadata:
-  name: inception-171202-161204
+  name: inception-171202-163257-gpu-3
   namespace: default
 spec:
   replicaSpecs:
@@ -17,7 +17,7 @@ spec:
           - --variable_update=parameter_server
           - --flush_stdout=true
           - --num_gpus=1
-          image: gcr.io/kubeflow/tf-benchmarks-gpu:v20171202-bdab599-dirty-284af3
+          image: gcr.io/kubeflow/tf-benchmarks-cpu:v20171202-bdab599-dirty-284af3
           name: tensorflow
           workingDir: /opt/tf-benchmarks/scripts/tf_cnn_benchmarks
         restartPolicy: OnFailure
@@ -54,9 +54,9 @@ spec:
           - --variable_update=parameter_server
           - --flush_stdout=true
           - --num_gpus=1
-          image: gcr.io/kubeflow/tf-benchmarks-gpu:v20171202-bdab599-dirty-284af3
+          image: gcr.io/kubeflow/tf-benchmarks-cpu:v20171202-bdab599-dirty-284af3
           name: tensorflow
           workingDir: /opt/tf-benchmarks/scripts/tf_cnn_benchmarks
         restartPolicy: OnFailure
     tfReplicaType: PS
-  tfImage: gcr.io/kubeflow/tf-benchmarks-gpu:v20171202-bdab599-dirty-284af3
+  tfImage: gcr.io/kubeflow/tf-benchmarks-cpu:v20171202-bdab599-dirty-284af3

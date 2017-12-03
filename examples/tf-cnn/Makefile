@@ -30,11 +30,11 @@ build-images: build-cpu build-gpu
 
 # Create the templates
 build-templates:
-	python create_job_specs.py --cpu_image=$(PUBLISHED_GPU) --gpu_image=$(PUBLISHED_GPU) \
+	python create_job_specs.py --cpu_image=$(PUBLISHED_CPU) --gpu_image=$(PUBLISHED_GPU) \
 		--gpu --num_workers=1 --output=tf_job_gpu.yaml
-	python create_job_specs.py --cpu_image=$(PUBLISHED_GPU) --gpu_image=$(PUBLISHED_GPU) \
+	python create_job_specs.py --cpu_image=$(PUBLISHED_CPU) --gpu_image=$(PUBLISHED_GPU) \
 		--gpu --num_workers=3 --output=tf_job_gpu_distributed.yaml
-	python create_job_specs.py --cpu_image=$(PUBLISHED_GPU) --gpu_image=$(PUBLISHED_GPU) \
+	python create_job_specs.py --cpu_image=$(PUBLISHED_CPU) --gpu_image=$(PUBLISHED_GPU) \
 		--no-gpu --num_workers=1 --output=tf_job_cpu.yaml
-	python create_job_specs.py --cpu_image=$(PUBLISHED_GPU) --gpu_image=$(PUBLISHED_GPU) \
+	python create_job_specs.py --cpu_image=$(PUBLISHED_CPU) --gpu_image=$(PUBLISHED_GPU) \
 		--no-gpu --num_workers=3 --output=tf_job_cpu_distributed.yaml
