@@ -1,0 +1,16 @@
+# Docker image for running examples in Tensorflow models.
+# base_image depends on whether we are running on GPUs or non-GPUs
+FROM tensorflow/tensorflow@sha256:5edc0446cc989ad75bc30631f89f20694fe5bf5226f665d47e5c7f35a3b18484
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    build-essential \
+    git
+
+RUN mkdir -p /opt
+
+RUN git clone https://github.com/tensorflow/benchmarks.git /opt/tf-benchmarks
+
+COPY launcher.py /opt
+RUN chmod u+x /opt/*
+ENTRYPOINT ["/opt/launcher.py"]
