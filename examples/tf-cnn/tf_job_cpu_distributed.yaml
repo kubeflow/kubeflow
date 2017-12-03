@@ -1,7 +1,7 @@
 apiVersion: tensorflow.org/v1alpha1
 kind: TfJob
 metadata:
-  name: inception-171202-233610
+  name: inception-171202-161204
   namespace: default
 spec:
   replicaSpecs:
@@ -20,7 +20,7 @@ spec:
           - --local_parameter_device=cpu
           - --device=cpu
           - --data_format=NHWC
-          image: gcr.io/cloud-ml-dev/tf-benchmarks:v20171202-a11264e-dirty-4e1070
+          image: gcr.io/kubeflow/tf-benchmarks-gpu:v20171202-bdab599-dirty-284af3
           name: tensorflow
           workingDir: /opt/tf-benchmarks/scripts/tf_cnn_benchmarks
         restartPolicy: OnFailure
@@ -40,7 +40,7 @@ spec:
           - --local_parameter_device=cpu
           - --device=cpu
           - --data_format=NHWC
-          image: gcr.io/cloud-ml-dev/tf-benchmarks:v20171202-a11264e-dirty-4e1070
+          image: gcr.io/kubeflow/tf-benchmarks-gpu:v20171202-bdab599-dirty-284af3
           name: tensorflow
           workingDir: /opt/tf-benchmarks/scripts/tf_cnn_benchmarks
         restartPolicy: OnFailure
@@ -60,9 +60,9 @@ spec:
           - --local_parameter_device=cpu
           - --device=cpu
           - --data_format=NHWC
-          image: gcr.io/cloud-ml-dev/tf-benchmarks:v20171202-a11264e-dirty-4e1070
+          image: gcr.io/kubeflow/tf-benchmarks-gpu:v20171202-bdab599-dirty-284af3
           name: tensorflow
           workingDir: /opt/tf-benchmarks/scripts/tf_cnn_benchmarks
         restartPolicy: OnFailure
     tfReplicaType: PS
-  tfImage: gcr.io/cloud-ml-dev/tf-benchmarks:v20171202-a11264e-dirty-4e1070
+  tfImage: gcr.io/kubeflow/tf-benchmarks-gpu:v20171202-bdab599-dirty-284af3
