@@ -25,7 +25,7 @@ Ultimately, we want to have a set of simple manifests that give you an easy to u
 In order to quickly set up all components of the stack, run:
 
 ```commandline
-kubectl apply -f manifests/ -R
+kubectl apply -f components/ -R
 ```
 
 The above command sets up JupyterHub, an API for training using Tensorflow, and a set of deployment files for serving. 
@@ -43,8 +43,14 @@ single-node Kubernetes cluster inside a VM on your laptop for users looking to t
 The below steps apply to a minikube cluster - the latest version as of writing this documentation is 0.23.0. You must also have 
 kubectl configured to access minikube.
 
-Kubeflow is designed to work on your laptop via Minikube.
+### Google Kubernetes Engine
 
+[Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/) is a managed environment for deploying Kubernetes applications powered by Google Cloud.
+If you're using Google Kubernetes Engine, prior to creating the manifests, you must grant your own user the requisite RBAC role to create/edit other RBAC roles.
+
+```commandline
+kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --user=user@gmail.com
+```
 ## Tutorial
 
 ### Bringing up a Notebook
