@@ -34,5 +34,5 @@ subjects:
   namespace: default
 roleRef:
   kind: Role
-  name: edit
+  name: edit-pod
   apiGroup: rbac.authorization.k8s.io
