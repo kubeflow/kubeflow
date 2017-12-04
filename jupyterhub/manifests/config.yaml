@@ -42,21 +42,22 @@ data:
 
       def options_from_form(self, formdata):
         options = {}
-        options['image'] = formdata.get('image', ['gcr.io/kubeflow/tensorflow-notebook'])[0].strip()
-        options['cpu_guarantee'] = formdata.get('cpu_guarantee', ['200m'])[0].strip()
-        options['mem_guarantee'] = formdata.get('mem_guarantee', ['1Gi'])[0].strip()
+        options['image'] = formdata.get('image', [''])[0].strip()
+        options['cpu_guarantee'] = formdata.get('cpu_guarantee', [''])[0].strip()
+        options['mem_guarantee'] = formdata.get('mem_guarantee', [''])[0].strip()
         options['extra_resource_limits'] = formdata.get('extra_resource_limits', [''])[0].strip()
         return options
 
-      def get_image_spec(self):
-        image = super().singleuser_image_spec
+      @property
+      def singleuser_image_spec(self):
+        image = 'gcr.io/kubeflow/tensorflow-notebook-cpu'
         if self.user_options.get('image'):
           image = self.user_options['image']
         return image
 
       @property
       def cpu_guarantee(self):
-        cpu = "1"
+        cpu = "500m"
         if self.user_options.get('cpu_guarantee'):
           cpu = self.user_options['cpu_guarantee']
         return cpu

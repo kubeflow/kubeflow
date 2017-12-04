@@ -22,7 +22,7 @@ Ultimately, we want to have a set of simple manifests that give you an easy to u
 
 ## Quick Start
 
-In order to quickly setup all components of the stack, run:
+In order to quickly set up all components of the stack, run:
 
 ```commandline
 kubectl apply -f manifests/ -R
@@ -38,9 +38,10 @@ This documentation assumes you have a Kubernetes cluster already available. For 
 
 ### Minikube
 
-[Minikube](https://github.com/kubernetes/minikube) is a tool that makes it easy to run Kubernetes locally. Minikube runs a single-
-node Kubernetes cluster inside a VM on your laptop for users looking to try out Kubernetes or develop with it day-to-day. 
-The below steps apply to a minikube cluster - the latest version as of writing this documetation is 0.23.0. You must also have kubectl configured to access minikube.
+[Minikube](https://github.com/kubernetes/minikube) is a tool that makes it easy to run Kubernetes locally. Minikube runs a
+single-node Kubernetes cluster inside a VM on your laptop for users looking to try out Kubernetes or develop with it day-to-day. 
+The below steps apply to a minikube cluster - the latest version as of writing this documentation is 0.23.0. You must also have 
+kubectl configured to access minikube.
 
 Kubeflow is designed to work on your laptop via Minikube.
 
