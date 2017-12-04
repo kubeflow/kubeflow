@@ -1,8 +1,8 @@
 # Kubeflow
 
-The Kubeflow project is dedicated to making Machine Learning on Kubernetes easy, portable and scalable. Contained in this repository are:
+The Kubeflow project is dedicated to making Machine Learning on Kubernetes easy, portable and scalable. Our goal is **not** to recreate other services, but to provide a straightforward way for spinning up best of breed OSS solutions. Contained in this repository are manifests for creating:
 
-* JupyterHub to create & manage interactive Jupyter notebooks
+* A JupyterHub to create & manage interactive Jupyter notebooks
 * A Tensorflow Custom Resource (CRD) that can be configured to use CPUs or GPUs, and adjusted to the size of a cluster with a single setting
 * A Tensorboard instance
 * A TF Serving container
