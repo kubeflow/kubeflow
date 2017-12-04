@@ -32,7 +32,11 @@ kubectl configured to access minikube.
 ### Google Kubernetes Engine
 
 [Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/) is a managed environment for deploying Kubernetes applications powered by Google Cloud.
-TODO(foxish): rbac role binding goes here.
+If you're using Google Kubernetes Engine, prior to creating the manifests, you must grant your own user the requisite RBAC role to create/edit other RBAC roles.
+
+```commandline
+kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --user=user@gmail.com
+```
 
 ## Tutorial
 
