@@ -72,7 +72,8 @@ TODO(vishh)
 
 ### Distributed Training
 
-TODO(jlewi)
+Please refer to the README in the [tensorflow/k8s](https://github.com/tensorflow/k8s) repository for more information on
+using the TfJob controller to run distributed TensorFlow jobs on K8s.
 
 ### Serve Model
 
