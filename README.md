@@ -12,7 +12,7 @@ This document details the steps needed to run the kubeflow project in any enviro
 ## The Kubeflow Mission
 
 Our goal is to help folks use ML more easily, by letting Kubernetes to do what it's great at:
-- Easy, repeatable, portable deployments
+- Easy, repeatable, portable deployments on a diverse infrastructure (laptop <-> ML rig <-> training cluster <-> production cluster)
 - Deploying and managing loosely-coupled microservices
 - Scaling based on demand
 
