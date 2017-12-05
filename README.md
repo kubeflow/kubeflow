@@ -99,10 +99,6 @@ TODO(owensk)
 JupyterHub allows users to create, and manage multiple single-user Jupyter notebooks. Note that the configuration provided 
 aims at simplicity. If you want to configure it for production scenarios, including SSL, authentication, etc, refer to the [detailed documentation](jupyterhub/README.md) on Jupyterhub.
 
-### Tensorflow Training Operator
-
-TODO(jlewi)
-
 ### Tensorflow Serving
 
 TODO(owensk)
