@@ -20,6 +20,10 @@ Because ML practitioners use so many different types of tools, it is a key goal 
 
 Ultimately, we want to have a set of simple manifests that give you an easy to use ML stack _anywhere_ Kubernetes is already running and can self configure based on the cluster it deploys into.
 
+## Get involved
+
+On [Slack](http://kubeflow.slack.com/). On [Twitter](http://twitter.com/kubeflow). Via [email](https://groups.google.com/forum/#!forum/kubeflow-discuss).
+
 ## Quick Start
 
 In order to quickly set up all components of the stack, run:
