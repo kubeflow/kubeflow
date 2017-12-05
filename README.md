@@ -66,14 +66,10 @@ Note that when running on Google Kubernetes Engine, the public IP address will b
 unsecured endpoint. For a production deployment, refer to the [detailed documentation](jupyterhub/README.md) on 
 how to set up SSL and authentication for your Hub. 
 
-###  Single node Training
-
-TODO(vishh)
-
-### Distributed Training
+### Training
 
 Please refer to the README in the [tensorflow/k8s](https://github.com/tensorflow/k8s) repository for more information on
-using the TfJob controller to run distributed TensorFlow jobs on K8s.
+using the TfJob controller to run TensorFlow jobs on K8s.
 
 ### Serve Model
 
