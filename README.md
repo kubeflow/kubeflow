@@ -4,7 +4,6 @@ The Kubeflow project is dedicated to making Machine Learning on Kubernetes easy,
 
 * A JupyterHub to create & manage interactive Jupyter notebooks
 * A Tensorflow Training Controller that can be configured to use CPUs or GPUs, and adjusted to the size of a cluster with a single setting
-* A Tensorboard instance
 * A TF Serving container
 
 This document details the steps needed to run the kubeflow project in any environment in which Kubernetes runs.
