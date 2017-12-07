@@ -59,7 +59,7 @@ effort in a portable fashion between different environments. You can refer to th
 
 ## Usage
 
-This describes how one would use different 
+This section describes the different components and the steps to get started.  
 
 ### Bringing up a Notebook
 
