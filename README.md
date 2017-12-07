@@ -93,9 +93,38 @@ unsecured endpoint. For a production deployment, refer to the [documentation](ju
 ### Training
 
 The TFJob controller takes a YAML specification for a master, parameter servers, and workers to help run [distributed tensorflow](https://www.tensorflow.org/deploy/distributed). The quick start deploys a TFJob controller and installs a new `tensorflow.org/v1alpha1` API type. 
-You can create new Tensorflow Training deployments by submitting a specification to the aforementioned API. For examples, look under the [tf-controller-examples/](https://github.com/google/kubeflow/tree/master/tf-controller-examples) directory.
+You can create new Tensorflow Training deployments by submitting a specification to the aforementioned API. 
 
-Refer to the README in the [tensorflow/k8s](https://github.com/tensorflow/k8s) repository for more information on using the TfJob controller to run TensorFlow jobs on K8s.
+An example specification looks like the following:
+
+```
+apiVersion: "tensorflow.org/v1alpha1"
+kind: "TfJob"
+metadata:
+  name: "example-job"
+spec:
+  replicaSpecs:
+    - replicas: 1
+      tfReplicaType: MASTER
+      template:
+        spec:
+          containers:
+            - image: gcr.io/tf-on-k8s-dogfood/tf_sample:dc944ff
+              name: tensorflow
+          restartPolicy: OnFailure
+    - replicas: 1
+      tfReplicaType: WORKER
+      template:
+        spec:
+          containers:
+            - image: gcr.io/tf-on-k8s-dogfood/tf_sample:dc944ff
+              name: tensorflow
+          restartPolicy: OnFailure
+    - replicas: 2
+      tfReplicaType: PS
+ ```
+
+For runnable examples, look under the [tf-controller-examples/](https://github.com/google/kubeflow/tree/master/tf-controller-examples) directory. Detailed documentation can be found in the [tensorflow/k8s](https://github.com/tensorflow/k8s) repository for more information on using the TfJob controller to run TensorFlow jobs on Kubernetes.
 
 ### Serve Model
 
