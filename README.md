@@ -52,9 +52,9 @@ effort in a portable fashion between different environments. You can refer to th
 
 ## Get involved
 
-* [Slack](http://kubeflow.slack.com/). 
+* [Slack](http://kubeflow.slack.com/)
 * [Twitter](http://twitter.com/kubeflow)
-* [Mailing List](https://groups.google.com/forum/#!forum/kubeflow-discuss).
+* [Mailing List](https://groups.google.com/forum/#!forum/kubeflow-discuss)
 
 ## Usage
 
@@ -97,7 +97,7 @@ you want to run on CPUs or GPUs. The images include all the requisite plugins, i
 Note that GPU-based image is several gigabytes in size and may take a few minutes to localize. 
 
 Also, when running on Google Kubernetes Engine, the public IP address will be exposed to the internet and is an 
-unsecured endpoint by default. For a production deployment with SSL and authentication, refer to the [documentation](jupyterhub/README.md). 
+unsecured endpoint by default. For a production deployment with SSL and authentication, refer to the [documentation](components/jupyterhub). 
 
 ### Training
 
