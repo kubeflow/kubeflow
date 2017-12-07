@@ -12,15 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM python:3.5
+FROM python:3.6
 
 RUN apt-get update && \
     apt-get install -y npm nodejs-legacy
 
 RUN npm install -g configurable-http-proxy && \
-    pip3 install --upgrade pip && \
-    pip3 install --upgrade setuptools && \
-    pip3 install --upgrade disttools && \
     pip3 install --no-cache-dir \
                  notebook \
                  jupyterhub==0.8.1 \
