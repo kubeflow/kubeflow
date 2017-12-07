@@ -21,10 +21,11 @@ RUN npm install -g configurable-http-proxy && \
     pip3 install --upgrade pip && \
     pip3 install --upgrade setuptools && \
     pip3 install --upgrade disttools && \
-    pip3 install jupyterhub-dummyauthenticator && \
-    pip3 install oauthenticator && \
-    pip3 install notebook && \
-    pip3 install jupyterhub==0.8.1 && \
-    pip3 install jupyterhub-kubespawner==0.7.1
+    pip3 install --no-cache-dir \
+                 notebook \
+                 jupyterhub==0.8.1 \
+                 jupyterhub-kubespawner==0.7.1 \
+                 jupyterhub-dummyauthenticator \
+                 oauthenticator
 
 ENTRYPOINT jupyterhub
