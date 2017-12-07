@@ -3,8 +3,7 @@
 The Kubeflow project is dedicated to making Machine Learning on Kubernetes easy, portable and scalable. Our goal is **not** to recreate other services, but to provide a straightforward way for spinning up best of breed OSS solutions. Contained in this repository are manifests for creating:
 
 * A JupyterHub to create & manage interactive Jupyter notebooks
-* A Tensorflow Custom Resource (CRD) that can be configured to use CPUs or GPUs, and adjusted to the size of a cluster with a single setting
-* A Tensorboard instance
+* A Tensorflow Training Controller that can be configured to use CPUs or GPUs, and adjusted to the size of a cluster with a single setting
 * A TF Serving container
 
 This document details the steps needed to run the kubeflow project in any environment in which Kubernetes runs.
@@ -19,18 +18,6 @@ Our goal is to help folks use ML more easily, by letting Kubernetes to do what i
 Because ML practitioners use so many different types of tools, it is a key goal that you can customize the stack to whatever your requirements (within reason), and let the system take care of the "boring stuff." While we have started with a narrow set of technologies, we are working with many different projects to include additional tooling.
 
 Ultimately, we want to have a set of simple manifests that give you an easy to use ML stack _anywhere_ Kubernetes is already running and can self configure based on the cluster it deploys into.
-
-## Quick Start
-
-In order to quickly set up all components of the stack, run:
-
-```commandline
-kubectl apply -f components/ -R
-```
-
-The above command sets up JupyterHub, an API for training using Tensorflow, and a set of deployment files for serving. 
-Used together, these serve as configuration that can help a user go from training to serving using Tensorflow with minimal
-effort in a portable fashion between different environments. You can refer to the instructions for using each of these components below. 
 
 ## Setup
 
@@ -51,7 +38,27 @@ If you're using Google Kubernetes Engine, prior to creating the manifests, you m
 ```commandline
 kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --user=user@gmail.com
 ```
-## Tutorial
+## Quick Start
+
+In order to quickly set up all components of the stack, run:
+
+```commandline
+kubectl apply -f components/ -R
+```
+
+The above command sets up JupyterHub, an API for training using Tensorflow, and a set of deployment files for serving. 
+Used together, these serve as configuration that can help a user go from training to serving using Tensorflow with minimal
+effort in a portable fashion between different environments. You can refer to the instructions for using each of these components below. 
+
+## Get involved
+
+* [Slack](http://kubeflow.slack.com/). 
+* [Twitter](http://twitter.com/kubeflow)
+* [Mailing Listl](https://groups.google.com/forum/#!forum/kubeflow-discuss).
+
+## Usage
+
+This section describes the different components and the steps to get started.  
 
 ### Bringing up a Notebook
 
@@ -80,29 +87,44 @@ Once you have an external IP, you can proceed to visit that in your browser. The
 request any resources (memory/CPU/GPU), and then proceed to perform single node training.
 
 Note that when running on Google Kubernetes Engine, the public IP address will be exposed to the internet and is an 
-unsecured endpoint. For a production deployment, refer to the [detailed documentation](jupyterhub/README.md) on 
-how to set up SSL and authentication for your Hub. 
+unsecured endpoint. For a production deployment, refer to the [documentation](jupyterhub/README.md). 
 
 ### Training
 
-Please refer to the README in the [tensorflow/k8s](https://github.com/tensorflow/k8s) repository for more information on
-using the TfJob controller to run TensorFlow jobs on K8s.
+The TFJob controller takes a YAML specification for a master, parameter servers, and workers to help run [distributed tensorflow](https://www.tensorflow.org/deploy/distributed). The quick start deploys a TFJob controller and installs a new `tensorflow.org/v1alpha1` API type. 
+You can create new Tensorflow Training deployments by submitting a specification to the aforementioned API. 
+
+An example specification looks like the following:
+
+```
+apiVersion: "tensorflow.org/v1alpha1"
+kind: "TfJob"
+metadata:
+  name: "example-job"
+spec:
+  replicaSpecs:
+    - replicas: 1
+      tfReplicaType: MASTER
+      template:
+        spec:
+          containers:
+            - image: gcr.io/tf-on-k8s-dogfood/tf_sample:dc944ff
+              name: tensorflow
+          restartPolicy: OnFailure
+    - replicas: 1
+      tfReplicaType: WORKER
+      template:
+        spec:
+          containers:
+            - image: gcr.io/tf-on-k8s-dogfood/tf_sample:dc944ff
+              name: tensorflow
+          restartPolicy: OnFailure
+    - replicas: 2
+      tfReplicaType: PS
+ ```
+
+For runnable examples, look under the [tf-controller-examples/](https://github.com/google/kubeflow/tree/master/tf-controller-examples) directory. Detailed documentation can be found in the [tensorflow/k8s](https://github.com/tensorflow/k8s) repository for more information on using the TfJob controller to run TensorFlow jobs on Kubernetes.
 
 ### Serve Model
 
-TODO(owensk)
-
-## Components
-
-### JupyterHub
-
-JupyterHub allows users to create, and manage multiple single-user Jupyter notebooks. Note that the configuration provided 
-aims at simplicity. If you want to configure it for production scenarios, including SSL, authentication, etc, refer to the [detailed documentation](jupyterhub/README.md) on Jupyterhub.
-
-### Tensorflow Serving
-
-TODO(owensk)
-
-## Roadmap
-
-TBD
+Refer to the instructions in [components/k8s-model-server](https://github.com/google/kubeflow/tree/master/components/k8s-model-server) to set up model serving with the included Tensorflow serving deployment.
