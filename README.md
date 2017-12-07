@@ -54,11 +54,12 @@ effort in a portable fashion between different environments. You can refer to th
 
 * [Slack](http://kubeflow.slack.com/). 
 * [Twitter](http://twitter.com/kubeflow)
-* [Mailing Listl](https://groups.google.com/forum/#!forum/kubeflow-discuss).
+* [Mailing List](https://groups.google.com/forum/#!forum/kubeflow-discuss).
 
 ## Usage
 
-This section describes the different components and the steps to get started.  
+This section describes the different components and the steps required to get started.  
+
 
 ### Bringing up a Notebook
 
@@ -85,6 +86,14 @@ For some cloud deployments, the LoadBalancer service may take up to five minutes
 
 Once you have an external IP, you can proceed to visit that in your browser. The hub by default is configured to take any username/password combination. After entering the username and password, you can start a single-notebook server,
 request any resources (memory/CPU/GPU), and then proceed to perform single node training.
+
+We also ship standard docker images that you can use for training Tensorflow models with Jupyter.
+
+* gcr.io/kubeflow/tensorflow-notebook-cpu
+* gcr.io/kubeflow/tensorflow-notebook-gpu
+
+In the spawn window, when starting a new Jupyter instance, you can supply one of the above images to get started, depending on whether 
+you want to run on CPUs or GPUs. The images include all the requisite plugins, including [Tensorboard](https://www.tensorflow.org/get_started/summaries_and_tensorboard) that you can use for rich visualizations and insights into your models.
 
 Note that when running on Google Kubernetes Engine, the public IP address will be exposed to the internet and is an 
 unsecured endpoint. For a production deployment, refer to the [documentation](jupyterhub/README.md). 
