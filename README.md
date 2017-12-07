@@ -93,10 +93,11 @@ We also ship standard docker images that you can use for training Tensorflow mod
 * gcr.io/kubeflow/tensorflow-notebook-gpu
 
 In the spawn window, when starting a new Jupyter instance, you can supply one of the above images to get started, depending on whether 
-you want to run on CPUs or GPUs. The images include all the requisite plugins, including [Tensorboard](https://www.tensorflow.org/get_started/summaries_and_tensorboard) that you can use for rich visualizations and insights into your models.
+you want to run on CPUs or GPUs. The images include all the requisite plugins, including [Tensorboard](https://www.tensorflow.org/get_started/summaries_and_tensorboard) that you can use for rich visualizations and insights into your models. 
+Note that GPU-based image is several gigabytes in size and may take a few minutes to localize. 
 
-Note that when running on Google Kubernetes Engine, the public IP address will be exposed to the internet and is an 
-unsecured endpoint. For a production deployment, refer to the [documentation](jupyterhub/README.md). 
+Also, when running on Google Kubernetes Engine, the public IP address will be exposed to the internet and is an 
+unsecured endpoint by default. For a production deployment with SSL and authentication, refer to the [documentation](jupyterhub/README.md). 
 
 ### Training
 
