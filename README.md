@@ -56,6 +56,9 @@ effort in a portable fashion between different environments. You can refer to th
 * [Twitter](http://twitter.com/kubeflow)
 * [Mailing List](https://groups.google.com/forum/#!forum/kubeflow-discuss)
 
+## Join the ML SIG
+* [Special Interest Group](http://commons.openshift.org/sig/OpenshiftMachineLearning.html)
+
 ## Usage
 
 This section describes the different components and the steps required to get started.  
