@@ -1,10 +1,12 @@
-# Copyright 2017 Google Inc.
+#!/bin/bash
+
+# Copyright 2015 Google Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     https://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -12,17 +14,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM python:3.6
+set -o errexit
+set -o nounset
+set -o pipefail
 
-RUN apt-get update && \
-    apt-get install -y npm nodejs-legacy
+GIT_ROOT=$(dirname "${BASH_SOURCE}")/..
+boiler="${GIT_ROOT}/build/boilerplate/boilerplate.py"
 
-RUN npm install -g configurable-http-proxy && \
-    pip3 install --no-cache-dir \
-                 notebook \
-                 jupyterhub==0.8.1 \
-                 jupyterhub-kubespawner==0.7.1 \
-                 jupyterhub-dummyauthenticator \
-                 oauthenticator
+files_need_boilerplate=($(${boiler} "$@"))
 
-ENTRYPOINT jupyterhub
+if [[ ${#files_need_boilerplate[@]} -gt 0 ]]; then
+  for file in "${files_need_boilerplate[@]}"; do
+    echo "Boilerplate header is wrong for: ${file}"
+  done
+
+  exit 1
+fi
