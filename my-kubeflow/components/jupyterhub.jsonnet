@@ -137,7 +137,7 @@ local extendedBaseKubeConfigSpawner = baseKubeConfigSpawner
    + "\nc.KubeSpawner.volumes = " + std.manifestPython(volumes)
    + "\nc.KubeSpawner.volume_mounts = " + std.manifestPython(volumeMounts);
 
-local jupyterConfigMap = {
+local jupyterHubConfigMap = {
   "apiVersion": "v1", 
   "data": {
     // "jupyterhub_config.py": baseKubeConfigSpawner,
@@ -149,4 +149,143 @@ local jupyterConfigMap = {
   }
 };
 
-k.core.v1.list.new([jupyterConfigMap,])
+local jupyterHubService = {
+  "apiVersion": "v1", 
+  "kind": "Service", 
+  "metadata": {
+    "labels": {
+      "app": "tf-hub"
+    }, 
+    "name": "tf-hub-0"
+  }, 
+  "spec": {
+    "clusterIP": "None", 
+    "ports": [
+      {
+        "name": "hub", 
+        "port": 8000
+      }
+    ], 
+    "selector": {
+      "app": "tf-hub"
+    }
+  }
+};
+
+local jupyterHub = {
+  "apiVersion": "apps/v1beta1", 
+  "kind": "StatefulSet", 
+  "metadata": {
+    "name": "tf-hub"
+  }, 
+  "spec": {
+    "replicas": 1, 
+    "serviceName": "", 
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "tf-hub"
+        }
+      }, 
+      "spec": {
+        "containers": [
+          {
+            "command": [
+              "jupyterhub", 
+              "-f", 
+              "/etc/config/jupyterhub_config.py"
+            ], 
+            "image": "gcr.io/kubeflow/jupyterhub:1.0", 
+            "name": "tf-hub", 
+            "volumeMounts": [
+              {
+                "mountPath": "/etc/config", 
+                "name": "config-volume"
+              }
+            ]
+          }
+        ], 
+        "volumes": [
+          {
+            "configMap": {
+              "name": "jupyterhub-config"
+            }, 
+            "name": "config-volume"
+          }
+        ]
+      }
+    }, 
+    "updateStrategy": {
+      "type": "RollingUpdate"
+    }
+  }
+};
+
+local jupyterHubRole = {
+  "apiVersion": "rbac.authorization.k8s.io/v1beta1", 
+  "kind": "Role", 
+  "metadata": {
+    "name": "edit-pod", 
+    "namespace": "default"
+  }, 
+  "rules": [
+    {
+      "apiGroups": [
+        "*"
+      ], 
+      "resources": [
+        "pods"
+      ], 
+      "verbs": [
+        "*"
+      ]
+    }
+  ]
+};
+
+local jupyterHubRoleBinding = {
+  "apiVersion": "rbac.authorization.k8s.io/v1beta1", 
+  "kind": "RoleBinding", 
+  "metadata": {
+    "name": "edit-pods", 
+    "namespace": "default"
+  }, 
+  "roleRef": {
+    "apiGroup": "rbac.authorization.k8s.io", 
+    "kind": "Role", 
+    "name": "edit-pod"
+  }, 
+  "subjects": [
+    {
+      "kind": "ServiceAccount", 
+      "name": "default", 
+      "namespace": "default"
+    }
+  ]
+};
+
+local jupyterHubLoadBalancer = {
+  "apiVersion": "v1", 
+  "kind": "Service", 
+  "metadata": {
+    "labels": {
+      "app": "tf-hub"
+    }, 
+    "name": "tf-hub-lb"
+  }, 
+  "spec": {
+    "ports": [
+      {
+        "name": "http", 
+        "port": 80, 
+        "targetPort": 8000
+      }
+    ], 
+    "selector": {
+      "app": "tf-hub"
+    }, 
+    "type": "LoadBalancer"
+  }
+};
+
+k.core.v1.list.new([jupyterHubConfigMap, jupyterHub, jupyterHubService, jupyterHubRole, jupyterHubRoleBinding, jupyterHubLoadBalancer])
