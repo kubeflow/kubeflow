@@ -1,13 +1,18 @@
 local params = std.extVar("__ksonnet/params").components["tfjob-crd"];
 local k = import "k.libsonnet";
 
+// TODO(jlewi): https://github.com/ksonnet/ksonnet/issues/222#issuecomment-351442041 make the namespace
+// configurable.
+local namespace = "default";
+
 // TODO(jlewi): We should add an option to configure with a config file since some deployments don't
 // need it. I think we'd have a base deployment and then an option withConfigFile.
 local tfJobDeploy = {
   "apiVersion": "extensions/v1beta1", 
   "kind": "Deployment", 
   "metadata": {
-    "name": "tf-job-operator"
+    "name": "tf-job-operator",
+    "namespace": namespace,
   }, 
   "spec": {
     "replicas": 1, 
@@ -75,7 +80,8 @@ local configMap = {
   }, 
   "kind": "ConfigMap", 
   "metadata": {
-    "name": "tf-job-operator-config"
+    "name": "tf-job-operator-config",
+    "namespace": namespace,
   }
 };
 
@@ -86,7 +92,8 @@ local serviceAccount = {
     "labels": {
       "app": "tf-job-operator"
     }, 
-    "name": "tf-job-operator"
+    "name": "tf-job-operator",
+    "namespace": namespace,
   }
 };
 
@@ -97,7 +104,8 @@ local clusterRole = {
     "labels": {
       "app": "tf-job-operator"
     }, 
-    "name": "tf-job-operator"
+    "name": "tf-job-operator",
+    "namespace": namespace,
   }, 
   "rules": [
     {
@@ -182,7 +190,8 @@ local clusterRoleBinding = {
     "labels": {
       "app": "tf-job-operator"
     }, 
-    "name": "tf-job-operator"
+    "name": "tf-job-operator",
+    "namespace": namespace,
   }, 
   "roleRef": {
     "apiGroup": "rbac.authorization.k8s.io", 

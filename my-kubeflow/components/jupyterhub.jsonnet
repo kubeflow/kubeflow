@@ -1,7 +1,14 @@
-local params = std.extVar("__ksonnet/params").components["tfjob-crd"];
+local params = std.extVar("__ksonnet/params").components["jupyterhub"];
 local k = import "k.libsonnet";
+// local namespace = params.namespace;
+//local namespace = import 'spec://namespace';
+
+// TODO(jlewi): https://github.com/ksonnet/ksonnet/issues/222#issuecomment-351442041 make the namespace
+// configurable.
+local namespace = "default";
 
 // The first part of the Kube config spawner.
+// TODO(jlewi): I think we could use importstr to move the code into a file and then import it.
 local baseKubeConfigSpawner = @"import json
 import os
 from kubespawner.spawner import KubeSpawner
@@ -176,7 +183,8 @@ local jupyterHub = {
   "apiVersion": "apps/v1beta1", 
   "kind": "StatefulSet", 
   "metadata": {
-    "name": "tf-hub"
+    "name": "tf-hub",
+    "namespace": namespace,
   }, 
   "spec": {
     "replicas": 1, 
@@ -226,7 +234,7 @@ local jupyterHubRole = {
   "kind": "Role", 
   "metadata": {
     "name": "edit-pod", 
-    "namespace": "default"
+    "namespace": namespace,
   }, 
   "rules": [
     {
@@ -248,7 +256,7 @@ local jupyterHubRoleBinding = {
   "kind": "RoleBinding", 
   "metadata": {
     "name": "edit-pods", 
-    "namespace": "default"
+    "namespace": namespace,
   }, 
   "roleRef": {
     "apiGroup": "rbac.authorization.k8s.io", 
@@ -271,7 +279,8 @@ local jupyterHubLoadBalancer = {
     "labels": {
       "app": "tf-hub"
     }, 
-    "name": "tf-hub-lb"
+    "name": "tf-hub-lb",
+    "namespace": namespace,
   }, 
   "spec": {
     "ports": [
