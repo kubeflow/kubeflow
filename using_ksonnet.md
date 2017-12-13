@@ -89,3 +89,12 @@ git clone https://github.com/google/kubeflow.git git_kubeflow
 cd git_kubeflow/my-kubeflow
 ```
 
+Define your environments as described above.
+
+```
+ks env add cloud
+ks param set --env=cloud kubeflow namespace $NAMESPACE
+ks param set --env=cloud kubeflow cloud gke
+```
+
+  * TODO(jlewi): Figure out how we define environment variables that can be set when we create the environment.

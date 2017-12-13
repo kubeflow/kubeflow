@@ -70,7 +70,6 @@
       }      
     },  // tfJobDeploy
   
-
     configMap: {
       "apiVersion": "v1", 
       "data": {

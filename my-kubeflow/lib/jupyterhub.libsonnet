@@ -4,6 +4,8 @@
   // doesn't support automatically piping in the namespace from the environment to prototypes.
   parts(namespace):: {
 
+    // TODO(jlewi): We should make the default Docker image configurable
+    // TODO(jlewi): We should make whether we use PVC configurable.
   	local baseKubeConfigSpawner = @"import json
 import os
 from kubespawner.spawner import KubeSpawner
@@ -136,10 +138,11 @@ local volumeMounts = [
 
    // TODO(jlewi): We should make volumes easily configurable. The user should be able to specify
    // volumes per environment and then based on that the Kube config should be generated appropriately
-   local extendedBaseKubeConfigSpawner = baseKubeConfigSpawner    
-   		+ "\nc.KubeSpawner.volumes = " + std.manifestPython(volumes)
-   		+ "\nc.KubeSpawner.volume_mounts = " + std.manifestPython(volumeMounts),
+   // local extendedBaseKubeConfigSpawner = baseKubeConfigSpawner    
+   //		+ "\nc.KubeSpawner.volumes = " + std.manifestPython(volumes)
+   //		+ "\nc.KubeSpawner.volume_mounts = " + std.manifestPython(volumeMounts),
 
+   local extendedBaseKubeConfigSpawner = baseKubeConfigSpawner,
    jupyterHubConfigMap: {
 	  "apiVersion": "v1", 
 	  "data": {	    
