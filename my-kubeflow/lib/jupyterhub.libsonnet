@@ -256,7 +256,7 @@ local volumeMounts = [
 	  "apiVersion": "rbac.authorization.k8s.io/v1beta1", 
 	  "kind": "Role", 
 	  "metadata": {
-	    "name": "edit-pod", 
+	    "name": "jupyter-role", 
 	    "namespace": namespace,
 	  }, 
 	  "rules": [
@@ -264,8 +264,9 @@ local volumeMounts = [
 	      "apiGroups": [
 	        "*"
 	      ], 
+	      // TODO(jlewi): This is very permissive so we may want to lock this down.
 	      "resources": [
-	        "pods"
+	        "*"
 	      ], 
 	      "verbs": [
 	        "*"
@@ -274,7 +275,7 @@ local volumeMounts = [
 	  ]
 	},
     
-    jupyterHubServiceAccount: {
+   jupyterHubServiceAccount: {
       "apiVersion": "v1", 
       "kind": "ServiceAccount", 
       "metadata": {
@@ -290,13 +291,13 @@ local volumeMounts = [
 	  "apiVersion": "rbac.authorization.k8s.io/v1beta1", 
 	  "kind": "RoleBinding", 
 	  "metadata": {
-	    "name": "edit-pods", 
+	    "name": "jupyter-role", 
 	    "namespace": namespace,
 	  }, 
 	  "roleRef": {
 	    "apiGroup": "rbac.authorization.k8s.io", 
 	    "kind": "Role", 
-	    "name": "edit-pod"
+	    "name": "jupyter-role"
 	  }, 
 	  "subjects": [
 	    {
@@ -306,6 +307,5 @@ local volumeMounts = [
 	    }
 	  ]
 	},
-
   }, // parts
 }

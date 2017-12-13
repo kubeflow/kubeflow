@@ -11,4 +11,5 @@ k.core.v1.list.new([jupyter.parts(kubeflowParams.namespace).jupyterHubConfigMap,
                     jupyter.parts(kubeflowParams.namespace).jupyterHub(params.image),
                     jupyter.parts(kubeflowParams.namespace).jupyterHubRole,
                     jupyter.parts(kubeflowParams.namespace).jupyterHubServiceAccount,
+                    jupyter.parts(kubeflowParams.namespace).jupyterHubRoleBinding,
                     ])
