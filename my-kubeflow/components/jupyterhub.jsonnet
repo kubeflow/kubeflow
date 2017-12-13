@@ -297,4 +297,5 @@ local jupyterHubLoadBalancer = {
   }
 };
 
-k.core.v1.list.new([jupyterHubConfigMap, jupyterHub, jupyterHubService, jupyterHubRole, jupyterHubRoleBinding, jupyterHubLoadBalancer])
+// k.core.v1.list.new([jupyterHubConfigMap, jupyterHub, jupyterHubService, jupyterHubRole, jupyterHubRoleBinding, jupyterHubLoadBalancer])
+k.core.v1.list.new([])

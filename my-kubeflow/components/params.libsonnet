@@ -2,6 +2,8 @@
   global: {
     // User-defined global parameters; accessible to all component and environments, Ex:
     // replicas: 4,
+    // This can be overwritten in the params for a specific environment.
+    namespace: "default",
   },
   components: {
     // Component-level parameters, defined initially from 'ks prototype use ...'
