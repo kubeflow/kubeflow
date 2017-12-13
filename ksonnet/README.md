@@ -86,7 +86,7 @@ Clone the kubeflow repo
 
 ```
 git clone https://github.com/google/kubeflow.git git_kubeflow
-cd git_kubeflow/my-kubeflow
+cd git_kubeflow/ksonnet/my-kubeflow
 ```
 
 Define your environments as described above.
