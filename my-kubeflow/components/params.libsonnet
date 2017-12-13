@@ -13,7 +13,7 @@
       name: "tfjob-crd",
     },
     "jupyterhub": {    
-      image: "gcr.io/tf-on-k8s-dogfood/tf_operator:v20171129-f8ec762",
+      image: "gcr.io/kubeflow/jupyterhub:1.0",
       name: "tfjob-crd",
     },
   },
