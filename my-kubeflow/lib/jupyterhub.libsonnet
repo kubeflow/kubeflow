@@ -235,6 +235,7 @@ local volumeMounts = [
 	            ]
 	          }
 	        ], 
+	        "serviceAccountName": "jupyter-hub", 
 	        "volumes": [
 	          {
 	            "configMap": {
@@ -272,6 +273,18 @@ local volumeMounts = [
 	    }
 	  ]
 	},
+    
+    jupyterHubServiceAccount: {
+      "apiVersion": "v1", 
+      "kind": "ServiceAccount", 
+      "metadata": {
+        "labels": {
+          "app": "jupyter-hub"
+        }, 
+        "name": "jupyter-hub",
+        "namespace": namespace,
+      }
+    },
 
 	jupyterHubRoleBinding: {
 	  "apiVersion": "rbac.authorization.k8s.io/v1beta1", 
@@ -288,7 +301,7 @@ local volumeMounts = [
 	  "subjects": [
 	    {
 	      "kind": "ServiceAccount", 
-	      "name": "default", 
+	      "name": "jupyter-hub", 
 	      "namespace": namespace,
 	    }
 	  ]
