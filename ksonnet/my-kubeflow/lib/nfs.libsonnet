@@ -26,7 +26,8 @@
   	volumeMounts: std.map(function(n) 
 	             {
 	                //"mountPath": "/export-" + n, 
-	                // DO NOT SUBMIT
+	                // Needs to be mounted under /export because /export is what is exported for NFS.
+	                //    https://github.com/kubernetes-incubator/external-storage/tree/master/nfs#quickstart
 	                "mountPath": "/export", 
 	                "name": n,
 	             }, disks),
