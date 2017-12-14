@@ -10,7 +10,7 @@ params + {
       namespace: "ks-test2",
     },
     nfs +: {
-      disks: "jlewi-kubeflow-test1",
+      disks: "jlewi-kubeflow-test1,jlewi-kubeflow-test2",
     },
   },
 }

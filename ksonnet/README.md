@@ -98,3 +98,37 @@ ks param set --env=cloud kubeflow cloud gke
 ```
 
   * TODO(jlewi): Figure out how we define environment variables that can be set when we create the environment.
+
+## Advanced Customization
+
+* Often times datascientists require a POSIX compliant filesystem 
+   * For example, most HDF5 libraries require POSIX and don't work with an object store like GCS or S3
+* When working with teams you might want a shared POSIX filesystem to be mounted into your notebook environments
+  so that datascientists can work collaboratively on the same datasets.
+* Here we show how to customize your Kubeflow deployment to achieve this.
+
+
+Set the disks parameter to a comma separated list of the Google persistent disks you want to mount
+  * These disks should be in the same zone as your cluster
+  * These disks need to be created manually via gcloud or the Cloud console e.g.
+  * These disks can't be attached to any existing VM or POD.
+  * TODO(jlewi): Can we rely on the default storage class to create the backing for store for NFS? Would that be portable across clouds
+    and avoid users having to create the disks manually?
+Create the disks
+
+```
+  gcloud --project=${PROJECT} compute disks create  --zone=${ZONE} ${PD_DISK1} --description="PD to back NFS storage on GKE." --size=1TB
+  gcloud --project=${PROJECT} compute disks create  --zone=${ZONE} ${PD_DISK2} --description="PD to back NFS storage on GKE." --size=1TB
+```
+
+Configure the environment to use the disks.
+
+```
+ks param set --env=cloud nfs disks ${PD_DISK1},${PD_DISK2}
+```
+
+Deploy the environment
+
+```
+ks apply cloud -c nfs
+```
