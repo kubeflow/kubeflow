@@ -1,0 +1,6 @@
+apiVersion: '0.1'
+kind: ksonnet.io/registry
+libraries:  
+  tf-serving:
+    version: master
+    path: tf-serving

@@ -1,0 +1,36 @@
+{
+   "name": "tf-serving",
+   "apiVersion": "0.0.1",
+   "kind": "ksonnet.io/parts",
+   "description": "TensorFlow serving is a server for TensorFlow models.\n",
+   "author": "kubeflow team <kubeflow-team@google.com>",
+   "contributors": [
+      {
+         "name": "Jeremy Lewi",
+         "email": "jlewi@google.com",
+      },
+   ],
+   "repository": {
+      "type": "git",
+      "url": "https://github.com/google/kubeflow"
+   },
+   "bugs": {
+      "url": "https://github.com/google/kubeflow/issues"
+   },
+   "keywords": [
+      "kubeflow",
+      "tensorflow",
+      "database"
+   ],
+   "quickStart": {
+      "prototype": "io.ksonnet.pkg.tf-serving",
+      "componentName": "redis",
+      "flags": {
+         "name": "tf-serving",
+         "namespace": "default",
+         "password": "boots"
+      },
+      "comment": "Run TensorFlow Serving"
+   },
+   "license": "Apache 2.0"
+}
