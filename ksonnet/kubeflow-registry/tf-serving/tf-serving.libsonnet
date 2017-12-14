@@ -10,7 +10,7 @@ local networkSpec = networkPolicy.mixin.spec;
   parts:: {
     deployment:: {
       local defaults = {
-        image:: "bitnami/redis:3.2.9-r2",
+        image:: "gcr.io/your-project/model",
         imagePullPolicy:: "IfNotPresent",
         resources:: {
           "requests": {
@@ -18,60 +18,22 @@ local networkSpec = networkPolicy.mixin.spec;
             "cpu": "100m"
           },
         },
-        dataMount:: {
-          name: "redis-data",
-          mountPath: "/bitnami/redis",
-        },
-        metrics:: {
-          image: "oliver006/redis_exporter",
-          imageTag: "v0.11",
-          imagePullPolicy: "IfNotPresent",
-        },
       },
 
-      nonPersistent(name, secretName, metricEnabled=false, labels={app:name},):
+      modelServer(name, labels={app:name},):
         local volume = {
           name: "redis-data",
           emptyDir: {}
         };
-        base(name, secretName, metricEnabled, labels) +
-        deployment.mixin.spec.template.spec.withVolumes(volume) +
-        deployment.mapContainersWithName(
-          [name],
-          function(c) c + container.withVolumeMounts(defaults.dataMount)
-        ),
+        base(name, labels) +
+        deployment.mixin.spec.template.spec.withVolumes(volume),
+        // +
+        // deployment.mapContainersWithName(
+        //  [name],
+        //  function(c) c + container.withVolumeMounts(defaults.dataMount)
+        // ),
 
-      local base(name, secretName, metricsEnabled, labels) =
-        local metricsContainer =
-          if !metricsEnabled then []
-          else [{
-            name: "metrics",
-            image: defaults.metrics.image + ':' + defaults.metrics.imageTag,
-            imagePullPolicy: defaults.metrics.imagePullPolicy,
-            env: [
-              {
-                name: "REDIS_ALIAS",
-                value: name,
-              }
-            ] + if secretName == null then []
-            else [
-              {
-                name: "REDIS_PASSWORD",
-                valueFrom: {
-                  secretKeyRef: {
-                    name: name,
-                    key: "redis-password",
-                  }
-                },
-              },
-            ],
-            ports: [
-              {
-                name: "metrics",
-                containerPort: 9121,
-              }
-            ],
-          }];
+      local base(name, labels) = 
       {
         apiVersion: "extensions/v1beta1",
         kind: "Deployment",
@@ -90,22 +52,7 @@ local networkSpec = networkPolicy.mixin.spec;
                   name: name,
                   image: defaults.image,
                   imagePullPolicy: defaults.imagePullPolicy,
-                  env: [
-                    if secretName != null then
-                    {
-                      name: "REDIS_PASSWORD",
-                      valueFrom: {
-                        secretKeyRef: {
-                          name: secretName,
-                          key: "redis-password",
-                        },
-                      }
-                    }
-                    else{
-                      name: "ALLOW_EMPTY_PASSWORD",
-                      value: "yes",
-                    },
-                  ],
+                  env: [],
                   ports: [
                     {
                       name: "redis",
@@ -134,7 +81,7 @@ local networkSpec = networkPolicy.mixin.spec;
                   },
                   resources: defaults.resources,
                 },
-              ] + metricsContainer,
+              ],
             },
           },
         },

@@ -29,5 +29,11 @@
       // Comma separated list of GCP persistent disks to mount as NFS volumes.            
       disks: "",
     },
+    "mymodel3": {
+      name: "mymodel3",
+    },
+    "model4": {
+      name: "model4",
+    },
   },
 }
