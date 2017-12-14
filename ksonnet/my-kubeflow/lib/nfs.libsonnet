@@ -9,8 +9,9 @@
   // same zone as your cluster.
   // TODO(jlewi): 
   parts(namespace, name, disks):: {
-  	local storageClassName = name + "-nfs",
+  	local storageClassName = name + "-nfs",  	
   	local provisionerName = name + "-provisioner",
+  	local storageClassProvisioner = name + "/nfs",
   	local serviceName = name + "-service",
 
 	local serviceAccountName = name,
@@ -24,7 +25,9 @@
 
   	volumeMounts: std.map(function(n) 
 	             {
-	                "mountPath": "/export-" + n, 
+	                // "mountPath": "/export-" + n, 
+	                // DO NOT SUBMIT
+	                "mountPath": "/export", 
 	                "name": n,
 	             }, disks),
 
@@ -35,7 +38,7 @@
 	    "annotations": {
 	      "volume.beta.kubernetes.io/storage-class": storageClassName,
 	    }, 
-	    "name": "nfs",
+	    "name": name + "-nfs",
 	    "namespace": namespace,
 	  }, 
 	  "spec": {
@@ -57,7 +60,8 @@
 	    "name": storageClassName,	    
 	    "namespace": namespace,
 	  }, 
-	  "provisioner": provisionerName,
+	  // This value must be the same as passed as argument --provisioner to the provisioner
+	  "provisioner": storageClassProvisioner,
 	},
 
 	service: {
@@ -118,7 +122,7 @@
 	        "containers": [
 	          {
 	            "args": [
-	              "-provisioner=" + provisionerName
+	              "-provisioner=" + storageClassProvisioner,
 	            ], 
 	            "env": [
 	              {
