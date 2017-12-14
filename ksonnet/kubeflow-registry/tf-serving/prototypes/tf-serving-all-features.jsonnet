@@ -10,8 +10,7 @@ local tfServing = import 'kubeflow/tf-serving/tf-serving.libsonnet';
 local name = import 'param://name';
 //local redisPassword = import 'param://redisPassword';
 
-//local secretName =
-//  if redisPassword != "null" then name else null;
+local secretName = null;
 
 //local optionalSecret =
 //  if redisPassword != "null"

@@ -1,6 +1,13 @@
 apiVersion: 0.0.1
 kind: ksonnet.io/app
 name: my-kubeflow
+libraries:
+  tf-serving:
+    gitVersion:
+      commitSha: b43febd44d7a2e694f178bdd0d884cc2600f3ad8
+      refSpec: master
+    name: tf-serving
+    registry: kubeflow
 registries:
   incubator:
     gitVersion:
