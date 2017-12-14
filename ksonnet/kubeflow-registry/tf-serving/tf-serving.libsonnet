@@ -41,20 +41,6 @@ local networkSpec = networkPolicy.mixin.spec;
           function(c) c + container.withVolumeMounts(defaults.dataMount)
         ),
 
-      persistent(name, secretName, metricEnabled=false, claimName=name, labels={app:name})::
-        local volume = {
-          name: "redis-data",
-          persistentVolumeClaim: {
-            claimName: claimName
-          }
-        };
-        base(name, secretName, metricEnabled, labels) +
-        deployment.mixin.spec.template.spec.withVolumes(volume) +
-        deployment.mapContainersWithName(
-          [name],
-          function(c) c + container.withVolumeMounts(defaults.dataMount)
-        ),
-
       local base(name, secretName, metricsEnabled, labels) =
         local metricsContainer =
           if !metricsEnabled then []
