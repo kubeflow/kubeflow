@@ -1,7 +1,12 @@
 
+// local nfs = import "nfs.libsonnet";
+
 {  
   // TODO(https://github.com/ksonnet/ksonnet/issues/222): Taking namespace as an argument is a work around for the fact that ksonnet
   // doesn't support automatically piping in the namespace from the environment to prototypes.
+  //
+  // TODO(jlewi): We should refactor this to have multiple prototypes; having 1 without any extra volumes and than 
+  // a with volumes option.
   parts(namespace):: {
 
     // TODO(jlewi): We should make the default Docker image configurable
@@ -102,58 +107,58 @@ c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'
 ###################################################
 ### Persistent volume options
 ###################################################
+# Using persistent storage requires a default storage class.
+# TODO(jlewi): Verify this works on minikube.
 c.KubeSpawner.user_storage_pvc_ensure = True
 # How much disk space do we want?
 c.KubeSpawner.user_storage_capacity = '10Gi'
 c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
 ",
 
-	local volumes = [
-{
-            'name': 'volume-{username}{servername}',
-            'persistentVolumeClaim': {
-                'claimName': 'claim-{username}{servername}'
-            },
-        },
-        {
-            'name': 'deepvariant-nfs',
-            'persistentVolumeClaim': {
-                'claimName': 'nfs'
-            },
-        },
-    ],
-
-local volumeMounts = [
-        {
-            // This should point to homedir of the user in the image
-            'mountPath': '/home/jovyan/pd',
-            'name': 'volume-{username}{servername}'
-        },
-        {
-            'mountPath': '/home/jovyan/deepvariant-pd',
-            'name': 'deepvariant-nfs'
-        },
-    ],
-
-
-   // TODO(jlewi): We should make volumes easily configurable. The user should be able to specify
-   // volumes per environment and then based on that the Kube config should be generated appropriately
-   // local extendedBaseKubeConfigSpawner = baseKubeConfigSpawner    
-   //		+ "\nc.KubeSpawner.volumes = " + std.manifestPython(volumes)
-   //		+ "\nc.KubeSpawner.volume_mounts = " + std.manifestPython(volumeMounts),
-
-   local extendedBaseKubeConfigSpawner = baseKubeConfigSpawner,
-   jupyterHubConfigMap: {
-	  "apiVersion": "v1", 
-	  "data": {	    
-	    "jupyterhub_config.py": extendedBaseKubeConfigSpawner,
-	  }, 
+   local baseJupyterHubConfigMap = {
+	  "apiVersion": "v1", 	  
 	  "kind": "ConfigMap", 
 	  "metadata": {
 	    "name": "jupyterhub-config",
 	    namespace: namespace,
 	  },
    },
+
+
+   jupyterHubConfigMap: baseJupyterHubConfigMap + {
+   	  "data": {	    
+	    "jupyterhub_config.py": baseKubeConfigSpawner,
+	  }, 
+	},
+
+   jupyterHubConfigMapWithVolumes(volumeClaims): {
+
+
+	local volumes = std.map(function(v) 
+		{
+            'name': v,
+            'persistentVolumeClaim': {
+                'claimName': v,
+            },
+        }, volumeClaims),
+
+
+	local volumeMounts = std.map( function(v)
+        {
+            'mountPath': '/mnt/' + v,
+            'name': v,
+        },  volumeClaims),
+
+	local extendedBaseKubeConfigSpawner = baseKubeConfigSpawner    
+    	+ "\nc.KubeSpawner.volumes = " + std.manifestPython(volumes)
+     	+ "\nc.KubeSpawner.volume_mounts = " + std.manifestPython(volumeMounts),
+
+     config: baseJupyterHubConfigMap + {   	 
+		 "data": {
+		 	"jupyterhub_config.py": extendedBaseKubeConfigSpawner,
+		 },	 
+	   },
+	 }.config,
 
    jupyterHubService: {
 	  "apiVersion": "v1", 

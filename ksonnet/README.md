@@ -130,5 +130,30 @@ ks param set --env=cloud nfs disks ${PD_DISK1},${PD_DISK2}
 Deploy the environment
 
 ```
-ks apply cloud -c nfs
+ks apply cloud
 ```
+
+Start Juptyer
+You should see your NFS volumes mounted as `/mnt/${DISK_NAME}`
+
+In a Juptyer cell you can run
+
+```
+!df
+```
+
+You should see output like the following
+
+```
+https://github.com/jlewi/deepvariant_on_k8s
+Filesystem                                                     1K-blocks    Used  Available Use% Mounted on
+overlay                                                         98884832 8336440   90532008   9% /
+tmpfs                                                           15444244       0   15444244   0% /dev
+tmpfs                                                           15444244       0   15444244   0% /sys/fs/cgroup
+10.11.254.34:/export/pvc-d414c86a-e0db-11e7-a056-42010af00205 1055841280   77824 1002059776   1% /mnt/jlewi-kubeflow-test1
+10.11.242.82:/export/pvc-33f0a5b3-e0dc-11e7-a056-42010af00205 1055841280   77824 1002059776   1% /mnt/jlewi-kubeflow-test2
+/dev/sda1                                                       98884832 8336440   90532008   9% /etc/hosts
+shm                                                                65536       0      65536   0% /dev/shm
+tmpfs                                                           15444244       0   15444244   0% /sys/firmware
+```
+  * Here `jlewi-kubeflow-test1` and `jlewi-kubeflow-test2` are the names of the PDs.
