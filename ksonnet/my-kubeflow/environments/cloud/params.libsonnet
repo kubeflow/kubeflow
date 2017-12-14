@@ -7,7 +7,7 @@ params + {
     //   replicas: params.global.replicas,
     // },
     kubeflow +: {
-      namespace: "ks-test",
+      namespace: "ks-test2",
     },
     nfs +: {
       disks: "jlewi-kubeflow-test1",

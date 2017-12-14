@@ -25,7 +25,7 @@
 
   	volumeMounts: std.map(function(n) 
 	             {
-	                // "mountPath": "/export-" + n, 
+	                //"mountPath": "/export-" + n, 
 	                // DO NOT SUBMIT
 	                "mountPath": "/export", 
 	                "name": n,
@@ -53,6 +53,7 @@
 	  }
 	},
 
+	// TODO(jlewi): Is storageClass actually name space scoped? Seems to show up in default namespace as well.
     storageClass: {
 	  "apiVersion": "storage.k8s.io/v1beta1", 
 	  "kind": "StorageClass", 
