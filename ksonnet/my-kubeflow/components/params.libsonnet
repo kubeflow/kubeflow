@@ -24,5 +24,10 @@
       image: "gcr.io/kubeflow/jupyterhub:1.0",
       name: "tfjob-crd",
     },
+    "nfs": {  
+      name: "nfs",
+      // Comma separated list of GCP persistent disks to mount as NFS volumes.            
+      disks: "",
+    },
   },
 }

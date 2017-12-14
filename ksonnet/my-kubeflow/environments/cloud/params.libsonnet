@@ -9,5 +9,8 @@ params + {
     kubeflow +: {
       namespace: "ks-test",
     },
+    nfs +: {
+      disks: "jlewi-kubeflow-test1",
+    },
   },
 }
