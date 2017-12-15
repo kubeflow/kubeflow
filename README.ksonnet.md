@@ -24,7 +24,7 @@ ${GOPATH}/src/github.com/ksonnet/ksonnet/metadata/interface.go
 Change the line setting `defaultIncubatorURI` to look like the following
 
 ```
-defaultIncubatorURI     = "github.com/jlewi/kubeflow/tree/kubeflow_crd/" + defaultIncubatorRegName
+defaultIncubatorURI     = "github.com/jlewi/kubeflow/tree/ksonnet_crd/" + defaultIncubatorRegName
 ```
 
 TODO(jlewi): After (google/kubeflow#36)[https://github.com/google/kubeflow/pull/36] is merged, change the above line to 
@@ -32,7 +32,6 @@ TODO(jlewi): After (google/kubeflow#36)[https://github.com/google/kubeflow/pull/
 ```
 defaultIncubatorURI     = "github.com/google/kubeflow/tree/master/" + defaultIncubatorRegName
 ```
-
 
 Build it
 
@@ -50,15 +49,21 @@ ks init my-kubeflow
 
 Install the Kubeflow packages
 
-**Warning** Adding the registry isn't actually implemented in ks. Depending on the plans for ksonnet we'll need to
-describe a work around.
 
 ```
 cd my-kubeflow
-ks registry add github.com/kubeflow/ksonnet
-ks pkg install core
-ks pkg install tf-serving
+ks pkg install incubator/core@ksonnet_crd
+ks pkg install incubator/tf-serving@ksonnet_crd
 ```
+
+TODO(jlewi): After (google/kubeflow#36)[https://github.com/google/kubeflow/pull/36] is merged, change the above line to 
+```
+cd my-kubeflow
+ks pkg install incubator/core
+ks pkg install incubator/tf-serving
+```
+
+
 Create the Kubeflow core component. The core component includes 
   * JupyterHub
   * TensorFlow job controller
