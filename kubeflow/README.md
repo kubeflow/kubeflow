@@ -14,14 +14,14 @@ by having ksonnet use our registry as the default. Therefore we decided to mimic
 Assuming that you have the `ks` tool [installed][3], you can use any library in this registry as follows, by replacing `redis` with `<library-name>`:
 
 ```
-# List all available packages (e.g. apache, efk, mariadb..)
+# List all available packages (e.g. jupyterhub, TfJob controller, ...)
 ks pkg list
 
 # Describe a specific package
-ks pkg describe incubator/core@master
+ks pkg describe kubeflow/core@master
 
 # Download a specific package
-ks pkg install incubator/core@master
+ks pkg install kubeflow/core@master
 ```
 
 ## Library-specific Documentation

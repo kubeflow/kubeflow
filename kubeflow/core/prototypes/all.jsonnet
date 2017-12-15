@@ -12,9 +12,9 @@
 // because ksonnet doesn't support inheriting it from the environment yet.
 
 local k = import 'k.libsonnet';
-local jupyter = import "incubator/core/jupyterhub.libsonnet";
-local tfjob = import "incubator/core/tf-job.libsonnet";
-local nfs = import "incubator/core/nfs.libsonnet";
+local jupyter = import "kubeflow/core/jupyterhub.libsonnet";
+local tfjob = import "kubeflow/core/tf-job.libsonnet";
+local nfs = import "kubeflow/core/nfs.libsonnet";
 
 local name = import 'param://name';
 local namespace = import 'param://namespace';
