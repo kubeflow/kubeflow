@@ -35,5 +35,23 @@
     "model4": {
       name: "model4",
     },
+    "mymodel1": {
+      modelPath: "gs://mymodel",
+      name: "inception",
+    },
+    "inception1": {
+      modelPath: "gs://mymodel",
+      name: "inception",
+    },
+    "inception2": {
+      modelPath: "gs://cloud-ml-dev_jlewi/tmp/inception",
+      name: "inception2",
+      namespace: "default",
+    },
+    serveInception: {
+      modelPath: "gs://cloud-ml-dev_jlewi/tmp/inception",
+      name: "inception",
+      namespace: "ks-test2",
+    },
   },
 }

@@ -56,14 +56,16 @@ We treat each deployed model as a [component app](https://ksonnet.io/docs/tutori
 Create a component for your model
 
 ```
-  ks generate tf-model mymodel-server \
-   --image gcr.io/heptio-images/ks-guestbook-demo:0.1 \   
+  COMPONENT_NAME=serveInception
+  MODEL_NAME=inception
+  MODEL_PATH=gs://cloud-ml-dev_jlewi/tmp/inception
+  ks generate ks generate tf-serving ${COMPONENT_NAME} --name=${MODEL_NAME} --namespace=default --modelPath=${MODEL_PATH}
 ```
 
 Deploy it in a particular environment. The deployment will pick up environment parmameters (e.g. cloud) and customize the deployment appropriately
 
 ```
-ks apply cloud -c mymodel-server 
+ks apply cloud -c ${COMPONENT_NAME}
 ```
 
 ## Kubeflow and ksonnet limitations.

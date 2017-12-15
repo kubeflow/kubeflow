@@ -12,5 +12,8 @@ params + {
     nfs +: {
       disks: "jlewi-kubeflow-test1,jlewi-kubeflow-test2",
     },
+    "inception2" +: {
+      namespace: "ks-test2",
+    },
   },
 }
