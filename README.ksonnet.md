@@ -4,11 +4,46 @@ Kubeflow is currently evaluating different strategies for allowing deployments t
 
 This directory contains a prototype for using ksonnet to help us evaluate ksonnet.
 
-## Expected UserExperience
+If you are unfamiliar with ksonnet you may want to start by reading the [tutorial](https://ksonnet.io/docs/tutorial)
 
-* Based on the [tutorial](https://ksonnet.io/docs/tutorial) we think ksonnet could eventually deliver the following experience.
+## Build ks
 
-Initialize a directory to contain the user's deployments.
+ksonnet doesn't support adding non default registries yet ((ksonnet/ksonnet/issues/38)[https://github.com/ksonnet/ksonnet/issues/38]) so we need to modify and [build from source](https://ksonnet.io/docs/build-install).
+
+```
+# Clone the ksonnet repo into your GOPATH
+go get github.com/ksonnet/ksonnet
+```
+
+Open the file
+
+```
+${GOPATH}/src/github.com/ksonnet/ksonnet/metadata/interface.go 
+```
+
+Change the line setting `defaultIncubatorURI` to look like the following
+
+```
+defaultIncubatorURI     = "github.com/jlewi/kubeflow/tree/kubeflow_crd/" + defaultIncubatorRegName
+```
+
+TODO(jlewi): After (google/kubeflow#36)[https://github.com/google/kubeflow/pull/36] is merged, change the above line to 
+
+```
+defaultIncubatorURI     = "github.com/google/kubeflow/tree/master/" + defaultIncubatorRegName
+```
+
+
+Build it
+
+```
+cd $GOPATH/src/github.com/ksonnet/ksonnet
+make install
+```
+
+## Deploy Kubeflow
+
+Initialize a directory to contain your deployment
 ```
 ks init my-kubeflow
 ```
