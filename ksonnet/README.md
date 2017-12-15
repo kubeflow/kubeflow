@@ -97,25 +97,6 @@ define Kubeflow prototypes and a Kubeflow package which the user can use to init
    * Some of these component packages will be for individual components (e.g. JupyterHub, Airflow etc...)
    * We will probably have one or more packages corresponding to the Kubeflow deployment as a whole.
 
-## Using what exists today
-
-Clone the kubeflow repo
-
-```
-git clone https://github.com/google/kubeflow.git git_kubeflow
-cd git_kubeflow/ksonnet/my-kubeflow
-```
-
-Define your environments as described above.
-
-```
-ks env add cloud
-ks param set --env=cloud kubeflow namespace $NAMESPACE
-ks param set --env=cloud kubeflow cloud gke
-```
-
-  * TODO(jlewi): Figure out how we define environment variables that can be set when we create the environment.
-
 ## Advanced Customization
 
 * Often times datascientists require a POSIX compliant filesystem 
