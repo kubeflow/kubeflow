@@ -13,13 +13,28 @@ Initialize a directory to contain the user's deployments.
 ks init my-kubeflow
 ```
 
-Generate manifests using the published Kubeflow packages.
+Install the Kubeflow packages
+
+**Warning** Adding the registry isn't actually implemented in ks. Depending on the plans for ksonnet we'll need to
+describe a work around.
+
 ```
 cd my-kubeflow
-ks generate kubeflow-deployment ${COMPONENT-NAME}
+ks registry add github.com/kubeflow/ksonnet
+ks pkg install core
+ks pkg install tf-serving
 ```
-	* kubeflow-deployment is the published name for the prototype
-	* ${COMPONENT-NAME} is a user defined name for the component
+Create the Kubeflow core component. The core component includes 
+  * JupyterHub
+  * TensorFlow job controller
+
+
+```
+ks generate core kubeflow-core --name=kubeflow-core --namespace=${NAMESPACE}
+```
+  * namespace is optional
+  * TODO(jlewi): There's an open github [issue](https://github.com/ksonnet/ksonnet/issues/222) to allow components to pull
+    the namespace from the environment namespace parameter.
 
 
 Define an environment that doesn't use any Cloud features
@@ -29,10 +44,10 @@ Define an environment that doesn't use any Cloud features
 ks env add nocloud
 ```
 
-The default Kubeflow deployment will be suitable for this no cloud environment so they can just deploy it.
+The default Kubeflow deployment will be suitable for this no cloud environment so you can just deploy the core components
 
 ```
-ks apply nocloud
+ks apply nocloud -c kubeflow-core
 ```
 
 If the user is running on a Cloud they could create an environment for this.
@@ -43,10 +58,10 @@ ks param set --cloud=gke
 ```
    * The cloud parameter triggers a set of curated cloud configs.
 
-They can then deploy this environment
+They can then deploy to this environment
 
 ```
-ks apply cloud
+ks apply cloud -c kubeflow-core
 ```
 
 ### Serve a model
@@ -56,16 +71,16 @@ We treat each deployed model as a [component app](https://ksonnet.io/docs/tutori
 Create a component for your model
 
 ```
-  COMPONENT_NAME=serveInception
-  MODEL_NAME=inception
-  MODEL_PATH=gs://cloud-ml-dev_jlewi/tmp/inception
-  ks generate ks generate tf-serving ${COMPONENT_NAME} --name=${MODEL_NAME} --namespace=default --modelPath=${MODEL_PATH}
+MODEL_COMPONENT=serveInception
+MODEL_NAME=inception
+MODEL_PATH=gs://cloud-ml-dev_jlewi/tmp/inception
+ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME} --namespace=default --modelPath=${MODEL_PATH}
 ```
 
 Deploy it in a particular environment. The deployment will pick up environment parmameters (e.g. cloud) and customize the deployment appropriately
 
 ```
-ks apply cloud -c ${COMPONENT_NAME}
+ks apply cloud -c ${MODEL_COMPONENT}
 ```
 
 ## Kubeflow and ksonnet limitations.
