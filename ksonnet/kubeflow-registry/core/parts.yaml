@@ -28,6 +28,7 @@
       "flags": {
          "name": "core",
          "namespace": "default",
+         "disks": "",
       },
       "comment": "Core Kubeflow components."
    },

@@ -53,5 +53,33 @@
       name: "inception",
       namespace: "ks-test2",
     },
+    "core1": {
+      name: "core",
+      namespace: "default",
+    },
+    "core2": {
+      name: "core",
+      namespace: "default",
+    },
+    "core3": {
+      disks: "Comma",
+      name: "core",
+      namespace: "default",
+    },
+    "core10": {
+      disks: "null",
+      name: "core",
+      namespace: "default",
+    },
+    "core11": {
+      disks: "null",
+      name: "core",
+      namespace: "default",
+    },
+    "core12": {
+      disks: "disk1,disk2",
+      name: "core",
+      namespace: "default",
+    },
   },
 }
