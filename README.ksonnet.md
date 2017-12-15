@@ -36,7 +36,7 @@ Install the Kubeflow packages
 
 ```
 cd my-kubeflow
-ks registry add kubeflow github.com/google/kubeflow/tree/master/incubator
+ks registry add kubeflow github.com/google/kubeflow/tree/master/ksonnet/kubeflow
 ks pkg install incubator/core@ksonnet_crd
 ks pkg install incubator/tf-serving@ksonnet_crd
 ```
@@ -44,6 +44,7 @@ ks pkg install incubator/tf-serving@ksonnet_crd
 TODO(jlewi): After (google/kubeflow#36)[https://github.com/google/kubeflow/pull/36] is merged, change the above line to 
 ```
 cd my-kubeflow
+ks registry add kubeflow github.com/google/kubeflow/tree/master/ksonnet/kubeflow
 ks pkg install incubator/core
 ks pkg install incubator/tf-serving
 ```
