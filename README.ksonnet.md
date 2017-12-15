@@ -15,28 +15,12 @@ ksonnet doesn't support adding non default registries yet ((ksonnet/ksonnet/issu
 go get github.com/ksonnet/ksonnet
 ```
 
-Open the file
+Checkout PR 228 which adds support for registry add
 
 ```
-${GOPATH}/src/github.com/ksonnet/ksonnet/metadata/interface.go 
-```
-
-Change the line setting `defaultIncubatorURI` to look like the following
-
-```
-defaultIncubatorURI     = "github.com/jlewi/kubeflow/tree/ksonnet_crd/" + defaultIncubatorRegName
-```
-
-TODO(jlewi): After (google/kubeflow#36)[https://github.com/google/kubeflow/pull/36] is merged, change the above line to 
-
-```
-defaultIncubatorURI     = "github.com/google/kubeflow/tree/master/" + defaultIncubatorRegName
-```
-
-Build it
-
-```
-cd $GOPATH/src/github.com/ksonnet/ksonnet
+cd ${GOPATH}/src/github.com/ksonnet/ksonnet
+git fetch origin pull/228/head:registry_add
+git checkout registry_add
 make install
 ```
 
@@ -52,6 +36,7 @@ Install the Kubeflow packages
 
 ```
 cd my-kubeflow
+ks registry add kubeflow github.com/google/kubeflow/tree/master/incubator
 ks pkg install incubator/core@ksonnet_crd
 ks pkg install incubator/tf-serving@ksonnet_crd
 ```
