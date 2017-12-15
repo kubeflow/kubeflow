@@ -10,7 +10,7 @@
 // because ksonnet doesn't support inheriting it from the environment yet.
 
 local k = import 'k.libsonnet';
-local tfServing = import 'core/tf-serving/tf-serving.libsonnet';
+local tfServing = import 'kubeflow/tf-serving/tf-serving.libsonnet';
 
 local name = import 'param://name';
 local namespace = import 'param://namespace';
