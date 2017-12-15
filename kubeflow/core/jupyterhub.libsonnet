@@ -109,6 +109,8 @@ c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'
 ###################################################
 # Using persistent storage requires a default storage class.
 # TODO(jlewi): Verify this works on minikube.
+# TODO(jlewi): Should we set c.KubeSpawner.singleuser_fs_gid = 1000
+# see https://github.com/google/kubeflow/pull/22#issuecomment-350500944
 c.KubeSpawner.user_storage_pvc_ensure = True
 # How much disk space do we want?
 c.KubeSpawner.user_storage_capacity = '10Gi'
