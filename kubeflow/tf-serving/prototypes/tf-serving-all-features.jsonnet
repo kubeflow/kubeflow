@@ -3,7 +3,7 @@
 // @description TensorFlow serving
 // @shortDescription A TensorFlow serving deployment
 // @param name string Name to give to each of the components
-// @param namespace string Namespace
+// @optionalParam namespace string default Namespace
 // @param modelPath string Path to the model. This can be a GCS path.
 
 // TODO(https://github.com/ksonnet/ksonnet/issues/222): We have to add namespace as an explicit parameter
