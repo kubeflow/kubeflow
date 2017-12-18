@@ -6,11 +6,11 @@
 // @optionalParam namespace string default Namespace
 // @optionalParam args string null Comma separated list of arguments to pass to the job
 // @optionalParam image string null The docker image to use for the job.
-// @optionalParam imageGpu string null The docker image to use when using GPUs.
-// @optionalParam numMasters number 1 The number of masters to use
-// @optionalParam numPs number 0 The number of ps to use
-// @optionalParam numWorkers number 0 The number of workers to use
-// @optionalParam numGpus number 0 The number of GPUs to attach to workers.
+// @optionalParam image_gpu string null The docker image to use when using GPUs.
+// @optionalParam num_masters number 1 The number of masters to use
+// @optionalParam num_ps number 0 The number of ps to use
+// @optionalParam num_workers number 0 The number of workers to use
+// @optionalParam num_gpus number 0 The number of GPUs to attach to workers.
 
 // TODO(https://github.com/ksonnet/ksonnet/issues/235): ks param set args won't work if the arg starts with "--".
 
@@ -31,11 +31,11 @@ local args =
 	std.split(argsParam, ',');
 
 local image = import 'param://image';
-local imageGpu = import 'param://imageGpu';
-local numMasters = import 'param://numMasters';
-local numPs = import 'param://numPs';
-local numWorkers = import 'param://numWorkers';
-local numGpus = import 'param://numGpus';
+local imageGpu = import 'param://image_gpu';
+local numMasters = import 'param://num_masters';
+local numPs = import 'param://num_ps';
+local numWorkers = import 'param://num_workers';
+local numGpus = import 'param://num_gpus';
 
 local workerSpec = if numGpus > 0 then
   	tfJob.parts.tfJobReplica("WORKER", numWorkers, args, imageGpu, numGpus)

@@ -1,4 +1,6 @@
-local params = std.extVar("__ksonnet/params").components["myjob8"];
+local params = std.extVar("__ksonnet/params").components["job2"];
+// TODO(https://github.com/ksonnet/ksonnet/issues/235): ks param set args won't work if the arg starts with "--".
+
 // TODO(https://github.com/ksonnet/ksonnet/issues/222): We have to add namespace as an explicit parameter
 // because ksonnet doesn't support inheriting it from the environment yet.
 
@@ -16,11 +18,11 @@ local args =
 	std.split(argsParam, ',');
 
 local image = params.image;
-local imageGpu = params.imageGpu;
-local numMasters = params.numMasters;
-local numPs = params.numPs;
-local numWorkers = params.numWorkers;
-local numGpus = params.numGpus;
+local imageGpu = params.image_gpu;
+local numMasters = params.num_masters;
+local numPs = params.num_ps;
+local numWorkers = params.num_workers;
+local numGpus = params.num_gpus;
 
 local workerSpec = if numGpus > 0 then
   	tfJob.parts.tfJobReplica("WORKER", numWorkers, args, imageGpu, numGpus)
