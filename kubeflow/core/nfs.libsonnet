@@ -46,6 +46,7 @@
 		},
 
 		// TODO(jlewi): Is storageClass actually name space scoped? Seems to show up in default namespace as well.
+		// TODO(jlewi): Could we just use the default cluster storage class?
 	    storageClass: {
 		  "apiVersion": "storage.k8s.io/v1beta1", 
 		  "kind": "StorageClass", 

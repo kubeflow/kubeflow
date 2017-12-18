@@ -73,8 +73,8 @@
     configMap: {
       "apiVersion": "v1", 
       "data": {
-        # TODO(jlewi): Use a verbatim  string.
-        "controller_config_file.yaml": "grpcServerFilePath: /opt/mlkube/grpc_tensorflow_server/grpc_tensorflow_server.py\naccelerators:\n  alpha.kubernetes.io/nvidia-gpu:\n    volumes:\n      - name: nvidia-libraries\n        mountPath: /usr/local/nvidia/lib64 # This path is special; it is expected to be present in `/etc/ld.so.conf` inside the container image.\n        hostPath: /home/kubernetes/bin/nvidia/lib\n      - name: nvidia-debug-tools # optional\n        mountPath: /usr/local/bin/nvidia\n        hostPath: /home/kubernetes/bin/nvidia/bin"
+        # TODO(jlewi): We should customize the file based on the Cloud.
+        "controller_config_file.yaml": @"grpcServerFilePath: /opt/mlkube/grpc_tensorflow_server/grpc_tensorflow_server.py",
       }, 
       "kind": "ConfigMap", 
       "metadata": {

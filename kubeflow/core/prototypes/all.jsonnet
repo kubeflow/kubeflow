@@ -31,7 +31,6 @@ local jupyterConfigMap = if std.length(diskNames) == 0 then
 	jupyter.parts(namespace).jupyterHubConfigMap
 	else jupyter.parts(namespace).jupyterHubConfigMapWithVolumes(diskNames);
 
-// TODO(jlewi): Make this a parameter
 local tfJobImage = import 'param://tfJobImage';
 
 // Create a list of the resources needed for a particular disk

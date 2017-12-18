@@ -4,7 +4,7 @@
 // @shortDescription A TensorFlow serving deployment
 // @param name string Name to give to each of the components
 // @optionalParam namespace string default Namespace
-// @param modelPath string Path to the model. This can be a GCS path.
+// @param model_path string Path to the model. This can be a GCS path.
 
 // TODO(https://github.com/ksonnet/ksonnet/issues/222): We have to add namespace as an explicit parameter
 // because ksonnet doesn't support inheriting it from the environment yet.
@@ -14,7 +14,7 @@ local tfServing = import 'kubeflow/tf-serving/tf-serving.libsonnet';
 
 local name = import 'param://name';
 local namespace = import 'param://namespace';
-local modelPath = import 'param://modelPath';
+local modelPath = import 'param://model_path';
 
 std.prune(k.core.v1.list.new([
   tfServing.parts.deployment.modelServer(name, namespace, modelPath),

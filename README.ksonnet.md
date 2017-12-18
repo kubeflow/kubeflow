@@ -100,7 +100,7 @@ Create a component for your model
 MODEL_COMPONENT=serveInception
 MODEL_NAME=inception
 MODEL_PATH=gs://cloud-ml-dev_jlewi/tmp/inception
-ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME} --namespace=default --modelPath=${MODEL_PATH}
+ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME} --namespace=default --model_path=${MODEL_PATH}
 ```
 
 Deploy it in a particular environment. The deployment will pick up environment parmameters (e.g. cloud) and customize the deployment appropriately

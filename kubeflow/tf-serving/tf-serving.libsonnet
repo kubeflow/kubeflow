@@ -52,12 +52,6 @@ local networkSpec = networkPolicy.mixin.spec;
           emptyDir: {}
         };
         base(name, namespace, modelPath, labels),
-        // + deployment.mixin.spec.template.spec.withVolumes(volume),
-        // +
-        // deployment.mapContainersWithName(
-        //  [name],
-        //  function(c) c + container.withVolumeMounts(defaults.dataMount)
-        // ),
 
       local base(name, namespace, modelPath, labels) = 
       {
