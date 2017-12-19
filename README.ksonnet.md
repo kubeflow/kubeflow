@@ -8,19 +8,14 @@ If you are unfamiliar with ksonnet you may want to start by reading the [tutoria
 
 ## Build ks
 
-ksonnet doesn't support adding non default registries yet ((ksonnet/ksonnet/issues/38)[https://github.com/ksonnet/ksonnet/issues/38]) so we need to modify and [build from source](https://ksonnet.io/docs/build-install).
+You need a version of ksonnet newer than the [0.7.0 release](https://github.com/ksonnet/ksonnet/releases).
+
+As of this writing, Heptio hasn't released any newer prebuilt binaries so you will need to [build from source](https://ksonnet.io/docs/build-install).
 
 ```
 # Clone the ksonnet repo into your GOPATH
 go get github.com/ksonnet/ksonnet
-```
-
-Checkout PR 228 which adds support for registry add
-
-```
 cd ${GOPATH}/src/github.com/ksonnet/ksonnet
-git fetch origin pull/228/head:registry_add
-git checkout registry_add
 make install
 ```
 
