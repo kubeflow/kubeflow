@@ -7,8 +7,8 @@
    "contributors": [
       {
          "name": "Jeremy Lewi",
-         "email": "jlewi@google.com",
-      },
+         "email": "jlewi@google.com"
+      }
    ],
    "repository": {
       "type": "git",
@@ -27,7 +27,7 @@
       "componentName": "tf-job",
       "flags": {
          "name": "tf-job",
-         "namespace": "default",
+         "namespace": "default"
       },
       "comment": "Run TensorFlow Job"
    },

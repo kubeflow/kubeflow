@@ -7,8 +7,8 @@
    "contributors": [
       {
          "name": "Jeremy Lewi",
-         "email": "jlewi@google.com",
-      },
+         "email": "jlewi@google.com"
+      }
    ],
    "repository": {
       "type": "git",
@@ -28,7 +28,7 @@
       "flags": {
          "name": "core",
          "namespace": "default",
-         "disks": "",
+         "disks": ""
       },
       "comment": "Core Kubeflow components."
    },
