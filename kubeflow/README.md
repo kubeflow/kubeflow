@@ -2,27 +2,12 @@
 
 ## Overview
 
-This directory contains the Kubeflow ksonnet  [registry][2]. If you are unfamiliar with ksonnet, we recommend browsing [the official site][1] to gain more context.
+This directory contains the Kubeflow ksonnet [registry][2]. If you are unfamiliar with ksonnet, we recommend browsing [the official site][1] to gain more context.
 
-TODO(jlewi): Add instructions for adding this registry to ks once its supported.
-
-TODO(jlewi): We should probably rename this registry. We named it incubator because ksonnet doesn't support adding registries. So we use our registry
-by having ksonnet use our registry as the default. Therefore we decided to mimic the structure/naming of the default registry to minimize issues.
 
 ## Usage
 
-Assuming that you have the `ks` tool [installed][3], you can use any library in this registry as follows, by replacing `redis` with `<library-name>`:
-
-```
-# List all available packages (e.g. jupyterhub, TfJob controller, ...)
-ks pkg list
-
-# Describe a specific package
-ks pkg describe kubeflow/core@master
-
-# Download a specific package
-ks pkg install kubeflow/core@master
-```
+Please refer to the [Kubeflow user guide](https://github.com/google/kubeflow/blob/master/README.ksonnet.md)
 
 ## Library-specific Documentation
 
@@ -33,4 +18,4 @@ Note that you can use the `ks` commands in your terminal to access this same doc
 [1]: https://ksonnet.io
 [2]: https://ksonnet.io/docs/concepts#registry
 [3]: https://ksonnet.io/#get-started
-[4]: /doc-gen/main.go
+[4]: https://github.com/ksonnet/parts/blob/master/doc-gen/main.go
