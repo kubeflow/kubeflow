@@ -19,8 +19,7 @@
    },
    "keywords": [
       "kubeflow",
-      "tensorflow",
-      "database"
+      "tensorflow"
    ],
    "quickStart": {
       "prototype": "io.ksonnet.pkg.kubeflow",
