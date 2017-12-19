@@ -57,7 +57,7 @@ else
  ; 
 
 local image = import 'param://image';
-local imageGpu = import 'param://imageGpu';
+local imageGpu = import 'param://image_gpu';
 // The Tf CNN code doesn't actually use masters but we need 1 to satisfy TfJob requirements.
 // We should be able to get rid of this once TfJob supports using Worker 0 as the chief.
 local numMasters = 1;
