@@ -28,20 +28,12 @@ ks init my-kubeflow
 
 Install the Kubeflow packages
 
-
-```
-cd my-kubeflow
-ks registry add kubeflow github.com/jlewi/kubeflow/tree/ksonnet_crd/kubeflow
-ks pkg install kubeflow/core@ksonnet_crd
-ks pkg install kubeflow/tf-serving@ksonnet_crd
-```
-
-TODO(jlewi): After (google/kubeflow#36)[https://github.com/google/kubeflow/pull/36] is merged, change the above line to 
 ```
 cd my-kubeflow
 ks registry add kubeflow github.com/google/kubeflow/tree/master/kubeflow
 ks pkg install kubeflow/core
 ks pkg install kubeflow/tf-serving
+ks pkg install kubeflow/tf-job
 ```
 
 
@@ -87,7 +79,7 @@ ks apply cloud -c kubeflow-core
 
 ### Serve a model
 
-We treat each deployed model as a [component app](https://ksonnet.io/docs/tutorial#2-generate-and-deploy-an-app-component)
+We treat each deployed model as a [component](https://ksonnet.io/docs/tutorial#2-generate-and-deploy-an-app-component) in your APP.
 
 Create a component for your model
 
@@ -104,19 +96,62 @@ Deploy it in a particular environment. The deployment will pick up environment p
 ks apply cloud -c ${MODEL_COMPONENT}
 ```
 
-## Kubeflow and ksonnet limitations.
+### Submiting a TensorFlow training job
 
-ks doesn't support adding registries yet [ksonnet/ksonnet/issues/38](https://github.com/ksonnet/ksonnet/issues/38); so we can't
-define Kubeflow prototypes and a Kubeflow package which the user can use to initialize their config.
+We treat each TensorFlow job as a [component](https://ksonnet.io/docs/tutorial#2-generate-and-deploy-an-app-component) in your APP.
 
+Create a component for your job.
 
-* So for now we check in a ksonnet app "my-kubeflow"
-* libsonnet files corresponding to Kubeflow protoypes are in the lib/ directory
+```
+ks generate tf-job ${JOB_NAME} --name=${JOB_NAME}
+```
 
-* The expectation is we will eventually 
-   * Have a Kubeflow ksonnet [registry](https://ksonnet.io/docs/concepts#registry) with multiple packages
-   * Some of these component packages will be for individual components (e.g. JupyterHub, Airflow etc...)
-   * We will probably have one or more packages corresponding to the Kubeflow deployment as a whole.
+To configure your job you need to set a bunch of parameters. To see a list of parameters run
+
+```
+ks prototype describe tf-job
+```
+
+Parameters can be set using `ks param` e.g. to set the Docker image used
+
+```
+ks param set ${JOB_NAME} image ${IMAGE}
+```
+
+You can also edit the `params.libsonnet` files directly to set parameters.
+
+**Warning** Currently setting args via the command line doesn't work because of escaping issues (see [ksonnet/ksonnet/issues/235](https://github.com/ksonnet/ksonnet/issues/235)). So to set the parameters you will need
+to directly edit the `params.libsonnet` file directly.
+
+To run your job
+
+```
+ks apply ${ENVIRONMENT} -c ${JOB_NAME}
+```
+
+For information on monitoring your job please refer to the [TfJob docs](https://github.com/tensorflow/k8s#monitoring-your-job).
+
+#### Run the TfCnn example
+
+Kubeflow ships with a [ksonnet prototype](https://ksonnet.io/docs/concepts#prototype) suitable for running the [TensorFlow CNN Benchmarks](https://github.com/tensorflow/benchmarks/tree/master/scripts/tf_cnn_benchmarks).
+
+Create the component
+
+```
+ks generate tf-cnn ${CNN_JOB_NAME} --name=${CNN_JOB_NAME}
+```
+
+Submit it
+
+```
+ks apply ${ENVIRONMENT} -c ${CNN_JOB_NAME}
+```
+
+The prototype provides a bunch of parameters to control how the job runs (e.g. use GPUs run distributed etc...). To see a list of paramets
+
+```
+ks prototype describe tf-cnn
+```
 
 ## Advanced Customization
 
