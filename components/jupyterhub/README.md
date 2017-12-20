@@ -32,7 +32,14 @@ The above will expose JupyterHub on http://localhost:8000. The pod name can be o
 
 ## Configuration
 
-Configuration for JupyterHub is shipped separately and contained within the configmap defined by the core componenent. It is a Python file that is consumed by JupyterHub on starting up. The supplied configuration has reasonable defaults for the requisite fields and **no authenticator** configured by default.
+Configuration for JupyterHub is shipped separately and contained within the configmap defined by the [core componenent](https://github.com/google/kubeflow/tree/master/kubeflow). It is a Python file that is consumed by JupyterHub on starting up. The supplied configuration has reasonable defaults for the requisite fields and **no authenticator** configured by default. Furthermore, we provide a number of parameters that can be used to configure
+the core component. To see a list of ksonnet parameters run
+
+```
+ks prototype describe kubeflow-core
+```
+
+If the provided parameters don't provide the flexibility you need, you can take advantage of ksonnet to customize the core component and use a config file fully specified by you.
 
 Configuration includes sections for KubeSpawner and Authenticators. Spawner parameters include the form used when provisioning new 
 Jupyter notebooks, and configuration defining how JupyterHub creates and interacts with Kubernetes pods for individual notebooks. 
@@ -84,7 +91,7 @@ c.GitHubOAuthenticator.client_secret = 'client_secret_here'
 Finally, you can update the configuration and ensure that the new configuration is picked up, by doing the following:
 
 ```commandline
-kubectl apply -f manifests/config.yaml
+ks apply ${ENVIRONMENT} -c ${COMPONENT_NAME}
 kubectl delete pod tf-hub-0
 ```
 
