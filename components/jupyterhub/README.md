@@ -15,19 +15,9 @@ Kubernetes pods.
 
 ## Quick Start
 
-The quickest way to get started is to deploy the configuration under `manifests/`. If you're using GKE with RBAC enabled, you may first need to give your user the permission to create new RBAC roles to edit pods.
+Refer to the [user_guide](../../user_guide.md) for instructions on deploying JupyterHub via ksonnet.
 
-```commandline
-kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --user=user@gmail.com
-```
-
-Once that's completed, it should be straightforward to setup the configuration and the hub itself. 
-
-```commandline
-kubectl apply -f manifests/
-``` 
-
-The command above will provision a StatefulSet for Jupyterhub, a configmap for configuration, and a LoadBalancer type of service, in addition to the requisite RBAC roles.
+Once that's completed, you will have a StatefulSet for Jupyterhub, a configmap for configuration, and a LoadBalancer type of service, in addition to the requisite RBAC roles.
 If you are on Google Kubernetes Engine, the LoadBalancer type of service automatically creates an external IP address that can be 
 used to access the notebook. Note that this is for illustration purposes only, and must be coupled with [SSL](http://jupyterhub.readthedocs.io/en/0.8.1/getting-started/security-basics.html?highlight=ssl#ssl-encryption) and configured to use an
 [authentication plugin](https://github.com/willingc/jhubdocs/blob/master/jupyterhub/docs/source/authenticators.md) in production environments.
@@ -42,7 +32,14 @@ The above will expose JupyterHub on http://localhost:8000. The pod name can be o
 
 ## Configuration
 
-Configuration for JupyterHub is shipped separately and contained within the configmap under `manifests/config.yaml`. It is a Python file that is consumed by JupyterHub on starting up. The supplied configuration has reasonable defaults for the requisite fields and **no authenticator** configured by default.
+Configuration for JupyterHub is shipped separately and contained within the configmap defined by the [core componenent](https://github.com/google/kubeflow/tree/master/kubeflow). It is a Python file that is consumed by JupyterHub on starting up. The supplied configuration has reasonable defaults for the requisite fields and **no authenticator** configured by default. Furthermore, we provide a number of parameters that can be used to configure
+the core component. To see a list of ksonnet parameters run
+
+```
+ks prototype describe kubeflow-core
+```
+
+If the provided parameters don't provide the flexibility you need, you can take advantage of ksonnet to customize the core component and use a config file fully specified by you.
 
 Configuration includes sections for KubeSpawner and Authenticators. Spawner parameters include the form used when provisioning new 
 Jupyter notebooks, and configuration defining how JupyterHub creates and interacts with Kubernetes pods for individual notebooks. 
@@ -94,7 +91,7 @@ c.GitHubOAuthenticator.client_secret = 'client_secret_here'
 Finally, you can update the configuration and ensure that the new configuration is picked up, by doing the following:
 
 ```commandline
-kubectl apply -f manifests/config.yaml
+ks apply ${ENVIRONMENT} -c ${COMPONENT_NAME}
 kubectl delete pod tf-hub-0
 ```
 
