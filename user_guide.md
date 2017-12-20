@@ -2,18 +2,11 @@
 
 If you are unfamiliar with ksonnet you may want to start by reading the [tutorial](https://ksonnet.io/docs/tutorial)
 
-## Build ks
+## Get ksonnet
 
-You need a version of ksonnet newer than the [0.7.0 release](https://github.com/ksonnet/ksonnet/releases).
+You need ksonnet version [0.8.0 release](https://github.com/ksonnet/ksonnet/releases) or later.
 
 As of this writing, Heptio hasn't released any newer prebuilt binaries so you will need to [build from source](https://ksonnet.io/docs/build-install).
-
-```
-# Clone the ksonnet repo into your GOPATH
-go get github.com/ksonnet/ksonnet
-cd ${GOPATH}/src/github.com/ksonnet/ksonnet
-make install
-```
 
 ## Deploy Kubeflow
 
