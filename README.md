@@ -56,6 +56,9 @@ effort in a portable fashion between different environments. You can refer to th
 * [Twitter](http://twitter.com/kubeflow)
 * [Mailing List](https://groups.google.com/forum/#!forum/kubeflow-discuss)
 
+There is a [proposal](https://docs.google.com/document/d/1dmErPUmqqKMOe4L0ZHQglSdgDguCM4SzlsEdYXRMIDA/edit#) on google doc to define the scope and expectations
+on Kubeflow, please comment and share your thoughts to shape the future of the project!
+
 ## Usage
 
 This section describes the different components and the steps required to get started.
