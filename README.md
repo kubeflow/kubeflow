@@ -26,8 +26,8 @@ This documentation assumes you have a Kubernetes cluster already available. For 
 ### Minikube
 
 [Minikube](https://github.com/kubernetes/minikube) is a tool that makes it easy to run Kubernetes locally. Minikube runs a
-single-node Kubernetes cluster inside a VM on your laptop for users looking to try out Kubernetes or develop with it day-to-day. 
-The below steps apply to a minikube cluster - the latest version as of writing this documentation is 0.23.0. You must also have 
+single-node Kubernetes cluster inside a VM on your laptop for users looking to try out Kubernetes or develop with it day-to-day.
+The below steps apply to a minikube cluster - the latest version as of writing this documentation is 0.23.0. You must also have
 kubectl configured to access minikube.
 
 ### Google Kubernetes Engine
@@ -46,9 +46,9 @@ In order to quickly set up all components of the stack, run:
 kubectl apply -f components/ -R
 ```
 
-The above command sets up JupyterHub, an API for training using Tensorflow, and a set of deployment files for serving. 
+The above command sets up JupyterHub, an API for training using Tensorflow, and a set of deployment files for serving.
 Used together, these serve as configuration that can help a user go from training to serving using Tensorflow with minimal
-effort in a portable fashion between different environments. You can refer to the instructions for using each of these components below. 
+effort in a portable fashion between different environments. You can refer to the instructions for using each of these components below.
 
 ## Get involved
 
@@ -56,9 +56,12 @@ effort in a portable fashion between different environments. You can refer to th
 * [Twitter](http://twitter.com/kubeflow)
 * [Mailing List](https://groups.google.com/forum/#!forum/kubeflow-discuss)
 
+There is a [proposal](https://docs.google.com/document/d/1dmErPUmqqKMOe4L0ZHQglSdgDguCM4SzlsEdYXRMIDA/edit#) to define the scope and expectations
+of Kubeflow, please comment and share your thoughts to shape the future of the project!
+
 ## Usage
 
-This section describes the different components and the steps required to get started.  
+This section describes the different components and the steps required to get started.
 
 
 ### Bringing up a Notebook
@@ -80,7 +83,7 @@ If you're using minikube, you can run the following to get the URL for the noteb
 minikube service tf-hub-lb --url
 
 http://xx.yy.zz.ww:31942
-``` 
+```
 
 For some cloud deployments, the LoadBalancer service may take up to five minutes display an external IP address. Re-executing `kubectl get svc` repeatedly will eventually show the external IP field populated.
 
@@ -92,17 +95,17 @@ We also ship standard docker images that you can use for training Tensorflow mod
 * gcr.io/kubeflow/tensorflow-notebook-cpu
 * gcr.io/kubeflow/tensorflow-notebook-gpu
 
-In the spawn window, when starting a new Jupyter instance, you can supply one of the above images to get started, depending on whether 
-you want to run on CPUs or GPUs. The images include all the requisite plugins, including [Tensorboard](https://www.tensorflow.org/get_started/summaries_and_tensorboard) that you can use for rich visualizations and insights into your models. 
-Note that GPU-based image is several gigabytes in size and may take a few minutes to localize. 
+In the spawn window, when starting a new Jupyter instance, you can supply one of the above images to get started, depending on whether
+you want to run on CPUs or GPUs. The images include all the requisite plugins, including [Tensorboard](https://www.tensorflow.org/get_started/summaries_and_tensorboard) that you can use for rich visualizations and insights into your models.
+Note that GPU-based image is several gigabytes in size and may take a few minutes to localize.
 
-Also, when running on Google Kubernetes Engine, the public IP address will be exposed to the internet and is an 
-unsecured endpoint by default. For a production deployment with SSL and authentication, refer to the [documentation](components/jupyterhub). 
+Also, when running on Google Kubernetes Engine, the public IP address will be exposed to the internet and is an
+unsecured endpoint by default. For a production deployment with SSL and authentication, refer to the [documentation](components/jupyterhub).
 
 ### Training
 
-The TFJob controller takes a YAML specification for a master, parameter servers, and workers to help run [distributed tensorflow](https://www.tensorflow.org/deploy/distributed). The quick start deploys a TFJob controller and installs a new `tensorflow.org/v1alpha1` API type. 
-You can create new Tensorflow Training deployments by submitting a specification to the aforementioned API. 
+The TFJob controller takes a YAML specification for a master, parameter servers, and workers to help run [distributed tensorflow](https://www.tensorflow.org/deploy/distributed). The quick start deploys a TFJob controller and installs a new `tensorflow.org/v1alpha1` API type.
+You can create new Tensorflow Training deployments by submitting a specification to the aforementioned API.
 
 An example specification looks like the following:
 
