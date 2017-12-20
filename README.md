@@ -8,7 +8,7 @@ The KubeFlow project is dedicated to making Machine Learning on Kubernetes easy,
 
 This document details the steps needed to run the Kubeflow project in any environment in which Kubernetes runs.
 
-## The KubeFlow Mission
+## The Kubeflow Mission
 
 Our goal is to help folks use ML more easily, by letting Kubernetes to do what it's great at:
 - Easy, repeatable, portable deployments on a diverse infrastructure (laptop <-> ML rig <-> training cluster <-> production cluster)
@@ -26,8 +26,8 @@ This documentation assumes you have a Kubernetes cluster already available. For 
 ### Minikube
 
 [Minikube](https://github.com/kubernetes/minikube) is a tool that makes it easy to run Kubernetes locally. Minikube runs a
-single-node Kubernetes cluster inside a VM on your laptop for users looking to try out Kubernetes or develop with it day-to-day. 
-The below steps apply to a minikube cluster - the latest version as of writing this documentation is 0.23.0. You must also have 
+single-node Kubernetes cluster inside a VM on your laptop for users looking to try out Kubernetes or develop with it day-to-day.
+The below steps apply to a minikube cluster - the latest version as of writing this documentation is 0.23.0. You must also have
 kubectl configured to access minikube.
 
 ### Google Kubernetes Engine
@@ -41,6 +41,8 @@ kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --us
 ## Quick Start
 
 In order to quickly set up all components of the stack:
+
+Ensure you have ksonnet version [0.8.0](https://github.com/ksonnet/ksonnet/releases)) or later.
 
 Initialize a ksonnet app and install the Kubeflow components
 
