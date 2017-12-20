@@ -1,14 +1,14 @@
-# Kubeflow
+# KubeFlow
 
-The Kubeflow project is dedicated to making Machine Learning on Kubernetes easy, portable and scalable. Our goal is **not** to recreate other services, but to provide a straightforward way for spinning up best of breed OSS solutions. Contained in this repository are manifests for creating:
+The KubeFlow project is dedicated to making Machine Learning on Kubernetes easy, portable and scalable. Our goal is **not** to recreate other services, but to provide a straightforward way for spinning up best of breed OSS solutions. Contained in this repository are manifests for creating:
 
 * A JupyterHub to create & manage interactive Jupyter notebooks
 * A Tensorflow Training Controller that can be configured to use CPUs or GPUs, and adjusted to the size of a cluster with a single setting
 * A TF Serving container
 
-This document details the steps needed to run the kubeflow project in any environment in which Kubernetes runs.
+This document details the steps needed to run the KubeFlow project in any environment in which Kubernetes runs.
 
-## The Kubeflow Mission
+## The KubeFlow Mission
 
 Our goal is to help folks use ML more easily, by letting Kubernetes to do what it's great at:
 - Easy, repeatable, portable deployments on a diverse infrastructure (laptop <-> ML rig <-> training cluster <-> production cluster)
@@ -40,21 +40,39 @@ kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --us
 ```
 ## Quick Start
 
-In order to quickly set up all components of the stack, run:
+In order to quickly set up all components of the stack:
+
+Initialize a ksonnet app and install the KubeFlow components
 
 ```commandline
-kubectl apply -f components/ -R
+APP_NAME=my-kubeflow
+ks init ${APP_NAME}
+cd ${APP_NAME}
+ks registry add kubeflow github.com/google/kubeflow/tree/master/kubeflow
+ks pkg install kubeflow/core
+ks pkg install kubeflow/tf-serving
+ks pkg install kubeflow/tf-job
 ```
 
-The above command sets up JupyterHub, an API for training using Tensorflow, and a set of deployment files for serving. 
-Used together, these serve as configuration that can help a user go from training to serving using Tensorflow with minimal
-effort in a portable fashion between different environments. You can refer to the instructions for using each of these components below. 
+Create and deploy Kubeflow
+
+```commandline
+ks generate core kubeflow-core --name=kubeflow-core --namespace=${NAMESPACE}
+ks apply default kubeflow-core
+```
+
+The above command sets up JupyterHub and a custom resource for running TensorFlow training jobs. Furthermore, the ksonnet packages
+provide prototypes that can be used to configure TensorFlow jobs and deploy TensorFlow models. 
+Used together, these make it easy for a user go from training to serving using Tensorflow with minimal
+effort in a portable fashion between different environments. 
+
+For more detailed instructions about how to use Kubeflow please refer to the [user guide](user_guide.md)
 
 ## Get involved
 
-* [Slack Channel](https://join.slack.com/t/kubeflow/shared_invite/enQtMjgyMzMxNDgyMTQ5LWUwMTIxNmZlZTk2NGU0MmFiNDE4YWJiMzFiOGNkZGZjZmRlNTExNmUwMmQ2NzMwYzk5YzQxOWQyODBlZGY2OTg)
-* [Twitter](http://twitter.com/kubeflow)
-* [Mailing List](https://groups.google.com/forum/#!forum/kubeflow-discuss)
+* [Slack Channel](https://join.slack.com/t/KubeFlow/shared_invite/enQtMjgyMzMxNDgyMTQ5LWUwMTIxNmZlZTk2NGU0MmFiNDE4YWJiMzFiOGNkZGZjZmRlNTExNmUwMmQ2NzMwYzk5YzQxOWQyODBlZGY2OTg)
+* [Twitter](http://twitter.com/KubeFlow)
+* [Mailing List](https://groups.google.com/forum/#!forum/KubeFlow-discuss)
 
 ## Usage
 
@@ -89,8 +107,8 @@ request any resources (memory/CPU/GPU), and then proceed to perform single node 
 
 We also ship standard docker images that you can use for training Tensorflow models with Jupyter.
 
-* gcr.io/kubeflow/tensorflow-notebook-cpu
-* gcr.io/kubeflow/tensorflow-notebook-gpu
+* gcr.io/KubeFlow/tensorflow-notebook-cpu
+* gcr.io/KubeFlow/tensorflow-notebook-gpu
 
 In the spawn window, when starting a new Jupyter instance, you can supply one of the above images to get started, depending on whether 
 you want to run on CPUs or GPUs. The images include all the requisite plugins, including [Tensorboard](https://www.tensorflow.org/get_started/summaries_and_tensorboard) that you can use for rich visualizations and insights into your models. 
@@ -133,8 +151,8 @@ spec:
       tfReplicaType: PS
  ```
 
-For runnable examples, look under the [tf-controller-examples/](https://github.com/google/kubeflow/tree/master/tf-controller-examples) directory. Detailed documentation can be found in the [tensorflow/k8s](https://github.com/tensorflow/k8s) repository for more information on using the TfJob controller to run TensorFlow jobs on Kubernetes.
+For runnable examples, look under the [tf-controller-examples/](https://github.com/google/KubeFlow/tree/master/tf-controller-examples) directory. Detailed documentation can be found in the [tensorflow/k8s](https://github.com/tensorflow/k8s) repository for more information on using the TfJob controller to run TensorFlow jobs on Kubernetes.
 
 ### Serve Model
 
-Refer to the instructions in [components/k8s-model-server](https://github.com/google/kubeflow/tree/master/components/k8s-model-server) to set up model serving with the included Tensorflow serving deployment.
+Refer to the instructions in [components/k8s-model-server](https://github.com/google/KubeFlow/tree/master/components/k8s-model-server) to set up model serving with the included Tensorflow serving deployment.
