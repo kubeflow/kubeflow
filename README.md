@@ -26,8 +26,8 @@ This documentation assumes you have a Kubernetes cluster already available. For 
 ### Minikube
 
 [Minikube](https://github.com/kubernetes/minikube) is a tool that makes it easy to run Kubernetes locally. Minikube runs a
-single-node Kubernetes cluster inside a VM on your laptop for users looking to try out Kubernetes or develop with it day-to-day. 
-The below steps apply to a minikube cluster - the latest version as of writing this documentation is 0.23.0. You must also have 
+single-node Kubernetes cluster inside a VM on your laptop for users looking to try out Kubernetes or develop with it day-to-day.
+The below steps apply to a minikube cluster - the latest version as of writing this documentation is 0.23.0. You must also have
 kubectl configured to access minikube.
 
 ### Google Kubernetes Engine
@@ -42,7 +42,35 @@ kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --us
 
 In order to quickly set up all components of the stack:
 
+<<<<<<< HEAD
 Initialize a ksonnet app and install the Kubeflow components
+=======
+```commandline
+kubectl apply -f components/ -R
+```
+
+The above command sets up JupyterHub, an API for training using Tensorflow, and a set of deployment files for serving.
+Used together, these serve as configuration that can help a user go from training to serving using Tensorflow with minimal
+effort in a portable fashion between different environments. You can refer to the instructions for using each of these components below.
+
+## Get involved
+
+* [Slack Channel](https://join.slack.com/t/kubeflow/shared_invite/enQtMjgyMzMxNDgyMTQ5LWUwMTIxNmZlZTk2NGU0MmFiNDE4YWJiMzFiOGNkZGZjZmRlNTExNmUwMmQ2NzMwYzk5YzQxOWQyODBlZGY2OTg)
+* [Twitter](http://twitter.com/kubeflow)
+* [Mailing List](https://groups.google.com/forum/#!forum/kubeflow-discuss)
+
+There is a [proposal](https://docs.google.com/document/d/1dmErPUmqqKMOe4L0ZHQglSdgDguCM4SzlsEdYXRMIDA/edit#) to define the scope and expectations
+of Kubeflow, please comment and share your thoughts to shape the future of the project!
+
+## Usage
+
+This section describes the different components and the steps required to get started.
+
+
+### Bringing up a Notebook
+
+Once you create all the manifests needed for JupyterHub, a load balancer service is created. You can check its existence using the kubectl commandline.
+>>>>>>> upstream/master
 
 ```commandline
 APP_NAME=my-kubeflow
