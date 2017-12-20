@@ -1,4 +1,4 @@
-# Using KubeFlow 
+# Using Kubeflow 
 
 If you are unfamiliar with ksonnet you may want to start by reading the [tutorial](https://ksonnet.io/docs/tutorial)
 
@@ -33,7 +33,7 @@ ks pkg install kubeflow/tf-job
 ```
 
 
-Create the KubeFlow core component. The core component includes 
+Create the Kubeflow core component. The core component includes 
   * JupyterHub
   * TensorFlow job controller
 
@@ -53,7 +53,7 @@ Define an environment that doesn't use any Cloud features
 ks env add nocloud
 ```
 
-The default KubeFlow deployment will be suitable for this no cloud environment so you can just deploy the core components
+The default Kubeflow deployment will be suitable for this no cloud environment so you can just deploy the core components
 
 ```
 ks apply nocloud -c kubeflow-core
@@ -101,8 +101,8 @@ request any resources (memory/CPU/GPU), and then proceed to perform single node 
 
 We also ship standard docker images that you can use for training Tensorflow models with Jupyter.
 
-* gcr.io/KubeFlow/tensorflow-notebook-cpu
-* gcr.io/KubeFlow/tensorflow-notebook-gpu
+* gcr.io/kubeflow/tensorflow-notebook-cpu
+* gcr.io/kubeflow/tensorflow-notebook-gpu
 
 In the spawn window, when starting a new Jupyter instance, you can supply one of the above images to get started, depending on whether 
 you want to run on CPUs or GPUs. The images include all the requisite plugins, including [Tensorboard](https://www.tensorflow.org/get_started/summaries_and_tensorboard) that you can use for rich visualizations and insights into your models. 
@@ -168,7 +168,7 @@ For information on monitoring your job please refer to the [TfJob docs](https://
 
 #### Run the TfCnn example
 
-KubeFlow ships with a [ksonnet prototype](https://ksonnet.io/docs/concepts#prototype) suitable for running the [TensorFlow CNN Benchmarks](https://github.com/tensorflow/benchmarks/tree/master/scripts/tf_cnn_benchmarks).
+Kubeflow ships with a [ksonnet prototype](https://ksonnet.io/docs/concepts#prototype) suitable for running the [TensorFlow CNN Benchmarks](https://github.com/tensorflow/benchmarks/tree/master/scripts/tf_cnn_benchmarks).
 
 Create the component
 

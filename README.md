@@ -1,4 +1,4 @@
-# KubeFlow
+# Kubeflow
 
 The KubeFlow project is dedicated to making Machine Learning on Kubernetes easy, portable and scalable. Our goal is **not** to recreate other services, but to provide a straightforward way for spinning up best of breed OSS solutions. Contained in this repository are manifests for creating:
 
@@ -6,7 +6,7 @@ The KubeFlow project is dedicated to making Machine Learning on Kubernetes easy,
 * A Tensorflow Training Controller that can be configured to use CPUs or GPUs, and adjusted to the size of a cluster with a single setting
 * A TF Serving container
 
-This document details the steps needed to run the KubeFlow project in any environment in which Kubernetes runs.
+This document details the steps needed to run the Kubeflow project in any environment in which Kubernetes runs.
 
 ## The KubeFlow Mission
 
@@ -42,7 +42,7 @@ kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --us
 
 In order to quickly set up all components of the stack:
 
-Initialize a ksonnet app and install the KubeFlow components
+Initialize a ksonnet app and install the Kubeflow components
 
 ```commandline
 APP_NAME=my-kubeflow
