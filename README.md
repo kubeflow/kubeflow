@@ -42,7 +42,7 @@ kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --us
 
 In order to quickly set up all components of the stack:
 
-Ensure you have ksonnet version [0.8.0](https://github.com/ksonnet/ksonnet/releases)) or later.
+Ensure you have ksonnet version [0.8.0](https://github.com/ksonnet/ksonnet/releases) or later.
 
 Initialize a ksonnet app and install the Kubeflow components
 
