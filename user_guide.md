@@ -2,6 +2,11 @@
 
 If you are unfamiliar with ksonnet you may want to start by reading the [tutorial](https://ksonnet.io/docs/tutorial)
 
+## Requirements
+
+  * ksonnet version [0.8.0](https://github.com/ksonnet/ksonnet/releases) or later.
+  * Kubernetes >= 1.8 [see here](https://github.com/tensorflow/k8s#requirements)
+
 ## Get ksonnet
 
 You need ksonnet version [0.8.0 release](https://github.com/ksonnet/ksonnet/releases) or later.
