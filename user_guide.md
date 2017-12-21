@@ -66,6 +66,12 @@ They can then deploy to this environment
 ks apply cloud -c kubeflow-core
 ```
 
+At any time you can inspect the manifests for a particular component using `ks show` e.g
+
+```
+ks show cloud -c kubeflow-core
+```
+
 ### Bringing up a Notebook
 
 Once you've deployed JupyterHub, a load balancer service is created. You can check its existence using the kubectl commandline.
