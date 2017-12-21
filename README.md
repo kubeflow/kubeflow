@@ -72,6 +72,6 @@ For more detailed instructions about how to use Kubeflow please refer to the [us
 
 ## Get involved
 
-* [Slack Channel](https://join.slack.com/t/KubeFlow/shared_invite/enQtMjgyMzMxNDgyMTQ5LWUwMTIxNmZlZTk2NGU0MmFiNDE4YWJiMzFiOGNkZGZjZmRlNTExNmUwMmQ2NzMwYzk5YzQxOWQyODBlZGY2OTg)
-* [Twitter](http://twitter.com/KubeFlow)
-* [Mailing List](https://groups.google.com/forum/#!forum/KubeFlow-discuss)
+* [Slack Channel](https://join.slack.com/t/kubeflow/shared_invite/enQtMjgyMzMxNDgyMTQ5LWUwMTIxNmZlZTk2NGU0MmFiNDE4YWJiMzFiOGNkZGZjZmRlNTExNmUwMmQ2NzMwYzk5YzQxOWQyODBlZGY2OTg)
+* [Twitter](http://twitter.com/kubeflow)
+* [Mailing List](https://groups.google.com/forum/#!forum/kubeubeflow-discuss)
