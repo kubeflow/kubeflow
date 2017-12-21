@@ -40,28 +40,27 @@ kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --us
 ```
 ## Quick Start
 
-In order to quickly set up all components of the stack:
-
 Ensure you have ksonnet version [0.8.0](https://github.com/ksonnet/ksonnet/releases) or later.
 
-Initialize a ksonnet app and install the Kubeflow components
+In order to quickly set up all components, execute the following commands,
 
 ```commandline
+# Initialize a ksonnet APP
 APP_NAME=my-kubeflow
 ks init ${APP_NAME}
 cd ${APP_NAME}
+
+# Install Kubeflow components
 ks registry add kubeflow github.com/google/kubeflow/tree/master/kubeflow
 ks pkg install kubeflow/core
 ks pkg install kubeflow/tf-serving
 ks pkg install kubeflow/tf-job
-```
 
-Create and deploy Kubeflow
-
-```commandline
+# Deploy Kubeflow
 ks generate core kubeflow-core --name=kubeflow-core --namespace=${NAMESPACE}
 ks apply default kubeflow-core
 ```
+
 
 The above command sets up JupyterHub and a custom resource for running TensorFlow training jobs. Furthermore, the ksonnet packages
 provide prototypes that can be used to configure TensorFlow jobs and deploy TensorFlow models. 
