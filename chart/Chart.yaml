@@ -1,0 +1,8 @@
+name: kubeflow
+home: https://github.com/google/kubeflow/
+version: 0.1.0
+appVersion: 0.1.0
+description: Machine Learning Toolkit for Kubernetes
+icon: https://avatars2.githubusercontent.com/u/15658638
+sources:
+  - https://github.com/google/kubeflow/

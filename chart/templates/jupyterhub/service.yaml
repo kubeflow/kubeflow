@@ -1,0 +1,16 @@
+{{- if .Values.jupyterhub.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: tf-hub-lb
+  labels:
+    app: tf-hub
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    name: http
+    targetPort: 8000
+  selector:
+    app: tf-hub
+{{- end }}
