@@ -40,7 +40,10 @@ kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --us
 ```
 ## Quick Start
 
-Ensure you have ksonnet version [0.8.0](https://github.com/ksonnet/ksonnet/releases) or later.
+Requirements
+
+  * ksonnet version [0.8.0](https://github.com/ksonnet/ksonnet/releases) or later.
+  * Kubernetes >= 1.8 [see here](https://github.com/tensorflow/k8s#requirements)
 
 In order to quickly set up all components, execute the following commands,
 
@@ -69,8 +72,16 @@ effort in a portable fashion between different environments.
 
 For more detailed instructions about how to use Kubeflow please refer to the [user guide](user_guide.md)
 
+## Resources
+
+* [user guide](user_guide.md) provides in depth instructions for using Kubeflow
+* Katacoda has produced a [self-paced scenario](https://www.katacoda.com/kubeflow) for learning and trying out Kubeflow
+
+
 ## Get involved
 
 * [Slack Channel](https://join.slack.com/t/kubeflow/shared_invite/enQtMjgyMzMxNDgyMTQ5LWUwMTIxNmZlZTk2NGU0MmFiNDE4YWJiMzFiOGNkZGZjZmRlNTExNmUwMmQ2NzMwYzk5YzQxOWQyODBlZGY2OTg)
 * [Twitter](http://twitter.com/kubeflow)
 * [Mailing List](https://groups.google.com/forum/#!forum/kubeubeflow-discuss)
+
+* Review and comment on the [proposal](https://docs.google.com/document/d/1dmErPUmqqKMOe4L0ZHQglSdgDguCM4SzlsEdYXRMIDA/edit#) to define the scope and future of Kubeflow
