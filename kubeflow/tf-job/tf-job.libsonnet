@@ -7,7 +7,7 @@ local k = import 'k.libsonnet';
                   "image": image, 
                   "name": "tensorflow",                 
                 };
-      local containerArgs =  if std.length(args) >0 then 
+      local containerArgs = if std.length(args) > 0 then 
                 {
                   args: args,
                 }
