@@ -1,0 +1,63 @@
+# Curl is needed for TF GCS support and generally useful.
+curl
+libcurl3-dev
+
+# wget is used to install TF and generally useful.
+wget
+
+# zip is used by bazel.
+zip
+unzip
+
+# These packages are nice if a dev pulls this docker
+# image to run locally.
+git
+vim
+build-essential
+ca-certificates
+pkg-config
+rsync
+#ca-certificates-java
+
+# kai
+# jessie-backports
+
+# Linear Algebra packages for linear models.
+libatlas-base-dev
+liblapack-dev
+
+# GFortran is used to compile numpy.
+gfortran
+
+# Some requirements for the latest Pillow. Useful for image processing.
+libpng-dev
+libjpeg-dev
+
+# Python is required for basically everything. :)
+python2.7
+python-dev
+python-setuptools
+
+# gdb is used for stack traces.
+gdb
+
+# Java 8 is used by bazel.
+openjdk-8-jdk
+#openjdk-8-jre-headless
+
+# Other bazel dependencies.
+g++
+zlib1g-dev
+
+# CUDA dependencies.
+libio-all-perl
+module-init-tools
+
+# This package is needed for "pip install python-snappy".
+libsnappy-dev
+
+# This package is needed for "pip install pyyaml" to have C bindings.
+libyaml-0-2
+
+# Install opencv so it is available for image processing.
+python-opencv
