@@ -1,6 +1,6 @@
 # Example usage to run a tensorflow model
 
-Prepared your trained tensorflow SavedModel at `MODEL_PATH`.
+Prepare your trained tensorflow SavedModel at `MODEL_PATH`.
 
 ```commandline
 export IMAGE_NAME=example_image

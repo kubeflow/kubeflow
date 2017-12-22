@@ -137,7 +137,6 @@ RUN pip install --upgrade protobuf==3.2.0 && \
 COPY server/prediction_server.py server/prediction_server.py
 COPY server/prediction_server_lib.py server/prediction_server_lib.py
 COPY server/frameworks/tf_prediction_server_lib.py server/frameworks/tf_prediction_server_lib.py
-COPY server/default_app.py server/default_app.py
 COPY server/prediction/prediction_lib.py server/prediction/prediction_lib.py
 COPY server/prediction/_interfaces.py server/prediction/_interfaces.py
 COPY server/util/_retry.py server/util/_retry.py
