@@ -17,10 +17,6 @@ build-essential
 ca-certificates
 pkg-config
 rsync
-#ca-certificates-java
-
-# kai
-# jessie-backports
 
 # Linear Algebra packages for linear models.
 libatlas-base-dev
