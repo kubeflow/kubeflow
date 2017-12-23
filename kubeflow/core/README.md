@@ -20,7 +20,7 @@ Finally, in the ksonnet application directory, run the following:
 ```shell
 # Expand prototype as a Jsonnet file, place in a file in the
 # `components/` directory. (YAML and JSON are also available.)
-$ ks prototype use io.ksonnet.pkg.kubeflow core \
+$ ks prototype use io.ksonnet.pkg.kubeflow-core \
   --name core \
   --namespace default \
   --disks 

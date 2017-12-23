@@ -1,23 +1,17 @@
-# Using Ksonnet 
-
-Kubeflow is currently evaluating different strategies for allowing deployments to be customized ([google/kubeflow/issues/23](https://github.com/google/kubeflow/issues/23)).
-
-This directory contains a prototype for using ksonnet to help us evaluate ksonnet.
+# Using Kubeflow 
 
 If you are unfamiliar with ksonnet you may want to start by reading the [tutorial](https://ksonnet.io/docs/tutorial)
 
-## Build ks
+## Requirements
 
-You need a version of ksonnet newer than the [0.7.0 release](https://github.com/ksonnet/ksonnet/releases).
+  * ksonnet version [0.8.0](https://github.com/ksonnet/ksonnet/releases) or later.
+  * Kubernetes >= 1.8 [see here](https://github.com/tensorflow/k8s#requirements)
+
+## Get ksonnet
+
+You need ksonnet version [0.8.0 release](https://github.com/ksonnet/ksonnet/releases) or later.
 
 As of this writing, Heptio hasn't released any newer prebuilt binaries so you will need to [build from source](https://ksonnet.io/docs/build-install).
-
-```
-# Clone the ksonnet repo into your GOPATH
-go get github.com/ksonnet/ksonnet
-cd ${GOPATH}/src/github.com/ksonnet/ksonnet
-make install
-```
 
 ## Deploy Kubeflow
 
@@ -76,6 +70,51 @@ They can then deploy to this environment
 ```
 ks apply cloud -c kubeflow-core
 ```
+
+At any time you can inspect the manifests for a particular component using `ks show` e.g
+
+```
+ks show cloud -c kubeflow-core
+```
+
+### Bringing up a Notebook
+
+Once you've deployed JupyterHub, a load balancer service is created. You can check its existence using the kubectl commandline.
+
+```commandline
+kubectl get svc
+
+NAME         TYPE           CLUSTER-IP     EXTERNAL-IP    PORT(S)        AGE
+kubernetes   ClusterIP      10.11.240.1    <none>         443/TCP        1h
+tf-hub-0     ClusterIP      None           <none>         8000/TCP       1m
+tf-hub-lb    LoadBalancer   10.11.245.94   xx.yy.zz.ww    80:32481/TCP   1m
+```
+
+If you're using minikube, you can run the following to get the URL for the notebook.
+
+```
+minikube service tf-hub-lb --url
+
+http://xx.yy.zz.ww:31942
+``` 
+
+For some cloud deployments, the LoadBalancer service may take up to five minutes display an external IP address. Re-executing `kubectl get svc` repeatedly will eventually show the external IP field populated.
+
+Once you have an external IP, you can proceed to visit that in your browser. The hub by default is configured to take any username/password combination. After entering the username and password, you can start a single-notebook server,
+request any resources (memory/CPU/GPU), and then proceed to perform single node training.
+
+We also ship standard docker images that you can use for training Tensorflow models with Jupyter.
+
+* gcr.io/kubeflow/tensorflow-notebook-cpu
+* gcr.io/kubeflow/tensorflow-notebook-gpu
+
+In the spawn window, when starting a new Jupyter instance, you can supply one of the above images to get started, depending on whether 
+you want to run on CPUs or GPUs. The images include all the requisite plugins, including [Tensorboard](https://www.tensorflow.org/get_started/summaries_and_tensorboard) that you can use for rich visualizations and insights into your models. 
+Note that GPU-based image is several gigabytes in size and may take a few minutes to localize. 
+
+Also, when running on Google Kubernetes Engine, the public IP address will be exposed to the internet and is an 
+unsecured endpoint by default. For a production deployment with SSL and authentication, refer to the [documentation](components/jupyterhub). 
+
 
 ### Serve a model
 
