@@ -9,5 +9,9 @@
     "argo": {
       namespace: "kubeflow-test-infra",
     },
+    "workflows": {
+      name: "e2e-test-0831",
+      namespace: "kubeflow-test-infra",
+    },
   },
 }

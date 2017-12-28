@@ -206,7 +206,7 @@
       config: {
         "apiVersion": "v1", 
         "data": {
-          "config": @"executorImage: argoproj/argoexec:latest"
+          "config": @"executorImage: argoproj/argoexec:v2.0.0-alpha2"
         }, 
         "kind": "ConfigMap", 
         "metadata": {
