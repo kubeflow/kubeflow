@@ -3,7 +3,7 @@
 
 Requirements:
   This project assumes the py directory in github.com/tensorflow/k8s corresponds
-  to a top level Python package.
+  to a top level Python package on the Python path.
 
   TODO(jlewi): Come up with a better story for how we reuse the py package
   in tensorflow/k8s. We should probably turn that into a legit Python pip
@@ -52,7 +52,6 @@ def _setup_test(api_client, run_label):
 
 def setup(args):
   """Test deploying Kubeflow."""
-  #gcs_client = storage.Client(project=args.project)
   project = args.project
   cluster_name = args.cluster
   zone = args.zone
@@ -107,7 +106,8 @@ def setup(args):
     # Verify that the TfJob operator is actually deployed.
     tf_job_deployment_name = "tf-job-operator"
     logging.info("Verifying TfJob controller started.")
-    util.wait_for_deployment(api_client, namespace.metadata.name, tf_job_deployment_name)
+    util.wait_for_deployment(api_client, namespace.metadata.name,
+                             tf_job_deployment_name)
 
     # Verify that JupyterHub is actually deployed.
     jupyter_name = "tf-hub"
@@ -139,34 +139,11 @@ def setup(args):
     logging.info("Writing test results to %s", junit_path)
     test_util.create_junit_xml_file([main_case, teardown], junit_path)
 
-def add_common_args(parser):
-  """Add common command line arguments to a parser.
-
-  Args:
-    parser: The parser to add command line arguments to.
-  """
-  parser.add_argument(
-    "--project",
-    default=None,
-    type=str,
-    help=("The project to use."))
-  parser.add_argument(
-    "--cluster",
-    default=None,
-    type=str,
-    help=("The name of the cluster."))
-  parser.add_argument(
-    "--zone",
-    default="us-east1-d",
-    type=str,
-    help=("The zone for the cluster."))
-
 def main():  # pylint: disable=too-many-locals
   logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
   # create the top-level parser
   parser = argparse.ArgumentParser(
     description="Test Kubeflow E2E.")
-  subparsers = parser.add_subparsers()
 
   parser.add_argument(
     "--test_dir",
@@ -175,17 +152,25 @@ def main():  # pylint: disable=too-many-locals
     help="Directory to use for all the test files. If not set a temporary "
          "directory is created.")
 
-  #############################################################################
-  # setup
-  #
-  parser_setup = subparsers.add_parser(
-    "setup",
-      help="Setup a Kubeflow deployment.")
+  parser.add_argument(
+    "--project",
+    default=None,
+    type=str,
+    help="The project to use.")
 
-  parser_setup.set_defaults(func=setup)
-  add_common_args(parser_setup)
+  parser.add_argument(
+    "--cluster",
+    default=None,
+    type=str,
+    help="The name of the cluster.")
 
-  parser_setup.add_argument(
+  parser.add_argument(
+    "--zone",
+    default="us-east1-d",
+    type=str,
+    help="The zone for the cluster.")
+
+  parser.add_argument(
     "--github_token",
     default=None,
     type=str,
@@ -221,7 +206,7 @@ def main():  # pylint: disable=too-many-locals
   file_handler.setFormatter(formatter)
   logging.info("Logging to %s", test_log)
 
-  args.func(args)
+  setup(args)
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,
