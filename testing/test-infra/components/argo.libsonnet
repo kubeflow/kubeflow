@@ -32,35 +32,49 @@
 
       // Deploy the controller
       deploy: {
-        "apiVersion": "apps/v1beta1", 
-        "kind": "Deployment", 
-        "metadata": {
-          "name": "workflow-controller-deployment",
-          "namespace": namespace,
-        }, 
-        "spec": {
-          "selector": {
-            "matchLabels": {
-              "app": "workflow-controller"
-            }
-          }, 
-          "template": {
-            "metadata": {
-              "labels": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Deployment",        
+            "labels": {
                 "app": "workflow-controller"
-              }
-            }, 
-            "spec": {
-              "containers": [
-                {
-                  "args": [
-                    "--configmap", 
-                    "workflow-controller-configmap"
-                  ], 
-                  "command": [
-                    "/bin/workflow-controller"
-                  ], 
-                  "env": [
+            },
+        "metadata": {
+            "name": "workflow-controller",
+            "namespace": namespace,            
+        },
+        "spec": {
+            "progressDeadlineSeconds": 600,
+            "replicas": 1,
+            "revisionHistoryLimit": 10,
+            "selector": {
+                "matchLabels": {
+                    "app": "workflow-controller"
+                }
+            },
+            "strategy": {
+                "rollingUpdate": {
+                    "maxSurge": "25%",
+                    "maxUnavailable": "25%"
+                },
+                "type": "RollingUpdate"
+            },
+            "template": {
+                "metadata": {
+                    "creationTimestamp": null,
+                    "labels": {
+                        "app": "workflow-controller"
+                    }
+                },
+                "spec": {
+                    "containers": [
+                        {
+                            "args": [
+                                "--configmap",
+                                "workflow-controller-configmap"
+                            ],
+                            "command": [
+                                "workflow-controller"
+                            ],
+                            "env": [
                                 {
                                     "name": "ARGO_NAMESPACE",
                                     "valueFrom": {
@@ -69,30 +83,33 @@
                                             "fieldPath": "metadata.namespace"
                                         }
                                     }
-                                },
-                                {
-                                    "name": "IN_CLUSTER",
-                                    "value": "true"
                                 }
-                  ],
-                  "image": "argoproj/workflow-controller:latest", 
-                  "name": "workflow-controller"
+                            ],
+                            "image": "argoproj/workflow-controller:v2.0.0-alpha2",
+                            "imagePullPolicy": "IfNotPresent",
+                            "name": "workflow-controller",
+                            "resources": {},
+                            "terminationMessagePath": "/dev/termination-log",
+                            "terminationMessagePolicy": "File"
+                        }
+                    ],
+                    "dnsPolicy": "ClusterFirst",
+                    "restartPolicy": "Always",
+                    "schedulerName": "default-scheduler",
+                    "securityContext": {},
+                    "serviceAccount": "argo",
+                    "serviceAccountName": "argo",
+                    "terminationGracePeriodSeconds": 30
                 }
-              ],
-              "serviceAccount": "argo",
-              "serviceAccountName": "argo",
             }
-          }
-        }
-      },
+        },
+      }, // deploy
+
 
       deployUi: {
         "apiVersion": "extensions/v1beta1",
         "kind": "Deployment",
-        "metadata": {
-            "annotations": {
-                "deployment.kubernetes.io/revision": "1"
-            },            
+        "metadata": {         
             "labels": {
                 "app": "argo-ui"
             },

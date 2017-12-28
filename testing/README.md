@@ -29,6 +29,17 @@ The script [setup_argo.sh](setup_argo.sh) contains the commands run to setup Arg
 
 The ksonnet app `test-infra` contains ksonnet configs to deploy the test infrastructure.
 
+You can deploy argo as follows (you don't need to use argo's CLI)
+
+```
+ks apply prow -c argo
+```  
+
+ Then you can connect to the UI via the proxy at
+
+ ```
+ http://127.0.0.1:8001/api/v1/proxy/namespaces/kubeflow-test-infra/services/argo-ui:80/
+ ```
 
 ## Permissions
 
