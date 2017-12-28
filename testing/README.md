@@ -14,6 +14,21 @@ The current thinking is this will work as follows
   * Each step in the pipeline can write outputs and junit.xml files to a test directory in the volume
   * A final step in the Argo pipeline will upload the outputs to GCS so they are available in gubernator
 
+## Infrastructure
+
+The test infrastructure is run in
+
+```
+PROJECT=mlkube-testing
+ZONE=us-east1-d
+CLUSter=kubeflow-testing
+NAMESPACE=kubeflow-test-infra
+```
+
+The script [setup_argo.sh](setup_argo.sh) contains the commands run to setup Argo.
+
+The ksonnet app `test-infra` contains ksonnet configs to deploy the test infrastructure.
+
 
 ## Permissions
 
