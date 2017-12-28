@@ -14,15 +14,11 @@ import argparse
 import datetime
 import logging
 import os
-import subprocess
 import tempfile
-import time
 import uuid
 
 from kubernetes import client as k8s_client
-
-from googleapiclient import discovery
-from google.cloud import storage  # pylint: disable=no-name-in-module
+from kubernetes.client import rest
 
 from py import test_util
 from py import util
@@ -106,7 +102,7 @@ def setup(args):
     util.run(["ks", "generate", "core", "kubeflow-core", "--name=kubeflow-core",
               "--namespace=" + namespace.metadata.name], cwd=app_dir)
 
-    util.run(["ks", "apply", "default", "-c" , "kubeflow-core",], cwd=app_dir)
+    util.run(["ks", "apply", "default", "-c", "kubeflow-core",], cwd=app_dir)
 
     # Verify that the TfJob operator is actually deployed.
     tf_job_deployment_name = "tf-job-operator"
@@ -136,7 +132,7 @@ def setup(args):
 
     try:
       test_util.wrap_test(run_teardown, teardown)
-    except Exception as e:
+    except Exception as e:  # pylint: disable-msg=broad-except
       logging.error("There was a problem deleting namespace: %s; %s",
                     namespace_name, e.message)
     junit_path = os.path.join(args.test_dir, "junit_kubeflow-deploy.xml")
