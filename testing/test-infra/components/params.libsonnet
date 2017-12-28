@@ -10,7 +10,7 @@
       namespace: "kubeflow-test-infra",
     },
     "workflows": {
-      name: "e2e-test-0831",
+      name: "e2e-test-1228-1401",
       namespace: "kubeflow-test-infra",
     },
   },

@@ -5,27 +5,62 @@
   // TODO(jlewi): Do we need to add parts corresponding to a service account and cluster binding role?
   // see https://github.com/argoproj/argo/blob/master/cmd/argo/commands/install.go
 
-  parts(namespace, name):: {  
+  parts(namespace, name):: {      
     // Workflow to run the e2e test.
-    e2e:  {
+    e2e: 
+      local mountPath = "/mnt/" + name;
+    {
       "apiVersion": "argoproj.io/v1alpha1", 
       "kind": "Workflow", 
       "metadata": {
         "name": name,
         "namespace": namespace,
       }, 
+      // TODO(jlewi): Use OnExit to run cleanup steps.
       "spec": {
-        "entrypoint": "checkout", 
+        "entrypoint": "e2e", 
+        // TODO(jlewi): We should switch to using NFS so that we can mount the volume simultaneously on multiple 
+        // pods.
+        "volumeClaimTemplates":[{
+          "metadata": {
+              name: name,
+              namespace: namespace,
+          },            
+          "spec": {
+              accessModes: [ "ReadWriteOnce" ],
+              resources: {
+                requests: {
+                  storage: "1Gi",
+                },
+              },
+          }
+        },], // volume claim templates
         "templates": [
+          {
+             "name": "e2e",
+             "steps": [
+               [{
+                  "name": "checkout",
+                  "template": "checkout",
+                },
+               ],
+             ],
+          },
           {
             "name": "checkout",
             "container": {              
               "command": [
                 "ls",
                 "-lR",
-                "/src",
+                mountPath,
               ], 
-              "image": "busybox:latest"
+              "image": "busybox:latest",
+              "volumeMounts": [
+                {
+                  "name": name,
+                  "mountPath": mountPath,
+                },
+              ],
             }, 
             "inputs": {
               "artifacts": [
@@ -33,12 +68,20 @@
                 # revision can be anything that git checkout accepts: branch, commit, tag, etc.
                 #
                 # TODO(jlewi): Need to parameterize this so we can test version of pre and post submits.
+                # One option would be checkout the desired revision in a follow up step.
                 { "name": "kubeflow-source",
-                  "path": "/src/kubeflow",
-                   "git": {
+                  "path": mountPath + "/kubeflow",
+                  "git": {
                       "repo": "https://github.com/google/kubeflow.git",
                       "revision": "master",
-                    },
+                  },
+                },
+                { "name": "tensorflow-k8s-source",
+                  "path": mountPath + "/tensorflow_k8s",
+                  "git": {
+                      "repo": "https://github.com/tensorflow/k8s.git",
+                      "revision": "master",
+                  },
                 },
               ],
             }, // inputs
