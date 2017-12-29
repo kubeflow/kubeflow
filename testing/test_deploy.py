@@ -12,6 +12,7 @@ Requirements:
 
 import argparse
 import datetime
+import json
 import logging
 import os
 import tempfile
@@ -113,11 +114,13 @@ def setup(args):
     util.run(["ks", "generate", "core", "kubeflow-core", "--name=kubeflow-core",
               "--namespace=" + namespace.metadata.name], cwd=app_dir)
 
-    logging.warn("DO NOT SUBMIT; sleep for a while for debugging")
-    import time
-    time.sleep(60*20)
+    apply_command = ["ks", "apply", "default", "-c", "kubeflow-core",]
 
-    util.run(["ks", "apply", "default", "-c", "kubeflow-core",], cwd=app_dir)
+    if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
+      with open(os.getenv("GOOGLE_APPLICATION_CREDENTIALS")) as hf:
+        key = json.load(hf)
+        apply_command.append("--as=" + key["client_email"])
+    util.run(apply_command, cwd=app_dir)
 
     # Verify that the TfJob operator is actually deployed.
     tf_job_deployment_name = "tf-job-operator"
