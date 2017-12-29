@@ -59,6 +59,9 @@ def setup(args):
     zone = args.zone
     logging.info("Using cluster: %s in project: %s in zone: %s",
                  cluster_name, project, zone)
+    # Print out config to help debug issues with accounts and
+    # credentials.
+    util.run(["gcloud", "config", "list"])
     util.configure_kubectl(project, zone, cluster_name)
     util.load_kube_config()
   else:
