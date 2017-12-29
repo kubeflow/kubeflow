@@ -10,8 +10,10 @@
       namespace: "kubeflow-test-infra",
     },
     "workflows": {
-      name: "e2e-test-1228-1401",
+      commit: "pr",
+      name: "e2e-test-presubmit-20171228-154513",
       namespace: "kubeflow-test-infra",
+      pr: 72,
     },
   },
 }
