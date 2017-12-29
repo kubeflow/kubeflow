@@ -113,6 +113,10 @@ def setup(args):
     util.run(["ks", "generate", "core", "kubeflow-core", "--name=kubeflow-core",
               "--namespace=" + namespace.metadata.name], cwd=app_dir)
 
+    logging.warn("DO NOT SUBMIT; sleep for a while for debugging")
+    import time
+    time.sleep(60*20)
+
     util.run(["ks", "apply", "default", "-c", "kubeflow-core",], cwd=app_dir)
 
     # Verify that the TfJob operator is actually deployed.

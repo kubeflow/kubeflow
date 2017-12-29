@@ -105,6 +105,15 @@ gcloud --project=${PROJECT} container clusters create \
     rm ~/tmp/key.json
 	```
 
+	Make the service account a cluster admin
+
+	```
+	kubectl create clusterrolebinding  ${SERVICE_ACCOUNT}-admin --clusterrole=default-admin  \
+		--user=${SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com 
+	```
+		* The service account is used to deploye Kubeflow which entails creating various roles; so 
+		  it needs sufficient RBAC permission to do so.
+
 ### Create a GitHub Token
 
 You need to use a GitHub token with ksonnet otherwise the test quickly runs into GitHub API limits.
