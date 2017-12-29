@@ -119,7 +119,7 @@
                 "--project=mlkube-testing", 
                 "--cluster=kubeflow-testing", 
                 "--zone=us-east1-d",
-                "--github_token=$(GIT_TOKEN)"
+                "--github_token=$(GIT_TOKEN)",
                 "--test_dir=" + mountPath,
               ], 
               "image": image,
