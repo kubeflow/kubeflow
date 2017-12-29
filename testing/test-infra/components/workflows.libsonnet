@@ -64,9 +64,12 @@
                [{
                   "name": "checkout",
                   "template": "checkout",
-                },
+                },],
+                [{
+                  "name": "test-deploy",
+                  "template": "test-deploy",
+                },],
                ],
-             ],
           },
           {
             "name": "checkout",
