@@ -61,6 +61,9 @@ def setup(args):
                  cluster_name, project, zone)
     # Print out config to help debug issues with accounts and
     # credentials.
+    logging.info("Sleep for 15 minutes")
+    import time
+    time.sleep(60*15)
     util.run(["gcloud", "config", "list"])
     util.configure_kubectl(project, zone, cluster_name)
     util.load_kube_config()
