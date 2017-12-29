@@ -62,6 +62,8 @@ def setup(args):
     util.configure_kubectl(project, zone, cluster_name)
     util.load_kube_config()
   else:
+    # TODO(jlewi): This is sufficient for API access but it doesn't create
+    # a kubeconfig file which ksonnet needs for ks init.
     logging.info("Running inside cluster.")
     incluster_config.load_incluster_config()
 

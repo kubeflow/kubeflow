@@ -14,32 +14,29 @@ The current thinking is this will work as follows
   * Each step in the pipeline can write outputs and junit.xml files to a test directory in the volume
   * A final step in the Argo pipeline will upload the outputs to GCS so they are available in gubernator
 
-## Infrastructure
+## Accessing Argo UI
 
-The test infrastructure is run in
+You can access the Argo UI over the API Server proxy.
+
+We currently use the cluster
 
 ```
 PROJECT=mlkube-testing
 ZONE=us-east1-d
-CLUSter=kubeflow-testing
+CLUSTER=kubeflow-testing
 NAMESPACE=kubeflow-test-infra
 ```
 
-The script [setup_argo.sh](setup_argo.sh) contains the commands run to setup Argo.
+After starting `kubectl proxy` you can connect to it at
 
-The ksonnet app `test-infra` contains ksonnet configs to deploy the test infrastructure.
-
-You can deploy argo as follows (you don't need to use argo's CLI)
+Then you can connect to the UI via the proxy at
 
 ```
-ks apply prow -c argo
-```  
+http://127.0.0.1:8001/api/v1/proxy/namespaces/kubeflow-test-infra/services/argo-ui:80/
+```
 
- Then you can connect to the UI via the proxy at
+TODO(jlewi): We can probably make the UI publicly available since I don't think it offers any ability to launch workflows.
 
- ```
- http://127.0.0.1:8001/api/v1/proxy/namespaces/kubeflow-test-infra/services/argo-ui:80/
- ```
 
 ## Running the tests
 
@@ -63,24 +60,83 @@ ks apply prow -c workflows
 ```
   * You can set COMMIT to `master` to use HEAD
 
-## Permissions
 
-User or service account deploying Kubeflow needs sufficient permissions to create the roles that are created as part of a Kubeflow deployment. For example you may need to run
+## Setting up the Test Infrastructure
+
+Our tests require a K8s cluster with Argo installed. This section provides the instructions 
+for setting this.
+
+Create a GKE cluster
 
 ```
-kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --user=user@gmail.com
+PROJECT=mlkube-testing
+ZONE=us-east1-d
+CLUSTER=kubeflow-testing
+NAMESPACE=kubeflow-test-infra
+
+gcloud --project=${PROJECT} container clusters create \
+	--zone=${ZONE} \
+	--machine-type=n1-standard-8 \
+	--cluster-version=1.8.4-gke.1 \
+	${CLUSTER}
 ```
 
-## GitHub tokens
+
+### Create a GCP service account
+	
+	* The tests need a GCP service account to upload data to GCS for Gubernator
+
+	```
+	SERVICE_ACCOUNT=kubeflow-testing
+	gcloud iam service-accounts --project=mlkube-testing create ${SERVICE_ACCOUNT} --display-name "Kubeflow testing account"
+	gcloud projects add-iam-policy-binding ${PROJECT} \
+    	--member serviceAccount:${SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com --role roles/container.developer
+	```
+		* The service account needs to be able to create K8s resources as part of the test.
+
+
+	Create a secret key for the service account
+
+	```
+	gcloud iam service-accounts keys create ~/tmp/key.json \
+    	--iam-account ${SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com
+    kubectl create secret generic kubeflow-testing-credentials \
+        --namespace=kubeflow-test-infra --from-file=`echo ~/tmp/key.json`
+    rm ~/tmp/key.json
+	```
+
+### Create a GitHub Token
 
 You need to use a GitHub token with ksonnet otherwise the test quickly runs into GitHub API limits.
 
 TODO(jlewi): We should create a GitHub bot account to use with our tests and then create API tokens for that bot.
 
-To create the secret do
+You can use the GitHub API to create a token
+
+   * The token doesn't need any scopes because its only accessing public data and is just need for API metering.
+
+To create the secret run
+
 ```
-kubectl create secret generic github-token --namespace=kubeflow-test-infra --from-literal=github_token=6bba656ffb88a720f9708a3264356e158fafb7a5
+kubectl create secret generic github-token --namespace=kubeflow-test-infra --from-literal=github_token=${TOKEN}
 ```
+
+### Create K8s Resources for Testing
+
+The ksonnet app `test-infra` contains ksonnet configs to deploy the test infrastructure.
+
+You can deploy argo as follows (you don't need to use argo's CLI)
+
+```
+ks apply prow -c argo
+```  
+
+User or service account deploying Kubeflow needs sufficient permissions to create the roles that are created as part of a Kubeflow deployment. For example you may need to run before running ksonnet.
+
+```
+kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --user=user@gmail.com
+```
+
 ## Managing namespaces
 
 All namespaces created for the tests should be labeled with `app=kubeflow-e2e-test`.

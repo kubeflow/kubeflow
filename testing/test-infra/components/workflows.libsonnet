@@ -68,6 +68,12 @@
               "secretName": "github-token",
             },
           },
+          {
+            "name": "gcp-credentials",
+            "secret": {
+              "secretName": "kubeflow-testing-credentials",
+            },
+          },
         ], // volumes
         "templates": [
           {
@@ -110,9 +116,9 @@
                 "python", 
                 "-m", 
                 "testing.test_deploy",
-                //"--project=mlkube-testing", 
-                //"--cluster=kubeflow-testing", 
-                //--zone=us-east1-d",
+                "--project=mlkube-testing", 
+                "--cluster=kubeflow-testing", 
+                --zone=us-east1-d",
                 "--github_token=$(GIT_TOKEN)",
               ], 
               "image": image,
@@ -121,6 +127,10 @@
                 "name": "PYTHONPATH",
                 "value": srcDir + "/tensorflow_k8s" + ":" + kubeflowSrc,
               },
+              {
+                "name": "GOOGLE_APPLICATION_CREDENTIALS",
+                "value": "/secret/gcp-credentials/key.json",
+              }
               {
                   "name": "GIT_TOKEN",
                   "valueFrom": {
@@ -138,6 +148,10 @@
                 {
                   "name": "github-token",
                   "mountPath": "/secret/github-token",
+                },                
+                {
+                  "name": "gcp-credentials",
+                  "mountPath": "/secret/gcp-credentials",
                 },
               ],
             }, 
