@@ -247,5 +247,28 @@
           ]
       },  // role binding 
 
+      // The steps in the workflow use the default service account.
+      // The default service account needs sufficient permission in order
+      // to create namespaces and other objects used in the test.
+      defaultRoleBinding: {
+          "apiVersion": "rbac.authorization.k8s.io/v1",
+          "kind": "ClusterRoleBinding",
+          "metadata": {
+              "name": "default-role",
+              "namespace": namespace,
+          },
+          "roleRef": {
+              "apiGroup": "rbac.authorization.k8s.io",
+              "kind": "ClusterRole",
+              "name": "cluster-admin"
+          },
+          "subjects": [
+              {
+                  "kind": "ServiceAccount",
+                  "name": "default",
+                  "namespace": namespace,
+              }
+          ]
+      },  // default role binding 
   } // parts
 }

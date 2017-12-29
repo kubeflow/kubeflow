@@ -10,6 +10,10 @@
     commands:: [
       // TODO(jlewi): Maybe we should define a macro to generate the src directory for a particular repo.
       "git clone https://github.com/tensorflow/k8s.git " + srcDir + "/tensorflow_k8s",
+      // TODO(jlewi): Delete the following lines after PR 251 is committed
+      "cd " + srcDir + "/tensorflow_k8s",
+      "git fetch origin pull/251/head:pr",
+      "git checkout pr",
       "git clone https://github.com/google/kubeflow.git " + srcDir + "/google_kubeflow",
       "cd " + srcDir + "/google_kubeflow",
       if ref != "" then
@@ -109,7 +113,7 @@
                 //"--project=mlkube-testing", 
                 //"--cluster=kubeflow-testing", 
                 //--zone=us-east1-d",
-                "--git_toke=$(GIT_TOKEN)",
+                "--github_token=$(GIT_TOKEN)",
               ], 
               "image": image,
               "env": [{
