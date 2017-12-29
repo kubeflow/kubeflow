@@ -58,7 +58,7 @@ def setup(args):
     cluster_name = args.cluster
     zone = args.zone
     logging.info("Using cluster: %s in project: %s in zone: %s",
-                 cluster, project, zone)
+                 cluster_name, project, zone)
     util.configure_kubectl(project, zone, cluster_name)
     util.load_kube_config()
   else:

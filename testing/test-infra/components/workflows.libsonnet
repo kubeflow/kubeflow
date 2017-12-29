@@ -118,7 +118,7 @@
                 "testing.test_deploy",
                 "--project=mlkube-testing", 
                 "--cluster=kubeflow-testing", 
-                --zone=us-east1-d",
+                "--zone=us-east1-d",
                 "--github_token=$(GIT_TOKEN)",
               ], 
               "image": image,
@@ -130,7 +130,7 @@
               {
                 "name": "GOOGLE_APPLICATION_CREDENTIALS",
                 "value": "/secret/gcp-credentials/key.json",
-              }
+              },
               {
                   "name": "GIT_TOKEN",
                   "valueFrom": {
