@@ -222,6 +222,12 @@ def main():  # pylint: disable=too-many-locals
   file_handler.setFormatter(formatter)
   logging.info("Logging to %s", test_log)
 
+  if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
+    logging.info("GOOGLE_APPLICATION_CREDENTIALS is set; configuring gcloud "
+                 "to use service account.")
+    # Since a service account is set tell gcloud to use it.
+    util.run(["gcloud", "auth", "activate-service-account", "--key-file=" +
+              os.getenv("GOOGLE_APPLICATION_CREDENTIALS")])
   setup(args)
 
 if __name__ == "__main__":
