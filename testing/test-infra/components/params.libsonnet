@@ -11,7 +11,7 @@
     },
     "workflows": {
       commit: "pr",
-      name: "e2e-test-presubmit-20171228-191109",
+      name: "e2e-test-presubmit-20171228-204614",
       namespace: "kubeflow-test-infra",
       pr: 72,
     },

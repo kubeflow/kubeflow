@@ -57,6 +57,14 @@
               },
           }
         },], // volume claim templates
+        "volumes": [
+          {
+            "name": "github-token",
+            "secret": {
+              "secretName": "github-token",
+            },
+          },
+        ], // volumes
         "templates": [
           {
              "name": "e2e",
@@ -98,21 +106,34 @@
                 "python", 
                 "-m", 
                 "testing.test_deploy",
-                "--project=mlkube-testing", 
-                "--cluster=kubeflow-testing", 
-                "--zone=us-east1-d",
-                // TODO(jlewi): Need to set github token
+                //"--project=mlkube-testing", 
+                //"--cluster=kubeflow-testing", 
+                //--zone=us-east1-d",
+                "--git_toke=$(GIT_TOKEN)",
               ], 
               "image": image,
               "env": [{
                 // Add the source directories to the python path.
                 "name": "PYTHONPATH",
                 "value": srcDir + "/tensorflow_k8s" + ":" + kubeflowSrc,
-              }],
+              },
+              {
+                  "name": "GIT_TOKEN",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      name: "github-token",
+                      key: "github_token", 
+                    },
+                  },
+              },],
               "volumeMounts": [
                 {
                   "name": name,
                   "mountPath": mountPath,
+                },                
+                {
+                  "name": "github-token",
+                  "mountPath": "/secret/github-token",
                 },
               ],
             }, 

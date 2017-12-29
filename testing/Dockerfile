@@ -71,3 +71,7 @@ RUN helm init --client-only
 RUN curl -o /usr/local/bin/ks -L \
     https://github.com/ksonnet/ksonnet/releases/download/v0.8.0/ks-linux-amd64 && \
     chmod a+x /usr/local/bin/ks
+
+# Install various python libraries.
+RUN  pip install --upgrade six pyyaml google-api-python-client \
+     google-cloud-storage google-auth-httplib2 pylint kubernetes==4.0.0 mock retrying

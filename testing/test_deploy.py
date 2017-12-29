@@ -19,6 +19,7 @@ import uuid
 
 from kubernetes import client as k8s_client
 from kubernetes.client import rest
+from kubernetes.config import incluster_config
 
 from py import test_util
 from py import util
@@ -52,12 +53,18 @@ def _setup_test(api_client, run_label):
 
 def setup(args):
   """Test deploying Kubeflow."""
-  project = args.project
-  cluster_name = args.cluster
-  zone = args.zone
-  util.configure_kubectl(project, zone, cluster_name)
+  if args.cluster:
+    project = args.project
+    cluster_name = args.cluster
+    zone = args.zone
+    logging.info("Using cluster: %s in project: %s in zone: %s",
+                 cluster, project, zone)
+    util.configure_kubectl(project, zone, cluster_name)
+    util.load_kube_config()
+  else:
+    logging.info("Running inside cluster.")
+    incluster_config.load_incluster_config()
 
-  util.load_kube_config()
   # Create an API client object to talk to the K8s master.
   api_client = k8s_client.ApiClient()
 
@@ -162,7 +169,8 @@ def main():  # pylint: disable=too-many-locals
     "--cluster",
     default=None,
     type=str,
-    help="The name of the cluster.")
+    help=("The name of the cluster. If not set assumes the "
+          "script is running in a cluster and uses that cluster."))
 
   parser.add_argument(
     "--zone",
