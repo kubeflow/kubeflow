@@ -8,22 +8,29 @@
   // Construct the script to checkout the proper branch of the code
   checkoutScript(srcDir, ref, commit)::{
     commands:: [
-      "cd " + srcDir,
+      // TODO(jlewi): Maybe we should define a macro to generate the src directory for a particular repo.
+      "git clone https://github.com/tensorflow/k8s.git " + srcDir + "/tensorflow_k8s",
+      "git clone https://github.com/google/kubeflow.git " + srcDir + "/google_kubeflow",
+      "cd " + srcDir + "/google_kubeflow",
       if ref != "" then
-      "git fetch origin" + ref
+      "git fetch origin " + ref
       else null,
       "git checkout " + commit,
+      // Print out the git version in the logs
+      "git describe --tags --always --dirty",
       "git status",
     ],
 
     script: std.join(" && ", std.prune(self.commands)),
   },
 
-  parts(namespace, name):: {      
+  parts(namespace, name):: {          
     // Workflow to run the e2e test.
     e2e(ref, commit): 
       local mountPath = "/mnt/" + name;
-      local kubeflowSrc = mountPath + "/src/kubeflow";
+      local srcDir = mountPath + "/src";
+      local kubeflowSrc = srcDir + "/google_kubeflow";
+      local image = "gcr.io/mlkube-testing/kubeflow-testing";
     {
       "apiVersion": "argoproj.io/v1alpha1", 
       "kind": "Workflow", 
@@ -63,16 +70,16 @@
           },
           {
             "name": "checkout",
-            "script": {              
+            "container": {              
               "command": [
                 "bash"
               ], 
               "args": [
                 "-x",
                 "-c",
-                $.checkoutScript(kubeflowSrc, ref, commit).script,
+                $.checkoutScript(srcDir, ref, commit).script,
               ],
-              "image": "ubuntu:latest",
+              "image": image,
               "volumeMounts": [
                 {
                   "name": name,
@@ -80,41 +87,24 @@
                 },
               ],
             }, 
-            "inputs": {
-              "artifacts": [
-                # Check out the master branch of the repo and place it at /src
-                # revision can be anything that git checkout accepts: branch, commit, tag, etc.
-                #
-                # TODO(jlewi): Need to parameterize this so we can test version of pre and post submits.
-                # One option would be checkout the desired revision in a follow up step.
-                { "name": "kubeflow-source",
-                  "path": kubeflowSrc,
-                  "git": {
-                      "repo": "https://github.com/google/kubeflow.git",
-                      "revision": "master",
-                  },
-                },
-                { "name": "tensorflow-k8s-source",
-                  "path": mountPath + "/src/tensorflow_k8s",
-                  "git": {
-                      "repo": "https://github.com/tensorflow/k8s.git",
-                      "revision": "master",
-                  },
-                },
-              ],
-            }, // inputs
           }, // checkout
           {
             "name": "test-deploy",
             "container": {              
               "command": [
-                "python", "-m", "testing.test_deploy"
+                "python", 
+                "-m", 
+                "testing.test_deploy",
+                "--project=mlkube-testing", 
+                "--cluster=kubeflow-testing", 
+                "--zone=us-east1-d",
+                // TODO(jlewi): Need to set github token
               ], 
-              "image": "busybox:latest",
+              "image": image,
               "env": [{
                 // Add the source directories to the python path.
                 "name": "PYTHONPATH",
-                "value": mountPath + "/tensorflow_k8s" + ":" + kubeflowSrc,
+                "value": srcDir + "/tensorflow_k8s" + ":" + kubeflowSrc,
               }],
               "volumeMounts": [
                 {

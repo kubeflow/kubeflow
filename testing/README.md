@@ -41,6 +41,28 @@ ks apply prow -c argo
  http://127.0.0.1:8001/api/v1/proxy/namespaces/kubeflow-test-infra/services/argo-ui:80/
  ```
 
+## Running the tests
+
+### Run a presubmit
+
+```
+ks param set workflows name e2e-test-pr-`date '+%Y%m%d-%H%M%S'`
+ks param set workflows pr ${PR_NUMBER}
+ks param set workflows commit ${COMMIT}
+ks apply prow -c workflows
+```
+	* You can set COMMIT to `pr` to checkout the latest change on the PR.
+
+### Run a postsubmit
+
+```
+ks param set workflows name e2e-test-postsubmit-`date '+%Y%m%d-%H%M%S'`
+ks param set workflows pr ""
+ks param set workflows commit ${COMMIT}
+ks apply prow -c workflows
+```
+  * You can set COMMIT to `master` to use HEAD
+
 ## Permissions
 
 User or service account deploying Kubeflow needs sufficient permissions to create the roles that are created as part of a Kubeflow deployment. For example you may need to run
@@ -55,6 +77,10 @@ You need to use a GitHub token with ksonnet otherwise the test quickly runs into
 
 TODO(jlewi): We should create a GitHub bot account to use with our tests and then create API tokens for that bot.
 
+To create the secret do
+```
+kubectl create secret generic github-token --namespace=kubeflow-test-infra --from-literal=github_token=6bba656ffb88a720f9708a3264356e158fafb7a5
+```
 ## Managing namespaces
 
 All namespaces created for the tests should be labeled with `app=kubeflow-e2e-test`.
