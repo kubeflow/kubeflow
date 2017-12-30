@@ -4,15 +4,18 @@
 
   // Construct the script to checkout the proper branch of the code
   checkoutScript(srcDir, ref, commit)::{
-    commands:: [
-      // TODO(jlewi): Maybe we should define a macro to generate the src directory for a particular repo.
-      "git clone https://github.com/tensorflow/k8s.git " + srcDir + "/tensorflow_k8s",
-      "git clone https://github.com/google/kubeflow.git " + srcDir + "/google_kubeflow",
+    commands:: [      
+      "git clone --recurse-submodules https://github.com/google/kubeflow.git " + srcDir + "/google_kubeflow",
       "cd " + srcDir + "/google_kubeflow",
       if ref != "" then
       "git fetch origin " + ref
       else null,
       "git checkout " + commit,
+      
+      // Update submodules.
+      "git submodule init",
+      "git submodule update",
+
       // Print out the git version in the logs
       "git describe --tags --always --dirty",
       "git status",
@@ -119,7 +122,7 @@
               "env": [{
                 // Add the source directories to the python path.
                 "name": "PYTHONPATH",
-                "value": srcDir + "/tensorflow_k8s" + ":" + kubeflowSrc,
+                "value": kubeflowSrc + ":" + kubeflowSrc + "/tensorflow_k8s",
               },
               {
                 "name": "GOOGLE_APPLICATION_CREDENTIALS",

@@ -27,6 +27,7 @@ fi
 
 # Print out the commit so we can tell from logs what we checked out.
 echo Repo is at `git describe --tags --always --dirty`
+git submodule
 git status
 
 # TODO(jlewi): We should invoke a script in /src/google_kubeflow/testing that synchrnoizes
