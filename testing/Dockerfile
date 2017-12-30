@@ -3,7 +3,7 @@
 FROM python:2.7-slim
 MAINTAINER Jeremy Lewi
 
-# Never prompts the user for choices on installation/configuration of packages
+# Never prompt the user for choices on installation/configuration of packages
 ENV DEBIAN_FRONTEND noninteractive
 ENV TERM linux
 
@@ -36,7 +36,12 @@ RUN set -ex \
         /var/tmp/* \
         /usr/share/man \
         /usr/share/doc \
-        /usr/share/doc-base
+        /usr/share/doc-base 
+
+# Set the locale
+RUN sed -i 's/^# en_US.UTF-8 UTF-8$/en_US.UTF-8 UTF-8/g' /etc/locale.gen \
+    && locale-gen \
+    && update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
 
 # Install go
 RUN cd /tmp && \
