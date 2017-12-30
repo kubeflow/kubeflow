@@ -11,9 +11,16 @@
     },
     "workflows": {
       commit: "pr",
-      name: "e2e-test-presubmit-20171230-123301",
+      name: "e2e-test-presubmit-20171230-144440",
       namespace: "kubeflow-test-infra",
       pr: 72,
+    },
+    "nfs-jupyter": {
+      cloud: "null",
+      disks: "kubeflow-testing",
+      name: "nfs-jupyter",
+      namespace: "kubeflow-test-infra",
+      tfJobImage: "gcr.io/tf-on-k8s-dogfood/tf_operator:v20171214-0bd02ac",
     },
   },
 }
