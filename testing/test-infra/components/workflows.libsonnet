@@ -2,18 +2,11 @@
   // TODO(https://github.com/ksonnet/ksonnet/issues/222): Taking namespace as an argument is a work around for the fact that ksonnet
   // doesn't support automatically piping in the namespace from the environment to prototypes.
 
-  // TODO(jlewi): Do we need to add parts corresponding to a service account and cluster binding role?
-  // see https://github.com/argoproj/argo/blob/master/cmd/argo/commands/install.go
-
   // Construct the script to checkout the proper branch of the code
   checkoutScript(srcDir, ref, commit)::{
     commands:: [
       // TODO(jlewi): Maybe we should define a macro to generate the src directory for a particular repo.
       "git clone https://github.com/tensorflow/k8s.git " + srcDir + "/tensorflow_k8s",
-      // TODO(jlewi): Delete the following lines after PR 251 is committed
-      "cd " + srcDir + "/tensorflow_k8s",
-      "git fetch origin pull/251/head:pr",
-      "git checkout pr",
       "git clone https://github.com/google/kubeflow.git " + srcDir + "/google_kubeflow",
       "cd " + srcDir + "/google_kubeflow",
       if ref != "" then

@@ -75,3 +75,8 @@ RUN curl -o /usr/local/bin/ks -L \
 # Install various python libraries.
 RUN  pip install --upgrade six pyyaml google-api-python-client \
      google-cloud-storage google-auth-httplib2 pylint kubernetes==4.0.0 mock retrying
+
+COPY bootstrap.sh /usr/local/bin
+RUN chmod a+x /usr/local/bin/bootstrap.sh
+
+ENTRYPOINT ["/usr/local/bin/bootstrap.sh"]
