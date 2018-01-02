@@ -11,9 +11,15 @@
     },
     "workflows": {
       commit: "pr",
-      name: "e2e-test-presubmit-20180102-122604",
+      name: "e2e-test-presubmit-20180102-123017",
       namespace: "kubeflow-test-infra",
+      // TODO(jlewi): I think we should get rid of the parameters commit and pr since they
+      // are redundant with the prow environment variables? We should just have the bash script
+      // that checks out the code get the relevant info from the environment variables.
       pr: 72,
+      // A comma separated list of prow environment variables.
+      // e.g. "PROW_BASE_REF=master,PROW_PULL_NUMBER=72"
+      prow_env: "PROW_BASE_REF=master,PROW_PULL_NUMBER=72",      
     },
     "nfs-jupyter": {
       cloud: "null",

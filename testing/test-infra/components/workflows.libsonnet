@@ -4,6 +4,8 @@
 
   // Construct the script to checkout the proper branch of the code
   checkoutScript(srcDir, ref, commit)::{
+    // TODO(jlewi): This is really hard to read. We should create a bash script using string literals
+    // and take as arguments.
     commands:: [
       // Some git operations are really slow when using NFS.
       // We observed clone times increasing from O(30) seconds to O(4 minutes)
@@ -18,11 +20,12 @@
       // See: https://stackoverflow.com/questions/4994772/ways-to-improve-git-status-performance
       // unfortunately this doesn't seem to help with sub modules.
       "git config core.preloadindex true",
-      if ref != "" then
-      "git fetch origin " + ref
-      else null,
-      "git checkout " + commit,
       
+      "if [ ! -z \"${PULL_NUMBER}\" ]; then ",
+      "  git fetch origin refs/pull/${PULL_NUMBER}/head:pr",
+      "  git checkout ${PULL_PULL_SHA}",
+      "fi",
+            
       // Update submodules.
       "git submodule init",
       "git submodule update",
@@ -49,9 +52,25 @@
     script: std.join(" && ", std.prune(self.commands)),
   },
 
+  // convert a list of two items into a map representing an environment variable
+  listToMap:: function(v) 
+      {
+        "name": v[0],
+        "value": v[1],
+      },
+  
+  // Function to turn comma separated list of prow environment variables into a dictionary.
+  parseEnv:: function(v) 
+    local pieces = std.split(v, ",");
+    if v != "" && std.length(pieces) > 0 then
+    std.map(
+      function(i) $.listToMap(std.split(i, "=")), 
+      std.split(v, ","))
+    else [],
+
   parts(namespace, name):: {          
     // Workflow to run the e2e test.
-    e2e(ref, commit): 
+    e2e(ref, commit, prow_env): 
       // mountPath is the directory where the volume to store the test data
       // should be mounted.
       local mountPath = "/mnt/" + "test-data-volume";
@@ -66,10 +85,6 @@
       // The name to use for the volume to use to contain test data.
       local dataVolume = "kubeflow-test-volume";
     {
-
-      fakeTemplate:: {
-
-      },
       // Build an Argo template to execute a particular command.
       // step_name: Name for the template
       // command: List to pass as the container command.
@@ -95,7 +110,7 @@
                       key: "github_token", 
                     },
                   },
-              },],
+              },] + prow_env,
               "volumeMounts": [
                 {
                   "name": dataVolume,
@@ -233,14 +248,14 @@
               ],
             }, 
           }, // test-deploy          
-          $.parts(namespace, name).e2e(ref, commit).buildTemplate("create-started", [
+          $.parts(namespace, name).e2e(ref, commit, prow_env).buildTemplate("create-started", [
             "python",
             "-m",
             "testing.prow_artifacts",
             "--artifacts_dir=" + artifactsDir,
             "create_started",
           ]), // create-started
-          $.parts(namespace, name).e2e(ref, commit).buildTemplate("create-finished", [
+          $.parts(namespace, name).e2e(ref, commit, prow_env).buildTemplate("create-finished", [
             "python",
             "-m",
             "testing.prow_artifacts",

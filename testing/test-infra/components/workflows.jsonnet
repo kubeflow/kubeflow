@@ -12,4 +12,5 @@ local ref = if pr == "" then ""
             else "pull/" + pr + "/head:pr";
 local commit = params.commit;
 
-std.prune(k.core.v1.list.new([workflows.parts(namespace, name).e2e(ref, commit),]))
+local prow_env = workflows.parseEnv(params.prow_env);
+std.prune(k.core.v1.list.new([workflows.parts(namespace, name).e2e(ref, commit, prow_env),]))
