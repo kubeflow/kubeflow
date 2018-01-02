@@ -57,6 +57,8 @@
       local mountPath = "/mnt/" + "test-data-volume";
       // testDir is the root directory for all data for a particular test run.
       local testDir = mountPath + "/" + name;
+      // artifactsDir is the directory to sync to GCS to contain the output for this job.
+      local artifactsDir = testDir + "/output";
       local srcDir = testDir + "/src";      
       local image = "gcr.io/mlkube-testing/kubeflow-testing";
       // The name of the NFS volume claim to use for test files.
@@ -64,6 +66,53 @@
       // The name to use for the volume to use to contain test data.
       local dataVolume = "kubeflow-test-volume";
     {
+
+      fakeTemplate:: {
+
+      },
+      // Build an Argo template to execute a particular command.
+      // step_name: Name for the template
+      // command: List to pass as the container command.
+      buildTemplate(step_name, command):: {
+            "name": step_name,
+            "container": {              
+              "command": command,
+              "image": image,
+              "env": [{
+                // Add the source directories to the python path.
+                "name": "PYTHONPATH",
+                "value": srcDir + ":" + srcDir + "/tensorflow_k8s",
+              },
+              {
+                "name": "GOOGLE_APPLICATION_CREDENTIALS",
+                "value": "/secret/gcp-credentials/key.json",
+              },
+              {
+                  "name": "GIT_TOKEN",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      name: "github-token",
+                      key: "github_token", 
+                    },
+                  },
+              },],
+              "volumeMounts": [
+                {
+                  "name": dataVolume,
+                  "mountPath": mountPath,
+                },                
+                {
+                  "name": "github-token",
+                  "mountPath": "/secret/github-token",
+                },                
+                {
+                  "name": "gcp-credentials",
+                  "mountPath": "/secret/gcp-credentials",
+                },
+              ],
+            }, 
+      }, // buildTemplate
+
       "apiVersion": "argoproj.io/v1alpha1", 
       "kind": "Workflow", 
       "metadata": {
@@ -104,6 +153,15 @@
                 [{
                   "name": "test-deploy",
                   "template": "test-deploy",
+                },
+                {
+                  "name": "create-started",
+                  "template": "create-started",
+                },
+                ],
+                [{
+                  "name": "create-finished",
+                  "template": "create-finished",
                 },],
                ],
           },
@@ -174,8 +232,22 @@
                 },
               ],
             }, 
-          }, // test-deploy
-        ],
+          }, // test-deploy          
+          $.parts(namespace, name).e2e(ref, commit).buildTemplate("create-started", [
+            "python",
+            "-m",
+            "testing.prow_artifacts",
+            "--artifacts_dir=" + artifactsDir,
+            "create_started",
+          ]), // create-started
+          $.parts(namespace, name).e2e(ref, commit).buildTemplate("create-finished", [
+            "python",
+            "-m",
+            "testing.prow_artifacts",
+            "--artifacts_dir=" + artifactsDir,
+            "create_finished",
+          ]), // create-finished
+        ], // templates
       }
     },// e2e 
   } // parts
