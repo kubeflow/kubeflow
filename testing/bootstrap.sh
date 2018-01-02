@@ -25,11 +25,11 @@ else
  fi
 fi	
 
+# Update submodules.
+git submodule init
+git submodule update
+
 # Print out the commit so we can tell from logs what we checked out.
 echo Repo is at `git describe --tags --always --dirty`
 git submodule
 git status
-
-# TODO(jlewi): We should invoke a script in /src/google_kubeflow/testing that synchrnoizes
-# the tensorflow/k8s repo to a particular commit. This way we can specify which commit of the tensorflow/k8s repo
-# we want to use as part of our code base so that all changes are properly vetted in presubmits.

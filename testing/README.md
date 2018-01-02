@@ -44,7 +44,7 @@ TODO(jlewi): We can probably make the UI publicly available since I don't think 
 
 ```
 ks param set workflows name e2e-test-pr-`date '+%Y%m%d-%H%M%S'`
-ks param set workflows pr ${PR_NUMBER}
+ks param set workflows prow_env REPO_OWNER=google,REPO_NAME=kubeflow,PULL_NUMBER=${PULL_NUMBER},PULL_PULL_SHA=${COMMIT}
 ks param set workflows commit ${COMMIT}
 ks apply prow -c workflows
 ```
@@ -54,7 +54,7 @@ ks apply prow -c workflows
 
 ```
 ks param set workflows name e2e-test-postsubmit-`date '+%Y%m%d-%H%M%S'`
-ks param set workflows pr ""
+ks param set workflows prow_env REPO_OWNER=google,REPO_NAME=kubeflow,PULL_BASE_SHA=${COMMIT}
 ks param set workflows commit ${COMMIT}
 ks apply prow -c workflows
 ```
@@ -108,7 +108,7 @@ gcloud --project=${PROJECT} container clusters create \
 	Make the service account a cluster admin
 
 	```
-	kubectl create clusterrolebinding  ${SERVICE_ACCOUNT}-admin --clusterrole=default-admin  \
+	kubectl create clusterrolebinding  ${SERVICE_ACCOUNT}-admin --clusterrole=cluster-admin  \
 		--user=${SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com 
 	```
 		* The service account is used to deploye Kubeflow which entails creating various roles; so 
@@ -130,6 +130,15 @@ To create the secret run
 kubectl create secret generic github-token --namespace=kubeflow-test-infra --from-literal=github_token=${TOKEN}
 ```
 
+### Create a PD for NFS
+
+Create a PD to act as the backing storage for the NFS filesystem that will be used to store data from
+the test runs.
+
+```
+  gcloud --project=${PROJECT} compute disks create  \
+  	--zone=${ZONE} kubeflow-testing --description="PD to back NFS storage for kubeflow testing." --size=1TB
+```
 ### Create K8s Resources for Testing
 
 The ksonnet app `test-infra` contains ksonnet configs to deploy the test infrastructure.
@@ -140,7 +149,18 @@ You can deploy argo as follows (you don't need to use argo's CLI)
 ks apply prow -c argo
 ```  
 
-User or service account deploying Kubeflow needs sufficient permissions to create the roles that are created as part of a Kubeflow deployment. For example you may need to run before running ksonnet.
+Deploy NFS & Jupyter
+
+```
+ks apply prow -c nfs-jupyter
+```
+
+	* This creates the NFS share
+	* We use JupyterHub as a convenient way to access the NFS share for manual inspection of the file contents.
+
+#### Troubleshooting
+
+User or service account deploying the test infrastructure needs sufficient permissions to create the roles that are created as part deploying the test infrastructe. So you may need to run the following command before using ksonnet to deploy the test infrastructure.
 
 ```
 kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --user=user@gmail.com

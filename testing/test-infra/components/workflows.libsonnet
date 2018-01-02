@@ -2,56 +2,6 @@
   // TODO(https://github.com/ksonnet/ksonnet/issues/222): Taking namespace as an argument is a work around for the fact that ksonnet
   // doesn't support automatically piping in the namespace from the environment to prototypes.
 
-  // Construct the script to checkout the proper branch of the code
-  checkoutScript(srcDir, ref, commit)::{
-    // TODO(jlewi): This is really hard to read. We should create a bash script using string literals
-    // and take as arguments.
-    commands:: [
-      // Some git operations are really slow when using NFS.
-      // We observed clone times increasing from O(30) seconds to O(4 minutes)
-      // when we switched to NFS.
-      // As a workaround we clone into a local directory and then move the files onto
-      // NFS. Copying to NFS is still a bottleneck and increases the run time to O(1. 5 minutes).
-      "git clone --recurse-submodules https://github.com/google/kubeflow.git /tmp/src",
-      "cd /tmp/src" ,
-
-      // We need to set the preloadindex option; to try to speedup git ops like describe
-      // and status when using an NFS filesystem.
-      // See: https://stackoverflow.com/questions/4994772/ways-to-improve-git-status-performance
-      // unfortunately this doesn't seem to help with sub modules.
-      "git config core.preloadindex true",
-      
-      "if [ ! -z \"${PULL_NUMBER}\" ]; then ",
-      "  git fetch origin refs/pull/${PULL_NUMBER}/head:pr",
-      "  git checkout ${PULL_PULL_SHA}",
-      "fi",
-            
-      // Update submodules.
-      "git submodule init",
-      "git submodule update",
- 
-      // TODO(jlewi): As noted above git the operations below are really
-      // slow when using NFS.
-      // Print out the git version in the logs
-      "git describe --tags --always --dirty",      
-      "git status",
-
-      // Move it to NFS
-      "mkdir -p " + srcDir,
-
-      // The period is needed because we want to copy the contents of the src directory
-      // into srcDir not srcDir/src/.
-      "cp -r /tmp/src/. " + srcDir,
-
-      // Make the files world readable/writable.
-      // This is a hack to make it easy to modify the files from jupyterhub which is using
-      // a different user/group id.
-      "chmod -R a+rwx " + srcDir,
-    ],
-
-    script: std.join(" && ", std.prune(self.commands)),
-  },
-
   // convert a list of two items into a map representing an environment variable
   listToMap:: function(v) 
       {
@@ -70,7 +20,7 @@
 
   parts(namespace, name):: {          
     // Workflow to run the e2e test.
-    e2e(ref, commit, prow_env): 
+    e2e(prow_env): 
       // mountPath is the directory where the volume to store the test data
       // should be mounted.
       local mountPath = "/mnt/" + "test-data-volume";
@@ -184,13 +134,12 @@
             "name": "checkout",
             "container": {              
               "command": [
-                "bash"
+                "/usr/local/bin/checkout.sh"
               ], 
               "args": [
-                "-x",
-                "-c",
-                $.checkoutScript(srcDir, ref, commit).script,
+                srcDir,
               ],
+              "env": prow_env,
               "image": image,
               "volumeMounts": [
                 {
@@ -248,14 +197,14 @@
               ],
             }, 
           }, // test-deploy          
-          $.parts(namespace, name).e2e(ref, commit, prow_env).buildTemplate("create-started", [
+          $.parts(namespace, name).e2e(prow_env).buildTemplate("create-started", [
             "python",
             "-m",
             "testing.prow_artifacts",
             "--artifacts_dir=" + artifactsDir,
             "create_started",
           ]), // create-started
-          $.parts(namespace, name).e2e(ref, commit, prow_env).buildTemplate("create-finished", [
+          $.parts(namespace, name).e2e(prow_env).buildTemplate("create-finished", [
             "python",
             "-m",
             "testing.prow_artifacts",
