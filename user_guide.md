@@ -79,7 +79,7 @@ ks show cloud -c kubeflow-core
 
 ### Bringing up a Notebook
 
-Once you've deployed JupyterHub, a load balancer service is created. You can check its existence using the kubectl commandline.
+Once you've deployed JupyterHub, a load balancer service is created. You can check its existence using the kubectl command line.
 
 ```commandline
 kubectl get svc
@@ -129,7 +129,7 @@ MODEL_PATH=gs://cloud-ml-dev_jlewi/tmp/inception
 ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME} --namespace=default --model_path=${MODEL_PATH}
 ```
 
-Deploy it in a particular environment. The deployment will pick up environment parmameters (e.g. cloud) and customize the deployment appropriately
+Deploy it in a particular environment. The deployment will pick up environment parameters (e.g. cloud) and customize the deployment appropriately
 
 ```
 ks apply cloud -c ${MODEL_COMPONENT}
