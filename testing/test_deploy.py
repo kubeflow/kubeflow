@@ -175,7 +175,9 @@ def main():  # pylint: disable=too-many-locals
     default=None,
     type=str,
     help=("The GitHub API token to use. This is needed since ksonnet uses the "
-          "GitHub API and without it we get rate limited."))
+          "GitHub API and without it we get rate limited. For more info see: "
+          "https://github.com/ksonnet/ksonnet/blob/master/docs"
+          "/troubleshooting.md"))
 
   args = parser.parse_args()
 
