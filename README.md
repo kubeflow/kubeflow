@@ -61,7 +61,7 @@ ks pkg install kubeflow/tf-job
 
 # Deploy Kubeflow
 ks generate core kubeflow-core --name=kubeflow-core --namespace=${NAMESPACE}
-ks apply default kubeflow-core
+ks apply default -c kubeflow-core
 ```
 
 
@@ -82,6 +82,6 @@ For more detailed instructions about how to use Kubeflow please refer to the [us
 
 * [Slack Channel](https://join.slack.com/t/kubeflow/shared_invite/enQtMjgyMzMxNDgyMTQ5LWUwMTIxNmZlZTk2NGU0MmFiNDE4YWJiMzFiOGNkZGZjZmRlNTExNmUwMmQ2NzMwYzk5YzQxOWQyODBlZGY2OTg)
 * [Twitter](http://twitter.com/kubeflow)
-* [Mailing List](https://groups.google.com/forum/#!forum/kubeubeflow-discuss)
+* [Mailing List](https://groups.google.com/forum/#!forum/kubeflow-discuss)
 
 * Review and comment on the [proposal](https://docs.google.com/document/d/1dmErPUmqqKMOe4L0ZHQglSdgDguCM4SzlsEdYXRMIDA/edit#) to define the scope and future of Kubeflow
