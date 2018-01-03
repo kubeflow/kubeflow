@@ -123,35 +123,24 @@ to configure kubectl.
 gcloud container clusters get-credentials model-serving --zone <your-zone> --project <your-project>
 ```
 
-## Modify the Deployment
-The Kubernetes Deployment in this [manifest](manifests/model-server.yaml).
 
-You need to update the Deployment's `spec.template.spec.containers[0].image` to point the image you pushed to GCR above.
+### Create a ksonnet component for your model
 
-```yaml
-containers:
-      - name: model-server
-        image: gcr.io/<your-project>/model-server:1.0
-```
+We treat each deployed model as a [component](https://ksonnet.io/docs/tutorial#2-generate-and-deploy-an-app-component) in your APP.
 
-You need to update the Deployment's `spec.template.spec.containers[0].command.args` to point the GCS bucket you created  
-above.
+Create a component for your model inside your ksonnet app (refer to the [user_guide](../../user_guide.md) for instructions on creating an APP)
 
-```yaml
- args:
-        - /usr/bin/tensorflow_model_server
-          --port=9000 --model_name=inception --model_base_path=gs://<your-bucket>/inception/
-```
-
-## Create the Deployment
-
-You can use [kubectl apply](https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#apply) to create the 
-[Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/). 
-This will create three Pods that serve the inception model, and a Service that load balances requests across them.
 ```commandline
-kubectl apply -f manifests/model-serveryaml 
-deployment "model-server" created
-service "model-service" created
+MODEL_COMPONENT=serveInception
+MODEL_NAME=inception
+MODEL_PATH=gs://cloud-ml-dev_jlewi/tmp/inception
+ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME} --namespace=default --model_path=${MODEL_PATH}
+```
+
+Deploy it in a particular environment. The deployment will pick up environment parmameters (e.g. cloud) and customize the deployment appropriately
+
+```
+ks apply cloud -c ${MODEL_COMPONENT}
 ```
 
 You can use [kubectl get](https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#get) to view the 
