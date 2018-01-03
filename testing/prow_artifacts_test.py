@@ -51,5 +51,28 @@ class TestProw(unittest.TestCase):
       actual = json.load(hf)
 
     self.assertEquals(expected, actual)
+
+  @mock.patch("testing.prow_artifacts.util.run")
+  def testCopyArtifactsPresubmit(self, mock_run):  # pylint: disable=no-self-use
+    """Test copy artifacts to GCS."""
+
+    os.environ["REPO_OWNER"] = "fake_org"
+    os.environ["REPO_NAME"] = "fake_name"
+    os.environ["PULL_NUMBER"] = "72"
+    os.environ["BUILD_NUMBER"] = "100"
+    os.environ["PULL_PULL_SHA"] = "123abc"
+    os.environ["JOB_NAME"] = "kubeflow-presubmit"
+
+    temp_dir = tempfile.mkdtemp(prefix="tmpTestProwTestCreateFinished.")
+    args = ["--artifacts_dir=/tmp/some/dir", "copy_artifacts",
+            "--bucket=some_bucket"]
+    prow_artifacts.main(args)
+
+    mock_run.assert_called_once_with(
+      ["gsutil", "-r", "/tmp/some/dir",
+       "gs://some_bucket/pr-logs/pull/fake_org_fake_name/72/kubeflow-presubmit"
+       "/100"],
+    )
+
 if __name__ == "__main__":
   unittest.main()

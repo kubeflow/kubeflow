@@ -8,6 +8,8 @@ import logging
 import json
 import os
 import time
+from py import util
+
 
 def create_started(args):
   """Create the started output in the artifacts dir.
@@ -65,6 +67,49 @@ def create_finished(args):
   with open(path, "w") as hf:
     json.dump(finished, hf)
 
+def copy_artifacts(args):
+  """Sync artifacts to GCS."""
+  job_name = os.getenv("JOB_NAME")
+
+  # GCS layout is defined here:
+  # https://github.com/kubernetes/test-infra/tree/master/gubernator#job-artifact-gcs-layout
+  pull_number = os.getenv("PULL_NUMBER")
+
+  repo_owner = os.getenv("REPO_OWNER")
+  repo_name = os.getenv("REPO_NAME")
+
+  if pull_number:
+    output = ("gs://{bucket}/pr-logs/pull/{owner}_{repo}/"
+              "{pull_number}/{job}/{build}").format(
+                  bucket=args.bucket,
+                  owner=repo_owner, repo=repo_name,
+                  pull_number=pull_number,
+                  job=job_name,
+                  build=os.getenv("BUILD_NUMBER"))
+  elif repo_owner:
+    # It is a postsubmit job
+    output = ("gs://{bucket}/logs/{owner}_{repo}/"
+              "{job}/{build}").format(
+                  owner=repo_owner, repo=repo_name,
+                  job=job_name,
+                  build=os.getenv("BUILD_NUMBER"))
+  else:
+    # Its a periodic job
+    output = ("gs://{bucket}/logs/{job}/{build}").format(
+        bucket=bucket,
+        job=job_name,
+        build=os.getenv("BUILD_NUMBER"))
+
+
+  if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
+    logging.info("GOOGLE_APPLICATION_CREDENTIALS is set; configuring gcloud "
+                 "to use service account.")
+    # Since a service account is set tell gcloud to use it.
+    util.run(["gcloud", "auth", "activate-service-account", "--key-file=" +
+              os.getenv("GOOGLE_APPLICATION_CREDENTIALS")])
+
+  util.run(["gsutil", "-r", args.artifacts_dir, output])
+
 def main(unparsed_args=None):  # pylint: disable=too-many-locals
   logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
   # create the top-level parser
@@ -93,10 +138,24 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
 
   parser_finished.set_defaults(func=create_finished)
 
-  # Parse the args
-  args = parser.parse_args(args=unparsed_args)
+  #############################################################################
+  # Copy artifacts.
+  parser_copy = subparsers.add_parser(
+    "copy_artifacts", help="Copy the artifacts.")
+
+  parser_copy.add_argument(
+    "--bucket",
+    default="",
+    type=str,
+    help="Bucket to copy the artifacts to.")
+
+  parser_copy.set_defaults(func=copy_artifacts)
+
   #############################################################################
   # Process the command line arguments.
+
+  # Parse the args
+  args = parser.parse_args(args=unparsed_args)
 
   # Setup a logging file handler. This way we can upload the log outputs
   # to gubernator.
