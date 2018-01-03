@@ -36,7 +36,7 @@ RUN set -ex \
         /var/tmp/* \
         /usr/share/man \
         /usr/share/doc \
-        /usr/share/doc-base 
+        /usr/share/doc-base
 
 # Set the locale
 RUN sed -i 's/^# en_US.UTF-8 UTF-8$/en_US.UTF-8 UTF-8/g' /etc/locale.gen \
@@ -80,6 +80,8 @@ RUN curl -o /usr/local/bin/ks -L \
 # Install various python libraries.
 RUN  pip install --upgrade six pyyaml google-api-python-client \
      google-cloud-storage google-auth-httplib2 pylint kubernetes==4.0.0 mock retrying
+
+# TODO(jlewi): Install crcmod for gsutil
 
 COPY bootstrap.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/bootstrap.sh
