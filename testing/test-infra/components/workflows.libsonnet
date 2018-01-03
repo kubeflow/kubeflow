@@ -123,8 +123,11 @@
                 {
                   "name": "create-started",
                   "template": "create-started",
-                },
-                ],
+                },                
+                {
+                  "name": "create-pr-symlink",
+                  "template": "create-pr-symlink",
+                },],
                 [{
                   "name": "create-finished",
                   "template": "create-finished",
@@ -172,6 +175,14 @@
             "--artifacts_dir=" + outputDir,
             "create_started",
           ]), // create-started
+          $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("create-pr-symlink", [
+            "python",
+            "-m",
+            "testing.prow_artifacts",
+            "--artifacts_dir=" + outputDir,
+            "create_pr_symlink",
+            "--bucket=" + bucket,
+          ]), // create-pr-symlink
           $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("create-finished", [
             "python",
             "-m",

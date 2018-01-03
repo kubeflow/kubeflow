@@ -8,6 +8,7 @@ import logging
 import json
 import os
 import time
+from google.cloud import storage  # pylint: disable=no-name-in-module
 from py import util
 
 
@@ -67,6 +68,22 @@ def create_finished(args):
   with open(path, "w") as hf:
     json.dump(finished, hf)
 
+def _get_pr_gcs_dir(bucket):
+  """Return the GCS directory for this PR."""
+  pull_number = os.getenv("PULL_NUMBER")
+
+  repo_owner = os.getenv("REPO_OWNER")
+  repo_name = os.getenv("REPO_NAME")
+
+  output = ("gs://{bucket}/pr-logs/pull/{owner}_{repo}/"
+            "{pull_number}/{job}/{build}").format(
+            bucket=bucket,
+            owner=repo_owner, repo=repo_name,
+            pull_number=pull_number,
+            job=os.getenv("JOB_NAME"),
+            build=os.getenv("BUILD_NUMBER"))
+  return output
+
 def copy_artifacts(args):
   """Sync artifacts to GCS."""
   job_name = os.getenv("JOB_NAME")
@@ -79,13 +96,8 @@ def copy_artifacts(args):
   repo_name = os.getenv("REPO_NAME")
 
   if pull_number:
-    output = ("gs://{bucket}/pr-logs/pull/{owner}_{repo}/"
-              "{pull_number}/{job}/{build}").format(
-                  bucket=args.bucket,
-                  owner=repo_owner, repo=repo_name,
-                  pull_number=pull_number,
-                  job=job_name,
-                  build=os.getenv("BUILD_NUMBER"))
+    output = _get_pr_gcs_dir(args.bucket)
+
   elif repo_owner:
     # It is a postsubmit job
     output = ("gs://{bucket}/logs/{owner}_{repo}/"
@@ -109,6 +121,43 @@ def copy_artifacts(args):
               os.getenv("GOOGLE_APPLICATION_CREDENTIALS")])
 
   util.run(["gsutil", "-m", "rsync", "-r", args.artifacts_dir, output])
+
+def create_pr_symlink(args):
+  """Create a 'symlink' in GCS pointing at the results for a PR.
+
+  This is a null op if PROW environment variables indicate this is not a PR
+  job.
+  """
+  gcs_client = storage.Client()
+  # GCS layout is defined here:
+  # https://github.com/kubernetes/test-infra/tree/master/gubernator#job-artifact-gcs-layout
+  pull_number = os.getenv("PULL_NUMBER")
+  if not pull_number:
+    # Symlinks are only created for pull requests.
+    return ""
+
+  path = "pr-logs/directory/{job}/{build}.txt".format(
+      job=os.getenv("JOB_NAME"), build=os.getenv("BUILD_NUMBER"))
+
+  pull_number = os.getenv("PULL_NUMBER")
+
+  repo_owner = os.getenv("REPO_OWNER")
+  repo_name = os.getenv("REPO_NAME")
+
+
+  build_dir = ("gs://{bucket}/pr-logs/pull/{owner}_{repo}/"
+               "{pull_number}/{job}/{build}").format(
+                bucket=args.bucket,
+                owner=repo_owner, repo=repo_name,
+                pull_number=pull_number,
+                job=os.getenv("JOB_NAME"),
+                build=os.getenv("BUILD_NUMBER"))
+  source = util.to_gcs_uri(args.bucket, path)
+  target = _get_pr_gcs_dir(args.bucket)
+  logging.info("Creating symlink %s pointing to %s", source, target)
+  bucket = gcs_client.get_bucket(args.bucket)
+  blob = bucket.blob(path)
+  blob.upload_from_string(target)
 
 def main(unparsed_args=None):  # pylint: disable=too-many-locals
   logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
@@ -150,6 +199,20 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
     help="Bucket to copy the artifacts to.")
 
   parser_copy.set_defaults(func=copy_artifacts)
+
+  #############################################################################
+  # Create the pr symlink.
+  parser_link = subparsers.add_parser(
+    "create_pr_symlink", help="Create a symlink pointing at PR output dir; null "
+                           "op if prow job is not a presubmit job.")
+
+  parser_link.add_argument(
+    "--bucket",
+    default="",
+    type=str,
+    help="Bucket to copy the artifacts to.")
+
+  parser_link.set_defaults(func=create_pr_symlink)
 
   #############################################################################
   # Process the command line arguments.
