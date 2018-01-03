@@ -108,7 +108,7 @@ def copy_artifacts(args):
     util.run(["gcloud", "auth", "activate-service-account", "--key-file=" +
               os.getenv("GOOGLE_APPLICATION_CREDENTIALS")])
 
-  util.run(["gsutil", "rsync", "-r", args.artifacts_dir, output])
+  util.run(["gsutil", "-m", "rsync", "-r", args.artifacts_dir, output])
 
 def main(unparsed_args=None):  # pylint: disable=too-many-locals
   logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
