@@ -69,7 +69,7 @@ class TestProw(unittest.TestCase):
     prow_artifacts.main(args)
 
     mock_run.assert_called_once_with(
-      ["gsutil", "-r", "/tmp/some/dir",
+      ["gsutil", "rsync", "-r", "/tmp/some/dir",
        "gs://some_bucket/pr-logs/pull/fake_org_fake_name/72/kubeflow-presubmit"
        "/100"],
     )
