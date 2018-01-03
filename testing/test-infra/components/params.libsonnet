@@ -11,7 +11,7 @@
     },
     "workflows": {
       bucket: "mlkube-testing_temp",
-      name: "e2e-test-presubmit-20180102-182632",
+      name: "e2e-test-presubmit-20180102-183355",
       namespace: "kubeflow-test-infra",
       prow_env: "REPO_OWNER=google,REPO_NAME=kubeflow,PULL_NUMBER=72,PULL_PULL_SHA=pr,BUILD_NUMBER=100,JOB_NAME=kubeflow-presubmit",
     },

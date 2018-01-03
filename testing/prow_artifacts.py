@@ -162,7 +162,8 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
   root_logger = logging.getLogger()
 
   test_log = os.path.join(os.path.join(args.artifacts_dir, "artifacts"),
-                          "logs", "prow_artifacts." + args.func.__name__)
+                          "logs", "prow_artifacts." + args.func.__name__ +
+                          ".log")
   if not os.path.exists(os.path.dirname(test_log)):
     os.makedirs(os.path.dirname(test_log))
 

@@ -26,8 +26,9 @@
       local mountPath = "/mnt/" + "test-data-volume";
       // testDir is the root directory for all data for a particular test run.
       local testDir = mountPath + "/" + name;
-      // artifactsDir is the directory to sync to GCS to contain the output for this job.
-      local artifactsDir = testDir + "/output";
+      // outputDir is the directory to sync to GCS to contain the output for this job.
+      local outputDir = testDir + "/output";
+      local artifactsDir = outputDir + "/artifacts";
       local srcDir = testDir + "/src";      
       local image = "gcr.io/mlkube-testing/kubeflow-testing";
       // The name of the NFS volume claim to use for test files.
@@ -162,26 +163,27 @@
             "--zone=us-east1-d",
             "--github_token=$(GIT_TOKEN)",
             "--test_dir=" + testDir,
+            "--artifacts_dir=" + artifactsDir,
           ]), // test-deploy
           $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("create-started", [
             "python",
             "-m",
             "testing.prow_artifacts",
-            "--artifacts_dir=" + artifactsDir,
+            "--artifacts_dir=" + outputDir,
             "create_started",
           ]), // create-started
           $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("create-finished", [
             "python",
             "-m",
             "testing.prow_artifacts",
-            "--artifacts_dir=" + artifactsDir,
+            "--artifacts_dir=" + outputDir,
             "create_finished",
           ]), // create-finished
           $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("copy-artifacts", [
             "python",
             "-m",
             "testing.prow_artifacts",
-            "--artifacts_dir=" + artifactsDir,
+            "--artifacts_dir=" + outputDir,
             "copy_artifacts",
             "--bucket=" + bucket,
           ]), // copy-artifacts

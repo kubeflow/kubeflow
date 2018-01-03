@@ -154,7 +154,7 @@ def setup(args):
     except Exception as e:  # pylint: disable-msg=broad-except
       logging.error("There was a problem deleting namespace: %s; %s",
                     namespace_name, e.message)
-    junit_path = os.path.join(args.test_dir, "junit_kubeflow-deploy.xml")
+    junit_path = os.path.join(args.artifacts_dir, "junit_kubeflow-deploy.xml")
     logging.info("Writing test results to %s", junit_path)
     test_util.create_junit_xml_file([main_case, teardown], junit_path)
 
@@ -170,6 +170,13 @@ def main():  # pylint: disable=too-many-locals
     type=str,
     help="Directory to use for all the test files. If not set a temporary "
          "directory is created.")
+
+  parser.add_argument(
+    "--artifacts_dir",
+    default="",
+    type=str,
+    help="Directory to use for artifacts that should be preserved after "
+         "the test runs. Defaults to test_dir if not set.")
 
   parser.add_argument(
     "--project",
@@ -208,11 +215,13 @@ def main():  # pylint: disable=too-many-locals
     # Create a temporary directory for this test run
     args.test_dir = os.path.join(tempfile.gettempdir(), label)
 
+  if not args.artifacts_dir:
+    args.artifacts_dir = args.test_dir
   # Setup a logging file handler. This way we can upload the log outputs
   # to gubernator.
   root_logger = logging.getLogger()
 
-  test_log = os.path.join(args.test_dir, "logs", "test_deploy.log.txt")
+  test_log = os.path.join(args.artifacts_dir, "logs", "test_deploy.log.txt")
   if not os.path.exists(os.path.dirname(test_log)):
     os.makedirs(os.path.dirname(test_log))
 

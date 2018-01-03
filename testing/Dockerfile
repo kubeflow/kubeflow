@@ -18,6 +18,8 @@ ENV LANGUAGE=en_US.UTF-8 \
 
 # buildDeps should be packages needed only to build some other packages as
 # these packages are purged in a later step.
+#
+# gcc & python-dev are needed so we can install crcmod for gsutil
 RUN set -ex \
     && apt-get update -yqq \
     && apt-get install -yqq --no-install-recommends \
@@ -28,6 +30,7 @@ RUN set -ex \
         git \
         zip \
         unzip \
+        gcc python-dev \
         python-setuptools \
     && apt-get clean \
     && rm -rf \
@@ -62,6 +65,10 @@ RUN wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.ta
         --usage-reporting=false && \
     gcloud components install alpha beta kubectl
 
+# Install CRCMOD for gsutil
+RUN easy_install -U pip && \
+    pip install -U crcmod
+
 # Install Helm
 RUN wget -O /tmp/get_helm.sh \
     https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get && \
@@ -80,8 +87,6 @@ RUN curl -o /usr/local/bin/ks -L \
 # Install various python libraries.
 RUN  pip install --upgrade six pyyaml google-api-python-client \
      google-cloud-storage google-auth-httplib2 pylint kubernetes==4.0.0 mock retrying
-
-# TODO(jlewi): Install crcmod for gsutil
 
 COPY bootstrap.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/bootstrap.sh
