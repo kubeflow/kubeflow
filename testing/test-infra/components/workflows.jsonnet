@@ -8,5 +8,6 @@ local namespace = params.namespace;
 // I didn't see any routines in the standard library for datetime or random.
 local name = params.name;
 
-local prow_env = workflows.parseEnv(params.prow_env);
-std.prune(k.core.v1.list.new([workflows.parts(namespace, name).e2e(prow_env),]))
+local prowEnv = workflows.parseEnv(params.prow_env);
+local bucket = workflows.parseEnv(params.bucket);
+std.prune(k.core.v1.list.new([workflows.parts(namespace, name).e2e(prowEnv, bucket),]))

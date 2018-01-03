@@ -20,7 +20,7 @@
 
   parts(namespace, name):: {          
     // Workflow to run the e2e test.
-    e2e(prow_env): 
+    e2e(prow_env, bucket): 
       // mountPath is the directory where the volume to store the test data
       // should be mounted.
       local mountPath = "/mnt/" + "test-data-volume";
@@ -128,6 +128,10 @@
                   "name": "create-finished",
                   "template": "create-finished",
                 },],
+                [{
+                  "name": "copy-artifacts",
+                  "template": "copy-artifacts",
+                },],
                ],
           },
           {
@@ -149,68 +153,38 @@
               ],
             }, 
           }, // checkout
-          {
-            "name": "test-deploy",
-            "container": {              
-              "command": [
-                "python", 
-                "-m", 
-                "testing.test_deploy",
-                "--project=mlkube-testing", 
-                "--cluster=kubeflow-testing", 
-                "--zone=us-east1-d",
-                "--github_token=$(GIT_TOKEN)",
-                "--test_dir=" + testDir,
-              ], 
-              "image": image,
-              "env": [{
-                // Add the source directories to the python path.
-                "name": "PYTHONPATH",
-                "value": srcDir + ":" + srcDir + "/tensorflow_k8s",
-              },
-              {
-                "name": "GOOGLE_APPLICATION_CREDENTIALS",
-                "value": "/secret/gcp-credentials/key.json",
-              },
-              {
-                  "name": "GIT_TOKEN",
-                  "valueFrom": {
-                    "secretKeyRef": {
-                      name: "github-token",
-                      key: "github_token", 
-                    },
-                  },
-              },],
-              "volumeMounts": [
-                {
-                  "name": dataVolume,
-                  "mountPath": mountPath,
-                },                
-                {
-                  "name": "github-token",
-                  "mountPath": "/secret/github-token",
-                },                
-                {
-                  "name": "gcp-credentials",
-                  "mountPath": "/secret/gcp-credentials",
-                },
-              ],
-            }, 
-          }, // test-deploy          
-          $.parts(namespace, name).e2e(prow_env).buildTemplate("create-started", [
+          $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("test-deploy", [
+            "python", 
+            "-m", 
+            "testing.test_deploy",
+            "--project=mlkube-testing", 
+            "--cluster=kubeflow-testing", 
+            "--zone=us-east1-d",
+            "--github_token=$(GIT_TOKEN)",
+            "--test_dir=" + testDir,
+          ]), // test-deploy
+          $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("create-started", [
             "python",
             "-m",
             "testing.prow_artifacts",
             "--artifacts_dir=" + artifactsDir,
             "create_started",
           ]), // create-started
-          $.parts(namespace, name).e2e(prow_env).buildTemplate("create-finished", [
+          $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("create-finished", [
             "python",
             "-m",
             "testing.prow_artifacts",
             "--artifacts_dir=" + artifactsDir,
             "create_finished",
           ]), // create-finished
+          $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("copy-artifacts", [
+            "python",
+            "-m",
+            "testing.prow_artifacts",
+            "--artifacts_dir=" + artifactsDir,
+            "copy_artifacts",
+            "--bucket=" + bucket,
+          ]), // copy-artifacts
         ], // templates
       }
     },// e2e 
