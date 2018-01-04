@@ -8,12 +8,13 @@ import tempfile
 from google.cloud import storage  # pylint: disable=no-name-in-module
 
 class TestRunE2eWorkflow(unittest.TestCase):
+  @mock.patch("testing.run_e2e_workflow.upload_file_to_gcs")
   @mock.patch("testing.run_e2e_workflow.upload_to_gcs")
-  @mock.patch("testing.run_e2e_workflow.argo_client.wait_for_workflow")
   @mock.patch("testing.run_e2e_workflow.util.load_kube_config")
+  @mock.patch("testing.run_e2e_workflow.argo_client.wait_for_workflow")
   @mock.patch("testing.run_e2e_workflow.util.configure_kubectl")
   @mock.patch("testing.run_e2e_workflow.util.run")
-  def testMainPresubmit(self, mock_run, mock_configure, _, mock_wait, mock_upload_to_gcs):  # pylint: disable=no-self-use
+  def testMainPresubmit(self, mock_run, mock_configure, mock_wait, *unused_mocks):  # pylint: disable=no-self-use
     """Test create started for presubmit job."""
 
     os.environ["REPO_OWNER"] = "fake_org"

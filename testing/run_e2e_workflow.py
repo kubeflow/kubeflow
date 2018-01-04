@@ -14,6 +14,7 @@ from testing import prow_artifacts
 import uuid
 from google.cloud import storage  # pylint: disable=no-name-in-module
 from py import util
+import sys
 
 # The namespace to launch the Argo workflow in.
 NAMESPACE = "kubeflow-test-infra"
@@ -34,6 +35,15 @@ def upload_to_gcs(contents, target):
   blob = bucket.blob(path)
   blob.upload_from_string(contents)
 
+def upload_file_to_gcs(source, target):
+  gcs_client = storage.Client()
+  bucket_name, path = util.split_gcs_uri(target)
+
+  bucket = gcs_client.get_bucket(bucket_name)
+
+  logging.info("Uploading file %s to %s.", source, target)
+  blob = bucket.blob(path)
+  blob.upload_from_filename(source)
 
 def create_started_file(bucket):
   """Create the started file in gcs for gubernator."""
@@ -49,7 +59,7 @@ def create_finished_file(bucket, success):
   target = os.path.join(prow_artifacts.get_gcs_dir(bucket), "finished.json")
   upload_to_gcs(contents, target)
 
-def run(args):
+def run(args, file_handler):
   src_dir = _get_src_dir()
   logging.info("Source directory: %s", src_dir)
   app_dir = os.path.join(src_dir, "test-infra")
@@ -109,9 +119,15 @@ def run(args):
     logging.error("Time out waiting for Workflow %s/%s to finish", NAMESPACE, workflow_name)
   finally:
     create_finished_file(args.bucket, success)
-    # TODO(jlewi): upload build log to Gubernator and create finished.json
-    # in gubernator. Currently we create finished.json in the workflow.
-    pass
+
+    # Upload logs to GCS. No logs after this point will appear in the
+    # file in gcs
+    file_handler.flush()
+    upload_file_to_gcs(
+      file_handler.baseFilename,
+      os.path.join(prow_artifacts.get_gcs_dir(args.bucket), "build-log.txt"))
+
+  return success
 
 def main(unparsed_args=None):  # pylint: disable=too-many-locals
   logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
@@ -166,7 +182,8 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
   file_handler.setFormatter(formatter)
   logging.info("Logging to %s", test_log)
 
-  run(args)
+  return run(args, file_handler)
+
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,
@@ -175,4 +192,10 @@ if __name__ == "__main__":
                       datefmt='%Y-%m-%dT%H:%M:%S',
                       )
   logging.getLogger().setLevel(logging.INFO)
-  main()
+  success = main()
+  if not success:
+    # Exit with a non-zero exit code by to signal failure to prow.
+    logging.error("One or more test steps failed exiting with non-zero exit "
+                  "code.")
+    sys.exit(1)
+
