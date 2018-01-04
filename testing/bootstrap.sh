@@ -33,3 +33,6 @@ git submodule update
 echo Repo is at `git describe --tags --always --dirty`
 git submodule
 git status
+
+# Invoke the script to run the workflow
+python -m testing.run_e2e_workflow

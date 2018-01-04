@@ -12,8 +12,11 @@ from google.cloud import storage  # pylint: disable=no-name-in-module
 from py import util
 
 
-def create_started(args):
-  """Create the started output in the artifacts dir.
+# TODO(jlewi): Replace create_finished in tensorflow/k8s/py/prow.py with this
+# version. We should do that when we switch tensorflow/k8s to use Argo instead
+# of Airflow.
+def create_started():
+  """Return a string containing the contents of started.json for gubernator.
   """
   # See:
   # https://github.com/kubernetes/test-infra/tree/master/gubernator#job-artifact-gcs-layout
@@ -39,21 +42,21 @@ def create_started(args):
   if PULL_REFS:
     started["pull"] = PULL_REFS
 
-  started_path = os.path.join(args.artifacts_dir, "started.json")
-  logging.info("Creating %s", started_path)
-  with open(started_path, "w") as hf:
-    json.dump(started, hf)
+  return json.dumps(started)
 
-  return started_path
+# TODO(jlewi): Replace create_finished in tensorflow/k8s/py/prow.py with this
+# version. We should do that when we switch tensorflow/k8s to use Argo instead
+# of Airflow.
+def create_finished(success):
+  """Create a string containing the contents for finished.json.
 
-def create_finished(args):
-  """Create the finished output file.
+  Args:
+    success: Bool indicating whether the workflow succeeded or not.
   """
-  # TODO(jlewi): Under what conditions should we report failure? Can we
-  # mark the job successful if the ARGO workflow ran to completion and
-  # rely on junit files to report individual test failures? For now
-  # we always report success.
-  result = "SUCCESS"
+  if success:
+    result = "SUCCESS"
+  else:
+    result = "FAILED"
   finished = {
       "timestamp": int(time.time()),
       "result": result,
@@ -63,29 +66,16 @@ def create_finished(args):
       "metadata": {},
   }
 
-  path = os.path.join(args.artifacts_dir, "finished.json")
-  logging.info("Creating %s", path)
-  with open(path, "w") as hf:
-    json.dump(finished, hf)
+  return json.dumps(finished)
 
-def _get_pr_gcs_dir(bucket):
-  """Return the GCS directory for this PR."""
+def get_gcs_dir(bucket):
+  """Return the GCS directory for this job."""
   pull_number = os.getenv("PULL_NUMBER")
 
   repo_owner = os.getenv("REPO_OWNER")
   repo_name = os.getenv("REPO_NAME")
 
-  output = ("gs://{bucket}/pr-logs/pull/{owner}_{repo}/"
-            "{pull_number}/{job}/{build}").format(
-            bucket=bucket,
-            owner=repo_owner, repo=repo_name,
-            pull_number=pull_number,
-            job=os.getenv("JOB_NAME"),
-            build=os.getenv("BUILD_NUMBER"))
-  return output
 
-def copy_artifacts(args):
-  """Sync artifacts to GCS."""
   job_name = os.getenv("JOB_NAME")
 
   # GCS layout is defined here:
@@ -96,7 +86,13 @@ def copy_artifacts(args):
   repo_name = os.getenv("REPO_NAME")
 
   if pull_number:
-    output = _get_pr_gcs_dir(args.bucket)
+    output = ("gs://{bucket}/pr-logs/pull/{owner}_{repo}/"
+              "{pull_number}/{job}/{build}").format(
+              bucket=bucket,
+              owner=repo_owner, repo=repo_name,
+              pull_number=pull_number,
+              job=os.getenv("JOB_NAME"),
+              build=os.getenv("BUILD_NUMBER"))
 
   elif repo_owner:
     # It is a postsubmit job
@@ -112,6 +108,20 @@ def copy_artifacts(args):
         job=job_name,
         build=os.getenv("BUILD_NUMBER"))
 
+  return output
+
+def copy_artifacts(args):
+  """Sync artifacts to GCS."""
+  job_name = os.getenv("JOB_NAME")
+
+  # GCS layout is defined here:
+  # https://github.com/kubernetes/test-infra/tree/master/gubernator#job-artifact-gcs-layout
+  pull_number = os.getenv("PULL_NUMBER")
+
+  repo_owner = os.getenv("REPO_OWNER")
+  repo_name = os.getenv("REPO_NAME")
+
+  output = get_gcs_dir(args.bucket)
 
   if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
     logging.info("GOOGLE_APPLICATION_CREDENTIALS is set; configuring gcloud "
@@ -153,7 +163,7 @@ def create_pr_symlink(args):
                 job=os.getenv("JOB_NAME"),
                 build=os.getenv("BUILD_NUMBER"))
   source = util.to_gcs_uri(args.bucket, path)
-  target = _get_pr_gcs_dir(args.bucket)
+  target = get_gcs_dir(args.bucket)
   logging.info("Creating symlink %s pointing to %s", source, target)
   bucket = gcs_client.get_bucket(args.bucket)
   blob = bucket.blob(path)
@@ -172,20 +182,6 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
     help="Directory to use for all the gubernator artifacts.")
 
   subparsers = parser.add_subparsers()
-
-  #############################################################################
-  # Create started artifact.
-  parser_started = subparsers.add_parser(
-    "create_started", help="Create started artifact.")
-
-  parser_started.set_defaults(func=create_started)
-
-  #############################################################################
-  # Create finished artifact.
-  parser_finished = subparsers.add_parser(
-    "create_finished", help="Create finished artifact.")
-
-  parser_finished.set_defaults(func=create_finished)
 
   #############################################################################
   # Copy artifacts.

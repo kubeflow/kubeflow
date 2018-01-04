@@ -17,11 +17,10 @@ KIND = "Workflow"
 
 def log_status(workflow):
   """A callback to use with wait_for_workflow."""
-  logging.info("Workflow %s in namespace %s; phase=%s, state=%s,",
+  logging.info("Workflow %s in namespace %s; phase=%s",
            workflow["metadata"]["name"],
            workflow["metadata"]["namespace"],
-           workflow["status"]["phase"],
-           workflow["status"]["state"])
+           workflow["status"]["phase"])
 
 def wait_for_workflow(client, namespace, name,
                       timeout=datetime.timedelta(minutes=5),

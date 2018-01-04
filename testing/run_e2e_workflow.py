@@ -10,18 +10,51 @@ from kubernetes import client as k8s_client
 import os
 import tempfile
 from testing import argo_client
+from testing import prow_artifacts
+import uuid
+from google.cloud import storage  # pylint: disable=no-name-in-module
 from py import util
 
-# The namespace used by the workflow ksonnet component.
-NAMESPACE = "kubeflow-testing"
+# The namespace to launch the Argo workflow in.
+NAMESPACE = "kubeflow-test-infra"
+
+# The name of the ksonnet component for the workflow
+COMPONENT = "workflows"
 
 def _get_src_dir():
   return os.path.abspath(os.path.join(__file__, "..",))
 
+def upload_to_gcs(contents, target):
+  gcs_client = storage.Client()
+
+  bucket_name, path = util.split_gcs_uri(target)
+
+  bucket = gcs_client.get_bucket(bucket_name)
+  logging.info("Writing %s", target)
+  blob = bucket.blob(path)
+  blob.upload_from_string(contents)
+
+
+def create_started_file(bucket):
+  """Create the started file in gcs for gubernator."""
+  contents = prow_artifacts.create_started()
+
+  target = os.path.join(prow_artifacts.get_gcs_dir(bucket), "started.json")
+  upload_to_gcs(contents, target)
+
+def create_finished_file(bucket, success):
+  """Create the started file in gcs for gubernator."""
+  contents = prow_artifacts.create_finished(success)
+
+  target = os.path.join(prow_artifacts.get_gcs_dir(bucket), "finished.json")
+  upload_to_gcs(contents, target)
+
 def run(args):
   src_dir = _get_src_dir()
   logging.info("Source directory: %s", src_dir)
-  app_dir = os.path.join(src_dir, "testing", "test-infra")
+  app_dir = os.path.join(src_dir, "test-infra")
+
+  create_started_file(args.bucket)
 
   util.configure_kubectl(args.project, args.zone, args.cluster)
   util.load_kube_config()
@@ -36,7 +69,12 @@ def run(args):
 
   workflow_name += "-{0}".format(os.getenv("BUILD_NUMBER"))
 
-  util.run(["ks", "param", "set", "name", workflow_name], cwd=app_dir)
+  # Add some salt. This is mostly a convenience for the case where you
+  # are submitting jobs manually for testing/debugging. Since the prow should
+  # vend unique build numbers for each job.
+  workflow_name += "-{0}".format(uuid.uuid4().hex[0:4])
+
+  util.run(["ks", "param", "set", "workflows", "name", workflow_name], cwd=app_dir)
   util.load_kube_config()
 
   api_client = k8s_client.ApiClient()
@@ -53,21 +91,24 @@ def run(args):
       continue
     prow_env.append("{0}={1}".format(v, os.getenv(v)))
 
-  util.run(["ks", "param", "set", "prow_env", ",".join(prow_env)], cwd=app_dir)
+  util.run(["ks", "param", "set", COMPONENT, "prow_env", ",".join(prow_env)], cwd=app_dir)
+  util.run(["ks", "param", "set", COMPONENT, "namespace", NAMESPACE], cwd=app_dir)
 
-  # TODO(jlewi): Should we set the namespace using ks param set so that it
-  # always matches the namespace used by run_e2e_workflow.py?
-
-  util.run(["ks", "apply", "prow", "-c", "workflows"], cwd=app_dir)
+  util.run(["ks", "apply", "prow", "-c", COMPONENT], cwd=app_dir)
 
   success = False
   try:
-    results = argo_client.wait_for_workflow(api_client, NAMESPACE, workflow_name)
+    results = argo_client.wait_for_workflow(api_client, NAMESPACE, workflow_name,
+                                            status_callback=argo_client.log_status)
     if results["status"]["phase"] == "Succeeded":
       success = True
+    logging.info("Workflow %s/%s finished phase: %s", NAMESPACE, workflow_name,
+                 results["status"]["phase"] )
   except util.TimeoutError:
     success = False
+    logging.error("Time out waiting for Workflow %s/%s to finish", NAMESPACE, workflow_name)
   finally:
+    create_finished_file(args.bucket, success)
     # TODO(jlewi): upload build log to Gubernator and create finished.json
     # in gubernator. Currently we create finished.json in the workflow.
     pass
@@ -95,6 +136,12 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
     default="",
     type=str,
     help="The GKE cluster to use to run the workflow.")
+
+  parser.add_argument(
+    "--bucket",
+    default="",
+    type=str,
+    help="The bucket to use for the Gubernator outputs.")
 
   #############################################################################
   # Process the command line arguments.

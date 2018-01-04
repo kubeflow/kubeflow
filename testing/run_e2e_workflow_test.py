@@ -8,11 +8,12 @@ import tempfile
 from google.cloud import storage  # pylint: disable=no-name-in-module
 
 class TestRunE2eWorkflow(unittest.TestCase):
+  @mock.patch("testing.run_e2e_workflow.upload_to_gcs")
   @mock.patch("testing.run_e2e_workflow.argo_client.wait_for_workflow")
   @mock.patch("testing.run_e2e_workflow.util.load_kube_config")
   @mock.patch("testing.run_e2e_workflow.util.configure_kubectl")
   @mock.patch("testing.run_e2e_workflow.util.run")
-  def testMainPresubmit(self, mock_run, mock_configure, _, mock_wait):  # pylint: disable=no-self-use
+  def testMainPresubmit(self, mock_run, mock_configure, _, mock_wait, mock_upload_to_gcs):  # pylint: disable=no-self-use
     """Test create started for presubmit job."""
 
     os.environ["REPO_OWNER"] = "fake_org"
@@ -30,19 +31,27 @@ class TestRunE2eWorkflow(unittest.TestCase):
     mock_configure.assert_called_once_with("some-project", "us-east1-d",
                                            "some-cluster",)
     self.assertItemsEqual(
-      ["ks", "param", "set", "name", "kubeflow-presubmit-77-1234"],
-      mock_run.call_args_list[0][0][0])
+      ["ks", "param", "set", "workflows", "name"],
+      mock_run.call_args_list[0][0][0][:-1])
+    # Workflow name will have some random salt at the end.
+    self.assertRegexpMatches(mock_run.call_args_list[0][0][0][-1],
+                             "kubeflow-presubmit-77-[0-9a-z]{4}")
 
     self.assertItemsEqual(
-      ["ks", "param", "set", "prow_env",
+      ["ks", "param", "set", "workflows", "prow_env",
        "BUILD_NUMBER=1234,JOB_NAME=kubeflow-presubmit,JOB_TYPE=presubmit"
        ",PULL_NUMBER=77,PULL_PULL_SHA=123abc,REPO_NAME=fake_name"
        ",REPO_OWNER=fake_org"],
       mock_run.call_args_list[1][0][0])
 
     self.assertItemsEqual(
-      ["ks", "apply", "prow", "-c", "workflows"],
+      ["ks", "param", "set", "workflows", "namespace",
+       "kubeflow-test-infra"],
       mock_run.call_args_list[2][0][0])
+
+    self.assertItemsEqual(
+      ["ks", "apply", "prow", "-c", "workflows"],
+      mock_run.call_args_list[3][0][0])
 
 
 if __name__ == "__main__":
