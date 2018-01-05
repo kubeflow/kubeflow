@@ -21,23 +21,12 @@ Ultimately, we want to have a set of simple manifests that give you an easy to u
 
 ## Setup
 
-This documentation assumes you have a Kubernetes cluster already available. For specific Kubernetes installations, additional configuration may be necessary.
+This documentation assumes you have a Kubernetes cluster already available. 
 
-### Minikube
+If you need help setting up a Kubernetes cluster please refer to [Kubernetes Setup](https://kubernetes.io/docs/setup/).
 
-[Minikube](https://github.com/kubernetes/minikube) is a tool that makes it easy to run Kubernetes locally. Minikube runs a
-single-node Kubernetes cluster inside a VM on your laptop for users looking to try out Kubernetes or develop with it day-to-day.
-The below steps apply to a minikube cluster - the latest version as of writing this documentation is 0.23.0. You must also have
-kubectl configured to access minikube.
+If you want to use GPUs be sure to follow the Kubernetes [instructions for enabling GPUs](https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/).
 
-### Google Kubernetes Engine
-
-[Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/) is a managed environment for deploying Kubernetes applications powered by Google Cloud.
-If you're using Google Kubernetes Engine, prior to creating the manifests, you must grant your own user the requisite RBAC role to create/edit other RBAC roles.
-
-```commandline
-kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --user=user@gmail.com
-```
 ## Quick Start
 
 Requirements
@@ -71,6 +60,33 @@ Used together, these make it easy for a user go from training to serving using T
 effort in a portable fashion between different environments. 
 
 For more detailed instructions about how to use Kubeflow please refer to the [user guide](user_guide.md)
+
+## Troubleshooting
+
+### Minikube
+
+On [Minikube](https://github.com/kubernetes/minikube) the Virtualbox/VMware drivers for Minikube are recommended as there is a known
+issue between the KVM/KVM2 driver and TensorFlow Serving. The issue is tracked in [kubernetes/minikube#2377](https://github.com/kubernetes/minikube/issues/2377).
+
+### RBAC clusters
+
+If you are running on a K8s cluster with [RBAC enabled](https://kubernetes.io/docs/admin/authorization/rbac/#command-line-utilities), you may get an error like the following when deploying Kubeflow: 
+
+```
+ERROR Error updating roles kubeflow-test-infra.jupyter-role: roles.rbac.authorization.k8s.io "jupyter-role" is forbidden: attempt to grant extra privileges: [PolicyRule{Resources:["*"], APIGroups:["*"], Verbs:["*"]}] user=&{your-user@acme.com  [system:authenticated] map[]} ownerrules=[PolicyRule{Resources:["selfsubjectaccessreviews"], APIGroups:["authorization.k8s.io"], Verbs:["create"]} PolicyRule{NonResourceURLs:["/api" "/api/*" "/apis" "/apis/*" "/healthz" "/swagger-2.0.0.pb-v1" "/swagger.json" "/swaggerapi" "/swaggerapi/*" "/version"], Verbs:["get"]}] ruleResolutionErrors=[]
+```
+
+This error indicates you do not have sufficient permissions. In many cases you can resolve this just by creating an appropriate
+clusterrole binding like so and then redeploying kubeflow
+
+```commandline
+kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --user=your-user@acme.com
+```
+
+	* Replace `your-user@acme.com` with the user listed in the error message.
+
+If you're using, GKE you may want to refer to [GKE's RBAC docs](https://cloud.google.com/kubernetes-engine/docs/how-to/role-based-access-control) to understand
+how RBAC interacts with IAM on GCP.
 
 ## Resources
 

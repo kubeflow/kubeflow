@@ -67,7 +67,7 @@ Download and install the [Google Cloud SDK](https://cloud.google.com/sdk/downloa
 Use the [gsutil mb](https://cloud.google.com/storage/docs/gsutil/commands/mb) command to create a bucket. Note that 
 the bucket name must be globally unique.
 ```commandline
-gsutil mb gs://<ucket-name>
+gsutil mb gs://<bucket-name>
 ``` 
 
 
