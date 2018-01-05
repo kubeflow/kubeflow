@@ -74,14 +74,14 @@ If you are running on a K8s cluster with RBAC enabled, you may get an error like
 ERROR Error updating roles kubeflow-test-infra.jupyter-role: roles.rbac.authorization.k8s.io "jupyter-role" is forbidden: attempt to grant extra privileges: [PolicyRule{Resources:["*"], APIGroups:["*"], Verbs:["*"]}] user=&{your-user@acme.com  [system:authenticated] map[]} ownerrules=[PolicyRule{Resources:["selfsubjectaccessreviews"], APIGroups:["authorization.k8s.io"], Verbs:["create"]} PolicyRule{NonResourceURLs:["/api" "/api/*" "/apis" "/apis/*" "/healthz" "/swagger-2.0.0.pb-v1" "/swagger.json" "/swaggerapi" "/swaggerapi/*" "/version"], Verbs:["get"]}] ruleResolutionErrors=[]
 ```
 
-need sufficient permission to be able to create RBAC roles. 
-
-[Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/docs/how-to/creating-a-container-cluster) is a managed environment for deploying Kubernetes applications powered by Google Cloud.
-If you're using Google Kubernetes Engine, prior to creating the manifests, you must grant your own user the requisite RBAC role to create/edit other RBAC roles.
+This error indicates you do not have sufficient permissions. In many cases you can resolve this just by creating an appropriate
+clusterrole binding like so and then redeploying kubeflow
 
 ```commandline
-kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --user=user@gmail.com
+kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --user=your-user@acme.com
 ```
+
+	* Replace `your-user@acme.com` with the user listed in the error message.
 
 ## Resources
 
