@@ -31,12 +31,8 @@ Based on the current functionality you should consider using Kubeflow if
        * For example if you want to use [tensorflow/agents](https://github.com/tensorflow/agents) to run simulations to generate data for training
          reinforcement learning models
 
-## Who should consider contributing to Kubeflow?
-
-* Folks who want to add support for other ML frameworks (e.g. PyTorch, XGBoost, etc...)
-* Folks who want to bring more Kubernetes magic to ML (e.g. ISTIO integration for prediction)
-* Folks who want to make Kubeflow a richer ML platform (e.g. support for ML pipelines, hyperparameter tuning)
-* Folks who want to tune Kubeflow for their particular Kubernetes distribution or Cloud
+This list is based ONLY on current capabilities. We are investing significant resources to expand the
+functionality and actively soliciting help from companies and inviduals interested in contributing (see [below](who-should-consider-contributing-to-kubeflow))
 
 ## Setup
 
@@ -120,3 +116,12 @@ how RBAC interacts with IAM on GCP.
 * [Mailing List](https://groups.google.com/forum/#!forum/kubeflow-discuss)
 
 * Review and comment on the [proposal](https://docs.google.com/document/d/1dmErPUmqqKMOe4L0ZHQglSdgDguCM4SzlsEdYXRMIDA/edit#) to define the scope and future of Kubeflow
+
+
+### Who should consider contributing to Kubeflow?
+
+* Folks who want to add support for other ML frameworks (e.g. PyTorch, XGBoost, etc...)
+* Folks who want to bring more Kubernetes magic to ML (e.g. ISTIO integration for prediction)
+* Folks who want to make Kubeflow a richer ML platform (e.g. support for ML pipelines, hyperparameter tuning)
+* Folks who want to tune Kubeflow for their particular Kubernetes distribution or Cloud
+* Folks who want to write tutorials/blog posts showing how to use Kubeflow to solve ML problems
