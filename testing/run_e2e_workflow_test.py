@@ -26,7 +26,7 @@ class TestRunE2eWorkflow(unittest.TestCase):
     os.environ["BUILD_NUMBER"] = "1234"
 
     args = ["--project=some-project", "--cluster=some-cluster",
-            "--zone=us-east1-d"]
+            "--zone=us-east1-d", "--bucket=some-bucket"]
     run_e2e_workflow.main(args)
 
     mock_configure.assert_called_once_with("some-project", "us-east1-d",
@@ -51,8 +51,16 @@ class TestRunE2eWorkflow(unittest.TestCase):
       mock_run.call_args_list[2][0][0])
 
     self.assertItemsEqual(
-      ["ks", "apply", "prow", "-c", "workflows"],
+      ["ks", "param", "set", "workflows", "bucket", "some-bucket"],
       mock_run.call_args_list[3][0][0])
+
+    self.assertItemsEqual(
+      ["ks", "show", "prow", "-c", "workflows"],
+      mock_run.call_args_list[4][0][0])
+
+    self.assertItemsEqual(
+      ["ks", "apply", "prow", "-c", "workflows"],
+      mock_run.call_args_list[5][0][0])
 
 
 if __name__ == "__main__":

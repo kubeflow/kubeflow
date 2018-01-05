@@ -111,6 +111,9 @@ def run(args, file_handler):
   util.run(["ks", "param", "set", COMPONENT, "prow_env", ",".join(prow_env)], cwd=app_dir)
   util.run(["ks", "param", "set", COMPONENT, "namespace", NAMESPACE], cwd=app_dir)
   util.run(["ks", "param", "set", COMPONENT, "bucket", args.bucket], cwd=app_dir)
+
+  # For debugging print out the manifest
+  util.run(["ks", "show", "prow", "-c", COMPONENT], cwd=app_dir)
   util.run(["ks", "apply", "prow", "-c", COMPONENT], cwd=app_dir)
 
   success = False
