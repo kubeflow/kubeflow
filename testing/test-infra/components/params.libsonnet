@@ -16,7 +16,7 @@
       prow_env: "BUILD_NUMBER=2,JOB_NAME=kubeflow-presubmit,JOB_TYPE=presubmit,PULL_NUMBER=81,REPO_NAME=kubeflow,REPO_OWNER=google",
     },
     "nfs-jupyter": {
-      cloud: "null",
+      cloud: "",
       disks: "kubeflow-testing",
       name: "nfs-jupyter",
       namespace: "kubeflow-test-infra",
