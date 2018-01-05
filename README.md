@@ -27,8 +27,12 @@ This documentation assumes you have a Kubernetes cluster already available. For 
 
 [Minikube](https://github.com/kubernetes/minikube) is a tool that makes it easy to run Kubernetes locally. Minikube runs a
 single-node Kubernetes cluster inside a VM on your laptop for users looking to try out Kubernetes or develop with it day-to-day.
+
 The below steps apply to a minikube cluster - the latest version as of writing this documentation is 0.23.0. You must also have
 kubectl configured to access minikube.
+
+Finally, the Virtualbox/VMware drivers for Minikube are recommended as there is a known
+issue between the KVM/KVM2 driver and the TensorFlow Serving deployment, tracked in [kubernetes/minikube#2377](https://github.com/kubernetes/minikube/issues/2377).
 
 ### Google Kubernetes Engine
 
