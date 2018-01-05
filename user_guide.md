@@ -4,12 +4,9 @@ If you are unfamiliar with ksonnet you may want to start by reading the [tutoria
 
 ## Requirements
 
-  * ksonnet version [0.8.0](https://github.com/ksonnet/ksonnet/releases) or later.
+  * ksonnet version [0.8.0](https://ksonnet.io/#get-started) or later.
+    * See [below](#why-kubeflow-uses-ksonnet) for an explanation of why we use ksonnet
   * Kubernetes >= 1.8 [see here](https://github.com/tensorflow/k8s#requirements)
-
-## Get ksonnet
-
-You need ksonnet version [0.8.0 release](https://github.com/ksonnet/ksonnet/releases) or later.
 
 ## Deploy Kubeflow
 
@@ -38,8 +35,6 @@ Create the Kubeflow core component. The core component includes
 ks generate core kubeflow-core --name=kubeflow-core --namespace=${NAMESPACE}
 ```
   * namespace is optional
-  * TODO(jlewi): There's an open github [issue](https://github.com/ksonnet/ksonnet/issues/222) to allow components to pull
-    the namespace from the environment namespace parameter.
 
 
 Define an environment that doesn't use any Cloud features
@@ -248,3 +243,16 @@ shm                                                                65536       0
 tmpfs                                                           15444244       0   15444244   0% /sys/firmware
 ```
   * Here `jlewi-kubeflow-test1` and `jlewi-kubeflow-test2` are the names of the PDs.
+
+## Why Kubeflow Uses Ksonnet
+
+[Ksonnet](https://ksonnet.io/) is a command line tool that makes it easier to manage complex deployments consisting of multiple components. It is designed to
+work side by side with kubectl.
+
+Ksonnet allows us to generate Kubernetes manifests from parameterized templates. This makes it easy to customize Kubernetes manifests for your
+particular use case. In the examples above we used this functionality to generate manifests for TfServing with a user supplied URI for the model.
+
+One of the reasons we really like ksonnet is because it treats [environment](https://ksonnet.io/docs/concepts#environment) as in (dev, test, staging, prod) as a first class concept. For each environment we can easily deploy the same components but with slightly different parameters
+to customize it for a particular environments. We think this maps really well to common workflows. For example, this feature makes it really
+easy to run a job locally without GPUs for a small number of steps to make sure the code doesn't crash, and then easily move that to the
+Cloud to run at scale with GPUs.
