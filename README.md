@@ -21,7 +21,11 @@ Ultimately, we want to have a set of simple manifests that give you an easy to u
 
 ## Setup
 
-This documentation assumes you have a Kubernetes cluster already available. For specific Kubernetes installations, additional configuration may be necessary.
+This documentation assumes you have a Kubernetes cluster already available. 
+
+If you need help setting up a Kubernetes cluster please refer to [Kubernetes' Setup](https://kubernetes.io/docs/setup/).
+
+For specific Kubernetes installations, additional configuration may be necessary.
 
 ### Minikube
 
@@ -36,7 +40,7 @@ issue between the KVM/KVM2 driver and the TensorFlow Serving deployment, tracked
 
 ### Google Kubernetes Engine
 
-[Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/) is a managed environment for deploying Kubernetes applications powered by Google Cloud.
+[Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/docs/how-to/creating-a-container-cluster) is a managed environment for deploying Kubernetes applications powered by Google Cloud.
 If you're using Google Kubernetes Engine, prior to creating the manifests, you must grant your own user the requisite RBAC role to create/edit other RBAC roles.
 
 ```commandline

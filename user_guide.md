@@ -11,8 +11,6 @@ If you are unfamiliar with ksonnet you may want to start by reading the [tutoria
 
 You need ksonnet version [0.8.0 release](https://github.com/ksonnet/ksonnet/releases) or later.
 
-As of this writing, Heptio hasn't released any newer prebuilt binaries so you will need to [build from source](https://ksonnet.io/docs/build-install).
-
 ## Deploy Kubeflow
 
 Initialize a directory to contain your deployment
