@@ -54,7 +54,7 @@ If the user is running on a Cloud they could create an environment for this.
 
 ```
 ks env add cloud
-ks param set --cloud=gke
+ks param set --env=cloud kubeflow-core cloud=gke
 ```
    * The cloud parameter triggers a set of curated cloud configs.
 
