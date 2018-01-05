@@ -54,6 +54,7 @@ def _setup_test(api_client, run_label):
 
 def setup(args):
   """Test deploying Kubeflow."""
+
   if args.cluster:
     project = args.project
     cluster_name = args.cluster
@@ -154,6 +155,7 @@ def setup(args):
     except Exception as e:  # pylint: disable-msg=broad-except
       logging.error("There was a problem deleting namespace: %s; %s",
                     namespace_name, e.message)
+
     junit_path = os.path.join(args.artifacts_dir, "junit_kubeflow-deploy.xml")
     logging.info("Writing test results to %s", junit_path)
     test_util.create_junit_xml_file([main_case, teardown], junit_path)
@@ -224,6 +226,7 @@ def main():  # pylint: disable=too-many-locals
   root_logger = logging.getLogger()
 
   test_log = os.path.join(args.artifacts_dir, "logs", "test_deploy.log.txt")
+
   if not os.path.exists(os.path.dirname(test_log)):
     os.makedirs(os.path.dirname(test_log))
 
@@ -243,6 +246,7 @@ def main():  # pylint: disable=too-many-locals
     # Since a service account is set tell gcloud to use it.
     util.run(["gcloud", "auth", "activate-service-account", "--key-file=" +
               os.getenv("GOOGLE_APPLICATION_CREDENTIALS")])
+
   setup(args)
 
 if __name__ == "__main__":
