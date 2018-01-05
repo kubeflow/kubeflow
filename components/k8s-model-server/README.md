@@ -33,21 +33,26 @@ A [Makefile](docker/Makefile) is included that will build the image and push it 
 
 Download and install the [Google Cloud SDK](https://cloud.google.com/sdk/downloads) (Software Development Kit).
 
-Enable the [GCR](https://cloud.google.com/container-registry/docs/quickstart) (Google Container Registry) API in 
-your project.
+Make sure that the `gcloud` command line tool is [configured to use the desired
+project](https://cloud.google.com/sdk/docs/managing-properties).
 
-Set the name of your project at the top of the Makefile ```PROJECT_ID=<your-project>```.
+Enable the [GCR](https://cloud.google.com/container-registry/docs/quickstart) (Google Container Registry) API in 
+your project. You can do this directly from the command line:
+
+```commandline
+gcloud services enable containerregistry.googleapis.com
+```
 
 The command below will build the docker image.
 
 ```commandline
-make all
+make PROJECT_ID=$(gcloud config get-value project) all
 ```
 
 The command below will push the docker image to your project's GCR.
 
 ```commandline
-make push
+make PROJECT_ID=$(gcloud config get-value project) push
 ```
 
 You can learn more about [building a TensorFlow model server](https://www.tensorflow.org/serving/serving_advanced) and 
