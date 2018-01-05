@@ -66,6 +66,13 @@ def run(args, file_handler):
 
   create_started_file(args.bucket)
 
+  if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
+    logging.info("GOOGLE_APPLICATION_CREDENTIALS is set; configuring gcloud "
+                 "to use service account.")
+    # Since a service account is set tell gcloud to use it.
+    util.run(["gcloud", "auth", "activate-service-account", "--key-file=" +
+              os.getenv("GOOGLE_APPLICATION_CREDENTIALS")])
+
   util.configure_kubectl(args.project, args.zone, args.cluster)
   util.load_kube_config()
 
