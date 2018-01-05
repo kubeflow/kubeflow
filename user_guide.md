@@ -198,8 +198,7 @@ Set the disks parameter to a comma separated list of the Google persistent disks
   * These disks should be in the same zone as your cluster
   * These disks need to be created manually via gcloud or the Cloud console e.g.
   * These disks can't be attached to any existing VM or POD.
-  * TODO(jlewi): Can we rely on the default storage class to create the backing for store for NFS? Would that be portable across clouds
-    and avoid users having to create the disks manually?
+  
 Create the disks
 
 ```
