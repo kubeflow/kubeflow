@@ -23,7 +23,7 @@ Ultimately, we want to have a set of simple manifests that give you an easy to u
 
 This documentation assumes you have a Kubernetes cluster already available. 
 
-If you need help setting up a Kubernetes cluster please refer to [Kubernetes' Setup](https://kubernetes.io/docs/setup/).
+If you need help setting up a Kubernetes cluster please refer to [Kubernetes Setup](https://kubernetes.io/docs/setup/).
 
 If you want to use GPUs be sure to follow the Kubernetes [instructions for enabling GPUs](https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/).
 
@@ -70,7 +70,7 @@ issue between the KVM/KVM2 driver and TensorFlow Serving. The issue is tracked i
 
 ### RBAC clusters
 
-If you are running on a K8s cluster with RBAC enabled, you may get an error like the following when deploying Kubeflow: 
+If you are running on a K8s cluster with [RBAC enabled](https://kubernetes.io/docs/admin/authorization/rbac/#command-line-utilities), you may get an error like the following when deploying Kubeflow: 
 
 ```
 ERROR Error updating roles kubeflow-test-infra.jupyter-role: roles.rbac.authorization.k8s.io "jupyter-role" is forbidden: attempt to grant extra privileges: [PolicyRule{Resources:["*"], APIGroups:["*"], Verbs:["*"]}] user=&{your-user@acme.com  [system:authenticated] map[]} ownerrules=[PolicyRule{Resources:["selfsubjectaccessreviews"], APIGroups:["authorization.k8s.io"], Verbs:["create"]} PolicyRule{NonResourceURLs:["/api" "/api/*" "/apis" "/apis/*" "/healthz" "/swagger-2.0.0.pb-v1" "/swagger.json" "/swaggerapi" "/swaggerapi/*" "/version"], Verbs:["get"]}] ruleResolutionErrors=[]
@@ -84,6 +84,9 @@ kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --us
 ```
 
 	* Replace `your-user@acme.com` with the user listed in the error message.
+
+If you're using, GKE you may want to refer to [GKE's RBAC docs](https://cloud.google.com/kubernetes-engine/docs/how-to/role-based-access-control) to understand
+how RBAC interacts with IAM on GCP.
 
 ## Resources
 
