@@ -12,6 +12,7 @@ Requirements:
 
 import argparse
 import datetime
+import json
 import logging
 import os
 import tempfile
@@ -19,6 +20,7 @@ import uuid
 
 from kubernetes import client as k8s_client
 from kubernetes.client import rest
+from kubernetes.config import incluster_config
 
 from py import test_util
 from py import util
@@ -52,12 +54,24 @@ def _setup_test(api_client, run_label):
 
 def setup(args):
   """Test deploying Kubeflow."""
-  project = args.project
-  cluster_name = args.cluster
-  zone = args.zone
-  util.configure_kubectl(project, zone, cluster_name)
 
-  util.load_kube_config()
+  if args.cluster:
+    project = args.project
+    cluster_name = args.cluster
+    zone = args.zone
+    logging.info("Using cluster: %s in project: %s in zone: %s",
+                 cluster_name, project, zone)
+    # Print out config to help debug issues with accounts and
+    # credentials.
+    util.run(["gcloud", "config", "list"])
+    util.configure_kubectl(project, zone, cluster_name)
+    util.load_kube_config()
+  else:
+    # TODO(jlewi): This is sufficient for API access but it doesn't create
+    # a kubeconfig file which ksonnet needs for ks init.
+    logging.info("Running inside cluster.")
+    incluster_config.load_incluster_config()
+
   # Create an API client object to talk to the K8s master.
   api_client = k8s_client.ApiClient()
 
@@ -79,7 +93,7 @@ def setup(args):
 
     # Initialize a ksonnet app.
     app_name = "kubeflow-test"
-    util.run(["ks", "init", app_name,], cwd=args.test_dir)
+    util.run(["ks", "init", app_name,], cwd=args.test_dir, use_print=True)
 
     app_dir = os.path.join(args.test_dir, app_name)
 
@@ -101,7 +115,13 @@ def setup(args):
     util.run(["ks", "generate", "core", "kubeflow-core", "--name=kubeflow-core",
               "--namespace=" + namespace.metadata.name], cwd=app_dir)
 
-    util.run(["ks", "apply", "default", "-c", "kubeflow-core",], cwd=app_dir)
+    apply_command = ["ks", "apply", "default", "-c", "kubeflow-core",]
+
+    if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
+      with open(os.getenv("GOOGLE_APPLICATION_CREDENTIALS")) as hf:
+        key = json.load(hf)
+        apply_command.append("--as=" + key["client_email"])
+    util.run(apply_command, cwd=app_dir)
 
     # Verify that the TfJob operator is actually deployed.
     tf_job_deployment_name = "tf-job-operator"
@@ -135,7 +155,8 @@ def setup(args):
     except Exception as e:  # pylint: disable-msg=broad-except
       logging.error("There was a problem deleting namespace: %s; %s",
                     namespace_name, e.message)
-    junit_path = os.path.join(args.test_dir, "junit_kubeflow-deploy.xml")
+
+    junit_path = os.path.join(args.artifacts_dir, "junit_kubeflow-deploy.xml")
     logging.info("Writing test results to %s", junit_path)
     test_util.create_junit_xml_file([main_case, teardown], junit_path)
 
@@ -153,6 +174,13 @@ def main():  # pylint: disable=too-many-locals
          "directory is created.")
 
   parser.add_argument(
+    "--artifacts_dir",
+    default="",
+    type=str,
+    help="Directory to use for artifacts that should be preserved after "
+         "the test runs. Defaults to test_dir if not set.")
+
+  parser.add_argument(
     "--project",
     default=None,
     type=str,
@@ -162,7 +190,8 @@ def main():  # pylint: disable=too-many-locals
     "--cluster",
     default=None,
     type=str,
-    help="The name of the cluster.")
+    help=("The name of the cluster. If not set assumes the "
+          "script is running in a cluster and uses that cluster."))
 
   parser.add_argument(
     "--zone",
@@ -190,11 +219,14 @@ def main():  # pylint: disable=too-many-locals
     # Create a temporary directory for this test run
     args.test_dir = os.path.join(tempfile.gettempdir(), label)
 
+  if not args.artifacts_dir:
+    args.artifacts_dir = args.test_dir
   # Setup a logging file handler. This way we can upload the log outputs
   # to gubernator.
   root_logger = logging.getLogger()
 
-  test_log = os.path.join(args.test_dir, "logs", "test_deploy.log.txt")
+  test_log = os.path.join(args.artifacts_dir, "logs", "test_deploy.log.txt")
+
   if not os.path.exists(os.path.dirname(test_log)):
     os.makedirs(os.path.dirname(test_log))
 
@@ -207,6 +239,13 @@ def main():  # pylint: disable=too-many-locals
                                 datefmt="%Y-%m-%dT%H:%M:%S")
   file_handler.setFormatter(formatter)
   logging.info("Logging to %s", test_log)
+
+  if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
+    logging.info("GOOGLE_APPLICATION_CREDENTIALS is set; configuring gcloud "
+                 "to use service account.")
+    # Since a service account is set tell gcloud to use it.
+    util.run(["gcloud", "auth", "activate-service-account", "--key-file=" +
+              os.getenv("GOOGLE_APPLICATION_CREDENTIALS")])
 
   setup(args)
 
