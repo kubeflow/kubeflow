@@ -98,7 +98,7 @@ clusterrole binding like so and then redeploying kubeflow
 kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --user=your-user@acme.com
 ```
 
-	* Replace `your-user@acme.com` with the user listed in the error message.
+  * Replace `your-user@acme.com` with the user listed in the error message.
 
 If you're using, GKE you may want to refer to [GKE's RBAC docs](https://cloud.google.com/kubernetes-engine/docs/how-to/role-based-access-control) to understand
 how RBAC interacts with IAM on GCP.
