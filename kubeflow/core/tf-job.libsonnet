@@ -132,5 +132,60 @@
       }
     },
 
+    uiService(serviceType):: {
+      "apiVersion": "v1", 
+      "kind": "Service", 
+      "metadata": {
+        "name": "tf-job-dashboard",
+        "namespace": namespace,
+      }, 
+      "spec": {
+        "ports": [
+          {
+            "port": 80, 
+            "targetPort": 8080
+          }
+        ], 
+        "selector": {
+          "name": "tf-job-dashboard"
+        }, 
+        "type": serviceType,
+      }
+    }, // uiService
+
+    ui(image):: {
+      "apiVersion": "extensions/v1beta1", 
+      "kind": "Deployment", 
+      "metadata": {
+        "name": "tf-job-dashboard",
+        "namespace": namespace,
+      }, 
+      "spec": {
+        "template": {
+          "metadata": {
+            "labels": {
+              "name": "tf-job-dashboard"
+            }
+          }, 
+          "spec": {
+            "containers": [
+              {
+                "command": [
+                  "/opt/tensorflow_k8s/dashboard/backend"
+                ], 
+                "image": image,
+                "name": "tf-job-dashboard", 
+                "ports": [
+                  {
+                    "containerPort": 8080
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+    }, // ui
+
   },
 }

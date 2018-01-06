@@ -8,6 +8,7 @@
 // @optionalParam cloud string null String identifying the cloud to customize the deployment for.
 // @optionalParam tfJobImage string gcr.io/tf-on-k8s-dogfood/tf_operator:v20171223-37af20d The image for the TfJob controller.
 // @optionalParam tfDefaultImage string null The default image to use for TensorFlow.
+// @optionalParam tfJobUiServiceType string ClusterIP The service type for the UI.
 
 // TODO(https://github.com/ksonnet/ksonnet/issues/222): We have to add namespace as an explicit parameter
 // because ksonnet doesn't support inheriting it from the environment yet.
@@ -36,6 +37,7 @@ local jupyterConfigMap = if std.length(diskNames) == 0 then
 
 local tfJobImage = import 'param://tfJobImage';
 local tfDefaultImage = import 'param://tfDefaultImage';
+local tfJobUiServiceType = import 'param://tfJobUiServiceType';
 
 // Create a list of the resources needed for a particular disk
 local diskToList = function(diskName) [
@@ -69,5 +71,9 @@ std.prune(k.core.v1.list.new([
     tfjob.parts(namespace).tfJobDeploy(tfJobImage), 
     tfjob.parts(namespace).configMap(cloud, tfDefaultImage),
     tfjob.parts(namespace).serviceAccount,
+
+    // TfJob controll ui
+    tfjob.parts(namespace).ui(tfJobImage),     
+    tfjob.parts(namespace).uiService(tfJobUiServiceType),   
 ] + nfsComponents))
 
