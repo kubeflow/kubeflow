@@ -32,7 +32,7 @@ Based on the current functionality you should consider using Kubeflow if
          reinforcement learning models
 
 This list is based ONLY on current capabilities. We are investing significant resources to expand the
-functionality and actively soliciting help from companies and inviduals interested in contributing (see [below](who-should-consider-contributing-to-kubeflow))
+functionality and actively soliciting help from companies and inviduals interested in contributing (see [below](README.md#who-should-consider-contributing-to-kubeflow))
 
 ## Setup
 
