@@ -162,7 +162,13 @@ c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
 	   },
 	 }.config,
 
-   jupyterHubService: {
+   // TODO(jlewi): I think we should change the service name. Why is it tf-hub-0?
+   // Why do we need a 0 in the name? We should figure out a more suitable name.
+   // Why not just jupyter-hub?
+   // We should be careful about not breaking people since our docs probably refer to tf-hub-0.
+   // Might want to create a new service and then leave this one in for a while to avoid
+   // breaking people.
+   jupyterHubService(serviceType): {
 	  "apiVersion": "v1", 
 	  "kind": "Service", 
 	  "metadata": {
@@ -173,45 +179,56 @@ c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
 	    namespace: namespace,
 	  }, 
 	  "spec": {
-	    "clusterIP": "None", 
 	    "ports": [
 	      {
 	        "name": "hub", 
-	        "port": 8000
-	      }
-	    ], 
-	    "selector": {
-	      "app": "tf-hub"
-	    }
-	  }
-   },
-
-   jupyterHubLoadBalancer: {
-	  "apiVersion": "v1", 
-	  "kind": "Service", 
-	  "metadata": {
-	    "labels": {
-	      "app": "tf-hub"
-	    }, 
-	    "name": "tf-hub-lb",
-	    "namespace": namespace,
-	  }, 
-	  "spec": {
-	    "ports": [
-	      {
-	        "name": "http", 
 	        "port": 80, 
 	        "targetPort": 8000
 	      }
 	    ], 
 	    "selector": {
 	      "app": "tf-hub"
-	    }, 
-	    "type": "LoadBalancer"
+	    },
+	    "type": serviceType,
 	  }
-	},
+   },
+   
+   	// endpoint: Url for the service e.g. "jupyterhub.endpoints.${PROJECT}.cloud.goog"
+   	// version: Version as returned by cloud endpoints
+   	iapSideCar(endpoint, version):: {
+        "args": [
+          "-p", 
+          // The port to listen on
+          "9000", 
+          "-a", 
+          // This is the address connections forward to. JupyterHub uses 8000
+          "127.0.0.1:8000", 
+          "-s", 
+          endpoint, 
+          "-v", 
+          version, 
+          "-z", 
+          "healthz"
+        ], 
+        "image": "gcr.io/endpoints-release/endpoints-runtime:1", 
+        "name": "esp", 
+        "ports": [
+          {
+          	// This is the port on which it accepts connections
+            "containerPort": 9000
+          }
+        ], 
+        "readinessProbe": {
+          "httpGet": {
+            "path": "/healthz", 
+            "port": 9000
+          }
+        }
+	 }, // iapSideCar 
 
-	jupyterHub(image): {
+	// image: Image for JupyterHub
+	// sideCars: Optional list of side car containers.
+	jupyterHub(image, sideCars=[]): {
 	  "apiVersion": "apps/v1beta1", 
 	  "kind": "StatefulSet", 
 	  "metadata": {
@@ -242,9 +259,14 @@ c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
 	                "mountPath": "/etc/config", 
 	                "name": "config-volume"
 	              }
-	            ]
+	            ],
+	            "ports": [
+		          {
+		            "containerPort": 8000,
+		          },
+		        ], 
 	          }
-	        ], 
+	        ] + sideCars, 
 	        "serviceAccountName": "jupyter-hub", 
 	        "volumes": [
 	          {

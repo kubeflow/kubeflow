@@ -9,6 +9,9 @@
 // @optionalParam tfJobImage string gcr.io/tf-on-k8s-dogfood/tf_operator:v20171223-37af20d The image for the TfJob controller.
 // @optionalParam tfDefaultImage string null The default image to use for TensorFlow.
 // @optionalParam tfJobUiServiceType string ClusterIP The service type for the UI.
+// @optionalParam jupyterHubServiceType string ClusterIP The service type for jupyter.
+// @optionalParam jupyterHubEndpoint string null The Cloud endpoint name to use with JupyterHub
+// @optionalParam jupyterHubServiceVersion string null The cloud endpoint service version to use
 
 // TODO(https://github.com/ksonnet/ksonnet/issues/222): We have to add namespace as an explicit parameter
 // because ksonnet doesn't support inheriting it from the environment yet.
@@ -24,6 +27,7 @@ local namespace = import 'param://namespace';
 local cloud = import 'param://cloud';
 
 // TODO(jlewi): Make this a parameter
+local jupyterHubServiceType = import 'param://jupyterHubServiceType';
 local jupyterHubImage = 'gcr.io/kubeflow/jupyterhub:1.0';
 local diskParam = import 'param://disks';
 
@@ -34,6 +38,19 @@ local diskNames = if diskParam != "null" && std.length(diskParam) > 0 then
 local jupyterConfigMap = if std.length(diskNames) == 0 then
 	jupyter.parts(namespace).jupyterHubConfigMap
 	else jupyter.parts(namespace).jupyterHubConfigMapWithVolumes(diskNames);
+
+local jupyterHubEndpointParam = import 'param://jupyterHubEndpoint';
+local jupyterHubEndpoint = if jupyterHubEndpointParam == "null" then "" else jupyterHubEndpointParam;
+
+local jupyterHubServiceVersionParam = import 'param://jupyterHubServiceVersion';
+local jupyterHubServiceVersion = if jupyterHubServiceVersionParam == "null" then "" else jupyterHubServiceVersionParam;
+
+local jupyterHubSideCars = []
+	+ if jupyterHubEndpoint != "" then	
+	[
+	  jupyter.parts(namespace).iapSideCar(jupyterHubEndpoint, jupyterHubServiceVersion),
+	]
+	else [];
 
 local tfJobImage = import 'param://tfJobImage';
 local tfDefaultImage = import 'param://tfDefaultImage';
@@ -60,9 +77,8 @@ local nfsComponents =
 std.prune(k.core.v1.list.new([
 	// jupyterHub components
 	jupyterConfigMap,
-    jupyter.parts(namespace).jupyterHubService, 
-    jupyter.parts(namespace).jupyterHubLoadBalancer,
-    jupyter.parts(namespace).jupyterHub(jupyterHubImage),
+    jupyter.parts(namespace).jupyterHubService(jupyterHubServiceType), 
+    jupyter.parts(namespace).jupyterHub(jupyterHubImage, jupyterHubSideCars),
     jupyter.parts(namespace).jupyterHubRole,
     jupyter.parts(namespace).jupyterHubServiceAccount,
     jupyter.parts(namespace).jupyterHubRoleBinding,    
