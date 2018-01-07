@@ -14,6 +14,7 @@
   	local baseKubeConfigSpawner = @"import json
 import os
 from kubespawner.spawner import KubeSpawner
+from jhub_remote_user_authenticator.remote_user_auth import RemoteUserAuthenticator
 from oauthenticator.github import GitHubOAuthenticator
 
 class KubeFormSpawner(KubeSpawner):
@@ -97,7 +98,10 @@ c.KubeSpawner.start_timeout = 60 * 10
 ###################################################
 ### Authenticator Options
 ###################################################
-c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'
+#c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'
+# DO NOT SUBMIT
+c.JupyterHub.authenticator_class ='jhub_remote_user_authenticator.remote_user_auth.RemoteUserAuthenticator'
+c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'
 # c.JupyterHub.authenticator_class = GitHubOAuthenticator
 # c.GitHubOAuthenticator.oauth_callback_url = '<placeholder>'
 # c.GitHubOAuthenticator.client_id = '<placeholder>'
@@ -162,13 +166,39 @@ c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
 	   },
 	 }.config,
 
-   // TODO(jlewi): I think we should change the service name. Why is it tf-hub-0?
-   // Why do we need a 0 in the name? We should figure out a more suitable name.
-   // Why not just jupyter-hub?
-   // We should be careful about not breaking people since our docs probably refer to tf-hub-0.
-   // Might want to create a new service and then leave this one in for a while to avoid
-   // breaking people.
-   jupyterHubService(serviceType): {
+    // TODO(jlewi): I think we should change the service name. Why is it tf-hub-lb?
+    // Why not just jupyter-hub?
+    // We should be careful about not breaking people since our docs probably refer to tf-hub-lb.
+    //
+    // The load balancer is used as the FE to allow users to connect.
+    // If the type is LoadBalancer an external IP will be created. If they use ClusterIP, users can connect via kubectl.
+    jupyterHubLoadBalancer(serviceType): {
+	  "apiVersion": "v1", 
+	  "kind": "Service", 
+	  "metadata": {
+	    "labels": {
+	      "app": "tf-hub"
+	    }, 
+	    "name": "tf-hub-lb",
+	    "namespace": namespace,
+	  }, 
+	  "spec": {
+	    "ports": [
+	      {
+	        "name": "http", 
+	        "port": 80, 
+	        "targetPort": 8000
+	      }
+	    ], 
+	    "selector": {
+	      "app": "tf-hub"
+	    }, 
+	    "type": serviceType,
+	  }
+	},
+
+	// This is an internal service used by the launched Jupyter servers to connect back to the hub.
+    jupyterHubService:: {
 	  "apiVersion": "v1", 
 	  "kind": "Service", 
 	  "metadata": {
@@ -179,6 +209,9 @@ c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
 	    namespace: namespace,
 	  }, 
 	  "spec": {
+	    // We want a headless service so we set the ClusterIP to be None.
+	    // This headless server is used by individual Jupyter pods to connect back to the Hub.
+	    "clusterIP": "None",
 	    "ports": [
 	      {
 	        "name": "hub", 
@@ -189,9 +222,8 @@ c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
 	    "selector": {
 	      "app": "tf-hub"
 	    },
-	    "type": serviceType,
-	  }
-   },
+	  },
+    },
    
    	// endpoint: Url for the service e.g. "jupyterhub.endpoints.${PROJECT}.cloud.goog"
    	// version: Version as returned by cloud endpoints
@@ -261,8 +293,13 @@ c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
 	              }
 	            ],
 	            "ports": [
+	              // Port 8000 is used by the hub to accept incoming requests.
 		          {
 		            "containerPort": 8000,
+		          },
+		          // Port 8081 accepts callbacks from the individual Jupyter pods.
+		          {
+		            "containerPort": 8081,
 		          },
 		        ], 
 	          }

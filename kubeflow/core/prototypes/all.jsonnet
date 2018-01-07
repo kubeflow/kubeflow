@@ -77,7 +77,8 @@ local nfsComponents =
 std.prune(k.core.v1.list.new([
 	// jupyterHub components
 	jupyterConfigMap,
-    jupyter.parts(namespace).jupyterHubService(jupyterHubServiceType), 
+    jupyter.parts(namespace).jupyterHubService, 
+    jupyter.parts(namespace).jupyterHubLoadBalancer(jupyterHubServiceType), 
     jupyter.parts(namespace).jupyterHub(jupyterHubImage, jupyterHubSideCars),
     jupyter.parts(namespace).jupyterHubRole,
     jupyter.parts(namespace).jupyterHubServiceAccount,
