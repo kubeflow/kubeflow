@@ -121,6 +121,37 @@ NET::ERR_CERT_AUTHORITY_INVALID
 ```
   * Click ADVANCED and choose to proceed.
 
+###
+
+Verifying JWT credentials are being checked.
+
+If you want to verify that traffic that didn't go through IAP is being rejected you can try connecting directly to the ESP proxy
+
+```
+kubectl port-forward tf-hub-0 9000:9000
+```
+
+You can then open up `http://localhost:9000` and you should get an error like
+
+```
+{
+ "code": 16,
+ "message": "JWT validation failed: Missing or invalid credentials",
+ "details": [
+  {
+   "@type": "type.googleapis.com/google.rpc.DebugInfo",
+   "stackEntries": [],
+   "detail": "auth"
+  }
+ ]
+}
+```
+
+**Important** JWT validation only happens in the side car running in the JupyterHub pod. All traffic external to the cluster is routed through
+this side car. However, traffic coming from inside the cluster e.g. the individual Jupyter pods do not route traffic through the side car.
+
+**Important** Do not set the service type for JupyterHub to `LoadBalancer` or anything other than `ClusterIP` as this will create an external load balancer that directly routes traffic to JupyterHub that bypasses the sidecar that only allows traffic authorized by IAP to go through.
+
 ## Troubleshooting
 
 ```Error: Server Error ``` 

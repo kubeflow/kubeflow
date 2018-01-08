@@ -127,14 +127,16 @@ paths:
           description: Put
         default:
           description: Error
-securityDefinitions:
+security:
+  # This causes ESP to reject requests without a valid JWT
+  - google_jwt: []
+securityDefinitions:  
   google_jwt:
     authorizationUrl: ""
     flow: "implicit"
     type: "oauth2"
     # This must match the 'iss' field in the JWT.
     x-google-issuer: "https://cloud.google.com/iap"
-    # Update this with your service account's email address.
     x-google-jwks_uri: "https://www.gstatic.com/iap/verify/public_key-jwk"
     # This must match the "aud" field in the JWT. You can add multiple audiences to accept JWTs from multiple clients.
     x-google-audiences: "${JWT_AUDIENCE}"
