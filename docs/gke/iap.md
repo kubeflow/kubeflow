@@ -156,6 +156,20 @@ this side car. However, traffic coming from inside the cluster e.g. the individu
 
 ```Error: Server Error ``` 
  * 502 error - Usually means traffic isn't even making it to the esp proxy
+ 	* Look at Cloud Logs for the Load balncer
+ 	* You can get the backend id as follows
+
+ 	```
+ 	NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[0].nodePort}')
+	while [[ -z ${BACKEND_ID} ]]; 
+	do BACKEND_ID=$(gcloud compute --project=${PROJECT} backend-services list --filter=name~k8s-be-${NODE_PORT}- --format='value(id)'); 
+	echo "Waiting for backend id PROJECT=${PROJECT} NAMESPACE=${NAMESPACE} SERVICE=${SERVICE}..."; 
+	sleep 2; 
+	done
+	echo BACKEND_ID=${BACKEND_ID}
+ 	```
+ 	TODO(jlewi): You can map the backend to the name of the load balancer and then get logs for that load balancer. Need to explain how to do the mapping.
+
  * Make sure you are using https
  * Try in incognito mode; you should be redirected to a Google login; then requests aren't even making it to the backend.
  * Make sure service is running and labels port are all correct

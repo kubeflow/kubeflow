@@ -98,10 +98,10 @@ c.KubeSpawner.start_timeout = 60 * 10
 ###################################################
 ### Authenticator Options
 ###################################################
-#c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'
-# DO NOT SUBMIT
-c.JupyterHub.authenticator_class ='jhub_remote_user_authenticator.remote_user_auth.RemoteUserAuthenticator'
-c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'
+c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'
+# DO NOT SUBMIT the following lines should only be used with IAP.
+# c.JupyterHub.authenticator_class ='jhub_remote_user_authenticator.remote_user_auth.RemoteUserAuthenticator'
+# c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'
 # c.JupyterHub.authenticator_class = GitHubOAuthenticator
 # c.GitHubOAuthenticator.oauth_callback_url = '<placeholder>'
 # c.GitHubOAuthenticator.client_id = '<placeholder>'
