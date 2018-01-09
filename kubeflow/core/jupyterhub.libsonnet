@@ -119,36 +119,8 @@ http {
       return 200;
       access_log off;
     }
-    # location / {
-    #  root /dev/null;
-    # }
-
-    # Return an ok suitable for health checking.
-    # This is a hack to deal with the fact that the path picked up the ingress depends
-    # on the readiness probe of the pod but if the pod doesn't exist it might default to /
     location / {
-      return 200;
-      access_log off;
-    }
-  }
-
-  # See https://github.com/kubernetes/contrib/blob/master/ingress/controllers/gce/examples/health_checks/README.md#limitations
-  # The readiness probe determines the health check. But the health check needs to be on the same port
-  # as the ingress which is 80
-  server {
-    listen 80;
-    
-    location /healthz {
-      return 200;
-      access_log off;
-    }    
-
-    # Return an ok suitable for health checking.
-    # This is a hack to deal with the fact that the path picked up the ingress depends
-    # on the readiness probe of the pod but if the pod doesn't exist it might default to
-    location / {
-      return 200;
-      access_log off;
+      root /dev/null;
     }
   }
 }
@@ -395,11 +367,7 @@ c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
           {
           	// This is the port on which it accepts connections
             "containerPort": 9000
-          },
-          {
-          	// This is the port for health check which must match ingress
-            "containerPort": 80,
-          },
+          }
         ], 
         "volumeMounts": [
 	              {
@@ -410,7 +378,7 @@ c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
         "readinessProbe": {
           "httpGet": {
             "path": "/healthz", 
-            "port": 80
+            "port": 9000
           }
         }
 	 }, // iapSideCar 
@@ -451,16 +419,16 @@ c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
 	            ],
 	            // Don't try listing specific ports.
 	            // DO NOT submit
-	            "ports": [
-	             // Port 8000 is used by the hub to accept incoming requests.
-		          {
-		            "containerPort": 8000,
-		          },
-		          // Port 8081 accepts callbacks from the individual Jupyter pods.
-		          {
-		            "containerPort": 8081,
-		         },
-		        ], 
+	            //"ports": [
+	            //  // Port 8000 is used by the hub to accept incoming requests.
+		        //  {
+		        //    "containerPort": 8000,
+		        //  },
+		        //  // Port 8081 accepts callbacks from the individual Jupyter pods.
+		        //  {
+		         //   "containerPort": 8081,
+		        /// },
+		        //], 
 	          }
 	        ] + sideCars, 
 	        "serviceAccountName": "jupyter-hub", 
