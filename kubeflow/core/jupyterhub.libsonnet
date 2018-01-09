@@ -9,6 +9,107 @@
   // a with volumes option.
   parts(namespace):: {
 
+  	local nginxConf = @'
+daemon off;
+
+user nginx nginx;
+
+pid /var/run/nginx.pid;
+
+# Worker/connection processing limits
+worker_processes 1;
+worker_rlimit_nofile 10240;
+events { worker_connections 10240; }
+
+# Logging to stderr enables better integration with Docker and GKE/Kubernetes.
+error_log stderr warn;
+
+http {
+  include /etc/nginx/mime.types;
+  server_tokens off;
+  client_max_body_size 32m;
+  client_body_buffer_size 128k;
+
+  # HTTP subrequests
+  endpoints_resolver 8.8.8.8;
+  endpoints_certificates /etc/nginx/trusted-ca-certificates.crt;
+
+  upstream app_server0 {
+    server 127.0.0.1:8000;
+    keepalive 128;
+  }
+
+  set_real_ip_from  0.0.0.0/0;
+  set_real_ip_from  0::/0;
+  real_ip_header    X-Forwarded-For;
+  real_ip_recursive on;
+
+  server {
+    server_name "";
+
+    listen 9000 backlog=16384;
+
+    access_log /dev/stdout;
+
+    location = /healthz {
+      return 200;
+      access_log off;
+    }
+
+
+
+    location / {
+      # Begin Endpoints v2 Support
+      endpoints {
+        on;
+        server_config /etc/nginx/server_config.pb.txt;
+        metadata_server http://169.254.169.254;
+      }
+      # End Endpoints v2 Support
+
+      proxy_pass http://app_server0;
+      proxy_redirect off;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Host $server_name;
+      proxy_set_header X-Google-Real-IP $remote_addr;
+
+      # Enable the upstream persistent connection
+      proxy_http_version 1.1;
+      proxy_set_header Connection "";
+
+      # 86400 seconds (24 hours) is the maximum a server is allowed.
+      proxy_send_timeout 86400s;
+      proxy_read_timeout 86400s;
+    }
+
+    include /var/lib/nginx/extra/*.conf;
+  }
+
+  server {
+    # expose /nginx_status and /endpoints_status but on a different port to
+    # avoid external visibility / conflicts with the app.
+    listen 8090;
+    location /nginx_status {
+      stub_status on;
+      access_log off;
+    }
+    location /endpoints_status {
+      endpoints_status;
+      access_log off;
+    }
+    location /healthz {
+      return 200;
+      access_log off;
+    }
+    location / {
+      root /dev/null;
+    }
+  }
+}
+',
+
     // TODO(jlewi): We should make the default Docker image configurable
     // TODO(jlewi): We should make whether we use PVC configurable.
   	local baseKubeConfigSpawner = @"import json
@@ -134,6 +235,7 @@ c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
    jupyterHubConfigMap: baseJupyterHubConfigMap + {
    	  "data": {	    
 	    "jupyterhub_config.py": baseKubeConfigSpawner,
+	    "nginx.conf": nginxConf,
 	  }, 
 	},
 
@@ -161,7 +263,7 @@ c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
 
      config: baseJupyterHubConfigMap + {   	 
 		 "data": {
-		 	"jupyterhub_config.py": extendedBaseKubeConfigSpawner,
+		 	"jupyterhub_config.py": extendedBaseKubeConfigSpawner,		 	
 		 },	 
 	   },
 	 }.config,
@@ -233,14 +335,15 @@ c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
           // The port to listen on
           "9000", 
           "-a", 
-          // This is the address connections forward to. JupyterHub uses 8000
+          // This is the backend address. JupyterHub uses 8000
           "127.0.0.1:8000", 
           "-s", 
           endpoint, 
           "-v", 
           version, 
           "-z", 
-          "healthz"
+          "healthz",
+          "--nginx_config=/etc/config/nginx.conf",
         ], 
         "image": "gcr.io/endpoints-release/endpoints-runtime:1", 
         "name": "esp", 
@@ -250,6 +353,12 @@ c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
             "containerPort": 9000
           }
         ], 
+        "volumeMounts": [
+	              {
+	                "mountPath": "/etc/config", 
+	                "name": "config-volume"
+	              }
+	    ],
         "readinessProbe": {
           "httpGet": {
             "path": "/healthz", 
@@ -292,16 +401,18 @@ c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
 	                "name": "config-volume"
 	              }
 	            ],
-	            "ports": [
-	              // Port 8000 is used by the hub to accept incoming requests.
-		          {
-		            "containerPort": 8000,
-		          },
-		          // Port 8081 accepts callbacks from the individual Jupyter pods.
-		          {
-		            "containerPort": 8081,
-		          },
-		        ], 
+	            // Don't try listing specific ports.
+	            // DO NOT submit
+	            //"ports": [
+	            //  // Port 8000 is used by the hub to accept incoming requests.
+		        //  {
+		        //    "containerPort": 8000,
+		        //  },
+		        //  // Port 8081 accepts callbacks from the individual Jupyter pods.
+		        //  {
+		         //   "containerPort": 8081,
+		        /// },
+		        //], 
 	          }
 	        ] + sideCars, 
 	        "serviceAccountName": "jupyter-hub", 

@@ -28,6 +28,7 @@
 	   // DO NOT SUBMIT this is a node port service that points directly at JupyterHub bypassing
 	   // the ESP side car proxy. It is only indended for troubleshooting why IAP isn't working.
 	   
+	   // DO NOT SUBMIT try using a service  of type LoadBalancer and not a proxy.
 	   iapEspProxyService(selector, targetPort): {
 		  "apiVersion": "v1", 
 		  "kind": "Service", 
@@ -39,13 +40,29 @@
 		  "spec": {
 		    "ports": [
 		      {
-		        "name": "esp", 
+		        "name": "http", 
 		        "port": 80, 
+		        "targetPort": 80,
+		      },
+		      {
+		        "name": "https", 
+		        "port": 443, 
+		        "targetPort": 443,
+		      },
+		      {
+		        "name": "hub", 
+		        "port": 8000, 
 		        "targetPort": 8000,
-		      }
+		      },
+		      // Point at the ESP proxy.
+		      {
+		        "name": "esp", 
+		        "port": 9000, 
+		        "targetPort": 9000,
+		      },
 		    ], 
 		    "selector": selector,
-		    "type": "NodePort",
+		    "type": "LoadBalancer",
 		  }
 	   },
 	   ingress(secretName):: {
