@@ -24,6 +24,7 @@ events { worker_connections 10240; }
 # Logging to stderr enables better integration with Docker and GKE/Kubernetes.
 error_log stderr warn;
 
+
 http {
   include /etc/nginx/mime.types;
   server_tokens off;
@@ -44,6 +45,18 @@ http {
   real_ip_header    X-Forwarded-For;
   real_ip_recursive on;
 
+  # top-level http config for websocket headers
+  # If Upgrade is defined, Connection = upgrade
+  # If Upgrade is empty, Connection = close
+
+  map_hash_max_size 262144;
+  map_hash_bucket_size 262144;
+
+  map $http_upgrade $connection_upgrade {
+  	default upgrade;
+  	"" close;
+  }
+
   server {
     server_name "";
 
@@ -55,8 +68,6 @@ http {
       return 200;
       access_log off;
     }
-
-
 
     location / {
       # Begin Endpoints v2 Support
@@ -75,9 +86,14 @@ http {
       proxy_set_header X-Forwarded-Host $server_name;
       proxy_set_header X-Google-Real-IP $remote_addr;
 
+
       # Enable the upstream persistent connection
       proxy_http_version 1.1;
       proxy_set_header Connection "";
+
+      # Enable websockets.
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection $connection_upgrade;
 
       # 86400 seconds (24 hours) is the maximum a server is allowed.
       proxy_send_timeout 86400s;
