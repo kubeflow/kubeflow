@@ -119,18 +119,10 @@
                 [{
                   "name": "test-deploy",
                   "template": "test-deploy",
-                },
-                {
-                  "name": "create-started",
-                  "template": "create-started",
-                },                
+                },              
                 {
                   "name": "create-pr-symlink",
                   "template": "create-pr-symlink",
-                },],
-                [{
-                  "name": "create-finished",
-                  "template": "create-finished",
                 },],
                 [{
                   "name": "copy-artifacts",
@@ -168,13 +160,6 @@
             "--test_dir=" + testDir,
             "--artifacts_dir=" + artifactsDir,
           ]), // test-deploy
-          $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("create-started", [
-            "python",
-            "-m",
-            "testing.prow_artifacts",
-            "--artifacts_dir=" + outputDir,
-            "create_started",
-          ]), // create-started
           $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("create-pr-symlink", [
             "python",
             "-m",
@@ -183,13 +168,6 @@
             "create_pr_symlink",
             "--bucket=" + bucket,
           ]), // create-pr-symlink
-          $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("create-finished", [
-            "python",
-            "-m",
-            "testing.prow_artifacts",
-            "--artifacts_dir=" + outputDir,
-            "create_finished",
-          ]), // create-finished
           $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("copy-artifacts", [
             "python",
             "-m",
