@@ -46,7 +46,7 @@ If you want to use GPUs be sure to follow the Kubernetes [instructions for enabl
 
 ### Requirements
 
-  * ksonnet version [0.8.0](https://github.com/ksonnet/ksonnet) or later.
+  * ksonnet version [0.8.0](https://ksonnet.io/#get-started) or later.
   * Kubernetes >= 1.8 [see here](https://github.com/tensorflow/k8s#requirements)
 
 ### Steps
