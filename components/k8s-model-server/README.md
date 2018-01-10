@@ -169,6 +169,26 @@ Kubernetes documentation.
 
 The [inception-client](./inception-client) directory contains a Python script you can use to make a call against the deployed model.
 
+This script is intended to be run externally to the kubernetes cluster as a demonstration that the inception model is correctly being served.
+You can run the script either directly from a Python2 environment or in a Docker container.
+
+#### Setup
+
+You will require the external IP for the inception service as well as the port it is being hosted on. The inception service should be
+listed under the value you used for the `MODEL_NAME` parameter in the ksonnet component. You can find this information using
+```commandline
+kubectl get services
+NAME         TYPE           CLUSTER-IP      EXTERNAL-IP      PORT(S)			 AGE
+$MODEL_NAME  LoadBalancer   <INTERNAL IP>   <SERVICE IP>     <CLUSTER PORT>:<NODE PORT>  <TIME SINCE DEPLOYMENT>
+```
+
+We will feed the `<SERVICE IP>` and `<CLUSTER PORT>` to the labelling script. We will use it to label the following image of a
+cat sleeping on a comforter atop a sofa:
+
+![Cat on comforter on sofa](./inception-client/sleeping-pepper.jpg)
+
+You can also use to to label your own images.
+
 #### Running the script directly
 
 You can run the script directly in your local environment if Python2 is available to you. You will not be able to use the script with Python3
@@ -179,26 +199,32 @@ If you would like to use a virtual environment, begin by activating your desired
 pip install -r requirements.txt
 ```
 
-Next, you will require the external IP for the inception service as well as the port it is being hosted on. The inception service should be
-listed under the value you used for the `MODEL_NAME` parameter in the ksonnet component. You can find this information using
-```commandline
-kubectl get services
-NAME         TYPE           CLUSTER-IP      EXTERNAL-IP      PORT(S)			 AGE
-$MODEL_NAME  LoadBalancer   <INTERNAL IP>   <SERVICE IP>     <CLUSTER PORT>:<NODE PORT>  <TIME SINCE DEPLOYMENT>
-```
-
-We will feed the `<SERVICE IP>` and `<CLUSTER PORT>` to the labelling script. You can try this now by labelling the following image of a
-cat sleeping on a comforter atop a sofa:
-
-![Cat on comforter on sofa](./inception-client/sleeping-pepper.jpg)
-
 Run the script as follows:
 
 ```commandline
 python label.py -s <SERVICE IP> -p <CLUSTER PORT> sleeping-pepper.jpg
 ```
 
-This should yield
+#### Run in Docker container
+
+The [inception-client](./inception-client) directory also contains a [Dockerfile](./inception-client/Dockerfile) that will allow you to
+call out to the inception service from a container.
+
+From that directory, start by building the image:
+
+```commandline
+docker build -t inception-client .
+```
+
+Then run the container with the appropriate cluster information:
+
+```commandline
+docker run -v $(pwd):/data inception-client <SERVICE IP> <CLUSTER PORT>
+```
+
+#### Output
+
+No matter how you run the script, you should see the following output:
 
 ```
 outputs {
