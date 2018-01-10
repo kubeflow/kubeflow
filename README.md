@@ -26,7 +26,7 @@ Based on the current functionality you should consider using Kubeflow if
 
   * You want to train/serve TensorFlow models in different environments (e.g. local, on prem, and cloud)
   * You want to use Jupyter notebooks to manage TensorFlow training jobs
-       * kubeflow is particularly helpful if you want to launch training jobs that use more resources (more nodes or more GPUs) then your notebook.
+       * kubeflow is particularly helpful if you want to launch training jobs that use more resources (more nodes or more GPUs) than your notebook.
   * You want to combine TensorFlow with other processes
        * For example if you want to use [tensorflow/agents](https://github.com/tensorflow/agents) to run simulations to generate data for training
          reinforcement learning models
