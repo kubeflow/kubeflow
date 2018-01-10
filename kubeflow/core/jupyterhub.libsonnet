@@ -9,7 +9,9 @@
   // a with volumes option.
   parts(namespace):: {
 
-  	local nginxConf = @'
+
+  // TODO(jlewi): Get rid of this once endpoints proxy supports websockets by default.
+  local nginxConf = @'
 daemon off;
 
 user nginx nginx;
@@ -126,9 +128,11 @@ http {
 }
 ',
 
-    // TODO(jlewi): We should make the default Docker image configurable
-    // TODO(jlewi): We should make whether we use PVC configurable.
-  	local baseKubeConfigSpawner = @"import json
+
+   kubeSpawner(authenticator, volumeClaims=[]): {
+     // TODO(jlewi): We should make the default Docker image configurable
+     // TODO(jlewi): We should make whether we use PVC configurable.
+   	 local baseKubeConfigSpawner = @"import json
 import os
 from kubespawner.spawner import KubeSpawner
 from jhub_remote_user_authenticator.remote_user_auth import RemoteUserAuthenticator
@@ -209,21 +213,6 @@ c.KubeSpawner.cmd = 'start-singleuser.sh'
 c.KubeSpawner.args = ['--allow-root']
 # First pulls can be really slow, so let's give it a big timeout
 c.KubeSpawner.start_timeout = 60 * 10
-###################################################
-
-
-###################################################
-### Authenticator Options
-###################################################
-c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'
-# DO NOT SUBMIT the following lines should only be used with IAP.
-# c.JupyterHub.authenticator_class ='jhub_remote_user_authenticator.remote_user_auth.RemoteUserAuthenticator'
-# c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'
-# c.JupyterHub.authenticator_class = GitHubOAuthenticator
-# c.GitHubOAuthenticator.oauth_callback_url = '<placeholder>'
-# c.GitHubOAuthenticator.client_id = '<placeholder>'
-# c.GitHubOAuthenticator.client_secret = '<placeholder>'
-
 
 ###################################################
 ### Persistent volume options
@@ -238,6 +227,51 @@ c.KubeSpawner.user_storage_capacity = '10Gi'
 c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
 ",
 
+	authenticatorOptions:: {
+
+	   ### Authenticator Options
+	   local kubeConfigDummyAuthenticator = "c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'",
+
+	   # This configuration allows us to use the id provided by IAP.
+	   local kubeConfigIAPAuthenticator = @"c.JupyterHub.authenticator_class ='jhub_remote_user_authenticator.remote_user_auth.RemoteUserAuthenticator'
+c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
+
+	  options:: std.join("\n", std.prune(["######## Authenticator ######",
+	                                      if authenticator == "iap"then
+	                                      kubeConfigIAPAuthenticator else
+	                                      kubeConfigDummyAuthenticator, ])),
+	}.options, // authenticatorOptions
+
+    volumeOptions:: {
+       	  local volumes = std.map(function(v) 
+		{
+            'name': v,
+            'persistentVolumeClaim': {
+                'claimName': v,
+            },
+        }, volumeClaims),
+
+
+	  local volumeMounts = std.map( function(v)
+        {
+            'mountPath': '/mnt/' + v,
+            'name': v,
+        },  volumeClaims),
+            
+      options:: 
+        if std.length(volumeClaims) > 0 then
+        std.join("\n", 
+      	["###### Volumes #######",
+      	 "c.KubeSpawner.volumes = " + std.manifestPython(volumes),
+      	 "c.KubeSpawner.volume_mounts = " + std.manifestPython(volumeMounts),
+      	])
+      	else "",
+            
+    }.options, // volumeOptions
+
+    spawner:: std.join("\n", std.prune([baseKubeConfigSpawner, self.authenticatorOptions, self.volumeOptions])),
+   }.spawner, // kubeSpawner
+
    local baseJupyterHubConfigMap = {
 	  "apiVersion": "v1", 	  
 	  "kind": "ConfigMap", 
@@ -248,17 +282,16 @@ c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
    },
 
 
-   jupyterHubConfigMap: baseJupyterHubConfigMap + {
+
+   jupyterHubConfigMap(spawner): baseJupyterHubConfigMap + {
    	  "data": {	    
-	    "jupyterhub_config.py": baseKubeConfigSpawner,
+	    "jupyterhub_config.py": spawner,
 	    "nginx.conf": nginxConf,
 	  }, 
 	},
 
    jupyterHubConfigMapWithVolumes(volumeClaims): {
-
-
-	local volumes = std.map(function(v) 
+	  local volumes = std.map(function(v) 
 		{
             'name': v,
             'persistentVolumeClaim': {
@@ -267,19 +300,19 @@ c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
         }, volumeClaims),
 
 
-	local volumeMounts = std.map( function(v)
+	  local volumeMounts = std.map( function(v)
         {
             'mountPath': '/mnt/' + v,
             'name': v,
         },  volumeClaims),
 
-	local extendedBaseKubeConfigSpawner = baseKubeConfigSpawner    
-    	+ "\nc.KubeSpawner.volumes = " + std.manifestPython(volumes)
-     	+ "\nc.KubeSpawner.volume_mounts = " + std.manifestPython(volumeMounts),
+      //local extendedBaseKubeConfigSpawner = baseKubeConfigSpawner    
+      //	+ "\nc.KubeSpawner.volumes = " + std.manifestPython(volumes)
+      //	+ "\nc.KubeSpawner.volume_mounts = " + std.manifestPython(volumeMounts),
 
-     config: baseJupyterHubConfigMap + {   	 
+       config: baseJupyterHubConfigMap + {   	 
 		 "data": {
-		 	"jupyterhub_config.py": extendedBaseKubeConfigSpawner,		 	
+		 	// "jupyterhub_config.py": extendedBaseKubeConfigSpawner,		 	
 		 },	 
 	   },
 	 }.config,
@@ -359,6 +392,7 @@ c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
           version, 
           "-z", 
           "healthz",
+          // TODO(jlewi): Get rid of this once endpoints proxy supports websockets by default.
           "--nginx_config=/etc/config/nginx.conf",
         ], 
         "image": "gcr.io/endpoints-release/endpoints-runtime:1", 

@@ -12,6 +12,7 @@
 // @optionalParam jupyterHubServiceType string ClusterIP The service type for jupyter.
 // @optionalParam jupyterHubEndpoint string null The Cloud endpoint name to use with JupyterHub
 // @optionalParam jupyterHubServiceVersion string null The cloud endpoint service version to use
+// @optionalParam jupyterHubAuthenticator string dummy The authenticator to use with JupyterHub
 
 // TODO(https://github.com/ksonnet/ksonnet/issues/222): We have to add namespace as an explicit parameter
 // because ksonnet doesn't support inheriting it from the environment yet.
@@ -29,6 +30,8 @@ local cloud = import 'param://cloud';
 // TODO(jlewi): Make this a parameter
 local jupyterHubServiceType = import 'param://jupyterHubServiceType';
 local jupyterHubImage = 'gcr.io/kubeflow/jupyterhub:1.0';
+local jupyterHubAuthenticator = 'param://jupyterHubAuthenticator';
+
 local diskParam = import 'param://disks';
 
 local diskNames = if diskParam != "null" && std.length(diskParam) > 0 then
@@ -74,9 +77,8 @@ local nfsComponents =
 	else 
 	[];
 
-std.prune(k.core.v1.list.new([
-	// jupyterHub components
-	jupyterConfigMap,
+std.prune(k.core.v1.list.new([	
+	jupyter.parts(namespace).jupyterHubConfigMap(kubeSpawner),
     jupyter.parts(namespace).jupyterHubService, 
     jupyter.parts(namespace).jupyterHubLoadBalancer(jupyterHubServiceType), 
     jupyter.parts(namespace).jupyterHub(jupyterHubImage, jupyterHubSideCars),
