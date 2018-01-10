@@ -23,7 +23,7 @@ local tfJob = import 'kubeflow/tf-job/tf-job.libsonnet';
 local name = import 'param://name';
 local namespace = import 'param://namespace';
 
-local argsParam = import 'param://namespace';
+local argsParam = import 'param://args';
 local args = 
     if argsParam == "null" then
     []
