@@ -31,7 +31,12 @@ git config core.preloadindex true
 # See https://github.com/kubernetes/test-infra/tree/master/prow#job-evironment-variables
 if [ ! -z ${PULL_NUMBER} ]; then
  git fetch origin  pull/${PULL_NUMBER}/head:pr
- git checkout ${PULL_PULL_SHA}
+ if [ ! -z ${PULL_PULL_SHA} ]; then
+	git checkout ${PULL_PULL_SHA}
+ else
+ 	# Checkout the latest commit for this PR since no commit specified.
+ 	git checkout pr
+ fi
 else 
  if [ ! -z ${PULL_BASE_SHA} ]; then
   # Its a post submit; checkout the commit to test.
