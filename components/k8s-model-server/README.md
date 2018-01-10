@@ -162,3 +162,81 @@ You can learn more about [updating a Deployment](https://kubernetes.io/docs/conc
 [scaling a Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#scaling-a-deployment), and 
 [Pod Resources](https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/) in the 
 Kubernetes documentation.
+
+
+
+### Use the served model
+
+The [inception-client](./inception-client) directory contains a Python script you can use to make a call against the deployed model.
+
+#### Running the script directly
+
+You can run the script directly in your local environment if Python2 is available to you. You will not be able to use the script with Python3
+as the [`tensorflow-serving-api` package](https://pypi.python.org/pypi/tensorflow-serving-api) is not yet Python3-capable.
+
+If you would like to use a virtual environment, begin by activating your desired environment with your favorite environment manager. Then,
+```commandline
+pip install -r requirements.txt
+```
+
+Next, you will require the external IP for the inception service as well as the port it is being hosted on. The inception service should be
+listed under the value you used for the `MODEL_NAME` parameter in the ksonnet component. You can find this information using
+```commandline
+kubectl get services
+NAME         TYPE           CLUSTER-IP      EXTERNAL-IP      PORT(S)			 AGE
+$MODEL_NAME  LoadBalancer   <INTERNAL IP>   <SERVICE IP>     <CLUSTER PORT>:<NODE PORT>  <TIME SINCE DEPLOYMENT>
+```
+
+We will feed the `<SERVICE IP>` and `<CLUSTER PORT>` to the labelling script. You can try this now by labelling the following image of a
+cat sleeping on a comforter atop a sofa:
+
+![Cat on comforter on sofa](./inception-client/sleeping-pepper.jpg)
+
+Run the script as follows:
+
+```commandline
+python label.py -s <SERVICE IP> -p <CLUSTER PORT> sleeping-pepper.jpg
+```
+
+This should yield
+
+```
+outputs {
+  key: "classes"
+  value {
+    dtype: DT_STRING
+    tensor_shape {
+      dim {
+        size: 1
+      }
+      dim {
+        size: 5
+      }
+    }
+    string_val: "sleeping bag"
+    string_val: "Border terrier"
+    string_val: "tabby, tabby cat"
+    string_val: "quilt, comforter, comfort, puff"
+    string_val: "studio couch, day bed"
+  }
+}
+outputs {
+  key: "scores"
+  value {
+    dtype: DT_FLOAT
+    tensor_shape {
+      dim {
+        size: 1
+      }
+      dim {
+        size: 5
+      }
+    }
+    float_val: 8.5159368515
+    float_val: 7.85043668747
+    float_val: 5.88767671585
+    float_val: 5.706138134
+    float_val: 5.55422878265
+  }
+}
+```

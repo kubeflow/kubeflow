@@ -68,6 +68,7 @@ if __name__ == '__main__':
       '-p',
       '--port',
       type=int,
+      default=9000,
       help='Port at which Inception model is being served'
   )
   parser.add_argument(
