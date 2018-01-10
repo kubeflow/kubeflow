@@ -11,12 +11,12 @@
     },
     "workflows": {
       bucket: "mlkube-testing_temp",
-      name: "e2e-test-presubmit-20180102-204405",
+      name: "kubeflow-presubmit-81-2-39b6",
       namespace: "kubeflow-test-infra",
-      prow_env: "REPO_OWNER=google,REPO_NAME=kubeflow,PULL_NUMBER=72,PULL_PULL_SHA=pr,BUILD_NUMBER=101,JOB_NAME=kubeflow-presubmit",
+      prow_env: "BUILD_NUMBER=2,JOB_NAME=kubeflow-presubmit,JOB_TYPE=presubmit,PULL_NUMBER=81,REPO_NAME=kubeflow,REPO_OWNER=google",
     },
     "nfs-jupyter": {
-      cloud: "null",
+      cloud: "",
       disks: "kubeflow-testing",
       name: "nfs-jupyter",
       namespace: "kubeflow-test-infra",
