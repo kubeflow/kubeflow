@@ -33,3 +33,12 @@ git submodule update
 echo Repo is at `git describe --tags --always --dirty`
 git submodule
 git status
+
+export PYTHONPATH=$PYTHONPATH:/src/google_kubeflow/tensorflow_k8s
+cd /src/google_kubeflow
+# Invoke the script to run the workflow
+python -m testing.run_e2e_workflow  \
+  --project=mlkube-testing \
+  --zone=us-east1-d \
+  --cluster=kubeflow-testing \
+  --bucket=kubernetes-jenkins
