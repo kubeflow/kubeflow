@@ -9,7 +9,8 @@ TODO(jlewi): How can we get a signed certificate so we don't get Chrome warnings
 
 ```
 PROJECT=$(gcloud config get-value project)
-ENDPOINT_URL="kubeflow.endpoints.${PROJECT}.cloud.goog"
+ENDPOINT=<name for the endpoint>
+ENDPOINT_URL="${ENDPOINT}.endpoints.${PROJECT}.cloud.goog"
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
   -subj "/CN=${ENDPOINT_URL}/O=Google LTD./C=US" \
   -keyout ~/tmp/tls.key -out ~/tmp/tls.crt
@@ -23,6 +24,20 @@ Create the K8s secret
 kubectl create secret generic iap-ingress-ssl  --from-file=${HOME}/tmp/tls.crt --from-file=${HOME}/tmp/tls.key
 ```
 
+Deploy the k8s resources for JupyterHub
+
+```
+ENDPOINT_URL="${ENDPOINT}.endpoints.${PROJECT}.cloud.goog"
+SERVICE_VERSION=""
+
+ks param set ${CORE_NAME} jupyterHubEndpoint ${ENDPOINT_URL}
+ks param set ${CORE_NAME} jupyterHubServiceVersion ${SERVICE_VERSION}
+ks apply ${ENV} -c ${CORE_NAME}
+```
+	* We need to deploy JupyterHub with the ESP sidecar before we create the ingress because the readiness probe
+	  determines the path for the HTTP health check created by Ingress
+	* Since we don't know the SERVICE_VERSION we just use a blank value.
+
 Deploy the K8s resources for IAP
 
 ```
@@ -31,12 +46,14 @@ ks generate iap ${JUPYTER_IAP_INGRESS_NAME}  --namespace=$NAMESPACE
 ks apply ${ENV} -c ${JUPYTER_IAP_INGRESS_NAME}
 ```
 
+	* TODO(jlewi): Add instructions about updating the backend timeout
+
 Create the OpenAPI spec to use with cloud endpoints
 
 ```
 JUPYTER_SERVICE=jupyter-hub-esp
 JUPYTER_INGRESS=jupyter-hub-esp
-./create_iap_openapi.sh $PROJECT $NAMESPACE $JUPYTER_SERVICE $JUPYTER_INGRESS $ENDPOINT
+${DOCS_PATH}/create_iap_openapi.sh $PROJECT $NAMESPACE $JUPYTER_SERVICE $JUPYTER_INGRESS $ENDPOINT
 ```
 	* PROJECT is your GCP project
 	* NAMESPACE is the namespace you want to deploy in
@@ -97,12 +114,29 @@ ks apply ${ENV} -c ${CORE_NAME}
 	  ```
 	  kubectl delete statefulsets tf-hub-0
 	  ```
-Enable IAP
+
+At this point you can try connecting over http to `http://${ENDPOINT_URL}` you should get an error like the following indicating
+the traffic was rejected because you don't have IAP enabled and aren't authenticated.
 
 ```
+{
+ "code": 16,
+ "message": "JWT validation failed: Missing or invalid credentials",
+ "details": [
+  {
+   "@type": "type.googleapis.com/google.rpc.DebugInfo",
+   "stackEntries": [],
+   "detail": "auth"
+  }
+ ]
+}
+```
+
+Enable IAP
+
 export CLIENT_ID=...
 export CLIENT_SECRET=...
-./enable_iap.sh ${PROJECT} ${NAMESPACE} ${JUPYTER_SERVICE}
+${DOCS_PATH}/enable_iap.sh ${PROJECT} ${NAMESPACE} ${JUPYTER_SERVICE}
 ```
 
 You will need to grant IAP access to users (or GROUPs) e.g.
@@ -153,6 +187,7 @@ this side car. However, traffic coming from inside the cluster e.g. the individu
 **Important** Do not set the service type for JupyterHub to `LoadBalancer` or anything other than `ClusterIP` as this will create an external load balancer that directly routes traffic to JupyterHub that bypasses the sidecar that only allows traffic authorized by IAP to go through.
 
 ## Troubleshooting
+  TODO(jlewi): Our helper script should make it easy to provide relevant information like backend id.
 
 ```Error: Server Error ``` 
  * 502 error - Usually means traffic isn't even making it to the esp proxy
@@ -180,3 +215,27 @@ this side car. However, traffic coming from inside the cluster e.g. the individu
   kubectl port-forward tf-hub-0 8000:8000
   ```
   	* You should be able to connect to JupyterHub at 127.0.0.1:8000
+
+
+ * If backend health checks aren't passing
+      * Check the health check rule associated with the load balancer; make sure the path is correct.
+      * You can test that the health check is responding correctly by doing
+      ```
+      gcloud --project=${PROJECT} compute ssh --zone=${ZONE} ${VM} --ssh-flag="-L ${PORT}:127.0.0.1:${PORT}"
+      curl -I http://localhost:${PORT}/${PATH}
+      ```
+
+        * VM - should be a VM that is serving as one of your backends
+        * PORT - should be the node port used by the service backing your ingress
+        * PATH - should be the path the GCP health check is using
+
+     * If  `http://localhost:${PORT}/${PATH}` doesn't return a 200 HTTP code then check whether the node port is properly mapped (via a K8s service) to a pod. Check the corresponding pod. Is it running? Healthy?
+     * If `http://localhost:${PORT}/${PATH}` returns 200 HTTP code, then check the firewall rules on your project to see if they are blocking traffic to the VMs from the L7 balancer. The firewall rule should be added automatically by the ingress but its possible it got deleted if you have some automatic firewall policy enforcement. You can recreate the firewall rule if needed with a rule like this
+       ```
+       gcloud compute firewall-rules create $NAME \
+		  --project $PROJECT \
+		  --allow tcp:$PORT \
+		  --target-tags $NODE_TAG \
+		  --source-ranges 130.211.0.0/22,35.191.0.0/16
+       ```
+       		* For more info [see GCP HTTP heal check docs](https://cloud.google.com/compute/docs/load-balancing/health-checks)

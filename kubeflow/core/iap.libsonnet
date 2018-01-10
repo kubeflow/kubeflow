@@ -17,7 +17,10 @@
 		    "ports": [
 		      {
 		        "name": "esp", 
-		        "port": 80, 
+		        # Due to https://github.com/kubernetes/contrib/blob/master/ingress/controllers/gce/examples/health_checks/README.md#limitations
+		        # Keep port the same as targetPort so that servicePort will be the same as targetPort for the purpose of
+		        # health checking.
+		        "port": targetPort, 
 		        "targetPort": targetPort,
 		      }
 		    ], 
@@ -41,8 +44,12 @@
 
 		             {
 		              "backend": {
+		               # Due to https://github.com/kubernetes/contrib/blob/master/ingress/controllers/gce/examples/health_checks/README.md#limitations
+		        	   # Keep port the servicePort the same as the port we are targetting on the backend so that servicePort will be the same as targetPort for the purpose of
+		               # health checking.
 		                "serviceName": serviceName, 
-		                "servicePort": 80,
+		                # Keep in sync with the port the esp container listens on.
+		                "servicePort": 9000,
 		              }, 
 		              "path": "/*"
 		            },

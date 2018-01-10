@@ -74,7 +74,7 @@ fi
 ENDPOINT_URL="${ENDPOINT}.endpoints.${PROJECT}.cloud.goog"
 echo ENDPOINT_URL=${ENDPOINT_URL}
 
-OUTPUT=${ENDPOINT}-openapi.yaml
+OUTPUT="${ENDPOINT}"-openapi.yaml
 echo Writing open api spec to ${OUTPUT}
 
 cat > ${OUTPUT} <<EOF
@@ -127,11 +127,9 @@ paths:
           description: Put
         default:
           description: Error
-# security:
+security:
   # This causes ESP to reject requests without a valid JWT
-  # DO NOT SUBMIT need to uncomment to enable JWT validation. this commented out only for debugging issues
-  # with launching notebooks.
-  # - google_jwt: []
+  - google_jwt: []
 securityDefinitions:  
   google_jwt:
     authorizationUrl: ""
