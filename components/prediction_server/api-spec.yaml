@@ -1,0 +1,54 @@
+openapi: 3.0.0
+
+info:
+  title: Cloud Machine Learning Engine Prediction API
+  version: 1.0.0
+  description: API definition of CMLE online prediction.
+  
+paths:
+  /:
+    post:
+      requestBody:
+        description: prediction input payload
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/InputInstances'
+              
+      responses:
+        '200':
+          description: success
+          content: 
+            application/json:
+              schema:
+                properties:
+                  predictions:
+                    type: object
+        
+        '429':
+          description: resource exhausted
+          content: 
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                    
+        '500':
+          description: internal error
+          content: 
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+      
+components:
+  schemas:
+    InputInstances:
+      type: object
+      properties:
+        instances:
+          type: array
+          items:
+            type: object
