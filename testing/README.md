@@ -27,7 +27,11 @@ CLUSTER=kubeflow-testing
 NAMESPACE=kubeflow-test-infra
 ```
 
-After starting `kubectl proxy` you can connect to it at
+After starting `kubectl proxy` you can connect to it at 
+
+```
+http://127.0.0.1:8001/api/v1/proxy/namespaces/kubeflow-test-infra/services/argo-ui/
+```
 
 Then you can connect to the UI via the proxy at
 
@@ -160,7 +164,7 @@ ks apply prow -c nfs-jupyter
 
 #### Troubleshooting
 
-User or service account deploying the test infrastructure needs sufficient permissions to create the roles that are created as part deploying the test infrastructe. So you may need to run the following command before using ksonnet to deploy the test infrastructure.
+User or service account deploying the test infrastructure needs sufficient permissions to create the roles that are created as part deploying the test infrastructure. So you may need to run the following command before using ksonnet to deploy the test infrastructure.
 
 ```
 kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --user=user@gmail.com
