@@ -29,10 +29,6 @@ NAMESPACE=kubeflow-test-infra
 
 After starting `kubectl proxy` you can connect to it at 
 
-```
-http://127.0.0.1:8001/api/v1/proxy/namespaces/kubeflow-test-infra/services/argo-ui/
-```
-
 Then you can connect to the UI via the proxy at
 
 ```
