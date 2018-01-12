@@ -32,9 +32,11 @@ Create the Kubeflow core component. The core component includes
 
 
 ```
+NAMESPACE=kubeflow
+kubectl create namespace ${NAMESPACE}
 ks generate core kubeflow-core --name=kubeflow-core --namespace=${NAMESPACE}
 ```
-  * namespace is optional
+  * Feel free to change the namespace to value that better suits your environment.
 
 
 Define an environment that doesn't use any Cloud features
@@ -54,7 +56,7 @@ If the user is running on a Cloud they could create an environment for this.
 
 ```
 ks env add cloud
-ks param set --env=cloud kubeflow-core cloud=gke
+ks param set kubeflow-core cloud gke --env=cloud
 ```
    * The cloud parameter triggers a set of curated cloud configs.
 
@@ -119,7 +121,7 @@ Create a component for your model
 MODEL_COMPONENT=serveInception
 MODEL_NAME=inception
 MODEL_PATH=gs://cloud-ml-dev_jlewi/tmp/inception
-ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME} --namespace=default --model_path=${MODEL_PATH}
+ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME} --namespace=${NAMESPACE} --model_path=${MODEL_PATH}
 ```
 
 Deploy it in a particular environment. The deployment will pick up environment parameters (e.g. cloud) and customize the deployment appropriately
@@ -135,7 +137,8 @@ We treat each TensorFlow job as a [component](https://ksonnet.io/docs/tutorial#2
 Create a component for your job.
 
 ```
-ks generate tf-job ${JOB_NAME} --name=${JOB_NAME}
+JOB_NAME=myjob
+ks generate tf-job ${JOB_NAME} --name=${JOB_NAME} --namespace=${NAMESPACE}
 ```
 
 To configure your job you need to set a bunch of parameters. To see a list of parameters run
@@ -147,6 +150,7 @@ ks prototype describe tf-job
 Parameters can be set using `ks param` e.g. to set the Docker image used
 
 ```
+IMAGE=gcr.io/tf-on-k8s-dogfood/tf_sample:d4ef871-dirty-991dde4
 ks param set ${JOB_NAME} image ${IMAGE}
 ```
 
@@ -158,6 +162,7 @@ to directly edit the `params.libsonnet` file directly.
 To run your job
 
 ```
+ENVIRONMENT=cloud
 ks apply ${ENVIRONMENT} -c ${JOB_NAME}
 ```
 
@@ -170,7 +175,8 @@ Kubeflow ships with a [ksonnet prototype](https://ksonnet.io/docs/concepts#proto
 Create the component
 
 ```
-ks generate tf-cnn ${CNN_JOB_NAME} --name=${CNN_JOB_NAME}
+CNN_JOB_NAME=mycnnjob
+ks generate tf-cnn ${CNN_JOB_NAME} --name=${CNN_JOB_NAME} --namespace=${NAMESPACE}
 ```
 
 Submit it
