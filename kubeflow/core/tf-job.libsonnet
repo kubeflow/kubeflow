@@ -2,8 +2,7 @@
 {  
   // TODO(https://github.com/ksonnet/ksonnet/issues/222): Taking namespace as an argument is a work around for the fact that ksonnet
   // doesn't support automatically piping in the namespace from the environment to prototypes.
-  parts(namespace):: {
-    // TODO(jlewi): We should add options to configure it based on there being a config file or not.
+  parts(namespace):: {    
     tfJobDeploy(image): {
       "apiVersion": "extensions/v1beta1", 
       "kind": "Deployment", 
@@ -70,11 +69,49 @@
       }      
     },  // tfJobDeploy
   
-    configMap: {
+    // Default value for 
+    defaultControllerConfig(tfDefaultImage):: {
+      grpcServerFilePath: "/opt/mlkube/grpc_tensorflow_server/grpc_tensorflow_server.py",      
+    }
+    +   if tfDefaultImage != "" && tfDefaultImage != "null" then
+        {
+          tfImage: tfDefaultImage,
+        }
+        else
+        {},
+
+    azureAccelerators:: {
+      accelerators: {
+        "alpha.kubernetes.io/nvidia-gpu": {
+          volumes: [
+            { name: "lib",
+              mountPath: "/usr/local/nvidia/lib64",
+              hostPath:  "/usr/lib/nvidia-384",
+            },
+            {
+              name: "bin",
+              mountPath: "/usr/local/nvidia/bin",
+              hostPath: "/usr/lib/nvidia-384/bin",
+            },
+            { name: "libcuda",
+              mountPath: "/usr/lib/x86_64-linux-gnu/libcuda.so.1",
+              hostPath: "/usr/lib/x86_64-linux-gnu/libcuda.so.1",
+            },
+          ]        
+        }  
+      }
+    },
+
+    configData(cloud, tfDefaultImage):: self.defaultControllerConfig(tfDefaultImage) + 
+      if cloud == "azure" then
+        self.azureAccelerators
+      else
+        {},
+
+    configMap(cloud, tfDefaultImage): {      
       "apiVersion": "v1", 
-      "data": {
-        # TODO(jlewi): We should customize the file based on the Cloud.
-        "controller_config_file.yaml": @"grpcServerFilePath: /opt/mlkube/grpc_tensorflow_server/grpc_tensorflow_server.py",
+      "data": {        
+        "controller_config_file.yaml": std.manifestJson($.parts(namespace).configData(cloud, tfDefaultImage)),
       }, 
       "kind": "ConfigMap", 
       "metadata": {
@@ -94,6 +131,61 @@
         "namespace": namespace,
       }
     },
+
+    uiService(serviceType):: {
+      "apiVersion": "v1", 
+      "kind": "Service", 
+      "metadata": {
+        "name": "tf-job-dashboard",
+        "namespace": namespace,
+      }, 
+      "spec": {
+        "ports": [
+          {
+            "port": 80, 
+            "targetPort": 8080
+          }
+        ], 
+        "selector": {
+          "name": "tf-job-dashboard"
+        }, 
+        "type": serviceType,
+      }
+    }, // uiService
+
+    ui(image):: {
+      "apiVersion": "extensions/v1beta1", 
+      "kind": "Deployment", 
+      "metadata": {
+        "name": "tf-job-dashboard",
+        "namespace": namespace,
+      }, 
+      "spec": {
+        "template": {
+          "metadata": {
+            "labels": {
+              "name": "tf-job-dashboard"
+            }
+          }, 
+          "spec": {
+            "containers": [
+              {
+                "command": [
+                  "/opt/tensorflow_k8s/dashboard/backend"
+                ], 
+                "image": image,
+                "name": "tf-job-dashboard", 
+                "ports": [
+                  {
+                    "containerPort": 8080
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+    }, // ui
 
   },
 }
