@@ -47,10 +47,12 @@ If you want to use GPUs be sure to follow the Kubernetes [instructions for enabl
 
 ## Quick Start
 
-Requirements
+### Requirements
 
-  * ksonnet version [0.8.0](https://github.com/ksonnet/ksonnet/releases) or later.
+  * ksonnet version [0.8.0](https://ksonnet.io/#get-started) or later.
   * Kubernetes >= 1.8 [see here](https://github.com/tensorflow/k8s#requirements)
+
+### Steps
 
 In order to quickly set up all components, execute the following commands,
 
