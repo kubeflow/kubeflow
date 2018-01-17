@@ -10,7 +10,7 @@
   parts(namespace):: {
 
 
-  // TODO(jlewi): Get rid of this once endpoints proxy supports websockets by default.
+  // TODO(https://github.com/cloudendpoints/endpoints-tools/issues/41): Get rid of this once endpoints proxy supports websockets by default.
   local nginxConf = @'
 daemon off;
 
@@ -306,10 +306,6 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
             'name': v,
         },  volumeClaims),
 
-      //local extendedBaseKubeConfigSpawner = baseKubeConfigSpawner    
-      //	+ "\nc.KubeSpawner.volumes = " + std.manifestPython(volumes)
-      //	+ "\nc.KubeSpawner.volume_mounts = " + std.manifestPython(volumeMounts),
-
        config: baseJupyterHubConfigMap + {   	 
 		 "data": {
 		 	// "jupyterhub_config.py": extendedBaseKubeConfigSpawner,		 	
@@ -392,7 +388,8 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
           version, 
           "-z", 
           "healthz",
-          // TODO(jlewi): Get rid of this once endpoints proxy supports websockets by default.
+          // TODO(https://github.com/cloudendpoints/endpoints-tools/issues/41): Stop setting nginx_conf once endpoints proxy supports 
+          // websockets by default.
           "--nginx_config=/etc/config/nginx.conf",
         ], 
         "image": "gcr.io/endpoints-release/endpoints-runtime:1", 

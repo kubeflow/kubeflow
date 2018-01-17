@@ -41,7 +41,6 @@
 		      {
 		        "http": {
 		          "paths": [
-
 		             {
 		              "backend": {
 		               # Due to https://github.com/kubernetes/contrib/blob/master/ingress/controllers/gce/examples/health_checks/README.md#limitations
@@ -53,21 +52,6 @@
 		              }, 
 		              "path": "/*"
 		            },
-
-		            // {
-		            //  "backend": {
-		            //    "serviceName": serviceName, 
-		            //    "servicePort": 80,
-		            //  }, 
-		            //  "path": "/hub/*"
-		            //},
-		            // {
-		            //  "backend": {
-		            //    "serviceName": serviceName, 
-		            //    "servicePort": 80,
-		            //  }, 
-		            //  "path": "/user/*"
-		            //},
 		          ]
 		        }
 		      }

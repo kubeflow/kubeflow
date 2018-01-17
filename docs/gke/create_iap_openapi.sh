@@ -31,7 +31,7 @@ if [ -z ${SERVICE} ]; then
 fi
 
 if [ -z ${INGRESS} ]; then
-  echo Error INGERSS must be provided on the command line
+  echo Error INGRESS must be provided on the command line
   echo usage: ${USAGE}
   exit 1
 fi
