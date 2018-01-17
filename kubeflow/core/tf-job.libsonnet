@@ -23,9 +23,9 @@
               {
                 "command": [
                   "/opt/mlkube/tf_operator", 
-                  "--controller_config_file=/etc/config/controller_config_file.yaml", 
-                  "-alsologtostderr", 
-                  "-v=1"
+                  "--controller-config-file=/etc/config/controller_config_file.yaml",
+                  "--alsologtostderr",
+                  "-v=1",
                 ], 
                 "env": [
                   {
