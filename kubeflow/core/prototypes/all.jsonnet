@@ -6,7 +6,7 @@
 // @optionalParam namespace string default Namespace
 // @optionalParam disks string null Comma separated list of Google persistent disks to attach to jupyter environments.
 // @optionalParam cloud string null String identifying the cloud to customize the deployment for.
-// @optionalParam tfJobImage string gcr.io/tf-on-k8s-dogfood/tf_operator:v20171223-37af20d The image for the TfJob controller.
+// @optionalParam tfJobImage string gcr.io/tf-on-k8s-dogfood/tf_operator:v20180111-adc8ab9-dirty-e3b0c44 The image for the TfJob controller.
 // @optionalParam tfDefaultImage string null The default image to use for TensorFlow.
 // @optionalParam tfJobUiServiceType string ClusterIP The service type for the UI.
 // @optionalParam jupyterHubServiceType string ClusterIP The service type for jupyter.
