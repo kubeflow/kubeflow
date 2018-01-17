@@ -40,14 +40,15 @@ ks param set ${CORE_NAME} jupyterHubServiceVersion ${SERVICE_VERSION}
 ks param set ${CORE_NAME} jupyterHubAuthenticator iap
 ks apply ${ENV} -c ${CORE_NAME}
 ```
-	* For ENDPOINT you can pick whatever name you want (that you haven't already used) to access your jupyter deployment.
-		* You will access Jupyter at `http://${ENDPOINT}.endpoints.${PROJECT}.cloud.goog`
-    * The above commands configure JupyterHub to run with NGINX in a side car
-    * We rely on NGINX to perform JWT validation and reject any external traffic which didn't pass through IAP
-    * NGINX gets its configuration using [Cloud Endpoints](https://cloud.google.com/endpoints/docs/) which is configured below
-	* **Important** We need to deploy JupyterHub with the NGINX sidecar before we create the K8s ingress (see below) because the readiness probe
+	
+  * For ENDPOINT you can pick whatever name you want (that you haven't already used) to access your jupyter deployment.
+	* You will access Jupyter at `http://${ENDPOINT}.endpoints.${PROJECT}.cloud.goog`
+  * The above commands configure JupyterHub to run with NGINX in a side car
+  * We rely on NGINX to perform JWT validation and reject any external traffic which didn't pass through IAP
+  * NGINX gets its configuration using [Cloud Endpoints](https://cloud.google.com/endpoints/docs/) which is configured below
+  * **Important** We need to deploy JupyterHub with the NGINX sidecar before we create the K8s ingress (see below) because the readiness probe
 	  determines the path for the HTTP health check created by ingress
-		* Since we don't know the SERVICE_VERSION we just use a blank value.
+	* Since we don't know the SERVICE_VERSION we just use a blank value.
 
 Create a K8s ingress to allow JupyterHub to be accessed externally
 
@@ -57,8 +58,8 @@ ks generate iap ${JUPYTER_IAP_INGRESS_NAME}  --namespace=$NAMESPACE
 ks apply ${ENV} -c ${JUPYTER_IAP_INGRESS_NAME}
 ```
 
-	* These commands create a K8s ingress that will setup an external loadbalancer on GCP that will direct traffic the NGINX proxy running in the JupyterHub pod.
-	* At these point IAP isn't turned on so anyone can send traffic to NGINX but since NGINX isn't configured no traffic is forwarded to JupyterHub
+  * These commands create a K8s ingress that will setup an external loadbalancer on GCP that will direct traffic the NGINX proxy running in the JupyterHub pod.
+  * At these point IAP isn't turned on so anyone can send traffic to NGINX but since NGINX isn't configured no traffic is forwarded to JupyterHub
 
 Create the OpenAPI spec that Cloud Endpoints will use to configure the NGINX proxy
 
@@ -67,12 +68,12 @@ JUPYTER_SERVICE=jupyter-hub-esp
 JUPYTER_INGRESS=jupyter-hub-esp
 ${DOCS_PATH}/create_iap_openapi.sh $PROJECT $NAMESPACE $JUPYTER_SERVICE $JUPYTER_INGRESS $ENDPOINT
 ```
-	* PROJECT is your GCP project
-	* NAMESPACE is the namespace you want to deploy in
-	* JUPYTER_SERVICE is the name of the JUPYTER_SERVICE (should be jupyter-hub-esp)
-	* JUPYTER_INGRESS is the name of the ingress whose backend i jupyter service
-	* ENDPOINT this is a name you choose. It determines the URl you will access JupyterHub at; which will be
-	* This will configure the NGINX proxy to do JWT validation and reject any traffic that didn't go through IAP.
+  * PROJECT is your GCP project
+  * NAMESPACE is the namespace you want to deploy in
+  * JUPYTER_SERVICE is the name of the JUPYTER_SERVICE (should be jupyter-hub-esp)
+  * JUPYTER_INGRESS is the name of the ingress whose backend i jupyter service
+  * ENDPOINT this is a name you choose. It determines the URl you will access JupyterHub at; which will be
+  * This will configure the NGINX proxy to do JWT validation and reject any traffic that didn't go through IAP.
 	
 	```
 	ENDPOINT_URL=${ENDPOINT}.endpoints.${PROJECT}.cloud.goog"
@@ -122,8 +123,8 @@ ks param set ${CORE_NAME} jupyterHubServiceVersion ${SERVICE_VERSION}
 kubectl delete statefulsets tf-hub-0
 ks apply ${ENV} -c ${CORE_NAME}
 ```
-	* CORE_NAME should be the name you gave the core Kubeflow component.
-	* We delete the statefulset so that it will pick up the new config
+  * CORE_NAME should be the name you gave the core Kubeflow component.
+  * We delete the statefulset so that it will pick up the new config
 
 At this point you can try connecting over http to `http://${ENDPOINT_URL}` you should get an error like the following indicating
 the traffic was rejected because you don't have IAP enabled and aren't authenticated.
@@ -166,9 +167,7 @@ NET::ERR_CERT_AUTHORITY_INVALID
 ```
   * Click ADVANCED and choose to proceed.
 
-###
-
-Verifying JWT credentials are being checked.
+### Verifying JWT credentials are being checked.
 
 If you want to verify that traffic that didn't go through IAP is being rejected you can try connecting directly to the ESP proxy
 
@@ -250,5 +249,5 @@ this side car. However, traffic coming from inside the cluster e.g. the individu
 		  --target-tags $NODE_TAG \
 		  --source-ranges 130.211.0.0/22,35.191.0.0/16
        ```
-       		* For more info [see GCP HTTP health check docs](https://cloud.google.com/compute/docs/load-balancing/health-checks)
-
+       	
+       	* For more info [see GCP HTTP health check docs](https://cloud.google.com/compute/docs/load-balancing/health-checks)
