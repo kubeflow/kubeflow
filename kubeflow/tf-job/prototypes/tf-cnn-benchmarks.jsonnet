@@ -12,8 +12,7 @@
 // @optionalParam num_ps number 1 The number of ps to use
 // @optionalParam num_workers number 1 The number of workers to use
 
-// We always need at least 1 worker because the job doesn't actually use the master.
-// We also need at least 1 parameter server.
+// We need at least 1 parameter server.
 
 // TODO(jlewi): Should we move this into an examples package?
 
@@ -42,11 +41,11 @@ local args = [
     "--variable_update=parameter_server",
     "--flush_stdout=true",
 ] +
-if numGpus == 0 then  
+if numGpus == 0 then
   # We need to set num_gpus=1 even if not using GPUs because otherwise the devie list
   # is empty because of this code
-  # https://github.com/tensorflow/benchmarks/blob/master/scripts/tf_cnn_benchmarks/benchmark_cnn.py#L775  
-  # We won't actually use GPUs because based on other flags no ops will be assigned to GPus.  
+  # https://github.com/tensorflow/benchmarks/blob/master/scripts/tf_cnn_benchmarks/benchmark_cnn.py#L775
+  # We won't actually use GPUs because based on other flags no ops will be assigned to GPus.
   ["--num_gpus=1",
    "--local_parameter_device=cpu",
    "--device=cpu",
@@ -58,17 +57,9 @@ else
 
 local image = import 'param://image';
 local imageGpu = import 'param://image_gpu';
-// The Tf CNN code doesn't actually use masters but we need 1 to satisfy TfJob requirements.
-// We should be able to get rid of this once TfJob supports using Worker 0 as the chief.
-local numMasters = 1;
 local numPs = import 'param://num_ps';
 local numWorkers = import 'param://num_workers';
 local numGpus = import 'param://num_gpus';
-
-local masterSpec = if numGpus > 0 then
-  	tfJob.parts.tfJobReplica("MASTER", numMasters, args, imageGpu, numGpus)
-  	else
-  	tfJob.parts.tfJobReplica("MASTER", numMasters, args, image);
 
 local workerSpec = if numGpus > 0 then
   	tfJob.parts.tfJobReplica("WORKER", numWorkers, args, imageGpu, numGpus)
@@ -91,7 +82,7 @@ local replicas = std.map(function(s)
       }
     },
   },
-  std.prune([masterSpec, workerSpec, tfJob.parts.tfJobReplica("PS", numPs, args, image)]));
+  std.prune([workerSpec, tfJob.parts.tfJobReplica("PS", numPs, args, image)]));
 
 local job = 
 	if numWorkers < 1 then
@@ -100,6 +91,9 @@ local job =
 	if numPs < 1 then
 	error "num_ps must be >= 1"
 	else
-	tfJob.parts.tfJob(name, namespace, replicas) + { tfImage: image};
+	tfJob.parts.tfJob(name, namespace, replicas) + {
+							tfImage: image,
+							terminationPolicy: {chief:{replicaName: "WORKER", replicaIndex: 0 }}
+							};
 
 std.prune(k.core.v1.list.new([job]))

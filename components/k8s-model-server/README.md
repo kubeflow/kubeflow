@@ -74,7 +74,8 @@ gsutil mb gs://<bucket-name>
 ## Upload a Model
 You can train an inception model using the instructions from the 
 [TensorFlow documentation](https://www.tensorflow.org/tutorials/image_retraining), or you can download the pre-trained
-[example](inception.tar.gz).
+[example](http://download.tensorflow.org/models/inception_v3_2016_08_28.tar.gz), or you can use the pre-uploaded,
+pre-trained [gcs bucket](gs://kubeflow-models/inception) directly.
 
 If you downloaded the example decompress it.
 ```commandline
