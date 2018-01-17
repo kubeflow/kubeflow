@@ -9,6 +9,7 @@ std.prune(k.core.v1.list.new([argo.parts(namespace).crd,
 							  argo.parts(namespace).deploy,
 							  argo.parts(namespace).deployUi,
 	                          argo.parts(namespace).uiService,
+	                          argo.parts(namespace).uiIngress,
 	                          argo.parts(namespace).serviceAccount,
 	                          argo.parts(namespace).roleBinding,
 	                          argo.parts(namespace).defaultRoleBinding,]))
