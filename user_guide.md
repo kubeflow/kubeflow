@@ -82,12 +82,12 @@ ks show ${KF_ENV} -c kubeflow-core
 The kubeflow-core component deployed JupyterHub and a corresponding load balancer service. You can check its status using the kubectl command line.
 
 ```commandline
-kubectl get svc
+kubectl get svc -n=${NAMESPACE}
 
-NAME         TYPE           CLUSTER-IP     EXTERNAL-IP    PORT(S)        AGE
-kubernetes   ClusterIP      10.11.240.1    <none>         443/TCP        1h
-tf-hub-0     ClusterIP      None           <none>         8000/TCP       1m
-tf-hub-lb    LoadBalancer   10.11.245.94   xx.yy.zz.ww    80:32481/TCP   1m
+NAME               TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+tf-hub-0           ClusterIP      None            <none>        8000/TCP       1m
+tf-hub-lb          LoadBalancer   10.11.245.94   xx.yy.zz.ww   80:32481/TCP   1m
+tf-job-dashboard   ClusterIP      10.11.240.151   <none>        80/TCP         1m
 ```
 
 If you're using minikube, you can run the following to get the URL for the notebook.
