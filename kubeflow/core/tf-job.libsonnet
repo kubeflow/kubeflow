@@ -23,8 +23,8 @@
               {
                 "command": [
                   "/opt/mlkube/tf_operator", 
-                  "--controller-config-file=/etc/config/controller_config_file.yaml", 
-                  "--alsologtostderr", 
+                  "--controller-config-file=/etc/config/controller_config_file.yaml",
+                  "--alsologtostderr",
                   "-v=1",
                 ], 
                 "env": [
