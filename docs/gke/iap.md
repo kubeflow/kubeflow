@@ -32,6 +32,7 @@ SERVICE_VERSION=""
 
 ks param set ${CORE_NAME} jupyterHubEndpoint ${ENDPOINT_URL}
 ks param set ${CORE_NAME} jupyterHubServiceVersion ${SERVICE_VERSION}
+ks param set ${CORE_NAME} jupyterHubAuthenticator iap
 ks apply ${ENV} -c ${CORE_NAME}
 ```
 	* We need to deploy JupyterHub with the ESP sidecar before we create the ingress because the readiness probe
@@ -239,3 +240,4 @@ this side car. However, traffic coming from inside the cluster e.g. the individu
 		  --source-ranges 130.211.0.0/22,35.191.0.0/16
        ```
        		* For more info [see GCP HTTP heal check docs](https://cloud.google.com/compute/docs/load-balancing/health-checks)
+
