@@ -23,8 +23,8 @@
               {
                 "command": [
                   "/opt/mlkube/tf_operator", 
-                  "--controller-config-file=/etc/config/controller_config_file.yaml", 
-                  "--alsologtostderr", 
+                  "--controller-config-file=/etc/config/controller_config_file.yaml",
+                  "--alsologtostderr",
                   "-v=1",
                 ], 
                 "env": [
@@ -132,6 +132,114 @@
       }
     },
 
+    operatorRole: {
+      "apiVersion": "rbac.authorization.k8s.io/v1beta1", 
+      "kind": "ClusterRole", 
+      "metadata": {
+        "labels": {
+          "app": "tf-job-operator"
+        }, 
+        "name": "tf-job-operator"
+      }, 
+      "rules": [
+        {
+          "apiGroups": [
+            "tensorflow.org"
+          ], 
+          "resources": [
+            "tfjobs"
+          ], 
+          "verbs": [
+            "*"
+          ]
+        }, 
+        {
+          "apiGroups": [
+            "apiextensions.k8s.io"
+          ], 
+          "resources": [
+            "customresourcedefinitions"
+          ], 
+          "verbs": [
+            "*"
+          ]
+        }, 
+        {
+          "apiGroups": [
+            "storage.k8s.io"
+          ], 
+          "resources": [
+            "storageclasses"
+          ], 
+          "verbs": [
+            "*"
+          ]
+        }, 
+        {
+          "apiGroups": [
+            "batch"
+          ], 
+          "resources": [
+            "jobs"
+          ], 
+          "verbs": [
+            "*"
+          ]
+        }, 
+        {
+          "apiGroups": [
+            ""
+          ], 
+          "resources": [
+            "configmaps", 
+            "pods", 
+            "services", 
+            "endpoints", 
+            "persistentvolumeclaims", 
+            "events"
+          ], 
+          "verbs": [
+            "*"
+          ]
+        }, 
+        {
+          "apiGroups": [
+            "apps", 
+            "extensions"
+          ], 
+          "resources": [
+            "deployments"
+          ], 
+          "verbs": [
+            "*"
+          ]
+        }
+      ]
+    }, // operator-role
+
+    operatorRoleBinding:: {
+      "apiVersion": "rbac.authorization.k8s.io/v1beta1", 
+      "kind": "ClusterRoleBinding", 
+      "metadata": {
+        "labels": {
+          "app": "tf-job-operator"
+        }, 
+        "name": "tf-job-operator"
+      }, 
+      "roleRef": {
+        "apiGroup": "rbac.authorization.k8s.io", 
+        "kind": "ClusterRole", 
+        "name": "tf-job-operator"
+      }, 
+      "subjects": [
+        {
+          "kind": "ServiceAccount", 
+          "name": "tf-job-operator", 
+          "namespace": namespace,
+        }
+      ]
+    }, // operator-role binding
+
     uiService(serviceType):: {
       "apiVersion": "v1", 
       "kind": "Service", 
@@ -152,6 +260,18 @@
         "type": serviceType,
       }
     }, // uiService
+
+    uiServiceAccount: {
+      "apiVersion": "v1", 
+      "kind": "ServiceAccount", 
+      "metadata": {
+        "labels": {
+          "app": "tf-job-dashboard"
+        }, 
+        "name": "tf-job-dashboard",
+        "namespace": namespace,
+      }
+    }, // uiServiceAccount
 
     ui(image):: {
       "apiVersion": "extensions/v1beta1", 
@@ -181,11 +301,119 @@
                   }
                 ]
               }
-            ]
+            ],
+            "serviceAccountName": "tf-job-dashboard", 
           }
         }
       },
     }, // ui
 
+    uiRole:: {
+      "apiVersion": "rbac.authorization.k8s.io/v1beta1", 
+      "kind": "ClusterRole", 
+      "metadata": {
+        "labels": {
+          "app": "tf-job-dashboard"
+        }, 
+        "name": "tf-job-dashboard"
+      }, 
+      "rules": [
+        {
+          "apiGroups": [
+            "tensorflow.org"
+          ], 
+          "resources": [
+            "tfjobs"
+          ], 
+          "verbs": [
+            "*"
+          ]
+        }, 
+        {
+          "apiGroups": [
+            "apiextensions.k8s.io"
+          ], 
+          "resources": [
+            "customresourcedefinitions"
+          ], 
+          "verbs": [
+            "*"
+          ]
+        }, 
+        {
+          "apiGroups": [
+            "storage.k8s.io"
+          ], 
+          "resources": [
+            "storageclasses"
+          ], 
+          "verbs": [
+            "*"
+          ]
+        }, 
+        {
+          "apiGroups": [
+            "batch"
+          ], 
+          "resources": [
+            "jobs"
+          ], 
+          "verbs": [
+            "*"
+          ]
+        }, 
+        {
+          "apiGroups": [
+            ""
+          ], 
+          "resources": [
+            "configmaps", 
+            "pods", 
+            "services", 
+            "endpoints", 
+            "persistentvolumeclaims", 
+            "events"
+          ], 
+          "verbs": [
+            "*"
+          ]
+        }, 
+        {
+          "apiGroups": [
+            "apps", 
+            "extensions"
+          ], 
+          "resources": [
+            "deployments"
+          ], 
+          "verbs": [
+            "*"
+          ]
+        }
+      ]
+    }, // uiRole 
+
+    uiRoleBinding:: {
+      "apiVersion": "rbac.authorization.k8s.io/v1beta1", 
+      "kind": "ClusterRoleBinding", 
+      "metadata": {
+        "labels": {
+          "app": "tf-job-dashboard"
+        }, 
+        "name": "tf-job-dashboard"
+      }, 
+      "roleRef": {
+        "apiGroup": "rbac.authorization.k8s.io", 
+        "kind": "ClusterRole", 
+        "name": "tf-job-dashboard"
+      }, 
+      "subjects": [
+        {
+          "kind": "ServiceAccount", 
+          "name": "tf-job-dashboard", 
+          "namespace": namespace,
+        }
+      ]
+    }, // uiRoleBinding
   },
 }
