@@ -44,3 +44,7 @@ BACKEND_SERVICE=$(gcloud --project=${PROJECT} compute backend-services list --fi
 gcloud --project=${PROJECT} compute backend-services update ${BACKEND_SERVICE} \
       --global \
       --iap=enabled,oauth2-client-id=${CLIENT_ID},oauth2-client-secret=${CLIENT_SECRET}
+
+# Since JupyterHub uses websockets we want to increase the backend timeout
+echo Increasing backend timeout for JupyterHub
+gcloud --project=${PROJECT} compute backend-services update --global ${BACKEND_SERVICE} --timeout=600

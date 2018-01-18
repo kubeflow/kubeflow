@@ -29,7 +29,7 @@ local cloud = import 'param://cloud';
 
 // TODO(jlewi): Make this a parameter
 local jupyterHubServiceType = import 'param://jupyterHubServiceType';
-local jupyterHubImage = 'gcr.io/kubeflow/jupyterhub:1.0';
+local jupyterHubImage = 'gcr.io/kubeflow/jupyterhub-k8s:1.0.1;
 local jupyterHubAuthenticator = 'param://jupyterHubAuthenticator';
 
 local diskParam = import 'param://disks';
