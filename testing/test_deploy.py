@@ -43,7 +43,8 @@ def _setup_test(api_client, run_label):
 
   try:
     logging.info("Creating namespace %s", namespace.metadata.name)
-    api.create_namespace(namespace)
+    namespace = api.create_namespace(namespace)
+    logging.info("Namespace %s created.", namespace.metadata.name)
   except rest.ApiException as e:
     if e.status == 409:
       logging.info("Namespace %s already exists.", namespace.metadata.name)
