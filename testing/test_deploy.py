@@ -15,6 +15,7 @@ import datetime
 import json
 import logging
 import os
+import shutil
 import tempfile
 import uuid
 
@@ -43,7 +44,8 @@ def _setup_test(api_client, run_label):
 
   try:
     logging.info("Creating namespace %s", namespace.metadata.name)
-    api.create_namespace(namespace)
+    namespace = api.create_namespace(namespace)
+    logging.info("Namespace %s created.", namespace.metadata.name)
   except rest.ApiException as e:
     if e.status == 409:
       logging.info("Namespace %s already exists.", namespace.metadata.name)
@@ -96,30 +98,41 @@ def setup(args):
 
     app_dir = os.path.join(args.test_dir, app_name)
 
-    # TODO(jlewi): In presubmits we probably want to change this so we can
-    # pull the changes on a branch. Its not clear whether that's well supported
-    # in Ksonnet yet.
     kubeflow_registry = "github.com/google/kubeflow/tree/master/kubeflow"
     util.run(["ks", "registry", "add", "kubeflow", kubeflow_registry], cwd=app_dir)
 
     # Install required packages
-    # TODO(jlewi): For presubmits how do we pull the package from the desired
-    # branch at the desired commit.
     packages = ["kubeflow/core", "kubeflow/tf-serving", "kubeflow/tf-job"]
 
     for p in packages:
       util.run(["ks", "pkg", "install", p], cwd=app_dir)
 
+    # Delete the vendor directory and replace with a symlink to the src
+    # so that we use the code at the desired commit.
+    target_dir = os.path.join(app_dir, "vendor", "kubeflow")
+
+    logging.info("Deleting %s", target_dir)
+    shutil.rmtree(target_dir)
+
+    source = os.path.join(args.test_dir, "src", "kubeflow")
+    logging.info("Creating link %s -> %s", target_dir, source)
+    os.symlink(source, target_dir)
+
     # Deploy Kubeflow
     util.run(["ks", "generate", "core", "kubeflow-core", "--name=kubeflow-core",
               "--namespace=" + namespace.metadata.name], cwd=app_dir)
 
+    # TODO(jlewi): For reasons I don't understand even though we ran
+    # configure_kubectl above, if we don't rerun it we get rbac errors
+    # when we do ks apply; I think because we aren't using the proper service
+    # account. This might have something to do with the way ksonnet gets
+    # its credentials; maybe we need to configure credentials after calling
+    # ks init?
+    if args.cluster:
+      util.configure_kubectl(args.project, args.zone, args.cluster)
+
     apply_command = ["ks", "apply", "default", "-c", "kubeflow-core",]
 
-    if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
-      with open(os.getenv("GOOGLE_APPLICATION_CREDENTIALS")) as hf:
-        key = json.load(hf)
-        apply_command.append("--as=" + key["client_email"])
     util.run(apply_command, cwd=app_dir)
 
     # Verify that the TfJob operator is actually deployed.
