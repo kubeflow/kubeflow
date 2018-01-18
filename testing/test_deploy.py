@@ -125,6 +125,12 @@ def setup(args):
     util.run(["ks", "generate", "core", "kubeflow-core", "--name=kubeflow-core",
               "--namespace=" + namespace.metadata.name], cwd=app_dir)
 
+    # Sleep for ever so we can ssh in and try to run the command manually.
+    logging.error("DO NOT SUBMIT sleep forever")
+    while True:
+      import time
+      logging.error("DO NOT SUBMIT sleep forever")
+      time.sleep(600)
     apply_command = ["ks", "apply", "default", "-c", "kubeflow-core",]
 
     if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
