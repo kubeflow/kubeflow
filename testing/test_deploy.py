@@ -98,9 +98,6 @@ def setup(args):
 
     app_dir = os.path.join(args.test_dir, app_name)
 
-    # TODO(jlewi): In presubmits we probably want to change this so we can
-    # pull the changes on a branch. Its not clear whether that's well supported
-    # in Ksonnet yet.
     kubeflow_registry = "github.com/google/kubeflow/tree/master/kubeflow"
     util.run(["ks", "registry", "add", "kubeflow", kubeflow_registry], cwd=app_dir)
 
@@ -125,18 +122,27 @@ def setup(args):
     util.run(["ks", "generate", "core", "kubeflow-core", "--name=kubeflow-core",
               "--namespace=" + namespace.metadata.name], cwd=app_dir)
 
+    # TODO(jlewi): For reasons I don't understand even though we ran
+    # configure_kubectl above, if we don't rerun it we get rbac errors
+    # when we do ks apply; I think because we aren't using the proper service
+    # account. This might have something to do with the way ksonnet gets
+    # its credentials; maybe we need to configure credentials after calling
+    # ks init?
+    if args.cluster:
+      util.configure_kubectl(args.project, args.zone, args.cluster_name)
+
     # Sleep for ever so we can ssh in and try to run the command manually.
-    logging.error("DO NOT SUBMIT sleep forever")
-    while True:
-      import time
-      logging.error("DO NOT SUBMIT sleep forever")
-      time.sleep(600)
+    #logging.error("DO NOT SUBMIT sleep forever")
+    #while True:
+      #import time
+      #logging.error("DO NOT SUBMIT sleep forever")
+      #time.sleep(600)
     apply_command = ["ks", "apply", "default", "-c", "kubeflow-core",]
 
-    if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
-      with open(os.getenv("GOOGLE_APPLICATION_CREDENTIALS")) as hf:
-        key = json.load(hf)
-        apply_command.append("--as=" + key["client_email"])
+    #if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
+      #with open(os.getenv("GOOGLE_APPLICATION_CREDENTIALS")) as hf:
+        #key = json.load(hf)
+        #apply_command.append("--as=" + key["client_email"])
     util.run(apply_command, cwd=app_dir)
 
     # Verify that the TfJob operator is actually deployed.
@@ -164,8 +170,7 @@ def setup(args):
     teardown = test_util.TestCase(main_case.class_name, "teardown")
     def run_teardown():
       core_api = k8s_client.CoreV1Api(api_client)
-      # core_api.delete_namespace(namespace_name, {})
-      logging.error("DO NOT SUBMIT skipping teardown.")
+      core_api.delete_namespace(namespace_name, {})
 
     try:
       test_util.wrap_test(run_teardown, teardown)
