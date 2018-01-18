@@ -147,7 +147,8 @@ def setup(args):
     teardown = test_util.TestCase(main_case.class_name, "teardown")
     def run_teardown():
       core_api = k8s_client.CoreV1Api(api_client)
-      core_api.delete_namespace(namespace_name, {})
+      # core_api.delete_namespace(namespace_name, {})
+      logging.error("DO NOT SUBMIT skipping teardown.")
 
     try:
       test_util.wrap_test(run_teardown, teardown)
