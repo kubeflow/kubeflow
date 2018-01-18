@@ -15,6 +15,7 @@ import datetime
 import json
 import logging
 import os
+import shutil
 import tempfile
 import uuid
 
@@ -104,12 +105,21 @@ def setup(args):
     util.run(["ks", "registry", "add", "kubeflow", kubeflow_registry], cwd=app_dir)
 
     # Install required packages
-    # TODO(jlewi): For presubmits how do we pull the package from the desired
-    # branch at the desired commit.
     packages = ["kubeflow/core", "kubeflow/tf-serving", "kubeflow/tf-job"]
 
     for p in packages:
       util.run(["ks", "pkg", "install", p], cwd=app_dir)
+
+    # Delete the vendor directory and replace with a symlink to the src
+    # so that we use the code at the desired commit.
+    target_dir = os.path.join(app_dir, "vendor", "kubeflow")
+
+    logging.info("Deleting %s", target_dir)
+    shutil.rmtree(target_dir)
+
+    source = os.path.join(args.test_dir, "src", "kubeflow")
+    logging.info("Creating link %s -> %s", target_dir, source)
+    os.symlink(source, target_dir)
 
     # Deploy Kubeflow
     util.run(["ks", "generate", "core", "kubeflow-core", "--name=kubeflow-core",
