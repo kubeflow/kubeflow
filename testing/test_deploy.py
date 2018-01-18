@@ -131,18 +131,8 @@ def setup(args):
     if args.cluster:
       util.configure_kubectl(args.project, args.zone, args.cluster)
 
-    # Sleep for ever so we can ssh in and try to run the command manually.
-    #logging.error("DO NOT SUBMIT sleep forever")
-    #while True:
-      #import time
-      #logging.error("DO NOT SUBMIT sleep forever")
-      #time.sleep(600)
     apply_command = ["ks", "apply", "default", "-c", "kubeflow-core",]
 
-    #if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
-      #with open(os.getenv("GOOGLE_APPLICATION_CREDENTIALS")) as hf:
-        #key = json.load(hf)
-        #apply_command.append("--as=" + key["client_email"])
     util.run(apply_command, cwd=app_dir)
 
     # Verify that the TfJob operator is actually deployed.
