@@ -85,7 +85,7 @@
                                     }
                                 }
                             ],
-                            "image": "argoproj/workflow-controller:v2.0.0-alpha2",
+                            "image": "argoproj/workflow-controller:v2.0.0-alpha3",
                             "imagePullPolicy": "IfNotPresent",
                             "name": "workflow-controller",
                             "resources": {},
@@ -157,7 +157,7 @@
                                     "value": "true"
                                 }
                             ],
-                            "image": "argoproj/argoui:v2.0.0-alpha2",
+                            "image": "argoproj/argoui:v2.0.0-alpha3",
                             "imagePullPolicy": "IfNotPresent",
                             "name": "argo-ui",
                             "resources": {},

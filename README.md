@@ -1,11 +1,5 @@
 # Kubeflow
 
-[Prow test dashboard](https://k8s-testgrid.appspot.com/sig-big-data)
-
-[Prow jobs dashboard](https://prow.k8s.io/?repo=google%2Fkubeflow)
-
-[Argo UI for E2E tests](http://testing-argo.kubeflow.io)
-
 The Kubeflow project is dedicated to making Machine Learning on Kubernetes easy, portable and scalable. Our goal is **not** to recreate other services, but to provide a straightforward way for spinning up best of breed OSS solutions. Contained in this repository are manifests for creating:
 
 * A JupyterHub to create & manage interactive Jupyter notebooks
@@ -13,6 +7,11 @@ The Kubeflow project is dedicated to making Machine Learning on Kubernetes easy,
 * A TF Serving container
 
 This document details the steps needed to run the Kubeflow project in any environment in which Kubernetes runs.
+
+## Quick Links
+* [Prow test dashboard](https://k8s-testgrid.appspot.com/sig-big-data)
+* [Prow jobs dashboard](https://prow.k8s.io/?repo=google%2Fkubeflow)
+* [Argo UI for E2E tests](http://testing-argo.kubeflow.io)
 
 ## The Kubeflow Mission
 
