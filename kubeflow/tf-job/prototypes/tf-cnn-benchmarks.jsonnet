@@ -92,8 +92,9 @@ local job =
 	error "num_ps must be >= 1"
 	else
 	tfJob.parts.tfJob(name, namespace, replicas) + {
-							tfImage: image,
-							terminationPolicy: {chief:{replicaName: "WORKER", replicaIndex: 0 }}
-							};
+    spec+: {
+				tfImage: image,
+				terminationPolicy: {chief:{replicaName: "WORKER", replicaIndex: 0 }}
+		}};
 
 std.prune(k.core.v1.list.new([job]))

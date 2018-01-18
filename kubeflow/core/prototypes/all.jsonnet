@@ -71,9 +71,14 @@ std.prune(k.core.v1.list.new([
     tfjob.parts(namespace).tfJobDeploy(tfJobImage), 
     tfjob.parts(namespace).configMap(cloud, tfDefaultImage),
     tfjob.parts(namespace).serviceAccount,
+    tfjob.parts(namespace).operatorRole,
+    tfjob.parts(namespace).operatorRoleBinding,
 
     // TfJob controll ui
-    tfjob.parts(namespace).ui(tfJobImage),     
-    tfjob.parts(namespace).uiService(tfJobUiServiceType),   
+    tfjob.parts(namespace).ui(tfJobImage),
+    tfjob.parts(namespace).uiService(tfJobUiServiceType),
+    tfjob.parts(namespace).uiServiceAccount,
+    tfjob.parts(namespace).uiRole,
+    tfjob.parts(namespace).uiRoleBinding,
 ] + nfsComponents))
 
