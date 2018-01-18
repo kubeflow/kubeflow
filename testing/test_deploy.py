@@ -129,7 +129,7 @@ def setup(args):
     # its credentials; maybe we need to configure credentials after calling
     # ks init?
     if args.cluster:
-      util.configure_kubectl(args.project, args.zone, args.cluster_name)
+      util.configure_kubectl(args.project, args.zone, args.cluster)
 
     # Sleep for ever so we can ssh in and try to run the command manually.
     #logging.error("DO NOT SUBMIT sleep forever")
