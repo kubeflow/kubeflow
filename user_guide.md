@@ -1,21 +1,26 @@
-# Using Kubeflow 
+# Using Kubeflow
 
-If you are unfamiliar with ksonnet you may want to start by reading the [tutorial](https://ksonnet.io/docs/tutorial)
+This guide will walk you through the basics of deploying and interacting with Kubeflow. A basic understanding of Kubernetes, Tensorflow, and Ksonnet are useful in understanding the contents of this guide.
+
+* [Kubernetes](https://kubernetes.io/docs/tutorials/kubernetes-basics/)
+* [Tensorflow](https://www.tensorflow.org/get_started/)
+* [Ksonnet](https://ksonnet.io/docs/tutorial)
 
 ## Requirements
-
-  * ksonnet version [0.8.0](https://ksonnet.io/#get-started) or later.
-    * See [below](#why-kubeflow-uses-ksonnet) for an explanation of why we use ksonnet
-  * Kubernetes >= 1.8 [see here](https://github.com/tensorflow/k8s#requirements)
+ * Kubernetes >= 1.8 [see here](https://github.com/tensorflow/k8s#requirements)
+ * ksonnet version [0.8.0](https://ksonnet.io/#get-started) or later. (See [below](#why-kubeflow-uses-ksonnet) for an explanation of why we use ksonnet)
 
 ## Deploy Kubeflow
 
-Initialize a directory to contain your deployment
+We will be using Ksonnet to deploy kubeflow into your cluster.
+
+Initialize a directory to contain your ksonnet application.
+
 ```
 ks init my-kubeflow
 ```
 
-Install the Kubeflow packages
+Install the Kubeflow packages into your application.
 
 ```
 cd my-kubeflow
@@ -25,62 +30,64 @@ ks pkg install kubeflow/tf-serving
 ks pkg install kubeflow/tf-job
 ```
 
-
 Create the Kubeflow core component. The core component includes 
   * JupyterHub
   * TensorFlow job controller
 
 
 ```
+NAMESPACE=kubeflow
+kubectl create namespace ${NAMESPACE}
 ks generate core kubeflow-core --name=kubeflow-core --namespace=${NAMESPACE}
 ```
-  * namespace is optional
+  * Feel free to change the namespace to a value that better suits your kubernetes cluster.
 
 
-Define an environment that doesn't use any Cloud features
-  * This environment could be used for minikube or a full K8s cluster that doesn't depend on a cloud features.
+Ksonnet allows us to parameterize the Kubeflow deployment according to our needs. We will define two environments: nocloud, and cloud.
+
 
 ```
 ks env add nocloud
-```
-
-The default Kubeflow deployment will be suitable for this no cloud environment so you can just deploy the core components
-
-```
-ks apply nocloud -c kubeflow-core
-```
-
-If the user is running on a Cloud they could create an environment for this.
-
-```
 ks env add cloud
-ks param set --env=cloud kubeflow-core cloud=gke
-```
-   * The cloud parameter triggers a set of curated cloud configs.
-
-They can then deploy to this environment
-
-```
-ks apply cloud -c kubeflow-core
 ```
 
-At any time you can inspect the manifests for a particular component using `ks show` e.g
+The `nocloud` environment can be used for minikube or other basic k8s clusters, the `cloud` environment will be used for GKE in this guide.
+
+If using GKE, we can configure our cloud environment to use GCP features with a single parameter:
 
 ```
-ks show cloud -c kubeflow-core
+ks param set kubeflow-core cloud gke --env=cloud
+```
+
+Now let's set `${KF_ENV}` to `cloud` or `nocloud` to reflect our environment for the rest of the guide:
+
+```
+$ KF_ENV=cloud|nocloud
+``` 
+
+And apply the components to our Kubernetes cluster
+
+```
+ks apply ${KF_ENV} -c kubeflow-core
+```
+
+At any time you can inspect the kubernetes objects definitions for a particular ksonnet component using `ks show` e.g
+
+```
+ks show ${KF_ENV} -c kubeflow-core
 ```
 
 ### Bringing up a Notebook
 
-Once you've deployed JupyterHub, a load balancer service is created. You can check its existence using the kubectl command line.
+The kubeflow-core component deployed JupyterHub and a corresponding load balancer service. You can check its status using the kubectl command line.
 
 ```commandline
-kubectl get svc
+kubectl get svc -n=${NAMESPACE}
 
-NAME         TYPE           CLUSTER-IP     EXTERNAL-IP    PORT(S)        AGE
-kubernetes   ClusterIP      10.11.240.1    <none>         443/TCP        1h
-tf-hub-0     ClusterIP      None           <none>         8000/TCP       1m
-tf-hub-lb    LoadBalancer   10.11.245.94   xx.yy.zz.ww    80:32481/TCP   1m
+NAME               TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+tf-hub-0           ClusterIP      None            <none>        8000/TCP       1m
+tf-hub-lb          LoadBalancer   10.11.245.94   xx.yy.zz.ww   80:32481/TCP   1m
+tf-job-dashboard   ClusterIP      10.11.240.151   <none>        80/TCP         1m
 ```
 
 If you're using minikube, you can run the following to get the URL for the notebook.
@@ -93,21 +100,53 @@ http://xx.yy.zz.ww:31942
 
 For some cloud deployments, the LoadBalancer service may take up to five minutes display an external IP address. Re-executing `kubectl get svc` repeatedly will eventually show the external IP field populated.
 
-Once you have an external IP, you can proceed to visit that in your browser. The hub by default is configured to take any username/password combination. After entering the username and password, you can start a single-notebook server,
-request any resources (memory/CPU/GPU), and then proceed to perform single node training.
+Once you have an external IP, you can proceed to visit that in your browser. You should see a sign in prompt.
 
-We also ship standard docker images that you can use for training Tensorflow models with Jupyter.
+1. Sign in using any username/password
+1. Click the "Start My Server" button, you will be greeted by a dialog screen.
+  1. Set the image to `gcr.io/kubeflow/tensorflow-notebook-cpu:v1` or `gcr.io/kubeflow/tensorflow-notebook-gpu:8fbc341245695e482848ac3c2034a99f7c1e5763` depending on whether doing CPU or GPU training, or whether or not you have GPUs in your cluster.
+  1. Allocate memory, CPU, GPU, or other resources according to your need (1 CPU and 2Gi of Memory are good starting points)
+  1. Click Spawn
+1. Eventually you should now be greeted with a Jupyter interface. Note that the GPU image is several gigabytes in size and may take a few minutes to download and start. 
 
-* gcr.io/kubeflow/tensorflow-notebook-cpu
-* gcr.io/kubeflow/tensorflow-notebook-gpu
+The image supplied above can be used for training Tensorflow models with Jupyter. The images include all the requisite plugins, including [Tensorboard](https://www.tensorflow.org/get_started/summaries_and_tensorboard) that you can use for rich visualizations and insights into your models.
 
-In the spawn window, when starting a new Jupyter instance, you can supply one of the above images to get started, depending on whether 
-you want to run on CPUs or GPUs. The images include all the requisite plugins, including [Tensorboard](https://www.tensorflow.org/get_started/summaries_and_tensorboard) that you can use for rich visualizations and insights into your models. 
-Note that GPU-based image is several gigabytes in size and may take a few minutes to localize. 
+To test the install, we can run a basic hello world (adapted from [mnist_softmax.py](https://github.com/tensorflow/tensorflow/blob/r1.4/tensorflow/examples/tutorials/mnist/mnist_softmax.py) )
 
-Also, when running on Google Kubernetes Engine, the public IP address will be exposed to the internet and is an 
+```
+from tensorflow.examples.tutorials.mnist import input_data
+mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
+
+import tensorflow as tf
+
+x = tf.placeholder(tf.float32, [None, 784])
+
+W = tf.Variable(tf.zeros([784, 10]))
+b = tf.Variable(tf.zeros([10]))
+
+y = tf.nn.softmax(tf.matmul(x, W) + b)
+
+y_ = tf.placeholder(tf.float32, [None, 10])
+cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=[1]))
+
+train_step = tf.train.GradientDescentOptimizer(0.05).minimize(cross_entropy)
+
+sess = tf.InteractiveSession()
+tf.global_variables_initializer().run()
+
+for _ in range(1000):
+  batch_xs, batch_ys = mnist.train.next_batch(100)
+  sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
+
+correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+print(sess.run(accuracy, feed_dict={x: mnist.test.images, y_: mnist.test.labels}))
+```
+
+Paste the example into a new Python 3 Jupyter notebook and execute the code, this should result in a 0.9014 accuracy result against the test data.
+
+Please note that when running on most cloud providers, the public IP address will be exposed to the internet and is an 
 unsecured endpoint by default. For a production deployment with SSL and authentication, refer to the [documentation](components/jupyterhub). 
-
 
 ### Serve a model
 
@@ -119,14 +158,24 @@ Create a component for your model
 MODEL_COMPONENT=serveInception
 MODEL_NAME=inception
 MODEL_PATH=gs://cloud-ml-dev_jlewi/tmp/inception
-ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME} --namespace=default --model_path=${MODEL_PATH}
+ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME} --namespace=${NAMESPACE} --model_path=${MODEL_PATH}
 ```
 
-Deploy it in a particular environment. The deployment will pick up environment parameters (e.g. cloud) and customize the deployment appropriately
+Deploy the model component. Ksonnet will pick up existing parameters for your environment (e.g. cloud, nocloud) and customize the resulting deployment appropriately
 
 ```
-ks apply cloud -c ${MODEL_COMPONENT}
+ks apply ${KF_ENV} -c ${MODEL_COMPONENT}
 ```
+
+As before, a few pods and services have been created in your cluster. You can get the inception serving endpoint by querying kubernetes:
+
+```
+kubectl get svc inception
+NAME        TYPE           CLUSTER-IP      EXTERNAL-IP      PORT(S)          AGE
+inception   LoadBalancer   10.35.255.136   ww.xx.yy.zz   9000:30936/TCP   28m
+```
+
+In this example, you should be able to use the inception_client to hit ww.xx.yy.zz:9000
 
 ### Submiting a TensorFlow training job
 
@@ -135,7 +184,8 @@ We treat each TensorFlow job as a [component](https://ksonnet.io/docs/tutorial#2
 Create a component for your job.
 
 ```
-ks generate tf-job ${JOB_NAME} --name=${JOB_NAME}
+JOB_NAME=myjob
+ks generate tf-job ${JOB_NAME} --name=${JOB_NAME} --namespace=${NAMESPACE}
 ```
 
 To configure your job you need to set a bunch of parameters. To see a list of parameters run
@@ -147,6 +197,7 @@ ks prototype describe tf-job
 Parameters can be set using `ks param` e.g. to set the Docker image used
 
 ```
+IMAGE=gcr.io/tf-on-k8s-dogfood/tf_sample:d4ef871-dirty-991dde4
 ks param set ${JOB_NAME} image ${IMAGE}
 ```
 
@@ -158,7 +209,7 @@ to directly edit the `params.libsonnet` file directly.
 To run your job
 
 ```
-ks apply ${ENVIRONMENT} -c ${JOB_NAME}
+ks apply ${KF_ENV} -c ${JOB_NAME}
 ```
 
 For information on monitoring your job please refer to the [TfJob docs](https://github.com/tensorflow/k8s#monitoring-your-job).
@@ -170,13 +221,14 @@ Kubeflow ships with a [ksonnet prototype](https://ksonnet.io/docs/concepts#proto
 Create the component
 
 ```
-ks generate tf-cnn ${CNN_JOB_NAME} --name=${CNN_JOB_NAME}
+CNN_JOB_NAME=mycnnjob
+ks generate tf-cnn ${CNN_JOB_NAME} --name=${CNN_JOB_NAME} --namespace=${NAMESPACE}
 ```
 
 Submit it
 
 ```
-ks apply ${ENVIRONMENT} -c ${CNN_JOB_NAME}
+ks apply ${KF_ENV} -c ${CNN_JOB_NAME}
 ```
 
 The prototype provides a bunch of parameters to control how the job runs (e.g. use GPUs run distributed etc...). To see a list of paramets

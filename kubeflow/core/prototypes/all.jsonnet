@@ -6,7 +6,9 @@
 // @optionalParam namespace string default Namespace
 // @optionalParam disks string null Comma separated list of Google persistent disks to attach to jupyter environments.
 // @optionalParam cloud string null String identifying the cloud to customize the deployment for.
-// @optionalParam tfJobImage string gcr.io/tf-on-k8s-dogfood/tf_operator:v20171214-0bd02ac The image for the TfJob controller.
+// @optionalParam tfJobImage string gcr.io/tf-on-k8s-dogfood/tf_operator:v20180117-04425d9-dirty-e3b0c44 The image for the TfJob controller.
+// @optionalParam tfDefaultImage string null The default image to use for TensorFlow.
+// @optionalParam tfJobUiServiceType string ClusterIP The service type for the UI.
 
 // TODO(https://github.com/ksonnet/ksonnet/issues/222): We have to add namespace as an explicit parameter
 // because ksonnet doesn't support inheriting it from the environment yet.
@@ -18,6 +20,8 @@ local nfs = import "kubeflow/core/nfs.libsonnet";
 
 local name = import 'param://name';
 local namespace = import 'param://namespace';
+
+local cloud = import 'param://cloud';
 
 // TODO(jlewi): Make this a parameter
 local jupyterHubImage = 'gcr.io/kubeflow/jupyterhub:1.0';
@@ -32,6 +36,8 @@ local jupyterConfigMap = if std.length(diskNames) == 0 then
 	else jupyter.parts(namespace).jupyterHubConfigMapWithVolumes(diskNames);
 
 local tfJobImage = import 'param://tfJobImage';
+local tfDefaultImage = import 'param://tfDefaultImage';
+local tfJobUiServiceType = import 'param://tfJobUiServiceType';
 
 // Create a list of the resources needed for a particular disk
 local diskToList = function(diskName) [
@@ -63,7 +69,16 @@ std.prune(k.core.v1.list.new([
 
     // TfJob controller
     tfjob.parts(namespace).tfJobDeploy(tfJobImage), 
-    tfjob.parts(namespace).configMap,
+    tfjob.parts(namespace).configMap(cloud, tfDefaultImage),
     tfjob.parts(namespace).serviceAccount,
+    tfjob.parts(namespace).operatorRole,
+    tfjob.parts(namespace).operatorRoleBinding,
+
+    // TfJob controll ui
+    tfjob.parts(namespace).ui(tfJobImage),
+    tfjob.parts(namespace).uiService(tfJobUiServiceType),
+    tfjob.parts(namespace).uiServiceAccount,
+    tfjob.parts(namespace).uiRole,
+    tfjob.parts(namespace).uiRoleBinding,
 ] + nfsComponents))
 
