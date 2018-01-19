@@ -22,6 +22,7 @@ WORKDIR /opt/label
 
 COPY label.py ./
 COPY run.sh ./
+COPY sleeping-pepper.jpg ./
 
 ENTRYPOINT ["bash", "run.sh"]
 CMD []
