@@ -193,7 +193,8 @@ You can also use to to label your own images.
 #### Running the script directly
 
 You can run the script directly in your local environment if Python2 is available to you. You will not be able to use the script with Python3
-as the [`tensorflow-serving-api` package](https://pypi.python.org/pypi/tensorflow-serving-api) is not yet Python3-capable.
+as the [`tensorflow-serving-api` package](https://pypi.python.org/pypi/tensorflow-serving-api)
+is not yet Python3-capable ([Issue #117](https://github.com/google/kubeflow/issues/117)).
 
 If you would like to use a virtual environment, begin by activating your desired environment with your favorite environment manager. Then,
 ```commandline
