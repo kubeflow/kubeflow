@@ -14,8 +14,8 @@
 
 #!/bin/bash
 
-SERVER=$1
-PORT=$2
+SERVER=$INCEPTION_SERVICE_HOST
+PORT=$INCEPTION_SERVICE_PORT
 
 if [ -z $SERVER ] ; then
   echo "run.sh Error: Please provide server address as first parameter"
