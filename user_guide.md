@@ -239,10 +239,10 @@ ks prototype describe tf-cnn
 
 ## Advanced Customization
 
-* Often times datascientists require a POSIX compliant filesystem 
+* Often times data scientists require a POSIX compliant filesystem 
    * For example, most HDF5 libraries require POSIX and don't work with an object store like GCS or S3
 * When working with teams you might want a shared POSIX filesystem to be mounted into your notebook environments
-  so that datascientists can work collaboratively on the same datasets.
+  so that data scientists can work collaboratively on the same datasets.
 * Here we show how to customize your Kubeflow deployment to achieve this.
 
 
