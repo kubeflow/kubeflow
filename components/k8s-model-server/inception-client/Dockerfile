@@ -14,13 +14,9 @@
 
 FROM python:2.7.14
 
-RUN pip install grpcio tensorflow tensorflow-serving-api
+RUN pip install --no-cache-dir grpcio tensorflow tensorflow-serving-api
 
-RUN mkdir -p /opt/label
-
-RUN mkdir -p /data
-
-VOLUME /data
+RUN mkdir -p /opt/label /data
 
 WORKDIR /opt/label
 
