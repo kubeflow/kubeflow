@@ -207,7 +207,7 @@ Run the script as follows:
 python label.py -s <SERVICE IP> -p <CLUSTER PORT> sleeping-pepper.jpg
 ```
 
-#### Run in Docker container
+#### Run in Docker container with publicly exposed service
 
 The [inception-client](./inception-client) directory also contains a [Dockerfile](./inception-client/Dockerfile) that will allow you to
 call out to the inception service from a container.
@@ -218,10 +218,43 @@ From that directory, start by building the image:
 docker build -t inception-client .
 ```
 
+You can optionally specify a directory containing the JPEG files you would like to label using the
+```commandline
+--build-arg IMAGES_DIR=<path-to-image-directory>
+```
+
+By default, this build uses [inception-client/images](./inception-client/images).
+
 Then run the container with the appropriate cluster information:
 
 ```commandline
 docker run -v $(pwd):/data inception-client <SERVICE IP> <CLUSTER PORT>
+```
+
+#### Run container on your kubernetes cluster
+
+If your inception service is not publicly exposed, you can also run the client container directly on the kubernetes cluster on which the
+inception model is being served. To do this:
+
+1. Build the docker image as specified above. From the [inception-client](./inception-client) directory:
+```commandline
+docker build -t inception-client .
+```
+
+1. Prefix the tag with your GCR registry:
+```commandline
+GCR_TAG=gcr.io/$(gcloud config get-value project)/inception-client:latest
+docker image tag inception-client:latest $GCR_TAG
+```
+
+1. Push the image to your project's container registry:
+```commandline
+gcloud docker -- push $GCR_TAG
+```
+
+1. Run a container built from that image on your GKE cluster:
+```commandline
+kubectl run -it inception-client --image $GCR_TAG --restart=OnFailure
 ```
 
 #### Output
