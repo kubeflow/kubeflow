@@ -186,7 +186,7 @@ c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
 	  }
    },
 
-   jupyterHubLoadBalancer: {
+   jupyterHubLoadBalancer(serviceType): {
 	  "apiVersion": "v1", 
 	  "kind": "Service", 
 	  "metadata": {
@@ -207,7 +207,7 @@ c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
 	    "selector": {
 	      "app": "tf-hub"
 	    }, 
-	    "type": "LoadBalancer"
+	    "type": serviceType
 	  }
 	},
 

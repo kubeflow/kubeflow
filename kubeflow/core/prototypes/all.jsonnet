@@ -9,6 +9,7 @@
 // @optionalParam tfJobImage string gcr.io/tf-on-k8s-dogfood/tf_operator:v20180117-04425d9-dirty-e3b0c44 The image for the TfJob controller.
 // @optionalParam tfDefaultImage string null The default image to use for TensorFlow.
 // @optionalParam tfJobUiServiceType string ClusterIP The service type for the UI.
+// @optionalParam jupyterHubServiceType string ClusterIP The service type for Jupyterhub.
 
 // TODO(https://github.com/ksonnet/ksonnet/issues/222): We have to add namespace as an explicit parameter
 // because ksonnet doesn't support inheriting it from the environment yet.
@@ -38,6 +39,7 @@ local jupyterConfigMap = if std.length(diskNames) == 0 then
 local tfJobImage = import 'param://tfJobImage';
 local tfDefaultImage = import 'param://tfDefaultImage';
 local tfJobUiServiceType = import 'param://tfJobUiServiceType';
+local jupyterHubServiceType = import 'param://jupyterHubServiceType';
 
 // Create a list of the resources needed for a particular disk
 local diskToList = function(diskName) [
@@ -61,7 +63,7 @@ std.prune(k.core.v1.list.new([
 	// jupyterHub components
 	jupyterConfigMap,
     jupyter.parts(namespace).jupyterHubService, 
-    jupyter.parts(namespace).jupyterHubLoadBalancer,
+    jupyter.parts(namespace).jupyterHubLoadBalancer(jupyterHubServiceType),
     jupyter.parts(namespace).jupyterHub(jupyterHubImage),
     jupyter.parts(namespace).jupyterHubRole,
     jupyter.parts(namespace).jupyterHubServiceAccount,
