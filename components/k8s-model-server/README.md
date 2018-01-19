@@ -180,10 +180,10 @@ listed under the value you used for the `MODEL_NAME` parameter in the ksonnet co
 ```commandline
 kubectl get services
 NAME         TYPE           CLUSTER-IP      EXTERNAL-IP      PORT(S)			 AGE
-$MODEL_NAME  LoadBalancer   <INTERNAL IP>   <SERVICE IP>     <CLUSTER PORT>:<NODE PORT>  <TIME SINCE DEPLOYMENT>
+$MODEL_NAME  LoadBalancer   <INTERNAL IP>   <SERVICE IP>     <SERVICE PORT>:<NODE PORT>  <TIME SINCE DEPLOYMENT>
 ```
 
-We will feed the `<SERVICE IP>` and `<CLUSTER PORT>` to the labelling script. We will use it to label the following image of a
+We will feed the `<SERVICE IP>` and `<SERVICE PORT>` to the labelling script. We will use it to label the following image of a
 cat sleeping on a comforter atop a sofa:
 
 ![Cat on comforter on sofa](./inception-client/sleeping-pepper.jpg)
@@ -204,7 +204,7 @@ pip install -r requirements.txt
 Run the script as follows:
 
 ```commandline
-python label.py -s <SERVICE IP> -p <CLUSTER PORT> sleeping-pepper.jpg
+python label.py -s <SERVICE IP> -p <SERVICE PORT> sleeping-pepper.jpg
 ```
 
 #### Run in Docker container with publicly exposed service
@@ -228,7 +228,7 @@ By default, this build uses [inception-client/images](./inception-client/images)
 Then run the container with the appropriate cluster information:
 
 ```commandline
-docker run -v $(pwd):/data inception-client <SERVICE IP> <CLUSTER PORT>
+docker run -v $(pwd):/data inception-client <SERVICE IP> <SERVICE PORT>
 ```
 
 #### Run container on your kubernetes cluster
