@@ -22,7 +22,10 @@ WORKDIR /opt/label
 
 COPY label.py ./
 COPY run.sh ./
-COPY sleeping-pepper.jpg /data/
+
+ARG IMAGES_DIR=images/
+
+ADD $IMAGES_DIR /data/
 
 ENTRYPOINT ["bash", "run.sh"]
 CMD []
