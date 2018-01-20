@@ -25,6 +25,7 @@
       }
     }, // service 
 
+    // TODO(jlewi): Do we need the admin service? Looks like its just pointing to the ambassador service?
     adminService:: {
       "apiVersion": "v1", 
       "kind": "Service", 
