@@ -21,7 +21,7 @@
         "selector": {
           "service": "ambassador"
         }, 
-        "type": "ClusterIP"
+        "type": "ClusterIP",
       }
     }, // service 
 
