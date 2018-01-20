@@ -40,7 +40,7 @@ local networkSpec = networkPolicy.mixin.spec;
             }
           ],           
           "selector": labels,
-          "type": "LoadBalancer"
+          "type": "ClusterIP"
         }
       },
 
