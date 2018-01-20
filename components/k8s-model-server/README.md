@@ -88,7 +88,7 @@ storage bucket you created above.
 gsutil cp -r inception gs://<bucket-name>
 ```
 
-Use [gsutil_ls](https://cloud.google.com/storage/docs/gsutil/commands/ls) to view the contents of your bucket. You 
+Use [gsutil ls](https://cloud.google.com/storage/docs/gsutil/commands/ls) to view the contents of your bucket. You 
 will see that the contents of the model are stored in the `gs://<bucket-name>/inception/1` directory. This is the 
 first version of the model that we will serve.
 
@@ -210,7 +210,14 @@ python label.py -s <SERVICE IP> -p <SERVICE PORT> sleeping-pepper.jpg
 #### Run in Docker container with publicly exposed service
 
 The [inception-client](./inception-client) directory also contains a [Dockerfile](./inception-client/Dockerfile) that will allow you to
-call out to the inception service from a container.
+call out to the inception service from a container. You can run this container on your local machine if you publicly exposed your
+`inception` service. If you would like to do this on GKE, simply run
+
+```commandline
+kubectl edit service inception
+```
+
+and change the service type to `NodePort` or `LoadBalancer`.
 
 From that directory, start by building the image:
 
