@@ -290,6 +290,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
 	  }, 
 	},
 
+   
    jupyterHubConfigMapWithVolumes(volumeClaims): {
 	  local volumes = std.map(function(v) 
 		{
@@ -319,7 +320,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
     //
     // The load balancer is used as the FE to allow users to connect.
     // If the type is LoadBalancer an external IP will be created. If they use ClusterIP, users can connect via kubectl.
-    jupyterHubLoadBalancer(serviceType): {
+    jupyterHubLoadBalancer(serviceType):: {    
 	  "apiVersion": "v1", 
 	  "kind": "Service", 
 	  "metadata": {
