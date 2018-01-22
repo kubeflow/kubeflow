@@ -141,68 +141,40 @@
                       "routes": [
                         
                         {
-                          "timeout_ms": 10000,"prefix": "/ambassador/v0/check_ready","prefix_rewrite": "/ambassador/v0/check_ready",
+                          "timeout_ms": 10000,"prefix": "/jobsui","prefix_rewrite": "/jobsui",
                           "weighted_clusters": {
                               "clusters": [
                                   
-                                     { "name": "cluster_127_0_0_1_8877", "weight": 100.0 }
+                                     { "name": "jobsui", "weight": 100.0 }
                                   
                               ]
                           }
                           
-                        }
-                        ,
-                        
-                        {
-                          "timeout_ms": 10000,"prefix": "/ambassador/v0/check_alive","prefix_rewrite": "/ambassador/v0/check_alive",
-                          "weighted_clusters": {
-                              "clusters": [
-                                  
-                                     { "name": "cluster_127_0_0_1_8877", "weight": 100.0 }
-                                  
-                              ]
-                          }
-                          
-                        }
-                        ,
-                        
-                        {
-                          "timeout_ms": 10000,"prefix": "/ambassador/v0/","prefix_rewrite": "/ambassador/v0/",
-                          "weighted_clusters": {
-                              "clusters": [
-                                  
-                                     { "name": "cluster_127_0_0_1_8877", "weight": 100.0 }
-                                  
-                              ]
-                          }
-                          
-                        }
-                        
-                        
+                        }                       
                       ]
                     }
                   ]
                 },
                 "filters": [
-                  {
-                    "type": "decoder",
-                    "name": "jwt-auth",
-                    "config": {                  
-                      "issuers": [
-                        {
-                          "name": "https://cloud.google.com/iap",
-                          "audiences": [
-                            "/projects/991277910492/global/backendServices/31"
-                          ],
-                          "pubkey": {
-                            "type": "jwks",
-                            "uri": "https://www.gstatic.com/iap/verify/public_key-jwk",
-                            "cluster": "iap_issuer"
-                          }
-                        }
-                      ]
-                    }
-                  },
+                  //{
+                  //  "type": "decoder",
+                  //  "name": "jwt-auth",
+                  //  "config": {                  
+                  //    "issuers": [
+                  //      {
+                  //        "name": "https://cloud.google.com/iap",
+                  //        "audiences": [
+                  //          "/projects/991277910492/global/backendServices/31"
+                  //        ],
+                  //        "pubkey": {
+                  //          "type": "jwks",
+                  //          "uri": "https://www.gstatic.com/iap/verify/public_key-jwk",
+                  //          "cluster": "iap_issuer"
+                  //        }
+                  //      }
+                  //    ]
+                  //  }
+                  //},
                   { 
                     "type": "decoder",
                     "name": "router",
@@ -238,13 +210,14 @@
             ]
           },
           {
-            "name": "cluster_127_0_0_1_8877",
+            "name": "jobsui",
             "connect_timeout_ms": 3000,
             "type": "strict_dns",
             "lb_type": "round_robin",        
             "hosts": [
               {
-                "url": "tcp://127.0.0.1:8877"
+                // Actual pod IP
+                "url": "tcp://10.16.0.11:8080"
               }
               
             ]}
