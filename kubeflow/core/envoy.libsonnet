@@ -1,5 +1,13 @@
 {
   parts(namespace):: {
+    local k = import 'k.libsonnet',
+    all(envoyImage)::std.prune(k.core.v1.list.new([  
+        $.parts(namespace).service,
+        $.parts(namespace).deploy(envoyImage),
+        $.parts(namespace).configMap,
+        $.parts(namespace).sampleService,
+        $.parts(namespace).sampleApp,
+    ])),
 
     service:: {
       "apiVersion": "v1", 
@@ -34,7 +42,9 @@
         "namespace": namespace,
       }, 
       "spec": {
-        "replicas": 3, 
+        # TODO(jlewi): Might want to increase this. We set it to 1 just to facilitate debugging/troubleshooting because
+        # this way we know which replica handles a request.
+        "replicas": 1, 
         "template": {
           "metadata": {
             "labels": {
@@ -139,18 +149,28 @@
                       "name": "backend",
                       "domains": ["*"],
                       "routes": [
-                        
+                        // Example route copied from ambassador to test things
                         {
-                          "timeout_ms": 10000,"prefix": "/jobsui","prefix_rewrite": "/jobsui",
+                          "timeout_ms": 10000,"prefix": "/tensorboard/pybullet-kuka-ff-0118-2346-bac2","prefix_rewrite": "/",
                           "weighted_clusters": {
                               "clusters": [
                                   
-                                     { "name": "jobsui", "weight": 100.0 }
+                                     { "name": "cluster_pybullet_kuka_ff_0118_2346_bac2_tb_iap_test", "weight": 100.0 }
                                   
                               ]
                           }
                           
-                        }                       
+                        }, 
+                        {
+                          "timeout_ms": 10000,"prefix": "/iap-app","prefix_rewrite": "/",
+                          "weighted_clusters": {
+                              "clusters": [
+                                  
+                                     { "name": "cluster_iap_app", "weight": 100.0 }
+                                  
+                              ]
+                          }                          
+                        },
                       ]
                     }
                   ]
@@ -209,23 +229,108 @@
               }
             ]
           },
+          // Example route to test things.
           {
-            "name": "jobsui",
-            "connect_timeout_ms": 3000,
-            "type": "strict_dns",
-            "lb_type": "round_robin",        
-            "hosts": [
-              {
-                // Actual pod IP
-                "url": "tcp://10.16.0.11:8080"
-              }
-              
-            ]}
+          "name": "cluster_iap_app",
+          "connect_timeout_ms": 3000,
+          "type": "strict_dns",
+          "lb_type": "round_robin",        
+          "hosts": [
+            {
+              "url": "tcp://iap-sample-app." + namespace + ":80"
+            }
+            
+          ]},
+          {
+          "name": "cluster_pybullet_kuka_ff_0118_2346_bac2_tb_iap_test",
+          "connect_timeout_ms": 3000,
+          "type": "strict_dns",
+          "lb_type": "round_robin",        
+          "hosts": [
+            {
+              "url": "tcp://pybullet-kuka-ff-0118-2346-bac2-tb.iap-test:80"
+            }
+            
+          ]},
+
           
         ]
       },
       "statsd_udp_ip_address": "127.0.0.1:8125",
       "stats_flush_interval_ms": 1000
-    } // config
-  }, // parts
+    }, // config
+
+    sampleService:: {
+      "apiVersion": "v1", 
+      "kind": "Service", 
+      "metadata": {
+        "labels": {
+          "app": "iap-sample"
+        }, 
+        "name": "iap-sample-app",
+        "namespace": namespace,
+      }, 
+      "spec": {
+        "ports": [
+          {
+            "port": 80, 
+            "targetPort": 8081
+          }
+        ], 
+        "selector": {
+          "app": "iap-sample"
+        }, 
+        "type": "ClusterIP"
+      }
+    },  // sampleService
+
+    sampleApp:: {
+      "apiVersion": "extensions/v1beta1", 
+      "kind": "Deployment", 
+      "metadata": {
+        "name": "iap-sample-app",
+        "namespace": namespace,
+      }, 
+      "spec": {        
+        "replicas": 1, 
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "iap-sample"
+            }
+          }, 
+          "spec": {
+            "containers": [
+              {
+                "env": [
+                  {
+                    "name": "PORT", 
+                    "value": "8081"
+                  }
+                ], 
+                "image": "gcr.io/cloud-solutions-group/esp-sample-app:1.0.0", 
+                "name": "app", 
+                "ports": [
+                  {
+                    "containerPort": 8081
+                  }
+                ], 
+                "readinessProbe": {
+                  "failureThreshold": 2, 
+                  "httpGet": {
+                    "path": "/healthz", 
+                    "port": 8081, 
+                    "scheme": "HTTP"
+                  }, 
+                  "periodSeconds": 10, 
+                  "successThreshold": 1, 
+                  "timeoutSeconds": 5
+                }
+              }
+            ]
+          }
+        }
+      }
+    }, 
+  },
 }

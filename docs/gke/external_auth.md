@@ -26,3 +26,26 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
   -keyout ${TLS_KEY_FILE} -out ${TLS_CRT_FILE}
 kubectl -n ${NAMESPACE} create secret generic oauth-provider-ssl  --from-file=${TLS_KEY_FILE} --from-file=${TLS_CRT_FILE}
 ```
+
+
+Deploy envoy
+
+```
+ks generate envoy envoy --namespace=${NAMESPACE}
+ks apply ${ENV} -c envoy
+```
+
+Test that you can access the IAP sample app
+
+```
+kubectl run -i -t ubuntu --image=ubuntu --restart=Never
+apt-get update
+apt-get install curl -y
+
+# Check direct acccess to the sample app
+curl -L -s -i http://iap-sample-app:80/
+
+# Check access through envoy
+curl -L -s -i http://envoy:80/iap-app
+```
+
