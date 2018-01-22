@@ -1,5 +1,9 @@
 {
   parts(namespace):: {
+   // TODO(jlewi): DO NOT SUBMIT this image has changes to support IAP
+   // "quay.io/datawire/ambassador:0.22.0"
+   local ambassadorImage = "gcr.io/kubeflow-rl/ambassador:v20180122-v0.22.0-2-g6903957-dirty-08df98",
+
     service:: {
       "apiVersion": "v1", 
       "kind": "Service", 
@@ -160,7 +164,7 @@
                     }
                   }
                 ], 
-                "image": "quay.io/datawire/ambassador:0.22.0", 
+                "image": ambassadorImage, 
                 "imagePullPolicy": "Always", 
                 "livenessProbe": {
                   "httpGet": {
