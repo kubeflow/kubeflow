@@ -1,12 +1,14 @@
 {
   parts(namespace):: {
     local k = import 'k.libsonnet',
-    all(envoyImage)::std.prune(k.core.v1.list.new([  
+    all(envoyImage, secretName, ipName)::std.prune(k.core.v1.list.new([  
         $.parts(namespace).service,
         $.parts(namespace).deploy(envoyImage),
         $.parts(namespace).configMap,
         $.parts(namespace).sampleService,
         $.parts(namespace).sampleApp,
+
+        $.parts(namespace).ingress(secretName, ipName),
     ])),
 
     service:: {
@@ -30,7 +32,8 @@
         "selector": {
           "service": "envoy"
         }, 
-        "type": "ClusterIP",
+        // NodePort because this will be the backend for our ingress.
+        "type": "NodePort",
       }
     }, // service 
    
@@ -63,25 +66,25 @@
                 ],
                 "imagePullPolicy": "Always", 
                 "name": "envoy",
-                // TODO(jlewi): Need to uncomment the liveness and readiness probes once its working
                 // TODO(jlewi): 8001 is the envoy admin service. Not sure if that's really the right thing to use as a health and readiness
                 // check.
-                //"livenessProbe": {
-                //  "httpGet": {
-                //    "path": "/", 
-                //    "port": 8001
-                //  }, 
-                //  "initialDelaySeconds": 30, 
-                //  "periodSeconds": 30
-                //},                 
-                //"readinessProbe": {
-                //  "httpGet": {
-                //    "path": "/", 
-                //    "port": 8001
-                //  }, 
-                //  "initialDelaySeconds": 30, 
-                //  "periodSeconds": 30
-                //}, 
+                // Using /iap-app as the health check is a hack. Need a better solution.
+                "livenessProbe": {
+                  "httpGet": {
+                    "path": "/iap-app", 
+                    "port": 80
+                  }, 
+                  "initialDelaySeconds": 30, 
+                  "periodSeconds": 30
+                },                 
+                "readinessProbe": {
+                  "httpGet": {
+                    "path": "/iap-app", 
+                    "port": 80
+                  }, 
+                  "initialDelaySeconds": 30, 
+                  "periodSeconds": 30
+                }, 
                 "resources": {
                   "limits": {
                     "cpu": 1, 
@@ -164,25 +167,25 @@
                   ]
                 },
                 "filters": [
-                  //{
-                  //  "type": "decoder",
-                  //  "name": "jwt-auth",
-                  //  "config": {                  
-                  //    "issuers": [
-                  //      {
-                  //        "name": "https://cloud.google.com/iap",
-                  //        "audiences": [
-                  //          "/projects/991277910492/global/backendServices/31"
-                  //        ],
-                  //        "pubkey": {
-                  //          "type": "jwks",
-                  //          "uri": "https://www.gstatic.com/iap/verify/public_key-jwk",
-                  //          "cluster": "iap_issuer"
-                  //        }
-                  //      }
-                  //    ]
-                  //  }
-                  //},
+                  {
+                    "type": "decoder",
+                    "name": "jwt-auth",
+                    "config": {                  
+                      "issuers": [
+                        {
+                          "name": "https://cloud.google.com/iap",
+                          "audiences": [
+                            "/projects/991277910492/global/backendServices/31"
+                          ],
+                          "pubkey": {
+                            "type": "jwks",
+                            "uri": "https://www.gstatic.com/iap/verify/public_key-jwk",
+                            "cluster": "iap_issuer"
+                          }
+                        }
+                      ]
+                    }
+                  },
                   { 
                     "type": "decoder",
                     "name": "router",
@@ -192,7 +195,7 @@
               }
             }
           ]
-        }    
+        },
       ],
       "admin": {
         "address": "tcp://127.0.0.1:8001",
@@ -307,5 +310,43 @@
         }
       }
     }, 
-  },
+
+    ingress(secretName, ipName):: {
+      "apiVersion": "extensions/v1beta1", 
+      "kind": "Ingress", 
+      "metadata": {
+        "name": "envoy-ingress",
+        "namespace": namespace,
+        "annotations": {
+          "kubernetes.io/ingress.global-static-ip-name": ipName,
+        }
+      }, 
+      "spec": {
+        "rules": [
+          {
+            "http": {
+              "paths": [
+                 {
+                  "backend": {
+                   # Due to https://github.com/kubernetes/contrib/blob/master/ingress/controllers/gce/examples/health_checks/README.md#limitations
+                   # Keep port the servicePort the same as the port we are targetting on the backend so that servicePort will be the same as targetPort for the purpose of
+                   # health checking.
+                    "serviceName": "envoy", 
+                    # Keep in sync with the port of envoy
+                    "servicePort": 80,
+                  }, 
+                  "path": "/*"
+                },
+              ]
+            }
+          }
+        ], 
+        "tls": [
+          {
+            "secretName": secretName,
+          }
+        ]
+      }
+    }, // iapIngress
+  }, // parts
 }

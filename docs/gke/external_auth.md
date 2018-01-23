@@ -11,15 +11,16 @@ TODO(jlewi): Provide additional instructions about how to do this.
 Create an external static IP address
 
 ```
-gcloud compute --project=${PROJECT} addresses create kubeflow-master --global
+gcloud compute --project=${PROJECT} addresses create kubeflow --global
 ```
 
 Create an SSL cert
 
 ```
 ENDPOINT_URL=FQDN of your host
-TLS_KEY_FILE=~/tmp/oauth_provider/tls.key
-TLS_CRT_FILE=~/tmp/oauth_provider/tls.crt
+mkdir -p ~/tmp/${ENDPOINT_URL}
+TLS_KEY_FILE=~/tmp/${ENDPOINT_URL}/tls.key
+TLS_CRT_FILE=~/tmp/${ENDPOINT_URL}/tls.crt
 
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
   -subj "/CN=${ENDPOINT_URL}/O=Google LTD./C=US" \
@@ -48,4 +49,8 @@ curl -L -s -i http://iap-sample-app:80/
 # Check access through envoy
 curl -L -s -i http://envoy:80/iap-app
 ```
+
+Troubleshooting
+
+Envoy serves its admin server on `8001` by default.
 

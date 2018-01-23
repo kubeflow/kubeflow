@@ -214,7 +214,8 @@ this side car. However, traffic coming from inside the cluster e.g. the individu
 	done
 	echo BACKEND_ID=${BACKEND_ID}
  	```
- 	
+ 	  * Backends will also be listed in the annotation of the ingress controller and will contain node port in the name.
+
  	* You can map the backend to the name of the load balancer and then get logs for that load balancer. Need to explain how to do the mapping.
 
  * Try in incognito mode; you should be redirected to a Google login; then requests aren't even making it to the backend.
@@ -240,6 +241,7 @@ this side car. However, traffic coming from inside the cluster e.g. the individu
         * PORT - should be the node port used by the service backing your ingress
         * PATH - should be the path the GCP health check is using
 
+     * If path for the HTTP health check isn't correct you can manually edit via the UI or gcloud
      * If  `http://localhost:${PORT}/${PATH}` doesn't return a 200 HTTP code then check whether the node port is properly mapped (via a K8s service) to a pod. Check the corresponding pod. Is it running? Healthy?
      * If `http://localhost:${PORT}/${PATH}` returns 200 HTTP code, then check the firewall rules on your project to see if they are blocking traffic to the VMs from the L7 balancer. The firewall rule should be added automatically by the ingress but its possible it got deleted if you have some automatic firewall policy enforcement. You can recreate the firewall rule if needed with a rule like this
        ```
@@ -250,4 +252,18 @@ this side car. However, traffic coming from inside the cluster e.g. the individu
 		  --source-ranges 130.211.0.0/22,35.191.0.0/16
        ```
        	
+        * To get the node tag
+        
+        ```
+        # From the GKE cluster get the name of the managed instance group
+        gcloud --project=$PROJECT container clusters --zone=$ZONE describe $CLUSTER
+        # Get the template associated with the MIG
+        gcloud --project=kubeflow-rl compute instance-groups managed describe --zone=${ZONE} ${MIG_NAME}
+        # Get the instance tags from the template
+        gcloud --project=kubeflow-rl compute instance-templates describe ${TEMPLATE_NAME}
+
+        ```
+
        	* For more info [see GCP HTTP health check docs](https://cloud.google.com/compute/docs/load-balancing/health-checks)
+
+        * Seel also [K8s docs](https://github.com/kubernetes/contrib/blob/master/ingress/controllers/gce/examples/health_checks/READMEmd#limitations) for important information about how health checks are determined from readiness probes.
