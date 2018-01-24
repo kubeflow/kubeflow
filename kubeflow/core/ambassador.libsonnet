@@ -163,7 +163,7 @@
                       }
                     }
                   }
-                ], 
+                ],
                 "image": ambassadorImage, 
                 "imagePullPolicy": "Always", 
                 "livenessProbe": {

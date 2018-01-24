@@ -1,32 +1,44 @@
 # Setting Up IAP on GKE
 
-These instructions walk you through using [Identity Aware Proxy](https://cloud.google.com/iap/docs/)(IAP) to securely connect to JupyterHub
+These instructions walk you through using [Identity Aware Proxy](https://cloud.google.com/iap/docs/)(IAP) to securely connect to Kubeflow
 when using GKE.
 
   * IAP allows you to control access to JupyterHub using Google logins
   * Using IAP secures access to JupyterHub using HTTPs
   * IAP allows users to safely and easily connect to JupyterHub
-  * We use Cloud Endpoints to give users a stable domain name they can use to access JupyterHub.
+  * You will need your own domain which can be purchased and managed using Google domains or another provider
 
+
+Create an external static IP address
+
+```
+gcloud compute --project=${PROJECT} addresses create kubeflow --global
+```
+
+Using your DNS provider (e.g. Google Domains) create a custom resource record that associates the host you want e.g "kubeflow"
+with the IP address that you just reserved.
 
 Create a self signed certificate
   * The certificate is needed for HTTPs
-
+  
 ```
-PROJECT=$(gcloud config get-value project)
-ENDPOINT=<name for the endpoint>
-ENDPOINT_URL="${ENDPOINT}.endpoints.${PROJECT}.cloud.goog"
+ENDPOINT_URL=${HOST}.${YOURDOMAIN}
+SECRET_NAME
+mkdir -p ~/tmp/${ENDPOINT_URL}
+TLS_KEY_FILE=~/tmp/${ENDPOINT_URL}/tls.key
+TLS_CRT_FILE=~/tmp/${ENDPOINT_URL}/tls.crt
+
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
   -subj "/CN=${ENDPOINT_URL}/O=Google LTD./C=US" \
-  -keyout ~/tmp/tls.key -out ~/tmp/tls.crt
-
+  -keyout ${TLS_KEY_FILE} -out ${TLS_CRT_FILE}
 ```
-
+  
+  * HOST will be the value of the custom resource record that you created to map to your IP address.
 
 Create a K8s secret to store the SSL certificate.
 
 ```
-kubectl create secret generic iap-ingress-ssl  --from-file=${HOME}/tmp/tls.crt --from-file=${HOME}/tmp/tls.key
+kubectl -n ${NAMESPACE} create secret generic ${SECRET_NAME}  --from-file=${TLS_KEY_FILE} --from-file=${TLS_CRT_FILE}
 ```
 
 Deploy JupyterHub using the Cloud Endpoints [NGINX proxy](https://github.com/cloudendpoints/esp)

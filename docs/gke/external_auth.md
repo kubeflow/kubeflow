@@ -8,27 +8,6 @@ Create an OAuth client id of type web application
 
 TODO(jlewi): Provide additional instructions about how to do this.
 
-Create an external static IP address
-
-```
-gcloud compute --project=${PROJECT} addresses create kubeflow --global
-```
-
-Create an SSL cert
-
-```
-ENDPOINT_URL=FQDN of your host
-SECRET_NAME
-mkdir -p ~/tmp/${ENDPOINT_URL}
-TLS_KEY_FILE=~/tmp/${ENDPOINT_URL}/tls.key
-TLS_CRT_FILE=~/tmp/${ENDPOINT_URL}/tls.crt
-
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-  -subj "/CN=${ENDPOINT_URL}/O=Google LTD./C=US" \
-  -keyout ${TLS_KEY_FILE} -out ${TLS_CRT_FILE}
-kubectl -n ${NAMESPACE} create secret generic ${SECRET_NAME}  --from-file=${TLS_KEY_FILE} --from-file=${TLS_CRT_FILE}
-```
-
 
 Deploy envoy
 
