@@ -1,10 +1,10 @@
 {
   parts(namespace):: {
     local k = import 'k.libsonnet',
-    all(envoyImage, secretName, ipName)::std.prune(k.core.v1.list.new([  
+    all(envoyImage, secretName, ipName, audiences)::std.prune(k.core.v1.list.new([  
         $.parts(namespace).service,
         $.parts(namespace).deploy(envoyImage),
-        $.parts(namespace).configMap,
+        $.parts(namespace).configMap(audiences),
         $.parts(namespace).sampleService,
         $.parts(namespace).sampleApp,
 
@@ -42,7 +42,8 @@
       "command": [                  
         "/usr/local/bin/envoy",
         "-c", params.configPath,
-        "--log-level", "info",
+        // TODO(jlewi): Reduce the log level.
+        "--log-level", "debug",
         // Since we are running multiple instances of envoy on the same host we need to set a unique baseId                
         "--base-id", params.baseId,
       ],
@@ -140,7 +141,7 @@
       }
     },  // deploy
 
-    configMap:: {
+    configMap(audiences):: {
       "apiVersion": "v1",     
       "kind": "ConfigMap", 
       "metadata": {
@@ -148,7 +149,7 @@
         namespace: namespace,
       },
       "data": {
-        "envoy-jwt-config.json": std.manifestJson($.parts(namespace).jwtConfig),
+        "envoy-jwt-config.json": std.manifestJson($.parts(namespace).jwtConfig(audiences)),
         "envoy-health-config.json": std.manifestJson($.parts(namespace).healthConfig),
       },
     },
@@ -162,7 +163,7 @@
 
     // This is the config for the secondary envoy proxy which does JWT verification
     // and actually routes requests to the appropriate backend.
-    jwtConfig:: {
+    jwtConfig(audiences):: {
       "listeners": [
         {
           "address": "tcp://0.0.0.0:" + jwtEnvoyPort,
@@ -240,9 +241,7 @@
                           "name": "https://cloud.google.com/iap",
                           // TODO(jlewi): This audience is not correct; it should not be hardcoded it needs to be a parameter
                           // because it depends on the backend.
-                          "audiences": [
-                            "/projects/991277910492/global/backendServices/31"
-                          ],
+                          "audiences": audiences,
                           "pubkey": {
                             "type": "jwks",
                             "uri": "https://www.gstatic.com/iap/verify/public_key-jwk",
