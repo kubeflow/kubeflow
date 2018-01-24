@@ -1,14 +1,16 @@
 {
   parts(namespace):: {
     local k = import 'k.libsonnet',
-    all(envoyImage, secretName, ipName, audiences)::std.prune(k.core.v1.list.new([  
-        $.parts(namespace).service,
-        $.parts(namespace).deploy(envoyImage),
-        $.parts(namespace).configMap(audiences),
-        $.parts(namespace).sampleService,
-        $.parts(namespace).sampleApp,
 
-        $.parts(namespace).ingress(secretName, ipName),
+    ingress(secretName, ipName)::std.prune(k.core.v1.list.new([
+        $.parts(namespace).service,
+        $.parts(namespace).ingress(secretName, ipName)]))
+
+    all(envoyImage, audiences, disableJwt=False)::std.prune(k.core.v1.list.new([
+        $.parts(namespace).deploy(envoyImage),
+        $.parts(namespace).configMap(audiences, disableJwt),
+        $.parts(namespace).whoamiService,
+        $.parts(namespace).whoamiApp,
     ])),
 
     service:: {
@@ -37,7 +39,7 @@
       }
     }, // service 
    
-    envoyContainer(params):: {
+    envoyContainer(params):: {    
       "image": params.image, 
       "command": [                  
         "/usr/local/bin/envoy",
@@ -95,10 +97,8 @@
         "name": "envoy",
         "namespace": namespace,
       }, 
-      "spec": {
-        # TODO(jlewi): Might want to increase this. We set it to 1 just to facilitate debugging/troubleshooting because
-        # this way we know which replica handles a request.
-        "replicas": 1, 
+      "spec": {        
+        "replicas": 3, 
         "template": {
           "metadata": {
             "labels": {
@@ -141,7 +141,7 @@
       }
     },  // deploy
 
-    configMap(audiences):: {
+    configMap(audiences, disableJwt):: {
       "apiVersion": "v1",     
       "kind": "ConfigMap", 
       "metadata": {
@@ -149,7 +149,7 @@
         namespace: namespace,
       },
       "data": {
-        "envoy-jwt-config.json": std.manifestJson($.parts(namespace).jwtConfig(audiences)),
+        "envoy-jwt-config.json": std.manifestJson($.parts(namespace).jwtConfig(audiences, disableJwt)),
         "envoy-health-config.json": std.manifestJson($.parts(namespace).healthConfig),
       },
     },
@@ -163,7 +163,7 @@
 
     // This is the config for the secondary envoy proxy which does JWT verification
     // and actually routes requests to the appropriate backend.
-    jwtConfig(audiences):: {
+    jwtConfig(audiences, disableJwt):: {
       "listeners": [
         {
           "address": "tcp://0.0.0.0:" + jwtEnvoyPort,
@@ -192,9 +192,8 @@
                           "prefix_rewrite": "/",                          
                           "weighted_clusters": {
                               "clusters": [
-                                  
-                                     { "name": "cluster_iap_app", "weight": 100.0 }
-                                  
+                                  { "name": "cluster_iap_app", 
+                                    "weight": 100.0 }
                               ]
                           }                          
                         },
@@ -207,9 +206,8 @@
                           "use_websocket": true,
                           "weighted_clusters": {
                               "clusters": [
-                                  
-                                     { "name": "cluster_jupyterhub", "weight": 100.0 }
-                                  
+                                  { "name": "cluster_jupyterhub", 
+                                    "weight": 100.0 }                                  
                               ]
                           }                          
                         },                        
@@ -221,9 +219,8 @@
                           "use_websocket": true,
                           "weighted_clusters": {
                               "clusters": [
-                                  
-                                     { "name": "cluster_jupyterhub", "weight": 100.0 }
-                                  
+                                  { "name": "cluster_jupyterhub", 
+                                    "weight": 100.0 }
                               ]
                           }                          
                         },
@@ -231,16 +228,16 @@
                     }
                   ]
                 },
-                "filters": [
-                  {
+                "filters": 
+                  if disableJwt then
+                  []
+                  else [{
                     "type": "decoder",
                     "name": "jwt-auth",
                     "config": {                  
                       "issuers": [
                         {
-                          "name": "https://cloud.google.com/iap",
-                          // TODO(jlewi): This audience is not correct; it should not be hardcoded it needs to be a parameter
-                          // because it depends on the backend.
+                          "name": "https://cloud.google.com/iap",                          
                           "audiences": audiences,
                           "pubkey": {
                             "type": "jwks",
@@ -250,8 +247,8 @@
                         }
                       ]
                     }
-                  },
-                  { 
+                  }]  +
+                  [{ 
                     "type": "decoder",
                     "name": "router",
                     "config": {}
@@ -271,7 +268,7 @@
       "cluster_manager": {
         "clusters": [
           {
-            "name": "https://cloud.google.com/iap",
+            "name": "iap_issuer",
             "connect_timeout_ms": 5000,
             "type": "strict_dns",
             "circuit_breakers": {
@@ -286,8 +283,7 @@
                 "url": "tcp://www.gstatic.com:80"
               }
             ]
-          },
-          // Example route to test things.
+          },          
           {
           "name": "cluster_iap_app",
           "connect_timeout_ms": 3000,
@@ -295,9 +291,8 @@
           "lb_type": "round_robin",        
           "hosts": [
             {
-              "url": "tcp://iap-sample-app." + namespace + ":80"
-            }
-            
+              "url": "tcp://whoami-app." + namespace + ":80"
+            }          
           ]},
           {
           "name": "cluster_jupyterhub",
@@ -355,6 +350,19 @@
                               ]
                           }                          
                         },
+                        // Provide access to the whoami app skipping JWT verification.
+                        // this is useful for debugging.
+                        {
+                          "timeout_ms": 10000,
+                          "prefix": "/whoami-noiap",
+                          "prefix_rewrite": "/",                          
+                          "weighted_clusters": {
+                              "clusters": [
+                                { "name": "cluster_iap_app", 
+                                  "weight": 100.0 }                                  
+                              ]
+                          }                          
+                        },
                         // Route all remaining paths to the envoy proxy for JWT verification.
                         {
                           // JupyterHub requires the prefix /hub
@@ -390,7 +398,16 @@
       },
       "cluster_manager": {
         "clusters": [
-          // Example route to test things.
+          {
+          "name": "cluster_iap_app",
+          "connect_timeout_ms": 3000,
+          "type": "strict_dns",
+          "lb_type": "round_robin",        
+          "hosts": [
+            {
+              "url": "tcp://whoami-app." + namespace + ":80"
+            }          
+          ]},
           {
           "name": "cluster_healthz",
           "connect_timeout_ms": 3000,
@@ -420,14 +437,14 @@
       "stats_flush_interval_ms": 1000
     }, // healthConfig
 
-    sampleService:: {
+    whoamiService:: {
       "apiVersion": "v1", 
       "kind": "Service", 
       "metadata": {
         "labels": {
-          "app": "iap-sample"
+          "app": "whoami"
         }, 
-        "name": "iap-sample-app",
+        "name": "whoami-app",
         "namespace": namespace,
       }, 
       "spec": {
@@ -438,17 +455,17 @@
           }
         ], 
         "selector": {
-          "app": "iap-sample"
+          "app": "whoami"
         }, 
         "type": "ClusterIP"
       }
-    },  // sampleService
+    },  // whoamiService
 
-    sampleApp:: {
+    whoamiApp:: {
       "apiVersion": "extensions/v1beta1", 
       "kind": "Deployment", 
       "metadata": {
-        "name": "iap-sample-app",
+        "name": "whoami-app",
         "namespace": namespace,
       }, 
       "spec": {        
@@ -456,7 +473,7 @@
         "template": {
           "metadata": {
             "labels": {
-              "app": "iap-sample"
+              "app": "whoami"
             }
           }, 
           "spec": {
