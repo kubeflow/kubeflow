@@ -88,7 +88,7 @@ storage bucket you created above.
 gsutil cp -r inception gs://<bucket-name>
 ```
 
-Use [gsutil_ls](https://cloud.google.com/storage/docs/gsutil/commands/ls) to view the contents of your bucket. You 
+Use [gsutil ls](https://cloud.google.com/storage/docs/gsutil/commands/ls) to view the contents of your bucket. You 
 will see that the contents of the model are stored in the `gs://<bucket-name>/inception/1` directory. This is the 
 first version of the model that we will serve.
 
@@ -163,3 +163,148 @@ You can learn more about [updating a Deployment](https://kubernetes.io/docs/conc
 [scaling a Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#scaling-a-deployment), and 
 [Pod Resources](https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/) in the 
 Kubernetes documentation.
+
+
+
+### Use the served model
+
+The [inception-client](./inception-client) directory contains a Python script you can use to make a call against the deployed model.
+
+This script is intended to be run externally to the kubernetes cluster as a demonstration that the inception model is correctly being served.
+You can run the script either directly from a Python2 environment or in a Docker container.
+
+#### Setup
+
+You will require the external IP for the inception service as well as the port it is being hosted on. The inception service should be
+listed under the value you used for the `MODEL_NAME` parameter in the ksonnet component. You can find this information using
+```commandline
+kubectl get services
+NAME         TYPE           CLUSTER-IP      EXTERNAL-IP      PORT(S)			 AGE
+$MODEL_NAME  LoadBalancer   <INTERNAL IP>   <SERVICE IP>     <SERVICE PORT>:<NODE PORT>  <TIME SINCE DEPLOYMENT>
+```
+
+We will feed the `<SERVICE IP>` and `<SERVICE PORT>` to the labelling script. We will use it to label the following image of a
+cat sleeping on a comforter atop a sofa:
+
+![Cat on comforter on sofa](./inception-client/images/sleeping-pepper.jpg)
+
+You can also use to to label your own images.
+
+#### Running the script directly
+
+You can run the script directly in your local environment if Python2 is available to you. You will not be able to use the script with Python3
+as the [`tensorflow-serving-api` package](https://pypi.python.org/pypi/tensorflow-serving-api)
+is not yet Python3-capable ([Issue #117](https://github.com/google/kubeflow/issues/117)).
+
+If you would like to use a virtual environment, begin by activating your desired environment with your favorite environment manager. Then,
+```commandline
+pip install -r requirements.txt
+```
+
+Run the script as follows:
+
+```commandline
+python label.py -s <SERVICE IP> -p <SERVICE PORT> images/sleeping-pepper.jpg
+```
+
+#### Run in Docker container with publicly exposed service
+
+The [inception-client](./inception-client) directory also contains a [Dockerfile](./inception-client/Dockerfile) that will allow you to
+call out to the inception service from a container. You can run this container on your local machine if you publicly exposed your
+`inception` service. If you would like to do this on GKE, simply run
+
+```commandline
+kubectl edit service inception
+```
+
+and change the service type to `NodePort` or `LoadBalancer`.
+
+From that directory, start by building the image:
+
+```commandline
+docker build -t inception-client .
+```
+
+You can optionally specify a directory containing the JPEG files you would like to label using the
+```commandline
+--build-arg IMAGES_DIR=<path-to-image-directory>
+```
+
+By default, this build uses [inception-client/images](./inception-client/images).
+
+Then run the container with the appropriate cluster information:
+
+```commandline
+docker run -v $(pwd):/data inception-client <SERVICE IP> <SERVICE PORT>
+```
+
+#### Run container on your kubernetes cluster
+
+If your inception service is not publicly exposed, you can also run the client container directly on the kubernetes cluster on which the
+inception model is being served. To do this:
+
+1. Build the docker image as specified above. From the [inception-client](./inception-client) directory:
+```commandline
+docker build -t inception-client .
+```
+
+1. Prefix the tag with your GCR registry:
+```commandline
+GCR_TAG=gcr.io/$(gcloud config get-value project)/inception-client:latest
+docker image tag inception-client:latest $GCR_TAG
+```
+
+1. Push the image to your project's container registry:
+```commandline
+gcloud docker -- push $GCR_TAG
+```
+
+1. Run a container built from that image on your GKE cluster:
+```commandline
+kubectl run -it inception-client --image $GCR_TAG --restart=OnFailure
+```
+
+#### Output
+
+No matter how you run the script, you should see the following output:
+
+```
+outputs {
+  key: "classes"
+  value {
+    dtype: DT_STRING
+    tensor_shape {
+      dim {
+        size: 1
+      }
+      dim {
+        size: 5
+      }
+    }
+    string_val: "sleeping bag"
+    string_val: "Border terrier"
+    string_val: "tabby, tabby cat"
+    string_val: "quilt, comforter, comfort, puff"
+    string_val: "studio couch, day bed"
+  }
+}
+outputs {
+  key: "scores"
+  value {
+    dtype: DT_FLOAT
+    tensor_shape {
+      dim {
+        size: 1
+      }
+      dim {
+        size: 5
+      }
+    }
+    float_val: 8.5159368515
+    float_val: 7.85043668747
+    float_val: 5.88767671585
+    float_val: 5.706138134
+    float_val: 5.55422878265
+  }
+}
+```
