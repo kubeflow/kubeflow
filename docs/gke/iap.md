@@ -79,7 +79,8 @@ ks generate ${ENVIRONMENT} iap-ingress --secretName=${SECRET_NAME} --ipName=${IP
 ks apply ${ENVIRONMENT} -c iap-ingress
 ```
 
-This will create a load balancer. We can now enable IAP on this load balancer
+This will create a load balancer. We can now enable IAP on this load balancer using 
+the [enable_iap_openapi.sh](https://github.com/google/kubeflow/tree/master/docs/gke/enable_iap.sh) script.
 
 
 ```
@@ -87,7 +88,7 @@ CLIENT_ID=<Client id for OAuth client created in the previous step>
 CLIENT_SECRET=<Client secret for OAuth client created in the previous step>
 SERVICE=envoy
 INGRESS=envoy-ingress
-${DOCS_PATH}/enable_iap_openapi.sh ${PROJECT} ${NAMESPACE} ${SERVICE} ${INGRESS}
+enable_iap_openapi.sh ${PROJECT} ${NAMESPACE} ${SERVICE} ${INGRESS}
 ```
 The above command will output the audience such as:
 
@@ -150,65 +151,22 @@ ks apply ${ENVIRONMENT} -c iap-envoy
 kubectl delete pods --selector=service=envoy
 ```
 
+### Configure Jupyter to use your Google Identity
 
-###
-Deploy JupyterHub using the Cloud Endpoints [NGINX proxy](https://github.com/cloudendpoints/esp)
+We can configure Jupyter to use the identity provided by IAP. This way users won't have to login to JupyterHub.
 
 ```
-ENDPOINT_URL="${ENDPOINT}.endpoints.${PROJECT}.cloud.goog"
-SERVICE_VERSION=""
-
-ks param set ${CORE_NAME} jupyterHubEndpoint ${ENDPOINT_URL}
-ks param set ${CORE_NAME} jupyterHubServiceVersion ${SERVICE_VERSION}
 ks param set ${CORE_NAME} jupyterHubAuthenticator iap
 ks apply ${ENV} -c ${CORE_NAME}
+# Restart JupyterHub so it picks up the updated config
+kubectl delete -n ${NAMESPACE} pods tf-hub-0
 ```
   
-  * For ENDPOINT you can pick whatever name you want (that you haven't already used) to access your jupyter deployment.
-  * You will access Jupyter at `http://${ENDPOINT}.endpoints.${PROJECT}.cloud.goog`
-  * The above commands configure JupyterHub to run with NGINX in a side car
-  * We rely on NGINX to perform JWT validation and reject any external traffic which didn't pass through IAP
-  * NGINX gets its configuration using [Cloud Endpoints](https://cloud.google.com/endpoints/docs/) which is configured below
-  * **Important** We need to deploy JupyterHub with the NGINX sidecar before we create the K8s ingress (see below) because the readiness probe
-    determines the path for the HTTP health check created by ingress
-  * Since we don't know the SERVICE_VERSION we just use a blank value.
-
-Create a K8s ingress to allow JupyterHub to be accessed externally
+You should now be able to access JupyterHub at
 
 ```
-JUPYTER_IAP_INGRESS_NAME=<Pick a name for your new component>
-ks generate iap ${JUPYTER_IAP_INGRESS_NAME}  --namespace=$NAMESPACE
-ks apply ${ENV} -c ${JUPYTER_IAP_INGRESS_NAME}
+https://${ENDPOINT}/hub
 ```
-
-  * These commands create a K8s ingress that will setup an external loadbalancer on GCP that will direct traffic the NGINX proxy running in the JupyterHub pod.
-  * At these point IAP isn't turned on so anyone can send traffic to NGINX but since NGINX isn't configured no traffic is forwarded to JupyterHub
-
-Create the OpenAPI spec that Cloud Endpoints will use to configure the NGINX proxy
-
-```
-JUPYTER_SERVICE=jupyter-hub-esp
-JUPYTER_INGRESS=jupyter-hub-esp
-${DOCS_PATH}/create_iap_openapi.sh $PROJECT $NAMESPACE $JUPYTER_SERVICE $JUPYTER_INGRESS $ENDPOINT
-```
-  * PROJECT is your GCP project
-  * NAMESPACE is the namespace you want to deploy in
-  * JUPYTER_SERVICE is the name of the JUPYTER_SERVICE (should be jupyter-hub-esp)
-  * JUPYTER_INGRESS is the name of the ingress whose backend i jupyter service
-  * ENDPOINT this is a name you choose. It determines the URl you will access JupyterHub at; which will be
-  * This will configure the NGINX proxy to do JWT validation and reject any traffic that didn't go through IAP.
-  
-  ```
-  ENDPOINT_URL=${ENDPOINT}.endpoints.${PROJECT}.cloud.goog"
-  ```
-
-Update Cloud Endpoints.
-
-```
-gcloud --project=${PROJECT} endpoints services deploy ${ENDPOINT}-openapi.yaml
-```
-
-
 
 ### Adding Users
 
@@ -220,121 +178,95 @@ gcloud projects add-iam-policy-binding $PROJECT \
   --member user:${USER_EMAIL}
 ```
 
+### Self signed certificates and browser security warnings
+
+Since you are using a self signed certificate chrome and other browsers will give you a warning like
 
 ```
-export CLIENT_ID=...
-export CLIENT_SECRET=...
-${DOCS_PATH}/enable_iap.sh ${PROJECT} ${NAMESPACE} ${JUPYTER_SERVICE}
-```
-
-You will need to grant IAP access to users (or GROUPs) e.g.
-
-
-Since you are using a self signed certificate chrome will give you a warning like
-
-```
-Attackers might be trying to steal your information from tf-hub-0.endpoints.kubeflow-rl.cloud.goog (for example, passwords, messages, or credit cards). Learn more
+Attackers might be trying to steal your information from ${ENDPOINT}(for example, passwords, messages, or credit cards). Learn more
 NET::ERR_CERT_AUTHORITY_INVALID
 ```
-  * Click ADVANCED and choose to proceed.
+  * You will need to ignore these warnings
+  * To avoid these warnings you will need to use a certificate signed by a signing authority
+  * [Lets Encrypt](https://letsencrypt.org/) and other sites provide free signed certificates.
 
-### Verifying JWT credentials are being checked.
-
-If you want to verify that traffic that didn't go through IAP is being rejected you can try connecting directly to the ESP proxy
-
-```
-kubectl port-forward tf-hub-0 9000:9000
-```
-
-You can then open up `http://localhost:9000` and you should get an error like
-
-```
-{
- "code": 16,
- "message": "JWT validation failed: Missing or invalid credentials",
- "details": [
-  {
-   "@type": "type.googleapis.com/google.rpc.DebugInfo",
-   "stackEntries": [],
-   "detail": "auth"
-  }
- ]
-}
-```
-
-**Important** JWT validation only happens in the side car running in the JupyterHub pod. All traffic external to the cluster is routed through
-this side car. However, traffic coming from inside the cluster e.g. the individual Jupyter pods do not route traffic through the side car.
-
-**Important** Do not set the service type for JupyterHub to `LoadBalancer` or anything other than `ClusterIP` as this will create an external load balancer that directly routes traffic to JupyterHub that bypasses the sidecar that only allows traffic authorized by IAP to go through.
 
 ## Troubleshooting
 
+Here are some tips for troubleshooting IAP.
+
  * Make sure you are using https
 
-```Error: Server Error ``` 
- * 502 error - Usually means traffic isn't even making it to the esp proxy
- 	* Look at Cloud Logs for the Load balncer
- 	* You can get the backend id as follows
+  ### 502 Server Error 
+    * A 502 usually means traffic isn't even making it to the envoy reverse proxy
+    * A 502 usually indicates the loadbalancer doesn't think any backends are healthy
+      * In Cloud Console select Network Services -> Load Balancing
+          * Click on the load balancer (the name should contain the name of the ingress)
+          * The exact name can be found by looking at the `ingress.kubernetes.io/url-map` annotation on your ingress object
+          * Click on your loadbalancer
+          * This will show you the backend services associated with the load balancer
+              * There is 1 backend service for each K8s service the ingress rule routes traffic too
+              * The named port will correspond to the NodePort a service is using
+          * Make sure the load balancer reports the backends as healthy
+              * If the backends aren't reported as healthy check that the pods associated with the K8s service are up and running 
+              * Check that health checks are properly configured
+                * Click on the health check associated with the backend service for envoy
+                * Check that the path is /healthz and corresponds to the path of the readiness probe on the envoy pods
+                * Seel also [K8s docs](https://github.com/kubernetes/contrib/blob/master/ingress/controllers/gce/examples/health_checks/READMEmd#limitations) for important information about how health checks are determined from readiness probes.
 
- 	```
- 	NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[0].nodePort}')
-	while [[ -z ${BACKEND_ID} ]]; 
-	do BACKEND_ID=$(gcloud compute --project=${PROJECT} backend-services list --filter=name~k8s-be-${NODE_PORT}- --format='value(id)'); 
-	echo "Waiting for backend id PROJECT=${PROJECT} NAMESPACE=${NAMESPACE} SERVICE=${SERVICE}..."; 
-	sleep 2; 
-	done
-	echo BACKEND_ID=${BACKEND_ID}
- 	```
- 	  * Backends will also be listed in the annotation of the ingress controller and will contain node port in the name.
+              * Check firewall rules to ensure traffic isn't blocked from the GCP loadbalancer
+                  * The firewall rule should be added automatically by the ingress but its possible it got deleted if you have some automatic firewall policy enforcement. You can recreate the firewall rule if needed with a rule like this
 
- 	* You can map the backend to the name of the load balancer and then get logs for that load balancer. Need to explain how to do the mapping.
+                   ```
+                   gcloud compute firewall-rules create $NAME \
+                  --project $PROJECT \
+                  --allow tcp:$PORT \
+                  --target-tags $NODE_TAG \
+                  --source-ranges 130.211.0.0/22,35.191.0.0/16
+                   ```
 
- * Try in incognito mode; you should be redirected to a Google login; then requests aren't even making it to the backend.
- * Make sure service is running and ports are all correct
- 
-  * Check that JupyterHub is up and healthy
+                    * To get the node tag
+                    
+                    ```
+                    # From the GKE cluster get the name of the managed instance group
+                    gcloud --project=$PROJECT container clusters --zone=$ZONE describe $CLUSTER
+                    # Get the template associated with the MIG
+                    gcloud --project=kubeflow-rl compute instance-groups managed describe --zone=${ZONE} ${MIG_NAME}
+                    # Get the instance tags from the template
+                    gcloud --project=kubeflow-rl compute instance-templates describe ${TEMPLATE_NAME}
 
-  ```
-  kubectl port-forward tf-hub-0 8000:8000
-  ```
-  	* You should be able to connect to JupyterHub at 127.0.0.1:8000
+                    ```
 
+                  For more info [see GCP HTTP health check docs](https://cloud.google.com/compute/docs/load-balancing/health-checks)
 
- * If backend health checks aren't passing
-      * Check the health check rule associated with the load balancer; make sure the path is correct.
-      * You can test that the health check is responding correctly by doing
-      ```
-      gcloud --project=${PROJECT} compute ssh --zone=${ZONE} ${VM} --ssh-flag="-L ${PORT}:127.0.0.1:${PORT}"
-      curl -I http://localhost:${PORT}/${PATH}
-      ```
+ 	  * In Stackdriver Logging look at the Cloud Http Load Balancer logs
 
-        * VM - should be a VM that is serving as one of your backends
-        * PORT - should be the node port used by the service backing your ingress
-        * PATH - should be the path the GCP health check is using
-
-     * If path for the HTTP health check isn't correct you can manually edit via the UI or gcloud
-     * If  `http://localhost:${PORT}/${PATH}` doesn't return a 200 HTTP code then check whether the node port is properly mapped (via a K8s service) to a pod. Check the corresponding pod. Is it running? Healthy?
-     * If `http://localhost:${PORT}/${PATH}` returns 200 HTTP code, then check the firewall rules on your project to see if they are blocking traffic to the VMs from the L7 balancer. The firewall rule should be added automatically by the ingress but its possible it got deleted if you have some automatic firewall policy enforcement. You can recreate the firewall rule if needed with a rule like this
-       ```
-       gcloud compute firewall-rules create $NAME \
-		  --project $PROJECT \
-		  --allow tcp:$PORT \
-		  --target-tags $NODE_TAG \
-		  --source-ranges 130.211.0.0/22,35.191.0.0/16
-       ```
-       	
-        * To get the node tag
-        
+      * logs are labeled with the forwarding rule
+      * The forwarding rules are available via the annotations on the ingress
         ```
-        # From the GKE cluster get the name of the managed instance group
-        gcloud --project=$PROJECT container clusters --zone=$ZONE describe $CLUSTER
-        # Get the template associated with the MIG
-        gcloud --project=kubeflow-rl compute instance-groups managed describe --zone=${ZONE} ${MIG_NAME}
-        # Get the instance tags from the template
-        gcloud --project=kubeflow-rl compute instance-templates describe ${TEMPLATE_NAME}
-
+        ingress.kubernetes.io/forwarding-rule
+        ingress.kubernetes.io/https-forwarding-rule
         ```
+ 	
+   * Verify that requests are being properly routed within the cluster
 
-       	* For more info [see GCP HTTP health check docs](https://cloud.google.com/compute/docs/load-balancing/health-checks)
+    * Connect to one of the envoy proxies
 
-        * Seel also [K8s docs](https://github.com/kubernetes/contrib/blob/master/ingress/controllers/gce/examples/health_checks/READMEmd#limitations) for important information about how health checks are determined from readiness probes.
+    ```
+    kubectl exec -ti `kubectl get pods --selector=service=envoy -o jsonpath='{.items[0].metadata.name}'` /bin/bash
+    ```
+
+    * Installl curl in the pod
+    ```
+    apt-get update && apt-get install -y curl
+    ```
+
+    * Verify access to the whoami app
+
+    ```
+    curl -L -s -i curl -L -s -i http://envoy:8080/noiap/whoami 
+    ```
+      * If this doesn't return a 200 OK response; then there is a problem with the K8s resources
+
+        * Check the pods are running
+        * Check services are pointing at the points (look at the endpoints for the various services)

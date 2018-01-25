@@ -46,16 +46,6 @@ local jupyterConfigMap = if std.length(diskNames) == 0 then
 local jupyterHubEndpointParam = import 'param://jupyterHubEndpoint';
 local jupyterHubEndpoint = if jupyterHubEndpointParam == "null" then "" else jupyterHubEndpointParam;
 
-local jupyterHubServiceVersionParam = import 'param://jupyterHubServiceVersion';
-local jupyterHubServiceVersion = if jupyterHubServiceVersionParam == "null" then "" else jupyterHubServiceVersionParam;
-
-local jupyterHubSideCars = []
-	+ if jupyterHubEndpoint != "" then	
-	[
-	  jupyter.parts(namespace).iapSideCar(jupyterHubEndpoint, jupyterHubServiceVersion),
-	]
-	else [];
-
 local tfJobImage = import 'param://tfJobImage';
 local tfDefaultImage = import 'param://tfDefaultImage';
 local tfJobUiServiceType = import 'param://tfJobUiServiceType';
@@ -82,7 +72,7 @@ std.prune(k.core.v1.list.new([
 	jupyter.parts(namespace).jupyterHubConfigMap(kubeSpawner),
     jupyter.parts(namespace).jupyterHubService, 
     jupyter.parts(namespace).jupyterHubLoadBalancer(jupyterHubServiceType), 
-    jupyter.parts(namespace).jupyterHub(jupyterHubImage, jupyterHubSideCars),
+    jupyter.parts(namespace).jupyterHub(jupyterHubImage),
     jupyter.parts(namespace).jupyterHubRole,
     jupyter.parts(namespace).jupyterHubServiceAccount,
     jupyter.parts(namespace).jupyterHubRoleBinding,    
