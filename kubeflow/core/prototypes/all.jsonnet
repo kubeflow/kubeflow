@@ -10,14 +10,13 @@
 // @optionalParam tfDefaultImage string null The default image to use for TensorFlow.
 // @optionalParam tfJobUiServiceType string ClusterIP The service type for the UI.
 // @optionalParam jupyterHubServiceType string ClusterIP The service type for jupyter.
-// @optionalParam jupyterHubEndpoint string null The Cloud endpoint name to use with JupyterHub
-// @optionalParam jupyterHubServiceVersion string null The cloud endpoint service version to use
 // @optionalParam jupyterHubAuthenticator string dummy The authenticator to use with JupyterHub
 
 // TODO(https://github.com/ksonnet/ksonnet/issues/222): We have to add namespace as an explicit parameter
 // because ksonnet doesn't support inheriting it from the environment yet.
 
 local k = import 'k.libsonnet';
+local ambassador = import "kubeflow/core/ambassador.libsonnet";
 local jupyter = import "kubeflow/core/jupyterhub.libsonnet";
 local tfjob = import "kubeflow/core/tf-job.libsonnet";
 local nfs = import "kubeflow/core/nfs.libsonnet";
@@ -41,19 +40,6 @@ local diskNames = if diskParam != "null" && std.length(diskParam) > 0 then
 local jupyterConfigMap = if std.length(diskNames) == 0 then
 	jupyter.parts(namespace).jupyterHubConfigMap
 	else jupyter.parts(namespace).jupyterHubConfigMapWithVolumes(diskNames);
-
-local jupyterHubEndpointParam = import 'param://jupyterHubEndpoint';
-local jupyterHubEndpoint = if jupyterHubEndpointParam == "null" then "" else jupyterHubEndpointParam;
-
-local jupyterHubServiceVersionParam = import 'param://jupyterHubServiceVersion';
-local jupyterHubServiceVersion = if jupyterHubServiceVersionParam == "null" then "" else jupyterHubServiceVersionParam;
-
-local jupyterHubSideCars = []
-	+ if jupyterHubEndpoint != "" then	
-	[
-	  jupyter.parts(namespace).iapSideCar(jupyterHubEndpoint, jupyterHubServiceVersion),
-	]
-	else [];
 
 local tfJobImage = import 'param://tfJobImage';
 local tfDefaultImage = import 'param://tfDefaultImage';
@@ -81,7 +67,7 @@ std.prune(k.core.v1.list.new([
 	jupyter.parts(namespace).jupyterHubConfigMap(kubeSpawner),
     jupyter.parts(namespace).jupyterHubService, 
     jupyter.parts(namespace).jupyterHubLoadBalancer(jupyterHubServiceType), 
-    jupyter.parts(namespace).jupyterHub(jupyterHubImage, jupyterHubSideCars),
+    jupyter.parts(namespace).jupyterHub(jupyterHubImage),
     jupyter.parts(namespace).jupyterHubRole,
     jupyter.parts(namespace).jupyterHubServiceAccount,
     jupyter.parts(namespace).jupyterHubRoleBinding,    
@@ -93,10 +79,13 @@ std.prune(k.core.v1.list.new([
     tfjob.parts(namespace).operatorRole,
     tfjob.parts(namespace).operatorRoleBinding,
 
-    // TfJob controll ui
+    // TFJob controller ui
     tfjob.parts(namespace).ui(tfJobImage),
     tfjob.parts(namespace).uiService(tfJobUiServiceType),
     tfjob.parts(namespace).uiServiceAccount,
     tfjob.parts(namespace).uiRole,
     tfjob.parts(namespace).uiRoleBinding,
+
+    tfjob.parts(namespace).ui(tfJobImage),     
+    tfjob.parts(namespace).uiService(tfJobUiServiceType),   
 ] + nfsComponents))
