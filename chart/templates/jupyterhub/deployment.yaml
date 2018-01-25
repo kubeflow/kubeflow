@@ -1,0 +1,42 @@
+{{ if .Values.jupyterhub.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: tf-hub-0
+  labels:
+    app: tf-hub
+spec:
+  ports:
+  - port: 8000
+    name: hub
+  clusterIP: None
+  selector:
+    app: tf-hub
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: tf-hub
+spec:
+  updateStrategy:
+    type: RollingUpdate
+  serviceName: ""
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: tf-hub
+    spec:
+      containers:
+      - name: tf-hub
+        image: "{{ .Values.jupyterhub.image }}:{{ .Values.jupyterhub.tag }}"
+        imagePullPolicy: {{ default "" .Values.jupyterhub.pullPolicy | quote }}
+        command: ["jupyterhub", "-f", "/etc/config/jupyterhub_config.py"]
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/config
+      volumes:
+      - name: config-volume
+        configMap:
+          name: jupyterhub-config
+{{ end }}

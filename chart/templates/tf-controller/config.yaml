@@ -1,0 +1,33 @@
+# Source: https://github.com/tensorflow/k8s/blob/master/tf-job-operator-chart/templates/config.yaml
+
+{{- $cloud := .Values.cloud | default "" -}}
+
+{{ if eq $cloud "azure" }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tf-job-operator-config
+data:
+  controller_config_file.yaml: |
+    grpcServerFilePath: /opt/mlkube/grpc_tensorflow_server/grpc_tensorflow_server.py
+    accelerators:
+      alpha.kubernetes.io/nvidia-gpu:
+        volumes:
+          - name: lib
+            mountPath: /usr/local/nvidia/lib64
+            hostPath:  /usr/lib/nvidia-384
+          - name: bin
+            mountPath: /usr/local/nvidia/bin
+            hostPath: /usr/lib/nvidia-384/bin
+          - name: libcuda
+            mountPath: /usr/lib/x86_64-linux-gnu/libcuda.so.1
+            hostPath: /usr/lib/x86_64-linux-gnu/libcuda.so.1
+{{ else if eq $cloud "gke" }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tf-job-operator-config
+data:
+  controller_config_file.yaml: |
+    grpcServerFilePath: /opt/mlkube/grpc_tensorflow_server/grpc_tensorflow_server.py
+{{ end }}

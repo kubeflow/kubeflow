@@ -1,0 +1,52 @@
+{{- $cloud := .Values.cloud | default "" -}}
+
+{{ if .Values.modelserver.enabled }}
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: model-server
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: model-server
+  template:
+    metadata:
+      labels:
+        app: model-server
+    spec:
+      containers:
+      - name: model-server
+        image: "{{ .Values.modelserver.image }}:{{ .Values.modelserver.tag }}"
+        imagePullPolicy: {{ default "" .Values.modelserver.pullPolicy | quote }}
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "1"
+          limits:
+            memory: "4Gi"
+            cpu: "4"
+        command:
+        - /bin/sh
+        - -c
+        args:
+        - /usr/bin/tensorflow_model_server
+          --port={{ .Values.modelserver.port }} --model_name={{ .Values.modelserver.model_name }} --model_base_path={{ .Values.modelserver.model_base_path }}
+        ports:
+        - containerPort: 9000
+{{ if eq $cloud "azure" }}
+        volumeMounts:
+          - mountPath: "/{{ .Values.azure.share_name }}"
+            name: azurefile
+      volumes:
+        - name: azurefile
+          azureFile:
+              secretName: model-server-secret
+              shareName: "{{ .Values.azure.share_name }}"
+              readOnly: false
+{{ else }}
+      securityContext:
+        runAsUser: 1000
+        fsGroup: 1000
+{{ end }}
+{{ end }}

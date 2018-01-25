@@ -1,0 +1,42 @@
+# Default values for kubeflow
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+modelserver:
+  enabled: true
+  image: gcr.io/kubeflow/model-server
+  tag: "1.0"
+  pullPolicy: IfNotPresent
+  model_base_path:
+  model_name: inception
+  port: 9000
+
+jupyterhub:
+  enabled: true
+  image: gcr.io/kubeflow/jupyterhub
+  tag: "1.0"
+  pullPolicy: IfNotPresent
+
+tfjob:
+  enabled: true
+  image: gcr.io/tf-on-k8s-dogfood/tf_operator
+  tag: "v20171129-f8ec762"
+  pullPolicy: IfNotPresent
+
+## Install Default RBAC roles and bindings
+rbac:
+  install: false
+  apiVersion: v1beta1
+
+# Which cloud provider is kubernetes hosted on.
+# Supported values are gke or azure.
+# Leave blank to use a default, non-cloud specific config.
+cloud:
+
+config:
+  configmap:
+  file: /etc/config/controller_config_file.yaml
+
+azure:
+  storage_account_name:
+  storage_account_key:
+  share_name: inception

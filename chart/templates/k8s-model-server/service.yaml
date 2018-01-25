@@ -1,0 +1,15 @@
+{{ if .Values.modelserver.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: model-service
+  name: model-service
+spec:
+  ports:
+  - port: 9000
+    targetPort: 9000
+  selector:
+    app: model-server
+  type: LoadBalancer
+{{ end }}
