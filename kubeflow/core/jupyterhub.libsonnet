@@ -191,6 +191,30 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
       },
     }.config,
 
+     jupyterHubService: {
+      "apiVersion": "v1", 
+      "kind": "Service", 
+      "metadata": {
+        "labels": {
+          "app": "tf-hub"
+        }, 
+        "name": "tf-hub-0",
+        namespace: namespace,
+      }, 
+      "spec": {
+        "clusterIP": "None", 
+        "ports": [
+          {
+            "name": "hub", 
+            "port": 8000
+          }
+        ], 
+        "selector": {
+          "app": "tf-hub"
+        }
+      }
+     },
+
     jupyterHubLoadBalancer(serviceType): {
       apiVersion: "v1",
       kind: "Service",

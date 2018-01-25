@@ -15,7 +15,6 @@
 // because ksonnet doesn't support inheriting it from the environment yet.
 
 local k = import 'k.libsonnet';
-local ambassador = import "kubeflow/core/ambassador.libsonnet";
 local jupyter = import "kubeflow/core/jupyterhub.libsonnet";
 local tfjob = import "kubeflow/core/tf-job.libsonnet";
 local nfs = import "kubeflow/core/nfs.libsonnet";
@@ -65,6 +64,8 @@ local nfsComponents =
     ] + allDisks
   else
     [];
+
+local kubeSpawner = jupyter.parts(namespace).kubeSpawner(jupyterHubAuthenticator, diskNames);
 
 std.prune(k.core.v1.list.new([
   jupyter.parts(namespace).jupyterHubConfigMap(kubeSpawner),
