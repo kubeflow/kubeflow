@@ -186,7 +186,7 @@ $MODEL_NAME  LoadBalancer   <INTERNAL IP>   <SERVICE IP>     <SERVICE PORT>:<NOD
 We will feed the `<SERVICE IP>` and `<SERVICE PORT>` to the labelling script. We will use it to label the following image of a
 cat sleeping on a comforter atop a sofa:
 
-![Cat on comforter on sofa](./inception-client/sleeping-pepper.jpg)
+![Cat on comforter on sofa](./inception-client/images/sleeping-pepper.jpg)
 
 You can also use to to label your own images.
 
@@ -204,7 +204,7 @@ pip install -r requirements.txt
 Run the script as follows:
 
 ```commandline
-python label.py -s <SERVICE IP> -p <SERVICE PORT> sleeping-pepper.jpg
+python label.py -s <SERVICE IP> -p <SERVICE PORT> images/sleeping-pepper.jpg
 ```
 
 #### Run in Docker container with publicly exposed service

@@ -158,7 +158,7 @@ Create a component for your model
 ```
 MODEL_COMPONENT=serveInception
 MODEL_NAME=inception
-MODEL_PATH=gs://cloud-ml-dev_jlewi/tmp/inception
+MODEL_PATH=gs://kubeflow-models/inception
 ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME} --namespace=${NAMESPACE} --model_path=${MODEL_PATH}
 ```
 
@@ -171,7 +171,7 @@ ks apply ${KF_ENV} -c ${MODEL_COMPONENT}
 As before, a few pods and services have been created in your cluster. You can get the inception serving endpoint by querying kubernetes:
 
 ```
-kubectl get svc inception
+kubectl get svc inception -n=${NAMESPACE}
 NAME        TYPE           CLUSTER-IP      EXTERNAL-IP      PORT(S)          AGE
 inception   LoadBalancer   10.35.255.136   ww.xx.yy.zz   9000:30936/TCP   28m
 ```
