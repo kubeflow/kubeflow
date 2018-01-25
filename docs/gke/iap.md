@@ -1,5 +1,9 @@
 # Setting Up IAP on GKE
 
+**Important** This doc is a work in progress. The instructions don't fully work yet because Envoy can't properly validate JWTs created
+by IAP. You can work around this by disabling JWT's as described below but this is insecure because if IAP is accidentally disabled (which happens
+if you recreate the ingress) then all traffic can get through.
+
 These instructions walk you through using [Identity Aware Proxy](https://cloud.google.com/iap/docs/)(IAP) to securely connect to Kubeflow
 when using GKE.
 
@@ -8,22 +12,26 @@ when using GKE.
   * IAP allows users to safely and easily connect to JupyterHub
   * You will need your own domain which can be purchased and managed using Google domains or another provider
 
+If you aren't familiar with IAP you might want to start by looking at those docs.
 
-Create an external static IP address
+### Preliminaries
+
+##### Create an external static IP address
 
 ```
 gcloud compute --project=${PROJECT} addresses create kubeflow --global
 ```
 
-Using your DNS provider (e.g. Google Domains) create a custom resource record that associates the host you want e.g "kubeflow"
+Use your DNS provider (e.g. Google Domains) create a type A custom resource record that associates the host you want e.g "kubeflow"
 with the IP address that you just reserved.
+  * Instructions for [Google Domains](https://support.google.com/domains/answer/3290350?hl=en&_ga=2.237821440.1874220825.1516857441-1976053267.1499435562&_gac=1.82147044.1516857441.Cj0KCQiA-qDTBRD-ARIsAJ_10yKS7G1HPa1aoM8Mk_4VagV9wIi5uKkMp5UWJGDNejKxWPKUO_A6ri4aAsahEALw_wcB)
 
-Create a self signed certificate
-  * The certificate is needed for HTTPs
+##### Create a self signed certificate
+
+The certificate is needed for HTTPs
   
 ```
 ENDPOINT_URL=${HOST}.${YOURDOMAIN}
-SECRET_NAME
 mkdir -p ~/tmp/${ENDPOINT_URL}
 TLS_KEY_FILE=~/tmp/${ENDPOINT_URL}/tls.key
 TLS_CRT_FILE=~/tmp/${ENDPOINT_URL}/tls.crt
@@ -38,9 +46,112 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 Create a K8s secret to store the SSL certificate.
 
 ```
+SECRET_NAME=<Name for your secret.>
 kubectl -n ${NAMESPACE} create secret generic ${SECRET_NAME}  --from-file=${TLS_KEY_FILE} --from-file=${TLS_CRT_FILE}
 ```
 
+
+#### Create oauth client credentials
+
+Create an OAuth Client ID to be used to identify IAP when requesting acces to user's email to verify their identity.
+
+1. Set up your OAuth consent screen:
+* Configure the [consent screen](https://console.cloud.google.com/apis/credentials/consent).
+* Under Email address, select the address that you want to display as a public contact. You must use either your email address or a Google Group that you own.
+* In the Product name box, enter a suitable like save `kubeflow`
+* Click Save.
+1.  Click Create credentials, and then click OAuth client ID.
+  * Under Application type, select Web application. In the Name box enter a name, and in the Authorized redirect URIs box, enter 
+
+```
+  https://${ENDPOINT_URL}/_gcp_gatekeeper/authenticate, 
+```
+
+1. After you enter the details, click Create. Make note of the **client ID** and **client secret** that appear in the OAuth client window because we will
+   need them later to enable IAP.
+
+Save the OAuth client ID and secret to variables for later use:
+
+### Setup Ingress
+
+```
+ks generate ${ENVIRONMENT} iap-ingress --secretName=${SECRET_NAME} --ipName=${IP_NAME} --namespace=${NAMESPACE}
+ks apply ${ENVIRONMENT} -c iap-ingress
+```
+
+This will create a load balancer. We can now enable IAP on this load balancer
+
+
+```
+CLIENT_ID=<Client id for OAuth client created in the previous step>
+CLIENT_SECRET=<Client secret for OAuth client created in the previous step>
+SERVICE=envoy
+INGRESS=envoy-ingress
+${DOCS_PATH}/enable_iap_openapi.sh ${PROJECT} ${NAMESPACE} ${SERVICE} ${INGRESS}
+```
+The above command will output the audience such as:
+
+```
+JWT_AUDIENCE=/projects/991277910492/global/backendServices/801046342490434803
+```
+ 
+ * you will need JWT_AUDIENCE in the next step to configure JWT validation
+
+**Important** Redeploying iap-ingress (e.g. running `ks apply ${ENVIRONMET} -c iap-ingress` again) 
+will cause the JWT_AUDIENCE to change and the backend service created by GCP to change.
+As a result you will have to repeat the steps below to properly configure IAP.
+
+### Deploy Envoy Proxies
+
+The next step is to deploy Envoy as a reverse proxy.
+
+```
+ks generate iap-envoy iap-envoy --audiences=${JWT_AUDIENCE}
+ks apply ${ENVIRONMENT} -c iap-envoy
+```
+
+### Test ingress
+
+It can take some time for IAP to be enabled. You can test things out using the following URL
+
+```
+https://${DOMAIN}/noiap/whoami
+```
+
+  * This a simple test app that's deployed as part of the iap-envoy component.
+  * This URL will always be accessible regardless of whether IAP is enabled or not
+  * If IAP isn't enabled the app will report that you are an anyomous user
+  * Once IAP takes effect you will have to authenticate using your Google account and the app will tell you 
+    what your email is.
+  
+We also have the app running at
+
+```
+https://${DOMAIN}/whoami
+```
+  * But this path will reject traffic that didn't go through IAP so it won't work unless IAP is enabled. In this case you should get
+  one of the following errors.
+
+    * `401 UNAUTHORIZED` this indicates IAP isn't enabled so the request is rejected because it wasn't authenticated
+    * `401 ISS_AUD_UNMATCH1` this is because Envoy doesn't support IAP JWT tokens yet [istio/proxy/issues/941](https://github.com/istio/proxy/issues/941)
+
+
+### Disable JWT verification 
+
+Until [istio/proxy/issues/941](https://github.com/istio/proxy/issues/941) is fixed you can disable JWT verification in Envoy. 
+
+**Warning** This is a serious security risk because it means if IAP is disabled all traffic will be allowed through. You should only do this
+if you understand the risks; for more info see [IAP's docs on Securing Your App](https://cloud.google.com/iap/docs/signed-headers-howto).
+
+```
+ks param set iap-envoy disableJwtChecking true
+ks apply ${ENVIRONMENT} -c iap-envoy
+# Delete the pods so they are recreated with the new config
+kubectl delete pods --selector=service=envoy
+```
+
+
+###
 Deploy JupyterHub using the Cloud Endpoints [NGINX proxy](https://github.com/cloudendpoints/esp)
 
 ```
@@ -52,15 +163,15 @@ ks param set ${CORE_NAME} jupyterHubServiceVersion ${SERVICE_VERSION}
 ks param set ${CORE_NAME} jupyterHubAuthenticator iap
 ks apply ${ENV} -c ${CORE_NAME}
 ```
-	
+  
   * For ENDPOINT you can pick whatever name you want (that you haven't already used) to access your jupyter deployment.
-	* You will access Jupyter at `http://${ENDPOINT}.endpoints.${PROJECT}.cloud.goog`
+  * You will access Jupyter at `http://${ENDPOINT}.endpoints.${PROJECT}.cloud.goog`
   * The above commands configure JupyterHub to run with NGINX in a side car
   * We rely on NGINX to perform JWT validation and reject any external traffic which didn't pass through IAP
   * NGINX gets its configuration using [Cloud Endpoints](https://cloud.google.com/endpoints/docs/) which is configured below
   * **Important** We need to deploy JupyterHub with the NGINX sidecar before we create the K8s ingress (see below) because the readiness probe
-	  determines the path for the HTTP health check created by ingress
-	* Since we don't know the SERVICE_VERSION we just use a blank value.
+    determines the path for the HTTP health check created by ingress
+  * Since we don't know the SERVICE_VERSION we just use a blank value.
 
 Create a K8s ingress to allow JupyterHub to be accessed externally
 
@@ -86,10 +197,10 @@ ${DOCS_PATH}/create_iap_openapi.sh $PROJECT $NAMESPACE $JUPYTER_SERVICE $JUPYTER
   * JUPYTER_INGRESS is the name of the ingress whose backend i jupyter service
   * ENDPOINT this is a name you choose. It determines the URl you will access JupyterHub at; which will be
   * This will configure the NGINX proxy to do JWT validation and reject any traffic that didn't go through IAP.
-	
-	```
-	ENDPOINT_URL=${ENDPOINT}.endpoints.${PROJECT}.cloud.goog"
-	```
+  
+  ```
+  ENDPOINT_URL=${ENDPOINT}.endpoints.${PROJECT}.cloud.goog"
+  ```
 
 Update Cloud Endpoints.
 
@@ -97,65 +208,18 @@ Update Cloud Endpoints.
 gcloud --project=${PROJECT} endpoints services deploy ${ENDPOINT}-openapi.yaml
 ```
 
-### Create oauth client credentials
 
-Creating the OAuth Client ID
 
-* Set up your OAuth consent screen:
-* Configure the consent screen.
+### Adding Users
 
-* Under Email address, select the address that you want to display as a public contact. You must use either your email address or a Google Group that you own.
-* In the Product name box, enter something like `kubeflow-jupyterhub`
-* Click Save.
-* Click Create credentials, and then click OAuth client ID.
-* Under Application type, select Web application. In the Name box enter a name, and in the Authorized redirect URIs box, enter 
+IAP will block users who haven't been granted access to your web app. You can grant access using the following command.
 
 ```
-  https://${ENDPOINT}.endpoints.${PROJECT}.cloud.goog/_gcp_gatekeeper/authenticate, 
+gcloud projects add-iam-policy-binding $PROJECT \
+  --role roles/iap.httpsResourceAccessor \
+  --member user:${USER_EMAIL}
 ```
 
- * Replace ${PROJECT} and ${ENDPOINT} with the values for your project.
-
-After you enter the details, click Create. Make note of the client ID and client secret that appear in the OAuth client window.
-Save the OAuth client ID and secret to variables for later use:
-CLIENT_ID=YOUR_CLIENT_ID
-CLIENT_SECRET=YOUR_CLIENT_SECRET
-
-
-### Update JupyterHub
-
-We need to update the NXING proxy in the JupyterHub pod to use the service we just created
-
-```
-ENDPOINT_URL="${ENDPOINT}.endpoints.${PROJECT}.cloud.goog"
-SERVICE_VERSION=$(gcloud endpoints services describe ${ENDPOINT_URL} --format='value(serviceConfig.id)')
-
-ks param set ${CORE_NAME} jupyterHubEndpoint ${ENDPOINT_URL}
-ks param set ${CORE_NAME} jupyterHubServiceVersion ${SERVICE_VERSION}
-kubectl delete statefulsets tf-hub-0
-ks apply ${ENV} -c ${CORE_NAME}
-```
-  * CORE_NAME should be the name you gave the core Kubeflow component.
-  * We delete the statefulset so that it will pick up the new config
-
-At this point you can try connecting over http to `http://${ENDPOINT_URL}` you should get an error like the following indicating
-the traffic was rejected because you don't have IAP enabled and aren't authenticated.
-
-```
-{
- "code": 16,
- "message": "JWT validation failed: Missing or invalid credentials",
- "details": [
-  {
-   "@type": "type.googleapis.com/google.rpc.DebugInfo",
-   "stackEntries": [],
-   "detail": "auth"
-  }
- ]
-}
-```
-
-Enable IAP
 
 ```
 export CLIENT_ID=...
@@ -165,11 +229,6 @@ ${DOCS_PATH}/enable_iap.sh ${PROJECT} ${NAMESPACE} ${JUPYTER_SERVICE}
 
 You will need to grant IAP access to users (or GROUPs) e.g.
 
-```
-gcloud projects add-iam-policy-binding $PROJECT \
-  --role roles/iap.httpsResourceAccessor \
-  --member user:${USER_EMAIL}
-```
 
 Since you are using a self signed certificate chrome will give you a warning like
 
