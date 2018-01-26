@@ -77,7 +77,6 @@ gcloud --project=${PROJECT} container clusters create \
 	--machine-type=n1-standard-8 \
 	--cluster-version=1.8.4-gke.1 \
 	${CLUSTER}
-
 ```
 
 

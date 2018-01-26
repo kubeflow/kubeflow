@@ -11,7 +11,7 @@ registries:
     uri: github.com/ksonnet/parts/tree/master/incubator
   kubeflow:
     gitVersion:
-      commitSha: fed20a178e7d0573d519ca4f6f9c8759e65e668a
+      commitSha: 5c35580d76092788b089cb447be3f3097cffe60b
       refSpec: master
     protocol: github
     uri: github.com/google/kubeflow/tree/master/kubeflow
