@@ -10,6 +10,7 @@
 // @optionalParam tfDefaultImage string null The default image to use for TensorFlow.
 // @optionalParam tfJobUiServiceType string ClusterIP The service type for the UI.
 // @optionalParam jupyterHubServiceType string ClusterIP The service type for Jupyterhub.
+// @optionalParam jupyterHubAuthenticator string null The authenticator to use with jupyterHub; default is dummy username/password. Set to IAP to use IAP.
 
 // TODO(https://github.com/ksonnet/ksonnet/issues/222): We have to add namespace as an explicit parameter
 // because ksonnet doesn't support inheriting it from the environment yet.
