@@ -77,6 +77,7 @@ gcloud --project=${PROJECT} container clusters create \
 	--machine-type=n1-standard-8 \
 	--cluster-version=1.8.4-gke.1 \
 	${CLUSTER}
+
 ```
 
 
@@ -139,6 +140,12 @@ the test runs.
 ### Create K8s Resources for Testing
 
 The ksonnet app `test-infra` contains ksonnet configs to deploy the test infrastructure.
+
+First, install the kubeflow package
+
+```
+ks pkg install kubeflow/core
+```
 
 You can deploy argo as follows (you don't need to use argo's CLI)
 

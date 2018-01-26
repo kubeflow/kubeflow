@@ -1,12 +1,6 @@
 apiVersion: 0.0.1
 kind: ksonnet.io/app
 libraries:
-  core:
-    gitVersion:
-      commitSha: 5c35580d76092788b089cb447be3f3097cffe60b
-      refSpec: master
-    name: core
-    registry: kubeflow
 name: test-infra
 registries:
   incubator:
@@ -17,7 +11,7 @@ registries:
     uri: github.com/ksonnet/parts/tree/master/incubator
   kubeflow:
     gitVersion:
-      commitSha: 5c35580d76092788b089cb447be3f3097cffe60b
+      commitSha: fed20a178e7d0573d519ca4f6f9c8759e65e668a
       refSpec: master
     protocol: github
     uri: github.com/google/kubeflow/tree/master/kubeflow
