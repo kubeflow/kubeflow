@@ -147,6 +147,9 @@ First, install the kubeflow package
 ks pkg install kubeflow/core
 ```
 
+Then change the server ip in `test-infra/environments/prow/spec.json` to
+point to your cluster.
+
 You can deploy argo as follows (you don't need to use argo's CLI)
 
 ```
@@ -159,8 +162,8 @@ Deploy NFS & Jupyter
 ks apply prow -c nfs-jupyter
 ```
 
-	* This creates the NFS share
-	* We use JupyterHub as a convenient way to access the NFS share for manual inspection of the file contents.
+* This creates the NFS share
+* We use JupyterHub as a convenient way to access the NFS share for manual inspection of the file contents.
 
 #### Troubleshooting
 
