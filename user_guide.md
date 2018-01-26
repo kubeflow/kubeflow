@@ -1,6 +1,6 @@
 # Using Kubeflow
 
-This guide will walk you through the basics of deploying and interacting with Kubeflow. A basic understanding of Kubernetes, Tensorflow, and Ksonnet are useful in understanding the contents of this guide.
+This guide will walk you through the basics of deploying and interacting with Kubeflow. Some understanding of Kubernetes, Tensorflow, and Ksonnet are useful in completing the contents of this guide.
 
 * [Kubernetes](https://kubernetes.io/docs/tutorials/kubernetes-basics/)
 * [Tensorflow](https://www.tensorflow.org/get_started/)
@@ -86,21 +86,22 @@ kubectl get svc -n=${NAMESPACE}
 
 NAME               TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
 tf-hub-0           ClusterIP      None            <none>        8000/TCP       1m
-tf-hub-lb          LoadBalancer   10.11.245.94   xx.yy.zz.ww   80:32481/TCP   1m
+tf-hub-lb          ClusterIP      10.11.245.94    <none>        80/TCP         1m
 tf-job-dashboard   ClusterIP      10.11.240.151   <none>        80/TCP         1m
 ```
 
-If you're using minikube, you can run the following to get the URL for the notebook.
+By default we are using ClusterIPs for the JupyterHub UI. This can be changed to a LoadBalancer by issuing `ks param set kubeflow-core jupyterHubServiceType LoadBalancer`, however this will leave your Notebook open to the Internet.
+
+To connect to your notebook:
 
 ```
-minikube service tf-hub-lb --url
-
-http://xx.yy.zz.ww:31942
+PODNAME=`kubectl get pods --selector="app=tf-hub" --output=template --template="{{with index .items 0}}{{.metadata.name}}{{end}}"`
+kubectl port-forward $PODNAME 8000:8000
 ``` 
 
-For some cloud deployments, the LoadBalancer service may take up to five minutes display an external IP address. Re-executing `kubectl get svc` repeatedly will eventually show the external IP field populated.
+Then open [http://127.0.0.1:8000](http://127.0.0.1:8000) in your browser.
 
-Once you have an external IP, you can proceed to visit that in your browser. You should see a sign in prompt.
+You should see a sign in prompt.
 
 1. Sign in using any username/password
 1. Click the "Start My Server" button, you will be greeted by a dialog screen.
@@ -157,7 +158,7 @@ Create a component for your model
 ```
 MODEL_COMPONENT=serveInception
 MODEL_NAME=inception
-MODEL_PATH=gs://cloud-ml-dev_jlewi/tmp/inception
+MODEL_PATH=gs://kubeflow-models/inception
 ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME} --namespace=${NAMESPACE} --model_path=${MODEL_PATH}
 ```
 
@@ -170,7 +171,7 @@ ks apply ${KF_ENV} -c ${MODEL_COMPONENT}
 As before, a few pods and services have been created in your cluster. You can get the inception serving endpoint by querying kubernetes:
 
 ```
-kubectl get svc inception
+kubectl get svc inception -n=${NAMESPACE}
 NAME        TYPE           CLUSTER-IP      EXTERNAL-IP      PORT(S)          AGE
 inception   LoadBalancer   10.35.255.136   ww.xx.yy.zz   9000:30936/TCP   28m
 ```
@@ -239,10 +240,10 @@ ks prototype describe tf-cnn
 
 ## Advanced Customization
 
-* Often times datascientists require a POSIX compliant filesystem 
+* Often times data scientists require a POSIX compliant filesystem 
    * For example, most HDF5 libraries require POSIX and don't work with an object store like GCS or S3
 * When working with teams you might want a shared POSIX filesystem to be mounted into your notebook environments
-  so that datascientists can work collaboratively on the same datasets.
+  so that data scientists can work collaboratively on the same datasets.
 * Here we show how to customize your Kubeflow deployment to achieve this.
 
 

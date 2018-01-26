@@ -164,6 +164,16 @@ User or service account deploying the test infrastructure needs sufficient permi
 kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --user=user@gmail.com
 ```
 
+##### Operator Logs
+
+The following Stackdriver filter can be used to get the pod logs for the operator
+
+```
+resource.type="container"
+resource.labels.namespace_id="e2e-0117-1911-3a53"
+resource.labels.container_name="tf-job-operator"
+```
+
 ## Managing namespaces
 
 All namespaces created for the tests should be labeled with `app=kubeflow-e2e-test`.

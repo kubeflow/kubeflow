@@ -9,10 +9,8 @@
 // @optionalParam tfJobImage string gcr.io/tf-on-k8s-dogfood/tf_operator:v20180117-04425d9-dirty-e3b0c44 The image for the TfJob controller.
 // @optionalParam tfDefaultImage string null The default image to use for TensorFlow.
 // @optionalParam tfJobUiServiceType string ClusterIP The service type for the UI.
-// @optionalParam jupyterHubServiceType string ClusterIP The service type for jupyter.
-// @optionalParam jupyterHubEndpoint string null The Cloud endpoint name to use with JupyterHub
-// @optionalParam jupyterHubServiceVersion string null The cloud endpoint service version to use
-// @optionalParam jupyterHubAuthenticator string dummy The authenticator to use with JupyterHub
+// @optionalParam jupyterHubServiceType string ClusterIP The service type for Jupyterhub.
+// @optionalParam jupyterHubAuthenticator string null The authenticator to use with jupyterHub; default is dummy username/password. Set to IAP to use IAP.
 
 // TODO(https://github.com/ksonnet/ksonnet/issues/222): We have to add namespace as an explicit parameter
 // because ksonnet doesn't support inheriting it from the environment yet.
@@ -30,68 +28,71 @@ local cloud = import 'param://cloud';
 
 // TODO(jlewi): Make this a parameter
 local jupyterHubServiceType = import 'param://jupyterHubServiceType';
-local jupyterHubImage = 'gcr.io/kubeflow/jupyterhub-k8s:1.0.1;
-local jupyterHubAuthenticator = 'param://jupyterHubAuthenticator';
+local jupyterHubImage = 'gcr.io/kubeflow/jupyterhub-k8s:1.0.1';
+local jupyterHubAuthenticator = import 'param://jupyterHubAuthenticator';
 
 local diskParam = import 'param://disks';
 
 local diskNames = if diskParam != "null" && std.length(diskParam) > 0 then
   std.split(diskParam, ',')
-  else [];
+else [];
 
 local jupyterConfigMap = if std.length(diskNames) == 0 then
-	jupyter.parts(namespace).jupyterHubConfigMap
-	else jupyter.parts(namespace).jupyterHubConfigMapWithVolumes(diskNames);
-
-local jupyterHubEndpointParam = import 'param://jupyterHubEndpoint';
-local jupyterHubEndpoint = if jupyterHubEndpointParam == "null" then "" else jupyterHubEndpointParam;
+  jupyter.parts(namespace).jupyterHubConfigMap
+else jupyter.parts(namespace).jupyterHubConfigMapWithVolumes(diskNames);
 
 local tfJobImage = import 'param://tfJobImage';
 local tfDefaultImage = import 'param://tfDefaultImage';
 local tfJobUiServiceType = import 'param://tfJobUiServiceType';
+local jupyterHubServiceType = import 'param://jupyterHubServiceType';
 
 // Create a list of the resources needed for a particular disk
 local diskToList = function(diskName) [
-	nfs.parts(namespace, name,).diskResources(diskName).storageClass,
-	nfs.parts(namespace, name,).diskResources(diskName).volumeClaim,
-	nfs.parts(namespace, name,).diskResources(diskName).service,
-	nfs.parts(namespace, name,).diskResources(diskName).provisioner];
+  nfs.parts(namespace, name,).diskResources(diskName).storageClass,
+  nfs.parts(namespace, name,).diskResources(diskName).volumeClaim,
+  nfs.parts(namespace, name,).diskResources(diskName).service,
+  nfs.parts(namespace, name,).diskResources(diskName).provisioner,
+];
 
 local allDisks = std.flattenArrays(std.map(diskToList, diskNames));
 
 local nfsComponents =
-	if std.length(allDisks) > 0 then
-	[nfs.parts(namespace, name).serviceAccount,
-	 nfs.parts(namespace, name).role,
-	 nfs.parts(namespace, name).roleBinding,
-	 nfs.parts(namespace, name).clusterRoleBinding,] + allDisks
-	else 
-	[];
+  if std.length(allDisks) > 0 then
+    [
+      nfs.parts(namespace, name).serviceAccount,
+      nfs.parts(namespace, name).role,
+      nfs.parts(namespace, name).roleBinding,
+      nfs.parts(namespace, name).clusterRoleBinding,
+    ] + allDisks
+  else
+    [];
 
-std.prune(k.core.v1.list.new([	
-	jupyter.parts(namespace).jupyterHubConfigMap(kubeSpawner),
-    jupyter.parts(namespace).jupyterHubService, 
-    jupyter.parts(namespace).jupyterHubLoadBalancer(jupyterHubServiceType), 
-    jupyter.parts(namespace).jupyterHub(jupyterHubImage),
-    jupyter.parts(namespace).jupyterHubRole,
-    jupyter.parts(namespace).jupyterHubServiceAccount,
-    jupyter.parts(namespace).jupyterHubRoleBinding,    
+local kubeSpawner = jupyter.parts(namespace).kubeSpawner(jupyterHubAuthenticator, diskNames);
 
-    // TfJob controller
-    tfjob.parts(namespace).tfJobDeploy(tfJobImage), 
-    tfjob.parts(namespace).configMap(cloud, tfDefaultImage),
-    tfjob.parts(namespace).serviceAccount,
+std.prune(k.core.v1.list.new([
+  jupyter.parts(namespace).jupyterHubConfigMap(kubeSpawner),
+  jupyter.parts(namespace).jupyterHubService,
+  jupyter.parts(namespace).jupyterHubLoadBalancer(jupyterHubServiceType),
+  jupyter.parts(namespace).jupyterHub(jupyterHubImage),
+  jupyter.parts(namespace).jupyterHubRole,
+  jupyter.parts(namespace).jupyterHubServiceAccount,
+  jupyter.parts(namespace).jupyterHubRoleBinding,
 
-    // TfJob controll ui
-    tfjob.parts(namespace).ui(tfJobImage),     
-    tfjob.parts(namespace).uiService(tfJobUiServiceType),   
+  // TfJob controller
+  tfjob.parts(namespace).tfJobDeploy(tfJobImage),
+  tfjob.parts(namespace).configMap(cloud, tfDefaultImage),
+  tfjob.parts(namespace).serviceAccount,
+  tfjob.parts(namespace).operatorRole,
+  tfjob.parts(namespace).operatorRoleBinding,
 
-    // Ambassador
-    ambassador.parts(namespace).service,
-    ambassador.parts(namespace).adminService,
-    ambassador.parts(namespace).clusterRole,
-    ambassador.parts(namespace).serviceAccount,    
-    ambassador.parts(namespace).clusterRoleBinding,    
-    ambassador.parts(namespace).deploy,
-    
-] + nfsComponents))
+  // TFJob controller ui
+  tfjob.parts(namespace).ui(tfJobImage),
+  tfjob.parts(namespace).uiService(tfJobUiServiceType),
+  tfjob.parts(namespace).uiServiceAccount,
+  tfjob.parts(namespace).uiRole,
+  tfjob.parts(namespace).uiRoleBinding,
+
+  tfjob.parts(namespace).ui(tfJobImage),
+  tfjob.parts(namespace).uiService(tfJobUiServiceType),
+
+] + ambassador.parts(namespace).all + nfsComponents))
