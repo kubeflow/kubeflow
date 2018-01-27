@@ -82,35 +82,34 @@ gcloud --project=${PROJECT} container clusters create \
 
 ### Create a GCP service account
 	
-	* The tests need a GCP service account to upload data to GCS for Gubernator
+* The tests need a GCP service account to upload data to GCS for Gubernator
 
-	```
-	SERVICE_ACCOUNT=kubeflow-testing
-	gcloud iam service-accounts --project=mlkube-testing create ${SERVICE_ACCOUNT} --display-name "Kubeflow testing account"
+```
+SERVICE_ACCOUNT=kubeflow-testing
+gcloud iam service-accounts --project=mlkube-testing create ${SERVICE_ACCOUNT} --display-name "Kubeflow testing account"
 	gcloud projects add-iam-policy-binding ${PROJECT} \
     	--member serviceAccount:${SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com --role roles/container.developer
-	```
-		* The service account needs to be able to create K8s resources as part of the test.
+```
+* The service account needs to be able to create K8s resources as part of the test.
 
 
-	Create a secret key for the service account
+Create a secret key for the service account
 
-	```
-	gcloud iam service-accounts keys create ~/tmp/key.json \
+```
+gcloud iam service-accounts keys create ~/tmp/key.json \
     	--iam-account ${SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com
     kubectl create secret generic kubeflow-testing-credentials \
         --namespace=kubeflow-test-infra --from-file=`echo ~/tmp/key.json`
     rm ~/tmp/key.json
-	```
+```
 
-	Make the service account a cluster admin
+Make the service account a cluster admin
 
-	```
-	kubectl create clusterrolebinding  ${SERVICE_ACCOUNT}-admin --clusterrole=cluster-admin  \
+```
+kubectl create clusterrolebinding  ${SERVICE_ACCOUNT}-admin --clusterrole=cluster-admin  \
 		--user=${SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com 
-	```
-		* The service account is used to deploye Kubeflow which entails creating various roles; so 
-		  it needs sufficient RBAC permission to do so.
+```
+* The service account is used to deploye Kubeflow which entails creating various roles; so it needs sufficient RBAC permission to do so.
 
 ### Create a GitHub Token
 
@@ -141,6 +140,15 @@ the test runs.
 
 The ksonnet app `test-infra` contains ksonnet configs to deploy the test infrastructure.
 
+First, install the kubeflow package
+
+```
+ks pkg install kubeflow/core
+```
+
+Then change the server ip in `test-infra/environments/prow/spec.json` to
+point to your cluster.
+
 You can deploy argo as follows (you don't need to use argo's CLI)
 
 ```
@@ -153,8 +161,8 @@ Deploy NFS & Jupyter
 ks apply prow -c nfs-jupyter
 ```
 
-	* This creates the NFS share
-	* We use JupyterHub as a convenient way to access the NFS share for manual inspection of the file contents.
+* This creates the NFS share
+* We use JupyterHub as a convenient way to access the NFS share for manual inspection of the file contents.
 
 #### Troubleshooting
 
