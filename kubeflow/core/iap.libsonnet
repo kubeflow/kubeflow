@@ -256,6 +256,7 @@
                           // routes based on service annotations.
                           timeout_ms: 10000,
                           prefix: "/",
+                          prefix_rewrite: "/",
                           use_websocket: true,
                           weighted_clusters: {
                             clusters: [
@@ -455,6 +456,7 @@
                         {
                           timeout_ms: 10000,
                           prefix: "/",
+                          prefix_rewrite: "/",
                           use_websocket: true,
                           weighted_clusters: {
                             clusters: [
