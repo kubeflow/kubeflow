@@ -4,4 +4,5 @@
 competition](https://www.kaggle.com/c/zillow-prize-1) to improve their
 [Zestimate](https://www.zillow.com/zestimate/). "Zestimates" are estimated home
 values based on 7.5 million statistical and machine learning models that
-analyze hundreds of data points on each property. 
+analyze hundreds of data points on each property. We will do a detailed
+walk-through of how to implement a model and make predictions using [Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/).  
