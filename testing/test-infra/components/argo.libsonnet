@@ -85,7 +85,7 @@
                                     }
                                 }
                             ],
-                            "image": "argoproj/workflow-controller:v2.0.0-alpha2",
+                            "image": "argoproj/workflow-controller:v2.0.0-alpha3",
                             "imagePullPolicy": "IfNotPresent",
                             "name": "workflow-controller",
                             "resources": {},
@@ -157,7 +157,7 @@
                                     "value": "true"
                                 }
                             ],
-                            "image": "argoproj/argoui:v2.0.0-alpha2",
+                            "image": "argoproj/argoui:v2.0.0-alpha3",
                             "imagePullPolicy": "IfNotPresent",
                             "name": "argo-ui",
                             "resources": {},
@@ -171,12 +171,47 @@
                     "securityContext": {},
                     "serviceAccount": "argo",
                     "serviceAccountName": "argo",
-                    "terminationGracePeriodSeconds": 30
+                    "terminationGracePeriodSeconds": 30,
+                    "readinessProbe": {
+                      "httpGet": {
+                        "path": "/", 
+                        "port": 8001,
+                      }
+                    },
                 }
             }
         },
       }, // deployUi
 
+      uiIngress:: {
+          "apiVersion": "extensions/v1beta1", 
+          "kind": "Ingress", 
+          "metadata": {
+            "name": "argo-ui",
+            "namespace": namespace,
+          }, 
+          "annotations": {
+            "kubernetes.io/ingress.global-static-ip-name": "argo-ui",
+          },
+          "spec": {
+            "rules": [
+              {
+                "http": {
+                  "paths": [
+                     {
+                      "backend": {
+                        "serviceName": "argo-ui",
+                        "servicePort": 80,
+                      }, 
+                      "path": "/*"
+                    },
+                  ]
+                }
+              }
+            ],
+          }
+      }, // ingress
+      
       uiService: {
         "apiVersion": "v1", 
         "kind": "Service", 
@@ -198,8 +233,7 @@
             "app": "argo-ui"
           }, 
           "sessionAffinity": "None", 
-          # TODO(jlewi): Add an option to provision a load balancer?
-          # "type": "LoadBalancer"
+          "type": "NodePort",
         }
       },
 

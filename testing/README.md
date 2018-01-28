@@ -27,9 +27,7 @@ CLUSTER=kubeflow-testing
 NAMESPACE=kubeflow-test-infra
 ```
 
-After starting `kubectl proxy` you can connect to it at
-
-Then you can connect to the UI via the proxy at
+After starting `kubectl proxy` on `127.0.0.1:8001`, you can connect to the argo UI via the local proxy at
 
 ```
 http://127.0.0.1:8001/api/v1/proxy/namespaces/kubeflow-test-infra/services/argo-ui:80/
@@ -84,35 +82,34 @@ gcloud --project=${PROJECT} container clusters create \
 
 ### Create a GCP service account
 	
-	* The tests need a GCP service account to upload data to GCS for Gubernator
+* The tests need a GCP service account to upload data to GCS for Gubernator
 
-	```
-	SERVICE_ACCOUNT=kubeflow-testing
-	gcloud iam service-accounts --project=mlkube-testing create ${SERVICE_ACCOUNT} --display-name "Kubeflow testing account"
+```
+SERVICE_ACCOUNT=kubeflow-testing
+gcloud iam service-accounts --project=mlkube-testing create ${SERVICE_ACCOUNT} --display-name "Kubeflow testing account"
 	gcloud projects add-iam-policy-binding ${PROJECT} \
     	--member serviceAccount:${SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com --role roles/container.developer
-	```
-		* The service account needs to be able to create K8s resources as part of the test.
+```
+* The service account needs to be able to create K8s resources as part of the test.
 
 
-	Create a secret key for the service account
+Create a secret key for the service account
 
-	```
-	gcloud iam service-accounts keys create ~/tmp/key.json \
+```
+gcloud iam service-accounts keys create ~/tmp/key.json \
     	--iam-account ${SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com
     kubectl create secret generic kubeflow-testing-credentials \
         --namespace=kubeflow-test-infra --from-file=`echo ~/tmp/key.json`
     rm ~/tmp/key.json
-	```
+```
 
-	Make the service account a cluster admin
+Make the service account a cluster admin
 
-	```
-	kubectl create clusterrolebinding  ${SERVICE_ACCOUNT}-admin --clusterrole=cluster-admin  \
+```
+kubectl create clusterrolebinding  ${SERVICE_ACCOUNT}-admin --clusterrole=cluster-admin  \
 		--user=${SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com 
-	```
-		* The service account is used to deploye Kubeflow which entails creating various roles; so 
-		  it needs sufficient RBAC permission to do so.
+```
+* The service account is used to deploye Kubeflow which entails creating various roles; so it needs sufficient RBAC permission to do so.
 
 ### Create a GitHub Token
 
@@ -143,6 +140,15 @@ the test runs.
 
 The ksonnet app `test-infra` contains ksonnet configs to deploy the test infrastructure.
 
+First, install the kubeflow package
+
+```
+ks pkg install kubeflow/core
+```
+
+Then change the server ip in `test-infra/environments/prow/spec.json` to
+point to your cluster.
+
 You can deploy argo as follows (you don't need to use argo's CLI)
 
 ```
@@ -155,15 +161,25 @@ Deploy NFS & Jupyter
 ks apply prow -c nfs-jupyter
 ```
 
-	* This creates the NFS share
-	* We use JupyterHub as a convenient way to access the NFS share for manual inspection of the file contents.
+* This creates the NFS share
+* We use JupyterHub as a convenient way to access the NFS share for manual inspection of the file contents.
 
 #### Troubleshooting
 
-User or service account deploying the test infrastructure needs sufficient permissions to create the roles that are created as part deploying the test infrastructe. So you may need to run the following command before using ksonnet to deploy the test infrastructure.
+User or service account deploying the test infrastructure needs sufficient permissions to create the roles that are created as part deploying the test infrastructure. So you may need to run the following command before using ksonnet to deploy the test infrastructure.
 
 ```
 kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --user=user@gmail.com
+```
+
+##### Operator Logs
+
+The following Stackdriver filter can be used to get the pod logs for the operator
+
+```
+resource.type="container"
+resource.labels.namespace_id="e2e-0117-1911-3a53"
+resource.labels.container_name="tf-job-operator"
 ```
 
 ## Managing namespaces

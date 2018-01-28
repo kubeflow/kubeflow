@@ -26,10 +26,10 @@ local tfJobImage = params.tfJobImage;
 
 // Create a list of the resources needed for a particular disk
 local diskToList = function(diskName) [
-	nfs.parts(namespace, name,).diskResources(diskName).storageClass,
-	nfs.parts(namespace, name,).diskResources(diskName).volumeClaim,
-	nfs.parts(namespace, name,).diskResources(diskName).service,
-	nfs.parts(namespace, name,).diskResources(diskName).provisioner];
+	nfs.parts(namespace, name).diskResources(diskName).storageClass,
+	nfs.parts(namespace, name).diskResources(diskName).volumeClaim,
+	nfs.parts(namespace, name).diskResources(diskName).service,
+	nfs.parts(namespace, name).diskResources(diskName).provisioner];
 
 local allDisks = std.flattenArrays(std.map(diskToList, diskNames));
 
@@ -49,7 +49,7 @@ std.prune(k.core.v1.list.new([
 	// jupyterHub components
 	jupyterConfigMap,
     jupyter.parts(namespace).jupyterHubService, 
-    jupyter.parts(namespace).jupyterHubLoadBalancer,
+    jupyter.parts(namespace).jupyterHubLoadBalancer("ClusterIP"),
     jupyter.parts(namespace).jupyterHub(jupyterHubImage),
     jupyter.parts(namespace).jupyterHubRole,
     jupyter.parts(namespace).jupyterHubServiceAccount,
