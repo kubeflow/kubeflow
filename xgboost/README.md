@@ -24,5 +24,6 @@ docker build -t gcr.io/kubeflow-images/zillow_xgb:v1 .
 
 Once the above command is successful you should be able to see the docker
 images on your local machine `docker images` and then upload the image to
-Google Container Registry using `gcloud docker -- push
-gcr.io/kubeflow-images/zillow_xgb:v1`
+Google Container Registry using
+
+```gcloud docker -- push gcr.io/kubeflow-images/zillow_xgb:v1```
