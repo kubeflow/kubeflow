@@ -24,11 +24,11 @@ local name = import 'param://name';
 local namespace = import 'param://namespace';
 
 local argsParam = import 'param://args';
-local args = 
-    if argsParam == "null" then
+local args =
+  if argsParam == "null" then
     []
-    else
-	std.split(argsParam, ',');
+  else
+    std.split(argsParam, ',');
 
 local image = import 'param://image';
 local imageGpu = import 'param://image_gpu';
@@ -38,14 +38,14 @@ local numWorkers = import 'param://num_workers';
 local numGpus = import 'param://num_gpus';
 
 local workerSpec = if numGpus > 0 then
-  	tfJob.parts.tfJobReplica("WORKER", numWorkers, args, imageGpu, numGpus)
-  	else
-  	tfJob.parts.tfJobReplica("WORKER", numWorkers, args, image);
+  tfJob.parts.tfJobReplica("WORKER", numWorkers, args, imageGpu, numGpus)
+else
+  tfJob.parts.tfJobReplica("WORKER", numWorkers, args, image);
 
 std.prune(k.core.v1.list.new([
   tfJob.parts.tfJob(name, namespace, [
-  	tfJob.parts.tfJobReplica("MASTER", numMasters, args, image),
-	workerSpec,  	
-  	tfJob.parts.tfJobReplica("PS", numPs, args, image)
+    tfJob.parts.tfJobReplica("MASTER", numMasters, args, image),
+    workerSpec,
+    tfJob.parts.tfJobReplica("PS", numPs, args, image),
   ]),
 ]))
