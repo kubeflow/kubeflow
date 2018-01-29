@@ -139,7 +139,7 @@ Create a component for your model inside your ksonnet app (refer to the [user_gu
 ```commandline
 MODEL_COMPONENT=serveInception
 MODEL_NAME=inception
-MODEL_PATH=gs://cloud-ml-dev_jlewi/tmp/inception
+MODEL_PATH=gs://kubeflow-models/inception
 ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME} --namespace=default --model_path=${MODEL_PATH}
 ```
 
