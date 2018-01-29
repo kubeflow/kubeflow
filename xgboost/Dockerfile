@@ -12,9 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Use an official Python runtime as parent image
+# Use an official Ubuntu 18.04 as parent image
+FROM ubuntu:18.04
+
+# Install python 2.7
 FROM python:2.7
 
+RUN apt-get update
+RUN apt-get install -y git make g++
+
 # Build XGBoost
-RUN git clone --recursive https://github.com/dmlc/xgboost
-RUN cd xgboost; make -j4
+RUN git clone --recursive https://github.com/dmlc/xgboost && \
+    cd xgboost && \
+    make -j4 && \
+    cd python-package; python setup.py install
