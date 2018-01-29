@@ -7,7 +7,8 @@
     $.parts(namespace).clusterRole,
     $.parts(namespace).serviceAccount,    
     $.parts(namespace).clusterRoleBinding,    
-    $.parts(namespace).deploy],
+    $.parts(namespace).deploy,
+    $.parts(namespace).k8sDashboard],
 
    local ambassadorImage = "quay.io/datawire/ambassador:0.22.0",
     service:: {
@@ -149,7 +150,7 @@
         "namespace": namespace,
       }, 
       "spec": {
-        "replicas": 3, 
+        "replicas": 3,
         "template": {
           "metadata": {
             "labels": {
@@ -227,22 +228,26 @@
             "kind:  Mapping",
             "name: k8s-dashboard-ui-mapping",
             "prefix: /k8s/ui/",
-            "rewrite: /",
-            "service: k8s-dashboard." + namespace]),
+            "rewrite: /",            
+            "tls: true",
+            // We redirect to the K8s service created for the dashboard
+            // in namespace kube-system. We don't use the k8s-dashboard service
+            // because that isn't in the kube-system namespace and I don't think
+            // it can select pods in a different namespace.
+            "service: kubernetes-dashboard.kube-system"]),
        }, //annotations
       }, 
       "spec": {
         "ports": [
           {
-            // TODO(jlewi)
-            "port": 80, 
+            "port": 443, 
             "targetPort": 8443,
           }
         ], 
         "selector": {
-          "name": "tf-job-dashboard"
+          "k8s-app": "kubernetes-dashboard",
         }, 
-        "type": serviceType,
+        "type": "ClusterIP",
       }
     }, // k8sDashboard
 
