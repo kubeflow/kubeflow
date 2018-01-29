@@ -15,7 +15,7 @@ Kubernetes Engine API. In addition to that you will need to install
 
 ### Dockerfile
 We have attached a Dockerfile with this repo which you can use to create a
-docker image. We will also be uploading the public image to gcr.io, which you can use to
+docker image. We have also uploaded the image to gcr.io, which you can use to
 directly download the image.
 
 ```
@@ -28,4 +28,10 @@ Google Container Registry using
 
 ```
 gcloud docker -- push gcr.io/kubeflow-images/zillow_xgb:v1
+```
+
+You can play with the image locally by performing
+
+```
+docker run -i -t gcr.io/kubeflow-images/zillow_xgb:v1 /bin/bash
 ```
