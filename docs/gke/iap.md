@@ -31,13 +31,13 @@ with the IP address that you just reserved.
 The certificate is needed for HTTPs
   
 ```
-ENDPOINT_URL=${HOST}.${YOURDOMAIN}
-mkdir -p ~/tmp/${ENDPOINT_URL}
-TLS_KEY_FILE=~/tmp/${ENDPOINT_URL}/tls.key
-TLS_CRT_FILE=~/tmp/${ENDPOINT_URL}/tls.crt
+${FQDN}=${HOST}.${YOURDOMAIN}
+mkdir -p ~/tmp/${DOMAIN}
+TLS_KEY_FILE=~/tmp/${FQDN}/tls.key
+TLS_CRT_FILE=~/tmp/${FQDN}/tls.crt
 
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-  -subj "/CN=${ENDPOINT_URL}/O=Google LTD./C=US" \
+  -subj "/CN=${FQDN}/O=Google LTD./C=US" \
   -keyout ${TLS_KEY_FILE} -out ${TLS_CRT_FILE}
 ```
   
@@ -64,7 +64,7 @@ Create an OAuth Client ID to be used to identify IAP when requesting acces to us
   * Under Application type, select Web application. In the Name box enter a name, and in the Authorized redirect URIs box, enter 
 
 ```
-  https://${ENDPOINT_URL}/_gcp_gatekeeper/authenticate, 
+  https://${FQDN}/_gcp_gatekeeper/authenticate, 
 ```
 
 1. After you enter the details, click Create. Make note of the **client ID** and **client secret** that appear in the OAuth client window because we will
@@ -74,13 +74,26 @@ Save the OAuth client ID and secret to variables for later use:
 
 ### Setup Ingress
 
+If you haven't already, follow the instructions in the [user_guide](https://github.com/kubeflow/kubeflow/blob/master/user_guide.md#deploy-kubeflow) 
+to create a ksonnet app to deploy Kubeflow.
+
+The instructions below reference the following environment variables which you will need to set for your deployment
+
+  * **CORE_NAME** The name assigned to the core Kubeflow ksonnet components (this is the name chosen when you ran `ks generate...`).
+  * **ENVIRONMENT** The name of the ksonnet environment where you want to deploy Kubeflow.
+  * **FQDN** The fully qualified domain name to use for your Kubeflow deployment.
+  * **IP_NAME** The name of the GCP static IP that you created above and will be associated with **DOMAIN**.
+  * **NAMESPACE** The namespace where Kubeflow is deployed.
+  * **SECRET_NAME** The name of the K8s secret that stores the SSL certificate.
+
+
 ```
 ks generate ${ENVIRONMENT} iap-ingress --secretName=${SECRET_NAME} --ipName=${IP_NAME} --namespace=${NAMESPACE}
 ks apply ${ENVIRONMENT} -c iap-ingress
 ```
 
 This will create a load balancer. We can now enable IAP on this load balancer using 
-the [enable_iap_openapi.sh](https://github.com/google/kubeflow/tree/master/docs/gke/enable_iap.sh) script.
+the [enable_iap_openapi.sh](https://github.com/kubeflow/kubeflow/tree/master/docs/gke/enable_iap.sh) script.
 
 
 ```
@@ -116,7 +129,7 @@ ks apply ${ENVIRONMENT} -c iap-envoy
 It can take some time for IAP to be enabled. You can test things out using the following URL
 
 ```
-https://${DOMAIN}/noiap/whoami
+https://${FQDN}/noiap/whoami
 ```
 
   * This a simple test app that's deployed as part of the iap-envoy component.
@@ -128,7 +141,7 @@ https://${DOMAIN}/noiap/whoami
 We also have the app running at
 
 ```
-https://${DOMAIN}/whoami
+https://${FQDN}/whoami
 ```
   * But this path will reject traffic that didn't go through IAP so it won't work unless IAP is enabled. In this case you should get
   one of the following errors.
@@ -165,7 +178,7 @@ kubectl delete -n ${NAMESPACE} pods tf-hub-0
 You should now be able to access JupyterHub at
 
 ```
-https://${ENDPOINT}/hub
+https://${FQDN}/hub
 ```
 
 ### Adding Users
