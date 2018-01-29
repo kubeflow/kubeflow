@@ -28,8 +28,8 @@ RUN git clone --recursive https://github.com/dmlc/xgboost && \
     cd python-package; python setup.py install
 
 RUN cd .. && \
-    git clone git@github.com:puneith/kubeflow.git && \
+    git clone https://github.com/puneith/kubeflow.git && \
     cd kubeflow && \
-    git checkout zillow_gxb
-
-RUN python launcher.py
+    git checkout zillow_xgb && \
+    cd xgboost && \
+    python launcher.py
