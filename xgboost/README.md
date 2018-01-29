@@ -8,10 +8,10 @@ analyze hundreds of data points on each property. We will do a detailed
 walk-through of how to implement a model and make predictions using [Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/).
 
 ### Pre-requisites
-Before proceeding ahead you need to have the following pre-requisites:
 
-* Install [Docker](https://docs.docker.com/install/)
-* Install [gcloud](https://cloud.google.com/sdk/downloads)
+As a part of running this setup, make sure you have enabled the Google
+Kubernetes Engine API. In addition to that you will need to install
+[Docker](https://docs.docker.com/install/) and [gcloud](https://cloud.google.com/sdk/downloads).
 
 ### Dockerfile
 We have attached a Dockerfile with this repo which you can use to create a
