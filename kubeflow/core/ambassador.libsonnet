@@ -210,5 +210,41 @@
         }
       }
     },  // deploy
+
+    // This service adds a rule to our reverse proxy for accessing the K8s dashboard.
+    k8sDashboard:: {
+      "apiVersion": "v1", 
+      "kind": "Service", 
+      "metadata": {
+        "name": "k8s-dashboard",
+        "namespace": namespace,
+
+        "annotations": {
+           "getambassador.io/config":
+              std.join("\n", [ 
+            "---",
+            "apiVersion: ambassador/v0",
+            "kind:  Mapping",
+            "name: k8s-dashboard-ui-mapping",
+            "prefix: /k8s/ui/",
+            "rewrite: /",
+            "service: k8s-dashboard." + namespace]),
+       }, //annotations
+      }, 
+      "spec": {
+        "ports": [
+          {
+            // TODO(jlewi)
+            "port": 80, 
+            "targetPort": 8443,
+          }
+        ], 
+        "selector": {
+          "name": "tf-job-dashboard"
+        }, 
+        "type": serviceType,
+      }
+    }, // k8sDashboard
+
   }, // parts
 }
