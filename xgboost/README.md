@@ -35,3 +35,12 @@ You can play with the image locally by performing
 ```
 docker run -i -t gcr.io/kubeflow-images/zillow_xgb:v1 /bin/bash
 ```
+
+### GKE and XGBoost
+In the rest of the setup we will show you how to create cluster on GKE and
+perform XGBoost training. Run the command below to create a 3 node cluster,
+which should take few minutes
+
+```
+gcloud container clusters create zillow-xgboost --num-nodes=3 --zone=us-central1-b
+```
