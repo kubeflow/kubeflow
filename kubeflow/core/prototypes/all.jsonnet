@@ -30,11 +30,11 @@ local diskParam = import 'param://disks';
 
 local diskNames = if diskParam != "null" && std.length(diskParam) > 0 then
   std.split(diskParam, ',')
-  else [];
+else [];
 
 local jupyterConfigMap = if std.length(diskNames) == 0 then
-	jupyter.parts(namespace).jupyterHubConfigMap
-	else jupyter.parts(namespace).jupyterHubConfigMapWithVolumes(diskNames);
+  jupyter.parts(namespace).jupyterHubConfigMap
+else jupyter.parts(namespace).jupyterHubConfigMapWithVolumes(diskNames);
 
 local tfJobImage = import 'param://tfJobImage';
 local tfDefaultImage = import 'param://tfDefaultImage';
@@ -43,44 +43,46 @@ local jupyterHubServiceType = import 'param://jupyterHubServiceType';
 
 // Create a list of the resources needed for a particular disk
 local diskToList = function(diskName) [
-	nfs.parts(namespace, name,).diskResources(diskName).storageClass,
-	nfs.parts(namespace, name,).diskResources(diskName).volumeClaim,
-	nfs.parts(namespace, name,).diskResources(diskName).service,
-	nfs.parts(namespace, name,).diskResources(diskName).provisioner];
+  nfs.parts(namespace, name,).diskResources(diskName).storageClass,
+  nfs.parts(namespace, name,).diskResources(diskName).volumeClaim,
+  nfs.parts(namespace, name,).diskResources(diskName).service,
+  nfs.parts(namespace, name,).diskResources(diskName).provisioner,
+];
 
 local allDisks = std.flattenArrays(std.map(diskToList, diskNames));
 
 local nfsComponents =
-	if std.length(allDisks) > 0 then
-	[nfs.parts(namespace, name).serviceAccount,
-	 nfs.parts(namespace, name).role,
-	 nfs.parts(namespace, name).roleBinding,
-	 nfs.parts(namespace, name).clusterRoleBinding,] + allDisks
-	else 
-	[];
+  if std.length(allDisks) > 0 then
+    [
+      nfs.parts(namespace, name).serviceAccount,
+      nfs.parts(namespace, name).role,
+      nfs.parts(namespace, name).roleBinding,
+      nfs.parts(namespace, name).clusterRoleBinding,
+    ] + allDisks
+  else
+    [];
 
 std.prune(k.core.v1.list.new([
-	// jupyterHub components
-	jupyterConfigMap,
-    jupyter.parts(namespace).jupyterHubService, 
-    jupyter.parts(namespace).jupyterHubLoadBalancer(jupyterHubServiceType),
-    jupyter.parts(namespace).jupyterHub(jupyterHubImage),
-    jupyter.parts(namespace).jupyterHubRole,
-    jupyter.parts(namespace).jupyterHubServiceAccount,
-    jupyter.parts(namespace).jupyterHubRoleBinding,    
+  // jupyterHub components
+  jupyterConfigMap,
+  jupyter.parts(namespace).jupyterHubService,
+  jupyter.parts(namespace).jupyterHubLoadBalancer(jupyterHubServiceType),
+  jupyter.parts(namespace).jupyterHub(jupyterHubImage),
+  jupyter.parts(namespace).jupyterHubRole,
+  jupyter.parts(namespace).jupyterHubServiceAccount,
+  jupyter.parts(namespace).jupyterHubRoleBinding,
 
-    // TfJob controller
-    tfjob.parts(namespace).tfJobDeploy(tfJobImage), 
-    tfjob.parts(namespace).configMap(cloud, tfDefaultImage),
-    tfjob.parts(namespace).serviceAccount,
-    tfjob.parts(namespace).operatorRole,
-    tfjob.parts(namespace).operatorRoleBinding,
+  // TfJob controller
+  tfjob.parts(namespace).tfJobDeploy(tfJobImage),
+  tfjob.parts(namespace).configMap(cloud, tfDefaultImage),
+  tfjob.parts(namespace).serviceAccount,
+  tfjob.parts(namespace).operatorRole,
+  tfjob.parts(namespace).operatorRoleBinding,
 
-    // TfJob controll ui
-    tfjob.parts(namespace).ui(tfJobImage),
-    tfjob.parts(namespace).uiService(tfJobUiServiceType),
-    tfjob.parts(namespace).uiServiceAccount,
-    tfjob.parts(namespace).uiRole,
-    tfjob.parts(namespace).uiRoleBinding,
+  // TfJob controll ui
+  tfjob.parts(namespace).ui(tfJobImage),
+  tfjob.parts(namespace).uiService(tfJobUiServiceType),
+  tfjob.parts(namespace).uiServiceAccount,
+  tfjob.parts(namespace).uiRole,
+  tfjob.parts(namespace).uiRoleBinding,
 ] + nfsComponents))
-
