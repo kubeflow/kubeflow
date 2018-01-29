@@ -98,8 +98,8 @@ def get_gcs_dir(bucket):
     # It is a postsubmit job
     output = ("gs://{bucket}/logs/{owner}_{repo}/"
               "{job}/{build}").format(
-                  owner=repo_owner, repo=repo_name,
-                  job=job_name,
+                  bucket=bucket, owner=repo_owner,
+                  repo=repo_name, job=job_name,
                   build=os.getenv("BUILD_NUMBER"))
   else:
     # Its a periodic job
