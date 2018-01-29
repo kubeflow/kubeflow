@@ -39,7 +39,9 @@ docker run -i -t gcr.io/kubeflow-images/zillow_xgb:v1 /bin/bash
 ### GKE and XGBoost
 In the rest of the setup we will show you how to create cluster on GKE and
 perform XGBoost training. Run the command below to create a 3 node cluster,
-which should take few minutes
+which should take few minutes. Checkout the [GKE
+hello-app](https://cloud.google.com/kubernetes-engine/docs/tutorials/hello-app)
+to see the set of commands used below
 
 ```
 gcloud container clusters create zillow-xgboost --num-nodes=3 --zone=us-central1-b
