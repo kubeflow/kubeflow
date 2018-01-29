@@ -6,10 +6,10 @@
   components: {
     // Component-level parameters, defined initially from 'ks prototype use ...'
     // Each object below should correspond to a component in the components/ directory
-    "argo": {
+    argo: {
       namespace: "kubeflow-test-infra",
     },
-    "workflows": {
+    workflows: {
       bucket: "mlkube-testing_temp",
       name: "kubeflow-presubmit-81-2-39b6",
       namespace: "kubeflow-test-infra",
