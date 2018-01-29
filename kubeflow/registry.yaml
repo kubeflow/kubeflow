@@ -5,7 +5,7 @@ libraries:
     version: master
     path: core
   tf-job:
-    version: master    
+    version: master
     path: tf-job
   tf-serving:
     version: master

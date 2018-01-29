@@ -23,15 +23,9 @@ class TestProw(unittest.TestCase):
         },
     }
 
-    temp_dir = tempfile.mkdtemp(prefix="tmpTestProwTestCreateStartedPresubmit.")
-    args = ["--artifacts_dir=" + temp_dir, "create_started"]
-    prow_artifacts.main(args)
+    actual = prow_artifacts.create_started()
 
-    expected_path = os.path.join(temp_dir, "started.json")
-    with open(expected_path) as hf:
-      actual = json.load(hf)
-
-    self.assertEquals(expected, actual)
+    self.assertEquals(expected, json.loads(actual))
 
   @mock.patch("testing.prow_artifacts.time.time")
   def testCreateFinished(self, mock_time):  # pylint: disable=no-self-use
@@ -40,19 +34,13 @@ class TestProw(unittest.TestCase):
 
     expected = {
         "timestamp": 1000,
-        "result": "SUCCESS",
+        "result": "FAILED",
         "metadata": {},
     }
 
-    temp_dir = tempfile.mkdtemp(prefix="tmpTestProwTestCreateFinished.")
-    args = ["--artifacts_dir=" + temp_dir, "create_finished"]
-    prow_artifacts.main(args)
+    actual = prow_artifacts.create_finished(False)
 
-    expected_path = os.path.join(temp_dir, "finished.json")
-    with open(expected_path) as hf:
-      actual = json.load(hf)
-
-    self.assertEquals(expected, actual)
+    self.assertEquals(expected, json.loads(actual))
 
   @mock.patch("testing.prow_artifacts.util.run")
   def testCopyArtifactsPresubmit(self, mock_run):  # pylint: disable=no-self-use
@@ -102,5 +90,6 @@ class TestProw(unittest.TestCase):
       mock_blob.upload_from_string.assert_called_once_with(
         "gs://some-bucket/pr-logs/pull/fake_org_fake_name/72"
         "/kubeflow-presubmit/100")
+
 if __name__ == "__main__":
   unittest.main()

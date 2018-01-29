@@ -75,16 +75,6 @@ if __name__ == "__main__":
   command.append("--worker_hosts=" + worker_hosts)
   command.append("--task_index={0}".format(task_index))
 
-  # TODO(jlewi): This is a work around
-  # https://github.com/tensorflow/k8s/issues/192
-  # Since TfJob requires a master but the tf benchmark
-  # code doesn't know what to do with master we just run
-  # forever in the master.
-  if job_name.lower() == "master":
-    while True:
-      print("master runs forever.")
-      time.sleep(600)
-
   logging.info("Command to run: %s", " ".join(command))
   with open("/opt/run_benchmarks.sh", "w") as hf:
     hf.write("#!/bin/bash\n")
