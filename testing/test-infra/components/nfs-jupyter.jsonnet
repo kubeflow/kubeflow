@@ -52,7 +52,7 @@ std.prune(k.core.v1.list.new([
   // jupyterHub components
   jupyterConfigMap,
   jupyter.parts(namespace).jupyterHubService,
-  jupyter.parts(namespace).jupyterHubLoadBalancer,
+  jupyter.parts(namespace).jupyterHubLoadBalancer("ClusterIP"),
   jupyter.parts(namespace).jupyterHub(jupyterHubImage),
   jupyter.parts(namespace).jupyterHubRole,
   jupyter.parts(namespace).jupyterHubServiceAccount,
