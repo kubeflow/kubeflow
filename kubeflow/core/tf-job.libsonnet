@@ -248,7 +248,6 @@
         name: "tf-job-dashboard",
         namespace: namespace,
 
-        // TODO(jlewi): What happen if we represent the annotation as an object and not serialized YAML?
         annotations: {
           "getambassador.io/config":
             std.join("\n", [

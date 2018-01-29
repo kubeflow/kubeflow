@@ -238,21 +238,6 @@
                           },
                         },
                         {
-                          // DO Not submit
-                          timeout_ms: 10000,
-                          prefix: "/sometbjob/",
-                          prefix_rewrite: "/",
-                          use_websocket: true,
-                          weighted_clusters: {
-                            clusters: [
-                              {
-                                name: "cluster_tbtest",
-                                weight: 100.0,
-                              },
-                            ],
-                          },
-                        },
-                        {
                           // Route remaining traffic to Ambassador which supports dynamically adding
                           // routes based on service annotations.
                           timeout_ms: 10000,
@@ -353,20 +338,6 @@
 
             ],
           },
-
-          // DO NOT SUBMIT
-          {
-            name: "cluster_tbtest",
-            connect_timeout_ms: 3000,
-            type: "strict_dns",
-            lb_type: "round_robin",
-            hosts: [
-              {
-                url: "tcp://pybullet-kuka-ff-0118-2346-bac2-tb." + namespace + ":80",
-              },
-
-            ],
-          },
           {
             name: "cluster_ambassador",
             connect_timeout_ms: 3000,
@@ -438,21 +409,6 @@
                             ],
                           },
                         },
-                        {
-                          // DO Not submit
-                          timeout_ms: 10000,
-                          prefix: "/noiap-sometbjob/",
-                          prefix_rewrite: "/",
-                          use_websocket: true,
-                          weighted_clusters: {
-                            clusters: [
-                              {
-                                name: "cluster_tbtest",
-                                weight: 100.0,
-                              },
-                            ],
-                          },
-                        },
                         // Route all remaining paths to the envoy proxy for JWT verification.
                         {
                           timeout_ms: 10000,
@@ -510,19 +466,6 @@
               {
                 // We just use the admin server for the health check
                 url: "tcp://127.0.0.1:" + healthEnvoyAdminPort,
-              },
-
-            ],
-          },
-          // DO NOT SUBMIT
-          {
-            name: "cluster_tbtest",
-            connect_timeout_ms: 3000,
-            type: "strict_dns",
-            lb_type: "round_robin",
-            hosts: [
-              {
-                url: "tcp://pybullet-kuka-ff-0118-2346-bac2-tb." + namespace + ":80",
               },
 
             ],

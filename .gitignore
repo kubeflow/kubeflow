@@ -30,3 +30,6 @@ examples/tf_sample/tf_sample.egg-info/
 examples/.ipynb_checkpoints/
 
 **/.ipynb_checkpoints
+
+
+!testing/test-infra/vendor

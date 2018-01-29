@@ -1,10 +1,14 @@
 # Kubeflow
 
-The Kubeflow project is dedicated to making Machine Learning on Kubernetes easy, portable and scalable. Our goal is **not** to recreate other services, but to provide a straightforward way for spinning up best-of-breed OSS solutions. Contained in this repository are manifests for creating:
+The Kubeflow project is dedicated to making machine learning on [Kubernetes](https://kubernetes.io/) simple, portable and scalable. Our goal is **not** to recreate other services, but to provide a straightforward way to train, test, and deploy best-of-breed open-source predictive models to diverse infrastructures. Anywhere you are running Kubernetes, you should be able to run KubeFlow.
 
-* A JupyterHub to create & manage interactive Jupyter notebooks
-* A Tensorflow Training Controller that can be configured to use CPUs or GPUs and adjusted to the size of a cluster with a single setting
-* A TF Serving container
+**** 
+
+Contained in this repository are manifests for creating:
+
+* A [JupyterHub](https://jupyterhub.readthedocs.io/en/latest/) to create & manage interactive Jupyter notebooks
+* A **TensorFlow Training Controller** that can be configured to use either CPUs or GPUs and dynamically adjusted to the size of a cluster with a single setting
+* A **TensorFlow Serving** container to export trained TensorFlow models to Kubernetes
 
 This document details the steps needed to run the Kubeflow project in any environment in which Kubernetes runs.
 
@@ -15,10 +19,12 @@ This document details the steps needed to run the Kubeflow project in any enviro
 
 ## The Kubeflow Mission
 
-Our goal is to help folks use ML more easily, by letting Kubernetes to do what it's great at:
+Our goal is to make scaling machine learning models and deploying them to production as simple as possible, by letting Kubernetes do what it's great at:
 - Easy, repeatable, portable deployments on a diverse infrastructure (laptop <-> ML rig <-> training cluster <-> production cluster)
 - Deploying and managing loosely-coupled microservices
 - Scaling based on demand
+
+
 
 Because ML practitioners use so many different types of tools, it's a key goal that you can customize the stack to whatever your requirements (within reason) and let the system take care of the "boring stuff." While we have started with a narrow set of technologies, we are working with many different projects to include additional tooling.
 
@@ -70,6 +76,8 @@ ks pkg install kubeflow/tf-serving
 ks pkg install kubeflow/tf-job
 
 # Deploy Kubeflow
+NAMESPACE=kubeflow
+kubectl create namespace ${NAMESPACE}
 ks generate core kubeflow-core --name=kubeflow-core --namespace=${NAMESPACE}
 ks apply default -c kubeflow-core
 ```
