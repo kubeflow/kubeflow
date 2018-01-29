@@ -76,6 +76,8 @@ ks pkg install kubeflow/tf-serving
 ks pkg install kubeflow/tf-job
 
 # Deploy Kubeflow
+NAMESPACE=kubeflow
+kubectl create namespace ${NAMESPACE}
 ks generate core kubeflow-core --name=kubeflow-core --namespace=${NAMESPACE}
 ks apply default -c kubeflow-core
 ```
