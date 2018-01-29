@@ -1,17 +1,16 @@
-
 // local nfs = import "nfs.libsonnet";
 
-{  
+{
   // TODO(https://github.com/ksonnet/ksonnet/issues/222): Taking namespace as an argument is a work around for the fact that ksonnet
   // doesn't support automatically piping in the namespace from the environment to prototypes.
   //
-  // TODO(jlewi): We should refactor this to have multiple prototypes; having 1 without any extra volumes and than 
+  // TODO(jlewi): We should refactor this to have multiple prototypes; having 1 without any extra volumes and than
   // a with volumes option.
   parts(namespace):: {
 
     // TODO(jlewi): We should make the default Docker image configurable
     // TODO(jlewi): We should make whether we use PVC configurable.
-  	local baseKubeConfigSpawner = @"import json
+    local baseKubeConfigSpawner = @"import json
 import os
 from kubespawner.spawner import KubeSpawner
 from oauthenticator.github import GitHubOAuthenticator
@@ -117,205 +116,205 @@ c.KubeSpawner.user_storage_capacity = '10Gi'
 c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
 ",
 
-   local baseJupyterHubConfigMap = {
-	  "apiVersion": "v1", 	  
-	  "kind": "ConfigMap", 
-	  "metadata": {
-	    "name": "jupyterhub-config",
-	    namespace: namespace,
-	  },
-   },
+    local baseJupyterHubConfigMap = {
+      apiVersion: "v1",
+      kind: "ConfigMap",
+      metadata: {
+        name: "jupyterhub-config",
+        namespace: namespace,
+      },
+    },
 
 
-   jupyterHubConfigMap: baseJupyterHubConfigMap + {
-   	  "data": {	    
-	    "jupyterhub_config.py": baseKubeConfigSpawner,
-	  }, 
-	},
+    jupyterHubConfigMap: baseJupyterHubConfigMap {
+      data: {
+        "jupyterhub_config.py": baseKubeConfigSpawner,
+      },
+    },
 
-   jupyterHubConfigMapWithVolumes(volumeClaims): {
+    jupyterHubConfigMapWithVolumes(volumeClaims): {
 
 
-	local volumes = std.map(function(v) 
-		{
-            'name': v,
-            'persistentVolumeClaim': {
-                'claimName': v,
-            },
+      local volumes = std.map(function(v)
+        {
+          name: v,
+          persistentVolumeClaim: {
+            claimName: v,
+          },
         }, volumeClaims),
 
 
-	local volumeMounts = std.map( function(v)
+      local volumeMounts = std.map(function(v)
         {
-            'mountPath': '/mnt/' + v,
-            'name': v,
-        },  volumeClaims),
+          mountPath: '/mnt/' + v,
+          name: v,
+        }, volumeClaims),
 
-	local extendedBaseKubeConfigSpawner = baseKubeConfigSpawner    
-    	+ "\nc.KubeSpawner.volumes = " + std.manifestPython(volumes)
-     	+ "\nc.KubeSpawner.volume_mounts = " + std.manifestPython(volumeMounts),
+      local extendedBaseKubeConfigSpawner = baseKubeConfigSpawner
+                                            + "\nc.KubeSpawner.volumes = " + std.manifestPython(volumes)
+                                            + "\nc.KubeSpawner.volume_mounts = " + std.manifestPython(volumeMounts),
 
-     config: baseJupyterHubConfigMap + {   	 
-		 "data": {
-		 	"jupyterhub_config.py": extendedBaseKubeConfigSpawner,
-		 },	 
-	   },
-	 }.config,
+      config: baseJupyterHubConfigMap {
+        data: {
+          "jupyterhub_config.py": extendedBaseKubeConfigSpawner,
+        },
+      },
+    }.config,
 
-   jupyterHubService: {
-	  "apiVersion": "v1", 
-	  "kind": "Service", 
-	  "metadata": {
-	    "labels": {
-	      "app": "tf-hub"
-	    }, 
-	    "name": "tf-hub-0",
-	    namespace: namespace,
-	  }, 
-	  "spec": {
-	    "clusterIP": "None", 
-	    "ports": [
-	      {
-	        "name": "hub", 
-	        "port": 8000
-	      }
-	    ], 
-	    "selector": {
-	      "app": "tf-hub"
-	    }
-	  }
-   },
-
-   jupyterHubLoadBalancer(serviceType): {
-	  "apiVersion": "v1", 
-	  "kind": "Service", 
-	  "metadata": {
-	    "labels": {
-	      "app": "tf-hub"
-	    }, 
-	    "name": "tf-hub-lb",
-	    "namespace": namespace,
-	  }, 
-	  "spec": {
-	    "ports": [
-	      {
-	        "name": "http", 
-	        "port": 80, 
-	        "targetPort": 8000
-	      }
-	    ], 
-	    "selector": {
-	      "app": "tf-hub"
-	    }, 
-	    "type": serviceType
-	  }
-	},
-
-	jupyterHub(image): {
-	  "apiVersion": "apps/v1beta1", 
-	  "kind": "StatefulSet", 
-	  "metadata": {
-	    "name": "tf-hub",
-	    "namespace": namespace,
-	  }, 
-	  "spec": {
-	    "replicas": 1, 
-	    "serviceName": "", 
-	    "template": {
-	      "metadata": {
-	        "labels": {
-	          "app": "tf-hub"
-	        }
-	      }, 
-	      "spec": {
-	        "containers": [
-	          {
-	            "command": [
-	              "jupyterhub", 
-	              "-f", 
-	              "/etc/config/jupyterhub_config.py"
-	            ], 
-	            "image": image, 
-	            "name": "tf-hub", 
-	            "volumeMounts": [
-	              {
-	                "mountPath": "/etc/config", 
-	                "name": "config-volume"
-	              }
-	            ]
-	          }
-	        ], 
-	        "serviceAccountName": "jupyter-hub", 
-	        "volumes": [
-	          {
-	            "configMap": {
-	              "name": "jupyterhub-config"
-	            }, 
-	            "name": "config-volume"
-	          }
-	        ]
-	      }
-	    }, 
-	    "updateStrategy": {
-	      "type": "RollingUpdate"
-	    }
-	  }
-	},
-
-   jupyterHubRole: {
-	  "apiVersion": "rbac.authorization.k8s.io/v1beta1", 
-	  "kind": "Role", 
-	  "metadata": {
-	    "name": "jupyter-role", 
-	    "namespace": namespace,
-	  }, 
-	  "rules": [
-	    {
-	      "apiGroups": [
-	        "*"
-	      ], 
-	      // TODO(jlewi): This is very permissive so we may want to lock this down.
-	      "resources": [
-	        "*"
-	      ], 
-	      "verbs": [
-	        "*"
-	      ]
-	    }
-	  ]
-	},
-    
-   jupyterHubServiceAccount: {
-      "apiVersion": "v1", 
-      "kind": "ServiceAccount", 
-      "metadata": {
-        "labels": {
-          "app": "jupyter-hub"
-        }, 
-        "name": "jupyter-hub",
-        "namespace": namespace,
-      }
+    jupyterHubService: {
+      apiVersion: "v1",
+      kind: "Service",
+      metadata: {
+        labels: {
+          app: "tf-hub",
+        },
+        name: "tf-hub-0",
+        namespace: namespace,
+      },
+      spec: {
+        clusterIP: "None",
+        ports: [
+          {
+            name: "hub",
+            port: 8000,
+          },
+        ],
+        selector: {
+          app: "tf-hub",
+        },
+      },
     },
 
-	jupyterHubRoleBinding: {
-	  "apiVersion": "rbac.authorization.k8s.io/v1beta1", 
-	  "kind": "RoleBinding", 
-	  "metadata": {
-	    "name": "jupyter-role", 
-	    "namespace": namespace,
-	  }, 
-	  "roleRef": {
-	    "apiGroup": "rbac.authorization.k8s.io", 
-	    "kind": "Role", 
-	    "name": "jupyter-role"
-	  }, 
-	  "subjects": [
-	    {
-	      "kind": "ServiceAccount", 
-	      "name": "jupyter-hub", 
-	      "namespace": namespace,
-	    }
-	  ]
-	},
-  }, // parts
+    jupyterHubLoadBalancer(serviceType): {
+      apiVersion: "v1",
+      kind: "Service",
+      metadata: {
+        labels: {
+          app: "tf-hub",
+        },
+        name: "tf-hub-lb",
+        namespace: namespace,
+      },
+      spec: {
+        ports: [
+          {
+            name: "http",
+            port: 80,
+            targetPort: 8000,
+          },
+        ],
+        selector: {
+          app: "tf-hub",
+        },
+        type: serviceType,
+      },
+    },
+
+    jupyterHub(image): {
+      apiVersion: "apps/v1beta1",
+      kind: "StatefulSet",
+      metadata: {
+        name: "tf-hub",
+        namespace: namespace,
+      },
+      spec: {
+        replicas: 1,
+        serviceName: "",
+        template: {
+          metadata: {
+            labels: {
+              app: "tf-hub",
+            },
+          },
+          spec: {
+            containers: [
+              {
+                command: [
+                  "jupyterhub",
+                  "-f",
+                  "/etc/config/jupyterhub_config.py",
+                ],
+                image: image,
+                name: "tf-hub",
+                volumeMounts: [
+                  {
+                    mountPath: "/etc/config",
+                    name: "config-volume",
+                  },
+                ],
+              },
+            ],
+            serviceAccountName: "jupyter-hub",
+            volumes: [
+              {
+                configMap: {
+                  name: "jupyterhub-config",
+                },
+                name: "config-volume",
+              },
+            ],
+          },
+        },
+        updateStrategy: {
+          type: "RollingUpdate",
+        },
+      },
+    },
+
+    jupyterHubRole: {
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
+      kind: "Role",
+      metadata: {
+        name: "jupyter-role",
+        namespace: namespace,
+      },
+      rules: [
+        {
+          apiGroups: [
+            "*",
+          ],
+          // TODO(jlewi): This is very permissive so we may want to lock this down.
+          resources: [
+            "*",
+          ],
+          verbs: [
+            "*",
+          ],
+        },
+      ],
+    },
+
+    jupyterHubServiceAccount: {
+      apiVersion: "v1",
+      kind: "ServiceAccount",
+      metadata: {
+        labels: {
+          app: "jupyter-hub",
+        },
+        name: "jupyter-hub",
+        namespace: namespace,
+      },
+    },
+
+    jupyterHubRoleBinding: {
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
+      kind: "RoleBinding",
+      metadata: {
+        name: "jupyter-role",
+        namespace: namespace,
+      },
+      roleRef: {
+        apiGroup: "rbac.authorization.k8s.io",
+        kind: "Role",
+        name: "jupyter-role",
+      },
+      subjects: [
+        {
+          kind: "ServiceAccount",
+          name: "jupyter-hub",
+          namespace: namespace,
+        },
+      ],
+    },
+  },  // parts
 }
