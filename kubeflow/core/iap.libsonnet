@@ -53,7 +53,8 @@
         "/usr/local/bin/envoy",
         "-c",
         params.configPath,
-        "--log-level", "info",
+        "--log-level",
+        "info",
         // Since we are running multiple instances of envoy on the same host we need to set a unique baseId
         "--base-id",
         params.baseId,
@@ -438,8 +439,8 @@
                           },
                         },
                         {
-                        // DO Not submit
-                        timeout_ms: 10000,
+                          // DO Not submit
+                          timeout_ms: 10000,
                           prefix: "/noiap-sometbjob/",
                           prefix_rewrite: "/",
                           use_websocket: true,

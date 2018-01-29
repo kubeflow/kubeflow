@@ -34,26 +34,29 @@ local batchSize = import 'param://batch_size';
 local model = import 'param://model';
 
 local args = [
-	"python",
-	"tf_cnn_benchmarks.py",
-	"--batch_size=" + batchSize,
-	"--model=" + model,
-    "--variable_update=parameter_server",
-    "--flush_stdout=true",
-] +
-if numGpus == 0 then
-  # We need to set num_gpus=1 even if not using GPUs because otherwise the devie list
-  # is empty because of this code
-  # https://github.com/tensorflow/benchmarks/blob/master/scripts/tf_cnn_benchmarks/benchmark_cnn.py#L775
-  # We won't actually use GPUs because based on other flags no ops will be assigned to GPus.
-  ["--num_gpus=1",
-   "--local_parameter_device=cpu",
-   "--device=cpu",
-   "--data_format=NHWC",]
-else
-  ["--num_gpus=" + numGpus,
-  ]
- ; 
+               "python",
+               "tf_cnn_benchmarks.py",
+               "--batch_size=" + batchSize,
+               "--model=" + model,
+               "--variable_update=parameter_server",
+               "--flush_stdout=true",
+             ] +
+             if numGpus == 0 then
+               # We need to set num_gpus=1 even if not using GPUs because otherwise the devie list
+               # is empty because of this code
+               # https://github.com/tensorflow/benchmarks/blob/master/scripts/tf_cnn_benchmarks/benchmark_cnn.py#L775
+               # We won't actually use GPUs because based on other flags no ops will be assigned to GPus.
+               [
+                 "--num_gpus=1",
+                 "--local_parameter_device=cpu",
+                 "--device=cpu",
+                 "--data_format=NHWC",
+               ]
+             else
+               [
+                 "--num_gpus=" + numGpus,
+               ]
+;
 
 local image = import 'param://image';
 local imageGpu = import 'param://image_gpu';
@@ -62,39 +65,40 @@ local numWorkers = import 'param://num_workers';
 local numGpus = import 'param://num_gpus';
 
 local workerSpec = if numGpus > 0 then
-  	tfJob.parts.tfJobReplica("WORKER", numWorkers, args, imageGpu, numGpus)
-  	else
-  	tfJob.parts.tfJobReplica("WORKER", numWorkers, args, image);
+  tfJob.parts.tfJobReplica("WORKER", numWorkers, args, imageGpu, numGpus)
+else
+  tfJob.parts.tfJobReplica("WORKER", numWorkers, args, image);
 
 // TODO(jlewi): Look at how the redis prototype modifies a container by
 // using mapContainersWithName. Can we do something similar?
 // https://github.com/ksonnet/parts/blob/9d78d6bb445d530d5b927656d2293d4f12654608/incubator/redis/redis.libsonnet
-local replicas = std.map(function(s)   
-  s + {
-    template+: {
-      spec+:  {
-        // TODO(jlewi): Does this overwrite containers? 
-        containers: [
-          s.template.spec.containers[0] + {
-            workingDir: "/opt/tf-benchmarks/scripts/tf_cnn_benchmarks",
-          },
-        ]
-      }
-    },
-  },
-  std.prune([workerSpec, tfJob.parts.tfJobReplica("PS", numPs, args, image)]));
+local replicas = std.map(function(s)
+                           s {
+                             template+: {
+                               spec+: {
+                                 // TODO(jlewi): Does this overwrite containers?
+                                 containers: [
+                                   s.template.spec.containers[0] {
+                                     workingDir: "/opt/tf-benchmarks/scripts/tf_cnn_benchmarks",
+                                   },
+                                 ],
+                               },
+                             },
+                           },
+                         std.prune([workerSpec, tfJob.parts.tfJobReplica("PS", numPs, args, image)]));
 
-local job = 
-	if numWorkers < 1 then
-	error "num_workers must be >= 1"
-	else 
-	if numPs < 1 then
-	error "num_ps must be >= 1"
-	else
-	tfJob.parts.tfJob(name, namespace, replicas) + {
-    spec+: {
-				tfImage: image,
-				terminationPolicy: {chief:{replicaName: "WORKER", replicaIndex: 0 }}
-		}};
+local job =
+  if numWorkers < 1 then
+    error "num_workers must be >= 1"
+  else
+    if numPs < 1 then
+      error "num_ps must be >= 1"
+    else
+      tfJob.parts.tfJob(name, namespace, replicas) + {
+        spec+: {
+          tfImage: image,
+          terminationPolicy: { chief: { replicaName: "WORKER", replicaIndex: 0 } },
+        },
+      };
 
 std.prune(k.core.v1.list.new([job]))
