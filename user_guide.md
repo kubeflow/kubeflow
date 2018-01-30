@@ -95,8 +95,8 @@ By default we are using ClusterIPs for the JupyterHub UI. This can be changed to
 To connect to your notebook:
 
 ```
-PODNAME=`kubectl get pods --selector="app=tf-hub" --output=template --template="{{with index .items 0}}{{.metadata.name}}{{end}}"`
-kubectl port-forward $PODNAME 8000:8000
+PODNAME=`kubectl get pods --namespace=${NAMESPACE} --selector="app=tf-hub" --output=template --template="{{with index .items 0}}{{.metadata.name}}{{end}}"`
+kubectl port-forward --namespace=${NAMESPACE} $PODNAME 8000:8000
 ```
 
 Then open [http://127.0.0.1:8000](http://127.0.0.1:8000) in your browser.
