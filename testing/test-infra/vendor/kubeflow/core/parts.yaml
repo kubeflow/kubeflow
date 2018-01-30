@@ -12,10 +12,10 @@
    ],
    "repository": {
       "type": "git",
-      "url": "https://github.com/google/kubeflow"
+      "url": "https://github.com/kubeflow/kubeflow"
    },
    "bugs": {
-      "url": "https://github.com/google/kubeflow/issues"
+      "url": "https://github.com/kubeflow/kubeflow/issues"
    },
    "keywords": [
       "kubeflow",

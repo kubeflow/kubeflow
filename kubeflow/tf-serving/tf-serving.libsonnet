@@ -92,7 +92,7 @@ local networkSpec = networkPolicy.mixin.spec;
                     resources: defaults.resources,
                   },
                 ],
-                // See:  https://github.com/google/kubeflow/tree/master/components/k8s-model-server#set-the-user-optional
+                // See:  https://github.com/kubeflow/kubeflow/tree/master/components/k8s-model-server#set-the-user-optional
                 // The is user and group should be defined in the Docker image.
                 // Per best practices we don't run as the root user.
                 securityContext: {
