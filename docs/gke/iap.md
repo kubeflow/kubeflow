@@ -210,76 +210,76 @@ Here are some tips for troubleshooting IAP.
 
  * Make sure you are using https
 
-  ### 502 Server Error 
-    * A 502 usually means traffic isn't even making it to the envoy reverse proxy
-    * A 502 usually indicates the loadbalancer doesn't think any backends are healthy
-      * In Cloud Console select Network Services -> Load Balancing
-          * Click on the load balancer (the name should contain the name of the ingress)
-          * The exact name can be found by looking at the `ingress.kubernetes.io/url-map` annotation on your ingress object
-          * Click on your loadbalancer
-          * This will show you the backend services associated with the load balancer
-              * There is 1 backend service for each K8s service the ingress rule routes traffic too
-              * The named port will correspond to the NodePort a service is using
-          * Make sure the load balancer reports the backends as healthy
-              * If the backends aren't reported as healthy check that the pods associated with the K8s service are up and running 
-              * Check that health checks are properly configured
-                * Click on the health check associated with the backend service for envoy
-                * Check that the path is /healthz and corresponds to the path of the readiness probe on the envoy pods
-                * Seel also [K8s docs](https://github.com/kubernetes/contrib/blob/master/ingress/controllers/gce/examples/health_checks/READMEmd#limitations) for important information about how health checks are determined from readiness probes.
+### 502 Server Error 
+* A 502 usually means traffic isn't even making it to the envoy reverse proxy
+* A 502 usually indicates the loadbalancer doesn't think any backends are healthy
+  * In Cloud Console select Network Services -> Load Balancing
+      * Click on the load balancer (the name should contain the name of the ingress)
+      * The exact name can be found by looking at the `ingress.kubernetes.io/url-map` annotation on your ingress object
+      * Click on your loadbalancer
+      * This will show you the backend services associated with the load balancer
+          * There is 1 backend service for each K8s service the ingress rule routes traffic too
+          * The named port will correspond to the NodePort a service is using
+      * Make sure the load balancer reports the backends as healthy
+          * If the backends aren't reported as healthy check that the pods associated with the K8s service are up and running 
+          * Check that health checks are properly configured
+            * Click on the health check associated with the backend service for envoy
+            * Check that the path is /healthz and corresponds to the path of the readiness probe on the envoy pods
+            * Seel also [K8s docs](https://github.com/kubernetes/contrib/blob/master/ingress/controllers/gce/examples/health_checks/READMEmd#limitations) for important information about how health checks are determined from readiness probes.
 
-              * Check firewall rules to ensure traffic isn't blocked from the GCP loadbalancer
-                  * The firewall rule should be added automatically by the ingress but its possible it got deleted if you have some automatic firewall policy enforcement. You can recreate the firewall rule if needed with a rule like this
+          * Check firewall rules to ensure traffic isn't blocked from the GCP loadbalancer
+              * The firewall rule should be added automatically by the ingress but its possible it got deleted if you have some automatic firewall policy enforcement. You can recreate the firewall rule if needed with a rule like this
 
-                   ```
-                   gcloud compute firewall-rules create $NAME \
-                  --project $PROJECT \
-                  --allow tcp:$PORT \
-                  --target-tags $NODE_TAG \
-                  --source-ranges 130.211.0.0/22,35.191.0.0/16
-                   ```
+               ```
+               gcloud compute firewall-rules create $NAME \
+              --project $PROJECT \
+              --allow tcp:$PORT \
+              --target-tags $NODE_TAG \
+              --source-ranges 130.211.0.0/22,35.191.0.0/16
+               ```
 
-                    * To get the node tag
-                    
-                    ```
-                    # From the GKE cluster get the name of the managed instance group
-                    gcloud --project=$PROJECT container clusters --zone=$ZONE describe $CLUSTER
-                    # Get the template associated with the MIG
-                    gcloud --project=kubeflow-rl compute instance-groups managed describe --zone=${ZONE} ${MIG_NAME}
-                    # Get the instance tags from the template
-                    gcloud --project=kubeflow-rl compute instance-templates describe ${TEMPLATE_NAME}
+                * To get the node tag
+                
+                ```
+                # From the GKE cluster get the name of the managed instance group
+                gcloud --project=$PROJECT container clusters --zone=$ZONE describe $CLUSTER
+                # Get the template associated with the MIG
+                gcloud --project=kubeflow-rl compute instance-groups managed describe --zone=${ZONE} ${MIG_NAME}
+                # Get the instance tags from the template
+                gcloud --project=kubeflow-rl compute instance-templates describe ${TEMPLATE_NAME}
 
-                    ```
+                ```
 
-                  For more info [see GCP HTTP health check docs](https://cloud.google.com/compute/docs/load-balancing/health-checks)
+              For more info [see GCP HTTP health check docs](https://cloud.google.com/compute/docs/load-balancing/health-checks)
 
- 	  * In Stackdriver Logging look at the Cloud Http Load Balancer logs
+  * In Stackdriver Logging look at the Cloud Http Load Balancer logs
 
-      * logs are labeled with the forwarding rule
-      * The forwarding rules are available via the annotations on the ingress
-        ```
-        ingress.kubernetes.io/forwarding-rule
-        ingress.kubernetes.io/https-forwarding-rule
-        ```
- 	
-   * Verify that requests are being properly routed within the cluster
+    * logs are labeled with the forwarding rule
+    * The forwarding rules are available via the annotations on the ingress
+      ```
+      ingress.kubernetes.io/forwarding-rule
+      ingress.kubernetes.io/https-forwarding-rule
+      ```
+	
+ * Verify that requests are being properly routed within the cluster
 
-    * Connect to one of the envoy proxies
+  * Connect to one of the envoy proxies
 
-    ```
-    kubectl exec -ti `kubectl get pods --selector=service=envoy -o jsonpath='{.items[0].metadata.name}'` /bin/bash
-    ```
+  ```
+  kubectl exec -ti `kubectl get pods --selector=service=envoy -o jsonpath='{.items[0].metadata.name}'` /bin/bash
+  ```
 
-    * Installl curl in the pod
-    ```
-    apt-get update && apt-get install -y curl
-    ```
+  * Installl curl in the pod
+  ```
+  apt-get update && apt-get install -y curl
+  ```
 
-    * Verify access to the whoami app
+  * Verify access to the whoami app
 
-    ```
-    curl -L -s -i curl -L -s -i http://envoy:8080/noiap/whoami 
-    ```
-      * If this doesn't return a 200 OK response; then there is a problem with the K8s resources
+  ```
+  curl -L -s -i curl -L -s -i http://envoy:8080/noiap/whoami 
+  ```
+    * If this doesn't return a 200 OK response; then there is a problem with the K8s resources
 
-        * Check the pods are running
-        * Check services are pointing at the points (look at the endpoints for the various services)
+      * Check the pods are running
+      * Check services are pointing at the points (look at the endpoints for the various services)
