@@ -11,6 +11,8 @@
 // @optionalParam tfJobUiServiceType string ClusterIP The service type for the UI.
 // @optionalParam jupyterHubServiceType string ClusterIP The service type for Jupyterhub.
 // @optionalParam jupyterHubAuthenticator string null The authenticator to use with jupyterHub; default is dummy username/password. Set to IAP to use IAP.
+// @optionalParam reportUsage string true Whether or not to report Kubeflow usage to kubeflow.org.
+// @optionalParam usageId string unknown_cluster Optional id to use when reporting usage to kubeflow.org
 
 // TODO(https://github.com/ksonnet/ksonnet/issues/222): We have to add namespace as an explicit parameter
 // because ksonnet doesn't support inheriting it from the environment yet.
@@ -19,6 +21,7 @@ local k = import 'k.libsonnet';
 local jupyter = import "kubeflow/core/jupyterhub.libsonnet";
 local tfjob = import "kubeflow/core/tf-job.libsonnet";
 local nfs = import "kubeflow/core/nfs.libsonnet";
+local spartakus = import "kubeflow/core/spartakus.libsonnet";
 
 local name = import 'param://name';
 local namespace = import 'param://namespace';
@@ -90,4 +93,5 @@ std.prune(k.core.v1.list.new([
   tfjob.parts(namespace).uiServiceAccount,
   tfjob.parts(namespace).uiRole,
   tfjob.parts(namespace).uiRoleBinding,
-] + nfsComponents))
+] + nfsComponents 
+  + spartakus.parts(namespace).all(params.reportUsage, params.usageId) ))

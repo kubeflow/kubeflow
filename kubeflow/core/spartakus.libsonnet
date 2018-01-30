@@ -1,8 +1,15 @@
 {
 	parts(namespace):: {		
-		tobool::func(x) 
-			if 
-		deployment:: {
+		local util = import "kubeflow/core/util.libsonnet",
+
+		all(reportUsage, usageId):: {
+			local reportUsageBool = util.toBool(reportUsage),
+			result:: if reportUsageBool then
+				[$.parts(namespace).deployment(usageId)]
+			else [],
+		}.result,
+
+		deployment(usageId):: {
 	      apiVersion: "extensions/v1beta1",
 	      kind: "Deployment",
 	      metadata: {
@@ -20,22 +27,15 @@
 	          spec: {
 	            containers: [
 	              {	                
-	                image: "jetstack/kube-lego:0.1.5",
-	                imagePullPolicy: "Always",
-	                name: "kube-lego",
-	                ports: [
-	                  {
-	                    containerPort: 8080,
-	                  },
-	                ],
-	                readinessProbe: {
-	                  httpGet: {
-	                    path: "/healthz",
-	                    port: 8080,
-	                  },
-	                  initialDelaySeconds: 5,
-	                  timeoutSeconds: 1,
-	                },
+	                image: "gcr.io/google_containers/spartakus-amd64:v1.0.0",
+	                name: "volunteer",
+	                // TODO(jlew): Do not submit need to verify this works. I may need to
+	                // start a shell to get uuidgen.
+	          		command: [
+	          			"volunteer" ,
+	          			"--cluster-id=" + usageId,
+	          			"--database=https://usage-collector.kubeflow.org",
+	          		],
 	              },
 	            ],	           
 	          },
