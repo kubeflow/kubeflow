@@ -73,6 +73,7 @@ std.prune(k.core.v1.list.new([
   jupyter.parts(namespace).jupyterHubRoleBinding,
 
   // TfJob controller
+  tfjob.parts(namespace).crd,
   tfjob.parts(namespace).tfJobDeploy(tfJobImage),
   tfjob.parts(namespace).configMap(cloud, tfDefaultImage),
   tfjob.parts(namespace).serviceAccount,
