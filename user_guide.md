@@ -24,13 +24,13 @@ Install the Kubeflow packages into your application.
 
 ```
 cd my-kubeflow
-ks registry add kubeflow github.com/google/kubeflow/tree/master/kubeflow
+ks registry add kubeflow github.com/kubeflow/kubeflow/tree/master/kubeflow
 ks pkg install kubeflow/core
 ks pkg install kubeflow/tf-serving
 ks pkg install kubeflow/tf-job
 ```
 
-Create the Kubeflow core component. The core component includes 
+Create the Kubeflow core component. The core component includes
   * JupyterHub
   * TensorFlow job controller
 
@@ -63,7 +63,7 @@ Now let's set `${KF_ENV}` to `cloud` or `nocloud` to reflect our environment for
 
 ```
 $ KF_ENV=cloud|nocloud
-``` 
+```
 
 And apply the components to our Kubernetes cluster
 
@@ -97,7 +97,7 @@ To connect to your notebook:
 ```
 PODNAME=`kubectl get pods --selector="app=tf-hub" --output=template --template="{{with index .items 0}}{{.metadata.name}}{{end}}"`
 kubectl port-forward $PODNAME 8000:8000
-``` 
+```
 
 Then open [http://127.0.0.1:8000](http://127.0.0.1:8000) in your browser.
 
@@ -108,7 +108,7 @@ You should see a sign in prompt.
   1. Set the image to `gcr.io/kubeflow/tensorflow-notebook-cpu:v1` or `gcr.io/kubeflow/tensorflow-notebook-gpu:8fbc341245695e482848ac3c2034a99f7c1e5763` depending on whether doing CPU or GPU training, or whether or not you have GPUs in your cluster.
   1. Allocate memory, CPU, GPU, or other resources according to your need (1 CPU and 2Gi of Memory are good starting points)
   1. Click Spawn
-1. Eventually you should now be greeted with a Jupyter interface. Note that the GPU image is several gigabytes in size and may take a few minutes to download and start. 
+1. Eventually you should now be greeted with a Jupyter interface. Note that the GPU image is several gigabytes in size and may take a few minutes to download and start.
 
 The image supplied above can be used for training Tensorflow models with Jupyter. The images include all the requisite plugins, including [Tensorboard](https://www.tensorflow.org/get_started/summaries_and_tensorboard) that you can use for rich visualizations and insights into your models.
 
@@ -146,8 +146,8 @@ print(sess.run(accuracy, feed_dict={x: mnist.test.images, y_: mnist.test.labels}
 
 Paste the example into a new Python 3 Jupyter notebook and execute the code, this should result in a 0.9014 accuracy result against the test data.
 
-Please note that when running on most cloud providers, the public IP address will be exposed to the internet and is an 
-unsecured endpoint by default. For a production deployment with SSL and authentication, refer to the [documentation](components/jupyterhub). 
+Please note that when running on most cloud providers, the public IP address will be exposed to the internet and is an
+unsecured endpoint by default. For a production deployment with SSL and authentication, refer to the [documentation](components/jupyterhub).
 
 ### Serve a model
 
@@ -240,7 +240,7 @@ ks prototype describe tf-cnn
 
 ## Advanced Customization
 
-* Often times data scientists require a POSIX compliant filesystem 
+* Often times data scientists require a POSIX compliant filesystem
    * For example, most HDF5 libraries require POSIX and don't work with an object store like GCS or S3
 * When working with teams you might want a shared POSIX filesystem to be mounted into your notebook environments
   so that data scientists can work collaboratively on the same datasets.
@@ -251,7 +251,7 @@ Set the disks parameter to a comma separated list of the Google persistent disks
   * These disks should be in the same zone as your cluster
   * These disks need to be created manually via gcloud or the Cloud console e.g.
   * These disks can't be attached to any existing VM or POD.
-  
+
 Create the disks
 
 ```
