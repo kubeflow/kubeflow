@@ -6,7 +6,7 @@
 # TODO(jlewi): Eliminate code duplication with bootstraph.sh my moving shared code into
 # a bash script that can be sourced from multiple scripts.
 #!/bin/bash
-set -xe 
+set -xe
 SRC_DIR=$1
 
 # Print out env for debugging.
@@ -19,7 +19,7 @@ git clone https://github.com/${REPO_OWNER}/${REPO_NAME}.git /tmp/src
 # when we switched to NFS.
 # As a workaround we clone into a local directory and then move the files onto
 # NFS. Copying to NFS is still a bottleneck and increases the run time to O(1. 5 minutes).
-# clone --recurse-submodules https://github.com/google/kubeflow.git /tmp/src",
+# clone --recurse-submodules https://github.com/kubeflow/kubeflow.git /tmp/src",
 cd /tmp/src
 
 # We need to set the preloadindex option; to try to speedup git ops like describe
@@ -37,12 +37,12 @@ if [ ! -z ${PULL_NUMBER} ]; then
  	# Checkout the latest commit for this PR since no commit specified.
  	git checkout pr
  fi
-else 
+else
  if [ ! -z ${PULL_BASE_SHA} ]; then
   # Its a post submit; checkout the commit to test.
     git checkout ${PULL_BASE_SHA}
  fi
-fi  
+fi
 
 # Update submodules.
 git submodule init
@@ -51,7 +51,7 @@ git submodule update
 # TODO(jlewi): As noted above the git operations below are really
 # slow when using NFS.
 # Print out the git version in the logs
-git describe --tags --always --dirty      
+git describe --tags --always --dirty
 git status
 
 # Move it to NFS
