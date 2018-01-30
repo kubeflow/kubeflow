@@ -77,6 +77,28 @@ At any time you can inspect the kubernetes objects definitions for a particular 
 ks show ${KF_ENV} -c kubeflow-core
 ```
 
+
+### Usage Reporting
+
+By default, Kubeflow will report **anonymous** usage data using [spartakus](https://github.com/kubernetes-incubator/spartakus), Kubernetes' reporting tool. Spartakus **does not report any presonal information** see [here](https://github.com/kubernetes-incubator/spartakus) for more detail.
+This is entirely voluntary and you can opt out by doing the following
+
+```
+ks param set kubeflow-core reportUsage false
+
+# Delete any existing deployments of spartakus
+kubectl delete -n ${NAMESPACE} deploy spartakus-volunteer
+```
+
+**Reporting usage data is one of the most signifcant contributions you can make to Kubeflow; so please consider leaving it on.** This data
+allows us to improve the product and helps the many companies working on Kubeflow justify continued investement. 
+
+You can improve the quality of the data by giving each Kubeflow deployment a unique id
+
+```
+ks param set kubeflow-core usageId $(uuidgen)
+```
+
 ### Bringing up a Notebook
 
 The kubeflow-core component deployed JupyterHub and a corresponding load balancer service. You can check its status using the kubectl command line.

@@ -14,7 +14,7 @@ This document details the steps needed to run the Kubeflow project in any enviro
 
 ## Quick Links
 * [Prow test dashboard](https://k8s-testgrid.appspot.com/sig-big-data)
-* [Prow jobs dashboard](https://prow.k8s.io/?repo=google%2Fkubeflow)
+* [Prow jobs dashboard](https://prow.k8s.io/?repo=kubeflow%2Fkubeflow)
 * [Argo UI for E2E tests](http://testing-argo.kubeflow.io)
 
 ## The Kubeflow Mission
@@ -25,11 +25,9 @@ Our goal is to make scaling machine learning models and deploying them to produc
 - Scaling based on demand
 
 
-
 Because ML practitioners use so many different types of tools, it's a key goal that you can customize the stack to whatever your requirements (within reason) and let the system take care of the "boring stuff." While we have started with a narrow set of technologies, we are working with many different projects to include additional tooling.
 
 Ultimately, we want to have a set of simple manifests that give you an easy to use ML stack _anywhere_ Kubernetes is already running and can self configure based on the cluster it deploys into.
-
 
 ## Who should consider using Kubeflow?
 
@@ -89,6 +87,9 @@ Used together, these make it easy for a user go from training to serving using T
 effort in a portable fashion between different environments.
 
 For more detailed instructions about how to use Kubeflow, please refer to the [user guide](user_guide.md).
+
+**Important** By default Kubeflow will collect **anonymous** user data to help us improve Kubeflow; for more information including
+instructions for disabling it please refer to the [user_guide](user_guide#Usage Reporting)
 
 ## Troubleshooting
 
