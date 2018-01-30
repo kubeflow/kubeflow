@@ -72,26 +72,26 @@ local nfsComponents =
 local kubeSpawner = jupyter.parts(namespace).kubeSpawner(jupyterHubAuthenticator, diskNames);
 
 std.prune(k.core.v1.list.new([
-  jupyter.parts(namespace).jupyterHubConfigMap(kubeSpawner),
-  jupyter.parts(namespace).jupyterHubService,
-  jupyter.parts(namespace).jupyterHubLoadBalancer(jupyterHubServiceType),
-  jupyter.parts(namespace).jupyterHub(jupyterHubImage),
-  jupyter.parts(namespace).jupyterHubRole,
-  jupyter.parts(namespace).jupyterHubServiceAccount,
-  jupyter.parts(namespace).jupyterHubRoleBinding,
+                               jupyter.parts(namespace).jupyterHubConfigMap(kubeSpawner),
+                               jupyter.parts(namespace).jupyterHubService,
+                               jupyter.parts(namespace).jupyterHubLoadBalancer(jupyterHubServiceType),
+                               jupyter.parts(namespace).jupyterHub(jupyterHubImage),
+                               jupyter.parts(namespace).jupyterHubRole,
+                               jupyter.parts(namespace).jupyterHubServiceAccount,
+                               jupyter.parts(namespace).jupyterHubRoleBinding,
 
-  // TfJob controller
-  tfjob.parts(namespace).tfJobDeploy(tfJobImage),
-  tfjob.parts(namespace).configMap(cloud, tfDefaultImage),
-  tfjob.parts(namespace).serviceAccount,
-  tfjob.parts(namespace).operatorRole,
-  tfjob.parts(namespace).operatorRoleBinding,
+                               // TfJob controller
+                               tfjob.parts(namespace).tfJobDeploy(tfJobImage),
+                               tfjob.parts(namespace).configMap(cloud, tfDefaultImage),
+                               tfjob.parts(namespace).serviceAccount,
+                               tfjob.parts(namespace).operatorRole,
+                               tfjob.parts(namespace).operatorRoleBinding,
 
-  // TFJob controller ui
-  tfjob.parts(namespace).ui(tfJobImage),
-  tfjob.parts(namespace).uiService(tfJobUiServiceType),
-  tfjob.parts(namespace).uiServiceAccount,
-  tfjob.parts(namespace).uiRole,
-  tfjob.parts(namespace).uiRoleBinding,
-] + nfsComponents 
-  + spartakus.parts(namespace).all(params.reportUsage, params.usageId) ))
+                               // TFJob controller ui
+                               tfjob.parts(namespace).ui(tfJobImage),
+                               tfjob.parts(namespace).uiService(tfJobUiServiceType),
+                               tfjob.parts(namespace).uiServiceAccount,
+                               tfjob.parts(namespace).uiRole,
+                               tfjob.parts(namespace).uiRoleBinding,
+                             ] + nfsComponents
+                             + spartakus.parts(namespace).all(params.reportUsage, params.usageId)))
