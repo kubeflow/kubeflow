@@ -112,6 +112,19 @@ roleRef:
 
 
 ---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: tfjobs.tensorflow.org
+spec:
+  group: tensorflow.org
+  version: v1alpha1
+  names:
+    kind: TFJob
+    singular: tfjob
+    plural: tfjobs
+
+---
 # Source: tf-job-operator-chart/templates/deployment.yaml
 apiVersion: extensions/v1beta1
 kind: Deployment
