@@ -7,7 +7,7 @@ This directory contains the Kubeflow ksonnet [registry][2]. If you are unfamilia
 
 ## Usage
 
-Please refer to the [Kubeflow user guide](https://github.com/kubeflow/kubeflow/blob/master/README.ksonnet.md)
+Please refer to the [Kubeflow user guide](https://github.com/kubeflow/kubeflow/blob/master/user_guide.md)
 
 ## Library-specific Documentation
 
