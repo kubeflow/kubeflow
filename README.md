@@ -2,7 +2,7 @@
 
 The Kubeflow project is dedicated to making machine learning on [Kubernetes](https://kubernetes.io/) simple, portable and scalable. Our goal is **not** to recreate other services, but to provide a straightforward way to train, test, and deploy best-of-breed open-source predictive models to diverse infrastructures. Anywhere you are running Kubernetes, you should be able to run KubeFlow.
 
-**** 
+****
 
 Contained in this repository are manifests for creating:
 
@@ -44,7 +44,7 @@ functionality and actively soliciting help from companies and inviduals interest
 
 ## Setup
 
-This documentation assumes you have a Kubernetes cluster already available. 
+This documentation assumes you have a Kubernetes cluster already available.
 
 If you need help setting up a Kubernetes cluster please refer to [Kubernetes Setup](https://kubernetes.io/docs/setup/).
 
@@ -68,7 +68,7 @@ ks init ${APP_NAME}
 cd ${APP_NAME}
 
 # Install Kubeflow components
-ks registry add kubeflow github.com/google/kubeflow/tree/master/kubeflow
+ks registry add kubeflow github.com/kubeflow/kubeflow/tree/master/kubeflow
 ks pkg install kubeflow/core
 ks pkg install kubeflow/tf-serving
 ks pkg install kubeflow/tf-job
@@ -82,9 +82,9 @@ ks apply default -c kubeflow-core
 
 
 The above command sets up JupyterHub and a custom resource for running TensorFlow training jobs. Furthermore, the ksonnet packages
-provide prototypes that can be used to configure TensorFlow jobs and deploy TensorFlow models. 
+provide prototypes that can be used to configure TensorFlow jobs and deploy TensorFlow models.
 Used together, these make it easy for a user go from training to serving using Tensorflow with minimal
-effort in a portable fashion between different environments. 
+effort in a portable fashion between different environments.
 
 For more detailed instructions about how to use Kubeflow, please refer to the [user guide](user_guide.md).
 
@@ -100,7 +100,7 @@ issue between the KVM/KVM2 driver and TensorFlow Serving. The issue is tracked i
 
 ### RBAC clusters
 
-If you are running on a K8s cluster with [RBAC enabled](https://kubernetes.io/docs/admin/authorization/rbac/#command-line-utilities), you may get an error like the following when deploying Kubeflow: 
+If you are running on a K8s cluster with [RBAC enabled](https://kubernetes.io/docs/admin/authorization/rbac/#command-line-utilities), you may get an error like the following when deploying Kubeflow:
 
 ```
 ERROR Error updating roles kubeflow-test-infra.jupyter-role: roles.rbac.authorization.k8s.io "jupyter-role" is forbidden: attempt to grant extra privileges: [PolicyRule{Resources:["*"], APIGroups:["*"], Verbs:["*"]}] user=&{your-user@acme.com  [system:authenticated] map[]} ownerrules=[PolicyRule{Resources:["selfsubjectaccessreviews"], APIGroups:["authorization.k8s.io"], Verbs:["create"]} PolicyRule{NonResourceURLs:["/api" "/api/*" "/apis" "/apis/*" "/healthz" "/swagger-2.0.0.pb-v1" "/swagger.json" "/swaggerapi" "/swaggerapi/*" "/version"], Verbs:["get"]}] ruleResolutionErrors=[]
