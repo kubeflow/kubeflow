@@ -240,11 +240,7 @@ ks prototype describe tf-cnn
 
 ## Advanced Customization
 
-<<<<<<< HEAD
-* Often times data scientists require a POSIX compliant filesystem 
-=======
 * Often times data scientists require a POSIX compliant filesystem
->>>>>>> upstream/master
    * For example, most HDF5 libraries require POSIX and don't work with an object store like GCS or S3
 * When working with teams you might want a shared POSIX filesystem to be mounted into your notebook environments
   so that data scientists can work collaboratively on the same datasets.
