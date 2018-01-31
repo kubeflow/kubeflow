@@ -10,6 +10,7 @@
 // @optionalParam tfDefaultImage string null The default image to use for TensorFlow.
 // @optionalParam tfJobUiServiceType string ClusterIP The service type for the UI.
 // @optionalParam jupyterHubServiceType string ClusterIP The service type for Jupyterhub.
+// @optionalParam jupyterHubAuthenticator string null The authenticator to use with jupyterHub; default is dummy username/password. Set to IAP to use IAP.
 
 // TODO(https://github.com/ksonnet/ksonnet/issues/222): We have to add namespace as an explicit parameter
 // because ksonnet doesn't support inheriting it from the environment yet.
@@ -25,7 +26,10 @@ local namespace = import 'param://namespace';
 local cloud = import 'param://cloud';
 
 // TODO(jlewi): Make this a parameter
-local jupyterHubImage = 'gcr.io/kubeflow/jupyterhub:1.0';
+local jupyterHubServiceType = import 'param://jupyterHubServiceType';
+local jupyterHubImage = 'gcr.io/kubeflow/jupyterhub-k8s:1.0.1';
+local jupyterHubAuthenticator = import 'param://jupyterHubAuthenticator';
+
 local diskParam = import 'param://disks';
 
 local diskNames = if diskParam != "null" && std.length(diskParam) > 0 then
@@ -62,9 +66,10 @@ local nfsComponents =
   else
     [];
 
+local kubeSpawner = jupyter.parts(namespace).kubeSpawner(jupyterHubAuthenticator, diskNames);
+
 std.prune(k.core.v1.list.new([
-  // jupyterHub components
-  jupyterConfigMap,
+  jupyter.parts(namespace).jupyterHubConfigMap(kubeSpawner),
   jupyter.parts(namespace).jupyterHubService,
   jupyter.parts(namespace).jupyterHubLoadBalancer(jupyterHubServiceType),
   jupyter.parts(namespace).jupyterHub(jupyterHubImage),
@@ -80,7 +85,7 @@ std.prune(k.core.v1.list.new([
   tfjob.parts(namespace).operatorRole,
   tfjob.parts(namespace).operatorRoleBinding,
 
-  // TfJob controll ui
+  // TFJob controller ui
   tfjob.parts(namespace).ui(tfJobImage),
   tfjob.parts(namespace).uiService(tfJobUiServiceType),
   tfjob.parts(namespace).uiServiceAccount,
