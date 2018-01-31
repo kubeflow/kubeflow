@@ -7,17 +7,17 @@
 
   parts(namespace):: {
     all::[
-      argo.parts(namespace).crd,
-      argo.parts(namespace).config,
-      argo.parts(namespace).deploy,
-      argo.parts(namespace).deployUi,
-      argo.parts(namespace).uiService,
-      argo.parts(namespace).uiIngress,
-      argo.parts(namespace).serviceAccount,
-      argo.parts(namespace).roleBinding,
-      argo.parts(namespace).defaultRoleBinding,
+      $.parts(namespace).crd,
+      $.parts(namespace).config,
+      $.parts(namespace).deploy,
+      $.parts(namespace).deployUi,
+      $.parts(namespace).uiService,
+      $.parts(namespace).uiIngress,
+      $.parts(namespace).serviceAccount,
+      $.parts(namespace).roleBinding,
+      $.parts(namespace).defaultRoleBinding,
     ],
-    
+
     // CRD's are not namespace scoped; see
     // https://kubernetes.io/docs/tasks/access-kubernetes-api/extend-api-custom-resource-definitions/
     crd: {

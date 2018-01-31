@@ -26,7 +26,7 @@
       "prototype": "io.ksonnet.pkg.argo",
       "componentName": "argo",
       "flags": {
-         "nametest": "argo",
+         "name": "argo",
          "namespace": "",
       },
       "comment": "Deploy Argo"
