@@ -84,7 +84,6 @@ gcloud --project=${PROJECT} container clusters create \
 
 * The tests need a GCP service account to upload data to GCS for Gubernator
 
-
 ```
 SERVICE_ACCOUNT=kubeflow-testing
 gcloud iam service-accounts --project=mlkube-testing create ${SERVICE_ACCOUNT} --display-name "Kubeflow testing account"
