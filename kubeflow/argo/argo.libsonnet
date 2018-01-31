@@ -263,7 +263,7 @@
           apiGroups: [""],
           resources: [
             "pods",
-            "pods-exec",
+            "pods/exec",
           ],
           verbs: [
             "create",
@@ -368,7 +368,7 @@
           apiGroups: [""],
           resources: [
             "pods",
-            "pods-exec",
+            "pods/exec",
             "pods/log",
           ],
           verbs: [
