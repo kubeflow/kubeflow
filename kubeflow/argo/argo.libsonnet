@@ -6,16 +6,15 @@
   // see https://github.com/argoproj/argo/blob/master/cmd/argo/commands/install.go
 
   parts(namespace):: {
-    all::[
+    all:: [
       $.parts(namespace).crd,
       $.parts(namespace).config,
       $.parts(namespace).deploy,
       $.parts(namespace).deployUi,
       $.parts(namespace).uiService,
-      $.parts(namespace).uiIngress,
       $.parts(namespace).serviceAccount,
+      $.parts(namespace).role,
       $.parts(namespace).roleBinding,
-      $.parts(namespace).defaultRoleBinding,
     ],
 
     // CRD's are not namespace scoped; see
@@ -97,7 +96,7 @@
                     },
                   },
                 ],
-                image: "argoproj/workflow-controller:v2.0.0-alpha3",
+                image: "argoproj/workflow-controller:v2.0.0-beta1",
                 imagePullPolicy: "IfNotPresent",
                 name: "workflow-controller",
                 resources: {},
@@ -169,7 +168,7 @@
                     value: "true",
                   },
                 ],
-                image: "argoproj/argoui:v2.0.0-alpha3",
+                image: "argoproj/argoui:v2.0.0-beta1",
                 imagePullPolicy: "IfNotPresent",
                 name: "argo-ui",
                 resources: {},
@@ -194,35 +193,6 @@
         },
       },
     },  // deployUi
-
-    uiIngress:: {
-      apiVersion: "extensions/v1beta1",
-      kind: "Ingress",
-      metadata: {
-        name: "argo-ui",
-        namespace: namespace,
-      },
-      annotations: {
-        "kubernetes.io/ingress.global-static-ip-name": "argo-ui",
-      },
-      spec: {
-        rules: [
-          {
-            http: {
-              paths: [
-                {
-                  backend: {
-                    serviceName: "argo-ui",
-                    servicePort: 80,
-                  },
-                  path: "/*",
-                },
-              ],
-            },
-          },
-        ],
-      },
-    },  // ingress
 
     uiService: {
       apiVersion: "v1",
@@ -252,7 +222,7 @@
     config: {
       apiVersion: "v1",
       data: {
-        config: @"executorImage: argoproj/argoexec:v2.0.0-alpha2",
+        config: @"executorImage: argoproj/argoexec:v2.0.0-beta1",
       },
       kind: "ConfigMap",
       metadata: {
@@ -270,19 +240,92 @@
       },
     },  // service account
 
-    // TODO(jlewi): Do we really need cluster admin privileges? Why?
-    // is this just because workflow controller is trying to create the CRD?
-    roleBinding: {
-      apiVersion: "rbac.authorization.k8s.io/v1",
+    // Keep in sync with https://github.com/argoproj/argo/blob/master/cmd/argo/commands/const.go#L20
+    // Permissions need to be cluster wide for the workflow controller to be able to process workflows
+    // in other namespaces. We could potentially use the ConfigMap of the workflow-controller to
+    // scope it to a particular namespace in which case we might be able to restrict the permissions
+    // to a particular namespace.
+    role: {
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
+      kind: "ClusterRole",
+      metadata: {
+        labels: {
+          app: "argo",
+        },
+        name: "argo",
+        namespace: namespace,
+      },
+      rules: [
+        {
+          apiGroups: [""],
+          resources: [
+            "pods",
+            "pods-exec",
+          ],
+          verbs: [
+            "create",
+            "get",
+            "list",
+            "watch",
+            "update",
+            "patch",
+          ],
+        },
+        {
+          apiGroups: [""],
+          resources: [
+            "configmaps",
+          ],
+          verbs: [
+            "get",
+            "watch",
+            "list",
+          ],
+        },
+        {
+          apiGroups: [
+            "",
+          ],
+          resources: [
+            "persistentvolumeclaims",
+          ],
+          verbs: [
+            "create",
+            "delete",
+          ],
+        },
+        {
+          apiGroups: [
+            "argoproj.io",
+          ],
+          resources: [
+            "workflows",
+          ],
+          verbs: [
+            "get",
+            "list",
+            "watch",
+            "update",
+            "patch",
+          ],
+        },
+      ],
+    },  // operator-role
+
+    roleBinding:: {
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRoleBinding",
       metadata: {
-        name: "argo-cluster-role",
+        labels: {
+          app: "argo",
+        },
+        name: "argo",
         namespace: namespace,
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
         kind: "ClusterRole",
-        name: "cluster-admin",
+        name: "argo",
       },
       subjects: [
         {
@@ -292,29 +335,5 @@
         },
       ],
     },  // role binding
-
-    // The steps in the workflow use the default service account.
-    // The default service account needs sufficient permission in order
-    // to create namespaces and other objects used in the test.
-    defaultRoleBinding: {
-      apiVersion: "rbac.authorization.k8s.io/v1",
-      kind: "ClusterRoleBinding",
-      metadata: {
-        name: "default-role",
-        namespace: namespace,
-      },
-      roleRef: {
-        apiGroup: "rbac.authorization.k8s.io",
-        kind: "ClusterRole",
-        name: "cluster-admin",
-      },
-      subjects: [
-        {
-          kind: "ServiceAccount",
-          name: "default",
-          namespace: namespace,
-        },
-      ],
-    },  // default role binding
   },  // parts
 }

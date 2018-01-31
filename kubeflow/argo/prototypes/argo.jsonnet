@@ -2,7 +2,7 @@
 // @name io.ksonnet.pkg.argo
 // @description Deploy Argo workflow engine
 // @shortDescription Argo workflow engine
-// @param name string Name to give to the component 
+// @param name string Name to give to the component
 // @optionalParam namespace string default Namespace to use for the components.
 
 // TODO(https://github.com/ksonnet/ksonnet/issues/222): We have to add namespace as an explicit parameter
