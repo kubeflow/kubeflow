@@ -55,6 +55,8 @@ The command below will push the docker image to your project's GCR.
 make PROJECT_ID=$(gcloud config get-value project) push
 ```
 
+We will be using this image to serve your model later in this guide.
+
 You can learn more about [building a TensorFlow model server](https://www.tensorflow.org/serving/serving_advanced) and
 running a [TensorFlow model server in docker](https://www.tensorflow.org/serving/docker) in the TensorFlow Serving
 documentation.
@@ -73,16 +75,9 @@ gsutil mb gs://<bucket-name>
 
 ## Upload a Model
 You can train an inception model using the instructions from the
-[TensorFlow documentation](https://www.tensorflow.org/tutorials/image_retraining), or you can download the pre-trained
-[example](http://download.tensorflow.org/models/inception_v3_2016_08_28.tar.gz), or you can use the pre-uploaded,
-pre-trained [gcs bucket](gs://kubeflow-models/inception) directly.
+[TensorFlow documentation](https://www.tensorflow.org/tutorials/image_retraining), or you can use the pre-uploaded, pre-trained [gcs bucket](gs://kubeflow-models/inception) directly.
 
-If you downloaded the example decompress it.
-```commandline
-tar -zxpf inception.tar.gz
-```
-
-Use [gsutil cp](https://cloud.google.com/storage/docs/gsutil/commands/cp) to upload the inception model to the cloud
+If using your own trained inception model, use [gsutil cp](https://cloud.google.com/storage/docs/gsutil/commands/cp) to upload the inception model to the cloud
 storage bucket you created above.
 ```commandline
 gsutil cp -r inception gs://<bucket-name>
@@ -130,17 +125,26 @@ gcloud container clusters get-credentials model-serving --zone <your-zone> --pro
 ```
 
 
-### Create a ksonnet component for your model
+### Deploy your model to Kubernetes
 
-We treat each deployed model as a [component](https://ksonnet.io/docs/tutorial#2-generate-and-deploy-an-app-component) in your APP.
+Now we will combine the image and model collected/created in the previous steps by using ksonnet to configure and deploy them to Kubernetes.
 
-Create a component for your model inside your ksonnet app (refer to the [user_guide](../../user_guide.md) for instructions on creating an APP)
+We treat each deployed model as a [component](https://ksonnet.io/docs/tutorial#2-generate-and-deploy-an-app-component) in your ksonnet app.
+
+Create a component for your model inside your ksonnet app (refer to the [user_guide](../../user_guide.md) for more context on ksonnet)
 
 ```commandline
+ks init my-model-server
+cd my-model-server
+ks registry add kubeflow github.com/kubeflow/kubeflow/tree/master/kubeflow
+ks pkg install kubeflow/tf-serving
+ks env add  cloud
 MODEL_COMPONENT=serveInception
 MODEL_NAME=inception
+#Replace this with the url to your bucket if using your own model
 MODEL_PATH=gs://kubeflow-models/inception
-ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME} --namespace=default --model_path=${MODEL_PATH}
+MODEL_SERVER_IMAGE=gcr.io/$(gcloud config get-value project)/model-server:1.0
+ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME} --namespace=default --model_path=${MODEL_PATH} --model_server_image=${MODEL_SERVER_IMAGE}
 ```
 
 Deploy it in a particular environment. The deployment will pick up environment parmameters (e.g. cloud) and customize the deployment appropriately
@@ -153,10 +157,9 @@ You can use [kubectl get](https://kubernetes.io/docs/reference/generated/kubectl
 status of the Deployment.
 
 ```commandline
-kubectl get deployment model-server
-NAME           DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
-model-server   3         3         3            3           20s
-
+kubectl get deployment inception
+NAME        DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+$MODEL_NAME 1         1         1            1           1m
 ```
 
 You can learn more about [updating a Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#updating-a-deployment),
@@ -186,9 +189,9 @@ $MODEL_NAME  LoadBalancer   <INTERNAL IP>   <SERVICE IP>     <SERVICE PORT>:<NOD
 We will feed the `<SERVICE IP>` and `<SERVICE PORT>` to the labelling script. We will use it to label the following image of a
 cat sleeping on a comforter atop a sofa:
 
-![Cat on comforter on sofa](./inception-client/images/sleeping-pepper.jpg)
+![Cat on comforter on sofa](./inception-client/images/sleeping-pepper.jpg =200x)
 
-You can also use to to label your own images.
+You can also use it to label your own images.
 
 #### Running the script directly
 
