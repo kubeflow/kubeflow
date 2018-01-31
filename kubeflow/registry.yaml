@@ -1,6 +1,6 @@
 apiVersion: '0.1'
 kind: ksonnet.io/registry
-libraries:  
+libraries:
   core:
     version: master
     path: core
