@@ -98,7 +98,7 @@ def setup(args):
 
     app_dir = os.path.join(args.test_dir, app_name)
 
-    kubeflow_registry = "github.com/google/kubeflow/tree/master/kubeflow"
+    kubeflow_registry = "github.com/kubeflow/kubeflow/tree/master/kubeflow"
     util.run(["ks", "registry", "add", "kubeflow", kubeflow_registry], cwd=app_dir)
 
     # Install required packages

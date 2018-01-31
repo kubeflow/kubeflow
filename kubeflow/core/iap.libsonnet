@@ -199,6 +199,7 @@
                         {
                           timeout_ms: 10000,
                           prefix: "/whoami",
+                          prefix_rewrite: "/",
                           weighted_clusters: {
                             clusters: [
                               {
@@ -213,6 +214,7 @@
                           // JupyterHub requires the prefix /hub
                           timeout_ms: 10000,
                           prefix: "/hub",
+                          prefix_rewrite: "/hub",
                           use_websocket: true,
                           weighted_clusters: {
                             clusters: [
@@ -227,6 +229,7 @@
                           // JupyterHub requires the prefix /user
                           timeout_ms: 10000,
                           prefix: "/user",
+                          prefix_rewrite: "/user",
                           use_websocket: true,
                           weighted_clusters: {
                             clusters: [
@@ -400,6 +403,7 @@
                         {
                           timeout_ms: 10000,
                           prefix: "/noiap/whoami",
+                          prefix_rewrite: "/",
                           weighted_clusters: {
                             clusters: [
                               {

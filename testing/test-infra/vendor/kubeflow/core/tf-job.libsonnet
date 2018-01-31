@@ -2,23 +2,6 @@
   // TODO(https://github.com/ksonnet/ksonnet/issues/222): Taking namespace as an argument is a work around for the fact that ksonnet
   // doesn't support automatically piping in the namespace from the environment to prototypes.
   parts(namespace):: {
-    crd: {
-      apiVersion: "apiextensions.k8s.io/v1beta1",
-      kind: "CustomResourceDefinition",
-      metadata: {
-        name: "tfjobs.tensorflow.org",
-      },
-      spec: {
-        group: "tensorflow.org",
-        version: "v1alpha1",
-        names: {
-          kind: "TFJob",
-          singular: "tfjob",
-          plural: "tfjobs",
-        },
-      },
-    },
-
     tfJobDeploy(image): {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
@@ -264,18 +247,6 @@
       metadata: {
         name: "tf-job-dashboard",
         namespace: namespace,
-        annotations: {
-          "getambassador.io/config":
-            std.join("\n", [
-              "---",
-              "apiVersion: ambassador/v0",
-              "kind:  Mapping",
-              "name: tfjobs-ui-mapping",
-              "prefix: /tfjobs/ui/",
-              "rewrite: /",
-              "service: tf-job-dashboard." + namespace,
-            ]),
-        },  //annotations
       },
       spec: {
         ports: [

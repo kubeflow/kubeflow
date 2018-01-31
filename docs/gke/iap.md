@@ -31,13 +31,13 @@ with the IP address that you just reserved.
 The certificate is needed for HTTPs
   
 ```
-ENDPOINT_URL=${HOST}.${YOURDOMAIN}
-mkdir -p ~/tmp/${ENDPOINT_URL}
-TLS_KEY_FILE=~/tmp/${ENDPOINT_URL}/tls.key
-TLS_CRT_FILE=~/tmp/${ENDPOINT_URL}/tls.crt
+${FQDN}=${HOST}.${YOURDOMAIN}
+mkdir -p ~/tmp/${DOMAIN}
+TLS_KEY_FILE=~/tmp/${FQDN}/tls.key
+TLS_CRT_FILE=~/tmp/${FQDN}/tls.crt
 
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-  -subj "/CN=${ENDPOINT_URL}/O=Google LTD./C=US" \
+  -subj "/CN=${FQDN}/O=Google LTD./C=US" \
   -keyout ${TLS_KEY_FILE} -out ${TLS_CRT_FILE}
 ```
   
@@ -64,7 +64,7 @@ Create an OAuth Client ID to be used to identify IAP when requesting acces to us
   * Under Application type, select Web application. In the Name box enter a name, and in the Authorized redirect URIs box, enter 
 
 ```
-  https://${ENDPOINT_URL}/_gcp_gatekeeper/authenticate, 
+  https://${FQDN}/_gcp_gatekeeper/authenticate, 
 ```
 
 1. After you enter the details, click Create. Make note of the **client ID** and **client secret** that appear in the OAuth client window because we will
@@ -74,13 +74,26 @@ Save the OAuth client ID and secret to variables for later use:
 
 ### Setup Ingress
 
+If you haven't already, follow the instructions in the [user_guide](https://github.com/kubeflow/kubeflow/blob/master/user_guide.md#deploy-kubeflow) 
+to create a ksonnet app to deploy Kubeflow.
+
+The instructions below reference the following environment variables which you will need to set for your deployment
+
+  * **CORE_NAME** The name assigned to the core Kubeflow ksonnet components (this is the name chosen when you ran `ks generate...`).
+  * **ENVIRONMENT** The name of the ksonnet environment where you want to deploy Kubeflow.
+  * **FQDN** The fully qualified domain name to use for your Kubeflow deployment.
+  * **IP_NAME** The name of the GCP static IP that you created above and will be associated with **DOMAIN**.
+  * **NAMESPACE** The namespace where Kubeflow is deployed.
+  * **SECRET_NAME** The name of the K8s secret that stores the SSL certificate.
+
+
 ```
 ks generate ${ENVIRONMENT} iap-ingress --secretName=${SECRET_NAME} --ipName=${IP_NAME} --namespace=${NAMESPACE}
 ks apply ${ENVIRONMENT} -c iap-ingress
 ```
 
 This will create a load balancer. We can now enable IAP on this load balancer using 
-the [enable_iap_openapi.sh](https://github.com/google/kubeflow/tree/master/docs/gke/enable_iap.sh) script.
+the [enable_iap_openapi.sh](https://github.com/kubeflow/kubeflow/tree/master/docs/gke/enable_iap.sh) script.
 
 
 ```
@@ -116,7 +129,7 @@ ks apply ${ENVIRONMENT} -c iap-envoy
 It can take some time for IAP to be enabled. You can test things out using the following URL
 
 ```
-https://${DOMAIN}/noiap/whoami
+https://${FQDN}/noiap/whoami
 ```
 
   * This a simple test app that's deployed as part of the iap-envoy component.
@@ -128,7 +141,7 @@ https://${DOMAIN}/noiap/whoami
 We also have the app running at
 
 ```
-https://${DOMAIN}/whoami
+https://${FQDN}/whoami
 ```
   * But this path will reject traffic that didn't go through IAP so it won't work unless IAP is enabled. In this case you should get
   one of the following errors.
@@ -165,7 +178,7 @@ kubectl delete -n ${NAMESPACE} pods tf-hub-0
 You should now be able to access JupyterHub at
 
 ```
-https://${ENDPOINT}/hub
+https://${FQDN}/hub
 ```
 
 ### Adding Users
@@ -197,76 +210,76 @@ Here are some tips for troubleshooting IAP.
 
  * Make sure you are using https
 
-  ### 502 Server Error 
-    * A 502 usually means traffic isn't even making it to the envoy reverse proxy
-    * A 502 usually indicates the loadbalancer doesn't think any backends are healthy
-      * In Cloud Console select Network Services -> Load Balancing
-          * Click on the load balancer (the name should contain the name of the ingress)
-          * The exact name can be found by looking at the `ingress.kubernetes.io/url-map` annotation on your ingress object
-          * Click on your loadbalancer
-          * This will show you the backend services associated with the load balancer
-              * There is 1 backend service for each K8s service the ingress rule routes traffic too
-              * The named port will correspond to the NodePort a service is using
-          * Make sure the load balancer reports the backends as healthy
-              * If the backends aren't reported as healthy check that the pods associated with the K8s service are up and running 
-              * Check that health checks are properly configured
-                * Click on the health check associated with the backend service for envoy
-                * Check that the path is /healthz and corresponds to the path of the readiness probe on the envoy pods
-                * Seel also [K8s docs](https://github.com/kubernetes/contrib/blob/master/ingress/controllers/gce/examples/health_checks/READMEmd#limitations) for important information about how health checks are determined from readiness probes.
+### 502 Server Error 
+* A 502 usually means traffic isn't even making it to the envoy reverse proxy
+* A 502 usually indicates the loadbalancer doesn't think any backends are healthy
+  * In Cloud Console select Network Services -> Load Balancing
+      * Click on the load balancer (the name should contain the name of the ingress)
+      * The exact name can be found by looking at the `ingress.kubernetes.io/url-map` annotation on your ingress object
+      * Click on your loadbalancer
+      * This will show you the backend services associated with the load balancer
+          * There is 1 backend service for each K8s service the ingress rule routes traffic too
+          * The named port will correspond to the NodePort a service is using
+      * Make sure the load balancer reports the backends as healthy
+          * If the backends aren't reported as healthy check that the pods associated with the K8s service are up and running 
+          * Check that health checks are properly configured
+            * Click on the health check associated with the backend service for envoy
+            * Check that the path is /healthz and corresponds to the path of the readiness probe on the envoy pods
+            * Seel also [K8s docs](https://github.com/kubernetes/contrib/blob/master/ingress/controllers/gce/examples/health_checks/READMEmd#limitations) for important information about how health checks are determined from readiness probes.
 
-              * Check firewall rules to ensure traffic isn't blocked from the GCP loadbalancer
-                  * The firewall rule should be added automatically by the ingress but its possible it got deleted if you have some automatic firewall policy enforcement. You can recreate the firewall rule if needed with a rule like this
+          * Check firewall rules to ensure traffic isn't blocked from the GCP loadbalancer
+              * The firewall rule should be added automatically by the ingress but its possible it got deleted if you have some automatic firewall policy enforcement. You can recreate the firewall rule if needed with a rule like this
 
-                   ```
-                   gcloud compute firewall-rules create $NAME \
-                  --project $PROJECT \
-                  --allow tcp:$PORT \
-                  --target-tags $NODE_TAG \
-                  --source-ranges 130.211.0.0/22,35.191.0.0/16
-                   ```
+               ```
+               gcloud compute firewall-rules create $NAME \
+              --project $PROJECT \
+              --allow tcp:$PORT \
+              --target-tags $NODE_TAG \
+              --source-ranges 130.211.0.0/22,35.191.0.0/16
+               ```
 
-                    * To get the node tag
-                    
-                    ```
-                    # From the GKE cluster get the name of the managed instance group
-                    gcloud --project=$PROJECT container clusters --zone=$ZONE describe $CLUSTER
-                    # Get the template associated with the MIG
-                    gcloud --project=kubeflow-rl compute instance-groups managed describe --zone=${ZONE} ${MIG_NAME}
-                    # Get the instance tags from the template
-                    gcloud --project=kubeflow-rl compute instance-templates describe ${TEMPLATE_NAME}
+                * To get the node tag
+                
+                ```
+                # From the GKE cluster get the name of the managed instance group
+                gcloud --project=$PROJECT container clusters --zone=$ZONE describe $CLUSTER
+                # Get the template associated with the MIG
+                gcloud --project=kubeflow-rl compute instance-groups managed describe --zone=${ZONE} ${MIG_NAME}
+                # Get the instance tags from the template
+                gcloud --project=kubeflow-rl compute instance-templates describe ${TEMPLATE_NAME}
 
-                    ```
+                ```
 
-                  For more info [see GCP HTTP health check docs](https://cloud.google.com/compute/docs/load-balancing/health-checks)
+              For more info [see GCP HTTP health check docs](https://cloud.google.com/compute/docs/load-balancing/health-checks)
 
- 	  * In Stackdriver Logging look at the Cloud Http Load Balancer logs
+  * In Stackdriver Logging look at the Cloud Http Load Balancer logs
 
-      * logs are labeled with the forwarding rule
-      * The forwarding rules are available via the annotations on the ingress
-        ```
-        ingress.kubernetes.io/forwarding-rule
-        ingress.kubernetes.io/https-forwarding-rule
-        ```
- 	
-   * Verify that requests are being properly routed within the cluster
+    * logs are labeled with the forwarding rule
+    * The forwarding rules are available via the annotations on the ingress
+      ```
+      ingress.kubernetes.io/forwarding-rule
+      ingress.kubernetes.io/https-forwarding-rule
+      ```
+	
+ * Verify that requests are being properly routed within the cluster
 
-    * Connect to one of the envoy proxies
+  * Connect to one of the envoy proxies
 
-    ```
-    kubectl exec -ti `kubectl get pods --selector=service=envoy -o jsonpath='{.items[0].metadata.name}'` /bin/bash
-    ```
+  ```
+  kubectl exec -ti `kubectl get pods --selector=service=envoy -o jsonpath='{.items[0].metadata.name}'` /bin/bash
+  ```
 
-    * Installl curl in the pod
-    ```
-    apt-get update && apt-get install -y curl
-    ```
+  * Installl curl in the pod
+  ```
+  apt-get update && apt-get install -y curl
+  ```
 
-    * Verify access to the whoami app
+  * Verify access to the whoami app
 
-    ```
-    curl -L -s -i curl -L -s -i http://envoy:8080/noiap/whoami 
-    ```
-      * If this doesn't return a 200 OK response; then there is a problem with the K8s resources
+  ```
+  curl -L -s -i curl -L -s -i http://envoy:8080/noiap/whoami 
+  ```
+    * If this doesn't return a 200 OK response; then there is a problem with the K8s resources
 
-        * Check the pods are running
-        * Check services are pointing at the points (look at the endpoints for the various services)
+      * Check the pods are running
+      * Check services are pointing at the points (look at the endpoints for the various services)

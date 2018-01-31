@@ -2,14 +2,14 @@
 
 This directory contains the Kubeflow test Infrastructure.
 
-This is a work in progress see [google/kubeflow#38](https://github.com/google/kubeflow/issues/38)
+This is a work in progress see [kubeflow/kubeflow#38](https://github.com/kubeflow/kubeflow/issues/38)
 
 The current thinking is this will work as follows
 
   * Prow will be used to trigger E2E tests
   * The E2E test will launch an Argo workflow that describes the tests to run
   * Each step in the Argo workflow will be a binary invoked inside a container
-  * The Argo workflow will use an NFS volume to attach a shared POSIX compliant filesystem to each step in the 
+  * The Argo workflow will use an NFS volume to attach a shared POSIX compliant filesystem to each step in the
     workflow.
   * Each step in the pipeline can write outputs and junit.xml files to a test directory in the volume
   * A final step in the Argo pipeline will upload the outputs to GCS so they are available in gubernator
@@ -61,7 +61,7 @@ ks apply prow -c workflows
 
 ## Setting up the Test Infrastructure
 
-Our tests require a K8s cluster with Argo installed. This section provides the instructions 
+Our tests require a K8s cluster with Argo installed. This section provides the instructions
 for setting this.
 
 Create a GKE cluster
@@ -81,8 +81,9 @@ gcloud --project=${PROJECT} container clusters create \
 
 
 ### Create a GCP service account
-	
+
 * The tests need a GCP service account to upload data to GCS for Gubernator
+
 
 ```
 SERVICE_ACCOUNT=kubeflow-testing
@@ -107,7 +108,7 @@ Make the service account a cluster admin
 
 ```
 kubectl create clusterrolebinding  ${SERVICE_ACCOUNT}-admin --clusterrole=cluster-admin  \
-		--user=${SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com 
+		--user=${SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com
 ```
 * The service account is used to deploye Kubeflow which entails creating various roles; so it needs sufficient RBAC permission to do so.
 
@@ -153,7 +154,7 @@ You can deploy argo as follows (you don't need to use argo's CLI)
 
 ```
 ks apply prow -c argo
-```  
+```
 
 Deploy NFS & Jupyter
 
