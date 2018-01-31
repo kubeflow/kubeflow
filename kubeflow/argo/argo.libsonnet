@@ -15,6 +15,9 @@
       $.parts(namespace).serviceAccount,
       $.parts(namespace).role,
       $.parts(namespace).roleBinding,
+      $.parts(namespace).uiServiceAccount,
+      $.parts(namespace).uiRole,
+      $.parts(namespace).uiRoleBinding,
     ],
 
     // CRD's are not namespace scoped; see
@@ -180,8 +183,8 @@
             restartPolicy: "Always",
             schedulerName: "default-scheduler",
             securityContext: {},
-            serviceAccount: "argo",
-            serviceAccountName: "argo",
+            serviceAccount: "argo-ui",
+            serviceAccountName: "argo-ui",
             terminationGracePeriodSeconds: 30,
             readinessProbe: {
               httpGet: {
@@ -320,6 +323,93 @@
           app: "argo",
         },
         name: "argo",
+        namespace: namespace,
+      },
+      roleRef: {
+        apiGroup: "rbac.authorization.k8s.io",
+        kind: "ClusterRole",
+        name: "argo",
+      },
+      subjects: [
+        {
+          kind: "ServiceAccount",
+          name: "argo",
+          namespace: namespace,
+        },
+      ],
+    },  // role binding
+
+    uiServiceAccount: {
+      apiVersion: "v1",
+      kind: "ServiceAccount",
+      metadata: {
+        name: "argo-ui",
+        namespace: namespace,
+      },
+    },  // service account
+
+    // Keep in sync with https://github.com/argoproj/argo/blob/master/cmd/argo/commands/const.go#L44
+    // Permissions need to be cluster wide for the workflow controller to be able to process workflows
+    // in other namespaces. We could potentially use the ConfigMap of the workflow-controller to
+    // scope it to a particular namespace in which case we might be able to restrict the permissions
+    // to a particular namespace.
+    uiRole: {
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
+      kind: "ClusterRole",
+      metadata: {
+        labels: {
+          app: "argo",
+        },
+        name: "argo-ui",
+        namespace: namespace,
+      },
+      rules: [
+        {
+          apiGroups: [""],
+          resources: [
+            "pods",
+            "pods-exec",
+            "pods/log",
+          ],
+          verbs: [
+            "get",
+            "list",
+            "watch",
+          ],
+        },
+        {
+          apiGroups: [""],
+          resources: [
+            "secrets",
+          ],
+          verbs: [
+            "get",
+          ],
+        },
+        {
+          apiGroups: [
+            "argoproj.io",
+          ],
+          resources: [
+            "workflows",
+          ],
+          verbs: [
+            "get",
+            "list",
+            "watch",
+          ],
+        },
+      ],
+    },  // operator-role
+
+    uiRoleBinding:: {
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
+      kind: "ClusterRoleBinding",
+      metadata: {
+        labels: {
+          app: "argo",
+        },
+        name: "argo-ui",
         namespace: namespace,
       },
       roleRef: {
