@@ -189,7 +189,7 @@ $MODEL_NAME  LoadBalancer   <INTERNAL IP>   <SERVICE IP>     <SERVICE PORT>:<NOD
 We will feed the `<SERVICE IP>` and `<SERVICE PORT>` to the labelling script. We will use it to label the following image of a
 cat sleeping on a comforter atop a sofa:
 
-![Cat on comforter on sofa](./inception-client/images/sleeping-pepper.jpg =200x)
+![Cat on comforter on sofa](./inception-client/images/sleeping-pepper.jpg)
 
 You can also use it to label your own images.
 
