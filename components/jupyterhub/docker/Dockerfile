@@ -23,6 +23,7 @@ RUN npm install -g configurable-http-proxy && \
                  jupyterhub==0.8.1 \
                  jupyterhub-kubespawner==0.7.1 \
                  jupyterhub-dummyauthenticator \
+                 jhub_remote_user_authenticator \
                  oauthenticator
 
 ENTRYPOINT jupyterhub

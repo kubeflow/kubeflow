@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-VERSION=1.0
+VERSION=1.0.1
 PROJECT_ID=kubeflow
 PROJECT=gcr.io/${PROJECT_ID}
 
