@@ -1,0 +1,36 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: incpetion
+  name: incpetion
+  namespace: default
+spec:
+  template:
+    metadata:
+      labels:
+        app: incpetion
+    spec:
+      containers:
+      - args:
+        - /usr/bin/tensorflow_model_server --port=9000 --model_name=inception --model_base_path=gs://kubeflow-models/inception
+        command:
+        - /bin/sh
+        - -c
+        image: gcr.io/kubeflow/model-server:1.0
+        imagePullPolicy: IfNotPresent
+        name: model-server
+        ports:
+        - containerPort: 9000
+      - args:
+        - python /usr/src/app/server.py --port=8888 --rpc_port=9000
+        command:
+        - /bin/sh
+        - -c
+        image: gcr.io/kubeflow/http-proxy:1.0
+        imagePullPolicy: IfNotPresent
+        name: http-proxy
+        ports:
+        - containerPort: 8888
+---
