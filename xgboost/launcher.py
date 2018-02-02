@@ -16,4 +16,8 @@
 
 """A launcher script to start XGBoost training."""
 
-print("XGBoost Zillow training...")
+import time
+
+while True:
+    time.sleep(10)
+    print("XGBoost Zillow training...")
