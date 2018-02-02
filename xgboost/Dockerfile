@@ -32,4 +32,4 @@ RUN cd .. && \
     cd kubeflow && \
     git checkout zillow_xgb && \
     cd xgboost && \
-    python launcher.py
+    python launcher.py >> logs.out
