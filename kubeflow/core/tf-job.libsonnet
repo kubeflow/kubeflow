@@ -264,6 +264,18 @@
       metadata: {
         name: "tf-job-dashboard",
         namespace: namespace,
+        annotations: {
+          "getambassador.io/config":
+            std.join("\n", [
+              "---",
+              "apiVersion: ambassador/v0",
+              "kind:  Mapping",
+              "name: tfjobs-ui-mapping",
+              "prefix: /tfjobs/ui/",
+              "rewrite: /",
+              "service: tf-job-dashboard." + namespace,
+            ]),
+        },  //annotations
       },
       spec: {
         ports: [
