@@ -19,7 +19,15 @@ docker image. We have also uploaded the image to gcr.io, which you can use to
 directly download the image.
 
 ```
-docker build -t gcr.io/kubeflow-images/zillow_xgb:v1 .
+PROJECT_ID=`gcloud config get-value project`
+IMAGE_NAME=zillow_xgb
+VERSION=v1
+```
+
+Let's create a docker image from our Dockerfile
+
+```
+docker build -t gcr.io/${PROJECT_ID}/${IMAGE_NAME}:${VERSION} .
 ```
 
 Once the above command is successful you should be able to see the docker
@@ -27,13 +35,13 @@ images on your local machine `docker images` and then upload the image to
 Google Container Registry using
 
 ```
-gcloud docker -- push gcr.io/kubeflow-images/zillow_xgb:v1
+gcloud docker -- push gcr.io/${PROJECT_ID}/${IMAGE_NAME}:${VERSION}
 ```
 
 You can play with the image locally by performing
 
 ```
-docker run -i -t gcr.io/kubeflow-images/zillow_xgb:v1 /bin/bash
+docker run -i -t gcr.io/${PROJECT_ID}/${IMAGE_NAME}:${VERSION} /bin/bash
 ```
 
 ### GKE and XGBoost
@@ -44,5 +52,9 @@ hello-app](https://cloud.google.com/kubernetes-engine/docs/tutorials/hello-app)
 to see the set of commands used below
 
 ```
-gcloud container clusters create zillow-xgboost --num-nodes=3 --zone=us-central1-b
+CLUSTER_NAME=zillow-xgboost
+NUM_NODES=3
+ZONE=us-central1-b
+
+gcloud container clusters create ${CLUSTER_NAME} --num-nodes=${NUM_NODES} --zone=${ZONE}
 ```
