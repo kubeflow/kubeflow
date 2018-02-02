@@ -7,12 +7,12 @@
     // Component-level parameters, defined initially from 'ks prototype use ...'
     // Each object below should correspond to a component in the components/ directory
     workflows: {
-      bucket: "kai-kubeflow",
+      bucket: "mlkube-testing_temp",
       commit: "master",
       name: "new4",
       namespace: "kubeflow-test-infra",
       prow_env: "REPO_OWNER=google,REPO_NAME=kubeflow,PULL_BASE_SHA=master",
-      serving_image: "gcr.io/kai-test2/model-server:1.1",
+      serving_image: "gcr.io/mlkube-testing/model-server:1.0",
     },
   },
 }
