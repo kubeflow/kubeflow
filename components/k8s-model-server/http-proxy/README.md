@@ -3,7 +3,7 @@
 
 This component provides web server that proxy http rest api to Tensorflow/Serving grpc.
 
-The REST Api Spec is similar to Google Machine Learning Engine Model Serving.
+The REST Api Spec is similar to Google Cloud Machine Learning Engine Prediction API.
 
 # API
 
@@ -43,5 +43,5 @@ or
 
 - **Input and Output Schema**:
 
-In the example above, that correspones to a (tensorflow savedModel)[https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md]  with input signature `"tf_model_input"` and `"image"` and output signature `"tf_model_output"`.
+In the example above, that correspones to a [tensorflow savedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md) with input signature `"tf_model_input"` and `"image"` and output signature `"tf_model_output"`.
 While the input json object key is fixed with `"instances"` and output json key is fixed with `"predictions"`.

@@ -19,7 +19,6 @@ define("rpc_timeout", default=1.0, help="seconds for time out rpc request", type
 define("rpc_port", default=9000, help="tf serving on the given port", type=int)
 define("rpc_address", default='localhost', help="tf serving on the given address", type=str)
 define("instances_key", default='instances', help="requested instances json object key")
-define("cookie_secret", default='YOU_NEED_THIS', help="cookie secrets")
 define("debug", default=False, help="run in debug mode")
 B64_KEY = 'b64'
 WELCOME = "Hello World"
@@ -117,7 +116,6 @@ def get_application(**settings):
             (r"/model/(.*)/version/(.*):predict", PredictHandler),
             (r"/", IndexHanlder),
             ],
-            cookie_secret=options.cookie_secret,
             xsrf_cookies=False,
             debug=options.debug,
             rpc_timeout = options.rpc_timeout,
