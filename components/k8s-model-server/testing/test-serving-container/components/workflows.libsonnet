@@ -21,7 +21,7 @@
 
   parts(namespace, name):: {
     // Workflow to run the e2e test.
-    e2e(prow_env, bucket):
+    e2e(prow_env, bucket, serving_image):
       // mountPath is the directory where the volume to store the test data
       // should be mounted.
       local mountPath = "/mnt/" + "test-data-volume";
@@ -31,55 +31,13 @@
       local outputDir = testDir + "/output";
       local artifactsDir = outputDir + "/artifacts";
       local srcDir = testDir + "/src";
-      // local image = "gcr.io/mlkube-testing/kubeflow-testing";
-      local image = "gcr.io/kai-test2/kubeflow-testing:1.0";
+      // local testing_image = "gcr.io/mlkube-testing/kubeflow-testing";
+      local testing_image = "gcr.io/kai-test2/kubeflow-testing:1.0";
       // The name of the NFS volume claim to use for test files.
       local nfsVolumeClaim = "kubeflow-testing";
       // The name to use for the volume to use to contain test data.
       local dataVolume = "kubeflow-test-volume";
       {
-        buildTemplate(step_name, command):: {
-          name: step_name,
-          container: {
-            command: command,
-            image: image,
-            env: [
-              {
-                // Add the source directories to the python path.
-                name: "PYTHONPATH",
-                value: srcDir + ":" + srcDir + "/tensorflow_k8s",
-              },
-              {
-                name: "GOOGLE_APPLICATION_CREDENTIALS",
-                value: "/secret/gcp-credentials/key.json",
-              },
-              {
-                name: "GIT_TOKEN",
-                valueFrom: {
-                  secretKeyRef: {
-                    name: "github-token",
-                    key: "github_token",
-                  },
-                },
-              },
-            ] + prow_env,
-            volumeMounts: [
-              {
-                name: dataVolume,
-                mountPath: mountPath,
-              },
-              {
-                name: "github-token",
-                mountPath: "/secret/github-token",
-              },
-              {
-                name: "gcp-credentials",
-                mountPath: "/secret/gcp-credentials",
-              },
-            ],
-          },
-        },  // buildTemplate
-
         apiVersion: "argoproj.io/v1alpha1",
         kind: "Workflow",
         metadata: {
@@ -122,10 +80,6 @@
                     name: "build-tf-serving-image",
                     template: "build-tf-serving-image",
                   },
-                  {
-                    name: "create-pr-symlink",
-                    template: "create-pr-symlink",
-                  },
                 ],
               ],
             },
@@ -139,7 +93,7 @@
                   srcDir,
                 ],
                 env: prow_env,
-                image: image,
+                image: testing_image,
                 volumeMounts: [
                   {
                     name: dataVolume,
@@ -156,10 +110,9 @@
                 ],
                 args: [
                   "until docker ps; do sleep 3; done; " +
-                      "docker build --pull -t gcr.io/kai-test2/model-server:1.0 " +
-                      srcDir +
-                      "/components/k8s-model-server/docker/; " +
-                      "gcloud docker -- push gcr.io/kai-test2/model-server:1.0;"
+                      "docker build --pull -t " + serving_image + " " +
+                      srcDir + "/components/k8s-model-server/docker/; " +
+                      "gcloud docker -- push " + serving_image
                 ],
                 env: [
                   {
@@ -167,7 +120,7 @@
                     value: "127.0.0.1", 
                   },
                 ] + prow_env,
-                image: image,
+                image: testing_image,
                 volumeMounts: [
                   {
                     name: dataVolume,
@@ -186,14 +139,6 @@
                 },
               ],
             },  // build-tf-serving-image
-            $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("create-pr-symlink", [
-              "python",
-              "-m",
-              "testing.prow_artifacts",
-              "--artifacts_dir=" + outputDir,
-              "create_pr_symlink",
-              "--bucket=" + bucket,
-            ]),  // create-pr-symlink
           ],  // templates
         },
       },  // e2e
