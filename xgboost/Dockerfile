@@ -33,4 +33,4 @@ RUN cd .. && \
     git checkout zillow_xgb && \
     cd xgboost
 
-CMD ["python", "./launcher.py"]
+CMD ["python", "kubeflow/xgboost/launcher.py"]
