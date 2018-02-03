@@ -18,6 +18,9 @@
 
 import time
 
+f = open('logs.out','w')
 while True:
-    time.sleep(10)
-    print("XGBoost Zillow training...")
+    f.write("XGBoost Zillow training...\n")
+    f.flush()
+    time.sleep(1)
+f.close()
