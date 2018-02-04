@@ -2,6 +2,13 @@
   parts(namespace):: {
     local k = import 'k.libsonnet',
 
+    // We split the components into two protoypes.
+    // 1. Prototype contains the ingress and servcie
+    // 2. Deployment for Envoy which is the backend for the ingress and related apps.
+    //
+    // We do this because updating the ingress causes the backend service to change which disables IAP
+    // and changes the backend service which is used for the JWT audience.
+    // So we want to avoid updating the ingress when updating the Envoy pods or other backend services.
     ingressParts(secretName, ipName):: std.prune(k.core.v1.list.new([
       $.parts(namespace).service,
       $.parts(namespace).ingress(secretName, ipName),
@@ -46,9 +53,8 @@
         "/usr/local/bin/envoy",
         "-c",
         params.configPath,
-        // TODO(jlewi): Reduce the log level.
         "--log-level",
-        "debug",
+        "info",
         // Since we are running multiple instances of envoy on the same host we need to set a unique baseId
         "--base-id",
         params.baseId,
@@ -234,6 +240,22 @@
                             ],
                           },
                         },
+                        {
+                          // Route remaining traffic to Ambassador which supports dynamically adding
+                          // routes based on service annotations.
+                          timeout_ms: 10000,
+                          prefix: "/",
+                          prefix_rewrite: "/",
+                          use_websocket: true,
+                          weighted_clusters: {
+                            clusters: [
+                              {
+                                name: "cluster_ambassador",
+                                weight: 100.0,
+                              },
+                            ],
+                          },
+                        },
                       ],
                     },
                   ],
@@ -319,6 +341,18 @@
 
             ],
           },
+          {
+            name: "cluster_ambassador",
+            connect_timeout_ms: 3000,
+            type: "strict_dns",
+            lb_type: "round_robin",
+            hosts: [
+              {
+                url: "tcp://ambassador." + namespace + ":80",
+              },
+
+            ],
+          },
         ],
       },
       statsd_udp_ip_address: "127.0.0.1:" + jwtEnvoyStatsPort,
@@ -381,9 +415,9 @@
                         },
                         // Route all remaining paths to the envoy proxy for JWT verification.
                         {
-                          // JupyterHub requires the prefix /hub
                           timeout_ms: 10000,
                           prefix: "/",
+                          prefix_rewrite: "/",
                           use_websocket: true,
                           weighted_clusters: {
                             clusters: [

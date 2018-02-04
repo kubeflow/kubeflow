@@ -16,6 +16,7 @@
 // because ksonnet doesn't support inheriting it from the environment yet.
 
 local k = import 'k.libsonnet';
+local ambassador = import "kubeflow/core/ambassador.libsonnet";
 local jupyter = import "kubeflow/core/jupyterhub.libsonnet";
 local tfjob = import "kubeflow/core/tf-job.libsonnet";
 local nfs = import "kubeflow/core/nfs.libsonnet";
@@ -78,7 +79,6 @@ std.prune(k.core.v1.list.new([
   jupyter.parts(namespace).jupyterHubRoleBinding,
 
   // TfJob controller
-  tfjob.parts(namespace).crd,
   tfjob.parts(namespace).tfJobDeploy(tfJobImage),
   tfjob.parts(namespace).configMap(cloud, tfDefaultImage),
   tfjob.parts(namespace).serviceAccount,
@@ -91,4 +91,8 @@ std.prune(k.core.v1.list.new([
   tfjob.parts(namespace).uiServiceAccount,
   tfjob.parts(namespace).uiRole,
   tfjob.parts(namespace).uiRoleBinding,
-] + nfsComponents))
+
+  tfjob.parts(namespace).ui(tfJobImage),
+  tfjob.parts(namespace).uiService(tfJobUiServiceType),
+
+] + ambassador.parts(namespace).all + nfsComponents))
