@@ -88,6 +88,9 @@ RUN curl -o /usr/local/bin/ks -L \
 RUN  pip install --upgrade six pyyaml google-api-python-client \
      google-cloud-storage google-auth-httplib2 pylint kubernetes==4.0.0 mock retrying
 
+# Install docker.
+RUN curl  https://get.docker.com/ | sh
+
 COPY bootstrap.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/bootstrap.sh
 
