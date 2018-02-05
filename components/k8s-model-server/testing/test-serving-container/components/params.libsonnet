@@ -11,7 +11,7 @@
       commit: "master",
       name: "new4",
       namespace: "kubeflow-test-infra",
-      prow_env: "REPO_OWNER=google,REPO_NAME=kubeflow,PULL_BASE_SHA=master",
+      prow_env: "REPO_OWNER=kubeflow,REPO_NAME=kubeflow,PULL_BASE_SHA=master",
       serving_image: "gcr.io/mlkube-testing/model-server:1.0",
     },
   },

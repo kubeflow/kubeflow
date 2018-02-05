@@ -31,8 +31,7 @@
       local outputDir = testDir + "/output";
       local artifactsDir = outputDir + "/artifacts";
       local srcDir = testDir + "/src";
-      // local testing_image = "gcr.io/mlkube-testing/kubeflow-testing";
-      local testing_image = "gcr.io/kai-test2/kubeflow-testing:1.0";
+      local testing_image = "gcr.io/mlkube-testing/kubeflow-testing";
       // The name of the NFS volume claim to use for test files.
       local nfsVolumeClaim = "kubeflow-testing";
       // The name to use for the volume to use to contain test data.
