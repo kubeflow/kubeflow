@@ -21,7 +21,7 @@
 
   parts(namespace, name):: {
     // Workflow to run the e2e test.
-    e2e(prow_env, bucket, serving_image):
+    e2e(prow_env, bucket, serving_image, testing_image):
       // mountPath is the directory where the volume to store the test data
       // should be mounted.
       local mountPath = "/mnt/" + "test-data-volume";
@@ -31,7 +31,6 @@
       local outputDir = testDir + "/output";
       local artifactsDir = outputDir + "/artifacts";
       local srcDir = testDir + "/src";
-      local testing_image = "gcr.io/mlkube-testing/kubeflow-testing";
       // The name of the NFS volume claim to use for test files.
       local nfsVolumeClaim = "kubeflow-testing";
       // The name to use for the volume to use to contain test data.
@@ -108,10 +107,11 @@
                   "sh", "-c"
                 ],
                 args: [
+                  "IMAGE=" + serving_image + "-${JOB_TYPE}-${PULL_BASE_SHA};" +
                   "until docker ps; do sleep 3; done; " +
-                      "docker build --pull -t " + serving_image + " " +
+                  "docker build --pull -t ${IMAGE} " +
                       srcDir + "/components/k8s-model-server/docker/; " +
-                      "gcloud docker -- push " + serving_image
+                  "gcloud docker -- push ${IMAGE}"
                 ],
                 env: [
                   {

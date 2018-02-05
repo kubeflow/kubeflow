@@ -9,10 +9,11 @@
     workflows: {
       bucket: "mlkube-testing_temp",
       commit: "master",
-      name: "new4",
+      name: "new6",
       namespace: "kubeflow-test-infra",
       prow_env: "REPO_OWNER=kubeflow,REPO_NAME=kubeflow,PULL_BASE_SHA=master",
       serving_image: "gcr.io/mlkube-testing/model-server:1.0",
+      testing_image: "gcr.io/mlkube-testing/kubeflow-testing",
     },
   },
 }
