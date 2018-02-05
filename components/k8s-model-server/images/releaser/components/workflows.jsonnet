@@ -6,8 +6,6 @@ local namespace = params.namespace;
 local serving_image = params.serving_image;
 local testing_image = params.testing_image;
 
-// TODO(jlewi): Can we make name default so some random unique value?
-// I didn't see any routines in the standard library for datetime or random.
 local name = params.name;
 
 local prowEnv = workflows.parseEnv(params.prow_env);
