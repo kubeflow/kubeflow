@@ -36,7 +36,7 @@ local k = import 'k.libsonnet';
 
     tfJob(name, namespace, replicas):: {
       apiVersion: "tensorflow.org/v1alpha1",
-      kind: "TFJob",
+      kind: "TfJob",
       metadata: {
         name: name,
         namespace: namespace,
