@@ -1,0 +1,18 @@
+{
+  "sdk_version": "",
+  # Use the v1_0ga version of the BP sdk, because there is no 1.2 version.
+  "batch_prediction_sdk_version": "file:///tmp/cloudml.nodeps.tar.gz",
+  # This is TF 1.4.0 with AVX support
+  "tf_gpu_version": "http://ci.tensorflow.org/view/Release/job/release-cloudml-gpu/53/TF_BUILD_CONTAINER_TYPE=GPU,TF_BUILD_IS_PIP=PIP,TF_BUILD_OPTIONS=MAVX,TF_BUILD_PYTHON_VERSION=PYTHON2,label=gpu-linux/artifact/pip_test/whl/tensorflow_gpu-1.4.0-cp27-none-linux_x86_64.whl",
+  # This is TF 1.4.0 with AVX support
+  "tf_version": "http://ci.tensorflow.org/view/Release/job/release-cloudml-cpu/42/TF_BUILD_CONTAINER_TYPE=CPU,TF_BUILD_IS_PIP=PIP,TF_BUILD_OPTIONS=MAVX,TF_BUILD_PYTHON_VERSION=PYTHON2,label=cpu-slave/artifact/pip_test/whl/tensorflow-1.4.0-cp27-none-linux_x86_64.whl",
+  # Use these released versions of tensorflow serving
+  "tf_serving_ms_name": "tensorflow-model-server-universal",
+  "tf_serving_ms_version": "1.4.0",
+  "tf_serving_tf_version": "1.4",
+  "tf_serving_api_version": "1.4.0",
+  "apache_beam_version": "2.0.0",
+  # It is used by cloud/ml/docker/tensorflow/tensorflow_gpu/install_cuda.sh
+  "cudnn_lib_version": "cudnn-8.0-linux-x64-v6.0.tgz",
+  "xgboost_version": "0.6a2"
+}
