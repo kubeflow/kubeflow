@@ -151,7 +151,12 @@
                 args: [
                   srcRootDir,
                 ],
-                env: prow_env,
+                env: prow_env + [{
+                  "name": "EXTRA_REPOS",
+                  // TODO(jlewi): Once kubeflow/testing#12 is submitted pin
+                  // to kubeflow/testing HEAD
+                  "value": "tensorflow/k8s@HEAD;kubeflow/testing@HEAD:12",
+                }],
                 image: image,
                 volumeMounts: [
                   {

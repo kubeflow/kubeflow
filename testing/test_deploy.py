@@ -94,7 +94,7 @@ def setup(args):
 
     # Initialize a ksonnet app.
     app_name = "kubeflow-test"
-    util.run(["ks", "init", app_name,], cwd=args.test_dir, use_print=True)
+    util.run(["ks", "init", app_name,], cwd=args.test_dir)
 
     app_dir = os.path.join(args.test_dir, app_name)
 
