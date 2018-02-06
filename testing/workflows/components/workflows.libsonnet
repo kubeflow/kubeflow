@@ -30,12 +30,19 @@
       // outputDir is the directory to sync to GCS to contain the output for this job.
       local outputDir = testDir + "/output";
       local artifactsDir = outputDir + "/artifacts";
-      local srcDir = testDir + "/src";
-      local image = "gcr.io/mlkube-testing/kubeflow-testing";
+      // Source directory where all repos should be checked out
+      local srcRootDir = testDir + "/src";
+      // The directory containing the kubeflow/kubeflow repo
+      local srcDir = srcRootDir + "/kubeflow/kubeflow";
+      local image = "gcr.io/mlkube-testing/test-worker:latest";
       // The name of the NFS volume claim to use for test files.
-      local nfsVolumeClaim = "kubeflow-testing";
+      local nfsVolumeClaim = "nfs-external";
       // The name to use for the volume to use to contain test data.
       local dataVolume = "kubeflow-test-volume";
+      local kubeflowPy = srcDir;
+      // The directory within the kubeflow_testing submodule containing
+      // py scripts to use.      
+      local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
       {
         // Build an Argo template to execute a particular command.
         // step_name: Name for the template
@@ -49,7 +56,7 @@
               {
                 // Add the source directories to the python path.
                 name: "PYTHONPATH",
-                value: srcDir + ":" + srcDir + "/tensorflow_k8s",
+                value: kubeflowPy + ":" + kubeflowTestingPy,
               },
               {
                 name: "GOOGLE_APPLICATION_CREDENTIALS",
@@ -142,9 +149,14 @@
                   "/usr/local/bin/checkout.sh",
                 ],
                 args: [
-                  srcDir,
+                  srcRootDir,
                 ],
-                env: prow_env,
+                env: prow_env + [{
+                  "name": "EXTRA_REPOS",
+                  // TODO(jlewi): Once kubeflow/testing#12 is submitted pin
+                  // to kubeflow/testing HEAD
+                  "value": "tensorflow/k8s@HEAD;kubeflow/testing@HEAD:12",
+                }],
                 image: image,
                 volumeMounts: [
                   {
@@ -168,7 +180,7 @@
             $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("create-pr-symlink", [
               "python",
               "-m",
-              "testing.prow_artifacts",
+              "kubeflow.testing.prow_artifacts",
               "--artifacts_dir=" + outputDir,
               "create_pr_symlink",
               "--bucket=" + bucket,
@@ -176,7 +188,7 @@
             $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("copy-artifacts", [
               "python",
               "-m",
-              "testing.prow_artifacts",
+              "kubeflow.testing.prow_artifacts",
               "--artifacts_dir=" + outputDir,
               "copy_artifacts",
               "--bucket=" + bucket,
