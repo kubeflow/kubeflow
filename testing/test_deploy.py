@@ -114,7 +114,7 @@ def setup(args):
     logging.info("Deleting %s", target_dir)
     shutil.rmtree(target_dir)
 
-    source = os.path.join(args.test_dir, "src", "kubeflow")
+    source = os.path.join(args.test_dir, "src", "kubeflow", "kubeflow")
     logging.info("Creating link %s -> %s", target_dir, source)
     os.symlink(source, target_dir)
 
