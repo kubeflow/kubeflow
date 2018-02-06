@@ -180,7 +180,7 @@
             $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("create-pr-symlink", [
               "python",
               "-m",
-              "testing.prow_artifacts",
+              "kubeflow.testing.prow_artifacts",
               "--artifacts_dir=" + outputDir,
               "create_pr_symlink",
               "--bucket=" + bucket,
@@ -188,7 +188,7 @@
             $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("copy-artifacts", [
               "python",
               "-m",
-              "testing.prow_artifacts",
+              "kubeflow.testing.prow_artifacts",
               "--artifacts_dir=" + outputDir,
               "copy_artifacts",
               "--bucket=" + bucket,
