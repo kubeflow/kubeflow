@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Requirements:
-#   https://github.com/mattrobenolt/jinja2-cli
-#   pip install jinja2-clie
 IMG = gcr.io/mlkube-testing/kubeflow-testing
 TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | sha256sum | cut -c -6)
 DIR := ${CURDIR}
@@ -24,7 +21,6 @@ all: build
 # To build without the cache set the environment variable
 # export DOCKER_BUILD_OPTS=--no-cache
 build:
-	@echo {\"image\": \"$(IMG):$(TAG)\"} > version.json
 	docker build ${DOCKER_BUILD_OPTS} -t $(IMG):$(TAG) .
 	docker tag $(IMG):$(TAG) $(IMG):latest
 	@echo Built $(IMG):$(TAG) and tagged with latest
