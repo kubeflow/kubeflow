@@ -23,8 +23,8 @@ from kubernetes import client as k8s_client
 from kubernetes.client import rest
 from kubernetes.config import incluster_config
 
-from py import test_util
-from py import util
+from kubeflow.testing import test_util
+from kubeflow.testing import util
 
 def _setup_test(api_client, run_label):
   """Create the namespace for the test.

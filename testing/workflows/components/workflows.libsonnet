@@ -149,7 +149,7 @@
                   "/usr/local/bin/checkout.sh",
                 ],
                 args: [
-                  srcDir,
+                  srcRootDir,
                 ],
                 env: prow_env,
                 image: image,
