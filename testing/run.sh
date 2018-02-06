@@ -11,4 +11,4 @@ python -m kubeflow.testing.run_e2e_workflow \
 	--cluster=kubeflow-testing \
 	--bucket=kubernetes-jenkins \
 	--component=workflows \
-	--app_dir=/src/kubeflow/testing/workflows
+	--app_dir=/src/kubeflow/kubeflow/testing/workflows
