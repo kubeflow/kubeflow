@@ -13,6 +13,7 @@
 # limitations under the License.
 
 VERSION=1.0
+GPU_VERSION=1.4
 PROJECT_ID=kubeflow
 PROJECT=gcr.io/${PROJECT_ID}
 
@@ -21,7 +22,23 @@ all: build
 build:
 	docker build --pull -t ${PROJECT}/model-server:${VERSION} .
 
+build-gpu:
+	docker build --pull -t ${PROJECT}/model-server:${GPU_VERSION} -f Dockerfile.gpu .
+
 push: build
 	gcloud docker -- push ${PROJECT}/model-server:${VERSION}
 
-.PHONY: all build push
+push-gpu: build-gpu
+	gcloud docker -- push ${PROJECT}/model-server:${GPU_VERSION}
+
+help:
+	@echo 'Usage: make [target]'
+	@echo ''
+	@echo 'Targets:'
+	@echo '    build        build tensorflow-model-server image'
+	@echo '    build-gpu    build tensorflow-model-server with gpu support'
+	@echo '    push         push the image of model-server'
+	@echo '    push-gpu     push the image of model-server with gpu support'
+	@echo '    help         print help doc'
+
+.PHONY: all build build-gpu push push-gpu help
