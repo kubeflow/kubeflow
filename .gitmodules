@@ -1,3 +1,0 @@
-[submodule "tensorflow_k8s"]
-	path = tensorflow_k8s
-	url = https://github.com/tensorflow/k8s.git

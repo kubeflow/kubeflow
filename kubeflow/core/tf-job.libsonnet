@@ -6,10 +6,10 @@
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
       metadata: {
-        name: "tfjobs.tensorflow.org",
+        name: "tfjobs.kubeflow.org",
       },
       spec: {
-        group: "tensorflow.org",
+        group: "kubeflow.org",
         version: "v1alpha1",
         names: {
           kind: "TFJob",
@@ -162,7 +162,7 @@
       rules: [
         {
           apiGroups: [
-            "tensorflow.org",
+            "tensorflow.org", "kubeflow.org",
           ],
           resources: [
             "tfjobs",
@@ -350,7 +350,7 @@
       rules: [
         {
           apiGroups: [
-            "tensorflow.org",
+            "tensorflow.org", "kubeflow.org",
           ],
           resources: [
             "tfjobs",
