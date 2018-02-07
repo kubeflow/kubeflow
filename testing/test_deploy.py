@@ -163,10 +163,11 @@ def setup(args):
       apply_command = ["ks", "apply", "default", "-c", "modelServer",]
       util.run(apply_command, cwd=app_dir)
 
-      util.wait_for_deployment(api_client, namespace.metadata.name, "inception")
-      logging.info("Verified Tf serving started.")
+      #util.wait_for_deployment(api_client, namespace.metadata.name, "inception")
+      #logging.info("Verified Tf serving started.")
 
-      util.run(["kubectl", "get", "--namespace=" + namespace.metadata.name, "deployments", "inception"])
+      util.run(["kubectl", "get", "--namespace=" + namespace.metadata.name, "deployments"])
+      util.run(["kubectl", "get", "--namespace=" + namespace.metadata.name, "services"])
 
   main_case = test_util.TestCase()
   main_case.class_name = "KubeFlow"
