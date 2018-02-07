@@ -118,7 +118,7 @@ def setup(args):
     logging.info("Creating link %s -> %s", target_dir, source)
     os.symlink(source, target_dir)
 
-    # Deploy Kubeflow
+    # Deploy Kubeflow core.
     util.run(["ks", "generate", "core", "kubeflow-core", "--name=kubeflow-core",
               "--namespace=" + namespace.metadata.name], cwd=app_dir)
 
@@ -218,6 +218,30 @@ def main():  # pylint: disable=too-many-locals
           "GitHub API and without it we get rate limited. For more info see: "
           "https://github.com/ksonnet/ksonnet/blob/master/docs"
           "/troubleshooting.md"))
+
+  parser.add_argument(
+    "--deploy_core",
+    default=True,
+    type=bool,
+    help=("If True, deploy the kubeflow-core component."))
+
+  parser.add_argument(
+    "--deploy_tf_job",
+    default=False,
+    type=bool,
+    help=("If True, deploy the tf-job component."))
+
+  parser.add_argument(
+    "--deploy_tf_serving",
+    default=False,
+    type=bool,
+    help=("If True, deploy the tf-serving component."))
+
+  parser.add_argument(
+    "--model_server_image",
+    default="gcr.io/kubeflow/model-server:1.0",
+    type=str,
+    help=("The TF serving image to use."))
 
   args = parser.parse_args()
 
