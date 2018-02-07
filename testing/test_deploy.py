@@ -160,8 +160,11 @@ def setup(args):
                 "--model_path=gs://kubeflow-models/inception",
                 "--model_server_image=" + args.model_server_image], cwd=app_dir)
 
-      apply_command = ["ks", "apply", "default", "-c", "kubeflow-core",]
+      apply_command = ["ks", "apply", "default", "-c", "tf-serving",]
       util.run(apply_command, cwd=app_dir)
+
+      util.wait_for_deployment(api_client, namespace.metadata.name, "inception")
+      logging.info("Verified Tf serving started.")
 
   main_case = test_util.TestCase()
   main_case.class_name = "KubeFlow"
