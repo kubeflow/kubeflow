@@ -155,16 +155,18 @@ def setup(args):
 
     if args.deploy_tf_serving:
       logging.info("Deploying tf-serving.")
-      util.run(["ks", "generate", "tf-serving", "serveModel", "--name=inception",
+      util.run(["ks", "generate", "tf-serving", "modelServer", "--name=inception",
                 "--namespace=" + namespace.metadata.name,
                 "--model_path=gs://kubeflow-models/inception",
                 "--model_server_image=" + args.model_server_image], cwd=app_dir)
 
-      apply_command = ["ks", "apply", "default", "-c", "tf-serving",]
+      apply_command = ["ks", "apply", "default", "-c", "modelServer",]
       util.run(apply_command, cwd=app_dir)
 
       util.wait_for_deployment(api_client, namespace.metadata.name, "inception")
       logging.info("Verified Tf serving started.")
+
+      util.run(["kubectl", "get", "--namespace=" + namespace.metadata.name, "deployments", "inception"])
 
   main_case = test_util.TestCase()
   main_case.class_name = "KubeFlow"
