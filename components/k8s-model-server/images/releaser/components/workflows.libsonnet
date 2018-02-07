@@ -209,7 +209,8 @@
               "--test_dir=" + testDir,
               "--artifacts_dir=" + artifactsDir,
               "--deploy_core=false",
-              "--deploy_tf-serving=true",
+              "--deploy_tf_serving=true",
+              "--model_server_image=" + serving_image + "-${JOB_TYPE}-${PULL_BASE_SHA}",
             ]),  // test-deploy
 
           ],  // templates

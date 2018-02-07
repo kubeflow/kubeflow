@@ -122,33 +122,46 @@ def setup(args):
     logging.info("Creating link %s -> %s", target_dir, source)
     os.symlink(source, target_dir)
 
-    # Deploy Kubeflow core.
-    util.run(["ks", "generate", "core", "kubeflow-core", "--name=kubeflow-core",
-              "--namespace=" + namespace.metadata.name], cwd=app_dir)
+    if args.deploy_core:
+      # Deploy Kubeflow core.
+      logging.info("Deploying kubeflow-core.")
+      util.run(["ks", "generate", "core", "kubeflow-core", "--name=kubeflow-core",
+                "--namespace=" + namespace.metadata.name], cwd=app_dir)
+      
 
-    # TODO(jlewi): For reasons I don't understand even though we ran
-    # configure_kubectl above, if we don't rerun it we get rbac errors
-    # when we do ks apply; I think because we aren't using the proper service
-    # account. This might have something to do with the way ksonnet gets
-    # its credentials; maybe we need to configure credentials after calling
-    # ks init?
-    if args.cluster:
-      util.configure_kubectl(args.project, args.zone, args.cluster)
+      # TODO(jlewi): For reasons I don't understand even though we ran
+      # configure_kubectl above, if we don't rerun it we get rbac errors
+      # when we do ks apply; I think because we aren't using the proper service
+      # account. This might have something to do with the way ksonnet gets
+      # its credentials; maybe we need to configure credentials after calling
+      # ks init?
+      if args.cluster:
+        util.configure_kubectl(args.project, args.zone, args.cluster)
 
-    apply_command = ["ks", "apply", "default", "-c", "kubeflow-core",]
+      apply_command = ["ks", "apply", "default", "-c", "kubeflow-core",]
 
-    util.run(apply_command, cwd=app_dir)
+      util.run(apply_command, cwd=app_dir)
 
-    # Verify that the TfJob operator is actually deployed.
-    tf_job_deployment_name = "tf-job-operator"
-    logging.info("Verifying TfJob controller started.")
-    util.wait_for_deployment(api_client, namespace.metadata.name,
-                             tf_job_deployment_name)
+      # Verify that the TfJob operator is actually deployed.
+      tf_job_deployment_name = "tf-job-operator"
+      logging.info("Verifying TfJob controller started.")
+      util.wait_for_deployment(api_client, namespace.metadata.name,
+                               tf_job_deployment_name)
 
-    # Verify that JupyterHub is actually deployed.
-    jupyter_name = "tf-hub"
-    logging.info("Verifying TfHub started.")
-    util.wait_for_statefulset(api_client, namespace.metadata.name, jupyter_name)
+      # Verify that JupyterHub is actually deployed.
+      jupyter_name = "tf-hub"
+      logging.info("Verifying TfHub started.")
+      util.wait_for_statefulset(api_client, namespace.metadata.name, jupyter_name)
+
+    if args.deploy_tf_serving:
+      logging.info("Deploying tf-serving.")
+      util.run(["ks", "generate", "tf-serving", "serveModel", "--name=inception",
+                "--namespace=" + namespace.metadata.name,
+                "--model_path=gs://kubeflow-models/inception",
+                "--model_server_image=" + args.model_server_image], cwd=app_dir)
+
+      apply_command = ["ks", "apply", "default", "-c", "kubeflow-core",]
+      util.run(apply_command, cwd=app_dir)
 
   main_case = test_util.TestCase()
   main_case.class_name = "KubeFlow"
