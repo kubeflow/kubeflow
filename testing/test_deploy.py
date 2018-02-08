@@ -166,15 +166,12 @@ def setup(args):
       util.run(["kubectl", "get", "deployments", "-n="+namespace.metadata.name])
       util.run(["kubectl", "get", "deployments", "-n="+namespace.metadata.name, "inception"])
       ext_client = k8s_client.ExtensionsV1beta1Api(api_client)
-      deploy = ext_client.read_namespaced_deployment("inception", namespace.metadata.name)
+      deploy = ext_client.read_namespaced_service("inception", namespace.metadata.name)
       logging.info(deploy)
+      cluster_ip = deploy.spec.clusterIP
 
-      util.wait_for_deployment(api_client, namespace.metadata.name, "inception")
-      logging.info("Verified Tf serving started.")
-
-      # get ip
       if args.test_inception and args.inception_client_image:
-        util.run(["docker", "run", "-e", "INCEPTION_SERVICE_HOST=35.224.136.203", "-e",
+        util.run(["docker", "run", "-e", "INCEPTION_SERVICE_HOST=" + clusterIP, "-e",
                   "INCEPTION_SERVICE_PORT=9000", args.inception_client_image])
 
   main_case = test_util.TestCase()
