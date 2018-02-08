@@ -163,11 +163,13 @@ def setup(args):
       apply_command = ["ks", "apply", "default", "-c", "modelServer",]
       util.run(apply_command, cwd=app_dir)
 
-      #util.wait_for_deployment(api_client, namespace.metadata.name, "inception")
-      #logging.info("Verified Tf serving started.")
+      util.wait_for_deployment(api_client, namespace.metadata.name, "inception")
+      logging.info("Verified Tf serving started.")
 
-      util.run(["kubectl", "get", "--namespace=" + namespace.metadata.name, "deployments"])
-      util.run(["kubectl", "get", "--namespace=" + namespace.metadata.name, "services"])
+      # get ip
+      if args.test_inception and args.inception_client_image:
+        util.run(["docker", "run", "-e", "INCEPTION_SERVICE_HOST=35.224.136.203", "-e",
+                  "INCEPTION_SERVICE_PORT=9000", args.inception_client_image])
 
   main_case = test_util.TestCase()
   main_case.class_name = "KubeFlow"
@@ -265,6 +267,18 @@ def main():  # pylint: disable=too-many-locals
     default="gcr.io/kubeflow/model-server:1.0",
     type=str,
     help=("The TF serving image to use."))
+
+  parser.add_argument(
+    "--inception_client_image",
+    default="",
+    type=str,
+    help=("The inception client image to use."))
+
+  parser.add_argument(
+    "--test_inception",
+    default=False,
+    type=bool,
+    help=("If True, send the prediction request."))
 
   args = parser.parse_args()
 
