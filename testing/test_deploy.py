@@ -163,8 +163,8 @@ def setup(args):
       apply_command = ["ks", "apply", "default", "-c", "modelServer",]
       util.run(apply_command, cwd=app_dir)
 
-      util.run(["kubectl", "get", "deployments", "-n=", namespace.metadata.name])
-      util.run(["kubectl", "get", "deployments", "-n=", namespace.metadata.name, "inception"])
+      util.run(["kubectl", "get", "deployments", "-n="+namespace.metadata.name])
+      util.run(["kubectl", "get", "deployments", "-n="+namespace.metadata.name, "inception"])
       ext_client = k8s_client.ExtensionsV1beta1Api(api_client)
       deploy = ext_client.read_namespaced_deployment("inception", namespace.metadata.name)
       logging.info(deploy)
