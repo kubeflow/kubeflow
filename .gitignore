@@ -14,6 +14,9 @@ vendor/
 # Other temporary files
 .DS_Store
 
+# temporary files from emacs flymd-mode
+flymd.*
+
 # Files created by Gogland IDE
 .idea/
 
