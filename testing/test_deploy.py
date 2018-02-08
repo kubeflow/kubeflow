@@ -165,8 +165,8 @@ def setup(args):
 
       util.run(["kubectl", "get", "deployments", "-n="+namespace.metadata.name])
       util.run(["kubectl", "get", "deployments", "-n="+namespace.metadata.name, "inception"])
-      ext_client = k8s_client.ExtensionsV1beta1Api(api_client)
-      deploy = ext_client.read_namespaced_service("inception", namespace.metadata.name)
+      cire_api = k8s_client.CoreV1Api(api_client)
+      deploy = cire_api.read_namespaced_service("inception", namespace.metadata.name)
       logging.info(deploy)
       cluster_ip = deploy.spec.clusterIP
 
