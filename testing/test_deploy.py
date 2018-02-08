@@ -168,10 +168,10 @@ def setup(args):
       cire_api = k8s_client.CoreV1Api(api_client)
       deploy = cire_api.read_namespaced_service("inception", namespace.metadata.name)
       logging.info(deploy)
-      cluster_ip = deploy.spec.clusterIP
+      cluster_ip = deploy.spec.cluster_ip
 
       if args.test_inception and args.inception_client_image:
-        util.run(["docker", "run", "-e", "INCEPTION_SERVICE_HOST=" + clusterIP, "-e",
+        util.run(["docker", "run", "-e", "INCEPTION_SERVICE_HOST=" + cluster_ip, "-e",
                   "INCEPTION_SERVICE_PORT=9000", args.inception_client_image])
 
   main_case = test_util.TestCase()
