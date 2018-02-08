@@ -54,6 +54,7 @@ def _setup_test(api_client, run_label):
 
   return namespace
 
+
 def setup(args):
   """Test deploying Kubeflow."""
   if args.cluster:
@@ -150,27 +151,40 @@ def setup(args):
     logging.info("Verifying TfHub started.")
     util.wait_for_statefulset(api_client, namespace.metadata.name, jupyter_name)
 
-  main_case = test_util.TestCase()
-  main_case.class_name = "KubeFlow"
-  main_case.name = "deploy-kubeflow"
+def teardown(args):
+  # Delete the namespace
+  logging.info("Deleting namespace %s", namespace_name)
+
+  # We report teardown as a separate test case because this will help
+  # us track down issues with garbage collecting namespaces.
+  teardown = test_util.TestCase(main_case.class_name, "teardown")
+  def run_teardown():
+    core_api = k8s_client.CoreV1Api(api_client)
+    core_api.delete_namespace(namespace_name, {})
+
   try:
-    test_util.wrap_test(run, main_case)
+    test_util.wrap_test(run_teardown, teardown)
+  except Exception as e:  # pylint: disable-msg=broad-except
+    logging.error("There was a problem deleting namespace: %s; %s",
+                  namespace_name, e.message)
+
+# TODO(jlewi): We should probably make this a generic function in
+# kubeflow.testing.`
+def wrap_test(args):
+  """Run the tests given by args.func and output artifacts as necessary.
+  """
+  test_name = args.func.__name__
+  test_case = test_util.TestCase()
+  test_case.class_name = "KubeFlow"
+  test_case.name = "deploy-kubeflow-" + test_name
+  try:
+    def run():
+      args.func(args)
+
+
+    test_util.wrap_test(run, test_case)
   finally:
-    # Delete the namespace
-    logging.info("Deleting namespace %s", namespace_name)
 
-    # We report teardown as a separate test case because this will help
-    # us track down issues with garbage collecting namespaces.
-    teardown = test_util.TestCase(main_case.class_name, "teardown")
-    def run_teardown():
-      core_api = k8s_client.CoreV1Api(api_client)
-      core_api.delete_namespace(namespace_name, {})
-
-    try:
-      test_util.wrap_test(run_teardown, teardown)
-    except Exception as e:  # pylint: disable-msg=broad-except
-      logging.error("There was a problem deleting namespace: %s; %s",
-                    namespace_name, e.message)
     junit_path = os.path.join(args.artifacts_dir, "junit_kubeflow-deploy.xml")
     logging.info("Writing test results to %s", junit_path)
     test_util.create_junit_xml_file([main_case, teardown], junit_path)
@@ -209,6 +223,12 @@ def main():  # pylint: disable=too-many-locals
           "script is running in a cluster and uses that cluster."))
 
   parser.add_argument(
+    "--namespace",
+    required=True,
+    type=str,
+    help=("The namespace to use."))
+
+  parser.add_argument(
     "--zone",
     default="us-east1-d",
     type=str,
@@ -223,6 +243,20 @@ def main():  # pylint: disable=too-many-locals
           "https://github.com/ksonnet/ksonnet/blob/master/docs"
           "/troubleshooting.md"))
 
+  subparsers = parser.add_subparsers()
+
+  parser_setup = subparsers.add_parser(
+    "setup",
+    help="setup the test infrastructure.")
+
+  parser_setup.set_defaults(func=setup)
+
+  parser_teardown = subparsers.add_parser(
+    "teardown",
+    help="teardown the test infrastructure.")
+
+  parser_teardown.set_defaults(func=teardown)
+
   args = parser.parse_args()
 
   if not args.test_dir:
@@ -236,13 +270,16 @@ def main():  # pylint: disable=too-many-locals
 
   if not args.artifacts_dir:
     args.artifacts_dir = args.test_dir
+
+  test_log = os.path.join(args.artifacts_dir, "logs",
+                          "test_deploy." + args.func.__name__ + ".log.txt")
+  if not os.path.exists(os.path.dirname(test_log)):
+    os.makedirs(os.path.dirname(test_log))
+
+  # TODO(jlewi): We should make this a util routine in kubeflow.testing.util
   # Setup a logging file handler. This way we can upload the log outputs
   # to gubernator.
   root_logger = logging.getLogger()
-
-  test_log = os.path.join(args.artifacts_dir, "logs", "test_deploy.log.txt")
-  if not os.path.exists(os.path.dirname(test_log)):
-    os.makedirs(os.path.dirname(test_log))
 
   file_handler = logging.FileHandler(test_log)
   root_logger.addHandler(file_handler)
@@ -254,13 +291,9 @@ def main():  # pylint: disable=too-many-locals
   file_handler.setFormatter(formatter)
   logging.info("Logging to %s", test_log)
 
-  if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
-    logging.info("GOOGLE_APPLICATION_CREDENTIALS is set; configuring gcloud "
-                 "to use service account.")
-    # Since a service account is set tell gcloud to use it.
-    util.run(["gcloud", "auth", "activate-service-account", "--key-file=" +
-              os.getenv("GOOGLE_APPLICATION_CREDENTIALS")])
-  setup(args)
+  util.maybe_activate_service_account()
+
+  args.func(args)
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,

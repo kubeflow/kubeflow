@@ -43,6 +43,8 @@
       // The directory within the kubeflow_testing submodule containing
       // py scripts to use.      
       local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
+      local tfOperatorRoot = srcRootDir + "/tensorflow/k8s";
+      local tfOperatorPy = tfOperatorRoot;      
       {
         // Build an Argo template to execute a particular command.
         // step_name: Name for the template
@@ -56,7 +58,7 @@
               {
                 // Add the source directories to the python path.
                 name: "PYTHONPATH",
-                value: kubeflowPy + ":" + kubeflowTestingPy,
+                value: kubeflowPy + ":" + kubeflowTestingPy + ":" + tfOperatorPy,
               },
               {
                 name: "GOOGLE_APPLICATION_CREDENTIALS",
@@ -137,6 +139,11 @@
                   },
                 ],
                 [{
+                    name: "tfjob-test",
+                    template: "tfjob-test",
+                  },                
+                ],
+                [{
                   name: "copy-artifacts",
                   template: "copy-artifacts",
                 }],
@@ -153,9 +160,9 @@
                 ],
                 env: prow_env + [{
                   "name": "EXTRA_REPOS",
-                  // TODO(jlewi): Once kubeflow/testing#12 is submitted pin
-                  // to kubeflow/testing HEAD
-                  "value": "tensorflow/k8s@HEAD;kubeflow/testing@HEAD:12",
+                  // TODO(jlewi): Once tensorflow/k8s#374 is submitted pin
+                  // to tensorflow/k8s HEAD
+                  "value": "tensorflow/k8s@HEAD:374;kubeflow/testing@HEAD",
                 }],
                 image: image,
                 volumeMounts: [
@@ -193,6 +200,19 @@
               "copy_artifacts",
               "--bucket=" + bucket,
             ]),  // copy-artifacts
+            $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("tfjob-test", [
+              "python",
+              "-m",
+              "py.test_runner",
+              "test",
+              "--cluster=" + cluster,
+              "--zone=" + zone,
+              "--project=" + project,
+              "--app_dir=" + srcDir + "/test/workflows",
+              "--component=simple_tfjob",
+              "--params=name=simple-tfjob,namespace=" + namespace,
+              "--junit_path=" + artifactsDir + "/junit_e2e.xml",
+            ]),  // run tests
           ],  // templates
         },
       },  // e2e
