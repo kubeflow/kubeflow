@@ -180,6 +180,10 @@ In this example, you should be able to use the inception_client to hit ww.xx.yy.
 
 ### Submiting a TensorFlow training job
 
+**Note:** Before deploying a training job, you will have to make the `TFJob` custom resource available on your kubernetes cluster.
+The [tensorflow/k8s README](https://github.com/tensorflow/k8s) contains the `TFJob` CRD as well as deployment instructions.
+to a cluster.
+
 We treat each TensorFlow job as a [component](https://ksonnet.io/docs/tutorial#2-generate-and-deploy-an-app-component) in your APP.
 
 Create a component for your job.
