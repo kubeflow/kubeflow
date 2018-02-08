@@ -1,1 +1,0 @@
-Deployment manifests for Tensorflow Kubernetes controller hosted at https://github.com/tensorflow/k8s
