@@ -43,7 +43,7 @@
       local dataVolume = "kubeflow-test-volume";
       local kubeflowPy = srcDir;
       // The directory within the kubeflow_testing submodule containing
-      // py scripts to use.      
+      // py scripts to use.
       local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
       local tfOperatorRoot = srcRootDir + "/tensorflow/k8s";
       local tfOperatorPy = tfOperatorRoot;
@@ -147,10 +147,11 @@
                     template: "create-pr-symlink",
                   },
                 ],
-                [{
+                [
+                  {
                     name: "tfjob-test",
                     template: "tfjob-test",
-                  },                
+                  },
                 ],
               ],
             },
@@ -179,10 +180,10 @@
                   srcRootDir,
                 ],
                 env: prow_env + [{
-                  "name": "EXTRA_REPOS",
+                  name: "EXTRA_REPOS",
                   // TODO(jlewi): Once tensorflow/k8s#374 is submitted pin
                   // to tensorflow/k8s HEAD
-                  "value": "tensorflow/k8s@HEAD:374;kubeflow/testing@HEAD",
+                  value: "tensorflow/k8s@HEAD:374;kubeflow/testing@HEAD",
                 }],
                 image: image,
                 volumeMounts: [
@@ -196,7 +197,7 @@
             $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("setup", [
               "python",
               "-m",
-              "testing.test_deploy",              
+              "testing.test_deploy",
               "--project=mlkube-testing",
               "--cluster=kubeflow-testing",
               "--namespace=" + stepsNamespace,
@@ -241,7 +242,7 @@
               "--cluster=" + cluster,
               "--zone=" + zone,
               "--project=" + project,
-              "--app_dir=" + srcDir + "/test/workflows",
+              "--app_dir=" + srcDir + "/testing/workflows",
               "--component=simple_tfjob",
               "--params=name=simple-tfjob,namespace=" + stepsNamespace,
               "--junit_path=" + artifactsDir + "/junit_e2e.xml",

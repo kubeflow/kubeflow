@@ -97,10 +97,9 @@ def setup(args):
     # see: https://github.com/ksonnet/ksonnet/issues/233
     os.environ["GITHUB_TOKEN"] = args.github_token
 
-  if not "GITHUB_TOKEN" in os.environ:
+  if not os.getenv("GITHUB_TOKEN"):
     logging.warn("GITHUB_TOKEN not set; you will probably hit Github API "
                  "limits.")
-
   # Initialize a ksonnet app.
   app_name = "kubeflow-test"
   util.run(["ks", "init", app_name,], cwd=args.test_dir)
