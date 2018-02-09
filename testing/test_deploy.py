@@ -186,6 +186,8 @@ def setup(args):
   finally:
     # Delete the namespace
     logging.info("Deleting namespace %s", namespace_name)
+    # TODO(lunkai): remove
+    return
 
     # We report teardown as a separate test case because this will help
     # us track down issues with garbage collecting namespaces.
