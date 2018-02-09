@@ -72,7 +72,7 @@
                 value: "/secret/gcp-credentials/key.json",
               },
               {
-                name: "GIT_TOKEN",
+                name: "GITHUB_TOKEN",
                 valueFrom: {
                   secretKeyRef: {
                     name: "github-token",
