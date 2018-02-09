@@ -117,6 +117,15 @@ kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --us
 If you're using GKE, you may want to refer to [GKE's RBAC docs](https://cloud.google.com/kubernetes-engine/docs/how-to/role-based-access-control) to understand
 how RBAC interacts with IAM on GCP.
 
+### OpenShift
+If you are deploying kubeflow in an [OpenShift](https://github.com/openshift/origin) environment which encapsulates kubernetes, you will need to adjust the security contexts for the ambassador and jupyter-hub deployments in order to get the pods to run.
+
+```commandline
+oc adm policy add-scc-to-user anyuid -z ambassador
+oc adm policy add-scc-to-user anyuid -z jupyter-hub
+```
+Once the anyuid policy has been set, you must delete the failing pods and allow them to be recreated in the project deployment.
+
 ## Resources
 
 * The [kubeflow user guide](user_guide.md) provides in-depth instructions for using Kubeflow
