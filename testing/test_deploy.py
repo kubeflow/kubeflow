@@ -170,6 +170,9 @@ def setup(args):
       logging.info(deploy)
       cluster_ip = deploy.spec.cluster_ip
 
+      util.wait_for_deployment(api_client, namespace.metadata.name, "inception")
+      logging.info("Verified TF serving started.")
+
       if args.test_inception and args.inception_client_image:
         util.run(["gcloud", "docker", "--", "pull", args.inception_client_image])
         util.run(["docker", "run", "-e", "INCEPTION_SERVICE_HOST=" + cluster_ip, "-e",
