@@ -122,7 +122,7 @@ def setup(args):
     logging.info("Creating link %s -> %s", target_dir, source)
     os.symlink(source, target_dir)
 
-    if args.deploy_core:
+    if args.deploy_core and False:
       # Deploy Kubeflow core.
       logging.info("Deploying kubeflow-core.")
       util.run(["ks", "generate", "core", "kubeflow-core", "--name=kubeflow-core",
