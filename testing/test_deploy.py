@@ -171,6 +171,7 @@ def setup(args):
       cluster_ip = deploy.spec.cluster_ip
 
       if args.test_inception and args.inception_client_image:
+        util.run(["gcloud", "docker", "--", "pull", args.inception_client_image])
         util.run(["docker", "run", "-e", "INCEPTION_SERVICE_HOST=" + cluster_ip, "-e",
                   "INCEPTION_SERVICE_PORT=9000", args.inception_client_image])
 
