@@ -128,7 +128,7 @@ Once the anyuid policy has been set, you must delete the failing pods and allow 
 
 ## Resources
 
-* [user guide](user_guide.md) provides in-depth instructions for using Kubeflow
+* The [kubeflow user guide](user_guide.md) provides in-depth instructions for using Kubeflow
 * Katacoda has produced a [self-paced scenario](https://www.katacoda.com/kubeflow) for learning and trying out Kubeflow
 
 
