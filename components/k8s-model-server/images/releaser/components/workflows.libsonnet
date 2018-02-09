@@ -122,13 +122,18 @@
                   "IMAGE=" + serving_image + "-${JOB_TYPE}-${PULL_BASE_SHA};" +
                   "until docker ps; do sleep 3; done; " +
                   "docker build --pull -t ${IMAGE} " +
-                      srcRootDir + "/kubeflow/kubeflow/components/k8s-model-server/docker/; "
-                  //"gcloud docker -- push ${IMAGE}"
+                      srcRootDir + "/kubeflow/kubeflow/components/k8s-model-server/docker/; " +
+                  "gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}; "  +
+                  "gcloud docker -- push ${IMAGE}"
                 ],
                 env: [
                   {
                     name: "DOCKER_HOST",
                     value: "127.0.0.1", 
+                  },
+                  {
+                    name: "GOOGLE_APPLICATION_CREDENTIALS",
+                    value: "/secret/gcp-credentials/key.json",
                   },
                 ] + prow_env,
                 image: testing_image,
@@ -136,6 +141,10 @@
                   {
                     name: dataVolume,
                     mountPath: mountPath,
+                  },
+                  {
+                    name: "gcp-credentials",
+                    mountPath: "/secret/gcp-credentials",
                   },
                 ],
               },
@@ -168,7 +177,7 @@
                   "--artifacts_dir=" + artifactsDir,
                   "--deploy_core=False",
                   "--deploy_tf_serving=true",
-                  "--model_server_image=" + serving_image + "-${JOB_TYPE}-${PULL_BASE_SHA}",
+                  "--model_server_image=" + serving_image,
                   "--test_inception=true",
                   // TODO: use kubeflow image
                   "--inception_client_image=gcr.io/kai-test2/incpetion-client:1.0",
