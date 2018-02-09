@@ -43,51 +43,6 @@
       // py scripts to use.      
       local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
       {
-        // Build an Argo template to execute a particular command.
-        // step_name: Name for the template
-        // command: List to pass as the container command.
-        buildTemplate(step_name, command):: {
-          name: step_name,
-          container: {
-            command: command,
-            image: testing_image,
-            env: [
-              {
-                // Add the source directories to the python path.
-                name: "PYTHONPATH",
-                value: kubeflowPy + ":" + kubeflowTestingPy,
-              },
-              {
-                name: "GOOGLE_APPLICATION_CREDENTIALS",
-                value: "/secret/gcp-credentials/key.json",
-              },
-              {
-                name: "GIT_TOKEN",
-                valueFrom: {
-                  secretKeyRef: {
-                    name: "github-token",
-                    key: "github_token",
-                  },
-                },
-              },
-            ] + prow_env,
-            volumeMounts: [
-              {
-                name: dataVolume,
-                mountPath: mountPath,
-              },
-              {
-                name: "github-token",
-                mountPath: "/secret/github-token",
-              },
-              {
-                name: "gcp-credentials",
-                mountPath: "/secret/gcp-credentials",
-              },
-            ],
-          },
-        },  // buildTemplate
-
         apiVersion: "argoproj.io/v1alpha1",
         kind: "Workflow",
         metadata: {
@@ -125,12 +80,10 @@
                   name: "checkout",
                   template: "checkout",
                 }],
-                [
-                  {
-                    name: "build-tf-serving-image",
-                    template: "build-tf-serving-image",
-                  },
-                ],
+                [{
+                  name: "build-tf-serving-image",
+                  template: "build-tf-serving-image",
+                }],
                 [{
                   name: "deploy-tf-serving",
                   template: "deploy-tf-serving",
@@ -197,25 +150,82 @@
                 },
               ],
             },  // build-tf-serving-image
-
-            $.parts(namespace, name).e2e(prow_env, bucket, serving_image, testing_image).buildTemplate("deploy-tf-serving", [
-              "python",
-              "-m",
-              "testing.test_deploy",
-              "--project=mlkube-testing",
-              "--cluster=kubeflow-testing",
-              "--zone=us-east1-d",
-              "--github_token=$(GIT_TOKEN)",
-              "--test_dir=" + testDir,
-              "--artifacts_dir=" + artifactsDir,
-              "--deploy_core=false",
-              "--deploy_tf_serving=true",
-              "--model_server_image=" + serving_image + "-${JOB_TYPE}-${PULL_BASE_SHA}",
-            ]),  // test-deploy
+            {
+              name: "deploy-tf-serving",
+              container: {
+                command: [
+                  "python",
+                  "-m",
+                  "testing.test_deploy",
+                  // "--project=mlkube-testing",
+                  // "--cluster=kubeflow-testing",
+                  // "--zone=us-east1-d",
+                  "--project=kai-test2",
+                  "--cluster=kai-kubeflow-testing",
+                  "--zone=us-central1-a",
+                  "--github_token=$(GIT_TOKEN)",
+                  "--test_dir=" + testDir,
+                  "--artifacts_dir=" + artifactsDir,
+                  "--deploy_core=False",
+                  "--deploy_tf_serving=true",
+                  "--model_server_image=" + serving_image + "-${JOB_TYPE}-${PULL_BASE_SHA}",
+                  "--test_inception=true",
+                  // TODO: use kubeflow image
+                  "--inception_client_image=gcr.io/kai-test2/incpetion-client:1.0",
+                ],
+                env: [
+                  {
+                    name: "DOCKER_HOST",
+                    value: "127.0.0.1", 
+                  },
+                  {
+                    name: "PYTHONPATH",
+                    value: kubeflowPy + ":" + kubeflowTestingPy,
+                  },
+                  {
+                    name: "GOOGLE_APPLICATION_CREDENTIALS",
+                    value: "/secret/gcp-credentials/key.json",
+                  },
+                  {
+                    name: "GIT_TOKEN",
+                    valueFrom: {
+                      secretKeyRef: {
+                        name: "github-token",
+                        key: "github_token",
+                      },
+                    },
+                  },
+                ] + prow_env,
+                image: testing_image,
+                volumeMounts: [
+                  {
+                    name: dataVolume,
+                    mountPath: mountPath,
+                  },
+                  {
+                    name: "gcp-credentials",
+                    mountPath: "/secret/gcp-credentials",
+                  },
+                  {
+                    name: "github-token",
+                    mountPath: "/secret/github-token",
+                  }
+                ],
+              },
+              sidecars: [
+                {
+                  name: "dind",
+                  image: "docker:17.10-dind",
+                  securityContext: {
+                    privileged: true,
+                  },
+                  mirrorVolumeMounts: true,
+                },
+              ],
+            },  // deploy-tf-serving
 
           ],  // templates
         },
       },  // e2e
   },  // parts
 }
-
