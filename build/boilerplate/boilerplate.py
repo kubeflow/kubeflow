@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright 2016 Google Inc. All Rights Reserved.
+# Copyright 2016 The Kubeflow Authors All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import mmap
 import os
 import re
 import sys
+import copy
 
 parser = argparse.ArgumentParser()
 parser.add_argument("filenames", help="list of files to check, all files if unspecified", nargs='*')
@@ -32,15 +33,23 @@ rootdir = os.path.dirname(__file__) + "/../../"
 rootdir = os.path.abspath(rootdir)
 
 def get_refs():
+    ref_file = open(os.path.join(rootdir, "build/boilerplate/boilerplate.txt"))
+    ref = ref_file.read().splitlines()
+    ref_file.close()
     refs = {}
-    for path in glob.glob(os.path.join(rootdir, "build/boilerplate/boilerplate.*.txt")):
-        extension = os.path.basename(path).split(".")[1]
-
-        ref_file = open(path, 'r')
-        ref = ref_file.read().splitlines()
-        ref_file.close()
-        refs[extension] = ref
-
+    for extension in ["sh", "go", "py"]:
+        refs[extension] = copy.copy(ref)
+        prefix = ""
+        if extension == "go":
+            prefix = "//"
+        else:
+            prefix = "#"
+        for i in range(len(refs[extension])):
+            if len(refs[extension][i]) != 0:
+                p = prefix + " "
+            else:
+                p = prefix
+            refs[extension][i] = p + refs[extension][i]
     return refs
 
 def file_passes(filename, refs, regexs):
@@ -61,7 +70,7 @@ def file_passes(filename, refs, regexs):
         (data, found) = p.subn("", data, 1)
 
     # remove shebang from the top of shell files
-    if extension == "sh":
+    if extension == "sh" or extension == "py":
         p = regexs["shebang"]
         (data, found) = p.subn("", data, 1)
 
