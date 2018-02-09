@@ -13,10 +13,12 @@
 # limitations under the License.
 #
 
-GCR_IMG = gcr.io/mlkube-testing/kubeflow-testing
-DOCKERHUB_IMG = hub.docker.com/r/kubeflow-testing
+PROJECT_ID = mlkube-testing/kubeflow-testing
+GCR_PROJECT = gcr.io/${PROJECT_ID}
+DOCKERHUB_PROJECT=hub.docker.com/r/${PROJECT_ID}
 TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a 256 | cut -c -6)
 DIR := ${CURDIR}
+
 
 # To build without the cache set the environment variable
 # export DOCKER_BUILD_OPTS=--no-cache
@@ -27,23 +29,23 @@ define build
 endef
 
 all:
-	$(call build,$(GCR_IMG))
-	$(call build,$(DOCKERHUB_IMG))
+	$(call build,$(GCR_PROJECT))
+	$(call build,$(DOCKERHUB_PROJECT))
 
 build_gcr:
-	$(call build,$(GCR_IMG))
+	$(call build,$(GCR_PROJECT))
 
 build_dockerhub:
-	$(call build,$(DOCKERHUB_IMG))
+	$(call build,$(DOCKERHUB_PROJECT))
 
 push: build_gcr build_dockerhub push_gcr push_dockerhub
 
 push_gcr: build_gcr
-	gcloud docker -- push $(GCR_IMG):$(TAG)
-	gcloud docker -- push $(GCR_IMG):latest
-	@echo Pushed $(GCR_IMG) with :latest and :$(TAG) tags
+	gcloud docker -- push $(GCR_PROJECT):$(TAG)
+	gcloud docker -- push $(GCR_PROJECT):latest
+	@echo Pushed $(GCR_PROJECT) with :latest and :$(TAG) tags
 
 push_dockerhub: build_dockerhub
-	docker push $(DOCKERHUB_IMG):$(TAG)
-	docker push $(DOCKERHUB_IMG):latest
-	@echo Pushed $(DOCKERHUB_IMG) with :latest and :$(TAG) tags
+	docker push $(DOCKERHUB_PROJECT):$(TAG)
+	docker push $(DOCKERHUB_PROJECT):latest
+	@echo Pushed $(DOCKERHUB_PROJECT) with :latest and :$(TAG) tags

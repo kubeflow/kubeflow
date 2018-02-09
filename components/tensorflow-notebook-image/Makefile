@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 
 TAG?=$(shell git rev-parse HEAD)
-GCR_REGISTRY?=gcr.io/kubeflow
-DOCKERHUB_REGISTRY?=hub.docker.com/r/kubeflow
+PROJECT_ID = kubeflow
+GCR_PROJECT = gcr.io/${PROJECT_ID}
+DOCKERHUB_PROJECT=hub.docker.com/r/${PROJECT_ID}
 IMAGE=tensorflow-notebook
+
 
 define container
 	docker build --pull -t $(1)/${IMAGE}-cpu:${TAG} -f Dockerfile.cpu .
@@ -22,22 +24,22 @@ define container
 endef
 
 all:
-	$(call container,$(GCR_REGISTRY))
-	$(call container,$(DOCKERHUB_REGISTRY))
+	$(call container,$(GCR_PROJECT))
+	$(call container,$(DOCKERHUB_PROJECT))
 
 build_gcr:
-	$(call container,$(GCR_REGISTRY))
+	$(call container,$(GCR_PROJECT))
 
 build_dockerhub:
-	$(call container,$(DOCKERHUB_REGISTRY))
+	$(call container,$(DOCKERHUB_PROJECT))
 
 push_gcr: build_gcr
-	gcloud docker -- push $(GCR_REGISTRY)/${IMAGE}-cpu:${TAG}
-	gcloud docker -- push $(GCR_REGISTRY)/${IMAGE}-gpu:${TAG}
+	gcloud docker -- push $(GCR_PROJECT)/${IMAGE}-cpu:${TAG}
+	gcloud docker -- push $(GCR_PROJECT)/${IMAGE}-gpu:${TAG}
 
 push_dockerhub: build_dockerhub
-	docker push $(DOCKERHUB_REGISTRY)/${IMAGE}-cpu:${TAG}
-	docker push $(DOCKERHUB_REGISTRY)/${IMAGE}-gpu:${TAG}
+	docker push $(DOCKERHUB_PROJECT)/${IMAGE}-cpu:${TAG}
+	docker push $(DOCKERHUB_PROJECT)/${IMAGE}-gpu:${TAG}
 
 push: build_gcr build_dockerhub push_gcr push_dockerhub
 

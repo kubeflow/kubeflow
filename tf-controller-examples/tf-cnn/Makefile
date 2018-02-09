@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-GCR_REGISTRY := gcr.io/kubeflow
-DOCKERHUB_REGISTRY := hub.docker.com/r/kubeflow
+PROJECT_ID = kubeflow
+GCR_PROJECT = gcr.io/${PROJECT_ID}
+DOCKERHUB_PROJECT=hub.docker.com/r/${PROJECT_ID}
 TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a 256 | cut -c -6)
 DIR := ${CURDIR}
 
@@ -24,8 +25,8 @@ CPU_BASE = tensorflow/tensorflow@sha256:5edc0446cc989ad75bc30631f89f20694fe5bf52
 # GPU_BASE = tensorflow/tensorflow:nightly-gpu
 GPU_BASE = tensorflow/tensorflow@sha256:bfadad8f2c80424d8d6059d3b8cd6947bf23111dc786fc33db72b56b632a1f28
 
-GCR_BENCHMARKS_IMAGE := $(GCR_REGISTRY)/tf-benchmarks
-DOCKERHUB_BENCHMARKS_IMAGE := $(DOCKERHUB_REGISTRY)/tf-benchmarks
+GCR_BENCHMARKS_IMAGE := $(GCR_PROJECT)/tf-benchmarks
+DOCKERHUB_BENCHMARKS_IMAGE := $(DOCKERHUB_PROJECT)/tf-benchmarks
 
 # The published versions of the example code to use.
 GCR_PUBLISHED_CPU := gcr.io/kubeflow/tf-benchmarks-cpu:v20171202-bdab599-dirty-284af3
