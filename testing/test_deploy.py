@@ -176,9 +176,10 @@ def wrap_test(args):
     test_util.wrap_test(run, test_case)
   finally:
 
-    junit_path = os.path.join(args.artifacts_dir, "junit_kubeflow-deploy-{0}.xml")
+    junit_path = os.path.join(
+      args.artifacts_dir, "junit_kubeflow-deploy-{0}.xml".format(test_name))
     logging.info("Writing test results to %s", junit_path)
-    test_util.create_junit_xml_file([main_case, teardown], junit_path)
+    test_util.create_junit_xml_file([test_case], junit_path)
 
 def main():  # pylint: disable=too-many-locals
   logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals

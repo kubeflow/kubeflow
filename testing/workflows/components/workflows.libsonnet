@@ -44,7 +44,12 @@
       // py scripts to use.      
       local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
       local tfOperatorRoot = srcRootDir + "/tensorflow/k8s";
-      local tfOperatorPy = tfOperatorRoot;      
+      local tfOperatorPy = tfOperatorRoot;
+
+      local project = "mlkube-testing";
+      // GKE cluster to use
+      local cluster = name;
+      local zone = "us-east1-d";
       {
         // Build an Argo template to execute a particular command.
         // step_name: Name for the template
@@ -189,28 +194,28 @@
             $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("setup", [
               "python",
               "-m",
-              "testing.test_deploy",
-              "setup",
+              "testing.test_deploy",              
               "--project=mlkube-testing",
               "--cluster=kubeflow-testing",
-              "--params=namespace=" + namespace,
+              "--namespace=" + namespace,
               "--zone=us-east1-d",
               "--github_token=$(GIT_TOKEN)",
               "--test_dir=" + testDir,
               "--artifacts_dir=" + artifactsDir,
+              "setup",
             ]),  // setup
             $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("teardown", [
               "python",
               "-m",
               "testing.test_deploy",
-              "setup",
               "--project=mlkube-testing",
               "--cluster=kubeflow-testing",
-              "--params=namespace=" + namespace,
+              "--namespace=" + namespace,
               "--zone=us-east1-d",
               "--github_token=$(GIT_TOKEN)",
               "--test_dir=" + testDir,
               "--artifacts_dir=" + artifactsDir,
+              "teardown",
             ]),  // teardown
             $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("create-pr-symlink", [
               "python",
