@@ -37,6 +37,10 @@ local networkSpec = networkPolicy.mixin.spec;
               port: 9000,
               targetPort: 9000,
             },
+            {
+              port: 8000,
+              targetPort: 8000,
+            },
           ],
           selector: labels,
           type: "ClusterIP",
