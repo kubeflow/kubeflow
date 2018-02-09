@@ -120,6 +120,8 @@
               },
             },
           ],  // volumes
+          // onExit specifies the template that should always run when the workflow completes.
+          onExit: "exit-handler",
           templates: [
             {
               name: "e2e",
@@ -130,8 +132,8 @@
                 }],
                 [
                   {
-                    name: "test-deploy",
-                    template: "test-deploy",
+                    name: "setup",
+                    template: "setup",
                   },
                   {
                     name: "create-pr-symlink",
@@ -142,6 +144,17 @@
                     name: "tfjob-test",
                     template: "tfjob-test",
                   },                
+                ],
+              ],
+            },
+            {
+              name: "exit-handler",
+              steps: [
+                [
+                  {
+                    name: "teardown",
+                    template: "teardown",
+                  },
                 ],
                 [{
                   name: "copy-artifacts",
@@ -173,17 +186,32 @@
                 ],
               },
             },  // checkout
-            $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("test-deploy", [
+            $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("setup", [
               "python",
               "-m",
               "testing.test_deploy",
+              "setup",
               "--project=mlkube-testing",
               "--cluster=kubeflow-testing",
+              "--params=namespace=" + namespace,
               "--zone=us-east1-d",
               "--github_token=$(GIT_TOKEN)",
               "--test_dir=" + testDir,
               "--artifacts_dir=" + artifactsDir,
-            ]),  // test-deploy
+            ]),  // setup
+            $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("teardown", [
+              "python",
+              "-m",
+              "testing.test_deploy",
+              "setup",
+              "--project=mlkube-testing",
+              "--cluster=kubeflow-testing",
+              "--params=namespace=" + namespace,
+              "--zone=us-east1-d",
+              "--github_token=$(GIT_TOKEN)",
+              "--test_dir=" + testDir,
+              "--artifacts_dir=" + artifactsDir,
+            ]),  // teardown
             $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("create-pr-symlink", [
               "python",
               "-m",
