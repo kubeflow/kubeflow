@@ -1,6 +1,6 @@
 # Kubeflow
 
-The Kubeflow project is dedicated to making machine learning on [Kubernetes](https://kubernetes.io/) simple, portable and scalable. Our goal is **not** to recreate other services, but to provide a straightforward way to train, test, and deploy best-of-breed open-source predictive models to diverse infrastructures. Anywhere you are running Kubernetes, you should be able to run KubeFlow.
+The Kubeflow project is dedicated to making machine learning on [Kubernetes](https://kubernetes.io/) simple, portable and scalable. Our goal is **not** to recreate other services, but to provide a straightforward way to train, test, and deploy best-of-breed open-source predictive models to diverse infrastructures. Anywhere you are running Kubernetes, you should be able to run Kubeflow.
 
 ****
 
@@ -42,7 +42,7 @@ Based on the current functionality you should consider using Kubeflow if:
        * For example, you may want to use [tensorflow/agents](https://github.com/tensorflow/agents) to run simulations to generate data for training reinforcement learning models.
 
 This list is based ONLY on current capabilities. We are investing significant resources to expand the
-functionality and actively soliciting help from companies and inviduals interested in contributing (see [below](README.md#who-should-consider-contributing-to-kubeflow)).
+functionality and actively soliciting help from companies and individuals interested in contributing (see [below](README.md#who-should-consider-contributing-to-kubeflow)).
 
 ## Setup
 
@@ -117,19 +117,31 @@ kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --us
 If you're using GKE, you may want to refer to [GKE's RBAC docs](https://cloud.google.com/kubernetes-engine/docs/how-to/role-based-access-control) to understand
 how RBAC interacts with IAM on GCP.
 
+### OpenShift
+If you are deploying kubeflow in an [OpenShift](https://github.com/openshift/origin) environment which encapsulates kubernetes, you will need to adjust the security contexts for the ambassador and jupyter-hub deployments in order to get the pods to run.
+
+```commandline
+oc adm policy add-scc-to-user anyuid -z ambassador
+oc adm policy add-scc-to-user anyuid -z jupyter-hub
+```
+Once the anyuid policy has been set, you must delete the failing pods and allow them to be recreated in the project deployment.
+
 ## Resources
 
-* [user guide](user_guide.md) provides in-depth instructions for using Kubeflow
+* The [kubeflow user guide](user_guide.md) provides in-depth instructions for using Kubeflow
 * Katacoda has produced a [self-paced scenario](https://www.katacoda.com/kubeflow) for learning and trying out Kubeflow
 
 
-## Get involved
+## Get Involved
 
 * [Slack Channel](https://join.slack.com/t/kubeflow/shared_invite/enQtMjgyMzMxNDgyMTQ5LWUwMTIxNmZlZTk2NGU0MmFiNDE4YWJiMzFiOGNkZGZjZmRlNTExNmUwMmQ2NzMwYzk5YzQxOWQyODBlZGY2OTg)
 * [Twitter](http://twitter.com/kubeflow)
 * [Mailing List](https://groups.google.com/forum/#!forum/kubeflow-discuss)
 
-* Review and comment on the [proposal](https://docs.google.com/document/d/1dmErPUmqqKMOe4L0ZHQglSdgDguCM4SzlsEdYXRMIDA/edit#) to define the scope and future of Kubeflow
+In the interest of fostering an open and welcoming environment, we as contributors and maintainers pledge to making participation in our project and our community a harassment-free experience for everyone, regardless of age, body size, disability, ethnicity, gender identity and expression, level of experience, education, socio-economic status, nationality, personal appearance, race, religion, or sexual identity and orientation.
+
+The Kubeflow community is guided by our [Code of Conduct](https://github.com/kubeflow/community/blob/master/CODE_OF_CONDUCT.md), which we encourage everybody to read before participating.
+
 
 
 ### Who should consider contributing to Kubeflow?
