@@ -91,9 +91,11 @@ def setup(args):
 
   namespace = _setup_test(api_client, namespace_name)
   logging.info("Using namespace: %s", namespace)
-  # Set a GITHUB_TOKEN so that we don't rate limited by GitHub;
-  # see: https://github.com/ksonnet/ksonnet/issues/233
-  os.environ["GITHUB_TOKEN"] = args.github_token
+  if args.github_token:
+    logging.info("Setting GITHUB_TOKEN to %s.", args.github_token)
+    # Set a GITHUB_TOKEN so that we don't rate limited by GitHub;
+    # see: https://github.com/ksonnet/ksonnet/issues/233
+    os.environ["GITHUB_TOKEN"] = args.github_token
 
   # Initialize a ksonnet app.
   app_name = "kubeflow-test"
@@ -233,7 +235,8 @@ def main():  # pylint: disable=too-many-locals
     help=("The GitHub API token to use. This is needed since ksonnet uses the "
           "GitHub API and without it we get rate limited. For more info see: "
           "https://github.com/ksonnet/ksonnet/blob/master/docs"
-          "/troubleshooting.md"))
+          "/troubleshooting.md. Can also be set using environment variable "
+          "GITHUB_TOKEN."))
 
   subparsers = parser.add_subparsers()
 

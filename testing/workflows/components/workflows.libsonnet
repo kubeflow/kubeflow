@@ -22,6 +22,8 @@
   parts(namespace, name):: {
     // Workflow to run the e2e test.
     e2e(prow_env, bucket):
+      // The name for the workspace to run the steps in
+      local stepsNamespace = name;
       // mountPath is the directory where the volume to store the test data
       // should be mounted.
       local mountPath = "/mnt/" + "test-data-volume";
@@ -48,7 +50,7 @@
 
       local project = "mlkube-testing";
       // GKE cluster to use
-      local cluster = name;
+      local cluster = "kubeflow-testing";
       local zone = "us-east1-d";
       {
         // Build an Argo template to execute a particular command.
@@ -197,9 +199,8 @@
               "testing.test_deploy",              
               "--project=mlkube-testing",
               "--cluster=kubeflow-testing",
-              "--namespace=" + namespace,
+              "--namespace=" + stepsNamespace,
               "--zone=us-east1-d",
-              "--github_token=$(GIT_TOKEN)",
               "--test_dir=" + testDir,
               "--artifacts_dir=" + artifactsDir,
               "setup",
@@ -210,9 +211,8 @@
               "testing.test_deploy",
               "--project=mlkube-testing",
               "--cluster=kubeflow-testing",
-              "--namespace=" + namespace,
+              "--namespace=" + stepsNamespace,
               "--zone=us-east1-d",
-              "--github_token=$(GIT_TOKEN)",
               "--test_dir=" + testDir,
               "--artifacts_dir=" + artifactsDir,
               "teardown",
@@ -243,7 +243,7 @@
               "--project=" + project,
               "--app_dir=" + srcDir + "/test/workflows",
               "--component=simple_tfjob",
-              "--params=name=simple-tfjob,namespace=" + namespace,
+              "--params=name=simple-tfjob,namespace=" + stepsNamespace,
               "--junit_path=" + artifactsDir + "/junit_e2e.xml",
             ]),  // run tests
           ],  // templates

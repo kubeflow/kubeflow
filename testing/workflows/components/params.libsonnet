@@ -8,10 +8,10 @@
     // Each object below should correspond to a component in the components/ directory
     workflows: {
       bucket: "mlkube-testing_temp",
-      name: "jlewi-kubeflow-kubeflow-presubmit-test-227-37f9",
+      name: "jlewi-kubeflow-kubeflow-presubmit-test-227-1c6d",
       namespace: "kubeflow-test-infra",
       prow: "JOB_NAME=kubeflow-presubmit-test,JOB_TYPE=presubmit,PULL_NUMBER=209,REPO_NAME=kubeflow,REPO_OWNER=kubeflow,BUILD_NUMBER=997a",
-      prow_env: "JOB_NAME=kubeflow-kubeflow-presubmit-test,JOB_TYPE=presubmit,PULL_NUMBER=227,REPO_NAME=kubeflow,REPO_OWNER=kubeflow,BUILD_NUMBER=37f9",
+      prow_env: "JOB_NAME=kubeflow-kubeflow-presubmit-test,JOB_TYPE=presubmit,PULL_NUMBER=227,REPO_NAME=kubeflow,REPO_OWNER=kubeflow,BUILD_NUMBER=1c6d",
     },
   },
 }
