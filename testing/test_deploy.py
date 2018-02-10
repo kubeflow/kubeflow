@@ -114,7 +114,8 @@ def setup(args):
     app_dir = os.path.join(args.test_dir, app_name)
 
     kubeflow_registry = "github.com/kubeflow/kubeflow/tree/master/kubeflow"
-    util.run(["ks", "registry", "add", "kubeflow", kubeflow_registry], cwd=app_dir)
+    util.run(["ks", "registry", "add", "kubeflow", kubeflow_registry],
+             cwd=app_dir)
 
     # Install required packages
     packages = ["kubeflow/core", "kubeflow/tf-serving", "kubeflow/tf-job"]
@@ -140,8 +141,9 @@ def setup(args):
     if args.deploy_core:
       # Deploy Kubeflow core.
       logging.info("Deploying kubeflow-core.")
-      util.run(["ks", "generate", "core", "kubeflow-core", "--name=kubeflow-core",
-                "--namespace=" + namespace.metadata.name], cwd=app_dir)
+      util.run(["ks", "generate", "core", "kubeflow-core",
+                "--name=kubeflow-core", "--namespace=" +
+                namespace.metadata.name], cwd=app_dir)
       
 
       # TODO(jlewi): For reasons I don't understand even though we ran
@@ -166,12 +168,17 @@ def setup(args):
       # Verify that JupyterHub is actually deployed.
       jupyter_name = "tf-hub"
       logging.info("Verifying TfHub started.")
-      util.wait_for_statefulset(api_client, namespace.metadata.name, jupyter_name)
+      util.wait_for_statefulset(api_client,
+                                namespace.metadata.name,
+                                jupyter_name)
 
     if args.deploy_tf_serving:
       logging.info("Deploying tf-serving.")
-      model_server_image = args.model_server_image + "-" + os.getenv("JOB_TYPE", "") + "-" + os.getenv("PULL_BASE_SHA", "")
-      util.run(["ks", "generate", "tf-serving", "modelServer", "--name=inception",
+      model_server_image = (args.model_server_image + "-" +
+                            os.getenv("JOB_TYPE", "") + "-" +
+                            os.getenv("PULL_BASE_SHA", "")
+      util.run(["ks", "generate", "tf-serving", "modelServer",
+                "--name=inception",
                 "--namespace=" + namespace.metadata.name,
                 "--model_path=gs://kubeflow-models/inception",
                 "--model_server_image=" + model_server_image], cwd=app_dir)
@@ -179,11 +186,9 @@ def setup(args):
       apply_command = ["ks", "apply", "default", "-c", "modelServer",]
       util.run(apply_command, cwd=app_dir)
 
-      util.run(["kubectl", "get", "deployments", "-n="+namespace.metadata.name])
-      util.run(["kubectl", "get", "deployments", "-n="+namespace.metadata.name, "inception"])
-      cire_api = k8s_client.CoreV1Api(api_client)
-      deploy = cire_api.read_namespaced_service("inception", namespace.metadata.name)
-      logging.info(deploy)
+      core_api = k8s_client.CoreV1Api(api_client)
+      deploy = core_api.read_namespaced_service(
+          "inception", namespace.metadata.name)
       cluster_ip = deploy.spec.cluster_ip
 
       util.wait_for_deployment(api_client, namespace.metadata.name, "inception")
@@ -191,8 +196,9 @@ def setup(args):
 
       if args.test_inception and args.inception_client_image:
         util.run(["gcloud", "docker", "--", "pull", args.inception_client_image])
-        util.run(["docker", "run", "-e", "INCEPTION_SERVICE_HOST=" + cluster_ip, "-e",
-                  "INCEPTION_SERVICE_PORT=9000", args.inception_client_image])
+        util.run(["docker", "run", "-e", "INCEPTION_SERVICE_HOST=" + cluster_ip,
+                  "-e", "INCEPTION_SERVICE_PORT=9000",
+                  args.inception_client_image])
 
   main_case = test_util.TestCase()
   main_case.class_name = "KubeFlow"
