@@ -407,7 +407,7 @@
       kind: "ClusterRoleBinding",
       metadata: {
         labels: {
-          app: "argo",
+          app: "argo-ui",
         },
         name: "argo-ui",
         namespace: namespace,
@@ -415,12 +415,12 @@
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
         kind: "ClusterRole",
-        name: "argo",
+        name: "argo-ui",
       },
       subjects: [
         {
           kind: "ServiceAccount",
-          name: "argo",
+          name: "argo-ui",
           namespace: namespace,
         },
       ],
