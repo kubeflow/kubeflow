@@ -162,7 +162,8 @@
       rules: [
         {
           apiGroups: [
-            "tensorflow.org", "kubeflow.org",
+            "tensorflow.org",
+            "kubeflow.org",
           ],
           resources: [
             "tfjobs",
@@ -350,7 +351,8 @@
       rules: [
         {
           apiGroups: [
-            "tensorflow.org", "kubeflow.org",
+            "tensorflow.org",
+            "kubeflow.org",
           ],
           resources: [
             "tfjobs",

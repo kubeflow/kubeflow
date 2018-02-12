@@ -43,6 +43,51 @@
       // py scripts to use.      
       local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
       {
+        // Build an Argo template to execute a particular command.
+        // step_name: Name for the template
+        // command: List to pass as the container command.
+        buildTemplate(step_name, command):: {
+          name: step_name,
+          container: {
+            command: command,
+            image: image,
+            env: [
+              {
+                // Add the source directories to the python path.
+                name: "PYTHONPATH",
+                value: kubeflowPy + ":" + kubeflowTestingPy + ":" + tfOperatorPy,
+              },
+              {
+                name: "GOOGLE_APPLICATION_CREDENTIALS",
+                value: "/secret/gcp-credentials/key.json",
+              },
+              {
+                name: "GITHUB_TOKEN",
+                valueFrom: {
+                  secretKeyRef: {
+                    name: "github-token",
+                    key: "github_token",
+                  },
+                },
+              },
+            ] + prow_env,
+            volumeMounts: [
+              {
+                name: dataVolume,
+                mountPath: mountPath,
+              },
+              {
+                name: "github-token",
+                mountPath: "/secret/github-token",
+              },
+              {
+                name: "gcp-credentials",
+                mountPath: "/secret/gcp-credentials",
+              },
+            ],
+          },
+        },  // buildTemplate
+
         apiVersion: "argoproj.io/v1alpha1",
         kind: "Workflow",
         metadata: {
@@ -72,6 +117,10 @@
               },
             },
           ],  // volumes
+
+          // onExit specifies the template that should always run when the workflow completes.
+          onExit: "exit-handler",
+
           templates: [
             {
               name: "e2e",
@@ -88,6 +137,21 @@
                   name: "deploy-tf-serving",
                   template: "deploy-tf-serving",
                 }]
+              ],
+            },
+            {
+              name: "exit-handler",
+              steps: [
+                [
+                  {
+                    name: "teardown",
+                    template: "teardown",
+                  },
+                ],
+                [{
+                  name: "copy-artifacts",
+                  template: "copy-artifacts",
+                }],
               ],
             },
             {
@@ -116,7 +180,8 @@
               name: "build-tf-serving-image",
               container: {
                 command: [
-                  "sh", "-c"
+                  "sh",
+                  "-c",
                 ],
                 args: [
                   "IMAGE=" + serving_image + "-${JOB_TYPE}-${PULL_BASE_SHA};" +
@@ -129,7 +194,7 @@
                 env: [
                   {
                     name: "DOCKER_HOST",
-                    value: "127.0.0.1", 
+                    value: "127.0.0.1",
                   },
                   {
                     name: "GOOGLE_APPLICATION_CREDENTIALS",
@@ -233,6 +298,26 @@
               ],
             },  // deploy-tf-serving
 
+            $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("copy-artifacts", [
+              "python",
+              "-m",
+              "kubeflow.testing.prow_artifacts",
+              "--artifacts_dir=" + outputDir,
+              "copy_artifacts",
+              "--bucket=" + bucket,
+            ]),  // copy-artifacts
+            $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("teardown", [
+              "python",
+              "-m",
+              "testing.test_deploy",
+              "--project=" + project,
+              "--cluster=" + cluster,
+              "--namespace=" + stepsNamespace,
+              "--zone=" + zone,
+              "--test_dir=" + testDir,
+              "--artifacts_dir=" + artifactsDir,
+              "teardown",
+            ]),  // teardown
           ],  // templates
         },
       },  // e2e
