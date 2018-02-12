@@ -176,14 +176,11 @@ def setup(args):
 
   if args.deploy_tf_serving:
     logging.info("Deploying tf-serving.")
-    model_server_image = (args.model_server_image + "-" +
-                          os.getenv("JOB_TYPE", "") + "-" +
-                          os.getenv("PULL_BASE_SHA", ""))
     util.run(["ks", "generate", "tf-serving", "modelServer",
               "--name=inception",
               "--namespace=" + namespace.metadata.name,
               "--model_path=gs://kubeflow-models/inception",
-              "--model_server_image=" + model_server_image], cwd=app_dir)
+              "--model_server_image=" + args.model_server_image], cwd=app_dir)
 
     apply_command = ["ks", "apply", "default", "-c", "modelServer",]
     util.run(apply_command, cwd=app_dir)
@@ -299,37 +296,31 @@ def main():  # pylint: disable=too-many-locals
 
   parser_teardown.set_defaults(func=teardown)
 
-  parser.add_argument(
+  parser_setup.add_argument(
     "--deploy_core",
     default=True,
     type=bool,
     help=("If True, deploy the kubeflow-core component."))
 
-  parser.add_argument(
-    "--deploy_tf_job",
-    default=False,
-    type=bool,
-    help=("If True, deploy the tf-job component."))
-
-  parser.add_argument(
+  parser_setup.add_argument(
     "--deploy_tf_serving",
     default=False,
     type=bool,
     help=("If True, deploy the tf-serving component."))
 
-  parser.add_argument(
+  parser_setup.add_argument(
     "--model_server_image",
     default="gcr.io/kubeflow/model-server:1.0",
     type=str,
     help=("The TF serving image to use."))
 
-  parser.add_argument(
+  parser_setup.add_argument(
     "--inception_client_image",
     default="",
     type=str,
     help=("The inception client image to use."))
 
-  parser.add_argument(
+  parser_setup.add_argument(
     "--test_inception",
     default=False,
     type=bool,

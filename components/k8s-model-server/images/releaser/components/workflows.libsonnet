@@ -21,7 +21,7 @@
 
   parts(namespace, name):: {
     // Workflow to run the e2e test.
-    e2e(prow_env, bucket, serving_image, testing_image):
+    e2e(prow_env, bucket, serving_image, testing_image, project, cluster, zone):
       local stepsNamespace = name;
       // mountPath is the directory where the volume to store the test data
       // should be mounted.
@@ -45,18 +45,11 @@
       local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
       local tfOperatorRoot = srcRootDir + "/tensorflow/k8s";
       local tfOperatorPy = tfOperatorRoot;
-
-      //local project = "mlkube-testing";
-      //local cluster = "kubeflow-testing";
-      //local zone = "us-east1-d";
-      local project = "kai-test2";
-      local cluster = "kai-kubeflow-testing";
-      local zone = "us-central1-a";
       {
         // Build an Argo template to execute a particular command.
         // step_name: Name for the template
         // command: List to pass as the container command.
-        buildTemplate(step_name, command):: {
+        buildTemplate(step_name, command, env_vars=[], sidecars=[]):: {
           name: step_name,
           container: {
             command: command,
@@ -80,7 +73,7 @@
                   },
                 },
               },
-            ] + prow_env,
+            ] + prow_env + env_vars,
             volumeMounts: [
               {
                 name: dataVolume,
@@ -96,6 +89,7 @@
               },
             ],
           },
+          sidecars: sidecars
         },  // buildTemplate
 
         apiVersion: "argoproj.io/v1alpha1",
@@ -175,7 +169,7 @@
                 ],
                 env: prow_env + [{
                   "name": "EXTRA_REPOS",
-                  "value": "tensorflow/k8s@HEAD;kubeflow/testing@HEAD:12",
+                  "value": "tensorflow/k8s@HEAD;kubeflow/testing@HEAD",
                 }],
                 image: testing_image,
                 volumeMounts: [
@@ -186,147 +180,97 @@
                 ],
               },
             },  // checkout
-            {
-              name: "build-tf-serving-image",
-              container: {
-                command: [
-                  "sh",
-                  "-c",
-                ],
-                args: [
-                  "IMAGE=" + serving_image + "-${JOB_TYPE}-${PULL_BASE_SHA};" +
-                  "until docker ps; do sleep 3; done; " +
-                  "docker build --pull -t ${IMAGE} " +
-                      srcRootDir + "/kubeflow/kubeflow/components/k8s-model-server/docker/; " +
-                  "gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}; "  +
-                  "gcloud docker -- push ${IMAGE}"
-                ],
-                env: [
-                  {
-                    name: "DOCKER_HOST",
-                    value: "127.0.0.1",
-                  },
-                  {
-                    name: "GOOGLE_APPLICATION_CREDENTIALS",
-                    value: "/secret/gcp-credentials/key.json",
-                  },
-                ] + prow_env,
-                image: testing_image,
-                volumeMounts: [
-                  {
-                    name: dataVolume,
-                    mountPath: mountPath,
-                  },
-                  {
-                    name: "gcp-credentials",
-                    mountPath: "/secret/gcp-credentials",
-                  },
-                ],
-              },
-              sidecars: [
-                {
-                  name: "dind",
-                  image: "docker:17.10-dind",
-                  securityContext: {
-                    privileged: true,
-                  },
-                  mirrorVolumeMounts: true,
-                },
+            $.parts(namespace, name).e2e(
+                prow_env, bucket, serving_image, testing_image, project, cluster, zone).buildTemplate(
+              "build-tf-serving-image",
+              [
+                "sh",
+                "-c",
+                "IMAGE=" + serving_image + "-${JOB_TYPE}-${PULL_BASE_SHA};" +
+                "until docker ps; do sleep 3; done; " +
+                "docker build --pull -t ${IMAGE} " +
+                    srcRootDir + "/kubeflow/kubeflow/components/k8s-model-server/docker/; " +
+                "gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}; "  +
+                "gcloud docker -- push ${IMAGE}"
               ],
-            },  // build-tf-serving-image
-            {
-              name: "deploy-tf-serving",
-              container: {
-                command: [
-                  "python",
-                  "-m",
-                  "testing.test_deploy",
-                  "--project=" + project,
-                  "--cluster=" + cluster,
-                  "--zone=" + zone,
-                  "--github_token=$(GIT_TOKEN)",
-                  "--namespace=" + stepsNamespace,
-                  "--test_dir=" + testDir,
-                  "--artifacts_dir=" + artifactsDir,
-                  "--deploy_core=False",
-                  "--deploy_tf_serving=true",
-                  "--model_server_image=" + serving_image,
-                  "--test_inception=true",
-                  // TODO: use kubeflow image
-                  "--inception_client_image=gcr.io/kai-test2/incpetion-client:1.0",
-                  "setup",
-                ],
-                env: [
-                  {
-                    name: "DOCKER_HOST",
-                    value: "127.0.0.1", 
-                  },
-                  {
-                    name: "PYTHONPATH",
-                    value: kubeflowPy + ":" + kubeflowTestingPy,
-                  },
-                  {
-                    name: "GOOGLE_APPLICATION_CREDENTIALS",
-                    value: "/secret/gcp-credentials/key.json",
-                  },
-                  {
-                    name: "GIT_TOKEN",
-                    valueFrom: {
-                      secretKeyRef: {
-                        name: "github-token",
-                        key: "github_token",
-                      },
-                    },
-                  },
-                ] + prow_env,
-                image: testing_image,
-                volumeMounts: [
-                  {
-                    name: dataVolume,
-                    mountPath: mountPath,
-                  },
-                  {
-                    name: "gcp-credentials",
-                    mountPath: "/secret/gcp-credentials",
-                  },
-                  {
-                    name: "github-token",
-                    mountPath: "/secret/github-token",
-                  }
-                ],
-              },
-              sidecars: [
-                {
-                  name: "dind",
-                  image: "docker:17.10-dind",
-                  securityContext: {
-                    privileged: true,
-                  },
-                  mirrorVolumeMounts: true,
+              [{
+                name: "DOCKER_HOST",
+                value: "127.0.0.1",
+              }],
+              [{
+                name: "dind",
+                image: "docker:17.10-dind",
+                securityContext: {
+                  privileged: true,
                 },
-              ],
-            },  // deploy-tf-serving
+                mirrorVolumeMounts: true,
+              }],
+            ),  // build-tf-serving-image
 
-            $.parts(namespace, name).e2e(prow_env, bucket, serving_image, testing_image).buildTemplate("copy-artifacts", [
-              "python",
-              "-m",
-              "kubeflow.testing.prow_artifacts",
-              "--artifacts_dir=" + outputDir,
-              "copy_artifacts",
-              "--bucket=" + bucket,
-            ]),  // copy-artifacts
-            $.parts(namespace, name).e2e(prow_env, bucket, serving_image, testing_image).buildTemplate("teardown", [
-              "python",
-              "-m",
-              "testing.test_deploy",
-              "--project=" + project,
-              "--cluster=" + cluster,
-              "--namespace=" + stepsNamespace,
-              "--zone=" + zone,
-              "--test_dir=" + testDir,
-              "--artifacts_dir=" + artifactsDir,
+            $.parts(namespace, name).e2e(
+                prow_env, bucket, serving_image, testing_image, project, cluster, zone).buildTemplate(
+              "deploy-tf-serving",
+              [
+                "python",
+                "-m",
+                "testing.test_deploy",
+                "--project=" + project,
+                "--cluster=" + cluster,
+                "--zone=" + zone,
+                "--github_token=$(GITHUB_TOKEN)",
+                "--namespace=" + stepsNamespace,
+                "--test_dir=" + testDir,
+                "--artifacts_dir=" + artifactsDir,
+                "setup",
+                "--deploy_core=False",
+                "--deploy_tf_serving=true",
+                "--model_server_image=" + serving_image + -$(JOB_TYPE)-$(PULL_BASE_SHA),
+                "--test_inception=true",
+                // TODO: use kubeflow image
+                "--inception_client_image=gcr.io/kai-test2/incpetion-client:1.0",
+              ],
+              [{
+                name: "DOCKER_HOST",
+                value: "127.0.0.1",
+              }],
+              [{
+                name: "dind",
+                image: "docker:17.10-dind",
+                securityContext: {
+                  privileged: true,
+                },
+                mirrorVolumeMounts: true,
+              }],
+            ),  // deploy-tf-serving
+            
+            $.parts(namespace, name).e2e(
+                prow_env, bucket, serving_image, testing_image, project, cluster, zone).buildTemplate(
+              "copy-artifacts",
+              [
+                "python",
+                "-m",
+                "kubeflow.testing.prow_artifacts",
+                "--artifacts_dir=" + outputDir,
+                "copy_artifacts",
+                "--bucket=" + bucket,
+              ]
+            ),  // copy-artifacts
+            $.parts(namespace, name).e2e(
+                prow_env, bucket, serving_image, testing_image, project, cluster, zone).buildTemplate(
               "teardown",
-            ]),  // teardown
+              [
+                "python",
+                "-m",
+                "testing.test_deploy",
+                "--project=" + project,
+                "--cluster=" + cluster,
+                "--namespace=" + stepsNamespace,
+                "--zone=" + zone,
+                "--test_dir=" + testDir,
+                "--artifacts_dir=" + artifactsDir,
+                "teardown",
+              ]
+            ),  // teardown
           ],  // templates
         },
       },  // e2e

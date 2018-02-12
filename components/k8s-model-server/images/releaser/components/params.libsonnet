@@ -14,6 +14,9 @@
       prow_env: "REPO_OWNER=kubeflow,REPO_NAME=kubeflow,PULL_BASE_SHA=master",
       serving_image: "gcr.io/mlkube-testing/model-server:1.0",
       testing_image: "gcr.io/mlkube-testing/kubeflow-testing",
+      project: "mlkube-testing",
+      cluster: "kubeflow-testing",
+      zone: "us-east1-d",
     },
   },
 }
