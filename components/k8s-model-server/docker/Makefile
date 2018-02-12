@@ -14,14 +14,29 @@
 
 VERSION=1.0
 PROJECT_ID=kubeflow
-PROJECT=gcr.io/${PROJECT_ID}
+GCR_PROJECT=gcr.io/${PROJECT_ID}
+DOCKERHUB_PROJECT=hub.docker.com/r/${PROJECT_ID}
 
-all: build
+define build
+	docker build --pull -t $(1)/model-server:${VERSION} .
+endef
 
-build:
-	docker build --pull -t ${PROJECT}/model-server:${VERSION} .
+all:
+	$(call build,$(GCR_PROJECT))
+	$(call build,$(DOCKERHUB_PROJECT))
 
-push: build
-	gcloud docker -- push ${PROJECT}/model-server:${VERSION}
+build_gcr:
+	$(call build,$(GCR_PROJECT))
 
-.PHONY: all build push
+build_dockerhub:
+	$(call build,$(DOCKERHUB_PROJECT))
+
+push_gcr: build_gcr
+	gcloud docker -- push ${GCR_PROJECT}/model-server:${VERSION}
+
+push_dockerhub: build_dockerhub
+	docker push ${DOCKERHUB_PROJECT}/model-server:${VERSION}
+
+push: build_gcr build_dockerhub push_gcr push_dockerhub
+
+.PHONY: all build build_dockerhub build_gcr push push_dockerhub push_gcr

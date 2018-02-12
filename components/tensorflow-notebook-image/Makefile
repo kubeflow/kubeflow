@@ -11,18 +11,36 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 
-all: container
-
 TAG?=$(shell git rev-parse HEAD)
-REGISTRY?=gcr.io/kubeflow
+PROJECT_ID = kubeflow
+GCR_PROJECT = gcr.io/${PROJECT_ID}
+DOCKERHUB_PROJECT=hub.docker.com/r/${PROJECT_ID}
 IMAGE=tensorflow-notebook
 
-container:
-	docker build --pull -t ${REGISTRY}/${IMAGE}-cpu:${TAG} -f Dockerfile.cpu .
-	docker build --pull -t ${REGISTRY}/${IMAGE}-gpu:${TAG} -f Dockerfile.gpu .
 
-push:
-	gcloud docker -- push ${REGISTRY}/${IMAGE}-cpu:${TAG}
-	gcloud docker -- push ${REGISTRY}/${IMAGE}-gpu:${TAG}
+define container
+	docker build --pull -t $(1)/${IMAGE}-cpu:${TAG} -f Dockerfile.cpu .
+	docker build --pull -t $(1)/${IMAGE}-gpu:${TAG} -f Dockerfile.gpu .
+endef
 
-.PHONY: all container push
+all:
+	$(call container,$(GCR_PROJECT))
+	$(call container,$(DOCKERHUB_PROJECT))
+
+build_gcr:
+	$(call container,$(GCR_PROJECT))
+
+build_dockerhub:
+	$(call container,$(DOCKERHUB_PROJECT))
+
+push_gcr: build_gcr
+	gcloud docker -- push $(GCR_PROJECT)/${IMAGE}-cpu:${TAG}
+	gcloud docker -- push $(GCR_PROJECT)/${IMAGE}-gpu:${TAG}
+
+push_dockerhub: build_dockerhub
+	docker push $(DOCKERHUB_PROJECT)/${IMAGE}-cpu:${TAG}
+	docker push $(DOCKERHUB_PROJECT)/${IMAGE}-gpu:${TAG}
+
+push: build_gcr build_dockerhub push_gcr push_dockerhub
+
+.PHONY: all containers push push_dockerhub push_gcr
