@@ -104,19 +104,20 @@
               name: "build-tf-serving-image",
               container: {
                 command: [
-                  "sh", "-c"
+                  "sh",
+                  "-c",
                 ],
                 args: [
                   "IMAGE=" + serving_image + "-${JOB_TYPE}-${PULL_BASE_SHA};" +
                   "until docker ps; do sleep 3; done; " +
                   "docker build --pull -t ${IMAGE} " +
-                      srcDir + "/components/k8s-model-server/docker/; " +
-                  "gcloud docker -- push ${IMAGE}"
+                  srcDir + "/components/k8s-model-server/docker/; " +
+                  "gcloud docker -- push ${IMAGE}",
                 ],
                 env: [
                   {
                     name: "DOCKER_HOST",
-                    value: "127.0.0.1", 
+                    value: "127.0.0.1",
                   },
                 ] + prow_env,
                 image: testing_image,
@@ -143,4 +144,3 @@
       },  // e2e
   },  // parts
 }
-
