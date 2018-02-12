@@ -22,6 +22,7 @@
   parts(namespace, name):: {
     // Workflow to run the e2e test.
     e2e(prow_env, bucket, serving_image, testing_image):
+      local stepsNamespace = name;
       // mountPath is the directory where the volume to store the test data
       // should be mounted.
       local mountPath = "/mnt/" + "test-data-volume";
@@ -42,6 +43,15 @@
       // The directory within the kubeflow_testing submodule containing
       // py scripts to use.      
       local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
+      local tfOperatorRoot = srcRootDir + "/tensorflow/k8s";
+      local tfOperatorPy = tfOperatorRoot;
+
+      //local project = "mlkube-testing";
+      //local cluster = "kubeflow-testing";
+      //local zone = "us-east1-d";
+      local project = "kai-test2";
+      local cluster = "kai-kubeflow-testing";
+      local zone = "us-central1-a";
       {
         // Build an Argo template to execute a particular command.
         // step_name: Name for the template
@@ -50,7 +60,7 @@
           name: step_name,
           container: {
             command: command,
-            image: image,
+            image: testing_image,
             env: [
               {
                 // Add the source directories to the python path.
@@ -231,13 +241,11 @@
                   "python",
                   "-m",
                   "testing.test_deploy",
-                  // "--project=mlkube-testing",
-                  // "--cluster=kubeflow-testing",
-                  // "--zone=us-east1-d",
-                  "--project=kai-test2",
-                  "--cluster=kai-kubeflow-testing",
-                  "--zone=us-central1-a",
+                  "--project=" + project,
+                  "--cluster=" + cluster,
+                  "--zone=" + zone,
                   "--github_token=$(GIT_TOKEN)",
+                  "--namespace=" + stepsNamespace,
                   "--test_dir=" + testDir,
                   "--artifacts_dir=" + artifactsDir,
                   "--deploy_core=False",
@@ -246,6 +254,7 @@
                   "--test_inception=true",
                   // TODO: use kubeflow image
                   "--inception_client_image=gcr.io/kai-test2/incpetion-client:1.0",
+                  "setup",
                 ],
                 env: [
                   {
@@ -298,7 +307,7 @@
               ],
             },  // deploy-tf-serving
 
-            $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("copy-artifacts", [
+            $.parts(namespace, name).e2e(prow_env, bucket, serving_image, testing_image).buildTemplate("copy-artifacts", [
               "python",
               "-m",
               "kubeflow.testing.prow_artifacts",
@@ -306,7 +315,7 @@
               "copy_artifacts",
               "--bucket=" + bucket,
             ]),  // copy-artifacts
-            $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("teardown", [
+            $.parts(namespace, name).e2e(prow_env, bucket, serving_image, testing_image).buildTemplate("teardown", [
               "python",
               "-m",
               "testing.test_deploy",
