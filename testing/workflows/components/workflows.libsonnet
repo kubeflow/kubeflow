@@ -22,6 +22,8 @@
   parts(namespace, name):: {
     // Workflow to run the e2e test.
     e2e(prow_env, bucket):
+      // The name for the workspace to run the steps in
+      local stepsNamespace = name;
       // mountPath is the directory where the volume to store the test data
       // should be mounted.
       local mountPath = "/mnt/" + "test-data-volume";
@@ -41,8 +43,15 @@
       local dataVolume = "kubeflow-test-volume";
       local kubeflowPy = srcDir;
       // The directory within the kubeflow_testing submodule containing
-      // py scripts to use.      
+      // py scripts to use.
       local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
+      local tfOperatorRoot = srcRootDir + "/tensorflow/k8s";
+      local tfOperatorPy = tfOperatorRoot;
+
+      local project = "mlkube-testing";
+      // GKE cluster to use
+      local cluster = "kubeflow-testing";
+      local zone = "us-east1-d";
       {
         // Build an Argo template to execute a particular command.
         // step_name: Name for the template
@@ -56,14 +65,14 @@
               {
                 // Add the source directories to the python path.
                 name: "PYTHONPATH",
-                value: kubeflowPy + ":" + kubeflowTestingPy,
+                value: kubeflowPy + ":" + kubeflowTestingPy + ":" + tfOperatorPy,
               },
               {
                 name: "GOOGLE_APPLICATION_CREDENTIALS",
                 value: "/secret/gcp-credentials/key.json",
               },
               {
-                name: "GIT_TOKEN",
+                name: "GITHUB_TOKEN",
                 valueFrom: {
                   secretKeyRef: {
                     name: "github-token",
@@ -118,6 +127,8 @@
               },
             },
           ],  // volumes
+          // onExit specifies the template that should always run when the workflow completes.
+          onExit: "exit-handler",
           templates: [
             {
               name: "e2e",
@@ -128,12 +139,29 @@
                 }],
                 [
                   {
-                    name: "test-deploy",
-                    template: "test-deploy",
+                    name: "setup",
+                    template: "setup",
                   },
                   {
                     name: "create-pr-symlink",
                     template: "create-pr-symlink",
+                  },
+                ],
+                [
+                  {
+                    name: "tfjob-test",
+                    template: "tfjob-test",
+                  },
+                ],
+              ],
+            },
+            {
+              name: "exit-handler",
+              steps: [
+                [
+                  {
+                    name: "teardown",
+                    template: "teardown",
                   },
                 ],
                 [{
@@ -152,10 +180,8 @@
                   srcRootDir,
                 ],
                 env: prow_env + [{
-                  "name": "EXTRA_REPOS",
-                  // TODO(jlewi): Once kubeflow/testing#12 is submitted pin
-                  // to kubeflow/testing HEAD
-                  "value": "tensorflow/k8s@HEAD;kubeflow/testing@HEAD:12",
+                  name: "EXTRA_REPOS",                  
+                  value: "tensorflow/k8s@HEAD;kubeflow/testing@HEAD",
                 }],
                 image: image,
                 volumeMounts: [
@@ -166,17 +192,30 @@
                 ],
               },
             },  // checkout
-            $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("test-deploy", [
+            $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("setup", [
               "python",
               "-m",
               "testing.test_deploy",
-              "--project=mlkube-testing",
-              "--cluster=kubeflow-testing",
-              "--zone=us-east1-d",
-              "--github_token=$(GIT_TOKEN)",
+              "--cluster=" + cluster,
+              "--zone=" + zone,
+              "--project=" + project,
+              "--namespace=" + stepsNamespace,
               "--test_dir=" + testDir,
               "--artifacts_dir=" + artifactsDir,
-            ]),  // test-deploy
+              "setup",
+            ]),  // setup
+            $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("teardown", [
+              "python",
+              "-m",
+              "testing.test_deploy",
+              "--project=" + project,
+              "--cluster=" + cluster,
+              "--namespace=" + stepsNamespace,
+              "--zone=" + zone,
+              "--test_dir=" + testDir,
+              "--artifacts_dir=" + artifactsDir,
+              "teardown",
+            ]),  // teardown
             $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("create-pr-symlink", [
               "python",
               "-m",
@@ -193,6 +232,19 @@
               "copy_artifacts",
               "--bucket=" + bucket,
             ]),  // copy-artifacts
+            $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("tfjob-test", [
+              "python",
+              "-m",
+              "py.test_runner",
+              "test",
+              "--cluster=" + cluster,
+              "--zone=" + zone,
+              "--project=" + project,
+              "--app_dir=" + srcDir + "/testing/workflows",
+              "--component=simple_tfjob",
+              "--params=name=simple-tfjob,namespace=" + stepsNamespace,
+              "--junit_path=" + artifactsDir + "/junit_e2e.xml",
+            ]),  // run tests
           ],  // templates
         },
       },  // e2e
