@@ -1,4 +1,6 @@
-# Copyright YEAR Google Inc. All rights reserved.
+#!/bin/bash
+
+# Copyright 2018 The Kubeflow Authors All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,3 +13,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+set -ex
+
+# Checkout the code.
+/usr/local/bin/checkout.sh /src
+
+# Trigger a workflow	          
+python -m kubeflow.testing.run_e2e_workflow \
+	--project=mlkube-testing \
+	--zone=us-east1-d \
+	--cluster=kubeflow-testing \
+	--bucket=kubernetes-jenkins \
+	--component=workflows \
+	--app_dir=/src/kubeflow/kubeflow/testing/workflows

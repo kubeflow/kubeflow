@@ -1,6 +1,6 @@
 # Kubeflow
 
-The Kubeflow project is dedicated to making machine learning on [Kubernetes](https://kubernetes.io/) simple, portable and scalable. Our goal is **not** to recreate other services, but to provide a straightforward way to train, test, and deploy best-of-breed open-source predictive models to diverse infrastructures. Anywhere you are running Kubernetes, you should be able to run KubeFlow.
+The Kubeflow project is dedicated to making machine learning on [Kubernetes](https://kubernetes.io/) simple, portable and scalable. Our goal is **not** to recreate other services, but to provide a straightforward way to train, test, and deploy best-of-breed open-source predictive models to diverse infrastructures. Anywhere you are running Kubernetes, you should be able to run Kubeflow.
 
 ****
 
@@ -42,7 +42,7 @@ Based on the current functionality you should consider using Kubeflow if:
        * For example, you may want to use [tensorflow/agents](https://github.com/tensorflow/agents) to run simulations to generate data for training reinforcement learning models.
 
 This list is based ONLY on current capabilities. We are investing significant resources to expand the
-functionality and actively soliciting help from companies and inviduals interested in contributing (see [below](README.md#who-should-consider-contributing-to-kubeflow)).
+functionality and actively soliciting help from companies and individuals interested in contributing (see [below](README.md#who-should-consider-contributing-to-kubeflow)).
 
 ## Setup
 
@@ -91,45 +91,24 @@ effort in a portable fashion between different environments.
 For more detailed instructions about how to use Kubeflow, please refer to the [user guide](user_guide.md).
 
 ## Troubleshooting
-
-### Minikube
-
-On [Minikube](https://github.com/kubernetes/minikube) the Virtualbox/VMware drivers for Minikube are recommended as there is a known
-issue between the KVM/KVM2 driver and TensorFlow Serving. The issue is tracked in [kubernetes/minikube#2377](https://github.com/kubernetes/minikube/issues/2377).
-
-### RBAC clusters
-
-If you are running on a K8s cluster with [RBAC enabled](https://kubernetes.io/docs/admin/authorization/rbac/#command-line-utilities), you may get an error like the following when deploying Kubeflow:
-
-```
-ERROR Error updating roles kubeflow-test-infra.jupyter-role: roles.rbac.authorization.k8s.io "jupyter-role" is forbidden: attempt to grant extra privileges: [PolicyRule{Resources:["*"], APIGroups:["*"], Verbs:["*"]}] user=&{your-user@acme.com  [system:authenticated] map[]} ownerrules=[PolicyRule{Resources:["selfsubjectaccessreviews"], APIGroups:["authorization.k8s.io"], Verbs:["create"]} PolicyRule{NonResourceURLs:["/api" "/api/*" "/apis" "/apis/*" "/healthz" "/swagger-2.0.0.pb-v1" "/swagger.json" "/swaggerapi" "/swaggerapi/*" "/version"], Verbs:["get"]}] ruleResolutionErrors=[]
-```
-
-This error indicates you do not have sufficient permissions. In many cases you can resolve this just by creating an appropriate
-clusterrole binding like so and then redeploying kubeflow
-
-```commandline
-kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --user=your-user@acme.com
-```
-
-  * Replace `your-user@acme.com` with the user listed in the error message.
-
-If you're using GKE, you may want to refer to [GKE's RBAC docs](https://cloud.google.com/kubernetes-engine/docs/how-to/role-based-access-control) to understand
-how RBAC interacts with IAM on GCP.
+For detailed troubleshooting instructions, please refer to [this section of the user guide](user_guide.md#troubleshooting)
 
 ## Resources
 
-* [user guide](user_guide.md) provides in-depth instructions for using Kubeflow
+* The [kubeflow user guide](user_guide.md) provides in-depth instructions for using Kubeflow
 * Katacoda has produced a [self-paced scenario](https://www.katacoda.com/kubeflow) for learning and trying out Kubeflow
 
 
-## Get involved
+## Get Involved
 
 * [Slack Channel](https://join.slack.com/t/kubeflow/shared_invite/enQtMjgyMzMxNDgyMTQ5LWUwMTIxNmZlZTk2NGU0MmFiNDE4YWJiMzFiOGNkZGZjZmRlNTExNmUwMmQ2NzMwYzk5YzQxOWQyODBlZGY2OTg)
 * [Twitter](http://twitter.com/kubeflow)
 * [Mailing List](https://groups.google.com/forum/#!forum/kubeflow-discuss)
 
-* Review and comment on the [proposal](https://docs.google.com/document/d/1dmErPUmqqKMOe4L0ZHQglSdgDguCM4SzlsEdYXRMIDA/edit#) to define the scope and future of Kubeflow
+In the interest of fostering an open and welcoming environment, we as contributors and maintainers pledge to making participation in our project and our community a harassment-free experience for everyone, regardless of age, body size, disability, ethnicity, gender identity and expression, level of experience, education, socio-economic status, nationality, personal appearance, race, religion, or sexual identity and orientation.
+
+The Kubeflow community is guided by our [Code of Conduct](https://github.com/kubeflow/community/blob/master/CODE_OF_CONDUCT.md), which we encourage everybody to read before participating.
+
 
 
 ### Who should consider contributing to Kubeflow?

@@ -1,4 +1,19 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+
+# Copyright 2018 The Kubeflow Authors All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """Test deploying Kubeflow.
 
 Requirements:
@@ -23,8 +38,8 @@ from kubernetes import client as k8s_client
 from kubernetes.client import rest
 from kubernetes.config import incluster_config
 
-from py import test_util
-from py import util
+from kubeflow.testing import test_util
+from kubeflow.testing import util
 
 def _setup_test(api_client, run_label):
   """Create the namespace for the test.
@@ -54,8 +69,7 @@ def _setup_test(api_client, run_label):
 
   return namespace
 
-def setup(args):
-  """Test deploying Kubeflow."""
+def create_k8s_client(args):
   if args.cluster:
     project = args.project
     cluster_name = args.cluster
@@ -76,6 +90,10 @@ def setup(args):
   # Create an API client object to talk to the K8s master.
   api_client = k8s_client.ApiClient()
 
+def setup(args):
+  """Test deploying Kubeflow."""
+  api_client = create_k8s_client(args)
+
   now = datetime.datetime.now()
   run_label = "e2e-" + now.strftime("%m%d-%H%M-") + uuid.uuid4().hex[0:4]
 
@@ -84,92 +102,104 @@ def setup(args):
 
   logging.info("Using test directory: %s", args.test_dir)
 
-  namespace_name = run_label
-  def run():
-    namespace = _setup_test(api_client, namespace_name)
-    logging.info("Using namespace: %s", namespace)
+  namespace_name = args.namespace
+
+  namespace = _setup_test(api_client, namespace_name)
+  logging.info("Using namespace: %s", namespace)
+  if args.github_token:
+    logging.info("Setting GITHUB_TOKEN to %s.", args.github_token)
     # Set a GITHUB_TOKEN so that we don't rate limited by GitHub;
     # see: https://github.com/ksonnet/ksonnet/issues/233
     os.environ["GITHUB_TOKEN"] = args.github_token
 
-    # Initialize a ksonnet app.
-    app_name = "kubeflow-test"
-    util.run(["ks", "init", app_name,], cwd=args.test_dir, use_print=True)
+  if not os.getenv("GITHUB_TOKEN"):
+    logging.warn("GITHUB_TOKEN not set; you will probably hit Github API "
+                 "limits.")
+  # Initialize a ksonnet app.
+  app_name = "kubeflow-test"
+  util.run(["ks", "init", app_name,], cwd=args.test_dir)
 
-    app_dir = os.path.join(args.test_dir, app_name)
+  app_dir = os.path.join(args.test_dir, app_name)
 
-    kubeflow_registry = "github.com/kubeflow/kubeflow/tree/master/kubeflow"
-    util.run(["ks", "registry", "add", "kubeflow", kubeflow_registry], cwd=app_dir)
+  kubeflow_registry = "github.com/kubeflow/kubeflow/tree/master/kubeflow"
+  util.run(["ks", "registry", "add", "kubeflow", kubeflow_registry], cwd=app_dir)
 
-    # Install required packages
-    packages = ["kubeflow/core", "kubeflow/tf-serving", "kubeflow/tf-job"]
+  # Install required packages
+  packages = ["kubeflow/core", "kubeflow/tf-serving", "kubeflow/tf-job"]
 
-    for p in packages:
-      util.run(["ks", "pkg", "install", p], cwd=app_dir)
+  for p in packages:
+    util.run(["ks", "pkg", "install", p], cwd=app_dir)
 
-    # Delete the vendor directory and replace with a symlink to the src
-    # so that we use the code at the desired commit.
-    target_dir = os.path.join(app_dir, "vendor", "kubeflow")
+  # Delete the vendor directory and replace with a symlink to the src
+  # so that we use the code at the desired commit.
+  target_dir = os.path.join(app_dir, "vendor", "kubeflow")
 
-    logging.info("Deleting %s", target_dir)
-    shutil.rmtree(target_dir)
+  logging.info("Deleting %s", target_dir)
+  shutil.rmtree(target_dir)
 
-    source = os.path.join(args.test_dir, "src", "kubeflow")
-    logging.info("Creating link %s -> %s", target_dir, source)
-    os.symlink(source, target_dir)
+  REPO_ORG = "kubeflow"
+  REPO_NAME = "kubeflow"
+  REGISTRY_PATH = "kubeflow"
+  source = os.path.join(args.test_dir, "src", REPO_ORG, REPO_NAME,
+                        REGISTRY_PATH)
+  logging.info("Creating link %s -> %s", target_dir, source)
+  os.symlink(source, target_dir)
 
-    # Deploy Kubeflow
-    util.run(["ks", "generate", "core", "kubeflow-core", "--name=kubeflow-core",
-              "--namespace=" + namespace.metadata.name], cwd=app_dir)
+  # Deploy Kubeflow
+  util.run(["ks", "generate", "core", "kubeflow-core", "--name=kubeflow-core",
+            "--namespace=" + namespace.metadata.name], cwd=app_dir)
 
-    # TODO(jlewi): For reasons I don't understand even though we ran
-    # configure_kubectl above, if we don't rerun it we get rbac errors
-    # when we do ks apply; I think because we aren't using the proper service
-    # account. This might have something to do with the way ksonnet gets
-    # its credentials; maybe we need to configure credentials after calling
-    # ks init?
-    if args.cluster:
-      util.configure_kubectl(args.project, args.zone, args.cluster)
+  # TODO(jlewi): For reasons I don't understand even though we ran
+  # configure_kubectl above, if we don't rerun it we get rbac errors
+  # when we do ks apply; I think because we aren't using the proper service
+  # account. This might have something to do with the way ksonnet gets
+  # its credentials; maybe we need to configure credentials after calling
+  # ks init?
+  if args.cluster:
+    util.configure_kubectl(args.project, args.zone, args.cluster)
 
-    apply_command = ["ks", "apply", "default", "-c", "kubeflow-core",]
+  apply_command = ["ks", "apply", "default", "-c", "kubeflow-core",]
 
-    util.run(apply_command, cwd=app_dir)
+  util.run(apply_command, cwd=app_dir)
 
-    # Verify that the TfJob operator is actually deployed.
-    tf_job_deployment_name = "tf-job-operator"
-    logging.info("Verifying TfJob controller started.")
-    util.wait_for_deployment(api_client, namespace.metadata.name,
-                             tf_job_deployment_name)
+  # Verify that the TfJob operator is actually deployed.
+  tf_job_deployment_name = "tf-job-operator"
+  logging.info("Verifying TfJob controller started.")
+  util.wait_for_deployment(api_client, namespace.metadata.name,
+                           tf_job_deployment_name)
 
-    # Verify that JupyterHub is actually deployed.
-    jupyter_name = "tf-hub"
-    logging.info("Verifying TfHub started.")
-    util.wait_for_statefulset(api_client, namespace.metadata.name, jupyter_name)
+  # Verify that JupyterHub is actually deployed.
+  jupyter_name = "tf-hub"
+  logging.info("Verifying TfHub started.")
+  util.wait_for_statefulset(api_client, namespace.metadata.name, jupyter_name)
 
-  main_case = test_util.TestCase()
-  main_case.class_name = "KubeFlow"
-  main_case.name = "deploy-kubeflow"
+def teardown(args):
+  # Delete the namespace
+  logging.info("Deleting namespace %s", args.namespace)
+  api_client = create_k8s_client(args)
+  core_api = k8s_client.CoreV1Api(api_client)
+  core_api.delete_namespace(args.namespace, {})
+
+# TODO(jlewi): We should probably make this a generic function in
+# kubeflow.testing.`
+def wrap_test(args):
+  """Run the tests given by args.func and output artifacts as necessary.
+  """
+  test_name = args.func.__name__
+  test_case = test_util.TestCase()
+  test_case.class_name = "KubeFlow"
+  test_case.name = "deploy-kubeflow-" + test_name
   try:
-    test_util.wrap_test(run, main_case)
+    def run():
+      args.func(args)
+
+    test_util.wrap_test(run, test_case)
   finally:
-    # Delete the namespace
-    logging.info("Deleting namespace %s", namespace_name)
 
-    # We report teardown as a separate test case because this will help
-    # us track down issues with garbage collecting namespaces.
-    teardown = test_util.TestCase(main_case.class_name, "teardown")
-    def run_teardown():
-      core_api = k8s_client.CoreV1Api(api_client)
-      core_api.delete_namespace(namespace_name, {})
-
-    try:
-      test_util.wrap_test(run_teardown, teardown)
-    except Exception as e:  # pylint: disable-msg=broad-except
-      logging.error("There was a problem deleting namespace: %s; %s",
-                    namespace_name, e.message)
-    junit_path = os.path.join(args.artifacts_dir, "junit_kubeflow-deploy.xml")
+    junit_path = os.path.join(
+      args.artifacts_dir, "junit_kubeflow-deploy-{0}.xml".format(test_name))
     logging.info("Writing test results to %s", junit_path)
-    test_util.create_junit_xml_file([main_case, teardown], junit_path)
+    test_util.create_junit_xml_file([test_case], junit_path)
 
 def main():  # pylint: disable=too-many-locals
   logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
@@ -205,6 +235,12 @@ def main():  # pylint: disable=too-many-locals
           "script is running in a cluster and uses that cluster."))
 
   parser.add_argument(
+    "--namespace",
+    required=True,
+    type=str,
+    help=("The namespace to use."))
+
+  parser.add_argument(
     "--zone",
     default="us-east1-d",
     type=str,
@@ -217,7 +253,22 @@ def main():  # pylint: disable=too-many-locals
     help=("The GitHub API token to use. This is needed since ksonnet uses the "
           "GitHub API and without it we get rate limited. For more info see: "
           "https://github.com/ksonnet/ksonnet/blob/master/docs"
-          "/troubleshooting.md"))
+          "/troubleshooting.md. Can also be set using environment variable "
+          "GITHUB_TOKEN."))
+
+  subparsers = parser.add_subparsers()
+
+  parser_setup = subparsers.add_parser(
+    "setup",
+    help="setup the test infrastructure.")
+
+  parser_setup.set_defaults(func=setup)
+
+  parser_teardown = subparsers.add_parser(
+    "teardown",
+    help="teardown the test infrastructure.")
+
+  parser_teardown.set_defaults(func=teardown)
 
   args = parser.parse_args()
 
@@ -232,13 +283,16 @@ def main():  # pylint: disable=too-many-locals
 
   if not args.artifacts_dir:
     args.artifacts_dir = args.test_dir
+
+  test_log = os.path.join(args.artifacts_dir, "logs",
+                          "test_deploy." + args.func.__name__ + ".log.txt")
+  if not os.path.exists(os.path.dirname(test_log)):
+    os.makedirs(os.path.dirname(test_log))
+
+  # TODO(jlewi): We should make this a util routine in kubeflow.testing.util
   # Setup a logging file handler. This way we can upload the log outputs
   # to gubernator.
   root_logger = logging.getLogger()
-
-  test_log = os.path.join(args.artifacts_dir, "logs", "test_deploy.log.txt")
-  if not os.path.exists(os.path.dirname(test_log)):
-    os.makedirs(os.path.dirname(test_log))
 
   file_handler = logging.FileHandler(test_log)
   root_logger.addHandler(file_handler)
@@ -250,13 +304,9 @@ def main():  # pylint: disable=too-many-locals
   file_handler.setFormatter(formatter)
   logging.info("Logging to %s", test_log)
 
-  if os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
-    logging.info("GOOGLE_APPLICATION_CREDENTIALS is set; configuring gcloud "
-                 "to use service account.")
-    # Since a service account is set tell gcloud to use it.
-    util.run(["gcloud", "auth", "activate-service-account", "--key-file=" +
-              os.getenv("GOOGLE_APPLICATION_CREDENTIALS")])
-  setup(args)
+  util.maybe_activate_service_account()
+
+  wrap_test(args)
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,

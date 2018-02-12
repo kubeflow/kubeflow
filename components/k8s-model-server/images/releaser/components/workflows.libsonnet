@@ -21,7 +21,7 @@
 
   parts(namespace, name):: {
     // Workflow to run the e2e test.
-    e2e(prow_env, bucket):
+    e2e(prow_env, bucket, serving_image, testing_image):
       // mountPath is the directory where the volume to store the test data
       // should be mounted.
       local mountPath = "/mnt/" + "test-data-volume";
@@ -31,57 +31,11 @@
       local outputDir = testDir + "/output";
       local artifactsDir = outputDir + "/artifacts";
       local srcDir = testDir + "/src";
-      local image = "gcr.io/mlkube-testing/kubeflow-testing";
       // The name of the NFS volume claim to use for test files.
       local nfsVolumeClaim = "kubeflow-testing";
       // The name to use for the volume to use to contain test data.
       local dataVolume = "kubeflow-test-volume";
       {
-        // Build an Argo template to execute a particular command.
-        // step_name: Name for the template
-        // command: List to pass as the container command.
-        buildTemplate(step_name, command):: {
-          name: step_name,
-          container: {
-            command: command,
-            image: image,
-            env: [
-              {
-                // Add the source directories to the python path.
-                name: "PYTHONPATH",
-                value: srcDir + ":" + srcDir + "/tensorflow_k8s",
-              },
-              {
-                name: "GOOGLE_APPLICATION_CREDENTIALS",
-                value: "/secret/gcp-credentials/key.json",
-              },
-              {
-                name: "GIT_TOKEN",
-                valueFrom: {
-                  secretKeyRef: {
-                    name: "github-token",
-                    key: "github_token",
-                  },
-                },
-              },
-            ] + prow_env,
-            volumeMounts: [
-              {
-                name: dataVolume,
-                mountPath: mountPath,
-              },
-              {
-                name: "github-token",
-                mountPath: "/secret/github-token",
-              },
-              {
-                name: "gcp-credentials",
-                mountPath: "/secret/gcp-credentials",
-              },
-            ],
-          },
-        },  // buildTemplate
-
         apiVersion: "argoproj.io/v1alpha1",
         kind: "Workflow",
         metadata: {
@@ -121,18 +75,10 @@
                 }],
                 [
                   {
-                    name: "test-deploy",
-                    template: "test-deploy",
-                  },
-                  {
-                    name: "create-pr-symlink",
-                    template: "create-pr-symlink",
+                    name: "build-tf-serving-image",
+                    template: "build-tf-serving-image",
                   },
                 ],
-                [{
-                  name: "copy-artifacts",
-                  template: "copy-artifacts",
-                }],
               ],
             },
             {
@@ -145,7 +91,7 @@
                   srcDir,
                 ],
                 env: prow_env,
-                image: image,
+                image: testing_image,
                 volumeMounts: [
                   {
                     name: dataVolume,
@@ -154,33 +100,45 @@
                 ],
               },
             },  // checkout
-            $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("test-deploy", [
-              "python",
-              "-m",
-              "testing.test_deploy",
-              "--project=mlkube-testing",
-              "--cluster=kubeflow-testing",
-              "--zone=us-east1-d",
-              "--github_token=$(GIT_TOKEN)",
-              "--test_dir=" + testDir,
-              "--artifacts_dir=" + artifactsDir,
-            ]),  // test-deploy
-            $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("create-pr-symlink", [
-              "python",
-              "-m",
-              "testing.prow_artifacts",
-              "--artifacts_dir=" + outputDir,
-              "create_pr_symlink",
-              "--bucket=" + bucket,
-            ]),  // create-pr-symlink
-            $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("copy-artifacts", [
-              "python",
-              "-m",
-              "testing.prow_artifacts",
-              "--artifacts_dir=" + outputDir,
-              "copy_artifacts",
-              "--bucket=" + bucket,
-            ]),  // copy-artifacts
+            {
+              name: "build-tf-serving-image",
+              container: {
+                command: [
+                  "sh",
+                  "-c",
+                ],
+                args: [
+                  "IMAGE=" + serving_image + "-${JOB_TYPE}-${PULL_BASE_SHA};" +
+                  "until docker ps; do sleep 3; done; " +
+                  "docker build --pull -t ${IMAGE} " +
+                  srcDir + "/components/k8s-model-server/docker/; " +
+                  "gcloud docker -- push ${IMAGE}",
+                ],
+                env: [
+                  {
+                    name: "DOCKER_HOST",
+                    value: "127.0.0.1",
+                  },
+                ] + prow_env,
+                image: testing_image,
+                volumeMounts: [
+                  {
+                    name: dataVolume,
+                    mountPath: mountPath,
+                  },
+                ],
+              },
+              sidecars: [
+                {
+                  name: "dind",
+                  image: "docker:17.10-dind",
+                  securityContext: {
+                    privileged: true,
+                  },
+                  mirrorVolumeMounts: true,
+                },
+              ],
+            },  // build-tf-serving-image
           ],  // templates
         },
       },  // e2e

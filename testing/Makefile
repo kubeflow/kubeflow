@@ -12,24 +12,40 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Requirements:
-#   https://github.com/mattrobenolt/jinja2-cli
-#   pip install jinja2-clie
-IMG = gcr.io/mlkube-testing/kubeflow-testing
-TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | sha256sum | cut -c -6)
+
+PROJECT_ID = mlkube-testing/kubeflow-testing
+GCR_PROJECT = gcr.io/${PROJECT_ID}
+DOCKERHUB_PROJECT=hub.docker.com/r/${PROJECT_ID}
+TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a 256 | cut -c -6)
 DIR := ${CURDIR}
 
-all: build
 
 # To build without the cache set the environment variable
 # export DOCKER_BUILD_OPTS=--no-cache
-build:
-	@echo {\"image\": \"$(IMG):$(TAG)\"} > version.json
-	docker build ${DOCKER_BUILD_OPTS} -t $(IMG):$(TAG) .
-	docker tag $(IMG):$(TAG) $(IMG):latest
-	@echo Built $(IMG):$(TAG) and tagged with latest
+define build
+	docker build ${DOCKER_BUILD_OPTS} -t $(1):$(TAG) .
+	docker tag $(1):$(TAG) $(1):latest
+	@echo Built $(1):$(TAG) and tagged with latest
+endef
 
-push: build
-	gcloud docker -- push $(IMG):$(TAG)
-	gcloud docker -- push $(IMG):latest
-	@echo Pushed $(IMG) with :latest and :$(TAG) tags
+all:
+	$(call build,$(GCR_PROJECT))
+	$(call build,$(DOCKERHUB_PROJECT))
+
+build_gcr:
+	$(call build,$(GCR_PROJECT))
+
+build_dockerhub:
+	$(call build,$(DOCKERHUB_PROJECT))
+
+push: build_gcr build_dockerhub push_gcr push_dockerhub
+
+push_gcr: build_gcr
+	gcloud docker -- push $(GCR_PROJECT):$(TAG)
+	gcloud docker -- push $(GCR_PROJECT):latest
+	@echo Pushed $(GCR_PROJECT) with :latest and :$(TAG) tags
+
+push_dockerhub: build_dockerhub
+	docker push $(DOCKERHUB_PROJECT):$(TAG)
+	docker push $(DOCKERHUB_PROJECT):latest
+	@echo Pushed $(DOCKERHUB_PROJECT) with :latest and :$(TAG) tags

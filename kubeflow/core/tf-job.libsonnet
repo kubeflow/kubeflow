@@ -6,10 +6,10 @@
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
       metadata: {
-        name: "tfjobs.tensorflow.org",
+        name: "tfjobs.kubeflow.org",
       },
       spec: {
-        group: "tensorflow.org",
+        group: "kubeflow.org",
         version: "v1alpha1",
         names: {
           kind: "TFJob",
@@ -163,6 +163,7 @@
         {
           apiGroups: [
             "tensorflow.org",
+            "kubeflow.org",
           ],
           resources: [
             "tfjobs",
@@ -264,6 +265,18 @@
       metadata: {
         name: "tf-job-dashboard",
         namespace: namespace,
+        annotations: {
+          "getambassador.io/config":
+            std.join("\n", [
+              "---",
+              "apiVersion: ambassador/v0",
+              "kind:  Mapping",
+              "name: tfjobs-ui-mapping",
+              "prefix: /tfjobs/ui/",
+              "rewrite: /",
+              "service: tf-job-dashboard." + namespace,
+            ]),
+        },  //annotations
       },
       spec: {
         ports: [
@@ -339,6 +352,7 @@
         {
           apiGroups: [
             "tensorflow.org",
+            "kubeflow.org",
           ],
           resources: [
             "tfjobs",
