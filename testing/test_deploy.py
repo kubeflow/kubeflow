@@ -201,6 +201,7 @@ def setup(args):
       util.run(["docker", "run", "-e", "INCEPTION_SERVICE_HOST=" + cluster_ip,
                 "-e", "INCEPTION_SERVICE_PORT=9000",
                 args.inception_client_image])
+      util.run(["rm", args.test_dir + "/client.tar"])
 
 def teardown(args):
   # Delete the namespace
