@@ -259,7 +259,7 @@
                 "--test_dir=" + testDir,
                 "--artifacts_dir=" + artifactsDir,
                 "setup",
-                "--deploy_core=False",
+                "--deploy_core=false",
                 "--deploy_tf_serving=true",
                 "--model_server_image=$(SERVING_IMAGE)",
                 "--test_inception=true",
