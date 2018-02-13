@@ -45,6 +45,8 @@
       local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
       local tfOperatorRoot = srcRootDir + "/tensorflow/k8s";
       local tfOperatorPy = tfOperatorRoot;
+
+      local client_image = "tf_serving_client";
       {
         // Build an Argo template to execute a particular command.
         // step_name: Name for the template
@@ -133,10 +135,16 @@
                   name: "checkout",
                   template: "checkout",
                 }],
-                [{
-                  name: "build-tf-serving-image",
-                  template: "build-tf-serving-image",
-                }],
+                [
+                  {
+                    name: "build-tf-serving-image",
+                    template: "build-tf-serving-image",
+                  },
+                  {
+                    name: "build-tf-serving-client",
+                    template: "build-tf-serving-client",
+                  }
+                ],
                 [{
                   name: "deploy-tf-serving",
                   template: "deploy-tf-serving",
@@ -206,6 +214,35 @@
                 mirrorVolumeMounts: true,
               }],
             ),  // build-tf-serving-image
+            $.parts(namespace, name).e2e(
+                prow_env, bucket, serving_image, testing_image, project, cluster, zone).buildTemplate(
+              "build-tf-serving-client",
+              [
+                "sh",
+                "-c",
+                "until docker ps; do sleep 3; done; " +
+                "docker build --pull -t ${CLIENT_IMAGE} " +
+                    srcRootDir + "/kubeflow/kubeflow/components/k8s-model-server/inception-client/; "
+              ],
+              [
+                {
+                  name: "DOCKER_HOST",
+                  value: "127.0.0.1",
+                },
+                {
+                  name: "CLIENT_IMAGE",
+                  value: client_image,
+                }
+              ],
+              [{
+                name: "dind",
+                image: "docker:17.10-dind",
+                securityContext: {
+                  privileged: true,
+                },
+                mirrorVolumeMounts: true,
+              }],
+            ),  // build-tf-serving-client
 
             $.parts(namespace, name).e2e(
                 prow_env, bucket, serving_image, testing_image, project, cluster, zone).buildTemplate(
@@ -224,15 +261,25 @@
                 "setup",
                 "--deploy_core=False",
                 "--deploy_tf_serving=true",
-                "--model_server_image=" + serving_image + -$(JOB_TYPE)-$(PULL_BASE_SHA),
+                "--model_server_image=$(SERVING_IMAGE)",
                 "--test_inception=true",
                 // TODO: use kubeflow image
-                "--inception_client_image=gcr.io/kai-test2/incpetion-client:1.0",
+                "--inception_client_image=$(CLIENT_IMAGE)",
               ],
-              [{
-                name: "DOCKER_HOST",
-                value: "127.0.0.1",
-              }],
+              [
+                {
+                  name: "DOCKER_HOST",
+                  value: "127.0.0.1",
+                },
+                {
+                  name: "SERVING_IMAGE",
+                  value: serving_image,
+                },
+                {
+                  name: "CLIENT_IMAGE",
+                  value: client_image,
+                }
+              ],
               [{
                 name: "dind",
                 image: "docker:17.10-dind",

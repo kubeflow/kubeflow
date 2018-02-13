@@ -176,11 +176,14 @@ def setup(args):
 
   if args.deploy_tf_serving:
     logging.info("Deploying tf-serving.")
+    model_server_image = (args.model_server_image + "-" +
+                          os.getenv("JOB_TYPE", "") + "-" +
+                          os.getenv("PULL_BASE_SHA", ""))
     util.run(["ks", "generate", "tf-serving", "modelServer",
               "--name=inception",
               "--namespace=" + namespace.metadata.name,
               "--model_path=gs://kubeflow-models/inception",
-              "--model_server_image=" + args.model_server_image], cwd=app_dir)
+              "--model_server_image=" + model_server_image], cwd=app_dir)
 
     apply_command = ["ks", "apply", "default", "-c", "modelServer",]
     util.run(apply_command, cwd=app_dir)
