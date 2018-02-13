@@ -17,12 +17,12 @@
 """Test deploying Kubeflow.
 
 Requirements:
-  This project assumes the py directory in github.com/tensorflow/k8s corresponds
+  This project assumes the py directory in github.com/kubeflow/tf-operator corresponds
   to a top level Python package on the Python path.
 
   TODO(jlewi): Come up with a better story for how we reuse the py package
-  in tensorflow/k8s. We should probably turn that into a legit Python pip
-  package that is built and released as part of the tensorflow/k8s project.
+  in kubeflow/tf-operator. We should probably turn that into a legit Python pip
+  package that is built and released as part of the kubeflow/tf-operator project.
 """
 
 import argparse
