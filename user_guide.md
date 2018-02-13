@@ -336,6 +336,15 @@ oc adm policy add-scc-to-user anyuid -z jupyter-hub
 ```
 Once the anyuid policy has been set, you must delete the failing pods and allow them to be recreated in the project deployment.
 
+### Docker for Mac
+The [Docker for Mac](https://www.docker.com/docker-mac) Community Edition now ships with Kubernetes support (1.9.2) which can be enabled from their edge channel. If you decide to use this as your Kubernetes environment on Mac, you may encounter the following error when deploying Kubeflow:
+
+```commandline
+$ ks apply default -c kubeflow-core
+ERROR Attempting to deploy to environment 'default' at 'https://127.0.0.1:8443', but cannot locate a server at that address
+```
+
+This error is due to the fact that the default cluster installed by Docker for Mac is actually set to `https://localhost:6443`. Simply edit the `environments/default/spec.json` file to set the "server" variable to the correct location, then retry the deployment.
 
 ## Why Kubeflow Uses Ksonnet
 
