@@ -344,7 +344,12 @@ $ ks apply default -c kubeflow-core
 ERROR Attempting to deploy to environment 'default' at 'https://127.0.0.1:8443', but cannot locate a server at that address
 ```
 
-This error is due to the fact that the default cluster installed by Docker for Mac is actually set to `https://localhost:6443`. Simply edit the `environments/default/spec.json` file to set the "server" variable to the correct location, then retry the deployment.
+This error is due to the fact that the default cluster installed by Docker for Mac is actually set to `https://localhost:6443`. One option is to directly edit the generated `environments/default/spec.json` file to set the "server" variable to the correct location, then retry the deployment. However, it is preferable to initialize your ksonnet app using the desired kube config:
+
+```
+export KUBECONFIG=~/.kube/config
+ks init my-kubeflow
+```
 
 ## Why Kubeflow Uses Ksonnet
 
