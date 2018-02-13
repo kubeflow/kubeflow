@@ -57,7 +57,7 @@ If you want to use GPUs, be sure to follow the Kubernetes [instructions for enab
 ### Requirements
 
   * ksonnet version [0.8.0](https://ksonnet.io/#get-started) or later.
-  * Kubernetes >= 1.8 [see here](https://github.com/tensorflow/k8s#requirements)
+  * Kubernetes >= 1.8 [see here](https://github.com/kubeflow/tf-operator#requirements)
 
 ### Steps
 
