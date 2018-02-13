@@ -200,6 +200,8 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
         namespace: namespace,
       },
       spec: {
+        // We want a headless service so we set the ClusterIP to be None.
+        // This headless server is used by individual Jupyter pods to connect back to the Hub.
         clusterIP: "None",
         ports: [
           {
@@ -218,15 +220,12 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
       kind: "Service",
       metadata: {
         labels: {
-          app: "tf-hub",
+          app: "tf-hub-lb",
         },
-        name: "tf-hub-0",
+        name: "tf-hub-lb",
         namespace: namespace,
       },
       spec: {
-        // We want a headless service so we set the ClusterIP to be None.
-        // This headless server is used by individual Jupyter pods to connect back to the Hub.
-        clusterIP: "None",
         ports: [
           {
             name: "hub",
