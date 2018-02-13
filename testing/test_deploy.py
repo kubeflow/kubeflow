@@ -197,6 +197,7 @@ def setup(args):
     logging.info("Verified TF serving started.")
 
     if args.test_inception and args.inception_client_image:
+      util.run(["docker", "load", "-i", args.test_dir + "/client.tar"])
       util.run(["docker", "run", "-e", "INCEPTION_SERVICE_HOST=" + cluster_ip,
                 "-e", "INCEPTION_SERVICE_PORT=9000",
                 args.inception_client_image])

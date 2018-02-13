@@ -222,7 +222,8 @@
                 "-c",
                 "until docker ps; do sleep 3; done; " +
                 "docker build --pull -t ${CLIENT_IMAGE} " +
-                    srcRootDir + "/kubeflow/kubeflow/components/k8s-model-server/inception-client/; "
+                    srcRootDir + "/kubeflow/kubeflow/components/k8s-model-server/inception-client/; " +
+                "docker save -o " + testDir + "/client.tar ${CLIENT_IMAGE};"
               ],
               [
                 {
