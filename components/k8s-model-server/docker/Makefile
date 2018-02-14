@@ -23,7 +23,7 @@ define build
 endef
 
 define build-gpu
-    docker build --pull -t $(1)/model-server-gpu:${TF_GPU_VERSION}
+    docker build --pull -t $(1)/model-server-gpu:${TF_GPU_VERSION} -f Dockerfile.gpu .
 endef
 
 all:
