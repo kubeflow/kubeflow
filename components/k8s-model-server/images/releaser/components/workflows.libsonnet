@@ -21,7 +21,7 @@
 
   parts(namespace, name):: {
     // Workflow to run the e2e test.
-    e2e(prow_env, bucket, serving_image, testing_image, project, cluster, zone):
+    e2e(prow_env, bucket, serving_image, testing_image, client_image, project, cluster, zone):
       local stepsNamespace = name;
       // mountPath is the directory where the volume to store the test data
       // should be mounted.
@@ -45,8 +45,6 @@
       local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
       local tfOperatorRoot = srcRootDir + "/tensorflow/k8s";
       local tfOperatorPy = tfOperatorRoot;
-
-      local client_image = "tf_serving_client";
       {
         // Build an Argo template to execute a particular command.
         // step_name: Name for the template
@@ -148,6 +146,10 @@
                 [{
                   name: "deploy-tf-serving",
                   template: "deploy-tf-serving",
+                }],
+                [{
+                  name: "test-tf-serving",
+                  template: "test-tf-serving",
                 }]
               ],
             },
@@ -189,22 +191,27 @@
               },
             },  // checkout
             $.parts(namespace, name).e2e(
-                prow_env, bucket, serving_image, testing_image, project, cluster, zone).buildTemplate(
+                prow_env, bucket, serving_image, testing_image, client_image, project, cluster, zone).buildTemplate(
               "build-tf-serving-image",
               [
                 "sh",
                 "-c",
-                "IMAGE=" + serving_image + "-${JOB_TYPE}-${PULL_BASE_SHA};" +
                 "until docker ps; do sleep 3; done; " +
-                "docker build --pull -t ${IMAGE} " +
+                "docker build --pull -t ${SERVING_IMAGE} " +
                     srcRootDir + "/kubeflow/kubeflow/components/k8s-model-server/docker/; " +
                 "gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}; "  +
-                "gcloud docker -- push ${IMAGE}"
+                "gcloud docker -- push ${SERVING_IMAGE}"
               ],
-              [{
-                name: "DOCKER_HOST",
-                value: "127.0.0.1",
-              }],
+              [
+                {
+                  name: "DOCKER_HOST",
+                  value: "127.0.0.1",
+                },
+                {
+                  name: "SERVING_IMAGE",
+                  value: serving_image,
+                }
+              ],
               [{
                 name: "dind",
                 image: "docker:17.10-dind",
@@ -215,7 +222,7 @@
               }],
             ),  // build-tf-serving-image
             $.parts(namespace, name).e2e(
-                prow_env, bucket, serving_image, testing_image, project, cluster, zone).buildTemplate(
+                prow_env, bucket, serving_image, testing_image, client_image, project, cluster, zone).buildTemplate(
               "build-tf-serving-client",
               [
                 "sh",
@@ -223,7 +230,8 @@
                 "until docker ps; do sleep 3; done; " +
                 "docker build --pull -t ${CLIENT_IMAGE} " +
                     srcRootDir + "/kubeflow/kubeflow/components/k8s-model-server/inception-client/; " +
-                "docker save -o " + testDir + "/client.tar ${CLIENT_IMAGE};"
+                "gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}; "  +
+                "gcloud docker -- push ${CLIENT_IMAGE}"
               ],
               [
                 {
@@ -246,7 +254,7 @@
             ),  // build-tf-serving-client
 
             $.parts(namespace, name).e2e(
-                prow_env, bucket, serving_image, testing_image, project, cluster, zone).buildTemplate(
+                prow_env, bucket, serving_image, testing_image, client_image, project, cluster, zone).buildTemplate(
               "deploy-tf-serving",
               [
                 "python",
@@ -263,8 +271,6 @@
                 "--deploy_core=false",
                 "--deploy_tf_serving=true",
                 "--model_server_image=$(SERVING_IMAGE)",
-                "--test_inception=true",
-                // TODO: use kubeflow image
                 "--inception_client_image=$(CLIENT_IMAGE)",
               ],
               [
@@ -290,9 +296,42 @@
                 mirrorVolumeMounts: true,
               }],
             ),  // deploy-tf-serving
+
+            {
+              name: "test-tf-serving",
+              container: {
+                command: [
+                  "python",
+                  "-m",
+                  "testing.test_tf_serving.py",
+                  "--namespace=" + stepsNamespace,
+                  "--artifacts_dir=" + artifactsDir,
+                  "--service_name=inception",
+                  "--image_path=" + srcDir + "/components/k8s-model-server/inception-client/images"
+                ],
+                env: prow_env + [
+                  {
+                    "name": "EXTRA_REPOS",
+                    "value": "tensorflow/k8s@HEAD;kubeflow/testing@HEAD",
+                  },
+                  {
+                    name: "PYTHONPATH",
+                    value: kubeflowPy + ":" + kubeflowTestingPy + ":" + tfOperatorPy,
+                  },
+                ],
+                image: client_image,
+                volumeMounts: [
+                  {
+                    name: dataVolume,
+                    mountPath: mountPath,
+                  },
+                ],
+                workingDir: srcDir + "/components/k8s-model-server/inception-client",
+              },
+            },  // test-tf-serving
             
             $.parts(namespace, name).e2e(
-                prow_env, bucket, serving_image, testing_image, project, cluster, zone).buildTemplate(
+                prow_env, bucket, serving_image, testing_image, client_image, project, cluster, zone).buildTemplate(
               "copy-artifacts",
               [
                 "python",
@@ -304,7 +343,7 @@
               ]
             ),  // copy-artifacts
             $.parts(namespace, name).e2e(
-                prow_env, bucket, serving_image, testing_image, project, cluster, zone).buildTemplate(
+                prow_env, bucket, serving_image, testing_image, client_image, project, cluster, zone).buildTemplate(
               "teardown",
               [
                 "python",
