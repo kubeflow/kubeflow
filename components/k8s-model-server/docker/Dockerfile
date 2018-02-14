@@ -54,4 +54,4 @@ RUN set -x \
     && [ `id -u $MS_USER` -eq 1000 ] \
     && [ `id -g $MS_USER` -eq 1000 ]
 
-CMD ["/bin/bash"]
+ENTRYPOINT ["/bin/bash", "-c"]
