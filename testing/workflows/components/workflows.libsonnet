@@ -45,7 +45,7 @@
       // The directory within the kubeflow_testing submodule containing
       // py scripts to use.
       local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
-      local tfOperatorRoot = srcRootDir + "/tensorflow/k8s";
+      local tfOperatorRoot = srcRootDir + "/kubeflow/tf-operator";
       local tfOperatorPy = tfOperatorRoot;
 
       local project = "mlkube-testing";
@@ -180,8 +180,8 @@
                   srcRootDir,
                 ],
                 env: prow_env + [{
-                  name: "EXTRA_REPOS",                  
-                  value: "tensorflow/k8s@HEAD;kubeflow/testing@HEAD",
+                  name: "EXTRA_REPOS",
+                  value: "kubeflow/tf-operator@HEAD;kubeflow/testing@HEAD",
                 }],
                 image: image,
                 volumeMounts: [
