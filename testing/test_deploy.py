@@ -196,12 +196,12 @@ def setup(args):
     util.wait_for_deployment(api_client, namespace.metadata.name, "inception")
     logging.info("Verified TF serving started.")
 
-    if args.test_inception and args.inception_client_image:
-      util.run(["docker", "load", "-i", args.test_dir + "/client.tar"])
-      util.run(["docker", "run", "-e", "INCEPTION_SERVICE_HOST=" + cluster_ip,
-                "-e", "INCEPTION_SERVICE_PORT=9000",
-                args.inception_client_image])
-      util.run(["rm", args.test_dir + "/client.tar"])
+    # if args.test_inception and args.inception_client_image:
+    #   util.run(["docker", "load", "-i", args.test_dir + "/client.tar"])
+    #   util.run(["docker", "run", "-e", "INCEPTION_SERVICE_HOST=" + cluster_ip,
+    #             "-e", "INCEPTION_SERVICE_PORT=9000",
+    #             args.inception_client_image])
+    #   util.run(["rm", args.test_dir + "/client.tar"])
 
 def teardown(args):
   # Delete the namespace
@@ -323,12 +323,6 @@ def main():  # pylint: disable=too-many-locals
     default="",
     type=str,
     help=("The inception client image to use."))
-
-  parser_setup.add_argument(
-    "--test_inception",
-    default=False,
-    type=bool,
-    help=("If True, send the prediction request."))
 
   args = parser.parse_args()
 
