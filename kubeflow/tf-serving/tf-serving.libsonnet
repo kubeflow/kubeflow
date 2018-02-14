@@ -47,7 +47,7 @@ local networkSpec = networkPolicy.mixin.spec;
         },
       },
 
-      modelServer(name, namespace, modelPath, modelServerImage, httpProxyImage, labels={ app: name },):
+      modelServer(name, namespace, modelPath, modelServerImage, httpProxyImage=0, labels={ app: name },):
         // TODO(jlewi): Allow the model to be served from a PVC.
         local volume = {
           name: "redis-data",
@@ -92,6 +92,7 @@ local networkSpec = networkPolicy.mixin.spec;
                     // model-server doesn't have something we can use out of the box.
                     resources: defaults.resources,
                   },
+		  if httpProxyImage != 0 then
 		  {
 		    name: name+"-http-proxy",
                     image: httpProxyImage,
