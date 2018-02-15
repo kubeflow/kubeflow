@@ -14,6 +14,7 @@
 
 local k = import 'k.libsonnet';
 local iap = import "kubeflow/core/iap.libsonnet";
+local util = import "kubeflow/core/util.libsonnet";
 
 local name = import 'param://name';
 local namespace = import 'param://namespace';
@@ -22,6 +23,6 @@ local envoyImage = import 'param://envoyImage';
 local audiencesParam = import 'param://audiences';
 local audiences = std.split(audiencesParam, ',');
 local disableJwtCheckingParam = import 'param://disableJwtChecking';
-local disableJwtChecking = disableJwtCheckingParam == "true";
+local disableJwtChecking = util.toBool(disableJwtCheckingParam);
 
 iap.parts(namespace).envoy(envoyImage, audiences, disableJwtChecking)
