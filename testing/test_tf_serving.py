@@ -67,7 +67,7 @@ def main():
   channel = implementations.insecure_channel(server, args.port)
   stub = prediction_service_pb2.beta_create_PredictionService_stub(channel)
 
-  with tf.gfile.Open(image_path) as img:
+  with tf.gfile.Open(args.image_path) as img:
     raw_image = (img.read())
 
   # Send request
