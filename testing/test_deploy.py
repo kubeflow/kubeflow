@@ -196,13 +196,6 @@ def setup(args):
     util.wait_for_deployment(api_client, namespace.metadata.name, "inception")
     logging.info("Verified TF serving started.")
 
-    # if args.test_inception and args.inception_client_image:
-    #   util.run(["docker", "load", "-i", args.test_dir + "/client.tar"])
-    #   util.run(["docker", "run", "-e", "INCEPTION_SERVICE_HOST=" + cluster_ip,
-    #             "-e", "INCEPTION_SERVICE_PORT=9000",
-    #             args.inception_client_image])
-    #   util.run(["rm", args.test_dir + "/client.tar"])
-
 def teardown(args):
   # Delete the namespace
   logging.info("Deleting namespace %s", args.namespace)
@@ -317,12 +310,6 @@ def main():  # pylint: disable=too-many-locals
     default="gcr.io/kubeflow/model-server:1.0",
     type=str,
     help=("The TF serving image to use."))
-
-  parser_setup.add_argument(
-    "--inception_client_image",
-    default="",
-    type=str,
-    help=("The inception client image to use."))
 
   args = parser.parse_args()
 
