@@ -30,7 +30,7 @@ from kubeflow.testing import test_util
 def main():
   parser = argparse.ArgumentParser('Label an image using Inception')
   parser.add_argument(
-  	'-p',
+    '-p',
     '--port',
     type=int,
     default=9000,
@@ -63,8 +63,8 @@ def main():
 
   args = parser.parse_args()
 
-  server = "{}.{}:{}".format(args.namespace, args.service_name, args.port)
-  channel = implementations.insecure_channel(server)
+  server = "{}.{}".format(args.namespace, args.service_name)
+  channel = implementations.insecure_channel(server, args.port)
   stub = prediction_service_pb2.beta_create_PredictionService_stub(channel)
 
   with tf.gfile.Open(image_path) as img:
