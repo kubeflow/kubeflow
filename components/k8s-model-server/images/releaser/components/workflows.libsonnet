@@ -231,7 +231,6 @@
                 "--test_dir=" + testDir,
                 "--artifacts_dir=" + artifactsDir,
                 "setup",
-                "--deploy_core=false",
                 "--deploy_tf_serving=true",
                 "--model_server_image=$(SERVING_IMAGE)",
               ],
@@ -265,8 +264,8 @@
                   "--namespace=" + stepsNamespace,
                   "--artifacts_dir=" + artifactsDir,
                   "--service_name=inception",
-                  "--image_path=" + srcDir + "/components/k8s-model-server/inception-client/images/sleeping-pepper.jpg"
-		  "--result_path=" + srcDir + "/components/k8s-model-server/images/test-worker/result.txt"
+                  "--image_path=" + srcDir + "/components/k8s-model-server/inception-client/images/sleeping-pepper.jpg",
+                  "--result_path=" + srcDir + "/components/k8s-model-server/images/test-worker/result.txt",
                 ],
                 env: prow_env + [
                   {
@@ -275,7 +274,7 @@
                   },
                   {
                     name: "PYTHONPATH",
-                    value: kubeflowPy + ":" + kubeflowTestingPy + ":" + tfOperatorPy,
+                    value: kubeflowPy + ":" + kubeflowTestingPy,
                   },
                 ],
                 image: tf_testing_image,
