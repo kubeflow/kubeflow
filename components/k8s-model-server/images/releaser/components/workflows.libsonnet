@@ -43,8 +43,6 @@
       // The directory within the kubeflow_testing submodule containing
       // py scripts to use.      
       local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
-      local tfOperatorRoot = srcRootDir + "/tensorflow/k8s";
-      local tfOperatorPy = tfOperatorRoot;
       {
         // Build an Argo template to execute a particular command.
         // step_name: Name for the template
@@ -58,7 +56,7 @@
               {
                 // Add the source directories to the python path.
                 name: "PYTHONPATH",
-                value: kubeflowPy + ":" + kubeflowTestingPy + ":" + tfOperatorPy,
+                value: kubeflowPy + ":" + kubeflowTestingPy,
               },
               {
                 name: "GOOGLE_APPLICATION_CREDENTIALS",
@@ -175,7 +173,7 @@
                 ],
                 env: prow_env + [{
                   "name": "EXTRA_REPOS",
-                  "value": "tensorflow/k8s@HEAD;kubeflow/testing@HEAD",
+                  "value": "kubeflow/testing@HEAD",
                 }],
                 image: testing_image,
                 volumeMounts: [

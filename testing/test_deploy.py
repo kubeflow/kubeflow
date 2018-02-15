@@ -158,32 +158,28 @@ def setup(args):
   if args.cluster:
     util.configure_kubectl(args.project, args.zone, args.cluster)
 
-  if args.deploy_core:
-    apply_command = ["ks", "apply", "default", "-c", "kubeflow-core",]
+  apply_command = ["ks", "apply", "default", "-c", "kubeflow-core",]
 
-    util.run(apply_command, cwd=app_dir)
+  util.run(apply_command, cwd=app_dir)
 
-    # Verify that the TfJob operator is actually deployed.
-    tf_job_deployment_name = "tf-job-operator"
-    logging.info("Verifying TfJob controller started.")
-    util.wait_for_deployment(api_client, namespace.metadata.name,
-                             tf_job_deployment_name)
+  # Verify that the TfJob operator is actually deployed.
+  tf_job_deployment_name = "tf-job-operator"
+  logging.info("Verifying TfJob controller started.")
+  util.wait_for_deployment(api_client, namespace.metadata.name,
+                           tf_job_deployment_name)
 
-    # Verify that JupyterHub is actually deployed.
-    jupyter_name = "tf-hub"
-    logging.info("Verifying TfHub started.")
-    util.wait_for_statefulset(api_client, namespace.metadata.name, jupyter_name)
+  # Verify that JupyterHub is actually deployed.
+  jupyter_name = "tf-hub"
+  logging.info("Verifying TfHub started.")
+  util.wait_for_statefulset(api_client, namespace.metadata.name, jupyter_name)
 
   if args.deploy_tf_serving:
     logging.info("Deploying tf-serving.")
-    model_server_image = (args.model_server_image + "-" +
-                          os.getenv("JOB_TYPE", "") + "-" +
-                          os.getenv("PULL_BASE_SHA", ""))
     util.run(["ks", "generate", "tf-serving", "modelServer",
               "--name=inception",
               "--namespace=" + namespace.metadata.name,
               "--model_path=gs://kubeflow-models/inception",
-              "--model_server_image=" + model_server_image], cwd=app_dir)
+              "--model_server_image=" + args.model_server_image], cwd=app_dir)
 
     apply_command = ["ks", "apply", "default", "-c", "modelServer",]
     util.run(apply_command, cwd=app_dir)
@@ -292,12 +288,6 @@ def main():  # pylint: disable=too-many-locals
     help="teardown the test infrastructure.")
 
   parser_teardown.set_defaults(func=teardown)
-
-  parser_setup.add_argument(
-    "--deploy_core",
-    default=True,
-    type=bool,
-    help=("If True, deploy the kubeflow-core component."))
 
   parser_setup.add_argument(
     "--deploy_tf_serving",
