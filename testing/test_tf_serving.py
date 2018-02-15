@@ -20,6 +20,7 @@ import logging
 
 import argparse
 from grpc.beta import implementations
+from kubernetes import client as k8s_client
 import tensorflow as tf
 from tensorflow_serving.apis import predict_pb2
 from tensorflow_serving.apis import prediction_service_pb2
@@ -63,7 +64,7 @@ def main():
 
   args = parser.parse_args()
 
-  server = "{}.{}".format(args.namespace, args.service_name)
+  server = "{}.{}.svc.cluster.local".format(args.service_name, args.namespace)
   channel = implementations.insecure_channel(server, args.port)
   stub = prediction_service_pb2.beta_create_PredictionService_stub(channel)
 
