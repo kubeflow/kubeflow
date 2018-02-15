@@ -14,7 +14,7 @@ This document details the steps needed to run the Kubeflow project in any enviro
 
 ## Quick Links
 * [Prow test dashboard](https://k8s-testgrid.appspot.com/sig-big-data)
-* [Prow jobs dashboard](https://prow.k8s.io/?repo=google%2Fkubeflow)
+* [Prow jobs dashboard](https://prow.k8s.io/?repo=kubeflow%2Fkubeflow)
 * [Argo UI for E2E tests](http://testing-argo.kubeflow.io)
 
 ## The Kubeflow Mission
