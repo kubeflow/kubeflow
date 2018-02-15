@@ -1,7 +1,7 @@
 // @apiVersion 0.1
 // @name io.ksonnet.pkg.tf-job
 // @description A TensorFlow job (could be training or evaluation).
-// @shortDescription A TensorFlow jjob.
+// @shortDescription A TensorFlow job.
 // @param name string Name to give to each of the components
 // @optionalParam namespace string default Namespace
 // @optionalParam args string null Comma separated list of arguments to pass to the job
