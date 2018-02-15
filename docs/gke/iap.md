@@ -88,7 +88,7 @@ The instructions below reference the following environment variables which you w
 
 
 ```
-ks generate ${ENVIRONMENT} iap-ingress --secretName=${SECRET_NAME} --ipName=${IP_NAME} --namespace=${NAMESPACE}
+ks generate iap-ingress iap-ingress --secretName=${SECRET_NAME} --ipName=${IP_NAME} --namespace=${NAMESPACE}
 ks apply ${ENVIRONMENT} -c iap-ingress
 ```
 
