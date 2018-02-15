@@ -56,21 +56,20 @@ kubectl -n ${NAMESPACE} create secret generic ${SECRET_NAME}  --from-file=${TLS_
 Create an OAuth Client ID to be used to identify IAP when requesting acces to user's email to verify their identity.
 
 1. Set up your OAuth consent screen:
-* Configure the [consent screen](https://console.cloud.google.com/apis/credentials/consent).
-* Under Email address, select the address that you want to display as a public contact. You must use either your email address or a Google Group that you own.
-* In the Product name box, enter a suitable like save `kubeflow`
-* Click Save.
-1.  Click Create credentials, and then click OAuth client ID.
+  * Configure the [consent screen](https://console.cloud.google.com/apis/credentials/consent).
+  * Under Email address, select the address that you want to display as a public contact. You must use either your email address or a Google Group that you own.
+  * In the Product name box, enter a suitable like save `kubeflow`
+  * Click Save.
+2.  On the [Credentials](https://console.cloud.google.com/apis/credentials) Click Create credentials, and then click OAuth client ID.
   * Under Application type, select Web application. In the Name box enter a name, and in the Authorized redirect URIs box, enter 
 
 ```
   https://${FQDN}/_gcp_gatekeeper/authenticate, 
 ```
-
-1. After you enter the details, click Create. Make note of the **client ID** and **client secret** that appear in the OAuth client window because we will
+3. After you enter the details, click Create. Make note of the **client ID** and **client secret** that appear in the OAuth client window because we will
    need them later to enable IAP.
 
-Save the OAuth client ID and secret to variables for later use:
+4. Save the OAuth client ID and secret to variables for later use
 
 ### Setup Ingress
 
