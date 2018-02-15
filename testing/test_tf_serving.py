@@ -57,8 +57,7 @@ def main():
     type=str,
     help=("The image to use."))
   parser.add_argument(
-  	"--result_path",
-  	required=True,
+    "--result_path",
     type=str,
     help=("The expected result."))
 
