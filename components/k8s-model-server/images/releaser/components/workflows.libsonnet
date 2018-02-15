@@ -263,11 +263,11 @@
                 command: [
                   "python",
                   "-m",
-                  "testing.test_tf_serving.py",
+                  "testing.test_tf_serving",
                   "--namespace=" + stepsNamespace,
                   "--artifacts_dir=" + artifactsDir,
                   "--service_name=inception",
-                  "--image_path=" + srcDir + "/components/k8s-model-server/inception-client/images"
+                  "--image_path=" + srcDir + "/components/k8s-model-server/inception-client/images/sleeping-pepper.jpg"
                 ],
                 env: prow_env + [
                   {
