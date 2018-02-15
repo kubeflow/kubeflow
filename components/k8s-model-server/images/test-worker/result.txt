@@ -36,4 +36,3 @@ outputs {
     float_val: 5.55422878265
   }
 }
-
