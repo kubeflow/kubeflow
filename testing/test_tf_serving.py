@@ -81,10 +81,12 @@ def main():
   result = stub.Predict(request, 10.0)  # 10 secs timeout
   print(result)
   if args.result_path:
+    import difflib
     with open(args.result_path) as f:
       expected_result = f.read()
       print(expected_result)
       print(expected_result == result)
+      print(list(difflib.ndiff(result, expected_result)))
 
 if __name__ == '__main__':
   logging.basicConfig(level=logging.INFO,
