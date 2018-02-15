@@ -1,4 +1,4 @@
-outputs {                                                                                                                                            [24/1194]
+outputs {
   key: "classes"
   value {
     dtype: DT_STRING
