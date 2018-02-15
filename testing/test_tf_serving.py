@@ -78,15 +78,15 @@ def main():
   request.model_spec.signature_name = 'predict_images'
   request.inputs['images'].CopyFrom(
       tf.make_tensor_proto(raw_image, shape=[1,]))
-  result = stub.Predict(request, 10.0)  # 10 secs timeout
+  result = str(stub.Predict(request, 10.0))  # 10 secs timeout
   print(result)
   if args.result_path:
     with open(args.result_path) as f:
       expected_result = f.read()
       print(expected_result)
       import difflib
-      print(expected_result == str(result))
-      print(list(difflib.ndiff(str(result), expected_result)))
+      print(expected_result == result)
+      print(list(difflib.ndiff(result, expected_result)))
 
 if __name__ == '__main__':
   logging.basicConfig(level=logging.INFO,
