@@ -29,7 +29,7 @@ with the IP address that you just reserved.
 ##### Create a self signed certificate
 
 The certificate is needed for HTTPs
-  
+
 ```
 ${FQDN}=${HOST}.${YOURDOMAIN}
 mkdir -p ~/tmp/${DOMAIN}
@@ -40,7 +40,7 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
   -subj "/CN=${FQDN}/O=Google LTD./C=US" \
   -keyout ${TLS_KEY_FILE} -out ${TLS_CRT_FILE}
 ```
-  
+
   * HOST will be the value of the custom resource record that you created to map to your IP address.
 
 Create a K8s secret to store the SSL certificate.
@@ -56,25 +56,24 @@ kubectl -n ${NAMESPACE} create secret generic ${SECRET_NAME}  --from-file=${TLS_
 Create an OAuth Client ID to be used to identify IAP when requesting acces to user's email to verify their identity.
 
 1. Set up your OAuth consent screen:
-* Configure the [consent screen](https://console.cloud.google.com/apis/credentials/consent).
-* Under Email address, select the address that you want to display as a public contact. You must use either your email address or a Google Group that you own.
-* In the Product name box, enter a suitable like save `kubeflow`
-* Click Save.
-1.  Click Create credentials, and then click OAuth client ID.
-  * Under Application type, select Web application. In the Name box enter a name, and in the Authorized redirect URIs box, enter 
+  * Configure the [consent screen](https://console.cloud.google.com/apis/credentials/consent).
+  * Under Email address, select the address that you want to display as a public contact. You must use either your email address or a Google Group that you own.
+  * In the Product name box, enter a suitable like save `kubeflow`
+  * Click Save.
+2.  On the [Credentials](https://console.cloud.google.com/apis/credentials) Click Create credentials, and then click OAuth client ID.
+  * Under Application type, select Web application. In the Name box enter a name, and in the Authorized redirect URIs box, enter
 
 ```
-  https://${FQDN}/_gcp_gatekeeper/authenticate, 
+  https://${FQDN}/_gcp_gatekeeper/authenticate,
 ```
-
-1. After you enter the details, click Create. Make note of the **client ID** and **client secret** that appear in the OAuth client window because we will
+3. After you enter the details, click Create. Make note of the **client ID** and **client secret** that appear in the OAuth client window because we will
    need them later to enable IAP.
 
-Save the OAuth client ID and secret to variables for later use:
+4. Save the OAuth client ID and secret to variables for later use
 
 ### Setup Ingress
 
-If you haven't already, follow the instructions in the [user_guide](https://github.com/kubeflow/kubeflow/blob/master/user_guide.md#deploy-kubeflow) 
+If you haven't already, follow the instructions in the [user_guide](https://github.com/kubeflow/kubeflow/blob/master/user_guide.md#deploy-kubeflow)
 to create a ksonnet app to deploy Kubeflow.
 
 The instructions below reference the following environment variables which you will need to set for your deployment
@@ -88,11 +87,11 @@ The instructions below reference the following environment variables which you w
 
 
 ```
-ks generate ${ENVIRONMENT} iap-ingress --secretName=${SECRET_NAME} --ipName=${IP_NAME} --namespace=${NAMESPACE}
+ks generate iap-ingress iap-ingress --secretName=${SECRET_NAME} --ipName=${IP_NAME} --namespace=${NAMESPACE}
 ks apply ${ENVIRONMENT} -c iap-ingress
 ```
 
-This will create a load balancer. We can now enable IAP on this load balancer using 
+This will create a load balancer. We can now enable IAP on this load balancer using
 the [enable_iap_openapi.sh](https://github.com/kubeflow/kubeflow/tree/master/docs/gke/enable_iap.sh) script.
 
 
@@ -108,10 +107,10 @@ The above command will output the audience such as:
 ```
 JWT_AUDIENCE=/projects/991277910492/global/backendServices/801046342490434803
 ```
- 
+
  * you will need JWT_AUDIENCE in the next step to configure JWT validation
 
-**Important** Redeploying iap-ingress (e.g. running `ks apply ${ENVIRONMET} -c iap-ingress` again) 
+**Important** Redeploying iap-ingress (e.g. running `ks apply ${ENVIRONMET} -c iap-ingress` again)
 will cause the JWT_AUDIENCE to change and the backend service created by GCP to change.
 As a result you will have to repeat the steps below to properly configure IAP.
 
@@ -120,7 +119,7 @@ As a result you will have to repeat the steps below to properly configure IAP.
 The next step is to deploy Envoy as a reverse proxy.
 
 ```
-ks generate iap-envoy iap-envoy --audiences=${JWT_AUDIENCE}
+ks generate iap-envoy iap-envoy --namespace=${NAMESPACE} --audiences=${JWT_AUDIENCE}
 ks apply ${ENVIRONMENT} -c iap-envoy
 ```
 
@@ -135,9 +134,9 @@ https://${FQDN}/noiap/whoami
   * This a simple test app that's deployed as part of the iap-envoy component.
   * This URL will always be accessible regardless of whether IAP is enabled or not
   * If IAP isn't enabled the app will report that you are an anyomous user
-  * Once IAP takes effect you will have to authenticate using your Google account and the app will tell you 
+  * Once IAP takes effect you will have to authenticate using your Google account and the app will tell you
     what your email is.
-  
+
 We also have the app running at
 
 ```
@@ -150,9 +149,9 @@ https://${FQDN}/whoami
     * `401 ISS_AUD_UNMATCH1` this is because Envoy doesn't support IAP JWT tokens yet [istio/proxy/issues/941](https://github.com/istio/proxy/issues/941)
 
 
-### Disable JWT verification 
+### Disable JWT verification
 
-Until [istio/proxy/issues/941](https://github.com/istio/proxy/issues/941) is fixed you can disable JWT verification in Envoy. 
+Until [istio/proxy/issues/941](https://github.com/istio/proxy/issues/941) is fixed you can disable JWT verification in Envoy.
 
 **Warning** This is a serious security risk because it means if IAP is disabled all traffic will be allowed through. You should only do this
 if you understand the risks; for more info see [IAP's docs on Securing Your App](https://cloud.google.com/iap/docs/signed-headers-howto).
@@ -174,7 +173,7 @@ ks apply ${ENV} -c ${CORE_NAME}
 # Restart JupyterHub so it picks up the updated config
 kubectl delete -n ${NAMESPACE} pods tf-hub-0
 ```
-  
+
 You should now be able to access JupyterHub at
 
 ```
@@ -210,7 +209,7 @@ Here are some tips for troubleshooting IAP.
 
  * Make sure you are using https
 
-### 502 Server Error 
+### 502 Server Error
 * A 502 usually means traffic isn't even making it to the envoy reverse proxy
 * A 502 usually indicates the loadbalancer doesn't think any backends are healthy
   * In Cloud Console select Network Services -> Load Balancing
@@ -221,7 +220,7 @@ Here are some tips for troubleshooting IAP.
           * There is 1 backend service for each K8s service the ingress rule routes traffic too
           * The named port will correspond to the NodePort a service is using
       * Make sure the load balancer reports the backends as healthy
-          * If the backends aren't reported as healthy check that the pods associated with the K8s service are up and running 
+          * If the backends aren't reported as healthy check that the pods associated with the K8s service are up and running
           * Check that health checks are properly configured
             * Click on the health check associated with the backend service for envoy
             * Check that the path is /healthz and corresponds to the path of the readiness probe on the envoy pods
@@ -239,7 +238,7 @@ Here are some tips for troubleshooting IAP.
                ```
 
                 * To get the node tag
-                
+
                 ```
                 # From the GKE cluster get the name of the managed instance group
                 gcloud --project=$PROJECT container clusters --zone=$ZONE describe $CLUSTER
@@ -260,7 +259,7 @@ Here are some tips for troubleshooting IAP.
       ingress.kubernetes.io/forwarding-rule
       ingress.kubernetes.io/https-forwarding-rule
       ```
-	
+
  * Verify that requests are being properly routed within the cluster
 
   * Connect to one of the envoy proxies
@@ -277,7 +276,7 @@ Here are some tips for troubleshooting IAP.
   * Verify access to the whoami app
 
   ```
-  curl -L -s -i curl -L -s -i http://envoy:8080/noiap/whoami 
+  curl -L -s -i curl -L -s -i http://envoy:8080/noiap/whoami
   ```
     * If this doesn't return a 200 OK response; then there is a problem with the K8s resources
 
