@@ -268,6 +268,7 @@
                   "--artifacts_dir=" + artifactsDir,
                   "--service_name=inception",
                   "--image_path=" + srcDir + "/components/k8s-model-server/inception-client/images/sleeping-pepper.jpg"
+		  "--result_path=" + srcDir + "/components/k8s-model-server/images/test-worker/result.txt"
                 ],
                 env: prow_env + [
                   {

@@ -80,7 +80,11 @@ def main():
       tf.make_tensor_proto(raw_image, shape=[1,]))
   result = stub.Predict(request, 10.0)  # 10 secs timeout
   print(result)
-
+  if args.result_path:
+    with open(args.result_path) as f:
+      expected_result = f.read()
+      print(expected_result)
+      print(expected_result == result)
 
 if __name__ == '__main__':
   logging.basicConfig(level=logging.INFO,
