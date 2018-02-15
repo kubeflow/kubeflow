@@ -84,7 +84,9 @@ def main():
     with open(args.result_path) as f:
       expected_result = f.read()
       print(expected_result)
+      import difflib
       print(expected_result == str(result))
+      print(list(difflib.ndiff(str(result), expected_result)))
 
 if __name__ == '__main__':
   logging.basicConfig(level=logging.INFO,
