@@ -10,7 +10,6 @@ local networkSpec = networkPolicy.mixin.spec;
   parts:: {
     deployment:: {
       local defaults = {
-        image:: "gcr.io/kubeflow/model-server:1.0",
         imagePullPolicy:: "IfNotPresent",
         resources:: {
           requests: {
@@ -44,16 +43,16 @@ local networkSpec = networkPolicy.mixin.spec;
         },
       },
 
-      modelServer(name, namespace, modelPath, labels={ app: name },):
+      modelServer(name, namespace, modelPath, modelServerImage, labels={ app: name },):
         // TODO(jlewi): Allow the model to be served from a PVC.
         local volume = {
           name: "redis-data",
           namespace: namespace,
           emptyDir: {},
         };
-        base(name, namespace, modelPath, labels),
+        base(name, namespace, modelPath, modelServerImage, labels),
 
-      local base(name, namespace, modelPath, labels) =
+      local base(name, namespace, modelPath, modelServerImage, labels) =
         {
           apiVersion: "extensions/v1beta1",
           kind: "Deployment",
@@ -71,15 +70,13 @@ local networkSpec = networkPolicy.mixin.spec;
                 containers: [
                   {
                     name: name,
-                    image: defaults.image,
+                    image: modelServerImage,
                     imagePullPolicy: defaults.imagePullPolicy,
-                    // TODO(jlewi): Talk to owensk to figure out why we wrap in a shell.
-                    command: [
-                      "/bin/sh",
-                      "-c",
-                    ],
                     args: [
-                      "/usr/bin/tensorflow_model_server --port=9000 --model_name=" + name + " --model_base_path=" + modelPath,
+                      "/usr/bin/tensorflow_model_server",
+		      " --port=9000",
+		      " --model_name=" + name,
+		      " --model_base_path=" + modelPath,
                     ],
                     env: [],
                     ports: [
@@ -92,7 +89,7 @@ local networkSpec = networkPolicy.mixin.spec;
                     resources: defaults.resources,
                   },
                 ],
-                // See:  https://github.com/google/kubeflow/tree/master/components/k8s-model-server#set-the-user-optional
+                // See:  https://github.com/kubeflow/kubeflow/tree/master/components/k8s-model-server#set-the-user-optional
                 // The is user and group should be defined in the Docker image.
                 // Per best practices we don't run as the root user.
                 securityContext: {

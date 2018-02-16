@@ -7,7 +7,7 @@ This guide will walk you through the basics of deploying and interacting with Ku
 * [Ksonnet](https://ksonnet.io/docs/tutorial)
 
 ## Requirements
- * Kubernetes >= 1.8 [see here](https://github.com/tensorflow/k8s#requirements)
+ * Kubernetes >= 1.8 [see here](https://github.com/kubeflow/tf-operator#requirements)
  * ksonnet version [0.8.0](https://ksonnet.io/#get-started) or later. (See [below](#why-kubeflow-uses-ksonnet) for an explanation of why we use ksonnet)
 
 ## Deploy Kubeflow
@@ -76,7 +76,6 @@ At any time you can inspect the kubernetes objects definitions for a particular 
 ```
 ks show ${KF_ENV} -c kubeflow-core
 ```
-
 
 ### Usage Reporting
 
@@ -202,6 +201,9 @@ In this example, you should be able to use the inception_client to hit ww.xx.yy.
 
 ### Submiting a TensorFlow training job
 
+**Note:** Before submitting a training job, you should have [deployed kubeflow to your cluster](#deploy-kubeflow). Doing so ensures that
+the [`TFJob` custom resource](https://github.com/kubeflow/tf-operator) is available when you submit the training job.
+
 We treat each TensorFlow job as a [component](https://ksonnet.io/docs/tutorial#2-generate-and-deploy-an-app-component) in your APP.
 
 Create a component for your job.
@@ -235,7 +237,7 @@ To run your job
 ks apply ${KF_ENV} -c ${JOB_NAME}
 ```
 
-For information on monitoring your job please refer to the [TfJob docs](https://github.com/tensorflow/k8s#monitoring-your-job).
+For information on monitoring your job please refer to the [TfJob docs](https://github.com/kubeflow/tf-operator#monitoring-your-job).
 
 #### Run the TfCnn example
 
@@ -317,6 +319,58 @@ shm                                                                65536       0
 tmpfs                                                           15444244       0   15444244   0% /sys/firmware
 ```
   * Here `jlewi-kubeflow-test1` and `jlewi-kubeflow-test2` are the names of the PDs.
+
+
+## Troubleshooting
+
+### Minikube
+
+On [Minikube](https://github.com/kubernetes/minikube) the Virtualbox/VMware drivers for Minikube are recommended as there is a known
+issue between the KVM/KVM2 driver and TensorFlow Serving. The issue is tracked in [kubernetes/minikube#2377](https://github.com/kubernetes/minikube/issues/2377).
+
+### RBAC clusters
+
+If you are running on a K8s cluster with [RBAC enabled](https://kubernetes.io/docs/admin/authorization/rbac/#command-line-utilities), you may get an error like the following when deploying Kubeflow:
+
+```
+ERROR Error updating roles kubeflow-test-infra.jupyter-role: roles.rbac.authorization.k8s.io "jupyter-role" is forbidden: attempt to grant extra privileges: [PolicyRule{Resources:["*"], APIGroups:["*"], Verbs:["*"]}] user=&{your-user@acme.com  [system:authenticated] map[]} ownerrules=[PolicyRule{Resources:["selfsubjectaccessreviews"], APIGroups:["authorization.k8s.io"], Verbs:["create"]} PolicyRule{NonResourceURLs:["/api" "/api/*" "/apis" "/apis/*" "/healthz" "/swagger-2.0.0.pb-v1" "/swagger.json" "/swaggerapi" "/swaggerapi/*" "/version"], Verbs:["get"]}] ruleResolutionErrors=[]
+```
+
+This error indicates you do not have sufficient permissions. In many cases you can resolve this just by creating an appropriate
+clusterrole binding like so and then redeploying kubeflow
+
+```commandline
+kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --user=your-user@acme.com
+```
+
+  * Replace `your-user@acme.com` with the user listed in the error message.
+
+If you're using GKE, you may want to refer to [GKE's RBAC docs](https://cloud.google.com/kubernetes-engine/docs/how-to/role-based-access-control) to understand
+how RBAC interacts with IAM on GCP.
+
+### OpenShift
+If you are deploying kubeflow in an [OpenShift](https://github.com/openshift/origin) environment which encapsulates kubernetes, you will need to adjust the security contexts for the ambassador and jupyter-hub deployments in order to get the pods to run.
+
+```commandline
+oc adm policy add-scc-to-user anyuid -z ambassador
+oc adm policy add-scc-to-user anyuid -z jupyter-hub
+```
+Once the anyuid policy has been set, you must delete the failing pods and allow them to be recreated in the project deployment.
+
+### Docker for Mac
+The [Docker for Mac](https://www.docker.com/docker-mac) Community Edition now ships with Kubernetes support (1.9.2) which can be enabled from their edge channel. If you decide to use this as your Kubernetes environment on Mac, you may encounter the following error when deploying Kubeflow:
+
+```commandline
+ks apply default -c kubeflow-core
+ERROR Attempting to deploy to environment 'default' at 'https://127.0.0.1:8443', but cannot locate a server at that address
+```
+
+This error is due to the fact that the default cluster installed by Docker for Mac is actually set to `https://localhost:6443`. One option is to directly edit the generated `environments/default/spec.json` file to set the "server" variable to the correct location, then retry the deployment. However, it is preferable to initialize your ksonnet app using the desired kube config:
+
+```commandline
+export KUBECONFIG=~/.kube/config
+ks init my-kubeflow
+```
 
 ## Why Kubeflow Uses Ksonnet
 

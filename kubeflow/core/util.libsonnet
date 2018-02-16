@@ -9,18 +9,17 @@
     result:: std.join("", std.map(upLetter, std.stringChars(x))),
   }.result,
 
-  // Convert a boolean or string of the form true/false to a boolean.
+  // Convert non-boolean types like string,number to a boolean.
   // This is primarily intended for dealing with parameters that should be booleans.
   toBool:: function(x) {
-    result:: if std.type(x) == "boolean" then
+    result::
+    if std.type(x) == "boolean" then
       x
+    else if std.type(x) == "string" then
+      $.upper(x) == "TRUE"
+    else if std.type(x) == "number" then
+      x != 0
     else
-      if std.type(x) == "string" then
-        if $.upper(x) == "TRUE" then
-          true
-        else false
-      else
-        false,
-
+      false,
   }.result,
 }
