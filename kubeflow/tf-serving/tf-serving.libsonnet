@@ -98,11 +98,11 @@ local networkSpec = networkPolicy.mixin.spec;
                     image: httpProxyImage,
                     imagePullPolicy: defaults.imagePullPolicy,
                     command: [
-                      "/bin/sh",
-                      "-c",
-                    ],
-                    args: [
-                      "python /usr/src/app/server.py --port=8000 --rpc_port=9000 --rpc_timeout=10.0",
+                      "python",
+                      "/usr/src/app/server.py",
+		      "--port=8000",
+		      "--rpc_port=9000",
+		      "--rpc_timeout=10.0"
                     ],
                     env: [],
                     ports: [
