@@ -17,7 +17,7 @@
 # Enable IAP for a backend service
 
 # Usage:
-# enable_iap project namespace service_name 
+# enable_iap project namespace service_name
 #
 set -e
 PROJECT=$1
@@ -54,10 +54,10 @@ if [ -z ${SERVICE} ]; then
 fi
 
 NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[0].nodePort}')
-while [[ -z ${BACKEND_ID} ]]; 
-do BACKEND_ID=$(gcloud compute --project=${PROJECT} backend-services list --filter=name~k8s-be-${NODE_PORT}- --format='value(id)'); 
-echo "Waiting for backend id PROJECT=${PROJECT} NAMESPACE=${NAMESPACE} SERVICE=${SERVICE}..."; 
-sleep 2; 
+while [[ -z ${BACKEND_ID} ]];
+do BACKEND_ID=$(gcloud compute --project=${PROJECT} backend-services list --filter=name~k8s-be-${NODE_PORT}- --format='value(id)');
+echo "Waiting for backend id PROJECT=${PROJECT} NAMESPACE=${NAMESPACE} SERVICE=${SERVICE}...";
+sleep 2;
 done
 echo BACKEND_ID=${BACKEND_ID}
 
@@ -67,6 +67,15 @@ BACKEND_SERVICE=$(gcloud --project=${PROJECT} compute backend-services list --fi
 gcloud --project=${PROJECT} compute backend-services update ${BACKEND_SERVICE} \
       --global \
       --iap=enabled,oauth2-client-id=${CLIENT_ID},oauth2-client-secret=${CLIENT_SECRET}
+
+while [[ -z ${HEALTH_CHECK_URI} ]];
+  do HEALTH_CHECK_URI=$(gcloud compute --project=${PROJECT} health-checks list --filter=name~k8s-be-${NODE_PORT}- --uri);
+  echo "Waiting for the healthcheck resource PROJECT=${PROJECT} NODEPORT=${NODE_PORT} SERVICE=${SERVICE}...";
+  sleep 2;
+done
+
+# Update the healthcheck request path to "/healthz" since GCP load balancer defaults to "/"
+gcloud --project=${PROJECT} compute health-checks update http ${HEALTH_CHECK_URI} --request-path=/healthz
 
 # Since JupyterHub uses websockets we want to increase the backend timeout
 echo Increasing backend timeout for JupyterHub

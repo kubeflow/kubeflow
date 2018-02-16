@@ -92,7 +92,7 @@ ks apply ${ENVIRONMENT} -c iap-ingress
 ```
 
 This will create a load balancer. We can now enable IAP on this load balancer using
-the [enable_iap_openapi.sh](https://github.com/kubeflow/kubeflow/tree/master/docs/gke/enable_iap.sh) script.
+the [enable_iap.sh](https://github.com/kubeflow/kubeflow/tree/master/docs/gke/enable_iap.sh) script.
 
 
 ```
