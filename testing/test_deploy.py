@@ -173,6 +173,25 @@ def setup(args):
   logging.info("Verifying TfHub started.")
   util.wait_for_statefulset(api_client, namespace.metadata.name, jupyter_name)
 
+  if args.deploy_tf_serving:
+    logging.info("Deploying tf-serving.")
+    util.run(["ks", "generate", "tf-serving", "modelServer",
+              "--name=inception",
+              "--namespace=" + namespace.metadata.name,
+              "--model_path=gs://kubeflow-models/inception",
+              "--model_server_image=" + args.model_server_image], cwd=app_dir)
+
+    apply_command = ["ks", "apply", "default", "-c", "modelServer",]
+    util.run(apply_command, cwd=app_dir)
+
+    core_api = k8s_client.CoreV1Api(api_client)
+    deploy = core_api.read_namespaced_service(
+        "inception", namespace.metadata.name)
+    cluster_ip = deploy.spec.cluster_ip
+
+    util.wait_for_deployment(api_client, namespace.metadata.name, "inception")
+    logging.info("Verified TF serving started.")
+
 def teardown(args):
   # Delete the namespace
   logging.info("Deleting namespace %s", args.namespace)
@@ -269,6 +288,18 @@ def main():  # pylint: disable=too-many-locals
     help="teardown the test infrastructure.")
 
   parser_teardown.set_defaults(func=teardown)
+
+  parser_setup.add_argument(
+    "--deploy_tf_serving",
+    default=False,
+    type=bool,
+    help=("If True, deploy the tf-serving component."))
+
+  parser_setup.add_argument(
+    "--model_server_image",
+    default="gcr.io/kubeflow/model-server:1.0",
+    type=str,
+    help=("The TF serving image to use."))
 
   args = parser.parse_args()
 

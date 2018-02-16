@@ -17,6 +17,9 @@ vendor/
 # temporary files from emacs flymd-mode
 flymd.*
 
+# vim .swp files
+.swp
+
 # Files created by Gogland IDE
 .idea/
 
