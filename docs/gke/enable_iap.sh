@@ -74,7 +74,11 @@ while [[ -z ${HEALTH_CHECK_URI} ]];
   sleep 2;
 done
 
-# Update the healthcheck request path to "/healthz" since GCP load balancer defaults to "/"
+# Since we create the envoy-ingress ingress object before creating the envoy
+# deployment object, healthcheck will not be configured correctly in the GCP
+# load balancer. It will default the healthcheck request path to a value of
+# / instead of the intended /healthz.
+# Manually update the healthcheck request path to /healthz
 gcloud --project=${PROJECT} compute health-checks update http ${HEALTH_CHECK_URI} --request-path=/healthz
 
 # Since JupyterHub uses websockets we want to increase the backend timeout
