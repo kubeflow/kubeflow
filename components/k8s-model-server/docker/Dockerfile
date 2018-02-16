@@ -53,5 +53,3 @@ RUN set -x \
     && useradd $MS_USER \
     && [ `id -u $MS_USER` -eq 1000 ] \
     && [ `id -g $MS_USER` -eq 1000 ]
-
-CMD ["/bin/bash"]
