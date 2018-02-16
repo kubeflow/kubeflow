@@ -1,14 +1,14 @@
 {
-  parts(namespace):: {
-    local util = import "kubeflow/core/util.libsonnet",
+  local util = import "kubeflow/core/util.libsonnet",
 
-    all(reportUsage, usageId):: {
-      local reportUsageBool = util.toBool(reportUsage),
+  all(params):: {
+      local reportUsageBool = util.toBool(params.reportUsage),
       result:: if reportUsageBool then
-        [$.parts(namespace).deployment(usageId)]
+        [$.parts(params.namespace).deployment(params.usageId)]
       else [],
     }.result,
 
+  parts(namespace):: {    
     deployment(usageId):: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
@@ -29,12 +29,10 @@
               {
                 image: "gcr.io/google_containers/spartakus-amd64:v1.0.0",
                 name: "volunteer",
-                // TODO(jlew): Do not submit need to verify this works. I may need to
-                // start a shell to get uuidgen.
                 command: [
                   "volunteer",
                   "--cluster-id=" + usageId,
-                  "--database=https://usage-collector.kubeflow.org",
+                  "--database=https://stats-collector.kubeflow.org",
                 ],
               },
             ],

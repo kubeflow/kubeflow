@@ -74,9 +74,9 @@ local networkSpec = networkPolicy.mixin.spec;
                     imagePullPolicy: defaults.imagePullPolicy,
                     args: [
                       "/usr/bin/tensorflow_model_server",
-		      " --port=9000",
-		      " --model_name=" + name,
-		      " --model_base_path=" + modelPath,
+                      " --port=9000",
+                      " --model_name=" + name,
+                      " --model_base_path=" + modelPath,
                     ],
                     env: [],
                     ports: [
