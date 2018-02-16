@@ -10,4 +10,4 @@ COPY . /usr/src/app
 
 RUN pip install -r requirements/production.txt
 
-CMD ["python /usr/src/app/server.py $@"]
+ENTRYPOINT ["python", "/usr/src/app/server.py"]
