@@ -9,7 +9,6 @@
     all:: [
       $.parts(namespace).deployUi,
       $.parts(namespace).uiService,
-      $.parts(namespace).role,
       $.parts(namespace).roleBinding,
       $.parts(namespace).uiServiceAccount,
       $.parts(namespace).uiRole,
