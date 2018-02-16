@@ -72,13 +72,11 @@ local networkSpec = networkPolicy.mixin.spec;
                     name: name,
                     image: modelServerImage,
                     imagePullPolicy: defaults.imagePullPolicy,
-                    // TODO(jlewi): Talk to owensk to figure out why we wrap in a shell.
-                    command: [
-                      "/bin/sh",
-                      "-c",
-                    ],
                     args: [
-                      "/usr/bin/tensorflow_model_server --port=9000 --model_name=" + name + " --model_base_path=" + modelPath,
+                      "/usr/bin/tensorflow_model_server",
+		      " --port=9000",
+		      " --model_name=" + name,
+		      " --model_base_path=" + modelPath,
                     ],
                     env: [],
                     ports: [
