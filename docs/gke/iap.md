@@ -99,8 +99,7 @@ the [enable_iap.sh](https://github.com/kubeflow/kubeflow/tree/master/docs/gke/en
 CLIENT_ID=<Client id for OAuth client created in the previous step>
 CLIENT_SECRET=<Client secret for OAuth client created in the previous step>
 SERVICE=envoy
-INGRESS=envoy-ingress
-enable_iap_openapi.sh ${PROJECT} ${NAMESPACE} ${SERVICE} ${INGRESS}
+enable_iap.sh ${PROJECT} ${NAMESPACE} ${SERVICE}
 ```
 The above command will output the audience such as:
 
