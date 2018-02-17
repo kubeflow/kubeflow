@@ -6,13 +6,13 @@
   // a with volumes option.
 
   all(params):: [
-            $.parts(params.namespace).jupyterHubConfigMap(params.kubeSpawner),
-            $.parts(params.namespace).jupyterHubService,
-            $.parts(params.namespace).jupyterHubLoadBalancer(params.jupyterHubServiceType),
-            $.parts(params.namespace).jupyterHub(params.jupyterHubImage),
-            $.parts(params.namespace).jupyterHubRole,
-            $.parts(params.namespace).jupyterHubServiceAccount,
-            $.parts(params.namespace).jupyterHubRoleBinding,
+    $.parts(params.namespace).jupyterHubConfigMap(params.kubeSpawner),
+    $.parts(params.namespace).jupyterHubService,
+    $.parts(params.namespace).jupyterHubLoadBalancer(params.jupyterHubServiceType),
+    $.parts(params.namespace).jupyterHub(params.jupyterHubImage),
+    $.parts(params.namespace).jupyterHubRole,
+    $.parts(params.namespace).jupyterHubServiceAccount,
+    $.parts(params.namespace).jupyterHubRoleBinding,
   ],
 
   parts(namespace):: {

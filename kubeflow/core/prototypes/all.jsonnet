@@ -11,14 +11,9 @@
 // @optionalParam tfJobUiServiceType string ClusterIP The service type for the UI.
 // @optionalParam jupyterHubServiceType string ClusterIP The service type for Jupyterhub.
 // @optionalParam jupyterHubImage string gcr.io/kubeflow/jupyterhub-k8s:1.0.1 The image to use for JupyterHub.
-// @optionalParam jupyterHubAuthenticator string null The authenticator to use 
+// @optionalParam jupyterHubAuthenticator string null The authenticator to use
 // @optionalParam reportUsage string true Whether or not to report Kubeflow usage to kubeflow.org.
 // @optionalParam usageId string unknown_cluster Optional id to use when reporting usage to kubeflow.org
-
-with jupyterHub; default is dummy username/password. Set to IAP to use IAP.
-
-// TODO(https://github.com/ksonnet/ksonnet/issues/222): We have to add namespace as an explicit parameter
-// because ksonnet doesn't support inheriting it from the environment yet.
 
 local k = import 'k.libsonnet';
 local all = import "kubeflow/core/all.libsonnet";

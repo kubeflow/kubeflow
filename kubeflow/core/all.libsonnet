@@ -19,9 +19,9 @@
     else jupyter.parts(namespace).jupyterHubConfigMapWithVolumes(diskNames),
 
     //local tfJobImage = import 'param://tfJobImage';
-   // local tfDefaultImage = import 'param://tfDefaultImage';
-   // local tfJobUiServiceType = import 'param://tfJobUiServiceType';
-   // local jupyterHubServiceType = import 'param://jupyterHubServiceType';
+    // local tfDefaultImage = import 'param://tfDefaultImage';
+    // local tfJobUiServiceType = import 'param://tfJobUiServiceType';
+    // local jupyterHubServiceType = import 'param://jupyterHubServiceType';
 
     // Create a list of the resources needed for a particular disk
     local diskToList = function(diskName) [
@@ -44,8 +44,8 @@
       else
         [],
 
-    local updated_params = params +{
-        kubeSpawner:: jupyter.parts(namespace).kubeSpawner(params.jupyterHubAuthenticator, diskNames)
+    local updated_params = params {
+      kubeSpawner:: jupyter.parts(namespace).kubeSpawner(params.jupyterHubAuthenticator, diskNames),
     },
     all:: jupyter.all(updated_params)
           // TODO(jlewi): We should make `all` top level within each libsonnet file and
