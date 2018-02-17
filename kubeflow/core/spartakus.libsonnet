@@ -5,17 +5,18 @@
     local reportUsageBool = util.toBool(params.reportUsage),
     result:: if reportUsageBool then
       [
-      $.parts(params.namespace).role,
-      $.parts(params.namespace).roleBinding,
-      $.parts(params.namespace).serviceAccount,
-      $.parts(params.namespace).deployment(params.usageId)]
+        $.parts(params.namespace).role,
+        $.parts(params.namespace).roleBinding,
+        $.parts(params.namespace).serviceAccount,
+        $.parts(params.namespace).deployment(params.usageId),
+      ]
     else [],
   }.result,
 
   parts(namespace):: {
 
-  // Spartakus needs to be able to get information about the cluster in order to create a report.
-  role: {
+    // Spartakus needs to be able to get information about the cluster in order to create a report.
+    role: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRole",
       metadata: {
@@ -24,13 +25,13 @@
         },
         name: "spartakus",
       },
-      rules: [        
+      rules: [
         {
           apiGroups: [
             "",
           ],
           resources: [
-            "nodes"
+            "nodes",
           ],
           verbs: [
             "get",
@@ -104,7 +105,7 @@
               },
             ],
             serviceAccountName: "spartakus",
-          }, // spec
+          },  // spec
         },
       },
     },  // deployment
