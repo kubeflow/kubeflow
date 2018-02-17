@@ -9,7 +9,6 @@
     all:: [
       $.parts(namespace).deployUi,
       $.parts(namespace).uiService,
-      $.parts(namespace).roleBinding,
       $.parts(namespace).uiServiceAccount,
       $.parts(namespace).uiRole,
       $.parts(namespace).uiRoleBinding,
@@ -26,20 +25,11 @@
         namespace: namespace,
       },
       spec: {
-        progressDeadlineSeconds: 600,
         replicas: 1,
-        revisionHistoryLimit: 10,
         selector: {
           matchLabels: {
             app: "centraldash",
           },
-        },
-        strategy: {
-          rollingUpdate: {
-            maxSurge: "25%",
-            maxUnavailable: "25%",
-          },
-          type: "RollingUpdate",
         },
         template: {
           metadata: {
@@ -81,12 +71,6 @@
             serviceAccount: "centraldash",
             serviceAccountName: "centraldash",
             terminationGracePeriodSeconds: 30,
-            readinessProbe: {
-              httpGet: {
-                path: "/",
-                port: 8082,
-              },
-            },
           },
         },
       },
@@ -116,30 +100,6 @@
         type: "NodePort",
       },
     },  //service
-
-    roleBinding:: {
-      apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "ClusterRoleBinding",
-      metadata: {
-        labels: {
-          app: "centraldash",
-        },
-        name: "centraldash",
-        namespace: namespace,
-      },
-      roleRef: {
-        apiGroup: "rbac.authorization.k8s.io",
-        kind: "ClusterRole",
-        name: "centraldash",
-      },
-      subjects: [
-        {
-          kind: "ServiceAccount",
-          name: "centraldash",
-          namespace: namespace,
-        },
-      ],
-    },  // role binding
 
     uiServiceAccount: {
       apiVersion: "v1",
