@@ -105,8 +105,12 @@ You should see a sign in prompt.
 
 1. Sign in using any username/password
 1. Click the "Start My Server" button, you will be greeted by a dialog screen.
-  1. Set the image to `gcr.io/kubeflow/tensorflow-notebook-cpu:v1` or `gcr.io/kubeflow/tensorflow-notebook-gpu:8fbc341245695e482848ac3c2034a99f7c1e5763` depending on whether doing CPU or GPU training, or whether or not you have GPUs in your cluster.
-  1. Allocate memory, CPU, GPU, or other resources according to your need (1 CPU and 2Gi of Memory are good starting points)
+1. Set the image to `gcr.io/kubeflow/tensorflow-notebook-cpu:v1` or `gcr.io/kubeflow/tensorflow-notebook-gpu:8fbc341245695e482848ac3c2034a99f7c1e5763` depending on whether doing CPU or GPU training, or whether or not you have GPUs in your cluster.
+1. Allocate memory, CPU, GPU, or other resources according to your need (1 CPU and 2Gi of Memory are good starting points)
+    * To allocate GPUs, make sure that you have GPUs available in your cluster
+    * Run the following command to check if there are any nvidia gpus available: 
+    `kubectl get nodes "-o=custom-columns=NAME:.metadata.name,GPU:.status.allocatable.nvidia\.com/gpu"`
+    * If you have GPUs available, you can schedule your server on a GPU node by specifying the following json in `Extra Resource Limits` section: `{"nvidia.com/gpu": "1"}`
   1. Click Spawn
 1. Eventually you should now be greeted with a Jupyter interface. Note that the GPU image is several gigabytes in size and may take a few minutes to download and start.
 
