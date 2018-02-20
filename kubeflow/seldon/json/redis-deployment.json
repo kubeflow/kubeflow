@@ -1,0 +1,59 @@
+{
+    "apiVersion": "apps/v1beta1",
+    "kind": "Deployment",
+    "metadata": {
+        "creationTimestamp": null,
+        "labels": {
+            "app": "redis-app"
+        },
+        "name": "redis"
+    },
+    "spec": {
+        "replicas": 1,
+        "selector": {
+            "matchLabels": {
+                "app": "redis-app"
+            }
+        },
+        "strategy": {
+            "rollingUpdate": {
+                "maxSurge": 1,
+                "maxUnavailable": 1
+            },
+            "type": "RollingUpdate"
+        },
+        "template": {
+            "metadata": {
+                "creationTimestamp": null,
+                "labels": {
+                    "app": "redis-app"
+                }
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "image": "redis:4.0.1",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "redis-container",
+                        "ports": [
+                            {
+                                "containerPort": 6379,
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File"
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "terminationGracePeriodSeconds": 30
+            }
+        }
+    },
+    "status": {}
+}
+

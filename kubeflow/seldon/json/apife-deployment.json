@@ -1,0 +1,52 @@
+{
+    "apiVersion": "extensions/v1beta1",
+    "kind": "Deployment",
+    "metadata": {
+        "name": "seldon-apiserver"
+    },
+    "spec": {
+        "replicas": 1,
+        "template": {
+            "metadata": {
+                "annotations": {
+                    "prometheus.io/path": "/prometheus",
+                    "prometheus.io/port": "8080",
+                    "prometheus.io/scrape": "true"
+                },
+                "labels": {
+                    "app": "seldon-apiserver-container-app",
+                    "version": "1"
+                }
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "env": [
+                            {
+                                "name": "SELDON_ENGINE_KAFKA_SERVER",
+                                "value": "kafka:9092"
+                            },
+                            {
+                                "name": "SELDON_CLUSTER_MANAGER_REDIS_HOST",
+                                "value": "redis"
+                            }
+                        ],
+                        "image": "seldonio/apife:{{ .Values.apife.image.tag }}",
+                        "imagePullPolicy": "{{ .Values.apife.image.pull_policy }}",
+                        "name": "seldon-apiserver-container",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 5000,
+                                "protocol": "TCP"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    }
+}
