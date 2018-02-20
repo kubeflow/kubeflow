@@ -240,6 +240,9 @@
                             ],
                           },
                         },
+                        // TODO(ankushagarwal): We should eventually
+                        // redirect to the central UI once its ready
+                        // See https://github.com/kubeflow/kubeflow/pull/146
                         // Redirect to jupyterhub when visiting /
                         {
                           timeout_ms: 10000,
