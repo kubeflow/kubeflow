@@ -10,6 +10,7 @@
 // @optionalParam tfDefaultImage string null The default image to use for TensorFlow.
 // @optionalParam tfJobUiServiceType string ClusterIP The service type for the UI.
 // @optionalParam jupyterHubServiceType string ClusterIP The service type for Jupyterhub.
+// @optionalParam jupyterHubImage string gcr.io/kubeflow/jupyterhub-k8s:1.0.1 The jupyterHub image
 // @optionalParam jupyterHubAuthenticator string null The authenticator to use with jupyterHub; default is dummy username/password. Set to IAP to use IAP.
 
 // TODO(https://github.com/ksonnet/ksonnet/issues/222): We have to add namespace as an explicit parameter
@@ -28,7 +29,7 @@ local cloud = import 'param://cloud';
 
 // TODO(jlewi): Make this a parameter
 local jupyterHubServiceType = import 'param://jupyterHubServiceType';
-local jupyterHubImage = 'gcr.io/kubeflow/jupyterhub-k8s:1.0.1';
+local jupyterHubImage = import 'param://jupyterHubImage';
 local jupyterHubAuthenticator = import 'param://jupyterHubAuthenticator';
 
 local diskParam = import 'param://disks';
