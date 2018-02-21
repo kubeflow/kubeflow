@@ -170,6 +170,10 @@
                       },
                     },
                   },
+                  {
+                    name: "AMBASSADOR_SINGLE_NAMESPACE",
+                    value: "True",
+                  },
                 ],
                 image: ambassadorImage,
                 imagePullPolicy: "Always",
