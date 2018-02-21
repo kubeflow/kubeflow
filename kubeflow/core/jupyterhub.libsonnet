@@ -105,6 +105,18 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
         },
         name: "tf-hub-0",
         namespace: namespace,
+        annotations: {
+          "getambassador.io/config":
+            std.join("\n", [
+              "---",
+              "apiVersion: ambassador/v0",
+              "kind:  Mapping",
+              "name: tf-hub-mapping",
+              "prefix: /hub/",
+              "rewrite: /",
+              "service: tf-hub." + namespace,
+            ]),
+        },  //annotations
       },
       spec: {
         // We want a headless service so we set the ClusterIP to be None.
@@ -113,7 +125,8 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
         ports: [
           {
             name: "hub",
-            port: 8000,
+            port: 80,
+            targetPort: 8000,
           },
         ],
         selector: {
@@ -148,7 +161,18 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
     },
 
     // image: Image for JupyterHub
-    jupyterHub(image): {
+    jupyterHub(image, debug): {
+      local command =
+          if debug then [
+            "jupyterhub",
+            "-f",
+            "/etc/config/jupyterhub_config.py",
+          ] else [
+            "/bin/bash", 
+            "-c", 
+            "trap : TERM INT; sleep infinity & wait",
+          ],
+
       apiVersion: "apps/v1beta1",
       kind: "StatefulSet",
       metadata: {
@@ -167,11 +191,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
           spec: {
             containers: [
               {
-                command: [
-                  "jupyterhub",
-                  "-f",
-                  "/etc/config/jupyterhub_config.py",
-                ],
+                command: command,
                 image: image,
                 name: "tf-hub",
                 volumeMounts: [

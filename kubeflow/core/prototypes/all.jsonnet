@@ -11,6 +11,7 @@
 // @optionalParam tfJobUiServiceType string ClusterIP The service type for the UI.
 // @optionalParam jupyterHubServiceType string ClusterIP The service type for Jupyterhub.
 // @optionalParam jupyterHubImage string gcr.io/kubeflow/jupyterhub-k8s:1.0.1 The jupyterHub image
+// @optionalParam jupyterHubDebug boolean false If the entrypoint command is bash sleep INF
 // @optionalParam jupyterHubAuthenticator string null The authenticator to use with jupyterHub; default is dummy username/password. Set to IAP to use IAP.
 
 // TODO(https://github.com/ksonnet/ksonnet/issues/222): We have to add namespace as an explicit parameter
@@ -30,6 +31,7 @@ local cloud = import 'param://cloud';
 // TODO(jlewi): Make this a parameter
 local jupyterHubServiceType = import 'param://jupyterHubServiceType';
 local jupyterHubImage = import 'param://jupyterHubImage';
+local jupyterHubDebug = import 'param://jupyterHubDebug';
 local jupyterHubAuthenticator = import 'param://jupyterHubAuthenticator';
 
 local diskParam = import 'param://disks';
@@ -74,7 +76,7 @@ std.prune(k.core.v1.list.new([
   jupyter.parts(namespace).jupyterHubConfigMap(kubeSpawner),
   jupyter.parts(namespace).jupyterHubService,
   jupyter.parts(namespace).jupyterHubLoadBalancer(jupyterHubServiceType),
-  jupyter.parts(namespace).jupyterHub(jupyterHubImage),
+  jupyter.parts(namespace).jupyterHub(jupyterHubImage, jupyterHubDebug),
   jupyter.parts(namespace).jupyterHubRole,
   jupyter.parts(namespace).jupyterHubServiceAccount,
   jupyter.parts(namespace).jupyterHubRoleBinding,
