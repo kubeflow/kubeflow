@@ -1,0 +1,34 @@
+{
+    "apiVersion": "v1",
+    "kind": "Service",
+    "metadata": {
+        "labels": {
+            "app": "seldon-apiserver-container-app"
+        },
+        "name": "seldon-apiserver"
+    },
+    "spec": {
+        "ports": [
+            {
+                "name": "http",
+                "port": 8080,
+                "protocol": "TCP",
+                "targetPort": 8080
+            },
+            {
+                "name": "grpc",
+                "port": 5000,
+                "protocol": "TCP",
+                "targetPort": 5000
+            }
+        ],
+        "selector": {
+            "app": "seldon-apiserver-container-app"
+        },
+        "sessionAffinity": "None",
+        "type": "{{ .Values.apife_service_type }}"
+    },
+    "status": {
+        "loadBalancer": {}
+    }
+}
