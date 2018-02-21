@@ -26,4 +26,6 @@ python -m kubeflow.testing.run_e2e_workflow \
 	--cluster=kubeflow-testing \
 	--bucket=kubernetes-jenkins \
 	--component=workflows \
-	--app_dir=/src/kubeflow/kubeflow/testing/workflows
+	--app_dir=/src/kubeflow/kubeflow/testing/workflows \
+        --config_file=/src/${REPO_OWNER}/${REPO_NAME}/prow_config.yaml
+
