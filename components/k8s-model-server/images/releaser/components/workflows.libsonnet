@@ -36,7 +36,7 @@
       // The directory containing the kubeflow/kubeflow repo
       local srcDir = srcRootDir + "/kubeflow/kubeflow";
       // The name of the NFS volume claim to use for test files.
-      local nfsVolumeClaim = "kubeflow-testing";
+      local nfsVolumeClaim = "nfs-external";
       // The name to use for the volume to use to contain test data.
       local dataVolume = "kubeflow-test-volume";
       local kubeflowPy = srcDir;
@@ -203,7 +203,7 @@
                 },
                 {
                   name: "SERVING_IMAGE",
-                  value: serving_image,
+                  value: serving_image + ":" + name,
                 }
               ],
               [{
@@ -241,7 +241,7 @@
                 },
                 {
                   name: "SERVING_IMAGE",
-                  value: serving_image,
+                  value: serving_image + ":" + name,
                 },
               ],
               [{

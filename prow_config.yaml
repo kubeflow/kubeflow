@@ -4,3 +4,6 @@ workflows:
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: workflows
     name: kubeflow-e2e
+  - app_dir: kubeflow/kubeflow/components/k8s-model-server/images/releaser
+    component: workflows
+    name: tf-serving-image
