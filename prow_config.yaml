@@ -8,3 +8,4 @@ workflows:
   - app_dir: kubeflow/kubeflow/components/k8s-model-server/images/releaser
     component: workflows
     name: tf-serving-image
+
