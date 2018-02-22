@@ -163,14 +163,14 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
     // image: Image for JupyterHub
     jupyterHub(image, debug): {
       local command =
-          if debug == "false" then [
-            "jupyterhub",
-            "-f",
-            "/etc/config/jupyterhub_config.py",
-          ] else [
+          if debug == "true" then [
             "/bin/bash", 
             "-c", 
             "trap : TERM INT; sleep infinity & wait",
+          ] else [
+            "jupyterhub",
+            "-f",
+            "/etc/config/jupyterhub_config.py",
           ],
 
       apiVersion: "apps/v1beta1",
