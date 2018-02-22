@@ -18,15 +18,7 @@
       jupyter.parts(namespace).jupyterHubConfigMap
     else jupyter.parts(namespace).jupyterHubConfigMapWithVolumes(diskNames),
 
-    // Create a list of the resources needed for a particular disk
-    local diskToList = function(diskName) [
-      nfs.parts(namespace, name,).diskResources(diskName).storageClass,
-      nfs.parts(namespace, name,).diskResources(diskName).volumeClaim,
-      nfs.parts(namespace, name,).diskResources(diskName).service,
-      nfs.parts(namespace, name,).diskResources(diskName).provisioner,
-    ],
-
-    local allDisks = std.flattenArrays(std.map(diskToList, diskNames)),
+    local allDisks = std.flattenArrays(std.map(nfs.diskToList, diskNames)),
 
     local nfsComponents =
       if std.length(allDisks) > 0 then

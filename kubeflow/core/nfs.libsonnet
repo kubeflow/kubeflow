@@ -1,6 +1,15 @@
 // A ksonnet prototype/component for using NFS.
 
 {
+
+  // Create a list of the resources needed for a particular disk
+  diskToList::  function(diskName) [
+    nfs.parts(namespace, name,).diskResources(diskName).storageClass,
+    nfs.parts(namespace, name,).diskResources(diskName).volumeClaim,
+    nfs.parts(namespace, name,).diskResources(diskName).service,
+    nfs.parts(namespace, name,).diskResources(diskName).provisioner,
+  ],
+
   // TODO(https://github.com/ksonnet/ksonnet/issues/222): Taking namespace as an argument is a work around for the fact that ksonnet
   // doesn't support automatically piping in the namespace from the environment to prototypes.
   //
