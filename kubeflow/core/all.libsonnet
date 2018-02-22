@@ -11,17 +11,12 @@
     local diskParam = params.disks,
 
     local diskNames = if diskParam != "null" && std.length(diskParam) > 0 then
-      std.split(diskParam, ',')
+      std.split(diskParam, ",")
     else [],
 
     local jupyterConfigMap = if std.length(diskNames) == 0 then
       jupyter.parts(namespace).jupyterHubConfigMap
     else jupyter.parts(namespace).jupyterHubConfigMapWithVolumes(diskNames),
-
-    //local tfJobImage = import 'param://tfJobImage';
-    // local tfDefaultImage = import 'param://tfDefaultImage';
-    // local tfJobUiServiceType = import 'param://tfJobUiServiceType';
-    // local jupyterHubServiceType = import 'param://jupyterHubServiceType';
 
     // Create a list of the resources needed for a particular disk
     local diskToList = function(diskName) [
