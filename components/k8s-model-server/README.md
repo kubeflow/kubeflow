@@ -144,7 +144,9 @@ MODEL_NAME=inception
 #Replace this with the url to your bucket if using your own model
 MODEL_PATH=gs://kubeflow-models/inception
 MODEL_SERVER_IMAGE=gcr.io/$(gcloud config get-value project)/model-server:1.0
-ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME} --namespace=default --model_path=${MODEL_PATH} --model_server_image=${MODEL_SERVER_IMAGE}
+# if you need REST API need to provide http_proxy_image
+HTTP_PROXY_IMAGE=gcr.io/$(gcloud config get-value project)/http-proxy:1.0
+ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME} --namespace=default --model_path=${MODEL_PATH} --model_server_image=${MODEL_SERVER_IMAGE} [--http_proxy_image=${HTTP_PROXY_IMAGE}]
 ```
 
 Deploy it in a particular environment. The deployment will pick up environment parmameters (e.g. cloud) and customize the deployment appropriately
@@ -183,7 +185,7 @@ listed under the value you used for the `MODEL_NAME` parameter in the ksonnet co
 ```commandline
 kubectl get services
 NAME         TYPE           CLUSTER-IP      EXTERNAL-IP      PORT(S)			 AGE
-$MODEL_NAME  LoadBalancer   <INTERNAL IP>   <SERVICE IP>     <SERVICE PORT>:<NODE PORT>  <TIME SINCE DEPLOYMENT>
+$MODEL_NAME  LoadBalancer   <INTERNAL IP>   <SERVICE IP>     <SERVICE PORT>:<NODE PORT>,<HTTP SERVICE PORT>:<NODE PORT>  <TIME SINCE DEPLOYMENT>
 ```
 
 We will feed the `<SERVICE IP>` and `<SERVICE PORT>` to the labelling script. We will use it to label the following image of a
@@ -208,6 +210,43 @@ Run the script as follows:
 
 ```commandline
 python label.py -s <SERVICE IP> -p <SERVICE PORT> images/sleeping-pepper.jpg
+```
+
+#### Run the REST API script
+
+You can query the model with `curl` directly.
+
+```commandline
+(echo '{"instances": [{"image_contents": {"b64": "'; base64 ./inception-client/images/sleeping-pepper.jpg; echo '"}}]}') | curl -H "Content-Type: application/json" -X POST -d @-  <SERVICE IP>:<HTTP SERVICE PORT>/model/image_classification:predict
+```
+
+OUTPUTS
+
+```
+{"predictions":
+	[
+		{
+		  "labels": "Border terrier",
+		  "probs": 0.12965676188468933
+		},
+		{
+		  "labels": "bull mastiff",
+		  "probs": 0.10835129022598267
+		},
+		{
+		  "labels": "malinois",
+		  "probs": 0.10788080841302872
+		},
+		{
+		  "labels": "boxer",
+		  "probs": 0.03579695522785187
+		},
+		{
+		  "labels": "French bulldog",
+		  "probs": 0.02937905490398407
+		}
+	  ]
+}
 ```
 
 #### Run in Docker container with publicly exposed service
