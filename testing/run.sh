@@ -34,6 +34,6 @@ else
       --cluster=kubeflow-testing \
       --bucket=kubernetes-jenkins \
       --component=workflows \
-      --app_dir=/src/kubeflow/kubeflow/testing/workflows \
+      --app_dir=/src/kubeflow/kubeflow/testing/workflows
 fi
 
