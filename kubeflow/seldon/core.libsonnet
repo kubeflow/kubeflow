@@ -18,79 +18,79 @@ local crdDefn = import 'crd.libsonnet';
 {
   parts(namespace):: {
 
-  apife(apifeImage,withRbac)::
+    apife(apifeImage, withRbac)::
 
-    local c = baseApife.spec.template.spec.containers[0] +
-    container.withImage(apifeImage) +
-    container.withImagePullPolicy("IfNotPresent");
-    
-    local apiFeBase = 
-    baseApife +
-    deployment.mixin.metadata.withNamespace(namespace) + 
-    deployment.mixin.spec.template.spec.withContainers([c]);
+      local c = baseApife.spec.template.spec.containers[0] +
+                container.withImage(apifeImage) +
+                container.withImagePullPolicy("IfNotPresent");
 
-    if withRbac == "true" then
-    apiFeBase + 
-    deployment.mixin.spec.template.spec.withServiceAccountName("seldon")
-    else
-    apiFeBase,
+      local apiFeBase =
+        baseApife +
+        deployment.mixin.metadata.withNamespace(namespace) +
+        deployment.mixin.spec.template.spec.withContainers([c]);
+
+      if withRbac == "true" then
+        apiFeBase +
+        deployment.mixin.spec.template.spec.withServiceAccountName("seldon")
+      else
+        apiFeBase,
 
 
-  apifeService(serviceType)::
+    apifeService(serviceType)::
 
-    apifeService +
-    service.metadata.withNamespace(namespace) + 
-    service.spec.withType(serviceType),
+      apifeService +
+      service.metadata.withNamespace(namespace) +
+      service.spec.withType(serviceType),
 
-  deploymentOperator(engineImage, clusterManagerImage, springOpts, javaOpts, withRbac):
-    local env = [
-      { name: "JAVA_OPTS", value: javaOpts },
-      { name: "SPRING_OPTS", value: springOpts },
-      { name: "ENGINE_CONTAINER_IMAGE_AND_VERSION", value: engineImage },
-    ];
+    deploymentOperator(engineImage, clusterManagerImage, springOpts, javaOpts, withRbac):
+      local env = [
+        { name: "JAVA_OPTS", value: javaOpts },
+        { name: "SPRING_OPTS", value: springOpts },
+        { name: "ENGINE_CONTAINER_IMAGE_AND_VERSION", value: engineImage },
+      ];
 
-    local c = operatorDeployment.spec.template.spec.containers[0] +
-    container.withImage(clusterManagerImage) +
-    container.withEnvMixin(env) +
-    container.withImagePullPolicy("IfNotPresent");
+      local c = operatorDeployment.spec.template.spec.containers[0] +
+                container.withImage(clusterManagerImage) +
+                container.withEnvMixin(env) +
+                container.withImagePullPolicy("IfNotPresent");
 
-    local depOp = operatorDeployment + 
-    deployment.mixin.metadata.withNamespace(namespace) + 
-    deployment.mixin.spec.template.spec.withContainers([c]);
+      local depOp = operatorDeployment +
+                    deployment.mixin.metadata.withNamespace(namespace) +
+                    deployment.mixin.spec.template.spec.withContainers([c]);
 
-    if withRbac == "true" then
-    depOp +
-    deployment.mixin.spec.template.spec.withServiceAccountName("seldon")
-    else
-    depOp,
+      if withRbac == "true" then
+        depOp +
+        deployment.mixin.spec.template.spec.withServiceAccountName("seldon")
+      else
+        depOp,
 
     redisDeployment():
 
-    redisDeployment +
-    deployment.mixin.metadata.withNamespace(namespace),
+      redisDeployment +
+      deployment.mixin.metadata.withNamespace(namespace),
 
     redisService():
 
-    redisService +
-    service.metadata.withNamespace(namespace),
+      redisService +
+      service.metadata.withNamespace(namespace),
 
     rbacServiceAccount():
 
-    rbacServiceAccount +
-    serviceAccountMixin.metadata.withNamespace(namespace),
+      rbacServiceAccount +
+      serviceAccountMixin.metadata.withNamespace(namespace),
 
     rbacClusterRoleBinding():
 
-    local subject = rbacClusterRoleBinding.subjects[0] +
-    	  {"namespace":namespace};
+      local subject = rbacClusterRoleBinding.subjects[0]
+                      { namespace: namespace };
 
-    rbacClusterRoleBinding +
-    clusterRoleBindingMixin.metadata.withNamespace(namespace) +
-    clusterRoleBinding.withSubjects([subject]),
+      rbacClusterRoleBinding +
+      clusterRoleBindingMixin.metadata.withNamespace(namespace) +
+      clusterRoleBinding.withSubjects([subject]),
 
     crd():
 
-    crdDefn.crd(),
+      crdDefn.crd(),
 
   },  // parts
 }

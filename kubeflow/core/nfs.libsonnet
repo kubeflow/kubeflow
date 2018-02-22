@@ -14,7 +14,7 @@
 
     local allDisks = std.flattenArrays(std.map(diskToList, diskNames)),
 
-    items:: 
+    items::
       if std.length(allDisks) > 0 then
         [
           $.parts(namespace, name).serviceAccount,
@@ -25,7 +25,7 @@
       else
         [],
 
-  }.items, 
+  }.items,
 
 
   // TODO(https://github.com/ksonnet/ksonnet/issues/222): Taking namespace as an argument is a work around for the fact that ksonnet

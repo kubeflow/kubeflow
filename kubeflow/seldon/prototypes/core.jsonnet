@@ -58,10 +58,10 @@ local coreComponents = [
 ];
 
 if withRbac == "true" && withApife == "true" then
-k.core.v1.list.new(apife + rbac + coreComponents)
+  k.core.v1.list.new(apife + rbac + coreComponents)
 else if withRbac == "true" && withApife == "false" then
-k.core.v1.list.new(rbac + coreComponents)
+  k.core.v1.list.new(rbac + coreComponents)
 else if withRbac == "false" && withApife == "true" then
-k.core.v1.list.new(apife + coreComponents)
+  k.core.v1.list.new(apife + coreComponents)
 else if withRbac == "false" && withApife == "false" then
-k.core.v1.list.new(coreComponents)
+  k.core.v1.list.new(coreComponents)
