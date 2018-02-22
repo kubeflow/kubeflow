@@ -37,22 +37,26 @@ local networkSpec = networkPolicy.mixin.spec;
               port: 9000,
               targetPort: 9000,
             },
+            {
+              port: 8000,
+              targetPort: 8000,
+            },
           ],
           selector: labels,
           type: "ClusterIP",
         },
       },
 
-      modelServer(name, namespace, modelPath, modelServerImage, labels={ app: name },):
+      modelServer(name, namespace, modelPath, modelServerImage, httpProxyImage=0, labels={ app: name },):
         // TODO(jlewi): Allow the model to be served from a PVC.
         local volume = {
           name: "redis-data",
           namespace: namespace,
           emptyDir: {},
         };
-        base(name, namespace, modelPath, modelServerImage, labels),
+        base(name, namespace, modelPath, modelServerImage, httpProxyImage, labels),
 
-      local base(name, namespace, modelPath, modelServerImage, labels) =
+      local base(name, namespace, modelPath, modelServerImage, httpProxyImage, labels) =
         {
           apiVersion: "extensions/v1beta1",
           kind: "Deployment",
@@ -88,6 +92,26 @@ local networkSpec = networkPolicy.mixin.spec;
                     // model-server doesn't have something we can use out of the box.
                     resources: defaults.resources,
                   },
+		  if httpProxyImage != 0 then
+		  {
+		    name: name+"-http-proxy",
+                    image: httpProxyImage,
+                    imagePullPolicy: defaults.imagePullPolicy,
+                    command: [
+                      "python",
+                      "/usr/src/app/server.py",
+		      "--port=8000",
+		      "--rpc_port=9000",
+		      "--rpc_timeout=10.0"
+                    ],
+                    env: [],
+                    ports: [
+                      {
+                        containerPort: 8000,
+                      },
+                    ],
+                    resources: defaults.resources,
+		  },
                 ],
                 // See:  https://github.com/kubeflow/kubeflow/tree/master/components/k8s-model-server#set-the-user-optional
                 // The is user and group should be defined in the Docker image.
