@@ -18,19 +18,6 @@
       jupyter.parts(namespace).jupyterHubConfigMap
     else jupyter.parts(namespace).jupyterHubConfigMapWithVolumes(diskNames),
 
-    local allDisks = std.flattenArrays(std.map(nfs.diskToList, diskNames)),
-
-    local nfsComponents =
-      if std.length(allDisks) > 0 then
-        [
-          nfs.parts(namespace, name).serviceAccount,
-          nfs.parts(namespace, name).role,
-          nfs.parts(namespace, name).roleBinding,
-          nfs.parts(namespace, name).clusterRoleBinding,
-        ] + allDisks
-      else
-        [],
-
     local updated_params = params {
       kubeSpawner:: jupyter.parts(namespace).kubeSpawner(params.jupyterHubAuthenticator, diskNames),
     },
@@ -38,7 +25,7 @@
           // TODO(jlewi): We should make `all` top level within each libsonnet file and
           // not a field within parts.
           + tfjob.parts(params.namespace).all(params)
-          + ambassador.parts(namespace).all + nfsComponents
+          + ambassador.parts(namespace).all + nfs.nfsComponents(namespace, name, diskNames)
           + spartakus.all(params),
   },
 }
