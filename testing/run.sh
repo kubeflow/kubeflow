@@ -26,7 +26,8 @@ if [ -f /src/${REPO_OWNER}/${REPO_NAME}/prow_config.yaml ]; then
       --zone=us-east1-d \
       --cluster=kubeflow-testing \
       --bucket=kubernetes-jenkins \
-      --config_file=/src/${REPO_OWNER}/${REPO_NAME}/prow_config.yaml
+      --config_file=/src/${REPO_OWNER}/${REPO_NAME}/prow_config.yaml \
+      --repos_dir=/src
 else
   python -m kubeflow.testing.run_e2e_workflow \
       --project=mlkube-testing \
