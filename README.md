@@ -90,7 +90,7 @@ effort in a portable fashion between different environments.
 
 For more detailed instructions about how to use Kubeflow, please refer to the [user guide](user_guide.md).
 
-+**Important** By default Kubeflow will collect **anonymous** user data to help us improve Kubeflow; for more information including instructions for disabling it please refer to the [user_guide](user_guide#Usage Reporting)
+**Important** By default Kubeflow will collect **anonymous** user data to help us improve Kubeflow; for more information including instructions for disabling it please refer to the [user_guide](user_guide#Usage Reporting)
 
 ## Troubleshooting
 For detailed troubleshooting instructions, please refer to [this section of the user guide](user_guide.md#troubleshooting)

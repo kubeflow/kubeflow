@@ -13,13 +13,13 @@
   // This is primarily intended for dealing with parameters that should be booleans.
   toBool:: function(x) {
     result::
-      if std.type(x) == "boolean" then
-        x
-      else if std.type(x) == "string" then
-        $.upper(x) == "TRUE"
-      else if std.type(x) == "number" then
-        x != 0
-      else
-        false,
+    if std.type(x) == "boolean" then
+      x
+    else if std.type(x) == "string" then
+      $.upper(x) == "TRUE"
+    else if std.type(x) == "number" then
+      x != 0
+    else
+      false,
   }.result,
 }

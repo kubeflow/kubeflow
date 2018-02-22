@@ -79,7 +79,7 @@ ks show ${KF_ENV} -c kubeflow-core
 
 ### Usage Reporting
 
-By default, Kubeflow will report **anonymous** usage data using [spartakus](https://github.com/kubernetes-incubator/spartakus), Kubernetes' reporting tool. Spartakus **does not report any presonal information** see [here](https://github.com/kubernetes-incubator/spartakus) for more detail.
+By default, Kubeflow will report **anonymous** usage data using [spartakus](https://github.com/kubernetes-incubator/spartakus), Kubernetes' reporting tool. Spartakus **does not report any personal information**. See [here](https://github.com/kubernetes-incubator/spartakus) for more detail.
 This is entirely voluntary and you can opt out by doing the following
 
 ```
