@@ -91,3 +91,18 @@ c.KubeSpawner.user_storage_pvc_ensure = True
 # How much disk space do we want?
 c.KubeSpawner.user_storage_capacity = '10Gi'
 c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
+c.KubeSpawner.volumes = [
+  {
+    'name': 'volume-{username}{servername}',
+    'persistentVolumeClaim': {
+      'claimName': 'claim-{username}{servername}'
+    }
+  }
+]
+c.KubeSpawner.volume_mounts = [
+  {
+    'mountPath': '/home/jovyan/work',
+    'name': 'volume-{username}{servername}'
+  }
+]
+
