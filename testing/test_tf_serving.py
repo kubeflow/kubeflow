@@ -65,7 +65,7 @@ def main():
   args = parser.parse_args()
 
   server = "_tf-serving._tcp.{}.{}.svc.cluster.local".format(args.service_name, args.namespace)
-  channel = implementations.insecure_channel(server, args.port)
+  channel = implementations.insecure_channel(server, None)
   stub = prediction_service_pb2.beta_create_PredictionService_stub(channel)
 
   with tf.gfile.Open(args.image_path) as img:
