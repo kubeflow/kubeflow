@@ -11,7 +11,7 @@
       $.parts(namespace).k8sDashboard,
     ],
 
-    local ambassadorImage = "quay.io/datawire/ambassador:0.22.0",
+    local ambassadorImage = "quay.io/datawire/ambassador:0.26.0",
     service:: {
       apiVersion: "v1",
       kind: "Service",

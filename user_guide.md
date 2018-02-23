@@ -269,7 +269,7 @@ Create the disks
 Configure the environment to use the disks.
 
 ```
-ks param set --env=cloud nfs disks ${PD_DISK1},${PD_DISK2}
+ks param set --env=cloud kubeflow-core disks ${PD_DISK1},${PD_DISK2}
 ```
 
 Deploy the environment

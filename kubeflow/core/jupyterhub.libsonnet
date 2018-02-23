@@ -4,6 +4,17 @@
   //
   // TODO(jlewi): We should refactor this to have multiple prototypes; having 1 without any extra volumes and than
   // a with volumes option.
+
+  all(params):: [
+    $.parts(params.namespace).jupyterHubConfigMap(params.kubeSpawner),
+    $.parts(params.namespace).jupyterHubService(params.jupyterHubServiceType),
+    $.parts(params.namespace).jupyterHubLoadBalancer(params.jupyterHubServiceType),
+    $.parts(params.namespace).jupyterHub(params.jupyterHubImage, params.jupyterHubDebug),
+    $.parts(params.namespace).jupyterHubRole,
+    $.parts(params.namespace).jupyterHubServiceAccount,
+    $.parts(params.namespace).jupyterHubRoleBinding,
+  ],
+
   parts(namespace):: {
     kubeSpawner(authenticator, volumeClaims=[]): {
       // TODO(jlewi): We should make the default Docker image configurable
