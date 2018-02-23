@@ -34,10 +34,12 @@ local networkSpec = networkPolicy.mixin.spec;
         spec: {
           ports: [
             {
+              name: "tf-serving",
               port: 9000,
               targetPort: 9000,
             },
             {
+              name: "tf-serving-proxy",
               port: 8000,
               targetPort: 8000,
             },
@@ -92,26 +94,26 @@ local networkSpec = networkPolicy.mixin.spec;
                     // model-server doesn't have something we can use out of the box.
                     resources: defaults.resources,
                   },
-		  if httpProxyImage != 0 then
-		  {
-		    name: name+"-http-proxy",
-                    image: httpProxyImage,
-                    imagePullPolicy: defaults.imagePullPolicy,
-                    command: [
-                      "python",
-                      "/usr/src/app/server.py",
-		      "--port=8000",
-		      "--rpc_port=9000",
-		      "--rpc_timeout=10.0"
-                    ],
-                    env: [],
-                    ports: [
-                      {
-                        containerPort: 8000,
-                      },
-                    ],
-                    resources: defaults.resources,
-		  },
+                  if httpProxyImage != 0 then
+                    {
+                      name: name + "-http-proxy",
+                      image: httpProxyImage,
+                      imagePullPolicy: defaults.imagePullPolicy,
+                      command: [
+                        "python",
+                        "/usr/src/app/server.py",
+                        "--port=8000",
+                        "--rpc_port=9000",
+                        "--rpc_timeout=10.0",
+                      ],
+                      env: [],
+                      ports: [
+                        {
+                          containerPort: 8000,
+                        },
+                      ],
+                      resources: defaults.resources,
+                    },
                 ],
                 // See:  https://github.com/kubeflow/kubeflow/tree/master/components/k8s-model-server#set-the-user-optional
                 // The is user and group should be defined in the Docker image.
