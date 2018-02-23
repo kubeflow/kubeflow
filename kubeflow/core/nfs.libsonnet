@@ -1,6 +1,33 @@
 // A ksonnet prototype/component for using NFS.
 
 {
+  // Return a list of components needed if you want to mount some disks using NFS.
+  // diskNames should be a list of PDs.
+  nfsComponents(namespace, name, diskNames):: {
+    // Create a list of the resources needed for a particular disk
+    local diskToList = function(diskName) [
+      $.parts(namespace, name,).diskResources(diskName).storageClass,
+      $.parts(namespace, name,).diskResources(diskName).volumeClaim,
+      $.parts(namespace, name,).diskResources(diskName).service,
+      $.parts(namespace, name,).diskResources(diskName).provisioner,
+    ],
+
+    local allDisks = std.flattenArrays(std.map(diskToList, diskNames)),
+
+    items::
+      if std.length(allDisks) > 0 then
+        [
+          $.parts(namespace, name).serviceAccount,
+          $.parts(namespace, name).role,
+          $.parts(namespace, name).roleBinding,
+          $.parts(namespace, name).clusterRoleBinding,
+        ] + allDisks
+      else
+        [],
+
+  }.items,
+
+
   // TODO(https://github.com/ksonnet/ksonnet/issues/222): Taking namespace as an argument is a work around for the fact that ksonnet
   // doesn't support automatically piping in the namespace from the environment to prototypes.
   //
