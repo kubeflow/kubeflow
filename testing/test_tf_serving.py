@@ -78,7 +78,7 @@ def main():
   request.model_spec.signature_name = 'predict_images'
   request.inputs['images'].CopyFrom(
       tf.make_tensor_proto(raw_image, shape=[1,]))
-  result = str(stub.Predict(request, 10.0))  # 10 secs timeout
+  result = str(stub.Predict(request, 20.0))  # 20 secs timeout
   print(result)
   if args.result_path:
     with open(args.result_path) as f:
