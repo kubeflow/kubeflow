@@ -115,6 +115,11 @@ def setup(args):
   if not os.getenv("GITHUB_TOKEN"):
     logging.warn("GITHUB_TOKEN not set; you will probably hit Github API "
                  "limits.")
+
+  gcp_credential = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+  if gcp_credential:
+    util.run(["gcloud", "auth", "activate-service-account", "--key-file=" + gcp_credential])
+
   # Initialize a ksonnet app.
   app_name = "kubeflow-test"
   util.run(["ks", "init", app_name,], cwd=args.test_dir)
