@@ -240,7 +240,7 @@
               "--cluster=" + cluster,
               "--zone=" + zone,
               "--project=" + project,
-              "--app_dir=" + srcDir + "/testing/workflows",
+              "--app_dir=" + tfOperatorRoot + "/test/workflows",
               "--component=simple_tfjob",
               "--params=name=simple-tfjob,namespace=" + stepsNamespace,
               "--junit_path=" + artifactsDir + "/junit_e2e.xml",
