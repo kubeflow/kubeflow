@@ -28,7 +28,6 @@ local namespace = import 'param://namespace';
 
 local cloud = import 'param://cloud';
 
-// TODO(jlewi): Make this a parameter
 local jupyterHubServiceType = import 'param://jupyterHubServiceType';
 local jupyterHubImage = import 'param://jupyterHubImage';
 local jupyterHubDebug = import 'param://jupyterHubDebug';
@@ -47,7 +46,6 @@ else jupyter.parts(namespace).jupyterHubConfigMapWithVolumes(diskNames);
 local tfJobImage = import 'param://tfJobImage';
 local tfDefaultImage = import 'param://tfDefaultImage';
 local tfJobUiServiceType = import 'param://tfJobUiServiceType';
-local jupyterHubServiceType = import 'param://jupyterHubServiceType';
 
 // Create a list of the resources needed for a particular disk
 local diskToList = function(diskName) [
@@ -74,7 +72,7 @@ local kubeSpawner = jupyter.parts(namespace).kubeSpawner(jupyterHubAuthenticator
 
 std.prune(k.core.v1.list.new([
   jupyter.parts(namespace).jupyterHubConfigMap(kubeSpawner),
-  jupyter.parts(namespace).jupyterHubService,
+  jupyter.parts(namespace).jupyterHubService(jupyterHubServiceType),
   jupyter.parts(namespace).jupyterHubLoadBalancer(jupyterHubServiceType),
   jupyter.parts(namespace).jupyterHub(jupyterHubImage, jupyterHubDebug),
   jupyter.parts(namespace).jupyterHubRole,
