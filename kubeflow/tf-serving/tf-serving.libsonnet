@@ -34,10 +34,12 @@ local networkSpec = networkPolicy.mixin.spec;
         spec: {
           ports: [
             {
+              name: tf-serving
               port: 9000,
               targetPort: 9000,
             },
             {
+              name: tf-serving-proxy
               port: 8000,
               targetPort: 8000,
             },
