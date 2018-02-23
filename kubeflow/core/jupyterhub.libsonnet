@@ -113,6 +113,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
               "kind:  Mapping",
               "name: tf-hub-0-mapping",
               "prefix: /hub/",
+              "rewrite: /hub/",
               "service: tf-hub-0." + namespace,
             ]),
         },  //annotations
@@ -121,12 +122,11 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
         ports: [
           {
             port: 80,
-            targetPort: 8081,
+            targetPort: 8000,
           },
         ],
         selector: {
           app: "tf-hub",
-          name: "tf-hub-0",
         },
         type: serviceType,
       },
