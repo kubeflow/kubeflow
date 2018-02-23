@@ -64,7 +64,7 @@ def main():
 
   args = parser.parse_args()
 
-  server = "{}.{}.svc.cluster.local".format(args.service_name, args.namespace)
+  server = "_tf-serving._tcp.{}.{}.svc.cluster.local".format(args.service_name, args.namespace)
   channel = implementations.insecure_channel(server, args.port)
   stub = prediction_service_pb2.beta_create_PredictionService_stub(channel)
 
