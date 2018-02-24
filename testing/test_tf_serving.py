@@ -96,15 +96,15 @@ def main():
         num_try += 1
         if num_try > 3:
           raise
-        print('prediction failed: {}. Retrying...'.format(e))
+        logging.info('prediction failed: {}. Retrying...'.format(e))
         time.sleep(5)
       else:
         break
-    print(result)
+    logging.info('Got result: {}'.format(result))
     if args.result_path:
       with open(args.result_path) as f:
         expected_result = f.read()
-        print(expected_result)
+        logging.info('Expected result: {}'.format(expected_result))
         assert(expected_result == result)
   except Exception as e:
     t.failure = "Test failed; " + e.message
