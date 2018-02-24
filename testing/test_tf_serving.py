@@ -17,6 +17,7 @@
 from __future__ import print_function
 
 import logging
+import time
 
 import argparse
 from grpc.beta import implementations
@@ -78,14 +79,17 @@ def main():
   request.model_spec.signature_name = 'predict_images'
   request.inputs['images'].CopyFrom(
       tf.make_tensor_proto(raw_image, shape=[1,]))
+
   num_try = 1
+  result = None
   try:
-    result = str(stub.Predict(request, 20.0))  # 20 secs timeout
+    result = str(stub.Predict(request, 10.0))  # 10 secs timeout
   except Exception as e:
     num_try += 1
     if num_try > 3:
       raise e
     print('prediction failed: {}. Retrying...'.format(e))
+    time.sleep(5)
 
   print(result)
   if args.result_path:
