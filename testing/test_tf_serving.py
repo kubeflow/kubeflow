@@ -80,7 +80,7 @@ def main():
       tf.make_tensor_proto(raw_image, shape=[1,]))
   num_try = 1
   try:
-    resu]lt = str(stub.Predict(request, 20.0))  # 20 secs timeout
+    result = str(stub.Predict(request, 20.0))  # 20 secs timeout
   except Exception as e:
     num_try += 1
     if num_try > 3:
