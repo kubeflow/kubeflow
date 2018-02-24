@@ -82,14 +82,16 @@ def main():
 
   num_try = 1
   result = None
-  try:
-    result = str(stub.Predict(request, 10.0))  # 10 secs timeout
-  except Exception as e:
-    num_try += 1
-    if num_try > 3:
-      raise e
-    print('prediction failed: {}. Retrying...'.format(e))
-    time.sleep(5)
+  while True:
+    try:
+      result = str(stub.Predict(request, 10.0))  # 10 secs timeout
+    except Exception as e:
+      num_try += 1
+      if num_try > 3:
+        raise e
+      print('prediction failed: {}. Retrying...'.format(e))
+      time.sleep(5)
+    break
 
   print(result)
   if args.result_path:
