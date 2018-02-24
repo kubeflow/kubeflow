@@ -136,6 +136,10 @@
                     name: "build-tf-serving-image",
                     template: "build-tf-serving-image",
                   },
+                  {
+                    name: "create-pr-symlink",
+                    template: "create-pr-symlink",
+                  },
                 ],
                 [{
                   name: "deploy-tf-serving",
@@ -290,6 +294,16 @@
               },
             },  // test-tf-serving
 
+            $.parts(namespace, name).e2e(
+              prow_env, bucket, serving_image, testing_image, tf_testing_image, project, cluster, zone
+            ).buildTemplate("create-pr-symlink", [
+              "python",
+              "-m",
+              "kubeflow.testing.prow_artifacts",
+              "--artifacts_dir=" + outputDir,
+              "create_pr_symlink",
+              "--bucket=" + bucket,
+            ]),  // create-pr-symlink
             $.parts(namespace, name).e2e(
               prow_env, bucket, serving_image, testing_image, tf_testing_image, project, cluster, zone
             ).buildTemplate(
