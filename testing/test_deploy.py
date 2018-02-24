@@ -199,12 +199,20 @@ def teardown(args):
   core_api = k8s_client.CoreV1Api(api_client)
   core_api.delete_namespace(args.namespace, {})
 
+def determine_test_name(args):
+  if args.func.__name__ == "teardown":
+    return "teardown"
+  elif args.deploy_tf_serving:
+    return "setup_tf_serving"
+  else:
+    return "setup"
+
 # TODO(jlewi): We should probably make this a generic function in
 # kubeflow.testing.`
-def wrap_test(args, test_name=None):
+def wrap_test(args):
   """Run the tests given by args.func and output artifacts as necessary.
   """
-  test_name = test_name if test_name else args.func.__name__
+  test_name = determine_test_name(args)
   test_case = test_util.TestCase()
   test_case.class_name = "KubeFlow"
   test_case.name = "deploy-kubeflow-" + test_name
@@ -337,8 +345,7 @@ def main():  # pylint: disable=too-many-locals
 
   util.maybe_activate_service_account()
 
-  test_name = "setup" if not args.deploy_tf_serving else "setup_tf_serving"
-  wrap_test(args, test_name)
+  wrap_test(args)
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,
