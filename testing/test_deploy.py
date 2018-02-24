@@ -337,7 +337,7 @@ def main():  # pylint: disable=too-many-locals
 
   util.maybe_activate_service_account()
 
-  test_name = "setup" if not args.tf_serving else "setup_tf_serving"
+  test_name = "setup" if not args.deploy_tf_serving else "setup_tf_serving"
   wrap_test(args, test_name)
 
 if __name__ == "__main__":
