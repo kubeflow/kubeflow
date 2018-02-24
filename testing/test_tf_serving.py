@@ -91,7 +91,8 @@ def main():
         raise e
       print('prediction failed: {}. Retrying...'.format(e))
       time.sleep(5)
-    break
+    else:
+      break
 
   print(result)
   if args.result_path:
