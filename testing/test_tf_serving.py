@@ -78,7 +78,15 @@ def main():
   request.model_spec.signature_name = 'predict_images'
   request.inputs['images'].CopyFrom(
       tf.make_tensor_proto(raw_image, shape=[1,]))
-  result = str(stub.Predict(request, 20.0))  # 20 secs timeout
+  num_try = 1
+  try:
+    resu]lt = str(stub.Predict(request, 20.0))  # 20 secs timeout
+  except Exception as e:
+    num_try += 1
+    if num_try > 3:
+      raise e
+    print('prediction failed: {}. Retrying...'.format(e))
+
   print(result)
   if args.result_path:
     with open(args.result_path) as f:
