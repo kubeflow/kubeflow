@@ -36,7 +36,7 @@
       // The directory containing the kubeflow/kubeflow repo
       local srcDir = srcRootDir + "/kubeflow/kubeflow";
       // The name of the NFS volume claim to use for test files.
-      local nfsVolumeClaim = "kubeflow-testing";
+      local nfsVolumeClaim = "nfs-external";
       // The name to use for the volume to use to contain test data.
       local dataVolume = "kubeflow-test-volume";
       local kubeflowPy = srcDir;
@@ -136,6 +136,10 @@
                     name: "build-tf-serving-image",
                     template: "build-tf-serving-image",
                   },
+                  {
+                    name: "create-pr-symlink",
+                    template: "create-pr-symlink",
+                  },
                 ],
                 [{
                   name: "deploy-tf-serving",
@@ -204,8 +208,8 @@
                 },
                 {
                   name: "SERVING_IMAGE",
-                  value: serving_image,
-                },
+                  value: serving_image + ":" + name,
+                }
               ],
               [{
                 name: "dind",
@@ -243,7 +247,7 @@
                 },
                 {
                   name: "SERVING_IMAGE",
-                  value: serving_image,
+                  value: serving_image + ":" + name,
                 },
               ],
               [{
@@ -290,6 +294,16 @@
               },
             },  // test-tf-serving
 
+            $.parts(namespace, name).e2e(
+              prow_env, bucket, serving_image, testing_image, tf_testing_image, project, cluster, zone
+            ).buildTemplate("create-pr-symlink", [
+              "python",
+              "-m",
+              "kubeflow.testing.prow_artifacts",
+              "--artifacts_dir=" + outputDir,
+              "create_pr_symlink",
+              "--bucket=" + bucket,
+            ]),  // create-pr-symlink
             $.parts(namespace, name).e2e(
               prow_env, bucket, serving_image, testing_image, tf_testing_image, project, cluster, zone
             ).buildTemplate(
