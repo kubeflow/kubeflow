@@ -69,7 +69,7 @@ class KubeServiceProxy(Proxy):
                     'name: tf-hub-0-mapping',
                     'prefix: /hub/',
                     'rewrite: /hub/',
-                    'service: tf-hub-0." + self.namespace])
+                    'service: tf-hub-0.' + self.namespace])
             },
             labels={
                 'heritage': 'jupyterhub',
