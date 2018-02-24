@@ -201,10 +201,10 @@ def teardown(args):
 
 # TODO(jlewi): We should probably make this a generic function in
 # kubeflow.testing.`
-def wrap_test(args):
+def wrap_test(args, test_name=None):
   """Run the tests given by args.func and output artifacts as necessary.
   """
-  test_name = args.func.__name__
+  test_name = test_name if test_name else args.func.__name__
   test_case = test_util.TestCase()
   test_case.class_name = "KubeFlow"
   test_case.name = "deploy-kubeflow-" + test_name
@@ -337,7 +337,8 @@ def main():  # pylint: disable=too-many-locals
 
   util.maybe_activate_service_account()
 
-  wrap_test(args)
+  test_name = "setup" if not args.tf_serving else "setup_tf_serving"
+  wrap_test(args, test_name)
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,
