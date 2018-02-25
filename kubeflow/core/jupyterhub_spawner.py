@@ -5,12 +5,17 @@ from urllib.parse import urlparse
 import escapism
 import socket
 from kubernetes import client
+from kubernetes.client.models import (
+    V1ObjectMeta, V1Service, V1ServiceSpec, V1ServicePort
+)
 from kubespawner.spawner import KubeSpawner
 from jhub_remote_user_authenticator.remote_user_auth import RemoteUserAuthenticator
 from oauthenticator.github import GitHubOAuthenticator
 from jupyterhub.proxy import Proxy
 from jupyterhub.utils import exponential_backoff
 from kubespawner.reflector import NamespacedResourceReflector
+from kubespawner.proxy import ServiceReflector
+from kubespawner.utils import generate_hashed_slug
 from concurrent.futures import ThreadPoolExecutor
 from traitlets import Unicode
 from tornado import gen
@@ -52,7 +57,7 @@ class KubeServiceProxy(Proxy):
         self.core_api = client.CoreV1Api()
         self.extension_api = client.ExtensionsV1beta1Api()
 
-    def make_service(name, routespec, target, data):
+    def make_service(self, name, routespec, target, data):
         """
         Returns a service object 
         """
@@ -197,15 +202,15 @@ class KubeServiceProxy(Proxy):
         # copy everything, because iterating over this directly is not threadsafe
         # FIXME: is this performance intensive? It could be! Measure?
         # FIXME: Validate that this shallow copy *is* thread safe
-        ingress_copy = dict(self.ingress_reflector.ingresses)
+        service_copy = dict(self.service_reflector.services)
         routes = {
-            ingress.metadata.annotations['hub.jupyter.org/proxy-routespec']:
+            service.metadata.annotations['hub.jupyter.org/proxy-routespec']:
             {
-                'routespec': ingress.metadata.annotations['hub.jupyter.org/proxy-routespec'],
-                'target': ingress.metadata.annotations['hub.jupyter.org/proxy-target'],
-                'data': json.loads(ingress.metadata.annotations['hub.jupyter.org/proxy-data'])
+                'routespec': service.metadata.annotations['hub.jupyter.org/proxy-routespec'],
+                'target': service.metadata.annotations['hub.jupyter.org/proxy-target'],
+                'data': json.loads(service.metadata.annotations['hub.jupyter.org/proxy-data'])
             }
-            for ingress in ingress_copy.values()
+            for service in service_copy.values()
         }
 
         return routes
@@ -272,7 +277,7 @@ class KubeFormSpawner(KubeSpawner):
 ###################################################
 c.JupyterHub.ip = '0.0.0.0'
 c.JupyterHub.hub_ip = '0.0.0.0'
-c.JupyterHub.hub_connect_ip = socket.gethostbyname('jupyterhub-api.jupyterhub.svc.cluster.local')
+c.JupyterHub.hub_connect_ip = os.environ['TF_HUB_0_SERVICE_HOST']
 c.JupyterHub.hub_connect_port = 80
 
 # Don't try to cleanup servers on exit - since in general for k8s, we want
@@ -287,6 +292,7 @@ c.JupyterHub.proxy_class = KubeServiceProxy
 ### Spawner Options
 ###################################################
 c.JupyterHub.spawner_class = KubeFormSpawner
+c.KubeSpawner.hub_connect_ip = os.environ['TF_HUB_0_SERVICE_HOST']
 c.KubeSpawner.singleuser_image_spec = 'gcr.io/kubeflow/tensorflow-notebook'
 c.KubeSpawner.cmd = 'start-singleuser.sh'
 c.KubeSpawner.args = ['--allow-root']
