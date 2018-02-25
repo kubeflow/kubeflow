@@ -16,27 +16,27 @@
 // TODO(https://github.com/ksonnet/ksonnet/issues/222): We have to add namespace as an explicit parameter
 // because ksonnet doesn't support inheriting it from the environment yet.
 
-local k = import 'k.libsonnet';
+local k = import "k.libsonnet";
 local core = import "kubeflow/seldon/core.libsonnet";
 
-local name = import 'param://name';
-local namespace = import 'param://namespace';
-local withRbac = import 'param://withRbac';
-local withApife = import 'param://withApife';
+local name = import "param://name";
+local namespace = import "param://namespace";
+local withRbac = import "param://withRbac";
+local withApife = import "param://withApife";
 
 // APIFE
-local apifeImage = import 'param://apifeImage';
-local apifeServiceType = import 'param://apifeServiceType';
+local apifeImage = import "param://apifeImage";
+local apifeServiceType = import "param://apifeServiceType";
 
 // Cluster Manager (The CRD Operator)
-local operatorImage = import 'param://operatorImage';
-local operatorSpringOptsParam = import 'param://operatorSpringOpts';
+local operatorImage = import "param://operatorImage";
+local operatorSpringOptsParam = import "param://operatorSpringOpts";
 local operatorSpringOpts = if operatorSpringOptsParam != "null" then operatorSpringOptsParam else "";
-local operatorJavaOptsParam = import 'param://operatorJavaOpts';
+local operatorJavaOptsParam = import "param://operatorJavaOpts";
 local operatorJavaOpts = if operatorJavaOptsParam != "null" then operatorJavaOptsParam else "";
 
 // Engine
-local engineImage = import 'param://engineImage';
+local engineImage = import "param://engineImage";
 
 // APIFE
 local apife = [
