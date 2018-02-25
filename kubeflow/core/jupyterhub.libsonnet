@@ -170,8 +170,9 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
 
     // image: Image for JupyterHub
     jupyterHub(image, debug): {
+      local util = import "kubeflow/core/util.libsonnet",
       local command =
-          if debug == "true" then [
+          if util.toBool(debug) then [
             "/bin/bash", 
             "-c", 
             "trap : TERM INT; sleep infinity & wait",
