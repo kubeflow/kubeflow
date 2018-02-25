@@ -202,6 +202,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
               {
                 command: command,
                 image: image,
+                imagePullPolicy: "Always",
                 name: "tf-hub",
                 volumeMounts: [
                   {
