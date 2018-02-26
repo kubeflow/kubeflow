@@ -17,25 +17,25 @@
 // TODO(https://github.com/ksonnet/ksonnet/issues/222): We have to add namespace as an explicit parameter
 // because ksonnet doesn't support inheriting it from the environment yet.
 
-local k = import 'k.libsonnet';
-local tfJob = import 'kubeflow/tf-job/tf-job.libsonnet';
+local k = import "k.libsonnet";
+local tfJob = import "kubeflow/tf-job/tf-job.libsonnet";
 
-local name = import 'param://name';
-local namespace = import 'param://namespace';
+local name = import "param://name";
+local namespace = import "param://namespace";
 
-local argsParam = import 'param://args';
+local argsParam = import "param://args";
 local args =
   if argsParam == "null" then
     []
   else
-    std.split(argsParam, ',');
+    std.split(argsParam, ",");
 
-local image = import 'param://image';
-local imageGpu = import 'param://image_gpu';
-local numMasters = import 'param://num_masters';
-local numPs = import 'param://num_ps';
-local numWorkers = import 'param://num_workers';
-local numGpus = import 'param://num_gpus';
+local image = import "param://image";
+local imageGpu = import "param://image_gpu";
+local numMasters = import "param://num_masters";
+local numPs = import "param://num_ps";
+local numWorkers = import "param://num_workers";
+local numGpus = import "param://num_gpus";
 
 local workerSpec = if numGpus > 0 then
   tfJob.parts.tfJobReplica("WORKER", numWorkers, args, imageGpu, numGpus)

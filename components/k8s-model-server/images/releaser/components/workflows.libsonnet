@@ -209,7 +209,7 @@
                 {
                   name: "SERVING_IMAGE",
                   value: serving_image + ":" + name,
-                }
+                },
               ],
               [{
                 name: "dind",

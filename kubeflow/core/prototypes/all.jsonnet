@@ -13,7 +13,7 @@
 // @optionalParam jupyterHubImage string gcr.io/kubeflow/jupyterhub-k8s:1.0.1 The image to use for JupyterHub.
 // @optionalParam jupyterHubAuthenticator string null The authenticator to use
 
-local k = import 'k.libsonnet';
+local k = import "k.libsonnet";
 local all = import "kubeflow/core/all.libsonnet";
 
 std.prune(k.core.v1.list.new(all.parts(params).all))

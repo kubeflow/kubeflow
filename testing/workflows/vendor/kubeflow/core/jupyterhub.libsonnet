@@ -146,7 +146,7 @@ c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
 
       local volumeMounts = std.map(function(v)
         {
-          mountPath: '/mnt/' + v,
+          mountPath: "/mnt/" + v,
           name: v,
         }, volumeClaims),
 
