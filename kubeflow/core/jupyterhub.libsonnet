@@ -134,7 +134,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
         ports: [
           {
             port: 80,
-            targetPort: 8081,
+            targetPort: 8000,
           },
         ],
         selector: {
@@ -170,7 +170,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
         ports: [
           {
             port: 80,
-            targetPort: 8081,
+            targetPort: 8000,
           },
         ],
         selector: {
