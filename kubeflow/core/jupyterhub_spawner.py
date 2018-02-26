@@ -124,6 +124,8 @@ class KubeServiceProxy(Proxy):
         # 'data' is JSON encoded and put in an annotation - we don't need to query for it
         if data.get('hub') is not None:
             return
+        if data.get('user') is not None:
+            return
 
         safe_name = self.safe_name_for_routespec(routespec).lower()
         service = self.make_service(
