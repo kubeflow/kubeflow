@@ -52,3 +52,14 @@ Make sure the Argo workflow completes successfully.
 Check the junit files to make sure there were no actual test failures.
 The junit files will be in `gs://kubeflow-releasing-artifacts`.
 
+## Update the ksonnet configs
+
+Create a PR to update the ksonnet configs to use the latest images built in the previous steps.
+
+Presubmit tests should verify that the ksonnet configs work.
+
+Submit the PR.
+
+Wait for a passing postsubmit of the submitted PR.
+
+Tag the commit corresponding to the passing postsubmit with the appropriate tags for the release.
