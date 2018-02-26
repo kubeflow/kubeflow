@@ -22,6 +22,7 @@ from tornado import gen
 from tornado.concurrent import run_on_executor
 
 class KubeServiceProxy(Proxy):
+    should_start = False
     namespace = Unicode(
         config=True,
         help="""
@@ -72,8 +73,8 @@ class KubeServiceProxy(Proxy):
                     'apiVersion: ambassador/v0',
                     'kind:  Mapping',
                     'name: tf-hub-0-mapping',
-                    'prefix: /hub/',
-                    'rewrite: /hub/',
+                    'prefix: /user/',
+                    'rewrite: /user/',
                     'service: tf-hub-0.' + self.namespace])
             },
             labels={
