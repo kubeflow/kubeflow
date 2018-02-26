@@ -151,7 +151,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
         labels: {
           app: "tf-hub",
         },
-        name: "tf-hub-0",
+        name: "tf-hub-user",
         namespace: namespace,
         annotations: {
           "getambassador.io/config":
@@ -162,7 +162,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
               "name: tf-hub-0-mapping",
               "prefix: /user/",
               "rewrite: /user/",
-              "service: tf-hub-0." + namespace,
+              "service: tf-hub-user." + namespace,
             ]),
         },  //annotations
       },

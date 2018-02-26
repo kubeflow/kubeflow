@@ -296,7 +296,7 @@ c.JupyterHub.proxy_class = KubeServiceProxy
 ### Spawner Options
 ###################################################
 c.JupyterHub.spawner_class = KubeFormSpawner
-c.KubeSpawner.hub_connect_ip = os.environ['TF_HUB_0_SERVICE_HOST']
+c.KubeSpawner.hub_connect_ip = os.environ['TF_HUB_USER_SERVICE_HOST']
 c.KubeSpawner.singleuser_image_spec = 'gcr.io/kubeflow/tensorflow-notebook'
 c.KubeSpawner.cmd = 'start-singleuser.sh'
 c.KubeSpawner.args = ['--allow-root']
