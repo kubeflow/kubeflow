@@ -14,32 +14,32 @@
 // TODO(https://github.com/ksonnet/ksonnet/issues/222): We have to add namespace as an explicit parameter
 // because ksonnet doesn't support inheriting it from the environment yet.
 
-local k = import 'k.libsonnet';
+local k = import "k.libsonnet";
 local jupyter = import "kubeflow/core/jupyterhub.libsonnet";
 local tfjob = import "kubeflow/core/tf-job.libsonnet";
 local nfs = import "kubeflow/core/nfs.libsonnet";
 
-local name = import 'param://name';
-local namespace = import 'param://namespace';
+local name = import "param://name";
+local namespace = import "param://namespace";
 
-local cloud = import 'param://cloud';
+local cloud = import "param://cloud";
 
 // TODO(jlewi): Make this a parameter
-local jupyterHubImage = 'gcr.io/kubeflow/jupyterhub:1.0';
-local diskParam = import 'param://disks';
+local jupyterHubImage = "gcr.io/kubeflow/jupyterhub:1.0";
+local diskParam = import "param://disks";
 
 local diskNames = if diskParam != "null" && std.length(diskParam) > 0 then
-  std.split(diskParam, ',')
+  std.split(diskParam, ",")
 else [];
 
 local jupyterConfigMap = if std.length(diskNames) == 0 then
   jupyter.parts(namespace).jupyterHubConfigMap
 else jupyter.parts(namespace).jupyterHubConfigMapWithVolumes(diskNames);
 
-local tfJobImage = import 'param://tfJobImage';
-local tfDefaultImage = import 'param://tfDefaultImage';
-local tfJobUiServiceType = import 'param://tfJobUiServiceType';
-local jupyterHubServiceType = import 'param://jupyterHubServiceType';
+local tfJobImage = import "param://tfJobImage";
+local tfDefaultImage = import "param://tfDefaultImage";
+local tfJobUiServiceType = import "param://tfJobUiServiceType";
+local jupyterHubServiceType = import "param://jupyterHubServiceType";
 
 // Create a list of the resources needed for a particular disk
 local diskToList = function(diskName) [
