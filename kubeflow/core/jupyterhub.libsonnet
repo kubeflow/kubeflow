@@ -8,6 +8,7 @@
   all(params):: [
     $.parts(params.namespace).jupyterHubConfigMap(params.kubeSpawner),
     $.parts(params.namespace).jupyterHubService(params.jupyterHubServiceType),
+    $.parts(params.namespace).jupyterHubUserService(params.jupyterHubServiceType),
     $.parts(params.namespace).jupyterHubLoadBalancer(params.jupyterHubServiceType),
     $.parts(params.namespace).jupyterHub(params.jupyterHubImage, params.jupyterHubDebug),
     $.parts(params.namespace).jupyterHubRole,
@@ -125,6 +126,42 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
               "name: tf-hub-0-mapping",
               "prefix: /hub/",
               "rewrite: /hub/",
+              "service: tf-hub-0." + namespace,
+            ]),
+        },  //annotations
+      },
+      spec: {
+        ports: [
+          {
+            port: 80,
+            targetPort: 8081,
+          },
+        ],
+        selector: {
+          app: "tf-hub",
+        },
+        type: serviceType,
+      },
+    },
+
+    jupyterHubUserService(serviceType): {
+      apiVersion: "v1",
+      kind: "Service",
+      metadata: {
+        labels: {
+          app: "tf-hub",
+        },
+        name: "tf-hub-0",
+        namespace: namespace,
+        annotations: {
+          "getambassador.io/config":
+            std.join("\n", [
+              "---",
+              "apiVersion: ambassador/v0",
+              "kind:  Mapping",
+              "name: tf-hub-0-mapping",
+              "prefix: /user/",
+              "rewrite: /user/",
               "service: tf-hub-0." + namespace,
             ]),
         },  //annotations
