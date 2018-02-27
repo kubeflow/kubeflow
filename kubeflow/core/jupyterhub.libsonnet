@@ -131,7 +131,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
               "kind:  Mapping",
               "name: tf-hub-0-mapping",
               "prefix: /user/",
-              "rewrite: /user/",
+              "rewrite: /hub/user/",
               "service: tf-hub-0." + namespace,
             ]),
         },  //annotations
