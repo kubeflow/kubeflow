@@ -284,7 +284,7 @@ class KubeFormSpawner(KubeSpawner):
 c.JupyterHub.ip = '0.0.0.0'
 c.JupyterHub.hub_ip = '0.0.0.0'
 c.JupyterHub.hub_connect_ip = os.environ['TF_HUB_0_SERVICE_HOST']
-c.JupyterHub.hub_connect_port = 8081
+c.JupyterHub.hub_connect_port = 80
 
 # Don't try to cleanup servers on exit - since in general for k8s, we want
 # the hub to be able to restart without losing user containers
