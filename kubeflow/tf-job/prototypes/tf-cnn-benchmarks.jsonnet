@@ -19,19 +19,19 @@
 // TODO(https://github.com/ksonnet/ksonnet/issues/222): We have to add namespace as an explicit parameter
 // because ksonnet doesn't support inheriting it from the environment yet.
 
-local k = import 'k.libsonnet';
+local k = import "k.libsonnet";
 local deployment = k.extensions.v1beta1.deployment;
 local container = deployment.mixin.spec.template.spec.containersType;
 local podTemplate = k.extensions.v1beta1.podTemplate;
 
-local tfJob = import 'kubeflow/tf-job/tf-job.libsonnet';
+local tfJob = import "kubeflow/tf-job/tf-job.libsonnet";
 
-local name = import 'param://name';
-local namespace = import 'param://namespace';
+local name = import "param://name";
+local namespace = import "param://namespace";
 
-local numGpus = import 'param://num_gpus';
-local batchSize = import 'param://batch_size';
-local model = import 'param://model';
+local numGpus = import "param://num_gpus";
+local batchSize = import "param://batch_size";
+local model = import "param://model";
 
 local args = [
                "python",
@@ -42,10 +42,10 @@ local args = [
                "--flush_stdout=true",
              ] +
              if numGpus == 0 then
-               # We need to set num_gpus=1 even if not using GPUs because otherwise the devie list
-               # is empty because of this code
-               # https://github.com/tensorflow/benchmarks/blob/master/scripts/tf_cnn_benchmarks/benchmark_cnn.py#L775
-               # We won't actually use GPUs because based on other flags no ops will be assigned to GPus.
+               // We need to set num_gpus=1 even if not using GPUs because otherwise the devie list
+               // is empty because of this code
+               // https://github.com/tensorflow/benchmarks/blob/master/scripts/tf_cnn_benchmarks/benchmark_cnn.py#L775
+               // We won't actually use GPUs because based on other flags no ops will be assigned to GPus.
                [
                  "--num_gpus=1",
                  "--local_parameter_device=cpu",
@@ -58,11 +58,11 @@ local args = [
                ]
 ;
 
-local image = import 'param://image';
-local imageGpu = import 'param://image_gpu';
-local numPs = import 'param://num_ps';
-local numWorkers = import 'param://num_workers';
-local numGpus = import 'param://num_gpus';
+local image = import "param://image";
+local imageGpu = import "param://image_gpu";
+local numPs = import "param://num_ps";
+local numWorkers = import "param://num_workers";
+local numGpus = import "param://num_gpus";
 
 local workerSpec = if numGpus > 0 then
   tfJob.parts.tfJobReplica("WORKER", numWorkers, args, imageGpu, numGpus)
