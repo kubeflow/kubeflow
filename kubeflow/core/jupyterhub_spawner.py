@@ -17,7 +17,7 @@ from kubespawner.reflector import NamespacedResourceReflector
 from kubespawner.proxy import ServiceReflector
 from kubespawner.utils import generate_hashed_slug
 from concurrent.futures import ThreadPoolExecutor
-from traitlets import Unicode, Dict
+from traitlets import Unicode
 from tornado import gen
 from tornado.concurrent import run_on_executor
 
@@ -94,6 +94,7 @@ class KubeServiceProxy(Proxy):
     
         target_ip = target_parts.hostname
         target_port = target_parts.port
+        selector = {'name': name}
     
         # Make service object
         service = V1Service(
@@ -101,7 +102,7 @@ class KubeServiceProxy(Proxy):
             metadata=meta,
             spec=V1ServiceSpec(
                 ports=[V1ServicePort(port=80, target_port=target_port)],
-                selector=Dict(name=name)
+                selector=selector
             )
         )
     
