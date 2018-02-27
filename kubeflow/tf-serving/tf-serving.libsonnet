@@ -39,7 +39,7 @@ local networkSpec = networkPolicy.mixin.spec;
                 "name: tfserving-mapping-" + name + "-get",
                 "prefix: /models/" + name + "/",
                 "rewrite: /",
-		"method: GET",
+                "method: GET",
                 "service: " + name + "." + namespace + ":8000",
                 "---",
                 "apiVersion: ambassador/v0",
@@ -47,7 +47,7 @@ local networkSpec = networkPolicy.mixin.spec;
                 "name: tfserving-mapping-" + name + "-post",
                 "prefix: /models/" + name + "/",
                 "rewrite: /model/" + name + ":predict",
-		"method: POST",
+                "method: POST",
                 "service: " + name + "." + namespace + ":8000",
               ]),
           },  //annotations
