@@ -172,7 +172,6 @@
                   },
                 ],
                 image: ambassadorImage,
-                imagePullPolicy: "Always",
                 livenessProbe: {
                   httpGet: {
                     path: "/ambassador/v0/check_alive",

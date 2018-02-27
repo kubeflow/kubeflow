@@ -4,6 +4,17 @@
   //
   // TODO(jlewi): We should refactor this to have multiple prototypes; having 1 without any extra volumes and than
   // a with volumes option.
+
+  all(params):: [
+    $.parts(params.namespace).jupyterHubConfigMap(params.kubeSpawner),
+    $.parts(params.namespace).jupyterHubService,
+    $.parts(params.namespace).jupyterHubLoadBalancer(params.jupyterHubServiceType),
+    $.parts(params.namespace).jupyterHub(params.jupyterHubImage),
+    $.parts(params.namespace).jupyterHubRole,
+    $.parts(params.namespace).jupyterHubServiceAccount,
+    $.parts(params.namespace).jupyterHubRoleBinding,
+  ],
+
   parts(namespace):: {
     kubeSpawner(authenticator, volumeClaims=[]): {
       // TODO(jlewi): We should make the default Docker image configurable
@@ -12,10 +23,10 @@
 
       authenticatorOptions:: {
 
-        ### Authenticator Options
+        //## Authenticator Options
         local kubeConfigDummyAuthenticator = "c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'",
 
-        # This configuration allows us to use the id provided by IAP.
+        // This configuration allows us to use the id provided by IAP.
         local kubeConfigIAPAuthenticator = @"c.JupyterHub.authenticator_class ='jhub_remote_user_authenticator.remote_user_auth.RemoteUserAuthenticator'
 c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
 
@@ -39,7 +50,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
 
         local volumeMounts = std.map(function(v)
           {
-            mountPath: '/mnt/' + v,
+            mountPath: "/mnt/" + v,
             name: v,
           }, volumeClaims),
 
@@ -85,7 +96,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
 
       local volumeMounts = std.map(function(v)
         {
-          mountPath: '/mnt/' + v,
+          mountPath: "/mnt/" + v,
           name: v,
         }, volumeClaims),
 

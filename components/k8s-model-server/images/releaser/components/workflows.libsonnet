@@ -36,12 +36,12 @@
       // The directory containing the kubeflow/kubeflow repo
       local srcDir = srcRootDir + "/kubeflow/kubeflow";
       // The name of the NFS volume claim to use for test files.
-      local nfsVolumeClaim = "kubeflow-testing";
+      local nfsVolumeClaim = "nfs-external";
       // The name to use for the volume to use to contain test data.
       local dataVolume = "kubeflow-test-volume";
       local kubeflowPy = srcDir;
       // The directory within the kubeflow_testing submodule containing
-      // py scripts to use.      
+      // py scripts to use.
       local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
       {
         // Build an Argo template to execute a particular command.
@@ -87,7 +87,7 @@
               },
             ],
           },
-          sidecars: sidecars
+          sidecars: sidecars,
         },  // buildTemplate
 
         apiVersion: "argoproj.io/v1alpha1",
@@ -136,6 +136,10 @@
                     name: "build-tf-serving-image",
                     template: "build-tf-serving-image",
                   },
+                  {
+                    name: "create-pr-symlink",
+                    template: "create-pr-symlink",
+                  },
                 ],
                 [{
                   name: "deploy-tf-serving",
@@ -144,7 +148,7 @@
                 [{
                   name: "test-tf-serving",
                   template: "test-tf-serving",
-                }]
+                }],
               ],
             },
             {
@@ -172,8 +176,8 @@
                   srcRootDir,
                 ],
                 env: prow_env + [{
-                  "name": "EXTRA_REPOS",
-                  "value": "kubeflow/testing@HEAD",
+                  name: "EXTRA_REPOS",
+                  value: "kubeflow/testing@HEAD",
                 }],
                 image: testing_image,
                 volumeMounts: [
@@ -185,16 +189,17 @@
               },
             },  // checkout
             $.parts(namespace, name).e2e(
-                prow_env, bucket, serving_image, testing_image, tf_testing_image, project, cluster, zone).buildTemplate(
+              prow_env, bucket, serving_image, testing_image, tf_testing_image, project, cluster, zone
+            ).buildTemplate(
               "build-tf-serving-image",
               [
                 "sh",
                 "-c",
                 "until docker ps; do sleep 3; done; " +
                 "docker build --pull -t ${SERVING_IMAGE} " +
-                    srcRootDir + "/kubeflow/kubeflow/components/k8s-model-server/docker/; " +
-                "gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}; "  +
-                "gcloud docker -- push ${SERVING_IMAGE}"
+                srcRootDir + "/kubeflow/kubeflow/components/k8s-model-server/docker/; " +
+                "gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}; " +
+                "gcloud docker -- push ${SERVING_IMAGE}",
               ],
               [
                 {
@@ -203,8 +208,8 @@
                 },
                 {
                   name: "SERVING_IMAGE",
-                  value: serving_image,
-                }
+                  value: serving_image + ":" + name,
+                },
               ],
               [{
                 name: "dind",
@@ -217,7 +222,8 @@
             ),  // build-tf-serving-image
 
             $.parts(namespace, name).e2e(
-                prow_env, bucket, serving_image, testing_image, tf_testing_image, project, cluster, zone).buildTemplate(
+              prow_env, bucket, serving_image, testing_image, tf_testing_image, project, cluster, zone
+            ).buildTemplate(
               "deploy-tf-serving",
               [
                 "python",
@@ -241,7 +247,7 @@
                 },
                 {
                   name: "SERVING_IMAGE",
-                  value: serving_image,
+                  value: serving_image + ":" + name,
                 },
               ],
               [{
@@ -269,8 +275,8 @@
                 ],
                 env: prow_env + [
                   {
-                    "name": "EXTRA_REPOS",
-                    "value": "tensorflow/k8s@HEAD;kubeflow/testing@HEAD",
+                    name: "EXTRA_REPOS",
+                    value: "tensorflow/k8s@HEAD;kubeflow/testing@HEAD",
                   },
                   {
                     name: "PYTHONPATH",
@@ -287,9 +293,20 @@
                 workingDir: srcDir + "/components/k8s-model-server/inception-client",
               },
             },  // test-tf-serving
-            
+
             $.parts(namespace, name).e2e(
-                prow_env, bucket, serving_image, testing_image, tf_testing_image, project, cluster, zone).buildTemplate(
+              prow_env, bucket, serving_image, testing_image, tf_testing_image, project, cluster, zone
+            ).buildTemplate("create-pr-symlink", [
+              "python",
+              "-m",
+              "kubeflow.testing.prow_artifacts",
+              "--artifacts_dir=" + outputDir,
+              "create_pr_symlink",
+              "--bucket=" + bucket,
+            ]),  // create-pr-symlink
+            $.parts(namespace, name).e2e(
+              prow_env, bucket, serving_image, testing_image, tf_testing_image, project, cluster, zone
+            ).buildTemplate(
               "copy-artifacts",
               [
                 "python",
@@ -301,7 +318,8 @@
               ]
             ),  // copy-artifacts
             $.parts(namespace, name).e2e(
-                prow_env, bucket, serving_image, testing_image, tf_testing_image, project, cluster, zone).buildTemplate(
+              prow_env, bucket, serving_image, testing_image, tf_testing_image, project, cluster, zone
+            ).buildTemplate(
               "teardown",
               [
                 "python",
