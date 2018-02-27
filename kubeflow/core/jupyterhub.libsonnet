@@ -126,13 +126,6 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
               "prefix: /hub/",
               "rewrite: /hub/",
               "service: tf-hub-0." + namespace,
-              "---",
-              "apiVersion: ambassador/v0",
-              "kind:  Mapping",
-              "name: tf-hub-0-mapping",
-              "prefix: /user/",
-              "rewrite: /hub/user/",
-              "service: tf-hub-0." + namespace,
             ]),
         },  //annotations
       },
@@ -218,11 +211,6 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
                   },
                 ],
                 ports: [
-                  // Port 8000 is used by the hub to accept incoming requests.
-                  {
-                    containerPort: 8000,
-                  },
-                  // Port 8081 accepts callbacks from the individual Jupyter pods.
                   {
                     containerPort: 8081,
                   },
