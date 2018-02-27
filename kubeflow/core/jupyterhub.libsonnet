@@ -24,10 +24,10 @@
 
       authenticatorOptions:: {
 
-        ### Authenticator Options
+        //## Authenticator Options
         local kubeConfigDummyAuthenticator = "c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'",
 
-        # This configuration allows us to use the id provided by IAP.
+        // This configuration allows us to use the id provided by IAP.
         local kubeConfigIAPAuthenticator = @"c.JupyterHub.authenticator_class ='jhub_remote_user_authenticator.remote_user_auth.RemoteUserAuthenticator'
 c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
 
@@ -51,7 +51,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
 
         local volumeMounts = std.map(function(v)
           {
-            mountPath: '/mnt/' + v,
+            mountPath: "/mnt/" + v,
             name: v,
           }, volumeClaims),
 
@@ -97,7 +97,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
 
       local volumeMounts = std.map(function(v)
         {
-          mountPath: '/mnt/' + v,
+          mountPath: "/mnt/" + v,
           name: v,
         }, volumeClaims),
 
