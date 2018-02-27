@@ -75,7 +75,7 @@ class KubeServiceProxy(Proxy):
                     'name: tf-hub-0-mapping',
                     'prefix: /user/',
                     'rewrite: /user/',
-                    'service: tf-hub-0.' + self.namespace])
+                    'service: ' + name + '.' + self.namespace])
             },
             labels={
                 'heritage': 'jupyterhub',
@@ -100,7 +100,7 @@ class KubeServiceProxy(Proxy):
             kind='Service',
             metadata=meta,
             spec=V1ServiceSpec(
-                ports=[V1ServicePort(port=target_port, target_port=target_port)]
+                ports=[V1ServicePort(port=80, target_port=target_port)]
             )
         )
     
@@ -112,8 +112,9 @@ class KubeServiceProxy(Proxy):
 
     def safe_name_for_routespec(self, routespec):
         safe_chars = set(string.ascii_lowercase + string.digits)
+        parts = routespec.split('/')
         safe_name = generate_hashed_slug(
-            'jupyter-' + escapism.escape(routespec, safe=safe_chars, escape_char='-') + '-route'
+            'jupyter-' + escapism.escape(parts[1], safe=safe_chars, escape_char='-') + '-route'
         )
         return safe_name
 
