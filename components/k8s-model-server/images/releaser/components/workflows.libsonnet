@@ -19,9 +19,39 @@
       )
     else [],
 
-  parts(namespace, name):: {
+
+  // Default parameters.
+  defaultParams:: {
+      bucket: "mlkube-testing_temp",
+      commit: "master",
+      name: "new9",
+      namespace: "kubeflow-test-infra",
+      prow_env: "REPO_OWNER=kubeflow,REPO_NAME=kubeflow,PULL_BASE_SHA=master",
+      serving_image: "gcr.io/mlkube-testing/model-server:1.0",
+      testing_image: "gcr.io/mlkube-testing/kubeflow-testing",
+      tf_testing_image: "gcr.io/kubeflow-ci/tf-test-worker:1.0",
+      project: "mlkube-testing",
+      cluster: "kubeflow-testing",
+      zone: "us-east1-d",
+  },
+
+  parts(namespace, name, overrides={}):: {
     // Workflow to run the e2e test.
-    e2e(prow_env, bucket, serving_image, testing_image, tf_testing_image, project, cluster, zone):
+    e2e::
+      local params = $.defaultParams + overrides;
+
+      local namespace = params.namespace;
+      local serving_image = params.serving_image;
+      local testing_image = params.testing_image;
+      local tf_testing_image = params.tf_testing_image;
+      local project = params.project;
+      local cluster = params.cluster;
+      local zone = params.zone;
+      local name = params.name;
+
+      local prow_env = $.parseEnv(params.prow_env);
+      local bucket = params.bucket;
+
       local stepsNamespace = name;
       // mountPath is the directory where the volume to store the test data
       // should be mounted.
@@ -43,11 +73,11 @@
       // The directory within the kubeflow_testing submodule containing
       // py scripts to use.
       local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
-      {
-        // Build an Argo template to execute a particular command.
-        // step_name: Name for the template
-        // command: List to pass as the container command.
-        buildTemplate(step_name, command, env_vars=[], sidecars=[]):: {
+
+      // Build an Argo template to execute a particular command.
+      // step_name: Name for the template
+      // command: List to pass as the container command.
+      local buildTemplate(step_name, command, env_vars=[], sidecars=[])= {
           name: step_name,
           container: {
             command: command,
@@ -88,8 +118,9 @@
             ],
           },
           sidecars: sidecars,
-        },  // buildTemplate
+        };  // buildTemplate
 
+      {       
         apiVersion: "argoproj.io/v1alpha1",
         kind: "Workflow",
         metadata: {
@@ -184,9 +215,7 @@
                 ],
               },
             },  // checkout
-            $.parts(namespace, name).e2e(
-              prow_env, bucket, serving_image, testing_image, tf_testing_image, project, cluster, zone
-            ).buildTemplate(
+            buildTemplate(
               "build-tf-serving-image",
               [
                 "sh",
@@ -217,9 +246,7 @@
               }],
             ),  // build-tf-serving-image
 
-            $.parts(namespace, name).e2e(
-              prow_env, bucket, serving_image, testing_image, tf_testing_image, project, cluster, zone
-            ).buildTemplate(
+            buildTemplate(
               "deploy-tf-serving",
               [
                 "python",
@@ -290,9 +317,7 @@
               },
             },  // test-tf-serving
 
-            $.parts(namespace, name).e2e(
-              prow_env, bucket, serving_image, testing_image, tf_testing_image, project, cluster, zone
-            ).buildTemplate(
+            buildTemplate(
               "copy-artifacts",
               [
                 "python",
@@ -303,9 +328,7 @@
                 "--bucket=" + bucket,
               ]
             ),  // copy-artifacts
-            $.parts(namespace, name).e2e(
-              prow_env, bucket, serving_image, testing_image, tf_testing_image, project, cluster, zone
-            ).buildTemplate(
+            buildTemplate(
               "teardown",
               [
                 "python",
