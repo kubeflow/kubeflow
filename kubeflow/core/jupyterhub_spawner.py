@@ -17,7 +17,7 @@ from kubespawner.reflector import NamespacedResourceReflector
 from kubespawner.proxy import ServiceReflector
 from kubespawner.utils import generate_hashed_slug
 from concurrent.futures import ThreadPoolExecutor
-from traitlets import Unicode
+from traitlets import Unicode, Dict
 from tornado import gen
 from tornado.concurrent import run_on_executor
 
@@ -72,7 +72,7 @@ class KubeServiceProxy(Proxy):
                     '---',
                     'apiVersion: ambassador/v0',
                     'kind:  Mapping',
-                    'name: tf-hub-0-mapping',
+                    'name: ' + name + '-mapping',
                     'prefix: /user/',
                     'rewrite: /user/',
                     'service: ' + name + '.' + self.namespace])
@@ -100,7 +100,8 @@ class KubeServiceProxy(Proxy):
             kind='Service',
             metadata=meta,
             spec=V1ServiceSpec(
-                ports=[V1ServicePort(port=80, target_port=target_port)]
+                ports=[V1ServicePort(port=80, target_port=target_port)],
+                selector=Dict(name=name)
             )
         )
     
@@ -114,7 +115,7 @@ class KubeServiceProxy(Proxy):
         safe_chars = set(string.ascii_lowercase + string.digits)
         parts = routespec.split('/')
         safe_name = generate_hashed_slug(
-            'jupyter-' + escapism.escape(parts[1], safe=safe_chars, escape_char='-') + '-route'
+            'jupyter-' + escapism.escape(parts[2], safe=safe_chars, escape_char='-') 
         )
         return safe_name
 
