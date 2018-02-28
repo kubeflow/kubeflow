@@ -24,10 +24,15 @@
   defaultParams:: {
       bucket: "mlkube-testing_temp",
       commit: "master",
+      // Name of the secret containing GCP credentials.
+      gcpCredentialsSecretName: "kubeflow-testing-credentials",
       name: "new9",
       namespace: "kubeflow-test-infra",
+       // The name of the NFS volume claim to use for test files.
+      nfsVolumeClaim: "kubeflow-testing",
       prow_env: "REPO_OWNER=kubeflow,REPO_NAME=kubeflow,PULL_BASE_SHA=master",
       serving_image: "gcr.io/mlkube-testing/model-server:1.0",
+      // The default image to use for the steps in the Argo workflow.
       testing_image: "gcr.io/mlkube-testing/kubeflow-testing",
       tf_testing_image: "gcr.io/kubeflow-ci/tf-test-worker:1.0",
       project: "mlkube-testing",
@@ -65,8 +70,7 @@
       local srcRootDir = testDir + "/src";
       // The directory containing the kubeflow/kubeflow repo
       local srcDir = srcRootDir + "/kubeflow/kubeflow";
-      // The name of the NFS volume claim to use for test files.
-      local nfsVolumeClaim = "kubeflow-testing";
+     
       // The name to use for the volume to use to contain test data.
       local dataVolume = "kubeflow-test-volume";
       local kubeflowPy = srcDir;
@@ -140,13 +144,13 @@
             {
               name: "gcp-credentials",
               secret: {
-                secretName: "kubeflow-testing-credentials",
+                secretName: params.gcpCredentialsSecretName,
               },
             },
             {
               name: dataVolume,
               persistentVolumeClaim: {
-                claimName: nfsVolumeClaim,
+                claimName: params.nfsVolumeClaim,
               },
             },
           ],  // volumes
@@ -224,6 +228,8 @@
                 "docker build --pull -t ${SERVING_IMAGE} " +
                 srcRootDir + "/kubeflow/kubeflow/components/k8s-model-server/docker/; " +
                 "gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}; " +
+                //"tail -f /dev/null"
+                // DO NOT SUBMIT
                 "gcloud docker -- push ${SERVING_IMAGE}",
               ],
               [
