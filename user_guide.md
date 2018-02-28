@@ -39,6 +39,12 @@ Create the Kubeflow core component. The core component includes
 NAMESPACE=kubeflow
 kubectl create namespace ${NAMESPACE}
 ks generate core kubeflow-core --name=kubeflow-core --namespace=${NAMESPACE}
+
+# Enable collection of anonymous usage metrics
+# Skip this step if you don't want to enable collection.
+# Or set reportUsage to false (the default).
+ks param set kubeflow-core reportUsage true
+ks param set kubeflow-core usageId $(uuidgen)
 ```
   * Feel free to change the namespace to a value that better suits your kubernetes cluster.
 
@@ -84,6 +90,15 @@ This is entirely voluntary and you can opt out by doing the following
 
 ```
 ks param set kubeflow-core reportUsage false
+
+# Delete any existing deployments of spartakus
+kubectl delete -n ${NAMESPACE} deploy spartakus-volunteer
+```
+
+To explictly enable usage reporting repeat the above steps setting reportUsage to `true`
+
+```
+ks param set kubeflow-core reportUsage true
 
 # Delete any existing deployments of spartakus
 kubectl delete -n ${NAMESPACE} deploy spartakus-volunteer
