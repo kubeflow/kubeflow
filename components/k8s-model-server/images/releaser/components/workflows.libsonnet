@@ -29,7 +29,7 @@
       name: "new9",
       namespace: "kubeflow-test-infra",
        // The name of the NFS volume claim to use for test files.
-      nfsVolumeClaim: "kubeflow-testing",
+      nfsVolumeClaim: "nfs-external",
       prow_env: "REPO_OWNER=kubeflow,REPO_NAME=kubeflow,PULL_BASE_SHA=master",
       serving_image: "gcr.io/mlkube-testing/model-server:1.0",
       // The default image to use for the steps in the Argo workflow.
