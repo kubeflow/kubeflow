@@ -323,6 +323,14 @@
                 workingDir: srcDir + "/components/k8s-model-server/inception-client",
               },
             },  // test-tf-serving
+            buildTemplate("create-pr-symlink", [
+              "python",
+              "-m",
+              "kubeflow.testing.prow_artifacts",
+              "--artifacts_dir=" + outputDir,
+              "create_pr_symlink",
+              "--bucket=" + bucket,
+            ]),  // create-pr-symlink
             buildTemplate(
               "copy-artifacts",
               [
