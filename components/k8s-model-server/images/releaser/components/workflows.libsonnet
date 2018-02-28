@@ -231,8 +231,6 @@
                 "docker build --pull -t ${SERVING_IMAGE} " +
                 srcRootDir + "/kubeflow/kubeflow/components/k8s-model-server/docker/; " +
                 "gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}; " +
-                //"tail -f /dev/null"
-                // DO NOT SUBMIT
                 "gcloud docker -- push ${SERVING_IMAGE}",
               ],
               [
