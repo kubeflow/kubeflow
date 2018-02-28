@@ -1,7 +1,7 @@
 local params = std.extVar("__ksonnet/params").components.workflows;
 
-local k = import 'k.libsonnet';
-local workflows = import 'workflows.libsonnet';
+local k = import "k.libsonnet";
+local workflows = import "workflows.libsonnet";
 local namespace = params.namespace;
 
 // TODO(jlewi): Can we make name default so some random unique value?

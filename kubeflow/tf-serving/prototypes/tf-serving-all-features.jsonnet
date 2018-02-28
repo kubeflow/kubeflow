@@ -11,14 +11,14 @@
 // TODO(https://github.com/ksonnet/ksonnet/issues/222): We have to add namespace as an explicit parameter
 // because ksonnet doesn't support inheriting it from the environment yet.
 
-local k = import 'k.libsonnet';
-local tfServing = import 'kubeflow/tf-serving/tf-serving.libsonnet';
+local k = import "k.libsonnet";
+local tfServing = import "kubeflow/tf-serving/tf-serving.libsonnet";
 
-local name = import 'param://name';
-local namespace = import 'param://namespace';
-local modelPath = import 'param://model_path';
-local modelServerImage = import 'param://model_server_image';
-local httpProxyImage = import 'param://http_proxy_image';
+local name = import "param://name";
+local namespace = import "param://namespace";
+local modelPath = import "param://model_path";
+local modelServerImage = import "param://model_server_image";
+local httpProxyImage = import "param://http_proxy_image";
 
 std.prune(k.core.v1.list.new([
   tfServing.parts.deployment.modelServer(name, namespace, modelPath, modelServerImage, httpProxyImage),

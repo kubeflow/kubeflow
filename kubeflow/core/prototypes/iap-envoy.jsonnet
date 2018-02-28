@@ -12,17 +12,17 @@
 // TODO(https://github.com/ksonnet/ksonnet/issues/222): We have to add namespace as an explicit parameter
 // because ksonnet doesn't support inheriting it from the environment yet.
 
-local k = import 'k.libsonnet';
+local k = import "k.libsonnet";
 local iap = import "kubeflow/core/iap.libsonnet";
 local util = import "kubeflow/core/util.libsonnet";
 
-local name = import 'param://name';
-local namespace = import 'param://namespace';
+local name = import "param://name";
+local namespace = import "param://namespace";
 
-local envoyImage = import 'param://envoyImage';
-local audiencesParam = import 'param://audiences';
-local audiences = std.split(audiencesParam, ',');
-local disableJwtCheckingParam = import 'param://disableJwtChecking';
+local envoyImage = import "param://envoyImage";
+local audiencesParam = import "param://audiences";
+local audiences = std.split(audiencesParam, ",");
+local disableJwtCheckingParam = import "param://disableJwtChecking";
 local disableJwtChecking = util.toBool(disableJwtCheckingParam);
 
 iap.parts(namespace).envoy(envoyImage, audiences, disableJwtChecking)

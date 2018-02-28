@@ -70,7 +70,6 @@
       local srcRootDir = testDir + "/src";
       // The directory containing the kubeflow/kubeflow repo
       local srcDir = srcRootDir + "/kubeflow/kubeflow";
-     
       // The name to use for the volume to use to contain test data.
       local dataVolume = "kubeflow-test-volume";
       local kubeflowPy = srcDir;
@@ -171,6 +170,10 @@
                     name: "build-tf-serving-image",
                     template: "build-tf-serving-image",
                   },
+                  {
+                    name: "create-pr-symlink",
+                    template: "create-pr-symlink",
+                  },
                 ],
                 [{
                   name: "deploy-tf-serving",
@@ -239,7 +242,7 @@
                 },
                 {
                   name: "SERVING_IMAGE",
-                  value: serving_image,
+                  value: serving_image + ":" + name,
                 },
               ],
               [{
@@ -276,7 +279,7 @@
                 },
                 {
                   name: "SERVING_IMAGE",
-                  value: serving_image,
+                  value: serving_image + ":" + name,
                 },
               ],
               [{
@@ -322,7 +325,6 @@
                 workingDir: srcDir + "/components/k8s-model-server/inception-client",
               },
             },  // test-tf-serving
-
             buildTemplate(
               "copy-artifacts",
               [

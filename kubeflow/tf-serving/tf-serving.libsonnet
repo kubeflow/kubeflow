@@ -1,4 +1,4 @@
-local k = import 'k.libsonnet';
+local k = import "k.libsonnet";
 local deployment = k.extensions.v1beta1.deployment;
 local container = deployment.mixin.spec.template.spec.containersType;
 local storageClass = k.storage.v1beta1.storageClass;
