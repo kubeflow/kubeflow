@@ -30,6 +30,27 @@ local networkSpec = networkPolicy.mixin.spec;
           labels: labels,
           name: name,
           namespace: namespace,
+          annotations: {
+            "getambassador.io/config":
+              std.join("\n", [
+                "---",
+                "apiVersion: ambassador/v0",
+                "kind:  Mapping",
+                "name: tfserving-mapping-" + name + "-get",
+                "prefix: /models/" + name + "/",
+                "rewrite: /",
+                "method: GET",
+                "service: " + name + "." + namespace + ":8000",
+                "---",
+                "apiVersion: ambassador/v0",
+                "kind:  Mapping",
+                "name: tfserving-mapping-" + name + "-post",
+                "prefix: /models/" + name + "/",
+                "rewrite: /model/" + name + ":predict",
+                "method: POST",
+                "service: " + name + "." + namespace + ":8000",
+              ]),
+          },  //annotations
         },
         spec: {
           ports: [
