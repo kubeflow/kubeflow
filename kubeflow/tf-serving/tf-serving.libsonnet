@@ -23,7 +23,7 @@ local networkSpec = networkPolicy.mixin.spec;
         },
       },
 
-      modelService(name, namespace, labels={ app: name }): {
+      modelService(name, namespace, serviceType, labels={ app: name }): {
         apiVersion: "v1",
         kind: "Service",
         metadata: {
@@ -45,7 +45,7 @@ local networkSpec = networkPolicy.mixin.spec;
             },
           ],
           selector: labels,
-          type: "ClusterIP",
+          type: serviceType,
         },
       },
 
