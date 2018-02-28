@@ -174,7 +174,7 @@ Paste the example into a new Python 3 Jupyter notebook and execute the code, thi
 Please note that when running on most cloud providers, the public IP address will be exposed to the internet and is an
 unsecured endpoint by default. For a production deployment with SSL and authentication, refer to the [documentation](components/jupyterhub).
 
-### Serve a model
+### Serve a model using TensorFlow Serving
 
 We treat each deployed model as a [component](https://ksonnet.io/docs/tutorial#2-generate-and-deploy-an-app-component) in your APP.
 
@@ -202,6 +202,21 @@ inception   LoadBalancer   10.35.255.136   ww.xx.yy.zz   9000:30936/TCP   28m
 ```
 
 In this example, you should be able to use the inception_client to hit ww.xx.yy.zz:9000
+
+### Serve a model using Seldon
+[Seldon-core](https://github.com/SeldonIO/seldon-core) provides deployment for any machine learning runtime that can be [packaged in a Docker container](https://github.com/SeldonIO/seldon-core/blob/master/docs/wrappers/readme.md).
+
+Install the seldon package 
+
+```
+ks pkg install kubeflow/seldon
+```
+Generate the core components
+
+```
+ks generate seldon seldon
+```
+Seldon allows complex runtime graphs for model inference to be deployed. For an example end-to-end integration see the [kubeflow-seldon example](https://github.com/kubeflow/example-seldon). For more details see the [seldon-core documentation](https://github.com/SeldonIO/seldon-core).
 
 ### Submiting a TensorFlow training job
 
