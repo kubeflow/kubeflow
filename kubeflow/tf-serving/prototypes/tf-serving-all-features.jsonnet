@@ -5,7 +5,7 @@
 // @param name string Name to give to each of the components
 // @optionalParam namespace string default Namespace
 // @param model_path string Path to the model. This can be a GCS path.
-// @optionalParam model_server_image string gcr.io/kubeflow/model-server:1.0 Container for TF model server
+// @optionalParam model_server_image string gcr.io/kubeflow-images-staging/tf-model-server:v20180227-master Container for TF model server
 // @optionalParam http_proxy_image string gcr.io/kubeflow/http-proxy:1.0 Container for http_proxy of TF model server
 
 // TODO(https://github.com/ksonnet/ksonnet/issues/222): We have to add namespace as an explicit parameter
