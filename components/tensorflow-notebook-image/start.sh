@@ -27,10 +27,12 @@ if [ $(id -u) == 0 ] ; then
     fi
 
     # Ensure pv directory belongs to user
-    if [ -d "/home/$NB_USER" ]; then
-        chown -R $NB_USER /home/$NB_USER
-    fi
-
+    for d in "$CONDA_DIR" "$JULIA_PKGDIR" "/home/$NB_USER"; do
+        if [[ ! -z "$d" && -d "$d" ]]; then
+            echo "Set ownership to uid $NB_UID: $d"
+            chown -R $NB_UID "$d"
+        fi
+    done
     # Change GID of NB_USER to NB_GID if NB_GID is passed as a parameter
     if [ "$NB_GID" ] ; then
         echo "Change GID to $NB_GID"
