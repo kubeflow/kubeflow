@@ -220,15 +220,10 @@
               [
                 // We need to explicitly specify bash because
                 // build_image.sh is not in the container its a volume mounted file.
-                "/bin/bash", "-c",
-                "ls -la "  + notebookDir + "; "
-                +  notebookDir + "build_image.sh "
+                "/bin/bash", "-c",                
+                notebookDir + "build_image.sh "
                 + notebookDir + "Dockerfile.cpu "
                 + cpuImage,
-                // "bash",
-                //notebookDir + "build_image.sh ",
-                //notebookDir + "Dockerfile.cpu ",
-                //cpuImage,
               ],
               [
                 {

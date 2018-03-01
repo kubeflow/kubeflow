@@ -16,7 +16,7 @@ do sleep 3
 done
 
 docker build --pull -t ${IMAGE} \
-	-f ${DOCKERFILE} ${DOCKERFILE}
+	-f ${DOCKERFILE} ${CONTEXT_DIR}
 
 gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
 gcloud docker -- push ${IMAGE}
