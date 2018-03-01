@@ -64,9 +64,6 @@ Checkout that commit
 ```
 cd ${GIT_KUBEFLOW}
 git checkout ${COMMIT}
-```
-
-```
 cd components/k8s-model-server/images/releaser
 ```
 
