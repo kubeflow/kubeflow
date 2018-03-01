@@ -15,6 +15,7 @@ Checkout that commit
 ```
 cd ${GIT_KUBEFLOW_TF_OPERATOR}
 git checkout ${COMMIT}
+cd test/workflows
 ```
 
 Run the E2E test workflow using our release cluster
