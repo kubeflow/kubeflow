@@ -169,8 +169,13 @@ RUN jupyter nbextension enable --py widgetsnbextension --sys-prefix
 RUN chown -R $NB_USER /home/$NB_USER/
 
 RUN curl -L -o bazel.sh https://github.com/bazelbuild/bazel/releases/download/0.8.0/bazel-0.8.0-installer-linux-x86_64.sh && chmod a+x ./bazel.sh && ./bazel.sh && rm ./bazel.sh
+SHELL ["/bin/bash", "-c"]
+
 RUN git clone https://github.com/tensorflow/models.git /home/$NB_USER/tensorflow-models && git clone https://github.com/tensorflow/benchmarks.git /home/$NB_USER/tensorflow-benchmarks
-RUN conda create -n ipykernel_py2 python=2 ipykernel && python -m ipykernel install --user
+RUN conda create -n ipykernel_py2 python=2 ipykernel && \
+    source activate ipykernel_py2 && \
+    python -m ipykernel install --user && \
+    source deactivate
 # Import matplotlib the first time to build the font cache.
 ENV XDG_CACHE_HOME /home/$NB_USER/.cache/
 RUN pip install jupyter-tensorboard

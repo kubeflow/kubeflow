@@ -24,15 +24,19 @@ if [ $(id -u) == 0 ] ; then
     if [ "$NB_UID" != $(id -u $NB_USER) ] ; then
         echo "Set user UID to: $NB_UID"
         usermod -u $NB_UID $NB_USER
+        for d in "$CONDA_DIR" "$JULIA_PKGDIR"; do
+            if [[ ! -z "$d" && -d "$d" ]]; then
+                echo "Set ownership to uid $NB_UID: $d"
+                chown -R $NB_UID "$d"
+            fi
+        done
     fi
 
     # Ensure pv directory belongs to user
-    for d in "$CONDA_DIR" "$JULIA_PKGDIR" "/home/$NB_USER"; do
-        if [[ ! -z "$d" && -d "$d" ]]; then
-            echo "Set ownership to uid $NB_UID: $d"
-            chown -R $NB_UID "$d"
-        fi
-    done
+    if [[ ! -z "/home/$NB_USER" && -d "/home/$NB_USER" ]]; then
+        echo "Set ownership to uid $NB_UID: /home/$NB_USER"
+        chown -R $NB_UID /home/$NB_USER
+    fi
     # Change GID of NB_USER to NB_GID if NB_GID is passed as a parameter
     if [ "$NB_GID" ] ; then
         echo "Change GID to $NB_GID"
