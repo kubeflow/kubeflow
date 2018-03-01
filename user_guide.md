@@ -85,7 +85,7 @@ ks show ${KF_ENV} -c kubeflow-core
 
 ### Usage Reporting
 
-By default, Kubeflow will report **anonymous** usage data using [spartakus](https://github.com/kubernetes-incubator/spartakus), Kubernetes' reporting tool. Spartakus **does not report any personal information**. See [here](https://github.com/kubernetes-incubator/spartakus) for more detail.
+When enabled, Kubeflow will report **anonymous** usage data using [spartakus](https://github.com/kubernetes-incubator/spartakus), Kubernetes' reporting tool. Spartakus **does not report any personal information**. See [here](https://github.com/kubernetes-incubator/spartakus) for more detail.
 This is entirely voluntary and you can opt out by doing the following
 
 ```
@@ -104,8 +104,8 @@ ks param set kubeflow-core reportUsage true
 kubectl delete -n ${NAMESPACE} deploy spartakus-volunteer
 ```
 
-**Reporting usage data is one of the most signifcant contributions you can make to Kubeflow; so please consider leaving it on.** This data
-allows us to improve the product and helps the many companies working on Kubeflow justify continued investement. 
+**Reporting usage data is one of the most signifcant contributions you can make to Kubeflow; so please consider turning it on.** This data
+allows us to improve the project and helps the many companies working on Kubeflow justify continued investement. 
 
 You can improve the quality of the data by giving each Kubeflow deployment a unique id
 
