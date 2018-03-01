@@ -6,5 +6,11 @@ params + {
     //   name: "guestbook-dev",
     //   replicas: params.global.replicas,
     // },
+    workflows +: {
+      name: "jlewi-notebook-release-317-c543",
+      namespace: "kubeflow-test-infra",
+      prow_env: "JOB_NAME=notebook-release,JOB_TYPE=presubmit,PULL_NUMBER=317,REPO_NAME=kubeflow,REPO_OWNER=kubeflow,BUILD_NUMBER=c543",
+      versionTag: "v20180228-pr317",
+    },
   },
 }

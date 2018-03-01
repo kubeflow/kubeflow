@@ -7,6 +7,7 @@
 set -ex
 
 DOCKERFILE=$1
+CONTEXT_DIR=$(dirname "$DOCKERFILE")
 IMAGE=$2
 
 # Wait for the Docker daemon to be available.
@@ -15,7 +16,7 @@ do sleep 3
 done
 
 docker build --pull -t ${IMAGE} \
-	-f ${DOCKERFILE}
+	-f ${DOCKERFILE} ${DOCKERFILE}
 
 gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
 gcloud docker -- push ${IMAGE}

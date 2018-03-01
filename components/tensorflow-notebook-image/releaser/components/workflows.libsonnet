@@ -187,12 +187,6 @@
             {
               name: "exit-handler",              
               steps: [
-                [
-                  {
-                    name: "teardown",
-                    template: "teardown",
-                  },
-                ],
                 [{
                   name: "copy-artifacts",
                   template: "copy-artifacts",
@@ -224,9 +218,17 @@
             buildTemplate(
               "build-cpu-notebook",
               [
-                notebookDir + "build_image.sh "
-                + notebookDir + "/Dockerfile.cpu "
-                + cpuImage
+                // We need to explicitly specify bash because
+                // build_image.sh is not in the container its a volume mounted file.
+                "/bin/bash", "-c",
+                "ls -la "  + notebookDir + "; "
+                +  notebookDir + "build_image.sh "
+                + notebookDir + "Dockerfile.cpu "
+                + cpuImage,
+                // "bash",
+                //notebookDir + "build_image.sh ",
+                //notebookDir + "Dockerfile.cpu ",
+                //cpuImage,
               ],
               [
                 {
