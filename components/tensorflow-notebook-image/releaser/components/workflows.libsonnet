@@ -33,9 +33,6 @@
       prow_env: "REPO_OWNER=kubeflow,REPO_NAME=kubeflow,PULL_BASE_SHA=master",      
       // The default image to use for the steps in the Argo workflow.      
       step_image: "gcr.io/kubeflow-ci/test-worker:latest",
-      project: "kubeflow-ci",
-      cluster: "kubeflow-testing",
-      zone: "us-east1-d",
 
       // The registry to use (should not include the image name or version tag)
       registry: "gcr.io/kubeflow-ci",
@@ -50,9 +47,6 @@
       local params = $.defaultParams + overrides;
 
       local namespace = params.namespace;      
-      local project = params.project;
-      local cluster = params.cluster;
-      local zone = params.zone;
       local name = params.name;
 
       local prow_env = $.parseEnv(params.prow_env);
@@ -60,8 +54,8 @@
 
       local stepsNamespace = name;
     
-      local cpuImage = params.registry +  "/tensorflow-notebook-cpu" + ":latest";
-
+      local cpuImage = params.registry +  "/tensorflow-notebook-cpu" + ":" + params.versionTag;
+      local gpuImage = params.registry +  "/tensorflow-notebook-gpu" + ":" + params.versionTag;
       // mountPath is the directory where the volume to store the test data
       // should be mounted.
       local mountPath = "/mnt/" + "test-data-volume";
@@ -130,6 +124,32 @@
           sidecars: sidecars,
         };  // buildTemplate
 
+      local buildImageTemplate(step_name, dockerfile, image) = 
+      buildTemplate(
+              step_name,
+              [
+                // We need to explicitly specify bash because
+                // build_image.sh is not in the container its a volume mounted file.
+                "/bin/bash", "-c",                
+                notebookDir + "build_image.sh "
+                + notebookDir +  dockerfile + " "
+                + image,
+              ],
+              [
+                {
+                  name: "DOCKER_HOST",
+                  value: "127.0.0.1",
+                },
+              ],
+              [{
+                name: "dind",
+                image: "docker:17.10-dind",
+                securityContext: {
+                  privileged: true,
+                },
+                mirrorVolumeMounts: true,
+              }],
+            ); // buildImageTemplate
       {       
         apiVersion: "argoproj.io/v1alpha1",
         kind: "Workflow",
@@ -177,6 +197,11 @@
                   template: "build-cpu-notebook",
                   dependencies: ["checkout"],
                   },
+                  { 
+                  name: "build-gpu-notebook",
+                  template: "build-gpu-notebook",
+                  dependencies: ["checkout"],
+                  },
                   {name: "create-pr-symlink",
                    template: "create-pr-symlink",
                    dependencies: ["checkout"],
@@ -214,34 +239,9 @@
                   },
                 ],
               },
-            },  // checkout
-            buildTemplate(
-              "build-cpu-notebook",
-              [
-                // We need to explicitly specify bash because
-                // build_image.sh is not in the container its a volume mounted file.
-                "/bin/bash", "-c",                
-                notebookDir + "build_image.sh "
-                + notebookDir + "Dockerfile.cpu "
-                + cpuImage,
-              ],
-              [
-                {
-                  name: "DOCKER_HOST",
-                  value: "127.0.0.1",
-                },
-              ],
-              [{
-                name: "dind",
-                image: "docker:17.10-dind",
-                securityContext: {
-                  privileged: true,
-                },
-                mirrorVolumeMounts: true,
-              }],
-            ),  // build-
-
-          
+            },  // checkout            
+            buildImageTemplate("build-cpu-notebook", "Dockerfile.cpu", cpuImage),
+            buildImageTemplate("build-gpu-notebook", "Dockerfile.gpu", gpuImage),
             buildTemplate("create-pr-symlink", [
               "python",
               "-m",
