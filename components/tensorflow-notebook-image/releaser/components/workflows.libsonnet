@@ -22,7 +22,7 @@
 
   // Default parameters.
   defaultParams:: {
-      bucket: "mlkube-testing_temp",
+      bucket: "kubeflow-ci_temp",
       commit: "master",
       // Name of the secret containing GCP credentials.
       gcpCredentialsSecretName: "kubeflow-testing-credentials",
@@ -32,13 +32,13 @@
       nfsVolumeClaim: "nfs-external",
       prow_env: "REPO_OWNER=kubeflow,REPO_NAME=kubeflow,PULL_BASE_SHA=master",      
       // The default image to use for the steps in the Argo workflow.      
-      step_image: "gcr.io/kubeflow-ci/test-worker:laates",
+      step_image: "gcr.io/kubeflow-ci/test-worker:latest",
       project: "kubeflow-ci",
       cluster: "kubeflow-testing",
       zone: "us-east1-d",
 
       // The registry to use (should not include the image name or version tag)
-      registry: "gcr.io/kubeflow-testing",
+      registry: "gcr.io/kubeflow-ci",
 
       // The tag to use for the image.
       versionTag: "latest",
@@ -49,10 +49,7 @@
     e2e::
       local params = $.defaultParams + overrides;
 
-      local namespace = params.namespace;
-      local serving_image = params.serving_image;
-      local testing_image = params.testing_image;
-      local tf_testing_image = params.tf_testing_image;
+      local namespace = params.namespace;      
       local project = params.project;
       local cluster = params.cluster;
       local zone = params.zone;
@@ -94,7 +91,7 @@
           name: step_name,
           container: {
             command: command,
-            image: testing_image,
+            image: params.step_image,
             env: [
               {
                 // Add the source directories to the python path.
@@ -215,7 +212,7 @@
                   name: "EXTRA_REPOS",
                   value: "kubeflow/testing@HEAD",
                 }],
-                image: testing_image,
+                image: params.step_image,
                 volumeMounts: [
                   {
                     name: dataVolume,
