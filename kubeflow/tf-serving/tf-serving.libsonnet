@@ -23,6 +23,19 @@ local networkSpec = networkPolicy.mixin.spec;
         },
       },
 
+      modelSecret(name, namespace, awsAccessKeyID, awsSecretAccessKey, labels={ app: name}): {
+        apiVersion: "v1",
+        kind: "Secret",
+        metadata: {
+          name: name,
+        },
+        type: "Opaque",
+        data: {
+          "aws-access-key-id": std.base64(awsAccessKeyID),
+          "aws-secret-access-key": std.base64(awsSecretAccessKey),
+        },
+      },
+
       modelService(name, namespace, serviceType, labels={ app: name }): {
         apiVersion: "v1",
         kind: "Service",
@@ -70,16 +83,16 @@ local networkSpec = networkPolicy.mixin.spec;
         },
       },
 
-      modelServer(name, namespace, modelPath, modelServerImage, httpProxyImage=0, labels={ app: name },):
+      modelServer(name, namespace, modelPath, modelServerImage, modelServerEnv, httpProxyImage=0, labels={ app: name },):
         // TODO(jlewi): Allow the model to be served from a PVC.
         local volume = {
           name: "redis-data",
           namespace: namespace,
           emptyDir: {},
         };
-        base(name, namespace, modelPath, modelServerImage, httpProxyImage, labels),
+        base(name, namespace, modelPath, modelServerImage, modelServerEnv, httpProxyImage, labels),
 
-      local base(name, namespace, modelPath, modelServerImage, httpProxyImage, labels) =
+      local base(name, namespace, modelPath, modelServerImage, modelServerEnv, httpProxyImage, labels) =
         {
           apiVersion: "extensions/v1beta1",
           kind: "Deployment",
@@ -105,7 +118,7 @@ local networkSpec = networkPolicy.mixin.spec;
                       "--model_name=" + name,
                       "--model_base_path=" + modelPath,
                     ],
-                    env: [],
+                    env: modelServerEnv,
                     ports: [
                       {
                         containerPort: 9000,
