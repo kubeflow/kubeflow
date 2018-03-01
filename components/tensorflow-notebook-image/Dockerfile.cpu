@@ -105,18 +105,23 @@ ENTRYPOINT ["tini", "--"]
 CMD ["start-notebook.sh"]
 
 
-# Install CUDA Profile Tools
+# Install CUDA Profile Tools and other python packages
 RUN pip --no-cache-dir install \
-        Pillow \
+    Pillow \
 	h5py \
 	ipykernel \
 	matplotlib \
 	numpy \
-	pandas \
 	scipy \
 	sklearn \
 	kubernetes \
 	grpcio \
+    ktext \
+    annoy \
+    nltk \
+    pydot \
+    pydot-ng \
+    graphviz \
 	&& \
 	python -m ipykernel.kernelspec
 
@@ -126,7 +131,7 @@ RUN pip --no-cache-dir install \
 RUN conda install --quiet --yes \
     'nomkl' \
     'ipywidgets=6.0*' \
-    'pandas=0.19*' \
+    'pandas=0.22*' \
     'numexpr=2.6*' \
     'matplotlib=2.0*' \
     'scipy=0.19*' \
@@ -149,6 +154,11 @@ RUN conda install --quiet --yes \
     'xlrd'  && \
     conda remove --quiet --yes --force qt pyqt && \
     conda clean -tipsy
+
+# Install graphviz package
+RUN apt-get update && apt-get install -yq --no-install-recommends graphviz \
+    && apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install Python 3 Tensorflow without GPU support
 RUN pip install --quiet --no-cache-dir tf-nightly
