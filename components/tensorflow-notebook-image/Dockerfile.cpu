@@ -108,22 +108,22 @@ CMD ["start-notebook.sh"]
 # Install CUDA Profile Tools and other python packages
 RUN pip --no-cache-dir install \
     Pillow \
-	h5py \
-	ipykernel \
-	matplotlib \
-	numpy \
-	scipy \
-	sklearn \
-	kubernetes \
-	grpcio \
+    h5py \
+    ipykernel \
+    matplotlib \
+    numpy \
+    scipy \
+    sklearn \
+    kubernetes \
+    grpcio \
     ktext \
     annoy \
     nltk \
     pydot \
     pydot-ng \
     graphviz \
-	&& \
-	python -m ipykernel.kernelspec
+    && \
+    python -m ipykernel.kernelspec
 
 # Install Python 3 packages
 # Remove pyqt and qt pulled in for matplotlib since we're only ever going to
