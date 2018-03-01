@@ -220,6 +220,14 @@ You can query the model with `curl` directly.
 (echo '{"instances": [{"image_contents": {"b64": "'; base64 ./inception-client/images/sleeping-pepper.jpg; echo '"}}]}') | curl -H "Content-Type: application/json" -X POST -d @-  <SERVICE IP>:<HTTP SERVICE PORT>/model/image_classification:predict
 ```
 
+If you followed the
+[instruction](https://github.com/kubeflow/kubeflow/blob/master/docs/gke/iap.md#setup-ingress) to setup the ingress (IAP part is optional),
+the model can be accessed from the following:
+```commandline
+curl -H "Content-Type: application/json" -X POST -d @input_file DOMAIN/models/MODEL_NAME:predict
+```
+
+
 OUTPUTS
 
 ```
