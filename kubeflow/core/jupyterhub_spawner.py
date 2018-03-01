@@ -57,6 +57,7 @@ class KubeServiceProxy(Proxy):
         self.service_reflector = ServiceReflector(parent=self, namespace=self.namespace)
         self.core_api = client.CoreV1Api()
         self.extension_api = client.ExtensionsV1beta1Api()
+        self.public_url = os.environ['TF_HUB_0_SERVICE_HOST']
 
     def make_service(self, name, routespec, target, data):
         """
