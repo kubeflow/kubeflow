@@ -21,23 +21,25 @@
 
 
   // Default parameters.
+  // The defaults are suitable based on suitable values for our test cluster.
   defaultParams:: {
-      bucket: "mlkube-testing_temp",
+      bucket: "kubeflow-ci_temp",
       commit: "master",
       // Name of the secret containing GCP credentials.
       gcpCredentialsSecretName: "kubeflow-testing-credentials",
-      name: "new9",
+      name: "kubeflow-postsubmit",
       namespace: "kubeflow-test-infra",
        // The name of the NFS volume claim to use for test files.
       nfsVolumeClaim: "nfs-external",
-      prow_env: "REPO_OWNER=kubeflow,REPO_NAME=kubeflow,PULL_BASE_SHA=master",
-      serving_image: "gcr.io/mlkube-testing/model-server:1.0",
-      // The default image to use for the steps in the Argo workflow.
-      testing_image: "gcr.io/mlkube-testing/kubeflow-testing",
-      tf_testing_image: "gcr.io/kubeflow-ci/tf-test-worker:1.0",
-      project: "mlkube-testing",
-      cluster: "kubeflow-testing",
-      zone: "us-east1-d",
+      prow_env: "REPO_OWNER=kubeflow,REPO_NAME=kubeflow,PULL_BASE_SHA=master",      
+      // The default image to use for the steps in the Argo workflow.      
+      step_image: "gcr.io/kubeflow-ci/test-worker:latest",
+
+      // The registry to use (should not include the image name or version tag)
+      registry: "gcr.io/kubeflow-ci",
+
+      // The tag to use for the image.
+      versionTag: "latest",
   },
 
   parts(namespace, name, overrides={}):: {
@@ -45,19 +47,16 @@
     e2e::
       local params = $.defaultParams + overrides;
 
-      local namespace = params.namespace;
-      local serving_image = params.serving_image;
-      local testing_image = params.testing_image;
-      local tf_testing_image = params.tf_testing_image;
-      local project = params.project;
-      local cluster = params.cluster;
-      local zone = params.zone;
+      local namespace = params.namespace;      
       local name = params.name;
 
       local prow_env = $.parseEnv(params.prow_env);
       local bucket = params.bucket;
 
       local stepsNamespace = name;
+    
+      local cpuImage = params.registry +  "/tensorflow-notebook-cpu" + ":" + params.versionTag;
+      local gpuImage = params.registry +  "/tensorflow-notebook-gpu" + ":" + params.versionTag;
       // mountPath is the directory where the volume to store the test data
       // should be mounted.
       local mountPath = "/mnt/" + "test-data-volume";
@@ -77,6 +76,9 @@
       // py scripts to use.
       local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
 
+      // Location where Dockerfiles and other sources are found.
+      local notebookDir = srcRootDir + "/kubeflow/kubeflow/components/tensorflow-notebook-image/";
+
       // Build an Argo template to execute a particular command.
       // step_name: Name for the template
       // command: List to pass as the container command.
@@ -84,7 +86,7 @@
           name: step_name,
           container: {
             command: command,
-            image: testing_image,
+            image: params.step_image,
             env: [
               {
                 // Add the source directories to the python path.
@@ -123,6 +125,32 @@
           sidecars: sidecars,
         };  // buildTemplate
 
+      local buildImageTemplate(step_name, dockerfile, image) = 
+      buildTemplate(
+              step_name,
+              [
+                // We need to explicitly specify bash because
+                // build_image.sh is not in the container its a volume mounted file.
+                "/bin/bash", "-c",                
+                notebookDir + "build_image.sh "
+                + notebookDir +  dockerfile + " "
+                + image,
+              ],
+              [
+                {
+                  name: "DOCKER_HOST",
+                  value: "127.0.0.1",
+                },
+              ],
+              [{
+                name: "dind",
+                image: "docker:17.10-dind",
+                securityContext: {
+                  privileged: true,
+                },
+                mirrorVolumeMounts: true,
+              }],
+            ); // buildImageTemplate
       {       
         apiVersion: "argoproj.io/v1alpha1",
         kind: "Workflow",
@@ -160,40 +188,31 @@
           templates: [
             {
               name: "e2e",
-              steps: [
-                [{
-                  name: "checkout",
-                  template: "checkout",
-                }],
-                [
-                  {
-                    name: "build-tf-serving-image",
-                    template: "build-tf-serving-image",
+              dag: {
+                tasks: [
+                  {name: "checkout",
+                   template: "checkout",                
                   },
-                  {
-                    name: "create-pr-symlink",
-                    template: "create-pr-symlink",
+                  { 
+                  name: "build-cpu-notebook",
+                  template: "build-cpu-notebook",
+                  dependencies: ["checkout"],
                   },
-                ],
-                [{
-                  name: "deploy-tf-serving",
-                  template: "deploy-tf-serving",
-                }],
-                [{
-                  name: "test-tf-serving",
-                  template: "test-tf-serving",
-                }],
-              ],
+                  { 
+                  name: "build-gpu-notebook",
+                  template: "build-gpu-notebook",
+                  dependencies: ["checkout"],
+                  },
+                  {name: "create-pr-symlink",
+                   template: "create-pr-symlink",
+                   dependencies: ["checkout"],
+                  },
+                ]
+              }, //dag 
             },
             {
-              name: "exit-handler",
+              name: "exit-handler",              
               steps: [
-                [
-                  {
-                    name: "teardown",
-                    template: "teardown",
-                  },
-                ],
                 [{
                   name: "copy-artifacts",
                   template: "copy-artifacts",
@@ -213,7 +232,7 @@
                   name: "EXTRA_REPOS",
                   value: "kubeflow/testing@HEAD",
                 }],
-                image: testing_image,
+                image: params.step_image,
                 volumeMounts: [
                   {
                     name: dataVolume,
@@ -221,108 +240,9 @@
                   },
                 ],
               },
-            },  // checkout
-            buildTemplate(
-              "build-tf-serving-image",
-              [
-                "sh",
-                "-c",
-                "until docker ps; do sleep 3; done; " +
-                "docker build --pull -t ${SERVING_IMAGE} " +
-                srcRootDir + "/kubeflow/kubeflow/components/k8s-model-server/docker/; " +
-                "gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}; " +
-                "gcloud docker -- push ${SERVING_IMAGE}",
-              ],
-              [
-                {
-                  name: "DOCKER_HOST",
-                  value: "127.0.0.1",
-                },
-                {
-                  name: "SERVING_IMAGE",
-                  value: serving_image + ":" + name,
-                },
-              ],
-              [{
-                name: "dind",
-                image: "docker:17.10-dind",
-                securityContext: {
-                  privileged: true,
-                },
-                mirrorVolumeMounts: true,
-              }],
-            ),  // build-tf-serving-image
-
-            buildTemplate(
-              "deploy-tf-serving",
-              [
-                "python",
-                "-m",
-                "testing.test_deploy",
-                "--project=" + project,
-                "--cluster=" + cluster,
-                "--zone=" + zone,
-                "--github_token=$(GITHUB_TOKEN)",
-                "--namespace=" + stepsNamespace,
-                "--test_dir=" + testDir,
-                "--artifacts_dir=" + artifactsDir,
-                "setup",
-                "--deploy_tf_serving=true",
-                "--model_server_image=$(SERVING_IMAGE)",
-              ],
-              [
-                {
-                  name: "DOCKER_HOST",
-                  value: "127.0.0.1",
-                },
-                {
-                  name: "SERVING_IMAGE",
-                  value: serving_image + ":" + name,
-                },
-              ],
-              [{
-                name: "dind",
-                image: "docker:17.10-dind",
-                securityContext: {
-                  privileged: true,
-                },
-                mirrorVolumeMounts: true,
-              }],
-            ),  // deploy-tf-serving
-
-            {
-              name: "test-tf-serving",
-              container: {
-                command: [
-                  "python",
-                  "-m",
-                  "testing.test_tf_serving",
-                  "--namespace=" + stepsNamespace,
-                  "--artifacts_dir=" + artifactsDir,
-                  "--service_name=inception",
-                  "--image_path=" + srcDir + "/components/k8s-model-server/inception-client/images/sleeping-pepper.jpg",
-                  "--result_path=" + srcDir + "/components/k8s-model-server/images/test-worker/result.txt",
-                ],
-                env: prow_env + [
-                  {
-                    name: "EXTRA_REPOS",
-                    value: "tensorflow/k8s@HEAD;kubeflow/testing@HEAD",
-                  },
-                  {
-                    name: "PYTHONPATH",
-                    value: kubeflowPy + ":" + kubeflowTestingPy,
-                  },
-                ],
-                image: tf_testing_image,
-                volumeMounts: [
-                  {
-                    name: dataVolume,
-                    mountPath: mountPath,
-                  },
-                ],
-                workingDir: srcDir + "/components/k8s-model-server/inception-client",
-              },
-            },  // test-tf-serving
+            },  // checkout            
+            buildImageTemplate("build-cpu-notebook", "Dockerfile.cpu", cpuImage),
+            buildImageTemplate("build-gpu-notebook", "Dockerfile.gpu", gpuImage),
             buildTemplate("create-pr-symlink", [
               "python",
               "-m",
@@ -342,21 +262,6 @@
                 "--bucket=" + bucket,
               ]
             ),  // copy-artifacts
-            buildTemplate(
-              "teardown",
-              [
-                "python",
-                "-m",
-                "testing.test_deploy",
-                "--project=" + project,
-                "--cluster=" + cluster,
-                "--namespace=" + stepsNamespace,
-                "--zone=" + zone,
-                "--test_dir=" + testDir,
-                "--artifacts_dir=" + artifactsDir,
-                "teardown",
-              ]
-            ),  // teardown
           ],  // templates
         },
       },  // e2e

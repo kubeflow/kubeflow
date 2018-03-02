@@ -39,6 +39,12 @@ Create the Kubeflow core component. The core component includes
 NAMESPACE=kubeflow
 kubectl create namespace ${NAMESPACE}
 ks generate core kubeflow-core --name=kubeflow-core --namespace=${NAMESPACE}
+
+# Enable collection of anonymous usage metrics
+# Skip this step if you don't want to enable collection.
+# Or set reportUsage to false (the default).
+ks param set kubeflow-core reportUsage true
+ks param set kubeflow-core usageId $(uuidgen)
 ```
   * Feel free to change the namespace to a value that better suits your kubernetes cluster.
 
@@ -75,6 +81,36 @@ At any time you can inspect the kubernetes objects definitions for a particular 
 
 ```
 ks show ${KF_ENV} -c kubeflow-core
+```
+
+### Usage Reporting
+
+When enabled, Kubeflow will report **anonymous** usage data using [spartakus](https://github.com/kubernetes-incubator/spartakus), Kubernetes' reporting tool. Spartakus **does not report any personal information**. See [here](https://github.com/kubernetes-incubator/spartakus) for more detail.
+This is entirely voluntary and you can opt out by doing the following
+
+```
+ks param set kubeflow-core reportUsage false
+
+# Delete any existing deployments of spartakus
+kubectl delete -n ${NAMESPACE} deploy spartakus-volunteer
+```
+
+To explictly enable usage reporting repeat the above steps setting reportUsage to `true`
+
+```
+ks param set kubeflow-core reportUsage true
+
+# Delete any existing deployments of spartakus
+kubectl delete -n ${NAMESPACE} deploy spartakus-volunteer
+```
+
+**Reporting usage data is one of the most signifcant contributions you can make to Kubeflow; so please consider turning it on.** This data
+allows us to improve the project and helps the many companies working on Kubeflow justify continued investement. 
+
+You can improve the quality of the data by giving each Kubeflow deployment a unique id
+
+```
+ks param set kubeflow-core usageId $(uuidgen)
 ```
 
 ### Bringing up a Notebook
