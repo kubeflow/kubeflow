@@ -32,6 +32,9 @@ class KubeServiceProxy(Proxy):
         defaults to the current namespace. If not, defaults to 'default'
         """
     )
+    api_url = Unicode('http://127.0.0.1:8001', config=True,
+                      help="""The ip (or hostname) of the proxy's API endpoint"""
+                      )
 
     def _namespace_default(self):
         """
@@ -59,10 +62,11 @@ class KubeServiceProxy(Proxy):
         self.extension_api = client.ExtensionsV1beta1Api()
         self.public_url = os.environ['TF_HUB_0_SERVICE_HOST']
 
-    def make_service(self, name, routespec, target, data):
+    def make_service(self, name, username, routespec, target, data):
         """
         Returns a service object 
         """
+        self.log.info('Creating service %s', name)
         meta = V1ObjectMeta(
             name=name,
             annotations={
@@ -74,8 +78,8 @@ class KubeServiceProxy(Proxy):
                     'apiVersion: ambassador/v0',
                     'kind:  Mapping',
                     'name: ' + name + '-mapping',
-                    'prefix: /user/',
-                    'rewrite: /user/',
+                    'prefix: /user/' + username + '/',
+                    'rewrite: /user/' + username + '/',
                     'service: ' + name + '.' + self.namespace])
             },
             labels={
@@ -116,10 +120,11 @@ class KubeServiceProxy(Proxy):
     def safe_name_for_routespec(self, routespec):
         safe_chars = set(string.ascii_lowercase + string.digits)
         parts = routespec.split('/')
+        name = parts[2]
         safe_name = generate_hashed_slug(
-            'jupyter-' + escapism.escape(parts[2], safe=safe_chars, escape_char='-') 
+            'jupyter-' + escapism.escape(name, safe=safe_chars, escape_char='-') 
         )
-        return safe_name
+        return safe_name, name
 
     @gen.coroutine
     def add_route(self, routespec, target, data):
@@ -129,9 +134,10 @@ class KubeServiceProxy(Proxy):
         if data.get('hub') is not None:
             return
 
-        safe_name = self.safe_name_for_routespec(routespec).lower()
+        safe_name, name = self.safe_name_for_routespec(routespec).lower()
         service = self.make_service(
             safe_name,
+            name,
             routespec,
             target,
             data
@@ -145,7 +151,7 @@ class KubeServiceProxy(Proxy):
                     namespace=self.namespace,
                     body=body
                 )
-                self.log.info('Created %s/%s', kind, safe_name)
+                self.log.info('Created %s %s', kind, safe_name)
             except client.rest.ApiException as e:
                 if e.status == 409:
                     # This object already exists, we should patch it to make it be what we want
@@ -225,6 +231,13 @@ class KubeServiceProxy(Proxy):
 
 
 class KubeFormSpawner(KubeSpawner):
+  singleuser_image_spec = Unicode(
+      'gcr.io/kubeflow/tensorflow-notebook:latest',
+      config=True,
+      help="""
+      """
+  )
+
   def _options_form_default(self):
     return '''
     <label for='image'>Image</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -301,11 +314,12 @@ c.JupyterHub.proxy_class = KubeServiceProxy
 ###################################################
 c.JupyterHub.spawner_class = KubeFormSpawner
 c.KubeSpawner.hub_connect_ip = os.environ['TF_HUB_0_SERVICE_HOST']
-c.KubeSpawner.singleuser_image_spec = 'gcr.io/kubeflow/tensorflow-notebook'
+c.KubeSpawner.singleuser_image_spec = 'gcr.io/kubeflow/tensorflow-notebook:latest'
 c.KubeSpawner.cmd = 'start-singleuser.sh'
 c.KubeSpawner.args = ['--allow-root']
 # First pulls can be really slow, so let's give it a big timeout
 c.KubeSpawner.start_timeout = 60 * 10
+c.KubeServiceProxy.api_url = 'http://' + os.environ['AMBASSADOR_SERVICE_HOST']
 
 ###################################################
 ### Persistent volume options
