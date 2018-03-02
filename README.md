@@ -75,13 +75,19 @@ ks pkg install kubeflow/core
 ks pkg install kubeflow/tf-serving
 ks pkg install kubeflow/tf-job
 
-# Deploy Kubeflow
+# Create templates for core components
 NAMESPACE=kubeflow
 kubectl create namespace ${NAMESPACE}
 ks generate core kubeflow-core --name=kubeflow-core --namespace=${NAMESPACE}
+
+# Enable collection of anonymous usage metrics
+# Skip this step if you don't want to enable collection.
+ks param set kubeflow-core reportUsage true
+ks param set kubeflow-core usageId $(uuidgen)
+
+# Deploy Kubeflow
 ks apply default -c kubeflow-core
 ```
-
 
 The above command sets up JupyterHub and a custom resource for running TensorFlow training jobs. Furthermore, the ksonnet packages
 provide prototypes that can be used to configure TensorFlow jobs and deploy TensorFlow models.
@@ -89,6 +95,9 @@ Used together, these make it easy for a user go from training to serving using T
 effort in a portable fashion between different environments.
 
 For more detailed instructions about how to use Kubeflow, please refer to the [user guide](user_guide.md).
+
+**Important** The commands above will enable collection of **anonymous** user data to help us improve Kubeflow; for more information including instructions for explictly
+disabling it please refer to the [user_guide](user_guide#Usage Reporting)
 
 ## Troubleshooting
 For detailed troubleshooting instructions, please refer to [this section of the user guide](user_guide.md#troubleshooting)
@@ -108,7 +117,6 @@ For detailed troubleshooting instructions, please refer to [this section of the 
 In the interest of fostering an open and welcoming environment, we as contributors and maintainers pledge to making participation in our project and our community a harassment-free experience for everyone, regardless of age, body size, disability, ethnicity, gender identity and expression, level of experience, education, socio-economic status, nationality, personal appearance, race, religion, or sexual identity and orientation.
 
 The Kubeflow community is guided by our [Code of Conduct](https://github.com/kubeflow/community/blob/master/CODE_OF_CONDUCT.md), which we encourage everybody to read before participating.
-
 
 
 ### Who should consider contributing to Kubeflow?
