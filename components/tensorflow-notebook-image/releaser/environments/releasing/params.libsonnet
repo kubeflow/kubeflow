@@ -9,11 +9,11 @@ params + {
     workflows +: {
       bucket: "kubeflow-releasing-artifacts",
       gcpCredentialsSecretName: "gcp-credentials",
-      name: "jlewi-notebook-release-317-f88d",
+      name: "jlewi-notebook-release-327-ba1c",
       namespace: "kubeflow-releasing",
-      prow_env: "JOB_NAME=notebook-release,JOB_TYPE=presubmit,REPO_NAME=kubeflow,REPO_OWNER=kubeflow,BUILD_NUMBER=f88d,PULL_NUMBER=317,PULL_PULL_SHA=1932b26",
+      prow_env: "JOB_NAME=notebook-release,JOB_TYPE=presubmit,REPO_NAME=kubeflow,REPO_OWNER=kubeflow,BUILD_NUMBER=ba1c,PULL_NUMBER=327,PULL_PULL_SHA=03f7362",
       registry: "gcr.io/kubeflow-images-staging",
-      versionTag: "v20180301-1838-pr317-1932b26-f88d",
+      versionTag: "v20180301-1855-pr327-03f7362-ba1c",
     },
   },
 }
