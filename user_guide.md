@@ -30,8 +30,8 @@ ks pkg install kubeflow/tf-serving
 ks pkg install kubeflow/tf-job
 ```
 
-Create the Kubeflow core component. The core component includes
-  * JupyterHub
+Create the Kubeflow core component. The core component includes:
+  * [JupyterHub](https://jupyterhub.readthedocs.io/en/latest/)
   * TensorFlow job controller
 
 
@@ -113,7 +113,7 @@ You can improve the quality of the data by giving each Kubeflow deployment a uni
 ks param set kubeflow-core usageId $(uuidgen)
 ```
 
-### Bringing up a Notebook
+### Bringing up a Jupyter Notebook
 
 The kubeflow-core component deployed JupyterHub and a corresponding load balancer service. You can check its status using the kubectl command line.
 
@@ -126,21 +126,21 @@ tf-hub-lb          ClusterIP      10.11.245.94    <none>        80/TCP         1
 tf-job-dashboard   ClusterIP      10.11.240.151   <none>        80/TCP         1m
 ```
 
-By default we are using ClusterIPs for the JupyterHub UI. This can be changed to a LoadBalancer by issuing `ks param set kubeflow-core jupyterHubServiceType LoadBalancer`, however this will leave your Notebook open to the Internet.
+By default we are using ClusterIPs for the JupyterHub UI. This can be changed to a LoadBalancer by issuing `ks param set kubeflow-core jupyterHubServiceType LoadBalancer`, however this will leave your Jupyter Notebook open to the Internet.
 
-To connect to your notebook:
+To connect to your [Jupyter Notebook](http://jupyter.org/index.html):
 
 ```
 PODNAME=`kubectl get pods --namespace=${NAMESPACE} --selector="app=tf-hub" --output=template --template="{{with index .items 0}}{{.metadata.name}}{{end}}"`
 kubectl port-forward --namespace=${NAMESPACE} $PODNAME 8000:8000
 ```
 
-Then open [http://127.0.0.1:8000](http://127.0.0.1:8000) in your browser.
+Then, open [http://127.0.0.1:8000](http://127.0.0.1:8000) in your browser.
 
 You should see a sign in prompt.
 
 1. Sign in using any username/password
-1. Click the "Start My Server" button, you will be greeted by a dialog screen.
+1. Click the "Start My Server" button, and you will be greeted by a dialog screen.
 1. Set the image to `gcr.io/kubeflow/tensorflow-notebook-cpu:v1` or `gcr.io/kubeflow/tensorflow-notebook-gpu:8fbc341245695e482848ac3c2034a99f7c1e5763` depending on whether doing CPU or GPU training, or whether or not you have GPUs in your cluster.
 1. Allocate memory, CPU, GPU, or other resources according to your need (1 CPU and 2Gi of Memory are good starting points)
     * To allocate GPUs, make sure that you have GPUs available in your cluster
@@ -148,7 +148,7 @@ You should see a sign in prompt.
     `kubectl get nodes "-o=custom-columns=NAME:.metadata.name,GPU:.status.allocatable.nvidia\.com/gpu"`
     * If you have GPUs available, you can schedule your server on a GPU node by specifying the following json in `Extra Resource Limits` section: `{"nvidia.com/gpu": "1"}`
   1. Click Spawn
-1. Eventually you should now be greeted with a Jupyter interface. Note that the GPU image is several gigabytes in size and may take a few minutes to download and start.
+1. You should now be greeted with a Jupyter Notebook interface. Note that the GPU image is several gigabytes in size and may take a few minutes to download and start.
 
 The image supplied above can be used for training Tensorflow models with Jupyter. The images include all the requisite plugins, including [Tensorboard](https://www.tensorflow.org/get_started/summaries_and_tensorboard) that you can use for rich visualizations and insights into your models.
 
@@ -184,7 +184,7 @@ accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 print(sess.run(accuracy, feed_dict={x: mnist.test.images, y_: mnist.test.labels}))
 ```
 
-Paste the example into a new Python 3 Jupyter notebook and execute the code, this should result in a 0.9014 accuracy result against the test data.
+Paste the example into a new Python 3 Jupyter notebook and execute the code. This should result in a 0.9014 accuracy result against the test data.
 
 Please note that when running on most cloud providers, the public IP address will be exposed to the internet and is an
 unsecured endpoint by default. For a production deployment with SSL and authentication, refer to the [documentation](components/jupyterhub).
@@ -233,7 +233,7 @@ ks generate seldon seldon
 ```
 Seldon allows complex runtime graphs for model inference to be deployed. For an example end-to-end integration see the [kubeflow-seldon example](https://github.com/kubeflow/example-seldon). For more details see the [seldon-core documentation](https://github.com/SeldonIO/seldon-core).
 
-### Submiting a TensorFlow training job
+### Submitting a TensorFlow training job
 
 **Note:** Before submitting a training job, you should have [deployed kubeflow to your cluster](#deploy-kubeflow). Doing so ensures that
 the [`TFJob` custom resource](https://github.com/kubeflow/tf-operator) is available when you submit the training job.
