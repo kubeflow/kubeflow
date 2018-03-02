@@ -134,7 +134,9 @@ class KubeServiceProxy(Proxy):
         if data.get('hub') is not None:
             return
 
-        safe_name, name = self.safe_name_for_routespec(routespec).lower()
+        n1, n2 = self.safe_name_for_routespec(routespec)
+        safe_name = n1.lower()
+        name = n2.lower()
         service = self.make_service(
             safe_name,
             name,
