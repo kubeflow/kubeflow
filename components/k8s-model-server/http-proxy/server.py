@@ -40,6 +40,7 @@ define("instances_key", default='instances', help="requested instances json obje
 define("debug", default=False, help="run in debug mode")
 B64_KEY = 'b64'
 WELCOME = "Hello World"
+MODEL_SERVER_METADATA_TIMEOUT_SEC = 20
 
 #### START code took from https://github.com/grpc/grpc/wiki/Integration-with-tornado-(python)
 
@@ -86,7 +87,7 @@ def get_signature_map(model_server_stub, model_name):
   request.model_spec.name = model_name
   request.metadata_field.append("signature_def")
   try:
-    response = model_server_stub.GetModelMetadata(request, 20)
+    response = model_server_stub.GetModelMetadata(request, MODEL_SERVER_METADATA_TIMEOUT_SEC)
   except grpc.RpcError as rpc_error:
     logging.exception("GetModelMetadata call to model server failed with code "
                       "%s and message %s", rpc_error.code(),
@@ -149,8 +150,8 @@ class PredictHandler(tornado.web.RequestHandler):
 
   @gen.coroutine
   def post(self, model_name, version_name=None):
-    if not self.settings['signature_map']:
-      self.settings['signature_map'] = get_signature_map(self.settings['stub'], model_name)
+    if not self.settings['signature_map'].get(model_name):
+      self.settings['signature_map'][model_name] = get_signature_map(self.settings['stub'], model_name)
 
     request_key = self.settings['request_key']
     request_data = tornado.escape.json_decode(self.request.body)
@@ -163,7 +164,7 @@ class PredictHandler(tornado.web.RequestHandler):
     input_columns = instances[0].keys()
 
     signature_name = request_data.get("signature_name", None)
-    signature_name_used, signature = get_signature(self.settings['signature_map'],
+    signature_name_used, signature = get_signature(self.settings['signature_map'][model_name],
                                                    signature_name)
     request = predict_pb2.PredictRequest()
     request.model_spec.name = model_name
@@ -210,7 +211,7 @@ def main():
   stub = prediction_service_pb2.beta_create_PredictionService_stub(channel)
   extra_settings = dict(
       stub = stub,
-      signature_map = None,
+      signature_map = {},
   )
   app = get_application(**extra_settings)
   app.listen(options.port)
