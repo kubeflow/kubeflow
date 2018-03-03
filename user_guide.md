@@ -39,6 +39,12 @@ Create the Kubeflow core component. The core component includes
 NAMESPACE=kubeflow
 kubectl create namespace ${NAMESPACE}
 ks generate core kubeflow-core --name=kubeflow-core --namespace=${NAMESPACE}
+
+# Enable collection of anonymous usage metrics
+# Skip this step if you don't want to enable collection.
+# Or set reportUsage to false (the default).
+ks param set kubeflow-core reportUsage true
+ks param set kubeflow-core usageId $(uuidgen)
 ```
   * Feel free to change the namespace to a value that better suits your kubernetes cluster.
 
@@ -75,6 +81,36 @@ At any time you can inspect the kubernetes objects definitions for a particular 
 
 ```
 ks show ${KF_ENV} -c kubeflow-core
+```
+
+### Usage Reporting
+
+When enabled, Kubeflow will report **anonymous** usage data using [spartakus](https://github.com/kubernetes-incubator/spartakus), Kubernetes' reporting tool. Spartakus **does not report any personal information**. See [here](https://github.com/kubernetes-incubator/spartakus) for more detail.
+This is entirely voluntary and you can opt out by doing the following
+
+```
+ks param set kubeflow-core reportUsage false
+
+# Delete any existing deployments of spartakus
+kubectl delete -n ${NAMESPACE} deploy spartakus-volunteer
+```
+
+To explictly enable usage reporting repeat the above steps setting reportUsage to `true`
+
+```
+ks param set kubeflow-core reportUsage true
+
+# Delete any existing deployments of spartakus
+kubectl delete -n ${NAMESPACE} deploy spartakus-volunteer
+```
+
+**Reporting usage data is one of the most signifcant contributions you can make to Kubeflow; so please consider turning it on.** This data
+allows us to improve the project and helps the many companies working on Kubeflow justify continued investement. 
+
+You can improve the quality of the data by giving each Kubeflow deployment a unique id
+
+```
+ks param set kubeflow-core usageId $(uuidgen)
 ```
 
 ### Bringing up a Notebook
@@ -153,7 +189,7 @@ Paste the example into a new Python 3 Jupyter notebook and execute the code, thi
 Please note that when running on most cloud providers, the public IP address will be exposed to the internet and is an
 unsecured endpoint by default. For a production deployment with SSL and authentication, refer to the [documentation](components/jupyterhub).
 
-### Serve a model
+### Serve a model using TensorFlow Serving
 
 We treat each deployed model as a [component](https://ksonnet.io/docs/tutorial#2-generate-and-deploy-an-app-component) in your APP.
 
@@ -181,6 +217,21 @@ inception   LoadBalancer   10.35.255.136   ww.xx.yy.zz   9000:30936/TCP   28m
 ```
 
 In this example, you should be able to use the inception_client to hit ww.xx.yy.zz:9000
+
+### Serve a model using Seldon
+[Seldon-core](https://github.com/SeldonIO/seldon-core) provides deployment for any machine learning runtime that can be [packaged in a Docker container](https://github.com/SeldonIO/seldon-core/blob/master/docs/wrappers/readme.md).
+
+Install the seldon package 
+
+```
+ks pkg install kubeflow/seldon
+```
+Generate the core components
+
+```
+ks generate seldon seldon
+```
+Seldon allows complex runtime graphs for model inference to be deployed. For an example end-to-end integration see the [kubeflow-seldon example](https://github.com/kubeflow/example-seldon). For more details see the [seldon-core documentation](https://github.com/SeldonIO/seldon-core).
 
 ### Submiting a TensorFlow training job
 

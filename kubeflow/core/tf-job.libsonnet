@@ -46,7 +46,7 @@
             containers: [
               {
                 command: [
-                  "/opt/mlkube/tf_operator",
+                  "/opt/mlkube/tf-operator",
                   "--controller-config-file=/etc/config/controller_config_file.yaml",
                   "--alsologtostderr",
                   "-v=1",

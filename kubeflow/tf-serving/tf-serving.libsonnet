@@ -23,13 +23,34 @@ local networkSpec = networkPolicy.mixin.spec;
         },
       },
 
-      modelService(name, namespace, labels={ app: name }): {
+      modelService(name, namespace, serviceType, labels={ app: name }): {
         apiVersion: "v1",
         kind: "Service",
         metadata: {
           labels: labels,
           name: name,
           namespace: namespace,
+          annotations: {
+            "getambassador.io/config":
+              std.join("\n", [
+                "---",
+                "apiVersion: ambassador/v0",
+                "kind:  Mapping",
+                "name: tfserving-mapping-" + name + "-get",
+                "prefix: /models/" + name + "/",
+                "rewrite: /",
+                "method: GET",
+                "service: " + name + "." + namespace + ":8000",
+                "---",
+                "apiVersion: ambassador/v0",
+                "kind:  Mapping",
+                "name: tfserving-mapping-" + name + "-post",
+                "prefix: /models/" + name + "/",
+                "rewrite: /model/" + name + ":predict",
+                "method: POST",
+                "service: " + name + "." + namespace + ":8000",
+              ]),
+          },  //annotations
         },
         spec: {
           ports: [
@@ -45,7 +66,7 @@ local networkSpec = networkPolicy.mixin.spec;
             },
           ],
           selector: labels,
-          type: "ClusterIP",
+          type: serviceType,
         },
       },
 
