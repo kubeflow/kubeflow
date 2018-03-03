@@ -80,6 +80,7 @@ class KubeServiceProxy(Proxy):
                     'name: ' + name + '-mapping',
                     'prefix: /user/' + username + '/',
                     'rewrite: /user/' + username + '/',
+                    'use_websocket: true',
                     'service: ' + name + '.' + self.namespace])
             },
             labels={
@@ -300,7 +301,12 @@ class KubeFormSpawner(KubeSpawner):
 ###################################################
 c.JupyterHub.ip = '0.0.0.0'
 c.JupyterHub.hub_ip = '0.0.0.0'
-c.JupyterHub.hub_connect_ip = os.environ['TF_HUB_0_SERVICE_HOST']
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s.connect(("8.8.8.8", 80))
+hub_connect_ip = s.getsockname()[0]
+s.close()
+
+c.JupyterHub.hub_connect_ip = hub_connect_ip
 c.JupyterHub.hub_connect_port = 80
 
 # Don't try to cleanup servers on exit - since in general for k8s, we want
@@ -315,7 +321,7 @@ c.JupyterHub.proxy_class = KubeServiceProxy
 ### Spawner Options
 ###################################################
 c.JupyterHub.spawner_class = KubeFormSpawner
-c.KubeSpawner.hub_connect_ip = os.environ['TF_HUB_0_SERVICE_HOST']
+c.KubeSpawner.hub_connect_ip = hub_connect_ip
 c.KubeSpawner.singleuser_image_spec = 'gcr.io/kubeflow/tensorflow-notebook:latest'
 c.KubeSpawner.cmd = 'start-singleuser.sh'
 c.KubeSpawner.args = ['--allow-root']
