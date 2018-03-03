@@ -95,7 +95,7 @@ RUN cd /tmp && \
 RUN conda install --quiet --yes \
     'notebook=5.0.*' \
     'jupyterhub=0.8.1' \
-    'jupyterlab=0.24.*' \
+    'jupyterlab=0.31.*' \
     && conda clean -tipsy
 
 USER root
@@ -114,20 +114,26 @@ COPY start-singleuser.sh /usr/local/bin/
 COPY jupyter_notebook_config.py /etc/jupyter/
 RUN chown -R $NB_USER:users /etc/jupyter/
 
-# Install CUDA Profile Tools
+# Install CUDA Profile Tools and other python packages
 RUN pip --no-cache-dir install \
-        Pillow \
-	h5py \
-	ipykernel \
-	matplotlib \
-	numpy \
-	pandas \
-	scipy \
-	sklearn \
-	kubernetes \
-	grpcio \
-	&& \
-	python -m ipykernel.kernelspec
+    Pillow \
+    h5py \
+    ipykernel \
+    matplotlib \
+    numpy \
+    pandas \
+    scipy \
+    sklearn \
+    kubernetes \
+    grpcio \
+    ktext \
+    annoy \
+    nltk \
+    pydot \
+    pydot-ng \
+    graphviz \
+    && \
+    python -m ipykernel.kernelspec
 
 # Install Python 3 packages
 # Remove pyqt and qt pulled in for matplotlib since we're only ever going to
@@ -135,7 +141,7 @@ RUN pip --no-cache-dir install \
 RUN conda install --quiet --yes \
     'nomkl' \
     'ipywidgets=6.0*' \
-    'pandas=0.19*' \
+    'pandas=0.22*' \
     'numexpr=2.6*' \
     'matplotlib=2.0*' \
     'scipy=0.19*' \
@@ -158,6 +164,11 @@ RUN conda install --quiet --yes \
     'xlrd'  && \
     conda remove --quiet --yes --force qt pyqt && \
     conda clean -tipsy
+
+# Install graphviz package
+RUN apt-get update && apt-get install -yq --no-install-recommends graphviz \
+    && apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install Python 3 Tensorflow with GPU support
 RUN pip install --quiet --no-cache-dir tf-nightly-gpu
