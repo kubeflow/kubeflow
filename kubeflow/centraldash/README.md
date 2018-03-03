@@ -7,8 +7,6 @@
 
 ## Quickstart
 
-*The following commands use the `io.ksonnet.pkg.centraldash` prototype to deploy the Centraldash on your Kubernetes cluster*
-
 First, create a cluster and install the ksonnet CLI (see root-level [README.md](rootReadme)).
 
 If you haven't yet created a [ksonnet application](linkToSomewhere), do so using `ks init <app-name>`.
