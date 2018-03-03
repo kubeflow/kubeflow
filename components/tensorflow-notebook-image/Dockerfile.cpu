@@ -94,7 +94,7 @@ RUN cd /tmp && \
 RUN conda install --quiet --yes \
     'notebook=5.0.*' \
     'jupyterhub=0.8.1' \
-    'jupyterlab=0.24.*' \
+    'jupyterlab=0.31.*' \
     && conda clean -tipsy
 
 EXPOSE 8888
