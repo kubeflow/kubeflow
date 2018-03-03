@@ -1,6 +1,6 @@
 # Centraldash
 
-> Prototypes for deploying Centraldash
+> Ways for deploying Centraldash
 
 
 * [Quickstart](#quickstart)
