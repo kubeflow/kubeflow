@@ -4,8 +4,6 @@
 
 
 * [Quickstart](#quickstart)
-* [Using Prototypes](#using-prototypes)
-  * [io.ksonnet.pkg.centraldash](#io.ksonnet.pkg.centraldash)
 
 ## Quickstart
 
