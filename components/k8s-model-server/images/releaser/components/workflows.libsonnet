@@ -139,7 +139,7 @@
                 // build_image.sh is not in the container its a volume mounted file.
                 "/bin/bash", "-c",                
                 imageDir + "/build_image.sh "
-                + imageDir + "/" dockerfile + " "
+                + imageDir + "/" + dockerfile + " "
                 + image,
               ],
               [
@@ -195,13 +195,10 @@
             {
               name: "e2e",
                dag: {
-                tasks: [
+               tasks: [
                   {name: "checkout",
                    template: "checkout",                
                   },
-
-
-
                   {
                     name: "build-tf-serving-cpu",
                     template: "build-tf-serving-cpu",
@@ -230,16 +227,9 @@
                   template: "test-tf-serving",
                   dependencies: ["deploy-tf-serving"]
                 },
-              }, //dag 
-              steps: [
-                [{
-                  name: "checkout",
-                  template: "checkout",
-                }],
-                [
-                ],
-              ],
-            },
+                ], // tasks
+              }, //dag
+            }, // e2e
             {
               name: "exit-handler",
               steps: [

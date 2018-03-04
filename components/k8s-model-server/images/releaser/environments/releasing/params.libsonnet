@@ -10,7 +10,7 @@ params + {
       bucket: "kubeflow-releasing-artifacts",
       cluster: "kubeflow-releasing",
       gcpCredentialsSecretName: "gcp-credentials",
-      name: "jlewi-tf-serving-release-v20180227-master-8cd9",
+      name: "some-name",
       namespace: "kubeflow-releasing",
       nfsVolumeClaim: "nfs-external",
       project: "kubeflow-releasing",
