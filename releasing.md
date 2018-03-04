@@ -55,7 +55,7 @@ The junit files will be in `gs://kubeflow-releasing-artifacts`.
 
 ## Build TF Serving Images
 
-We build TF serving images using our E2E argo workflows.
+We build TF serving images using an argo workflow.
 
 Look at the [postsubmit dashboard](https://k8s-testgrid.appspot.com/sig-big-data#kubeflow-postsubmit)
 to find the latest green postsubmit.
@@ -65,7 +65,7 @@ Checkout that commit
 ```
 cd ${GIT_KUBEFLOW}
 git checkout ${COMMIT}
-cd components/k8s-model-server/images/releaser
+cd releasing/releaser
 ```
 
 ```
