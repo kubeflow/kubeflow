@@ -7,9 +7,9 @@ params + {
     //   replicas: params.global.replicas,
     // },
     workflows +: {
-      name: "jlewi-tf-serving-release-v20180303-pr339-d1f0fb7-a0ea-a0ea",
+      name: "jlewi-tf-serving-release-v20180303-pr339-72bc7b1-98f7-98f7",
       namespace: "kubeflow-test-infra",
-      prow_env: "JOB_NAME=tf-serving-release,JOB_TYPE=presubmit,REPO_NAME=kubeflow,REPO_OWNER=kubeflow,BUILD_NUMBER=a0ea,PULL_NUMBER=339,PULL_PULL_SHA=d1f0fb7",
+      prow_env: "JOB_NAME=tf-serving-release,JOB_TYPE=presubmit,REPO_NAME=kubeflow,REPO_OWNER=kubeflow,BUILD_NUMBER=98f7,PULL_NUMBER=339,PULL_PULL_SHA=72bc7b1",
     },
   },
 }
