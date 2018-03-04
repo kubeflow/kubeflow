@@ -78,7 +78,7 @@
       // py scripts to use.
       local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
 
-      // Location where Dockerfiles and other sources are found.
+      // Location where build_image.sh      
       local imageDir = srcRootDir + "/kubeflow/kubeflow/components/k8s-model-server/images";
 
       local cpuImage = params.registry +  "/tf-model-server-cpu" + ":" + params.versionTag;
