@@ -6,7 +6,6 @@ ARG BASE_IMAGE=ubuntu:latest
 # removed
 FROM python:2.7 as tf-serving-install
 
-RUN mkdir -p /opt/conda/lib/python3.6/site-packages
 RUN pip install tensorflow-serving-api
 
 FROM $BASE_IMAGE
@@ -225,4 +224,3 @@ RUN chown -R $NB_USER:users /etc/jupyter/ && \
 
 USER $NB_USER
 ENV PATH=/home/jovyan/bin:$PATH
-
