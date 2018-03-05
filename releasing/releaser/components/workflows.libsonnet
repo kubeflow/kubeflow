@@ -204,7 +204,6 @@
                     template: "build-tf-serving-cpu",
                     dependencies: ["checkout"],
                   },
-
                   {
                     name: "build-tf-serving-gpu",
                     template: "build-tf-serving-gpu",

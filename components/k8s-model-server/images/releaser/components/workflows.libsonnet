@@ -204,18 +204,11 @@
                     template: "build-tf-serving-cpu",
                     dependencies: ["checkout"],
                   },
-
-                  {
-                    name: "build-tf-serving-gpu",
-                    template: "build-tf-serving-gpu",
-                    dependencies: ["checkout"],
-                  },
                   {
                     name: "create-pr-symlink",
                     template: "create-pr-symlink",
                     dependencies: ["checkout"],
                   },
-
 
                 {
                   name: "deploy-tf-serving",
