@@ -83,6 +83,15 @@ def decode_b64_if_needed(data):
     return data
 
 def get_signature_map(model_server_stub, model_name):
+  """ Gets tensorflow signature map from the model server stub.
+
+  Args:
+    model_server_stub: The grpc stub to call GetModelMetadata.
+    model_name: The model name.
+
+  Returns:
+    The signature map of the model.
+  """
   request = get_model_metadata_pb2.GetModelMetadataRequest()
   request.model_spec.name = model_name
   request.metadata_field.append("signature_def")
@@ -161,11 +170,12 @@ class PredictHandler(tornado.web.RequestHandler):
     if len(instances) < 1 or not isinstance(instances, (list, tuple)):
       self.send_error('Request instances object have to use be a list')
     instances = decode_b64_if_needed(instances)
-    input_columns = instances[0].keys()
 
-    signature_name = request_data.get("signature_name", None)
+    signature_name = request_data.get("signature_name")
     signature_name_used, signature = get_signature(self.settings['signature_map'][model_name],
                                                    signature_name)
+    input_columns = signature.inputs.keys()
+
     request = predict_pb2.PredictRequest()
     request.model_spec.name = model_name
     request.model_spec.signature_name = signature_name_used
