@@ -19,7 +19,7 @@ GCR_PROJECT=gcr.io/${PROJECT_ID}
 DOCKERHUB_PROJECT=hub.docker.com/r/${PROJECT_ID}
 
 define build
-	docker build --pull -t $(1)/model-server:${TF_VERSION} .
+	docker build --pull -t $(1)/model-server:${TF_VERSION} -f Dockerfile.cpu .
 endef
 
 define build-gpu
