@@ -1,15 +1,28 @@
-# Jupyter and Jupyterhub
+# Jupyter and JupyterHub
 
 ## Background
 
+Jupyter Notebook and JupyterLab as well as JupyterHub are developed by [Project
+Jupyter](http://jupyter.org/about), a non-profit, open source project.
+
 ### Jupyter
-Jupyter (formerly iPython Notebook) is a UI tool commonly used with Spark, Tensorflow and other big data processing frameworks. It is used
-by data scientists and ML engineers across a variety of organizations for interactive tasks. It supports multiple languages through runners,
-and allows users to run code, save code/results, and share “notebooks” with both code, documentation and output easily.
+
+[Jupyter Notebook](https://jupyter-notebook.readthedocs.io/en/stable/)
+(previously named IPython Notebook) and [JupyterLab](https://jupyterlab.readthedocs.io/en/latest/) are user
+interfaces for computational science and data science commonly used with
+Spark, Tensorflow and other big data processing frameworks. They are used
+by data scientists and ML engineers across a variety of organizations
+for interactive tasks. They support multiple languages through runners called
+"language kernels", and allow users to run code, save code/results, and share
+“notebooks” with code, documentation, visualization, and media easily.
 
 ### JupyterHub
-JupyterHub lets users manage authenticated access to multiple single-user Jupyter notebooks. JupyterHub delegates the launching of
-single-user notebooks to pluggable components called “spawners”. JupyterHub has a sub-project named kubespawner, maintained by the
+
+[JupyterHub](https://jupyterhub.readthedocs.io/en/latest/) lets users manage
+authenticated access to multiple single-user
+Jupyter notebooks. JupyterHub delegates the launching of
+single-user notebooks to pluggable components called “spawners”. JupyterHub
+has a sub-project named kubespawner, maintained by the
 community, that enables users to provision single-user Jupyter notebooks backed by Kubernetes pods - the notebooks themselves are
 Kubernetes pods.
 
@@ -17,12 +30,13 @@ Kubernetes pods.
 
 Refer to the [user_guide](../../user_guide.md) for instructions on deploying JupyterHub via ksonnet.
 
-Once that's completed, you will have a StatefulSet for Jupyterhub, a configmap for configuration, and a LoadBalancer type of service, in addition to the requisite RBAC roles.
+Once that's completed, you will have a StatefulSet for JupyterHub, a configmap for configuration, and a LoadBalancer type of service, in addition to the requisite RBAC roles.
 If you are on Google Kubernetes Engine, the LoadBalancer type of service automatically creates an external IP address that can be
-used to access the notebook. Note that this is for illustration purposes only, and must be coupled with [SSL](http://jupyterhub.readthedocs.io/en/0.8.1/getting-started/security-basics.html?highlight=ssl#ssl-encryption) and configured to use an
-[authentication plugin](https://github.com/willingc/jhubdocs/blob/master/jupyterhub/docs/source/authenticators.md) in production environments.
+used to access the Jupyter notebook. Note that this is for illustration purposes only. In
+a production environment, JupyterHub should be coupled with [SSL](https://jupyterhub.readthedocs.io/en/latest/getting-started/security-basics.html#enabling-ssl-encryption) and configured to use an
+[authentication plugin](https://jupyterhub.readthedocs.io/en/latest/reference/authenticators.html).
 
-if you're testing and want to avoid exposing JupyterHub on an external IP address, you can use kubectl instead to gain access to the hub on your local machine.
+If you're testing and want to avoid exposing JupyterHub on an external IP address, you can use kubectl instead to gain access to the hub on your local machine.
 
 ```commandline
 kubectl port-forward <jupyterhub-pod-name> 8000:8000
@@ -44,6 +58,10 @@ If the provided parameters don't provide the flexibility you need, you can take 
 Configuration includes sections for KubeSpawner and Authenticators. Spawner parameters include the form used when provisioning new
 Jupyter notebooks, and configuration defining how JupyterHub creates and interacts with Kubernetes pods for individual notebooks.
 Authenticator parameters correspond to the authentication mechanism used by JupyterHub.
+
+Additional information about configuration can be found in the 
+[Zero to JupyterHub with Kubernetes guide](https://zero-to-jupyterhub.readthedocs.io/en/latest/)
+and the [JupyterHub documentation](https://jupyterhub.readthedocs.io/en/latest/).
 
 
 ## Usage
@@ -101,4 +119,4 @@ The pod will come up with the new configuration and be configured to use the Git
 c.Authenticator.whitelist = {'user1', 'user2'}
 ```
 
-After changing the configuration and `kubectl apply -f config.yaml`, please note that the JupyterHub pod needs to be restarted before  the new configuration is reflected.
+After changing the configuration and `kubectl apply -f config.yaml`, please note that the JupyterHub pod needs to be restarted before the new configuration is reflected.

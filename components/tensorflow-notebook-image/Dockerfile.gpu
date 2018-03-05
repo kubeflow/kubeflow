@@ -72,8 +72,6 @@ RUN useradd -m -s /bin/bash -N -u $NB_UID $NB_USER && \
     mkdir -p $CONDA_DIR && \
     chown $NB_USER $CONDA_DIR
 
-USER $NB_USER
-
 # Setup work directory for backward-compatibility
 RUN mkdir /home/$NB_USER/work
 
@@ -95,10 +93,8 @@ RUN cd /tmp && \
 RUN conda install --quiet --yes \
     'notebook=5.0.*' \
     'jupyterhub=0.8.1' \
-    'jupyterlab=0.24.*' \
+    'jupyterlab=0.31.*' \
     && conda clean -tipsy
-
-USER root
 
 EXPOSE 8888
 WORKDIR $HOME
@@ -107,13 +103,6 @@ WORKDIR $HOME
 ENTRYPOINT ["tini", "--"]
 CMD ["start-notebook.sh"]
 
-# Add local files as late as possible to avoid cache busting
-COPY start.sh /usr/local/bin/
-COPY start-notebook.sh /usr/local/bin/
-COPY start-singleuser.sh /usr/local/bin/
-COPY jupyter_notebook_config.py /etc/jupyter/
-RUN chown -R $NB_USER:users /etc/jupyter/
-
 # Install CUDA Profile Tools and other python packages
 RUN pip --no-cache-dir install \
     Pillow \
@@ -121,7 +110,6 @@ RUN pip --no-cache-dir install \
     ipykernel \
     matplotlib \
     numpy \
-    pandas \
     scipy \
     sklearn \
     kubernetes \
@@ -186,19 +174,41 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
 # Activate ipywidgets extension in the environment that runs the notebook server
 RUN jupyter nbextension enable --py widgetsnbextension --sys-prefix
 
-RUN chown -R $NB_USER /home/$NB_USER/
-
 RUN curl -L -o bazel.sh https://github.com/bazelbuild/bazel/releases/download/0.8.0/bazel-0.8.0-installer-linux-x86_64.sh && chmod a+x ./bazel.sh && ./bazel.sh && rm ./bazel.sh
-USER $NB_USER
 SHELL ["/bin/bash", "-c"]
 
 RUN git clone https://github.com/tensorflow/models.git /home/$NB_USER/tensorflow-models && git clone https://github.com/tensorflow/benchmarks.git /home/$NB_USER/tensorflow-benchmarks
-RUN conda create -n ipykernel_py2 python=2 ipykernel && \
-    source activate ipykernel_py2 && \
-    python -m ipykernel install --user && \
-    source deactivate
 # Import matplotlib the first time to build the font cache.
 ENV XDG_CACHE_HOME /home/$NB_USER/.cache/
 RUN pip install jupyter-tensorboard
 
+# Create a conda environment for Python 2. We want to include as many of the
+# packages from our root environment as we reasonably can, so we explicitly
+# list that environment, then include everything unless it is Conda (which
+# can only be in the root environment), Jupyterhub (which requires Python 3),
+# or Python itself. We also want to include the pip packages, but we cannot
+# install those via conda, so we list them, drop any conda packages, and
+# then install them via pip. We do this on a best-effort basis, so if any
+# packages from the Python 3 environment cannot be installed with Python 2,
+# then we just skip them.
+RUN conda_packages=$(conda list -e | cut -d '=' -f 1 | grep -v '#' | sort) && \
+    pip_packages=$(pip --no-cache-dir list --format=freeze | cut -d '=' -f 1 | grep -v '#' | sort) && \
+    pip_only_packages=$(comm -23 <(echo "${pip_packages}") <(echo "${conda_packages}")) && \
+    conda create -n ipykernel_py2 python=2 --file <(echo "${conda_packages}" | grep -v conda | grep -v python | grep -v jupyterhub) && \
+    source activate ipykernel_py2 && \
+    python -m ipykernel install --user && \
+    echo "${pip_only_packages}" | xargs -n 1 -I "{}" /bin/bash -c 'pip install --no-cache-dir {} || true' && \
+    pip install --no-cache-dir tensorflow-transform && \
+    source deactivate
+
+# Add local files as late as possible to avoid cache busting
+COPY start.sh /usr/local/bin/
+COPY start-notebook.sh /usr/local/bin/
+COPY start-singleuser.sh /usr/local/bin/
+COPY jupyter_notebook_config.py /etc/jupyter/
+RUN chown -R $NB_USER:users /etc/jupyter/ && \
+    chown -R $NB_USER /home/$NB_USER/ && \
+    chmod a+rx /usr/local/bin/*
+
+USER $NB_USER
 ENV PATH=/home/jovyan/bin:$PATH
