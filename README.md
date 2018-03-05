@@ -6,7 +6,11 @@ The Kubeflow project is dedicated to making **deployment** of machine learning o
 
 Contained in this repository are manifests for creating:
 
-* A [JupyterHub](https://jupyterhub.readthedocs.io/en/latest/) to create & manage interactive Jupyter notebooks
+* A [**JupyterHub**](https://jupyterhub.readthedocs.io/en/latest/) to create
+  and manage interactive [Jupyter notebooks](http://jupyter.org). 
+  [Project Jupyter](http://jupyter.org/about) is a non-profit, open-source 
+  project to support interactive data science and scientific computing across
+  all programming languages.
 * A **TensorFlow Training Controller** that can be configured to use either CPUs or GPUs and dynamically adjusted to the size of a cluster with a single setting
 * A **TensorFlow Serving** container to export trained TensorFlow models to Kubernetes
 
@@ -24,8 +28,6 @@ Our goal is to make scaling machine learning models and deploying them to produc
 - Deploying and managing loosely-coupled microservices
 - Scaling based on demand
 
-
-
 Because ML practitioners use so many different types of tools, it's a key goal that you can customize the stack to whatever your requirements (within reason) and let the system take care of the "boring stuff." While we have started with a narrow set of technologies, we are working with many different projects to include additional tooling.
 
 Ultimately, we want to have a set of simple manifests that give you an easy to use ML stack _anywhere_ Kubernetes is already running and can self configure based on the cluster it deploys into.
@@ -37,7 +39,8 @@ Based on the current functionality you should consider using Kubeflow if:
 
   * You want to train/serve TensorFlow models in different environments (e.g. local, on prem, and cloud)
   * You want to use Jupyter notebooks to manage TensorFlow training jobs
-       * kubeflow is particularly helpful if you want to launch training jobs that use more resources (more nodes or more GPUs) than your notebook.
+  * You want to launch training jobs that use resources -- such as additional
+    CPUs or GPUs -- that aren't available on your personal computer
   * You want to combine TensorFlow with other processes
        * For example, you may want to use [tensorflow/agents](https://github.com/tensorflow/agents) to run simulations to generate data for training reinforcement learning models.
 
@@ -121,7 +124,7 @@ The Kubeflow community is guided by our [Code of Conduct](https://github.com/kub
 
 ### Who should consider contributing to Kubeflow?
 
-* Folks who want to add support for other ML frameworks (e.g. PyTorch, XGBoost, etc...)
+* Folks who want to add support for other ML frameworks (e.g. PyTorch, XGBoost, scikit-learn, etc...)
 * Folks who want to bring more Kubernetes magic to ML (e.g. ISTIO integration for prediction)
 * Folks who want to make Kubeflow a richer ML platform (e.g. support for ML pipelines, hyperparameter tuning)
 * Folks who want to tune Kubeflow for their particular Kubernetes distribution or Cloud
