@@ -21,7 +21,13 @@ set -ex
 # 2 spaces vertical indentation
 # Use double quotes for strings
 # Use // for comments
-find -E $(pwd) -iregex ".*\.(libsonnet|jsonnet)$" -exec \
+find $(pwd) -iregex ".*\.jsonnet$" -exec \
+  jsonnet fmt {} -i \
+  --string-style d \
+  --comment-style s \
+  --indent 2 ";"
+
+find $(pwd) -iregex ".*\.libsonnet$" -exec \
   jsonnet fmt {} -i \
   --string-style d \
   --comment-style s \
