@@ -124,6 +124,10 @@ def decode_b64_if_needed(value):
 
 
 class PredictHandler(tornado.web.RequestHandler):
+    """
+    Predict Hanlder proxy predict method, the input of tf savedModel is expected to be a `Map<strinbg, tf.Tensor>` protobuf
+    Defined here https://github.com/tensorflow/serving/blob/master/tensorflow_serving/apis/prediction_service.proto#L23
+    """
     @gen.coroutine
     def post(self, model, version=None):
         request_key = self.settings['request_key']
@@ -158,6 +162,10 @@ class PredictHandler(tornado.web.RequestHandler):
 
 
 class ClassifyHandler(tornado.web.RequestHandler):
+    """
+    Classify Hanlder proxy classify method, the input of tf savedModel is expected to be a `tf.Examples` protobuf
+    Defined here https://github.com/tensorflow/serving/blob/master/tensorflow_serving/apis/prediction_service.proto#L17
+    """
     @gen.coroutine
     def post(self, model, version=None):
         request_key = self.settings['request_key']
