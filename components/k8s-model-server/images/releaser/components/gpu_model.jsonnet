@@ -18,12 +18,23 @@ local serviceType = params.service_type;
 local containers = tfServing.parts.deployment.modelServer(name, namespace, modelPath, modelServerImage, httpProxyImage).spec.template.spec.containers;
 
 local tfServingContainer = containers[0] {
+  env+: [
+  	{
+  	  name:  "LD_LIBRARY_PATH",
+  	  value: "/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/lib64:/usr/local/cuda-8.0/targets/x86_64-linux/lib",
+  	},
+  ],
   resources+: {
     limits+: {
       "nvidia.com/gpu": 1,
     },
 
   },
+  // TODO(jlewi): DO NOT SUBMIT FOR DEBUGGING ONLY.
+  command: [
+  	"tail", "-f", "/dev/null"
+  ],
+  args: [],
 };
 
 local httpProxyContainer = containers[1];
@@ -33,6 +44,9 @@ local server = tfServing.parts.deployment.modelServer(name, namespace, modelPath
                    template+: {
                      spec+: {
                        containers: std.prune([tfServingContainer, httpProxyContainer]),
+                       // TODO(jlewi): For the CPU image we set the user and group to 1000 which are defined within the Docker container.
+                       // But we don't do the same for the GPU image.
+                       securityContext: null,
                      },
                    },
                  },
