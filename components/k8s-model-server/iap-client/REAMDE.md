@@ -24,7 +24,7 @@ ks apply cloud -c ${MODEL_COMPONENT}
 
 ### Get token
 
-Go the the [Credentials](console.cloud.google.com/apis/credentials) page, and create a crednetial
+Go the the [Credentials](http://console.cloud.google.com/apis/credentials) page, and create a crednetial
 with type **Other**. Record the client ID and client secret as `OTHER_CLIENT_ID` and `OTHER_CLIENT_SECRET`.
 
 Visit this url to get the auth code: https://accounts.google.com/o/oauth2/v2/auth?client_id=OTHER_CLIENT_ID&response_type=code&scope=openid%20email&access_type=offline&redirect_uri=urn:ietf:wg:oauth:2.0:oob.
