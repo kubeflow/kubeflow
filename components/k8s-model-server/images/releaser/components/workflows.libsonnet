@@ -31,7 +31,8 @@
        // The name of the NFS volume claim to use for test files.
       nfsVolumeClaim: "nfs-external",
       prow_env: "REPO_OWNER=kubeflow,REPO_NAME=kubeflow,PULL_BASE_SHA=master",
-      serving_image: "gcr.io/mlkube-testing/model-server:1.0",
+      registry: "gcr.io/mlkube-testing",
+      versionTag: "latest",
       // The default image to use for the steps in the Argo workflow.
       testing_image: "gcr.io/mlkube-testing/kubeflow-testing",
       tf_testing_image: "gcr.io/kubeflow-ci/tf-test-worker:1.0",
@@ -76,6 +77,12 @@
       // The directory within the kubeflow_testing submodule containing
       // py scripts to use.
       local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
+
+      // Location where build_image.sh      
+      local imageDir = srcRootDir + "/kubeflow/kubeflow/components/k8s-model-server/images";
+
+      local cpuImage = params.registry +  "/tf-model-server-cpu" + ":" + params.versionTag;
+      local gpuImage = params.registry +  "/tf-model-server-gpu" + ":" + params.versionTag;
 
       // Build an Argo template to execute a particular command.
       // step_name: Name for the template
@@ -123,6 +130,33 @@
           sidecars: sidecars,
         };  // buildTemplate
 
+
+      local buildImageTemplate(step_name, dockerfile, image) = 
+      buildTemplate(
+              step_name,
+              [
+                // We need to explicitly specify bash because
+                // build_image.sh is not in the container its a volume mounted file.
+                "/bin/bash", "-c",
+                imageDir + "/build_image.sh "
+                + imageDir + "/" + dockerfile + " "
+                + image,
+              ],
+              [
+                {
+                  name: "DOCKER_HOST",
+                  value: "127.0.0.1",
+                },
+              ],
+              [{
+                name: "dind",
+                image: "docker:17.10-dind",
+                securityContext: {
+                  privileged: true,
+                },
+                mirrorVolumeMounts: true,
+              }],
+            ); // buildImageTemplate
       {       
         apiVersion: "argoproj.io/v1alpha1",
         kind: "Workflow",
@@ -160,31 +194,35 @@
           templates: [
             {
               name: "e2e",
-              steps: [
-                [{
-                  name: "checkout",
-                  template: "checkout",
-                }],
-                [
+               dag: {
+               tasks: [
+                  {name: "checkout",
+                   template: "checkout",
+                  },
                   {
-                    name: "build-tf-serving-image",
-                    template: "build-tf-serving-image",
+                    name: "build-tf-serving-cpu",
+                    template: "build-tf-serving-cpu",
+                    dependencies: ["checkout"],
                   },
                   {
                     name: "create-pr-symlink",
                     template: "create-pr-symlink",
+                    dependencies: ["checkout"],
                   },
-                ],
-                [{
+
+                {
                   name: "deploy-tf-serving",
                   template: "deploy-tf-serving",
-                }],
-                [{
+                  dependencies: ["build-tf-serving-cpu"]
+                },
+                {
                   name: "test-tf-serving",
                   template: "test-tf-serving",
-                }],
-              ],
-            },
+                  dependencies: ["deploy-tf-serving"]
+                },
+                ], // tasks
+              }, //dag
+            }, // e2e
             {
               name: "exit-handler",
               steps: [
@@ -222,36 +260,8 @@
                 ],
               },
             },  // checkout
-            buildTemplate(
-              "build-tf-serving-image",
-              [
-                "sh",
-                "-c",
-                "until docker ps; do sleep 3; done; " +
-                "docker build --pull -t ${SERVING_IMAGE} " +
-                srcRootDir + "/kubeflow/kubeflow/components/k8s-model-server/docker/; " +
-                "gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}; " +
-                "gcloud docker -- push ${SERVING_IMAGE}",
-              ],
-              [
-                {
-                  name: "DOCKER_HOST",
-                  value: "127.0.0.1",
-                },
-                {
-                  name: "SERVING_IMAGE",
-                  value: serving_image + ":" + name,
-                },
-              ],
-              [{
-                name: "dind",
-                image: "docker:17.10-dind",
-                securityContext: {
-                  privileged: true,
-                },
-                mirrorVolumeMounts: true,
-              }],
-            ),  // build-tf-serving-image
+
+            buildImageTemplate("build-tf-serving-cpu", "Dockerfile.cpu", cpuImage),
 
             buildTemplate(
               "deploy-tf-serving",
@@ -268,16 +278,12 @@
                 "--artifacts_dir=" + artifactsDir,
                 "setup",
                 "--deploy_tf_serving=true",
-                "--model_server_image=$(SERVING_IMAGE)",
+                "--model_server_image=" + cpuImage,
               ],
               [
                 {
                   name: "DOCKER_HOST",
                   value: "127.0.0.1",
-                },
-                {
-                  name: "SERVING_IMAGE",
-                  value: serving_image + ":" + name,
                 },
               ],
               [{
