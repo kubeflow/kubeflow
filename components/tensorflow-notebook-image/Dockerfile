@@ -2,7 +2,6 @@
 # Distributed under the terms of the Modified BSD License.
 
 ARG BASE_IMAGE=ubuntu:latest
-ARG TF_PACKAGE=tf-nightly
 FROM $BASE_IMAGE
 
 USER root
@@ -162,7 +161,8 @@ RUN apt-get update && apt-get install -yq --no-install-recommends graphviz \
     rm -rf /var/lib/apt/lists/*
 
 # Install Python 3 Tensorflow without GPU support
-RUN pip install --quiet --no-cache-dir $TF_PACKAGE
+ARG TF_PACKAGE=tf-nightly
+RUN echo Installing $TF_PACKAGE && pip install --quiet --no-cache-dir $TF_PACKAGE
 
 ENV CLOUD_SDK_VERSION 168.0.0
 RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
