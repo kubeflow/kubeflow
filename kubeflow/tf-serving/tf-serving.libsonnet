@@ -28,6 +28,7 @@ local networkSpec = networkPolicy.mixin.spec;
         kind: "Secret",
         metadata: {
           name: name,
+          namespace: namespace,
         },
         type: "Opaque",
         data: {
