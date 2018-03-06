@@ -70,16 +70,16 @@ local networkSpec = networkPolicy.mixin.spec;
         },
       },
 
-      modelServer(name, namespace, modelPath, modelServerImage, modelServerEnv, httpProxyImage=0, labels={ app: name },):
+      modelServer(name, namespace, modelPath, modelName, modelServerImage, modelServerEnv, httpProxyImage=0, labels={ app: name },):
         // TODO(jlewi): Allow the model to be served from a PVC.
         local volume = {
           name: "redis-data",
           namespace: namespace,
           emptyDir: {},
         };
-        base(name, namespace, modelPath, modelServerImage, modelServerEnv, httpProxyImage, labels),
+        base(name, namespace, modelPath, modelName, modelServerImage, modelServerEnv, httpProxyImage, labels),
 
-      local base(name, namespace, modelPath, modelServerImage, modelServerEnv, httpProxyImage, labels) =
+      local base(name, namespace, modelPath, modelName, modelServerImage, modelServerEnv, httpProxyImage, labels) =
         {
           apiVersion: "extensions/v1beta1",
           kind: "Deployment",
@@ -102,7 +102,7 @@ local networkSpec = networkPolicy.mixin.spec;
                     command: ["/usr/bin/tensorflow_model_server"],
                     args: [
                       "--port=9000",
-                      "--model_name=" + name,
+                      "--model_name=" + modelName,
                       "--model_base_path=" + modelPath,
                     ],
                     env: modelServerEnv,
