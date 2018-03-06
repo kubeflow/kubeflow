@@ -137,7 +137,7 @@
               [
                 // We need to explicitly specify bash because
                 // build_image.sh is not in the container its a volume mounted file.
-                "/bin/bash", "-c",                
+                "/bin/bash", "-c",
                 imageDir + "/build_image.sh "
                 + imageDir + "/" + dockerfile + " "
                 + image,
@@ -197,7 +197,7 @@
                dag: {
                tasks: [
                   {name: "checkout",
-                   template: "checkout",                
+                   template: "checkout",
                   },
                   {
                     name: "build-tf-serving-cpu",
