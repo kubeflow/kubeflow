@@ -33,7 +33,7 @@ Save the auth code.
 Now we should have four variables ready: `IAP_CLIENT_ID, OTHER_CLIENT_ID, OTHER_CLIENT_SECRET`, and the auth code.
 Run the script:
 ```
-./get_token.sh auth YOUR_CODE_CODE
+./get_token.sh auth YOUR_AUTH_CODE
 ```
 
 This should print out 
