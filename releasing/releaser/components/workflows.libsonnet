@@ -207,20 +207,14 @@
                     dependencies: ["checkout"],
                   },
                   {
+                    name: "build-tf-serving-gpu",
+                    template: "build-tf-serving-gpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
                     name: "create-pr-symlink",
                     template: "create-pr-symlink",
                     dependencies: ["checkout"],
-                  },
-
-                  {
-                    name: "deploy-tf-serving",
-                    template: "deploy-tf-serving",
-                    dependencies: ["build-tf-serving-cpu"],
-                  },
-                  {
-                    name: "test-tf-serving",
-                    template: "test-tf-serving",
-                    dependencies: ["deploy-tf-serving"],
                   },
                 ],  // tasks
               },  //dag
@@ -264,6 +258,7 @@
             },  // checkout
 
             buildImageTemplate("build-tf-serving-cpu", "Dockerfile.cpu", cpuImage),
+            buildImageTemplate("build-tf-serving-gpu", "Dockerfile.gpu", gpuImage),
 
             buildTemplate(
               "deploy-tf-serving",
