@@ -22,7 +22,7 @@
     // Test deploying a GPU model.
     gpu_model: {
       http_proxy_image: "gcr.io/kubeflow/http-proxy:1.0",
-      model_path: "gs://some-bucket/some/model",      
+      model_path: "gs://kubeflow-ci-test-models/mnist/",
       model_server_image: "gcr.io/kubeflow-images-staging/tf-model-server-gpu:v20180305-pr362-7f250ae-5cc7",
       name: "gpu_model",
       namespace: "default",

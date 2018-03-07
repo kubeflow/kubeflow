@@ -1,152 +1,262 @@
-local k = import "k.libsonnet";
-local deployment = k.extensions.v1beta1.deployment;
-local container = deployment.mixin.spec.template.spec.containersType;
-local storageClass = k.storage.v1beta1.storageClass;
-local service = k.core.v1.service;
-local networkPolicy = k.extensions.v1beta1.networkPolicy;
-local networkSpec = networkPolicy.mixin.spec;
-
 {
+  // Parameters are intended to be late bound.
+  params:: {
+    name: null,
+    namespace: null,
+    numGpus: 0,
+    labels: {
+      app: $.params.name,
+    },
+    modelName: $.params.name,
+    modelPath: null,
+    // TODO(jlewi): We should probably default to a string.
+    // We might also want to have a separate boolean to indicate whether or not to use the httpProxy.
+    httpProxyImage: 0,
+
+    serviceType: "ClusterIP",
+
+    // If users want to override the image then can override defaultCpuImage and/or defaultGpuImage
+    // in which case the image used will still depend on whether GPUs are used or not.
+    // Users can also override modelServerImage in which case the user supplied value will always be used
+    // regardless of numGpus.
+    defaultCpuImage: "gcr.io/kubeflow-images-staging/tf-model-server:v20180227-master",
+    defaultGpuImage: "gcr.io/kubeflow-images-staging/tf-model-server-gpu:v20180305-pr362-7f250ae-5cc7",
+    modelServerImage: if $.params.numGpus == 0 then
+      $.params.defaultCpuImage
+    else
+      $.params.defaultGpuImage,
+
+
+    // Which cloud to configure the model for.
+    cloud:: null,
+  },
+
+  // Parameters that control S3 access
+  // params overrides s3params because params can be overwritten by the user to override the defaults.
+  s3params:: {
+    //  Name of the k8s secrets containing S3 credentials
+    s3_secret_name: "",
+    // Name of the key in the k8s secret containing AWS_ACCESS_KEY_ID.
+    s3_secret_accesskeyid_key_name: "",
+
+    // Name of the key in the k8s secret containing AWS_SECRET_ACCESS_KEY.
+    s3_secret_secretaccesskey_key_name: "",
+
+    // S3 region
+    s3_aws_region: "us-west-1",
+
+    // TODO(jlewi): We should use util.toBool to automatically conver to actual boolean values.
+    // The use of strings is left over from when they were prototype parameters which only supports string type.
+
+    // true Whether or not to use https for S3 connections
+    s3_use_https: "true",
+
+    // Whether or not to verify https certificates for S3 connections
+    s3_verify_ssl: "true",
+
+    // URL for your s3-compatible endpoint.
+    s3_endpoint: "http://s3.us-west-1.amazonaws.com,",
+  } + $.params,
+
+
+  components:: {
+
+    all::
+      if $.params.cloud == "aws" then
+        [
+          $.s3parts.tfService,
+          $.s3parts.tfDeployment,
+        ]
+      else
+        [
+          $.parts.tfService,
+          $.parts.tfDeployment,
+        ],
+  }.all,
+
   parts:: {
-    deployment:: {
-      local defaults = {
-        imagePullPolicy:: "IfNotPresent",
-        resources:: {
-          requests: {
-            memory: "1Gi",
-            cpu: "1",
-          },
-          limits: {
-            memory: "4Gi",
-            cpu: "4",
-          },
-        },
-      },
-
-      modelService(name, namespace, serviceType, labels={ app: name }): {
-        apiVersion: "v1",
-        kind: "Service",
-        metadata: {
-          labels: labels,
-          name: name,
-          namespace: namespace,
-          annotations: {
-            "getambassador.io/config":
-              std.join("\n", [
-                "---",
-                "apiVersion: ambassador/v0",
-                "kind:  Mapping",
-                "name: tfserving-mapping-" + name + "-get",
-                "prefix: /models/" + name + "/",
-                "rewrite: /",
-                "method: GET",
-                "service: " + name + "." + namespace + ":8000",
-                "---",
-                "apiVersion: ambassador/v0",
-                "kind:  Mapping",
-                "name: tfserving-mapping-" + name + "-post",
-                "prefix: /models/" + name + "/",
-                "rewrite: /model/" + name + ":predict",
-                "method: POST",
-                "service: " + name + "." + namespace + ":8000",
-              ]),
-          },  //annotations
-        },
-        spec: {
-          ports: [
-            {
-              name: "tf-serving",
-              port: 9000,
-              targetPort: 9000,
-            },
-            {
-              name: "tf-serving-proxy",
-              port: 8000,
-              targetPort: 8000,
-            },
-          ],
-          selector: labels,
-          type: serviceType,
-        },
-      },
-
-      modelServer(name, namespace, modelPath, modelName, modelServerImage, modelServerEnv, httpProxyImage=0, labels={ app: name },):
-        // TODO(jlewi): Allow the model to be served from a PVC.
-        local volume = {
-          name: "redis-data",
-          namespace: namespace,
-          emptyDir: {},
-        };
-        base(name, namespace, modelPath, modelName, modelServerImage, modelServerEnv, httpProxyImage, labels),
-
-      local base(name, namespace, modelPath, modelName, modelServerImage, modelServerEnv, httpProxyImage, labels) =
+    // We define the containers one level beneath parts because combined with jsonnet late binding
+    // this makes it easy for users to override specific bits of the container.
+    tfServingContainerBase:: {
+      name: $.params.name,
+      image: $.params.modelServerImage,
+      imagePullPolicy: "IfNotPresent",
+      command: ["/usr/bin/tensorflow_model_server"],
+      args: [
+        "--port=9000",
+        "--model_name=" + $.params.modelName,
+        "--model_base_path=" + $.params.modelPath,
+      ],
+      ports: [
         {
-          apiVersion: "extensions/v1beta1",
-          kind: "Deployment",
+          containerPort: 9000,
+        },
+      ],
+      // TODO(jlewi): We should add readiness and liveness probes. I think the blocker is that
+      // model-server doesn't have something we can use out of the box.
+      resources: {
+        requests: {
+          memory: "1Gi",
+          cpu: "1",
+        },
+        limits: {
+          memory: "4Gi",
+          cpu: "4",
+        },
+      },
+    },  // tfServingContainer
+
+    tfServingContainer+: $.parts.tfServingContainerBase +
+                         if $.params.numGpus > 0 then
+                           {
+                             resources+: {
+                               limits+: {
+                                 "nvidia.com/gpu": $.params.numGpus,
+                               },
+                             },
+                           }
+                         else {},
+
+
+    httpProxyContainer:: {
+      name: $.params.name + "-http-proxy",
+      image: $.params.httpProxyImage,
+      imagePullPolicy: "IfNotPresent",
+      command: [
+        "python",
+        "/usr/src/app/server.py",
+        "--port=8000",
+        "--rpc_port=9000",
+        "--rpc_timeout=10.0",
+      ],
+      env: [],
+      ports: [
+        {
+          containerPort: 8000,
+        },
+      ],
+      resources: {
+        requests: {
+          memory: "1Gi",
+          cpu: "1",
+        },
+        limits: {
+          memory: "4Gi",
+          cpu: "4",
+        },
+      },
+    },  // httpProxyContainer
+
+
+    tfDeployment: {
+      apiVersion: "extensions/v1beta1",
+      kind: "Deployment",
+      metadata: {
+        name: $.params.name,
+        namespace: $.params.namespace,
+        labels: $.params.labels,
+      },
+      spec: {
+        template: {
           metadata: {
-            name: name,
-            namespace: namespace,
-            labels: labels,
+            labels: $.params.labels,
           },
           spec: {
-            template: {
-              metadata: {
-                labels: labels,
-              },
-              spec: {
-                containers: [
-                  {
-                    name: name,
-                    image: modelServerImage,
-                    imagePullPolicy: defaults.imagePullPolicy,
-                    command: ["/usr/bin/tensorflow_model_server"],
-                    args: [
-                      "--port=9000",
-                      "--model_name=" + modelName,
-                      "--model_base_path=" + modelPath,
-                    ],
-                    env: modelServerEnv,
-                    ports: [
-                      {
-                        containerPort: 9000,
-                      },
-                    ],
-                    // TODO(jlewi): We should add readiness and liveness probes. I think the blocker is that
-                    // model-server doesn't have something we can use out of the box.
-                    resources: defaults.resources,
-                  },
-                  if httpProxyImage != 0 then
-                    {
-                      name: name + "-http-proxy",
-                      image: httpProxyImage,
-                      imagePullPolicy: defaults.imagePullPolicy,
-                      command: [
-                        "python",
-                        "/usr/src/app/server.py",
-                        "--port=8000",
-                        "--rpc_port=9000",
-                        "--rpc_timeout=10.0",
-                      ],
-                      env: [],
-                      ports: [
-                        {
-                          containerPort: 8000,
-                        },
-                      ],
-                      resources: defaults.resources,
-                    },
-                ],
-                // See:  https://github.com/kubeflow/kubeflow/tree/master/components/k8s-model-server#set-the-user-optional
-                // The is user and group should be defined in the Docker image.
-                // Per best practices we don't run as the root user.
-                securityContext: {
-                  runAsUser: 1000,
-                  fsGroup: 1000,
-                },
-              },
+            containers: [
+              $.parts.tfServingContainer,
+              if $.params.httpProxyImage != 0 then
+                $.parts.httpProxyContainer,
+            ],
+            // See:  https://github.com/kubeflow/kubeflow/tree/master/components/k8s-model-server#set-the-user-optional
+            // The is user and group should be defined in the Docker image.
+            // Per best practices we don't run as the root user.
+            securityContext: {
+              runAsUser: 1000,
+              fsGroup: 1000,
             },
           },
         },
+      },
+    },  // tfDeployment
+
+    tfService: {
+      apiVersion: "v1",
+      kind: "Service",
+      metadata: {
+        labels: $.params.labels,
+        name: $.params.name,
+        namespace: $.params.namespace,
+        annotations: {
+          "getambassador.io/config":
+            std.join("\n", [
+              "---",
+              "apiVersion: ambassador/v0",
+              "kind:  Mapping",
+              "name: tfserving-mapping-" + $.params.name + "-get",
+              "prefix: /models/" + $.params.name + "/",
+              "rewrite: /",
+              "method: GET",
+              "service: " + $.params.name + "." + $.params.namespace + ":8000",
+              "---",
+              "apiVersion: ambassador/v0",
+              "kind:  Mapping",
+              "name: tfserving-mapping-" + $.params.name + "-post",
+              "prefix: /models/" + $.params.name + "/",
+              "rewrite: /model/" + $.params.name + ":predict",
+              "method: POST",
+              "service: " + $.params.name + "." + $.params.namespace + ":8000",
+            ]),
+        },  //annotations
+      },
+      spec: {
+        ports: [
+          {
+            name: "tf-serving",
+            port: 9000,
+            targetPort: 9000,
+          },
+          {
+            name: "tf-serving-proxy",
+            port: 8000,
+            targetPort: 8000,
+          },
+        ],
+        selector: $.params.labels,
+        type: $.params.serviceType,
+      },
+    },  // tfService
+
+  },  // parts
+
+  // Parts specific to S3
+  s3parts:: $.parts {
+    s3Env:: [
+      { name: "AWS_ACCESS_KEY_ID", valueFrom: { secretKeyRef: { name: $.s3params.s3_secret_name, key: $.s3params.s3_secret_accesskeyid_key_name } } },
+      { name: "AWS_SECRET_ACCESS_KEY", valueFrom: { secretKeyRef: { name: $.s3params.s3_secret_name, key: $.s3params.s3_secret_secretaccesskey_key_name } } },
+      { name: "AWS_REGION", value: $.s3params.s3_aws_region },
+      { name: "S3_REGION", value: $.s3params.s3_aws_region },
+      { name: "S3_USE_HTTPS", value: $.s3params.s3_use_https },
+      { name: "S3_VERIFY_SSL", value: $.s3params.s3_verify_ssl },
+      { name: "S3_ENDPOINT", value: $.s3params.s3_endpoint },
+    ],
+
+    tfServingContainer: $.parts.tfServingContainer {
+      env+: $.s3parts.s3Env,
     },
-  },
+
+    tfDeployment: $.parts.tfDeployment {
+      spec: +{
+        template: +{
+
+          spec: +{
+            containers: [
+              $.s3parts.tfServingContainer,
+              if $.params.httpProxyImage != 0 then
+                $.parts.httpProxyContainer,
+            ],
+          },
+        },
+      },
+    },  // tfDeployment
+  },  // s3parts
 }
