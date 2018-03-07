@@ -9,7 +9,7 @@ Deploy a [TF serving component](https://github.com/kubeflow/kubeflow/tree/master
 
 Create a service account:
 ```
-gcloud iam service-accounts create $SERVICE_ACCOUNT
+gcloud iam service-accounts create --project=$PROJECT $SERVICE_ACCOUNT
 ```
 Grant the service account access to IAP enabled resources:
 ```
