@@ -5,7 +5,7 @@
 // @param name string Name to give to each of the components
 // @optionalParam namespace string default Namespace
 // @param model_path string Path to the model. This can be a GCS path.
-// @optionalParam model_name string unset_model_name Name of the model in the serving api.
+// @optionalParam model_name string  Name of the model in the serving api.
 // @optionalParam model_server_image string gcr.io/kubeflow-images-staging/tf-model-server:v20180227-master Container for TF model server
 // @optionalParam http_proxy_image string gcr.io/kubeflow/http-proxy:1.0 Container for http_proxy of TF model server
 // @optionalParam service_type string ClusterIP The service type for TFServing deployment.
@@ -49,7 +49,7 @@ local modelServerEnv = if s3SecretName != "" then [
   { name: "S3_ENDPOINT", value: s3Endpoint },
 ] else [];
 
-local modelName = if modelNametmp == 'unset_model_name' then name else import "param://model_name";
+local modelName = if modelNametmp == "" then name else import "param://model_name";
 
 std.prune(k.core.v1.list.new([
   tfServing.parts.deployment.modelServer(name, namespace, modelPath, modelName, modelServerImage, modelServerEnv, httpProxyImage),
