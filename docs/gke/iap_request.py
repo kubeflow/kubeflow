@@ -114,13 +114,26 @@ def main():
       'client_id',
       help='The client id used to setup IAP'
   )
+  parser.add_argument(
+      '--input',
+      help='The input file.'
+  )
   args = parser.parse_args()
 
   token = get_service_account_token(args.client_id)
-  resp = requests.get(
-      args.url,
-      verify=False,
-      headers={'Authorization': 'Bearer {}'.format(token)})
+  if args.input:
+    with open(args.input) as f:
+      data = f.read()
+    resp = requests.post(
+        args.url,
+        verify=False,
+        data=data,
+        headers={'Authorization': 'Bearer {}'.format(token)})
+  else:
+    resp = requests.get(
+        args.url,
+        verify=False,
+        headers={'Authorization': 'Bearer {}'.format(token)})
   if resp.status_code == 403:
     raise Exception('Service account {} does not have permission to '
                     'access the IAP-protected application.'.format(
