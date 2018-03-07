@@ -281,6 +281,7 @@
               "kind:  Mapping",
               "name: tfjobs-ui-mapping",
               "prefix: /tfjobs/",
+              "rewrite: /tfjobs/",
               "service: tf-job-dashboard." + namespace,
             ]),
         },  //annotations
