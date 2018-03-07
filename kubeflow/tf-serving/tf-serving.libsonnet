@@ -23,20 +23,6 @@ local networkSpec = networkPolicy.mixin.spec;
         },
       },
 
-      modelSecret(name, namespace, awsAccessKeyID, awsSecretAccessKey, labels={ app: name}): {
-        apiVersion: "v1",
-        kind: "Secret",
-        metadata: {
-          name: name,
-          namespace: namespace,
-        },
-        type: "Opaque",
-        data: {
-          "aws-access-key-id": std.base64(awsAccessKeyID),
-          "aws-secret-access-key": std.base64(awsSecretAccessKey),
-        },
-      },
-
       modelService(name, namespace, serviceType, labels={ app: name }): {
         apiVersion: "v1",
         kind: "Service",
