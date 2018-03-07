@@ -224,7 +224,7 @@
                     },
                   ], // tasks
                 }, //dag
-              }, // e2e, building image
+              } // e2e, building image
             else
               {
                 name: "e2e",
