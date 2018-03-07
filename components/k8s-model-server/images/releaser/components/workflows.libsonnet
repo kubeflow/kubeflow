@@ -39,6 +39,7 @@
       project: "mlkube-testing",
       cluster: "kubeflow-testing",
       zone: "us-east1-d",
+      build_image: false,
   },
 
   parts(namespace, name, overrides={}):: {
@@ -47,13 +48,14 @@
       local params = $.defaultParams + overrides;
 
       local namespace = params.namespace;
-      local serving_image = params.serving_image;
       local testing_image = params.testing_image;
       local tf_testing_image = params.tf_testing_image;
       local project = params.project;
       local cluster = params.cluster;
       local zone = params.zone;
       local name = params.name;
+      local build_image = params.build_image;
+      local versionTag = if build_image then params.versionTag else "1.0";
 
       local prow_env = $.parseEnv(params.prow_env);
       local bucket = params.bucket;
@@ -81,8 +83,8 @@
       // Location where build_image.sh      
       local imageDir = srcRootDir + "/kubeflow/kubeflow/components/k8s-model-server/images";
 
-      local cpuImage = params.registry +  "/tf-model-server-cpu" + ":" + params.versionTag;
-      local gpuImage = params.registry +  "/tf-model-server-gpu" + ":" + params.versionTag;
+      local cpuImage = params.registry +  "/tf-model-server-cpu" + ":" + versionTag;
+      local gpuImage = params.registry +  "/tf-model-server-gpu" + ":" + versionTag;
 
       // Build an Argo template to execute a particular command.
       // step_name: Name for the template
@@ -192,37 +194,64 @@
           onExit: "exit-handler",
 
           templates: [
-            {
-              name: "e2e",
-               dag: {
-               tasks: [
-                  {name: "checkout",
-                   template: "checkout",
-                  },
-                  {
-                    name: "build-tf-serving-cpu",
-                    template: "build-tf-serving-cpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "create-pr-symlink",
-                    template: "create-pr-symlink",
-                    dependencies: ["checkout"],
-                  },
+            if build_image then
+              {
+                name: "e2e",
+                 dag: {
+                 tasks: [
+                    {name: "checkout",
+                     template: "checkout",
+                    },
+                    {
+                      name: "build-tf-serving-cpu",
+                      template: "build-tf-serving-cpu",
+                      dependencies: ["checkout"],
+                    },
+                    {
+                      name: "create-pr-symlink",
+                      template: "create-pr-symlink",
+                      dependencies: ["checkout"],
+                    },
+                    {
+                      name: "deploy-tf-serving",
+                      template: "deploy-tf-serving",
+                      dependencies: ["build-tf-serving-cpu"]
+                    },
+                    {
+                      name: "test-tf-serving",
+                      template: "test-tf-serving",
+                      dependencies: ["deploy-tf-serving"]
+                    },
+                  ], // tasks
+                }, //dag
+              }, // e2e, building image
+            else
+              {
+                name: "e2e",
+                 dag: {
+                 tasks: [
+                    {name: "checkout",
+                     template: "checkout",
+                    },
+                    {
+                      name: "create-pr-symlink",
+                      template: "create-pr-symlink",
+                      dependencies: ["checkout"],
+                    },
+                    {
+                      name: "deploy-tf-serving",
+                      template: "deploy-tf-serving",
+                      dependencies: ["checkout"]
+                    },
+                    {
+                      name: "test-tf-serving",
+                      template: "test-tf-serving",
+                      dependencies: ["deploy-tf-serving"]
+                    },
+                  ], // tasks
+                }, //dag
+              }, // e2e, not building image
 
-                {
-                  name: "deploy-tf-serving",
-                  template: "deploy-tf-serving",
-                  dependencies: ["build-tf-serving-cpu"]
-                },
-                {
-                  name: "test-tf-serving",
-                  template: "test-tf-serving",
-                  dependencies: ["deploy-tf-serving"]
-                },
-                ], // tasks
-              }, //dag
-            }, // e2e
             {
               name: "exit-handler",
               steps: [
