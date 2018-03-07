@@ -1,4 +1,5 @@
-# From https://cloud.google.com/iap/docs/authentication-howto#iap-make-request-python
+# Adapted from https://cloud.google.com/iap/docs/authentication-howto#iap-make-request-python
+import argparse
 import google.auth
 import google.auth.app_engine
 import google.auth.compute_engine.credentials
@@ -14,15 +15,11 @@ IAM_SCOPE = 'https://www.googleapis.com/auth/iam'
 OAUTH_TOKEN_URI = 'https://www.googleapis.com/oauth2/v4/token'
 
 
-def make_iap_request(url, client_id):
-  """Makes a request to an application protected by Identity-Aware Proxy.
-
-  Args:
-    url: The Identity-Aware Proxy-protected URL to fetch.
-    client_id: The client ID used by Identity-Aware Proxy.
+def get_service_account_token(client_id):
+  """Get open id connect token for default service account.
 
   Returns:
-    The page body, or raises an exception if the page couldn't be retrieved.
+    The open id connect token for default service account.
   """
   # Figure out what environment we're running in and get some preliminary
   # information about the service account.
@@ -72,27 +69,7 @@ def make_iap_request(url, client_id):
   # service_account_credentials gives us a JWT signed by the service
   # account. Next, we use that to obtain an OpenID Connect token,
   # which is a JWT signed by Google.
-  google_open_id_connect_token = get_google_open_id_connect_token(
-      service_account_credentials)
-
-  # Fetch the Identity-Aware Proxy-protected URL, including an
-  # Authorization header containing "Bearer " followed by a
-  # Google-issued OpenID Connect token for the service account.
-  resp = requests.get(
-      url,
-      verify=False,
-      headers={'Authorization': 'Bearer {}'.format(
-          google_open_id_connect_token)})
-  if resp.status_code == 403:
-    raise Exception('Service account {} does not have permission to '
-                    'access the IAP-protected application.'.format(
-                        signer_email))
-  elif resp.status_code != 200:
-    raise Exception(
-        'Bad response from application: {!r} / {!r} / {!r}'.format(
-            resp.status_code, resp.headers, resp.text))
-  else:
-    return resp.text
+  return get_google_open_id_connect_token(service_account_credentials)
 
 
 def get_google_open_id_connect_token(service_account_credentials):
@@ -126,3 +103,34 @@ def get_google_open_id_connect_token(service_account_credentials):
   token_response = google.oauth2._client._token_endpoint_request(
       request, OAUTH_TOKEN_URI, body)
   return token_response['id_token']
+
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+      'url',
+      help='URL of the host model'
+  )
+  parser.add_argument(
+      'client_id',
+      help='The client id used to setup IAP'
+  )
+  args = parser.parse_args()
+
+  token = get_service_account_token(args.client_id)
+  resp = requests.get(
+      args.url,
+      verify=False,
+      headers={'Authorization': 'Bearer {}'.format(token)})
+  if resp.status_code == 403:
+    raise Exception('Service account {} does not have permission to '
+                    'access the IAP-protected application.'.format(
+                        signer_email))
+  elif resp.status_code != 200:
+    raise Exception(
+        'Bad response from application: {!r} / {!r} / {!r}'.format(
+            resp.status_code, resp.headers, resp.text))
+  else:
+    print(resp.text)
+
+if __name__ == '__main__':
+  main()
