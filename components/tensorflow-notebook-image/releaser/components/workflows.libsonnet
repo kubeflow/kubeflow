@@ -125,7 +125,7 @@
           sidecars: sidecars,
         };  // buildTemplate
 
-      local buildImageTemplate(step_name, dockerfile, image) = 
+      local buildImageTemplate(step_name, image, base_image, tf_package) = 
       buildTemplate(
               step_name,
               [
@@ -133,8 +133,10 @@
                 // build_image.sh is not in the container its a volume mounted file.
                 "/bin/bash", "-c",                
                 notebookDir + "build_image.sh "
-                + notebookDir +  dockerfile + " "
-                + image,
+                + notebookDir +  "Dockerfile" + " "
+                + image + " "
+                + base_image + " "
+                + tf_package,
               ],
               [
                 {
@@ -241,8 +243,8 @@
                 ],
               },
             },  // checkout            
-            buildImageTemplate("build-cpu-notebook", "Dockerfile.cpu", cpuImage),
-            buildImageTemplate("build-gpu-notebook", "Dockerfile.gpu", gpuImage),
+            buildImageTemplate("build-cpu-notebook", cpuImage, "ubuntu:latest", "tf-nightly"),
+            buildImageTemplate("build-gpu-notebook", gpuImage, "nvidia/cuda:8.0-cudnn6-devel-ubuntu16.04", "tf-nightly-gpu"),
             buildTemplate("create-pr-symlink", [
               "python",
               "-m",
