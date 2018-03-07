@@ -199,7 +199,9 @@ Create a component for your model
 MODEL_COMPONENT=serveInception
 MODEL_NAME=inception
 MODEL_PATH=gs://kubeflow-models/inception
-ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME} --namespace=${NAMESPACE} --model_path=${MODEL_PATH}
+ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME} 
+ks param set ${MODEL_COMPONENT} namespace ${NAMESPACE} 
+ks param set ${MODEL_COMPONENT} modelPath ${MODEL_PATH}
 ```
 
 Deploy the model component. Ksonnet will pick up existing parameters for your environment (e.g. cloud, nocloud) and customize the resulting deployment appropriately

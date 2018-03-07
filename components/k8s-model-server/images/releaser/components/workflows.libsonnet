@@ -21,6 +21,8 @@
 
 
   // Default parameters.
+  //
+  // TODO(jlewi): Use camelCase consistently.
   defaultParams:: {
       bucket: "mlkube-testing_temp",
       commit: "master",
@@ -84,6 +86,19 @@
 
       local cpuImage = params.registry +  "/tf-model-server-cpu" + ":" + params.versionTag;
       local gpuImage = params.registry +  "/tf-model-server-gpu" + ":" + params.versionTag;
+
+      // Parameters to set on the modelServer component
+      local deployParams = {
+        name: "inception",
+        namespace:  stepsNamespace,
+        modelPath: "gs://kubeflow-models/inception",
+      } + if build_image then 
+      {
+        "modelServerImage": cpuImage,
+      } else {};
+
+      local toPair = function(k, v) k + "=" + v;
+      local deployParamsList = std.join(",", [toPair(k, deployParams[k]) for k in std.objectFields(deployParams)] );
 
       // Build an Argo template to execute a particular command.
       // step_name: Name for the template
@@ -199,12 +214,14 @@
           "--cluster=" + cluster,
           "--zone=" + zone,
           "--github_token=$(GITHUB_TOKEN)",
+          // TODO(jlewi): This is duplicative with params. We should probably get
+          // rid of this and just treat namespace as another parameter.
           "--namespace=" + stepsNamespace,
           "--test_dir=" + testDir,
           "--artifacts_dir=" + artifactsDir,
-          "setup",
-          "--deploy_tf_serving=true",
-      ] + if build_image then ["--model_server_image=" + cpuImage] else [];
+          "deploy_model",
+          "--params=" + deployParamsList,
+      ];
 
       {       
         apiVersion: "argoproj.io/v1alpha1",
