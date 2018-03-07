@@ -7,6 +7,12 @@ libraries:
       refSpec: master
     name: core
     registry: kubeflow
+  tf-serving:
+    gitVersion:
+      commitSha: d5580b6fec1df321d6a29a7b4d9fde55f98105a8
+      refSpec: master
+    name: tf-serving
+    registry: kubeflow
 name: test-infra
 registries:
   incubator:
@@ -17,7 +23,7 @@ registries:
     uri: github.com/ksonnet/parts/tree/master/incubator
   kubeflow:
     gitVersion:
-      commitSha: 5c35580d76092788b089cb447be3f3097cffe60b
+      commitSha: d5580b6fec1df321d6a29a7b4d9fde55f98105a8
       refSpec: master
     protocol: github
     uri: github.com/google/kubeflow/tree/master/kubeflow
