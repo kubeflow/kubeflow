@@ -13,11 +13,11 @@ local k = import "k.libsonnet";
 local name = import "param://name";
 
 local tfServingBase = import "kubeflow/tf-serving/tf-serving.libsonnet";
-local tfServing = tfServingBase + {
-	// Override parameters with user supplied parameters.
-	params +: params + {
-	  name: name,
-	}
+local tfServing = tfServingBase {
+  // Override parameters with user supplied parameters.
+  params+: params {
+    name: name,
+  },
 };
 
 std.prune(k.core.v1.list.new(tfServing.components))

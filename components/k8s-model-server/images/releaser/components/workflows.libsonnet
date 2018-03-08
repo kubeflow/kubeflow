@@ -24,24 +24,24 @@
   //
   // TODO(jlewi): Use camelCase consistently.
   defaultParams:: {
-      bucket: "mlkube-testing_temp",
-      commit: "master",
-      // Name of the secret containing GCP credentials.
-      gcpCredentialsSecretName: "kubeflow-testing-credentials",
-      name: "new9",
-      namespace: "kubeflow-test-infra",
-       // The name of the NFS volume claim to use for test files.
-      nfsVolumeClaim: "nfs-external",
-      prow_env: "REPO_OWNER=kubeflow,REPO_NAME=kubeflow,PULL_BASE_SHA=master",
-      registry: "gcr.io/mlkube-testing",
-      versionTag: "latest",
-      // The default image to use for the steps in the Argo workflow.
-      testing_image: "gcr.io/mlkube-testing/kubeflow-testing",
-      tf_testing_image: "gcr.io/kubeflow-ci/tf-test-worker:1.0",
-      project: "mlkube-testing",
-      cluster: "kubeflow-testing",
-      zone: "us-east1-d",
-      build_image: false,
+    bucket: "mlkube-testing_temp",
+    commit: "master",
+    // Name of the secret containing GCP credentials.
+    gcpCredentialsSecretName: "kubeflow-testing-credentials",
+    name: "new9",
+    namespace: "kubeflow-test-infra",
+    // The name of the NFS volume claim to use for test files.
+    nfsVolumeClaim: "nfs-external",
+    prow_env: "REPO_OWNER=kubeflow,REPO_NAME=kubeflow,PULL_BASE_SHA=master",
+    registry: "gcr.io/mlkube-testing",
+    versionTag: "latest",
+    // The default image to use for the steps in the Argo workflow.
+    testing_image: "gcr.io/mlkube-testing/kubeflow-testing",
+    tf_testing_image: "gcr.io/kubeflow-ci/tf-test-worker:1.0",
+    project: "mlkube-testing",
+    cluster: "kubeflow-testing",
+    zone: "us-east1-d",
+    build_image: false,
   },
 
   parts(namespace, name, overrides={}):: {
@@ -81,113 +81,115 @@
       // py scripts to use.
       local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
 
-      // Location where build_image.sh      
+      // Location where build_image.sh
       local imageDir = srcRootDir + "/kubeflow/kubeflow/components/k8s-model-server/images";
 
-      local cpuImage = params.registry +  "/tf-model-server-cpu" + ":" + params.versionTag;
-      local gpuImage = params.registry +  "/tf-model-server-gpu" + ":" + params.versionTag;
+      local cpuImage = params.registry + "/tf-model-server-cpu" + ":" + params.versionTag;
+      local gpuImage = params.registry + "/tf-model-server-gpu" + ":" + params.versionTag;
 
       // Parameters to set on the modelServer component
       local deployParams = {
         name: "inception",
-        namespace:  stepsNamespace,
+        namespace: stepsNamespace,
         modelPath: "gs://kubeflow-models/inception",
-      } + if build_image then 
-      {
-        "modelServerImage": cpuImage,
-      } else {};
+      } + if build_image then
+        {
+          modelServerImage: cpuImage,
+        } else {};
 
       local toPair = function(k, v) k + "=" + v;
-      local deployParamsList = std.join(",", [toPair(k, deployParams[k]) for k in std.objectFields(deployParams)] );
+      local deployParamsList = std.join(",", [toPair(k, deployParams[k]) for k in std.objectFields(deployParams)]);
 
       // Build an Argo template to execute a particular command.
       // step_name: Name for the template
       // command: List to pass as the container command.
-      local buildTemplate(step_name, command, env_vars=[], sidecars=[])= {
-          name: step_name,
-          container: {
-            command: command,
-            image: testing_image,
-            env: [
-              {
-                // Add the source directories to the python path.
-                name: "PYTHONPATH",
-                value: kubeflowPy + ":" + kubeflowTestingPy,
-              },
-              {
-                name: "GOOGLE_APPLICATION_CREDENTIALS",
-                value: "/secret/gcp-credentials/key.json",
-              },
-              {
-                name: "GITHUB_TOKEN",
-                valueFrom: {
-                  secretKeyRef: {
-                    name: "github-token",
-                    key: "github_token",
-                  },
+      local buildTemplate(step_name, command, env_vars=[], sidecars=[]) = {
+        name: step_name,
+        container: {
+          command: command,
+          image: testing_image,
+          env: [
+            {
+              // Add the source directories to the python path.
+              name: "PYTHONPATH",
+              value: kubeflowPy + ":" + kubeflowTestingPy,
+            },
+            {
+              name: "GOOGLE_APPLICATION_CREDENTIALS",
+              value: "/secret/gcp-credentials/key.json",
+            },
+            {
+              name: "GITHUB_TOKEN",
+              valueFrom: {
+                secretKeyRef: {
+                  name: "github-token",
+                  key: "github_token",
                 },
               },
-            ] + prow_env + env_vars,
-            volumeMounts: [
-              {
-                name: dataVolume,
-                mountPath: mountPath,
-              },
-              {
-                name: "github-token",
-                mountPath: "/secret/github-token",
-              },
-              {
-                name: "gcp-credentials",
-                mountPath: "/secret/gcp-credentials",
-              },
-            ],
-          },
-          sidecars: sidecars,
-        };  // buildTemplate
-
-
-      local buildImageTemplate(step_name, dockerfile, image) = 
-      buildTemplate(
-              step_name,
-              [
-                // We need to explicitly specify bash because
-                // build_image.sh is not in the container its a volume mounted file.
-                "/bin/bash", "-c",
-                imageDir + "/build_image.sh "
-                + imageDir + "/" + dockerfile + " "
-                + image,
-              ],
-              [
-                {
-                  name: "DOCKER_HOST",
-                  value: "127.0.0.1",
-                },
-              ],
-              [{
-                name: "dind",
-                image: "docker:17.10-dind",
-                securityContext: {
-                  privileged: true,
-                },
-                mirrorVolumeMounts: true,
-              }],
-            ); // buildImageTemplate
-      local e2e_tasks_base = [
-        {name: "checkout",
-         template: "checkout",
+            },
+          ] + prow_env + env_vars,
+          volumeMounts: [
+            {
+              name: dataVolume,
+              mountPath: mountPath,
+            },
+            {
+              name: "github-token",
+              mountPath: "/secret/github-token",
+            },
+            {
+              name: "gcp-credentials",
+              mountPath: "/secret/gcp-credentials",
+            },
+          ],
         },
-        
+        sidecars: sidecars,
+      };  // buildTemplate
+
+
+      local buildImageTemplate(step_name, dockerfile, image) =
+        buildTemplate(
+          step_name,
+          [
+            // We need to explicitly specify bash because
+            // build_image.sh is not in the container its a volume mounted file.
+            "/bin/bash",
+            "-c",
+            imageDir + "/build_image.sh "
+            + imageDir + "/" + dockerfile + " "
+            + image,
+          ],
+          [
+            {
+              name: "DOCKER_HOST",
+              value: "127.0.0.1",
+            },
+          ],
+          [{
+            name: "dind",
+            image: "docker:17.10-dind",
+            securityContext: {
+              privileged: true,
+            },
+            mirrorVolumeMounts: true,
+          }],
+        );  // buildImageTemplate
+      local e2e_tasks_base = [
+        {
+          name: "checkout",
+          template: "checkout",
+        },
+
         {
           name: "create-pr-symlink",
           template: "create-pr-symlink",
           dependencies: ["checkout"],
         },
-        
+
         {
           name: "test-tf-serving",
           template: "test-tf-serving",
-          dependencies: ["deploy-tf-serving"]
+          dependencies: ["deploy-tf-serving"],
         },
       ];
       local e2e_tasks = e2e_tasks_base + if build_image then [
@@ -199,31 +201,33 @@
         {
           name: "deploy-tf-serving",
           template: "deploy-tf-serving",
-          dependencies: ["build-tf-serving-cpu"]
-        },] else [
+          dependencies: ["build-tf-serving-cpu"],
+        },
+      ] else [
         {
           name: "deploy-tf-serving",
           template: "deploy-tf-serving",
           dependencies: ["checkout"],
-        },];
+        },
+      ];
       local deploy_tf_serving_command = [
-          "python",
-          "-m",
-          "testing.test_deploy",
-          "--project=" + project,
-          "--cluster=" + cluster,
-          "--zone=" + zone,
-          "--github_token=$(GITHUB_TOKEN)",
-          // TODO(jlewi): This is duplicative with params. We should probably get
-          // rid of this and just treat namespace as another parameter.
-          "--namespace=" + stepsNamespace,
-          "--test_dir=" + testDir,
-          "--artifacts_dir=" + artifactsDir,
-          "deploy_model",
-          "--params=" + deployParamsList,
+        "python",
+        "-m",
+        "testing.test_deploy",
+        "--project=" + project,
+        "--cluster=" + cluster,
+        "--zone=" + zone,
+        "--github_token=$(GITHUB_TOKEN)",
+        // TODO(jlewi): This is duplicative with params. We should probably get
+        // rid of this and just treat namespace as another parameter.
+        "--namespace=" + stepsNamespace,
+        "--test_dir=" + testDir,
+        "--artifacts_dir=" + artifactsDir,
+        "deploy_model",
+        "--params=" + deployParamsList,
       ];
 
-      {       
+      {
         apiVersion: "argoproj.io/v1alpha1",
         kind: "Workflow",
         metadata: {
@@ -260,10 +264,10 @@
           templates: [
             {
               name: "e2e",
-               dag: {
-               tasks: e2e_tasks,
-              }, //dag
-            }, // e2e
+              dag: {
+                tasks: e2e_tasks,
+              },  //dag
+            },  // e2e
             {
               name: "exit-handler",
               steps: [
