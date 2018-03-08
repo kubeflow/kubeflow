@@ -271,13 +271,14 @@ To run your job
 ks apply ${KF_ENV} -c ${JOB_NAME}
 ```
 
+For information on monitoring your job please refer to the [TfJob docs](https://github.com/kubeflow/tf-operator#monitoring-your-job).
+
 To delete your job
 
 ```
 ks delete ${KF_ENV} -c ${JOB_NAME}
 ```
 
-For information on monitoring your job please refer to the [TfJob docs](https://github.com/kubeflow/tf-operator#monitoring-your-job).
 
 #### Run the TfCnn example
 
@@ -296,16 +297,16 @@ Submit it
 ks apply ${KF_ENV} -c ${CNN_JOB_NAME}
 ```
 
+Monitor it (Noted that tf-cnn job is also a tfjobs. Please refer to the [TfJob docs](https://github.com/kubeflow/tf-operator#monitoring-your-job))
+
+```
+kubectl get -o yaml tfjobs ${CNN_JOB_NAME}
+```
+
 Delete it
 
 ```
 ks delete ${KF_ENV} -c ${CNN_JOB_NAME}
-```
-
-Monitor it (Noted that tf-cnn job is also a tfjobs.)
-
-```
-kubectl get -o yaml tfjobs ${CNN_JOB_NAME}
 ```
 
 The prototype provides a bunch of parameters to control how the job runs (e.g. use GPUs run distributed etc...). To see a list of paramets
