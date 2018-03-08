@@ -35,27 +35,27 @@
   // params overrides s3params because params can be overwritten by the user to override the defaults.
   s3params:: {
     //  Name of the k8s secrets containing S3 credentials
-    s3_secret_name: "",
+    s3SecretName: "",
     // Name of the key in the k8s secret containing AWS_ACCESS_KEY_ID.
-    s3_secret_accesskeyid_key_name: "",
+    s3SecretAccesskeyidKeyName: "",
 
     // Name of the key in the k8s secret containing AWS_SECRET_ACCESS_KEY.
-    s3_secret_secretaccesskey_key_name: "",
+    s3SecretSecretaccesskeyKeyName: "",
 
     // S3 region
-    s3_aws_region: "us-west-1",
+    s3AwsRegion: "us-west-1",
 
     // TODO(jlewi): We should use util.toBool to automatically conver to actual boolean values.
     // The use of strings is left over from when they were prototype parameters which only supports string type.
 
     // true Whether or not to use https for S3 connections
-    s3_use_https: "true",
+    s3UseHttps: "true",
 
     // Whether or not to verify https certificates for S3 connections
-    s3_verify_ssl: "true",
+    s3VerifySsl: "true",
 
     // URL for your s3-compatible endpoint.
-    s3_endpoint: "http://s3.us-west-1.amazonaws.com,",
+    s3Endpoint: "http://s3.us-west-1.amazonaws.com,",
   } + $.params,
 
 
@@ -231,13 +231,13 @@
   // Parts specific to S3
   s3parts:: $.parts {
     s3Env:: [
-      { name: "AWS_ACCESS_KEY_ID", valueFrom: { secretKeyRef: { name: $.s3params.s3_secret_name, key: $.s3params.s3_secret_accesskeyid_key_name } } },
-      { name: "AWS_SECRET_ACCESS_KEY", valueFrom: { secretKeyRef: { name: $.s3params.s3_secret_name, key: $.s3params.s3_secret_secretaccesskey_key_name } } },
-      { name: "AWS_REGION", value: $.s3params.s3_aws_region },
-      { name: "S3_REGION", value: $.s3params.s3_aws_region },
-      { name: "S3_USE_HTTPS", value: $.s3params.s3_use_https },
-      { name: "S3_VERIFY_SSL", value: $.s3params.s3_verify_ssl },
-      { name: "S3_ENDPOINT", value: $.s3params.s3_endpoint },
+      { name: "AWS_ACCESS_KEY_ID", valueFrom: { secretKeyRef: { name: $.s3params.s3SecretName, key: $.s3params.s3SecretAcesskeyidKeyName } } },
+      { name: "AWS_SECRET_ACCESS_KEY", valueFrom: { secretKeyRef: { name: $.s3params.s3SecretName, key: $.s3params.s3SecretSecretaccesskeyKeyName } } },
+      { name: "AWS_REGION", value: $.s3params.s3AwsRegion },
+      { name: "S3_REGION", value: $.s3params.s3AwsRegion },
+      { name: "S3_USE_HTTPS", value: $.s3params.s3UseHttps },
+      { name: "S3_VERIFY_SSL", value: $.s3params.s3VerifySsl },
+      { name: "S3_ENDPOINT", value: $.s3params.s3Endpoint },
     ],
 
     tfServingContainer: $.parts.tfServingContainer {
