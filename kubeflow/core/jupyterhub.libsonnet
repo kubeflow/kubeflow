@@ -24,7 +24,7 @@
       authenticatorOptions:: {
 
         //## Authenticator Options
-        local kubeConfigDummyAuthenticator = "c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'",
+        local kubeConfigDummyAuthenticator = "c.JupyterHub.authenticator_class = 'jhub_remote_user_authenticator.remote_user_auth.RemoteUserAuthenticator'",
 
         // This configuration allows us to use the id provided by IAP.
         local kubeConfigIAPAuthenticator = @"c.JupyterHub.authenticator_class ='jhub_remote_user_authenticator.remote_user_auth.RemoteUserAuthenticator'
@@ -148,7 +148,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
       kind: "Service",
       metadata: {
         labels: {
-          app: "tf-hub-lb",
+          app: "tf-hub",
         },
         name: "tf-hub-lb",
         namespace: namespace,
@@ -182,8 +182,10 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
             "/etc/config/jupyterhub_config.py",
           ],
 
-      apiVersion: "apps/v1beta1",
-      kind: "StatefulSet",
+      //apiVersion: "apps/v1beta1",
+      //kind: "StatefulSet",
+      apiVersion: "extensions/v1beta1",
+      kind: "Deployment",
       metadata: {
         name: "tf-hub",
         namespace: namespace,

@@ -11,13 +11,14 @@
       $.parts(namespace).k8sDashboard,
     ],
 
-    local ambassadorImage = "quay.io/datawire/ambassador:0.26.0",
+    local ambassadorImage = "quay.io/datawire/ambassador:0.28.0",
     service:: {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
         labels: {
           service: "ambassador",
+          app: "ambassador",
         },
         name: "ambassador",
         namespace: namespace,
@@ -43,6 +44,7 @@
       metadata: {
         labels: {
           service: "ambassador-admin",
+          app: "ambassador",
         },
         name: "ambassador-admin",
         namespace: namespace,
@@ -66,7 +68,11 @@
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRole",
       metadata: {
+        labels: {
+          app: "ambassador",
+        },
         name: "ambassador",
+        namespace: namespace,
       },
       rules: [
         {
@@ -112,12 +118,15 @@
           ],
         },
       ],
-    },  // cluserRole
+    },  // clusterRole
 
     serviceAccount:: {
       apiVersion: "v1",
       kind: "ServiceAccount",
       metadata: {
+        labels: {
+          app: "ambassador",
+        },
         name: "ambassador",
         namespace: namespace,
       },
@@ -127,12 +136,17 @@
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRoleBinding",
       metadata: {
+        labels: {
+          app: "ambassador",
+        },
         name: "ambassador",
+        namespace: namespace,
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
         kind: "ClusterRole",
         name: "ambassador",
+        namespace: namespace,
       },
       subjects: [
         {
@@ -147,6 +161,10 @@
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
+        labels: {
+          service: "ambassador-admin",
+          app: "ambassador",
+        },
         name: "ambassador",
         namespace: namespace,
       },
@@ -156,6 +174,7 @@
           metadata: {
             labels: {
               service: "ambassador",
+              app: "ambassador",
             },
           },
           spec: {
@@ -223,7 +242,6 @@
       metadata: {
         name: "k8s-dashboard",
         namespace: namespace,
-
         annotations: {
           "getambassador.io/config":
             std.join("\n", [

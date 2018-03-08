@@ -60,7 +60,7 @@ class KubeServiceProxy(Proxy):
         self.service_reflector = ServiceReflector(parent=self, namespace=self.namespace)
         self.core_api = client.CoreV1Api()
         self.extension_api = client.ExtensionsV1beta1Api()
-        self.public_url = os.environ['TF_HUB_0_SERVICE_HOST']
+        self.public_url = os.environ['AMBASSADOR_SERVICE_HOST']
 
     def make_service(self, name, username, routespec, target, data):
         """
@@ -308,6 +308,10 @@ s.close()
 
 c.JupyterHub.hub_connect_ip = hub_connect_ip
 c.JupyterHub.hub_connect_port = 8081
+c.GitHubOAuthenticator.oauth_callback_url = os.environ['OAUTH_CALLBACK_URL']
+c.MyOAuthenticator.oauth_callback_url = 'http[s]://[your-host]/hub/oauth_callback'
+c.MyOAuthenticator.client_id = 'your-client-id'
+c.MyOAuthenticator.client_secret = 'your-client-secret'
 
 # Don't try to cleanup servers on exit - since in general for k8s, we want
 # the hub to be able to restart without losing user containers
