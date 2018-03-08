@@ -145,11 +145,12 @@ def setup_kubeflow_ks_app(args, api_client):
   logging.info("Creating link %s -> %s", target_dir, source)
   os.symlink(source, target_dir)
 
+  return app_dir
+
 def setup(args):
   """Test deploying Kubeflow."""
   api_client = create_k8s_client(args)
-
-  setup_kubeflow_ks_app(args, api_client)
+  app_dir = setup_kubeflow_ks_app(args, api_client)
 
   # TODO(jlewi): We don't need to generate a core component if we are
   # just deploying TFServing. Might be better to refactor this code.
@@ -184,8 +185,7 @@ def setup(args):
 def deploy_model(args):
   """Deploy a TF model using the TF serving component."""
   api_client = create_k8s_client(args)
-
-  setup_kubeflow_ks_app(args, api_client)
+  app_dir = setup_kubeflow_ks_app(args, api_client)
   
   component = "modelServer"
   logging.info("Deploying tf-serving.")
