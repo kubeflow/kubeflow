@@ -84,6 +84,9 @@
       local cpuImage = params.registry + "/tf-model-server-cpu" + ":" + params.versionTag;
       local gpuImage = params.registry + "/tf-model-server-gpu" + ":" + params.versionTag;
 
+      local httpImageDir = srcRootDir + "/kubeflow/kubeflow/components/k8s-model-server/http-proxy";
+      local httpProxyImage = params.registry + "/tf-model-server-http-proxy:" + params.versionTag;
+
       // Build an Argo template to execute a particular command.
       // step_name: Name for the template
       // command: List to pass as the container command.
@@ -131,7 +134,7 @@
       };  // buildTemplate
 
 
-      local buildImageTemplate(step_name, dockerfile, image) =
+      local buildImageTemplate(step_name, imageDir, dockerfile, image) =
         buildTemplate(
           step_name,
           [
@@ -212,6 +215,11 @@
                     dependencies: ["checkout"],
                   },
                   {
+                    name: "build-tf-serving-http",
+                    template: "build-tf-serving-http",
+                    dependencies: ["checkout"],
+                  },
+                  {
                     name: "create-pr-symlink",
                     template: "create-pr-symlink",
                     dependencies: ["checkout"],
@@ -257,8 +265,9 @@
               },
             },  // checkout
 
-            buildImageTemplate("build-tf-serving-cpu", "Dockerfile.cpu", cpuImage),
-            buildImageTemplate("build-tf-serving-gpu", "Dockerfile.gpu", gpuImage),
+            buildImageTemplate("build-tf-serving-cpu", imageDir, "Dockerfile.cpu", cpuImage),
+            buildImageTemplate("build-tf-serving-gpu", imageDir, "Dockerfile.gpu", gpuImage),
+            buildImageTemplate("build-tf-serving-http", httpImageDir, "Dockerfile", httpProxyImage),
 
             buildTemplate(
               "deploy-tf-serving",

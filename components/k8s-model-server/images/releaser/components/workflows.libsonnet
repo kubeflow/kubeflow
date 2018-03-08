@@ -39,6 +39,7 @@
     project: "mlkube-testing",
     cluster: "kubeflow-testing",
     zone: "us-east1-d",
+    build_image: false,
   },
 
   parts(namespace, name, overrides={}):: {
@@ -47,13 +48,13 @@
       local params = $.defaultParams + overrides;
 
       local namespace = params.namespace;
-      local serving_image = params.serving_image;
       local testing_image = params.testing_image;
       local tf_testing_image = params.tf_testing_image;
       local project = params.project;
       local cluster = params.cluster;
       local zone = params.zone;
       local name = params.name;
+      local build_image = params.build_image;
 
       local prow_env = $.parseEnv(params.prow_env);
       local bucket = params.bucket;
@@ -158,6 +159,57 @@
             mirrorVolumeMounts: true,
           }],
         );  // buildImageTemplate
+      local e2e_tasks_base = [
+        {
+          name: "checkout",
+          template: "checkout",
+        },
+
+        {
+          name: "create-pr-symlink",
+          template: "create-pr-symlink",
+          dependencies: ["checkout"],
+        },
+
+        {
+          name: "test-tf-serving",
+          template: "test-tf-serving",
+          dependencies: ["deploy-tf-serving"],
+        },
+      ];
+      local e2e_tasks = e2e_tasks_base + if build_image then [
+        {
+          name: "build-tf-serving-cpu",
+          template: "build-tf-serving-cpu",
+          dependencies: ["checkout"],
+        },
+        {
+          name: "deploy-tf-serving",
+          template: "deploy-tf-serving",
+          dependencies: ["build-tf-serving-cpu"],
+        },
+      ] else [
+        {
+          name: "deploy-tf-serving",
+          template: "deploy-tf-serving",
+          dependencies: ["checkout"],
+        },
+      ];
+      local deploy_tf_serving_command = [
+        "python",
+        "-m",
+        "testing.test_deploy",
+        "--project=" + project,
+        "--cluster=" + cluster,
+        "--zone=" + zone,
+        "--github_token=$(GITHUB_TOKEN)",
+        "--namespace=" + stepsNamespace,
+        "--test_dir=" + testDir,
+        "--artifacts_dir=" + artifactsDir,
+        "setup",
+        "--deploy_tf_serving=true",
+      ] + if build_image then ["--model_server_image=" + cpuImage] else [];
+
       {
         apiVersion: "argoproj.io/v1alpha1",
         kind: "Workflow",
@@ -196,33 +248,7 @@
             {
               name: "e2e",
               dag: {
-                tasks: [
-                  {
-                    name: "checkout",
-                    template: "checkout",
-                  },
-                  {
-                    name: "build-tf-serving-cpu",
-                    template: "build-tf-serving-cpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "create-pr-symlink",
-                    template: "create-pr-symlink",
-                    dependencies: ["checkout"],
-                  },
-
-                  {
-                    name: "deploy-tf-serving",
-                    template: "deploy-tf-serving",
-                    dependencies: ["build-tf-serving-cpu"],
-                  },
-                  {
-                    name: "test-tf-serving",
-                    template: "test-tf-serving",
-                    dependencies: ["deploy-tf-serving"],
-                  },
-                ],  // tasks
+                tasks: e2e_tasks,
               },  //dag
             },  // e2e
             {
@@ -267,21 +293,7 @@
 
             buildTemplate(
               "deploy-tf-serving",
-              [
-                "python",
-                "-m",
-                "testing.test_deploy",
-                "--project=" + project,
-                "--cluster=" + cluster,
-                "--zone=" + zone,
-                "--github_token=$(GITHUB_TOKEN)",
-                "--namespace=" + stepsNamespace,
-                "--test_dir=" + testDir,
-                "--artifacts_dir=" + artifactsDir,
-                "setup",
-                "--deploy_tf_serving=true",
-                "--model_server_image=" + cpuImage,
-              ],
+              deploy_tf_serving_command,
               [
                 {
                   name: "DOCKER_HOST",

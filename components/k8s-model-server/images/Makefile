@@ -19,7 +19,7 @@ GCR_PROJECT=gcr.io/${PROJECT_ID}
 DOCKERHUB_PROJECT=hub.docker.com/r/${PROJECT_ID}
 
 define build
-	docker build --pull -t $(1)/tf-model-server:${TF_VERSION} -f Dockerfile.cpu .
+	docker build --pull -t $(1)/tf-model-server-cpu:${TF_VERSION} -f Dockerfile.cpu .
 endef
 
 define build-gpu
@@ -41,10 +41,10 @@ build_dockerhub:
 	$(call build,$(DOCKERHUB_PROJECT))
 
 push_gcr: build_gcr
-	gcloud docker -- push ${GCR_PROJECT}/model-server:${TF_VERSION}
+	gcloud docker -- push ${GCR_PROJECT}/tf-model-server-cpu:${TF_VERSION}
 
 push_dockerhub: build_dockerhub
-	docker push ${DOCKERHUB_PROJECT}/model-server:${TF_VERSION}
+	docker push ${DOCKERHUB_PROJECT}/tf-model-server-cpu:${TF_VERSION}
 
 push: build_gcr build_dockerhub push_gcr push_dockerhub
 
@@ -55,10 +55,10 @@ build_gpu_dockerhub:
 	$(call build-gpu,$(DOCKERHUB_PROJECT))
 
 push_gpu_gcr: build_gpu_gcr
-	gcloud docker -- push ${GCR_PROJECT}/model-server-gpu:${TF_GPU_VERSION}
+	gcloud docker -- push ${GCR_PROJECT}/tf-model-server-gpu:${TF_GPU_VERSION}
 
 push_gpu_dockerhub: build_gpu_dockerhub
-	docker -- push ${DOCKERHUB_PROJECT}/model-server-gpu:${TF_GPU_VERSION}
+	docker -- push ${DOCKERHUB_PROJECT}/tf-model-server-gpu:${TF_GPU_VERSION}
 
 push_gpu: build_gpu_gcr build_gpu_dockerhub push_gpu_gcr push_gpu_dockerhub
 
