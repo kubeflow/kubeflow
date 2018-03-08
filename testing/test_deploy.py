@@ -203,7 +203,8 @@ def deploy_model(args):
     raise ValueError("namespace must be supplied via --params.")
   namespace = params["namespace"]
 
-  ks_deploy(app_dir, component, params, env="default", account=None)
+  # Set env to none so random env will be created.
+  ks_deploy(app_dir, component, params, env=None, account=None)
 
   core_api = k8s_client.CoreV1Api(api_client)
   deploy = core_api.read_namespaced_service(
