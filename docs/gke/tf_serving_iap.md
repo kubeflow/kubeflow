@@ -1,5 +1,9 @@
 # Serving with IAP enabled
 
+This document shows how to programmatically authenticate a service account to access IAP.
+To authenticate an user account, we have to follow some manual steps
+[here](https://cloud.google.com/iap/docs/authentication-howto#authenticating_a_user_account)
+
 ## Setup
 
 Follow this [doc](https://github.com/kubeflow/kubeflow/blob/master/docs/gke/iap.md) to
