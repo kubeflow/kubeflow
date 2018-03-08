@@ -158,7 +158,7 @@
                 mirrorVolumeMounts: true,
               }],
             ); // buildImageTemplate
-      local e2e_tasks = [
+      local e2e_tasks_base = [
         {name: "checkout",
          template: "checkout",
         },
@@ -168,21 +168,29 @@
           template: "create-pr-symlink",
           dependencies: ["checkout"],
         },
-        {
-          name: "deploy-tf-serving",
-          template: "deploy-tf-serving",
-          dependencies: ["build-tf-serving-cpu"]
-        },
+        
         {
           name: "test-tf-serving",
           template: "test-tf-serving",
           dependencies: ["deploy-tf-serving"]
         },
-      ] + if build_image then [{
+      ] 
+      local e2e_tasks = if build_image then e2e_tasks_base + [
+        {
           name: "build-tf-serving-cpu",
           template: "build-tf-serving-cpu",
           dependencies: ["checkout"],
-      },] else [],
+        },
+        {
+          name: "deploy-tf-serving",
+          template: "deploy-tf-serving",
+          dependencies: ["build-tf-serving-cpu"]
+        },] else e2e_tasks_base + [
+        {
+          name: "deploy-tf-serving",
+          template: "deploy-tf-serving",
+          dependencies: ["checkout"],
+        },],
 
       {       
         apiVersion: "argoproj.io/v1alpha1",
