@@ -174,7 +174,7 @@
           template: "test-tf-serving",
           dependencies: ["deploy-tf-serving"]
         },
-      ] 
+      ], 
       local e2e_tasks = if build_image then e2e_tasks_base + [
         {
           name: "build-tf-serving-cpu",
