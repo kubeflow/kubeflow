@@ -191,10 +191,7 @@ def deploy_model(args):
   logging.info("Deploying tf-serving.")
   generate_command = [
       "ks", "generate", "tf-serving", component,
-      "--name=inception",
-      # DO NOT SUBMIT
-      "--model_path=gs://kubeflow-models/inception",
-      "--namespace=" + namespace.metadata.name]
+      "--name=inception",]
   
   util.run(generate_command, cwd=app_dir)
   
