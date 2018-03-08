@@ -208,7 +208,7 @@ def deploy_model(args):
 
   core_api = k8s_client.CoreV1Api(api_client)
   deploy = core_api.read_namespaced_service(
-    "inception", namespace.metadata.name)
+    "inception", args.namespace)
   cluster_ip = deploy.spec.cluster_ip
 
   if not cluster_ip:
