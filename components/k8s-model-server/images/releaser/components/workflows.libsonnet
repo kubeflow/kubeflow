@@ -175,7 +175,7 @@
           dependencies: ["deploy-tf-serving"]
         },
       ];
-      local e2e_tasks = if build_image then e2e_tasks_base + [
+      local e2e_tasks = e2e_tasks_base + if build_image then [
         {
           name: "build-tf-serving-cpu",
           template: "build-tf-serving-cpu",
@@ -185,7 +185,7 @@
           name: "deploy-tf-serving",
           template: "deploy-tf-serving",
           dependencies: ["build-tf-serving-cpu"]
-        },] else e2e_tasks_base + [
+        },] else [
         {
           name: "deploy-tf-serving",
           template: "deploy-tf-serving",
@@ -246,7 +246,7 @@
                dag: {
                tasks: e2e_tasks,
               }, //dag
-            } // e2e, building image
+            }, // e2e
             {
               name: "exit-handler",
               steps: [
