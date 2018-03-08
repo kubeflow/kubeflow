@@ -173,13 +173,13 @@ def setup(args):
   # Verify that the TfJob operator is actually deployed.
   tf_job_deployment_name = "tf-job-operator"
   logging.info("Verifying TfJob controller started.")
-  util.wait_for_deployment(api_client, namespace.metadata.name,
+  util.wait_for_deployment(api_client, namespace,
                            tf_job_deployment_name)
 
   # Verify that JupyterHub is actually deployed.
   jupyter_name = "tf-hub"
   logging.info("Verifying TfHub started.")
-  util.wait_for_statefulset(api_client, namespace.metadata.name, jupyter_name)
+  util.wait_for_statefulset(api_client, namespace, jupyter_name)
 
 def deploy_model(args):
   """Deploy a TF model using the TF serving component."""
