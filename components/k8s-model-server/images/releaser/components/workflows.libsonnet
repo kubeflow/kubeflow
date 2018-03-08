@@ -191,6 +191,20 @@
           template: "deploy-tf-serving",
           dependencies: ["checkout"],
         },];
+      local deploy_tf_serving_command = [
+          "python",
+          "-m",
+          "testing.test_deploy",
+          "--project=" + project,
+          "--cluster=" + cluster,
+          "--zone=" + zone,
+          "--github_token=$(GITHUB_TOKEN)",
+          "--namespace=" + stepsNamespace,
+          "--test_dir=" + testDir,
+          "--artifacts_dir=" + artifactsDir,
+          "setup",
+          "--deploy_tf_serving=true",
+      ] + if build_image then ["--model_server_image=" + cpuImage] else [];
 
       {       
         apiVersion: "argoproj.io/v1alpha1",
@@ -273,20 +287,6 @@
 
             buildImageTemplate("build-tf-serving-cpu", "Dockerfile.cpu", cpuImage),
 
-            local deploy_tf_serving_command = [
-                "python",
-                "-m",
-                "testing.test_deploy",
-                "--project=" + project,
-                "--cluster=" + cluster,
-                "--zone=" + zone,
-                "--github_token=$(GITHUB_TOKEN)",
-                "--namespace=" + stepsNamespace,
-                "--test_dir=" + testDir,
-                "--artifacts_dir=" + artifactsDir,
-                "setup",
-                "--deploy_tf_serving=true",
-            ] + if build_image then ["--model_server_image=" + cpuImage] else [],
             buildTemplate(
               "deploy-tf-serving",
               deploy_tf_serving_command,
