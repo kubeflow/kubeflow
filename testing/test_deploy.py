@@ -27,7 +27,6 @@ Requirements:
 
 import argparse
 import datetime
-import json
 import logging
 import os
 import shutil
@@ -90,13 +89,12 @@ def create_k8s_client(args):
   # Create an API client object to talk to the K8s master.
   api_client = k8s_client.ApiClient()
 
+  return api_client
+
 # TODO(jlewi): We should make this a reusable function in kubeflow/testing
 # because we will probably want to use it in other places as well.
 def setup_kubeflow_ks_app(args, api_client):
-  """Create a ksonnet app for Kubeflow"""  
-  now = datetime.datetime.now()
-  run_label = "e2e-" + now.strftime("%m%d-%H%M-") + uuid.uuid4().hex[0:4]
-
+  """Create a ksonnet app for Kubeflow"""
   if not os.path.exists(args.test_dir):
     os.makedirs(args.test_dir)
 
@@ -152,11 +150,12 @@ def setup(args):
   api_client = create_k8s_client(args)
   app_dir = setup_kubeflow_ks_app(args, api_client)
 
+  namespace = args.namespace
   # TODO(jlewi): We don't need to generate a core component if we are
   # just deploying TFServing. Might be better to refactor this code.
   # Deploy Kubeflow
   util.run(["ks", "generate", "core", "kubeflow-core", "--name=kubeflow-core",
-            "--namespace=" + namespace.metadata.name], cwd=app_dir)
+            "--namespace=" + namespace], cwd=app_dir)
 
   # TODO(jlewi): For reasons I don't understand even though we ran
   # configure_kubectl above, if we don't rerun it we get rbac errors
@@ -186,27 +185,34 @@ def deploy_model(args):
   """Deploy a TF model using the TF serving component."""
   api_client = create_k8s_client(args)
   app_dir = setup_kubeflow_ks_app(args, api_client)
-  
+
   component = "modelServer"
   logging.info("Deploying tf-serving.")
   generate_command = [
       "ks", "generate", "tf-serving", component,
       "--name=inception",]
-  
+
   util.run(generate_command, cwd=app_dir)
-  
+
   params = {}
   for pair in args.params.split(","):
-    k, v = pair.split("=", 1) 
-    
+    k, v = pair.split("=", 1)
+    params[k] = v
+
+  if "namespace" not in params:
+    raise ValueError("namespace must be supplied via --params.")
+  namespace = params["namespace"]
+
   ks_deploy(app_dir, component, params, env="default", account=None)
 
   core_api = k8s_client.CoreV1Api(api_client)
   deploy = core_api.read_namespaced_service(
-      "inception", namespace.metadata.name)
+    "inception", namespace.metadata.name)
   cluster_ip = deploy.spec.cluster_ip
 
-  util.wait_for_deployment(api_client, namespace.metadata.name, "inception")
+  if not cluster_ip:
+    raise ValueError("inception service wasn't assigned a cluster ip.")
+  util.wait_for_deployment(api_client, namespace, "inception")
   logging.info("Verified TF serving started.")
 
 def teardown(args):
@@ -355,7 +361,7 @@ def main():  # pylint: disable=too-many-locals
   parser_tf_serving = subparsers.add_parser(
     "deploy_model",
     help="Deploy a TF serving model.")
-  
+
   parser_tf_serving.set_defaults(func=deploy_model)
 
   parser_tf_serving.add_argument(
