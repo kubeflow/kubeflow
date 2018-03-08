@@ -89,6 +89,7 @@
 
       // Parameters to set on the modelServer component
       local deployParams = {
+        name: "inception",
         namespace:  stepsNamespace,
         modelPath: "gs://kubeflow-models/inception",
       } + if build_image then 

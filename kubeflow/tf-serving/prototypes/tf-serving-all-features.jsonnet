@@ -15,6 +15,4 @@ local tfServing = tfServingBase + {
 	params +: params,
 };
 
-local tfServing = import "kubeflow/tf-serving/tf-serving.libsonnet";
-
 std.prune(k.core.v1.list.new(tfServing.components))
