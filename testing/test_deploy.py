@@ -175,11 +175,15 @@ def setup(args):
 
   if args.deploy_tf_serving:
     logging.info("Deploying tf-serving.")
-    util.run(["ks", "generate", "tf-serving", "modelServer",
-              "--name=inception",
-              "--namespace=" + namespace.metadata.name,
-              "--model_path=gs://kubeflow-models/inception",
-              "--model_server_image=" + args.model_server_image], cwd=app_dir)
+    generate_command = [
+        "ks", "generate", "tf-serving", "modelServer",
+        "--name=inception",
+        "--model_path=gs://kubeflow-models/inception",
+        "--namespace=" + namespace.metadata.name]
+    if args.model_server_image:
+      generate_command.extend(["--model_server_image=" + args.model_server_image])
+
+    util.run(generate_command, cwd=app_dir)
 
     apply_command = ["ks", "apply", "default", "-c", "modelServer",]
     util.run(apply_command, cwd=app_dir)
@@ -305,7 +309,7 @@ def main():  # pylint: disable=too-many-locals
 
   parser_setup.add_argument(
     "--model_server_image",
-    default="gcr.io/kubeflow/model-server:1.0",
+    default="",
     type=str,
     help=("The TF serving image to use."))
 
