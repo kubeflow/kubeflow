@@ -1,14 +1,14 @@
 {
   parts(namespace):: {
 
-    all:: [
+    all(params):: [
       $.parts(namespace).service,
       $.parts(namespace).adminService,
       $.parts(namespace).clusterRole,
       $.parts(namespace).serviceAccount,
       $.parts(namespace).clusterRoleBinding,
       $.parts(namespace).deploy,
-      $.parts(namespace).k8sDashboard,
+      $.parts(namespace).k8sDashboard(params.cloud),
     ],
 
     local ambassadorImage = "quay.io/datawire/ambassador:0.26.0",
@@ -212,8 +212,13 @@
       },
     },  // deploy
 
+    isDashboardTls(cloud):: 
+      if cloud == "azure" then
+        "false"
+      else
+        "true",
     // This service adds a rule to our reverse proxy for accessing the K8s dashboard.
-    k8sDashboard:: {
+    k8sDashboard(cloud):: {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
@@ -229,7 +234,7 @@
               "name: k8s-dashboard-ui-mapping",
               "prefix: /k8s/ui/",
               "rewrite: /",
-              "tls: true",
+              "tls: " + $.parts(namespace).isDashboardTls(cloud),
               // We redirect to the K8s service created for the dashboard
               // in namespace kube-system. We don't use the k8s-dashboard service
               // because that isn't in the kube-system namespace and I don't think
