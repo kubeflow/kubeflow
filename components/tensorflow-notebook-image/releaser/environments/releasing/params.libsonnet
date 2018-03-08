@@ -1,12 +1,12 @@
 local params = import "../../components/params.libsonnet";
-params + {
-  components +: {
+params {
+  components+: {
     // Insert component parameter overrides here. Ex:
     // guestbook +: {
     //   name: "guestbook-dev",
     //   replicas: params.global.replicas,
     // },
-    workflows +: {
+    workflows+: {
       bucket: "kubeflow-releasing-artifacts",
       gcpCredentialsSecretName: "gcp-credentials",
       name: "jlewi-notebook-release-317-0892",
