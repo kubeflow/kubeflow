@@ -40,8 +40,8 @@ local s3Endpoint = import "param://s3_endpoint";
 
 
 local modelServerEnv = if s3SecretName != "" then [
-  { name: "AWS_ACCESS_KEY_ID", valueFrom: { secretKeyRef: { name: s3SecretName, key: s3SecretAccesskeyidKeyName }, }, },
-  { name: "AWS_SECRET_ACCESS_KEY", valueFrom: { secretKeyRef: { name: s3SecretName, key: s3SecretSecretaccesskeyKeyName }, }, },
+  { name: "AWS_ACCESS_KEY_ID", valueFrom: { secretKeyRef: { name: s3SecretName, key: s3SecretAccesskeyidKeyName } } },
+  { name: "AWS_SECRET_ACCESS_KEY", valueFrom: { secretKeyRef: { name: s3SecretName, key: s3SecretSecretaccesskeyKeyName } } },
   { name: "AWS_REGION", value: s3awsRegion },
   { name: "S3_REGION", value: s3awsRegion },
   { name: "S3_USE_HTTPS", value: s3UseHTTPS },
