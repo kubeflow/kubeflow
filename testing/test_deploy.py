@@ -90,10 +90,10 @@ def create_k8s_client(args):
   # Create an API client object to talk to the K8s master.
   api_client = k8s_client.ApiClient()
 
-def setup(args):
-  """Test deploying Kubeflow."""
-  api_client = create_k8s_client(args)
-
+# TODO(jlewi): We should make this a reusable function in kubeflow/testing
+# because we will probably want to use it in other places as well.
+def setup_kubeflow_ks_app(args, api_client):
+  """Create a ksonnet app for Kubeflow"""  
   now = datetime.datetime.now()
   run_label = "e2e-" + now.strftime("%m%d-%H%M-") + uuid.uuid4().hex[0:4]
 
@@ -145,6 +145,14 @@ def setup(args):
   logging.info("Creating link %s -> %s", target_dir, source)
   os.symlink(source, target_dir)
 
+def setup(args):
+  """Test deploying Kubeflow."""
+  api_client = create_k8s_client(args)
+
+  setup_kubeflow_ks_app(args, api_client)
+
+  # TODO(jlewi): We don't need to generate a core component if we are
+  # just deploying TFServing. Might be better to refactor this code.
   # Deploy Kubeflow
   util.run(["ks", "generate", "core", "kubeflow-core", "--name=kubeflow-core",
             "--namespace=" + namespace.metadata.name], cwd=app_dir)
@@ -173,28 +181,37 @@ def setup(args):
   logging.info("Verifying TfHub started.")
   util.wait_for_statefulset(api_client, namespace.metadata.name, jupyter_name)
 
-  if args.deploy_tf_serving:
-    logging.info("Deploying tf-serving.")
-    generate_command = [
-        "ks", "generate", "tf-serving", "modelServer",
-        "--name=inception",
-        "--model_path=gs://kubeflow-models/inception",
-        "--namespace=" + namespace.metadata.name]
-    if args.model_server_image:
-      generate_command.extend(["--model_server_image=" + args.model_server_image])
+def deploy_model(args):
+  """Deploy a TF model using the TF serving component."""
+  api_client = create_k8s_client(args)
 
-    util.run(generate_command, cwd=app_dir)
+  setup_kubeflow_ks_app(args, api_client)
+  
+  component = "modelServer"
+  logging.info("Deploying tf-serving.")
+  generate_command = [
+      "ks", "generate", "tf-serving", component,
+      "--name=inception",
+      # DO NOT SUBMIT
+      "--model_path=gs://kubeflow-models/inception",
+      "--namespace=" + namespace.metadata.name]
+  
 
-    apply_command = ["ks", "apply", "default", "-c", "modelServer",]
-    util.run(apply_command, cwd=app_dir)
+  util.run(generate_command, cwd=app_dir)
+  
+  params = {}
+  for pair in args.params.split(","):
+    k, v = pair.split("=", 1) 
+    
+  ks_deploy(app_dir, component, params, env="default", account=None)
 
-    core_api = k8s_client.CoreV1Api(api_client)
-    deploy = core_api.read_namespaced_service(
-        "inception", namespace.metadata.name)
-    cluster_ip = deploy.spec.cluster_ip
+  core_api = k8s_client.CoreV1Api(api_client)
+  deploy = core_api.read_namespaced_service(
+      "inception", namespace.metadata.name)
+  cluster_ip = deploy.spec.cluster_ip
 
-    util.wait_for_deployment(api_client, namespace.metadata.name, "inception")
-    logging.info("Verified TF serving started.")
+  util.wait_for_deployment(api_client, namespace.metadata.name, "inception")
+  logging.info("Verified TF serving started.")
 
 def teardown(args):
   # Delete the namespace
@@ -231,6 +248,48 @@ def wrap_test(args):
       args.artifacts_dir, "junit_kubeflow-deploy-{0}.xml".format(test_name))
     logging.info("Writing test results to %s", junit_path)
     test_util.create_junit_xml_file([test_case], junit_path)
+
+
+# TODO(jlewi): We should probably make this a reusable function since a
+# lot of test code code use it.
+def ks_deploy(app_dir, component, params, env=None, account=None):
+  """Deploy the specified ksonnet component.
+  Args:
+    app_dir: The ksonnet directory
+    component: Name of the component to deployed
+    params: A dictionary of parameters to set; can be empty but should not be
+      None.
+    env: (Optional) The environment to use, if none is specified a new one
+      is created.
+    account: (Optional) The account to use.
+  Raises:
+    ValueError: If input arguments aren't valid.
+  """
+  if not component:
+    raise ValueError("component can't be None.")
+
+  # TODO(jlewi): It might be better if the test creates the app and uses
+  # the latest stable release of the ksonnet configs. That however will cause
+  # problems when we make changes to the TFJob operator that require changes
+  # to the ksonnet configs. One advantage of checking in the app is that
+  # we can modify the files in vendor if needed so that changes to the code
+  # and config can be submitted in the same pr.
+  now = datetime.datetime.now()
+  if not env:
+    env = "e2e-" + now.strftime("%m%d-%H%M-") + uuid.uuid4().hex[0:4]
+
+  logging.info("Using app directory: %s", app_dir)
+
+  util.run(["ks", "env", "add", env], cwd=app_dir)
+
+  for k, v in params.iteritems():
+    util.run(
+      ["ks", "param", "set", "--env=" + env, component, k, v], cwd=app_dir)
+
+  apply_command = ["ks", "apply", env, "-c", component]
+  if account:
+    apply_command.append("--as=" + account)
+  util.run(apply_command, cwd=app_dir)
 
 def main():  # pylint: disable=too-many-locals
   logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
@@ -301,17 +360,18 @@ def main():  # pylint: disable=too-many-locals
 
   parser_teardown.set_defaults(func=teardown)
 
-  parser_setup.add_argument(
-    "--deploy_tf_serving",
-    default=False,
-    type=bool,
-    help=("If True, deploy the tf-serving component."))
 
-  parser_setup.add_argument(
-    "--model_server_image",
+  parser_tf_serving = subparsers.add_parser(
+    "deploy_model",
+    help="Deploy a TF serving model.")
+  
+  parser_tf_serving.set_defaults(func=deploy_model)
+
+  parser_tf_serving.add_argument(
+    "--params",
     default="",
     type=str,
-    help=("The TF serving image to use."))
+    help=("Comma separated list of parameters to set on the model."))
 
   args = parser.parse_args()
 
