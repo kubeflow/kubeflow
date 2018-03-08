@@ -196,7 +196,6 @@ def deploy_model(args):
       "--model_path=gs://kubeflow-models/inception",
       "--namespace=" + namespace.metadata.name]
   
-
   util.run(generate_command, cwd=app_dir)
   
   params = {}
@@ -221,12 +220,7 @@ def teardown(args):
   core_api.delete_namespace(args.namespace, {})
 
 def determine_test_name(args):
-  if args.func.__name__ == "teardown":
-    return "teardown"
-  elif args.deploy_tf_serving:
-    return "setup_tf_serving"
-  else:
-    return "setup"
+  return args.func.__name__
 
 # TODO(jlewi): We should probably make this a generic function in
 # kubeflow.testing.`
