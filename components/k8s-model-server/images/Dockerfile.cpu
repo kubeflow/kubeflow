@@ -53,3 +53,11 @@ RUN set -x \
     && useradd $MS_USER \
     && [ `id -u $MS_USER` -eq 1000 ] \
     && [ `id -g $MS_USER` -eq 1000 ]
+
+ENV TINI_VERSION v0.17.0
+
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+
+RUN chmod +x /tini
+
+ENTRYPOINT ["/tini", "--"]

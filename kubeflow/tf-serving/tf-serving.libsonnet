@@ -81,8 +81,8 @@
       name: $.params.name,
       image: $.params.modelServerImage,
       imagePullPolicy: "IfNotPresent",
-      command: ["/usr/bin/tensorflow_model_server"],
       args: [
+	"/usr/bin/tensorflow_model_server",
         "--port=9000",
         "--model_name=" + $.params.modelName,
         "--model_base_path=" + $.params.modelPath,
