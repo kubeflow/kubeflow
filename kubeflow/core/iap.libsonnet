@@ -305,17 +305,17 @@
                         audiences: audiences,
                         jwks_uri: "https://www.gstatic.com/iap/verify/public_key-jwk",
                         jwks_uri_envoy_cluster: "iap_issuer",
-                        jwt_headers: ["x-goog-iap-jwt-assertion"]
+                        jwt_headers: ["x-goog-iap-jwt-assertion"],
                       },
                     ],
                     bypass_jwt: [
                       {
-                        "http_method": "GET",
-                        "path_exact": "/healthz"
+                        http_method: "GET",
+                        path_exact: "/healthz",
                       },
                       {
-                        "http_method": "GET",
-                        "path_exact": "/noiap/whoami"
+                        http_method: "GET",
+                        path_exact: "/noiap/whoami",
                       },
                     ],
                   },
