@@ -284,15 +284,13 @@
                   type: "decoder",
                   name: "jwt-auth",
                   config: {
-                    issuers: [
+                    jwts: [
                       {
-                        name: "https://cloud.google.com/iap",
+                        issuer: "https://cloud.google.com/iap",
                         audiences: audiences,
-                        pubkey: {
-                          type: "jwks",
-                          uri: "https://www.gstatic.com/iap/verify/public_key-jwk",
-                          cluster: "iap_issuer",
-                        },
+                        jwks_uri: "https://www.gstatic.com/iap/verify/public_key-jwk",
+                        jwks_uri_envoy_cluster: "iap_issuer",
+                        jwt_headers: ["x-goog-iap-jwt-assertion"]
                       },
                     ],
                   },
