@@ -24,7 +24,7 @@
       authenticatorOptions:: {
 
         //## Authenticator Options
-        local kubeConfigDummyAuthenticator = "c.JupyterHub.authenticator_class = 'jhub_remote_user_authenticator.remote_user_auth.RemoteUserAuthenticator'",
+        local kubeConfigDummyAuthenticator = "c.JupyterHub.authenticator_class = 'oauthenticator.github.GitHubOAuthenticator'",
 
         // This configuration allows us to use the id provided by IAP.
         local kubeConfigIAPAuthenticator = @"c.JupyterHub.authenticator_class ='jhub_remote_user_authenticator.remote_user_auth.RemoteUserAuthenticator'
@@ -130,6 +130,9 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
         },  //annotations
       },
       spec: {
+        // We want a headless service so we set the ClusterIP to be None.
+        // This headless server is used by individual Jupyter pods to connect back to the Hub.
+        // clusterIP: "None",
         ports: [
           {
             port: 80,
@@ -139,7 +142,6 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
         selector: {
           app: "tf-hub",
         },
-        type: serviceType,
       },
     },
 
@@ -182,10 +184,10 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
             "/etc/config/jupyterhub_config.py",
           ],
 
-      //apiVersion: "apps/v1beta1",
-      //kind: "StatefulSet",
-      apiVersion: "extensions/v1beta1",
-      kind: "Deployment",
+      apiVersion: "apps/v1beta1",
+      kind: "StatefulSet",
+      //apiVersion: "extensions/v1beta1",
+      //kind: "Deployment",
       metadata: {
         name: "tf-hub",
         namespace: namespace,

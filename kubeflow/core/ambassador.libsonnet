@@ -34,7 +34,7 @@
         selector: {
           service: "ambassador",
         },
-        type: "ClusterIP",
+        type: "LoadBalancer",
       },
     },  // service
 
@@ -72,7 +72,6 @@
           app: "ambassador",
         },
         name: "ambassador",
-        namespace: namespace,
       },
       rules: [
         {
@@ -146,7 +145,6 @@
         apiGroup: "rbac.authorization.k8s.io",
         kind: "ClusterRole",
         name: "ambassador",
-        namespace: namespace,
       },
       subjects: [
         {

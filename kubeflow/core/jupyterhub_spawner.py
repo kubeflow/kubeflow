@@ -308,10 +308,11 @@ s.close()
 
 c.JupyterHub.hub_connect_ip = hub_connect_ip
 c.JupyterHub.hub_connect_port = 8081
-c.GitHubOAuthenticator.oauth_callback_url = os.environ['OAUTH_CALLBACK_URL']
-c.MyOAuthenticator.oauth_callback_url = 'http[s]://[your-host]/hub/oauth_callback'
-c.MyOAuthenticator.client_id = 'your-client-id'
-c.MyOAuthenticator.client_secret = 'your-client-secret'
+c.GitHubOAuthenticator.oauth_callback_url = 'http://kam.ml.com/hub/oauth_callback'
+c.GitHubOAuthenticator.client_id = '58a685bbf0225e040d8b'
+c.GitHubOAuthenticator.client_secret = 'bdab120dd93963b4bfcc9dbe59597d66b93a4d15'
+c.GitHubOAuthenticator.enable_auth_state = False
+
 
 # Don't try to cleanup servers on exit - since in general for k8s, we want
 # the hub to be able to restart without losing user containers
