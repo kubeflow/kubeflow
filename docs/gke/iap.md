@@ -148,20 +148,6 @@ https://${FQDN}/whoami
     * `401 ISS_AUD_UNMATCH1` this is because Envoy doesn't support IAP JWT tokens yet [istio/proxy/issues/941](https://github.com/istio/proxy/issues/941)
 
 
-### Disable JWT verification
-
-Until [istio/proxy/issues/941](https://github.com/istio/proxy/issues/941) is fixed you can disable JWT verification in Envoy.
-
-**Warning** This is a serious security risk because it means if IAP is disabled all traffic will be allowed through. You should only do this
-if you understand the risks; for more info see [IAP's docs on Securing Your App](https://cloud.google.com/iap/docs/signed-headers-howto).
-
-```
-ks param set iap-envoy disableJwtChecking true
-ks apply ${ENVIRONMENT} -c iap-envoy
-# Delete the pods so they are recreated with the new config
-kubectl delete pods --selector=service=envoy
-```
-
 ### Configure Jupyter to use your Google Identity
 
 We can configure Jupyter to use the identity provided by IAP. This way users won't have to login to JupyterHub.
