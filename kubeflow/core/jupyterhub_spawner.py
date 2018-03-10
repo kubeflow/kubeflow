@@ -301,13 +301,16 @@ class KubeFormSpawner(KubeSpawner):
 ###################################################
 c.JupyterHub.ip = '0.0.0.0'
 c.JupyterHub.hub_ip = '0.0.0.0'
-s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-s.connect(("8.8.8.8", 8081))
-hub_connect_ip = s.getsockname()[0]
-s.close()
+#s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+#s.connect(("8.8.8.8", 8081))
+#hub_connect_ip = s.getsockname()[0]
+#s.close()
 
-c.JupyterHub.hub_connect_ip = hub_connect_ip
-c.JupyterHub.hub_connect_port = 8081
+#c.JupyterHub.hub_connect_ip = hub_connect_ip
+#c.JupyterHub.hub_connect_port = 8081
+
+c.JupyterHub.hub_connect_ip = 'http://kam.ml.com'
+c.JupyterHub.hub_connect_port = 80
 c.GitHubOAuthenticator.oauth_callback_url = 'http://kam.ml.com/hub/oauth_callback'
 c.GitHubOAuthenticator.client_id = '58a685bbf0225e040d8b'
 c.GitHubOAuthenticator.client_secret = 'bdab120dd93963b4bfcc9dbe59597d66b93a4d15'
@@ -345,18 +348,19 @@ c.KubeSpawner.user_storage_pvc_ensure = False
 # How much disk space do we want?
 c.KubeSpawner.user_storage_capacity = '10Gi'
 c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
-c.KubeSpawner.volumes = [
-  {
-    'name': 'volume-{username}{servername}',
-    'persistentVolumeClaim': {
-      'claimName': 'claim-{username}{servername}'
+if c.KubeSpawner.user_storage_pvc_ensure:
+  c.KubeSpawner.volumes = [
+    {
+      'name': 'volume-{username}{servername}',
+      'persistentVolumeClaim': {
+        'claimName': 'claim-{username}{servername}'
+      }
     }
-  }
-]
-c.KubeSpawner.volume_mounts = [
-  {
-    'mountPath': '/home/jovyan/work',
-    'name': 'volume-{username}{servername}'
-  }
-]
+  ]
+  c.KubeSpawner.volume_mounts = [
+    {
+      'mountPath': '/home/jovyan/work',
+      'name': 'volume-{username}{servername}'
+    }
+  ]
 
