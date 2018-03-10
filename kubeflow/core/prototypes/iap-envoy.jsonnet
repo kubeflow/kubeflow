@@ -4,7 +4,7 @@
 // @shortDescription Envoy proxies to handle ingress and IAP.
 // @param name string Name to give to each of the components
 // @optionalParam namespace string default Namespace
-// @optionalParam envoyImage string gcr.io/kubeflow-dev/envoy:0fb4886b463698702b6a08955045731903a18738 The image for envoy.
+// @optionalParam envoyImage string gcr.io/kubeflow-images-staging/envoy:v20180309-0fb4886b463698702b6a08955045731903a18738 The image for envoy.
 // @optionalParam disableJwtChecking string false Disable JWT checking.
 // @param audiences string Comma separated list of JWT audiences to accept
 
