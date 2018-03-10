@@ -331,7 +331,7 @@ c.KubeSpawner.singleuser_image_spec = 'gcr.io/kubeflow/tensorflow-notebook:lates
 c.KubeSpawner.cmd = 'start-singleuser.sh'
 c.KubeSpawner.args = ['--allow-root']
 # First pulls can be really slow, so let's give it a big timeout
-c.Spawner.start_timeout = Integer(60 * 10)
+c.Spawner.start_timeout = 60 * 10
 c.KubeServiceProxy.api_url = 'http://' + os.environ['AMBASSADOR_SERVICE_HOST']
 
 ###################################################
