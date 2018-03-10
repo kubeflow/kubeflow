@@ -1,9 +1,5 @@
 # Setting Up IAP on GKE
 
-**Important** This doc is a work in progress. The instructions don't fully work yet because Envoy can't properly validate JWTs created
-by IAP. You can work around this by disabling JWT's as described below but this is insecure because if IAP is accidentally disabled (which happens
-if you recreate the ingress) then all traffic can get through.
-
 These instructions walk you through using [Identity Aware Proxy](https://cloud.google.com/iap/docs/)(IAP) to securely connect to Kubeflow
 when using GKE.
 
@@ -136,31 +132,8 @@ https://${FQDN}/noiap/whoami
   * Once IAP takes effect you will have to authenticate using your Google account and the app will tell you
     what your email is.
 
-We also have the app running at
-
-```
-https://${FQDN}/whoami
-```
-  * But this path will reject traffic that didn't go through IAP so it won't work unless IAP is enabled. In this case you should get
-  one of the following errors.
-
-    * `401 UNAUTHORIZED` this indicates IAP isn't enabled so the request is rejected because it wasn't authenticated
-    * `401 ISS_AUD_UNMATCH1` this is because Envoy doesn't support IAP JWT tokens yet [istio/proxy/issues/941](https://github.com/istio/proxy/issues/941)
-
-
-### Disable JWT verification
-
-Until [istio/proxy/issues/941](https://github.com/istio/proxy/issues/941) is fixed you can disable JWT verification in Envoy.
-
-**Warning** This is a serious security risk because it means if IAP is disabled all traffic will be allowed through. You should only do this
-if you understand the risks; for more info see [IAP's docs on Securing Your App](https://cloud.google.com/iap/docs/signed-headers-howto).
-
-```
-ks param set iap-envoy disableJwtChecking true
-ks apply ${ENVIRONMENT} -c iap-envoy
-# Delete the pods so they are recreated with the new config
-kubectl delete pods --selector=service=envoy
-```
+We also have the app running at `https://${FQDN}/whoami` - but this path will reject traffic that didn't go through IAP so it won't work unless IAP is enabled. In this case you should get
+  a `401 UNAUTHORIZED` this indicates IAP isn't enabled so the request is rejected because it wasn't authenticated
 
 ### Configure Jupyter to use your Google Identity
 
