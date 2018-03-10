@@ -17,7 +17,7 @@ from kubespawner.reflector import NamespacedResourceReflector
 from kubespawner.proxy import ServiceReflector
 from kubespawner.utils import generate_hashed_slug
 from concurrent.futures import ThreadPoolExecutor
-from traitlets import Unicode
+from traitlets import ( Unicode, Integer )
 from tornado import gen
 from tornado.concurrent import run_on_executor
 
@@ -331,7 +331,7 @@ c.KubeSpawner.singleuser_image_spec = 'gcr.io/kubeflow/tensorflow-notebook:lates
 c.KubeSpawner.cmd = 'start-singleuser.sh'
 c.KubeSpawner.args = ['--allow-root']
 # First pulls can be really slow, so let's give it a big timeout
-c.KubeSpawner.start_timeout = 60 * 10
+c.Spawner.start_timeout = Integer(60 * 10)
 c.KubeServiceProxy.api_url = 'http://' + os.environ['AMBASSADOR_SERVICE_HOST']
 
 ###################################################
