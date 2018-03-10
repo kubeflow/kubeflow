@@ -78,8 +78,8 @@ class KubeServiceProxy(Proxy):
                     'apiVersion: ambassador/v0',
                     'kind:  Mapping',
                     'name: ' + name + '-mapping',
-                    'prefix: /user/' + username + '/',
-                    'rewrite: /user/' + username + '/',
+                    'prefix: /user/' + username,
+                    'rewrite: /user/' + username,
                     'use_websocket: true',
                     'service: ' + name + '.' + self.namespace])
             },
@@ -308,6 +308,8 @@ c.JupyterHub.hub_ip = '0.0.0.0'
 #c.JupyterHub.hub_connect_ip = hub_connect_ip
 #c.JupyterHub.hub_connect_port = 8081
 
+c.JupyterHub.hub_connect_ip =  os.environ['AMBASSADOR_SERVICE_HOST']
+c.JupyterHub.hub_connect_port = 80
 c.GitHubOAuthenticator.oauth_callback_url = 'http://kam.ml.com/hub/oauth_callback'
 c.GitHubOAuthenticator.client_id = '58a685bbf0225e040d8b'
 c.GitHubOAuthenticator.client_secret = 'bdab120dd93963b4bfcc9dbe59597d66b93a4d15'
