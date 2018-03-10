@@ -305,12 +305,9 @@ c.JupyterHub.hub_ip = '0.0.0.0'
 #s.connect(("8.8.8.8", 8081))
 #hub_connect_ip = s.getsockname()[0]
 #s.close()
-
 #c.JupyterHub.hub_connect_ip = hub_connect_ip
 #c.JupyterHub.hub_connect_port = 8081
 
-c.JupyterHub.hub_connect_ip = 'http://kam.ml.com'
-c.JupyterHub.hub_connect_port = 80
 c.GitHubOAuthenticator.oauth_callback_url = 'http://kam.ml.com/hub/oauth_callback'
 c.GitHubOAuthenticator.client_id = '58a685bbf0225e040d8b'
 c.GitHubOAuthenticator.client_secret = 'bdab120dd93963b4bfcc9dbe59597d66b93a4d15'
@@ -329,7 +326,6 @@ c.JupyterHub.proxy_class = KubeServiceProxy
 ### Spawner Options
 ###################################################
 c.JupyterHub.spawner_class = KubeFormSpawner
-c.KubeSpawner.hub_connect_ip = hub_connect_ip
 c.KubeSpawner.singleuser_image_spec = 'gcr.io/kubeflow/tensorflow-notebook:latest'
 c.KubeSpawner.cmd = 'start-singleuser.sh'
 c.KubeSpawner.args = ['--allow-root']
