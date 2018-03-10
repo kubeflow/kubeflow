@@ -341,7 +341,7 @@ c.KubeServiceProxy.api_url = 'http://' + os.environ['AMBASSADOR_SERVICE_HOST']
 # TODO(jlewi): Verify this works on minikube.
 # TODO(jlewi): Should we set c.KubeSpawner.singleuser_fs_gid = 1000
 # see https://github.com/kubeflow/kubeflow/pull/22#issuecomment-350500944
-c.KubeSpawner.user_storage_pvc_ensure = True
+c.KubeSpawner.user_storage_pvc_ensure = False
 # How much disk space do we want?
 c.KubeSpawner.user_storage_capacity = '10Gi'
 c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
