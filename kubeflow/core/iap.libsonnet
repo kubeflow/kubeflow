@@ -35,8 +35,8 @@
         ports: [
           {
             name: "envoy",
-            port: healthEnvoyPort,
-            targetPort: healthEnvoyPort,
+            port: envoyPort,
+            targetPort: envoyPort,
           },
         ],
         selector: {
@@ -119,22 +119,13 @@
             containers: [
               $.parts(namespace).envoyContainer({
                 image: image,
-                name: "envoy-health",
-                healthPath: "/healthz",
-                healthPort: healthEnvoyPort,
-                configPath: "/etc/envoy/envoy-health-config.json",
-                baseId: "1",
-                ports: [healthEnvoyPort, healthEnvoyAdminPort, healthEnvoyStatsPort],
-              }),
-              $.parts(namespace).envoyContainer({
-                image: image,
-                name: "envoy-jwt",
+                name: "envoy",
                 // We use the admin port for the health, readiness check because the main port will require a valid JWT.
                 healthPath: "/server_info",
-                healthPort: jwtEnvoyAdminPort,
-                configPath: "/etc/envoy/envoy-jwt-config.json",
+                healthPort: envoyAdminPort,
+                configPath: "/etc/envoy/envoy-config.json",
                 baseId: "27000",
-                ports: [jwtEnvoyPort, jwtEnvoyAdminPort, jwtEnvoyStatsPort],
+                ports: [envoyPort, envoyAdminPort, envoyStatsPort],
               }),
             ],
             restartPolicy: "Always",
@@ -159,24 +150,20 @@
         namespace: namespace,
       },
       data: {
-        "envoy-jwt-config.json": std.manifestJson($.parts(namespace).jwtConfig(audiences, disableJwt)),
-        "envoy-health-config.json": std.manifestJson($.parts(namespace).healthConfig),
+        "envoy-config.json": std.manifestJson($.parts(namespace).envoyConfig(audiences, disableJwt)),
       },
     },
 
-    local jwtEnvoyPort = 9080,
-    local jwtEnvoyAdminPort = 9001,
-    local jwtEnvoyStatsPort = 9025,
-    local healthEnvoyPort = 8080,
-    local healthEnvoyAdminPort = 8001,
-    local healthEnvoyStatsPort = 8025,
+    local envoyPort = 8080,
+    local envoyAdminPort = 8001,
+    local envoyStatsPort = 8025,
 
     // This is the config for the secondary envoy proxy which does JWT verification
     // and actually routes requests to the appropriate backend.
-    jwtConfig(audiences, disableJwt):: {
+    envoyConfig(audiences, disableJwt):: {
       listeners: [
         {
-          address: "tcp://0.0.0.0:" + jwtEnvoyPort,
+          address: "tcp://0.0.0.0:" + envoyPort,
           filters: [
             {
               type: "read",
@@ -196,6 +183,34 @@
                       name: "backend",
                       domains: ["*"],
                       routes: [
+                        // First route that matches is picked.
+                        {
+                          timeout_ms: 10000,
+                          path: "/healthz",
+                          prefix_rewrite: "/server_info",
+                          weighted_clusters: {
+                            clusters: [
+
+                              { name: "cluster_healthz", weight: 100.0 },
+
+                            ],
+                          },
+                        },
+                        // Provide access to the whoami app skipping JWT verification.
+                        // this is useful for debugging.
+                        {
+                          timeout_ms: 10000,
+                          prefix: "/noiap/whoami",
+                          prefix_rewrite: "/",
+                          weighted_clusters: {
+                            clusters: [
+                              {
+                                name: "cluster_iap_app",
+                                weight: 100.0,
+                              },
+                            ],
+                          },
+                        },
                         {
                           timeout_ms: 10000,
                           prefix: "/whoami",
@@ -290,7 +305,17 @@
                         audiences: audiences,
                         jwks_uri: "https://www.gstatic.com/iap/verify/public_key-jwk",
                         jwks_uri_envoy_cluster: "iap_issuer",
-                        jwt_headers: ["x-goog-iap-jwt-assertion"]
+                        jwt_headers: ["x-goog-iap-jwt-assertion"],
+                      },
+                    ],
+                    bypass_jwt: [
+                      {
+                        http_method: "GET",
+                        path_exact: "/healthz",
+                      },
+                      {
+                        http_method: "GET",
+                        path_exact: "/noiap/whoami",
                       },
                     ],
                   },
@@ -312,11 +337,24 @@
       admin: {
         // We use 0.0.0.0 and not 127.0.0.1 because we want the admin server to be available on all devices
         // so that it can be used for health checking.
-        address: "tcp://0.0.0.0:" + jwtEnvoyAdminPort,
+        address: "tcp://0.0.0.0:" + envoyAdminPort,
         access_log_path: "/tmp/admin_access_log",
       },
       cluster_manager: {
         clusters: [
+          {
+            name: "cluster_healthz",
+            connect_timeout_ms: 3000,
+            type: "strict_dns",
+            lb_type: "round_robin",
+            hosts: [
+              {
+                // We just use the admin server for the health check
+                url: "tcp://127.0.0.1:" + envoyAdminPort,
+              },
+
+            ],
+          },
           {
             name: "iap_issuer",
             connect_timeout_ms: 5000,
@@ -371,142 +409,9 @@
           },
         ],
       },
-      statsd_udp_ip_address: "127.0.0.1:" + jwtEnvoyStatsPort,
+      statsd_udp_ip_address: "127.0.0.1:" + envoyStatsPort,
       stats_flush_interval_ms: 1000,
-    },  // config
-
-    // This is the config used for the first proxy that serves as a backend for the GCP
-    // loadbalncer. Its solely purpose is to route requests that shouldn't go through IAP
-    // e.g. the http health check and mayb kube lego.
-    healthConfig:: {
-      listeners: [
-        {
-          address: "tcp://0.0.0.0:" + healthEnvoyPort,
-          filters: [
-            {
-              type: "read",
-              name: "http_connection_manager",
-              config: {
-                codec_type: "auto",
-                stat_prefix: "ingress_http",
-                access_log: [
-                  {
-                    format: 'ACCESS [%START_TIME%] "%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% "%REQ(X-FORWARDED-FOR)%" "%REQ(USER-AGENT)%" "%REQ(X-REQUEST-ID)%" "%REQ(:AUTHORITY)%" "%UPSTREAM_HOST%"\n',
-                    path: "/dev/fd/1",
-                  },
-                ],
-                route_config: {
-                  virtual_hosts: [
-                    {
-                      name: "backend",
-                      domains: ["*"],
-                      routes: [
-                        // First route that matches is picked.
-                        {
-                          timeout_ms: 10000,
-                          path: "/healthz",
-                          prefix_rewrite: "/server_info",
-                          weighted_clusters: {
-                            clusters: [
-
-                              { name: "cluster_healthz", weight: 100.0 },
-
-                            ],
-                          },
-                        },
-                        // Provide access to the whoami app skipping JWT verification.
-                        // this is useful for debugging.
-                        {
-                          timeout_ms: 10000,
-                          prefix: "/noiap/whoami",
-                          prefix_rewrite: "/",
-                          weighted_clusters: {
-                            clusters: [
-                              {
-                                name: "cluster_iap_app",
-                                weight: 100.0,
-                              },
-                            ],
-                          },
-                        },
-                        // Route all remaining paths to the envoy proxy for JWT verification.
-                        {
-                          timeout_ms: 10000,
-                          prefix: "/",
-                          prefix_rewrite: "/",
-                          use_websocket: true,
-                          weighted_clusters: {
-                            clusters: [
-                              {
-                                name: "cluster_default",
-                                weight: 100.0,
-                              },
-                            ],
-                          },
-                        },
-                      ],
-                    },
-                  ],
-                },
-                filters: [
-                  {
-                    type: "decoder",
-                    name: "router",
-                    config: {},
-                  },
-                ],
-              },
-            },
-          ],
-        },
-      ],
-      admin: {
-        address: "tcp://127.0.0.1:" + healthEnvoyAdminPort,
-        access_log_path: "/tmp/admin_access_log",
-      },
-      cluster_manager: {
-        clusters: [
-          {
-            name: "cluster_iap_app",
-            connect_timeout_ms: 3000,
-            type: "strict_dns",
-            lb_type: "round_robin",
-            hosts: [
-              {
-                url: "tcp://whoami-app." + namespace + ":80",
-              },
-            ],
-          },
-          {
-            name: "cluster_healthz",
-            connect_timeout_ms: 3000,
-            type: "strict_dns",
-            lb_type: "round_robin",
-            hosts: [
-              {
-                // We just use the admin server for the health check
-                url: "tcp://127.0.0.1:" + healthEnvoyAdminPort,
-              },
-
-            ],
-          },
-          {
-            name: "cluster_default",
-            connect_timeout_ms: 3000,
-            type: "strict_dns",
-            lb_type: "round_robin",
-            hosts: [
-              {
-                // Route to the colocated envoy host for JWT validation.
-                url: "tcp://127.0.0.1:" + jwtEnvoyPort,
-              },
-            ],
-          },
-        ],
-      },
-      statsd_udp_ip_address: "127.0.0.1:" + healthEnvoyStatsPort,
-      stats_flush_interval_ms: 1000,
-    },  // healthConfig
+    },  // envoyConfig
 
     whoamiService:: {
       apiVersion: "v1",
@@ -602,7 +507,7 @@
                     // Keep port the servicePort the same as the port we are targetting on the backend so that servicePort will be the same as targetPort for the purpose of
                     // health checking.
                     serviceName: "envoy",
-                    servicePort: healthEnvoyPort,
+                    servicePort: envoyPort,
                   },
                   path: "/*",
                 },
