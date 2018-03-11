@@ -6,12 +6,7 @@
   // a with volumes option.
 
   all(params):: [
-    local kubeSpawner = $.parts(params.namespace).kubeSpawner(params.jupyterHubAuthenticator, params.diskNames),
-    local jupyterConfigMap = if std.length(params.diskNames) == 0 then
-      $.parts(namespace).jupyterHubConfigMap
-    else $.parts(namespace).jupyterHubConfigMapWithVolumes(params.diskNames),
-
-    jupyterHubConfigMap(kubeSpawner),
+    $.parts(params.namespace).configMap(params.jupyterHubAuthenticator, params.disks),
     $.parts(params.namespace).jupyterHubService,
     $.parts(params.namespace).jupyterHubLoadBalancer(params.jupyterHubServiceType),
     $.parts(params.namespace).jupyterHub(params.jupyterHubImage, params.jupyterHubDebug),
@@ -21,6 +16,16 @@
   ],
 
   parts(namespace):: {
+    configMap(jupyterHubAuthenticator, disks): {
+      local util = import "kubeflow/core/util.libsonnet",
+      local diskNames = util.toArray(disks),
+      local kubeSpawner = $.parts(namespace).kubeSpawner(jupyterHubAuthenticator, diskNames),
+      local cm = if std.length(diskNames) == 0 then
+        $.parts(namespace).jupyterHubConfigMap
+      else $.parts(namespace).jupyterHubConfigMapWithVolumes(diskNames),
+      result:: cm(kubeSpawner),
+    }.result,
+ 
     kubeSpawner(authenticator, volumeClaims=[]): {
       // TODO(jlewi): We should make the default Docker image configurable
       // TODO(jlewi): We should make whether we use PVC configurable.
