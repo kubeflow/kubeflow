@@ -300,13 +300,6 @@ c.JupyterHub.ip = '0.0.0.0'
 c.JupyterHub.hub_ip = '0.0.0.0'
 c.JupyterHub.hub_connect_ip =  os.environ['AMBASSADOR_SERVICE_HOST']
 c.JupyterHub.hub_connect_port = os.environ['AMBASSADOR_SERVICE_PORT']
-c.KubeServiceProxy.api_url = 'http://' + os.environ['AMBASSADOR_SERVICE_HOST']
-c.KubeServiceProxy.public_url = 'http://' + os.environ['AMBASSADOR_SERVICE_HOST']
-c.GitHubOAuthenticator.oauth_callback_url = 'http://' + c.JupyterHub.hub_connect_ip + '/hub/oauth_callback'
-c.GitHubOAuthenticator.client_id = '58a685bbf0225e040d8b'
-c.GitHubOAuthenticator.client_secret = 'bdab120dd93963b4bfcc9dbe59597d66b93a4d15'
-c.GitHubOAuthenticator.enable_auth_state = False
-
 
 # Don't try to cleanup servers on exit - since in general for k8s, we want
 # the hub to be able to restart without losing user containers

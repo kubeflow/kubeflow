@@ -40,11 +40,9 @@
 c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
 
         local kubeConfigGitAuthenticator = @"c.JupyterHub.authenticator_class = 'oauthenticator.github.GitHubOAuthenticator'
-c.JupyterHub.hub_connect_ip =  '" + ipName + "'
-c.JupyterHub.hub_connect_port = 80'
-c.KubeServiceProxy.api_url = 'http://'" + ipName + "'
-c.KubeServiceProxy.public_url = 'http://'" + ipName + "'
-c.GitHubOAuthenticator.oauth_callback_url = 'http://' + ipName + '/hub/oauth_callback'
+c.KubeServiceProxy.api_url = 'http://" + ipName + "'
+c.KubeServiceProxy.public_url = 'http://" + ipName + "'
+c.GitHubOAuthenticator.oauth_callback_url = 'http://" + ipName + "/hub/oauth_callback'
 c.GitHubOAuthenticator.client_id = '58a685bbf0225e040d8b'
 c.GitHubOAuthenticator.client_secret = 'bdab120dd93963b4bfcc9dbe59597d66b93a4d15'
 c.GitHubOAuthenticator.enable_auth_state = False",
