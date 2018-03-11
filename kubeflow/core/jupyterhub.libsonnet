@@ -117,7 +117,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
       },
     }.config,
 
-    jupyterHubService:: {
+    jupyterHubService: {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
@@ -145,6 +145,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
         clusterIP: "None",
         ports: [
           {
+            name: "hub",
             port: 80,
             targetPort: 8081,
           },
@@ -196,8 +197,6 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
 
       apiVersion: "apps/v1beta1",
       kind: "StatefulSet",
-      //apiVersion: "extensions/v1beta1",
-      //kind: "Deployment",
       metadata: {
         name: "tf-hub",
         namespace: namespace,
