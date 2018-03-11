@@ -6,7 +6,12 @@
   // a with volumes option.
 
   all(params):: [
-    $.parts(params.namespace).jupyterHubConfigMap(params.kubeSpawner),
+    local kubeSpawner = $.parts(params.namespace).kubeSpawner(params.jupyterHubAuthenticator, params.diskNames),
+    local jupyterConfigMap = if std.length(params.diskNames) == 0 then
+      $.parts(namespace).jupyterHubConfigMap
+    else $.parts(namespace).jupyterHubConfigMapWithVolumes(params.diskNames),
+
+    jupyterHubConfigMap(kubeSpawner),
     $.parts(params.namespace).jupyterHubService,
     $.parts(params.namespace).jupyterHubLoadBalancer(params.jupyterHubServiceType),
     $.parts(params.namespace).jupyterHub(params.jupyterHubImage, params.jupyterHubDebug),

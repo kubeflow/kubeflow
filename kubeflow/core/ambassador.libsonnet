@@ -1,16 +1,15 @@
 {
+  all(params):: [
+    $.parts(params.namespace).service(params.tfAmbassadorServiceType),
+    $.parts(params.namespace).adminService,
+    $.parts(params.namespace).role,
+    $.parts(params.namespace).serviceAccount,
+    $.parts(params.namespace).roleBinding,
+    $.parts(params.namespace).deploy,
+    $.parts(params.namespace).k8sDashboard,
+  ],
+
   parts(namespace):: {
-
-    all(params): [
-      $.parts(namespace).service(params.tfAmbassadorServiceType),
-      $.parts(namespace).adminService,
-      $.parts(namespace).role,
-      $.parts(namespace).serviceAccount,
-      $.parts(namespace).roleBinding,
-      $.parts(namespace).deploy,
-      $.parts(namespace).k8sDashboard,
-    ],
-
     local ambassadorImage = "quay.io/datawire/ambassador:0.26.0",
     service(serviceType): {
       apiVersion: "v1",
