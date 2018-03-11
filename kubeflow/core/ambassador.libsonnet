@@ -30,9 +30,9 @@
           },
         ],
         selector: {
-          service: serviceType,
+          service: "ambassador",
         },
-        type: "LoadBalancer",
+        type: serviceType,
       },
     },  // service
 
@@ -155,12 +155,13 @@
         namespace: namespace,
       },
       spec: {
-        replicas: 3,
+        replicas: 1,
         template: {
           metadata: {
             labels: {
               service: "ambassador",
             },
+            namespace: namespace,
           },
           spec: {
             containers: [

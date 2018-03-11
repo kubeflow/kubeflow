@@ -6,6 +6,7 @@
 // @optionalParam namespace string default Namespace
 // @optionalParam disks string null Comma separated list of Google persistent disks to attach to jupyter environments.
 // @optionalParam cloud string null String identifying the cloud to customize the deployment for.
+// @optionalParam ipName string The name of the global ip address to use.
 // @optionalParam tfAmbassadorServiceType string ClusterIP The service type for the API Gateway.
 // @optionalParam tfJobImage string gcr.io/kubeflow-images-staging/tf_operator:v20180226-403 The image for the TfJob controller.
 // @optionalParam tfDefaultImage string null The default image to use for TensorFlow.

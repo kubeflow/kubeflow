@@ -6,7 +6,7 @@
   // a with volumes option.
 
   all(params):: [
-    $.parts(params.namespace).configMap(params.jupyterHubAuthenticator, params.disks),
+    $.parts(params.namespace).jupyterHubConfigMap(params.ipName, params.jupyterHubAuthenticator, params.disks),
     $.parts(params.namespace).jupyterHubService,
     $.parts(params.namespace).jupyterHubLoadBalancer(params.jupyterHubServiceType),
     $.parts(params.namespace).jupyterHub(params.jupyterHubImage, params.jupyterHubDebug),
@@ -16,34 +16,44 @@
   ],
 
   parts(namespace):: {
-    configMap(jupyterHubAuthenticator, disks): {
+    jupyterHubConfigMap(ipName, jupyterHubAuthenticator, disks): {
       local util = import "kubeflow/core/util.libsonnet",
       local diskNames = util.toArray(disks),
-      local kubeSpawner = $.parts(namespace).kubeSpawner(jupyterHubAuthenticator, diskNames),
+      local kubeSpawner = $.parts(namespace).kubeSpawner(ipName, jupyterHubAuthenticator, diskNames),
       local cm = if std.length(diskNames) == 0 then
-        $.parts(namespace).jupyterHubConfigMap
+        $.parts(namespace).jupyterHubConfigMapWithoutVolumes
       else $.parts(namespace).jupyterHubConfigMapWithVolumes(diskNames),
       result:: cm(kubeSpawner),
     }.result,
  
-    kubeSpawner(authenticator, volumeClaims=[]): {
-      // TODO(jlewi): We should make the default Docker image configurable
+    kubeSpawner(ipName, authenticator, volumeClaims=[]): {
       // TODO(jlewi): We should make whether we use PVC configurable.
       local baseKubeConfigSpawner = importstr "jupyterhub_spawner.py",
 
       authenticatorOptions:: {
 
         //## Authenticator Options
-        local kubeConfigDummyAuthenticator = "c.JupyterHub.authenticator_class = 'oauthenticator.github.GitHubOAuthenticator'",
+        local kubeConfigDummyAuthenticator = "c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'",
 
         // This configuration allows us to use the id provided by IAP.
         local kubeConfigIAPAuthenticator = @"c.JupyterHub.authenticator_class ='jhub_remote_user_authenticator.remote_user_auth.RemoteUserAuthenticator'
 c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
 
+        local kubeConfigGitAuthenticator = @"c.JupyterHub.authenticator_class = 'oauthenticator.github.GitHubOAuthenticator'
+c.JupyterHub.hub_connect_ip =  '" + ipName + "'
+c.JupyterHub.hub_connect_port = 80'
+c.KubeServiceProxy.api_url = 'http://'" + ipName + "'
+c.KubeServiceProxy.public_url = 'http://'" + ipName + "'
+c.GitHubOAuthenticator.oauth_callback_url = 'http://' + ipName + '/hub/oauth_callback'
+c.GitHubOAuthenticator.client_id = '58a685bbf0225e040d8b'
+c.GitHubOAuthenticator.client_secret = 'bdab120dd93963b4bfcc9dbe59597d66b93a4d15'
+c.GitHubOAuthenticator.enable_auth_state = False",
+
         options:: std.join("\n", std.prune([
           "######## Authenticator ######",
           if authenticator == "iap" then
-            kubeConfigIAPAuthenticator else
+            kubeConfigIAPAuthenticator else if authenticator == "git" then
+            kubeConfigGitAuthenticator else
             kubeConfigDummyAuthenticator,
         ])),
       }.options,  // authenticatorOptions
@@ -88,7 +98,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
       },
     },
 
-    jupyterHubConfigMap(spawner): baseJupyterHubConfigMap {
+    jupyterHubConfigMapWithoutVolumes(spawner): baseJupyterHubConfigMap {
       data: {
         "jupyterhub_config.py": spawner,
       },
@@ -142,7 +152,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
       spec: {
         // We want a headless service so we set the ClusterIP to be None.
         // This headless server is used by individual Jupyter pods to connect back to the Hub.
-        clusterIP: "None",
+        type: "ClusterIP",
         ports: [
           {
             name: "hub",

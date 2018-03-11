@@ -60,7 +60,6 @@ class KubeServiceProxy(Proxy):
         self.service_reflector = ServiceReflector(parent=self, namespace=self.namespace)
         self.core_api = client.CoreV1Api()
         self.extension_api = client.ExtensionsV1beta1Api()
-        self.public_url = os.environ['AMBASSADOR_SERVICE_HOST']
 
     def make_service(self, name, username, routespec, target, data):
         """
@@ -300,8 +299,10 @@ class KubeFormSpawner(KubeSpawner):
 c.JupyterHub.ip = '0.0.0.0'
 c.JupyterHub.hub_ip = '0.0.0.0'
 c.JupyterHub.hub_connect_ip =  os.environ['AMBASSADOR_SERVICE_HOST']
-c.JupyterHub.hub_connect_port = 80
-c.GitHubOAuthenticator.oauth_callback_url = 'http://ambassador/hub/oauth_callback'
+c.JupyterHub.hub_connect_port = os.environ['AMBASSADOR_SERVICE_PORT']
+c.KubeServiceProxy.api_url = 'http://' + os.environ['AMBASSADOR_SERVICE_HOST']
+c.KubeServiceProxy.public_url = 'http://' + os.environ['AMBASSADOR_SERVICE_HOST']
+c.GitHubOAuthenticator.oauth_callback_url = 'http://' + c.JupyterHub.hub_connect_ip + '/hub/oauth_callback'
 c.GitHubOAuthenticator.client_id = '58a685bbf0225e040d8b'
 c.GitHubOAuthenticator.client_secret = 'bdab120dd93963b4bfcc9dbe59597d66b93a4d15'
 c.GitHubOAuthenticator.enable_auth_state = False
@@ -324,7 +325,6 @@ c.KubeSpawner.cmd = 'start-singleuser.sh'
 c.KubeSpawner.args = ['--allow-root']
 # First pulls can be really slow, so let's give it a big timeout
 c.KubeSpawner.start_timeout = 60 * 10
-c.KubeServiceProxy.api_url = 'http://' + os.environ['AMBASSADOR_SERVICE_HOST']
 
 ###################################################
 ### Persistent volume options
