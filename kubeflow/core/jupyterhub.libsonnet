@@ -7,7 +7,7 @@
 
   all(params):: [
     $.parts(params.namespace).jupyterHubConfigMap(params.kubeSpawner),
-    $.parts(params.namespace).jupyterHubService(params.jupyterHubServiceType),
+    $.parts(params.namespace).jupyterHubService,
     $.parts(params.namespace).jupyterHubLoadBalancer(params.jupyterHubServiceType),
     $.parts(params.namespace).jupyterHub(params.jupyterHubImage, params.jupyterHubDebug),
     $.parts(params.namespace).jupyterHubRole,
@@ -107,7 +107,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
       },
     }.config,
 
-    jupyterHubService(serviceType): {
+    jupyterHubService:: {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
@@ -132,7 +132,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
       spec: {
         // We want a headless service so we set the ClusterIP to be None.
         // This headless server is used by individual Jupyter pods to connect back to the Hub.
-        // clusterIP: "None",
+        clusterIP: "None",
         ports: [
           {
             port: 80,

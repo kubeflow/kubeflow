@@ -1,24 +1,23 @@
 {
   parts(namespace):: {
 
-    all:: [
-      $.parts(namespace).service,
+    all(params): [
+      $.parts(namespace).service(params.tfAmbassadorServiceType),
       $.parts(namespace).adminService,
-      $.parts(namespace).clusterRole,
+      $.parts(namespace).role,
       $.parts(namespace).serviceAccount,
-      $.parts(namespace).clusterRoleBinding,
+      $.parts(namespace).roleBinding,
       $.parts(namespace).deploy,
       $.parts(namespace).k8sDashboard,
     ],
 
-    local ambassadorImage = "quay.io/datawire/ambassador:0.28.0",
-    service:: {
+    local ambassadorImage = "quay.io/datawire/ambassador:0.26.0",
+    service(serviceType): {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
         labels: {
           service: "ambassador",
-          app: "ambassador",
         },
         name: "ambassador",
         namespace: namespace,
@@ -32,7 +31,7 @@
           },
         ],
         selector: {
-          service: "ambassador",
+          service: serviceType,
         },
         type: "LoadBalancer",
       },
@@ -44,7 +43,6 @@
       metadata: {
         labels: {
           service: "ambassador-admin",
-          app: "ambassador",
         },
         name: "ambassador-admin",
         namespace: namespace,
@@ -64,14 +62,12 @@
       },
     },  // adminService
 
-    clusterRole:: {
+    role:: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "ClusterRole",
+      kind: "Role",
       metadata: {
-        labels: {
-          app: "ambassador",
-        },
         name: "ambassador",
+        namespace: namespace,
       },
       rules: [
         {
@@ -117,33 +113,27 @@
           ],
         },
       ],
-    },  // clusterRole
+    },  // Role
 
     serviceAccount:: {
       apiVersion: "v1",
       kind: "ServiceAccount",
       metadata: {
-        labels: {
-          app: "ambassador",
-        },
         name: "ambassador",
         namespace: namespace,
       },
     },  // serviceAccount
 
-    clusterRoleBinding:: {
+    roleBinding:: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "ClusterRoleBinding",
+      kind: "RoleBinding",
       metadata: {
-        labels: {
-          app: "ambassador",
-        },
         name: "ambassador",
         namespace: namespace,
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
-        kind: "ClusterRole",
+        kind: "Role",
         name: "ambassador",
       },
       subjects: [
@@ -153,7 +143,7 @@
           namespace: namespace,
         },
       ],
-    },  // clusterRoleBinding
+    },  // roleBinding
 
     deploy:: {
       apiVersion: "extensions/v1beta1",
@@ -161,7 +151,6 @@
       metadata: {
         labels: {
           service: "ambassador-admin",
-          app: "ambassador",
         },
         name: "ambassador",
         namespace: namespace,
@@ -172,7 +161,6 @@
           metadata: {
             labels: {
               service: "ambassador",
-              app: "ambassador",
             },
           },
           spec: {

@@ -25,7 +25,7 @@
           // TODO(jlewi): We should make `all` top level within each libsonnet file and
           // not a field within parts.
           + tfjob.parts(params.namespace).all(params)
-          + ambassador.parts(namespace).all + nfs.nfsComponents(namespace, name, diskNames)
+          + ambassador.parts(namespace).all(params) + nfs.nfsComponents(namespace, name, diskNames)
           + spartakus.all(params),
   },
 }
