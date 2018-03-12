@@ -38,7 +38,7 @@
     // The default image to use for the steps in the Argo workflow.
     testing_image: "gcr.io/mlkube-testing/kubeflow-testing",
     tf_testing_image: "gcr.io/kubeflow-ci/tf-test-worker:1.0",
-    project: "mlkube-testing",
+    project: "kubeflow-ci",
     cluster: "kubeflow-testing",
     zone: "us-east1-d",
     build_image: false,
