@@ -48,7 +48,7 @@
       local tfOperatorRoot = srcRootDir + "/kubeflow/tf-operator";
       local tfOperatorPy = tfOperatorRoot;
 
-      local project = "mlkube-testing";
+      local project = "kubeflow-ci";
       // GKE cluster to use
       local cluster = "kubeflow-testing";
       local zone = "us-east1-d";
