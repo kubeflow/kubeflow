@@ -24,7 +24,7 @@
   //
   // TODO(jlewi): Use camelCase consistently.
   defaultParams:: {
-    bucket: "mlkube-testing_temp",
+    bucket: "kubeflow-ci_temp",
     commit: "master",
     // Name of the secret containing GCP credentials.
     gcpCredentialsSecretName: "kubeflow-testing-credentials",
