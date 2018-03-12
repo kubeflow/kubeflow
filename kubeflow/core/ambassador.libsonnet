@@ -4,9 +4,9 @@
     all:: [
       $.parts(namespace).service,
       $.parts(namespace).adminService,
-      $.parts(namespace).clusterRole,
+      $.parts(namespace).role,
       $.parts(namespace).serviceAccount,
-      $.parts(namespace).clusterRoleBinding,
+      $.parts(namespace).roleBinding,
       $.parts(namespace).deploy,
       $.parts(namespace).k8sDashboard,
     ],
@@ -62,11 +62,12 @@
       },
     },  // adminService
 
-    clusterRole:: {
+    role:: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "ClusterRole",
+      kind: "Role",
       metadata: {
         name: "ambassador",
+        namespace: namespace,
       },
       rules: [
         {
@@ -112,7 +113,7 @@
           ],
         },
       ],
-    },  // cluserRole
+    },  // role
 
     serviceAccount:: {
       apiVersion: "v1",
@@ -123,15 +124,16 @@
       },
     },  // serviceAccount
 
-    clusterRoleBinding:: {
+    roleBinding:: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "ClusterRoleBinding",
+      kind: "RoleBinding",
       metadata: {
         name: "ambassador",
+        namespace: namespace,
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
-        kind: "ClusterRole",
+        kind: "Role",
         name: "ambassador",
       },
       subjects: [
@@ -141,7 +143,7 @@
           namespace: namespace,
         },
       ],
-    },  // clusterRoleBinding
+    },  // roleBinding
 
     deploy:: {
       apiVersion: "extensions/v1beta1",
@@ -169,6 +171,10 @@
                         fieldPath: "metadata.namespace",
                       },
                     },
+                  },
+                  {
+                    name: "AMBASSADOR_SINGLE_NAMESPACE",
+                    value: "true",
                   },
                 ],
                 image: ambassadorImage,
