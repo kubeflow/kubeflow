@@ -7,11 +7,9 @@
     local spartakus = import "kubeflow/core/spartakus.libsonnet",
 
     all:: jupyter.all(params)
-          // TODO(jlewi): We should make `all` top level within each libsonnet file and
-          // not a field within parts.
-          + tfjob.parts(params.namespace).all(params)
+          + tfjob.all(params)
           + ambassador.all(params) 
-          + nfs.nfsComponents(params.namespace, params.name, params.disks)
+          + nfs.all(params)
           + spartakus.all(params),
   },
 }

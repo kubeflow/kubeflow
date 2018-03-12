@@ -3,7 +3,11 @@
 {
   // Return a list of components needed if you want to mount some disks using NFS.
   // diskNames should be a list of PDs.
-  nfsComponents(namespace, name, disks):: {
+  all(namespace, name, disks):: {
+    local namespace = params.namespace
+    local name = params.name
+    local disks = params.disks
+
     // Create a list of the resources needed for a particular disk
     local diskToList = function(diskName) [
       $.parts(namespace, name,).diskResources(diskName).storageClass,
@@ -294,6 +298,5 @@
         },
       ],
     },
-
   },  // parts
 }

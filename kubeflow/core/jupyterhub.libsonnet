@@ -143,6 +143,7 @@ c.GitHubOAuthenticator.enable_auth_state = False",
               "name: tf-hub-0-mapping",
               "prefix: /hub",
               "rewrite: /hub",
+              "use_websocket: true",
               "service: tf-hub-0." + namespace,
             ]),
         },  //annotations
