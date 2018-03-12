@@ -27,8 +27,8 @@
       $.params.defaultGpuImage,
 
 
-    // Which cloud to configure the model for.
-    cloud:: null,
+    // Whether or not to enable s3 parameters
+    s3Enable:: false,
   },
 
   // Parameters that control S3 access
@@ -62,7 +62,16 @@
   components:: {
 
     all::
-      if $.params.cloud == "aws" then
+      // TODO(jlewi): It would be better to structure s3 as a mixin.
+      // As an example it would be great to allow S3 and GCS parameters
+      // to be enabled simultaneously. This should be doable because
+      // each entails adding a set of environment variables and volumes
+      // to the containers. These volumes/environment variables shouldn't
+      // overlap so there's no reason we shouldn't be able to just add 
+      // both modifications to the base container.
+      // I think we want to restructure things as mixins so they can just
+      // be added.
+      if $.params.s3Enable then
         [
           $.s3parts.tfService,
           $.s3parts.tfDeployment,
@@ -231,7 +240,7 @@
   // Parts specific to S3
   s3parts:: $.parts {
     s3Env:: [
-      { name: "AWS_ACCESS_KEY_ID", valueFrom: { secretKeyRef: { name: $.s3params.s3SecretName, key: $.s3params.s3SecretAcesskeyidKeyName } } },
+      { name: "AWS_ACCESS_KEY_ID", valueFrom: { secretKeyRef: { name: $.s3params.s3SecretName, key: $.s3params.s3SecretAccesskeyidKeyName } } },
       { name: "AWS_SECRET_ACCESS_KEY", valueFrom: { secretKeyRef: { name: $.s3params.s3SecretName, key: $.s3params.s3SecretSecretaccesskeyKeyName } } },
       { name: "AWS_REGION", value: $.s3params.s3AwsRegion },
       { name: "S3_REGION", value: $.s3params.s3AwsRegion },
