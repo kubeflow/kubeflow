@@ -1,6 +1,6 @@
 {
   parts(namespace):: {
-    serve(name, image, replicas):: {
+    serve(name, image, replicas, endpoint):: {
       apiVersion: "machinelearning.seldon.io/v1alpha1",
       kind: "SeldonDeployment",
       metadata: {
@@ -38,7 +38,7 @@
 
               ],
               endpoint: {
-                type: "REST",
+                type: endpoint,
               },
               name: name,
               type: "MODEL",
