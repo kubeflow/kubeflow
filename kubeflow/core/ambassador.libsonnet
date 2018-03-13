@@ -155,7 +155,7 @@
         namespace: namespace,
       },
       spec: {
-        replicas: 1,
+        replicas: 3,
         template: {
           metadata: {
             labels: {
@@ -177,7 +177,7 @@
                   },
                   {
                     name: "AMBASSADOR_SINGLE_NAMESPACE",
-                    value: "True",
+                    value: "true",
                   },
                 ],
                 image: ambassadorImage,
