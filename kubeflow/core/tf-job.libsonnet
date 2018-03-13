@@ -8,6 +8,11 @@
     $.parts(params.namespace).operatorRole,
     $.parts(params.namespace).operatorRoleBinding,
     $.parts(params.namespace).crd,
+    $.parts(params.namespace).uiService(params.tfJobUiServiceType),
+    $.parts(params.namespace).uiServiceAccount,
+    $.parts(params.namespace).ui(params.tfDefaultTensorboardImage),
+    $.parts(params.namespace).uiRole,
+    $.parts(params.namespace).uiRoleBinding,
   ],
 
   parts(namespace):: {
