@@ -84,7 +84,7 @@
           $.s3parts.tfService,
           $.s3parts.tfDeployment,
         ]
-      elif $.params.cloud == "gcp" then
+      else if $.params.cloud == "gcp" then
         [
           $.gcpParts.tfService,
           $.gcpParts.tfDeployment,
@@ -286,7 +286,7 @@
   gcpParts:: $.parts {
     gcpEnv:: [
       if $.gcpParams.gcpCredentialSecretName != "" then
-        { name: "GOOGLE_APPLICATION_CREDENTIALS": value: "/secret/gcp-credentials/key.json" },
+        { name: "GOOGLE_APPLICATION_CREDENTIALS", value: "/secret/gcp-credentials/key.json" },
     ],
 
     tfServingContainer: $.parts.tfServingContainer {
@@ -306,19 +306,19 @@
 
           spec: +{
             containers: [
-              $.s3parts.tfServingContainer,
+              $.gcpParts.tfServingContainer,
               if $.params.httpProxyImage != 0 then
                 $.parts.httpProxyContainer,
             ],
-	    if $.gcpParams.gcpCredentialSecretName != "" then
-	      volumes: [
+	    volumes: [
+	      if $.gcpParams.gcpCredentialSecretName != "" then
 	        {
 	          name: "gcp-credentials",
 	          secret: {
 	            secretName: $.gcpParams.gcpCredentialSecretName,
 	          }
-	        }
-	      ]
+	        },
+	    ]
           },
         },
       },
