@@ -112,7 +112,7 @@
           ],
         },
       ],
-    },  // Role
+    },  // role
 
     serviceAccount:: {
       apiVersion: "v1",
@@ -177,7 +177,7 @@
                   },
                   {
                     name: "AMBASSADOR_SINGLE_NAMESPACE",
-                    value: "True",
+                    value: "true",
                   },
                 ],
                 image: ambassadorImage,
