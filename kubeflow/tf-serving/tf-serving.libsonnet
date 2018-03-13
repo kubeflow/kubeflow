@@ -36,7 +36,7 @@
 
   // Parametes specific to GCP.
   gcpParams:: {
-    gcpCredentialsSecretName: "",
+    gcpCredentialSecretName: "",
   } + $.params,
 
   // Parameters that control S3 access
@@ -292,7 +292,7 @@
     tfServingContainer: $.parts.tfServingContainer {
       env+: $.gcpParts.gcpEnv,
       volumeMounts+: [
-	if $.gcpParams.gcpCredentialSecretName != "" then
+	      if $.gcpParams.gcpCredentialSecretName != "" then
           {
             name: "gcp-credentials",
             mountPath: "/secret/gcp-credentials",
@@ -301,24 +301,25 @@
     },
 
     tfDeployment: $.parts.tfDeployment {
-      spec: +{
-        template: +{
+      spec+: {
+        template+: {
 
-          spec: +{
+          spec+: {
             containers: [
               $.gcpParts.tfServingContainer,
               if $.params.httpProxyImage != 0 then
                 $.parts.httpProxyContainer,
             ],
-	    volumes: [
-	      if $.gcpParams.gcpCredentialSecretName != "" then
-	        {
-	          name: "gcp-credentials",
-	          secret: {
-	            secretName: $.gcpParams.gcpCredentialSecretName,
-	          }
-	        },
-	    ]
+
+      	    volumes: [
+      	      if $.gcpParams.gcpCredentialSecretName != "" then
+      	        {
+      	          name: "gcp-credentials",
+      	          secret: {
+      	            secretName: $.gcpParams.gcpCredentialSecretName,
+      	          }
+      	        },
+      	    ]
           },
         },
       },
