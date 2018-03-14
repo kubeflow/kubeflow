@@ -170,7 +170,7 @@
                 }],
               ],
             },
-            buildTempliate(
+            buildTemplate(
               "checkout",
               ["/usr/local/bin/checkout.sh", srcRootDir],
               [{
@@ -179,7 +179,7 @@
               }],
               [], // no sidecars
             ),
-            $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("setup", [
+            buildTemplate("setup", [
               "python",
               "-m",
               "testing.test_deploy",
@@ -191,7 +191,7 @@
               "--artifacts_dir=" + artifactsDir,
               "setup",
             ]),  // setup
-            $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("teardown", [
+            buildTemplate("teardown", [
               "python",
               "-m",
               "testing.test_deploy",
@@ -203,7 +203,7 @@
               "--artifacts_dir=" + artifactsDir,
               "teardown",
             ]),  // teardown
-            $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("create-pr-symlink", [
+            buildTemplate("create-pr-symlink", [
               "python",
               "-m",
               "kubeflow.testing.prow_artifacts",
@@ -211,7 +211,7 @@
               "create_pr_symlink",
               "--bucket=" + bucket,
             ]),  // create-pr-symlink
-            $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("copy-artifacts", [
+            buildTemplate("copy-artifacts", [
               "python",
               "-m",
               "kubeflow.testing.prow_artifacts",
@@ -219,7 +219,7 @@
               "copy_artifacts",
               "--bucket=" + bucket,
             ]),  // copy-artifacts
-            $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("tfjob-test", [
+            buildTemplate("tfjob-test", [
               "python",
               "-m",
               "py.test_runner",
