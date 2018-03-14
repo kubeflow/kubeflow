@@ -283,7 +283,7 @@
                 }],
               ],
             },
-            buildTempliate(
+            buildTemplate(
               "checkout",
               ["/usr/local/bin/checkout.sh", srcRootDir],
               [{
