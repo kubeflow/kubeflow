@@ -52,53 +52,52 @@
       // GKE cluster to use
       local cluster = "kubeflow-testing";
       local zone = "us-east1-d";
-      {
-        // Build an Argo template to execute a particular command.
-        // step_name: Name for the template
-        // command: List to pass as the container command.
-        buildTemplate(step_name, command, env_vars=[], sidecars=[]):: {
-          name: step_name,
-          container: {
-            command: command,
-            image: image,
-            env: [
-              {
-                // Add the source directories to the python path.
-                name: "PYTHONPATH",
-                value: kubeflowPy + ":" + kubeflowTestingPy + ":" + tfOperatorPy,
-              },
-              {
-                name: "GOOGLE_APPLICATION_CREDENTIALS",
-                value: "/secret/gcp-credentials/key.json",
-              },
-              {
-                name: "GITHUB_TOKEN",
-                valueFrom: {
-                  secretKeyRef: {
-                    name: "github-token",
-                    key: "github_token",
-                  },
+      // Build an Argo template to execute a particular command.
+      // step_name: Name for the template
+      // command: List to pass as the container command.
+      local buildTemplate(step_name, command, env_vars=[], sidecars=[]) = {
+        name: step_name,
+        container: {
+          command: command,
+          image: image,
+          env: [
+            {
+              // Add the source directories to the python path.
+              name: "PYTHONPATH",
+              value: kubeflowPy + ":" + kubeflowTestingPy + ":" + tfOperatorPy,
+            },
+            {
+              name: "GOOGLE_APPLICATION_CREDENTIALS",
+              value: "/secret/gcp-credentials/key.json",
+            },
+            {
+              name: "GITHUB_TOKEN",
+              valueFrom: {
+                secretKeyRef: {
+                  name: "github-token",
+                  key: "github_token",
                 },
               },
-            ] + prow_env + env_vars,
-            volumeMounts: [
-              {
-                name: dataVolume,
-                mountPath: mountPath,
-              },
-              {
-                name: "github-token",
-                mountPath: "/secret/github-token",
-              },
-              {
-                name: "gcp-credentials",
-                mountPath: "/secret/gcp-credentials",
-              },
-            ],
-          },
-          sidecars: sidecars,
-        },  // buildTemplate
-
+            },
+          ] + prow_env + env_vars,
+          volumeMounts: [
+            {
+              name: dataVolume,
+              mountPath: mountPath,
+            },
+            {
+              name: "github-token",
+              mountPath: "/secret/github-token",
+            },
+            {
+              name: "gcp-credentials",
+              mountPath: "/secret/gcp-credentials",
+            },
+          ],
+        },
+        sidecars: sidecars,
+      };  // buildTemplate
+      {
         apiVersion: "argoproj.io/v1alpha1",
         kind: "Workflow",
         metadata: {
