@@ -97,7 +97,7 @@
             ],
           },
           sidecars: sidecars,
-        };  // buildTemplate
+        },  // buildTemplate
 
         apiVersion: "argoproj.io/v1alpha1",
         kind: "Workflow",
