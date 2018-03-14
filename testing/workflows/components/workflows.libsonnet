@@ -65,7 +65,7 @@
               {
                 // Add the source directories to the python path.
                 name: "PYTHONPATH",
-                value: kubeflowPy + ":" + kubeflowTestingPy + ":" + tfOperatorPy,,
+                value: kubeflowPy + ":" + kubeflowTestingPy + ":" + tfOperatorPy,
               },
               {
                 name: "GOOGLE_APPLICATION_CREDENTIALS",
