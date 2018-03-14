@@ -56,16 +56,16 @@
         // Build an Argo template to execute a particular command.
         // step_name: Name for the template
         // command: List to pass as the container command.
-        buildTemplate(step_name, command):: {
+        local buildTemplate(step_name, command, env_vars=[], sidecars=[]) = {
           name: step_name,
           container: {
             command: command,
-            image: image,
+            image: testing_image,
             env: [
               {
                 // Add the source directories to the python path.
                 name: "PYTHONPATH",
-                value: kubeflowPy + ":" + kubeflowTestingPy + ":" + tfOperatorPy,
+                value: kubeflowPy + ":" + kubeflowTestingPy,
               },
               {
                 name: "GOOGLE_APPLICATION_CREDENTIALS",
@@ -80,7 +80,7 @@
                   },
                 },
               },
-            ] + prow_env,
+            ] + prow_env + env_vars,
             volumeMounts: [
               {
                 name: dataVolume,
@@ -96,7 +96,8 @@
               },
             ],
           },
-        },  // buildTemplate
+          sidecars: sidecars,
+        };  // buildTemplate
 
         apiVersion: "argoproj.io/v1alpha1",
         kind: "Workflow",
@@ -170,28 +171,15 @@
                 }],
               ],
             },
-            {
-              name: "checkout",
-              container: {
-                command: [
-                  "/usr/local/bin/checkout.sh",
-                ],
-                args: [
-                  srcRootDir,
-                ],
-                env: prow_env + [{
-                  name: "EXTRA_REPOS",
-                  value: "kubeflow/tf-operator@HEAD;kubeflow/testing@HEAD",
-                }],
-                image: image,
-                volumeMounts: [
-                  {
-                    name: dataVolume,
-                    mountPath: mountPath,
-                  },
-                ],
-              },
-            },  // checkout
+            buildTempliate(
+              "checkout",
+              ["/usr/local/bin/checkout.sh", srcRootDir],
+              [{
+                name: "EXTRA_REPOS",
+                value: "kubeflow/tf-operator@HEAD;kubeflow/testing@HEAD",
+              }],
+              [], // no sidecars
+            )
             $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("setup", [
               "python",
               "-m",

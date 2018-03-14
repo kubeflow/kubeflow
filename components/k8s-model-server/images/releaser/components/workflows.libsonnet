@@ -283,28 +283,15 @@
                 }],
               ],
             },
-            {
-              name: "checkout",
-              container: {
-                command: [
-                  "/usr/local/bin/checkout.sh",
-                ],
-                args: [
-                  srcRootDir,
-                ],
-                env: prow_env + [{
-                  name: "EXTRA_REPOS",
-                  value: "kubeflow/testing@HEAD",
-                }],
-                image: testing_image,
-                volumeMounts: [
-                  {
-                    name: dataVolume,
-                    mountPath: mountPath,
-                  },
-                ],
-              },
-            },  // checkout
+            buildTempliate(
+              "checkout",
+              ["/usr/local/bin/checkout.sh", srcRootDir],
+              [{
+                name: "EXTRA_REPOS",
+                value: "kubeflow/testing@HEAD",
+              }],
+              [], // no sidecars
+            )
 
             buildImageTemplate("build-tf-serving-cpu", "Dockerfile.cpu", cpuImage),
 
