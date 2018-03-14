@@ -112,7 +112,7 @@
           ],
         },
       ],
-    },  // Role
+    },  // role
 
     serviceAccount:: {
       apiVersion: "v1",
