@@ -291,7 +291,7 @@
                 value: "kubeflow/testing@HEAD",
               }],
               [], // no sidecars
-            )
+            ),
 
             buildImageTemplate("build-tf-serving-cpu", "Dockerfile.cpu", cpuImage),
 

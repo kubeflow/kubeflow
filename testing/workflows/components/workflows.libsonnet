@@ -179,7 +179,7 @@
                 value: "kubeflow/tf-operator@HEAD;kubeflow/testing@HEAD",
               }],
               [], // no sidecars
-            )
+            ),
             $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("setup", [
               "python",
               "-m",
