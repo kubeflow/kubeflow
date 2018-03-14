@@ -3,7 +3,7 @@
 
 This component provides web server that proxy http rest api to Tensorflow/Serving grpc.
 
-The REST Api Spec is similar to Google Cloud Machine Learning Engine Prediction API.
+The REST Api Spec is similar to [Google Cloud Machine Learning Engine Prediction API](https://cloud.google.com/ml-engine/docs/online-predict).
 
 # API(rpc proxy)
 
@@ -43,7 +43,8 @@ or
 
 - **Input and Output Schema**:
 
-In the example above, that correspones to a [tensorflow savedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md) with method signature `tf.saved_model.signature_constants.PREDICT_METHOD_NAME`, input signature `"tf_model_input"` and `"image"` and output signature `"tf_model_output"`.
+In the [example above](#Predict), that corresponds to a [tensorflow savedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md) with method signature `tensorflow.saved_model.signature_constants.PREDICT_METHOD_NAME`, input params with signature/key `"tf_model_input"` and `"image"` and output params with signature/key `"tf_model_output"`.
+
 While the input json object key is fixed with `"instances"` and output json key is fixed with `"predictions"`.
 
 
@@ -80,7 +81,7 @@ or
 
 - **Input and Output Schema**:
 
-In the example above, that correspones to a [tensorflow savedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md) with method signature `tf.saved_model.signature_constants.CLASSIFY_METHOD_NAME`, input signature `"tf_model_input"` and `"image"` and output signature `"tf_model_output"`.
+In the [example above](#Classify), that corresponds to a [tensorflow savedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md) with method signature `tensorflow.saved_model.signature_constants.CLASSIFY_METHOD_NAME`, input signature `"tf_model_input"` and `"image"` and output signature `"tf_model_output"`.
 While the input json object key is fixed with `"instances"` and output json key is fixed with `"predictions"`.
 
 
