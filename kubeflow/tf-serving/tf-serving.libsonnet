@@ -29,7 +29,15 @@
 
     // Whether or not to enable s3 parameters
     s3Enable:: false,
+
+    // Which cloud to use
+    cloud:: null
   },
+
+  // Parametes specific to GCP.
+  gcpParams:: {
+    gcpCredentialSecretName: "",
+  } + $.params,
 
   // Parameters that control S3 access
   // params overrides s3params because params can be overwritten by the user to override the defaults.
@@ -75,6 +83,11 @@
         [
           $.s3parts.tfService,
           $.s3parts.tfDeployment,
+        ]
+      else if $.params.cloud == "gcp" then
+        [
+          $.gcpParts.tfService,
+          $.gcpParts.tfDeployment,
         ]
       else
         [
@@ -268,4 +281,48 @@
       },
     },  // tfDeployment
   },  // s3parts
+
+  // Parts specific to GCP
+  gcpParts:: $.parts {
+    gcpEnv:: [
+      if $.gcpParams.gcpCredentialSecretName != "" then
+        { name: "GOOGLE_APPLICATION_CREDENTIALS", value: "/secret/gcp-credentials/key.json" },
+    ],
+
+    tfServingContainer: $.parts.tfServingContainer {
+      env+: $.gcpParts.gcpEnv,
+      volumeMounts+: [
+	      if $.gcpParams.gcpCredentialSecretName != "" then
+          {
+            name: "gcp-credentials",
+            mountPath: "/secret/gcp-credentials",
+          },
+      ]
+    },
+
+    tfDeployment: $.parts.tfDeployment {
+      spec+: {
+        template+: {
+
+          spec+: {
+            containers: [
+              $.gcpParts.tfServingContainer,
+              if $.params.httpProxyImage != 0 then
+                $.parts.httpProxyContainer,
+            ],
+
+      	    volumes: [
+      	      if $.gcpParams.gcpCredentialSecretName != "" then
+      	        {
+      	          name: "gcp-credentials",
+      	          secret: {
+      	            secretName: $.gcpParams.gcpCredentialSecretName,
+      	          }
+      	        },
+      	    ]
+          },
+        },
+      },
+    },  // tfDeployment
+  },  // gcpParts
 }
