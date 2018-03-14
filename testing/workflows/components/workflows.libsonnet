@@ -56,16 +56,16 @@
         // Build an Argo template to execute a particular command.
         // step_name: Name for the template
         // command: List to pass as the container command.
-        local buildTemplate(step_name, command, env_vars=[], sidecars=[]) = {
+        buildTemplate(step_name, command, env_vars=[], sidecars=[]):: {
           name: step_name,
           container: {
             command: command,
-            image: testing_image,
+            image: image,
             env: [
               {
                 // Add the source directories to the python path.
                 name: "PYTHONPATH",
-                value: kubeflowPy + ":" + kubeflowTestingPy,
+                value: kubeflowPy + ":" + kubeflowTestingPy + ":" + tfOperatorPy,,
               },
               {
                 name: "GOOGLE_APPLICATION_CREDENTIALS",
