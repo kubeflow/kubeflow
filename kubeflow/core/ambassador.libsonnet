@@ -228,6 +228,7 @@
       metadata: {
         name: "k8s-dashboard",
         namespace: namespace,
+
         annotations: {
           "getambassador.io/config":
             std.join("\n", [
@@ -259,5 +260,6 @@
         type: "ClusterIP",
       },
     },  // k8sDashboard
+
   },  // parts
 }
