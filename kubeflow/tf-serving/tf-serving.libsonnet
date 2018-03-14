@@ -2,7 +2,6 @@
   // Parameters are intended to be late bound.
   params:: {
     name: null,
-    namespace: null,
     numGpus: 0,
     labels: {
       app: $.params.name,
@@ -75,7 +74,7 @@
       // to be enabled simultaneously. This should be doable because
       // each entails adding a set of environment variables and volumes
       // to the containers. These volumes/environment variables shouldn't
-      // overlap so there's no reason we shouldn't be able to just add 
+      // overlap so there's no reason we shouldn't be able to just add
       // both modifications to the base container.
       // I think we want to restructure things as mixins so they can just
       // be added.

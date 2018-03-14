@@ -3,7 +3,6 @@
 // @description Kubeflow core components
 // @shortDescription Kubeflow core components. This currently includes JupyterHub and the TfJob controller.
 // @param name string Name to give to each of the components
-// @optionalParam namespace string default Namespace
 // @optionalParam disks string null Comma separated list of Google persistent disks to attach to jupyter environments.
 // @optionalParam cloud string null String identifying the cloud to customize the deployment for.
 // @optionalParam tfJobImage string gcr.io/kubeflow-images-staging/tf_operator:v20180226-403 The image for the TfJob controller.
@@ -18,4 +17,8 @@
 local k = import "k.libsonnet";
 local all = import "kubeflow/core/all.libsonnet";
 
-std.prune(k.core.v1.list.new(all.parts(params).all))
+// updatedParams includes the namespace from env by default.
+// We can override namespace in params if needed
+local updatedParams = env + params;
+
+std.prune(k.core.v1.list.new(all.parts(updatedParams).all))
