@@ -48,56 +48,56 @@
       local tfOperatorRoot = srcRootDir + "/kubeflow/tf-operator";
       local tfOperatorPy = tfOperatorRoot;
 
-      local project = "mlkube-testing";
+      local project = "kubeflow-ci";
       // GKE cluster to use
       local cluster = "kubeflow-testing";
       local zone = "us-east1-d";
-      {
-        // Build an Argo template to execute a particular command.
-        // step_name: Name for the template
-        // command: List to pass as the container command.
-        buildTemplate(step_name, command):: {
-          name: step_name,
-          container: {
-            command: command,
-            image: image,
-            env: [
-              {
-                // Add the source directories to the python path.
-                name: "PYTHONPATH",
-                value: kubeflowPy + ":" + kubeflowTestingPy + ":" + tfOperatorPy,
-              },
-              {
-                name: "GOOGLE_APPLICATION_CREDENTIALS",
-                value: "/secret/gcp-credentials/key.json",
-              },
-              {
-                name: "GITHUB_TOKEN",
-                valueFrom: {
-                  secretKeyRef: {
-                    name: "github-token",
-                    key: "github_token",
-                  },
+      // Build an Argo template to execute a particular command.
+      // step_name: Name for the template
+      // command: List to pass as the container command.
+      local buildTemplate(step_name, command, env_vars=[], sidecars=[]) = {
+        name: step_name,
+        container: {
+          command: command,
+          image: image,
+          env: [
+            {
+              // Add the source directories to the python path.
+              name: "PYTHONPATH",
+              value: kubeflowPy + ":" + kubeflowTestingPy + ":" + tfOperatorPy,
+            },
+            {
+              name: "GOOGLE_APPLICATION_CREDENTIALS",
+              value: "/secret/gcp-credentials/key.json",
+            },
+            {
+              name: "GITHUB_TOKEN",
+              valueFrom: {
+                secretKeyRef: {
+                  name: "github-token",
+                  key: "github_token",
                 },
               },
-            ] + prow_env,
-            volumeMounts: [
-              {
-                name: dataVolume,
-                mountPath: mountPath,
-              },
-              {
-                name: "github-token",
-                mountPath: "/secret/github-token",
-              },
-              {
-                name: "gcp-credentials",
-                mountPath: "/secret/gcp-credentials",
-              },
-            ],
-          },
-        },  // buildTemplate
-
+            },
+          ] + prow_env + env_vars,
+          volumeMounts: [
+            {
+              name: dataVolume,
+              mountPath: mountPath,
+            },
+            {
+              name: "github-token",
+              mountPath: "/secret/github-token",
+            },
+            {
+              name: "gcp-credentials",
+              mountPath: "/secret/gcp-credentials",
+            },
+          ],
+        },
+        sidecars: sidecars,
+      };  // buildTemplate
+      {
         apiVersion: "argoproj.io/v1alpha1",
         kind: "Workflow",
         metadata: {
@@ -170,29 +170,16 @@
                 }],
               ],
             },
-            {
-              name: "checkout",
-              container: {
-                command: [
-                  "/usr/local/bin/checkout.sh",
-                ],
-                args: [
-                  srcRootDir,
-                ],
-                env: prow_env + [{
-                  name: "EXTRA_REPOS",
-                  value: "kubeflow/tf-operator@HEAD;kubeflow/testing@HEAD",
-                }],
-                image: image,
-                volumeMounts: [
-                  {
-                    name: dataVolume,
-                    mountPath: mountPath,
-                  },
-                ],
-              },
-            },  // checkout
-            $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("setup", [
+            buildTemplate(
+              "checkout",
+              ["/usr/local/bin/checkout.sh", srcRootDir],
+              [{
+                name: "EXTRA_REPOS",
+                value: "kubeflow/tf-operator@HEAD;kubeflow/testing@HEAD",
+              }],
+              [], // no sidecars
+            ),
+            buildTemplate("setup", [
               "python",
               "-m",
               "testing.test_deploy",
@@ -204,7 +191,7 @@
               "--artifacts_dir=" + artifactsDir,
               "setup",
             ]),  // setup
-            $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("teardown", [
+            buildTemplate("teardown", [
               "python",
               "-m",
               "testing.test_deploy",
@@ -216,7 +203,7 @@
               "--artifacts_dir=" + artifactsDir,
               "teardown",
             ]),  // teardown
-            $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("create-pr-symlink", [
+            buildTemplate("create-pr-symlink", [
               "python",
               "-m",
               "kubeflow.testing.prow_artifacts",
@@ -224,7 +211,7 @@
               "create_pr_symlink",
               "--bucket=" + bucket,
             ]),  // create-pr-symlink
-            $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("copy-artifacts", [
+            buildTemplate("copy-artifacts", [
               "python",
               "-m",
               "kubeflow.testing.prow_artifacts",
@@ -232,7 +219,7 @@
               "copy_artifacts",
               "--bucket=" + bucket,
             ]),  // copy-artifacts
-            $.parts(namespace, name).e2e(prow_env, bucket).buildTemplate("tfjob-test", [
+            buildTemplate("tfjob-test", [
               "python",
               "-m",
               "py.test_runner",
