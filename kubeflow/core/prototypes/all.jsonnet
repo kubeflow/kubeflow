@@ -10,7 +10,6 @@
 // @optionalParam tfJobImage string gcr.io/kubeflow-images-staging/tf_operator:v20180226-403 The image for the TfJob controller.
 // @optionalParam tfDefaultImage string null The default image to use for TensorFlow.
 // @optionalParam tfJobUiServiceType string ClusterIP The service type for the UI.
-// @optionalParam tfDefaultTensorboardImage string gcr.io/google-samples/appengine-tensorboard:latest The service type for the UI.
 // @optionalParam jupyterHubServiceType string ClusterIP The service type for Jupyterhub.
 // @optionalParam jupyterHubImage string gcr.io/kubeflow/jupyterhub-k8s:1.0.1 The image to use for JupyterHub.
 // @optionalParam jupyterHubAuthenticator string null The authenticator to use

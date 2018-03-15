@@ -148,9 +148,6 @@
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
-        labels: {
-          service: "ambassador-admin",
-        },
         name: "ambassador",
         namespace: namespace,
       },
