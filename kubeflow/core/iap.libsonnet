@@ -9,9 +9,9 @@
     // We do this because updating the ingress causes the backend service to change which disables IAP
     // and changes the backend service which is used for the JWT audience.
     // So we want to avoid updating the ingress when updating the Envoy pods or other backend services.
-    ingressParts(secretName, ipName):: std.prune(k.core.v1.list.new([
+    ingressParts(secretName, ipName, hostname):: std.prune(k.core.v1.list.new([
       $.parts(namespace).service,
-      $.parts(namespace).ingress(secretName, ipName),
+      $.parts(namespace).ingress(secretName, ipName, hostname),
     ])),
 
     envoy(envoyImage, audiences, disableJwt):: std.prune(k.core.v1.list.new([
@@ -486,7 +486,7 @@
       },
     },
 
-    ingress(secretName, ipName):: {
+    ingress(secretName, ipName, hostname):: {
       apiVersion: "extensions/v1beta1",
       kind: "Ingress",
       metadata: {
@@ -499,6 +499,7 @@
       spec: {
         rules: [
           {
+            [if hostname != "null" then "host"]: hostname,
             http: {
               paths: [
                 {

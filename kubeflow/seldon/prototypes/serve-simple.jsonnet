@@ -12,7 +12,7 @@
 // because ksonnet doesn't support inheriting it from the environment yet.
 
 local k = import "k.libsonnet";
-local serve = import "kubeflow/seldon/serve.libsonnet";
+local serve = import "kubeflow/seldon/serve-simple.libsonnet";
 
 local name = import "param://name";
 local image = import "param://image";
