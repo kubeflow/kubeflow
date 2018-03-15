@@ -2,11 +2,9 @@
   // TODO(https://github.com/ksonnet/ksonnet/issues/222): Taking namespace as an argument is a work around for the fact that ksonnet
   // doesn't support automatically piping in the namespace from the environment to prototypes.
   //
-  // TODO(jlewi): We should refactor this to have multiple prototypes; having 1 without any extra volumes and than
-  // a with volumes option.
 
   all(params):: [
-    $.parts(params.namespace).jupyterHubConfigMap(params.kubeSpawner),
+    $.parts(params.namespace).jupyterHubConfigMap(params.jupyterHubAuthenticator, params.disks),
     $.parts(params.namespace).jupyterHubService,
     $.parts(params.namespace).jupyterHubLoadBalancer(params.jupyterHubServiceType),
     $.parts(params.namespace).jupyterHub(params.jupyterHubImage),
@@ -16,6 +14,16 @@
   ],
 
   parts(namespace):: {
+    jupyterHubConfigMap(jupyterHubAuthenticator, disks): {
+      local util = import "kubeflow/core/util.libsonnet",
+      local diskNames = util.toArray(disks),
+      local kubeSpawner = $.parts(namespace).kubeSpawner(jupyterHubAuthenticator, diskNames),
+      local cm = if std.length(diskNames) == 0 then
+        $.parts(namespace).jupyterHubConfigMapWithoutVolumes
+      else $.parts(namespace).jupyterHubConfigMapWithVolumes(diskNames),
+      result:: cm(kubeSpawner),
+    }.result,
+
     kubeSpawner(authenticator, volumeClaims=[]): {
       // TODO(jlewi): We should make the default Docker image configurable
       // TODO(jlewi): We should make whether we use PVC configurable.
@@ -78,7 +86,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
       },
     },
 
-    jupyterHubConfigMap(spawner): baseJupyterHubConfigMap {
+    jupyterHubConfigMapWithoutVolumes(spawner): baseJupyterHubConfigMap {
       data: {
         "jupyterhub_config.py": spawner,
       },

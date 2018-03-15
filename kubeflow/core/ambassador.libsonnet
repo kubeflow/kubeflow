@@ -1,18 +1,17 @@
 {
+  all(params):: [
+    $.parts(params.namespace).service(params.tfAmbassadorServiceType),
+    $.parts(params.namespace).adminService,
+    $.parts(params.namespace).role,
+    $.parts(params.namespace).serviceAccount,
+    $.parts(params.namespace).roleBinding,
+    $.parts(params.namespace).deploy,
+    $.parts(params.namespace).k8sDashboard,
+  ],
+
   parts(namespace):: {
-
-    all:: [
-      $.parts(namespace).service,
-      $.parts(namespace).adminService,
-      $.parts(namespace).role,
-      $.parts(namespace).serviceAccount,
-      $.parts(namespace).roleBinding,
-      $.parts(namespace).deploy,
-      $.parts(namespace).k8sDashboard,
-    ],
-
     local ambassadorImage = "quay.io/datawire/ambassador:0.26.0",
-    service:: {
+    service(serviceType): {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
@@ -33,7 +32,7 @@
         selector: {
           service: "ambassador",
         },
-        type: "ClusterIP",
+        type: serviceType,
       },
     },  // service
 
@@ -149,6 +148,9 @@
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
+        labels: {
+          service: "ambassador-admin",
+        },
         name: "ambassador",
         namespace: namespace,
       },
@@ -159,6 +161,7 @@
             labels: {
               service: "ambassador",
             },
+            namespace: namespace,
           },
           spec: {
             containers: [
