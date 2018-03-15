@@ -4,15 +4,18 @@
 // @shortDescription A prototype to serve a single seldon model
 // @param name string Name to give this deployment
 // @param image string Docker image which contains this model
+// @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
 // @optionalParam replicas number 1 Number of replicas
 // @optionalParam endpoint string REST The endpoint type: REST or GRPC
 
 local k = import "k.libsonnet";
 local serve = import "kubeflow/seldon/serve-simple.libsonnet";
 
-// updatedParams includes the namespace from env by default.
-// We can override namespace in params if needed
-local updatedParams = env + params;
+// updatedParams uses the environment namespace if
+// the namespace parameter is not explicitly set
+local updatedParams = params {
+  namespace: if params.namespace == "null" then env.namespace else params.namespace
+};
 
 local name = import "param://name";
 local image = import "param://image";

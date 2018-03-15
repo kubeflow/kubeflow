@@ -3,6 +3,7 @@
 // @description A TensorFlow job (could be training or evaluation).
 // @shortDescription A TensorFlow job.
 // @param name string Name to give to each of the components
+// @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
 // @optionalParam args string null Comma separated list of arguments to pass to the job
 // @optionalParam image string null The docker image to use for the job.
 // @optionalParam image_gpu string null The docker image to use when using GPUs.
@@ -15,9 +16,11 @@
 
 local k = import "k.libsonnet";
 local tfJob = import "kubeflow/tf-job/tf-job.libsonnet";
-// updatedParams includes the namespace from env by default.
-// We can override namespace in params if needed
-local updatedParams = env + params;
+// updatedParams uses the environment namespace if
+// the namespace parameter is not explicitly set
+local updatedParams = params {
+  namespace: if params.namespace == "null" then env.namespace else params.namespace
+};
 
 local name = import "param://name";
 local namespace = updatedParams.namespace;

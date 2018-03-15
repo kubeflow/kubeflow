@@ -3,6 +3,7 @@
 // @description Seldon Core components. Operator and API FrontEnd.
 // @shortDescription Seldon Core components.
 // @param name string seldon Name to give seldon
+// @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
 // @optionalParam withRbac string true Whether to include RBAC setup
 // @optionalParam withApife string false Whether to include builtin API Oauth fornt end server for ingress
 // @optionalParam apifeImage string seldonio/apife:0.1.5 Default image for API Front End
@@ -15,9 +16,11 @@
 local k = import "k.libsonnet";
 local core = import "kubeflow/seldon/core.libsonnet";
 
-// updatedParams includes the namespace from env by default.
-// We can override namespace in params if needed
-local updatedParams = env + params;
+// updatedParams uses the environment namespace if
+// the namespace parameter is not explicitly set
+local updatedParams = params {
+  namespace: if params.namespace == "null" then env.namespace else params.namespace
+};
 
 local name = import "param://name";
 local namespace = updatedParams.namespace;

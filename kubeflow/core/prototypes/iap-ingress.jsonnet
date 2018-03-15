@@ -3,6 +3,7 @@
 // @description Provides ingress prototypes for setting up IAP on GKE.
 // @shortDescription Ingress for IAP on GKE.
 // @param name string Name for the component
+// @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
 // @param secretName string The name of the secret containing the SSL certificates.
 // @param ipName string The name of the global ip address to use.
 // @optionalParam hostname string null The hostname associated with this ingress. Eg: mykubeflow.example.com
@@ -10,9 +11,11 @@
 local k = import "k.libsonnet";
 local iap = import "kubeflow/core/iap.libsonnet";
 
-// updatedParams includes the namespace from env by default.
-// We can override namespace in params if needed
-local updatedParams = env + params;
+// updatedParams uses the environment namespace if
+// the namespace parameter is not explicitly set
+local updatedParams = params {
+  namespace: if params.namespace == "null" then env.namespace else params.namespace
+};
 
 local name = import "param://name";
 local namespace = updatedParams.namespace;

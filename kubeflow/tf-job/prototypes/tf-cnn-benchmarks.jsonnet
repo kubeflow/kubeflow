@@ -3,6 +3,7 @@
 // @description A TensorFlow CNN Benchmarking job
 // @shortDescription Run the TensorFlow CNN benchmarking job.
 // @param name string Name for the job.
+// @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
 // @optionalParam batch_size number 32 The batch size
 // @optionalParam model string resnet50 Which model to use
 // @optionalParam num_gpus number 0 The number of GPUs to attach to workers.
@@ -20,9 +21,11 @@ local deployment = k.extensions.v1beta1.deployment;
 local container = deployment.mixin.spec.template.spec.containersType;
 local podTemplate = k.extensions.v1beta1.podTemplate;
 
-// updatedParams includes the namespace from env by default.
-// We can override namespace in params if needed
-local updatedParams = env + params;
+// updatedParams uses the environment namespace if
+// the namespace parameter is not explicitly set
+local updatedParams = params {
+  namespace: if params.namespace == "null" then env.namespace else params.namespace
+};
 
 local tfJob = import "kubeflow/tf-job/tf-job.libsonnet";
 
