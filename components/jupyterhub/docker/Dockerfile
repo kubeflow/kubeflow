@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM python:3.6
+FROM centos:centos7
 
-RUN apt-get update && \
-    apt-get install -y npm nodejs-legacy
+RUN yum update -y && \
+    yum install -y epel-release && \
+    yum install -y python36 npm nodejs010 python34-pip && \
+    yum clean all -y
 
 RUN npm install -g configurable-http-proxy && \
     pip3 install --no-cache-dir \
