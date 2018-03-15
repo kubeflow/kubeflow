@@ -24,7 +24,7 @@
   //
   // TODO(jlewi): Use camelCase consistently.
   defaultParams:: {
-    bucket: "mlkube-testing_temp",
+    bucket: "kubeflow-ci_temp",
     commit: "master",
     // Name of the secret containing GCP credentials.
     gcpCredentialsSecretName: "kubeflow-testing-credentials",
@@ -38,7 +38,7 @@
     // The default image to use for the steps in the Argo workflow.
     testing_image: "gcr.io/mlkube-testing/kubeflow-testing",
     tf_testing_image: "gcr.io/kubeflow-ci/tf-test-worker:1.0",
-    project: "mlkube-testing",
+    project: "kubeflow-ci",
     cluster: "kubeflow-testing",
     zone: "us-east1-d",
     build_image: false,
@@ -283,28 +283,15 @@
                 }],
               ],
             },
-            {
-              name: "checkout",
-              container: {
-                command: [
-                  "/usr/local/bin/checkout.sh",
-                ],
-                args: [
-                  srcRootDir,
-                ],
-                env: prow_env + [{
-                  name: "EXTRA_REPOS",
-                  value: "kubeflow/testing@HEAD",
-                }],
-                image: testing_image,
-                volumeMounts: [
-                  {
-                    name: dataVolume,
-                    mountPath: mountPath,
-                  },
-                ],
-              },
-            },  // checkout
+            buildTemplate(
+              "checkout",
+              ["/usr/local/bin/checkout.sh", srcRootDir],
+              [{
+                name: "EXTRA_REPOS",
+                value: "kubeflow/testing@HEAD",
+              }],
+              [], // no sidecars
+            ),
 
             buildImageTemplate("build-tf-serving-cpu", "Dockerfile.cpu", cpuImage),
 
