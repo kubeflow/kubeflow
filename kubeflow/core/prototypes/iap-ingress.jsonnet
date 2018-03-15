@@ -5,6 +5,7 @@
 // @param name string Name for the component
 // @param secretName string The name of the secret containing the SSL certificates.
 // @param ipName string The name of the global ip address to use.
+// @optionalParam hostname string null The hostname associated with this ingress. Eg: mykubeflow.example.com
 
 local k = import "k.libsonnet";
 local iap = import "kubeflow/core/iap.libsonnet";
@@ -17,5 +18,6 @@ local name = import "param://name";
 local namespace = updatedParams.namespace;
 local secretName = import "param://secretName";
 local ipName = import "param://ipName";
+local hostname = import "param://hostname";
 
-iap.parts(namespace).ingressParts(secretName, ipName)
+iap.parts(namespace).ingressParts(secretName, ipName, hostname)
