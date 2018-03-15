@@ -1,13 +1,24 @@
 # REST API http proxy to tensorflow/serving
 ----
 
+## Why?
+
+TF serving only supports gRPC, which means you need to have a client to be able to query it. 
+
 This component provides web server that proxy http rest api to Tensorflow/Serving grpc.
+
+## How?
 
 The REST Api Spec is similar to [Google Cloud Machine Learning Engine Prediction API](https://cloud.google.com/ml-engine/docs/online-predict).
 
-# API(rpc proxy)
+## Requirements.
 
-## Predict
+To enable query from http-proxy, we have some requirements for saved model exported. Only two method signature supported, predict and classify. Method signature with predict is used when the input is raw tensor. While classify signature is required if the input is a tf.example.
+
+To pass any binary data through json, we support base64 encoding and decoding, you can simple change your data into a json object with key `'b64'` and value with base64 encode binary.
+
+
+### Predict
 
 - **URL**: `POST /model/${model_name}:predict`
 or
@@ -48,7 +59,7 @@ In the [example above](#Predict), that corresponds to a [tensorflow savedModel](
 While the input json object key is fixed with `"instances"` and output json key is fixed with `"predictions"`.
 
 
-## Classify
+### Classify
 
 - **URL**: `POST /model/${model_name}:classify`
 or
@@ -81,8 +92,8 @@ or
 
 - **Input and Output Schema**:
 
-In the [example above](#Classify), that corresponds to a [tensorflow savedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md) with method signature `tensorflow.saved_model.signature_constants.CLASSIFY_METHOD_NAME`, input signature `"tf_model_input"` and `"image"` and output signature `"tf_model_output"`.
-While the input json object key is fixed with `"instances"` and output json key is fixed with `"predictions"`.
+In the [example above](#Classify), that corresponds to a [tensorflow savedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md) with method signature `tensorflow.saved_model.signature_constants.CLASSIFY_METHOD_NAME`, input params with signature/key `"tf_model_input"` and `"image"` and output params with signature/key `"tf_model_output"`.
+While the input json object key is fixed with `"instances"` and output json key is fixed with `"result"`.
 
 
 ## To Do
