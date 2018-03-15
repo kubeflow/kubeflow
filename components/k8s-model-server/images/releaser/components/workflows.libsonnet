@@ -33,10 +33,10 @@
     // The name of the NFS volume claim to use for test files.
     nfsVolumeClaim: "nfs-external",
     prow_env: "REPO_OWNER=kubeflow,REPO_NAME=kubeflow,PULL_BASE_SHA=master",
-    registry: "gcr.io/kubeflow-ci",
+    registry: "gcr.io/mlkube-testing",
     versionTag: "latest",
     // The default image to use for the steps in the Argo workflow.
-    testing_image: "gcr.io/kubeflow-ci/kubeflow-testing:latest",
+    testing_image: "gcr.io/mlkube-testing/kubeflow-testing",
     tf_testing_image: "gcr.io/kubeflow-ci/tf-test-worker:1.0",
     project: "kubeflow-ci",
     cluster: "kubeflow-testing",
