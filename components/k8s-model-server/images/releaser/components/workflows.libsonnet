@@ -36,7 +36,7 @@
     registry: "gcr.io/mlkube-testing",
     versionTag: "latest",
     // The default image to use for the steps in the Argo workflow.
-    testing_image: "gcr.io/mlkube-testing/kubeflow-testing",
+    testing_image: "gcr.io/kubeflow-ci/test-worker",
     tf_testing_image: "gcr.io/kubeflow-ci/tf-test-worker:1.0",
     project: "kubeflow-ci",
     cluster: "kubeflow-testing",
