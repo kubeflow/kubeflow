@@ -6,6 +6,7 @@
 // @optionalParam namespace string default Namespace
 // @param secretName string The name of the secret containing the SSL certificates.
 // @param ipName string The name of the global ip address to use.
+// @optionalParam hostname string null The hostname associated with this ingress. Eg: mykubeflow.example.com
 
 // TODO(https://github.com/ksonnet/ksonnet/issues/222): We have to add namespace as an explicit parameter
 // because ksonnet doesn't support inheriting it from the environment yet.
@@ -17,5 +18,6 @@ local name = import "param://name";
 local namespace = import "param://namespace";
 local secretName = import "param://secretName";
 local ipName = import "param://ipName";
+local hostname = import "param://hostname";
 
-iap.parts(namespace).ingressParts(secretName, ipName)
+iap.parts(namespace).ingressParts(secretName, ipName, hostname)
