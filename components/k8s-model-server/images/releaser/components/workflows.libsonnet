@@ -388,8 +388,8 @@
               }],
             ),  // deploy-tf-serving-gpu
 
-            buildTestTfImageTemplate("test-tf-serving", "inception");
-            buildTestTfImageTemplate("test-tf-serving-gpu", "inceptionGpu");
+            buildTestTfImageTemplate("test-tf-serving", "inception"),
+            buildTestTfImageTemplate("test-tf-serving-gpu", "inceptionGpu"),
 
             buildTemplate("create-pr-symlink", [
               "python",
