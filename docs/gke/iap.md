@@ -56,7 +56,7 @@ The instructions below reference the following environment variables which you w
   * **FQDN** The fully qualified domain name to use for your Kubeflow deployment.
   * **IP_NAME** The name of the GCP static IP that you created above and will be associated with **DOMAIN**.
   * **NAMESPACE** The namespace where Kubeflow is deployed.
-  * **ACCOUNT** The email address for the ACME registered account, typically the value of `gcloud config get-value account`.
+  * **ACCOUNT** The email address for your ACME account where certificate expiration notifications will be sent.
 
 
 ```
@@ -72,8 +72,8 @@ the [enable_iap.sh](https://github.com/kubeflow/kubeflow/tree/master/docs/gke/en
 
 
 ```
-CLIENT_ID=<Client id for OAuth client created in the previous step>
-CLIENT_SECRET=<Client secret for OAuth client created in the previous step>
+export CLIENT_ID=<Client id for OAuth client created in the previous step>
+export CLIENT_SECRET=<Client secret for OAuth client created in the previous step>
 SERVICE=envoy
 ./enable_iap.sh ${PROJECT} ${NAMESPACE} ${SERVICE}
 ```

@@ -1,8 +1,11 @@
 {
   parts(namespace):: {
     local k = import "k.libsonnet",
+    local certManagerImage = "quay.io/jetstack/cert-manager-controller:v0.2.3",
+    local certManagerIngressShimImage = "quay.io/jetstack/cert-manager-ingress-shim:v0.2.3",
 
-    certManagerParts(acmeEmail, acmeUrl):: std.prune(k.core.v1.list.new([
+    // Note, not using std.prune to preserve required empty http01 map in the Issuer spec.
+    certManagerParts(acmeEmail, acmeUrl):: k.core.v1.list.new([
       $.parts(namespace).certificateCRD,
       $.parts(namespace).clusterIssuerCRD,
       $.parts(namespace).issuerCRD,
@@ -11,7 +14,7 @@
       $.parts(namespace).clusterRoleBinding,
       $.parts(namespace).deploy,
       $.parts(namespace).issuerLEProd(acmeEmail, acmeUrl),
-    ])),
+    ]),
 
     certificateCRD:: {
       apiVersion: "apiextensions.k8s.io/v1beta1",
@@ -142,12 +145,12 @@
             containers: [
               {
                 name: "cert-manager",
-                image: "quay.io/jetstack/cert-manager-controller:v0.2.3",
+                image: certManagerImage,
                 imagePullPolicy: "IfNotPresent",
               },
               {
                 name: "ingress-shim",
-                image: "quay.io/jetstack/cert-manager-ingress-shim:v0.2.3",
+                image: certManagerIngressShimImage,
                 imagePullPolicy: "IfNotPresent",
               },
             ],
@@ -171,8 +174,6 @@
             name: "letsencrypt-prod-secret",
           },
           http01: {
-            // Dummy field used to jsonnet does not remove empty 'http01: {}' entry.
-            method: "GET",
           },
         },
       },
