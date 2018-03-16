@@ -97,7 +97,7 @@
           modelServerImage: cpuImage,
         } else {};
       local deployGpuParams = {
-        name: "inceptionGpu",
+        name: "inception-gpu",
         namespace: stepsNamespace,
         modelPath: "gs://kubeflow-models/inception",
         numGpus: 1,
@@ -389,7 +389,7 @@
             ),  // deploy-tf-serving-gpu
 
             buildTestTfImageTemplate("test-tf-serving", "inception"),
-            buildTestTfImageTemplate("test-tf-serving-gpu", "inceptionGpu"),
+            buildTestTfImageTemplate("test-tf-serving-gpu", "inception-gpu"),
 
             buildTemplate("create-pr-symlink", [
               "python",
