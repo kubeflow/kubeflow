@@ -162,7 +162,7 @@ gcloud projects add-iam-policy-binding $PROJECT \
   --member user:${USER_EMAIL}
 ```
 
-### Self signed certificates and browser security warnings
+### Obtaining a valid certificate from LetsEncrypt
 
 Since you are using a self signed certificate chrome and other browsers will give you a warning like
 
@@ -170,10 +170,66 @@ Since you are using a self signed certificate chrome and other browsers will giv
 Attackers might be trying to steal your information from ${ENDPOINT}(for example, passwords, messages, or credit cards). Learn more
 NET::ERR_CERT_AUTHORITY_INVALID
 ```
-  * You will need to ignore these warnings
-  * To avoid these warnings you will need to use a certificate signed by a signing authority
-  * [Lets Encrypt](https://letsencrypt.org/) and other sites provide free signed certificates.
 
+We can use [cert-manager](https://github.com/jetstack/cert-manager) to automatically obtain and refresh LetsEncrypt certificates.
+
+`cert-manager` uses `helm` for installation. Ensure that `helm` is installed on your cluster by running `helm version`. You should see both client version and server version. If not, make sure you install [helm](https://github.com/kubernetes/helm).
+
+* Before starting, ensure that `${FQDN}` points to the IP of the cluster (the one created using gcloud).
+* Install cert-manager on your cluster by running the following. For detailed instructions refer to the offcial instructions [here](https://github.com/jetstack/cert-manager/blob/master/docs/user-guides/deploying.md).
+
+```bash
+helm install \
+    --name cert-manager \
+    --namespace kube-system \
+    stable/cert-manager
+```
+
+* To validate your installation, run `kubectl get crd`. You should see `clusterissuers.certmanager.k8s.io` and `certificates.certmanager.k8s.io` in the list.
+
+* Create a `clusterissuer` object. Replace with your email address and save the following file to `cluster-issuer.yaml` and run `kubectl apply -f cluster-issuer.yaml`
+
+```
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    server: https://acme-v01.api.letsencrypt.org/directory
+    # Replace with your email address - this is used for notifications of certificate expiry
+    email: email@example.com
+    privateKeySecretRef:
+      name: letsencrypt-prod-key
+    # Enable the HTTP-01 challenge provider
+    http01: {}
+```
+
+* Create a `certificate` object in `${NAMESPACE}`. The following config assumes `FQDN=kubeflow.example.com`, replace values appropriately in the file. Save this file to `kubeflow-example-com-cert.yaml` and run `kubectl apply -f kubeflow-example-com-cert.yaml`
+
+```
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Certificate
+metadata:
+  name: kubeflow-example-com
+  namespace: ${NAMESPACE}
+spec:
+  secretName: ${SECRET_NAME}
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  commonName: kubeflow.example.com
+  dnsNames:
+  - kubeflow.example.com
+  acme:
+    config:
+    - http01:
+        ingress: envoy-ingress
+      domains:
+      - kubeflow.example.com
+```
+
+* That's it. cert-manager should automatically obtain a valid cert from letsencrypt and store it in ${SECRET_NAME}. The ingress resource automatically picks up the updated certs in ${SECRET_NAME}. It can take upto 10 minutes for this process to happen. You can check the progress by running `kubectl describe certificate/kubeflow-example-com -n${NAMESPACE}`
 
 ## Troubleshooting
 
