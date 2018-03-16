@@ -22,7 +22,6 @@
     }.result,
 
     kubeSpawner(authenticator, volumeClaims=[]): {
-      // TODO(jlewi): We should make the default Docker image configurable
       // TODO(jlewi): We should make whether we use PVC configurable.
       local baseKubeConfigSpawner = importstr "jupyterhub_spawner.py",
 
