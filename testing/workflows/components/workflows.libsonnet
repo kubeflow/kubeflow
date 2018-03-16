@@ -36,7 +36,7 @@
       local srcRootDir = testDir + "/src";
       // The directory containing the kubeflow/kubeflow repo
       local srcDir = srcRootDir + "/kubeflow/kubeflow";
-      local image = "gcr.io/mlkube-testing/test-worker:latest";
+      local image = "gcr.io/kubeflow-ci/test-worker:latest";
       // The name of the NFS volume claim to use for test files.
       local nfsVolumeClaim = "nfs-external";
       // The name to use for the volume to use to contain test data.
