@@ -171,7 +171,7 @@ Attackers might be trying to steal your information from ${ENDPOINT}(for example
 NET::ERR_CERT_AUTHORITY_INVALID
 ```
 
-We can use [cert-manager](https://github.com/jetstack/cert-manager) to automatically obtain and refresh LetsEncrypt certificates.
+We can use [cert-manager](https://github.com/jetstack/cert-manager) to automatically obtain and refresh [Let's Encrypt](https://letsencrypt.org/) certificates. Let's Encrypt is a free, automated, and open Certificate Authority.
 
 `cert-manager` uses `helm` for installation. Ensure that `helm` is installed on your cluster by running `helm version`. You should see both client version and server version. If not, make sure you install [helm](https://github.com/kubernetes/helm).
 
