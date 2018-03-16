@@ -96,9 +96,16 @@
         {
           modelServerImage: cpuImage,
         } else {};
+      local deployGpuParams = {
+        name: "inceptionGpu",
+        namespace: stepsNamespace,
+        modelPath: "gs://kubeflow-models/inception",
+        numGpus: 1,
+      }
 
       local toPair = function(k, v) k + "=" + v;
       local deployParamsList = std.join(",", [toPair(k, deployParams[k]) for k in std.objectFields(deployParams)]);
+      local deployGpuParamsList = std.join(",", [toPair(k, deployGpuParams[k]) for k in std.objectFields(deployGpuParams)]);
 
       // Build an Argo template to execute a particular command.
       // step_name: Name for the template
@@ -174,6 +181,40 @@
             mirrorVolumeMounts: true,
           }],
         );  // buildImageTemplate
+      local buildTestTfImageTemplate(stepName, serviceName) = {
+        name: stepName,
+        container: {
+          command: [
+            "python",
+            "-m",
+            "testing.test_tf_serving",
+            "--namespace=" + stepsNamespace,
+            "--artifacts_dir=" + artifactsDir,
+            "--service_name=" + serviceName,
+            "--image_path=" + srcDir + "/components/k8s-model-server/inception-client/images/sleeping-pepper.jpg",
+            "--result_path=" + srcDir + "/components/k8s-model-server/images/test-worker/result.txt",
+          ],
+          env: prow_env + [
+            {
+              name: "EXTRA_REPOS",
+              value: "tensorflow/k8s@HEAD;kubeflow/testing@HEAD",
+            },
+            {
+              name: "PYTHONPATH",
+              value: kubeflowPy + ":" + kubeflowTestingPy,
+            },
+          ],
+          image: tf_testing_image,
+          volumeMounts: [
+            {
+              name: dataVolume,
+              mountPath: mountPath,
+            },
+          ],
+          workingDir: srcDir + "/components/k8s-model-server/inception-client",
+        },
+      };  // buildTestTfImageTemplate
+
       local e2e_tasks_base = [
         {
           name: "checkout",
@@ -210,7 +251,7 @@
           dependencies: ["checkout"],
         },
       ];
-      local deploy_tf_serving_command = [
+      local deploy_tf_serving_command_base = [
         "python",
         "-m",
         "testing.test_deploy",
@@ -224,7 +265,12 @@
         "--test_dir=" + testDir,
         "--artifacts_dir=" + artifactsDir,
         "deploy_model",
+      ]
+      local deploy_tf_serving_command = deploy_tf_serving_command_base + [
         "--params=" + deployParamsList,
+      ];
+      local deploy_tf_serving_gpu_command = deploy_tf_serving_command_base + [
+        "--params=" + deployGpuParamsList,
       ];
 
       {
@@ -313,40 +359,28 @@
                 mirrorVolumeMounts: true,
               }],
             ),  // deploy-tf-serving
+            buildTemplate(
+              "deploy-tf-serving-gpu",
+              deploy_tf_serving_gpu_command,
+              [
+                {
+                  name: "DOCKER_HOST",
+                  value: "127.0.0.1",
+                },
+              ],
+              [{
+                name: "dind",
+                image: "docker:17.10-dind",
+                securityContext: {
+                  privileged: true,
+                },
+                mirrorVolumeMounts: true,
+              }],
+            ),  // deploy-tf-serving-gpu
 
-            {
-              name: "test-tf-serving",
-              container: {
-                command: [
-                  "python",
-                  "-m",
-                  "testing.test_tf_serving",
-                  "--namespace=" + stepsNamespace,
-                  "--artifacts_dir=" + artifactsDir,
-                  "--service_name=inception",
-                  "--image_path=" + srcDir + "/components/k8s-model-server/inception-client/images/sleeping-pepper.jpg",
-                  "--result_path=" + srcDir + "/components/k8s-model-server/images/test-worker/result.txt",
-                ],
-                env: prow_env + [
-                  {
-                    name: "EXTRA_REPOS",
-                    value: "tensorflow/k8s@HEAD;kubeflow/testing@HEAD",
-                  },
-                  {
-                    name: "PYTHONPATH",
-                    value: kubeflowPy + ":" + kubeflowTestingPy,
-                  },
-                ],
-                image: tf_testing_image,
-                volumeMounts: [
-                  {
-                    name: dataVolume,
-                    mountPath: mountPath,
-                  },
-                ],
-                workingDir: srcDir + "/components/k8s-model-server/inception-client",
-              },
-            },  // test-tf-serving
+            buildTestTfImageTemplate("test-tf-serving", "inception");
+            buildTestTfImageTemplate("test-tf-serving-gpu", "inceptionGpu");
+
             buildTemplate("create-pr-symlink", [
               "python",
               "-m",
