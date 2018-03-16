@@ -232,6 +232,16 @@
           template: "test-tf-serving",
           dependencies: ["deploy-tf-serving"],
         },
+        {
+          name: "deploy-tf-servin-gpu",
+          template: "deploy-tf-serving-gpu",
+          dependencies: ["checkout"],
+        },
+        {
+          name: "test-tf-serving-gpu",
+          template: "test-tf-serving-gpu",
+          dependencies: ["deploy-tf-serving-gpu"],
+        },
       ];
       local e2e_tasks = e2e_tasks_base + if build_image then [
         {
@@ -265,7 +275,7 @@
         "--test_dir=" + testDir,
         "--artifacts_dir=" + artifactsDir,
         "deploy_model",
-      ]
+      ];
       local deploy_tf_serving_command = deploy_tf_serving_command_base + [
         "--params=" + deployParamsList,
       ];
