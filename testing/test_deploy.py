@@ -114,7 +114,7 @@ def setup_kubeflow_ks_app(args, api_client):
     logging.warn("GITHUB_TOKEN not set; you will probably hit Github API "
                  "limits.")
   # Initialize a ksonnet app.
-  app_name = "kubeflow-test"
+  app_name = "kubeflow-test-" + uuid.uuid4().hex[0:4]
   util.run(["ks", "init", app_name,], cwd=args.test_dir)
 
   app_dir = os.path.join(args.test_dir, app_name)
