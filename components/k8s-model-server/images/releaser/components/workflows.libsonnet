@@ -101,7 +101,7 @@
         namespace: stepsNamespace,
         modelPath: "gs://kubeflow-models/inception",
         numGpus: 1,
-      }
+      };
 
       local toPair = function(k, v) k + "=" + v;
       local deployParamsList = std.join(",", [toPair(k, deployParams[k]) for k in std.objectFields(deployParams)]);
