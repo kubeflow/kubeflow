@@ -8,7 +8,7 @@
 
     all:: jupyter.all(params)
           + tfjob.all(params)
-          + ambassador.all(params) 
+          + ambassador.all(params)
           + nfs.all(params)
           + spartakus.all(params),
   },
