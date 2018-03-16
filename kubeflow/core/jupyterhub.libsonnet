@@ -18,10 +18,9 @@
       local util = import "kubeflow/core/util.libsonnet",
       local diskNames = util.toArray(disks),
       local kubeSpawner = $.parts(namespace).kubeSpawner(jupyterHubAuthenticator, diskNames),
-      local cm = if std.length(diskNames) == 0 then
-        $.parts(namespace).jupyterHubConfigMapWithoutVolumes
-      else $.parts(namespace).jupyterHubConfigMapWithVolumes(diskNames),
-      result:: cm(kubeSpawner),
+      local cmd = if std.length(diskNames) != 0 then
+        $.parts(namespace).jupyterHubConfigMapWithVolumes(diskNames),
+      result:: $.parts(namespace).jupyterHubConfigMapWithSpawner(kubeSpawner),
     }.result,
 
     kubeSpawner(authenticator, volumeClaims=[]): {
@@ -86,7 +85,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
       },
     },
 
-    jupyterHubConfigMapWithoutVolumes(spawner): baseJupyterHubConfigMap {
+    jupyterHubConfigMapWithSpawner(spawner): baseJupyterHubConfigMap {
       data: {
         "jupyterhub_config.py": spawner,
       },
