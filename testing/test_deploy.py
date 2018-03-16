@@ -114,7 +114,7 @@ def setup_kubeflow_ks_app(args, api_client):
     logging.warn("GITHUB_TOKEN not set; you will probably hit Github API "
                  "limits.")
   # Initialize a ksonnet app.
-  app_name = "kubeflow-test"
+  app_name = "kubeflow-test-" + uuid.uuid4().hex[0:4]
   util.run(["ks", "init", app_name,], cwd=args.test_dir)
 
   app_dir = os.path.join(args.test_dir, app_name)
@@ -189,8 +189,7 @@ def deploy_model(args):
   component = "modelServer"
   logging.info("Deploying tf-serving.")
   generate_command = [
-      "ks", "generate", "tf-serving", component,
-      "--name=inception",]
+      "ks", "generate", "tf-serving", component]
 
   util.run(generate_command, cwd=app_dir)
 
@@ -208,12 +207,12 @@ def deploy_model(args):
 
   core_api = k8s_client.CoreV1Api(api_client)
   deploy = core_api.read_namespaced_service(
-    "inception", args.namespace)
+    args.deploy_name, args.namespace)
   cluster_ip = deploy.spec.cluster_ip
 
   if not cluster_ip:
     raise ValueError("inception service wasn't assigned a cluster ip.")
-  util.wait_for_deployment(api_client, namespace, "inception")
+  util.wait_for_deployment(api_client, namespace, args.deploy_name, timeout_minutes=6)
   logging.info("Verified TF serving started.")
 
 def teardown(args):
@@ -224,7 +223,7 @@ def teardown(args):
   core_api.delete_namespace(args.namespace, {})
 
 def determine_test_name(args):
-  return args.func.__name__
+  return args.func.__name__ + "-" + args.deploy_name if args.deploy_name else args.func.__name__
 
 # TODO(jlewi): We should probably make this a generic function in
 # kubeflow.testing.`
@@ -343,6 +342,12 @@ def main():  # pylint: disable=too-many-locals
           "https://github.com/ksonnet/ksonnet/blob/master/docs"
           "/troubleshooting.md. Can also be set using environment variable "
           "GITHUB_TOKEN."))
+
+  parser.add_argument(
+    "--deploy_name",
+    default="",
+    type=str,
+    help="The name of the deployment.")
 
   subparsers = parser.add_subparsers()
 

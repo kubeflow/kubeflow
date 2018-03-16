@@ -89,7 +89,7 @@
 
       // Parameters to set on the modelServer component
       local deployParams = {
-        name: "inception",
+        name: "inception-cpu",
         namespace: stepsNamespace,
         modelPath: "gs://kubeflow-models/inception",
       } + if build_image then
@@ -97,7 +97,7 @@
           modelServerImage: cpuImage,
         } else {};
       local deployGpuParams = {
-        name: "inceptionGpu",
+        name: "inception-gpu",
         namespace: stepsNamespace,
         modelPath: "gs://kubeflow-models/inception",
         numGpus: 1,
@@ -181,7 +181,7 @@
             mirrorVolumeMounts: true,
           }],
         );  // buildImageTemplate
-      local buildTestTfImageTemplate(stepName, serviceName) = {
+      local buildTestTfImageTemplate(stepName, serviceName, resultFile) = {
         name: stepName,
         container: {
           command: [
@@ -192,7 +192,7 @@
             "--artifacts_dir=" + artifactsDir,
             "--service_name=" + serviceName,
             "--image_path=" + srcDir + "/components/k8s-model-server/inception-client/images/sleeping-pepper.jpg",
-            "--result_path=" + srcDir + "/components/k8s-model-server/images/test-worker/result.txt",
+            "--result_path=" + srcDir + resultFile,
           ],
           env: prow_env + [
             {
@@ -233,7 +233,7 @@
           dependencies: ["deploy-tf-serving"],
         },
         {
-          name: "deploy-tf-servin-gpu",
+          name: "deploy-tf-serving-gpu",
           template: "deploy-tf-serving-gpu",
           dependencies: ["checkout"],
         },
@@ -274,12 +274,15 @@
         "--namespace=" + stepsNamespace,
         "--test_dir=" + testDir,
         "--artifacts_dir=" + artifactsDir,
-        "deploy_model",
       ];
       local deploy_tf_serving_command = deploy_tf_serving_command_base + [
+        "--deploy_name=inception-cpu",
+        "deploy_model",
         "--params=" + deployParamsList,
       ];
       local deploy_tf_serving_gpu_command = deploy_tf_serving_command_base + [
+        "--deploy_name=inception-gpu",
+        "deploy_model",
         "--params=" + deployGpuParamsList,
       ];
 
@@ -388,8 +391,10 @@
               }],
             ),  // deploy-tf-serving-gpu
 
-            buildTestTfImageTemplate("test-tf-serving", "inception");
-            buildTestTfImageTemplate("test-tf-serving-gpu", "inceptionGpu");
+            buildTestTfImageTemplate("test-tf-serving", "inception-cpu",
+                "/components/k8s-model-server/images/test-worker/result.txt"),
+            buildTestTfImageTemplate("test-tf-serving-gpu", "inception-gpu",
+                "/components/k8s-model-server/images/test-worker/result-gpu.txt"),
 
             buildTemplate("create-pr-symlink", [
               "python",
