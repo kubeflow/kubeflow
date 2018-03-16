@@ -11,6 +11,8 @@ This component provides web server that proxy http rest api to Tensorflow/Servin
 
 The REST Api Spec is similar to [Google Cloud Machine Learning Engine Prediction API](https://cloud.google.com/ml-engine/docs/online-predict).
 
+During [deploying with tf/serving](https://github.com/tensorflow/serving/blob/master/tensorflow_serving/g3doc/serving_advanced.md), user need to specify a `model_name` and `model_version` for any savedModel. Both `model_name` and `model_version` are required to query http-proxy.
+
 ## Requirements.
 
 To enable query from http-proxy, we have some requirements for saved model exported. Only two method signature supported, predict and classify. Method signature with predict is used when the input is raw tensor. While classify signature is required if the input is a tf.example.
