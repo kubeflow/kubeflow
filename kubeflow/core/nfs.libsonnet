@@ -1,9 +1,16 @@
 // A ksonnet prototype/component for using NFS.
 
 {
+  // TODO(https://github.com/ksonnet/ksonnet/issues/222): Taking namespace as an argument is a work around for the fact that ksonnet
+  // doesn't support automatically piping in the namespace from the environment to prototypes.
+  //
   // Return a list of components needed if you want to mount some disks using NFS.
   // diskNames should be a list of PDs.
-  nfsComponents(namespace, name, diskNames):: {
+  all(params):: {
+    local namespace = params.namespace,
+    local name = params.name,
+    local disks = params.disks,
+
     // Create a list of the resources needed for a particular disk
     local diskToList = function(diskName) [
       $.parts(namespace, name,).diskResources(diskName).storageClass,
@@ -11,8 +18,8 @@
       $.parts(namespace, name,).diskResources(diskName).service,
       $.parts(namespace, name,).diskResources(diskName).provisioner,
     ],
-
-    local allDisks = std.flattenArrays(std.map(diskToList, diskNames)),
+    local util = import "kubeflow/core/util.libsonnet",
+    local allDisks = std.flattenArrays(std.map(diskToList, util.toArray(disks))),
 
     items::
       if std.length(allDisks) > 0 then
@@ -27,10 +34,6 @@
 
   }.items,
 
-
-  // TODO(https://github.com/ksonnet/ksonnet/issues/222): Taking namespace as an argument is a work around for the fact that ksonnet
-  // doesn't support automatically piping in the namespace from the environment to prototypes.
-  //
   // Create a provisioner with the specified name.
   // disks should be a list GCP persistent disk names; these disks should be in the
   // same zone as your cluster.
