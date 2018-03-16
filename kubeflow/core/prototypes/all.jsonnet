@@ -6,11 +6,14 @@
 // @optionalParam namespace string default Namespace
 // @optionalParam disks string null Comma separated list of Google persistent disks to attach to jupyter environments.
 // @optionalParam cloud string null String identifying the cloud to customize the deployment for.
+// @optionalParam ipName string The name of the global ip address to use.
+// @optionalParam tfAmbassadorServiceType string ClusterIP The service type for the API Gateway.
 // @optionalParam tfJobImage string gcr.io/kubeflow-images-staging/tf_operator:v20180226-403 The image for the TfJob controller.
 // @optionalParam tfDefaultImage string null The default image to use for TensorFlow.
 // @optionalParam tfJobUiServiceType string ClusterIP The service type for the UI.
 // @optionalParam jupyterHubServiceType string ClusterIP The service type for Jupyterhub.
 // @optionalParam jupyterHubImage string gcr.io/kubeflow/jupyterhub-k8s:1.0.1 The image to use for JupyterHub.
+// @optionalParam jupyterHubDebug string false If the entrypoint command is bash sleep INF
 // @optionalParam jupyterHubAuthenticator string null The authenticator to use
 // @optionalParam reportUsage string false Whether or not to report Kubeflow usage to kubeflow.org.
 // @optionalParam usageId string unknown_cluster Optional id to use when reporting usage to kubeflow.org
