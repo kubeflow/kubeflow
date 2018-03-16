@@ -233,7 +233,7 @@
           dependencies: ["deploy-tf-serving"],
         },
         {
-          name: "deploy-tf-servin-gpu",
+          name: "deploy-tf-serving-gpu",
           template: "deploy-tf-serving-gpu",
           dependencies: ["checkout"],
         },
