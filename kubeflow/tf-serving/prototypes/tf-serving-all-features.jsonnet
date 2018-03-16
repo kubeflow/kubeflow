@@ -3,26 +3,21 @@
 // @description TensorFlow serving
 // @shortDescription A TensorFlow serving deployment
 // @param name string Name to give to each of the components
-// @optionalParam namespace string default Namespace
-// @param model_path string Path to the model. This can be a GCS path.
-// @optionalParam model_server_image string gcr.io/kubeflow-images-staging/tf-model-server:v20180227-master Container for TF model server
-// @optionalParam http_proxy_image string gcr.io/kubeflow/http-proxy:1.0 Container for http_proxy of TF model server
-// @optionalParam service_type string ClusterIP The service type for TFServing deployment.
 
 // TODO(https://github.com/ksonnet/ksonnet/issues/222): We have to add namespace as an explicit parameter
 // because ksonnet doesn't support inheriting it from the environment yet.
 
 local k = import "k.libsonnet";
-local tfServing = import "kubeflow/tf-serving/tf-serving.libsonnet";
 
+// ksonnet appears to require name be a parameter of the prototype which is why we handle it differently.
 local name = import "param://name";
-local namespace = import "param://namespace";
-local modelPath = import "param://model_path";
-local modelServerImage = import "param://model_server_image";
-local httpProxyImage = import "param://http_proxy_image";
-local serviceType = import "param://service_type";
 
-std.prune(k.core.v1.list.new([
-  tfServing.parts.deployment.modelServer(name, namespace, modelPath, modelServerImage, httpProxyImage),
-  tfServing.parts.deployment.modelService(name, namespace, serviceType),
-]))
+local tfServingBase = import "kubeflow/tf-serving/tf-serving.libsonnet";
+local tfServing = tfServingBase {
+  // Override parameters with user supplied parameters.
+  params+: params {
+    name: name,
+  },
+};
+
+std.prune(k.core.v1.list.new(tfServing.components))

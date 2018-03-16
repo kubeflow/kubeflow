@@ -1,4 +1,11 @@
-apiVersion: 0.0.1
+apiVersion: 0.1.0
+environments:
+  prow:
+    destination:
+      namespace: kubeflow-testing
+      server: https://35.196.185.88
+    k8sVersion: v1.7.0
+    path: prow
 kind: ksonnet.io/app
 libraries:
   core:
