@@ -183,7 +183,6 @@ SHELL ["/bin/bash", "-c"]
 RUN git clone https://github.com/tensorflow/models.git /home/$NB_USER/tensorflow-models && git clone https://github.com/tensorflow/benchmarks.git /home/$NB_USER/tensorflow-benchmarks
 # Import matplotlib the first time to build the font cache.
 ENV XDG_CACHE_HOME /home/$NB_USER/.cache/
-RUN pip install jupyter-tensorboard
 
 # Create a conda environment for Python 2. We want to include as many of the
 # packages from our root environment as we reasonably can, so we explicitly
