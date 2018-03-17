@@ -152,6 +152,10 @@
                     name: "tfjob-test",
                     template: "tfjob-test",
                   },
+                  {
+                    name: "jsonnet-test",
+                    template: "jsonnet-test",
+                  },
                 ],
               ],
             },
@@ -219,6 +223,14 @@
               "copy_artifacts",
               "--bucket=" + bucket,
             ]),  // copy-artifacts
+            buildTemplate("jsonnet-test", [
+              "python",
+              "-m",
+              "testing.test_jsonnet",
+              "--artifacts_dir=" + outputDir,
+              "--test_files_dir=" + srcDir + "/kubeflow/core/tests"
+              "copy_artifacts",
+            ]),  // jsonnet-test
             buildTemplate("tfjob-test", [
               "python",
               "-m",
