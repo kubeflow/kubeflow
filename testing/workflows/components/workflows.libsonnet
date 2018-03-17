@@ -227,7 +227,7 @@
               "python",
               "-m",
               "testing.test_jsonnet",
-              "--artifacts_dir=" + outputDir,
+              "--artifacts_dir=" + artifactsDir,
               "--test_files_dir=" + srcDir + "/kubeflow/core/tests",
             ]),  // jsonnet-test
             buildTemplate("tfjob-test", [
