@@ -19,4 +19,4 @@ std.assertEqual(util.toBool(123), true) &&
 std.assertEqual(std.length(util.toArray("a,b,c,d")), 4) &&
 std.assertEqual(std.length(util.toArray(2)), 0) &&
 std.assertEqual(std.length(util.toArray("hello world")), 1) &&
-std.assertEqual(std.length(util.toArray([1,2,3,4])), 0)
+std.assertEqual(std.length(util.toArray([1, 2, 3, 4])), 0)
