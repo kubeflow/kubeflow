@@ -14,6 +14,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Run jsonnet tests
+
+This test goes through all jsonnet files specified by the
+test_files_dirs directory and runs jsonnet eval <filename> and reports
+the results
+
+Example invocation
+
+python python -m testing.test_jsonnet --test_files_dirs=/kubeflow/core/tests,/kubeflow/iap/tests --artifacts_dir=/tmp/artifacts
+
+"""
+
 from __future__ import print_function
 
 import logging
@@ -27,6 +39,7 @@ from kubeflow.testing import test_util
 from kubeflow.testing import util
 
 def run(test_files_dirs, t):
+  # Go through each jsonnet file in test_files_dirs and run jsonnet eval
   for test_files_dir in test_files_dirs:
     for test_file in glob.glob(test_files_dir + '/*.jsonnet'):
       filename=os.path.basename(test_file)
