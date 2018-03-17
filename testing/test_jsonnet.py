@@ -62,6 +62,23 @@ def main():  # pylint: disable=too-many-locals
   if not args.test_files_dirs:
     raise ValueError('--test_files_dirs needs to be set')
 
+  test_log = os.path.join(args.artifacts_dir, "logs",
+                          "test_jsonnet.log.txt")
+  if not os.path.exists(os.path.dirname(test_log)):
+    os.makedirs(os.path.dirname(test_log))
+
+  root_logger = logging.getLogger()
+  file_handler = logging.FileHandler(test_log)
+  root_logger.addHandler(file_handler)
+  # We need to explicitly set the formatter because it will not pick up
+  # the BasicConfig.
+  formatter = logging.Formatter(fmt=("%(levelname)s|%(asctime)s"
+                                     "|%(pathname)s|%(lineno)d| %(message)s"),
+                                datefmt="%Y-%m-%dT%H:%M:%S")
+  file_handler.setFormatter(formatter)
+  logging.info("Logging to %s", test_log)
+
+
   t = test_util.TestCase()
   t.class_name = "Kubeflow"
   t.name = "test-jsonnet"
