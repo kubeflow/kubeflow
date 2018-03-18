@@ -57,46 +57,18 @@ The instructions below reference the following environment variables which you w
   * **IP_NAME** The name of the GCP static IP that you created above and will be associated with **DOMAIN**.
   * **NAMESPACE** The namespace where Kubeflow is deployed.
   * **ACCOUNT** The email address for your ACME account where certificate expiration notifications will be sent.
-
+  * **CLIENT_ID** The OAuth client ID obtained earlier.
+  * **CLIENT_SECRET** The OAuth client secret obtained earlier.
 
 ```
 ks generate cert-manager cert-manager --acmeEmail=${ACCOUNT}
 ks apply ${ENVIRONMENT} -c cert-manager
 
-ks generate iap-ingress iap-ingress --ipName=${IP_NAME} --hostname=${FQDN}
+ks generate iap-ingress iap-ingress --namespace=${NAMESPACE} --ipName=${IP_NAME} --hostname=${FQDN} --clientID=${CLIENT_ID} --clientSecret=${CLIENT_SECRET}
 ks apply ${ENVIRONMENT} -c iap-ingress
 ```
 
-This will create a load balancer. We can now enable IAP on this load balancer using
-the [enable_iap.sh](https://github.com/kubeflow/kubeflow/tree/master/docs/gke/enable_iap.sh) script.
-
-
-```
-export CLIENT_ID=<Client id for OAuth client created in the previous step>
-export CLIENT_SECRET=<Client secret for OAuth client created in the previous step>
-SERVICE=envoy
-./enable_iap.sh ${PROJECT} ${NAMESPACE} ${SERVICE}
-```
-The above command will output the audience such as:
-
-```
-JWT_AUDIENCE=/projects/991277910492/global/backendServices/801046342490434803
-```
-
- * you will need JWT_AUDIENCE in the next step to configure JWT validation
-
-**Important** Redeploying iap-ingress (e.g. running `ks apply ${ENVIRONMET} -c iap-ingress` again)
-will cause the JWT_AUDIENCE to change and the backend service created by GCP to change.
-As a result you will have to repeat the steps below to properly configure IAP.
-
-### Deploy Envoy Proxies
-
-The next step is to deploy Envoy as a reverse proxy.
-
-```
-ks generate iap-envoy iap-envoy --audiences=${JWT_AUDIENCE}
-ks apply ${ENVIRONMENT} -c iap-envoy
-```
+After a few minutes the IAP enabled load balancer will be ready.
 
 ### Test ingress
 

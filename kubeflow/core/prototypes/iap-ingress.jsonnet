@@ -8,9 +8,14 @@
 // @param ipName string The name of the global ip address to use.
 // @optionalParam hostname string null The hostname associated with this ingress. Eg: mykubeflow.example.com
 // @optionalParam issuer string letsencrypt-prod The cert-manager issuer name.
+// @optionalParam envoyImage string gcr.io/kubeflow-images-staging/envoy:v20180309-0fb4886b463698702b6a08955045731903a18738 The image for envoy.
+// @optionalParam disableJwtChecking string false Disable JWT checking.
+// @param clientID string OAuth client ID.
+// @param clientSecret string OAuth client secret.
 
 local k = import "k.libsonnet";
 local iap = import "kubeflow/core/iap.libsonnet";
+local util = import "kubeflow/core/util.libsonnet";
 
 // updatedParams uses the environment namespace if
 // the namespace parameter is not explicitly set
@@ -24,5 +29,10 @@ local secretName = import "param://secretName";
 local ipName = import "param://ipName";
 local hostname = import "param://hostname";
 local issuer = import "param://issuer";
+local envoyImage = import "param://envoyImage";
+local disableJwtCheckingParam = import "param://disableJwtChecking";
+local disableJwtChecking = util.toBool(disableJwtCheckingParam);
+local clientID = import "param://clientID";
+local clientSecret = import "param://clientSecret";
 
-iap.parts(namespace).ingressParts(secretName, ipName, hostname, issuer)
+iap.parts(namespace).ingressParts(secretName, ipName, hostname, issuer, envoyImage, disableJwtChecking, clientID, clientSecret)
