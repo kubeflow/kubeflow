@@ -22,31 +22,6 @@ Use your DNS provider (e.g. Google Domains) create a type A custom resource reco
 with the IP address that you just reserved.
   * Instructions for [Google Domains](https://support.google.com/domains/answer/3290350?hl=en&_ga=2.237821440.1874220825.1516857441-1976053267.1499435562&_gac=1.82147044.1516857441.Cj0KCQiA-qDTBRD-ARIsAJ_10yKS7G1HPa1aoM8Mk_4VagV9wIi5uKkMp5UWJGDNejKxWPKUO_A6ri4aAsahEALw_wcB)
 
-##### Create a self signed certificate
-
-The certificate is needed for HTTPs
-
-```
-${FQDN}=${HOST}.${YOURDOMAIN}
-mkdir -p ~/tmp/${DOMAIN}
-TLS_KEY_FILE=~/tmp/${FQDN}/tls.key
-TLS_CRT_FILE=~/tmp/${FQDN}/tls.crt
-
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-  -subj "/CN=${FQDN}/O=Google LTD./C=US" \
-  -keyout ${TLS_KEY_FILE} -out ${TLS_CRT_FILE}
-```
-
-  * HOST will be the value of the custom resource record that you created to map to your IP address.
-
-Create a K8s secret to store the SSL certificate.
-
-```
-SECRET_NAME=<Name for your secret.>
-kubectl -n ${NAMESPACE} create secret generic ${SECRET_NAME}  --from-file=${TLS_KEY_FILE} --from-file=${TLS_CRT_FILE}
-```
-
-
 #### Create oauth client credentials
 
 Create an OAuth Client ID to be used to identify IAP when requesting acces to user's email to verify their identity.
@@ -72,6 +47,8 @@ Create an OAuth Client ID to be used to identify IAP when requesting acces to us
 If you haven't already, follow the instructions in the [user_guide](https://github.com/kubeflow/kubeflow/blob/master/user_guide.md#deploy-kubeflow)
 to create a ksonnet app to deploy Kubeflow.
 
+[cert-manager](https://github.com/jetstack/cert-manager) is used to automatically request valid SSL certifiactes using the [ACME](https://en.wikipedia.org/wiki/Automated_Certificate_Management_Environment) issuer.
+
 The instructions below reference the following environment variables which you will need to set for your deployment
 
   * **CORE_NAME** The name assigned to the core Kubeflow ksonnet components (this is the name chosen when you ran `ks generate...`).
@@ -79,11 +56,14 @@ The instructions below reference the following environment variables which you w
   * **FQDN** The fully qualified domain name to use for your Kubeflow deployment.
   * **IP_NAME** The name of the GCP static IP that you created above and will be associated with **DOMAIN**.
   * **NAMESPACE** The namespace where Kubeflow is deployed.
-  * **SECRET_NAME** The name of the K8s secret that stores the SSL certificate.
+  * **ACCOUNT** The email address for your ACME account where certificate expiration notifications will be sent.
 
 
 ```
-ks generate iap-ingress iap-ingress --secretName=${SECRET_NAME} --ipName=${IP_NAME} --namespace=${NAMESPACE} --hostname=${FQDN}
+ks generate cert-manager cert-manager --namespace=${NAMESPACE} --acmeEmail=${ACCOUNT}
+ks apply ${ENVIRONMENT} -c cert-manager
+
+ks generate iap-ingress iap-ingress --ipName=${IP_NAME} --namespace=${NAMESPACE} --hostname=${FQDN}
 ks apply ${ENVIRONMENT} -c iap-ingress
 ```
 
@@ -92,10 +72,10 @@ the [enable_iap.sh](https://github.com/kubeflow/kubeflow/tree/master/docs/gke/en
 
 
 ```
-CLIENT_ID=<Client id for OAuth client created in the previous step>
-CLIENT_SECRET=<Client secret for OAuth client created in the previous step>
+export CLIENT_ID=<Client id for OAuth client created in the previous step>
+export CLIENT_SECRET=<Client secret for OAuth client created in the previous step>
 SERVICE=envoy
-enable_iap.sh ${PROJECT} ${NAMESPACE} ${SERVICE}
+./enable_iap.sh ${PROJECT} ${NAMESPACE} ${SERVICE}
 ```
 The above command will output the audience such as:
 
