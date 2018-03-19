@@ -1,13 +1,14 @@
 {
+  all(params):: [
+    $.parts(params.namespace).tfJobDeploy(params.tfJobImage),
+    $.parts(params.namespace).configMap(params.cloud, params.tfDefaultImage),
+    $.parts(params.namespace).serviceAccount,
+    $.parts(params.namespace).operatorRole,
+    $.parts(params.namespace).operatorRoleBinding,
+    $.parts(params.namespace).crd,
+  ],
+
   parts(namespace):: {
-    all(params):: [
-      $.parts(params.namespace).tfJobDeploy(params.tfJobImage),
-      $.parts(params.namespace).configMap(params.cloud, params.tfDefaultImage),
-      $.parts(params.namespace).serviceAccount,
-      $.parts(params.namespace).operatorRole,
-      $.parts(params.namespace).operatorRoleBinding,
-      $.parts(params.namespace).crd,
-    ],
     crd: {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
@@ -102,7 +103,7 @@
                                               else
                                                 {},
 
-    azureAccelerators:: {
+    aksAccelerators:: {
       accelerators: {
         "alpha.kubernetes.io/nvidia-gpu": {
           volumes: [
@@ -126,9 +127,25 @@
       },
     },
 
+    acsEngineAccelerators:: {
+      accelerators: {
+        "alpha.kubernetes.io/nvidia-gpu": {
+          volumes: [
+            {
+              name: "nvidia",
+              mountPath: "/usr/local/nvidia",
+              hostPath: "/usr/local/nvidia",
+            },
+          ],
+        },
+      },
+    },
+
     configData(cloud, tfDefaultImage):: self.defaultControllerConfig(tfDefaultImage) +
-                                        if cloud == "azure" then
-                                          self.azureAccelerators
+                                        if cloud == "aks" then
+                                          self.aksAccelerators
+                                        else if cloud == "acsengine" then
+                                          self.acsEngineAccelerators
                                         else
                                           {},
 

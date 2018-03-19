@@ -57,13 +57,26 @@ ks env add nocloud
 ks env add cloud
 ```
 
-The `nocloud` environment can be used for minikube or other basic k8s clusters, the `cloud` environment will be used for GKE in this guide.
+The `nocloud` environment can be used for minikube or other basic k8s clusters, the `cloud` environment will be used for GKE or Azure in this guide.
 
 If using GKE, we can configure our cloud environment to use GCP features with a single parameter:
 
 ```
 ks param set kubeflow-core cloud gke --env=cloud
 ```
+
+If the cluster was created on Azure with AKS/ACS:
+
+```
+ks param set kubeflow-core cloud aks --env=cloud
+```
+
+If it was created with acs-engine instead:
+
+```
+ks param set kubeflow-core cloud acsengine --env=cloud
+```
+
 
 Now let's set `${KF_ENV}` to `cloud` or `nocloud` to reflect our environment for the rest of the guide:
 

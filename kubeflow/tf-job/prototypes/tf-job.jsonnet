@@ -39,6 +39,11 @@ local numPs = import "param://num_ps";
 local numWorkers = import "param://num_workers";
 local numGpus = import "param://num_gpus";
 
+local terminationPolicy = if numMasters == 1 then
+  tfJob.parts.tfJobTerminationPolicy("MASTER", 0)
+else
+  tfJob.parts.tfJobTerminationPolicy("WORKER", 0);
+
 local workerSpec = if numGpus > 0 then
   tfJob.parts.tfJobReplica("WORKER", numWorkers, args, imageGpu, numGpus)
 else
@@ -48,6 +53,7 @@ std.prune(k.core.v1.list.new([
   tfJob.parts.tfJob(name, namespace, [
     tfJob.parts.tfJobReplica("MASTER", numMasters, args, image),
     workerSpec,
-    tfJob.parts.tfJobReplica("PS", numPs, args, image),
-  ]),
+    tfJob.parts.tfJobReplica("PS", numPs, args, image),],
+    terminationPolicy
+  ),
 ]))
