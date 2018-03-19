@@ -181,7 +181,7 @@
             mirrorVolumeMounts: true,
           }],
         );  // buildImageTemplate
-      local buildTestTfImageTemplate(stepName, serviceName) = {
+      local buildTestTfImageTemplate(stepName, serviceName, resultFile) = {
         name: stepName,
         container: {
           command: [
@@ -192,7 +192,7 @@
             "--artifacts_dir=" + artifactsDir,
             "--service_name=" + serviceName,
             "--image_path=" + srcDir + "/components/k8s-model-server/inception-client/images/sleeping-pepper.jpg",
-            "--result_path=" + srcDir + "/components/k8s-model-server/images/test-worker/result.txt",
+            "--result_path=" + srcDir + resultFile,
           ],
           env: prow_env + [
             {
@@ -391,8 +391,10 @@
               }],
             ),  // deploy-tf-serving-gpu
 
-            buildTestTfImageTemplate("test-tf-serving", "inception-cpu"),
-            buildTestTfImageTemplate("test-tf-serving-gpu", "inception-gpu"),
+            buildTestTfImageTemplate("test-tf-serving", "inception-cpu",
+                "/components/k8s-model-server/images/test-worker/result.txt"),
+            buildTestTfImageTemplate("test-tf-serving-gpu", "inception-gpu",
+                "/components/k8s-model-server/images/test-worker/result-gpu.txt"),
 
             buildTemplate("create-pr-symlink", [
               "python",
