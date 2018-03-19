@@ -34,7 +34,14 @@ local k = import "k.libsonnet";
         }
       else {},
 
-    tfJob(name, namespace, replicas):: {
+    tfJobTerminationPolicy(replicaName, replicaIndex):: {
+      chief: {
+          replicaName: replicaName,
+          replicaIndex: replicaIndex,
+      },
+    },
+
+    tfJob(name, namespace, replicas, tp):: {
       apiVersion: "kubeflow.org/v1alpha1",
       kind: "TFJob",
       metadata: {
@@ -43,6 +50,7 @@ local k = import "k.libsonnet";
       },
       spec: {
         replicaSpecs: replicas,
+        terminationPolicy: tp,
       },
     },
   },
