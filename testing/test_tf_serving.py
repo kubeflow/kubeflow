@@ -87,7 +87,7 @@ def main():
     # Send request
     # See prediction_service.proto for gRPC request/response details.
     request = predict_pb2.PredictRequest()
-    request.model_spec.name = 'inception'
+    request.model_spec.name = args.service_name
     request.model_spec.signature_name = 'predict_images'
     request.inputs['images'].CopyFrom(
         tf.make_tensor_proto(raw_image, shape=[1,]))

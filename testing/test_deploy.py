@@ -189,8 +189,7 @@ def deploy_model(args):
   component = "modelServer"
   logging.info("Deploying tf-serving.")
   generate_command = [
-      "ks", "generate", "tf-serving", component,
-      "--name=" + args.deploy_name]
+      "ks", "generate", "tf-serving", component]
 
   util.run(generate_command, cwd=app_dir)
 
