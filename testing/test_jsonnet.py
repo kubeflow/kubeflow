@@ -38,14 +38,14 @@ import argparse
 from kubeflow.testing import test_util
 from kubeflow.testing import util
 
-def run(test_files_dirs, t):
+def run(test_files_dirs, jsonnet_path_args, t):
   # Go through each jsonnet file in test_files_dirs and run jsonnet eval
   for test_files_dir in test_files_dirs:
     for test_file in glob.glob(test_files_dir + '/*.jsonnet'):
       filename=os.path.basename(test_file)
       logging.info("Running test: %s", filename)
       try:
-        util.run(['jsonnet', 'eval', filename],cwd=test_files_dir)
+        util.run(['jsonnet', 'eval', filename] + jsonnet_path_args, cwd=test_files_dir)
       except Exception as e:
         t.failure = '{} test failed'.format(filename)
         logging.error('%s test failed. See Subprocess output for details.', filename)
@@ -63,6 +63,11 @@ def main():  # pylint: disable=too-many-locals
     default="",
     type=str,
     help="Comma separated directories where test jsonnet test files are stored")
+  parser.add_argument(
+    "--jsonnet_path_dirs",
+    default="",
+    type=str,
+    help="Comma separated directories used by jsonnet to find additional libraries")
   parser.add_argument(
     "--artifacts_dir",
     default="",
@@ -99,8 +104,14 @@ def main():  # pylint: disable=too-many-locals
   test_files_dirs = args.test_files_dirs.split(',')
   start = time.time()
 
+  jsonnet_path_args = []
+  if len(args.jsonnet_path_dirs) > 0:
+    for jsonnet_path_dir in args.jsonnet_path_dirs.split(','):
+      jsonnet_path_args.append('--jpath')
+      jsonnet_path_args.append(jsonnet_path_dir)
+
   try:
-    run(test_files_dirs, t)
+    run(test_files_dirs, jsonnet_path_args, t)
   finally:
     t.time = time.time() - start
     junit_path = os.path.join(
