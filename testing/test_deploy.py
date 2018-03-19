@@ -190,7 +190,7 @@ def deploy_model(args):
   logging.info("Deploying tf-serving.")
   generate_command = [
       "ks", "generate", "tf-serving", component,
-      "--name=inception",]
+      "--name=" + args.deploy_name]
 
   util.run(generate_command, cwd=app_dir)
 
@@ -208,12 +208,12 @@ def deploy_model(args):
 
   core_api = k8s_client.CoreV1Api(api_client)
   deploy = core_api.read_namespaced_service(
-    "inception", args.namespace)
+    args.deploy_name, args.namespace)
   cluster_ip = deploy.spec.cluster_ip
 
   if not cluster_ip:
     raise ValueError("inception service wasn't assigned a cluster ip.")
-  util.wait_for_deployment(api_client, namespace, "inception")
+  util.wait_for_deployment(api_client, namespace, args.deploy_name)
   logging.info("Verified TF serving started.")
 
 def teardown(args):

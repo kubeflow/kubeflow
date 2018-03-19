@@ -276,12 +276,12 @@
         "--artifacts_dir=" + artifactsDir,
       ];
       local deploy_tf_serving_command = deploy_tf_serving_command_base + [
-        "--deploy_name=cpu",
+        "--deploy_name=inceptionCpu",
         "deploy_model",
         "--params=" + deployParamsList,
       ];
       local deploy_tf_serving_gpu_command = deploy_tf_serving_command_base + [
-        "--deploy_name=gpu",
+        "--deploy_name=inceptionGpu",
         "deploy_model",
         "--params=" + deployGpuParamsList,
       ];
@@ -391,8 +391,8 @@
               }],
             ),  // deploy-tf-serving-gpu
 
-            buildTestTfImageTemplate("test-tf-serving", "inception"),
-            buildTestTfImageTemplate("test-tf-serving-gpu", "inception-gpu"),
+            buildTestTfImageTemplate("test-tf-serving", "inceptionCpu"),
+            buildTestTfImageTemplate("test-tf-serving-gpu", "inceptionGpu"),
 
             buildTemplate("create-pr-symlink", [
               "python",
