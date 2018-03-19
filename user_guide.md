@@ -396,6 +396,15 @@ tmpfs                                                           15444244       0
 On [Minikube](https://github.com/kubernetes/minikube) the Virtualbox/VMware drivers for Minikube are recommended as there is a known
 issue between the KVM/KVM2 driver and TensorFlow Serving. The issue is tracked in [kubernetes/minikube#2377](https://github.com/kubernetes/minikube/issues/2377).
 
+Minikube by default allocates 2048Mb of RAM for its VM, however that may not align with the starting parameters for the JupyterHub server noted above. If you encounter a jupyter-xxxx pod in Pending status, described with:
+```
+Warning  FailedScheduling  8s (x22 over 5m)  default-scheduler  0/1 nodes are available: 1 Insufficient memory.
+```
+then try recreating your Minikube cluster (and re-apply Kubeflow using Ksonnet) with more resources (as your environment allows):
+```
+minikube start --cpus 4 --memory 8096
+```
+
 ### RBAC clusters
 
 If you are running on a K8s cluster with [RBAC enabled](https://kubernetes.io/docs/admin/authorization/rbac/#command-line-utilities), you may get an error like the following when deploying Kubeflow:
@@ -417,7 +426,7 @@ If you're using GKE, you may want to refer to [GKE's RBAC docs](https://cloud.go
 how RBAC interacts with IAM on GCP.
 
 ### OpenShift
-If you are deploying kubeflow in an [OpenShift](https://github.com/openshift/origin) environment which encapsulates kubernetes, you will need to adjust the security contexts for the ambassador and jupyter-hub deployments in order to get the pods to run.
+If you are deploying Kubeflow in an [OpenShift](https://github.com/openshift/origin) environment which encapsulates Kubernetes, you will need to adjust the security contexts for the ambassador and jupyter-hub deployments in order to get the pods to run.
 
 ```commandline
 oc adm policy add-scc-to-user anyuid -z ambassador
@@ -433,10 +442,10 @@ ks apply default -c kubeflow-core
 ERROR Attempting to deploy to environment 'default' at 'https://127.0.0.1:8443', but cannot locate a server at that address
 ```
 
-This error is due to the fact that the default cluster installed by Docker for Mac is actually set to `https://localhost:6443`. One option is to directly edit the generated `environments/default/spec.json` file to set the "server" variable to the correct location, then retry the deployment. However, it is preferable to initialize your ksonnet app using the desired kube config:
+This error is due to the fact that the default cluster installed by Docker for Mac is actually set to `https://localhost:6443`. One option is to directly edit the generated `environments/default/spec.json` file to set the "server" variable to the correct location, then retry the deployment. However, it is preferable to initialize your Ksonnet app using the desired kube config:
 
 ```commandline
-export KUBECONFIG=~/.kube/config
+kubectl config use-context docker-for-desktop
 ks init my-kubeflow
 ```
 
