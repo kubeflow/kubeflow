@@ -1,7 +1,4 @@
 {
-  // TODO(jlewi): We should refactor this to have multiple prototypes; having 1 without any extra volumes and than
-  // a with volumes option.
-
   all(params):: [
     $.parts(params.namespace).jupyterHubConfigMap(params.jupyterHubAuthenticator, params.disks),
     $.parts(params.namespace).jupyterHubService,
