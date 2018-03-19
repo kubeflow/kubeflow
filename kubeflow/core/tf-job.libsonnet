@@ -105,7 +105,7 @@
                                               else
                                                 {},
 
-    azureAccelerators:: {
+    aksAccelerators:: {
       accelerators: {
         "alpha.kubernetes.io/nvidia-gpu": {
           volumes: [
@@ -129,9 +129,25 @@
       },
     },
 
+    acsEngineAccelerators:: {
+      accelerators: {
+        "alpha.kubernetes.io/nvidia-gpu": {
+          volumes: [
+            {
+              name: "nvidia",
+              mountPath: "/usr/local/nvidia",
+              hostPath: "/usr/local/nvidia",
+            },
+          ],
+        },
+      },
+    },
+
     configData(cloud, tfDefaultImage):: self.defaultControllerConfig(tfDefaultImage) +
-                                        if cloud == "azure" then
-                                          self.azureAccelerators
+                                        if cloud == "aks" then
+                                          self.aksAccelerators
+                                        else if cloud == "acsengine" then
+                                          self.acsEngineAccelerators
                                         else
                                           {},
 
