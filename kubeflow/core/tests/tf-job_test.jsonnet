@@ -79,7 +79,7 @@ tfjob.parts(params.namespace).configMap(params.cloud, params.tfDefaultImage),
 {
    "apiVersion": "v1",
    "data": {
-      "controller_config_file.yaml": "{\n    \"accelerators\": {\n        \"alpha.kubernetes.io/nvidia-gpu\": {\n            \"volumes\": [\n                {\n                    \"hostPath\": \"/usr/lib/nvidia-384\",\n                    \"mountPath\": \"/usr/local/nvidia/lib64\",\n                    \"name\": \"lib\"\n                },\n                {\n                    \"hostPath\": \"/usr/lib/nvidia-384/bin\",\n                    \"mountPath\": \"/usr/local/nvidia/bin\",\n                    \"name\": \"bin\"\n                },\n                {\n                    \"hostPath\": \"/usr/lib/x86_64-linux-gnu/libcuda.so.1\",\n                    \"mountPath\": \"/usr/lib/x86_64-linux-gnu/libcuda.so.1\",\n                    \"name\": \"libcuda\"\n                }\n            ]\n        }\n    },\n    \"grpcServerFilePath\": \"/opt/mlkube/grpc_tensorflow_server/grpc_tensorflow_server.py\"\n}"
+      "controller_config_file.yaml": "{\n    \"grpcServerFilePath\": \"/opt/mlkube/grpc_tensorflow_server/grpc_tensorflow_server.py\"\n}"
    },
    "kind": "ConfigMap",
    "metadata": {
