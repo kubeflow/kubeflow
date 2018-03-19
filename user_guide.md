@@ -57,13 +57,26 @@ ks env add nocloud
 ks env add cloud
 ```
 
-The `nocloud` environment can be used for minikube or other basic k8s clusters, the `cloud` environment will be used for GKE in this guide.
+The `nocloud` environment can be used for minikube or other basic k8s clusters, the `cloud` environment will be used for GKE or Azure in this guide.
 
 If using GKE, we can configure our cloud environment to use GCP features with a single parameter:
 
 ```
 ks param set kubeflow-core cloud gke --env=cloud
 ```
+
+If the cluster was created on Azure with AKS/ACS:
+
+```
+ks param set kubeflow-core cloud aks --env=cloud
+```
+
+If it was created with acs-engine instead:
+
+```
+ks param set kubeflow-core cloud acsengine --env=cloud
+```
+
 
 Now let's set `${KF_ENV}` to `cloud` or `nocloud` to reflect our environment for the rest of the guide:
 
@@ -141,7 +154,7 @@ You should see a sign in prompt.
 
 1. Sign in using any username/password
 1. Click the "Start My Server" button, and you will be greeted by a dialog screen.
-1. Set the image to `gcr.io/kubeflow/tensorflow-notebook-cpu:v1` or `gcr.io/kubeflow/tensorflow-notebook-gpu:8fbc341245695e482848ac3c2034a99f7c1e5763` depending on whether doing CPU or GPU training, or whether or not you have GPUs in your cluster.
+1. Select a CPU or GPU image from the Image dropdown menu depending on whether you are doing CPU or GPU training, or whether or not you have GPUs in your cluster. The current defaults offered for both are `gcr.io/kubeflow-images-staging/tensorflow-notebook-cpu` and `gcr.io/kubeflow-images-staging/tensorflow-notebook-gpu` respectively. Or you can type in the name of any TF image you want to run.
 1. Allocate memory, CPU, GPU, or other resources according to your need (1 CPU and 2Gi of Memory are good starting points)
     * To allocate GPUs, make sure that you have GPUs available in your cluster
     * Run the following command to check if there are any nvidia gpus available: 
@@ -199,7 +212,9 @@ Create a component for your model
 MODEL_COMPONENT=serveInception
 MODEL_NAME=inception
 MODEL_PATH=gs://kubeflow-models/inception
-ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME} --namespace=${NAMESPACE} --model_path=${MODEL_PATH}
+ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME} 
+ks param set ${MODEL_COMPONENT} namespace ${NAMESPACE} 
+ks param set ${MODEL_COMPONENT} modelPath ${MODEL_PATH}
 ```
 
 Deploy the model component. Ksonnet will pick up existing parameters for your environment (e.g. cloud, nocloud) and customize the resulting deployment appropriately

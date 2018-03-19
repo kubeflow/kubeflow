@@ -83,6 +83,12 @@ NAMESPACE=kubeflow
 kubectl create namespace ${NAMESPACE}
 ks generate core kubeflow-core --name=kubeflow-core --namespace=${NAMESPACE}
 
+# If your cluster is running on Azure you will need to set the cloud parameter.
+# If the cluster was created with AKS or ACS choose aks, it if was created
+# with acs-engine, choose acsengine
+# PLATFORM=<aks|acsengine>
+# ks param set kubeflow-core cloud ${PLATFORM}
+
 # Enable collection of anonymous usage metrics
 # Skip this step if you don't want to enable collection.
 ks param set kubeflow-core reportUsage true

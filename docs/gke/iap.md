@@ -1,9 +1,5 @@
 # Setting Up IAP on GKE
 
-**Important** This doc is a work in progress. The instructions don't fully work yet because Envoy can't properly validate JWTs created
-by IAP. You can work around this by disabling JWT's as described below but this is insecure because if IAP is accidentally disabled (which happens
-if you recreate the ingress) then all traffic can get through.
-
 These instructions walk you through using [Identity Aware Proxy](https://cloud.google.com/iap/docs/)(IAP) to securely connect to Kubeflow
 when using GKE.
 
@@ -25,31 +21,6 @@ gcloud compute --project=${PROJECT} addresses create kubeflow --global
 Use your DNS provider (e.g. Google Domains) create a type A custom resource record that associates the host you want e.g "kubeflow"
 with the IP address that you just reserved.
   * Instructions for [Google Domains](https://support.google.com/domains/answer/3290350?hl=en&_ga=2.237821440.1874220825.1516857441-1976053267.1499435562&_gac=1.82147044.1516857441.Cj0KCQiA-qDTBRD-ARIsAJ_10yKS7G1HPa1aoM8Mk_4VagV9wIi5uKkMp5UWJGDNejKxWPKUO_A6ri4aAsahEALw_wcB)
-
-##### Create a self signed certificate
-
-The certificate is needed for HTTPs
-
-```
-${FQDN}=${HOST}.${YOURDOMAIN}
-mkdir -p ~/tmp/${DOMAIN}
-TLS_KEY_FILE=~/tmp/${FQDN}/tls.key
-TLS_CRT_FILE=~/tmp/${FQDN}/tls.crt
-
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-  -subj "/CN=${FQDN}/O=Google LTD./C=US" \
-  -keyout ${TLS_KEY_FILE} -out ${TLS_CRT_FILE}
-```
-
-  * HOST will be the value of the custom resource record that you created to map to your IP address.
-
-Create a K8s secret to store the SSL certificate.
-
-```
-SECRET_NAME=<Name for your secret.>
-kubectl -n ${NAMESPACE} create secret generic ${SECRET_NAME}  --from-file=${TLS_KEY_FILE} --from-file=${TLS_CRT_FILE}
-```
-
 
 #### Create oauth client credentials
 
@@ -76,6 +47,8 @@ Create an OAuth Client ID to be used to identify IAP when requesting acces to us
 If you haven't already, follow the instructions in the [user_guide](https://github.com/kubeflow/kubeflow/blob/master/user_guide.md#deploy-kubeflow)
 to create a ksonnet app to deploy Kubeflow.
 
+[cert-manager](https://github.com/jetstack/cert-manager) is used to automatically request valid SSL certifiactes using the [ACME](https://en.wikipedia.org/wiki/Automated_Certificate_Management_Environment) issuer.
+
 The instructions below reference the following environment variables which you will need to set for your deployment
 
   * **CORE_NAME** The name assigned to the core Kubeflow ksonnet components (this is the name chosen when you ran `ks generate...`).
@@ -83,11 +56,14 @@ The instructions below reference the following environment variables which you w
   * **FQDN** The fully qualified domain name to use for your Kubeflow deployment.
   * **IP_NAME** The name of the GCP static IP that you created above and will be associated with **DOMAIN**.
   * **NAMESPACE** The namespace where Kubeflow is deployed.
-  * **SECRET_NAME** The name of the K8s secret that stores the SSL certificate.
+  * **ACCOUNT** The email address for your ACME account where certificate expiration notifications will be sent.
 
 
 ```
-ks generate iap-ingress iap-ingress --secretName=${SECRET_NAME} --ipName=${IP_NAME} --namespace=${NAMESPACE}
+ks generate cert-manager cert-manager --namespace=${NAMESPACE} --acmeEmail=${ACCOUNT}
+ks apply ${ENVIRONMENT} -c cert-manager
+
+ks generate iap-ingress iap-ingress --ipName=${IP_NAME} --namespace=${NAMESPACE} --hostname=${FQDN}
 ks apply ${ENVIRONMENT} -c iap-ingress
 ```
 
@@ -96,10 +72,10 @@ the [enable_iap.sh](https://github.com/kubeflow/kubeflow/tree/master/docs/gke/en
 
 
 ```
-CLIENT_ID=<Client id for OAuth client created in the previous step>
-CLIENT_SECRET=<Client secret for OAuth client created in the previous step>
+export CLIENT_ID=<Client id for OAuth client created in the previous step>
+export CLIENT_SECRET=<Client secret for OAuth client created in the previous step>
 SERVICE=envoy
-enable_iap.sh ${PROJECT} ${NAMESPACE} ${SERVICE}
+./enable_iap.sh ${PROJECT} ${NAMESPACE} ${SERVICE}
 ```
 The above command will output the audience such as:
 
@@ -136,31 +112,8 @@ https://${FQDN}/noiap/whoami
   * Once IAP takes effect you will have to authenticate using your Google account and the app will tell you
     what your email is.
 
-We also have the app running at
-
-```
-https://${FQDN}/whoami
-```
-  * But this path will reject traffic that didn't go through IAP so it won't work unless IAP is enabled. In this case you should get
-  one of the following errors.
-
-    * `401 UNAUTHORIZED` this indicates IAP isn't enabled so the request is rejected because it wasn't authenticated
-    * `401 ISS_AUD_UNMATCH1` this is because Envoy doesn't support IAP JWT tokens yet [istio/proxy/issues/941](https://github.com/istio/proxy/issues/941)
-
-
-### Disable JWT verification
-
-Until [istio/proxy/issues/941](https://github.com/istio/proxy/issues/941) is fixed you can disable JWT verification in Envoy.
-
-**Warning** This is a serious security risk because it means if IAP is disabled all traffic will be allowed through. You should only do this
-if you understand the risks; for more info see [IAP's docs on Securing Your App](https://cloud.google.com/iap/docs/signed-headers-howto).
-
-```
-ks param set iap-envoy disableJwtChecking true
-ks apply ${ENVIRONMENT} -c iap-envoy
-# Delete the pods so they are recreated with the new config
-kubectl delete pods --selector=service=envoy
-```
+We also have the app running at `https://${FQDN}/whoami` - but this path will reject traffic that didn't go through IAP so it won't work unless IAP is enabled. In this case you should get
+  a `401 UNAUTHORIZED` this indicates IAP isn't enabled so the request is rejected because it wasn't authenticated
 
 ### Configure Jupyter to use your Google Identity
 
