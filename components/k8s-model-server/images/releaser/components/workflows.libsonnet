@@ -274,15 +274,16 @@
         "--namespace=" + stepsNamespace,
         "--test_dir=" + testDir,
         "--artifacts_dir=" + artifactsDir,
-        "deploy_model",
       ];
       local deploy_tf_serving_command = deploy_tf_serving_command_base + [
-        "--params=" + deployParamsList,
         "--deploy_name=cpu",
+        "deploy_model",
+        "--params=" + deployParamsList,
       ];
       local deploy_tf_serving_gpu_command = deploy_tf_serving_command_base + [
-        "--params=" + deployGpuParamsList,
         "--deploy_name=gpu",
+        "deploy_model",
+        "--params=" + deployGpuParamsList,
       ];
 
       {
