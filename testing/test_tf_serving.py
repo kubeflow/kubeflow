@@ -63,6 +63,11 @@ def main():
     "--result_path",
     type=str,
     help=("The expected result."))
+  parser.add_argument(
+    "--test_name",
+    default="",
+    type=str,
+    help="The name of the test.")
 
   args = parser.parse_args()
 
@@ -108,10 +113,11 @@ def main():
         assert(expected_result == result)
   except Exception as e:
     t.failure = "Test failed; " + e.message
+    raise
   finally:
     t.time = time.time() - start
     junit_path = os.path.join(
-        args.artifacts_dir, "junit_kubeflow-tf-serving-image.xml")
+        args.artifacts_dir, "junit_kubeflow-tf-serving-image-{}.xml".format(args.test_name))
     logging.info("Writing test results to %s", junit_path)
     test_util.create_junit_xml_file([t], junit_path)
 

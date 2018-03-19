@@ -278,9 +278,11 @@
       ];
       local deploy_tf_serving_command = deploy_tf_serving_command_base + [
         "--params=" + deployParamsList,
+        "--deploy_name=cpu",
       ];
       local deploy_tf_serving_gpu_command = deploy_tf_serving_command_base + [
         "--params=" + deployGpuParamsList,
+        "--deploy_name=gpu",
       ];
 
       {

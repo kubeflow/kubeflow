@@ -224,7 +224,7 @@ def teardown(args):
   core_api.delete_namespace(args.namespace, {})
 
 def determine_test_name(args):
-  return args.func.__name__
+  return args.func.__name__ + "-" + args.deploy_name if args.deploy_name else args.func.__name__
 
 # TODO(jlewi): We should probably make this a generic function in
 # kubeflow.testing.`
@@ -343,6 +343,12 @@ def main():  # pylint: disable=too-many-locals
           "https://github.com/ksonnet/ksonnet/blob/master/docs"
           "/troubleshooting.md. Can also be set using environment variable "
           "GITHUB_TOKEN."))
+
+  parser.add_argument(
+    "--deploy_name",
+    default="",
+    type=str,
+    help="The name of the deployment.")
 
   subparsers = parser.add_subparsers()
 
