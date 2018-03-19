@@ -21,8 +21,10 @@
 
 
   // Default parameters.
+  //
+  // TODO(jlewi): Use camelCase consistently.
   defaultParams:: {
-    bucket: "mlkube-testing_temp",
+    bucket: "kubeflow-ci_temp",
     commit: "master",
     // Name of the secret containing GCP credentials.
     gcpCredentialsSecretName: "kubeflow-testing-credentials",
@@ -36,7 +38,7 @@
     // The default image to use for the steps in the Argo workflow.
     testing_image: "gcr.io/mlkube-testing/kubeflow-testing",
     tf_testing_image: "gcr.io/kubeflow-ci/tf-test-worker:1.0",
-    project: "mlkube-testing",
+    project: "kubeflow-ci",
     cluster: "kubeflow-testing",
     zone: "us-east1-d",
     build_image: false,
@@ -84,6 +86,19 @@
 
       local cpuImage = params.registry + "/tf-model-server-cpu" + ":" + params.versionTag;
       local gpuImage = params.registry + "/tf-model-server-gpu" + ":" + params.versionTag;
+
+      // Parameters to set on the modelServer component
+      local deployParams = {
+        name: "inception",
+        namespace: stepsNamespace,
+        modelPath: "gs://kubeflow-models/inception",
+      } + if build_image then
+        {
+          modelServerImage: cpuImage,
+        } else {};
+
+      local toPair = function(k, v) k + "=" + v;
+      local deployParamsList = std.join(",", [toPair(k, deployParams[k]) for k in std.objectFields(deployParams)]);
 
       // Build an Argo template to execute a particular command.
       // step_name: Name for the template
@@ -203,12 +218,14 @@
         "--cluster=" + cluster,
         "--zone=" + zone,
         "--github_token=$(GITHUB_TOKEN)",
+        // TODO(jlewi): This is duplicative with params. We should probably get
+        // rid of this and just treat namespace as another parameter.
         "--namespace=" + stepsNamespace,
         "--test_dir=" + testDir,
         "--artifacts_dir=" + artifactsDir,
-        "setup",
-        "--deploy_tf_serving=true",
-      ] + if build_image then ["--model_server_image=" + cpuImage] else [];
+        "deploy_model",
+        "--params=" + deployParamsList,
+      ];
 
       {
         apiVersion: "argoproj.io/v1alpha1",
@@ -266,28 +283,15 @@
                 }],
               ],
             },
-            {
-              name: "checkout",
-              container: {
-                command: [
-                  "/usr/local/bin/checkout.sh",
-                ],
-                args: [
-                  srcRootDir,
-                ],
-                env: prow_env + [{
-                  name: "EXTRA_REPOS",
-                  value: "kubeflow/testing@HEAD",
-                }],
-                image: testing_image,
-                volumeMounts: [
-                  {
-                    name: dataVolume,
-                    mountPath: mountPath,
-                  },
-                ],
-              },
-            },  // checkout
+            buildTemplate(
+              "checkout",
+              ["/usr/local/bin/checkout.sh", srcRootDir],
+              [{
+                name: "EXTRA_REPOS",
+                value: "kubeflow/testing@HEAD",
+              }],
+              [], // no sidecars
+            ),
 
             buildImageTemplate("build-tf-serving-cpu", "Dockerfile.cpu", cpuImage),
 
