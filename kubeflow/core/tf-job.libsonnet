@@ -1,15 +1,16 @@
 {
   // TODO(https://github.com/ksonnet/ksonnet/issues/222): Taking namespace as an argument is a work around for the fact that ksonnet
   // doesn't support automatically piping in the namespace from the environment to prototypes.
+  all(params):: [
+    $.parts(params.namespace).tfJobDeploy(params.tfJobImage),
+    $.parts(params.namespace).configMap(params.cloud, params.tfDefaultImage),
+    $.parts(params.namespace).serviceAccount,
+    $.parts(params.namespace).operatorRole,
+    $.parts(params.namespace).operatorRoleBinding,
+    $.parts(params.namespace).crd,
+  ],
+
   parts(namespace):: {
-    all(params):: [
-      $.parts(params.namespace).tfJobDeploy(params.tfJobImage),
-      $.parts(params.namespace).configMap(params.cloud, params.tfDefaultImage),
-      $.parts(params.namespace).serviceAccount,
-      $.parts(params.namespace).operatorRole,
-      $.parts(params.namespace).operatorRoleBinding,
-      $.parts(params.namespace).crd,
-    ],
     crd: {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
