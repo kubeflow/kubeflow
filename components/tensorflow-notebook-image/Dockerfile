@@ -2,6 +2,12 @@
 # Distributed under the terms of the Modified BSD License.
 
 ARG BASE_IMAGE=ubuntu:latest
+# TODO(inc0): When tf-serving-api becomes available for py3, this should be
+# removed
+FROM python:2.7 as tf-serving-install
+
+RUN pip install tensorflow-serving-api
+
 FROM $BASE_IMAGE
 
 USER root
@@ -163,6 +169,9 @@ RUN apt-get update && apt-get install -yq --no-install-recommends graphviz \
 # Install Python 3 Tensorflow without GPU support
 ARG TF_PACKAGE=tf-nightly
 RUN echo Installing $TF_PACKAGE && pip install --quiet --no-cache-dir $TF_PACKAGE
+
+# Hack recommended in tf-serving-api to use it with py3. Remove when proper pip package is available.
+COPY --from=tf-serving-install /usr/local/lib/python2.7/site-packages/tensorflow_serving /opt/conda/lib/python3.6/site-packages/tensorflow_serving
 
 ENV CLOUD_SDK_VERSION 168.0.0
 RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
