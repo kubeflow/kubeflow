@@ -89,7 +89,7 @@
 
       // Parameters to set on the modelServer component
       local deployParams = {
-        name: "inception",
+        name: "inception-cpu",
         namespace: stepsNamespace,
         modelPath: "gs://kubeflow-models/inception",
       } + if build_image then
@@ -276,12 +276,12 @@
         "--artifacts_dir=" + artifactsDir,
       ];
       local deploy_tf_serving_command = deploy_tf_serving_command_base + [
-        "--deploy_name=inceptionCpu",
+        "--deploy_name=inception-cpu",
         "deploy_model",
         "--params=" + deployParamsList,
       ];
       local deploy_tf_serving_gpu_command = deploy_tf_serving_command_base + [
-        "--deploy_name=inceptionGpu",
+        "--deploy_name=inception-gpu",
         "deploy_model",
         "--params=" + deployGpuParamsList,
       ];
@@ -391,8 +391,8 @@
               }],
             ),  // deploy-tf-serving-gpu
 
-            buildTestTfImageTemplate("test-tf-serving", "inceptionCpu"),
-            buildTestTfImageTemplate("test-tf-serving-gpu", "inceptionGpu"),
+            buildTestTfImageTemplate("test-tf-serving", "inception-cpu"),
+            buildTestTfImageTemplate("test-tf-serving-gpu", "inception-gpu"),
 
             buildTemplate("create-pr-symlink", [
               "python",
