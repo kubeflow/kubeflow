@@ -1,8 +1,4 @@
 {
-  // TODO(https://github.com/ksonnet/ksonnet/issues/222): Taking namespace as an argument is a work around for the fact that ksonnet
-  // doesn't support automatically piping in the namespace from the environment to prototypes.
-  //
-
   all(params):: [
     $.parts(params.namespace).jupyterHubConfigMap(params.jupyterHubAuthenticator, params.disks),
     $.parts(params.namespace).jupyterHubService,

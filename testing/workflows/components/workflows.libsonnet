@@ -60,6 +60,7 @@
         container: {
           command: command,
           image: image,
+          imagePullPolicy: "Always",
           env: [
             {
               // Add the source directories to the python path.
