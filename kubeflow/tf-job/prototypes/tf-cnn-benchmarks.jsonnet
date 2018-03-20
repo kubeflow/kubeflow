@@ -94,7 +94,7 @@ local job =
     if numPs < 1 then
       error "num_ps must be >= 1"
     else
-      tfJob.parts.tfJob(name, namespace, replicas) + {
+      tfJob.parts.tfJob(name, namespace, replicas, null) + {
         spec+: {
           tfImage: image,
           terminationPolicy: { chief: { replicaName: "WORKER", replicaIndex: 0 } },
