@@ -7,8 +7,8 @@ The Kubeflow project is dedicated to making **deployment** of machine learning o
 Contained in this repository are manifests for creating:
 
 * A [**JupyterHub**](https://jupyterhub.readthedocs.io/en/latest/) to create
-  and manage interactive [Jupyter notebooks](http://jupyter.org). 
-  [Project Jupyter](http://jupyter.org/about) is a non-profit, open-source 
+  and manage interactive [Jupyter notebooks](http://jupyter.org).
+  [Project Jupyter](http://jupyter.org/about) is a non-profit, open-source
   project to support interactive data science and scientific computing across
   all programming languages.
 * A **TensorFlow Training Controller** that can be configured to use either CPUs or GPUs and dynamically adjusted to the size of a cluster with a single setting
@@ -67,10 +67,15 @@ If you want to use GPUs, be sure to follow the Kubernetes [instructions for enab
 In order to quickly set up all components, execute the following commands:
 
 ```commandline
-# Initialize a ksonnet APP
+# Create a namespace for kubeflow deployment
+NAMESPACE=kubeflow
+kubectl create namespace ${NAMESPACE}
+
+# Initialize a ksonnet app. Set the namespace for it's default environment.
 APP_NAME=my-kubeflow
 ks init ${APP_NAME}
 cd ${APP_NAME}
+ks env set default --namespace ${NAMESPACE}
 
 # Install Kubeflow components
 ks registry add kubeflow github.com/kubeflow/kubeflow/tree/master/kubeflow
@@ -79,9 +84,7 @@ ks pkg install kubeflow/tf-serving
 ks pkg install kubeflow/tf-job
 
 # Create templates for core components
-NAMESPACE=kubeflow
-kubectl create namespace ${NAMESPACE}
-ks generate core kubeflow-core --name=kubeflow-core --namespace=${NAMESPACE}
+ks generate kubeflow-core kubeflow-core
 
 # If your cluster is running on Azure you will need to set the cloud parameter.
 # If the cluster was created with AKS or ACS choose aks, it if was created
