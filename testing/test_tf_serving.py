@@ -100,8 +100,6 @@ def main():
         time.sleep(5)
       else:
         break
-    logging.info(result)
-    logging.info(type(result))
     logging.info('Got result: {}'.format(str(result)))
     if args.result_path:
       with open(args.result_path) as f:
