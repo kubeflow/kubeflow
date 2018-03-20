@@ -93,7 +93,7 @@ c.KubeSpawner.start_timeout = 60 * 30
 # TODO(jlewi): Verify this works on minikube.
 # TODO(jlewi): Should we set c.KubeSpawner.singleuser_fs_gid = 1000
 # see https://github.com/kubeflow/kubeflow/pull/22#issuecomment-350500944
-pvc_mount = os.environ.get("NOTEBOOK_PVC_MOUNT")
+pvc_mount = os.environ.get('NOTEBOOK_PVC_MOUNT')
 if pvc_mount:
     c.KubeSpawner.user_storage_pvc_ensure = True
     # How much disk space do we want?

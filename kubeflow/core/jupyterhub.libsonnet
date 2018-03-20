@@ -182,7 +182,6 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
                   {
                     name: "NOTEBOOK_PVC_MOUNT",
                     value: notebookPVCMount
-
                   },
                 ]
               },  // jupyterHub container
