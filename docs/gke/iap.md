@@ -60,10 +60,10 @@ The instructions below reference the following environment variables which you w
 
 
 ```
-ks generate cert-manager cert-manager --namespace=${NAMESPACE} --acmeEmail=${ACCOUNT}
+ks generate cert-manager cert-manager --acmeEmail=${ACCOUNT}
 ks apply ${ENVIRONMENT} -c cert-manager
 
-ks generate iap-ingress iap-ingress --ipName=${IP_NAME} --namespace=${NAMESPACE} --hostname=${FQDN}
+ks generate iap-ingress iap-ingress --ipName=${IP_NAME} --hostname=${FQDN}
 ks apply ${ENVIRONMENT} -c iap-ingress
 ```
 
@@ -94,7 +94,7 @@ As a result you will have to repeat the steps below to properly configure IAP.
 The next step is to deploy Envoy as a reverse proxy.
 
 ```
-ks generate iap-envoy iap-envoy --namespace=${NAMESPACE} --audiences=${JWT_AUDIENCE}
+ks generate iap-envoy iap-envoy --audiences=${JWT_AUDIENCE}
 ks apply ${ENVIRONMENT} -c iap-envoy
 ```
 
