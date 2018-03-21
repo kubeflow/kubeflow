@@ -315,10 +315,8 @@
               "--namespace=" + stepsNamespace,
               "--test_dir=" + testDir,
               "--artifacts_dir=" + artifactsDir,
-              "teardown_minikube",
-              "--vm_name=" + vmName,
-              "--zone=" + zone,
-            ]),  // teardown
+              "deploy_kubeflow"
+            ]),  // deploy-kubeflow
             buildTemplate("create-pr-symlink", [
               "python",
               "-m",
