@@ -51,12 +51,16 @@
       local tfOperatorPy = tfOperatorRoot;
 
       // VM to use for minikube.
-      local vmName = if std.length(name) > 61 then
-          // We append a letter becaue it must start with a lowercase letter.
-          // We use a suffix because the suffix contains the random salt.
-          "z" + std.substr(name, std.length(name) - 60, 60)
-        else
-          name;
+      local vmName = 
+        if platform == "minikube" then
+          if std.length(name) > 61 then
+            // We append a letter becaue it must start with a lowercase letter.
+            // We use a suffix because the suffix contains the random salt.
+            "z" + std.substr(name, std.length(name) - 60, 60)
+          else
+            name
+        else 
+          "";
 
       // If we are using minikube we need to set KUBECONFIG to the location of the kubeconfig file.
       local kubeConfigEnv = if platform == "minikube" then
@@ -68,7 +72,11 @@
         [];
       local project = "kubeflow-ci";
       // GKE cluster to use
-      local cluster = "kubeflow-testing";
+      local cluster = 
+        if platform == "gke" then
+          "kubeflow-testing"
+        else 
+          "";
       local zone = "us-east1-d";
       // Build an Argo template to execute a particular command.
       // step_name: Name for the template
@@ -201,7 +209,9 @@
               ["/usr/local/bin/checkout.sh", srcRootDir],
               [{
                 name: "EXTRA_REPOS",
-                value: "kubeflow/tf-operator@HEAD;kubeflow/testing@HEAD",
+                // DO NOT SUBMIT GO BACK TO USING HEAD
+                // value: "kubeflow/tf-operator@HEAD;kubeflow/testing@HEAD",
+                value: "kubeflow/tf-operator@HEAD:485;kubeflow/testing@HEAD:76"
               }],
               [], // no sidecars
             ),

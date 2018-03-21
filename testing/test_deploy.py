@@ -78,6 +78,12 @@ def _setup_test(api_client, run_label):
   return namespace
 
 def create_k8s_client(args):
+  # TODO(jlewi): When using GKE we should copy the .kube config and any other
+  # files to the test directory. We should then set the environment variable
+  # KUBECONFIG to point at that file. This should prevent us from having
+  # to rerun it on each step. Also this would make the handling of credentials
+  # and KUBECONFIG more consistent between GKE and minikube and eventually
+  # these could be extended to other K8s deployments.
   if hasattr(args, "cluster"):
     project = args.project
     cluster_name = args.cluster
