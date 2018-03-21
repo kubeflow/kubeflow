@@ -215,5 +215,10 @@ RUN chown -R $NB_USER:users /etc/jupyter/ && \
     chown -R $NB_USER /home/$NB_USER/ && \
     chmod a+rx /usr/local/bin/*
 
+# tornado 5 has breaking changes (https://github.com/jupyter/notebook/issues/3407)
+# and does not work with the current jupyterhub. Pin tornado to 4.5.3
+# TODO(ankushagarwal): Figure out the right way to fix this
+RUN pip install tornado==4.5.3
+
 USER $NB_USER
 ENV PATH=/home/jovyan/bin:$PATH

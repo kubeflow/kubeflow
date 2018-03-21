@@ -123,13 +123,13 @@
         sidecars: sidecars,
       };  // buildTemplate
       local buildImageTemplate(tf_version, device) = {
-        local image = params.registry + "/tensorflow-notebook-" + tf_version + "-" + device + ":" + params.versionTag,
+        local image = params.registry + "/tensorflow-" + tf_version + "-notebook-" +  device + ":" + params.versionTag,
         local base_image =
           if device == "cpu" then
             "ubuntu:latest"
           // device = gpu
           else if std.startsWith(tf_version, "1.4.") then
-            "nvidia/cuda:8.0-cudnn7-devel-ubuntu16.04"
+            "nvidia/cuda:8.0-cudnn6-devel-ubuntu16.04"
           else
             "nvidia/cuda:9.0-cudnn7-devel-ubuntu16.04",
         local tf_package =
