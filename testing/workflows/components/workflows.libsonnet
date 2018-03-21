@@ -235,7 +235,7 @@
                   {
                     name: "copy-artifacts",
                     template: "copy-artifacts",
-                    dependencies: "teardown",
+                    dependencies: ["teardown"],
                   },
                 ],
               },  // dag
