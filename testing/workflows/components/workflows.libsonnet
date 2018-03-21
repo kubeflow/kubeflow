@@ -56,6 +56,14 @@
         else
           name;
 
+      // If we are using minikube we need to set KUBECONFIG to the location of the kubeconfig file.
+      local kubeConfigEnv = if platform == "minikube" then
+            [{
+              name: "KUBECONFIG",
+              value: testDir + "/.kube/config",
+            },]
+        else
+        [];
       local project = "kubeflow-ci";
       // GKE cluster to use
       local cluster = "kubeflow-testing";
