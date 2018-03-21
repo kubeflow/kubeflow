@@ -229,7 +229,7 @@
               "-m",
               "testing.test_jsonnet",
               "--artifacts_dir=" + artifactsDir,
-              "--test_files_dirs=" + srcDir,
+              "--test_files_dirs=" + srcDir + "/kubeflow",
               "--jsonnet_path_dirs=" + srcDir,
             ]),  // jsonnet-test
             buildTemplate("tfjob-test", [
