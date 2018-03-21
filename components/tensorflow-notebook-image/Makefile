@@ -20,7 +20,7 @@ IMAGE=tensorflow-notebook
 
 define container
 	docker build --pull --build-arg "BASE_IMAGE=ubuntu:latest" --build-arg "TF_PACKAGE=tf-nightly" -t $(1)/${IMAGE}-cpu:${TAG} -f Dockerfile .
-	docker build --pull --build-arg "BASE_IMAGE=nvidia/cuda:8.0-cudnn6-devel-ubuntu16.04" --build-arg "TF_PACKAGE=tf-nightly-gpu" -t $(1)/${IMAGE}-gpu:${TAG} -f Dockerfile .
+	docker build --pull --build-arg "BASE_IMAGE=nvidia/cuda:9.0-cudnn7-devel-ubuntu16.04" --build-arg "TF_PACKAGE=tf-nightly-gpu" -t $(1)/${IMAGE}-gpu:${TAG} -f Dockerfile .
 endef
 
 all:
