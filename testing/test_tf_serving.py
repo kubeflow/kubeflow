@@ -91,7 +91,7 @@ def main():
     result = None
     while True:
       try:
-        result = stub.Predict(request, 10.0)  # 10 secs timeout
+        result = str(stub.Predict(request, 10.0))  # 10 secs timeout
       except Exception as e:
         num_try += 1
         if num_try > 3:
@@ -100,12 +100,12 @@ def main():
         time.sleep(5)
       else:
         break
-    logging.info('Got result: {}'.format(str(result)))
+    logging.info('Got result: {}'.format(result))
     if args.result_path:
       with open(args.result_path) as f:
         expected_result = f.read()
         logging.info('Expected result: {}'.format(expected_result))
-        assert(expected_result == str(result))
+        assert(expected_result == result)
   except Exception as e:
     t.failure = "Test failed; " + e.message
     raise

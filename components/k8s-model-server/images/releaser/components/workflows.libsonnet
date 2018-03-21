@@ -357,39 +357,11 @@
             buildTemplate(
               "deploy-tf-serving",
               deploy_tf_serving_command,
-              [
-                {
-                  name: "DOCKER_HOST",
-                  value: "127.0.0.1",
-                },
-              ],
-              [{
-                name: "dind",
-                image: "docker:17.10-dind",
-                securityContext: {
-                  privileged: true,
-                },
-                mirrorVolumeMounts: true,
-              }],
-            ),  // deploy-tf-serving
+            ),
             buildTemplate(
               "deploy-tf-serving-gpu",
               deploy_tf_serving_gpu_command,
-              [
-                {
-                  name: "DOCKER_HOST",
-                  value: "127.0.0.1",
-                },
-              ],
-              [{
-                name: "dind",
-                image: "docker:17.10-dind",
-                securityContext: {
-                  privileged: true,
-                },
-                mirrorVolumeMounts: true,
-              }],
-            ),  // deploy-tf-serving-gpu
+            ),
 
             buildTestTfImageTemplate("test-tf-serving", "inception-cpu",
                 "/components/k8s-model-server/images/test-worker/result.txt"),
