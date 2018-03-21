@@ -166,15 +166,6 @@ def deploy_kubeflow(args):
   util.run(["ks", "generate", "core", "kubeflow-core", "--name=kubeflow-core",
             "--namespace=" + namespace], cwd=app_dir)
 
-  # TODO(jlewi): For reasons I don't understand even though we ran
-  # configure_kubectl above, if we don't rerun it we get rbac errors
-  # when we do ks apply; I think because we aren't using the proper service
-  # account. This might have something to do with the way ksonnet gets
-  # its credentials; maybe we need to configure credentials after calling
-  # ks init?
-  if args.cluster:
-    util.configure_kubectl(args.project, args.zone, args.cluster)
-
   apply_command = ["ks", "apply", "default", "-c", "kubeflow-core",]
 
   util.run(apply_command, cwd=app_dir)
