@@ -247,7 +247,7 @@
                 name: "EXTRA_REPOS",
                 // DO NOT SUBMIT GO BACK TO USING HEAD
                 // value: "kubeflow/tf-operator@HEAD;kubeflow/testing@HEAD",
-                value: "kubeflow/tf-operator@HEAD:485;kubeflow/testing@HEAD:76",
+                value: "kubeflow/tf-operator@HEAD:485;kubeflow/testing@HEAD:79",
               }],
               [],  // no sidecars
             ),
