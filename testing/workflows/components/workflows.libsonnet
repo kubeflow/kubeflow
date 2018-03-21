@@ -180,7 +180,7 @@
                     },
 
                     local minikubeSetup = {
-                      name: "setup-minikiube",
+                      name: "setup-minikube",
                       template: "setup-minikube",
                       dependencies: ["checkout"],
                     },
@@ -219,7 +219,7 @@
                   {
                     name: "jsonnet-test",
                     template: "jsonnet-test",
-                    dependencies: ["deploy-kubeflow"],
+                    dependencies: ["checkout"],
                   },
                 ],  // tasks
               },  // dag
