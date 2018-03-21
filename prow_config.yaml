@@ -1,9 +1,18 @@
 # This file configures the workflows to trigger in our Prow jobs.
 # see kubeflow/testing/py/run_e2e_workflow.py
 workflows:
+  # Run tests on GKE
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: workflows
-    name: kubeflow-e2e
+    name: kubeflow-e2e-gke
+    params:
+      platform: gke
+  # Run tests on minikube
+  - app_dir: kubeflow/kubeflow/testing/workflows
+    component: workflows
+    name: kubeflow-e2e-minikube
+    params:
+      platform: minikube
   - app_dir: kubeflow/kubeflow/components/k8s-model-server/images/releaser
     component: workflows
     name: tf-serving-image

@@ -506,13 +506,7 @@ def main():  # pylint: disable=too-many-locals
     required=True,
     type=str,
     help="The name of the VM to use.")
-  
-  parser_minikube.add_argument(
-    "--zone",
-    required=True,
-    type=str,
-    help="The zone to deploy the VM in.")
-  
+    
   parser_teardown_minikube = subparsers.add_parser(
     "teardown_minikube",
     help="Delete the VM running minikube.")
@@ -524,13 +518,6 @@ def main():  # pylint: disable=too-many-locals
     required=True,
     type=str,
     help="The name of the VM to use.")
-  
-  parser_teardown_minikube.add_argument(
-    "--zone",
-    required=True,
-    type=str,
-    help="The zone to deploy the VM in.")
-  
 
   args = parser.parse_args()
 

@@ -21,7 +21,7 @@
 
   parts(namespace, name):: {
     // Workflow to run the e2e test.
-    e2e(prow_env, bucket):
+    e2e(prow_env, bucket, platform="minikube"):
       // The name for the workspace to run the steps in
       local stepsNamespace = name;
       // mountPath is the directory where the volume to store the test data
@@ -47,6 +47,9 @@
       local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
       local tfOperatorRoot = srcRootDir + "/kubeflow/tf-operator";
       local tfOperatorPy = tfOperatorRoot;
+
+      // VM to use for minikube.
+      local vmName = name + "-minikube";
 
       local project = "kubeflow-ci";
       // GKE cluster to use
@@ -103,8 +106,7 @@
         metadata: {
           name: name,
           namespace: namespace,
-        },
-        // TODO(jlewi): Use OnExit to run cleanup steps.
+        },        
         spec: {
           entrypoint: "e2e",
           volumes: [
@@ -140,7 +142,9 @@
                 [
                   {
                     name: "setup",
-                    template: "setup",
+                    template: if platform == "gke" then
+                      "setup" 
+                      else "setup-minikube",
                   },
                   {
                     name: "create-pr-symlink",
@@ -165,7 +169,10 @@
                 [
                   {
                     name: "teardown",
-                    template: "teardown",
+                    template:
+                      if platform == "gke" then
+                        "teardown" 
+                      else "teardown-minikube",
                   },
                 ],
                 [{
@@ -183,6 +190,7 @@
               }],
               [], // no sidecars
             ),
+            // Setup and teardown using GKE.
             buildTemplate("setup", [
               "python",
               "-m",
@@ -206,6 +214,33 @@
               "--test_dir=" + testDir,
               "--artifacts_dir=" + artifactsDir,
               "teardown",
+            ]),  // teardown
+            // Setup and teardown using minikube
+            buildTemplate("setup-minikube", [
+              "python",
+              "-m",
+              "testing.test_deploy",
+              "--cluster=" + cluster,
+              "--zone=" + zone,
+              "--project=" + project,
+              "--namespace=" + stepsNamespace,
+              "--test_dir=" + testDir,
+              "--artifacts_dir=" + artifactsDir,
+              "deploy_minikube",
+              "--vm_name=" + vmName,              
+            ]),  // setup
+            buildTemplate("teardown-minikube", [
+              "python",
+              "-m",
+              "testing.test_deploy",
+              "--project=" + project,
+              "--cluster=" + cluster,
+              "--namespace=" + stepsNamespace,
+              "--zone=" + zone,
+              "--test_dir=" + testDir,
+              "--artifacts_dir=" + artifactsDir,
+              "teardown_minikube",
+              "--vm_name=" + vmName,
             ]),  // teardown
             buildTemplate("create-pr-symlink", [
               "python",
