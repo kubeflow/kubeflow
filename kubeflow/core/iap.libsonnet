@@ -9,9 +9,10 @@
     // We do this because updating the ingress causes the backend service to change which disables IAP
     // and changes the backend service which is used for the JWT audience.
     // So we want to avoid updating the ingress when updating the Envoy pods or other backend services.
-    ingressParts(secretName, ipName, hostname):: std.prune(k.core.v1.list.new([
+    ingressParts(secretName, ipName, hostname, issuer):: std.prune(k.core.v1.list.new([
       $.parts(namespace).service,
       $.parts(namespace).ingress(secretName, ipName, hostname),
+      $.parts(namespace).certificate(secretName, hostname, issuer),
     ])),
 
     envoy(envoyImage, audiences, disableJwt):: std.prune(k.core.v1.list.new([
@@ -493,6 +494,8 @@
         name: "envoy-ingress",
         namespace: namespace,
         annotations: {
+          "kubernetes.io/tls-acme": "true",
+          "ingress.kubernetes.io/ssl-redirect": "true",
           "kubernetes.io/ingress.global-static-ip-name": ipName,
         },
       },
@@ -523,5 +526,37 @@
         ],
       },
     },  // iapIngress
+
+    certificate(secretName, hostname, issuer):: {
+      apiVersion: "certmanager.k8s.io/v1alpha1",
+      kind: "Certificate",
+      metadata: {
+        name: secretName,
+        namespace: namespace
+      },
+        
+      spec: {
+        secretName: secretName,
+        issuerRef: {
+          name: issuer,
+        },
+        commonName: hostname,
+        dnsNames: [
+          hostname,
+        ],
+        acme:{
+          config: [
+            {
+              http01: {
+                ingress: "envoy-ingress",
+              },
+              domains: [
+                hostname,
+              ],
+            },
+          ],
+        },
+      },
+    }, // certificate
   },  // parts
 }

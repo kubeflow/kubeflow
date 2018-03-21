@@ -412,6 +412,7 @@ def main():  # pylint: disable=too-many-locals
                                 datefmt="%Y-%m-%dT%H:%M:%S")
   file_handler.setFormatter(formatter)
   logging.info("Logging to %s", test_log)
+  util.run(["ks", "version"])
 
   util.maybe_activate_service_account()
 

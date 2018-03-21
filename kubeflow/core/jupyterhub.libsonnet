@@ -1,12 +1,6 @@
 {
-  // TODO(https://github.com/ksonnet/ksonnet/issues/222): Taking namespace as an argument is a work around for the fact that ksonnet
-  // doesn't support automatically piping in the namespace from the environment to prototypes.
-  //
-  // TODO(jlewi): We should refactor this to have multiple prototypes; having 1 without any extra volumes and than
-  // a with volumes option.
-
   all(params):: [
-    $.parts(params.namespace).jupyterHubConfigMap(params.kubeSpawner),
+    $.parts(params.namespace).jupyterHubConfigMap(params.jupyterHubAuthenticator, params.disks),
     $.parts(params.namespace).jupyterHubService,
     $.parts(params.namespace).jupyterHubLoadBalancer(params.jupyterHubServiceType),
     $.parts(params.namespace).jupyterHub(params.jupyterHubImage),
@@ -16,8 +10,14 @@
   ],
 
   parts(namespace):: {
+    jupyterHubConfigMap(jupyterHubAuthenticator, disks): {
+      local util = import "kubeflow/core/util.libsonnet",
+      local diskNames = util.toArray(disks),
+      local kubeSpawner = $.parts(namespace).kubeSpawner(jupyterHubAuthenticator, diskNames),
+      result:: $.parts(namespace).jupyterHubConfigMapWithSpawner(kubeSpawner),
+    }.result,
+
     kubeSpawner(authenticator, volumeClaims=[]): {
-      // TODO(jlewi): We should make the default Docker image configurable
       // TODO(jlewi): We should make whether we use PVC configurable.
       local baseKubeConfigSpawner = importstr "jupyterhub_spawner.py",
 
@@ -78,34 +78,11 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
       },
     },
 
-    jupyterHubConfigMap(spawner): baseJupyterHubConfigMap {
+    jupyterHubConfigMapWithSpawner(spawner): baseJupyterHubConfigMap {
       data: {
         "jupyterhub_config.py": spawner,
       },
     },
-
-    jupyterHubConfigMapWithVolumes(volumeClaims): {
-      local volumes = std.map(function(v)
-        {
-          name: v,
-          persistentVolumeClaim: {
-            claimName: v,
-          },
-        }, volumeClaims),
-
-
-      local volumeMounts = std.map(function(v)
-        {
-          mountPath: "/mnt/" + v,
-          name: v,
-        }, volumeClaims),
-
-      config: baseJupyterHubConfigMap {
-        data: {
-          // "jupyterhub_config.py": extendedBaseKubeConfigSpawner,
-        },
-      },
-    }.config,
 
     jupyterHubService: {
       apiVersion: "v1",

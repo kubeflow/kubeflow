@@ -23,13 +23,13 @@ echo "Running auto-format from '$(pwd)' directory"
 # 2 spaces vertical indentation
 # Use double quotes for strings
 # Use // for comments
-find $(pwd) -iregex ".*\.jsonnet$" -exec \
+find "$(pwd)/kubeflow" -iregex ".*\.jsonnet$" -exec \
   jsonnet fmt {} -i \
   --string-style d \
   --comment-style s \
   --indent 2 ";"
 
-find $(pwd) -iregex ".*\.libsonnet$" -exec \
+find "$(pwd)/kubeflow" -iregex ".*\.libsonnet$" -exec \
   jsonnet fmt {} -i \
   --string-style d \
   --comment-style s \

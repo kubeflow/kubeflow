@@ -2,7 +2,6 @@
   // Parameters are intended to be late bound.
   params:: {
     name: null,
-    namespace: null,
     numGpus: 0,
     labels: {
       app: $.params.name,
@@ -31,7 +30,7 @@
     s3Enable:: false,
 
     // Which cloud to use
-    cloud:: null
+    cloud:: null,
   },
 
   // Parametes specific to GCP.
@@ -75,7 +74,7 @@
       // to be enabled simultaneously. This should be doable because
       // each entails adding a set of environment variables and volumes
       // to the containers. These volumes/environment variables shouldn't
-      // overlap so there's no reason we shouldn't be able to just add 
+      // overlap so there's no reason we shouldn't be able to just add
       // both modifications to the base container.
       // I think we want to restructure things as mixins so they can just
       // be added.
@@ -292,12 +291,12 @@
     tfServingContainer: $.parts.tfServingContainer {
       env+: $.gcpParts.gcpEnv,
       volumeMounts+: [
-	      if $.gcpParams.gcpCredentialSecretName != "" then
+        if $.gcpParams.gcpCredentialSecretName != "" then
           {
             name: "gcp-credentials",
             mountPath: "/secret/gcp-credentials",
           },
-      ]
+      ],
     },
 
     tfDeployment: $.parts.tfDeployment {
@@ -311,15 +310,15 @@
                 $.parts.httpProxyContainer,
             ],
 
-      	    volumes: [
-      	      if $.gcpParams.gcpCredentialSecretName != "" then
-      	        {
-      	          name: "gcp-credentials",
-      	          secret: {
-      	            secretName: $.gcpParams.gcpCredentialSecretName,
-      	          }
-      	        },
-      	    ]
+            volumes: [
+              if $.gcpParams.gcpCredentialSecretName != "" then
+                {
+                  name: "gcp-credentials",
+                  secret: {
+                    secretName: $.gcpParams.gcpCredentialSecretName,
+                  },
+                },
+            ],
           },
         },
       },

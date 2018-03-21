@@ -36,7 +36,7 @@
       local srcRootDir = testDir + "/src";
       // The directory containing the kubeflow/kubeflow repo
       local srcDir = srcRootDir + "/kubeflow/kubeflow";
-      local image = "gcr.io/mlkube-testing/test-worker:latest";
+      local image = "gcr.io/kubeflow-ci/test-worker:latest";
       // The name of the NFS volume claim to use for test files.
       local nfsVolumeClaim = "nfs-external";
       // The name to use for the volume to use to contain test data.
@@ -60,6 +60,7 @@
         container: {
           command: command,
           image: image,
+          imagePullPolicy: "Always",
           env: [
             {
               // Add the source directories to the python path.
@@ -152,6 +153,10 @@
                     name: "tfjob-test",
                     template: "tfjob-test",
                   },
+                  {
+                    name: "jsonnet-test",
+                    template: "jsonnet-test",
+                  },
                 ],
               ],
             },
@@ -219,6 +224,14 @@
               "copy_artifacts",
               "--bucket=" + bucket,
             ]),  // copy-artifacts
+            buildTemplate("jsonnet-test", [
+              "python",
+              "-m",
+              "testing.test_jsonnet",
+              "--artifacts_dir=" + artifactsDir,
+              "--test_files_dirs=" + srcDir + "/kubeflow/core/tests",
+              "--jsonnet_path_dirs=" + srcDir,
+            ]),  // jsonnet-test
             buildTemplate("tfjob-test", [
               "python",
               "-m",
