@@ -123,7 +123,7 @@
         sidecars: sidecars,
       };  // buildTemplate
       local buildImageTemplate(tf_version, device) = {
-        local image = params.registry + "/tensorflow-notebook-" + device + ":" + tf_version + "-" + params.versionTag,
+        local image = params.registry + "/tensorflow-notebook-" + tf_version + "-" + device + ":" + params.versionTag,
         local base_image =
           if device == "cpu" then
             "ubuntu:latest"
