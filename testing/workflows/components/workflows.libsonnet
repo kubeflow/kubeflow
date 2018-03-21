@@ -49,7 +49,12 @@
       local tfOperatorPy = tfOperatorRoot;
 
       // VM to use for minikube.
-      local vmName = name + "-minikube";
+      local vmName = if std.length(name) > 61 then
+          // We append a letter becaue it must start with a lowercase letter.
+          // We use a suffix because the suffix contains the random salt.
+          "z" + std.substr(name, std.length(name) - 60, 60)
+        else
+          name;
 
       local project = "kubeflow-ci";
       // GKE cluster to use
