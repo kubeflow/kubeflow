@@ -41,6 +41,7 @@ from googleapiclient import errors
 
 from kubernetes import client as k8s_client
 from kubernetes.client import rest
+from kubernetes.config import kube_config
 from kubernetes.config import incluster_config
 
 from testing import vm_util
@@ -77,24 +78,7 @@ def _setup_test(api_client, run_label):
 
   return namespace
 
-def create_k8s_client(args):
-  # TODO(jlewi): When using GKE we should copy the .kube config and any other
-  # files to the test directory. We should then set the environment variable
-  # KUBECONFIG to point at that file. This should prevent us from having
-  # to rerun it on each step. Also this would make the handling of credentials
-  # and KUBECONFIG more consistent between GKE and minikube and eventually
-  # these could be extended to other K8s deployments.
-  if hasattr(args, "cluster"):
-    project = args.project
-    cluster_name = args.cluster
-    zone = args.zone
-    logging.info("Using cluster: %s in project: %s in zone: %s",
-                 cluster_name, project, zone)
-    # Print out config to help debug issues with accounts and
-    # credentials.
-    util.run(["gcloud", "config", "list"])
-    util.configure_kubectl(project, zone, cluster_name)
-  
+def create_k8s_client(args):  
   util.load_kube_config()
   
   # Create an API client object to talk to the K8s master.
@@ -156,8 +140,22 @@ def setup_kubeflow_ks_app(args, api_client):
 
   return app_dir
 
-def setup(args):
-  """Test deploying Kubeflow."""
+def get_gke_credentials(args):
+  """Configure kubeconfig to talk to the supplied GKE cluster."""
+  config_file = os.path.expanduser(kube_config.KUBE_CONFIG_DEFAULT_LOCATION)
+  logging.info("Using Kubernetes config file: %s", config_file)  
+  project = args.project
+  cluster_name = args.cluster
+  zone = args.zone
+  logging.info("Using cluster: %s in project: %s in zone: %s",
+               cluster_name, project, zone)
+  # Print out config to help debug issues with accounts and
+  # credentials.
+  util.run(["gcloud", "config", "list"])
+  util.configure_kubectl(project, zone, cluster_name)
+
+def deploy_kubeflow(args):
+  """Deploy Kubeflow."""
   api_client = create_k8s_client(args)
   app_dir = setup_kubeflow_ks_app(args, api_client)
 
@@ -448,12 +446,6 @@ def main():  # pylint: disable=too-many-locals
     help=("The namespace to use."))
 
   parser.add_argument(
-    "--zone",
-    default="us-east1-d",
-    type=str,
-    help="The zone for the cluster.")
-
-  parser.add_argument(
     "--github_token",
     default=None,
     type=str,
@@ -465,31 +457,36 @@ def main():  # pylint: disable=too-many-locals
 
   subparsers = parser.add_subparsers()
 
-  parser_setup = subparsers.add_parser(
-    "setup",
-    help="setup the test infrastructure.")
+  parser_gke = subparsers.add_parser(
+    "get_gke_credentials",
+    help="Configure kubectl for a GKE cluster.")
 
-  parser_setup.set_defaults(func=setup)
+  parser_gke.set_defaults(func=get_gke_credentials)
   
-  parser_setup.add_argument(
+  parser_gke.add_argument(
     "--cluster",
     default=None,
     type=str,
     help=("The name of the cluster. If not set assumes the "
           "script is running in a cluster and uses that cluster."))
+
+  parser_gke.add_argument(
+    "--zone",
+    default="us-east1-d",
+    type=str,
+    help="The zone for the cluster.")
 
   parser_teardown = subparsers.add_parser(
     "teardown",
     help="teardown the test infrastructure.")
 
-  parser_teardown.add_argument(
-    "--cluster",
-    default=None,
-    type=str,
-    help=("The name of the cluster. If not set assumes the "
-          "script is running in a cluster and uses that cluster."))
-
   parser_teardown.set_defaults(func=teardown)
+
+  parser_kubeflow = subparsers.add_parser(
+    "deploy_kubeflow",
+    help="Deploy kubeflow.")
+
+  parser_kubeflow.set_defaults(func=deploy_kubeflow)
 
   parser_tf_serving = subparsers.add_parser(
     "deploy_model",
@@ -514,12 +511,24 @@ def main():  # pylint: disable=too-many-locals
     required=True,
     type=str,
     help="The name of the VM to use.")
+
+  parser_minikube.add_argument(
+    "--zone",
+    default="us-east1-d",
+    type=str,
+    help="The zone for the cluster.")
     
   parser_teardown_minikube = subparsers.add_parser(
     "teardown_minikube",
     help="Delete the VM running minikube.")
   
   parser_teardown_minikube.set_defaults(func=teardown_minikube)
+
+  parser_teardown_minikube.add_argument(
+    "--zone",
+    default="us-east1-d",
+    type=str,
+    help="The zone for the cluster.")
 
   parser_teardown_minikube.add_argument(
     "--vm_name",

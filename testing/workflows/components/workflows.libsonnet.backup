@@ -166,24 +166,24 @@
                   },
 
                   {
-                    local gkeSetup = {
+                    local gkeSetup:: {
                       name: "setup-gke",
-                      template: "setup-gke",
+                      template: "setup-gke,
                       dependencies: ["checkout"],
                     },
 
-                    local minikubeSetup = {
-                      name: "setup-minikiube",
+                    local minikubeSetup:: {
+                      name: "setup-minikiube", 
                       template: "setup-minikube",
                       dependencies: ["checkout"],
-                    },
+                    }
 
-                    result:: if platform == "minikube" then
+                    result:: if platform== "minikube" then
                       minikubeSetup
-                    else
-                      gkeSetup,
+                      else 
+                        gkeSetup,
 
-                  }.result,
+                  }.result
                   {
                     name: "create-pr-symlink",
                     template: "create-pr-symlink",
