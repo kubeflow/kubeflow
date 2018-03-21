@@ -129,6 +129,13 @@
         metadata: {
           name: name,
           namespace: namespace,
+          labels: {
+            org: "kubeflow",
+            repo: "kubeflow",
+            workflow: "e2e",
+            // TODO(jlewi): Add labels for PR number and commit. Need to write a function
+            // to convert list of environment variables to labels.
+          }, 
         },
         spec: {
           entrypoint: "e2e",
