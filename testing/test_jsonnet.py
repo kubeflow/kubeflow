@@ -38,30 +38,32 @@ import argparse
 from kubeflow.testing import test_util
 from kubeflow.testing import util
 
-# is_ksonnet_prototype checks if the directory which
-# contains the file f is equal to 'prototypes'
-def is_ksonnet_prototype(f):
+# We should test all files which end in .jsonnet or .libsonnet
+# except ksonnet prototype definitions - they require additional
+# dependencies
+def should_test(f):
+  parts = f.split('.')
+  if parts[-1] != 'jsonnet' and parts[-1] != 'libsonnet':
+    return False
   parts = f.split('/')
   if len(parts) < 2:
     raise ValueError('Invalid file : {}'.format(f))
-  return parts[-2] == 'prototypes'
+  return parts[-2] != 'prototypes'
 
 def run(test_files_dirs, jsonnet_path_args, t):
   # Go through each jsonnet file in test_files_dirs and run jsonnet eval
   for test_files_dir in test_files_dirs:
-    for test_file in glob.glob(test_files_dir + '/**/*.jsonnet', recursive=True) + glob.glob(test_files_dir + '/**/*.libsonnet', recursive=True):
-      # Don't test ksonnet prototypes
-      # because they have additional deps
-      if is_ksonnet_prototype(test_file):
-        continue
-      filename=os.path.basename(test_file)
-      logging.info("Testing: %s", filename)
-      try:
-        util.run(['jsonnet', 'eval', test_file] + jsonnet_path_args, cwd=os.path.dirname(test_file))
-      except Exception as e:
-        t.failure = '{} test failed'.format(filename)
-        logging.error('%s test failed. See Subprocess output for details.', filename)
-        raise
+    for root, _, files in os.walk(test_files_dir):
+      for test_file in files:
+        full_path = os.path.join(root, test_file)
+        if should_test(full_path):
+          logging.info("Testing: %s", test_file)
+          try:
+            util.run(['jsonnet', 'eval', full_path] + jsonnet_path_args, cwd=os.path.dirname(full_path))
+          except Exception as e:
+            t.failure = '{} test failed'.format(test_file)
+            logging.error('%s test failed. See Subprocess output for details.', test_file)
+            raise
 
 
 def main():  # pylint: disable=too-many-locals
