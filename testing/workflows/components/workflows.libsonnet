@@ -105,7 +105,7 @@
                 },
               },
             },
-          ] + prow_env + env_vars,
+          ] + prow_env + env_vars + kubeConfigEnv,
           volumeMounts: [
             {
               name: dataVolume,
