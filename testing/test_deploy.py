@@ -78,7 +78,7 @@ def _setup_test(api_client, run_label):
   return namespace
 
 def create_k8s_client(args):
-  if args.cluster:
+  if hasattr(args, "cluster"):
     project = args.project
     cluster_name = args.cluster
     zone = args.zone
@@ -88,13 +88,9 @@ def create_k8s_client(args):
     # credentials.
     util.run(["gcloud", "config", "list"])
     util.configure_kubectl(project, zone, cluster_name)
-    util.load_kube_config()
-  else:
-    # TODO(jlewi): This is sufficient for API access but it doesn't create
-    # a kubeconfig file which ksonnet needs for ks init.
-    logging.info("Running inside cluster.")
-    incluster_config.load_incluster_config()
-
+  
+  util.load_kube_config()
+  
   # Create an API client object to talk to the K8s master.
   api_client = k8s_client.ApiClient()
 
@@ -440,13 +436,6 @@ def main():  # pylint: disable=too-many-locals
     help="The project to use.")
 
   parser.add_argument(
-    "--cluster",
-    default=None,
-    type=str,
-    help=("The name of the cluster. If not set assumes the "
-          "script is running in a cluster and uses that cluster."))
-
-  parser.add_argument(
     "--namespace",
     required=True,
     type=str,
@@ -475,10 +464,24 @@ def main():  # pylint: disable=too-many-locals
     help="setup the test infrastructure.")
 
   parser_setup.set_defaults(func=setup)
+  
+  parser_setup.add_argument(
+    "--cluster",
+    default=None,
+    type=str,
+    help=("The name of the cluster. If not set assumes the "
+          "script is running in a cluster and uses that cluster."))
 
   parser_teardown = subparsers.add_parser(
     "teardown",
     help="teardown the test infrastructure.")
+
+  parser_teardown.add_argument(
+    "--cluster",
+    default=None,
+    type=str,
+    help=("The name of the cluster. If not set assumes the "
+          "script is running in a cluster and uses that cluster."))
 
   parser_teardown.set_defaults(func=teardown)
 
