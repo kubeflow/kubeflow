@@ -122,8 +122,9 @@
         },
         sidecars: sidecars,
       };  // buildTemplate
-      local buildImageTemplate(tf_version, device) = {
-        local image = params.registry + "/tensorflow-" + tf_version + "-notebook-" +  device + ":" + params.versionTag,
+      local buildImageTemplate(tf_version, device, is_latest=true) = {
+        local image = params.registry + "/tensorflow-" + tf_version + "-notebook-" +  device,
+        local tag = params.versionTag,
         local base_image =
           if device == "cpu" then
             "ubuntu:latest"
@@ -150,6 +151,8 @@
             notebookDir + "build_image.sh "
             + notebookDir + "Dockerfile" + " "
             + image + " "
+            + tag + " "
+            + std.toString(is_latest) + " "
             + base_image + " "
             + tf_package,
           ],
