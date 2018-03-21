@@ -224,7 +224,7 @@ ambassador.parts(params.namespace).deploy,
 }) &&
 
 std.assertEqual(
-ambassador.parts(params.namespace).k8sDashboard,
+ambassador.parts(params.namespace).k8sDashboard("cloud"),
 {
    "apiVersion": "v1",
    "kind": "Service",
