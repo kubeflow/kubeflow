@@ -47,6 +47,9 @@ Create an OAuth Client ID to be used to identify IAP when requesting acces to us
 If you haven't already, follow the instructions in the [user_guide](https://github.com/kubeflow/kubeflow/blob/master/user_guide.md#deploy-kubeflow)
 to create a ksonnet app to deploy Kubeflow.
 
+Your GKE cluster permissions should include the `https://www.googleapis.com/auth/compute` scope and a service account with the `editor` or `compute.admin` IAM role. This is the default configuration for GKE clusters version 1.9.x and earlier.
+Follow [this guide](https://medium.com/google-cloud/updating-google-container-engine-vm-scopes-with-zero-downtime-50bff87e5f80) if you need to modify the scopes of your cluster and the [IAM docs](https://cloud.google.com/iam/docs/granting-changing-revoking-access) for details on how to apply roles.
+
 [cert-manager](https://github.com/jetstack/cert-manager) is used to automatically request valid SSL certifiactes using the [ACME](https://en.wikipedia.org/wiki/Automated_Certificate_Management_Environment) issuer.
 
 The instructions below reference the following environment variables which you will need to set for your deployment

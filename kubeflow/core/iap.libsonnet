@@ -310,8 +310,6 @@
 
           JWT_AUDIENCE="/projects/${PROJECT_NUM}/global/backendServices/${BACKEND_ID}"
 
-          [ -z ${JWT_AUDIENCE} ] && echo "Error JWT_AUDIENCE couldn't be set" && exit 1
-
           echo JWT_AUDIENCE=${JWT_AUDIENCE}
 
           kubectl get configmap -n ${NAMESPACE} envoy-config -o json | \
