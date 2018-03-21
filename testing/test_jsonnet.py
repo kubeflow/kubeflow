@@ -38,14 +38,26 @@ import argparse
 from kubeflow.testing import test_util
 from kubeflow.testing import util
 
+# is_ksonnet_prototype checks if the directory which
+# contains the file f is equal to 'prototypes'
+def is_ksonnet_prototype(f):
+  parts = f.split('/')
+  if len(parts) < 2:
+    raise ValueError('Invalid file : {}'.format(f))
+  return parts[-2] == 'prototypes'
+
 def run(test_files_dirs, jsonnet_path_args, t):
   # Go through each jsonnet file in test_files_dirs and run jsonnet eval
   for test_files_dir in test_files_dirs:
-    for test_file in glob.glob(test_files_dir + '/*.jsonnet'):
+    for test_file in glob.glob(test_files_dir + '/**/*.jsonnet', recursive=True) + glob.glob(test_files_dir + '/**/*.libsonnet', recursive=True):
+      # Don't test ksonnet prototypes
+      # because they have additional deps
+      if is_ksonnet_prototype(test_file):
+        continue
       filename=os.path.basename(test_file)
-      logging.info("Running test: %s", filename)
+      logging.info("Testing: %s", filename)
       try:
-        util.run(['jsonnet', 'eval', filename] + jsonnet_path_args, cwd=test_files_dir)
+        util.run(['jsonnet', 'eval', test_file] + jsonnet_path_args, cwd=os.path.dirname(test_file))
       except Exception as e:
         t.failure = '{} test failed'.format(filename)
         logging.error('%s test failed. See Subprocess output for details.', filename)
