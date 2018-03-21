@@ -377,7 +377,6 @@ def deploy_minikube(args):
     
   vm_util.wait_for_vm(args.project, args.zone, args.vm_name)
   vm_util.execute_script(args.project, args.zone, args.vm_name, install_script)
-  vm_util.execute(args.project, args.zone, args.vm_name, ["sudo minikube start --vm-driver=none --disk-size=40g"])
     
   # Copy the .kube and .minikube files to test_dir  
   for target in ["~/.kube"]:
