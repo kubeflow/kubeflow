@@ -221,7 +221,7 @@ def deploy_model(args):
 
   if not cluster_ip:
     raise ValueError("inception service wasn't assigned a cluster ip.")
-  util.wait_for_deployment(api_client, namespace, args.deploy_name, timeout_minutes=6)
+  util.wait_for_deployment(api_client, namespace, args.deploy_name, timeout_minutes=10)
   logging.info("Verified TF serving started.")
 
 def teardown(args):
@@ -555,8 +555,9 @@ def main():  # pylint: disable=too-many-locals
   if not args.artifacts_dir:
     args.artifacts_dir = args.test_dir
 
-  test_log = os.path.join(args.artifacts_dir, "logs",
-                          "test_deploy." + args.func.__name__ + ".log.txt")
+  test_log = os.path.join(
+      args.artifacts_dir, "logs",
+      "test_deploy." + args.func.__name__ + args.deploy_name + ".log.txt")
   if not os.path.exists(os.path.dirname(test_log)):
     os.makedirs(os.path.dirname(test_log))
 
