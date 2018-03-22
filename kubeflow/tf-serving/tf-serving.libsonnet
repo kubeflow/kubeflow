@@ -2,7 +2,6 @@
   // Parameters are intended to be late bound.
   params:: {
     name: null,
-    namespace: null,
     numGpus: 0,
     labels: {
       app: $.params.name,

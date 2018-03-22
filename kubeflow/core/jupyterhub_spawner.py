@@ -83,8 +83,8 @@ c.JupyterHub.spawner_class = KubeFormSpawner
 c.KubeSpawner.singleuser_image_spec = 'gcr.io/kubeflow/tensorflow-notebook'
 c.KubeSpawner.cmd = 'start-singleuser.sh'
 c.KubeSpawner.args = ['--allow-root']
-# First pulls can be really slow, so let's give it a big timeout
-c.KubeSpawner.start_timeout = 60 * 10
+# gpu images are very large ~15GB. need a large timeout.
+c.KubeSpawner.start_timeout = 60 * 30
 
 ###################################################
 ### Persistent volume options
@@ -111,4 +111,3 @@ c.KubeSpawner.volume_mounts = [
     'name': 'volume-{username}{servername}'
   }
 ]
-

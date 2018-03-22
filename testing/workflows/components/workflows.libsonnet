@@ -60,6 +60,7 @@
         container: {
           command: command,
           image: image,
+          imagePullPolicy: "Always",
           env: [
             {
               // Add the source directories to the python path.
@@ -228,7 +229,8 @@
               "-m",
               "testing.test_jsonnet",
               "--artifacts_dir=" + artifactsDir,
-              "--test_files_dir=" + srcDir + "/kubeflow/core/tests",
+              "--test_files_dirs=" + srcDir + "/kubeflow",
+              "--jsonnet_path_dirs=" + srcDir,
             ]),  // jsonnet-test
             buildTemplate("tfjob-test", [
               "python",

@@ -55,8 +55,6 @@
 
       local stepsNamespace = name;
 
-      local cpuImage = params.registry + "/tensorflow-notebook-cpu" + ":" + params.versionTag;
-      local gpuImage = params.registry + "/tensorflow-notebook-gpu" + ":" + params.versionTag;
       // mountPath is the directory where the volume to store the test data
       // should be mounted.
       local mountPath = "/mnt/" + "test-data-volume";
@@ -124,10 +122,27 @@
         },
         sidecars: sidecars,
       };  // buildTemplate
-
-      local buildImageTemplate(step_name, image, base_image, tf_package) =
-        buildTemplate(
-          step_name,
+      local buildImageTemplate(tf_version, device, is_latest=true) = {
+        local image = params.registry + "/tensorflow-" + tf_version + "-notebook-" +  device,
+        local tag = params.versionTag,
+        local base_image =
+          if device == "cpu" then
+            "ubuntu:latest"
+          // device = gpu
+          else if std.startsWith(tf_version, "1.4.") then
+            "nvidia/cuda:8.0-cudnn6-devel-ubuntu16.04"
+          else
+            "nvidia/cuda:9.0-cudnn7-devel-ubuntu16.04",
+        local tf_package =
+          "https://storage.googleapis.com/tensorflow/linux/" +
+          device +
+          "/tensorflow" +
+          (if device == "gpu" then "_gpu" else "") +
+          "-" +
+          tf_version +
+          "-cp36-cp36m-linux_x86_64.whl",
+        result:: buildTemplate(
+          "build-" + tf_version + "-" + device,
           [
             // We need to explicitly specify bash because
             // build_image.sh is not in the container its a volume mounted file.
@@ -136,6 +151,8 @@
             notebookDir + "build_image.sh "
             + notebookDir + "Dockerfile" + " "
             + image + " "
+            + tag + " "
+            + std.toString(is_latest) + " "
             + base_image + " "
             + tf_package,
           ],
@@ -153,7 +170,8 @@
             },
             mirrorVolumeMounts: true,
           }],
-        );  // buildImageTemplate
+        ),  // buildImageTemplate
+      }.result;
       {
         apiVersion: "argoproj.io/v1alpha1",
         kind: "Workflow",
@@ -198,13 +216,33 @@
                     template: "checkout",
                   },
                   {
-                    name: "build-cpu-notebook",
-                    template: "build-cpu-notebook",
+                    name: "build-1.4.1-gpu",
+                    template: "build-1.4.1-gpu",
                     dependencies: ["checkout"],
                   },
                   {
-                    name: "build-gpu-notebook",
-                    template: "build-gpu-notebook",
+                    name: "build-1.4.1-cpu",
+                    template: "build-1.4.1-cpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
+                    name: "build-1.5.1-gpu",
+                    template: "build-1.5.1-gpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
+                    name: "build-1.5.1-cpu",
+                    template: "build-1.5.1-cpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
+                    name: "build-1.6.0-gpu",
+                    template: "build-1.6.0-gpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
+                    name: "build-1.6.0-cpu",
+                    template: "build-1.6.0-cpu",
                     dependencies: ["checkout"],
                   },
                   {
@@ -215,6 +253,12 @@
                 ],
               },  //dag
             },
+            buildImageTemplate("1.4.1", "cpu"),
+            buildImageTemplate("1.4.1", "gpu"),
+            buildImageTemplate("1.5.1", "cpu"),
+            buildImageTemplate("1.5.1", "gpu"),
+            buildImageTemplate("1.6.0", "cpu"),
+            buildImageTemplate("1.6.0", "gpu"),
             {
               name: "exit-handler",
               steps: [
@@ -246,8 +290,6 @@
                 ],
               },
             },  // checkout
-            buildImageTemplate("build-cpu-notebook", cpuImage, "ubuntu:latest", "tf-nightly"),
-            buildImageTemplate("build-gpu-notebook", gpuImage, "nvidia/cuda:8.0-cudnn6-devel-ubuntu16.04", "tf-nightly-gpu"),
             buildTemplate("create-pr-symlink", [
               "python",
               "-m",
