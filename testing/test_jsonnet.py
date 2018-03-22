@@ -42,8 +42,8 @@ from kubeflow.testing import util
 # except ksonnet prototype definitions - they require additional
 # dependencies
 def should_test(f):
-  parts = os.path.splitext(f)
-  if parts[1] != '.jsonnet' and parts[1] != '.libsonnet':
+  _, ext = os.path.splitext(f)
+  if ext != '.jsonnet' and ext != '.libsonnet':
     return False
   parts = f.split('/')
   if len(parts) < 2:
