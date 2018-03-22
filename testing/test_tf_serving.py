@@ -94,7 +94,7 @@ def main():
         result = str(stub.Predict(request, 10.0))  # 10 secs timeout
       except Exception as e:
         num_try += 1
-        if num_try > 3:
+        if num_try > 10:
           raise
         logging.info('prediction failed: {}. Retrying...'.format(e))
         time.sleep(5)
