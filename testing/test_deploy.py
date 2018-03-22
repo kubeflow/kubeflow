@@ -28,17 +28,26 @@ Requirements:
 import argparse
 import datetime
 import logging
+import json
 import os
+import requests
 import shutil
 import tempfile
 import uuid
+import yaml
+
+from googleapiclient import discovery
+from googleapiclient import errors
 
 from kubernetes import client as k8s_client
 from kubernetes.client import rest
 from kubernetes.config import incluster_config
 
+from testing import vm_util
 from kubeflow.testing import test_util
 from kubeflow.testing import util
+
+from oauth2client.client import GoogleCredentials
 
 def _setup_test(api_client, run_label):
   """Create the namespace for the test.
@@ -291,6 +300,123 @@ def ks_deploy(app_dir, component, params, env=None, account=None):
     apply_command.append("--as=" + account)
   util.run(apply_command, cwd=app_dir)
 
+def modify_minikube_config(config_path, certs_dir):
+  """Modify the kube config file used with minikube.
+
+  This function changes the location of the certificates to certs_dir.
+  The kubeconfig is configured for use on the VM on which minikube is deployed.
+  But we want to run kubectl in the pod where test_deploy is running; this will be 
+  on a different machine. The certificates will be copied to a different location 
+  so we need to update the config file to point to the correct location.
+
+  Args:
+    config_path: The path of the Kubernetes config file.
+    certs_dir: The directory where the certs to use with minikube are stored.
+  """
+  with open(config_path, "r") as hf:
+    config = yaml.load(hf)
+    
+  for cluster in config["clusters"]:
+    authority = cluster["cluster"]["certificate-authority"]
+    authority = os.path.join(certs_dir, os.path.basename(authority))
+    cluster["cluster"]["certificate-authority"] = authority
+    
+    for user in config["users"]:      
+      for k in ["client-certificate", "client-key"]:
+        user["user"][k] = os.path.join(certs_dir, os.path.basename(user["user"][k]))
+
+  logging.info("Updating path of certificates in %s", config_path)
+  with open(config_path, "w") as hf:
+    yaml.dump(config, hf)
+
+def deploy_minikube(args):
+  """Create a VM and setup minikube."""
+  
+  credentials = GoogleCredentials.get_application_default()
+  gce = discovery.build("compute", "v1", credentials=credentials)  
+  instances = gce.instances()  
+  body = {
+    "name": args.vm_name,
+    "machineType": "zones/{0}/machineTypes/n1-standard-16".format(args.zone),
+    "disks": [
+      {
+        "boot": True,
+        "initializeParams": {
+           "sourceImage": "projects/ubuntu-os-cloud/global/images/family/ubuntu-1604-lts",
+           "diskSizeGb": 100,
+           "autoDelete": True,
+        },
+      },
+    ],
+    "networkInterfaces": [
+      {
+        "accessConfigs": [
+          {
+            "name": "external-nat",              
+            "type": "ONE_TO_ONE_NAT",
+          },
+        ],
+        "network": "global/networks/default",
+       },
+    ],
+  }
+  request = instances.insert(project=args.project, zone=args.zone, body=body)
+  try:
+    request.execute()
+  except errors.HttpError as e:
+    if not e.content:
+      raise
+    content = json.loads(e.content)
+    # TODO(jlewi): We can get this error if the disk exists but not the VM. If the disk exists but not the VM
+    # and we keep going we will have a problem. However, that should be extremely unlikely now that 
+    # we set auto-delete on the disk to true.
+    if content.get("error", {}).get("code") == requests.codes.CONFLICT:
+      logging.warn("VM %s already exists in zone %s in project %s ", args.vm_name, args.zone, args.project)
+    else:
+      raise
+  
+  # Locate the install minikube script.
+  install_script = os.path.join(os.path.dirname(__file__), "install_minikube.sh")
+  
+  if not os.path.exists(install_script):
+    logging.error("Could not find minikube install script: %s", install_script)
+    
+  vm_util.wait_for_vm(args.project, args.zone, args.vm_name)
+  vm_util.execute_script(args.project, args.zone, args.vm_name, install_script)
+  vm_util.execute(args.project, args.zone, args.vm_name, ["sudo minikube start --vm-driver=none --disk-size=40g"])
+    
+  # Copy the .kube and .minikube files to test_dir  
+  # The .minikube directory contains some really large ISO and other files that we don't need; so we
+  # only copy the files we need.
+  minikube_dir = os.path.join(args.test_dir, ".minikube")
+  if not os.path.exists(minikube_dir):
+    os.makedirs(minikube_dir)
+  
+  for target, local_dir in [("~/.minikube/*.crt", minikube_dir), 
+                            ("~/.minikube/client.key", minikube_dir),
+                            ("~/.kube", args.test_dir)]:
+    
+    full_target = "{0}:{1}".format(args.vm_name, target)  
+    logging.info("Copying %s to %s", target, local_dir)
+    util.run(["gcloud", "compute", "--project=" + args.project, "scp",
+              "--recurse", full_target, local_dir, "--zone=" + args.zone])
+  
+  
+  config_path = os.path.join(args.test_dir, ".kube", "config")
+  modify_minikube_config(config_path, minikube_dir)
+
+
+def teardown_minikube(args):
+  """Delete the VM used for minikube."""
+  
+  credentials = GoogleCredentials.get_application_default()
+  gce = discovery.build("compute", "v1", credentials=credentials)  
+  instances = gce.instances()  
+  
+  request = instances.delete(project=args.project, zone=args.zone, instance=args.vm_name)
+  
+  request.execute()
+  
 def main():  # pylint: disable=too-many-locals
   logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
   # create the top-level parser
@@ -366,7 +492,6 @@ def main():  # pylint: disable=too-many-locals
 
   parser_teardown.set_defaults(func=teardown)
 
-
   parser_tf_serving = subparsers.add_parser(
     "deploy_model",
     help="Deploy a TF serving model.")
@@ -378,6 +503,43 @@ def main():  # pylint: disable=too-many-locals
     default="",
     type=str,
     help=("Comma separated list of parameters to set on the model."))
+
+  parser_minikube = subparsers.add_parser(
+    "deploy_minikube",
+    help="Setup a K8s cluster on minikube.")
+
+  parser_minikube.set_defaults(func=deploy_minikube)
+
+  parser_minikube.add_argument(
+    "--vm_name",
+    required=True,
+    type=str,
+    help="The name of the VM to use.")
+  
+  parser_minikube.add_argument(
+    "--zone",
+    required=True,
+    type=str,
+    help="The zone to deploy the VM in.")
+  
+  parser_teardown_minikube = subparsers.add_parser(
+    "teardown_minikube",
+    help="Delete the VM running minikube.")
+  
+  parser_teardown_minikube.set_defaults(func=teardown_minikube)
+
+  parser_teardown_minikube.add_argument(
+    "--vm_name",
+    required=True,
+    type=str,
+    help="The name of the VM to use.")
+  
+  parser_teardown_minikube.add_argument(
+    "--zone",
+    required=True,
+    type=str,
+    help="The zone to deploy the VM in.")
+  
 
   args = parser.parse_args()
 
