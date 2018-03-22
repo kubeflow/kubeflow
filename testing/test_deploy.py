@@ -373,30 +373,27 @@ def deploy_minikube(args):
   install_script = os.path.join(os.path.dirname(__file__), "install_minikube.sh")
   
   if not os.path.exists(install_script):
-    logging.error("C %s", install_script)
+    logging.error("Could not find minikube install script: %s", install_script)
     
   vm_util.wait_for_vm(args.project, args.zone, args.vm_name)
   vm_util.execute_script(args.project, args.zone, args.vm_name, install_script)
   vm_util.execute(args.project, args.zone, args.vm_name, ["sudo minikube start --vm-driver=none --disk-size=40g"])
     
   # Copy the .kube and .minikube files to test_dir  
-  for target in ["~/.kube"]:
-    full_target = "{0}:{1}".format(args.vm_name, target)
-    logging.info("Copying %s to %s", target, args.test_dir)
-    util.run(["gcloud", "compute", "--project=" + args.project, "scp",
-              "--recurse", full_target, args.test_dir, "--zone=" + args.zone])
-
   # The .minikube directory contains some really large ISO and other files that we don't need; so we
   # only copy the files we need.
   minikube_dir = os.path.join(args.test_dir, ".minikube")
   if not os.path.exists(minikube_dir):
     os.makedirs(minikube_dir)
   
-  for target in ["~/.minikube/*.crt", "~/.minikube/client.key"]:
+  for target, local_dir in [("~/.minikube/*.crt", minikube_dir), 
+                            ("~/.minikube/client.key", minikube_dir),
+                            ("~/.kube", args.test_dir)]:
+    
     full_target = "{0}:{1}".format(args.vm_name, target)  
-    logging.info("Copying %s to %s", target, minikube_dir)
+    logging.info("Copying %s to %s", target, local_dir)
     util.run(["gcloud", "compute", "--project=" + args.project, "scp",
-              "--recurse", full_target, minikube_dir, "--zone=" + args.zone])
+              "--recurse", full_target, local_dir, "--zone=" + args.zone])
   
   
   config_path = os.path.join(args.test_dir, ".kube", "config")
