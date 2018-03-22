@@ -33,7 +33,7 @@ def wait_for_vm(project, zone, vm, timeout=datetime.timedelta(minutes=5),
       pass
     
     if datetime.datetime.now() > endtime:
-      raise TimeoutError(
+      raise util.TimeoutError(
         "Timed out waiting for op: {0} to complete.".format(op_id))
     time.sleep(polling_interval.total_seconds())
      

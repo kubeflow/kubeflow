@@ -300,9 +300,13 @@ def ks_deploy(app_dir, component, params, env=None, account=None):
 
 def modify_minikube_config(config_path, certs_dir):
   """Modify the kube config file used with minikube.
-  
+
   This function changes the location of the certificates to certs_dir.
-  
+  The kubeconfig is configured for use on the VM on which minikube is deployed.
+  But we want to run kubectl in the pod where test_deploy is running; this will be 
+  on a different machine. The certificates will be copied to a different location 
+  so we need to update the config file to point to the correct location.
+
   Args:
     config_path: The path of the Kubernetes config file.
     certs_dir: The directory where the certs to use with minikube are stored.

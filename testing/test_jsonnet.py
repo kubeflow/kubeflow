@@ -47,7 +47,7 @@ def run(test_files_dirs, t):
       try:
         util.run(['jsonnet', 'eval', filename],cwd=test_files_dir)
       except Exception as e:
-        t.failure = '{} test failed'.format(filename)
+        t.failure = '{} test failed exception {}'.format(filename, e)
         logging.error('%s test failed. See Subprocess output for details.', filename)
         raise
 
