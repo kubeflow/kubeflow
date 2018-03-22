@@ -555,8 +555,9 @@ def main():  # pylint: disable=too-many-locals
   if not args.artifacts_dir:
     args.artifacts_dir = args.test_dir
 
-  test_log = os.path.join(args.artifacts_dir, "logs",
-                          "test_deploy." + args.func.__name__ + ".log.txt")
+  test_log = os.path.join(
+      args.artifacts_dir, "logs",
+      "test_deploy." + args.func.__name__ + args.deploy_name + ".log.txt")
   if not os.path.exists(os.path.dirname(test_log)):
     os.makedirs(os.path.dirname(test_log))
 
