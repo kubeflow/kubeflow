@@ -113,6 +113,7 @@ CMD ["start-notebook.sh"]
 
 # Install CUDA Profile Tools and other python packages
 RUN pip --no-cache-dir install \
+    google-cloud-storage \
     Pillow \
     h5py \
     ipykernel \
