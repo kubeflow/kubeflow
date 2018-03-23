@@ -48,13 +48,13 @@
         name: "envoy",
         namespace: namespace,
       },
-    }, // initServiceAccount
+    },  // initServiceAccount
 
     initClusterRoleBinding:: {
       kind: "ClusterRoleBinding",
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       metadata: {
-        name: "envoy"
+        name: "envoy",
       },
       subjects: [
         {
@@ -68,7 +68,7 @@
         name: "envoy",
         apiGroup: "rbac.authorization.k8s.io",
       },
-    }, // initClusterRoleBinding
+    },  // initClusterRoleBinding
 
     initClusterRole:: {
       kind: "ClusterRole",
@@ -84,7 +84,7 @@
           verbs: ["get", "list", "patch", "update"],
         },
       ],
-    }, // initClusterRoleBinding
+    },  // initClusterRoleBinding
 
     envoyContainer(params):: {
       image: params.image,
@@ -234,15 +234,15 @@
 
           apk add --update jq
           curl https://storage.googleapis.com/kubernetes-release/release/v1.9.4/bin/linux/amd64/kubectl > /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
-          
+
           # Stagger init of replicas when acquiring lock
           sleep $(( $RANDOM % 5 + 1 ))
-          
+
           kubectl get svc ${SERVICE} -o json > service.json
           LOCK=$(jq -r ".metadata.annotations.iaplock" service.json)
-          
+
           NOW=$(date -u +'%s')
-          if [[ -z "${LOCK}" || "${LOCK}" == "null" ]]; then 
+          if [[ -z "${LOCK}" || "${LOCK}" == "null" ]]; then
             LOCK_T=$NOW
           else
             LOCK_T=$(echo "${LOCK}" | cut -d' ' -f2)
@@ -263,7 +263,7 @@
             sleep 20
             exit 1
           fi
-          
+
           PROJECT=$(curl -s -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/project/project-id)
           if [ -z ${PROJECT} ]; then
             echo Error unable to fetch PROJECT from compute metadata
@@ -275,7 +275,7 @@
             echo Error unable to fetch PROJECT_NUM from compute metadata
             exit 1
           fi
-          
+
           NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[0].nodePort}')
           while [[ -z ${BACKEND_ID} ]];
           do BACKEND_ID=$(gcloud compute --project=${PROJECT} backend-services list --filter=name~k8s-be-${NODE_PORT}- --format='value(id)');
@@ -394,7 +394,9 @@
                         // Jupyter uses the prefixes /hub & /user
                         {
                           // JupyterHub requires the prefix /hub
-                          timeout_ms: 10000,
+                          // Use a 10 minute timeout because downloading
+                          // images for jupyter notebook can take a while
+                          timeout_ms: 600000,
                           prefix: "/hub",
                           prefix_rewrite: "/hub",
                           use_websocket: true,
@@ -409,7 +411,9 @@
                         },
                         {
                           // JupyterHub requires the prefix /user
-                          timeout_ms: 10000,
+                          // Use a 10 minute timeout because downloading
+                          // images for jupyter notebook can take a while
+                          timeout_ms: 600000,
                           prefix: "/user",
                           prefix_rewrite: "/user",
                           use_websocket: true,
@@ -427,7 +431,7 @@
                         // See https://github.com/kubeflow/kubeflow/pull/146
                         // Redirect to jupyterhub when visiting /
                         {
-                          timeout_ms: 10000,
+                          timeout_ms: 600000,
                           path: "/",
                           prefix_rewrite: "/hub",
                           use_websocket: true,
@@ -698,9 +702,9 @@
       kind: "Certificate",
       metadata: {
         name: secretName,
-        namespace: namespace
+        namespace: namespace,
       },
-        
+
       spec: {
         secretName: secretName,
         issuerRef: {
@@ -710,7 +714,7 @@
         dnsNames: [
           hostname,
         ],
-        acme:{
+        acme: {
           config: [
             {
               http01: {
@@ -723,6 +727,6 @@
           ],
         },
       },
-    }, // certificate
+    },  // certificate
   },  // parts
 }
