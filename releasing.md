@@ -2,6 +2,28 @@
 
 Some preliminary instructions for how to cut a release.
 
+## Authenticate to GCP
+
+If you're new to using GKE or are new to the release team, you'll need to authenticate to GCP first.  [Install the `gcloud` tool](https://cloud.google.com/sdk/gcloud/) and then execute the following commands, substituting your release team account for `your-team-account@kubeflow.org`:
+
+```
+gcloud config set account your-team-account@kubeflow.org
+gcloud auth 
+```
+
+This will open your browser to authenticate you.  Then you can proceed as follows:
+
+```
+gcloud config set project kubeflow-releasing
+gcloud container clusters get-credentials kubeflow-releasing --zone us-central1-a --project kubeflow-releasing
+```
+
+Use [this script](https://github.com/jlewi/kubeflow-dev/blob/master/create_context.sh) to set up your context properly:
+
+```
+create_context.sh $(kubectl config current-context) kubeflow-releasing
+```
+
 
 ## Build TFJob operator
 
@@ -49,7 +71,7 @@ You can monitor the workflow using the Argo UI. For our release cluster we don't
 so right now you need to connect via kubectl port-forward
 
 ```
-kubectl -n kubeflow-releasing port-forward `kubectl get pods --selector=app=argo-ui -o jsonpath='{.items[0].metadata.name}'` 8080:8001
+kubectl -n kubeflow-releasing port-forward `kubectl -n kubeflow-releasing get pods --selector=app=argo-ui -o jsonpath='{.items[0].metadata.name}'` 8080:8001
 ```
 
 [kubeflow/testing#43](https://github.com/kubeflow/testing/issues/43) is tracking setup of IAP to make this easier.
