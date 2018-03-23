@@ -1,14 +1,24 @@
-// from github.com/jlewi/kubeflow-rl
+// @apiVersion 1
+// @name io.ksonnet.pkg.tensorboard
+// @description Tensorboard components
+// @shortDescription ksonnet components for Tensorboard
+// @param name string Name to give to each of the components
 
-local params = std.extVar("__ksonnet/params").components["tensorboard"];
 local k = import 'k.libsonnet';
-local tb = import "kubeflow/core/tensorboard.libsonnet";
 
 local name = import "param://name";
-local namespace = import "param://namespace";
-local logDir = import "param://logDir";
-local secretName = import "param://secretName";
-local secretFileName = import "param://secretFileName";
 
-std.prune(k.core.v1.list.new([tb.parts(namespace, name).tbDeployment(logDir, secretName, secretFileName),
-                              tb.parts(namespace, name).service]))
+// updatedParams includes the namespace from env by default.
+// We can override namespace in params if needed
+local updatedParams = env + params;
+
+
+local tbBase = import "kubeflow/core/tensorboard.libsonnet";
+
+local tb = tbBase {
+    params+: updatedParams {
+        name: name,
+    },
+};
+
+std.prune(k.core.v1.list.new(tb.components))
