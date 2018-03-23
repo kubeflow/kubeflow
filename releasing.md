@@ -40,7 +40,7 @@ ks param set --env=${ENV} workflows versionTag "${VERSION_TAG}"
 ks apply ${ENV} -c workflows
 ```
 
-You can monitor the workflow using the Argo UI. For our release cluster we don't expose the Argo UI publicly 
+You can monitor the workflow using the Argo UI. For our release cluster we don't expose the Argo UI publicly
 so right now you need to connect via kubectl port-forward
 
 ```
@@ -105,7 +105,7 @@ cd components/tensorflow-notebook-image/releaser
 PULL_BASE_SHA=<commit to build>
 DATE=`date +%Y%m%d`
 VERSION_TAG="v${DATE}-${PULL_BASE_SHA}"
-JOB_NAME="tf-operator-release"
+JOB_NAME="tensorflow-notebook-image-release"
 JOB_TYPE=postsubmit
 BUILD_NUMBER=$(uuidgen)
 BUILD_NUMBER=${BUILD_NUMBER:0:4}

@@ -7,8 +7,8 @@ The Kubeflow project is dedicated to making **deployment** of machine learning o
 Contained in this repository are manifests for creating:
 
 * A [**JupyterHub**](https://jupyterhub.readthedocs.io/en/latest/) to create
-  and manage interactive [Jupyter notebooks](http://jupyter.org). 
-  [Project Jupyter](http://jupyter.org/about) is a non-profit, open-source 
+  and manage interactive [Jupyter notebooks](http://jupyter.org).
+  [Project Jupyter](http://jupyter.org/about) is a non-profit, open-source
   project to support interactive data science and scientific computing across
   all programming languages.
 * A **TensorFlow Training Controller** that can be configured to use either CPUs or GPUs and dynamically adjusted to the size of a cluster with a single setting
@@ -19,7 +19,7 @@ This document details the steps needed to run the Kubeflow project in any enviro
 ## Quick Links
 * [Prow test dashboard](https://k8s-testgrid.appspot.com/sig-big-data)
 * [Prow jobs dashboard](https://prow.k8s.io/?repo=kubeflow%2Fkubeflow)
-* [Argo UI for E2E tests](http://testing-argo.kubeflow.io)
+* [Argo UI for E2E tests](http://testing-argo.kubeflow.org)
 
 ## The Kubeflow Mission
 
@@ -59,7 +59,7 @@ If you want to use GPUs, be sure to follow the Kubernetes [instructions for enab
 
 ### Requirements
 
-  * ksonnet version [0.8.0](https://ksonnet.io/#get-started) or later.
+  * ksonnet version [0.9.1](https://ksonnet.io/#get-started) or later.
   * Kubernetes >= 1.8 [see here](https://github.com/kubeflow/tf-operator#requirements)
 
 ### Steps
@@ -67,10 +67,15 @@ If you want to use GPUs, be sure to follow the Kubernetes [instructions for enab
 In order to quickly set up all components, execute the following commands:
 
 ```commandline
-# Initialize a ksonnet APP
+# Create a namespace for kubeflow deployment
+NAMESPACE=kubeflow
+kubectl create namespace ${NAMESPACE}
+
+# Initialize a ksonnet app. Set the namespace for it's default environment.
 APP_NAME=my-kubeflow
 ks init ${APP_NAME}
 cd ${APP_NAME}
+ks env set default --namespace ${NAMESPACE}
 
 # Install Kubeflow components
 ks registry add kubeflow github.com/kubeflow/kubeflow/tree/master/kubeflow
@@ -79,9 +84,13 @@ ks pkg install kubeflow/tf-serving
 ks pkg install kubeflow/tf-job
 
 # Create templates for core components
-NAMESPACE=kubeflow
-kubectl create namespace ${NAMESPACE}
-ks generate core kubeflow-core --name=kubeflow-core --namespace=${NAMESPACE}
+ks generate kubeflow-core kubeflow-core
+
+# If your cluster is running on Azure you will need to set the cloud parameter.
+# If the cluster was created with AKS or ACS choose aks, it if was created
+# with acs-engine, choose acsengine
+# PLATFORM=<aks|acsengine>
+# ks param set kubeflow-core cloud ${PLATFORM}
 
 # Enable collection of anonymous usage metrics
 # Skip this step if you don't want to enable collection.

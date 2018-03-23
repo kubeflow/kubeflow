@@ -27,19 +27,27 @@ Requirements:
 
 import argparse
 import datetime
-import json
 import logging
+import json
 import os
+import requests
 import shutil
 import tempfile
 import uuid
+import yaml
+
+from googleapiclient import discovery
+from googleapiclient import errors
 
 from kubernetes import client as k8s_client
 from kubernetes.client import rest
 from kubernetes.config import incluster_config
 
+from testing import vm_util
 from kubeflow.testing import test_util
 from kubeflow.testing import util
+
+from oauth2client.client import GoogleCredentials
 
 def _setup_test(api_client, run_label):
   """Create the namespace for the test.
@@ -90,13 +98,12 @@ def create_k8s_client(args):
   # Create an API client object to talk to the K8s master.
   api_client = k8s_client.ApiClient()
 
-def setup(args):
-  """Test deploying Kubeflow."""
-  api_client = create_k8s_client(args)
+  return api_client
 
-  now = datetime.datetime.now()
-  run_label = "e2e-" + now.strftime("%m%d-%H%M-") + uuid.uuid4().hex[0:4]
-
+# TODO(jlewi): We should make this a reusable function in kubeflow/testing
+# because we will probably want to use it in other places as well.
+def setup_kubeflow_ks_app(args, api_client):
+  """Create a ksonnet app for Kubeflow"""
   if not os.path.exists(args.test_dir):
     os.makedirs(args.test_dir)
 
@@ -116,7 +123,7 @@ def setup(args):
     logging.warn("GITHUB_TOKEN not set; you will probably hit Github API "
                  "limits.")
   # Initialize a ksonnet app.
-  app_name = "kubeflow-test"
+  app_name = "kubeflow-test-" + uuid.uuid4().hex[0:4]
   util.run(["ks", "init", app_name,], cwd=args.test_dir)
 
   app_dir = os.path.join(args.test_dir, app_name)
@@ -145,9 +152,19 @@ def setup(args):
   logging.info("Creating link %s -> %s", target_dir, source)
   os.symlink(source, target_dir)
 
+  return app_dir
+
+def setup(args):
+  """Test deploying Kubeflow."""
+  api_client = create_k8s_client(args)
+  app_dir = setup_kubeflow_ks_app(args, api_client)
+
+  namespace = args.namespace
+  # TODO(jlewi): We don't need to generate a core component if we are
+  # just deploying TFServing. Might be better to refactor this code.
   # Deploy Kubeflow
   util.run(["ks", "generate", "core", "kubeflow-core", "--name=kubeflow-core",
-            "--namespace=" + namespace.metadata.name], cwd=app_dir)
+            "--namespace=" + namespace], cwd=app_dir)
 
   # TODO(jlewi): For reasons I don't understand even though we ran
   # configure_kubectl above, if we don't rerun it we get rbac errors
@@ -165,32 +182,47 @@ def setup(args):
   # Verify that the TfJob operator is actually deployed.
   tf_job_deployment_name = "tf-job-operator"
   logging.info("Verifying TfJob controller started.")
-  util.wait_for_deployment(api_client, namespace.metadata.name,
+  util.wait_for_deployment(api_client, namespace,
                            tf_job_deployment_name)
 
   # Verify that JupyterHub is actually deployed.
   jupyter_name = "tf-hub"
   logging.info("Verifying TfHub started.")
-  util.wait_for_statefulset(api_client, namespace.metadata.name, jupyter_name)
+  util.wait_for_statefulset(api_client, namespace, jupyter_name)
 
-  if args.deploy_tf_serving:
-    logging.info("Deploying tf-serving.")
-    util.run(["ks", "generate", "tf-serving", "modelServer",
-              "--name=inception",
-              "--namespace=" + namespace.metadata.name,
-              "--model_path=gs://kubeflow-models/inception",
-              "--model_server_image=" + args.model_server_image], cwd=app_dir)
+def deploy_model(args):
+  """Deploy a TF model using the TF serving component."""
+  api_client = create_k8s_client(args)
+  app_dir = setup_kubeflow_ks_app(args, api_client)
 
-    apply_command = ["ks", "apply", "default", "-c", "modelServer",]
-    util.run(apply_command, cwd=app_dir)
+  component = "modelServer"
+  logging.info("Deploying tf-serving.")
+  generate_command = [
+      "ks", "generate", "tf-serving", component]
 
-    core_api = k8s_client.CoreV1Api(api_client)
-    deploy = core_api.read_namespaced_service(
-        "inception", namespace.metadata.name)
-    cluster_ip = deploy.spec.cluster_ip
+  util.run(generate_command, cwd=app_dir)
 
-    util.wait_for_deployment(api_client, namespace.metadata.name, "inception")
-    logging.info("Verified TF serving started.")
+  params = {}
+  for pair in args.params.split(","):
+    k, v = pair.split("=", 1)
+    params[k] = v
+
+  if "namespace" not in params:
+    raise ValueError("namespace must be supplied via --params.")
+  namespace = params["namespace"]
+
+  # Set env to none so random env will be created.
+  ks_deploy(app_dir, component, params, env=None, account=None)
+
+  core_api = k8s_client.CoreV1Api(api_client)
+  deploy = core_api.read_namespaced_service(
+    args.deploy_name, args.namespace)
+  cluster_ip = deploy.spec.cluster_ip
+
+  if not cluster_ip:
+    raise ValueError("inception service wasn't assigned a cluster ip.")
+  util.wait_for_deployment(api_client, namespace, args.deploy_name, timeout_minutes=10)
+  logging.info("Verified TF serving started.")
 
 def teardown(args):
   # Delete the namespace
@@ -200,12 +232,10 @@ def teardown(args):
   core_api.delete_namespace(args.namespace, {})
 
 def determine_test_name(args):
-  if args.func.__name__ == "teardown":
-    return "teardown"
-  elif args.deploy_tf_serving:
-    return "setup_tf_serving"
+  if args.deploy_name:
+    return args.func.__name__ + "-" + args.deploy_name
   else:
-    return "setup"
+    return args.func.__name__
 
 # TODO(jlewi): We should probably make this a generic function in
 # kubeflow.testing.`
@@ -228,6 +258,165 @@ def wrap_test(args):
     logging.info("Writing test results to %s", junit_path)
     test_util.create_junit_xml_file([test_case], junit_path)
 
+
+# TODO(jlewi): We should probably make this a reusable function since a
+# lot of test code code use it.
+def ks_deploy(app_dir, component, params, env=None, account=None):
+  """Deploy the specified ksonnet component.
+  Args:
+    app_dir: The ksonnet directory
+    component: Name of the component to deployed
+    params: A dictionary of parameters to set; can be empty but should not be
+      None.
+    env: (Optional) The environment to use, if none is specified a new one
+      is created.
+    account: (Optional) The account to use.
+  Raises:
+    ValueError: If input arguments aren't valid.
+  """
+  if not component:
+    raise ValueError("component can't be None.")
+
+  # TODO(jlewi): It might be better if the test creates the app and uses
+  # the latest stable release of the ksonnet configs. That however will cause
+  # problems when we make changes to the TFJob operator that require changes
+  # to the ksonnet configs. One advantage of checking in the app is that
+  # we can modify the files in vendor if needed so that changes to the code
+  # and config can be submitted in the same pr.
+  now = datetime.datetime.now()
+  if not env:
+    env = "e2e-" + now.strftime("%m%d-%H%M-") + uuid.uuid4().hex[0:4]
+
+  logging.info("Using app directory: %s", app_dir)
+
+  util.run(["ks", "env", "add", env], cwd=app_dir)
+
+  for k, v in params.iteritems():
+    util.run(
+      ["ks", "param", "set", "--env=" + env, component, k, v], cwd=app_dir)
+
+  apply_command = ["ks", "apply", env, "-c", component]
+  if account:
+    apply_command.append("--as=" + account)
+  util.run(apply_command, cwd=app_dir)
+
+def modify_minikube_config(config_path, certs_dir):
+  """Modify the kube config file used with minikube.
+
+  This function changes the location of the certificates to certs_dir.
+  The kubeconfig is configured for use on the VM on which minikube is deployed.
+  But we want to run kubectl in the pod where test_deploy is running; this will be 
+  on a different machine. The certificates will be copied to a different location 
+  so we need to update the config file to point to the correct location.
+
+  Args:
+    config_path: The path of the Kubernetes config file.
+    certs_dir: The directory where the certs to use with minikube are stored.
+  """
+  with open(config_path, "r") as hf:
+    config = yaml.load(hf)
+    
+  for cluster in config["clusters"]:
+    authority = cluster["cluster"]["certificate-authority"]
+    authority = os.path.join(certs_dir, os.path.basename(authority))
+    cluster["cluster"]["certificate-authority"] = authority
+    
+    for user in config["users"]:      
+      for k in ["client-certificate", "client-key"]:
+        user["user"][k] = os.path.join(certs_dir, os.path.basename(user["user"][k]))
+
+  logging.info("Updating path of certificates in %s", config_path)
+  with open(config_path, "w") as hf:
+    yaml.dump(config, hf)
+
+def deploy_minikube(args):
+  """Create a VM and setup minikube."""
+  
+  credentials = GoogleCredentials.get_application_default()
+  gce = discovery.build("compute", "v1", credentials=credentials)  
+  instances = gce.instances()  
+  body = {
+    "name": args.vm_name,
+    "machineType": "zones/{0}/machineTypes/n1-standard-16".format(args.zone),
+    "disks": [
+      {
+        "boot": True,
+        "initializeParams": {
+           "sourceImage": "projects/ubuntu-os-cloud/global/images/family/ubuntu-1604-lts",
+           "diskSizeGb": 100,
+           "autoDelete": True,
+        },
+      },
+    ],
+    "networkInterfaces": [
+      {
+        "accessConfigs": [
+          {
+            "name": "external-nat",              
+            "type": "ONE_TO_ONE_NAT",
+          },
+        ],
+        "network": "global/networks/default",
+       },
+    ],
+  }
+  request = instances.insert(project=args.project, zone=args.zone, body=body)
+  try:
+    request.execute()
+  except errors.HttpError as e:
+    if not e.content:
+      raise
+    content = json.loads(e.content)
+    # TODO(jlewi): We can get this error if the disk exists but not the VM. If the disk exists but not the VM
+    # and we keep going we will have a problem. However, that should be extremely unlikely now that 
+    # we set auto-delete on the disk to true.
+    if content.get("error", {}).get("code") == requests.codes.CONFLICT:
+      logging.warn("VM %s already exists in zone %s in project %s ", args.vm_name, args.zone, args.project)
+    else:
+      raise
+  
+  # Locate the install minikube script.
+  install_script = os.path.join(os.path.dirname(__file__), "install_minikube.sh")
+  
+  if not os.path.exists(install_script):
+    logging.error("Could not find minikube install script: %s", install_script)
+    
+  vm_util.wait_for_vm(args.project, args.zone, args.vm_name)
+  vm_util.execute_script(args.project, args.zone, args.vm_name, install_script)
+  vm_util.execute(args.project, args.zone, args.vm_name, ["sudo minikube start --vm-driver=none --disk-size=40g"])
+    
+  # Copy the .kube and .minikube files to test_dir  
+  # The .minikube directory contains some really large ISO and other files that we don't need; so we
+  # only copy the files we need.
+  minikube_dir = os.path.join(args.test_dir, ".minikube")
+  if not os.path.exists(minikube_dir):
+    os.makedirs(minikube_dir)
+  
+  for target, local_dir in [("~/.minikube/*.crt", minikube_dir), 
+                            ("~/.minikube/client.key", minikube_dir),
+                            ("~/.kube", args.test_dir)]:
+    
+    full_target = "{0}:{1}".format(args.vm_name, target)  
+    logging.info("Copying %s to %s", target, local_dir)
+    util.run(["gcloud", "compute", "--project=" + args.project, "scp",
+              "--recurse", full_target, local_dir, "--zone=" + args.zone])
+  
+  
+  config_path = os.path.join(args.test_dir, ".kube", "config")
+  modify_minikube_config(config_path, minikube_dir)
+
+
+def teardown_minikube(args):
+  """Delete the VM used for minikube."""
+  
+  credentials = GoogleCredentials.get_application_default()
+  gce = discovery.build("compute", "v1", credentials=credentials)  
+  instances = gce.instances()  
+  
+  request = instances.delete(project=args.project, zone=args.zone, instance=args.vm_name)
+  
+  request.execute()
+  
 def main():  # pylint: disable=too-many-locals
   logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
   # create the top-level parser
@@ -283,6 +472,12 @@ def main():  # pylint: disable=too-many-locals
           "/troubleshooting.md. Can also be set using environment variable "
           "GITHUB_TOKEN."))
 
+  parser.add_argument(
+    "--deploy_name",
+    default="",
+    type=str,
+    help="The name of the deployment.")
+
   subparsers = parser.add_subparsers()
 
   parser_setup = subparsers.add_parser(
@@ -297,17 +492,54 @@ def main():  # pylint: disable=too-many-locals
 
   parser_teardown.set_defaults(func=teardown)
 
-  parser_setup.add_argument(
-    "--deploy_tf_serving",
-    default=False,
-    type=bool,
-    help=("If True, deploy the tf-serving component."))
+  parser_tf_serving = subparsers.add_parser(
+    "deploy_model",
+    help="Deploy a TF serving model.")
 
-  parser_setup.add_argument(
-    "--model_server_image",
-    default="gcr.io/kubeflow/model-server:1.0",
+  parser_tf_serving.set_defaults(func=deploy_model)
+
+  parser_tf_serving.add_argument(
+    "--params",
+    default="",
     type=str,
-    help=("The TF serving image to use."))
+    help=("Comma separated list of parameters to set on the model."))
+
+  parser_minikube = subparsers.add_parser(
+    "deploy_minikube",
+    help="Setup a K8s cluster on minikube.")
+
+  parser_minikube.set_defaults(func=deploy_minikube)
+
+  parser_minikube.add_argument(
+    "--vm_name",
+    required=True,
+    type=str,
+    help="The name of the VM to use.")
+  
+  parser_minikube.add_argument(
+    "--zone",
+    required=True,
+    type=str,
+    help="The zone to deploy the VM in.")
+  
+  parser_teardown_minikube = subparsers.add_parser(
+    "teardown_minikube",
+    help="Delete the VM running minikube.")
+  
+  parser_teardown_minikube.set_defaults(func=teardown_minikube)
+
+  parser_teardown_minikube.add_argument(
+    "--vm_name",
+    required=True,
+    type=str,
+    help="The name of the VM to use.")
+  
+  parser_teardown_minikube.add_argument(
+    "--zone",
+    required=True,
+    type=str,
+    help="The zone to deploy the VM in.")
+  
 
   args = parser.parse_args()
 
@@ -323,8 +555,9 @@ def main():  # pylint: disable=too-many-locals
   if not args.artifacts_dir:
     args.artifacts_dir = args.test_dir
 
-  test_log = os.path.join(args.artifacts_dir, "logs",
-                          "test_deploy." + args.func.__name__ + ".log.txt")
+  test_log = os.path.join(
+      args.artifacts_dir, "logs",
+      "test_deploy." + args.func.__name__ + args.deploy_name + ".log.txt")
   if not os.path.exists(os.path.dirname(test_log)):
     os.makedirs(os.path.dirname(test_log))
 
@@ -342,6 +575,7 @@ def main():  # pylint: disable=too-many-locals
                                 datefmt="%Y-%m-%dT%H:%M:%S")
   file_handler.setFormatter(formatter)
   logging.info("Logging to %s", test_log)
+  util.run(["ks", "version"])
 
   util.maybe_activate_service_account()
 

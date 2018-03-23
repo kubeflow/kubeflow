@@ -5,10 +5,16 @@ from jhub_remote_user_authenticator.remote_user_auth import RemoteUserAuthentica
 from oauthenticator.github import GitHubOAuthenticator
 
 class KubeFormSpawner(KubeSpawner):
+
+  # relies on HTML5 for image datalist
   def _options_form_default(self):
     return '''
     <label for='image'>Image</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <input name='image' placeholder='repo/image:tag'></input>
+    <input list="image" name="image" placeholder='repo/image:tag'>
+    <datalist id="image">
+      <option value="gcr.io/kubeflow-images-staging/tensorflow-notebook-cpu">
+      <option value="gcr.io/kubeflow-images-staging/tensorflow-notebook-gpu">
+    </datalist>
     <br/><br/>
 
     <label for='cpu_guarantee'>CPU</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -20,7 +26,7 @@ class KubeFormSpawner(KubeSpawner):
     <br/><br/>
 
     <label for='extra_resource_limits'>Extra Resource Limits</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <input name='extra_resource_limits' placeholder='{'nvidia.com/gpu': '3'}'></input>
+    <input name='extra_resource_limits' placeholder='{&apos;nvidia.com/gpu&apos;: &apos;3&apos;}'></input>
     <br/><br/>
     '''
 
@@ -77,8 +83,8 @@ c.JupyterHub.spawner_class = KubeFormSpawner
 c.KubeSpawner.singleuser_image_spec = 'gcr.io/kubeflow/tensorflow-notebook'
 c.KubeSpawner.cmd = 'start-singleuser.sh'
 c.KubeSpawner.args = ['--allow-root']
-# First pulls can be really slow, so let's give it a big timeout
-c.KubeSpawner.start_timeout = 60 * 10
+# gpu images are very large ~15GB. need a large timeout.
+c.KubeSpawner.start_timeout = 60 * 30
 
 ###################################################
 ### Persistent volume options
@@ -105,4 +111,3 @@ c.KubeSpawner.volume_mounts = [
     'name': 'volume-{username}{servername}'
   }
 ]
-

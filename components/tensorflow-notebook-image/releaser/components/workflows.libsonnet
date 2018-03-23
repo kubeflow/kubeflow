@@ -23,23 +23,23 @@
   // Default parameters.
   // The defaults are suitable based on suitable values for our test cluster.
   defaultParams:: {
-      bucket: "kubeflow-ci_temp",
-      commit: "master",
-      // Name of the secret containing GCP credentials.
-      gcpCredentialsSecretName: "kubeflow-testing-credentials",
-      name: "kubeflow-postsubmit",
-      namespace: "kubeflow-test-infra",
-       // The name of the NFS volume claim to use for test files.
-      nfsVolumeClaim: "nfs-external",
-      prow_env: "REPO_OWNER=kubeflow,REPO_NAME=kubeflow,PULL_BASE_SHA=master",      
-      // The default image to use for the steps in the Argo workflow.      
-      step_image: "gcr.io/kubeflow-ci/test-worker:latest",
+    bucket: "kubeflow-ci_temp",
+    commit: "master",
+    // Name of the secret containing GCP credentials.
+    gcpCredentialsSecretName: "kubeflow-testing-credentials",
+    name: "kubeflow-postsubmit",
+    namespace: "kubeflow-test-infra",
+    // The name of the NFS volume claim to use for test files.
+    nfsVolumeClaim: "nfs-external",
+    prow_env: "REPO_OWNER=kubeflow,REPO_NAME=kubeflow,PULL_BASE_SHA=master",
+    // The default image to use for the steps in the Argo workflow.
+    step_image: "gcr.io/kubeflow-ci/test-worker:latest",
 
-      // The registry to use (should not include the image name or version tag)
-      registry: "gcr.io/kubeflow-ci",
+    // The registry to use (should not include the image name or version tag)
+    registry: "gcr.io/kubeflow-ci",
 
-      // The tag to use for the image.
-      versionTag: "latest",
+    // The tag to use for the image.
+    versionTag: "latest",
   },
 
   parts(namespace, name, overrides={}):: {
@@ -47,16 +47,14 @@
     e2e::
       local params = $.defaultParams + overrides;
 
-      local namespace = params.namespace;      
+      local namespace = params.namespace;
       local name = params.name;
 
       local prow_env = $.parseEnv(params.prow_env);
       local bucket = params.bucket;
 
       local stepsNamespace = name;
-    
-      local cpuImage = params.registry +  "/tensorflow-notebook-cpu" + ":" + params.versionTag;
-      local gpuImage = params.registry +  "/tensorflow-notebook-gpu" + ":" + params.versionTag;
+
       // mountPath is the directory where the volume to store the test data
       // should be mounted.
       local mountPath = "/mnt/" + "test-data-volume";
@@ -82,76 +80,99 @@
       // Build an Argo template to execute a particular command.
       // step_name: Name for the template
       // command: List to pass as the container command.
-      local buildTemplate(step_name, command, env_vars=[], sidecars=[])= {
-          name: step_name,
-          container: {
-            command: command,
-            image: params.step_image,
-            env: [
-              {
-                // Add the source directories to the python path.
-                name: "PYTHONPATH",
-                value: kubeflowPy + ":" + kubeflowTestingPy,
-              },
-              {
-                name: "GOOGLE_APPLICATION_CREDENTIALS",
-                value: "/secret/gcp-credentials/key.json",
-              },
-              {
-                name: "GITHUB_TOKEN",
-                valueFrom: {
-                  secretKeyRef: {
-                    name: "github-token",
-                    key: "github_token",
-                  },
+      local buildTemplate(step_name, command, env_vars=[], sidecars=[]) = {
+        name: step_name,
+        container: {
+          command: command,
+          image: params.step_image,
+          env: [
+            {
+              // Add the source directories to the python path.
+              name: "PYTHONPATH",
+              value: kubeflowPy + ":" + kubeflowTestingPy,
+            },
+            {
+              name: "GOOGLE_APPLICATION_CREDENTIALS",
+              value: "/secret/gcp-credentials/key.json",
+            },
+            {
+              name: "GITHUB_TOKEN",
+              valueFrom: {
+                secretKeyRef: {
+                  name: "github-token",
+                  key: "github_token",
                 },
               },
-            ] + prow_env + env_vars,
-            volumeMounts: [
-              {
-                name: dataVolume,
-                mountPath: mountPath,
-              },
-              {
-                name: "github-token",
-                mountPath: "/secret/github-token",
-              },
-              {
-                name: "gcp-credentials",
-                mountPath: "/secret/gcp-credentials",
-              },
-            ],
-          },
-          sidecars: sidecars,
-        };  // buildTemplate
-
-      local buildImageTemplate(step_name, dockerfile, image) = 
-      buildTemplate(
-              step_name,
-              [
-                // We need to explicitly specify bash because
-                // build_image.sh is not in the container its a volume mounted file.
-                "/bin/bash", "-c",                
-                notebookDir + "build_image.sh "
-                + notebookDir +  dockerfile + " "
-                + image,
-              ],
-              [
-                {
-                  name: "DOCKER_HOST",
-                  value: "127.0.0.1",
-                },
-              ],
-              [{
-                name: "dind",
-                image: "docker:17.10-dind",
-                securityContext: {
-                  privileged: true,
-                },
-                mirrorVolumeMounts: true,
-              }],
-            ); // buildImageTemplate
-      {       
+            },
+          ] + prow_env + env_vars,
+          volumeMounts: [
+            {
+              name: dataVolume,
+              mountPath: mountPath,
+            },
+            {
+              name: "github-token",
+              mountPath: "/secret/github-token",
+            },
+            {
+              name: "gcp-credentials",
+              mountPath: "/secret/gcp-credentials",
+            },
+          ],
+        },
+        sidecars: sidecars,
+      };  // buildTemplate
+      local buildImageTemplate(tf_version, device, is_latest=true) = {
+        local image = params.registry + "/tensorflow-" + tf_version + "-notebook-" +  device,
+        local tag = params.versionTag,
+        local base_image =
+          if device == "cpu" then
+            "ubuntu:latest"
+          // device = gpu
+          else if std.startsWith(tf_version, "1.4.") then
+            "nvidia/cuda:8.0-cudnn6-devel-ubuntu16.04"
+          else
+            "nvidia/cuda:9.0-cudnn7-devel-ubuntu16.04",
+        local tf_package =
+          "https://storage.googleapis.com/tensorflow/linux/" +
+          device +
+          "/tensorflow" +
+          (if device == "gpu" then "_gpu" else "") +
+          "-" +
+          tf_version +
+          "-cp36-cp36m-linux_x86_64.whl",
+        result:: buildTemplate(
+          "build-" + tf_version + "-" + device,
+          [
+            // We need to explicitly specify bash because
+            // build_image.sh is not in the container its a volume mounted file.
+            "/bin/bash",
+            "-c",
+            notebookDir + "build_image.sh "
+            + notebookDir + "Dockerfile" + " "
+            + image + " "
+            + tag + " "
+            + std.toString(is_latest) + " "
+            + base_image + " "
+            + tf_package,
+          ],
+          [
+            {
+              name: "DOCKER_HOST",
+              value: "127.0.0.1",
+            },
+          ],
+          [{
+            name: "dind",
+            image: "docker:17.10-dind",
+            securityContext: {
+              privileged: true,
+            },
+            mirrorVolumeMounts: true,
+          }],
+        ),  // buildImageTemplate
+      }.result;
+      {
         apiVersion: "argoproj.io/v1alpha1",
         kind: "Workflow",
         metadata: {
@@ -190,28 +211,56 @@
               name: "e2e",
               dag: {
                 tasks: [
-                  {name: "checkout",
-                   template: "checkout",                
+                  {
+                    name: "checkout",
+                    template: "checkout",
                   },
-                  { 
-                  name: "build-cpu-notebook",
-                  template: "build-cpu-notebook",
-                  dependencies: ["checkout"],
+                  {
+                    name: "build-1.4.1-gpu",
+                    template: "build-1.4.1-gpu",
+                    dependencies: ["checkout"],
                   },
-                  { 
-                  name: "build-gpu-notebook",
-                  template: "build-gpu-notebook",
-                  dependencies: ["checkout"],
+                  {
+                    name: "build-1.4.1-cpu",
+                    template: "build-1.4.1-cpu",
+                    dependencies: ["checkout"],
                   },
-                  {name: "create-pr-symlink",
-                   template: "create-pr-symlink",
-                   dependencies: ["checkout"],
+                  {
+                    name: "build-1.5.1-gpu",
+                    template: "build-1.5.1-gpu",
+                    dependencies: ["checkout"],
                   },
-                ]
-              }, //dag 
+                  {
+                    name: "build-1.5.1-cpu",
+                    template: "build-1.5.1-cpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
+                    name: "build-1.6.0-gpu",
+                    template: "build-1.6.0-gpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
+                    name: "build-1.6.0-cpu",
+                    template: "build-1.6.0-cpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
+                    name: "create-pr-symlink",
+                    template: "create-pr-symlink",
+                    dependencies: ["checkout"],
+                  },
+                ],
+              },  //dag
             },
+            buildImageTemplate("1.4.1", "cpu"),
+            buildImageTemplate("1.4.1", "gpu"),
+            buildImageTemplate("1.5.1", "cpu"),
+            buildImageTemplate("1.5.1", "gpu"),
+            buildImageTemplate("1.6.0", "cpu"),
+            buildImageTemplate("1.6.0", "gpu"),
             {
-              name: "exit-handler",              
+              name: "exit-handler",
               steps: [
                 [{
                   name: "copy-artifacts",
@@ -240,9 +289,7 @@
                   },
                 ],
               },
-            },  // checkout            
-            buildImageTemplate("build-cpu-notebook", "Dockerfile.cpu", cpuImage),
-            buildImageTemplate("build-gpu-notebook", "Dockerfile.gpu", gpuImage),
+            },  // checkout
             buildTemplate("create-pr-symlink", [
               "python",
               "-m",

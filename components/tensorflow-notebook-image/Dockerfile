@@ -1,6 +1,14 @@
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
-FROM nvidia/cuda:8.0-cudnn6-devel-ubuntu16.04
+
+ARG BASE_IMAGE=ubuntu:latest
+# TODO(inc0): When tf-serving-api becomes available for py3, this should be
+# removed
+FROM python:2.7 as tf-serving-install
+
+RUN pip install tensorflow-serving-api
+
+FROM $BASE_IMAGE
 
 USER root
 # Install all OS dependencies for notebook server that starts but lacks all
@@ -51,9 +59,9 @@ RUN wget --quiet https://github.com/krallin/tini/releases/download/v0.10.0/tini 
     chmod +x /usr/local/bin/tini
 
 # Install ksonnet
-RUN wget --quiet https://github.com/ksonnet/ksonnet/releases/download/v0.8.0/ks_0.8.0_linux_amd64.tar.gz && \
-    tar -zvxf ks_0.8.0_linux_amd64.tar.gz && \
-    mv ks_0.8.0_linux_amd64/ks /usr/local/bin/ks && \
+RUN wget --quiet https://github.com/ksonnet/ksonnet/releases/download/v0.9.1/ks_0.9.1_linux_amd64.tar.gz && \
+    tar -zvxf ks_0.9.1_linux_amd64.tar.gz && \
+    mv ks_0.9.1_linux_amd64/ks /usr/local/bin/ks && \
     chmod +x /usr/local/bin/ks
 
 # Configure environment
@@ -153,13 +161,11 @@ RUN conda install --quiet --yes \
     conda remove --quiet --yes --force qt pyqt && \
     conda clean -tipsy
 
-# Install graphviz package
-RUN apt-get update && apt-get install -yq --no-install-recommends graphviz \
-    && apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+ARG TF_PACKAGE=tf-nightly
+RUN echo Installing $TF_PACKAGE && pip install --upgrade --quiet --no-cache-dir $TF_PACKAGE
 
-# Install Python 3 Tensorflow with GPU support
-RUN pip install --quiet --no-cache-dir tf-nightly-gpu
+# Hack recommended in tf-serving-api to use it with py3. Remove when proper pip package is available.
+COPY --from=tf-serving-install /usr/local/lib/python2.7/site-packages/tensorflow_serving /opt/conda/lib/python3.6/site-packages/tensorflow_serving
 
 ENV CLOUD_SDK_VERSION 168.0.0
 RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
@@ -174,13 +180,12 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
 # Activate ipywidgets extension in the environment that runs the notebook server
 RUN jupyter nbextension enable --py widgetsnbextension --sys-prefix
 
-RUN curl -L -o bazel.sh https://github.com/bazelbuild/bazel/releases/download/0.8.0/bazel-0.8.0-installer-linux-x86_64.sh && chmod a+x ./bazel.sh && ./bazel.sh && rm ./bazel.sh
+RUN curl -L -o bazel.sh https://github.com/bazelbuild/bazel/releases/download/0.11.1/bazel-0.11.1-installer-linux-x86_64.sh && chmod a+x ./bazel.sh && ./bazel.sh && rm ./bazel.sh
 SHELL ["/bin/bash", "-c"]
 
 RUN git clone https://github.com/tensorflow/models.git /home/$NB_USER/tensorflow-models && git clone https://github.com/tensorflow/benchmarks.git /home/$NB_USER/tensorflow-benchmarks
 # Import matplotlib the first time to build the font cache.
 ENV XDG_CACHE_HOME /home/$NB_USER/.cache/
-RUN pip install jupyter-tensorboard
 
 # Create a conda environment for Python 2. We want to include as many of the
 # packages from our root environment as we reasonably can, so we explicitly
@@ -209,6 +214,11 @@ COPY jupyter_notebook_config.py /etc/jupyter/
 RUN chown -R $NB_USER:users /etc/jupyter/ && \
     chown -R $NB_USER /home/$NB_USER/ && \
     chmod a+rx /usr/local/bin/*
+
+# tornado 5 has breaking changes (https://github.com/jupyter/notebook/issues/3407)
+# and does not work with the current jupyterhub. Pin tornado to 4.5.3
+# TODO(ankushagarwal): Figure out the right way to fix this
+RUN pip install tornado==4.5.3
 
 USER $NB_USER
 ENV PATH=/home/jovyan/bin:$PATH

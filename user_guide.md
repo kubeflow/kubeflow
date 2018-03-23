@@ -8,7 +8,7 @@ This guide will walk you through the basics of deploying and interacting with Ku
 
 ## Requirements
  * Kubernetes >= 1.8 [see here](https://github.com/kubeflow/tf-operator#requirements)
- * ksonnet version [0.8.0](https://ksonnet.io/#get-started) or later. (See [below](#why-kubeflow-uses-ksonnet) for an explanation of why we use ksonnet)
+ * ksonnet version [0.9.1](https://ksonnet.io/#get-started) or later. (See [below](#why-kubeflow-uses-ksonnet) for an explanation of why we use ksonnet)
 
 ## Deploy Kubeflow
 
@@ -36,9 +36,7 @@ Create the Kubeflow core component. The core component includes:
 
 
 ```
-NAMESPACE=kubeflow
-kubectl create namespace ${NAMESPACE}
-ks generate core kubeflow-core --name=kubeflow-core --namespace=${NAMESPACE}
+ks generate core kubeflow-core --name=kubeflow-core
 
 # Enable collection of anonymous usage metrics
 # Skip this step if you don't want to enable collection.
@@ -46,7 +44,7 @@ ks generate core kubeflow-core --name=kubeflow-core --namespace=${NAMESPACE}
 ks param set kubeflow-core reportUsage true
 ks param set kubeflow-core usageId $(uuidgen)
 ```
-  * Feel free to change the namespace to a value that better suits your kubernetes cluster.
+
 
 
 Ksonnet allows us to parameterize the Kubeflow deployment according to our needs. We will define two environments: nocloud, and cloud.
@@ -57,7 +55,7 @@ ks env add nocloud
 ks env add cloud
 ```
 
-The `nocloud` environment can be used for minikube or other basic k8s clusters, the `cloud` environment will be used for GKE in this guide.
+The `nocloud` environment can be used for minikube or other basic k8s clusters, the `cloud` environment will be used for GKE or Azure in this guide.
 
 If using GKE, we can configure our cloud environment to use GCP features with a single parameter:
 
@@ -65,11 +63,33 @@ If using GKE, we can configure our cloud environment to use GCP features with a 
 ks param set kubeflow-core cloud gke --env=cloud
 ```
 
+If the cluster was created on Azure with AKS/ACS:
+
+```
+ks param set kubeflow-core cloud aks --env=cloud
+```
+
+If it was created with acs-engine instead:
+
+```
+ks param set kubeflow-core cloud acsengine --env=cloud
+```
+
+
 Now let's set `${KF_ENV}` to `cloud` or `nocloud` to reflect our environment for the rest of the guide:
 
 ```
 $ KF_ENV=cloud|nocloud
 ```
+
+Create a namespace for your deployment and set it as part of the environment. Feel free to change the namespace to a value that better suits your kubernetes cluster.
+
+```
+NAMESPACE=kubeflow
+kubectl create namespace ${NAMESPACE}
+ks env set ${KF_ENV} --namespace ${NAMESPACE}
+```
+
 
 And apply the components to our Kubernetes cluster
 
@@ -105,7 +125,7 @@ kubectl delete -n ${NAMESPACE} deploy spartakus-volunteer
 ```
 
 **Reporting usage data is one of the most signifcant contributions you can make to Kubeflow; so please consider turning it on.** This data
-allows us to improve the project and helps the many companies working on Kubeflow justify continued investement. 
+allows us to improve the project and helps the many companies working on Kubeflow justify continued investement.
 
 You can improve the quality of the data by giving each Kubeflow deployment a unique id
 
@@ -141,10 +161,10 @@ You should see a sign in prompt.
 
 1. Sign in using any username/password
 1. Click the "Start My Server" button, and you will be greeted by a dialog screen.
-1. Set the image to `gcr.io/kubeflow/tensorflow-notebook-cpu:v1` or `gcr.io/kubeflow/tensorflow-notebook-gpu:8fbc341245695e482848ac3c2034a99f7c1e5763` depending on whether doing CPU or GPU training, or whether or not you have GPUs in your cluster.
+1. Select a CPU or GPU image from the Image dropdown menu depending on whether you are doing CPU or GPU training, or whether or not you have GPUs in your cluster. The current defaults offered for both are `gcr.io/kubeflow-images-staging/tensorflow-notebook-cpu` and `gcr.io/kubeflow-images-staging/tensorflow-notebook-gpu` respectively. Or you can type in the name of any TF image you want to run.
 1. Allocate memory, CPU, GPU, or other resources according to your need (1 CPU and 2Gi of Memory are good starting points)
     * To allocate GPUs, make sure that you have GPUs available in your cluster
-    * Run the following command to check if there are any nvidia gpus available: 
+    * Run the following command to check if there are any nvidia gpus available:
     `kubectl get nodes "-o=custom-columns=NAME:.metadata.name,GPU:.status.allocatable.nvidia\.com/gpu"`
     * If you have GPUs available, you can schedule your server on a GPU node by specifying the following json in `Extra Resource Limits` section: `{"nvidia.com/gpu": "1"}`
   1. Click Spawn
@@ -199,7 +219,8 @@ Create a component for your model
 MODEL_COMPONENT=serveInception
 MODEL_NAME=inception
 MODEL_PATH=gs://kubeflow-models/inception
-ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME} --namespace=${NAMESPACE} --model_path=${MODEL_PATH}
+ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME}
+ks param set ${MODEL_COMPONENT} modelPath ${MODEL_PATH}
 ```
 
 Deploy the model component. Ksonnet will pick up existing parameters for your environment (e.g. cloud, nocloud) and customize the resulting deployment appropriately
@@ -221,7 +242,7 @@ In this example, you should be able to use the inception_client to hit ww.xx.yy.
 ### Serve a model using Seldon
 [Seldon-core](https://github.com/SeldonIO/seldon-core) provides deployment for any machine learning runtime that can be [packaged in a Docker container](https://github.com/SeldonIO/seldon-core/blob/master/docs/wrappers/readme.md).
 
-Install the seldon package 
+Install the seldon package
 
 ```
 ks pkg install kubeflow/seldon
@@ -244,7 +265,7 @@ Create a component for your job.
 
 ```
 JOB_NAME=myjob
-ks generate tf-job ${JOB_NAME} --name=${JOB_NAME} --namespace=${NAMESPACE}
+ks generate tf-job ${JOB_NAME} --name=${JOB_NAME}
 ```
 
 To configure your job you need to set a bunch of parameters. To see a list of parameters run
@@ -273,6 +294,13 @@ ks apply ${KF_ENV} -c ${JOB_NAME}
 
 For information on monitoring your job please refer to the [TfJob docs](https://github.com/kubeflow/tf-operator#monitoring-your-job).
 
+To delete your job
+
+```
+ks delete ${KF_ENV} -c ${JOB_NAME}
+```
+
+
 #### Run the TfCnn example
 
 Kubeflow ships with a [ksonnet prototype](https://ksonnet.io/docs/concepts#prototype) suitable for running the [TensorFlow CNN Benchmarks](https://github.com/tensorflow/benchmarks/tree/master/scripts/tf_cnn_benchmarks).
@@ -281,13 +309,25 @@ Create the component
 
 ```
 CNN_JOB_NAME=mycnnjob
-ks generate tf-cnn ${CNN_JOB_NAME} --name=${CNN_JOB_NAME} --namespace=${NAMESPACE}
+ks generate tf-cnn ${CNN_JOB_NAME} --name=${CNN_JOB_NAME}
 ```
 
 Submit it
 
 ```
 ks apply ${KF_ENV} -c ${CNN_JOB_NAME}
+```
+
+Monitor it (Noted that tf-cnn job is also a tfjobs. Please refer to the [TfJob docs](https://github.com/kubeflow/tf-operator#monitoring-your-job))
+
+```
+kubectl get -o yaml tfjobs ${CNN_JOB_NAME}
+```
+
+Delete it
+
+```
+ks delete ${KF_ENV} -c ${CNN_JOB_NAME}
 ```
 
 The prototype provides a bunch of parameters to control how the job runs (e.g. use GPUs run distributed etc...). To see a list of paramets
@@ -362,6 +402,15 @@ tmpfs                                                           15444244       0
 On [Minikube](https://github.com/kubernetes/minikube) the Virtualbox/VMware drivers for Minikube are recommended as there is a known
 issue between the KVM/KVM2 driver and TensorFlow Serving. The issue is tracked in [kubernetes/minikube#2377](https://github.com/kubernetes/minikube/issues/2377).
 
+Minikube by default allocates 2048Mb of RAM for its VM, however that may not align with the starting parameters for the JupyterHub server noted above. If you encounter a jupyter-xxxx pod in Pending status, described with:
+```
+Warning  FailedScheduling  8s (x22 over 5m)  default-scheduler  0/1 nodes are available: 1 Insufficient memory.
+```
+then try recreating your Minikube cluster (and re-apply Kubeflow using Ksonnet) with more resources (as your environment allows):
+```
+minikube start --cpus 4 --memory 8096
+```
+
 ### RBAC clusters
 
 If you are running on a K8s cluster with [RBAC enabled](https://kubernetes.io/docs/admin/authorization/rbac/#command-line-utilities), you may get an error like the following when deploying Kubeflow:
@@ -383,7 +432,7 @@ If you're using GKE, you may want to refer to [GKE's RBAC docs](https://cloud.go
 how RBAC interacts with IAM on GCP.
 
 ### OpenShift
-If you are deploying kubeflow in an [OpenShift](https://github.com/openshift/origin) environment which encapsulates kubernetes, you will need to adjust the security contexts for the ambassador and jupyter-hub deployments in order to get the pods to run.
+If you are deploying Kubeflow in an [OpenShift](https://github.com/openshift/origin) environment which encapsulates Kubernetes, you will need to adjust the security contexts for the ambassador and jupyter-hub deployments in order to get the pods to run.
 
 ```commandline
 oc adm policy add-scc-to-user anyuid -z ambassador
@@ -399,10 +448,10 @@ ks apply default -c kubeflow-core
 ERROR Attempting to deploy to environment 'default' at 'https://127.0.0.1:8443', but cannot locate a server at that address
 ```
 
-This error is due to the fact that the default cluster installed by Docker for Mac is actually set to `https://localhost:6443`. One option is to directly edit the generated `environments/default/spec.json` file to set the "server" variable to the correct location, then retry the deployment. However, it is preferable to initialize your ksonnet app using the desired kube config:
+This error is due to the fact that the default cluster installed by Docker for Mac is actually set to `https://localhost:6443`. One option is to directly edit the generated `environments/default/spec.json` file to set the "server" variable to the correct location, then retry the deployment. However, it is preferable to initialize your Ksonnet app using the desired kube config:
 
 ```commandline
-export KUBECONFIG=~/.kube/config
+kubectl config use-context docker-for-desktop
 ks init my-kubeflow
 ```
 

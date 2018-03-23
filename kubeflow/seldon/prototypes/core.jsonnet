@@ -3,7 +3,7 @@
 // @description Seldon Core components. Operator and API FrontEnd.
 // @shortDescription Seldon Core components.
 // @param name string seldon Name to give seldon
-// @optionalParam namespace string default Namespace
+// @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
 // @optionalParam withRbac string true Whether to include RBAC setup
 // @optionalParam withApife string false Whether to include builtin API Oauth fornt end server for ingress
 // @optionalParam apifeImage string seldonio/apife:0.1.5 Default image for API Front End
@@ -13,14 +13,17 @@
 // @optionalParam operatorJavaOpts string null cluster manager java opts
 // @optionalParam engineImage string seldonio/engine:0.1.5 Seldon engine image version
 
-// TODO(https://github.com/ksonnet/ksonnet/issues/222): We have to add namespace as an explicit parameter
-// because ksonnet doesn't support inheriting it from the environment yet.
-
 local k = import "k.libsonnet";
 local core = import "kubeflow/seldon/core.libsonnet";
 
+// updatedParams uses the environment namespace if
+// the namespace parameter is not explicitly set
+local updatedParams = params {
+  namespace: if params.namespace == "null" then env.namespace else params.namespace
+};
+
 local name = import "param://name";
-local namespace = import "param://namespace";
+local namespace = updatedParams.namespace;
 local withRbac = import "param://withRbac";
 local withApife = import "param://withApife";
 
