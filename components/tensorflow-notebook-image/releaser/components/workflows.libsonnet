@@ -122,7 +122,7 @@
         },
         sidecars: sidecars,
       };  // buildTemplate
-      local buildImageTemplate(tf_version, device, is_latest=true) = {
+      local buildImageTemplate(tf_version, workflow_name, device, is_latest=true) = {
         local image = params.registry + "/tensorflow-" + tf_version + "-notebook-" +  device,
         local tag = params.versionTag,
         local base_image =
@@ -142,7 +142,7 @@
           tf_version +
           "-cp36-cp36m-linux_x86_64.whl",
         result:: buildTemplate(
-          "build-" + tf_version + "-" + device,
+          "build-" + workflow_name + "-" + device,
           [
             // We need to explicitly specify bash because
             // build_image.sh is not in the container its a volume mounted file.
@@ -216,33 +216,33 @@
                     template: "checkout",
                   },
                   {
-                    name: "build-1.4.1-gpu",
-                    template: "build-1.4.1-gpu",
+                    name: "build-1-4-1-gpu",
+                    template: "build-1-4-1-gpu",
                     dependencies: ["checkout"],
                   },
                   {
-                    name: "build-1.4.1-cpu",
-                    template: "build-1.4.1-cpu",
+                    name: "build-1-4-1-cpu",
+                    template: "build-1-4-1-cpu",
                     dependencies: ["checkout"],
                   },
                   {
-                    name: "build-1.5.1-gpu",
-                    template: "build-1.5.1-gpu",
+                    name: "build-1-5-1-gpu",
+                    template: "build-1-5-1-gpu",
                     dependencies: ["checkout"],
                   },
                   {
-                    name: "build-1.5.1-cpu",
-                    template: "build-1.5.1-cpu",
+                    name: "build-1-5-1-cpu",
+                    template: "build-1-5-1-cpu",
                     dependencies: ["checkout"],
                   },
                   {
-                    name: "build-1.6.0-gpu",
-                    template: "build-1.6.0-gpu",
+                    name: "build-1-6-0-gpu",
+                    template: "build-1-6-0-gpu",
                     dependencies: ["checkout"],
                   },
                   {
-                    name: "build-1.6.0-cpu",
-                    template: "build-1.6.0-cpu",
+                    name: "build-1-6-0-cpu",
+                    template: "build-1-6-0-cpu",
                     dependencies: ["checkout"],
                   },
                   {
@@ -253,12 +253,12 @@
                 ],
               },  //dag
             },
-            buildImageTemplate("1.4.1", "cpu"),
-            buildImageTemplate("1.4.1", "gpu"),
-            buildImageTemplate("1.5.1", "cpu"),
-            buildImageTemplate("1.5.1", "gpu"),
-            buildImageTemplate("1.6.0", "cpu"),
-            buildImageTemplate("1.6.0", "gpu"),
+            buildImageTemplate("1.4.1", "1-4-1", "cpu"),
+            buildImageTemplate("1.4.1", "1-4-1", "gpu"),
+            buildImageTemplate("1.5.1", "1-5-1", "cpu"),
+            buildImageTemplate("1.5.1", "1-5-1", "gpu"),
+            buildImageTemplate("1.6.0", "1-6-0", "cpu"),
+            buildImageTemplate("1.6.0", "1-6-0", "gpu"),
             {
               name: "exit-handler",
               steps: [
