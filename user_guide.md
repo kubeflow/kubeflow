@@ -455,6 +455,15 @@ kubectl config use-context docker-for-desktop
 ks init my-kubeflow
 ```
 
+### 403 API rate limit exceeded error
+
+Because ksonnet uses Github to pull kubeflow, unless user specifies Github API token, it will quickly consume maximum API call quota for anonymus.
+To fix this issue first create Github API token using this [guide](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/), and assign this token to GITHUB_TOKEN environment variable.
+
+```commandline
+export GITHUB_TOKEN=<< token >>
+```
+
 ## Why Kubeflow Uses Ksonnet
 
 [Ksonnet](https://ksonnet.io/) is a command line tool that makes it easier to manage complex deployments consisting of multiple components. It is designed to
