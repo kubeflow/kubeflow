@@ -295,8 +295,8 @@
               "apiVersion: ambassador/v0",
               "kind:  Mapping",
               "name: tfjobs-ui-mapping",
-              "prefix: /tfjobs/ui/",
-              "rewrite: /",
+              "prefix: /tfjobs/",
+              "rewrite: /tfjobs/",
               "service: tf-job-dashboard." + namespace,
             ]),
         },  //annotations
