@@ -181,9 +181,9 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
                 env: [
                   {
                     name: "NOTEBOOK_PVC_MOUNT",
-                    value: notebookPVCMount
+                    value: notebookPVCMount,
                   },
-                ]
+                ],
               },  // jupyterHub container
             ],
             serviceAccountName: "jupyter-hub",
