@@ -58,6 +58,9 @@ Make sure the Argo workflow completes successfully.
 Check the junit files to make sure there were no actual test failures.
 The junit files will be in `gs://kubeflow-releasing-artifacts`.
 
+Update [all.jsonnet](https://github.com/kubeflow/kubeflow/blob/master/kubeflow/core/prototypes/all.jsonnet#L10)
+to point to the new image.
+
 ## Build TF Serving Images
 
 We build TF serving images using an argo workflow.
