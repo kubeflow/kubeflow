@@ -53,7 +53,7 @@
       local vmName =
         if platform == "minikube" then
           if std.length(name) > 61 then
-            // We append a letter becaue it must start with a lowercase letter.
+            // We append a letter because it must start with a lowercase letter.
             // We use a suffix because the suffix contains the random salt.
             "z" + std.substr(name, std.length(name) - 60, 60)
           else
@@ -338,6 +338,9 @@
               "--test_files_dirs=" + srcDir + "/kubeflow",
               "--jsonnet_path_dirs=" + srcDir,
             ]),  // jsonnet-test
+            // TODO(jlewi): We need to update test_runner so we can set a test_case
+            // name and then make the test_case name depdent on the platform.
+            // Otherwise the GKE and minikube tests will clober each other.
             buildTemplate("tfjob-test", [
               "python",
               "-m",
@@ -349,7 +352,7 @@
               "--app_dir=" + tfOperatorRoot + "/test/workflows",
               "--component=simple_tfjob",
               "--params=name=simple-tfjob,namespace=" + stepsNamespace,
-              "--junit_path=" + artifactsDir + "/junit_e2e.xml",
+              "--junit_path=" + artifactsDir + "/junit_e2e_" + platform + ".xml",
             ]),  // run tests
           ],  // templates
         },
