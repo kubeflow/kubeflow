@@ -36,9 +36,8 @@
       local srcRootDir = testDir + "/src";
       // The directory containing the kubeflow/kubeflow repo
       local srcDir = srcRootDir + "/kubeflow/kubeflow";
-      // DO NOT SUBMIT go back to latest.
-      // local image = "gcr.io/kubeflow-ci/test-worker:latest";
-      local image = "gcr.io/kubeflow-ci/test-worker:v20180320-d727f48-dirty-1ec8f6";
+      local image = "gcr.io/kubeflow-ci/test-worker:latest";
+      
       // The name of the NFS volume claim to use for test files.
       local nfsVolumeClaim = "nfs-external";
       // The name to use for the volume to use to contain test data.
@@ -252,9 +251,7 @@
               ["/usr/local/bin/checkout.sh", srcRootDir],
               [{
                 name: "EXTRA_REPOS",
-                // DO NOT SUBMIT GO BACK TO USING HEAD
-                // value: "kubeflow/tf-operator@HEAD;kubeflow/testing@HEAD",
-                value: "kubeflow/tf-operator@HEAD:485;kubeflow/testing@HEAD:79",
+                value: "kubeflow/tf-operator@HEAD;kubeflow/testing@HEAD",                
               }],
               [],  // no sidecars
             ),
