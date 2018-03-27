@@ -396,13 +396,13 @@ def deploy_minikube(args):
 
 def teardown_minikube(args):
   """Delete the VM used for minikube."""
-  
+
   credentials = GoogleCredentials.get_application_default()
   gce = discovery.build("compute", "v1", credentials=credentials)  
   instances = gce.instances()  
-  
+
   request = instances.delete(project=args.project, zone=args.zone, instance=args.vm_name)
-  
+
   request.execute()
 
 def maybe_configure_kubectl_for_gcp(config_path):
@@ -434,7 +434,7 @@ def maybe_configure_kubectl_for_gcp(config_path):
   zone = pieces[2]
   cluster = pieces[3]
 
-  util.configure_kubectl(project, zone, cluster_name)
+  util.configure_kubectl(project, zone, cluster)
 
 def main():  # pylint: disable=too-many-locals
   logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
