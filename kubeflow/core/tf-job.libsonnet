@@ -1,6 +1,4 @@
 {
-  // TODO(https://github.com/ksonnet/ksonnet/issues/222): Taking namespace as an argument is a work around for the fact that ksonnet
-  // doesn't support automatically piping in the namespace from the environment to prototypes.
   all(params):: [
     $.parts(params.namespace).tfJobDeploy(params.tfJobImage),
     $.parts(params.namespace).configMap(params.cloud, params.tfDefaultImage),
@@ -297,8 +295,8 @@
               "apiVersion: ambassador/v0",
               "kind:  Mapping",
               "name: tfjobs-ui-mapping",
-              "prefix: /tfjobs/ui/",
-              "rewrite: /",
+              "prefix: /tfjobs/",
+              "rewrite: /tfjobs/",
               "service: tf-job-dashboard." + namespace,
             ]),
         },  //annotations

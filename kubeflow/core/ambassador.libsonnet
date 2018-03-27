@@ -6,7 +6,7 @@
     $.parts(params.namespace).serviceAccount,
     $.parts(params.namespace).roleBinding,
     $.parts(params.namespace).deploy,
-    $.parts(params.namespace).k8sDashboard,
+    $.parts(params.namespace).k8sDashboard(params.cloud),
   ],
 
   parts(namespace):: {
@@ -218,8 +218,13 @@
       },
     },  // deploy
 
+    isDashboardTls(cloud):: 
+      if cloud == "acsengine" || cloud == "aks" then
+        "false"
+      else
+        "true",
     // This service adds a rule to our reverse proxy for accessing the K8s dashboard.
-    k8sDashboard:: {
+    k8sDashboard(cloud):: {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
@@ -235,7 +240,7 @@
               "name: k8s-dashboard-ui-mapping",
               "prefix: /k8s/ui/",
               "rewrite: /",
-              "tls: true",
+              "tls: " + $.parts(namespace).isDashboardTls(cloud),
               // We redirect to the K8s service created for the dashboard
               // in namespace kube-system. We don't use the k8s-dashboard service
               // because that isn't in the kube-system namespace and I don't think

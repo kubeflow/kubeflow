@@ -12,8 +12,12 @@ class KubeFormSpawner(KubeSpawner):
     <label for='image'>Image</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <input list="image" name="image" placeholder='repo/image:tag'>
     <datalist id="image">
-      <option value="gcr.io/kubeflow-images-staging/tensorflow-notebook-cpu">
-      <option value="gcr.io/kubeflow-images-staging/tensorflow-notebook-gpu">
+      <option value="gcr.io/kubeflow-images-staging/tensorflow-1-4.1-notebook-cpu:v20180323-6e79ad3">
+      <option value="gcr.io/kubeflow-images-staging/tensorflow-1-4.1-notebook-gpu:v20180323-6e79ad3">
+      <option value="gcr.io/kubeflow-images-staging/tensorflow-1-5.1-notebook-cpu:v20180323-6e79ad3">
+      <option value="gcr.io/kubeflow-images-staging/tensorflow-1-5.1-notebook-gpu:v20180323-6e79ad3">
+      <option value="gcr.io/kubeflow-images-staging/tensorflow-1-6.1-notebook-cpu:v20180323-6e79ad3">
+      <option value="gcr.io/kubeflow-images-staging/tensorflow-1-6.1-notebook-gpu:v20180323-6e79ad3">      
     </datalist>
     <br/><br/>
 
@@ -83,8 +87,8 @@ c.JupyterHub.spawner_class = KubeFormSpawner
 c.KubeSpawner.singleuser_image_spec = 'gcr.io/kubeflow/tensorflow-notebook'
 c.KubeSpawner.cmd = 'start-singleuser.sh'
 c.KubeSpawner.args = ['--allow-root']
-# First pulls can be really slow, so let's give it a big timeout
-c.KubeSpawner.start_timeout = 60 * 10
+# gpu images are very large ~15GB. need a large timeout.
+c.KubeSpawner.start_timeout = 60 * 30
 
 ###################################################
 ### Persistent volume options
@@ -111,4 +115,3 @@ c.KubeSpawner.volume_mounts = [
     'name': 'volume-{username}{servername}'
   }
 ]
-

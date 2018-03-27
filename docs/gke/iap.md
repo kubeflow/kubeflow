@@ -47,6 +47,9 @@ Create an OAuth Client ID to be used to identify IAP when requesting acces to us
 If you haven't already, follow the instructions in the [user_guide](https://github.com/kubeflow/kubeflow/blob/master/user_guide.md#deploy-kubeflow)
 to create a ksonnet app to deploy Kubeflow.
 
+Your GKE cluster permissions should include the `https://www.googleapis.com/auth/compute` scope and a service account with the `editor` or `compute.admin` IAM role. This is the default configuration for GKE clusters version 1.9.x and earlier.
+Follow [this guide](https://medium.com/google-cloud/updating-google-container-engine-vm-scopes-with-zero-downtime-50bff87e5f80) if you need to modify the scopes of your cluster and the [IAM docs](https://cloud.google.com/iam/docs/granting-changing-revoking-access) for details on how to apply roles.
+
 [cert-manager](https://github.com/jetstack/cert-manager) is used to automatically request valid SSL certifiactes using the [ACME](https://en.wikipedia.org/wiki/Automated_Certificate_Management_Environment) issuer.
 
 The instructions below reference the following environment variables which you will need to set for your deployment
@@ -57,46 +60,18 @@ The instructions below reference the following environment variables which you w
   * **IP_NAME** The name of the GCP static IP that you created above and will be associated with **DOMAIN**.
   * **NAMESPACE** The namespace where Kubeflow is deployed.
   * **ACCOUNT** The email address for your ACME account where certificate expiration notifications will be sent.
-
+  * **CLIENT_ID** The OAuth client ID obtained earlier.
+  * **CLIENT_SECRET** The OAuth client secret obtained earlier.
 
 ```
-ks generate cert-manager cert-manager --namespace=${NAMESPACE} --acmeEmail=${ACCOUNT}
+ks generate cert-manager cert-manager --acmeEmail=${ACCOUNT}
 ks apply ${ENVIRONMENT} -c cert-manager
 
-ks generate iap-ingress iap-ingress --ipName=${IP_NAME} --namespace=${NAMESPACE} --hostname=${FQDN}
+ks generate iap-ingress iap-ingress --namespace=${NAMESPACE} --ipName=${IP_NAME} --hostname=${FQDN} --clientID=${CLIENT_ID} --clientSecret=${CLIENT_SECRET}
 ks apply ${ENVIRONMENT} -c iap-ingress
 ```
 
-This will create a load balancer. We can now enable IAP on this load balancer using
-the [enable_iap.sh](https://github.com/kubeflow/kubeflow/tree/master/docs/gke/enable_iap.sh) script.
-
-
-```
-export CLIENT_ID=<Client id for OAuth client created in the previous step>
-export CLIENT_SECRET=<Client secret for OAuth client created in the previous step>
-SERVICE=envoy
-./enable_iap.sh ${PROJECT} ${NAMESPACE} ${SERVICE}
-```
-The above command will output the audience such as:
-
-```
-JWT_AUDIENCE=/projects/991277910492/global/backendServices/801046342490434803
-```
-
- * you will need JWT_AUDIENCE in the next step to configure JWT validation
-
-**Important** Redeploying iap-ingress (e.g. running `ks apply ${ENVIRONMET} -c iap-ingress` again)
-will cause the JWT_AUDIENCE to change and the backend service created by GCP to change.
-As a result you will have to repeat the steps below to properly configure IAP.
-
-### Deploy Envoy Proxies
-
-The next step is to deploy Envoy as a reverse proxy.
-
-```
-ks generate iap-envoy iap-envoy --namespace=${NAMESPACE} --audiences=${JWT_AUDIENCE}
-ks apply ${ENVIRONMENT} -c iap-envoy
-```
+After a few minutes the IAP enabled load balancer will be ready.
 
 ### Test ingress
 
