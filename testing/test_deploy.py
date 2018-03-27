@@ -606,7 +606,8 @@ def main():  # pylint: disable=too-many-locals
     logging.info("KUBECONFIG %s doesn't exist; not clearing tokens.", config_file)
 
   # Print out the config to help debugging.
-  util.run(["gcloud", "config", "config-helper"])
+  output = util.run_and_output(["gcloud", "config", "config-helper"])
+  logging.info("gcloud config: \n%s",output)
   wrap_test(args)
 
 if __name__ == "__main__":
