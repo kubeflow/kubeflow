@@ -18,8 +18,8 @@
     // in which case the image used will still depend on whether GPUs are used or not.
     // Users can also override modelServerImage in which case the user supplied value will always be used
     // regardless of numGpus.
-    defaultCpuImage: "gcr.io/kubeflow-images-staging/tf-model-server-cpu:v20180326-b0c432b9",
-    defaultGpuImage: "gcr.io/kubeflow-images-staging/tf-model-server-gpu:v20180326-b0c432b9",
+    defaultCpuImage: "gcr.io/kubeflow-images-staging/tf-model-server-cpu:v20180327-995786ec",
+    defaultGpuImage: "gcr.io/kubeflow-images-staging/tf-model-server-gpu:v20180327-995786ec",
     modelServerImage: if $.params.numGpus == 0 then
       $.params.defaultCpuImage
     else
