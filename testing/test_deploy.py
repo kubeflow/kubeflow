@@ -405,7 +405,30 @@ def teardown_minikube(args):
   request = instances.delete(project=args.project, zone=args.zone, instance=args.vm_name)
   
   request.execute()
-  
+
+def clear_kubeconfig_access_tokens(config_path):
+  logging.info("Modifying kubeconfig %s", config_path)
+  with open(config_path, "r") as hf:
+    config = yaml.load(hf)
+    
+  for cluster in config["clusters"]:
+    for user in config["users"]:
+      auth_provider = user.get("auth-provider", {})
+      if auth_provider.get("name") != "gcp":
+        continue
+      logging.info("Modifying user %s which has gcp auth provider", user["name"])
+      auth_config = auth_provider.get("config", {})
+      for k in ["access-token", "expiry"]:
+        if k not in auth_config:
+          continue
+        logging.info("Deleting key %s for user %s", k, user["name"])
+        del auth_config[k]
+
+  logging.info("Writing update kubeconfig:\n %s", yaml.dump(config))
+  logging.info("Updating path of certificates in %s", config_path)
+  with open(config_path, "w") as hf:
+    yaml.dump(config, hf)
+
 def main():  # pylint: disable=too-many-locals
   logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
   # create the top-level parser
@@ -574,6 +597,8 @@ def main():  # pylint: disable=too-many-locals
   util.run(["ks", "version"])
 
   util.maybe_activate_service_account()
+  config_file = os.path.expanduser(kube_config.KUBE_CONFIG_DEFAULT_LOCATION)
+  clear_kubeconfig_access_tokens(config_file)
 
   wrap_test(args)
 
