@@ -212,7 +212,7 @@ ambassador.parts(params.namespace).deploy,
                   }
                },
                {
-                  "image": "quay.io/datawire/statsd:0.22.0",
+                  "image": "quay.io/datawire/statsd:0.30.1",
                   "name": "statsd"
                }
             ],
