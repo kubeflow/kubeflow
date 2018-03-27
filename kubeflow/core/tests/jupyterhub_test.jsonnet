@@ -140,10 +140,14 @@ std.assertEqual(jupyterhub.parts(params.namespace).jupyterHub(params.jupyterHubI
                         "containerPort": 8081
                      }
                   ],
+		  "env": [
+			"name": "NOTEBOOK_PVC_MOUNT",
+			"value": "/home/jovyan/work",
+                  ]
                   "volumeMounts": [
                      {
                         "mountPath": "/etc/config",
-                        "name": "config-volume"
+                        "name": "config-volume",
                      }
                   ]
                }

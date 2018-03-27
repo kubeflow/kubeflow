@@ -3,7 +3,7 @@
     $.parts(params.namespace).jupyterHubConfigMap(params.jupyterHubAuthenticator, params.disks),
     $.parts(params.namespace).jupyterHubService,
     $.parts(params.namespace).jupyterHubLoadBalancer(params.jupyterHubServiceType),
-    $.parts(params.namespace).jupyterHub(params.jupyterHubImage),
+    $.parts(params.namespace).jupyterHub(params.jupyterHubImage, params.jupyterNotebookPVCMount),
     $.parts(params.namespace).jupyterHubRole,
     $.parts(params.namespace).jupyterHubServiceAccount,
     $.parts(params.namespace).jupyterHubRoleBinding,
@@ -136,7 +136,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
     },
 
     // image: Image for JupyterHub
-    jupyterHub(image): {
+    jupyterHub(image, notebookPVCMount): {
       apiVersion: "apps/v1beta1",
       kind: "StatefulSet",
       metadata: {
@@ -178,6 +178,12 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
                     containerPort: 8081,
                   },
                 ],
+                env: [
+                  {
+                    name: "NOTEBOOK_PVC_MOUNT",
+                    value: notebookPVCMount
+                  },
+                ]
               },  // jupyterHub container
             ],
             serviceAccountName: "jupyter-hub",
