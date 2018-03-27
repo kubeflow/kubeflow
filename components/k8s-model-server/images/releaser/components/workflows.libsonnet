@@ -41,7 +41,7 @@
     project: "kubeflow-ci",
     cluster: "kubeflow-testing",
     zone: "us-east1-d",
-    build_image: true,
+    build_image: false,
   },
 
   parts(namespace, name, overrides={}):: {
