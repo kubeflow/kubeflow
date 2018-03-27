@@ -426,15 +426,17 @@ def main():  # pylint: disable=too-many-locals
     help="Directory to use for artifacts that should be preserved after "
          "the test runs. Defaults to test_dir if not set.")
 
+  # TODO(jlewi): This should not be a global flag.
   parser.add_argument(
     "--project",
     default=None,
     type=str,
     help="The project to use.")
 
+  # TODO(jlewi): This should not be a global flag.
   parser.add_argument(
     "--namespace",
-    required=True,
+    default=None,
     type=str,
     help=("The namespace to use."))
 

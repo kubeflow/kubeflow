@@ -337,10 +337,7 @@
               "--artifacts_dir=" + artifactsDir,
               "--test_files_dirs=" + srcDir + "/kubeflow",
               "--jsonnet_path_dirs=" + srcDir,
-            ]),  // jsonnet-test
-            // TODO(jlewi): We need to update test_runner so we can set a test_case
-            // name and then make the test_case name depdent on the platform.
-            // Otherwise the GKE and minikube tests will clober each other.
+            ]),  // jsonnet-test            
             buildTemplate("tfjob-test", [
               "python",
               "-m",
@@ -351,7 +348,9 @@
               "--project=" + project,
               "--app_dir=" + tfOperatorRoot + "/test/workflows",
               "--component=simple_tfjob",
-              "--params=name=simple-tfjob,namespace=" + stepsNamespace,
+              // Name is used for the test case name so it should be unique across
+              // all E2E tests.
+              "--params=name=simple-tfjob-" + platform,namespace=" + stepsNamespace,
               "--junit_path=" + artifactsDir + "/junit_e2e_" + platform + ".xml",
             ]),  // run tests
           ],  // templates
