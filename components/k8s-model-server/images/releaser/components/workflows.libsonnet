@@ -134,6 +134,12 @@
                 },
               },
             },
+            // We use a directory in our NFS share to store our kube config. 
+            // This way we can configure it on a single step and reuse it on subsequent steps.
+            {
+              name: "KUBECONFIG",
+              value: testDir + "/.kube/config",
+            },
           ] + prow_env + env_vars,
           volumeMounts: [
             {
@@ -220,13 +226,17 @@
           name: "checkout",
           template: "checkout",
         },
-
         {
           name: "create-pr-symlink",
           template: "create-pr-symlink",
           dependencies: ["checkout"],
         },
 
+        {
+          name: "setup",
+          template: "setup-gke",
+          depdendencies: ["checkout"],
+        },
         {
           name: "test-tf-serving",
           template: "test-tf-serving",
@@ -253,13 +263,13 @@
         {
           name: "deploy-tf-serving",
           template: "deploy-tf-serving",
-          dependencies: ["build-tf-serving-cpu"],
+          dependencies: ["build-tf-serving-cpu", "setup"],
         },
       ] else [
         {
           name: "deploy-tf-serving",
           template: "deploy-tf-serving",
-          dependencies: ["checkout"],
+          dependencies: ["setup"],
         },
       ];
       local deploy_tf_serving_command_base = [
@@ -354,6 +364,19 @@
             ),
 
             buildImageTemplate("build-tf-serving-cpu", "Dockerfile.cpu", cpuImage),
+
+            // Setup configures a kubeconfig file for GKE.
+            buildTemplate("setup", [
+              "python",
+              "-m",
+              "testing.test_deploy",
+              "--project=" + project,
+              "--test_dir=" + testDir,
+              "--artifacts_dir=" + artifactsDir,
+              "get_gke_credentials",
+              "--cluster=" + cluster,
+              "--zone=" + zone,
+            ]),  // setup
 
             buildTemplate(
               "deploy-tf-serving",
