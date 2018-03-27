@@ -168,6 +168,9 @@ def deploy_kubeflow(args):
 
   apply_command = ["ks", "apply", "default", "-c", "kubeflow-core",]
 
+  # DO NOT SUBMIT hack to see if setting account and using as fixes problems.  
+  apply_command.append("--as=kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com")
+  
   util.run(apply_command, cwd=app_dir)
 
   # Verify that the TfJob operator is actually deployed.
@@ -289,7 +292,7 @@ def ks_deploy(app_dir, component, params, env=None, account=None):
 
   apply_command = ["ks", "apply", env, "-c", component]
   if account:
-    apply_command.append("--as=" + account)
+    apply_command.append("--as=" + account)  
   util.run(apply_command, cwd=app_dir)
 
 def modify_minikube_config(config_path, certs_dir):
