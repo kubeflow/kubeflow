@@ -99,6 +99,7 @@ RUN cd /tmp && \
 
 # Install Jupyter Notebook and Hub
 RUN conda install --quiet --yes \
+    'nodejs=8.10*' \
     'notebook=5.0.*' \
     'jupyterhub=0.8.1' \
     'jupyterlab=0.31.*' \
@@ -137,7 +138,7 @@ RUN pip --no-cache-dir install \
 # use notebook-friendly backends in these images
 RUN conda install --quiet --yes \
     'nomkl' \
-    'ipywidgets=6.0*' \
+    'ipywidgets=7.1*' \
     'pandas=0.22*' \
     'numexpr=2.6*' \
     'matplotlib=2.0*' \
