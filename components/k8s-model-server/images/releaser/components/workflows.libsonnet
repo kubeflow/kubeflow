@@ -234,7 +234,7 @@
 
         {
           name: "setup",
-          template: "setup-gke",
+          template: "setup",
           depdendencies: ["checkout"],
         },
         {
