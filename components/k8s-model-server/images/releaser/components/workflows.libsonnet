@@ -235,7 +235,7 @@
         {
           name: "setup",
           template: "setup",
-          depdendencies: ["checkout"],
+          dependencies: ["checkout"],
         },
         {
           name: "test-tf-serving",
