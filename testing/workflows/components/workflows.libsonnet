@@ -268,7 +268,7 @@
               "--cluster=" + cluster,
               "--zone=" + zone,
             ]),  // setup
-            buildTemplate("teardown", [
+            buildTemplate("teardown-gke", [
               "python",
               "-m",
               "testing.test_deploy",
