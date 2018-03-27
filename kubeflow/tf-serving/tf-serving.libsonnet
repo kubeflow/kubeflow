@@ -8,9 +8,14 @@
     },
     modelName: $.params.name,
     modelPath: null,
-    // TODO(jlewi): We should probably default to a string.
-    // We might also want to have a separate boolean to indicate whether or not to use the httpProxy.
-    httpProxyImage: 0,
+
+    deployHttpProxy: false,
+    defaultHttpProxyImage: "gcr.io/kubeflow-images-staging/tf-model-server-http-proxy:v20180327-995786ec",
+    httpProxyImage: "",
+    httpProxyImageToUse: if $.params.httpProxyImage == "" then
+      $.params.defualtHttpProxyImage
+    else
+      $.params.httpProxyImage,
 
     serviceType: "ClusterIP",
 
@@ -141,7 +146,7 @@
 
     httpProxyContainer:: {
       name: $.params.name + "-http-proxy",
-      image: $.params.httpProxyImage,
+      image: $.params.httpProxyImageToUse,
       imagePullPolicy: "IfNotPresent",
       command: [
         "python",
@@ -185,7 +190,7 @@
           spec: {
             containers: [
               $.parts.tfServingContainer,
-              if $.params.httpProxyImage != 0 then
+              if $.params.deployHttpProxy then
                 $.parts.httpProxyContainer,
             ],
             // See:  https://github.com/kubeflow/kubeflow/tree/master/components/k8s-model-server#set-the-user-optional
