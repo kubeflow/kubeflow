@@ -276,9 +276,7 @@
         "python",
         "-m",
         "testing.test_deploy",
-        "--project=" + project,
-        "--cluster=" + cluster,
-        "--zone=" + zone,
+        "--project=" + project,        
         "--github_token=$(GITHUB_TOKEN)",
         // TODO(jlewi): This is duplicative with params. We should probably get
         // rid of this and just treat namespace as another parameter.
@@ -418,9 +416,7 @@
                 "-m",
                 "testing.test_deploy",
                 "--project=" + project,
-                "--cluster=" + cluster,
                 "--namespace=" + stepsNamespace,
-                "--zone=" + zone,
                 "--test_dir=" + testDir,
                 "--artifacts_dir=" + artifactsDir,
                 "teardown",
