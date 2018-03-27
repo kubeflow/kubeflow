@@ -10,7 +10,7 @@
   ],
 
   parts(namespace):: {
-    local ambassadorImage = "quay.io/datawire/ambassador:0.26.0",
+    local ambassadorImage = "quay.io/datawire/ambassador:0.30.1",
     service(serviceType):: {
       apiVersion: "v1",
       kind: "Service",
@@ -207,7 +207,7 @@
                 },
               },
               {
-                image: "quay.io/datawire/statsd:0.22.0",
+                image: "quay.io/datawire/statsd:0.30.1",
                 name: "statsd",
               },
             ],
@@ -218,7 +218,7 @@
       },
     },  // deploy
 
-    isDashboardTls(cloud):: 
+    isDashboardTls(cloud)::
       if cloud == "acsengine" || cloud == "aks" then
         "false"
       else
