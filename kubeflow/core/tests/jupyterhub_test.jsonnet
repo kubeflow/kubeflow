@@ -134,7 +134,7 @@ std.assertEqual(jupyterhub.parts(params.namespace).jupyterHub(params.jupyterHubI
                   "env": [
                      {
                         "name": "NOTEBOOK_PVC_MOUNT",
-                        "value": "/home/jovyan/work"
+                        "value": params.jupyterNotebookPVCMount
                      }
                   ],
                   "image": "gcr.io/kubeflow/jupyterhub-k8s:1.0.1",
