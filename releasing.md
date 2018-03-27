@@ -23,19 +23,24 @@ Run the E2E test workflow using our release cluster
 [kubeflow/testing#42](https://github.com/kubeflow/testing/issues/42) will simplify this.
 
 ```
-PULL_BASE_SHA=<commit to build>
-DATE=`date +%Y%m%d`
-VERSION_TAG="v${DATE}-${PULL_BASE_SHA}"
 JOB_NAME="tf-operator-release"
-JOB_TYPE=postsubmit
+JOB_TYPE=tf-operator-release
 BUILD_NUMBER=$(uuidgen)
 BUILD_NUMBER=${BUILD_NUMBER:0:4}
 REPO_OWNER=kubeflow
 REPO_NAME=tf-operator
 ENV=releasing
+DATE=`date +%Y%m%d`
+PULL_BASE_SHA="6214e560"
+VERSION_TAG="v${DATE}-${PULL_BASE_SHA}"
+
+PROW_VAR="JOB_NAME=${JOB_NAME},JOB_TYPE=${JOB_TYPE},REPO_NAME=${REPO_NAME}"
+PROW_VAR="${PROW_VAR},REPO_OWNER=${REPO_OWNER},BUILD_NUMBER=${BUILD_NUMBER}" 
+PROW_VAR="${PROW_VAR},PULL_BASE_SHA=${PULL_BASE_SHA}" 
+
 ks param set --env=${ENV} workflows namespace kubeflow-releasing
-ks param set --env=${ENV} workflows name "${USER}-${JOB_NAME}-${VERSION_TAG}"
-ks param set --env=${ENV} workflows prow_env "JOB_NAME=${JOB_NAME},JOB_TYPE=${JOB_TYPE},PULL_BASE_SHA=${PULL_BASE_SHA},REPO_NAME=${REPO_NAME},REPO_OWNER=${REPO_OWNER},BUILD_NUMBER=${BUILD_NUMBER}"
+ks param set --env=${ENV} workflows name "${USER}-${JOB_NAME}-${PULL_NUMBER}-${BUILD_NUMBER}"
+ks param set --env=${ENV} workflows prow_env "${PROW_VAR}"
 ks param set --env=${ENV} workflows versionTag "${VERSION_TAG}"
 ks apply ${ENV} -c workflows
 ```
@@ -53,6 +58,9 @@ Make sure the Argo workflow completes successfully.
 Check the junit files to make sure there were no actual test failures.
 The junit files will be in `gs://kubeflow-releasing-artifacts`.
 
+Update [all.jsonnet](https://github.com/kubeflow/kubeflow/blob/master/kubeflow/core/prototypes/all.jsonnet#L10)
+to point to the new image.
+
 ## Build TF Serving Images
 
 We build TF serving images using an argo workflow.
@@ -69,10 +77,10 @@ cd releasing/releaser
 ```
 
 ```
-PULL_BASE_SHA=<commit to build>
+PULL_BASE_SHA=${COMMIT}
 DATE=`date +%Y%m%d`
 VERSION_TAG="v${DATE}-${PULL_BASE_SHA}"
-JOB_NAME="tf-operator-release"
+JOB_NAME="tf-serving-release"
 JOB_TYPE=postsubmit
 BUILD_NUMBER=$(uuidgen)
 BUILD_NUMBER=${BUILD_NUMBER:0:4}
@@ -82,7 +90,7 @@ ENV=releasing
 ks param set --env=${ENV} workflows namespace kubeflow-releasing
 ks param set --env=${ENV} workflows name "${USER}-${JOB_NAME}-${VERSION_TAG}"
 ks param set --env=${ENV} workflows prow_env "JOB_NAME=${JOB_NAME},JOB_TYPE=${JOB_TYPE},PULL_BASE_SHA=${PULL_BASE_SHA},REPO_NAME=${REPO_NAME},REPO_OWNER=${REPO_OWNER},BUILD_NUMBER=${BUILD_NUMBER}"
-ks param set --env=${ENV} workflows serving_image "gcr.io/kubeflow-images-staging/tf-model-server:${VERSION_TAG}"
+ks param set --env=${ENV} workflows versionTag ${VERSION_TAG}
 ks apply ${ENV} -c workflows
 ```
 
@@ -114,10 +122,14 @@ REPO_NAME=kubeflow
 ENV=releasing
 ks param set --env=${ENV} workflows namespace kubeflow-releasing
 ks param set --env=${ENV} workflows name "${USER}-${JOB_NAME}-${VERSION_TAG}"
-ks param set --env=${ENV} workflows prow_env "JOB_NAME=${JOB_NAME},JOB_TYPE=${JOB_TYPE},PULL_BASE_SHA=${PULL_BASE_SHA},REPO_NAME=${REPO_NAME},REPO_OWNER=${REPO_OWNER},BUILD_NUMBER=${BUILD_NUMBER}"
-ks param set --env=${ENV} workflows serving_image "gcr.io/kubeflow-images-staging/tf-model-server:${VERSION_TAG}"
+ks param set --env=${ENV} workflows versionTag "${VERSION_TAG}"
+ks param set --env=${ENV} workflows prow_env  \
+  "JOB_NAME=${JOB_NAME},JOB_TYPE=${JOB_TYPE},PULL_BASE_SHA=${PULL_BASE_SHA},REPO_NAME=${REPO_NAME},REPO_OWNER=${REPO_OWNER},BUILD_NUMBER=${BUILD_NUMBER}"
 ks apply ${ENV} -c workflows
 ```
+
+Create a PR to update [jupyterhub_spawner.py](https://github.com/kubeflow/kubeflow/blob/master/kubeflow/core/jupyterhub_spawner.py#L15) 
+to point to the newly built Jupyter notebook images.
 
 ## Update the ksonnet configs
 

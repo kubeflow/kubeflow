@@ -161,7 +161,7 @@ You should see a sign in prompt.
 
 1. Sign in using any username/password
 1. Click the "Start My Server" button, and you will be greeted by a dialog screen.
-1. Select a CPU or GPU image from the Image dropdown menu depending on whether you are doing CPU or GPU training, or whether or not you have GPUs in your cluster. The current defaults offered for both are `gcr.io/kubeflow-images-staging/tensorflow-notebook-cpu` and `gcr.io/kubeflow-images-staging/tensorflow-notebook-gpu` respectively. Or you can type in the name of any TF image you want to run.
+1. Select a CPU or GPU image from the Image dropdown menu depending on whether you are doing CPU or GPU training, or whether or not you have GPUs in your cluster. We currently offer a cpu and gpu image for each tensorflow minor version(eg: 1.4.1,1.5.1,1.6.0). Or you can type in the name of any TF image you want to run.
 1. Allocate memory, CPU, GPU, or other resources according to your need (1 CPU and 2Gi of Memory are good starting points)
     * To allocate GPUs, make sure that you have GPUs available in your cluster
     * Run the following command to check if there are any nvidia gpus available:
@@ -453,6 +453,15 @@ This error is due to the fact that the default cluster installed by Docker for M
 ```commandline
 kubectl config use-context docker-for-desktop
 ks init my-kubeflow
+```
+
+### 403 API rate limit exceeded error
+
+Because ksonnet uses Github to pull kubeflow, unless user specifies Github API token, it will quickly consume maximum API call quota for anonymus.
+To fix this issue first create Github API token using this [guide](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/), and assign this token to GITHUB_TOKEN environment variable.
+
+```commandline
+export GITHUB_TOKEN=<< token >>
 ```
 
 ## Why Kubeflow Uses Ksonnet
