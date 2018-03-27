@@ -32,9 +32,10 @@ We build TFJob operator by running the E2E test workflow.
 Look at the [postsubmit dashboard](https://k8s-testgrid.appspot.com/sig-big-data#kubeflow-tf-operator-postsubmit)
 to find the latest green postsubmit.
 
-Checkout that commit
+Check out that commit (in this example, we'll use `6214e560`):
 
 ```
+COMMIT="6214e560"
 cd ${GIT_KUBEFLOW_TF_OPERATOR}
 git checkout ${COMMIT}
 cd test/workflows
@@ -53,7 +54,7 @@ REPO_OWNER=kubeflow
 REPO_NAME=tf-operator
 ENV=releasing
 DATE=`date +%Y%m%d`
-PULL_BASE_SHA="6214e560"
+PULL_BASE_SHA=${COMMIT:0:8}
 VERSION_TAG="v${DATE}-${PULL_BASE_SHA}"
 
 PROW_VAR="JOB_NAME=${JOB_NAME},JOB_TYPE=${JOB_TYPE},REPO_NAME=${REPO_NAME}"
@@ -61,14 +62,13 @@ PROW_VAR="${PROW_VAR},REPO_OWNER=${REPO_OWNER},BUILD_NUMBER=${BUILD_NUMBER}"
 PROW_VAR="${PROW_VAR},PULL_BASE_SHA=${PULL_BASE_SHA}" 
 
 ks param set --env=${ENV} workflows namespace kubeflow-releasing
-ks param set --env=${ENV} workflows name "${USER}-${JOB_NAME}-${PULL_NUMBER}-${BUILD_NUMBER}"
+ks param set --env=${ENV} workflows name "${USER}-${JOB_NAME}-${PULL_BASE_SHA}-${BUILD_NUMBER}"
 ks param set --env=${ENV} workflows prow_env "${PROW_VAR}"
 ks param set --env=${ENV} workflows versionTag "${VERSION_TAG}"
 ks apply ${ENV} -c workflows
 ```
 
-You can monitor the workflow using the Argo UI. For our release cluster we don't expose the Argo UI publicly
-so right now you need to connect via kubectl port-forward
+You can monitor the workflow using the Argo UI. For our release cluster, we don't expose the Argo UI publicly, so you'll need to connect via kubectl port-forward:
 
 ```
 kubectl -n kubeflow-releasing port-forward `kubectl -n kubeflow-releasing get pods --selector=app=argo-ui -o jsonpath='{.items[0].metadata.name}'` 8080:8001
@@ -90,16 +90,17 @@ We build TF serving images using an argo workflow.
 Look at the [postsubmit dashboard](https://k8s-testgrid.appspot.com/sig-big-data#kubeflow-postsubmit)
 to find the latest green postsubmit.
 
-Checkout that commit
+Check out that commit
 
 ```
+COMMIT=<commit to build>
 cd ${GIT_KUBEFLOW}
 git checkout ${COMMIT}
 cd releasing/releaser
 ```
 
 ```
-PULL_BASE_SHA=${COMMIT}
+PULL_BASE_SHA=${COMMIT:0:8}
 DATE=`date +%Y%m%d`
 VERSION_TAG="v${DATE}-${PULL_BASE_SHA}"
 JOB_NAME="tf-serving-release"
@@ -126,13 +127,14 @@ to find the latest green postsubmit.
 Checkout that commit
 
 ```
+COMMIT=<commit to build>
 cd ${GIT_KUBEFLOW}
 git checkout ${COMMIT}
 cd components/tensorflow-notebook-image/releaser
 ```
 
 ```
-PULL_BASE_SHA=<commit to build>
+PULL_BASE_SHA=${COMMIT:0:8}
 DATE=`date +%Y%m%d`
 VERSION_TAG="v${DATE}-${PULL_BASE_SHA}"
 JOB_NAME="tensorflow-notebook-image-release"
