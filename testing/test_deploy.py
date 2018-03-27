@@ -167,9 +167,6 @@ def deploy_kubeflow(args):
             "--namespace=" + namespace], cwd=app_dir)
 
   apply_command = ["ks", "apply", "default", "-c", "kubeflow-core",]
-
-  # DO NOT SUBMIT hack to see if setting account and using as fixes problems.  
-  apply_command.append("--as=kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com")
   
   util.run(apply_command, cwd=app_dir)
 
@@ -205,9 +202,7 @@ def deploy_model(args):
     raise ValueError("namespace must be supplied via --params.")
   namespace = params["namespace"]
 
-  # Set env to none so random env will be created.
-  # DO NOT SUBMIT hack to see if setting account and using as fixes problems.
-  ks_deploy(app_dir, component, params, env=None, account="kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com")
+  ks_deploy(app_dir, component, params, env=None, account=None)
 
   core_api = k8s_client.CoreV1Api(api_client)
   deploy = core_api.read_namespaced_service(
@@ -410,28 +405,36 @@ def teardown_minikube(args):
   
   request.execute()
 
-def clear_kubeconfig_access_tokens(config_path):
-  logging.info("Modifying kubeconfig %s", config_path)
+def maybe_configure_kubectl_for_gcp(config_path):
+  logging.info("Checking if we need to refresh GCP config for kubectl %s", config_path)
   with open(config_path, "r") as hf:
     config = yaml.load(hf)
-    
-  for cluster in config["clusters"]:
-    for user in config["users"]:
-      auth_provider = user.get("auth-provider", {})
-      if auth_provider.get("name") != "gcp":
-        continue
-      logging.info("Modifying user %s which has gcp auth provider", user["name"])
-      auth_config = auth_provider.get("config", {})
-      for k in ["access-token", "expiry"]:
-        if k not in auth_config:
-          continue
-        logging.info("Deleting key %s for user %s", k, user["name"])
-        del auth_config[k]
 
-  logging.info("Writing update kubeconfig:\n %s", yaml.dump(config))
-  logging.info("Updating path of certificates in %s", config_path)
-  with open(config_path, "w") as hf:
-    yaml.dump(config, hf)
+  current_context = config.get("current-context")
+  for context in config["contexts"]:
+    if not current_context == context.get("name"):
+      continue
+    
+    cluster = context.get("context", {}).get("cluster", "")
+    
+    break
+
+  if not cluster.startswith("gke_"):
+    logging.info("Cluster %s is not a gke cluster", cluster)
+    return
+  
+  pieces = cluster.split("_", 4)
+  
+  if not len(pieces) == 4:
+    message = "Could not split {0} into gke_<project>_<zone>_<cluster>".format(cluster)
+    logging.error(message)
+    raise ValueError(message)
+  
+  project = pieces[1]
+  zone = pieces[2]
+  cluster = pieces[3]
+
+  util.configure_kubectl(project, zone, cluster_name)
 
 def main():  # pylint: disable=too-many-locals
   logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
@@ -605,9 +608,9 @@ def main():  # pylint: disable=too-many-locals
   
   # TODO(jlewi): We should move this into kubeflow/testing
   if os.path.exists(config_file):
-    clear_kubeconfig_access_tokens(config_file)
+    maybe_configure_kubectl_for_gcp(config_file)
   else:
-    logging.info("KUBECONFIG %s doesn't exist; not clearing tokens.", config_file)
+    logging.info("KUBECONFIG %s doesn't exist skipping maybe_configure_kubectl_for_gcp")
 
   # Print out the config to help debugging.
   output = util.run_and_output(["gcloud", "config", "config-helper"])
