@@ -350,7 +350,7 @@
               "--component=simple_tfjob",
               // Name is used for the test case name so it should be unique across
               // all E2E tests.
-              "--params=name=simple-tfjob-" + platform,namespace=" + stepsNamespace,
+              "--params=name=simple-tfjob-" + platform + ",namespace=" + stepsNamespace,
               "--junit_path=" + artifactsDir + "/junit_e2e_" + platform + ".xml",
             ]),  // run tests
           ],  // templates
