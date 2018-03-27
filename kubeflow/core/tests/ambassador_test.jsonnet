@@ -182,7 +182,7 @@ ambassador.parts(params.namespace).deploy,
                         "value": "true"
                      }
                   ],
-                  "image": "quay.io/datawire/ambassador:0.26.0",
+                  "image": "quay.io/datawire/ambassador:0.30.1",
                   "livenessProbe": {
                      "httpGet": {
                         "path": "/ambassador/v0/check_alive",
@@ -212,7 +212,7 @@ ambassador.parts(params.namespace).deploy,
                   }
                },
                {
-                  "image": "quay.io/datawire/statsd:0.22.0",
+                  "image": "quay.io/datawire/statsd:0.30.1",
                   "name": "statsd"
                }
             ],
