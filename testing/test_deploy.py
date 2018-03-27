@@ -598,8 +598,15 @@ def main():  # pylint: disable=too-many-locals
 
   util.maybe_activate_service_account()
   config_file = os.path.expanduser(kube_config.KUBE_CONFIG_DEFAULT_LOCATION)
-  clear_kubeconfig_access_tokens(config_file)
+  
+  # TODO(jlewi): We should move this into kubeflow/testing
+  if os.path.exists(config_file):
+    clear_kubeconfig_access_tokens(config_file)
+  else:
+    logging.info("KUBECONFIG %s doesn't exist; not clearing tokens.", config_file)
 
+  # Print out the config to help debugging.
+  util.run(["gcloud", "config", "config-helper"])
   wrap_test(args)
 
 if __name__ == "__main__":
