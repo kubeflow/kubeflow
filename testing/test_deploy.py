@@ -203,7 +203,8 @@ def deploy_model(args):
   namespace = params["namespace"]
 
   # Set env to none so random env will be created.
-  ks_deploy(app_dir, component, params, env=None, account=None)
+  # DO NOT SUBMIT hack to see if setting account and using as fixes problems.
+  ks_deploy(app_dir, component, params, env=None, account="kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com")
 
   core_api = k8s_client.CoreV1Api(api_client)
   deploy = core_api.read_namespaced_service(
