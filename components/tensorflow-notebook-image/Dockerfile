@@ -59,9 +59,9 @@ RUN wget --quiet https://github.com/krallin/tini/releases/download/v0.10.0/tini 
     chmod +x /usr/local/bin/tini
 
 # Install ksonnet
-RUN wget --quiet https://github.com/ksonnet/ksonnet/releases/download/v0.9.1/ks_0.9.1_linux_amd64.tar.gz && \
-    tar -zvxf ks_0.9.1_linux_amd64.tar.gz && \
-    mv ks_0.9.1_linux_amd64/ks /usr/local/bin/ks && \
+RUN wget --quiet https://github.com/ksonnet/ksonnet/releases/download/v0.9.2/ks_0.9.2_linux_amd64.tar.gz && \
+    tar -zvxf ks_0.9.2_linux_amd64.tar.gz && \
+    mv ks_0.9.2_linux_amd64/ks /usr/local/bin/ks && \
     chmod +x /usr/local/bin/ks
 
 # Configure environment
