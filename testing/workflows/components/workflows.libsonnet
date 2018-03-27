@@ -60,15 +60,6 @@
             name
         else
           "";
-
-      // If we are using minikube we need to set KUBECONFIG to the location of the kubeconfig file.
-      local kubeConfigEnv = if platform == "minikube" then
-        [{
-          name: "KUBECONFIG",
-          value: testDir + "/.kube/config",
-        }]
-      else
-        [];
       local project = "kubeflow-ci";
       // GKE cluster to use
       local cluster =
@@ -104,6 +95,12 @@
                   key: "github_token",
                 },
               },
+            },
+            // We use a directory in our NFS share to store our kube config. 
+            // This way we can configure it on a single step and reuse it on subsequent steps.
+            {
+             name: "KUBECONFIG",
+             value: testDir + "/.kube/config",
             },
           ] + prow_env + env_vars + kubeConfigEnv,
           volumeMounts: [
