@@ -102,7 +102,7 @@
              name: "KUBECONFIG",
              value: testDir + "/.kube/config",
             },
-          ] + prow_env + env_vars + kubeConfigEnv,
+          ] + prow_env + env_vars,
           volumeMounts: [
             {
               name: dataVolume,
