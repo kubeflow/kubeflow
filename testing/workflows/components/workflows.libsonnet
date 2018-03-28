@@ -306,7 +306,15 @@
               "-m",
               "testing.test_deploy",
               "--project=" + project,
-              "--namespace=" + stepsNamespace,
+              "--namespace=" + stepsNamespace,]
+              + 
+              if platform == "minikube" then
+              []
+              else 
+              [
+              "--as_gcloud_user"
+              ]
+              + [              
               "--test_dir=" + testDir,
               "--artifacts_dir=" + artifactsDir,
               "deploy_kubeflow"

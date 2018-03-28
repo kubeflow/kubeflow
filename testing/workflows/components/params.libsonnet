@@ -11,7 +11,7 @@
       mode: "minikube",
       name: "jlewi-kubeflow-kubeflow-presubmit-test-473-290a",
       namespace: "kubeflow-test-infra",
-      platform: "gke",
+      platform: "minikube",
       prow: "JOB_NAME=kubeflow-presubmit-test,JOB_TYPE=presubmit,PULL_NUMBER=209,REPO_NAME=kubeflow,REPO_OWNER=kubeflow,BUILD_NUMBER=997a",
       prow_env: "JOB_NAME=kubeflow-kubeflow-presubmit-test,JOB_TYPE=presubmit,PULL_NUMBER=473,REPO_NAME=kubeflow,REPO_OWNER=kubeflow,BUILD_NUMBER=290a",
     },
