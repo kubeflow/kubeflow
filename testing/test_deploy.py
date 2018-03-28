@@ -165,6 +165,25 @@ def get_gke_credentials(args):
   # that RBAC rules can be applied to the email and not the id.
   # See https://github.com/kubernetes/kubernetes/pull/58141
   
+  # TODO(jlewi): Make this a flag.
+
+  logging.info("Modifying kubeconfig %s", config_path)
+  with open(config_path, "r") as hf:
+    config = yaml.load(hf)
+    
+  for cluster in config["clusters"]:
+    for user in config["users"]:
+      auth_provider = user.get("auth-provider", {})
+      if auth_provider.get("name") != "gcp":
+        continue
+      logging.info("Modifying user %s which has gcp auth provider", user["name"])
+      if "config" in auth_provider:      
+        del auth_provider["config"]
+
+  logging.info("Writing update kubeconfig:\n %s", yaml.dump(config))  
+  with open(config_path, "w") as hf:
+    yaml.dump(config, hf)
+    
 def deploy_kubeflow(args):
   """Deploy Kubeflow."""
   api_client = create_k8s_client(args)
