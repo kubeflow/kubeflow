@@ -185,6 +185,11 @@ def deploy_kubeflow(args):
     "kubeflow-core",
   ]
 
+  if args.as_gcloud_user:
+    account = get_gcp_identity()
+    logging.info("Impersonate %s", account)
+    
+  apply_command.append("--as=" + account)
   util.run(apply_command, cwd=app_dir)
 
   # Verify that the TfJob operator is actually deployed.
@@ -498,6 +503,14 @@ def main():  # pylint: disable=too-many-locals,too-many-statements
     help="Directory to use for artifacts that should be preserved after "
     "the test runs. Defaults to test_dir if not set.")
 
+  parser.add_argument("--as_gcloud_user", dest="as_gcloud_user", 
+                      action="store_true", 
+                      help=("Impersonate the user corresponding to the gcloud "
+                            "command with kubectl and ks."))
+  parser.add_argument("--no-as_gcloud_user", dest="as_gcloud_user", 
+                      action="store_false")
+  parser.set_defaults(as_gcloud_user=False)
+  
   # TODO(jlewi): This should not be a global flag.
   parser.add_argument(
     "--project", default=None, type=str, help="The project to use.")
