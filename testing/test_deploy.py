@@ -75,9 +75,12 @@ def _setup_test(api_client, run_label):
 
 
 def create_k8s_client(_):
-  # DO NOT SUBMIT.
-  # util.load_kube_config()
-
+  # As of 03/28 we switched to using headless (gcloud less) auth using
+  # service accounts. So it should hopefully no longer be necessary to
+  # call load_kube_config to work around 
+  # https://github.com/kubernetes-incubator/client-python/issues/339
+  # util.load_kube_config  
+  kube_config.load_kube_config(persist_config=False)
   # Create an API client object to talk to the K8s master.
   api_client = k8s_client.ApiClient()
 
