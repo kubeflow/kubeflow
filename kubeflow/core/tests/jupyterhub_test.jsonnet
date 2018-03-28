@@ -5,6 +5,7 @@ local params = {
   jupyterHubAuthenticator:: null,
   jupyterHubServiceType:: "ClusterIP",
   jupyterHubImage: "gcr.io/kubeflow/jupyterhub-k8s:1.0.1",
+  jupyterNotebookPVCMount: "/home/jovyan/work",
 };
 
 local baseSpawner= importstr "../jupyterhub_spawner.py";
@@ -105,7 +106,7 @@ std.assertEqual(jupyterhub.parts(params.namespace).jupyterHubLoadBalancer(params
    }
 }) &&
 
-std.assertEqual(jupyterhub.parts(params.namespace).jupyterHub(params.jupyterHubImage),
+std.assertEqual(jupyterhub.parts(params.namespace).jupyterHub(params.jupyterHubImage, params.jupyterNotebookPVCMount),
 {
    "apiVersion": "apps/v1beta1",
    "kind": "StatefulSet",
@@ -129,6 +130,12 @@ std.assertEqual(jupyterhub.parts(params.namespace).jupyterHub(params.jupyterHubI
                      "jupyterhub",
                      "-f",
                      "/etc/config/jupyterhub_config.py"
+                  ],
+                  "env": [
+                     {
+                        "name": "NOTEBOOK_PVC_MOUNT",
+                        "value": params.jupyterNotebookPVCMount
+                     }
                   ],
                   "image": "gcr.io/kubeflow/jupyterhub-k8s:1.0.1",
                   "name": "tf-hub",
