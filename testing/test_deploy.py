@@ -167,8 +167,8 @@ def get_gke_credentials(args):
   
   # TODO(jlewi): Make this a flag.
 
-  logging.info("Modifying kubeconfig %s", config_path)
-  with open(config_path, "r") as hf:
+  logging.info("Modifying kubeconfig %s", config_file)
+  with open(config_file, "r") as hf:
     config = yaml.load(hf)
     
   for cluster in config["clusters"]:
@@ -181,7 +181,7 @@ def get_gke_credentials(args):
         del auth_provider["config"]
 
   logging.info("Writing update kubeconfig:\n %s", yaml.dump(config))  
-  with open(config_path, "w") as hf:
+  with open(config_file, "w") as hf:
     yaml.dump(config, hf)
     
 def deploy_kubeflow(args):
