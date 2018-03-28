@@ -4,10 +4,10 @@ Some preliminary instructions for how to cut a release.
 
 ## Authenticate to GCP
 
-If you're new to using GKE or are new to the release team, you'll need to authenticate to GCP first.  [Install the `gcloud` tool](https://cloud.google.com/sdk/gcloud/) and then execute the following commands, substituting your release team account for `your-team-account@kubeflow.org`:
+If you're new to using GKE or are new to the release team, you'll need to authenticate to GCP first.  [Install the `gcloud` tool](https://cloud.google.com/sdk/gcloud/) and then execute the following commands, substituting your Kubeflow release team account for `your-account@yourdomain.org` (if you aren't a member of `release-team@kubeflow.org`, ask to be added):
 
 ```
-gcloud config set account your-team-account@kubeflow.org
+gcloud config set account your-account@yourdomain.org
 gcloud auth 
 ```
 
