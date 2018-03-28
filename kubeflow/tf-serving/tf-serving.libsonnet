@@ -8,14 +8,9 @@
     },
     modelName: $.params.name,
     modelPath: null,
-
-    deployHttpProxy: false,
-    defaultHttpProxyImage: "gcr.io/kubeflow-images-staging/tf-model-server-http-proxy:v20180327-995786ec",
-    httpProxyImage: "",
-    httpProxyImageToUse: if $.params.httpProxyImage == "" then
-      $.params.defualtHttpProxyImage
-    else
-      $.params.httpProxyImage,
+    // TODO(jlewi): We should probably default to a string.
+    // We might also want to have a separate boolean to indicate whether or not to use the httpProxy.
+    httpProxyImage: 0,
 
     serviceType: "ClusterIP",
 
@@ -23,8 +18,8 @@
     // in which case the image used will still depend on whether GPUs are used or not.
     // Users can also override modelServerImage in which case the user supplied value will always be used
     // regardless of numGpus.
-    defaultCpuImage: "gcr.io/kubeflow-images-staging/tf-model-server-cpu:v20180327-995786ec",
-    defaultGpuImage: "gcr.io/kubeflow-images-staging/tf-model-server-gpu:v20180327-995786ec",
+    defaultCpuImage: "gcr.io/kubeflow-images-staging/tf-model-server:v20180227-master",
+    defaultGpuImage: "gcr.io/kubeflow-images-staging/tf-model-server-gpu:v20180305-pr362-7f250ae-5cc7",
     modelServerImage: if $.params.numGpus == 0 then
       $.params.defaultCpuImage
     else
@@ -146,7 +141,7 @@
 
     httpProxyContainer:: {
       name: $.params.name + "-http-proxy",
-      image: $.params.httpProxyImageToUse,
+      image: $.params.httpProxyImage,
       imagePullPolicy: "IfNotPresent",
       command: [
         "python",
@@ -190,7 +185,7 @@
           spec: {
             containers: [
               $.parts.tfServingContainer,
-              if $.params.deployHttpProxy then
+              if $.params.httpProxyImage != 0 then
                 $.parts.httpProxyContainer,
             ],
             // See:  https://github.com/kubeflow/kubeflow/tree/master/components/k8s-model-server#set-the-user-optional

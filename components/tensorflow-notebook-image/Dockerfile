@@ -59,9 +59,9 @@ RUN wget --quiet https://github.com/krallin/tini/releases/download/v0.10.0/tini 
     chmod +x /usr/local/bin/tini
 
 # Install ksonnet
-RUN wget --quiet https://github.com/ksonnet/ksonnet/releases/download/v0.9.2/ks_0.9.2_linux_amd64.tar.gz && \
-    tar -zvxf ks_0.9.2_linux_amd64.tar.gz && \
-    mv ks_0.9.2_linux_amd64/ks /usr/local/bin/ks && \
+RUN wget --quiet https://github.com/ksonnet/ksonnet/releases/download/v0.9.1/ks_0.9.1_linux_amd64.tar.gz && \
+    tar -zvxf ks_0.9.1_linux_amd64.tar.gz && \
+    mv ks_0.9.1_linux_amd64/ks /usr/local/bin/ks && \
     chmod +x /usr/local/bin/ks
 
 # Configure environment
@@ -99,7 +99,6 @@ RUN cd /tmp && \
 
 # Install Jupyter Notebook and Hub
 RUN conda install --quiet --yes \
-    'nodejs=8.10*' \
     'notebook=5.0.*' \
     'jupyterhub=0.8.1' \
     'jupyterlab=0.31.*' \
@@ -138,7 +137,7 @@ RUN pip --no-cache-dir install \
 # use notebook-friendly backends in these images
 RUN conda install --quiet --yes \
     'nomkl' \
-    'ipywidgets=7.1*' \
+    'ipywidgets=6.0*' \
     'pandas=0.22*' \
     'numexpr=2.6*' \
     'matplotlib=2.0*' \
@@ -207,13 +206,6 @@ RUN conda_packages=$(conda list -e | cut -d '=' -f 1 | grep -v '#' | sort) && \
     echo "${pip_only_packages}" | xargs -n 1 -I "{}" /bin/bash -c 'pip install --no-cache-dir {} || true' && \
     pip install --no-cache-dir tensorflow-transform && \
     source deactivate
-
-# install notebook and lab widgets
-RUN 	conda install -n root -c conda-forge widgetsnbextension && \
-	conda install -n ipykernel_py2 -c conda-forge widgetsnbextension && \
-	conda install -n root -c conda-forge ipywidgets && \
-	conda install -n ipykernel_py2 -c conda-forge ipywidgets && \
-	jupyter labextension install @jupyter-widgets/jupyterlab-manager
 
 # Add local files as late as possible to avoid cache busting
 COPY start.sh /usr/local/bin/

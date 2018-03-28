@@ -2,28 +2,6 @@
 
 Some preliminary instructions for how to cut a release.
 
-## Authenticate to GCP
-
-If you're new to using GKE or are new to the release team, you'll need to authenticate to GCP first.  [Install the `gcloud` tool](https://cloud.google.com/sdk/gcloud/) and then execute the following commands, substituting your Kubeflow release team account for `your-account@yourdomain.org` (if you aren't a member of `release-team@kubeflow.org`, ask to be added):
-
-```
-gcloud config set account your-account@yourdomain.org
-gcloud auth 
-```
-
-This will open your browser to authenticate you.  Then you can proceed as follows:
-
-```
-gcloud config set project kubeflow-releasing
-gcloud container clusters get-credentials kubeflow-releasing --zone us-central1-a --project kubeflow-releasing
-```
-
-Use [this script](https://github.com/jlewi/kubeflow-dev/blob/master/create_context.sh) to set up your context properly:
-
-```
-create_context.sh $(kubectl config current-context) kubeflow-releasing
-```
-
 
 ## Build TFJob operator
 
@@ -32,10 +10,9 @@ We build TFJob operator by running the E2E test workflow.
 Look at the [postsubmit dashboard](https://k8s-testgrid.appspot.com/sig-big-data#kubeflow-tf-operator-postsubmit)
 to find the latest green postsubmit.
 
-Check out that commit (in this example, we'll use `6214e560`):
+Checkout that commit
 
 ```
-COMMIT="6214e560"
 cd ${GIT_KUBEFLOW_TF_OPERATOR}
 git checkout ${COMMIT}
 cd test/workflows
@@ -54,7 +31,7 @@ REPO_OWNER=kubeflow
 REPO_NAME=tf-operator
 ENV=releasing
 DATE=`date +%Y%m%d`
-PULL_BASE_SHA=${COMMIT:0:8}
+PULL_BASE_SHA="6214e560"
 VERSION_TAG="v${DATE}-${PULL_BASE_SHA}"
 
 PROW_VAR="JOB_NAME=${JOB_NAME},JOB_TYPE=${JOB_TYPE},REPO_NAME=${REPO_NAME}"
@@ -62,16 +39,17 @@ PROW_VAR="${PROW_VAR},REPO_OWNER=${REPO_OWNER},BUILD_NUMBER=${BUILD_NUMBER}"
 PROW_VAR="${PROW_VAR},PULL_BASE_SHA=${PULL_BASE_SHA}" 
 
 ks param set --env=${ENV} workflows namespace kubeflow-releasing
-ks param set --env=${ENV} workflows name "${USER}-${JOB_NAME}-${PULL_BASE_SHA}-${BUILD_NUMBER}"
+ks param set --env=${ENV} workflows name "${USER}-${JOB_NAME}-${PULL_NUMBER}-${BUILD_NUMBER}"
 ks param set --env=${ENV} workflows prow_env "${PROW_VAR}"
 ks param set --env=${ENV} workflows versionTag "${VERSION_TAG}"
 ks apply ${ENV} -c workflows
 ```
 
-You can monitor the workflow using the Argo UI. For our release cluster, we don't expose the Argo UI publicly, so you'll need to connect via kubectl port-forward:
+You can monitor the workflow using the Argo UI. For our release cluster we don't expose the Argo UI publicly
+so right now you need to connect via kubectl port-forward
 
 ```
-kubectl -n kubeflow-releasing port-forward `kubectl -n kubeflow-releasing get pods --selector=app=argo-ui -o jsonpath='{.items[0].metadata.name}'` 8080:8001
+kubectl -n kubeflow-releasing port-forward `kubectl get pods --selector=app=argo-ui -o jsonpath='{.items[0].metadata.name}'` 8080:8001
 ```
 
 [kubeflow/testing#43](https://github.com/kubeflow/testing/issues/43) is tracking setup of IAP to make this easier.
@@ -90,17 +68,16 @@ We build TF serving images using an argo workflow.
 Look at the [postsubmit dashboard](https://k8s-testgrid.appspot.com/sig-big-data#kubeflow-postsubmit)
 to find the latest green postsubmit.
 
-Check out that commit
+Checkout that commit
 
 ```
-COMMIT=<commit to build>
 cd ${GIT_KUBEFLOW}
 git checkout ${COMMIT}
 cd releasing/releaser
 ```
 
 ```
-PULL_BASE_SHA=${COMMIT:0:8}
+PULL_BASE_SHA=${COMMIT}
 DATE=`date +%Y%m%d`
 VERSION_TAG="v${DATE}-${PULL_BASE_SHA}"
 JOB_NAME="tf-serving-release"
@@ -127,14 +104,13 @@ to find the latest green postsubmit.
 Checkout that commit
 
 ```
-COMMIT=<commit to build>
 cd ${GIT_KUBEFLOW}
 git checkout ${COMMIT}
 cd components/tensorflow-notebook-image/releaser
 ```
 
 ```
-PULL_BASE_SHA=${COMMIT:0:8}
+PULL_BASE_SHA=<commit to build>
 DATE=`date +%Y%m%d`
 VERSION_TAG="v${DATE}-${PULL_BASE_SHA}"
 JOB_NAME="tensorflow-notebook-image-release"
