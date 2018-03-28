@@ -208,6 +208,13 @@ RUN conda_packages=$(conda list -e | cut -d '=' -f 1 | grep -v '#' | sort) && \
     pip install --no-cache-dir tensorflow-transform && \
     source deactivate
 
+# install notebook and lab widgets
+RUN 	conda install -n root -c conda-forge widgetsnbextension && \
+	conda install -n ipykernel_py2 -c conda-forge widgetsnbextension && \
+	conda install -n root -c conda-forge ipywidgets && \
+	conda install -n ipykernel_py2 -c conda-forge ipywidgets && \
+	jupyter labextension install @jupyter-widgets/jupyterlab-manager
+
 # Add local files as late as possible to avoid cache busting
 COPY start.sh /usr/local/bin/
 COPY start-notebook.sh /usr/local/bin/
