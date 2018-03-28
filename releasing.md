@@ -2,6 +2,31 @@
 
 Some preliminary instructions for how to cut a release.
 
+<<<<<<< HEAD
+=======
+## Authenticate to GCP
+
+If you're new to using GKE or are new to the release team, you'll need to authenticate to GCP first.  [Install the `gcloud` tool](https://cloud.google.com/sdk/gcloud/) and then execute the following commands, substituting your Kubeflow release team account for `your-account@yourdomain.org` (if you aren't a member of `release-team@kubeflow.org`, ask to be added):
+
+```
+gcloud config set account your-account@yourdomain.org
+gcloud auth 
+```
+
+This will open your browser to authenticate you.  Then you can proceed as follows:
+
+```
+gcloud config set project kubeflow-releasing
+gcloud container clusters get-credentials kubeflow-releasing --zone us-central1-a --project kubeflow-releasing
+```
+
+Use [this script](https://github.com/jlewi/kubeflow-dev/blob/master/create_context.sh) to set up your context properly:
+
+```
+create_context.sh $(kubectl config current-context) kubeflow-releasing
+```
+
+>>>>>>> upstream/master
 
 ## Build TFJob operator
 
