@@ -177,9 +177,7 @@ def deploy_kubeflow(args):
 
   apply_command = [
     "ks",
-    "apply",
-    # DO NOT submit. Hack to see if we are using in-cluster config.
-    "-v=8",    
+    "apply",    
     "default",    
     "-c",
     "kubeflow-core",
@@ -188,7 +186,11 @@ def deploy_kubeflow(args):
   if args.as_gcloud_user:
     account = get_gcp_identity()
     logging.info("Impersonate %s", account)
-    
+
+  # If we don't use --as to impersonate the service account then we
+  # observe RBAC errors when doing certain operations. The problem appears
+  # to be that we end up using the in cluster config (e.g. pod service account)
+  # and not the GCP service account which has more privileges.
   apply_command.append("--as=" + account)
   util.run(apply_command, cwd=app_dir)
 
