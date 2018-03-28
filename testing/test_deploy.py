@@ -75,7 +75,8 @@ def _setup_test(api_client, run_label):
 
 
 def create_k8s_client(_):
-  util.load_kube_config()
+  # DO NOT SUBMIT.
+  # util.load_kube_config()
 
   # Create an API client object to talk to the K8s master.
   api_client = k8s_client.ApiClient()
