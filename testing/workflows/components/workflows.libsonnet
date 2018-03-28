@@ -302,28 +302,16 @@
             ]),  // teardown
 
             buildTemplate("deploy-kubeflow", 
-              {
-                local base= [
+              [
                 "python",
                 "-m",
                 "testing.test_deploy",
                 "--project=" + project,
-                "--namespace=" + stepsNamespace,],
-
-                local asUser=   if platform == "minikube" then
-                  []
-                  else 
-                  [
-                  // DO NOT SUBMIT try running without the --as user.
-                  //"--as_gcloud_user"
-                  ],
-                local rest= [              
+                "--namespace=" + stepsNamespace,
                 "--test_dir=" + testDir,
                 "--artifacts_dir=" + artifactsDir,
-                "deploy_kubeflow"],
-
-                args:: base + asUser + rest,
-              }.args
+                "deploy_kubeflow",
+                ]
             ),  // deploy-kubeflow
             buildTemplate("create-pr-symlink", [
               "python",
