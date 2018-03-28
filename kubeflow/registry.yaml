@@ -13,3 +13,6 @@ libraries:
   argo:
     version: master
     path: argo
+  centraldash:
+    version: master
+    path: centraldash

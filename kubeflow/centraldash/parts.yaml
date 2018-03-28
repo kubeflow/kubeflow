@@ -1,0 +1,35 @@
+{
+   "name": "centraldash",
+   "apiVersion": "0.0.1",
+   "kind": "ksonnet.io/parts",
+   "description": "Prototypes for running centraldash.\n",
+   "author": "Adhita Selvaraj <adhita.selvaraj@gmail.com>",
+   "contributors": [
+      {
+         "name": "Adhita Selvaraj",
+         "email": "adhita.selvaraj@gmail.com"
+      }
+   ],
+   "repository": {
+      "type": "git",
+      "url": "https://github.com/kubeflow/kubeflow"
+   },
+   "bugs": {
+      "url": "https://github.com/kubeflow/kubeflow/issues"
+   },
+   "keywords": [
+      "kubeflow",
+      "centraldash",
+      "landing page"
+   ],
+   "quickStart": {
+      "prototype": "io.ksonnet.pkg.centraldash",
+      "componentName": "centraldash",
+      "flags": {
+         "name": "centraldash",
+         "namespace": "",
+      },
+      "comment": "Deploy Central Dash"
+   },
+   "license": "Apache 2.0"
+}
