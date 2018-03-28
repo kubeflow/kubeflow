@@ -171,14 +171,14 @@ def get_gke_credentials(args):
   with open(config_file, "r") as hf:
     config = yaml.load(hf)
     
-  for cluster in config["clusters"]:
-    for user in config["users"]:
-      auth_provider = user.get("auth-provider", {})
-      if auth_provider.get("name") != "gcp":
-        continue
-      logging.info("Modifying user %s which has gcp auth provider", user["name"])
-      if "config" in auth_provider:      
-        del auth_provider["config"]
+  for user in config["users"]:
+    auth_provider = user.get("auth-provider", {})
+    if auth_provider.get("name") != "gcp":
+      continue
+    logging.info("Modifying user %s which has gcp auth provider", user["name"])
+    if "config" in auth_provider:
+      logging.info("Deleting config from user %s", user["name"])
+      del auth_provider["config"]
 
   logging.info("Writing update kubeconfig:\n %s", yaml.dump(config))  
   with open(config_file, "w") as hf:
