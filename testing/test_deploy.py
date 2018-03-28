@@ -446,41 +446,6 @@ def teardown_minikube(args):
 
   request.execute()
 
-
-def maybe_configure_kubectl_for_gcp(config_path):
-  logging.info("Checking if we need to refresh GCP config for kubectl %s",
-               config_path)
-  with open(config_path, "r") as hf:
-    config = yaml.load(hf)
-
-  current_context = config.get("current-context")
-  for context in config["contexts"]:
-    if not current_context == context.get("name"):
-      continue
-
-    cluster = context.get("context", {}).get("cluster", "")
-
-    break
-
-  if not cluster.startswith("gke_"):
-    logging.info("Cluster %s is not a gke cluster", cluster)
-    return
-
-  pieces = cluster.split("_", 4)
-
-  if not len(pieces) == 4:
-    message = "Could not split {0} into gke_<project>_<zone>_<cluster>".format(
-      cluster)
-    logging.error(message)
-    raise ValueError(message)
-
-  project = pieces[1]
-  zone = pieces[2]
-  cluster = pieces[3]
-
-  util.configure_kubectl(project, zone, cluster)
-
-
 def get_gcp_identity():
   identity = util.run_and_output(["gcloud", "config", "get-value", "account"])
   logging.info("Current GCP account: %s", identity)
@@ -633,13 +598,6 @@ def main():  # pylint: disable=too-many-locals,too-many-statements
 
   util.maybe_activate_service_account()
   config_file = os.path.expanduser(kube_config.KUBE_CONFIG_DEFAULT_LOCATION)
-
-  # TODO(jlewi): We should move this into kubeflow/testing
-  if os.path.exists(config_file):
-    maybe_configure_kubectl_for_gcp(config_file)
-  else:
-    logging.info(
-      "KUBECONFIG %s doesn't exist skipping maybe_configure_kubectl_for_gcp")
 
   # Print out the config to help debugging.
   output = util.run_and_output(["gcloud", "config", "config-helper"])
