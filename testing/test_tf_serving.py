@@ -19,13 +19,12 @@ from __future__ import print_function
 import logging
 import os
 import time
+import urllib2
+import base64
+import json
 
 import argparse
-from grpc.beta import implementations
 from kubernetes import client as k8s_client
-import tensorflow as tf
-from tensorflow_serving.apis import predict_pb2
-from tensorflow_serving.apis import prediction_service_pb2
 
 from kubeflow.testing import test_util
 
@@ -73,25 +72,22 @@ def main():
   start = time.time()
   try:
     server = "{}.{}.svc.cluster.local".format(args.service_name, args.namespace)
-    channel = implementations.insecure_channel(server, args.port)
-    stub = prediction_service_pb2.beta_create_PredictionService_stub(channel)
+    with open(args.image_path, 'rb') as img:
+      data ={'image': {'b64': base64.b64encode(img.read())}}
 
-    with tf.gfile.Open(args.image_path) as img:
-      raw_image = (img.read())
+    base_url = '%s:%s'%(server, args.port)
+    model_path = 'model/%s'%args.service_name
+    req = urllib2.Request('/'.join([base_url, model_path])+':predict')
 
     # Send request
     # See prediction_service.proto for gRPC request/response details.
-    request = predict_pb2.PredictRequest()
-    request.model_spec.name = args.service_name
-    request.model_spec.signature_name = 'predict_images'
-    request.inputs['images'].CopyFrom(
-        tf.make_tensor_proto(raw_image, shape=[1,]))
 
     num_try = 1
     result = None
     while True:
       try:
-        result = str(stub.Predict(request, 10.0))  # 10 secs timeout
+        result = urllib2.urlopen(req, json.dumps(data), 10) # 10 secs timeout
+        result = result.read()  
       except Exception as e:
         num_try += 1
         if num_try > 10:
