@@ -172,7 +172,7 @@ def get_gke_credentials(args):
     config = yaml.load(hf)
     
   for user in config["users"]:
-    auth_provider = user.get("auth-provider", {})
+    auth_provider = user.get("user", {}).get("auth-provider", {})
     if auth_provider.get("name") != "gcp":
       continue
     logging.info("Modifying user %s which has gcp auth provider", user["name"])
