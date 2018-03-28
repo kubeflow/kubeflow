@@ -41,6 +41,7 @@ from googleapiclient import errors
 
 from kubernetes import client as k8s_client
 from kubernetes.client import rest
+from kubernetes.config import kube_config
 from kubernetes.config import incluster_config
 
 from testing import vm_util
@@ -77,24 +78,9 @@ def _setup_test(api_client, run_label):
 
   return namespace
 
-def create_k8s_client(args):
-  if args.cluster:
-    project = args.project
-    cluster_name = args.cluster
-    zone = args.zone
-    logging.info("Using cluster: %s in project: %s in zone: %s",
-                 cluster_name, project, zone)
-    # Print out config to help debug issues with accounts and
-    # credentials.
-    util.run(["gcloud", "config", "list"])
-    util.configure_kubectl(project, zone, cluster_name)
-    util.load_kube_config()
-  else:
-    # TODO(jlewi): This is sufficient for API access but it doesn't create
-    # a kubeconfig file which ksonnet needs for ks init.
-    logging.info("Running inside cluster.")
-    incluster_config.load_incluster_config()
-
+def create_k8s_client(args):  
+  util.load_kube_config()
+  
   # Create an API client object to talk to the K8s master.
   api_client = k8s_client.ApiClient()
 
@@ -154,8 +140,22 @@ def setup_kubeflow_ks_app(args, api_client):
 
   return app_dir
 
-def setup(args):
-  """Test deploying Kubeflow."""
+def get_gke_credentials(args):
+  """Configure kubeconfig to talk to the supplied GKE cluster."""
+  config_file = os.path.expanduser(kube_config.KUBE_CONFIG_DEFAULT_LOCATION)
+  logging.info("Using Kubernetes config file: %s", config_file)  
+  project = args.project
+  cluster_name = args.cluster
+  zone = args.zone
+  logging.info("Using cluster: %s in project: %s in zone: %s",
+               cluster_name, project, zone)
+  # Print out config to help debug issues with accounts and
+  # credentials.
+  util.run(["gcloud", "config", "list"])
+  util.configure_kubectl(project, zone, cluster_name)
+
+def deploy_kubeflow(args):
+  """Deploy Kubeflow."""
   api_client = create_k8s_client(args)
   app_dir = setup_kubeflow_ks_app(args, api_client)
 
@@ -163,20 +163,48 @@ def setup(args):
   # TODO(jlewi): We don't need to generate a core component if we are
   # just deploying TFServing. Might be better to refactor this code.
   # Deploy Kubeflow
+<<<<<<< HEAD
   util.run(["ks", "generate", "core", "kubeflow-core", "--name=kubeflow-core",
             "--namespace=" + namespace], cwd=app_dir)
+=======
+  util.run(
+    [
+      "ks", "generate", "core", "kubeflow-core", "--name=kubeflow-core",
+      "--namespace=" + namespace
+    ],
+    cwd=app_dir)
 
-  # TODO(jlewi): For reasons I don't understand even though we ran
-  # configure_kubectl above, if we don't rerun it we get rbac errors
-  # when we do ks apply; I think because we aren't using the proper service
-  # account. This might have something to do with the way ksonnet gets
-  # its credentials; maybe we need to configure credentials after calling
-  # ks init?
-  if args.cluster:
-    util.configure_kubectl(args.project, args.zone, args.cluster)
+  apply_command = [
+    "ks",
+    "apply",    
+    "default",    
+    "-c",
+    "kubeflow-core",
+  ]
+>>>>>>> dd576ad... Turn on verbose logging.
 
+<<<<<<< HEAD
   apply_command = ["ks", "apply", "default", "-c", "kubeflow-core",]
+  
+=======
+  if args.as_gcloud_user:
+    account = get_gcp_identity()
+    logging.info("Impersonate %s", account)
 
+<<<<<<< HEAD
+  # If we don't use --as to impersonate the service account then we
+  # observe RBAC errors when doing certain operations. The problem appears
+  # to be that we end up using the in cluster config (e.g. pod service account)
+  # and not the GCP service account which has more privileges.
+  apply_command.append("--as=" + account)
+>>>>>>> bd6305b... Fix workflow.
+=======
+    # If we don't use --as to impersonate the service account then we
+    # observe RBAC errors when doing certain operations. The problem appears
+    # to be that we end up using the in cluster config (e.g. pod service account)
+    # and not the GCP service account which has more privileges.
+    apply_command.append("--as=" + account)
+>>>>>>> 9e98e2b... Fix as.
   util.run(apply_command, cwd=app_dir)
 
   # Verify that the TfJob operator is actually deployed.
@@ -211,7 +239,6 @@ def deploy_model(args):
     raise ValueError("namespace must be supplied via --params.")
   namespace = params["namespace"]
 
-  # Set env to none so random env will be created.
   ks_deploy(app_dir, component, params, env=None, account=None)
 
   core_api = k8s_client.CoreV1Api(api_client)
@@ -297,7 +324,7 @@ def ks_deploy(app_dir, component, params, env=None, account=None):
 
   apply_command = ["ks", "apply", env, "-c", component]
   if account:
-    apply_command.append("--as=" + account)
+    apply_command.append("--as=" + account)  
   util.run(apply_command, cwd=app_dir)
 
 def modify_minikube_config(config_path, certs_dir):
@@ -383,7 +410,6 @@ def deploy_minikube(args):
     
   vm_util.wait_for_vm(args.project, args.zone, args.vm_name)
   vm_util.execute_script(args.project, args.zone, args.vm_name, install_script)
-  vm_util.execute(args.project, args.zone, args.vm_name, ["sudo minikube start --vm-driver=none --disk-size=40g"])
     
   # Copy the .kube and .minikube files to test_dir  
   # The .minikube directory contains some really large ISO and other files that we don't need; so we
@@ -408,17 +434,59 @@ def deploy_minikube(args):
 
 def teardown_minikube(args):
   """Delete the VM used for minikube."""
-  
+
   credentials = GoogleCredentials.get_application_default()
   gce = discovery.build("compute", "v1", credentials=credentials)  
   instances = gce.instances()  
-  
+
   request = instances.delete(project=args.project, zone=args.zone, instance=args.vm_name)
-  
+
   request.execute()
+
+def maybe_configure_kubectl_for_gcp(config_path):
+  logging.info("Checking if we need to refresh GCP config for kubectl %s", config_path)
+  with open(config_path, "r") as hf:
+    config = yaml.load(hf)
+
+  current_context = config.get("current-context")
+  for context in config["contexts"]:
+    if not current_context == context.get("name"):
+      continue
+    
+    cluster = context.get("context", {}).get("cluster", "")
+    
+    break
+
+  if not cluster.startswith("gke_"):
+    logging.info("Cluster %s is not a gke cluster", cluster)
+    return
   
+  pieces = cluster.split("_", 4)
+  
+  if not len(pieces) == 4:
+    message = "Could not split {0} into gke_<project>_<zone>_<cluster>".format(cluster)
+    logging.error(message)
+    raise ValueError(message)
+  
+  project = pieces[1]
+  zone = pieces[2]
+  cluster = pieces[3]
+
+  util.configure_kubectl(project, zone, cluster)
+
+<<<<<<< HEAD
 def main():  # pylint: disable=too-many-locals
   logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
+=======
+
+def get_gcp_identity():
+  identity = util.run_and_output(["gcloud", "config", "get-value", "account"])
+  logging.info("Current GCP account: %s", identity)
+  return identity
+  
+def main():  # pylint: disable=too-many-locals,too-many-statements
+  logging.getLogger().setLevel(logging.INFO)  # pylint: disable=too-many-locals
+>>>>>>> dd576ad... Turn on verbose logging.
   # create the top-level parser
   parser = argparse.ArgumentParser(
     description="Test Kubeflow E2E.")
@@ -437,30 +505,19 @@ def main():  # pylint: disable=too-many-locals
     help="Directory to use for artifacts that should be preserved after "
          "the test runs. Defaults to test_dir if not set.")
 
+  # TODO(jlewi): This should not be a global flag.
   parser.add_argument(
     "--project",
     default=None,
     type=str,
     help="The project to use.")
 
-  parser.add_argument(
-    "--cluster",
-    default=None,
-    type=str,
-    help=("The name of the cluster. If not set assumes the "
-          "script is running in a cluster and uses that cluster."))
-
+  # TODO(jlewi): This should not be a global flag.
   parser.add_argument(
     "--namespace",
-    required=True,
+    default=None,
     type=str,
     help=("The namespace to use."))
-
-  parser.add_argument(
-    "--zone",
-    default="us-east1-d",
-    type=str,
-    help="The zone for the cluster.")
 
   parser.add_argument(
     "--github_token",
@@ -480,17 +537,36 @@ def main():  # pylint: disable=too-many-locals
 
   subparsers = parser.add_subparsers()
 
-  parser_setup = subparsers.add_parser(
-    "setup",
-    help="setup the test infrastructure.")
+  parser_gke = subparsers.add_parser(
+    "get_gke_credentials",
+    help="Configure kubectl for a GKE cluster.")
 
-  parser_setup.set_defaults(func=setup)
+  parser_gke.set_defaults(func=get_gke_credentials)
+  
+  parser_gke.add_argument(
+    "--cluster",
+    default=None,
+    type=str,
+    help=("The name of the cluster. If not set assumes the "
+          "script is running in a cluster and uses that cluster."))
+
+  parser_gke.add_argument(
+    "--zone",
+    default="us-east1-d",
+    type=str,
+    help="The zone for the cluster.")
 
   parser_teardown = subparsers.add_parser(
     "teardown",
     help="teardown the test infrastructure.")
 
   parser_teardown.set_defaults(func=teardown)
+
+  parser_kubeflow = subparsers.add_parser(
+    "deploy_kubeflow",
+    help="Deploy kubeflow.")
+
+  parser_kubeflow.set_defaults(func=deploy_kubeflow)
 
   parser_tf_serving = subparsers.add_parser(
     "deploy_model",
@@ -515,13 +591,13 @@ def main():  # pylint: disable=too-many-locals
     required=True,
     type=str,
     help="The name of the VM to use.")
-  
+
   parser_minikube.add_argument(
     "--zone",
-    required=True,
+    default="us-east1-d",
     type=str,
-    help="The zone to deploy the VM in.")
-  
+    help="The zone for the cluster.")
+    
   parser_teardown_minikube = subparsers.add_parser(
     "teardown_minikube",
     help="Delete the VM running minikube.")
@@ -529,17 +605,16 @@ def main():  # pylint: disable=too-many-locals
   parser_teardown_minikube.set_defaults(func=teardown_minikube)
 
   parser_teardown_minikube.add_argument(
+    "--zone",
+    default="us-east1-d",
+    type=str,
+    help="The zone for the cluster.")
+
+  parser_teardown_minikube.add_argument(
     "--vm_name",
     required=True,
     type=str,
     help="The name of the VM to use.")
-  
-  parser_teardown_minikube.add_argument(
-    "--zone",
-    required=True,
-    type=str,
-    help="The zone to deploy the VM in.")
-  
 
   args = parser.parse_args()
 
@@ -578,7 +653,17 @@ def main():  # pylint: disable=too-many-locals
   util.run(["ks", "version"])
 
   util.maybe_activate_service_account()
+  config_file = os.path.expanduser(kube_config.KUBE_CONFIG_DEFAULT_LOCATION)
+  
+  # TODO(jlewi): We should move this into kubeflow/testing
+  if os.path.exists(config_file):
+    maybe_configure_kubectl_for_gcp(config_file)
+  else:
+    logging.info("KUBECONFIG %s doesn't exist skipping maybe_configure_kubectl_for_gcp")
 
+  # Print out the config to help debugging.
+  output = util.run_and_output(["gcloud", "config", "config-helper"])
+  logging.info("gcloud config: \n%s",output)
   wrap_test(args)
 
 if __name__ == "__main__":
