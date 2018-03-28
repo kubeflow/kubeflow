@@ -71,6 +71,11 @@ In order to quickly set up all components, execute the following commands:
 NAMESPACE=kubeflow
 kubectl create namespace ${NAMESPACE}
 
+# Which version of Kubeflow to use
+# For a list of releases see:
+# https://github.com/kubeflow/kubeflow/releases
+VERSION=v0.1.0-rc.0
+
 # Initialize a ksonnet app. Set the namespace for it's default environment.
 APP_NAME=my-kubeflow
 ks init ${APP_NAME}
@@ -78,7 +83,8 @@ cd ${APP_NAME}
 ks env set default --namespace ${NAMESPACE}
 
 # Install Kubeflow components
-ks registry add kubeflow github.com/kubeflow/kubeflow/tree/master/kubeflow
+ks registry add kubeflow github.com/kubeflow/kubeflow/tree/${VERSION}/kubeflow
+
 ks pkg install kubeflow/core
 ks pkg install kubeflow/tf-serving
 ks pkg install kubeflow/tf-job
