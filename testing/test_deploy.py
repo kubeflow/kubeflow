@@ -179,7 +179,7 @@ def deploy_kubeflow(args):
     "ks",
     "apply",
     # DO NOT submit. Hack to see if we are using in-cluster config.
-    "-v=8"    
+    "-v=8",    
     "default",    
     "-c",
     "kubeflow-core",
