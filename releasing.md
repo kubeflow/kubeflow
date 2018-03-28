@@ -2,8 +2,6 @@
 
 Some preliminary instructions for how to cut a release.
 
-<<<<<<< HEAD
-=======
 ## Authenticate to GCP
 
 If you're new to using GKE or are new to the release team, you'll need to authenticate to GCP first.  [Install the `gcloud` tool](https://cloud.google.com/sdk/gcloud/) and then execute the following commands, substituting your Kubeflow release team account for `your-account@yourdomain.org` (if you aren't a member of `release-team@kubeflow.org`, ask to be added):
@@ -26,7 +24,6 @@ Use [this script](https://github.com/jlewi/kubeflow-dev/blob/master/create_conte
 create_context.sh $(kubectl config current-context) kubeflow-releasing
 ```
 
->>>>>>> be3846f... Revert a bunch of changes to what's on master.
 
 ## Build TFJob operator
 

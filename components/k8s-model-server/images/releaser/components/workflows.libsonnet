@@ -242,16 +242,17 @@
           template: "test-tf-serving",
           dependencies: ["deploy-tf-serving"],
         },
-        {
-          name: "deploy-tf-serving-gpu",
-          template: "deploy-tf-serving-gpu",
-          dependencies: ["checkout"],
-        },
-        {
-          name: "test-tf-serving-gpu",
-          template: "test-tf-serving-gpu",
-          dependencies: ["deploy-tf-serving-gpu"],
-        },
+        // TODO(lunkai): investigate gpu flakiness, then uncomment.
+        // {
+        //   name: "deploy-tf-serving-gpu",
+        //   template: "deploy-tf-serving-gpu",
+        //   dependencies: ["checkout"],
+        // },
+        // {
+        //   name: "test-tf-serving-gpu",
+        //   template: "test-tf-serving-gpu",
+        //   dependencies: ["deploy-tf-serving-gpu"],
+        // },
       ];
       local e2e_tasks = e2e_tasks_base + if build_image then [
         {
