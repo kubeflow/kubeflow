@@ -314,7 +314,8 @@
                   []
                   else 
                   [
-                  "--as_gcloud_user"
+                  // DO NOT SUBMIT try running without the --as user.
+                  //"--as_gcloud_user"
                   ],
                 local rest= [              
                 "--test_dir=" + testDir,
