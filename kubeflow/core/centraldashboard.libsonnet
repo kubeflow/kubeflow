@@ -54,7 +54,7 @@ all(params):: [
                     value: "true",
                   },
                 ],
-                image: "swiftdiaries/centraldash:0.4",
+                image: "swiftdiaries/centraldashboard:0.1",
                 imagePullPolicy: "IfNotPresent",
                 name: "centraldashboard",
                 resources: {},
