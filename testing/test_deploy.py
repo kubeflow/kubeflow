@@ -179,6 +179,8 @@ def deploy_kubeflow(args):
     "ks",
     "apply",
     "default",
+    # DO NOT submit. Hack to see if we are using in-cluster config.
+    "-v=8"
     "-c",
     "kubeflow-core",
   ]
@@ -472,6 +474,11 @@ def maybe_configure_kubectl_for_gcp(config_path):
   util.configure_kubectl(project, zone, cluster)
 
 
+def get_gcp_identity():
+  identity = util.run_and_output(["gcloud", "config", "get-value", "account"])
+  logging.info("Current GCP account: %s", identity)
+  return identity
+  
 def main():  # pylint: disable=too-many-locals,too-many-statements
   logging.getLogger().setLevel(logging.INFO)  # pylint: disable=too-many-locals
   # create the top-level parser
