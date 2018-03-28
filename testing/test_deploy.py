@@ -158,7 +158,13 @@ def get_gke_credentials(args):
   util.run(["gcloud", "config", "list"])
   util.configure_kubectl(project, zone, cluster_name)
 
-
+  # TODO(jlewi): If GOOGLE_APPLICATION_CREDENTIALS is set then I think
+  # we want to modify the KUBECONFIG file to remove the GCP commands.
+  # This will allow it to be truly headless and not require gcloud. 
+  # More importantly, kubectl will properly attach auth.info scope so
+  # that RBAC rules can be applied to the email and not the id.
+  # See https://github.com/kubernetes/kubernetes/pull/58141
+  
 def deploy_kubeflow(args):
   """Deploy Kubeflow."""
   api_client = create_k8s_client(args)
