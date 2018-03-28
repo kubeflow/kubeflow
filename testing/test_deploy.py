@@ -182,6 +182,14 @@ def get_gke_credentials(args):
       logging.info("Deleting config from user %s", user["name"])
       del auth_provider["config"]
 
+      # This is a hack because the python client library will complain
+      # about an invalid config if there is no config field.
+      #
+      # It looks like the code checks here but that doesn't seem to work
+      # https://github.com/kubernetes-client/python-base/blob/master/config/kube_config.py#L209
+      auth_provider["config"] = {
+        "dummy": "dummy",
+      }    
   logging.info("Writing update kubeconfig:\n %s", yaml.dump(config))  
   with open(config_file, "w") as hf:
     yaml.dump(config, hf)
