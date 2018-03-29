@@ -26,7 +26,7 @@ all(params):: [
         template: {
           metadata: {
             labels: {
-              name: "tf-job-dashboard",
+              name: "centraldashboard",
             },
           },
           spec: {
