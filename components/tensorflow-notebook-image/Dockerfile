@@ -206,6 +206,9 @@ RUN conda_packages=$(conda list -e | cut -d '=' -f 1 | grep -v '#' | sort) && \
     python -m ipykernel install --user && \
     echo "${pip_only_packages}" | xargs -n 1 -I "{}" /bin/bash -c 'pip install --no-cache-dir {} || true' && \
     pip install --no-cache-dir tensorflow-transform && \
+    pip install --no-cache-dir tensorflow-model-analysis && \
+    jupyter nbextension install --py --symlink tensorflow_model_analysis --system && \
+    jupyter nbextension enable --py tensorflow_model_analysis --system && \
     source deactivate
 
 # install notebook and lab widgets
