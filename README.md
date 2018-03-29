@@ -85,9 +85,9 @@ ks env set default --namespace ${NAMESPACE}
 # Install Kubeflow components
 ks registry add kubeflow github.com/kubeflow/kubeflow/tree/${VERSION}/kubeflow
 
-ks pkg install kubeflow/core
-ks pkg install kubeflow/tf-serving
-ks pkg install kubeflow/tf-job
+ks pkg install kubeflow/core@${VERSION}
+ks pkg install kubeflow/tf-serving@${VERSION}
+ks pkg install kubeflow/tf-job@${VERSION}
 
 # Create templates for core components
 ks generate kubeflow-core kubeflow-core

@@ -29,9 +29,9 @@ VERSION=v0.1.0-rc.0
 
 cd my-kubeflow
 ks registry add kubeflow github.com/kubeflow/kubeflow/tree/${VERSION}/kubeflow
-ks pkg install kubeflow/core
-ks pkg install kubeflow/tf-serving
-ks pkg install kubeflow/tf-job
+ks pkg install kubeflow/core@${VERSION}
+ks pkg install kubeflow/tf-serving@${VERSION}
+ks pkg install kubeflow/tf-job@${VERSION}
 ```
 
 Create the Kubeflow core component. The core component includes:
