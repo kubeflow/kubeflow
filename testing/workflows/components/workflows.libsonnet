@@ -180,7 +180,7 @@
               ["/usr/local/bin/checkout.sh", srcRootDir],
               [{
                 name: "EXTRA_REPOS",
-                value: "kubeflow/tf-operator@HEAD;kubeflow/testing@HEAD",
+                value: "kubeflow/tf-operator@v0.1.0;kubeflow/testing@HEAD",
               }],
               [], // no sidecars
             ),
