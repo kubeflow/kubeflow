@@ -205,9 +205,7 @@
 
           spec: +{
             containers: [
-              $.s3parts.tbContainer,
-              if $.params.httpProxyImage != 0 then
-                $.parts.httpProxyContainer,
+              $.s3parts.tbContainer
             ],
           },
         },
