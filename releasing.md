@@ -157,15 +157,18 @@ to point to the newly built Jupyter notebook images.
 
 ## Create a release branch (if necessary)
 
-If you aren't already working on a release branch (of the form `v${VER}-branch`, where `${VER}` is a major-minor version number), then create one.  Release branches serve several purposes:
+If you aren't already working on a release branch (of the form `v${MAJOR}.${MINOR}-branch`, where `${MAJOR}.${MINOR}` is a major-minor version number), then create one.  Release branches serve several purposes:
 
 1.  They allow a release wrangler or other developers to focus on a release without interrupting development on `master`,
-2.  they allow developers and sophisticated users to track the development of a release before a release candidate is declared, and
-3.  they simplify backporting critical bugfixes to a patchlevel release particular release stream (e.g., producing a `v0.1.1` from `v0.1-branch`), when appropriate.
+2.  they allow developers to track the development of a release before a release candidate is declared,
+2.  they allow sophisticated users to track the development of a release (by using the release branch as a `ksonnet` registry), and
+4.  they simplify backporting critical bugfixes to a patchlevel release particular release stream (e.g., producing a `v0.1.1` from `v0.1-branch`), when appropriate.
 
 ### Release branching policy
 
-A release branch should be substantially _feature complete_ with respect to the intended release.  Code that is committed to `master` may be merged or cherry-picked on to a release branch, but code that is directly committed to the release branch should be solely applicable to that release (and should not be committed back to master).
+A release branch should be substantially _feature complete_ with respect to the intended release.  Code that is committed to `master` may be merged or cherry-picked on to a release branch, but code that is directly committed to the release branch should be solely applicable to that release (and should not be committed back to master).  In general, unless you're committing code that only applies to the release stream (for example, temporary hotfixes, backported security fixes, or image hashes), you should commit to `master` and then merge or cherry-pick to the reelase branch.
+
+You can create a release branch via the GitHub UI.
 
 ## Updating the release branch and tagging a release
 
@@ -179,13 +182,13 @@ A release branch should be substantially _feature complete_ with respect to the 
 
 ### Tagging a release candidate
 
-A release candidate is a tag of the form `v${VER}.${PATCHLEVEL}-RC${N}`, where `N` is a small integer, and a release candidate tag always points to a commit on the corresponding minor release branch.  Push this tag to GitHub and announce a release vote on kubeflow-discuss.
+A release candidate is a tag of the form `v${MAJOR}.${MINOR}.${PATCHLEVEL}-rc.${N}`, where `N` is a small integer, and a release candidate tag always points to a commit on the corresponding minor release branch.  Push this tag to GitHub and announce a release vote on kubeflow-discuss.
 
 ### Release votes and releases
 
 _NB:  release votes will take effect beginning with the 0.2 release stream; the specifics of the release vote policy will be finalized before then._
 
-A release candidate that has passed a community vote should be tagged as an official release.  This simply involves creating another tag for the commit pointed to by the RC tag and pushing this to GitHub.
+A release candidate that has passed a community vote should be tagged as an official release.  This simply involves creating another tag for the commit pointed to by the RC tag and pushing this to GitHub.  Tags that resemble version numbers or release candidates should automatically show up in the "releases" tab for the repo, but you can use the "draft a release" feature to add release notes.
 
 ## Updating the ksonnet configs for master
 
