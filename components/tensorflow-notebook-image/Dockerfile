@@ -207,8 +207,16 @@ RUN conda_packages=$(conda list -e | cut -d '=' -f 1 | grep -v '#' | sort) && \
     echo "${pip_only_packages}" | xargs -n 1 -I "{}" /bin/bash -c 'pip install --no-cache-dir {} || true' && \
     pip install --no-cache-dir tensorflow-transform && \
     pip install --no-cache-dir tensorflow-model-analysis && \
+    if [ -n "$(find /usr/local/ -name 'libcuda.so')" ]; then \
+        export OLD_LD_LIBRARY_PATH="${LD_LIBRARY_PATH}" && \
+        export LD_LIBRARY_PATH="$(dirname $(find /usr/local/ -name 'libcuda.so') ):${LD_LIBRARY_PATH}" && \
+        ln -s "$(find /usr/local/ -name 'libcuda.so')" "$(find /usr/local/ -name 'libcuda.so').1"; \
+    fi && \
     jupyter nbextension install --py --symlink tensorflow_model_analysis --system && \
     jupyter nbextension enable --py tensorflow_model_analysis --system && \
+    if [ -n "${OLD_LD_LIBRARY_PATH}" ]; then \
+      export LD_LIBRARY_PATH="${OLD_LD_LIBRARY_PATH}"; \
+    fi && \
     source deactivate
 
 # install notebook and lab widgets
