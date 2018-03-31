@@ -96,7 +96,7 @@ We can configure Jupyter to use the identity provided by IAP. This way users won
 
 ```
 ks param set ${CORE_NAME} jupyterHubAuthenticator iap
-ks apply ${ENV} -c ${CORE_NAME}
+ks apply ${ENVIRONMENT} -c ${CORE_NAME}
 # Restart JupyterHub so it picks up the updated config
 kubectl delete -n ${NAMESPACE} pods tf-hub-0
 ```
@@ -116,19 +116,6 @@ gcloud projects add-iam-policy-binding $PROJECT \
   --role roles/iap.httpsResourceAccessor \
   --member user:${USER_EMAIL}
 ```
-
-### Self signed certificates and browser security warnings
-
-Since you are using a self signed certificate chrome and other browsers will give you a warning like
-
-```
-Attackers might be trying to steal your information from ${ENDPOINT}(for example, passwords, messages, or credit cards). Learn more
-NET::ERR_CERT_AUTHORITY_INVALID
-```
-  * You will need to ignore these warnings
-  * To avoid these warnings you will need to use a certificate signed by a signing authority
-  * [Lets Encrypt](https://letsencrypt.org/) and other sites provide free signed certificates.
-
 
 ## Troubleshooting
 
