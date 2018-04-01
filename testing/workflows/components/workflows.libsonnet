@@ -37,7 +37,7 @@
       // The directory containing the kubeflow/kubeflow repo
       local srcDir = srcRootDir + "/kubeflow/kubeflow";
       local image = "gcr.io/kubeflow-ci/test-worker:latest";
-      
+
       // The name of the NFS volume claim to use for test files.
       local nfsVolumeClaim = "nfs-external";
       // The name to use for the volume to use to contain test data.
@@ -96,11 +96,11 @@
                 },
               },
             },
-            // We use a directory in our NFS share to store our kube config. 
+            // We use a directory in our NFS share to store our kube config.
             // This way we can configure it on a single step and reuse it on subsequent steps.
             {
-             name: "KUBECONFIG",
-             value: testDir + "/.kube/config",
+              name: "KUBECONFIG",
+              value: testDir + "/.kube/config",
             },
           ] + prow_env + env_vars,
           volumeMounts: [
@@ -132,7 +132,7 @@
             workflow: "e2e",
             // TODO(jlewi): Add labels for PR number and commit. Need to write a function
             // to convert list of environment variables to labels.
-          }, 
+          },
         },
         spec: {
           entrypoint: "e2e",
@@ -156,7 +156,7 @@
               },
             },
           ],  // volumes
-          // onExit specifies the template that should always run when the workflow completes.          
+          // onExit specifies the template that should always run when the workflow completes.
           onExit: "exit-handler",
           templates: [
             {
@@ -301,7 +301,8 @@
               "--zone=" + zone,
             ]),  // teardown
 
-            buildTemplate("deploy-kubeflow", 
+            buildTemplate(
+              "deploy-kubeflow",
               [
                 "python",
                 "-m",
@@ -311,7 +312,7 @@
                 "--test_dir=" + testDir,
                 "--artifacts_dir=" + artifactsDir,
                 "deploy_kubeflow",
-                ]
+              ]
             ),  // deploy-kubeflow
             buildTemplate("create-pr-symlink", [
               "python",
@@ -336,7 +337,7 @@
               "--artifacts_dir=" + artifactsDir,
               "--test_files_dirs=" + srcDir + "/kubeflow",
               "--jsonnet_path_dirs=" + srcDir,
-            ]),  // jsonnet-test            
+            ]),  // jsonnet-test
             buildTemplate("tfjob-test", [
               "python",
               "-m",
