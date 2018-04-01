@@ -159,20 +159,22 @@ def get_gke_credentials(args):
   # credentials.
   util.run(["gcloud", "config", "list"])
   util.configure_kubectl(project, zone, cluster_name)
-
-  # TODO(jlewi): If GOOGLE_APPLICATION_CREDENTIALS is set then I think
-  # we want to modify the KUBECONFIG file to remove the GCP commands.
-  # This will allow it to be truly headless and not require gcloud. 
+  
+  # We want to modify the KUBECONFIG file to remove the gcloud commands
+  # for any users that are authenticating using service accounts.  
+  # This will allow the script to be truly headless and not require gcloud.
   # More importantly, kubectl will properly attach auth.info scope so
   # that RBAC rules can be applied to the email and not the id.
   # See https://github.com/kubernetes/kubernetes/pull/58141
-  
-  # TODO(jlewi): Make this a flag.
-
+  #
+  # TODO(jlewi): We might want to check GOOGLE_APPLICATION_CREDENTIALS
+  # to see whether we are actually using a service account. If we aren't
+  # using a service account then we might not want to delete the gcloud
+  # commands.
   logging.info("Modifying kubeconfig %s", config_file)
   with open(config_file, "r") as hf:
     config = yaml.load(hf)
-    
+
   for user in config["users"]:
     auth_provider = user.get("user", {}).get("auth-provider", {})
     if auth_provider.get("name") != "gcp":
@@ -189,11 +191,12 @@ def get_gke_credentials(args):
       # https://github.com/kubernetes-client/python-base/blob/master/config/kube_config.py#L209
       auth_provider["config"] = {
         "dummy": "dummy",
-      }    
-  logging.info("Writing update kubeconfig:\n %s", yaml.dump(config))  
+      }
+  logging.info("Writing update kubeconfig:\n %s", yaml.dump(config))
   with open(config_file, "w") as hf:
     yaml.dump(config, hf)
-    
+
+
 def deploy_kubeflow(args):
   """Deploy Kubeflow."""
   api_client = create_k8s_client(args)
@@ -212,8 +215,8 @@ def deploy_kubeflow(args):
 
   apply_command = [
     "ks",
-    "apply",    
-    "default",    
+    "apply",
+    "default",
     "-c",
     "kubeflow-core",
   ]
@@ -437,19 +440,19 @@ def deploy_minikube(args):
     os.path.dirname(__file__), "install_minikube.sh")
 
   if not os.path.exists(install_script):
-    logging.error("C %s", install_script)
+    logging.error("Could not find minikube install script: %s", install_script)
 
   vm_util.wait_for_vm(args.project, args.zone, args.vm_name)
   vm_util.execute_script(args.project, args.zone, args.vm_name, install_script)
 
   # Copy the .kube and .minikube files to test_dir
-  for target in ["~/.kube"]:
-    full_target = "{0}:{1}".format(args.vm_name, target)
-    logging.info("Copying %s to %s", target, args.test_dir)
-    util.run([
-      "gcloud", "compute", "--project=" + args.project, "scp", "--recurse",
-      full_target, args.test_dir, "--zone=" + args.zone
-    ])
+  target = "~/.kube"
+  full_target = "{0}:{1}".format(args.vm_name, target)
+  logging.info("Copying %s to %s", target, args.test_dir)
+  util.run([
+    "gcloud", "compute", "--project=" + args.project, "scp", "--recurse",
+    full_target, args.test_dir, "--zone=" + args.zone
+  ])
 
   # The .minikube directory contains some really large ISO and other files that we don't need; so we
   # only copy the files we need.
@@ -481,11 +484,13 @@ def teardown_minikube(args):
 
   request.execute()
 
+
 def get_gcp_identity():
   identity = util.run_and_output(["gcloud", "config", "get-value", "account"])
   logging.info("Current GCP account: %s", identity)
   return identity
-  
+
+
 def main():  # pylint: disable=too-many-locals,too-many-statements
   logging.getLogger().setLevel(logging.INFO)  # pylint: disable=too-many-locals
   # create the top-level parser
@@ -505,14 +510,16 @@ def main():  # pylint: disable=too-many-locals,too-many-statements
     help="Directory to use for artifacts that should be preserved after "
     "the test runs. Defaults to test_dir if not set.")
 
-  parser.add_argument("--as_gcloud_user", dest="as_gcloud_user", 
-                      action="store_true", 
-                      help=("Impersonate the user corresponding to the gcloud "
-                            "command with kubectl and ks."))
-  parser.add_argument("--no-as_gcloud_user", dest="as_gcloud_user", 
-                      action="store_false")
+  parser.add_argument(
+    "--as_gcloud_user",
+    dest="as_gcloud_user",
+    action="store_true",
+    help=("Impersonate the user corresponding to the gcloud "
+          "command with kubectl and ks."))
+  parser.add_argument(
+    "--no-as_gcloud_user", dest="as_gcloud_user", action="store_false")
   parser.set_defaults(as_gcloud_user=False)
-  
+
   # TODO(jlewi): This should not be a global flag.
   parser.add_argument(
     "--project", default=None, type=str, help="The project to use.")
