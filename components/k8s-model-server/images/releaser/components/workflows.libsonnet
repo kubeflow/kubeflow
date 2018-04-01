@@ -242,7 +242,6 @@
           template: "test-tf-serving",
           dependencies: ["deploy-tf-serving"],
         },
-        {
         // TODO(lunkai): investigate and re-enable
         // {
         //   name: "deploy-tf-serving-gpu",
