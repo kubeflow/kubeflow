@@ -246,6 +246,16 @@
                     dependencies: ["checkout"],
                   },
                   {
+                    name: "build-1-7-0-gpu",
+                    template: "build-1-7-0-gpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
+                    name: "build-1-7-0-cpu",
+                    template: "build-1-7-0-cpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
                     name: "create-pr-symlink",
                     template: "create-pr-symlink",
                     dependencies: ["checkout"],
@@ -259,6 +269,8 @@
             buildImageTemplate("1.5.1", "1-5-1", "gpu"),
             buildImageTemplate("1.6.0", "1-6-0", "cpu"),
             buildImageTemplate("1.6.0", "1-6-0", "gpu"),
+            buildImageTemplate("1.7.0", "1-7-0", "cpu"),
+            buildImageTemplate("1.7.0", "1-7-0", "gpu"),
             {
               name: "exit-handler",
               steps: [
