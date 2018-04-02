@@ -28,8 +28,9 @@ create_context.sh $(kubectl config current-context) kubeflow-releasing
 ## Update TFJob 
 
 Identify the TFJob [release](https://github.com/kubeflow/tf-operator/releases) you
-want to use
-	* If you need to cut a new TFJob release follow the instructions in 
+want to use.
+
+  * If you need to cut a new TFJob release follow the instructions in 
 [kubeflow/tf-operator](https://github.com/kubeflow/tf-operator/blob/master/releasing.md)
 
 Update [all.jsonnet](https://github.com/kubeflow/kubeflow/blob/master/kubeflow/core/prototypes/all.jsonnet#L10)
