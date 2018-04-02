@@ -82,6 +82,9 @@
       // command: List to pass as the container command.
       local buildTemplate(step_name, command, env_vars=[], sidecars=[]) = {
         name: step_name,
+        retryStrategy: {
+          limit: 3,
+        },
         container: {
           command: command,
           image: params.step_image,
