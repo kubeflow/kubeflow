@@ -464,6 +464,15 @@ To fix this issue first create Github API token using this [guide](https://help.
 export GITHUB_TOKEN=<< token >>
 ```
 
+### Jupyter Notebook fails to spawn due to PVC issues
+
+By default JupyterHub spawns notebook instances with PVC mounted to `/home/jovyan/work`. That means underlying kubernetes must support persistent volumes and have default storage class. For more informations regarding persistent volumes (PV) refer to [kubernetes docs](https://kubernetes.io/docs/concepts/storage/persistent-volumes/).
+If your setup doesn't have valid StorageClass, you can disable PV:
+
+```commandline
+ks param set kubeflow-core jupyterNotebookPVCMount ""
+```
+
 ## Why Kubeflow Uses Ksonnet
 
 [Ksonnet](https://ksonnet.io/) is a command line tool that makes it easier to manage complex deployments consisting of multiple components. It is designed to
