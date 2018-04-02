@@ -198,6 +198,14 @@ ENV XDG_CACHE_HOME /home/$NB_USER/.cache/
 # then install them via pip. We do this on a best-effort basis, so if any
 # packages from the Python 3 environment cannot be installed with Python 2,
 # then we just skip them.
+#
+# There is an unusual workaround here for installing the tensorflow_model_analysis
+# notebook extension; the act of installing it requires importing the "tensorflow"
+# python package. Normally, that is fine. However, for the GPU images the
+# tensorflow package tries to open the CUDA library, which is not present
+# in the image (it is expected to be mapped in from the host). To work-around
+# that, we temporarily add a stub implementation of the CUDA library to the
+# library load path while we install and enable that extension.
 RUN conda_packages=$(conda list -e | cut -d '=' -f 1 | grep -v '#' | sort) && \
     pip_packages=$(pip --no-cache-dir list --format=freeze | cut -d '=' -f 1 | grep -v '#' | sort) && \
     pip_only_packages=$(comm -23 <(echo "${pip_packages}") <(echo "${conda_packages}")) && \
@@ -206,6 +214,17 @@ RUN conda_packages=$(conda list -e | cut -d '=' -f 1 | grep -v '#' | sort) && \
     python -m ipykernel install --user && \
     echo "${pip_only_packages}" | xargs -n 1 -I "{}" /bin/bash -c 'pip install --no-cache-dir {} || true' && \
     pip install --no-cache-dir tensorflow-transform && \
+    pip install --no-cache-dir tensorflow-model-analysis && \
+    if [ -n "$(find /usr/local/ -name 'libcuda.so')" ]; then \
+        export OLD_LD_LIBRARY_PATH="${LD_LIBRARY_PATH}" && \
+        export LD_LIBRARY_PATH="$(dirname $(find /usr/local/ -name 'libcuda.so') ):${LD_LIBRARY_PATH}" && \
+        ln -s "$(find /usr/local/ -name 'libcuda.so')" "$(find /usr/local/ -name 'libcuda.so').1"; \
+    fi && \
+    jupyter nbextension install --py --symlink tensorflow_model_analysis --system && \
+    jupyter nbextension enable --py tensorflow_model_analysis --system && \
+    if [ -n "${OLD_LD_LIBRARY_PATH}" ]; then \
+      export LD_LIBRARY_PATH="${OLD_LD_LIBRARY_PATH}"; \
+    fi && \
     source deactivate
 
 # install notebook and lab widgets
