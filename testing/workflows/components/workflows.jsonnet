@@ -10,4 +10,4 @@ local name = params.name;
 
 local prowEnv = workflows.parseEnv(params.prow_env);
 local bucket = params.bucket;
-std.prune(k.core.v1.list.new([workflows.parts(namespace, name).e2e(prowEnv, bucket)]))
+std.prune(k.core.v1.list.new([workflows.parts(namespace, name).e2e(prowEnv, bucket, params.platform)]))

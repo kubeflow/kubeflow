@@ -21,7 +21,7 @@
 
   parts(namespace, name):: {
     // Workflow to run the e2e test.
-    e2e(prow_env, bucket):
+    e2e(prow_env, bucket, platform="minikube"):
       // The name for the workspace to run the steps in
       local stepsNamespace = name;
       // mountPath is the directory where the volume to store the test data
@@ -37,6 +37,7 @@
       // The directory containing the kubeflow/kubeflow repo
       local srcDir = srcRootDir + "/kubeflow/kubeflow";
       local image = "gcr.io/kubeflow-ci/test-worker:latest";
+
       // The name of the NFS volume claim to use for test files.
       local nfsVolumeClaim = "nfs-external";
       // The name to use for the volume to use to contain test data.
@@ -48,9 +49,24 @@
       local tfOperatorRoot = srcRootDir + "/kubeflow/tf-operator";
       local tfOperatorPy = tfOperatorRoot;
 
+      // VM to use for minikube.
+      local vmName =
+        if platform == "minikube" then
+          if std.length(name) > 61 then
+            // We append a letter because it must start with a lowercase letter.
+            // We use a suffix because the suffix contains the random salt.
+            "z" + std.substr(name, std.length(name) - 60, 60)
+          else
+            name
+        else
+          "";
       local project = "kubeflow-ci";
       // GKE cluster to use
-      local cluster = "kubeflow-testing";
+      local cluster =
+        if platform == "gke" then
+          "kubeflow-testing"
+        else
+          "";
       local zone = "us-east1-d";
       // Build an Argo template to execute a particular command.
       // step_name: Name for the template
@@ -80,6 +96,12 @@
                 },
               },
             },
+            // We use a directory in our NFS share to store our kube config.
+            // This way we can configure it on a single step and reuse it on subsequent steps.
+            {
+              name: "KUBECONFIG",
+              value: testDir + "/.kube/config",
+            },
           ] + prow_env + env_vars,
           volumeMounts: [
             {
@@ -104,8 +126,14 @@
         metadata: {
           name: name,
           namespace: namespace,
+          labels: {
+            org: "kubeflow",
+            repo: "kubeflow",
+            workflow: "e2e",
+            // TODO(jlewi): Add labels for PR number and commit. Need to write a function
+            // to convert list of environment variables to labels.
+          },
         },
-        // TODO(jlewi): Use OnExit to run cleanup steps.
         spec: {
           entrypoint: "e2e",
           volumes: [
@@ -133,48 +161,88 @@
           templates: [
             {
               name: "e2e",
-              steps: [
-                [{
-                  name: "checkout",
-                  template: "checkout",
-                }],
-                [
+              dag: {
+                tasks: [
                   {
-                    name: "setup",
-                    template: "setup",
+                    name: "checkout",
+                    template: "checkout",
                   },
+
+                  {
+                    local gkeSetup = {
+                      name: "setup-gke",
+                      template: "setup-gke",
+                      dependencies: ["checkout"],
+                    },
+
+                    local minikubeSetup = {
+                      name: "setup-minikube",
+                      template: "setup-minikube",
+                      dependencies: ["checkout"],
+                    },
+
+                    result:: if platform == "minikube" then
+                      minikubeSetup
+                    else
+                      gkeSetup,
+
+                  }.result,
                   {
                     name: "create-pr-symlink",
                     template: "create-pr-symlink",
+                    dependencies: ["checkout"],
                   },
-                ],
-                [
+
+                  {
+                    name: "deploy-kubeflow",
+                    template: "deploy-kubeflow",
+                    dependencies: [
+                      if platform == "gke" then
+                        "setup-gke"
+                      else
+                        if platform == "minikube" then
+                          "setup-minikube"
+                        else
+                          "",
+                    ],
+                  },
+
                   {
                     name: "tfjob-test",
                     template: "tfjob-test",
+                    dependencies: ["deploy-kubeflow"],
                   },
                   {
                     name: "jsonnet-test",
                     template: "jsonnet-test",
+                    dependencies: ["checkout"],
                   },
-                ],
-              ],
-            },
+                ],  // tasks
+              },  // dag
+            },  // e2e template
             {
               name: "exit-handler",
-              steps: [
-                [
+              dag: {
+                tasks: [
                   {
                     name: "teardown",
-                    template: "teardown",
+                    template:
+                      if platform == "gke" then
+                        "teardown-gke"
+                      else
+                        if platform == "minikube" then
+                          "teardown-minikube"
+                        else
+                          "",
+                  },
+                  {
+                    name: "copy-artifacts",
+                    template: "copy-artifacts",
+                    dependencies: ["teardown"],
                   },
                 ],
-                [{
-                  name: "copy-artifacts",
-                  template: "copy-artifacts",
-                }],
-              ],
-            },
+              },  // dag
+            },  // exit-handler
             buildTemplate(
               "checkout",
               ["/usr/local/bin/checkout.sh", srcRootDir],
@@ -182,32 +250,70 @@
                 name: "EXTRA_REPOS",
                 value: "kubeflow/tf-operator@v0.1.0;kubeflow/testing@HEAD",
               }],
-              [], // no sidecars
+              [],  // no sidecars
             ),
-            buildTemplate("setup", [
+            // Setup and teardown using GKE.
+            buildTemplate("setup-gke", [
               "python",
               "-m",
               "testing.test_deploy",
-              "--cluster=" + cluster,
-              "--zone=" + zone,
               "--project=" + project,
               "--namespace=" + stepsNamespace,
               "--test_dir=" + testDir,
               "--artifacts_dir=" + artifactsDir,
-              "setup",
+              "get_gke_credentials",
+              "--cluster=" + cluster,
+              "--zone=" + zone,
             ]),  // setup
-            buildTemplate("teardown", [
+            buildTemplate("teardown-gke", [
               "python",
               "-m",
               "testing.test_deploy",
               "--project=" + project,
-              "--cluster=" + cluster,
               "--namespace=" + stepsNamespace,
-              "--zone=" + zone,
               "--test_dir=" + testDir,
               "--artifacts_dir=" + artifactsDir,
               "teardown",
             ]),  // teardown
+            // Setup and teardown using minikube
+            buildTemplate("setup-minikube", [
+              "python",
+              "-m",
+              "testing.test_deploy",
+              "--project=" + project,
+              "--namespace=" + stepsNamespace,
+              "--test_dir=" + testDir,
+              "--artifacts_dir=" + artifactsDir,
+              "deploy_minikube",
+              "--vm_name=" + vmName,
+              "--zone=" + zone,
+            ]),  // setup
+            buildTemplate("teardown-minikube", [
+              "python",
+              "-m",
+              "testing.test_deploy",
+              "--project=" + project,
+              "--namespace=" + stepsNamespace,
+              "--test_dir=" + testDir,
+              "--artifacts_dir=" + artifactsDir,
+              "teardown_minikube",
+              "--vm_name=" + vmName,
+              "--zone=" + zone,
+            ]),  // teardown
+
+            buildTemplate(
+              "deploy-kubeflow",
+              [
+                "python",
+                "-m",
+                "testing.test_deploy",
+                "--project=" + project,
+                "--namespace=" + stepsNamespace,
+                "--test_dir=" + testDir,
+                "--artifacts_dir=" + artifactsDir,
+                "deploy_kubeflow",
+              ]
+            ),  // deploy-kubeflow
             buildTemplate("create-pr-symlink", [
               "python",
               "-m",
@@ -242,8 +348,10 @@
               "--project=" + project,
               "--app_dir=" + tfOperatorRoot + "/test/workflows",
               "--component=simple_tfjob",
-              "--params=name=simple-tfjob,namespace=" + stepsNamespace,
-              "--junit_path=" + artifactsDir + "/junit_e2e.xml",
+              // Name is used for the test case name so it should be unique across
+              // all E2E tests.
+              "--params=name=simple-tfjob-" + platform + ",namespace=" + stepsNamespace,
+              "--junit_path=" + artifactsDir + "/junit_e2e_" + platform + ".xml",
             ]),  // run tests
           ],  // templates
         },
