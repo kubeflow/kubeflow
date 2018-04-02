@@ -82,6 +82,12 @@
       // command: List to pass as the container command.
       local buildTemplate(step_name, command, env_vars=[], sidecars=[]) = {
         name: step_name,
+        // The tensorflow notebook image builds are flaky because they are very
+        // large builds and sometimes there are timeouts while downloading
+        // some pip packages. Retry upto 3 times before giving up.
+        retryStrategy: {
+          limit: 3,
+        },
         container: {
           command: command,
           image: params.step_image,
