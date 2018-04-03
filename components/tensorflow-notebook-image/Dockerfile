@@ -25,6 +25,7 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
     fonts-liberation \
     g++ \
     git \
+    graphviz \
     inkscape \
     jed \
     libav-tools \
