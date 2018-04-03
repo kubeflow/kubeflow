@@ -13,7 +13,7 @@
     defaultHttpProxyImage: "gcr.io/kubeflow-images-staging/tf-model-server-http-proxy:v20180327-995786ec",
     httpProxyImage: "",
     httpProxyImageToUse: if $.params.httpProxyImage == "" then
-      $.params.defualtHttpProxyImage
+      $.params.defaultHttpProxyImage
     else
       $.params.httpProxyImage,
 
