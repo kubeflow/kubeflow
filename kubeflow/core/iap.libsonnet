@@ -2,14 +2,14 @@
   parts(namespace):: {
     local k = import "k.libsonnet",
 
-    ingressParts(secretName, ipName, hostname, issuer, envoyImage, disableJwt, clientID, clientSecret):: std.prune(k.core.v1.list.new([
+    ingressParts(secretName, ipName, hostname, issuer, envoyImage, disableJwt, oauthSecretName):: std.prune(k.core.v1.list.new([
       $.parts(namespace).service,
       $.parts(namespace).ingress(secretName, ipName, hostname),
       $.parts(namespace).certificate(secretName, hostname, issuer),
       $.parts(namespace).initServiceAcount,
       $.parts(namespace).initClusterRoleBinding,
       $.parts(namespace).initClusterRole,
-      $.parts(namespace).deploy(envoyImage, clientID, clientSecret),
+      $.parts(namespace).deploy(envoyImage, oauthSecretName),
       $.parts(namespace).configMap(disableJwt),
       $.parts(namespace).whoamiService,
       $.parts(namespace).whoamiApp,
@@ -139,7 +139,7 @@
       ],
     },  // envoyContainer
 
-    deploy(image, clientID, clientSecret):: {
+    deploy(image, oauthSecretName):: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -171,11 +171,21 @@
                   },
                   {
                     name: "CLIENT_ID",
-                    value: clientID,
+                    valueFrom: {
+                      secretKeyRef: {
+                        name: oauthSecretName,
+                        key: "CLIENT_ID",
+                      },
+                    },
                   },
                   {
                     name: "CLIENT_SECRET",
-                    value: clientSecret,
+                    valueFrom: {
+                      secretKeyRef: {
+                        name: oauthSecretName,
+                        key: "CLIENT_SECRET",
+                      },
+                    },
                   },
                   {
                     name: "SERVICE",
