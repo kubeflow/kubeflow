@@ -16,6 +16,7 @@ TAG=$3
 IS_LATEST=$4
 BASE_IMAGE=${5:-"ubuntu:latest"}
 TF_PACKAGE=${6:-"tf-nightly"}
+TF_PACKAGE_PY_27=${7:-"tf-nightly"}
 
 # Wait for the Docker daemon to be available.
 until docker ps
@@ -25,6 +26,7 @@ done
 docker build --pull \
         --build-arg "BASE_IMAGE=${BASE_IMAGE}" \
         --build-arg "TF_PACKAGE=${TF_PACKAGE}" \
+        --build-arg "TF_PACKAGE_PY_27=${TF_PACKAGE_PY_27}" \
         -t "${IMAGE}:${TAG}" \
 	-f ${DOCKERFILE} ${CONTEXT_DIR}
 
