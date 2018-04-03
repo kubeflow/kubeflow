@@ -40,7 +40,11 @@ Create an OAuth Client ID to be used to identify IAP when requesting acces to us
 3. After you enter the details, click Create. Make note of the **client ID** and **client secret** that appear in the OAuth client window because we will
    need them later to enable IAP.
 
-4. Save the OAuth client ID and secret to variables for later use
+4. Create a new Kubernetes Secret with the the OAuth client ID and secret:
+
+```
+kubectl -n ${NAMESPACE} create secret generic kubeflow-oauth --from-literal=CLIENT_ID=${CLIENT_ID} --from-literal=CLIENT_SECRET=${CLIENT_SECRET}
+```
 
 ### Setup Ingress
 
@@ -60,14 +64,12 @@ The instructions below reference the following environment variables which you w
   * **IP_NAME** The name of the GCP static IP that you created above and will be associated with **DOMAIN**.
   * **NAMESPACE** The namespace where Kubeflow is deployed.
   * **ACCOUNT** The email address for your ACME account where certificate expiration notifications will be sent.
-  * **CLIENT_ID** The OAuth client ID obtained earlier.
-  * **CLIENT_SECRET** The OAuth client secret obtained earlier.
 
 ```
 ks generate cert-manager cert-manager --acmeEmail=${ACCOUNT}
 ks apply ${ENVIRONMENT} -c cert-manager
 
-ks generate iap-ingress iap-ingress --namespace=${NAMESPACE} --ipName=${IP_NAME} --hostname=${FQDN} --clientID=${CLIENT_ID} --clientSecret=${CLIENT_SECRET}
+ks generate iap-ingress iap-ingress --namespace=${NAMESPACE} --ipName=${IP_NAME} --hostname=${FQDN}
 ks apply ${ENVIRONMENT} -c iap-ingress
 ```
 
@@ -116,19 +118,6 @@ gcloud projects add-iam-policy-binding $PROJECT \
   --role roles/iap.httpsResourceAccessor \
   --member user:${USER_EMAIL}
 ```
-
-### Self signed certificates and browser security warnings
-
-Since you are using a self signed certificate chrome and other browsers will give you a warning like
-
-```
-Attackers might be trying to steal your information from ${ENDPOINT}(for example, passwords, messages, or credit cards). Learn more
-NET::ERR_CERT_AUTHORITY_INVALID
-```
-  * You will need to ignore these warnings
-  * To avoid these warnings you will need to use a certificate signed by a signing authority
-  * [Lets Encrypt](https://letsencrypt.org/) and other sites provide free signed certificates.
-
 
 ## Troubleshooting
 
