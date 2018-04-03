@@ -86,6 +86,11 @@ Now let's set `${KF_ENV}` to `cloud` or `nocloud` to reflect our environment for
 $ KF_ENV=cloud|nocloud
 ```
 
+By default Kubeflow does not persist any work that is done within the Jupyter notebook. That means if the container is destroyed or recreated, all of its contents, including users working notebooks and other files are going to be deleted. To enable the persistence of such files, the user will need to have a default StorageClass defined for [persistent volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/). If that is defined, persistence can be enabled by setting jupyterNotebookPVCMount to the available volume mount.
+```
+ks param set kubeflow-core jupyterNotebookPVCMount /home/jovyan/work
+```
+
 Create a namespace for your deployment and set it as part of the environment. Feel free to change the namespace to a value that better suits your kubernetes cluster.
 
 ```
