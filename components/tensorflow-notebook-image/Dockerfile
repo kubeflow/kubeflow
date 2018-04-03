@@ -164,6 +164,7 @@ RUN conda install --quiet --yes \
     conda clean -tipsy
 
 ARG TF_PACKAGE=tf-nightly
+ARG TF_PACKAGE_PY_27=tf-nightly
 RUN echo Installing $TF_PACKAGE && pip install --upgrade --quiet --no-cache-dir $TF_PACKAGE
 
 # Hack recommended in tf-serving-api to use it with py3. Remove when proper pip package is available.
@@ -207,21 +208,24 @@ ENV XDG_CACHE_HOME /home/$NB_USER/.cache/
 # that, we temporarily add a stub implementation of the CUDA library to the
 # library load path while we install and enable that extension.
 RUN conda_packages=$(conda list -e | cut -d '=' -f 1 | grep -v '#' | sort) && \
-    pip_packages=$(pip --no-cache-dir list --format=freeze | cut -d '=' -f 1 | grep -v '#' | sort) && \
+    pip_packages=$(pip --no-cache-dir list --format=freeze | cut -d '=' -f 1 | grep -v '#' | grep -v 'tensorflow' | sort) && \
     pip_only_packages=$(comm -23 <(echo "${pip_packages}") <(echo "${conda_packages}")) && \
     conda create -n ipykernel_py2 python=2 --file <(echo "${conda_packages}" | grep -v conda | grep -v python | grep -v jupyterhub) && \
     source activate ipykernel_py2 && \
     python -m ipykernel install --user && \
     echo "${pip_only_packages}" | xargs -n 1 -I "{}" /bin/bash -c 'pip install --no-cache-dir {} || true' && \
+    pip install --upgrade --quiet --no-cache-dir "${TF_PACKAGE_PY_27}" && \
     pip install --no-cache-dir tensorflow-transform && \
-    pip install --no-cache-dir tensorflow-model-analysis && \
     if [ -n "$(find /usr/local/ -name 'libcuda.so')" ]; then \
         export OLD_LD_LIBRARY_PATH="${LD_LIBRARY_PATH}" && \
         export LD_LIBRARY_PATH="$(dirname $(find /usr/local/ -name 'libcuda.so') ):${LD_LIBRARY_PATH}" && \
         ln -s "$(find /usr/local/ -name 'libcuda.so')" "$(find /usr/local/ -name 'libcuda.so').1"; \
     fi && \
-    jupyter nbextension install --py --symlink tensorflow_model_analysis --system && \
-    jupyter nbextension enable --py tensorflow_model_analysis --system && \
+    if [ ! "$(python -c 'import tensorflow; print(tensorflow.__version__)')" \< "1.6.0" ]; then \
+      pip install --no-cache-dir tensorflow-model-analysis && \
+      jupyter nbextension install --py --symlink tensorflow_model_analysis --system && \
+      jupyter nbextension enable --py tensorflow_model_analysis --system; \
+    fi && \
     if [ -n "${OLD_LD_LIBRARY_PATH}" ]; then \
       export LD_LIBRARY_PATH="${OLD_LD_LIBRARY_PATH}"; \
     fi && \

@@ -147,6 +147,14 @@
           "-" +
           tf_version +
           "-cp36-cp36m-linux_x86_64.whl",
+        local tf_package_py_27 =
+          "https://storage.googleapis.com/tensorflow/linux/" +
+          device +
+          "/tensorflow" +
+          (if device == "gpu" then "_gpu" else "") +
+          "-" +
+          tf_version +
+          "-cp27-none-linux_x86_64.whl",
         result:: buildTemplate(
           "build-" + workflow_name + "-" + device,
           [
@@ -160,7 +168,8 @@
             + tag + " "
             + std.toString(is_latest) + " "
             + base_image + " "
-            + tf_package,
+            + tf_package + " ",
+            + tf_package_py_27,
           ],
           [
             {
