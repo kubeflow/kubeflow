@@ -16,8 +16,10 @@ class KubeFormSpawner(KubeSpawner):
       <option value="gcr.io/kubeflow-images-staging/tensorflow-1.4.1-notebook-gpu:v20180327-6bb4058">
       <option value="gcr.io/kubeflow-images-staging/tensorflow-1.5.1-notebook-cpu:v20180327-6bb4058">
       <option value="gcr.io/kubeflow-images-staging/tensorflow-1.5.1-notebook-gpu:v20180327-6bb4058">
-      <option value="gcr.io/kubeflow-images-staging/tensorflow-1.6.0-notebook-cpu:v20180327-6bb4058">
-      <option value="gcr.io/kubeflow-images-staging/tensorflow-1.6.0-notebook-gpu:v20180327-6bb4058">
+      <option value="gcr.io/kubeflow-images-staging/tensorflow-1.6.0-notebook-cpu:v20180402-10c4841">
+      <option value="gcr.io/kubeflow-images-staging/tensorflow-1.6.0-notebook-gpu:v20180402-10c4841">
+      <option value="gcr.io/kubeflow-images-staging/tensorflow-1.7.0-notebook-cpu:v20180402-10c4841">
+      <option value="gcr.io/kubeflow-images-staging/tensorflow-1.7.0-notebook-gpu:v20180402-10c4841">
     </datalist>
     <br/><br/>
 
