@@ -187,7 +187,9 @@ RUN jupyter nbextension enable --py widgetsnbextension --sys-prefix
 RUN curl -L -o bazel.sh https://github.com/bazelbuild/bazel/releases/download/0.11.1/bazel-0.11.1-installer-linux-x86_64.sh && chmod a+x ./bazel.sh && ./bazel.sh && rm ./bazel.sh
 SHELL ["/bin/bash", "-c"]
 
-RUN git clone https://github.com/tensorflow/models.git /home/$NB_USER/tensorflow-models && git clone https://github.com/tensorflow/benchmarks.git /home/$NB_USER/tensorflow-benchmarks
+RUN wget https://github.com/tensorflow/models/archive/v1.8.0.tar.gz && mkdir /home/$NB_USER/tensorflow-models && \
+    tar -xvzf  v1.8.0.tar.gz -C /home/$NB_USER/tensorflow-models && rm v1.8.0.tar.gz
+RUN git clone https://github.com/tensorflow/benchmarks.git /home/$NB_USER/tensorflow-benchmarks
 # Import matplotlib the first time to build the font cache.
 ENV XDG_CACHE_HOME /home/$NB_USER/.cache/
 
@@ -245,7 +247,6 @@ COPY start-notebook.sh /usr/local/bin/
 COPY start-singleuser.sh /usr/local/bin/
 COPY jupyter_notebook_config.py /etc/jupyter/
 RUN chown -R $NB_USER:users /etc/jupyter/ && \
-    chown -R $NB_USER /home/$NB_USER/ && \
     chmod a+rx /usr/local/bin/*
 
 # tornado 5 has breaking changes (https://github.com/jupyter/notebook/issues/3407)
