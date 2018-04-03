@@ -245,7 +245,7 @@
         {
           name: "deploy-tf-serving-gpu",
           template: "deploy-tf-serving-gpu",
-          dependencies: ["checkout"],
+          dependencies: ["setup"],
         },
         {
           name: "test-tf-serving-gpu",
