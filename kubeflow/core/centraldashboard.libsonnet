@@ -26,7 +26,7 @@ all(params):: [
         template: {
           metadata: {
             labels: {
-              name: "centraldashboard",
+              app: "centraldashboard",
             },
           },
           spec: {
