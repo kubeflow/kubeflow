@@ -20,7 +20,7 @@
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
       metadata: {
-        name: "certificates.certmanager.k8s.io"
+        name: "certificates.certmanager.k8s.io",
       },
       spec: {
         group: "certmanager.k8s.io",
@@ -39,7 +39,7 @@
       metadata: {
         name: "clusterissuers.certmanager.k8s.io",
       },
-        
+
       spec: {
         group: "certmanager.k8s.io",
         version: "v1alpha1",
@@ -55,7 +55,7 @@
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
       metadata: {
-        name: "issuers.certmanager.k8s.io"
+        name: "issuers.certmanager.k8s.io",
       },
       spec: {
         group: "certmanager.k8s.io",
@@ -67,14 +67,14 @@
         scope: "Namespaced",
       },
     },
-    
+
     serviceAccount:: {
       apiVersion: "v1",
       kind: "ServiceAccount",
       metadata: {
         name: "cert-manager",
         namespace: namespace,
-      }
+      },
     },
 
     clusterRole:: {
