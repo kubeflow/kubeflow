@@ -19,7 +19,7 @@ local tfJob = import "kubeflow/tf-job/tf-job.libsonnet";
 // updatedParams uses the environment namespace if
 // the namespace parameter is not explicitly set
 local updatedParams = params {
-  namespace: if params.namespace == "null" then env.namespace else params.namespace
+  namespace: if params.namespace == "null" then env.namespace else params.namespace,
 };
 
 local name = import "param://name";
@@ -50,10 +50,14 @@ else
   tfJob.parts.tfJobReplica("WORKER", numWorkers, args, image);
 
 std.prune(k.core.v1.list.new([
-  tfJob.parts.tfJob(name, namespace, [
-    tfJob.parts.tfJobReplica("MASTER", numMasters, args, image),
-    workerSpec,
-    tfJob.parts.tfJobReplica("PS", numPs, args, image),],
+  tfJob.parts.tfJob(
+    name,
+    namespace,
+    [
+      tfJob.parts.tfJobReplica("MASTER", numMasters, args, image),
+      workerSpec,
+      tfJob.parts.tfJobReplica("PS", numPs, args, image),
+    ],
     terminationPolicy
   ),
 ]))

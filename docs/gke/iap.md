@@ -98,7 +98,7 @@ We can configure Jupyter to use the identity provided by IAP. This way users won
 
 ```
 ks param set ${CORE_NAME} jupyterHubAuthenticator iap
-ks apply ${ENV} -c ${CORE_NAME}
+ks apply ${ENVIRONMENT} -c ${CORE_NAME}
 # Restart JupyterHub so it picks up the updated config
 kubectl delete -n ${NAMESPACE} pods tf-hub-0
 ```
