@@ -115,10 +115,10 @@ effort in a portable fashion between different environments.
 For more detailed instructions about how to use Kubeflow, please refer to the [user guide](user_guide.md).
 
 **Important** The commands above will enable collection of **anonymous** user data to help us improve Kubeflow; for more information including instructions for explictly
-disabling it please refer to the [user_guide](user_guide#Usage Reporting)
+disabling it please refer to the [Usage Reporting section](user_guide.md#usage-reporting) of the user guide.
 
 ## Troubleshooting
-For detailed troubleshooting instructions, please refer to [this section of the user guide](user_guide.md#troubleshooting)
+For detailed troubleshooting instructions, please refer to [this section of the user guide](user_guide.md#troubleshooting).
 
 ## Resources
 
