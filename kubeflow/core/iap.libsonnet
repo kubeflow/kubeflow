@@ -173,8 +173,8 @@
                 image: "google/cloud-sdk:alpine",
                 command: [
                   "sh",
-                  "/var/envoy-config/iap-init.sh"
-            ],
+                  "/var/envoy-config/iap-init.sh",
+                ],
                 env: [
                   {
                     name: "NAMESPACE",

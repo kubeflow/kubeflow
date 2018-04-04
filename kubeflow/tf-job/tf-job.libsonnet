@@ -36,8 +36,8 @@ local k = import "k.libsonnet";
 
     tfJobTerminationPolicy(replicaName, replicaIndex):: {
       chief: {
-          replicaName: replicaName,
-          replicaIndex: replicaIndex,
+        replicaName: replicaName,
+        replicaIndex: replicaIndex,
       },
     },
 
