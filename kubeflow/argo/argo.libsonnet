@@ -275,6 +275,8 @@
           apiGroups: [""],
           resources: [
             "configmaps",
+            "serviceaccounts",
+            "secrets",
           ],
           verbs: [
             "get",
@@ -295,6 +297,38 @@
           ],
         },
         {
+          apiGroups: [""],
+          resources: [
+            "services",
+          ],
+          verbs: [
+            "create",
+            "get",
+            "list",
+            "watch",
+            "update",
+            "patch",
+          ],
+        },
+        {
+          apiGroups: [
+            "apps",
+            "extensions",
+          ],
+          resources: [
+            "deployments",
+          ],
+          verbs: [
+            "create",
+            "get",
+            "list",
+            "watch",
+            "update",
+            "patch",
+            "delete",
+          ],
+        },
+        {
           apiGroups: [
             "argoproj.io",
           ],
@@ -307,6 +341,23 @@
             "watch",
             "update",
             "patch",
+          ],
+        },
+        {
+          apiGroups: [
+            "kubeflow.org",
+          ],
+          resources: [
+            "tfjobs",
+          ],
+          verbs: [
+            "create",
+            "get",
+            "list",
+            "watch",
+            "update",
+            "patch",
+            "delete",
           ],
         },
       ],
