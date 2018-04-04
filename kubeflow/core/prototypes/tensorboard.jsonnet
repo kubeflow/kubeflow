@@ -5,6 +5,7 @@
 // @param name string Name to give to each of the components
 
 local k = import 'k.libsonnet';
+local tensorboard = import "../tensorboard.libsonnet";
 
 local name = import "param://name";
 
@@ -14,7 +15,7 @@ local updatedParams = env + params;
 
 local logDir = updatedParams.logDir;
 
-local tb = tbBase {
+local tb = tensorboard.parts.tbContainer {
     params+: updatedParams {
         name: name,
     },
