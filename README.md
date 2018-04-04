@@ -11,7 +11,7 @@ Contained in this repository are manifests for creating:
   [Project Jupyter](http://jupyter.org/about) is a non-profit, open-source
   project to support interactive data science and scientific computing across
   all programming languages.
-* A **TensorFlow Training Controller** that can be configured to use either CPUs or GPUs and dynamically adjusted to the size of a cluster with a single setting
+* A [**TensorFlow Training Controller**](https://github.com/kubeflow/tf-operator) that can be configured to use either CPUs or GPUs and dynamically adjusted to the size of a cluster with a single setting
 * A **TensorFlow Serving** container to export trained TensorFlow models to Kubernetes
 
 This document details the steps needed to run the Kubeflow project in any environment in which Kubernetes runs.
