@@ -25,63 +25,19 @@ create_context.sh $(kubectl config current-context) kubeflow-releasing
 ```
 
 
-## Build TFJob operator
+## Update TFJob 
 
-We build TFJob operator by running the E2E test workflow.
+Identify the TFJob [release](https://github.com/kubeflow/tf-operator/releases) you
+want to use.
 
-Look at the [postsubmit dashboard](https://k8s-testgrid.appspot.com/sig-big-data#kubeflow-tf-operator-postsubmit)
-to find the latest green postsubmit.
-
-Check out that commit (in this example, we'll use `6214e560`):
-
-```
-COMMIT="6214e560"
-cd ${GIT_KUBEFLOW_TF_OPERATOR}
-git checkout ${COMMIT}
-cd test/workflows
-```
-
-Run the E2E test workflow using our release cluster
-
-[kubeflow/testing#42](https://github.com/kubeflow/testing/issues/42) will simplify this.
-
-```
-JOB_NAME="tf-operator-release"
-JOB_TYPE=tf-operator-release
-BUILD_NUMBER=$(uuidgen)
-BUILD_NUMBER=${BUILD_NUMBER:0:4}
-REPO_OWNER=kubeflow
-REPO_NAME=tf-operator
-ENV=releasing
-DATE=`date +%Y%m%d`
-PULL_BASE_SHA=${COMMIT:0:8}
-VERSION_TAG="v${DATE}-${PULL_BASE_SHA}"
-
-PROW_VAR="JOB_NAME=${JOB_NAME},JOB_TYPE=${JOB_TYPE},REPO_NAME=${REPO_NAME}"
-PROW_VAR="${PROW_VAR},REPO_OWNER=${REPO_OWNER},BUILD_NUMBER=${BUILD_NUMBER}" 
-PROW_VAR="${PROW_VAR},PULL_BASE_SHA=${PULL_BASE_SHA}" 
-
-ks param set --env=${ENV} workflows namespace kubeflow-releasing
-ks param set --env=${ENV} workflows name "${USER}-${JOB_NAME}-${PULL_BASE_SHA}-${BUILD_NUMBER}"
-ks param set --env=${ENV} workflows prow_env "${PROW_VAR}"
-ks param set --env=${ENV} workflows versionTag "${VERSION_TAG}"
-ks apply ${ENV} -c workflows
-```
-
-You can monitor the workflow using the Argo UI. For our release cluster, we don't expose the Argo UI publicly, so you'll need to connect via kubectl port-forward:
-
-```
-kubectl -n kubeflow-releasing port-forward `kubectl -n kubeflow-releasing get pods --selector=app=argo-ui -o jsonpath='{.items[0].metadata.name}'` 8080:8001
-```
-
-[kubeflow/testing#43](https://github.com/kubeflow/testing/issues/43) is tracking setup of IAP to make this easier.
-
-Make sure the Argo workflow completes successfully.
-Check the junit files to make sure there were no actual test failures.
-The junit files will be in `gs://kubeflow-releasing-artifacts`.
+  * If you need to cut a new TFJob release follow the instructions in 
+[kubeflow/tf-operator](https://github.com/kubeflow/tf-operator/blob/master/releasing.md)
 
 Update [all.jsonnet](https://github.com/kubeflow/kubeflow/blob/master/kubeflow/core/prototypes/all.jsonnet#L10)
 to point to the new image.
+
+Update [workflows.libsonnet](https://github.com/kubeflow/kubeflow/blob/master/testing/workflows/components/workflows.libsonnet#L183) 
+to checkout kubeflow/tf-operator at the tag corresponding to the release.
 
 ## Build TF Serving Images
 
