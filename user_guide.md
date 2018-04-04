@@ -8,7 +8,7 @@ This guide will walk you through the basics of deploying and interacting with Ku
 
 ## Requirements
  * Kubernetes >= 1.8 [see here](https://github.com/kubeflow/tf-operator#requirements)
- * ksonnet version [0.8.0](https://ksonnet.io/#get-started) or later. (See [below](#why-kubeflow-uses-ksonnet) for an explanation of why we use ksonnet)
+ * ksonnet version [0.9.2](https://ksonnet.io/#get-started) or later. (See [below](#why-kubeflow-uses-ksonnet) for an explanation of why we use ksonnet)
 
 ## Deploy Kubeflow
 
@@ -23,11 +23,15 @@ ks init my-kubeflow
 Install the Kubeflow packages into your application.
 
 ```
+# For a list of releases see:
+# https://github.com/kubeflow/kubeflow/releases
+VERSION=v0.1.0-rc.0
+
 cd my-kubeflow
-ks registry add kubeflow github.com/kubeflow/kubeflow/tree/master/kubeflow
-ks pkg install kubeflow/core
-ks pkg install kubeflow/tf-serving
-ks pkg install kubeflow/tf-job
+ks registry add kubeflow github.com/kubeflow/kubeflow/tree/${VERSION}/kubeflow
+ks pkg install kubeflow/core@${VERSION}
+ks pkg install kubeflow/tf-serving@${VERSION}
+ks pkg install kubeflow/tf-job@${VERSION}
 ```
 
 Create the Kubeflow core component. The core component includes:
@@ -36,9 +40,7 @@ Create the Kubeflow core component. The core component includes:
 
 
 ```
-NAMESPACE=kubeflow
-kubectl create namespace ${NAMESPACE}
-ks generate core kubeflow-core --name=kubeflow-core --namespace=${NAMESPACE}
+ks generate core kubeflow-core --name=kubeflow-core
 
 # Enable collection of anonymous usage metrics
 # Skip this step if you don't want to enable collection.
@@ -46,7 +48,7 @@ ks generate core kubeflow-core --name=kubeflow-core --namespace=${NAMESPACE}
 ks param set kubeflow-core reportUsage true
 ks param set kubeflow-core usageId $(uuidgen)
 ```
-  * Feel free to change the namespace to a value that better suits your kubernetes cluster.
+
 
 
 Ksonnet allows us to parameterize the Kubeflow deployment according to our needs. We will define two environments: nocloud, and cloud.
@@ -84,6 +86,20 @@ Now let's set `${KF_ENV}` to `cloud` or `nocloud` to reflect our environment for
 $ KF_ENV=cloud|nocloud
 ```
 
+By default Kubeflow does not persist any work that is done within the Jupyter notebook. That means if the container is destroyed or recreated, all of its contents, including users working notebooks and other files are going to be deleted. To enable the persistence of such files, the user will need to have a default StorageClass defined for [persistent volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/). If that is defined, persistence can be enabled by setting jupyterNotebookPVCMount to the available volume mount.
+```
+ks param set kubeflow-core jupyterNotebookPVCMount /home/jovyan/work
+```
+
+Create a namespace for your deployment and set it as part of the environment. Feel free to change the namespace to a value that better suits your kubernetes cluster.
+
+```
+NAMESPACE=kubeflow
+kubectl create namespace ${NAMESPACE}
+ks env set ${KF_ENV} --namespace ${NAMESPACE}
+```
+
+
 And apply the components to our Kubernetes cluster
 
 ```
@@ -118,7 +134,7 @@ kubectl delete -n ${NAMESPACE} deploy spartakus-volunteer
 ```
 
 **Reporting usage data is one of the most signifcant contributions you can make to Kubeflow; so please consider turning it on.** This data
-allows us to improve the project and helps the many companies working on Kubeflow justify continued investement. 
+allows us to improve the project and helps the many companies working on Kubeflow justify continued investement.
 
 You can improve the quality of the data by giving each Kubeflow deployment a unique id
 
@@ -154,10 +170,10 @@ You should see a sign in prompt.
 
 1. Sign in using any username/password
 1. Click the "Start My Server" button, and you will be greeted by a dialog screen.
-1. Select a CPU or GPU image from the Image dropdown menu depending on whether you are doing CPU or GPU training, or whether or not you have GPUs in your cluster. The current defaults offered for both are `gcr.io/kubeflow-images-staging/tensorflow-notebook-cpu` and `gcr.io/kubeflow-images-staging/tensorflow-notebook-gpu` respectively. Or you can type in the name of any TF image you want to run.
+1. Select a CPU or GPU image from the Image dropdown menu depending on whether you are doing CPU or GPU training, or whether or not you have GPUs in your cluster. We currently offer a cpu and gpu image for each tensorflow minor version(eg: 1.4.1,1.5.1,1.6.0). Or you can type in the name of any TF image you want to run.
 1. Allocate memory, CPU, GPU, or other resources according to your need (1 CPU and 2Gi of Memory are good starting points)
     * To allocate GPUs, make sure that you have GPUs available in your cluster
-    * Run the following command to check if there are any nvidia gpus available: 
+    * Run the following command to check if there are any nvidia gpus available:
     `kubectl get nodes "-o=custom-columns=NAME:.metadata.name,GPU:.status.allocatable.nvidia\.com/gpu"`
     * If you have GPUs available, you can schedule your server on a GPU node by specifying the following json in `Extra Resource Limits` section: `{"nvidia.com/gpu": "1"}`
   1. Click Spawn
@@ -212,8 +228,7 @@ Create a component for your model
 MODEL_COMPONENT=serveInception
 MODEL_NAME=inception
 MODEL_PATH=gs://kubeflow-models/inception
-ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME} 
-ks param set ${MODEL_COMPONENT} namespace ${NAMESPACE} 
+ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME}
 ks param set ${MODEL_COMPONENT} modelPath ${MODEL_PATH}
 ```
 
@@ -236,7 +251,7 @@ In this example, you should be able to use the inception_client to hit ww.xx.yy.
 ### Serve a model using Seldon
 [Seldon-core](https://github.com/SeldonIO/seldon-core) provides deployment for any machine learning runtime that can be [packaged in a Docker container](https://github.com/SeldonIO/seldon-core/blob/master/docs/wrappers/readme.md).
 
-Install the seldon package 
+Install the seldon package
 
 ```
 ks pkg install kubeflow/seldon
@@ -259,7 +274,7 @@ Create a component for your job.
 
 ```
 JOB_NAME=myjob
-ks generate tf-job ${JOB_NAME} --name=${JOB_NAME} --namespace=${NAMESPACE}
+ks generate tf-job ${JOB_NAME} --name=${JOB_NAME}
 ```
 
 To configure your job you need to set a bunch of parameters. To see a list of parameters run
@@ -303,7 +318,7 @@ Create the component
 
 ```
 CNN_JOB_NAME=mycnnjob
-ks generate tf-cnn ${CNN_JOB_NAME} --name=${CNN_JOB_NAME} --namespace=${NAMESPACE}
+ks generate tf-cnn ${CNN_JOB_NAME} --name=${CNN_JOB_NAME}
 ```
 
 Submit it
@@ -447,6 +462,15 @@ This error is due to the fact that the default cluster installed by Docker for M
 ```commandline
 kubectl config use-context docker-for-desktop
 ks init my-kubeflow
+```
+
+### 403 API rate limit exceeded error
+
+Because ksonnet uses Github to pull kubeflow, unless user specifies Github API token, it will quickly consume maximum API call quota for anonymus.
+To fix this issue first create Github API token using this [guide](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/), and assign this token to GITHUB_TOKEN environment variable.
+
+```commandline
+export GITHUB_TOKEN=<< token >>
 ```
 
 ## Why Kubeflow Uses Ksonnet

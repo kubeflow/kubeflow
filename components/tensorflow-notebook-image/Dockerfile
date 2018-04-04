@@ -25,6 +25,7 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
     fonts-liberation \
     g++ \
     git \
+    graphviz \
     inkscape \
     jed \
     libav-tools \
@@ -59,9 +60,9 @@ RUN wget --quiet https://github.com/krallin/tini/releases/download/v0.10.0/tini 
     chmod +x /usr/local/bin/tini
 
 # Install ksonnet
-RUN wget --quiet https://github.com/ksonnet/ksonnet/releases/download/v0.8.0/ks_0.8.0_linux_amd64.tar.gz && \
-    tar -zvxf ks_0.8.0_linux_amd64.tar.gz && \
-    mv ks_0.8.0_linux_amd64/ks /usr/local/bin/ks && \
+RUN wget --quiet https://github.com/ksonnet/ksonnet/releases/download/v0.9.2/ks_0.9.2_linux_amd64.tar.gz && \
+    tar -zvxf ks_0.9.2_linux_amd64.tar.gz && \
+    mv ks_0.9.2_linux_amd64/ks /usr/local/bin/ks && \
     chmod +x /usr/local/bin/ks
 
 # Configure environment
@@ -99,6 +100,7 @@ RUN cd /tmp && \
 
 # Install Jupyter Notebook and Hub
 RUN conda install --quiet --yes \
+    'nodejs=8.10*' \
     'notebook=5.0.*' \
     'jupyterhub=0.8.1' \
     'jupyterlab=0.31.*' \
@@ -113,6 +115,7 @@ CMD ["start-notebook.sh"]
 
 # Install CUDA Profile Tools and other python packages
 RUN pip --no-cache-dir install \
+    google-cloud-storage \
     Pillow \
     h5py \
     ipykernel \
@@ -136,7 +139,7 @@ RUN pip --no-cache-dir install \
 # use notebook-friendly backends in these images
 RUN conda install --quiet --yes \
     'nomkl' \
-    'ipywidgets=6.0*' \
+    'ipywidgets=7.1*' \
     'pandas=0.22*' \
     'numexpr=2.6*' \
     'matplotlib=2.0*' \
@@ -161,14 +164,9 @@ RUN conda install --quiet --yes \
     conda remove --quiet --yes --force qt pyqt && \
     conda clean -tipsy
 
-# Install graphviz package
-RUN apt-get update && apt-get install -yq --no-install-recommends graphviz \
-    && apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-# Install Python 3 Tensorflow without GPU support
 ARG TF_PACKAGE=tf-nightly
-RUN echo Installing $TF_PACKAGE && pip install --quiet --no-cache-dir $TF_PACKAGE
+ARG TF_PACKAGE_PY_27=tf-nightly
+RUN echo Installing $TF_PACKAGE && pip install --upgrade --quiet --no-cache-dir $TF_PACKAGE
 
 # Hack recommended in tf-serving-api to use it with py3. Remove when proper pip package is available.
 COPY --from=tf-serving-install /usr/local/lib/python2.7/site-packages/tensorflow_serving /opt/conda/lib/python3.6/site-packages/tensorflow_serving
@@ -186,7 +184,7 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
 # Activate ipywidgets extension in the environment that runs the notebook server
 RUN jupyter nbextension enable --py widgetsnbextension --sys-prefix
 
-RUN curl -L -o bazel.sh https://github.com/bazelbuild/bazel/releases/download/0.8.0/bazel-0.8.0-installer-linux-x86_64.sh && chmod a+x ./bazel.sh && ./bazel.sh && rm ./bazel.sh
+RUN curl -L -o bazel.sh https://github.com/bazelbuild/bazel/releases/download/0.11.1/bazel-0.11.1-installer-linux-x86_64.sh && chmod a+x ./bazel.sh && ./bazel.sh && rm ./bazel.sh
 SHELL ["/bin/bash", "-c"]
 
 RUN git clone https://github.com/tensorflow/models.git /home/$NB_USER/tensorflow-models && git clone https://github.com/tensorflow/benchmarks.git /home/$NB_USER/tensorflow-benchmarks
@@ -202,15 +200,44 @@ ENV XDG_CACHE_HOME /home/$NB_USER/.cache/
 # then install them via pip. We do this on a best-effort basis, so if any
 # packages from the Python 3 environment cannot be installed with Python 2,
 # then we just skip them.
+#
+# There is an unusual workaround here for installing the tensorflow_model_analysis
+# notebook extension; the act of installing it requires importing the "tensorflow"
+# python package. Normally, that is fine. However, for the GPU images the
+# tensorflow package tries to open the CUDA library, which is not present
+# in the image (it is expected to be mapped in from the host). To work-around
+# that, we temporarily add a stub implementation of the CUDA library to the
+# library load path while we install and enable that extension.
 RUN conda_packages=$(conda list -e | cut -d '=' -f 1 | grep -v '#' | sort) && \
-    pip_packages=$(pip --no-cache-dir list --format=freeze | cut -d '=' -f 1 | grep -v '#' | sort) && \
+    pip_packages=$(pip --no-cache-dir list --format=freeze | cut -d '=' -f 1 | grep -v '#' | grep -v 'tensorflow' | sort) && \
     pip_only_packages=$(comm -23 <(echo "${pip_packages}") <(echo "${conda_packages}")) && \
     conda create -n ipykernel_py2 python=2 --file <(echo "${conda_packages}" | grep -v conda | grep -v python | grep -v jupyterhub) && \
     source activate ipykernel_py2 && \
     python -m ipykernel install --user && \
     echo "${pip_only_packages}" | xargs -n 1 -I "{}" /bin/bash -c 'pip install --no-cache-dir {} || true' && \
+    pip install --upgrade --quiet --no-cache-dir "${TF_PACKAGE_PY_27}" && \
     pip install --no-cache-dir tensorflow-transform && \
+    if [ -n "$(find /usr/local/ -name 'libcuda.so')" ]; then \
+        export OLD_LD_LIBRARY_PATH="${LD_LIBRARY_PATH}" && \
+        export LD_LIBRARY_PATH="$(dirname $(find /usr/local/ -name 'libcuda.so') ):${LD_LIBRARY_PATH}" && \
+        ln -s "$(find /usr/local/ -name 'libcuda.so')" "$(find /usr/local/ -name 'libcuda.so').1"; \
+    fi && \
+    if [ ! "$(python -c 'import tensorflow; print(tensorflow.__version__)')" \< "1.6.0" ]; then \
+      pip install --no-cache-dir tensorflow-model-analysis && \
+      jupyter nbextension install --py --symlink tensorflow_model_analysis --system && \
+      jupyter nbextension enable --py tensorflow_model_analysis --system; \
+    fi && \
+    if [ -n "${OLD_LD_LIBRARY_PATH}" ]; then \
+      export LD_LIBRARY_PATH="${OLD_LD_LIBRARY_PATH}"; \
+    fi && \
     source deactivate
+
+# install notebook and lab widgets
+RUN 	conda install -n root -c conda-forge widgetsnbextension && \
+	conda install -n ipykernel_py2 -c conda-forge widgetsnbextension && \
+	conda install -n root -c conda-forge ipywidgets && \
+	conda install -n ipykernel_py2 -c conda-forge ipywidgets && \
+	jupyter labextension install @jupyter-widgets/jupyterlab-manager
 
 # Add local files as late as possible to avoid cache busting
 COPY start.sh /usr/local/bin/
@@ -220,6 +247,11 @@ COPY jupyter_notebook_config.py /etc/jupyter/
 RUN chown -R $NB_USER:users /etc/jupyter/ && \
     chown -R $NB_USER /home/$NB_USER/ && \
     chmod a+rx /usr/local/bin/*
+
+# tornado 5 has breaking changes (https://github.com/jupyter/notebook/issues/3407)
+# and does not work with the current jupyterhub. Pin tornado to 4.5.3
+# TODO(ankushagarwal): Figure out the right way to fix this
+RUN pip install tornado==4.5.3
 
 USER $NB_USER
 ENV PATH=/home/jovyan/bin:$PATH

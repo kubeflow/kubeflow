@@ -40,12 +40,19 @@ Create an OAuth Client ID to be used to identify IAP when requesting acces to us
 3. After you enter the details, click Create. Make note of the **client ID** and **client secret** that appear in the OAuth client window because we will
    need them later to enable IAP.
 
-4. Save the OAuth client ID and secret to variables for later use
+4. Create a new Kubernetes Secret with the the OAuth client ID and secret:
+
+```
+kubectl -n ${NAMESPACE} create secret generic kubeflow-oauth --from-literal=CLIENT_ID=${CLIENT_ID} --from-literal=CLIENT_SECRET=${CLIENT_SECRET}
+```
 
 ### Setup Ingress
 
 If you haven't already, follow the instructions in the [user_guide](https://github.com/kubeflow/kubeflow/blob/master/user_guide.md#deploy-kubeflow)
 to create a ksonnet app to deploy Kubeflow.
+
+Your GKE cluster permissions should include the `https://www.googleapis.com/auth/compute` scope and a service account with the `editor` or `compute.admin` IAM role. This is the default configuration for GKE clusters version 1.9.x and earlier.
+Follow [this guide](https://medium.com/google-cloud/updating-google-container-engine-vm-scopes-with-zero-downtime-50bff87e5f80) if you need to modify the scopes of your cluster and the [IAM docs](https://cloud.google.com/iam/docs/granting-changing-revoking-access) for details on how to apply roles.
 
 [cert-manager](https://github.com/jetstack/cert-manager) is used to automatically request valid SSL certifiactes using the [ACME](https://en.wikipedia.org/wiki/Automated_Certificate_Management_Environment) issuer.
 
@@ -58,45 +65,15 @@ The instructions below reference the following environment variables which you w
   * **NAMESPACE** The namespace where Kubeflow is deployed.
   * **ACCOUNT** The email address for your ACME account where certificate expiration notifications will be sent.
 
-
 ```
-ks generate cert-manager cert-manager --namespace=${NAMESPACE} --acmeEmail=${ACCOUNT}
+ks generate cert-manager cert-manager --acmeEmail=${ACCOUNT}
 ks apply ${ENVIRONMENT} -c cert-manager
 
-ks generate iap-ingress iap-ingress --ipName=${IP_NAME} --namespace=${NAMESPACE} --hostname=${FQDN}
+ks generate iap-ingress iap-ingress --namespace=${NAMESPACE} --ipName=${IP_NAME} --hostname=${FQDN}
 ks apply ${ENVIRONMENT} -c iap-ingress
 ```
 
-This will create a load balancer. We can now enable IAP on this load balancer using
-the [enable_iap.sh](https://github.com/kubeflow/kubeflow/tree/master/docs/gke/enable_iap.sh) script.
-
-
-```
-export CLIENT_ID=<Client id for OAuth client created in the previous step>
-export CLIENT_SECRET=<Client secret for OAuth client created in the previous step>
-SERVICE=envoy
-./enable_iap.sh ${PROJECT} ${NAMESPACE} ${SERVICE}
-```
-The above command will output the audience such as:
-
-```
-JWT_AUDIENCE=/projects/991277910492/global/backendServices/801046342490434803
-```
-
- * you will need JWT_AUDIENCE in the next step to configure JWT validation
-
-**Important** Redeploying iap-ingress (e.g. running `ks apply ${ENVIRONMET} -c iap-ingress` again)
-will cause the JWT_AUDIENCE to change and the backend service created by GCP to change.
-As a result you will have to repeat the steps below to properly configure IAP.
-
-### Deploy Envoy Proxies
-
-The next step is to deploy Envoy as a reverse proxy.
-
-```
-ks generate iap-envoy iap-envoy --namespace=${NAMESPACE} --audiences=${JWT_AUDIENCE}
-ks apply ${ENVIRONMENT} -c iap-envoy
-```
+After a few minutes the IAP enabled load balancer will be ready.
 
 ### Test ingress
 
@@ -121,7 +98,7 @@ We can configure Jupyter to use the identity provided by IAP. This way users won
 
 ```
 ks param set ${CORE_NAME} jupyterHubAuthenticator iap
-ks apply ${ENV} -c ${CORE_NAME}
+ks apply ${ENVIRONMENT} -c ${CORE_NAME}
 # Restart JupyterHub so it picks up the updated config
 kubectl delete -n ${NAMESPACE} pods tf-hub-0
 ```
@@ -141,19 +118,6 @@ gcloud projects add-iam-policy-binding $PROJECT \
   --role roles/iap.httpsResourceAccessor \
   --member user:${USER_EMAIL}
 ```
-
-### Self signed certificates and browser security warnings
-
-Since you are using a self signed certificate chrome and other browsers will give you a warning like
-
-```
-Attackers might be trying to steal your information from ${ENDPOINT}(for example, passwords, messages, or credit cards). Learn more
-NET::ERR_CERT_AUTHORITY_INVALID
-```
-  * You will need to ignore these warnings
-  * To avoid these warnings you will need to use a certificate signed by a signing authority
-  * [Lets Encrypt](https://letsencrypt.org/) and other sites provide free signed certificates.
-
 
 ## Troubleshooting
 
