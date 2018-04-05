@@ -136,6 +136,10 @@
           mountPath: "/etc/envoy",
           name: "shared",
         },
+        {
+          mountPath: "/var/envoy-config/",
+          name: "config-volume",
+        },
       ],
     },  // envoyContainer
 
@@ -164,7 +168,7 @@
                 // healthPath: "/server_info",
                 healthPath: "/healthz",
                 healthPort: envoyPort,
-                configPath: "/etc/envoy/envoy-config.json",
+                configPath: "/var/envoy-config/envoy-config.json",
                 baseId: "27000",
                 ports: [envoyPort, envoyAdminPort, envoyStatsPort],
               }),
