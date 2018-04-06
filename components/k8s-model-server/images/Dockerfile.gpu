@@ -39,7 +39,7 @@ RUN pip install mock grpcio
 
 # Set up all envs
 ENV BAZELRC=/root/.bazelrc \
-    TF_SERVING_VERSION=tags/1.4.0 \
+    TF_SERVING_VERSION=tags/1.6.0 \
     TF_CUDA_VERSION=8.0 \
     TF_CUDNN_VERSION=6 \
     BAZEL_VERSION=0.5.4 \

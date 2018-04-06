@@ -37,8 +37,8 @@ RUN apt-get update && apt-get install -y \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN curl -O http://storage.googleapis.com/tensorflow-serving-apt/pool/tensorflow-model-server/t/tensorflow-model-server/tensorflow-model-server_1.4.0_all.deb
-RUN dpkg -i tensorflow-model-server_1.4.0_all.deb
+RUN curl -O http://storage.googleapis.com/tensorflow-serving-apt/pool/tensorflow-model-server/t/tensorflow-model-server/tensorflow-model-server_1.6.0_all.deb
+RUN dpkg -i tensorflow-model-server_1.6.0_all.deb
 
 RUN set -x \
     && useradd $MS_USER \
