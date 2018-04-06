@@ -1,0 +1,25 @@
+{
+   "apiVersion": "rbac.authorization.k8s.io/v1beta1",
+   "kind": "ClusterRoleBinding",
+   "metadata": {
+      "labels": {
+         "app": "cert-manager",
+         "chart": "cert-manager-0.2.2",
+         "heritage": "Tiller",
+         "release": "cert-manager"
+      },
+      "name": "cert-manager2"
+   },
+   "roleRef": {
+      "apiGroup": "rbac.authorization.k8s.io",
+      "kind": "ClusterRole",
+      "name": "cert-manager"
+   },
+   "subjects": [
+      {
+         "kind": "ServiceAccount",
+         "name": "cert-manager",
+         "namespace": "default"
+      }
+   ]
+}

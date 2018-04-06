@@ -1,0 +1,336 @@
+---
+layout: default
+srcroot: https://github.com/google/jsonnet/blob/master/case_studies
+service_jsonnet: https://github.com/google/jsonnet/blob/master/case_studies/fractal/service.jsonnet
+packer_jsonnet: https://github.com/google/jsonnet/blob/master/case_studies/fractal/lib/packer.libsonnet
+terraform_jsonnet: https://github.com/google/jsonnet/blob/master/case_studies/fractal/lib/terraform.libsonnet
+cassandra_jsonnet: https://github.com/google/jsonnet/blob/master/case_studies/fractal/lib/cassandra.libsonnet
+makefile: https://github.com/google/jsonnet/blob/master/case_studies/fractal/Makefile
+---
+
+<h1 id=top>
+
+<p class=jump_to_page_top>Pages <a href="/case_studies/casestudy_fractal.1.html">1</a>, 2, <a
+href="/case_studies/casestudy_fractal.3.html">3</a></p>
+
+Case Study: Fractal Cloud Application
+
+</h1>
+
+<h2 id=config>Configuration Structure</h2>
+
+<p>In this section we describe the ways in which Jsonnet aids with the configuration of the Fractal
+application.  These are the three main productivity benefits when using Jsonnet:</p>
+
+<ul>
+
+<li>Centralization:  Bringing all configuration into the same place, where it can be maintained as a
+single entity in a uniform format.  This allows maintaining the application as an application and
+not as a disparate set of components.</li>
+
+<li>Error avoidance:  Values that must be synchronized between different parts of the configuration
+can be factored out to a single variable, so that they are easy to maintain and never go out of
+sync.  For example the Tile Generation Service contains an Nginx configuration to listen on a
+particular port, but that port must also be open in the firewall configuration, and known to the
+clients that need to connect to it.  Specifying this port only once makes it a lot easier to avoid
+errors when changing the port later on.</li>
+
+<li>Brevity:  Given a large number of similar definitions, Jsonnet's object model allows abstracting
+the common parts into templates that can be instantiated very concisely.  For example all cloud
+instances have some common configuration, and the two HTTP services are also very similar.  Each
+instantiation of a template can override specific details in order to express how it deviates from
+the norm.  The net result is a reduction in the line count as well as making those critical
+differences between definitions more clear and not lost in a sea of repeated data.</li>
+
+</ul>
+
+<p>The configuration is logically separated into several files via <code>import</code> constructs.
+This is to promote abstraction and re-usability (some of our templates could be used by other
+applications, so are separated into libraries), as well as having a separate credentials file (to
+avoid accidental checkin).  Note that Jsonnet did not mandate this file structure; other separations
+(or a giant single file) would also have been possible.</p>
+
+<p>When the imports are realized, the result is a single configuration which yields a JSON packer
+configuration for each image (*.packer.json) and the JSON Terraform configuration (terraform.tf),
+using <a href="/implementation/commandline.html#multi">multiple file output</a>.  Those configurations in turn embed
+other configurations for the application software that will run on the instances.  The top-level
+structure of the generated configuration is therefore as follows (with the content of each file
+elided for clarity).</p>
+
+<pre class="medium"><code>{
+    "appserv.packer.json": ...,
+    "cassandra.packer.json": ...,
+    "tilegen.packer.json": ...,
+    "terraform.tf": ...
+}
+</code></pre>
+
+<p>The configuration is built from the following input files:</p>
+
+<ul>
+
+<li><a href="{{ page.service_jsonnet }}"><code>service/service.jsonnet</code></a>: The top level file that imports the others.  This is the filename that
+is given to the jsonnet command line utility.  In it are all the details that define the Fractal
+example application, as a list of packer images and a Terraform configuration that creates cloud
+instances using those images.  Note the first few lines import the other Jsonnet files and store
+their contents in top-level scoped variables (of the same names).  When we access definitions from
+those libraries (e.g.  templates to override) we do so through the top-level variables.</li>
+
+<li><tt>credentials.jsonnet</tt>: User and superuser keys for Cassandra, and Google Cloud Platform
+project name.  You must create this file yourself, based on this <a
+href="{{ page.srcroot }}/fractal/credentials.jsonnet.TEMPLATE">sample file</a>.</li>
+
+<li><a href="{{ page.packer_jsonnet }}"><code>lib/packer.jsonnet</code></a>: Some templates to help with
+writing Packer configurations.</li>
+
+<li><a href="{{ page.terraform_jsonnet }}"><code>lib/terraform.jsonnet</code></a>: Some templates to help with writing Terraform
+configurations.</li>
+
+<li><a href="{{ page.cassandra_jsonnet }}"><code>lib/cassandra.jsonnet</code></a>: Some templates to help with writing Packer and Terraform
+configurations for Cassandra.</li>
+
+</ul>
+
+<p>Note that the Jsonnet template libraries also include some definitions not used in this
+example application, e.g.,  PostgreSQL and MySQL templates.  Those can be ignored.</p>
+
+<p>To integrate Jsonnet with Packer and Terraform, a <a href="{{ page.makefile }}"><code>service/Makefile</code></a> is used.  This first runs
+Jsonnet on the configuration and then runs Packer / Terraform on the resulting files (if they have
+changed).  The choice of 'glue' tool is arbitrary, we could also have used a small Python script.
+We chose <tt>make</tt> because it is well understood, available everywhere, and does three things
+that we want: Invoke other programs, run things in parallel, and avoid repeating work that is
+already complete.  For example, Packer is only invoked if its configuration file has changed, and
+the three image builds will proceed in parallel (they take a few minutes each).</p>
+
+<p>Ignoring the re-usable templates, whitespace, and comments, the Jsonnet configuration is 217
+lines (9.7kB).  The generated Packer and Terraform files are 740 lines (25kB) in total.  This
+demonstrates the productivity benefits of using template expansion when writing configurations.</p>
+
+
+<h3 id=config_whirlwind>Whirlwind Tour</h3>
+
+<p> The fractal example is a complete realistic application and therefore its configuration has many
+technical details.  In particular, it embeds configurations for various pieces of off-the-shelf
+software that we don't want to go into in much depth.  However we would like to draw attention to
+some particular uses of Jsonnet within the configuration.  We'll gladly field specific questions on
+the <a href="https://groups.google.com/forum/#!forum/jsonnet">mailing list</a>.</p>
+
+
+<h4 id="config_whirlwind_packer">Packer And Application Configuration</h4>
+
+<p>Each Packer configuration is, at its core, a list of imperative actions to be performed in
+sequence by a VM, after which the disk is frozen to create the desired image.  The actions are
+called <i>provisioners</i>.  Jsonnet is used to simplify the provisioner list by eliminating
+duplication and encouraging abstraction.  Generic templates for specific off-the-shelf software are
+defined in re-usable libraries, which are then referenced from <a href="{{ page.service_jsonnet }}"><code>service/service.jsonnet</code></a> and, as
+needed, overridden with some fractal application details.  Generic provisioners are also provided
+for easy installation of packages via package managers, creation of specific files / dirs, etc.</p>
+
+<p>In addition, the <code>ImageMixin</code> object in <a href="{{ page.service_jsonnet }}"><code>service/service.jsonnet</code></a> is used to factor out
+common fractal-specific configuration from the three images.  Note that it is a variable, so will
+not appear in the output.  Factored out image config includes the Google Cloud Platform project id
+and filename of the service account key.  Since all the images are derived ultimately from the
+<code>GcpDebian</code> image (in <a href="{{ page.packer_jsonnet }}"><code>lib/packer.jsonnet</code></a>), and this image includes <tt>apt</tt>
+&amp; <tt>pip</tt> provisioners (discussed shortly), this is also a good place to ensure some basic
+packages are installed on every image.</p>
+
+<pre class="medium"><code>local ImageMixin = {
+    project_id: credentials.project,
+    account_file: "service_account_key.json",
+
+    // For debugging:
+    local network_debug = ["traceroute", "lsof", "iptraf", "tcpdump", "host", "dnsutils"],
+    aptPackages +: ["vim", "git", "psmisc", "screen", "strace" ] + network_debug,
+},
+</code></pre>
+
+<p>Both the application server's image configuration <tt>appserv.packer.json</tt> and the tile
+generation service's image configuration <tt>tilegen.packer.json</tt> extend
+<code>MyFlaskImage</code>, which exists merely to add the aforementioned <code>ImageMixin</code> to
+the <code>GcpDebianNginxUwsgiFlaskImage</code> template from <a href="{{ page.packer_jsonnet }}"><code>lib/packer.jsonnet</code></a>.  That template
+builds on the basic <code>GcpDebianImage</code> template from the same library, and adds all the
+packages (and default configuration) for both Nginx and uWSGI:</p>
+
+<pre class="medium"><code>local MyFlaskImage = packer.GcpDebianNginxUwsgiFlaskImage + ImageMixin,
+</code></pre>
+
+<p>In Jsonnet we use JSON as the canonical data model and convert to other formats as needed.  An
+example of this is the uWSGI configuration, an <a
+href="http://en.wikipedia.org/wiki/INI_file">INI</a> file, which is specified in Jsonnet under the
+<code>uwsgiConf</code> field in <code>GcpDebianNginxUwsgiFlaskImage</code>.  The JSON version is
+converted to INI by the call to <code>std.manifestIni</code> (documented <a
+href="/docs/stdlib.html">here</a>) in the provisioner immediately below it.  Representing the INI file
+with the JSON object model (instead of as a string) allows elements of the uWSGI configuration (such
+as the filename of the UNIX domain socket) to be easily kept in sync with other elements of the
+configuration (Nginx also needs to know it).  If the application is configured with JSON, or even
+YAML, then no conversion is required.  An example of that is the default Cassandra configuration
+file held in the <code>conf</code> field of <a href="{{ page.cassandra_jsonnet }}"><code>lib/cassandra.jsonnet</code></a>.</p>
+
+<p>Looking back at <tt>appserv.packer.json</tt> and <tt>tilegen.packer.json</tt> in
+<a href="{{ page.service_jsonnet }}"><code>service/service.jsonnet</code></a>, while both use Nginx/uWSGI/Flask there are some subtle differences.  Since
+the HTTP request handlers are different in each case, the module (uWSGI entrypoint) and also
+required packages are different.  Firstly, the tile generation image needs a provisioner to build
+the C++ code.  Secondly, since the application server talks to the Cassandra database using
+cassandra-driver, which interferes with pre-forking, it is necessary to override the
+<code>lazy</code> field of the uWSGI configuration in that image.  This is an example of how an
+abstract template can unify two similar parts of the configuration, while still allowing the
+overriding of small details as needed.  Note also that such precise manipulation of configuration
+details would be much harder if the uWSGI configuration was represented as a single string instead
+of as a structure within the object model.</p>
+
+<pre class="medium"><code>"appserv.packer.json": MyFlaskImage {
+    name: "appserv-v20141222-0300",
+    module: "main",   // Entrypoint in the Python code.
+    pipPackages +: ["httplib2", "cassandra-driver", "blist"],
+    uwsgiConf +: { lazy: "true" },  // cassandra-driver does not survive fork()
+    ...
+},
+</code></pre>
+
+<p>Going up to the top of the template hierarchy we have <code>GcpDebianImage</code> and finally
+<code>GcpImage</code> in <a href="{{ page.packer_jsonnet }}"><code>lib/packer.jsonnet</code></a>.  The latter gives the Packer builder configuration
+for Google Cloud Platform, bringing out some fields to the top level (essentially hiding the
+<code>builder</code> sub-object).  We can hide the builder configuration because we only ever need
+one builder per image.  We can support multiple cloud providers by deriving an entire new Packer
+configuration at the top level, overriding as necessary to specialize for that platform.  The
+<code>GcpDebianImage</code> selects the base image (Backports) and adds provisioners for apt and pip
+packages.  The configuration of those provisioners (the list of installed packages, and additional
+repositories / keys) is brought out to the top level of the image configuration.  By default, the
+lists are empty but sub-objects can override and extend them as we saw with
+<tt>appserv.packer.json</tt>.</p>
+
+<p>The actual provisioners <code>Apt</code> and <code>Pip</code> are defined further up
+<a href="{{ page.packer_jsonnet }}"><code>lib/packer.jsonnet</code></a>.  In their definitions, one can see how the various shell commands are built
+up from the declarative lists of repositories, package names, etc.  Installing packages in a
+non-interactive context requires a few extra switches and an environment variable, but the
+<code>Apt</code> provisioner handles all that.  Also note how these provisioners both derive from
+<code>RootShell</code> (defined right at the top of the file) because those commands need to be run
+as root.</p>
+
+<p>Note that everything discussed has been plain Jsonnet code.  It is possible to create your own
+provisioners (based on these or from scratch) in order to declaratively control packer
+in new ways.</p>
+
+
+<h4 id="config_whirlwind_terraform">Terraform</h4>
+
+<p>The remainder of <a href="{{ page.service_jsonnet }}"><code>service/service.jsonnet</code></a> generates the Terraform configuration that defines all
+the cloud resources that are required to run the fractal web application.  That includes the
+instances that actually run the Packer images.  It also includes the resources that configure
+network routing / firewalls, load balancers, etc.</p>
+
+<p>Terraform accepts two basic syntaxes, JSON and <a href="https://github.com/hashicorp/hcl">HCL</a>
+(a more concise form of JSON).  This provides a data structure that specifies the resources
+required, but the model also has a few computational features:  Firstly, the structure has
+'variables' which can be resolved by <a
+href="http://en.wikipedia.org/wiki/String_interpolation">string interpolation</a> within the
+resources.  Also, all resources are also extended with a <tt>count</tt> parameter for creating
+<i>n</i> replicas of that resource, and finally there is some support for importing 'modules', i.e.,
+another Terraform configuration of resources (perhaps written by a third party).</p>
+
+<p>The interpolation feature is not just for variables, it is also used to reference attributes of
+resources that are not known until after deployment (i.e., cannot be known during Jsonnet execution
+time).  For example, the generated IP address of a static IP resource called <tt>foo</tt> can be
+referenced from a string in the definition of a resource <tt>bar</tt> using the syntax
+<tt>${google_compute_address.foo.address}</tt>, which is resolved after the deployment of
+<tt>foo</tt> in time for the deployment of <tt>bar</tt>.</p>
+
+<p>We choose to emit JSON instead of HCL, as the latter would require conversion code.  We also do
+not make use of any of the Terraform language features, as Jsonnet provides similar or greater
+capabilities in each of those domains, and doing it at the Jsonnet level allows integration with the
+rest of the configuration.  We do, however, use Terraform interpolation syntax for resolving the
+"not known until deployment" attributes,  e.g., in order to configure the application server
+with the host:port endpoint of the tile processing service.  Such resolution cannot be performed by
+Jsonnet.</p>
+
+<p>Going through <a href="{{ page.service_jsonnet }}"><code>service/service.jsonnet</code></a>, the function <code>zone</code> is used to statically
+assign <a href="https://cloud.google.com/compute/docs/zones">zones</a> to instances on a round robin
+basis.  All the instances extend from <code>FractalInstance</code>, which is parameterized by the
+index <code>zone_hash</code> (it's actually just a function that takes zone_hash and returns an
+instance template).  It is this index that is used to compute the zone, as can be seen in the body
+of <code>FractalInstance</code>.  The zone is also also a namespace for the instance name, so when
+we list the instances behind each load balancer in the <code>google_compute_target_pool</code>
+object, we compute the zone for each instance there as well.</p>
+
+<pre class="medium"><code>local zone(hash) =
+    local arr = [
+        "us-central1-a",
+        "us-central1-b",
+        "us-central1-f",
+    ];
+    arr[hash % std.length(arr)],
+</code></pre>
+
+
+<p><code>FractalInstance</code> also specifies some default API access scopes and tags, as well as
+the network over which the instances communicate.  It extends <code>GcpInstance</code> from
+<a href="{{ page.terraform_jsonnet }}"><code>lib/terraform.jsonnet</code></a>, which brings default service account scopes, the network, and the
+startup script to the top level, and provides some defaults for other parameters.</p>
+
+<p>Back in <a href="{{ page.service_jsonnet }}"><code>service/service.jsonnet</code></a> we now have the instance definitions themselves.  These are
+arranged by image into clusters: application server, db (Cassandra), and tile generation.  Terraform
+expects the instances in the form of a key/value map (i.e. a JSON object), since it identifies them
+internally with unique string names.  Thus the three clusters are each expressed as an object, and
+they are joined with the object addition <code>+</code> operator.</p>
+
+<pre class="medium"><code>google_compute_instance: {
+    ["appserv" + k]: ...
+    for k in [1, 2, 3]
+} + {
+    db1: ...,
+    db2: ...,
+    db3: ...,
+} + {
+    ["tilegen" + k]: ...
+    for k in [1, 2, 3, 4]
+}
+</code></pre>
+
+<p>The <tt>appserv</tt> and <tt>tilegen</tt> replicas are given using an <a
+href="/docs/tutorial.html#comprehension">object comprehension</a> in which the field name and value are
+computed with <code>k</code> set to each index in the given list.  The variable <code>k</code> also
+ends up as an argument to <code>FractalInstance</code> and thus defines the zone of the instance.
+In both cases, we also place a file <tt>/var/www/conf.json</tt>.  This is read on the instance by
+the application, at startup, and used to configure the service.  In the tilegen replicas the
+configuration comes from <code>ApplicationConf</code> from the top of <a href="{{ page.service_jsonnet }}"><code>service/service.jsonnet</code></a>.  In
+the appserv instances, the same data is used, but extended with some extra fields.</p>
+
+<pre class="medium"><code>resource.FractalInstance(k) {
+    ...
+    conf:: ApplicationConf {
+        database_name: cassandraKeyspace,
+        database_user: cassandraUser,
+        database_pass: credentials.cassandraUserPass,
+        tilegen: "${google_compute_address.tilegen.address}",
+        db_endpoints: cassandraNodes,
+    },
+    startup_script +: [self.addFile(self.conf, "/var/www/conf.json")],
+}
+</code></pre>
+
+<p>In both cases, the <a href="https://cloud.google.com/compute/docs/startupscript">startup
+script</a> has added an extra line appended, computed by <code>self.addFile()</code>, a method
+inherited from <code>GcpInstance</code> in <a href="{{ page.terraform_jsonnet }}"><code>lib/terraform.jsonnet</code></a>.  Examining its definition
+shows that it generates a line of bash to actually add the file:  </p>
+
+<pre class="medium"><code>addFile(v, dest)::
+    "echo %s > %s" % [std.escapeStringBash(v), std.escapeStringBash(dest)],
+</code></pre>
+
+<p>Finally, the Cassandra cluster is deployed via an explicit list of three nodes (db1, db2, db3).
+We attend to them individually, firstly because bringing up a Cassandra cluster from scratch
+requires one node to have a special boot strapping role, and secondly because database nodes are
+stateful and therefore less 'expendable' than application or tile server nodes.  All three nodes
+extend from the <code>CassandraInstance(i)</code> mixin, which is where they get their common
+configuration.  As with <code>FractalInstance(i)</code>, the integer parameter is used to drive the
+zone.  The bootstrap behavior of the first node is enabled by extending <code>GcpStarterMixin</code>
+instead of <code>GcpTopUpMixin</code>.  The starter mixin has extra logic to initialize the
+database, which we pass in the form of a <a
+href="https://cassandra.apache.org/doc/cql/CQL.html">CQL</a> script to create the database and
+replication factor for one of its internal tables.  There is some fancy footwork required to get
+Cassandra into a stable state without exposing it to the network in a passwordless state.  All of
+that is thankfully hidden behind the two re-usable mixins in <a href="{{ page.cassandra_jsonnet }}"><code>lib/cassandra.jsonnet</code></a>.</p>
+
+<p class=jump_to_page>Pages <a href="/case_studies/casestudy_fractal.1.html">1</a>, 2, <a
+href="/case_studies/casestudy_fractal.3.html">3</a></p>
+

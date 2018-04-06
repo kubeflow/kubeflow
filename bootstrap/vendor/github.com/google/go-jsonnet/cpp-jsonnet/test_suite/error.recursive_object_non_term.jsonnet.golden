@@ -1,0 +1,22 @@
+RUNTIME ERROR: max stack frames exceeded.
+	error.recursive_object_non_term.jsonnet:20:43-50	object <anonymous>
+	error.recursive_object_non_term.jsonnet:20:43-50	object <anonymous>
+	error.recursive_object_non_term.jsonnet:20:43-50	object <anonymous>
+	error.recursive_object_non_term.jsonnet:20:43-50	object <anonymous>
+	error.recursive_object_non_term.jsonnet:20:43-50	object <anonymous>
+	error.recursive_object_non_term.jsonnet:20:43-50	object <anonymous>
+	error.recursive_object_non_term.jsonnet:20:43-50	object <anonymous>
+	error.recursive_object_non_term.jsonnet:20:43-50	object <anonymous>
+	error.recursive_object_non_term.jsonnet:20:43-50	object <anonymous>
+	error.recursive_object_non_term.jsonnet:20:43-50	object <anonymous>
+	...
+	error.recursive_object_non_term.jsonnet:20:33-55	object <Fib>
+	error.recursive_object_non_term.jsonnet:20:33-55	object <Fib>
+	error.recursive_object_non_term.jsonnet:20:33-55	object <Fib>
+	error.recursive_object_non_term.jsonnet:20:33-55	object <Fib>
+	error.recursive_object_non_term.jsonnet:20:33-55	object <Fib>
+	error.recursive_object_non_term.jsonnet:20:33-55	object <Fib>
+	error.recursive_object_non_term.jsonnet:20:33-55	object <Fib>
+	error.recursive_object_non_term.jsonnet:20:33-55	object <Fib>
+	error.recursive_object_non_term.jsonnet:20:33-55	object <Fib>
+	error.recursive_object_non_term.jsonnet:23:1-18	

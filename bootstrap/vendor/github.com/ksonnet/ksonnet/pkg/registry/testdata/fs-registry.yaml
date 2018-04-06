@@ -1,0 +1,5 @@
+apiVersion: 0.1.0
+kind: ksonnet.io/registry
+libraries:
+  apache:
+    path: apache

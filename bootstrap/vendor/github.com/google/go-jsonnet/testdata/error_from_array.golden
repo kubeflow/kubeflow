@@ -1,0 +1,15 @@
+RUNTIME ERROR: xxx
+-------------------------------------------------
+	testdata/error_from_array:1:2-13	thunk from <$>
+
+[error "xxx"][0]
+
+-------------------------------------------------
+	testdata/error_from_array:1:1-17	$
+
+[error "xxx"][0]
+
+-------------------------------------------------
+	During evaluation	
+
+

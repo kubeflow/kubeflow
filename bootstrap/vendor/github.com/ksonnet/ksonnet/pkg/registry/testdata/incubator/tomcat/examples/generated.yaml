@@ -1,0 +1,97 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: tomcat-app
+  name: tomcat-app
+spec:
+  template:
+    metadata:
+      labels:
+        app: tomcat-app
+    spec:
+      containers:
+      - env:
+        - name: TOMCAT_USERNAME
+          value: mockUser
+        - name: TOMCAT_ALLOW_REMOTE_MANAGEMENT
+          value: 0
+          valueFrom:
+            secretKeyRef:
+              key: tomcat-password
+              name: mockSecretName
+        image: bitnami/tomcat:8.0.46-r0
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 6
+          httpGet:
+            path: /
+            port: http
+          initialDelaySeconds: 120
+          timeoutSeconds: 5
+        name: tomcat-app
+        ports:
+        - containerPort: 8080
+          name: http
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 51
+          timeoutSeconds: 3
+        resources:
+          requests:
+            cpu: 300m
+            memory: 512Mi
+        volumeMounts:
+        - mountPath: /bitnami/tomcat
+          name: tomcat-data
+      volumes:
+      - name: tomcat-data
+        persistentVolumeClaim:
+          claimName: mockClaimName
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    volume.alpha.kubernetes.io/storage-class: default
+  labels:
+    app: tomcat-app
+  name: tomcat-app
+  namespace: hoot-dev
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 8Gi
+---
+apiVersion: v1
+data:
+  tomcat-password: Ym9vdHM=
+kind: Secret
+metadata:
+  labels:
+    app: tomcat-app
+  name: tomcat-app
+  namespace: hoot-dev
+type: Opaque
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: tomcat-app
+  name: tomcat-app
+  namespace: hoot-dev
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+  selector:
+    app: tomcat-app
+  type: LoadBalancer

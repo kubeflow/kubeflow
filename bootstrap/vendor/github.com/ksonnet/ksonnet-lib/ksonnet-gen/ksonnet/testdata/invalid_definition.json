@@ -1,0 +1,12 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "v1.8.0"
+  },
+  "paths": {
+    "/invalid": {}
+  },
+  "definitions": {
+    "invalid": {}
+  }
+}

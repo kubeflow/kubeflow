@@ -1,0 +1,15 @@
+RUNTIME ERROR: xxx
+-------------------------------------------------
+	testdata/tailstrict3:1:16-27	function <foo>
+
+local foo(x, y=error "xxx")=x;
+
+-------------------------------------------------
+	testdata/tailstrict3:2:1-8	$
+
+foo(42) tailstrict
+
+-------------------------------------------------
+	During evaluation	
+
+

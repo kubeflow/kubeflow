@@ -1,0 +1,3 @@
+RUNTIME ERROR: foo
+	error.03.jsonnet:17:21-32	object <ErrObj>
+	error.03.jsonnet:18:1-9	

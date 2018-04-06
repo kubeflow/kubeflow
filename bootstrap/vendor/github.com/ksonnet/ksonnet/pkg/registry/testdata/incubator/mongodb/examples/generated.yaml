@@ -1,0 +1,98 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: mongo
+  name: mongo
+spec:
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+      - env:
+        - name: MONGODB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: mongodb-root-password
+              name: mongo
+        - name: MONGODB_USERNAME
+          value: ""
+        - name: MONGODB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: mongodb-password
+              name: mongo
+        - name: MONGODB_DATABASE
+          value: ""
+        image: bitnami/mongodb:3.4.7-r0
+        livenessProbe:
+          exec:
+            command:
+            - mongo
+            - --eval
+            - db.adminCommand('ping')
+          initialDelaySeconds: 30
+          timeoutSeconds: 5
+        name: mongo
+        ports:
+        - containerPort: 27017
+          name: mongodb
+        readinessProbe:
+          exec:
+            command:
+            - mongo
+            - --eval
+            - db.adminCommand('ping')
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+        volumeMounts:
+        - mountPath: /bitnami/mongodb
+          name: data
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: mongo
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongo
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 8Gi
+---
+apiVersion: v1
+data:
+  mongodb-password: YmFy
+  mongodb-root-password: Zm9vYmFy
+kind: Secret
+metadata:
+  labels:
+    app: mongo
+  name: mongo
+type: Opaque
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: mongo
+  name: mongo
+spec:
+  ports:
+  - name: mongodb
+    port: 27017
+    targetPort: mongodb
+  selector:
+    app: mongo
+  type: ClusterIP

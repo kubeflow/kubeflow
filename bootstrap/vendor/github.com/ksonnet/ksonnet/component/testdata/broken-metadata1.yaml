@@ -1,0 +1,3 @@
+apiVersion: invalid/v1
+kind: Invalid
+metadata: metadata

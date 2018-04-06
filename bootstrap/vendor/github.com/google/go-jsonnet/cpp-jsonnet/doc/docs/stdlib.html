@@ -1,0 +1,620 @@
+---
+layout: default
+---
+
+<h1 id="standard_library">Standard Library</h1>
+
+<p> This page describes the functions available in Jsonnet's standard library, i.e. the object
+implicitly bound to the <code>std</code> variable. Some of the standard library functions can be
+implemented in Jsonnet.  Their code can be found in the <tt>std.jsonnet</tt> file.  The behavior of
+some of the other functions, i.e. the ones that expose extra functionality not otherwise available
+to programmers, is described formally in the <a href="/language/spec.html">specification</a>.  </p>
+
+<p>The standard library is implicitly added to all Jsonnet programs by enclosing them in a local
+construct.  For example, if the program given by the user is <code>{x: "foo"}</code>, then the
+actual code executed would be <code>local std = { ... }; {x: "foo"}</code>.  The functions in the
+standard library are all hidden fields of the <code>std</code> object.</p>
+
+<h3 id="ext_vars">External Variables</h3>
+
+<h4 id="extVar">std.extVar(x)</h4>
+
+<p>If an external variable with the given name was defined, return its string value.  Otherwise,
+raise an error. </p>
+
+<h3 id="types_reflection">Types and Reflection</h3>
+
+<h4 id="thisFile">std.thisFile</h4>
+
+<p>Note that this is a field. It contains the current Jsonnet filename as a string.</p>
+
+<h4 id="type">std.type(x)</h4>
+
+<p>Return a string that indicates the type of the value.  The possible return values are:
+"array", "boolean", "function", "null", "number", "object", and "string". </p>
+
+<p>The following functions are also available and return a boolean:
+<code>std.isArray(v)</code>,
+<code>std.isBoolean(v)</code>,
+<code>std.isFunction(v)</code>,
+<code>std.isNumber(v)</code>,
+<code>std.isObject(v)</code>, and
+<code>std.isString(v)</code>.</p>
+
+<h4 id="length">std.length(x)</h4>
+
+<p>Depending on the type of the value given, either returns the number of elements in the array,
+the number of codepoints in the string, the number of parameters in the function, or the number of
+fields in the object.  Raises an error if given a primitive value, i.e. <code>null</code>,
+<code>true</code> or <code>false</code>.</p>
+
+<h4 id="objectHas">std.objectHas(o, f)</h4>
+
+<p>Returns <code>true</code> if the given object has the field (given as a string), otherwise
+<code>false</code>.  Raises an error if the arguments are not object and string respectively.
+Returns false if the field is hidden..</p>
+
+<h4 id="objectFields">std.objectFields(o)</h4>
+
+<p>Returns an array of strings, each element being a field from the given object.  Does not include
+hidden fields.</p>
+
+
+<h4 id="objectHasAll">std.objectHasAll(o, f)</h4>
+
+<p>As <code>std.objectHas</code> but also includes hidden fields.</p>
+
+<h4 id="objectFieldsAll">std.objectFieldsAll(o)</h4>
+
+<p>As <code>std.objectFields</code> but also includes hidden fields.</p>
+
+<h4 id="prune">std.prune(x)</h4>
+
+<p>Recursively remove all "empty" members of `x`.  "Empty" is defined as zero
+length `arrays`, zero length `objects`, or `null` values.</p>
+
+
+<h4 id="mapWithKey">std.mapWithKey(func, obj)</h4>
+
+<p>Apply the given function to all fields of the given object, also passing
+  the field name. The function <code>func</code> is expected to take the
+  field name as the first parameter and the field value as the second.</p>
+
+
+<h3 id="math">Mathematical Utilities</h3>
+
+<p>The following mathematical functions are available:
+<code>std.abs(n)</code>,
+<code>std.sign(n)</code>,
+<code>std.max(a, b)</code>,
+<code>std.min(a, b)</code>,
+<code>std.pow(x, n)</code>,
+<code>std.exp(x)</code>,
+<code>std.log(x)</code>,
+<code>std.exponent(x)</code>,
+<code>std.mantissa(x)</code>,
+<code>std.floor(x)</code>,
+<code>std.ceil(x)</code>,
+<code>std.sqrt(x)</code>,
+<code>std.sin(x)</code>,
+<code>std.cos(x)</code>,
+<code>std.tan(x)</code>,
+<code>std.asin(x)</code>,
+<code>std.acos(x)</code>, and
+<code>std.atan(x)</code>.</p>
+
+<p>The function <code>std.mod(a, b)</code> is what the % operator is desugared to.  It performs
+modulo arithmetic if the left hand side is a number, or if the left hand side is a string, it does
+Python-style string formatting with <code>std.format()</code>.
+
+<h3 id="assertions_debugging">Assertions and Debugging</h3>
+
+<h4 id="assertEqual">std.assertEqual(a, b)</h4>
+
+<p>
+Ensure that <code>a == b</code>.  Returns <code>true</code> or throws an error message.
+</p>
+
+
+<h3 id="string">String Manipulation</h3>
+
+<h4 id="toString">std.toString(a)</h4>
+
+<p>Convert the given argument to a string.</p>
+
+
+<h4 id="codepoint">std.codepoint(str)</h4>
+
+<p>Returns the positive integer representing the unicode codepoint of the character in the given
+single-character string.  This function is the inverse of <code>std.char(n)</code>.</p>
+
+
+<h4 id="char">std.char(n)</h4>
+
+<p>Returns a string of length one whose only unicode codepoint has integer id <code>n</code>.  This function is the inverse of <code>std.codepoint(str)</code>.</p>
+
+
+<h4 id="substr">std.substr(s, from, len)</h4>
+
+<p>Returns a string that is the part of <code>s</code> that starts at offset <code>from</code> and
+is <code>len</code> codepoints long.</p>
+
+
+<h4 id="startsWith">std.startsWith(a, b)</h4>
+
+<p>Returns whether the string a is prefixed by the string b.</p>
+
+
+<h4 id="endsWith">std.endsWith(a, b)</h4>
+
+<p>Returns whether the string a is suffixed by the string b.</p>
+
+
+<h4 id="substr">std.substr(s, from, len)</h4>
+
+<p>Returns a string that is the part of <code>s</code> that starts at offset <code>from</code> and
+is <code>len</code> codepoints long.</p>
+
+
+<h4 id="split">std.split(str, c)</h4>
+
+<p>Split the string <code>str</code> into an array of strings, divided by the single character
+<code>c</code>.</p>
+
+<p>Example: <code>std.split("foo/bar", "/")</code> yields <code>["foo", "bar"]</code>.  </p>
+<p>Example: <code>std.split("/foo/", "/")</code> yields <code>["", "foo", ""]</code>.  </p>
+
+
+<h4 id="splitLimit">std.splitLimit(str, c, maxsplits)</h4>
+
+<p>As std.split(str, c) but will stop after <code>maxsplits</code> splits, thereby the largest array
+it will return has length <code>maxsplits + 1</code>.  A limit of -1 means unlimited.</p>
+
+<p>Example: <code>std.splitLimit("foo/bar", "/", 1)</code> yields <code>["foo", "bar"]</code>.  </p>
+<p>Example: <code>std.splitLimit("/foo/", "/", 1)</code> yields <code>["", "foo/"]</code>.  </p>
+
+
+<h4 id="strReplace">std.strReplace(str, from, to)</h4>
+
+<p>Returns a copy of the string in which all occurrences of string <code>from</code> have been replaced
+   with string <code>to</code></p>
+
+<p>Example: <code>std.strReplace('I like to skate with my skateboard', 'skate', 'surf')</code>
+   yields <code>"I like to surf with my surfboard"</code>. </p>
+
+
+<h4 id="asciiUpper">std.asciiUpper(str)</h4>
+
+<p>Returns a copy of the string in which all ASCII letters are capitalized.</p>
+
+<p>Example: <code>std.asciiUpper('100 Cats!')</code>
+   yields <code>"100 CATS!"</code>. </p>
+
+
+<h4 id="asciiLower">std.asciiLower(str)</h4>
+
+<p>Returns a copy of the string in which all ASCII letters are lower cased.</p>
+
+<p>Example: <code>std.asciiLower('100 Cats!')</code>
+   yields <code>"100 cats!"</code>. </p>
+
+
+<h4 id="stringChars">std.stringChars(str)</h4>
+
+<p>Split the string <code>str</code> into an array of strings, each containing a single
+codepoint.</p>
+
+<p>Example: <code>std.stringChars("foo")</code> yields <code>["f", "o", "o"]</code>.  </p>
+
+
+<h4 id="format">std.format(str, vals)</h4>
+
+<p>Format the string <code>str</code> using the values in <code>vals</code>.  The values can be an
+array, an object, or in other cases are treated as if they were provided in a singleton array.  The
+string formatting follows the <a
+href="https://docs.python.org/2/library/stdtypes.html#string-formatting">same rules</a> as Python.
+The <code>%</code> operator can be used as a shorthand for this function.  </p>
+
+<p>Example: <code>std.format("Hello %03d", 12)</code> yields <code>"Hello 012"</code>.  </p>
+
+<p>Example: <code>"Hello %03d" % 12</code> yields <code>"Hello 012"</code>.  </p>
+
+<p>Example: <code>"Hello %s, age %d" % ["Foo", 25]</code> yields <code>"Hello Foo, age 25"</code>.
+</p>
+
+<p>Example: <code>"Hello %(name)s, age %(age)d" % {age: 25, name: "Foo"}</code> yields
+<code>"Hello Foo, age 25"</code>.  </p>
+
+<h4 id="parseInt">std.parseInt(str)</h4>
+
+<p>Parses a signed decimal integer from the input string</p>
+
+<p>Example: <code>std.parseInt("123")</code> yields <code>123</code>.</p>
+
+<p>Example: <code>std.parseInt("-123")</code> yields <code>-123</code>.</p>
+
+<h4 id="escapeStringBash">std.escapeStringBash(str)</h4>
+
+<p>Wrap <code>str</code> in single quotes, and escape any single quotes within <code>str</code> by
+changing them to a sequence <tt>'"'"'</tt>.  This allows injection of arbitrary strings as arguments
+of commands in bash scripts.</p>
+
+
+<h4 id="escapeStringDollars">std.escapeStringDollars(str)</h4>
+
+<p>Convert $ to $$ in <code>str</code>.  This allows injection of arbitrary strings into systems
+that use $ for string interpolation (like Terraform).</p>
+
+
+<h4 id="escapeStringJson">std.escapeStringJson(str)</h4>
+
+<p>Convert <code>str</code> to allow it to be embedded in a JSON representation, within a string.  This adds quotes, escapes backslashes, and escapes unprintable characters.</p>
+
+<p>Example:<br />
+<code>{
+    local description = "Multiline\nc:\\path",
+    json: "{name: %s}" % std.escapeStringJson(description)
+}</code><br />
+yields: <code>{"json": "{name: \"Multiline\\nc:\\\\path\"}"}</code></p>
+
+
+<h4 id="escapeStringPython">std.escapeStringPython(str)</h4>
+
+<p>Convert <code>str</code> to allow it to be embedded in Python.  This is an alias for std.escapeStringJson.</p>
+
+
+<h3 id="manifestation">Manifestation</h3>
+
+<h4 id="manifestIni">std.manifestIni(v)</h4>
+
+<p>Convert the given structure to a string in <a href="http://en.wikipedia.org/wiki/INI_file">INI
+format</a>.  This allows using Jsonnet's object model to build a configuration to be consumed by an
+application expecting an INI file.  The data is in the form of a set of sections, each containing a
+key/value mapping.  These examples should make it clear:</p>
+
+<code>{
+    main: { a: "1", b: "2" },
+    sections: {
+        s1: {x: "11", y: "22", z: "33"},
+        s2: {p: "yes", q: ""},
+        empty: {},
+    }
+}
+</code>
+
+<p>Yields a string containing this INI file: </p>
+
+<code>a = 1
+b = 2
+[empty]
+[s1]
+x = 11
+y = 22
+z = 33
+[s2]
+p = yes
+q =
+</code>
+
+
+<h4 id="manifestPython">std.manifestPython(v)</h4>
+
+<p>Convert the given value to a JSON-like form that is compatible with Python.  The
+chief differences are True / False / None instead of true / false / null.</p>
+
+
+<code>{
+    b: ["foo", "bar"],
+    c: true,
+    d: null,
+    e: { f1: false, f2: 42 },
+}
+</code>
+
+<p>Yields a string containing this Python code: </p>
+
+<code>{"b": ["foo", "bar"], "c": True, "d": None, "e": {"f1": False, "f2": 42}}
+</code>
+
+<h4 id="manifestPythonVars">std.manifestPythonVars(v)</h4>
+
+<p>Convert the given object to a JSON-like form that is compatible with Python.  The key
+difference to <code>std.manifestPython</code> is that the top level is represented as a list of
+Python global variables.</p>
+
+<code>{
+    b: ["foo", "bar"],
+    c: true,
+    d: null,
+    e: { f1: false, f2: 42 },
+}
+</code>
+
+<p>Yields a string containing this Python code:</p>
+
+<code>b = ["foo", "bar"]
+c = True
+d = None
+e = {"f1": False, "f2": 42}
+</code>
+
+
+<h4 id="manifestJsonEx">std.manifestJsonEx(value, indent)</h4>
+
+<p>Convert the given object to a JSON form. <code>indent</code> is a string containing
+one or more whitespaces that are used for indentation:</p>
+
+<code>std.manifestJsonEx(
+{
+    x: [1, 2, 3, true, false, null, "string\nstring"],
+    y: { a: 1, b: 2, c: [1, 2] },
+}, "    ")
+</code>
+
+
+<p>Yields a string containing this JSON object:</p>
+
+<code>{
+    "x": [
+        1,
+        2,
+        3,
+        true,
+        false,
+        null,
+        "string\nstring"
+    ],
+    "y": {
+        "a": 1,
+        "b": 2,
+        "c": [
+            1,
+            2
+        ]
+    }
+}
+</code>
+
+
+<h4 id="manifestYamlDoc">std.manifestYamlDoc(value)</h4>
+
+<p>Convert the given value to a YAML form.  Note that <code>std.manifestJson</code> could also be
+used for this purpose, because any JSON is also valid YAML.  But this function will produce more
+canonical-looking YAML.</p>
+
+<code>std.manifestYamlDoc(
+{
+    x: [1, 2, 3, true, false, null, "string\nstring\n"],
+    y: { a: 1, b: 2, c: [1, 2] },
+})
+</code>
+
+<p>Yields a string containing this YAML:</p>
+
+<code>"x": 
+  - 1
+  - 2
+  - 3
+  - true
+  - false
+  - null
+  - |
+    string
+    string
+"y": 
+  "a": 1
+  "b": 2
+  "c": 
+    - 1
+    - 2
+</code>
+
+
+<h4 id="manifestYamlStream">std.manifestYamlStream(value)</h4>
+
+<p>Given an array of values, emit a YAML "stream", which is a sequence of documents separated by
+<code>---</code>.</p>
+
+<code>std.manifestYamlStream(['a', 1, []])</code>
+
+<p>Yields this string:</p>
+
+<code>---
+"a"
+---
+1
+---
+[]
+...
+</code>
+
+
+<h4 id="manifestXmlJsonml">std.manifestXmlJsonml(value)</h4>
+
+<p>Convert the given <a href="http://www.jsonml.org/">JsonML</a>-encoded value to a string
+containing the XML.</p>
+
+<code>std.manifestXmlJsonml([
+  'svg',
+  { height: 100, width: 100 },
+  ['circle', { cx: 50, cy: 50, r: 40, stroke: 'black', 'stroke-width': 3, fill: 'red' }],
+])</code>
+
+<p>Yields a string containing this XML (all on one line):</p>
+
+<code>&lt;svg height="100" width="100"&gt;
+  &lt;circle cx="50" cy="50" fill="red" r="40" stroke="black" stroke-width="3"&gt;&lt;/circle&gt;
+&lt;/svg&gt;
+</code>
+
+<p>Which represents the following image:</p>
+
+<svg height="100" width="100">
+  <circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />
+  Sorry, your browser does not support inline SVG.  
+</svg> 
+
+<p>JsonML is designed to preserve "mixed-mode content" (i.e., textual data outside of or next to elements).  This includes the whitespace needed to avoid having all the XML on one line, which is meaningful in XML.  In order to have whitespace in the XML output, it must be present in the JsonML input:</p>
+
+<code>std.manifestXmlJsonml([
+  'svg',
+  { height: 100, width: 100 },
+  '\n  ',
+  ['circle', { cx: 50, cy: 50, r: 40, stroke: 'black', 'stroke-width': 3, fill: 'red' }],
+  '\n',
+])</code>
+
+
+<h3 id="arrays">Arrays</h3>
+
+<h4 id="makeArray">std.makeArray(sz, func)</h4>
+
+<p>Create a new array of <code>sz</code> elements by calling <code>func(i)</code> to initialize each
+element.  Func is expected to be a function that takes a single parameter, the index of the element
+it should initialize.</p>
+
+<p>Example: <code>std.makeArray(3,function(x) x * x)</code> yields <code>[0, 1, 4]</code>.  </p>
+
+
+<h4 id="count">std.count(arr, x)</h4>
+
+<p>Return the number of times that x occurs in arr.</p>
+
+
+<h4 id="map">std.map(func, arr)</h4>
+
+<p>Apply the given function to every element of the array to form a new array.</p>
+
+
+<h4 id="mapWithIndex">std.mapWithIndex(func, arr)</h4>
+
+<p>Similar to <a href="#map">map</a> above, but it also passes to the
+function the element's index in the array. The function <code>func</code>
+is expected to take the index as the first parameter and the element as the
+second.</p>
+
+
+<h4 id="filterMap">std.filterMap(filter_func, map_func, arr)</h4>
+
+<p>This is primarily used to desugar array comprehension syntax.  It first filters, then maps thte
+given array, using the two functions provided.</p>
+
+
+<h4 id="filter">std.filter(func, arr)</h4>
+
+<p>Return a new array containing all the elements of <code>arr</code> for which the
+<code>func</code> function returns true.</p>
+
+
+<h4 id="foldl">std.foldl(func, arr, init)</h4>
+
+<p>Classic foldl function.  Calls the function on the result of the previous function call and each
+array element, or <code>init</code> in the case of the initial element.  Traverses the array from
+left to right.</p>
+
+
+<h4 id="foldr">std.foldr(func, arr, init)</h4>
+
+<p>Classic foldl function.  Calls the function on each array element and the result of the previous
+function call, or <code>init</code> in the case of the initial element.  Traverses the array from
+right to left.</p>
+
+
+<h4 id="range">std.range(from, to)</h4>
+
+<p>Return an array of ascending numbers between the two limits, inclusively.</p>
+
+
+<h4 id="join">std.join(sep, arr)</h4>
+
+<p>If <code>sep</code> is a string, then <code>arr</code> must be an array of strings, in which case
+they are concatenated with <code>sep</code> used as a delimiter.  If <code>sep</code> is an array,
+then <code>arr</code> must be an array of arrays, in which case the arrays are concatenated in the
+same way, to produce a single array.</p>
+
+<p>Example1: <code>std.join(".", ["www", "google", "com"])</code> yields
+<code>"www.google.com"</code>.  </p>
+
+<p>Example2: <code>std.join([9, 9], [[1], [2, 3]])</code> yields <code>[1, 9, 9, 2, 3]</code>.  </p>
+
+
+<h4 id="lines">std.lines(arr)</h4>
+
+<p>Concatenate an array of strings into a text file with newline characters after each string.  This
+is suitable for constructing bash scripts and the like.</p>
+
+
+<h4 id="flattenArrays">std.flattenArrays(arrs)</h4>
+
+<p>Concatenate an array of arrays into a single array.</p>
+
+
+<h4 id="sort">std.sort(arr)</h4>
+
+<p>Sorts the array using the <= operator.</p>
+
+
+<h4 id="uniq">std.uniq(arr)</h4>
+
+<p>Removes successive duplicates.  When given a sorted array, removes all duplicates.</p>
+
+
+<h3 id="sets">Sets</h3>
+
+Sets are represented as ordered arrays without duplicates.
+
+<h4 id="set">std.set(arr)</h4>
+
+<p>Syntax sugar for std.uniq(std.sort(arr)).</p>
+
+
+<h4 id="setInter">std.setInter(a, b)</h4>
+
+<p>Set intersection operation (values in both a and b).</p>
+
+
+<h4 id="setUnion">std.setUnion(a, b)</h4>
+
+<p>Set union operation (values in either a or b).  Note that + on sets will simply concatenate the
+arrays, possibly forming an array that is not a set (due to not bein ordered without duplicates).</p>
+
+
+<h4 id="setDiff">std.setDiff(a, b)</h4>
+
+<p>Set difference operation (values in a but not b).</p>
+
+
+<h4 id="setMember">std.setMember(x, arr)</h4>
+
+<p>Returns <code>true</code> if x is a member of array, otherwise <code>false</code>.</p>
+
+
+<h3 id="base64_coding">Encoding</h3>
+
+<h4 id="base64">std.base64(v)</h4>
+
+<p>Encodes the given value into a base64 string.  The encoding sequence is A-Za-z0-9+/ with = to pad
+the output to a multiple of 4 characters.  The value can be a string or an array of numbers, but the
+codepoints / numbers must be in the 0 to 255 range.  The resulting string has no line breaks.</p>
+
+<h4 id="base64DecodeBytes">std.base64DecodeBytes(s)</h4>
+
+<p>Decodes the given base64 string into an array of bytes (number values).  Currently assumes the
+input string has no linebreaks and is padded to a multiple of 4 (with the = character).  In other
+words, it consumes the output of std.base64().</p>
+
+<h4 id="base64Decode">std.base64Decode(s)</h4>
+
+<p>Behaves like std.base64DecodeBytes() except returns a string instead of an array of bytes.</p>
+
+<h4 id="base64">std.md5(s)</h4>
+
+<p>Encodes the given value into an MD5 string.</p>
+
+<h3 id="json_merge_patch">JSON Merge Patch</h3>
+
+<h4 id="mergePatch">std.mergePatch(target, patch)</h4>
+
+<p>Applies <code>patch</code> to <code>target</code> according to <a
+href="https://tools.ietf.org/html/rfc7396">RFC7396</a></p>
+

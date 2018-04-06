@@ -1,0 +1,35 @@
+project_name: ks
+builds:
+  - main: .
+    binary: ks
+    ldflags: -X main.version={{.Version}}
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+archive:
+  wrap_in_directory: true
+  format_overrides:
+    - goos: windows
+      format: zip
+  files:
+    - LICENSE
+    - README.md
+    - CHANGELOG.md
+    - CODE-OF-CONDUCT.md
+    - CONTRIBUTING.md
+release:
+  github:
+    owner: ksonnet
+    name: ksonnet
+brew:
+  github:
+    owner: INVALID
+    name: homebrew-tap
+  commit_author:
+    name: heptibot
+    email: heptibot@heptio.com
+  homepage: "https://ksonnet.io"
+  description: "The ksonnet command line utility. Manage and deploy Kubernetes applications."

@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: twitter-stream
+  labels:
+    name: twitter-stream
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: twitter-stream
+    spec:
+      containers:
+      - name: twitter-to-redis
+        image: gcr.io/cooltool-1009/pipeline_image:latest
+        env:
+        - name: PROCESSINGSCRIPT
+          value: twitter-to-redis
+        - name: REDISLIST
+          value: twitter-stream
+        # Change the following four settings to your twitter credentials
+        # information.
+        - name: CONSUMERKEY
+          value: xxxx
+        - name: CONSUMERSECRET
+          value: xxxx
+        - name: ACCESSTOKEN
+          value: xxxx
+        - name: ACCESSTOKENSEC
+          value: xxxx
+        - name: TWSTREAMMODE
+          value: sample

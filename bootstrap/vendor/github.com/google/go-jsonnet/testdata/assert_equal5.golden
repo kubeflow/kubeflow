@@ -1,0 +1,17 @@
+RUNTIME ERROR: Assertion failed. 
+  != 
+
+-------------------------------------------------
+	<std>:758:7-50	function <anonymous>
+
+      error 'Assertion failed. ' + a + ' != ' + b,
+
+-------------------------------------------------
+	testdata/assert_equal5:1:1-29	$
+
+std.assertEqual("\n ", "\n")
+
+-------------------------------------------------
+	During evaluation	
+
+

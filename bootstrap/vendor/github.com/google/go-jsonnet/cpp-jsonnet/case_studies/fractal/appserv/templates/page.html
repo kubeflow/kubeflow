@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+
+{% block instructions %}
+
+The <a href="http://en.wikipedia.org/wiki/Mandelbrot_set">Mandelbrot set</a> is a beautiful
+fractal popularized by <a href="http://en.wikipedia.org/wiki/Benoit_Mandelbrot">Benoit
+Mandelbrot</a>.  Explore it by clicking to zoom in, and shift+clicking to zoom out.  Take a look at
+other peoples' discoveries below, or add your own!
+
+{% endblock %}
+
+
+{% block discoveries %}
+
+<h1>Recent Discoveries</h1>
+<div id=remember_plus>
+    <a href="javascript:void(0);" onclick="remember();">
+        <div id=remember_plus_text style="width: {{ thumb_width }}px; height: {{ thumb_height }}px;">
+            <p id=remember_plus> + </p>
+        </div>
+    </a>
+    <textarea id=remember_plus_input rows="2" cols="20" maxlength=50 placeholder="Please enter description..."></textarea>
+</div>
+
+<ul id=remembered_list>
+</ul>
+
+{% endblock %}
+
+{% block page %}
+
+<div id=fimg_inside onmousedown='fractal_click(event)'> </div>
+
+<script>
+
+var level = 0;
+var cx = 0;
+var cy = 0;
+var min_x = -1;
+var max_x = 1;
+var min_y = -1;
+var max_y = 1;
+var min_cell_x = -1;
+var max_cell_x = 1;
+var min_cell_y = -1;
+var max_cell_y = 1;
+
+function refresh_fimgs() {
+    var div = document.getElementById('right');
+    var width = div.offsetWidth;
+    var height = div.offsetHeight;
+
+    var scaled_width = width / {{ width }};
+    var scaled_height = height / {{ height }};
+
+    var scaled_x = cx * Math.pow(2, level);
+    var scaled_y = cy * Math.pow(2, level);
+
+    min_x = scaled_x - width / {{ width }} / 2;
+    min_y = scaled_y - height / {{ height }} / 2;
+    max_x = scaled_x + width / {{ width }} / 2;
+    max_y = scaled_y + height / {{ height }} / 2;
+
+    min_cell_x = Math.floor(min_x);
+    max_cell_x = Math.ceil(max_x);
+    min_cell_y = Math.floor(min_y);
+    max_cell_y = Math.ceil(max_y);
+
+    var cells_wide = max_cell_x - min_cell_x;
+    var cells_high = max_cell_y - min_cell_y;
+    var grid_width = cells_wide * {{ width }};
+    var grid_height = cells_high * {{ height }};
+
+    var offset_left = (min_cell_x - min_x) * {{ width }};
+    var offset_top = (max_cell_y - max_y) * {{ height }};;
+
+    var str = '';
+    for (var y=max_cell_y-1 ; y>=min_cell_y ; --y) {
+        for (var x=min_cell_x ; x<max_cell_x ; ++x) {
+            var url = 'http://{{ tilegen }}/?l=' + level + '&y=' + y + '&x=' + x;
+            str += '<img width={{ width }} height={{ height }} class=fimg src=' + url + '>';
+        }
+    }
+    var inside = document.getElementById('fimg_inside');
+    inside.style.width = grid_width + "px";
+    inside.style.height = grid_height + "px";
+    inside.style.left = offset_left + "px";
+    inside.style.top = -offset_top + "px";
+    inside.innerHTML = str;
+}
+
+window.onresize = refresh_fimgs;
+
+refresh_fimgs();
+
+
+function fractal_click(e) {
+    e = e || window.event;
+    if (e.which != 1) return false;
+
+    var right = document.getElementById('right');
+    var click_div = document.getElementById('fimg_inside');
+    var img_x = 0;
+    var img_y = 0;
+    var div = click_div
+    do {
+        img_x += div.offsetLeft;
+        img_y += div.offsetTop;
+        div = div.offsetParent;
+    } while (div);
+
+    var PosX, PosY;
+    if (e.pageX || e.pageY) {
+        PosX = e.pageX;
+        PosY = e.pageY;
+    } else if (e.clientX || e.clientY) {
+        PosX = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+        PosY = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+    } else {
+        PosX = 0;
+        PosY = 0;
+    }
+
+    PosX -= img_x;
+    PosY -= img_y;
+
+
+    // Range between 0 and 1
+    PosX /= click_div.offsetWidth;
+    PosY /= click_div.offsetHeight;
+
+    // Flip it, because in the browser, (0,0) is in the top left
+    PosY = 1 - PosY;
+
+    // Sometimes these are off
+    if (PosX < 0 || PosY < 0) return false;
+    if (PosX > 1 || PosY > 1) return false;
+
+    PosX = PosX * max_cell_x + (1 - PosX) * min_cell_x;
+    PosY = PosY * max_cell_y + (1 - PosY) * min_cell_y;
+
+    PosX /= Math.pow(2, level);
+    PosY /= Math.pow(2, level);
+
+    cx = PosX;
+    cy = PosY;
+    level = e.shiftKey ? level - 1 : level + 1;
+    if (level <= 0) {
+        cx = 0;
+        cy = 0;
+        level = 0;
+    }
+    if (level > 50) {
+        level = 50;
+    }
+    refresh_fimgs();
+
+    return true;
+}
+
+var server_json = [ ];
+
+function remember() {
+    var input = document.getElementById('remember_plus_input');
+
+    var item = {
+        "x": cx,
+        "y": cy,
+        "l": level,
+        "ts": new Date().toISOString(),
+        "text": input.value,
+    };
+
+    if (item.text.length == 0) {
+        alert('Please write a short description first.');
+    } else {
+        server_json.unshift(item);
+        update_list();
+        input.value = "";
+
+        var http_request = new XMLHttpRequest();
+        http_request.open("POST", "/remember", true);
+        http_request.setRequestHeader("Content-type", "application/json");
+        http_request.send(JSON.stringify(item));
+    }
+}
+
+function leading_zero(n) {
+    if (n < 10) {
+        return "0" + n;
+    } else {
+        return n;
+    }
+}
+
+function pretty_date(d) {
+    var m_names = new Array("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul",
+                            "Aug", "Sep", "Oct", "Nov", "Dec");
+    return leading_zero(d.getHours())
+         + ":" + leading_zero(d.getMinutes())
+         + ":" + leading_zero(d.getSeconds())
+         + ", " + m_names[d.getMonth()] + " " + d.getDate() + " " + d.getFullYear();
+}
+
+
+function update_list() {
+  var div = document.getElementById('remembered_list');
+  var str = '';
+
+  if (server_json == null) {
+    str = "<p class=remembered>Database error.</p>";
+  } else {
+      for (var i in server_json) {
+        var item = server_json[i];
+        var url = 'http://{{ tilegen }}/thumb?l=' + item.l + '&y=' + item.y + '&x=' + item.x;
+
+        // Hack to escape HTML
+        var tmp = document.createElement("DIV");
+        tmp.innerText = item.text;
+        var text = tmp.innerHTML;
+
+        var link = 'cx='+item.x+'; cy='+item.y+'; level='+item.l+'; refresh_fimgs()';
+        str += '<a onclick="' + link + '" href="javascript:void(0);">'
+             + '<li class=remembered>'
+             + '<img class=remembered src="'
+             + url
+             + '" style="width: {{ thumb_width }}px; height: {{ thumb_height }}px"/>'
+             + '<p class=remembered>' + text + '</p>'
+             + '<div class=remembered_date>'
+             + '<span class=remembered_date>' + pretty_date(new Date(item.ts)) + '</span>'
+             + '</div>'
+             + '</li>'
+             + '</a>\n';
+      }
+  }
+  div.innerHTML = str;
+}
+function request_list() {
+  var http_request = new XMLHttpRequest();
+  http_request.onreadystatechange  = function() {
+    if (http_request.readyState == 4) {
+      if (http_request.status == 200) {
+          server_json = JSON.parse(http_request.responseText).latest;
+      } else {
+          server_json = null;
+      }
+      update_list();
+    }
+  }
+  http_request.open('GET', '/remembered_list', true);
+  http_request.send();
+}
+//update_list();
+request_list();
+
+-->
+
+</script>
+
+{% endblock %}
+
+

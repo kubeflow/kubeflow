@@ -1,0 +1,104 @@
+---
+layout: default
+---
+
+<h1 id="libraries_for_other_languages">Libraries For Other Languages</h1>
+
+<p> If you don't want to invoke the jsonnet commandline utility to evaluate Jsonnet, there are also
+libraries for Python and C.  In future we would like to support more languages by wrapping the C
+API in each case.</p>
+
+<h2 id="server_side">A Warning On Server-Side Evaluation</h2>
+
+<p>If you are creating an API server that will evaluate untrusted Jsonnet code in the same process
+that handles other requests, be aware of your exposure to denial of service attacks.  Since Jsonnet
+allows expressing programs that take unreasonable amounts of CPU time and RAM, it is possible for a
+malicious request to cause its host API server to exceed its OS resources and crash.  Such a crash
+would affect concurrently running handlers for other users, and decrease your capacity until the
+server is restarted.  A simple remedy for this situation is to <tt>exec</tt> the Jsonnet commandline
+binary in a <tt>ulimit</tt> child process where the CPU and RAM can be tightly bounded for the
+specific request.  Communication to and from the commandline binary could be via temporary files or
+pipes.  Thus, only the malicious request fails.</p>
+
+<p>Linking Jsonnet as a library is more appropriate for client-side applications or situations
+where the configuration can be trusted.</p>
+
+
+<h2 id="c_api">C API</h2>
+
+<p>The C API simply wraps the C++ implementation to hide C++ language features like templates,
+classes, overloading, etc.  This makes it easier to bind to other languages, as C is typically the
+lowest common denominator across all systems.</p>
+
+<p>The API is documented in <a
+href="http://github.com/google/jsonnet/blob/master/include/libjsonnet.h">libjsonnet.h</a>.  It is
+built with 'make libjsonnet.so'.  It is used by the python bindings, the Jsonnet commandline tool,
+as well as a couple of simpler tests.  Search for #include "libjsonnet.h".  </p>
+
+<p>To use the API, create a JsonnetVM object, set various options, then tell it to evaluate a
+filename or snippet.  To avoid leaking memory, the result of execution (JSON or error message) and
+the JsonnetVM object itself must be cleaned up using the corresponding functions.</p>
+
+<h2 id="python_api">Python API</h2>
+
+<p>The Python API wraps the C API in a straightforward way.  It can be installed with <tt>pip
+install jsonnet</tt> or built directly with <tt>setup.py</tt>.</p>
+
+<p>The Python module provides two functions, <tt>evaluate_file(f)</tt> and <tt>evaluate_snippet(f,
+e)</tt>.  In the latter case, the parameter <tt>f</tt> is used in stack traces due to errors raised
+in the snippet.</p>
+
+<p>Keyword arguments to these functions are used to control the virtual machine.  They include
+<tt>gc_min_objects</tt>, <tt>gc_growth_trigger</tt>, <tt>ext_vars</tt>, <tt>debug_ast</tt>, and
+<tt>max_trace</tt>.  The <tt>debug_ast</tt> argument is a boolean, and <tt>ext_vars</tt> is a dict
+mapping strings to strings.  The other keyword arguments should be numbers.</p>
+
+<p>Another keyword argument <tt>import_callback</tt> can be used to pass a callable to trap the
+Jsonnet import constructs.  This allows, e.g., reading files out of archives or implementing library
+search paths.  The supplied function must take two string arguments (directory of the current file
+and the string given to the import construct, which can usually be concatenated to form an actual
+path but that is up to you).  It returns a tuple of two strings, the first being the actual path of
+the file and the second being the content.  The actual path is required so that imports can be
+resolved within the imported file.</p>
+
+<p>If an error is raised during the evaluation of the Jsonnet code, it is formed into a stack trace
+and thrown as a python RuntimeError.  Otherwise, the JSON string is returned.  To convert this
+into objects for easy interpretation in Python, use the <a
+href="https://docs.python.org/2/library/json.html">json</a> module.  An example:</p>
+
+<pre>
+import json
+import _jsonnet
+
+jsonnet_str = '''
+{
+    person1: {
+        name: "Alice",
+        welcome: "Hello " + self.name + "!",
+    },
+    person2: self.person1 { name: std.extVar("OTHER_NAME") },
+}
+'''
+
+json_str = _jsonnet.evaluate_snippet("snippet", jsonnet_str, ext_vars={'OTHER_NAME': 'Bob'})
+json_obj = json.loads(json_str)
+for person_id, person in json_obj.iteritems():
+    print('%s is %s, greeted by "%s"' % (person_id, person['name'], person['welcome']))
+</pre>
+
+
+<h2 id="third_party_apis">Unofficial Third Party APIs</h2>
+
+<p>There are unofficial bindings available for other languages.  These are not supported by Google
+and may be some versions behind the latest release.</p>
+
+<ul>
+<li><b>Go</b>: <a href="https://github.com/strickyak/jsonnet_cgo">https://github.com/strickyak/jsonnet_cgo</a></li>
+<li><b>LuaJIT (FFI)</b>: <a href="https://github.com/yuduanchen/luajit-jsonnet">https://github.com/yuduanchen/luajit-jsonnet</a></li>
+<li><b>Node.js</b>: <a href="https://github.com/yosuke-furukawa/node-jsonnet">https://github.com/yosuke-furukawa/node-jsonnet</a></li>
+<li><b>PHP</b>: <a href="https://github.com/Neeke/Jsonnet-PHP">https://github.com/Neeke/Jsonnet-PHP</a></li>
+<li><b>Python3 &amp; Visual Studio build files</b>: <a href="https://github.com/tyler-elric/jsonnet">https://github.com/tyler-elric/jsonnet</a></li>
+<li><b>Ruby</b>: <a href="https://github.com/yugui/ruby-jsonnet">https://github.com/yugui/ruby-jsonnet</a></li>
+<li><b>Rust</b>: <a href="https://github.com/anguslees/rust-jsonnet">https://github.com/anguslees/rust-jsonnet</a></li>
+<li><b>Rust (less comprehensive, older)</b>: <a href="https://github.com/yuduanchen/rust-jsonnet">https://github.com/yuduanchen/rust-jsonnet</a></li>
+</ul>

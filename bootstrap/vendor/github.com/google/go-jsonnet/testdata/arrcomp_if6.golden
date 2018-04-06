@@ -1,0 +1,13 @@
+RUNTIME ERROR: x
+-------------------------------------------------
+	testdata/arrcomp_if6:1:20-29	$
+
+[x for x in [1] if error "x"]
+
+-------------------------------------------------
+	<builtin>	builtin function <flatMap>
+
+-------------------------------------------------
+	During evaluation	
+
+

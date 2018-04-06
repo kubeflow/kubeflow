@@ -1,0 +1,42 @@
+{
+  "name": "tomcat",
+  "apiVersion": "0.0.1",
+  "kind": "ksonnet.io/parts",
+  "description": "Apache Tomcat, or Tomcat, is an open-source web server and servlet container. This package deploys a stateless tomcat container, service, and secret to your cluster",
+  "author": "ksonnet team <ksonnet-help@heptio.com>",
+  "contributors": [
+    {
+    "name": "Tehut Getahun",
+    "email": "tehut@heptio.com"
+    },
+    {
+    "name": "Tamiko Terada",
+    "email": "tamiko@heptio.com"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ksonnet/mixins"
+  },
+  "bugs": {
+    "url": "https://github.com/ksonnet/mixins/issues"
+  },
+  "keywords": [
+    "tomcat",
+    "server",
+    "serverlet"
+  ],
+  "quickStart": {
+    "prototype": "io.ksonnet.pkg.persistent-tomcat",
+    "componentName": "tomcat",
+    "flags": {
+      "name": "tomcat",
+      "namespace": "default",
+      "tomcatUser": "frank",
+      "tomcatPassword": "boots"
+    },
+    "comment": "Run a simple Tomcat server, backed by a PersistentVolume"
+  },
+  "license": "Apache 2.0"
+}
+

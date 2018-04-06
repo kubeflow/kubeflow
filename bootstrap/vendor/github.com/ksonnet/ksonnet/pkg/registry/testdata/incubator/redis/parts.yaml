@@ -1,0 +1,40 @@
+{
+   "name": "redis",
+   "apiVersion": "0.0.1",
+   "kind": "ksonnet.io/parts",
+   "description": "Redis is an advanced key-value cache and store. Often referred to as a data structure server since keys can contain structures as simple as strings, hashes and as complex as bitmaps and hyperloglogs. This package will deploy redis backed by a mounted persistent volume, a secret to hold your database password and a service to expose your deployment.\n",
+   "author": "ksonnet team <ksonnet-help@heptio.com>",
+   "contributors": [
+      {
+         "name": "Tehut Getahun",
+         "email": "tehut@heptio.com"
+      },
+      {
+         "name": "Tamiko Terada",
+         "email": "tamiko@heptio.com"
+      }
+   ],
+   "repository": {
+      "type": "git",
+      "url": "https://github.com/ksonnet/mixins"
+   },
+   "bugs": {
+      "url": "https://github.com/ksonnet/mixins/issues"
+   },
+   "keywords": [
+      "redis",
+      "persistent",
+      "database"
+   ],
+   "quickStart": {
+      "prototype": "io.ksonnet.pkg.redis-persistent",
+      "componentName": "redis",
+      "flags": {
+         "name": "redis",
+         "namespace": "default",
+         "password": "boots"
+      },
+      "comment": "Run simple Redis, backed by a PersistentVolume"
+   },
+   "license": "Apache 2.0"
+}

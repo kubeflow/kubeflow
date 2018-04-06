@@ -1,0 +1,2 @@
+Deleting services guestbook-ui
+Deleting deployments guestbook-ui

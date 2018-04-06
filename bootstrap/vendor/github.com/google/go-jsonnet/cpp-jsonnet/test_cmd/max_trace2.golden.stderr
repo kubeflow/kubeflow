@@ -1,0 +1,12 @@
+RUNTIME ERROR: whee
+	<cmdline>:1:34-46	function <f>
+	<cmdline>:1:52-67	function <f>
+	<cmdline>:1:52-67	function <f>
+	<cmdline>:1:52-67	function <f>
+	<cmdline>:1:52-67	function <f>
+	...
+	<cmdline>:1:52-67	function <f>
+	<cmdline>:1:52-67	function <f>
+	<cmdline>:1:52-67	function <f>
+	<cmdline>:1:52-67	function <f>
+	<cmdline>:1:69-75	
