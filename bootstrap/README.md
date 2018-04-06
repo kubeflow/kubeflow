@@ -14,8 +14,8 @@ and based on the results chooses good values for various Kubeflow parameters.
 
 **Requires** ksonnet 0.10.0
 
-**Warning** The ksonnet generated doesn't appear to be valid see [ksonnet/ksonnet#420](https://github.com/ksonnet/ksonnet/issues/420).
-This appears to be an issue with ksonnet at head which is a dev build.
+  - The app generated won't work with earlier versions (0.9) of ksonnet
+  - You can use the version of ksonnet built in the docker container as illustrated below.
 
 ## Usage
 

@@ -19,13 +19,21 @@ RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.10.0/
     mv kubectl /usr/local/bin && \
     chmod a+x /usr/local/bin/kubectl
 
-# Install ksonnet
-RUN cd /tmp && \
-    wget -O ks.tar.gz \
-    https://github.com/ksonnet/ksonnet/releases/download/v0.9.1/ks_0.9.1_linux_amd64.tar.gz  && \
-    tar -xvf ks.tar.gz && \
-    mv ks_0.9.1_linux_amd64/ks /usr/local/bin && \
-    chmod a+x /usr/local/bin/ks
+RUN git clone https://github.com/ksonnet/ksonnet.git /opt/ksonnet && \
+	cd /opt/ksonnet && \
+	git checkout 68d8f751791db6b0e0798c34f0d72bda24926d8d
+
+# TODO(jlewi): bootstrap is using an early dev version of ks (0.10) so we need
+# to build ks at the same commit because the generated app won't work with
+# earlier versions of ks.
+RUN cd /opt/ksonnet && \
+	mkdir -p /tmp/go/src/github.com/ksonnet && \
+	ln -sf /opt/ksonnet /tmp/go/src/github.com/ksonnet/ksonnet && \
+    cd /tmp/go/src/github.com/ksonnet/ksonnet && \
+	export GOPATH=/tmp/go && \
+	make install && \
+    cp /tmp/go/bin/ks /usr/local/bin && \
+    chmod a+rx /usr/local/bin/ks
 
 RUN mkdir -p /opt/kubeflow
 
