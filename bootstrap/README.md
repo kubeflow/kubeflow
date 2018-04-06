@@ -23,28 +23,26 @@ Interactive use
 
 ```
 TAG=latest
-HOST_DIR=<Directory on host to store the ksonnet app>
-APP_NAME=<Name for the created ksonnet app>
+APP_DIR=<Directory for the ksonnet app>
 GITHUB_TOKEN=<Get a [GitHub Token](https://github.com/kubeflow/kubeflow/blob/master/user_guide.md#403-api-rate-limit-exceeded-error) to avoid API Limits>
 
 docker run -ti \
-	-e KUBECONFIG=/kubeconfig \
   -e GITHUB_TOKEN=${GITHUB_TOKEN} \
-	-v ~/.kube/config:/kubeconfig \
-	-v ${HOST_DIR}:/apps gcr.io/kubeflow-images-staging/bootstraper:latest  /bin/bash
+  -e GROUP_ID=`id -g ${GROUP}` \
+  -e USER_ID=`id -u ${USER}` \
+  -e USER=${USER} \
+	-v ${HOME}:/home/${USER} gcr.io/kubeflow-images-staging/bootstraper:latest
 
-# If you are using GCP login to get GCP credentials
-gcloud auth login
-
-/opt/kubeflow/bootstraper --app-dir=/apps/${APP_NAME}
+/opt/kubeflow/bootstraper --app-dir=${APP_DIR}
 
 # To deploy it
-cd /apps/${APP_NAME}
+cd ${APP_DIR}
 ks apply default
 ```
 
 * After the tool runs the ksonnet app for deploying Kubeflow will be available in `${HOST_DIR}/${APP_NAME}`
-* We map the kubernetes config file into the container so that it can be used by the tool
+* The user's home directory is mapped into the container so that
+  config files like kubeconfig and gcloud config are accessible.
 
 ## Explanation
 For Kubeflow we want a **low bar and a high ceiling**.

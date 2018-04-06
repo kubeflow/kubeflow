@@ -25,6 +25,7 @@ all: build
 build:	
 	go build -i -o $(BUILDDIR)/bootstraper ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/main.go
 	cp -f ./Dockerfile $(BUILDDIR)/
+	cp -f ./start.sh $(BUILDDIR)/
 	docker build ${DOCKER_BUILD_OPTS} -t $(IMG):$(TAG) $(BUILDDIR)	
 	docker tag $(IMG):$(TAG) $(IMG):latest
 	@echo Built $(IMG):latest	

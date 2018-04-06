@@ -27,9 +27,22 @@ RUN cd /tmp && \
     mv ks_0.9.1_linux_amd64/ks /usr/local/bin && \
     chmod a+x /usr/local/bin/ks
 
-# Work around for https://github.com/ksonnet/ksonnet/issues/298
-ENV USER root
-
 RUN mkdir -p /opt/kubeflow
 
 COPY bootstraper /opt/kubeflow/
+COPY start.sh /opt/kubeflow/
+
+RUN chmod a+rx /opt/kubeflow/*
+
+# Set default values for USER, USER_ID, GROUP_ID
+# The startup script will create the user and su to that user.
+# We delay the user creation until runtime so that user can specify
+# the user info at runtime.
+
+# Work around for https://github.com/ksonnet/ksonnet/issues/298
+ENV USER kubeflow
+ENV USER_ID 1000
+ENV GROUP_ID 1000
+ENV GROUP kubeflow
+
+ENTRYPOINT ["/opt/kubeflow/start.sh"]
