@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# A helper script to run on a VM to install minikube.
+# A helper script to run on a VM to install and start minikube.
 
 set -ex
 
@@ -32,5 +32,9 @@ curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.25.0/minik
 chmod +x minikube 
 sudo mv minikube /usr/local/bin/
 
+# We need a large disk for JupyterHub.
+sudo minikube start --vm-driver=none --disk-size=40g
+
+# Change the permissions because we will copy these files.
 sudo chmod -R a+rw ~/.kube
 sudo chmod -R a+rw ~/.minikube

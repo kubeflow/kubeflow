@@ -11,7 +11,7 @@ Contained in this repository are manifests for creating:
   [Project Jupyter](http://jupyter.org/about) is a non-profit, open-source
   project to support interactive data science and scientific computing across
   all programming languages.
-* A **TensorFlow Training Controller** that can be configured to use either CPUs or GPUs and dynamically adjusted to the size of a cluster with a single setting
+* A [**TensorFlow Training Controller**](https://github.com/kubeflow/tf-operator) that can be configured to use either CPUs or GPUs and dynamically adjusted to the size of a cluster with a single setting
 * A **TensorFlow Serving** container to export trained TensorFlow models to Kubernetes
 
 This document details the steps needed to run the Kubeflow project in any environment in which Kubernetes runs.
@@ -71,6 +71,11 @@ In order to quickly set up all components, execute the following commands:
 NAMESPACE=kubeflow
 kubectl create namespace ${NAMESPACE}
 
+# Which version of Kubeflow to use
+# For a list of releases refer to:
+# https://github.com/kubeflow/kubeflow/releases
+VERSION=v0.1.0-rc.0
+
 # Initialize a ksonnet app. Set the namespace for it's default environment.
 APP_NAME=my-kubeflow
 ks init ${APP_NAME}
@@ -78,10 +83,11 @@ cd ${APP_NAME}
 ks env set default --namespace ${NAMESPACE}
 
 # Install Kubeflow components
-ks registry add kubeflow github.com/kubeflow/kubeflow/tree/master/kubeflow
-ks pkg install kubeflow/core
-ks pkg install kubeflow/tf-serving
-ks pkg install kubeflow/tf-job
+ks registry add kubeflow github.com/kubeflow/kubeflow/tree/${VERSION}/kubeflow
+
+ks pkg install kubeflow/core@${VERSION}
+ks pkg install kubeflow/tf-serving@${VERSION}
+ks pkg install kubeflow/tf-job@${VERSION}
 
 # Create templates for core components
 ks generate kubeflow-core kubeflow-core
@@ -109,10 +115,10 @@ effort in a portable fashion between different environments.
 For more detailed instructions about how to use Kubeflow, please refer to the [user guide](user_guide.md).
 
 **Important** The commands above will enable collection of **anonymous** user data to help us improve Kubeflow; for more information including instructions for explictly
-disabling it please refer to the [user_guide](user_guide#Usage Reporting)
+disabling it please refer to the [Usage Reporting section](user_guide.md#usage-reporting) of the user guide.
 
 ## Troubleshooting
-For detailed troubleshooting instructions, please refer to [this section of the user guide](user_guide.md#troubleshooting)
+For detailed troubleshooting instructions, please refer to [this section of the user guide](user_guide.md#troubleshooting).
 
 ## Resources
 

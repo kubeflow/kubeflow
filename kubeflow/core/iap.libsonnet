@@ -2,14 +2,14 @@
   parts(namespace):: {
     local k = import "k.libsonnet",
 
-    ingressParts(secretName, ipName, hostname, issuer, envoyImage, disableJwt, clientID, clientSecret):: std.prune(k.core.v1.list.new([
+    ingressParts(secretName, ipName, hostname, issuer, envoyImage, disableJwt, oauthSecretName):: std.prune(k.core.v1.list.new([
       $.parts(namespace).service,
       $.parts(namespace).ingress(secretName, ipName, hostname),
       $.parts(namespace).certificate(secretName, hostname, issuer),
       $.parts(namespace).initServiceAcount,
       $.parts(namespace).initClusterRoleBinding,
       $.parts(namespace).initClusterRole,
-      $.parts(namespace).deploy(envoyImage, clientID, clientSecret),
+      $.parts(namespace).deploy(envoyImage, oauthSecretName),
       $.parts(namespace).configMap(disableJwt),
       $.parts(namespace).whoamiService,
       $.parts(namespace).whoamiApp,
@@ -134,12 +134,12 @@
       volumeMounts: [
         {
           mountPath: "/etc/envoy",
-          name: "config-volume",
+          name: "shared",
         },
       ],
     },  // envoyContainer
 
-    deploy(image, clientID, clientSecret):: {
+    deploy(image, oauthSecretName):: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -156,7 +156,18 @@
           },
           spec: {
             serviceAccountName: "envoy",
-            initContainers: [
+            containers: [
+              $.parts(namespace).envoyContainer({
+                image: image,
+                name: "envoy",
+                // We use the admin port for the health, readiness check because the main port will require a valid JWT.
+                // healthPath: "/server_info",
+                healthPath: "/healthz",
+                healthPort: envoyPort,
+                configPath: "/etc/envoy/envoy-config.json",
+                baseId: "27000",
+                ports: [envoyPort, envoyAdminPort, envoyStatsPort],
+              }),
               {
                 name: "iap",
                 image: "google/cloud-sdk:alpine",
@@ -171,15 +182,29 @@
                   },
                   {
                     name: "CLIENT_ID",
-                    value: clientID,
+                    valueFrom: {
+                      secretKeyRef: {
+                        name: oauthSecretName,
+                        key: "CLIENT_ID",
+                      },
+                    },
                   },
                   {
                     name: "CLIENT_SECRET",
-                    value: clientSecret,
+                    valueFrom: {
+                      secretKeyRef: {
+                        name: oauthSecretName,
+                        key: "CLIENT_SECRET",
+                      },
+                    },
                   },
                   {
                     name: "SERVICE",
                     value: "envoy",
+                  },
+                  {
+                    name: "ENVOY_ADMIN",
+                    value: "http://localhost:" + envoyAdminPort,
                   },
                 ],
                 volumeMounts: [
@@ -187,20 +212,12 @@
                     mountPath: "/var/envoy-config/",
                     name: "config-volume",
                   },
+                  {
+                    mountPath: "/var/shared/",
+                    name: "shared",
+                  },
                 ],
               },
-            ],
-            containers: [
-              $.parts(namespace).envoyContainer({
-                image: image,
-                name: "envoy",
-                // We use the admin port for the health, readiness check because the main port will require a valid JWT.
-                healthPath: "/server_info",
-                healthPort: envoyAdminPort,
-                configPath: "/etc/envoy/envoy-config.json",
-                baseId: "27000",
-                ports: [envoyPort, envoyAdminPort, envoyStatsPort],
-              }),
             ],
             restartPolicy: "Always",
             volumes: [
@@ -209,6 +226,12 @@
                   name: "envoy-config",
                 },
                 name: "config-volume",
+              },
+              {
+                emptyDir: {
+                  medium: "Memory",
+                },
+                name: "shared",
               },
             ],
           },
@@ -225,7 +248,7 @@
       },
       data: {
         "envoy-config.json": std.manifestJson($.parts(namespace).envoyConfig(disableJwt)),
-        // Script executed by init container to enable IAP. When finished, the configmap is patched with the JWT audience.
+        // Script executed by the iap container to configure IAP. When finished, the envoy config is created with the JWT audience.
         "iap-init.sh": |||
           [ -z ${CLIENT_ID} ] && echo Error CLIENT_ID must be set && exit 1
           [ -z ${CLIENT_SECRET} ] && echo Error CLIENT_SECRET must be set && exit 1
@@ -310,13 +333,38 @@
 
           JWT_AUDIENCE="/projects/${PROJECT_NUM}/global/backendServices/${BACKEND_ID}"
 
-          echo JWT_AUDIENCE=${JWT_AUDIENCE}
+          # For healthcheck compare.
+          echo "JWT_AUDIENCE=${JWT_AUDIENCE}" > /var/shared/healthz.env
+          echo "NODE_PORT=${NODE_PORT}" >> /var/shared/healthz.env
+          echo "BACKEND_ID=${BACKEND_ID}" >> /var/shared/healthz.env
 
-          kubectl get configmap -n ${NAMESPACE} envoy-config -o json | \
-            sed -e "s|{{JWT_AUDIENCE}}|${JWT_AUDIENCE}|g" | kubectl apply -f -
+          kubectl get configmap -n ${NAMESPACE} envoy-config -o jsonpath='{.data.envoy-config\.json}' | \
+            sed -e "s|{{JWT_AUDIENCE}}|${JWT_AUDIENCE}|g" > /var/shared/envoy-config.json
+
+          echo "Restarting envoy"
+          curl -s ${ENVOY_ADMIN}/quitquitquit
 
           echo "Clearing lock on service annotation"
           kubectl patch svc "${SERVICE}" -p "{\"metadata\": { \"annotations\": {\"iaplock\": \"\" }}}"
+
+          function checkIAP() {
+            # created by init container.
+            . /var/shared/healthz.env 
+
+            # If node port or backend id change, so does the JWT audience.
+            CURR_NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[0].nodePort}')
+            CURR_BACKEND_ID=$(gcloud compute --project=${PROJECT} backend-services list --filter=name~k8s-be-${CURR_NODE_PORT}- --format='value(id)')
+            [ "$BACKEND_ID" == "$CURR_BACKEND_ID" ]
+          }
+
+          # Verify IAP every 10 seconds.
+          while true; do
+            if ! checkIAP; then
+              echo "$(date) WARN: IAP check failed, restarting container."
+              exit 1
+            fi
+            sleep 10
+          done
         |||,
       },
     },

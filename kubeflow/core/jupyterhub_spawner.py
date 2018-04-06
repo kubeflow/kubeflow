@@ -12,12 +12,14 @@ class KubeFormSpawner(KubeSpawner):
     <label for='image'>Image</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <input list="image" name="image" placeholder='repo/image:tag'>
     <datalist id="image">
-      <option value="gcr.io/kubeflow-images-staging/tensorflow-1-4.1-notebook-cpu:v20180327-6bb4058">
-      <option value="gcr.io/kubeflow-images-staging/tensorflow-1-4.1-notebook-gpu:v20180327-6bb4058">
-      <option value="gcr.io/kubeflow-images-staging/tensorflow-1-5.1-notebook-cpu:v20180327-6bb4058">
-      <option value="gcr.io/kubeflow-images-staging/tensorflow-1-5.1-notebook-gpu:v20180327-6bb4058">
-      <option value="gcr.io/kubeflow-images-staging/tensorflow-1-6.1-notebook-cpu:v20180327-6bb4058">
-      <option value="gcr.io/kubeflow-images-staging/tensorflow-1-6.1-notebook-gpu:v20180327-6bb4058">
+      <option value="gcr.io/kubeflow-images-staging/tensorflow-1.4.1-notebook-cpu:v20180403-1f854c44">
+      <option value="gcr.io/kubeflow-images-staging/tensorflow-1.4.1-notebook-gpu:v20180403-1f854c44">
+      <option value="gcr.io/kubeflow-images-staging/tensorflow-1.5.1-notebook-cpu:v20180403-1f854c44">
+      <option value="gcr.io/kubeflow-images-staging/tensorflow-1.5.1-notebook-gpu:v20180403-1f854c44">
+      <option value="gcr.io/kubeflow-images-staging/tensorflow-1.6.0-notebook-cpu:v20180403-1f854c44">
+      <option value="gcr.io/kubeflow-images-staging/tensorflow-1.6.0-notebook-gpu:v20180403-1f854c44">
+      <option value="gcr.io/kubeflow-images-staging/tensorflow-1.7.0-notebook-cpu:v20180403-1f854c44">
+      <option value="gcr.io/kubeflow-images-staging/tensorflow-1.7.0-notebook-gpu:v20180403-1f854c44">
     </datalist>
     <br/><br/>
 
@@ -97,21 +99,23 @@ c.KubeSpawner.start_timeout = 60 * 30
 # TODO(jlewi): Verify this works on minikube.
 # TODO(jlewi): Should we set c.KubeSpawner.singleuser_fs_gid = 1000
 # see https://github.com/kubeflow/kubeflow/pull/22#issuecomment-350500944
-c.KubeSpawner.user_storage_pvc_ensure = True
-# How much disk space do we want?
-c.KubeSpawner.user_storage_capacity = '10Gi'
-c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
-c.KubeSpawner.volumes = [
-  {
-    'name': 'volume-{username}{servername}',
-    'persistentVolumeClaim': {
-      'claimName': 'claim-{username}{servername}'
-    }
-  }
-]
-c.KubeSpawner.volume_mounts = [
-  {
-    'mountPath': '/home/jovyan/work',
-    'name': 'volume-{username}{servername}'
-  }
-]
+pvc_mount = os.environ.get('NOTEBOOK_PVC_MOUNT')
+if pvc_mount and pvc_mount != 'null':
+    c.KubeSpawner.user_storage_pvc_ensure = True
+    # How much disk space do we want?
+    c.KubeSpawner.user_storage_capacity = '10Gi'
+    c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
+    c.KubeSpawner.volumes = [
+      {
+        'name': 'volume-{username}{servername}',
+        'persistentVolumeClaim': {
+          'claimName': 'claim-{username}{servername}'
+        }
+      }
+    ]
+    c.KubeSpawner.volume_mounts = [
+      {
+        'mountPath': pvc_mount,
+        'name': 'volume-{username}{servername}'
+      }
+    ]

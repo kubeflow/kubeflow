@@ -134,6 +134,12 @@
                 },
               },
             },
+            // We use a directory in our NFS share to store our kube config. 
+            // This way we can configure it on a single step and reuse it on subsequent steps.
+            {
+              name: "KUBECONFIG",
+              value: testDir + "/.kube/config",
+            },
           ] + prow_env + env_vars,
           volumeMounts: [
             {
@@ -220,7 +226,6 @@
           name: "checkout",
           template: "checkout",
         },
-
         {
           name: "create-pr-symlink",
           template: "create-pr-symlink",
@@ -228,11 +233,16 @@
         },
 
         {
+          name: "setup",
+          template: "setup",
+          dependencies: ["checkout"],
+        },
+        {
           name: "test-tf-serving",
           template: "test-tf-serving",
           dependencies: ["deploy-tf-serving"],
         },
-        // TODO(lunkai): investigate gpu flakiness, then uncomment.
+        // TODO(lunkai): investigate and re-enable
         // {
         //   name: "deploy-tf-serving-gpu",
         //   template: "deploy-tf-serving-gpu",
@@ -241,7 +251,7 @@
         // {
         //   name: "test-tf-serving-gpu",
         //   template: "test-tf-serving-gpu",
-        //   dependencies: ["deploy-tf-serving-gpu"],
+        //   dependencies: ["deploy-tf-serving-gpu",],
         // },
       ];
       local e2e_tasks = e2e_tasks_base + if build_image then [
@@ -253,22 +263,20 @@
         {
           name: "deploy-tf-serving",
           template: "deploy-tf-serving",
-          dependencies: ["build-tf-serving-cpu"],
+          dependencies: ["build-tf-serving-cpu", "setup"],
         },
       ] else [
         {
           name: "deploy-tf-serving",
           template: "deploy-tf-serving",
-          dependencies: ["checkout"],
+          dependencies: ["setup"],
         },
       ];
       local deploy_tf_serving_command_base = [
         "python",
         "-m",
         "testing.test_deploy",
-        "--project=" + project,
-        "--cluster=" + cluster,
-        "--zone=" + zone,
+        "--project=" + project,        
         "--github_token=$(GITHUB_TOKEN)",
         // TODO(jlewi): This is duplicative with params. We should probably get
         // rid of this and just treat namespace as another parameter.
@@ -355,6 +363,19 @@
 
             buildImageTemplate("build-tf-serving-cpu", "Dockerfile.cpu", cpuImage),
 
+            // Setup configures a kubeconfig file for GKE.
+            buildTemplate("setup", [
+              "python",
+              "-m",
+              "testing.test_deploy",
+              "--project=" + project,
+              "--test_dir=" + testDir,
+              "--artifacts_dir=" + artifactsDir,
+              "get_gke_credentials",
+              "--cluster=" + cluster,
+              "--zone=" + zone,
+            ]),  // setup
+
             buildTemplate(
               "deploy-tf-serving",
               deploy_tf_serving_command,
@@ -395,9 +416,7 @@
                 "-m",
                 "testing.test_deploy",
                 "--project=" + project,
-                "--cluster=" + cluster,
                 "--namespace=" + stepsNamespace,
-                "--zone=" + zone,
                 "--test_dir=" + testDir,
                 "--artifacts_dir=" + artifactsDir,
                 "teardown",

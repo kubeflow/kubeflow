@@ -82,6 +82,12 @@
       // command: List to pass as the container command.
       local buildTemplate(step_name, command, env_vars=[], sidecars=[]) = {
         name: step_name,
+        // The tensorflow notebook image builds are flaky because they are very
+        // large builds and sometimes there are timeouts while downloading
+        // some pip packages. Retry upto 3 times before giving up.
+        retryStrategy: {
+          limit: 3,
+        },
         container: {
           command: command,
           image: params.step_image,
@@ -141,6 +147,14 @@
           "-" +
           tf_version +
           "-cp36-cp36m-linux_x86_64.whl",
+        local tf_package_py_27 =
+          "https://storage.googleapis.com/tensorflow/linux/" +
+          device +
+          "/tensorflow" +
+          (if device == "gpu" then "_gpu" else "") +
+          "-" +
+          tf_version +
+          "-cp27-none-linux_x86_64.whl",
         result:: buildTemplate(
           "build-" + workflow_name + "-" + device,
           [
@@ -154,7 +168,8 @@
             + tag + " "
             + std.toString(is_latest) + " "
             + base_image + " "
-            + tf_package,
+            + tf_package + " ",
+            + tf_package_py_27,
           ],
           [
             {
@@ -246,6 +261,16 @@
                     dependencies: ["checkout"],
                   },
                   {
+                    name: "build-1-7-0-gpu",
+                    template: "build-1-7-0-gpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
+                    name: "build-1-7-0-cpu",
+                    template: "build-1-7-0-cpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
                     name: "create-pr-symlink",
                     template: "create-pr-symlink",
                     dependencies: ["checkout"],
@@ -259,6 +284,8 @@
             buildImageTemplate("1.5.1", "1-5-1", "gpu"),
             buildImageTemplate("1.6.0", "1-6-0", "cpu"),
             buildImageTemplate("1.6.0", "1-6-0", "gpu"),
+            buildImageTemplate("1.7.0", "1-7-0", "cpu"),
+            buildImageTemplate("1.7.0", "1-7-0", "gpu"),
             {
               name: "exit-handler",
               steps: [
