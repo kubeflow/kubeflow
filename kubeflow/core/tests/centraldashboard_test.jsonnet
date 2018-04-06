@@ -26,7 +26,7 @@ centraldashboard.parts(params.namespace).deployUi,
         spec: {
         containers: [
             {
-            image: "swiftdiaries/centraldashboard:0.2",
+            image: "swiftdiaries/centraldashboard:0.3",
             name: "centraldashboard",
             ports: [
                 {
@@ -60,8 +60,8 @@ centraldashboard.parts(params.namespace).uiService,
             "apiVersion: ambassador/v0",
             "kind:  Mapping",
             "name: centralui-mapping",
-            "prefix: /ui/",
-            "rewrite: /ui/",
+            "prefix: /",
+            "rewrite: /",
             "service: centraldashboard." + "kubeflow",
         ]),
     },
