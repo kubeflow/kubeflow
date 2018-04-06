@@ -1,3 +1,20 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Setting Up IAP on GKE](#setting-up-iap-on-gke)
+    - [Preliminaries](#preliminaries)
+        - [Create an external static IP address](#create-an-external-static-ip-address)
+      - [Create oauth client credentials](#create-oauth-client-credentials)
+    - [Setup Ingress](#setup-ingress)
+    - [Test ingress](#test-ingress)
+    - [Configure Jupyter to use your Google Identity](#configure-jupyter-to-use-your-google-identity)
+    - [Adding Users](#adding-users)
+  - [Troubleshooting](#troubleshooting)
+    - [502 Server Error](#502-server-error)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Setting Up IAP on GKE
 
 These instructions walk you through using [Identity Aware Proxy](https://cloud.google.com/iap/docs/)(IAP) to securely connect to Kubeflow

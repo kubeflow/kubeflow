@@ -1,3 +1,17 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [REST API http proxy to tensorflow/serving](#rest-api-http-proxy-to-tensorflowserving)
+  - [Why?](#why)
+  - [How?](#how)
+  - [Requirements.](#requirements)
+    - [Predict](#predict)
+    - [Classify](#classify)
+  - [To Do](#to-do)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # REST API http proxy to tensorflow/serving
 ----
 
