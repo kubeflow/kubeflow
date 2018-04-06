@@ -25,7 +25,7 @@ Install the Kubeflow packages into your application.
 ```
 # For a list of releases see:
 # https://github.com/kubeflow/kubeflow/releases
-VERSION=v0.1.0-rc.0
+VERSION=v0.1.0
 
 cd my-kubeflow
 ks registry add kubeflow github.com/kubeflow/kubeflow/tree/${VERSION}/kubeflow
