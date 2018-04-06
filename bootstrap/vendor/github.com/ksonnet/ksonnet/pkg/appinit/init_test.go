@@ -115,6 +115,7 @@ func checkApp(t *testing.T, fs afero.Fs, rootPath, version, namespace string) {
 		filepath.Join("environments", "base.libsonnet"),
 		filepath.Join("environments", namespace, "main.jsonnet"),
 		filepath.Join("environments", namespace, "params.libsonnet"),
+		filepath.Join("environments", namespace, "globals.libsonnet"),
 	}
 
 	for _, d := range expectedDirs {

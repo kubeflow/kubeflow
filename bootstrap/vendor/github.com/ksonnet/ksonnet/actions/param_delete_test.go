@@ -133,3 +133,28 @@ func TestParamDelete_env(t *testing.T) {
 		require.NoError(t, err)
 	})
 }
+
+func TestParamDelete_env_global(t *testing.T) {
+	withApp(t, func(appMock *amocks.App) {
+		path := "replicas"
+
+		in := map[string]interface{}{
+			OptionApp:     appMock,
+			OptionPath:    path,
+			OptionEnvName: "default",
+		}
+
+		a, err := NewParamDelete(in)
+		require.NoError(t, err)
+
+		envDelete := func(ksApp app.App, envName, pName string) error {
+			assert.Equal(t, "default", envName)
+			assert.Equal(t, "replicas", pName)
+			return nil
+		}
+		a.deleteEnvGlobalFn = envDelete
+
+		err = a.Run()
+		require.NoError(t, err)
+	})
+}

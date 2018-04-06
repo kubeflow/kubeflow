@@ -69,9 +69,26 @@ var _ = Describe("ks param", func() {
 				assertExitStatus(o, 0)
 			})
 
-			XIt("removes a parameter's environment value", func() {
-				o := a.paramList("--env=" + envName)
+			It("removes a parameter's environment value", func() {
+				o := a.paramList("--env", envName)
 				assertOutput("param/delete/env.txt", o.stdout)
+			})
+		})
+
+		FContext("removing environment global", func() {
+			BeforeEach(func() {
+				o := a.runKs("param", "set", "department", "engineering", "--env", "default")
+				assertExitStatus(o, 0)
+			})
+
+			JustBeforeEach(func() {
+				o := a.runKs("param", "delete", "department", "--env", "default")
+				assertExitStatus(o, 0)
+			})
+
+			It("removes the value", func() {
+				o := a.paramList("--env", "default")
+				assertOutput("param/delete/env-global.txt", o.stdout)
 			})
 		})
 	})
@@ -122,6 +139,18 @@ var _ = Describe("ks param", func() {
 				o = a.paramList("--env", "default")
 				assertOutput("param/set/env-default-output.txt", o.stdout)
 
+			})
+		})
+
+		FContext("setting environment global", func() {
+			JustBeforeEach(func() {
+				o := a.runKs("param", "set", "department", "engineering", "--env", "default")
+				assertExitStatus(o, 0)
+			})
+
+			It("sets the value", func() {
+				o := a.paramList("--env", "default")
+				assertOutput("param/set/env-global.txt", o.stdout)
 			})
 		})
 	})

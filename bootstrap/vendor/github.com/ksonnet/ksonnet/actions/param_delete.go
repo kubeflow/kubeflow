@@ -26,6 +26,7 @@ import (
 
 type getModuleFn func(ksApp app.App, moduleName string) (component.Module, error)
 type deleteEnvFn func(ksApp app.App, envName, componentName, paramName string) error
+type deleteEnvGlobalFn func(a app.App, envName, paramName string) error
 
 // RunParamDelete runs `param set`
 func RunParamDelete(m map[string]interface{}) error {
@@ -46,9 +47,10 @@ type ParamDelete struct {
 	global  bool
 	envName string
 
-	deleteEnvFn   deleteEnvFn
-	getModuleFn   getModuleFn
-	resolvePathFn func(a app.App, path string) (component.Module, component.Component, error)
+	deleteEnvFn       deleteEnvFn
+	deleteEnvGlobalFn deleteEnvGlobalFn
+	getModuleFn       getModuleFn
+	resolvePathFn     func(a app.App, path string) (component.Module, component.Component, error)
 }
 
 // NewParamDelete creates an instance of ParamDelete.
@@ -57,15 +59,16 @@ func NewParamDelete(m map[string]interface{}) (*ParamDelete, error) {
 
 	pd := &ParamDelete{
 		app:     ol.loadApp(),
-		name:    ol.loadString(OptionName),
+		name:    ol.loadOptionalString(OptionName),
 		rawPath: ol.loadString(OptionPath),
 		global:  ol.loadOptionalBool(OptionGlobal),
 		envName: ol.loadOptionalString(OptionEnvName),
 		index:   ol.loadOptionalInt(OptionIndex),
 
-		deleteEnvFn:   env.DeleteParam,
-		resolvePathFn: component.ResolvePath,
-		getModuleFn:   component.GetModule,
+		deleteEnvFn:       env.DeleteParam,
+		deleteEnvGlobalFn: env.UnsetGlobalParams,
+		resolvePathFn:     component.ResolvePath,
+		getModuleFn:       component.GetModule,
 	}
 
 	if ol.err != nil {
@@ -82,7 +85,10 @@ func NewParamDelete(m map[string]interface{}) (*ParamDelete, error) {
 // Run runs the action.
 func (pd *ParamDelete) Run() error {
 	if pd.envName != "" {
-		return pd.deleteEnvFn(pd.app, pd.envName, pd.name, pd.rawPath)
+		if pd.name != "" {
+			return pd.deleteEnvFn(pd.app, pd.envName, pd.name, pd.rawPath)
+		}
+		return pd.deleteEnvGlobalFn(pd.app, pd.envName, pd.rawPath)
 	}
 
 	path := strings.Split(pd.rawPath, ".")

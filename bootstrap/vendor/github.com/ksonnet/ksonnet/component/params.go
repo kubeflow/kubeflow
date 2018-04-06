@@ -18,12 +18,12 @@ package component
 import (
 	"regexp"
 
-	jsonnet "github.com/google/go-jsonnet"
+	"github.com/ksonnet/ksonnet/pkg/util/jsonnet"
 	"github.com/sirupsen/logrus"
 )
 
 func applyGlobals(params string) (string, error) {
-	vm := jsonnet.MakeVM()
+	vm := jsonnet.NewVM()
 
 	vm.ExtCode("params", params)
 	return vm.EvaluateSnippet("snippet", snippetMapGlobal)
@@ -43,7 +43,7 @@ type patchDoc struct {
 }
 
 func patchJSON(jsonObject, patch, patchName string) (string, error) {
-	vm := jsonnet.MakeVM()
+	vm := jsonnet.NewVM()
 	vm.TLACode("target", jsonObject)
 	vm.TLACode("patch", patch)
 	vm.TLAVar("patchName", patchName)

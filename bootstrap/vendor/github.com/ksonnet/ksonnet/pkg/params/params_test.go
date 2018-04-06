@@ -16,62 +16,419 @@
 package params
 
 import (
-	"fmt"
-	"io/ioutil"
+	"io"
 	"testing"
 
+	"github.com/google/go-jsonnet/ast"
+	"github.com/ksonnet/ksonnet-lib/ksonnet-gen/astext"
+	nm "github.com/ksonnet/ksonnet-lib/ksonnet-gen/nodemaker"
+	"github.com/ksonnet/ksonnet/pkg/util/test"
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestUpdate(t *testing.T) {
-	paramsSource, err := ioutil.ReadFile("testdata/params.libsonnet")
-	require.NoError(t, err)
+// withParamConfig allows tests to change the params package settings without
+// affecting other tests. It resets the following variables:
+// * findValuesFn
+// * jsonnetFieldIDFn
+// * jsonnetFindObjectFn
+// * jsonnetParseFn
+// * jsonnetPrinterFn
+// * jsonnetSetFn
+// * nmKVFromMapFn
+// * updateFn
+func withParamConfig(t *testing.T, fn func()) {
+	ogConvertObjectToMapFn := convertObjectToMapFn
+	ogJsonnetFieldIDFn := jsonnetFieldIDFn
+	ogJsonnetFindObjectFn := jsonnetFindObjectFn
+	ogJsonnetParseFn := jsonnetParseFn
+	ogJsonnetPrinterFn := jsonnetPrinterFn
+	ogJsonnetSetFn := jsonnetSetFn
+	ogNmKVFromMapFn := nmKVFromMapFn
+	ogUpdateFn := updateFn
 
-	componentName := "guestbook-ui"
+	defer func() {
+		convertObjectToMapFn = ogConvertObjectToMapFn
+		jsonnetFieldIDFn = ogJsonnetFieldIDFn
+		jsonnetFindObjectFn = ogJsonnetFindObjectFn
+		jsonnetParseFn = ogJsonnetParseFn
+		jsonnetPrinterFn = ogJsonnetPrinterFn
+		jsonnetSetFn = ogJsonnetSetFn
+		nmKVFromMapFn = ogNmKVFromMapFn
+		updateFn = ogUpdateFn
+	}()
 
-	params := map[string]interface{}{
-		"containerPort": 80,
-		"image":         "gcr.io/heptio-images/ks-guestbook-demo:0.2",
-		"name":          "guestbook-ui",
-		"replicas":      5,
-		"servicePort":   80,
-		"type":          "NodePort",
+	fn()
+}
+
+func Test_SetInObject(t *testing.T) {
+	withParamConfig(t, func() {
+		cases := []struct {
+			name          string
+			paramsData    string
+			root          string
+			componentName string
+			fieldPath     []string
+			value         interface{}
+			updateFn      func([]string, string, map[string]interface{}) (string, error)
+			isErr         bool
+		}{
+			{
+				name:          "update existing field",
+				paramsData:    test.ReadTestData(t, "params.libsonnet"),
+				root:          "components",
+				componentName: "guestbook-ui",
+				fieldPath:     []string{"containerPort"},
+				value:         8080,
+				updateFn: func(sl []string, paramsData string, props map[string]interface{}) (string, error) {
+					assert.Equal(t, []string{"components", "guestbook-ui"}, sl)
+
+					m := map[string]interface{}{
+						"containerPort": 8080,
+						"image":         "gcr.io/heptio-images/ks-guestbook-demo:0.1",
+						"name":          "guestbook-ui",
+						"replicas":      1,
+						"servicePort":   80,
+						"type":          "ClusterIP",
+					}
+					assert.Equal(t, m, props)
+
+					return paramsData, nil
+				},
+			},
+			{
+				name:          "set nested field",
+				paramsData:    test.ReadTestData(t, "params.libsonnet"),
+				root:          "components",
+				componentName: "guestbook-ui",
+				fieldPath:     []string{"nested", "field"},
+				value:         "set",
+				updateFn: func(sl []string, paramsData string, props map[string]interface{}) (string, error) {
+					assert.Equal(t, []string{"components", "guestbook-ui"}, sl)
+
+					m := map[string]interface{}{
+						"containerPort": 80,
+						"image":         "gcr.io/heptio-images/ks-guestbook-demo:0.1",
+						"name":          "guestbook-ui",
+						"replicas":      1,
+						"servicePort":   80,
+						"type":          "ClusterIP",
+						"nested": map[string]interface{}{
+							"field": "set",
+						},
+					}
+					assert.Equal(t, m, props)
+
+					return paramsData, nil
+				},
+			},
+
+			{
+				name:       "set component global style",
+				paramsData: test.ReadTestData(t, "params.libsonnet"),
+				root:       "global",
+				fieldPath:  []string{"shared"},
+				value:      "value",
+				updateFn: func(sl []string, paramsData string, props map[string]interface{}) (string, error) {
+					assert.Equal(t, []string{"global"}, sl)
+
+					m := map[string]interface{}{
+						"shared":  "value",
+						"restart": false,
+					}
+					assert.Equal(t, m, props)
+
+					return paramsData, nil
+				},
+			},
+		}
+
+		for _, tc := range cases {
+			t.Run(tc.name, func(t *testing.T) {
+				updateFn = tc.updateFn
+
+				_, err := SetInObject(tc.fieldPath, tc.paramsData, tc.componentName, tc.value, tc.root)
+				if err != nil {
+					require.Error(t, err)
+					return
+				}
+
+				require.NoError(t, err)
+			})
+		}
+	})
+}
+
+func Test_DeleteFromObject(t *testing.T) {
+	withParamConfig(t, func() {
+		cases := []struct {
+			name          string
+			paramsData    string
+			root          string
+			componentName string
+			fieldPath     []string
+			updateFn      func([]string, string, map[string]interface{}) (string, error)
+			isErr         bool
+		}{
+			{
+				name:          "delete existing field",
+				paramsData:    test.ReadTestData(t, "params.libsonnet"),
+				root:          "components",
+				componentName: "guestbook-ui",
+				fieldPath:     []string{"containerPort"},
+				updateFn: func(sl []string, paramsData string, props map[string]interface{}) (string, error) {
+					assert.Equal(t, []string{"components", "guestbook-ui"}, sl)
+
+					m := map[string]interface{}{
+						"image":       "gcr.io/heptio-images/ks-guestbook-demo:0.1",
+						"name":        "guestbook-ui",
+						"replicas":    1,
+						"servicePort": 80,
+						"type":        "ClusterIP",
+					}
+					assert.Equal(t, m, props)
+
+					return paramsData, nil
+				},
+			},
+			{
+				name:       "delete from global component param",
+				paramsData: test.ReadTestData(t, "params.libsonnet"),
+				root:       "global",
+				fieldPath:  []string{"restart"},
+				updateFn: func(sl []string, paramsData string, props map[string]interface{}) (string, error) {
+					assert.Equal(t, []string{"global"}, sl)
+
+					m := map[string]interface{}{}
+					assert.Equal(t, m, props)
+
+					return paramsData, nil
+				},
+			},
+		}
+
+		for _, tc := range cases {
+			t.Run(tc.name, func(t *testing.T) {
+				updateFn = tc.updateFn
+
+				_, err := DeleteFromObject(tc.fieldPath, tc.paramsData, tc.componentName, tc.root)
+				if err != nil {
+					require.Error(t, err)
+					return
+				}
+
+				require.NoError(t, err)
+			})
+		}
+	})
+}
+
+func Test_update(t *testing.T) {
+	cases := []struct {
+		name        string
+		init        func()
+		paramSource string
+		expected    string
+		path        []string
+		params      map[string]interface{}
+		isErr       bool
+	}{
+		{
+			name:        "update params - functional",
+			paramSource: test.ReadTestData(t, "params.libsonnet"),
+			expected:    test.ReadTestData(t, "updated.libsonnet"),
+			path:        []string{"components", "guestbook-ui"},
+			params: map[string]interface{}{
+				"containerPort": 80,
+				"image":         "gcr.io/heptio-images/ks-guestbook-demo:0.2",
+				"name":          "guestbook-ui",
+				"replicas":      5,
+				"servicePort":   80,
+				"type":          "NodePort",
+			},
+		},
+		{
+			name: "invalid source",
+			init: func() {
+				jsonnetParseFn = func(string, string) (*astext.Object, error) {
+					return nil, errors.New("failed")
+				}
+			},
+			isErr: true,
+		},
+		{
+			name: "invalid params",
+			init: func() {
+				jsonnetParseFn = func(string, string) (*astext.Object, error) {
+					return &astext.Object{}, nil
+				}
+				nmKVFromMapFn = func(map[string]interface{}) (*nm.Object, error) {
+					return nil, errors.New("failed")
+				}
+			},
+			isErr: true,
+		},
+		{
+			name: "unable to set in jsonnet",
+			init: func() {
+				jsonnetParseFn = func(string, string) (*astext.Object, error) {
+					return &astext.Object{}, nil
+				}
+				nmKVFromMapFn = func(map[string]interface{}) (*nm.Object, error) {
+					return &nm.Object{}, nil
+				}
+				jsonnetSetFn = func(*astext.Object, []string, ast.Node) error {
+					return errors.New("failed")
+				}
+			},
+			isErr: true,
+		},
+		{
+			name: "unable to print",
+			init: func() {
+				jsonnetParseFn = func(string, string) (*astext.Object, error) {
+					return &astext.Object{}, nil
+				}
+				nmKVFromMapFn = func(map[string]interface{}) (*nm.Object, error) {
+					return &nm.Object{}, nil
+				}
+				jsonnetSetFn = func(*astext.Object, []string, ast.Node) error {
+					return nil
+				}
+				jsonnetPrinterFn = func(io.Writer, ast.Node) error {
+					return errors.New("failed")
+				}
+			},
+			isErr: true,
+		},
 	}
 
-	got, err := Update([]string{"components", componentName}, string(paramsSource), params)
-	require.NoError(t, err)
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			withParamConfig(t, func() {
+				if tc.init != nil {
+					tc.init()
+				}
 
-	expected, err := ioutil.ReadFile("testdata/updated.libsonnet")
-	require.NoError(t, err)
+				got, err := update(tc.path, tc.paramSource, tc.params)
+				if tc.isErr {
+					require.Error(t, err)
+					return
+				}
 
-	fmt.Printf("got:\n%s\n", got)
-	fmt.Printf("expected:\n%s\n", expected)
+				require.NoError(t, err)
+				assert.Equal(t, tc.expected, got)
+			})
+		})
+	}
 
-	require.Equal(t, string(expected), got)
 }
 
 func TestToMap(t *testing.T) {
-	b, err := ioutil.ReadFile("testdata/nested-params.libsonnet")
-	require.NoError(t, err)
-
-	got, err := ToMap("guestbook-ui", string(b), "components")
-	require.NoError(t, err)
-
-	expected := map[string]interface{}{
-		"int":        float64(80),
-		"float":      0.1,
-		"string":     "string",
-		"string-key": "string-key",
-		"m": map[string]interface{}{
-			"a": "a",
-			"b": map[string]interface{}{
-				"c": "c",
+	cases := []struct {
+		name          string
+		init          func()
+		paramsData    string
+		componentName string
+		expected      map[string]interface{}
+		isErr         bool
+	}{
+		{
+			name:          "convert component params to a map - functional",
+			paramsData:    test.ReadTestData(t, "nested-params.libsonnet"),
+			componentName: "guestbook-ui",
+			expected: map[string]interface{}{
+				"int":        80,
+				"float":      0.1,
+				"string":     "string",
+				"string-key": "string-key",
+				"m": map[string]interface{}{
+					"a": "a",
+					"b": map[string]interface{}{
+						"c": "c",
+					},
+				},
+				"list": []interface{}{"one", "two", "three"},
 			},
 		},
-		"list": []interface{}{"one", "two", "three"},
+		{
+			name:       "convert all component params to a map - functional",
+			paramsData: test.ReadTestData(t, "nested-params.libsonnet"),
+			expected: map[string]interface{}{
+				"guestbook-ui": map[string]interface{}{
+					"int":        80,
+					"float":      0.1,
+					"string":     "string",
+					"string-key": "string-key",
+					"m": map[string]interface{}{
+						"a": "a",
+						"b": map[string]interface{}{
+							"c": "c",
+						},
+					},
+					"list": []interface{}{"one", "two", "three"},
+				},
+				"name": "name",
+			},
+		},
+		{
+			name:          "component param is not an object - functional",
+			paramsData:    test.ReadTestData(t, "nested-params.libsonnet"),
+			componentName: "name",
+			isErr:         true,
+		},
+		{
+			name:       "unable to convert object to map",
+			paramsData: test.ReadTestData(t, "nested-params.libsonnet"),
+			init: func() {
+				convertObjectToMapFn = func(*astext.Object) (map[string]interface{}, error) {
+					return nil, errors.New("failed")
+				}
+			},
+			isErr: true,
+		},
+		{
+			name: "invalid source",
+			init: func() {
+				jsonnetParseFn = func(string, string) (*astext.Object, error) {
+					return nil, errors.New("failed")
+				}
+			},
+			isErr: true,
+		},
+		{
+			name:          "unsupported value in param object",
+			paramsData:    test.ReadTestData(t, "nested-params.libsonnet"),
+			componentName: "guestbook-ui",
+			init: func() {
+				convertObjectToMapFn = func(*astext.Object) (map[string]interface{}, error) {
+					return nil, errors.New("failed")
+				}
+			},
+			isErr: true,
+		},
 	}
 
-	require.Equal(t, expected, got)
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			withParamConfig(t, func() {
+				if tc.init != nil {
+					tc.init()
+				}
+
+				got, err := ToMap(tc.componentName, tc.paramsData, "components")
+				if tc.isErr {
+					require.Error(t, err)
+					return
+				}
+
+				require.NoError(t, err)
+				assert.Equal(t, tc.expected, got)
+			})
+		})
+	}
+
 }
 
 func TestDecodeValue(t *testing.T) {
@@ -95,6 +452,11 @@ func TestDecodeValue(t *testing.T) {
 			name:     "int",
 			val:      "9",
 			expected: 9,
+		},
+		{
+			name:     "0",
+			val:      "0",
+			expected: 0,
 		},
 		{
 			name:     "bool true",

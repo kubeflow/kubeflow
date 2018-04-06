@@ -43,7 +43,6 @@ type Object struct {
 var _ Noder = (*Object)(nil)
 
 // KVFromMap creates a object using a map.
-// nolint: gocyclo
 func KVFromMap(m map[string]interface{}) (*Object, error) {
 	if m == nil {
 		return nil, errors.New("map is nil")
@@ -58,49 +57,50 @@ func KVFromMap(m map[string]interface{}) (*Object, error) {
 	o := NewObject()
 
 	for _, name := range names {
-		switch t := m[name].(type) {
-		case string, float64, int, bool:
-			val, err := convertValueToNoder(t)
-			if err != nil {
-				return nil, err
-			}
-			o.Set(InheritedKey(name), val)
-		case []interface{}:
-			var elements []Noder
-			for _, val := range t {
-				noder, err := convertValueToNoder(val)
-				if err != nil {
-					return nil, err
-				}
-
-				elements = append(elements, noder)
-			}
-			array := NewArray(elements)
-			o.Set(InheritedKey(name), array)
-		case map[interface{}]interface{}:
-			newMap, err := convertMapToStringKey(t)
-			if err != nil {
-				return nil, err
-			}
-			child, err := KVFromMap(newMap)
-			if err != nil {
-				return nil, err
-			}
-
-			o.Set(InheritedKey(name), child)
-		case map[string]interface{}:
-			child, err := KVFromMap(t)
-			if err != nil {
-				return nil, err
-			}
-
-			o.Set(InheritedKey(name), child)
-		default:
-			return nil, errors.Errorf("unsupported type %T", t)
+		child, err := ValueToNoder(m[name])
+		if err != nil {
+			return nil, errors.Wrap(err, "convert value to noder")
 		}
+
+		o.Set(InheritedKey(name), child)
 	}
 
 	return o, nil
+}
+
+// ValueToNoder converts a value to a Noder.
+func ValueToNoder(v interface{}) (Noder, error) {
+	if v == nil {
+		return nil, errors.New("value is nil")
+	}
+
+	switch t := v.(type) {
+	case string, float64, int, bool:
+		return convertValueToNoder(t)
+	case []interface{}:
+		var elements []Noder
+		for _, val := range t {
+			noder, err := convertValueToNoder(val)
+			if err != nil {
+				return nil, err
+			}
+
+			elements = append(elements, noder)
+		}
+		array := NewArray(elements)
+		return array, nil
+	case map[interface{}]interface{}:
+		newMap, err := convertMapToStringKey(t)
+		if err != nil {
+			return nil, err
+		}
+		return KVFromMap(newMap)
+	case map[string]interface{}:
+		return KVFromMap(t)
+	default:
+		return nil, errors.Errorf("unsupported type %T", t)
+
+	}
 }
 
 func convertMapToStringKey(m map[interface{}]interface{}) (map[string]interface{}, error) {
@@ -806,6 +806,7 @@ func NewCallChain(links ...Chainable) *CallChain {
 }
 
 // Node converts the CallChain to a Jsonnet AST node.
+// nolint: gocyclo
 func (cc *CallChain) Node() ast.Node {
 	if len(cc.links) == 1 {
 		return cc.links[0].Node()

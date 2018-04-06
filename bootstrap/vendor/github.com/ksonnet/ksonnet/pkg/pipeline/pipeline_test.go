@@ -23,6 +23,7 @@ import (
 
 	"github.com/ksonnet/ksonnet/component"
 	cmocks "github.com/ksonnet/ksonnet/component/mocks"
+	"github.com/ksonnet/ksonnet/metadata/app"
 	appmocks "github.com/ksonnet/ksonnet/metadata/app/mocks"
 	"github.com/stretchr/testify/require"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -48,6 +49,9 @@ func TestPipeline_EnvParameters(t *testing.T) {
 		m.On("Module", p.app, "/").Return(ns, nil)
 		m.On("NSResolveParams", ns).Return("", nil)
 		a.On("EnvironmentParams", "default").Return("{}", nil)
+
+		env := &app.EnvironmentSpec{Path: "default"}
+		a.On("Environment", "default").Return(env, nil)
 
 		got, err := p.EnvParameters("/")
 		require.NoError(t, err)
@@ -125,6 +129,9 @@ func TestPipeline_Objects(t *testing.T) {
 		a.On("EnvironmentParams", "default").Return("{}", nil)
 		m.On("Components", ns).Return(components, nil)
 
+		env := &app.EnvironmentSpec{Path: "default"}
+		a.On("Environment", "default").Return(env, nil)
+
 		got, err := p.Objects(nil)
 		require.NoError(t, err)
 
@@ -151,6 +158,9 @@ func TestPipeline_YAML(t *testing.T) {
 		a.On("EnvironmentParams", "default").Return("{}", nil)
 		m.On("Components", ns).Return(components, nil)
 
+		env := &app.EnvironmentSpec{Path: "default"}
+		a.On("Environment", "default").Return(env, nil)
+
 		r, err := p.YAML(nil)
 		require.NoError(t, err)
 
@@ -173,6 +183,7 @@ func Test_upgradeParams(t *testing.T) {
 
 func withPipeline(t *testing.T, fn func(p *Pipeline, m *cmocks.Manager, a *appmocks.App)) {
 	a := &appmocks.App{}
+	a.On("Root").Return("/")
 	envName := "default"
 
 	manager := &cmocks.Manager{}

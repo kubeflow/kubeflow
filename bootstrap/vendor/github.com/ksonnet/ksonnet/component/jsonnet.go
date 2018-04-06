@@ -24,9 +24,9 @@ import (
 	"strconv"
 	"strings"
 
-	jsonnet "github.com/google/go-jsonnet"
 	"github.com/ksonnet/ksonnet/metadata/app"
 	"github.com/ksonnet/ksonnet/pkg/params"
+	"github.com/ksonnet/ksonnet/pkg/util/jsonnet"
 	"github.com/ksonnet/ksonnet/pkg/util/k8s"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -41,6 +41,8 @@ type Jsonnet struct {
 	module     string
 	source     string
 	paramsPath string
+
+	useJsonnetMemoryImporter bool
 }
 
 var _ Component = (*Jsonnet)(nil)
@@ -70,42 +72,42 @@ func (j *Jsonnet) Name(wantsNameSpaced bool) string {
 	return path.Join(j.module, name)
 }
 
-func (j *Jsonnet) vmImporter(envName string) (*jsonnet.MemoryImporter, error) {
-	libPath, err := j.app.LibPath(envName)
-	if err != nil {
-		return nil, err
-	}
+// func (j *Jsonnet) vmImporter(envName string) (*jsonnet.MemoryImporter, error) {
+// 	libPath, err := j.app.LibPath(envName)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	readString := func(path string) (string, error) {
-		filename := filepath.Join(libPath, path)
-		var b []byte
+// 	readString := func(path string) (string, error) {
+// 		filename := filepath.Join(libPath, path)
+// 		var b []byte
 
-		b, err = afero.ReadFile(j.app.Fs(), filename)
-		if err != nil {
-			return "", err
-		}
+// 		b, err = afero.ReadFile(j.app.Fs(), filename)
+// 		if err != nil {
+// 			return "", err
+// 		}
 
-		return string(b), nil
-	}
+// 		return string(b), nil
+// 	}
 
-	dataK, err := readString("k.libsonnet")
-	if err != nil {
-		return nil, err
-	}
-	dataK8s, err := readString("k8s.libsonnet")
-	if err != nil {
-		return nil, err
-	}
+// 	dataK, err := readString("k.libsonnet")
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	dataK8s, err := readString("k8s.libsonnet")
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	importer := &jsonnet.MemoryImporter{
-		Data: map[string]string{
-			"k.libsonnet":   dataK,
-			"k8s.libsonnet": dataK8s,
-		},
-	}
+// 	importer := &jsonnet.MemoryImporter{
+// 		Data: map[string]string{
+// 			"k.libsonnet":   dataK,
+// 			"k8s.libsonnet": dataK8s,
+// 		},
+// 	}
 
-	return importer, nil
-}
+// 	return importer, nil
+// }
 
 func jsonWalk(obj interface{}) ([]interface{}, error) {
 	switch o := obj.(type) {
@@ -139,22 +141,47 @@ func jsonWalk(obj interface{}) ([]interface{}, error) {
 
 // Objects converts jsonnet to a slice of apimachinery unstructured objects.
 func (j *Jsonnet) Objects(paramsStr, envName string) ([]*unstructured.Unstructured, error) {
-	importer, err := j.vmImporter(envName)
+	libPath, err := j.app.LibPath(envName)
 	if err != nil {
 		return nil, err
 	}
 
-	vm := jsonnet.MakeVM()
-	vm.ErrorFormatter.SetMaxStackTraceSize(40)
-	vm.Importer(importer)
-	log.Debugf("%s convert to jsonnet: setting %q to %q", j.Name(true), "__ksonnet/params", paramsStr)
+	vm := jsonnet.NewVM()
+	if j.useJsonnetMemoryImporter {
+		vm.Fs = j.app.Fs()
+		vm.UseMemoryImporter = true
+	}
+
+	vm.JPaths = []string{
+		libPath,
+		filepath.Join(j.app.Root(), "vendor"),
+	}
 	vm.ExtCode("__ksonnet/params", paramsStr)
+
+	envDetails, err := j.app.Environment(envName)
+	if err != nil {
+		return nil, err
+	}
+
+	dest := map[string]string{
+		"server":    envDetails.Destination.Server,
+		"namespace": envDetails.Destination.Namespace,
+	}
+
+	marshalledDestination, err := json.Marshal(&dest)
+	if err != nil {
+		return nil, err
+	}
+	vm.ExtCode("__ksonnet/environments", string(marshalledDestination))
 
 	snippet, err := afero.ReadFile(j.app.Fs(), j.source)
 	if err != nil {
 		return nil, err
 	}
 
+	log.WithFields(log.Fields{
+		"component-name": j.Name(true),
+	}).Debugf("convert component to jsonnet")
 	evaluated, err := vm.EvaluateSnippet(j.source, string(snippet))
 	if err != nil {
 		return nil, err
@@ -194,7 +221,7 @@ func (j *Jsonnet) SetParam(path []string, value interface{}, options ParamOption
 		return err
 	}
 
-	updatedParams, err := params.Set(path, paramsData, j.Name(false), value, paramsComponentRoot)
+	updatedParams, err := params.SetInObject(path, paramsData, j.Name(false), value, paramsComponentRoot)
 	if err != nil {
 		return err
 	}
@@ -214,7 +241,7 @@ func (j *Jsonnet) DeleteParam(path []string, options ParamOptions) error {
 		return err
 	}
 
-	updatedParams, err := params.Delete(path, paramsData, j.Name(false), paramsComponentRoot)
+	updatedParams, err := params.DeleteFromObject(path, paramsData, j.Name(false), paramsComponentRoot)
 	if err != nil {
 		return err
 	}
@@ -312,7 +339,16 @@ func (j *Jsonnet) readParams(envName string) (string, error) {
 
 	envParams := upgradeParams(envName, data)
 
-	vm := jsonnet.MakeVM()
+	env, err := j.app.Environment(envName)
+	if err != nil {
+		return "", err
+	}
+
+	vm := jsonnet.NewVM()
+	vm.JPaths = []string{
+		env.MakePath(j.app.Root()),
+		filepath.Join(j.app.Root(), "vendor"),
+	}
 	vm.ExtCode("__ksonnet/params", paramsStr)
 	return vm.EvaluateSnippet("snippet", string(envParams))
 }

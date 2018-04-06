@@ -426,6 +426,17 @@ func Test_read(t *testing.T) {
 	require.Equal(t, expected, spec)
 }
 
+func TestEnvironmentSpec_MakePath(t *testing.T) {
+	rootPath := "/"
+
+	spec := EnvironmentSpec{Path: "default"}
+
+	expected := filepath.Join("/", "environments", "default")
+	got := spec.MakePath(rootPath)
+
+	require.Equal(t, expected, got)
+}
+
 func assertExists(t *testing.T, fs afero.Fs, path string) {
 	exists, err := afero.Exists(fs, path)
 	require.NoError(t, err)

@@ -16,7 +16,6 @@
 package actions
 
 import (
-	"strconv"
 	"strings"
 
 	"github.com/ksonnet/ksonnet/component"
@@ -47,9 +46,10 @@ type ParamSet struct {
 	global   bool
 	envName  string
 
-	getModuleFn   getModuleFn
-	resolvePathFn func(a app.App, path string) (component.Module, component.Component, error)
-	setEnvFn      func(ksApp app.App, envName, name, pName, value string) error
+	getModuleFn    getModuleFn
+	resolvePathFn  func(a app.App, path string) (component.Module, component.Component, error)
+	setEnvFn       func(ksApp app.App, envName, name, pName, value string) error
+	setGlobalEnvFn func(ksApp app.App, envName, pName, value string) error
 }
 
 // NewParamSet creates an instance of ParamSet.
@@ -58,16 +58,17 @@ func NewParamSet(m map[string]interface{}) (*ParamSet, error) {
 
 	ps := &ParamSet{
 		app:      ol.loadApp(),
-		name:     ol.loadString(OptionName),
+		name:     ol.loadOptionalString(OptionName),
 		rawPath:  ol.loadString(OptionPath),
 		rawValue: ol.loadString(OptionValue),
 		global:   ol.loadOptionalBool(OptionGlobal),
 		envName:  ol.loadOptionalString(OptionEnvName),
 		index:    ol.loadOptionalInt(OptionIndex),
 
-		getModuleFn:   component.GetModule,
-		resolvePathFn: component.ResolvePath,
-		setEnvFn:      setEnv,
+		getModuleFn:    component.GetModule,
+		resolvePathFn:  component.ResolvePath,
+		setEnvFn:       setEnv,
+		setGlobalEnvFn: setGlobalEnv,
 	}
 
 	if ol.err != nil {
@@ -88,13 +89,11 @@ func (ps *ParamSet) Run() error {
 		return errors.Wrap(err, "value is invalid")
 	}
 
-	evaluatedValue := ps.rawValue
-	if _, ok := value.(string); ok {
-		evaluatedValue = strconv.Quote(ps.rawValue)
-	}
-
 	if ps.envName != "" {
-		return ps.setEnvFn(ps.app, ps.envName, ps.name, ps.rawPath, evaluatedValue)
+		if ps.name != "" {
+			return ps.setEnvFn(ps.app, ps.envName, ps.name, ps.rawPath, ps.rawValue)
+		}
+		return ps.setGlobalEnvFn(ps.app, ps.envName, ps.rawPath, ps.rawValue)
 	}
 
 	path := strings.Split(ps.rawPath, ".")
@@ -146,4 +145,12 @@ func setEnv(ksApp app.App, envName, name, pName, value string) error {
 	}
 
 	return env.SetParams(envName, name, p, spc)
+}
+
+func setGlobalEnv(ksApp app.App, envName, pName, value string) error {
+	p := mp.Params{
+		pName: value,
+	}
+
+	return env.SetGlobalParams(ksApp, envName, p)
 }

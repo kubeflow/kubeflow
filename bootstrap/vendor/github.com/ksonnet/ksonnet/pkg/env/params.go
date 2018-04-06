@@ -19,9 +19,88 @@ import (
 	"github.com/ksonnet/ksonnet/component"
 	"github.com/ksonnet/ksonnet/metadata/app"
 	param "github.com/ksonnet/ksonnet/metadata/params"
+	"github.com/ksonnet/ksonnet/pkg/params"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 )
+
+// SetGlobalParams sets global params for an environment.
+func SetGlobalParams(a app.App, envName string, p param.Params) error {
+	if err := ensureEnvExists(a, envName); err != nil {
+		return err
+	}
+
+	path := envPath(a, envName, globalsFileName)
+
+	exists, err := afero.Exists(a.Fs(), path)
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		if err = afero.WriteFile(a.Fs(), path, []byte("{\n}"), app.DefaultFilePermissions); err != nil {
+			return err
+		}
+	}
+
+	text, err := afero.ReadFile(a.Fs(), path)
+	if err != nil {
+		return err
+	}
+
+	egs := params.NewEnvGlobalsSet()
+	updated, err := egs.Set(string(text), p)
+	if err != nil {
+		return err
+	}
+
+	err = afero.WriteFile(a.Fs(), path, []byte(updated), app.DefaultFilePermissions)
+	if err != nil {
+		return err
+	}
+
+	log.WithField("environment-name", envName).
+		Debug("Set global parameters")
+	return nil
+}
+
+// UnsetGlobalParams un-sets global param for an environment.
+func UnsetGlobalParams(a app.App, envName, paramName string) error {
+	if err := ensureEnvExists(a, envName); err != nil {
+		return err
+	}
+
+	path := envPath(a, envName, globalsFileName)
+
+	exists, err := afero.Exists(a.Fs(), path)
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		return nil
+	}
+
+	text, err := afero.ReadFile(a.Fs(), path)
+	if err != nil {
+		return err
+	}
+
+	egu := params.NewEnvGlobalsUnset()
+	updated, err := egu.Unset(paramName, string(text))
+	if err != nil {
+		return err
+	}
+
+	err = afero.WriteFile(a.Fs(), path, []byte(updated), app.DefaultFilePermissions)
+	if err != nil {
+		return err
+	}
+
+	log.WithField("environment-name", envName).
+		Debug("Set global parameters")
+	return nil
+}
 
 // SetParamsConfig is config items for setting environment params.
 type SetParamsConfig struct {
@@ -29,7 +108,7 @@ type SetParamsConfig struct {
 }
 
 // SetParams sets params for an environment.
-func SetParams(envName, component string, params param.Params, config SetParamsConfig) error {
+func SetParams(envName, component string, p param.Params, config SetParamsConfig) error {
 	if err := ensureEnvExists(config.App, envName); err != nil {
 		return err
 	}
@@ -41,12 +120,13 @@ func SetParams(envName, component string, params param.Params, config SetParamsC
 		return err
 	}
 
-	appended, err := param.SetEnvironmentParams(component, string(text), params)
+	eps := params.NewEnvParamSet()
+	updated, err := eps.Set(component, string(text), p)
 	if err != nil {
 		return err
 	}
 
-	err = afero.WriteFile(config.App.Fs(), path, []byte(appended), app.DefaultFilePermissions)
+	err = afero.WriteFile(config.App.Fs(), path, []byte(updated), app.DefaultFilePermissions)
 	if err != nil {
 		return err
 	}
@@ -56,7 +136,7 @@ func SetParams(envName, component string, params param.Params, config SetParamsC
 }
 
 // DeleteParam deletes a param in an environment.
-func DeleteParam(a app.App, envName, component, name string) error {
+func DeleteParam(a app.App, envName, componentName, paramName string) error {
 	if err := ensureEnvExists(a, envName); err != nil {
 		return err
 	}
@@ -68,7 +148,8 @@ func DeleteParam(a app.App, envName, component, name string) error {
 		return err
 	}
 
-	updated, err := param.DeleteEnvironmentParam(component, name, string(text))
+	epu := params.NewEnvParamUnset()
+	updated, err := epu.Unset(componentName, paramName, string(text))
 	if err != nil {
 		return err
 	}
@@ -79,7 +160,7 @@ func DeleteParam(a app.App, envName, component, name string) error {
 	}
 
 	log.Debugf("deleted parameter %q for component %q at environment %q",
-		name, component, envName)
+		paramName, componentName, envName)
 	return nil
 }
 

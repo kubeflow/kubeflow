@@ -16,9 +16,8 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/ksonnet/ksonnet/actions"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -32,15 +31,27 @@ var paramSetCmd = &cobra.Command{
 	Use:   "set <component-name> <param-key> <param-value>",
 	Short: paramShortDesc["set"],
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) != 3 {
-			return fmt.Errorf("'param set' takes exactly three arguments, (1) the name of the component, in addition to (2) the key and (3) value of the parameter")
+		var name string
+		var path string
+		var value string
+
+		switch len(args) {
+		default:
+			return errors.New("invalid arguments for 'param set'")
+		case 3:
+			name = args[0]
+			path = args[1]
+			value = args[2]
+		case 2:
+			path = args[0]
+			value = args[1]
 		}
 
 		m := map[string]interface{}{
 			actions.OptionApp:     ka,
-			actions.OptionName:    args[0],
-			actions.OptionPath:    args[1],
-			actions.OptionValue:   args[2],
+			actions.OptionName:    name,
+			actions.OptionPath:    path,
+			actions.OptionValue:   value,
 			actions.OptionEnvName: viper.GetString(vParamSetEnv),
 			actions.OptionIndex:   viper.GetInt(vParamSetIndex),
 		}

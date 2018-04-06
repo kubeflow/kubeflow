@@ -54,7 +54,7 @@
 
 [[constraint]]
   name = "github.com/ksonnet/ksonnet-lib"
-  revision = "f1aa55533283d55b2967f1e2cfb47048cf6661c8"
+  revision = "5e07f358ac2de69591818afa41b7623c8cc97ac0"
 
 [[constraint]]
   name = "github.com/mattn/go-isatty"
@@ -70,7 +70,7 @@
 
 [[constraint]]
   name = "github.com/sirupsen/logrus"
-  revision = "3d4380f53a34dcdc95f0c1db702615992b38d9a4"
+  revision = "778f2e774c725116edbc3d039dc0dfc1cc62aae8"
 
 [[constraint]]
   name = "github.com/spf13/afero"
@@ -95,10 +95,6 @@
 [[constraint]]
   name = "github.com/yudai/gojsondiff"
   revision = "9209d1532c51cabe0439993586a71c207b09a0ac"
-
-[[constraint]]
-  name = "golang.org/x/crypto"
-  revision = "0fe963104e9d1877082f8fb38f816fcd97eb1d10"
 
 [[constraint]]
   name = "golang.org/x/oauth2"

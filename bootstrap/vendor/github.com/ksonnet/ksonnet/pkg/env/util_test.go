@@ -66,6 +66,9 @@ func withEnv(t *testing.T, fn func(*mocks.App, afero.Fs)) {
 
 		paramsPath := filepath.Join(path, "params.libsonnet")
 		stageFile(t, fs, "params.libsonnet", paramsPath)
+
+		globalsPath := filepath.Join(path, "globals.libsonnet")
+		stageFile(t, fs, "globals.libsonnet", globalsPath)
 	}
 
 	componentParamsPath := filepath.Join("/", "components", "params.libsonnet")

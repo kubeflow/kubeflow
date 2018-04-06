@@ -17,8 +17,9 @@ package env
 
 const (
 	// primary environment files.
-	envFileName    = "main.jsonnet"
-	paramsFileName = "params.libsonnet"
+	envFileName     = "main.jsonnet"
+	paramsFileName  = "params.libsonnet"
+	globalsFileName = "globals.libsonnet"
 
 	// envRoot is the name for the environment root.
 	envRoot = "environments"

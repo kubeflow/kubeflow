@@ -24,7 +24,7 @@ import (
 func Test_paramDeleteCmd(t *testing.T) {
 	cases := []cmdTestCase{
 		{
-			name:   "in general",
+			name:   "with a component",
 			args:   []string{"param", "delete", "component-name", "param-name"},
 			action: actionParamDelete,
 			expected: map[string]interface{}{
@@ -32,6 +32,18 @@ func Test_paramDeleteCmd(t *testing.T) {
 				actions.OptionName:    "component-name",
 				actions.OptionPath:    "param-name",
 				actions.OptionEnvName: "",
+				actions.OptionIndex:   0,
+			},
+		},
+		{
+			name:   "without a component",
+			args:   []string{"param", "delete", "param-name", "--env", "default"},
+			action: actionParamDelete,
+			expected: map[string]interface{}{
+				actions.OptionApp:     ka,
+				actions.OptionName:    "",
+				actions.OptionPath:    "param-name",
+				actions.OptionEnvName: "default",
 				actions.OptionIndex:   0,
 			},
 		},

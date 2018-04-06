@@ -171,16 +171,3 @@ func deleteFromEnv(l *ast.Local, components *astext.Object, componentName, param
 
 	return buf.String(), nil
 }
-
-// DeleteEnvironmentComponent takes
-//
-//   component: the name of the component to be deleted.
-//   snippet: a jsonnet snippet resembling the current environment parameters (not expanded).
-//
-// and returns the jsonnet snippet with the removed component.
-func DeleteEnvironmentComponent(component, snippet string) (string, error) {
-	// The implementation happens to be the same as DeleteComponent, but we're
-	// keeping the two interfaces separate since we're fundamentally operating
-	// on two different jsonnet schemas.
-	return deleteComponent(component, snippet)
-}

@@ -35,8 +35,13 @@ func main() {
 	if err := cmd.RootCmd.Execute(); err != nil {
 		// PersistentPreRunE may not have been run for early
 		// errors, like invalid command line flags.
-		logFmt := cmd.NewLogFormatter(log.StandardLogger().Out)
+		logFmt := &log.TextFormatter{
+			DisableTimestamp:       true,
+			DisableLevelTruncation: true,
+			QuoteEmptyFields:       true,
+		}
 		log.SetFormatter(logFmt)
+
 		log.Error(err.Error())
 
 		switch err {

@@ -32,8 +32,20 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Set sets a param value.
-func Set(path []string, paramsData, key string, value interface{}, root string) (string, error) {
+var (
+	convertObjectToMapFn = convertObjectToMap
+	jsonnetFieldIDFn     = jsonnetutil.FieldID
+	jsonnetFindObjectFn  = jsonnetutil.FindObject
+	jsonnetParseFn       = jsonnetutil.Parse
+	jsonnetPrinterFn     = printer.Fprint
+	jsonnetSetFn         = jsonnetutil.Set
+	nmKVFromMapFn        = nm.KVFromMap
+	updateFn             = update
+)
+
+// SetInObject sets a value in an object. `root` will generally be either `components` or
+// `global`. `key` is the component name.
+func SetInObject(fieldPath []string, paramsData, key string, value interface{}, root string) (string, error) {
 	props, err := ToMap(key, paramsData, root)
 	if err != nil {
 		props = make(map[string]interface{})
@@ -42,8 +54,8 @@ func Set(path []string, paramsData, key string, value interface{}, root string) 
 	changes := make(map[string]interface{})
 	cur := changes
 
-	for i, k := range path {
-		if i == len(path)-1 {
+	for i, k := range fieldPath {
+		if i == len(fieldPath)-1 {
 			cur[k] = value
 		} else {
 			if _, ok := cur[k]; !ok {
@@ -58,11 +70,17 @@ func Set(path []string, paramsData, key string, value interface{}, root string) 
 		return "", err
 	}
 
-	return Update([]string{root, key}, paramsData, props)
+	updatePath := []string{root}
+	if key != "" {
+		updatePath = []string{root, key}
+	}
+
+	return updateFn(updatePath, paramsData, props)
 }
 
-// Delete deletes a param value.
-func Delete(path []string, paramsData, key, root string) (string, error) {
+// DeleteFromObject deletes a value from an object. `root` will generally be either
+// `components` or `global`. `key` is the component name.
+func DeleteFromObject(fieldPath []string, paramsData, key, root string) (string, error) {
 	props, err := ToMap(key, paramsData, root)
 	if err != nil {
 		return "", err
@@ -70,8 +88,8 @@ func Delete(path []string, paramsData, key, root string) (string, error) {
 
 	cur := props
 
-	for i, k := range path {
-		if i == len(path)-1 {
+	for i, k := range fieldPath {
+		if i == len(fieldPath)-1 {
 			delete(cur, k)
 		} else {
 			m, ok := cur[k].(map[string]interface{})
@@ -88,27 +106,27 @@ func Delete(path []string, paramsData, key, root string) (string, error) {
 		updatePath = []string{root, key}
 	}
 
-	return Update(updatePath, paramsData, props)
+	return updateFn(updatePath, paramsData, props)
 }
 
-// Update updates a params file with the params for a component.
-func Update(path []string, src string, params map[string]interface{}) (string, error) {
-	obj, err := jsonnetutil.Parse("params.libsonnet", src)
+// update updates a params file with the params for a component.
+func update(path []string, src string, params map[string]interface{}) (string, error) {
+	obj, err := jsonnetParseFn("params.libsonnet", src)
 	if err != nil {
 		return "", errors.Wrap(err, "parse jsonnet")
 	}
 
-	paramsObject, err := nm.KVFromMap(params)
+	paramsObject, err := nmKVFromMapFn(params)
 	if err != nil {
 		return "", errors.Wrap(err, "convert params to object")
 	}
 
-	if err := jsonnetutil.Set(obj, path, paramsObject.Node()); err != nil {
+	if err := jsonnetSetFn(obj, path, paramsObject.Node()); err != nil {
 		return "", errors.Wrap(err, "update params")
 	}
 
 	var buf bytes.Buffer
-	if err := printer.Fprint(&buf, obj); err != nil {
+	if err := jsonnetPrinterFn(&buf, obj); err != nil {
 		return "", errors.Wrap(err, "rebuild params")
 	}
 
@@ -117,26 +135,17 @@ func Update(path []string, src string, params map[string]interface{}) (string, e
 
 // ToMap converts a component's params to a map.
 func ToMap(componentName, src, root string) (map[string]interface{}, error) {
-	obj, err := jsonnetutil.Parse("params.libsonnet", src)
+	obj, err := jsonnetParseFn("params.libsonnet", src)
 	if err != nil {
 		return nil, errors.Wrap(err, "parse jsonnet")
 	}
 
-	path := make([]string, 0)
-	if root != "" {
-		path = append(path, root)
-	}
-
-	if componentName != "" {
-		path = append(path, componentName)
-	}
-
-	child, err := jsonnetutil.FindObject(obj, path)
+	componentObject, err := componentParams(obj, componentName)
 	if err != nil {
-		return nil, errors.Wrapf(err, "find child paths for %s", strings.Join(path, "."))
+		return nil, err
 	}
 
-	m, err := findValues(child)
+	m, err := convertObjectToMapFn(componentObject)
 	if err != nil {
 		return nil, err
 	}
@@ -147,20 +156,21 @@ func ToMap(componentName, src, root string) (map[string]interface{}, error) {
 
 	paramsMap, ok := m[componentName].(map[string]interface{})
 	if !ok {
-		return nil, errors.Errorf("could not find %q in components", componentName)
+		return nil, errors.Errorf("component %q params is not an object", componentName)
 	}
 
 	return paramsMap, nil
 }
 
 var (
-	reFloat = regexp.MustCompile(`^([0-9]+[.])?[0-9]$`)
-	reInt   = regexp.MustCompile(`^[1-9]{1}[0-9]?$`)
+	reFloat = regexp.MustCompile(`^[-+]?[0-9]*\.?[0-9]+$`)
+	reInt   = regexp.MustCompile(`^([+-]?[1-9]\d*|0)$`)
 	reArray = regexp.MustCompile(`^\[`)
 	reMap   = regexp.MustCompile(`^\{`)
 )
 
 // DecodeValue decodes a string to an interface value.
+// nolint: gocyclo
 func DecodeValue(s string) (interface{}, error) {
 	if s == "" {
 		return nil, errors.New("value was blank")
@@ -190,11 +200,11 @@ func DecodeValue(s string) (interface{}, error) {
 	}
 }
 
-func findValues(obj *astext.Object) (map[string]interface{}, error) {
+func convertObjectToMap(obj *astext.Object) (map[string]interface{}, error) {
 	m := make(map[string]interface{})
 
 	for i := range obj.Fields {
-		id, err := jsonnetutil.FieldID(obj.Fields[i])
+		id, err := jsonnetFieldIDFn(obj.Fields[i])
 		if err != nil {
 			return nil, err
 		}
@@ -215,7 +225,7 @@ func findValues(obj *astext.Object) (map[string]interface{}, error) {
 			}
 			m[id] = array
 		case *astext.Object:
-			child, err := findValues(t)
+			child, err := convertObjectToMap(t)
 			if err != nil {
 				return nil, err
 			}
@@ -237,7 +247,7 @@ func nodeValue(node ast.Node) (interface{}, error) {
 	case *ast.LiteralBoolean:
 		return t.Value, nil
 	case *ast.LiteralNumber:
-		return t.Value, nil
+		return DecodeValue(fmt.Sprint(t.Value))
 	}
 }
 
@@ -278,4 +288,54 @@ func mergeMaps(m1 map[string]interface{}, m2 map[string]interface{}, path []stri
 	}
 
 	return nil
+}
+
+func componentParams(node ast.Node, componentName string) (*astext.Object, error) {
+	switch t := node.(type) {
+	default:
+		return nil, errors.Errorf("unknown params format: %T", t)
+	case *astext.Object:
+		if len(componentName) > 0 {
+			path := []string{"components", componentName}
+			if componentName == "" {
+				// NOTE: this is module params, so return global
+				path = []string{"global"}
+			}
+
+			return jsonnetFindObjectFn(t, path)
+		}
+		return t, nil
+	case *ast.Local:
+		root, ok := node.(*ast.Local)
+		if !ok {
+			return nil, errors.Wrap(errUnsupportedEnvParams, "root node should be a local")
+		}
+
+		body := root.Body
+		l, err := findNamedLocal(root, "envParams")
+		if err == nil {
+			body = l.Binds[0].Body
+		}
+
+		var obj *astext.Object
+
+		switch t := body.(type) {
+		default:
+			return nil, errors.Wrapf(errUnsupportedEnvParams, "unsupported object type %T", t)
+		case *ast.Binary:
+			obj, ok = t.Right.(*astext.Object)
+			if !ok {
+				return nil, errors.Wrapf(errUnsupportedEnvParams,
+					"right side is %T of binary should be object", t.Right)
+			}
+		case *ast.ApplyBrace:
+			obj, ok = t.Right.(*astext.Object)
+			if !ok {
+				return nil, errors.Wrapf(errUnsupportedEnvParams,
+					"right side is %T of apply brace should be object", t.Right)
+			}
+		}
+
+		return obj, nil
+	}
 }

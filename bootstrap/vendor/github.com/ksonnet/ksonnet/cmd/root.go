@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	goflag "flag"
 	"fmt"
-	"io"
 	"os"
 	"path"
 	"path/filepath"
@@ -39,7 +38,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
-	"golang.org/x/crypto/ssh/terminal"
 
 	// Register auth plugins
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -83,7 +81,11 @@ application configuration to remote clusters.
 		out := cmd.OutOrStderr()
 		log.SetOutput(out)
 
-		logFmt := NewLogFormatter(out)
+		logFmt := &log.TextFormatter{
+			DisableTimestamp:       true,
+			DisableLevelTruncation: true,
+			QuoteEmptyFields:       true,
+		}
 		log.SetFormatter(logFmt)
 
 		verbosity, err := flags.GetCount(flagVerbose)
@@ -170,48 +172,6 @@ func logLevel(verbosity int) log.Level {
 	default:
 		return log.DebugLevel
 	}
-}
-
-type logFormatter struct {
-	escapes  *terminal.EscapeCodes
-	colorise bool
-}
-
-// NewLogFormatter creates a new log.Formatter customised for writer
-func NewLogFormatter(out io.Writer) log.Formatter {
-	var ret = logFormatter{}
-	if f, ok := out.(*os.File); ok {
-		ret.colorise = terminal.IsTerminal(int(f.Fd()))
-		ret.escapes = terminal.NewTerminal(f, "").Escape
-	}
-	return &ret
-}
-
-func (f *logFormatter) levelEsc(level log.Level) []byte {
-	switch level {
-	case log.DebugLevel:
-		return []byte{}
-	case log.WarnLevel:
-		return f.escapes.Yellow
-	case log.ErrorLevel, log.FatalLevel, log.PanicLevel:
-		return f.escapes.Red
-	default:
-		return f.escapes.Blue
-	}
-}
-
-func (f *logFormatter) Format(e *log.Entry) ([]byte, error) {
-	buf := bytes.Buffer{}
-	if f.colorise {
-		buf.Write(f.levelEsc(e.Level))
-		fmt.Fprintf(&buf, "%-5s ", strings.ToUpper(e.Level.String()))
-		buf.Write(f.escapes.Reset)
-	}
-
-	buf.WriteString(strings.TrimSpace(e.Message))
-	buf.WriteString("\n")
-
-	return buf.Bytes(), nil
 }
 
 func newExpander(fs afero.Fs, cmd *cobra.Command) (*template.Expander, error) {

@@ -18,12 +18,13 @@ package pipeline
 import (
 	"bytes"
 	"io"
+	"path/filepath"
 	"regexp"
 	"strings"
 
-	jsonnet "github.com/google/go-jsonnet"
 	"github.com/ksonnet/ksonnet/component"
 	"github.com/ksonnet/ksonnet/metadata/app"
+	"github.com/ksonnet/ksonnet/pkg/util/jsonnet"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -86,9 +87,16 @@ func (p *Pipeline) EnvParameters(module string) (string, error) {
 
 	envParams := upgradeParams(p.envName, data)
 
-	vm := jsonnet.MakeVM()
-	vm.ExtCode("__ksonnet/params", paramsStr)
+	env, err := p.app.Environment(p.envName)
+	if err != nil {
+		return "", errors.Wrapf(err, "load environment %s", p.envName)
+	}
 
+	vm := jsonnet.NewVM()
+	vm.JPaths = []string{
+		env.MakePath(p.app.Root()),
+		filepath.Join(p.app.Root(), "vendor")}
+	vm.ExtCode("__ksonnet/params", paramsStr)
 	return vm.EvaluateSnippet("snippet", string(envParams))
 }
 

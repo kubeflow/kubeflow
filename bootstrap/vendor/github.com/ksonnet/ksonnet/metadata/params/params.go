@@ -18,11 +18,13 @@ package params
 import (
 	"bytes"
 	"fmt"
+	"runtime/debug"
 	"sort"
 	"strconv"
 	"strings"
 
 	str "github.com/ksonnet/ksonnet/strings"
+	"github.com/pkg/errors"
 
 	"github.com/google/go-jsonnet/ast"
 	"github.com/google/go-jsonnet/parser"
@@ -35,12 +37,12 @@ const (
 func componentsObj(component, snippet string) (*ast.Object, error) {
 	tokens, err := parser.Lex(component, snippet)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "lex node")
 	}
 
 	root, err := parser.Parse(tokens)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "parse node")
 	}
 
 	return findComponentsObj(root)
@@ -57,7 +59,8 @@ func findComponentsObj(node ast.Node) (*ast.Object, error) {
 			if *f.Id == componentsID {
 				c, isObj := f.Expr2.(*ast.Object)
 				if !isObj {
-					return nil, fmt.Errorf("Expected components node type to be object")
+					debug.PrintStack()
+					return nil, errors.Errorf("expected components node type to be object, it was a a %T", f.Expr2)
 				}
 				return c, nil
 			}
@@ -199,7 +202,7 @@ func writeParams(indent int, params Params) string {
 func deleteComponent(component, snippet string) (string, error) {
 	componentsNode, err := componentsObj(component, snippet)
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, "retrieve component node")
 	}
 
 	for _, field := range componentsNode.Fields {

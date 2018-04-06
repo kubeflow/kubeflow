@@ -68,12 +68,12 @@ func NewParamList(m map[string]interface{}) (*ParamList, error) {
 
 // Run runs the ParamList action.
 func (pl *ParamList) Run() error {
-	ns, err := pl.cm.Module(pl.app, pl.module)
+	module, err := pl.cm.Module(pl.app, pl.module)
 	if err != nil {
 		return errors.Wrap(err, "could not find namespace")
 	}
 
-	params, err := pl.collectParams(ns)
+	params, err := pl.collectParams(module)
 	if err != nil {
 		return err
 	}
@@ -90,9 +90,9 @@ func (pl *ParamList) Run() error {
 	return nil
 }
 
-func (pl *ParamList) collectParams(ns component.Module) ([]component.ModuleParameter, error) {
+func (pl *ParamList) collectParams(module component.Module) ([]component.ModuleParameter, error) {
 	if pl.componentName == "" {
-		return ns.Params(pl.envName)
+		return module.Params(pl.envName)
 	}
 
 	c, err := pl.cm.Component(pl.app, pl.module, pl.componentName)

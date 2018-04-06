@@ -16,9 +16,8 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/ksonnet/ksonnet/actions"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -29,17 +28,26 @@ var (
 )
 
 var paramDeleteCmd = &cobra.Command{
-	Use:   "delete <component-name> <param-key>",
+	Use:   "delete [component-name] <param-key>",
 	Short: paramShortDesc["delete"],
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) != 2 {
-			return fmt.Errorf("'param delete' takes exactly two arguments, (1) the name of the component, and the key")
+		var name string
+		var path string
+
+		switch len(args) {
+		default:
+			return errors.New("invalid arguments for 'param delete'")
+		case 2:
+			name = args[0]
+			path = args[1]
+		case 1:
+			path = args[0]
 		}
 
 		m := map[string]interface{}{
 			actions.OptionApp:     ka,
-			actions.OptionName:    args[0],
-			actions.OptionPath:    args[1],
+			actions.OptionName:    name,
+			actions.OptionPath:    path,
 			actions.OptionEnvName: viper.GetString(vParamDeleteEnv),
 			actions.OptionIndex:   viper.GetInt(vParamDeleteIndex),
 		}

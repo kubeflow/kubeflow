@@ -1,4 +1,4 @@
-Updating services guestbook-ui
-Creating non-existent services guestbook-ui
-Updating deployments guestbook-ui
-Creating non-existent deployments guestbook-ui
+level=info msg="Updating services guestbook-ui"
+level=info msg=" Creating non-existent services guestbook-ui"
+level=info msg="Updating deployments guestbook-ui"
+level=info msg=" Creating non-existent deployments guestbook-ui"

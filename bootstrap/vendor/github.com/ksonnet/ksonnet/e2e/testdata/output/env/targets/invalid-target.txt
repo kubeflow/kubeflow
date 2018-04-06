@@ -1,1 +1,1 @@
-unable to find module "bad"
+level=error msg="unable to find module \"bad\""

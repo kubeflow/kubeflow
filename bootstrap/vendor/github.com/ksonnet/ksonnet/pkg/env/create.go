@@ -97,6 +97,11 @@ func (c *creator) Create() error {
 			filepath.Join(envPath, paramsFileName),
 			c.paramsData,
 		},
+		{
+			// globals file
+			filepath.Join(envPath, globalsFileName),
+			DefaultGlobalsData,
+		},
 	}
 
 	for _, a := range metadata {

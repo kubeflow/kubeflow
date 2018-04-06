@@ -16,6 +16,7 @@
 package jsonnet
 
 import (
+	"github.com/google/go-jsonnet/ast"
 	"github.com/ksonnet/ksonnet-lib/ksonnet-gen/astext"
 	"github.com/ksonnet/ksonnet/pkg/docparser"
 	"github.com/pkg/errors"
@@ -47,8 +48,23 @@ func ImportFromFs(filename string, fs afero.Fs) (*astext.Object, error) {
 
 }
 
-// Parse converts a jsonnet snippet to AST.
+// Parse converts a jsonnet snippet to AST Object.
 func Parse(filename, src string) (*astext.Object, error) {
+	node, err := ParseNode(filename, src)
+	if err != nil {
+		return nil, err
+	}
+
+	root, ok := node.(*astext.Object)
+	if !ok {
+		return nil, errors.New("root was not an object")
+	}
+
+	return root, nil
+}
+
+// ParseNode converts a jsonnet snippet to AST node.
+func ParseNode(filename, src string) (ast.Node, error) {
 	tokens, err := docparser.Lex(filename, src)
 	if err != nil {
 		return nil, errors.Wrap(err, "lex jsonnet snippet")
@@ -59,10 +75,5 @@ func Parse(filename, src string) (*astext.Object, error) {
 		return nil, errors.Wrap(err, "parse jsonnet snippet")
 	}
 
-	root, ok := node.(*astext.Object)
-	if !ok {
-		return nil, errors.New("root was not an object")
-	}
-
-	return root, nil
+	return node, nil
 }

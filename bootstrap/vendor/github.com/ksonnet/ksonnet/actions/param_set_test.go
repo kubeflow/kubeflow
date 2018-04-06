@@ -142,3 +142,31 @@ func TestParamSet_env(t *testing.T) {
 		require.NoError(t, err)
 	})
 }
+
+func TestParamSet_envGlobal(t *testing.T) {
+	withApp(t, func(appMock *amocks.App) {
+		path := "replicas"
+		value := "3"
+
+		in := map[string]interface{}{
+			OptionApp:     appMock,
+			OptionPath:    path,
+			OptionValue:   value,
+			OptionEnvName: "default",
+		}
+
+		a, err := NewParamSet(in)
+		require.NoError(t, err)
+
+		envSetter := func(ksApp app.App, envName, pName, value string) error {
+			assert.Equal(t, "default", envName)
+			assert.Equal(t, "replicas", pName)
+			assert.Equal(t, "3", value)
+			return nil
+		}
+		a.setGlobalEnvFn = envSetter
+
+		err = a.Run()
+		require.NoError(t, err)
+	})
+}

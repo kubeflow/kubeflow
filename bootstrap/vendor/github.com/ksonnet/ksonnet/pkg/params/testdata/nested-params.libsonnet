@@ -19,5 +19,6 @@
       },
       list: ["one", "two", "three"],
     },
+    "name": "name",
   },
 }

@@ -36,6 +36,25 @@ func Test_paramSetCmd(t *testing.T) {
 				actions.OptionIndex:   0,
 			},
 		},
+		{
+			name:   "set env global",
+			args:   []string{"param", "set", "param-name", "param-value", "--env", "default"},
+			action: actionParamSet,
+			expected: map[string]interface{}{
+				actions.OptionApp:     ka,
+				actions.OptionName:    "",
+				actions.OptionPath:    "param-name",
+				actions.OptionValue:   "param-value",
+				actions.OptionEnvName: "default",
+				actions.OptionIndex:   0,
+			},
+		},
+		{
+			name:   "invalid arguments",
+			args:   []string{"param", "set"},
+			action: actionParamSet,
+			isErr:  true,
+		},
 	}
 
 	runTestCmd(t, cases)

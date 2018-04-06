@@ -28,7 +28,7 @@ import (
 	"github.com/spf13/afero"
 )
 
-func nsErrorMsg(format, module string) string {
+func moduleErrorMsg(format, module string) string {
 	s := fmt.Sprintf("module %q", module)
 	if module == "" {
 		s = "root module"
@@ -66,80 +66,80 @@ func NewModule(ksApp app.App, path string) *FilesystemModule {
 
 // ExtractModuleComponent extracts a module and a component from a path.
 func ExtractModuleComponent(a app.App, path string) (Module, string) {
-	nsPath, component := filepath.Split(path)
-	ns := &FilesystemModule{path: nsPath, app: a}
-	return ns, component
+	modulePath, component := filepath.Split(path)
+	m := &FilesystemModule{path: modulePath, app: a}
+	return m, component
 }
 
 // Name returns the module name.
-func (n *FilesystemModule) Name() string {
-	if n.path == "" {
+func (m *FilesystemModule) Name() string {
+	if m.path == "" {
 		return "/"
 	}
-	return n.path
+	return m.path
 }
 
 // GetModule gets a module by path.
 func GetModule(a app.App, moduleName string) (Module, error) {
 	parts := strings.Split(moduleName, "/")
-	nsDir := filepath.Join(append([]string{a.Root(), componentsRoot}, parts...)...)
+	moduleDir := filepath.Join(append([]string{a.Root(), componentsRoot}, parts...)...)
 
-	exists, err := afero.Exists(a.Fs(), nsDir)
+	exists, err := afero.Exists(a.Fs(), moduleDir)
 	if err != nil {
 		return nil, err
 	}
 
 	if !exists {
-		return nil, errors.New(nsErrorMsg("unable to find %s", moduleName))
+		return nil, errors.New(moduleErrorMsg("unable to find %s", moduleName))
 	}
 
 	return &FilesystemModule{path: moduleName, app: a}, nil
 }
 
 // ParamsPath generates the path to params.libsonnet for a module.
-func (n *FilesystemModule) ParamsPath() string {
-	return filepath.Join(n.Dir(), paramsFile)
+func (m *FilesystemModule) ParamsPath() string {
+	return filepath.Join(m.Dir(), paramsFile)
 }
 
 // SetParam sets params for a module.
-func (n *FilesystemModule) SetParam(path []string, value interface{}) error {
-	paramsData, err := n.readParams()
+func (m *FilesystemModule) SetParam(path []string, value interface{}) error {
+	paramsData, err := m.readParams()
 	if err != nil {
 		return err
 	}
 
-	updated, err := params.Set(path, paramsData, "", value, "global")
+	updated, err := params.SetInObject(path, paramsData, "", value, "global")
 	if err != nil {
 		return err
 	}
 
-	return n.writeParams(updated)
+	return m.writeParams(updated)
 }
 
 // DeleteParam deletes params for a module.
-func (n *FilesystemModule) DeleteParam(path []string) error {
-	paramsData, err := n.readParams()
+func (m *FilesystemModule) DeleteParam(path []string) error {
+	paramsData, err := m.readParams()
 	if err != nil {
 		return err
 	}
 
-	updated, err := params.Delete(path, paramsData, "", "global")
+	updated, err := params.DeleteFromObject(path, paramsData, "", "global")
 	if err != nil {
 		return err
 	}
 
-	return n.writeParams(updated)
+	return m.writeParams(updated)
 }
 
-func (n *FilesystemModule) writeParams(src string) error {
-	return afero.WriteFile(n.app.Fs(), n.ParamsPath(), []byte(src), 0644)
+func (m *FilesystemModule) writeParams(src string) error {
+	return afero.WriteFile(m.app.Fs(), m.ParamsPath(), []byte(src), 0644)
 }
 
-// Dir is the absolute directory for a namespace.
-func (n *FilesystemModule) Dir() string {
-	parts := strings.Split(n.path, "/")
-	path := []string{n.app.Root(), componentsRoot}
-	if len(n.path) != 0 {
+// Dir is the absolute directory for a module.
+func (m *FilesystemModule) Dir() string {
+	parts := strings.Split(m.path, "/")
+	path := []string{m.app.Root(), componentsRoot}
+	if len(m.path) != 0 {
 		path = append(path, parts...)
 	}
 
@@ -156,8 +156,8 @@ type ModuleParameter struct {
 
 // ResolvedParams resolves paramaters for a module. It returns a JSON encoded
 // string of component parameters.
-func (n *FilesystemModule) ResolvedParams() (string, error) {
-	s, err := n.readParams()
+func (m *FilesystemModule) ResolvedParams() (string, error) {
+	s, err := m.readParams()
 	if err != nil {
 		return "", err
 	}
@@ -166,13 +166,13 @@ func (n *FilesystemModule) ResolvedParams() (string, error) {
 }
 
 // Params returns the params for a module.
-func (n *FilesystemModule) Params(envName string) ([]ModuleParameter, error) {
-	components, err := n.Components()
+func (m *FilesystemModule) Params(envName string) ([]ModuleParameter, error) {
+	components, err := m.Components()
 	if err != nil {
 		return nil, err
 	}
 
-	var nsps []ModuleParameter
+	var moduleParameters []ModuleParameter
 	for _, c := range components {
 		params, err := c.Params(envName)
 		if err != nil {
@@ -180,15 +180,15 @@ func (n *FilesystemModule) Params(envName string) ([]ModuleParameter, error) {
 		}
 
 		for _, p := range params {
-			nsps = append(nsps, p)
+			moduleParameters = append(moduleParameters, p)
 		}
 	}
 
-	return nsps, nil
+	return moduleParameters, nil
 }
 
-func (n *FilesystemModule) readParams() (string, error) {
-	b, err := afero.ReadFile(n.app.Fs(), n.ParamsPath())
+func (m *FilesystemModule) readParams() (string, error) {
+	b, err := afero.ReadFile(m.app.Fs(), m.ParamsPath())
 	if err != nil {
 		return "", err
 	}
@@ -206,28 +206,28 @@ func ModulesFromEnv(a app.App, env string) ([]Module, error) {
 	prefix := a.Root() + "/components"
 
 	seen := make(map[string]bool)
-	var namespaces []Module
+	var modules []Module
 	for _, path := range paths {
 		module := strings.TrimPrefix(path, prefix)
 		if _, ok := seen[module]; !ok {
 			seen[module] = true
-			ns, err := GetModule(a, module)
+			m, err := GetModule(a, module)
 			if err != nil {
 				return nil, err
 			}
 
-			namespaces = append(namespaces, ns)
+			modules = append(modules, m)
 		}
 	}
 
-	return namespaces, nil
+	return modules, nil
 }
 
 // Modules returns all component modules
 func Modules(a app.App) ([]Module, error) {
 	componentRoot := filepath.Join(a.Root(), componentsRoot)
 
-	var namespaces []Module
+	var modules []Module
 
 	err := afero.Walk(a.Fs(), componentRoot, func(path string, fi os.FileInfo, err error) error {
 		if err != nil {
@@ -241,10 +241,10 @@ func Modules(a app.App) ([]Module, error) {
 			}
 
 			if ok {
-				nsPath := strings.TrimPrefix(path, componentRoot)
-				nsPath = strings.TrimPrefix(nsPath, string(filepath.Separator))
-				ns := &FilesystemModule{path: nsPath, app: a}
-				namespaces = append(namespaces, ns)
+				modulePath := strings.TrimPrefix(path, componentRoot)
+				modulePath = strings.TrimPrefix(modulePath, string(filepath.Separator))
+				m := &FilesystemModule{path: modulePath, app: a}
+				modules = append(modules, m)
 			}
 		}
 
@@ -255,19 +255,19 @@ func Modules(a app.App) ([]Module, error) {
 		return nil, errors.Wrap(err, "walk component path")
 	}
 
-	sort.Slice(namespaces, func(i, j int) bool {
-		return namespaces[i].Name() < namespaces[j].Name()
+	sort.Slice(modules, func(i, j int) bool {
+		return modules[i].Name() < modules[j].Name()
 	})
 
-	return namespaces, nil
+	return modules, nil
 }
 
 // Components returns the components in a module.
-func (n *FilesystemModule) Components() ([]Component, error) {
-	parts := strings.Split(n.path, "/")
-	nsDir := filepath.Join(append([]string{n.app.Root(), componentsRoot}, parts...)...)
+func (m *FilesystemModule) Components() ([]Component, error) {
+	parts := strings.Split(m.path, "/")
+	moduleDir := filepath.Join(append([]string{m.app.Root(), componentsRoot}, parts...)...)
 
-	fis, err := afero.ReadDir(n.app.Fs(), nsDir)
+	fis, err := afero.ReadDir(m.app.Fs(), moduleDir)
 	if err != nil {
 		return nil, err
 	}
@@ -276,15 +276,15 @@ func (n *FilesystemModule) Components() ([]Component, error) {
 	for _, fi := range fis {
 
 		ext := filepath.Ext(fi.Name())
-		path := filepath.Join(nsDir, fi.Name())
+		path := filepath.Join(moduleDir, fi.Name())
 
 		switch ext {
 		// TODO: these should be constants
 		case ".yaml", ".json":
-			component := NewYAML(n.app, n.Name(), path, n.ParamsPath())
+			component := NewYAML(m.app, m.Name(), path, m.ParamsPath())
 			components = append(components, component)
 		case ".jsonnet":
-			component := NewJsonnet(n.app, n.Name(), path, n.ParamsPath())
+			component := NewJsonnet(m.app, m.Name(), path, m.ParamsPath())
 			components = append(components, component)
 		}
 	}

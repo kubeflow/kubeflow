@@ -25,6 +25,28 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestSetGlobalParams(t *testing.T) {
+	withEnv(t, func(appMock *mocks.App, fs afero.Fs) {
+		p := params.Params{
+			"foo": "bar",
+		}
+
+		err := SetGlobalParams(appMock, "env1", p)
+		require.NoError(t, err)
+
+		compareOutput(t, fs, "add-global.libsonnet", "/environments/env1/globals.libsonnet")
+	})
+}
+
+func TestUnsetGlobalParams(t *testing.T) {
+	withEnv(t, func(appMock *mocks.App, fs afero.Fs) {
+		err := UnsetGlobalParams(appMock, "env1", "foo")
+		require.NoError(t, err)
+
+		compareOutput(t, fs, "remove-global.libsonnet", "/environments/env1/globals.libsonnet")
+	})
+}
+
 func TestSetParams(t *testing.T) {
 	withEnv(t, func(appMock *mocks.App, fs afero.Fs) {
 		config := SetParamsConfig{

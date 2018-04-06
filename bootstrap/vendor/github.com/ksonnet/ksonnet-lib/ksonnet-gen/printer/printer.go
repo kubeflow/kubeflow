@@ -237,6 +237,8 @@ func (p *printer) print(n interface{}) {
 
 	case *ast.LiteralNumber:
 		p.writeString(t.OriginalString)
+	case *ast.ObjectComp:
+		p.handleObjectComp(t)
 	case *ast.Self:
 		p.writeString("self")
 	case *ast.Var:
@@ -307,7 +309,6 @@ func (p *printer) handleIndex(i *ast.Index) {
 		return
 	}
 	p.print(i.Target)
-	p.writeString(".")
 
 	id, err := indexID(i)
 	if err != nil {
@@ -359,10 +360,16 @@ func (p *printer) handleLocalFunction(f *ast.Function) {
 	}
 }
 
-func fieldID(expr1 ast.Node, id *ast.Identifier) string {
+func fieldID(kind ast.ObjectFieldKind, expr1 ast.Node, id *ast.Identifier) string {
 	if expr1 != nil {
-		ls := expr1.(*ast.LiteralString)
-		return fmt.Sprintf(`"%s"`, ls.Value)
+		switch t := expr1.(type) {
+		case *ast.LiteralString:
+			return fmt.Sprintf(`"%s"`, t.Value)
+		case *ast.Var:
+			return string(t.Id)
+		default:
+			panic(fmt.Sprintf("unknown Expr1 type %T", t))
+		}
 	}
 
 	if id != nil {
@@ -370,6 +377,10 @@ func fieldID(expr1 ast.Node, id *ast.Identifier) string {
 	}
 
 	return ""
+}
+
+func (p *printer) handleObjectComp(oc *ast.ObjectComp) {
+	p.handleObjectField(oc)
 }
 
 func (p *printer) handleObjectField(n interface{}) {
@@ -380,6 +391,8 @@ func (p *printer) handleObjectField(n interface{}) {
 	var ofSugar bool
 	var ofExpr2 ast.Node
 
+	var forSpec ast.ForSpec
+
 	switch t := n.(type) {
 	default:
 		p.err = errors.Errorf("unknown object field type %T", t)
@@ -387,18 +400,28 @@ func (p *printer) handleObjectField(n interface{}) {
 	case ast.ObjectField:
 		ofHide = t.Hide
 		ofKind = t.Kind
-		ofID = fieldID(t.Expr1, t.Id)
+		ofID = fieldID(ofKind, t.Expr1, t.Id)
 		ofMethod = t.Method
 		ofSugar = t.SuperSugar
 		ofExpr2 = t.Expr2
 	case astext.ObjectField:
 		ofHide = t.Hide
 		ofKind = t.Kind
-		ofID = fieldID(t.Expr1, t.Id)
+		ofID = fieldID(ofKind, t.Expr1, t.Id)
 		ofMethod = t.Method
 		ofSugar = t.SuperSugar
 		ofExpr2 = t.Expr2
 		p.writeComment(t.Comment)
+	case *ast.ObjectComp:
+		field := t.Fields[0]
+		ofHide = field.Hide
+		ofKind = field.Kind
+		ofID = fieldID(ofKind, field.Expr1, field.Id)
+		ofMethod = field.Method
+		ofSugar = field.SuperSugar
+		ofExpr2 = field.Expr2
+
+		forSpec = t.Spec
 	}
 
 	if ofID == "" {
@@ -454,8 +477,27 @@ func (p *printer) handleObjectField(n interface{}) {
 		p.writeString(" = ")
 		p.print(ofExpr2)
 	case ast.ObjectFieldStr:
-		p.writeString(fmt.Sprintf(`%s%s `, ofID, fieldType))
+		p.writeString(ofID)
+		if ofSugar {
+			p.writeByte(syntaxSugar, 1)
+		}
+		p.writeString(fieldType)
+		p.writeByte(space, 1)
 		p.print(ofExpr2)
+	case ast.ObjectFieldExpr:
+		// TODO: this can't be correct
+		p.writeString("{")
+		p.indentLevel++
+		p.writeByte(newline, 1)
+		p.writeString(fmt.Sprintf("[%s]: ", ofID))
+		p.print(ofExpr2)
+		p.writeByte(comma, 1)
+		p.writeByte(space, 1)
+		p.writeString(fmt.Sprintf("for %s in ", string(forSpec.VarName)))
+		p.print(forSpec.Expr)
+		p.indentLevel--
+		p.writeByte(newline, 1)
+		p.writeString("}")
 	}
 }
 
@@ -505,28 +547,25 @@ func (p *printer) addMethodSignature(method *ast.Function) {
 	p.writeString(")")
 }
 
-func literalStringValue(ls *ast.LiteralString) (string, error) {
-	if ls == nil {
-		return "", errors.New("literal string is nil")
-	}
-
-	return ls.Value, nil
-}
-
 func indexID(i *ast.Index) (string, error) {
 	if i == nil {
 		return "", errors.New("index is nil")
 	}
 
 	if i.Index != nil {
-		ls, ok := i.Index.(*ast.LiteralString)
-		if !ok {
-			return "", errors.New("index is not a literal string")
+		switch t := i.Index.(type) {
+		default:
+			return "", errors.Errorf("can't handle index type %T", t)
+		case *ast.LiteralString:
+			if t == nil {
+				return "", errors.New("string id is nil")
+			}
+			return fmt.Sprintf(".%s", t.Value), nil
+		case *ast.Var:
+			return fmt.Sprintf("[%s]", string(t.Id)), nil
 		}
-
-		return literalStringValue(ls)
 	} else if i.Id != nil {
-		return string(*i.Id), nil
+		return fmt.Sprintf(".%s", string(*i.Id)), nil
 	} else {
 		return "", errors.New("index and id can't both be blank")
 	}

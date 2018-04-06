@@ -1,2 +1,2 @@
-Deleting services guestbook-ui
-Deleting deployments guestbook-ui
+level=info msg="Deleting services guestbook-ui"
+level=info msg="Deleting deployments guestbook-ui"

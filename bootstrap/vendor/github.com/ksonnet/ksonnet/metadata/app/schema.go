@@ -262,6 +262,14 @@ type EnvironmentSpec struct {
 	isOverride bool
 }
 
+// MakePath return the absolute path to the environment directory.
+func (e *EnvironmentSpec) MakePath(rootPath string) string {
+	return filepath.Join(
+		rootPath,
+		EnvironmentDirName,
+		filepath.FromSlash(e.Path))
+}
+
 // IsOverride is true if this EnvironmentSpec is an override.
 func (e *EnvironmentSpec) IsOverride() bool {
 	return e.isOverride

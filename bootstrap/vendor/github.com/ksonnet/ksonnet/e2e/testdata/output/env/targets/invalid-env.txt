@@ -1,1 +1,1 @@
-environment "invalid" was not found
+level=error msg="environment \"invalid\" was not found"

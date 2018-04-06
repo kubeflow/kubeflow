@@ -20,6 +20,7 @@ import (
 
 	"github.com/ksonnet/ksonnet/metadata/app"
 	param "github.com/ksonnet/ksonnet/metadata/params"
+	"github.com/ksonnet/ksonnet/pkg/params"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
@@ -104,7 +105,9 @@ func collectEnvParams(a app.App, env *app.EnvironmentSpec, componentName, envNam
 	if err != nil {
 		return "", err
 	}
-	return param.DeleteEnvironmentComponent(componentName, string(envParamsFile))
+
+	ecr := params.NewEnvComponentRemover()
+	return ecr.Remove(componentName, string(envParamsFile))
 }
 
 /// updateEnvParam removes the component references in each environment's

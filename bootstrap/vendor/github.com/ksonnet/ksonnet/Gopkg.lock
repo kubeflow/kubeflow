@@ -261,7 +261,7 @@
     "ksonnet-gen/nodemaker",
     "ksonnet-gen/printer"
   ]
-  revision = "f1aa55533283d55b2967f1e2cfb47048cf6661c8"
+  revision = "5e07f358ac2de69591818afa41b7623c8cc97ac0"
 
 [[projects]]
   name = "github.com/magiconair/properties"
@@ -383,7 +383,7 @@
 [[projects]]
   name = "github.com/sirupsen/logrus"
   packages = ["."]
-  revision = "3d4380f53a34dcdc95f0c1db702615992b38d9a4"
+  revision = "778f2e774c725116edbc3d039dc0dfc1cc62aae8"
 
 [[projects]]
   name = "github.com/spf13/afero"
@@ -675,6 +675,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c16f38b5c4be37f44ba1042794a39c1b505798fbefdcf8b05844509b47313a9d"
+  inputs-digest = "e693f795e1fe461827efc6e0d1a0a7e537142eae8440f0e0079d3dc01b4e9887"
   solver-name = "gps-cdcl"
   solver-version = 1

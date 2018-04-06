@@ -24,7 +24,7 @@ const (
 
 // DefaultOverrideData generates the contents for an environment's `main.jsonnet`.
 var DefaultOverrideData = []byte(`local base = import "base.libsonnet";
-local k = import "k.libsonnet"
+local k = import "k.libsonnet";
 
 base + {
   // Insert user-specified overrides here. For example if a component is named \"nginx-deployment\", you might have something like:\n")
@@ -34,14 +34,20 @@ base + {
 
 // DefaultParamsData generates the contents for an environment's `params.libsonnet`
 var DefaultParamsData = []byte(`local params = std.extVar("__ksonnet/params");
-
-params + {
+local globals = import "globals.libsonnet";
+local envParams = params + {
   components +: {
     // Insert component parameter overrides here. Ex:
     // guestbook +: {
     //   name: "guestbook-dev",
     //   replicas: params.global.replicas,
     // },
+  },
+};
+
+{
+  components: {
+    [x]: envParams.components[x] + globals, for x in std.objectFields(envParams.components)
   },
 }
 `)
@@ -52,3 +58,7 @@ components + {
   // Insert user-specified overrides here.
 }
 `)
+
+// DefaultGlobalsData generates the contents for an environment's `globals.libsonnet`
+var DefaultGlobalsData = []byte(`{
+}`)

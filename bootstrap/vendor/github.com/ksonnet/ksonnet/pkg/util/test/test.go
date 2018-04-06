@@ -29,6 +29,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// ReadTestData reads a file from `testdata` and returns it as a string.
+func ReadTestData(t *testing.T, name string) string {
+	path := filepath.Join("testdata", name)
+	data, err := ioutil.ReadFile(path)
+	require.NoError(t, err)
+
+	return string(data)
+}
+
 // StageFile stages a file on on the provided filesystem from
 // testdata.
 func StageFile(t *testing.T, fs afero.Fs, src, dest string) {
@@ -89,6 +98,11 @@ func copyFile(fs afero.Fs, src, dest string) error {
 func WithApp(t *testing.T, root string, fn func(*mocks.App, afero.Fs)) {
 	fs := afero.NewMemMapFs()
 
+	WithAppFs(t, root, fs, fn)
+}
+
+// WithAppFs runs an enclosure with a mocked app and fs. Allow supplying the fs.
+func WithAppFs(t *testing.T, root string, fs afero.Fs, fn func(*mocks.App, afero.Fs)) {
 	a := &mocks.App{}
 	a.On("Fs").Return(fs)
 	a.On("Root").Return(root)

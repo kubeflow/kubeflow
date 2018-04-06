@@ -1,5 +1,5 @@
 hash: 4d217d52169f8a667803c80293d401e822e0882e88e9339f95e6cf588b7c3d9d
-updated: 2018-04-04T19:23:45.077612521-07:00
+updated: 2018-04-06T09:44:17.779027411-07:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -101,7 +101,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 5b9ff866471762aa2ab2dced63c9fb6f53921342
 - name: github.com/ksonnet/ksonnet
-  version: 74e03a648428a6f3025c47ace519f44976364ebe
+  version: 68d8f751791db6b0e0798c34f0d72bda24926d8d
   subpackages:
   - actions
   - client
@@ -132,7 +132,7 @@ imports:
   - strings
   - utils
 - name: github.com/ksonnet/ksonnet-lib
-  version: f1aa55533283d55b2967f1e2cfb47048cf6661c8
+  version: 5e07f358ac2de69591818afa41b7623c8cc97ac0
   subpackages:
   - ksonnet-gen/astext
   - ksonnet-gen/jsonnet
@@ -182,13 +182,10 @@ imports:
   subpackages:
   - context
   - context/ctxhttp
-  - html
-  - html/atom
   - http2
   - http2/hpack
   - idna
   - lex/httplex
-  - websocket
 - name: golang.org/x/oauth2
   version: a6bd8cefa1811bd24b86f8902872e4e8225f74c4
   subpackages:
@@ -249,7 +246,6 @@ imports:
   - certificates/v1beta1
   - core/v1
   - extensions/v1beta1
-  - imagepolicy/v1alpha1
   - networking/v1
   - policy/v1beta1
   - rbac/v1
@@ -260,7 +256,7 @@ imports:
   - storage/v1
   - storage/v1beta1
 - name: k8s.io/apimachinery
-  version: 019ae5ada31de202164b118aee88ee2d14075c31
+  version: 9d38e20d609d27e00d4ec18f7b9db67105a2bde0
   subpackages:
   - pkg/api/equality
   - pkg/api/errors

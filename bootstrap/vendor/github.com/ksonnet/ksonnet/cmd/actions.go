@@ -42,6 +42,7 @@ const (
 	actionParamDiff
 	actionParamList
 	actionParamSet
+	actionParamUnset
 	actionPkgDescribe
 	actionPkgInstall
 	actionPkgList
@@ -79,6 +80,7 @@ var (
 		actionModuleList:   actions.RunModuleList,
 		// actionParamDiff
 		actionParamDelete:       actions.RunParamDelete,
+		actionParamUnset:        actions.RunParamDelete,
 		actionParamList:         actions.RunParamList,
 		actionParamSet:          actions.RunParamSet,
 		actionPkgDescribe:       actions.RunPkgDescribe,

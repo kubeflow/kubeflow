@@ -17,7 +17,7 @@ The `delete` command deletes component or environment parameters.
 
 
 ```
-ks param delete <component-name> <param-key> [flags]
+ks param delete [component-name] <param-key> [flags]
 ```
 
 ### Examples

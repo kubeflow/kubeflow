@@ -305,7 +305,7 @@ func (y *YAML) SetParam(path []string, value interface{}, options ParamOptions) 
 		return err
 	}
 
-	updatedParams, err := params.Set(path, paramsData, entry, value, paramsComponentRoot)
+	updatedParams, err := params.SetInObject(path, paramsData, entry, value, paramsComponentRoot)
 	if err != nil {
 		return err
 	}
@@ -326,7 +326,7 @@ func (y *YAML) DeleteParam(path []string, options ParamOptions) error {
 		return err
 	}
 
-	updatedParams, err := params.Delete(path, paramsData, entry, paramsComponentRoot)
+	updatedParams, err := params.DeleteFromObject(path, paramsData, entry, paramsComponentRoot)
 	if err != nil {
 		return err
 	}
