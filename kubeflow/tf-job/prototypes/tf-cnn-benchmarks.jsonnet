@@ -24,7 +24,7 @@ local podTemplate = k.extensions.v1beta1.podTemplate;
 // updatedParams uses the environment namespace if
 // the namespace parameter is not explicitly set
 local updatedParams = params {
-  namespace: if params.namespace == "null" then env.namespace else params.namespace
+  namespace: if params.namespace == "null" then env.namespace else params.namespace,
 };
 
 local tfJob = import "kubeflow/tf-job/tf-job.libsonnet";

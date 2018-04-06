@@ -25,63 +25,19 @@ create_context.sh $(kubectl config current-context) kubeflow-releasing
 ```
 
 
-## Build TFJob operator
+## Update TFJob 
 
-We build TFJob operator by running the E2E test workflow.
+Identify the TFJob [release](https://github.com/kubeflow/tf-operator/releases) you
+want to use.
 
-Look at the [postsubmit dashboard](https://k8s-testgrid.appspot.com/sig-big-data#kubeflow-tf-operator-postsubmit)
-to find the latest green postsubmit.
-
-Check out that commit (in this example, we'll use `6214e560`):
-
-```
-COMMIT="6214e560"
-cd ${GIT_KUBEFLOW_TF_OPERATOR}
-git checkout ${COMMIT}
-cd test/workflows
-```
-
-Run the E2E test workflow using our release cluster
-
-[kubeflow/testing#42](https://github.com/kubeflow/testing/issues/42) will simplify this.
-
-```
-JOB_NAME="tf-operator-release"
-JOB_TYPE=tf-operator-release
-BUILD_NUMBER=$(uuidgen)
-BUILD_NUMBER=${BUILD_NUMBER:0:4}
-REPO_OWNER=kubeflow
-REPO_NAME=tf-operator
-ENV=releasing
-DATE=`date +%Y%m%d`
-PULL_BASE_SHA=${COMMIT:0:8}
-VERSION_TAG="v${DATE}-${PULL_BASE_SHA}"
-
-PROW_VAR="JOB_NAME=${JOB_NAME},JOB_TYPE=${JOB_TYPE},REPO_NAME=${REPO_NAME}"
-PROW_VAR="${PROW_VAR},REPO_OWNER=${REPO_OWNER},BUILD_NUMBER=${BUILD_NUMBER}" 
-PROW_VAR="${PROW_VAR},PULL_BASE_SHA=${PULL_BASE_SHA}" 
-
-ks param set --env=${ENV} workflows namespace kubeflow-releasing
-ks param set --env=${ENV} workflows name "${USER}-${JOB_NAME}-${PULL_BASE_SHA}-${BUILD_NUMBER}"
-ks param set --env=${ENV} workflows prow_env "${PROW_VAR}"
-ks param set --env=${ENV} workflows versionTag "${VERSION_TAG}"
-ks apply ${ENV} -c workflows
-```
-
-You can monitor the workflow using the Argo UI. For our release cluster, we don't expose the Argo UI publicly, so you'll need to connect via kubectl port-forward:
-
-```
-kubectl -n kubeflow-releasing port-forward `kubectl -n kubeflow-releasing get pods --selector=app=argo-ui -o jsonpath='{.items[0].metadata.name}'` 8080:8001
-```
-
-[kubeflow/testing#43](https://github.com/kubeflow/testing/issues/43) is tracking setup of IAP to make this easier.
-
-Make sure the Argo workflow completes successfully.
-Check the junit files to make sure there were no actual test failures.
-The junit files will be in `gs://kubeflow-releasing-artifacts`.
+  * If you need to cut a new TFJob release follow the instructions in 
+[kubeflow/tf-operator](https://github.com/kubeflow/tf-operator/blob/master/releasing.md)
 
 Update [all.jsonnet](https://github.com/kubeflow/kubeflow/blob/master/kubeflow/core/prototypes/all.jsonnet#L10)
 to point to the new image.
+
+Update [workflows.libsonnet](https://github.com/kubeflow/kubeflow/blob/master/testing/workflows/components/workflows.libsonnet#L183) 
+to checkout kubeflow/tf-operator at the tag corresponding to the release.
 
 ## Build TF Serving Images
 
@@ -155,14 +111,49 @@ ks apply ${ENV} -c workflows
 Create a PR to update [jupyterhub_spawner.py](https://github.com/kubeflow/kubeflow/blob/master/kubeflow/core/jupyterhub_spawner.py#L15) 
 to point to the newly built Jupyter notebook images.
 
-## Update the ksonnet configs
+## Create a release branch (if necessary)
 
-Create a PR to update the ksonnet configs to use the latest images built in the previous steps.
+If you aren't already working on a release branch (of the form `v${MAJOR}.${MINOR}-branch`, where `${MAJOR}.${MINOR}` is a major-minor version number), then create one.  Release branches serve several purposes:
 
-Presubmit tests should verify that the ksonnet configs work.
+1.  They allow a release wrangler or other developers to focus on a release without interrupting development on `master`,
+2.  they allow developers to track the development of a release before a release candidate is declared,
+2.  they allow sophisticated users to track the development of a release (by using the release branch as a `ksonnet` registry), and
+4.  they simplify backporting critical bugfixes to a patchlevel release particular release stream (e.g., producing a `v0.1.1` from `v0.1-branch`), when appropriate.
 
-Submit the PR.
+### Release branching policy
 
-Wait for a passing postsubmit of the submitted PR.
+A release branch should be substantially _feature complete_ with respect to the intended release.  Code that is committed to `master` may be merged or cherry-picked on to a release branch, but code that is directly committed to the release branch should be solely applicable to that release (and should not be committed back to master).  In general, unless you're committing code that only applies to the release stream (for example, temporary hotfixes, backported security fixes, or image hashes), you should commit to `master` and then merge or cherry-pick to the reelase branch.
 
-Tag the commit corresponding to the passing postsubmit with the appropriate tags for the release.
+You can create a release branch via the GitHub UI.
+
+## Updating the release branch and tagging a release
+
+0. Ensure that the release notes are up to date.
+1. Update the ksonnet configs on the release branch to use the latest images built in the previous steps.
+2. Presubmit tests should verify that the ksonnet configs work.
+3. Submit a PR to the release branch.
+4. Wait for a passing postsubmit of the submitted PR.  
+5. Once it passes, update this document on the release branch with specific image hashes.
+6. If no known blocker issues remain, tag a release candidate. 
+
+### Tagging a release candidate
+
+A release candidate is a tag of the form `v${MAJOR}.${MINOR}.${PATCHLEVEL}-rc.${N}`, where `N` is a small integer, and a release candidate tag always points to a commit on the corresponding minor release branch.  Push this tag to GitHub and announce a release vote on kubeflow-discuss.
+
+### Release votes and releases
+
+_NB:  release votes will take effect beginning with the 0.2 release stream; the specifics of the release vote policy will be finalized before then._
+
+A release candidate that has passed a community vote should be tagged as an official release.  This simply involves creating another tag for the commit pointed to by the RC tag and pushing this to GitHub.  Tags that resemble version numbers or release candidates should automatically show up in the "releases" tab for the repo, but you can use the "draft a release" feature to add release notes.
+
+## Updating the ksonnet configs for master
+
+Independently of numbered releases, it is a good idea to periodically update the ksonnet configs for `master` to keep them up-to-date.  The process is very similar to updating the ksonnet configurations on a release branch:
+
+1. Create a PR to update the ksonnet configs to use the latest images built in the previous steps.
+2. Presubmit tests should verify that the ksonnet configs work.
+3. Submit the PR.
+4. Wait for a passing postsubmit of the submitted PR.
+5. Tag the commit corresponding to the passing postsubmit with the appropriate tags for the release.
+
+Ideally, this process will be automated to a greater extent in the future.
