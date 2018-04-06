@@ -473,6 +473,18 @@ To fix this issue first create Github API token using this [guide](https://help.
 export GITHUB_TOKEN=<< token >>
 ```
 
+### Unknown variable: env
+
+It always happens to an old version of ksonnet. Actually there is a requirement of ksonnet version [here](https://github.com/kubeflow/kubeflow/blob/master/user_guide.md#requirements).
+
+The support of inheriting values from the namespace was added in v0.9.0 (or later). So you'd better check the ksonnet version as below:
+
+```shell
+ks version
+```
+
+If your ksonnet version is lower than v0.9.2, please upgrade it and re-run all steps following the guide.
+
 ## Why Kubeflow Uses Ksonnet
 
 [Ksonnet](https://ksonnet.io/) is a command line tool that makes it easier to manage complex deployments consisting of multiple components. It is designed to
