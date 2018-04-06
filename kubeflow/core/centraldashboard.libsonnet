@@ -2,7 +2,7 @@
   // TODO(https://github.com/ksonnet/ksonnet/issues/222): Taking namespace as an argument is a work around for the fact that ksonnet
   // doesn't support automatically piping in the namespace from the environment to prototypes.
 
-all(params):: [
+  all(params):: [
     $.parts(params.namespace).deployUi,
     $.parts(params.namespace).uiService,
     $.parts(params.namespace).uiServiceAccount,
@@ -32,7 +32,7 @@ all(params):: [
           spec: {
             containers: [
               {
-                image: "swiftdiaries/centraldashboard:0.2",
+                image: "swiftdiaries/centraldashboard:0.3",
                 name: "centraldashboard",
                 ports: [
                   {
@@ -63,8 +63,8 @@ all(params):: [
               "apiVersion: ambassador/v0",
               "kind:  Mapping",
               "name: centralui-mapping",
-              "prefix: /ui/",
-              "rewrite: /ui/",
+              "prefix: /",
+              "rewrite: /",
               "service: centraldashboard." + namespace,
             ]),
         }, //annotations

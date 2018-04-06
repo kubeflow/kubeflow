@@ -10,7 +10,7 @@
     $.parts(params.namespace).uiRoleBinding,
     $.parts(params.namespace).uiService(params.tfJobUiServiceType),
     $.parts(params.namespace).uiServiceAccount,
-    $.parts(params.namespace).ui(params.tfJobImage)
+    $.parts(params.namespace).ui(params.tfJobImage),
   ],
 
   parts(namespace):: {
