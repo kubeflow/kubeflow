@@ -477,7 +477,17 @@ export GITHUB_TOKEN=<< token >>
 
 It always happens to an old version of ksonnet. Actually there is a requirement of ksonnet version [here](https://github.com/kubeflow/kubeflow/blob/master/user_guide.md#requirements).
 
-The support of inheriting values from the namespace was added in v0.9.0 (or later). So you'd better check the ksonnet version as below:
+If you follow the [user guide](https://github.com/kubeflow/kubeflow/blob/master/user_guide.md#deploy-kubeflow) to deploy kubeflow in nocloud environment, with old version of ksonnet, you may get the error message as below:
+
+```shell
+ks apply ${KF_ENV} -c kubeflow-core
+ERROR Error reading /Users/xxx/projects/devel/go/src/github.com/kubeflow/kubeflow/my-kubeflow/environments/nocloud/main.jsonnet: /Users/xxx/projects/devel/go/src/github.com/kubeflow/kubeflow/my-kubeflow/components/kubeflow-core.jsonnet:8:49-52 Unknown variable: env
+
+  namespace: if params.namespace == "null" then env.namespace else params.namespace
+```
+
+
+The support of inheriting values from the namespace was added in v0.9.0 (or later). So you'd better check the ksonnet version as follows:
 
 ```shell
 ks version
