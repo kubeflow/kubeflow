@@ -481,6 +481,16 @@
                 {
                   name: "dash",
                   image: "pachyderm/dash:1.7-preview-8",
+                  env: [
+                    {
+                      name: "DASH_SERVICE_HOST",
+                      valueFrom: {
+                        fieldRef: {
+                          fieldPath: "metadata.name",
+                        },
+                      },
+                    },
+                  ],
                   ports: [
                     {
                       ContainerPort: 8080,
