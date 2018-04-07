@@ -12,12 +12,13 @@
   all(params, env):: [
     $.parts(params, env).secret,
     $.parts(params, env).serviceAccount,
-    $.parts(params, env).role,  
+    $.parts(params, env).role,
     $.parts(params, env).roleBinding,
     $.parts(params, env).etcdService,
     $.parts(params, env).pachydService,
     $.parts(params, env).etcd,
     $.parts(params, env).pachyd,
+    $.parts(params, env).dash,
   ],
 
   // Parts should be a dictionary containing jsonnet representations of the various
@@ -28,7 +29,7 @@
     // However, in some cases an application may use multiple namespaces in which
     // case the namespace for a particular component will be a parameter.
     local namespace = if std.objectHas(params, "namespace") then params.namespace else env.namespace,
-  
+
     secret:: {
       apiVersion: "v1",
       data: null,
@@ -37,7 +38,7 @@
         labels: {
           app: params.name + "-pachyderm",
         },
-        name: "pachyderm-storage-secret",        
+        name: "pachyderm-storage-secret",
         namespace: namespace,
       },
     },
@@ -51,7 +52,7 @@
           chart: "pachyderm-0.1.6",
           suite: "pachyderm",
         },
-        name: "pachyderm",        
+        name: "pachyderm",
         namespace: namespace,
       },
     },
@@ -65,7 +66,7 @@
           app: "",
           suite: "pachyderm",
         },
-        name: "pachyderm",        
+        name: "pachyderm",
         namespace: namespace,
       },
       rules: [
@@ -128,7 +129,7 @@
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "RoleBinding",
       metadata: {
-        name: "pachyderm",        
+        name: "pachyderm",
         namespace: namespace,
       },
       roleRef: {
@@ -150,10 +151,10 @@
       kind: "Service",
       metadata: {
         labels: {
-          app: params.name + "-etcd",          
+          app: params.name + "-etcd",
           suite: "pachyderm",
         },
-        name: "etcd",        
+        name: "etcd",
         namespace: namespace,
       },
       spec: {
@@ -177,10 +178,10 @@
       metadata: {
         labels: {
           app: params.name + "-pachd",
-          chart: "pachyderm-0.1.6",          
+          chart: "pachyderm-0.1.6",
           suite: "pachyderm",
         },
-        name: "pachd",        
+        name: "pachd",
         namespace: namespace,
       },
       spec: {
@@ -216,7 +217,7 @@
       kind: "Deployment",
       metadata: {
         labels: {
-          app: params.name + "-etcd",          
+          app: params.name + "-etcd",
           release: "RELEASE-NAME",
           suite: "pachyderm",
         },
@@ -317,6 +318,7 @@
               suite: "pachyderm",
             },
             name: "pachd",
+            namespace: namespace,
           },
           spec: {
             containers: [
@@ -440,7 +442,69 @@
           },
         },
       },
-    }, // pachd
+    },  // pachd
 
-  },
+    dash:: {
+      kind: "Deployment",
+      apiVersion: "apps/v1beta1",
+
+      metadata: {
+        labels: {
+          app: "dash",
+          suite: "pachyderm",
+        },
+        name: "dash",
+        namespace: namespace,
+      },
+
+      spec: {
+        replicas: 1,
+        selector: {
+          matchLabels: {
+            app: "dash",
+            suite: "pachyderm",
+          },
+        },
+        strategy: {},
+        template: {
+          metadata: {
+            labels: {
+              app: "dash",
+              suite: "pachyderm",
+            },
+            name: "dash",
+            namespace: namespace,
+          },
+          spec: {
+            containers:
+              [
+                {
+                  name: "dash",
+                  image: "pachyderm/dash:1.7-preview-8",
+                  ports: [
+                    {
+                      ContainerPort: 8080,
+                      Name: "dash-http",
+                    },
+                  ],
+                  imagePullPolicy: "IfNotPresent",
+                },
+                {
+                  name: "grpc-proxy",
+                  image: "pachyderm/grpc-proxy:0.4.2",
+                  ports: [
+                    {
+                      ContainerPort: 8081,
+                      Name: "grpc-proxy-http",
+                    },
+                  ],
+                  ImagePullPolicy: "IfNotPresent",
+                },
+              ],  // containers
+          },  // spec
+        },  // template
+      },  // spec
+    },  // dash
+
+  },  // parts
 }
