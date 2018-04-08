@@ -164,9 +164,10 @@ The kubeflow-core component deployed JupyterHub and a corresponding load balance
 kubectl get svc -n=${NAMESPACE}
 
 NAME               TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+...
 tf-hub-0           ClusterIP      None            <none>        8000/TCP       1m
 tf-hub-lb          ClusterIP      10.11.245.94    <none>        80/TCP         1m
-tf-job-dashboard   ClusterIP      10.11.240.151   <none>        80/TCP         1m
+...
 ```
 
 By default we are using ClusterIPs for the JupyterHub UI. This can be changed to a LoadBalancer by issuing `ks param set kubeflow-core jupyterHubServiceType LoadBalancer`, however this will leave your Jupyter Notebook open to the Internet.
