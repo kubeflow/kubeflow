@@ -277,7 +277,9 @@ As before, a few pods and services have been created in your cluster. You can ge
 ```
 kubectl get svc inception -n=${NAMESPACE}
 NAME        TYPE           CLUSTER-IP      EXTERNAL-IP      PORT(S)          AGE
+...
 inception   LoadBalancer   10.35.255.136   ww.xx.yy.zz   9000:30936/TCP   28m
+...
 ```
 
 In this example, you should be able to use the inception_client to hit ww.xx.yy.zz:9000
