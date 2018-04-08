@@ -100,7 +100,7 @@ make push PROJECT_ID=foo
 Images published under in the [Jupyter docker-stacks repo](https://github.com/jupyter/docker-stacks)
 should work directly with the Hub. The only requirements for the Jupyter
 notebook images that may be used with this instance of Hub is
-that notebook images must have the same version of JupyterHub must be installed
+that notebook images must have the same version of JupyterHub installed
 (0.8.1 by default), and there must be a standard `start-singleuser.sh` accessible
 via the default `PATH`.
 
