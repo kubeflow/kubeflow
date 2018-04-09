@@ -23,15 +23,8 @@
         namespace: namespace,
       },
       spec: {
-        replicas: 1,
-        selector: {
-          matchLabels: {
-            app: "centraldashboard",
-          },
-        },
         template: {
           metadata: {
-            creationTimestamp: null,
             labels: {
               app: "centraldashboard",
             },
@@ -39,36 +32,16 @@
           spec: {
             containers: [
               {
-                env: [
+                image: "swiftdiaries/centraldashboard:0.3",
+                name: "centraldashboard",
+                ports: [
                   {
-                    name: "CENTRALDASHBOARD_NAMESPACE",
-                    valueFrom: {
-                      fieldRef: {
-                        apiVersion: "v1",
-                        fieldPath: "metadata.namespace",
-                      },
-                    },
-                  },
-                  {
-                    name: "IN_CLUSTER",
-                    value: "true",
+                    containerPort: 8082,
                   },
                 ],
-                image: "swiftdiaries/centraldashboard:0.1",
-                imagePullPolicy: "IfNotPresent",
-                name: "centraldashboard",
-                resources: {},
-                terminationMessagePath: "/dev/termination-log",
-                terminationMessagePolicy: "File",
               },
             ],
-            dnsPolicy: "ClusterFirst",
-            restartPolicy: "Always",
-            schedulerName: "default-scheduler",
-            securityContext: {},
-            serviceAccount: "centraldashboard",
             serviceAccountName: "centraldashboard",
-            terminationGracePeriodSeconds: 30,
           },
         },
       },
@@ -83,11 +56,23 @@
         },
         name: "centraldashboard",
         namespace: namespace,
+        annotations: {
+          "getambassador.io/config":
+            std.join("\n", [
+              "---",
+              "apiVersion: ambassador/v0",
+              "kind:  Mapping",
+              "name: centralui-mapping",
+              "prefix: /",
+              "rewrite: /",
+              "service: centraldashboard." + namespace,
+            ]),
+        }, //annotations
       },
       spec: {
         ports: [
           {
-            port: 8082,
+            port: 80,
             targetPort: 8082,
           },
         ],
@@ -103,6 +88,9 @@
       apiVersion: "v1",
       kind: "ServiceAccount",
       metadata: {
+        labels: {
+          app: "centraldashboard",
+        },
         name: "centraldashboard",
         namespace: namespace,
       },
