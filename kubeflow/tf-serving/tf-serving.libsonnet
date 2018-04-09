@@ -9,6 +9,8 @@
     modelName: $.params.name,
     modelPath: null,
 
+    deployIstio: true,
+
     deployHttpProxy: false,
     defaultHttpProxyImage: "gcr.io/kubeflow-images-staging/tf-model-server-http-proxy:v20180327-995786ec",
     httpProxyImage: "",
@@ -101,6 +103,8 @@
   }.all,
 
   parts:: {
+    istio:: import "istio.libsonnet",
+
     // We define the containers one level beneath parts because combined with jsonnet late binding
     // this makes it easy for users to override specific bits of the container.
     tfServingContainerBase:: {
@@ -129,6 +133,10 @@
           memory: "4Gi",
           cpu: "4",
         },
+      },
+      securityContext: {
+        runAsUser: 1000,
+        fsGroup: 1000,
       },
     },  // tfServingContainer
 
@@ -171,6 +179,10 @@
           cpu: "4",
         },
       },
+      securityContext: {
+        runAsUser: 1000,
+        fsGroup: 1000,
+      },
     },  // httpProxyContainer
 
 
@@ -193,13 +205,6 @@
               if $.params.deployHttpProxy then
                 $.parts.httpProxyContainer,
             ],
-            // See:  https://github.com/kubeflow/kubeflow/tree/master/components/k8s-model-server#set-the-user-optional
-            // The is user and group should be defined in the Docker image.
-            // Per best practices we don't run as the root user.
-            securityContext: {
-              runAsUser: 1000,
-              fsGroup: 1000,
-            },
           },
         },
       },
@@ -237,12 +242,12 @@
       spec: {
         ports: [
           {
-            name: "tf-serving",
+            name: "grpc-tf-serving",
             port: 9000,
             targetPort: 9000,
           },
           {
-            name: "tf-serving-proxy",
+            name: "http-tf-serving-proxy",
             port: 8000,
             targetPort: 8000,
           },
@@ -313,6 +318,8 @@
               $.gcpParts.tfServingContainer,
               if $.params.httpProxyImage != 0 then
                 $.parts.httpProxyContainer,
+              if $.params.deployIstio then
+                $.parts.istio.sidecarContainer,
             ],
 
             volumes: [
@@ -323,7 +330,25 @@
                     secretName: $.gcpParams.gcpCredentialSecretName,
                   },
                 },
+              if $.params.deployIstio then
+                {
+                  emptyDir: {medium: "Memory"},
+                  name: "istio-envoy",
+                },
+              if $.params.deployIstio then
+                {
+                  name: "istio-certs",
+                  secret: {
+                    optional: true,
+                    secretName: "istio.default",
+                  },
+                },
             ],
+            initContainers: if $.params.deployIstio then
+              [
+                $.parts.istio.initContainerIstio,
+                $.parts.istio.initContainerCoredump,
+              ],
           },
         },
       },
