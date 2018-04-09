@@ -456,7 +456,7 @@ minikube start --cpus 4 --memory 8096 --disk-size=40g
   * Minikube by default allocates 2048Mb of RAM for its VM which is not enough
     for JupyterHub.
   * The larger disk is needed to accomodate Kubeflow's Jupyter images which
-    are 10s of GBs.
+    are 10s of GBs due to all the extra Python libraries we include.
 
 If you encounter a jupyter-xxxx pod in Pending status, described with:
 ```
