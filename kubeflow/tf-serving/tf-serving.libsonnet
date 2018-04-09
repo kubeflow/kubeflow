@@ -332,7 +332,7 @@
                     secretName: $.gcpParams.gcpCredentialSecretName,
                   },
                 },
-              if $.params.deployIstio then
+              if $.util.toBool($.params.deployIstio) then
                 {
                   emptyDir: {medium: "Memory"},
                   name: "istio-envoy",
