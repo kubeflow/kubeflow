@@ -109,7 +109,7 @@ ks param set kubeflow-core usageId $(uuidgen)
 ks apply default -c kubeflow-core
 ```
 
-If the deployment is on a standalone cluster i.e. without access to a loadbalancer, then we need these two lines to access the Jupyter notebook: 
+If the deployment is on a single Kubernetes node (e.g. on an on-premise machine) without access to a loadbalancer, then we need these two lines to access the Jupyter notebook: 
 ```commandline
 # Expose port for the Jupyter service
 ks param set kubeflow-core jupyterHubServiceType NodePort
