@@ -9,7 +9,7 @@ This guide will walk you through the basics of deploying and interacting with Ku
 ## Requirements
  * Kubernetes >= 1.8 [see here](https://github.com/kubeflow/tf-operator#requirements)
  * ksonnet version [0.9.2](https://ksonnet.io/#get-started) or later. (See [below](#why-kubeflow-uses-ksonnet) for an explanation of why we use ksonnet)
-
+ * An existing 2-node (at least) kubernate cluster. Nodes need to have storage >= 20 GB due to the ML libraries and third party packages being bundled in Kubeflow Docker images 
 ## Deploy Kubeflow
 
 We will be using Ksonnet to deploy kubeflow into your cluster.
