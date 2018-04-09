@@ -35,6 +35,10 @@ docker run -ti \
 
 /opt/kubeflow/bootstraper --app-dir=${APP_DIR}
 
+# (Optional) enable usage reporting
+ks param set kubeflow-core reportUsage true
+ks param set kubeflow-core usageId $(uuidgen)
+
 # To deploy it
 cd ${APP_DIR}
 ks apply default
