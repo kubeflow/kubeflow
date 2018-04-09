@@ -1,4 +1,6 @@
 {
+  util:: import "kubeflow/tf-serving/util.libsonnet",
+
   // Parameters are intended to be late bound.
   params:: {
     name: null,
@@ -9,7 +11,7 @@
     modelName: $.params.name,
     modelPath: null,
 
-    deployIstio: true,
+    deployIstio: false,
 
     deployHttpProxy: false,
     defaultHttpProxyImage: "gcr.io/kubeflow-images-staging/tf-model-server-http-proxy:v20180327-995786ec",
@@ -103,7 +105,7 @@
   }.all,
 
   parts:: {
-    istio:: import "istio.libsonnet",
+    istio:: import "kubeflow/tf-serving/istio.libsonnet",
 
     // We define the containers one level beneath parts because combined with jsonnet late binding
     // this makes it easy for users to override specific bits of the container.
@@ -202,7 +204,7 @@
           spec: {
             containers: [
               $.parts.tfServingContainer,
-              if $.params.deployHttpProxy then
+              if $.util.toBool($.params.deployHttpProxy) then
                 $.parts.httpProxyContainer,
             ],
           },
@@ -282,7 +284,7 @@
           spec: +{
             containers: [
               $.s3parts.tfServingContainer,
-              if $.params.httpProxyImage != 0 then
+              if $.util.toBool($.params.deployHttpProxy) then
                 $.parts.httpProxyContainer,
             ],
           },
@@ -316,9 +318,9 @@
           spec+: {
             containers: [
               $.gcpParts.tfServingContainer,
-              if $.params.httpProxyImage != 0 then
+              if $.util.toBool($.params.deployHttpProxy) then
                 $.parts.httpProxyContainer,
-              if $.params.deployIstio then
+              if $.util.toBool($.params.deployIstio) then
                 $.parts.istio.sidecarContainer,
             ],
 
