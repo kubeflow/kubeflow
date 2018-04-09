@@ -18,7 +18,6 @@
     $.parts(params, env).pachydService,
     $.parts(params, env).etcd,
     $.parts(params, env).pachyd,
-    $.parts(params, env).dash,
   ],
 
   // Parts should be a dictionary containing jsonnet representations of the various
@@ -443,78 +442,5 @@
         },
       },
     },  // pachd
-
-    dash:: {
-      kind: "Deployment",
-      apiVersion: "apps/v1beta1",
-
-      metadata: {
-        labels: {
-          app: "dash",
-          suite: "pachyderm",
-        },
-        name: "dash",
-        namespace: namespace,
-      },
-
-      spec: {
-        replicas: 1,
-        selector: {
-          matchLabels: {
-            app: "dash",
-            suite: "pachyderm",
-          },
-        },
-        strategy: {},
-        template: {
-          metadata: {
-            labels: {
-              app: "dash",
-              suite: "pachyderm",
-            },
-            name: "dash",
-            namespace: namespace,
-          },
-          spec: {
-            containers:
-              [
-                {
-                  name: "dash",
-                  image: "pachyderm/dash:1.7-preview-8",
-                  env: [
-                    {
-                      name: "DASH_SERVICE_HOST",
-                      valueFrom: {
-                        fieldRef: {
-                          fieldPath: "metadata.name",
-                        },
-                      },
-                    },
-                  ],
-                  ports: [
-                    {
-                      ContainerPort: 8080,
-                      Name: "dash-http",
-                    },
-                  ],
-                  imagePullPolicy: "IfNotPresent",
-                },
-                {
-                  name: "grpc-proxy",
-                  image: "pachyderm/grpc-proxy:0.4.2",
-                  ports: [
-                    {
-                      ContainerPort: 8081,
-                      Name: "grpc-proxy-http",
-                    },
-                  ],
-                  ImagePullPolicy: "IfNotPresent",
-                },
-              ],  // containers
-          },  // spec
-        },  // template
-      },  // spec
-    },  // dash
-
   },  // parts
 }
