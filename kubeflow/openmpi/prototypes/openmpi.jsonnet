@@ -12,10 +12,4 @@
 local k = import "k.libsonnet";
 local openmpi = import "kubeflow/openmpi/all.libsonnet";
 
-// updatedParams uses the environment namespace if
-// the namespace parameter is not explicitly set
-local updatedParams = params {
-  namespace: if params.namespace == "null" then env.namespace else params.namespace,
-};
-
-std.prune(k.core.v1.list.new(openmpi.all(updatedParams)))
+std.prune(k.core.v1.list.new(openmpi.parts(params, env).all))

@@ -36,7 +36,7 @@ ks pkg install kubeflow/openmpi@${VERSION}
 mkdir -p .tmp
 yes | ssh-keygen -N "" -f .tmp/id_rsa
 PUBKEY=$(cat .tmp/id_rsa.pub | base64)
-PRIKEY=`cat .tmp/id_rsa | base64`
+PRIKEY=$(cat .tmp/id_rsa | base64)
 rm -rf .tmp
 
 # Generate openmpi components

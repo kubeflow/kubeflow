@@ -43,11 +43,6 @@
                 name: "openmpi-assets",
                 items: [
                   {
-                    key: "gen_hostfile.sh",
-                    path: "gen_hostfile.sh",
-                    mode: 365,
-                  },
-                  {
                     key: "init.sh",
                     path: "init.sh",
                     mode: 365,

@@ -12,12 +12,7 @@
       "authorized_keys": params.pubkey,
       "id_rsa": params.prikey,
       "id_rsa.pub": params.pubkey,
-      "config": std.base64(|||
-        StrictHostKeyChecking no
-        IdentityFile /root/.ssh/id_rsa
-        Port 2022
-        UserKnownHostsFile=/dev/null
-      |||),
+      "config": std.base64(importstr "assets/ssh_config"),
     },
     type: "Opaque",
   },

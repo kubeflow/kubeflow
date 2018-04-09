@@ -52,6 +52,9 @@
           command: [
             "sh",
             "/kubeflow/openmpi/assets/gen_hostfile.sh",
+            params.name,
+            params.namespace,
+            std.toString(params.workers),
           ],
           volumeMounts: [
             {
