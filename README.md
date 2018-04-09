@@ -53,6 +53,8 @@ This documentation assumes you have a Kubernetes cluster already available.
 
 If you need help setting up a Kubernetes cluster please refer to [Kubernetes Setup](https://kubernetes.io/docs/setup/).
 
+  * Minikube users please check these [instructions](user_guide.md#minikube)
+
 If you want to use GPUs, be sure to follow the Kubernetes [instructions for enabling GPUs](https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/).
 
 ## Quick Start
