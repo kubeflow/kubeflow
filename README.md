@@ -109,6 +109,13 @@ ks param set kubeflow-core usageId $(uuidgen)
 ks apply default -c kubeflow-core
 ```
 
+If the deployment is on a standalone cluster i.e. without access to a loadbalancer, then we need these two lines to access the Jupyter notebook: 
+```commandline
+# Expose port for the Jupyter service
+ks param set kubeflow-core jupyterHubServiceType NodePort
+ks apply default
+```
+
 The above command sets up JupyterHub and a custom resource for running TensorFlow training jobs. Furthermore, the ksonnet packages
 provide prototypes that can be used to configure TensorFlow jobs and deploy TensorFlow models.
 Used together, these make it easy for a user go from training to serving using Tensorflow with minimal
