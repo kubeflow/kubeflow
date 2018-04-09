@@ -337,7 +337,7 @@
                   emptyDir: {medium: "Memory"},
                   name: "istio-envoy",
                 },
-              if $.params.deployIstio then
+              if $.util.toBool($.params.deployIstio) then
                 {
                   name: "istio-certs",
                   secret: {
@@ -346,7 +346,7 @@
                   },
                 },
             ],
-            initContainers: if $.params.deployIstio then
+            initContainers: if $.util.toBool($.params.deployIstio) then
               [
                 $.parts.istio.initContainerIstio,
                 $.parts.istio.initContainerCoredump,
