@@ -486,14 +486,14 @@ how RBAC interacts with IAM on GCP.
 
 ### Problems spawning Jupyter pods
 
-If you're having trouble spawning Jupyter notebooks; check that the pod is getting
+If you're having trouble spawning jupyter notebooks, check that the pod is getting
 scheduled
 
 ```
 kubectl -n ${NAMESPACE} get pods
 ```
 
-  * Look for pods whose name starts with Juypter
+  * Look for pods whose name starts with juypter
   * If you are using username/password auth with Jupyter the pod will be named
 
   ```
