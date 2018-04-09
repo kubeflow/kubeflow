@@ -49,8 +49,6 @@ ks param set kubeflow-core reportUsage true
 ks param set kubeflow-core usageId $(uuidgen)
 ```
 
-
-
 Ksonnet allows us to parameterize the Kubeflow deployment according to our needs. We will define two environments: nocloud, and cloud.
 
 
@@ -86,10 +84,26 @@ Now let's set `${KF_ENV}` to `cloud` or `nocloud` to reflect our environment for
 $ KF_ENV=cloud|nocloud
 ```
 
-By default Kubeflow does not persist any work that is done within the Jupyter notebook. That means if the container is destroyed or recreated, all of its contents, including users working notebooks and other files are going to be deleted. To enable the persistence of such files, the user will need to have a default StorageClass defined for [persistent volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/). If that is defined, persistence can be enabled by setting jupyterNotebookPVCMount to the available volume mount.
+
+* By default Kubeflow does not persist any work that is done within the Jupyter notebook. 
+* If the container is destroyed or recreated, all of its contents, including users working notebooks and other files are going to be deleted. 
+* To enable the persistence of such files, the user will need to have a default StorageClass defined for [persistent volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/). 
+* You can run the following command to check if you have a storage class
+
 ```
-ks param set kubeflow-core jupyterNotebookPVCMount /home/jovyan/work
-```
+kubectl get storageclass
+```  
+* Users with a default storage class defined can use the jupyterNotebookPVCMount
+  parameter to create a volume that will be mounted within the notebook
+
+  ```
+  ks param set kubeflow-core jupyterNotebookPVCMount /home/jovyan/work
+  ```
+
+  * Here we mount the volume at `/home/jovyan/work` because the notebook
+    always executes as user jovyan
+  * The selected directory will be stored on whatever storage is the default
+    for the cluster (typically some form of persistent disk)
 
 Create a namespace for your deployment and set it as part of the environment. Feel free to change the namespace to a value that better suits your kubernetes cluster.
 
@@ -150,9 +164,10 @@ The kubeflow-core component deployed JupyterHub and a corresponding load balance
 kubectl get svc -n=${NAMESPACE}
 
 NAME               TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+...
 tf-hub-0           ClusterIP      None            <none>        8000/TCP       1m
 tf-hub-lb          ClusterIP      10.11.245.94    <none>        80/TCP         1m
-tf-job-dashboard   ClusterIP      10.11.240.151   <none>        80/TCP         1m
+...
 ```
 
 By default we are using ClusterIPs for the JupyterHub UI. This can be changed to a LoadBalancer by issuing `ks param set kubeflow-core jupyterHubServiceType LoadBalancer`, however this will leave your Jupyter Notebook open to the Internet.
@@ -177,7 +192,26 @@ You should see a sign in prompt.
     `kubectl get nodes "-o=custom-columns=NAME:.metadata.name,GPU:.status.allocatable.nvidia\.com/gpu"`
     * If you have GPUs available, you can schedule your server on a GPU node by specifying the following json in `Extra Resource Limits` section: `{"nvidia.com/gpu": "1"}`
   1. Click Spawn
-1. You should now be greeted with a Jupyter Notebook interface. Note that the GPU image is several gigabytes in size and may take a few minutes to download and start.
+
+      * The images are 10's of GBs in size and can take a long time to download
+        depending on your network connection
+
+      * You can check the status of your pod by doing
+
+        ```
+        kubectl -n ${NAMESPACE} describe pods jupyter-${USERNAME}
+        ```
+
+          * Where ${USERNAME} is the name you used to login
+          * **GKE users** if you have IAP turned on the pod will be named differently
+
+            * If you signed on as USER@DOMAIN.EXT the pod will be named
+
+            ```
+            jupyter-accounts-2egoogle-2ecom-3USER-40DOMAIN-2eEXT 
+            ```
+
+1. You should now be greeted with a Jupyter Notebook interface. 
 
 The image supplied above can be used for training Tensorflow models with Jupyter. The images include all the requisite plugins, including [Tensorboard](https://www.tensorflow.org/get_started/summaries_and_tensorboard) that you can use for rich visualizations and insights into your models.
 
@@ -243,7 +277,9 @@ As before, a few pods and services have been created in your cluster. You can ge
 ```
 kubectl get svc inception -n=${NAMESPACE}
 NAME        TYPE           CLUSTER-IP      EXTERNAL-IP      PORT(S)          AGE
+...
 inception   LoadBalancer   10.35.255.136   ww.xx.yy.zz   9000:30936/TCP   28m
+...
 ```
 
 In this example, you should be able to use the inception_client to hit ww.xx.yy.zz:9000
@@ -411,14 +447,22 @@ tmpfs                                                           15444244       0
 On [Minikube](https://github.com/kubernetes/minikube) the Virtualbox/VMware drivers for Minikube are recommended as there is a known
 issue between the KVM/KVM2 driver and TensorFlow Serving. The issue is tracked in [kubernetes/minikube#2377](https://github.com/kubernetes/minikube/issues/2377).
 
-Minikube by default allocates 2048Mb of RAM for its VM, however that may not align with the starting parameters for the JupyterHub server noted above. If you encounter a jupyter-xxxx pod in Pending status, described with:
+We recommend increasing the amount of resources Minikube allocates
+
+```
+minikube start --cpus 4 --memory 8096 --disk-size=40g
+```
+
+  * Minikube by default allocates 2048Mb of RAM for its VM which is not enough
+    for JupyterHub.
+  * The larger disk is needed to accomodate Kubeflow's Jupyter images which
+    are 10s of GBs due to all the extra Python libraries we include.
+
+If you encounter a jupyter-xxxx pod in Pending status, described with:
 ```
 Warning  FailedScheduling  8s (x22 over 5m)  default-scheduler  0/1 nodes are available: 1 Insufficient memory.
 ```
-then try recreating your Minikube cluster (and re-apply Kubeflow using Ksonnet) with more resources (as your environment allows):
-```
-minikube start --cpus 4 --memory 8096
-```
+  * Then try recreating your Minikube cluster (and re-apply Kubeflow using Ksonnet) with more resources (as your environment allows):
 
 ### RBAC clusters
 
@@ -439,6 +483,40 @@ kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --us
 
 If you're using GKE, you may want to refer to [GKE's RBAC docs](https://cloud.google.com/kubernetes-engine/docs/how-to/role-based-access-control) to understand
 how RBAC interacts with IAM on GCP.
+
+### Problems spawning Jupyter pods
+
+If you're having trouble spawning jupyter notebooks, check that the pod is getting
+scheduled
+
+```
+kubectl -n ${NAMESPACE} get pods
+```
+
+  * Look for pods whose name starts with juypter
+  * If you are using username/password auth with Jupyter the pod will be named
+
+  ```
+  jupyter-${USERNAME}
+  ```
+
+  * If you are using IAP on GKE the pod will be named
+
+    ```
+    jupyter-accounts-2egoogle-2ecom-3USER-40DOMAIN-2eEXT 
+    ```
+
+    * Where USER@DOMAIN.EXT is the Google account used with IAP
+
+Once you know the name of the pod do
+
+```
+kubectl -n ${NAMESPACE} describe pods ${PODNAME}
+```
+
+  * Look at the events to see if there are any errors trying to schedule the pod
+  * One common error is not being able to schedule the pod because there aren't
+    enough resources in the cluster.
 
 ### OpenShift
 If you are deploying Kubeflow in an [OpenShift](https://github.com/openshift/origin) environment which encapsulates Kubernetes, you will need to adjust the security contexts for the ambassador and jupyter-hub deployments in order to get the pods to run.

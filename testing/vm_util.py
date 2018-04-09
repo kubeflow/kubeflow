@@ -76,8 +76,9 @@ def wait_for_vm(project, zone, vm, timeout=datetime.timedelta(minutes=5),
     
     if datetime.datetime.now() > endtime:
       raise util.TimeoutError(
-        ("Timed out waiting for VM to %s be sshable. Check firewall rules "
+        ("Timed out waiting for VM to {0} be sshable. Check firewall rules "
          "aren't blocking ssh.").format(vm))
+
     time.sleep(polling_interval.total_seconds())
      
 def execute(project, zone, vm, commands):
