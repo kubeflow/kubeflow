@@ -12,6 +12,7 @@
     modelPath: null,
 
     deployIstio: false,
+    istioEgressIpRange: "10.4.0.0/14,10.7.240.0/20",
 
     deployHttpProxy: false,
     defaultHttpProxyImage: "gcr.io/kubeflow-images-staging/tf-model-server-http-proxy:v20180327-995786ec",
@@ -348,7 +349,7 @@
             ],
             initContainers: if $.util.toBool($.params.deployIstio) then
               [
-                $.parts.istio.initContainerIstio,
+                $.parts.istio.initContainerIstio($.params.istioEgressIpRange),
                 $.parts.istio.initContainerCoredump,
               ],
           },

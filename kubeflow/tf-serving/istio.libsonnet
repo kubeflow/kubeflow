@@ -75,14 +75,14 @@
     ],
   },
 
-  initContainerIstio:: {
+  initContainerIstio(ipRange):: {
     args: [
       "-p",
       "15001",
       "-u",
       "1337",
       "-i",
-      "10.4.0.0/14,10.7.240.0/20",
+      ipRange,
     ],
     image: "docker.io/istio/proxy_init:0.7.1",
     imagePullPolicy: "IfNotPresent",
