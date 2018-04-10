@@ -20,8 +20,8 @@ Currently it's for GCP only.
 After installing Istio, we can deploy the TF Serving component as in [README](README.md) with
 additional params:
 ```
-ks param set --env=cloud2 inception2 cloud gcp
-ks param set --env=cloud2 inception2 deployIstio true
+ks param set --env=cloud ${MODEL_COMPONENT} cloud gcp
+ks param set --env=cloud ${MODEL_COMPONENT} deployIstio true
 ```
 
 This will inject an istio sidecar in the TF serving deployment.
@@ -34,8 +34,9 @@ Execute the command:
 kubectl -n istio-system port-forward $(kubectl -n istio-system get pod -l app=grafana -o jsonpath='{.items[0].metadata.name}') 3000:3000 &
 ```
 Visit http://localhost:3000/dashboard/db/istio-dashboard in your web browser.
-Send some requests to the TF serving service, then there should be some data like
+Send some requests to the TF serving service, then there should be some data (QPS, success rate, latency) like
 ![istio dashboard](istio-dashboard.png)
+
 
 #### Define and view metrics
 See istio [doc](https://istio.io/docs/tasks/telemetry/metrics-logs.html).
