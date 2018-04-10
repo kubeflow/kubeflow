@@ -1,0 +1,22 @@
+RUNTIME ERROR: max stack frames exceeded.
+	error.array_recursive_manifest.jsonnet:17:12	thunk <array_element>
+	error.array_recursive_manifest.jsonnet:17:12	thunk <array_element>
+	error.array_recursive_manifest.jsonnet:17:12	thunk <array_element>
+	error.array_recursive_manifest.jsonnet:17:12	thunk <array_element>
+	error.array_recursive_manifest.jsonnet:17:12	thunk <array_element>
+	error.array_recursive_manifest.jsonnet:17:12	thunk <array_element>
+	error.array_recursive_manifest.jsonnet:17:12	thunk <array_element>
+	error.array_recursive_manifest.jsonnet:17:12	thunk <array_element>
+	error.array_recursive_manifest.jsonnet:17:12	thunk <array_element>
+	error.array_recursive_manifest.jsonnet:17:12	thunk <array_element>
+	...
+	error.array_recursive_manifest.jsonnet:17:12	thunk <array_element>
+	error.array_recursive_manifest.jsonnet:17:12	thunk <array_element>
+	error.array_recursive_manifest.jsonnet:17:12	thunk <array_element>
+	error.array_recursive_manifest.jsonnet:17:12	thunk <array_element>
+	error.array_recursive_manifest.jsonnet:17:12	thunk <array_element>
+	error.array_recursive_manifest.jsonnet:17:12	thunk <array_element>
+	error.array_recursive_manifest.jsonnet:17:12	thunk <array_element>
+	error.array_recursive_manifest.jsonnet:17:12	thunk <array_element>
+	error.array_recursive_manifest.jsonnet:17:12	thunk <array_element>
+	During manifestation	

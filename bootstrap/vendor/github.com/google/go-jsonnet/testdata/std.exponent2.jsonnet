@@ -1,0 +1,1 @@
+std.exponent(42)

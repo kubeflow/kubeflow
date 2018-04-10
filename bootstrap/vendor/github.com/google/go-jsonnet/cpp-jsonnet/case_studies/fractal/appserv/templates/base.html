@@ -1,0 +1,39 @@
+<!doctype html public "-//w3c//dtd xhtml 1.0 strict//en"
+"http://www.w3.org/tr/xhtml1/dtd/xhtml1-strict.dtd">
+<html>
+
+<head>
+  <title>Mandelbrot Viewer</title>
+  <link rel=stylesheet type=text/css href="/static/style.css" />
+</head>
+
+<body>
+
+    <div id=left>
+
+        <p id=banner>
+            Mandelbrot Set Viewer
+        </p>
+
+        <p id=instructions>
+              {% block instructions %}
+              {% endblock %}
+        </p>
+
+        <div id=discoveries>
+            {% block discoveries %}
+            {% endblock %}
+        </div>
+
+    </div>
+
+    <div id=right>
+        {% block page %}
+        {% endblock %}
+    </div>
+
+
+</body>
+
+</html>
+

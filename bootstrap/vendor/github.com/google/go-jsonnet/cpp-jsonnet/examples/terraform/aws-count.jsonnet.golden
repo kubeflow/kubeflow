@@ -1,0 +1,57 @@
+{
+   "output": {
+      "address": {
+         "value": "Instances: ${aws_instance.web-1.id}, ${aws_instance.web-2.id}, ${aws_instance.web-3.id}, ${aws_instance.web-4.id}"
+      }
+   },
+   "provider": {
+      "aws": {
+         "access_key": "XXX",
+         "region": "us-east-1",
+         "secret_key": "YYY"
+      }
+   },
+   "resource": {
+      "aws_elb": {
+         "web": {
+            "availability_zones": [
+               "${aws_instance.web-1.availability_zone}",
+               "${aws_instance.web-2.availability_zone}",
+               "${aws_instance.web-3.availability_zone}",
+               "${aws_instance.web-4.availability_zone}"
+            ],
+            "instances": [
+               "${aws_instance.web-1.id}",
+               "${aws_instance.web-2.id}",
+               "${aws_instance.web-3.id}",
+               "${aws_instance.web-4.id}"
+            ],
+            "listener": {
+               "instance_port": 80,
+               "instance_protocol": "http",
+               "lb_port": 80,
+               "lb_protocol": "http"
+            },
+            "name": "terraform-example-elb"
+         }
+      },
+      "aws_instance": {
+         "web-1": {
+            "ami": "ami-de7ab6b6",
+            "instance_type": "m1.small"
+         },
+         "web-2": {
+            "ami": "ami-de7ab6b6",
+            "instance_type": "m1.small"
+         },
+         "web-3": {
+            "ami": "ami-de7ab6b6",
+            "instance_type": "m1.small"
+         },
+         "web-4": {
+            "ami": "ami-de7ab6b6",
+            "instance_type": "m1.small"
+         }
+      }
+   }
+}

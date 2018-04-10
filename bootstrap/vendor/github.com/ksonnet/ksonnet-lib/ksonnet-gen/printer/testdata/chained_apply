@@ -1,0 +1,1 @@
+di.withFoo(foo).withBar(bar)

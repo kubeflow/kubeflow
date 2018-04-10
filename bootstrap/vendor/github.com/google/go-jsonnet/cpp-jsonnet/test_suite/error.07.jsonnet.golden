@@ -1,0 +1,5 @@
+RUNTIME ERROR: sarcasm
+	error.07.jsonnet:18:31-46	thunk <array_element>
+	error.07.jsonnet:17:29-35	function <third>
+	error.07.jsonnet:18:15-54	thunk <toxic>
+	error.07.jsonnet:19:1-6	

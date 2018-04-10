@@ -1,0 +1,10 @@
+RUNTIME ERROR: Unexpected type function, expected number
+-------------------------------------------------
+	testdata/plus5:1:1-19	$
+
+42 + function() 42
+
+-------------------------------------------------
+	During evaluation	
+
+

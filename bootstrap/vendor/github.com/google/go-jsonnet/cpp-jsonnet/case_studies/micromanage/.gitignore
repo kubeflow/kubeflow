@@ -1,0 +1,3 @@
+tests/testenv.libsonnet
+examples/test_google.jsonnet
+examples/test_amazon.jsonnet

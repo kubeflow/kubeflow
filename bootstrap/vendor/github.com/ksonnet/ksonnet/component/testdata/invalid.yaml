@@ -1,0 +1,2 @@
+apiVersion: invalid/v1
+kind: Invalid

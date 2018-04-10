@@ -1,0 +1,5 @@
+testdata/insuper6:1:10-20 Unknown variable: undeclared
+
+{ assert undeclared in super }
+
+

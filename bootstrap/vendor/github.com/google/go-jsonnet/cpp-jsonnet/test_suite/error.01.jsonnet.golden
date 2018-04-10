@@ -1,0 +1,5 @@
+RUNTIME ERROR: foo
+	error.01.jsonnet:17:29-40	function <bananas>
+	error.01.jsonnet:18:29-39	function <oranges>
+	error.01.jsonnet:19:28-38	function <apples>
+	error.01.jsonnet:20:1-10	

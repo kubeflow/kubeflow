@@ -1,0 +1,1 @@
+STATIC ERROR: lib/static_check_failure.jsonnet:2:1: Unknown variable: x

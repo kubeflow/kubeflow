@@ -1,0 +1,3 @@
+RUNTIME ERROR: Object assertion failed.
+	error.invariant.simple.jsonnet:18:10-15	thunk <object_assert>
+	During manifestation	

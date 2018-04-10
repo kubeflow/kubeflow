@@ -1,0 +1,22 @@
+RUNTIME ERROR: max stack frames exceeded.
+	error.recursive_import.jsonnet:17:15-54	thunk <import>
+	error.recursive_import.jsonnet:17:15-54	thunk <import>
+	error.recursive_import.jsonnet:17:15-54	thunk <import>
+	error.recursive_import.jsonnet:17:15-54	thunk <import>
+	error.recursive_import.jsonnet:17:15-54	thunk <import>
+	error.recursive_import.jsonnet:17:15-54	thunk <import>
+	error.recursive_import.jsonnet:17:15-54	thunk <import>
+	error.recursive_import.jsonnet:17:15-54	thunk <import>
+	error.recursive_import.jsonnet:17:15-54	thunk <import>
+	error.recursive_import.jsonnet:17:15-54	thunk <import>
+	...
+	error.recursive_import.jsonnet:17:15-54	thunk <import>
+	error.recursive_import.jsonnet:17:15-54	thunk <import>
+	error.recursive_import.jsonnet:17:15-54	thunk <import>
+	error.recursive_import.jsonnet:17:15-54	thunk <import>
+	error.recursive_import.jsonnet:17:15-54	thunk <import>
+	error.recursive_import.jsonnet:17:15-54	thunk <import>
+	error.recursive_import.jsonnet:17:15-54	thunk <import>
+	error.recursive_import.jsonnet:17:15-54	thunk <import>
+	error.recursive_import.jsonnet:17:15-54	thunk <import>
+	error.recursive_import.jsonnet:17:15-54	

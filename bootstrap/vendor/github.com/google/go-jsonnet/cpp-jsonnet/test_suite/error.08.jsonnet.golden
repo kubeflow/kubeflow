@@ -1,0 +1,2 @@
+RUNTIME ERROR: {"a": 1, "b": 2, "c": 3}
+	error.08.jsonnet:18:1-8	

@@ -1,0 +1,80 @@
+{
+   "output": {
+      "address": {
+         "value": "${aws_elb.web.dns_name}"
+      }
+   },
+   "provider": {
+      "aws": {
+         "access_key": "XXX",
+         "region": "us-east-1",
+         "secret_key": "YYY"
+      }
+   },
+   "resource": {
+      "aws_elb": {
+         "web": {
+            "availability_zones": [
+               "${aws_instance.web.availability_zone}"
+            ],
+            "instances": [
+               "${aws_instance.web.id}"
+            ],
+            "listener": {
+               "instance_port": 80,
+               "instance_protocol": "http",
+               "lb_port": 80,
+               "lb_protocol": "http"
+            },
+            "name": "terraform-example-elb"
+         }
+      },
+      "aws_instance": {
+         "web": {
+            "ami": "ami-de7ab6b6",
+            "connection": {
+               "key_file": "key_path",
+               "user": "ubuntu"
+            },
+            "instance_type": "m1.small",
+            "key_name": "key_name",
+            "provisioner": {
+               "remote-exec": {
+                  "inline": [
+                     "sudo apt-get -y update",
+                     "sudo apt-get -y install nginx",
+                     "sudo service nginx start"
+                  ]
+               }
+            },
+            "security_groups": [
+               "terraform_example"
+            ]
+         }
+      },
+      "aws_security_group": {
+         "default": {
+            "description": "Used in the terraform",
+            "ingress": [
+               {
+                  "cidr_blocks": [
+                     "0.0.0.0/0"
+                  ],
+                  "from_port": 22,
+                  "protocol": "tcp",
+                  "to_port": 22
+               },
+               {
+                  "cidr_blocks": [
+                     "0.0.0.0/0"
+                  ],
+                  "from_port": 80,
+                  "protocol": "tcp",
+                  "to_port": 80
+               }
+            ],
+            "name": "terraform_example"
+         }
+      }
+   }
+}

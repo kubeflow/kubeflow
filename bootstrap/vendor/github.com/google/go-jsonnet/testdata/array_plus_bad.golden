@@ -1,0 +1,10 @@
+RUNTIME ERROR: Unexpected type number, expected array
+-------------------------------------------------
+	testdata/array_plus_bad:1:1-8	$
+
+[] + 42
+
+-------------------------------------------------
+	During evaluation	
+
+

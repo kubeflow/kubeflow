@@ -1,0 +1,18 @@
+apiVersion: 0.1.0
+environments:
+  env-name:
+    destination:
+      namespace: new-namespace
+      server: http://127.0.0.1
+    k8sVersion: v1.7.0
+    path: env-name
+kind: ksonnet.io/app
+name: app
+registries:
+  kubeflow:
+    gitVersion:
+      commitSha: 0003d9730d3300aa0aaeb5ebe6152dcf4f73fea9
+      refSpec: v0.1.0-rc.3
+    protocol: github
+    uri: github.com/kubeflow/kubeflow/tree/v0.1.0-rc.3/kubeflow
+version: 0.0.1

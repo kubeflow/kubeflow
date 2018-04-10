@@ -1,0 +1,63 @@
+---
+layout: default
+---
+
+<p>Jsonnet is a domain specific configuration language that helps you define <a
+href="http://www.json.org">JSON</a> data.  Jsonnet lets you compute fragments of JSON within the
+structure, bringing the same benefit to structured data that templating languages bring to plain
+text.  The example below illustrates a few
+features -- referring to another part of the structure, overriding object fields, and string
+operations.</p>
+
+<table class="landing-page-example" cellspacing="0">
+<tr>
+<td>
+<pre class="large"><code>{% include examples/landingpage.jsonnet %}</code></pre>
+</td>
+<td>
+<span class="bigarrow">➡</span>
+</td>
+<td>
+<pre class="large"><code>{% include examples/landingpage.jsonnet.golden %}</code></pre>
+</td>
+</tr>
+</table>
+
+<p>Use Jsonnet to organize your JSON data, or to help your users organize the data they send to you.
+It is easy to integrate Jsonnet's library or commandline interpreter into existing systems that take
+JSON or <a href="http://www.yaml.org">YAML</a>.  Some example situations are application
+configuration (files in etc), build systems, package definitions, configuration management systems,
+and cloud deployment agents.</p>
+
+<h2 id="variants">Variants</h2>
+
+<p>Jsonnet is ideal when you need to derive new data from existing data with subtle changes.
+This was hinted at in the above example.  A more comprehensive illustration is the simple build
+configuration below.  An object <code>CCompiler</code> is defined, which is then specialized for GCC
+and Clang.  These are used to help construct an array of build targets.</p>
+
+<p>Note the example <a href="http://www.bracha.org/oopsla90.pdf">mixins</a> <code>Opt</code> and
+<code>Dbg</code> that can be applied to add optimization flags.  Mixins are the ultimate form of
+inheritance, as they can be combined arbitrarily via the <code>+</code> operator.  In simple cases,
+they behave identically to conventional object-oriented languages like Java.</p>
+
+<table class="landing-page-example" cellspacing="0">
+<tr>
+<td>
+<pre class="large"><code>{% include examples/build_example.jsonnet %}</code></pre>
+<p class="try_it_out">Try it out <a href="docs/demo.html">here
+</a></p>
+</td>
+</tr>
+</table>
+
+
+<h2 id="provenance">Provenance, Copyright, License</h2>
+
+<p>Jsonnet was designed and implemented at Google as a 20% project.  The name Jsonnet is a
+portmanteau of JSON and <a href="http://en.wikipedia.org/wiki/Sonnet"><i>sonnet</i></a>, pronounced
+"jay sonnet".  Jsonnet has been open-sourced under the <a
+href="http://www.apache.org/licenses/LICENSE-2.0">Apache 2.0</a> license.  Jsonnet is not an
+official Google product (experimental or otherwise), it is just code that happens to be owned by
+Google.</p>
+

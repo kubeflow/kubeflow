@@ -1,0 +1,61 @@
+{
+   "collCorrect1": [
+      {
+         "name": "Good"
+      }
+   ],
+   "collCorrect2": [
+      {
+         "name": "Bad"
+      },
+      42
+   ],
+   "collCorrect2a": [
+      {
+         "name": "Bad"
+      },
+      42
+   ],
+   "collCorrect2b": [
+      {
+         "name": "Bad"
+      },
+      42
+   ],
+   "collCorrect2c": [
+      {
+         "name": "Bad"
+      },
+      42
+   ],
+   "collCorrect2d": [
+      {
+         "name": "Bad"
+      },
+      42
+   ],
+   "collCorrect2e": [
+      {
+         "name": "Bad"
+      },
+      42
+   ],
+   "collCorrect3": {
+      "a": { }
+   },
+   "collCorrect3a": {
+      "a": { }
+   },
+   "collWeird": [
+      {
+         "name": "Bad"
+      },
+      42
+   ],
+   "collWeird2": [
+      {
+         "name": "Bad"
+      },
+      42
+   ]
+}

@@ -1,0 +1,438 @@
+---
+layout: default
+---
+
+<h1 id="tutorial">Tutorial</h1>
+
+<p> This page is a guided tour through the Jsonnet language, from its most basic features to its
+powerful object model, punctuated with examples drawn from the world of cocktails.  These examples
+are meant to be fun, and although a little contrived, do not restrict our thinking to any one
+particular application of Jsonnet.</p>
+
+<p>Caveat: Note that Jsonnet unparses JSON in a simple way.  In particular, it alphabetically
+reorders object fields in its output.  This is natural and compatible with JSON, since if order is
+meaningful, an array of pairs should be used instead of an object.  Also, unparsing JSON using a
+canonical ordering of field names makes it possible to use diff to compare outputs.  However, the
+example output on this page has been manually re-ordered in order to allow easier visual comparison
+to the given input.  The whitespace of the output has also been tweaked to make it fit more neatly
+on the page.  So, if you run these examples yourself, the output might be different (but
+equivalent).</p>
+
+<h2 id="syntax_improvements">Simple Syntax Improvements</h2>
+
+<p> In Jsonnet, unlike JSON, sufficiently simple object fields (the strings to the left of the
+colon) do not need quotes if their names are valid identifiers (i.e. match the regular expression
+[a-zA-Z_][a-zA-Z0-9_]*).  In JSON, commas are not allowed at the end of arrays / objects, which can
+make writing JSON painful if you need to reorder an array or delete the last element.  In Jsonnet,
+extra commas are allowed but not required.  Jsonnet also allows both C and C++ style comments.</p>
+
+<table>
+<tr>
+<td><span class="TableHeader">Input (Jsonnet)</span></td>
+<td><span class="TableHeader">Output (JSON)</span></td>
+</tr>
+<tr>
+<td>
+<pre><code>{% include examples/bar_menu.1.jsonnet %}</code></pre>
+</td>
+<td>
+<pre><code>{% include examples/bar_menu.1.jsonnet.golden %}</code></pre>
+</td>
+</tr>
+</table>
+
+<h2 id="references">References</h2>
+
+<p> To avoid duplication, one part of the structure can refer to another part.  There is a keyword
+<code>self</code> that refers to the current object, i.e. the object whose braces we are immediately
+inside. There is also an operator <code>$</code> (syntax borrowed from <a
+href="http://goessner.net/articles/JsonPath">JsonPath</a>) that refers to the root object, i.e. the
+object whose braces we are inside that is most removed from us by nesting.  From one of these, we
+can follow a path to the other part of the structure, which contains the value we want to
+reference.</p>
+
+<p> In the example below, we re-use the spirit from the Tom Collins cocktail when defining the
+recipe for a Martini.  In the path to the spirit, we need to look up fields and array indexes.  In
+both cases, square brackets are used to specify which element or field is being looked up.  For
+objects, fields that are valid identifiers (e.g. have no spaces) can be traversed using the dot
+operator which is a more convenient notation.  The commented out line shows what the path would look
+like if the dot operator was not taken advantage of.</p>
+
+<p>The Gin Martini is another name for a Martini, so an alias has been added by using
+<code>self</code>, which resolves to the closest surrounding object (in this case, the "cocktails"
+object).</p>
+
+<table>
+<tr> <td><span class="TableHeader">Input (Jsonnet)</span></td> </tr>
+<tr>
+<td>
+<pre><code>{% include examples/bar_menu.2.jsonnet %}</code></pre>
+</td>
+</tr>
+<tr><td><span class="TableHeader">Output (JSON)</span></td></tr>
+<tr>
+<td>
+<pre><code>{% include examples/bar_menu.2.jsonnet.golden %}</code></pre>
+</td>
+</tr>
+</table>
+
+<h2 id="data_operations">Data Operations</h2>
+
+<h3 id="arith_cond">Arithmetic and Conditionals</h3>
+
+<p>Jsonnet has constructs for manipulating data.  There are the usual arithmetic operators on
+numbers (double precision floating point), booleans, and strings.  The <code>+</code> operator also
+concatenates arrays and strings.  On objects, it fuses the two objects preferring the right hand
+side when fields conflict.  The <code>%</code> operator is compatible with Python's <code>%</code>
+operator and is used for string formatting.</p>
+
+<p>There is an <code>if</code> construct for conditional code.  Since Jsonnet is an expression
+language, the conditional behaves more like the ternary "?:" operator in C, or the "a if b else c"
+syntax of Python.  I.e., it can be embedded in the middle of an expression.</p>
+
+<p>The example below illustrates some of these features.  Note that equality returns false if the
+two values have different types, as is the case in most dynamically typed scripting languages (but
+not JavaScript).  Note also the <code>|||</code> syntax for text blocks.  This strips the leading
+whitespace but preserves the newlines in the string literal.  Just like any other string, one can
+use the string formatting operator <code>%</code>.</p>
+
+<table>
+<tr>
+<td><span class="TableHeader">Input (Jsonnet)</span></td>
+<td><span class="TableHeader">Output (JSON)</span></td>
+</tr>
+<tr>
+<td>
+<pre><code>{% include examples/bar_menu.3.jsonnet %}</code></pre>
+</td>
+<td>
+<pre><code>{% include examples/bar_menu.3.jsonnet.golden %}</code></pre>
+</td>
+</tr>
+</table>
+
+
+<h3 id="comprehension">Array and Object Comprehension</h3>
+
+<p>There are constructs for array and object comprehension, i.e. creating a list or object by
+processing each element of another list.  The expression before the <code>for</code> is
+evaluated once for each element in the array after the <code>in</code>, but only if the
+condition after <code>if</code> holds.  The syntax matches Python.  Also, field names can
+be computed in regular object definitions as well, as shown on the last line of the following
+example.</p>
+
+<table>
+<tr>
+<td><span class="TableHeader">Input (Jsonnet)</span></td>
+<td><span class="TableHeader">Output (JSON)</span></td>
+</tr>
+<tr>
+<td>
+<pre><code>{% include examples/example_operators.jsonnet %}</code></pre>
+</td>
+<td>
+<pre><code>{% include examples/example_operators.jsonnet.golden %}</code></pre>
+</td>
+</tr>
+</table>
+
+<p>The next example is less contrived.  The first cocktail has equal parts of three ingredients
+so we use an array comprehension to avoid repeating ourselves.  For the sake of example, the qty is
+also computed as 4/3 instead of being given as 1.3333...</p>
+
+
+<p>After the +, object comprehension is used to create two more cocktails.  In this case, the prefix
+in front of "Screwdriver" and the kind of fruit juice is what differs each time.  Note also the use
+of <code>null</code>, which is a special value that we have inherited from JSON.  The <code>+</code>
+fuses the two objects together to produce a single record for the "cocktails" field. </p>
+
+<table>
+<tr>
+<td><span class="TableHeader">Input (Jsonnet)</span></td>
+<td><span class="TableHeader">Output (JSON)</span></td>
+</tr>
+<tr>
+<td>
+<pre><code>{% include examples/bar_menu.5.jsonnet %}</code></pre>
+</td>
+<td>
+<pre><code>{% include examples/bar_menu.5.jsonnet.golden %}</code></pre>
+</td>
+</tr>
+</table>
+
+
+<h2 id="modularity">Modularity and Encapsulation</h2>
+
+<p>As the amount of JSON grows, its size makes it harder to manage.  Jsonnet has various constructs
+to help.  A file can be broken into parts, as one Jsonnet file can import other Jsonnet files (and
+therefore other JSON files), or a whole text file can be imported as a string value.  Values can be
+held in local variables and fields, which are only visible within their scopes.  Functions can be
+defined to factor out common descriptions, and error statements can be used to validate inputs.
+Jsonnet provides a standard library that is implicitly imported and contains useful functions for
+data manipulation, among other things.</p>
+
+<h3 id="imports">Imports</h3>
+
+<p>The first example below factors out some cocktails into a separate file.  This may be useful to
+allow concurrent modifications by different mixologists.</p>
+
+<p>The <code>import</code> construct yields the content of the <tt>martinis.libsonnet</tt> file
+evaluated as a Jsonnet object. The <code>+</code> operator is object concatenation, which combines
+two objects to form a single object.  Note that the Cosmopolitan field is defined in both files, so
+the one on the right hand side is used.  This means that <tt>bar_menu.jsonnet</tt> has overridden
+the recipe from <tt>martinis.libsonnet</tt> with a different recipe (one that uses Cointreau instead
+of Triple Sec, among other changes).</p>
+
+<p>The <code>importstr</code> construct yields a string with the content of
+the <tt>bar_menu.6.manhattan_garnish.txt</tt> file without any processing beyond UTF-8 decoding.</p>
+
+<table>
+<tr> <td><span class="TableHeader">Input (Jsonnet)</span></td> </tr>
+
+<tr>
+<td>
+<pre><code>{% include examples/martinis.libsonnet %}</code></pre>
+</td>
+</tr>
+
+<tr>
+<td>
+<pre><code>// bar_menu.6.manhattan_garnish.txt
+{% include examples/bar_menu.6.manhattan_garnish.txt %}</code></pre>
+</td>
+</tr>
+
+<tr>
+<td>
+<pre><code>{% include examples/bar_menu.6.jsonnet %}</code></pre>
+</td>
+</tr>
+
+<tr><td><span class="TableHeader">Output (JSON)</span></td></tr>
+<tr>
+<td>
+<pre><code>{% include examples/bar_menu.6.jsonnet.golden %}</code></pre>
+</td>
+</tr>
+</table>
+
+<p>By convention, Jsonnet code that is intended only for importing has a <tt>.libsonnet</tt>
+extension.  This is not enforced, it simply allows you to distinguish between the two kinds of files
+when listing a directory.  In fact, for files that are both imported and executed directly, it is
+better to keep the <tt>.jsonnet</tt> suffix.  A commonly occurring example of that is test cases.</p>
+
+<h3 id="functions">Functions</h3>
+
+<p>The next example demonstrates functions (actually, closures).  We have a separate file holding a
+utility function to help with defining cocktails made from equal parts, such as the Bee's Knees and
+the Negroni.  The utility function also checks the number of ingredients and raises an error if the
+list is empty.  This avoids the low level divide by zero error that would be raised when calculating
+the quantity, thus avoiding the exposure of implementation details.</p>
+
+<p>There is also an identity function defined.  This is there to demonstrate that function
+definitions are really just syntax sugar for closures that are assigned to a field.</p>
+
+<pre><code>{% include examples/bar_menu_utils.libsonnet %}</code></pre>
+
+<p>Finally, you may have noticed that two colons are used instead of one.  This marks the field as
+being <dfn>hidden</dfn>, i.e. it will not appear in the JSON output.  The field can still be
+accessed by Jsonnet code, so it is not like the private/protected modifier that some languages have.
+Hidden fields are convenient for functions, which cannot be manifested in the JSON output.  It has
+other uses too, as we will see in the later section on object orientation.</p>
+
+<h3 id="locals">Local Variables</h3>
+
+<p>Like most languages, Jsonnet has <dfn>variables</dfn>, which can be used to factor out
+expressions.  They are referenced using standard static <a
+href="http://en.wikipedia.org/wiki/Scope_(computer_science)">scoping</a> rules.  In the following
+case, the imported object is stored in the variable, which is later referenced to access the
+<code>equal_parts</code> function.  It is also possible to store the import in a field of the root
+object, and access it with <code>$</code>.  In that case, it should be a hidden field (using the ::
+syntax) in order to avoid appearing in the output of <code>bar_menu.7.jsonnet</code>.</p>
+
+<table>
+<tr>
+<td><span class="TableHeader">Input</span></td>
+<td><span class="TableHeader">Output</span></td>
+</tr>
+<tr>
+<td>
+<pre><code>{% include examples/bar_menu.7.jsonnet %}</code></pre>
+</td>
+<td>
+<pre><code>{% include examples/bar_menu.7.jsonnet.golden %}</code></pre>
+</td>
+</tr>
+</table>
+
+<p>Variables can appear anywhere within the program structure; in particular, they can appear inside
+an object (i.e.  alongside field declarations).  The <code>my_gin</code> variable is an example of
+using <code>local</code> inside an object.  In this situation they are analogous to "private"
+fields, as defined in other languages.  This is because the initializer of the variable (in this
+case the string <code>"Farmer's Gin"</code>, but in general an arbitrary expression) can access
+<code>self</code> and <code>super</code>, just like a field.  However, unlike with fields, it is not
+possible for anyone to access the variable except by name, within the object's scope.</p>
+
+<p>In both cases, there is a separator that indicates the end of the variable initializer.  If the
+variable is defined alongside object fields, the separator is a comma in order to match the regular
+field separator.  Otherwise the separator is a semicolon.</p>
+
+<p>The variable can be referenced within its own initializer, which is essential for writing
+recursive functions.</p>
+
+<p> Variables offer a more general alternative to the <code>$</code> operator, by allowing the
+stashing of the <code>self</code> value.  This can be useful to "name" an object in the middle of
+the tree, because the path from <code>$</code> might be long.  <code>$</code> is actually equivalent
+to a stashing <code>self</code> in a variable at the outermost object.</p>
+
+<table>
+<tr>
+<td><span class="TableHeader">Input</span></td>
+<td><span class="TableHeader">Output</span></td>
+</tr>
+<tr>
+<td>
+<pre><code>{% include examples/bar_menu.8.jsonnet %}</code></pre>
+</td>
+<td>
+<pre><code>{% include examples/bar_menu.8.jsonnet.golden %}</code></pre>
+</td>
+</tr>
+</table>
+
+
+<h3 id="stack_traces">Stack Traces</h3>
+
+<p> Jsonnet provides stack traces when an error is raised.  Here is an example, where we provide an
+empty list of ingredients to the <code>equal_parts</code> function.  </p>
+
+<table>
+<tr>
+<td><span class="TableHeader">Input</span></td>
+<td><span class="TableHeader">Output</span></td>
+</tr>
+<tr>
+<td>
+<pre><code>{% include examples/no_ingredients.jsonnet %}</code></pre>
+</td>
+<td>
+<pre>{% include examples/no_ingredients.jsonnet.error %}</pre>
+</td>
+</tr>
+</table>
+
+<h2 id="oo">Object-Orientation</h2>
+
+<p>Finally, we see how Jsonnet provides the abstraction mechanisms of object oriented programming,
+to allow the writing of base templates that can be extended for a variety of purposes.</p>
+
+<p>The object concatenation operator <code>+</code> can be used to override fields from one object
+with another.  This is similar to the concept of inheritance in object-oriented languages such as
+C++ and Java.  It can be used to derive variants from a single template.  In the following example,
+a Whiskey Sour with egg white is derived from the original Whiskey Sour.</p>
+
+<p>The <code>super</code> keyword, as in Java, allows access to the object being derived from, i.e.
+the object on the left hand side of the <code>+</code> operator.  In this case, it is being used to
+fetch the original ingredients of the whiskey sour, so that a 4th ingredient can be added.  Removing
+the <code>super.ingredients + </code> would result in a cocktail containing only egg white.</p>
+
+<table>
+<tr>
+<td><span class="TableHeader">Input</span></td>
+<td><span class="TableHeader">Output</span></td>
+</tr>
+<tr>
+<td>
+<pre><code>{% include examples/bar_menu.9.jsonnet %}</code></pre>
+</td>
+<td>
+<pre><code>{% include examples/bar_menu.9.jsonnet.golden %}</code></pre>
+</td>
+</tr>
+</table>
+
+
+<p>The key to making Jsonnet object-oriented is that the <code>self</code> keyword be "late bound".
+This is illustrated in the next example, where an alternative menu is derived from the above.  It
+takes the original menu, and replaces the cocktails object with a new object that is in turn based
+on the original menu's cocktail object.  But this new cocktail object overrides the Whiskey sour,
+changing Bourbon to Scotch (among other things).  The effect of this is not just to replace the
+whiskey sour but also to change how the <code>self</code> keyword behaves in the original menu.
+This results in the egg variant now being derived from the new whiskey, because that is now what
+<code>self["Whiskey Sour"]</code> resolves to.  This is classic object-orientation in action, and it
+is very powerful.</p>
+
+<p>Note also that this example makes use of two syntax sugars (shorthands).  The first is that the
+object concatenation <code>+</code> was omitted.  This is allowed when it is followed by an opening
+brace, so in fact this same simplification could have also been made in all of the previous examples
+utilizing the object concatenation operator <code>+</code>.  The second syntax sugar is the
+
+<code>f +: e</code> operator, which is a little like the += operator from other languages.  Its
+behavior is the same as saying <code>f: if "f" in super then super.f + e else e</code>.  This works
+not just for <code>+</code> when used for inheritance, but also for string concatenation, list
+concatenation, and arithmetic addition, so it could also have been used in the previous example to
+add the egg white.</p>
+
+<table>
+<tr>
+<td><span class="TableHeader">Input</span></td>
+<td><span class="TableHeader">Output</span></td>
+</tr>
+<tr>
+<td>
+<pre><code>{% include examples/bar_menu.10.jsonnet %}</code></pre>
+</td>
+<td>
+<pre><code>{% include examples/bar_menu.10.jsonnet.golden %}</code></pre>
+</td>
+</tr>
+</table>
+
+<p> The hidden status (i.e. <code>::</code>) of a field is preserved over inheritance.  If you
+override a field using the <code>:</code> syntax, but the original field was defined with
+<code>::</code>, then the new object's field will also be hidden.  To make the field visible use
+three colons (<code>:::</code>).  This is illustrated below.  The values are all inherited without
+change, but the use of colons changes the visibility of fields in the case of <code>x</code> and
+<code>w</code>.  The <code>x</code> field is hidden by <code>foo</code> because of the double
+colons.  The <code>y</code> field remains hidden in <code>foo</code> because the single colon
+inherits the hidden status from <code>Base</code>.  The triple colon in <code>z</code> however
+overrides the hidden status from <code>Base</code> to make the field visible in <code>foo</code>.
+</p>
+
+<table>
+<tr>
+<td><span class="TableHeader">Input</span></td>
+<td><span class="TableHeader">Output</span></td>
+</tr>
+<tr>
+<td>
+<pre><code>{% include examples/hidden_fields.jsonnet %}</code></pre>
+</td>
+<td>
+<pre><code>{% include examples/hidden_fields.jsonnet.golden %}</code></pre>
+</td>
+</tr>
+</table>
+
+<h2 id="computed_optional_fields">Computed and Optional Fields</h2>
+
+<p>In order to support objects whose keys are unknown until run-time, Jsonnet has a syntax allowing
+the field name to be computed, or omitted entirely.  The syntax is similar to object comprehension,
+which is also a kind of computed field.</p>
+
+<table>
+<tr>
+<td><span class="TableHeader">Input</span></td>
+<td><span class="TableHeader">Output</span></td>
+</tr>
+<tr>
+<td>
+<pre><code>{% include examples/bar_menu.11.jsonnet %}</code></pre>
+</td>
+<td>
+<pre><code>{% include examples/bar_menu.11.jsonnet.golden %}</code></pre>
+</td>
+</tr>
+</table>

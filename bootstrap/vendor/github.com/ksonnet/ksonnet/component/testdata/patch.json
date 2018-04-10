@@ -1,0 +1,15 @@
+{
+    "components": {
+        "certificate-crd": {},
+        "clusterissuer-crd": {},
+        "deployment": {},
+        "issuer-crd": {},
+        "rbac": {},
+        "rbac-1": {
+            "metadata": {
+                "name": "cert-manager2"
+            }
+        },
+        "serviceaccount": {}
+    }
+}

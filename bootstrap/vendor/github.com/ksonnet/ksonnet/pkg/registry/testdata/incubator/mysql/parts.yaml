@@ -1,0 +1,40 @@
+{
+  "name": "mysql",
+  "apiVersion": "0.0.1",
+  "kind": "ksonnet.io/parts",
+  "description": "MySQL is one of the most popular database servers in the world. Notable users include Wikipedia, Facebook and Google.",
+  "author": "ksonnet team <ksonnet-help@heptio.com>",
+  "contributors": [
+    {
+    "name": "Tehut Getahun",
+    "email": "tehut@heptio.com"
+    },
+    {
+    "name": "Tamiko Terada",
+    "email": "tamiko@heptio.com"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ksonnet/mixins"
+  },
+  "bugs": {
+    "url": "https://github.com/ksonnet/mixins/issues"
+  },
+  "keywords": [
+    "mysql",
+    "database",
+    "relational"
+  ],
+  "quickStart": {
+    "prototype": "io.ksonnet.pkg.simple-mysql",
+    "componentName": "mysql",
+    "flags": {
+      "name": "mysql",
+      "namespace": "default"
+    },
+    "comment": "Run a simple MySQL server"
+  },
+  "license": "Apache 2.0"
+}
+

@@ -1,0 +1,2 @@
+RUNTIME ERROR: binding parameter a second time: x
+	error.function_duplicate_arg.jsonnet:17:1-29	

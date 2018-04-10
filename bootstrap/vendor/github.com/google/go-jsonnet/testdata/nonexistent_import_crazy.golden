@@ -1,0 +1,10 @@
+RUNTIME ERROR: couldn't open import "ąęółńśćźż \" ' \n\n\t\t": no match locally or in the Jsonnet library paths
+-------------------------------------------------
+	testdata/nonexistent_import_crazy:1:1-46	$
+
+importstr "ąęółńśćźż \" \' \n\n\t\t"
+
+-------------------------------------------------
+	During evaluation	
+
+

@@ -1,0 +1,40 @@
+{
+  "name": "postgres",
+  "apiVersion": "0.0.1",
+  "kind": "ksonnet.io/parts",
+  "description": "PostgreSQL is a powerful, open source object-relational database system. It has more than 15 years of active development and a proven architecture that has earned it a strong reputation for reliability, data integrity, and correctness.",
+  "author": "ksonnet team <ksonnet-help@heptio.com>",
+  "contributors": [
+    {
+    "name": "Tehut Getahun",
+    "email": "tehut@heptio.com"
+    },
+    {
+    "name": "Tamiko Terada",
+    "email": "tamiko@heptio.com"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ksonnet/mixins"
+  },
+  "bugs": {
+    "url": "https://github.com/ksonnet/mixins/issues"
+  },
+  "keywords": [
+    "postgres",
+    "postgresql",
+    "database"
+  ],
+  "quickStart": {
+    "prototype": "io.ksonnet.pkg.postgres-simple",
+    "componentName": "postgres",
+    "flags": {
+      "name": "posgres",
+      "namespace": "default",
+      "password": "boots"
+    }
+  },
+  "license": "Apache 2.0"
+}
+

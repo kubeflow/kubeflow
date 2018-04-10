@@ -1,0 +1,2 @@
+RUNTIME ERROR: multi mode: top-level object was a null, should be an object whose keys are filenames and values hold the JSON for that file.
+	During manifestation	

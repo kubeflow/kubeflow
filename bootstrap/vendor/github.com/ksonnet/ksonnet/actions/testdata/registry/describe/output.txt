@@ -1,0 +1,21 @@
+REGISTRY NAME:
+incubator
+
+URI:
+github.com/ksonnet/parts/tree/master/incubator
+
+PROTOCOL:
+github
+
+PACKAGES:
+  apache
+  efk
+  mariadb
+  memcached
+  mongodb
+  mysql
+  nginx
+  node
+  postgres
+  redis
+  tomcat

@@ -1,0 +1,2 @@
+include LICENSE include/*.h core/*.cpp core/*.h python/*.c third_party/md5/*.cpp third_party/md5/*.h stdlib/std.jsonnet Makefile
+#recursive-include test_suite examples gc_stress benchmarks editors

@@ -1,0 +1,28 @@
+RUNTIME ERROR: Too many values to format: 2, expected 1
+-------------------------------------------------
+	<std>:628:11-86	function <format_codes_arr>
+
+          error ('Too many values to format: ' + std.length(arr) + ', expected ' + j)
+
+-------------------------------------------------
+	<std>:634:11-59	function <format_codes_arr>
+
+          format_codes_arr(codes, arr, i + 1, j, v + code) tailstrict
+
+-------------------------------------------------
+	<std>:721:7-46	function <anonymous>
+
+      format_codes_arr(codes, vals, 0, 0, '')
+
+-------------------------------------------------
+	<std>:203:7-23	function <anonymous>
+
+      std.format(a, b)
+
+-------------------------------------------------
+		
+
+-------------------------------------------------
+	During evaluation	
+
+

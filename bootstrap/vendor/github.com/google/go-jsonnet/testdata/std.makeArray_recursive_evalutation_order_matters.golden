@@ -1,0 +1,47 @@
+RUNTIME ERROR: max stack frames exceeded.
+-------------------------------------------------
+	testdata/std.makeArray_recursive_evalutation_order_matters:1:51-61	function <anonymous>
+
+local arr = [0] + std.makeArray(2000, function(i) arr[i] + 1); arr[500]
+
+-------------------------------------------------
+	testdata/std.makeArray_recursive_evalutation_order_matters:1:51-57	function <anonymous>
+
+local arr = [0] + std.makeArray(2000, function(i) arr[i] + 1); arr[500]
+
+-------------------------------------------------
+	testdata/std.makeArray_recursive_evalutation_order_matters:1:51-61	function <anonymous>
+
+local arr = [0] + std.makeArray(2000, function(i) arr[i] + 1); arr[500]
+
+-------------------------------------------------
+	testdata/std.makeArray_recursive_evalutation_order_matters:1:51-57	function <anonymous>
+
+local arr = [0] + std.makeArray(2000, function(i) arr[i] + 1); arr[500]
+
+-------------------------------------------------
+	... (skipped 492 frames)
+-------------------------------------------------
+	testdata/std.makeArray_recursive_evalutation_order_matters:1:51-61	function <anonymous>
+
+local arr = [0] + std.makeArray(2000, function(i) arr[i] + 1); arr[500]
+
+-------------------------------------------------
+	testdata/std.makeArray_recursive_evalutation_order_matters:1:51-57	function <anonymous>
+
+local arr = [0] + std.makeArray(2000, function(i) arr[i] + 1); arr[500]
+
+-------------------------------------------------
+	testdata/std.makeArray_recursive_evalutation_order_matters:1:51-61	function <anonymous>
+
+local arr = [0] + std.makeArray(2000, function(i) arr[i] + 1); arr[500]
+
+-------------------------------------------------
+	testdata/std.makeArray_recursive_evalutation_order_matters:1:64-72	$
+
+local arr = [0] + std.makeArray(2000, function(i) arr[i] + 1); arr[500]
+
+-------------------------------------------------
+	During evaluation	
+
+

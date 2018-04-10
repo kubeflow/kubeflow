@@ -1,0 +1,36 @@
+{
+   "apiVersion": "v1",
+   "items": [
+      {
+         "apiVersion": "apps/v1beta2",
+         "kind": "Deployment",
+         "metadata": {
+            "name": "appName"
+         },
+         "spec": {
+            "replicas": 2,
+            "template": {
+               "metadata": {
+                  "labels": {
+                     "app": "customName"
+                  }
+               },
+               "spec": {
+                  "containers": [
+                     {
+                        "image": "nginx:latest",
+                        "name": "appName",
+                        "ports": [
+                           {
+                              "containerPort": 80
+                           }
+                        ]
+                     }
+                  ]
+               }
+            }
+         }
+      }
+   ],
+   "kind": "List"
+}
