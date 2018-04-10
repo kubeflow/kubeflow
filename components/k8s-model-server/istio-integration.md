@@ -35,6 +35,7 @@ kubectl -n istio-system port-forward $(kubectl -n istio-system get pod -l app=gr
 ```
 Visit http://localhost:3000/dashboard/db/istio-dashboard in your web browser.
 Send some requests to the TF serving service, then there should be some data like
+![istio dashboard](istio-dashboard-png)
 
 #### Define and view metrics
 See istio [doc](https://istio.io/docs/tasks/telemetry/metrics-logs.html).
