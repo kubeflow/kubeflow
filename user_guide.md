@@ -38,7 +38,6 @@ Create the Kubeflow core component. The core component includes:
   * [JupyterHub](https://jupyterhub.readthedocs.io/en/latest/)
   * TensorFlow job controller
 
-
 ```
 ks generate core kubeflow-core --name=kubeflow-core
 
@@ -50,7 +49,6 @@ ks param set kubeflow-core usageId $(uuidgen)
 ```
 
 Ksonnet allows us to parameterize the Kubeflow deployment according to our needs. We will define two environments: nocloud, and cloud.
-
 
 ```
 ks env add nocloud
@@ -77,13 +75,11 @@ If it was created with acs-engine instead:
 ks param set kubeflow-core cloud acsengine --env=cloud
 ```
 
-
 Now let's set `${KF_ENV}` to `cloud` or `nocloud` to reflect our environment for the rest of the guide:
 
 ```
 $ KF_ENV=cloud|nocloud
 ```
-
 
 * By default Kubeflow does not persist any work that is done within the Jupyter notebook. 
 * If the container is destroyed or recreated, all of its contents, including users working notebooks and other files are going to be deleted. 
@@ -113,7 +109,6 @@ kubectl create namespace ${NAMESPACE}
 ks env set ${KF_ENV} --namespace ${NAMESPACE}
 ```
 
-
 And apply the components to our Kubernetes cluster
 
 ```
@@ -125,6 +120,22 @@ At any time you can inspect the kubernetes objects definitions for a particular 
 ```
 ks show ${KF_ENV} -c kubeflow-core
 ```
+
+# On-premise deployments
+
+For on-premise deployments, accessing a Jupyter notebook requires some changes that also depend on the connetivity policie of the target Kubernetes cluster. Consider a simple case where the deployment is tested on a single Kubernetes node (e.g. on an on-premise machine) without access to a loadbalancer and without a need to protect the server IP address, then these two lines could be used to access the Jupyter notebook: 
+```commandline
+# Expose port for the Jupyter service
+ks param set kubeflow-core jupyterHubServiceType NodePort
+ks apply default
+```
+After the commands, check with 
+```commandline
+kubectl get svc -n kubeflow | grep NodePort
+````
+The port can be found in the line that looks something like this: 
+"tf-hub-lb          NodePort    10.107.160.252   <none>        80:32538/TCP   1m"
+In this case set PORT=32538, SERVER=your IP address. The notebook can now be accessed at http://SERVER:PORT. Note this is one of the simplest ways to test a deployment.
 
 ### Usage Reporting
 
