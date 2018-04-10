@@ -32,7 +32,6 @@ Because ML practitioners use so many different types of tools, it's a key goal t
 
 Ultimately, we want to have a set of simple manifests that give you an easy to use ML stack _anywhere_ Kubernetes is already running and can self configure based on the cluster it deploys into.
 
-
 ## Who should consider using Kubeflow?
 
 Based on the current functionality you should consider using Kubeflow if:
@@ -49,9 +48,7 @@ functionality and actively soliciting help from companies and individuals intere
 
 ## Setup
 
-This documentation assumes you have a Kubernetes cluster already available.
-
-If you need help setting up a Kubernetes cluster please refer to [Kubernetes Setup](https://kubernetes.io/docs/setup/).
+This documentation assumes you have a Kubernetes cluster already available. If you need help setting up a Kubernetes cluster please refer to [Kubernetes Setup](https://kubernetes.io/docs/setup/).
 
   * Minikube users please check these [instructions](user_guide.md#minikube)
 
@@ -109,7 +106,7 @@ ks param set kubeflow-core usageId $(uuidgen)
 ks apply default -c kubeflow-core
 ```
 
-The above command sets up JupyterHub and a custom resource for running TensorFlow training jobs. Furthermore, the ksonnet packages
+The above commands sets up JupyterHub and a custom resource for running TensorFlow training jobs. Furthermore, the ksonnet packages
 provide prototypes that can be used to configure TensorFlow jobs and deploy TensorFlow models.
 Used together, these make it easy for a user go from training to serving using Tensorflow with minimal
 effort in a portable fashion between different environments.
@@ -127,7 +124,6 @@ For detailed troubleshooting instructions, please refer to [this section of the 
 * The [kubeflow user guide](user_guide.md) provides in-depth instructions for using Kubeflow
 * Katacoda has produced a [self-paced scenario](https://www.katacoda.com/kubeflow) for learning and trying out Kubeflow
 
-
 ## Get Involved
 
 * [Slack Channel](https://join.slack.com/t/kubeflow/shared_invite/enQtMjgyMzMxNDgyMTQ5LWUwMTIxNmZlZTk2NGU0MmFiNDE4YWJiMzFiOGNkZGZjZmRlNTExNmUwMmQ2NzMwYzk5YzQxOWQyODBlZGY2OTg)
@@ -137,7 +133,6 @@ For detailed troubleshooting instructions, please refer to [this section of the 
 In the interest of fostering an open and welcoming environment, we as contributors and maintainers pledge to making participation in our project and our community a harassment-free experience for everyone, regardless of age, body size, disability, ethnicity, gender identity and expression, level of experience, education, socio-economic status, nationality, personal appearance, race, religion, or sexual identity and orientation.
 
 The Kubeflow community is guided by our [Code of Conduct](https://github.com/kubeflow/community/blob/master/CODE_OF_CONDUCT.md), which we encourage everybody to read before participating.
-
 
 ### Who should consider contributing to Kubeflow?
 

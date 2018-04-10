@@ -38,7 +38,6 @@ Create the Kubeflow core component. The core component includes:
   * [JupyterHub](https://jupyterhub.readthedocs.io/en/latest/)
   * TensorFlow job controller
 
-
 ```
 ks generate core kubeflow-core --name=kubeflow-core
 
@@ -50,7 +49,6 @@ ks param set kubeflow-core usageId $(uuidgen)
 ```
 
 Ksonnet allows us to parameterize the Kubeflow deployment according to our needs. We will define two environments: nocloud, and cloud.
-
 
 ```
 ks env add nocloud
@@ -77,13 +75,11 @@ If it was created with acs-engine instead:
 ks param set kubeflow-core cloud acsengine --env=cloud
 ```
 
-
 Now let's set `${KF_ENV}` to `cloud` or `nocloud` to reflect our environment for the rest of the guide:
 
 ```
 $ KF_ENV=cloud|nocloud
 ```
-
 
 * By default Kubeflow does not persist any work that is done within the Jupyter notebook. 
 * If the container is destroyed or recreated, all of its contents, including users working notebooks and other files are going to be deleted. 
@@ -112,7 +108,6 @@ NAMESPACE=kubeflow
 kubectl create namespace ${NAMESPACE}
 ks env set ${KF_ENV} --namespace ${NAMESPACE}
 ```
-
 
 And apply the components to our Kubernetes cluster
 
@@ -251,6 +246,22 @@ Paste the example into a new Python 3 Jupyter notebook and execute the code. Thi
 
 Please note that when running on most cloud providers, the public IP address will be exposed to the internet and is an
 unsecured endpoint by default. For a production deployment with SSL and authentication, refer to the [documentation](components/jupyterhub).
+
+### On-premise deployments
+
+For on-premise deployments, accessing a Jupyter notebook depends on the exact connectivity choices. Consider a simple case where the deployment is tested on a single Kubernetes node (e.g. on an on-premise machine). Instead of using the jupyterHubServiceType to be a LoadBalancer, one can use the following to open up a port on the node. Note, this would leave the port open to the network on which the on-premise server is installed: 
+```commandline
+# Expose port for the Jupyter service
+ks param set kubeflow-core jupyterHubServiceType NodePort
+ks apply default
+```
+After the commands, check with 
+```commandline
+kubectl get svc -n kubeflow | grep NodePort
+````
+The port can be found in the line that looks something like this: 
+"tf-hub-lb          NodePort    10.107.160.252   <none>        80:32538/TCP   1m"
+In this case set PORT=32538, SERVER=your IP address. The notebook can now be accessed at http://SERVER:PORT. Note this is one of the simplest ways to test a deployment.
 
 ### Serve a model using TensorFlow Serving
 
