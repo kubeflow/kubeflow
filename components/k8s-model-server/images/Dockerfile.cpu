@@ -18,27 +18,30 @@ MAINTAINER Kenneth Owens <kowens@google.com>
 
 ENV MS_USER=model-server
 
-RUN apt-get update && apt-get install -y \
+RUN     apt-get update && apt-get install -y software-properties-common && \
+        # TODO (pmackinn) see if explicit libstdc++6 is still really required with next pin
+        add-apt-repository ppa:ubuntu-toolchain-r/test -y && \
+        apt-get update && apt-get install -y \
         build-essential \
         curl \
         libcurl3-dev \
         git \
         libfreetype6-dev \
         libpng12-dev \
+        libstdc++6 \
         libzmq3-dev \
         pkg-config \
         python-dev \
         python-numpy \
         python-pip \
-        software-properties-common \
         swig \
         zip \
         zlib1g-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN curl -O http://storage.googleapis.com/tensorflow-serving-apt/pool/tensorflow-model-server/t/tensorflow-model-server/tensorflow-model-server_1.4.0_all.deb
-RUN dpkg -i tensorflow-model-server_1.4.0_all.deb
+RUN curl -O http://storage.googleapis.com/tensorflow-serving-apt/pool/tensorflow-model-server/t/tensorflow-model-server/tensorflow-model-server_1.6.0_all.deb
+RUN dpkg -i tensorflow-model-server_1.6.0_all.deb
 
 RUN set -x \
     && useradd $MS_USER \
