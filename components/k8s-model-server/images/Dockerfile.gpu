@@ -14,7 +14,10 @@ FROM nvidia/cuda:8.0-cudnn6-devel-ubuntu16.04
 
 MAINTAINER Jingtian Peng <pjt73651@gmail.com>
 
-RUN apt-get update && apt-get install -y \
+RUN     apt-get update && apt-get install -y software-properties-common && \
+        # TODO (pmackinn) see if explicit libstdc++6 is still really required with next pin
+        add-apt-repository ppa:ubuntu-toolchain-r/test -y && \
+        apt-get update && apt-get install -y \
         build-essential \
         curl \
         libcurl3-dev \
@@ -26,7 +29,6 @@ RUN apt-get update && apt-get install -y \
         python-dev \
         python-numpy \
         python-pip \
-        software-properties-common \
         swig \
         zip \
         zlib1g-dev \
@@ -39,12 +41,12 @@ RUN pip install mock grpcio
 
 # Set up all envs
 ENV BAZELRC=/root/.bazelrc \
-    TF_SERVING_VERSION=tags/1.4.0 \
+    TF_SERVING_VERSION=tags/1.6.0 \
     TF_CUDA_VERSION=8.0 \
     TF_CUDNN_VERSION=6 \
     BAZEL_VERSION=0.5.4 \
     TF_NEED_CUDA=1 \
-    TF_NEED_S3=0 \
+    TF_NEED_S3=1 \
     TF_CUDA_COMPUTE_CAPABILITIES="3.5,5.2,6.1" \
     TF_NEED_GCP=1 \
     TF_NEED_JEMALLOC=0 \
@@ -73,7 +75,7 @@ RUN mkdir /bazel && \
     ./bazel-$BAZEL_VERSION-installer-linux-x86_64.sh && \
     rm -f /bazel/bazel-$BAZEL_VERSION-installer-linux-x86_64.sh
 
-# Clone TensorFlow Serving repo and get submodules of TensorFlow Serving 1.4
+# Clone TensorFlow Serving repo and get submodules
 RUN cd /root && \
     git clone --recurse-submodules https://github.com/tensorflow/serving && \
     cd serving && \
@@ -81,15 +83,17 @@ RUN cd /root && \
     git submodule init && \
     git submodule update --recursive
 
-# Configure Tensorflow to use the GPU
-RUN cd /root/serving/tensorflow && ./configure
-
 # Compile TF serving with CUDA support
 RUN cd /root/serving && \
     bazel build -c opt --copt=-mavx --copt=-mavx2 --copt=-mfma --copt=-mfpmath=both --copt=-msse4.2 --config=cuda -k --verbose_failures --crosstool_top=@local_config_cuda//crosstool:toolchain tensorflow_serving/model_servers:tensorflow_model_server
 
 # Make a copy to /usr/bin instead of making softlinks because /root has 700 permissions
 RUN cp /root/serving/bazel-bin/tensorflow_serving/model_servers/tensorflow_model_server /usr/bin/tensorflow_model_server
+
+# This seems to be some magic provided by nvidia-docker but we must be explicit
+# There didn't seem to be any special flags in the TF Dockerfile.devel-gpu to cover this either
+RUN ln -s /usr/local/cuda/lib64/stubs/libcuda.so /usr/local/cuda/lib64/stubs/libcuda.so.1 && \
+    sed -i '$ a /usr/local/cuda/lib64/stubs' /etc/ld.so.conf.d/cuda-8-0.conf && ldconfig
 
 WORKDIR /root
 
