@@ -121,7 +121,7 @@ At any time you can inspect the kubernetes objects definitions for a particular 
 ks show ${KF_ENV} -c kubeflow-core
 ```
 
-# On-premise deployments
+## On-premise deployments
 
 For on-premise deployments, accessing a Jupyter notebook requires some changes that also depend on the connetivity policie of the target Kubernetes cluster. Consider a simple case where the deployment is tested on a single Kubernetes node (e.g. on an on-premise machine) without access to a loadbalancer and without a need to protect the server IP address, then these two lines could be used to access the Jupyter notebook: 
 ```commandline
