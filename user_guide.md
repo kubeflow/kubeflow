@@ -551,6 +551,25 @@ To fix this issue first create Github API token using this [guide](https://help.
 export GITHUB_TOKEN=<< token >>
 ```
 
+### ks apply produces error "Unknown variable: env"
+
+Kubeflow requires ksonnet version 0.9.2 or later [see here](https://github.com/kubeflow/kubeflow/blob/master/user_guide.md#requirements). If you run `ks apply` with an older version of ksonnet you will likely get the error `Unknown variable: env` as illustrated below:
+
+```shell
+ks apply ${KF_ENV} -c kubeflow-core
+ERROR Error reading /Users/xxx/projects/devel/go/src/github.com/kubeflow/kubeflow/my-kubeflow/environments/nocloud/main.jsonnet: /Users/xxx/projects/devel/go/src/github.com/kubeflow/kubeflow/my-kubeflow/components/kubeflow-core.jsonnet:8:49-52 Unknown variable: env
+
+  namespace: if params.namespace == "null" then env.namespace else params.namespace
+```
+
+You can check the ksonnet version as follows:
+
+```shell
+ks version
+```
+
+If your ksonnet version is lower than v0.9.2, please upgrade it and follow the [user_guide](https://github.com/kubeflow/kubeflow/blob/master/user_guide.md) to recreate the app.
+
 ## Why Kubeflow Uses Ksonnet
 
 [Ksonnet](https://ksonnet.io/) is a command line tool that makes it easier to manage complex deployments consisting of multiple components. It is designed to
