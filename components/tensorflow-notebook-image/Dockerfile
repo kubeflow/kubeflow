@@ -227,6 +227,7 @@ RUN conda_packages=$(conda list -e | cut -d '=' -f 1 | grep -v '#' | sort) && \
       jupyter nbextension install --py --symlink tensorflow_model_analysis --system && \
       jupyter nbextension enable --py tensorflow_model_analysis --system; \
     fi && \
+    pip install --no-cache-dir 'apache-beam' 'apache-beam[gcp]' && \
     if [ -n "${OLD_LD_LIBRARY_PATH}" ]; then \
       export LD_LIBRARY_PATH="${OLD_LD_LIBRARY_PATH}"; \
     fi && \
