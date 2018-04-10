@@ -121,22 +121,6 @@ At any time you can inspect the kubernetes objects definitions for a particular 
 ks show ${KF_ENV} -c kubeflow-core
 ```
 
-## On-premise deployments
-
-For on-premise deployments, accessing a Jupyter notebook requires some changes that also depend on the connetivity policie of the target Kubernetes cluster. Consider a simple case where the deployment is tested on a single Kubernetes node (e.g. on an on-premise machine) without access to a loadbalancer and without a need to protect the server IP address, then these two lines could be used to access the Jupyter notebook: 
-```commandline
-# Expose port for the Jupyter service
-ks param set kubeflow-core jupyterHubServiceType NodePort
-ks apply default
-```
-After the commands, check with 
-```commandline
-kubectl get svc -n kubeflow | grep NodePort
-````
-The port can be found in the line that looks something like this: 
-"tf-hub-lb          NodePort    10.107.160.252   <none>        80:32538/TCP   1m"
-In this case set PORT=32538, SERVER=your IP address. The notebook can now be accessed at http://SERVER:PORT. Note this is one of the simplest ways to test a deployment.
-
 ### Usage Reporting
 
 When enabled, Kubeflow will report **anonymous** usage data using [spartakus](https://github.com/kubernetes-incubator/spartakus), Kubernetes' reporting tool. Spartakus **does not report any personal information**. See [here](https://github.com/kubernetes-incubator/spartakus) for more detail.
@@ -262,6 +246,22 @@ Paste the example into a new Python 3 Jupyter notebook and execute the code. Thi
 
 Please note that when running on most cloud providers, the public IP address will be exposed to the internet and is an
 unsecured endpoint by default. For a production deployment with SSL and authentication, refer to the [documentation](components/jupyterhub).
+
+### On-premise deployments
+
+For on-premise deployments, accessing a Jupyter notebook depends on the exact connectivity choices. Consider a simple case where the deployment is tested on a single Kubernetes node (e.g. on an on-premise machine). Instead of using the jupyterHubServiceType to be a LoadBalancer, one can use the following to open up a port on the node. Note, this would leave the port open to the network on which the on-premise server is installed: 
+```commandline
+# Expose port for the Jupyter service
+ks param set kubeflow-core jupyterHubServiceType NodePort
+ks apply default
+```
+After the commands, check with 
+```commandline
+kubectl get svc -n kubeflow | grep NodePort
+````
+The port can be found in the line that looks something like this: 
+"tf-hub-lb          NodePort    10.107.160.252   <none>        80:32538/TCP   1m"
+In this case set PORT=32538, SERVER=your IP address. The notebook can now be accessed at http://SERVER:PORT. Note this is one of the simplest ways to test a deployment.
 
 ### Serve a model using TensorFlow Serving
 
