@@ -38,18 +38,32 @@ import argparse
 from kubeflow.testing import test_util
 from kubeflow.testing import util
 
+# We should test all files which end in .jsonnet or .libsonnet
+# except ksonnet prototype definitions - they require additional
+# dependencies
+def should_test(f):
+  _, ext = os.path.splitext(f)
+  if ext != '.jsonnet' and ext != '.libsonnet':
+    return False
+  parts = f.split('/')
+  if len(parts) < 2:
+    raise ValueError('Invalid file : {}'.format(f))
+  return parts[-2] != 'prototypes'
+
 def run(test_files_dirs, jsonnet_path_args, t):
   # Go through each jsonnet file in test_files_dirs and run jsonnet eval
   for test_files_dir in test_files_dirs:
-    for test_file in glob.glob(test_files_dir + '/*.jsonnet'):
-      filename=os.path.basename(test_file)
-      logging.info("Running test: %s", filename)
-      try:
-        util.run(['jsonnet', 'eval', filename] + jsonnet_path_args, cwd=test_files_dir)
-      except Exception as e:
-        t.failure = '{} test failed'.format(filename)
-        logging.error('%s test failed. See Subprocess output for details.', filename)
-        raise
+    for root, _, files in os.walk(test_files_dir):
+      for test_file in files:
+        full_path = os.path.join(root, test_file)
+        if should_test(full_path):
+          logging.info("Testing: %s", test_file)
+          try:
+            util.run(['jsonnet', 'eval', full_path] + jsonnet_path_args, cwd=os.path.dirname(full_path))
+          except Exception as e:
+            t.failure = '{} test failed'.format(test_file)
+            logging.error('%s test failed. See Subprocess output for details.', test_file)
+            raise
 
 
 def main():  # pylint: disable=too-many-locals

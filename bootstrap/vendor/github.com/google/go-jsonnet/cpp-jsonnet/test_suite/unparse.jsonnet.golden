@@ -1,0 +1,17 @@
+{
+   "false": false,
+   "lit_field1": 1,
+   "lit_field2": 1,
+   "neg_integer": -1029301293,
+   "null": null,
+   "number": 0.33333333333333331,
+   "pos_integer": 13212381932,
+   "small_number": 1e-14,
+   "string": "'foo\n bar\n\n\"bar\u0005\"'\t P\b\f\r\\",
+   "string2": "\"foo\n bar\n\n'bar\u0005\"'\t P\b\f\r\\",
+   "string3": "\"foo\\n bar\\n\\n'bar\\u0005\\\"'\\t \\u0050\\b\\f\\r\\\\",
+   "string4": "'foo\\n bar\\n\\n'bar\\u0005\"'\\t \\u0050\\b\\f\\r\\\\",
+   "true": true,
+   "with\"quote": "\"",
+   "zero": 0
+}

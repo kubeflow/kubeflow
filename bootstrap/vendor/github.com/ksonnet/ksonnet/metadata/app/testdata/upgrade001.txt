@@ -1,0 +1,45 @@
+
+[dry run] Upgrading application settings from version 0.0.1 to to 0.1.0.
+[dry run] Converting 0.0.1 environments to 0.1.0a:
+[dry run]	* adding the environment description in environment `default to `app.yaml`.
+[dry run]	* adding the environment description in environment `us-east/test to `app.yaml`.
+[dry run]	* adding the environment description in environment `us-west/prod to `app.yaml`.
+[dry run]	* adding the environment description in environment `us-west/test to `app.yaml`.
+
+[dry run] Upgraded app.yaml:
+apiVersion: 0.1.0
+environments:
+  default:
+    destination:
+      namespace: some-namespace
+      server: http://example.com
+    k8sVersion: v1.7.0
+    path: default
+  us-east/test:
+    destination:
+      namespace: some-namespace
+      server: http://example.com
+    k8sVersion: v1.7.0
+    path: us-east/test
+  us-west/prod:
+    destination:
+      namespace: some-namespace
+      server: http://example.com
+    k8sVersion: v1.7.0
+    path: us-west/prod
+  us-west/test:
+    destination:
+      namespace: some-namespace
+      server: http://example.com
+    k8sVersion: v1.7.0
+    path: us-west/test
+kind: ksonnet.io/app
+name: test-get-envs
+registries:
+  incubator:
+    gitVersion: null
+    protocol: ""
+    uri: ""
+version: 0.0.1
+
+[dry run] You can preform the migration by running `ks upgrade`.

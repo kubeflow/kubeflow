@@ -47,7 +47,6 @@
       local params = $.defaultParams + overrides;
 
       local namespace = params.namespace;
-      local serving_image = params.serving_image;
       local testing_image = params.testing_image;
       local tf_testing_image = params.tf_testing_image;
       local project = params.project;

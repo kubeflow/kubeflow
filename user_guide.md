@@ -8,7 +8,7 @@ This guide will walk you through the basics of deploying and interacting with Ku
 
 ## Requirements
  * Kubernetes >= 1.8 [see here](https://github.com/kubeflow/tf-operator#requirements)
- * ksonnet version [0.8.0](https://ksonnet.io/#get-started) or later. (See [below](#why-kubeflow-uses-ksonnet) for an explanation of why we use ksonnet)
+ * ksonnet version [0.9.2](https://ksonnet.io/#get-started) or later. (See [below](#why-kubeflow-uses-ksonnet) for an explanation of why we use ksonnet)
 
 ## Deploy Kubeflow
 
@@ -23,11 +23,15 @@ ks init my-kubeflow
 Install the Kubeflow packages into your application.
 
 ```
+# For a list of releases see:
+# https://github.com/kubeflow/kubeflow/releases
+VERSION=v0.1.0
+
 cd my-kubeflow
-ks registry add kubeflow github.com/kubeflow/kubeflow/tree/master/kubeflow
-ks pkg install kubeflow/core
-ks pkg install kubeflow/tf-serving
-ks pkg install kubeflow/tf-job
+ks registry add kubeflow github.com/kubeflow/kubeflow/tree/${VERSION}/kubeflow
+ks pkg install kubeflow/core@${VERSION}
+ks pkg install kubeflow/tf-serving@${VERSION}
+ks pkg install kubeflow/tf-job@${VERSION}
 ```
 
 Create the Kubeflow core component. The core component includes:
@@ -36,9 +40,7 @@ Create the Kubeflow core component. The core component includes:
 
 
 ```
-NAMESPACE=kubeflow
-kubectl create namespace ${NAMESPACE}
-ks generate core kubeflow-core --name=kubeflow-core --namespace=${NAMESPACE}
+ks generate core kubeflow-core --name=kubeflow-core
 
 # Enable collection of anonymous usage metrics
 # Skip this step if you don't want to enable collection.
@@ -46,8 +48,6 @@ ks generate core kubeflow-core --name=kubeflow-core --namespace=${NAMESPACE}
 ks param set kubeflow-core reportUsage true
 ks param set kubeflow-core usageId $(uuidgen)
 ```
-  * Feel free to change the namespace to a value that better suits your kubernetes cluster.
-
 
 Ksonnet allows us to parameterize the Kubeflow deployment according to our needs. We will define two environments: nocloud, and cloud.
 
@@ -84,6 +84,36 @@ Now let's set `${KF_ENV}` to `cloud` or `nocloud` to reflect our environment for
 $ KF_ENV=cloud|nocloud
 ```
 
+
+* By default Kubeflow does not persist any work that is done within the Jupyter notebook. 
+* If the container is destroyed or recreated, all of its contents, including users working notebooks and other files are going to be deleted. 
+* To enable the persistence of such files, the user will need to have a default StorageClass defined for [persistent volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/). 
+* You can run the following command to check if you have a storage class
+
+```
+kubectl get storageclass
+```  
+* Users with a default storage class defined can use the jupyterNotebookPVCMount
+  parameter to create a volume that will be mounted within the notebook
+
+  ```
+  ks param set kubeflow-core jupyterNotebookPVCMount /home/jovyan/work
+  ```
+
+  * Here we mount the volume at `/home/jovyan/work` because the notebook
+    always executes as user jovyan
+  * The selected directory will be stored on whatever storage is the default
+    for the cluster (typically some form of persistent disk)
+
+Create a namespace for your deployment and set it as part of the environment. Feel free to change the namespace to a value that better suits your kubernetes cluster.
+
+```
+NAMESPACE=kubeflow
+kubectl create namespace ${NAMESPACE}
+ks env set ${KF_ENV} --namespace ${NAMESPACE}
+```
+
+
 And apply the components to our Kubernetes cluster
 
 ```
@@ -118,7 +148,7 @@ kubectl delete -n ${NAMESPACE} deploy spartakus-volunteer
 ```
 
 **Reporting usage data is one of the most signifcant contributions you can make to Kubeflow; so please consider turning it on.** This data
-allows us to improve the project and helps the many companies working on Kubeflow justify continued investement. 
+allows us to improve the project and helps the many companies working on Kubeflow justify continued investement.
 
 You can improve the quality of the data by giving each Kubeflow deployment a unique id
 
@@ -134,9 +164,10 @@ The kubeflow-core component deployed JupyterHub and a corresponding load balance
 kubectl get svc -n=${NAMESPACE}
 
 NAME               TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+...
 tf-hub-0           ClusterIP      None            <none>        8000/TCP       1m
 tf-hub-lb          ClusterIP      10.11.245.94    <none>        80/TCP         1m
-tf-job-dashboard   ClusterIP      10.11.240.151   <none>        80/TCP         1m
+...
 ```
 
 By default we are using ClusterIPs for the JupyterHub UI. This can be changed to a LoadBalancer by issuing `ks param set kubeflow-core jupyterHubServiceType LoadBalancer`, however this will leave your Jupyter Notebook open to the Internet.
@@ -154,14 +185,33 @@ You should see a sign in prompt.
 
 1. Sign in using any username/password
 1. Click the "Start My Server" button, and you will be greeted by a dialog screen.
-1. Select a CPU or GPU image from the Image dropdown menu depending on whether you are doing CPU or GPU training, or whether or not you have GPUs in your cluster. The current defaults offered for both are `gcr.io/kubeflow-images-staging/tensorflow-notebook-cpu` and `gcr.io/kubeflow-images-staging/tensorflow-notebook-gpu` respectively. Or you can type in the name of any TF image you want to run.
+1. Select a CPU or GPU image from the Image dropdown menu depending on whether you are doing CPU or GPU training, or whether or not you have GPUs in your cluster. We currently offer a cpu and gpu image for each tensorflow minor version(eg: 1.4.1,1.5.1,1.6.0). Or you can type in the name of any TF image you want to run.
 1. Allocate memory, CPU, GPU, or other resources according to your need (1 CPU and 2Gi of Memory are good starting points)
     * To allocate GPUs, make sure that you have GPUs available in your cluster
-    * Run the following command to check if there are any nvidia gpus available: 
+    * Run the following command to check if there are any nvidia gpus available:
     `kubectl get nodes "-o=custom-columns=NAME:.metadata.name,GPU:.status.allocatable.nvidia\.com/gpu"`
     * If you have GPUs available, you can schedule your server on a GPU node by specifying the following json in `Extra Resource Limits` section: `{"nvidia.com/gpu": "1"}`
   1. Click Spawn
-1. You should now be greeted with a Jupyter Notebook interface. Note that the GPU image is several gigabytes in size and may take a few minutes to download and start.
+
+      * The images are 10's of GBs in size and can take a long time to download
+        depending on your network connection
+
+      * You can check the status of your pod by doing
+
+        ```
+        kubectl -n ${NAMESPACE} describe pods jupyter-${USERNAME}
+        ```
+
+          * Where ${USERNAME} is the name you used to login
+          * **GKE users** if you have IAP turned on the pod will be named differently
+
+            * If you signed on as USER@DOMAIN.EXT the pod will be named
+
+            ```
+            jupyter-accounts-2egoogle-2ecom-3USER-40DOMAIN-2eEXT 
+            ```
+
+1. You should now be greeted with a Jupyter Notebook interface. 
 
 The image supplied above can be used for training Tensorflow models with Jupyter. The images include all the requisite plugins, including [Tensorboard](https://www.tensorflow.org/get_started/summaries_and_tensorboard) that you can use for rich visualizations and insights into your models.
 
@@ -212,8 +262,7 @@ Create a component for your model
 MODEL_COMPONENT=serveInception
 MODEL_NAME=inception
 MODEL_PATH=gs://kubeflow-models/inception
-ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME} 
-ks param set ${MODEL_COMPONENT} namespace ${NAMESPACE} 
+ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME}
 ks param set ${MODEL_COMPONENT} modelPath ${MODEL_PATH}
 ```
 
@@ -228,7 +277,9 @@ As before, a few pods and services have been created in your cluster. You can ge
 ```
 kubectl get svc inception -n=${NAMESPACE}
 NAME        TYPE           CLUSTER-IP      EXTERNAL-IP      PORT(S)          AGE
+...
 inception   LoadBalancer   10.35.255.136   ww.xx.yy.zz   9000:30936/TCP   28m
+...
 ```
 
 In this example, you should be able to use the inception_client to hit ww.xx.yy.zz:9000
@@ -236,7 +287,7 @@ In this example, you should be able to use the inception_client to hit ww.xx.yy.
 ### Serve a model using Seldon
 [Seldon-core](https://github.com/SeldonIO/seldon-core) provides deployment for any machine learning runtime that can be [packaged in a Docker container](https://github.com/SeldonIO/seldon-core/blob/master/docs/wrappers/readme.md).
 
-Install the seldon package 
+Install the seldon package
 
 ```
 ks pkg install kubeflow/seldon
@@ -259,7 +310,7 @@ Create a component for your job.
 
 ```
 JOB_NAME=myjob
-ks generate tf-job ${JOB_NAME} --name=${JOB_NAME} --namespace=${NAMESPACE}
+ks generate tf-job ${JOB_NAME} --name=${JOB_NAME}
 ```
 
 To configure your job you need to set a bunch of parameters. To see a list of parameters run
@@ -303,7 +354,7 @@ Create the component
 
 ```
 CNN_JOB_NAME=mycnnjob
-ks generate tf-cnn ${CNN_JOB_NAME} --name=${CNN_JOB_NAME} --namespace=${NAMESPACE}
+ks generate tf-cnn ${CNN_JOB_NAME} --name=${CNN_JOB_NAME}
 ```
 
 Submit it
@@ -396,14 +447,22 @@ tmpfs                                                           15444244       0
 On [Minikube](https://github.com/kubernetes/minikube) the Virtualbox/VMware drivers for Minikube are recommended as there is a known
 issue between the KVM/KVM2 driver and TensorFlow Serving. The issue is tracked in [kubernetes/minikube#2377](https://github.com/kubernetes/minikube/issues/2377).
 
-Minikube by default allocates 2048Mb of RAM for its VM, however that may not align with the starting parameters for the JupyterHub server noted above. If you encounter a jupyter-xxxx pod in Pending status, described with:
+We recommend increasing the amount of resources Minikube allocates
+
+```
+minikube start --cpus 4 --memory 8096 --disk-size=40g
+```
+
+  * Minikube by default allocates 2048Mb of RAM for its VM which is not enough
+    for JupyterHub.
+  * The larger disk is needed to accomodate Kubeflow's Jupyter images which
+    are 10s of GBs due to all the extra Python libraries we include.
+
+If you encounter a jupyter-xxxx pod in Pending status, described with:
 ```
 Warning  FailedScheduling  8s (x22 over 5m)  default-scheduler  0/1 nodes are available: 1 Insufficient memory.
 ```
-then try recreating your Minikube cluster (and re-apply Kubeflow using Ksonnet) with more resources (as your environment allows):
-```
-minikube start --cpus 4 --memory 8096
-```
+  * Then try recreating your Minikube cluster (and re-apply Kubeflow using Ksonnet) with more resources (as your environment allows):
 
 ### RBAC clusters
 
@@ -424,6 +483,40 @@ kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --us
 
 If you're using GKE, you may want to refer to [GKE's RBAC docs](https://cloud.google.com/kubernetes-engine/docs/how-to/role-based-access-control) to understand
 how RBAC interacts with IAM on GCP.
+
+### Problems spawning Jupyter pods
+
+If you're having trouble spawning jupyter notebooks, check that the pod is getting
+scheduled
+
+```
+kubectl -n ${NAMESPACE} get pods
+```
+
+  * Look for pods whose name starts with juypter
+  * If you are using username/password auth with Jupyter the pod will be named
+
+  ```
+  jupyter-${USERNAME}
+  ```
+
+  * If you are using IAP on GKE the pod will be named
+
+    ```
+    jupyter-accounts-2egoogle-2ecom-3USER-40DOMAIN-2eEXT 
+    ```
+
+    * Where USER@DOMAIN.EXT is the Google account used with IAP
+
+Once you know the name of the pod do
+
+```
+kubectl -n ${NAMESPACE} describe pods ${PODNAME}
+```
+
+  * Look at the events to see if there are any errors trying to schedule the pod
+  * One common error is not being able to schedule the pod because there aren't
+    enough resources in the cluster.
 
 ### OpenShift
 If you are deploying Kubeflow in an [OpenShift](https://github.com/openshift/origin) environment which encapsulates Kubernetes, you will need to adjust the security contexts for the ambassador and jupyter-hub deployments in order to get the pods to run.
@@ -447,6 +540,15 @@ This error is due to the fact that the default cluster installed by Docker for M
 ```commandline
 kubectl config use-context docker-for-desktop
 ks init my-kubeflow
+```
+
+### 403 API rate limit exceeded error
+
+Because ksonnet uses Github to pull kubeflow, unless user specifies Github API token, it will quickly consume maximum API call quota for anonymous.
+To fix this issue first create Github API token using this [guide](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/), and assign this token to GITHUB_TOKEN environment variable.
+
+```commandline
+export GITHUB_TOKEN=<< token >>
 ```
 
 ## Why Kubeflow Uses Ksonnet

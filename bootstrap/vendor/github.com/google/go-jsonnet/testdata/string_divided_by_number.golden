@@ -1,0 +1,10 @@
+RUNTIME ERROR: Unexpected type string, expected number
+-------------------------------------------------
+	testdata/string_divided_by_number:1:1-11	$
+
+"xxx" / 42
+
+-------------------------------------------------
+	During evaluation	
+
+

@@ -1,0 +1,277 @@
+---
+layout: default
+---
+
+<h1 id="language_design">Language Design</h1>
+
+<h2 id="objectives">Objectives</h2>
+
+<p> <a href="http://www.json.org">JSON</a> has emerged as the defacto standard for communication of
+structured data, both between machines and at the human / machine boundary.  However, in large
+quantities JSON can be unwieldy for humans, especially when duplication needs to be kept in sync
+between different parts of the data structure.  Many people address this by writing scripts that
+generate JSON.  Typically these are written in general purpose programming languages like Python.
+However, maintaining these scripts can be non-trivial, especially for persons unfamiliar with the
+generation code.</p>
+
+<p> Jsonnet attempts to solve this problem in a specialized and principled way.  Its design was
+guided by the following criteria: </p>
+
+<ul>
+
+<li><b>Hermeticity</b>:  Code may be treated as data.  The same JSON should be generated regardless
+of the environment, i.e. without non-deterministic or system-dependent behaviors.  </li>
+
+<li><b>Templating language</b>:  Code should be interleaved with verbatim data so that it is easy to
+maintain the two in synchrony.  The success of templating languages proves their effectiveness.</li>
+
+<li><b>Variants</b>: It should be simple and intuitive to derive variants of any existing
+configurations that override attributes for special or ad-hoc purposes.  </li>
+
+<li><b>Modularity</b>:  As configurations grow, it must be possible to manage the complexity using
+standard techniques for <a href="http://dl.acm.org/citation.cfm?id=808431">programming in the
+large</a>.  Configurations may span many files and many developers.  Errors should provide
+stack traces that describe the nested context.</li>
+
+<li><b>Familiarity</b>:  Raw data should be specified as JSON.  Computation constructs should behave
+in standard ways and compose predictably.  </li>
+
+<li><b>Powerful yet simple</b>: Trivial cases should be trivial.  More complex cases should be
+approachable, with localized additional complexity.  Everything must be <i>possible</i>, yet the
+language must still have a small footprint for learning and future tooling.</li>
+
+<li><b>Wide scope</b>:  The same language should be able to configure anything.  Ideally, all
+components of a system should be managed via a well-maintained centralized configuration, written in
+a common language.</li>
+
+<li><b>Formal rigor</b>:  There must be an authoritative specification that is complete and simple
+enough to understand, and a comprehensive set of tests.  This allows new implementations to be
+developed without compatibility hurdles.  The language should <i>not</i> be defined by its first
+implementation.  </li>
+
+</ul>
+
+<p>Before Jsonnet, no existing configuration languages or DSLs satisfied these criteria.  In fact,
+the vast majority only satisfied one or two of them.</p>
+
+
+<h2 id="json">Rationale for extending JSON</h2>
+
+<p>Extending JSON means building a language that fits within the existing constraints of the JSON
+specification.  This means that all JSON data must behave the same in Jsonnet (i.e. be emitted
+unchanged), with additional behaviors being expressible using constructs that would be syntax errors
+in standard JSON.  This choice did constrain us substantially, but we believe it was the correct one
+for the following reasons:</p>
+
+<p>A common case of Jsonnet program is a program that is mostly JSON data, but has a few occurences
+of Jsonnet constructs.  In this case, someone who knows JSON can maintain the file with no
+additional knowledge.  </p>
+
+<p>Systems that accept JSON can be transparently modified to accept Jsonnet instead by inserting a
+step to convert the Jsonnet to JSON.  If you want to be extra paranoid, you can invoke Jsonnet only
+if the JSON parsing failed, but this is not actually necessary.</p>
+
+
+<h2 id="reflection">Rationale for Reflection</h2>
+
+<p>In JSON, there is an object construct, that is used as a dictionary, and like an object.  Jsonnet
+is the same, the object construct is often used as a dictionary as well as a conventional object.
+The importance of this is that it is necessary to iterate over dictionaries, test for the existence
+of a key, and build them with computed key names.  These features when applied to objects give us
+reflection.  So naturally, Jsonnet has reflection because objects and dictionaries are the same
+thing.</p>
+
+
+<h2 id="turing_completeness">Rationale for Turing-Completeness</h2>
+
+<p>Jsonnet is Turing-complete as it is possible to write non-terminating programs.  Configurations
+should always terminate, so ideally we would consider non-termination as an error.  However, doing
+so in general is <a href="http://en.wikipedia.org/wiki/Halting_problem">impossible</a> and even when
+constrained to practical use cases, it remains impractical.  Typical approaches for enforcing
+termination either restrict the language (e.g. to primitive recursion), which makes some programs
+impossible / difficult to write, or, alternatively, require the programmer to provide evidence that
+the program terminates, via some sort of annotation / <a
+href="http://www.turingarchive.org/browse.php/B/8">energy function</a>.  Both of these make the
+programmer's life more difficult.  </p>
+
+<p> Furthermore, non-Turing complete languages can take arbitrary CPU or RAM by running intensive
+algorithms on large input.  So enforcing termination is firstly not practical, and secondly does not
+actually solve the more practical problem of bounding resource consumption during execution.</p>
+
+<p>For Jsonnet we decided restricting termination would create more problems than it would
+solve.</p>
+
+
+<h2 id="dynamic_typing">Rationale for Dynamic Typing</h2>
+
+<p>Modern <a href="http://en.wikipedia.org/wiki/Type_system">type systems</a> typically either
+require annotations, use type inference, or are dynamic.  The former two approaches have two
+advantages: Firstly, some errors can be detected before execution (some correct programs are also
+rejected).  Secondly, they can be implemented more efficiently since the additional knowledge about
+the program means special memory representations can be used, and also some instructions can be
+elided.  However annotations are additional bureaucracy and type inference produces unification
+errors that the programmer has to understand and fix.</p>
+
+<p>Dynamic typing means checking types at run-time, and raising errors via the language's existing
+error reporting mechanism.  This is conceptually much simpler for the programmer.  In a
+configuration language, runtime performance is not as important as it is in most other contexts, and
+additionally programs tend to execute quickly so testing is much easier.  On the other hand,
+simplicity is of the utmost importance.</p>
+
+<p>For Jsonnet, i.e. in the context of configuration languages, we decided that simplicity was far
+more important than the minimal benefits of runtime efficiency and static error detection.</p>
+
+
+<h2 id="oo">Rationale for Object-Oriented Semantics</h2>
+
+<p>Object-oriented semantics (specifically, late binding), are ideal for deriving variants from
+existing data.  Most modern object-oriented languages distinguish between classes and objects.
+Classes can be extended, or instantiated into objects, and objects cannot be extended.  However some
+are <a href="http://en.wikipedia.org/wiki/Prototype-based_programming">prototype-based</a>, where
+the concept of class and object are essentially fused.  In Jsonnet, we decided to use the latter
+form because JSON does not have classes, and it's simpler to only have one concept instead of two.
+</p>
+
+<p>Furthermore, we decided to use mixin semantics for inheritance, because they are the most
+powerful and flexible form of inheritance that has been widely studied, yet remain remarkably simple
+to define and use.</p>
+
+<p>One novelty is our notion of a first class <code>super</code> construct, which can be used
+outside the context of field lookup, i.e. <code>super.f</code>.  The behavior of <code>super</code>
+by itself is given formally in the <a href="/language/spec.html">specification</a>.  We decided not to
+restrict <code>super</code> in order to keep the language simple (fewer rules).</p>
+
+
+<h2 id="functional">Rationale for Pure Functional Semantics</h2>
+
+<p>There are ideological and practical reasons for designing Jsonnet as a pure functional language.
+On the practical side, pure functional languages have no side-effects, which (together with
+determinism) gives us the property of hermeticity.  This allows code to be treated as data, because
+the code will always evaluate to the same thing, and it is not allowed to make changes to its
+environment (e.g. by writing to files).  By analogy, compressed data can be decompressed on demand
+because it will always produce the same data and the decompression process doesn't have any external
+side-effects.</p>
+
+<p>Furthermore, the property of <a
+href="http://en.wikipedia.org/wiki/Referential_transparency_(computer_science)">referential
+transparency</a> essentially extends the hermeticity property into submodules of the Jsonnet code
+itself, which means that different parts of the code cannot interfere with each other and everything
+composes in a very predictable way.  In a language whose purpose is simply to define data, the
+property of referential transparency is very natural.
+Ideologically speaking, functional programming language advocates have always claimed that
+functional languages are excellent at defining, translating, and refining structured data.</p>
+
+
+<h2 id="lazy">Rationale for Lazy Semantics</h2>
+
+<p>The late binding from the object oriented semantics already embodies some of the features of a lazy
+language.  Errors do not occur unless a field is actually dereferenced, and cyclic structures can be
+created.  For example the following is valid even in an eager version of the language:</p>
+
+<pre class="large"><code>local x = {a: "apple", b: y.b},
+      y = {a: x.a, b: "banana"};
+x
+</code></pre>
+
+<p> It would therefore be confusing if the following was not also valid, which leads us to lazy
+semantics for arrays.  </p>
+
+<pre class="large"><code>local x = ["apple", y[1]],
+      y = [x[0], "banana"];
+x
+</code></pre>
+
+<p> Therefore, for consistency, the whole language is lazy.  It does not harm the language to be
+lazy:  Performance is not significantly affected, stack traces are still possible, and it doesn't
+interfere with I/O (because there is no I/O).  There is also a precedent for laziness, e.g. in
+Makefiles and the Nix expression language.</p>
+
+<p> Arguably, laziness brings real benefits in terms of abstraction and modularity.  It
+is possible to build infinite data-structures, and there is unrestricted beta expansion.  For
+example, the following 2 snippets of code are only equivalent in a lazy language.  </p>
+
+<pre class="large"><code>if x == 0 then 0 else if x &gt; 0 then 1 / x else -1/x
+</code></pre>
+
+<pre class="large"><code>local r = 1 / x;
+if x == 0 then 0 else if x &gt; 0 then r else -r
+</code></pre>
+
+
+<h2 id="modularity">Modularity and Encapsulation</h2>
+
+<p>In Jsonnet, a <dfn>module</dfn> is typically a Jsonnet file that defines an object whose fields
+contain useful values, such as functions or objects that can specialized for a particular purpose
+via extension.  Using an object at the top level of the module allows adding other fields later on,
+without having to alter user code.  When writing such a module, it is advisable to expose only the
+interface to the module, and not its implementation.  This is called encapsulation, and it allows
+changing the implementation later, despite the module being imported by many other Jsonnet files.
+</p>
+
+<p>Jsonnet's primary feature for encapsulation is the <code>local</code> keyword.  This makes it
+possible to define variables that are visible only to the module, and impossible to access from
+outside.  The following is a simple example.  Other code can import <tt>util.jsonnet</tt> but will
+not be able to see the <code>internal</code> object, and therefore not the function
+<code>square</code>.</p>
+
+<pre class="large"><code>// util.jsonnet
+local internal = {
+    square(x):: x*x,
+};
+{
+    euclidianDistance(x1, y1, x2, y2)::
+        std.sqrt(internal.square(x2-x1) + internal.square(y2-y1)),
+}
+</code></pre>
+
+<p>It is also possible to store <code>square</code> in a field, which exposes it to those importing
+the module:</p>
+
+<pre class="large"><code>// util2.jsonnet
+{
+    square(x):: x*x,
+    euclidianDistance(x1, y1, x2, y2)::
+        std.sqrt(self.square(x2-x1) + self.square(y2-y1)),
+}
+</code></pre>
+
+<p>This allows users to redefine the square function, as shown in the very strange code below.  In
+some cases, this is actually what you want and is very useful.  But it does make it harder to
+maintain backwards compatibility.  For example, if you later change the implementation of
+<code>euclidianDistance</code> to inline the square call, then user code will behave
+differently.</p>
+
+<pre class="large"><code>// myfile.jsonnet
+local util2 = import "util2.jsonnet" { square(x):: x*x*x };
+{
+    crazy: util2.euclidianDistance(1,2,3,4)
+}
+</code></pre>
+
+<p> In conclusion, Jsonnet allows you to either expose these details or hide them.  So choose
+wisely, and know that everything you expose will potentially be used in ways that you didn't
+expect.  Keep your interface small if possible.</p>
+
+<p>A common belief is that languages should make <code>local</code> the default state, with an
+explicit construct to allow outside access.  This ensures that things are not accidentally (or
+apathetically) exposed.  In the case of Jsonnet, backwards compatibility with JSON prohibits that
+design since in JSON everything is a visible field.</p>
+
+
+<h2 id="misc">Miscellaneous Design Choices</h2>
+
+<p>The language is designed to be implementable via desugaring, i.e. there is a simple core language
+and the other constructs are translated down to this core language before interpretation.  This
+technique allows a language to have considerable expressive power, while remaining easy to
+implement.</p>
+
+<p>The string formating operator <code>%</code> is defined to behave identically to the Python
+equivalent, and therefore very similarly to the C <tt>printf</tt> micro-language.  We decided it
+would be better to be compatible with an existing popular language wherever possible, and Python is
+often the language of choice for operations people.</p>
+
+<p>In contrast, we decided that the semantics of Python's <tt>and</tt> and <tt>or</tt> operators,
+which have meaning beyond boolean logic, might be confusing for those without prior knowledge of
+such languages.  We therefore implemented the simpler <code>&amp;&amp;</code> and <code>||</code>
+operators, which only operate on booleans.  More complex cases can be implemented explicitly with
+the <code>if</code> construct.</p>

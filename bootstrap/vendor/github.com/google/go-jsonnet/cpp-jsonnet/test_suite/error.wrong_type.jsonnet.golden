@@ -1,0 +1,2 @@
+RUNTIME ERROR: Builtin function codepoint expected (string) but got (number)
+	error.wrong_type.jsonnet:1:1-18	

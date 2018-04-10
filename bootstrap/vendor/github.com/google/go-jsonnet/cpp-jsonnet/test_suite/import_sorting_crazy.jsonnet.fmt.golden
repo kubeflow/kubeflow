@@ -1,0 +1,20 @@
+local z = import 'zzzz.jsonnet';
+/* zzz
+zzz */
+local x = import 'x.libsonnet';
+local y = import 'y.libsonnet'; /* aaaaa */
+/* w1 */ /* w2 */
+local r = import 'r.jsonnet';
+local s = import 's.jsonnet';
+local t = import 't.jsonnet';
+local u = import 'u.jsonnet';
+local v = import 'v.jsonnet';
+local w = import 'w.jsonnet'; /* w3 */ /* w4 */
+
+local b = import 'b.jsonnet';
+/* foo */
+
+/* bar */
+local a = import 'a.jsonnet';
+
+true

@@ -1,0 +1,24 @@
+local a = import 'a.jsonnet';
+local b = import 'b.jsonnet';
+
+// shadowing - the imports in this group are not reordered
+local b = import 'b.jsonnet';
+local a = import 'a.jsonnet';
+local a = import 'a.jsonnet';
+
+// shadowing (non-consecutive) - the imports in this group are not reordered
+local b = import 'b.jsonnet';
+local a = import 'a.jsonnet';
+local b = import 'a.jsonnet';
+
+// Shadowing of variables from previous groups doesn't affect it.
+local a = import 'a.jsonnet';
+local b = import 'b.jsonnet';
+
+local y = import 'x.jsonnet';
+local z = import 'z.jsonnet';
+// This comment separates groups
+local w = import 'w.jsonnet';
+local x = import 'z.jsonnet';
+
+true

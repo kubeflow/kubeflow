@@ -1,0 +1,10 @@
+RUNTIME ERROR: function has no parameter y
+-------------------------------------------------
+	testdata/native7:1:1-33	$
+
+std.native("jsonToString")(y={})
+
+-------------------------------------------------
+	During evaluation	
+
+

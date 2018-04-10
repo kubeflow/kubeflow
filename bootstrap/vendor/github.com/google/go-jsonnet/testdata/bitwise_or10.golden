@@ -1,0 +1,10 @@
+RUNTIME ERROR: Unexpected type string, expected number
+-------------------------------------------------
+	testdata/bitwise_or10:1:1-11	$
+
+"xxx" | 42
+
+-------------------------------------------------
+	During evaluation	
+
+

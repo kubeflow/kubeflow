@@ -1,0 +1,2 @@
+RUNTIME ERROR: too many args, function has 2 parameter(s)
+	error.function_too_many_args.jsonnet:19:1-13	

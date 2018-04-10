@@ -1,0 +1,34 @@
+---
+layout: default
+---
+
+<h1 id="cpp_implementation">C++ Implementation</h1>
+
+<p> The engine that does the hard work of evaluating Jsonnet programs is written in C++11 (no
+dependencies) and is exposed by a C API.  It implements a handwritten lexer and recursive descent
+parser.  The desugaring is performed by the parser, so the rest of the implementation operates on
+only the core subset of the language.  Then, the ASTs are analysed to perform static checking, and
+to establish the set of unbound variables in each expression.  This optimizes the capturing of the
+environment that is needed for closures, object construction, and creation of thunks.  Finally, the
+analysed AST is executed in the virtual machine.</p>
+
+<p> The Jsonnet virtual machine has its own stack and garbage collected heap.  The garbage collector
+is a simple mark and sweep garbage collector which is triggered when the heap grows (number of
+objects) by a certain factor since the last GC cycle.  This factor can be tuned, as can the number
+of objects below which the GC does not trigger.</p>
+
+<p> The Jsonnet stack is not bound by the size of the native stack, it is implemented as an explicit
+stack in the VM.  Tail call optimizations are performed.</p>
+
+<p> Some of the standard library functions are implemented in C++ as builtin functions, e.g. the
+math routines and reflection.  However others are implemented in Jsonnet in the <tt>std.jsonnet</tt>
+file.  This file is embedded into the library when it is built.  The intention is that ports of the
+Jsonnet virtual machine (e.g. to Java, .NET, etc.) should only need to reimplement the builtin
+functions.  The other parts of the standard library can be implemented by re-using the Jsonnet
+implementations from the C++ implementation.  </p>
+
+<h2 id="support">Support</h2>
+
+<p>Currently supported are Linux and OSX.  However the code should be easy to compile on any system
+with a modern C++ compiler, as it has no dependencies.  The build has been tested on gcc and
+clang.</p>

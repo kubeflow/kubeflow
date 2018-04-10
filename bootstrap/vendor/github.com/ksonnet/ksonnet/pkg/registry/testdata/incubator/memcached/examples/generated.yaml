@@ -1,0 +1,76 @@
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: memcached
+  namespace: dev-alex
+spec:
+  minAvailable: 3
+  selector:
+    matchLabels:
+      app: memcached
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  labels:
+    app: memcached
+  name: memcached
+  namespace: dev-alex
+spec:
+  replicas: 3
+  serviceName: memcached
+  template:
+    metadata:
+      labels:
+        app: memcached
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app: memcached
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - command:
+        - memcached
+        - -m 64
+        - -o
+        - modern
+        image: memcached:1.4.36-alpine
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          initialDelaySeconds: 30
+          tcpSocket:
+            port: memcache
+          timeoutSeconds: 5
+        name: memcached
+        ports:
+        - containerPort: 11211
+          name: memcache
+        readinessProbe:
+          initialDelaySeconds: 5
+          tcpSocket:
+            port: memcache
+          timeoutSeconds: 1
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: memcached
+  name: memcached
+  namespace: dev-alex
+spec:
+  clusterIP: None
+  ports:
+  - name: memcache
+    port: 11211
+    targetPort: memcache
+  selector:
+    app: memcached

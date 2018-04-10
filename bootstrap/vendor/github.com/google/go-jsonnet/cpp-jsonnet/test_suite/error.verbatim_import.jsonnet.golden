@@ -1,0 +1,2 @@
+RUNTIME ERROR: couldn't open import "C:\\can't possibly exist~": no match locally or in the Jsonnet library paths.
+	error.verbatim_import.jsonnet:22:1-36	

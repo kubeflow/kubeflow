@@ -1,0 +1,10 @@
+RUNTIME ERROR: Argument x already provided
+-------------------------------------------------
+	testdata/optional_args9:1:1-26	$
+
+(function(x) x)(42, x=42)
+
+-------------------------------------------------
+	During evaluation	
+
+

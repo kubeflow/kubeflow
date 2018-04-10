@@ -1,0 +1,8 @@
+RUNTIME ERROR: codepoint takes a string of length 1, got length 0
+-------------------------------------------------
+	<builtin>	builtin function <codepoint>
+
+-------------------------------------------------
+	During evaluation	
+
+

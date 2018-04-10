@@ -1,0 +1,2 @@
+RUNTIME ERROR: couldn't open import "lib/": attempted to import a directory
+	error.import_folder_slash.jsonnet:17:1-14	

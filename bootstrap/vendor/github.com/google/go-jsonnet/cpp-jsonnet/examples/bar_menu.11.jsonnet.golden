@@ -1,0 +1,26 @@
+{
+   "cocktails": {
+      "Gin Fizz": {
+         "garnish": "Maraschino Cherry",
+         "ingredients": [
+            { "kind": "Farmers Gin", "qty": 1.5 },
+            { "kind": "Lemon", "qty": 1 },
+            { "kind": "Simple Syrup", "qty": 0.5 },
+            { "kind": "Soda", "qty": 2 },
+            { "kind": "Angostura", "qty": "dash" }
+         ],
+         "served": "Tall"
+      },
+      "Bloody Mary": {
+         "garnish": "Celery salt & pepper",
+         "ingredients": [
+            { "kind": "Vodka", "qty": 1.5 },
+            { "kind": "Tomato Juice", "qty": 3 },
+            { "kind": "Lemon Juice", "qty": 1.5 },
+            { "kind": "Worcestershire Sauce", "qty": 0.25 },
+            { "kind": "Tobasco Sauce", "qty": 0.14999999999999999 }
+         ],
+         "served": "Tall"
+      }
+   }
+}

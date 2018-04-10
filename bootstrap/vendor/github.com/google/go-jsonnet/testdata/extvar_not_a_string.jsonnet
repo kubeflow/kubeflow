@@ -1,0 +1,1 @@
+std.extVar(42)

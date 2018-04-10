@@ -1,0 +1,5 @@
+NAME      VERSION NAMESPACE SERVER
+====      ======= ========= ======
+default   v1.7.0  default   http://default
+dev       v1.8.0
+east/prod v1.8.0  east/prod http://east-prod

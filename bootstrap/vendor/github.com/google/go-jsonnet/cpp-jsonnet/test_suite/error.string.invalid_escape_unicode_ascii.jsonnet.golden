@@ -1,0 +1,1 @@
+STATIC ERROR: error.string.invalid_escape_unicode_ascii.jsonnet:17:1: Codepoint out of ascii range.

@@ -1,0 +1,260 @@
+---
+layout: default
+---
+
+<script src="/js/libjsonnet.js">
+</script>
+
+<h1 id="online_demo">Jsonnet Online Demo</h1>
+
+<p> This JavaScript <a href="/implementation/javascript.html">build</a> of Jsonnet runs in your browser.
+There is no filesystem, so <code>import</code> will not find any files.  In most browsers, the textboxes can
+be made larger by dragging their bottom right corner.</p>
+
+<textarea class="demo-text" id=jsonnet-code rows="15" cols="100">
+local A = {
+    x: 1,
+    y: 2,
+    z: self.x + 10
+};
+{
+    f1: A { x: 3 },
+    f2: A { y: 3 },
+}
+</textarea>
+
+<table class="landing-page-example">
+<tr>
+<td>
+<div id=submit_box>
+    <div class="bigarrow">➡</div>
+    <form onsubmit='compute(this); return false;'>
+        <input id='compute_button' type='submit' value='Evaluate' >
+    </form>
+</div>
+</td>
+<td>
+<textarea class="demo-text" id=json-output rows="15" cols="90">
+</textarea>
+</td>
+</tr>
+</table>
+
+
+<p>Don't know what to write?  The following links replace the above Jsonnet with various examples.
+</p>
+
+<ul>
+
+<li><a id="initial-example" href="" onclick='replace(this) ; return false;'>
+Build script example
+<span class="example-code">{% include examples/build_example.jsonnet %}</span>
+</a></li>
+
+
+<li><a href="" onclick='replace(this) ; return false;'>
+Alice &amp; Bob
+<span class="example-code">{% include examples/landingpage.jsonnet %}</span>
+</a></li>
+
+<li><a href="" onclick='replace(this) ; return false;'>
+Tutorial code: bar_menu.1.jsonnet
+<span class="example-code">{% include examples/bar_menu.1.jsonnet %}</span>
+</a></li>
+
+<li><a href="" onclick='replace(this) ; return false;'>
+Tutorial code: bar_menu.2.jsonnet
+<span class="example-code">{% include examples/bar_menu.2.jsonnet %}</span>
+</a></li>
+
+<li><a href="" onclick='replace(this) ; return false;'>
+Tutorial code: bar_menu.3.jsonnet
+<span class="example-code">{% include examples/bar_menu.3.jsonnet %}</span>
+</a></li>
+
+<li><a href="" onclick='replace(this) ; return false;'>
+Tutorial code: example_operators.jsonnet
+<span class="example-code">{% include examples/example_operators.jsonnet %}</span>
+</a></li>
+
+<li><a href="" onclick='replace(this) ; return false;'>
+Tutorial code: bar_menu.5.jsonnet
+<span class="example-code">{% include examples/bar_menu.5.jsonnet %}</span>
+</a></li>
+
+<li><a href="" onclick='replace(this) ; return false;'>
+Tutorial code: bar_menu.6.jsonnet (with inlined import)
+<span class="example-code">local ImportedMartinis = {
+    "Vodka Martini": {
+        ingredients: [
+            { kind: "Vodka", qty: 2 },
+            { kind: "Dry White Vermouth", qty: 1 },
+        ],
+        garnish: "Olive",
+        served: "Straight Up",
+    },
+    Cosmopolitan: {
+        ingredients: [
+            { kind: "Vodka", qty: 2 },
+            { kind: "Triple Sec", qty: 0.5 },
+            { kind: "Cranberry Juice", qty: 0.75 },
+            { kind: "Lime Juice", qty: 0.5 },
+        ],
+        garnish: "Orange Peel",
+        served: "Straight Up",
+    },
+};
+
+// bar_menu.6.jsonnet
+{
+    cocktails: ImportedMartinis + {
+        Manhattan: {
+            ingredients: [
+                { kind: "Rye", qty: 2.5 },
+                { kind: "Sweet Red Vermouth", qty: 1 },
+                { kind: "Angostura", qty: "dash" },
+            ],
+            garnish: "Maraschino Cherry",
+            served: "Straight Up",
+        },
+        Cosmopolitan: {
+            ingredients: [
+                { kind: "Vodka", qty: 1.5 },
+                { kind: "Cointreau", qty: 1 },
+                { kind: "Cranberry Juice", qty: 2 },
+                { kind: "Lime Juice", qty: 1 },
+            ],
+            garnish: "Lime Wheel",
+            served: "Straight Up",
+        },
+    }
+}
+
+</span>
+</a></li>
+
+<li><a href="" onclick='replace(this) ; return false;'>
+Tutorial code: bar_menu.7.jsonnet (with inlined import)
+<span class="example-code">// bar_menu.7.jsonnet
+local utils = {
+    equal_parts(size, ingredients)::
+        if std.length(ingredients) == 0 then
+            error "No ingredients specified."
+        else [
+            { kind: i, qty: size/std.length(ingredients) }
+            for i in ingredients
+        ],
+    id:: function(x) x,
+};
+{
+    local my_gin = "Farmers Gin",
+    cocktails: {
+        "Bee's Knees": {
+            // Divide 4oz among the 3 ingredients.
+            ingredients: utils.equal_parts(4, [
+                "Honey Syrup", "Lemon Juice", my_gin]),
+            garnish: "Lemon Twist",
+            served: "Straight Up",
+        },
+        Negroni: {
+            // Divide 3oz among the 3 ingredients.
+            ingredients: utils.equal_parts(3, [
+                my_gin, "Sweet Red Vermouth",
+                "Campari"]),
+            garnish: "Orange Peel",
+            served: "On The Rocks",
+        },
+    }   
+}           
+</span>
+</a></li>
+
+<li><a href="" onclick='replace(this) ; return false;'>
+Tutorial code: bar_menu.8.jsonnet
+<span class="example-code">{% include examples/bar_menu.8.jsonnet %}</span>
+</a></li>
+
+<li><a href="" onclick='replace(this) ; return false;'>
+Tutorial code: bar_menu.9.jsonnet
+<span class="example-code">{% include examples/bar_menu.9.jsonnet %}</span>
+</a></li>
+
+<li><a href="" onclick='replace(this) ; return false;'>
+Tutorial code: bar_menu.10.jsonnet (with inlined import)
+<span class="example-code">// bar_menu.10.jsonnet
+
+local Imported = {
+    cocktails: {
+        "Whiskey Sour": {
+            ingredients: [
+                { kind: "Bourbon", qty: 1.5 },
+                { kind: "Lemon Juice", qty: 1 },
+                { kind: "Gomme Syrup", qty: 0.5 },
+            ],
+            garnish: "Lemon Peel",
+            served: "Straight Up",
+        },
+        "Whiskey Sour With Egg": self["Whiskey Sour"] + {
+            ingredients: super.ingredients
+                         + [ { kind: "Egg White", qty: 0.5 } ],
+        },
+    }
+};
+
+Imported {
+    cocktails: super.cocktails {
+        "Whiskey Sour": {
+            ingredients: [
+                { kind: "Scotch", qty: 1.5 },
+                { kind: "Lemon Juice", qty: 0.75 },
+            ],
+            garnish: "Lemon Peel",
+            served: "On The Rocks",
+        }
+    }
+}</span>
+</a></li>
+
+<li><a href="" onclick='replace(this) ; return false;'>
+Silly example: Fibonacci via recursive function
+<span class="example-code">{% include benchmarks/bench.03.jsonnet %}</span>
+</a></li>
+
+<li><a href="" onclick='replace(this) ; return false;'>
+Silly example: Fibonacci via recursive object (CAUTION: can be slow)
+<span class="example-code">{% include benchmarks/bench.02.jsonnet %}</span>
+</a></li>
+
+</ul>
+
+<script>
+<!--
+function jsonnet_evaluate_snippet_wrapped(code) {
+    var jsonnet_make = Module.cwrap('jsonnet_make', 'number', [])
+    var jsonnet_realloc = Module.cwrap('jsonnet_realloc', 'number', ['number', 'number', 'number'])
+    var jsonnet_evaluate_snippet = Module.cwrap('jsonnet_evaluate_snippet', 'number', ['number', 'string', 'string', 'number'])
+    var jsonnet_destroy = Module.cwrap('jsonnet_destroy', 'number', ['number'])
+
+    var vm = jsonnet_make();
+    var error_ptr = Module._malloc(4);
+    var output_ptr = jsonnet_evaluate_snippet(vm, "snippet", code, error_ptr);
+    var error = Module.getValue(error_ptr, 'i32*');
+    Module._free(error_ptr);
+    var result = Module.Pointer_stringify(output_ptr);
+    jsonnet_realloc(vm, output_ptr, 0);
+    jsonnet_destroy(vm);
+    return result;
+}
+function compute() {
+    var jsonnet_code = document.getElementById('jsonnet-code');
+    var json_output = document.getElementById('json-output');
+    json_output.value = jsonnet_evaluate_snippet_wrapped(jsonnet_code.value);
+}
+function replace(dom) {
+    var jsonnet_code = document.getElementById('jsonnet-code');
+    jsonnet_code.value = dom.children[0].textContent;
+    compute();
+}
+replace(document.getElementById('initial-example'));
+//-->
+</script>

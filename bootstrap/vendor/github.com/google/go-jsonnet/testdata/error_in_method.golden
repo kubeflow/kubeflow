@@ -1,0 +1,15 @@
+RUNTIME ERROR: xxx
+-------------------------------------------------
+	testdata/error_in_method:1:23-30	function <anonymous>
+
+local obj = { foo(x): error x }; obj.foo("xxx")
+
+-------------------------------------------------
+	testdata/error_in_method:1:34-48	$
+
+local obj = { foo(x): error x }; obj.foo("xxx")
+
+-------------------------------------------------
+	During evaluation	
+
+

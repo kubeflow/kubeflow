@@ -1,0 +1,209 @@
+---
+layout: default
+---
+
+<h1 id=top>
+
+<p class=jump_to_page_top>Pages <a href="/case_studies/casestudy_fractal.1.html">1</a>, <a
+href="/case_studies/casestudy_fractal.2.html">2</a>, 3</p>
+
+Case Study: Fractal Cloud Application
+
+</h1>
+
+<h2 id=using>Using The Configuration</h2>
+
+<p>The rest of this article gives simple methodologies for deploying and managing the fractal
+application by editing the Jsonnet configuration and then applying these changes.  In order to
+reproduce this case study there are a few pre-requisites:</p>
+
+<ul>
+
+<li>A Linux or OSX system with GNU Make</li>
+
+<li>Packer, built from github, in your $PATH.</li>
+
+<li>Terraform, built from github, in your $PATH.</li>
+
+<li>Jsonnet, built from github (this is also where you find the configuration and source code).</li>
+
+<li>An account on Google Cloud Platform (hosting the application will incur charges).</li>
+
+</ul>
+
+<p>Once those are satisfied, follow these steps:</p>
+
+<ol>
+
+<li>In the Google Cloud Platform console, open your project, go to APIs and Auth / credentials, and
+create a new service account.  This will automatic download a p12 key, which you can delete as we
+will not be using it.  Instead, click the button to download a JSON key for the new service account,
+move it to the fractal directory, and call it <tt>service_account_key.json</tt>.</li>
+
+<li>Create a credentials.jsonnet file based on the template, fill in your GCP project name and make
+up some unique passwords.</li>
+
+</ol>
+
+<h3 id=using_deploy>Initial Deployment and Tear Down</h3>
+
+<p>To deploy the application, run make -j.  This should start running 3 Packer builds in parallel.
+In a separate terminal, use tail -f *.log in order to watch their progress.  When the images are
+built, Terraform will show you the proposed changes (a long list of resources to be created).  Enter
+<tt>y</tt> to confirm the changes.  In time, the application will be deployed.  Now you only need
+the appserv ip address to connect to it.  You can get this using "gcloud compute addresses list" or
+by navigating the Google Cloud Platform console to "networks".  Opening that ip in a web browser
+should take you to the fractal application itself.  </p>
+
+<p>The application can be brought down again by running <tt>terraform destroy</tt>.  Terraform
+remembers the resources it created via the <tt>terraform.tfstate</tt> file.  This will not destroy
+the Packer images; they can be deleted from the console or from gcloud.</p>
+
+<p>Managing a production web service usually means making continual changes to it instead of
+bringing the whole thing down and up again, as we will shortly discuss.  However it is still useful
+to bring up a fresh application for testing / development purposes.  A copy or variant of the
+production service can be brought up concurrently with the production service (e.g., in a different
+project).  This can be useful for QA, automatic integration testing, or load testing.  It is also
+useful for training new ops staff or rehearsing a complex production change in a safe
+environment.</p>
+
+<h3 id=using_cassandra>Add / Remove Cassandra Nodes</h3>
+
+<p>Managing the Cassandra cluster requires a combination of configuration alteration (to control the
+fundamental compute resources) and use of the Cassandra command line tool "nodetool" on the instances
+themselves.  For example "nodetool status fractal" on any Cassandra instance will give information
+about the whole cluster.</p>
+
+<p>To add a new node (expand the cluster), simply edit {{service_jsonnet|safe}}, add another
+instance in the Terraform configuration and run make -j.  Confirm the changes (the only change
+should be the new instance, e.g., db4).  It will start up and soon become part of the cluster.</p>
+
+<p>To remove a node, first decommission it using nodetool -h HOSTNAME decommission.  When that is
+complete, destroy the actual instance by updating {{service_jsonnet|safe}} to remove the resource
+and run make -j again.  Confirm the removal of the instance.  It is OK to remove the first node, but
+its replacement should use <tt>GcpTopUpMixin</tt> instead of <tt>GcpStarterMixin</tt>.  You can
+recycle all of the nodes if you do it one at a time, which is actually necessary for emergency
+kernel upgrades.</p>
+
+<p>If a node is permanently and unexpectedly lost (e.g., a disk error), or you removed it without
+first decommissioning it, the cluster will remain in a state where it expects the dead node to
+return at some point (as if it were temporarily powered down or on the wrong side of a network
+split).  This situation can be rectified with nodetool removenode UUID, run from any other node in
+the cluster.  In this case it is probably also necessary to run nodetool repair on the other nodes
+to ensure data is properly distributed.</p>
+
+
+<h3 id=using_appserv>Canary A Change To The Application Server</h3>
+
+<p>To introduce new functionality to the application server it is useful to divert a small
+proportion of user traffic to the new code to ensure it is working properly.  After this initial
+"canary" test has passed, the remaining traffic can then be confidently transferred to the new code.
+The same can be said for the tile generation service (e.g. to update the C++ code).</p>
+
+<p>The model used by this example is that the application server logic and static content are
+embedded in the application server image.  Canarying consists of building a new image and then
+rolling it out gradually one instance at a time.  Each step of this methodology consists of a small
+modification to {{service_jsonnet|safe}} and then running make -j.</p>
+
+<ol>
+
+<li>Edit the <tt>appserv.packer.json</tt> packer configuration in {{service_jsonnet|safe}} to update
+the date embedded in the <tt>name</tt> field to the current date, and also make any desired changes
+to the configuration of the image or any of the referenced Python / HTML / CSS files.</li>
+
+<li>Run make -j to build the new image.  Note that the previous image is still available under the
+old name, which means it is possible to create new instances using either the old or new image.
+This feature is essential to allow ongoing maintenance of the cluster if the change is rolled
+back.</li>
+
+<li>Create a single instance with the new image by adding it to the <tt>google_compute_instance</tt>
+section of {{service_jsonnet|safe}}.  The easiest way to do this is to copy-paste the existing
+definition, and modify the image name in the copy to reflect the new image.  This allows easily
+rolling back by deleting the copied code, and you can also transition the rest of the nodes by
+deleting the original copy.  Thus, the duplication is only temporary.  At this point the
+configuration may look like this:
+
+<pre class="medium"><code>google_compute_instance: {
+
+    ["appserv" + k]: resource.FractalInstance(k) {
+        name: "appserv" + k,
+        image: "appserv-v20141222-0300",
+        ...
+    }
+    for k in [1, 2, 3]
+
+} + {
+
+    ["appserv" + k]: resource.FractalInstance(k) {
+        name: "appserv" + k,
+        image: "appserv-v20150102-1200",
+        ...
+    }
+    for k in [4]
+
+} + ...
+</code></pre>
+
+Also modify the appserv target pool to add the new instance 4, thus ensuring it receives
+traffic.</li>
+
+<pre class="medium"><code>appserv: {
+    name: "appserv",
+    health_checks: ["${google_compute_http_health_check.fractal.name}"],
+    instances: [ "%s/appserv%d" % [zone(k), k] for k in [1, 2, 3, 4] ],
+},
+</code></pre>
+</li>
+
+<li>Run make -j to effect those changes, and monitor the situation to ensure that there is no spike
+in errors.  It is also possible to run make -j between the above two steps if it is desired to
+interact with the new instance before directing user traffic at it.</li>
+
+<li>If there is a problem, pull 4 out of the target pool and re-run make -j.  That will leave the
+instance up (useful for investigation) but it will no-longer receive user traffic.  Otherwise, add
+more instances (5, 6, ...) and add them to the target pool.  You can now start pulling the old
+instances out of the target pool ensuring that there is always sufficient capacity for your traffic
+load.  As always, make -j punctuates the steps.</li>
+
+<li>Once the old instances are drained of user traffic, they can be destroyed.  You can do this in
+batches or one at a time.  Eventually, the configuration will look like this, at which point the
+first block no-longer contributes anything to the configuration and it can be deleted:
+
+<pre class="medium"><code>google_compute_instance: {
+
+    ["appserv" + k]: resource.FractalInstance(k) {
+        name: "appserv" + k,
+        image: "appserv-v20141222-0300",
+        ...
+    }
+    for k in []
+
+} + {
+
+    ["appserv" + k]: resource.FractalInstance(k) {
+        name: "appserv" + k,
+        image: "appserv-v20150102-1200",
+        ...
+    }
+    for k in [4, 5, 6]
+
+} + ...
+</code></pre>
+</li>
+
+</ol>
+
+<h2 id=conclusion>Conclusion</h2>
+
+<p>We have shown how Jsonnet can be used to centralize, unify, and manage configuration for a
+realistic cloud application.  We have demonstrated how programming language abstraction techniques
+make the configuration very concise, with re-usable elements separated into template libraries.
+Complexity is controlled in spite of the variety of different configurations, formats, and tasks
+involved.</p>
+
+<p>Finally we demonstrated how with a little procedural glue to drive other processes (the humble
+UNIX make), we were able to build an operations methodology where many aspects of the service can be
+controlled centrally by editing a single Jsonnet file and issuing make -j update commands.</p>
+
+<p class=jump_to_page>Pages <a href="/case_studies/casestudy_fractal.1.html">1</a>, <a
+href="/case_studies/casestudy_fractal.2.html">2</a>, 3</p>

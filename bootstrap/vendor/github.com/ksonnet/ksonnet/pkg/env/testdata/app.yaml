@@ -1,0 +1,28 @@
+apiVersion: 0.1.0
+environments:
+  env1:
+    destination:
+      namespace: some-namespace
+      server: http://example.com
+    k8sVersion: v1.7.0
+    path: env1
+  env2:
+    destination:
+      namespace: some-namespace
+      server: http://example.com
+    k8sVersion: ""
+    path: env2
+  nested/env3:
+    destination:
+      namespace: some-namespace
+      server: http://example.com
+    k8sVersion: ""
+    path: nest/env3
+kind: ksonnet.io/app
+name: test-get-envs
+registries:
+  incubator:
+    gitVersion: null
+    protocol: ""
+    uri: ""
+version: 0.0.1

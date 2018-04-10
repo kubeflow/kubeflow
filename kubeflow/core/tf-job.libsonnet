@@ -6,6 +6,11 @@
     $.parts(params.namespace).operatorRole,
     $.parts(params.namespace).operatorRoleBinding,
     $.parts(params.namespace).crd,
+    $.parts(params.namespace).uiRole,
+    $.parts(params.namespace).uiRoleBinding,
+    $.parts(params.namespace).uiService(params.tfJobUiServiceType),
+    $.parts(params.namespace).uiServiceAccount,
+    $.parts(params.namespace).ui(params.tfJobImage),
   ],
 
   parts(namespace):: {
@@ -295,8 +300,8 @@
               "apiVersion: ambassador/v0",
               "kind:  Mapping",
               "name: tfjobs-ui-mapping",
-              "prefix: /tfjobs/ui/",
-              "rewrite: /",
+              "prefix: /tfjobs/",
+              "rewrite: /tfjobs/",
               "service: tf-job-dashboard." + namespace,
             ]),
         },  //annotations

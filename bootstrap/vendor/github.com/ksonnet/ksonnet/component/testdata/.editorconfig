@@ -1,0 +1,6 @@
+root = false
+
+[{params-global-expected.json,rbac-1-patched.json}]
+indent_size = 3
+indent_style = space
+insert_final_newline = true

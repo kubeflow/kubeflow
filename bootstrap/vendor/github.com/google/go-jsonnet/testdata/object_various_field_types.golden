@@ -1,0 +1,9 @@
+{
+   "expr, as complex as you want": true,
+   "identifier": true,
+   "str_block \\n\n": true,
+   "str_double ' \n": true,
+   "str_single \" \n": true,
+   "str_verbatim_double \" '' \\n": true,
+   "str_verbatim_single \"\" ' \\n": true
+}

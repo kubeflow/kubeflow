@@ -1,0 +1,5 @@
+{
+  apiVersion: "v0alpha1",
+  kind: "JsonObject"
+  foo: "bar",
+}

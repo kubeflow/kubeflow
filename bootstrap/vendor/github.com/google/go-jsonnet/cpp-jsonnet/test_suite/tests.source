@@ -1,0 +1,128 @@
+#!/bin/bash
+
+# Copyright 2015 Google Inc. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Global counters
+EXECUTED=0
+FAILED=0
+
+JSONNET_BIN="${JSONNET_BIN:-../jsonnet}"
+
+# Display additional information such as successful tests (useful if they are slow).
+VERBOSE="${VERBOSE:-false}"
+
+separator() {
+    echo -e "\n-----------------------------\n"
+}
+
+get_temp_dir() {
+    if [ -z "$TMP_DIR" ]; then
+        # We use Python to avoid portability problems with `mktemp`.
+        # See: https://unix.stackexchange.com/questions/30091/fix-or-alternative-for-mktemp-in-os-x
+        TMP_DIR="`python2 -c "import tempfile; print(tempfile.mkdtemp(prefix='jsonnet_'))"`"
+        $($VERBOSE) && echo "Created temporary directory $TMP_DIR"
+    fi
+}
+
+remove_temp_dir() {
+    if [ -n "$TMP_DIR" ]; then
+        $($VERBOSE) && echo "Removing temporary directory $TMP_DIR"
+        rm -rf "$TMP_DIR"
+        TMP_DIR=""
+    fi
+}
+
+init() {
+    get_temp_dir
+}
+
+deinit() {
+    remove_temp_dir
+}
+
+test_eval() {
+    JSONNET_CMD="$1"
+    JSONNET_FILE="$2"
+    EXPECTED_EXIT_CODE="$3"
+    GOLDEN_OUTPUT="$4"
+    GOLDEN_KIND="$5"
+    if [ -n "$DISABLE_ERROR_TESTS" ] && [ "$EXPECTED_EXIT_CODE" != 0 ]; then
+        return 0
+    fi
+
+    TEST_CMD="$JSONNET_CMD $JSONNET_FILE"
+    TEST_OUTPUT="$($TEST_CMD 2>&1)"
+    TEST_EXIT_CODE="$?"
+    EXECUTED=$((EXECUTED + 1))
+
+    if [ "$TEST_EXIT_CODE" -ne "$EXPECTED_EXIT_CODE" ] ; then
+        FAILED=$((FAILED + 1))
+        if [ -z "$SUMMARY_ONLY" ]; then
+            printf "\033[31;1mFAIL\033[0m \033[1m(exit code)\033[0m: \033[36m$TEST_CMD\033[0m\n"
+            echo "This run's output:"
+            echo "$TEST_OUTPUT"
+            echo "Actual exit code $TEST_EXIT_CODE, expected $EXPECTED_EXIT_CODE"
+            separator
+        fi
+        return 1
+    fi
+
+    case "$GOLDEN_KIND" in
+        "REGEX")
+        if [[ ! "$TEST_OUTPUT" =~ $GOLDEN_OUTPUT ]] ; then
+            FAILED=$((FAILED + 1))
+            if [ -z "$SUMMARY_ONLY" ]; then
+                printf "\033[31;1mFAIL\033[0m \033[1m(regex mismatch)\033[0m: \033[36m$TEST_CMD\033[0m\n"
+                echo "This run's output:"
+                echo "$TEST_OUTPUT"
+                separator
+            fi
+            return 1
+        fi
+        ;;
+
+        "PLAIN")
+        if [ "$TEST_OUTPUT" != "$GOLDEN_OUTPUT" ] ; then
+            FAILED=$((FAILED + 1))
+            if [ -z "$SUMMARY_ONLY" ]; then
+                printf "\033[31;1mFAIL\033[0m \033[1m(output mismatch)\033[0m: \033[36m$TEST_CMD\033[0m\n"
+                echo "This run's output:"
+                echo "$TEST_OUTPUT"
+                echo "Expected:"
+                echo "$GOLDEN_OUTPUT"
+                echo "Diff:"
+                TEST_OUTPUT_FILE="$TMP_DIR/jsonnet_output"
+                TEST_GOLDEN_FILE="$TMP_DIR/jsonnet_golden"
+                echo "$TEST_OUTPUT" > "$TEST_OUTPUT_FILE"
+                echo "$GOLDEN_OUTPUT" > "$TEST_GOLDEN_FILE"
+                # Using git diff for pretty format and pretty colors
+                git --no-pager diff --no-index "$TEST_GOLDEN_FILE" "$TEST_OUTPUT_FILE"
+                # The output is often quite long, let's repeat the filename once more
+                # to avoid wasting time on looking for it
+                printf "\nTEST FILE ABOVE: \033[36m$TEST_CMD\033[0m\n"
+                separator
+            fi
+            return 1
+        fi
+        ;;
+
+        *)
+        echo "Unrecognized GOLDEN_KIND: $GOLDEN_KIND" >&2
+        exit 1
+        ;;
+    esac
+
+    $($VERBOSE) && printf "\033[32mSUCCESS\033[0m: \033[36m$JSONNET_FILE\033[0m\n"
+}

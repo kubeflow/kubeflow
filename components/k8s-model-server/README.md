@@ -139,20 +139,19 @@ cd my-model-server
 ks registry add kubeflow github.com/kubeflow/kubeflow/tree/master/kubeflow
 ks pkg install kubeflow/tf-serving
 ks env add  cloud
+ks env set cloud --namespace ${NAMESPACE}
+
 MODEL_COMPONENT=serveInception
 MODEL_NAME=inception
 #Replace this with the url to your bucket if using your own model
 MODEL_PATH=gs://kubeflow-models/inception
 MODEL_SERVER_IMAGE=gcr.io/$(gcloud config get-value project)/model-server:1.0
-# if you need REST API need to provide http_proxy_image
-HTTP_PROXY_IMAGE=gcr.io/$(gcloud config get-value project)/http-proxy:1.0
 ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME}
-ks param set --env=cloud ${MODEL_COMPONENT} namespace $NAMESPACE
 ks param set --env=cloud ${MODEL_COMPONENT} modelPath $MODEL_PATH
 # If you want to use your custom image.
 ks param set --env=cloud ${MODEL_COMPONENT} modelServerImage $MODEL_SERVER_IMAGE
 # If you want to have the http endpoint.
-ks param set --env=cloud ${MODEL_COMPONENT} httpProxyImage $HTTP_PROXY_IMAGE
+ks param set --env=cloud ${MODEL_COMPONENT} deployHttpProxy true
 ```
 
 Deploy it in a particular environment. The deployment will pick up environment parmameters (e.g. cloud) and customize the deployment appropriately
@@ -179,9 +178,9 @@ Kubernetes documentation.
 TF serving can read the model directly from GCS. But by default it will use the credential of the cluster.
 If you want to use the credential of a service account to read the model from a GCS bucket:
 * Download the service account key
-* Create a k8s secret: 
+* Create a k8s secret:
 ```commandline
-kubectl create secret generic SECRET_NAME --namespace=NAMESPACE --from-file=key.json=YOUR_KEY_FILE
+kubectl create secret generic SECRET_NAME --namespace={NAMESPACE} --from-file=key.json=YOUR_KEY_FILE
 ```
 And before applying the TF serving component, set additional two params:
 ```commandline

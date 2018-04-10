@@ -1,0 +1,18 @@
+---
+layout: default
+---
+
+<h1 id="javascript_implementation">JavaScript Implementation</h1>
+
+<p> The C++ implementation can be compiled with <a
+href="http://kripken.github.io/emscripten-site/">emscripten</a> to produce a JavaScript
+implementation of Jsonnet.  This is how we implement our <a href="/docs/demo.html">Jsonnet demo</a>.  It
+is not the fastest possible JavaScript implementation of Jsonnet, but it is easy to build, and is
+sufficient for many purposes.</p>
+
+<p>To compile it, first <a
+href="http://kripken.github.io/emscripten-site/docs/getting_started/downloads.html">install</a>
+emscripten and ensure em++ and emcc are in your path.  Then make libjsonnet.js.</p>
+
+<p>An unofficial <a href="https://github.com/yosuke-furukawa/node-jsonnet">nodejs package</a> of
+Jsonnet is also available.</p>

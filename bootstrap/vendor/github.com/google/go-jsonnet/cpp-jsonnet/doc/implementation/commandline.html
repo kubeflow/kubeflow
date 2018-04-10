@@ -1,0 +1,152 @@
+---
+layout: default
+---
+
+<h1 id=cmdline_tool>Commandline Tool</h1>
+
+<p>The commandline tool "jsonnet" will evaluate Jsonnet and emit JSON on stdout.  It can evaluate
+snippets of code (with -e), or files (by filename).  It is actually a commandline wrapper around the
+C API, a convenient way to evaluate Jsonnet code from shell scripts, build tools, or languages that
+do not yet have a library binding.</p>
+
+<h2 id=usage>Usage</h2>
+
+<p>The tool is self-documenting:</p>
+
+<!-- Updating the following?  This may help:
+jsonnet -h | sed -e 's/&/&amp/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' 
+-->
+<pre>
+Jsonnet commandline interpreter v0.8.9
+Typical Usage:
+jsonnet [&lt;cmd&gt;] {&lt;option&gt;} &lt;filename&gt;
+Where &lt;cmd&gt; is one of {eval, fmt} and defaults to eval.
+Available eval options:
+  -h / --help             This message
+  -e / --exec             Treat filename as code
+  -J / --jpath &lt;dir&gt;      Specify an additional library search dir
+  -o / --output-file &lt;file&gt; Write to the output file rather than stdout
+  -m / --multi &lt;dir&gt;      Write multiple files to the directory, list files on stdout
+  -y / --yaml-stream      Write output as a YAML stream of JSON documents
+  -S / --string           Expect a string, manifest as plain text
+  -s / --max-stack &lt;n&gt;    Number of allowed stack frames
+  -t / --max-trace &lt;n&gt;    Max length of stack trace before cropping
+  --gc-min-objects &lt;n&gt;    Do not run garbage collector until this many
+  --gc-growth-trigger &lt;n&gt; Run garbage collector after this amount of object growth
+  --version               Print version
+Available options for specifying values of 'external' variables:
+Provide the value as a string:
+  -V / --ext-str &lt;var&gt;[=&lt;val&gt;]     If &lt;val&gt; is omitted, get from environment var
+&lt;var&gt;
+       --ext-str-file &lt;var&gt;=&lt;file&gt; Read the string from the file
+Provide a value as Jsonnet code:
+  --ext-code &lt;var&gt;[=&lt;code&gt;]    If &lt;code&gt; is omitted, get from environment var
+&lt;var&gt;
+  --ext-code-file &lt;var&gt;=&lt;file&gt; Read the code from the file
+
+Available options for specifying values of 'top-level arguments':
+Provide the value as a string:
+  -A / --tla-str &lt;var&gt;[=&lt;val&gt;]     If &lt;val&gt; is omitted, get from environment var
+&lt;var&gt;
+       --tla-str-file &lt;var&gt;=&lt;file&gt; Read the string from the file
+Provide a value as Jsonnet code:
+  --tla-code &lt;var&gt;[=&lt;code&gt;]    If &lt;code&gt; is omitted, get from environment var
+&lt;var&gt;
+  --tla-code-file &lt;var&gt;=&lt;file&gt; Read the code from the file
+
+Available fmt options:
+jsonnet fmt {&lt;option&gt;} &lt;filename&gt;
+and &lt;option&gt; can be:
+  -h / --help             This message
+  -e / --exec             Treat filename as code
+  -o / --output-file &lt;file&gt; Write to the output file rather than stdout
+  -i / --in-place         Update the Jsonnet file in place.  Same as -o &lt;filename&gt;
+  --test                  Exit with failure if reformatting changed the file.
+  -n / --indent &lt;n&gt;       Number of spaces to indent by (default 2, 0 means no change)
+  --max-blank-lines &lt;n&gt;   Max vertical spacing, 0 means no change (default 2)
+  --string-style &lt;d|s|l&gt;  Enforce double, single (default) quotes or 'leave'
+  --comment-style &lt;h|s|l&gt; # (h), // (s)(default), or 'leave'; never changes she-bang
+  --[no-]pretty-field-names Use syntax sugar for fields and indexing (on by default)
+  --[no-]pad-arrays       [ 1, 2, 3 ] instead of [1, 2, 3]
+  --[no-]pad-objects      { x: 1, x: 2 } instead of {x: 1, y: 2} (on by default)
+  --debug-desugaring      Unparse the desugared AST without executing it
+  --version               Print version
+
+In all cases:
+&lt;filename&gt; can be - (stdin)
+Multichar options are expanded e.g. -abc becomes -a -b -c.
+The -- option suppresses option processing for subsequent arguments.
+Note that since filenames and jsonnet programs can begin with -, it is advised to
+use -- if the argument is unknown, e.g. jsonnet -- "$FILENAME".
+</pre>
+
+<h2 id="example">Example</h2>
+
+<p>Evaluating a file.</p>
+
+<pre>
+~/jsonnet/examples$ jsonnet landingpage.jsonnet
+{
+   "person1": {
+      "name": "Alice",
+      "welcome": "Hello Alice!"
+   },
+   "person2": {
+      "name": "Bob",
+      "welcome": "Hello Bob!"
+   }
+}
+</pre>
+
+<p>Evaluating a snippet.</p>
+
+<pre>
+~/jsonnet/examples$ jsonnet -e '{ x: 1 , y: self.x + 1 } { x: 10 }'
+{
+   "x": 10,
+   "y": 11
+}
+</pre>
+
+<h2 id=multi>Multiple file output</h2>
+
+<p>The Jsonnet commandline tool has a special mode for generating multiple JSON files from a single
+Jsonnet file.  This can be useful if you want to avoid writing lots of small Jsonnet files, or if
+you want to take advantage of cross-references and interdependencies between the files.  The idea is
+to create a single JSON structure, the top level of which defines the various files: </p>
+
+<pre class="large"><code>// multiple_output.jsonnet
+{
+    "a.json": {
+        x: 1,
+        y: $["b.json"].y,
+    },
+    "b.json": {
+        x: $["a.json"].x,
+        y: 2,
+    },
+}
+</code></pre>
+
+<p>When executed using <tt>jsonnet -m &lt;dir&gt;</tt>, this will write the generated JSON to files
+<tt>a.json</tt> and <tt>b.json</tt> in the given directory, instead of the whole thing being written
+to stdout.  In order to integrate nicely with build tools like <tt>make</tt>, the files are not
+touched if they already contain the given content.  To stdout is printed the list of target files,
+one per line.  This makes it easy to drive other tools that operate on the JSON files, e.g. via
+<tt>xarg</tt>.</p>
+
+<pre>
+$ jsonnet -m . multiple_output.jsonnet
+a.json
+b.json
+$ cat a.json 
+{
+   "x": 1,
+   "y": 2
+}
+$ cat b.json 
+{
+   "x": 1,
+   "y": 2
+}
+</pre>

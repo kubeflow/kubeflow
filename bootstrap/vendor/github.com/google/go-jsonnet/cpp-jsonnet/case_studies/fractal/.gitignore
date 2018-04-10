@@ -1,0 +1,10 @@
+*.packer.log
+*.packer.done
+*.packer.json
+terraform.done
+terraform.plan
+service.list
+*.tf
+service_account_key.json
+tilegen/mandelbrot
+credentials.libsonnet

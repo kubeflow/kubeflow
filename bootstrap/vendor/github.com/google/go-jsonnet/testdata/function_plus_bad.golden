@@ -1,0 +1,10 @@
+RUNTIME ERROR: Unexpected type function
+-------------------------------------------------
+	testdata/function_plus_bad:1:1-22	$
+
+(function() 42) +  42
+
+-------------------------------------------------
+	During evaluation	
+
+

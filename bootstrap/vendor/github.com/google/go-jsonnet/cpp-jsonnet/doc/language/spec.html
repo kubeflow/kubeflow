@@ -1,0 +1,1870 @@
+---
+layout: default
+---
+
+<style>
+/* Non-terminals */
+i {
+    font-family: Arial, sans-serif;
+    font-weight: medium;
+    font-style: italic;
+    color: #008
+}
+
+/* Value sets */
+em {
+    font-family: Arial, sans-serif;
+    font-weight: medium;
+    font-style: italic;
+    color: #800
+}
+
+/* Values */
+s {
+    text-decoration: none;
+    font-family: Arial, sans-serif;
+    font-weight: medium;
+    font-style: italic;
+    color: #F00
+}
+
+code.language-jsonnet {
+    font-family: Courier New, monospace;
+    font-size: 12pt;
+}
+
+div.desugar-rule {
+    font-size:75%;
+}
+
+div.desugar-rule-group {
+    padding-bottom: 6px;
+}
+
+div.sequent-rule {
+    margin:10px;
+    float:left;
+    font-size:75%;
+    /*border:1px solid #000;*/
+}
+
+div.rules {
+    overflow: auto;
+    width:100%
+}
+</style>
+
+<div style="display:none">
+\[
+\newcommand{\assert}[1]{\texttt{assert }#1}
+\newcommand{\array}[1]{[ #1 ]}
+\newcommand{\assign}[2]{ #1\texttt{ = }#2}
+\newcommand{\binary}[3]{ #1\texttt{ }#2\texttt{ }#3}
+\newcommand{\error}[1]{\texttt{error }#1}
+\newcommand{\false}{\texttt{false}}
+\newcommand{\function}[2]{\texttt{function(}#1\texttt{)} #2}
+\newcommand{\if}[3]{\texttt{if }#1\texttt{ then }#2\texttt{ else }#3}
+\newcommand{\ifnoelse}[2]{\texttt{if }#1\texttt{ then }#2}
+\newcommand{\import}[1]{\texttt{import }#1}
+\newcommand{\importstr}[1]{\texttt{importstr }#1}
+\newcommand{\index}[2]{#1\texttt{[}#2\texttt{]}}
+\newcommand{\local}[2]{\texttt{local }#1\texttt{ ; }#2}
+\newcommand{\null}{\texttt{null}}
+\newcommand{\object}[1]{\{ #1 \}}
+\newcommand{\objlocal}[1]{\texttt{local }#1}
+\newcommand{\ocomp}[4]{\object{[#1]:#2\texttt{ for }#3\texttt{ in }#4}}
+\newcommand{\self}{\texttt{self}}
+\newcommand{\super}{\texttt{super}}
+\newcommand{\true}{\texttt{true}}
+\newcommand{\unary}[2]{\texttt{ }#1\texttt{ }#2}
+
+\newcommand{\rule}[3]{\frac{#2}{#3}\textrm{(#1)}}
+\]
+</div>
+
+<h1 id="specification">Specification</h1>
+
+<p> This page is the authority on what Jsonnet programs should do.  It defines Jsonnet lexing and
+syntax.  It describes which programs should be rejected statically (i.e. before execution).
+Finally, it specifies the manner in which the program is executed, i.e. the JSON that is output, or
+the runtime error if there is one.</p>
+
+<p>The specification is intended to be terse but precise. In particular, it illuminates all the
+subtleties and edge cases in order to allow fully-compatible language reimplementations and tools.
+The specification employs some standard theoretical computer science techniques, namely <a
+href="http://en.wikipedia.org/wiki/Type_systems">type systems</a> and <a
+href="http://en.wikipedia.org/wiki/Operational_semantics">big step operational semantics</a>.  If
+that's not your cup of tea, then see the more discussive description of Jsonnet behavior in the <a
+href="/docs/tutorial.html">tutorial</a>.</p>
+
+
+
+<h2 id="lexing">Lexing</h2>
+
+<p>A Jsonnet program is UTF-8 encoded text.  The file is a sequence of tokens, separated by optional
+whitespace and comments.  Whitespace consists of space, tab, newline and carriage return.  Tokens
+are lexed greedily.  Comments are either single line comments, beginning with a <code>#</code> or a
+<code>//</code>, or block comments beginning with <code>/*</code> and terminating at the first
+<code>*/</code> encountered within the comment.</p>
+
+<ul>
+
+<li><i>id</i>: Matched by <tt>[_a-zA-Z][_a-zA-Z0-9]*</tt>
+<p>
+Some identifiers are reserved as keywords, thus are not in the set <i>id</i>:
+<code>assert</code> <code>else</code> <code>error</code> <code>false</code> <code>for</code>
+<code>function</code> <code>if</code> <code>import</code> <code>importstr</code> <code>in</code>
+<code>local</code> <code>null</code> <code>tailstrict</code> <code>then</code> <code>self</code>
+<code>super</code> <code>true</code>
+</p>
+</li>
+
+<li><i>number</i>: As defined by <a href="http://json.org/">JSON</a> but without the leading
+minus.</li>
+
+<li><i>string</i>: Which can have five quoting forms:
+
+<ul>
+<li>Double-quoted, beginning with <code>"</code> and ending with the first subsequent non-quoted
+<code>"</code> </li>
+<li>Single-quoted, beginning with <code>'</code> and ending with the first subsequent non-quoted
+<code>'</code> </li>
+<li>Double-quoted verbatim, beginning with <code>@"</code> and ending with the first subsequent
+non-quoted <code>"</code> </li>
+<li>Single-quoted verbatim, beginning with <code>@'</code> and ending with the first subsequent
+non-quoted <code>'</code> </li>
+<li>Text block, beginning with <code>|||</code>, followed by optional whitespace and a new-line.
+The next line must be prefixed with some non-zero length whitespace <i>W</i>.  The block ends at the
+first subsequent line that does not begin with <i>W</i>, and it is an error if this line does not
+contain some optional whitespace followed by <code>|||</code>.  The content of the string is the
+concatenation of all the lines that began with <i>W</i> but with that prefix stripped.  The line
+ending style in the file is preserved in the string.  This form cannot be used in
+<code>import</code> statements.</li>
+</ul>
+
+<p>Double- and single-quoted strings are allowed to span multiple lines, in which case whatever
+dos/unix end-of-line character your editor inserts will be put in the string.  They both understand
+the following escape characters: <code>"'\/bfnrt</code> which have their standard meanings, as well
+as <code>\uXXXX</code> for hexadecimal unicode escapes.</p>
+
+<p>Verbatim strings eschew all of the normal string escaping, including hexidecimal unicode escapes.
+Every character in a verbatim string is processed literally, with the exception of doubled
+end-quotes.  Within a verbatim single-quoted string, <code>''</code> is processed as <code>'</code>,
+and a verbatim double-quoted string, <code>""</code> is processed as <code>"</code>.</p>
+
+<p>In the rest of this specification, the string is assumed to be canonicalized into a sequence of
+unicode codepoints with no record of the original quoting form as well and any escape characters
+removed. </p>
+
+</li>
+
+<li><i>symbol</i>:
+The following single-character symbols:
+<p><code>{}[],.();</code></p>
+</li>
+
+<li><i>operator</i>:
+A sequence of at least one of the following single-character symbols:
+<code>!$:~+-&amp;|^=&lt;&gt;*/%</code>
+<p>Subject to the following rules, which will cause the lexing to terminate with a shorter
+token:</p>
+<ul>
+<li>The sequence <code>//</code> is not allowed in an operator</li>
+<li>The sequence <code>/*</code> is not allowed in an operator</li>
+<li>The sequence <code>|||</code> is not allowed in an operator</li>
+<li>If the sequence has more than one character, it is not allowed to end in any of
+<code>+-~!</code></li>
+</li>
+</ul>
+</li>
+
+</li>
+</ul>
+
+
+
+<h2 id="abstract_syntax">Abstract Syntax</h2>
+
+<p> The notation used here is as follows: { } denotes zero or more repetitions of a sequence of tokens,
+and [ ] represents an optional sequence of tokens.  This is not to be confused with <code>{ }</code>
+and <code>[ ]</code> Which represent tokens in Jsonnet itself.</p>
+
+<p> Note that although the lexer will generate tokens for a wide range of operators, only a finite
+set are currently parseable, the rest being reserved for possible future use.</p>
+
+<table>
+<tr><td><i>expr ∈ Expr</i></td><td>::=</td><td>
+<code>null</code> |
+<code>true</code> |
+<code>false</code> |
+<code>self</code> |
+<code>$</code> |
+<i>string</i> |
+<i>number</i>
+
+<!-- object -->
+</td></tr> <tr><td></td><td> | </td><td>
+<code>{</code>
+<i>objinside</i>
+<code>}</code>
+
+<!-- array -->
+</td></tr> <tr><td></td><td> | </td><td>
+<code>[</code>
+[ <i>expr</i> { <code>,</code> <i>expr</i> } [ <code>,</code> ]
+<code>]</code>
+
+<!-- array comprehension -->
+</td></tr> <tr><td></td><td> | </td><td>
+<code>[</code>
+<i>expr</i>
+[ <code>,</code> ]
+<i>forspec</i> <i>compspec</i>
+<code>]</code>
+
+<!-- object index (id) -->
+</td></tr> <tr><td></td><td> | </td><td>
+<i>expr</i>
+<code>.</code>
+<i>id</i>
+
+<!-- object index (general) -->
+</td></tr> <tr><td></td><td> | </td><td>
+<i>expr</i>
+<code>[</code>
+<i>expr</i>
+[ <code>:</code> [ <i>expr</i>
+[ <code>:</code> [ <i>expr</i> ] ] ] ]
+<code>]</code>
+
+<!-- object index (general2) -->
+</td></tr> <tr><td></td><td> | </td><td>
+<i>expr</i>
+<code>[</code>
+<code>:</code> [ <i>expr</i>
+[ <code>:</code> [ <i>expr</i> ] ] ] ]
+<code>]</code>
+
+<!-- super index (id) -->
+</td></tr> <tr><td></td><td> | </td><td>
+<code>super</code>
+<code>.</code>
+<i>id</i>
+
+<!-- super index (general) -->
+</td></tr> <tr><td></td><td> | </td><td>
+<code>super</code>
+<code>[</code>
+<i>expr</i>
+<code>]</code>
+
+<!-- apply -->
+</td></tr> <tr><td></td><td> | </td><td>
+<i>expr</i>
+<code>(</code>
+[ <i>args</i> ]
+<code>)</code>
+
+<!-- var -->
+</td></tr> <tr><td></td><td> | </td><td>
+<i>id</i>
+
+<!-- local expression -->
+</td></tr> <tr><td></td><td> | </td><td>
+<code>local</code>
+<i>bind</i>
+{
+<code>,</code>
+<i>bind</i>
+}
+<code>;</code>
+<i>expr</i>
+
+<!-- conditional -->
+</td></tr> <tr><td></td><td> | </td><td>
+<code>if</code>
+<i>expr</i>
+<code>then</code>
+<i>expr</i>
+[ <code>else</code>
+<i>expr</i> ]
+
+<!-- binary -->
+</td></tr> <tr><td></td><td> | </td><td>
+<i>expr</i>
+<i>binaryop</i>
+<i>expr</i>
+
+<!-- unary -->
+</td></tr> <tr><td></td><td> | </td><td>
+<i>unaryop</i>
+<i>expr</i>
+
+<!-- object apply -->
+</td></tr> <tr><td></td><td> | </td><td>
+<i>expr</i>
+<code>{</code>
+<i>objinside</i>
+<code>}</code>
+
+<!-- function -->
+</td></tr> <tr><td></td><td> | </td><td>
+<code>function</code>
+<code>(</code>
+[ <i>params</i> ]
+<code>)</code>
+<i>expr</i>
+
+<!-- assert -->
+</td></tr> <tr><td></td><td> | </td><td>
+<i>assert</i>
+<code>;</code>
+<i>expr</i>
+
+<!-- import -->
+</td></tr> <tr><td></td><td> | </td><td>
+<code>import</code>
+<i>string</i>
+
+<!-- importstr -->
+</td></tr> <tr><td></td><td> | </td><td>
+<code>importstr</code>
+<i>string</i>
+
+<!-- error -->
+</td></tr> <tr><td></td><td> | </td><td>
+<code>error</code>
+<i>expr</i>
+
+<!-- super in e -->
+</td></tr> <tr><td></td><td> | </td><td>
+<i>expr</i> <code>in</code> <code>super</code>
+
+</td></tr>
+</table>
+
+
+<p></p>
+
+<!-- AUX STUFF -->
+
+<table>
+
+<tr><td><i>objinside</i></td><td>::=</td><td>
+<!-- object -->
+<i>member</i> { <code>,</code> <i>member</i> } [ <code>,</code> ]
+
+<!-- object comprehension -->
+</td></tr> <tr><td></td><td> | </td><td>
+{ <i>objlocal</i> <code>,</code> }
+<code>[</code>
+<i>expr</i>
+<code>]</code>
+<code>:</code>
+<i>expr</i>
+[ { <code>,</code> <i>objlocal</i> } [ <code>,</code> ] ]
+<i>forspec</i> <i>compspec</i>
+
+<!-- member -->
+<tr><td><i>member</i></td><td>::=</td><td>
+<i>objlocal</i> | <i>assert</i> | <i>field</i>
+</td></tr>
+
+<!-- field -->
+<tr><td><i>field ∈ Field</i></td><td>::=</td><td>
+<i>fieldname</i>
+[ <code>+</code> ] <i>h</i>
+<i>expr</i>
+</td></tr>
+
+<!-- method -->
+<tr><td></td><td> | </td><td>
+<i>fieldname</i>
+<code>(</code>
+[ <i>params</i> ]
+<code>)</code>
+<i>h</i>
+<i>expr</i>
+</td></tr>
+
+<!-- colons -->
+<tr><td><i>h ∈ Hidden</i></td><td>::=</td><td>
+<code>:</code> | <code>::</code> | <code>:::</code>
+</td></tr>
+
+<!-- obj local -->
+</td></tr> <tr><td><i>objlocal</i></td><td>::=</td><td>
+<code>local</code> <i>bind</i>
+
+<!-- compspec (object comps) -->
+<tr><td><i>compspec ∈ CompSpec</i></td><td>::=</td><td>
+{ <i>forspec</i> | <i>ifspec</i> }
+</td></tr>
+
+<!-- for spec (object comps) -->
+<tr><td><i>forspec</i></td><td>::=</td><td>
+<code>for</code>
+<i>id</i>
+<code>in</code>
+<i>expr</i>
+</td></tr>
+
+<!-- if spec (object comps) -->
+<tr><td><i>ifspec</i></td><td>::=</td><td>
+<code>if</code>
+<i>expr</i>
+</td></tr>
+
+<!-- fieldname -->
+<tr><td><i>fieldname</i></td><td>::=</td><td>
+<i>id</i> |
+<i>string</i> |
+<code>[</code>
+<i>expr</i>
+<code>]</code>
+</td></tr>
+
+</table>
+
+<p></p>
+
+<!-- obj assert -->
+<table>
+</td></tr> <tr><td><i>assert</i></td><td>::=</td><td>
+<code>assert</code> <i>expr</i> [ <code>:</code> <i>expr</i> ]
+</table>
+
+<!-- bind -->
+<table>
+
+<tr><td><i>bind ∈ Bind</i></td><td>::=</td><td>
+<i>id</i>
+<code>=</code>
+<i>expr</i>
+</td></tr>
+
+<tr><td></td><td> | </td><td>
+<i>id</i>
+<code>(</code>
+[ <i>params</i> ]
+<code>)</code>
+<code>=</code>
+<i>expr</i>
+</td></tr>
+
+</table>
+
+<p></p>
+
+<!-- args -->
+<table>
+
+<tr><td><i>args</i></td><td>::=</td><td>
+<i>expr</i> { <code>,</code> <i>expr</i> } { <code>,</code> <i>id</i> <code>=</code> <i>expr</i> }
+[ <code>,</code> ]
+</td></tr>
+
+<tr><td></td><td>|</td><td>
+<i>id</i> <code>=</code> <i>expr</i> { <code>,</code> <i>id</i> <code>=</code> <i>expr</i> }
+[ <code>,</code> ]
+</td></tr>
+
+</table>
+
+<p></p>
+
+<!-- params -->
+<table>
+
+<tr><td><i>params</i></td><td>::=</td><td>
+<i>id</i> { <code>,</code> <i>id</i> } { <code>,</code> <i>id</i> <code>=</code> <i>expr</i> }
+[ <code>,</code> ]
+</td></tr>
+
+<tr><td></td><td>|</td><td>
+<i>id</i> <code>=</code> <i>expr</i> { <code>,</code> <i>id</i> <code>=</code> <i>expr</i> }
+[ <code>,</code> ]
+</td></tr>
+
+</table>
+
+
+<p></p>
+
+<!-- binaryop -->
+<table>
+<tr><td><i>binaryop</i></td><td>::=</td><td>
+<code>*</code> |
+<code>/</code> |
+<code>%</code> |
+<code>+</code> |
+<code>-</code> |
+<code>&lt;&lt;</code> |
+<code>&gt;&gt;</code> |
+<code>&lt;</code> |
+<code>&lt;=</code> |
+<code>&gt;</code> |
+<code>&gt;=</code> |
+<code>==</code> |
+<code>!=</code> |
+<code>in</code> |
+<code>&amp;</code> |
+<code>^</code> |
+<code>|</code> |
+<code>&amp;&amp;</code> |
+<code>||</code>
+</td></tr>
+
+<!-- unaryop -->
+<tr><td><i>unaryop</i></td><td>::=</td><td>
+<code>-</code> |
+<code>+</code> |
+<code>!</code> |
+<code>~</code>
+</td></tr>
+</table>
+
+
+
+<h2 id="associativity_precedence">Associativity and Operator Precedence</h2>
+
+<p> The abstract syntax by itself cannot unambiguously parse a sequence of tokens.  Ambiguities are
+resolved according to the following rules, which can also be overridden by adding parenthesis
+symbols <code>()</code>.</p>
+
+<p> Everything is left associative.  In the case of <code>assert</code>, <code>error</code>,
+<code>function</code>, <code>if</code>, <code>import</code>, <code>importstr</code>, and
+<code>local</code>, ambiguity is resolved by consuming as many tokens as possible on the right hand
+side.  For example the parentheses are redundant in <code>local x = 1; (x + x)</code>.  All
+remaining ambiguities are resolved according to the following decreasing order of precedence:</p>
+
+<ol>
+<li><code>e(...)</code> <code>e[...]</code> <code>e.f</code>
+&nbsp;&nbsp;(application and indexing)</li>
+<li><code>+</code> <code>-</code> <code>!</code> <code>~</code>
+&nbsp;&nbsp;(the unary operators)</li>
+<li><code>*</code> <code>/</code> <code>%</code>
+&nbsp;&nbsp;(these, and the remainder below, are binary operators)</li>
+<li><code>+</code> <code>-</code></li>
+<li><code>&lt;&lt;</code> <code>&gt;&gt;</code></li>
+<li><code>&lt;</code> <code>&gt;</code> <code>&lt;=</code> <code>&gt;=</code> <code>in</code></li>
+<li><code>==</code> <code>!=</code></li>
+<li><code>&amp;</code></li>
+<li><code>^</code></li>
+<li><code>|</code></li>
+<li><code>&amp;&amp;</code></li>
+<li><code>||</code></li>
+</ol>
+
+
+
+<h2 id="core">Core Language Subset</h2>
+
+<p>To make the specification of Jsonnet as simple as possible, many of the language features are
+represented as syntax sugar.  Below is defined the core syntax and the desugaring function from the
+abstract syntax to the core syntax.  Both the static checking rules and the operational semantics
+are defined at the level of the core language, so it is possible to implement the desugaring in the
+parser.</p>
+
+
+<h3 id="core_syntax">Core Syntax</h3>
+
+<p>The core language has the following simplifications:</p>
+
+<ul>
+<li>The set of identifiers now includes <code>$</code>, which is no-longer a special keyword.</li>
+<li>The following binary operators are removed: <code>!=</code> <code>==</code>
+    <code>%</code> <code>in</code></li>
+<li>Array slices <code>[::]</code> are removed.</li>
+<li>Array and object comprehensions are replaced with a simple object comprehension construct.</li>
+<li>Expression-level asserts are removed.</li>
+<li>Object-level level assert messages are removed.</li>
+<li>Object-level level assert values are ignored, but their evaluation may still raise an error.</li>
+<li>Object methods and local functions are removed.</li>
+<li>Object-level locals are removed.</li>
+<li>Object field name definitions can only be expressions.</li>
+<li>The <code>+:</code>, <code>+::</code>, and <code>+:::</code> sugars are removed.</li>
+<li>Field lookup is only possible through <code>e[e]</code>.</li>
+<li>All conditionals must have an else branch.</li>
+<li>The keyword <code>super</code> can exist on its own.</li>
+</ul>
+
+<p>Commas are no-longer part of this abstract syntax but we may still write them in our notation to
+make the presentation more clear.</p>
+
+<p>Also removed in the core language are <code>import</code> and <code>importstr</code>.  The
+semantics of these constructs is that they are replaced with either the contents of the file, or an
+error construct if importing failed (e.g. due to I/O errors).  In the first case, the file is
+parsed, desugared, and subject to static checking before it can be substituted.  In the latter case,
+the file is substituted in the form of a string, so it merely needs to contain valid UTF-8.  </p>
+
+<p>A given Jsonnet file can be recursively imported via <code>import</code>. Thus, the
+implementation loads files lazily (i.e.  during execution) as opposed to via static desugaring.  The
+imported Jsonnet file is parsed and statically checked in isolation.  Therefore, the behavior of the
+import is not affected by the environment into which it is imported.  The files are cached by
+filename, so that even if the file changes on disk during Jsonnet execution, referential
+transparency is maintained.</p>
+
+<table>
+<tr><td><i>e ∈ Core</i></td><td>::=</td><td>
+<code>null</code> |
+<code>true</code> |
+<code>false</code> |
+<code>self</code> |
+<code>super</code> |
+<i>string</i> |
+<i>number</i>
+
+<!-- core objects -->
+</td></tr> <tr><td></td><td> | </td><td>
+<code>{</code>
+{
+<code>assert</code> <i>e</i>
+}
+{
+<code>[</code> <i>e</i> <code>]</code> <i>h</i> <i>e</i>
+}
+<code>}</code>
+
+<!-- core object comprehension -->
+</td></tr> <tr><td></td><td> | </td><td>
+<code>{</code>
+<code>[</code> <i>e</i> <code>]</code> <code>:</code> <i>e</i>
+<code>for</code> <i>id</i> <code>in</code> <i>e</i>
+<code>}</code>
+
+<!-- core array -->
+</td></tr> <tr><td></td><td> | </td><td>
+<code>[</code>
+{ <i>e</i> }
+<code>]</code>
+
+<!-- core index -->
+</td></tr> <tr><td></td><td> | </td><td>
+<i>e</i>
+<code>[</code>
+<i>e</i>
+<code>]</code>
+
+<!-- core apply -->
+</td></tr> <tr><td></td><td> | </td><td>
+<i>e</i>
+<code>(</code>
+{ <i>e</i> }
+{ <i>id</i> <code>=</code> <i>e</i> }
+<code>)</code>
+
+<!-- core var -->
+</td></tr> <tr><td></td><td> | </td><td>
+<i>id</i>
+
+<!-- core local -->
+</td></tr> <tr><td></td><td> | </td><td>
+<code>local</code>
+<i>id</i> <code>=</code> <i>e</i>
+{
+<i>id</i> <code>=</code> <i>e</i>
+}
+<code>;</code>
+<i>e</i>
+
+<!-- core conditional -->
+</td></tr> <tr><td></td><td> | </td><td>
+<code>if</code>
+<i>e</i>
+<code>then</code>
+<i>e</i>
+<code>else</code>
+<i>e</i>
+
+<!-- core unary op -->
+</td></tr> <tr><td></td><td> | </td><td>
+<i>e</i>
+<i>binaryop</i>
+<i>e</i>
+
+<!-- core binary op -->
+</td></tr> <tr><td></td><td> | </td><td>
+<i>unaryop</i>
+<i>e</i>
+
+<!-- core closure -->
+</td></tr> <tr><td></td><td> | </td><td>
+<code>function</code>
+<code>(</code>
+{ <i>e</i> }
+{ <i>id</i> <code>=</code> <i>e</i> }
+<code>)</code>
+<i>e</i>
+
+<!-- core error -->
+</td></tr> <tr><td></td><td> | </td><td>
+<code>error</code>
+<i>e</i>
+
+</td></tr>
+</table>
+
+
+<h3 id="desugaring">Desugaring</h3>
+
+<p>Desugaring removes constructs that are not in the core language by replacing them with constructs
+that are.  It is defined via the following functions, which proceed by syntax-directed recursion.
+If a function is not defined on a construct then it simply recurses into the sub-expressions of that
+construct.  Note that we import the standard library at the top of every file, and some of the
+desugarings call functions defined in the standard library.  Their behavior is specified by
+implementation.  However not all standard library functions are written in Jsonnet.  The ones that
+are built into the interpreter (e.g. reflection) will be given special operational semantics rules
+with the rest of the core language constructs.</p>
+
+<p><i>desugar</i>: Expr → Core.  This desugars a Jsonnet file.  Let \(e_{std}\) be the parsed
+content of <a href="https://github.com/google/jsonnet/blob/master/stdlib/std.jsonnet">
+<tt>std.jsonnet</tt></a>.</p>
+
+<div class="desugar-rule-group">
+
+<div class="desugar-rule"> \[
+desugar(e) =  desugar_{expr}(\local{\texttt{std} = e_{std}}{e}, false)
+\] </div>
+
+</div>
+
+<div class="desugar-rule-group">
+
+<p><i>desugar<sub>expr</sub></i>: (Expr × Boolean) → Core:  This desugars an expression.  The second
+parameter of the function tracks whether we are within an object.</p>
+
+<div class="desugar-rule"> \[
+desugar_{expr}(\{
+    \objlocal{bind_1} \ldots \objlocal{bind_n}, assert_1 \ldots assert_m, field_1 \ldots field_p
+\}, b) = \\
+\hspace{10mm}
+\textrm{let }binds = \left\{\begin{array}{ll}
+bind_1 \ldots bind_n &amp; \textrm{if }b \\
+bind_1 \ldots bind_n, \objlocal{$ = \self} &amp; \textrm{otherwise} \\
+\end{array}\right. \\
+\hspace{10mm}
+\textrm{let } obj = \{ \\
+\hspace{20mm} desugar_{assert}(assert_1, binds) \ldots desugar_{assert}(assert_m, binds), \\
+\hspace{20mm} desugar_{field}(field_1, binds) \ldots desugar_{field}(field_p, binds, b) \\
+\hspace{10mm} \} \\
+\hspace{10mm} \textrm{in } \left\{\begin{array}{ll}
+\local{\texttt{\$outerself} = \self, \texttt{\$outersuper} = \super} {obj} &amp; \textrm{if }b \\
+obj &amp; \textrm{otherwise} \\
+\end{array}\right. \\
+\] </div>
+
+<div class="desugar-rule"> \[
+desugar_{expr}(\object{
+\objlocal{bind_1} \ldots \objlocal{bind_m},
+[e_f] : e_{body},
+\objlocal{bind_m+1} \ldots \objlocal{bind_n}
+forspec\ compspec
+}, b) = \\
+
+\hspace{10mm} \textrm{Let } arr \textrm{ fresh and } x_1 \ldots x_n \textrm{ be the sequence of
+variables defined in }forspec\ compspec \\
+
+\hspace{10mm} \object{ \\
+\hspace{20mm} [desugar_{expr}(\local{x_1=arr[1] \ldots x_n=arr[n]}{e_f}, b)]: \\
+\hspace{30mm} desugar_{expr}(
+    \local{x_1=arr[1] \ldots x_n=arr[n]}{
+        \local{bind_1 \ldots bind_n}{e_{body}}
+    }, true) \\
+\hspace{20mm} \textrm{ for } arr \textrm{ in }
+desugar_{expr}([ [x_1 \ldots x_n] forspec\ compspec, b): \\
+\hspace{10mm}}
+\] </div>
+
+<div class="desugar-rule"> \[
+desugar_{expr}([e\ forspec\ compspec], b) = desugar_{arrcomp}(e, forspec\ compspec, b)
+\]
+</div>
+
+<div class="desugar-rule"> \[
+desugar_{expr}(\local {bind_1 \ldots bind_n} e, b) = \local {desugar_{bind}(bind_1, b) \ldots
+desugar_{bind}(bind_n, b)} {desugar_{expr}(e, b)}
+\] </div>
+
+<div class="desugar-rule"> \[
+desugar_{expr}(e \{ objinside \}, b) = desugar_{expr}(e + \{ objinside \}, b)
+\] </div>
+
+<div class="desugar-rule"> \[
+desugar_{expr}(\assert e ; e', b) = desugar_{expr}(\assert e : \texttt{"Assertion failed"} ; e', b)
+\] </div>
+
+<div class="desugar-rule"> \[
+desugar_{expr}(\assert e : e' ; e'', b) = desugar_{expr}(\if {e} {e''} {\error{e'}}, b)
+\] </div>
+
+
+<!-- 1 slice default -->
+
+<div class="desugar-rule"> \[
+desugar_{expr}(e[e':e'':], b) = desugar_{expr}(e[e':e'':\null], b)
+\] </div>
+
+<div class="desugar-rule"> \[
+desugar_{expr}(e[e':e''], b) = desugar_{expr}(e[e':e'':\null], b)
+\] </div>
+
+<div class="desugar-rule"> \[
+desugar_{expr}(e[e'::e'''], b) = desugar_{expr}(e[e':\null:e'''], b)
+\] </div>
+
+<div class="desugar-rule"> \[
+desugar_{expr}(e[:e'':e'''], b) = desugar_{expr}(e[\null:e'':e'''], b)
+\] </div>
+
+<!-- 2 slice defaults -->
+
+<div class="desugar-rule"> \[
+desugar_{expr}(e[e':], b) = desugar_{expr}(e[e':\null:\null], b)
+\] </div>
+
+<div class="desugar-rule"> \[
+desugar_{expr}(e[:e'':], b) =  desugar_{expr}(e[\null:e'':\null], b)
+\] </div>
+
+<div class="desugar-rule"> \[
+desugar_{expr}(e[:e''], b) =  desugar_{expr}(e[\null:e'':\null], b)
+\] </div>
+
+<div class="desugar-rule"> \[
+desugar_{expr}(e[::e'''], b) =  desugar_{expr}(e[\null:\null:e'''], b)
+\] </div>
+
+<!-- 3 slice defaults -->
+
+<div class="desugar-rule"> \[
+desugar_{expr}(e[::], b) =  desugar_{expr}(e[\null:\null:\null], b)
+\] </div>
+
+<div class="desugar-rule"> \[
+desugar_{expr}(e[:], b) =  desugar_{expr}(e[\null:\null:\null], b)
+\] </div>
+
+<!-- slice -->
+
+<div class="desugar-rule"> \[
+desugar_{expr}(e[e':e'':e'''], b) = desugar_{expr}(\texttt{std.slice}(e, e', e'', e'''), b)
+\] </div>
+
+<div class="desugar-rule"> \[
+desugar_{expr}(\ifnoelse e e'), b) = \if {desugar_{expr}(e, b)} {desugar_{expr}(e', b)} {\null}
+\] </div>
+
+<div class="desugar-rule"> \[
+desugar_{expr}(e.id, b) = desugar_{expr}(e, b)[\texttt{"}id\texttt{"}]
+\] </div>
+
+<div class="desugar-rule"> \[
+desugar_{expr}(\super.id, b) = \super[\texttt{"}id\texttt{"}]
+\] </div>
+
+<div class="desugar-rule"> \[
+desugar_{expr}(e \mathop{\textrm{!=}} e', b) = desugar_{expr}(!(e \mathop{==} e'), b)
+\] </div>
+
+<div class="desugar-rule"> \[
+desugar_{expr}(e \mathop{==} e', b) = desugar_{expr}(\texttt{std.equals}(e, e'), b)
+\] </div>
+
+<div class="desugar-rule"> \[
+desugar_{expr}(e \mathop{\%} e', b) = desugar_{expr}(\texttt{std.mod}(e, e'), b)
+\] </div>
+
+<div class="desugar-rule"> \[
+desugar_{expr}(e \mathop{\texttt{in}} e', b)
+= desugar_{expr}(\texttt{std.objectHasEx}(e', e, \texttt{true}), b)
+\] </div>
+
+<div class="desugar-rule"> \[
+desugar_{expr}(e \mathop{\texttt{in}} \texttt{super}, b)
+= desugar_{expr}(\texttt{std.objectHasEx}(\texttt{super}, e, \texttt{true}), b)
+\] </div>
+
+</div>
+
+<div class="desugar-rule-group">
+
+
+<p><i>desugar<sub>assert</sub></i>: (Field × Boolean) → Field.  This desugars object assertions.</p>
+
+<div class="desugar-rule"> \[
+desugar_{assert}(\assert e), binds) = desugar_{assert}(\assert e : \texttt{"Assertion failed"}, binds)
+\] </div>
+
+<div class="desugar-rule"> \[
+desugar_{assert}(\assert e : e'), binds) =
+\assert{desugar_{expr}(\local{binds}{\if{e}{\null}{\error{e'}}}, \true)}
+\] </div>
+
+</div>
+
+<div class="desugar-rule-group">
+
+<p><i>desugar<sub>field</sub></i>: (Field × Boolean) → Field.  This desugars object fields.  Recall
+that <i>h</i> ranges over <code>:</code>, <code>::</code>, <code>:::</code>.  The boolean records
+whether the object containing this field is itself in another object.  The notation
+<i>string(id)</i> means converting the identifier token to a string literal.</p>
+
+<div class="desugar-rule"> \[
+desugar_{field}(id \mathrel{h} e), binds, b) =
+desugar_{field}([string(id)] \mathrel{h} e), binds, b)
+\] </div>
+
+<div class="desugar-rule"> \[
+desugar_{field}(id \mathrel{+h} e), binds, b) =
+desugar_{field}([string(id)] \mathrel{+h} e), binds, b)
+\] </div>
+
+<div class="desugar-rule"> \[
+desugar_{field}(id(params) \mathrel{h} e), binds, b) =
+desugar_{field}([string(id)](params) \mathrel{h} e), binds, b)
+\] </div>
+
+
+<div class="desugar-rule"> \[
+desugar_{field}(string \mathrel{h} e), binds, b) =
+desugar_{field}([string] \mathrel{h} e), binds, b)
+\] </div>
+
+<div class="desugar-rule"> \[
+desugar_{field}(string \mathrel{+h} e), binds, b) =
+desugar_{field}([string] \mathrel{+h} e), binds, b)
+\] </div>
+
+<div class="desugar-rule"> \[
+desugar_{field}(string(params) \mathrel{h} e), binds, b) =
+desugar_{field}([string](params) \mathrel{h} e), binds, b)
+\] </div>
+
+
+<div class="desugar-rule"> \[
+desugar_{field}([e] \mathrel{h} e'), binds, b) =
+[desugar_{expr}(e, b)] \mathrel{h} desugar_{expr}(\local{binds}{e}, \true)
+\] </div>
+
+<div class="desugar-rule"> \[
+desugar_{field}([e] \mathrel{+h} e'), binds, b) = \\
+\hspace{10mm}
+\textrm{let } e'' = e[\texttt{\$outerself} / \self, \texttt{\$outersuper} / \super] \\
+\hspace{10mm}
+\textrm{let } e''' = \if{e''\mathrel{\texttt{in}} \super}{\super[e''] + {e'}}{e'} \\
+\hspace{10mm}
+\textrm{in } desugar_{field}([e] \mathrel{h} e''', binds, b)
+\] </div>
+
+<div class="desugar-rule"> \[
+desugar_{field}([e](params) \mathrel{h} e'), binds, b) =
+desugar_{field}([e] \mathrel{h} \function{params}{e'}, binds, b)
+\] </div>
+
+</div>
+
+<div class="desugar-rule-group">
+
+<p><i>desugar<sub>bind</sub></i>: (Field × Boolean) → Field.  This desugars local bindings.</p>
+
+<div class="desugar-rule"> \[
+desugar_{bind}(id \texttt{=} e, b) =
+id \texttt{=} desugar_{expr}(e, b)
+\] </div>
+
+<div class="desugar-rule"> \[
+desugar_{bind}(id(params) \texttt{=} e, b) =
+id \texttt{=} desugar_{expr}(\function{params}e, b)
+\] </div>
+
+</div>
+
+<div class="desugar-rule-group">
+
+<p><i>desugar<sub>arrcomp</sub></i>: (Expr × CompSpec × Boolean) → Field.  This desugars array
+comprehensions.</p>
+
+<div class="desugar-rule"> \[
+desugar_{arrcomp}(e, \textrm{if }e'\ compspec, b) =
+desugar_{expr}(\if{e'}{[desugar_{arrcomp}(e, compspec, b)]}{[]}, b)
+\] </div>
+
+<div class="desugar-rule"> \[
+desugar_{arrcomp}(e, \textrm{if }e', b) =
+desugar_{expr}(\if{e'}{[e]}{[]}, b)
+\] </div>
+
+<div class="desugar-rule"> \[
+desugar_{arrcomp}(e, \textrm{for }x\textrm{ in }e'\ compspec, b) = \\
+\hspace{10mm}\textrm{Let }arr, i\textrm{ fresh} \\
+\hspace{10mm}desugar_{expr}(
+    \local{arr = e'}{
+        \texttt{std.join}(\\\hspace{20mm}[], \texttt{std.makeArray}(
+            \texttt{std.length}(arr),
+            \function{i}{\local{x = arr[i]}{[desugar_{arrcomp}(e, compspec, b)]}}
+        ))
+    },
+    b
+)
+\] </div>
+
+<div class="desugar-rule"> \[
+desugar_{arrcomp}(e, \textrm{for }x\textrm{ in }e', b) = \\
+\hspace{10mm}\textrm{Let }arr, i\textrm{ fresh} \\
+\hspace{10mm}desugar_{expr}(
+    \local{arr = e'}{
+        \texttt{std.join}(\\\hspace{20mm}[], \texttt{std.makeArray}(
+            \texttt{std.length}(arr),
+            \function{i}{\local{x = arr[i]}{[base]}}
+        ))
+    },
+    b
+)
+\] </div>
+
+
+<h3 id="static_checking">Static Checking</h3>
+
+<p> After the Jsonnet program is parsed and desugared, a syntax-directed algorithm is employed to
+reject programs that contain certain classes of errors.  This is presented like a static type
+system, except that there are no static types.  Programs are only rejected if they use undefined
+variables, or if <code>self</code>, <code>super</code> or <code>$</code> are used outside the bounds
+of an object.  In the core language, <code>$</code> has been desugared to a variable, so its
+checking is implicit in the checking of bound variables.  </p>
+
+<p> The static checking is described below as a judgement \(Γ ⊢ e\), where \(Γ\) is the set of
+variables in scope of \(e\).  The set \(Γ\) initially contains only <code>std</code>, the implicit
+standard library.  In the case of imported files, each jsonnet file is checked independently of the
+other files.</p>
+
+
+<div class="rules">
+
+<div class="sequent-rule"> \[\rule{chk-lit} {
+} {
+\_ ⊢ \null, \true, \false, string, number
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{chk-self} {
+\self ∈ Γ
+} {
+Γ ⊢ \self
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{chk-super} {
+\super ∈ Γ
+} {
+Γ ⊢ \super
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{chk-object} {
+Γ ⊢ e_1 \ldots e_m
+\\
+Γ ∪ \{\self,\super\} ⊢ e'_1 \ldots e'_n
+\\
+∀ i,j: e_i ∈ string ∧ e_j = e_i ⇒ i = j
+} {
+Γ ⊢ \object{[e_1] h_1 e'_1 \ldots [e_m] h_m e'_m, \assert e'_{m+1} \ldots \assert e'_n}
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{chk-object-comp} {
+Γ ∪ \{x\} ⊢ e_1
+\\
+Γ ∪ \{x,\self,\super\} ⊢ e_2
+\\
+Γ ⊢ e_3
+} {
+Γ ⊢ \ocomp{e_1}{e_2}{x}{e_3}
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{chk-array} {
+Γ ⊢ e_1 \ldots e_n
+} {
+Γ ⊢ \array{e_1 \ldots e_n}
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{chk-array-index} {
+Γ ⊢ e
+\\
+Γ ⊢ e'
+} {
+Γ ⊢ e[e']
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{chk-apply} {
+Γ ⊢ e
+\\
+∀ i∈\{1\ldots n\}: Γ ⊢ e_i
+\\
+∀ i,j∈\{m+1\ldots n\}: x_i = x_j ⇒ i = j
+} {
+Γ ⊢ e(e_1\ldots e_m, x_{m+1} = e_{m+1} \ldots x_n = e_n)
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{chk-var} {
+x ∈ Γ
+} {
+Γ ⊢ x
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{chk-local} {
+Γ ∪ \{x_1 \ldots x_n\} ⊢ e_1 \ldots e_n, e
+\\
+∀ i,j: x_i = x_j ⇒ i = j
+} {
+Γ ⊢ \local{\assign{x_1}{e_1} \ldots \assign{x_n}{e_n}}e
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{chk-if} {
+Γ ⊢ e_1, e_2, e_3
+} {
+Γ ⊢ \if{e_1}{e_2}{e_3}
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{chk-binary} {
+Γ ⊢ e_L, e_R
+} {
+Γ ⊢ \binary{e_L}{sym}{e_R}
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{chk-unary} {
+Γ ⊢ e
+} {
+Γ ⊢ \unary{sym}{e}
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{chk-function} {
+∀ i ∈ \{m+1 \ldots n\}: Γ ∪ \{x_1 \ldots x_n\} ⊢ e_i
+\\
+Γ ∪ \{x_1 \ldots x_n\} ⊢ e'
+\\
+∀ i,j: x_i = x_j ⇒ i = j
+} {
+Γ ⊢ \function{x_1\ldots x_m, x_{m+1}=e_{m+1}\ldots x_n=e_n}{e'}
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{chk-import} {
+} {
+Γ ⊢ \import{s}
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{chk-importstr} {
+} {
+Γ ⊢ \importstr{s}
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{chk-error} {
+Γ ⊢ e
+} {
+Γ ⊢ \error{e}
+} \] </div>
+
+</div>
+
+
+<h3 id="semantics">Operational Semantics</h3>
+
+<p> We present two sets of operational semantics rules.  The first defines the judgement \(e ↓ v\)
+which represents the execution of Jsonnet expressions into Jsonnet values.  The other defines the
+judgement \(v ⇓ j\) which represents <dfn>manifestation</dfn>, the process by which Jsonnet values
+are converted into JSON values.</p>
+
+<p> We model both explicit runtime errors (raised by the error construct) and implicit runtime
+errors (e.g. array bounds errors) as stuck execution.  Errors can occur both in the \(e ↓ v\)
+judgement and in the \(v ⇓ j\) judgement (because it is defined in terms of \(e ↓ v\)).</p>
+
+<h4 id="jsonnet_values">Jsonnet Values</h4>
+
+<p> When executed, Jsonnet expressions yield Jsonnet values.  These need to be manifested, an
+additional step, to get JSON values.  The differences between Jsonnet values and JSON values are:
+1) Jsonnet values contain functions (which are not representable in JSON). 2)
+Due to the lazy semantics, both object fields and array elements have yet to be executed to yield
+values.  3) Object assertions still need to be checked.</p>
+
+<p>Execution of a statically-checked expression will never yield an object with duplicate field
+names.  By abuse of notation, we consider two objects to be equivalent even if their fields and
+assertions are re-ordered.  However this is not true of array elements or function parameters.  </p>
+
+<table>
+<tr><td><em>v</em></td><td>∈</td><td><em>Value</em></td><td>=</td><td>
+<em>Primitive</em> ∪
+<em>Object</em> ∪
+<em>Function</em> ∪
+<em>Array</em>
+</td></tr>
+
+<tr><td></td><td></td><td><em>Primitive</em></td><td>::=</td><td>
+<code>null</code> | <code>true</code> | <code>false</code> | <i>string</i> | <i>double</i></td></tr>
+
+<tr><td><em>o</em></td><td>∈</td><td><em>Object</em></td><td>::=</td><td>
+<code>{</code> { <code>assert</code> <i>e</i> } { <i>string</i> <i>h</i> <i>e</i> } <code>}</code>
+</td></tr>
+
+<tr><td>                            </td><td> </td><td><em>Function</em></td><td>::=</td><td>
+<code>function (</code> { <i>id</i> } { <i>id</i>=<i>e</i> } <code>)</code> <i>e</i>
+</td></tr>
+
+<tr><td><em>a</em></td><td>∈</td><td><em>Array</em></td><td>::=</td><td>
+<code>[</code> { <i>e</i> } <code>]</code>
+</td></tr>
+
+</table>
+
+<h4 id="hidden_inheritance">Hidden status inheritance</h4>
+
+<p>The hidden status of fields is preserved over inheritance if the right hand side uses the
+<code>:</code> form.  This is codified with the following function:</p>
+
+<div class="rules">
+
+<div class="sequent-rule">
+\[
+h_L + h_R = \left\{\begin{array}{ll}
+h_L &amp; \textrm{if }h_R = \texttt{:} \\
+h_R &amp; \textrm{otherwise} \\
+\end{array}\right.
+\]
+</div>
+
+</div>
+
+<h4 id="substitution">Capture-Avoiding Substitution</h4>
+
+<p>The rules for capture-avoiding variable substitution [<i>e</i>/<i>id</i>] are an
+extension of those in the <a href="http://en.wikipedia.org/wiki/Lambda_calculus">lambda
+calculus</a>.</p>
+
+<p>Let y ≠ x and z ≠ x.</p>
+
+<table><tr><td>
+
+<code>self</code>[<i>e</i>/<i>x</i>] = <code>self</code>
+</td></tr> <tr><td>
+
+<code>super</code>[<i>e</i>/<i>x</i>] = <code>super</code>
+</td></tr> <tr><td>
+
+<i>x</i>[<i>e</i>/<i>x</i>] = <i>e'</i>
+</td></tr> <tr><td>
+
+<i>y</i>[<i>e</i>/<i>x</i>] = <i>y</i>
+</td></tr> <tr><td colspan=2>
+
+<code>{</code>
+    ...
+    <code>assert</code> <i>e'</i>
+    ...
+    <code>[</code><i>e''</i><code>]</code> <i>h</i> <i>e'''</i>
+    ...
+<code>}</code>[<i>e</i>/<i>x</i>] =
+<code>{</code>
+    ...
+    <code>assert</code> <i>e'</i>[<i>e</i>/<i>x</i>]
+    ...
+    <code>[</code><i>e'</i>[<i>e</i>/<i>x</i>]<code>]</code> <i>h</i> <i>e''</i>[<i>e</i>/<i>x</i>]
+    ...
+<code>}</code>
+</td></tr> <tr><td>
+
+<code>{</code>
+    <code>[</code><i>e'</i><code>]</code><code>:</code> <i>e''</i>
+    <code>for</code> <i>x</i> <code>in</code> <i>e'''</i>
+<code>}</code>[<i>e</i>/<i>x</i>] =
+<code>{</code>
+    <code>[</code><i>e'</i><code>]</code><code>:</code> <i>e''</i>
+    <code>for</code> <i>x</i> <code>in</code> <i>e'''</i>[<i>e</i>/<i>x</i>]
+<code>}</code>
+</td></tr> <tr><td>
+
+<code>{</code>
+    <code>[</code><i>e'</i><code>]</code><code>:</code> <i>e''</i>
+    <code>for</code> <i>y</i> <code>in</code> <i>e'''</i>
+<code>}</code>[<i>e</i>/<i>x</i>] =
+<code>{</code>
+    <code>[</code><i>e'</i>[<i>e</i>/<i>x</i>]<code>]:</code> <i>e''</i>[<i>e</i>/<i>x</i>]
+    <code>for</code> <i>y</i> <code>in</code> <i>e'''</i> [<i>e</i>/<i>x</i>]
+<code>}</code>
+</td></tr> <tr><td>
+
+(<code>local</code> ... <i>y</i><code>=</code><i>e'</i> ... <code>;</code> <i>e''</i>)
+[<i>e</i>/<i>x</i>] =
+<code>local</code> ... <i>y</i><code>=</code><i>e'</i> ... <code>;</code> <i>e''</i>
+</td><td>(If any variable matches.)
+</td></tr> <tr><td>
+
+(<code>local</code> ... <i>y</i><code>=</code><i>e'</i> ... <code>;</code><i>e''</i>)
+[<i>e</i>/<i>x</i>] =
+<code>local</code> ... <i>y</i><code>=</code><i>e'</i>[<i>e</i>/<i>x</i>] ... <code>;</code><i>e''</i>[<i>e</i>/<i>x</i>]
+</td><td>(If no variable matches.)
+</td></tr> <tr><td>
+
+(<code>function</code> <code>(</code>
+    ... <i>y</i> ... <i>z</i>=<i>e'</i> ...
+<code>)</code> <i>e''</i>)[<i>e</i>/<i>x</i>] =
+<code>function</code> <code>(</code>
+    ... <i>y</i> ... <i>z</i>=<i>e'</i> ...
+<code>)</code><i>e''</i>
+</td><td>(If any param matches.)
+</td></tr> <tr><td>
+
+(<code>function</code> <code>(</code>
+    ... <i>y</i> ... <i>z</i>=<i>e'</i> ...
+<code>)</code> <i>e''</i>)[<i>e</i>/<i>x</i>] =
+<code>function</code> <code>(</code>
+    ... <i>y</i> ... <i>z</i>=<i>e'</i>[<i>e</i>/<i>x</i>] ...
+<code>)</code> <i>e''</i>[<i>e</i>/<i>x</i>]
+</td><td>(If no param matches.)
+</td></tr> <tr><td>
+
+Otherwise, <i>e'</i> [<i>e</i>/<i>x</i>] proceeds via syntax-directed recursion into subterms
+of <i>e'</i>.
+</td></tr> </table>
+
+<p>The rules for keyword substitution ⟦<i>e</i>/<i>kw</i>⟧ for <i>kw</i> ∈ {
+<code>self</code>, <code>super</code> } avoid substituting keywords that are captured by nested
+objects: </p>
+
+<table><tr><td>
+
+<code>self</code>
+⟦<i>e</i>/<code>self</code>⟧ = <i>e</i>
+</td></tr> <tr><td>
+
+<code>super</code>
+⟦<i>e</i>/<code>super</code>⟧ = <i>e</i>
+</td></tr> <tr><td>
+
+<code>self</code>
+⟦<i>e</i>/<code>super</code>⟧ = <code>self</code>
+</td></tr> <tr><td>
+
+<code>super</code>
+⟦<i>e</i>/<code>self</code>⟧ = <code>super</code>
+</td></tr> <tr><td>
+
+<code>{</code>
+    ...
+    <code>assert</code> <i>e'</i>
+    ...
+    <code>[</code><i>e''</i><code>]</code><i>h</i> <i>e'''</i>
+    ...
+<code>}</code>
+⟦<i>e</i>/<i>kw</i>⟧ =
+<code>{</code>
+    ...
+    <code>assert</code> <i>e'</i>
+    ...
+    <code>[</code><i>e''</i>⟦<i>e</i>/<i>kw</i>⟧<code>]</code><i>h</i> <i>e'''</i>
+    ...
+<code>}</code>
+</td></tr> <tr><td>
+
+<code>{</code>
+    <code>[</code><i>e'</i><code>]</code><code>:</code> <i>e''</i>
+    <code>for</code> <i>x</i> <code>in</code> <i>e'''</i>
+<code>}</code>⟦<i>e</i>/<i>kw</i>⟧ =
+<code>{</code>
+    <code>[</code><i>e'</i>⟦<i>e'</i>/<i>kw</i>⟧<code>]</code><code>:</code> <i>e''</i>
+    <code>for</code> <i>x</i> <code>in</code> <i>e'''</i>⟦<i>e</i>/<i>kw</i>⟧
+<code>}</code>
+</td></tr> <tr><td>
+
+Otherwise, <i>e'</i>⟦<i>e'</i>/<i>kw</i>⟧ proceeds via syntax-directed recursion into subterms
+of <i>e'</i>.
+</td></tr> </table>
+
+
+<h4 id="execution">Execution</h4>
+
+<p>The following big step operational semantics rules define the execution of Jsonnet programs, i.e.
+the reduction of a Jsonnet program <i>e</i> into its Jsonnet value <em>v</em> via the judgement \(e
+↓ v\).</p>
+
+<p>Let <em>f</em> range over strings, as used in object field names.</p>
+
+
+<div class="rules">
+
+<div class="sequent-rule"> \[\rule{value} {
+v ∈ \{\null, \true, \false\} ∪ String ∪ Number ∪ Function ∪ Array
+} {
+v ↓ v
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{object} {
+∀i∈\{1\ldots p\}: e_i ↓ f_i
+\\
+∀i∈\{p+1 \ldots n\}: e_i ↓ \null
+\\
+∀i,j∈\{1\ldots p\}: f_i = f_j ⇒ i = j
+\\
+o = \object{\assert{e_1} \ldots \assert{e_m}, f_1\mathop{h_1}e''_1 \ldots f_p\mathop{h_p}e''_p }
+} {
+\object{\assert{e_1} \ldots \assert{e_m},
+        [e'_1]\mathop{h_1}e''_1 \ldots [e'_n]\mathop{h_n}e''_n } ↓ o
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{object-comp} {
+e_{arr} ↓ [ e_1 \ldots e_n ]
+\\
+∀i∈\{1 \ldots n\}: e_{field}[e_i/x] ↓ f_i
+\\
+∀i,j∈\{1\ldots n\}: f_i = f_j ≠ \null ⇒ i = j
+\\
+\{ (f'_1, e'_1) \ldots (f'_m, e'_m) \} =
+\{ (f_i, e_{body}[e_i/x]) \ | \ i ∈\{1\ldots n\} ∧ f_i ≠ \null \}
+\\
+o = \object{f'_1: e'_1 \ldots f'_m: e'_m}
+} {
+\ocomp{e_{field}}{e_{body}}{x}{e_{arr}} ↓ o
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{array-index} {
+e ↓ \array{e_0 \ldots e_n}
+\\
+e' ↓ i ∈ \{ 0 \ldots n \}
+\\
+e_i ↓ v
+} {
+\index{e}{e'} ↓ v
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{object-index} {
+e ↓ o = \object{\assert{e'''_1} \ldots \assert{e'''_m}, f_1 h_1 e''_1 \ldots f_n h_n e''_n}
+\\
+∀j ∈ \{1 \ldots m \}: e'''_j⟦ o / \self, \{\} / \super ⟧↓\_
+\\
+e' ↓ f_i
+\\
+e''_i ⟦ o / \self, \{\} / \super ⟧ ↓ v
+} {
+\index{e}{e'} ↓ v
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{apply} {
+e_0 ↓ \function{y_1\ldots y_p, y_{p+1}=e'_{p+1} \ldots y_q=e'_q}{e_b}
+\\
+∀i∈\{m+1 \ldots n\}: x_i ∈ \{y_{m+1} \ldots y_q\}
+\\
+∀i∈\{1 \ldots q\}: e''_i = \left\{\begin{array}{ll}
+    e_i   &amp;   \textrm{if } i &le; m \\
+    e_j   &amp;   \textrm{if } y_i=x_j \textrm{ for some } j \\
+    e'_i  &amp;   \textrm{otherwise}\\
+\end{array}\right.
+\\
+(\local{y_1=e''_1 \ldots y_q=e''_q}{e_b}) ↓ v
+} {
+e_0(e_1 \ldots e_m, x_{m+1}=e_{m+1} \ldots x_n = e_n) ↓ v
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{local} {
+e ↓ v
+} {
+\local{\_}e ↓ v
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{local-var} {
+binds = \assign{x_1}{e_1} \ldots \assign{x_n}{e_n}
+\\
+\local{binds}{e[\local{binds}{e_1} / x_1 \ldots \local{binds}{e_n} / x_n ]} ↓ v
+} {
+\local{binds}e ↓ v
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{if-true} {
+e_1 ↓ \true \hspace{15pt} e_2 ↓ v
+} {
+\if{e_1}{e_2}{e_3} ↓ v
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{if-false} {
+e_1 ↓ \false \hspace{15pt} e_3 ↓ v
+} {
+\if{e_1}{e_2}{e_3} ↓ v
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{object-inherit} {
+e^L ↓ \object{
+    \assert e''^L_1 \ldots \assert e''^L_n,\
+    f_1 h^L_1 e^L_1 \ldots f_m h^L_m e^L_m,\
+    f'^L_1 h'^L_1 e'^L_1 \ldots f'^L_p h'^L_p e'^L_p
+}
+\\
+e^R ↓ \object{
+    \assert e''^R_1 \ldots \assert e''^R_q,\
+    f_1 h^R_1 e^R_1 \ldots f_m h^R_m e^R_m,\
+    f'^R_1 h'^R_1 e'^R_1 \ldots f'^R_r h'^R_r e'^R_r
+}
+\\
+\{ f'^L_1 \ldots f'^L_p \} ∩ \{ f'^R_1 \ldots f'^R_r \} = ∅
+\\
+x, y \textrm{ fresh} \hspace{15pt} \textrm{let } S = λe . e⟦x/\self, y/\super⟧
+\\
+e_s = \super + \object{
+    \assert S(e''^L_1) \ldots \assert S(e''^L_n),\\
+\hspace{20mm}
+    f_1 h^L_1 S(e^L_1) \ldots f_m h^L_m S(e^L_m),\
+    f'^L_1 h'^L_1 S(e'^L_1) \ldots f'^L_p h'^L_p S(e'^L_p)
+}
+\\
+∀i∈\{1 \ldots m\}: h'''_i = h^L_i + h^R_i ∧
+                   e'''_i = (\local{x = \self, y = \super}{e^R_i ⟦e_s / \super⟧})
+\\
+o = \{ \\
+\hspace{5mm} \assert e''^L_1 \ldots \assert e''^L_n, \
+    \assert e''^R_1 \ldots \assert e''^R_q, \\
+\hspace{5mm} f'^L_1 h'^L_1 e'^L_1 \ldots f'^L_p h'^L_p e'^L_p, \
+    f'^R_1 h'^R_1 e'^R_1 \ldots f'^R_r h'^R_r e'^R_r, \
+    f_1 h'''_1 e'''_m \ldots f_m h'''_m e'''_m \\
+\}
+} {
+e^L \texttt{ + } e^R ↓ o
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{array-concat} {
+e ↓ \array{e_0 \ldots e_m}
+\\
+e' ↓ \array{e_{m+1} \ldots e_n}
+} {
+e + e' ↓ \array{e_1 \ldots e_n}
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{string-concat} {
+e_L ↓ v_L \hspace{15pt} e_R ↓ v_R
+\\
+v_L ∈ String \vee v_R ∈ String
+} {
+e_L \texttt{ + } e_R ↓ stringconcat(tostring(v_L), tostring(v_R))
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{boolean-and-shortcut} {
+e_L ↓ \false
+} {
+e_L \texttt{ &amp;&amp; } e_R ↓ \false
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{boolean-and-longcut} {
+e_L ↓ \true
+\\
+e_R ↓ b
+} {
+e_L \texttt{ &amp;&amp; } e_R ↓ b
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{boolean-or-shortcut} {
+e_L ↓ \true
+} {
+e_L \texttt{ || } e_R ↓ \true
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{boolean-or-longcut} {
+e_L ↓ \false
+\\
+e_R ↓ b
+} {
+e_L \texttt{ || } e_R ↓ b
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{not-true} {
+e ↓ \true
+} {
+\texttt{!} e ↓ \false
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{not-false} {
+e ↓ \false
+} {
+\texttt{!} e ↓ \true
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{primitiveEquals} {
+e ↓ v
+\\
+e' ↓ v'
+\\
+b = (v ∈ String ∨ v ∈ Boolean ∨ v ∈ Number ∨ v = \null) ∧ v = v'
+} {
+\texttt{std.primitiveEquals}(e, e') ↓ b
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{length-array} {
+e ↓ \array{e_0 \ldots e_{n - 1}}
+} {
+\texttt{std.length}(e) ↓ n
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{length-object} {
+\texttt{std.length}(\texttt{std.objectFieldsEx}(e, false) ↓ n
+} {
+\texttt{std.length}(e) ↓ n
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{length-string} {
+e ↓ v ∈ String
+} {
+\texttt{std.length}(e) ↓ strlen(v)
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{makeArray} {
+e ↓ n
+\\
+e' ↓ f ∈ Function
+} {
+\texttt{std.makeArray}(e, e') ↓ \array{f(0) \ldots f(n - 1)}
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{filter} {
+e ↓ f ∈ Function
+\\
+e' ↓ \array{e_0 \ldots e_{n - 1}}
+\\
+j_1 \ldots j_m = \{ i \ |\  f(e_i) ↓ \true \}
+} {
+\texttt{std.filter}(e, e') ↓ \array{e_{j_1} \ldots e_{j_m}}
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{type-null} {
+e ↓ \texttt{null}
+} {
+\texttt{std.type}(e) ↓ \texttt{"null"}
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{type-boolean} {
+e ↓ v ∈ Boolean
+} {
+\texttt{std.type}(e) ↓ \texttt{"boolean"}
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{type-number} {
+e ↓ v ∈ Number
+} {
+\texttt{std.type}(e) ↓ \texttt{"number"}
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{type-string} {
+e ↓ v ∈ String
+} {
+\texttt{std.type}(e) ↓ \texttt{"string"}
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{type-object} {
+e ↓ v ∈ Object
+} {
+\texttt{std.type}(e) ↓ \texttt{"object"}
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{type-function} {
+e ↓ v ∈ Function
+} {
+\texttt{std.type}(e) ↓ \texttt{"function"}
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{type-array} {
+e ↓ v ∈ Array
+} {
+\texttt{std.type}(e) ↓ \texttt{"array"}
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{object-has-ex} {
+e' ↓ f
+\\
+e'' ↓ b'
+\\
+e ↓ \object{\assert{e'_1} \ldots \assert{e'_m}, f_1 h_1 e_1 \ldots f_n h_n e_n }
+\\
+b = ∃i: f = f_i ∧ (h_i \mathop{≠} :: \mathop{∨} b')
+} {
+\texttt{std.objectHasEx}(e, e', e'') ↓ b
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{object-fields-ex} {
+e' ↓ b'
+\\
+e ↓ \object{\assert{e'_1} \ldots \assert{e'_m}, f_1 h_1 e_1 \ldots f_n h_n e_n }
+\\
+\{ f'_1 \ldots f'_p \} = \{ f\ |\ ∃i: f = f_i ∧ (h_i \mathop{≠} :: \mathop{∨} b') \}
+\\
+∀i,j∈\{1 \ldots p\}: i≤j ⇒ f'_i≤f'_j
+} {
+\texttt{std.objectFieldsEx}(e, e') ↓ \array{f'_1 \ldots f'_p}
+} \] </div>
+
+</div>
+
+<p> String concatenation will implicitly convert one of the values to a string if necessary.  This
+is similar to Java.  The referred function \(tostring\) returns its argument unchanged if it is a
+string.  Otherwise it will manifest its argument as a JSON value \(j\) and unparse it as a single
+line of text.  The referred function \(strlen\) returns the number of unicode characters in the
+string.</p>
+
+<p> The numeric semantics are as follows: </p>
+
+<ul>
+
+<li>
+<b>Arithmetic:</b> Binary <code>*</code>, <code>/</code>, <code>+</code>, <code>-</code>,
+<code>&lt;</code>, <code>&le;</code>, <code>&gt;</code>, <code>&ge;</code>, and unary <code>+</code>
+and <code>-</code> operate on numbers and have IEEE double precision floating point semantics,
+except that the special states NaN, Infinity raise errors.  Note that <code>+</code> is also
+overloaded on objects, arrays, and when either argument is a string.  Also, <code>&lt;</code>,
+<code>&le;</code>, <code>&gt;</code>, <code>&ge;</code> are overloaded on strings, and compare
+lexically by unicode codepoint.
+</li>
+
+<li>
+<b>Bitwise:</b> Operators
+<code>&lt;&lt;</code>,
+<code>&gt;&gt;</code>,
+<code>&amp;</code>,
+<code>^</code>,
+<code>|</code> and
+<code>~</code> first convert their operands to signed 64 bit integers, then perform the operations
+in a standard way, then convert back to IEEE double precision floating point.
+</li>
+
+<li>
+<b>Standard functions</b>: The following functions have standard mathematical behavior and operate
+on IEEE double precision floating point:
+<code>std.pow(a, b)</code>,
+<code>std.floor(x)</code>,
+<code>std.ceil(x)</code>,
+<code>std.sqrt(x)</code>,
+<code>std.sin(x)</code>,
+<code>std.cos(x)</code>,
+<code>std.tan(x)</code>,
+<code>std.asin(x)</code>,
+<code>std.acos(x)</code>,
+<code>std.atan(x)</code>,
+<code>std.log(x)</code>,
+<code>std.exp(x)</code>,
+<code>std.mantissa(x)</code>,
+<code>std.exponent(x)</code> and
+<code>std.modulo(a, b)</code>.  Also, <code>std.codepoint(x)</code> take a single character string,
+returning the unicode codepoint as a number, and <code>std.char(x)</code> is its inverse.
+</li>
+</ul>
+
+<p>The <code>error</code> operator has no rule because we model errors (both from the language and
+user-defined) as stuck execution.  The semantics of <code>error</code> are that its subterm is
+evaluated to a Jsonnet value.  If this is a string, then that is the error that is raised.
+Otherwise, it is converted to a string using \(tostring\) like during string concatenation.  The
+specification does not specify how the error is presented to the user, and whether or not there is a
+stack trace.  Error messages are meant for human inspection, and there is therefore no need to
+standardize them.</p>
+
+<p>Finally, the function <code>std.native(x)</code> takes a string and returns a function configured
+by the user in a custom execution environment, thus its semantics cannot be formally described here.
+The function <code>std.extVar(x)</code> also takes a string and returns the value bound to that
+external variable (always a string) at the time the Jsonnet environment was created.</p>
+
+<h4 id="json_values">JSON Values</h4>
+
+<p> After execution, the resulting Jsonnet value is manifested into a JSON value whose serialized
+form is the ultimate output.  The Manifestation process removes hidden fields, checks assertions,
+and forces array elements and non-hidden object fields.  Attempting to manifest a function raises an
+error since they do not exist in JSON.  JSON values are formalized below.</p>
+
+<p>By abuse of notation, we consider two objects to be equivalent even if their fields are
+re-ordered.  However this is not true of array elements whose ordering is strict.</p>
+
+<table>
+
+<tr><td><em>j</em></td><td>∈</td><td><em>JValue</em></td><td>=</td><td>
+<em>Primitive</em> ∪
+<em>JObject</em> ∪
+<em>JArray</em>
+</td></tr>
+
+<tr><td></td><td></td><td><em>Primitive</em></td><td>::=</td><td>
+<code>null</code> | <code>true</code> | <code>false</code> | <i>string</i> | <i>double</i></td></tr>
+
+<tr><td><em>o</em></td><td>∈</td><td><em>JObject</em></td><td>::=</td><td>
+<code>{</code> { <i>string</i> : <em>j</em> } <code>}</code>
+</td></tr>
+
+<tr><td><em>a</em></td><td>∈</td><td><em>Array</em></td><td>::=</td><td>
+<code>[</code> { <em>j</em> } <code>]</code>
+</td></tr>
+
+</table>
+
+
+<p>Note that <em>JValue</em> ⊂ <em>Value</em>.</p>
+
+<h4 id="manifestation">Manifestation</h4>
+
+<p> Manifestation is the conversion of a Jsonnet value into a JSON value.  It is represented with
+the judgement \(v⇓j\).  The process requires executing arbitrary Jsonnet code fragments, so the two
+semantic judgements represented by \(↓\) and \(⇓\) are mutually recursive.  Hidden fields are
+ignored during manifestation.  Functions cannot be manifested, so an error is raised in that case
+(formalized as stuck execution).
+</p>
+
+<div class="rules">
+
+<div class="sequent-rule"> \[\rule{manifest-value} {
+j ∈ \{\null, \true, \false\} ∪ String ∪ Number
+} {
+j ⇓ j
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{manifest-object} {
+o = \object{
+    \assert e''_1 \ldots \assert e''_m,\
+    f_1 h_1 e_1 \ldots f_n h_n e_n,\
+    f'_1 :: e'_1 \ldots f'_p :: e'_p,\
+}
+\\
+∀i∈\{1\ldots m\}: e''_i⟦o/\self,\{\}/\super⟧↓\_
+\\
+∀i∈\{1\ldots n\}: e_i⟦o/\self,\{\}/\super⟧↓v_i⇓j_i ∧ h_i ≠\ ::
+} {
+o ⇓ \object{f_1 : j_1 \ldots f_n : j_n}
+} \] </div>
+
+<div class="sequent-rule"> \[\rule{manifest-array} {
+∀i∈\{1\ldots n\}: e_i↓v_i⇓j_i
+} {
+\array{e_1 \ldots e_n} ⇓ \array{j_1 \ldots j_n}
+} \] </div>
+
+</div>
+
+
+<h3 id="properties">Properties of Jsonnet Inheritance</h3>
+
+<p> Let D, E, F range over arbitrary expressions.  Let ≡ mean contextual equivalence, i.e if D ≡ E
+then C[D] and C[E] will manifest to the same JSON, for any context C. Note that if D and E both
+yield errors, they are considered equivalent D ≡ E regardless of the text of the error messages.</p>
+
+<table>
+<tr>
+<td>Associativity</td>
+<td>(D + E) + F   ≡   D + (E + F)</td>
+</tr>
+
+<tr>
+<td>Idempotence </td>
+<td>D + D   ≡   D </td>
+<td>(if D does not contain <code>super</code>)</td>
+</tr>
+
+<tr>
+<td>Commutativity </td>
+<td>D + E   ≡   E + D</td>
+<td>(if D, E do not contain <code>super</code> and have no common fields)</td>
+</tr>
+
+<tr>
+<td rowspan="2">Identity</td>
+<td>D + { }   ≡   D</td>
+</tr>
+
+<tr>
+<td>{ } + D   ≡   D</td>
+</tr>
+
+</table>
+
+

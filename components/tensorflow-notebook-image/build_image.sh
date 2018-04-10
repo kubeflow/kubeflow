@@ -3,14 +3,20 @@
 # A simple script to build the Docker images.
 # This is intended to be invoked as a step in Argo to build the docker image.
 #
-# build_image.sh ${DOCKERFILE} ${IMAGE} ${BASE_IMAGE} ${TF_PACKAGE}
+# build_image.sh ${DOCKERFILE} ${IMAGE} ${TAG} ${IS_LATEST} ${BASE_IMAGE} ${TF_PACKAGE}
 set -ex
 
 DOCKERFILE=$1
 CONTEXT_DIR=$(dirname "$DOCKERFILE")
 IMAGE=$2
-BASE_IMAGE=${3:-"ubuntu:latest"}
-TF_PACKAGE=${4:-"tf-nightly"}
+# The tag for the image
+TAG=$3
+# Takes a value of true or false. Determines if we should tag the image
+# with the "latest" tag
+IS_LATEST=$4
+BASE_IMAGE=${5:-"ubuntu:latest"}
+TF_PACKAGE=${6:-"tf-nightly"}
+TF_PACKAGE_PY_27=${7:-"tf-nightly"}
 
 # Wait for the Docker daemon to be available.
 until docker ps
@@ -20,8 +26,13 @@ done
 docker build --pull \
         --build-arg "BASE_IMAGE=${BASE_IMAGE}" \
         --build-arg "TF_PACKAGE=${TF_PACKAGE}" \
-        -t ${IMAGE} \
+        --build-arg "TF_PACKAGE_PY_27=${TF_PACKAGE_PY_27}" \
+        -t "${IMAGE}:${TAG}" \
 	-f ${DOCKERFILE} ${CONTEXT_DIR}
 
 gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
-gcloud docker -- push ${IMAGE}
+gcloud docker -- push "${IMAGE}:${TAG}"
+if [[ "${IS_LATEST}" == "true" ]]; then
+  docker tag "${IMAGE}:${TAG}" "${IMAGE}:latest"
+  gcloud docker -- push "${IMAGE}:latest"
+fi

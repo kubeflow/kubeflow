@@ -1,0 +1,43 @@
+{
+  "name": "mongodb",
+  "apiVersion": "0.0.1",
+  "kind": "ksonnet.io/parts",
+  "description": "MongoDB is a cross-platform document-oriented database. Classified as a NoSQL database, MongoDB eschews the traditional table-based relational database structure in favor of JSON-like documents with dynamic schemas, making the integration of data in certain types of applications easier and faster.",
+  "author": "ksonnet team <ksonnet-help@heptio.com>",
+  "contributors": [
+    {
+    "name": "Tehut Getahun",
+    "email": "tehut@heptio.com"
+    },
+    {
+    "name": "Tamiko Terada",
+    "email": "tamiko@heptio.com"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ksonnet/mixins"
+  },
+  "bugs": {
+    "url": "https://github.com/ksonnet/mixins/issues"
+  },
+  "keywords": [
+    "mongodb",
+    "database",
+    "mongo",
+    "nosql"
+  ],
+  "quickStart": {
+    "prototype": "io.ksonnet.pkg.mongodb-simple",
+    "componentName": "mongo",
+    "flags": {
+      "name": "mongodb",
+      "namespace": "default",
+      "rootPassword": "boots",
+      "password": "boots"
+    },
+    "comment": "Run a simple instance of MongoDB"
+  },
+  "license": "Apache 2.0"
+}
+

@@ -1,0 +1,5 @@
+testdata/error_hexnumber:1:2-5 Did not expect: (IDENTIFIER, "x42")
+
+0x42
+
+
