@@ -21,7 +21,7 @@ and based on the results chooses good values for various Kubeflow parameters.
 
 **Alpha stage(as of today) Requires** run ```make build``` to build docker image locally since there's no public release yet.
 
-Interactive use 
+Interactive use
 
 ```
 TAG=latest
@@ -136,13 +136,13 @@ Some options for dealing with this
 
 - Downside of this is that it violates the K8s philosophy of managing infrastructure
   declaratively
-- It also means salient details about the deployment aren't stored in the configs 
+- It also means salient details about the deployment aren't stored in the configs
   (ksonnet application) and versioned in source controle
 
 1. Wrap the resource creation/management in a CRD using kube-metacontroller
 
   - Example: [A CRD for managing Google Cloud Endpoints](https://github.com/danisla/cloud-endpoints-controller)
-  
+
   - One potential downside is that this may require extra permissions.
 
 ### No ordering to deployments
