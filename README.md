@@ -121,9 +121,9 @@ kubectl get svc -n kubeflow | grep NodePort
 ````
 The port can be found in the line that looks something like this: 
 "tf-hub-lb          NodePort    10.107.160.252   <none>        80:32538/TCP   1m"
-In this case set PORT=32538, SERVER=10.107.160.252. The notebook can now be accessed at http://SERVER:PORT
+In this case set PORT=32538, SERVER=your IP address. The notebook can now be accessed at http://SERVER:PORT. Note this is one of the simplest ways to test your deployment.
 
-The above command sets up JupyterHub and a custom resource for running TensorFlow training jobs. Furthermore, the ksonnet packages
+The above commands sets up JupyterHub and a custom resource for running TensorFlow training jobs. Furthermore, the ksonnet packages
 provide prototypes that can be used to configure TensorFlow jobs and deploy TensorFlow models.
 Used together, these make it easy for a user go from training to serving using Tensorflow with minimal
 effort in a portable fashion between different environments.
