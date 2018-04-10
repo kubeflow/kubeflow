@@ -115,7 +115,8 @@ def main():
         args.artifacts_dir, "junit_kubeflow-tf-serving-image-{}.xml".format(args.service_name))
     logging.info("Writing test results to %s", junit_path)
     test_util.create_junit_xml_file([t], junit_path)
-
+    # Pause to collect Stackdriver logs.
+    time.sleep(60)
 
 if __name__ == '__main__':
   logging.basicConfig(level=logging.INFO,
