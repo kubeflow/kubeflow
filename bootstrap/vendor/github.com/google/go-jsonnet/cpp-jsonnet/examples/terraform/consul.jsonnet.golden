@@ -1,0 +1,47 @@
+{
+   "provider": {
+      "aws": {
+         "access_key": "XXX",
+         "region": "us-east-1",
+         "secret_key": "YYY"
+      },
+      "consul": {
+         "address": "demo.consul.io:80",
+         "datacenter": "nyc1",
+         "scheme": "http"
+      }
+   },
+   "resource": {
+      "aws_instance": {
+         "test": {
+            "ami": "ami-de7ab6b6",
+            "instance_type": "${consul_keys.input.var.size}"
+         }
+      },
+      "consul_keys": {
+         "input": {
+            "key": {
+               "default": "m1.small",
+               "name": "size",
+               "path": "tf_test/size"
+            }
+         },
+         "test": {
+            "key": [
+               {
+                  "delete": true,
+                  "name": "id",
+                  "path": "tf_test/id",
+                  "value": "${aws_instance.test.id}"
+               },
+               {
+                  "delete": true,
+                  "name": "address",
+                  "path": "tf_test/public_dns",
+                  "value": "${aws_instance.test.public_dns}"
+               }
+            ]
+         }
+      }
+   }
+}

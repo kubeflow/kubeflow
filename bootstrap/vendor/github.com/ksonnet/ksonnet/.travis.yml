@@ -1,0 +1,134 @@
+language: go
+go:
+- 1.9.x
+os:
+- linux
+env:
+  global:
+  - PATH=$PATH:$GOPATH/bin
+  - VERSION="${TRAVIS_TAG:-build-$TRAVIS_BUILD_ID}"
+  - EXTRA_GO_FLAGS_TEST="-race"
+  - MINIKUBE_WANTUPDATENOTIFICATION=false
+  - MINIKUBE_WANTREPORTERRORPROMPT=false
+  - MINIKUBE_HOME=${HOME}
+  - CHANGE_MINIKUBE_NONE_USER=true
+  - secure: oGlnReAySuKVtUD7+r3WDJQfpK0xxf6RuYPNSKriYV/4WaTlm/XC8V7fNTz3mWz/CgFJupOMgFdPGMb7Da3qm8o7npGGwx89SiOdyKcvM8iPG5nKRNemYwxlGOFXK/vZs4q33FBI4hAxgfLi0xi+TXj+fiuPc4rKV7LBM1svAe+ql6gyz/Pcm91MkYW8KMWGcD+UB8wR0khzXgAWJPAHsVyPAu3kmttIZPYZXYoI4H6fK/StahUVf0p5Fl4ConnK7TvdTme5N5p0ald2UzEsxpGpvDpHgFjaQ9GmMqTjTJA9NBEVSbOJcA5+vqQmT7GqEk633kvA4RlD2UVgSMSd7qdE7AOkafSi7JBLbbrKzFUKZbgD9Ed00otWBoMwGQQGRawmfvO9hn0Lv4LDEtPMDc4BMiK3FwA263PY1qRDNFnWf7H9762DEZffeUnLksvKOfkJ6vAnTaN8jTtel+pbpN8f9d1vx8VumqU0WNhgG63uuNX/P3KHB1FSPO2/5wDqzUURWeOtFGVqfm2kTpODM/7ktBR983ptldSpOfxPTKScDrNPxOMsQSGzAiD9IncgQ0ETY1vFc0y36MvgTKCIYP3khtWs4DoYqjJsCI3jWkV6Zkr/NIssefp/FyaOMXlHQRVhR0uJzjwqx1TSnGIvjsb2G36UXLWscc1JruS1fX0=
+osx_image: xcode8.3
+matrix:
+  include:
+  - env: TARGET=x86_64-linux-musl EXTRA_GO_FLAGS_TEST=""
+    go: 1.9.x
+  - env: DO_INTEGRATION_TEST=1 INT_KVERS=v1.7.0
+  - os: osx
+    go: 1.9.x
+  fast_finish: true
+  allow_failures:
+  - os: osx
+    go: 1.9.x
+services:
+- docker
+addons:
+  apt:
+    packages:
+    - wget
+    - patch
+    - git-core
+    - gcc
+    - g++
+    - make
+    - gawk
+    - bzip2
+    - gzip
+    - xz-utils
+    - ca-certificates
+    - libgmp-dev
+    - libmpfr-dev
+    - libmpc-dev
+    - realpath
+before_install:
+- set -e
+- |
+  if [ -n "$TARGET" -a ! -d "$HOME/cross/$TARGET/bin" ]; then
+    pushd /tmp
+    git clone --depth=1 https://github.com/GregorR/musl-cross.git
+    cd musl-cross
+    echo CC_BASE_PREFIX=$HOME/cross >> ./config.sh
+    if ! ./build.sh > build.log; then
+      tail -100 build.log
+      exit 1
+    fi
+    popd
+  fi
+- |
+  if [ -n "$TARGET" ]; then
+    PATH=$PATH:$HOME/cross/$TARGET/bin
+    export CC="$TARGET-gcc"
+    export CXX="$TARGET-g++"
+    export GO_LDFLAGS='-linkmode external -extldflags=-static'
+  fi
+install:
+- go build -i -ldflags "$GO_LDFLAGS" .
+- |
+  if [ "$DO_INTEGRATION_TEST" = 1 ]; then
+    if ! which minikube; then
+      wget -O minikube \
+         https://storage.googleapis.com/minikube/releases/v0.21.0/minikube-$(go env GOOS)-$(go env GOARCH)
+      install -m 755 minikube $GOPATH/bin/minikube
+    fi
+    if ! which kubectl; then
+      wget https://storage.googleapis.com/kubernetes-release/release/$INT_KVERS/bin/$(go env GOOS)/$(go env GOARCH)/kubectl
+      install -m 755 kubectl $GOPATH/bin/kubectl
+    fi
+    mkdir -p $HOME/.kube
+    touch $HOME/.kube/config
+    sudo -E $GOPATH/bin/minikube start --vm-driver=none \
+      --extra-config apiserver.Authorization.Mode=RBAC \
+      --kubernetes-version $INT_KVERS
+
+    go get github.com/onsi/ginkgo/ginkgo
+  fi
+script:
+- make VERSION="$VERSION" EXTRA_GO_FLAGS="$EXTRA_GO_FLAGS_TEST" test
+- make vet
+- rm -f ./ks && make VERSION="$VERSION"
+- 'ldd ./ks || otool -L ./ks || :
+
+'
+- "./ks help"
+- "./ks version"
+- |
+  if [ "$DO_INTEGRATION_TEST" = 1 ]; then
+     minikube update-context
+     minikube status
+     make VERSION="$VERSION" EXTRA_GO_FLAGS="$EXTRA_GO_FLAGS_TEST" integrationtest
+  fi
+after_script: set +e
+before_deploy:
+- echo TARGET=$TARGET OS_NAME=$TRAVIS_OS_NAME GO_VERSION=$TRAVIS_GO_VERSION
+- EXE_NAME=ks-$(go env GOOS)-$(go env GOARCH)
+- cp ks $EXE_NAME
+- strip $EXE_NAME && ./$EXE_NAME version
+- 'size $EXE_NAME || :
+
+'
+deploy:
+  api_key:
+    secure: T/LpWZSgeqWBgY3mUNeej55n8TbZZM7UgrHl7pej1CE2cs6YGcfyog3peiXvCcVF9NhGsm6eTXZQeFxsuWgMbWYeqlBnMkHNPPqdNpeRFgY0TkFZXHZLexfqTo2MLgrZiJ+bZl8wZnTTXukieGeLE37ugkBJyceLyfqIaxwRlpDzKPn8XtIqOMOwMq0aeUA8wjSSpuWkuwlGWKwJtI48BNExZZ1FRpPHQdAZjX6zEPT2SuRaACZdoX+3k/Fr91H6O9TplE4q5eCpEdd3y7BGGtMm3WA70SxYIZPGzfwaALGja5BapZr9Eui6ppyPGesQ8zV+zNtOsnK5Phj3QUj8M+v4BmJbxbPyhAIWmFiDlutgwZUkXI+R+SXONy1/LTuLLNSJ9WPQsC9gL09FGQmg+X0s7VpJVWxD8FScY0DJ4/bNLgeWnzwT2YTsduDktqevMpetxJWZGVQx3EN595JJKlZGtE8PouzVm7sRQEfe3Jd0XIcPfj5AV5trEBDjgHZSnU4qa9G9RdUZfswVp+R7SEwoTwEIEyOpFAwi9Qg5wkCAZFU2+86LQOLYH0Pm38//RxSXJEF1abkEb0Y/awz6KKlGBK3z1VSXvK3LQ8r9SwF2h15rD74O1mGM8Mjbs+mJXPxKpCq+BslskRYur3F8tRx45pwr8Ly9dppZd2rrswI=
+  file: "$EXE_NAME"
+  on:
+    condition: "( $TARGET = x86_64-linux-musl || $TRAVIS_OS_NAME = osx ) && ${TRAVIS_GO_VERSION}.0
+      =~ ^1\\.8\\."
+    tags: true
+  provider: releases
+  skip_cleanup: true
+cache:
+  directories:
+  - "$GOPATH/pkg"
+  - "$HOME/cross"
+branches:
+  only:
+  - master
+  - "/^v\\d+\\.\\d+\\.\\d+.*$/"
+notifications:
+  email:
+    on_success: never

@@ -1,0 +1,4 @@
+RUNTIME ERROR: foo
+	error.05.jsonnet:17:21-32	object <ErrObj>
+	error.05.jsonnet:18:25-31	object <anonymous>
+	During manifestation	

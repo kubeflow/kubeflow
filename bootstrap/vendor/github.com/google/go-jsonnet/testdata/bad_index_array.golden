@@ -1,0 +1,10 @@
+RUNTIME ERROR: Unexpected type string, expected number
+-------------------------------------------------
+	testdata/bad_index_array:1:1-10	$
+
+[]["xxx"]
+
+-------------------------------------------------
+	During evaluation	
+
+

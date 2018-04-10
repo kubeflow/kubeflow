@@ -1,0 +1,3 @@
+RUNTIME ERROR: my error message
+	error.invariant.simple3.jsonnet:18:10-34	thunk <object_assert>
+	During manifestation	

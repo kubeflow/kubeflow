@@ -1,0 +1,10 @@
+RUNTIME ERROR: Division by zero.
+-------------------------------------------------
+	testdata/div_by_zero:1:1-4	$
+
+1/0
+
+-------------------------------------------------
+	During evaluation	
+
+

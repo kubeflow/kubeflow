@@ -1,0 +1,10 @@
+RUNTIME ERROR: Missing argument: y
+-------------------------------------------------
+	testdata/optional_args13:1:1-26	$
+
+(function(x, y) 42)(x=42)
+
+-------------------------------------------------
+	During evaluation	
+
+

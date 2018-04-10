@@ -1,0 +1,8 @@
+{
+   "volumeMounts": [
+      {
+         "mountPath": "/box/deployment-config",
+         "name": "deployment-config"
+      }
+   ]
+}

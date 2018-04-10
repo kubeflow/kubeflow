@@ -1,0 +1,123 @@
+---
+layout: default
+---
+
+<h1 id="comparisons">Comparisons With Other Languages / Tools</h1>
+
+<h2 id="json">Comparison With JSON</h2>
+
+<p>JSON is used to describe data literally.  Jsonnet extends JSON.  Jsonnet has relaxed syntax and
+comments to make it easier for humans to write.  Jsonnet also adds constructs for generating,
+translating and refining data.  Because Jsonnet is an extension of JSON, valid JSON is also valid
+Jsonnet that just emits that JSON unchanged.</p>
+
+<h2 id="yaml">Comparison With YAML</h2>
+
+<p> YAML is also an extension of JSON that generates JSON.  Like Jsonnet, YAML is intended to
+improve the user experience when data is transfered over the human / machine boundary.  Its syntax
+is very tight; YAML files are much shorter than their JSON equivalents.  However its constructs for
+generating, translating, and refining data are very weak in comparison to Jsonnet.  Moreover, the
+tightness of its syntax makes it hard to extend YAML to add these features.  In particular, YAML and
+Jsonnet disagree about what 1+1 should mean.  YAML already defines it to mean the string "1+1",
+whereas in Jsonnet we want it to be 2.  Jsonnet therefore builds from JSON and not YAML.</p>
+
+<h2 id="templates">Comparison With Other Templating Languages</h2>
+
+<p>Jsonnet is a form of templating language as it generates data from programs that interleave
+verbatim data with computation constructs.  However other templating languages operate on plain
+text.  That is to say that the data amongst which the computational constructs are intermingled are
+simply plain text, and the output of the evaluation is also plain text.  This means such systems can
+be used to produce files with arbitrary syntax, e.g. custom configuration file syntax, HTML, or even
+JSON.</p>
+
+<p>However, since these templating languages are unaware of the syntax of the file they're
+generating (they think it is simply plain text), they cannot help the programmer avoid creating
+errors in the underlying representation.</p>
+
+<p> By analogy, the C preprocessor has no understanding of C syntax.  C preprocessor macros can
+break that syntax if they are used wrongly.  The net result of this is that problems with the use of
+these macros must be debugged by examining the output of the evaluation (i.e. the generated C code).
+Errors cannot be presented at the level at which the programmer is actually working.  For this
+reason, the vast majority of modern languages do not feature a pre-processor.</p>
+
+<p>The situation is the same when templating languages are used to generate HTML, often the
+developer will check the generated HTML because successful evaluation of the template does not imply
+the HTML is correct.  The same is true when the target language is JSON.  Jsonnet avoids these
+problems, as although it is limited to JSON output, it is guaranteed that the output will be valid
+JSON.</p>
+
+<h2 id="functional">Comparison With Other Functional Languages</h2>
+
+<p>ML is a functional language like Jsonnet.  However ML is not pure, and also has strict
+evaluation.  Haskell is a pure lazy functional language, but unlike Jsonnet it has static type
+safety.  Providing static type safety means programmers have to understand type inference,
+unification errors, and also provide the occasional type annotation.  Even then, some correct
+programs are rejected.  </p>
+
+<p>The Nix expression language, which is a pure lazy functional language with dynamic typing, is
+therefore closer to Jsonnet.  Jsonnet differs from the Nix expression language mainly in that it
+also has object-oriented semantics in the form of mixins.  Also, Jsonnet is an extension of JSON,
+whereas the Nix expression language is not (in particular it lacks floating point numbers).
+Finally, the Nix expression language is an embedded part of the Nix package manager (and other
+tools), whereas Jsonnet is a standalone evaluator that can sit in front of anything that accepts
+JSON.</p>
+
+<h2 id="scripting">Comparison With Other Scripting Languages</h2>
+
+<p>Most scripting languages are dynamically typed languages, often with object-oriented
+features.</p>
+
+<p>However, Jsonnet is also a templating language, which makes it very good for generating data that
+is a mixture of verbatim and computed elements.  Jsonnet programs can be easily understood and
+modified by someone who only knows JSON.  Any parts of the program which are just JSON (i.e. do not
+make use of the extended Jsonnet constructs) can be modified with predictable results.  Jsonnet's
+pure functional semantics also make modifying the program more predictable.</p>
+
+<p>More importantly, Jsonnet has the property of hermeticity.  This means that regardless of when or
+where a Jsonnet program is evaluated, it will always generate the same JSON.  This means the program
+can be freely converted to data, and thus it can be thought of as equivalent to data.  This is not
+the case with general purpose languages, as they are allowed to read files, contact the network,
+look up the time, or any number of other sources of non-deterministic behavior.  While it is
+possible to sandbox some scripting languages in order to patch all of these holes, the result of
+this is a new language that is incompatible with the original language.  This makes Jsonnet a lot
+more suitable for configuration than general purpose scripting languages.</p>
+
+<p>One advantage that is often put forward for using general purpose scripting languages as
+configuration languages is that they are already well-understood by a large number of people.
+However this is also true of Jsonnet, because of its backwards compatibility with JSON, its use of
+mixins (a decades old construct that is well-understood) and the mimicking of Python syntax in cases
+where that makes sense (e.g. string formatting and comprehension constructs).</p>
+
+<p>Finally, Jsonnet is a much smaller language than most general purpose scripting languages, yet
+despite this it has considerable expressive power.</p>
+
+<h2 id="configuration">Comparison With Other Configuration Languages</h2>
+
+<p> <a href="https://code.google.com/p/coil/">Coil</a> is a configuration language that is
+interpreted by a Python library.  Like Jsonnet, it has a JSON-like data model and some facilities
+for extending objects to avoid duplication, referring to other parts of the structure, and importing
+from other files.  However it is a long way from the expressiveness of the object-oriented semantics
+of Jsonnet, and it also does not have the ability to do arithmetic beyond substituting values into
+strings.  Finally, coil binds variables according to <a
+href="http://en.wikipedia.org/wiki/Scope_(computer_science)#Dynamic_scoping">dynamic scoping
+rules</a>, which have long been discredited because they quickly make code very difficult to
+understand.  Jsonnet uses static scoping, like almost all mainstream languages. </p>
+
+
+<p> <a href="https://github.com/wickman/pystachio">Pystachio</a> is a Python framework that makes it
+easier to use Python itself as a configuration language.  It extends Python's existing data literals
+(which are JSON-like) to enforce immutability and add some templating functionality.  However it
+lacks the full computational abilities of Jsonnet.  Although it does allow some computation within
+string values via template expansion, the only variables you can access are stored in separate
+"environments", and there is no direct access to the data being configured.  Even if we assume that
+all data is stored in environments and object fields merely forward to the environment, the language
+does not have any true object-orientation features.  While scopes are inherited from outer objects,
+this just an implicit way of doing what you can do in Jsonnet with <code>$</code> or
+<code>local</code>.  In Pystachio there is no way to derive a struct from another struct with a few
+changes, let alone use late binding or the expressive power of mixins.</p>
+
+<p> Finally, there are a number of other configuration languages that have grown to be used by a
+range of applications.  For example <a href="http://en.wikipedia.org/wiki/INI_file">INI files</a> or
+<a href="http://httpd.apache.org/docs/2.2/configuring.html">Apache config files</a>.  Typically
+these offer few features beyond simple JSON and provide very little functionality when compared to
+Jsonnet.</p>

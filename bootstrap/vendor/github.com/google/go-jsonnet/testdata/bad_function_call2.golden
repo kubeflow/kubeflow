@@ -1,0 +1,10 @@
+RUNTIME ERROR: function expected 1 positional argument(s), but got 2
+-------------------------------------------------
+	testdata/bad_function_call2:1:1-22	$
+
+(function(x) x)(1, 2)
+
+-------------------------------------------------
+	During evaluation	
+
+

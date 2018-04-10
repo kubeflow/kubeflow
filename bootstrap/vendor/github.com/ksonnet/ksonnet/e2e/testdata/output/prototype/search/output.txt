@@ -1,0 +1,4 @@
+NAME                               DESCRIPTION
+====                               ===========
+io.ksonnet.pkg.deployed-service    A deployment exposed with a service
+io.ksonnet.pkg.single-port-service Service that exposes a single port

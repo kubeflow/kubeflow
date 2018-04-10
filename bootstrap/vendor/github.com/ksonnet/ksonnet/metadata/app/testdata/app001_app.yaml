@@ -1,0 +1,9 @@
+apiVersion: 0.1.0
+kind: ksonnet.io/app
+name: test-get-envs
+registries:
+  incubator:
+    gitVersion: null
+    protocol: ""
+    uri: ""
+version: 0.0.1

@@ -1,0 +1,2 @@
+RUNTIME ERROR: unrecognized native function name: non_existent_native
+	error.native_not_found.jsonnet:17:1-34	

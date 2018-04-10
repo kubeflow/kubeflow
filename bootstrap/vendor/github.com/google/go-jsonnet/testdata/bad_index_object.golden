@@ -1,0 +1,10 @@
+RUNTIME ERROR: Unexpected type number, expected string
+-------------------------------------------------
+	testdata/bad_index_object:1:1-7	$
+
+{}[42]
+
+-------------------------------------------------
+	During evaluation	
+
+

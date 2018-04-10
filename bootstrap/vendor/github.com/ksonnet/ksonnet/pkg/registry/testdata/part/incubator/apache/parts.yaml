@@ -1,0 +1,40 @@
+{
+  "name": "apache",
+  "apiVersion": "0.0.1",
+  "kind": "ksonnet.io/parts",
+  "description": "part description",
+  "author": "author",
+  "contributors": [
+    {
+    "name": "author 1",
+    "email": "email@example.com"
+    },
+    {
+    "name": "author 2",
+    "email": "email@example.com"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ksonnet/mixins"
+  },
+  "bugs": {
+    "url": "https://github.com/ksonnet/mixins/issues"
+  },
+  "keywords": [
+    "apache",
+    "server",
+    "http"
+  ],
+  "quickStart": {
+    "prototype": "io.ksonnet.pkg.apache-simple",
+    "componentName": "apache",
+    "flags": {
+      "name": "apache",
+      "namespace": "default"
+    },
+    "comment": "Run a simple Apache server"
+  },
+  "license": "Apache 2.0"
+}
+
