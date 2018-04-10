@@ -170,7 +170,7 @@ tf-hub-lb          ClusterIP      10.11.245.94    <none>        80/TCP         1
 ...
 ```
 
-By default we are using ClusterIPs for the JupyterHub UI. This can be changed to one of the followings:
+By default we are using ClusterIPs for the JupyterHub UI. This can be changed to one of the following:
 
 - NodePort (for non-cloud) by issuing
   ```
@@ -184,7 +184,7 @@ By default we are using ClusterIPs for the JupyterHub UI. This can be changed to
   ks apply ${KF_ENV}
   ```
 
-however this will leave your Jupyter Notebook open to the Internet.
+however this will leave your Jupyter notebook open to the Internet.
 
 To connect to your [Jupyter Notebook](http://jupyter.org/index.html) locally:
 
