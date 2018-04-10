@@ -109,12 +109,19 @@ ks param set kubeflow-core usageId $(uuidgen)
 ks apply default -c kubeflow-core
 ```
 
-If the deployment is on a single Kubernetes node (e.g. on an on-premise machine) without access to a loadbalancer, then we need these two lines to access the Jupyter notebook: 
+In order to access the Jupyter notebook, there are several considerations based on the target Kubernetes cluster. In the simple case where the deployment is tested on a single Kubernetes node (e.g. on an on-premise machine) without access to a loadbalancer, then these two lines is used to access the Jupyter notebook: 
 ```commandline
 # Expose port for the Jupyter service
 ks param set kubeflow-core jupyterHubServiceType NodePort
 ks apply default
 ```
+After the commands, check with 
+```commandline
+kubectl get svc -n kubeflow | grep NodePort
+````
+The port can be found in the line that looks something like this: 
+"tf-hub-lb          NodePort    10.107.160.252   <none>        80:32538/TCP   1m"
+In this case set PORT=32538, SERVER=10.107.160.252. The notebook can now be accessed at http://SERVER:PORT
 
 The above command sets up JupyterHub and a custom resource for running TensorFlow training jobs. Furthermore, the ksonnet packages
 provide prototypes that can be used to configure TensorFlow jobs and deploy TensorFlow models.
