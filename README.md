@@ -102,13 +102,13 @@ ks param set kubeflow-core usageId $(uuidgen)
 ks apply default -c kubeflow-core
 ```
 
-The above command sets up JupyterHub and a custom resource for running TensorFlow training jobs. Furthermore, the ksonnet packages provide prototypes that can be used to configure TensorFlow jobs and deploy TensorFlow models.
-Used together, these make it easy for a user go from training to serving using Tensorflow with minimal
-effort in a portable fashion between different environments. 
+The above commands are used to setup JupyterHub and a custom resource for running TensorFlow training jobs. Furthermore, the ksonnet packages provide prototypes that can be used to configure TensorFlow jobs and deploy TensorFlow models.
+Used together, these make it easy for a user to transition from training to model serving using Tensorflow with minimal
+effort, and in a portable fashion across different environments. 
 
 For more detailed instructions about how to use Kubeflow, including testing the Jupyter Notebook, please refer to the [user guide](user_guide.md).
 
-**Important** The commands above will enable collection of **anonymous** user data to help us improve Kubeflow; for more information including instructions for explictly
+**Important**: The commands above will enable collection of **anonymous** user data to help us improve Kubeflow; for more information including instructions for explictly
 disabling it please refer to the [Usage Reporting section](user_guide.md#usage-reporting) of the user guide.
 
 ## Troubleshooting
