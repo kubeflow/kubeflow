@@ -449,8 +449,7 @@ oc adm policy add-scc-to-user anyuid -z jupyter-hub
 ```
 Once the anyuid policy has been set, you must delete the failing pods and allow them to be recreated in the project deployment.
 
-You will also need to adjust the privileges of the tf-job-operator service account for TFJobs to run. Do this in the project
-where you are running TFJobs:
+You will also need to adjust the privileges of the tf-job-operator service account for TFJobs to run. Do this in the project where you are running TFJobs:
 
 ```commandline
 oc adm policy add-role-to-user cluster-admin -z tf-job-operator
