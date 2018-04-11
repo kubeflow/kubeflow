@@ -1,4 +1,6 @@
 {
+  util:: import "kubeflow/tf-serving/util.libsonnet",
+
   // Parameters are intended to be late bound.
   params:: {
     name: null,
@@ -8,6 +10,8 @@
     },
     modelName: $.params.name,
     modelPath: null,
+
+    deployIstio: false,
 
     deployHttpProxy: false,
     defaultHttpProxyImage: "gcr.io/kubeflow-images-staging/tf-model-server-http-proxy:v20180327-995786ec",
@@ -130,6 +134,12 @@
           cpu: "4",
         },
       },
+      // The is user and group should be defined in the Docker image.
+      // Per best practices we don't run as the root user.
+      securityContext: {
+        runAsUser: 1000,
+        fsGroup: 1000,
+      },
     },  // tfServingContainer
 
     tfServingContainer+: $.parts.tfServingContainerBase +
@@ -171,6 +181,10 @@
           cpu: "4",
         },
       },
+      securityContext: {
+        runAsUser: 1000,
+        fsGroup: 1000,
+      },
     },  // httpProxyContainer
 
 
@@ -186,20 +200,16 @@
         template: {
           metadata: {
             labels: $.params.labels,
+            annotations: {
+              "sidecar.istio.io/inject": if $.util.toBool($.params.deployIstio) then "true",
+            },
           },
           spec: {
             containers: [
               $.parts.tfServingContainer,
-              if $.params.deployHttpProxy then
+              if $.util.toBool($.params.deployHttpProxy) then
                 $.parts.httpProxyContainer,
             ],
-            // See:  https://github.com/kubeflow/kubeflow/tree/master/components/k8s-model-server#set-the-user-optional
-            // The is user and group should be defined in the Docker image.
-            // Per best practices we don't run as the root user.
-            securityContext: {
-              runAsUser: 1000,
-              fsGroup: 1000,
-            },
           },
         },
       },
@@ -237,12 +247,12 @@
       spec: {
         ports: [
           {
-            name: "tf-serving",
+            name: "grpc-tf-serving",
             port: 9000,
             targetPort: 9000,
           },
           {
-            name: "tf-serving-proxy",
+            name: "http-tf-serving-proxy",
             port: 8000,
             targetPort: 8000,
           },
@@ -277,7 +287,7 @@
           spec: +{
             containers: [
               $.s3parts.tfServingContainer,
-              if $.params.httpProxyImage != 0 then
+              if $.util.toBool($.params.deployHttpProxy) then
                 $.parts.httpProxyContainer,
             ],
           },
@@ -311,7 +321,7 @@
           spec+: {
             containers: [
               $.gcpParts.tfServingContainer,
-              if $.params.httpProxyImage != 0 then
+              if $.util.toBool($.params.deployHttpProxy) then
                 $.parts.httpProxyContainer,
             ],
 
