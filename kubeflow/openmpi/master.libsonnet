@@ -6,9 +6,17 @@
       name: "openmpi-master",
       labels: {
         app: params.name,
+        namespace: params.namespace,
+        role: "master",
       },
     },
     spec: {
+      hostname: "openmpi-master",
+      subdomain: params.name,
+      restartPolicy: "Always",
+      terminationGracePeriodSeconds: 30,
+      dnsPolicy: "ClusterFirst",
+      schedulerName: "default-scheduler",
       volumes: [
         {
           name: "kubeflow-openmpi-workdir",
@@ -18,7 +26,7 @@
           name: "kubeflow-openmpi-secrets",
           secret: {
             secretName: "openmpi-secrets",
-            defaultMode: 256,
+            defaultMode: 256,  // 0400
           },
         },
         {
@@ -29,19 +37,23 @@
               {
                 key: "gen_hostfile.sh",
                 path: "gen_hostfile.sh",
-                mode: 365,
+                mode: 365,  // 0555
               },
               {
                 key: "init.sh",
                 path: "init.sh",
-                mode: 365,
+                mode: 365,  // 0555
               },
               {
                 key: "sshd_config",
                 path: "sshd_config",
               },
+              {
+                key: "mca-params.conf",
+                path: "mca-params.conf",
+              },
             ],
-            defaultMode: 420
+            defaultMode: 420  // 0644
           },
         },
       ],
@@ -104,13 +116,6 @@
           imagePullPolicy: "IfNotPresent",
         },
       ],
-      restartPolicy: "OnFailure",
-      terminationGracePeriodSeconds: 30,
-      dnsPolicy: "ClusterFirst",
-      securityContext: {},
-      hostname: "openmpi-master",
-      subdomain: params.name,
-      schedulerName: "default-scheduler",
     },
   },
 }

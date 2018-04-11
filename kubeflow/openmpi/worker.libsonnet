@@ -6,14 +6,21 @@
       name: "openmpi-worker",
       labels: {
         app: params.name,
+        namespace: params.namespace,
         role: "worker",
       },
     },
     spec: {
       replicas: params.workers,
+      serviceName: params.name,
+      podManagementPolicy: "Parallel",
+      updateStrategy: {
+        type: "OnDelete",
+      },
       selector: {
         matchLabels: {
           app: params.name,
+          namespace: params.namespace,
           role: "worker",
         },
       },
@@ -21,10 +28,15 @@
         metadata: {
           labels: {
             app: params.name,
+            namespace: params.namespace,
             role: "worker",
           },
         },
         spec: {
+          restartPolicy: "Always",
+          terminationGracePeriodSeconds: 30,
+          dnsPolicy: "ClusterFirst",
+          schedulerName: "default-scheduler",
           volumes: [
             {
               name: "kubeflow-openmpi-workdir",
@@ -34,7 +46,7 @@
               name: "kubeflow-openmpi-secrets",
               secret: {
                 secretName: "openmpi-secrets",
-                defaultMode: 256,
+                defaultMode: 256,  // 0400
               },
             },
             {
@@ -45,14 +57,18 @@
                   {
                     key: "init.sh",
                     path: "init.sh",
-                    mode: 365,
+                    mode: 365,  // 0555
                   },
                   {
                     key: "sshd_config",
                     path: "sshd_config",
                   },
+                  {
+                    key: "mca-params.conf",
+                    path: "mca-params.conf",
+                  },
                 ],
-                defaultMode: 420,
+                defaultMode: 420,  // 0644
               },
             },
           ],
@@ -90,19 +106,8 @@
               imagePullPolicy: "IfNotPresent",
             },
           ],
-          restartPolicy: "Always",
-          terminationGracePeriodSeconds: 30,
-          dnsPolicy: "ClusterFirst",
-          securityContext: {},
-          schedulerName: "default-scheduler",
         },
       },
-      serviceName: params.name,
-      podManagementPolicy: "Parallel",
-      updateStrategy: {
-        type: "OnDelete",
-      },
-      revisionHistoryLimit: 10,
     },
   },
 }

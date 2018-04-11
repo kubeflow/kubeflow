@@ -5,7 +5,8 @@
     metadata: {
       name: "openmpi-secrets",
       labels: {
-        app: params.name
+        app: params.name,
+        namespace: params.namespace,
       },
     },
     data: {

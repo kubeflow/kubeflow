@@ -6,6 +6,7 @@
       name: params.name,
       labels: {
         app: params.name,
+        namespace: params.namespace,
       },
     },
     spec: {
