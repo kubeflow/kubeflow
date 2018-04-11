@@ -13,13 +13,7 @@ neural networks using [tf_cnn_benchmarks](https://github.com/tensorflow/benchmar
 which is optimized for performance.
 
 
-The jobs can be run on a cluster just by running kubectl
-
-e.g.
-
-```
-kubectl create -f tf_job_gpu.yaml
-```
+For instructions on running these jobs refere to the [user_guide](https://github.com/kubeflow/kubeflow/blob/master/user_guide.md#run-the-tfcnn-example)
 
 By default the examples run using synthetic data and save the trained model
 inside the container.
