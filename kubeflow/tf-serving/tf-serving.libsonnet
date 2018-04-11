@@ -134,6 +134,8 @@
           cpu: "4",
         },
       },
+      // The is user and group should be defined in the Docker image.
+      // Per best practices we don't run as the root user.
       securityContext: {
         runAsUser: 1000,
         fsGroup: 1000,
