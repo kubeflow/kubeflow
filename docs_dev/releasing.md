@@ -126,7 +126,7 @@ ks param set --env=${ENV} workflows prow_env  \
 ks apply ${ENV} -c workflows
 ```
 
-Create a PR to update [jupyterhub_spawner.py](https://github.com/kubeflow/kubeflow/blob/master/kubeflow/core/jupyterhub_spawner.py#L15) 
+Create a PR to update [kubeform_spawner.py](https://github.com/kubeflow/kubeflow/blob/master/kubeflow/core/kubeform_spawner.py#L15) 
 to point to the newly built Jupyter notebook images.
 
 ## Create a release branch (if necessary)

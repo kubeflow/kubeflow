@@ -42,7 +42,8 @@ Jupyter notebooks. JupyterHub delegates the launching of
 single-user notebooks to pluggable components called “spawners”. JupyterHub
 has a sub-project named kubespawner, maintained by the
 community, that enables users to provision single-user Jupyter notebooks backed by Kubernetes pods - the notebooks themselves are
-Kubernetes pods.
+Kubernetes pods. kubeform_spawner extends kubespawner to enable users to have
+a form to specify cpu, memory, gpu, and desired image.
 
 ## Quick Start
 
