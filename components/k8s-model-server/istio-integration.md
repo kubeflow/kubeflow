@@ -8,6 +8,49 @@ the progress.
 Following the istio [doc](https://istio.io/docs/setup/kubernetes/quick-start.html#installation-steps).
 After the installation, you should see services istio-pilot and istio-mixer in namespace istio-system.
 
+### Install and configure istio sidecar injector
+We are using automatic sidecar injection.
+This required Kubernetes 1.9 or above.
+
+Follow the [doc](https://istio.io/docs/setup/kubernetes/sidecar-injection.html#automatic-sidecar-injection)
+to install the secret and configmap.
+Install the CA secret:
+```
+./install/kubernetes/webhook-create-signed-cert.sh \
+    --service istio-sidecar-injector \
+    --namespace istio-system \
+    --secret sidecar-injector-certs
+```
+
+Before apply the configmap, we are going to make some change.
+By default, the sidecar injector is enabled and all pods in certain namespace will be injected.
+ - Change `install/kubernetes/istio-sidecar-injector-configmap-release.yaml` so that the policy 
+   (the first line of config) is disabled.
+ - For arguments of the initContainer istio-init: after "-u 1337", add "-i 10.4.0.0/14,10.7.240.0/20".
+   This is to allow egress traffic (for GCP). If you are on other cloud, check [here](https://istio.io/docs/tasks/traffic-management/egress.html#calling-external-services-directly)
+Apply the configmap:
+```
+kubectl apply -f install/kubernetes/istio-sidecar-injector-configmap-release.yaml
+```
+
+Install the injector:
+```
+cat install/kubernetes/istio-sidecar-injector.yaml | \
+     ./install/kubernetes/webhook-patch-ca-bundle.sh > \
+     install/kubernetes/istio-sidecar-injector-with-ca-bundle.yaml
+
+kubectl apply -f install/kubernetes/istio-sidecar-injector-with-ca-bundle.yaml
+```
+
+The injector will inject the istio sidecar to all the pods if both conditions are true
+1. the namespace has label: "istio-injection=enabled"
+2. the deployment has annotation "sidecar.istio.io/inject: true"
+
+Therefore, label the namespace of kubeflow deployment:
+```
+kubectl label namespace ${NAMESPACE} istio-injection=enabled
+```
+
 ## Kubeflow TF Serving with Istio
 
 This document is working in progress.
