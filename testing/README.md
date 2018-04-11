@@ -1,3 +1,23 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Test Infrastructure](#test-infrastructure)
+  - [Accessing Argo UI](#accessing-argo-ui)
+  - [Running the tests](#running-the-tests)
+    - [Run a presubmit](#run-a-presubmit)
+    - [Run a postsubmit](#run-a-postsubmit)
+  - [Setting up the Test Infrastructure](#setting-up-the-test-infrastructure)
+    - [Create a GCP service account](#create-a-gcp-service-account)
+    - [Create a GitHub Token](#create-a-github-token)
+    - [Create a PD for NFS](#create-a-pd-for-nfs)
+    - [Create K8s Resources for Testing](#create-k8s-resources-for-testing)
+      - [Troubleshooting](#troubleshooting)
+        - [Operator Logs](#operator-logs)
+  - [Managing namespaces](#managing-namespaces)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Test Infrastructure
 
 This directory contains the Kubeflow test Infrastructure.

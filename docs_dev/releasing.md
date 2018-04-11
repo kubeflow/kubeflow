@@ -1,3 +1,21 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Releasing Kubeflow](#releasing-kubeflow)
+  - [Authenticate to GCP](#authenticate-to-gcp)
+  - [Update TFJob](#update-tfjob)
+  - [Build TF Serving Images](#build-tf-serving-images)
+  - [Build the Jupyter Images](#build-the-jupyter-images)
+  - [Create a release branch (if necessary)](#create-a-release-branch-if-necessary)
+    - [Release branching policy](#release-branching-policy)
+  - [Updating the release branch and tagging a release](#updating-the-release-branch-and-tagging-a-release)
+    - [Tagging a release candidate](#tagging-a-release-candidate)
+    - [Release votes and releases](#release-votes-and-releases)
+  - [Updating the ksonnet configs for master](#updating-the-ksonnet-configs-for-master)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Releasing Kubeflow
 
 Some preliminary instructions for how to cut a release.

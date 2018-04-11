@@ -1,3 +1,21 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Jupyter and JupyterHub](#jupyter-and-jupyterhub)
+  - [Background](#background)
+    - [Jupyter](#jupyter)
+    - [JupyterHub](#jupyterhub)
+  - [Quick Start](#quick-start)
+  - [Configuration](#configuration)
+  - [Usage](#usage)
+  - [Customization](#customization)
+    - [Using your own hub image](#using-your-own-hub-image)
+    - [Notebook image](#notebook-image)
+    - [GitHub OAuth Setup](#github-oauth-setup)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Jupyter and JupyterHub
 
 ## Background

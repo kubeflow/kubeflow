@@ -1,3 +1,27 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Using Kubeflow](#using-kubeflow)
+  - [Requirements](#requirements)
+  - [Deploy Kubeflow](#deploy-kubeflow)
+    - [Usage Reporting](#usage-reporting)
+    - [Bringing up a Jupyter Notebook](#bringing-up-a-jupyter-notebook)
+    - [Serve a model using TensorFlow Serving](#serve-a-model-using-tensorflow-serving)
+    - [Serve a model using Seldon](#serve-a-model-using-seldon)
+    - [Submitting a TensorFlow training job](#submitting-a-tensorflow-training-job)
+      - [Run the TfCnn example](#run-the-tfcnn-example)
+  - [Advanced Customization](#advanced-customization)
+  - [Troubleshooting](#troubleshooting)
+    - [Minikube](#minikube)
+    - [RBAC clusters](#rbac-clusters)
+    - [OpenShift](#openshift)
+    - [Docker for Mac](#docker-for-mac)
+    - [403 API rate limit exceeded error](#403-api-rate-limit-exceeded-error)
+  - [Why Kubeflow Uses Ksonnet](#why-kubeflow-uses-ksonnet)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Using Kubeflow
 
 This guide will walk you through the basics of deploying and interacting with Kubeflow. Some understanding of Kubernetes, Tensorflow, and Ksonnet are useful in completing the contents of this guide.

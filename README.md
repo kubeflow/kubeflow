@@ -1,3 +1,22 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Kubeflow](#kubeflow)
+  - [Quick Links](#quick-links)
+  - [The Kubeflow Mission](#the-kubeflow-mission)
+  - [Who should consider using Kubeflow?](#who-should-consider-using-kubeflow)
+  - [Setup](#setup)
+  - [Quick Start](#quick-start)
+    - [Requirements](#requirements)
+    - [Steps](#steps)
+  - [Troubleshooting](#troubleshooting)
+  - [Resources](#resources)
+  - [Get Involved](#get-involved)
+    - [Who should consider contributing to Kubeflow?](#who-should-consider-contributing-to-kubeflow)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Kubeflow
 
 The Kubeflow project is dedicated to making **deployments** of machine learning (ML) workflows on [Kubernetes](https://kubernetes.io/) simple, portable and scalable. Our goal is **not** to recreate other services, but to provide a straightforward way to deploy best-of-breed open-source systems **for ML** to diverse infrastructures. Anywhere you are running Kubernetes, you should be able to run Kubeflow.
