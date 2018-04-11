@@ -565,6 +565,12 @@ oc adm policy add-scc-to-user anyuid -z jupyter-hub
 ```
 Once the anyuid policy has been set, you must delete the failing pods and allow them to be recreated in the project deployment.
 
+You will also need to adjust the privileges of the tf-job-operator service account for TFJobs to run. Do this in the project where you are running TFJobs:
+
+```commandline
+oc adm policy add-role-to-user cluster-admin -z tf-job-operator
+```
+
 ### Docker for Mac
 The [Docker for Mac](https://www.docker.com/docker-mac) Community Edition now ships with Kubernetes support (1.9.2) which can be enabled from their edge channel. If you decide to use this as your Kubernetes environment on Mac, you may encounter the following error when deploying Kubeflow:
 
