@@ -8,7 +8,7 @@
         namespace: params.namespace,
       },
       data: {
-        "kubeflow-version": importstr "version.txt",
+        "kubeflow-version": importstr "version-info.json",
       },
     },
   ],
