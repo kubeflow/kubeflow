@@ -4,9 +4,9 @@
     apiVersion: "apps/v1",
     metadata: {
       name: "openmpi-worker",
+      namespace: params.namespace,
       labels: {
         app: params.name,
-        namespace: params.namespace,
         role: "worker",
       },
     },
@@ -20,7 +20,6 @@
       selector: {
         matchLabels: {
           app: params.name,
-          namespace: params.namespace,
           role: "worker",
         },
       },
@@ -28,7 +27,6 @@
         metadata: {
           labels: {
             app: params.name,
-            namespace: params.namespace,
             role: "worker",
           },
         },

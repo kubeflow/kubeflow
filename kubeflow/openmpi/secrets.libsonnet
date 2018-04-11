@@ -4,9 +4,9 @@
     apiVersion: "v1",
     metadata: {
       name: "openmpi-secrets",
+      namespace: params.namespace,
       labels: {
         app: params.name,
-        namespace: params.namespace,
       },
     },
     data: {

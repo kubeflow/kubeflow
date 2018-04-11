@@ -4,9 +4,9 @@
     apiVersion: "v1",
     metadata: {
       name: "openmpi-master",
+      namespace: params.namespace,
       labels: {
         app: params.name,
-        namespace: params.namespace,
         role: "master",
       },
     },
