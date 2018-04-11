@@ -1,3 +1,28 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Kubernetes TensorFlow Model Server](#kubernetes-tensorflow-model-server)
+  - [Create Google Cloud Platform (GCP) Project](#create-google-cloud-platform-gcp-project)
+  - [Build a Model Server Docker Image](#build-a-model-server-docker-image)
+    - [Set the User (Optional)](#set-the-user-optional)
+    - [Build the Image](#build-the-image)
+  - [Create a Bucket](#create-a-bucket)
+  - [Upload a Model](#upload-a-model)
+  - [Create a Kubernetes Cluster](#create-a-kubernetes-cluster)
+  - [Configure kubectl](#configure-kubectl)
+    - [Deploy your model to Kubernetes](#deploy-your-model-to-kubernetes)
+      - [Use service account credential to serve a model on GCS](#use-service-account-credential-to-serve-a-model-on-gcs)
+    - [Use the served model](#use-the-served-model)
+      - [Setup](#setup)
+      - [Running the script directly](#running-the-script-directly)
+      - [Run the REST API script](#run-the-rest-api-script)
+      - [Run in Docker container with publicly exposed service](#run-in-docker-container-with-publicly-exposed-service)
+      - [Run container on your kubernetes cluster](#run-container-on-your-kubernetes-cluster)
+      - [Output](#output)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Kubernetes TensorFlow Model Server
 This repository contains docker files and manifests to deploy a generic
 [TensorFlow model server](https://www.tensorflow.org/serving/) on a [Kubernetes](https://kubernetes.io/) cluster.
