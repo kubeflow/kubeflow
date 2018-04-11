@@ -1,16 +1,17 @@
 # Istio integration for TF serving
 
-[Istio](https://istio.io/) provides a lot of functionalities that we want to have, such as metrics, auth and
+[Istio](https://istio.io/) provides a lot of functionality that we want to have, such as metrics, auth and
 quota, rollout and A/B testing. We have an [issue](https://github.com/kubeflow/kubeflow/issues/464) to track
 the progress.
 
 ## Install Istio
-Following the istio [doc](https://istio.io/docs/setup/kubernetes/quick-start.html#installation-steps).
+Follow the istio [doc](https://istio.io/docs/setup/kubernetes/quick-start.html#installation-steps)
+to install istio.
 After the installation, you should see services istio-pilot and istio-mixer in namespace istio-system.
 
 ### Install and configure istio sidecar injector
 We are using automatic sidecar injection.
-This required Kubernetes 1.9 or above.
+This requires Kubernetes 1.9 or above.
 
 Follow the [doc](https://istio.io/docs/setup/kubernetes/sidecar-injection.html#automatic-sidecar-injection)
 to install the secret and configmap.
@@ -23,11 +24,15 @@ Install the CA secret:
 ```
 
 Before apply the configmap, we are going to make some change.
-By default, the sidecar injector is enabled and all pods in certain namespace will be injected.
+
+By default, the sidecar injector is "enabled" and all pods in certain namespace will be injected.
+We want the opposite that the sidecar is only injected when we explicitly add some annotation.
  - Change `install/kubernetes/istio-sidecar-injector-configmap-release.yaml` so that the policy 
    (the first line of config) is "disabled".
+
+Istio by default denies all egress traffic. This is to allow egress traffic for GCP. If you are on other cloud, check [here](https://istio.io/docs/tasks/traffic-management/egress.html#calling-external-services-directly).
  - For arguments of the initContainer istio-init: after "-u 1337", add "-i 10.4.0.0/14,10.7.240.0/20".
-   This is to allow egress traffic (for GCP). If you are on other cloud, check [here](https://istio.io/docs/tasks/traffic-management/egress.html#calling-external-services-directly).
+   
 
 Apply the configmap:
 ```
