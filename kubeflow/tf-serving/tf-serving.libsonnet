@@ -12,7 +12,6 @@
     modelPath: null,
 
     deployIstio: false,
-    istioEgressIpRange: "10.4.0.0/14,10.7.240.0/20",
 
     deployHttpProxy: false,
     defaultHttpProxyImage: "gcr.io/kubeflow-images-staging/tf-model-server-http-proxy:v20180327-995786ec",
@@ -106,8 +105,6 @@
   }.all,
 
   parts:: {
-    istio:: import "kubeflow/tf-serving/istio.libsonnet",
-
     // We define the containers one level beneath parts because combined with jsonnet late binding
     // this makes it easy for users to override specific bits of the container.
     tfServingContainerBase:: {
@@ -201,6 +198,9 @@
         template: {
           metadata: {
             labels: $.params.labels,
+            annotations: {
+              "sidecar.istio.io/inject": if $.util.toBool($.params.deployIstio) then "true",
+            },
           },
           spec: {
             containers: [
@@ -321,8 +321,6 @@
               $.gcpParts.tfServingContainer,
               if $.util.toBool($.params.deployHttpProxy) then
                 $.parts.httpProxyContainer,
-              if $.util.toBool($.params.deployIstio) then
-                $.parts.istio.sidecarContainer,
             ],
 
             volumes: [
@@ -333,25 +331,7 @@
                     secretName: $.gcpParams.gcpCredentialSecretName,
                   },
                 },
-              if $.util.toBool($.params.deployIstio) then
-                {
-                  emptyDir: {medium: "Memory"},
-                  name: "istio-envoy",
-                },
-              if $.util.toBool($.params.deployIstio) then
-                {
-                  name: "istio-certs",
-                  secret: {
-                    optional: true,
-                    secretName: "istio.default",
-                  },
-                },
             ],
-            initContainers: if $.util.toBool($.params.deployIstio) then
-              [
-                $.parts.istio.initContainerIstio($.params.istioEgressIpRange),
-                $.parts.istio.initContainerCoredump,
-              ],
           },
         },
       },
