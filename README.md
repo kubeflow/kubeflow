@@ -1,10 +1,10 @@
 # Kubeflow
 
-The Kubeflow project is dedicated to making **deployment** of machine learning on [Kubernetes](https://kubernetes.io/) simple, portable and scalable. Our goal is **not** to recreate other services, but to provide a straightforward way to deploy best-of-breed open-source systems **for ML** to diverse infrastructures. Anywhere you are running Kubernetes, you should be able to run Kubeflow.
+The Kubeflow project is dedicated to making **deployments** of machine learning (ML) workflows on [Kubernetes](https://kubernetes.io/) simple, portable and scalable. Our goal is **not** to recreate other services, but to provide a straightforward way to deploy best-of-breed open-source systems **for ML** to diverse infrastructures. Anywhere you are running Kubernetes, you should be able to run Kubeflow.
 
 ****
 
-Contained in this repository are manifests for creating:
+This repository contains the manifests for creating:
 
 * A [**JupyterHub**](https://jupyterhub.readthedocs.io/en/latest/) to create
   and manage interactive [Jupyter notebooks](http://jupyter.org).
@@ -23,15 +23,14 @@ This document details the steps needed to run the Kubeflow project in any enviro
 
 ## The Kubeflow Mission
 
-Our goal is to make scaling machine learning models and deploying them to production as simple as possible, by letting Kubernetes do what it's great at:
+Our goal is to make scaling machine learning (ML) models and deploying them to production as simple as possible, by letting Kubernetes do what it's great at:
 - Easy, repeatable, portable deployments on a diverse infrastructure (laptop <-> ML rig <-> training cluster <-> production cluster)
 - Deploying and managing loosely-coupled microservices
 - Scaling based on demand
 
-Because ML practitioners use so many different types of tools, it's a key goal that you can customize the stack to whatever your requirements (within reason) and let the system take care of the "boring stuff." While we have started with a narrow set of technologies, we are working with many different projects to include additional tooling.
+Because ML practitioners use a diverse set of tools, one of the key goals is to customize the stack based on user requirements (within reason) and let the system take care of the "boring stuff". While we have started with a narrow set of technologies, we are working with many different projects to include additional tooling.
 
-Ultimately, we want to have a set of simple manifests that give you an easy to use ML stack _anywhere_ Kubernetes is already running and can self configure based on the cluster it deploys into.
-
+Ultimately, we want to have a set of simple manifests that give you an easy to use ML stack _anywhere_ Kubernetes is already running, and can self configure based on the cluster it deploys into.
 
 ## Who should consider using Kubeflow?
 
@@ -49,13 +48,7 @@ functionality and actively soliciting help from companies and individuals intere
 
 ## Setup
 
-This documentation assumes you have a Kubernetes cluster already available.
-
-If you need help setting up a Kubernetes cluster please refer to [Kubernetes Setup](https://kubernetes.io/docs/setup/).
-
-  * Minikube users please check these [instructions](user_guide.md#minikube)
-
-If you want to use GPUs, be sure to follow the Kubernetes [instructions for enabling GPUs](https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/).
+This documentation assumes you have a Kubernetes cluster already available. If you need help setting up a Kubernetes cluster please refer to [Kubernetes Setup](https://kubernetes.io/docs/setup/). Minikube users please check these [instructions](user_guide.md#minikube). If you want to use GPUs, be sure to follow the Kubernetes [instructions for enabling GPUs](https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/).
 
 ## Quick Start
 
@@ -109,14 +102,13 @@ ks param set kubeflow-core usageId $(uuidgen)
 ks apply default -c kubeflow-core
 ```
 
-The above command sets up JupyterHub and a custom resource for running TensorFlow training jobs. Furthermore, the ksonnet packages
-provide prototypes that can be used to configure TensorFlow jobs and deploy TensorFlow models.
-Used together, these make it easy for a user go from training to serving using Tensorflow with minimal
-effort in a portable fashion between different environments.
+The above commands are used to setup JupyterHub and a custom resource for running TensorFlow training jobs. Furthermore, the ksonnet packages provide prototypes that can be used to configure TensorFlow jobs and deploy TensorFlow models.
+Used together, these make it easy for a user to transition from training to model serving using Tensorflow with minimal
+effort, and in a portable fashion across different environments. 
 
-For more detailed instructions about how to use Kubeflow, please refer to the [user guide](user_guide.md).
+For more detailed instructions about how to use Kubeflow, including testing the Jupyter Notebook, please refer to the [user guide](user_guide.md).
 
-**Important** The commands above will enable collection of **anonymous** user data to help us improve Kubeflow; for more information including instructions for explictly
+**Important**: The commands above will enable collection of **anonymous** user data to help us improve Kubeflow; for more information including instructions for explictly
 disabling it please refer to the [Usage Reporting section](user_guide.md#usage-reporting) of the user guide.
 
 ## Troubleshooting
@@ -127,7 +119,6 @@ For detailed troubleshooting instructions, please refer to [this section of the 
 * The [kubeflow user guide](user_guide.md) provides in-depth instructions for using Kubeflow
 * Katacoda has produced a [self-paced scenario](https://www.katacoda.com/kubeflow) for learning and trying out Kubeflow
 
-
 ## Get Involved
 
 * [Slack Channel](https://join.slack.com/t/kubeflow/shared_invite/enQtMjgyMzMxNDgyMTQ5LWUwMTIxNmZlZTk2NGU0MmFiNDE4YWJiMzFiOGNkZGZjZmRlNTExNmUwMmQ2NzMwYzk5YzQxOWQyODBlZGY2OTg)
@@ -137,7 +128,6 @@ For detailed troubleshooting instructions, please refer to [this section of the 
 In the interest of fostering an open and welcoming environment, we as contributors and maintainers pledge to making participation in our project and our community a harassment-free experience for everyone, regardless of age, body size, disability, ethnicity, gender identity and expression, level of experience, education, socio-economic status, nationality, personal appearance, race, religion, or sexual identity and orientation.
 
 The Kubeflow community is guided by our [Code of Conduct](https://github.com/kubeflow/community/blob/master/CODE_OF_CONDUCT.md), which we encourage everybody to read before participating.
-
 
 ### Who should consider contributing to Kubeflow?
 
