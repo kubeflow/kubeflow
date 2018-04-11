@@ -170,9 +170,23 @@ tf-hub-lb          ClusterIP      10.11.245.94    <none>        80/TCP         1
 ...
 ```
 
-By default we are using ClusterIPs for the JupyterHub UI. This can be changed to a LoadBalancer by issuing `ks param set kubeflow-core jupyterHubServiceType LoadBalancer`, however this will leave your Jupyter Notebook open to the Internet.
+By default we are using ClusterIPs for the JupyterHub UI. This can be changed to one of the following:
 
-To connect to your [Jupyter Notebook](http://jupyter.org/index.html):
+- NodePort (for non-cloud) by issuing
+  ```
+  ks param set kubeflow-core jupyterHubServiceType NodePort
+  ks apply ${KF_ENV}
+  ```
+
+- LoadBalancer (for cloud) by issuing
+  ```
+  ks param set kubeflow-core jupyterHubServiceType LoadBalancer
+  ks apply ${KF_ENV}
+  ```
+
+however this will leave your Jupyter notebook open to the Internet.
+
+To connect to your [Jupyter Notebook](http://jupyter.org/index.html) locally:
 
 ```
 PODNAME=`kubectl get pods --namespace=${NAMESPACE} --selector="app=tf-hub" --output=template --template="{{with index .items 0}}{{.metadata.name}}{{end}}"`
