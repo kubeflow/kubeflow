@@ -8,7 +8,7 @@ local params = {
   jupyterNotebookPVCMount: "/home/jovyan/work",
 };
 
-local baseSpawner = importstr "../jupyterhub_spawner.py";
+local baseSpawner = importstr "../kubeform_spawner.py";
 
 // TODO(jlewi): We should be able to use std.startsWidth in later versions of jsonnet.
 //
