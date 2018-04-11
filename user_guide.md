@@ -322,6 +322,10 @@ inception   LoadBalancer   10.35.255.136   ww.xx.yy.zz   9000:30936/TCP   28m
 
 In this example, you should be able to use the inception_client to hit ww.xx.yy.zz:9000
 
+The model at gs://kubeflow-models/inception is public accessible. However, if your environment doesn't
+have google authentication setup, TF serving will have problem reading the model.
+See this [issue](https://github.com/kubeflow/kubeflow/issues/621).
+
 ### Serve a model using Seldon
 [Seldon-core](https://github.com/SeldonIO/seldon-core) provides deployment for any machine learning runtime that can be [packaged in a Docker container](https://github.com/SeldonIO/seldon-core/blob/master/docs/wrappers/readme.md).
 
