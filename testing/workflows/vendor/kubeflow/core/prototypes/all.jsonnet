@@ -15,7 +15,7 @@
 // because ksonnet doesn't support inheriting it from the environment yet.
 
 local k = import "k.libsonnet";
-local jupyter = import "kubeflow/core/jupyterhub.libsonnet";
+local jupyterhub = import "kubeflow/core/jupyterhub.libsonnet";
 local tfjob = import "kubeflow/core/tf-job.libsonnet";
 local nfs = import "kubeflow/core/nfs.libsonnet";
 
@@ -32,9 +32,9 @@ local diskNames = if diskParam != "null" && std.length(diskParam) > 0 then
   std.split(diskParam, ",")
 else [];
 
-local jupyterConfigMap = if std.length(diskNames) == 0 then
-  jupyter.parts(namespace).jupyterHubConfigMap
-else jupyter.parts(namespace).jupyterHubConfigMapWithVolumes(diskNames);
+local jupyterHubConfigMap = if std.length(diskNames) == 0 then
+  jupyterhub.parts(namespace).jupyterHubConfigMap
+else jupyterhub.parts(namespace).jupyterHubConfigMapWithVolumes(diskNames);
 
 local tfJobImage = import "param://tfJobImage";
 local tfDefaultImage = import "param://tfDefaultImage";
@@ -64,13 +64,13 @@ local nfsComponents =
 
 std.prune(k.core.v1.list.new([
   // jupyterHub components
-  jupyterConfigMap,
-  jupyter.parts(namespace).jupyterHubService,
-  jupyter.parts(namespace).jupyterHubLoadBalancer(jupyterHubServiceType),
-  jupyter.parts(namespace).jupyterHub(jupyterHubImage),
-  jupyter.parts(namespace).jupyterHubRole,
-  jupyter.parts(namespace).jupyterHubServiceAccount,
-  jupyter.parts(namespace).jupyterHubRoleBinding,
+  jupyterHubConfigMap,
+  jupyterhub.parts(namespace).jupyterHubService,
+  jupyterhub.parts(namespace).jupyterHubLoadBalancer(jupyterHubServiceType),
+  jupyterhub.parts(namespace).jupyterHub(jupyterHubImage),
+  jupyterhub.parts(namespace).jupyterHubRole,
+  jupyterhub.parts(namespace).jupyterHubServiceAccount,
+  jupyterhub.parts(namespace).jupyterHubRoleBinding,
 
   // TfJob controller
   tfjob.parts(namespace).tfJobDeploy(tfJobImage),
