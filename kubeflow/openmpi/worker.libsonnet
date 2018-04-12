@@ -37,13 +37,9 @@
           schedulerName: "default-scheduler",
           volumes: [
             {
-              name: "kubeflow-openmpi-workdir",
-              emptyDir: {},
-            },
-            {
               name: "kubeflow-openmpi-secrets",
               secret: {
-                secretName: "openmpi-secrets",
+                secretName: params.secret,
                 defaultMode: 256,  // 0400
               },
             },
@@ -58,12 +54,16 @@
                     mode: 365,  // 0555
                   },
                   {
+                    key: "mca-params.conf",
+                    path: "mca-params.conf",
+                  },
+                  {
                     key: "sshd_config",
                     path: "sshd_config",
                   },
                   {
-                    key: "mca-params.conf",
-                    path: "mca-params.conf",
+                    key: "ssh_config",
+                    path: "ssh_config",
                   },
                 ],
                 defaultMode: 420,  // 0644
@@ -84,12 +84,7 @@
                   protocol: "TCP",
                 },
               ],
-              resources: {},
               volumeMounts: [
-                {
-                  name: "kubeflow-openmpi-workdir",
-                  mountPath: "/kubeflow/openmpi/workdir",
-                },
                 {
                   name: "kubeflow-openmpi-assets",
                   mountPath: "/kubeflow/openmpi/assets",

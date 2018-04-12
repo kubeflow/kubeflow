@@ -4,8 +4,7 @@
 // @shortDescription Prototypes for running openmpi jobs.
 // @param name string Name to give to each of the components.
 // @param image string Docker image with openmpi.
-// @param pubkey string Base64-encoded public key used by openmpi.
-// @param prikey string Base64-encoded private key used by openmpi.
+// @param secret string Name of secret containing ssh keys.
 // @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
 // @optionalParam workers number 4 Number of workers.
 

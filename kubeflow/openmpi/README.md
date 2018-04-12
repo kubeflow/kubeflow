@@ -12,7 +12,7 @@ Next, build a docker image with Open MPI installed. See [horovod docker](https:/
 
 Then, run the following commands to generate Kubernetes YAML for openmpi, and then deploys it to your Kubernetes cluster.
 
-```shell
+```
 # Create a namespace for kubeflow deployment
 NAMESPACE=kubeflow
 kubectl create namespace ${NAMESPACE}
@@ -33,29 +33,29 @@ ks registry add kubeflow github.com/kubeflow/kubeflow/tree/${VERSION}/kubeflow
 ks pkg install kubeflow/openmpi@${VERSION}
 
 # Generate one-time ssh keys used by Open MPI
+SECRET=openmpi-secret
 mkdir -p .tmp
 yes | ssh-keygen -N "" -f .tmp/id_rsa
-PUBKEY=$(cat .tmp/id_rsa.pub | base64)
-PRIKEY=$(cat .tmp/id_rsa | base64)
-rm -rf .tmp
+kubectl delete secret ${SECRET} || true
+kubectl create secret generic ${SECRET} --from-file=id_rsa=.tmp/id_rsa --from-file=id_rsa.pub=.tmp/id_rsa.pub --from-file=authorized_keys=.tmp/id_rsa.pub
 
 # Generate openmpi components
 COMPONENT=openmpi
 IMAGE=YOUR_IMAGE_HERE
-ks generate openmpi ${COMPONENT} --image ${IMAGE} --pubkey=${PUBKEY} --prikey=${PRIKEY}
+ks generate openmpi ${COMPONENT} --image ${IMAGE} --secret ${SECRET}
 
 # Apply to your cluster. 
-$ ks apply default
+ks apply default
 
 # Inspect the pod status.
 kubectl get pod -n ${NAMESPACE}
 
 # Now you can run Open MPI command in your command.
-kubectl exec -n ${NAMESPACE} -it $openmpi-master -- mpiexec --allow-run-as-root --hostfile /kubeflow/openmpi/workdir/hostfile --display-map -n 4 sh -c 'echo $(hostname):hello world'
+kubectl exec -n ${NAMESPACE} -it openmpi-master-0 -- mpiexec --allow-run-as-root --hostfile /kubeflow/openmpi/assets/hostfile --display-map -n 4 sh -c 'echo $(hostname):hello world'
 
 # You may run the horovod examples if you're running the horovod docker image.
-kubectl exec -n ${NAMESPACE} -it openmpi-master -- mpiexec --allow-run-as-root --hostfile /kubeflow/openmpi/workdir/hostfile --display-map -n 4 sh -c 'python /examples/keras_mnist_advanced.py'
+kubectl exec -n ${NAMESPACE} -it openmpi-master-0 -- mpiexec --allow-run-as-root --hostfile /kubeflow/openmpi/assets/hostfile --display-map -n 4 sh -c 'python /examples/keras_mnist_advanced.py'
 
 # If you're running horovod in a cluster without GPUs, you may need to set LD_LIBRARY_PATH to use CUDA stub drivers.
-kubectl exec -n ${NAMESPACE} -it openmpi-master -- mpiexec --allow-run-as-root --hostfile /kubeflow/openmpi/workdir/hostfile --display-map -n 4 sh -c 'LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-9.0/targets/x86_64-linux/lib/stubs python /examples/keras_mnist_advanced.py'
+kubectl exec -n ${NAMESPACE} -it openmpi-master-0 -- mpiexec --allow-run-as-root --hostfile /kubeflow/openmpi/assets/hostfile --display-map -n 4 sh -c 'LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-9.0/targets/x86_64-linux/lib/stubs python /examples/keras_mnist_advanced.py'
 ```

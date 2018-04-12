@@ -2,7 +2,6 @@ local service = import "kubeflow/openmpi/service.libsonnet";
 local master = import "kubeflow/openmpi/master.libsonnet";
 local worker = import "kubeflow/openmpi/worker.libsonnet";
 local assets = import "kubeflow/openmpi/assets.libsonnet";
-local secrets = import "kubeflow/openmpi/secrets.libsonnet";
 
 {
   parts(params, env):: {
@@ -17,7 +16,6 @@ local secrets = import "kubeflow/openmpi/secrets.libsonnet";
       master.all(updatedParams),
       worker.all(updatedParams),
       assets.all(updatedParams),
-      secrets.all(updatedParams),
     ],
   },
 }
