@@ -131,6 +131,7 @@ RUN pip --no-cache-dir install \
     pydot \
     pydot-ng \
     graphviz \
+    s3contents==0.2.2 \
     && \
     python -m ipykernel.kernelspec
 
