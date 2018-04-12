@@ -113,19 +113,9 @@
         "alpha.kubernetes.io/nvidia-gpu": {
           volumes: [
             {
-              name: "lib",
-              mountPath: "/usr/local/nvidia/lib64",
-              hostPath: "/usr/lib/nvidia-384",
-            },
-            {
-              name: "bin",
-              mountPath: "/usr/local/nvidia/bin",
-              hostPath: "/usr/lib/nvidia-384/bin",
-            },
-            {
-              name: "libcuda",
-              mountPath: "/usr/lib/x86_64-linux-gnu/libcuda.so.1",
-              hostPath: "/usr/lib/x86_64-linux-gnu/libcuda.so.1",
+              name: "nvidia",
+              mountPath: "/usr/local/nvidia",
+              hostPath: "/usr/local/nvidia",
             },
           ],
         },
