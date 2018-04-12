@@ -1,0 +1,4 @@
+StrictHostKeyChecking no
+IdentityFile /root/.ssh/id_rsa
+Port 2022
+UserKnownHostsFile=/dev/null
