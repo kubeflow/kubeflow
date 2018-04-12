@@ -1,17 +1,21 @@
 {
-  all(params):: {
+  master(params):: $.statefulSet(params, "master", 1),
+
+  worker(params):: $.statefulSet(params, "worker", params.workers),
+
+  statefulSet(params, role, replicas):: {
     kind: "StatefulSet",
     apiVersion: "apps/v1",
     metadata: {
-      name: "openmpi-worker",
+      name: "openmpi-%s" % role,
       namespace: params.namespace,
       labels: {
         app: params.name,
-        role: "worker",
+        role: role,
       },
     },
     spec: {
-      replicas: params.workers,
+      replicas: replicas,
       serviceName: params.name,
       podManagementPolicy: "Parallel",
       updateStrategy: {
@@ -20,14 +24,14 @@
       selector: {
         matchLabels: {
           app: params.name,
-          role: "worker",
+          role: role,
         },
       },
       template: {
         metadata: {
           labels: {
             app: params.name,
-            role: "worker",
+            role: role,
           },
         },
         spec: {
@@ -65,14 +69,18 @@
                     key: "ssh_config",
                     path: "ssh_config",
                   },
+                  {
+                    key: "hostfile",
+                    path: "hostfile",
+                  },
                 ],
-                defaultMode: 420,  // 0644
+                defaultMode: 420  // 0644
               },
             },
           ],
           containers: [
             {
-              name: "openmpi-worker",
+              name: "openmpi-%s" % role,
               image: params.image,
               command: [
                 "sh",
