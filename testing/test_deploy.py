@@ -123,7 +123,7 @@ def setup_kubeflow_ks_app(args, api_client):
     ["ks", "registry", "add", "kubeflow", kubeflow_registry], cwd=app_dir)
 
   # Install required packages
-  packages = ["kubeflow/core", "kubeflow/tf-serving", "kubeflow/tf-job"]
+  packages = ["kubeflow/core", "kubeflow/tf-serving", "kubeflow/tf-job", "kubeflow/pytorch-job"]
 
   for p in packages:
     util.run(["ks", "pkg", "install", p], cwd=app_dir)
@@ -275,6 +275,23 @@ def deploy_model(args):
     api_client, namespace, args.deploy_name + "-v1", timeout_minutes=10)
   logging.info("Verified TF serving started.")
 
+def deploy_pytorchjob(args):
+  """Deploy Pytorchjob using the pytorch-job component"""
+  api_client = create_k8s_client(args)
+  app_dir = setup_kubeflow_ks_app(args, api_client)
+
+  component = "example-job"
+  logging.info("Deploying tf-serving.")
+  generate_command = ["ks", "generate", "pytorch-job", component]
+
+  util.run(generate_command, cwd=app_dir)
+
+  params = {}
+  for pair in args.params.split(","):
+    k, v = pair.split("=", 1)
+    params[k] = v
+
+  ks_deploy(app_dir, component, params, env=None, account=None)
 
 def teardown(args):
   # Delete the namespace
@@ -642,6 +659,17 @@ def main():  # pylint: disable=too-many-locals,too-many-statements
   parser_tf_serving.set_defaults(func=deploy_model)
 
   parser_tf_serving.add_argument(
+    "--params",
+    default="",
+    type=str,
+    help=("Comma separated list of parameters to set on the model."))
+
+  parser_pytorch_job = subparsers.add_parser(
+    "deploy_pytorchjob", help="Deploy a pytorch-job")
+
+  parser_tf_serving.set_defaults(func=deploy_pytorchjob)
+
+  parser_pytorch_job.add_argument(
     "--params",
     default="",
     type=str,

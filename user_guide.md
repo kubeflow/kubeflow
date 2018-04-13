@@ -428,6 +428,50 @@ The prototype provides a bunch of parameters to control how the job runs (e.g. u
 ks prototype describe tf-cnn
 ```
 
+### Submitting a PyTorch training job
+
+**Note:** Before submitting a training job, you should have [deployed kubeflow to your cluster](#deploy-kubeflow). Doing so ensures that
+the [`PyTorchJob` custom resource](https://github.com/kubeflow/pytorch-operator) is available when you submit the training job.
+
+We treat each PyTorch job as a [component](https://ksonnet.io/docs/tutorial#2-generate-and-deploy-an-app-component) in your APP.
+
+Create a component for your job.
+
+```
+JOB_NAME=myjob
+ks generate pytorch-job ${JOB_NAME} --name=${JOB_NAME}
+```
+
+To configure your job you need to set a bunch of parameters. To see a list of parameters run
+
+```
+ks prototype describe pytorch-job
+```
+
+Parameters can be set using `ks param` e.g. to set the Docker image used
+
+```
+IMAGE=<your pytorch image>
+ks param set ${JOB_NAME} image ${IMAGE}
+```
+
+You can also edit the `params.libsonnet` files directly to set parameters.
+
+**Warning** Currently setting args via the command line doesn't work because of escaping issues (see [ksonnet/ksonnet/issues/235](https://github.com/ksonnet/ksonnet/issues/235)). So to set the parameters you will need
+to directly edit the `params.libsonnet` file directly.
+
+To run your job
+
+```
+ks apply ${KF_ENV} -c ${JOB_NAME}
+```
+
+To delete your job
+
+```
+ks delete ${KF_ENV} -c ${JOB_NAME}
+```
+
 ## Advanced Customization
 
 * Often times data scientists require a POSIX compliant filesystem
