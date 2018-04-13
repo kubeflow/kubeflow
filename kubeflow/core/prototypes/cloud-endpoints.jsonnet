@@ -7,9 +7,6 @@
 // @optionalParam secretKey string cloudep-sa.json Name of the key in the secret containing the JSON service account key.
 // @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
 
-// TODO(https://github.com/ksonnet/ksonnet/issues/222): We have to add namespace as an explicit parameter
-// because ksonnet doesn't support inheriting it from the environment yet.
-
 local k = import "k.libsonnet";
 local cloudEndpoints = import "kubeflow/core/cloud-endpoints.libsonnet";
 
