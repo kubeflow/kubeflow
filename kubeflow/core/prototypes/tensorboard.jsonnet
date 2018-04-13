@@ -22,7 +22,7 @@ local tb = tensorboard {
 };
 
 
-std.assertEqual(true, std.len(logDir) > 0) &&
+std.assertEqual(true, std.length(logDir) > 0) &&
 std.prune(k.core.v1.list.new(tb.components))
 
 
