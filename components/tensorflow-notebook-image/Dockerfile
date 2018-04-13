@@ -131,6 +131,7 @@ RUN pip --no-cache-dir install \
     pydot \
     pydot-ng \
     graphviz \
+    tensor2tensor \
     && \
     python -m ipykernel.kernelspec
 
