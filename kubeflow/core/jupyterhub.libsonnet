@@ -19,7 +19,7 @@
 
     kubeSpawner(authenticator, volumeClaims=[]): {
       // TODO(jlewi): We should make whether we use PVC configurable.
-      local baseKubeConfigSpawner = importstr "jupyterhub_spawner.py",
+      local baseKubeConfigSpawner = importstr "kubeform_spawner.py",
 
       authenticatorOptions:: {
 
