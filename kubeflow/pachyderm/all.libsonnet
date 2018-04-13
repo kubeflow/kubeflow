@@ -347,9 +347,11 @@
       },
     },
 
-    // TODO(jlewi): The local version(minikube) of Pachyderm runs etcd as a deployment.
-    // Why not always use a statefulset? Is because we need a storage class which may not be defined?
-    // This deployment is using a hostpath for the etcd data.
+    // TODO(jlewi): The local version(minikube) of Pachyderm runs etcd as a deployment
+    // backed by a host volume. Per the comment https://github.com/kubeflow/kubeflow/issues/611#issuecomment-380633796
+    // Pachyderm originally didn't use statefulset in local mode because they weren't supported everywhere.
+    // We could probably switch to always using statefulsets.
+    // 
     etcd:: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
