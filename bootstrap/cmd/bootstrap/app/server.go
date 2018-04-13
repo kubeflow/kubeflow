@@ -178,7 +178,6 @@ func hasDefaultStorage(sClasses *v1.StorageClassList) bool {
 }
 
 func setupNamespace(namespaces type_v1.NamespaceInterface, name_space string) error {
-	fmt.Printf("ns address: %v \n", &namespaces)
 	namespace, err := namespaces.Get(name_space, meta_v1.GetOptions{})
 	if err == nil {
 		log.Infof("Using existing namespace: %v", namespace.Name)
