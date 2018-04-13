@@ -419,21 +419,36 @@ def deploy_minikube(args):
     ],
   }
   request = instances.insert(project=args.project, zone=args.zone, body=body)
+  response = None
   try:
-    request.execute()
+    response = request.execute()
+    print("done")
   except errors.HttpError as e:
     if not e.content:
       raise
     content = json.loads(e.content)
-    # TODO(jlewi): We can get this error if the disk exists but not the VM.
-    # If the disk exists but not the vm and we keep going we will have a
-    # problem. However, that should be extremely unlikely now
-    # that we set auto-delete on the disk to true.
     if content.get("error", {}).get("code") == requests.codes.CONFLICT:
-      logging.warning("VM %s already exists in zone %s in project %s ",
+      # We don't want to keep going so we reraise the error after logging
+      # a helpful error message.
+      logging.error("Either the VM or the disk %s already exists in zone "
+                    "%s in project %s ",
                       args.vm_name, args.zone, args.project)
+      raise
     else:
       raise
+
+  op_id = response.get("name")
+  final_op = vm_util.wait_for_operation(gce, args.project, args.zone, op_id)
+  
+  logging.info("Final result for insert operation: %s", final_op)
+  if final_op.get("status") != "DONE":
+    raise ValueError("Insert operation has status %s", final_op.get("status"))
+  
+  if final_op.get("error"):
+    message = "Insert operation resulted in error %s".format(
+      final_op.get("error"))
+    logging.error(message)
+    raise ValueError(message)
 
   # Locate the install minikube script.
   install_script = os.path.join(
@@ -482,9 +497,57 @@ def teardown_minikube(args):
   request = instances.delete(
     project=args.project, zone=args.zone, instance=args.vm_name)
 
-  request.execute()
+  response = request.execute()
+  
+  op_id = response.get("name")
+  final_op = vm_util.wait_for_operation(gce, args.project, args.zone, op_id)
+  
+  logging.info("Final result for delete operation: %s", final_op)
+  if final_op.get("status") != "DONE":
+    raise ValueError("Delete operation has status %s", final_op.get("status"))
+  
+  if final_op.get("error"):
+    message = "Delete operation resulted in error %s".format(
+      final_op.get("error"))
+    logging.error(message)
+    raise ValueError(message)
+  
+  # Ensure the disk is deleted. The disk should be auto-deleted with
+  # the VM but just in case we issue a delete request anyway.
+  disks = gce.disks()
+  request = disks.delete(
+    project=args.project, zone=args.zone, disk=args.vm_name)
 
+  response = None
+  try:
+    response = request.execute()
+  except errors.HttpError as e:
+    if not e.content:
+      raise
+    content = json.loads(e.content)    
+    if content.get("error", {}).get("code") == requests.codes.NOT_FOUND:
+      logging.info("Disk %s in zone %s in project %s already deleted.",
+                      args.vm_name, args.zone, args.project)
+    else:
+      raise
 
+  
+  if response:
+    logging.info("Waiting for disk to be deleted.")
+    op_id = response.get("name")
+    final_op = vm_util.wait_for_operation(gce, args.project, args.zone, op_id)
+    
+    logging.info("Final result for disk delete operation: %s", final_op)
+    if final_op.get("status") != "DONE":
+      raise ValueError("Disk delete operation has status %s", 
+                       final_op.get("status"))
+    
+    if final_op.get("error"):
+      message = "Delete disk operation resulted in error %s".format(
+        final_op.get("error"))
+      logging.error(message)
+      raise ValueError(message)
+    
 def get_gcp_identity():
   identity = util.run_and_output(["gcloud", "config", "get-value", "account"])
   logging.info("Current GCP account: %s", identity)

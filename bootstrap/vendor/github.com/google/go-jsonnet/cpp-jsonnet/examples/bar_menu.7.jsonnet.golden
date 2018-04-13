@@ -1,0 +1,22 @@
+{
+   "cocktails" : {
+      "Bee's Knees" : {
+         "ingredients" : [
+            { "kind" : "Honey Syrup", "qty" : 1.3333333333333333 },
+            { "kind" : "Lemon Juice", "qty" : 1.3333333333333333 },
+            { "kind" : "Farmers Gin", "qty" : 1.3333333333333333 }
+         ],
+         "garnish" : "Lemon Twist",
+         "served" : "Straight Up"
+      },
+      "Negroni" : {
+         "ingredients" : [
+            { "kind" : "Farmers Gin", "qty" : 1 },
+            { "kind" : "Sweet Red Vermouth", "qty" : 1 },
+            { "kind" : "Campari", "qty" : 1 }
+         ],
+         "garnish" : "Orange Peel",
+         "served" : "On The Rocks"
+      }
+   }
+}

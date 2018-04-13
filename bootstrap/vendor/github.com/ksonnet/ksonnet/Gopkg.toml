@@ -1,0 +1,117 @@
+
+# Gopkg.toml example
+#
+# Refer to https://github.com/golang/dep/blob/master/docs/Gopkg.toml.md
+# for detailed Gopkg.toml documentation.
+#
+# required = ["github.com/user/thing/cmd/thing"]
+# ignored = ["github.com/user/project/pkgX", "bitbucket.org/user/project/pkgA/pkgY"]
+#
+# [[constraint]]
+#   name = "github.com/user/project"
+#   version = "1.0.0"
+#
+# [[constraint]]
+#   name = "github.com/user/project2"
+#   branch = "dev"
+#   source = "github.com/myfork/project2"
+#
+# [[override]]
+#  name = "github.com/x/y"
+#  version = "2.4.0"
+
+[prune]
+  unused-packages = true
+  go-tests = true
+
+[[constraint]]
+  name = "github.com/PuerkitoBio/purell"
+  revision = "b938d81255b5473c57635324295cb0fe398c7a58"
+
+[[constraint]]
+  name = "github.com/emicklei/go-restful-swagger12"
+  revision = "7524189396c68dc4b04d53852f9edc00f816b123"
+
+[[constraint]]
+  name = "github.com/fatih/color"
+  revision = "5df930a27be2502f99b292b7cc09ebad4d0891f4"
+
+[[constraint]]
+  name = "github.com/ghodss/yaml"
+  revision = "0ca9ea5df5451ffdf184b4428c902747c2c11cd7"
+
+[[constraint]]
+  name = "github.com/google/go-github"
+  revision = "996760c56486beb81e91bb7bdb816f8c6f29284e"
+
+[[constraint]]
+  name = "github.com/google/go-jsonnet"
+  revision = "dfddf2b4e3aec377b0dcdf247ff92e7d078b8179"
+
+[[constraint]]
+  name = "github.com/googleapis/gnostic"
+  revision = "0c5108395e2debce0d731cf0287ddf7242066aba"
+
+[[constraint]]
+  name = "github.com/ksonnet/ksonnet-lib"
+  revision = "5e07f358ac2de69591818afa41b7623c8cc97ac0"
+
+[[constraint]]
+  name = "github.com/mattn/go-isatty"
+  revision = "fc9e8d8ef48496124e79ae0df75490096eccf6fe"
+
+[[constraint]]
+  name = "github.com/onsi/ginkgo"
+  revision = "8382b23d18dbaaff8e5f7e83784c53ebb8ec2f47"
+
+[[constraint]]
+  name = "github.com/onsi/gomega"
+  revision = "c893efa28eb45626cdaa76c9f653b62488858837"
+
+[[constraint]]
+  name = "github.com/sirupsen/logrus"
+  revision = "778f2e774c725116edbc3d039dc0dfc1cc62aae8"
+
+[[constraint]]
+  name = "github.com/spf13/afero"
+  revision = "9be650865eab0c12963d8753212f4f9c66cdcf12"
+
+[[constraint]]
+  name = "github.com/spf13/cobra"
+  revision = "a1e4933ab784095895e33dbe9f001ba10cfe2060"
+
+[[constraint]]
+  name = "github.com/spf13/viper"
+  revision = "v1.0.2"
+
+[[constraint]]
+  name = "github.com/spf13/pflag"
+  revision = "e57e3eeb33f795204c1ca35f56c44f83227c6e66"
+
+[[constraint]]
+  name = "github.com/stretchr/testify"
+  revision = "f6abca593680b2315d2075e0f5e2a9751e3f431a"
+
+[[constraint]]
+  name = "github.com/yudai/gojsondiff"
+  revision = "9209d1532c51cabe0439993586a71c207b09a0ac"
+
+[[constraint]]
+  name = "golang.org/x/oauth2"
+  revision = "cce311a261e6fcf29de72ca96827bdb0b7d9c9e6"
+
+[[constraint]]
+  name = "gopkg.in/yaml.v2"
+  revision = "eb3733d160e74a9c7e442f435eb3bea458e1d19f"
+
+[[constraint]]
+  name = "k8s.io/api"
+  branch = "release-1.8"
+
+[[constraint]]
+  name = "k8s.io/apimachinery"
+  branch = "release-1.8"
+
+[[constraint]]
+  name = "k8s.io/client-go"
+  version = "5.0.0"

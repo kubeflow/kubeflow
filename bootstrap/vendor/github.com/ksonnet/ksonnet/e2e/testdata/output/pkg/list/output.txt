@@ -1,0 +1,13 @@
+REGISTRY  NAME      INSTALLED
+========  ====      =========
+incubator apache
+incubator efk
+incubator mariadb
+incubator memcached
+incubator mongodb
+incubator mysql
+incubator nginx
+incubator node
+incubator postgres
+incubator redis
+incubator tomcat

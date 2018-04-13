@@ -1,0 +1,1 @@
+STATIC ERROR: error.parse.import_text_block.jsonnet:(17:8)-(20:4): Cannot use text blocks in import statements.

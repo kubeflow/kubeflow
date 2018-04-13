@@ -1,0 +1,10 @@
+RUNTIME ERROR: max stack frames exceeded.
+	<std>:1165:25-26	thunk from <thunk <ta> from <function <anonymous>>>
+	<builtin>	builtin function <type>
+	<std>:1167:29-31	thunk from <function <anonymous>>
+	<builtin>	builtin function <primitiveEquals>
+	<std>:1167:8-36	function <anonymous>
+		
+	<cmdline>:1:69-75	$
+	During evaluation	
+

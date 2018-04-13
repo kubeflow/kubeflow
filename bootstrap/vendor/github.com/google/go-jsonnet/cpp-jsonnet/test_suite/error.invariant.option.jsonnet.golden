@@ -1,0 +1,3 @@
+RUNTIME ERROR: Option "d" not in ["a", "b", "c"].
+	error.invariant.option.jsonnet:20:10-59	thunk <object_assert>
+	During manifestation	

@@ -1,0 +1,100 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: node-app
+  name: node-app
+  namespace: default
+spec:
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        pod.beta.kubernetes.io/init-containers: '[{"command": "[ /bin/sh, -c , git
+          clone https://github.com/jbianquetti-nami/simple-node-app.git /app && git
+          checkout 26679f6]", "image": "bitnami/node:8.4.0-r1", "imagePullPolicy":
+          "IfNotPresent", "name": "git-clone-app", "volumeMounts": [{"mountPath":
+          "/app", "name": "app"}]}, {"command": "[ \"npm\", \"install\" ]", "image":
+          "bitnami/node:8.4.0-r1", "imagePullPolicy": "IfNotPresent", "name": "npm-install",
+          "volumeMounts": [{"mountPath": "/app", "name": "app"}]}]'
+      labels:
+        app: node-app
+      test: it worked
+    spec:
+      containers:
+      - command:
+        - npm
+        - start
+        env:
+        - name: GIT_REPO
+          value: https://github.com/jbianquetti-nami/simple-node-app.git
+        image: bitnami/node:8.4.0-r1
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 6
+          httpGet:
+            path: /
+            port: http
+          initialDelaySeconds: 180
+          timeoutSeconds: 5
+        name: node-app
+        ports:
+        - containerPort: 3000
+          name: http
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 3
+        resources:
+          requests:
+            cpu: 300m
+            memory: 512Mi
+        securityContext:
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /app
+          name: app
+        - mountPath: /app/data
+          name: data
+      volumes:
+      - emptyDir: {}
+        name: app
+      - name: data
+        persistentVolumeClaim:
+          claimName: node-app
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    volume.alpha.kubernetes.io/storage-class: default
+  labels:
+    app: node-app
+  name: node-app
+  namespace: default
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: node-app
+  name: node-app
+  namespace: default
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+  selector:
+    app: node-app
+  type: LoadBalancer

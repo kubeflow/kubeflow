@@ -1,0 +1,115 @@
+#!/bin/bash
+
+# Copyright 2015 Google Inc. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+# Global counters
+EXECUTED=0
+FAILED=0
+
+
+JSONNET_BIN="${JSONNET_BIN:-../jsonnet}"
+
+# Used to account for known differences in the two implementations.
+IMPLEMENTATION="${IMPLEMENTATION:-cpp}"
+
+separator() {
+    echo -e "\n-----------------------------\n"
+}
+
+check_file() {
+    TEST="$1"
+    RESULT_FILENAME="$2"
+    GOLDEN_FILENAME="$3"
+    if [ "$(< $RESULT_FILENAME)" != "$(< $GOLDEN_FILENAME)" ] ; then
+        FAILED=$((FAILED + 1))
+        if [ -z "$SUMMARY_ONLY" ]; then
+            printf -e "\033[31;1mFAIL\033[0m \033[1m(stdout mismatch)\033[0m: \033[36m$TEST\033[0m\n"
+            echo "Result output:"
+            cat "$RESULT_FILENAME"
+            echo "Expected output:"
+            cat "$GOLDEN_FILENAME"
+            echo "Diff:"
+            # Using git diff for pretty format and pretty colors
+            git --no-pager diff --color --no-index "$GOLDEN_FILENAME" "$RESULT_FILENAME"
+            # The output is often quite long, let's repeat the filename once more
+            # to avoid wasting time on looking for it
+            printf -e "\nTEST ABOVE: \033[36m$TEST\033[0m\n"
+            separator
+        fi
+        return 1
+    fi
+}
+
+do_test() {
+    TEST="$1"
+    EXPECTED_EXIT_CODE="$2"
+    shift 2
+
+    STDIN="${TEST}.stdin"
+    GOLDEN_STDOUT="${TEST}.golden.stdout"
+    GOLDEN_STDERR="${TEST}.golden.stderr"
+
+    if [ -r "${GOLDEN_STDOUT}.${IMPLEMENTATION}" ] ; then
+        GOLDEN_STDOUT="${GOLDEN_STDOUT}.${IMPLEMENTATION}"
+    fi
+    if [ -r "${GOLDEN_STDERR}.${IMPLEMENTATION}" ] ; then
+        GOLDEN_STDERR="${GOLDEN_STDERR}.${IMPLEMENTATION}"
+    fi
+
+    OUT_DIR="out/${TEST}"
+    STDOUT="${OUT_DIR}/stdout"
+    STDERR="${OUT_DIR}/stderr"
+
+    if [ ! -r "${STDIN}" ] ; then
+        STDIN="/dev/null"
+    fi
+
+    if [ ! -r "${GOLDEN_STDOUT}" ] ; then
+        GOLDEN_STDOUT="/dev/null"
+    fi
+
+    if [ ! -r "${GOLDEN_STDERR}" ] ; then
+        GOLDEN_STDERR="/dev/null"
+    fi
+
+
+    mkdir -p "${OUT_DIR}"
+    "${JSONNET_BIN}" "$@" >"${STDOUT}" 2>"${OUT_DIR}/stderr" <"${STDIN}"
+    TEST_EXIT_CODE="$?"
+    EXECUTED=$((EXECUTED + 1))
+
+    if [ "$TEST_EXIT_CODE" -ne "$EXPECTED_EXIT_CODE" ] ; then
+        FAILED=$((FAILED + 1))
+        if [ -z "$SUMMARY_ONLY" ]; then
+            printf "\033[31;1mFAIL\033[0m \033[1m(exit code)\033[0m: \033[36m$TEST\033[0m\n"
+            echo "This run's stdout:"
+            cat "$STDOUT"
+            echo "This run's stderr:"
+            cat "$STDERR"
+            echo "Actual exit code $TEST_EXIT_CODE, expected $EXPECTED_EXIT_CODE"
+            separator
+        fi
+        return 1
+    fi
+
+    if ! check_file "${TEST}" "${STDOUT}" "${GOLDEN_STDOUT}"; then
+        return 1
+    fi
+
+    if ! check_file "${TEST}" "${STDERR}" "${GOLDEN_STDERR}"; then
+        return 1
+    fi
+}

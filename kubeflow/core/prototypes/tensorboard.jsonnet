@@ -15,7 +15,7 @@ local updatedParams = env + params;
 
 local logDir = updatedParams.logDir;
 
-local tb = tensorboard.parts.tbContainer {
+local tb = tensorboard {
     params+: updatedParams {
         name: name,
     },

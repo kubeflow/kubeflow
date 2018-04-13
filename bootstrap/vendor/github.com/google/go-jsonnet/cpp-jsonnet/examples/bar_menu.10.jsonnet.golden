@@ -1,0 +1,21 @@
+{
+    cocktails: {
+        "Whiskey Sour": {
+            ingredients: [
+                { kind: "Scotch", qty: 1.5 },
+                { kind: "Lemon Juice", qty: 0.75 }, 
+            ],
+            garnish: "Lemon Peel",
+            served: "On The Rocks", 
+        },
+        "Whiskey Sour With Egg": {
+            ingredients: [
+                { kind: "Scotch", qty: 1.5 },
+                { kind: "Lemon Juice", qty: 0.75 },
+                { kind: "Egg White", qty: 0.5 },
+            ],
+            garnish: "Lemon Peel",
+            served: "On The Rocks",
+        }
+    }
+}

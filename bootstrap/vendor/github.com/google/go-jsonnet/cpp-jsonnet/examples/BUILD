@@ -1,0 +1,41 @@
+package(default_visibility = ["//visibility:public"])
+
+load("//tools/build_defs/jsonnet_dev:jsonnet_docs.bzl", "jsonnet_docs_srcs_zip")
+
+jsonnet_docs_srcs_zip(
+    name = "jsonnet_docs_srcs",
+    srcs = [
+        "bar_menu.1.jsonnet",
+        "bar_menu.1.jsonnet.golden",
+        "bar_menu.2.jsonnet",
+        "bar_menu.2.jsonnet.golden",
+        "bar_menu.3.jsonnet",
+        "bar_menu.3.jsonnet.golden",
+        "bar_menu.5.jsonnet",
+        "bar_menu.5.jsonnet.golden",
+        "bar_menu.6.jsonnet",
+        "bar_menu.6.manhattan_garnish.txt",
+        "bar_menu.6.jsonnet.golden",
+        "bar_menu_utils.libsonnet",
+        "bar_menu.7.jsonnet",
+        "bar_menu.7.jsonnet.golden",
+        "bar_menu.8.jsonnet",
+        "bar_menu.8.jsonnet.golden",
+        "bar_menu.9.jsonnet",
+        "bar_menu.9.jsonnet.golden",
+        "bar_menu.10.jsonnet",
+        "bar_menu.10.jsonnet.golden",
+        "bar_menu.11.jsonnet",
+        "bar_menu.11.jsonnet.golden",
+        "build_example.jsonnet",
+        "example_operators.jsonnet",
+        "example_operators.jsonnet.golden",
+        "hidden_fields.jsonnet",
+        "hidden_fields.jsonnet.golden",
+        "landingpage.jsonnet",
+        "landingpage.jsonnet.golden",
+        "martinis.libsonnet",
+        "no_ingredients.jsonnet",
+        "no_ingredients.jsonnet.error",
+    ],
+)

@@ -1,0 +1,13 @@
+RUNTIME ERROR: x
+-------------------------------------------------
+	testdata/std.toString5:1:14-23	thunk from <$>
+
+std.toString(error "x")
+
+-------------------------------------------------
+	<builtin>	builtin function <toString>
+
+-------------------------------------------------
+	During evaluation	
+
+

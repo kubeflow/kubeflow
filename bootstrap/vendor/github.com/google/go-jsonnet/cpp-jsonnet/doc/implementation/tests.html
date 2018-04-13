@@ -1,0 +1,36 @@
+---
+layout: default
+---
+
+<h1 id="tests">Tests</h1>
+
+<p>Jsonnet comes with over 600 tests (and growing) that exercise various corner cases of the
+language.  These should be very useful for anyone porting Jsonnet to e.g. Java.</p>
+
+<p>The full corpus of tests can be invoked via 'make test'.</p>
+
+<p><b>Unit tests:</b> In the test_suite directory are a large number of unit tests that each
+exercise the interaction of a few features of the Jsonnet language.  If adding a standard library
+function, a test should be added here.  Also any fixed bugs should have a test added so that other
+implementations of Jsonnet can avoid the same mistake.</p>
+
+<p><b>Website examples:</b>  All the examples on the website are tested the ensure that the output
+advertised in the website page is actually correct.  The code is found in the examples
+directory.</p>
+
+<p><b>Bindings:</b>  There are a couple of simple tests for the C and Python APIs which are run as
+part of 'make test'.</p>
+
+<p><b>Benchmarks:</b>  There are a few simple benchmarks in the benchmarks directory.  These are not
+executed by 'make test' because they take a while to run.</p>
+
+<h2 id="continuous_integration">Continuous Integration</h2>
+
+<p>Jsonnet is <a href="https://travis-ci.org/google/jsonnet">set up</a> to use <a
+href="https://travis-ci.org/">Travis</a> for continuous integration testing.  This currently runs
+the full test suite (via make test) on gcc and clang compilers, but only Linux is currently
+available.  The tests run every commit and are posted to the <a href="/contributing.html">IRC
+channel</a>.</p>
+
+<p>To avoid embarrassment, always run 'make test' on your dev machine before submitting a pull
+request. :)</p>

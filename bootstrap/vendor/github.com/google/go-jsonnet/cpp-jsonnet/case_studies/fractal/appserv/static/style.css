@@ -1,0 +1,164 @@
+html {
+    height: 100%;
+}
+
+body {
+    font-family: sans-serif;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: #112;
+    color: #ccc;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+a {
+    color: #fff;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+a:visited {
+    text-decoration: none;
+}
+
+div#left {
+    float: left;
+    width: 350px;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+p#banner {
+    padding: 24px 30px 0px 30px;
+    font-size: 36pt;
+    font-weight: bold;
+    margin: 0;
+    text-align: center;
+}
+
+p#instructions {
+    margin: 0;
+    padding: 12px 16px 0 16px;
+    text-align: justify;
+}
+
+div#discoveries {
+    height: 100%;
+    margin: 0;
+    padding: 16px;
+}
+
+div#discoveries h1 {
+    margin: 12px 0 0 0;
+    font-size: 1.5em;
+}
+
+ul#remembered_list {
+    list-style-type:none;
+    padding: 0;
+    margin: 0;
+}
+
+a.remembered {
+    text-decoration: none;
+}
+
+li.remembered {
+    overflow: hidden;
+    margin: 4px;
+}
+
+img.remembered {
+    float: left;
+    border-width: 1px;
+    border-style: solid;
+    border-color: #444;
+    margin-right: 16px;
+}
+
+p.remembered {
+    margin: 0;
+    padding: 8px;
+    font-size: 11pt;
+    word-wrap:break-word;
+    width: 210px;
+    float: left;
+}
+
+div.remembered_date {
+    position: relative;
+}
+
+span.remembered_date {
+    float: right;
+    color: #444;
+    font-size: 10pt;
+    position: absolute;
+    right: 0;
+    top: 44px;
+}
+
+div#remember_plus {
+    margin: 8px 4px;
+    overflow: hidden;
+}
+
+div#remember_plus_text {
+    float: left;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #444;
+    margin-right: 16px;
+}
+
+p#remember_plus {
+    margin: 8px;
+    font-size: 32pt;
+    text-align: center;
+}
+
+textarea#remember_plus_input {
+    padding: 8px;
+    font-size: 11pt;
+    resize: none;
+    background-color: inherit;
+    color: #fff;
+    border: none;
+    font-family: inherit;
+    width: 210px;
+}
+
+div#right {
+    background-color: #002;
+    height: 100%;
+    max-height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+div#fimg_inside {
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    position: relative;
+}
+img.fimg {
+    float: left;
+    padding: 0;
+    margin: 0;
+/*
+  outline: 1px solid #f00;
+  outline-offset: -1px;
+*/
+}
+
+div#err_box {
+    padding: 16px;
+}

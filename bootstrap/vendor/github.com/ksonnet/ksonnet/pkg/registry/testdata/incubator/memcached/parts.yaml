@@ -1,0 +1,40 @@
+{
+  "name": "memcached",
+  "apiVersion": "0.0.1",
+  "kind": "ksonnet.io/parts",
+  "description": "Memcached is an in-memory key-value store for small chunks of arbitrary data (strings, objects) from results of database calls, API calls, or page rendering.",
+  "author": "ksonnet team <ksonnet-help@heptio.com>",
+  "contributors": [
+    {
+    "name": "Tehut Getahun",
+    "email": "tehut@heptio.com"
+    },
+    {
+    "name": "Tamiko Terada",
+    "email": "tamiko@heptio.com"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ksonnet/mixins"
+  },
+  "bugs": {
+    "url": "https://github.com/ksonnet/mixins/issues"
+  },
+  "keywords": [
+    "memcached",
+    "database",
+    "cache"
+  ],
+  "quickStart": {
+    "prototype": "io.ksonnet.pkg.memcached-simple",
+    "componentName": "memcached",
+    "flags": {
+      "name": "memcached",
+      "namespace": "default"
+    },
+    "comment": "Run a simple memcached instance"
+  },
+  "license": "Apache 2.0"
+}
+
