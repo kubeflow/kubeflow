@@ -128,9 +128,8 @@ via the default `PATH`.
 After creating the initial Hub and exposing it on a public IP address, you can add GitHub based authentication. First, you'll need to create a [GitHub oauth application](https://github.com/settings/applications/new). The callback URL would be of the form `http://xx.yy.zz.ww/hub/oauth_callback`.
 
 Once the GitHub application is created in the GitHub UI, update the 
-`manifest/config.yaml` with the `callback_url`, `client_id` and `client_secret`
-provided by GitHub UI. You should comment out the `DummyAuthenticator` and
-set the JupyterHub `authenticator_class` to `GitHubOAuthenticator`. You will
+`{APP_NAME}/vendor/kubeflow/core/kubeform_spawner.py` with the `callback_url`, `client_id` and `client_secret`
+provided by GitHub UI. You will
 also set the `oauth_callback_url`, `client_id`, and `client_secret` for the
 authenticator. An example configuration section might look like:
 
@@ -139,6 +138,20 @@ c.JupyterHub.authenticator_class = GitHubOAuthenticator
 c.GitHubOAuthenticator.oauth_callback_url = 'http://xx.yy.zz.ww/hub/oauth_callback'
 c.GitHubOAuthenticator.client_id = 'client_id_here'
 c.GitHubOAuthenticator.client_secret = 'client_secret_here'
+```
+
+You should comment out the `DummyAuthenticator` and
+set the JupyterHub `authenticator_class` to `GitHubOAuthenticator` in `{APP_NAME}/vendor/kubeflow/core/jupyter.libsonnet`.
+
+```commandline
+  options:: std.join("\n", std.prune([
+    "######## Authenticator ######",
+    if authenticator == "iap" then
+      kubeConfigIAPAuthenticator else
+      {
+        //kubeConfigDummyAuthenticator,
+      },
+  ])),
 ```
 
 Finally, you can update the configuration and apply the new configuration by
