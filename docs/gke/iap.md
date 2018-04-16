@@ -28,7 +28,7 @@ PROJECT=$(gcloud config get-value project)
 gcloud compute --project=${PROJECT} addresses create kubeflow --global
 ```
 
-#### Configure DNS record
+#### Configure DNS record with Cloud Endpoints
 
 [Cloud Endpoints](https://cloud.google.com/endpoints/docs/) can be used to automatically provision a free DNS record for Kubeflow in the form of: `NAME.endpoints.PROJECT.cloud.goog`. 
 
@@ -61,7 +61,9 @@ ks apply ${ENVIRONMENT} -c cloud-endpoints
 export FQDN="kubeflow.endpoints.$(gcloud config get-value project).cloud.goog"
 ```
 
-Alternatively if you already have a DNS provider (e.g. Google Domains) create a type A custom resource record that associates the host you want e.g "kubeflow"
+#### Configure an existing DNS record
+
+If you already have a DNS provider (e.g. Google Domains) create a type A custom resource record that associates the host you want e.g "kubeflow"
 with the IP address that you just reserved.
   * Instructions for [Google Domains](https://support.google.com/domains/answer/3290350?hl=en&_ga=2.237821440.1874220825.1516857441-1976053267.1499435562&_gac=1.82147044.1516857441.Cj0KCQiA-qDTBRD-ARIsAJ_10yKS7G1HPa1aoM8Mk_4VagV9wIi5uKkMp5UWJGDNejKxWPKUO_A6ri4aAsahEALw_wcB)
 
