@@ -1,5 +1,9 @@
 {
-  all(params):: {
+  all(params):: [
+    $.service(params),
+  ],
+
+  service(params):: {
     kind: "Service",
     apiVersion: "v1",
     metadata: {
@@ -12,9 +16,9 @@
     spec: {
       ports: [
         {
-          name: "port",
-          port: 8080,
-          targetPort: 8080,
+          name: "openmpi",  // not used
+          port: 12345,
+          targetPort: 12345,
         },
       ],
       selector: {

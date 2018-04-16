@@ -7,8 +7,9 @@
 // @param secret string Name of secret containing ssh keys.
 // @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
 // @optionalParam workers number 4 Number of workers.
+// @optionalParam cmd string null Command to run in master. It sleeps indefinitely if not set.
 
 local k = import "k.libsonnet";
 local openmpi = import "kubeflow/openmpi/all.libsonnet";
 
-std.prune(k.core.v1.list.new(openmpi.parts(params, env).all))
+std.prune(k.core.v1.list.new(openmpi.all(params, env)))

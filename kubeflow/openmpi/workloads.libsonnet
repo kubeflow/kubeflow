@@ -1,4 +1,9 @@
 {
+  all(params):: [
+    $.master(params),
+    $.worker(params),
+  ],
+
   master(params):: $.statefulSet(params, "master", 1),
 
   worker(params):: $.statefulSet(params, "worker", params.workers),
@@ -85,6 +90,9 @@
               command: [
                 "sh",
                 "/kubeflow/openmpi/assets/init.sh",
+                role,
+                std.toString(params.workers),
+                params.cmd,
               ],
               ports: [
                 {
