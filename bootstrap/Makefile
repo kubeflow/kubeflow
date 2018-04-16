@@ -16,7 +16,7 @@ IMG = gcr.io/kubeflow-images-staging/bootstraper
 
 TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6)
 DIR := ${CURDIR}
-BUILDDIR := $(shell mktemp -t -d)
+BUILDDIR := $(shell mktemp --tmpdir -d)
 
 all: build
 
