@@ -88,3 +88,11 @@ ERROR Component parameters for 'kubeflow-core' already exists
 
 If you are dealing with a new package you need to modify `app.yaml` in your ksonnet application
 and add an entry in the libraries section for your new package.
+
+#### Pull Requests
+There is what appears to be a problem when trying to introduce a new package for Kubeflow: the tests are of the master branch but the PR is its own separate git ref. However:
+1. the Argo workflow checks out the source at the commit/PR being tested
+2. a subsequent step sets up the ksonnet directory and does `ks registry add` for the new package
+3. the test then replaces `vendor/kubeflow` with a symlink to the source checked out in step 1
+
+This ensures that we are testing the components at the SHA for the commit being tested.
