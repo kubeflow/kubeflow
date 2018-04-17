@@ -1,13 +1,46 @@
 set -exv
 
-if [ $# -ne 3 ]; then
+probe_redis() {
+  cmd="$1"
+  status=$2
+  max_retries=$3
+  retries=0
+  until [ "$(${cmd})" = "${status}" ]; do
+    sleep 10
+
+    retries=$(expr ${retries} + 1)
+    if [ -n "${max_retries}" ] && [ ${retries} -ge ${max_retries} ]; then
+      exit 124
+    fi
+  done
+}
+
+ping_redis() {
+  timeout=$1
+  probe_redis "redis-cli -h openmpi-redis ping" PONG ${timeout}
+}
+
+wait_cond() {
+  cond=$1
+  status=$2
+  timeout=$3
+  probe_redis "redis-cli -h openmpi-redis get ${cond}" ${status} ${timeout}
+}
+
+signal_cond() {
+  cond=$1
+  redis-cli -h openmpi-redis incr ${cond}
+}
+
+if [ $# -ne 4 ]; then
   echo "illegal number of parameters"
   exit 1
 fi
 
 role="$1"
 workers="$2"
-cmd="$3"
+hostname="$3"
+exec="$4"
 
 # Set up openmpi
 mkdir -p /root/.openmpi
@@ -22,44 +55,26 @@ cp /kubeflow/openmpi/assets/ssh_config /root/.ssh/config
 
 # Install redis-cli
 apt-get install -y redis-tools
-redis="redis-cli -h openmpi-redis"
 
 # Start sshd in daemon mode
 /usr/sbin/sshd -e -f /kubeflow/openmpi/assets/sshd_config
+sleep 10
 
 # Wait until redis is up
-until [ "$(${redis} ping)" = "PONG" ]; do
-  sleep 5
-done
+ping_redis 12
 
-wait_cond() {
-  cond=$1
-  status=$2
-  until [ "$(${redis} get ${cond})" = "${status}" ]; do
-    sleep 10
-  done
-}
-
-signal_cond() {
-  cond=$1
-  ${redis} incr ${cond}
-}
+# Start running the workloads.
+echo running ${hostname}
 
 ready_cond="openmpi:ready"
 done_cond="openmpi:done"
 if [ "${role}" = "master" ]; then
-  echo running as master
-  wait_cond ${ready_cond} ${workers}
-  sh -c "${cmd}"
+  wait_cond ${ready_cond} ${workers} 12
+  sh -c "${exec}"
   signal_cond ${done_cond}
 else
-  echo running as worker
   signal_cond ${ready_cond}
   wait_cond ${done_cond} 1
 fi
 
-# BUG: after this script exits, the container will be restarted
-# since StatefulSet only supports RestartPolicy "Always".
-# TODO: Investigate how to gracefully shut down the workloads.
-echo shutting down $(hostname)
-sleep infinity
+echo shutting down ${hostname}

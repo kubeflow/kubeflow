@@ -11,7 +11,8 @@ local redis = import "kubeflow/openmpi/redis.libsonnet";
     // the namespace parameter is not explicitly set
     local updatedParams = params {
       namespace: if params.namespace == "null" then env.namespace else params.namespace,
-      cmd: if params.cmd == "null" then "sleep infinity" else params.cmd,
+      init: if params.init == "null" then "/kubeflow/openmpi/assets/init.sh" else params.init,
+      exec: if params.exec == "null" then "sleep infinity" else params.exec,
     },
 
     all::

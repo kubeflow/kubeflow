@@ -43,15 +43,15 @@ kubectl create secret generic ${SECRET} -n ${NAMESPACE} --from-file=id_rsa=.tmp/
 # Generate openmpi components
 COMPONENT=openmpi
 IMAGE=YOUR_IMAGE_HERE
-CMD="mpiexec -n 4 --hostfile /kubeflow/openmpi/assets/hostfile --allow-run-as-root --display-map --tag-output --timestamp-output sh -c 'echo hello world'"
-ks generate openmpi ${COMPONENT} --image ${IMAGE} --secret ${SECRET} --cmd "${CMD}"
+EXEC="mpiexec -n 4 --hostfile /kubeflow/openmpi/assets/hostfile --allow-run-as-root --display-map --tag-output --timestamp-output sh -c 'echo hello world'"
+ks generate openmpi ${COMPONENT} --image ${IMAGE} --secret ${SECRET} --exec "${EXEC}"
 
 # Apply to your cluster. 
 ks apply default
 
 # Inspect the pod status.
 kubectl get pod -n ${NAMESPACE}
-kubectl logs -n ${NAMESPACE} -f openmpi-master-0
+kubectl logs -n ${NAMESPACE} -f openmpi-master
 ```
 
 ## Running Horovod
@@ -60,8 +60,8 @@ Use the following command to run the [Horovod](https://github.com/uber/horovod) 
 
 ```
 # You may run the Horovod examples if you're running the Horovod docker image.
-CMD="mpiexec -n 4 --hostfile /kubeflow/openmpi/assets/hostfile --allow-run-as-root --display-map --tag-output --timestamp-output sh -c 'python /examples/keras_mnist_advanced.py'"
+EXEC="mpiexec -n 4 --hostfile /kubeflow/openmpi/assets/hostfile --allow-run-as-root --display-map --tag-output --timestamp-output sh -c 'python /examples/keras_mnist_advanced.py'"
 
 # If you're running Horovod in a cluster without GPUs, you may need to set LD_LIBRARY_PATH to use CUDA stub drivers.
-CMD="mpiexec -n 4 --hostfile /kubeflow/openmpi/assets/hostfile --allow-run-as-root --display-map --tag-output --timestamp-output sh -c 'LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-9.0/targets/x86_64-linux/lib/stubs python /examples/keras_mnist_advanced.py'"
+EXEC="mpiexec -n 4 --hostfile /kubeflow/openmpi/assets/hostfile --allow-run-as-root --display-map --tag-output --timestamp-output sh -c 'LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-9.0/targets/x86_64-linux/lib/stubs python /examples/keras_mnist_advanced.py'"
 ```
