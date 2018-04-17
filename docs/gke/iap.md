@@ -27,15 +27,60 @@ when using GKE.
 
 If you aren't familiar with IAP you might want to start by looking at those docs.
 
+The instructions below reference the following environment variables which you will need to set for your deployment
+
+  * **CORE_NAME** The name assigned to the core Kubeflow ksonnet components (this is the name chosen when you ran `ks generate...`).
+  * **ENVIRONMENT** The name of the ksonnet environment where you want to deploy Kubeflow.
+  * **FQDN** The fully qualified domain name to use for your Kubeflow deployment.
+  * **IP_NAME** The name of the GCP static IP that you created above and will be associated with **DOMAIN**.
+  * **NAMESPACE** The namespace where Kubeflow is deployed.
+  * **ACCOUNT** The email address for your ACME account where certificate expiration notifications will be sent.
+
 ### Preliminaries
 
-##### Create an external static IP address
+#### Create an external static IP address
 
 ```
+PROJECT=$(gcloud config get-value project)
 gcloud compute --project=${PROJECT} addresses create kubeflow --global
 ```
 
-Use your DNS provider (e.g. Google Domains) create a type A custom resource record that associates the host you want e.g "kubeflow"
+#### Configure DNS record with Cloud Endpoints
+
+[Cloud Endpoints](https://cloud.google.com/endpoints/docs/) can be used to automatically provision a free DNS record for Kubeflow in the form of: `NAME.endpoints.PROJECT.cloud.goog`. 
+
+Enable the following APIs:
+- [Google Cloud Endpoints](https://console.cloud.google.com/apis/library/endpoints.googleapis.com/?q=Cloud%20Endpoints)
+- [Google Service Management](https://console.cloud.google.com/apis/library/servicemanagement.googleapis.com/?q=Service%20Management)
+
+Create a service account an IAM bindings for the cloud-endpoints-controller:
+
+```
+gcloud iam service-accounts create cloud-endpoints-controller \
+    --display-name cloud-endpoints-controller
+export SA_EMAIL=$(gcloud iam service-accounts list \
+    --filter="displayName:cloud-endpoints-controller" \
+    --format='value(email)')
+gcloud projects add-iam-policy-binding \
+      $PROJECT --role roles/servicemanagement.admin --member serviceAccount:$SA_EMAIL
+
+gcloud iam service-accounts keys create cloudep-sa.json --iam-account $SA_EMAIL
+
+kubectl create secret generic --namespace=${NAMESPACE} cloudep-sa --from-file=./cloudep-sa.json
+```
+
+Install the `cloud-endpoints` controller and set the `FQDN` environment variable used later:
+
+```
+ks generate cloud-endpoints cloud-endpoints --namespace=${NAMESPACE} --secretName=cloudep-sa
+ks apply ${ENVIRONMENT} -c cloud-endpoints
+
+export FQDN="kubeflow.endpoints.$(gcloud config get-value project).cloud.goog"
+```
+
+#### Configure an existing DNS record
+
+If you already have a DNS provider (e.g. Google Domains) create a type A custom resource record that associates the host you want e.g "kubeflow"
 with the IP address that you just reserved.
   * Instructions for [Google Domains](https://support.google.com/domains/answer/3290350?hl=en&_ga=2.237821440.1874220825.1516857441-1976053267.1499435562&_gac=1.82147044.1516857441.Cj0KCQiA-qDTBRD-ARIsAJ_10yKS7G1HPa1aoM8Mk_4VagV9wIi5uKkMp5UWJGDNejKxWPKUO_A6ri4aAsahEALw_wcB)
 
@@ -68,19 +113,7 @@ kubectl -n ${NAMESPACE} create secret generic kubeflow-oauth --from-literal=CLIE
 If you haven't already, follow the instructions in the [user_guide](https://github.com/kubeflow/kubeflow/blob/master/user_guide.md#deploy-kubeflow)
 to create a ksonnet app to deploy Kubeflow.
 
-Your GKE cluster permissions should include the `https://www.googleapis.com/auth/compute` scope and a service account with the `editor` or `compute.admin` IAM role. This is the default configuration for GKE clusters version 1.9.x and earlier.
-Follow [this guide](https://medium.com/google-cloud/updating-google-container-engine-vm-scopes-with-zero-downtime-50bff87e5f80) if you need to modify the scopes of your cluster and the [IAM docs](https://cloud.google.com/iam/docs/granting-changing-revoking-access) for details on how to apply roles.
-
 [cert-manager](https://github.com/jetstack/cert-manager) is used to automatically request valid SSL certifiactes using the [ACME](https://en.wikipedia.org/wiki/Automated_Certificate_Management_Environment) issuer.
-
-The instructions below reference the following environment variables which you will need to set for your deployment
-
-  * **CORE_NAME** The name assigned to the core Kubeflow ksonnet components (this is the name chosen when you ran `ks generate...`).
-  * **ENVIRONMENT** The name of the ksonnet environment where you want to deploy Kubeflow.
-  * **FQDN** The fully qualified domain name to use for your Kubeflow deployment.
-  * **IP_NAME** The name of the GCP static IP that you created above and will be associated with **DOMAIN**.
-  * **NAMESPACE** The namespace where Kubeflow is deployed.
-  * **ACCOUNT** The email address for your ACME account where certificate expiration notifications will be sent.
 
 ```
 ks generate cert-manager cert-manager --acmeEmail=${ACCOUNT}
