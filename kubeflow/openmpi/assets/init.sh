@@ -70,7 +70,7 @@ ready_cond="openmpi:ready"
 done_cond="openmpi:done"
 if [ "${role}" = "master" ]; then
   wait_cond ${ready_cond} ${workers} 12
-  sh -c "${exec}"
+  sh -c "${exec}" || true
   signal_cond ${done_cond}
 else
   signal_cond ${ready_cond}
