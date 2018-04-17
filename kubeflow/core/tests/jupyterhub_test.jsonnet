@@ -137,6 +137,10 @@ std.assertEqual(jupyterhub.parts(params.namespace).jupyterHub(params.jupyterHubI
                                 name: "NOTEBOOK_PVC_MOUNT",
                                 value: params.jupyterNotebookPVCMount,
                               },
+                              {
+                                name: "CLOUD_NAME",
+                                value: null
+                              },
                             ],
                             image: "gcr.io/kubeflow/jupyterhub-k8s:1.0.1",
                             name: "tf-hub",
