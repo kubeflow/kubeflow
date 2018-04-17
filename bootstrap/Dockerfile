@@ -1,7 +1,16 @@
 # TODO(jlewi): How can we make it work with golang:1.8.2-alpine
-FROM golang:1.8.2
+FROM golang:1.8.2 as builder
 
-ARG KUBEFLOW_REPO=https://github.com/kubeflow/kubeflow.git
+RUN mkdir -p /opt/kubeflow
+
+ENV PATH /go/bin:/usr/local/go/bin:$PATH
+
+RUN mkdir -p $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap
+COPY ./ $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap/
+
+RUN go build -i -o /opt/kubeflow/bootstraper ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/main.go
+
+FROM golang:1.8.2
 
 # We need gcloud to get gke credentials.
 RUN wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.tar.gz && \
@@ -39,14 +48,7 @@ RUN cd /opt/ksonnet && \
 
 RUN mkdir -p /opt/kubeflow
 
-ENV PATH /go/bin:/usr/local/go/bin:$PATH
-
-RUN mkdir -p $GOPATH/src/github.com/kubeflow && \
-    cd $GOPATH/src/github.com/kubeflow && \
-    git clone $KUBEFLOW_REPO
-
-RUN go build -i -o /opt/kubeflow/bootstraper ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/main.go
-
+COPY --from=builder /opt/kubeflow/bootstraper /opt/kubeflow/
 COPY start.sh /opt/kubeflow/
 
 RUN chmod a+rx /opt/kubeflow/*

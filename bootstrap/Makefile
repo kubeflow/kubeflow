@@ -16,14 +16,12 @@ IMG = gcr.io/kubeflow-images-staging/bootstraper
 
 TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6)
 
-REPO = https://github.com/kubeflow/kubeflow.git
-
 all: build
 
 # To build without the cache set the environment variable
 # export DOCKER_BUILD_OPTS=--no-cache
 build:
-	docker build ${DOCKER_BUILD_OPTS} -t $(IMG):$(TAG) --build-arg KUBEFLOW_REPO=$(REPO) .
+	docker build ${DOCKER_BUILD_OPTS} -t $(IMG):$(TAG) .
 	docker tag $(IMG):$(TAG) $(IMG):latest
 	@echo Built $(IMG):latest	
 	@echo Built $(IMG):$(TAG) 
