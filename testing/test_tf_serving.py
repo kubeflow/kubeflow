@@ -87,7 +87,7 @@ def main():
     while True:
       try:
         result = urllib2.urlopen(req, json.dumps(data), 10) # 10 secs timeout
-        result = result.read()  
+        result = result.read()
       except Exception as e:
         num_try += 1
         if num_try > 10:
