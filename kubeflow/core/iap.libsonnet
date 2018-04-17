@@ -2,6 +2,22 @@
   parts(namespace):: {
     local k = import "k.libsonnet",
 
+    // Test if the given hostname is in the form of: "NAME.endpoints.PROJECT.cloud.goog"
+    local isCloudEndpoint = function(str) {
+      local toks = std.split(str, "."),
+      result::
+        (std.length(toks) == 5 && toks[1] == "endpoints" && toks[3] == "cloud" && toks[4] == "goog"),
+    }.result,
+
+    // Creates map of parameters from a given hostname in the form of: "NAME.endpoints.PROJECT.cloud.goog"
+    local makeEndpointParams = function(str) {
+      local toks = std.split(str, "."),
+      result:: {
+        name: toks[0],
+        project: toks[2],
+      },
+    }.result,
+
     ingressParts(secretName, ipName, hostname, issuer, envoyImage, disableJwt, oauthSecretName):: std.prune(k.core.v1.list.new([
       $.parts(namespace).service,
       $.parts(namespace).ingress(secretName, ipName, hostname),
@@ -13,6 +29,7 @@
       $.parts(namespace).configMap(disableJwt),
       $.parts(namespace).whoamiService,
       $.parts(namespace).whoamiApp,
+      (if isCloudEndpoint(hostname) then $.parts(namespace).cloudEndpoint(makeEndpointParams(hostname))),
     ])),
 
     service:: {
@@ -776,5 +793,22 @@
         },
       },
     },  // certificate
+
+    cloudEndpoint(params):: {
+      apiVersion: "ctl.isla.solutions/v1",
+      kind: "CloudEndpoint",
+      metadata: {
+        name: params.name,
+        namespace: namespace,
+      },
+      spec: {
+        project: params.project,
+        targetIngress: {
+          name: "envoy-ingress",
+          namespace: namespace,
+        },
+      },
+    },  // cloudEndpoint
+
   },  // parts
 }

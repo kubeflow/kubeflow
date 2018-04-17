@@ -1,8 +1,8 @@
 {
   parts(namespace):: {
     local k = import "k.libsonnet",
-    local certManagerImage = "quay.io/jetstack/cert-manager-controller:v0.2.3",
-    local certManagerIngressShimImage = "quay.io/jetstack/cert-manager-ingress-shim:v0.2.3",
+    local certManagerImage = "quay.io/jetstack/cert-manager-controller:v0.2.4",
+    local certManagerIngressShimImage = "quay.io/jetstack/cert-manager-ingress-shim:v0.2.4",
 
     // Note, not using std.prune to preserve required empty http01 map in the Issuer spec.
     certManagerParts(acmeEmail, acmeUrl):: k.core.v1.list.new([
