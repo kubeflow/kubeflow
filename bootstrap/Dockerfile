@@ -22,7 +22,7 @@ RUN wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.ta
     --path-update=false \
     --usage-reporting=false
 
-RUN ln -sf /google-cloud-sdk/bin/gcloud /usr/local/bin/gcloud    
+RUN ln -sf /google-cloud-sdk/bin/gcloud /usr/local/bin/gcloud
 
 # Install kubectl
 # We don't install via gcloud because we want 1.10 which is newer than what's in gcloud.
@@ -46,6 +46,20 @@ RUN cd /opt/ksonnet && \
     cp /tmp/go/bin/ks /usr/local/bin && \
     chmod a+rx /usr/local/bin/ks
 
+# Pull kubeflow ksonnet repos
+
+# Ksonnet needs to have kubernetes env setup even for non-k8s actions.
+COPY kubeconfig_fake.yml /root/.kube/config
+
+ARG github_token
+
+RUN export GITHUB_TOKEN=${github_token} && cd / && ks init kubeflow && \
+    cd kubeflow && \
+    ks registry add kubeflow github.com/kubeflow/kubeflow/tree/master/kubeflow && \
+    ks pkg install kubeflow/core && \
+    ks pkg install kubeflow/tf-serving && \
+    ks pkg install kubeflow/tf-job && unset GITHUB_TOKEN
+
 RUN mkdir -p /opt/kubeflow
 
 COPY --from=builder /opt/kubeflow/bootstrapper /opt/kubeflow/
@@ -64,4 +78,5 @@ ENV USER_ID 1000
 ENV GROUP_ID 1000
 ENV GROUP kubeflow
 
-ENTRYPOINT ["/opt/kubeflow/start.sh"]
+WORKDIR /kubeflow
+CMD ["/opt/kubeflow/start.sh"]
