@@ -53,7 +53,7 @@
           containers: [
             {
               name: "openmpi-redis-container",
-              image: "bitnami/redis:latest",
+              image: "bitnami/redis:4.0.9",
               imagePullPolicy: "IfNotPresent",
               env: [
                 {

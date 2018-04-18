@@ -72,6 +72,9 @@
         {
           name: "openmpi-%s" % role,
           image: params.image,
+          imagePullPolicy: params.imagePullPolicy,
+          terminationMessagePath: "/dev/termination-log",
+          terminationMessagePolicy: "File",
           command: [
             "sh",
             params.init,
@@ -96,9 +99,6 @@
               mountPath: "/kubeflow/openmpi/secrets",
             },
           ],
-          terminationMessagePath: "/dev/termination-log",
-          terminationMessagePolicy: "File",
-          imagePullPolicy: "IfNotPresent",
         },
       ],
     },

@@ -9,6 +9,7 @@
 // @optionalParam workers number 4 Number of workers.
 // @optionalParam init string null Command to bootstrap the containers. Defaults to init.sh.
 // @optionalParam exec string null Command to execute in master after bootstrap is done. It sleeps indefinitely if not set.
+// @optionalParam imagePullPolicy string IfNotPresent Image pull policy (either IfNotPresent or Always).
 
 local k = import "k.libsonnet";
 local openmpi = import "kubeflow/openmpi/all.libsonnet";

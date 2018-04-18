@@ -1,10 +1,11 @@
 set -exv
 
 probe_redis() {
-  cmd="$1"
-  status=$2
-  max_retries=$3
-  retries=0
+  local cmd="$1"
+  local status=$2
+  local max_retries=$3
+  local retries=0
+
   until [ "$(${cmd})" = "${status}" ]; do
     sleep 10
 
@@ -16,14 +17,16 @@ probe_redis() {
 }
 
 ping_redis() {
-  timeout=$1
+  local timeout=$1
+
   probe_redis "redis-cli -h openmpi-redis ping" PONG ${timeout}
 }
 
 wait_cond() {
-  cond=$1
-  status=$2
-  timeout=$3
+  local cond=$1
+  local status=$2
+  local timeout=$3
+
   probe_redis "redis-cli -h openmpi-redis get ${cond}" ${status} ${timeout}
 }
 
@@ -66,11 +69,12 @@ ping_redis 12
 # Start running the workloads.
 echo running ${hostname}
 
+exit_code=0
 ready_cond="openmpi:ready"
 done_cond="openmpi:done"
 if [ "${role}" = "master" ]; then
-  wait_cond ${ready_cond} ${workers} 12
-  sh -c "${exec}" || true
+  wait_cond ${ready_cond} ${workers} 24
+  sh -c "${exec}" || exit_code=$?
   signal_cond ${done_cond}
 else
   signal_cond ${ready_cond}
@@ -78,3 +82,4 @@ else
 fi
 
 echo shutting down ${hostname}
+exit ${exit_code}
