@@ -177,6 +177,8 @@ ks param set --env=cloud ${MODEL_COMPONENT} modelPath $MODEL_PATH
 ks param set --env=cloud ${MODEL_COMPONENT} modelServerImage $MODEL_SERVER_IMAGE
 # If you want to have the http endpoint.
 ks param set --env=cloud ${MODEL_COMPONENT} deployHttpProxy true
+# If you want to use GPU
+ks param set --env=cloud ${MODEL_COMPONENT} numGpus 1
 ```
 
 Deploy it in a particular environment. The deployment will pick up environment parmameters (e.g. cloud) and customize the deployment appropriately
