@@ -86,3 +86,32 @@ Send some requests to the TF serving service, then there should be some data (QP
 
 #### Define and view metrics
 See istio [doc](https://istio.io/docs/tasks/telemetry/metrics-logs.html).
+
+#### Expose Grafana dashboard behind ingress/IAP
+To expose the grafana dashboard as, e.g. `YOUR_HOST/grafana`, follow these steps.
+
+  1. Add ambassador annotation for routing. However, since ambassador only scans the service within
+  its [namespace](https://www.getambassador.io/reference/advanced),
+  we can add the annotation for grafana service in ambassador service. So do 
+  `kubectl edit svc -n kubeflow ambassador`, and add annotation
+ 
+  ```
+  getambassador.io/config: |
+    ---
+    apiVersion: ambassador/v0
+    kind:  Mapping
+    name:  grafana_dashboard_mapping
+    prefix: /grafana/
+    service: grafana.istio-system:3000
+  ```
+ 
+  2. Grafana needs to be [configured](http://docs.grafana.org/installation/behind_proxy/#examples-with-sub-path-ex-http-foo-bar-com-grafana)
+  to work properly behind a reverse proxy. We can override the default config using
+  [environment variable](http://docs.grafana.org/installation/configuration/#using-environment-variables).
+  So do `kubectl edit deploy -n istio-system grafana`, and add env vars
+  ```
+  - name: GF_SERVER_DOMAIN
+    value: YOUR_HOST
+  - name: GF_SERVER_ROOT_URL
+    value: '%(protocol)s://%(domain)s:/grafana'
+  ```
