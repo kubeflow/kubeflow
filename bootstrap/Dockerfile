@@ -1,4 +1,15 @@
 # TODO(jlewi): How can we make it work with golang:1.8.2-alpine
+FROM golang:1.8.2 as builder
+
+RUN mkdir -p /opt/kubeflow
+
+ENV PATH /go/bin:/usr/local/go/bin:$PATH
+
+RUN mkdir -p $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap
+COPY ./ $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap/
+
+RUN go build -i -o /opt/kubeflow/bootstraper ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/main.go
+
 FROM golang:1.8.2
 
 # We need gcloud to get gke credentials.
@@ -37,7 +48,7 @@ RUN cd /opt/ksonnet && \
 
 RUN mkdir -p /opt/kubeflow
 
-COPY bootstraper /opt/kubeflow/
+COPY --from=builder /opt/kubeflow/bootstraper /opt/kubeflow/
 COPY start.sh /opt/kubeflow/
 
 RUN chmod a+rx /opt/kubeflow/*
