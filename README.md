@@ -76,6 +76,18 @@ This documentation assumes you have a Kubernetes cluster already available. If y
   * ksonnet version [0.9.2](https://ksonnet.io/#get-started) or later.
   * Kubernetes >= 1.8 [see here](https://github.com/kubeflow/tf-operator#requirements)
 
+### Github Tokens
+
+It is HIGHLY likely you'll overload Github's API if you are unauthenticated. To get around this, do the following steps:
+
+* Go to https://github.com/settings/tokens and generate a new token. You don't have to give it any access at all as you are simply authenticating.
+* Make sure you save that token someplace because you can't see it again. If you lose it you'll have to delete and create a new one.
+* Set an environment variable in your shell: export GITHUB_TOKEN=<token>. You may want to do this as part of your shell startup scripts (i.e. .profile).
+  
+```
+echo "GITHUB_TOKEN=${GITHUB_TOKEN}" >> ~/.bashrc
+```
+
 ### Steps
 
 In order to quickly set up all components, execute the following commands:
