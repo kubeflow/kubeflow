@@ -1,16 +1,15 @@
+# Open MPI
+
+Prototypes for running Open MPI jobs with Kubernetes.
+
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-- [openmpi](#openmpi)
-  - [Quickstart](#quickstart)
-  - [Running Horovod](#running-horovod)
+- [Quickstart](#quickstart)
+- [Running Horovod](#running-horovod)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
-# openmpi
-
-Prototypes for running Open MPI jobs with Kubernetes.
 
 ## Quickstart
 
