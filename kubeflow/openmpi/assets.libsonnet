@@ -1,5 +1,9 @@
 {
-  all(params):: {
+  all(params):: [
+    $.configMap(params),
+  ],
+
+  configMap(params):: {
     kind: "ConfigMap",
     apiVersion: "v1",
     metadata: {
