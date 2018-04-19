@@ -42,6 +42,8 @@ import (
 	k8sVersion "k8s.io/apimachinery/pkg/version"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"os/exec"
+	"errors"
 )
 
 // RecommendedConfigPathEnvVar is a environment variable for path configuration
@@ -53,6 +55,8 @@ const DefaultStorageAnnotation = "storageclass.beta.kubernetes.io/is-default-cla
 
 // Assume gcloud is on the path.
 const GcloudPath = "gcloud"
+
+const Kubectl = "/usr/local/bin/kubectl"
 
 // TODO(jlewi): If we use the same userid and groupid when running in a container then
 // we shoiuld be able to map in a user's home directory which could be useful e.g for
@@ -215,6 +219,19 @@ func Run(opt *options.ServerOption) error {
 	err = setupNamespace(kubeClient.CoreV1().Namespaces(), opt.NameSpace)
 	if err != nil {
 		return err
+	}
+
+	log.Infof("create rolebinding kubeflow-admin for role permission")
+	user, err := exec.Command("gcloud", "config", "get-value", "account").Output()
+	if err != nil {
+		return err
+	}
+	username := strings.Trim(string(user), "\t\n ")
+	roleBindingCmd := exec.Command(Kubectl,  "create", "rolebinding", "kubeflow-admin",
+		"--clusterrole=cluster-admin", "--user=" + username, "--namespace=" + namespace)
+	_, err = roleBindingCmd.Output()
+	if err != nil {
+		return errors.New("User is not cluster owner: please upgrade permission.")
 	}
 
 	clusterVersion, err := kubeClient.DiscoveryClient.ServerVersion()
