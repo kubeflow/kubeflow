@@ -7,6 +7,7 @@
 // @param secret string Name of secret containing ssh keys.
 // @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
 // @optionalParam workers number 4 Number of workers.
+// @optionalParam numGpus number 0 Number of Gpus(nvidia.com/gpu) for each worker
 
 local k = import "k.libsonnet";
 local openmpi = import "kubeflow/openmpi/all.libsonnet";
