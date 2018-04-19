@@ -85,7 +85,7 @@ It is HIGHLY likely you'll overload Github's API if you are unauthenticated. To 
 * Set an environment variable in your shell: export GITHUB_TOKEN=<token>. You may want to do this as part of your shell startup scripts (i.e. .profile).
   
 ```
-echo "GITHUB_TOKEN=${GITHUB_TOKEN}" >> ~/.bashrc
+echo "export GITHUB_TOKEN=${GITHUB_TOKEN}" >> ~/.bashrc
 ```
 
 ### Steps
