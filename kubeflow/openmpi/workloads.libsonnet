@@ -73,6 +73,7 @@
           name: "openmpi-%s" % role,
           image: params.image,
           imagePullPolicy: params.imagePullPolicy,
+          resources: $.getResources(role, params.gpus),
           terminationMessagePath: "/dev/termination-log",
           terminationMessagePolicy: "File",
           command: [
@@ -103,4 +104,11 @@
       ],
     },
   },
+
+  getResources(role, gpus)::
+    if role == "worker" && gpus > 0 then {
+      limits: {
+        "nvidia.com/gpu": gpus,
+      },
+    } else {}
 }
