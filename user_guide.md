@@ -296,14 +296,30 @@ unsecured endpoint by default. For a production deployment with SSL and authenti
 
 We treat each deployed model as a [component](https://ksonnet.io/docs/tutorial#2-generate-and-deploy-an-app-component) in your APP.
 
-Create a component for your model
+Create a component for your model located on cloud
 
 ```
 MODEL_COMPONENT=serveInception
 MODEL_NAME=inception
 MODEL_PATH=gs://kubeflow-models/inception
+MODEL_LOCATE=cloud
 ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME}
 ks param set ${MODEL_COMPONENT} modelPath ${MODEL_PATH}
+ks param set ${MODEL_COMPONENT} modelLocate ${MODEL_LOCATE}
+```
+
+*(Or)* create a  component for your model located on nfs, learn more from `components/k8s-model-server`
+
+```
+$ MODEL_COMPONENT=serveInceptionNFS
+$ MODEL_NAME=inception-nfs
+$ MODEL_PATH=/mnt/var/nfs/general/inception
+$ MODEL_LOCATE=nfs
+$ NFS_PVC_NAME=nfs
+$ ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME}
+$ ks param set ${MODEL_COMPONENT} modelPath ${MODEL_PATH}
+$ ks param set ${MODEL_COMPONENT} modelLocate ${MODEL_LOCATE}
+$ ks param set ${MODEL_COMPONENT} nfsPVC ${NFS_PVC_NAME}
 ```
 
 Deploy the model component. Ksonnet will pick up existing parameters for your environment (e.g. cloud, nocloud) and customize the resulting deployment appropriately

@@ -147,6 +147,11 @@
         runAsUser: 1000,
         fsGroup: 1000,
       },
+      volumeMounts+: if $.params.modelLocate == "nfs" then [{
+        name: "nfs",
+        mountPath: "/mnt",
+      }]
+      else [],
     },  // tfServingContainer
 
     tfServingContainer+: $.parts.tfServingContainerBase +
@@ -217,6 +222,14 @@
               if $.util.toBool($.params.deployHttpProxy) then
                 $.parts.httpProxyContainer,
             ],
+            volumes+: if $.params.modelLocate == "nfs" then 
+            [{
+              name: "nfs",
+              persistentVolumeClaim: {
+                claimName: $.params.nfsPVC,
+              }
+            }]
+            else [],
           },
         },
       },
