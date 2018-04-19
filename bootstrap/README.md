@@ -19,30 +19,45 @@ and based on the results chooses good values for various Kubeflow parameters.
 
 ## Usage
 
+**Alpha stage(as of today) Requires** run ```make build``` to build docker image locally since there's no public release yet.
+
 Interactive use 
 
 ```
 TAG=latest
-APP_DIR=<Directory for the ksonnet app>
+APP_DIR_HOST=<Directory on host machine for the ksonnet apps>
+APP_FOLDER_DOCKER=<Folder name inside docker for the ksonnet apps>
 GITHUB_TOKEN=<Get a [GitHub Token](https://github.com/kubeflow/kubeflow/blob/master/user_guide.md#403-api-rate-limit-exceeded-error) to avoid API Limits>
 
+# Start container
 docker run -ti \
   -e GITHUB_TOKEN=${GITHUB_TOKEN} \
   -e GROUP_ID=`id -g ${GROUP}` \
   -e USER_ID=`id -u ${USER}` \
   -e USER=${USER} \
-	-v ${HOME}:/home/${USER} gcr.io/kubeflow-images-staging/bootstraper:latest
+  -v ${APP_DIR_HOST}:/home/${USER}/${APP_FOLDER_DOCKER} \
+  -v ${HOME}/.kube:/home/${USER}/.kube \
+  -v ${HOME}/.config:/home/${USER}/.config gcr.io/kubeflow-images-staging/bootstraper:latest
 
-/opt/kubeflow/bootstraper --app-dir=${APP_DIR}
+# Inside docker, run
+/opt/kubeflow/bootstraper --app-dir=/home/${USER}/${APP_FOLDER_DOCKER}/<your_app_name> --namespace=<Your new namespace which hold bootstrap>
 
 # (Optional) enable usage reporting
 ks param set kubeflow-core reportUsage true
 ks param set kubeflow-core usageId $(uuidgen)
 
 # To deploy it
-cd ${APP_DIR}
+cd /home/${USER}/${APP_FOLDER_DOCKER}/<your_app_name>
 ks apply default
 ```
+
+#### To connect to your [Jupyter Notebook](http://jupyter.org/index.html) locally:
+On host machine:
+```
+PODNAME=`kubectl get pods --namespace=<Namespace for bootstrap> --selector="app=tf-hub" --output=template --template="{{with index .items 0}}{{.metadata.name}}{{end}}"`
+kubectl port-forward --namespace=<Namespace for bootstrap> $PODNAME 8000:8000
+```
+Then, open [http://127.0.0.1:8000](http://127.0.0.1:8000) in your browser.
 
 * After the tool runs the ksonnet app for deploying Kubeflow will be available in `${HOST_DIR}/${APP_NAME}`
 * The user's home directory is mapped into the container so that
