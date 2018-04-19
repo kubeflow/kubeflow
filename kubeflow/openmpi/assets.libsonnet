@@ -25,10 +25,11 @@
   genHostfile(params)::
     std.lines(
       std.map(
-        function(index) "openmpi-worker-%(index)d.%(name)s.%(namespace)s" % {
+        function(index) "openmpi-worker-%(index)d.%(name)s.%(namespace)s%(slots)s" % {
           index: index,
           name: params.name,
           namespace: params.namespace,
+          slots: if params.gpus > 1 then " slots=%d" % params.gpus else ""
         },
         std.range(0, params.workers - 1)
       )
