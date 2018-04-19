@@ -7,6 +7,7 @@
 // @param secret string Name of secret containing ssh keys.
 // @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
 // @optionalParam workers number 4 Number of workers.
+// @optionalParam schedulerName string default-scheduler scheduler name to use for the components.
 
 local k = import "k.libsonnet";
 local openmpi = import "kubeflow/openmpi/all.libsonnet";
