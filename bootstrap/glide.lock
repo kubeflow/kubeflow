@@ -1,5 +1,5 @@
-hash: 4d217d52169f8a667803c80293d401e822e0882e88e9339f95e6cf588b7c3d9d
-updated: 2018-04-06T09:44:17.779027411-07:00
+hash: f9b98ee92edf64bacb84e736efc13f87ea69ae788161300c7a86d2ddd45ca783
+updated: 2018-04-12T19:11:57.909552-07:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -173,6 +173,11 @@ imports:
   version: 4dab30cb33e6633c33c787106bafbfbfdde7842d
 - name: github.com/spf13/pflag
   version: 1ce0cc6db4029d97571db82f85092fccedb572ce
+- name: github.com/stretchr/testify
+  version: 12b6f73e6084dad08a7c6e575284b177ecafbc71
+  subpackages:
+  - assert
+  - mock
 - name: golang.org/x/crypto
   version: 81e90905daefcd6fd217b62423c0908922eadb30
   subpackages:
@@ -246,6 +251,7 @@ imports:
   - certificates/v1beta1
   - core/v1
   - extensions/v1beta1
+  - imagepolicy/v1alpha1
   - networking/v1
   - policy/v1beta1
   - rbac/v1
@@ -352,4 +358,10 @@ imports:
   version: 868f2f29720b192240e18284659231b440f9cda5
   subpackages:
   - pkg/common
-testImports: []
+testImports:
+- name: github.com/pmezard/go-difflib
+  version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
+  subpackages:
+  - difflib
+- name: github.com/stretchr/objx
+  version: 8a3f7159479fbc75b30357fbc48f380b7320f08e
