@@ -31,7 +31,8 @@ wait_cond() {
 }
 
 signal_cond() {
-  cond=$1
+  local cond=$1
+
   redis-cli -h openmpi-redis incr ${cond}
 }
 
@@ -64,7 +65,7 @@ apt-get install -y redis-tools
 sleep 10
 
 # Wait until redis is up
-ping_redis 12
+ping_redis 30
 
 # Start running the workloads.
 echo running ${hostname}
@@ -73,7 +74,7 @@ exit_code=0
 ready_cond="openmpi:ready"
 done_cond="openmpi:done"
 if [ "${role}" = "master" ]; then
-  wait_cond ${ready_cond} ${workers} 24
+  wait_cond ${ready_cond} ${workers} 30
   sh -c "${exec}" || exit_code=$?
   signal_cond ${done_cond}
 else
