@@ -1,9 +1,15 @@
 {
-  master(params):: $.statefulSet(params, "master", 1),
+  master(params):: $.statefulSet(params, "master", 1, {}),
 
-  worker(params):: $.statefulSet(params, "worker", params.workers),
+  worker(params):: $.statefulSet(params, "worker", params.workers,
+    {
+      limits: {
+        "nvidia.com/gpu": params.numGpus
+      }
+    }
+  ),
 
-  statefulSet(params, role, replicas):: {
+  statefulSet(params, role, replicas, resources):: {
     kind: "StatefulSet",
     apiVersion: "apps/v1",
     metadata: {
@@ -82,6 +88,7 @@
             {
               name: "openmpi-%s" % role,
               image: params.image,
+              resources: resources,
               command: [
                 "sh",
                 "/kubeflow/openmpi/assets/init.sh",
