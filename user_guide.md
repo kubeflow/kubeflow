@@ -30,6 +30,8 @@ This guide will walk you through the basics of deploying and interacting with Ku
 * [Tensorflow](https://www.tensorflow.org/get_started/)
 * [Ksonnet](https://ksonnet.io/docs/tutorial)
 
+For an end to end example illustrating in details how to deploy kubeflow and run a training job from scratch, check out this [tutorial](https://ai.intel.com/lets-flow-within-kubeflow/).
+
 ## Requirements
  * Kubernetes >= 1.8 [see here](https://github.com/kubeflow/tf-operator#requirements)
  * ksonnet version [0.9.2](https://ksonnet.io/#get-started) or later. (See [below](#why-kubeflow-uses-ksonnet) for an explanation of why we use ksonnet)
