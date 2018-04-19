@@ -25,7 +25,7 @@
   genHostfile(params)::
     std.lines(
       std.map(
-        function(index) "openmpi-worker-%(index)d.%(name)s.%(namespace)s.svc.cluster.local" % {
+        function(index) "openmpi-worker-%(index)d.%(name)s.%(namespace)s" % {
           index: index,
           name: params.name,
           namespace: params.namespace,
