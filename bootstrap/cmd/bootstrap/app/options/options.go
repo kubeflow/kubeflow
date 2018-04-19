@@ -25,6 +25,7 @@ type ServerOption struct {
 	JsonLogFormat        bool
 	AppDir				 string
 	KfVersion			 string
+	NameSpace			 string
 }
 
 // NewServerOption creates a new CMServer with a default config.
@@ -39,5 +40,6 @@ func (s *ServerOption) AddFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&s.JsonLogFormat, "json-log-format", true, "Set true to use json style log format. Set false to use plaintext style log format")
 	fs.StringVar(&s.AppDir, "app-dir", "", "The directory for the ksonnet application.")
 	fs.StringVar(&s.KfVersion, "kubeflow-version", "v0.1.0-rc.4", "The Kubeflow version to use.")
+	fs.StringVar(&s.NameSpace, "namespace", "kubeflow", "The namespace where all resources for kubeflow will be created")
 	fs.BoolVar(&s.Apply, "apply", true, "Whether or not to apply the configuraiton.")
 }

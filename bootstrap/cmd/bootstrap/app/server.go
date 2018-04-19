@@ -29,6 +29,8 @@ import (
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	core_v1 "k8s.io/api/core/v1"
+	type_v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	"os"
 	"path"
@@ -48,8 +50,6 @@ const RecommendedConfigPathEnvVar = "KUBECONFIG"
 // DefaultStorageAnnotation is the name of the default annotation used to indicate
 // whether a storage class is the default.
 const DefaultStorageAnnotation = "storageclass.beta.kubernetes.io/is-default-class"
-
-const DefaultNamespace = "kubeflow"
 
 // Assume gcloud is on the path.
 const GcloudPath = "gcloud"
@@ -98,7 +98,7 @@ func getKubeConfigFile() string {
 
 // gGetClusterConfig obtain the config from the Kube configuration used by kubeconfig.
 //
-func getClusterConfig() (*rest.Config, string, error) {
+func getClusterConfig() (*rest.Config, error) {
 	configFile := getKubeConfigFile()
 
 	if len(configFile) > 0 {
@@ -113,21 +113,15 @@ func getClusterConfig() (*rest.Config, string, error) {
 		rawConfig, err := clientConfig.RawConfig()
 
 		if err != nil {
-			return nil, "", err
+			return nil, err
 		}
 
 		if err := modifyGcloudCommand(&rawConfig); err != nil {
-			return nil, "", err
-		}
-
-		namespace, _, err := clientConfig.Namespace()
-
-		if err != nil {
-			return nil, "", err
+			return nil, err
 		}
 
 		config, err := clientConfig.ClientConfig()
-		return config, namespace, err
+		return config, err
 	}
 
 	// Work around https://github.com/kubernetes/kubernetes/issues/40973
@@ -138,7 +132,7 @@ func getClusterConfig() (*rest.Config, string, error) {
 			panic(err)
 		}
 		if err := os.Setenv("KUBERNETES_SERVICE_HOST", addrs[0]); err != nil {
-			return nil, "", err
+			return nil, err
 		}
 	}
 	if len(os.Getenv("KUBERNETES_SERVICE_PORT")) == 0 {
@@ -148,7 +142,7 @@ func getClusterConfig() (*rest.Config, string, error) {
 	}
 
 	config, err := rest.InClusterConfig()
-	return config, DefaultNamespace, err
+	return config, err
 }
 
 func isGke(v *k8sVersion.Info) bool {
@@ -183,6 +177,24 @@ func hasDefaultStorage(sClasses *v1.StorageClassList) bool {
 	return false
 }
 
+func setupNamespace(namespaces type_v1.NamespaceInterface, name_space string) error {
+	namespace, err := namespaces.Get(name_space, meta_v1.GetOptions{})
+	if err == nil {
+		log.Infof("Using existing namespace: %v", namespace.Name)
+	} else {
+		log.Infof("Creating namespace: %v for all kubeflow resources", name_space)
+		_, err = namespaces.Create(
+			&core_v1.Namespace{
+				ObjectMeta: meta_v1.ObjectMeta{
+					Name: name_space,
+				},
+			},
+		)
+		return err
+	}
+	return err
+}
+
 // Run the tool.
 func Run(opt *options.ServerOption) error {
 	// Check if the -version flag was passed and, if so, print the version and exit.
@@ -190,13 +202,17 @@ func Run(opt *options.ServerOption) error {
 		version.PrintVersionAndExit()
 	}
 
-	config, namespace, err := getClusterConfig()
-	log.Infof("Using namespace: %v", namespace)
+	config, err := getClusterConfig()
 	if err != nil {
 		return err
 	}
 
 	kubeClient, err := clientset.NewForConfig(rest.AddUserAgent(config, "kubeflow-bootstraper"))
+	if err != nil {
+		return err
+	}
+
+	err = setupNamespace(kubeClient.CoreV1().Namespaces(), opt.NameSpace)
 	if err != nil {
 		return err
 	}
@@ -237,7 +253,7 @@ func Run(opt *options.ServerOption) error {
 			// TODO(jlewi): What is the proper version to use? It shouldn't be a version like v1.9.0-gke as that
 			// will create an error because ksonnet will be unable to fetch a swagger spec.
 			actions.OptionSpecFlag:              "version:v1.7.0",
-			actions.OptionNamespace:             namespace,
+			actions.OptionNamespace:             opt.NameSpace,
 			actions.OptionSkipDefaultRegistries: true,
 		}
 
