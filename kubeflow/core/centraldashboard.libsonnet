@@ -2,6 +2,9 @@
   // TODO(https://github.com/ksonnet/ksonnet/issues/222): Taking namespace as an argument is a work around for the fact that ksonnet
   // doesn't support automatically piping in the namespace from the environment to prototypes.
 
+  // TODO(https://github.com/kubeflow/kubeflow/issues/527): The central UI is currently using a personal docker image: swiftdiaries/centraldashboard:0.3
+  // We need to build and publish a docker image as part of our release process.
+
   all(params):: [
     $.parts(params.namespace).deployUi,
     $.parts(params.namespace).uiService,
