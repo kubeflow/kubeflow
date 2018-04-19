@@ -115,3 +115,38 @@ To expose the grafana dashboard as, e.g. `YOUR_HOST/grafana`, follow these steps
   - name: GF_SERVER_ROOT_URL
     value: '%(protocol)s://%(domain)s:/grafana'
   ```
+
+### Rolling out new model
+
+A typical scenario is that we first deploy a model A. Then we develop another model B, and we want to deploy it
+and gradually move traffic from A to B. This can be achieved using Istio's traffic routing.
+
+  1. Deploy the first model as [usual](README.md), with name X. We can optionally set the version param, which
+  default to `v1`. After doing `ks apply`, we will have a service X, and a deployment `X-v1`.
+  In addition, a default routing rule is created and routes all requests to `v1`.
+  2. When we want to rollout the new model, use the same name X and set a different version, e.g. `v2`.
+  ```
+  ks param set --env=$ENV $MODEL_COMPONENT version v2
+  ks param set --env=$ENV $MODEL_COMPONENT firstVersion false
+  ks apply $ENV -c $MODEL_COMPONENT 
+  ```
+  This deploys the new deployment `X-v2`, but the traffic will still go to `v1`
+  3. Create the new routing rule. For example, the following sends 5% traffic to `v2`.
+  ```
+  apiVersion: config.istio.io/v1alpha2
+  kind: RouteRule
+  metadata:
+    name: inception-rollout
+    namespace: kubeflow
+  spec:
+    destination:
+      name: inception
+    precedence: 2
+    route:
+    - labels:
+        version: v1
+      weight: 95
+    - labels:
+        version: v2
+      weight: 5
+  ```
