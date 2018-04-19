@@ -31,17 +31,18 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	core_v1 "k8s.io/api/core/v1"
 	type_v1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	rbac_v1 "k8s.io/api/rbac/v1"
 
 	"os"
 	"path"
 	"regexp"
 	"strconv"
 	"strings"
-
-	v1 "k8s.io/api/storage/v1"
+	"k8s.io/api/storage/v1"
 	k8sVersion "k8s.io/apimachinery/pkg/version"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"os/exec"
 )
 
 // RecommendedConfigPathEnvVar is a environment variable for path configuration
@@ -53,6 +54,8 @@ const DefaultStorageAnnotation = "storageclass.beta.kubernetes.io/is-default-cla
 
 // Assume gcloud is on the path.
 const GcloudPath = "gcloud"
+
+const Kubectl = "/usr/local/bin/kubectl"
 
 // TODO(jlewi): If we use the same userid and groupid when running in a container then
 // we shoiuld be able to map in a user's home directory which could be useful e.g for
@@ -223,7 +226,30 @@ func Run(opt *options.ServerOption) error {
 		return err
 	}
 
-	isGke(clusterVersion)
+	if isGke(clusterVersion) {
+		roleBindingName := "kubeflow-admin"
+		_, err = kubeClient.RbacV1().RoleBindings(opt.NameSpace).Get(roleBindingName, meta_v1.GetOptions{})
+		if err != nil {
+			log.Infof("GKE: create rolebinding kubeflow-admin for role permission")
+			user, err := exec.Command("gcloud", "config", "get-value", "account").Output()
+			if err != nil {
+				return err
+			}
+			username := strings.Trim(string(user), "\t\n ")
+
+			_, err = kubeClient.RbacV1().RoleBindings(opt.NameSpace).Create(
+				&rbac_v1.RoleBinding{
+					ObjectMeta: meta_v1.ObjectMeta{Name: roleBindingName, Namespace: opt.NameSpace},
+					Subjects:   []rbac_v1.Subject{{Kind: "User", Name: username}},
+					RoleRef:    rbac_v1.RoleRef{Kind: "ClusterRole", Name: "cluster-admin"},
+				},
+			)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
 	log.Infof("Cluster version: %v", clusterVersion.String())
 
 	s := kubeClient.StorageV1()
