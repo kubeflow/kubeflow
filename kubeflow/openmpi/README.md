@@ -35,7 +35,7 @@ kubectl create secret generic ${SECRET} -n ${NAMESPACE} --from-file=id_rsa=.tmp/
 # Which version of Kubeflow to use.
 # For a list of releases refer to:
 # https://github.com/kubeflow/kubeflow/releases
-VERSION=v0.1.0
+VERSION=master
 
 # Initialize a ksonnet app. Set the namespace for it's default environment.
 APP_NAME=openmpi
