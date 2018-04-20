@@ -11,6 +11,7 @@
 // @optionalParam exec string null Command to execute in master after bootstrap is done. It sleeps indefinitely if not set.
 // @optionalParam imagePullPolicy string IfNotPresent Image pull policy (either IfNotPresent or Always).
 // @optionalParam gpus number 0 Number of GPUs per worker.
+// @optionalParam schedulerName string default-scheduler scheduler name to use for the components.
 
 local k = import "k.libsonnet";
 local openmpi = import "kubeflow/openmpi/all.libsonnet";
