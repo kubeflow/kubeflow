@@ -1,0 +1,13 @@
+# These packages are installed for both python2 and python3
+
+# Extensions for jupyter notebook
+widgetsnbextension
+ipywidgets
+
+# tensorflow related packages
+tensor2tensor
+
+# Common data science packages
+pandas
+keras
+matplotlib
