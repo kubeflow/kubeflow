@@ -37,12 +37,8 @@ wait_workers_running() {
   until [ ${num_runnning_worker} -eq ${workers} ]; do
 
     local num_runnning_worker=0
-    for worker in $(cat ${SCRIPT_DIR}/hostfile | cut -f 1 -d' '); do
-      local worker_pod=${worker%%.*}
-      echo -n "worker pod ${worker_pod}: "
-      phase=$(phase_of ${worker_pod})
-      echo $phase
-      if [ "$phase" = "Running" ]; then
+    for worker in $(cat ${SCRIPT_DIR}/hostfile); do
+      if ssh $worker echo hello >/dev/null 2>&1 ; then
         num_runnning_worker=$((${num_runnning_worker} + 1))
       fi
     done
