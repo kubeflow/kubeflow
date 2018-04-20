@@ -302,24 +302,24 @@ Create a component for your model located on cloud
 MODEL_COMPONENT=serveInception
 MODEL_NAME=inception
 MODEL_PATH=gs://kubeflow-models/inception
-MODEL_LOCATE=cloud
+MODEL_STORAGE_TYPE=cloud
 ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME}
 ks param set ${MODEL_COMPONENT} modelPath ${MODEL_PATH}
-ks param set ${MODEL_COMPONENT} modelLocate ${MODEL_LOCATE}
+ks param set ${MODEL_COMPONENT} modelStorageType ${MODEL_STORAGE_TYPE}
 ```
 
 *(Or)* create a  component for your model located on nfs, learn more from `components/k8s-model-server`
 
 ```
-$ MODEL_COMPONENT=serveInceptionNFS
-$ MODEL_NAME=inception-nfs
-$ MODEL_PATH=/mnt/var/nfs/general/inception
-$ MODEL_LOCATE=nfs
-$ NFS_PVC_NAME=nfs
-$ ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME}
-$ ks param set ${MODEL_COMPONENT} modelPath ${MODEL_PATH}
-$ ks param set ${MODEL_COMPONENT} modelLocate ${MODEL_LOCATE}
-$ ks param set ${MODEL_COMPONENT} nfsPVC ${NFS_PVC_NAME}
+MODEL_COMPONENT=serveInceptionNFS
+MODEL_NAME=inception-nfs
+MODEL_PATH=/mnt/var/nfs/general/inception
+MODEL_STORAGE_TYPE=nfs
+NFS_PVC_NAME=nfs
+ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME}
+ks param set ${MODEL_COMPONENT} modelPath ${MODEL_PATH}
+ks param set ${MODEL_COMPONENT} modelStorageType ${MODEL_STORAGE_TYPE}
+ks param set ${MODEL_COMPONENT} nfsPVC ${NFS_PVC_NAME}
 ```
 
 Deploy the model component. Ksonnet will pick up existing parameters for your environment (e.g. cloud, nocloud) and customize the resulting deployment appropriately
