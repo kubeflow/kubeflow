@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-IMG = gcr.io/kubeflow-images-public/bootstraper
+IMG = gcr.io/kubeflow-images-public/bootstrapper
 
 TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6)
 
