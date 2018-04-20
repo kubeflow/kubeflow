@@ -13,14 +13,14 @@ class KubeFormSpawner(KubeSpawner):
     <label for='image'>Image</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <input list="image" name="image" placeholder='repo/image:tag'>
     <datalist id="image">
-      <option value="gcr.io/kubeflow-images-staging/tensorflow-1.4.1-notebook-cpu:v20180403-1f854c44">
-      <option value="gcr.io/kubeflow-images-staging/tensorflow-1.4.1-notebook-gpu:v20180403-1f854c44">
-      <option value="gcr.io/kubeflow-images-staging/tensorflow-1.5.1-notebook-cpu:v20180403-1f854c44">
-      <option value="gcr.io/kubeflow-images-staging/tensorflow-1.5.1-notebook-gpu:v20180403-1f854c44">
-      <option value="gcr.io/kubeflow-images-staging/tensorflow-1.6.0-notebook-cpu:v20180403-1f854c44">
-      <option value="gcr.io/kubeflow-images-staging/tensorflow-1.6.0-notebook-gpu:v20180403-1f854c44">
-      <option value="gcr.io/kubeflow-images-staging/tensorflow-1.7.0-notebook-cpu:v20180403-1f854c44">
-      <option value="gcr.io/kubeflow-images-staging/tensorflow-1.7.0-notebook-gpu:v20180403-1f854c44">
+      <option value="gcr.io/kubeflow-images-public/tensorflow-1.4.1-notebook-cpu:v20180403-1f854c44">
+      <option value="gcr.io/kubeflow-images-public/tensorflow-1.4.1-notebook-gpu:v20180403-1f854c44">
+      <option value="gcr.io/kubeflow-images-public/tensorflow-1.5.1-notebook-cpu:v20180403-1f854c44">
+      <option value="gcr.io/kubeflow-images-public/tensorflow-1.5.1-notebook-gpu:v20180403-1f854c44">
+      <option value="gcr.io/kubeflow-images-public/tensorflow-1.6.0-notebook-cpu:v20180403-1f854c44">
+      <option value="gcr.io/kubeflow-images-public/tensorflow-1.6.0-notebook-gpu:v20180403-1f854c44">
+      <option value="gcr.io/kubeflow-images-public/tensorflow-1.7.0-notebook-cpu:v20180403-1f854c44">
+      <option value="gcr.io/kubeflow-images-public/tensorflow-1.7.0-notebook-gpu:v20180403-1f854c44">
     </datalist>
     <br/><br/>
 
