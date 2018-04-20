@@ -141,12 +141,9 @@ def setup_kubeflow_ks_app(args, api_client):
   with open(app_file, "w") as f:
     yaml.dump(app_yaml, f)
 
-  # Delete the vendor directory and replace with a symlink to the src
+  # Create vendor directory with a symlink to the src
   # so that we use the code at the desired commit.
   target_dir = os.path.join(app_dir, "vendor", "kubeflow")
-
-  logging.info("Deleting %s", target_dir)
-  shutil.rmtree(target_dir)
 
   REPO_ORG = "kubeflow"
   REPO_NAME = "kubeflow"
