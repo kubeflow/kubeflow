@@ -34,7 +34,7 @@ For an end to end example illustrating in details how to deploy kubeflow and run
 
 ## Requirements
  * Kubernetes >= 1.8 [see here](https://github.com/kubeflow/tf-operator#requirements)
- * ksonnet version [0.9.2](https://ksonnet.io/#get-started) or later. (See [below](#why-kubeflow-uses-ksonnet) for an explanation of why we use ksonnet)
+ * ksonnet version [0.9.2](https://ksonnet.io/#get-started). (See [below](#why-kubeflow-uses-ksonnet) for an explanation of why we use ksonnet)
 
 ## Deploy Kubeflow
 
