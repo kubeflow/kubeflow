@@ -96,6 +96,8 @@ c.KubeSpawner.cmd = 'start-singleuser.sh'
 c.KubeSpawner.args = ['--allow-root']
 # gpu images are very large ~15GB. need a large timeout.
 c.KubeSpawner.start_timeout = 60 * 30
+# Increase timeout to 5 minutes to avoid HTTP 500 errors on JupyterHub
+c.KubeSpawner.http_timeout = 60 * 5
 volumes = []
 volume_mounts = []
 ###################################################
