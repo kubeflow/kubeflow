@@ -68,7 +68,7 @@ const Kubectl = "/usr/local/bin/kubectl"
 // container because the path will be different. However, we can assume gcloud is on the path.
 func modifyGcloudCommand(config *clientcmdapi.Config) error {
 	for k, a := range config.AuthInfos {
-		if a.AuthProvider.Name != "gcp" {
+		if a.AuthProvider == nil || a.AuthProvider.Name != "gcp" {
 			continue
 		}
 
@@ -228,7 +228,7 @@ func Run(opt *options.ServerOption) error {
 
 	if isGke(clusterVersion) {
 		roleBindingName := "kubeflow-admin"
-		_, err = kubeClient.RbacV1().RoleBindings(opt.NameSpace).Get(roleBindingName, meta_v1.GetOptions{})
+		_, err = kubeClient.RbacV1().ClusterRoleBindings().Get(roleBindingName, meta_v1.GetOptions{})
 		if err != nil {
 			log.Infof("GKE: create rolebinding kubeflow-admin for role permission")
 			user, err := exec.Command("gcloud", "config", "get-value", "account").Output()
@@ -237,9 +237,9 @@ func Run(opt *options.ServerOption) error {
 			}
 			username := strings.Trim(string(user), "\t\n ")
 
-			_, err = kubeClient.RbacV1().RoleBindings(opt.NameSpace).Create(
-				&rbac_v1.RoleBinding{
-					ObjectMeta: meta_v1.ObjectMeta{Name: roleBindingName, Namespace: opt.NameSpace},
+			_, err = kubeClient.RbacV1().ClusterRoleBindings().Create(
+				&rbac_v1.ClusterRoleBinding{
+					ObjectMeta: meta_v1.ObjectMeta{Name: roleBindingName},
 					Subjects:   []rbac_v1.Subject{{Kind: "User", Name: username}},
 					RoleRef:    rbac_v1.RoleRef{Kind: "ClusterRole", Name: "cluster-admin"},
 				},

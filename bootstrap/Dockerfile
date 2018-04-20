@@ -8,7 +8,7 @@ ENV PATH /go/bin:/usr/local/go/bin:$PATH
 RUN mkdir -p $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap
 COPY ./ $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap/
 
-RUN go build -i -o /opt/kubeflow/bootstraper ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/main.go
+RUN go build -i -o /opt/kubeflow/bootstrapper ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/main.go
 
 FROM golang:1.8.2
 
@@ -48,7 +48,7 @@ RUN cd /opt/ksonnet && \
 
 RUN mkdir -p /opt/kubeflow
 
-COPY --from=builder /opt/kubeflow/bootstraper /opt/kubeflow/
+COPY --from=builder /opt/kubeflow/bootstrapper /opt/kubeflow/
 COPY start.sh /opt/kubeflow/
 
 RUN chmod a+rx /opt/kubeflow/*
