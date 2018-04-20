@@ -677,7 +677,7 @@ def main():  # pylint: disable=too-many-locals,too-many-statements
   parser_pytorch_job = subparsers.add_parser(
     "deploy_pytorchjob", help="Deploy a pytorch-job")
 
-  parser_tf_serving.set_defaults(func=deploy_pytorchjob)
+  parser_pytorch_job.set_defaults(func=deploy_pytorchjob)
 
   parser_pytorch_job.add_argument(
     "--params",
