@@ -73,7 +73,7 @@ This documentation assumes you have a Kubernetes cluster already available. If y
 
 ### Requirements
 
-  * ksonnet version [0.9.2](https://ksonnet.io/#get-started) or later.
+  * ksonnet version [0.9.2](https://ksonnet.io/#get-started).
   * Kubernetes >= 1.8 [see here](https://github.com/kubeflow/tf-operator#requirements)
 
 ### Github Tokens
