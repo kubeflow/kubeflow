@@ -37,7 +37,7 @@ docker run -ti \
   -e USER=${USER} \
   -v ${APP_DIR_HOST}:/home/${USER}/${APP_FOLDER_DOCKER} \
   -v ${HOME}/.kube:/home/${USER}/.kube \
-  -v ${HOME}/.config:/home/${USER}/.config gcr.io/kubeflow-images-staging/bootstraper:latest
+  -v ${HOME}/.config:/home/${USER}/.config gcr.io/kubeflow-images-public/bootstraper:latest
 
 # Inside docker, run
 /opt/kubeflow/bootstraper --app-dir=/home/${USER}/${APP_FOLDER_DOCKER}/<your_app_name> --namespace=<Your new namespace which hold bootstrap>

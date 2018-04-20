@@ -27,7 +27,7 @@ This registry is not public.
 
 Our releases also publish images using Argo workflows; for more info see [releasing.md](./releasing.md).
 
-We currently use the registry gcr.io/kubeflow-images-staging.
+We currently use the registry gcr.io/kubeflow-images-public.
 
 There are open issues to
 
