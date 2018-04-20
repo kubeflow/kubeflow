@@ -3,11 +3,13 @@
     $.configMap(params),
   ],
 
+  name(params):: "%s-assets" % params.name,
+
   configMap(params):: {
     kind: "ConfigMap",
     apiVersion: "v1",
     metadata: {
-      name: "openmpi-assets",
+      name: $.name(params),
       namespace: params.namespace,
       labels: {
         app: params.name,
@@ -25,7 +27,7 @@
   genHostfile(params)::
     std.lines(
       std.map(
-        function(index) "openmpi-worker-%(index)d.%(name)s.%(namespace)s%(slots)s" % {
+        function(index) "%(name)s-worker-%(index)d.%(name)s.%(namespace)s%(slots)s" % {
           index: index,
           name: params.name,
           namespace: params.namespace,
