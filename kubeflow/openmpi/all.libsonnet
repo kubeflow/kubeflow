@@ -1,6 +1,6 @@
+local assets = import "kubeflow/openmpi/assets.libsonnet";
 local service = import "kubeflow/openmpi/service.libsonnet";
 local workloads = import "kubeflow/openmpi/workloads.libsonnet";
-local assets = import "kubeflow/openmpi/assets.libsonnet";
 
 {
   all(params, env):: $.parts(params, env).all,
@@ -16,7 +16,7 @@ local assets = import "kubeflow/openmpi/assets.libsonnet";
 
     all::
       assets.all(updatedParams)
-      + workloads.all(updatedParams)
       + service.all(updatedParams)
+      + workloads.all(updatedParams),
   },
 }
