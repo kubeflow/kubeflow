@@ -32,11 +32,6 @@ if [ $(id -u) == 0 ] ; then
         done
     fi
 
-    # Ensure pv directory belongs to user
-    if [[ ! -z "/home/$NB_USER" && -d "/home/$NB_USER" ]]; then
-        echo "Set ownership to uid $NB_UID: /home/$NB_USER"
-        chown -R $NB_UID /home/$NB_USER
-    fi
     # Change GID of NB_USER to NB_GID if NB_GID is passed as a parameter
     if [ "$NB_GID" ] ; then
         echo "Change GID to $NB_GID"
