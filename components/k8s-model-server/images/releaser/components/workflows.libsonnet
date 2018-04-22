@@ -95,6 +95,7 @@
         name: "inception-cpu",
         namespace: stepsNamespace,
         modelPath: "gs://kubeflow-models/inception",
+	deployHttpProxy: True,
       } + if build_image then
         {
           modelServerImage: cpuImage,
@@ -295,13 +296,11 @@
         "--deploy_name=inception-cpu",
         "deploy_model",
         "--params=" + deployParamsList,
-	"deployHttpProxy=True",
       ];
       local deploy_tf_serving_gpu_command = deploy_tf_serving_command_base + [
         "--deploy_name=inception-gpu",
         "deploy_model",
         "--params=" + deployGpuParamsList,
-	"deployHttpProxy=True",
       ];
 
       {
