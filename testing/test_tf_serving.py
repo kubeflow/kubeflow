@@ -103,7 +103,7 @@ def main():
         logging.info('Expected result: {}'.format(expected_result))
         assert(expected_result == result)
   except Exception as e:
-    t.failure = "Test failed; " + e.message
+    t.failure = "Test failed; " + e
     raise
   finally:
     t.time = time.time() - start
