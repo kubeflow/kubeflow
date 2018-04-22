@@ -99,12 +99,14 @@
       } + if build_image then
         {
           modelServerImage: cpuImage,
+	  httpProxyImage: httpProxyImage,
         } else {};
       local deployGpuParams = {
         name: "inception-gpu",
         namespace: stepsNamespace,
         modelPath: "gs://kubeflow-models/inception",
         numGpus: 1,
+	deployHttpProxy: true,
       };
 
       local toPair = function(k, v) k + "=" + v;
