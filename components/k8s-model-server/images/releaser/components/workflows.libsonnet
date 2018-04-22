@@ -95,7 +95,7 @@
         name: "inception-cpu",
         namespace: stepsNamespace,
         modelPath: "gs://kubeflow-models/inception",
-	deployHttpProxy: True,
+	deployHttpProxy: true,
       } + if build_image then
         {
           modelServerImage: cpuImage,
