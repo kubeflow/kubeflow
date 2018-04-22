@@ -87,6 +87,9 @@
       local cpuImage = params.registry + "/tf-model-server-cpu" + ":" + params.versionTag;
       local gpuImage = params.registry + "/tf-model-server-gpu" + ":" + params.versionTag;
 
+      local httpImageDir = srcRootDir + "/kubeflow/kubeflow/components/k8s-model-server/http-proxy";
+      local httpProxyImage = params.registry + "/tf-model-server-http-proxy:" + params.versionTag;
+
       // Parameters to set on the modelServer component
       local deployParams = {
         name: "inception-cpu",
@@ -160,7 +163,7 @@
       };  // buildTemplate
 
 
-      local buildImageTemplate(step_name, dockerfile, image) =
+      local buildImageTemplate(step_name, imageDir, dockerfile, image) =
         buildTemplate(
           step_name,
           [
@@ -260,9 +263,14 @@
           dependencies: ["checkout"],
         },
         {
+          name: "build-tf-serving-http",
+          template: "build-tf-serving-http",
+          dependencies: ["checkout"],
+        },
+        {
           name: "deploy-tf-serving",
           template: "deploy-tf-serving",
-          dependencies: ["build-tf-serving-cpu", "setup"],
+          dependencies: ["build-tf-serving-cpu", "build-tf-serving-http", "setup"],
         },
       ] else [
         {
@@ -287,11 +295,13 @@
         "--deploy_name=inception-cpu",
         "deploy_model",
         "--params=" + deployParamsList,
+	"deployHttpProxy=True",
       ];
       local deploy_tf_serving_gpu_command = deploy_tf_serving_command_base + [
         "--deploy_name=inception-gpu",
         "deploy_model",
         "--params=" + deployGpuParamsList,
+	"deployHttpProxy=True",
       ];
 
       {
@@ -360,7 +370,8 @@
               [], // no sidecars
             ),
 
-            buildImageTemplate("build-tf-serving-cpu", "Dockerfile.cpu", cpuImage),
+            buildImageTemplate("build-tf-serving-cpu", imageDir, "Dockerfile.cpu", cpuImage),
+            buildImageTemplate("build-tf-serving-http", httpImageDir, "Dockerfile", httpProxyImage),
 
             // Setup configures a kubeconfig file for GKE.
             buildTemplate("setup", [
