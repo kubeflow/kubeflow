@@ -51,7 +51,7 @@ Install the Kubeflow packages into your application.
 ```
 # For a list of releases see:
 # https://github.com/kubeflow/kubeflow/releases
-VERSION=v0.1.0
+VERSION=v0.1.2
 
 cd my-kubeflow
 ks registry add kubeflow github.com/kubeflow/kubeflow/tree/${VERSION}/kubeflow
@@ -111,14 +111,14 @@ $ KF_ENV=cloud|nocloud
 ```
 
 
-* By default Kubeflow does not persist any work that is done within the Jupyter notebook. 
-* If the container is destroyed or recreated, all of its contents, including users working notebooks and other files are going to be deleted. 
-* To enable the persistence of such files, the user will need to have a default StorageClass defined for [persistent volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/). 
+* By default Kubeflow does not persist any work that is done within the Jupyter notebook.
+* If the container is destroyed or recreated, all of its contents, including users working notebooks and other files are going to be deleted.
+* To enable the persistence of such files, the user will need to have a default StorageClass defined for [persistent volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/).
 * You can run the following command to check if you have a storage class
 
 ```
 kubectl get storageclass
-```  
+```
 * Users with a default storage class defined can use the jupyterNotebookPVCMount
   parameter to create a volume that will be mounted within the notebook
 
@@ -248,10 +248,10 @@ You should see a sign in prompt.
             * If you signed on as USER@DOMAIN.EXT the pod will be named
 
             ```
-            jupyter-accounts-2egoogle-2ecom-3USER-40DOMAIN-2eEXT 
+            jupyter-accounts-2egoogle-2ecom-3USER-40DOMAIN-2eEXT
             ```
 
-1. You should now be greeted with a Jupyter Notebook interface. 
+1. You should now be greeted with a Jupyter Notebook interface.
 
 The image supplied above can be used for training Tensorflow models with Jupyter. The images include all the requisite plugins, including [Tensorboard](https://www.tensorflow.org/get_started/summaries_and_tensorboard) that you can use for rich visualizations and insights into your models.
 
@@ -550,7 +550,7 @@ kubectl -n ${NAMESPACE} get pods
   * If you are using IAP on GKE the pod will be named
 
     ```
-    jupyter-accounts-2egoogle-2ecom-3USER-40DOMAIN-2eEXT 
+    jupyter-accounts-2egoogle-2ecom-3USER-40DOMAIN-2eEXT
     ```
 
     * Where USER@DOMAIN.EXT is the Google account used with IAP
