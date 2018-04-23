@@ -4,6 +4,7 @@ USER root
 
 ENV HOME /root
 
-COPY . $HOME
+ADD requirements.txt $HOME
+ADD controller $HOME/controller
 
 RUN pip3 install -r $HOME/requirements.txt

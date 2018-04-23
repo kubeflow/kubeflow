@@ -117,7 +117,7 @@
     },
     local controller = {
       name: "openmpi-controller",
-      image: "jiez/openmpi-controller:latest",
+      image: params.controllerImage,
       imagePullPolicy: "Always",
       terminationMessagePath: "/dev/termination-log",
       terminationMessagePolicy: "File",
