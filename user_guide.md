@@ -302,10 +302,8 @@ Create a component for your model located on cloud
 MODEL_COMPONENT=serveInception
 MODEL_NAME=inception
 MODEL_PATH=gs://kubeflow-models/inception
-MODEL_STORAGE_TYPE=cloud
 ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME}
 ks param set ${MODEL_COMPONENT} modelPath ${MODEL_PATH}
-ks param set ${MODEL_COMPONENT} modelStorageType ${MODEL_STORAGE_TYPE}
 ```
 
 *(Or)* create a  component for your model located on nfs, learn more from `components/k8s-model-server`

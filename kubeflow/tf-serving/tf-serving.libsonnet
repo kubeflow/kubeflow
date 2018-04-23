@@ -147,10 +147,12 @@
         runAsUser: 1000,
         fsGroup: 1000,
       },
-      volumeMounts+: if $.params.modelStorageType == "nfs" then [{
-        name: "nfs",
-        mountPath: "/mnt",
-      }]
+      volumeMounts+: if 'modelStorageType' om $.params then
+        if $.params.modelStorageType == "nfs" then [{
+          name: "nfs",
+          mountPath: "/mnt",
+        }]
+        else []
       else [],
     },  // tfServingContainer
 
@@ -222,13 +224,15 @@
               if $.util.toBool($.params.deployHttpProxy) then
                 $.parts.httpProxyContainer,
             ],
-            volumes+: if $.params.modelStorageType == "nfs" then 
-            [{
-              name: "nfs",
-              persistentVolumeClaim: {
-                claimName: $.params.nfsPVC,
-              }
-            }]
+            volumes+: if 'modelStorageType' in $.params then 
+              if $.params.modelStorageType == "nfs" then 
+              [{
+                name: "nfs",
+                persistentVolumeClaim: {
+                  claimName: $.params.nfsPVC,
+                }
+              }]
+              else []
             else [],
           },
         },
