@@ -83,7 +83,7 @@ It is HIGHLY likely you'll overload Github's API if you are unauthenticated. To 
 * Go to https://github.com/settings/tokens and generate a new token. You don't have to give it any access at all as you are simply authenticating.
 * Make sure you save that token someplace because you can't see it again. If you lose it you'll have to delete and create a new one.
 * Set an environment variable in your shell: export GITHUB_TOKEN=<token>. You may want to do this as part of your shell startup scripts (i.e. .profile).
-  
+
 ```
 echo "export GITHUB_TOKEN=${GITHUB_TOKEN}" >> ~/.bashrc
 ```
@@ -100,7 +100,7 @@ kubectl create namespace ${NAMESPACE}
 # Which version of Kubeflow to use
 # For a list of releases refer to:
 # https://github.com/kubeflow/kubeflow/releases
-VERSION=v0.1.0
+VERSION=v0.1.2
 
 # Initialize a ksonnet app. Set the namespace for it's default environment.
 APP_NAME=my-kubeflow
@@ -135,7 +135,7 @@ ks apply default -c kubeflow-core
 
 The above commands are used to setup JupyterHub and a custom resource for running TensorFlow training jobs. Furthermore, the ksonnet packages provide prototypes that can be used to configure TensorFlow jobs and deploy TensorFlow models.
 Used together, these make it easy for a user to transition from training to model serving using Tensorflow with minimal
-effort, and in a portable fashion across different environments. 
+effort, and in a portable fashion across different environments.
 
 For more detailed instructions about how to use Kubeflow, including testing the Jupyter Notebook, please refer to the [user guide](user_guide.md).
 
