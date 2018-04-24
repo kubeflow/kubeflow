@@ -1,13 +1,21 @@
+local service = import "kubeflow/openmpi/service.libsonnet";
+local assets = import "kubeflow/openmpi/assets.libsonnet";
+
 {
   all(params)::
     $.master(params) + $.worker(params),
 
+  masterHostname(params):: "%s-master" % params.name,
   master(params)::
-    [$.pod(params, "master", "openmpi-master")],
+    [$.pod(params, "master", $.masterHostname(params))],
 
+  workerHostname(params, index):: "%(name)s-worker-%(index)d" % {
+    name: params.name,
+    index: index
+  },
   worker(params)::
     std.map(
-      function(index) $.pod(params, "worker", "openmpi-worker-%d" % index),
+      function(index) $.pod(params, "worker", $.workerHostname(params, index)),
       std.range(0, params.workers - 1)
     ),
 
@@ -24,7 +32,7 @@
     },
     spec: {
       hostname: hostname,
-      subdomain: params.name,
+      subdomain: service.name(params),
       restartPolicy: "Never",
       terminationGracePeriodSeconds: 30,
       dnsPolicy: "ClusterFirst",
@@ -40,7 +48,7 @@
         {
           name: "kubeflow-openmpi-assets",
           configMap: {
-            name: "openmpi-assets",
+            name: assets.name(params),
             items: [
               {
                 key: "init.sh",
@@ -83,7 +91,7 @@
             std.toString(params.workers),
             hostname,
             params.exec,
-            "openmpi-master"
+            $.masterHostname(params)
           ],
           ports: [
             {
