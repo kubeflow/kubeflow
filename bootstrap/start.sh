@@ -16,12 +16,9 @@ if [ -v "DEPLOY_JOB" ]; then
     # Recreate env since we have proper k8s creds
     ks env rm default
     ks env add default --server=http://127.0.0.1:8111
-    kubectl create namespace ${NAMESPACE}
 
     ks env set default --namespace ${NAMESPACE}
     ks generate kubeflow-core kubeflow-core
-
-    ks param set kubeflow-core jupyterNotebookPVCMount ${PVC_MOUNT_PATH}
 
     ks apply default --token=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
     exit 0

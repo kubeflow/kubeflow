@@ -20,8 +20,6 @@ spec:
       - name: kubeflow-deploy
         image: gcr.io/kubeflow-images-staging/bootstraper:latest
         env:
-        - name: PVC_MOUNT_PATH
-          value: "null"  # If StorageClass is available, edit this value like /home/jovyan/work
         - name: NAMESPACE
           value: "kubeflow"
         - name: DEPLOY_JOB
