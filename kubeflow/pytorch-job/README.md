@@ -31,8 +31,8 @@ $ ks prototype use io.ksonnet.pkg.pytorch-job pytorch-job \
   --name pytorch-job
 
 # Apply to server.
-$ ks apply -f pytorch-operator.jsonnet # wait for the operator to be running
-$ ks apply -f pytorch-job.jsonnet
+$ ks apply default -c pytorch-operator # wait for the operator to be running
+$ ks apply default -c pytorch-job
 ```
 
 ## Using the library
