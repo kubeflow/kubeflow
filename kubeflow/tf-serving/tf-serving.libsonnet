@@ -147,7 +147,7 @@
         runAsUser: 1000,
         fsGroup: 1000,
       },
-      volumeMounts+: if 'modelStorageType' om $.params then
+      volumeMounts+: if 'modelStorageType' in $.params then
         if $.params.modelStorageType == "nfs" then [{
           name: "nfs",
           mountPath: "/mnt",
