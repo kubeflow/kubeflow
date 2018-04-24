@@ -223,12 +223,21 @@ def deploy_kubeflow(args):
     ],
     cwd=app_dir)
 
+  util.run(
+    [
+      "ks", "generate", "pytorch-operator", "pytorch-operator", "--name=pytorch-operator",
+      "--namespace=" + namespace
+    ],
+    cwd=app_dir)
+
   apply_command = [
     "ks",
     "apply",
     "default",
     "-c",
     "kubeflow-core",
+    "-c",
+    "pytorch-operator",
   ]
 
   if args.as_gcloud_user:
@@ -252,6 +261,10 @@ def deploy_kubeflow(args):
   logging.info("Verifying TfHub started.")
   util.wait_for_statefulset(api_client, namespace, jupyterhub_name)
 
+  # Verify that PyTorch Operator actually deployed
+  pytorch_operator_deployment_name = "pytorch-operator"
+  logging.info("Verifying PyTorchJob controller started.")
+  util.wait_for_deployment(api_client, namespace, pytorch_operator_deployment_name)
 
 def deploy_model(args):
   """Deploy a TF model using the TF serving component."""

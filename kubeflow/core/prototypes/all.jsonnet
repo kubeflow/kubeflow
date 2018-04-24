@@ -16,8 +16,6 @@
 // @optionalParam jupyterNotebookPVCMount string null Mount path for PVC. Set empty to disable PVC
 // @optionalParam reportUsage string false Whether or not to report Kubeflow usage to kubeflow.org.
 // @optionalParam usageId string unknown_cluster Optional id to use when reporting usage to kubeflow.org
-// @optionalParam pytorchJobImage string jgaguirr/pytorch-operator:latest The image for the PyTorchJob controller
-// @optionalParam pytorchDefaultImage string null The default image to use for pytorch
 
 local k = import "k.libsonnet";
 local all = import "kubeflow/core/all.libsonnet";

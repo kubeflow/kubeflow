@@ -5,6 +5,7 @@
 
 * [Quickstart](#quickstart)
 * [Using Prototypes](#using-prototypes)
+  * [io.ksonnet.pkg.pytorch-operator](#io.ksonnet.pkg.pytorch-operator)
   * [io.ksonnet.pkg.pytorch-job](#io.ksonnet.pkg.pytorch-job)
 
 ## Quickstart
@@ -20,11 +21,17 @@ Finally, in the ksonnet application directory, run the following:
 ```shell
 # Expand prototype as a Jsonnet file, place in a file in the
 # `components/` directory. (YAML and JSON are also available.)
+$ ks pkg install kubeflow/pytorch-job@master
+$ ks prototype use io.ksonnet.pkg.pytorch-operator pytorch-operator \
+  --namespace default \
+  --name pytorch-operator
+
 $ ks prototype use io.ksonnet.pkg.pytorch-job pytorch-job \
   --namespace default \
   --name pytorch-job
 
 # Apply to server.
+$ ks apply -f pytorch-operator.jsonnet # wait for the operator to be running
 $ ks apply -f pytorch-job.jsonnet
 ```
 
@@ -35,6 +42,24 @@ The library files for pytorch-job define a set of relevant *parts* (_e.g._, depl
 This library provides a set of pre-fabricated "flavors" (or "distributions") of pytorch-job, each of which is configured for a different use case. These are captured as ksonnet *prototypes*, which allow users to interactively customize these distributions for their specific needs.
 
 These prototypes, as well as how to use them, are enumerated below.
+
+### io.ksonnet.pkg.pytorch-operator
+
+A PyTorch Operator.
+#### Example
+
+```shell
+# Expand prototype as a Jsonnet file, place in a file in the
+# `components/` directory. (YAML and JSON are also available.)
+$ ks prototype use io.ksonnet.pkg.pytorch-operator pytorch-operator \
+  --name YOUR_NAME_HERE
+```
+
+#### Parameters
+
+The available options to pass prototype are:
+
+* `--name=<name>`: Name to give to each of the components [string]
 
 ### io.ksonnet.pkg.pytorch-job
 
