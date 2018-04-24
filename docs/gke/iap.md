@@ -116,7 +116,7 @@ to create a ksonnet app to deploy Kubeflow.
 [cert-manager](https://github.com/jetstack/cert-manager) is used to automatically request valid SSL certifiactes using the [ACME](https://en.wikipedia.org/wiki/Automated_Certificate_Management_Environment) issuer.
 
 ```
-ks generate cert-manager cert-manager --acmeEmail=${ACCOUNT}
+ks generate cert-manager cert-manager --namespace=${NAMESPACE} --acmeEmail=${ACCOUNT}
 ks apply ${ENVIRONMENT} -c cert-manager
 
 ks generate iap-ingress iap-ingress --namespace=${NAMESPACE} --ipName=${IP_NAME} --hostname=${FQDN}
