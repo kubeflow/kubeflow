@@ -62,7 +62,7 @@ ks apply default
 
 # Inspect the pod status.
 kubectl get pod -n ${NAMESPACE}
-kubectl logs -n ${NAMESPACE} -f openmpi-master
+kubectl logs -n ${NAMESPACE} -f ${COMPONENT}-master
 ```
 
 ## Running Horovod
