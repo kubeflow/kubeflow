@@ -8,6 +8,11 @@ ipywidgets
 tensor2tensor
 
 # Common data science packages
+h5py
+sklearn
 pandas
 keras
 matplotlib
+
+# Google Cloud related packages
+google-cloud-storage
