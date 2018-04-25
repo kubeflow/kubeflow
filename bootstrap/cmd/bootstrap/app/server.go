@@ -302,8 +302,10 @@ func Run(opt *options.ServerOption) error {
 		log.Fatalf("There was a problem loading the app: %v", err)
 	}
 
-	registryUri := fmt.Sprintf("github.com/kubeflow/kubeflow/tree/%v/kubeflow", opt.KfVersion)
-
+        registryUri := fmt.Sprintf("github.com/kubeflow/kubeflow/tree/%v/kubeflow", opt.KfVersion)
+	if opt.RegistryDir != "" {
+	    registryUri = opt.RegistryDir
+        }
 	registryName := "kubeflow"
 
 	options := map[string]interface{}{
@@ -342,6 +344,9 @@ func Run(opt *options.ServerOption) error {
 	// Install packages.
 	for _, p := range []string{"kubeflow/core", "kubeflow/tf-serving", "kubeflow/tf-job"} {
 		full := fmt.Sprintf("%v@%v", p, opt.KfVersion)
+                if opt.RegistryDir != "" {
+                    full = p
+                }
 		log.Infof("Installing package %v", full)
 
 		pieces := strings.Split(p, "/")
