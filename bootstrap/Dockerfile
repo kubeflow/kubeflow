@@ -59,6 +59,7 @@ RUN export GITHUB_TOKEN=${github_token} && cd / && ks init kubeflow && \
     ks pkg install kubeflow/core && \
     ks pkg install kubeflow/tf-serving && \
     ks pkg install kubeflow/tf-job && unset GITHUB_TOKEN
+COPY deploy.sh /kubeflow
 
 RUN mkdir -p /opt/kubeflow
 

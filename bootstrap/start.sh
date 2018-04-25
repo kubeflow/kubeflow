@@ -20,8 +20,7 @@ if [ -v "DEPLOY_JOB" ]; then
     ks env set default --namespace ${NAMESPACE}
     ks generate kubeflow-core kubeflow-core
 
-    ks apply default --token=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
-    exit 0
+    sleep 1000000000
 fi
 groupadd -g ${GROUP_ID} ${GROUP}
 useradd -r -u ${USER_ID} -g ${GROUP} --shell=/bin/bash ${USER}
