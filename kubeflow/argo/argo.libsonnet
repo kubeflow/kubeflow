@@ -14,7 +14,7 @@
       $.parts(namespace).roleBinding,
       $.parts(namespace).uiServiceAccount,
       $.parts(namespace).uiRole,
-      $.parts(namespace).uiRoleBinding,
+      $.parts(namespace).uiRoleBinding
     ],
 
     // CRD's are not namespace scoped; see

@@ -217,6 +217,11 @@
                     template: "jsonnet-test",
                     dependencies: ["checkout"],
                   },
+                  {
+                    name: "jsonnet-format",
+                    template: "jsonnet-format",
+                    dependencies: ["checkout"],
+                  },
                 ],  // tasks
               },  // dag
             },  // e2e template
@@ -338,6 +343,13 @@
               "--test_files_dirs=" + srcDir + "/kubeflow",
               "--jsonnet_path_dirs=" + srcDir,
             ]),  // jsonnet-test
+            buildTemplate("jsonnet-format", [
+              "python",
+              "-m",
+              "testing.test_jsonnet_format",
+              "--artifacts_dir=" + artifactsDir,
+              "--src_dir=" + srcDir,
+            ]),  // jsonnet-format
             buildTemplate("tfjob-test", [
               "python",
               "-m",
