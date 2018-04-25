@@ -79,5 +79,5 @@ ENV USER_ID 1000
 ENV GROUP_ID 1000
 ENV GROUP kubeflow
 
-WORKDIR /kubeflow
-CMD ["/opt/kubeflow/start.sh"]
+WORKDIR /opt/kubeflow
+ENTRYPOINT ["/opt/kubeflow/start.sh"]

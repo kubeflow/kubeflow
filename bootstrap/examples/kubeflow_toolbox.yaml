@@ -13,8 +13,24 @@ kind: Service
 apiVersion: v1
 metadata:
   name: kubeflow-toolbox
+  namespace: kubeflow
 spec:
   clusterIP: "None"
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kubeflow-toolbox-pvc
+  namespace: kubeflow
+  labels:
+    app: kubeflow-toolbox
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
 
 ---
 apiVersion: apps/v1
@@ -41,4 +57,10 @@ spec:
           value: "kubeflow"
         - name: DEPLOY_JOB
           value: "1"
-
+        volumeMounts:
+        - name: kubeflow-toolbox-pvc
+          mountPath: /opt/kubeflow/app
+      volumes:
+      - name: kubeflow-toolbox-pvc
+        persistentVolumeClaim:
+          claimName: kubeflow-toolbox-pvc
