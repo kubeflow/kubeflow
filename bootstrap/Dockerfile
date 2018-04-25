@@ -32,7 +32,7 @@ RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.10.0/
 
 RUN git clone https://github.com/ksonnet/ksonnet.git /opt/ksonnet && \
 	cd /opt/ksonnet && \
-	git checkout 68d8f751791db6b0e0798c34f0d72bda24926d8d
+	git checkout v0.10.0-alpha.3
 
 # TODO(jlewi): bootstrap is using an early dev version of ks (0.10) so we need
 # to build ks at the same commit because the generated app won't work with
