@@ -16,21 +16,51 @@
 
 # Script to autoformat libsonnet files.
 # Assumes jsonnet is on the path.
-set -ex
 
-echo "Running auto-format from '$(pwd)' directory"
+ALL_FILES=false
+
+function usage()
+{
+    echo "autoformat_jsonnet.sh [--all]"
+    echo ""
+    echo "Autoformats .jsonnet and .libjsonnet files tracked by git."
+    echo "By default only files relative that are modified to origin/master are formatted"
+    echo ""
+    echo "Options:"
+    echo "    --all : Formats all .jsonnet and .libjsonnet files."
+}
+
+while [ "$1" != "" ]; do
+    PARAM=`echo $1 | awk -F= '{print $1}'`
+    case $PARAM in 
+        -h | --help)
+            usage
+            exit
+            ;;
+        --all)
+            ALL_FILES=true
+            ;;
+        *)
+            echo "ERROR: unknown parameter \"$PARAM\""
+            usage
+            exit 1
+            ;;
+    esac
+    shift
+done
+
+if $ALL_FILES; then
+    fmt_files=($(git ls-files -- '*.libsonnet' '*.jsonnet')) 
+else 
+    fmt_files=($(git diff --name-only origin/master -- '*.libsonnet' '*.jsonnet'))
+fi
 
 # 2 spaces vertical indentation
 # Use double quotes for strings
 # Use // for comments
-find "$(pwd)/kubeflow" -iregex ".*\.jsonnet$" -exec \
-  jsonnet fmt {} -i \
-  --string-style d \
-  --comment-style s \
-  --indent 2 ";"
+for f in "${fmt_files[@]}"
+do
+  jsonnet fmt -i --string-style d --comment-style s --indent 2 $f 
+  echo "Autoformatted $f"
+done
 
-find "$(pwd)/kubeflow" -iregex ".*\.libsonnet$" -exec \
-  jsonnet fmt {} -i \
-  --string-style d \
-  --comment-style s \
-  --indent 2 ";"
