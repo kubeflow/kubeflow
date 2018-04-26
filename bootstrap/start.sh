@@ -15,6 +15,7 @@ if [ -v "DEPLOY_JOB" ]; then
     kubectl proxy --port=8111 &
 
     # Recreate env since we have proper k8s creds
+    # TODO (inc0): Replace this with bootstrapper when we confirm that it works inside cluster
     ks env rm default
     ks env add default --server=http://127.0.0.1:8111
     ks env set default --namespace ${NAMESPACE}
