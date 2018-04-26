@@ -10,6 +10,10 @@
     },
     modelName: $.params.name,
     modelPath: null,
+    storageType: if "modelStorageType" in $.params then
+      $.params.modelStorageType
+    else
+      "cloud",
 
     version: "v1",
     firstVersion: true,
@@ -147,12 +151,10 @@
         runAsUser: 1000,
         fsGroup: 1000,
       },
-      volumeMounts+: if 'modelStorageType' in $.params then
-        if $.params.modelStorageType == "nfs" then [{
-          name: "nfs",
-          mountPath: "/mnt",
-        }]
-        else []
+      volumeMounts+: if $.params.storageType == "nfs" then [{
+        name: "nfs",
+        mountPath: "/mnt",
+      }]
       else [],
     },  // tfServingContainer
 
@@ -224,15 +226,13 @@
               if $.util.toBool($.params.deployHttpProxy) then
                 $.parts.httpProxyContainer,
             ],
-            volumes+: if 'modelStorageType' in $.params then 
-              if $.params.modelStorageType == "nfs" then 
-              [{
-                name: "nfs",
-                persistentVolumeClaim: {
-                  claimName: $.params.nfsPVC,
-                }
-              }]
-              else []
+            volumes+: if $.params.storageType == "nfs" then 
+            [{
+              name: "nfs",
+              persistentVolumeClaim: {
+                claimName: $.params.nfsPVC,
+              }
+            }]
             else [],
           },
         },
