@@ -168,7 +168,7 @@
                     value: "true",
                   },
                 ],
-                image: "argoproj/argoui:v2.0.0-beta1",
+                image: "argoproj/argoui:"+imageTag,
                 imagePullPolicy: "IfNotPresent",
                 name: "argo-ui",
                 resources: {},
