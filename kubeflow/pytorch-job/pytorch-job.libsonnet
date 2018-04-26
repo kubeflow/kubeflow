@@ -40,7 +40,7 @@ local util = {
   ],
 
   parts(params, env):: {
-    local namespace=if std.objectHas(params, "namespace") then params.namespace else env.namespace,
+    local namespace=if params.namespace != "null" then params.namespace else env.namespace,
     local name = params.name,
 
     local argsParam = params.args,
