@@ -1,14 +1,15 @@
 {
-  all(params):: [
-    $.parts(params.namespace).pytorchJobDeploy(params.pytorchJobImage),
-    $.parts(params.namespace).configMap(params.cloud, params.pytorchDefaultImage),
-    $.parts(params.namespace).serviceAccount,
-    $.parts(params.namespace).operatorRole,
-    $.parts(params.namespace).operatorRoleBinding,
-    $.parts(params.namespace).crd,
+  all(params, env):: [
+    $.parts(params, env).pytorchJobDeploy(params.pytorchJobImage),
+    $.parts(params, env).configMap(params.cloud, params.pytorchDefaultImage),
+    $.parts(params, env).serviceAccount,
+    $.parts(params, env).operatorRole,
+    $.parts(params, env).operatorRoleBinding,
+    $.parts(params, env).crd,
   ],
 
-  parts(namespace):: {
+  parts(params, env):: {
+    local namespace=if std.objectHas(params, "namespace") then params.namespace else env.namespace,
     crd: {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
@@ -149,7 +150,7 @@
     configMap(cloud, pytorchDefaultImage): {
       apiVersion: "v1",
       data: {
-        "controller_config_file.yaml": std.manifestJson($.parts(namespace).configData(cloud, pytorchDefaultImage)),
+        "controller_config_file.yaml": std.manifestJson($.parts(params,env).configData(cloud, pytorchDefaultImage)),
       },
       kind: "ConfigMap",
       metadata: {
