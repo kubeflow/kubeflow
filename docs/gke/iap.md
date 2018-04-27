@@ -97,7 +97,7 @@ Create an OAuth Client ID to be used to identify IAP when requesting acces to us
   * Under Application type, select Web application. In the Name box enter a name, and in the Authorized redirect URIs box, enter
 
 ```
-  https://${FQDN}/_gcp_gatekeeper/authenticate,
+  https://${FQDN}/_gcp_gatekeeper/authenticate
 ```
 3. After you enter the details, click Create. Make note of the **client ID** and **client secret** that appear in the OAuth client window because we will
    need them later to enable IAP.
