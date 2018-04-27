@@ -123,17 +123,27 @@ def setup_kubeflow_ks_app(args, api_client):
     ["ks", "registry", "add", "kubeflow", kubeflow_registry], cwd=app_dir)
 
   # Install required packages
-  packages = ["kubeflow/core", "kubeflow/tf-serving", "kubeflow/tf-job"]
+  packages = ["kubeflow/core", "kubeflow/tf-serving", "kubeflow/tf-job", "kubeflow/pytorch-job"]
 
-  for p in packages:
-    util.run(["ks", "pkg", "install", p], cwd=app_dir)
+  # Instead of installing packages we edit the app.yaml file directly
+  #for p in packages:
+  # util.run(["ks", "pkg", "install", p], cwd=app_dir)
+  app_file = os.path.join(app_dir,"app.yaml")
+  with open(app_file) as f:
+    app_yaml = yaml.load(f)
 
-  # Delete the vendor directory and replace with a symlink to the src
+  libraries = {}
+  for pkg in packages:
+    pkg = pkg.split("/")[1]
+    libraries[pkg] = {'gitVersion':{'commitSha': 'fake', 'refSpec': 'fake'}, 'name': pkg, 'registry': "kubeflow"}
+  app_yaml['libraries'] = libraries
+
+  with open(app_file, "w") as f:
+    yaml.dump(app_yaml, f)
+
+  # Create vendor directory with a symlink to the src
   # so that we use the code at the desired commit.
   target_dir = os.path.join(app_dir, "vendor", "kubeflow")
-
-  logging.info("Deleting %s", target_dir)
-  shutil.rmtree(target_dir)
 
   REPO_ORG = "kubeflow"
   REPO_NAME = "kubeflow"
@@ -213,12 +223,21 @@ def deploy_kubeflow(args):
     ],
     cwd=app_dir)
 
+  util.run(
+    [
+      "ks", "generate", "pytorch-operator", "pytorch-operator", "--name=pytorch-operator",
+      "--namespace=" + namespace
+    ],
+    cwd=app_dir)
+
   apply_command = [
     "ks",
     "apply",
     "default",
     "-c",
     "kubeflow-core",
+    "-c",
+    "pytorch-operator",
   ]
 
   if args.as_gcloud_user:
@@ -242,6 +261,10 @@ def deploy_kubeflow(args):
   logging.info("Verifying TfHub started.")
   util.wait_for_statefulset(api_client, namespace, jupyterhub_name)
 
+  # Verify that PyTorch Operator actually deployed
+  pytorch_operator_deployment_name = "pytorch-operator"
+  logging.info("Verifying PyTorchJob controller started.")
+  util.wait_for_deployment(api_client, namespace, pytorch_operator_deployment_name)
 
 def deploy_model(args):
   """Deploy a TF model using the TF serving component."""
@@ -275,6 +298,23 @@ def deploy_model(args):
     api_client, namespace, args.deploy_name + "-v1", timeout_minutes=10)
   logging.info("Verified TF serving started.")
 
+def deploy_pytorchjob(args):
+  """Deploy Pytorchjob using the pytorch-job component"""
+  api_client = create_k8s_client(args)
+  app_dir = setup_kubeflow_ks_app(args, api_client)
+
+  component = "example-job"
+  logging.info("Deploying tf-serving.")
+  generate_command = ["ks", "generate", "pytorch-job", component]
+
+  util.run(generate_command, cwd=app_dir)
+
+  params = {}
+  for pair in args.params.split(","):
+    k, v = pair.split("=", 1)
+    params[k] = v
+
+  ks_deploy(app_dir, component, params, env=None, account=None)
 
 def teardown(args):
   # Delete the namespace
@@ -642,6 +682,17 @@ def main():  # pylint: disable=too-many-locals,too-many-statements
   parser_tf_serving.set_defaults(func=deploy_model)
 
   parser_tf_serving.add_argument(
+    "--params",
+    default="",
+    type=str,
+    help=("Comma separated list of parameters to set on the model."))
+
+  parser_pytorch_job = subparsers.add_parser(
+    "deploy_pytorchjob", help="Deploy a pytorch-job")
+
+  parser_pytorch_job.set_defaults(func=deploy_pytorchjob)
+
+  parser_pytorch_job.add_argument(
     "--params",
     default="",
     type=str,

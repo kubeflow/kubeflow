@@ -208,6 +208,11 @@
                   },
 
                   {
+                    name: "pytorchjob-deploy",
+                    template: "pytorchjob-deploy",
+                    dependencies: ["deploy-kubeflow"],
+                  },
+                  {
                     name: "tfjob-test",
                     template: "tfjob-test",
                     dependencies: ["deploy-kubeflow"],
@@ -352,6 +357,19 @@
               // all E2E tests.
               "--params=name=simple-tfjob-" + platform + ",namespace=" + stepsNamespace,
               "--junit_path=" + artifactsDir + "/junit_e2e-" + platform + ".xml",
+            ]),  // run tests
+            buildTemplate("pytorchjob-deploy", [
+              "python",
+              "-m",
+              "testing.test_deploy",
+              "--project=kubeflow-ci",
+              "--github_token=$(GITHUB_TOKEN)",
+              "--namespace=" + stepsNamespace,
+              "--test_dir=" + testDir,
+              "--artifacts_dir=" + artifactsDir,
+              "--deploy_name=pytorch-job",
+              "deploy_pytorchjob",
+              "--params=image=pytorch/pytorch:v0.2,num_workers=1",
             ]),  // run tests
           ],  // templates
         },

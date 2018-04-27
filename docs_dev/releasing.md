@@ -57,6 +57,13 @@ to point to the new image.
 Update [workflows.libsonnet](https://github.com/kubeflow/kubeflow/blob/master/testing/workflows/components/workflows.libsonnet#L183) 
 to checkout kubeflow/tf-operator at the tag corresponding to the release.
 
+## Update PyTorchJob
+Identify the [release](https://github.com/kubeflow/pytorch-operator/releases) of pytorch-operator you want to use.
+  * If you need to cut a new PyTorch operator release follow the instructions in [kubeflow/pytorch-operator](https://github.com/kubeflow/pytorch-operator/blob/master/releasing.md)
+
+Update [pytorch-operator.jsonnet](https://github.com/kubeflow/kubeflow/blob/master/kubeflow/pytorch-job/prototypes/pytorch-operator.jsonnet#L9)
+to point to the new image.
+
 ## Build TF Serving Images
 
 We build TF serving images using an argo workflow.
