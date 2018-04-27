@@ -25,7 +25,7 @@ if [ -v "DEPLOY_JOB" ]; then
         cp -R /kubeflow /opt/kubeflow/app
     fi
     cd /opt/kubeflow/app/kubeflow
-    sleep 1000000000
+    tail -f /dev/null
 fi
 groupadd -g ${GROUP_ID} ${GROUP}
 useradd -r -u ${USER_ID} -g ${GROUP} --shell=/bin/bash ${USER}

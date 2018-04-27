@@ -1,19 +1,12 @@
 # Deploy kubeflow to namespace "kubeflow"
 
 # TODO(inc0): Create rbac role bindings
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: kubeflow
-
 # Headless service because StatefulSet requires it
 ---
 kind: Service
 apiVersion: v1
 metadata:
   name: kubeflow-toolbox
-  namespace: kubeflow
 spec:
   clusterIP: "None"
 
@@ -22,7 +15,6 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: kubeflow-toolbox-pvc
-  namespace: kubeflow
   labels:
     app: kubeflow-toolbox
 spec:
@@ -37,7 +29,6 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: kubeflow-toolbox
-  namespace: kubeflow
 spec:
   selector:
     matchLabels:
@@ -56,7 +47,7 @@ spec:
         - name: NAMESPACE
           value: "kubeflow"
         - name: DEPLOY_JOB
-          value: "1"
+          value: "TRUE"
         volumeMounts:
         - name: kubeflow-toolbox-pvc
           mountPath: /opt/kubeflow/app
