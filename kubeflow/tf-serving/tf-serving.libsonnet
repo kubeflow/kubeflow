@@ -10,10 +10,7 @@
     },
     modelName: $.params.name,
     modelPath: null,
-    storageType: if "modelStorageType" in $.params then
-      $.params.modelStorageType
-    else
-      "cloud",
+    modelStorageType: "cloud",
 
     version: "v1",
     firstVersion: true,
@@ -151,7 +148,7 @@
         runAsUser: 1000,
         fsGroup: 1000,
       },
-      volumeMounts+: if $.params.storageType == "nfs" then [{
+      volumeMounts+: if $.params.modelStorageType == "nfs" then [{
         name: "nfs",
         mountPath: "/mnt",
       }]
@@ -226,7 +223,7 @@
               if $.util.toBool($.params.deployHttpProxy) then
                 $.parts.httpProxyContainer,
             ],
-            volumes+: if $.params.storageType == "nfs" then 
+            volumes+: if $.params.modelStorageType == "nfs" then 
             [{
               name: "nfs",
               persistentVolumeClaim: {
