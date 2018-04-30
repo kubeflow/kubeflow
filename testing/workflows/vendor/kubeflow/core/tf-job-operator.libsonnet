@@ -1,7 +1,36 @@
 {
-  // TODO(https://github.com/ksonnet/ksonnet/issues/222): Taking namespace as an argument is a work around for the fact that ksonnet
-  // doesn't support automatically piping in the namespace from the environment to prototypes.
+  all(params):: [
+    $.parts(params.namespace).tfJobDeploy(params.tfJobImage),
+    $.parts(params.namespace).configMap(params.cloud, params.tfDefaultImage),
+    $.parts(params.namespace).serviceAccount,
+    $.parts(params.namespace).operatorRole,
+    $.parts(params.namespace).operatorRoleBinding,
+    $.parts(params.namespace).crd,
+    $.parts(params.namespace).uiRole,
+    $.parts(params.namespace).uiRoleBinding,
+    $.parts(params.namespace).uiService(params.tfJobUiServiceType),
+    $.parts(params.namespace).uiServiceAccount,
+    $.parts(params.namespace).ui(params.tfJobImage),
+  ],
+
   parts(namespace):: {
+    crd: {
+      apiVersion: "apiextensions.k8s.io/v1beta1",
+      kind: "CustomResourceDefinition",
+      metadata: {
+        name: "tfjobs.kubeflow.org",
+      },
+      spec: {
+        group: "kubeflow.org",
+        version: "v1alpha1",
+        names: {
+          kind: "TFJob",
+          singular: "tfjob",
+          plural: "tfjobs",
+        },
+      },
+    },
+
     tfJobDeploy(image): {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
@@ -21,7 +50,7 @@
             containers: [
               {
                 command: [
-                  "/opt/mlkube/tf_operator",
+                  "/opt/mlkube/tf-operator",
                   "--controller-config-file=/etc/config/controller_config_file.yaml",
                   "--alsologtostderr",
                   "-v=1",
@@ -79,24 +108,28 @@
                                               else
                                                 {},
 
-    azureAccelerators:: {
+    aksAccelerators:: {
       accelerators: {
         "alpha.kubernetes.io/nvidia-gpu": {
           volumes: [
             {
-              name: "lib",
-              mountPath: "/usr/local/nvidia/lib64",
-              hostPath: "/usr/lib/nvidia-384",
+              name: "nvidia",
+              mountPath: "/usr/local/nvidia",
+              hostPath: "/usr/local/nvidia",
             },
+          ],
+        },
+      },
+    },
+
+    acsEngineAccelerators:: {
+      accelerators: {
+        "alpha.kubernetes.io/nvidia-gpu": {
+          volumes: [
             {
-              name: "bin",
-              mountPath: "/usr/local/nvidia/bin",
-              hostPath: "/usr/lib/nvidia-384/bin",
-            },
-            {
-              name: "libcuda",
-              mountPath: "/usr/lib/x86_64-linux-gnu/libcuda.so.1",
-              hostPath: "/usr/lib/x86_64-linux-gnu/libcuda.so.1",
+              name: "nvidia",
+              mountPath: "/usr/local/nvidia",
+              hostPath: "/usr/local/nvidia",
             },
           ],
         },
@@ -104,8 +137,10 @@
     },
 
     configData(cloud, tfDefaultImage):: self.defaultControllerConfig(tfDefaultImage) +
-                                        if cloud == "azure" then
-                                          self.azureAccelerators
+                                        if cloud == "aks" then
+                                          self.aksAccelerators
+                                        else if cloud == "acsengine" then
+                                          self.acsEngineAccelerators
                                         else
                                           {},
 
@@ -146,6 +181,7 @@
         {
           apiGroups: [
             "tensorflow.org",
+            "kubeflow.org",
           ],
           resources: [
             "tfjobs",
@@ -247,6 +283,18 @@
       metadata: {
         name: "tf-job-dashboard",
         namespace: namespace,
+        annotations: {
+          "getambassador.io/config":
+            std.join("\n", [
+              "---",
+              "apiVersion: ambassador/v0",
+              "kind:  Mapping",
+              "name: tfjobs-ui-mapping",
+              "prefix: /tfjobs/",
+              "rewrite: /tfjobs/",
+              "service: tf-job-dashboard." + namespace,
+            ]),
+        },  //annotations
       },
       spec: {
         ports: [
@@ -322,6 +370,7 @@
         {
           apiGroups: [
             "tensorflow.org",
+            "kubeflow.org",
           ],
           resources: [
             "tfjobs",

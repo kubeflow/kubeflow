@@ -16,7 +16,7 @@
 
 local k = import "k.libsonnet";
 local jupyterhub = import "kubeflow/core/jupyterhub.libsonnet";
-local tfjob = import "kubeflow/core/tf-job.libsonnet";
+local tfjob = import "kubeflow/core/tf-job-operator.libsonnet";
 local nfs = import "kubeflow/core/nfs.libsonnet";
 
 local name = import "param://name";

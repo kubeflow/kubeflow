@@ -20,6 +20,7 @@
 
 * [Quickstart](#quickstart)
 * [Using Prototypes](#using-prototypes)
+  * [io.ksonnet.pkg.tf-job](#io.ksonnet.pkg.tf-job-operator)
   * [io.ksonnet.pkg.tf-job](#io.ksonnet.pkg.tf-job)
   * [io.ksonnet.pkg.tf-cnn](#io.ksonnet.pkg.tf-cnn)
 
@@ -30,6 +31,19 @@
 First, create a cluster and install the ksonnet CLI (see root-level [README.md](rootReadme)).
 
 If you haven't yet created a [ksonnet application](linkToSomewhere), do so using `ks init <app-name>`.
+
+In your app directory, create a TensorFlow Job operator:
+
+```shell
+# Expand prototype as a Jsonnet file, place in a file in the
+# `components/` directory. (YAML and JSON are also available.)
+$ ks prototype use io.ksonnet.pkg.tf-job-operator tf-job-operator \
+  --namespace default \
+  --name tf-job-operator
+
+# Apply to server.
+$ ks apply -f tf-job-operator.jsonnet
+```
 
 Finally, in the ksonnet application directory, run the following:
 
