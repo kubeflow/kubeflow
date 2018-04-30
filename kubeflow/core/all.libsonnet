@@ -1,14 +1,14 @@
 {
   parts(params):: {
     local ambassador = import "kubeflow/core/ambassador.libsonnet",
-    local jupyter = import "kubeflow/core/jupyterhub.libsonnet",
+    local jupyterhub = import "kubeflow/core/jupyterhub.libsonnet",
     local nfs = import "kubeflow/core/nfs.libsonnet",
     local tfjob = import "kubeflow/core/tf-job.libsonnet",
     local spartakus = import "kubeflow/core/spartakus.libsonnet",
     local centraldashboard = import "kubeflow/core/centraldashboard.libsonnet",
     local version = import "kubeflow/core/version.libsonnet",
 
-    all:: jupyter.all(params)
+    all:: jupyterhub.all(params)
           + tfjob.all(params)
           + ambassador.all(params)
           + nfs.all(params)

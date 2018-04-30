@@ -1,9 +1,15 @@
 {
-  all(params):: {
+  all(params):: [
+    $.service(params),
+  ],
+
+  name(params):: params.name,
+
+  service(params):: {
     kind: "Service",
     apiVersion: "v1",
     metadata: {
-      name: params.name,
+      name: $.name(params),
       namespace: params.namespace,
       labels: {
         app: params.name,
@@ -12,9 +18,9 @@
     spec: {
       ports: [
         {
-          name: "port",
-          port: 8080,
-          targetPort: 8080,
+          name: "openmpi",  // not used
+          port: 12345,
+          targetPort: 12345,
         },
       ],
       selector: {

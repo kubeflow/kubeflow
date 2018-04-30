@@ -6,9 +6,10 @@ local params = {
   jupyterHubServiceType:: "ClusterIP",
   jupyterHubImage: "gcr.io/kubeflow/jupyterhub-k8s:1.0.1",
   jupyterNotebookPVCMount: "/home/jovyan/work",
+  cloud: null
 };
 
-local baseSpawner = importstr "../jupyterhub_spawner.py";
+local baseSpawner = importstr "../kubeform_spawner.py";
 
 // TODO(jlewi): We should be able to use std.startsWidth in later versions of jsonnet.
 //
@@ -106,7 +107,7 @@ std.assertEqual(jupyterhub.parts(params.namespace).jupyterHubLoadBalancer(params
                   },
                 }) &&
 
-std.assertEqual(jupyterhub.parts(params.namespace).jupyterHub(params.jupyterHubImage, params.jupyterNotebookPVCMount),
+std.assertEqual(jupyterhub.parts(params.namespace).jupyterHub(params.jupyterHubImage, params.jupyterNotebookPVCMount, params.cloud),
                 {
                   apiVersion: "apps/v1beta1",
                   kind: "StatefulSet",
@@ -135,6 +136,10 @@ std.assertEqual(jupyterhub.parts(params.namespace).jupyterHub(params.jupyterHubI
                               {
                                 name: "NOTEBOOK_PVC_MOUNT",
                                 value: params.jupyterNotebookPVCMount,
+                              },
+                              {
+                                name: "CLOUD_NAME",
+                                value: null
                               },
                             ],
                             image: "gcr.io/kubeflow/jupyterhub-k8s:1.0.1",

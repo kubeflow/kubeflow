@@ -11,10 +11,13 @@
     modelName: $.params.name,
     modelPath: null,
 
+    version: "v1",
+    firstVersion: true,
+
     deployIstio: false,
 
     deployHttpProxy: false,
-    defaultHttpProxyImage: "gcr.io/kubeflow-images-staging/tf-model-server-http-proxy:v20180327-995786ec",
+    defaultHttpProxyImage: "gcr.io/kubeflow-images-public/tf-model-server-http-proxy:v20180327-995786ec",
     httpProxyImage: "",
     httpProxyImageToUse: if $.params.httpProxyImage == "" then
       $.params.defaultHttpProxyImage
@@ -27,8 +30,8 @@
     // in which case the image used will still depend on whether GPUs are used or not.
     // Users can also override modelServerImage in which case the user supplied value will always be used
     // regardless of numGpus.
-    defaultCpuImage: "gcr.io/kubeflow-images-staging/tf-model-server-cpu:v20180327-995786ec",
-    defaultGpuImage: "gcr.io/kubeflow-images-staging/tf-model-server-gpu:v20180327-995786ec",
+    defaultCpuImage: "gcr.io/kubeflow-images-public/tf-model-server-cpu:v20180327-995786ec",
+    defaultGpuImage: "gcr.io/kubeflow-images-public/tf-model-server-gpu:v20180327-995786ec",
     modelServerImage: if $.params.numGpus == 0 then
       $.params.defaultCpuImage
     else
@@ -77,7 +80,11 @@
 
   components:: {
 
-    all::
+    all:: [
+      // Default routing rule for the first version of model.
+      if $.util.toBool($.params.deployIstio) && $.util.toBool($.params.firstVersion) then
+        $.parts.defaultRouteRule,
+    ] + 
       // TODO(jlewi): It would be better to structure s3 as a mixin.
       // As an example it would be great to allow S3 and GCS parameters
       // to be enabled simultaneously. This should be doable because
@@ -192,14 +199,14 @@
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
-        name: $.params.name,
+        name: $.params.name + "-" + $.params.version,
         namespace: $.params.namespace,
         labels: $.params.labels,
       },
       spec: {
         template: {
           metadata: {
-            labels: $.params.labels,
+            labels: $.params.labels + { version: $.params.version, },
             annotations: {
               "sidecar.istio.io/inject": if $.util.toBool($.params.deployIstio) then "true",
             },
@@ -261,6 +268,26 @@
         type: $.params.serviceType,
       },
     },  // tfService
+
+    defaultRouteRule: {
+      apiVersion: "config.istio.io/v1alpha2",
+      kind: "RouteRule",
+      metadata: {
+        name: $.params.name + "-default",
+        namespace: $.params.namespace,
+      },
+      spec: {
+        destination: {
+          name: $.params.name,
+        },
+        precedence: 0,
+        route: [
+          {
+            labels: { version: $.params.version, },
+          },
+        ],
+      },
+    },
 
   },  // parts
 
