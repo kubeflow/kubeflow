@@ -84,7 +84,7 @@
       // Default routing rule for the first version of model.
       if $.util.toBool($.params.deployIstio) && $.util.toBool($.params.firstVersion) then
         $.parts.defaultRouteRule,
-    ] + 
+    ] +
       // TODO(jlewi): It would be better to structure s3 as a mixin.
       // As an example it would be great to allow S3 and GCS parameters
       // to be enabled simultaneously. This should be doable because
@@ -160,6 +160,12 @@
                            }
                          else {},
 
+    tfServingMetadata+: {
+      labels: $.params.labels + { version: $.params.version, },
+      annotations: {
+        "sidecar.istio.io/inject": if $.util.toBool($.params.deployIstio) then "true",
+      },
+    },
 
     httpProxyContainer:: {
       name: $.params.name + "-http-proxy",
@@ -205,12 +211,7 @@
       },
       spec: {
         template: {
-          metadata: {
-            labels: $.params.labels + { version: $.params.version, },
-            annotations: {
-              "sidecar.istio.io/inject": if $.util.toBool($.params.deployIstio) then "true",
-            },
-          },
+          metadata: $.parts.tfServingMetadata,
           spec: {
             containers: [
               $.parts.tfServingContainer,
@@ -310,7 +311,7 @@
     tfDeployment: $.parts.tfDeployment {
       spec: +{
         template: +{
-
+          metadata: $.parts.tfServingMetadata,
           spec: +{
             containers: [
               $.s3parts.tfServingContainer,
@@ -344,14 +345,13 @@
     tfDeployment: $.parts.tfDeployment {
       spec+: {
         template+: {
-
+          metadata: $.parts.tfServingMetadata,
           spec+: {
             containers: [
               $.gcpParts.tfServingContainer,
               if $.util.toBool($.params.deployHttpProxy) then
                 $.parts.httpProxyContainer,
             ],
-
             volumes: [
               if $.gcpParams.gcpCredentialSecretName != "" then
                 {
