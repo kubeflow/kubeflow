@@ -134,7 +134,7 @@
                 },
               },
             },
-            // We use a directory in our NFS share to store our kube config. 
+            // We use a directory in our NFS share to store our kube config.
             // This way we can configure it on a single step and reuse it on subsequent steps.
             {
               name: "KUBECONFIG",
@@ -275,7 +275,7 @@
         "python",
         "-m",
         "testing.test_deploy",
-        "--project=" + project,        
+        "--project=" + project,
         "--github_token=$(GITHUB_TOKEN)",
         // TODO(jlewi): This is duplicative with params. We should probably get
         // rid of this and just treat namespace as another parameter.
@@ -357,7 +357,7 @@
                 name: "EXTRA_REPOS",
                 value: "kubeflow/testing@HEAD",
               }],
-              [], // no sidecars
+              [],  // no sidecars
             ),
 
             buildImageTemplate("build-tf-serving-cpu", "Dockerfile.cpu", cpuImage),
@@ -384,10 +384,12 @@
               deploy_tf_serving_gpu_command,
             ),
 
-            buildTestTfImageTemplate("test-tf-serving", "inception-cpu",
-                "/components/k8s-model-server/images/test-worker/result.txt"),
-            buildTestTfImageTemplate("test-tf-serving-gpu", "inception-gpu",
-                "/components/k8s-model-server/images/test-worker/result-gpu.txt"),
+            buildTestTfImageTemplate("test-tf-serving",
+                                     "inception-cpu",
+                                     "/components/k8s-model-server/images/test-worker/result.txt"),
+            buildTestTfImageTemplate("test-tf-serving-gpu",
+                                     "inception-gpu",
+                                     "/components/k8s-model-server/images/test-worker/result-gpu.txt"),
 
             buildTemplate("create-pr-symlink", [
               "python",

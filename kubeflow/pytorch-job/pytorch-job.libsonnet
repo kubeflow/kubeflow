@@ -35,12 +35,12 @@ local util = {
 };
 
 {
-  pyTorchJobPrototype(params, env) :: [ 
+  pyTorchJobPrototype(params, env):: [
     $.parts(params, env).PyTorchJob,
   ],
 
   parts(params, env):: {
-    local namespace=if params.namespace != "null" then params.namespace else env.namespace,
+    local namespace = if params.namespace != "null" then params.namespace else env.namespace,
     local name = params.name,
 
     local argsParam = params.args,
@@ -61,7 +61,7 @@ local util = {
     else
       util.pytorchJobReplica("WORKER", numWorkers, args, image),
     local masterSpec = util.pytorchJobReplica("MASTER", numMasters, args, image),
-    local replicas = [ masterSpec, workerSpec ],
+    local replicas = [masterSpec, workerSpec],
 
 
     PyTorchJob:: {

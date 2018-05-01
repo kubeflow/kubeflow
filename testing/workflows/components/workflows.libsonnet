@@ -192,6 +192,11 @@
                     template: "create-pr-symlink",
                     dependencies: ["checkout"],
                   },
+                  {
+                    name: "test-jsonnet-formatting",
+                    template: "test-jsonnet-formatting",
+                    dependencies: ["checkout"],
+                  },
 
                   {
                     name: "deploy-kubeflow",
@@ -257,6 +262,15 @@
               }],
               [],  // no sidecars
             ),
+            buildTemplate("test-jsonnet-formatting", [
+              "python",
+              "-m",
+              "kubeflow.testing.test_jsonnet_formatting",
+              "--project=" + project,
+              "--artifacts_dir=" + artifactsDir,
+              "--src_dir=" + srcDir,
+              "--exclude_dirs=" + srcDir + "/bootstrap/vendor/",
+            ]),  // test-jsonnet-formatting
             // Setup and teardown using GKE.
             buildTemplate("setup-gke", [
               "python",

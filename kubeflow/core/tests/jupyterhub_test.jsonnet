@@ -6,7 +6,7 @@ local params = {
   jupyterHubServiceType:: "ClusterIP",
   jupyterHubImage: "gcr.io/kubeflow/jupyterhub-k8s:1.0.1",
   jupyterNotebookPVCMount: "/home/jovyan/work",
-  cloud: null
+  cloud: null,
 };
 
 local baseSpawner = importstr "../kubeform_spawner.py";
@@ -139,7 +139,7 @@ std.assertEqual(jupyterhub.parts(params.namespace).jupyterHub(params.jupyterHubI
                               },
                               {
                                 name: "CLOUD_NAME",
-                                value: null
+                                value: null,
                               },
                             ],
                             image: "gcr.io/kubeflow/jupyterhub-k8s:1.0.1",

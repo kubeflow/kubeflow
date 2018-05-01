@@ -18,9 +18,9 @@
     data: {
       "init.sh": importstr "assets/init.sh",
       "mca-params.conf": importstr "assets/mca-params.conf",
-      "ssh_config": importstr "assets/ssh_config",
-      'sshd_config': importstr "assets/sshd_config",
-      "hostfile": $.genHostfile(params),
+      ssh_config: importstr "assets/ssh_config",
+      sshd_config: importstr "assets/sshd_config",
+      hostfile: $.genHostfile(params),
     },
   },
 

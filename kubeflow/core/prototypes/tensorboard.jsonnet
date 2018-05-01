@@ -4,7 +4,7 @@
 // @shortDescription ksonnet components for Tensorboard
 // @param name string Name to give to each of the components
 
-local k = import 'k.libsonnet';
+local k = import "k.libsonnet";
 local tensorboard = import "kubeflow/core/tensorboard.libsonnet";
 
 local name = import "param://name";
@@ -16,13 +16,11 @@ local updatedParams = env + params;
 local logDir = updatedParams.logDir;
 
 local tb = tensorboard {
-    params+: updatedParams {
-        name: name,
-    },
+  params+: updatedParams {
+    name: name,
+  },
 };
 
 
-//std.assertEqual(true, std.length(logDir) > 0) 
+//std.assertEqual(true, std.length(logDir) > 0)
 std.prune(k.core.v1.list.new(tb.components))
-
-
