@@ -206,10 +206,14 @@
                           "",
                     ],
                   },
-
                   {
                     name: "pytorchjob-deploy",
                     template: "pytorchjob-deploy",
+                    dependencies: ["deploy-kubeflow"],
+                  },
+                  {
+                    name: "test-argo-deploy",
+                    template: "test-argo-deploy",
                     dependencies: ["deploy-kubeflow"],
                   },
                   {
@@ -370,7 +374,19 @@
               "--deploy_name=pytorch-job",
               "deploy_pytorchjob",
               "--params=image=pytorch/pytorch:v0.2,num_workers=1",
-            ]),  // run tests
+            ]),  // pytorchjob-deploy
+            buildTemplate("test-argo-deploy", [
+              "python",
+              "-m",
+              "testing.test_deploy",
+              "--project=kubeflow-ci",
+              "--github_token=$(GITHUB_TOKEN)",
+              "--namespace=" + stepsNamespace,
+              "--test_dir=" + testDir,
+              "--artifacts_dir=" + artifactsDir,
+              "--deploy_name=test-argo-deploy",
+              "deploy_argo",
+            ]),  // test-argo-deploy
           ],  // templates
         },
       },  // e2e
