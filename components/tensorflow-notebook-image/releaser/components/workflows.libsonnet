@@ -19,7 +19,6 @@
       )
     else [],
 
-
   // Default parameters.
   // The defaults are suitable based on suitable values for our test cluster.
   defaultParams:: {
@@ -129,7 +128,7 @@
         sidecars: sidecars,
       };  // buildTemplate
       local buildImageTemplate(tf_version, workflow_name, device, is_latest=true) = {
-        local image = params.registry + "/tensorflow-" + tf_version + "-notebook-" +  device,
+        local image = params.registry + "/tensorflow-" + tf_version + "-notebook-" + device,
         local tag = params.versionTag,
         local base_image =
           if device == "cpu" then
@@ -277,6 +276,16 @@
                     dependencies: ["checkout"],
                   },
                   {
+                    name: "build-1-8-0-gpu",
+                    template: "build-1-8-0-gpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
+                    name: "build-1-8-0-cpu",
+                    template: "build-1-8-0-cpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
                     name: "create-pr-symlink",
                     template: "create-pr-symlink",
                     dependencies: ["checkout"],
@@ -292,6 +301,8 @@
             buildImageTemplate("1.6.0", "1-6-0", "gpu"),
             buildImageTemplate("1.7.0", "1-7-0", "cpu"),
             buildImageTemplate("1.7.0", "1-7-0", "gpu"),
+            buildImageTemplate("1.8.0", "1-8-0", "cpu"),
+            buildImageTemplate("1.8.0", "1-8-0", "gpu"),
             {
               name: "exit-handler",
               steps: [
