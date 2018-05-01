@@ -211,12 +211,7 @@
       },
       spec: {
         template: {
-          metadata: {
-            labels: $.params.labels + { version: $.params.version, },
-            annotations: {
-              "sidecar.istio.io/inject": if $.util.toBool($.params.deployIstio) then "true",
-            },
-          },
+          metadata: $.parts.tfServingMetadata,
           spec: {
             containers: [
               $.parts.tfServingContainer,
