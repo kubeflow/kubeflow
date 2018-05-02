@@ -13,8 +13,8 @@ local argo = import "kubeflow/argo/argo.libsonnet";
 // the namespace parameter is not explicitly set
 local updatedParams = params {
   namespace: if params.namespace == "null" then env.namespace else params.namespace,
-  };
-  
+};
+
 local namespace = updatedParams.namespace;
 local imageTag = import "param://imageTag";
 

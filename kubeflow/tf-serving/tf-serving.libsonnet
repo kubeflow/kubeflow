@@ -224,13 +224,13 @@
               if $.util.toBool($.params.deployHttpProxy) then
                 $.parts.httpProxyContainer,
             ],
-            volumes+: if $.params.modelStorageType == "nfs" then 
-            [{
-              name: "nfs",
-              persistentVolumeClaim: {
-                claimName: $.params.nfsPVC,
-              }
-            }]
+            volumes+: if $.params.modelStorageType == "nfs" then
+              [{
+                name: "nfs",
+                persistentVolumeClaim: {
+                  claimName: $.params.nfsPVC,
+                },
+              }]
             else [],
           },
         },
