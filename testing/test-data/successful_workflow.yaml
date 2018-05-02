@@ -56,7 +56,7 @@ spec:
         value: "101"
       - name: JOB_NAME
         value: kubeflow-presubmit
-      image: gcr.io/mlkube-testing/kubeflow-testing
+      image: gcr.io/kubeflow-ci/kubeflow-testing
       name: ""
       resources: {}
       volumeMounts:
@@ -70,7 +70,7 @@ spec:
       - python
       - -m
       - testing.test_deploy
-      - --project=mlkube-testing
+      - --project=kubeflow-ci
       - --cluster=kubeflow-testing
       - --zone=us-east1-d
       - --github_token=$(GIT_TOKEN)
@@ -98,7 +98,7 @@ spec:
         value: "101"
       - name: JOB_NAME
         value: kubeflow-presubmit
-      image: gcr.io/mlkube-testing/kubeflow-testing
+      image: gcr.io/kubeflow-ci/kubeflow-testing
       name: ""
       resources: {}
       volumeMounts:
@@ -140,7 +140,7 @@ spec:
         value: "101"
       - name: JOB_NAME
         value: kubeflow-presubmit
-      image: gcr.io/mlkube-testing/kubeflow-testing
+      image: gcr.io/kubeflow-ci/kubeflow-testing
       name: ""
       resources: {}
       volumeMounts:
@@ -160,7 +160,7 @@ spec:
       - testing.prow_artifacts
       - --artifacts_dir=/mnt/test-data-volume/e2e-test-presubmit-20180102-204405/output
       - create_pr_symlink
-      - --bucket=mlkube-testing_temp
+      - --bucket=kubeflow-ci_temp
       env:
       - name: PYTHONPATH
         value: /mnt/test-data-volume/e2e-test-presubmit-20180102-204405/src:/mnt/test-data-volume/e2e-test-presubmit-20180102-204405/src/tensorflow_k8s
@@ -183,7 +183,7 @@ spec:
         value: "101"
       - name: JOB_NAME
         value: kubeflow-presubmit
-      image: gcr.io/mlkube-testing/kubeflow-testing
+      image: gcr.io/kubeflow-ci/kubeflow-testing
       name: ""
       resources: {}
       volumeMounts:
@@ -225,7 +225,7 @@ spec:
         value: "101"
       - name: JOB_NAME
         value: kubeflow-presubmit
-      image: gcr.io/mlkube-testing/kubeflow-testing
+      image: gcr.io/kubeflow-ci/kubeflow-testing
       name: ""
       resources: {}
       volumeMounts:
@@ -245,7 +245,7 @@ spec:
       - testing.prow_artifacts
       - --artifacts_dir=/mnt/test-data-volume/e2e-test-presubmit-20180102-204405/output
       - copy_artifacts
-      - --bucket=mlkube-testing_temp
+      - --bucket=kubeflow-ci_temp
       env:
       - name: PYTHONPATH
         value: /mnt/test-data-volume/e2e-test-presubmit-20180102-204405/src:/mnt/test-data-volume/e2e-test-presubmit-20180102-204405/src/tensorflow_k8s
@@ -268,7 +268,7 @@ spec:
         value: "101"
       - name: JOB_NAME
         value: kubeflow-presubmit
-      image: gcr.io/mlkube-testing/kubeflow-testing
+      image: gcr.io/kubeflow-ci/kubeflow-testing
       name: ""
       resources: {}
       volumeMounts:
