@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-PROJECT_ID = mlkube-testing/kubeflow-testing
+PROJECT_ID = kubeflow-ci/kubeflow-testing
 GCR_PROJECT = gcr.io/${PROJECT_ID}
 DOCKERHUB_PROJECT=hub.docker.com/r/${PROJECT_ID}
 TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a 256 | cut -c -6)
