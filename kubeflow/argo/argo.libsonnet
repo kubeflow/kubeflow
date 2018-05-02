@@ -2,19 +2,19 @@
   // TODO(jlewi): Do we need to add parts corresponding to a service account and cluster binding role?
   // see https://github.com/argoproj/argo/blob/master/cmd/argo/commands/install.go
 
-  parts(namespace):: {
+  parts(namespace, imageTag):: {
     all:: [
-      $.parts(namespace).crd,
-      $.parts(namespace).config,
-      $.parts(namespace).deploy,
-      $.parts(namespace).deployUi,
-      $.parts(namespace).uiService,
-      $.parts(namespace).serviceAccount,
-      $.parts(namespace).role,
-      $.parts(namespace).roleBinding,
-      $.parts(namespace).uiServiceAccount,
-      $.parts(namespace).uiRole,
-      $.parts(namespace).uiRoleBinding,
+      $.parts(namespace, imageTag).crd,
+      $.parts(namespace, imageTag).config,
+      $.parts(namespace, imageTag).deploy,
+      $.parts(namespace, imageTag).deployUi,
+      $.parts(namespace, imageTag).uiService,
+      $.parts(namespace, imageTag).serviceAccount,
+      $.parts(namespace, imageTag).role,
+      $.parts(namespace, imageTag).roleBinding,
+      $.parts(namespace, imageTag).uiServiceAccount,
+      $.parts(namespace, imageTag).uiRole,
+      $.parts(namespace, imageTag).uiRoleBinding,
     ],
 
     // CRD's are not namespace scoped; see
@@ -96,7 +96,7 @@
                     },
                   },
                 ],
-                image: "argoproj/workflow-controller:v2.0.0-beta1",
+                image: "argoproj/workflow-controller:"+imageTag,
                 imagePullPolicy: "IfNotPresent",
                 name: "workflow-controller",
                 resources: {},
@@ -168,7 +168,7 @@
                     value: "true",
                   },
                 ],
-                image: "argoproj/argoui:v2.0.0-beta1",
+                image: "argoproj/argoui:"+imageTag,
                 imagePullPolicy: "IfNotPresent",
                 name: "argo-ui",
                 resources: {},
@@ -222,7 +222,7 @@
     config: {
       apiVersion: "v1",
       data: {
-        config: @"executorImage: argoproj/argoexec:v2.0.0-beta1",
+        config: @"executorImage: argoproj/argoexec:"+imageTag,
       },
       kind: "ConfigMap",
       metadata: {
