@@ -43,23 +43,24 @@ local ROLE_WORKER = "worker";
       schedulerName: params.schedulerName,
       volumes: $.volumes(params),
       containers: $.containers(params, role),
+      serviceAccountName: service.name(params),
     },
   },
 
   volumes(params):: [
     {
-      name: "kubeflow-openmpi-data",
+      name: "openmpi-data",
       emptyDir: {},
     },
     {
-      name: "kubeflow-openmpi-secrets",
+      name: "openmpi-secrets",
       secret: {
         secretName: params.secret,
         defaultMode: 256,  // 0400
       },
     },
     {
-      name: "kubeflow-openmpi-assets",
+      name: "openmpi-assets",
       configMap: {
         name: assets.name(params),
         items: [
@@ -114,15 +115,15 @@ local ROLE_WORKER = "worker";
       ],
       volumeMounts: [
         {
-          name: "kubeflow-openmpi-data",
+          name: "openmpi-data",
           mountPath: "/kubeflow/openmpi/data",
         },
         {
-          name: "kubeflow-openmpi-assets",
+          name: "openmpi-assets",
           mountPath: "/kubeflow/openmpi/assets",
         },
         {
-          name: "kubeflow-openmpi-secrets",
+          name: "openmpi-secrets",
           mountPath: "/kubeflow/openmpi/secrets",
         },
       ],
@@ -144,7 +145,7 @@ local ROLE_WORKER = "worker";
       ],
       volumeMounts: [
         {
-          name: "kubeflow-openmpi-data",
+          name: "openmpi-data",
           mountPath: "/kubeflow/openmpi/data",
         },
       ],
