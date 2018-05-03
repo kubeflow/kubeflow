@@ -13,7 +13,9 @@ Prototypes for running Open MPI jobs with Kubernetes.
 
 ## Quickstart
 
-1. Create a Kubernetes cluster and install the ksonnet CLI (see root-level [README](https://github.com/kubeflow/kubeflow/blob/master/README.md)).
+1. Create a Kubernetes cluster with legacy authorization enabled (RBAC is not supported yet).
+
+1. Install the ksonnet CLI (see root-level [README](https://github.com/kubeflow/kubeflow/blob/master/README.md)).
 
 1. Build and push your docker image containing [Open MPI](https://www.open-mpi.org/). 
 
