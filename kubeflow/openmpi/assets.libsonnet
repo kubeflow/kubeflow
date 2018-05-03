@@ -31,7 +31,7 @@
           index: index,
           name: params.name,
           namespace: params.namespace,
-          slots: if params.gpus > 1 then params.gpus else 1,
+          slots: if params.gpu > 1 then params.gpu else 1,
         },
         std.range(0, params.workers - 1)
       )
