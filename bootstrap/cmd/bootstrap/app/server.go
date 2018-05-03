@@ -394,7 +394,7 @@ func Run(opt *options.ServerOption) error {
 
 	pvcMount := ""
 	if hasDefault {
-		pvcMount = "/home/jovyan/work"
+		pvcMount = "/home/jovyan"
 	}
 
 	err = actions.RunParamSet(map[string]interface{}{
