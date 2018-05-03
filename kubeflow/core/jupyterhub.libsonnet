@@ -185,7 +185,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
                   },
                   {
                     name: "CLOUD_NAME",
-                    value: cloud
+                    value: cloud,
                   },
                 ],
               },  // jupyterHub container
