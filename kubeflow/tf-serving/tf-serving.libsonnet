@@ -82,34 +82,34 @@
   components:: {
 
     all:: [
-      // Default routing rule for the first version of model.
-      if $.util.toBool($.params.deployIstio) && $.util.toBool($.params.firstVersion) then
-        $.parts.defaultRouteRule,
-    ] +
-      // TODO(jlewi): It would be better to structure s3 as a mixin.
-      // As an example it would be great to allow S3 and GCS parameters
-      // to be enabled simultaneously. This should be doable because
-      // each entails adding a set of environment variables and volumes
-      // to the containers. These volumes/environment variables shouldn't
-      // overlap so there's no reason we shouldn't be able to just add
-      // both modifications to the base container.
-      // I think we want to restructure things as mixins so they can just
-      // be added.
-      if $.params.s3Enable then
-        [
-          $.s3parts.tfService,
-          $.s3parts.tfDeployment,
-        ]
-      else if $.params.cloud == "gcp" then
-        [
-          $.gcpParts.tfService,
-          $.gcpParts.tfDeployment,
-        ]
-      else
-        [
-          $.parts.tfService,
-          $.parts.tfDeployment,
-        ],
+            // Default routing rule for the first version of model.
+            if $.util.toBool($.params.deployIstio) && $.util.toBool($.params.firstVersion) then
+              $.parts.defaultRouteRule,
+          ] +
+          // TODO(jlewi): It would be better to structure s3 as a mixin.
+          // As an example it would be great to allow S3 and GCS parameters
+          // to be enabled simultaneously. This should be doable because
+          // each entails adding a set of environment variables and volumes
+          // to the containers. These volumes/environment variables shouldn't
+          // overlap so there's no reason we shouldn't be able to just add
+          // both modifications to the base container.
+          // I think we want to restructure things as mixins so they can just
+          // be added.
+          if $.params.s3Enable then
+            [
+              $.s3parts.tfService,
+              $.s3parts.tfDeployment,
+            ]
+          else if $.params.cloud == "gcp" then
+            [
+              $.gcpParts.tfService,
+              $.gcpParts.tfDeployment,
+            ]
+          else
+            [
+              $.parts.tfService,
+              $.parts.tfDeployment,
+            ],
   }.all,
 
   parts:: {
@@ -167,7 +167,7 @@
                          else {},
 
     tfServingMetadata+: {
-      labels: $.params.labels + { version: $.params.version, },
+      labels: $.params.labels { version: $.params.version },
       annotations: {
         "sidecar.istio.io/inject": if $.util.toBool($.params.deployIstio) then "true",
       },
@@ -224,13 +224,13 @@
               if $.util.toBool($.params.deployHttpProxy) then
                 $.parts.httpProxyContainer,
             ],
-            volumes+: if $.params.modelStorageType == "nfs" then 
-            [{
-              name: "nfs",
-              persistentVolumeClaim: {
-                claimName: $.params.nfsPVC,
-              }
-            }]
+            volumes+: if $.params.modelStorageType == "nfs" then
+              [{
+                name: "nfs",
+                persistentVolumeClaim: {
+                  claimName: $.params.nfsPVC,
+                },
+              }]
             else [],
           },
         },
@@ -298,7 +298,7 @@
         precedence: 0,
         route: [
           {
-            labels: { version: $.params.version, },
+            labels: { version: $.params.version },
           },
         ],
       },

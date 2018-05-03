@@ -96,7 +96,7 @@
                     },
                   },
                 ],
-                image: "argoproj/workflow-controller:"+imageTag,
+                image: "argoproj/workflow-controller:" + imageTag,
                 imagePullPolicy: "IfNotPresent",
                 name: "workflow-controller",
                 resources: {},
@@ -168,7 +168,7 @@
                     value: "true",
                   },
                 ],
-                image: "argoproj/argoui:"+imageTag,
+                image: "argoproj/argoui:" + imageTag,
                 imagePullPolicy: "IfNotPresent",
                 name: "argo-ui",
                 resources: {},
@@ -222,7 +222,7 @@
     config: {
       apiVersion: "v1",
       data: {
-        config: @"executorImage: argoproj/argoexec:"+imageTag,
+        config: @"executorImage: argoproj/argoexec:" + imageTag,
       },
       kind: "ConfigMap",
       metadata: {

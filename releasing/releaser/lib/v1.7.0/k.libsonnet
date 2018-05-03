@@ -18,7 +18,7 @@ local hidden = {
     },
   },
 
-  mapContainersWithName(names, f) ::
+  mapContainersWithName(names, f)::
     local nameSet =
       if std.type(names) == "array"
       then std.set(names)
@@ -32,46 +32,46 @@ local hidden = {
     ),
 };
 
-k8s + {
-  apps:: apps + {
-    v1beta1:: apps.v1beta1 + {
+k8s {
+  apps:: apps {
+    v1beta1:: apps.v1beta1 {
       local v1beta1 = apps.v1beta1,
 
-      daemonSet:: v1beta1.daemonSet + {
+      daemonSet:: v1beta1.daemonSet {
         mapContainers(f):: hidden.mapContainers(f),
         mapContainersWithName(names, f):: hidden.mapContainersWithName(names, f),
       },
 
-      deployment:: v1beta1.deployment + {
+      deployment:: v1beta1.deployment {
         mapContainers(f):: hidden.mapContainers(f),
         mapContainersWithName(names, f):: hidden.mapContainersWithName(names, f),
       },
     },
   },
 
-  core:: core + {
-    v1:: core.v1 + {
+  core:: core {
+    v1:: core.v1 {
       list:: {
         new(items)::
-          {apiVersion: "v1"} +
-          {kind: "List"} +
+          { apiVersion: "v1" } +
+          { kind: "List" } +
           self.items(items),
 
-        items(items):: if std.type(items) == "array" then {items+: items} else {items+: [items]},
+        items(items):: if std.type(items) == "array" then { items+: items } else { items+: [items] },
       },
     },
   },
 
-  extensions:: extensions + {
-    v1beta1:: extensions.v1beta1 + {
+  extensions:: extensions {
+    v1beta1:: extensions.v1beta1 {
       local v1beta1 = extensions.v1beta1,
 
-      daemonSet:: v1beta1.daemonSet + {
+      daemonSet:: v1beta1.daemonSet {
         mapContainers(f):: hidden.mapContainers(f),
         mapContainersWithName(names, f):: hidden.mapContainersWithName(names, f),
       },
 
-      deployment:: v1beta1.deployment + {
+      deployment:: v1beta1.deployment {
         mapContainers(f):: hidden.mapContainers(f),
         mapContainersWithName(names, f):: hidden.mapContainersWithName(names, f),
       },
