@@ -53,16 +53,19 @@ ks prototype describe openmpi
 COMPONENT=openmpi
 IMAGE=YOUR_IMAGE_HERE
 WORKERS=4
-GPUS=0
-EXEC="mpiexec -n 4 --hostfile /kubeflow/openmpi/assets/hostfile --allow-run-as-root --display-map --tag-output --timestamp-output sh -c 'echo hello world'"
-ks generate openmpi ${COMPONENT} --image ${IMAGE} --secret ${SECRET} --workers ${WORKERS} --gpus ${GPUS} --exec "${EXEC}" 
+GPU=0
+EXEC="mpiexec -n ${WORKERS} --hostfile /kubeflow/openmpi/assets/hostfile --allow-run-as-root --display-map --tag-output --timestamp-output sh -c 'echo hello world'"
+ks generate openmpi ${COMPONENT} --image ${IMAGE} --secret ${SECRET} --workers ${WORKERS} --gpu ${GPU} --exec "${EXEC}" 
 
 # Deploy to your cluster. 
 ks apply default
 
 # Inspect the pod status.
-kubectl get pod -n ${NAMESPACE}
+kubectl get pod -n ${NAMESPACE} -o wide
 kubectl logs -n ${NAMESPACE} -f ${COMPONENT}-master
+
+# Clean up.
+ks delete default
 ```
 
 ## Running Horovod
@@ -80,8 +83,8 @@ Horovod is a distributed training framework for TensorFlow. You may use this pac
 GPU=1
 
 # Run the MNIST example.
-EXEC="mpiexec -n 4 --hostfile /kubeflow/openmpi/assets/hostfile --allow-run-as-root --display-map --tag-output --timestamp-output sh -c 'python /examples/tensorflow_mnist.py'"
+EXEC="mpiexec -n ${WORKERS} --hostfile /kubeflow/openmpi/assets/hostfile --allow-run-as-root --display-map --tag-output --timestamp-output sh -c 'python /examples/tensorflow_mnist.py'"
 
 # If you're running Horovod in a cluster without GPUs, you may need to set LD_LIBRARY_PATH to use CUDA stub drivers.
-EXEC="mpiexec -n 4 --hostfile /kubeflow/openmpi/assets/hostfile --allow-run-as-root --display-map --tag-output --timestamp-output sh -c 'LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-9.0/targets/x86_64-linux/lib/stubs python /examples/tensorflow_mnist.py'"
+EXEC="mpiexec -n ${WORKERS} --hostfile /kubeflow/openmpi/assets/hostfile --allow-run-as-root --display-map --tag-output --timestamp-output sh -c 'LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-9.0/targets/x86_64-linux/lib/stubs python /examples/tensorflow_mnist.py'"
 ```

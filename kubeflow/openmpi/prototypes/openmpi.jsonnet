@@ -10,9 +10,13 @@
 // @optionalParam init string null Command to bootstrap the containers. Defaults to init.sh.
 // @optionalParam exec string null Command to execute in master after bootstrap is done. It sleeps indefinitely if not set.
 // @optionalParam imagePullPolicy string IfNotPresent Image pull policy (either IfNotPresent or Always).
-// @optionalParam gpus number 0 Number of GPUs per worker.
+// @optionalParam gpu number 0 Number of GPUs per worker.
+// @optionalParam cpu string null CPU limits per worker.
+// @optionalParam memory string null Memory limits per worker.
 // @optionalParam schedulerName string default-scheduler scheduler name to use for the components.
 // @optionalParam controllerImage string jiez/openmpi-controller:latest Docker image of the openmpi-controller.
+// @optionalParam initTimeout number 300 Timeout in seconds to abort the initialization.
+// @optionalParam nodeSelector string null Comma-delimited list of "key=value" pairs to select the worker nodes. e.g. "cloud.google.com/gke-accelerator=nvidia-tesla-k80"
 
 local k = import "k.libsonnet";
 local openmpi = import "kubeflow/openmpi/all.libsonnet";
