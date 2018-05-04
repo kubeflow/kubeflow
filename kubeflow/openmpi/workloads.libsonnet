@@ -1,5 +1,6 @@
 local assets = import "kubeflow/openmpi/assets.libsonnet";
 local service = import "kubeflow/openmpi/service.libsonnet";
+local util = import "kubeflow/openmpi/util.libsonnet";
 
 local ROLE_MASTER = "master";
 local ROLE_WORKER = "worker";
@@ -44,6 +45,7 @@ local ROLE_WORKER = "worker";
       volumes: $.volumes(params),
       containers: $.containers(params, role),
       serviceAccountName: service.name(params),
+      nodeSelector: $.nodeSelector(params, role),
     },
   },
 
@@ -96,7 +98,7 @@ local ROLE_WORKER = "worker";
       name: "openmpi-job",
       image: params.image,
       imagePullPolicy: params.imagePullPolicy,
-      resources: $.resources(role, params.gpus),
+      resources: $.resources(params, role),
       terminationMessagePath: "/dev/termination-log",
       terminationMessagePolicy: "File",
       workingDir: "/kubeflow/openmpi/data",
@@ -106,6 +108,7 @@ local ROLE_WORKER = "worker";
         role,
         std.toString(params.workers),
         params.exec,
+        std.toString(params.initTimeout),
       ],
       ports: [
         {
@@ -154,10 +157,15 @@ local ROLE_WORKER = "worker";
     result:: if role == ROLE_MASTER then [job] else [job, controller],
   }.result,
 
-  resources(role, gpus)::
-    if role == ROLE_WORKER && gpus > 0 then {
+  resources(params, role)::
+    if role == ROLE_WORKER then {
       limits: {
-        "nvidia.com/gpu": gpus,
+        cpu: if params.cpu != "null" then params.cpu,
+        memory: if params.memory != "null" then params.memory,
+        "nvidia.com/gpu": if params.gpu > 0 then params.gpu,
       },
     } else {},
+
+  nodeSelector(params, role)::
+    if role == ROLE_WORKER then util.toObject(params.nodeSelector) else {},
 }

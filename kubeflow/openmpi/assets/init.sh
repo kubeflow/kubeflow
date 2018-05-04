@@ -1,13 +1,14 @@
 set -exv
 
 OPENMPI_DIR=/kubeflow/openmpi
+BACKOFF_SECS=10
 
 wait_mpi_ready() {
   local max_retries=$1
   local retries=0
 
   until mpiexec -n ${workers} --hostfile ${OPENMPI_DIR}/assets/hostfile --allow-run-as-root -q sh -c 'echo $(hostname) is ready'; do
-    sleep 10
+    sleep ${BACKOFF_SECS}
 
     retries=$(expr ${retries} + 1)
     if [ -n "${max_retries}" ] && [ ${retries} -ge ${max_retries} ]; then
@@ -18,11 +19,11 @@ wait_mpi_ready() {
 
 wait_controller_term() {
   until [ -f ${OPENMPI_DIR}/data/.openmpi-controller/term.sig ]; do
-    sleep 10
+    sleep ${BACKOFF_SECS}
   done
 }
 
-if [ $# -ne 3 ]; then
+if [ $# -ne 4 ]; then
   echo "illegal number of parameters"
   exit 1
 fi
@@ -30,6 +31,8 @@ fi
 role="$1"
 workers="$2"
 exec="$3"
+timeout_secs="$4"
+retries=$(expr ${timeout_secs} / ${BACKOFF_SECS})
 
 # Set up openmpi
 mkdir -p /root/.openmpi
@@ -48,7 +51,7 @@ cp ${OPENMPI_DIR}/assets/ssh_config /root/.ssh/config
 exit_code=0
 if [ "${role}" = "master" ]; then
   # Run the exec command in master
-  wait_mpi_ready 30
+  wait_mpi_ready ${retries}
   sh -c "${exec}" || exit_code=$?
 else
   wait_controller_term
