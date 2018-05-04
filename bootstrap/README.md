@@ -25,7 +25,7 @@ and based on the results chooses good values for various Kubeflow parameters.
 
 ```
 TAG=latest
-APP_DIR_HOST=<Directory on host machine for the ksonnet apps>
+APP_DIR_HOST=$HOME/kfBootstrap
 GITHUB_TOKEN=<Get a [GitHub Token](https://github.com/kubeflow/kubeflow/blob/master/user_guide.md#403-api-rate-limit-exceeded-error) to avoid API Limits>
 
 # Start container
@@ -42,7 +42,7 @@ docker run -ti \
 
 **Inside container, choose one way to generate kubeflow apps**:
 1. On GKE, with Google Sign-in enabled for kubeflow (share access with your team easily):
-    [Finish Preliminaries](https://github.com/kubeflow/kubeflow/tree/master/bootstrap#iap-preliminaries)
+    [Finish Preliminaries](README.md#iap-preliminaries)
     ```/opt/kubeflow/bootstrapper --app-dir=/home/${USER}/kfBootstrap/<your_app_name> --namespace=<new_namespace_for_bootstrap> --email=<GCP_account> --project=<GCP_project_containing_GKE>```
 2. On GKE, without Google Sign-in:
 ```/opt/kubeflow/bootstrapper --app-dir=/home/${USER}/kfBootstrap/<your_app_name> --namespace=<new_namespace_for_bootstrap> --email=<GCP_account>```
