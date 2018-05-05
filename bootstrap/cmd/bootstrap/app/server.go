@@ -42,7 +42,7 @@ import (
 	k8sVersion "k8s.io/apimachinery/pkg/version"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	"os/exec"
+	"errors"
 )
 
 // RecommendedConfigPathEnvVar is a environment variable for path configuration
@@ -198,6 +198,24 @@ func setupNamespace(namespaces type_v1.NamespaceInterface, name_space string) er
 	return err
 }
 
+func createComponent(opt *options.ServerOption, kfApp *kApp.App, fs *afero.Fs, args []string) {
+	componentName := args[1]
+	componentPath := filepath.Join(opt.AppDir, "components", componentName+".jsonnet")
+
+	if exists, _ := afero.Exists(*fs, componentPath); !exists {
+		log.Infof("Creating Component: %v ...", componentName)
+		err := actions.RunPrototypeUse(map[string]interface{}{
+			actions.OptionApp: *kfApp,
+			actions.OptionArguments: args,
+		})
+		if err != nil {
+			log.Fatalf("There was a problem creating protoype package kubeflow-core; error %v", err)
+		}
+	} else {
+		log.Infof("Component %v already exists", componentName)
+	}
+}
+
 // Run the tool.
 func Run(opt *options.ServerOption) error {
 	// Check if the -version flag was passed and, if so, print the version and exit.
@@ -231,16 +249,13 @@ func Run(opt *options.ServerOption) error {
 		_, err = kubeClient.RbacV1().ClusterRoleBindings().Get(roleBindingName, meta_v1.GetOptions{})
 		if err != nil {
 			log.Infof("GKE: create rolebinding kubeflow-admin for role permission")
-			user, err := exec.Command("gcloud", "config", "get-value", "account").Output()
-			if err != nil {
-				return err
+			if opt.Email == "" {
+				return errors.New("Please provide --email YOUR_GCP_ACCOUNT")
 			}
-			username := strings.Trim(string(user), "\t\n ")
-
 			_, err = kubeClient.RbacV1().ClusterRoleBindings().Create(
 				&rbac_v1.ClusterRoleBinding{
 					ObjectMeta: meta_v1.ObjectMeta{Name: roleBindingName},
-					Subjects:   []rbac_v1.Subject{{Kind: "User", Name: username}},
+					Subjects:   []rbac_v1.Subject{{Kind: "User", Name: opt.Email}},
 					RoleRef:    rbac_v1.RoleRef{Kind: "ClusterRole", Name: "cluster-admin"},
 				},
 			)
@@ -363,25 +378,8 @@ func Run(opt *options.ServerOption) error {
 	}
 
 	// Create the Kubeflow component
-	prototypeName := "kubeflow-core"
-	componentName := "kubeflow-core"
-	componentPath := filepath.Join(opt.AppDir, "components", componentName+".jsonnet")
-
-	if exists, _ := afero.Exists(fs, componentPath); !exists {
-		err = actions.RunPrototypeUse(map[string]interface{}{
-			actions.OptionApp: kfApp,
-			actions.OptionArguments: []string{
-				prototypeName,
-				componentName,
-			},
-		})
-	} else {
-		log.Infof("Component %v already exists", componentName)
-	}
-
-	if err != nil {
-		log.Fatalf("There was a problem creating protoype package kubeflow-core; error %v", err)
-	}
+	kubeflowCoreName := "kubeflow-core"
+	createComponent(opt, &kfApp, &fs, []string{kubeflowCoreName, kubeflowCoreName})
 
 	pvcMount := ""
 	if hasDefault {
@@ -390,7 +388,7 @@ func Run(opt *options.ServerOption) error {
 
 	err = actions.RunParamSet(map[string]interface{}{
 		actions.OptionApp:   kfApp,
-		actions.OptionName:  componentName,
+		actions.OptionName:  kubeflowCoreName,
 		actions.OptionPath:  "jupyterNotebookPVCMount",
 		actions.OptionValue: pvcMount,
 	})
@@ -399,17 +397,61 @@ func Run(opt *options.ServerOption) error {
 		return err
 	}
 
+	if isGke(clusterVersion) && opt.Project != "" {
+		log.Infof("Prepare Https access ...")
+
+		if !isGke(clusterVersion) {
+			return errors.New("Currently https auto setup only available on GKE.")
+		}
+		endpointsArgs := []string{
+			"cloud-endpoints",
+			"cloud-endpoints",
+			"--namespace",
+			opt.NameSpace,
+			"--secretName",
+			"cloudep-sa",
+		}
+		createComponent(opt, &kfApp, &fs, endpointsArgs)
+
+		certManagerArgs := []string{
+			"cert-manager",
+			"cert-manager",
+			"--namespace",
+			opt.NameSpace,
+			"--acmeEmail",
+			opt.Email,
+		}
+		createComponent(opt, &kfApp, &fs, certManagerArgs)
+
+		FQDN := fmt.Sprintf("kubeflow.endpoints.%v.cloud.goog", opt.Project)
+		iapIngressArgs := []string{
+			"iap-ingress",
+			"iap-ingress",
+			"--namespace",
+			opt.NameSpace,
+			"--ipName",
+			opt.IpName,
+			"--hostname",
+			FQDN,
+		}
+
+		createComponent(opt, &kfApp, &fs, iapIngressArgs)
+
+		err = actions.RunParamSet(map[string]interface{}{
+			actions.OptionApp:   kfApp,
+			actions.OptionName:  kubeflowCoreName,
+			actions.OptionPath:  "jupyterHubAuthenticator",
+			actions.OptionValue: "iap",
+		})
+		if err != nil {
+			return err
+		}
+	}
 
 	if err := os.Chdir(kfApp.Root()); err != nil {
 		return err
 	}
 	log.Infof("App root %v", kfApp.Root())
-	err = actions.RunShow(map[string]interface{}{
-		actions.OptionApp:   kfApp,
-		actions.OptionFormat: "yaml",
-		actions.OptionComponentNames: []string{},
-		actions.OptionEnvName:  envName,
-	})
 
 	fmt.Printf("Initialized app %v\n", opt.AppDir)
 	return err

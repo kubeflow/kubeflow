@@ -26,6 +26,9 @@ type ServerOption struct {
 	AppDir				 string
 	KfVersion			 string
 	NameSpace			 string
+	Project				 string
+	Email				 string
+	IpName				 string
 }
 
 // NewServerOption creates a new CMServer with a default config.
@@ -42,4 +45,7 @@ func (s *ServerOption) AddFlags(fs *flag.FlagSet) {
 	fs.StringVar(&s.KfVersion, "kubeflow-version", "v0.1.0-rc.4", "The Kubeflow version to use.")
 	fs.StringVar(&s.NameSpace, "namespace", "kubeflow", "The namespace where all resources for kubeflow will be created")
 	fs.BoolVar(&s.Apply, "apply", true, "Whether or not to apply the configuraiton.")
+	fs.StringVar(&s.Project, "project", "", "The GCP project where kubeflow will be installed")
+	fs.StringVar(&s.Email, "email", "", "Your Email address for GCP account, if you are using GKE.")
+	fs.StringVar(&s.IpName, "ip-name", "kubeflow", "Name of the ip you reserved on GCP project")
 }
