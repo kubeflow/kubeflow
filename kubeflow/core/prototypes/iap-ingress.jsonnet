@@ -22,15 +22,7 @@ local updatedParams = params {
   namespace: if params.namespace == "null" then env.namespace else params.namespace,
 };
 
-local name = import "param://name";
 local namespace = updatedParams.namespace;
-local secretName = import "param://secretName";
-local ipName = import "param://ipName";
-local hostname = import "param://hostname";
-local issuer = import "param://issuer";
-local envoyImage = import "param://envoyImage";
-local disableJwtCheckingParam = import "param://disableJwtChecking";
-local disableJwtChecking = util.toBool(disableJwtCheckingParam);
-local oauthSecretName = import "param://oauthSecretName";
+local disableJwtChecking = util.toBool(params.disableJwtChecking);
 
-iap.parts(namespace).ingressParts(secretName, ipName, hostname, issuer, envoyImage, disableJwtChecking, oauthSecretName)
+iap.parts(namespace).ingressParts(params.secretName, params.ipName, params.hostname, params.issuer, params.envoyImage, disableJwtChecking, params.oauthSecretName)
