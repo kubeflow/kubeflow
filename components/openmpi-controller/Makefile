@@ -1,11 +1,13 @@
 # TODO: move to kubeflow
 IMAGE=jiez/openmpi-controller
-TAG=latest
+TAG=0.0.1
+
+default: build push
 
 build:
 	docker build --pull -t ${IMAGE}:${TAG} .
 
-push: build
+push:
 	docker push ${IMAGE}:${TAG}
 
 .PHONY: build push
