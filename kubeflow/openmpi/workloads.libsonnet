@@ -145,6 +145,10 @@ local ROLE_WORKER = "worker";
         params.namespace,
         "--master",
         $.masterName(params),
+        "--num-gpus",
+        std.toString(params.gpu),
+        "--timeout-secs",
+        std.toString(params.initTimeout),
       ],
       volumeMounts: [
         {

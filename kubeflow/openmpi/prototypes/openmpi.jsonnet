@@ -14,7 +14,7 @@
 // @optionalParam cpu string null CPU limits per worker.
 // @optionalParam memory string null Memory limits per worker.
 // @optionalParam schedulerName string default-scheduler scheduler name to use for the components.
-// @optionalParam controllerImage string jiez/openmpi-controller:latest Docker image of the openmpi-controller.
+// @optionalParam controllerImage string jiez/openmpi-controller:0.0.1 Docker image of the openmpi-controller.
 // @optionalParam initTimeout number 300 Timeout in seconds to abort the initialization.
 // @optionalParam nodeSelector string null Comma-delimited list of "key=value" pairs to select the worker nodes. e.g. "cloud.google.com/gke-accelerator=nvidia-tesla-k80"
 
