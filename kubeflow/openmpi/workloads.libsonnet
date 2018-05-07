@@ -1,5 +1,6 @@
 local assets = import "kubeflow/openmpi/assets.libsonnet";
 local service = import "kubeflow/openmpi/service.libsonnet";
+local serviceaccount = import "kubeflow/openmpi/serviceaccount.libsonnet";
 local util = import "kubeflow/openmpi/util.libsonnet";
 
 local ROLE_MASTER = "master";
@@ -44,7 +45,7 @@ local ROLE_WORKER = "worker";
       schedulerName: params.schedulerName,
       volumes: $.volumes(params),
       containers: $.containers(params, role),
-      serviceAccountName: service.name(params),
+      serviceAccountName: serviceaccount.name(params),
       nodeSelector: $.nodeSelector(params, role),
     },
   },
