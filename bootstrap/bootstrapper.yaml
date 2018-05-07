@@ -53,6 +53,7 @@ spec:
       containers:
       - name: kubeflow-bootstrapper
         image: gcr.io/kunming-dev/test04
+        workingDir: /opt/bootstrap
         command: [ "/opt/kubeflow/bootstrapper"]
         args: ["--in-cluster", "--namespace=kubeflow"]
         env:
