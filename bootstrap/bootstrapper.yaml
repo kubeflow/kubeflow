@@ -1,0 +1,69 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: kubeflow-cluster-admin
+subjects:
+  - kind: ServiceAccount
+    # Reference to upper's `metadata.name`
+    name: default
+    # Reference to upper's `metadata.namespace`
+    namespace: default
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: kubeflow-bootstrapper
+spec:
+  clusterIP: "None"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kubeflow-ksonnet-pvc
+  labels:
+    app: kubeflow-ksonnet
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+apiVersion: apps/v1beta2
+kind: StatefulSet
+metadata:
+  name: kubeflow-bootstrapper
+spec:
+  selector:
+    matchLabels:
+      app: kubeflow-bootstrapper
+  serviceName: kubeflow-bootstrapper
+  template:
+    metadata:
+      name: kubeflow-bootstrapper
+      labels:
+        app: kubeflow-bootstrapper
+    spec:
+      containers:
+      - name: kubeflow-bootstrapper
+        image: gcr.io/kunming-dev/test04
+        command: [ "/opt/kubeflow/bootstrapper"]
+        args: ["--in-cluster", "--namespace=kubeflow"]
+        env:
+        - name: NAMESPACE
+          value: "kubeflow"
+        - name: DEPLOY_JOB
+          value: "TRUE"
+        volumeMounts:
+        - name: kubeflow-ksonnet-pvc
+          mountPath: /opt/bootstrap
+      volumes:
+      - name: kubeflow-ksonnet-pvc
+        persistentVolumeClaim:
+          claimName: kubeflow-ksonnet-pvc

@@ -43,6 +43,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"errors"
+	"os/exec"
 )
 
 // RecommendedConfigPathEnvVar is a environment variable for path configuration
@@ -101,7 +102,10 @@ func getKubeConfigFile() string {
 
 // gGetClusterConfig obtain the config from the Kube configuration used by kubeconfig.
 //
-func getClusterConfig() (*rest.Config, error) {
+func getClusterConfig(inCluster bool) (*rest.Config, error) {
+	if inCluster {
+		return rest.InClusterConfig()
+	}
 	configFile := getKubeConfigFile()
 
 	if len(configFile) > 0 {
@@ -223,12 +227,12 @@ func Run(opt *options.ServerOption) error {
 		version.PrintVersionAndExit()
 	}
 
-	config, err := getClusterConfig()
+	config, err := getClusterConfig(opt.InCluster)
 	if err != nil {
 		return err
 	}
 
-	kubeClient, err := clientset.NewForConfig(rest.AddUserAgent(config, "kubeflow-bootstraper"))
+	kubeClient, err := clientset.NewForConfig(rest.AddUserAgent(config, "kubeflow-bootstrapper"))
 	if err != nil {
 		return err
 	}
@@ -244,7 +248,7 @@ func Run(opt *options.ServerOption) error {
 		return err
 	}
 
-	if isGke(clusterVersion) {
+	if (!opt.InCluster) && isGke(clusterVersion) {
 		roleBindingName := "kubeflow-admin"
 		_, err = kubeClient.RbacV1().ClusterRoleBindings().Get(roleBindingName, meta_v1.GetOptions{})
 		if err != nil {
@@ -317,7 +321,7 @@ func Run(opt *options.ServerOption) error {
 		log.Fatalf("There was a problem loading the app: %v", err)
 	}
 
-	registryUri := fmt.Sprintf("github.com/kubeflow/kubeflow/tree/%v/kubeflow", opt.KfVersion)
+	registryUri := fmt.Sprintf("/opt/kubeflow/kubeflow")
 
 	registryName := "kubeflow"
 
@@ -454,5 +458,10 @@ func Run(opt *options.ServerOption) error {
 	log.Infof("App root %v", kfApp.Root())
 
 	fmt.Printf("Initialized app %v\n", opt.AppDir)
+	if opt.InCluster {
+		cmd := exec.Command("tail", "-f", "/dev/null")
+		log.Printf("Keeping pod alive...")
+		return cmd.Run()
+	}
 	return err
 }
