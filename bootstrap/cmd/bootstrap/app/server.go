@@ -43,7 +43,9 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"errors"
+	"time"
 	"os/exec"
+	"bytes"
 )
 
 // RecommendedConfigPathEnvVar is a environment variable for path configuration
@@ -458,10 +460,28 @@ func Run(opt *options.ServerOption) error {
 	log.Infof("App root %v", kfApp.Root())
 
 	fmt.Printf("Initialized app %v\n", opt.AppDir)
+
+	if opt.Apply {
+		log.Infof("Apply kubeflow components...")
+		rawCmd := "ks show default | kubectl apply -f -"
+		applyCmd := exec.Command("bash", "-c", rawCmd)
+
+		var out bytes.Buffer
+		var stderr bytes.Buffer
+		applyCmd.Stdout = &out
+		applyCmd.Stderr = &stderr
+		if err := applyCmd.Run(); err != nil {
+			log.Infof("stderr >>> " + fmt.Sprint(err) + ": " + stderr.String())
+			return err
+		} else {
+			log.Infof("Components applied: " + out.String())
+		}
+	}
 	if opt.InCluster {
-		cmd := exec.Command("tail", "-f", "/dev/null")
-		log.Printf("Keeping pod alive...")
-		return cmd.Run()
+		log.Infof("Keeping pod alive...")
+		for {
+			time.Sleep(time.Minute)
+		}
 	}
 	return err
 }
