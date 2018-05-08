@@ -6,12 +6,12 @@
 // @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
 // @optionalParam withRbac string true Whether to include RBAC setup
 // @optionalParam withApife string false Whether to include builtin API Oauth fornt end server for ingress
-// @optionalParam apifeImage string seldonio/apife:0.1.5 Default image for API Front End
+// @optionalParam apifeImage string seldonio/apife:0.1.6 Default image for API Front End
 // @optionalParam apifeServiceType string NodePort API Front End Service Type
-// @optionalParam operatorImage string seldonio/cluster-manager:0.1.5 Seldon cluster manager image version
+// @optionalParam operatorImage string seldonio/cluster-manager:0.1.6 Seldon cluster manager image version
 // @optionalParam operatorSpringOpts string null cluster manager spring opts
 // @optionalParam operatorJavaOpts string null cluster manager java opts
-// @optionalParam engineImage string seldonio/engine:0.1.5 Seldon engine image version
+// @optionalParam engineImage string seldonio/engine:0.1.6 Seldon engine image version
 
 local k = import "k.libsonnet";
 local core = import "kubeflow/seldon/core.libsonnet";
