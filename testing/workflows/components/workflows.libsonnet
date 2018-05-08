@@ -229,11 +229,6 @@
                   else
                     {},
                   {
-                    name: "test-argo-deploy",
-                    template: "test-argo-deploy",
-                    dependencies: ["deploy-kubeflow"],
-                  },
-                  {
                     name: "tfjob-test",
                     template: "tfjob-test",
                     dependencies: ["deploy-kubeflow"],
