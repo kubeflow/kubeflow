@@ -123,7 +123,7 @@ def setup_kubeflow_ks_app(args, api_client):
     ["ks", "registry", "add", "kubeflow", kubeflow_registry], cwd=app_dir)
 
   # Install required packages
-  packages = ["kubeflow/core", "kubeflow/tf-serving", "kubeflow/tf-job", "kubeflow/pytorch-job"]
+  packages = ["kubeflow/core", "kubeflow/tf-serving", "kubeflow/tf-job", "kubeflow/pytorch-job", "kubeflow/argo"]
 
   # Instead of installing packages we edit the app.yaml file directly
   #for p in packages:
@@ -169,9 +169,9 @@ def get_gke_credentials(args):
   # credentials.
   util.run(["gcloud", "config", "list"])
   util.configure_kubectl(project, zone, cluster_name)
-  
+
   # We want to modify the KUBECONFIG file to remove the gcloud commands
-  # for any users that are authenticating using service accounts.  
+  # for any users that are authenticating using service accounts.
   # This will allow the script to be truly headless and not require gcloud.
   # More importantly, kubectl will properly attach auth.info scope so
   # that RBAC rules can be applied to the email and not the id.
@@ -298,13 +298,40 @@ def deploy_model(args):
     api_client, namespace, args.deploy_name + "-v1", timeout_minutes=10)
   logging.info("Verified TF serving started.")
 
+def deploy_argo(args):
+  api_client = create_k8s_client(args)
+  app_dir = setup_kubeflow_ks_app(args, api_client)
+
+  component = "argo"
+  logging.info("Deploying argo")
+  generate_command = ["ks", "generate", "argo", component,
+                        "--namespace", "default", "--name", "argo"]
+  util.run(generate_command, cwd=app_dir)
+
+  ks_deploy(app_dir, component, {}, env=None, account=None, show=True)
+
+  # Create a hello world workflow
+  # util.run(["kubectl", "create", "-f", "https://raw.githubusercontent.com/argoproj/argo/master/examples/hello-world.yaml"], cwd=app_dir)
+
+  # Wait for 100 seconds to check if the hello-world pod was created
+  # retries = 20
+  # i = 0
+  # while True:
+  #   if i == retries:
+  #     raise Exception('Failed to run argo workflow')
+  #   output = util.run(["kubectl", "get", "pods", "-lworkflows.argoproj.io/workflow"])
+  #   if "hello-world-" in output:
+  #     return True
+  #   time.sleep(5)
+  #   i += 1
+
 def deploy_pytorchjob(args):
   """Deploy Pytorchjob using the pytorch-job component"""
   api_client = create_k8s_client(args)
   app_dir = setup_kubeflow_ks_app(args, api_client)
 
   component = "example-job"
-  logging.info("Deploying tf-serving.")
+  logging.info("Deploying pytorch.")
   generate_command = ["ks", "generate", "pytorch-job", component]
 
   util.run(generate_command, cwd=app_dir)
@@ -360,7 +387,7 @@ def wrap_test(args):
 
 # TODO(jlewi): We should probably make this a reusable function since a
 # lot of test code code use it.
-def ks_deploy(app_dir, component, params, env=None, account=None):
+def ks_deploy(app_dir, component, params, env=None, account=None, show=False):
   """Deploy the specified ksonnet component.
   Args:
     app_dir: The ksonnet directory
@@ -394,7 +421,10 @@ def ks_deploy(app_dir, component, params, env=None, account=None):
     util.run(
       ["ks", "param", "set", "--env=" + env, component, k, v], cwd=app_dir)
 
-  apply_command = ["ks", "apply", env, "-c", component]
+  command = "apply"
+  if show:
+    command = "show"
+  apply_command = ["ks", command, env, "-c", component]
   if account:
     apply_command.append("--as=" + account)
   util.run(apply_command, cwd=app_dir)
@@ -484,11 +514,11 @@ def deploy_minikube(args):
 
   op_id = response.get("name")
   final_op = vm_util.wait_for_operation(gce, args.project, args.zone, op_id)
-  
+
   logging.info("Final result for insert operation: %s", final_op)
   if final_op.get("status") != "DONE":
     raise ValueError("Insert operation has status %s", final_op.get("status"))
-  
+
   if final_op.get("error"):
     message = "Insert operation resulted in error %s".format(
       final_op.get("error"))
@@ -543,20 +573,20 @@ def teardown_minikube(args):
     project=args.project, zone=args.zone, instance=args.vm_name)
 
   response = request.execute()
-  
+
   op_id = response.get("name")
   final_op = vm_util.wait_for_operation(gce, args.project, args.zone, op_id)
-  
+
   logging.info("Final result for delete operation: %s", final_op)
   if final_op.get("status") != "DONE":
     raise ValueError("Delete operation has status %s", final_op.get("status"))
-  
+
   if final_op.get("error"):
     message = "Delete operation resulted in error %s".format(
       final_op.get("error"))
     logging.error(message)
     raise ValueError(message)
-  
+
   # Ensure the disk is deleted. The disk should be auto-deleted with
   # the VM but just in case we issue a delete request anyway.
   disks = gce.disks()
@@ -569,30 +599,30 @@ def teardown_minikube(args):
   except errors.HttpError as e:
     if not e.content:
       raise
-    content = json.loads(e.content)    
+    content = json.loads(e.content)
     if content.get("error", {}).get("code") == requests.codes.NOT_FOUND:
       logging.info("Disk %s in zone %s in project %s already deleted.",
                       args.vm_name, args.zone, args.project)
     else:
       raise
 
-  
+
   if response:
     logging.info("Waiting for disk to be deleted.")
     op_id = response.get("name")
     final_op = vm_util.wait_for_operation(gce, args.project, args.zone, op_id)
-    
+
     logging.info("Final result for disk delete operation: %s", final_op)
     if final_op.get("status") != "DONE":
-      raise ValueError("Disk delete operation has status %s", 
+      raise ValueError("Disk delete operation has status %s",
                        final_op.get("status"))
-    
+
     if final_op.get("error"):
       message = "Delete disk operation resulted in error %s".format(
         final_op.get("error"))
       logging.error(message)
       raise ValueError(message)
-    
+
 def get_gcp_identity():
   identity = util.run_and_output(["gcloud", "config", "get-value", "account"])
   logging.info("Current GCP account: %s", identity)
@@ -697,6 +727,11 @@ def main():  # pylint: disable=too-many-locals,too-many-statements
     default="",
     type=str,
     help=("Comma separated list of parameters to set on the model."))
+
+  parser_argo_job = subparsers.add_parser(
+    "deploy_argo", help="Deploy argo")
+
+  parser_argo_job.set_defaults(func=deploy_argo)
 
   parser_minikube = subparsers.add_parser(
     "deploy_minikube", help="Setup a K8s cluster on minikube.")
