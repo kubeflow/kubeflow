@@ -308,22 +308,22 @@ def deploy_argo(args):
                         "--namespace", "default", "--name", "argo"]
   util.run(generate_command, cwd=app_dir)
 
-  ks_deploy(app_dir, component, {}, env=None, account=None, show=True)
+  ks_deploy(app_dir, component, {}, env=None, account=None, show=False)
 
   # Create a hello world workflow
-  # util.run(["kubectl", "create", "-f", "https://raw.githubusercontent.com/argoproj/argo/master/examples/hello-world.yaml"], cwd=app_dir)
+  util.run(["kubectl", "create", "-f", "https://raw.githubusercontent.com/argoproj/argo/master/examples/hello-world.yaml"], cwd=app_dir)
 
   # Wait for 100 seconds to check if the hello-world pod was created
-  # retries = 20
-  # i = 0
-  # while True:
-  #   if i == retries:
-  #     raise Exception('Failed to run argo workflow')
-  #   output = util.run(["kubectl", "get", "pods", "-lworkflows.argoproj.io/workflow"])
-  #   if "hello-world-" in output:
-  #     return True
-  #   time.sleep(5)
-  #   i += 1
+  retries = 20
+  i = 0
+  while True:
+    if i == retries:
+      raise Exception('Failed to run argo workflow')
+    output = util.run(["kubectl", "get", "pods", "-lworkflows.argoproj.io/workflow"])
+    if "hello-world-" in output:
+      return True
+    time.sleep(5)
+    i += 1
 
 def deploy_pytorchjob(args):
   """Deploy Pytorchjob using the pytorch-job component"""

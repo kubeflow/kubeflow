@@ -162,7 +162,7 @@
             {
               name: "e2e",
               dag: {
-                tasks: [
+                tasks: std.prune([
                   {
                     name: "checkout",
                     template: "checkout",
@@ -216,6 +216,18 @@
                     template: "pytorchjob-deploy",
                     dependencies: ["deploy-kubeflow"],
                   },
+                  // Don't run argo test for gke since
+                  // it runs in the same cluster as the
+                  // test cluster. For minikube, we have
+                  // a separate cluster.
+                  if platform == "minikube" then
+                    {
+                      name: "test-argo-deploy",
+                      template: "test-argo-deploy",
+                      dependencies: ["deploy-kubeflow"],
+                    }
+                  else
+                    {},
                   {
                     name: "test-argo-deploy",
                     template: "test-argo-deploy",
@@ -231,7 +243,7 @@
                     template: "jsonnet-test",
                     dependencies: ["checkout"],
                   },
-                ],  // tasks
+                ]),  // tasks
               },  // dag
             },  // e2e template
             {
