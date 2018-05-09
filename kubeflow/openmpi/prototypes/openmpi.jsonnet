@@ -10,6 +10,7 @@
 // @optionalParam init string null Command to bootstrap the containers. Defaults to init.sh.
 // @optionalParam exec string null Command to execute in master after bootstrap is done. It sleeps indefinitely if not set.
 // @optionalParam imagePullPolicy string IfNotPresent Image pull policy (either IfNotPresent or Always).
+// @optionalParam imagePullSecrets string null Comma-delimited list of secret names to use credentials in pulling your docker images.
 // @optionalParam gpu number 0 Number of GPUs per worker.
 // @optionalParam cpu string null CPU limits per worker.
 // @optionalParam memory string null Memory limits per worker.
