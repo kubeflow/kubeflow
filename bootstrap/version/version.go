@@ -14,8 +14,8 @@ package version
 
 import (
 	"fmt"
-	"runtime"
 	"os"
+	"runtime"
 )
 
 var (
@@ -24,15 +24,15 @@ var (
 )
 
 // PrintVersionAndExit prints versions from the array returned by Info() and exit
-func PrintVersionAndExit(){
-	for _, i := range Info(){
+func PrintVersionAndExit() {
+	for _, i := range Info() {
 		fmt.Printf("%v\n", i)
 	}
 	os.Exit(0)
 }
 
 // Info returns an array of various service versions
-func Info() []string{
+func Info() []string {
 	return []string{
 		fmt.Sprintf("Version: %v", Version),
 		fmt.Sprintf("Git SHA: %s", GitSHA),

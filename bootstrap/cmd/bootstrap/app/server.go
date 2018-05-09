@@ -15,10 +15,16 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"net"
+	"os"
 	"os/user"
+	"path"
 	"path/filepath"
+	"regexp"
+	"strconv"
+	"strings"
 
 	"github.com/ksonnet/ksonnet/actions"
 	kApp "github.com/ksonnet/ksonnet/metadata/app"
@@ -26,23 +32,16 @@ import (
 	"github.com/kubeflow/kubeflow/bootstrap/version"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
-	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	clientset "k8s.io/client-go/kubernetes"
-	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	core_v1 "k8s.io/api/core/v1"
-	type_v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	rbac_v1 "k8s.io/api/rbac/v1"
-
-	"os"
-	"path"
-	"regexp"
-	"strconv"
-	"strings"
 	"k8s.io/api/storage/v1"
+	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sVersion "k8s.io/apimachinery/pkg/version"
+	clientset "k8s.io/client-go/kubernetes"
+	type_v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	"errors"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
 // RecommendedConfigPathEnvVar is a environment variable for path configuration
@@ -205,7 +204,7 @@ func createComponent(opt *options.ServerOption, kfApp *kApp.App, fs *afero.Fs, a
 	if exists, _ := afero.Exists(*fs, componentPath); !exists {
 		log.Infof("Creating Component: %v ...", componentName)
 		err := actions.RunPrototypeUse(map[string]interface{}{
-			actions.OptionApp: *kfApp,
+			actions.OptionApp:       *kfApp,
 			actions.OptionArguments: args,
 		})
 		if err != nil {
@@ -286,11 +285,11 @@ func Run(opt *options.ServerOption) error {
 
 	if err != nil {
 		options := map[string]interface{}{
-			actions.OptionFs:                    fs,
-			actions.OptionName:                  "app",
-			actions.OptionEnvName:               envName,
-			actions.OptionRootPath:              opt.AppDir,
-			actions.OptionServer:                config.Host,
+			actions.OptionFs:       fs,
+			actions.OptionName:     "app",
+			actions.OptionEnvName:  envName,
+			actions.OptionRootPath: opt.AppDir,
+			actions.OptionServer:   config.Host,
 			// TODO(jlewi): What is the proper version to use? It shouldn't be a version like v1.9.0-gke as that
 			// will create an error because ksonnet will be unable to fetch a swagger spec.
 			actions.OptionSpecFlag:              "version:v1.7.0",
