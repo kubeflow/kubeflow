@@ -1,8 +1,8 @@
 {
-   "name": "give-this-package-a-name",
+   "name": "credentials-pod-preset",
    "apiVersion": "0.0.1",
    "kind": "ksonnet.io/parts",
-   "description": "An empty package used as a stub for new packages.\n",
+   "description": "This package contains Kubernetes PodPresets for injecting credentials into Pods..\n",
    "author": "kubeflow-team <kubeflow-discuss@googlegroups.com>",
    "contributors": [
    ],

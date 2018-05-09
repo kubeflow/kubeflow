@@ -1,10 +1,10 @@
 // @apiVersion 0.1
 // @name io.ksonnet.pkg.gcp-credentials-pod-preset
-// @description This prototype deploys a pod preset which injects credentials into pods
-// @shortDescription This prototype deploys a pod preset which injects credentials into pods
+// @description This prototype creates a pod preset which injects credentials into pods
+// @shortDescription This prototype creates a pod preset which injects credentials into pods
 // @param name string Name to give to each of the components
-// @param serviceAccountName string Name of the service account
-// @param secretName string Name of the secret containing the credentials
+// @param serviceAccountName string Name of the GCP service account
+// @param secretName string Name of the kubernetes secret containing the credentials
 // @optionalParam namespace string null Namespace to use for the pod preset. It is automatically inherited from the environment if not set.
 
 local k = import "k.libsonnet";
