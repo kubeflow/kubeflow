@@ -162,7 +162,7 @@
             {
               name: "e2e",
               dag: {
-                tasks: [
+                tasks: std.prune([
                   {
                     name: "checkout",
                     template: "checkout",
@@ -211,12 +211,23 @@
                           "",
                     ],
                   },
-
                   {
                     name: "pytorchjob-deploy",
                     template: "pytorchjob-deploy",
                     dependencies: ["deploy-kubeflow"],
                   },
+                  // Don't run argo test for gke since
+                  // it runs in the same cluster as the
+                  // test cluster. For minikube, we have
+                  // a separate cluster.
+                  if platform == "minikube" then
+                    {
+                      name: "test-argo-deploy",
+                      template: "test-argo-deploy",
+                      dependencies: ["deploy-kubeflow"],
+                    }
+                  else
+                    {},
                   {
                     name: "tfjob-test",
                     template: "tfjob-test",
@@ -227,7 +238,7 @@
                     template: "jsonnet-test",
                     dependencies: ["checkout"],
                   },
-                ],  // tasks
+                ]),  // tasks
               },  // dag
             },  // e2e template
             {
@@ -384,7 +395,19 @@
               "--deploy_name=pytorch-job",
               "deploy_pytorchjob",
               "--params=image=pytorch/pytorch:v0.2,num_workers=1",
-            ]),  // run tests
+            ]),  // pytorchjob-deploy
+            buildTemplate("test-argo-deploy", [
+              "python",
+              "-m",
+              "testing.test_deploy",
+              "--project=kubeflow-ci",
+              "--github_token=$(GITHUB_TOKEN)",
+              "--namespace=" + stepsNamespace,
+              "--test_dir=" + testDir,
+              "--artifacts_dir=" + artifactsDir,
+              "--deploy_name=test-argo-deploy",
+              "deploy_argo",
+            ]),  // test-argo-deploy
           ],  // templates
         },
       },  // e2e
