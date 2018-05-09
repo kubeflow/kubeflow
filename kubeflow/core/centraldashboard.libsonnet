@@ -70,7 +70,7 @@
               "rewrite: /",
               "service: centraldashboard." + namespace,
             ]),
-        }, //annotations
+        },  //annotations
       },
       spec: {
         ports: [
