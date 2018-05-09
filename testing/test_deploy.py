@@ -320,7 +320,7 @@ def deploy_argo(args):
   while True:
     if i == retries:
       raise Exception('Failed to run argo workflow')
-    output = util.run(["kubectl", "get", "pods", "-lworkflows.argoproj.io/workflow"])
+    output = util.run(["kubectl", "get", "pods", "-n", "default", "-lworkflows.argoproj.io/workflow"])
     if "hello-world-" in output:
       return True
     time.sleep(5)
