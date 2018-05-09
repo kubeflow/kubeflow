@@ -45,6 +45,7 @@ local ROLE_WORKER = "worker";
       schedulerName: params.schedulerName,
       volumes: $.volumes(params),
       containers: $.containers(params, role),
+      imagePullSecrets: [{ name: secret } for secret in util.toArray(params.imagePullSecrets)],
       serviceAccountName: serviceaccount.name(params),
       nodeSelector: $.nodeSelector(params, role),
     },
