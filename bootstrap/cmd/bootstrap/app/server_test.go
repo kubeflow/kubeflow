@@ -15,18 +15,17 @@
 package app
 
 import (
+	"errors"
+	"reflect"
 	"testing"
 
-	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-
-	"reflect"
-	"k8s.io/api/storage/v1"
-	k8sVersion "k8s.io/apimachinery/pkg/version"
 	"github.com/stretchr/testify/mock"
 	core_v1 "k8s.io/api/core/v1"
+	"k8s.io/api/storage/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8sVersion "k8s.io/apimachinery/pkg/version"
 	type_v1 "k8s.io/client-go/kubernetes/typed/core/v1"
-	"errors"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
 func TestModifyGcloudCommand(t *testing.T) {
@@ -144,7 +143,7 @@ func TestHasDefaultStorageClass(t *testing.T) {
 	}
 }
 
-type MockedNamespace struct{
+type MockedNamespace struct {
 	mock.Mock
 	type_v1.NamespaceInterface
 }
