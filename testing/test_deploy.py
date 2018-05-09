@@ -311,7 +311,7 @@ def deploy_argo(args):
   ks_deploy(app_dir, component, {}, env=None, account=None, show=False)
 
   # Create a hello world workflow
-  util.run(["kubectl", "create", "-f", "https://raw.githubusercontent.com/argoproj/argo/master/examples/hello-world.yaml"], cwd=app_dir)
+  util.run(["kubectl", "create", "-n", "default", "-f", "https://raw.githubusercontent.com/argoproj/argo/master/examples/hello-world.yaml"], cwd=app_dir)
 
   # Wait for 100 seconds to check if the hello-world pod was created
   retries = 20
