@@ -462,6 +462,10 @@ func Run(opt *options.ServerOption) error {
 	fmt.Printf("Initialized app %v\n", opt.AppDir)
 
 	if opt.Apply {
+		// (05092018): why not use API:
+		// ks runApply API expects clientcmd.ClientConfig, which kind of have soft dependency on existence of ~/.kube/config
+		// if use k8s client-go API, would be quite verbose if we create all resources one by one.
+		// TODO: use API to create ks components
 		log.Infof("Apply kubeflow components...")
 		rawCmd := "ks show default | kubectl apply -f -"
 		applyCmd := exec.Command("bash", "-c", rawCmd)

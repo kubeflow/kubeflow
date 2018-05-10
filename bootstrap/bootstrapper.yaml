@@ -1,30 +1,39 @@
 ---
+# Namespace for bootstrapper
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kubeflow-admin
+---
+# Make kubeflow-admin admin
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
   name: kubeflow-cluster-admin
 subjects:
   - kind: ServiceAccount
-    # Reference to upper's `metadata.name`
     name: default
-    # Reference to upper's `metadata.namespace`
-    namespace: default
+    namespace: kubeflow-admin
 roleRef:
   kind: ClusterRole
   name: cluster-admin
   apiGroup: rbac.authorization.k8s.io
 ---
+# Required by StatefulSet
 kind: Service
 apiVersion: v1
 metadata:
   name: kubeflow-bootstrapper
+  namespace: kubeflow-admin
 spec:
   clusterIP: "None"
 ---
+# Store ksonnet apps
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: kubeflow-ksonnet-pvc
+  namespace: kubeflow-admin
   labels:
     app: kubeflow-ksonnet
 spec:
@@ -33,12 +42,12 @@ spec:
   resources:
     requests:
       storage: 5Gi
-
 ---
 apiVersion: apps/v1beta2
 kind: StatefulSet
 metadata:
   name: kubeflow-bootstrapper
+  namespace: kubeflow-admin
 spec:
   selector:
     matchLabels:
@@ -52,7 +61,7 @@ spec:
     spec:
       containers:
       - name: kubeflow-bootstrapper
-        image: gcr.io/kunming-dev/test04
+        image: gcr.io/kubeflow-images-public/bootstrapper:latest
         workingDir: /opt/bootstrap
         command: [ "/opt/kubeflow/bootstrapper"]
         args: ["--in-cluster", "--namespace=kubeflow"]
