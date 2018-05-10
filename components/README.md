@@ -5,8 +5,8 @@ This allows us to use `build_image.py` to build all images.
 
 For example
 ```
-python build_image.py tf_serving --tf_version=1.6 --platform=gpu
-python build_image.py tf_serving --tf_version=1.7  // default is cpu image
+python build_image.py --tf_version=1.6 --platform=gpu tf_serving
+python build_image.py --tf_version=1.4.1 tf_notebook
 ```
 
 See `build_image.py` for details.
@@ -16,3 +16,7 @@ See `build_image.py` for details.
 ### TF Serving
 - CPU: 1.4, 1.5, 1.6, 1.7
 - GPU: 1.6, 1.7
+
+### TF notebook
+- CPU: 1.4.1, 1.5.1, 1.6.0, 1.7.0
+- GPU: 1.4.1, 1.5.1, 1.6.0, 1.7.0

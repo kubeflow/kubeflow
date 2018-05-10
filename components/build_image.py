@@ -1,7 +1,7 @@
 """Script to build images.
 
 For example,
-python build_image.py tf_serving --tf_version=1.6 --platform=gpu
+python build_image.py --tf_version=1.6 --platform=gpu tf_serving
 """
 import argparse
 import datetime
@@ -70,14 +70,18 @@ def get_build_args(config):
   config_list = [key + "=" + val for key, val in config.items()]
   return list(chain.from_iterable([["--build-arg", x] for x in config_list]))
 
+def get_config(context_dir, version):
+  """Returns a dict of configuration from the version-config file."""
+  config_file = os.path.join(context_dir, "versions", version, "version-config.json")
+  with open(config_file) as f:
+    config = yaml.load(f)
+  return config
+
 def build_tf_serving(args):
   context_dir = "k8s-model-server/images"
   version = args.tf_version if args.platform == "cpu" else args.tf_version + "gpu"
 
-  config_file = os.path.join(context_dir, "versions", version, "version-config.json")
-  with open(config_file) as f:
-    config = yaml.load(f)
-
+  config = get_config(context_dir, version)
   build_args = get_build_args(config)
 
   command = list(chain(
@@ -85,6 +89,22 @@ def build_tf_serving(args):
       build_args,
       ["-t", "{}/tensorflow-serving-{}:{}".format(args.registry, version, args.tag),
        "-f", "Dockerfile.{}".format(args.platform), "."]
+  ))
+  run(command, cwd=context_dir)
+
+def build_tf_notebook(args):
+  context_dir = "tensorflow-notebook-image"
+  version = args.tf_version if args.platform == "cpu" else args.tf_version + "gpu"
+
+  config = get_config(context_dir, version)
+  build_args = get_build_args(config)
+
+  command = list(chain(
+      ["docker", "build", "--pull"],
+      build_args,
+      ["-t", "{}/tensorflow-{}-notebook-{}:{}".format(
+          args.registry, args.tf_version, args.platform, args.tag),
+       "-f", "Dockerfile", "."]
   ))
   run(command, cwd=context_dir)
 
@@ -102,20 +122,22 @@ def main():
     default="latest",
     help="The image tag"
   )
-
-  parser_tf_serving = subparsers.add_parser("tf_serving")
-  parser_tf_serving.set_defaults(func=build_tf_serving)
-
-  parser_tf_serving.add_argument(
+  parser.add_argument(
     "--tf_version",
     default="1.6",
     help="Tensorflow version"
   )
-  parser_tf_serving.add_argument(
+  parser.add_argument(
     "--platform",
     default="cpu",
     help="cpu or gpu"
   )
+
+  parser_tf_serving = subparsers.add_parser("tf_serving")
+  parser_tf_serving.set_defaults(func=build_tf_serving)
+
+  parser_tf_notebook = subparsers.add_parser("tf_notebook")
+  parser_tf_notebook.set_defaults(func=build_tf_notebook)
 
   args = parser.parse_args()
   args.func(args)

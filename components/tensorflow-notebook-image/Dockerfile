@@ -30,6 +30,7 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
   curl \
   g++ \
   git \
+  gnupg \
   graphviz \
   locales \
   lsb-release \
