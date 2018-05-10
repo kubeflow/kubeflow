@@ -1,6 +1,6 @@
 // E2E test for deploying Kubeflow on GKE.
 // The test ensures we can probably setup GKE using deployment manager.
-local params = std.extVar("__ksonnet/params").components.workflows;
+local params = std.extVar("__ksonnet/params").components["gke_deploy"];
 
 local k = import "k.libsonnet";
 local gke_deploy = import "gke_deploy.libsonnet";
