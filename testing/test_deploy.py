@@ -262,10 +262,15 @@ def deploy_kubeflow(args):
   logging.info("Verifying TfHub started.")
   util.wait_for_statefulset(api_client, namespace, jupyterhub_name)
 
-  # Verify that PyTorch Operator actually deployed
+  # Verify that PyTorch Operator is actually deployed.
   pytorch_operator_deployment_name = "pytorch-operator"
   logging.info("Verifying PyTorchJob controller started.")
   util.wait_for_deployment(api_client, namespace, pytorch_operator_deployment_name)
+
+  # Verify that Ambassador is actually deployed.
+  ambassador_name = "ambassador"
+  logging.info("Verifying Ambassador started")
+  util.wait_for_deployment(api_client, namespace, ambassador_name, replicas=3)
 
 def deploy_model(args):
   """Deploy a TF model using the TF serving component."""
