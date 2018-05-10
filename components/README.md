@@ -1,0 +1,18 @@
+# Building images
+
+The Dockerfiles in each component should be parameterized, with parameters stored in a `versions` folder.
+This allows us to use `build_image.py` to build all images.
+
+For example
+```
+python build_image.py tf_serving --tf_version=1.6 --platform=gpu
+python build_image.py tf_serving --tf_version=1.7  // default is cpu image
+```
+
+See `build_image.py` for details.
+
+## Supported versions
+
+### TF Serving 
+- CPU: 1.4, 1.6, 1.7
+- GPU: 1.6
