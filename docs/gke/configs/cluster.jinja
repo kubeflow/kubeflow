@@ -1,0 +1,146 @@
+{#
+Copyright 2016 Google Inc. All rights reserved.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+#}
+
+
+{% set NAME_PREFIX = env['deployment'] + '-' + env['name'] %}
+{% set CLUSTER_NAME = env['name'] %}
+{% set TYPE_NAME = NAME_PREFIX + '-type' %}
+{% set K8S_ENDPOINTS = {'': 'api/v1', '-v1beta1-extensions': 'apis/extensions/v1beta1'} %}
+{% set CPU_POOL = 'cpu-pool-' + properties['pool-version'] %}
+{% set GPU_POOL = 'gpu-pool-' + properties['pool-version'] %}
+
+resources:
+- name: {{ CLUSTER_NAME }}
+  type: container.v1.cluster
+  properties:
+    zone: {{ properties['zone'] }}
+    cluster:
+      name: {{ CLUSTER_NAME }}
+      # 
+      initialNodeCount: {{ properties['initialNodeCount'] }}
+      # We need 1.9 to support GPUs without requiring Alpha.
+      initialClusterVersion: 1.9.6-gke.1
+      nodeConfig:
+        oauthScopes:        
+        - https://www.googleapis.com/auth/compute
+        - https://www.googleapis.com/auth/devstorage.read_only
+        - https://www.googleapis.com/auth/logging.write
+        - https://www.googleapis.com/auth/monitoring
+
+# We manage the node pools as separate resources.
+# We do this so that if we want to make changes we can delete the existing resource and then recreate it.
+# Updating doesn't work so well because we are limited in what changes GKE's update method supports.
+
+- name: cpu-pool-{{ properties['pool-version'] }}
+  type: container.v1.nodePool
+  properties:
+    project: {{ properties['project'] }}
+    zone: {{ properties['zone'] }}
+    clusterId: {{ CLUSTER_NAME }}
+    nodePool:
+      name: cpu-pool      
+      initialNodeCount: {{ properties['cpu-pool-initialNodeCount'] }}
+      config:          
+        machineType: n1-standard-8
+        oauthScopes:
+          - https://www.googleapis.com/auth/compute
+          - https://www.googleapis.com/auth/devstorage.read_only
+          - https://www.googleapis.com/auth/logging.write
+          - https://www.googleapis.com/auth/monitoring
+
+  metadata:
+    dependsOn:
+    - {{ CLUSTER_NAME }}
+
+- name: {{ GPU_POOL }}
+  type: container.v1.nodePool
+  properties:
+    project: {{ properties['project'] }}
+    zone: {{ properties['zone'] }}
+    clusterId: {{ CLUSTER_NAME }}
+    nodePool:
+      name: gpu-pool      
+      initialNodeCount: {{ properties['gpu-pool-initialNodeCount'] }}
+      config:          
+        machineType: n1-standard-8
+        oauthScopes:
+        # Attaching cloud-platform scope to nodes is not good practice
+        # But it simplifies demos.
+          - https://www.googleapis.com/auth/cloud-platform
+          - https://www.googleapis.com/auth/compute
+          - https://www.googleapis.com/auth/devstorage.read_only
+          - https://www.googleapis.com/auth/logging.write
+          - https://www.googleapis.com/auth/monitoring
+        accelerators:
+          - acceleratorCount: 1
+            acceleratorType: nvidia-tesla-k80
+
+  metadata:
+    dependsOn:
+    # We can only create 1 node pool at a time.
+    - {{ CPU_POOL }}
+
+- name: static-ip
+  type: compute.v1.globalAddress
+  properties:
+    project: {{ properties['project'] }}
+    name: {{ CLUSTER_NAME }}
+    description: "Static IP for ingress."
+
+
+{#
+
+Define TypeProviders for different K8s endpoints. 
+https://cloud.google.com/deployment-manager/docs/configuration/type-providers/process-adding-api
+This allows K8s resources to be created using Deployment manager.
+We use this to create the minimal resources needed to startup and deploy Kubeflow via the bootstrapper;
+e.g. creating namespaces, service accounts, stateful set to run the bootstrapper.
+
+#}
+{% for typeSuffix, endpoint in K8S_ENDPOINTS.iteritems() %}
+- name: {{ TYPE_NAME }}{{ typeSuffix }}
+  type: deploymentmanager.v2beta.typeProvider
+  properties:
+    options:
+      validationOptions:
+        # Kubernetes API accepts ints, in fields they annotate with string.
+        # This validation will show as warning rather than failure for
+        # Deployment Manager.
+        # https://github.com/kubernetes/kubernetes/issues/2971
+        schemaValidation: IGNORE_WITH_WARNINGS
+      # According to kubernetes spec, the path parameter 'name'
+      # should be the value inside the metadata field
+      # https://github.com/kubernetes/community/blob/master/contributors/devel/api-conventions.md
+      # This mapping specifies that
+      inputMappings:
+      - fieldName: name
+        location: PATH
+        methodMatch: ^(GET|DELETE|PUT)$
+        value: $.ifNull($.resource.properties.metadata.name, $.resource.name)
+      - fieldName: metadata.name
+        location: BODY
+        methodMatch: ^(PUT|POST)$
+        value: $.ifNull($.resource.properties.metadata.name, $.resource.name)
+      - fieldName: Authorization
+        location: HEADER
+        value: >
+          $.concat("Bearer ", $.googleOauth2AccessToken())
+    descriptorUrl: https://$(ref.{{ CLUSTER_NAME }}.endpoint)/swaggerapi/{{ endpoint }}
+{% endfor %}
+
+outputs:
+{% for typeSuffix, endpoint in K8S_ENDPOINTS.iteritems() %}
+- name: clusterType{{ typeSuffix }}
+  value: {{ TYPE_NAME }}{{ typeSuffix }}
+{% endfor %}
+
