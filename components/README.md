@@ -13,6 +13,6 @@ See `build_image.py` for details.
 
 ## Supported versions
 
-### TF Serving 
-- CPU: 1.4, 1.6, 1.7
-- GPU: 1.6
+### TF Serving
+- CPU: 1.4, 1.5, 1.6, 1.7
+- GPU: 1.6, 1.7
