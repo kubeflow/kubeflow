@@ -102,6 +102,9 @@ local deployment = {
         labels: {
           app: appName,
         },
+        annotations: {
+          "sidecar.istio.io/inject": "true",
+        },
       },
       spec: {
         containers: [
