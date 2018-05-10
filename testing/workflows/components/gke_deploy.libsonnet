@@ -20,20 +20,21 @@
     else [],
 
   listToDict:: function(v)
-    {      
+    {
       local name = v[0],
       // v[0]: v[1],
-      [ v[0] ]: v[1],
+      [v[0]]: v[1],
     },
 
   // parseEnvToMap takes a string "key1=value1,key2=value2,..."
   // and turns it into an object with keys key1, key2, ... and values value1,...,value2
-  parseEnvToMap::function(v)
+  parseEnvToMap:: function(v)
     local pieces = std.split(v, ",");
     if v != "" && std.length(pieces) > 0 then
       std.foldl(
         function(a, b) a + $.listToDict(std.split(b, "=")),
-        pieces, {}
+        pieces,
+        {}
       )
     else {},
 
@@ -89,11 +90,12 @@
 
       // Common commands that should be executed before running gcloud commands.
       local commonCommands = [
-              "set -x",
-              "&&",
-              "gcloud auth activate-service-account --key-file=/secret/gcp-credentials/key.json",
-              "&&",
-              "gcloud config list",];
+        "set -x",
+        "&&",
+        "gcloud auth activate-service-account --key-file=/secret/gcp-credentials/key.json",
+        "&&",
+        "gcloud config list",
+      ];
 
       // Build an Argo template to execute a particular command.
       // step_name: Name for the template
@@ -203,9 +205,9 @@
                     name: "create-deployment",
                     template: "create-deployment",
                     dependencies: [
-                          "checkout",
+                      "checkout",
                     ],
-                  },                  
+                  },
                 ]),  // tasks
               },  // dag
             },  // e2e template
@@ -215,7 +217,7 @@
                 tasks: [
                   {
                     name: "teardown",
-                    template: "delete-deployment",                        
+                    template: "delete-deployment",
                   },
                   {
                     name: "copy-artifacts",
@@ -226,7 +228,7 @@
               },  // dag
             },  // exit-handler
             // TODO(jlewi): We need to modify cluster-kubeflow.yaml to set things like the project
-            // and cluster name. 
+            // and cluster name.
             buildTemplate(
               "checkout",
               ["/usr/local/bin/checkout.sh", srcRootDir],
@@ -237,35 +239,40 @@
               [],  // no sidecars
             ),
             buildTemplate("create-deployment", [
-              "bash", "-c",
+              "bash",
+              "-c",
               std.join(
-              " ",
-              commonCommands + [
-              "&&",
-              "gcloud", 
-              "deployment-manager",
-              "--project=" + project,
-              "deployments", 
-              "create",
-              deployName,
-              "--config=" + configDir + "/cluster-kubeflow.yaml",
-              ])
+                " ",
+                commonCommands + [
+                  "&&",
+                  "gcloud",
+                  "deployment-manager",
+                  "--project=" + project,
+                  "deployments",
+                  "create",
+                  deployName,
+                  "--config=" + configDir + "/cluster-kubeflow.yaml",
+                ]
+              ),
             ]),  // create-deployment
             // Setup and teardown using GKE.
             buildTemplate("delete-deployment", [
-              "bash", "-c",
+              "bash",
+              "-c",
               std.join(
-              " ",
-              commonCommands + [
-              "&&",
-              "gcloud", 
-              "deployment-manager",
-              "--project=" + project,
-              "--quiet",
-              "deployments", 
-              "delete",
-              deployName,
-            ])]),  // delete-deployment
+                " ",
+                commonCommands + [
+                  "&&",
+                  "gcloud",
+                  "deployment-manager",
+                  "--project=" + project,
+                  "--quiet",
+                  "deployments",
+                  "delete",
+                  deployName,
+                ]
+              ),
+            ]),  // delete-deployment
             buildTemplate("create-pr-symlink", [
               "python",
               "-m",
