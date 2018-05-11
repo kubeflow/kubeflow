@@ -25,6 +25,9 @@
 // @optionalParam downloadDataTo string null Local path where data are downloaded to.
 // @optionalParam uploadDataFrom string null Local path where data are uploaded from.
 // @optionalParam uploadDataTo string null URI where data are uploaded to. Namespace, name, and pod will be appended to the URI. Only S3 bucket is supported at the moment.
+// @optionalParam runAsUser string null uid of the first process of containers in master/worker pods.  If not set, this will be default value of your cluster configuration.
+// @optionalParam runAsGroup string null Primary gid of the first process of containers in master/worker pods.  If not set, this will be default value of your cluster configuration.
+// @optionalParam supplementalGroups string null Comma-delimited list of supplemental group ids to put the user of the first process of containers in master/worker pods.
 
 local k = import "k.libsonnet";
 local openmpi = import "kubeflow/openmpi/all.libsonnet";
