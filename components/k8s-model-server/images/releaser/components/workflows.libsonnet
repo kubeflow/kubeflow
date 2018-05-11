@@ -19,7 +19,6 @@
       )
     else [],
 
-
   // Default parameters.
   //
   // TODO(jlewi): Use camelCase consistently.
@@ -158,7 +157,6 @@
         },
         sidecars: sidecars,
       };  // buildTemplate
-
 
       local buildImageTemplate(step_name, dockerfile, image) =
         buildTemplate(
@@ -366,11 +364,9 @@
             buildTemplate("setup", [
               "python",
               "-m",
-              "testing.test_deploy",
-              "--project=" + project,
+              "testing.get_gke_credentials",
               "--test_dir=" + testDir,
-              "--artifacts_dir=" + artifactsDir,
-              "get_gke_credentials",
+              "--project=" + project,
               "--cluster=" + cluster,
               "--zone=" + zone,
             ]),  // setup
