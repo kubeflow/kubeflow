@@ -286,15 +286,12 @@
             buildTemplate("setup-gke", [
               "python",
               "-m",
-              "testing.test_deploy",
-              "--project=" + project,
-              "--namespace=" + stepsNamespace,
+              "testing.get_gke_credentials",
               "--test_dir=" + testDir,
-              "--artifacts_dir=" + artifactsDir,
-              "get_gke_credentials",
+              "--project=" + project,
               "--cluster=" + cluster,
               "--zone=" + zone,
-            ]),  // setup
+            ]),  // setup-gke
             buildTemplate("teardown-gke", [
               "python",
               "-m",
@@ -332,16 +329,12 @@
             ]),  // teardown
 
             buildTemplate(
-              "deploy-kubeflow",
-              [
+              "deploy-kubeflow", [
                 "python",
                 "-m",
-                "testing.test_deploy",
-                "--project=" + project,
-                "--namespace=" + stepsNamespace,
+                "testing.deploy_kubeflow",
                 "--test_dir=" + testDir,
-                "--artifacts_dir=" + artifactsDir,
-                "deploy_kubeflow",
+                "--namespace=" + stepsNamespace,
               ]
             ),  // deploy-kubeflow
             buildTemplate("create-pr-symlink", [
