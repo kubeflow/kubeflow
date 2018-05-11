@@ -87,20 +87,26 @@
       local cpuImage = params.registry + "/tf-model-server-cpu" + ":" + params.versionTag;
       local gpuImage = params.registry + "/tf-model-server-gpu" + ":" + params.versionTag;
 
+      local httpImageDir = srcRootDir + "/kubeflow/kubeflow/components/k8s-model-server/http-proxy";
+      local httpProxyImage = params.registry + "/tf-model-server-http-proxy:" + params.versionTag;
+
       // Parameters to set on the modelServer component
       local deployParams = {
         name: "inception-cpu",
         namespace: stepsNamespace,
         modelPath: "gs://kubeflow-models/inception",
+	deployHttpProxy: true,
       } + if build_image then
         {
           modelServerImage: cpuImage,
+	  httpProxyImage: httpProxyImage,
         } else {};
       local deployGpuParams = {
         name: "inception-gpu",
         namespace: stepsNamespace,
         modelPath: "gs://kubeflow-models/inception",
         numGpus: 1,
+	deployHttpProxy: true,
       };
 
       local toPair = function(k, v) k + "=" + v;
@@ -160,7 +166,7 @@
       };  // buildTemplate
 
 
-      local buildImageTemplate(step_name, dockerfile, image) =
+      local buildImageTemplate(step_name, imageDir, dockerfile, image) =
         buildTemplate(
           step_name,
           [
@@ -260,9 +266,14 @@
           dependencies: ["checkout"],
         },
         {
+          name: "build-tf-serving-http",
+          template: "build-tf-serving-http",
+          dependencies: ["checkout"],
+        },
+        {
           name: "deploy-tf-serving",
           template: "deploy-tf-serving",
-          dependencies: ["build-tf-serving-cpu", "setup"],
+          dependencies: ["build-tf-serving-cpu", "build-tf-serving-http", "setup"],
         },
       ] else [
         {
@@ -360,7 +371,8 @@
               [],  // no sidecars
             ),
 
-            buildImageTemplate("build-tf-serving-cpu", "Dockerfile.cpu", cpuImage),
+            buildImageTemplate("build-tf-serving-cpu", imageDir, "Dockerfile.cpu", cpuImage),
+            buildImageTemplate("build-tf-serving-http", httpImageDir, "Dockerfile", httpProxyImage),
 
             // Setup configures a kubeconfig file for GKE.
             buildTemplate("setup", [
