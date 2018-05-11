@@ -25,6 +25,9 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
+	"os/exec"
+	"bytes"
 
 	"github.com/ksonnet/ksonnet/actions"
 	kApp "github.com/ksonnet/ksonnet/metadata/app"
@@ -100,7 +103,10 @@ func getKubeConfigFile() string {
 
 // gGetClusterConfig obtain the config from the Kube configuration used by kubeconfig.
 //
-func getClusterConfig() (*rest.Config, error) {
+func getClusterConfig(inCluster bool) (*rest.Config, error) {
+	if inCluster {
+		return rest.InClusterConfig()
+	}
 	configFile := getKubeConfigFile()
 
 	if len(configFile) > 0 {
@@ -222,12 +228,12 @@ func Run(opt *options.ServerOption) error {
 		version.PrintVersionAndExit()
 	}
 
-	config, err := getClusterConfig()
+	config, err := getClusterConfig(opt.InCluster)
 	if err != nil {
 		return err
 	}
 
-	kubeClient, err := clientset.NewForConfig(rest.AddUserAgent(config, "kubeflow-bootstraper"))
+	kubeClient, err := clientset.NewForConfig(rest.AddUserAgent(config, "kubeflow-bootstrapper"))
 	if err != nil {
 		return err
 	}
@@ -243,7 +249,7 @@ func Run(opt *options.ServerOption) error {
 		return err
 	}
 
-	if isGke(clusterVersion) {
+	if (!opt.InCluster) && isGke(clusterVersion) {
 		roleBindingName := "kubeflow-admin"
 		_, err = kubeClient.RbacV1().ClusterRoleBindings().Get(roleBindingName, meta_v1.GetOptions{})
 		if err != nil {
@@ -316,7 +322,7 @@ func Run(opt *options.ServerOption) error {
 		log.Fatalf("There was a problem loading the app: %v", err)
 	}
 
-	registryUri := fmt.Sprintf("github.com/kubeflow/kubeflow/tree/%v/kubeflow", opt.KfVersion)
+	registryUri := fmt.Sprintf("/opt/kubeflow/kubeflow")
 
 	registryName := "kubeflow"
 
@@ -453,5 +459,32 @@ func Run(opt *options.ServerOption) error {
 	log.Infof("App root %v", kfApp.Root())
 
 	fmt.Printf("Initialized app %v\n", opt.AppDir)
+
+	if opt.Apply {
+		// (05092018): why not use API:
+		// ks runApply API expects clientcmd.ClientConfig, which kind of have soft dependency on existence of ~/.kube/config
+		// if use k8s client-go API, would be quite verbose if we create all resources one by one.
+		// TODO: use API to create ks components
+		log.Infof("Apply kubeflow components...")
+		rawCmd := "ks show default | kubectl apply -f -"
+		applyCmd := exec.Command("bash", "-c", rawCmd)
+
+		var out bytes.Buffer
+		var stderr bytes.Buffer
+		applyCmd.Stdout = &out
+		applyCmd.Stderr = &stderr
+		if err := applyCmd.Run(); err != nil {
+			log.Infof("stderr >>> " + fmt.Sprint(err) + ": " + stderr.String())
+			return err
+		} else {
+			log.Infof("Components applied: " + out.String())
+		}
+	}
+	if opt.InCluster {
+		log.Infof("Keeping pod alive...")
+		for {
+			time.Sleep(time.Minute)
+		}
+	}
 	return err
 }

@@ -34,6 +34,9 @@ RUN git clone https://github.com/ksonnet/ksonnet.git /opt/ksonnet && \
 	cd /opt/ksonnet && \
 	git checkout v0.10.0-alpha.3
 
+ARG kubeflowversion=v0.1.3
+RUN git clone --depth 1 --branch $kubeflowversion https://github.com/kubeflow/kubeflow.git /opt/kubeflow
+
 # TODO(jlewi): bootstrap is using an early dev version of ks (0.10) so we need
 # to build ks at the same commit because the generated app won't work with
 # earlier versions of ks.
@@ -46,29 +49,13 @@ RUN cd /opt/ksonnet && \
     cp /tmp/go/bin/ks /usr/local/bin && \
     chmod a+rx /usr/local/bin/ks
 
-# Pull kubeflow ksonnet repos
-
-# Ksonnet needs to have kubernetes env setup even for non-k8s actions.
-# TODO (inc0): remove this when we move to disk registry
-COPY kubeconfig_fake.yml /root/.kube/config
-
-ARG github_token
-
-# TODO (inc0): remove this when we move to disk registry
-RUN export GITHUB_TOKEN=${github_token} && cd / && ks init kubeflow && \
-    cd kubeflow && \
-    ks registry add kubeflow github.com/kubeflow/kubeflow/tree/master/kubeflow && \
-    ks pkg install kubeflow/core && \
-    ks pkg install kubeflow/tf-serving && \
-    ks pkg install kubeflow/tf-job && unset GITHUB_TOKEN
-COPY deploy.sh /kubeflow
-
-RUN mkdir -p /opt/kubeflow
-
 COPY --from=builder /opt/kubeflow/bootstrapper /opt/kubeflow/
 COPY start.sh /opt/kubeflow/
 
-RUN chmod a+rx /opt/kubeflow/*
+RUN chmod a+rx /opt/kubeflow/bootstrapper
+RUN chmod a+rx /opt/kubeflow/start.sh
+
+RUN apt-get update && apt-get install -y vim
 
 # Set default values for USER, USER_ID, GROUP_ID
 # The startup script will create the user and su to that user.
@@ -82,4 +69,4 @@ ENV GROUP_ID 1000
 ENV GROUP kubeflow
 
 WORKDIR /opt/kubeflow
-ENTRYPOINT ["/opt/kubeflow/start.sh"]
+CMD ["/opt/kubeflow/start.sh"]
