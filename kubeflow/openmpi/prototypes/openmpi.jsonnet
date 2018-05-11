@@ -10,9 +10,11 @@
 // @optionalParam init string null Command to bootstrap the containers. Defaults to init.sh.
 // @optionalParam exec string null Command to execute in master after bootstrap is done. It sleeps indefinitely if not set.
 // @optionalParam imagePullPolicy string IfNotPresent Image pull policy (either IfNotPresent or Always).
+// @optionalParam imagePullSecrets string null Comma-delimited list of secret names to use credentials in pulling your docker images.
 // @optionalParam gpu number 0 Number of GPUs per worker.
 // @optionalParam cpu string null CPU limits per worker.
 // @optionalParam memory string null Memory limits per worker.
+// @optionalParam customResources string null Comma-delimited list of "resourceName=amount" pairs which you want to limit per worker.
 // @optionalParam serviceAccountName string null the service account name to run pods. The service account should have clusterRoleBinding for "view" ClusterRole.  If it was not set, service account and its role binding will be created automatically.
 // @optionalParam schedulerName string default-scheduler scheduler name to use for the components.
 // @optionalParam controllerImage string jiez/openmpi-controller:0.0.1 Docker image of the openmpi-controller.

@@ -45,6 +45,7 @@ local ROLE_WORKER = "worker";
       schedulerName: params.schedulerName,
       volumes: $.volumes(params),
       containers: $.containers(params, role),
+      imagePullSecrets: [{ name: secret } for secret in util.toArray(params.imagePullSecrets)],
       serviceAccountName: serviceaccount.name(params),
       nodeSelector: $.nodeSelector(params, role),
     },
@@ -99,7 +100,7 @@ local ROLE_WORKER = "worker";
       name: "openmpi-job",
       image: params.image,
       imagePullPolicy: params.imagePullPolicy,
-      resources: $.resources(params, role),
+      resources: std.mergePatch($.resources(params, role), $.customResources(params, role)),
       terminationMessagePath: "/dev/termination-log",
       terminationMessagePolicy: "File",
       workingDir: "/kubeflow/openmpi/data",
@@ -173,4 +174,9 @@ local ROLE_WORKER = "worker";
 
   nodeSelector(params, role)::
     if role == ROLE_WORKER then util.toObject(params.nodeSelector) else {},
+
+  customResources(params, role)::
+    if role == ROLE_WORKER then {
+      limits: util.toObject(params.customResources),
+    } else {},
 }
