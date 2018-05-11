@@ -21,7 +21,7 @@ all: build
 # To build without the cache set the environment variable
 # export DOCKER_BUILD_OPTS=--no-cache
 build:
-	docker build ${DOCKER_BUILD_OPTS} -t $(IMG):$(TAG) --build-arg github_token=${GITHUB_TOKEN} .
+	docker build ${DOCKER_BUILD_OPTS} -t $(IMG):$(TAG) . --build-arg kubeflowversion=$(shell git describe --abbrev=0 --tags)
 	docker tag $(IMG):$(TAG) $(IMG):latest
 	@echo Built $(IMG):latest
 	@echo Built $(IMG):$(TAG)
