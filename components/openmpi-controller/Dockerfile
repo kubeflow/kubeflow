@@ -4,7 +4,8 @@ USER root
 
 ENV HOME /root
 
-ADD requirements.txt $HOME
-ADD controller $HOME/controller
+RUN mkdir -p /openmpi-controller
+ADD requirements.txt /openmpi-controller/requirements.txt
+ADD controller /openmpi-controller/controller
 
-RUN pip3 install -r $HOME/requirements.txt
+RUN pip3 install -r /openmpi-controller/requirements.txt

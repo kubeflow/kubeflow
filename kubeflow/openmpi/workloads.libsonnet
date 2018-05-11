@@ -173,7 +173,7 @@ local ROLE_WORKER = "worker";
   controllerCommand(params, podName):: {
     local common = [
       "python",
-      "/root/controller/main.py",
+      "/openmpi-controller/controller/main.py",
       "--namespace",
       params.namespace,
       "--master",
