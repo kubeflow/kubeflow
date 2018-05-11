@@ -7,6 +7,8 @@
 // @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
 // @optionalParam replicas number 1 Number of replicas
 // @optionalParam endpoint string REST The endpoint type: REST or GRPC
+// @optionalParam pvcName string null Name of PVC
+
 
 local k = import "k.libsonnet";
 local serve = import "kubeflow/seldon/serve-simple.libsonnet";
@@ -22,5 +24,13 @@ local image = import "param://image";
 local namespace = updatedParams.namespace;
 local replicas = import "param://replicas";
 local endpoint = import "param://endpoint";
+local pvcname = import "param://pvcName";
 
-k.core.v1.list.new(serve.parts(namespace).serve(name, image, replicas, endpoint))
+local serveComponents = [
+  serve.parts(namespace).serve(name, image, replicas, endpoint, pvcName),
+  if pvcName != "null" && pvcName != "" then [
+      serve.parts(namespace).createPVC(pvcName),
+  ],
+];
+
+k.core.v1.list.new(serveComponents)
