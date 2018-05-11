@@ -1,6 +1,6 @@
 # TODO: move to kubeflow
 IMAGE=jiez/openmpi-controller
-TAG=0.0.2
+TAG=0.0.3
 
 default: build push
 
