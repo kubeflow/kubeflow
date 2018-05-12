@@ -7,6 +7,7 @@
 // @optionalParam args string null Comma separated list of arguments to pass to the job
 // @optionalParam image string null The docker image to use for the job.
 // @optionalParam image_gpu string null The docker image to use when using GPUs.
+// @optionalParam image_pull_secrets string null Comma-delimited list of secret names to use credentials in pulling your docker images.
 // @optionalParam num_masters number 1 The number of masters to use
 // @optionalParam num_ps number 0 The number of ps to use
 // @optionalParam num_workers number 0 The number of workers to use
@@ -34,6 +35,7 @@ local args =
 
 local image = import "param://image";
 local imageGpu = import "param://image_gpu";
+local imagePullSecrets = import "param://image_pull_secrets";
 local numMasters = import "param://num_masters";
 local numPs = import "param://num_ps";
 local numWorkers = import "param://num_workers";
@@ -45,18 +47,18 @@ else
   tfJob.parts.tfJobTerminationPolicy("WORKER", 0);
 
 local workerSpec = if numGpus > 0 then
-  tfJob.parts.tfJobReplica("WORKER", numWorkers, args, imageGpu, numGpus)
+  tfJob.parts.tfJobReplica("WORKER", numWorkers, args, imageGpu, imagePullSecrets, numGpus)
 else
-  tfJob.parts.tfJobReplica("WORKER", numWorkers, args, image);
+  tfJob.parts.tfJobReplica("WORKER", numWorkers, args, image, imagePullSecrets);
 
 std.prune(k.core.v1.list.new([
   tfJob.parts.tfJob(
     name,
     namespace,
     [
-      tfJob.parts.tfJobReplica("MASTER", numMasters, args, image),
+      tfJob.parts.tfJobReplica("MASTER", numMasters, args, image, imagePullSecrets),
       workerSpec,
-      tfJob.parts.tfJobReplica("PS", numPs, args, image),
+      tfJob.parts.tfJobReplica("PS", numPs, args, image, imagePullSecrets),
     ],
     terminationPolicy
   ),
