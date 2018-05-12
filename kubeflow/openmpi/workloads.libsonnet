@@ -44,7 +44,7 @@ local ROLE_WORKER = "worker";
       dnsPolicy: "ClusterFirst",
       schedulerName: params.schedulerName,
       volumes: $.volumes(params),
-      containers: $.containers(params, role),
+      containers: $.containers(params, role, podName),
       imagePullSecrets: [{ name: secret } for secret in util.toArray(params.imagePullSecrets)],
       serviceAccountName: serviceaccount.name(params),
       nodeSelector: $.nodeSelector(params, role),
@@ -95,7 +95,7 @@ local ROLE_WORKER = "worker";
     },
   ],
 
-  containers(params, role):: {
+  containers(params, role, podName):: {
     local job = {
       name: "openmpi-job",
       image: params.image,
@@ -140,18 +140,8 @@ local ROLE_WORKER = "worker";
       terminationMessagePath: "/dev/termination-log",
       terminationMessagePolicy: "File",
       workingDir: "/kubeflow/openmpi/data",
-      command: [
-        "python",
-        "/root/controller/main.py",
-        "--namespace",
-        params.namespace,
-        "--master",
-        $.masterName(params),
-        "--num-gpus",
-        std.toString(params.gpu),
-        "--timeout-secs",
-        std.toString(params.initTimeout),
-      ],
+      command: $.controllerCommand(params, podName),
+      env: $.controllerEnv(params),
       volumeMounts: [
         {
           name: "openmpi-data",
@@ -179,4 +169,57 @@ local ROLE_WORKER = "worker";
     if role == ROLE_WORKER then {
       limits: util.toObject(params.customResources),
     } else {},
+
+  controllerCommand(params, podName):: {
+    local common = [
+      "python",
+      "/root/controller/main.py",
+      "--namespace",
+      params.namespace,
+      "--master",
+      $.masterName(params),
+      "--num-gpus",
+      std.toString(params.gpu),
+      "--timeout-secs",
+      std.toString(params.initTimeout),
+    ],
+
+    local download = if params.downloadDataFrom != "null" && params.downloadDataTo != "null" then [
+      "--download-data-from",
+      params.downloadDataFrom,
+      "--download-data-to",
+      params.downloadDataTo,
+    ] else [],
+
+    local upload = if params.uploadDataFrom != "null" && params.uploadDataTo != "null" then [
+      "--upload-data-from",
+      params.uploadDataFrom,
+      "--upload-data-to",
+      "%s/%s/%s/%s" % [params.uploadDataTo, params.namespace, params.name, podName],
+    ] else [],
+
+    result:: common + download + upload,
+  }.result,
+
+  controllerEnv(params)::
+    if params.s3Secret != "null" then [
+      {
+        name: "AWS_ACCESS_KEY_ID",
+        valueFrom: {
+          secretKeyRef: {
+            name: params.s3Secret,
+            key: "AWS_ACCESS_KEY_ID",
+          },
+        },
+      },
+      {
+        name: "AWS_SECRET_ACCESS_KEY",
+        valueFrom: {
+          secretKeyRef: {
+            name: params.s3Secret,
+            key: "AWS_SECRET_ACCESS_KEY",
+          },
+        },
+      },
+    ] else [],
 }
