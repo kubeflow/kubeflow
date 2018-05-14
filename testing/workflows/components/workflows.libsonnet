@@ -79,13 +79,10 @@
         container: {
           command: command,
           image:
-            if step_name == "bootstrap-image-create" then
-              testing_image
+            if step_name == "bootstrap-kubeflow" then
+              bootstrapperImage
             else
-              if step_name == "bootstrap-kubeflow" then
-                bootstrapperImage
-              else
-                image,
+              image,
           imagePullPolicy: "Always",
           env: [
             {
