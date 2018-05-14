@@ -17,9 +17,14 @@
 // @optionalParam customResources string null Comma-delimited list of "resourceName=amount" pairs which you want to limit per worker.
 // @optionalParam serviceAccountName string null the service account name to run pods. The service account should have clusterRoleBinding for "view" ClusterRole.  If it was not set, service account and its role binding will be created automatically.
 // @optionalParam schedulerName string default-scheduler scheduler name to use for the components.
-// @optionalParam controllerImage string jiez/openmpi-controller:0.0.1 Docker image of the openmpi-controller.
+// @optionalParam controllerImage string jiez/openmpi-controller:0.0.2 Docker image of the openmpi-controller.
 // @optionalParam initTimeout number 300 Timeout in seconds to abort the initialization.
 // @optionalParam nodeSelector string null Comma-delimited list of "key=value" pairs to select the worker nodes. e.g. "cloud.google.com/gke-accelerator=nvidia-tesla-k80"
+// @optionalParam s3Secret string null Name of secret containing s3 credentials (AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY).
+// @optionalParam downloadDataFrom string null URI where data are downloaded from. Only S3 bucket is supported at the moment.
+// @optionalParam downloadDataTo string null Local path where data are downloaded to.
+// @optionalParam uploadDataFrom string null Local path where data are uploaded from.
+// @optionalParam uploadDataTo string null URI where data are uploaded to. Namespace, name, and pod will be appended to the URI. Only S3 bucket is supported at the moment.
 
 local k = import "k.libsonnet";
 local openmpi = import "kubeflow/openmpi/all.libsonnet";

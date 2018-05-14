@@ -1,8 +1,9 @@
+import os
 from pathlib import Path
 
 from kubernetes import client, config
 from kubernetes.config.config_exception import ConfigException
-from util import log, api_retry, long_poll
+from util import log, api_retry, long_poll, s3_copy
 
 SIG_DIR = '.openmpi-controller'
 SIGCONT = f'{SIG_DIR}/SIGCONT'
@@ -19,11 +20,17 @@ class Controller:
     It communicates with the master pod using kubernetes API.
     """
 
-    def __init__(self, namespace, master, num_gpus, timeout_secs):
+    def __init__(self, namespace, master, num_gpus, timeout_secs,
+                 download_data_from, download_data_to, upload_data_from, upload_data_to):
         self.namespace = namespace
         self.master = master
         self.num_gpus = num_gpus
         self.timeout_secs = timeout_secs
+        self.download_data_from = download_data_from
+        self.download_data_to = download_data_to
+        self.upload_data_from = upload_data_from
+        self.upload_data_to = upload_data_to
+        self._validate_args()
         Path(SIG_DIR).mkdir()
 
     def __enter__(self):
@@ -43,10 +50,20 @@ class Controller:
     def wait_ready(self):
         if self.num_gpus > 0:
             self._wait_nvidia_driver_present()
+        self._download_data()
         Path(SIGCONT).touch()
 
     def wait_done(self):
         self._wait_master_terminated()
+        self._upload_data()
+
+    def _validate_args(self):
+        if (self.download_data_from and self.download_data_to) or (self.upload_data_from and self.upload_data_to):
+            if not os.environ.get('AWS_ACCESS_KEY_ID'):
+                raise ValueError('AWS_ACCESS_KEY_ID not set')
+
+            if not os.environ.get('AWS_SECRET_ACCESS_KEY'):
+                raise ValueError('AWS_SECRET_ACCESS_KEY not set')
 
     def _wait_nvidia_driver_present(self):
         log('waiting for nvidia driver to be installed')
@@ -78,3 +95,15 @@ class Controller:
     def _query_master_phase(self):
         pod = self.api.read_namespaced_pod(self.master, self.namespace)
         return pod.status.phase
+
+    def _download_data(self):
+        if self.download_data_from and self.download_data_to:
+            Path(self.download_data_to).mkdir(exist_ok=True)
+            log(f'downloading data from {self.download_data_from} to {self.download_data_to}')
+            s3_copy(self.download_data_from, self.download_data_to)
+
+    def _upload_data(self):
+        if self.upload_data_from and self.upload_data_to:
+            if Path(self.upload_data_from).exists():
+                log(f'uploading data from {self.upload_data_from} to {self.upload_data_to}')
+                s3_copy(self.upload_data_from, self.upload_data_to)
