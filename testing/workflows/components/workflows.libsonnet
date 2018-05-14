@@ -36,7 +36,10 @@
       local srcRootDir = testDir + "/src";
       // The directory containing the kubeflow/kubeflow repo
       local srcDir = srcRootDir + "/kubeflow/kubeflow";
+      local bootstrapDir = srcDir + "/bootstrap";
       local image = "gcr.io/kubeflow-ci/test-worker:latest";
+      local testing_image = "gcr.io/kubeflow-ci/kubeflow-testing";
+      local bootstrapperImage = "gcr.io/kubeflow-ci/bootstrapper:" + name;
 
       // The name of the NFS volume claim to use for test files.
       local nfsVolumeClaim = "nfs-external";
@@ -75,7 +78,14 @@
         name: step_name,
         container: {
           command: command,
-          image: image,
+          image:
+            if step_name == "bootstrap-image-create" then
+              testing_image
+            else
+              if step_name == "bootstrap-kubeflow" then
+                bootstrapperImage
+              else
+                image,
           imagePullPolicy: "Always",
           env: [
             {
@@ -96,12 +106,16 @@
                 },
               },
             },
-            // We use a directory in our NFS share to store our kube config.
-            // This way we can configure it on a single step and reuse it on subsequent steps.
             {
-              name: "KUBECONFIG",
-              value: testDir + "/.kube/config",
-            },
+              // We use a directory in our NFS share to store our kube config.
+              // This way we can configure it on a single step and reuse it on subsequent steps.
+              local kubeconfig = {
+                name: "KUBECONFIG",
+                value: testDir + "/.kube/config",
+              },
+              result:: if step_name != "bootstrap-kubeflow" then
+                kubeconfig,
+            }.result,
           ] + prow_env + env_vars,
           volumeMounts: [
             {
@@ -188,6 +202,16 @@
 
                   }.result,
                   {
+                    local bootstrapImageCreate = {
+                      name: "bootstrap-image-create",
+                      template: "bootstrap-image-create",
+                      dependencies: ["setup-gke"],
+                    },
+
+                    result:: if platform == "gke" then
+                      bootstrapImageCreate,
+                  }.result,
+                  {
                     name: "create-pr-symlink",
                     template: "create-pr-symlink",
                     dependencies: ["checkout"],
@@ -197,24 +221,31 @@
                     template: "test-jsonnet-formatting",
                     dependencies: ["checkout"],
                   },
-
                   {
-                    name: "deploy-kubeflow",
-                    template: "deploy-kubeflow",
-                    dependencies: [
-                      if platform == "gke" then
-                        "setup-gke"
-                      else
-                        if platform == "minikube" then
-                          "setup-minikube"
-                        else
-                          "",
-                    ],
-                  },
+                    local bootstrapKubeflow = {
+                      name: "bootstrap-kubeflow",
+                      template: "bootstrap-kubeflow",
+                      dependencies: ["bootstrap-image-create"],
+                    },
+                    local deployKubeflow = {
+                      name: "deploy-kubeflow",
+                      template: "deploy-kubeflow",
+                      dependencies: ["setup-minikube"],
+                    },
+                    result:: if platform == "minikube" then
+                      deployKubeflow
+                    else
+                      bootstrapKubeflow,
+                  }.result,
                   {
                     name: "pytorchjob-deploy",
                     template: "pytorchjob-deploy",
-                    dependencies: ["deploy-kubeflow"],
+                    dependencies: [
+                      if platform == "minikube" then
+                        "deploy-kubeflo"
+                      else
+                        "bootstrap-kubeflow"
+                    ],
                   },
                   // Don't run argo test for gke since
                   // it runs in the same cluster as the
@@ -231,7 +262,12 @@
                   {
                     name: "tfjob-test",
                     template: "tfjob-test",
-                    dependencies: ["deploy-kubeflow"],
+                    dependencies: [
+                      if platform == "minikube" then
+                        "deploy-kubeflo"
+                      else
+                        "bootstrap-kubeflow"
+                    ],
                   },
                   {
                     name: "jsonnet-test",
@@ -401,6 +437,39 @@
               "--deploy_name=test-argo-deploy",
               "deploy_argo",
             ]),  // test-argo-deploy
+            buildTemplate(
+              "bootstrap-image-create",
+              [
+                // We need to explicitly specify bash because
+                // build_image.sh is not in the container its a volume mounted file.
+                "/bin/bash",
+                "-c",
+                bootstrapDir + "/build_image.sh "
+                + bootstrapDir + "/Dockerfile" + " "
+                + bootstrapperImage,
+              ],
+              [
+                {
+                  name: "DOCKER_HOST",
+                  value: "127.0.0.1",
+                },
+              ],
+              [{
+                name: "dind",
+                image: "docker:17.10-dind",
+                securityContext: {
+                  privileged: true,
+                },
+                mirrorVolumeMounts: true,
+              }],
+            ),  // bootstrap-image-create
+            buildTemplate("bootstrap-kubeflow", [
+              "/opt/kubeflow/bootstrapper",
+              "--in-cluster",
+              "--apply",
+              "--namespace=" + stepsNamespace,
+              "--registry-uri=" + srcDir + "/kubeflow",
+            ]),  // bootstrap-kubeflow
           ],  // templates
         },
       },  // e2e
