@@ -261,7 +261,7 @@
                     template: "tfjob-test",
                     dependencies: [
                       if platform == "minikube" then
-                        "deploy-kubeflo"
+                        "deploy-kubeflow"
                       else
                         "bootstrap-kubeflow"
                     ],
@@ -466,6 +466,7 @@
               "--apply",
               "--namespace=" + stepsNamespace,
               "--registry-uri=" + srcDir + "/kubeflow",
+              "--app-dir=" + testDir + "/app",
             ]),  // bootstrap-kubeflow
           ],  // templates
         },
