@@ -239,7 +239,7 @@
                     template: "pytorchjob-deploy",
                     dependencies: [
                       if platform == "minikube" then
-                        "deploy-kubeflo"
+                        "deploy-kubeflow"
                       else
                         "bootstrap-kubeflow"
                     ],
