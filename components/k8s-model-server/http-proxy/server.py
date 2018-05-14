@@ -19,6 +19,7 @@ from __future__ import print_function
 from itertools import repeat
 import base64
 import logging
+import grpc
 
 from google.protobuf.json_format import MessageToDict
 from grpc.beta import implementations
@@ -136,7 +137,7 @@ def get_signature_map(model_server_stub, model_name):
   except grpc.RpcError as rpc_error:
     logging.exception("GetModelMetadata call to model server failed with code "
                       "%s and message %s", rpc_error.code(),
-                      rpc_error.details())
+                      rpc_error.details()) 
     return None
 
   signature_def_map_proto = get_model_metadata_pb2.SignatureDefMap()
@@ -192,9 +193,20 @@ def get_signature(signature_map, signature_name=None):
     raise KeyError("No signature found for signature key %s." % signature_name)
 
 
+class MetaHandler(tornado.web.RequestHandler):
+  """
+  Meta Handler proxy return Model metadata. Defined here https://github.com/tensorflow/serving/blob/master/tensorflow_serving/apis/prediction_service.proto#L29
+  """
+  @gen.coroutine
+  def get(self, model_name):
+    if not self.settings['signature_map'].get(model_name):
+      self.settings['signature_map'][model_name] = get_signature_map(self.settings['stub'], model_name)
+    signature_map = self.settings['signature_map'][model_name]
+    self.write(dict((key, MessageToDict(value)) for key, value in signature_map.items()))
+
 class PredictHandler(tornado.web.RequestHandler):
   """
-  Predict Hanlder proxy predict method, the input of tf savedModel is expected to be a 
+  Predict Handler proxy predict method, the input of tf savedModel is expected to be a 
   `Map<strinbg, tf.Tensor>` protobuf. Defined here https://github.com/tensorflow/serving/blob/master/tensorflow_serving/apis/prediction_service.proto#L23
   """
   @gen.coroutine
@@ -238,7 +250,7 @@ class PredictHandler(tornado.web.RequestHandler):
 
 class ClassifyHandler(tornado.web.RequestHandler):
   """
-  Classify Hanlder proxy classify method, the input of tf savedModel is expected to be a `tf.Examples` protobuf
+  Classify Handler proxy classify method, the input of tf savedModel is expected to be a `tf.Examples` protobuf
   Defined here https://github.com/tensorflow/serving/blob/master/tensorflow_serving/apis/prediction_service.proto#L17
   """
   @gen.coroutine
@@ -264,12 +276,13 @@ class ClassifyHandler(tornado.web.RequestHandler):
 
 class IndexHanlder(tornado.web.RequestHandler):
   def get(self):
-    self.write('Hello World')
+    self.write(WELCOME)
 
 
 def get_application(**settings):
   return tornado.web.Application(
       [
+      (r"/model/(.*):meta", MetaHandler),
       (r"/model/(.*):predict", PredictHandler),
       (r"/model/(.*):classify", ClassifyHandler),
       (r"/model/(.*)/version/(.*):predict", PredictHandler),
