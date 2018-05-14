@@ -7,9 +7,14 @@
       metadata: {
         name: pvcName,
       },
-      resources:{
-        requests:{
-          storage: "10Gi",
+      spec:{
+        accessModes:[
+          "ReadWriteOnce",
+        ],
+        resources:{
+          requests:{
+            storage: "10Gi",
+          },
         },
       },
     }, // createPVC
