@@ -148,14 +148,11 @@
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
-        labels: {
-          service: "ambassador-admin",
-        },
         name: "ambassador",
         namespace: namespace,
       },
       spec: {
-        replicas: 1,
+        replicas: 3,
         template: {
           metadata: {
             labels: {
@@ -233,6 +230,7 @@
       metadata: {
         name: "k8s-dashboard",
         namespace: namespace,
+
         annotations: {
           "getambassador.io/config":
             std.join("\n", [
