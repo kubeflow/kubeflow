@@ -34,7 +34,7 @@ For an end to end example illustrating in details how to deploy kubeflow and run
 
 ## Requirements
  * Kubernetes >= 1.8 [see here](https://github.com/kubeflow/tf-operator#requirements)
- * ksonnet version [0.9.2](https://ksonnet.io/#get-started) or later. (See [below](#why-kubeflow-uses-ksonnet) for an explanation of why we use ksonnet)
+ * ksonnet version [0.9.2](https://ksonnet.io/#get-started). (See [below](#why-kubeflow-uses-ksonnet) for an explanation of why we use ksonnet)
 
 ## Deploy Kubeflow
 
@@ -51,7 +51,7 @@ Install the Kubeflow packages into your application.
 ```
 # For a list of releases see:
 # https://github.com/kubeflow/kubeflow/releases
-VERSION=v0.1.0
+VERSION=v0.1.2
 
 cd my-kubeflow
 ks registry add kubeflow github.com/kubeflow/kubeflow/tree/${VERSION}/kubeflow
@@ -111,14 +111,14 @@ $ KF_ENV=cloud|nocloud
 ```
 
 
-* By default Kubeflow does not persist any work that is done within the Jupyter notebook. 
-* If the container is destroyed or recreated, all of its contents, including users working notebooks and other files are going to be deleted. 
-* To enable the persistence of such files, the user will need to have a default StorageClass defined for [persistent volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/). 
+* By default Kubeflow does not persist any work that is done within the Jupyter notebook.
+* If the container is destroyed or recreated, all of its contents, including users working notebooks and other files are going to be deleted.
+* To enable the persistence of such files, the user will need to have a default StorageClass defined for [persistent volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/).
 * You can run the following command to check if you have a storage class
 
 ```
 kubectl get storageclass
-```  
+```
 * Users with a default storage class defined can use the jupyterNotebookPVCMount
   parameter to create a volume that will be mounted within the notebook
 
@@ -248,10 +248,10 @@ You should see a sign in prompt.
             * If you signed on as USER@DOMAIN.EXT the pod will be named
 
             ```
-            jupyter-accounts-2egoogle-2ecom-3USER-40DOMAIN-2eEXT 
+            jupyter-accounts-2egoogle-2ecom-3USER-40DOMAIN-2eEXT
             ```
 
-1. You should now be greeted with a Jupyter Notebook interface. 
+1. You should now be greeted with a Jupyter Notebook interface.
 
 The image supplied above can be used for training Tensorflow models with Jupyter. The images include all the requisite plugins, including [Tensorboard](https://www.tensorflow.org/get_started/summaries_and_tensorboard) that you can use for rich visualizations and insights into your models.
 
@@ -296,7 +296,7 @@ unsecured endpoint by default. For a production deployment with SSL and authenti
 
 We treat each deployed model as a [component](https://ksonnet.io/docs/tutorial#2-generate-and-deploy-an-app-component) in your APP.
 
-Create a component for your model
+Create a component for your model located on cloud
 
 ```
 MODEL_COMPONENT=serveInception
@@ -304,6 +304,20 @@ MODEL_NAME=inception
 MODEL_PATH=gs://kubeflow-models/inception
 ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME}
 ks param set ${MODEL_COMPONENT} modelPath ${MODEL_PATH}
+```
+
+*(Or)* create a  component for your model located on nfs, learn more from `components/k8s-model-server`
+
+```
+MODEL_COMPONENT=serveInceptionNFS
+MODEL_NAME=inception-nfs
+MODEL_PATH=/mnt/var/nfs/general/inception
+MODEL_STORAGE_TYPE=nfs
+NFS_PVC_NAME=nfs
+ks generate tf-serving ${MODEL_COMPONENT} --name=${MODEL_NAME}
+ks param set ${MODEL_COMPONENT} modelPath ${MODEL_PATH}
+ks param set ${MODEL_COMPONENT} modelStorageType ${MODEL_STORAGE_TYPE}
+ks param set ${MODEL_COMPONENT} nfsPVC ${NFS_PVC_NAME}
 ```
 
 Deploy the model component. Ksonnet will pick up existing parameters for your environment (e.g. cloud, nocloud) and customize the resulting deployment appropriately
@@ -428,6 +442,50 @@ The prototype provides a bunch of parameters to control how the job runs (e.g. u
 ks prototype describe tf-cnn
 ```
 
+### Submitting a PyTorch training job
+
+**Note:** Before submitting a training job, you should have [deployed kubeflow to your cluster](#deploy-kubeflow). Doing so ensures that
+the [`PyTorchJob` custom resource](https://github.com/kubeflow/pytorch-operator) is available when you submit the training job.
+
+We treat each PyTorch job as a [component](https://ksonnet.io/docs/tutorial#2-generate-and-deploy-an-app-component) in your APP.
+
+Create a component for your job.
+
+```
+JOB_NAME=myjob
+ks generate pytorch-job ${JOB_NAME} --name=${JOB_NAME}
+```
+
+To configure your job you need to set a bunch of parameters. To see a list of parameters run
+
+```
+ks prototype describe pytorch-job
+```
+
+Parameters can be set using `ks param` e.g. to set the Docker image used
+
+```
+IMAGE=<your pytorch image>
+ks param set ${JOB_NAME} image ${IMAGE}
+```
+
+You can also edit the `params.libsonnet` files directly to set parameters.
+
+**Warning** Currently setting args via the command line doesn't work because of escaping issues (see [ksonnet/ksonnet/issues/235](https://github.com/ksonnet/ksonnet/issues/235)). So to set the parameters you will need
+to directly edit the `params.libsonnet` file directly.
+
+To run your job
+
+```
+ks apply ${KF_ENV} -c ${JOB_NAME}
+```
+
+To delete your job
+
+```
+ks delete ${KF_ENV} -c ${JOB_NAME}
+```
+
 ## Advanced Customization
 
 * Often times data scientists require a POSIX compliant filesystem
@@ -550,7 +608,7 @@ kubectl -n ${NAMESPACE} get pods
   * If you are using IAP on GKE the pod will be named
 
     ```
-    jupyter-accounts-2egoogle-2ecom-3USER-40DOMAIN-2eEXT 
+    jupyter-accounts-2egoogle-2ecom-3USER-40DOMAIN-2eEXT
     ```
 
     * Where USER@DOMAIN.EXT is the Google account used with IAP

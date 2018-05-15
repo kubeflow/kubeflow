@@ -10,6 +10,7 @@
     },
     modelName: $.params.name,
     modelPath: null,
+    modelStorageType: "cloud",
 
     version: "v1",
     firstVersion: true,
@@ -17,7 +18,7 @@
     deployIstio: false,
 
     deployHttpProxy: false,
-    defaultHttpProxyImage: "gcr.io/kubeflow-images-staging/tf-model-server-http-proxy:v20180327-995786ec",
+    defaultHttpProxyImage: "gcr.io/kubeflow-images-public/tf-model-server-http-proxy:v20180327-995786ec",
     httpProxyImage: "",
     httpProxyImageToUse: if $.params.httpProxyImage == "" then
       $.params.defaultHttpProxyImage
@@ -30,8 +31,8 @@
     // in which case the image used will still depend on whether GPUs are used or not.
     // Users can also override modelServerImage in which case the user supplied value will always be used
     // regardless of numGpus.
-    defaultCpuImage: "gcr.io/kubeflow-images-staging/tf-model-server-cpu:v20180327-995786ec",
-    defaultGpuImage: "gcr.io/kubeflow-images-staging/tf-model-server-gpu:v20180327-995786ec",
+    defaultCpuImage: "gcr.io/kubeflow-images-public/tf-model-server-cpu:v20180327-995786ec",
+    defaultGpuImage: "gcr.io/kubeflow-images-public/tf-model-server-gpu:v20180327-995786ec",
     modelServerImage: if $.params.numGpus == 0 then
       $.params.defaultCpuImage
     else
@@ -81,34 +82,34 @@
   components:: {
 
     all:: [
-      // Default routing rule for the first version of model.
-      if $.util.toBool($.params.deployIstio) && $.util.toBool($.params.firstVersion) then
-        $.parts.defaultRouteRule,
-    ] + 
-      // TODO(jlewi): It would be better to structure s3 as a mixin.
-      // As an example it would be great to allow S3 and GCS parameters
-      // to be enabled simultaneously. This should be doable because
-      // each entails adding a set of environment variables and volumes
-      // to the containers. These volumes/environment variables shouldn't
-      // overlap so there's no reason we shouldn't be able to just add
-      // both modifications to the base container.
-      // I think we want to restructure things as mixins so they can just
-      // be added.
-      if $.params.s3Enable then
-        [
-          $.s3parts.tfService,
-          $.s3parts.tfDeployment,
-        ]
-      else if $.params.cloud == "gcp" then
-        [
-          $.gcpParts.tfService,
-          $.gcpParts.tfDeployment,
-        ]
-      else
-        [
-          $.parts.tfService,
-          $.parts.tfDeployment,
-        ],
+            // Default routing rule for the first version of model.
+            if $.util.toBool($.params.deployIstio) && $.util.toBool($.params.firstVersion) then
+              $.parts.defaultRouteRule,
+          ] +
+          // TODO(jlewi): It would be better to structure s3 as a mixin.
+          // As an example it would be great to allow S3 and GCS parameters
+          // to be enabled simultaneously. This should be doable because
+          // each entails adding a set of environment variables and volumes
+          // to the containers. These volumes/environment variables shouldn't
+          // overlap so there's no reason we shouldn't be able to just add
+          // both modifications to the base container.
+          // I think we want to restructure things as mixins so they can just
+          // be added.
+          if $.params.s3Enable then
+            [
+              $.s3parts.tfService,
+              $.s3parts.tfDeployment,
+            ]
+          else if $.params.cloud == "gcp" then
+            [
+              $.gcpParts.tfService,
+              $.gcpParts.tfDeployment,
+            ]
+          else
+            [
+              $.parts.tfService,
+              $.parts.tfDeployment,
+            ],
   }.all,
 
   parts:: {
@@ -147,6 +148,11 @@
         runAsUser: 1000,
         fsGroup: 1000,
       },
+      volumeMounts+: if $.params.modelStorageType == "nfs" then [{
+        name: "nfs",
+        mountPath: "/mnt",
+      }]
+      else [],
     },  // tfServingContainer
 
     tfServingContainer+: $.parts.tfServingContainerBase +
@@ -160,6 +166,12 @@
                            }
                          else {},
 
+    tfServingMetadata+: {
+      labels: $.params.labels { version: $.params.version },
+      annotations: {
+        "sidecar.istio.io/inject": if $.util.toBool($.params.deployIstio) then "true",
+      },
+    },
 
     httpProxyContainer:: {
       name: $.params.name + "-http-proxy",
@@ -205,18 +217,21 @@
       },
       spec: {
         template: {
-          metadata: {
-            labels: $.params.labels + { version: $.params.version, },
-            annotations: {
-              "sidecar.istio.io/inject": if $.util.toBool($.params.deployIstio) then "true",
-            },
-          },
+          metadata: $.parts.tfServingMetadata,
           spec: {
             containers: [
               $.parts.tfServingContainer,
               if $.util.toBool($.params.deployHttpProxy) then
                 $.parts.httpProxyContainer,
             ],
+            volumes+: if $.params.modelStorageType == "nfs" then
+              [{
+                name: "nfs",
+                persistentVolumeClaim: {
+                  claimName: $.params.nfsPVC,
+                },
+              }]
+            else [],
           },
         },
       },
@@ -283,7 +298,7 @@
         precedence: 0,
         route: [
           {
-            labels: { version: $.params.version, },
+            labels: { version: $.params.version },
           },
         ],
       },
@@ -310,7 +325,7 @@
     tfDeployment: $.parts.tfDeployment {
       spec: +{
         template: +{
-
+          metadata: $.parts.tfServingMetadata,
           spec: +{
             containers: [
               $.s3parts.tfServingContainer,
@@ -344,14 +359,13 @@
     tfDeployment: $.parts.tfDeployment {
       spec+: {
         template+: {
-
+          metadata: $.parts.tfServingMetadata,
           spec+: {
             containers: [
               $.gcpParts.tfServingContainer,
               if $.util.toBool($.params.deployHttpProxy) then
                 $.parts.httpProxyContainer,
             ],
-
             volumes: [
               if $.gcpParams.gcpCredentialSecretName != "" then
                 {

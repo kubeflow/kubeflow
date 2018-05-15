@@ -65,7 +65,7 @@
 
     // TODO(jlewi): We would like to use params.name + "-etcd" but that seems to not work.
     // I think the problem is that pachd assumes etcd has hostname "etcd". If we want to
-    // support other names we might need to set the environment variable ETCD_PORT_2379_TCP_ADDR 
+    // support other names we might need to set the environment variable ETCD_PORT_2379_TCP_ADDR
     // or make some other change.
     local etcdName = "etcd",
 
@@ -351,7 +351,7 @@
     // backed by a host volume. Per the comment https://github.com/kubeflow/kubeflow/issues/611#issuecomment-380633796
     // Pachyderm originally didn't use statefulset in local mode because they weren't supported everywhere.
     // We could probably switch to always using statefulsets.
-    // 
+    //
     etcd:: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",

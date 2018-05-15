@@ -1,7 +1,7 @@
-local service = import "kubeflow/openmpi/service.libsonnet";
-local workloads = import "kubeflow/openmpi/workloads.libsonnet";
 local assets = import "kubeflow/openmpi/assets.libsonnet";
-local redis = import "kubeflow/openmpi/redis.libsonnet";
+local service = import "kubeflow/openmpi/service.libsonnet";
+local serviceaccount = import "kubeflow/openmpi/serviceaccount.libsonnet";
+local workloads = import "kubeflow/openmpi/workloads.libsonnet";
 
 {
   all(params, env):: $.parts(params, env).all,
@@ -16,9 +16,9 @@ local redis = import "kubeflow/openmpi/redis.libsonnet";
     },
 
     all::
-      redis.all(updatedParams)
-      + assets.all(updatedParams)
-      + workloads.all(updatedParams)
+      assets.all(updatedParams)
       + service.all(updatedParams)
+      + serviceaccount.all(updatedParams)
+      + workloads.all(updatedParams),
   },
 }

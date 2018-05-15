@@ -9,6 +9,7 @@
 // @optionalParam num_gpus number 0 The number of GPUs to attach to workers.
 // @optionalParam image string gcr.io/kubeflow/tf-benchmarks-cpu:v20171202-bdab599-dirty-284af3 The docker image to use for the job.
 // @optionalParam image_gpu string gcr.io/kubeflow/tf-benchmarks-gpu:v20171202-bdab599-dirty-284af3 The docker image to use when using GPUs.
+// @optionalParam image_pull_secrets string null Comma-delimited list of secret names to use credentials in pulling your docker images.
 // @optionalParam num_ps number 1 The number of ps to use
 // @optionalParam num_workers number 1 The number of workers to use
 
@@ -63,14 +64,15 @@ local args = [
 
 local image = import "param://image";
 local imageGpu = import "param://image_gpu";
+local imagePullSecrets = import "param://image_pull_secrets";
 local numPs = import "param://num_ps";
 local numWorkers = import "param://num_workers";
 local numGpus = import "param://num_gpus";
 
 local workerSpec = if numGpus > 0 then
-  tfJob.parts.tfJobReplica("WORKER", numWorkers, args, imageGpu, numGpus)
+  tfJob.parts.tfJobReplica("WORKER", numWorkers, args, imageGpu, imagePullSecrets, numGpus)
 else
-  tfJob.parts.tfJobReplica("WORKER", numWorkers, args, image);
+  tfJob.parts.tfJobReplica("WORKER", numWorkers, args, image, imagePullSecrets);
 
 // TODO(jlewi): Look at how the redis prototype modifies a container by
 // using mapContainersWithName. Can we do something similar?
@@ -88,7 +90,7 @@ local replicas = std.map(function(s)
                                },
                              },
                            },
-                         std.prune([workerSpec, tfJob.parts.tfJobReplica("PS", numPs, args, image)]));
+                         std.prune([workerSpec, tfJob.parts.tfJobReplica("PS", numPs, args, image, imagePullSecrets)]));
 
 local job =
   if numWorkers < 1 then

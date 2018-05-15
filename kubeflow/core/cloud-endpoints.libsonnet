@@ -173,6 +173,7 @@
       kind: "Service",
       metadata: {
         name: "cloud-endpoints-controller",
+        namespace: namespace,
       },
       spec: {
         type: "ClusterIP",

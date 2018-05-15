@@ -97,7 +97,7 @@ Create an OAuth Client ID to be used to identify IAP when requesting acces to us
   * Under Application type, select Web application. In the Name box enter a name, and in the Authorized redirect URIs box, enter
 
 ```
-  https://${FQDN}/_gcp_gatekeeper/authenticate,
+  https://${FQDN}/_gcp_gatekeeper/authenticate
 ```
 3. After you enter the details, click Create. Make note of the **client ID** and **client secret** that appear in the OAuth client window because we will
    need them later to enable IAP.
@@ -116,7 +116,7 @@ to create a ksonnet app to deploy Kubeflow.
 [cert-manager](https://github.com/jetstack/cert-manager) is used to automatically request valid SSL certifiactes using the [ACME](https://en.wikipedia.org/wiki/Automated_Certificate_Management_Environment) issuer.
 
 ```
-ks generate cert-manager cert-manager --acmeEmail=${ACCOUNT}
+ks generate cert-manager cert-manager --namespace=${NAMESPACE} --acmeEmail=${ACCOUNT}
 ks apply ${ENVIRONMENT} -c cert-manager
 
 ks generate iap-ingress iap-ingress --namespace=${NAMESPACE} --ipName=${IP_NAME} --hostname=${FQDN}

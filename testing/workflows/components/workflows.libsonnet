@@ -162,7 +162,7 @@
             {
               name: "e2e",
               dag: {
-                tasks: [
+                tasks: std.prune([
                   {
                     name: "checkout",
                     template: "checkout",
@@ -192,6 +192,11 @@
                     template: "create-pr-symlink",
                     dependencies: ["checkout"],
                   },
+                  {
+                    name: "test-jsonnet-formatting",
+                    template: "test-jsonnet-formatting",
+                    dependencies: ["checkout"],
+                  },
 
                   {
                     name: "deploy-kubeflow",
@@ -206,7 +211,23 @@
                           "",
                     ],
                   },
-
+                  {
+                    name: "pytorchjob-deploy",
+                    template: "pytorchjob-deploy",
+                    dependencies: ["deploy-kubeflow"],
+                  },
+                  // Don't run argo test for gke since
+                  // it runs in the same cluster as the
+                  // test cluster. For minikube, we have
+                  // a separate cluster.
+                  if platform == "minikube" then
+                    {
+                      name: "test-argo-deploy",
+                      template: "test-argo-deploy",
+                      dependencies: ["deploy-kubeflow"],
+                    }
+                  else
+                    {},
                   {
                     name: "tfjob-test",
                     template: "tfjob-test",
@@ -217,7 +238,7 @@
                     template: "jsonnet-test",
                     dependencies: ["checkout"],
                   },
-                ],  // tasks
+                ]),  // tasks
               },  // dag
             },  // e2e template
             {
@@ -252,19 +273,25 @@
               }],
               [],  // no sidecars
             ),
+            buildTemplate("test-jsonnet-formatting", [
+              "python",
+              "-m",
+              "kubeflow.testing.test_jsonnet_formatting",
+              "--project=" + project,
+              "--artifacts_dir=" + artifactsDir,
+              "--src_dir=" + srcDir,
+              "--exclude_dirs=" + srcDir + "/bootstrap/vendor/",
+            ]),  // test-jsonnet-formatting
             // Setup and teardown using GKE.
             buildTemplate("setup-gke", [
               "python",
               "-m",
-              "testing.test_deploy",
-              "--project=" + project,
-              "--namespace=" + stepsNamespace,
+              "testing.get_gke_credentials",
               "--test_dir=" + testDir,
-              "--artifacts_dir=" + artifactsDir,
-              "get_gke_credentials",
+              "--project=" + project,
               "--cluster=" + cluster,
               "--zone=" + zone,
-            ]),  // setup
+            ]),  // setup-gke
             buildTemplate("teardown-gke", [
               "python",
               "-m",
@@ -302,16 +329,12 @@
             ]),  // teardown
 
             buildTemplate(
-              "deploy-kubeflow",
-              [
+              "deploy-kubeflow", [
                 "python",
                 "-m",
-                "testing.test_deploy",
-                "--project=" + project,
-                "--namespace=" + stepsNamespace,
+                "testing.deploy_kubeflow",
                 "--test_dir=" + testDir,
-                "--artifacts_dir=" + artifactsDir,
-                "deploy_kubeflow",
+                "--namespace=" + stepsNamespace,
               ]
             ),  // deploy-kubeflow
             buildTemplate("create-pr-symlink", [
@@ -353,6 +376,31 @@
               "--params=name=simple-tfjob-" + platform + ",namespace=" + stepsNamespace,
               "--junit_path=" + artifactsDir + "/junit_e2e-" + platform + ".xml",
             ]),  // run tests
+            buildTemplate("pytorchjob-deploy", [
+              "python",
+              "-m",
+              "testing.test_deploy",
+              "--project=kubeflow-ci",
+              "--github_token=$(GITHUB_TOKEN)",
+              "--namespace=" + stepsNamespace,
+              "--test_dir=" + testDir,
+              "--artifacts_dir=" + artifactsDir,
+              "--deploy_name=pytorch-job",
+              "deploy_pytorchjob",
+              "--params=image=pytorch/pytorch:v0.2,num_workers=1",
+            ]),  // pytorchjob-deploy
+            buildTemplate("test-argo-deploy", [
+              "python",
+              "-m",
+              "testing.test_deploy",
+              "--project=kubeflow-ci",
+              "--github_token=$(GITHUB_TOKEN)",
+              "--namespace=" + stepsNamespace,
+              "--test_dir=" + testDir,
+              "--artifacts_dir=" + artifactsDir,
+              "--deploy_name=test-argo-deploy",
+              "deploy_argo",
+            ]),  // test-argo-deploy
           ],  // templates
         },
       },  // e2e

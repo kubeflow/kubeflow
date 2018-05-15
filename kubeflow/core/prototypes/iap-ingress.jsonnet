@@ -8,7 +8,7 @@
 // @optionalParam secretName string envoy-ingress-tls The name of the secret containing the SSL certificates.
 // @optionalParam hostname string null The hostname associated with this ingress. Eg: mykubeflow.example.com
 // @optionalParam issuer string letsencrypt-prod The cert-manager issuer name.
-// @optionalParam envoyImage string gcr.io/kubeflow-images-staging/envoy:v20180309-0fb4886b463698702b6a08955045731903a18738 The image for envoy.
+// @optionalParam envoyImage string gcr.io/kubeflow-images-public/envoy:v20180309-0fb4886b463698702b6a08955045731903a18738 The image for envoy.
 // @optionalParam disableJwtChecking string false Disable JWT checking.
 // @optionalParam oauthSecretName string kubeflow-oauth The name of the secret containing the OAuth CLIENT_ID and CLIENT_SECRET.
 
@@ -22,15 +22,7 @@ local updatedParams = params {
   namespace: if params.namespace == "null" then env.namespace else params.namespace,
 };
 
-local name = import "param://name";
 local namespace = updatedParams.namespace;
-local secretName = import "param://secretName";
-local ipName = import "param://ipName";
-local hostname = import "param://hostname";
-local issuer = import "param://issuer";
-local envoyImage = import "param://envoyImage";
-local disableJwtCheckingParam = import "param://disableJwtChecking";
-local disableJwtChecking = util.toBool(disableJwtCheckingParam);
-local oauthSecretName = import "param://oauthSecretName";
+local disableJwtChecking = util.toBool(params.disableJwtChecking);
 
-iap.parts(namespace).ingressParts(secretName, ipName, hostname, issuer, envoyImage, disableJwtChecking, oauthSecretName)
+iap.parts(namespace).ingressParts(params.secretName, params.ipName, params.hostname, params.issuer, params.envoyImage, disableJwtChecking, params.oauthSecretName)

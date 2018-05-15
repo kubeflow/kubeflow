@@ -2,7 +2,7 @@ local tfjob = import "../tf-job.libsonnet";
 local params = {
   namespace:: "test-kf-001",
   cloud:: "azure",
-  tfJobImage:: "gcr.io/kubeflow-images-staging/tf_operator:v20180226-403",
+  tfJobImage:: "gcr.io/kubeflow-images-public/tf_operator:v20180226-403",
   tfDefaultImage:: "null",
 };
 
@@ -50,7 +50,7 @@ std.assertEqual(
                   },
                 },
               ],
-              image: "gcr.io/kubeflow-images-staging/tf_operator:v20180226-403",
+              image: "gcr.io/kubeflow-images-public/tf_operator:v20180226-403",
               name: "tf-job-operator",
               volumeMounts: [
                 {

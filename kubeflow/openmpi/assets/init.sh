@@ -1,38 +1,38 @@
 set -exv
 
-probe_redis() {
-  local cmd="$1"
-  local status=$2
-  local max_retries=$3
+OPENMPI_DIR=/kubeflow/openmpi
+MPIEXEC_TIMEOUT_ON_WAIT_MPI_READY=10
+BACKOFF_SECS=10
+TIMEOUT_EXIT_CODE=124
+
+wait_mpi_ready() {
+  local workers=$1
+  local max_retries=$2
   local retries=0
 
-  until [ "$(${cmd})" = "${status}" ]; do
-    sleep 10
+  until MPIEXEC_TIMEOUT=${MPIEXEC_TIMEOUT_ON_WAIT_MPI_READY} mpiexec -n ${workers} --hostfile ${OPENMPI_DIR}/assets/hostfile --allow-run-as-root -q sh -c 'echo $(hostname) is ready'; do
+    sleep ${BACKOFF_SECS}
 
     retries=$(expr ${retries} + 1)
     if [ -n "${max_retries}" ] && [ ${retries} -ge ${max_retries} ]; then
-      exit 124
+      exit ${TIMEOUT_EXIT_CODE}
     fi
   done
 }
 
-ping_redis() {
-  local timeout=$1
+wait_controller_signal() {
+  local signal=$1
+  local max_retries=$2
+  local retries=0
 
-  probe_redis "redis-cli -h openmpi-redis ping" PONG ${timeout}
-}
+  until [ -f ${OPENMPI_DIR}/data/.openmpi-controller/${signal} ]; do
+    sleep ${BACKOFF_SECS}
 
-wait_cond() {
-  local cond=$1
-  local status=$2
-  local timeout=$3
-
-  probe_redis "redis-cli -h openmpi-redis get ${cond}" ${status} ${timeout}
-}
-
-signal_cond() {
-  cond=$1
-  redis-cli -h openmpi-redis incr ${cond}
+    retries=$(expr ${retries} + 1)
+    if [ -n "${max_retries}" ] && [ ${retries} -ge ${max_retries} ]; then
+      exit ${TIMEOUT_EXIT_CODE}
+    fi
+  done
 }
 
 if [ $# -ne 4 ]; then
@@ -42,44 +42,37 @@ fi
 
 role="$1"
 workers="$2"
-hostname="$3"
-exec="$4"
+exec="$3"
+timeout_secs="$4"
+max_retries=$(expr ${timeout_secs} / ${BACKOFF_SECS})
 
 # Set up openmpi
 mkdir -p /root/.openmpi
-cp /kubeflow/openmpi/assets/mca-params.conf /root/.openmpi
+cp ${OPENMPI_DIR}/assets/mca-params.conf /root/.openmpi
 
 # Set up ssh
 mkdir -p /root/.ssh
-cp /kubeflow/openmpi/secrets/id_rsa /root/.ssh
-cp /kubeflow/openmpi/secrets/id_rsa.pub /root/.ssh
-cp /kubeflow/openmpi/secrets/authorized_keys /root/.ssh
-cp /kubeflow/openmpi/assets/ssh_config /root/.ssh/config
-
-# Install redis-cli
-apt-get install -y redis-tools
-
-# Start sshd in daemon mode
-/usr/sbin/sshd -e -f /kubeflow/openmpi/assets/sshd_config
-sleep 10
-
-# Wait until redis is up
-ping_redis 12
-
-# Start running the workloads.
-echo running ${hostname}
+cp ${OPENMPI_DIR}/secrets/id_rsa /root/.ssh
+cp ${OPENMPI_DIR}/secrets/id_rsa.pub /root/.ssh
+cp ${OPENMPI_DIR}/secrets/authorized_keys /root/.ssh
+cp ${OPENMPI_DIR}/assets/ssh_config /root/.ssh/config
 
 exit_code=0
-ready_cond="openmpi:ready"
-done_cond="openmpi:done"
 if [ "${role}" = "master" ]; then
-  wait_cond ${ready_cond} ${workers} 24
+  # Wait until workers are ready.
+  wait_mpi_ready ${workers} ${max_retries}
+
+  # Run the exec command in master
   sh -c "${exec}" || exit_code=$?
-  signal_cond ${done_cond}
 else
-  signal_cond ${ready_cond}
-  wait_cond ${done_cond} 1
+  # Wait until controller finishes initialization.
+  wait_controller_signal SIGCONT ${max_retries}
+
+  # Start sshd in daemon mode
+  /usr/sbin/sshd -e -f ${OPENMPI_DIR}/assets/sshd_config
+
+  # Block forever until controller terminates.
+  wait_controller_signal SIGTERM
 fi
 
-echo shutting down ${hostname}
 exit ${exit_code}

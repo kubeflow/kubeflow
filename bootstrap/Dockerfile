@@ -8,7 +8,7 @@ ENV PATH /go/bin:/usr/local/go/bin:$PATH
 RUN mkdir -p $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap
 COPY ./ $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap/
 
-RUN go build -i -o /opt/kubeflow/bootstraper ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/main.go
+RUN go build -i -o /opt/kubeflow/bootstrapper ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/main.go
 
 FROM golang:1.8.2
 
@@ -22,7 +22,7 @@ RUN wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.ta
     --path-update=false \
     --usage-reporting=false
 
-RUN ln -sf /google-cloud-sdk/bin/gcloud /usr/local/bin/gcloud    
+RUN ln -sf /google-cloud-sdk/bin/gcloud /usr/local/bin/gcloud
 
 # Install kubectl
 # We don't install via gcloud because we want 1.10 which is newer than what's in gcloud.
@@ -32,7 +32,10 @@ RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.10.0/
 
 RUN git clone https://github.com/ksonnet/ksonnet.git /opt/ksonnet && \
 	cd /opt/ksonnet && \
-	git checkout 68d8f751791db6b0e0798c34f0d72bda24926d8d
+	git checkout v0.10.0-alpha.3
+
+ARG kubeflowversion=v0.1.3
+RUN git clone --depth 1 --branch $kubeflowversion https://github.com/kubeflow/kubeflow.git /opt/kubeflow
 
 # TODO(jlewi): bootstrap is using an early dev version of ks (0.10) so we need
 # to build ks at the same commit because the generated app won't work with
@@ -46,12 +49,13 @@ RUN cd /opt/ksonnet && \
     cp /tmp/go/bin/ks /usr/local/bin && \
     chmod a+rx /usr/local/bin/ks
 
-RUN mkdir -p /opt/kubeflow
-
-COPY --from=builder /opt/kubeflow/bootstraper /opt/kubeflow/
+COPY --from=builder /opt/kubeflow/bootstrapper /opt/kubeflow/
 COPY start.sh /opt/kubeflow/
 
-RUN chmod a+rx /opt/kubeflow/*
+RUN chmod a+rx /opt/kubeflow/bootstrapper
+RUN chmod a+rx /opt/kubeflow/start.sh
+
+RUN apt-get update && apt-get install -y vim
 
 # Set default values for USER, USER_ID, GROUP_ID
 # The startup script will create the user and su to that user.
@@ -64,4 +68,5 @@ ENV USER_ID 1000
 ENV GROUP_ID 1000
 ENV GROUP kubeflow
 
-ENTRYPOINT ["/opt/kubeflow/start.sh"]
+WORKDIR /opt/kubeflow
+CMD ["/opt/kubeflow/start.sh"]
