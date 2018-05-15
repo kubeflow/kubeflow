@@ -241,7 +241,7 @@
                       if platform == "minikube" then
                         "deploy-kubeflow"
                       else
-                        "bootstrap-kubeflow"
+                        "bootstrap-kubeflow",
                     ],
                   },
                   // Don't run argo test for gke since
@@ -263,7 +263,7 @@
                       if platform == "minikube" then
                         "deploy-kubeflow"
                       else
-                        "bootstrap-kubeflow"
+                        "bootstrap-kubeflow",
                     ],
                   },
                   {
@@ -467,6 +467,7 @@
               "--namespace=" + stepsNamespace,
               "--registry-uri=" + srcDir + "/kubeflow",
               "--app-dir=" + testDir + "/app",
+              "--testing",
             ]),  // bootstrap-kubeflow
           ],  // templates
         },
