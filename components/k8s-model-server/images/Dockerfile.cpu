@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM centos:7
+ARG base_image=centos:7
+FROM $base_image
 
 MAINTAINER Chad Roberts <croberts@redhat.com>
 
