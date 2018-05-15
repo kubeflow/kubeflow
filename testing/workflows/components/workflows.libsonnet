@@ -467,7 +467,7 @@
               "--namespace=" + stepsNamespace,
               "--registry-uri=" + srcDir + "/kubeflow",
               "--app-dir=" + testDir + "/app",
-              "--testing",
+              "--keep-alive=false",
             ]),  // bootstrap-kubeflow
           ],  // templates
         },

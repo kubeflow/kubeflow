@@ -23,15 +23,15 @@ type ServerOption struct {
 	Apply         bool
 	PrintVersion  bool
 	JsonLogFormat bool
-	InCluster	  bool
-	Testing	  	  bool
+	InCluster     bool
+	KeepAlive     bool
 	AppDir        string
 	KfVersion     string
 	NameSpace     string
 	Project       string
 	Email         string
 	IpName        string
-	RegistryUri	  string
+	RegistryUri   string
 }
 
 // NewServerOption creates a new CMServer with a default config.
@@ -53,5 +53,5 @@ func (s *ServerOption) AddFlags(fs *flag.FlagSet) {
 	fs.StringVar(&s.IpName, "ip-name", "kubeflow", "Name of the ip you reserved on GCP project")
 	fs.BoolVar(&s.InCluster, "in-cluster", false, "Whether bootstrapper is executed inside a pod")
 	fs.StringVar(&s.RegistryUri, "registry-uri", "/opt/kubeflow/kubeflow", "Location of kubeflow registry.")
-	fs.BoolVar(&s.Testing, "testing", false, "Whether bootstrapper is executed for e2e test.")
+	fs.BoolVar(&s.KeepAlive, "keep-alive", true, "Whether bootstrapper will stay alive after setup resources.")
 }

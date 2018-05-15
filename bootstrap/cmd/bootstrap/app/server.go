@@ -486,7 +486,7 @@ func Run(opt *options.ServerOption) error {
 			log.Infof("Components applied: " + out.String())
 		}
 	}
-	if opt.InCluster && (!opt.Testing) {
+	if opt.InCluster && opt.KeepAlive {
 		log.Infof("Keeping pod alive...")
 		for {
 			time.Sleep(time.Minute)
