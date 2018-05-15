@@ -1,0 +1,9 @@
+apiVersion: 0.1.0
+gitVersion:
+  commitSha: 40285d8a14f1ac5787e405e1023cf0c07f6aa28c
+  refSpec: master
+kind: ksonnet.io/registry
+libraries:
+  apache:
+    path: apache
+    version: master

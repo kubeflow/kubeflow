@@ -1,0 +1,21 @@
+{
+   "apiVersion": "v1",
+   "kind": "ReplicationController",
+   "spec": {
+      "replicas": 2,
+      "spec": {
+         "containers": [
+            {
+               "env": [
+                  {
+                     "name": "ACCESSTOKEN",
+                     "value": "xxxxx"
+                  }
+               ],
+               "image": "gcr.io/cooltool-1009/pipeline_image@sha256:....",
+               "name": "twitter-to-redis"
+            }
+         ]
+      }
+   }
+}

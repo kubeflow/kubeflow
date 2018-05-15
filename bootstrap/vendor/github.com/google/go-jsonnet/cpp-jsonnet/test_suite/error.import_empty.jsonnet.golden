@@ -1,0 +1,2 @@
+RUNTIME ERROR: couldn't open import "": the empty string is not a valid filename
+	error.import_empty.jsonnet:17:1-10	

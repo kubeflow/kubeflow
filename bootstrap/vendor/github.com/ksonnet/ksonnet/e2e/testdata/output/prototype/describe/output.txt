@@ -1,0 +1,14 @@
+PROTOTYPE NAME:
+io.ksonnet.pkg.configMap
+
+DESCRIPTION:
+A simple config map with optional user-specified data.
+
+REQUIRED PARAMETERS:
+  --name=<name> Name to give the configMap. [type: string]
+
+OPTIONAL PARAMETERS:
+  --data=<data> Data for the configMap. [default: {}, type: object]
+
+TEMPLATE TYPES AVAILABLE:
+  [jsonnet]

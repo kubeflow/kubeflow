@@ -1,0 +1,4 @@
+{
+  alpha(one, two, opt1=1):: myVar + 2,
+  beta(one, two, opt1={foo: 1}):: myVar + 2,
+}

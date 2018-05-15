@@ -1,0 +1,5 @@
+RUNTIME ERROR: expected string but arr[1] was array 
+	std.jsonnet:238:9-87	function <aux>
+	std.jsonnet:240:9-49	function <aux>
+	std.jsonnet:246:7-28	function <anonymous>
+	error.std_join_types1.jsonnet:17:1-26	

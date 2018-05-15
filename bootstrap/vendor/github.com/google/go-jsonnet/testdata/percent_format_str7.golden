@@ -1,0 +1,46 @@
+RUNTIME ERROR: Format required number at 0, got string
+-------------------------------------------------
+	<std>:(539:11)-(540:47)	function <format_code>
+
+          error 'Format required number at '
+                + i + ', got ' + std.type(val)
+
+-------------------------------------------------
+	<std>:666:15-60	thunk <s> from <function <format_codes_arr>>
+
+              format_code(val, code, tmp.fw, tmp2.prec, j2);
+
+-------------------------------------------------
+	<std>:671:24-25	thunk from <thunk <s_padded> from <function <format_codes_arr>>>
+
+              pad_left(s, tmp.fw, ' ');
+
+-------------------------------------------------
+	<std>:451:30-33	thunk from <thunk from <function <pad_left>>>
+
+      padding(w - std.length(str), s) + str;
+
+-------------------------------------------------
+	... (skipped 11 frames)
+-------------------------------------------------
+	<std>:677:11-64	function <format_codes_arr>
+
+          format_codes_arr(codes, arr, i + 1, j3, v + s_padded) tailstrict;
+
+-------------------------------------------------
+	<std>:721:7-46	function <anonymous>
+
+      format_codes_arr(codes, vals, 0, 0, '')
+
+-------------------------------------------------
+	<std>:203:7-23	function <anonymous>
+
+      std.format(a, b)
+
+-------------------------------------------------
+		
+
+-------------------------------------------------
+	During evaluation	
+
+

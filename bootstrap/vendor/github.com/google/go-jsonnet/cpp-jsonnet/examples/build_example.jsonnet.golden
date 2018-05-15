@@ -1,0 +1,49 @@
+{
+   "targets": [
+      {
+         "cFlags": [ ],
+         "cmd": "gcc  a.c b.c -o a.out",
+         "compiler": "gcc",
+         "files": [
+            "a.c",
+            "b.c"
+         ],
+         "out": "a.out"
+      },
+      {
+         "cFlags": [ ],
+         "cmd": "clang  test.c -o test",
+         "compiler": "clang",
+         "files": [
+            "test.c"
+         ],
+         "out": "test"
+      },
+      {
+         "cFlags": [
+            "-O3",
+            "-DNDEBUG"
+         ],
+         "cmd": "clang -O3 -DNDEBUG test2.c -o test2",
+         "compiler": "clang",
+         "files": [
+            "test2.c"
+         ],
+         "out": "test2"
+      },
+      {
+         "cFlags": [
+            "-O3",
+            "-DNDEBUG",
+            "-g"
+         ],
+         "cmd": "gcc -O3 -DNDEBUG -g foo.c bar.c -o baz",
+         "compiler": "gcc",
+         "files": [
+            "foo.c",
+            "bar.c"
+         ],
+         "out": "baz"
+      }
+   ]
+}

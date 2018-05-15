@@ -1,0 +1,31 @@
+name: efk
+apiVersion: 0.0.1
+kind: ksonnet.io/parts
+description: >
+  EFK (elasticsearch-fluentd-kibana) is a common logging stack used with
+  kubernetes.
+author: ksonnet team <ksonnet-help@heptio.com>
+contributors:
+- name: Tehut Getahun
+  email: tehut@heptio.com
+- name: Tamiko Terada
+  email: tamiko@heptio.com
+repository:
+  type: git
+  url: https://github.com/ksonnet/mixins
+bugs:
+  url: https://github.com/ksonnet/mixins/issues
+keywords:
+- elasticsearch
+- fluentd
+- kibana
+- logging
+quickStart:
+  prototype: io.ksonnet.pkg.elasticsearch-kibana
+  componentName: elasticsearch-kibana
+  flags:
+    name: elasticsearch-kibana
+    namespace: default
+    password: boots
+  comment: Logging stack that processes input from fluentd.
+license: Apache 2.0

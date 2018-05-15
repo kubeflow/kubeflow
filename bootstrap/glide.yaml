@@ -1,0 +1,11 @@
+package: github.com/kubeflow/kubeflow/bootstrap
+import:
+- package: github.com/ghodss/yaml
+  version: ^1.0.0
+- package: github.com/onrik/logrus
+  subpackages:
+  - filename
+- package: github.com/sirupsen/logrus
+  version: ^1.0.5
+- package: github.com/stretchr/testify
+  version: ^1.2.0

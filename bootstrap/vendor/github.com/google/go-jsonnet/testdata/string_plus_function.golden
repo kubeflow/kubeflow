@@ -1,0 +1,10 @@
+RUNTIME ERROR: couldn't manifest function in JSON output.
+-------------------------------------------------
+	testdata/string_plus_function:1:1-24	$
+
+"xxx" + (function() 42)
+
+-------------------------------------------------
+	During evaluation	
+
+

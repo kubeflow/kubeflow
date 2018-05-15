@@ -1,0 +1,2 @@
+RUNTIME ERROR: foo was not equal to bar
+	error.assert.fail2.jsonnet:(20:1)-(22:5)	

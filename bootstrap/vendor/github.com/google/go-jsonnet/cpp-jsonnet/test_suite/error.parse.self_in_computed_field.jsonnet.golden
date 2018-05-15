@@ -1,0 +1,1 @@
+STATIC ERROR: error.parse.self_in_computed_field.jsonnet:17:15-19: unexpected: self while parsing field definition

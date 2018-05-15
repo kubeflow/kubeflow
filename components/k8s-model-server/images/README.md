@@ -1,3 +1,13 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Building and testing the TF serving image.](#building-and-testing-the-tf-serving-image)
+  - [Checkout](#checkout)
+  - [Build and Push](#build-and-push)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Building and testing the TF serving image.
 
 The workflow will checkout the source code from kubeflow/kubeflow, then build and push the image.

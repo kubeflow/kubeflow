@@ -1,0 +1,5 @@
+{
+  field: {
+    [x]: envParams.components[x] + globals, for x in std.objectFields(envParams.components)
+  },
+}

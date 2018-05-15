@@ -1,0 +1,12 @@
+name: contour
+apiVersion: 0.0.1
+kind: ksonnet.io/parts
+description: >
+  Contour is a Kubernetes ingress controller for Lyft's Envoy proxy.
+author: Bryan Liles <bryan@heptio.com>
+quickStart:
+  prototype: io.foo.bar
+  componentName: contour
+  flags:
+  comment: Logging stack that processes input from fluentd.
+license: Apache 2.0

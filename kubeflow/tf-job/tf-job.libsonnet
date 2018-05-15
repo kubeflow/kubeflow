@@ -1,8 +1,9 @@
 local k = import "k.libsonnet";
+local util = import "util.libsonnet";
 
 {
   parts:: {
-    tfJobReplica(replicaType, number, args, image, numGpus=0)::
+    tfJobReplica(replicaType, number, args, image, imagePullSecrets=[], numGpus=0)::
       local baseContainer = {
         image: image,
         name: "tensorflow",
@@ -24,6 +25,7 @@ local k = import "k.libsonnet";
           replicas: number,
           template: {
             spec: {
+              imagePullSecrets: [{ name: secret } for secret in util.toArray(imagePullSecrets)],
               containers: [
                 baseContainer + containerArgs + resources,
               ],
@@ -34,7 +36,14 @@ local k = import "k.libsonnet";
         }
       else {},
 
-    tfJob(name, namespace, replicas):: {
+    tfJobTerminationPolicy(replicaName, replicaIndex):: {
+      chief: {
+        replicaName: replicaName,
+        replicaIndex: replicaIndex,
+      },
+    },
+
+    tfJob(name, namespace, replicas, tp):: {
       apiVersion: "kubeflow.org/v1alpha1",
       kind: "TFJob",
       metadata: {
@@ -43,6 +52,7 @@ local k = import "k.libsonnet";
       },
       spec: {
         replicaSpecs: replicas,
+        terminationPolicy: tp,
       },
     },
   },

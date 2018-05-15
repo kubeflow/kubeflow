@@ -1,0 +1,2 @@
+RUNTIME ERROR: attempted index an array with string "foo".
+	error.array_index_string.jsonnet:17:1-14	

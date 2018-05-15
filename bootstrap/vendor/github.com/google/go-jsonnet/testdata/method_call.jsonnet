@@ -1,0 +1,1 @@
+local r = {f(a): 42};r.f(null)

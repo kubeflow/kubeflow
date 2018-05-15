@@ -13,3 +13,15 @@ libraries:
   argo:
     version: master
     path: argo
+  pachyderm:
+    version: master
+    path: pachyderm
+  pytorch-job:
+    version: master
+    path: pytorch-job
+  new-package-stub:
+    version: master
+    path: new-package-stub
+  openmpi:
+    version: master
+    path: openmpi

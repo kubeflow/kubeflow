@@ -1,0 +1,92 @@
+---
+layout: default
+srcroot: https://github.com/google/jsonnet/blob/master/case_studies
+---
+
+<h1 id=top>
+
+<p class=jump_to_page_top>Pages 1, <a
+href="/case_studies/casestudy_fractal.2.html">2</a>, <a href="/case_studies/casestudy_fractal.3.html">3</a></p>
+
+Case Study: Fractal Cloud Application
+
+</h1>
+
+<div style="clear:both"></div>
+
+<h2 id=intro>Introduction</h2>
+
+<p> This case study illustrates that <a href="/index.html">Jsonnet</a> can be used to centralize,
+unify, and manage configuration for all parts of a cloud hosted multi-tier web application (a
+Mandelbrot viewer).  Jsonnet centralizes configuration files for the various application software,
+database schemas and initial data sets, system configuration files, package manifests, software
+build configurations, image configurations (<a href="http://www.packer.io/">Packer</a>) and cloud
+resources / connectivity (<a href="http://www.terraform.io/">Terraform</a>).  Although the running
+example is deployed on <a href="https://cloud.google.com">Google Cloud Platform</a> and uses
+specific application software, Jsonnet can be used to generate configuration for any application and
+(via Packer &amp; Terraform) a wide range of cloud providers.</p>
+
+<p>  Prerequisites: It is assumed that the reader has read the Jsonnet <a
+href="/docs/tutorial.html">tutorial</a>, and has a basic knowledge of Packer and Terraform.</p>
+
+<h2 id=app>Example Web Application</h2>
+
+<a href="/img/fractal_screenshot.png"><img src="/img/fractal_screenshot.png" class=thumb></a>
+
+<p>The example application allows the user to zoom and pan a Mandelbrot fractal (dynamically
+rendered server side, in C++).  The user is able to
+save the location of features they find, deep in the fractal, and a time-ordered list of these with
+thumbnails is displayed in the left hand pane.  The application is provisionally hosted <a
+href="http://www.fractaldemo.com/">here</a>, but you can easily deploy your own as all required files
+are available in the Jsonnet repository.</p>
+
+<p>Although admittedly a little contrived, this example is intended to represent the structure of a
+typical non-trivial real-world web application.  It is an example of micro-service architecture
+(illustrated below).  The services are:  An Application Server, a backend database (Cassandra) and a
+backend service for generating the fractal PNG tiles (C++).  Each service is scalable and
+fault-tolerant.</p>
+
+<img src="/img/fractal_architecture.png">
+
+<p>The Application Server hosts static content (CSS) and Jinja'd HTML.  The <a
+href="{{ page.srcroot }}/fractal/appserv/templates/page.html">HTML</a> contains JavaScript that issues AJAX
+requests to 1) the Tile Generating Service and 2) the Application Server (to fetch / amend the
+discoveries list).  The Application Server therefore does not communicate directly with the fractal
+Tile Generating Service, but it needs to know the host:port endpoint in order to embed it in the
+HTML so that the user's browser can do so.  The user does not communicate directly with the
+Cassandra database.</p>
+
+<p>Both the Application server and the tile generation service use Nginx, uWSGI and flask to host
+their content.  For the application Server, this means transforming HTTP requests into database
+accesses and/or serving content (code <a href="{{ page.srcroot }}/fractal/appserv/main.py">here</a>).  For
+the tile generation service, this means invoking a compiled C++ <a
+href="{{ page.srcroot }}/fractal/tilegen/mandelbrot.cpp">executable</a> from the Flask <a
+href="{{ page.srcroot }}/fractal/tilegen/mandelbrot_service.py">handler</a> in order to construct a PNG for
+a given tile / thumbnail of the fractal.  Both services consist of a group of <a
+href="https://cloud.google.com/compute/docs/instances">instances</a> behind a <a
+href="https://cloud.google.com/compute/docs/load-balancing/network/">layer 3 cloud load balancer</a>
+with a static IP and a simple <a
+href="https://cloud.google.com/compute/docs/load-balancing/health-checks">health check</a>.  The
+Cassandra database is simply a set of instances, as the Cassandra client library (used by the
+Application Server) does client-side load balancing and transparent failover, thus does not need a
+cloud load balancer.</p>
+
+<p>The application is deployed by first using Packer to build an image for each of the 3 kinds of
+cloud instances (Application Server, Tile Generating Service, Cassandra).  Then, all the
+cloud resources (instances, load balancers, etc.) are deployed using Terraform.  The Packer build
+compiles, installs and configures all of the required software on each image.  The Terraform
+configuration provides last minute configuration (host:port endpoints, passwords, etc.) to the
+instances via <a href="https://cloud.google.com/compute/docs/metadata">metadata</a>.</p>
+
+<p>The choice about what configuration to provide at image build time (embedded in Packer
+configurations) vs deployment time (embedded in Terraform configuration) is up to the user.  The
+advantage of doing more at image build time is that instances can then be deployed more quickly
+(useful in an auto-scaling situation).  But allowing some configuration at deployment time makes the
+images more flexible.  Some configuration (e.g. host:port endpoints) is only known at deployment
+time so must be specified in the Terraform configuration.  In our case, we try to do all time
+consuming steps (downloading, generating, compiling) in Packer, while leaving finer details until
+deployment.</p>
+
+<p class=jump_to_page>Pages 1, <a
+href="/case_studies/casestudy_fractal.2.html">2</a>, <a href="/case_studies/casestudy_fractal.3.html">3</a></p>
+

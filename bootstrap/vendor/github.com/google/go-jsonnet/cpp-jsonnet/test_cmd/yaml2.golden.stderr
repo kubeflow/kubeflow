@@ -1,0 +1,2 @@
+RUNTIME ERROR: stream mode: top-level object was a null, should be an array whose elements hold the JSON for each document in the stream.
+	During manifestation	

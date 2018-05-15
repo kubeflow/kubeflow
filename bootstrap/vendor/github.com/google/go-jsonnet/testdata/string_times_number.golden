@@ -1,0 +1,10 @@
+RUNTIME ERROR: Unexpected type string, expected number
+-------------------------------------------------
+	testdata/string_times_number:1:1-9	$
+
+"x" * 42
+
+-------------------------------------------------
+	During evaluation	
+
+

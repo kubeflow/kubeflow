@@ -1,0 +1,13 @@
+{
+   "components": {
+      "a": {
+         "metadata": {
+            "labels": {
+               "global": "global",
+               "locala": "local"
+            }
+         },
+         "other": 1
+      }
+   }
+}

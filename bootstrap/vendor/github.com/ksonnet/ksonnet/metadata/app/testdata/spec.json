@@ -1,0 +1,4 @@
+{
+    "namespace": "some-namespace",
+    "server": "http://example.com"
+}

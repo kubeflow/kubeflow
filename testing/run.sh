@@ -22,7 +22,7 @@ set -ex
 # Trigger a workflow
 if [ -f /src/${REPO_OWNER}/${REPO_NAME}/prow_config.yaml ]; then
   python -m kubeflow.testing.run_e2e_workflow \
-      --project=mlkube-testing \
+      --project=kubeflow-ci \
       --zone=us-east1-d \
       --cluster=kubeflow-testing \
       --bucket=kubernetes-jenkins \
@@ -30,7 +30,7 @@ if [ -f /src/${REPO_OWNER}/${REPO_NAME}/prow_config.yaml ]; then
       --repos_dir=/src
 else
   python -m kubeflow.testing.run_e2e_workflow \
-      --project=mlkube-testing \
+      --project=kubeflow-ci \
       --zone=us-east1-d \
       --cluster=kubeflow-testing \
       --bucket=kubernetes-jenkins \

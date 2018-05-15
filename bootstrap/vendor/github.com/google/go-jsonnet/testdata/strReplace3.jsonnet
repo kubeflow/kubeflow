@@ -1,0 +1,1 @@
+std.strReplace("test", "", "blah")

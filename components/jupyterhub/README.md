@@ -1,3 +1,21 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Jupyter and JupyterHub](#jupyter-and-jupyterhub)
+  - [Background](#background)
+    - [Jupyter](#jupyter)
+    - [JupyterHub](#jupyterhub)
+  - [Quick Start](#quick-start)
+  - [Configuration](#configuration)
+  - [Usage](#usage)
+  - [Customization](#customization)
+    - [Using your own hub image](#using-your-own-hub-image)
+    - [Notebook image](#notebook-image)
+    - [GitHub OAuth Setup](#github-oauth-setup)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Jupyter and JupyterHub
 
 ## Background
@@ -24,7 +42,8 @@ Jupyter notebooks. JupyterHub delegates the launching of
 single-user notebooks to pluggable components called “spawners”. JupyterHub
 has a sub-project named kubespawner, maintained by the
 community, that enables users to provision single-user Jupyter notebooks backed by Kubernetes pods - the notebooks themselves are
-Kubernetes pods.
+Kubernetes pods. kubeform_spawner extends kubespawner to enable users to have
+a form to specify cpu, memory, gpu, and desired image.
 
 ## Quick Start
 
@@ -66,7 +85,9 @@ and the [JupyterHub documentation](https://jupyterhub.readthedocs.io/en/latest/)
 
 ## Usage
 
-If you're using the quick-start, the external IP address of the JupyterHub instance can be obtained from `kubectl get svc`.
+If you're using the quick-start, the external IP address of the JupyterHub 
+instance can be obtained from `kubectl get svc`.
+
 ```commandline
  kubectl get svc
 
@@ -75,7 +96,12 @@ tf-hub-0       ClusterIP      None            <none>          <none>         1h
 tf-hub-lb    LoadBalancer   10.43.246.148   xx.yy.zz.ww   80:32689/TCP   36m
 ```
 
-Now, you can access http://xx.yy.zz.ww with your browser. When trying to spawn a new image, a configuration page should pop up, allowing configuration of the notebook image, CPU, Memory, and additional resources. With the default `DummyAuthenticator`, it should allow any username/password to access the hub and create new notebooks. You can use an authenticator plugin if you want to secure your notebook server and use its administration functionality.
+Now, you can access the external IP, http://xx.yy.zz.ww, with your browser.
+When trying to spawn a new image, a configuration page should pop up, allowing
+configuration of the Jupyter notebook image, CPU, Memory, and additional
+resources. Using the default [`DummyAuthenticator`](https://github.com/yuvipanda/jupyterhub-dummy-authenticator),
+the hub should allow any username/password to access the hub and create new
+notebooks. You can use an alternate [authenticator](https://jupyterhub.readthedocs.io/en/latest/reference/authenticators.html) plugin if you want to secure your notebook server and use its administration functionality.
 
 ## Customization
 
@@ -90,14 +116,23 @@ make push PROJECT_ID=foo
 
 ### Notebook image
 
-Images published under https://github.com/jupyter/docker-stacks should work directly with the Hub. The only requirement for the jupyter
-notebook images that can be used in conjunction with this instance of Hub is that the same version of JupyterHub must be installed (0.8.1 by default), and that there must be a standard `start-singleuser.sh` accessible via the default PATH.
+Images published under in the [Jupyter docker-stacks repo](https://github.com/jupyter/docker-stacks)
+should work directly with the Hub. The only requirements for the Jupyter
+notebook images that may be used with this instance of Hub is
+that notebook images must have the same version of JupyterHub installed
+(0.8.1 by default), and there must be a standard `start-singleuser.sh` accessible
+via the default `PATH`.
 
 ### GitHub OAuth Setup
 
 After creating the initial Hub and exposing it on a public IP address, you can add GitHub based authentication. First, you'll need to create a [GitHub oauth application](https://github.com/settings/applications/new). The callback URL would be of the form `http://xx.yy.zz.ww/hub/oauth_callback`.
 
-Once the GitHub application is created, update the `manifest/config.yaml` with the `callback_url`, `client_id` and `client_secret` obtained from the GitHub UI. Ensure that the `DummyAuthenticator` is commented out and replaced by the `GitHubOAuthenticator` options. At the end, the authenticator configuration section might look like:
+Once the GitHub application is created in the GitHub UI, update the 
+`manifest/config.yaml` with the `callback_url`, `client_id` and `client_secret`
+provided by GitHub UI. You should comment out the `DummyAuthenticator` and
+set the JupyterHub `authenticator_class` to `GitHubOAuthenticator`. You will
+also set the `oauth_callback_url`, `client_id`, and `client_secret` for the
+authenticator. An example configuration section might look like:
 
 ```commandline
 c.JupyterHub.authenticator_class = GitHubOAuthenticator
@@ -106,17 +141,24 @@ c.GitHubOAuthenticator.client_id = 'client_id_here'
 c.GitHubOAuthenticator.client_secret = 'client_secret_here'
 ```
 
-Finally, you can update the configuration and ensure that the new configuration is picked up, by doing the following:
+Finally, you can update the configuration and apply the new configuration by
+doing the following:
 
 ```commandline
 ks apply ${ENVIRONMENT} -c ${COMPONENT_NAME}
 kubectl delete pod tf-hub-0
 ```
 
-The pod will come up with the new configuration and be configured to use the GitHub authenticator you specified in the previous step. You can additionally modify the configuration to add whitelists and admin users. For example, to limit it to only GitHub users user1 and user2, one might use the following configuration:
+By deleting the old pod, a new pod will come up with the new configuration
+and be configured to use the GitHub authenticator you specified in the 
+previous step. You can additionally modify the JupyterHub configuration to add
+whitelists and admin users. For example, to limit the hub to only GitHub users,
+user1 and user2, one might use the following configuration:
 
-```
+```commandline
 c.Authenticator.whitelist = {'user1', 'user2'}
 ```
 
-After changing the configuration and `kubectl apply -f config.yaml`, please note that the JupyterHub pod needs to be restarted before the new configuration is reflected.
+After changing the configuration and `kubectl apply -f config.yaml`, please
+note that the JupyterHub pod needs to be restarted before the new configuration
+is reflected.

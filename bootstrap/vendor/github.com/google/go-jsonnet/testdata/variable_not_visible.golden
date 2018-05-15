@@ -1,0 +1,5 @@
+testdata/variable_not_visible:1:44-50 Unknown variable: nested
+
+local x1 = local nested = 42; nested, x2 = nested; x2
+
+

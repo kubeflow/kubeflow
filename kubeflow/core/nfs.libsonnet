@@ -1,6 +1,9 @@
 // A ksonnet prototype/component for using NFS.
 
 {
+  // TODO(https://github.com/ksonnet/ksonnet/issues/222): Taking namespace as an argument is a work around for the fact that ksonnet
+  // doesn't support automatically piping in the namespace from the environment to prototypes.
+  //
   // Return a list of components needed if you want to mount some disks using NFS.
   // diskNames should be a list of PDs.
   all(params):: {
@@ -31,10 +34,6 @@
 
   }.items,
 
-
-  // TODO(https://github.com/ksonnet/ksonnet/issues/222): Taking namespace as an argument is a work around for the fact that ksonnet
-  // doesn't support automatically piping in the namespace from the environment to prototypes.
-  //
   // Create a provisioner with the specified name.
   // disks should be a list GCP persistent disk names; these disks should be in the
   // same zone as your cluster.

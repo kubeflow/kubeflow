@@ -1,0 +1,8 @@
+NAME                                  DESCRIPTION
+====                                  ===========
+io.ksonnet.pkg.apache-simple          A simple, stateless Apache HTTP server.
+io.ksonnet.pkg.configMap              A simple config map with optional user-specified data
+io.ksonnet.pkg.deployed-service       A deployment exposed with a service
+io.ksonnet.pkg.namespace              Namespace with labels automatically populated from the name
+io.ksonnet.pkg.single-port-deployment Replicates a container n times, exposes a single port
+io.ksonnet.pkg.single-port-service    Service that exposes a single port

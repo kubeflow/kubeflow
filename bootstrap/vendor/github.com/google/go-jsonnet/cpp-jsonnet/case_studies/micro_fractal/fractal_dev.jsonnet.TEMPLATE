@@ -1,0 +1,34 @@
+local service_google = import "mmlib/v0.1.2/service/google.libsonnet";
+
+local fractal = import "fractal.jsonnet";
+
+{
+    environments: {
+        default: service_google.Credentials {
+            project: "verbing-noun-123",  // CHANGE ME!
+            serviceAccount: import "dev_service_account_key.json",  // PROVIDE THIS FILE!
+            sshUser: "someuser",  // CHANGE ME!
+        }
+    },
+
+    fractal: fractal {
+        cassandraUserPass: "xxxxxxxx",  // CHANGE ME!
+        cassandraRootPass: "XXXXXXXX",  // CHANGE ME!
+        dnsSuffix: "dev.yourdomain.com.",  // CHANGE ME!
+        // By default only 1 node is deployed of each subservice.
+        // However you can configure this.
+        appserv+: {
+            zones: ["XXX", "YYY", "ZZZ"],  // CHANGE ME!
+        },
+        tilegen+: {
+            zones: ["XXX", "YYY", "ZZZ"],  // CHANGE ME!
+        },
+        db+: {
+            nodes+: {
+                n1+: {
+                    zone: "XXX",  // CHANGE ME!
+                },
+            },
+        },
+    },
+}
