@@ -31,7 +31,7 @@ local serveComponents = [
 ];
 
 local pvcComponent = [
-  serve.parts(namespace).createPVC(pvcName)
+  serve.parts(namespace).createPVC(pvcName),
 ];
 
 if pvcName != "null" && pvcName != "" then

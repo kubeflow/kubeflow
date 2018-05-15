@@ -7,17 +7,17 @@
       metadata: {
         name: pvcName,
       },
-      spec:{
-        accessModes:[
+      spec: {
+        accessModes: [
           "ReadWriteOnce",
         ],
-        resources:{
-          requests:{
+        resources: {
+          requests: {
             storage: "10Gi",
           },
         },
       },
-    }, // createPVC
+    },  // createPVC
 
     serve(name, image, replicas, endpoint, pvcName):: {
       apiVersion: "machinelearning.seldon.io/v1alpha1",
@@ -49,23 +49,23 @@
                     name: name,
                     volumeMounts+: if pvcName != "null" && pvcName != "" then [
                       {
-                        "mountPath": "/mnt",
-                        "name": "persistent-storage"
-                      }
-                    ]else[],
+                        mountPath: "/mnt",
+                        name: "persistent-storage",
+                      },
+                    ] else [],
                   },
                 ],
                 terminationGracePeriodSeconds: 1,
                 volumes+: if pvcName != "null" && pvcName != "" then [
                   {
-                    "name": "persistent-storage",
-				            "volumeSource" : {
-                      "persistentVolumeClaim": {
-					              "claimName": pvcName
-                      }
-			 	            }
-                  }
-                ]else[],
+                    name: "persistent-storage",
+                    volumeSource: {
+                      persistentVolumeClaim: {
+                        claimName: pvcName,
+                      },
+                    },
+                  },
+                ] else [],
               },
             },
             graph: {
