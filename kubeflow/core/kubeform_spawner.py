@@ -10,7 +10,7 @@ from kubernetes.client.models import (
 from kubespawner.spawner import KubeSpawner
 from jhub_remote_user_authenticator.remote_user_auth import RemoteUserAuthenticator
 from oauthenticator.github import GitHubOAuthenticator
-rom jupyterhub.proxy import Proxy
+from jupyterhub.proxy import Proxy
 from jupyterhub.utils import exponential_backoff
 from kubespawner.reflector import NamespacedResourceReflector
 from kubespawner.proxy import ServiceReflector

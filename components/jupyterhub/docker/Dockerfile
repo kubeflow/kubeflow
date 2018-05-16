@@ -20,7 +20,7 @@ RUN apt-get update && \
 RUN pip3 install --no-cache-dir \
                  notebook \
                  jupyterhub==0.8.1 \
-                 jupyterhub-kubespawner==0.7.1 \
+                 jupyterhub-kubespawner==0.8.1 \
                  jupyterhub-dummyauthenticator \
                  jhub_remote_user_authenticator \
                  oauthenticator
