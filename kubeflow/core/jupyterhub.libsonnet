@@ -131,6 +131,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
         },
         name: "tf-hub-lb",
         namespace: namespace,
+/*
         annotations: {
           "getambassador.io/config":
             std.join("\n", [
@@ -143,6 +144,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
               "service: tf-hub-lb." + namespace,
             ]),
         },  //annotations
+*/
       },
       spec: {
         ports: [
