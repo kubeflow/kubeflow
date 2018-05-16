@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-VERSION=1.0.1
+VERSION=$(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6)
 PROJECT_ID=kubeflow
 GCR_PROJECT=gcr.io/${PROJECT_ID}
 DOCKERHUB_PROJECT=hub.docker.com/r/${PROJECT_ID}
 
 define build
-	docker build --pull -t $(1)/jupyterhub-k8s:${VERSION} .
+	docker build --no-cache --pull -t $(1)/jupyterhub-k8s:${VERSION} .
 endef
 
 all:
