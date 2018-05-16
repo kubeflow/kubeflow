@@ -3,6 +3,7 @@ import os
 import string
 import escapism
 import socket
+from urllib.parse import urlparse
 from kubernetes import client
 from kubernetes.client.models import (
     V1ObjectMeta, V1Service, V1ServiceSpec, V1ServicePort
@@ -77,7 +78,7 @@ class KubeServiceProxy(Proxy):
                     'kind:  Mapping',
                     'name: ' + name + '-mapping',
                     'prefix: /user/' + username,
-                    'rewrite: /user/' + username,
+                    'rewrite: /',
                     'use_websocket: true',
                     'service: ' + name + '.' + self.namespace])
             },
@@ -98,7 +99,7 @@ class KubeServiceProxy(Proxy):
     
         target_ip = target_parts.hostname
         target_port = target_parts.port
-        selector = {'name': name}
+        selector = {'app': 'jupyterhub'}
     
         # Make service object
         service = V1Service(
@@ -322,13 +323,13 @@ c.JupyterHub.proxy_class = KubeServiceProxy
 # Spawner Options
 ###################################################
 c.JupyterHub.spawner_class = KubeFormSpawner
-c.KubeSpawner.singleuser_image_spec = 'gcr.io/kubeflow/tensorflow-notebook'
-c.KubeSpawner.cmd = 'start-singleuser.sh'
-c.KubeSpawner.args = ['--allow-root']
+c.KubeFormSpawner.singleuser_image_spec = 'gcr.io/kubeflow/tensorflow-notebook'
+c.KubeFormSpawner.cmd = 'start-singleuser.sh'
+c.KubeFormSpawner.args = ['--allow-root']
 # gpu images are very large ~15GB. need a large timeout.
-c.KubeSpawner.start_timeout = 60 * 30
+c.KubeFormSpawner.start_timeout = 60 * 30
 # Increase timeout to 5 minutes to avoid HTTP 500 errors on JupyterHub
-c.KubeSpawner.http_timeout = 60 * 5
+c.KubeFormSpawner.http_timeout = 60 * 5
 volumes = []
 volume_mounts = []
 ###################################################
@@ -336,14 +337,14 @@ volume_mounts = []
 ###################################################
 # Using persistent storage requires a default storage class.
 # TODO(jlewi): Verify this works on minikube.
-# TODO(jlewi): Should we set c.KubeSpawner.singleuser_fs_gid = 1000
+# TODO(jlewi): Should we set c.KubeFormSpawner.singleuser_fs_gid = 1000
 # see https://github.com/kubeflow/kubeflow/pull/22#issuecomment-350500944
 pvc_mount = os.environ.get('NOTEBOOK_PVC_MOUNT')
 if pvc_mount and pvc_mount != 'null':
-    c.KubeSpawner.user_storage_pvc_ensure = True
+    c.KubeFormSpawner.user_storage_pvc_ensure = True
     # How much disk space do we want?
-    c.KubeSpawner.user_storage_capacity = '10Gi'
-    c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
+    c.KubeFormSpawner.user_storage_capacity = '10Gi'
+    c.KubeFormSpawner.pvc_name_template = 'claim-{username}{servername}'
     volumes.append(
         {
             'name': 'volume-{username}{servername}',
@@ -378,5 +379,5 @@ if cloud == 'aks' or cloud == 'acsengine':
         'mountPath': '/usr/local/nvidia'
     })
 
-c.KubeSpawner.volumes = volumes
-c.KubeSpawner.volume_mounts = volume_mounts
+c.KubeFormSpawner.volumes = volumes
+c.KubeFormSpawner.volume_mounts = volume_mounts

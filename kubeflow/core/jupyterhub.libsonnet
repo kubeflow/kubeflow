@@ -102,18 +102,19 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
               "name: tf-hub-0-mapping",
               "prefix: /hub",
               "rewrite: /hub",
-              "service: tf-hub-0." + namespace + ":8081",
+              "service: tf-hub-0." + namespace,
             ]),
         },  //annotations
       },
       spec: {
         // We want a headless service so we set the ClusterIP to be None.
         // This headless server is used by individual Jupyter pods to connect back to the Hub.
-        clusterIP: "None",
+        type: "ClusterIP",
         ports: [
           {
             name: "hub",
-            port: 8000,
+            port: 80,
+            targetPort: 8081,
           },
         ],
         selector: {
