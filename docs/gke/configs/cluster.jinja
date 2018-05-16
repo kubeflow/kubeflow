@@ -29,7 +29,8 @@ resources:
       # 
       initialNodeCount: {{ properties['initialNodeCount'] }}
       # We need 1.9 to support GPUs without requiring Alpha.
-      initialClusterVersion: 1.9.6-gke.1
+      enableKubernetesAlpha: true
+      initialClusterVersion: 1.10.2-gke.0
       nodeConfig:
         oauthScopes:        
         - https://www.googleapis.com/auth/compute
@@ -39,8 +40,8 @@ resources:
       # Logging and monitoring have default value [logging/monitoring].googleapis.com
       # if not set. We set it to none and will deploy the new Stackdricer Kubernetes agents.
       # See cloud.google.com/monitoring/kubernetes-engine/.
-      loggingService: none
-      monitoringService: none
+      loggingService: logging.googleapis.com/kubernetes
+      monitoringService: monitoring.googleapis.com/kubernetes
 
 # We manage the node pools as separate resources.
 # We do this so that if we want to make changes we can delete the existing resource and then recreate it.
