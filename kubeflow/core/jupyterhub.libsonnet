@@ -93,6 +93,18 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
         },
         name: "tf-hub-0",
         namespace: namespace,
+        annotations: {
+          "getambassador.io/config":
+            std.join("\n", [
+              "---",
+              "apiVersion: ambassador/v0",
+              "kind:  Mapping",
+              "name: tf-hub-0-mapping",
+              "prefix: /hub",
+              "rewrite: /hub",
+              "service: tf-hub-0." + namespace,
+            ]),
+        },  //annotations
       },
       spec: {
         // We want a headless service so we set the ClusterIP to be None.
@@ -119,6 +131,18 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
         },
         name: "tf-hub-lb",
         namespace: namespace,
+        annotations: {
+          "getambassador.io/config":
+            std.join("\n", [
+              "---",
+              "apiVersion: ambassador/v0",
+              "kind:  Mapping",
+              "name: tf-hub-lb-mapping",
+              "prefix: /hub",
+              "rewrite: /hub",
+              "service: tf-hub-lb." + namespace,
+            ]),
+        },  //annotations
       },
       spec: {
         ports: [
