@@ -1,4 +1,4 @@
-local tfjob = import "../tf-job.libsonnet";
+local tfjob = import "../tf-job-operator.libsonnet";
 local params = {
   namespace:: "test-kf-001",
   cloud:: "azure",
