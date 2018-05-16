@@ -2,7 +2,7 @@ apiVersion: '0.1'
 kind: ksonnet.io/registry
 libraries:
   core:
-    version: master
+    version: ambassador_as_proxy_for_jupyterhub
     path: core
   tf-job:
     version: master
