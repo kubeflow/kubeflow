@@ -322,14 +322,12 @@ func Run(opt *options.ServerOption) error {
 		log.Fatalf("There was a problem loading the app: %v", err)
 	}
 
-	registryUri := fmt.Sprintf("/opt/kubeflow/kubeflow")
-
 	registryName := "kubeflow"
 
 	options := map[string]interface{}{
 		actions.OptionApp:  kfApp,
 		actions.OptionName: registryName,
-		actions.OptionURI:  registryUri,
+		actions.OptionURI:  opt.RegistryUri,
 		// Version doesn't actually appear to be used by the add function.
 		actions.OptionVersion: "",
 		// Looks like override allows us to override existing registries; we shouldn't
@@ -360,11 +358,15 @@ func Run(opt *options.ServerOption) error {
 	}
 
 	// Install packages.
-	for _, p := range []string{"kubeflow/core", "kubeflow/tf-serving", "kubeflow/tf-job"} {
+	for _, p := range []string{"kubeflow/core", "kubeflow/tf-serving", "kubeflow/tf-job", "kubeflow/pytorch-job"} {
+		pieces := strings.Split(p, "/")
+		_, err = fs.Stat(path.Join(opt.RegistryUri, pieces[1]))
+		if err != nil {
+			continue
+		}
 		full := fmt.Sprintf("%v@%v", p, opt.KfVersion)
 		log.Infof("Installing package %v", full)
 
-		pieces := strings.Split(p, "/")
 		pkgName := pieces[1]
 
 		if _, found := libs[pkgName]; found {
@@ -385,6 +387,10 @@ func Run(opt *options.ServerOption) error {
 	// Create the Kubeflow component
 	kubeflowCoreName := "kubeflow-core"
 	createComponent(opt, &kfApp, &fs, []string{kubeflowCoreName, kubeflowCoreName})
+
+	// Create the pytorch-operator component
+	pytorchName := "pytorch-operator"
+	createComponent(opt, &kfApp, &fs, []string{pytorchName, pytorchName})
 
 	pvcMount := ""
 	if hasDefault {
@@ -480,7 +486,7 @@ func Run(opt *options.ServerOption) error {
 			log.Infof("Components applied: " + out.String())
 		}
 	}
-	if opt.InCluster {
+	if opt.InCluster && opt.KeepAlive {
 		log.Infof("Keeping pod alive...")
 		for {
 			time.Sleep(time.Minute)
