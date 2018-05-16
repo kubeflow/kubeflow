@@ -77,8 +77,8 @@ class KubeServiceProxy(Proxy):
                     'apiVersion: ambassador/v0',
                     'kind:  Mapping',
                     'name: ' + name + '-mapping',
-                    'prefix: /user/' + username,
-                    'rewrite: /',
+                    'prefix: /user/',
+                    'rewrite: /user/',
                     'use_websocket: true',
                     'service: ' + name + '.' + self.namespace])
             },
