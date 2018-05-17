@@ -128,11 +128,10 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
       kind: "Service",
       metadata: {
         labels: {
-          app: "tf-hub-lb",
+          app: "tf-hub",
         },
         name: "tf-hub-lb",
         namespace: namespace,
-/*
         annotations: {
           "getambassador.io/config":
             std.join("\n", [
@@ -140,19 +139,18 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
               "apiVersion: ambassador/v0",
               "kind:  Mapping",
               "name: tf-hub-lb-mapping",
-              "prefix: /hub",
+              "prefix: /hub-lb",
               "rewrite: /hub",
               "service: tf-hub-lb." + namespace,
             ]),
         },  //annotations
-*/
       },
       spec: {
         ports: [
           {
             name: "hub",
             port: 80,
-            targetPort: 8000,
+            targetPort: 8081,
           },
         ],
         selector: {
