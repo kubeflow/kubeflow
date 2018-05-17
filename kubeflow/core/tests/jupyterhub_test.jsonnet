@@ -4,7 +4,7 @@ local params = {
   disks:: "disk01,disk02",
   jupyterHubAuthenticator:: null,
   jupyterHubServiceType:: "ClusterIP",
-  jupyterHubImage: "gcr.io/kubeflow/jupyterhub-k8s:1.0.1",
+  jupyterHubImage: "gcr.io/kubeflow/jupyterhub-k8s:1.0.2",
   jupyterNotebookPVCMount: "/home/jovyan/work",
   cloud: null,
 };
@@ -150,7 +150,7 @@ std.assertEqual(jupyterhub.parts(params.namespace).jupyterHub(params.jupyterHubI
                                 value: null,
                               },
                             ],
-                            image: "gcr.io/kubeflow/jupyterhub-k8s:1.0.1",
+                            image: "gcr.io/kubeflow/jupyterhub-k8s:1.0.2",
                             name: "tf-hub",
                             ports: [
                               {
