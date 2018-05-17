@@ -155,77 +155,77 @@ std.assertEqual(
 std.assertEqual(
   ambassador.parts(params.namespace).deploy,
   {
-    apiVersion: "extensions/v1beta1",
-    kind: "Deployment",
-    metadata: {
-      name: "ambassador",
-      namespace: "test-kf-001",
-    },
-    spec: {
-      replicas: 3,
-      template: {
-        metadata: {
-          labels: {
-            service: "ambassador",
-          },
-          namespace: "test-kf-001",
-        },
-        spec: {
-          containers: [
-            {
-              env: [
-                {
-                  name: "AMBASSADOR_NAMESPACE",
-                  valueFrom: {
-                    fieldRef: {
-                      fieldPath: "metadata.namespace",
+     "apiVersion": "extensions/v1beta1",
+     "kind": "Deployment",
+     "metadata": {
+        "name": "ambassador",
+        "namespace": "test-kf-001"
+     },
+     "spec": {
+        "replicas": 1,
+        "template": {
+           "metadata": {
+              "labels": {
+                 "service": "ambassador"
+              },
+              "namespace": "test-kf-001"
+           },
+           "spec": {
+              "containers": [
+                 {
+                    "env": [
+                       {
+                          "name": "AMBASSADOR_NAMESPACE",
+                          "valueFrom": {
+                             "fieldRef": {
+                                "fieldPath": "metadata.namespace"
+                             }
+                          }
+                       },
+                       {
+                          "name": "AMBASSADOR_SINGLE_NAMESPACE",
+                          "value": "true"
+                       }
+                    ],
+                    "image": "quay.io/datawire/ambassador:0.30.1",
+                    "livenessProbe": {
+                       "httpGet": {
+                          "path": "/ambassador/v0/check_alive",
+                          "port": 8877
+                       },
+                       "initialDelaySeconds": 30,
+                       "periodSeconds": 30
                     },
-                  },
-                },
-                {
-                  name: "AMBASSADOR_SINGLE_NAMESPACE",
-                  value: "true",
-                },
+                    "name": "ambassador",
+                    "readinessProbe": {
+                       "httpGet": {
+                          "path": "/ambassador/v0/check_ready",
+                          "port": 8877
+                       },
+                       "initialDelaySeconds": 30,
+                       "periodSeconds": 30
+                    },
+                    "resources": {
+                       "limits": {
+                          "cpu": 1,
+                          "memory": "400Mi"
+                       },
+                       "requests": {
+                          "cpu": "200m",
+                          "memory": "100Mi"
+                       }
+                    }
+                 },
+                 {
+                    "image": "quay.io/datawire/statsd:0.30.1",
+                    "name": "statsd"
+                 }
               ],
-              image: "quay.io/datawire/ambassador:0.30.1",
-              livenessProbe: {
-                httpGet: {
-                  path: "/ambassador/v0/check_alive",
-                  port: 8877,
-                },
-                initialDelaySeconds: 30,
-                periodSeconds: 30,
-              },
-              name: "ambassador",
-              readinessProbe: {
-                httpGet: {
-                  path: "/ambassador/v0/check_ready",
-                  port: 8877,
-                },
-                initialDelaySeconds: 30,
-                periodSeconds: 30,
-              },
-              resources: {
-                limits: {
-                  cpu: 1,
-                  memory: "400Mi",
-                },
-                requests: {
-                  cpu: "200m",
-                  memory: "100Mi",
-                },
-              },
-            },
-            {
-              image: "quay.io/datawire/statsd:0.30.1",
-              name: "statsd",
-            },
-          ],
-          restartPolicy: "Always",
-          serviceAccountName: "ambassador",
-        },
-      },
-    },
+              "restartPolicy": "Always",
+              "serviceAccountName": "ambassador"
+           }
+        }
+     }
   }
 ) &&
 

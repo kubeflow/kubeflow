@@ -57,55 +57,63 @@ std.assertEqual(configSuffixLines[5], 'c.KubeSpawner.volume_mounts = [{"mountPat
 &&
 
 std.assertEqual(jupyterhub.parts(params.namespace).jupyterHubService,
-                {
-                  apiVersion: "v1",
-                  kind: "Service",
-                  metadata: {
-                    labels: {
-                      app: "tf-hub",
-                    },
-                    name: "tf-hub-0",
-                    namespace: "test-kf-001",
-                  },
-                  spec: {
-                    clusterIP: "None",
-                    ports: [
-                      {
-                        name: "hub",
-                        port: 8000,
-                      },
-                    ],
-                    selector: {
-                      app: "tf-hub",
-                    },
-                  },
-                }) &&
+{
+   "apiVersion": "v1",
+   "kind": "Service",
+   "metadata": {
+      "annotations": {
+         "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind:  Mapping\nname: tf-hub-0-mapping\nprefix: /hub\nrewrite: /hub\nservice: tf-hub-0.test-kf-001"
+      },
+      "labels": {
+         "app": "tf-hub"
+      },
+      "name": "tf-hub-0",
+      "namespace": "test-kf-001"
+   },
+   "spec": {
+      "ports": [
+         {
+            "name": "hub",
+            "port": 80,
+            "targetPort": 8081
+         }
+      ],
+      "selector": {
+         "app": "tf-hub"
+      },
+      "type": "ClusterIP"
+   }
+}
+) &&
 
 std.assertEqual(jupyterhub.parts(params.namespace).jupyterHubLoadBalancer(params.jupyterHubServiceType),
-                {
-                  apiVersion: "v1",
-                  kind: "Service",
-                  metadata: {
-                    labels: {
-                      app: "tf-hub-lb",
-                    },
-                    name: "tf-hub-lb",
-                    namespace: "test-kf-001",
-                  },
-                  spec: {
-                    ports: [
-                      {
-                        name: "hub",
-                        port: 80,
-                        targetPort: 8000,
-                      },
-                    ],
-                    selector: {
-                      app: "tf-hub",
-                    },
-                    type: "ClusterIP",
-                  },
-                }) &&
+{
+   "apiVersion": "v1",
+   "kind": "Service",
+   "metadata": {
+      "annotations": {
+         "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind:  Mapping\nname: tf-hub-lb-mapping\nprefix: /hub-lb\nrewrite: /hub\nservice: tf-hub-lb.test-kf-001"
+      },
+      "labels": {
+         "app": "tf-hub"
+      },
+      "name": "tf-hub-lb",
+      "namespace": "test-kf-001"
+   },
+   "spec": {
+      "ports": [
+         {
+            "name": "hub",
+            "port": 80,
+            "targetPort": 8081
+         }
+      ],
+      "selector": {
+         "app": "tf-hub"
+      },
+      "type": "ClusterIP"
+   }
+}) &&
 
 std.assertEqual(jupyterhub.parts(params.namespace).jupyterHub(params.jupyterHubImage, params.jupyterNotebookPVCMount, params.cloud),
                 {
