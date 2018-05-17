@@ -16,6 +16,14 @@ imports:
 - path: cluster.jinja
 
 resources:
+  # Deployment manager doesn't support depends on references in template type.
+  # So the two possible work arounds are
+  # 1. Use a single template (.jinja file for all resources) or
+  # 2. Create two separate deployments and launch the boot strapper
+  # after the cluster is created.
+  # 
+  # Two separate deployments doesn't make much sense; we could just use 
+  # kubectl at that point. So we put all resources in a single deployment.
 - name: kubeflow
   type: cluster.jinja
   properties:
