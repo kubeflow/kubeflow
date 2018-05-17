@@ -152,7 +152,7 @@
         namespace: namespace,
       },
       spec: {
-        replicas: 1, // temporary for easier debugging
+        replicas: 3,
         template: {
           metadata: {
             labels: {
