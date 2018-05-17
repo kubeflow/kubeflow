@@ -107,8 +107,6 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
         },  //annotations
       },
       spec: {
-        // We want a headless service so we set the ClusterIP to be None.
-        // This headless server is used by individual Jupyter pods to connect back to the Hub.
         type: "ClusterIP",
         ports: [
           {
