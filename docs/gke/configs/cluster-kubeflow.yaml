@@ -28,9 +28,6 @@ resources:
   type: cluster.jinja
   properties:
     zone: us-east1-d
-    # We create a very small initial pool.
-    # Actual nodes will be managed as additional node pools.
-    initialNodeCount: 1
     # An arbitrary string appending to name of nodepools
     # bump this if you want to modify the node pools.
     # This will cause existing node pools to be deleted and new ones to be created.

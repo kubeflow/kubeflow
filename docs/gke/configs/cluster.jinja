@@ -13,13 +13,13 @@ limitations under the License.
 
 
 {% set NAME_PREFIX = env['deployment'] + '-' + env['name'] %}
-{% set CLUSTER_NAME = env['name'] %}
+{% set CLUSTER_NAME = NAME_PREFIX %}
+{% set CPU_POOL = NAME_PREFIX + '-cpu-pool-' + properties['pool-version'] %}
+{% set GPU_POOL = NAME_PREFIX + '-gpu-pool-' + properties['pool-version'] %}
 {% set TYPE_NAME = NAME_PREFIX + '-type' %}
 {% set RBAC_TYPE_NAME = TYPE_NAME + '-rbac-v1' %}
 
 {% set K8S_ENDPOINTS = {'': 'api/v1', '-v1beta1-extensions': 'apis/extensions/v1beta1', '-rbac-v1': 'apis/rbac.authorization.k8s.io/v1'}  %}
-{% set CPU_POOL = 'cpu-pool-' + properties['pool-version'] %}
-{% set GPU_POOL = 'gpu-pool-' + properties['pool-version'] %}
 
 {% set CLUSTER_TYPE_API_V1 = env['project'] + '/' + TYPE_NAME %}
 {% set RBAC_TYPE = env['project'] + '/' + RBAC_TYPE_NAME %}
@@ -29,7 +29,6 @@ limitations under the License.
 {% set RC_COLLECTION = COLLECTION_PREFIX + 'replicationcontrollers' %}
 {% set SERVICE_COLLECTION = COLLECTION_PREFIX + 'services' %}
 {% set CLUSTER_ROLE_BINDING_COLLECTION = '/apis/rbac.authorization.k8s.io/v1/clusterrolebindings' %}
-{% set NAME_PREFIX = 'bootstrap' + '-' + env['name'] %}
 
 resources:
 - name: {{ CLUSTER_NAME }}
@@ -38,8 +37,10 @@ resources:
     zone: {{ properties['zone'] }}
     cluster:
       name: {{ CLUSTER_NAME }}
-      # 
-      initialNodeCount: {{ properties['initialNodeCount'] }}
+      # Create a very small minimal pool. Actual nodes will be managed
+      # as additional node pools. This makes it easier to 
+      initialNodeCount: 1
+      machineType: n1-standard-1
       {% if properties['stackdriver-kubernetes'] %}
       # TODO: remove alpha when 10.2 is public.
       # https://github.com/kubeflow/kubeflow/issues/821
@@ -65,7 +66,7 @@ resources:
 # We do this so that if we want to make changes we can delete the existing resource and then recreate it.
 # Updating doesn't work so well because we are limited in what changes GKE's update method supports.
 
-- name: cpu-pool-{{ properties['pool-version'] }}
+- name: {{ CPU_POOL }}
   type: container.v1.nodePool
   properties:
     project: {{ properties['project'] }}
