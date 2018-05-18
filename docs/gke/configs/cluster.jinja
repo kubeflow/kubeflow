@@ -226,25 +226,6 @@ e.g. creating namespaces, service accounts, stateful set to run the bootstrapper
       # Wait for the type provider to be created.
       - {{ TYPE_NAME }}
 
-{#  StatefulSet needs a service. #}
-- name: bootstrap-service
-  type: {{ CLUSTER_TYPE_API_V1 }}:{{ SERVICE_COLLECTION }}
-  properties:
-    apiVersion: v1
-    kind: Service
-    namespace: kubeflow-admin
-    metadata:
-      name: kubeflow-bootstrapper
-      namespace: kubeflow-admin
-    spec:
-      ClusterIp: "None"
-      selector:
-
-  metadata:
-      dependsOn:
-      # Wait for the type provider to be created.
-      - admin-namespace
-
 {# The deployment manager uses the cloudservices account. We need to create
    a cluster role binding making the cloudservices account cluster admin
    so that we can then create other cluster role bindings.
