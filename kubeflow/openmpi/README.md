@@ -7,6 +7,7 @@ Prototypes for running Open MPI jobs with Kubernetes.
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Quickstart](#quickstart)
+- [GPU Training](#gpu-training)
 - [Running Horovod](#running-horovod)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -68,9 +69,23 @@ kubectl logs -n ${NAMESPACE} -f ${COMPONENT}-master
 ks delete default
 ```
 
+## GPU Training
+It is recommended to set up a auto-scaling node pool to host your GPUs so that GPU nodes can be provisioned and released
+based on the demands of the workloads. To account for longer time to provision the GPU nodes, you may need to increase
+`--initTimeout`. If you have more than one node pool with different types of GPUs, specify `--nodeSelector` to assign
+the workloads to the correct pool. You may also set cpu and memory limit to further restrict the resource limits of your workloads.   
+```
+ks prototype describe openmpi
+  --gpu=<gpu>                               Number of GPUs per worker. [default: 0, type: number]
+  --cpu=<cpu>                               CPU limits per worker. [default: null, type: string]
+  --memory=<memory>                         Memory limits per worker. [default: null, type: string]
+  --nodeSelector=<nodeSelector>             Comma-delimited list of "key=value" pairs to select the worker nodes. e.g. "cloud.google.com/gke-accelerator=nvidia-tesla-k80" [default: null, type: string]
+  --initTimeout=<initTimeout>               Timeout in seconds to abort the initialization. [default: 300, type: number]
+```
+
 ## Running Horovod
 
-Horovod is a distributed training framework for TensorFlow. You may use this package to run Horovod on Open MPI.
+[Horovod](https://github.com/uber/horovod) is a distributed training framework for TensorFlow/Keras/PyTorch. You may use this package to run Horovod on Open MPI.
 
 1. Create a cluster with GPUs (see [here](https://cloud.google.com/kubernetes-engine/docs/concepts/gpus) for Google Cloud instructions).
 
@@ -79,6 +94,9 @@ Horovod is a distributed training framework for TensorFlow. You may use this pac
 1. Follow the steps in [Quickstart](#quickstart) and use a different entry point.
 
 ```
+# See https://hub.docker.com/r/uber/horovod/tags/ for available tags.
+IMAGE=uber/horovod:0.13.0-tf1.8.0-torch0.4.0-py2.7
+
 # Use one CPU per worker.
 GPU=1
 
