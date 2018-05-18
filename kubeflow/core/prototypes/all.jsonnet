@@ -11,7 +11,7 @@
 // @optionalParam tfDefaultImage string null The default image to use for TensorFlow.
 // @optionalParam tfJobUiServiceType string ClusterIP The service type for the UI.
 // @optionalParam jupyterHubServiceType string ClusterIP The service type for Jupyterhub.
-// @optionalParam jupyterHubImage string gcr.io/kubeflow/jupyterhub-k8s:1.0.2 The image to use for JupyterHub.
+// @optionalParam jupyterHubImage string gcr.io/kubeflow-images-public/jupyterhub-k8s:1.0.2 The image to use for JupyterHub.
 // @optionalParam jupyterHubAuthenticator string null The authenticator to use
 // @optionalParam jupyterNotebookPVCMount string null Mount path for PVC. Set empty to disable PVC
 // @optionalParam reportUsage string false Whether or not to report Kubeflow usage to kubeflow.org.

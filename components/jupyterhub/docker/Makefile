@@ -14,7 +14,7 @@
 
 VERSION=1.0.2
 PROJECT_ID=kubeflow
-GCR_PROJECT=gcr.io/${PROJECT_ID}
+GCR_PROJECT=gcr.io/${PROJECT_ID}-images-public
 DOCKERHUB_PROJECT=hub.docker.com/r/${PROJECT_ID}
 
 define build
