@@ -39,4 +39,4 @@ resources:
     # Whether to deploy the new Stackdriver Kubernetes agents
     stackdriver-kubernetes: false
     # Path for the bootstrapper image.
-    bootstrapperImage: gcr.io/kubeflow-images-public/bootstrapper:v20180429-v0.1.1-13-g108313ae-e3b0c4
+    bootstrapperImage: gcr.io/kubeflow-images-public/bootstrapper:v20180519-v0.1.1-57-g4c29f52f-e3b0c4
