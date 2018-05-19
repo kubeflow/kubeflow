@@ -17,19 +17,18 @@ limitations under the License.
 {% set CPU_POOL = NAME_PREFIX + '-cpu-pool-' + properties['pool-version'] %}
 {% set GPU_POOL = NAME_PREFIX + '-gpu-pool-' + properties['pool-version'] %}
 
-{% Type names are the names to give to deployment manager type providers
+{# Type names are the names to give to deployment manager type providers
    that will be created to represent Kubernetes objects.
    There is type corresponding to each API endpoint.
-%}
+#}
 {% set TYPE_NAME = NAME_PREFIX + '-type' %}
 {% set RBAC_TYPE_NAME = TYPE_NAME + '-rbac-v1' %}
-{% set APPS_TYPE_NAME = TYPE_NAME + '-apps-v1'}
+{% set APPS_TYPE_NAME = TYPE_NAME + '-apps-v1' %}
 
 {# A dictionary mapping type name suffixes to the corresponding 
    Kubernetes API endpoint.
 #}
-{% set K8S_ENDPOINTS = {'': 'api/v1', '-v1beta1-extensions': 'apis/extensions/v1beta1', '-rbac-v1': 'apis/rbac.authorization.k8s.io/v1', '-apps-v1': '/apis/apps/v1/'}  %}
-
+{% set K8S_ENDPOINTS = {'': 'api/v1', '-v1beta1-extensions': 'apis/extensions/v1beta1', '-rbac-v1': 'apis/rbac.authorization.k8s.io/v1', '-apps-v1': 'apis/apps/v1/'}  %}
 
 {% set CLUSTER_TYPE_API_V1 = env['project'] + '/' + TYPE_NAME %}
 {% set RBAC_TYPE = env['project'] + '/' + RBAC_TYPE_NAME %}
@@ -40,7 +39,7 @@ limitations under the License.
 {% set RC_COLLECTION = COLLECTION_PREFIX + 'replicationcontrollers' %}
 {% set SERVICE_COLLECTION = COLLECTION_PREFIX + 'services' %}
 {% set PVC_COLLECTION = COLLECTION_PREFIX + 'persistentvolumeclaims' %}
-
+{% set STATEFULSETS_COLLECTION = '/apis/apps/v1/namespaces/{namespace}/statefulsets' %}
 {% set CLUSTER_ROLE_BINDING_COLLECTION = '/apis/rbac.authorization.k8s.io/v1/clusterrolebindings' %}
 
 resources:
@@ -306,6 +305,52 @@ e.g. creating namespaces, service accounts, stateful set to run the bootstrapper
       resources:
         requests:
           storage: 5Gi
+
+  metadata:
+    dependsOn:
+      - admin-namespace
+
+{# Stateful set for the bootstrapper #}
+- name: bootstrap-statefulset
+  type: {{ APPS_TYPE }}:{{ STATEFULSETS_COLLECTION }}
+  properties:
+    apiVersion: apps/v1
+    {# Namespace is a property because its used bye deployment manager in 
+       the URL #}
+    kind: StatefulSet
+    namespace: kubeflow-admin
+    metadata:
+      name: kubeflow-bootstrapper
+      namespace: kubeflow-admin
+    spec:
+      selector:
+        matchLabels:
+          app: kubeflow-bootstrapper
+      serviceName: kubeflow-bootstrapper
+      template:
+        metadata:
+          name: kubeflow-bootstrapper
+          labels:
+            app: kubeflow-bootstrapper
+        spec:
+          containers:
+          - name: kubeflow-bootstrapper
+            image: {{ properties["bootstrapperImage"] }}
+            workingDir: /opt/bootstrap
+            command: [ "/opt/kubeflow/bootstrapper"]
+            args: ["--in-cluster", "--namespace=kubeflow"]
+            env:
+            - name: NAMESPACE
+              value: "kubeflow"
+            - name: DEPLOY_JOB
+              value: "TRUE"
+            volumeMounts:
+            - name: kubeflow-ksonnet-pvc
+              mountPath: /opt/bootstrap
+          volumes:
+          - name: kubeflow-ksonnet-pvc
+            persistentVolumeClaim:
+              claimName: kubeflow-ksonnet-pvc
 
   metadata:
     dependsOn:

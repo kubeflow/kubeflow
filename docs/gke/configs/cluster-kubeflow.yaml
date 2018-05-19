@@ -38,3 +38,5 @@ resources:
     gpu-pool-initialNodeCount: 0    
     # Whether to deploy the new Stackdriver Kubernetes agents
     stackdriver-kubernetes: false
+    # Path for the bootstrapper image.
+    bootstrapperImage: gcr.io/kubeflow-images-public/bootstrapper:v20180429-v0.1.1-13-g108313ae-e3b0c4
