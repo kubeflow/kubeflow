@@ -16,18 +16,31 @@ limitations under the License.
 {% set CLUSTER_NAME = NAME_PREFIX %}
 {% set CPU_POOL = NAME_PREFIX + '-cpu-pool-' + properties['pool-version'] %}
 {% set GPU_POOL = NAME_PREFIX + '-gpu-pool-' + properties['pool-version'] %}
+
+{% Type names are the names to give to deployment manager type providers
+   that will be created to represent Kubernetes objects.
+   There is type corresponding to each API endpoint.
+%}
 {% set TYPE_NAME = NAME_PREFIX + '-type' %}
 {% set RBAC_TYPE_NAME = TYPE_NAME + '-rbac-v1' %}
+{% set APPS_TYPE_NAME = TYPE_NAME + '-apps-v1'}
 
-{% set K8S_ENDPOINTS = {'': 'api/v1', '-v1beta1-extensions': 'apis/extensions/v1beta1', '-rbac-v1': 'apis/rbac.authorization.k8s.io/v1'}  %}
+{# A dictionary mapping type name suffixes to the corresponding 
+   Kubernetes API endpoint.
+#}
+{% set K8S_ENDPOINTS = {'': 'api/v1', '-v1beta1-extensions': 'apis/extensions/v1beta1', '-rbac-v1': 'apis/rbac.authorization.k8s.io/v1', '-apps-v1': '/apis/apps/v1/'}  %}
+
 
 {% set CLUSTER_TYPE_API_V1 = env['project'] + '/' + TYPE_NAME %}
 {% set RBAC_TYPE = env['project'] + '/' + RBAC_TYPE_NAME %}
+{% set APPS_TYPE = env['project'] + '/' + APPS_TYPE_NAME %}
 
 {% set COLLECTION_PREFIX = '/api/v1/namespaces/{namespace}/' %}
 {% set NAMESPACE_COLLECTION = '/api/v1/namespaces' %}
 {% set RC_COLLECTION = COLLECTION_PREFIX + 'replicationcontrollers' %}
 {% set SERVICE_COLLECTION = COLLECTION_PREFIX + 'services' %}
+{% set PVC_COLLECTION = COLLECTION_PREFIX + 'persistentvolumeclaims' %}
+
 {% set CLUSTER_ROLE_BINDING_COLLECTION = '/apis/rbac.authorization.k8s.io/v1/clusterrolebindings' %}
 
 resources:
@@ -272,6 +285,31 @@ e.g. creating namespaces, service accounts, stateful set to run the bootstrapper
       - {{ RBAC_TYPE_NAME }}
       - admin-namespace
       - dm-rbac
+
+{# Create a persistent volume to store the ksonnet app.
+#}
+- name: bootstrap-pvc
+  type: {{ CLUSTER_TYPE_API_V1 }}:{{ PVC_COLLECTION }}
+  properties:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    {# Namespace is a property because its used bye deployment manager in 
+       the URL #}
+    namespace: kubeflow-admin
+    metadata:
+      name: kubeflow-ksonnet-pvc      
+      labels:
+        app: kubeflow-ksonnet
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 5Gi
+
+  metadata:
+    dependsOn:
+      - admin-namespace
 
 outputs:
 {% for typeSuffix, endpoint in K8S_ENDPOINTS.iteritems() %}
