@@ -40,7 +40,6 @@ resources:
       # Create a very small minimal pool. Actual nodes will be managed
       # as additional node pools. This makes it easier to 
       initialNodeCount: 1
-      machineType: n1-standard-1
       {% if properties['stackdriver-kubernetes'] %}
       # TODO: remove alpha when 10.2 is public.
       # https://github.com/kubeflow/kubeflow/issues/821
@@ -56,7 +55,8 @@ resources:
       initialClusterVersion: 1.9.6-gke.1
       {% endif %}      
       nodeConfig:
-        oauthScopes:        
+        machineType: n1-standard-1
+        oauthScopes:
         - https://www.googleapis.com/auth/compute
         - https://www.googleapis.com/auth/devstorage.read_only
         - https://www.googleapis.com/auth/logging.write
