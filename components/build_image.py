@@ -93,7 +93,7 @@ def build_tf_serving(args):
   run(command, cwd=context_dir)
 
 def build_tf_notebook(args):
-  context_dir = "tensorflow-notebook-image"
+  context_dir = os.path.join(os.getcwd(), "tensorflow-notebook-image")
   version = args.tf_version if args.platform == "cpu" else args.tf_version + "gpu"
 
   config = get_config(context_dir, version)
