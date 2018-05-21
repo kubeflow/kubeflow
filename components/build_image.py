@@ -78,7 +78,7 @@ def get_config(context_dir, version):
   return config
 
 def build_tf_serving(args):
-  context_dir = "k8s-model-server/images"
+  context_dir = os.path.join(os.getcwd(), "k8s-model-server/images")
   version = args.tf_version if args.platform == "cpu" else args.tf_version + "gpu"
 
   config = get_config(context_dir, version)
