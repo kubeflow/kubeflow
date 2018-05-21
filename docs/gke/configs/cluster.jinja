@@ -28,8 +28,20 @@ resources:
       name: {{ CLUSTER_NAME }}
       # 
       initialNodeCount: {{ properties['initialNodeCount'] }}
-      # We need 1.9 to support GPUs without requiring Alpha.
+      {% if properties['stackdriver-kubernetes'] %}
+      # TODO: remove alpha when 10.2 is public.
+      # https://github.com/kubeflow/kubeflow/issues/821
+      enableKubernetesAlpha: true
+      # We need 1.10.2 to support Stackdrivier GKE.
+      initialClusterVersion: 1.10.2-gke.0
+      # Logging and monitoring have default value [logging/monitoring].googleapis.com
+      # if not set. We are using the new Stackdricer Kubernetes agents here.
+      # See cloud.google.com/monitoring/kubernetes-engine/.
+      loggingService: logging.googleapis.com/kubernetes
+      monitoringService: monitoring.googleapis.com/kubernetes
+      {% else %}
       initialClusterVersion: 1.9.6-gke.1
+      {% endif %}      
       nodeConfig:
         oauthScopes:        
         - https://www.googleapis.com/auth/compute

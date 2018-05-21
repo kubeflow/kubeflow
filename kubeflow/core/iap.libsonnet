@@ -491,24 +491,6 @@
                             ],
                           },
                         },
-                        // TODO(ankushagarwal): We should eventually
-                        // redirect to the central UI once its ready
-                        // See https://github.com/kubeflow/kubeflow/pull/146
-                        // Redirect to jupyterhub when visiting /
-                        {
-                          timeout_ms: 600000,
-                          path: "/",
-                          prefix_rewrite: "/hub",
-                          use_websocket: true,
-                          weighted_clusters: {
-                            clusters: [
-                              {
-                                name: "cluster_jupyterhub",
-                                weight: 100.0,
-                              },
-                            ],
-                          },
-                        },
                         {
                           // Route remaining traffic to Ambassador which supports dynamically adding
                           // routes based on service annotations.
