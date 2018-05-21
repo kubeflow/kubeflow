@@ -77,8 +77,8 @@ class KubeServiceProxy(Proxy):
                     'apiVersion: ambassador/v0',
                     'kind:  Mapping',
                     'name: ' + name + '-mapping',
-                    'prefix: /user/',
-                    'rewrite: /user/',
+                    'prefix: /user',
+                    'rewrite: /user',
                     'use_websocket: true',
                     'service: ' + name + '.' + self.namespace])
             },
@@ -311,6 +311,7 @@ c.JupyterHub.ip = '0.0.0.0'
 c.JupyterHub.hub_ip = '0.0.0.0'
 c.JupyterHub.hub_connect_ip =  os.environ['AMBASSADOR_SERVICE_HOST']
 c.JupyterHub.hub_connect_port = int(os.environ['AMBASSADOR_SERVICE_PORT'])
+
 # Don't try to cleanup servers on exit - since in general for k8s, we want
 # the hub to be able to restart without losing user containers
 c.JupyterHub.cleanup_servers = False
@@ -323,13 +324,15 @@ c.JupyterHub.proxy_class = KubeServiceProxy
 # Spawner Options
 ###################################################
 c.JupyterHub.spawner_class = KubeFormSpawner
-c.KubeFormSpawner.singleuser_image_spec = 'gcr.io/kubeflow/tensorflow-notebook'
-c.KubeFormSpawner.cmd = 'start-singleuser.sh'
-c.KubeFormSpawner.args = ['--allow-root']
+c.JupyterHub.tornado_settings = { 'slow_spawn_timeout': 0 }
+c.Spawner.cmd = 'start-singleuser.sh'
+c.Spawner.args = ['--allow-root']
 # gpu images are very large ~15GB. need a large timeout.
-c.KubeFormSpawner.start_timeout = 60 * 30
+c.Spawner.start_timeout = 1800
 # Increase timeout to 5 minutes to avoid HTTP 500 errors on JupyterHub
-c.KubeFormSpawner.http_timeout = 60 * 5
+c.Spawner.http_timeout = 300
+c.Spawner.debug = True
+c.KubeSpawner.singleuser_image_spec = 'gcr.io/kubeflow/tensorflow-notebook'
 volumes = []
 volume_mounts = []
 ###################################################

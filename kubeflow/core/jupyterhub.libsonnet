@@ -102,6 +102,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
               "name: tf-hub-0-mapping",
               "prefix: /hub",
               "rewrite: /hub",
+              "timeout_ms: 300000",
               "service: tf-hub-0." + namespace,
             ]),
         },  //annotations
@@ -139,6 +140,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
               "name: tf-hub-lb-mapping",
               "prefix: /hub-lb",
               "rewrite: /hub",
+              "timeout_ms: 300000",
               "service: tf-hub-lb." + namespace,
             ]),
         },  //annotations
@@ -179,10 +181,15 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
             containers: [
               {
                 command: [
-                  "jupyterhub",
-                  "-f",
-                  "/etc/config/jupyterhub_config.py",
+                  "/bin/bash", 
+                  "-c", 
+                  "trap : TERM INT; sleep infinity & wait",
                 ],
+//                command: [
+//                  "jupyterhub",
+//                  "-f",
+//                  "/etc/config/jupyterhub_config.py",
+//                ],
                 image: image,
                 name: "tf-hub",
                 volumeMounts: [
