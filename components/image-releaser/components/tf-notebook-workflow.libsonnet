@@ -2,23 +2,25 @@
   util:: import "util.libsonnet",
 
   // Default parameters.
+  // The defaults are suitable based on suitable values for our test cluster.
   defaultParams:: {
     bucket: "kubeflow-ci_temp",
     commit: "master",
     // Name of the secret containing GCP credentials.
     gcpCredentialsSecretName: "kubeflow-testing-credentials",
-    name: "new9",
+    name: "kubeflow-postsubmit",
     namespace: "kubeflow-test-infra",
     // The name of the NFS volume claim to use for test files.
     nfsVolumeClaim: "nfs-external",
     prowEnv: "REPO_OWNER=kubeflow,REPO_NAME=kubeflow,PULL_BASE_SHA=master",
-    registry: "gcr.io/kubeflow-ci",
-    versionTag: "latest",
     // The default image to use for the steps in the Argo workflow.
-    testingImage: "gcr.io/kubeflow-ci/test-worker",
-    project: "kubeflow-ci",
-    cluster: "kubeflow-testing",
-    zone: "us-east1-d",
+    stepImage: "gcr.io/kubeflow-ci/test-worker:latest",
+
+    // The registry to use (should not include the image name or version tag)
+    registry: "gcr.io/kubeflow-ci",
+
+    // The tag to use for the image.
+    versionTag: "latest",
   },
 
   parts(namespace, name, overrides={}):: {
@@ -27,19 +29,16 @@
       local params = $.defaultParams + overrides;
 
       local namespace = params.namespace;
-      local testingImage = params.testingImage;
-      local project = params.project;
-      local cluster = params.cluster;
-      local zone = params.zone;
       local name = params.name;
-      local versionTag = params.versionTag;
 
       local prowEnv = $.util.parseEnv(params.prowEnv);
       local bucket = params.bucket;
 
+      local stepsNamespace = name;
+
       // mountPath is the directory where the volume to store the test data
       // should be mounted.
-      local mountPath = "/mnt/test-data-volume";
+      local mountPath = "/mnt/" + "test-data-volume";
       // testDir is the root directory for all data for a particular test run.
       local testDir = mountPath + "/" + name;
       // outputDir is the directory to sync to GCS to contain the output for this job.
@@ -51,25 +50,25 @@
       local srcDir = srcRootDir + "/kubeflow/kubeflow";
       // The name to use for the volume to use to contain test data.
       local dataVolume = "kubeflow-test-volume";
-      // The directory within the kubeflow repos containing
-      // py scripts to use.
       local kubeflowPy = srcDir;
+      // The directory within the kubeflow_testing submodule containing
+      // py scripts to use.
       local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
       local pythonPath = kubeflowPy + ":" + kubeflowTestingPy;
 
-      // Location of build_image.py
-      local buildScript = srcRootDir + "/kubeflow/kubeflow/components/build_image.py";
+      // Location where Dockerfiles and other sources are found.
+      local notebookDir = srcRootDir + "/kubeflow/kubeflow/components/tensorflow-notebook-image/";
 
-      local buildTFServingImageTemplate(name, tf_version, platform, tag) =
+      local buildTFNotebookImageTemplate(name, tf_version, platform, tag) =
         $.util.buildImageTemplate(
             name,
             [
               "python", buildScript, "--tf_version=" + tf_version,
               "--platform=" + platform,
               "--tag=" + tag,
-              "tf_serving",
+              "tf_notebook",
             ],
-            testingImage, pythonPath, prowEnv
+            stepImage, pythonPath, prowEnv
           );
 
       {
@@ -79,6 +78,7 @@
           name: name,
           namespace: namespace,
         },
+        // TODO(jlewi): Use OnExit to run cleanup steps.
         spec: {
           entrypoint: "e2e",
           volumes: [
@@ -115,33 +115,53 @@
                     template: "checkout",
                   },
                   {
-                    name: "build-tf-serving-1-4cpu",
-                    template: "build-tf-serving-1-4cpu",
+                    name: "build-1-4-1-gpu",
+                    template: "build-1-4-1-gpu",
                     dependencies: ["checkout"],
                   },
                   {
-                    name: "build-tf-serving-1-5cpu",
-                    template: "build-tf-serving-1-5cpu",
+                    name: "build-1-4-1-cpu",
+                    template: "build-1-4-1-cpu",
                     dependencies: ["checkout"],
                   },
                   {
-                    name: "build-tf-serving-1-6cpu",
-                    template: "build-tf-serving-1-6cpu",
+                    name: "build-1-5-1-gpu",
+                    template: "build-1-5-1-gpu",
                     dependencies: ["checkout"],
                   },
                   {
-                    name: "build-tf-serving-1-6gpu",
-                    template: "build-tf-serving-1-6gpu",
+                    name: "build-1-5-1-cpu",
+                    template: "build-1-5-1-cpu",
                     dependencies: ["checkout"],
                   },
                   {
-                    name: "build-tf-serving-1-7cpu",
-                    template: "build-tf-serving-1-7cpu",
+                    name: "build-1-6-0-gpu",
+                    template: "build-1-6-0-gpu",
                     dependencies: ["checkout"],
                   },
                   {
-                    name: "build-tf-serving-1-7gpu",
-                    template: "build-tf-serving-1-7gpu",
+                    name: "build-1-6-0-cpu",
+                    template: "build-1-6-0-cpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
+                    name: "build-1-7-0-gpu",
+                    template: "build-1-7-0-gpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
+                    name: "build-1-7-0-cpu",
+                    template: "build-1-7-0-cpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
+                    name: "build-1-8-0-gpu",
+                    template: "build-1-8-0-gpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
+                    name: "build-1-8-0-cpu",
+                    template: "build-1-8-0-cpu",
                     dependencies: ["checkout"],
                   },
                   {
@@ -149,18 +169,22 @@
                     template: "create-pr-symlink",
                     dependencies: ["checkout"],
                   },
-                ],  // tasks
+                ],
               },  //dag
-            },  // e2e
+            },
+            buildTFNotebookImageTemplate("build-1-4-1-cpu", "1.4.1", "cpu", versionTag),
+            buildTFNotebookImageTemplate("build-1-4-1-gpu", "1.4.1", "gpu", versionTag),
+            buildTFNotebookImageTemplate("build-1-5-1-cpu", "1.5.1", "cpu", versionTag),
+            buildTFNotebookImageTemplate("build-1-5-1-gpu", "1.5.1", "gpu", versionTag),
+            buildTFNotebookImageTemplate("build-1-6-0-cpu", "1.6.0", "cpu", versionTag),
+            buildTFNotebookImageTemplate("build-1-6-0-gpu", "1.6.0", "gpu", versionTag),
+            buildTFNotebookImageTemplate("build-1-7-0-cpu", "1.7.0", "cpu", versionTag),
+            buildTFNotebookImageTemplate("build-1-7-0-gpu", "1.7.0", "gpu", versionTag),
+            buildTFNotebookImageTemplate("build-1-8-0-cpu", "1.8.0", "cpu", versionTag),
+            buildTFNotebookImageTemplate("build-1-8-0-gpu", "1.8.0", "gpu", versionTag),
             {
               name: "exit-handler",
               steps: [
-                [
-                  {
-                    name: "teardown",
-                    template: "teardown",
-                  },
-                ],
                 [{
                   name: "copy-artifacts",
                   template: "copy-artifacts",
@@ -180,7 +204,7 @@
                   name: "EXTRA_REPOS",
                   value: "kubeflow/testing@HEAD",
                 }],
-                image: testingImage,
+                image: params.stepImage,
                 volumeMounts: [
                   {
                     name: dataVolume,
@@ -189,14 +213,6 @@
                 ],
               },
             },  // checkout
-
-            buildTFServingImageTemplate("build-tf-serving-1-4cpu", "1.4, "cpu", versionTag),
-            buildTFServingImageTemplate("build-tf-serving-1-5cpu", "1.5, "cpu", versionTag),
-            buildTFServingImageTemplate("build-tf-serving-1-6cpu", "1.6, "cpu", versionTag),
-            buildTFServingImageTemplate("build-tf-serving-1-6gpu", "1.6, "gpu", versionTag),
-            buildTFServingImageTemplate("build-tf-serving-1-7cpu", "1.7, "cpu", versionTag),
-            buildTFServingImageTemplate("build-tf-serving-1-7gpu", "1.7, "gpu", versionTag),
-
             $.util.buildTemplate("create-pr-symlink", [
               "python",
               "-m",
@@ -204,7 +220,7 @@
               "--artifacts_dir=" + outputDir,
               "create_pr_symlink",
               "--bucket=" + bucket,
-            ], testingImage, pythonPath, prowEnv),  // create-pr-symlink
+            ], stepImage, pythonPath, prowEnv),  // create-pr-symlink
             $.util.buildTemplate(
               "copy-artifacts",
               [
@@ -214,23 +230,8 @@
                 "--artifacts_dir=" + outputDir,
                 "copy_artifacts",
                 "--bucket=" + bucket,
-              ],
-              testingImage, pythonPath, prowEnv
+              ], stepImage, pythonPath, prowEnv
             ),  // copy-artifacts
-            $.util.buildTemplate(
-              "teardown",
-              [
-                "python",
-                "-m",
-                "testing.test_deploy",
-                "--project=" + project,
-                "--namespace=" + stepsNamespace,
-                "--test_dir=" + testDir,
-                "--artifacts_dir=" + artifactsDir,
-                "teardown",
-              ],
-              testingImage, pythonPath, prowEnv
-            ),  // teardown
           ],  // templates
         },
       },  // e2e
