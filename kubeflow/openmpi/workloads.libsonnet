@@ -48,6 +48,7 @@ local ROLE_WORKER = "worker";
       imagePullSecrets: [{ name: secret } for secret in util.toArray(params.imagePullSecrets)],
       serviceAccountName: serviceaccount.name(params),
       nodeSelector: $.nodeSelector(params, role),
+      securityContext: $.securityContext(params),
     },
   },
 
@@ -173,7 +174,7 @@ local ROLE_WORKER = "worker";
   controllerCommand(params, podName):: {
     local common = [
       "python",
-      "/root/controller/main.py",
+      "/kubeflow/openmpi/openmpi-controller/controller/main.py",
       "--namespace",
       params.namespace,
       "--master",
@@ -222,4 +223,11 @@ local ROLE_WORKER = "worker";
         },
       },
     ] else [],
+
+  securityContext(params):: {
+    runAsUser: if params.runAsUser != "null" then params.runAsUser else {},
+    runAsGroup: if params.runAsGroup != "null" then params.runAsGroup else {},
+    supplementalGroups: [std.parseInt(g) for g in util.toArray(std.toString(params.supplementalGroups))],
+    fsGroup: if params.runAsGroup != "null" then params.runAsGroup else {},
+  },
 }
