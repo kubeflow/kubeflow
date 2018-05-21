@@ -5,12 +5,13 @@ approvers:
   - DjangoPeng
   - gaocegege
   - jlewi
+  - kunmingg
   - lluunn
   - pdmack
   - ScorpioCPH
   - willb
 reviewers:
   - Jimexist
+  - kunmingg
   - wbuchwalter
   - willingc
-  - kunmingg
