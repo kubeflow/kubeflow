@@ -99,15 +99,18 @@ class KubeServiceProxy(Proxy):
     
         target_ip = target_parts.hostname
         target_port = target_parts.port
-        selector = {'app': 'jupyterhub'}
+        #selector = {
+        #  'heritage': 'jupyterhub',
+        #  'component': 'singleuser-server',
+        #  'hub.jupyter.org/proxy-route': 'true'
+        #}
     
         # Make service object
         service = V1Service(
             kind='Service',
             metadata=meta,
             spec=V1ServiceSpec(
-                ports=[V1ServicePort(port=80, target_port=target_port)],
-                selector=selector
+                ports=[V1ServicePort(port=80, target_port=target_port)]
             )
         )
     
@@ -309,7 +312,7 @@ class KubeFormSpawner(KubeSpawner):
 ###################################################
 c.JupyterHub.ip = '0.0.0.0'
 c.JupyterHub.hub_ip = '0.0.0.0'
-c.JupyterHub.hub_connect_ip =  os.environ['AMBASSADOR_SERVICE_HOST']
+c.JupyterHub.hub_connect_ip = os.environ['AMBASSADOR_SERVICE_HOST']
 c.JupyterHub.hub_connect_port = int(os.environ['AMBASSADOR_SERVICE_PORT'])
 
 # Don't try to cleanup servers on exit - since in general for k8s, we want
