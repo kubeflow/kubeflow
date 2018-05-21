@@ -99,18 +99,18 @@ class KubeServiceProxy(Proxy):
     
         target_ip = target_parts.hostname
         target_port = target_parts.port
-        #selector = {
-        #  'heritage': 'jupyterhub',
-        #  'component': 'singleuser-server',
-        #  'hub.jupyter.org/proxy-route': 'true'
-        #}
+        selector = {
+          'heritage': 'jupyterhub',
+          'component': 'singleuser-server'
+        }
     
         # Make service object
         service = V1Service(
             kind='Service',
             metadata=meta,
             spec=V1ServiceSpec(
-                ports=[V1ServicePort(port=80, target_port=target_port)]
+                ports=[V1ServicePort(port=80, target_port=target_port)],
+                selector=selector
             )
         )
     
@@ -327,14 +327,13 @@ c.JupyterHub.proxy_class = KubeServiceProxy
 # Spawner Options
 ###################################################
 c.JupyterHub.spawner_class = KubeFormSpawner
-c.JupyterHub.tornado_settings = { 'slow_spawn_timeout': 0 }
+c.JupyterHub.tornado_settings = { 'slow_spawn_timeout': 15 }
 c.Spawner.cmd = 'start-singleuser.sh'
 c.Spawner.args = ['--allow-root']
 # gpu images are very large ~15GB. need a large timeout.
 c.Spawner.start_timeout = 1800
 # Increase timeout to 5 minutes to avoid HTTP 500 errors on JupyterHub
 c.Spawner.http_timeout = 300
-c.Spawner.debug = True
 c.KubeSpawner.singleuser_image_spec = 'gcr.io/kubeflow/tensorflow-notebook'
 volumes = []
 volume_mounts = []

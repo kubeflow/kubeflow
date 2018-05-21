@@ -180,16 +180,16 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
           spec: {
             containers: [
               {
-                command: [
-                  "/bin/bash", 
-                  "-c", 
-                  "trap : TERM INT; sleep infinity & wait",
-                ],
 //                command: [
-//                  "jupyterhub",
-//                  "-f",
-//                  "/etc/config/jupyterhub_config.py",
+//                  "/bin/bash", 
+//                  "-c", 
+//                  "trap : TERM INT; sleep infinity & wait",
 //                ],
+                command: [
+                  "jupyterhub",
+                  "-f",
+                  "/etc/config/jupyterhub_config.py",
+                ],
                 image: image,
                 name: "tf-hub",
                 volumeMounts: [
