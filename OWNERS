@@ -6,11 +6,12 @@ approvers:
   - gaocegege
   - jlewi
   - lluunn
+  - kunmingg
   - pdmack
   - ScorpioCPH
   - willb
 reviewers:
   - Jimexist
+  - kunmingg
   - wbuchwalter
   - willingc
-  - kunmingg
