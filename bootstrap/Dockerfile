@@ -32,7 +32,7 @@ RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.10.0/
 
 RUN git clone https://github.com/ksonnet/ksonnet.git /opt/ksonnet && \
 	cd /opt/ksonnet && \
-	git checkout v0.10.0-alpha.3
+	git checkout v0.10.2
 
 ARG kubeflowversion=v0.1.3
 RUN git clone --depth 1 --branch $kubeflowversion https://github.com/kubeflow/kubeflow.git /opt/kubeflow
