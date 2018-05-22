@@ -1,0 +1,44 @@
+# Sample config for kubeflow bootstrapper
+---
+# Apps that always apply
+DefaultApp:
+  Packages:
+    - Name: core
+    - Name: tf-serving
+    - Name: tf-job
+    - Name: pytorch-job
+  Components:
+    - Name: kubeflow-core
+      Prototype: kubeflow-core
+    - Name: pytorch-operator
+      Prototype: pytorch-operator
+# Apps only apply if on GKE
+GkeApp:
+  Packages:
+    - Name: core
+  Components:
+    - Name: cloud-endpoints
+      Prototype: cloud-endpoints
+    - Name: cert-manager
+      Prototype: cert-manager
+    - Name: iap-ingress
+      Prototype: iap-ingress
+  Parameters:
+    - Component: cloud-endpoints
+      Name: secretName
+      Value: cloudep-sa
+    - Component: cert-manager
+      Name: acmeEmail
+      # TODO: use your email for ssl cert
+      Value: <email>
+    - Component: iap-ingress
+      Name: ipName
+      # TODO: change ip name here
+      Value: <IpName>
+    - Component: iap-ingress
+      Name: hostName
+      # TODO: replace with Name of GCP project where kubeflow will be installed
+      Value: kubeflow.endpoints.<Project>.cloud.goog
+    - Component: kubeflow-core
+      Name: jupyterHubAuthenticator
+      Value: iap
