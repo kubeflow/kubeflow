@@ -100,8 +100,8 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
               "apiVersion: ambassador/v0",
               "kind:  Mapping",
               "name: tf-hub-0-mapping",
-              "prefix: /hub",
-              "rewrite: /hub",
+              "prefix: /hub/",
+              "rewrite: /hub/",
               "timeout_ms: 300000",
               "service: tf-hub-0." + namespace,
             ]),
@@ -131,19 +131,6 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
         },
         name: "tf-hub-lb",
         namespace: namespace,
-        annotations: {
-          "getambassador.io/config":
-            std.join("\n", [
-              "---",
-              "apiVersion: ambassador/v0",
-              "kind:  Mapping",
-              "name: tf-hub-lb-mapping",
-              "prefix: /hub-lb",
-              "rewrite: /hub",
-              "timeout_ms: 300000",
-              "service: tf-hub-lb." + namespace,
-            ]),
-        },  //annotations
       },
       spec: {
         ports: [

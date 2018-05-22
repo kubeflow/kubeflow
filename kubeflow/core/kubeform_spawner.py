@@ -19,10 +19,13 @@ from kubespawner.utils import generate_hashed_slug
 from concurrent.futures import ThreadPoolExecutor
 from traitlets import ( Unicode, Integer )
 from tornado import gen
+from tornado.httpclient import AsyncHTTPClient, HTTPRequest
 from tornado.concurrent import run_on_executor
 
 class KubeServiceProxy(Proxy):
     should_start = False
+    default_route = {}
+    service_url = ""
     namespace = Unicode(
         config=True,
         help="""
@@ -77,8 +80,8 @@ class KubeServiceProxy(Proxy):
                     'apiVersion: ambassador/v0',
                     'kind:  Mapping',
                     'name: ' + name + '-mapping',
-                    'prefix: /user',
-                    'rewrite: /user',
+                    'prefix: /user/',
+                    'rewrite: /user/',
                     'use_websocket: true',
                     'service: ' + name + '.' + self.namespace])
             },
@@ -129,14 +132,35 @@ class KubeServiceProxy(Proxy):
         )
         return safe_name, name
 
+    def validate_service_path(self):
+        self.log.info("Validating service path %s", self.service_url)
+        client = AsyncHTTPClient()
+        req = HTTPRequest(self.service_url)
+        res = yield client.fetch(req)
+        self.log.info("service path returned %d", res.code)
+        return res.code != 404
+
+    @gen.coroutine
+    def add_default_route(self, routespec, target, data):
+        self.log.info("Adding default route %s %s %s", routespec, target, data)
+        self.default_route.update({
+            routespec: {
+                'routespec': routespec,
+                'target': target,
+                'data': data
+            }
+        })
+
     @gen.coroutine
     def add_route(self, routespec, target, data):
         # Create a route with the name being escaped routespec
         # Use full routespec in label
         # 'data' is JSON encoded and put in an annotation - we don't need to query for it
         if data.get('hub') is not None:
+            yield self.add_default_route(routespec, target, data)
             return
 
+        self.service_url = target + routespec
         n1, n2 = self.safe_name_for_routespec(routespec)
         safe_name = n1.lower()
         name = n2.lower()
@@ -182,6 +206,16 @@ class KubeServiceProxy(Proxy):
             'Could not find service/%s after creating it' % safe_name
         )
 
+        # ambassador needs to recognize the new service
+        yield exponential_backoff(
+            self.validate_service_path,
+            'Waiting for API Gateway to proxy the service'
+        )
+
+        # ambassador needs to recognize the new service. 
+        #
+        yield gen.sleep(10)
+
     @gen.coroutine
     def delete_route(self, routespec):
         # We just ensure that these objects are deleted.
@@ -215,7 +249,6 @@ class KubeServiceProxy(Proxy):
         # instead, but for now this works well enough.
         delete_if_exists('service', delete_service)
 
-
     @gen.coroutine
     def get_all_routes(self):
         # copy everything, because iterating over this directly is not threadsafe
@@ -231,6 +264,9 @@ class KubeServiceProxy(Proxy):
             }
             for service in service_copy.values()
         }
+        
+        if 'routespec' in self.default_route:
+            routes.update(self.default_route)
 
         return routes
 
@@ -322,6 +358,8 @@ c.JupyterHub.cleanup_servers = False
 ### Proxy Options
 ###################################################
 c.JupyterHub.proxy_class = KubeServiceProxy
+c.KubeServiceProxy.api_url = 'http://' + \
+    c.JupyterHub.hub_connect_ip + ':' + str(c.JupyterHub.hub_connect_port)
 
 ###################################################
 # Spawner Options
