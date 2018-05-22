@@ -62,15 +62,19 @@
 
       local buildTFServingImageTemplate(name, tf_version, platform, tag) =
         $.util.buildImageTemplate(
-            name,
-            [
-              "python", buildScript, "--tf_version=" + tf_version,
-              "--platform=" + platform,
-              "--tag=" + tag,
-              "tf_serving",
-            ],
-            testingImage, pythonPath, prowEnv
-          );
+          name,
+          [
+            "python",
+            buildScript,
+            "--tf_version=" + tf_version,
+            "--platform=" + platform,
+            "--tag=" + tag,
+            "tf_serving",
+          ],
+          testingImage,
+          pythonPath,
+          prowEnv
+        );
 
       {
         apiVersion: "argoproj.io/v1alpha1",
@@ -190,12 +194,12 @@
               },
             },  // checkout
 
-            buildTFServingImageTemplate("build-tf-serving-1-4cpu", "1.4, "cpu", versionTag),
-            buildTFServingImageTemplate("build-tf-serving-1-5cpu", "1.5, "cpu", versionTag),
-            buildTFServingImageTemplate("build-tf-serving-1-6cpu", "1.6, "cpu", versionTag),
-            buildTFServingImageTemplate("build-tf-serving-1-6gpu", "1.6, "gpu", versionTag),
-            buildTFServingImageTemplate("build-tf-serving-1-7cpu", "1.7, "cpu", versionTag),
-            buildTFServingImageTemplate("build-tf-serving-1-7gpu", "1.7, "gpu", versionTag),
+            buildTFServingImageTemplate("build-tf-serving-1-4cpu", "1.4", "cpu", versionTag),
+            buildTFServingImageTemplate("build-tf-serving-1-5cpu", "1.5", "cpu", versionTag),
+            buildTFServingImageTemplate("build-tf-serving-1-6cpu", "1.6", "cpu", versionTag),
+            buildTFServingImageTemplate("build-tf-serving-1-6gpu", "1.6", "gpu", versionTag),
+            buildTFServingImageTemplate("build-tf-serving-1-7cpu", "1.7", "cpu", versionTag),
+            buildTFServingImageTemplate("build-tf-serving-1-7gpu", "1.7", "gpu", versionTag),
 
             $.util.buildTemplate("create-pr-symlink", [
               "python",
@@ -215,7 +219,9 @@
                 "copy_artifacts",
                 "--bucket=" + bucket,
               ],
-              testingImage, pythonPath, prowEnv
+              testingImage,
+              pythonPath,
+              prowEnv
             ),  // copy-artifacts
             $.util.buildTemplate(
               "teardown",
@@ -229,7 +235,9 @@
                 "--artifacts_dir=" + artifactsDir,
                 "teardown",
               ],
-              testingImage, pythonPath, prowEnv
+              testingImage,
+              pythonPath,
+              prowEnv
             ),  // teardown
           ],  // templates
         },

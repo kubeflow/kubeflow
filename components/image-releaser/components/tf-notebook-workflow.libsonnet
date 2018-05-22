@@ -61,15 +61,19 @@
 
       local buildTFNotebookImageTemplate(name, tf_version, platform, tag) =
         $.util.buildImageTemplate(
-            name,
-            [
-              "python", buildScript, "--tf_version=" + tf_version,
-              "--platform=" + platform,
-              "--tag=" + tag,
-              "tf_notebook",
-            ],
-            stepImage, pythonPath, prowEnv
-          );
+          name,
+          [
+            "python",
+            buildScript,
+            "--tf_version=" + tf_version,
+            "--platform=" + platform,
+            "--tag=" + tag,
+            "tf_notebook",
+          ],
+          stepImage,
+          pythonPath,
+          prowEnv
+        );
 
       {
         apiVersion: "argoproj.io/v1alpha1",
@@ -230,7 +234,10 @@
                 "--artifacts_dir=" + outputDir,
                 "copy_artifacts",
                 "--bucket=" + bucket,
-              ], stepImage, pythonPath, prowEnv
+              ],
+              stepImage,
+              pythonPath,
+              prowEnv
             ),  // copy-artifacts
           ],  // templates
         },

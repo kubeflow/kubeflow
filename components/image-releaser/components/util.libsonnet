@@ -65,7 +65,7 @@
       ],
     },
     sidecars: sidecars,
-  };  // buildTemplate
+  },  // buildTemplate
 
   local buildImageTemplate(stepName, command, image, pythonPath, prowEnv) =
     buildTemplate(
@@ -88,5 +88,5 @@
         },
         mirrorVolumeMounts: true,
       }],
-    );  // buildImageTemplate
+    ),  // buildImageTemplate
 }
