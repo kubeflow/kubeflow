@@ -78,7 +78,8 @@ def get_config(context_dir, version):
   return config
 
 def build_tf_serving(args):
-  context_dir = "k8s-model-server/images"
+  dir_path = os.path.dirname(os.path.realpath(__file__))
+  context_dir = os.path.join(dir_path, "k8s-model-server/images")
   version = args.tf_version if args.platform == "cpu" else args.tf_version + "gpu"
 
   config = get_config(context_dir, version)
@@ -93,7 +94,8 @@ def build_tf_serving(args):
   run(command, cwd=context_dir)
 
 def build_tf_notebook(args):
-  context_dir = "tensorflow-notebook-image"
+  dir_path = os.path.dirname(os.path.realpath(__file__))
+  context_dir = os.path.join(dir_path, "tensorflow-notebook-image")
   version = args.tf_version if args.platform == "cpu" else args.tf_version + "gpu"
 
   config = get_config(context_dir, version)
