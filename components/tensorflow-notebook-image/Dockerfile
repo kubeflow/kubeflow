@@ -16,7 +16,9 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV NB_USER jovyan
 ENV NB_UID 1000
 ENV HOME /home/$NB_USER
-ENV CONDA_DIR=$HOME/.conda
+# We prefer to have a global conda install
+# to minimize the amount of content in $HOME
+ENV CONDA_DIR=/opt/conda
 ENV PATH $CONDA_DIR/bin:$PATH
 
 # Use bash instead of sh
@@ -50,27 +52,17 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US.UTF-8
 
 # Create jovyan user with UID=1000 and in the 'users' group
-RUN useradd -m -s /bin/bash -N -u $NB_UID $NB_USER && \
-    chown -R ${NB_USER}:users /usr/local/bin
+# but allow for non-initial launches of the notebook to have
+# $HOME provided by the contents of a PV
+RUN useradd -M -s /bin/bash -N -u $NB_UID $NB_USER && \
+    chown -R ${NB_USER}:users /usr/local/bin && \
+    mkdir -p $HOME
 
 RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
     echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" > /etc/apt/sources.list.d/google-cloud-sdk.list && \
     curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
     apt-get update && \
-    apt-get install -y google-cloud-sdk kubectl && \
-    gcloud config set core/disable_usage_reporting true && \
-    gcloud config set component_manager/disable_update_check true && \
-    gcloud config set metrics/environment github_docker_image
-
-RUN chown -R ${NB_USER}:users /home/${NB_USER}
-
-# Run everything below this as $NB_USER
-USER $NB_USER
-
-WORKDIR $HOME
-
-# Setup work directory for backward-compatibility
-RUN mkdir /home/$NB_USER/work
+    apt-get install -y google-cloud-sdk kubectl
 
 # Install Tini - used as entrypoint for container
 RUN cd /tmp && \
@@ -93,6 +85,10 @@ RUN cd /tmp && \
     conda update --all && \
     conda update conda && \
     conda clean -tipsy
+
+# NOTE: Beyond this point be careful of breaking out
+# or otherwise adding new layers with RUN, chown, etc. 
+# The image size can grow significantly.
 
 # Install base python3 packages
 RUN pip install --upgrade pip && \
@@ -126,23 +122,31 @@ RUN conda create -n py2 python=2 && \
       pip install --no-cache-dir tensorflow-model-analysis && \
       jupyter nbextension install --py --symlink tensorflow_model_analysis --user && \
       jupyter nbextension enable --py tensorflow_model_analysis --user; \
-    fi
-
-# Install jupyterlab-manager
-RUN conda install --quiet --yes \
+    fi \
+    && \
+    # Install jupyterlab-manager
+    conda install --quiet --yes \
     # nodejs required for jupyterlab-manager
     nodejs && \
-    jupyter labextension install @jupyter-widgets/jupyterlab-manager
+    jupyter labextension install @jupyter-widgets/jupyterlab-manager && \
+    # Do chown in this layer for significant size savings
+    chown -R ${NB_USER}:users $HOME && \
+    chown -R ${NB_USER}:users $CONDA_DIR
 
 # Install common packages from requirements.txt for both python2 and python3
-COPY --chown=jovyan:users requirements.txt $HOME/requirements.txt
-RUN pip --no-cache-dir install -r $HOME/requirements.txt && \
+# NB: the COPY chown can't expand a bash variable for NB_USER
+COPY --chown=jovyan:users requirements.txt /tmp
+COPY --chown=jovyan:users  jupyter_notebook_config.py /tmp
+RUN pip --no-cache-dir install -r /tmp/requirements.txt && \
     source activate py2 && \
-    pip --no-cache-dir install -r $HOME/requirements.txt
+    pip --no-cache-dir install -r /tmp/requirements.txt
+
+# Wipe $HOME for PVC detection later
+WORKDIR $HOME
+RUN rm -fr $(ls -A $HOME)
 
 # Copy over init scripts
-COPY --chown=jovyan:users start-singleuser.sh start-notebook.sh start.sh /usr/local/bin/
-COPY --chown=jovyan:users  jupyter_notebook_config.py $HOME/.jupyter/
+COPY --chown=jovyan:users start-singleuser.sh start-notebook.sh start.sh pvc-check.sh /usr/local/bin/
 RUN chmod a+rx /usr/local/bin/*
 
 # Configure container startup

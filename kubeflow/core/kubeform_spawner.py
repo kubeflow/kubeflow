@@ -98,6 +98,11 @@ c.KubeSpawner.args = ['--allow-root']
 c.KubeSpawner.start_timeout = 60 * 30
 # Increase timeout to 5 minutes to avoid HTTP 500 errors on JupyterHub
 c.KubeSpawner.http_timeout = 60 * 5
+
+# Volume setup
+c.KubeSpawner.singleuser_uid = 1000
+c.KubeSpawner.singleuser_fs_gid = 100
+c.KubeSpawner.singleuser_working_dir = '/home/jovyan'
 volumes = []
 volume_mounts = []
 ###################################################
@@ -105,7 +110,6 @@ volume_mounts = []
 ###################################################
 # Using persistent storage requires a default storage class.
 # TODO(jlewi): Verify this works on minikube.
-# TODO(jlewi): Should we set c.KubeSpawner.singleuser_fs_gid = 1000
 # see https://github.com/kubeflow/kubeflow/pull/22#issuecomment-350500944
 pvc_mount = os.environ.get('NOTEBOOK_PVC_MOUNT')
 if pvc_mount and pvc_mount != 'null':
