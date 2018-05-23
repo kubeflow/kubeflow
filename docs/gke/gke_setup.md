@@ -23,13 +23,21 @@ The instructions also take advantage of IAP to provide secure authenticated acce
 
 1. Modify `env-kubeflow.sh`
 
-	* This file defines environment variables used in the commands below
+	* This file defines environment variables used in the commands below.
 	* We recommend checking a modified version into source control so its easy to source and repeat the commands.
 
-1. Create the cluster
+1. Grant sufficient permisions to Cloud services account which is what is used by deployment manager
 
 ```
 . env-kubeflow.sh
+gcloud projects add-iam-policy-binding ${PROJECT} \
+    	--member serviceAccount:${PROJECT_NUMBER}@cloudservices.gserviceaccount.com \
+    	--role roles/resourcemanager.projectIamAdmin      
+```
+
+1. Deploy Kubeflow
+
+```
 gcloud deployment-manager --project=${PROJECT} deployments create ${PROJECT} --config=${CONFIG_FILE}
 ```
 
@@ -40,16 +48,6 @@ kubectl create -f https://raw.githubusercontent.com/GoogleCloudPlatform/containe
 ```
 
 TODO(jlewi): This should be created by either the ksonnet APP or deployment manager.
-
-### Setup RBAC
-
-```
-gcloud --project=${PROJECT} container clusters get-credentials --zone=${ZONE} ${CLUSTER}
-kubectl create clusterrolebinding cluster-admin-binding-${USER} \
---clusterrole cluster-admin --user $(gcloud config get-value account)
-```
-
-TODO(jlewi): Can we do this using deployment manager?
 
 ### Prepare IAP
 
