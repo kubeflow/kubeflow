@@ -68,9 +68,10 @@ def wait_for_docker_daemon(timeout=60):
     except subprocess.CalledProcessError:
       time.sleep(5)
     # Daemon ready.
+    logging.info("docker daemon ready.\n")
     return
   # Timeout.
-  logging.error("Timeout wairing for docker daemon\n")
+  logging.error("Timeout waiting for docker daemon\n")
   # TODO(lunkai): use TimeoutError when we use py3.
   raise RuntimeError
 
