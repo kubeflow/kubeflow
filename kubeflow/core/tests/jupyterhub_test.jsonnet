@@ -5,7 +5,7 @@ local params = {
   jupyterHubAuthenticator:: null,
   jupyterHubServiceType:: "ClusterIP",
   jupyterHubImage: "gcr.io/kubeflow/jupyterhub-k8s:1.0.1",
-  jupyterNotebookPVCMount: "/home/jovyan/work",
+  jupyterNotebookPVCMount: "/home/jovyan",
   cloud: null,
 };
 

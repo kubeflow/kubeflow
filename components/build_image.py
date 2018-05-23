@@ -100,14 +100,17 @@ def build_tf_serving(args):
 
   config = get_config(context_dir, version)
   build_args = get_build_args(config)
+  image_name = "{}/tensorflow-serving-{}:{}".format(args.registry, version, args.tag)
 
   command = list(chain(
       ["docker", "build", "--pull"],
       build_args,
-      ["-t", "{}/tensorflow-serving-{}:{}".format(args.registry, version, args.tag),
-       "-f", "Dockerfile.{}".format(args.platform), "."]
+      ["-t", image_name, "-f", "Dockerfile.{}".format(args.platform), "."]
   ))
   run(command, cwd=context_dir)
+
+  if args.push_gcr:
+    run(["gcloud", "docker", "--", "push", image_name])
 
 def build_tf_notebook(args):
   wait_for_docker_daemon()
@@ -117,15 +120,18 @@ def build_tf_notebook(args):
 
   config = get_config(context_dir, version)
   build_args = get_build_args(config)
+  image_name = "{}/tensorflow-{}-notebook-{}:{}".format(
+      args.registry, args.tf_version, args.platform, args.tag)
 
   command = list(chain(
       ["docker", "build", "--pull"],
       build_args,
-      ["-t", "{}/tensorflow-{}-notebook-{}:{}".format(
-          args.registry, args.tf_version, args.platform, args.tag),
-       "-f", "Dockerfile", "."]
+      ["-t", image_name, "-f", "Dockerfile", "."]
   ))
   run(command, cwd=context_dir)
+
+  if args.push_gcr:
+    run(["gcloud", "docker", "--", "push", image_name])
 
 def main():
   parser = argparse.ArgumentParser()
@@ -150,6 +156,12 @@ def main():
     "--platform",
     default="cpu",
     help="cpu or gpu"
+  )
+  parser.add_argument(
+    "--push_gcr",
+    action='store_true',
+    default=False,
+    help="Whether to push the image after building."
   )
 
   parser_tf_serving = subparsers.add_parser("tf_serving")

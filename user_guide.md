@@ -126,10 +126,10 @@ kubectl get storageclass
   parameter to create a volume that will be mounted within the notebook
 
   ```
-  ks param set kubeflow-core jupyterNotebookPVCMount /home/jovyan/work
+  ks param set kubeflow-core jupyterNotebookPVCMount /home/jovyan
   ```
 
-  * Here we mount the volume at `/home/jovyan/work` because the notebook
+  * Here we mount the volume at `/home/jovyan` because the notebook
     always executes as user jovyan
   * The selected directory will be stored on whatever storage is the default
     for the cluster (typically some form of persistent disk)
