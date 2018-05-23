@@ -83,8 +83,7 @@ type AppConfig struct {
 }
 
 type BootConfig struct {
-	DefaultApp  AppConfig
-	GkeApp      AppConfig
+	App  AppConfig
 }
 
 // Load yaml config
@@ -249,7 +248,7 @@ func setupNamespace(namespaces type_v1.NamespaceInterface, name_space string) er
 
 func createComponent(opt *options.ServerOption, kfApp *kApp.App, fs *afero.Fs, args []string) {
 	componentName := args[1]
-	componentPath := filepath.Join(opt.AppDir, "Components", componentName+".jsonnet")
+	componentPath := filepath.Join(opt.AppDir, "components", componentName+".jsonnet")
 
 	if exists, _ := afero.Exists(*fs, componentPath); !exists {
 		log.Infof("Creating Component: %v ...", componentName)
@@ -273,7 +272,6 @@ func appGenerate(opt *options.ServerOption, kfApp *kApp.App, fs *afero.Fs, appCo
 	}
 	// Install packages.
 	for _, p := range appConfig.Packages {
-		//for _, p := range []string{"kubeflow/core", "kubeflow/tf-serving", "kubeflow/tf-job", "kubeflow/pytorch-job"} {
 		pkgName := p.Name
 		_, err = (*fs).Stat(path.Join(opt.RegistryUri, pkgName))
 		if err != nil {
@@ -329,7 +327,7 @@ func Run(opt *options.ServerOption) error {
 		return err
 	}
 
-	bootConfig, err := LoadConfig(opt.ConfigDir)
+	bootConfig, err := LoadConfig(opt.Config)
 	if err != nil {
 		return err
 	}
@@ -451,7 +449,7 @@ func Run(opt *options.ServerOption) error {
 	}
 
 	// Load default kubeflow apps
-	appGenerate(opt, &kfApp, &fs, &bootConfig.DefaultApp)
+	appGenerate(opt, &kfApp, &fs, &bootConfig.App)
 
 	kubeflowCoreName := "kubeflow-core"
 
@@ -469,12 +467,6 @@ func Run(opt *options.ServerOption) error {
 
 	if err != nil {
 		return err
-	}
-
-	if isGke(clusterVersion) && len(bootConfig.GkeApp.Components) > 0 {
-		log.Infof("Integrate with GKE ...")
-		// Load default kubeflow apps
-		appGenerate(opt, &kfApp, &fs, &bootConfig.GkeApp)
 	}
 
 	if err := os.Chdir(kfApp.Root()); err != nil {

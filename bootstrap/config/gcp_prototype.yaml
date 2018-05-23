@@ -1,44 +1,39 @@
 # Sample config for kubeflow bootstrapper
 ---
-# Apps that always apply
-DefaultApp:
-  Packages:
-    - Name: core
-    - Name: tf-serving
-    - Name: tf-job
-    - Name: pytorch-job
-  Components:
-    - Name: kubeflow-core
-      Prototype: kubeflow-core
-    - Name: pytorch-operator
-      Prototype: pytorch-operator
-# Apps only apply if on GKE
-GkeApp:
-  Packages:
-    - Name: core
-  Components:
-    - Name: cloud-endpoints
-      Prototype: cloud-endpoints
-    - Name: cert-manager
-      Prototype: cert-manager
-    - Name: iap-ingress
-      Prototype: iap-ingress
-  Parameters:
-    - Component: cloud-endpoints
-      Name: secretName
-      Value: cloudep-sa
-    - Component: cert-manager
-      Name: acmeEmail
-      # TODO: use your email for ssl cert
-      Value: <email>
-    - Component: iap-ingress
-      Name: ipName
-      # TODO: change ip name here
-      Value: <IpName>
-    - Component: iap-ingress
-      Name: hostName
-      # TODO: replace with Name of GCP project where kubeflow will be installed
-      Value: kubeflow.endpoints.<Project>.cloud.goog
-    - Component: kubeflow-core
-      Name: jupyterHubAuthenticator
-      Value: iap
+# App only apply if on GKE
+app:
+  packages:
+    - name: core
+    - name: tf-serving
+    - name: tf-job
+    - name: pytorch-job
+  components:
+    - name: kubeflow-core
+      prototype: kubeflow-core
+    - name: pytorch-operator
+      prototype: pytorch-operator
+    - name: cloud-endpoints
+      prototype: cloud-endpoints
+    - name: cert-manager
+      prototype: cert-manager
+    - name: iap-ingress
+      prototype: iap-ingress
+  parameters:
+    - component: cloud-endpoints
+      name: secretname
+      value: cloudep-sa
+    - component: cert-manager
+      name: acmeemail
+      # todo: use your email for ssl cert
+      value: <email>
+    - component: iap-ingress
+      name: ipname
+      # todo: change ip name here
+      value: <ipname>
+    - component: iap-ingress
+      name: hostname
+      # todo: replace with name of gcp project where kubeflow will be installed
+      value: kubeflow.endpoints.<project>.cloud.goog
+    - component: kubeflow-core
+      name: jupyterhubauthenticator
+      value: iap

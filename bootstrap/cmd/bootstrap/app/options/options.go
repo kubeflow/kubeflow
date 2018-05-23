@@ -26,7 +26,7 @@ type ServerOption struct {
 	InCluster     bool
 	KeepAlive     bool
 	AppDir        string
-	ConfigDir	  string
+	Config        string
 	Email         string
 	NameSpace     string
 	RegistryUri   string
@@ -49,5 +49,5 @@ func (s *ServerOption) AddFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&s.InCluster, "in-cluster", false, "Whether bootstrapper is executed inside a pod")
 	fs.StringVar(&s.RegistryUri, "registry-uri", "/opt/kubeflow/kubeflow", "Location of kubeflow registry.")
 	fs.BoolVar(&s.KeepAlive, "keep-alive", true, "Whether bootstrapper will stay alive after setup resources.")
-	fs.StringVar(&s.ConfigDir, "config", "/opt/kubeflow/default.yaml", "Path to bootstrapper components config.")
+	fs.StringVar(&s.Config, "config", "/opt/kubeflow/default.yaml", "Path to bootstrapper components config.")
 }

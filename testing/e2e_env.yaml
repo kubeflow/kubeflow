@@ -1,14 +1,12 @@
-# Default config for kubeflow bootstrapper, included in bootstrapper image
----
-# Apps that always apply
-DefaultApp:
-  Packages:
-    - Name: core
-    - Name: tf-serving
-    - Name: tf-job
-    - Name: pytorch-job
-  Components:
-    - Name: kubeflow-core
-      Prototype: kubeflow-core
-    - Name: pytorch-operator
-      Prototype: pytorch-operator
+# App for e2e test
+app:
+  packages:
+    - name: core
+    - name: tf-serving
+    - name: tf-job
+    - name: pytorch-job
+  components:
+    - name: kubeflow-core
+      prototype: kubeflow-core
+    - name: pytorch-operator
+      prototype: pytorch-operator
