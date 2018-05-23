@@ -35,6 +35,8 @@
       local bucket = params.bucket;
 
       local stepsNamespace = name;
+      local stepImage = params.stepImage;
+      local versionTag = params.versionTag;
 
       // mountPath is the directory where the volume to store the test data
       // should be mounted.
@@ -56,6 +58,9 @@
       local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
       local pythonPath = kubeflowPy + ":" + kubeflowTestingPy;
 
+      // Location of build_image.py
+      local buildScript = srcRootDir + "/kubeflow/kubeflow/components/build_image.py";
+
       // Location where Dockerfiles and other sources are found.
       local notebookDir = srcRootDir + "/kubeflow/kubeflow/components/tensorflow-notebook-image/";
 
@@ -68,6 +73,8 @@
             "--tf_version=" + tf_version,
             "--platform=" + platform,
             "--tag=" + tag,
+            "--push_gcr",
+            "--registry=" + params.registry,
             "tf_notebook",
           ],
           stepImage,

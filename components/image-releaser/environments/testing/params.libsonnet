@@ -3,7 +3,7 @@ local globals = import "globals.libsonnet";
 local envParams = params + {
   components+: {
     workflows+: {
-      name: "test2"
+      name: "test3"
     }
   }
 };

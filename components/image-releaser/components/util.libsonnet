@@ -18,7 +18,7 @@
   // Build an Argo template to execute a particular command.
   // step_name: Name for the template
   // command: List to pass as the container command.
-  local buildTemplate(stepName, command, image, pythonPath, prowEnv, envVars=[], sidecars=[]) = {
+  buildTemplate:: function(stepName, command, image, pythonPath, prowEnv, envVars=[], sidecars=[]) {
     name: stepName,
     // The tensorflow notebook image builds are flaky because they are very
     // large builds and sometimes there are timeouts while downloading
@@ -51,7 +51,7 @@
       ] + prowEnv + envVars,
       volumeMounts: [
         {
-          name: dataVolume,
+          name: "kubeflow-test-volume",
           mountPath: "/mnt/test-data-volume",
         },
         {
@@ -67,8 +67,8 @@
     sidecars: sidecars,
   },  // buildTemplate
 
-  local buildImageTemplate(stepName, command, image, pythonPath, prowEnv) =
-    buildTemplate(
+  buildImageTemplate:: function(stepName, command, image, pythonPath, prowEnv)
+    $.buildTemplate(
       stepName,
       command,
       image,
