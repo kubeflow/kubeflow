@@ -18,7 +18,7 @@ spec:
           containers:
             - name: release-images
               command: ["/bin/bash", "-c", "/usr/local/bin/run_release.sh"]
-              image: gcr.io/kubeflow-releasing/worker-cron:latest
+              image: gcr.io/kubeflow-releasing/worker:latest
               env:
               - name: GOOGLE_APPLICATION_CREDENTIALS
                 value: /secret/gcp-credentials/key.json
