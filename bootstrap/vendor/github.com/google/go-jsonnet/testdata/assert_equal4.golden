@@ -1,0 +1,15 @@
+RUNTIME ERROR: Assertion failed. {"x": 1} != {"x": 2}
+-------------------------------------------------
+	<std>:758:7-50	function <anonymous>
+
+      error 'Assertion failed. ' + a + ' != ' + b,
+
+-------------------------------------------------
+	testdata/assert_equal4:1:1-32	$
+
+std.assertEqual({x: 1}, {x: 2})
+
+-------------------------------------------------
+	During evaluation	
+
+

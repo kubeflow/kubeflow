@@ -68,7 +68,7 @@ def main():
 
   t = test_util.TestCase()
   t.class_name = "Kubeflow"
-  t.name = "tf-serving-image"
+  t.name = "tf-serving-image-" + args.service_name
 
   start = time.time()
   try:
@@ -82,7 +82,7 @@ def main():
     # Send request
     # See prediction_service.proto for gRPC request/response details.
     request = predict_pb2.PredictRequest()
-    request.model_spec.name = 'inception'
+    request.model_spec.name = args.service_name
     request.model_spec.signature_name = 'predict_images'
     request.inputs['images'].CopyFrom(
         tf.make_tensor_proto(raw_image, shape=[1,]))
@@ -94,7 +94,7 @@ def main():
         result = str(stub.Predict(request, 10.0))  # 10 secs timeout
       except Exception as e:
         num_try += 1
-        if num_try > 3:
+        if num_try > 10:
           raise
         logging.info('prediction failed: {}. Retrying...'.format(e))
         time.sleep(5)
@@ -108,13 +108,15 @@ def main():
         assert(expected_result == result)
   except Exception as e:
     t.failure = "Test failed; " + e.message
+    raise
   finally:
     t.time = time.time() - start
     junit_path = os.path.join(
-        args.artifacts_dir, "junit_kubeflow-tf-serving-image.xml")
+        args.artifacts_dir, "junit_kubeflow-tf-serving-image-{}.xml".format(args.service_name))
     logging.info("Writing test results to %s", junit_path)
     test_util.create_junit_xml_file([t], junit_path)
-
+    # Pause to collect Stackdriver logs.
+    time.sleep(60)
 
 if __name__ == '__main__':
   logging.basicConfig(level=logging.INFO,

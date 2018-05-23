@@ -1,0 +1,79 @@
+{
+   "dollarUnary": -1,
+   "field": 1,
+   "func": null,
+   "prettyFields": {
+      "function": true,
+      "identifier": true,
+      "not identifier": true
+   },
+   "test_field0A": {
+      "g": 1
+   },
+   "test_field0B": {
+      "f": 1,
+      "g": 1
+   },
+   "test_field10": [
+      null
+   ],
+   "test_field11": "lol",
+   "test_field11b": 6,
+   "test_field11c": [
+      "foo"
+   ],
+   "test_field12": [
+      1
+   ],
+   "test_field13": [
+      1,
+      2
+   ],
+   "test_field15": [ ],
+   "test_field16": null,
+   "test_field16b": [
+      null
+   ],
+   "test_field17": null,
+   "test_field17b": [
+      null
+   ],
+   "test_field18": null,
+   "test_field18b": [
+      null
+   ],
+   "test_field1A": {
+      "g": 1
+   },
+   "test_field1B": {
+      "f": 1,
+      "g": 1
+   },
+   "test_field2": 100,
+   "test_field2b": 100,
+   "test_field2c": 100,
+   "test_field2d": 100,
+   "test_field3": 100,
+   "test_field4": 3000,
+   "test_field4b": 3000,
+   "test_field4c": 15000,
+   "test_field5": 3000,
+   "test_field6": {
+      "g": 1
+   },
+   "test_field7": {
+      "f": 3
+   },
+   "test_field7f": null,
+   "test_field7f2": null,
+   "test_field8": null,
+   "test_field8b": null,
+   "test_field9a": null,
+   "test_field9b": null,
+   "test_field9c": null,
+   "test_field9d": null,
+   "test_field9e": null,
+   "test_field9g": null,
+   "test_field9h": null,
+   "user4": "value1"
+}

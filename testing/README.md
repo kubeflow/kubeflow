@@ -1,3 +1,23 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Test Infrastructure](#test-infrastructure)
+  - [Accessing Argo UI](#accessing-argo-ui)
+  - [Running the tests](#running-the-tests)
+    - [Run a presubmit](#run-a-presubmit)
+    - [Run a postsubmit](#run-a-postsubmit)
+  - [Setting up the Test Infrastructure](#setting-up-the-test-infrastructure)
+    - [Create a GCP service account](#create-a-gcp-service-account)
+    - [Create a GitHub Token](#create-a-github-token)
+    - [Create a PD for NFS](#create-a-pd-for-nfs)
+    - [Create K8s Resources for Testing](#create-k8s-resources-for-testing)
+      - [Troubleshooting](#troubleshooting)
+        - [Operator Logs](#operator-logs)
+  - [Managing namespaces](#managing-namespaces)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Test Infrastructure
 
 This directory contains the Kubeflow test Infrastructure.
@@ -21,7 +41,7 @@ You can access the Argo UI over the API Server proxy.
 We currently use the cluster
 
 ```
-PROJECT=mlkube-testing
+PROJECT=kubeflow-ci
 ZONE=us-east1-d
 CLUSTER=kubeflow-testing
 NAMESPACE=kubeflow-test-infra
@@ -67,7 +87,7 @@ for setting this.
 Create a GKE cluster
 
 ```
-PROJECT=mlkube-testing
+PROJECT=kubeflow-ci
 ZONE=us-east1-d
 CLUSTER=kubeflow-testing
 NAMESPACE=kubeflow-test-infra
@@ -86,7 +106,7 @@ gcloud --project=${PROJECT} container clusters create \
 
 ```
 SERVICE_ACCOUNT=kubeflow-testing
-gcloud iam service-accounts --project=mlkube-testing create ${SERVICE_ACCOUNT} --display-name "Kubeflow testing account"
+gcloud iam service-accounts --project=kubeflow-ci create ${SERVICE_ACCOUNT} --display-name "Kubeflow testing account"
 	gcloud projects add-iam-policy-binding ${PROJECT} \
     	--member serviceAccount:${SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com --role roles/container.developer
 ```

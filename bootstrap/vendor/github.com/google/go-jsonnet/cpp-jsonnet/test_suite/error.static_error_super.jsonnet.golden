@@ -1,0 +1,1 @@
+STATIC ERROR: error.static_error_super.jsonnet:17:2-7: Can't use super outside of an object.

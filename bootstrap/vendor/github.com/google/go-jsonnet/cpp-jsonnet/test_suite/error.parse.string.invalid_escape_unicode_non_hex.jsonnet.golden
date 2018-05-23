@@ -1,0 +1,1 @@
+STATIC ERROR: error.parse.string.invalid_escape_unicode_non_hex.jsonnet:17:1-9: Malformed unicode escape character, should be hex: 't'

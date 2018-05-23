@@ -1,18 +1,17 @@
 {
+  all(params):: [
+    $.parts(params.namespace).service(params.tfAmbassadorServiceType),
+    $.parts(params.namespace).adminService,
+    $.parts(params.namespace).role,
+    $.parts(params.namespace).serviceAccount,
+    $.parts(params.namespace).roleBinding,
+    $.parts(params.namespace).deploy,
+    $.parts(params.namespace).k8sDashboard(params.cloud),
+  ],
+
   parts(namespace):: {
-
-    all:: [
-      $.parts(namespace).service,
-      $.parts(namespace).adminService,
-      $.parts(namespace).clusterRole,
-      $.parts(namespace).serviceAccount,
-      $.parts(namespace).clusterRoleBinding,
-      $.parts(namespace).deploy,
-      $.parts(namespace).k8sDashboard,
-    ],
-
-    local ambassadorImage = "quay.io/datawire/ambassador:0.26.0",
-    service:: {
+    local ambassadorImage = "quay.io/datawire/ambassador:0.30.1",
+    service(serviceType):: {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
@@ -33,7 +32,7 @@
         selector: {
           service: "ambassador",
         },
-        type: "ClusterIP",
+        type: serviceType,
       },
     },  // service
 
@@ -62,11 +61,12 @@
       },
     },  // adminService
 
-    clusterRole:: {
+    role:: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "ClusterRole",
+      kind: "Role",
       metadata: {
         name: "ambassador",
+        namespace: namespace,
       },
       rules: [
         {
@@ -112,7 +112,7 @@
           ],
         },
       ],
-    },  // cluserRole
+    },  // role
 
     serviceAccount:: {
       apiVersion: "v1",
@@ -123,15 +123,16 @@
       },
     },  // serviceAccount
 
-    clusterRoleBinding:: {
+    roleBinding:: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "ClusterRoleBinding",
+      kind: "RoleBinding",
       metadata: {
         name: "ambassador",
+        namespace: namespace,
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
-        kind: "ClusterRole",
+        kind: "Role",
         name: "ambassador",
       },
       subjects: [
@@ -141,7 +142,7 @@
           namespace: namespace,
         },
       ],
-    },  // clusterRoleBinding
+    },  // roleBinding
 
     deploy:: {
       apiVersion: "extensions/v1beta1",
@@ -157,6 +158,7 @@
             labels: {
               service: "ambassador",
             },
+            namespace: namespace,
           },
           spec: {
             containers: [
@@ -169,6 +171,10 @@
                         fieldPath: "metadata.namespace",
                       },
                     },
+                  },
+                  {
+                    name: "AMBASSADOR_SINGLE_NAMESPACE",
+                    value: "true",
                   },
                 ],
                 image: ambassadorImage,
@@ -201,7 +207,7 @@
                 },
               },
               {
-                image: "quay.io/datawire/statsd:0.22.0",
+                image: "quay.io/datawire/statsd:0.30.1",
                 name: "statsd",
               },
             ],
@@ -212,8 +218,13 @@
       },
     },  // deploy
 
+    isDashboardTls(cloud)::
+      if cloud == "acsengine" || cloud == "aks" then
+        "false"
+      else
+        "true",
     // This service adds a rule to our reverse proxy for accessing the K8s dashboard.
-    k8sDashboard:: {
+    k8sDashboard(cloud):: {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
@@ -229,7 +240,7 @@
               "name: k8s-dashboard-ui-mapping",
               "prefix: /k8s/ui/",
               "rewrite: /",
-              "tls: true",
+              "tls: " + $.parts(namespace).isDashboardTls(cloud),
               // We redirect to the K8s service created for the dashboard
               // in namespace kube-system. We don't use the k8s-dashboard service
               // because that isn't in the kube-system namespace and I don't think

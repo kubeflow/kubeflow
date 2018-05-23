@@ -37,7 +37,7 @@ def run_and_stream(cmd):
       process.stderr.flush()
     sys.stderr.flush()
     sys.stdout.flush()
-    for line in iter(process.stdout.readline, ''):
+    for line in iter(process.stdout.readline, b''):
       process.stdout.flush()
       logging.info(line.strip())
 
@@ -46,7 +46,7 @@ def run_and_stream(cmd):
   process.stdout.flush()
   if process.stderr:
     process.stderr.flush()
-  for line in iter(process.stdout.readline, ''):
+  for line in iter(process.stdout.readline, b''):
     logging.info(line.strip())
 
   if process.returncode != 0:

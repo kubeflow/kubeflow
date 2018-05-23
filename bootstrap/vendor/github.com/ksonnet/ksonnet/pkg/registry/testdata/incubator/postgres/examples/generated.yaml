@@ -1,0 +1,136 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: postgres-app
+  name: postgres-app
+  namespace: dev-alex
+spec:
+  template:
+    metadata:
+      labels:
+        app: postgres-app
+    spec:
+      containers:
+      - env:
+        - name: POSTGRES_USER
+          value: postgres
+        - name: PGUSER
+          value: postgres
+        - name: POSTGRES_DB
+          value: ""
+        - name: POSTGRES_INITDB_ARGS
+          value: ""
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: postgres-password
+              name: postgres-app
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        image: postgres:9.6.2
+        imagePullPolicy: Always
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - exec pg_isready --host $POD_IP
+          failureThreshold: 6
+          initialDelaySeconds: 60
+          timeoutSeconds: 5
+        name: postgres-app
+        ports:
+        - containerPort: 5432
+          name: postgresql
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - exec pg_isready --host $POD_IP
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+        volumeMounts:
+        - mountPath: /var/lib/postgresql/data/pgdata
+          name: data
+          subPath: postgresql-db
+      nodeSelector: {}
+      tolerations: []
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: postgres-app
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app: postgres-app
+  name: postgres-app
+  namespace: dev-alex
+spec:
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          postgres-app-client: "true"
+    ports:
+    - port: 5432
+  - ports:
+    - port: 9187
+  podSelector:
+    matchLabels:
+      app: postgres-app
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app: postgres-app
+  name: postgres-app
+  namespace: dev-alex
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 8Gi
+---
+apiVersion: v1
+data:
+  postgres-password: c2ltcGxlUGFzc3dvcmQ=
+kind: Secret
+metadata:
+  labels:
+    app: postgres-app
+  name: postgres-app
+  namespace: dev-alex
+type: Opaque
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: postgres-app
+  name: postgres-app
+  namespace: dev-alex
+spec:
+  externalIPs: []
+  ports:
+  - name: postgresql
+    port: 5432
+    targetPort: postgresql
+  selector:
+    app: postgres-app
+  type: ClusterIP

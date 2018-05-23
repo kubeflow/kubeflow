@@ -1,0 +1,10 @@
+RUNTIME ERROR: Index 3 out of bounds, not within [0, 3)
+-------------------------------------------------
+	testdata/array_out_of_bounds2:1:1-11	$
+
+[1,2,3][3]
+
+-------------------------------------------------
+	During evaluation	
+
+

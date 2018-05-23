@@ -1,24 +1,35 @@
 {
   parts(namespace):: {
-    local k = import 'k.libsonnet',
+    local k = import "k.libsonnet",
 
-    // We split the components into two protoypes.
-    // 1. Prototype contains the ingress and servcie
-    // 2. Deployment for Envoy which is the backend for the ingress and related apps.
-    //
-    // We do this because updating the ingress causes the backend service to change which disables IAP
-    // and changes the backend service which is used for the JWT audience.
-    // So we want to avoid updating the ingress when updating the Envoy pods or other backend services.
-    ingressParts(secretName, ipName):: std.prune(k.core.v1.list.new([
+    // Test if the given hostname is in the form of: "NAME.endpoints.PROJECT.cloud.goog"
+    local isCloudEndpoint = function(str) {
+      local toks = std.split(str, "."),
+      result::
+        (std.length(toks) == 5 && toks[1] == "endpoints" && toks[3] == "cloud" && toks[4] == "goog"),
+    }.result,
+
+    // Creates map of parameters from a given hostname in the form of: "NAME.endpoints.PROJECT.cloud.goog"
+    local makeEndpointParams = function(str) {
+      local toks = std.split(str, "."),
+      result:: {
+        name: toks[0],
+        project: toks[2],
+      },
+    }.result,
+
+    ingressParts(secretName, ipName, hostname, issuer, envoyImage, disableJwt, oauthSecretName):: std.prune(k.core.v1.list.new([
       $.parts(namespace).service,
-      $.parts(namespace).ingress(secretName, ipName),
-    ])),
-
-    envoy(envoyImage, audiences, disableJwt):: std.prune(k.core.v1.list.new([
-      $.parts(namespace).deploy(envoyImage),
-      $.parts(namespace).configMap(audiences, disableJwt),
+      $.parts(namespace).ingress(secretName, ipName, hostname),
+      $.parts(namespace).certificate(secretName, hostname, issuer),
+      $.parts(namespace).initServiceAcount,
+      $.parts(namespace).initClusterRoleBinding,
+      $.parts(namespace).initClusterRole,
+      $.parts(namespace).deploy(envoyImage, oauthSecretName),
+      $.parts(namespace).configMap(disableJwt),
       $.parts(namespace).whoamiService,
       $.parts(namespace).whoamiApp,
+      (if isCloudEndpoint(hostname) then $.parts(namespace).cloudEndpoint(makeEndpointParams(hostname))),
     ])),
 
     service:: {
@@ -35,8 +46,8 @@
         ports: [
           {
             name: "envoy",
-            port: healthEnvoyPort,
-            targetPort: healthEnvoyPort,
+            port: envoyPort,
+            targetPort: envoyPort,
           },
         ],
         selector: {
@@ -46,6 +57,51 @@
         type: "NodePort",
       },
     },  // service
+
+    initServiceAcount:: {
+      apiVersion: "v1",
+      kind: "ServiceAccount",
+      metadata: {
+        name: "envoy",
+        namespace: namespace,
+      },
+    },  // initServiceAccount
+
+    initClusterRoleBinding:: {
+      kind: "ClusterRoleBinding",
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
+      metadata: {
+        name: "envoy",
+      },
+      subjects: [
+        {
+          kind: "ServiceAccount",
+          name: "envoy",
+          namespace: namespace,
+        },
+      ],
+      roleRef: {
+        kind: "ClusterRole",
+        name: "envoy",
+        apiGroup: "rbac.authorization.k8s.io",
+      },
+    },  // initClusterRoleBinding
+
+    initClusterRole:: {
+      kind: "ClusterRole",
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
+      metadata: {
+        name: "envoy",
+        namespace: namespace,
+      },
+      rules: [
+        {
+          apiGroups: [""],
+          resources: ["services", "configmaps"],
+          verbs: ["get", "list", "patch", "update"],
+        },
+      ],
+    },  // initClusterRoleBinding
 
     envoyContainer(params):: {
       image: params.image,
@@ -95,12 +151,12 @@
       volumeMounts: [
         {
           mountPath: "/etc/envoy",
-          name: "config-volume",
+          name: "shared",
         },
       ],
     },  // envoyContainer
 
-    deploy(image):: {
+    deploy(image, oauthSecretName):: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -116,26 +172,69 @@
             },
           },
           spec: {
+            serviceAccountName: "envoy",
             containers: [
               $.parts(namespace).envoyContainer({
                 image: image,
-                name: "envoy-health",
-                healthPath: "/healthz",
-                healthPort: healthEnvoyPort,
-                configPath: "/etc/envoy/envoy-health-config.json",
-                baseId: "1",
-                ports: [healthEnvoyPort, healthEnvoyAdminPort, healthEnvoyStatsPort],
-              }),
-              $.parts(namespace).envoyContainer({
-                image: image,
-                name: "envoy-jwt",
+                name: "envoy",
                 // We use the admin port for the health, readiness check because the main port will require a valid JWT.
-                healthPath: "/server_info",
-                healthPort: jwtEnvoyAdminPort,
-                configPath: "/etc/envoy/envoy-jwt-config.json",
+                // healthPath: "/server_info",
+                healthPath: "/healthz",
+                healthPort: envoyPort,
+                configPath: "/etc/envoy/envoy-config.json",
                 baseId: "27000",
-                ports: [jwtEnvoyPort, jwtEnvoyAdminPort, jwtEnvoyStatsPort],
+                ports: [envoyPort, envoyAdminPort, envoyStatsPort],
               }),
+              {
+                name: "iap",
+                image: "google/cloud-sdk:alpine",
+                command: [
+                  "sh",
+                  "/var/envoy-config/iap-init.sh",
+                ],
+                env: [
+                  {
+                    name: "NAMESPACE",
+                    value: namespace,
+                  },
+                  {
+                    name: "CLIENT_ID",
+                    valueFrom: {
+                      secretKeyRef: {
+                        name: oauthSecretName,
+                        key: "CLIENT_ID",
+                      },
+                    },
+                  },
+                  {
+                    name: "CLIENT_SECRET",
+                    valueFrom: {
+                      secretKeyRef: {
+                        name: oauthSecretName,
+                        key: "CLIENT_SECRET",
+                      },
+                    },
+                  },
+                  {
+                    name: "SERVICE",
+                    value: "envoy",
+                  },
+                  {
+                    name: "ENVOY_ADMIN",
+                    value: "http://localhost:" + envoyAdminPort,
+                  },
+                ],
+                volumeMounts: [
+                  {
+                    mountPath: "/var/envoy-config/",
+                    name: "config-volume",
+                  },
+                  {
+                    mountPath: "/var/shared/",
+                    name: "shared",
+                  },
+                ],
+              },
             ],
             restartPolicy: "Always",
             volumes: [
@@ -145,13 +244,19 @@
                 },
                 name: "config-volume",
               },
+              {
+                emptyDir: {
+                  medium: "Memory",
+                },
+                name: "shared",
+              },
             ],
           },
         },
       },
     },  // deploy
 
-    configMap(audiences, disableJwt):: {
+    configMap(disableJwt):: {
       apiVersion: "v1",
       kind: "ConfigMap",
       metadata: {
@@ -159,24 +264,138 @@
         namespace: namespace,
       },
       data: {
-        "envoy-jwt-config.json": std.manifestJson($.parts(namespace).jwtConfig(audiences, disableJwt)),
-        "envoy-health-config.json": std.manifestJson($.parts(namespace).healthConfig),
+        "envoy-config.json": std.manifestJson($.parts(namespace).envoyConfig(disableJwt)),
+        // Script executed by the iap container to configure IAP. When finished, the envoy config is created with the JWT audience.
+        "iap-init.sh": |||
+          [ -z ${CLIENT_ID} ] && echo Error CLIENT_ID must be set && exit 1
+          [ -z ${CLIENT_SECRET} ] && echo Error CLIENT_SECRET must be set && exit 1
+          [ -z ${NAMESPACE} ] && echo Error NAMESPACE must be set && exit 1
+          [ -z ${SERVICE} ] && echo Error SERVICE must be set && exit 1
+
+          apk add --update jq
+          curl https://storage.googleapis.com/kubernetes-release/release/v1.9.4/bin/linux/amd64/kubectl > /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
+
+          # Stagger init of replicas when acquiring lock
+          sleep $(( $RANDOM % 5 + 1 ))
+
+          kubectl get svc ${SERVICE} -o json > service.json
+          LOCK=$(jq -r ".metadata.annotations.iaplock" service.json)
+
+          NOW=$(date -u +'%s')
+          if [[ -z "${LOCK}" || "${LOCK}" == "null" ]]; then
+            LOCK_T=$NOW
+          else
+            LOCK_T=$(echo "${LOCK}" | cut -d' ' -f2)
+          fi
+          LOCK_AGE=$(( $NOW - $LOCK_T ))
+          LOCK_TTL=120
+          if [[ -z "${LOCK}" || "${LOCK}" == "null" || "${LOCK_AGE}" -gt "${LOCK_TTL}" ]]; then
+            jq -r ".metadata.annotations.iaplock=\"$(hostname -s) ${NOW}\"" service.json > service_lock.json
+            kubectl apply -f service_lock.json 2>/dev/null
+            if [[ $? -eq 0 ]]; then
+              echo "Acquired lock on service annotation to update IAP."
+            else
+              echo "WARN: Failed to acquire lock on service annotation."
+              exit 1
+            fi
+          else
+            echo "WARN: Lock on service annotation already acquired by: $LOCK, age: $LOCK_AGE, TTL: $LOCK_TTL"
+            sleep 20
+            exit 1
+          fi
+
+          PROJECT=$(curl -s -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/project/project-id)
+          if [ -z ${PROJECT} ]; then
+            echo Error unable to fetch PROJECT from compute metadata
+            exit 1
+          fi
+
+          PROJECT_NUM=$(curl -s -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/project/numeric-project-id)
+          if [ -z ${PROJECT_NUM} ]; then
+            echo Error unable to fetch PROJECT_NUM from compute metadata
+            exit 1
+          fi
+
+          NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[0].nodePort}')
+          while [[ -z ${BACKEND_ID} ]];
+          do BACKEND_ID=$(gcloud compute --project=${PROJECT} backend-services list --filter=name~k8s-be-${NODE_PORT}- --format='value(id)');
+          echo "Waiting for backend id PROJECT=${PROJECT} NAMESPACE=${NAMESPACE} SERVICE=${SERVICE}...";
+          sleep 2;
+          done
+          echo BACKEND_ID=${BACKEND_ID}
+
+          NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[0].nodePort}')
+          BACKEND_SERVICE=$(gcloud --project=${PROJECT} compute backend-services list --filter=name~k8s-be-${NODE_PORT}- --uri)
+          # Enable IAP on the backend service:
+          gcloud --project=${PROJECT} compute backend-services update ${BACKEND_SERVICE} \
+                --global \
+                --iap=enabled,oauth2-client-id=${CLIENT_ID},oauth2-client-secret=${CLIENT_SECRET}
+
+          while [[ -z ${HEALTH_CHECK_URI} ]];
+            do HEALTH_CHECK_URI=$(gcloud compute --project=${PROJECT} health-checks list --filter=name~k8s-be-${NODE_PORT}- --uri);
+            echo "Waiting for the healthcheck resource PROJECT=${PROJECT} NODEPORT=${NODE_PORT} SERVICE=${SERVICE}...";
+            sleep 2;
+          done
+
+          # Since we create the envoy-ingress ingress object before creating the envoy
+          # deployment object, healthcheck will not be configured correctly in the GCP
+          # load balancer. It will default the healthcheck request path to a value of
+          # / instead of the intended /healthz.
+          # Manually update the healthcheck request path to /healthz
+          gcloud --project=${PROJECT} compute health-checks update http ${HEALTH_CHECK_URI} --request-path=/healthz
+
+          # Since JupyterHub uses websockets we want to increase the backend timeout
+          echo Increasing backend timeout for JupyterHub
+          gcloud --project=${PROJECT} compute backend-services update --global ${BACKEND_SERVICE} --timeout=3600
+
+          JWT_AUDIENCE="/projects/${PROJECT_NUM}/global/backendServices/${BACKEND_ID}"
+
+          # For healthcheck compare.
+          echo "JWT_AUDIENCE=${JWT_AUDIENCE}" > /var/shared/healthz.env
+          echo "NODE_PORT=${NODE_PORT}" >> /var/shared/healthz.env
+          echo "BACKEND_ID=${BACKEND_ID}" >> /var/shared/healthz.env
+
+          kubectl get configmap -n ${NAMESPACE} envoy-config -o jsonpath='{.data.envoy-config\.json}' | \
+            sed -e "s|{{JWT_AUDIENCE}}|${JWT_AUDIENCE}|g" > /var/shared/envoy-config.json
+
+          echo "Restarting envoy"
+          curl -s ${ENVOY_ADMIN}/quitquitquit
+
+          echo "Clearing lock on service annotation"
+          kubectl patch svc "${SERVICE}" -p "{\"metadata\": { \"annotations\": {\"iaplock\": \"\" }}}"
+
+          function checkIAP() {
+            # created by init container.
+            . /var/shared/healthz.env 
+
+            # If node port or backend id change, so does the JWT audience.
+            CURR_NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[0].nodePort}')
+            CURR_BACKEND_ID=$(gcloud compute --project=${PROJECT} backend-services list --filter=name~k8s-be-${CURR_NODE_PORT}- --format='value(id)')
+            [ "$BACKEND_ID" == "$CURR_BACKEND_ID" ]
+          }
+
+          # Verify IAP every 10 seconds.
+          while true; do
+            if ! checkIAP; then
+              echo "$(date) WARN: IAP check failed, restarting container."
+              exit 1
+            fi
+            sleep 10
+          done
+        |||,
       },
     },
 
-    local jwtEnvoyPort = 9080,
-    local jwtEnvoyAdminPort = 9001,
-    local jwtEnvoyStatsPort = 9025,
-    local healthEnvoyPort = 8080,
-    local healthEnvoyAdminPort = 8001,
-    local healthEnvoyStatsPort = 8025,
+    local envoyPort = 8080,
+    local envoyAdminPort = 8001,
+    local envoyStatsPort = 8025,
 
     // This is the config for the secondary envoy proxy which does JWT verification
     // and actually routes requests to the appropriate backend.
-    jwtConfig(audiences, disableJwt):: {
+    envoyConfig(disableJwt):: {
       listeners: [
         {
-          address: "tcp://0.0.0.0:" + jwtEnvoyPort,
+          address: "tcp://0.0.0.0:" + envoyPort,
           filters: [
             {
               type: "read",
@@ -186,7 +405,7 @@
                 stat_prefix: "ingress_http",
                 access_log: [
                   {
-                    format: "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
+                    format: 'ACCESS [%START_TIME%] "%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% "%REQ(X-FORWARDED-FOR)%" "%REQ(USER-AGENT)%" "%REQ(X-REQUEST-ID)%" "%REQ(:AUTHORITY)%" "%UPSTREAM_HOST%"\n',
                     path: "/dev/fd/1",
                   },
                 ],
@@ -196,6 +415,34 @@
                       name: "backend",
                       domains: ["*"],
                       routes: [
+                        // First route that matches is picked.
+                        {
+                          timeout_ms: 10000,
+                          path: "/healthz",
+                          prefix_rewrite: "/server_info",
+                          weighted_clusters: {
+                            clusters: [
+
+                              { name: "cluster_healthz", weight: 100.0 },
+
+                            ],
+                          },
+                        },
+                        // Provide access to the whoami app skipping JWT verification.
+                        // this is useful for debugging.
+                        {
+                          timeout_ms: 10000,
+                          prefix: "/noiap/whoami",
+                          prefix_rewrite: "/",
+                          weighted_clusters: {
+                            clusters: [
+                              {
+                                name: "cluster_iap_app",
+                                weight: 100.0,
+                              },
+                            ],
+                          },
+                        },
                         {
                           timeout_ms: 10000,
                           prefix: "/whoami",
@@ -212,7 +459,9 @@
                         // Jupyter uses the prefixes /hub & /user
                         {
                           // JupyterHub requires the prefix /hub
-                          timeout_ms: 10000,
+                          // Use a 10 minute timeout because downloading
+                          // images for jupyter notebook can take a while
+                          timeout_ms: 600000,
                           prefix: "/hub",
                           prefix_rewrite: "/hub",
                           use_websocket: true,
@@ -227,27 +476,11 @@
                         },
                         {
                           // JupyterHub requires the prefix /user
-                          timeout_ms: 10000,
+                          // Use a 10 minute timeout because downloading
+                          // images for jupyter notebook can take a while
+                          timeout_ms: 600000,
                           prefix: "/user",
                           prefix_rewrite: "/user",
-                          use_websocket: true,
-                          weighted_clusters: {
-                            clusters: [
-                              {
-                                name: "cluster_jupyterhub",
-                                weight: 100.0,
-                              },
-                            ],
-                          },
-                        },
-                        // TODO(ankushagarwal): We should eventually
-                        // redirect to the central UI once its ready
-                        // See https://github.com/kubeflow/kubeflow/pull/146
-                        // Redirect to jupyterhub when visiting /
-                        {
-                          timeout_ms: 10000,
-                          path: "/",
-                          prefix_rewrite: "/hub",
                           use_websocket: true,
                           weighted_clusters: {
                             clusters: [
@@ -284,15 +517,23 @@
                   type: "decoder",
                   name: "jwt-auth",
                   config: {
-                    issuers: [
+                    jwts: [
                       {
-                        name: "https://cloud.google.com/iap",
-                        audiences: audiences,
-                        pubkey: {
-                          type: "jwks",
-                          uri: "https://www.gstatic.com/iap/verify/public_key-jwk",
-                          cluster: "iap_issuer",
-                        },
+                        issuer: "https://cloud.google.com/iap",
+                        audiences: "{{JWT_AUDIENCE}}",
+                        jwks_uri: "https://www.gstatic.com/iap/verify/public_key-jwk",
+                        jwks_uri_envoy_cluster: "iap_issuer",
+                        jwt_headers: ["x-goog-iap-jwt-assertion"],
+                      },
+                    ],
+                    bypass_jwt: [
+                      {
+                        http_method: "GET",
+                        path_exact: "/healthz",
+                      },
+                      {
+                        http_method: "GET",
+                        path_exact: "/noiap/whoami",
                       },
                     ],
                   },
@@ -314,11 +555,24 @@
       admin: {
         // We use 0.0.0.0 and not 127.0.0.1 because we want the admin server to be available on all devices
         // so that it can be used for health checking.
-        address: "tcp://0.0.0.0:" + jwtEnvoyAdminPort,
+        address: "tcp://0.0.0.0:" + envoyAdminPort,
         access_log_path: "/tmp/admin_access_log",
       },
       cluster_manager: {
         clusters: [
+          {
+            name: "cluster_healthz",
+            connect_timeout_ms: 3000,
+            type: "strict_dns",
+            lb_type: "round_robin",
+            hosts: [
+              {
+                // We just use the admin server for the health check
+                url: "tcp://127.0.0.1:" + envoyAdminPort,
+              },
+
+            ],
+          },
           {
             name: "iap_issuer",
             connect_timeout_ms: 5000,
@@ -373,142 +627,9 @@
           },
         ],
       },
-      statsd_udp_ip_address: "127.0.0.1:" + jwtEnvoyStatsPort,
+      statsd_udp_ip_address: "127.0.0.1:" + envoyStatsPort,
       stats_flush_interval_ms: 1000,
-    },  // config
-
-    // This is the config used for the first proxy that serves as a backend for the GCP
-    // loadbalncer. Its solely purpose is to route requests that shouldn't go through IAP
-    // e.g. the http health check and mayb kube lego.
-    healthConfig:: {
-      listeners: [
-        {
-          address: "tcp://0.0.0.0:" + healthEnvoyPort,
-          filters: [
-            {
-              type: "read",
-              name: "http_connection_manager",
-              config: {
-                codec_type: "auto",
-                stat_prefix: "ingress_http",
-                access_log: [
-                  {
-                    format: "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
-                    path: "/dev/fd/1",
-                  },
-                ],
-                route_config: {
-                  virtual_hosts: [
-                    {
-                      name: "backend",
-                      domains: ["*"],
-                      routes: [
-                        // First route that matches is picked.
-                        {
-                          timeout_ms: 10000,
-                          path: "/healthz",
-                          prefix_rewrite: "/server_info",
-                          weighted_clusters: {
-                            clusters: [
-
-                              { name: "cluster_healthz", weight: 100.0 },
-
-                            ],
-                          },
-                        },
-                        // Provide access to the whoami app skipping JWT verification.
-                        // this is useful for debugging.
-                        {
-                          timeout_ms: 10000,
-                          prefix: "/noiap/whoami",
-                          prefix_rewrite: "/",
-                          weighted_clusters: {
-                            clusters: [
-                              {
-                                name: "cluster_iap_app",
-                                weight: 100.0,
-                              },
-                            ],
-                          },
-                        },
-                        // Route all remaining paths to the envoy proxy for JWT verification.
-                        {
-                          timeout_ms: 10000,
-                          prefix: "/",
-                          prefix_rewrite: "/",
-                          use_websocket: true,
-                          weighted_clusters: {
-                            clusters: [
-                              {
-                                name: "cluster_default",
-                                weight: 100.0,
-                              },
-                            ],
-                          },
-                        },
-                      ],
-                    },
-                  ],
-                },
-                filters: [
-                  {
-                    type: "decoder",
-                    name: "router",
-                    config: {},
-                  },
-                ],
-              },
-            },
-          ],
-        },
-      ],
-      admin: {
-        address: "tcp://127.0.0.1:" + healthEnvoyAdminPort,
-        access_log_path: "/tmp/admin_access_log",
-      },
-      cluster_manager: {
-        clusters: [
-          {
-            name: "cluster_iap_app",
-            connect_timeout_ms: 3000,
-            type: "strict_dns",
-            lb_type: "round_robin",
-            hosts: [
-              {
-                url: "tcp://whoami-app." + namespace + ":80",
-              },
-            ],
-          },
-          {
-            name: "cluster_healthz",
-            connect_timeout_ms: 3000,
-            type: "strict_dns",
-            lb_type: "round_robin",
-            hosts: [
-              {
-                // We just use the admin server for the health check
-                url: "tcp://127.0.0.1:" + healthEnvoyAdminPort,
-              },
-
-            ],
-          },
-          {
-            name: "cluster_default",
-            connect_timeout_ms: 3000,
-            type: "strict_dns",
-            lb_type: "round_robin",
-            hosts: [
-              {
-                // Route to the colocated envoy host for JWT validation.
-                url: "tcp://127.0.0.1:" + jwtEnvoyPort,
-              },
-            ],
-          },
-        ],
-      },
-      statsd_udp_ip_address: "127.0.0.1:" + healthEnvoyStatsPort,
-      stats_flush_interval_ms: 1000,
-    },  // healthConfig
+    },  // envoyConfig
 
     whoamiService:: {
       apiVersion: "v1",
@@ -583,28 +704,31 @@
       },
     },
 
-    ingress(secretName, ipName):: {
+    ingress(secretName, ipName, hostname):: {
       apiVersion: "extensions/v1beta1",
       kind: "Ingress",
       metadata: {
         name: "envoy-ingress",
         namespace: namespace,
         annotations: {
+          "kubernetes.io/tls-acme": "true",
+          "ingress.kubernetes.io/ssl-redirect": "true",
           "kubernetes.io/ingress.global-static-ip-name": ipName,
         },
       },
       spec: {
         rules: [
           {
+            [if hostname != "null" then "host"]: hostname,
             http: {
               paths: [
                 {
                   backend: {
-                    # Due to https://github.com/kubernetes/contrib/blob/master/ingress/controllers/gce/examples/health_checks/README.md#limitations
-                    # Keep port the servicePort the same as the port we are targetting on the backend so that servicePort will be the same as targetPort for the purpose of
-                    # health checking.
+                    // Due to https://github.com/kubernetes/contrib/blob/master/ingress/controllers/gce/examples/health_checks/README.md#limitations
+                    // Keep port the servicePort the same as the port we are targetting on the backend so that servicePort will be the same as targetPort for the purpose of
+                    // health checking.
                     serviceName: "envoy",
-                    servicePort: healthEnvoyPort,
+                    servicePort: envoyPort,
                   },
                   path: "/*",
                 },
@@ -619,5 +743,54 @@
         ],
       },
     },  // iapIngress
+
+    certificate(secretName, hostname, issuer):: {
+      apiVersion: "certmanager.k8s.io/v1alpha1",
+      kind: "Certificate",
+      metadata: {
+        name: secretName,
+        namespace: namespace,
+      },
+
+      spec: {
+        secretName: secretName,
+        issuerRef: {
+          name: issuer,
+        },
+        commonName: hostname,
+        dnsNames: [
+          hostname,
+        ],
+        acme: {
+          config: [
+            {
+              http01: {
+                ingress: "envoy-ingress",
+              },
+              domains: [
+                hostname,
+              ],
+            },
+          ],
+        },
+      },
+    },  // certificate
+
+    cloudEndpoint(params):: {
+      apiVersion: "ctl.isla.solutions/v1",
+      kind: "CloudEndpoint",
+      metadata: {
+        name: params.name,
+        namespace: namespace,
+      },
+      spec: {
+        project: params.project,
+        targetIngress: {
+          name: "envoy-ingress",
+          namespace: namespace,
+        },
+      },
+    },  // cloudEndpoint
+
   },  // parts
 }

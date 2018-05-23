@@ -1,0 +1,33 @@
+apiVersion: 0.1.0
+environments:
+  default:
+    destination:
+      namespace: some-namespace
+      server: http://example.com
+    k8sVersion: v1.7.0
+    path: default
+  us-east/test:
+    destination:
+      namespace: some-namespace
+      server: http://example.com
+    k8sVersion: v1.7.0
+    path: us-east/test
+  us-west/prod:
+    destination:
+      namespace: some-namespace
+      server: http://example.com
+    k8sVersion: v1.7.0
+    path: us-west/prod
+  us-west/test:
+    destination:
+      namespace: some-namespace
+      server: http://example.com
+    k8sVersion: v1.7.0
+    path: us-west/test
+kind: ksonnet.io/app
+name: test-get-envs
+registries:
+  incubator:
+    protocol: ""
+    uri: ""
+version: 0.0.1

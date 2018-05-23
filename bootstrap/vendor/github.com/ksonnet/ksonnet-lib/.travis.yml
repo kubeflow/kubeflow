@@ -1,0 +1,28 @@
+language: go
+
+env:
+  global:
+    - JSONNET_BIN_URL=https://s3-us-west-2.amazonaws.com/ksonnet-ci/dist/linux-amd64/jsonnet
+    - JSONNET_BIN=/tmp/jsonnet
+
+go:
+  - "1.9.x"
+  - "1.10.x"
+  - master
+
+matrix:
+  # allow master to fail
+  allow_failures:
+    - go: master
+
+  # don't wait for items with allowed failures to finish on error
+  fast_finish: true
+
+before_install:
+- sudo apt-get -qq update
+- sudo apt-get install libstdc++6
+
+script:
+- curl -o ${JSONNET_BIN} ${JSONNET_BIN_URL}
+- chmod 755 ${JSONNET_BIN}
+- go test -v -race ./...

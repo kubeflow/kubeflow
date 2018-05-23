@@ -1,3 +1,12 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Argo](#argo)
+  - [Quickstart](#quickstart)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Argo
 
 > Prototypes for deploying Argo and running Argo Workflows
@@ -18,6 +27,9 @@ If you haven't yet created a [ksonnet application](linkToSomewhere), do so using
 Finally, in the ksonnet application directory, run the following:
 
 ```shell
+# Install the kubeflow argo package
+$ ks pkg install kubeflow/argo
+
 # Expand prototype as a Jsonnet file, place in a file in the
 # `components/` directory. (YAML and JSON are also available.)
 $ ks prototype use io.ksonnet.pkg.argo argo \
@@ -25,7 +37,7 @@ $ ks prototype use io.ksonnet.pkg.argo argo \
   --name argo
 
 # Apply to server.
-$ ks apply -c argo
+$ ks apply default -c argo
 ```
 
 [rootReadme]: https://github.com/ksonnet/mixins

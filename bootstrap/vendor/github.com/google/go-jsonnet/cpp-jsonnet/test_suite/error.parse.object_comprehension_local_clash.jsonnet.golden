@@ -1,0 +1,1 @@
+STATIC ERROR: error.parse.object_comprehension_local_clash.jsonnet:17:21: duplicate local var: x

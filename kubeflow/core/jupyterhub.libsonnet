@@ -1,32 +1,32 @@
 {
-  // TODO(https://github.com/ksonnet/ksonnet/issues/222): Taking namespace as an argument is a work around for the fact that ksonnet
-  // doesn't support automatically piping in the namespace from the environment to prototypes.
-  //
-  // TODO(jlewi): We should refactor this to have multiple prototypes; having 1 without any extra volumes and than
-  // a with volumes option.
-
   all(params):: [
-    $.parts(params.namespace).jupyterHubConfigMap(params.kubeSpawner),
+    $.parts(params.namespace).jupyterHubConfigMap(params.jupyterHubAuthenticator, params.disks),
     $.parts(params.namespace).jupyterHubService,
     $.parts(params.namespace).jupyterHubLoadBalancer(params.jupyterHubServiceType),
-    $.parts(params.namespace).jupyterHub(params.jupyterHubImage),
+    $.parts(params.namespace).jupyterHub(params.jupyterHubImage, params.jupyterNotebookPVCMount, params.cloud),
     $.parts(params.namespace).jupyterHubRole,
     $.parts(params.namespace).jupyterHubServiceAccount,
     $.parts(params.namespace).jupyterHubRoleBinding,
   ],
 
   parts(namespace):: {
+    jupyterHubConfigMap(jupyterHubAuthenticator, disks): {
+      local util = import "kubeflow/core/util.libsonnet",
+      local diskNames = util.toArray(disks),
+      local kubeSpawner = $.parts(namespace).kubeSpawner(jupyterHubAuthenticator, diskNames),
+      result:: $.parts(namespace).jupyterHubConfigMapWithSpawner(kubeSpawner),
+    }.result,
+
     kubeSpawner(authenticator, volumeClaims=[]): {
-      // TODO(jlewi): We should make the default Docker image configurable
       // TODO(jlewi): We should make whether we use PVC configurable.
-      local baseKubeConfigSpawner = importstr "jupyterhub_spawner.py",
+      local baseKubeConfigSpawner = importstr "kubeform_spawner.py",
 
       authenticatorOptions:: {
 
-        ### Authenticator Options
+        //## Authenticator Options
         local kubeConfigDummyAuthenticator = "c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'",
 
-        # This configuration allows us to use the id provided by IAP.
+        // This configuration allows us to use the id provided by IAP.
         local kubeConfigIAPAuthenticator = @"c.JupyterHub.authenticator_class ='jhub_remote_user_authenticator.remote_user_auth.RemoteUserAuthenticator'
 c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
 
@@ -50,7 +50,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
 
         local volumeMounts = std.map(function(v)
           {
-            mountPath: '/mnt/' + v,
+            mountPath: "/mnt/" + v,
             name: v,
           }, volumeClaims),
 
@@ -78,34 +78,11 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
       },
     },
 
-    jupyterHubConfigMap(spawner): baseJupyterHubConfigMap {
+    jupyterHubConfigMapWithSpawner(spawner): baseJupyterHubConfigMap {
       data: {
         "jupyterhub_config.py": spawner,
       },
     },
-
-    jupyterHubConfigMapWithVolumes(volumeClaims): {
-      local volumes = std.map(function(v)
-        {
-          name: v,
-          persistentVolumeClaim: {
-            claimName: v,
-          },
-        }, volumeClaims),
-
-
-      local volumeMounts = std.map(function(v)
-        {
-          mountPath: '/mnt/' + v,
-          name: v,
-        }, volumeClaims),
-
-      config: baseJupyterHubConfigMap {
-        data: {
-          // "jupyterhub_config.py": extendedBaseKubeConfigSpawner,
-        },
-      },
-    }.config,
 
     jupyterHubService: {
       apiVersion: "v1",
@@ -159,7 +136,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
     },
 
     // image: Image for JupyterHub
-    jupyterHub(image): {
+    jupyterHub(image, notebookPVCMount, cloud): {
       apiVersion: "apps/v1beta1",
       kind: "StatefulSet",
       metadata: {
@@ -199,6 +176,16 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
                   // Port 8081 accepts callbacks from the individual Jupyter pods.
                   {
                     containerPort: 8081,
+                  },
+                ],
+                env: [
+                  {
+                    name: "NOTEBOOK_PVC_MOUNT",
+                    value: notebookPVCMount,
+                  },
+                  {
+                    name: "CLOUD_NAME",
+                    value: cloud,
                   },
                 ],
               },  // jupyterHub container

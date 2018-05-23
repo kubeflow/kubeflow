@@ -1,0 +1,4 @@
+Git will not check in empty directories.
+
+This directory is needed for testing ks project structure. This file exists so
+that its parent directory can be checked in.

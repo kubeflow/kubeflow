@@ -3,12 +3,19 @@
 // @description Deploy Argo workflow engine
 // @shortDescription Argo workflow engine
 // @param name string Name to give to the component
-// @optionalParam namespace string default Namespace to use for the components.
+// @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
+// @optionalParam imageTag string latest Docker image tag to use. It is automatically inherited from the environment if not set.
 
-// TODO(https://github.com/ksonnet/ksonnet/issues/222): We have to add namespace as an explicit parameter
-// because ksonnet doesn't support inheriting it from the environment yet.
-
-local k = import 'k.libsonnet';
+local k = import "k.libsonnet";
 local argo = import "kubeflow/argo/argo.libsonnet";
 
-std.prune(k.core.v1.list.new(argo.parts(params.namespace).all))
+// updatedParams uses the environment namespace if
+// the namespace parameter is not explicitly set
+local updatedParams = params {
+  namespace: if params.namespace == "null" then env.namespace else params.namespace,
+};
+
+local namespace = updatedParams.namespace;
+local imageTag = import "param://imageTag";
+
+std.prune(k.core.v1.list.new(argo.parts(namespace, imageTag).all))

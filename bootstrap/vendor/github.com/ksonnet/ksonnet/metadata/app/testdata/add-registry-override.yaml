@@ -1,0 +1,4 @@
+registries:
+  new:
+    protocol: ""
+    uri: ""

@@ -1,0 +1,10 @@
+RUNTIME ERROR: function has no parameter y
+-------------------------------------------------
+	testdata/optional_args8:2:1-10	$
+
+foo(y=17)
+
+-------------------------------------------------
+	During evaluation	
+
+

@@ -1,0 +1,10 @@
+apiVersion: 0.1.0
+environments:
+  a:
+    destination: null
+    k8sVersion: ""
+    path: ""
+registries:
+  a:
+    protocol: ""
+    uri: ""

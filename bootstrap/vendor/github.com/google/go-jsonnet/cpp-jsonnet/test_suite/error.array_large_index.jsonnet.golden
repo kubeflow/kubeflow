@@ -1,0 +1,2 @@
+RUNTIME ERROR: array bounds error: 1.84467e+19 not within [0, 3)
+	error.array_large_index.jsonnet:17:1-26	

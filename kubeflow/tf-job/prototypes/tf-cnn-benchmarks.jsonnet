@@ -3,12 +3,13 @@
 // @description A TensorFlow CNN Benchmarking job
 // @shortDescription Run the TensorFlow CNN benchmarking job.
 // @param name string Name for the job.
-// @optionalParam namespace string default Namespace
+// @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
 // @optionalParam batch_size number 32 The batch size
 // @optionalParam model string resnet50 Which model to use
 // @optionalParam num_gpus number 0 The number of GPUs to attach to workers.
 // @optionalParam image string gcr.io/kubeflow/tf-benchmarks-cpu:v20171202-bdab599-dirty-284af3 The docker image to use for the job.
 // @optionalParam image_gpu string gcr.io/kubeflow/tf-benchmarks-gpu:v20171202-bdab599-dirty-284af3 The docker image to use when using GPUs.
+// @optionalParam image_pull_secrets string null Comma-delimited list of secret names to use credentials in pulling your docker images.
 // @optionalParam num_ps number 1 The number of ps to use
 // @optionalParam num_workers number 1 The number of workers to use
 
@@ -16,22 +17,25 @@
 
 // TODO(jlewi): Should we move this into an examples package?
 
-// TODO(https://github.com/ksonnet/ksonnet/issues/222): We have to add namespace as an explicit parameter
-// because ksonnet doesn't support inheriting it from the environment yet.
-
-local k = import 'k.libsonnet';
+local k = import "k.libsonnet";
 local deployment = k.extensions.v1beta1.deployment;
 local container = deployment.mixin.spec.template.spec.containersType;
 local podTemplate = k.extensions.v1beta1.podTemplate;
 
-local tfJob = import 'kubeflow/tf-job/tf-job.libsonnet';
+// updatedParams uses the environment namespace if
+// the namespace parameter is not explicitly set
+local updatedParams = params {
+  namespace: if params.namespace == "null" then env.namespace else params.namespace,
+};
 
-local name = import 'param://name';
-local namespace = import 'param://namespace';
+local tfJob = import "kubeflow/tf-job/tf-job.libsonnet";
 
-local numGpus = import 'param://num_gpus';
-local batchSize = import 'param://batch_size';
-local model = import 'param://model';
+local name = import "param://name";
+local namespace = updatedParams.namespace;
+
+local numGpus = import "param://num_gpus";
+local batchSize = import "param://batch_size";
+local model = import "param://model";
 
 local args = [
                "python",
@@ -42,10 +46,10 @@ local args = [
                "--flush_stdout=true",
              ] +
              if numGpus == 0 then
-               # We need to set num_gpus=1 even if not using GPUs because otherwise the devie list
-               # is empty because of this code
-               # https://github.com/tensorflow/benchmarks/blob/master/scripts/tf_cnn_benchmarks/benchmark_cnn.py#L775
-               # We won't actually use GPUs because based on other flags no ops will be assigned to GPus.
+               // We need to set num_gpus=1 even if not using GPUs because otherwise the devie list
+               // is empty because of this code
+               // https://github.com/tensorflow/benchmarks/blob/master/scripts/tf_cnn_benchmarks/benchmark_cnn.py#L775
+               // We won't actually use GPUs because based on other flags no ops will be assigned to GPus.
                [
                  "--num_gpus=1",
                  "--local_parameter_device=cpu",
@@ -58,16 +62,17 @@ local args = [
                ]
 ;
 
-local image = import 'param://image';
-local imageGpu = import 'param://image_gpu';
-local numPs = import 'param://num_ps';
-local numWorkers = import 'param://num_workers';
-local numGpus = import 'param://num_gpus';
+local image = import "param://image";
+local imageGpu = import "param://image_gpu";
+local imagePullSecrets = import "param://image_pull_secrets";
+local numPs = import "param://num_ps";
+local numWorkers = import "param://num_workers";
+local numGpus = import "param://num_gpus";
 
 local workerSpec = if numGpus > 0 then
-  tfJob.parts.tfJobReplica("WORKER", numWorkers, args, imageGpu, numGpus)
+  tfJob.parts.tfJobReplica("WORKER", numWorkers, args, imageGpu, imagePullSecrets, numGpus)
 else
-  tfJob.parts.tfJobReplica("WORKER", numWorkers, args, image);
+  tfJob.parts.tfJobReplica("WORKER", numWorkers, args, image, imagePullSecrets);
 
 // TODO(jlewi): Look at how the redis prototype modifies a container by
 // using mapContainersWithName. Can we do something similar?
@@ -85,7 +90,7 @@ local replicas = std.map(function(s)
                                },
                              },
                            },
-                         std.prune([workerSpec, tfJob.parts.tfJobReplica("PS", numPs, args, image)]));
+                         std.prune([workerSpec, tfJob.parts.tfJobReplica("PS", numPs, args, image, imagePullSecrets)]));
 
 local job =
   if numWorkers < 1 then
@@ -94,7 +99,7 @@ local job =
     if numPs < 1 then
       error "num_ps must be >= 1"
     else
-      tfJob.parts.tfJob(name, namespace, replicas) + {
+      tfJob.parts.tfJob(name, namespace, replicas, null) + {
         spec+: {
           tfImage: image,
           terminationPolicy: { chief: { replicaName: "WORKER", replicaIndex: 0 } },

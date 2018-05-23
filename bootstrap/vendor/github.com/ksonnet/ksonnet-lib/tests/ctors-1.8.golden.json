@@ -1,0 +1,646 @@
+{
+   "admissionregistration": {
+      "v1beta1": {
+         "externalAdmissionHookConfiguration": {
+            "apiVersion": "admissionregistration.k8s.io/v1alpha1",
+            "items": [ ],
+            "kind": "ExternalAdmissionHookConfigurationList"
+         },
+         "initializerConfigurationList": {
+            "apiVersion": "admissionregistration.k8s.io/v1alpha1",
+            "items": [ ],
+            "kind": "InitializerConfigurationList"
+         }
+      }
+   },
+   "apps": {
+      "v1beta1": {
+         "controllerRevisionList": {
+            "apiVersion": "apps/v1beta1",
+            "items": [ ],
+            "kind": "ControllerRevisionList"
+         },
+         "deployment": {
+            "apiVersion": "apps/v1beta1",
+            "kind": "Deployment",
+            "metadata": {
+               "name": "deployment"
+            },
+            "spec": {
+               "replicas": 3,
+               "template": {
+                  "metadata": {
+                     "labels": { }
+                  },
+                  "spec": {
+                     "containers": [ ]
+                  }
+               }
+            }
+         },
+         "deploymentList": {
+            "apiVersion": "apps/v1beta1",
+            "items": [
+               {
+                  "apiVersion": "apps/v1beta1",
+                  "kind": "Deployment",
+                  "metadata": {
+                     "name": "deployment"
+                  },
+                  "spec": {
+                     "replicas": 3,
+                     "template": {
+                        "metadata": {
+                           "labels": { }
+                        },
+                        "spec": {
+                           "containers": [ ]
+                        }
+                     }
+                  }
+               }
+            ],
+            "kind": "DeploymentList"
+         },
+         "deploymentRollback": {
+            "apiVersion": "apps/v1beta1",
+            "kind": "DeploymentRollback",
+            "name": "deploymentRollback"
+         },
+         "scale": {
+            "apiVersion": "apps/v1beta1",
+            "kind": "Scale",
+            "spec": {
+               "replicas": 4
+            }
+         },
+         "statefulSet": {
+            "apiVersion": "apps/v1beta1",
+            "kind": "StatefulSet",
+            "metadata": {
+               "name": "deployment"
+            },
+            "spec": {
+               "replicas": 3,
+               "template": {
+                  "metadata": {
+                     "labels": { }
+                  },
+                  "spec": {
+                     "containers": [ ]
+                  }
+               },
+               "volumeClaimTemplates": [ ]
+            }
+         },
+         "statefulSetList": {
+            "apiVersion": "apps/v1beta1",
+            "items": [
+               {
+                  "apiVersion": "apps/v1beta1",
+                  "kind": "StatefulSet",
+                  "metadata": {
+                     "name": "deployment"
+                  },
+                  "spec": {
+                     "replicas": 3,
+                     "template": {
+                        "metadata": {
+                           "labels": { }
+                        },
+                        "spec": {
+                           "containers": [ ]
+                        }
+                     },
+                     "volumeClaimTemplates": [ ]
+                  }
+               }
+            ],
+            "kind": "StatefulSetList"
+         }
+      },
+      "v1beta2": {
+         "controllerRevisionList": {
+            "apiVersion": "apps/v1beta2",
+            "items": [ ],
+            "kind": "ControllerRevisionList"
+         },
+         "daemonSetList": {
+            "apiVersion": "apps/v1beta2",
+            "items": [ ],
+            "kind": "DaemonSetList"
+         },
+         "deployment": {
+            "apiVersion": "apps/v1beta2",
+            "kind": "Deployment",
+            "metadata": {
+               "name": "deployment"
+            },
+            "spec": {
+               "replicas": 3,
+               "template": {
+                  "metadata": {
+                     "labels": { }
+                  },
+                  "spec": {
+                     "containers": [ ]
+                  }
+               }
+            }
+         },
+         "deploymentList": {
+            "apiVersion": "apps/v1beta2",
+            "items": [
+               {
+                  "apiVersion": "apps/v1beta2",
+                  "kind": "Deployment",
+                  "metadata": {
+                     "name": "deployment"
+                  },
+                  "spec": {
+                     "replicas": 3,
+                     "template": {
+                        "metadata": {
+                           "labels": { }
+                        },
+                        "spec": {
+                           "containers": [ ]
+                        }
+                     }
+                  }
+               }
+            ],
+            "kind": "DeploymentList"
+         },
+         "replicaSetList": {
+            "apiVersion": "apps/v1beta2",
+            "items": [ ],
+            "kind": "ReplicaSetList"
+         },
+         "scale": {
+            "apiVersion": "apps/v1beta2",
+            "kind": "Scale",
+            "spec": {
+               "replicas": 4
+            }
+         },
+         "statefulSet": {
+            "apiVersion": "apps/v1beta2",
+            "kind": "StatefulSet",
+            "metadata": {
+               "name": "deployment"
+            },
+            "spec": {
+               "replicas": 3,
+               "template": {
+                  "metadata": {
+                     "labels": { }
+                  },
+                  "spec": {
+                     "containers": [ ]
+                  }
+               },
+               "volumeClaimTemplates": [ ]
+            }
+         },
+         "statefulSetList": {
+            "apiVersion": "apps/v1beta2",
+            "items": [
+               {
+                  "apiVersion": "apps/v1beta2",
+                  "kind": "StatefulSet",
+                  "metadata": {
+                     "name": "deployment"
+                  },
+                  "spec": {
+                     "replicas": 3,
+                     "template": {
+                        "metadata": {
+                           "labels": { }
+                        },
+                        "spec": {
+                           "containers": [ ]
+                        }
+                     },
+                     "volumeClaimTemplates": [ ]
+                  }
+               }
+            ],
+            "kind": "StatefulSetList"
+         }
+      }
+   },
+   "authentication": {
+      "v1": {
+         "tokenReview": {
+            "apiVersion": "authentication.k8s.io/v1",
+            "kind": "TokenReview",
+            "spec": {
+               "token": { }
+            }
+         }
+      },
+      "v1beta1": {
+         "tokenReview": {
+            "apiVersion": "authentication.k8s.io/v1beta1",
+            "kind": "TokenReview",
+            "spec": {
+               "token": { }
+            }
+         }
+      }
+   },
+   "autoscaling": {
+      "v1": {
+         "horizontalPodAutoscalerList": {
+            "apiVersion": "autoscaling/v1",
+            "items": [ ],
+            "kind": "HorizontalPodAutoscalerList"
+         },
+         "scale": {
+            "apiVersion": "autoscaling/v1",
+            "kind": "Scale",
+            "spec": {
+               "replicas": 4
+            }
+         }
+      },
+      "v2beta1": {
+         "horizontalPodAutoscalerList": {
+            "apiVersion": "autoscaling/v2beta1",
+            "items": [ ],
+            "kind": "HorizontalPodAutoscalerList"
+         }
+      }
+   },
+   "batch": {
+      "v1": {
+         "jobList": {
+            "apiVersion": "batch/v1",
+            "items": [ ],
+            "kind": "JobList"
+         }
+      },
+      "v1beta1": {
+         "jobList": {
+            "apiVersion": "batch/v1beta1",
+            "items": [ ],
+            "kind": "CronJobList"
+         }
+      },
+      "v2alpha1": {
+         "jobList": {
+            "apiVersion": "batch/v2alpha1",
+            "items": [ ],
+            "kind": "CronJobList"
+         }
+      }
+   },
+   "certificates": {
+      "v1beta1": {
+         "jobList": {
+            "apiVersion": "certificates.k8s.io/v1beta1",
+            "items": [ ],
+            "kind": "CertificateSigningRequestList"
+         }
+      }
+   },
+   "core": {
+      "v1": {
+         "configMap": {
+            "apiVersion": "v1",
+            "data": { },
+            "kind": "ConfigMap",
+            "metadata": {
+               "name": "configMap"
+            }
+         },
+         "configMapList": {
+            "apiVersion": "v1",
+            "items": [ ],
+            "kind": "ConfigMapList"
+         },
+         "container": {
+            "image": "nginx",
+            "name": "container"
+         },
+         "containerPort": {
+            "containerPort": 99
+         },
+         "endpointsList": {
+            "apiVersion": "v1",
+            "items": [ ],
+            "kind": "EndpointsList"
+         },
+         "envVar": {
+            "name": "env",
+            "value": 99
+         },
+         "envVarFieldPath": {
+            "name": "env",
+            "valueFrom": {
+               "fieldRef": {
+                  "fieldPath": "foo.bar"
+               }
+            }
+         },
+         "envVarSecret": {
+            "name": "env",
+            "valueFrom": {
+               "secretKeyRef": {
+                  "key": "secretName",
+                  "name": "secret"
+               }
+            }
+         },
+         "eventList": {
+            "apiVersion": "v1",
+            "items": [ ],
+            "kind": "EventList"
+         },
+         "limitRangeList": {
+            "apiVersion": "v1",
+            "items": [ ],
+            "kind": "LimitRangeList"
+         },
+         "namedContainerPort": {
+            "containerPort": 99,
+            "name": "port"
+         },
+         "namespace": {
+            "apiVersion": "v1",
+            "kind": "Namespace",
+            "metadata": {
+               "name": "ns"
+            }
+         },
+         "namespaceList": {
+            "apiVersion": "v1",
+            "items": [ ],
+            "kind": "NamespaceList"
+         },
+         "nodeList": {
+            "apiVersion": "v1",
+            "items": [ ],
+            "kind": "NodeList"
+         },
+         "persistentVolumeClaimList": {
+            "apiVersion": "v1",
+            "items": [ ],
+            "kind": "PersistentVolumeClaimList"
+         },
+         "persistentVolumeList": {
+            "apiVersion": "v1",
+            "items": [ ],
+            "kind": "PersistentVolumeList"
+         },
+         "podList": {
+            "apiVersion": "v1",
+            "items": [ ],
+            "kind": "PodList"
+         },
+         "podTemplateList": {
+            "apiVersion": "v1",
+            "items": [ ],
+            "kind": "PodTemplateList"
+         },
+         "replicationControllerList": {
+            "apiVersion": "v1",
+            "items": [ ],
+            "kind": "ReplicationControllerList"
+         },
+         "resourceQuotaList": {
+            "apiVersion": "v1",
+            "items": [ ],
+            "kind": "ResourceQuotaList"
+         },
+         "secret": {
+            "apiVersion": "v1",
+            "data": { },
+            "kind": "Secret",
+            "metadata": {
+               "name": "secret"
+            },
+            "type": "Opaque"
+         },
+         "secretList": {
+            "apiVersion": "v1",
+            "items": [ ],
+            "kind": "SecretList"
+         },
+         "secretString": {
+            "apiVersion": "v1",
+            "kind": "Secret",
+            "metadata": {
+               "name": "secret"
+            },
+            "stringData": "foo",
+            "type": "Opaque"
+         },
+         "service": {
+            "apiVersion": "v1",
+            "kind": "Service",
+            "metadata": {
+               "name": "service"
+            },
+            "spec": {
+               "ports": [ ],
+               "selector": { }
+            }
+         },
+         "serviceAccount": {
+            "apiVersion": "v1",
+            "kind": "ServiceAccount",
+            "metadata": {
+               "name": "serviceAccount"
+            }
+         },
+         "serviceAccountList": {
+            "apiVersion": "v1",
+            "items": [ ],
+            "kind": "ServiceAccountList"
+         }
+      }
+   },
+   "extensions": {
+      "v1beta1": {
+         "daemonSetList": {
+            "apiVersion": "extensions/v1beta1",
+            "items": [ ],
+            "kind": "DaemonSetList"
+         },
+         "deployment": {
+            "apiVersion": "extensions/v1beta1",
+            "kind": "Deployment",
+            "metadata": {
+               "name": "deployment"
+            },
+            "spec": {
+               "replicas": 3,
+               "template": {
+                  "metadata": {
+                     "labels": { }
+                  },
+                  "spec": {
+                     "containers": [ ]
+                  }
+               }
+            }
+         },
+         "deploymentList": {
+            "apiVersion": "extensions/v1beta1",
+            "items": [
+               {
+                  "apiVersion": "extensions/v1beta1",
+                  "kind": "Deployment",
+                  "metadata": {
+                     "name": "deployment"
+                  },
+                  "spec": {
+                     "replicas": 3,
+                     "template": {
+                        "metadata": {
+                           "labels": { }
+                        },
+                        "spec": {
+                           "containers": [ ]
+                        }
+                     }
+                  }
+               }
+            ],
+            "kind": "DeploymentList"
+         },
+         "deploymentRollback": {
+            "apiVersion": "extensions/v1beta1",
+            "kind": "DeploymentRollback",
+            "name": "deploymentRollback"
+         },
+         "ingressList": {
+            "apiVersion": "extensions/v1beta1",
+            "items": [ ],
+            "kind": "IngressList"
+         },
+         "networkPolicyList": {
+            "apiVersion": "extensions/v1beta1",
+            "items": [ ],
+            "kind": "NetworkPolicyList"
+         },
+         "podSecurityPolicyList": {
+            "apiVersion": "extensions/v1beta1",
+            "items": [ ],
+            "kind": "PodSecurityPolicyList"
+         },
+         "replicaSetList": {
+            "apiVersion": "extensions/v1beta1",
+            "items": [ ],
+            "kind": "ReplicaSetList"
+         },
+         "scale": {
+            "apiVersion": "extensions/v1beta1",
+            "kind": "Scale",
+            "spec": {
+               "replicas": 4
+            }
+         }
+      }
+   },
+   "networking": {
+      "v1": {
+         "networkPolicyList": {
+            "apiVersion": "networking.k8s.io/v1",
+            "items": [ ],
+            "kind": "NetworkPolicyList"
+         }
+      }
+   },
+   "policy": {
+      "v1beta1": {
+         "podDisruptionBudgetList": {
+            "apiVersion": "policy/v1beta1",
+            "items": [ ],
+            "kind": "PodDisruptionBudgetList"
+         }
+      }
+   },
+   "rbac": {
+      "v1": {
+         "clusterRoleBindingList": {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "items": [ ],
+            "kind": "ClusterRoleBindingList"
+         },
+         "clusterRoleList": {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "items": [ ],
+            "kind": "ClusterRoleList"
+         },
+         "roleBindingList": {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "items": [ ],
+            "kind": "RoleBindingList"
+         },
+         "roleList": {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "items": [ ],
+            "kind": "RoleList"
+         }
+      },
+      "v1beta1": {
+         "clusterRoleBindingList": {
+            "apiVersion": "rbac.authorization.k8s.io/v1beta1",
+            "items": [ ],
+            "kind": "ClusterRoleBindingList"
+         },
+         "clusterRoleList": {
+            "apiVersion": "rbac.authorization.k8s.io/v1beta1",
+            "items": [ ],
+            "kind": "ClusterRoleList"
+         },
+         "roleBindingList": {
+            "apiVersion": "rbac.authorization.k8s.io/v1beta1",
+            "items": [ ],
+            "kind": "RoleBindingList"
+         },
+         "roleList": {
+            "apiVersion": "rbac.authorization.k8s.io/v1beta1",
+            "items": [ ],
+            "kind": "RoleList"
+         }
+      }
+   },
+   "scheduling": {
+      "v1alpha1": {
+         "priorityClassList": {
+            "apiVersion": "scheduling.k8s.io/v1alpha1",
+            "items": [ ],
+            "kind": "PriorityClassList"
+         }
+      }
+   },
+   "settings": {
+      "v1alpha1": {
+         "podPresetList": {
+            "apiVersion": "settings.k8s.io/v1alpha1",
+            "items": [ ],
+            "kind": "PodPresetList"
+         }
+      }
+   },
+   "storage": {
+      "v1": {
+         "storageClassList": {
+            "apiVersion": "storage.k8s.io/v1",
+            "items": [ ],
+            "kind": "StorageClassList"
+         }
+      },
+      "v1beta1": {
+         "storageClassList": {
+            "apiVersion": "storage.k8s.io/v1",
+            "items": [ ],
+            "kind": "StorageClassList"
+         }
+      }
+   }
+}
