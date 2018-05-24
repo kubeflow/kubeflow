@@ -245,8 +245,8 @@
               "--project=" + project,
               "--name=" + deployName,
               "--config=" + configDir + "/cluster-kubeflow.yaml",
-              "--config=" + configDir + "/cluster.jinja",              
-            ]),  // create-deployment            
+              "--config=" + configDir + "/cluster.jinja",
+            ]),  // create-deployment
             // Setup and teardown using GKE.
             buildTemplate("delete-deployment", [
               "bash",
