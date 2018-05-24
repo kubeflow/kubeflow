@@ -112,9 +112,7 @@ def deploy_kubeflow_gcp(_):
       "imports": imports,
     },  
   }
-  
 
-  project = "cloud-ml-dev"
   response = None
   try: 
     logging.info("Creating deployment %s in project %s", deployment_name, 
