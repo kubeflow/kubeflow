@@ -1,26 +1,27 @@
 {
   all(params):: [
-    
-    $.parts(params.namespace).configMap(params.cloud, params.tfDefaultImage),
-    $.parts(params.namespace).serviceAccount,
-    $.parts(params.namespace).operatorRole,
-    $.parts(params.namespace).operatorRoleBinding,    
-    $.parts(params.namespace).uiRole,
-    $.parts(params.namespace).uiRoleBinding,
-    $.parts(params.namespace).uiService(params.tfJobUiServiceType),
-    $.parts(params.namespace).uiServiceAccount,
-    $.parts(params.namespace).ui(params.tfJobImage),
-  ] + 
 
-  if params.tfJobVersion == "v1alpha2" then
-  [ $.parts(params.namespace).crdv1alpha2, 
-    $.parts(params.namespace).tfJobDeployV1Alpha2(params.tfJobImage),
-  ]
-  else
-  [
-    $.parts(params.namespace).crd, 
-    $.parts(params.namespace).tfJobDeploy(params.tfJobImage),  
-  ],
+                  $.parts(params.namespace).configMap(params.cloud, params.tfDefaultImage),
+                  $.parts(params.namespace).serviceAccount,
+                  $.parts(params.namespace).operatorRole,
+                  $.parts(params.namespace).operatorRoleBinding,
+                  $.parts(params.namespace).uiRole,
+                  $.parts(params.namespace).uiRoleBinding,
+                  $.parts(params.namespace).uiService(params.tfJobUiServiceType),
+                  $.parts(params.namespace).uiServiceAccount,
+                  $.parts(params.namespace).ui(params.tfJobImage),
+                ] +
+
+                if params.tfJobVersion == "v1alpha2" then
+                  [
+                    $.parts(params.namespace).crdv1alpha2,
+                    $.parts(params.namespace).tfJobDeployV1Alpha2(params.tfJobImage),
+                  ]
+                else
+                  [
+                    $.parts(params.namespace).crd,
+                    $.parts(params.namespace).tfJobDeploy(params.tfJobImage),
+                  ],
 
   parts(namespace):: {
     crd: {
