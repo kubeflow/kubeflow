@@ -467,6 +467,7 @@
               "--namespace=" + stepsNamespace,
               "--registry-uri=" + srcDir + "/kubeflow",
               "--app-dir=" + testDir + "/app",
+              "--config=" + srcDir + "/testing/e2e_env.yaml",
               "--keep-alive=false",
             ]),  // bootstrap-kubeflow
           ],  // templates
