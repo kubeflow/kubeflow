@@ -243,7 +243,7 @@
               "-m",
               "testing.deploy_kubeflow_gcp",
               "--project=" + project,
-              "--name=" + deployName",
+              "--name=" + deployName,
               "--config=" + configDir + "/cluster-kubeflow.yaml",
               "--config=" + configDir + "/cluster.jinja",              
             ]),  // create-deployment            
