@@ -26,11 +26,9 @@ type ServerOption struct {
 	InCluster     bool
 	KeepAlive     bool
 	AppDir        string
-	KfVersion     string
-	NameSpace     string
-	Project       string
+	Config        string
 	Email         string
-	IpName        string
+	NameSpace     string
 	RegistryUri   string
 }
 
@@ -45,13 +43,11 @@ func (s *ServerOption) AddFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&s.PrintVersion, "version", false, "Show version and quit")
 	fs.BoolVar(&s.JsonLogFormat, "json-log-format", true, "Set true to use json style log format. Set false to use plaintext style log format")
 	fs.StringVar(&s.AppDir, "app-dir", "/opt/bootstrap/default", "The directory for the ksonnet application.")
-	fs.StringVar(&s.KfVersion, "kubeflow-version", "v0.1.0-rc.4", "The Kubeflow version to use.")
 	fs.StringVar(&s.NameSpace, "namespace", "kubeflow", "The namespace where all resources for kubeflow will be created")
 	fs.BoolVar(&s.Apply, "apply", false, "Whether or not to apply the configuration.")
-	fs.StringVar(&s.Project, "project", "", "The GCP project where kubeflow will be installed")
 	fs.StringVar(&s.Email, "email", "", "Your Email address for GCP account, if you are using GKE.")
-	fs.StringVar(&s.IpName, "ip-name", "kubeflow", "Name of the ip you reserved on GCP project")
 	fs.BoolVar(&s.InCluster, "in-cluster", false, "Whether bootstrapper is executed inside a pod")
 	fs.StringVar(&s.RegistryUri, "registry-uri", "/opt/kubeflow/kubeflow", "Location of kubeflow registry.")
 	fs.BoolVar(&s.KeepAlive, "keep-alive", true, "Whether bootstrapper will stay alive after setup resources.")
+	fs.StringVar(&s.Config, "config", "/opt/kubeflow/default.yaml", "Path to bootstrapper components config.")
 }
