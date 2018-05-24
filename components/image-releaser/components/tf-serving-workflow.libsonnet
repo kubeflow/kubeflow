@@ -12,7 +12,7 @@
     // The name of the NFS volume claim to use for test files.
     nfsVolumeClaim: "nfs-external",
     prowEnv: "REPO_OWNER=kubeflow,REPO_NAME=kubeflow,PULL_BASE_SHA=master",
-    registry: "gcr.io/kai-test2",
+    registry: "gcr.io/kubeflow-images-public",
     versionTag: "latest",
     // The default image to use for the steps in the Argo workflow.
     testingImage: "gcr.io/kubeflow-ci/test-worker",
@@ -125,31 +125,31 @@
                     template: "build-tf-serving-1-4cpu",
                     dependencies: ["checkout"],
                   },
-                  #  {
-                  #    name: "build-tf-serving-1-5cpu",
-                  #    template: "build-tf-serving-1-5cpu",
-                  #    dependencies: ["checkout"],
-                  #  },
-                  #  {
-                  #    name: "build-tf-serving-1-6cpu",
-                  #    template: "build-tf-serving-1-6cpu",
-                  #    dependencies: ["checkout"],
-                  #  },
-                  #  {
-                  #    name: "build-tf-serving-1-6gpu",
-                  #    template: "build-tf-serving-1-6gpu",
-                  #    dependencies: ["checkout"],
-                  #  },
-                  #  {
-                  #    name: "build-tf-serving-1-7cpu",
-                  #    template: "build-tf-serving-1-7cpu",
-                  #    dependencies: ["checkout"],
-                  #  },
-                  #  {
-                  #    name: "build-tf-serving-1-7gpu",
-                  #    template: "build-tf-serving-1-7gpu",
-                  #    dependencies: ["checkout"],
-                  #  },
+                  {
+                    name: "build-tf-serving-1-5cpu",
+                    template: "build-tf-serving-1-5cpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
+                    name: "build-tf-serving-1-6cpu",
+                    template: "build-tf-serving-1-6cpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
+                    name: "build-tf-serving-1-6gpu",
+                    template: "build-tf-serving-1-6gpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
+                    name: "build-tf-serving-1-7cpu",
+                    template: "build-tf-serving-1-7cpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
+                    name: "build-tf-serving-1-7gpu",
+                    template: "build-tf-serving-1-7gpu",
+                    dependencies: ["checkout"],
+                  },
                   {
                     name: "create-pr-symlink",
                     template: "create-pr-symlink",
@@ -161,12 +161,6 @@
             {
               name: "exit-handler",
               steps: [
-                [
-                  {
-                    name: "teardown",
-                    template: "teardown",
-                  },
-                ],
                 [{
                   name: "copy-artifacts",
                   template: "copy-artifacts",
@@ -225,22 +219,6 @@
               pythonPath,
               prowEnv
             ),  // copy-artifacts
-            $.util.buildTemplate(
-              "teardown",
-              [
-                "python",
-                "-m",
-                "testing.test_deploy",
-                "--project=" + project,
-                "--namespace=" + name,
-                "--test_dir=" + testDir,
-                "--artifacts_dir=" + artifactsDir,
-                "teardown",
-              ],
-              testingImage,
-              pythonPath,
-              prowEnv
-            ),  // teardown
           ],  // templates
         },
       },  // e2e

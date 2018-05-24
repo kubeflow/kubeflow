@@ -1,4 +1,4 @@
-local params = std.extVar("__ksonnet/params").components.workflows;
+local params = std.extVar("__ksonnet/params").components["tf-notebook-workflow"];
 
 local k = import "k.libsonnet";
 local tf_notebook_workflow = import "tf-notebook-workflow.libsonnet";

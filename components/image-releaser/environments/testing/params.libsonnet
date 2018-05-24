@@ -4,6 +4,12 @@ local envParams = params + {
   components+: {
     workflows+: {
       name: "test3"
+    },
+    "tf-serving-workflow"+: {
+      name: "test5"
+    },
+    "tf-notebook-workflow"+: {
+      name: "test4"
     }
   }
 };

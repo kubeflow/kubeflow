@@ -17,7 +17,7 @@
     stepImage: "gcr.io/kubeflow-ci/test-worker:latest",
 
     // The registry to use (should not include the image name or version tag)
-    registry: "gcr.io/kubeflow-ci",
+    registry: "gcr.io/kubeflow-image-public",
 
     // The tag to use for the image.
     versionTag: "latest",
