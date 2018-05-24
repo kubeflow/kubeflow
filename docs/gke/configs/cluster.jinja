@@ -180,10 +180,6 @@ e.g. creating namespaces, service accounts, stateful set to run the bootstrapper
           $.concat("Bearer ", $.googleOauth2AccessToken())
     descriptorUrl: https://$(ref.{{ CLUSTER_NAME }}.endpoint)/swaggerapi/{{ endpoint }}
 
-
-  metadata:
-      {# Set policy to abandon to avoid RESOURCE_NOT_FOUND_ERRORS on delete. #}
-      deletePolicy: ABANDON
 {% endfor %}
 
 {# Enable the resource manager API. This is needed below to get IAM policy.
