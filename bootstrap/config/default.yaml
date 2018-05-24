@@ -1,0 +1,11 @@
+# Default config for kubeflow bootstrapper, included in bootstrapper image
+---
+# App that always apply
+app:
+  packages:
+    - name: core
+    - name: tf-serving
+    - name: tf-job
+  components:
+    - name: kubeflow-core
+      prototype: kubeflow-core

@@ -36,6 +36,7 @@ limitations under the License.
 
 {% set COLLECTION_PREFIX = '/api/v1/namespaces/{namespace}/' %}
 {% set NAMESPACE_COLLECTION = '/api/v1/namespaces' %}
+{% set CM_COLLECTION = COLLECTION_PREFIX + 'configmaps' %}
 {% set RC_COLLECTION = COLLECTION_PREFIX + 'replicationcontrollers' %}
 {% set SERVICE_COLLECTION = COLLECTION_PREFIX + 'services' %}
 {% set PVC_COLLECTION = COLLECTION_PREFIX + 'persistentvolumeclaims' %}
@@ -325,6 +326,27 @@ e.g. creating namespaces, service accounts, stateful set to run the bootstrapper
       - admin-namespace
     deletePolicy: ABANDON
 
+{# ConfigMap for the bootstrapper #}
+- name: bootstrap-configmap
+  type: {{ CLUSTER_TYPE_API_V1 }}:{{ CM_COLLECTION }}
+  properties:
+    apiVersion: v1
+    {# Namespace is a property because its used bye deployment manager in 
+       the URL #}
+    kind: ConfigMap
+    namespace: kubeflow-admin
+    metadata:
+      name: kubeflow-bootstrapper
+      namespace: kubeflow-admin
+    data:
+      {# We need to escape newlines so that they get preserved in the configmap. #}
+      config.yaml: "{{ properties["bootstrapperConfig"]|replace("\n", "\\n") }}"
+
+  metadata:
+      dependsOn:
+        - admin-namespace
+      deletePolicy: ABANDON
+
 {# Stateful set for the bootstrapper #}
 - name: bootstrap-statefulset
   type: {{ APPS_TYPE }}:{{ STATEFULSETS_COLLECTION }}
@@ -352,8 +374,11 @@ e.g. creating namespaces, service accounts, stateful set to run the bootstrapper
           - name: kubeflow-bootstrapper
             image: {{ properties["bootstrapperImage"] }}
             workingDir: /opt/bootstrap
-            command: [ "/opt/kubeflow/bootstrapper"]
-            args: ["--in-cluster", "--namespace=kubeflow"]
+            command: 
+              - /opt/kubeflow/bootstrapper
+              - --in-cluster
+              - --namespace=kubeflow
+              - --config=/etc/kubeflow/config.yaml
             env:
             - name: NAMESPACE
               value: "kubeflow"
@@ -362,10 +387,15 @@ e.g. creating namespaces, service accounts, stateful set to run the bootstrapper
             volumeMounts:
             - name: kubeflow-ksonnet-pvc
               mountPath: /opt/bootstrap
+            - name: kubeflow-bootstrapper
+              mountPath: /etc/kubeflow
           volumes:
           - name: kubeflow-ksonnet-pvc
             persistentVolumeClaim:
               claimName: kubeflow-ksonnet-pvc
+          - name: kubeflow-bootstrapper
+            configMap:        
+              name: kubeflow-bootstrapper
 
   metadata:
     dependsOn:
