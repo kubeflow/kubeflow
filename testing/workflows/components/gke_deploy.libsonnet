@@ -239,22 +239,14 @@
               [],  // no sidecars
             ),
             buildTemplate("create-deployment", [
-              "bash",
-              "-c",
-              std.join(
-                " ",
-                commonCommands + [
-                  "&&",
-                  "gcloud",
-                  "deployment-manager",
-                  "--project=" + project,
-                  "deployments",
-                  "create",
-                  deployName,
-                  "--config=" + configDir + "/cluster-kubeflow.yaml",
-                ]
-              ),
-            ]),  // create-deployment
+              "python",
+              "-m",
+              "testing.deploy_kubeflow_gcp",
+              "--project=" + project,
+              "--name=" + deployName",
+              "--config=" + configDir + "/cluster-kubeflow.yaml",
+              "--config=" + configDir + "/cluster.jinja",              
+            ]),  // create-deployment            
             // Setup and teardown using GKE.
             buildTemplate("delete-deployment", [
               "bash",

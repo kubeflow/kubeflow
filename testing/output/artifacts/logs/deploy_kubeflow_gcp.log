@@ -1,0 +1,4 @@
+INFO|2018-05-23T18:14:50|deploy_kubeflow_gcp.py:118| Creating deployment jlewi-kubeflow-test3 in project cloud-ml-dev
+INFO|2018-05-23T18:14:50|discovery.py:868| URL being requested: POST https://www.googleapis.com/deploymentmanager/v2/projects/cloud-ml-dev/global/deployments?alt=json
+INFO|2018-05-23T18:14:50|transport.py:151| Attempting refresh to obtain initial access_token
+INFO|2018-05-23T18:14:50|client.py:795| Refreshing access_token
