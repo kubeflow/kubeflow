@@ -84,14 +84,17 @@ def deploy_kubeflow_gcp(_):
 
   deployments = deploy.deployments()
   
-  import_files = args.imports.split(",")
+  import_files = []
+  
+  if args.imports:
+    import_files = args.imports.split(",")
   
   imports = []
   
   with open(args.config) as hf:
     content = hf.read()
 
-  for f in import_files:
+  for f in import_files:    
     with open(f) as hf:
       name = os.path.basename(f)
       imports.append({
@@ -163,4 +166,10 @@ def main():
   test_suite.run()
 
 if __name__ == "__main__":
+  logging.basicConfig(
+    level=logging.INFO,
+    format=('%(levelname)s|%(asctime)s'
+            '|%(pathname)s|%(lineno)d| %(message)s'),
+    datefmt='%Y-%m-%dT%H:%M:%S',)
+  logging.getLogger().setLevel(logging.INFO)  
   main()
