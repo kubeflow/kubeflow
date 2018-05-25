@@ -39,7 +39,7 @@ resources:
     # Whether to deploy the new Stackdriver Kubernetes agents
     stackdriver-kubernetes: false
     # Path for the bootstrapper image.
-    bootstrapperImage: gcr.io/kubeflow-images-public/bootstrapper:v20180519-v0.1.1-57-g4c29f52f-e3b0c4
+    bootstrapperImage: gcr.io/kubeflow-images-public/bootstrapper:v20180524-v0.1.1-67-g01ccdff-dirty-e6531e
     # Provide the config for the bootstrapper. This should be a string
     # containing the YAML spec for the bootstrapper.
     #
@@ -50,7 +50,11 @@ resources:
       app:      
         packages:
           - name: core
+          - name: tf-serving
+          - name: tf-job
         components:
+          - name: kubeflow-core
+            prototype: kubeflow-core
           - name: cloud-endpoints
             prototype: cloud-endpoints
           - name: cert-manager
@@ -70,7 +74,7 @@ resources:
             # TODO: change ip name here
             value: <IpName>
           - component: iap-ingress
-            name: hostName
+            name: hostname
             # TODO: replace with Name of GCP project where kubeflow will be installed
             value: kubeflow.endpoints.<Project>.cloud.goog
           - component: kubeflow-core
