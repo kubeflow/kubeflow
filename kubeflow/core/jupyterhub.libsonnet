@@ -127,7 +127,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
       kind: "Service",
       metadata: {
         labels: {
-          app: "tf-hub",
+          app: "tf-hub-lb",
         },
         name: "tf-hub-lb",
         namespace: namespace,

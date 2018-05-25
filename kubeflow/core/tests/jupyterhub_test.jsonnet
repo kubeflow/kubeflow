@@ -93,7 +93,7 @@ std.assertEqual(jupyterhub.parts(params.namespace).jupyterHubLoadBalancer(params
                   kind: "Service",
                   metadata: {
                     labels: {
-                      app: "tf-hub",
+                      app: "tf-hub-lb",
                     },
                     name: "tf-hub-lb",
                     namespace: "test-kf-001",
