@@ -244,7 +244,7 @@
               "-m",
               "testing.teardown_kubeflow_gcp",
               "--project=" + project,
-              "--name=" + deployName,              
+              "--name=" + deployName,
             ]),  // delete-deployment
             buildTemplate("create-pr-symlink", [
               "python",
