@@ -133,13 +133,11 @@ resources:
     # We can only create 1 node pool at a time.
     - {{ CPU_POOL }}
 
-- name: static-ip
-  type: compute.v1.globalAddress
+{# Project defaults to the project of the deployment. #}
+- name: {{ properties['ipName']  }}
+  type: compute.v1.globalAddress  
   properties:
-    project: {{ properties['project'] }}
-    name: {{ CLUSTER_NAME }}
-    description: "Static IP for ingress."
-
+    description: "Static IP for Kubeflow ingress."
 
 {#
 
@@ -304,7 +302,7 @@ the corresponding type provider.
   properties:
     apiVersion: v1
     kind: PersistentVolumeClaim
-    {# Namespace is a property because its used bye deployment manager in 
+    {# Namespace is a property because its used by deployment manager in 
        the URL #}
     namespace: kubeflow-admin
     metadata:
@@ -371,14 +369,10 @@ the corresponding type provider.
             workingDir: /opt/bootstrap
             command: 
               - /opt/kubeflow/bootstrapper
-              - --in-cluster
+              - --in-cluster=true
+              - --apply=true
               - --namespace=kubeflow
               - --config=/etc/kubeflow/config.yaml
-            env:
-            - name: NAMESPACE
-              value: "kubeflow"
-            - name: DEPLOY_JOB
-              value: "TRUE"
             volumeMounts:
             - name: kubeflow-ksonnet-pvc
               mountPath: /opt/bootstrap

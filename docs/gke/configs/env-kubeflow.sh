@@ -22,12 +22,3 @@ export PROJECT_CONFIG_FILE=project-${PROJECT}.yaml
 
 # Get the project number
 export PROJECT_NUMBER=`gcloud projects describe ${PROJECT} --format='value(project_number)'`
-
-# ksonnet environment
-#export ENV=${PROJECT}
-
-# The fully qualified domain name to use with ingress.
-# You only need to set this if you want to use a custom domain
-# with ingress as opposed to an automatic domain for your project.
-# TODO(jlewi): What is the automatic domain name.
-#export FQDN=${PROJECT}.kubeflow.dev
