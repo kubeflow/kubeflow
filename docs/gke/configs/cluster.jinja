@@ -25,7 +25,7 @@ limitations under the License.
 {% set RBAC_TYPE_NAME = TYPE_NAME + '-rbac-v1' %}
 {% set APPS_TYPE_NAME = TYPE_NAME + '-apps-v1' %}
 
-{# A dictionary mapping type name suffixes to the corresponding 
+{# A dictionary mapping type name suffixes to the corresponding
    Kubernetes API endpoint.
 #}
 {% set K8S_ENDPOINTS = {'': 'api/v1', '-v1beta1-extensions': 'apis/extensions/v1beta1', '-rbac-v1': 'apis/rbac.authorization.k8s.io/v1', '-apps-v1': 'apis/apps/v1/'}  %}
@@ -50,14 +50,25 @@ limitations under the License.
    which causes errors.
 #}
 resources:
-- name: {{ CLUSTER_NAME }}
-  type: container.v1.cluster
+- name: kubeflow-service-account
+  type: iam.v1.serviceAccount
   properties:
+    accountId: {{ properties['serviceAccountName'] }}
+    displayName: GCP Service Account for use with kubeflow
+
+- name: {{ CLUSTER_NAME }}
+  {% if properties['apiVersion'] == 'v1beta1' %}
+  type: gcp-types/container-v1beta1:projects.locations.clusters
+  {% else %}
+  type: container.v1.cluster
+  {% endif %}
+  properties:
+    parent: projects/{{ env['project'] }}/locations/{{ properties['zone'] }}
     zone: {{ properties['zone'] }}
     cluster:
       name: {{ CLUSTER_NAME }}
       # Create a very small minimal pool. Actual nodes will be managed
-      # as additional node pools. This makes it easier to 
+      # as additional node pools. This makes it easier to
       initialNodeCount: 1
       {% if properties['stackdriver-kubernetes'] %}
       # TODO: remove alpha when 10.2 is public.
@@ -72,30 +83,58 @@ resources:
       monitoringService: monitoring.googleapis.com/kubernetes
       {% else %}
       initialClusterVersion: 1.9.6-gke.1
-      {% endif %}      
+      {% endif %}
+      podSecurityPolicyConfig:
+        enabled: {{ properties['podSecurityPolicy'] }}
+      {% if properties['privatecluster'] %}
+      ipAllocationPolicy:
+        createSubnetwork: true
+        useIpAliases: true
+      masterIpv4CidrBlock: {{ properties['masterIpv4CidrBlock'] }}
+      privateCluster: true
+      masterAuthorizedNetworksConfig: {{ properties['masterAuthorizedNetworksConfig'] }}
+      {% endif %}
       nodeConfig:
         machineType: n1-standard-1
+        serviceAccount: {{ properties['serviceAccountName'] }}@{{ env['project'] }}.iam.gserviceaccount.com
+        {% if properties['secureNodeMetadata'] %}
+        workloadMetadataConfig:
+          nodeMetadata: SECURE
+        {% endif %}
         oauthScopes:
         - https://www.googleapis.com/auth/compute
         - https://www.googleapis.com/auth/devstorage.read_only
         - https://www.googleapis.com/auth/logging.write
         - https://www.googleapis.com/auth/monitoring
+  metadata:
+    dependsOn:
+    - kubeflow-service-account
 
 # We manage the node pools as separate resources.
 # We do this so that if we want to make changes we can delete the existing resource and then recreate it.
 # Updating doesn't work so well because we are limited in what changes GKE's update method supports.
 
 - name: {{ CPU_POOL }}
+  {% if properties['apiVersion'] == 'v1beta1' %}
+  type: gcp-types/container-v1beta1:projects.locations.clusters.nodePools
+  {% else %}
   type: container.v1.nodePool
+  {% endif %}
   properties:
+    parent: projects/{{ env['project'] }}/locations/{{ properties['zone'] }}/clusters/{{ CLUSTER_NAME }}
     project: {{ properties['project'] }}
     zone: {{ properties['zone'] }}
     clusterId: {{ CLUSTER_NAME }}
     nodePool:
-      name: cpu-pool      
+      name: cpu-pool
       initialNodeCount: {{ properties['cpu-pool-initialNodeCount'] }}
-      config:          
+      config:
+        {% if properties['secureNodeMetadata'] %}
+        workloadMetadataConfig:
+          nodeMetadata: SECURE
+        {% endif %}
         machineType: n1-standard-8
+        serviceAccount: {{ properties['serviceAccountName'] }}@{{ env['project'] }}.iam.gserviceaccount.com
         oauthScopes:
           - https://www.googleapis.com/auth/compute
           - https://www.googleapis.com/auth/devstorage.read_only
@@ -107,16 +146,26 @@ resources:
     - {{ CLUSTER_NAME }}
 
 - name: {{ GPU_POOL }}
+  {% if properties['apiVersion'] == 'v1beta1' %}
+  type: gcp-types/container-v1beta1:projects.locations.clusters.nodePools
+  {% else %}
   type: container.v1.nodePool
+  {% endif %}
   properties:
+    parent: projects/{{ env['project'] }}/locations/{{ properties['zone'] }}/clusters/{{ CLUSTER_NAME }}
     project: {{ properties['project'] }}
     zone: {{ properties['zone'] }}
     clusterId: {{ CLUSTER_NAME }}
     nodePool:
-      name: gpu-pool      
+      name: gpu-pool
       initialNodeCount: {{ properties['gpu-pool-initialNodeCount'] }}
-      config:          
+      config:
+        {% if properties['secureNodeMetadata'] %}
+        workloadMetadataConfig:
+          nodeMetadata: SECURE
+        {% endif %}
         machineType: n1-standard-8
+        serviceAccount: {{ properties['serviceAccountName'] }}@{{ env['project'] }}.iam.gserviceaccount.com
         oauthScopes:
         # Attaching cloud-platform scope to nodes is not good practice
         # But it simplifies demos.
@@ -144,7 +193,7 @@ resources:
 
 {#
 
-Define TypeProviders for different K8s endpoints. 
+Define TypeProviders for different K8s endpoints.
 https://cloud.google.com/deployment-manager/docs/configuration/type-providers/process-adding-api
 This allows K8s resources to be created using Deployment manager.
 We use this to create the minimal resources needed to startup and deploy Kubeflow via the bootstrapper;
@@ -186,29 +235,29 @@ e.g. creating namespaces, service accounts, stateful set to run the bootstrapper
  If activating multiple APIs you might want to serialize them.
 
  We use an action and not the type deploymentmanager.v2.virtual.enableService
- because we only want to create it; we don't want to delete it. 
+ because we only want to create it; we don't want to delete it.
  Deleting the service corresponds to deactivating the API and that causes problems.
  #}
 - name: resource-manager-api
   action: 'gcp-types/servicemanagement-v1:servicemanagement.services.enable'
-  properties: 
+  properties:
     consumerId: {{ 'project:' + env['project'] }}
     serviceName: cloudresourcemanager.googleapis.com
 
 {# Get the IAM policy first so that we do not remove any existing bindings. #}
 - name: get-iam-policy
   action: gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.getIamPolicy
-  properties: 
+  properties:
     resource: {{ env['project'] }}
-        
+
   metadata:
     dependsOn:
       - resource-manager-api
-    runtimePolicy: 
-      - UPDATE_ALWAYS 
+    runtimePolicy:
+      - UPDATE_ALWAYS
 
 {# Set the IAM policy patching the existing policy with what ever is currently in the
-  config. 
+  config.
 
   We need to make the cloudservices account a GKE cluster admin because deployment manager
   users the cloudservices account; so this will be the identity used with the K*s cluster.
@@ -218,11 +267,11 @@ e.g. creating namespaces, service accounts, stateful set to run the bootstrapper
 #}
 - name: patch-iam-policy
   action: gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.setIamPolicy
-  properties: 
+  properties:
     resource: {{ env['project'] }}
     policy: $(ref.get-iam-policy)
     gcpIamPolicyPatch:
-      add: 
+      add:
         - role: roles/container.admin
           members:
             - {{ 'serviceAccount:' + env['project_number'] + '@cloudservices.gserviceaccount.com' }}
@@ -231,8 +280,8 @@ e.g. creating namespaces, service accounts, stateful set to run the bootstrapper
   metadata:
     dependsOn:
       - get-iam-policy
-    runtimePolicy: 
-      - UPDATE_ALWAYS 
+    runtimePolicy:
+      - UPDATE_ALWAYS
 
 {#  Namespace for bootstrapper. #}
 - name: admin-namespace
@@ -241,7 +290,7 @@ e.g. creating namespaces, service accounts, stateful set to run the bootstrapper
     apiVersion: v1
     kind: Namespace
     metadata:
-      name: kubeflow-admin    
+      name: kubeflow-admin
     spec:
 
   metadata:
@@ -307,11 +356,11 @@ e.g. creating namespaces, service accounts, stateful set to run the bootstrapper
   properties:
     apiVersion: v1
     kind: PersistentVolumeClaim
-    {# Namespace is a property because its used bye deployment manager in 
+    {# Namespace is a property because its used bye deployment manager in
        the URL #}
     namespace: kubeflow-admin
     metadata:
-      name: kubeflow-ksonnet-pvc      
+      name: kubeflow-ksonnet-pvc
       labels:
         app: kubeflow-ksonnet
     spec:
@@ -331,7 +380,7 @@ e.g. creating namespaces, service accounts, stateful set to run the bootstrapper
   type: {{ CLUSTER_TYPE_API_V1 }}:{{ CM_COLLECTION }}
   properties:
     apiVersion: v1
-    {# Namespace is a property because its used bye deployment manager in 
+    {# Namespace is a property because its used bye deployment manager in
        the URL #}
     kind: ConfigMap
     namespace: kubeflow-admin
@@ -352,7 +401,7 @@ e.g. creating namespaces, service accounts, stateful set to run the bootstrapper
   type: {{ APPS_TYPE }}:{{ STATEFULSETS_COLLECTION }}
   properties:
     apiVersion: apps/v1
-    {# Namespace is a property because its used bye deployment manager in 
+    {# Namespace is a property because its used bye deployment manager in
        the URL #}
     kind: StatefulSet
     namespace: kubeflow-admin
@@ -374,7 +423,7 @@ e.g. creating namespaces, service accounts, stateful set to run the bootstrapper
           - name: kubeflow-bootstrapper
             image: {{ properties["bootstrapperImage"] }}
             workingDir: /opt/bootstrap
-            command: 
+            command:
               - /opt/kubeflow/bootstrapper
               - --in-cluster
               - --namespace=kubeflow
@@ -394,7 +443,7 @@ e.g. creating namespaces, service accounts, stateful set to run the bootstrapper
             persistentVolumeClaim:
               claimName: kubeflow-ksonnet-pvc
           - name: kubeflow-bootstrapper
-            configMap:        
+            configMap:
               name: kubeflow-bootstrapper
 
   metadata:
