@@ -55,6 +55,45 @@
           singular: "tfjob",
           plural: "tfjobs",
         },
+        validation: {
+          openAPIV3Schema: {
+            properties: {
+              spec: {
+                properties: {
+                  tfReplicaSpecs: {
+                    properties: {
+                      Worker: {
+                        properties: {
+                          replicas: {
+                            type: "integer",
+                            minimum: 1,
+                          },
+                        },
+                      },
+                      PS: {
+                        properties: {
+                          replicas: {
+                            type: "integer",
+                            minimum: 1,
+                          },
+                        },
+                      },
+                      Chief: {
+                        properties: {
+                          replicas: {
+                            type: "integer",
+                            minimum: 1,
+                            maximum: 1,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     },
 
