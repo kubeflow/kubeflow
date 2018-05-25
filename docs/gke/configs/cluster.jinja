@@ -102,10 +102,7 @@ resources:
           nodeMetadata: SECURE
         {% endif %}
         oauthScopes:
-        - https://www.googleapis.com/auth/compute
-        - https://www.googleapis.com/auth/devstorage.read_only
-        - https://www.googleapis.com/auth/logging.write
-        - https://www.googleapis.com/auth/monitoring
+        - gke-default
   metadata:
     dependsOn:
     - kubeflow-service-account
@@ -136,10 +133,7 @@ resources:
         machineType: n1-standard-8
         serviceAccount: {{ properties['serviceAccountName'] }}@{{ env['project'] }}.iam.gserviceaccount.com
         oauthScopes:
-          - https://www.googleapis.com/auth/compute
-          - https://www.googleapis.com/auth/devstorage.read_only
-          - https://www.googleapis.com/auth/logging.write
-          - https://www.googleapis.com/auth/monitoring
+        - gke-default
 
   metadata:
     dependsOn:
@@ -167,13 +161,7 @@ resources:
         machineType: n1-standard-8
         serviceAccount: {{ properties['serviceAccountName'] }}@{{ env['project'] }}.iam.gserviceaccount.com
         oauthScopes:
-        # Attaching cloud-platform scope to nodes is not good practice
-        # But it simplifies demos.
-          - https://www.googleapis.com/auth/cloud-platform
-          - https://www.googleapis.com/auth/compute
-          - https://www.googleapis.com/auth/devstorage.read_only
-          - https://www.googleapis.com/auth/logging.write
-          - https://www.googleapis.com/auth/monitoring
+        - gke-default
         accelerators:
           - acceleratorCount: 1
             acceleratorType: nvidia-tesla-k80
