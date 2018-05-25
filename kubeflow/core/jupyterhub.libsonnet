@@ -167,11 +167,11 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
           spec: {
             containers: [
               {
-                //                command: [
-                //                  "/bin/bash",
-                //                  "-c",
-                //                  "trap : TERM INT; sleep infinity & wait",
-                //                ],
+                //command: [
+                //  "/bin/bash",
+                //  "-c",
+                //  "trap : TERM INT; sleep infinity & wait",
+                //],
                 command: [
                   'jupyterhub',
                   '-f',
