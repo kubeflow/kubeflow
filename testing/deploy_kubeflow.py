@@ -4,6 +4,9 @@ import os
 
 import yaml
 from kubernetes.config import kube_config
+# TODO(jlewi): We should be using absolute imports always.
+# So it should be from testing import deploy_utils because testing
+# is the top level python package.
 from . import deploy_utils
 from kubeflow.testing import test_helper
 from kubeflow.testing import util  # pylint: disable=no-name-in-module
