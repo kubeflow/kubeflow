@@ -24,11 +24,11 @@ import (
 	"path/filepath"
 	"regexp"
 	"strconv"
-	"strings"
 	"time"
 	"os/exec"
 	"bytes"
 
+	"github.com/ghodss/yaml"
 	"github.com/ksonnet/ksonnet/actions"
 	kApp "github.com/ksonnet/ksonnet/metadata/app"
 	"github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app/options"
@@ -45,19 +45,62 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	"io/ioutil"
 )
 
 // RecommendedConfigPathEnvVar is a environment variable for path configuration
 const RecommendedConfigPathEnvVar = "KUBECONFIG"
 
-// DefaultStorageAnnotation is the name of the default annotation used to indicate
+// DefaultStorageAnnotation is the Name of the default annotation used to indicate
 // whether a storage class is the default.
 const DefaultStorageAnnotation = "storageclass.beta.kubernetes.io/is-default-class"
 
 // Assume gcloud is on the path.
 const GcloudPath = "gcloud"
 
-const Kubectl = "/usr/local/bin/kubectl"
+const RegistryName = "kubeflow"
+
+type KsComponent struct{
+	Name      string
+	Prototype string
+}
+
+type KsPackage struct{
+	Name string
+}
+
+type KsParameter struct{
+	Component string
+	Name      string
+	Value     string
+}
+
+//
+type AppConfig struct {
+	Packages   []KsPackage
+	Components []KsComponent
+	Parameters []KsParameter
+}
+
+type BootConfig struct {
+	App  AppConfig
+}
+
+// Load yaml config
+func LoadConfig(path string) (*BootConfig, error) {
+	if path == "" {
+		return nil, errors.New("empty path")
+	}
+	var c BootConfig
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	if err = yaml.Unmarshal(data, &c); err != nil {
+		return nil, err
+	}
+	return &c, nil
+}
 
 // TODO(jlewi): If we use the same userid and groupid when running in a container then
 // we shoiuld be able to map in a user's home directory which could be useful e.g for
@@ -221,6 +264,57 @@ func createComponent(opt *options.ServerOption, kfApp *kApp.App, fs *afero.Fs, a
 	}
 }
 
+func appGenerate(opt *options.ServerOption, kfApp *kApp.App, fs *afero.Fs, appConfig *AppConfig) {
+	libs, err := (*kfApp).Libraries()
+
+	if err != nil {
+		log.Fatalf("Could not list libraries for app; error %v", err)
+	}
+	// Install packages.
+	for _, p := range appConfig.Packages {
+		pkgName := p.Name
+		_, err = (*fs).Stat(path.Join(opt.RegistryUri, pkgName))
+		if err != nil {
+			log.Fatalf("Package %v didn't exist in registry %v", pkgName, opt.RegistryUri)
+		}
+		full := fmt.Sprintf("kubeflow/%v", pkgName)
+		log.Infof("Installing package %v", full)
+
+		if _, found := libs[pkgName]; found {
+			log.Infof("Package %v already exists", pkgName)
+			continue
+		}
+		err := actions.RunPkgInstall(map[string]interface{}{
+			actions.OptionApp:     *kfApp,
+			actions.OptionLibName: full,
+			actions.OptionName:    pkgName,
+		})
+
+		if err != nil {
+			log.Fatalf("There was a problem installing package %v; error %v", full, err)
+		}
+	}
+
+	// Create Components
+	for _, c := range appConfig.Components {
+		createComponent(opt, kfApp, fs, []string{c.Prototype, c.Name})
+	}
+
+	// Apply Params
+	for _, p := range appConfig.Parameters {
+		err = actions.RunParamSet(map[string]interface{}{
+			actions.OptionApp:   *kfApp,
+			actions.OptionName:  p.Component,
+			actions.OptionPath:  p.Name,
+			actions.OptionValue: p.Value,
+		})
+
+		if err != nil {
+			log.Fatalf("Error when setting Parameters %v for Component %v: %v", p.Name, p.Component, err)
+		}
+	}
+}
+
 // Run the tool.
 func Run(opt *options.ServerOption) error {
 	// Check if the -version flag was passed and, if so, print the version and exit.
@@ -229,6 +323,11 @@ func Run(opt *options.ServerOption) error {
 	}
 
 	config, err := getClusterConfig(opt.InCluster)
+	if err != nil {
+		return err
+	}
+
+	bootConfig, err := LoadConfig(opt.Config)
 	if err != nil {
 		return err
 	}
@@ -322,11 +421,9 @@ func Run(opt *options.ServerOption) error {
 		log.Fatalf("There was a problem loading the app: %v", err)
 	}
 
-	registryName := "kubeflow"
-
 	options := map[string]interface{}{
 		actions.OptionApp:  kfApp,
-		actions.OptionName: registryName,
+		actions.OptionName: RegistryName,
 		actions.OptionURI:  opt.RegistryUri,
 		// Version doesn't actually appear to be used by the add function.
 		actions.OptionVersion: "",
@@ -341,8 +438,8 @@ func Run(opt *options.ServerOption) error {
 		log.Fatal("There was a problem listing registries; %v", err)
 	}
 
-	if _, found := registries[registryName]; found {
-		log.Infof("App already has registry %v", registryName)
+	if _, found := registries[RegistryName]; found {
+		log.Infof("App already has registry %v", RegistryName)
 	} else {
 
 		err = actions.RunRegistryAdd(options)
@@ -351,50 +448,14 @@ func Run(opt *options.ServerOption) error {
 		}
 	}
 
-	libs, err := kfApp.Libraries()
+	// Load default kubeflow apps
+	appGenerate(opt, &kfApp, &fs, &bootConfig.App)
 
-	if err != nil {
-		log.Fatalf("Could not list libraries for app; error %v", err)
-	}
-
-	// Install packages.
-	for _, p := range []string{"kubeflow/core", "kubeflow/tf-serving", "kubeflow/tf-job", "kubeflow/pytorch-job"} {
-		pieces := strings.Split(p, "/")
-		_, err = fs.Stat(path.Join(opt.RegistryUri, pieces[1]))
-		if err != nil {
-			continue
-		}
-		full := fmt.Sprintf("%v@%v", p, opt.KfVersion)
-		log.Infof("Installing package %v", full)
-
-		pkgName := pieces[1]
-
-		if _, found := libs[pkgName]; found {
-			log.Infof("Package %v already exists", pkgName)
-			continue
-		}
-		err := actions.RunPkgInstall(map[string]interface{}{
-			actions.OptionApp:     kfApp,
-			actions.OptionLibName: full,
-			actions.OptionName:    pkgName,
-		})
-
-		if err != nil {
-			log.Fatalf("There was a problem installing package %v; error %v", full, err)
-		}
-	}
-
-	// Create the Kubeflow component
 	kubeflowCoreName := "kubeflow-core"
-	createComponent(opt, &kfApp, &fs, []string{kubeflowCoreName, kubeflowCoreName})
-
-	// Create the pytorch-operator component
-	pytorchName := "pytorch-operator"
-	createComponent(opt, &kfApp, &fs, []string{pytorchName, pytorchName})
 
 	pvcMount := ""
 	if hasDefault {
-		pvcMount = "/home/jovyan/work"
+		pvcMount = "/home/jovyan"
 	}
 
 	err = actions.RunParamSet(map[string]interface{}{
@@ -408,57 +469,6 @@ func Run(opt *options.ServerOption) error {
 		return err
 	}
 
-	if isGke(clusterVersion) && opt.Project != "" {
-		log.Infof("Prepare Https access ...")
-
-		if !isGke(clusterVersion) {
-			return errors.New("Currently https auto setup only available on GKE.")
-		}
-		endpointsArgs := []string{
-			"cloud-endpoints",
-			"cloud-endpoints",
-			"--namespace",
-			opt.NameSpace,
-			"--secretName",
-			"cloudep-sa",
-		}
-		createComponent(opt, &kfApp, &fs, endpointsArgs)
-
-		certManagerArgs := []string{
-			"cert-manager",
-			"cert-manager",
-			"--namespace",
-			opt.NameSpace,
-			"--acmeEmail",
-			opt.Email,
-		}
-		createComponent(opt, &kfApp, &fs, certManagerArgs)
-
-		FQDN := fmt.Sprintf("kubeflow.endpoints.%v.cloud.goog", opt.Project)
-		iapIngressArgs := []string{
-			"iap-ingress",
-			"iap-ingress",
-			"--namespace",
-			opt.NameSpace,
-			"--ipName",
-			opt.IpName,
-			"--hostname",
-			FQDN,
-		}
-
-		createComponent(opt, &kfApp, &fs, iapIngressArgs)
-
-		err = actions.RunParamSet(map[string]interface{}{
-			actions.OptionApp:   kfApp,
-			actions.OptionName:  kubeflowCoreName,
-			actions.OptionPath:  "jupyterHubAuthenticator",
-			actions.OptionValue: "iap",
-		})
-		if err != nil {
-			return err
-		}
-	}
-
 	if err := os.Chdir(kfApp.Root()); err != nil {
 		return err
 	}
@@ -470,8 +480,8 @@ func Run(opt *options.ServerOption) error {
 		// (05092018): why not use API:
 		// ks runApply API expects clientcmd.ClientConfig, which kind of have soft dependency on existence of ~/.kube/config
 		// if use k8s client-go API, would be quite verbose if we create all resources one by one.
-		// TODO: use API to create ks components
-		log.Infof("Apply kubeflow components...")
+		// TODO: use API to create ks Components
+		log.Infof("Apply kubeflow Components...")
 		rawCmd := "ks show default | kubectl apply -f -"
 		applyCmd := exec.Command("bash", "-c", rawCmd)
 

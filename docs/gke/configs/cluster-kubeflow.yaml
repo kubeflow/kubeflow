@@ -16,13 +16,18 @@ imports:
 - path: cluster.jinja
 
 resources:
+  # Deployment manager doesn't support depends on references in template type.
+  # So the two possible work arounds are
+  # 1. Use a single template (.jinja file for all resources) or
+  # 2. Create two separate deployments and launch the boot strapper
+  # after the cluster is created.
+  # 
+  # Two separate deployments doesn't make much sense; we could just use 
+  # kubectl at that point. So we put all resources in a single deployment.
 - name: kubeflow
   type: cluster.jinja
   properties:
     zone: us-east1-d
-    # We create a very small initial pool.
-    # Actual nodes will be managed as additional node pools.
-    initialNodeCount: 1
     # An arbitrary string appending to name of nodepools
     # bump this if you want to modify the node pools.
     # This will cause existing node pools to be deleted and new ones to be created.
@@ -33,3 +38,41 @@ resources:
     gpu-pool-initialNodeCount: 0    
     # Whether to deploy the new Stackdriver Kubernetes agents
     stackdriver-kubernetes: false
+    # Path for the bootstrapper image.
+    bootstrapperImage: gcr.io/kubeflow-images-public/bootstrapper:v20180519-v0.1.1-57-g4c29f52f-e3b0c4
+    # Provide the config for the bootstrapper. This should be a string
+    # containing the YAML spec for the bootstrapper.
+    #
+    # You should set the following followings
+    #    <email> - Set this to your email address; this is used with lets-encrypt.
+    bootstrapperConfig: |
+      # Apps only apply if on GKE
+      app:      
+        packages:
+          - name: core
+        components:
+          - name: cloud-endpoints
+            prototype: cloud-endpoints
+          - name: cert-manager
+            prototype: cert-manager
+          - name: iap-ingress
+            prototype: iap-ingress
+        parameters:
+          - component: cloud-endpoints
+            name: secretName
+            value: cloudep-sa
+          - component: cert-manager
+            name: acmeEmail
+            # TODO: use your email for ssl cert
+            value: <email>
+          - component: iap-ingress
+            name: ipName
+            # TODO: change ip name here
+            value: <IpName>
+          - component: iap-ingress
+            name: hostName
+            # TODO: replace with Name of GCP project where kubeflow will be installed
+            value: kubeflow.endpoints.<Project>.cloud.goog
+          - component: kubeflow-core
+            name: jupyterHubAuthenticator
+            value: iap

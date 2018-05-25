@@ -13,12 +13,42 @@ limitations under the License.
 
 
 {% set NAME_PREFIX = env['deployment'] + '-' + env['name'] %}
-{% set CLUSTER_NAME = env['name'] %}
-{% set TYPE_NAME = NAME_PREFIX + '-type' %}
-{% set K8S_ENDPOINTS = {'': 'api/v1', '-v1beta1-extensions': 'apis/extensions/v1beta1'} %}
-{% set CPU_POOL = 'cpu-pool-' + properties['pool-version'] %}
-{% set GPU_POOL = 'gpu-pool-' + properties['pool-version'] %}
+{% set CLUSTER_NAME = NAME_PREFIX %}
+{% set CPU_POOL = NAME_PREFIX + '-cpu-pool-' + properties['pool-version'] %}
+{% set GPU_POOL = NAME_PREFIX + '-gpu-pool-' + properties['pool-version'] %}
 
+{# Type names are the names to give to deployment manager type providers
+   that will be created to represent Kubernetes objects.
+   There is type corresponding to each API endpoint.
+#}
+{% set TYPE_NAME = NAME_PREFIX + '-type' %}
+{% set RBAC_TYPE_NAME = TYPE_NAME + '-rbac-v1' %}
+{% set APPS_TYPE_NAME = TYPE_NAME + '-apps-v1' %}
+
+{# A dictionary mapping type name suffixes to the corresponding 
+   Kubernetes API endpoint.
+#}
+{% set K8S_ENDPOINTS = {'': 'api/v1', '-v1beta1-extensions': 'apis/extensions/v1beta1', '-rbac-v1': 'apis/rbac.authorization.k8s.io/v1', '-apps-v1': 'apis/apps/v1/'}  %}
+
+{% set CLUSTER_TYPE_API_V1 = env['project'] + '/' + TYPE_NAME %}
+{% set RBAC_TYPE = env['project'] + '/' + RBAC_TYPE_NAME %}
+{% set APPS_TYPE = env['project'] + '/' + APPS_TYPE_NAME %}
+
+{% set COLLECTION_PREFIX = '/api/v1/namespaces/{namespace}/' %}
+{% set NAMESPACE_COLLECTION = '/api/v1/namespaces' %}
+{% set CM_COLLECTION = COLLECTION_PREFIX + 'configmaps' %}
+{% set RC_COLLECTION = COLLECTION_PREFIX + 'replicationcontrollers' %}
+{% set SERVICE_COLLECTION = COLLECTION_PREFIX + 'services' %}
+{% set PVC_COLLECTION = COLLECTION_PREFIX + 'persistentvolumeclaims' %}
+{% set STATEFULSETS_COLLECTION = '/apis/apps/v1/namespaces/{namespace}/statefulsets' %}
+{% set CLUSTER_ROLE_BINDING_COLLECTION = '/apis/rbac.authorization.k8s.io/v1/clusterrolebindings' %}
+
+{# For most of the K8s resources we set the deletePolicy to abandon; otherwise deployment manager reports various errors.
+   Since we delete the cluster all the K8s resources will be deleted anyway.
+
+   We also set deletePolicy to ABANDON on the project APIs because otherwise it tries to deactivate them
+   which causes errors.
+#}
 resources:
 - name: {{ CLUSTER_NAME }}
   type: container.v1.cluster
@@ -26,8 +56,9 @@ resources:
     zone: {{ properties['zone'] }}
     cluster:
       name: {{ CLUSTER_NAME }}
-      # 
-      initialNodeCount: {{ properties['initialNodeCount'] }}
+      # Create a very small minimal pool. Actual nodes will be managed
+      # as additional node pools. This makes it easier to 
+      initialNodeCount: 1
       {% if properties['stackdriver-kubernetes'] %}
       # TODO: remove alpha when 10.2 is public.
       # https://github.com/kubeflow/kubeflow/issues/821
@@ -43,7 +74,8 @@ resources:
       initialClusterVersion: 1.9.6-gke.1
       {% endif %}      
       nodeConfig:
-        oauthScopes:        
+        machineType: n1-standard-1
+        oauthScopes:
         - https://www.googleapis.com/auth/compute
         - https://www.googleapis.com/auth/devstorage.read_only
         - https://www.googleapis.com/auth/logging.write
@@ -53,7 +85,7 @@ resources:
 # We do this so that if we want to make changes we can delete the existing resource and then recreate it.
 # Updating doesn't work so well because we are limited in what changes GKE's update method supports.
 
-- name: cpu-pool-{{ properties['pool-version'] }}
+- name: {{ CPU_POOL }}
   type: container.v1.nodePool
   properties:
     project: {{ properties['project'] }}
@@ -150,9 +182,227 @@ e.g. creating namespaces, service accounts, stateful set to run the bootstrapper
     descriptorUrl: https://$(ref.{{ CLUSTER_NAME }}.endpoint)/swaggerapi/{{ endpoint }}
 {% endfor %}
 
+{# Enable the resource manager API. This is needed below to get IAM policy.
+ If activating multiple APIs you might want to serialize them.
+
+ We use an action and not the type deploymentmanager.v2.virtual.enableService
+ because we only want to create it; we don't want to delete it. 
+ Deleting the service corresponds to deactivating the API and that causes problems.
+ #}
+- name: resource-manager-api
+  action: 'gcp-types/servicemanagement-v1:servicemanagement.services.enable'
+  properties: 
+    consumerId: {{ 'project:' + env['project'] }}
+    serviceName: cloudresourcemanager.googleapis.com
+
+{# Get the IAM policy first so that we do not remove any existing bindings. #}
+- name: get-iam-policy
+  action: gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.getIamPolicy
+  properties: 
+    resource: {{ env['project'] }}
+        
+  metadata:
+    dependsOn:
+      - resource-manager-api
+    runtimePolicy: 
+      - UPDATE_ALWAYS 
+
+{# Set the IAM policy patching the existing policy with what ever is currently in the
+  config. 
+
+  We need to make the cloudservices account a GKE cluster admin because deployment manager
+  users the cloudservices account; so this will be the identity used with the K*s cluster.
+
+  Note: This will fail if the cloudservices account doesn't have IamProjectAdmin
+  permissions.
+#}
+- name: patch-iam-policy
+  action: gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.setIamPolicy
+  properties: 
+    resource: {{ env['project'] }}
+    policy: $(ref.get-iam-policy)
+    gcpIamPolicyPatch:
+      add: 
+        - role: roles/container.admin
+          members:
+            - {{ 'serviceAccount:' + env['project_number'] + '@cloudservices.gserviceaccount.com' }}
+      remove: []
+
+  metadata:
+    dependsOn:
+      - get-iam-policy
+    runtimePolicy: 
+      - UPDATE_ALWAYS 
+
+{#  Namespace for bootstrapper. #}
+- name: admin-namespace
+  type: {{ CLUSTER_TYPE_API_V1 }}:{{ NAMESPACE_COLLECTION }}
+  properties:
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: kubeflow-admin    
+    spec:
+
+  metadata:
+      dependsOn:
+      # Wait for the type provider to be created.
+      - {{ TYPE_NAME }}
+
+      deletePolicy: ABANDON
+
+{# The deployment manager uses the cloudservices account. We need to create
+   a cluster role binding making the cloudservices account cluster admin
+   so that we can then create other cluster role bindings.
+#}
+- name: dm-rbac
+  type: {{ RBAC_TYPE }}:{{ CLUSTER_ROLE_BINDING_COLLECTION }}
+  properties:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      name: cloud-services-cluster-admin
+    subjects:
+      - kind: User
+        name: {{ env['project_number'] + '@cloudservices.gserviceaccount.com' }}
+    roleRef:
+      kind: ClusterRole
+      name: cluster-admin
+      apiGroup: rbac.authorization.k8s.io
+  metadata:
+    dependsOn:
+      - {{ RBAC_TYPE_NAME }}
+      - admin-namespace
+    deletePolicy: ABANDON
+
+{# Make the default service account in the kubeflow-admin namespace a cluster admin.
+   Cluster admin priveleges are needed by the bootstrapper.
+#}
+- name: bootstrap-rbac
+  type: {{ RBAC_TYPE }}:{{ CLUSTER_ROLE_BINDING_COLLECTION }}
+  properties:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      name: kubeflow-cluster-admin
+    subjects:
+      - kind: ServiceAccount
+        name: default
+        namespace: kubeflow-admin
+    roleRef:
+      kind: ClusterRole
+      name: cluster-admin
+      apiGroup: rbac.authorization.k8s.io
+  metadata:
+    dependsOn:
+      - {{ RBAC_TYPE_NAME }}
+      - admin-namespace
+      - dm-rbac
+    deletePolicy: ABANDON
+
+{# Create a persistent volume to store the ksonnet app.
+#}
+- name: bootstrap-pvc
+  type: {{ CLUSTER_TYPE_API_V1 }}:{{ PVC_COLLECTION }}
+  properties:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    {# Namespace is a property because its used bye deployment manager in 
+       the URL #}
+    namespace: kubeflow-admin
+    metadata:
+      name: kubeflow-ksonnet-pvc      
+      labels:
+        app: kubeflow-ksonnet
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 5Gi
+
+  metadata:
+    dependsOn:
+      - admin-namespace
+    deletePolicy: ABANDON
+
+{# ConfigMap for the bootstrapper #}
+- name: bootstrap-configmap
+  type: {{ CLUSTER_TYPE_API_V1 }}:{{ CM_COLLECTION }}
+  properties:
+    apiVersion: v1
+    {# Namespace is a property because its used bye deployment manager in 
+       the URL #}
+    kind: ConfigMap
+    namespace: kubeflow-admin
+    metadata:
+      name: kubeflow-bootstrapper
+      namespace: kubeflow-admin
+    data:
+      {# We need to escape newlines so that they get preserved in the configmap. #}
+      config.yaml: "{{ properties["bootstrapperConfig"]|replace("\n", "\\n") }}"
+
+  metadata:
+      dependsOn:
+        - admin-namespace
+      deletePolicy: ABANDON
+
+{# Stateful set for the bootstrapper #}
+- name: bootstrap-statefulset
+  type: {{ APPS_TYPE }}:{{ STATEFULSETS_COLLECTION }}
+  properties:
+    apiVersion: apps/v1
+    {# Namespace is a property because its used bye deployment manager in 
+       the URL #}
+    kind: StatefulSet
+    namespace: kubeflow-admin
+    metadata:
+      name: kubeflow-bootstrapper
+      namespace: kubeflow-admin
+    spec:
+      selector:
+        matchLabels:
+          app: kubeflow-bootstrapper
+      serviceName: kubeflow-bootstrapper
+      template:
+        metadata:
+          name: kubeflow-bootstrapper
+          labels:
+            app: kubeflow-bootstrapper
+        spec:
+          containers:
+          - name: kubeflow-bootstrapper
+            image: {{ properties["bootstrapperImage"] }}
+            workingDir: /opt/bootstrap
+            command: 
+              - /opt/kubeflow/bootstrapper
+              - --in-cluster
+              - --namespace=kubeflow
+              - --config=/etc/kubeflow/config.yaml
+            env:
+            - name: NAMESPACE
+              value: "kubeflow"
+            - name: DEPLOY_JOB
+              value: "TRUE"
+            volumeMounts:
+            - name: kubeflow-ksonnet-pvc
+              mountPath: /opt/bootstrap
+            - name: kubeflow-bootstrapper
+              mountPath: /etc/kubeflow
+          volumes:
+          - name: kubeflow-ksonnet-pvc
+            persistentVolumeClaim:
+              claimName: kubeflow-ksonnet-pvc
+          - name: kubeflow-bootstrapper
+            configMap:        
+              name: kubeflow-bootstrapper
+
+  metadata:
+    dependsOn:
+      - admin-namespace
+    deletePolicy: ABANDON
 outputs:
 {% for typeSuffix, endpoint in K8S_ENDPOINTS.iteritems() %}
 - name: clusterType{{ typeSuffix }}
   value: {{ TYPE_NAME }}{{ typeSuffix }}
 {% endfor %}
-

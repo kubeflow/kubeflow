@@ -1,0 +1,12 @@
+# App for e2e test
+app:
+  packages:
+    - name: core
+    - name: tf-serving
+    - name: tf-job
+    - name: pytorch-job
+  components:
+    - name: kubeflow-core
+      prototype: kubeflow-core
+    - name: pytorch-operator
+      prototype: pytorch-operator

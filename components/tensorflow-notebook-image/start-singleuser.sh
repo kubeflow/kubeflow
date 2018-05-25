@@ -46,4 +46,7 @@ if [ ! -z "$JPY_HUB_API_URL" ]; then
   NOTEBOOK_ARGS="--hub-api-url=$JPY_HUB_API_URL $NOTEBOOK_ARGS"
 fi
 
+# check to see if a PV has been mounted 
+. /usr/local/bin/pvc-check.sh
+
 . /usr/local/bin/start.sh jupyterhub-singleuser $NOTEBOOK_ARGS $@

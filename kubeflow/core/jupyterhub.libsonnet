@@ -11,7 +11,7 @@
 
   parts(namespace):: {
     jupyterHubConfigMap(jupyterHubAuthenticator, disks): {
-      local util = import "kubeflow/core/util.libsonnet",
+      local util = import 'kubeflow/core/util.libsonnet',
       local diskNames = util.toArray(disks),
       local kubeSpawner = $.parts(namespace).kubeSpawner(jupyterHubAuthenticator, diskNames),
       result:: $.parts(namespace).jupyterHubConfigMapWithSpawner(kubeSpawner),
@@ -19,7 +19,7 @@
 
     kubeSpawner(authenticator, volumeClaims=[]): {
       // TODO(jlewi): We should make whether we use PVC configurable.
-      local baseKubeConfigSpawner = importstr "kubeform_spawner.py",
+      local baseKubeConfigSpawner = importstr 'kubeform_spawner.py',
 
       authenticatorOptions:: {
 
@@ -30,9 +30,9 @@
         local kubeConfigIAPAuthenticator = @"c.JupyterHub.authenticator_class ='jhub_remote_user_authenticator.remote_user_auth.RemoteUserAuthenticator'
 c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
 
-        options:: std.join("\n", std.prune([
-          "######## Authenticator ######",
-          if authenticator == "iap" then
+        options:: std.join('\n', std.prune([
+          '######## Authenticator ######',
+          if authenticator == 'iap' then
             kubeConfigIAPAuthenticator else
             kubeConfigDummyAuthenticator,
         ])),
@@ -50,98 +50,98 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
 
         local volumeMounts = std.map(function(v)
           {
-            mountPath: "/mnt/" + v,
+            mountPath: '/mnt/' + v,
             name: v,
           }, volumeClaims),
 
         options::
           if std.length(volumeClaims) > 0 then
-            std.join("\n",
+            std.join('\n',
                      [
-                       "###### Volumes #######",
-                       "c.KubeSpawner.volumes = " + std.manifestPython(volumes),
-                       "c.KubeSpawner.volume_mounts = " + std.manifestPython(volumeMounts),
+                       '###### Volumes #######',
+                       'c.KubeSpawner.volumes = ' + std.manifestPython(volumes),
+                       'c.KubeSpawner.volume_mounts = ' + std.manifestPython(volumeMounts),
                      ])
-          else "",
+          else '',
 
       }.options,  // volumeOptions
 
-      spawner:: std.join("\n", std.prune([baseKubeConfigSpawner, self.authenticatorOptions, self.volumeOptions])),
+      spawner:: std.join('\n', std.prune([baseKubeConfigSpawner, self.authenticatorOptions, self.volumeOptions])),
     }.spawner,  // kubeSpawner
 
     local baseJupyterHubConfigMap = {
-      apiVersion: "v1",
-      kind: "ConfigMap",
+      apiVersion: 'v1',
+      kind: 'ConfigMap',
       metadata: {
-        name: "jupyterhub-config",
+        name: 'jupyterhub-config',
         namespace: namespace,
       },
     },
 
     jupyterHubConfigMapWithSpawner(spawner): baseJupyterHubConfigMap {
       data: {
-        "jupyterhub_config.py": spawner,
+        'jupyterhub_config.py': spawner,
       },
     },
 
     jupyterHubService: {
-      apiVersion: "v1",
-      kind: "Service",
+      apiVersion: 'v1',
+      kind: 'Service',
       metadata: {
         labels: {
-          app: "tf-hub",
+          app: 'tf-hub',
         },
-        name: "tf-hub-0",
+        name: 'tf-hub-0',
         namespace: namespace,
         annotations: {
-          "getambassador.io/config":
-            std.join("\n", [
-              "---",
-              "apiVersion: ambassador/v0",
-              "kind:  Mapping",
-              "name: tf-hub-0-mapping",
-              "prefix: /hub/",
-              "rewrite: /hub/",
-              "timeout_ms: 300000",
-              "service: tf-hub-0." + namespace,
+          'getambassador.io/config':
+            std.join('\n', [
+              '---',
+              'apiVersion: ambassador/v0',
+              'kind:  Mapping',
+              'name: tf-hub-0-mapping',
+              'prefix: /hub/',
+              'rewrite: /hub/',
+              'timeout_ms: 300000',
+              'service: tf-hub-0.' + namespace,
             ]),
         },  //annotations
       },
       spec: {
-        type: "ClusterIP",
+        type: 'ClusterIP',
         ports: [
           {
-            name: "hub",
+            name: 'hub',
             port: 80,
             targetPort: 8081,
           },
         ],
         selector: {
-          app: "tf-hub",
+          app: 'tf-hub',
         },
       },
     },
 
     jupyterHubLoadBalancer(serviceType): {
-      apiVersion: "v1",
-      kind: "Service",
+      apiVersion: 'v1',
+      kind: 'Service',
       metadata: {
         labels: {
-          app: "tf-hub",
+          app: 'tf-hub',
         },
-        name: "tf-hub-lb",
+        name: 'tf-hub-lb',
         namespace: namespace,
       },
       spec: {
         ports: [
           {
-            name: "hub",
+            name: 'hub',
             port: 80,
             targetPort: 8081,
           },
         ],
         selector: {
-          app: "tf-hub",
+          app: 'tf-hub',
         },
         type: serviceType,
       },
@@ -149,40 +149,40 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
 
     // image: Image for JupyterHub
     jupyterHub(image, notebookPVCMount, cloud): {
-      apiVersion: "apps/v1beta1",
-      kind: "StatefulSet",
+      apiVersion: 'apps/v1beta1',
+      kind: 'StatefulSet',
       metadata: {
-        name: "tf-hub",
+        name: 'tf-hub',
         namespace: namespace,
       },
       spec: {
         replicas: 1,
-        serviceName: "",
+        serviceName: '',
         template: {
           metadata: {
             labels: {
-              app: "tf-hub",
+              app: 'tf-hub',
             },
           },
           spec: {
             containers: [
               {
-//                command: [
-//                  "/bin/bash", 
-//                  "-c", 
-//                  "trap : TERM INT; sleep infinity & wait",
-//                ],
+                //                command: [
+                //                  "/bin/bash",
+                //                  "-c",
+                //                  "trap : TERM INT; sleep infinity & wait",
+                //                ],
                 command: [
-                  "jupyterhub",
-                  "-f",
-                  "/etc/config/jupyterhub_config.py",
+                  'jupyterhub',
+                  '-f',
+                  '/etc/config/jupyterhub_config.py',
                 ],
                 image: image,
-                name: "tf-hub",
+                name: 'tf-hub',
                 volumeMounts: [
                   {
-                    mountPath: "/etc/config",
-                    name: "config-volume",
+                    mountPath: '/etc/config',
+                    name: 'config-volume',
                   },
                 ],
                 ports: [
@@ -197,84 +197,84 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
                 ],
                 env: [
                   {
-                    name: "NOTEBOOK_PVC_MOUNT",
+                    name: 'NOTEBOOK_PVC_MOUNT',
                     value: notebookPVCMount,
                   },
                   {
-                    name: "CLOUD_NAME",
+                    name: 'CLOUD_NAME',
                     value: cloud,
                   },
                 ],
               },  // jupyterHub container
             ],
-            serviceAccountName: "jupyter-hub",
+            serviceAccountName: 'jupyter-hub',
             volumes: [
               {
                 configMap: {
-                  name: "jupyterhub-config",
+                  name: 'jupyterhub-config',
                 },
-                name: "config-volume",
+                name: 'config-volume',
               },
             ],
           },
         },
         updateStrategy: {
-          type: "RollingUpdate",
+          type: 'RollingUpdate',
         },
       },
     },
 
     jupyterHubRole: {
-      apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "Role",
+      apiVersion: 'rbac.authorization.k8s.io/v1beta1',
+      kind: 'Role',
       metadata: {
-        name: "jupyter-role",
+        name: 'jupyter-role',
         namespace: namespace,
       },
       rules: [
         {
           apiGroups: [
-            "*",
+            '*',
           ],
           // TODO(jlewi): This is very permissive so we may want to lock this down.
           resources: [
-            "*",
+            '*',
           ],
           verbs: [
-            "*",
+            '*',
           ],
         },
       ],
     },
 
     jupyterHubServiceAccount: {
-      apiVersion: "v1",
-      kind: "ServiceAccount",
+      apiVersion: 'v1',
+      kind: 'ServiceAccount',
       metadata: {
         labels: {
-          app: "jupyter-hub",
+          app: 'jupyter-hub',
         },
-        name: "jupyter-hub",
+        name: 'jupyter-hub',
         namespace: namespace,
       },
     },
 
     jupyterHubRoleBinding: {
-      apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "RoleBinding",
+      apiVersion: 'rbac.authorization.k8s.io/v1beta1',
+      kind: 'RoleBinding',
       metadata: {
-        name: "jupyter-role",
+        name: 'jupyter-role',
         namespace: namespace,
       },
       roleRef: {
-        apiGroup: "rbac.authorization.k8s.io",
-        kind: "Role",
-        name: "jupyter-role",
+        apiGroup: 'rbac.authorization.k8s.io',
+        kind: 'Role',
+        name: 'jupyter-role',
       },
       subjects: [
         {
-          kind: "ServiceAccount",
-          name: "jupyter-hub",
+          kind: 'ServiceAccount',
+          name: 'jupyter-hub',
           namespace: namespace,
         },
       ],

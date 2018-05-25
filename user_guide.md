@@ -35,6 +35,9 @@ For an end to end example illustrating in details how to deploy kubeflow and run
 ## Requirements
  * Kubernetes >= 1.8 [see here](https://github.com/kubeflow/tf-operator#requirements)
  * ksonnet version [0.9.2](https://ksonnet.io/#get-started). (See [below](#why-kubeflow-uses-ksonnet) for an explanation of why we use ksonnet)
+ * An existing kubernetes cluster:
+   * A minimum of 0.6 CPU in cluster (Reserved for 3 replicated ambassador pods and according to your need add additional CPUs)
+   * Node with storage >= 10 GB (Due to the ML libraries and third party packages being bundled in Kubeflow Docker images)
 
 ## Deploy Kubeflow
 
@@ -123,10 +126,10 @@ kubectl get storageclass
   parameter to create a volume that will be mounted within the notebook
 
   ```
-  ks param set kubeflow-core jupyterNotebookPVCMount /home/jovyan/work
+  ks param set kubeflow-core jupyterNotebookPVCMount /home/jovyan
   ```
 
-  * Here we mount the volume at `/home/jovyan/work` because the notebook
+  * Here we mount the volume at `/home/jovyan` because the notebook
     always executes as user jovyan
   * The selected directory will be stored on whatever storage is the default
     for the cluster (typically some form of persistent disk)

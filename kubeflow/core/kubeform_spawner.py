@@ -19,13 +19,13 @@ from kubespawner.utils import generate_hashed_slug
 from concurrent.futures import ThreadPoolExecutor
 from traitlets import ( Unicode, Integer )
 from tornado import gen
-from tornado.httpclient import AsyncHTTPClient, HTTPRequest
+from tornado.httpclient import AsyncHTTPClient, HTTPRequest, HTTPError
 from tornado.concurrent import run_on_executor
 
 class KubeServiceProxy(Proxy):
     should_start = False
     default_route = {}
-    service_url = ""
+    spawner = None
     namespace = Unicode(
         config=True,
         help="""
@@ -132,14 +132,6 @@ class KubeServiceProxy(Proxy):
         )
         return safe_name, name
 
-    def validate_service_path(self):
-        self.log.info("Validating service path %s", self.service_url)
-        client = AsyncHTTPClient()
-        req = HTTPRequest(self.service_url)
-        res = yield client.fetch(req)
-        self.log.info("service path returned %d", res.code)
-        return res.code != 404
-
     @gen.coroutine
     def add_default_route(self, routespec, target, data):
         self.log.info("Adding default route %s %s %s", routespec, target, data)
@@ -152,6 +144,28 @@ class KubeServiceProxy(Proxy):
         })
 
     @gen.coroutine
+    def add_user(self, user, server_name='', client=None):
+        """Add a user's server to the proxy table."""
+        self.spawner = user.spawners[server_name]
+        self.log.info("Adding user %s to proxy %s => %s",
+                      user.name, self.spawner.proxy_spec, self.spawner.server.host,
+                      )
+
+        if self.spawner.pending and self.spawner.pending != 'spawn':
+            raise RuntimeError(
+                "%s is pending %s, shouldn't be added to the proxy yet!" % (self.spawner._log_name, self.spawner.pending)
+            )
+
+        yield self.add_route(
+            self.spawner.proxy_spec,
+            self.spawner.server.host,
+            {
+                'user': user.name,
+                'server_name': server_name,
+            }
+        )
+
+    @gen.coroutine
     def add_route(self, routespec, target, data):
         # Create a route with the name being escaped routespec
         # Use full routespec in label
@@ -160,7 +174,6 @@ class KubeServiceProxy(Proxy):
             yield self.add_default_route(routespec, target, data)
             return
 
-        self.service_url = target + routespec
         n1, n2 = self.safe_name_for_routespec(routespec)
         safe_name = n1.lower()
         name = n2.lower()
@@ -206,21 +219,22 @@ class KubeServiceProxy(Proxy):
             'Could not find service/%s after creating it' % safe_name
         )
 
-        # ambassador needs to recognize the new service
+        url = self.api_url + routespec
         yield exponential_backoff(
-            self.validate_service_path,
-            'Waiting for API Gateway to proxy the service'
+            lambda: self.validate_server(url),
+            'Could not validate %s ' % url,
+            0.2,
+            3,
+            max_wait=5,
+            timeout=300
         )
-
-        # ambassador needs to recognize the new service. 
-        #
-        yield gen.sleep(10)
 
     @gen.coroutine
     def delete_route(self, routespec):
         # We just ensure that these objects are deleted.
         # This means if some of them are already deleted, we just let it
         # be.
+        self.log.info("Deleting route %s", routespec)
         safe_name = self.safe_name_for_routespec(routespec).lower()
 
         delete_options = client.V1DeleteOptions(grace_period_seconds=0)
@@ -250,7 +264,21 @@ class KubeServiceProxy(Proxy):
         delete_if_exists('service', delete_service)
 
     @gen.coroutine
-    def get_all_routes(self):
+    def validate_server(self, url):
+        self.log.info("Validating server %s", url)
+        code = 500
+        try:
+            client = AsyncHTTPClient()
+            req = HTTPRequest(url)
+            res = yield client.fetch(req)
+            code = res.code
+        except HTTPError as e:
+            code = e.code
+        self.log.info("http response code is %d", code)
+        return code != 404
+
+    @gen.coroutine
+    def get_all_routes(self, client=None):
         # copy everything, because iterating over this directly is not threadsafe
         # FIXME: is this performance intensive? It could be! Measure?
         # FIXME: Validate that this shallow copy *is* thread safe
@@ -265,7 +293,7 @@ class KubeServiceProxy(Proxy):
             for service in service_copy.values()
         }
         
-        if 'routespec' in self.default_route:
+        if '/' in self.default_route:
             routes.update(self.default_route)
 
         return routes
@@ -342,6 +370,20 @@ class KubeFormSpawner(KubeSpawner):
             extra = json.loads(self.user_options['extra_resource_limits'])
         return extra
 
+    @gen.coroutine
+    def poll(self):
+        """
+        Check if the pod is still running.
+
+        Returns None if it is, and 1 if it isn't. These are the return values
+        JupyterHub expects.
+        """
+        data = self.pod_reflector.pods.get(self.pod_name, None)
+        if data is not None:
+            return None
+
+        return 1
+
 
 ###################################################
 # JupyterHub Options
@@ -365,14 +407,21 @@ c.KubeServiceProxy.api_url = 'http://' + \
 # Spawner Options
 ###################################################
 c.JupyterHub.spawner_class = KubeFormSpawner
-c.JupyterHub.tornado_settings = { 'slow_spawn_timeout': 15 }
-c.Spawner.cmd = 'start-singleuser.sh'
-c.Spawner.args = ['--allow-root']
-# gpu images are very large ~15GB. need a large timeout.
-c.Spawner.start_timeout = 1800
-# Increase timeout to 5 minutes to avoid HTTP 500 errors on JupyterHub
-c.Spawner.http_timeout = 300
+c.JupyterHub.tornado_settings = {
+    'slow_spawn_timeout': 15
+}
 c.KubeSpawner.singleuser_image_spec = 'gcr.io/kubeflow/tensorflow-notebook'
+c.KubeSpawner.cmd = 'start-singleuser.sh'
+c.KubeSpawner.args = ['--allow-root']
+# gpu images are very large ~15GB. need a large timeout.
+c.KubeSpawner.start_timeout = 60 * 30
+# Increase timeout to 5 minutes to avoid HTTP 500 errors on JupyterHub
+c.KubeSpawner.http_timeout = 60 * 5
+
+# Volume setup
+c.KubeSpawner.singleuser_uid = 1000
+c.KubeSpawner.singleuser_fs_gid = 100
+c.KubeSpawner.singleuser_working_dir = '/home/jovyan'
 volumes = []
 volume_mounts = []
 ###################################################
@@ -380,7 +429,6 @@ volume_mounts = []
 ###################################################
 # Using persistent storage requires a default storage class.
 # TODO(jlewi): Verify this works on minikube.
-# TODO(jlewi): Should we set c.KubeFormSpawner.singleuser_fs_gid = 1000
 # see https://github.com/kubeflow/kubeflow/pull/22#issuecomment-350500944
 pvc_mount = os.environ.get('NOTEBOOK_PVC_MOUNT')
 if pvc_mount and pvc_mount != 'null':
