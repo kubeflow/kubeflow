@@ -36,6 +36,7 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
   graphviz \
   locales \
   lsb-release \
+  openssh-client \
   sudo \
   unzip \
   vim \
