@@ -55,23 +55,19 @@ gcloud --project=${PROJECT} container clusters get-credentials --zone=${ZONE} ${
 	* ZONE - this will be the zone specified in your ${CONFIG_FILE}
 	* NAME - this will be the name specified in your ${CONFIG_FILE}
 
-1. Create a service account an IAM bindings for the cloud-endpoints-controller
+1. Create a service account and IAM bindings for the cloud-endpoints-controller
 
 	* You can skip this step if you are using a custom domain.
 
 ```
-gcloud --project=${PROJECT} iam service-accounts create cloud-endpoints-controller \
-    --display-name cloud-endpoints-controller
-export SA_EMAIL=$(gcloud --project=${PROJECT} iam service-accounts list \
-    --filter="displayName:cloud-endpoints-controller" \
-    --format='value(email)')
-gcloud projects add-iam-policy-binding \
-      $PROJECT --role roles/servicemanagement.admin --member serviceAccount:$SA_EMAIL
+export SA_EMAIL=${DEPLOYMENT_NAME}-${NAME}@${PROJECT}.iam.gserviceaccount.com
 
 gcloud --project=${PROJECT} iam service-accounts keys create ${SA_EMAIL}.json --iam-account $SA_EMAIL
 
 kubectl create secret generic --namespace=kubeflow cloudep-sa --from-file=./${SA_EMAIL}.json
 ```
+
+	* ${NAME} is the name of the resource in your ${CONFIG_FILE}
 
 ### Create oauth client credentials
 
