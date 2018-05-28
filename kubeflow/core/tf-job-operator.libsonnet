@@ -62,8 +62,12 @@
                 properties: {
                   tfReplicaSpecs: {
                     properties: {
+                      // The validation works when the configuration contains
+                      // `Worker`, `PS` or `Chief`. Otherise it will not be validated.
                       Worker: {
                         properties: {
+                          // We do not validate pod template because of
+                          // https://github.com/kubernetes/kubernetes/issues/54579
                           replicas: {
                             type: "integer",
                             minimum: 1,
