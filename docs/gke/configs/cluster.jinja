@@ -25,6 +25,8 @@ limitations under the License.
 {% set RBAC_TYPE_NAME = TYPE_NAME + '-rbac-v1' %}
 {% set APPS_TYPE_NAME = TYPE_NAME + '-apps-v1' %}
 
+{% set VM_OAUTH_SCOPES = ['https://www.googleapis.com/auth/logging.write', 'https://www.googleapis.com/auth/monitoring'] %}
+
 {# A dictionary mapping type name suffixes to the corresponding
    Kubernetes API endpoint.
 #}
@@ -107,13 +109,7 @@ resources:
         workloadMetadataConfig:
           nodeMetadata: SECURE
         {% endif %}
-        oauthScopes:
-        - https://www.googleapis.com/auth/devstorage.read_only
-        - https://www.googleapis.com/auth/logging.write
-        - https://www.googleapis.com/auth/monitoring
-        - https://www.googleapis.com/auth/service.management.readonly
-        - https://www.googleapis.com/auth/servicecontrol
-        - https://www.googleapis.com/auth/trace.append
+        oauthScopes: {{ VM_OAUTH_SCOPES }}
   metadata:
     dependsOn:
     - kubeflow-cluster-vm-service-account
@@ -143,14 +139,7 @@ resources:
         {% endif %}
         machineType: n1-standard-8
         serviceAccount: {{ properties['vmServiceAccountName'] }}@{{ env['project'] }}.iam.gserviceaccount.com
-        oauthScopes:
-        - https://www.googleapis.com/auth/devstorage.read_only
-        - https://www.googleapis.com/auth/logging.write
-        - https://www.googleapis.com/auth/monitoring
-        - https://www.googleapis.com/auth/service.management.readonly
-        - https://www.googleapis.com/auth/servicecontrol
-        - https://www.googleapis.com/auth/trace.append
-
+        oauthScopes: {{ VM_OAUTH_SCOPES }}
   metadata:
     dependsOn:
     - {{ CLUSTER_NAME }}
@@ -176,13 +165,7 @@ resources:
         {% endif %}
         machineType: n1-standard-8
         serviceAccount: {{ properties['vmServiceAccountName'] }}@{{ env['project'] }}.iam.gserviceaccount.com
-        oauthScopes:
-        - https://www.googleapis.com/auth/devstorage.read_only
-        - https://www.googleapis.com/auth/logging.write
-        - https://www.googleapis.com/auth/monitoring
-        - https://www.googleapis.com/auth/service.management.readonly
-        - https://www.googleapis.com/auth/servicecontrol
-        - https://www.googleapis.com/auth/trace.append
+        oauthScopes: {{ VM_OAUTH_SCOPES }}
         accelerators:
           - acceleratorCount: 1
             acceleratorType: nvidia-tesla-k80
