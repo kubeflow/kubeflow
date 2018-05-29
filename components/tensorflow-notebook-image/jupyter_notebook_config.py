@@ -52,19 +52,19 @@ if 'GEN_CERT' in os.environ:
     c.NotebookApp.certfile = pem_file
 
 if "S3_ENDPOINT" in os.environ:
-  # Parse Tensorflow-style variables into something we can use.
-  # FIXME I don't see an obvious way to implement S3_VERIFY_SSL, so anything that uses HTTPS has to use proper certs.
-  if os.getenv("S3_USE_HTTPS") != "0":
-    endpoint_prefix = "https://"
-  else:
-    endpoint_prefix = "http://"
+    # Parse Tensorflow-style variables into something we can use.
+    # FIXME I don't see an obvious way to implement S3_VERIFY_SSL, so anything that uses HTTPS has to use proper certs.
+    if os.getenv("S3_USE_HTTPS") == "0":
+        endpoint_prefix = "http://"
+    else:
+        endpoint_prefix = "https://"
 
-  s3_url = urlparse(os.getenv("S3_NOTEBOOK_URL"))
+    s3_url = urlparse(os.getenv("S3_NOTEBOOK_URL"))
 
-  c.NotebookApp.contents_manager_class = S3ContentsManager
-  c.S3ContentsManager.access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
-  c.S3ContentsManager.secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
-  c.S3ContentsManager.region_name = os.getenv("AWS_REGION")
-  c.S3ContentsManager.bucket = s3_url.hostname
-  c.S3ContentsManager.prefix = s3_url.path.strip("/") # No leading or trailing slashes.
-  c.S3ContentsManager.endpoint_url = endpoint_prefix + os.getenv("S3_ENDPOINT")
+    c.NotebookApp.contents_manager_class = S3ContentsManager
+    c.S3ContentsManager.access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
+    c.S3ContentsManager.secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+    c.S3ContentsManager.region_name = os.getenv("AWS_REGION")
+    c.S3ContentsManager.bucket = s3_url.hostname
+    c.S3ContentsManager.prefix = s3_url.path.strip("/") # No leading or trailing slashes.
+    c.S3ContentsManager.endpoint_url = endpoint_prefix + os.getenv("S3_ENDPOINT")
