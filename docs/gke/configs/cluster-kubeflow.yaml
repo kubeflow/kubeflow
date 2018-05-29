@@ -86,7 +86,7 @@ resources:
             value: ipName
           - component: iap-ingress
             name: hostname
-            # TODO: replace with Name of GCP project where kubeflow will be installed
+            # TODO: replace with Name of GCP project. This is fully qualified domain name to use with ingress.
             value: kubeflow.endpoints.<Project>.cloud.goog
           - component: kubeflow-core
             name: jupyterHubAuthenticator

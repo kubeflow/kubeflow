@@ -493,7 +493,7 @@ func Run(opt *options.ServerOption) error {
 		// if use k8s client-go API, would be quite verbose if we create all resources one by one.
 		// TODO: use API to create ks Components
 		log.Infof("Apply kubeflow Components...")
-		rawCmd := "ks show default | kubectl apply --validate=false -f -"
+		rawCmd := "ks show default | kubectl apply -f -"
 		applyCmd := exec.Command("bash", "-c", rawCmd)
 
 		var out bytes.Buffer
