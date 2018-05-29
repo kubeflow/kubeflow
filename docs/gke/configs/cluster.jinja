@@ -39,6 +39,8 @@ limitations under the License.
 {% set STATEFULSETS_COLLECTION = '/apis/apps/v1/namespaces/{namespace}/statefulsets' %}
 {% set CLUSTER_ROLE_BINDING_COLLECTION = '/apis/rbac.authorization.k8s.io/v1/clusterrolebindings' %}
 
+{# Names for service accounts.#}
+{% set KF_ADMIN_NAME = NAME_PREFIX + '-admin' %}
 {# For most of the K8s resources we set the deletePolicy to abandon; otherwise deployment manager reports various errors.
    Since we delete the cluster all the K8s resources will be deleted anyway.
 
@@ -49,6 +51,12 @@ limitations under the License.
    so we weren't ensuring the type providers were deleted after the corresponding resources.
 #}
 resources:
+- name: {{ KF_ADMIN_NAME }}
+  type: iam.v1.serviceAccount
+  properties:
+    accountId: {{ KF_ADMIN_NAME }}
+    displayName: Service Account used for Kubeflow admin actions.
+
 - name: {{ CLUSTER_NAME }}
   type: container.v1.cluster
   properties:
@@ -133,13 +141,11 @@ resources:
     # We can only create 1 node pool at a time.
     - {{ CPU_POOL }}
 
-- name: static-ip
-  type: compute.v1.globalAddress
+{# Project defaults to the project of the deployment. #}
+- name: {{ properties['ipName']  }}
+  type: compute.v1.globalAddress  
   properties:
-    project: {{ properties['project'] }}
-    name: {{ CLUSTER_NAME }}
-    description: "Static IP for ingress."
-
+    description: "Static IP for Kubeflow ingress."
 
 {#
 
@@ -195,6 +201,22 @@ e.g. creating namespaces, service accounts, stateful set to run the bootstrapper
     consumerId: {{ 'project:' + env['project'] }}
     serviceName: cloudresourcemanager.googleapis.com
 
+{# Enable cloud endpoints. This is used to provision DNS names.
+
+TODO(jlewi): Do we need to serialize API activation
+#}
+- name: endpoints-api
+  action: 'gcp-types/servicemanagement-v1:servicemanagement.services.enable'
+  properties: 
+    consumerId: {{ 'project:' + env['project'] }}
+    serviceName: endpoints.googleapis.com
+
+- name: iam-api
+  action: 'gcp-types/servicemanagement-v1:servicemanagement.services.enable'
+  properties: 
+    consumerId: {{ 'project:' + env['project'] }}
+    serviceName: iam.googleapis.com
+
 {# Get the IAM policy first so that we do not remove any existing bindings. #}
 - name: get-iam-policy
   action: gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.getIamPolicy
@@ -226,11 +248,18 @@ e.g. creating namespaces, service accounts, stateful set to run the bootstrapper
         - role: roles/container.admin
           members:
             - {{ 'serviceAccount:' + env['project_number'] + '@cloudservices.gserviceaccount.com' }}
+
+        - role: roles/servicemanagement.admin 
+          members:
+            - {{ 'serviceAccount:' + KF_ADMIN_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
       remove: []
 
   metadata:
     dependsOn:
       - get-iam-policy
+      - iam-api
+      - {{ KF_ADMIN_NAME }}
     runtimePolicy: 
       - UPDATE_ALWAYS 
 
@@ -304,7 +333,7 @@ the corresponding type provider.
   properties:
     apiVersion: v1
     kind: PersistentVolumeClaim
-    {# Namespace is a property because its used bye deployment manager in 
+    {# Namespace is a property because its used by deployment manager in 
        the URL #}
     namespace: kubeflow-admin
     metadata:
@@ -371,14 +400,10 @@ the corresponding type provider.
             workingDir: /opt/bootstrap
             command: 
               - /opt/kubeflow/bootstrapper
-              - --in-cluster
+              - --in-cluster=true
+              - --apply=true
               - --namespace=kubeflow
               - --config=/etc/kubeflow/config.yaml
-            env:
-            - name: NAMESPACE
-              value: "kubeflow"
-            - name: DEPLOY_JOB
-              value: "TRUE"
             volumeMounts:
             - name: kubeflow-ksonnet-pvc
               mountPath: /opt/bootstrap
