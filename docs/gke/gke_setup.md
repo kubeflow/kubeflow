@@ -7,17 +7,20 @@ to manage your GKE cluster and other GCP resources that you might want to use wi
 
 The instructions also take advantage of IAP to provide secure authenticated access web-apps running as part of Kubeflow.
 
-## To Setup the cluster
+## Create the Kubeflow deployment
 
-### Create the Cluster
 1.  Make a copy of the `configs` directory
 
 	* Its a good idea to check this into source control to make it easy to version and rollback your configs.
 
 1. Modify `cluster-kubeflow.yaml`
 
-	* Set the zone for your cluster
-	* Change the initial number of nodes if desired
+  1. Set the zone for your cluster
+  1. Set property `ipName` to a value that is unique with respect to your project
+  1. Set parameter ipName in bootstrapperConfig to the value selected in the previous step
+  1. Set parameter acmeEmail in bootstrapperConfig to your email address
+  1. Set parameter hostname in bootstrapperConfig
+  1. Change the initial number of nodes if desired
 
 		* If you want GPUs set a non-zero number for number of GPU nodes.
 
@@ -26,46 +29,39 @@ The instructions also take advantage of IAP to provide secure authenticated acce
 	* This file defines environment variables used in the commands below.
 	* We recommend checking a modified version into source control so its easy to source and repeat the commands.
 
-	1. Set property `ipName` to a value that is unique with respect to your project
-	1. Set parameter ipName in bootstrapperConfig to the value selected in the previous step
-	1. Set parameter acmeEmail in bootstrapperConfig to your email address
-	1. Set parameter hostname in bootstrapperConfig
-
 1. Grant sufficient permisions to Cloud services account which is what is used by deployment manager
 
-```
-. env-kubeflow.sh
-gcloud projects add-iam-policy-binding ${PROJECT} \
+   ```
+   . env-kubeflow.sh
+   gcloud projects add-iam-policy-binding ${PROJECT} \
     	--member serviceAccount:${PROJECT_NUMBER}@cloudservices.gserviceaccount.com \
     	--role roles/resourcemanager.projectIamAdmin      
-```
+   ```
 
 1. Deploy Kubeflow
 
-```
-gcloud deployment-manager --project=${PROJECT} deployments create ${DEPLOYMENT_NAME} --config=${CONFIG_FILE}
-```
+   ```
+   gcloud deployment-manager --project=${PROJECT} deployments create ${DEPLOYMENT_NAME} --config=${CONFIG_FILE}
+   ```
 
 1. Get credentials for the newly configured cluster
 
-```
-gcloud --project=${PROJECT} container clusters get-credentials --zone=${ZONE} ${DEPLOYMENT_NAME}-${NAME}
-```
+   ```
+   gcloud --project=${PROJECT} container clusters get-credentials --zone=${ZONE} ${DEPLOYMENT_NAME}-${NAME}
+   ```
 
-	* ZONE - this will be the zone specified in your ${CONFIG_FILE}
-	* NAME - this will be the name specified in your ${CONFIG_FILE}
+	 * ZONE - this will be the zone specified in your ${CONFIG_FILE}
+	 * NAME - this will be the name specified in your ${CONFIG_FILE}
 
 1. Create a service account and IAM bindings for the cloud-endpoints-controller
 
 	* You can skip this step if you are using a custom domain.
 
-```
-export SA_EMAIL=${DEPLOYMENT_NAME}-${NAME}@${PROJECT}.iam.gserviceaccount.com
-
-gcloud --project=${PROJECT} iam service-accounts keys create ${SA_EMAIL}.json --iam-account $SA_EMAIL
-
-kubectl create secret generic --namespace=kubeflow cloudep-sa --from-file=./${SA_EMAIL}.json
-```
+   ```
+   export SA_EMAIL=${DEPLOYMENT_NAME}-${NAME}@${PROJECT}.iam.gserviceaccount.com
+   gcloud --project=${PROJECT} iam service-accounts keys create ${SA_EMAIL}.json --iam-account $SA_EMAIL
+   kubectl create secret generic --namespace=kubeflow cloudep-sa --from-file=./${SA_EMAIL}.json
+   ```
 
 	* ${NAME} is the name of the resource in your ${CONFIG_FILE}
 
@@ -82,31 +78,32 @@ Create an OAuth Client ID to be used to identify IAP when requesting acces to us
 1.  On the [Credentials](https://console.cloud.google.com/apis/credentials) Click Create credentials, and then click OAuth client ID.
   * Under Application type, select Web application. In the Name box enter a name, and in the Authorized redirect URIs box, enter
 
-```
-  https://${FQDN}/_gcp_gatekeeper/authenticate
-```
+   ```
+   https://${FQDN}/_gcp_gatekeeper/authenticate
+   ```
+
 1. After you enter the details, click Create. Make note of the **client ID** and **client secret** that appear in the OAuth client window because we will
    need them later to enable IAP.
 
 1. Create a new Kubernetes Secret with the the OAuth client ID and secret:
 
-```
-kubectl -n ${NAMESPACE} create secret generic kubeflow-oauth --from-literal=CLIENT_ID=${CLIENT_ID} --from-literal=CLIENT_SECRET=${CLIENT_SECRET}
-```
+   ```
+   kubectl -n ${NAMESPACE} create secret generic kubeflow-oauth --from-literal=CLIENT_ID=${CLIENT_ID} --from-literal=CLIENT_SECRET=${CLIENT_SECRET}
+   ```
 
 1. Grant users IAP access
 
-```
-gcloud projects add-iam-policy-binding $PROJECT \
-  --role roles/iap.httpsResourceAccessor \
-  --member user:${USER_EMAIL}
-```
+   ```
+   gcloud projects add-iam-policy-binding $PROJECT \
+    --role roles/iap.httpsResourceAccessor \
+    --member user:${USER_EMAIL}
+   ```
 
 1. Kubeflow will be available at
 
-```
-https://${FQDN}/_gcp_gatekeeper/authenticate
-```
+   ```
+   https://${FQDN}/_gcp_gatekeeper/authenticate
+   ```
 
 ### Using Your Own Domain
 
@@ -159,11 +156,17 @@ To Use GPUs
    on your cluster will be restarted and temporarily unavailable
 
 1. Run the command below to install the GPU drivers on the nodes.
-```
-kubectl create -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/k8s-1.9/nvidia-driver-installer/cos/daemonset-preloaded.yaml
-```
+   ```
+   kubectl create -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/k8s-1.9/nvidia-driver-installer/cos/daemonset-preloaded.yaml
+   ```
 
-TODO(jlewi): This should be created by either the ksonnet APP or deployment manager.
+## Deleting your deployment
+
+To delete your deployment and reclaim all resources
+
+```
+gcloud deployment-manager --project=${PROJECT} deployments delete ${DEPLOYMENT_NAME}
+```
 
 ## Troubleshooting
 
