@@ -13,10 +13,6 @@ export PROJECT=kubeflow
 # The name must be unique for each deployment within your project.
 export DEPLOYMENT_NAME=kubeflow
 
-# The name of the ip address as defined in cluster.jinja
-# We will reserve a GCP IP address to use for ingress to the cluster.
-export IP_NAME=static-ip
-
 # Set config file to the YAML file defining your deployment manager configs.
 export CONFIG_FILE=cluster-${PROJECT}.yaml
 
