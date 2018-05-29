@@ -39,7 +39,7 @@ resources:
     # Whether to deploy the new Stackdriver Kubernetes agents
     stackdriver-kubernetes: false
     # Path for the bootstrapper image.
-    bootstrapperImage: gcr.io/kubeflow-images-public/bootstrapper:v20180525-v0.1.1-71-ga9cdd5dd-e3b0c4
+    bootstrapperImage: gcr.io/kubeflow-images-public/bootstrapper:latest
     # This is the name of the GCP static ip address to reserve for your domain.
     # This must be different for each Kubeflow deployment in your project.
     ipName: kubeflow-ip
@@ -86,7 +86,7 @@ resources:
             value: ipName
           - component: iap-ingress
             name: hostname
-            # TODO: replace with Name of GCP project where kubeflow will be installed
+            # TODO: replace with Name of GCP project. This is fully qualified domain name to use with ingress.
             value: kubeflow.endpoints.<Project>.cloud.goog
           - component: kubeflow-core
             name: jupyterHubAuthenticator

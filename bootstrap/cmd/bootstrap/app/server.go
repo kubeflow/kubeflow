@@ -295,11 +295,24 @@ func appGenerate(opt *options.ServerOption, kfApp *kApp.App, fs *afero.Fs, appCo
 		}
 	}
 
-	// Create Components
-	for _, c := range appConfig.Components {
-		createComponent(opt, kfApp, fs, []string{c.Prototype, c.Name})
+	paramMapping := make(map[string][]string)
+	// Extract params for each components
+	for _, p := range appConfig.Parameters {
+		if val, ok := paramMapping[p.Component]; ok {
+			paramMapping[p.Component] = append(val, []string{"--" + p.Name, p.Value}...)
+		} else {
+			paramMapping[p.Component] = []string{"--" + p.Name, p.Value}
+		}
 	}
 
+	// Create Components
+	for _, c := range appConfig.Components {
+		params := []string{c.Prototype, c.Name}
+		if val, ok := paramMapping[c.Name]; ok {
+			params = append(params, val...)
+		}
+		createComponent(opt, kfApp, fs, params)
+	}
 	// Apply Params
 	for _, p := range appConfig.Parameters {
 		err = actions.RunParamSet(map[string]interface{}{
@@ -308,7 +321,6 @@ func appGenerate(opt *options.ServerOption, kfApp *kApp.App, fs *afero.Fs, appCo
 			actions.OptionPath:  p.Name,
 			actions.OptionValue: p.Value,
 		})
-
 		if err != nil {
 			log.Fatalf("Error when setting Parameters %v for Component %v: %v", p.Name, p.Component, err)
 		}
@@ -411,7 +423,6 @@ func Run(opt *options.ServerOption) error {
 		log.Infof("Successfully initialized the app %v.", opt.AppDir)
 
 	} else {
-
 		log.Infof("Directory %v exists", opt.AppDir)
 	}
 

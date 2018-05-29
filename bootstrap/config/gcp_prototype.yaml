@@ -6,12 +6,9 @@ app:
     - name: core
     - name: tf-serving
     - name: tf-job
-    - name: pytorch-job
   components:
     - name: kubeflow-core
       prototype: kubeflow-core
-    - name: pytorch-operator
-      prototype: pytorch-operator
     - name: cloud-endpoints
       prototype: cloud-endpoints
     - name: cert-manager
@@ -20,20 +17,20 @@ app:
       prototype: iap-ingress
   parameters:
     - component: cloud-endpoints
-      name: secretname
+      name: secretName
       value: cloudep-sa
     - component: cert-manager
-      name: acmeemail
+      name: acmeEmail
       # todo: use your email for ssl cert
       value: <email>
     - component: iap-ingress
-      name: ipname
+      name: ipName
       # todo: change ip name here
-      value: <ipname>
+      value: static-ip
     - component: iap-ingress
       name: hostname
       # todo: replace with name of gcp project where kubeflow will be installed
       value: kubeflow.endpoints.<project>.cloud.goog
     - component: kubeflow-core
-      name: jupyterhubauthenticator
+      name: jupyterHubAuthenticator
       value: iap
