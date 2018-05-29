@@ -7,16 +7,15 @@ to manage your GKE cluster and other GCP resources that you might want to use wi
 
 The instructions also take advantage of IAP to provide secure authenticated access web-apps running as part of Kubeflow.
 
-## To Setup the cluster
+## Create the Kubeflow deployment
 
-### Create the Cluster
 1.  Make a copy of the `configs` directory
 
 	* Its a good idea to check this into source control to make it easy to version and rollback your configs.
 
 1. Modify `cluster-kubeflow.yaml`
 
-	1. Set the zone for your cluster
+  1. Set the zone for your cluster
   1. Set property `ipName` to a value that is unique with respect to your project
   1. Set parameter ipName in bootstrapperConfig to the value selected in the previous step
   1. Set parameter acmeEmail in bootstrapperConfig to your email address
@@ -32,24 +31,24 @@ The instructions also take advantage of IAP to provide secure authenticated acce
 
 1. Grant sufficient permisions to Cloud services account which is what is used by deployment manager
 
-```
+   ```
 . env-kubeflow.sh
 gcloud projects add-iam-policy-binding ${PROJECT} \
     	--member serviceAccount:${PROJECT_NUMBER}@cloudservices.gserviceaccount.com \
     	--role roles/resourcemanager.projectIamAdmin      
-```
+   ```
 
 1. Deploy Kubeflow
 
-```
-gcloud deployment-manager --project=${PROJECT} deployments create ${DEPLOYMENT_NAME} --config=${CONFIG_FILE}
-```
+  ```
+  gcloud deployment-manager --project=${PROJECT} deployments create ${DEPLOYMENT_NAME} --config=${CONFIG_FILE}
+  ```
 
 1. Get credentials for the newly configured cluster
 
-```
-gcloud --project=${PROJECT} container clusters get-credentials --zone=${ZONE} ${DEPLOYMENT_NAME}-${NAME}
-```
+  ```
+  gcloud --project=${PROJECT} container clusters get-credentials --zone=${ZONE} ${DEPLOYMENT_NAME}-${NAME}
+  ```
 
 	* ZONE - this will be the zone specified in your ${CONFIG_FILE}
 	* NAME - this will be the name specified in your ${CONFIG_FILE}
@@ -58,13 +57,13 @@ gcloud --project=${PROJECT} container clusters get-credentials --zone=${ZONE} ${
 
 	* You can skip this step if you are using a custom domain.
 
-```
-export SA_EMAIL=${DEPLOYMENT_NAME}-${NAME}@${PROJECT}.iam.gserviceaccount.com
+   ```
+   export SA_EMAIL=${DEPLOYMENT_NAME}-${NAME}@${PROJECT}.iam.gserviceaccount.com
 
-gcloud --project=${PROJECT} iam service-accounts keys create ${SA_EMAIL}.json --iam-account $SA_EMAIL
+   gcloud --project=${PROJECT} iam service-accounts keys create ${SA_EMAIL}.json --iam-account $SA_EMAIL
 
-kubectl create secret generic --namespace=kubeflow cloudep-sa --from-file=./${SA_EMAIL}.json
-```
+   kubectl create secret generic --namespace=kubeflow cloudep-sa --from-file=./${SA_EMAIL}.json
+   ```
 
 	* ${NAME} is the name of the resource in your ${CONFIG_FILE}
 
