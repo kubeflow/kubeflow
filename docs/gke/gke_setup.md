@@ -16,8 +16,12 @@ The instructions also take advantage of IAP to provide secure authenticated acce
 
 1. Modify `cluster-kubeflow.yaml`
 
-	* Set the zone for your cluster
-	* Change the initial number of nodes if desired
+	1. Set the zone for your cluster
+  1. Set property `ipName` to a value that is unique with respect to your project
+  1. Set parameter ipName in bootstrapperConfig to the value selected in the previous step
+  1. Set parameter acmeEmail in bootstrapperConfig to your email address
+  1. Set parameter hostname in bootstrapperConfig
+  1. Change the initial number of nodes if desired
 
 		* If you want GPUs set a non-zero number for number of GPU nodes.
 
@@ -25,11 +29,6 @@ The instructions also take advantage of IAP to provide secure authenticated acce
 
 	* This file defines environment variables used in the commands below.
 	* We recommend checking a modified version into source control so its easy to source and repeat the commands.
-
-	1. Set property `ipName` to a value that is unique with respect to your project
-	1. Set parameter ipName in bootstrapperConfig to the value selected in the previous step
-	1. Set parameter acmeEmail in bootstrapperConfig to your email address
-	1. Set parameter hostname in bootstrapperConfig
 
 1. Grant sufficient permisions to Cloud services account which is what is used by deployment manager
 
@@ -164,6 +163,14 @@ kubectl create -f https://raw.githubusercontent.com/GoogleCloudPlatform/containe
 ```
 
 TODO(jlewi): This should be created by either the ksonnet APP or deployment manager.
+
+## Deleting your deployment
+
+To delete your deployment and reclaim all resources
+
+```
+gcloud deployment-manager --project=${PROJECT} deployments delete ${DEPLOYMENT_NAME}
+```
 
 ## Troubleshooting
 
