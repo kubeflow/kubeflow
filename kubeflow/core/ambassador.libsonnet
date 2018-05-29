@@ -10,7 +10,7 @@
   ],
 
   parts(namespace):: {
-    local ambassadorImage = "quay.io/datawire/ambassador:0.30.1",
+    local ambassadorImage = "quay.io/datawire/ambassador:0.34.0",
     service(serviceType):: {
       apiVersion: "v1",
       kind: "Service",
@@ -207,7 +207,7 @@
                 },
               },
               {
-                image: "quay.io/datawire/statsd:0.30.1",
+                image: "quay.io/datawire/statsd:0.34.0",
                 name: "statsd",
               },
             ],
