@@ -92,8 +92,10 @@ resources:
       {% else %}
       initialClusterVersion: 1.9.6-gke.1
       {% endif %}
+      {% if properties['gkeApiVersion'] == 'v1beta1' %}
       podSecurityPolicyConfig:
         enabled: {{ properties['securityConfig']['podSecurityPolicy'] }}
+      {% endif %}
       {% if properties['securityConfig']['privatecluster'] %}
       ipAllocationPolicy:
         createSubnetwork: true
