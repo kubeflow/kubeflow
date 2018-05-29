@@ -9,135 +9,135 @@
   parts(namespace):: {
 
     randomService: {
-      "apiVersion": "v1",
-      "kind": "Service",
-      "metadata": {
-        "labels": {
-          "app": "vizier",
-          "component": "suggestion-random"
+      apiVersion: "v1",
+      kind: "Service",
+      metadata: {
+        labels: {
+          app: "vizier",
+          component: "suggestion-random",
         },
-        "name": "vizier-suggestion-random",
-        "namespace": namespace,
+        name: "vizier-suggestion-random",
+        namespace: namespace,
       },
-      "spec": {
-        "ports": [
+      spec: {
+        ports: [
           {
-            "name": "api",
-            "port": 6789,
-            "protocol": "TCP",
-          }
+            name: "api",
+            port: 6789,
+            protocol: "TCP",
+          },
         ],
-        "selector": {
-          "app": "vizier",
-          "component": "suggestion-random",
+        selector: {
+          app: "vizier",
+          component: "suggestion-random",
         },
-        "type": "ClusterIP",
-      }
+        type: "ClusterIP",
+      },
     },
 
     randomDeployment: {
-      "apiVersion": "extensions/v1beta1",
-      "kind": "Deployment",
-      "metadata": {
-        "labels": {
-          "app": "vizier",
-          "component": "suggestion-random",
+      apiVersion: "extensions/v1beta1",
+      kind: "Deployment",
+      metadata: {
+        labels: {
+          app: "vizier",
+          component: "suggestion-random",
         },
-        "name": "vizier-suggestion-random",
-        "namespace": namespace,
+        name: "vizier-suggestion-random",
+        namespace: namespace,
       },
-      "spec": {
-        "replicas": 1,
-        "template": {
-          "metadata": {
-            "labels": {
-              "app": "vizier",
-              "component": "suggestion-random"
+      spec: {
+        replicas: 1,
+        template: {
+          metadata: {
+            labels: {
+              app: "vizier",
+              component: "suggestion-random",
             },
-            "name": "vizier-suggestion-random"
+            name: "vizier-suggestion-random",
           },
-          "spec": {
-            "containers": [
+          spec: {
+            containers: [
               {
-                "image": "katib/suggestion-random",
-                "name": "vizier-suggestion-random",
-                "ports": [
+                image: "katib/suggestion-random",
+                name: "vizier-suggestion-random",
+                ports: [
                   {
-                    "containerPort": 6789,
-                    "name": "api",
-                  }
-                ]
-              }
-            ]
-          }
-        }
-      }
+                    containerPort: 6789,
+                    name: "api",
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      },
     },  // randomDeployment
 
     gridService: {
-      "apiVersion": "v1",
-      "kind": "Service",
-      "metadata": {
-        "labels": {
-          "app": "vizier",
-          "component": "suggestion-grid",
+      apiVersion: "v1",
+      kind: "Service",
+      metadata: {
+        labels: {
+          app: "vizier",
+          component: "suggestion-grid",
         },
-        "name": "vizier-suggestion-grid",
-        "namespace": namespace,
+        name: "vizier-suggestion-grid",
+        namespace: namespace,
       },
-      "spec": {
-        "ports": [
+      spec: {
+        ports: [
           {
-            "name": "api",
-            "port": 6789,
-            "protocol": "TCP"
-          }
+            name: "api",
+            port: 6789,
+            protocol: "TCP",
+          },
         ],
-        "selector": {
-          "app": "vizier",
-          "component": "suggestion-grid",
+        selector: {
+          app: "vizier",
+          component: "suggestion-grid",
         },
-        "type": "ClusterIP",
-      }
+        type: "ClusterIP",
+      },
     },  // gridService
 
     gridDeployment: {
-      "apiVersion": "extensions/v1beta1",
-      "kind": "Deployment",
-      "metadata": {
-        "labels": {
-          "app": "vizier",
-          "component": "suggestion-grid"
+      apiVersion: "extensions/v1beta1",
+      kind: "Deployment",
+      metadata: {
+        labels: {
+          app: "vizier",
+          component: "suggestion-grid",
         },
-        "name": "vizier-suggestion-grid",
-        "namespace": namespace,
+        name: "vizier-suggestion-grid",
+        namespace: namespace,
       },
-      "spec": {
-        "replicas": 1,
-        "template": {
-          "metadata": {
-            "labels": {
-              "app": "vizier",
-              "component": "suggestion-grid"
+      spec: {
+        replicas: 1,
+        template: {
+          metadata: {
+            labels: {
+              app: "vizier",
+              component: "suggestion-grid",
             },
-            "name": "vizier-suggestion-grid"
+            name: "vizier-suggestion-grid",
           },
-          "spec": {
-            "containers": [
+          spec: {
+            containers: [
               {
-                "image": "katib/suggestion-grid",
-                "name": "vizier-suggestion-grid",
-                "ports": [
+                image: "katib/suggestion-grid",
+                name: "vizier-suggestion-grid",
+                ports: [
                   {
-                    "containerPort": 6789,
-                    "name": "api"
-                  }
-                ]
-              }
-            ]
-          }
-        }
-      }
+                    containerPort: 6789,
+                    name: "api",
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      },
     },  // gridDeployment
 
   },  // parts

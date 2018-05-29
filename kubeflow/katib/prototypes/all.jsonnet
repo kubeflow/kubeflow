@@ -19,5 +19,5 @@ local updatedParams = params {
 
 
 std.prune(k.core.v1.list.new(vizier.all(updatedParams)))
-  + std.prune(k.core.v1.list.new(modeldb.all(updatedParams)))
-  + std.prune(k.core.v1.list.new(suggestion.all(updatedParams)))
++ std.prune(k.core.v1.list.new(modeldb.all(updatedParams)))
++ std.prune(k.core.v1.list.new(suggestion.all(updatedParams)))

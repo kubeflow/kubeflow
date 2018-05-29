@@ -12,111 +12,111 @@
   parts(namespace):: {
 
     coreService: {
-      "apiVersion": "v1",
-      "kind": "Service",
-      "metadata": {
-        "labels": {
-          "app": "vizier",
-          "component": "core",
+      apiVersion: "v1",
+      kind: "Service",
+      metadata: {
+        labels: {
+          app: "vizier",
+          component: "core",
         },
-        "name": "vizier-core",
-        "namespace": namespace,
+        name: "vizier-core",
+        namespace: namespace,
       },
-      "spec": {
-        "ports": [
+      spec: {
+        ports: [
           {
-            "name": "api",
-            "nodePort": 30678,
-            "port": 6789,
-            "protocol": "TCP",
-          }
+            name: "api",
+            nodePort: 30678,
+            port: 6789,
+            protocol: "TCP",
+          },
         ],
-        "selector": {
-          "app": "vizier",
-          "component": "core",
+        selector: {
+          app: "vizier",
+          component: "core",
         },
-        "type": "NodePort",
-      }
+        type: "NodePort",
+      },
     },  // coreService
 
     coreDeployment: {
-      "apiVersion": "extensions/v1beta1",
-      "kind": "Deployment",
-      "metadata": {
-        "labels": {
-          "app": "vizier",
-          "component": "core",
+      apiVersion: "extensions/v1beta1",
+      kind: "Deployment",
+      metadata: {
+        labels: {
+          app: "vizier",
+          component: "core",
         },
-        "name": "vizier-core",
-        "namespace": namespace,
+        name: "vizier-core",
+        namespace: namespace,
       },
-      "spec": {
-        "replicas": 1,
-        "template": {
-          "metadata": {
-            "labels": {
-              "app": "vizier",
-              "component": "core"
+      spec: {
+        replicas: 1,
+        template: {
+          metadata: {
+            labels: {
+              app: "vizier",
+              component: "core",
             },
-            "name": "vizier-core"
+            name: "vizier-core",
           },
-          "spec": {
-            "containers": [
+          spec: {
+            containers: [
               {
-                "args": [
+                args: [
                   "-w",
                   "dlk",
                   "-i",
-                  "k-cluster.example.net"
+                  "k-cluster.example.net",
                 ],
-                "image": "katib/vizier-core",
-                "name": "vizier-core",
-                "ports": [
+                image: "katib/vizier-core",
+                name: "vizier-core",
+                ports: [
                   {
-                    "containerPort": 6789,
-                    "name": "api"
-                  }
-                ]
-              }
+                    containerPort: 6789,
+                    name: "api",
+                  },
+                ],
+              },
             ],
-            "serviceAccountName": "vizier-core",
-          }
-        }
-      }
+            serviceAccountName: "vizier-core",
+          },
+        },
+      },
     },  // coreDeployment
 
     clusterRoleBinding: {
-      "apiVersion": "rbac.authorization.k8s.io/v1beta1",
-      "kind": "ClusterRoleBinding",
-      "metadata": {
-        "name": "vizier-core"
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
+      kind: "ClusterRoleBinding",
+      metadata: {
+        name: "vizier-core",
       },
-      "roleRef": {
-        "apiGroup": "rbac.authorization.k8s.io",
-        "kind": "ClusterRole",
-        "name": "vizier-core",
+      roleRef: {
+        apiGroup: "rbac.authorization.k8s.io",
+        kind: "ClusterRole",
+        name: "vizier-core",
       },
-      "subjects": [
+      subjects: [
         {
-          "kind": "ServiceAccount",
-          "name": "vizier-core",
-          "namespace": "katib"
-        }
-      ]
+          kind: "ServiceAccount",
+          name: "vizier-core",
+          namespace: "katib",
+        },
+      ],
     },
 
     clusterRole:: {
-      "apiVersion": "rbac.authorization.k8s.io/v1beta1",
-      "kind": "ClusterRole",
-      "metadata": {
-        "name": "vizier-core"
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
+      kind: "ClusterRole",
+      metadata: {
+        name: "vizier-core",
       },
-      "rules": [
+      rules: [
         {
-          "apiGroups": [
-            ""
+          apiGroups: [
+            "",
           ],
-          "resources": [
+          resources: [
             "pods",
             "nodes",
             "nodes/*",
@@ -126,139 +126,139 @@
             "persistentvolumes",
             "persistentvolumes/status",
             "persistentvolumeclaims",
-            "persistentvolumeclaims/status"
+            "persistentvolumeclaims/status",
           ],
-          "verbs": [
-            "*"
-          ]
+          verbs: [
+            "*",
+          ],
         },
         {
-          "apiGroups": [
-            "batch"
+          apiGroups: [
+            "batch",
           ],
-          "resources": [
+          resources: [
             "jobs",
-            "jobs/status"
+            "jobs/status",
           ],
-          "verbs": [
-            "*"
-          ]
+          verbs: [
+            "*",
+          ],
         },
         {
-          "apiGroups": [
-            "extensions"
+          apiGroups: [
+            "extensions",
           ],
-          "resources": [
+          resources: [
             "ingresses",
             "ingresses/status",
             "deployments",
-            "deployments/status"
+            "deployments/status",
           ],
-          "verbs": [
-            "*"
-          ]
+          verbs: [
+            "*",
+          ],
         },
         {
-          "apiGroups": [
-            ""
+          apiGroups: [
+            "",
           ],
-          "resources": [
-            "services"
+          resources: [
+            "services",
           ],
-          "verbs": [
-            "*"
-          ]
-        }
-      ]
+          verbs: [
+            "*",
+          ],
+        },
+      ],
     },  // clusterRole
 
     serviceAccount: {
-      "apiVersion": "v1",
-      "kind": "ServiceAccount",
-      "metadata": {
-        "name": "vizier-core",
-        "namespace": namespace,
-      }
+      apiVersion: "v1",
+      kind: "ServiceAccount",
+      metadata: {
+        name: "vizier-core",
+        namespace: namespace,
+      },
     },
 
     dbDeployment: {
-      "apiVersion": "extensions/v1beta1",
-      "kind": "Deployment",
-      "metadata": {
-        "labels": {
-          "app": "vizier",
-          "component": "db"
+      apiVersion: "extensions/v1beta1",
+      kind: "Deployment",
+      metadata: {
+        labels: {
+          app: "vizier",
+          component: "db",
         },
-        "name": "vizier-db",
-        "namespace": namespace,
+        name: "vizier-db",
+        namespace: namespace,
       },
-      "spec": {
-        "replicas": 1,
-        "template": {
-          "metadata": {
-            "labels": {
-              "app": "vizier",
-              "component": "db"
+      spec: {
+        replicas: 1,
+        template: {
+          metadata: {
+            labels: {
+              app: "vizier",
+              component: "db",
             },
-            "name": "vizier-db"
+            name: "vizier-db",
           },
-          "spec": {
-            "containers": [
+          spec: {
+            containers: [
               {
-                "env": [
+                env: [
                   {
-                    "name": "MYSQL_ROOT_PASSWORD",
-                    "value": "test"
+                    name: "MYSQL_ROOT_PASSWORD",
+                    value: "test",
                   },
                   {
-                    "name": "MYSQL_ALLOW_EMPTY_PASSWORD",
-                    "value": "true"
+                    name: "MYSQL_ALLOW_EMPTY_PASSWORD",
+                    value: "true",
                   },
                   {
-                    "name": "MYSQL_DATABASE",
-                    "value": "vizier"
-                  }
+                    name: "MYSQL_DATABASE",
+                    value: "vizier",
+                  },
                 ],
-                "image": "mysql:8.0.3",
-                "name": "vizier-db",
-                "ports": [
+                image: "mysql:8.0.3",
+                name: "vizier-db",
+                ports: [
                   {
-                    "containerPort": 3306,
-                    "name": "dbapi"
-                  }
-                ]
-              }
-            ]
-          }
-        }
-      }
+                    containerPort: 3306,
+                    name: "dbapi",
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      },
     },  // dbDeployment
 
     dbService: {
-      "apiVersion": "v1",
-      "kind": "Service",
-      "metadata": {
-        "labels": {
-          "app": "vizier",
-          "component": "db"
+      apiVersion: "v1",
+      kind: "Service",
+      metadata: {
+        labels: {
+          app: "vizier",
+          component: "db",
         },
-        "name": "vizier-db",
-        "namespace": namespace,
+        name: "vizier-db",
+        namespace: namespace,
       },
-      "spec": {
-        "ports": [
+      spec: {
+        ports: [
           {
-            "name": "dbapi",
-            "port": 3306,
-            "protocol": "TCP",
-          }
+            name: "dbapi",
+            port: 3306,
+            protocol: "TCP",
+          },
         ],
-        "selector": {
-          "app": "vizier",
-          "component": "db",
+        selector: {
+          app: "vizier",
+          component: "db",
         },
-        "type": "ClusterIP",
-      }
+        type: "ClusterIP",
+      },
     },  // dbService
 
   },  //parts

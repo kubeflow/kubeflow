@@ -26,226 +26,226 @@
         type: "ClusterIP",
         ports: [
           {
-	    port: 6543,
+            port: 6543,
             protocol: "TCP",
             name: "api",
-	  },
-	],
+          },
+        ],
         selector: {
           app: "modeldb",
           component: "backend",
-	}
-      }
+        },
+      },
     },  // backendService
     backendDeployment: {
-      "apiVersion": "extensions/v1beta1",
-      "kind": "Deployment",
-      "metadata": {
-        "labels": {
-          "app": "modeldb",
-          "component": "backend"
+      apiVersion: "extensions/v1beta1",
+      kind: "Deployment",
+      metadata: {
+        labels: {
+          app: "modeldb",
+          component: "backend",
         },
-        "name": "modeldb-backend",
-        "namespace": namespace
+        name: "modeldb-backend",
+        namespace: namespace,
       },
-      "spec": {
-        "replicas": 1,
-        "template": {
-          "metadata": {
-            "labels": {
-              "app": "modeldb",
-              "component": "backend"
+      spec: {
+        replicas: 1,
+        template: {
+          metadata: {
+            labels: {
+              app: "modeldb",
+              component: "backend",
             },
-            "name": "modeldb-backend"
+            name: "modeldb-backend",
           },
-          "spec": {
-            "containers": [
+          spec: {
+            containers: [
               {
-                "args": [
-                  "modeldb-db"
+                args: [
+                  "modeldb-db",
                 ],
-                "image": "mitdbg/modeldb-backend:latest",
-                "name": "modeldb-backend",
-                "ports": [
+                image: "mitdbg/modeldb-backend:latest",
+                name: "modeldb-backend",
+                ports: [
                   {
-                    "containerPort": 6543,
-                    "name": "api"
-                  }
-                ]
-              }
-            ]
-          }
-        }
-      }
+                    containerPort: 6543,
+                    name: "api",
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      },
     },  // backendDeployment
 
     dbService: {
-      "apiVersion": "v1",
-      "kind": "Service",
-      "metadata": {
-        "labels": {
-          "app": "modeldb",
-          "component": "db"
+      apiVersion: "v1",
+      kind: "Service",
+      metadata: {
+        labels: {
+          app: "modeldb",
+          component: "db",
         },
-        "name": "modeldb-db",
-        "namespace": namespace
+        name: "modeldb-db",
+        namespace: namespace,
       },
-      "spec": {
-        "ports": [
+      spec: {
+        ports: [
           {
-            "name": "dbapi",
-            "port": 27017,
-            "protocol": "TCP"
-          }
+            name: "dbapi",
+            port: 27017,
+            protocol: "TCP",
+          },
         ],
-        "selector": {
-          "app": "modeldb",
-          "component": "db"
+        selector: {
+          app: "modeldb",
+          component: "db",
         },
-        "type": "ClusterIP"
-      }
+        type: "ClusterIP",
+      },
     },  // dbService
 
     dbDeployment: {
-      "apiVersion": "extensions/v1beta1",
-      "kind": "Deployment",
-      "metadata": {
-        "labels": {
-          "app": "modeldb",
-          "component": "db"
+      apiVersion: "extensions/v1beta1",
+      kind: "Deployment",
+      metadata: {
+        labels: {
+          app: "modeldb",
+          component: "db",
         },
-        "name": "modeldb-db",
-        "namespace": namespace,
+        name: "modeldb-db",
+        namespace: namespace,
       },
-      "spec": {
-        "replicas": 1,
-        "template": {
-          "metadata": {
-            "labels": {
-              "app": "modeldb",
-              "component": "db"
+      spec: {
+        replicas: 1,
+        template: {
+          metadata: {
+            labels: {
+              app: "modeldb",
+              component: "db",
             },
-            "name": "modeldb-db"
+            name: "modeldb-db",
           },
-          "spec": {
-            "containers": [
+          spec: {
+            containers: [
               {
-                "image": "mongo:3.4",
-                "name": "modeldb-db",
-                "ports": [
+                image: "mongo:3.4",
+                name: "modeldb-db",
+                ports: [
                   {
-                    "containerPort": 27017,
-                    "name": "dbapi"
-                  }
-                ]
-              }
-            ]
-          }
-        }
-      }
+                    containerPort: 27017,
+                    name: "dbapi",
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      },
     },  // dbDeployment
 
     frontendService: {
-      "apiVersion": "v1",
-      "kind": "Service",
-      "metadata": {
-        "labels": {
-          "app": "modeldb",
-          "component": "frontend",
+      apiVersion: "v1",
+      kind: "Service",
+      metadata: {
+        labels: {
+          app: "modeldb",
+          component: "frontend",
         },
-        "name": "modeldb-frontend",
-        "namespace": namespace,
+        name: "modeldb-frontend",
+        namespace: namespace,
       },
-      "spec": {
-        "ports": [
+      spec: {
+        ports: [
           {
-            "name": "api",
-            "port": 3000,
-            "protocol": "TCP",
-          }
+            name: "api",
+            port: 3000,
+            protocol: "TCP",
+          },
         ],
-        "selector": {
-          "app": "modeldb",
-          "component": "frontend",
+        selector: {
+          app: "modeldb",
+          component: "frontend",
         },
-        "type": "ClusterIP",
-      }
+        type: "ClusterIP",
+      },
     },  // frontendService
 
     frontendDeployment: {
-      "apiVersion": "extensions/v1beta1",
-      "kind": "Deployment",
-      "metadata": {
-        "labels": {
-          "app": "modeldb",
-          "component": "frontend",
+      apiVersion: "extensions/v1beta1",
+      kind: "Deployment",
+      metadata: {
+        labels: {
+          app: "modeldb",
+          component: "frontend",
         },
-        "name": "modeldb-frontend",
-        "namespace": namespace,
+        name: "modeldb-frontend",
+        namespace: namespace,
       },
-      "spec": {
-        "replicas": 1,
-        "template": {
-          "metadata": {
-            "labels": {
-              "app": "modeldb",
-              "component": "frontend",
+      spec: {
+        replicas: 1,
+        template: {
+          metadata: {
+            labels: {
+              app: "modeldb",
+              component: "frontend",
             },
-            "name": "modeldb-frontend",
+            name: "modeldb-frontend",
           },
-          "spec": {
-            "containers": [
+          spec: {
+            containers: [
               {
-                "args": [
-                  "modeldb-backend"
+                args: [
+                  "modeldb-backend",
                 ],
-                "env": [
+                env: [
                   {
-                    "name": "ROOT_PATH",
-                    "value": "/katib",
-                  }
+                    name: "ROOT_PATH",
+                    value: "/katib",
+                  },
                 ],
-                "image": "katib/katib-frontend",
-                "imagePullPolicy": "Always",
-                "name": "modeldb-frontend",
-                "ports": [
+                image: "katib/katib-frontend",
+                imagePullPolicy: "Always",
+                name: "modeldb-frontend",
+                ports: [
                   {
-                    "containerPort": 3000,
-                    "name": "webapi",
-                  }
-                ]
-              }
-            ]
-          }
-        }
-      }
+                    containerPort: 3000,
+                    name: "webapi",
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      },
     },  // frontendDeployment
 
     frontendIngress: {
-      "apiVersion": "extensions/v1beta1",
-      "kind": "Ingress",
-      "metadata": {
-        "name": "katib-ui",
-        "namespace": namespace,
+      apiVersion: "extensions/v1beta1",
+      kind: "Ingress",
+      metadata: {
+        name: "katib-ui",
+        namespace: namespace,
       },
-      "spec": {
-        "rules": [
+      spec: {
+        rules: [
           {
-            "host": "k-cluster.example.net",
-            "http": {
-              "paths": [
+            host: "k-cluster.example.net",
+            http: {
+              paths: [
                 {
-                  "backend": {
-                    "serviceName": "modeldb-frontend",
-                    "servicePort": 3000,
+                  backend: {
+                    serviceName: "modeldb-frontend",
+                    servicePort: 3000,
                   },
-                  "path": "/katib",
-                }
-              ]
-            }
-          }
-        ]
-      }
+                  path: "/katib",
+                },
+              ],
+            },
+          },
+        ],
+      },
     },  // frontendIngress
 
   },  // parts
