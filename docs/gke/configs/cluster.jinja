@@ -108,7 +108,12 @@ resources:
           nodeMetadata: SECURE
         {% endif %}
         oauthScopes:
-        - gke-default
+        - https://www.googleapis.com/auth/devstorage.read_only
+        - https://www.googleapis.com/auth/logging.write
+        - https://www.googleapis.com/auth/monitoring
+        - https://www.googleapis.com/auth/service.management.readonly
+        - https://www.googleapis.com/auth/servicecontrol
+        - https://www.googleapis.com/auth/trace.append
   metadata:
     dependsOn:
     - kubeflow-cluster-vm-service-account
@@ -139,7 +144,12 @@ resources:
         machineType: n1-standard-8
         serviceAccount: {{ properties['vmServiceAccountName'] }}@{{ env['project'] }}.iam.gserviceaccount.com
         oauthScopes:
-        - gke-default
+        - https://www.googleapis.com/auth/devstorage.read_only
+        - https://www.googleapis.com/auth/logging.write
+        - https://www.googleapis.com/auth/monitoring
+        - https://www.googleapis.com/auth/service.management.readonly
+        - https://www.googleapis.com/auth/servicecontrol
+        - https://www.googleapis.com/auth/trace.append
 
   metadata:
     dependsOn:
@@ -167,7 +177,12 @@ resources:
         machineType: n1-standard-8
         serviceAccount: {{ properties['vmServiceAccountName'] }}@{{ env['project'] }}.iam.gserviceaccount.com
         oauthScopes:
-        - gke-default
+        - https://www.googleapis.com/auth/devstorage.read_only
+        - https://www.googleapis.com/auth/logging.write
+        - https://www.googleapis.com/auth/monitoring
+        - https://www.googleapis.com/auth/service.management.readonly
+        - https://www.googleapis.com/auth/servicecontrol
+        - https://www.googleapis.com/auth/trace.append
         accelerators:
           - acceleratorCount: 1
             acceleratorType: nvidia-tesla-k80
