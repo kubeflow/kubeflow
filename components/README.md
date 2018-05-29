@@ -18,8 +18,8 @@ See `build_image.py` for details.
 - GPU: 1.6, 1.7
 
 ### TF notebook
-- CPU: 1.4.1, 1.5.1, 1.6.0, 1.7.0
-- GPU: 1.4.1, 1.5.1, 1.6.0, 1.7.0
+- CPU: 1.4.1, 1.5.1, 1.6.0, 1.7.0, 1.8.0
+- GPU: 1.4.1, 1.5.1, 1.6.0, 1.7.0, 1.8.0
 
 ## Releasing images
 
@@ -37,4 +37,3 @@ ks apply releasing -c tf-serving-workflow
 
 To release TF notebook images, replace tf-serving-workflow with
 tf-notebook-workflow.
-
