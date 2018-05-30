@@ -6,9 +6,9 @@
     bucket: "kubeflow-ci_temp",
     commit: "master",
     // Name of the secret containing GCP credentials.
-    gcpCredentialsSecretName: "kubeflow-testing-credentials",
+    gcpCredentialsSecretName: "gcp-credentials",
     name: "new9",
-    namespace: "kubeflow-test-infra",
+    namespace: "kubeflow-releasing",
     // The name of the NFS volume claim to use for test files.
     nfsVolumeClaim: "nfs-external",
     prowEnv: "REPO_OWNER=kubeflow,REPO_NAME=kubeflow,PULL_BASE_SHA=master",
