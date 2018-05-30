@@ -59,6 +59,22 @@ def run(command, cwd=None, env=None, polling_interval=datetime.timedelta(seconds
 
   return "\n".join(output)
 
+def wait_for_docker_daemon(timeout=60):
+  """Waiting for docker daemon to be ready. This is needed in DinD scenario."""
+  start_time = time.time()
+  while time.time() - start_time < timeout:
+    try:
+      subprocess.check_call(["docker", "ps"])
+    except subprocess.CalledProcessError:
+      time.sleep(5)
+    # Daemon ready.
+    logging.info("docker daemon ready.\n")
+    return
+  # Timeout.
+  logging.error("Timeout waiting for docker daemon\n")
+  # TODO(lunkai): use TimeoutError when we use py3.
+  raise RuntimeError
+
 def get_build_args(config):
   """
   Make the list of params for docker build from config.
@@ -78,35 +94,45 @@ def get_config(context_dir, version):
   return config
 
 def build_tf_serving(args):
-  context_dir = "k8s-model-server/images"
+  wait_for_docker_daemon()
+  dir_path = os.path.dirname(os.path.realpath(__file__))
+  context_dir = os.path.join(dir_path, "k8s-model-server/images")
   version = args.tf_version if args.platform == "cpu" else args.tf_version + "gpu"
 
   config = get_config(context_dir, version)
   build_args = get_build_args(config)
+  image_name = "{}/tensorflow-serving-{}:{}".format(args.registry, version, args.tag)
 
   command = list(chain(
       ["docker", "build", "--pull"],
       build_args,
-      ["-t", "{}/tensorflow-serving-{}:{}".format(args.registry, version, args.tag),
-       "-f", "Dockerfile.{}".format(args.platform), "."]
+      ["-t", image_name, "-f", "Dockerfile.{}".format(args.platform), "."]
   ))
   run(command, cwd=context_dir)
+
+  if args.push_gcr:
+    run(["gcloud", "docker", "--", "push", image_name])
 
 def build_tf_notebook(args):
-  context_dir = "tensorflow-notebook-image"
+  wait_for_docker_daemon()
+  dir_path = os.path.dirname(os.path.realpath(__file__))
+  context_dir = os.path.join(dir_path, "tensorflow-notebook-image")
   version = args.tf_version if args.platform == "cpu" else args.tf_version + "gpu"
 
   config = get_config(context_dir, version)
   build_args = get_build_args(config)
+  image_name = "{}/tensorflow-{}-notebook-{}:{}".format(
+      args.registry, args.tf_version, args.platform, args.tag)
 
   command = list(chain(
       ["docker", "build", "--pull"],
       build_args,
-      ["-t", "{}/tensorflow-{}-notebook-{}:{}".format(
-          args.registry, args.tf_version, args.platform, args.tag),
-       "-f", "Dockerfile", "."]
+      ["-t", image_name, "-f", "Dockerfile", "."]
   ))
   run(command, cwd=context_dir)
+
+  if args.push_gcr:
+    run(["gcloud", "docker", "--", "push", image_name])
 
 def main():
   parser = argparse.ArgumentParser()
@@ -131,6 +157,12 @@ def main():
     "--platform",
     default="cpu",
     help="cpu or gpu"
+  )
+  parser.add_argument(
+    "--push_gcr",
+    action='store_true',
+    default=False,
+    help="Whether to push the image after building."
   )
 
   parser_tf_serving = subparsers.add_parser("tf_serving")

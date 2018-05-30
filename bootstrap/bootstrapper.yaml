@@ -19,15 +19,6 @@ roleRef:
   name: cluster-admin
   apiGroup: rbac.authorization.k8s.io
 ---
-# Required by StatefulSet
-kind: Service
-apiVersion: v1
-metadata:
-  name: kubeflow-bootstrapper
-  namespace: kubeflow-admin
-spec:
-  clusterIP: "None"
----
 # Store ksonnet apps
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -64,12 +55,8 @@ spec:
         image: gcr.io/kubeflow-images-public/bootstrapper:latest
         workingDir: /opt/bootstrap
         command: [ "/opt/kubeflow/bootstrapper"]
-        args: ["--in-cluster", "--namespace=kubeflow"]
-        env:
-        - name: NAMESPACE
-          value: "kubeflow"
-        - name: DEPLOY_JOB
-          value: "TRUE"
+        # app-dir: path you wish to store ks apps
+        args: ["--in-cluster", "--namespace=kubeflow", "--app-dir=/opt/bootstrap/default"]
         volumeMounts:
         - name: kubeflow-ksonnet-pvc
           mountPath: /opt/bootstrap
