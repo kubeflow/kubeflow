@@ -21,7 +21,7 @@ CONF_DIR=$HOME/.jupyter
 
 echo "checking if $HOME volume needs init..."
 
-if [ "$(ls -A $HOME)" ]; then
+if [ "$(ls --ignore=lost+found -A $HOME)" ]; then
     # assume we are working with an existing volume via a PVC
     echo "...$HOME already has content..."
 else
