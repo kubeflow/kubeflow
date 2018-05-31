@@ -78,7 +78,7 @@ def deploy_kubeflow_gcp(_):
     "name": deployment_name,
     "target": {
       "config": {
-        "content": content_yaml.dump(),
+        "content": yaml.dump(content_yaml),
       },
       "imports": imports,
     },  
