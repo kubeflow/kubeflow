@@ -7,9 +7,13 @@ registries:
 app:
   packages:
     - name: core
+      registry: kubeflow
     - name: tf-serving
+      registry: kubeflow
     - name: tf-job
+      registry: kubeflow
     - name: pytorch-job
+      registry: kubeflow
   components:
     - name: kubeflow-core
       prototype: kubeflow-core
