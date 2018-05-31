@@ -1,6 +1,12 @@
 # Sample config for kubeflow bootstrapper
 ---
 # App only apply if on GKE
+registries:
+  - name: kubeflow
+    repo: https://github.com/kubeflow/kubeflow.git
+    branch: master
+    # relative path to registry from git repo.
+    path: kubeflow
 app:
   packages:
     - name: core

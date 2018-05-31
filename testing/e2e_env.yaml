@@ -1,4 +1,9 @@
-# App for e2e test
+# Bootstrap config for kubeflow e2e test
+registries:
+  # For e2e test we won't use registry in boostrapper image,
+  # Instead we use PR code attached to container by volumn. (specify registry path in parameters.)
+  # So don't need to provide repo here.
+  - name: kubeflow
 app:
   packages:
     - name: core
