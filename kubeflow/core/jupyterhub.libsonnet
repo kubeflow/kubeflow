@@ -219,12 +219,29 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
           apiGroups: [
             "*",
           ],
-          // TODO(jlewi): This is very permissive so we may want to lock this down.
           resources: [
-            "*",
+            "pods",
+            "persistentvolumeclaims",
           ],
           verbs: [
+            "get",
+            "watch",
+            "list",
+            "create",
+            "delete",
+          ],
+        },
+        {
+          apiGroups: [
             "*",
+          ],
+          resources: [
+            "events",
+          ],
+          verbs: [
+            "get",
+            "watch",
+            "list",
           ],
         },
       ],
