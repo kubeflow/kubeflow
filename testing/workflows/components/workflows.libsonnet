@@ -467,7 +467,7 @@
               "--apply",
               "--namespace=" + stepsNamespace,
               "--registry-uri=" + srcDir + "/kubeflow",
-              "--registry-name=kubeflow"
+              "--registry-name=kubeflow",
               "--app-dir=" + testDir + "/app",
               "--config=" + srcDir + "/testing/e2e_env.yaml",
               "--keep-alive=false",
