@@ -38,6 +38,7 @@
       local testing_image = "gcr.io/kubeflow-ci/kubeflow-testing";
       local bootstrapperImage = "gcr.io/kubeflow-ci/bootstrapper:" + name;
       local deploymentName = "e2e-" + std.substr(name, std.length(name) - 4, 4);
+
       // The name of the NFS volume claim to use for test files.
       local nfsVolumeClaim = "nfs-external";
       // The name to use for the volume to use to contain test data.
@@ -186,16 +187,16 @@
                       gkeSetup,
 
                   }.result,
-                  //                  {
-                  //                    local bootstrapImageCreate = {
-                  //                      name: "bootstrap-image-create",
-                  //                      template: "bootstrap-image-create",
-                  //                      dependencies: ["checkout"],
-                  //                    },
-                  //
-                  //                    result:: if platform == "gke" then
-                  //                      bootstrapImageCreate,
-                  //                  }.result,
+                  {
+                    local bootstrapImageCreate = {
+                      name: "bootstrap-image-create",
+                      template: "bootstrap-image-create",
+                      dependencies: ["checkout"],
+                    },
+
+                    result:: if platform == "gke" then
+                      bootstrapImageCreate,
+                  }.result,
                   {
                     name: "create-pr-symlink",
                     template: "create-pr-symlink",
@@ -210,7 +211,7 @@
                     local bootstrapKubeflowGCP = {
                       name: "bootstrap-kubeflow-gcp",
                       template: "bootstrap-kubeflow-gcp",
-                      dependencies: ["checkout"],
+                      dependencies: ["bootstrap-image-create"],
                     },
                     local deployKubeflow = {
                       name: "deploy-kubeflow",
@@ -472,6 +473,7 @@
               "--name=" + deploymentName,
               "--config=" + srcDir + "/docs/gke/configs/cluster-kubeflow.yaml",
               "--imports=" + srcDir + "/docs/gke/configs/cluster.jinja",
+              "--bootstrapper_image=" + bootstrapperImage,
             ]),  // bootstrap-kubeflow-gcp
             buildTemplate("teardown-kubeflow-gcp", [
               "python",
