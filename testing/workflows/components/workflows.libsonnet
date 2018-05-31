@@ -448,7 +448,7 @@
                 "-c",
                 bootstrapDir + "/build_image.sh "
                 + bootstrapDir + "/Dockerfile" + " "
-                + bootstrapperImage,
+                + bootstrapperImage + " master",
               ],
               [
                 {

@@ -1,5 +1,11 @@
 apiVersion: 0.1.0
 environments:
+  kubeflow-presubmit-kubeflow-e2e-gke-894-e57c888-446:
+    destination:
+      namespace: kubeflow-test-infra
+      server: https://35.196.213.148
+    k8sVersion: v1.9.6
+    path: kubeflow-presubmit-kubeflow-e2e-gke-894-e57c888-446
   kubeflow-presubmit-kubeflow-e2e-gke-894-e57c888-980:
     destination:
       namespace: kubeflow-test-infra
@@ -18,6 +24,12 @@ environments:
       server: https://35.196.213.148
     k8sVersion: v1.9.6
     path: kubeflow-presubmit-kubeflow-e2e-gke-894-e57c888-3945
+  kubeflow-presubmit-kubeflow-e2e-gke-894-e57c888-4580:
+    destination:
+      namespace: kubeflow-admin
+      server: https://35.196.21.167
+    k8sVersion: v1.9.6
+    path: kubeflow-presubmit-kubeflow-e2e-gke-894-e57c888-4580
   kubeflow-presubmit-kubeflow-e2e-gke-894-e57c888-5523:
     destination:
       namespace: kubeflow-test-infra
@@ -30,6 +42,12 @@ environments:
       server: https://35.196.213.148
     k8sVersion: v1.9.6
     path: kubeflow-presubmit-kubeflow-e2e-gke-894-e57c888-8677
+  kubeflow-presubmit-kubeflow-e2e-gke-894-e57c888-9068:
+    destination:
+      namespace: kubeflow-test-infra
+      server: https://35.196.213.148
+    k8sVersion: v1.9.6
+    path: kubeflow-presubmit-kubeflow-e2e-gke-894-e57c888-9068
   kubeflow-testing:
     destination:
       namespace: kubeflow-test-infra
