@@ -471,8 +471,8 @@
               "testing.deploy_kubeflow_gcp",
               "--project=" + project,
               "--name=" + deploymentName,
-              "--config=" + srcDir + "/docs/gke/configs/cluster-kubeflow.yaml",
-              "--imports=" + srcDir + "/docs/gke/configs/cluster.jinja",
+              "--config=" + srcDir + "/testing/dm_configs/cluster-kubeflow.yaml",
+              "--imports=" + srcDir + "/testing/dm_configs/cluster.jinja",
               "--bootstrapper_image=" + bootstrapperImage,
             ]),  // bootstrap-kubeflow-gcp
             buildTemplate("teardown-kubeflow-gcp", [
