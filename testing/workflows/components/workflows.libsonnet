@@ -1,7 +1,4 @@
 {
-  // TODO(https://github.com/ksonnet/ksonnet/issues/222): Taking namespace as an argument is a work around for the fact that ksonnet
-  // doesn't support automatically piping in the namespace from the environment to prototypes.
-
   // convert a list of two items into a map representing an environment variable
   listToMap:: function(v)
     {
@@ -40,7 +37,7 @@
       local image = "gcr.io/kubeflow-ci/test-worker:latest";
       local testing_image = "gcr.io/kubeflow-ci/kubeflow-testing";
       local bootstrapperImage = "gcr.io/kubeflow-ci/bootstrapper:" + name;
-
+      local deploymentName = "e2e-" + std.substr(name, std.length(name) - 4, 4);
       // The name of the NFS volume claim to use for test files.
       local nfsVolumeClaim = "nfs-external";
       // The name to use for the volume to use to contain test data.
@@ -67,7 +64,7 @@
       // GKE cluster to use
       local cluster =
         if platform == "gke" then
-          "kubeflow-testing"
+          deploymentName
         else
           "";
       local zone = "us-east1-d";
@@ -78,11 +75,7 @@
         name: step_name,
         container: {
           command: command,
-          image:
-            if step_name == "bootstrap-kubeflow" then
-              bootstrapperImage
-            else
-              image,
+          image: image,
           imagePullPolicy: "Always",
           env: [
             {
@@ -106,13 +99,9 @@
             {
               // We use a directory in our NFS share to store our kube config.
               // This way we can configure it on a single step and reuse it on subsequent steps.
-              local kubeconfig = {
-                name: "KUBECONFIG",
-                value: testDir + "/.kube/config",
-              },
-              result:: if step_name != "bootstrap-kubeflow" then
-                kubeconfig,
-            }.result,
+              name: "KUBECONFIG",
+              value: testDir + "/.kube/config",
+            },
           ] + prow_env + env_vars,
           volumeMounts: [
             {
@@ -183,9 +172,8 @@
                     local gkeSetup = {
                       name: "setup-gke",
                       template: "setup-gke",
-                      dependencies: ["checkout"],
+                      dependencies: ["bootstrap-kubeflow-gcp"],
                     },
-
                     local minikubeSetup = {
                       name: "setup-minikube",
                       template: "setup-minikube",
@@ -198,16 +186,16 @@
                       gkeSetup,
 
                   }.result,
-                  {
-                    local bootstrapImageCreate = {
-                      name: "bootstrap-image-create",
-                      template: "bootstrap-image-create",
-                      dependencies: ["setup-gke"],
-                    },
-
-                    result:: if platform == "gke" then
-                      bootstrapImageCreate,
-                  }.result,
+                  //                  {
+                  //                    local bootstrapImageCreate = {
+                  //                      name: "bootstrap-image-create",
+                  //                      template: "bootstrap-image-create",
+                  //                      dependencies: ["checkout"],
+                  //                    },
+                  //
+                  //                    result:: if platform == "gke" then
+                  //                      bootstrapImageCreate,
+                  //                  }.result,
                   {
                     name: "create-pr-symlink",
                     template: "create-pr-symlink",
@@ -219,10 +207,10 @@
                     dependencies: ["checkout"],
                   },
                   {
-                    local bootstrapKubeflow = {
-                      name: "bootstrap-kubeflow",
-                      template: "bootstrap-kubeflow",
-                      dependencies: ["bootstrap-image-create"],
+                    local bootstrapKubeflowGCP = {
+                      name: "bootstrap-kubeflow-gcp",
+                      template: "bootstrap-kubeflow-gcp",
+                      dependencies: ["checkout"],
                     },
                     local deployKubeflow = {
                       name: "deploy-kubeflow",
@@ -232,7 +220,7 @@
                     result:: if platform == "minikube" then
                       deployKubeflow
                     else
-                      bootstrapKubeflow,
+                      bootstrapKubeflowGCP,
                   }.result,
                   {
                     name: "pytorchjob-deploy",
@@ -241,7 +229,7 @@
                       if platform == "minikube" then
                         "deploy-kubeflow"
                       else
-                        "bootstrap-kubeflow",
+                        "wait-for-kubeflow-deployment",
                     ],
                   },
                   // Don't run argo test for gke since
@@ -263,9 +251,16 @@
                       if platform == "minikube" then
                         "deploy-kubeflow"
                       else
-                        "bootstrap-kubeflow",
+                        "wait-for-kubeflow-deployment",
                     ],
                   },
+                  if platform == "gke" then {
+                    name: "wait-for-kubeflow-deployment",
+                    template: "wait-for-kubeflow-deployment",
+                    dependencies: [
+                      "setup-gke",
+                    ],
+                  } else {},
                   {
                     name: "jsonnet-test",
                     template: "jsonnet-test",
@@ -282,7 +277,7 @@
                     name: "teardown",
                     template:
                       if platform == "gke" then
-                        "teardown-gke"
+                        "teardown-kubeflow-gcp"
                       else
                         if platform == "minikube" then
                           "teardown-minikube"
@@ -306,6 +301,24 @@
               }],
               [],  // no sidecars
             ),
+            buildTemplate("setup-gke", [
+              "python",
+              "-m",
+              "testing.get_gke_credentials",
+              "--test_dir=" + testDir,
+              "--project=" + project,
+              "--cluster=" + deploymentName,
+              "--zone=" + zone,
+            ]),  // setup-gke
+            buildTemplate("wait-for-kubeflow-deployment", [
+              "python",
+              "-m",
+              "testing.wait_for_deployment",
+              "--cluster=" + deploymentName,
+              "--project=" + project,
+              "--zone=" + zone,
+              "--timeout=5",
+            ]),  // wait-for-kubeflow-deployment
             buildTemplate("test-jsonnet-formatting", [
               "python",
               "-m",
@@ -316,15 +329,6 @@
               "--exclude_dirs=" + srcDir + "/bootstrap/vendor/",
             ]),  // test-jsonnet-formatting
             // Setup and teardown using GKE.
-            buildTemplate("setup-gke", [
-              "python",
-              "-m",
-              "testing.get_gke_credentials",
-              "--test_dir=" + testDir,
-              "--project=" + project,
-              "--cluster=" + cluster,
-              "--zone=" + zone,
-            ]),  // setup-gke
             buildTemplate("teardown-gke", [
               "python",
               "-m",
@@ -406,7 +410,7 @@
               "--component=simple_tfjob",
               // Name is used for the test case name so it should be unique across
               // all E2E tests.
-              "--params=name=simple-tfjob-" + platform + ",namespace=" + stepsNamespace,
+              "--params=name=simple-tfjob-" + platform + ",namespace=kubeflow",
               "--junit_path=" + artifactsDir + "/junit_e2e-" + platform + ".xml",
             ]),  // run tests
             buildTemplate("pytorchjob-deploy", [
@@ -415,7 +419,7 @@
               "testing.test_deploy",
               "--project=kubeflow-ci",
               "--github_token=$(GITHUB_TOKEN)",
-              "--namespace=" + stepsNamespace,
+              "--namespace=" + "kubeflow",
               "--test_dir=" + testDir,
               "--artifacts_dir=" + artifactsDir,
               "--deploy_name=pytorch-job",
@@ -460,16 +464,22 @@
                 mirrorVolumeMounts: true,
               }],
             ),  // bootstrap-image-create
-            buildTemplate("bootstrap-kubeflow", [
-              "/opt/kubeflow/bootstrapper",
-              "--in-cluster",
-              "--apply",
-              "--namespace=" + stepsNamespace,
-              "--registry-uri=" + srcDir + "/kubeflow",
-              "--app-dir=" + testDir + "/app",
-              "--config=" + srcDir + "/testing/e2e_env.yaml",
-              "--keep-alive=false",
-            ]),  // bootstrap-kubeflow
+            buildTemplate("bootstrap-kubeflow-gcp", [
+              "python",
+              "-m",
+              "testing.deploy_kubeflow_gcp",
+              "--project=" + project,
+              "--name=" + deploymentName,
+              "--config=" + srcDir + "/docs/gke/configs/cluster-kubeflow.yaml",
+              "--imports=" + srcDir + "/docs/gke/configs/cluster.jinja",
+            ]),  // bootstrap-kubeflow-gcp
+            buildTemplate("teardown-kubeflow-gcp", [
+              "python",
+              "-m",
+              "testing.teardown_kubeflow_gcp",
+              "--project=" + project,
+              "--name=" + deploymentName,
+            ]),  // teardown-kubeflow-gcp
           ],  // templates
         },
       },  // e2e
