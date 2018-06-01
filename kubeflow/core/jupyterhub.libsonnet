@@ -95,15 +95,27 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
         },
         name: "tf-hub-0",
         namespace: namespace,
+        annotations: {
+          "getambassador.io/config":
+            std.join("\n", [
+              "---",
+              "apiVersion: ambassador/v0",
+              "kind:  Mapping",
+              "name: tf-hub-0-mapping",
+              "prefix: /hub/",
+              "rewrite: /hub/",
+              "timeout_ms: 300000",
+              "service: tf-hub-0." + namespace,
+            ]),
+        },  //annotations
       },
       spec: {
-        // We want a headless service so we set the ClusterIP to be None.
-        // This headless server is used by individual Jupyter pods to connect back to the Hub.
-        clusterIP: "None",
+        type: "ClusterIP",
         ports: [
           {
             name: "hub",
-            port: 8000,
+            port: 80,
+            targetPort: 8081,
           },
         ],
         selector: {
@@ -127,7 +139,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
           {
             name: "hub",
             port: 80,
-            targetPort: 8000,
+            targetPort: 8081,
           },
         ],
         selector: {
@@ -157,6 +169,11 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
           spec: {
             containers: [
               {
+                //command: [
+                //  "/bin/bash",
+                //  "-c",
+                //  "trap : TERM INT; sleep infinity & wait",
+                //],
                 command: [
                   "jupyterhub",
                   "-f",

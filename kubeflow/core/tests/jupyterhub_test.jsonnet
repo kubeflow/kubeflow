@@ -4,8 +4,8 @@ local params = {
   disks:: "disk01,disk02",
   jupyterHubAuthenticator:: null,
   jupyterHubServiceType:: "ClusterIP",
-  jupyterHubImage: "gcr.io/kubeflow/jupyterhub-k8s:1.0.1",
-  jupyterNotebookPVCMount: "/home/jovyan",
+  jupyterHubImage: "gcr.io/kubeflow-images-public/jupyterhub-k8s:1.0.2",
+  jupyterNotebookPVCMount: "/home/jovyan/work",
   cloud: null,
 };
 
@@ -56,30 +56,36 @@ std.assertEqual(configSuffixLines[4], 'c.KubeSpawner.volumes.extend([{"name": "d
 std.assertEqual(configSuffixLines[5], 'c.KubeSpawner.volume_mounts.extend([{"mountPath": "/mnt/disk01", "name": "disk01"}, {"mountPath": "/mnt/disk02", "name": "disk02"}])')
 &&
 
-std.assertEqual(jupyterhub.parts(params.namespace).jupyterHubService,
-                {
-                  apiVersion: "v1",
-                  kind: "Service",
-                  metadata: {
-                    labels: {
-                      app: "tf-hub",
-                    },
-                    name: "tf-hub-0",
-                    namespace: "test-kf-001",
-                  },
-                  spec: {
-                    clusterIP: "None",
-                    ports: [
-                      {
-                        name: "hub",
-                        port: 8000,
-                      },
-                    ],
-                    selector: {
-                      app: "tf-hub",
-                    },
-                  },
-                }) &&
+std.assertEqual(
+  jupyterhub.parts(params.namespace).jupyterHubService,
+  {
+    apiVersion: "v1",
+    kind: "Service",
+    metadata: {
+      annotations: {
+        "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind:  Mapping\nname: tf-hub-0-mapping\nprefix: /hub/\nrewrite: /hub/\ntimeout_ms: 300000\nservice: tf-hub-0.test-kf-001",
+      },
+      labels: {
+        app: "tf-hub",
+      },
+      name: "tf-hub-0",
+      namespace: "test-kf-001",
+    },
+    spec: {
+      ports: [
+        {
+          name: "hub",
+          port: 80,
+          targetPort: 8081,
+        },
+      ],
+      selector: {
+        app: "tf-hub",
+      },
+      type: "ClusterIP",
+    },
+  }
+) &&
 
 std.assertEqual(jupyterhub.parts(params.namespace).jupyterHubLoadBalancer(params.jupyterHubServiceType),
                 {
@@ -97,7 +103,7 @@ std.assertEqual(jupyterhub.parts(params.namespace).jupyterHubLoadBalancer(params
                       {
                         name: "hub",
                         port: 80,
-                        targetPort: 8000,
+                        targetPort: 8081,
                       },
                     ],
                     selector: {
@@ -142,7 +148,7 @@ std.assertEqual(jupyterhub.parts(params.namespace).jupyterHub(params.jupyterHubI
                                 value: null,
                               },
                             ],
-                            image: "gcr.io/kubeflow/jupyterhub-k8s:1.0.1",
+                            image: "gcr.io/kubeflow-images-public/jupyterhub-k8s:1.0.2",
                             name: "tf-hub",
                             ports: [
                               {
