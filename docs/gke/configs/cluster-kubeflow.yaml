@@ -63,8 +63,6 @@ resources:
     # This is the name of the GCP static ip address to reserve for your domain.
     # This must be different for each Kubeflow deployment in your project.
     ipName: kubeflow-ip
-    # Name of the service account to use for k8s worker node pools
-    vmServiceAccountName: kubeflow-service-account
     # Provide the config for the bootstrapper. This should be a string
     # containing the YAML spec for the bootstrapper.
     #
