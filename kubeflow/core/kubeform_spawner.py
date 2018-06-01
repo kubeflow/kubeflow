@@ -80,8 +80,8 @@ class KubeServiceProxy(Proxy):
                     'apiVersion: ambassador/v0',
                     'kind:  Mapping',
                     'name: ' + name + '-mapping',
-                    'prefix: /user/',
-                    'rewrite: /user/',
+                    'prefix: /user/' + username + '/',
+                    'rewrite: /user/' + username + '/',
                     'use_websocket: true',
                     'service: ' + name + '.' + self.namespace])
             },
@@ -150,6 +150,7 @@ class KubeServiceProxy(Proxy):
         self.log.info("Adding user %s to proxy %s => %s",
                       user.name, self.spawner.proxy_spec, self.spawner.server.host,
                       )
+        self.log.info("spawner's accessible_hub_api_url %s", self.spawner.accessible_hub_api_url)
 
         if self.spawner.pending and self.spawner.pending != 'spawn':
             raise RuntimeError(
