@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import shutil
+import ssl
 import tempfile
 import time
 import uuid
@@ -160,16 +161,19 @@ def wait_for_operation(client,
   """
   endtime = datetime.datetime.now() + timeout
   while True:
-    op = client.operations().get(
-      project=project, operation=op_id).execute()
+    try:
+      op = client.operations().get(
+        project=project, operation=op_id).execute()
 
-    if status_callback:
-      status_callback(op)
+      if status_callback:
+        status_callback(op)
 
-    status = op.get("status", "")
-    # Need to handle other status's
-    if status == "DONE":
-      return op
+      status = op.get("status", "")
+      # Need to handle other status's
+      if status == "DONE":
+        return op
+    except ssl.SSLError as e:
+      logging.error("Ignoring error %s", e)
     if datetime.datetime.now() > endtime:
       raise TimeoutError(
         "Timed out waiting for op: {0} to complete.".format(op_id))
