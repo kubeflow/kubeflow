@@ -24,9 +24,6 @@ local updatedParams = params {
   namespace: if params.namespace == "null" then env.namespace else params.namespace,
 };
 
-
-//std.prune(k.core.v1.list.new(vizier.all(updatedParams)))
-//+ std.prune(k.core.v1.list.new(modeldb.all(updatedParams)))
-//+ std.prune(k.core.v1.list.new(suggestion.all(updatedParams)))
-
-k.core.v1.list.new(params)
+std.prune(k.core.v1.list.new(vizier.all(updatedParams)))
++ std.prune(k.core.v1.list.new(modeldb.all(updatedParams)))
++ std.prune(k.core.v1.list.new(suggestion.all(updatedParams)))

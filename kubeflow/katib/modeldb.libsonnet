@@ -204,7 +204,7 @@
                     value: "/katib",
                   },
                 ],
-                image: modeldbFrontendImage,
+                image: params.modeldbFrontendImage,
                 imagePullPolicy: "IfNotPresent",
                 name: "modeldb-frontend",
                 ports: [
