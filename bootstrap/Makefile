@@ -20,8 +20,10 @@ all: build
 
 # To build without the cache set the environment variable
 # export DOCKER_BUILD_OPTS=--no-cache
+
+# To edit which registries to add to bootstrapper, edit config (eg. config/default.yaml)
 build:
-	docker build ${DOCKER_BUILD_OPTS} -t $(IMG):$(TAG) . --build-arg kubeflowversion=master
+	python build.py --image=$(IMG):$(TAG) --build_opts=$(DOCKER_BUILD_OPTS) --config=config/default.yaml
 	docker tag $(IMG):$(TAG) $(IMG):latest
 	@echo Built $(IMG):latest
 	@echo Built $(IMG):$(TAG)
