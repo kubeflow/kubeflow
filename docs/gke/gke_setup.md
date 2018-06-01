@@ -15,12 +15,12 @@ The instructions also take advantage of IAP to provide secure authenticated acce
 
 1. Modify `cluster-kubeflow.yaml`
 
-  1. Set the zone for your cluster
-  1. Set property `ipName` to a value that is unique with respect to your project
-  1. Set parameter ipName in bootstrapperConfig to the value selected in the previous step
-  1. Set parameter acmeEmail in bootstrapperConfig to your email address
-  1. Set parameter hostname in bootstrapperConfig
-  1. Change the initial number of nodes if desired
+   1. Set the zone for your cluster
+   1. Set property `ipName` to a value that is unique with respect to your project
+   1. Set parameter ipName in bootstrapperConfig to the value selected in the previous step
+   1. Set parameter acmeEmail in bootstrapperConfig to your email address
+   1. Set parameter hostname in bootstrapperConfig
+   1. Change the initial number of nodes if desired
 
 		* If you want GPUs set a non-zero number for number of GPU nodes.
 
@@ -47,23 +47,17 @@ The instructions also take advantage of IAP to provide secure authenticated acce
 1. Get credentials for the newly configured cluster
 
    ```
-   gcloud --project=${PROJECT} container clusters get-credentials --zone=${ZONE} ${DEPLOYMENT_NAME}-${NAME}
+   gcloud --project=${PROJECT} container clusters get-credentials --zone=${ZONE} ${DEPLOYMENT_NAME}
    ```
 
 	 * ZONE - this will be the zone specified in your ${CONFIG_FILE}
-	 * NAME - this will be the name specified in your ${CONFIG_FILE}
 
-1. Create a service account and IAM bindings for the cloud-endpoints-controller
-
-	* You can skip this step if you are using a custom domain.
+1. Create K8s secrets containing the secrets for the GCP service accounts to be used with Kubeflow
 
    ```
-   export SA_EMAIL=${DEPLOYMENT_NAME}-${NAME}@${PROJECT}.iam.gserviceaccount.com
-   gcloud --project=${PROJECT} iam service-accounts keys create ${SA_EMAIL}.json --iam-account $SA_EMAIL
-   kubectl create secret generic --namespace=kubeflow cloudep-sa --from-file=./${SA_EMAIL}.json
+   . env-kubeflow.sh
+   ./create_k8s_secrets.sh 
    ```
-
-	* ${NAME} is the name of the resource in your ${CONFIG_FILE}
 
 ### Create oauth client credentials
 
