@@ -41,8 +41,15 @@ limitations under the License.
 {% set STATEFULSETS_COLLECTION = '/apis/apps/v1/namespaces/{namespace}/statefulsets' %}
 {% set CLUSTER_ROLE_BINDING_COLLECTION = '/apis/rbac.authorization.k8s.io/v1/clusterrolebindings' %}
 
-{# Names for service accounts.#}
+{# Names for service accounts.
+   -admin is to be used for admin tasks
+   -user is to be used by users for actual jobs.
+   -vm is used for the VM service account attached to the GKE VMs.
+ #}
 {% set KF_ADMIN_NAME = NAME_PREFIX + '-admin' %}
+{% set KF_USER_NAME = NAME_PREFIX + '-user' %}
+{% set KF_VM_SA_NAME = NAME_PREFIX + '-vm' %}
+
 {# For most of the K8s resources we set the deletePolicy to abandon; otherwise deployment manager reports various errors.
    Since we delete the cluster all the K8s resources will be deleted anyway.
 
@@ -58,7 +65,14 @@ resources:
   properties:
     accountId: {{ KF_ADMIN_NAME }}
     displayName: Service Account used for Kubeflow admin actions.
-- name: kubeflow-cluster-vm-service-account
+
+- name: {{ KF_USER_NAME }}
+  type: iam.v1.serviceAccount
+  properties:
+    accountId: {{ KF_USER_NAME }}
+    displayName: Service Account used for Kubeflow user actions.
+
+- name: {{ KF_VM_SA_NAME }}
   type: iam.v1.serviceAccount
   properties:
     accountId: {{ properties['vmServiceAccountName'] }}
@@ -106,7 +120,7 @@ resources:
       {% endif %}
       nodeConfig:
         machineType: n1-standard-1
-        serviceAccount: {{ properties['vmServiceAccountName'] }}@{{ env['project'] }}.iam.gserviceaccount.com
+        serviceAccount: {{ KF_VM_SA_NAME }}@{{ env['project'] }}.iam.gserviceaccount.com
         {% if properties['securityConfig']['secureNodeMetadata'] %}
         workloadMetadataConfig:
           nodeMetadata: SECURE
@@ -114,7 +128,7 @@ resources:
         oauthScopes: {{ VM_OAUTH_SCOPES }}
   metadata:
     dependsOn:
-    - kubeflow-cluster-vm-service-account
+    - {{ KF_VM_SA_NAME }}
 
 # We manage the node pools as separate resources.
 # We do this so that if we want to make changes we can delete the existing resource and then recreate it.
@@ -166,7 +180,7 @@ resources:
           nodeMetadata: SECURE
         {% endif %}
         machineType: n1-standard-8
-        serviceAccount: {{ properties['vmServiceAccountName'] }}@{{ env['project'] }}.iam.gserviceaccount.com
+        serviceAccount: {{ KF_VM_SA_NAME }}@{{ env['project'] }}.iam.gserviceaccount.com
         oauthScopes: {{ VM_OAUTH_SCOPES }}
         accelerators:
           - acceleratorCount: 1
@@ -286,9 +300,40 @@ TODO(jlewi): Do we need to serialize API activation
           members:
             - {{ 'serviceAccount:' + env['project_number'] + '@cloudservices.gserviceaccount.com' }}
 
+        {# servicemanagement.admin is needed by CloudEndpoints controller
+           so we can create a service to get a hostname.
+         #}
         - role: roles/servicemanagement.admin
           members:
             - {{ 'serviceAccount:' + KF_ADMIN_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+        {# Network admin is needed to enable IAP and configure network settings
+           like backend timeouts and health checks.
+        #}
+        - role: roles/compute.networkAdmin
+          members:
+            - {{ 'serviceAccount:' + KF_ADMIN_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        - role: roles/storage.admin
+          members:
+            - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        - role: roles/bigquery.admin
+          members:
+            - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        - role: roles/dataflow.admin
+          members:
+            - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        - role: roles/logging.logWriter
+          members:
+            {# VM service account is used to write logs. #}
+            - {{ 'serviceAccount:' + KF_VM_SA_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        - role: roles/monitoring.metricWriter
+          members:
+            {# VM service account is used to write monitoring data. #}
+            - {{ 'serviceAccount:' + KF_VM_SA_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
 
       remove: []
 
@@ -297,6 +342,7 @@ TODO(jlewi): Do we need to serialize API activation
       - get-iam-policy
       - iam-api
       - {{ KF_ADMIN_NAME }}
+      - {{ KF_USER_NAME }}
     runtimePolicy:
       - UPDATE_ALWAYS
 

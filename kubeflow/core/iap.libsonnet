@@ -223,6 +223,10 @@
                     name: "ENVOY_ADMIN",
                     value: "http://localhost:" + envoyAdminPort,
                   },
+                  {
+                    name: "GOOGLE_APPLICATION_CREDENTIALS",
+                    value: "/var/run/secrets/sa/admin-gcp-sa.json",
+                  },
                 ],
                 volumeMounts: [
                   {
@@ -232,6 +236,11 @@
                   {
                     mountPath: "/var/shared/",
                     name: "shared",
+                  },
+                  {
+                    name: "sa-key",
+                    readOnly: true,
+                    mountPath: "/var/run/secrets/sa",
                   },
                 ],
               },
@@ -249,6 +258,12 @@
                   medium: "Memory",
                 },
                 name: "shared",
+              },
+              {
+                name: "sa-key",
+                secret: {
+                  secretName: "admin-gcp-sa",
+                },
               },
             ],
           },
@@ -315,6 +330,11 @@
             echo Error unable to fetch PROJECT_NUM from compute metadata
             exit 1
           fi
+
+          # Activate the service account
+          gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
+          # Print out the config for debugging
+          gcloud config list
 
           NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[0].nodePort}')
           while [[ -z ${BACKEND_ID} ]];

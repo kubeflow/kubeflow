@@ -13,6 +13,9 @@ export PROJECT=kubeflow
 # The name must be unique for each deployment within your project.
 export DEPLOYMENT_NAME=kubeflow
 
+# Set this to the zone in your ${CONFIG_FILE}
+export ZONE=us-east1-d
+
 # Set config file to the YAML file defining your deployment manager configs.
 export CONFIG_FILE=cluster-${PROJECT}.yaml
 
