@@ -12,18 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM python:3.6
+FROM jupyterhub/jupyterhub:0.9
 
-RUN apt-get update && \
-    apt-get install -y npm nodejs-legacy
-
-RUN npm install -g configurable-http-proxy && \
-    pip3 install --no-cache-dir \
-                 notebook \
-                 jupyterhub==0.8.1 \
-                 jupyterhub-kubespawner==0.7.1 \
+RUN pip3 install --no-cache-dir \                 
+                 jupyterhub-kubespawner==0.8.1 \
                  jupyterhub-dummyauthenticator \
                  jhub_remote_user_authenticator \
                  oauthenticator
-
-ENTRYPOINT jupyterhub
