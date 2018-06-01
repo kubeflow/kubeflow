@@ -187,7 +187,7 @@ std.assertEqual(
                   value: "true",
                 },
               ],
-              image: "quay.io/datawire/ambassador:0.30.1",
+              image: "quay.io/datawire/ambassador:0.34.0",
               livenessProbe: {
                 httpGet: {
                   path: "/ambassador/v0/check_alive",
@@ -217,7 +217,7 @@ std.assertEqual(
               },
             },
             {
-              image: "quay.io/datawire/statsd:0.30.1",
+              image: "quay.io/datawire/statsd:0.34.0",
               name: "statsd",
             },
           ],
