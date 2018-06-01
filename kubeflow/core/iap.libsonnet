@@ -222,7 +222,7 @@
                   {
                     name: "ENVOY_ADMIN",
                     value: "http://localhost:" + envoyAdminPort,
-                  },                  
+                  },
                   {
                     name: "GOOGLE_APPLICATION_CREDENTIALS",
                     value: "/var/run/secrets/sa/admin-gcp-sa.json",
