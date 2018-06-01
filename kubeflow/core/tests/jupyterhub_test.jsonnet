@@ -191,10 +191,28 @@ std.assertEqual(jupyterhub.parts(params.namespace).jupyterHubRole,
                         "*",
                       ],
                       resources: [
-                        "*",
+                        "pods",
+                        "persistentvolumeclaims",
                       ],
                       verbs: [
+                        "get",
+                        "watch",
+                        "list",
+                        "create",
+                        "delete",
+                      ],
+                    },
+                    {
+                      apiGroups: [
                         "*",
+                      ],
+                      resources: [
+                        "events",
+                      ],
+                      verbs: [
+                        "get",
+                        "watch",
+                        "list",
                       ],
                     },
                   ],
