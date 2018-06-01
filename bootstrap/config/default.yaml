@@ -1,11 +1,21 @@
-# Default config for kubeflow bootstrapper, included in bootstrapper image
+# Default kubeflow config for bootstrapper, included in bootstrapper image.
+# This config is shared by docker image build and bootstrapper execution.
 ---
-# App that always apply
+# Image build is when pulling registry happens, so make sure to include registries you want for image build
+registries:
+  - name: kubeflow
+    repo: https://github.com/kubeflow/kubeflow.git
+    branch: master
+    # relative path to registry from git repo.
+    path: kubeflow
 app:
   packages:
     - name: core
+      registry: kubeflow
     - name: tf-serving
+      registry: kubeflow
     - name: tf-job
+      registry: kubeflow
   components:
     - name: kubeflow-core
       prototype: kubeflow-core

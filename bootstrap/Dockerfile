@@ -34,8 +34,8 @@ RUN git clone https://github.com/ksonnet/ksonnet.git /opt/ksonnet && \
 	cd /opt/ksonnet && \
 	git checkout v0.10.0-alpha.3
 
-ARG kubeflowversion=v0.1.3
-RUN git clone --depth 1 --branch $kubeflowversion https://github.com/kubeflow/kubeflow.git /opt/kubeflow
+ARG registries
+COPY $registries /opt/registries
 
 # TODO(jlewi): bootstrap is using an early dev version of ks (0.10) so we need
 # to build ks at the same commit because the generated app won't work with

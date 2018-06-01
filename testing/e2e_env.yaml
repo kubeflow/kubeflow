@@ -1,10 +1,19 @@
-# App for e2e test
+# Bootstrap config for kubeflow e2e test
+registries:
+  # For e2e test we won't use registry in boostrapper image,
+  # Instead we use PR code attached to container by volumn. (specify registry path in parameters.)
+  # So don't need to provide repo here.
+  - name: kubeflow
 app:
   packages:
     - name: core
+      registry: kubeflow
     - name: tf-serving
+      registry: kubeflow
     - name: tf-job
+      registry: kubeflow
     - name: pytorch-job
+      registry: kubeflow
   components:
     - name: kubeflow-core
       prototype: kubeflow-core

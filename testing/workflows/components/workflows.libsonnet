@@ -442,8 +442,9 @@
                 "/bin/bash",
                 "-c",
                 bootstrapDir + "/build_image.sh "
-                + bootstrapDir + "/Dockerfile" + " "
-                + bootstrapperImage,
+                + bootstrapDir + " "
+                + bootstrapperImage + " "
+                + "../testing/e2e_env.yaml",
               ],
               [
                 {
@@ -466,6 +467,7 @@
               "--apply",
               "--namespace=" + stepsNamespace,
               "--registry-uri=" + srcDir + "/kubeflow",
+              "--registry-name=kubeflow",
               "--app-dir=" + testDir + "/app",
               "--config=" + srcDir + "/testing/e2e_env.yaml",
               "--keep-alive=false",

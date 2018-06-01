@@ -58,7 +58,7 @@ const DefaultStorageAnnotation = "storageclass.beta.kubernetes.io/is-default-cla
 // Assume gcloud is on the path.
 const GcloudPath = "gcloud"
 
-const RegistryName = "kubeflow"
+const RegistriesRoot = "/opt/registries"
 
 type KsComponent struct{
 	Name      string
@@ -67,6 +67,7 @@ type KsComponent struct{
 
 type KsPackage struct{
 	Name string
+	Registry string
 }
 
 type KsParameter struct{
@@ -75,7 +76,14 @@ type KsParameter struct{
 	Value     string
 }
 
-//
+type RegistryConfig struct {
+	Name string
+	Repo string
+	Branch string
+	Path string
+	RegUri string
+}
+
 type AppConfig struct {
 	Packages   []KsPackage
 	Components []KsComponent
@@ -83,6 +91,7 @@ type AppConfig struct {
 }
 
 type BootConfig struct {
+	Registries []RegistryConfig
 	App  AppConfig
 }
 
@@ -264,18 +273,23 @@ func createComponent(opt *options.ServerOption, kfApp *kApp.App, fs *afero.Fs, a
 	}
 }
 
-func appGenerate(opt *options.ServerOption, kfApp *kApp.App, fs *afero.Fs, appConfig *AppConfig) {
+func appGenerate(opt *options.ServerOption, kfApp *kApp.App, fs *afero.Fs, bootConfig *BootConfig) {
 	libs, err := (*kfApp).Libraries()
 
 	if err != nil {
 		log.Fatalf("Could not list libraries for app; error %v", err)
 	}
+
+	regUris := make(map[string]string)
+	for _, registry := range bootConfig.Registries {
+		regUris[registry.Name] = registry.RegUri
+	}
 	// Install packages.
-	for _, p := range appConfig.Packages {
+	for _, p := range bootConfig.App.Packages {
 		pkgName := p.Name
-		_, err = (*fs).Stat(path.Join(opt.RegistryUri, pkgName))
+		_, err = (*fs).Stat(path.Join(regUris[p.Registry], pkgName))
 		if err != nil {
-			log.Fatalf("Package %v didn't exist in registry %v", pkgName, opt.RegistryUri)
+			log.Fatalf("Package %v didn't exist in registry %v", pkgName, regUris[p.Registry])
 		}
 		full := fmt.Sprintf("kubeflow/%v", pkgName)
 		log.Infof("Installing package %v", full)
@@ -297,7 +311,7 @@ func appGenerate(opt *options.ServerOption, kfApp *kApp.App, fs *afero.Fs, appCo
 
 	paramMapping := make(map[string][]string)
 	// Extract params for each components
-	for _, p := range appConfig.Parameters {
+	for _, p := range bootConfig.App.Parameters {
 		if val, ok := paramMapping[p.Component]; ok {
 			paramMapping[p.Component] = append(val, []string{"--" + p.Name, p.Value}...)
 		} else {
@@ -306,7 +320,7 @@ func appGenerate(opt *options.ServerOption, kfApp *kApp.App, fs *afero.Fs, appCo
 	}
 
 	// Create Components
-	for _, c := range appConfig.Components {
+	for _, c := range bootConfig.App.Components {
 		params := []string{c.Prototype, c.Name}
 		if val, ok := paramMapping[c.Name]; ok {
 			params = append(params, val...)
@@ -314,7 +328,7 @@ func appGenerate(opt *options.ServerOption, kfApp *kApp.App, fs *afero.Fs, appCo
 		createComponent(opt, kfApp, fs, params)
 	}
 	// Apply Params
-	for _, p := range appConfig.Parameters {
+	for _, p := range bootConfig.App.Parameters {
 		err = actions.RunParamSet(map[string]interface{}{
 			actions.OptionApp:   *kfApp,
 			actions.OptionName:  p.Component,
@@ -432,52 +446,62 @@ func Run(opt *options.ServerOption) error {
 		log.Fatalf("There was a problem loading the app: %v", err)
 	}
 
-	options := map[string]interface{}{
-		actions.OptionApp:  kfApp,
-		actions.OptionName: RegistryName,
-		actions.OptionURI:  opt.RegistryUri,
-		// Version doesn't actually appear to be used by the add function.
-		actions.OptionVersion: "",
-		// Looks like override allows us to override existing registries; we shouldn't
-		// need to do that.
-		actions.OptionOverride: false,
-	}
+	for idx, registry := range bootConfig.Registries {
+		// Update registry uri from params if set.
+		if registry.Name == opt.RegistryName {
+			bootConfig.Registries[idx].RegUri = opt.RegistryUri
+		} else {
+			bootConfig.Registries[idx].RegUri = path.Join(RegistriesRoot, registry.Name, registry.Path)
+		}
+		options := map[string]interface{}{
+			actions.OptionApp:  kfApp,
+			actions.OptionName: registry.Name,
+			actions.OptionURI:  bootConfig.Registries[idx].RegUri,
+			// Version doesn't actually appear to be used by the add function.
+			actions.OptionVersion: "",
+			// Looks like override allows us to override existing registries; we shouldn't
+			// need to do that.
+			actions.OptionOverride: false,
+		}
 
-	registries, err := kfApp.Registries()
-
-	if err != nil {
-		log.Fatal("There was a problem listing registries; %v", err)
-	}
-
-	if _, found := registries[RegistryName]; found {
-		log.Infof("App already has registry %v", RegistryName)
-	} else {
-
-		err = actions.RunRegistryAdd(options)
+		registries, err := kfApp.Registries()
 		if err != nil {
-			log.Fatalf("There was a problem adding the registry: %v", err)
+			log.Fatal("There was a problem listing registries; %v", err)
+		}
+
+		if _, found := registries[registry.Name]; found {
+			log.Infof("App already has registry %v", registry.Name)
+		} else {
+
+			err = actions.RunRegistryAdd(options)
+			if err != nil {
+				log.Fatalf("There was a problem adding the registry: %v", err)
+			}
 		}
 	}
 
 	// Load default kubeflow apps
-	appGenerate(opt, &kfApp, &fs, &bootConfig.App)
+	appGenerate(opt, &kfApp, &fs, bootConfig)
 
-	kubeflowCoreName := "kubeflow-core"
+	// Component customization
+	for _, component := range bootConfig.App.Components {
+		if component.Name == "kubeflow-core" {
+			pvcMount := ""
+			if hasDefault {
+				pvcMount = "/home/jovyan"
+			}
 
-	pvcMount := ""
-	if hasDefault {
-		pvcMount = "/home/jovyan"
-	}
+			err = actions.RunParamSet(map[string]interface{}{
+				actions.OptionApp:   kfApp,
+				actions.OptionName:  component.Name,
+				actions.OptionPath:  "jupyterNotebookPVCMount",
+				actions.OptionValue: pvcMount,
+			})
 
-	err = actions.RunParamSet(map[string]interface{}{
-		actions.OptionApp:   kfApp,
-		actions.OptionName:  kubeflowCoreName,
-		actions.OptionPath:  "jupyterNotebookPVCMount",
-		actions.OptionValue: pvcMount,
-	})
-
-	if err != nil {
-		return err
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	if err := os.Chdir(kfApp.Root()); err != nil {
