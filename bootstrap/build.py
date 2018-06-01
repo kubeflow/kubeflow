@@ -27,6 +27,12 @@ def main(unparsed_args=None):
     default="config/default.yaml",
     type=str,
     help="Relative path to bootstrapper config file specify which registries to include.")
+  parser.add_argument(
+    "--test_registry",
+    default="",
+    type=str,
+    help="e2e test target registry, format is <registry name>:<registry path>")
+
 
   args = parser.parse_args(args=unparsed_args)
   tmp_dir = os.path.join(FILE_PATH, REG_FOLDER)
@@ -43,6 +49,14 @@ def main(unparsed_args=None):
       reg_path = os.path.join(tmp_dir, reg["name"])
       print("Adding registry %s from %s %s" % (reg["name"], reg["repo"], reg["branch"]))
       os.system("git clone --depth 1 --branch %s %s %s" % (reg["branch"], reg["repo"], reg_path))
+    else:
+      if args.test_registry != "" and args.test_registry.split(":")[0] == reg["name"]:
+        src_registry = os.path.join(args.test_registry.split(":")[1], reg["path"])
+        reg_path = os.path.join(tmp_dir, *os.path.join(reg["name"], reg["path"]).split('/')[:-1])
+        if not os.path.exists(reg_path):
+          os.makedirs(reg_path)
+        print("cp -r %s %s" % (src_registry, reg_path))
+        os.system("cp -r %s %s" % (src_registry, reg_path))
 
   os.system("docker build %s -t %s %s --build-arg registries=%s" %
             (args.build_opts, args.image, FILE_PATH, REG_FOLDER))

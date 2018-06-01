@@ -447,12 +447,7 @@ func Run(opt *options.ServerOption) error {
 	}
 
 	for idx, registry := range bootConfig.Registries {
-		// Update registry uri from params if set.
-		if registry.Name == opt.RegistryName {
-			bootConfig.Registries[idx].RegUri = opt.RegistryUri
-		} else {
-			bootConfig.Registries[idx].RegUri = path.Join(RegistriesRoot, registry.Name, registry.Path)
-		}
+		bootConfig.Registries[idx].RegUri = path.Join(RegistriesRoot, registry.Name, registry.Path)
 		options := map[string]interface{}{
 			actions.OptionApp:  kfApp,
 			actions.OptionName: registry.Name,
