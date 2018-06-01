@@ -1,15 +1,15 @@
 {
-  all(params):: [
-    $.parts(params).coreService,
-    $.parts(params).coreDeployment,
-    $.parts(params).dbService,
-    $.parts(params).dbDeployment,
-    $.parts(params).clusterRole,
-    $.parts(params).clusterRoleBinding,
-    $.parts(params).serviceAccount,
+  all(params, namespace):: [
+    $.parts(params, namespace).coreService,
+    $.parts(params, namespace).coreDeployment,
+    $.parts(params, namespace).dbService,
+    $.parts(params, namespace).dbDeployment,
+    $.parts(params, namespace).clusterRole,
+    $.parts(params, namespace).clusterRoleBinding,
+    $.parts(params, namespace).serviceAccount,
   ],
 
-  parts(params):: {
+  parts(params, namespace):: {
 
     coreService: {
       apiVersion: "v1",
@@ -20,7 +20,7 @@
           component: "core",
         },
         name: "vizier-core",
-        namespace: params.namespace,
+        namespace: namespace,
       },
       spec: {
         ports: [
@@ -48,7 +48,7 @@
           component: "core",
         },
         name: "vizier-core",
-        namespace: params.namespace,
+        namespace: namespace,
       },
       spec: {
         replicas: 1,
@@ -100,7 +100,7 @@
         {
           kind: "ServiceAccount",
           name: "vizier-core",
-          namespace: params.namespace,
+          namespace: namespace,
         },
       ],
     },
@@ -177,7 +177,7 @@
       kind: "ServiceAccount",
       metadata: {
         name: "vizier-core",
-        namespace: params.namespace,
+        namespace: namespace,
       },
     },
 
@@ -190,7 +190,7 @@
           component: "db",
         },
         name: "vizier-db",
-        namespace: params.namespace,
+        namespace: namespace,
       },
       spec: {
         replicas: 1,
@@ -243,7 +243,7 @@
           component: "db",
         },
         name: "vizier-db",
-        namespace: params.namespace,
+        namespace: namespace,
       },
       spec: {
         ports: [

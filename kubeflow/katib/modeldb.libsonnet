@@ -1,21 +1,21 @@
 {
-  all(params):: [
-    $.parts(params).backendService,
-    $.parts(params).backendDeployment,
-    $.parts(params).dbService,
-    $.parts(params).dbDeployment,
-    $.parts(params).frontendService,
-    $.parts(params).frontendDeployment,
+  all(params, namespace):: [
+    $.parts(params, namespace).backendService,
+    $.parts(params, namespace).backendDeployment,
+    $.parts(params, namespace).dbService,
+    $.parts(params, namespace).dbDeployment,
+    $.parts(params, namespace).frontendService,
+    $.parts(params, namespace).frontendDeployment,
   ],
 
-  parts(params):: {
+  parts(params, namespace):: {
 
     backendService: {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
         name: "modeldb-backend",
-        namespace: params.namespace,
+        namespace: namespace,
         labels: {
           app: "modeldb",
           component: "backend",
@@ -45,7 +45,7 @@
           component: "backend",
         },
         name: "modeldb-backend",
-        namespace: params.namespace,
+        namespace: namespace,
       },
       spec: {
         replicas: 1,
@@ -87,7 +87,7 @@
           component: "db",
         },
         name: "modeldb-db",
-        namespace: params.namespace,
+        namespace: namespace,
       },
       spec: {
         ports: [
@@ -114,7 +114,7 @@
           component: "db",
         },
         name: "modeldb-db",
-        namespace: params.namespace,
+        namespace: namespace,
       },
       spec: {
         replicas: 1,
@@ -153,7 +153,7 @@
           component: "frontend",
         },
         name: "modeldb-frontend",
-        namespace: params.namespace,
+        namespace: namespace,
       },
       spec: {
         ports: [
@@ -180,7 +180,7 @@
           component: "frontend",
         },
         name: "modeldb-frontend",
-        namespace: params.namespace,
+        namespace: namespace,
       },
       spec: {
         replicas: 1,

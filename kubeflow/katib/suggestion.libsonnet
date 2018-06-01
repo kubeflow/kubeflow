@@ -1,12 +1,12 @@
 {
-  all(params):: [
-    $.parts(params).randomService,
-    $.parts(params).randomDeployment,
-    $.parts(params).gridService,
-    $.parts(params).gridDeployment,
+  all(params, namespace):: [
+    $.parts(params, namespace).randomService,
+    $.parts(params, namespace).randomDeployment,
+    $.parts(params, namespace).gridService,
+    $.parts(params, namespace).gridDeployment,
   ],
 
-  parts(params):: {
+  parts(params, namespace):: {
 
     randomService: {
       apiVersion: "v1",
@@ -17,7 +17,7 @@
           component: "suggestion-random",
         },
         name: "vizier-suggestion-random",
-        namespace: params.namespace,
+        namespace: namespace,
       },
       spec: {
         ports: [
@@ -44,7 +44,7 @@
           component: "suggestion-random",
         },
         name: "vizier-suggestion-random",
-        namespace: params.namespace,
+        namespace: namespace,
       },
       spec: {
         replicas: 1,
@@ -83,7 +83,7 @@
           component: "suggestion-grid",
         },
         name: "vizier-suggestion-grid",
-        namespace: params.namespace,
+        namespace: namespace,
       },
       spec: {
         ports: [
@@ -110,7 +110,7 @@
           component: "suggestion-grid",
         },
         name: "vizier-suggestion-grid",
-        namespace: params.namespace,
+        namespace: namespace,
       },
       spec: {
         replicas: 1,

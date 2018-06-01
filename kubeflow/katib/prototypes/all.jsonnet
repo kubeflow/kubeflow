@@ -3,7 +3,6 @@
 // @description Kubeflow hyperparameter tuning component
 // @shortDescription hp-tuning
 // @param name string Name to give to each of the components
-// @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set
 // @optionalParam modeldbImage string mitdbg/modeldb-backend:latest The image for modeldb
 // @optionalParam modeldbDatabaseImage string mongo:3.4 The image for modeldb database.
 // @optionalParam modeldbFrontendImage string katib/katib-frontend The image for modeldb frontend.
@@ -18,12 +17,8 @@ local vizier = import "kubeflow/katib/vizier.libsonnet";
 local modeldb = import "kubeflow/katib/modeldb.libsonnet";
 local suggestion = import "kubeflow/katib/suggestion.libsonnet";
 
-// updatedParams uses the environment namespace if
-// the namespace parameter is not explicitly set
-local updatedParams = params {
-  namespace: if params.namespace == "null" then env.namespace else params.namespace,
-};
+local namespace = env.namespace;
 
-std.prune(k.core.v1.list.new(vizier.all(updatedParams)))
-+ std.prune(k.core.v1.list.new(modeldb.all(updatedParams)))
-+ std.prune(k.core.v1.list.new(suggestion.all(updatedParams)))
+std.prune(k.core.v1.list.new(vizier.all(params, namespace)))
++ std.prune(k.core.v1.list.new(modeldb.all(params, namespace)))
++ std.prune(k.core.v1.list.new(suggestion.all(params, namespace)))
