@@ -7,9 +7,9 @@
     bucket: "kubeflow-ci_temp",
     commit: "master",
     // Name of the secret containing GCP credentials.
-    gcpCredentialsSecretName: "kubeflow-testing-credentials",
+    gcpCredentialsSecretName: "gcp-credentials",
     name: "kubeflow-postsubmit",
-    namespace: "kubeflow-test-infra",
+    namespace: "kubeflow-releasing",
     // The name of the NFS volume claim to use for test files.
     nfsVolumeClaim: "nfs-external",
     prowEnv: "REPO_OWNER=kubeflow,REPO_NAME=kubeflow,PULL_BASE_SHA=master",
@@ -17,7 +17,7 @@
     stepImage: "gcr.io/kubeflow-ci/test-worker:latest",
 
     // The registry to use (should not include the image name or version tag)
-    registry: "gcr.io/kubeflow-image-public",
+    registry: "gcr.io/kubeflow-images-public",
 
     // The tag to use for the image.
     versionTag: "latest",
