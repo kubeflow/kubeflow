@@ -1,12 +1,12 @@
 {
   all(params):: [
-    $.parts(params.namespace).randomService,
-    $.parts(params.namespace).randomDeployment,
-    $.parts(params.namespace).gridService,
-    $.parts(params.namespace).gridDeployment,
+    $.parts(params).randomService,
+    $.parts(params).randomDeployment,
+    $.parts(params).gridService,
+    $.parts(params).gridDeployment,
   ],
 
-  parts(namespace):: {
+  parts(params):: {
 
     randomService: {
       apiVersion: "v1",
@@ -17,7 +17,7 @@
           component: "suggestion-random",
         },
         name: "vizier-suggestion-random",
-        namespace: namespace,
+        namespace: params.namespace,
       },
       spec: {
         ports: [
@@ -44,7 +44,7 @@
           component: "suggestion-random",
         },
         name: "vizier-suggestion-random",
-        namespace: namespace,
+        namespace: params.namespace,
       },
       spec: {
         replicas: 1,
@@ -59,7 +59,7 @@
           spec: {
             containers: [
               {
-                image: "katib/suggestion-random",
+                image: params.suggestionRandomImage,
                 name: "vizier-suggestion-random",
                 ports: [
                   {
@@ -83,7 +83,7 @@
           component: "suggestion-grid",
         },
         name: "vizier-suggestion-grid",
-        namespace: namespace,
+        namespace: params.namespace,
       },
       spec: {
         ports: [
@@ -110,7 +110,7 @@
           component: "suggestion-grid",
         },
         name: "vizier-suggestion-grid",
-        namespace: namespace,
+        namespace: params.namespace,
       },
       spec: {
         replicas: 1,
@@ -125,7 +125,7 @@
           spec: {
             containers: [
               {
-                image: "katib/suggestion-grid",
+                image: params.suggestionGridImage,
                 name: "vizier-suggestion-grid",
                 ports: [
                   {

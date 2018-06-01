@@ -1,15 +1,15 @@
 {
   all(params):: [
-    $.parts(params.namespace).coreService,
-    $.parts(params.namespace).coreDeployment,
-    $.parts(params.namespace).dbService,
-    $.parts(params.namespace).dbDeployment,
-    $.parts(params.namespace).clusterRole,
-    $.parts(params.namespace).clusterRoleBinding,
-    $.parts(params.namespace).serviceAccount,
+    $.parts(params).coreService,
+    $.parts(params).coreDeployment,
+    $.parts(params).dbService,
+    $.parts(params).dbDeployment,
+    $.parts(params).clusterRole,
+    $.parts(params).clusterRoleBinding,
+    $.parts(params).serviceAccount,
   ],
 
-  parts(namespace):: {
+  parts(params):: {
 
     coreService: {
       apiVersion: "v1",
@@ -20,7 +20,7 @@
           component: "core",
         },
         name: "vizier-core",
-        namespace: namespace,
+        namespace: params.namespace,
       },
       spec: {
         ports: [
@@ -48,7 +48,7 @@
           component: "core",
         },
         name: "vizier-core",
-        namespace: namespace,
+        namespace: params.namespace,
       },
       spec: {
         replicas: 1,
@@ -69,7 +69,7 @@
                   "-i",
                   "k-cluster.example.net",
                 ],
-                image: "katib/vizier-core",
+                image: params.vizierCoreImage,
                 name: "vizier-core",
                 ports: [
                   {
@@ -100,7 +100,7 @@
         {
           kind: "ServiceAccount",
           name: "vizier-core",
-          namespace: "katib",
+          namespace: params.namespace,
         },
       ],
     },
@@ -177,7 +177,7 @@
       kind: "ServiceAccount",
       metadata: {
         name: "vizier-core",
-        namespace: namespace,
+        namespace: params.namespace,
       },
     },
 
@@ -190,7 +190,7 @@
           component: "db",
         },
         name: "vizier-db",
-        namespace: namespace,
+        namespace: params.namespace,
       },
       spec: {
         replicas: 1,
@@ -219,7 +219,7 @@
                     value: "vizier",
                   },
                 ],
-                image: "mysql:8.0.3",
+                image: params.vizierDbImage,
                 name: "vizier-db",
                 ports: [
                   {
@@ -243,7 +243,7 @@
           component: "db",
         },
         name: "vizier-db",
-        namespace: namespace,
+        namespace: params.namespace,
       },
       spec: {
         ports: [

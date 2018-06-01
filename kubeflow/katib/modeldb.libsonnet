@@ -1,22 +1,21 @@
 {
   all(params):: [
-    $.parts(params.namespace).backendService,
-    $.parts(params.namespace).backendDeployment,
-    $.parts(params.namespace).dbService,
-    $.parts(params.namespace).dbDeployment,
-    $.parts(params.namespace).frontendService,
-    $.parts(params.namespace).frontendDeployment,
-    $.parts(params.namespace).frontendIngress,
+    $.parts(params).backendService,
+    $.parts(params).backendDeployment,
+    $.parts(params).dbService,
+    $.parts(params).dbDeployment,
+    $.parts(params).frontendService,
+    $.parts(params).frontendDeployment,
   ],
 
-  parts(namespace):: {
+  parts(params):: {
 
     backendService: {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
         name: "modeldb-backend",
-        namespace: namespace,
+        namespace: params.namespace,
         labels: {
           app: "modeldb",
           component: "backend",
@@ -46,7 +45,7 @@
           component: "backend",
         },
         name: "modeldb-backend",
-        namespace: namespace,
+        namespace: params.namespace,
       },
       spec: {
         replicas: 1,
@@ -64,7 +63,7 @@
                 args: [
                   "modeldb-db",
                 ],
-                image: "mitdbg/modeldb-backend:latest",
+                image: params.modeldbImage,
                 name: "modeldb-backend",
                 ports: [
                   {
@@ -88,7 +87,7 @@
           component: "db",
         },
         name: "modeldb-db",
-        namespace: namespace,
+        namespace: params.namespace,
       },
       spec: {
         ports: [
@@ -115,7 +114,7 @@
           component: "db",
         },
         name: "modeldb-db",
-        namespace: namespace,
+        namespace: params.namespace,
       },
       spec: {
         replicas: 1,
@@ -130,7 +129,7 @@
           spec: {
             containers: [
               {
-                image: "mongo:3.4",
+                image: params.modeldbDatabaseImage,
                 name: "modeldb-db",
                 ports: [
                   {
@@ -154,7 +153,7 @@
           component: "frontend",
         },
         name: "modeldb-frontend",
-        namespace: namespace,
+        namespace: params.namespace,
       },
       spec: {
         ports: [
@@ -181,7 +180,7 @@
           component: "frontend",
         },
         name: "modeldb-frontend",
-        namespace: namespace,
+        namespace: params.namespace,
       },
       spec: {
         replicas: 1,
@@ -205,8 +204,8 @@
                     value: "/katib",
                   },
                 ],
-                image: "katib/katib-frontend",
-                imagePullPolicy: "Always",
+                image: modeldbFrontendImage,
+                imagePullPolicy: "IfNotPresent",
                 name: "modeldb-frontend",
                 ports: [
                   {
@@ -220,33 +219,6 @@
         },
       },
     },  // frontendDeployment
-
-    frontendIngress: {
-      apiVersion: "extensions/v1beta1",
-      kind: "Ingress",
-      metadata: {
-        name: "katib-ui",
-        namespace: namespace,
-      },
-      spec: {
-        rules: [
-          {
-            host: "k-cluster.example.net",
-            http: {
-              paths: [
-                {
-                  backend: {
-                    serviceName: "modeldb-frontend",
-                    servicePort: 3000,
-                  },
-                  path: "/katib",
-                },
-              ],
-            },
-          },
-        ],
-      },
-    },  // frontendIngress
 
   },  // parts
 }
