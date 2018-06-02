@@ -29,8 +29,6 @@ type ServerOption struct {
 	Config        string
 	Email         string
 	NameSpace     string
-	RegistryName   string
-	RegistryUri   string
 }
 
 // NewServerOption creates a new CMServer with a default config.
@@ -48,8 +46,6 @@ func (s *ServerOption) AddFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&s.Apply, "apply", false, "Whether or not to apply the configuration.")
 	fs.StringVar(&s.Email, "email", "", "Your Email address for GCP account, if you are using GKE.")
 	fs.BoolVar(&s.InCluster, "in-cluster", false, "Whether bootstrapper is executed inside a pod")
-	fs.StringVar(&s.RegistryName, "registry-name", "", "Name of e2e test target registry.")
-	fs.StringVar(&s.RegistryUri, "registry-uri", "", "Location of e2e test target registry.")
 	fs.BoolVar(&s.KeepAlive, "keep-alive", true, "Whether bootstrapper will stay alive after setup resources.")
 	fs.StringVar(&s.Config, "config", "/opt/kubeflow/default.yaml", "Path to bootstrapper components config.")
 }
