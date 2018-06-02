@@ -119,6 +119,27 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
         },
         name: "tf-hub-lb",
         namespace: namespace,
+        annotations: {
+          "getambassador.io/config":
+            std.join("\n", [
+              "---",
+              "apiVersion: ambassador/v0",
+              "kind:  Mapping",
+              "name: tf-hub-lb-hub-mapping",
+              "prefix: /hub/",
+              "rewrite: /hub/",
+              "timeout_ms: 300000",
+              "service: tf-hub-lb." + namespace,
+              "---",
+              "apiVersion: ambassador/v0",
+              "kind:  Mapping",
+              "name: tf-hub-lb-user-mapping",
+              "prefix: /user/",
+              "rewrite: /user/",
+              "timeout_ms: 300000",
+              "service: tf-hub-lb." + namespace,
+            ]),
+        },  //annotations
       },
       spec: {
         ports: [
@@ -156,15 +177,10 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
             containers: [
               {
                 command: [
-                  "/bin/bash",
-                  "-c",
-                  "trap : TERM INT; sleep infinity & wait",
+                  "jupyterhub",
+                  "-f",
+                  "/etc/config/jupyterhub_config.py",
                 ],
-//                command: [
-//                  "jupyterhub",
-//                  "-f",
-//                  "/etc/config/jupyterhub_config.py",
-//                ],
                 image: image,
                 name: "tf-hub",
                 volumeMounts: [
