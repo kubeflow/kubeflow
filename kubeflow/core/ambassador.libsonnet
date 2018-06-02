@@ -10,7 +10,6 @@
   ],
 
   parts(namespace, ambassadorImage):: {
-    // local ambassadorImage = "quay.io/datawire/ambassador:0.34.0",
     service(serviceType):: {
       apiVersion: "v1",
       kind: "Service",

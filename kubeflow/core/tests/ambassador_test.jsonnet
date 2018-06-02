@@ -3,7 +3,7 @@ local params = {
   namespace:: "test-kf-001",
   tfAmbassadorServiceType:: "ClusterIP",
   tfAmbassadorImage:: "quay.io/datawire/ambassador:0.34.0",
-  tfStatsdImage:: "quay.io/datawire/statsd:0.30.1",
+  tfStatsdImage:: "quay.io/datawire/statsd:0.34.0",
 };
 
 std.assertEqual(

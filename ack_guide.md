@@ -8,7 +8,7 @@ kubectl create namespace ${NAMESPACE}
 # Which version of Kubeflow to use
 # For a list of releases refer to:
 # https://github.com/kubeflow/kubeflow/releases
-#VERSION=v0.1.2
+#VERSION=v0.1.3
 VERSION=jupyterhub-alibaba-cloud
 
 # Initialize a ksonnet app. Set the namespace for it's default environment.
@@ -33,10 +33,10 @@ ks generate kubeflow-core kubeflow-core
 # PLATFORM=<ack>
 ks param set kubeflow-core cloud ack
 
-ks param set kubeflow-core jupyterHubImage registry.aliyuncs.com/kubeflow-images-public/jupyterhub-k8s:1.0.1
+ks param set kubeflow-core jupyterHubImage registry.aliyuncs.com/kubeflow-images-public/jupyterhub-k8s:1.0.2
 ks param set kubeflow-core tfJobImage registry.aliyuncs.com/kubeflow-images-public/tf_operator:v20180522-77375baf
-ks param set kubeflow-core tfAmbassadorImage registry.aliyuncs.com/datawire/ambassador:0.30.1
-ks param set kubeflow-core tfStatsdImage registry.aliyuncs.com/datawire/statsd:0.30.1
+ks param set kubeflow-core tfAmbassadorImage registry.aliyuncs.com/datawire/ambassador:0.34.0
+ks param set kubeflow-core tfStatsdImage registry.aliyuncs.com/datawire/statsd:0.34.0
 
 ks param set kubeflow-core jupyterHubServiceType LoadBalancer
 ks param set kubeflow-core tfAmbassadorServiceType LoadBalancer
