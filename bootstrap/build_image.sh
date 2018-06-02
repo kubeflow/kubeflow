@@ -3,7 +3,7 @@
 # A simple script to build the Docker images.
 # This is intended to be invoked as a step in Argo to build the docker image.
 #
-# build_image.sh ${BUILDDIR} ${IMAGE} ${CONFIG}
+# build_image.sh ${BUILDDIR} ${IMAGE} ${CONFIG} (optional | ${TEST_REGISTRY})
 set -ex
 
 BUILDDIR=$1
@@ -15,7 +15,7 @@ until docker ps
 do sleep 3
 done
 
-python ${BUILDDIR}/build.py --image=${IMAGE} --build_opts="--pull" --config=${CONFIG}
+python ${BUILDDIR}/build.py --image=${IMAGE} --build_opts="--pull" --config=${CONFIG} --test_registry=${4-}
 
 gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
 gcloud docker -- push ${IMAGE}
