@@ -1,12 +1,20 @@
-local params = std.extVar("__ksonnet/params");
-local globals = import "globals.libsonnet";
+local params = std.extVar('__ksonnet/params');
+local globals = import 'globals.libsonnet';
 local envParams = params {
   components+: {
     "tf-serving-workflow"+: {
-      name: "release1",
+      name: 'release1',
     },
     "tf-notebook-workflow"+: {
-      name: "release1",
+      name: 'tensorflow-notebook-image-release-v20180602-e46f3b49',
+      namespace: 'kubeflow-releasing',
+      versionTag: 'v20180602-e46f3b49',
+      prow_env: 'JOB_NAME=tensorflow-notebook-image-release,JOB_TYPE=postsubmit,PULL_BASE_SHA=b3733835,REPO_NAME=kubeflow,REPO_OWNER=kubeflow,BUILD_NUMBER=472F',
+      prowEnv: 'BUILD_ID=,BUILD_NUMBER=,JOB_NAME=tensorflow-notebook-image-release,JOB_TYPE=presubmit,PULL_BASE_SHA=b373383560ae844b9e677ac67e0290e6e980b7ee,PULL_NUMBER=916,PULL_PULL_SHA=e46f3b493bc941395dbcb64e046cc5a3b10e653c,REPO_NAME=kubeflow,REPO_OWNER=kubeflow',
+    },
+    workflows+: {
+      prow_env: 'BUILD_ID=9154,BUILD_NUMBER=9154,JOB_NAME=tensorflow-notebook-image-release,JOB_TYPE=presubmit,PULL_BASE_SHA=b373383560ae844b9e677ac67e0290e6e980b7ee,PULL_NUMBER=916,PULL_PULL_SHA=4cb2c1ecf106971969b1b468cb8963d376ecd3fd,REPO_NAME=kubeflow,REPO_OWNER=kubeflow',
+      prowEnv: 'BUILD_ID=9154,BUILD_NUMBER=9154,JOB_NAME=tensorflow-notebook-image-release,JOB_TYPE=presubmit,PULL_BASE_SHA=b373383560ae844b9e677ac67e0290e6e980b7ee,PULL_NUMBER=916,PULL_PULL_SHA=4cb2c1ecf106971969b1b468cb8963d376ecd3fd,REPO_NAME=kubeflow,REPO_OWNER=kubeflow',
     },
   },
 };

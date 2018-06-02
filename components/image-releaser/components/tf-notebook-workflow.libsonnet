@@ -175,11 +175,6 @@
                     template: "build-1-8-0-cpu",
                     dependencies: ["checkout"],
                   },
-                  {
-                    name: "create-pr-symlink",
-                    template: "create-pr-symlink",
-                    dependencies: ["checkout"],
-                  },
                 ],
               },  //dag
             },
