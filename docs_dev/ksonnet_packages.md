@@ -74,8 +74,6 @@ this way changes to your .libsonnet files will automaticaly be reflected in your
 
 If you make changes to prototypes you need to regenerate the prototype. You can just delete the `.jsonnet`
 file in your app's component directory and then regenerate the component using `ks generate`. 
-If you use the same name you will preserve the values of any parameters you have set. 
-ksonnet will print a warning but it works; e.g.
 
 ```
 rm -rf ${APP_DIR}/components/kubeflow-core.jsonnet 
@@ -83,6 +81,15 @@ ks generate kubeflow-core kubeflow-core
 INFO  Writing component at 'components/kubeflow-core'
 ERROR Component parameters for 'kubeflow-core' already exists
 ```
+
+#### ERROR Component parameters for 'kubeflow-core' already exists
+If you use the same component name you will preserve the values of any parameters you have set.
+ksonnet will print a warning but it works.
+
+However, the parameters for the component is not changed. So if you added new
+@optionalParam, it will not be set in the `component/params.libsonnet` and you
+will see errors like `RUNTIME ERROR: Field does not exist: NEW_OPTIONAL_PARAM`.
+In this case, use a new component name.
 
 ### New Packages
 

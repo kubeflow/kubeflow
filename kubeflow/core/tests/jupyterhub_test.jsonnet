@@ -5,7 +5,7 @@ local params = {
   jupyterHubAuthenticator:: null,
   jupyterHubServiceType:: "ClusterIP",
   jupyterHubImage: "gcr.io/kubeflow/jupyterhub-k8s:1.0.1",
-  jupyterNotebookPVCMount: "/home/jovyan/work",
+  jupyterNotebookPVCMount: "/home/jovyan",
   cloud: null,
 };
 
@@ -51,9 +51,9 @@ std.assertEqual(configSuffixLines[2], "c.JupyterHub.authenticator_class = 'dummy
 &&
 std.assertEqual(configSuffixLines[3], "###### Volumes #######")
 &&
-std.assertEqual(configSuffixLines[4], 'c.KubeSpawner.volumes = [{"name": "disk01", "persistentVolumeClaim": {"claimName": "disk01"}}, {"name": "disk02", "persistentVolumeClaim": {"claimName": "disk02"}}]')
+std.assertEqual(configSuffixLines[4], 'c.KubeSpawner.volumes.extend([{"name": "disk01", "persistentVolumeClaim": {"claimName": "disk01"}}, {"name": "disk02", "persistentVolumeClaim": {"claimName": "disk02"}}])')
 &&
-std.assertEqual(configSuffixLines[5], 'c.KubeSpawner.volume_mounts = [{"mountPath": "/mnt/disk01", "name": "disk01"}, {"mountPath": "/mnt/disk02", "name": "disk02"}]')
+std.assertEqual(configSuffixLines[5], 'c.KubeSpawner.volume_mounts.extend([{"mountPath": "/mnt/disk01", "name": "disk01"}, {"mountPath": "/mnt/disk02", "name": "disk02"}])')
 &&
 
 std.assertEqual(jupyterhub.parts(params.namespace).jupyterHubService,
@@ -191,10 +191,28 @@ std.assertEqual(jupyterhub.parts(params.namespace).jupyterHubRole,
                         "*",
                       ],
                       resources: [
-                        "*",
+                        "pods",
+                        "persistentvolumeclaims",
                       ],
                       verbs: [
+                        "get",
+                        "watch",
+                        "list",
+                        "create",
+                        "delete",
+                      ],
+                    },
+                    {
+                      apiGroups: [
                         "*",
+                      ],
+                      resources: [
+                        "events",
+                      ],
+                      verbs: [
+                        "get",
+                        "watch",
+                        "list",
                       ],
                     },
                   ],

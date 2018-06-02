@@ -3,8 +3,8 @@
 // @description Provides cloud-endpoints prototypes for creating Cloud Endpoints services and DNS records.
 // @shortDescription Cloud Endpoint domain creation.
 // @param name string Name for the component
-// @param secretName string Name of secret containing the json service account key.
-// @optionalParam secretKey string cloudep-sa.json Name of the key in the secret containing the JSON service account key.
+// @optionalParam secretName string admin-gcp-sa Name of secret containing the json service account key.
+// @optionalParam secretKey string admin-gcp-sa.json Name of the key in the secret containing the JSON service account key.
 // @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
 
 local k = import "k.libsonnet";

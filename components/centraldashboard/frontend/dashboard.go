@@ -12,8 +12,8 @@ var (
 
 func main() {
 
-	indexServer := http.FileServer(http.Dir("components/centraldashboard/frontend/index/"))
-	http.Handle("/", http.StripPrefix("/", indexServer))
+	indexServer := http.FileServer(http.Dir("index/"))
+	http.Handle("/", indexServer)
 	log.Println("Listening on", ":"+port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }

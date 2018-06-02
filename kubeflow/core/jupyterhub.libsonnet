@@ -56,11 +56,13 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
 
         options::
           if std.length(volumeClaims) > 0 then
+            // we need to merge the PVC from the spawner config
+            // with any added by a provisioner
             std.join("\n",
                      [
                        "###### Volumes #######",
-                       "c.KubeSpawner.volumes = " + std.manifestPython(volumes),
-                       "c.KubeSpawner.volume_mounts = " + std.manifestPython(volumeMounts),
+                       "c.KubeSpawner.volumes.extend(" + std.manifestPython(volumes) + ")",
+                       "c.KubeSpawner.volume_mounts.extend(" + std.manifestPython(volumeMounts) + ")",
                      ])
           else "",
 
@@ -228,6 +230,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
       },
     },
 
+    // contents based on https://github.com/jupyterhub/zero-to-jupyterhub-k8s/blob/master/jupyterhub/templates/hub/rbac.yaml
     jupyterHubRole: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "Role",
@@ -240,12 +243,29 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
           apiGroups: [
             "*",
           ],
-          // TODO(jlewi): This is very permissive so we may want to lock this down.
           resources: [
-            "*",
+            "pods",
+            "persistentvolumeclaims",
           ],
           verbs: [
+            "get",
+            "watch",
+            "list",
+            "create",
+            "delete",
+          ],
+        },
+        {
+          apiGroups: [
             "*",
+          ],
+          resources: [
+            "events",
+          ],
+          verbs: [
+            "get",
+            "watch",
+            "list",
           ],
         },
       ],

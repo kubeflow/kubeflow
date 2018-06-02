@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import shutil
+import ssl
 import tempfile
 import time
 import uuid
@@ -128,3 +129,55 @@ def setup_kubeflow_ks_app(dir, namespace, github_token, api_client):
   os.symlink(source, target_dir)
 
   return app_dir
+
+def log_operation_status(operation):
+  """A callback to use with wait_for_operation."""
+  name = operation.get("name", "")
+  status = operation.get("status", "")
+  logging.info("Operation %s status %s", name, status)
+  
+def wait_for_operation(client,
+                       project,
+                       op_id,
+                       timeout=datetime.timedelta(hours=1),
+                       polling_interval=datetime.timedelta(seconds=5),
+                       status_callback=log_operation_status):
+  """Wait for the specified operation to complete.
+
+  Args:
+    client: Client for the API that owns the operation.
+    project: project
+    op_id: Operation id.
+    timeout: A datetime.timedelta expressing the amount of time to wait before
+      giving up.
+    polling_interval: A datetime.timedelta to represent the amount of time to
+      wait between requests polling for the operation status.
+
+  Returns:
+    op: The final operation.
+
+  Raises:
+    TimeoutError: if we timeout waiting for the operation to complete.
+  """
+  endtime = datetime.datetime.now() + timeout
+  while True:
+    try:
+      op = client.operations().get(
+        project=project, operation=op_id).execute()
+
+      if status_callback:
+        status_callback(op)
+
+      status = op.get("status", "")
+      # Need to handle other status's
+      if status == "DONE":
+        return op
+    except ssl.SSLError as e:
+      logging.error("Ignoring error %s", e)
+    if datetime.datetime.now() > endtime:
+      raise TimeoutError(
+        "Timed out waiting for op: {0} to complete.".format(op_id))
+    time.sleep(polling_interval.total_seconds())
+
+  # Linter complains if we don't have a return here even though its unreachable.
+  return None

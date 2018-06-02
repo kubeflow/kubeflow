@@ -2,7 +2,11 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-- [Releasing Kubeflow](#releasing-kubeflow)
+- [Image Auto Release](#image-auto-release)
+  - [Create Release Workflow](#create-release-workflow)
+  - [Update Release Config](#update-release-config)
+
+- [Manual Release Kubeflow](#manual-release-kubeflow)
   - [Authenticate to GCP](#authenticate-to-gcp)
   - [Update TFJob](#update-tfjob)
   - [Build TF Serving Images](#build-tf-serving-images)
@@ -16,7 +20,26 @@
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-# Releasing Kubeflow
+# Image Auto Release
+
+We have nightly release for all images covered by workflows in [release config](../releasing/prow_config_release.yaml)
+Currently auto release will use master branch.
+
+## Create Release Workflow
+
+(TODO Kunming: Add more specific instructions here.)
+
+For now check existing workflows in [release config](../releasing/prow_config_release.yaml) as example.
+
+Releasing a workflow not belonging to kubeflow repo is currently not supported. Create an issue if you need it.
+However, you can create workflow in kubeflow repo which release images for other repo like pytorch-operator.
+
+## Update Release Config
+
+Add your new workflow to [release config](../releasing/prow_config_release.yaml).
+Your images will be auto released everyday.
+
+# Manual Release Kubeflow
 
 Some preliminary instructions for how to cut a release.
 

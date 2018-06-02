@@ -88,15 +88,6 @@
       local project = "kubeflow-ci";
       local zone = "us-east1-d";
 
-      // Common commands that should be executed before running gcloud commands.
-      local commonCommands = [
-        "set -x",
-        "&&",
-        "gcloud auth activate-service-account --key-file=/secret/gcp-credentials/key.json",
-        "&&",
-        "gcloud config list",
-      ];
-
       // Build an Argo template to execute a particular command.
       // step_name: Name for the template
       // command: List to pass as the container command.
@@ -239,39 +230,21 @@
               [],  // no sidecars
             ),
             buildTemplate("create-deployment", [
-              "bash",
-              "-c",
-              std.join(
-                " ",
-                commonCommands + [
-                  "&&",
-                  "gcloud",
-                  "deployment-manager",
-                  "--project=" + project,
-                  "deployments",
-                  "create",
-                  deployName,
-                  "--config=" + configDir + "/cluster-kubeflow.yaml",
-                ]
-              ),
+              "python",
+              "-m",
+              "testing.deploy_kubeflow_gcp",
+              "--project=" + project,
+              "--name=" + deployName,
+              "--config=" + configDir + "/cluster-kubeflow.yaml",
+              "--imports=" + configDir + "/cluster.jinja",
             ]),  // create-deployment
             // Setup and teardown using GKE.
             buildTemplate("delete-deployment", [
-              "bash",
-              "-c",
-              std.join(
-                " ",
-                commonCommands + [
-                  "&&",
-                  "gcloud",
-                  "deployment-manager",
-                  "--project=" + project,
-                  "--quiet",
-                  "deployments",
-                  "delete",
-                  deployName,
-                ]
-              ),
+              "python",
+              "-m",
+              "testing.teardown_kubeflow_gcp",
+              "--project=" + project,
+              "--name=" + deployName,
             ]),  // delete-deployment
             buildTemplate("create-pr-symlink", [
               "python",
