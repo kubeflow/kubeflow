@@ -17,7 +17,7 @@
     stepImage: "gcr.io/kubeflow-ci/test-worker:latest",
 
     // The registry to use (should not include the image name or version tag)
-    registry: "gcr.io/kubeflow-images-staging",
+    registry: "gcr.io/kubeflow-images-public",
 
     // The tag to use for the image.
     versionTag: "latest",
@@ -126,13 +126,53 @@
                     template: "checkout",
                   },
                   {
-                    name: "build-1-8-0-cpu",
-                    template: "build-1-8-0-cpu",
+                    name: "build-1-4-1-gpu",
+                    template: "build-1-4-1-gpu",
                     dependencies: ["checkout"],
                   },
                   {
-                    name: "create-pr-symlink",
-                    template: "create-pr-symlink",
+                    name: "build-1-4-1-cpu",
+                    template: "build-1-4-1-cpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
+                    name: "build-1-5-1-gpu",
+                    template: "build-1-5-1-gpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
+                    name: "build-1-5-1-cpu",
+                    template: "build-1-5-1-cpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
+                    name: "build-1-6-0-gpu",
+                    template: "build-1-6-0-gpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
+                    name: "build-1-6-0-cpu",
+                    template: "build-1-6-0-cpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
+                    name: "build-1-7-0-gpu",
+                    template: "build-1-7-0-gpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
+                    name: "build-1-7-0-cpu",
+                    template: "build-1-7-0-cpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
+                    name: "build-1-8-0-gpu",
+                    template: "build-1-8-0-gpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
+                    name: "build-1-8-0-cpu",
+                    template: "build-1-8-0-cpu",
                     dependencies: ["checkout"],
                   },
                 ],
