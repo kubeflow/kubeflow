@@ -126,51 +126,6 @@
                     template: "checkout",
                   },
                   {
-                    name: "build-1-4-1-gpu",
-                    template: "build-1-4-1-gpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-4-1-cpu",
-                    template: "build-1-4-1-cpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-5-1-gpu",
-                    template: "build-1-5-1-gpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-5-1-cpu",
-                    template: "build-1-5-1-cpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-6-0-gpu",
-                    template: "build-1-6-0-gpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-6-0-cpu",
-                    template: "build-1-6-0-cpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-7-0-gpu",
-                    template: "build-1-7-0-gpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-7-0-cpu",
-                    template: "build-1-7-0-cpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-8-0-gpu",
-                    template: "build-1-8-0-gpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
                     name: "build-1-8-0-cpu",
                     template: "build-1-8-0-cpu",
                     dependencies: ["checkout"],
