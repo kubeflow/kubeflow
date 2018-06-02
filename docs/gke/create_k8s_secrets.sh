@@ -8,6 +8,8 @@ export SA_EMAIL=${DEPLOYMENT_NAME}-admin@${PROJECT}.iam.gserviceaccount.com
 # TODO(jlewi): We should name the secrets more consistently based on the service account name.
 # We will need to update the component configs though
 gcloud --project=${PROJECT} iam service-accounts keys create ${SA_EMAIL}.json --iam-account ${SA_EMAIL}
+
+kubectl create secret generic --namespace=kubeflow-admin admin-gcp-sa --from-file=admin-gcp-sa.json=./${SA_EMAIL}.json
 kubectl create secret generic --namespace=kubeflow admin-gcp-sa --from-file=admin-gcp-sa.json=./${SA_EMAIL}.json
 
 export USER_EMAIL=${DEPLOYMENT_NAME}-user@${PROJECT}.iam.gserviceaccount.com
