@@ -91,6 +91,27 @@ std.assertEqual(jupyterhub.parts(params.namespace).jupyterHubLoadBalancer(params
                     },
                     name: "tf-hub-lb",
                     namespace: "test-kf-001",
+                    annotations: {
+                      "getambassador.io/config":
+                        std.join("\n", [
+                          "---",
+                          "apiVersion: ambassador/v0",
+                          "kind:  Mapping",
+                          "name: tf-hub-lb-hub-mapping",
+                          "prefix: /hub/",
+                          "rewrite: /hub/",
+                          "timeout_ms: 300000",
+                          "service: tf-hub-lb." + params.namespace,
+                          "---",
+                          "apiVersion: ambassador/v0",
+                          "kind:  Mapping",
+                          "name: tf-hub-lb-user-mapping",
+                          "prefix: /user/",
+                          "rewrite: /user/",
+                          "timeout_ms: 300000",
+                          "service: tf-hub-lb." + params.namespace,
+                        ]),
+                    },  //annotations
                   },
                   spec: {
                     ports: [
