@@ -151,7 +151,7 @@
       volumeMounts: [
         {
           mountPath: "/etc/envoy",
-          name: "shared",
+          name: "config-volume",
         },
       ],
     },  // envoyContainer
@@ -386,7 +386,7 @@
 
           function checkIAP() {
             # created by init container.
-            . /var/shared/healthz.env 
+            . /var/shared/healthz.env
 
             # If node port or backend id change, so does the JWT audience.
             CURR_NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[0].nodePort}')
