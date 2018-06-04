@@ -48,17 +48,6 @@ ks param set --env=${ENV} tf-serving-workflow prow_env  \
 ks apply ${ENV} -c tf-serving-workflow
 ```
 
-
-For example, to release TF serving images:
-
-```
-ks param set --env=releasing tf-serving-workflow name WORKFLOW_NAME
-ks param set --env=releasing tf-serving-workflow registry REGISTRY  # default to
-gcr.io/kubeflow-images-public
-
-ks apply releasing -c tf-serving-workflow
-```
-
 ### Releasing tensorflow jupyter notebook images
 
 ```
