@@ -25,8 +25,6 @@ See `build_image.py` for details.
 
 `image-releaser` is the ksonnet app of releasing workflows.
 
-### Releasing images
-
 ```
 JOB_NAME="tf-serving-workflow" # For tensorflow serving image
 
