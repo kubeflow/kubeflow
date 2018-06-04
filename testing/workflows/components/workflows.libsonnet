@@ -294,6 +294,10 @@
                     template: "copy-artifacts",
                     dependencies: ["teardown"],
                   },
+                  {
+                    name: "bootstrap-image-delete",
+                    template: "bootstrap-image-delete",
+                  },
                 ],
               },  // dag
             },  // exit-handler
@@ -433,6 +437,11 @@
               "--artifacts_dir=" + artifactsDir,
               "--deploy_name=test-argo-deploy",
               "deploy_argo",
+            ]),  // test-argo-deploy
+            buildTemplate("bootstrap-image-delete", [
+              "bash",
+              "-c",
+              "gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS} && gcloud container images delete " + bootstrapperImage,
             ]),  // test-argo-deploy
             buildTemplate(
               "bootstrap-image-create",
