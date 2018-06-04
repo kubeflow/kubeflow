@@ -22,11 +22,7 @@ import yaml from 'yaml-js';
 var gapi = null;
 //const jinjaTemplate = "./configs/cluster.jinja";
 
-// TODO(jlewi): This is a hack to make variables available
-// in the debug console for further inspection.
-var globalResult = null;
 var auth2 = null;
-
 
 // TODO(jlewi): ClientId for project cloud-ml-dev we should change this.
 var clientId = "236417448818-pksajgd0a6ghtjv3rlbvr7h9lo6uu17t.apps.googleusercontent.com";
@@ -156,11 +152,9 @@ class NameForm extends React.Component {
 
     var appendLine = this.props.appendLine;
     gapi.client.deploymentmanager.deployments.insert({project: this.state.project,
-      resource: resource,}).then(function(res) {
-      globalResult = res;      
+      resource: resource,}).then(function(res) {   
       appendLine("Result of insert:\n" + res);
     }, function(err) {
-      globalResult = err;
       appendLine("Error doing insert:\n" + err);
       alert("Error doing insert: " + err)
     });
@@ -302,7 +296,6 @@ class App extends Component {
 
       }).catch(function(error){
         console.log("Error occured loading deployment manager: " + error);
-        globalResult = error;
       });
     });
   } // startApp
