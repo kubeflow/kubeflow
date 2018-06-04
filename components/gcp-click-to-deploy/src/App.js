@@ -403,7 +403,12 @@ class App extends Component {
   }
 
   appendLine(newLine) {
-    var currentValue = window.document.getElementById("logs").value;
+    var element = window.document.getElementById("logs");
+    if (element == null) {
+      console.error("Could not get logs element.");
+      return
+    }
+    var currentValue = element.value;
 
     if (currentValue)  {
       currentValue += "\n";
