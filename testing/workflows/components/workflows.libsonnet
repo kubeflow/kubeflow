@@ -442,7 +442,7 @@
               "bash",
               "-c",
               "gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS} && gcloud container images delete " + bootstrapperImage,
-            ]),  // test-argo-deploy
+            ]),  // bootstrap-image-delete
             buildTemplate(
               "bootstrap-image-create",
               [
