@@ -25,15 +25,27 @@ See `build_image.py` for details.
 
 `image-releaser` is the ksonnet app of releasing workflows.
 
-For example, to release TF serving images:
-
 ```
-ks param set --env=releasing tf-serving-workflow name WORKFLOW_NAME
-ks param set --env=releasing tf-serving-workflow registry REGISTRY  # default to
-gcr.io/kubeflow-images-public
+JOB_NAME="tf-serving-workflow" # For tensorflow serving image
 
-ks apply releasing -c tf-serving-workflow
+# For tensorflow notebook, set JOB_NAME="tf-notebook-workflow" 
+
+cd ${GIT_KUBEFLOW}/components/image-releaser
+COMMIT=0da89b8a4af6c314287196b79d9a5f01d279b596 # Commit for the release
+git checkout ${COMMIT}
+PULL_BASE_SHA=${COMMIT:0:8}
+DATE=`date +%Y%m%d`
+VERSION_TAG="v${DATE}-${PULL_BASE_SHA}"
+JOB_TYPE=postsubmit
+BUILD_NUMBER=$(uuidgen)
+BUILD_NUMBER=${BUILD_NUMBER:0:4}
+REPO_OWNER=kubeflow
+REPO_NAME=kubeflow
+ENV=releasing
+
+ks param set --env=${ENV} ${JOB_NAME} name "${JOB_NAME}-${VERSION_TAG}"
+ks param set --env=${ENV} ${JOB_NAME} versionTag "${VERSION_TAG}"
+ks param set --env=${ENV} ${JOB_NAME} prow_env  \
+  "JOB_NAME=${JOB_NAME},JOB_TYPE=${JOB_TYPE},PULL_BASE_SHA=${PULL_BASE_SHA},REPO_NAME=${REPO_NAME},REPO_OWNER=${REPO_OWNER},BUILD_NUMBER=${BUILD_NUMBER}"
+ks apply ${ENV} -c "${JOB_NAME}"
 ```
-
-To release TF notebook images, replace tf-serving-workflow with
-tf-notebook-workflow.
