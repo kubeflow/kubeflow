@@ -559,11 +559,6 @@ Linux:
 grep -ci avx /proc/cpuinfo
 ```
 
-macOS X:
-```
-sysctl -a | grep machdep.cpu.features | grep -ci avx
-```
-
 ### Minikube
 
 On [Minikube](https://github.com/kubernetes/minikube) the Virtualbox/VMware drivers for Minikube are recommended as there is a known
