@@ -31,5 +31,5 @@ We currently use the registry gcr.io/kubeflow-images-public.
 
 There are open issues to
 
-- Publish images to Dockerhub as well [kubeflow/kubeflow#211](https://github.com/]kubeflow/kubeflow/issues#211)
+- Publish images to Dockerhub as well [kubeflow/kubeflow#211](https://github.com/kubeflow/kubeflow/issues/211)
 - Create registry gcr.io/kubeflow-images [kubeflow/kubeflow#534](https://github.com/kubeflow/kubeflow/issues/534)
