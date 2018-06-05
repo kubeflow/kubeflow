@@ -24,6 +24,14 @@ The instructions also take advantage of IAP to provide secure authenticated acce
 
 		* If you want GPUs set a non-zero number for number of GPU nodes.
 
+   1. List any users (Google Accounts) or Google groups that should be able to access Kubeflow in the **users** section; e.g.
+
+      ```
+      users: 
+       - user:john@acme.com
+       - group:data-scientists@acme.com
+      ```
+
 1. Modify `env-kubeflow.sh`
 
 	* This file defines environment variables used in the commands below.
@@ -70,7 +78,8 @@ Create an OAuth Client ID to be used to identify IAP when requesting acces to us
   * Click Save.
 
 1.  On the [Credentials](https://console.cloud.google.com/apis/credentials) Click Create credentials, and then click OAuth client ID.
-  * Under Application type, select Web application. In the Name box enter a name, and in the Authorized redirect URIs box, enter
+  
+   * Under Application type, select Web application. In the Name box enter a name, and in the Authorized redirect URIs box, enter
 
    ```
    https://${FQDN}/_gcp_gatekeeper/authenticate
@@ -87,11 +96,22 @@ Create an OAuth Client ID to be used to identify IAP when requesting acces to us
 
 1. Grant users IAP access
 
-   ```
-   gcloud projects add-iam-policy-binding $PROJECT \
-    --role roles/iap.httpsResourceAccessor \
-    --member user:${USER_EMAIL}
-   ```
+  * Users/Google groups listed in **users:** in the ${CONFIG_FILE} will be granted IAP access
+  * To additional users
+
+    1. Update ${CONFIG_FILE} and issue an update
+
+       ```
+       gcloud deployment-manager --project=${PROJECT} deployments create ${DEPLOYMENT_NAME} --config=${CONFIG_FILE}
+       ```
+
+    1.  Use gcloud to grant users access
+
+       ```
+       gcloud projects add-iam-policy-binding $PROJECT \
+        --role roles/iap.httpsResourceAccessor \
+        --member user:${USER_EMAIL}
+       ```
 
 1. Kubeflow will be available at
 
