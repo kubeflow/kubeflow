@@ -16,7 +16,3 @@ workflows:
   - app_dir: kubeflow/kubeflow/components/k8s-model-server/images/releaser
     component: workflows
     name: tf-serving-image
-  # Run GKE deploy tests
-  - app_dir: kubeflow/kubeflow/testing/workflows
-    component: gke_deploy
-    name: kubeflow-gke-deploy
