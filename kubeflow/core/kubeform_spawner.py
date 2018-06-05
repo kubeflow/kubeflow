@@ -1,3 +1,4 @@
+#pylint: skip-file
 import json
 import os
 from kubespawner.spawner import KubeSpawner
