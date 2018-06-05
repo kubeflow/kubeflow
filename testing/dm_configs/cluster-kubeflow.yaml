@@ -23,15 +23,24 @@ resources:
     # Path for the bootstrapper image.
     bootstrapperImage: gcr.io/kubeflow-images-public/bootstrapper:latest
     bootstrapperConfig: |
+      # For e2e test, we bake the kubeflow registry into the bootstrapperImage.
+      # The bootstrapperImage field is modified during runtime to use 
+      # the appropriate image name.
+      registries:
+        - name: kubeflow
+          path: kubeflow
       app:
         packages:
           - name: core
+            registry: kubeflow
           - name: tf-serving
+            registry: kubeflow
           - name: tf-job
+            registry: kubeflow
           - name: pytorch-job
+            registry: kubeflow
         components:
           - name: kubeflow-core
             prototype: kubeflow-core
           - name: pytorch-operator
             prototype: pytorch-operator
-        parameters: []

@@ -6,6 +6,7 @@ import logging
 import os
 import requests
 import time
+import yaml
 
 from googleapiclient import discovery
 from googleapiclient import errors
@@ -23,6 +24,10 @@ def parse_args():
   parser.add_argument(
     "--name", required=True, type=str, 
     help="The name for the deployment.")
+
+  parser.add_argument(
+    "--bootstrapper_image", required=False, type=str, 
+    help="The bootstrapper image for deployment.")
 
   parser.add_argument(
     "--config", required=True, type=str, 
@@ -55,6 +60,10 @@ def deploy_kubeflow_gcp(_):
   
   with open(args.config) as hf:
     content = hf.read()
+    content_yaml = yaml.load(content)
+
+  if args.bootstrapper_image:
+    content_yaml['resources'][0]['properties']['bootstrapperImage'] = args.bootstrapper_image
 
   for f in import_files:    
     with open(f) as hf:
@@ -69,7 +78,7 @@ def deploy_kubeflow_gcp(_):
     "name": deployment_name,
     "target": {
       "config": {
-        "content": content,
+        "content": yaml.dump(content_yaml),
       },
       "imports": imports,
     },  
