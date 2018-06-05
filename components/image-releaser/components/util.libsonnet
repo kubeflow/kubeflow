@@ -49,6 +49,12 @@
           },
         },
       ] + prowEnv + envVars,
+      resources: {
+        requests: {
+          memory: "6Gi",
+          cpu: "3",
+        },
+      },
       volumeMounts: [
         {
           name: "kubeflow-test-volume",
