@@ -294,10 +294,11 @@
                     template: "copy-artifacts",
                     dependencies: ["teardown"],
                   },
-                  {
-                    name: "bootstrap-image-delete",
-                    template: "bootstrap-image-delete",
-                  },
+                  if platform == "gke" then
+                    {
+                      name: "bootstrap-image-delete",
+                      template: "bootstrap-image-delete",
+                    },
                 ],
               },  // dag
             },  // exit-handler
