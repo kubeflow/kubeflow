@@ -283,7 +283,7 @@
       spec: {
         replicas: 1,
         template: {
-         metadata: {
+          metadata: {
             labels: {
               service: "iap-enabler",
             },
@@ -376,7 +376,7 @@
       },
       data: {
         "envoy-config.json": std.manifestJson($.parts(namespace).envoyConfig(disableJwt)),
-        "setup_iap.sh": importstr "setup_iap.sh",        
+        "setup_iap.sh": importstr "setup_iap.sh",
         "configure_envoy_for_iap.sh": importstr "configure_envoy_for_iap.sh",
       },
     },
