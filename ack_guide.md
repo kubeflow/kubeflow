@@ -38,6 +38,9 @@ ks param set kubeflow-core tfJobImage registry.aliyuncs.com/kubeflow-images-publ
 ks param set kubeflow-core tfAmbassadorImage registry.aliyuncs.com/datawire/ambassador:0.34.0
 ks param set kubeflow-core tfStatsdImage registry.aliyuncs.com/datawire/statsd:0.34.0
 
+ks param set kubeflow-core jupyterNotebookRegistry registry.aliyuncs.com
+ks param set kubeflow-core JupyterNotebookRepoName kubeflow-images-public
+
 ks param set kubeflow-core jupyterHubServiceType LoadBalancer
 ks param set kubeflow-core tfAmbassadorServiceType LoadBalancer
 ks param set kubeflow-core tfJobUiServiceType LoadBalancer

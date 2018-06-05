@@ -6,6 +6,8 @@ local params = {
   jupyterHubServiceType:: "ClusterIP",
   jupyterHubImage: "gcr.io/kubeflow/jupyterhub-k8s:1.0.1",
   jupyterNotebookPVCMount: "/home/jovyan",
+  jupyterNotebookRegistry: "gcr.io",
+  JupyterNotebookRepoName: "kubeflow-images-public",
   cloud: null,
 };
 
@@ -107,7 +109,7 @@ std.assertEqual(jupyterhub.parts(params.namespace).jupyterHubLoadBalancer(params
                   },
                 }) &&
 
-std.assertEqual(jupyterhub.parts(params.namespace).jupyterHub(params.jupyterHubImage, params.jupyterNotebookPVCMount, params.cloud),
+std.assertEqual(jupyterhub.parts(params.namespace).jupyterHub(params.jupyterHubImage, params.jupyterNotebookPVCMount, params.cloud, params.jupyterNotebookRegistry, params.JupyterNotebookRepoName),
                 {
                   apiVersion: "apps/v1beta1",
                   kind: "StatefulSet",
@@ -140,6 +142,14 @@ std.assertEqual(jupyterhub.parts(params.namespace).jupyterHub(params.jupyterHubI
                               {
                                 name: "CLOUD_NAME",
                                 value: null,
+                              },
+                              {
+                                name: "REGISTRY",
+                                value: params.jupyterNotebookRegistry,
+                              },
+                              {
+                                name: "REPO_NAME",
+                                value: params.JupyterNotebookRepoName,
                               },
                             ],
                             image: "gcr.io/kubeflow/jupyterhub-k8s:1.0.1",
