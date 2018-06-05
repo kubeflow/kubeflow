@@ -285,6 +285,12 @@
                         else
                           "",
                   },
+                  if platform == "gke" then
+                    {
+                      name: "test-dir-delete",
+                      template: "test-dir-delete",
+                      dependencies: ["copy-artifacts"],
+                    },
                   {
                     name: "copy-artifacts",
                     template: "copy-artifacts",
@@ -302,6 +308,12 @@
               }],
               [],  // no sidecars
             ),
+            buildTemplate("test-dir-delete", [
+              "bash",
+              "-c",
+              "rm -rf " + testDir,
+            ]),  // test-dir-delete
+
             buildTemplate("wait-for-kubeflow-deployment", [
               "python",
               "-m",
