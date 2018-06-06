@@ -46,6 +46,7 @@ limitations under the License.
    TODO(jlewi): I don't think this is needed. I think the bug was that we weren't using references in K8s types
    so we weren't ensuring the type providers were deleted after the corresponding resources.
 #}
+resources:
 - name: {{ CLUSTER_NAME }}
   type: container.v1.cluster
   properties:
