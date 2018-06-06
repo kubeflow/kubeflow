@@ -75,7 +75,7 @@ resources:
 - name: {{ KF_VM_SA_NAME }}
   type: iam.v1.serviceAccount
   properties:
-    accountId: {{ properties['vmServiceAccountName'] }}
+    accountId: {{ KF_VM_SA_NAME }}
     displayName: GCP Service Account to use as VM Service Account for Kubeflow Cluster VMs
 
 - name: {{ CLUSTER_NAME }}
@@ -154,7 +154,7 @@ resources:
           nodeMetadata: SECURE
         {% endif %}
         machineType: n1-standard-8
-        serviceAccount: {{ properties['vmServiceAccountName'] }}@{{ env['project'] }}.iam.gserviceaccount.com
+        serviceAccount: {{ KF_VM_SA_NAME }}@{{ env['project'] }}.iam.gserviceaccount.com
         oauthScopes: {{ VM_OAUTH_SCOPES }}
   metadata:
     dependsOn:
@@ -334,6 +334,14 @@ TODO(jlewi): Do we need to serialize API activation
           members:
             {# VM service account is used to write monitoring data. #}
             - {{ 'serviceAccount:' + KF_VM_SA_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        {% if 'users' in properties %}
+        - role: roles/iap.httpsResourceAccessor
+          members:
+            {% for user in properties['users'] %}
+            - {{ user }}
+            {% endfor %}
+        {% endif %}
 
       remove: []
 
