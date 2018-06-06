@@ -39,6 +39,7 @@
       local bootstrapperImage = "gcr.io/kubeflow-ci/bootstrapper:" + name;
       local deploymentName = "e2e-" + std.substr(name, std.length(name) - 4, 4);
 
+      local tfJobImage = if tfJobVersion == "v1alpha2" then "gcr.io/kubeflow-ci/tf-dist-mnist-test:1.0" else "gcr.io/tf-on-k8s-dogfood/tf_sample:dc944ff";
       // The name of the NFS volume claim to use for test files.
       local nfsVolumeClaim = "nfs-external";
       // The name to use for the volume to use to contain test data.
@@ -402,7 +403,7 @@
               "--component=simple_tfjob",
               // Name is used for the test case name so it should be unique across
               // all E2E tests.
-              "--params=name=simple-tfjob-" + platform + ",namespace=" + stepsNamespace + ",apiVersion=kubeflow.org/" + tfJobVersion,
+              "--params=name=simple-tfjob-" + platform + ",namespace=" + stepsNamespace + ",apiVersion=kubeflow.org/" + tfJobVersion + ",image=" + tfJobImage,
               "--junit_path=" + artifactsDir + "/junit_e2e-" + platform + ".xml",
             ]),  // run tests
             buildTemplate("pytorchjob-deploy", [
