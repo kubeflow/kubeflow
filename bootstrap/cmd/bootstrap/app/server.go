@@ -255,7 +255,7 @@ func setupNamespace(namespaces type_v1.NamespaceInterface, name_space string) er
 	return err
 }
 
-func createComponent(opt *options.ServerOption, kfApp *kApp.App, fs *afero.Fs, args []string) {
+func createComponent(opt *options.ServerOption, kfApp *kApp.App, fs *afero.Fs, args []string) error {
 	componentName := args[1]
 	componentPath := filepath.Join(opt.AppDir, "components", componentName+".jsonnet")
 
@@ -266,18 +266,19 @@ func createComponent(opt *options.ServerOption, kfApp *kApp.App, fs *afero.Fs, a
 			actions.OptionArguments: args,
 		})
 		if err != nil {
-			log.Fatalf("There was a problem creating protoype package kubeflow-core; error %v", err)
+			return errors.New(fmt.Sprintf("There was a problem creating component %v: %v", componentName, err))
 		}
 	} else {
 		log.Infof("Component %v already exists", componentName)
 	}
+	return nil
 }
 
-func appGenerate(opt *options.ServerOption, kfApp *kApp.App, fs *afero.Fs, bootConfig *BootConfig) {
+func appGenerate(opt *options.ServerOption, kfApp *kApp.App, fs *afero.Fs, bootConfig *BootConfig) error {
 	libs, err := (*kfApp).Libraries()
 
 	if err != nil {
-		log.Fatalf("Could not list libraries for app; error %v", err)
+		return errors.New(fmt.Sprintf("Could not list libraries for app; error %v", err))
 	}
 
 	regUris := make(map[string]string)
@@ -289,7 +290,7 @@ func appGenerate(opt *options.ServerOption, kfApp *kApp.App, fs *afero.Fs, bootC
 		pkgName := p.Name
 		_, err = (*fs).Stat(path.Join(regUris[p.Registry], pkgName))
 		if err != nil {
-			log.Fatalf("Package %v didn't exist in registry %v", pkgName, regUris[p.Registry])
+			return errors.New(fmt.Sprintf("Package %v didn't exist in registry %v", pkgName, regUris[p.Registry]))
 		}
 		full := fmt.Sprintf("kubeflow/%v", pkgName)
 		log.Infof("Installing package %v", full)
@@ -305,7 +306,7 @@ func appGenerate(opt *options.ServerOption, kfApp *kApp.App, fs *afero.Fs, bootC
 		})
 
 		if err != nil {
-			log.Fatalf("There was a problem installing package %v; error %v", full, err)
+			return errors.New(fmt.Sprintf("There was a problem installing package %v; error %v", full, err))
 		}
 	}
 
@@ -325,7 +326,9 @@ func appGenerate(opt *options.ServerOption, kfApp *kApp.App, fs *afero.Fs, bootC
 		if val, ok := paramMapping[c.Name]; ok {
 			params = append(params, val...)
 		}
-		createComponent(opt, kfApp, fs, params)
+		if err = createComponent(opt, kfApp, fs, params); err != nil {
+			return err
+		}
 	}
 	// Apply Params
 	for _, p := range bootConfig.App.Parameters {
@@ -336,9 +339,10 @@ func appGenerate(opt *options.ServerOption, kfApp *kApp.App, fs *afero.Fs, bootC
 			actions.OptionValue: p.Value,
 		})
 		if err != nil {
-			log.Fatalf("Error when setting Parameters %v for Component %v: %v", p.Name, p.Component, err)
+			return errors.New(fmt.Sprintf("Error when setting Parameters %v for Component %v: %v", p.Name, p.Component, err))
 		}
 	}
+	return err
 }
 
 // Run the tool.
@@ -431,7 +435,7 @@ func Run(opt *options.ServerOption) error {
 		err := actions.RunInit(options)
 
 		if err != nil {
-			log.Fatalf("There was a problem initializing the app: %v", err)
+			return errors.New(fmt.Sprintf("There was a problem initializing the app: %v", err))
 		}
 
 		log.Infof("Successfully initialized the app %v.", opt.AppDir)
@@ -443,7 +447,7 @@ func Run(opt *options.ServerOption) error {
 	kfApp, err := kApp.Load(fs, opt.AppDir, true)
 
 	if err != nil {
-		log.Fatalf("There was a problem loading the app: %v", err)
+		return errors.New(fmt.Sprintf("There was a problem loading the app: %v", err))
 	}
 
 	for idx, registry := range bootConfig.Registries {
@@ -470,13 +474,15 @@ func Run(opt *options.ServerOption) error {
 
 			err = actions.RunRegistryAdd(options)
 			if err != nil {
-				log.Fatalf("There was a problem adding the registry: %v", err)
+				return errors.New(fmt.Sprintf("There was a problem adding registry %v: %v", registry.Name, err))
 			}
 		}
 	}
 
 	// Load default kubeflow apps
-	appGenerate(opt, &kfApp, &fs, bootConfig)
+	if err = appGenerate(opt, &kfApp, &fs, bootConfig); err != nil {
+		return err
+	}
 
 	// Component customization
 	for _, component := range bootConfig.App.Components {
