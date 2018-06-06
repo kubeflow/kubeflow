@@ -9,18 +9,19 @@ class KubeFormSpawner(KubeSpawner):
 
     # relies on HTML5 for image datalist
     def _options_form_default(self):
+        global registry, repoName
         return '''
     <label for='image'>Image</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <input list="image" name="image" placeholder='repo/image:tag'>
     <datalist id="image">
-      <option value="gcr.io/kubeflow-images-public/tensorflow-1.4.1-notebook-cpu:v20180419-0ad94c4e">
-      <option value="gcr.io/kubeflow-images-public/tensorflow-1.4.1-notebook-gpu:v20180419-0ad94c4e">
-      <option value="gcr.io/kubeflow-images-public/tensorflow-1.5.1-notebook-cpu:v20180419-0ad94c4e">
-      <option value="gcr.io/kubeflow-images-public/tensorflow-1.5.1-notebook-gpu:v20180419-0ad94c4e">
-      <option value="gcr.io/kubeflow-images-public/tensorflow-1.6.0-notebook-cpu:v20180419-0ad94c4e">
-      <option value="gcr.io/kubeflow-images-public/tensorflow-1.6.0-notebook-gpu:v20180419-0ad94c4e">
-      <option value="gcr.io/kubeflow-images-public/tensorflow-1.7.0-notebook-cpu:v20180419-0ad94c4e">
-      <option value="gcr.io/kubeflow-images-public/tensorflow-1.7.0-notebook-gpu:v20180419-0ad94c4e">
+      <option value="{0}/{1}/tensorflow-1.4.1-notebook-cpu:v20180419-0ad94c4e">
+      <option value="{0}/{1}/tensorflow-1.4.1-notebook-gpu:v20180419-0ad94c4e">
+      <option value="{0}/{1}/tensorflow-1.5.1-notebook-cpu:v20180419-0ad94c4e">
+      <option value="{0}/{1}/tensorflow-1.5.1-notebook-gpu:v20180419-0ad94c4e">
+      <option value="{0}/{1}/tensorflow-1.6.0-notebook-cpu:v20180419-0ad94c4e">
+      <option value="{0}/{1}/tensorflow-1.6.0-notebook-gpu:v20180419-0ad94c4e">
+      <option value="{0}/{1}/tensorflow-1.7.0-notebook-cpu:v20180419-0ad94c4e">
+      <option value="{0}/{1}/tensorflow-1.7.0-notebook-gpu:v20180419-0ad94c4e">
     </datalist>
     <br/><br/>
 
@@ -33,9 +34,9 @@ class KubeFormSpawner(KubeSpawner):
     <br/><br/>
 
     <label for='extra_resource_limits'>Extra Resource Limits</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <input name='extra_resource_limits' placeholder='{&quot;nvidia.com/gpu&quot;: 3}'></input>
+    <input name='extra_resource_limits' placeholder='{{&quot;nvidia.com/gpu&quot;: 3}}'></input>
     <br/><br/>
-    '''
+    '''.format(registry, repoName)
 
     def options_from_form(self, formdata):
         options = {}
@@ -50,7 +51,11 @@ class KubeFormSpawner(KubeSpawner):
 
     @property
     def singleuser_image_spec(self):
-        image = 'gcr.io/kubeflow/tensorflow-notebook-cpu'
+        global cloud
+        if cloud == 'ack':
+            image = 'registry.aliyuncs.com/kubeflow-images-public/tensorflow-notebook-cpu'
+        else:
+            image = 'gcr.io/kubeflow/tensorflow-notebook-cpu'
         if self.user_options.get('image'):
             image = self.user_options['image']
         return image
@@ -90,8 +95,12 @@ c.JupyterHub.cleanup_servers = False
 ###################################################
 # Spawner Options
 ###################################################
+cloud = os.environ.get('CLOUD_NAME')
+registry = os.environ.get('REGISTRY')
+repoName = os.environ.get('REPO_NAME')
 c.JupyterHub.spawner_class = KubeFormSpawner
-c.KubeSpawner.singleuser_image_spec = 'gcr.io/kubeflow/tensorflow-notebook'
+c.KubeSpawner.singleuser_image_spec = '{0}/{1}/tensorflow-notebook'.format(registry, repoName)
+
 c.KubeSpawner.cmd = 'start-singleuser.sh'
 c.KubeSpawner.args = ['--allow-root']
 # gpu images are very large ~15GB. need a large timeout.
@@ -138,7 +147,6 @@ if pvc_mount and pvc_mount != 'null':
 # # Temporary fix:
 # # AKS / acs-engine doesn't yet use device plugin so we have to mount the drivers to use GPU
 # # TODO(wbuchwalter): Remove once device plugin is merged
-cloud = os.environ.get('CLOUD_NAME')
 if cloud == 'aks' or cloud == 'acsengine':
     volumes.append({
         'name': 'nvidia',

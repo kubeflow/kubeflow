@@ -1,16 +1,15 @@
 {
   all(params):: [
-    $.parts(params.namespace).service(params.tfAmbassadorServiceType),
-    $.parts(params.namespace).adminService,
-    $.parts(params.namespace).role,
-    $.parts(params.namespace).serviceAccount,
-    $.parts(params.namespace).roleBinding,
-    $.parts(params.namespace).deploy,
-    $.parts(params.namespace).k8sDashboard(params.cloud),
+    $.parts(params.namespace, params.tfAmbassadorImage).service(params.tfAmbassadorServiceType),
+    $.parts(params.namespace, params.tfAmbassadorImage).adminService,
+    $.parts(params.namespace, params.tfAmbassadorImage).role,
+    $.parts(params.namespace, params.tfAmbassadorImage).serviceAccount,
+    $.parts(params.namespace, params.tfAmbassadorImage).roleBinding,
+    $.parts(params.namespace, params.tfAmbassadorImage).deploy(params.tfStatsdImage),
+    $.parts(params.namespace, params.tfAmbassadorImage).k8sDashboard(params.cloud),
   ],
 
-  parts(namespace):: {
-    local ambassadorImage = "quay.io/datawire/ambassador:0.34.0",
+  parts(namespace, ambassadorImage):: {
     service(serviceType):: {
       apiVersion: "v1",
       kind: "Service",
@@ -144,7 +143,7 @@
       ],
     },  // roleBinding
 
-    deploy:: {
+    deploy(statsdImage):: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -207,7 +206,7 @@
                 },
               },
               {
-                image: "quay.io/datawire/statsd:0.34.0",
+                image: statsdImage,
                 name: "statsd",
               },
             ],
@@ -240,7 +239,7 @@
               "name: k8s-dashboard-ui-mapping",
               "prefix: /k8s/ui/",
               "rewrite: /",
-              "tls: " + $.parts(namespace).isDashboardTls(cloud),
+              "tls: " + $.parts(namespace, ambassadorImage).isDashboardTls(cloud),
               // We redirect to the K8s service created for the dashboard
               // in namespace kube-system. We don't use the k8s-dashboard service
               // because that isn't in the kube-system namespace and I don't think
