@@ -26,7 +26,7 @@ std.assertEqual(
         spec: {
           containers: [
             {
-              image: "swiftdiaries/centraldashboard:0.3",
+              image: "gcr.io/kubeflow-images-public/centraldashboard:latest",
               name: "centraldashboard",
               ports: [
                 {
