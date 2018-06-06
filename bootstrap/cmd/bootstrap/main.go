@@ -22,6 +22,7 @@ import (
 
 	"github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app"
 	"github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app/options"
+	"time"
 )
 
 func init() {
@@ -43,6 +44,14 @@ func main() {
 	}
 
 	if err := app.Run(s); err != nil {
-		log.Fatalf("%v\n", err)
+		if s.InCluster && s.KeepAlive {
+			log.Errorf("Bootstrapper failed with error: %v\n", err)
+			log.Infof("Keeping pod alive so user can ssh in and check error status.")
+			for {
+				time.Sleep(time.Minute)
+			}
+		} else {
+			log.Fatalf("%v\n", err)
+		}
 	}
 }
