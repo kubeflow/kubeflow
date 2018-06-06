@@ -37,8 +37,6 @@ limitations under the License.
 {% set STATEFULSETS_COLLECTION = '/apis/apps/v1/namespaces/{namespace}/statefulsets' %}
 {% set CLUSTER_ROLE_BINDING_COLLECTION = '/apis/rbac.authorization.k8s.io/v1/clusterrolebindings' %}
 
-{# Names for service accounts.#}
-{% set KF_ADMIN_NAME = 'e2e-test-admin' %}
 {# For most of the K8s resources we set the deletePolicy to abandon; otherwise deployment manager reports various errors.
    Since we delete the cluster all the K8s resources will be deleted anyway.
 
@@ -49,12 +47,6 @@ limitations under the License.
    so we weren't ensuring the type providers were deleted after the corresponding resources.
 #}
 resources:
-- name: {{ KF_ADMIN_NAME }}
-  type: iam.v1.serviceAccount
-  properties:
-    accountId: {{ KF_ADMIN_NAME }}
-    displayName: Service Account used for Kubeflow admin actions.
-
 - name: {{ CLUSTER_NAME }}
   type: container.v1.cluster
   properties:
@@ -130,53 +122,6 @@ e.g. creating namespaces, service accounts, stateful set to run the bootstrapper
   properties:
     consumerId: {{ 'project:' + env['project'] }}
     serviceName: iam.googleapis.com
-
-{# Get the IAM policy first so that we do not remove any existing bindings. #}
-- name: get-iam-policy
-  action: gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.getIamPolicy
-  properties:
-    resource: {{ env['project'] }}
-
-  metadata:
-    dependsOn:
-      - resource-manager-api
-      - iam-api
-    runtimePolicy:
-      - UPDATE_ALWAYS
-
-{# Set the IAM policy patching the existing policy with what ever is currently in the
-  config.
-
-  We need to make the cloudservices account a GKE cluster admin because deployment manager
-  users the cloudservices account; so this will be the identity used with the K*s cluster.
-
-  Note: This will fail if the cloudservices account doesn't have IamProjectAdmin
-  permissions.
-#}
-- name: patch-iam-policy
-  action: gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.setIamPolicy
-  properties:
-    resource: {{ env['project'] }}
-    policy: $(ref.get-iam-policy)
-    gcpIamPolicyPatch:
-      add:
-        - role: roles/container.admin
-          members:
-            - {{ 'serviceAccount:' + env['project_number'] + '@cloudservices.gserviceaccount.com' }}
-
-        - role: roles/servicemanagement.admin
-          members:
-            - {{ 'serviceAccount:' + KF_ADMIN_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
-
-      remove: []
-
-  metadata:
-    dependsOn:
-      - get-iam-policy
-      - iam-api
-      - {{ KF_ADMIN_NAME }}
-    runtimePolicy:
-      - UPDATE_ALWAYS
 
 {# A note about K8s resources.
 The type value should be defined using a reference to the corresponding type provider.
