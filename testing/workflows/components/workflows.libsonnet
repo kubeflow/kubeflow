@@ -298,7 +298,7 @@
               ["/usr/local/bin/checkout.sh", srcRootDir],
               [{
                 name: "EXTRA_REPOS",
-                value: "kubeflow/tf-operator@agwl-logging;kubeflow/testing@agwl-logging",
+                value: "kubeflow/tf-operator@ankushagarwal-v1alpha2-test;kubeflow/testing@agwl-logging",
               }],
               [],  // no sidecars
             ),
