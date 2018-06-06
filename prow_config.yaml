@@ -7,12 +7,20 @@ workflows:
     name: kubeflow-e2e-gke
     params:
       platform: gke
+      tfJobVersion: v1alpha1
+  - app_dir: kubeflow/kubeflow/testing/workflows
+    component: workflows
+    name: kubeflow-e2e-gke
+    params:
+      platform: gke
+      tfJobVersion: v1alpha2
   # Run tests on minikube
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: workflows
     name: kubeflow-e2e-minikube
     params:
       platform: minikube
+      tfJobVersion: v1alpha1
   - app_dir: kubeflow/kubeflow/components/k8s-model-server/images/releaser
     component: workflows
     name: tf-serving-image

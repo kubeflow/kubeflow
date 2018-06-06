@@ -18,7 +18,7 @@
 
   parts(namespace, name):: {
     // Workflow to run the e2e test.
-    e2e(prow_env, bucket, platform="minikube"):
+    e2e(prow_env, bucket, platform="minikube", tfJobVersion="v1alpha2"):
       // The name for the workspace to run the steps in
       local stepsNamespace = "kubeflow";
       // mountPath is the directory where the volume to store the test data
@@ -158,7 +158,7 @@
             },
           ],  // volumes
           // onExit specifies the template that should always run when the workflow completes.
-          onExit: "exit-handler",
+          // onExit: "exit-handler",
           templates: [
             {
               name: "e2e",
@@ -298,7 +298,7 @@
               ["/usr/local/bin/checkout.sh", srcRootDir],
               [{
                 name: "EXTRA_REPOS",
-                value: "kubeflow/tf-operator@v0.1.0;kubeflow/testing@HEAD",
+                value: "kubeflow/tf-operator@agwl-logging;kubeflow/testing@agwl-logging",
               }],
               [],  // no sidecars
             ),
@@ -398,10 +398,11 @@
               "--zone=" + zone,
               "--project=" + project,
               "--app_dir=" + tfOperatorRoot + "/test/workflows",
+              "--tfjob_version=" + tfJobVersion,
               "--component=simple_tfjob",
               // Name is used for the test case name so it should be unique across
               // all E2E tests.
-              "--params=name=simple-tfjob-" + platform + ",namespace=" + stepsNamespace,
+              "--params=name=simple-tfjob-" + platform + ",namespace=" + stepsNamespace + ",apiVersion=kubeflow.org/" + tfJobVersion,
               "--junit_path=" + artifactsDir + "/junit_e2e-" + platform + ".xml",
             ]),  // run tests
             buildTemplate("pytorchjob-deploy", [
@@ -466,6 +467,7 @@
               "--config=" + srcDir + "/testing/dm_configs/cluster-kubeflow.yaml",
               "--imports=" + srcDir + "/testing/dm_configs/cluster.jinja",
               "--bootstrapper_image=" + bootstrapperImage,
+              "--tfjob_version=" + tfJobVersion,
             ]),  // bootstrap-kubeflow-gcp
             buildTemplate("teardown-kubeflow-gcp", [
               "python",
