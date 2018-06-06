@@ -154,6 +154,20 @@
         },
         name: "modeldb-frontend",
         namespace: namespace,
+        annotations: {
+          "getambassador.io/config":
+            std.join("\n", [
+              "---",
+              "apiVersion: ambassador/v0",
+              "kind:  Mapping",
+              "name: modeldb-mapping",
+              "prefix: /modeldb/",
+              "rewrite: /",
+              "method: GET",
+              "service: " + "modeldb-frontend." + namespace + ":3000",
+            ]),
+        },  //annotations
+
       },
       spec: {
         ports: [
