@@ -2,10 +2,12 @@ local ambassador = import "../ambassador.libsonnet";
 local params = {
   namespace:: "test-kf-001",
   tfAmbassadorServiceType:: "ClusterIP",
+  tfAmbassadorImage:: "quay.io/datawire/ambassador:0.34.0",
+  tfStatsdImage:: "quay.io/datawire/statsd:0.34.0",
 };
 
 std.assertEqual(
-  ambassador.parts(params.namespace).service(params.tfAmbassadorServiceType),
+  ambassador.parts(params.namespace, params.tfAmbassadorImage).service(params.tfAmbassadorServiceType),
   {
     apiVersion: "v1",
     kind: "Service",
@@ -33,7 +35,7 @@ std.assertEqual(
 ) &&
 
 std.assertEqual(
-  ambassador.parts(params.namespace).adminService,
+  ambassador.parts(params.namespace, params.tfAmbassadorImage).adminService,
   {
     apiVersion: "v1",
     kind: "Service",
@@ -61,7 +63,7 @@ std.assertEqual(
 ) &&
 
 std.assertEqual(
-  ambassador.parts(params.namespace).role,
+  ambassador.parts(params.namespace, params.tfAmbassadorImage).role,
   {
     apiVersion: "rbac.authorization.k8s.io/v1beta1",
     kind: "Role",
@@ -117,7 +119,7 @@ std.assertEqual(
 ) &&
 
 std.assertEqual(
-  ambassador.parts(params.namespace).serviceAccount,
+  ambassador.parts(params.namespace, params.tfAmbassadorImage).serviceAccount,
   {
     apiVersion: "v1",
     kind: "ServiceAccount",
@@ -129,7 +131,7 @@ std.assertEqual(
 ) &&
 
 std.assertEqual(
-  ambassador.parts(params.namespace).roleBinding,
+  ambassador.parts(params.namespace, params.tfAmbassadorImage).roleBinding,
   {
     apiVersion: "rbac.authorization.k8s.io/v1beta1",
     kind: "RoleBinding",
@@ -153,7 +155,7 @@ std.assertEqual(
 ) &&
 
 std.assertEqual(
-  ambassador.parts(params.namespace).deploy,
+  ambassador.parts(params.namespace, params.tfAmbassadorImage).deploy(params.tfStatsdImage),
   {
     apiVersion: "extensions/v1beta1",
     kind: "Deployment",
@@ -230,7 +232,7 @@ std.assertEqual(
 ) &&
 
 std.assertEqual(
-  ambassador.parts(params.namespace).k8sDashboard("cloud"),
+  ambassador.parts(params.namespace, params.tfAmbassadorImage).k8sDashboard("cloud"),
   {
     apiVersion: "v1",
     kind: "Service",

@@ -7,6 +7,8 @@
 // @optionalParam disks string null Comma separated list of Google persistent disks to attach to jupyter environments.
 // @optionalParam cloud string null String identifying the cloud to customize the deployment for.
 // @optionalParam tfAmbassadorServiceType string ClusterIP The service type for the API Gateway.
+// @optionalParam tfAmbassadorImage string quay.io/datawire/ambassador:0.34.0 The image for the API Gateway.
+// @optionalParam tfStatsdImage string quay.io/datawire/statsd:0.34.0 The image for the Stats and Monitoring.
 // @optionalParam tfJobImage string gcr.io/kubeflow-images-public/tf_operator:v20180522-77375baf The image for the TfJob controller.
 // @optionalParam tfDefaultImage string null The default image to use for TensorFlow.
 // @optionalParam tfJobUiServiceType string ClusterIP The service type for the UI.
@@ -14,6 +16,8 @@
 // @optionalParam jupyterHubImage string gcr.io/kubeflow/jupyterhub-k8s:v20180531-3bb991b1 The image to use for JupyterHub.
 // @optionalParam jupyterHubAuthenticator string null The authenticator to use
 // @optionalParam jupyterNotebookPVCMount string null Mount path for PVC. Set empty to disable PVC
+// @optionalParam jupyterNotebookRegistry string gcr.io The docker image registry for JupyterNotebook.
+// @optionalParam jupyterNotebookRepoName string kubeflow-images-public The repoistory name for JupyterNotebook.
 // @optionalParam reportUsage string false Whether or not to report Kubeflow usage to kubeflow.org.
 // @optionalParam usageId string unknown_cluster Optional id to use when reporting usage to kubeflow.org
 // @optionalParam tfJobVersion string v1alpha1 which version of the TFJob operator to use

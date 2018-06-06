@@ -106,6 +106,12 @@ If it was created with acs-engine instead:
 ks param set kubeflow-core cloud acsengine --env=cloud
 ```
 
+If it was created on Alibaba Cloud with [ACK](https://www.alibabacloud.com/product/kubernetes):
+
+```
+ks param set kubeflow-core cloud ack --env=cloud
+```
+
 
 Now let's set `${KF_ENV}` to `cloud` or `nocloud` to reflect our environment for the rest of the guide:
 
