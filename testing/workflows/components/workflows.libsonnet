@@ -74,6 +74,7 @@
       // command: List to pass as the container command.
       local buildTemplate(step_name, command, env_vars=[], sidecars=[]) = {
         name: step_name,
+        activeDeadlineSeconds: 900,  // Set 15 minute timeout for each template
         container: {
           command: command,
           image: image,
