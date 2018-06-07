@@ -423,6 +423,7 @@
                 "testing.deploy_kubeflow",
                 "--test_dir=" + testDir,
                 "--namespace=" + stepsNamespace,
+                "--tfjob_version=v1alpha2",
               ]
             ),  // deploy-kubeflow
             buildTemplate("create-pr-symlink", [

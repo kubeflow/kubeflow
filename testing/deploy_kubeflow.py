@@ -33,6 +33,9 @@ def parse_args():
           "https://github.com/ksonnet/ksonnet/blob/master/docs"
           "/troubleshooting.md. Can also be set using environment variable "
           "GITHUB_TOKEN."))
+  parser.add_argument(
+    "--tfjob_version", required=False, default="v1alpha1", type=str,
+    help="The tfjob version to deploy.")
   parser.set_defaults(as_gcloud_user=False)
 
   args, _ = parser.parse_known_args()
@@ -56,6 +59,11 @@ def deploy_kubeflow(test_case):
       "--namespace=" + namespace
     ],
     cwd=app_dir)
+  util.run(
+    ["ks", "param", "set", "default",
+     "kubeflow-core", "tfJobVersion", args.tfjob_version],
+    cwd=app_dir)
+
 
   util.run(
     [
