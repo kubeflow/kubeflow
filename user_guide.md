@@ -572,6 +572,14 @@ minikube start --cpus 4 --memory 8096 --disk-size=40g
   * The larger disk is needed to accomodate Kubeflow's Jupyter images which
     are 10s of GBs due to all the extra Python libraries we include.
 
+If you just installed Minikube following instructions from the [quick start guide](https://kubernetes.io/docs/getting-started-guides/minikube/#installation), you most likely
+created a VM with the default resources. You would want to recreate your Minikube with the appropriate resource setttings.
+```
+minikube stop
+minikube delete
+minikube start --cpus 4 --memory 8096 --disk-size=40g
+```
+
 If you encounter a jupyter-xxxx pod in Pending status, described with:
 ```
 Warning  FailedScheduling  8s (x22 over 5m)  default-scheduler  0/1 nodes are available: 1 Insufficient memory.
