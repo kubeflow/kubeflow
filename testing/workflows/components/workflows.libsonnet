@@ -161,7 +161,7 @@
             },
           ],  // volumes
           // onExit specifies the template that should always run when the workflow completes.
-          onExit: "exit-handler",
+          // onExit: "exit-handler",
           templates: [
             {
               name: "e2e",
@@ -296,7 +296,7 @@
               },  // dag
             },  // e2e template
             {
-              // name: "exit-handler",
+              name: "exit-handler",
               dag: {
                 tasks: [
                   {
