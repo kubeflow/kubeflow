@@ -14,14 +14,14 @@ class KubeFormSpawner(KubeSpawner):
     <label for='image'>Image</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <input list="image" name="image" placeholder='repo/image:tag'>
     <datalist id="image">
-      <option value="{0}/{1}/tensorflow-1.4.1-notebook-cpu:v20180419-0ad94c4e">
-      <option value="{0}/{1}/tensorflow-1.4.1-notebook-gpu:v20180419-0ad94c4e">
-      <option value="{0}/{1}/tensorflow-1.5.1-notebook-cpu:v20180419-0ad94c4e">
-      <option value="{0}/{1}/tensorflow-1.5.1-notebook-gpu:v20180419-0ad94c4e">
-      <option value="{0}/{1}/tensorflow-1.6.0-notebook-cpu:v20180419-0ad94c4e">
-      <option value="{0}/{1}/tensorflow-1.6.0-notebook-gpu:v20180419-0ad94c4e">
-      <option value="{0}/{1}/tensorflow-1.7.0-notebook-cpu:v20180419-0ad94c4e">
-      <option value="{0}/{1}/tensorflow-1.7.0-notebook-gpu:v20180419-0ad94c4e">
+      <option value="{0}/{1}/tensorflow-1.4.1-notebook-cpu:v20180607-476e150e">
+      <option value="{0}/{1}/tensorflow-1.4.1-notebook-gpu:v20180607-476e150e">
+      <option value="{0}/{1}/tensorflow-1.5.1-notebook-cpu:v20180607-476e150e">
+      <option value="{0}/{1}/tensorflow-1.5.1-notebook-gpu:v20180607-476e150e">
+      <option value="{0}/{1}/tensorflow-1.6.0-notebook-cpu:v20180607-476e150e">
+      <option value="{0}/{1}/tensorflow-1.6.0-notebook-gpu:v20180607-476e150e">
+      <option value="{0}/{1}/tensorflow-1.7.0-notebook-cpu:v20180607-476e150e">
+      <option value="{0}/{1}/tensorflow-1.7.0-notebook-gpu:v20180607-476e150e">
     </datalist>
     <br/><br/>
 
