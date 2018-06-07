@@ -271,7 +271,7 @@
                   if platform == "gke" then {
                     name: "tfjob-test" + v1alpha1Suffix,
                     template: "tfjob-test" + v1alpha1Suffix,
-                    dependencies: ["wait-for-kubeflow" + v1alpha1Suffix, "tfjob-test"],
+                    dependencies: ["wait-for-kubeflow" + v1alpha1Suffix],
                   },
                   if platform == "gke" then {
                     name: "wait-for-kubeflow",
