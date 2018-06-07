@@ -36,7 +36,7 @@
     cluster: "kubeflow-releasing",
     zone: "us-central1-a",
     image: "default-should-not-exist",
-    extra_args: ""
+    extra_args: "",
   },
 
   parts(namespace, name, overrides={}):: {
@@ -137,8 +137,8 @@
             imageDir + "/build_image.sh "
             + imageDir + "/" + dockerfile + " "
             + image + " ",
-            + params.versionTag + " ",
-            + params.extra_args
+            +params.versionTag + " ",
+            +params.extra_args,
           ],
           [
             {
