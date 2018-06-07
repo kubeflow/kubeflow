@@ -296,7 +296,7 @@
               },  // dag
             },  // e2e template
             {
-              name: "exit-handler",
+              // name: "exit-handler",
               dag: {
                 tasks: [
                   {
