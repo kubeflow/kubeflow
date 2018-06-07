@@ -300,6 +300,11 @@ TODO(jlewi): Do we need to serialize API activation
           members:
             - {{ 'serviceAccount:' + env['project_number'] + '@cloudservices.gserviceaccount.com' }}
 
+        {# Grant permissions needed to push the app to a cloud repository. #}
+        - role: roles/source.admin
+          members:
+            - {{ 'serviceAccount:' + env['project_number'] + '@cloudservices.gserviceaccount.com' }}
+
         {# servicemanagement.admin is needed by CloudEndpoints controller
            so we can create a service to get a hostname.
          #}
@@ -495,11 +500,17 @@ the corresponding type provider.
               - --apply=true
               - --namespace=kubeflow
               - --config=/etc/kubeflow/config.yaml
+            env:
+              - name: GOOGLE_APPLICATION_CREDENTIALS
+                value: /var/run/secrets/sa/admin-gcp-sa.json
             volumeMounts:
             - name: kubeflow-ksonnet-pvc
               mountPath: /opt/bootstrap
             - name: kubeflow-bootstrapper
               mountPath: /etc/kubeflow
+            - name: kubeflow-admin-sa
+              readOnly: true
+              mountPath: /var/run/secrets/sa
           volumes:
           - name: kubeflow-ksonnet-pvc
             persistentVolumeClaim:
@@ -507,7 +518,10 @@ the corresponding type provider.
           - name: kubeflow-bootstrapper
             configMap:
               name: kubeflow-bootstrapper
-
+          - name: kubeflow-admin-sa              
+            secret:
+              secretName: admin-gcp-sa
+                
   metadata:
     dependsOn:
       - admin-namespace
