@@ -66,8 +66,8 @@ resources:
       # - group:data-scientists@acme.com
     # Path for the bootstrapper image.
     bootstrapperImage: gcr.io/kubeflow-images-public/bootstrapper:latest
-    # This is the name of the GCP static ip address to reserve for your domain.
-    # This must be different for each Kubeflow deployment in your project.
+    # This is the name of the GCP static ip address reserved for your domain.
+    # Each Kubeflow deployment in your project should use one unique ipName among all configs.
     ipName: kubeflow-ip
     # Provide the config for the bootstrapper. This should be a string
     # containing the YAML spec for the bootstrapper.
@@ -75,7 +75,7 @@ resources:
     # You should set the following parameters in bootstrapperConfig.
     #    acmeEmail - Set this to your email address; this is used with lets-encrypt.
     #    ipName - This is the name of the static ip address reserved in GCP to be used with ingress.
-    #             keep this in sync with the value of property ipName
+    #             Keep the value of ipName in sync with the value in the bootstrapper config section below.
     #    hostName - This is the fully qualified domain name to serve Kubeflow at.
     #       1. To use the GCP provided domain endpoints.<Project>.cloud.goog set this to
     #          <name>.endpoints.<Project>.cloud.goog
@@ -108,7 +108,7 @@ resources:
             value: johnDoe@acme.com
           - component: iap-ingress
             name: ipName
-            # TODO: Keep this in sync with the value of property ipName
+            # TODO: make sure value of ipName is the same as property <ipName>.
             value: ipName
           - component: iap-ingress
             name: hostname

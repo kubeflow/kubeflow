@@ -16,7 +16,7 @@ The instructions also take advantage of IAP to provide secure authenticated acce
 1. Modify `cluster-kubeflow.yaml`
 
    1. Set the zone for your cluster
-   1. Set property `ipName` to a value that is unique with respect to your project
+   1. For `ipName`, choose a value that is unique with respect to your project, and set it to property `ipName`
    1. Set parameter ipName in bootstrapperConfig to the value selected in the previous step
    1. Set parameter acmeEmail in bootstrapperConfig to your email address
    1. Set parameter hostname in bootstrapperConfig
