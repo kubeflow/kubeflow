@@ -60,7 +60,7 @@ def deploy_kubeflow(test_case):
     ],
     cwd=app_dir)
   util.run(
-    ["ks", "param", "set", "default",
+    ["ks", "param", "set", "--env=default",
      "kubeflow-core", "tfJobVersion", args.tfjob_version],
     cwd=app_dir)
 
