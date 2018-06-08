@@ -94,6 +94,12 @@ If using GKE, we can configure our cloud environment to use GCP features with a 
 ks param set kubeflow-core cloud gke --env=cloud
 ```
 
+If the cluster was created on AWS:
+```
+ks param set kubeflow-core cloud aws --env=cloud
+```
+_NOTE_: using 'gke' instead of 'aws' will work too.
+
 If the cluster was created on Azure with AKS/ACS:
 
 ```
