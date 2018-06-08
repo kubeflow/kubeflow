@@ -1,0 +1,31 @@
+apiVersion: 0.1.0
+environments:
+  default:
+    destination:
+      namespace: kubeflow-test-infra
+      server: https://35.196.213.148
+    k8sVersion: v1.7.0
+    path: default
+kind: ksonnet.io/app
+libraries:
+  automation:
+    gitVersion:
+      commitSha: c69e760bb0bc2daeae79a4de831a641215f76822
+      refSpec: master
+    name: automation
+    registry: kubeflow
+name: bootstrapper
+registries:
+  incubator:
+    gitVersion:
+      commitSha: 40285d8a14f1ac5787e405e1023cf0c07f6aa28c
+      refSpec: master
+    protocol: github
+    uri: github.com/ksonnet/parts/tree/master/incubator
+  kubeflow:
+    gitVersion:
+      commitSha: c69e760bb0bc2daeae79a4de831a641215f76822
+      refSpec: master
+    protocol: github
+    uri: github.com/kubeflow/kubeflow/tree/master/kubeflow
+version: 0.0.1
