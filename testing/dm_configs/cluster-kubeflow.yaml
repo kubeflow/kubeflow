@@ -44,3 +44,7 @@ resources:
             prototype: kubeflow-core
           - name: pytorch-operator
             prototype: pytorch-operator
+        parameters:
+          - component: kubeflow-core
+            name: tfJobVersion
+            value: v1alpha2

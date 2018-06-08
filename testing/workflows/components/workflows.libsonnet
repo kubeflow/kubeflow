@@ -38,6 +38,7 @@
       local testing_image = "gcr.io/kubeflow-ci/kubeflow-testing";
       local bootstrapperImage = "gcr.io/kubeflow-ci/bootstrapper:" + name;
       local deploymentName = "e2e-" + std.substr(name, std.length(name) - 4, 4);
+      local v1alpha2Suffix = "-v1a2";
 
       // The name of the NFS volume claim to use for test files.
       local nfsVolumeClaim = "nfs-external";
@@ -72,7 +73,8 @@
       // Build an Argo template to execute a particular command.
       // step_name: Name for the template
       // command: List to pass as the container command.
-      local buildTemplate(step_name, command, env_vars=[], sidecars=[]) = {
+      // We use separate kubeConfig files for separate clusters
+      local buildTemplate(step_name, command, env_vars=[], sidecars=[], kubeConfig="config") = {
         name: step_name,
         activeDeadlineSeconds: 900,  // Set 15 minute timeout for each template
         container: {
@@ -102,7 +104,7 @@
               // We use a directory in our NFS share to store our kube config.
               // This way we can configure it on a single step and reuse it on subsequent steps.
               name: "KUBECONFIG",
-              value: testDir + "/.kube/config",
+              value: testDir + "/.kube/" + kubeConfig,
             },
           ] + prow_env + env_vars,
           volumeMounts: [
@@ -174,7 +176,7 @@
                     local gkeSetup = {
                       name: "setup-gke",
                       template: "setup-gke",
-                      dependencies: ["bootstrap-kubeflow-gcp"],
+                      dependencies: ["bootstrap-kf-gcp"],
                     },
                     local minikubeSetup = {
                       name: "setup-minikube",
@@ -188,6 +190,11 @@
                       gkeSetup,
 
                   }.result,
+                  if platform == "gke" then {
+                    name: "setup-gke" + v1alpha2Suffix,
+                    template: "setup-gke" + v1alpha2Suffix,
+                    dependencies: ["bootstrap-kf-gcp" + v1alpha2Suffix],
+                  },
                   {
                     local bootstrapImageCreate = {
                       name: "bootstrap-image-create",
@@ -210,8 +217,8 @@
                   },
                   {
                     local bootstrapKubeflowGCP = {
-                      name: "bootstrap-kubeflow-gcp",
-                      template: "bootstrap-kubeflow-gcp",
+                      name: "bootstrap-kf-gcp",
+                      template: "bootstrap-kf-gcp",
                       dependencies: ["bootstrap-image-create"],
                     },
                     local deployKubeflow = {
@@ -224,6 +231,11 @@
                     else
                       bootstrapKubeflowGCP,
                   }.result,
+                  if platform == "gke" then {
+                    name: "bootstrap-kf-gcp" + v1alpha2Suffix,
+                    template: "bootstrap-kf-gcp" + v1alpha2Suffix,
+                    dependencies: ["bootstrap-image-create"],
+                  },
                   {
                     name: "pytorchjob-deploy",
                     template: "pytorchjob-deploy",
@@ -231,7 +243,7 @@
                       if platform == "minikube" then
                         "deploy-kubeflow"
                       else
-                        "wait-for-kubeflow-deployment",
+                        "wait-for-kubeflow",
                     ],
                   },
                   // Don't run argo test for gke since
@@ -253,14 +265,26 @@
                       if platform == "minikube" then
                         "deploy-kubeflow"
                       else
-                        "wait-for-kubeflow-deployment",
+                        "wait-for-kubeflow",
                     ],
                   },
                   if platform == "gke" then {
-                    name: "wait-for-kubeflow-deployment",
-                    template: "wait-for-kubeflow-deployment",
+                    name: "tfjob-test" + v1alpha2Suffix,
+                    template: "tfjob-test" + v1alpha2Suffix,
+                    dependencies: ["wait-for-kubeflow" + v1alpha2Suffix],
+                  },
+                  if platform == "gke" then {
+                    name: "wait-for-kubeflow",
+                    template: "wait-for-kubeflow",
                     dependencies: [
                       "setup-gke",
+                    ],
+                  } else {},
+                  if platform == "gke" then {
+                    name: "wait-for-kubeflow" + v1alpha2Suffix,
+                    template: "wait-for-kubeflow" + v1alpha2Suffix,
+                    dependencies: [
+                      "setup-gke" + v1alpha2Suffix,
                     ],
                   } else {},
                   {
@@ -288,6 +312,11 @@
                   },
                   if platform == "gke" then
                     {
+                      name: "teardown-kubeflow-gcp" + v1alpha2Suffix,
+                      template: "teardown-kubeflow-gcp" + v1alpha2Suffix,
+                    },
+                  if platform == "gke" then
+                    {
                       name: "test-dir-delete",
                       template: "test-dir-delete",
                       dependencies: ["copy-artifacts"],
@@ -305,7 +334,7 @@
               ["/usr/local/bin/checkout.sh", srcRootDir],
               [{
                 name: "EXTRA_REPOS",
-                value: "kubeflow/tf-operator@v0.1.0;kubeflow/testing@HEAD",
+                value: "kubeflow/tf-operator@HEAD;kubeflow/testing@HEAD",
               }],
               [],  // no sidecars
             ),
@@ -315,7 +344,7 @@
               "rm -rf " + testDir,
             ]),  // test-dir-delete
 
-            buildTemplate("wait-for-kubeflow-deployment", [
+            buildTemplate("wait-for-kubeflow", [
               "python",
               "-m",
               "testing.wait_for_deployment",
@@ -323,7 +352,16 @@
               "--project=" + project,
               "--zone=" + zone,
               "--timeout=5",
-            ]),  // wait-for-kubeflow-deployment
+            ]),  // wait-for-kubeflow
+            buildTemplate("wait-for-kubeflow" + v1alpha2Suffix, [
+              "python",
+              "-m",
+              "testing.wait_for_deployment",
+              "--cluster=" + cluster,
+              "--project=" + project,
+              "--zone=" + zone,
+              "--timeout=5",
+            ], kubeConfig="v1alpha2"),  // wait-for-kubeflow
             buildTemplate("test-jsonnet-formatting", [
               "python",
               "-m",
@@ -343,6 +381,15 @@
               "--cluster=" + cluster,
               "--zone=" + zone,
             ]),  // setup-gke
+            buildTemplate("setup-gke" + v1alpha2Suffix, [
+              "python",
+              "-m",
+              "testing.get_gke_credentials",
+              "--test_dir=" + testDir,
+              "--project=" + project,
+              "--cluster=" + cluster + v1alpha2Suffix,
+              "--zone=" + zone,
+            ], kubeConfig="v1alpha2"),  // setup-gke
             // Setup and teardown using minikube
             buildTemplate("setup-minikube", [
               "python",
@@ -411,12 +458,29 @@
               "--zone=" + zone,
               "--project=" + project,
               "--app_dir=" + tfOperatorRoot + "/test/workflows",
+              "--tfjob_version=v1alpha1",
               "--component=simple_tfjob",
               // Name is used for the test case name so it should be unique across
               // all E2E tests.
-              "--params=name=simple-tfjob-" + platform + ",namespace=" + stepsNamespace,
+              "--params=name=simple-tfjob-" + platform + ",namespace=" + stepsNamespace + ",apiVersion=kubeflow.org/" + "v1alpha1" + ",image=" + "gcr.io/tf-on-k8s-dogfood/tf_sample:dc944ff",
               "--junit_path=" + artifactsDir + "/junit_e2e-" + platform + ".xml",
             ]),  // run tests
+            buildTemplate("tfjob-test" + v1alpha2Suffix, [
+              "python",
+              "-m",
+              "py.test_runner",
+              "test",
+              "--cluster=" + cluster + v1alpha2Suffix,
+              "--zone=" + zone,
+              "--project=" + project,
+              "--app_dir=" + tfOperatorRoot + "/test/workflows",
+              "--tfjob_version=v1alpha2",
+              "--component=simple_tfjob",
+              // Name is used for the test case name so it should be unique across
+              // all E2E tests.
+              "--params=name=simple-tfjob-" + platform + ",namespace=" + stepsNamespace + ",apiVersion=kubeflow.org/" + "v1alpha2" + ",image=" + "gcr.io/kubeflow-ci/tf-dist-mnist-test:1.0",
+              "--junit_path=" + artifactsDir + "/junit_e2e-" + platform + v1alpha2Suffix + ".xml",
+            ], kubeConfig="v1alpha2"),  // run tests
             buildTemplate("pytorchjob-deploy", [
               "python",
               "-m",
@@ -470,7 +534,7 @@
                 mirrorVolumeMounts: true,
               }],
             ),  // bootstrap-image-create
-            buildTemplate("bootstrap-kubeflow-gcp", [
+            buildTemplate("bootstrap-kf-gcp", [
               "python",
               "-m",
               "testing.deploy_kubeflow_gcp",
@@ -479,13 +543,32 @@
               "--config=" + srcDir + "/testing/dm_configs/cluster-kubeflow.yaml",
               "--imports=" + srcDir + "/testing/dm_configs/cluster.jinja",
               "--bootstrapper_image=" + bootstrapperImage,
-            ]),  // bootstrap-kubeflow-gcp
+              "--tfjob_version=v1alpha1",
+            ]),  // bootstrap-kf-gcp
+            buildTemplate("bootstrap-kf-gcp" + v1alpha2Suffix, [
+              "python",
+              "-m",
+              "testing.deploy_kubeflow_gcp",
+              "--project=" + project,
+              "--name=" + deploymentName + v1alpha2Suffix,
+              "--config=" + srcDir + "/testing/dm_configs/cluster-kubeflow.yaml",
+              "--imports=" + srcDir + "/testing/dm_configs/cluster.jinja",
+              "--bootstrapper_image=" + bootstrapperImage,
+              "--tfjob_version=v1alpha2",
+            ]),  // bootstrap-kf-gcp
             buildTemplate("teardown-kubeflow-gcp", [
               "python",
               "-m",
               "testing.teardown_kubeflow_gcp",
               "--project=" + project,
               "--name=" + deploymentName,
+            ]),  // teardown-kubeflow-gcp
+            buildTemplate("teardown-kubeflow-gcp" + v1alpha2Suffix, [
+              "python",
+              "-m",
+              "testing.teardown_kubeflow_gcp",
+              "--project=" + project,
+              "--name=" + deploymentName + v1alpha2Suffix,
             ]),  // teardown-kubeflow-gcp
           ],  // templates
         },
