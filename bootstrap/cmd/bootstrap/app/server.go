@@ -366,7 +366,18 @@ func Run(opt *options.ServerOption) error {
 	if err != nil {
 		return err
 	}
-	bootConfig.Registries = append(bootConfig.Registries, regConfig.Registries...)
+
+	allRegistries := make(map[string]RegistryConfig)
+	for _, registry := range append(regConfig.Registries, bootConfig.Registries...) {
+		if _, ok := allRegistries[registry.Name]; !ok {
+			allRegistries[registry.Name] = registry
+		}
+	}
+
+	bootConfig.Registries = make([]RegistryConfig, 0, len(allRegistries))
+	for _, val := range allRegistries {
+		bootConfig.Registries = append(bootConfig.Registries, val)
+	}
 
 	kubeClient, err := clientset.NewForConfig(rest.AddUserAgent(config, "kubeflow-bootstrapper"))
 	if err != nil {
