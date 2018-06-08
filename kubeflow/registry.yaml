@@ -28,4 +28,6 @@ libraries:
   katib:
     version: master
     path: katib
-
+  automation:
+    version: master
+    path: automation

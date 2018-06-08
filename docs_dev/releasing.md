@@ -27,19 +27,40 @@ Currently auto release will use master branch.
 
 ## Create Release Workflow
 
-(TODO Kunming: Add more specific instructions here.)
+1. To have your image release workflow, you need build context which contains a build_image.sh which can be executed:
+```
+  build_image.sh ${DOCKERFILE} ${IMAGE} ${TAG} ...EXTRA_ARGS
+```
+    build_image.sh should build image and push to gcr. Check existing ones as example.
 
-For now check existing workflows in [release config](../releasing/prow_config_release.yaml) as example.
+2. Create your workflow:
 
-Releasing a workflow not belonging to kubeflow repo is currently not supported. Create an issue if you need it.
-However, you can create workflow in kubeflow repo which release images for other repo like pytorch-operator.
+Under [releasing](../releasing):
+```
+  export RELEASENAME=<name it>
+  ks init ${RELEASENAME}
+  cd ${RELEASENAME}
+  ks registry add kubeflow github.com/kubeflow/kubeflow/tree/master/kubeflow
+  ks pkg install kubeflow/automation@master
+  ks generate release ${RELEASENAME} --image=<your image name>
+```
 
 ## Update Release Config
 
 Add your new workflow to [release config](../releasing/prow_config_release.yaml).
+
+A prototype would be:
+```
+- app_dir: kubeflow/kubeflow/releasing/<new release workflow folder>
+    component: release
+    name: <your release name>
+    params:
+      extra_args: <for your build_image.sh>
+```
+
 Your images will be auto released everyday.
 
-# Manual Release Kubeflow
+# Example: Manual Release Kubeflow
 
 Some preliminary instructions for how to cut a release.
 
