@@ -451,7 +451,7 @@
                 "-c",
                 bootstrapDir + "/build_image.sh "
                 + bootstrapDir + "/Dockerfile "
-                + "gcr.io/kubeflow-ci/bootstrapper:" + " "
+                + "gcr.io/kubeflow-ci/bootstrapper" + " "
                 + name + " "
                 + "kubeflow:" + srcDir,
               ],
