@@ -50,15 +50,6 @@ limitations under the License.
 {% set KF_USER_NAME = NAME_PREFIX + '-user' %}
 {% set KF_VM_SA_NAME = NAME_PREFIX + '-vm' %}
 
-{# For most of the K8s resources we set the deletePolicy to abandon; otherwise deployment manager reports various errors.
-   Since we delete the cluster all the K8s resources will be deleted anyway.
-
-   We also set deletePolicy to ABANDON on the project APIs because otherwise it tries to deactivate them
-   which causes errors.
-
-   TODO(jlewi): I don't think this is needed. I think the bug was that we weren't using references in K8s types
-   so we weren't ensuring the type providers were deleted after the corresponding resources.
-#}
 resources:
 - name: {{ KF_ADMIN_NAME }}
   type: iam.v1.serviceAccount
@@ -341,11 +332,13 @@ TODO(jlewi): Do we need to serialize API activation
             - {{ 'serviceAccount:' + KF_VM_SA_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
 
         {% if 'users' in properties %}
+        {% if properties['users'] %}
         - role: roles/iap.httpsResourceAccessor
           members:
             {% for user in properties['users'] %}
             - {{ user }}
             {% endfor %}
+        {% endif %}
         {% endif %}
 
       remove: []

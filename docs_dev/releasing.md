@@ -180,6 +180,17 @@ ks apply ${ENV} -c workflows
 Create a PR to update [kubeform_spawner.py](https://github.com/kubeflow/kubeflow/blob/master/kubeflow/core/kubeform_spawner.py#L15) 
 to point to the newly built Jupyter notebook images.
 
+## Update the bootstrapper
+
+Build and push a new bootstrapper image
+
+```
+cd bootstrap
+make push
+```
+
+Update [cluster-kubeflow.yaml](https://github.com/kubeflow/kubeflow/blob/master/docs/gke/configs/cluster-kubeflow.yaml) to point to the new image.
+
 ## Create a release branch (if necessary)
 
 If you aren't already working on a release branch (of the form `v${MAJOR}.${MINOR}-branch`, where `${MAJOR}.${MINOR}` is a major-minor version number), then create one.  Release branches serve several purposes:

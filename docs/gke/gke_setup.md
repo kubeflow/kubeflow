@@ -9,17 +9,52 @@ The instructions also take advantage of IAP to provide secure authenticated acce
 
 ## Create the Kubeflow deployment
 
-1.  Make a copy of the `configs` directory
+1.  Make a copy of the [configs](https://github.com/kubeflow/kubeflow/tree/master/docs/gke/configs) directory
 
 	* Its a good idea to check this into source control to make it easy to version and rollback your configs.
 
 1. Modify `cluster-kubeflow.yaml`
 
    1. Set the zone for your cluster
-   1. For `ipName`, choose a value that is unique with respect to your project, and set it to property `ipName`
-   1. Set parameter ipName in bootstrapperConfig to the value selected in the previous step
+   1. Set `ipName` to a value that is unique with respect to your project
+
+      * The ipName needs to be set in two places
+
+          1. Inside properties
+
+          ```
+          ...
+          properties:
+          ...
+            ipName: your-ip-name
+          ...
+          ```
+
+          1. Parameter ipName in component iap-ingress
+
+          ```
+          properties:
+            bootstrapperConfig: |          
+              app:
+                ...
+                parameters:              
+                  - component: iap-ingress
+                    name: ipName                
+                    value: your-ip-name
+                ...
+          ```
    1. Set parameter acmeEmail in bootstrapperConfig to your email address
    1. Set parameter hostname in bootstrapperConfig
+
+      ```
+          - component: iap-ingress
+            name: hostname          
+            value: <name>.endpoints.<Project>.cloud.goog
+      ```
+
+      * Replace project with the id of your project
+      * Replace name with a unique name for your deployment
+
    1. Change the initial number of nodes if desired
 
 		* If you want GPUs set a non-zero number for number of GPU nodes.
@@ -27,14 +62,14 @@ The instructions also take advantage of IAP to provide secure authenticated acce
    1. List any users (Google Accounts) or Google groups that should be able to access Kubeflow in the **users** section; e.g.
 
       ```
-      users: 
+      users:
        - user:john@acme.com
        - group:data-scientists@acme.com
       ```
 
-1. Modify `env-kubeflow.sh`
+1. Modify [env-kubeflow.sh](https://github.com/kubeflow/kubeflow/blob/master/docs/gke/configs/env-kubeflow.sh)
 
-	* This file defines environment variables used in the commands below.
+	* This file defines environment variables used in the commands below.  
 	* We recommend checking a modified version into source control so its easy to source and repeat the commands.
 
 1. Grant sufficient permisions to Cloud services account which is what is used by deployment manager
@@ -60,11 +95,29 @@ The instructions also take advantage of IAP to provide secure authenticated acce
 
 	 * ZONE - this will be the zone specified in your ${CONFIG_FILE}
 
-1. Create K8s secrets containing the secrets for the GCP service accounts to be used with Kubeflow
+1. Run [create_k8s_secrets.sh]()
+   to create K8s secrets containing the secrets for the GCP service accounts to be used with Kubeflow
 
    ```
    . env-kubeflow.sh
    ./create_k8s_secrets.sh 
+   ```
+
+1. Verify deployment
+
+   * Check the bootstrapper is running without errors
+
+   ```
+   kubectl -n kubeflow-admin get pods
+   NAME                      READY     STATUS    RESTARTS   AGE
+   kubeflow-bootstrapper-0   1/1       Running   1          10m
+   ```
+
+
+   * Check resources deployed in namespace kubeflow
+
+   ```
+   kubectl -n kubeflow get  all
    ```
 
 ### Create oauth client credentials
@@ -72,13 +125,14 @@ The instructions also take advantage of IAP to provide secure authenticated acce
 Create an OAuth Client ID to be used to identify IAP when requesting acces to user's email to verify their identity.
 
 1. Set up your OAuth consent screen:
-  * Configure the [consent screen](https://console.cloud.google.com/apis/credentials/consent).
-  * Under Email address, select the address that you want to display as a public contact. You must use either your email address or a Google Group that you own.
-  * In the Product name box, enter a suitable like save `kubeflow`
-  * Click Save.
+ 
+   * Configure the [consent screen](https://console.cloud.google.com/apis/credentials/consent).
+   * Under Email address, select the address that you want to display as a public contact. You must use either your email address or a Google Group that you own.
+   * In the Product name box, enter a suitable like save `kubeflow`
+   * Click Save.
 
-1.  On the [Credentials](https://console.cloud.google.com/apis/credentials) Click Create credentials, and then click OAuth client ID.
-  
+1. On the [Credentials](https://console.cloud.google.com/apis/credentials) Click Create credentials, and then click OAuth client ID.
+
    * Under Application type, select Web application. In the Name box enter a name, and in the Authorized redirect URIs box, enter
 
    ```
@@ -91,13 +145,14 @@ Create an OAuth Client ID to be used to identify IAP when requesting acces to us
 1. Create a new Kubernetes Secret with the the OAuth client ID and secret:
 
    ```
-   kubectl -n ${NAMESPACE} create secret generic kubeflow-oauth --from-literal=CLIENT_ID=${CLIENT_ID} --from-literal=CLIENT_SECRET=${CLIENT_SECRET}
+   NAMESPACE=kubeflow
+   kubectl create secret -n ${NAMESPACE} generic kubeflow-oauth --from-literal=CLIENT_ID=${CLIENT_ID} --from-literal=CLIENT_SECRET=${CLIENT_SECRET}
    ```
 
 1. Grant users IAP access
 
-  * Users/Google groups listed in **users:** in the ${CONFIG_FILE} will be granted IAP access
-  * To additional users
+   * Users/Google groups listed in **users:** in the ${CONFIG_FILE} will be granted IAP access
+   * To additional users
 
     1. Update ${CONFIG_FILE} and issue an update
 

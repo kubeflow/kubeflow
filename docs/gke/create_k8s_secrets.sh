@@ -2,7 +2,9 @@
 #
 # A simple helper script to download secrets for Kubeflow service
 # accounts and store them as K8s secrets.
-set -ex
+#
+# Ignore errors because if secret/namespace already exists just keep going.
+set -x
 export SA_EMAIL=${DEPLOYMENT_NAME}-admin@${PROJECT}.iam.gserviceaccount.com
 
 # TODO(jlewi): We should name the secrets more consistently based on the service account name.
@@ -10,6 +12,11 @@ export SA_EMAIL=${DEPLOYMENT_NAME}-admin@${PROJECT}.iam.gserviceaccount.com
 gcloud --project=${PROJECT} iam service-accounts keys create ${SA_EMAIL}.json --iam-account ${SA_EMAIL}
 
 kubectl create secret generic --namespace=kubeflow-admin admin-gcp-sa --from-file=admin-gcp-sa.json=./${SA_EMAIL}.json
+
+# The namespace kubeflow may not exist yet because the bootstrapper can't run until the admin-gcp-sa 
+# secret is created.
+kubectl create namespace kubeflow
+
 kubectl create secret generic --namespace=kubeflow admin-gcp-sa --from-file=admin-gcp-sa.json=./${SA_EMAIL}.json
 
 export USER_EMAIL=${DEPLOYMENT_NAME}-user@${PROJECT}.iam.gserviceaccount.com
