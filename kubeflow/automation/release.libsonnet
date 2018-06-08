@@ -40,7 +40,7 @@
   },
 
   parts(namespace, name, overrides={}):: {
-    // Workflow to run the e2e test.
+    // Workflow to release image.
     release::
       local params = $.defaultParams + overrides;
 
@@ -273,6 +273,6 @@
             ),  // teardown
           ],  // templates
         },
-      },  // e2e
+      },  // release
   },  // parts
 }
