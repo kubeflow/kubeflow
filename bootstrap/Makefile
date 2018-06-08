@@ -16,6 +16,18 @@ IMG = gcr.io/kubeflow-images-public/bootstrapper
 
 TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6)
 
+
+CHANGED_FILES := $(shell git diff-files)
+
+ifeq ($(strip $(CHANGED_FILES)),)
+# Changed files is empty; not dirty
+# Don't include --dirty because it could be dirty if files outside the ones we care
+# about changed.
+TAG := $(shell date +v%Y%m%d)-$(shell git describe --always)
+else
+TAG := $(shell date +v%Y%m%d)-$(shell git describe --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6)
+endif
+
 all: build
 
 # To build without the cache set the environment variable
