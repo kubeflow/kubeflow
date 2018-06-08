@@ -29,7 +29,7 @@ Currently auto release will use master branch.
 
 1. To have your image release workflow, you need build context which contains a build_image.sh which can be executed:
 ```
-  build_image.sh ${BUILDDIR} ${IMAGE} ${TAG} ...EXTRA_ARGS
+  build_image.sh ${DOCKERFILE} ${IMAGE} ${TAG} ...EXTRA_ARGS
 ```
     build_image.sh should build image and push to gcr. Check existing ones as example.
 
