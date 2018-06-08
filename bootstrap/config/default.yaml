@@ -1,13 +1,6 @@
 # Default kubeflow config for bootstrapper, included in bootstrapper image.
-# This config is shared by docker image build and bootstrapper execution.
+# This config is consumed during bootstrapper execution.
 ---
-# Image build is when pulling registry happens, so make sure to include registries you want for image build
-registries:
-  - name: kubeflow
-    repo: https://github.com/kubeflow/kubeflow.git
-    branch: master
-    # relative path to registry from git repo.
-    path: kubeflow
 app:
   packages:
     - name: core
