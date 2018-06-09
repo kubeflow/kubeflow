@@ -514,9 +514,9 @@
                 "/bin/bash",
                 "-c",
                 bootstrapDir + "/build_image.sh "
-                + bootstrapDir + " "
-                + bootstrapperImage + " "
-                + "../testing/e2e_env.yaml" + " "
+                + bootstrapDir + "/Dockerfile "
+                + "gcr.io/kubeflow-ci/bootstrapper" + " "
+                + name + " "
                 + "kubeflow:" + srcDir,
               ],
               [

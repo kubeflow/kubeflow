@@ -35,7 +35,7 @@ all: build
 
 # To edit which registries to add to bootstrapper, edit config (eg. config/default.yaml)
 build:
-	python build.py --image=$(IMG):$(TAG) --build_opts=$(DOCKER_BUILD_OPTS) --config=config/default.yaml
+	python build.py --image=$(IMG):$(TAG) --build_opts=$(DOCKER_BUILD_OPTS) --config=image_registries.yaml
 	docker tag $(IMG):$(TAG) $(IMG):latest
 	@echo Built $(IMG):latest
 	@echo Built $(IMG):$(TAG)

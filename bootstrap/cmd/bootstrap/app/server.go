@@ -58,6 +58,7 @@ const DefaultStorageAnnotation = "storageclass.beta.kubernetes.io/is-default-cla
 // Assume gcloud is on the path.
 const GcloudPath = "gcloud"
 
+const RegistriesDefaultConfig = "/opt/kubeflow/image_registries.yaml"
 const RegistriesRoot = "/opt/registries"
 
 type KsComponent struct{
@@ -357,9 +358,25 @@ func Run(opt *options.ServerOption) error {
 		return err
 	}
 
+	regConfig, err := LoadConfig(RegistriesDefaultConfig)
+	if err != nil {
+		return err
+	}
 	bootConfig, err := LoadConfig(opt.Config)
 	if err != nil {
 		return err
+	}
+
+	allRegistries := make(map[string]RegistryConfig)
+	for _, registry := range append(regConfig.Registries, bootConfig.Registries...) {
+		if _, ok := allRegistries[registry.Name]; !ok {
+			allRegistries[registry.Name] = registry
+		}
+	}
+
+	bootConfig.Registries = make([]RegistryConfig, 0, len(allRegistries))
+	for _, val := range allRegistries {
+		bootConfig.Registries = append(bootConfig.Registries, val)
 	}
 
 	kubeClient, err := clientset.NewForConfig(rest.AddUserAgent(config, "kubeflow-bootstrapper"))
