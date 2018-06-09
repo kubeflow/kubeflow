@@ -26,9 +26,6 @@ resources:
       # For e2e test, we bake the kubeflow registry into the bootstrapperImage.
       # The bootstrapperImage field is modified during runtime to use 
       # the appropriate image name.
-      registries:
-        - name: kubeflow
-          path: kubeflow
       app:
         packages:
           - name: core
