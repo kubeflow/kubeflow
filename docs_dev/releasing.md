@@ -43,7 +43,10 @@ Under [releasing](../releasing):
   ks registry add kubeflow github.com/kubeflow/kubeflow/tree/master/kubeflow
   ks pkg install kubeflow/automation@master
   ks generate release ${RELEASENAME} --image=<your image name>
+  jsonnet fmt -i $(find . -name '[a-z]*sonnet') --string-style d --comment-style s --indent 2
 ```
+
+  We use [jsonnet](https://github.com/google/jsonnet) to format our code
 
 ## Update Release Config
 
