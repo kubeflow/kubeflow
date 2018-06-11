@@ -270,7 +270,10 @@
                   },
                   if platform == "gke" then {
                     name: "tfjob-test" + v1alpha2Suffix,
-                    template: "tfjob-test" + v1alpha2Suffix,
+                    // TODO(https://github.com/kubeflow/kubeflow/issues/974): Reneable this test once
+                    // its fixed.
+                    // template: "tfjob-test" + v1alpha2Suffix,
+                    template: "skip-step",
                     dependencies: ["wait-for-kubeflow" + v1alpha2Suffix],
                   },
                   if platform == "gke" then {
@@ -343,6 +346,16 @@
               "-c",
               "rm -rf " + testDir,
             ]),  // test-dir-delete
+
+
+            // A simple step that can be used to replace a test that we want to temporarily
+            // disable. Changing the template of the step to use this simplifies things
+            // because then we don't need to mess with dependencies.
+            buildTemplate("skip-step", [
+              "echo",
+              "skipping",
+              "step",
+            ]),  // skip step
 
             buildTemplate("wait-for-kubeflow", [
               "python",
