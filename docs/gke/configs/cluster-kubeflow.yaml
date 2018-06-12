@@ -65,7 +65,7 @@ resources:
       # - user:john@acme.com
       # - group:data-scientists@acme.com
     # Path for the bootstrapper image.
-    bootstrapperImage: gcr.io/kubeflow-images-public/bootstrapper:v20180607-v0.1.1-109-g4867d01b-dirty-601834
+    bootstrapperImage: gcr.io/kubeflow-images-public/bootstrapper:v20180611-0763055-dirty-993707
     # This is the name of the GCP static ip address reserved for your domain.
     # Each Kubeflow deployment in your project should use one unique ipName among all configs.
     ipName: kubeflow-ip
@@ -83,12 +83,6 @@ resources:
     #                 deployment in your project
     #          Project - This is the name of your GCP provided project.
     bootstrapperConfig: |
-      registries:
-        - name: kubeflow
-          repo: https://github.com/kubeflow/kubeflow.git
-          branch: master
-          # relative path to registry from git repo.
-          path: kubeflow
       app:
         packages:
           - name: core
