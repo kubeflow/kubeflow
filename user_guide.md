@@ -386,6 +386,7 @@ Create a component for your job.
 
 ```
 JOB_NAME=myjob
+
 ks generate tf-job ${JOB_NAME} --name=${JOB_NAME}
 ```
 
@@ -430,7 +431,11 @@ Create the component
 
 ```
 CNN_JOB_NAME=mycnnjob
-ks generate tf-cnn ${CNN_JOB_NAME} --name=${CNN_JOB_NAME}
+
+ks registry add kubeflow-git github.com/kubeflow/kubeflow/tree/${VERSION}/kubeflow
+ks pkg install kubeflow-git/examples
+
+ks generate tf-job-simple ${CNN_JOB_NAME} --name=${CNN_JOB_NAME} --namespace=${NAMEPSACE}
 ```
 
 Submit it
