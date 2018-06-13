@@ -139,8 +139,8 @@
             imageDir + "/build_image.sh "
             + imageDir + "/" + dockerfile + " "
             + image + " "
-            +params.versionTag
-            +params.extra_args,
+            + params.versionTag
+            + params.extra_args,
           ],
           [
             {

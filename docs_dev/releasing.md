@@ -56,6 +56,11 @@ Currently auto release will use master branch.
     ```
     when run ```ks generate``` to have your repo checked out during release.
 
+3. Reformat your new workflow using [jsonnet](https://jsonnet.org/learning/tools.html):
+
+```
+    jsonnet fmt -i $(find . -name '[a-z]*sonnet') --string-style d --comment-style s --indent 2
+```
 
 ## Update Release Config
 
