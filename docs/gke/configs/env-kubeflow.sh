@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Script that defines various environment variables.
 # This is script defines values for all the variables used in
@@ -18,6 +18,3 @@ export ZONE=us-east1-d
 
 # Set config file to the YAML file defining your deployment manager configs.
 export CONFIG_FILE=cluster-kubeflow.yaml
-
-# Get the project number
-export PROJECT_NUMBER=`gcloud projects describe ${PROJECT} --format='value(project_number)'`
