@@ -45,8 +45,9 @@ export K8S_ADMIN_NAMESPACE=kubeflow-admin
 export K8S_NAMESPACE=kubeflow
 
 # Enable GCloud APIs
-gcloud services enable deploymentmanager.googleapis.com
-gcloud services enable servicemanagement.googleapis.com
+gcloud services enable deploymentmanager.googleapis.com --project=${PROJECT}
+gcloud services enable servicemanagement.googleapis.com --project=${PROJECT}
+gcloud services enable iam.googleapis.com --project=${PROJECT}
 
 # Set IAM Admin Policy
 gcloud projects add-iam-policy-binding ${PROJECT} \
@@ -65,7 +66,7 @@ gcloud --project=${PROJECT} iam service-accounts keys create ${USER_EMAIL}.json 
 gcloud --project=${PROJECT} container clusters get-credentials --zone=${ZONE} ${DEPLOYMENT_NAME}
 
 # Ignore errors from now onwards. If secret/namespace already exists just keep going.
-unset -e
+set +e
 
 # The namespace kubeflow may not exist yet because the bootstrapper can't run until the admin-gcp-sa
 # secret is created.
