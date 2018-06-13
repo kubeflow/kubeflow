@@ -53,6 +53,9 @@ gcloud --project=${PROJECT} iam service-accounts keys create ${USER_EMAIL}.json 
 # Set credentials for kubectl context
 gcloud --project=${PROJECT} container clusters get-credentials --zone=${ZONE} ${DEPLOYMENT_NAME}
 
+# Ignore errors from now onwards. If secret/namespace already exists just keep going.
+unset -e
+
 # The namespace kubeflow may not exist yet because the bootstrapper can't run until the admin-gcp-sa
 # secret is created.
 kubectl create namespace ${K8S_NAMESPACE}
