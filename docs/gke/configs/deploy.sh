@@ -45,17 +45,19 @@ gcloud projects add-iam-policy-binding ${PROJECT} \
 # Run Deployment Manager
 gcloud deployment-manager --project=${PROJECT} deployments create ${DEPLOYMENT_NAME} --config=${CONFIG_FILE}
 
-# Create Service Account Keys
+# TODO(jlewi): We should name the secrets more consistently based on the service account name.
+# We will need to update the component configs though
 gcloud --project=${PROJECT} iam service-accounts keys create ${SA_EMAIL}.json --iam-account ${SA_EMAIL}
 gcloud --project=${PROJECT} iam service-accounts keys create ${USER_EMAIL}.json --iam-account ${USER_EMAIL}
 
 # Set credentials for kubectl context
 gcloud --project=${PROJECT} container clusters get-credentials --zone=${ZONE} ${DEPLOYMENT_NAME}
 
-# Create namespace
+# The namespace kubeflow may not exist yet because the bootstrapper can't run until the admin-gcp-sa
+# secret is created.
 kubectl create namespace ${K8S_NAMESPACE}
 
-# Create secrets
+# We want the secret name to be the same by default for all clusters so that users don't have to set it manually.
 kubectl create secret generic --namespace=${K8S_ADMIN_NAMESPACE} admin-gcp-sa --from-file=admin-gcp-sa.json=./${SA_EMAIL}.json
 kubectl create secret generic --namespace=${K8S_NAMESPACE} admin-gcp-sa --from-file=admin-gcp-sa.json=./${SA_EMAIL}.json
 kubectl create secret generic --namespace=${K8S_NAMESPACE} user-gcp-sa --from-file=user-gcp-sa.json=./${USER_EMAIL}.json
