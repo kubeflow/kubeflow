@@ -36,6 +36,8 @@
     cluster: "kubeflow-releasing",
     zone: "us-central1-a",
     image: "default-should-not-exist",
+    dockerfile: "Dockerfile",
+    extra_repos: "kubeflow/testing@HEAD",
     extra_args: "",
   },
 
@@ -75,7 +77,7 @@
       local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
 
       // Location where build_image.sh
-      local imageDir = srcRootDir + "/kubeflow/kubeflow/components/k8s-model-server/images";
+      local imageDir = srcRootDir + "/" + params.dockerfileDir;
 
       local releaseImage = params.registry + "/" + params.image;
 
@@ -136,9 +138,9 @@
             "-c",
             imageDir + "/build_image.sh "
             + imageDir + "/" + dockerfile + " "
-            + image + " ",
-            +params.versionTag + " ",
-            +params.extra_args,
+            + image + " "
+            + params.versionTag
+            + params.extra_args,
           ],
           [
             {
@@ -231,7 +233,7 @@
                 ],
                 env: prow_env + [{
                   name: "EXTRA_REPOS",
-                  value: "kubeflow/testing@HEAD",
+                  value: params.extra_repos,
                 }],
                 image: testing_image,
                 volumeMounts: [
@@ -243,7 +245,7 @@
               },
             },  // checkout
 
-            buildImageTemplate("image-build-release", imageDir, "Dockerfile.cpu", releaseImage),
+            buildImageTemplate("image-build-release", imageDir, params.dockerfile, releaseImage),
 
             buildTemplate(
               "copy-artifacts",

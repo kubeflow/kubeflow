@@ -35,14 +35,31 @@ Currently auto release will use master branch.
 
 2. Create your workflow:
 
-Under [releasing](../releasing):
+  * Under [releasing](../releasing):
 ```
   export RELEASENAME=<name it>
   ks init ${RELEASENAME}
   cd ${RELEASENAME}
   ks registry add kubeflow github.com/kubeflow/kubeflow/tree/master/kubeflow
   ks pkg install kubeflow/automation@master
-  ks generate release ${RELEASENAME} --image=<your image name>
+  ks generate release ${RELEASENAME} --image=<your image name> --dockerfileDir=kubeflow/repo_name/<path to docker build context>
+```
+
+  * Example: for bootstrapper release we can do:
+```
+    ks generate release bootstrapper-release --image=bootstrapper --dockerfileDir=kubeflow/kubeflow/bootstrap
+```
+
+  * If your build context is not in kubeflow repo, like pytorch-operator, add param:
+    ```
+    --extra_repos=kubeflow/testing@HEAD;kubeflow/pytorch-operator@HEAD
+    ```
+    when run ```ks generate``` to have your repo checked out during release.
+
+3. Reformat your new workflow using [jsonnet](https://jsonnet.org/learning/tools.html):
+
+```
+    jsonnet fmt -i $(find . -name '[a-z]*sonnet') --string-style d --comment-style s --indent 2
 ```
 
 ## Update Release Config
