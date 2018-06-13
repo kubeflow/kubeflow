@@ -13,6 +13,12 @@ ks apply YOUR_ENV -c katib
 ```
 
 ## Using Katib
+
+Create namespace `katib` as the service launches jobs in this namespace.
+```
+kubectl create namespace katib
+```
+
 Currently we are using port-forwarding to access the katib services.
 ```
 kubectl get pod -n kubeflow  # Find your vizier-core and modedb-frontend pods
