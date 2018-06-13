@@ -18,7 +18,3 @@ export ZONE=us-east1-d
 
 # Set config file to the YAML file defining your deployment manager configs.
 export CONFIG_FILE=cluster-kubeflow.yaml
-
-# Set OAuth2 Credentials
-export CLIENT_ID=
-export CLIENT_SECRET=
