@@ -28,9 +28,9 @@ and based on the results chooses good values for various Kubeflow parameters.
 You should have kubeflow components deployed inside your k8s cluster.
 
 The default components are defined in [default.yaml](config/default.yaml), user can customize which components to deploy by
-pointing ```--config``` args in [bootstrapper.yaml] (bootstrapper.yaml) to their own config (eg. a configmap in k8s clsuter)
+pointing ```--config``` args in [bootstrapper.yaml](./bootstrapper.yaml) to their own config (eg. a configmap in k8s clsuter)
 
-This bootstrapper example [confg](config/gcp_prototype.yaml) can help explain how config customization works.
+This bootstrapper example [config](config/gcp_prototype.yaml) can help explain how config customization works.
 
 ### Interactive-use container
 
