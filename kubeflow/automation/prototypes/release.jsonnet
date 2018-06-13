@@ -15,6 +15,8 @@
 // @optionalParam bucket string kubeflow-releasing-artifacts GCS bucket storing artifacts.
 // @optionalParam prow_env string REPO_OWNER=kubeflow,REPO_NAME=kubeflow,PULL_BASE_SHA=master Self explanatory.
 // @optionalParam versionTag string latest Tag for released image.
+// @optionalParam build_image_path string Path to your build_image.sh folder
+// @optionalParam extra_repos string Extra repos to be cloned for build_image.sh
 // @optionalParam extra_args string Extra args for your build_image.sh
 
 local k = import "k.libsonnet";

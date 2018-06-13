@@ -37,6 +37,8 @@
     zone: "us-central1-a",
     image: "default-should-not-exist",
     extra_args: "",
+    build_image_path: "default-should-not-exist",
+    extra_repos: "",
   },
 
   parts(namespace, name, overrides={}):: {
@@ -50,7 +52,8 @@
       local cluster = params.cluster;
       local zone = params.zone;
       local name = params.name;
-
+      local path = params.build_image_path;
+      local extra_repos = params.extra_repos;
       local prow_env = $.parseEnv(params.prow_env);
       local bucket = params.bucket;
 
@@ -74,10 +77,17 @@
       // py scripts to use.
       local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
 
-      // Location where build_image.sh
-      local imageDir = srcRootDir + "/kubeflow/kubeflow/components/k8s-model-server/images";
+      // Location where build_image.sh lies
+      local imageDir = srcRootDir + "/" + path;
 
       local releaseImage = params.registry + "/" + params.image;
+
+      //Extra Repos must be semicolon delimited string. See testing checkout.sh file
+      local repos =
+          if extra_repos == "null" then
+           "kubeflow/testing@HEAD"
+          else
+           extra_repos + ";" + "kubeflow/testing@HEAD";
 
       // Build an Argo template to execute a particular command.
       // step_name: Name for the template
@@ -133,12 +143,11 @@
             // We need to explicitly specify bash because
             // build_image.sh is not in the container its a volume mounted file.
             "/bin/bash",
-            "-c",
-            imageDir + "/build_image.sh "
-            + imageDir + "/" + dockerfile + " "
-            + image + " ",
-            +params.versionTag + " ",
-            +params.extra_args,
+            imageDir + "/build_image.sh",
+            imageDir + "/" + dockerfile,
+            image,
+            params.versionTag,
+            params.extra_args,
           ],
           [
             {
@@ -231,7 +240,7 @@
                 ],
                 env: prow_env + [{
                   name: "EXTRA_REPOS",
-                  value: "kubeflow/testing@HEAD",
+                  value: repos,
                 }],
                 image: testing_image,
                 volumeMounts: [
@@ -243,7 +252,7 @@
               },
             },  // checkout
 
-            buildImageTemplate("image-build-release", imageDir, "Dockerfile.cpu", releaseImage),
+            buildImageTemplate("image-build-release", imageDir, "Dockerfile", releaseImage),
 
             buildTemplate(
               "copy-artifacts",
