@@ -13,9 +13,9 @@
 
 local k = import "k.libsonnet";
 
-local vizier = import "kubeflow/katib/vizier.libsonnet";
 local modeldb = import "kubeflow/katib/modeldb.libsonnet";
 local suggestion = import "kubeflow/katib/suggestion.libsonnet";
+local vizier = import "kubeflow/katib/vizier.libsonnet";
 
 local namespace = env.namespace;
 

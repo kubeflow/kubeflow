@@ -84,10 +84,10 @@
 
       //Extra Repos must be semicolon delimited string. See testing checkout.sh file
       local repos =
-          if extra_repos == "null" then
-           "kubeflow/testing@HEAD"
-          else
-           extra_repos + ";" + "kubeflow/testing@HEAD";
+        if extra_repos == "null" then
+          "kubeflow/testing@HEAD"
+        else
+          extra_repos + ";" + "kubeflow/testing@HEAD";
 
       // Build an Argo template to execute a particular command.
       // step_name: Name for the template
