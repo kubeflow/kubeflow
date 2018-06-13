@@ -1,7 +1,7 @@
 # Kubeflow Bootstrap
 
-Bootstrap is a tool to create a ksonnet application configured to take advantage
-of a user's cluster.
+Bootstrap is a tool to manage ksonnet application configured to take advantage
+of a user's cluster. See [dev guide](./README.md#bootstrapper-dev-guide) for more details.
 
 The tool collects information from a variety of sources
 
@@ -25,7 +25,8 @@ and based on the results chooses good values for various Kubeflow parameters.
     kubectl create -f bootstrapper.yaml
 ```
 
-You should have kubeflow components deployed inside your k8s cluster.
+You should have kubeflow components deployed inside your k8s cluster. Generated ksonnet application is store in [app-dir](./bootstrapper.yaml#L65).
+Exec into pod ```kubeflow-bootstrapper-0``` in namespace ```kubeflow-admin``` if you need to edit your ksonnet app.
 
 The default components are defined in [default.yaml](config/default.yaml), user can customize which components to deploy by
 pointing ```--config``` args in [bootstrapper.yaml](./bootstrapper.yaml) to their own config (eg. a configmap in k8s clsuter)
@@ -63,6 +64,7 @@ Now the ksonnet app for deploying Kubeflow will be available in `${APP_DIR_HOST}
 ks param set kubeflow-core reportUsage true
 ks param set kubeflow-core usageId $(uuidgen)
 ```
+
 **To deploy it**
 ```
 # Inside container:
@@ -116,6 +118,13 @@ Non Goals
 
   1. wrap or replace ks/kubectl
 
+## Bootstrapper Dev Guide
+
+Bootstrapper create your ksonnet application by creating component set following config file ([config example](config/gcp_prototype.yaml)).
+In other word, bootstrapper provide user an easy way to use ksonnet api within k8s cluster by editing config file.
+
+Currently we only support using local registries within bootstrapper image.
+Edit [image config](./image_registries.yaml) to control which registries to include in bootstrapper image, then user can build custom image to [bootstrap](./bootstrapper.yaml#L55).
 
 ## Background
 
