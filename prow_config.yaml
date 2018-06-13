@@ -13,6 +13,6 @@ workflows:
     name: kubeflow-e2e-minikube
     params:
       platform: minikube
-  #- app_dir: kubeflow/kubeflow/components/k8s-model-server/images/releaser
-  #  component: workflows
-  #  name: tf-serving-image
+  - app_dir: kubeflow/kubeflow/components/k8s-model-server/images/releaser
+    component: workflows
+    name: tf-serving-image
