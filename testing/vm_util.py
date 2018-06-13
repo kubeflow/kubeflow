@@ -47,6 +47,7 @@ def wait_for_operation(client,
                                            operation=op_id).execute()
     except ssl.SSLError as e:
       logging.error("Ignoring error %s", e)
+      continue
     status = op.get("status", "")
     # Need to handle other status's
     if status == "DONE":
