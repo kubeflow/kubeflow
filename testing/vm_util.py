@@ -3,6 +3,7 @@
 import datetime
 import logging
 import os
+import ssl
 import subprocess
 import time
 import uuid
@@ -37,13 +38,16 @@ def wait_for_operation(client,
   """
   endtime = datetime.datetime.now() + timeout
   while True:
-    if zone:
-      op = client.zoneOperations().get(
-        project=project, zone=zone, operation=op_id).execute()
-    else:
-      op = client.globalOperations().get(project=project,
-                                         operation=op_id).execute()
-
+    try:
+      if zone:
+        op = client.zoneOperations().get(
+          project=project, zone=zone, operation=op_id).execute()
+      else:
+        op = client.globalOperations().get(project=project,
+                                           operation=op_id).execute()
+    except ssl.SSLError as e:
+      logging.error("Ignoring error %s", e)
+      continue
     status = op.get("status", "")
     # Need to handle other status's
     if status == "DONE":
@@ -97,4 +101,4 @@ def execute_script(project, zone, vm, script):
             script, target, "--zone=" + zone])
   
   util.run(["gcloud", "compute", "--project=" + project, "ssh",
-            "--zone=" + zone, vm, "--", "chmod a+rx " + target_path + " && " + target_path])  
+            "--zone=" + zone, vm, "--", "chmod a+rx " + target_path + " && " + target_path])
