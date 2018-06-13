@@ -1,5 +1,16 @@
 #!/usr/bin/env bash
 
+##
+# This utility script can be used to deploy Kubeflow end-to-end.
+# A few variables are required and can be set in `env-kubeflow.sh`.
+# Detailed instructions can be found at https://www.kubeflow.org/docs/getting-started-gke.
+# In summary, update `cluster-kubeflow.yaml`, load required variables
+# into environment (optionally from `env-kubeflow.sh`) and execute the script.
+# Usage:
+#   $ . env-kubeflow.sh
+#   $ ./deploy.sh
+#
+
 set -e
 
 # Required Variables
