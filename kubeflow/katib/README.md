@@ -33,4 +33,4 @@ go run client-example.go
 
 It should start a study and run two jobs with different parameters.
 
-Go to localhost:3000/katib to see the result.
+Go to http://localhost:3000/katib to see the result.
