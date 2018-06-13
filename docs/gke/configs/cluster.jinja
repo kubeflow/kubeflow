@@ -295,8 +295,8 @@ TODO(jlewi): Do we need to serialize API activation
         {# Grant permissions needed to push the app to a cloud repository. #}
         - role: roles/source.admin
           members:
-            - {{ 'serviceAccount:' + KF_ADMIN_NAME + '@cloudservices.gserviceaccount.com' }}
-            - {{ 'serviceAccount:' + KF_USER_NAME + '@cloudservices.gserviceaccount.com' }}
+            - {{ 'serviceAccount:' + KF_ADMIN_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+            - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
 
         {# servicemanagement.admin is needed by CloudEndpoints controller
            so we can create a service to get a hostname.
