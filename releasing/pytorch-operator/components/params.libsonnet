@@ -9,7 +9,10 @@
     "pytorch-operator": {
       bucket: "kubeflow-releasing-artifacts",
       cluster: "kubeflow-releasing",
-      extra_args: "Extra",
+      dockerfile: "Dockerfile",
+      dockerfileDir: "kubeflow/pytorch-operator",
+      extra_args: "/mnt",
+      extra_repos: "kubeflow/testing@HEAD;kubeflow/pytorch-operator@HEAD",
       gcpCredentialsSecretName: "gcp-credentials",
       image: "pytorch-operator",
       name: "pytorch-operator",

@@ -10,7 +10,7 @@ kind: ksonnet.io/app
 libraries:
   automation:
     gitVersion:
-      commitSha: 076305508ad2bedaa364b1b4cdbc3945d8ba9842
+      commitSha: f6377404e032d036a8d78a91a25501dc9933499a
       refSpec: master
     name: automation
     registry: kubeflow
@@ -24,7 +24,7 @@ registries:
     uri: github.com/ksonnet/parts/tree/master/incubator
   kubeflow:
     gitVersion:
-      commitSha: 076305508ad2bedaa364b1b4cdbc3945d8ba9842
+      commitSha: f6377404e032d036a8d78a91a25501dc9933499a
       refSpec: master
     protocol: github
     uri: github.com/kubeflow/kubeflow/tree/master/kubeflow
