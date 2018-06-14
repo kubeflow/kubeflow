@@ -367,11 +367,6 @@ TODO(jlewi): Do we need to serialize API activation
       add: []
 
       remove:
-        - role: roles/container.admin
-          members:
-            {# Deployment manager uses cloudservices account. #}
-            - {{ 'serviceAccount:' + env['project_number'] + '@cloudservices.gserviceaccount.com' }}
-
         {# Grant permissions needed to push the app to a cloud repository. #}
         - role: roles/source.admin
           members:
