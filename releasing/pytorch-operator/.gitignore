@@ -1,4 +1,4 @@
 /lib
 /.ksonnet/registries
 /app.override.yaml
-/reg_tmp/**
+/.ks_environment

@@ -7,8 +7,8 @@
 // @optionalParam disks string null Comma separated list of Google persistent disks to attach to jupyter environments.
 // @optionalParam cloud string null String identifying the cloud to customize the deployment for.
 // @optionalParam tfAmbassadorServiceType string ClusterIP The service type for the API Gateway.
-// @optionalParam tfAmbassadorImage string quay.io/datawire/ambassador:0.34.0 The image for the API Gateway.
-// @optionalParam tfStatsdImage string quay.io/datawire/statsd:0.34.0 The image for the Stats and Monitoring.
+// @optionalParam tfAmbassadorImage string quay.io/datawire/ambassador:0.30.1 The image for the API Gateway.
+// @optionalParam tfStatsdImage string quay.io/datawire/statsd:0.30.1 The image for the Stats and Monitoring.
 // @optionalParam tfJobImage string gcr.io/kubeflow-images-public/tf_operator:v20180522-77375baf The image for the TfJob controller.
 // @optionalParam tfDefaultImage string null The default image to use for TensorFlow.
 // @optionalParam tfJobUiServiceType string ClusterIP The service type for the UI.

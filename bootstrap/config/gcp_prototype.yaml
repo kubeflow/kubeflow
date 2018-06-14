@@ -1,17 +1,14 @@
 # Sample config for kubeflow bootstrapper
 ---
 # App only apply if on GKE
-registries:
-  - name: kubeflow
-    repo: https://github.com/kubeflow/kubeflow.git
-    branch: master
-    # relative path to registry from git repo.
-    path: kubeflow
 app:
   packages:
     - name: core
+      registry: kubeflow
     - name: tf-serving
+      registry: kubeflow
     - name: tf-job
+      registry: kubeflow
   components:
     - name: kubeflow-core
       prototype: kubeflow-core
@@ -24,19 +21,19 @@ app:
   parameters:
     - component: cloud-endpoints
       name: secretName
-      value: cloudep-sa
+      value: admin-gcp-sa
     - component: cert-manager
       name: acmeEmail
-      # todo: use your email for ssl cert
-      value: <email>
+      # TODO: use your email for ssl cert
+      value: johnDoe@acme.com
     - component: iap-ingress
       name: ipName
-      # todo: change ip name here
-      value: static-ip
+      # TODO: make sure value of ipName is the same as property <ipName>.
+      value: ipName
     - component: iap-ingress
       name: hostname
-      # todo: replace with name of gcp project where kubeflow will be installed
-      value: kubeflow.endpoints.<project>.cloud.goog
+      # TODO: replace with Name of GCP project. This is fully qualified domain name to use with ingress.
+      value: kubeflow.endpoints.<Project>.cloud.goog
     - component: kubeflow-core
       name: jupyterHubAuthenticator
       value: iap

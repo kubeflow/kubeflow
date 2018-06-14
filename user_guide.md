@@ -94,6 +94,12 @@ If using GKE, we can configure our cloud environment to use GCP features with a 
 ks param set kubeflow-core cloud gke --env=cloud
 ```
 
+If the cluster was created on AWS:
+```
+ks param set kubeflow-core cloud aws --env=cloud
+```
+_NOTE_: using 'gke' instead of 'aws' will work too.
+
 If the cluster was created on Azure with AKS/ACS:
 
 ```
@@ -380,6 +386,7 @@ Create a component for your job.
 
 ```
 JOB_NAME=myjob
+
 ks generate tf-job ${JOB_NAME} --name=${JOB_NAME}
 ```
 
@@ -424,7 +431,11 @@ Create the component
 
 ```
 CNN_JOB_NAME=mycnnjob
-ks generate tf-cnn ${CNN_JOB_NAME} --name=${CNN_JOB_NAME}
+
+ks registry add kubeflow-git github.com/kubeflow/kubeflow/tree/${VERSION}/kubeflow
+ks pkg install kubeflow-git/examples
+
+ks generate tf-job-simple ${CNN_JOB_NAME} --name=${CNN_JOB_NAME} --namespace=${NAMEPSACE}
 ```
 
 Submit it
@@ -571,6 +582,14 @@ minikube start --cpus 4 --memory 8096 --disk-size=40g
     for JupyterHub.
   * The larger disk is needed to accomodate Kubeflow's Jupyter images which
     are 10s of GBs due to all the extra Python libraries we include.
+
+If you just installed Minikube following instructions from the [quick start guide](https://kubernetes.io/docs/getting-started-guides/minikube/#installation), you most likely
+created a VM with the default resources. You would want to recreate your Minikube with the appropriate resource setttings.
+```
+minikube stop
+minikube delete
+minikube start --cpus 4 --memory 8096 --disk-size=40g
+```
 
 If you encounter a jupyter-xxxx pod in Pending status, described with:
 ```
