@@ -64,8 +64,9 @@
             containers: [
               {
                 args: [
+                  "./vizier-manager",
                   "-w",
-                  "dlk",
+                  "kubernetes",
                   "-i",
                   "k-cluster.example.net",
                 ],
