@@ -299,6 +299,7 @@
                     {
                       name: "teardown-kubeflow-gcp" + v1alpha2Suffix,
                       template: "teardown-kubeflow-gcp" + v1alpha2Suffix,
+                      dependencies: ["teardown-kubeflow-gcp"],
                     },
                   if platform == "gke" then
                     {
@@ -530,14 +531,14 @@
               "testing.teardown_kubeflow_gcp",
               "--project=" + project,
               "--name=" + deploymentName,
-            ]),  // teardown-kubeflow-gcp
+            ], retryStrategy={ limit: 5 }),  // teardown-kubeflow-gcp
             buildTemplate("teardown-kubeflow-gcp" + v1alpha2Suffix, [
               "python",
               "-m",
               "testing.teardown_kubeflow_gcp",
               "--project=" + project,
               "--name=" + deploymentName + v1alpha2Suffix,
-            ]),  // teardown-kubeflow-gcp
+            ], retryStrategy={ limit: 5 }),  // teardown-kubeflow-gcp
           ],  // templates
         },
       },  // e2e
