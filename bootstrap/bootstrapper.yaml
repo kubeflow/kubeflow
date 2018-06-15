@@ -52,13 +52,13 @@ spec:
     spec:
       containers:
       - name: kubeflow-bootstrapper
-        image: gcr.io/kubeflow-images-public/bootstrapper:v20180611-0763055-dirty-993707
+        image: gcr.io/kubeflow-images-public/bootstrapper:v20180614-052b002-dirty-f2d8e3
         workingDir: /opt/bootstrap
         command: [ "/opt/kubeflow/bootstrapper"]
         args: [
           "--in-cluster",
           "--namespace=kubeflow",
-          "--apply"
+          "--apply",
           # change config here if you want to use customized config.
           # "--config=/opt/kubeflow/default.yaml"
           # app-dir: path to store your ks apps in pod's PersistentVolume
