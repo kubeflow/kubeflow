@@ -86,7 +86,7 @@ def deploy_kubeflow(test_case):
   util.run(apply_command, cwd=app_dir)
 
   # Verify that the TfJob operator is actually deployed.
-  tf_job_deployment_name = "tf-job-operator"
+  tf_job_deployment_name = "tf-job-operator-v1alpha2"
   logging.info("Verifying TfJob controller started.")
   util.wait_for_deployment(api_client, namespace, tf_job_deployment_name)
 
