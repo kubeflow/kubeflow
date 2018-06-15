@@ -352,7 +352,76 @@ TODO(jlewi): Do we need to serialize API activation
       - {{ KF_ADMIN_NAME }}
       - {{ KF_USER_NAME }}
     runtimePolicy:
-      - UPDATE_ALWAYS
+      - CREATE
+
+{# Remove IAM role binding when delete deployment.
+
+  TODO: This delete might be too aggresive (delete roles not created by deployment manager)
+#}
+- name: remove-iam-policy
+  action: gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.setIamPolicy
+  properties:
+    resource: {{ env['project'] }}
+    policy: $(ref.patch-iam-policy)
+    gcpIamPolicyPatch:
+      add: []
+
+      remove:
+        {# Grant permissions needed to push the app to a cloud repository. #}
+        - role: roles/source.admin
+          members:
+            - {{ 'serviceAccount:' + KF_ADMIN_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+            - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        {# servicemanagement.admin is needed by CloudEndpoints controller
+           so we can create a service to get a hostname.
+         #}
+        - role: roles/servicemanagement.admin
+          members:
+            - {{ 'serviceAccount:' + KF_ADMIN_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+        {# Network admin is needed to enable IAP and configure network settings
+           like backend timeouts and health checks.
+        #}
+        - role: roles/compute.networkAdmin
+          members:
+            - {{ 'serviceAccount:' + KF_ADMIN_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        - role: roles/storage.admin
+          members:
+            - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        - role: roles/bigquery.admin
+          members:
+            - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        - role: roles/dataflow.admin
+          members:
+            - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        - role: roles/logging.logWriter
+          members:
+            {# VM service account is used to write logs. #}
+            - {{ 'serviceAccount:' + KF_VM_SA_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        - role: roles/monitoring.metricWriter
+          members:
+            {# VM service account is used to write monitoring data. #}
+            - {{ 'serviceAccount:' + KF_VM_SA_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        {% if 'users' in properties %}
+        {% if properties['users'] %}
+        - role: roles/iap.httpsResourceAccessor
+          members:
+            {% for user in properties['users'] %}
+            - {{ user }}
+            {% endfor %}
+        {% endif %}
+        {% endif %}
+  metadata:
+    dependsOn:
+      - patch-iam-policy
+    runtimePolicy:
+      - DELETE
 
 {# A note about K8s resources.
 The type value should be defined using a reference to the corresponding type provider.
