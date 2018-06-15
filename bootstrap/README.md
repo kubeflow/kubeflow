@@ -1,7 +1,7 @@
 # Kubeflow Bootstrap
 
-Bootstrap is a tool to create a ksonnet application configured to take advantage
-of a user's cluster.
+Bootstrap is a tool to manage ksonnet application configured to take advantage
+of a user's cluster. See [dev guide](./README.md#bootstrapper-dev-guide) for more details.
 
 The tool collects information from a variety of sources
 
@@ -19,9 +19,21 @@ and based on the results chooses good values for various Kubeflow parameters.
 
 ## Usage
 
-**Alpha stage(as of today) Requires** run ```make build``` to build docker image locally since there's no public release yet.
+### quick start
 
-**Enter interactive-use container**:
+```
+    kubectl create -f bootstrapper.yaml
+```
+
+You should have kubeflow components deployed inside your k8s cluster. Generated ksonnet application is store in [app-dir](./bootstrapper.yaml#L65).
+Exec into pod ```kubeflow-bootstrapper-0``` in namespace ```kubeflow-admin``` if you need to edit your ksonnet app.
+
+The default components are defined in [default.yaml](config/default.yaml), user can customize which components to deploy by
+pointing ```--config``` args in [bootstrapper.yaml](./bootstrapper.yaml) to their own config (eg. a configmap in k8s clsuter)
+
+This bootstrapper example [config](config/gcp_prototype.yaml) can help explain how config customization works.
+
+### Interactive-use container
 
 ```
 TAG=latest
@@ -41,12 +53,9 @@ docker run -ti \
 ```
 
 **Inside container, choose one way to generate kubeflow apps**:
-1. On GKE, with Google Sign-in enabled for kubeflow (share access with your team easily):
-    [Finish Preliminaries](README.md#iap-preliminaries)
-    ```/opt/kubeflow/bootstrapper --app-dir=/home/${USER}/kfBootstrap/<your_app_name> --namespace=<new_namespace_for_bootstrap> --email=<GCP_account> --project=<GCP_project_containing_GKE>```
-2. On GKE, without Google Sign-in:
+1. On GKE, without Google Sign-in:
 ```/opt/kubeflow/bootstrapper --app-dir=/home/${USER}/kfBootstrap/<your_app_name> --namespace=<new_namespace_for_bootstrap> --email=<GCP_account>```
-3. Outside GKE:
+2. Outside GKE:
 ```/opt/kubeflow/bootstrapper --app-dir=/home/${USER}/kfBootstrap/<your_app_name> --namespace=<new_namespace_for_bootstrap>```
 
 Now the ksonnet app for deploying Kubeflow will be available in `${APP_DIR_HOST}/<your_app_name>`
@@ -55,6 +64,7 @@ Now the ksonnet app for deploying Kubeflow will be available in `${APP_DIR_HOST}
 ks param set kubeflow-core reportUsage true
 ks param set kubeflow-core usageId $(uuidgen)
 ```
+
 **To deploy it**
 ```
 # Inside container:
@@ -63,14 +73,13 @@ ks apply default
 ```
 
 **To connect to your [Jupyter Notebook](http://jupyter.org/index.html)**:
-1. If you choose ```On GKE, with Google Sign-in enabled``` in generate app step:
-    Open ```https://kubeflow.endpoints.<project>.cloud.goog/hub```
-2. Otherwise, you need to map port:
+
     ```
     # On your local machine:
     PODNAME=`kubectl get pods --namespace=<Namespace for bootstrap> --selector="app=tf-hub" --output=template --template="{{with index .items     0}}{{.metadata.name}}{{end}}"`
     kubectl port-forward --namespace=<Namespace for bootstrap> $PODNAME 8000:8000
     ```
+
     Then, open [http://127.0.0.1:8000](http://127.0.0.1:8000) in your browser.
 
 ## Explanation
@@ -109,6 +118,13 @@ Non Goals
 
   1. wrap or replace ks/kubectl
 
+## Bootstrapper Dev Guide
+
+Bootstrapper create your ksonnet application by creating component set following config file ([config example](config/gcp_prototype.yaml)).
+In other word, bootstrapper provide user an easy way to use ksonnet api within k8s cluster by editing config file.
+
+Currently we only support using local registries within bootstrapper image.
+Edit [image config](./image_registries.yaml) to control which registries to include in bootstrapper image, then user can build custom image to [bootstrap](./bootstrapper.yaml#L55).
 
 ## Background
 
@@ -166,26 +182,6 @@ Potential solutions
 
   - e.g. if a pod depends on a volume or ConfigMap that pod won't be scheduled
     until the config map exists
-
-## IAP Preliminaries:
-1. [Create external static IP address named kubeflow](https://github.com/kubeflow/kubeflow/blob/master/docs/gke/iap.md#create-an-external-static-ip-address)
-2. [Enable Google Cloud Endpoint](https://console.cloud.google.com/apis/library/endpoints.googleapis.com/?q=Cloud%20Endpoints)
-3. [Create oauth client credentials](https://github.com/kubeflow/kubeflow/blob/master/docs/gke/iap.md#create-oauth-client-credentials)
-4. Create a service account an IAM binding:
-```
-gcloud iam service-accounts create cloud-endpoints-controller \
-    --display-name cloud-endpoints-controller
-export SA_EMAIL=$(gcloud iam service-accounts list \
-    --filter="displayName:cloud-endpoints-controller" \
-    --format='value(email)')
-gcloud projects add-iam-policy-binding \
-      $PROJECT --role roles/servicemanagement.admin --member serviceAccount:$SA_EMAIL
-
-gcloud iam service-accounts keys create cloudep-sa.json --iam-account $SA_EMAIL
-
-kubectl create secret generic --namespace=${NAMESPACE} cloudep-sa --from-file=./cloudep-sa.json
-```
-5. [Give access to kubeflow](https://github.com/kubeflow/kubeflow/blob/master/docs/gke/iap.md#adding-users)
 
 ## References
 
