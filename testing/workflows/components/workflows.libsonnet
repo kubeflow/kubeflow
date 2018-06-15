@@ -299,7 +299,7 @@
                     {
                       name: "teardown-kubeflow-gcp" + v1alpha2Suffix,
                       template: "teardown-kubeflow-gcp" + v1alpha2Suffix,
-                      dependencies: ["teardown-kubeflow-gcp"],
+                      dependencies: ["teardown"],
                     },
                   if platform == "gke" then
                     {

@@ -259,18 +259,16 @@ TODO(jlewi): Do we need to serialize API activation
     serviceName: iam.googleapis.com
 
 {# Get the IAM policy first so that we do not remove any existing bindings. #}
-- name: get-iam-policy
+- name: get-iam-policy-add
   action: gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.getIamPolicy
-  properties:
-    resource: {{ env['project'] }}
-
   metadata:
-    dependsOn:
-      - resource-manager-api
-      - iam-api
-    runtimePolicy:
-      - UPDATE_ALWAYS
-
+      dependsOn:
+        - resource-manager-api
+        - iam-api
+      runtimePolicy:
+        - UPDATE_ALWAYS
+  properties:
+      resource: {{ env["project"] }}
 {# Set the IAM policy patching the existing policy with what ever is currently in the
   config.
 
@@ -280,148 +278,143 @@ TODO(jlewi): Do we need to serialize API activation
   Note: This will fail if the cloudservices account doesn't have IamProjectAdmin
   permissions.
 #}
-- name: patch-iam-policy
+- name: set-iam-policy-add
   action: gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.setIamPolicy
-  properties:
-    resource: {{ env['project'] }}
-    policy: $(ref.get-iam-policy)
-    gcpIamPolicyPatch:
-      add:
-        - role: roles/container.admin
-          members:
-            {# Deployment manager uses cloudservices account. #}
-            - {{ 'serviceAccount:' + env['project_number'] + '@cloudservices.gserviceaccount.com' }}
-
-        {# Grant permissions needed to push the app to a cloud repository. #}
-        - role: roles/source.admin
-          members:
-            - {{ 'serviceAccount:' + KF_ADMIN_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
-            - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
-
-        {# servicemanagement.admin is needed by CloudEndpoints controller
-           so we can create a service to get a hostname.
-         #}
-        - role: roles/servicemanagement.admin
-          members:
-            - {{ 'serviceAccount:' + KF_ADMIN_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
-        {# Network admin is needed to enable IAP and configure network settings
-           like backend timeouts and health checks.
-        #}
-        - role: roles/compute.networkAdmin
-          members:
-            - {{ 'serviceAccount:' + KF_ADMIN_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
-
-        - role: roles/storage.admin
-          members:
-            - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
-
-        - role: roles/bigquery.admin
-          members:
-            - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
-
-        - role: roles/dataflow.admin
-          members:
-            - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
-
-        - role: roles/logging.logWriter
-          members:
-            {# VM service account is used to write logs. #}
-            - {{ 'serviceAccount:' + KF_VM_SA_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
-
-        - role: roles/monitoring.metricWriter
-          members:
-            {# VM service account is used to write monitoring data. #}
-            - {{ 'serviceAccount:' + KF_VM_SA_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
-
-        {% if 'users' in properties %}
-        {% if properties['users'] %}
-        - role: roles/iap.httpsResourceAccessor
-          members:
-            {% for user in properties['users'] %}
-            - {{ user }}
-            {% endfor %}
-        {% endif %}
-        {% endif %}
-
-      remove: []
-
   metadata:
-    dependsOn:
-      - get-iam-policy
-      - iam-api
-      - {{ KF_ADMIN_NAME }}
-      - {{ KF_USER_NAME }}
-    runtimePolicy:
-      - CREATE
+      runtimePolicy:
+        - UPDATE_ON_CHANGE
+  properties:
+      resource: {{ env["project"] }}
+      policy: $(ref.get-iam-policy-add)
+      gcpIamPolicyPatch:
+          add:
+          - role: roles/container.admin
+            members:
+              {# Deployment manager uses cloudservices account. #}
+              - {{ 'serviceAccount:' + env['project_number'] + '@cloudservices.gserviceaccount.com' }}
 
-{# Remove IAM role binding when delete deployment.
+          {# Grant permissions needed to push the app to a cloud repository. #}
+          - role: roles/source.admin
+            members:
+              - {{ 'serviceAccount:' + KF_ADMIN_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+              - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
 
-  TODO: This delete might be too aggresive (delete roles not created by deployment manager)
-#}
-- name: remove-iam-policy
+          {# servicemanagement.admin is needed by CloudEndpoints controller
+             so we can create a service to get a hostname.
+           #}
+          - role: roles/servicemanagement.admin
+            members:
+              - {{ 'serviceAccount:' + KF_ADMIN_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+          {# Network admin is needed to enable IAP and configure network settings
+             like backend timeouts and health checks.
+          #}
+          - role: roles/compute.networkAdmin
+            members:
+              - {{ 'serviceAccount:' + KF_ADMIN_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+          - role: roles/storage.admin
+            members:
+              - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+          - role: roles/bigquery.admin
+            members:
+              - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+          - role: roles/dataflow.admin
+            members:
+              - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+          - role: roles/logging.logWriter
+            members:
+              {# VM service account is used to write logs. #}
+              - {{ 'serviceAccount:' + KF_VM_SA_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+          - role: roles/monitoring.metricWriter
+            members:
+              {# VM service account is used to write monitoring data. #}
+              - {{ 'serviceAccount:' + KF_VM_SA_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+          {% if 'users' in properties %}
+          {% if properties['users'] %}
+          - role: roles/iap.httpsResourceAccessor
+            members:
+              {% for user in properties['users'] %}
+              - {{ user }}
+              {% endfor %}
+          {% endif %}
+          {% endif %}
+# Use a second get-set IAM policy pair to have a fresh etag.
+- name: get-iam-policy-delete
+  action: gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.getIamPolicy
+  metadata:
+      dependsOn:
+       - set-iam-policy-add
+      runtimePolicy:
+        - UPDATE_ALWAYS
+  properties:
+      resource: {{ env["project"] }}
+- name: set-iam-policy-delete
   action: gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.setIamPolicy
-  properties:
-    resource: {{ env['project'] }}
-    policy: $(ref.patch-iam-policy)
-    gcpIamPolicyPatch:
-      add: []
-
-      remove:
-        {# Grant permissions needed to push the app to a cloud repository. #}
-        - role: roles/source.admin
-          members:
-            - {{ 'serviceAccount:' + KF_ADMIN_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
-            - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
-
-        {# servicemanagement.admin is needed by CloudEndpoints controller
-           so we can create a service to get a hostname.
-         #}
-        - role: roles/servicemanagement.admin
-          members:
-            - {{ 'serviceAccount:' + KF_ADMIN_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
-        {# Network admin is needed to enable IAP and configure network settings
-           like backend timeouts and health checks.
-        #}
-        - role: roles/compute.networkAdmin
-          members:
-            - {{ 'serviceAccount:' + KF_ADMIN_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
-
-        - role: roles/storage.admin
-          members:
-            - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
-
-        - role: roles/bigquery.admin
-          members:
-            - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
-
-        - role: roles/dataflow.admin
-          members:
-            - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
-
-        - role: roles/logging.logWriter
-          members:
-            {# VM service account is used to write logs. #}
-            - {{ 'serviceAccount:' + KF_VM_SA_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
-
-        - role: roles/monitoring.metricWriter
-          members:
-            {# VM service account is used to write monitoring data. #}
-            - {{ 'serviceAccount:' + KF_VM_SA_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
-
-        {% if 'users' in properties %}
-        {% if properties['users'] %}
-        - role: roles/iap.httpsResourceAccessor
-          members:
-            {% for user in properties['users'] %}
-            - {{ user }}
-            {% endfor %}
-        {% endif %}
-        {% endif %}
   metadata:
-    dependsOn:
-      - patch-iam-policy
-    runtimePolicy:
-      - DELETE
+      runtimePolicy:
+        - DELETE
+  properties:
+      resource: {{ env["project"] }}
+      policy: $(ref.get-iam-policy-delete)
+      gcpIamPolicyPatch:
+          remove:
+          {# Grant permissions needed to push the app to a cloud repository. #}
+          - role: roles/source.admin
+            members:
+              - {{ 'serviceAccount:' + KF_ADMIN_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+              - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+          {# servicemanagement.admin is needed by CloudEndpoints controller
+             so we can create a service to get a hostname.
+           #}
+          - role: roles/servicemanagement.admin
+            members:
+              - {{ 'serviceAccount:' + KF_ADMIN_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+          {# Network admin is needed to enable IAP and configure network settings
+             like backend timeouts and health checks.
+          #}
+          - role: roles/compute.networkAdmin
+            members:
+              - {{ 'serviceAccount:' + KF_ADMIN_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+          - role: roles/storage.admin
+            members:
+              - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+          - role: roles/bigquery.admin
+            members:
+              - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+          - role: roles/dataflow.admin
+            members:
+              - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+          - role: roles/logging.logWriter
+            members:
+              {# VM service account is used to write logs. #}
+              - {{ 'serviceAccount:' + KF_VM_SA_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+          - role: roles/monitoring.metricWriter
+            members:
+              {# VM service account is used to write monitoring data. #}
+              - {{ 'serviceAccount:' + KF_VM_SA_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+          {% if 'users' in properties %}
+          {% if properties['users'] %}
+          - role: roles/iap.httpsResourceAccessor
+            members:
+              {% for user in properties['users'] %}
+              - {{ user }}
+              {% endfor %}
+          {% endif %}
+          {% endif %}
+      {# This changes every time to ensure a fresh etag is obtained. #}
+      quotaUser: {{ env["current_time"] }}
 
 {# A note about K8s resources.
 The type value should be defined using a reference to the corresponding type provider.
