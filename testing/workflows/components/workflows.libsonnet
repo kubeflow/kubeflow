@@ -74,9 +74,10 @@
       // step_name: Name for the template
       // command: List to pass as the container command.
       // We use separate kubeConfig files for separate clusters
-      local buildTemplate(step_name, command, env_vars=[], sidecars=[], kubeConfig="config") = {
+      local buildTemplate(step_name, command, env_vars=[], sidecars=[], kubeConfig="config", retryStrategy={}) = {
         name: step_name,
         activeDeadlineSeconds: 900,  // Set 15 minute timeout for each template
+        retryStrategy: retryStrategy,
         container: {
           command: command,
           image: image,
@@ -171,29 +172,10 @@
                     name: "checkout",
                     template: "checkout",
                   },
-
-                  {
-                    local gkeSetup = {
-                      name: "setup-gke",
-                      template: "setup-gke",
-                      dependencies: ["bootstrap-kf-gcp"],
-                    },
-                    local minikubeSetup = {
-                      name: "setup-minikube",
-                      template: "setup-minikube",
-                      dependencies: ["checkout"],
-                    },
-
-                    result:: if platform == "minikube" then
-                      minikubeSetup
-                    else
-                      gkeSetup,
-
-                  }.result,
-                  if platform == "gke" then {
-                    name: "setup-gke" + v1alpha2Suffix,
-                    template: "setup-gke" + v1alpha2Suffix,
-                    dependencies: ["bootstrap-kf-gcp" + v1alpha2Suffix],
+                  if platform == "minikube" then {
+                    name: "setup-minikube",
+                    template: "setup-minikube",
+                    dependencies: ["checkout"],
                   },
                   {
                     local bootstrapImageCreate = {
@@ -280,14 +262,14 @@
                     name: "wait-for-kubeflow",
                     template: "wait-for-kubeflow",
                     dependencies: [
-                      "setup-gke",
+                      "bootstrap-kf-gcp",
                     ],
                   } else {},
                   if platform == "gke" then {
                     name: "wait-for-kubeflow" + v1alpha2Suffix,
                     template: "wait-for-kubeflow" + v1alpha2Suffix,
                     dependencies: [
-                      "setup-gke" + v1alpha2Suffix,
+                      "bootstrap-kf-gcp" + v1alpha2Suffix,
                     ],
                   } else {},
                   {
@@ -335,18 +317,16 @@
             buildTemplate(
               "checkout",
               ["/usr/local/bin/checkout.sh", srcRootDir],
-              [{
+              env_vars=[{
                 name: "EXTRA_REPOS",
                 value: "kubeflow/tf-operator@HEAD;kubeflow/testing@HEAD",
               }],
-              [],  // no sidecars
             ),
             buildTemplate("test-dir-delete", [
               "bash",
               "-c",
               "rm -rf " + testDir,
             ]),  // test-dir-delete
-
 
             // A simple step that can be used to replace a test that we want to temporarily
             // disable. Changing the template of the step to use this simplifies things
@@ -370,7 +350,7 @@
               "python",
               "-m",
               "testing.wait_for_deployment",
-              "--cluster=" + cluster,
+              "--cluster=" + cluster + v1alpha2Suffix,
               "--project=" + project,
               "--zone=" + zone,
               "--timeout=5",
@@ -384,25 +364,6 @@
               "--src_dir=" + srcDir,
               "--exclude_dirs=" + srcDir + "/bootstrap/vendor/",
             ]),  // test-jsonnet-formatting
-            // Get GKE Credentials
-            buildTemplate("setup-gke", [
-              "python",
-              "-m",
-              "testing.get_gke_credentials",
-              "--test_dir=" + testDir,
-              "--project=" + project,
-              "--cluster=" + cluster,
-              "--zone=" + zone,
-            ]),  // setup-gke
-            buildTemplate("setup-gke" + v1alpha2Suffix, [
-              "python",
-              "-m",
-              "testing.get_gke_credentials",
-              "--test_dir=" + testDir,
-              "--project=" + project,
-              "--cluster=" + cluster + v1alpha2Suffix,
-              "--zone=" + zone,
-            ], kubeConfig="v1alpha2"),  // setup-gke
             // Setup and teardown using minikube
             buildTemplate("setup-minikube", [
               "python",
@@ -548,27 +509,21 @@
               }],
             ),  // bootstrap-image-create
             buildTemplate("bootstrap-kf-gcp", [
-              "python",
-              "-m",
-              "testing.deploy_kubeflow_gcp",
-              "--project=" + project,
-              "--name=" + deploymentName,
-              "--config=" + srcDir + "/testing/dm_configs/cluster-kubeflow.yaml",
-              "--imports=" + srcDir + "/testing/dm_configs/cluster.jinja",
-              "--bootstrapper_image=" + bootstrapperImage,
-              "--tfjob_version=v1alpha1",
-            ]),  // bootstrap-kf-gcp
+              "bash",
+              srcDir + "/testing/deploy_kubeflow_gcp.sh",
+              deploymentName,
+              srcDir,
+              "v1alpha1",
+              bootstrapperImage,
+            ], kubeConfig="config", retryStrategy={ limit: 3 }),  // bootstrap-kf-gcp
             buildTemplate("bootstrap-kf-gcp" + v1alpha2Suffix, [
-              "python",
-              "-m",
-              "testing.deploy_kubeflow_gcp",
-              "--project=" + project,
-              "--name=" + deploymentName + v1alpha2Suffix,
-              "--config=" + srcDir + "/testing/dm_configs/cluster-kubeflow.yaml",
-              "--imports=" + srcDir + "/testing/dm_configs/cluster.jinja",
-              "--bootstrapper_image=" + bootstrapperImage,
-              "--tfjob_version=v1alpha2",
-            ]),  // bootstrap-kf-gcp
+              "bash",
+              srcDir + "/testing/deploy_kubeflow_gcp.sh",
+              deploymentName + v1alpha2Suffix,
+              srcDir,
+              "v1alpha2",
+              bootstrapperImage,
+            ], kubeConfig="config", retryStrategy={ limit: 3 }),  // bootstrap-kf-gcp-v1a2
             buildTemplate("teardown-kubeflow-gcp", [
               "python",
               "-m",

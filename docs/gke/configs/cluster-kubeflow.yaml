@@ -65,7 +65,7 @@ resources:
       # - user:john@acme.com
       # - group:data-scientists@acme.com
     # Path for the bootstrapper image.
-    bootstrapperImage: gcr.io/kubeflow-images-public/bootstrapper:v20180611-0763055-dirty-993707
+    bootstrapperImage: gcr.io/kubeflow-images-public/bootstrapper:v20180614-052b002-dirty-f2d8e3
     # This is the name of the GCP static ip address reserved for your domain.
     # Each Kubeflow deployment in your project should use one unique ipName among all configs.
     ipName: kubeflow-ip
@@ -91,6 +91,8 @@ resources:
             registry: kubeflow
           - name: tf-job
             registry: kubeflow
+          - name: pytorch-job
+            registry: kubeflow
         components:
           - name: kubeflow-core
             prototype: kubeflow-core
@@ -100,6 +102,8 @@ resources:
             prototype: cert-manager
           - name: iap-ingress
             prototype: iap-ingress
+          - name: pytorch-operator
+            prototype: pytorch-operator
         parameters:
           - component: cloud-endpoints
             name: secretName
