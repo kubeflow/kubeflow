@@ -268,6 +268,16 @@
                         "wait-for-kubeflow",
                     ],
                   },
+                  {
+                    name: "tfjob-simple-prototype-test",
+                    template: "tfjob-simple-prototype-test",
+                    dependencies: [
+                      if platform == "minikube" then
+                        "deploy-kubeflow"
+                      else
+                        "wait-for-kubeflow",
+                    ],
+                  },
                   if platform == "gke" then {
                     name: "tfjob-test" + v1alpha2Suffix,
                     // TODO(https://github.com/kubeflow/kubeflow/issues/974): Reneable this test once
@@ -346,7 +356,6 @@
               "-c",
               "rm -rf " + testDir,
             ]),  // test-dir-delete
-
 
             // A simple step that can be used to replace a test that we want to temporarily
             // disable. Changing the template of the step to use this simplifies things
@@ -462,6 +471,12 @@
               "--test_files_dirs=" + srcDir + "/kubeflow",
               "--jsonnet_path_dirs=" + srcDir,
             ]),  // jsonnet-test
+            buildTemplate("tfjob-simple-prototype-test", [
+              "python",
+              "-m",
+              "testing.tf_job_simple_test",
+              "--src_dir=" + srcDir,
+            ]),  // tfjob-simple-prototype-test
             buildTemplate("tfjob-test", [
               "python",
               "-m",
