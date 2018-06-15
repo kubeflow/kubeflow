@@ -40,12 +40,14 @@ def parse_args():
 
 @retry(wait_fixed=5000, stop_max_attempt_number=20)
 def wait_for_tf_job():
-  out = util.run(["kubectl", "get", "pods", "-l", "tf_job_name=mycnnjob"])
+  out = util.run(["kubectl", "get", "pods", "-l",
+                  "tf_job_name=mycnnjob", "-ndefault"])
   logging.info("outlen = %d", len(out.split("\n")))
   if "No resources found" in out or len(out.split("\n")) != 3:
     raise Exception("Could not find pods with label tf_job_name=mycnnjob")
   logging.info("Found pods with label tf_job_name=mycnnjob")
-  out = util.run(["kubectl", "get", "services", "-l", "tf_job_name=mycnnjob"])
+  out = util.run(["kubectl", "get", "services", "-l",
+                  "tf_job_name=mycnnjob", "-ndefault"])
   logging.info("outlen = %d", len(out.split("\n")))
   if "No resources found" in out or len(out.split("\n")) != 3:
     raise Exception("Could not find services with label tf_job_name=mycnnjob")
