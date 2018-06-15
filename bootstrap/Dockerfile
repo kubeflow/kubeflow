@@ -37,17 +37,13 @@ RUN git clone https://github.com/ksonnet/ksonnet.git /opt/ksonnet && \
 ARG registries
 COPY $registries /opt/registries
 
-# TODO(jlewi): bootstrap is using an early dev version of ks (0.10) so we need
-# to build ks at the same commit because the generated app won't work with
-# earlier versions of ks.
-RUN cd /opt/ksonnet && \
-	mkdir -p /tmp/go/src/github.com/ksonnet && \
-	ln -sf /opt/ksonnet /tmp/go/src/github.com/ksonnet/ksonnet && \
-    cd /tmp/go/src/github.com/ksonnet/ksonnet && \
-	export GOPATH=/tmp/go && \
-	make install && \
-    cp /tmp/go/bin/ks /usr/local/bin && \
-    chmod a+rx /usr/local/bin/ks
+# bootstrap is using ksonnet 0.11.0
+RUN wget -q https://github.com/ksonnet/ksonnet/releases/download/v0.11.0/ks_0.11.0_linux_amd64.tar.gz && \
+    tar xzf ks_0.11.0_linux_amd64.tar.gz -C . && \
+    rm ks_0.11.0_linux_amd64.tar.gz && \
+    cp ks_0.11.0_linux_amd64/ks /usr/local/bin && \
+    rm -rf ks_0.11.0_linux_amd64
+
 
 COPY --from=builder /opt/kubeflow/bootstrapper /opt/kubeflow/
 COPY start.sh /opt/kubeflow/

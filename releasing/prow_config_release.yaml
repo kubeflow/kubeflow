@@ -26,3 +26,6 @@ workflows:
       registry: "gcr.io/kubeflow-images-public"
       testing_image: "gcr.io/kubeflow-releasing/worker:latest"
       zone: "us-central1-a"
+  - app_dir: kubeflow/kubeflow/releasing/pytorch-operator
+      component: release
+      name: pytorch-operator-release
