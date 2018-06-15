@@ -86,14 +86,14 @@ resources:
           - name: tf-serving
           - name: tf-job
         components:
-          - name: kubeflow-core
-            prototype: kubeflow-core
-          - name: cloud-endpoints
-            prototype: cloud-endpoints
           - name: cert-manager
             prototype: cert-manager
+          - name: cloud-endpoints
+            prototype: cloud-endpoints
           - name: iap-ingress
             prototype: iap-ingress
+          - name: kubeflow-core
+            prototype: kubeflow-core
         parameters:
           - component: cloud-endpoints
             name: secretName
