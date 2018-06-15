@@ -14,7 +14,7 @@ See `build_image.py` for details.
 ## Supported versions
 
 ### TF Serving
-- CPU: 1.4, 1.5, 1.6, 1.7
+- CPU: 1.4, 1.5, 1.6, 1.7, 1.8
 - GPU: 1.6, 1.7
 
 ### TF notebook
@@ -28,7 +28,7 @@ See `build_image.py` for details.
 ```
 JOB_NAME="tf-serving-workflow" # For tensorflow serving image
 
-# For tensorflow notebook, set JOB_NAME="tf-notebook-workflow" 
+# For tensorflow notebook, set JOB_NAME="tf-notebook-workflow"
 
 cd ${GIT_KUBEFLOW}/components/image-releaser
 COMMIT=0da89b8a4af6c314287196b79d9a5f01d279b596 # Commit for the release
