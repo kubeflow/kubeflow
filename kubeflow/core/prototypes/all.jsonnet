@@ -20,7 +20,7 @@
 // @optionalParam jupyterNotebookRepoName string kubeflow-images-public The repoistory name for JupyterNotebook.
 // @optionalParam reportUsage string false Whether or not to report Kubeflow usage to kubeflow.org.
 // @optionalParam usageId string unknown_cluster Optional id to use when reporting usage to kubeflow.org
-// @optionalParam tfJobVersion string v1alpha1 which version of the TFJob operator to use
+// @optionalParam tfJobVersion string v1alpha2 which version of the TFJob operator to use
 
 local k = import "k.libsonnet";
 local all = import "kubeflow/core/all.libsonnet";
