@@ -25,9 +25,6 @@ import (
 	"regexp"
 	"strconv"
 	"time"
-	"os/exec"
-	"bytes"
-
 	"github.com/ghodss/yaml"
 	"github.com/ksonnet/ksonnet/actions"
 	kApp "github.com/ksonnet/ksonnet/metadata/app"
@@ -46,6 +43,8 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"io/ioutil"
+	"os/exec"
+	"bytes"
 )
 
 // RecommendedConfigPathEnvVar is a environment variable for path configuration
@@ -534,19 +533,24 @@ func Run(opt *options.ServerOption) error {
 		// ks runApply API expects clientcmd.ClientConfig, which kind of have soft dependency on existence of ~/.kube/config
 		// if use k8s client-go API, would be quite verbose if we create all resources one by one.
 		// TODO: use API to create ks Components
-		log.Infof("Apply kubeflow Components...")
-		rawCmd := "ks apply default --token=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)"
-		applyCmd := exec.Command("bash", "-c", rawCmd)
+		for _, component := range bootConfig.App.Components {
+			log.Infof("Apply kubeflow component %v", component.Name)
+			rawCmd := fmt.Sprintf(
+				"ks apply default -c %v --token=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)",
+				component.Name)
+			applyCmd := exec.Command("bash", "-c", rawCmd)
 
-		var out bytes.Buffer
-		var stderr bytes.Buffer
-		applyCmd.Stdout = &out
-		applyCmd.Stderr = &stderr
-		if err := applyCmd.Run(); err != nil {
-			log.Infof("stderr >>> " + fmt.Sprint(err) + ": " + stderr.String())
-			return err
-		} else {
-			log.Infof("Components applied: " + out.String())
+			var out bytes.Buffer
+			var stderr bytes.Buffer
+			applyCmd.Stdout = &out
+			applyCmd.Stderr = &stderr
+			if err := applyCmd.Run(); err != nil {
+				log.Infof("Component apply failed: " + fmt.Sprint(err) + "\n" + out.String() + "\n" + stderr.String())
+				return err
+			} else {
+				// ks apply output to stderr on success case as well
+				log.Infof("Component apply successfully.\n" + out.String() + "\n" + stderr.String())
+			}
 		}
 	}
 	if opt.InCluster && opt.KeepAlive {
