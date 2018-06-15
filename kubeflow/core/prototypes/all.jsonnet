@@ -9,7 +9,7 @@
 // @optionalParam tfAmbassadorServiceType string ClusterIP The service type for the API Gateway.
 // @optionalParam tfAmbassadorImage string quay.io/datawire/ambassador:0.30.1 The image for the API Gateway.
 // @optionalParam tfStatsdImage string quay.io/datawire/statsd:0.30.1 The image for the Stats and Monitoring.
-// @optionalParam tfJobImage string gcr.io/kubeflow-images-public/tf_operator:v20180522-77375baf The image for the TfJob controller.
+// @optionalParam tfJobImage string gcr.io/kubeflow-images-public/tf_operator:v20180615-b2ac020 The image for the TfJob controller.
 // @optionalParam tfDefaultImage string null The default image to use for TensorFlow.
 // @optionalParam tfJobUiServiceType string ClusterIP The service type for the UI.
 // @optionalParam jupyterHubServiceType string ClusterIP The service type for Jupyterhub.

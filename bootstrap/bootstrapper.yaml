@@ -52,7 +52,7 @@ spec:
     spec:
       containers:
       - name: kubeflow-bootstrapper
-        image: gcr.io/kubeflow-images-public/bootstrapper:v20180614-052b002-dirty-f2d8e3
+        image: gcr.io/kubeflow-images-public/bootstrapper:v20180615-2453eb7
         workingDir: /opt/bootstrap
         command: [ "/opt/kubeflow/bootstrapper"]
         args: [
