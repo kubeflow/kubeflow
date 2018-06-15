@@ -545,10 +545,11 @@ func Run(opt *options.ServerOption) error {
 			applyCmd.Stdout = &out
 			applyCmd.Stderr = &stderr
 			if err := applyCmd.Run(); err != nil {
-				log.Infof("stderr >>> " + fmt.Sprint(err) + ": " + stderr.String())
+				log.Infof("Component apply failed: " + fmt.Sprint(err) + "\n" + out.String() + "\n" + stderr.String())
 				return err
 			} else {
-				log.Infof("Component applied: " + out.String())
+				// ks apply output to stderr on success case as well
+				log.Infof("Component apply successfully.\n" + out.String() + "\n" + stderr.String())
 			}
 		}
 	}
