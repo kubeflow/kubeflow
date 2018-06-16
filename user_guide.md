@@ -13,6 +13,7 @@
       - [Run the TfCnn example](#run-the-tfcnn-example)
   - [Advanced Customization](#advanced-customization)
   - [Troubleshooting](#troubleshooting)
+    - [TensorFlow and AVX](#tensorflow-and-avx)
     - [Minikube](#minikube)
     - [RBAC clusters](#rbac-clusters)
     - [OpenShift](#openshift)
@@ -566,6 +567,14 @@ tmpfs                                                           15444244       0
 
 
 ## Troubleshooting
+
+### TensorFlow and AVX
+There are some instances where you may encounter a TensorFlow-related Python installation or a pod launch issue that results in a SIGILL (illegal instruction core dump). Kubeflow uses the pre-built binaries from the TensorFlow project which, beginning with version 1.6, are compiled to make use of the [AVX](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions) CPU instruction. This is a recent feature and your CPU might not support it. Check the host environment for your node to determine whether it has this support:
+
+Linux:
+```
+grep -ci avx /proc/cpuinfo
+```
 
 ### Minikube
 
