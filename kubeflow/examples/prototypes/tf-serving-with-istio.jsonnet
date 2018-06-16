@@ -7,7 +7,7 @@
 local k = import "k.libsonnet";
 
 local namespace = "default";
-local appName = "tf-serving-with-istio";
+local appName = import "param://name";
 local modelBasePath = "gs://kubeflow-models/inception";
 local modelName = "inception";
 local image = "gcr.io/kubeflow-images-public/tf-model-server-cpu:v20180327-995786ec";
