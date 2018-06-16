@@ -53,7 +53,9 @@ def deploy_kubeflow(test_case):
   util.run(
     [
       "ks", "generate", "core", "kubeflow-core", "--name=kubeflow-core",
-      "--namespace=" + namespace
+      "--namespace=" + namespace,
+      "--tfJobImage=gcr.io/kubeflow-images-public/tf_operator:v20180522-77375baf",
+      "--tfJobVersion=v1alpha1"
     ],
     cwd=app_dir)
 

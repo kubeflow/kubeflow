@@ -34,7 +34,7 @@ ks generate kubeflow-core kubeflow-core
 ks param set kubeflow-core cloud ack
 
 ks param set kubeflow-core jupyterHubImage registry.aliyuncs.com/kubeflow-images-public/jupyterhub-k8s:1.0.2
-ks param set kubeflow-core tfJobImage registry.aliyuncs.com/kubeflow-images-public/tf_operator:v20180522-77375baf
+ks param set kubeflow-core tfJobImage registry.aliyuncs.com/kubeflow-images-public/tf_operator:v20180615-b2ac020
 ks param set kubeflow-core tfAmbassadorImage registry.aliyuncs.com/datawire/ambassador:0.34.0
 ks param set kubeflow-core tfStatsdImage registry.aliyuncs.com/datawire/statsd:0.34.0
 
