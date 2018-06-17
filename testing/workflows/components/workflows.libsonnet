@@ -528,7 +528,7 @@
               "bash",
               srcDir + "/testing/teardown_kubeflow_gcp.sh",
               deploymentName,
-              srcDir + "docs/gke/configs-" + deploymentName + "/cluster-kubeflow.yaml",
+              srcDir + "/docs/gke/configs-" + deploymentName + "/cluster-kubeflow.yaml",
               project,
             ], retryStrategy={ limit: 5 }),  // teardown-kubeflow-gcp
             buildTemplate("teardown-kubeflow-gcp" + v1alpha2Suffix, [
