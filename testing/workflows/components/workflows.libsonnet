@@ -201,7 +201,7 @@
                     local bootstrapKubeflowGCP = {
                       name: "bootstrap-kf-gcp",
                       template: "bootstrap-kf-gcp",
-                      dependencies: ["bootstrap-image-create"],
+                      dependencies: ["checkout"],
                     },
                     local deployKubeflow = {
                       name: "deploy-kubeflow",
@@ -216,7 +216,7 @@
                   if platform == "gke" then {
                     name: "bootstrap-kf-gcp" + v1alpha2Suffix,
                     template: "bootstrap-kf-gcp" + v1alpha2Suffix,
-                    dependencies: ["bootstrap-image-create"],
+                    dependencies: ["checkout"],
                   },
                   {
                     name: "pytorchjob-deploy",
@@ -299,7 +299,6 @@
                     {
                       name: "teardown-kubeflow-gcp" + v1alpha2Suffix,
                       template: "teardown-kubeflow-gcp" + v1alpha2Suffix,
-                      dependencies: ["teardown"],
                     },
                   if platform == "gke" then
                     {
@@ -515,29 +514,29 @@
               deploymentName,
               srcDir,
               "v1alpha1",
-              bootstrapperImage,
-            ], kubeConfig="config", retryStrategy={ limit: 3 }),  // bootstrap-kf-gcp
+              "gcr.io/kubeflow-ci/bootstrapper:latest",
+            ], retryStrategy={ limit: 3 }),  // bootstrap-kf-gcp
             buildTemplate("bootstrap-kf-gcp" + v1alpha2Suffix, [
               "bash",
               srcDir + "/testing/deploy_kubeflow_gcp.sh",
               deploymentName + v1alpha2Suffix,
               srcDir,
               "v1alpha2",
-              bootstrapperImage,
-            ], kubeConfig="config", retryStrategy={ limit: 3 }),  // bootstrap-kf-gcp-v1a2
+              "gcr.io/kubeflow-ci/bootstrapper:latest",
+            ], kubeConfig="v1alpha2", retryStrategy={ limit: 3 }),  // bootstrap-kf-gcp-v1a2
             buildTemplate("teardown-kubeflow-gcp", [
-              "python",
-              "-m",
-              "testing.teardown_kubeflow_gcp",
-              "--project=" + project,
-              "--name=" + deploymentName,
+              "bash",
+              srcDir + "/testing/teardown_kubeflow_gcp.sh",
+              deploymentName,
+              srcDir + "docs/gke/configs-" + deploymentName + "/cluster-kubeflow.yaml",
+              project,
             ], retryStrategy={ limit: 5 }),  // teardown-kubeflow-gcp
             buildTemplate("teardown-kubeflow-gcp" + v1alpha2Suffix, [
-              "python",
-              "-m",
-              "testing.teardown_kubeflow_gcp",
-              "--project=" + project,
-              "--name=" + deploymentName + v1alpha2Suffix,
+              "bash",
+              srcDir + "/testing/teardown_kubeflow_gcp.sh",
+              deploymentName + v1alpha2Suffix,
+              srcDir + "docs/gke/configs-" + deploymentName + v1alpha2Suffix + "/cluster-kubeflow.yaml",
+              project,
             ], retryStrategy={ limit: 5 }),  // teardown-kubeflow-gcp
           ],  // templates
         },
