@@ -43,6 +43,7 @@ if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS}" ]]; then
 fi
 
 set +e
+# Delete the existing deployment in case we end up retying this script
 gcloud deployment-manager deployments delete ${DEPLOYMENT_NAME} --quiet --project=kubeflow-ci
 
 ./deploy.sh
