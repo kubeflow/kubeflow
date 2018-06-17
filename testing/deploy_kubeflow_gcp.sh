@@ -42,4 +42,7 @@ if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS}" ]]; then
   gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
 fi
 
+set +e
+gcloud deployment-manager deployments delete ${DEPLOYMENT_NAME} --quiet --project=kubeflow-ci
+
 ./deploy.sh
