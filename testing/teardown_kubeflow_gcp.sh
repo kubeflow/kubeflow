@@ -7,6 +7,10 @@ DEPLOYMENT_NAME="${1}"
 CONFIG_FILE="${2}"
 PROJECT="${3}"
 
+if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS}" ]]; then
+  gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
+fi
+
 # We need to run an update because for deleting IAM roles,
 # we need to obtain a fresh copy of the IAM policy. A stale
 # copy of IAM policy causes issues while deletion.
