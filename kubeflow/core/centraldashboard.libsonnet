@@ -6,7 +6,7 @@
   // We need to build and publish central UI docker image as part of our release process.
 
   all(params):: [
-    $.parts(params.namespace).deployUi,
+    $.parts(params.namespace).deployUi(params.centralUiImage),
     $.parts(params.namespace).uiService,
     $.parts(params.namespace).uiServiceAccount,
     $.parts(params.namespace).uiRole,
@@ -15,7 +15,7 @@
 
   parts(namespace):: {
 
-    deployUi:: {
+    deployUi(centralUiImage):: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -35,7 +35,7 @@
           spec: {
             containers: [
               {
-                image: "gcr.io/kubeflow-images-public/centraldashboard:latest",
+                image: centralUiImage,
                 name: "centraldashboard",
                 ports: [
                   {
