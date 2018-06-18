@@ -46,4 +46,8 @@ set +e
 # Delete the existing deployment in case we end up retying this script
 gcloud deployment-manager deployments delete ${DEPLOYMENT_NAME} --quiet --project=kubeflow-ci
 
+# Add a jitter to reduce the chance of deployments starting at the same time
+# since tests are run in parallel
+sleep $((${RANDOM} % 30))
+
 ./deploy.sh

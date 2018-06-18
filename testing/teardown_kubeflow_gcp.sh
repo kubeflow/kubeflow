@@ -11,6 +11,10 @@ if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS}" ]]; then
   gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
 fi
 
+# Add a jitter to reduce the chance of deployments updating at the same time
+# since tests are run in parallel
+sleep $((${RANDOM} % 30))
+
 # We need to run an update because for deleting IAM roles,
 # we need to obtain a fresh copy of the IAM policy. A stale
 # copy of IAM policy causes issues while deletion.
