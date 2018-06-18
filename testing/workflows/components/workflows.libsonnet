@@ -74,10 +74,9 @@
       // step_name: Name for the template
       // command: List to pass as the container command.
       // We use separate kubeConfig files for separate clusters
-      local buildTemplate(step_name, command, env_vars=[], sidecars=[], kubeConfig="config", retryStrategy={}) = {
+      local buildTemplate(step_name, command, env_vars=[], sidecars=[], kubeConfig="config") = {
         name: step_name,
-        activeDeadlineSeconds: 900,  // Set 15 minute timeout for each template
-        retryStrategy: retryStrategy,
+        activeDeadlineSeconds: 1800,  // Set 30 minute timeout for each template
         container: {
           command: command,
           image: image,
@@ -509,35 +508,55 @@
               }],
             ),  // bootstrap-image-create
             buildTemplate("bootstrap-kf-gcp", [
+              "python",
+              "-m",
+              "testing.run_with_retry",
+              "--retries=5",
+              "--",
               "bash",
               srcDir + "/testing/deploy_kubeflow_gcp.sh",
               deploymentName,
               srcDir,
               "v1alpha1",
               "gcr.io/kubeflow-ci/bootstrapper:latest",
-            ], retryStrategy={ limit: 3 }),  // bootstrap-kf-gcp
+            ]),  // bootstrap-kf-gcp
             buildTemplate("bootstrap-kf-gcp" + v1alpha2Suffix, [
+              "python",
+              "-m",
+              "testing.run_with_retry",
+              "--retries=5",
+              "--",
               "bash",
               srcDir + "/testing/deploy_kubeflow_gcp.sh",
               deploymentName + v1alpha2Suffix,
               srcDir,
               "v1alpha2",
               "gcr.io/kubeflow-ci/bootstrapper:latest",
-            ], kubeConfig="v1alpha2", retryStrategy={ limit: 3 }),  // bootstrap-kf-gcp-v1a2
+            ], kubeConfig="v1alpha2"),  // bootstrap-kf-gcp-v1a2
             buildTemplate("teardown-kubeflow-gcp", [
+              "python",
+              "-m",
+              "testing.run_with_retry",
+              "--retries=5",
+              "--",
               "bash",
               srcDir + "/testing/teardown_kubeflow_gcp.sh",
               deploymentName,
               srcDir + "/docs/gke/configs-" + deploymentName + "/cluster-kubeflow.yaml",
               project,
-            ], retryStrategy={ limit: 5 }),  // teardown-kubeflow-gcp
+            ]),  // teardown-kubeflow-gcp
             buildTemplate("teardown-kubeflow-gcp" + v1alpha2Suffix, [
+              "python",
+              "-m",
+              "testing.run_with_retry",
+              "--retries=5",
+              "--",
               "bash",
               srcDir + "/testing/teardown_kubeflow_gcp.sh",
               deploymentName + v1alpha2Suffix,
               srcDir + "/docs/gke/configs-" + deploymentName + v1alpha2Suffix + "/cluster-kubeflow.yaml",
               project,
-            ], retryStrategy={ limit: 5 }),  // teardown-kubeflow-gcp
+            ]),  // teardown-kubeflow-gcp
           ],  // templates
         },
       },  // e2e
