@@ -1,12 +1,12 @@
 {
   all(params):: [
-    $.parts(params.namespace, params.tfAmbassadorImage).service(params.tfAmbassadorServiceType),
-    $.parts(params.namespace, params.tfAmbassadorImage).adminService,
-    $.parts(params.namespace, params.tfAmbassadorImage).role,
-    $.parts(params.namespace, params.tfAmbassadorImage).serviceAccount,
-    $.parts(params.namespace, params.tfAmbassadorImage).roleBinding,
-    $.parts(params.namespace, params.tfAmbassadorImage).deploy(params.tfStatsdImage),
-    $.parts(params.namespace, params.tfAmbassadorImage).k8sDashboard(params.cloud),
+    $.parts(params.namespace, params.AmbassadorImage).service(params.AmbassadorServiceType),
+    $.parts(params.namespace, params.AmbassadorImage).adminService,
+    $.parts(params.namespace, params.AmbassadorImage).role,
+    $.parts(params.namespace, params.AmbassadorImage).serviceAccount,
+    $.parts(params.namespace, params.AmbassadorImage).roleBinding,
+    $.parts(params.namespace, params.AmbassadorImage).deploy(params.StatsdImage),
+    $.parts(params.namespace, params.AmbassadorImage).k8sDashboard(params.cloud),
   ],
 
   parts(namespace, ambassadorImage):: {
