@@ -219,7 +219,7 @@ std.assertEqual(jupyterhub.parts(params.namespace).jupyterHubRole,
                   rules: [
                     {
                       apiGroups: [
-                        "*",
+                        "",
                       ],
                       resources: [
                         "pods",
@@ -235,7 +235,7 @@ std.assertEqual(jupyterhub.parts(params.namespace).jupyterHubRole,
                     },
                     {
                       apiGroups: [
-                        "*",
+                        "",
                       ],
                       resources: [
                         "events",
