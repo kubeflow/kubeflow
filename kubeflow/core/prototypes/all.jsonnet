@@ -21,6 +21,7 @@
 // @optionalParam reportUsage string false Whether or not to report Kubeflow usage to kubeflow.org.
 // @optionalParam usageId string unknown_cluster Optional id to use when reporting usage to kubeflow.org
 // @optionalParam tfJobVersion string v1alpha2 which version of the TFJob operator to use
+// @optionalParam centralUiImage string gcr.io/kubeflow-images-public/centraldashboard:v20180618-v0.2.0-rc.0-5-g715aafc8-e3b0c4 Image to use for Central UI.
 
 local k = import "k.libsonnet";
 local all = import "kubeflow/core/all.libsonnet";
