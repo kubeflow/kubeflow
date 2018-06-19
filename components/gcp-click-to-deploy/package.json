@@ -15,11 +15,8 @@
     "eject": "react-scripts-ts eject"
   },
   "devDependencies": {
-<<<<<<< HEAD
-=======
     "@types/gapi": "0.0.35",
     "@types/gapi.auth2": "0.0.47",
->>>>>>> move old code to typescript app
     "@types/jest": "^23.0.0",
     "@types/js-yaml": "^3.11.1",
     "@types/node": "^10.3.2",
