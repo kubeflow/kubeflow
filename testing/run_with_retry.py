@@ -1,5 +1,9 @@
 """
-run_with_retry runs the given process with the given number of retries
+run_with_retry runs the given binary with the given number of retries
+
+This is intended primary for retrying bash scripts. Ideally, we
+would use argo's retryStrategy, but there is a bug in it's
+implementation: https://github.com/argoproj/argo/issues/885
 
 Example:
 python run_with_retry --retries=5 -- bash my_flaky_script.sh
