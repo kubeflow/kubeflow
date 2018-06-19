@@ -259,18 +259,16 @@ TODO(jlewi): Do we need to serialize API activation
     serviceName: iam.googleapis.com
 
 {# Get the IAM policy first so that we do not remove any existing bindings. #}
-- name: get-iam-policy
+- name: get-iam-policy-add
   action: gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.getIamPolicy
-  properties:
-    resource: {{ env['project'] }}
-
   metadata:
-    dependsOn:
-      - resource-manager-api
-      - iam-api
-    runtimePolicy:
-      - UPDATE_ALWAYS
-
+      dependsOn:
+        - resource-manager-api
+        - iam-api
+      runtimePolicy:
+        - UPDATE_ALWAYS
+  properties:
+      resource: {{ env["project"] }}
 {# Set the IAM policy patching the existing policy with what ever is currently in the
   config.
 
@@ -280,13 +278,16 @@ TODO(jlewi): Do we need to serialize API activation
   Note: This will fail if the cloudservices account doesn't have IamProjectAdmin
   permissions.
 #}
-- name: patch-iam-policy
+- name: set-iam-policy-add
   action: gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.setIamPolicy
+  metadata:
+      runtimePolicy:
+        - UPDATE_ON_CHANGE
   properties:
-    resource: {{ env['project'] }}
-    policy: $(ref.get-iam-policy)
+    resource: {{ env["project"] }}
+    policy: $(ref.get-iam-policy-add)
     gcpIamPolicyPatch:
-      add:
+        add:
         - role: roles/container.admin
           members:
             {# Deployment manager uses cloudservices account. #}
@@ -342,31 +343,26 @@ TODO(jlewi): Do we need to serialize API activation
             {% endfor %}
         {% endif %}
         {% endif %}
-
-      remove: []
-
+# Use a second get-set IAM policy pair to have a fresh etag.
+- name: get-iam-policy-delete
+  action: gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.getIamPolicy
   metadata:
-    dependsOn:
-      - get-iam-policy
-      - iam-api
-      - {{ KF_ADMIN_NAME }}
-      - {{ KF_USER_NAME }}
-    runtimePolicy:
-      - CREATE
-
-{# Remove IAM role binding when delete deployment.
-
-  TODO: This delete might be too aggresive (delete roles not created by deployment manager)
-#}
-- name: remove-iam-policy
-  action: gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.setIamPolicy
+      dependsOn:
+       - set-iam-policy-add
+      runtimePolicy:
+        - UPDATE_ALWAYS
   properties:
-    resource: {{ env['project'] }}
-    policy: $(ref.patch-iam-policy)
+      resource: {{ env["project"] }}
+- name: set-iam-policy-delete
+  action: gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.setIamPolicy
+  metadata:
+      runtimePolicy:
+        - DELETE
+  properties:
+    resource: {{ env["project"] }}
+    policy: $(ref.get-iam-policy-delete)
     gcpIamPolicyPatch:
-      add: []
-
-      remove:
+        remove:
         {# Grant permissions needed to push the app to a cloud repository. #}
         - role: roles/source.admin
           members:
@@ -417,12 +413,8 @@ TODO(jlewi): Do we need to serialize API activation
             {% endfor %}
         {% endif %}
         {% endif %}
-  metadata:
-    dependsOn:
-      - patch-iam-policy
-    runtimePolicy:
-      - DELETE
-
+    {# This changes every time to ensure a fresh etag is obtained. #}
+    quotaUser: {{ env["current_time"] }}
 {# A note about K8s resources.
 The type value should be defined using a reference to the corresponding type provider.
 Using references will ensure the K8s resource has
@@ -582,10 +574,10 @@ the corresponding type provider.
           - name: kubeflow-bootstrapper
             configMap:
               name: kubeflow-bootstrapper
-          - name: kubeflow-admin-sa              
+          - name: kubeflow-admin-sa
             secret:
               secretName: admin-gcp-sa
-                
+
   metadata:
     dependsOn:
       - admin-namespace
