@@ -58,7 +58,7 @@ resources:
           - cidrBlock: 1.2.3.4/32
           - cidrBlock: 5.6.7.8/32
           enabled: false
-    users: 
+    users:
       # List users to grant appropriate GCP permissions to use Kubeflow.
       # These can either be individual users (Google accounts) or Google
       # Groups.
@@ -91,6 +91,8 @@ resources:
             registry: kubeflow
           - name: tf-job
             registry: kubeflow
+          - name: pytorch-job
+            registry: kubeflow
         components:
           - name: kubeflow-core
             prototype: kubeflow-core
@@ -100,6 +102,8 @@ resources:
             prototype: cert-manager
           - name: iap-ingress
             prototype: iap-ingress
+          - name: pytorch-operator
+            prototype: pytorch-operator
         parameters:
           - component: cloud-endpoints
             name: secretName
