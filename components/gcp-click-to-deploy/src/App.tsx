@@ -23,7 +23,6 @@ import NameForm from './NameForm';
 // domain. Based on the response if the user selects auto domain then we should automatically supply the suffix
 // <hostname>.endpoints.<Project>.cloud.goog
 
-let gapi: any = null;
 let auth2: any = null;
 
 // TODO(jlewi): ClientId for project cloud-ml-dev we should change this.
@@ -64,7 +63,6 @@ class SignInButton extends React.Component {
 interface AppState {
   clusterJinja: string;
   clusterSpec: any;
-  gapiLoaded: boolean;
 }
 
 class App extends React.Component<any, AppState> {
@@ -73,7 +71,6 @@ class App extends React.Component<any, AppState> {
     this.state = {
       clusterJinja: '',
       clusterSpec: null,
-      gapiLoaded: false,
     };
   }
 
@@ -85,20 +82,15 @@ class App extends React.Component<any, AppState> {
   }
 
   // createClients  does the following
-  // 1. loads the auth library
-  // 2. Renders the sign in button
-  // 3. Creates a client for the deployment manager.
-  public createClients() {
+  // 1. Renders the sign in button
+  // 2. Creates a client for the deployment manager.
+  public createClients(gapi: any) {
     log('createClients called');
 
-    gapi.load('auth2' /* Initialize the API client library */, null);
+    // On load, called to load the auth2 library and API client library.
+    gapi.load('signin2', () => log('Loaded signin2'));
 
-    //   //On load, called to load the auth2 library and API client library.
-    gapi.load('signin2', () => {
-      log('Loaded signin2');
-    });
     gapi.load('client:auth2', () => {
-
       // TODO(jlewi): Why do we load the client for deployment manager
       // when load of auth2 is done?
       gapi.client.load('deploymentmanager', 'v2').then(() => {
@@ -113,13 +105,12 @@ class App extends React.Component<any, AppState> {
           client_id: CLIENT_ID,
           fetch_basic_profile: false,
           scope: 'https://www.googleapis.com/auth/cloud-platform',
-        }).then(
-          () => {
-            log('init');
-            auth2 = gapi.auth2.getAuthInstance();
-            auth2.isSignedIn.listen(updateSignIn);
-            auth2.then(updateSignIn);
-          });
+        }).then(() => {
+          log('init');
+          auth2 = gapi.auth2.getAuthInstance();
+          auth2.isSignedIn.listen(updateSignIn);
+          auth2.then(updateSignIn);
+        });
 
         log('render button');
         gapi.signin2.render('loginButton', {
@@ -134,63 +125,16 @@ class App extends React.Component<any, AppState> {
         log('Error occured loading deployment manager: ' + error);
       });
     });
-  } // startApp
-
-  // TODO(jlewi): I copied this code from
-  // https://gist.github.com/mikecrittenden/28fe4877ddabff65f589311fd5f8655c
-  // At a high level I think its creating a script element in the DOM
-  // as a way of loading the gapi library.
-  // I modified the code to store a reference to gapi in the global
-  // variable gapi.
-  // I have no idea whether this is the right way to dynamically load
-  // javascript libraries in REACT.
-  public loadClientWhenGapiReady(script: any) {
-    log('Trying To Load Client!');
-    log(script)
-    // TODO(jlewi): Do we need this?
-    if (script.getAttribute('gapi_processed')) {
-      gapi = (window as any).gapi;
-      log('Client is ready! Now you can access gapi. :)');
-      this.setState({
-        gapiLoaded: true,
-      });
-      this.createClients();
-      if (window.location.hostname === 'localhost') {
-        gapi.client.load('http://localhost:8080/_ah/api/discovery/v1/apis/metafields/v1/rest')
-          .then((response: any) => {
-            log('Connected to metafields API locally.');
-          },
-            (err: any) => {
-              log('Error connecting to metafields API locally.');
-            }
-          );
-      }
-    }
-    else {
-      log('Client wasn\'t ready, trying again in 100ms');
-      setTimeout(() => { this.loadClientWhenGapiReady(script) }, 100);
-    }
   }
 
-  public initGapi() {
+  public initGapi(gapi: any) {
     log('Initializing GAPI...');
     log('Creating the google script tag...');
-
-    const script = document.createElement('script');
-    script.onload = () => {
-      log('Loaded script, now loading our api...')
-      // Gapi isn't available immediately so we have to wait until it is to use gapi.
-      this.loadClientWhenGapiReady(script);
-    };
-    script.src = 'https://apis.google.com/js/client.js';
-
-    document.body.appendChild(script);
+    this.createClients(gapi);
   }
 
   public componentDidMount() {
-    // this.loadYoutubeApi();
-    this.appendLine('initGapi');
-    this.initGapi();
+    window.addEventListener('gapiLoaded', (ev: CustomEvent) => this.initGapi(ev.detail));
 
     // Load the YAML and jinja templates
     // TODO(jlewi): The fetches should happen asynchronously.
