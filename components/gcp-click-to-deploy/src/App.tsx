@@ -1,5 +1,6 @@
 import * as jsYaml from 'js-yaml';
 import * as React from 'react';
+import Gapi from './Gapi';
 
 // TODO(jlewi): Replace with official logo image. Also it would 
 // be good to use a .svg or at least a high res image.
@@ -133,8 +134,13 @@ class App extends React.Component<any, AppState> {
     this.createClients(gapi);
   }
 
-  public componentDidMount() {
-    window.addEventListener('gapiLoaded', (ev: CustomEvent) => this.initGapi(ev.detail));
+  public async componentDidMount() {
+    // window.addEventListener('gapiLoaded', (ev: CustomEvent) => this.initGapi(ev.detail));
+    const g = new Gapi();
+    window.addEventListener('gapiLoaded', async (ev: CustomEvent) => {
+      await g.signIn();
+      log(await g.getSignedInEmail());
+    });
 
     // Load the YAML and jinja templates
     // TODO(jlewi): The fetches should happen asynchronously.
