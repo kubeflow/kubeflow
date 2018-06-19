@@ -48,12 +48,15 @@ def update_bootstrapper_config(config, tfjob_version, ip_name, hostname,
   bootstrapper_config = yaml.load(
     config['resources'][0]['properties']['bootstrapperConfig'])
   for param in bootstrapper_config['app']['parameters']:
-    if param['name'] == 'tfJobVersion':
-      param['value'] = tfjob_version
     if param['name'] == 'ipName':
       param['value'] = ip_name
     if param['name'] == 'hostname':
       param['value'] = hostname
+  bootstrapper_config['app']['parameters'].append({
+    'component': 'kubeflow-core',
+    'name': 'tfJobVersion',
+    'value': tfjob_version
+  })
   config['resources'][0]['properties']['bootstrapperConfig'] = yaml.dump(
     bootstrapper_config)
   if bootstrapper_image:

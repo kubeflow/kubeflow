@@ -123,6 +123,3 @@ resources:
           - component: kubeflow-core
             name: jupyterHubAuthenticator
             value: iap
-          - component: kubeflow-core
-            name: tfJobVersion
-            value: v1alpha2

@@ -44,6 +44,8 @@ fi
 
 set +e
 # Delete the existing deployment in case we end up retying this script
+# TODO: This logic should probably in deploy.sh. It should check for existing
+# deployment and update it instead of creating it.
 gcloud deployment-manager deployments delete ${DEPLOYMENT_NAME} --quiet --project=kubeflow-ci
 
 # Add a jitter to reduce the chance of deployments starting at the same time

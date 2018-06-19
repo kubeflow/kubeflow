@@ -17,7 +17,7 @@ sleep $((${RANDOM} % 30))
 
 # We need to run an update because for deleting IAM roles,
 # we need to obtain a fresh copy of the IAM policy. A stale
-# copy of IAM policy causes issues while deletion.
+# copy of IAM policy causes issues during deletion.
 gcloud deployment-manager deployments update \
  ${DEPLOYMENT_NAME} --config=${CONFIG_FILE} --project=${PROJECT}
 
