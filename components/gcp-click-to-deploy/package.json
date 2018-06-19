@@ -15,8 +15,6 @@
     "eject": "react-scripts-ts eject"
   },
   "devDependencies": {
-    "@types/gapi": "0.0.35",
-    "@types/gapi.auth2": "0.0.47",
     "@types/jest": "^23.0.0",
     "@types/js-yaml": "^3.11.1",
     "@types/node": "^10.3.2",
