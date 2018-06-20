@@ -293,7 +293,7 @@ func appGenerate(opt *options.ServerOption, kfApp *kApp.App, fs *afero.Fs, bootC
 			return errors.New(fmt.Sprintf("Package %v didn't exist in registry %v", pkgName, regUris[p.Registry]))
 		}
 		full := fmt.Sprintf("%v/%v", p.Registry, pkgName)
-                log.Infof("Installing package %v", full)
+		log.Infof("Installing package %v", full)
 
 		if _, found := libs[pkgName]; found {
 			log.Infof("Package %v already exists", pkgName)
