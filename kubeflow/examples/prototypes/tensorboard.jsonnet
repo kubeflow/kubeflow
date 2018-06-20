@@ -3,7 +3,7 @@
 // @description Prototype for Tensorboard deployments
 // @shortDescription Prototype for Tensorboard deployments
 // @param name string Name to give to the tensorboard deployment
-// @optionalParam logDir string /you/need/to/set/logDir  The path to use
+// @param logDir string The path containing your TF events files.
 // @optionalParam image string tensorflow/tensorflow:1.8.0  The Docker image to use.
 
 local k = import "k.libsonnet";
@@ -76,7 +76,7 @@ local deployment = {
               {
                 containerPort: 80,
               },
-            ],            
+            ],
           },
         ],
       },
