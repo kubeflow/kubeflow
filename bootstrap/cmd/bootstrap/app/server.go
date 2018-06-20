@@ -325,7 +325,7 @@ func appGenerate(opt *options.ServerOption, kfApp *kApp.App, fs *afero.Fs, bootC
 		params := []string{c.Prototype, c.Name}
 		if val, ok := paramMapping[c.Name]; ok {
 			params = append(params, val...)
- 		}
+		}
 		if err = createComponent(opt, kfApp, fs, params); err != nil {
 			return err
 		}
