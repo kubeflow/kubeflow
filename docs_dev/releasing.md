@@ -27,7 +27,7 @@ Currently auto release will use master branch.
 
 ## Create Release Workflow
 
-1. To have your image release workflow, you need build context which contains a build_image.sh which can be executed:
+1. To have your image release workflow, you need build context which contains a script, build_image.sh which has the executable bit set:
 ```
   build_image.sh ${DOCKERFILE} ${IMAGE} ${TAG} ...EXTRA_ARGS
 ```
@@ -62,6 +62,12 @@ Currently auto release will use master branch.
     jsonnet fmt -i $(find . -name '[a-z]*sonnet') --string-style d --comment-style s --indent 2
 ```
 
+4. Include vendor folder in your ks app when make pull request.
+
+```
+    git add -f vendor
+```
+
 ## Update Release Config
 
 Add your new workflow to [release config](../releasing/prow_config_release.yaml).
@@ -69,7 +75,7 @@ Add your new workflow to [release config](../releasing/prow_config_release.yaml)
 A prototype would be:
 ```
 - app_dir: kubeflow/kubeflow/releasing/<new release workflow folder>
-    component: release
+    component: RELEASENAME
     name: <your release name>
     params:
       extra_args: <for your build_image.sh>
