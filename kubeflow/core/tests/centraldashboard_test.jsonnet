@@ -5,7 +5,7 @@ local params = {
 };
 
 std.assertEqual(
-  centraldashboard.parts(params.namespace).deployUi,
+  centraldashboard.parts(params.namespace).deployUi("dashboard/image:latest"),
   {
     apiVersion: "extensions/v1beta1",
     kind: "Deployment",
@@ -26,7 +26,7 @@ std.assertEqual(
         spec: {
           containers: [
             {
-              image: "gcr.io/kubeflow-images-public/centraldashboard:latest",
+              image: "dashboard/image:latest",
               name: "centraldashboard",
               ports: [
                 {

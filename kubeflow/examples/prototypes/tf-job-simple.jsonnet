@@ -6,6 +6,7 @@
 
 local k = import "k.libsonnet";
 
+local name = import "param://name";
 local namespace = "default";
 local image = "gcr.io/kubeflow/tf-benchmarks-cpu:v20171202-bdab599-dirty-284af3";
 
@@ -13,7 +14,7 @@ local tfjob = {
   apiVersion: "kubeflow.org/v1alpha1",
   kind: "TFJob",
   metadata: {
-    name: "mycnnjob",
+    name: name,
     namespace: namespace,
   },
   spec: {

@@ -11,7 +11,7 @@
 #   $ ./deploy.sh
 #
 
-set -e
+set -xe
 
 # Required Variables
 export PROJECT=${PROJECT:-}

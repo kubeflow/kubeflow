@@ -249,7 +249,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
       rules: [
         {
           apiGroups: [
-            "*",
+            "",
           ],
           resources: [
             "pods",
@@ -265,7 +265,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
         },
         {
           apiGroups: [
-            "*",
+            "",
           ],
           resources: [
             "events",
