@@ -18,8 +18,9 @@ interface NameFormState {
 }
 
 export default class NameForm extends React.Component<NameFormProps & React.HTMLAttributes<HTMLFormElement>, NameFormState> {
-  public handleChange: any;
-  public handleSubmit: any;
+  private _boundHandleChange: (ev: React.FormEvent) => void;
+  private _boundHandleSubmit: (ev: React.FormEvent) => void;
+  private _boundCreateDeployment: () => void;
 
   constructor(props: NameFormProps) {
     super(props);
@@ -32,12 +33,64 @@ export default class NameForm extends React.Component<NameFormProps & React.HTML
       zone: 'us-east1-d',
     };
 
-    this.handleChange = this._handleChange.bind(this);
-    this.handleSubmit = this._handleSubmit.bind(this);
+    this._boundHandleChange = this._handleChange.bind(this);
+    this._boundHandleSubmit = this._handleSubmit.bind(this);
+    this._boundCreateDeployment = this._createDeployment.bind(this);
+  }
+
+  public render() {
+    return (
+      <div>
+        <form onSubmit={this._boundHandleSubmit}>
+          <div>
+            <label>
+              Project:
+              <input type='text' name='project' value={this.state.project} onChange={this._boundHandleChange} />
+            </label>
+          </div>
+          <div>
+            <label>
+              Deployment name:
+              <input type='text' name='deploymentName' value={this.state.deploymentName} onChange={this._boundHandleChange} />
+            </label>
+          </div>
+          <div>
+            <label>
+              Zone
+              <input type='text' name='zone' value={this.state.zone} onChange={this._boundHandleChange} />
+            </label>
+          </div>
+          <div>
+            <label>
+              IP name:
+              <input type='text' name='ipName' value={this.state.ipName} onChange={this._boundHandleChange} />
+            </label>
+          </div>
+          <div>
+            <label>
+              hostname:
+              <input type='text' name='hostname' value={this.state.hostName} onChange={this._boundHandleChange} />
+            </label>
+          </div>
+          <div>
+            <label>
+              Email for Lets Encrypt:
+              <input type='text' name='email' value={this.state.email} onChange={this._boundHandleChange} />
+            </label>
+          </div>
+        </form>
+        <div>
+          {/* TODO: REVISIT */}
+          <button className='createDeployment' onClick={this._boundCreateDeployment}>
+            Create Deployment
+      </button>
+        </div>
+      </div>
+    );
   }
 
   // Create a  Kubeflow deployment.
-  public createDeployment() {
+  private _createDeployment() {
     const templates = this.props.getDeploymentTemplates();
     if (this.state.project === '') {
       alert('You must set project');
@@ -123,57 +176,6 @@ export default class NameForm extends React.Component<NameFormProps & React.HTML
     });
 
   } // insertDeployment
-
-  public render() {
-    return (
-      <div>
-        <form onSubmit={this.handleSubmit}>
-          <div>
-            <label>
-              Project:
-              <input type='text' name='project' value={this.state.project} onChange={this.handleChange} />
-            </label>
-          </div>
-          <div>
-            <label>
-              Deployment name:
-              <input type='text' name='deploymentName' value={this.state.deploymentName} onChange={this.handleChange} />
-            </label>
-          </div>
-          <div>
-            <label>
-              Zone
-              <input type='text' name='zone' value={this.state.zone} onChange={this.handleChange} />
-            </label>
-          </div>
-          <div>
-            <label>
-              IP name:
-              <input type='text' name='ipName' value={this.state.ipName} onChange={this.handleChange} />
-            </label>
-          </div>
-          <div>
-            <label>
-              hostname:
-              <input type='text' name='hostname' value={this.state.hostName} onChange={this.handleChange} />
-            </label>
-          </div>
-          <div>
-            <label>
-              Email for Lets Encrypt:
-              <input type='text' name='email' value={this.state.email} onChange={this.handleChange} />
-            </label>
-          </div>
-        </form>
-        <div>
-          {/* TODO: REVISIT */}
-          <button className='createDeployment' onClick={this.createDeployment}>
-            Create Deployment
-      </button>
-        </div>
-      </div>
-    );
-  }
 
   private _handleChange(event: Event) {
     const target = event.target as any;

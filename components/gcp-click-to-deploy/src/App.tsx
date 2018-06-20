@@ -1,6 +1,6 @@
 import * as jsYaml from 'js-yaml';
 import * as React from 'react';
-import Gapi from './Gapi';
+import GapiManager from './Gapi';
 
 // TODO(jlewi): Replace with official logo image. Also it would 
 // be good to use a .svg or at least a high res image.
@@ -26,8 +26,9 @@ declare global {
 }
 
 // TODO(jlewi): Can we set email automatically to the signed in email?
-// TODO(jlewi): For the FQDN we should have a drop down box to select custom domain or automatically provisioned
-// domain. Based on the response if the user selects auto domain then we should automatically supply the suffix
+// TODO(jlewi): For the FQDN we should have a drop down box to select custom
+// domain or automatically provisioned domain. Based on the response if the user
+// selects auto domain then we should automatically supply the suffix
 // <hostname>.endpoints.<Project>.cloud.goog
 
 function log(...args: any[]) {
@@ -48,43 +49,65 @@ class SignInButton extends React.Component {
   }
 }
 
-interface AppState {
+interface DeploymentTemplates {
   clusterJinja: string;
   clusterSpec: any;
 }
 
-class App extends React.Component<any, AppState> {
+class App extends React.Component<any, DeploymentTemplates> {
+
+  private _boundGetDeploymentTemplates: () => DeploymentTemplates;
+  private _boundAppendLine: (line: string) => void;
+
   constructor(props: any) {
     super(props);
     this.state = {
       clusterJinja: '',
       clusterSpec: null,
     };
+
+    this._boundGetDeploymentTemplates = this._getDeploymentTemplates.bind(this);
+    this._boundAppendLine = (line: string) => {
+      this._appendLine(line);
+    }
   }
 
-  public getDeploymentTemplates() {
-    return {
-      clusterJinja: this.state.clusterJinja,
-      clusterSpec: this.state.clusterSpec,
-    };
+  public render() {
+    return (
+      <div className='App' id='app'>
+        <header className='App-header'>
+          <img src={logo} className='App-logo' alt='logo' />
+        </header>
+        <SignInButton />
+        <p className='App-intro'>
+          To get started
+            * Fill out the fields below
+            * Click create deployment
+        </p>
+        <NameForm className='nameForm' appendLine={this._boundAppendLine}
+                  getDeploymentTemplates={this._boundGetDeploymentTemplates} />
+        <p> Logs </p>
+        <textarea id='logs' data-width='800' data-height='800' />
+      </div>
+    );
   }
 
   public async componentDidMount() {
-    const g = new Gapi();
+    const gapiManager = new GapiManager();
     window.gapiPromise.then(async () => {
       log('gapi loaded');
-      await g.loadGapi();
+      await gapiManager.loadGapi();
       // TODO: Hide this if the user is signed in, show the user's email instead.
-      await g.loadSigninButton();
-      log(await g.getSignedInEmail());
+      await gapiManager.loadSigninButton();
+      log(await gapiManager.getSignedInEmail());
     });
 
     // Load the YAML and jinja templates
-    // TODO(jlewi): The fetches should happen asynchronously.
-    // The user shouldn't be able to click submit until
-    // the fetches have succeeded. How can we do that?
+    // TODO(jlewi): The fetches should happen asynchronously. The user shouldn't
+    // be able to click submit until the fetches have succeeded. How can we do
+    // that?
 
-    this.appendLine('loadClusterJinjaPath');
+    this._appendLine('loadClusterJinjaPath');
     // Load the jinja template into a string because 
     // we will need it for the deployments insert request.
     fetch(clusterJinjaPath, { mode: 'no-cors' })
@@ -103,7 +126,7 @@ class App extends React.Component<any, AppState> {
       });
 
 
-    this.appendLine('loadClusterSpec');
+    this._appendLine('loadClusterSpec');
     // Load the YAML for the actual config and parse it.
     fetch(clusterSpecPath, { mode: 'no-cors' })
       .then((response) => {
@@ -122,7 +145,14 @@ class App extends React.Component<any, AppState> {
 
   }
 
-  public appendLine(newLine: any) {
+  private _getDeploymentTemplates() {
+    return {
+      clusterJinja: this.state.clusterJinja,
+      clusterSpec: this.state.clusterSpec,
+    };
+  }
+
+  private _appendLine(newLine: any) {
     const element = window.document.getElementById('logs') as HTMLInputElement;
     if (element == null) {
       log('Could not get logs element.');
@@ -137,25 +167,6 @@ class App extends React.Component<any, AppState> {
     element.value = currentValue + newLine;
   }
 
-  public render() {
-    return (
-      <div className='App' id='app'>
-        <header className='App-header'>
-          <img src={logo} className='App-logo' alt='logo' />
-        </header>
-        <SignInButton />
-        <p className='App-intro'>
-          To get started
-            * Fill out the fields below
-            * Click create deployment
-        </p>
-        {/* tslint:disable-next-line:jsx-no-lambda */}
-        <NameForm className='nameForm' appendLine={(newline: any) => this.appendLine(newline)} getDeploymentTemplates={() => this.getDeploymentTemplates()} />
-        <p> Logs </p>
-        <textarea id='logs' data-width='800' data-height='800' />
-      </div>
-    );
-  }
 }
 
 export default App;
