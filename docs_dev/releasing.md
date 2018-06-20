@@ -27,7 +27,7 @@ Currently auto release will use master branch.
 
 ## Create Release Workflow
 
-1. To have your image release workflow, you need build context which contains a executable build_image.sh (chmod +x):
+1. To have your image release workflow, you need build context which contains a script, build_image.sh which has the executable bit set:
 ```
   build_image.sh ${DOCKERFILE} ${IMAGE} ${TAG} ...EXTRA_ARGS
 ```
