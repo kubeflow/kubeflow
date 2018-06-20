@@ -138,7 +138,8 @@ class App extends React.Component<any, AppState> {
     // window.addEventListener('gapiLoaded', (ev: CustomEvent) => this.initGapi(ev.detail));
     const g = new Gapi();
     window.addEventListener('gapiLoaded', async (ev: CustomEvent) => {
-      await g.signIn();
+      await g.loadGapi();
+      await g.loadSigninButton();
       log(await g.getSignedInEmail());
     });
 
