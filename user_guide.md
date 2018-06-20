@@ -11,8 +11,8 @@
     - [Serve a model using Seldon](#serve-a-model-using-seldon)
     - [Submitting a TensorFlow training job](#submitting-a-tensorflow-training-job)
       - [Run the TfCnn example](#run-the-tfcnn-example)
-    - [Submitting a TensorFlow training job](#Submitting a TensorFlow training job)
-      - [Run the Pytorch Mnist example](#Run the Pytorch Mnist example)
+    - [Submitting a PyTorch training job](#submitting-a-pytorch-training-job)
+      - [Run the Pytorch MNIST example](#run-the-pytorch-mnist-example)
   - [Advanced Customization](#advanced-customization)
   - [Troubleshooting](#troubleshooting)
     - [TensorFlow and AVX](#tensorflow-and-avx)
@@ -178,7 +178,7 @@ ks generate pytorch-operator pytorch-operator
 ks apply ${KF_ENV} -c pytorch-operator
 ```
 
-Once Pytorch operator is installed, follow [instructions](#Submitting a PyTorch training job) to submit the training job
+Once Pytorch operator is installed, follow [instructions](#submitting-a-pytorch-training-job) to submit the training job
 ### Usage Reporting
 
 When enabled, Kubeflow will report **anonymous** usage data using [spartakus](https://github.com/kubernetes-incubator/spartakus), Kubernetes' reporting tool. Spartakus **does not report any personal information**. See [here](https://github.com/kubernetes-incubator/spartakus) for more detail.
@@ -513,7 +513,7 @@ To delete your job
 ks delete ${KF_ENV} -c ${JOB_NAME}
 ```
 
-#### Run the Pytorch Mnist example
+#### Run the Pytorch MNIST example
 
 Use a prepackaged mnist image for pytorch-job. See [Dockerfile](https://github.com/kubeflow/pytorch-operator/blob/master/examples/dist-mnist/Dockerfile)
 ```
