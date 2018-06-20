@@ -8,8 +8,7 @@
 // @optionalParam image string null The docker image to use for the job.
 // @optionalParam image_gpu string null The docker image to use when using GPUs.
 // @optionalParam num_masters number 1 The number of masters to use
-// @optionalParam num_ps number 0 The number of ps to use
-// @optionalParam num_workers number 0 The number of workers to use
+// @optionalParam num_workers number 1 The number of workers to use
 // @optionalParam num_gpus number 0 The number of GPUs to attach to workers.
 
 local k = import "k.libsonnet";
