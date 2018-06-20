@@ -19,33 +19,20 @@ import './App.css';
 
 import NameForm from './NameForm';
 
+declare global {
+  interface Window {
+    gapiPromise: Promise<any>;
+  }
+}
+
 // TODO(jlewi): Can we set email automatically to the signed in email?
 // TODO(jlewi): For the FQDN we should have a drop down box to select custom domain or automatically provisioned
 // domain. Based on the response if the user selects auto domain then we should automatically supply the suffix
 // <hostname>.endpoints.<Project>.cloud.goog
 
-let auth2: any = null;
-
-// TODO(jlewi): ClientId for project cloud-ml-dev we should change this.
-const CLIENT_ID = '236417448818-pksajgd0a6ghtjv3rlbvr7h9lo6uu17t.apps.googleusercontent.com';
-
 function log(...args: any[]) {
   // tslint:disable-next-line:no-console
   console.log(...args);
-}
-
-/**
- * Handler for when the sign-in state changes.
- *
- * @param {boolean} isSignedIn The new signed in state.
- */
-const updateSignIn = () => {
-  log('update sign in state');
-  if (auth2.isSignedIn.get()) {
-    log('signed in');
-  } else {
-    log('signed out');
-  }
 }
 
 class SignInButton extends React.Component {
@@ -82,63 +69,12 @@ class App extends React.Component<any, AppState> {
     };
   }
 
-  // createClients  does the following
-  // 1. Renders the sign in button
-  // 2. Creates a client for the deployment manager.
-  public createClients(gapi: any) {
-    log('createClients called');
-
-    // On load, called to load the auth2 library and API client library.
-    gapi.load('signin2', () => log('Loaded signin2'));
-
-    gapi.load('client:auth2', () => {
-      // TODO(jlewi): Why do we load the client for deployment manager
-      // when load of auth2 is done?
-      gapi.client.load('deploymentmanager', 'v2').then(() => {
-        log('Loaded deploymentmanager');
-        // If we don't set a var = to this then we can't bind this in the
-        // callback.
-
-        log('load auth2');
-        // See: https://developers.google.com/identity/sign-in/web/reference
-        // Initializes the auth2 library.
-        gapi.auth2.init({
-          client_id: CLIENT_ID,
-          fetch_basic_profile: false,
-          scope: 'https://www.googleapis.com/auth/cloud-platform',
-        }).then(() => {
-          log('init');
-          auth2 = gapi.auth2.getAuthInstance();
-          auth2.isSignedIn.listen(updateSignIn);
-          auth2.then(updateSignIn);
-        });
-
-        log('render button');
-        gapi.signin2.render('loginButton', {
-          // onSucess: updateSignIn,
-          fetch_basic_profile: false,
-          height: 50,
-          scope: 'https://www.googleapis.com/auth/cloud-platform',
-          width: 200,
-        })
-
-      }).catch((error: any) => {
-        log('Error occured loading deployment manager: ' + error);
-      });
-    });
-  }
-
-  public initGapi(gapi: any) {
-    log('Initializing GAPI...');
-    log('Creating the google script tag...');
-    this.createClients(gapi);
-  }
-
   public async componentDidMount() {
-    // window.addEventListener('gapiLoaded', (ev: CustomEvent) => this.initGapi(ev.detail));
     const g = new Gapi();
-    window.addEventListener('gapiLoaded', async (ev: CustomEvent) => {
+    window.gapiPromise.then(async () => {
+      log('gapi loaded');
       await g.loadGapi();
+      // TODO: Hide this if the user is signed in, show the user's email instead.
       await g.loadSigninButton();
       log(await g.getSignedInEmail());
     });
