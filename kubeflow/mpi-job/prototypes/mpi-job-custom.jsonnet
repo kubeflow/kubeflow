@@ -22,5 +22,5 @@ local command = import "param://command";
 local args = import "param://args";
 
 std.prune(k.core.v1.list.new([
-  mpi.parts.custom(namespace, name, replicas, gpusPerReplica, image, command, args)
+  mpi.parts.custom(namespace, name, replicas, gpusPerReplica, image, command, args),
 ]))
