@@ -27,6 +27,7 @@ import os
 from kubeflow.testing import test_helper, util
 from retrying import retry
 
+NAMESPACE = "default"
 
 def parse_args():
   parser = argparse.ArgumentParser()
@@ -44,10 +45,17 @@ def parse_args():
   return args
 
 @retry(wait_fixed=5000, stop_max_attempt_number=20)
-def wait_for_tf_job(label_selector):
+def wait_for_tf_job():
   """Ensure pods enter running state."""
+  # For debugging purposes list all pods and their labels.
+  # This makes it easy to see if the problem is that we specified
+  # the wrong label selector.
+  util.run(["kubectl", "--namespace=" + NAMESPACE,
+            "get", "pods", "-o",
+            ("custom-columns=name:metadata.name,"
+             "labels:.metadata.labels,status:status.phase")])
   out = util.run(["kubectl", "get", "pods", "-l",
-                  "tf_job_name=mycnnjob", "-ndefault"])
+                  "tf_job_name=mycnnjob", "-n" + NAMESPACE])
   if "No resources found" in out \
        or out.count('Running') != 2:
     raise Exception("Could not find pods with label tf_job_name=mycnnjob")
