@@ -11,10 +11,10 @@ local k = import "k.libsonnet";
 local operator = import "kubeflow/mpi-job/mpi-operator.libsonnet";
 
 local namespace = env.namespace;  // namespace is inherited from the environment
-local name = param.name;
-local image = param.image;
-local kubectlDeliveryImage = param.kubectlDeliveryImage;
-local gpusPerNode = param.gpusPerNode;
+local name = params.name;
+local image = params.image;
+local kubectlDeliveryImage = params.kubectlDeliveryImage;
+local gpusPerNode = params.gpusPerNode;
 
 std.prune(k.core.v1.list.new([
   operator.parts.crd,

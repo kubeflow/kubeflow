@@ -11,11 +11,11 @@
 local k = import "k.libsonnet";
 
 local namespace = env.namespace;  // namespace is inherited from the environment
-local name = param.name;
-local gpus = param.gpus;
-local image = param.image;
-local command = param.command;
-local args = param.args;
+local name = params.name;
+local gpus = params.gpus;
+local image = params.image;
+local command = params.command;
+local args = params.args;
 
 local mpiJobSimple = {
   apiVersion: "kubeflow.org/v1alpha1",
