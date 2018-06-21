@@ -27,12 +27,20 @@ class KubeFormSpawner(KubeSpawner):
     </datalist>
     <br/><br/>
 
-    <label for='cpu_guarantee'>CPU</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <label for='cpu_guarantee'>CPU Request</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <input name='cpu_guarantee' placeholder='200m, 1.0, 2.5, etc'></input>
     <br/><br/>
 
-    <label for='mem_guarantee'>Memory</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <label for='cpu_limit'>CPU Limit</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <input name='cpu_limit' placeholder='400m, 2.0, 5.0, etc'></input>
+    <br/><br/>
+
+    <label for='mem_guarantee'>Memory Request</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <input name='mem_guarantee' placeholder='100Mi, 1.5Gi'></input>
+    <br/><br/>
+
+    <label for='mem_limit'>Memory Limit</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <input name='mem_limit' placeholder='200Mi, 2.5Gi'></input>
     <br/><br/>
 
     <label for='extra_resource_limits'>Extra Resource Limits</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -45,8 +53,12 @@ class KubeFormSpawner(KubeSpawner):
         options['image'] = formdata.get('image', [''])[0].strip()
         options['cpu_guarantee'] = formdata.get(
             'cpu_guarantee', [''])[0].strip()
+        options['cpu_limit'] = formdata.get(
+            'cpu_limit', [''])[0].strip()
         options['mem_guarantee'] = formdata.get(
             'mem_guarantee', [''])[0].strip()
+        options['mem_limit'] = formdata.get(
+            'mem_limit', [''])[0].strip()
         options['extra_resource_limits'] = formdata.get(
             'extra_resource_limits', [''])[0].strip()
         return options
@@ -57,7 +69,7 @@ class KubeFormSpawner(KubeSpawner):
         if cloud == 'ack':
             image = 'registry.aliyuncs.com/kubeflow-images-public/tensorflow-notebook-cpu'
         else:
-            image = 'gcr.io/kubeflow/tensorflow-notebook-cpu'
+            image = 'eu.gcr.io/kubeflow-images-public/tensorflow-1.8.0-notebook-cpu:v20180607-476e150e'
         if self.user_options.get('image'):
             image = self.user_options['image']
         return image
@@ -70,10 +82,24 @@ class KubeFormSpawner(KubeSpawner):
         return cpu
 
     @property
+    def cpu_limit(self):
+        cpu = '1000m'
+        if self.user_options.get('cpu_limit'):
+            cpu = self.user_options['cpu_limit']
+        return cpu
+
+    @property
     def mem_guarantee(self):
         mem = '1Gi'
         if self.user_options.get('mem_guarantee'):
             mem = self.user_options['mem_guarantee']
+        return mem
+
+    @property
+    def mem_limit(self):
+        mem = '1Gi'
+        if self.user_options.get('mem_limit'):
+            mem = self.user_options['mem_limit']
         return mem
 
     @property
