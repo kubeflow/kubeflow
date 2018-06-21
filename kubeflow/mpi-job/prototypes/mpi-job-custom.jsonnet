@@ -19,6 +19,19 @@ local image = params.image;
 local command = params.command;
 local args = params.args;
 
+local containerCommand =
+  if command != "null" then
+    {
+      command: command,
+    }
+  else {};
+local containerArgs =
+  if args != "null" then
+    {
+      args: std.split(args, ","),
+    }
+  else {};
+
 local mpiJobCustom = {
   apiVersion: "kubeflow.org/v1alpha1",
   kind: "MPIJob",
@@ -34,14 +47,12 @@ local mpiJobCustom = {
           {
             name: name,
             image: image,
-            [if command != "null" then "command"]: [command],
-            [if args != "null" then "args"]: std.split(args, ","),
             resources: {
               limits: {
                 "nvidia.com/gpu": gpusPerReplica,
               },
             },
-          },
+          } + containerCommand + containerArgs,
         ],
       },
     },
