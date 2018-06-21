@@ -4,8 +4,6 @@
 
 set -x
 
-[ -z ${CLIENT_ID} ] && echo Error CLIENT_ID must be set && exit 1
-[ -z ${CLIENT_SECRET} ] && echo Error CLIENT_SECRET must be set && exit 1
 [ -z ${NAMESPACE} ] && echo Error NAMESPACE must be set && exit 1
 [ -z ${SERVICE} ] && echo Error SERVICE must be set && exit 1
 

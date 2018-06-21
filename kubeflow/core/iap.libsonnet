@@ -18,15 +18,15 @@
       },
     }.result,
 
-    ingressParts(secretName, ipName, hostname, issuer, envoyImage, disableJwt, oauthSecretName):: std.prune(k.core.v1.list.new([
+    ingressParts(secretName, ipName, hostname, issuer, envoyImage, disableJwt):: std.prune(k.core.v1.list.new([
       $.parts(namespace).service,
       $.parts(namespace).ingress(secretName, ipName, hostname),
       $.parts(namespace).certificate(secretName, hostname, issuer),
       $.parts(namespace).initServiceAccount,
       $.parts(namespace).initClusterRoleBinding,
       $.parts(namespace).initClusterRole,
-      $.parts(namespace).deploy(envoyImage, oauthSecretName),
-      $.parts(namespace).iapEnabler(oauthSecretName),
+      $.parts(namespace).deploy(envoyImage),
+      $.parts(namespace).iapEnabler(),
       $.parts(namespace).configMap(disableJwt),
       $.parts(namespace).whoamiService,
       $.parts(namespace).whoamiApp,
@@ -157,7 +157,7 @@
       ],
     },  // envoyContainer
 
-    deploy(image, oauthSecretName):: {
+    deploy(image):: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -197,24 +197,6 @@
                   {
                     name: "NAMESPACE",
                     value: namespace,
-                  },
-                  {
-                    name: "CLIENT_ID",
-                    valueFrom: {
-                      secretKeyRef: {
-                        name: oauthSecretName,
-                        key: "CLIENT_ID",
-                      },
-                    },
-                  },
-                  {
-                    name: "CLIENT_SECRET",
-                    valueFrom: {
-                      secretKeyRef: {
-                        name: oauthSecretName,
-                        key: "CLIENT_SECRET",
-                      },
-                    },
                   },
                   {
                     name: "SERVICE",
@@ -273,7 +255,7 @@
     },  // deploy
 
     // Run the process to enable iap
-    iapEnabler(oauthSecretName):: {
+    iapEnabler():: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -302,24 +284,6 @@
                   {
                     name: "NAMESPACE",
                     value: namespace,
-                  },
-                  {
-                    name: "CLIENT_ID",
-                    valueFrom: {
-                      secretKeyRef: {
-                        name: oauthSecretName,
-                        key: "CLIENT_ID",
-                      },
-                    },
-                  },
-                  {
-                    name: "CLIENT_SECRET",
-                    valueFrom: {
-                      secretKeyRef: {
-                        name: oauthSecretName,
-                        key: "CLIENT_SECRET",
-                      },
-                    },
                   },
                   {
                     name: "SERVICE",

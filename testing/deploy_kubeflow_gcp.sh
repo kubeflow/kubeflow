@@ -34,10 +34,6 @@ export ZONE=us-east1-d
 # Set config file to the YAML file defining your deployment manager configs.
 export CONFIG_FILE=cluster-kubeflow.yaml
 
-# Set placeholder values
-export CLIENT_ID=x
-export CLIENT_SECRET=y
-
 if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS}" ]]; then
   gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
 fi
