@@ -35,11 +35,17 @@ def parse_args():
     default="",
     type=str,
     help="The kubeflow src directory")
+  parser.add_argument(
+    "--tf_job_version",
+    default="v1alpha1",
+    type=str,
+    help="Which TFJob version to use")
   args, _ = parser.parse_known_args()
   return args
 
 @retry(wait_fixed=5000, stop_max_attempt_number=20)
-def wait_for_tf_job():
+def wait_for_tf_job(label_selector):
+  """Ensure pods enter running state."""
   out = util.run(["kubectl", "get", "pods", "-l",
                   "tf_job_name=mycnnjob", "-ndefault"])
   if "No resources found" in out \
@@ -51,7 +57,7 @@ def wait_for_tf_job():
   if "No resources found" in out \
        or len(out.split("\n")) != 3:
     raise Exception("Could not find services with label tf_job_name=mycnnjob")
-  logging.info("Found services with label tf_job_name=mycnnjob")    
+  logging.info("Found services with label tf_job_name=mycnnjob")
 
 def test_tf_job_simple(test_case): # pylint: disable=redefined-outer-name
   args = parse_args()
@@ -59,7 +65,16 @@ def test_tf_job_simple(test_case): # pylint: disable=redefined-outer-name
   os.chdir("tf-job-simple-app")
   util.run(["ks", "registry", "add", "kubeflow", args.src_dir + "/kubeflow"])
   util.run(["ks", "pkg", "install", "kubeflow/examples"])
-  util.run(["ks", "generate", "tf-job-simple", "tf-job-simple"])
+
+  if args.tf_job_version == "v1alpha2":
+    prototype_name = "tf-job-simple"
+  elif args.tf_job_version == "v1alpha1":
+    prototype_name = "tf-job-simple-v1alpha1"
+  else:
+    raise ValueError("Unrecognized value for tf_job_version: %s" %
+                     args.tf_job_version)
+
+  util.run(["ks", "generate", prototype_name, "tf-job-simple"])
   util.run(["ks", "apply", "default", "-c", "tf-job-simple"])
   try:
     wait_for_tf_job()
