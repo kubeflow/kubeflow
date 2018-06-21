@@ -345,6 +345,22 @@ func appGenerate(opt *options.ServerOption, kfApp *kApp.App, fs *afero.Fs, bootC
 	return err
 }
 
+func runBashCommand(rawCmd string, description string) error {
+  applyCmd := exec.Command("bash", "-c", rawCmd)
+
+  var out bytes.Buffer
+  var stderr bytes.Buffer
+  applyCmd.Stdout = &out
+  applyCmd.Stderr = &stderr
+  if err := applyCmd.Run(); err != nil {
+    log.Infof(description + " failed: " + fmt.Sprint(err) + "\n" + out.String() + "\n" + stderr.String())
+    return err
+  } else {
+    log.Infof(description + " successfully.\n" + out.String() + "\n" + stderr.String())
+    return nil
+  }
+}
+
 // Run the tool.
 func Run(opt *options.ServerOption) error {
 	// Check if the -version flag was passed and, if so, print the version and exit.
@@ -538,20 +554,19 @@ func Run(opt *options.ServerOption) error {
 			rawCmd := fmt.Sprintf(
 				"ks apply default -c %v --token=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)",
 				component.Name)
-			applyCmd := exec.Command("bash", "-c", rawCmd)
 
-			var out bytes.Buffer
-			var stderr bytes.Buffer
-			applyCmd.Stdout = &out
-			applyCmd.Stderr = &stderr
-			if err := applyCmd.Run(); err != nil {
-				log.Infof("Component apply failed: " + fmt.Sprint(err) + "\n" + out.String() + "\n" + stderr.String())
-				return err
-			} else {
-				// ks apply output to stderr on success case as well
-				log.Infof("Component apply successfully.\n" + out.String() + "\n" + stderr.String())
-			}
+      if err := runBashCommand(rawCmd, "Component apply"); err != nil {
+        return err
+      }
 		}
+
+    // Deploy GKE driver daemonset.
+    err := runBashCommand(
+      "kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/stable/nvidia-driver-installer/cos/daemonset-preloaded.yaml",
+      "Deploy GPU driver")
+    if err != nil {
+      return err
+    }
 	}
 	if opt.InCluster && opt.KeepAlive {
 		log.Infof("Keeping pod alive...")
