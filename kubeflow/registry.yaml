@@ -31,3 +31,6 @@ libraries:
   automation:
     version: master
     path: automation
+  mpi-job:
+    version: master
+    path: mpi-job
