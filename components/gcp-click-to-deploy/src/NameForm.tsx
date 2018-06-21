@@ -1,7 +1,6 @@
 import * as jsYaml from 'js-yaml';
 import * as React from 'react';
-
-const gapi: any = null;
+import Gapi from './Gapi';
 
 interface NameFormProps {
   getDeploymentTemplates: () => { clusterJinja: string, clusterSpec: any };
@@ -165,15 +164,13 @@ export default class NameForm extends React.Component<NameFormProps & React.HTML
       },
     };
 
-    gapi.client.deploymentmanager.deployments.insert({
-      project: this.state.project,
-      resource,
-    }).then((res: any) => {
-      this.props.appendLine('Result of insert:\n' + res);
-    }, (err: any) => {
-      this.props.appendLine('Error doing insert:\n' + err);
-      alert('Error doing insert: ' + err)
-    });
+    Gapi.deploymentmanager.insert(this.state.project, resource)
+      .then((res: any) => {
+        this.props.appendLine('Result of insert:\n' + res);
+      }, (err: any) => {
+        this.props.appendLine('Error doing insert:\n' + err);
+        alert('Error doing insert: ' + err)
+      });
 
   } // insertDeployment
 

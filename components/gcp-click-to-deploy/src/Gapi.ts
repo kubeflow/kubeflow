@@ -1,36 +1,53 @@
-/// <reference path="../node_modules/@types/gapi/index.d.ts" />
+export default class Gapi {
 
-export default class GapiManager {
+  public static deploymentmanager = class {
 
-  private _loadPromise: Promise<void>;
-  // TODO(jlewi): ClientId for project cloud-ml-dev we should change this.
-  private readonly _CLIENT_ID = '236417448818-pksajgd0a6ghtjv3rlbvr7h9lo6uu17t.apps.googleusercontent.com';
-  private readonly _SCOPE = 'https://www.googleapis.com/auth/cloud-platform';
-  private _currentUser: null | gapi.auth2.GoogleUser = null; // Gets set by _loadClientId
+    public static async insert(project: string, resource: {}) {
+      await this._load();
+      return this._deploymentManager.insert({ project, resource } as any).then(r => r.body);
+    }
 
-  public async signIn(doPrompt?: boolean): Promise<void> {
+    public static async list() {
+      await this._load();
+      return this._deploymentManager.list({ project: 'yelsayed-project1' }).then(r => r.body);
+    }
+
+    private static _deploymentManager: gapi.client.deploymentmanager.DeploymentsResource;
+
+    private static async _load() {
+      await Gapi.load();
+      return new Promise(resolve =>
+        gapi.client.load('deploymentmanager', 'v2', () => resolve()))
+        .then(() => {
+          this._deploymentManager = (gapi.client as any).deploymentmanager.deployments;
+        });
+    }
+
+  }
+
+  public static async signIn(doPrompt?: boolean): Promise<void> {
     const rePromptOptions = 'login consent select_account';
     const promptFlags = doPrompt ? rePromptOptions : '';
     const options = {
       prompt: promptFlags,
     };
-    await this.loadGapi();
+    await this.load();
     await gapi.auth2.getAuthInstance().signIn(options);
   }
 
-  public async signOut(): Promise<void> {
-    return this.loadGapi()
+  public static async signOut(): Promise<void> {
+    return this.load()
       .then(() => gapi.auth2.getAuthInstance().signOut());
   }
 
-  public async getSignedInEmail(): Promise<string | null> {
-    await this.loadGapi();
+  public static async getSignedInEmail(): Promise<string | null> {
+    await this.load();
     const user = await this._getCurrentUser();
     return user ? user.getBasicProfile().getEmail() : null;
   }
 
-  public async loadSigninButton(): Promise<any> {
-    await this.loadGapi();
+  public static async loadSigninButton(): Promise<any> {
+    await this.load();
     return this._loadPromise.then(() => new Promise((resolve, reject) => {
       gapi.load('signin2', { callback: resolve, onerror: (e: string) => reject(e) });
     })).then(() => gapi.signin2.render('loginButton', {
@@ -40,7 +57,7 @@ export default class GapiManager {
     }));
   }
 
-  public loadGapi(): Promise<void> {
+  public static load(): Promise<void> {
     if (!this._loadPromise) {
       this._loadPromise = new Promise((resolve, reject) =>
         gapi.load('client:auth2', { callback: resolve, onerror: (e: string) => reject(e) }))
@@ -50,8 +67,14 @@ export default class GapiManager {
     return this._loadPromise;
   }
 
-  private async _updateSigninStatus() {
-    await this.loadGapi();
+  private static _loadPromise: Promise<void>;
+  // TODO(jlewi): ClientId for project cloud-ml-dev we should change this.
+  private static readonly _CLIENT_ID = '236417448818-pksajgd0a6ghtjv3rlbvr7h9lo6uu17t.apps.googleusercontent.com';
+  private static readonly _SCOPE = 'https://www.googleapis.com/auth/cloud-platform';
+  private static _currentUser: null | gapi.auth2.GoogleUser = null; // Gets set by _loadClientId
+
+  private static async _updateSigninStatus() {
+    await this.load();
     if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
       this._currentUser = gapi.auth2.getAuthInstance().currentUser.get();
     } else {
@@ -59,7 +82,7 @@ export default class GapiManager {
     }
   }
 
-  private _loadClient(): Promise<void> {
+  private static _loadClient(): Promise<void> {
     return gapi.auth2.init({
       client_id: this._CLIENT_ID,
       fetch_basic_profile: true,
@@ -74,8 +97,8 @@ export default class GapiManager {
     });
   }
 
-  private async _getCurrentUser(): Promise<null | gapi.auth2.GoogleUser> {
-    await this.loadGapi();
+  private static async _getCurrentUser(): Promise<null | gapi.auth2.GoogleUser> {
+    await this.load();
     return this._currentUser;
   }
 }

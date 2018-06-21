@@ -1,6 +1,6 @@
 import * as jsYaml from 'js-yaml';
 import * as React from 'react';
-import GapiManager from './Gapi';
+import Gapi from './Gapi';
 
 // TODO(jlewi): Replace with official logo image. Also it would 
 // be good to use a .svg or at least a high res image.
@@ -93,13 +93,12 @@ class App extends React.Component<any, DeploymentTemplates> {
   }
 
   public async componentDidMount() {
-    const gapiManager = new GapiManager();
     window.gapiPromise.then(async () => {
       log('gapi loaded');
-      await gapiManager.loadGapi();
+      await Gapi.load();
       // TODO: Hide this if the user is signed in, show the user's email instead.
-      await gapiManager.loadSigninButton();
-      log(await gapiManager.getSignedInEmail());
+      await Gapi.loadSigninButton();
+      log(await Gapi.getSignedInEmail());
     });
 
     // Load the YAML and jinja templates
@@ -124,7 +123,6 @@ class App extends React.Component<any, DeploymentTemplates> {
       .catch((error) => {
         log('Request failed', error)
       });
-
 
     this._appendLine('loadClusterSpec');
     // Load the YAML for the actual config and parse it.

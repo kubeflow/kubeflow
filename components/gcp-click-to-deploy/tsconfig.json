@@ -16,7 +16,8 @@
     "noImplicitAny": true,
     "strictNullChecks": true,
     "suppressImplicitAnyIndexErrors": true,
-    "noUnusedLocals": true
+    "noUnusedLocals": true,
+    "types": ["gapi.auth2", "gapi.client", "gapi.client.deploymentmanager"]
   },
   "exclude": [
     "node_modules",
