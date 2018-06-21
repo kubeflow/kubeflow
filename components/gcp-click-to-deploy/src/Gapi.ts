@@ -7,9 +7,9 @@ export default class Gapi {
       return this._deploymentManager.insert({ project, resource } as any).then(r => r.body);
     }
 
-    public static async list() {
+    public static async list(project: string) {
       await this._load();
-      return this._deploymentManager.list({ project: 'yelsayed-project1' }).then(r => r.body);
+      return this._deploymentManager.list({ project }).then(r => r.body);
     }
 
     private static _deploymentManager: gapi.client.deploymentmanager.DeploymentsResource;
