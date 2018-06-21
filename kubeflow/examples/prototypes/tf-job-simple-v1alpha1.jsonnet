@@ -1,25 +1,25 @@
 // @apiVersion 0.1
-// @name io.ksonnet.pkg.tf-job-simple
+// @name io.ksonnet.pkg.tf-job-simple-v1alpha1
 // @description tf-job-simple
 // @shortDescription A simple TFJob to run CNN benchmark
-// @param name string Name for the job.
+// @param name string Name to give to each of the components
 
 local k = import "k.libsonnet";
 
-local name = params.name;
-local namespace = env.namespace;
+local name = import "param://name";
+local namespace = "default";
 local image = "gcr.io/kubeflow/tf-benchmarks-cpu:v20171202-bdab599-dirty-284af3";
 
 local tfjob = {
-  apiVersion: "kubeflow.org/v1alpha2",
+  apiVersion: "kubeflow.org/v1alpha1",
   kind: "TFJob",
   metadata: {
     name: name,
     namespace: namespace,
   },
   spec: {
-    tfReplicaSpecs: {
-      Worker: {
+    replicaSpecs: [
+      {
         replicas: 1,
         template: {
           spec: {
@@ -45,8 +45,10 @@ local tfjob = {
             restartPolicy: "OnFailure",
           },
         },
+        tfReplicaType: "WORKER",
       },
-      Ps: {
+      {
+        replicas: 1,
         template: {
           spec: {
             containers: [
@@ -73,7 +75,7 @@ local tfjob = {
         },
         tfReplicaType: "PS",
       },
-    },
+    ],
     terminationPolicy: {
       chief: {
         replicaIndex: 0,
