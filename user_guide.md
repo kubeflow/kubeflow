@@ -35,7 +35,7 @@ For an end to end example illustrating in details how to deploy kubeflow and run
 
 ## Requirements
  * Kubernetes >= 1.8 [see here](https://github.com/kubeflow/tf-operator#requirements)
- * ksonnet version [0.9.2](https://ksonnet.io/#get-started). (See [below](#why-kubeflow-uses-ksonnet) for an explanation of why we use ksonnet)
+ * ksonnet version [0.10.2](https://ksonnet.io/#get-started). (See [below](#why-kubeflow-uses-ksonnet) for an explanation of why we use ksonnet)
  * An existing kubernetes cluster:
    * A minimum of 0.6 CPU in cluster (Reserved for 3 replicated ambassador pods and according to your need add additional CPUs)
    * Node with storage >= 10 GB (Due to the ML libraries and third party packages being bundled in Kubeflow Docker images)
@@ -696,7 +696,7 @@ export GITHUB_TOKEN=<< token >>
 
 ### ks apply produces error "Unknown variable: env"
 
-Kubeflow requires ksonnet version 0.9.2 or later [see here](https://github.com/kubeflow/kubeflow/blob/master/user_guide.md#requirements). If you run `ks apply` with an older version of ksonnet you will likely get the error `Unknown variable: env` as illustrated below:
+Kubeflow requires ksonnet version 0.10.2 or later [see here](https://github.com/kubeflow/kubeflow/blob/master/user_guide.md#requirements). If you run `ks apply` with an older version of ksonnet you will likely get the error `Unknown variable: env` as illustrated below:
 
 ```shell
 ks apply ${KF_ENV} -c kubeflow-core
@@ -711,7 +711,7 @@ You can check the ksonnet version as follows:
 ks version
 ```
 
-If your ksonnet version is lower than v0.9.2, please upgrade it and follow the [user_guide](https://github.com/kubeflow/kubeflow/blob/master/user_guide.md) to recreate the app.
+If your ksonnet version is lower than v0.10.2, please upgrade it and follow the [user_guide](https://github.com/kubeflow/kubeflow/blob/master/user_guide.md) to recreate the app.
 
 ## Why Kubeflow Uses Ksonnet
 
