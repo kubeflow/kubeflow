@@ -25,4 +25,4 @@ local updatedParams = params {
 local namespace = updatedParams.namespace;
 local disableJwtChecking = util.toBool(params.disableJwtChecking);
 
-iap.parts(namespace).ingressParts(params.secretName, params.ipName, params.hostname, params.issuer, params.envoyImage, disableJwtChecking, oauthEmailAddress)
+iap.parts(namespace).ingressParts(params.secretName, params.ipName, params.hostname, params.issuer, params.envoyImage, disableJwtChecking, params.oauthEmailAddress)
