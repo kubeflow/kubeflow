@@ -22,7 +22,6 @@ export CONFIG_FILE=${CONFIG_FILE:-}
 if [ -z "${PROJECT}" ] || \
    [ -z "${DEPLOYMENT_NAME}" ] || \
    [ -z "${ZONE}" ] || \
-   [ -z "${EMAIL_ADDRESS}" ] || \
    [ -z "${CONFIG_FILE}" ]; then
   echo 'Required variables missing. Please check again!'
   exit 1
@@ -73,4 +72,3 @@ kubectl create namespace ${K8S_NAMESPACE}
 kubectl create secret generic --namespace=${K8S_ADMIN_NAMESPACE} admin-gcp-sa --from-file=admin-gcp-sa.json=./${SA_EMAIL}.json
 kubectl create secret generic --namespace=${K8S_NAMESPACE} admin-gcp-sa --from-file=admin-gcp-sa.json=./${SA_EMAIL}.json
 kubectl create secret generic --namespace=${K8S_NAMESPACE} user-gcp-sa --from-file=user-gcp-sa.json=./${USER_EMAIL}.json
-kubectl create secret generic --namespace=${K8S_NAMESPACE} kubeflow-oauth-email --from-literal=EMAIL_ADDRESS=${OAUTH_EMAIL_ADDRESS}

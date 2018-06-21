@@ -18,7 +18,7 @@
       },
     }.result,
 
-    ingressParts(secretName, ipName, hostname, issuer, envoyImage, disableJwt, oauthEmailSecretName):: std.prune(k.core.v1.list.new([
+    ingressParts(secretName, ipName, hostname, issuer, envoyImage, disableJwt, oauthEmailAddress):: std.prune(k.core.v1.list.new([
       $.parts(namespace).service,
       $.parts(namespace).ingress(secretName, ipName, hostname),
       $.parts(namespace).certificate(secretName, hostname, issuer),
@@ -26,7 +26,7 @@
       $.parts(namespace).initClusterRoleBinding,
       $.parts(namespace).initClusterRole,
       $.parts(namespace).deploy(envoyImage),
-      $.parts(namespace).iapEnabler(oauthEmailSecretName),
+      $.parts(namespace).iapEnabler(oauthEmailAddress),
       $.parts(namespace).configMap(disableJwt),
       $.parts(namespace).whoamiService,
       $.parts(namespace).whoamiApp,
@@ -255,7 +255,7 @@
     },  // deploy
 
     // Run the process to enable iap
-    iapEnabler(oauthEmailSecretName):: {
+    iapEnabler(oauthEmailAddress):: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -287,12 +287,7 @@
                   },
                   {
                     name: "EMAIL_ADDRESS",
-                    valueFrom: {
-                      secretKeyRef: {
-                        name: oauthEmailSecretName,
-                        key: "EMAIL_ADDRESS",
-                      },
-                    },
+                    value: oauthEmailAddress,
                   },
                   {
                     name: "SERVICE",
