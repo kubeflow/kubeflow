@@ -4,10 +4,14 @@
 # This is script defines values for all the variables used in
 # the instructions.
 
-# Bucket and project must be unique for each project 
+# Bucket and project must be unique for each project
 
 # Set PROJECT to the project you want to use with Kubeflow.
 export PROJECT=<your_project>
+
+# This should be the cluster admin's email address. This is used for
+# OAuth Login screen.
+export OAUTH_EMAIL_ADDRESS=user@example.com
 
 # Set DEPLOYMENT_NAME to the name to give to the deployment.
 # The name must be unique for each deployment within your project.

@@ -3,7 +3,7 @@
 # A simple shell script to enable IAP and configure timeouts by using gcloud.
 
 set -x
-
+[ -z ${EMAIL_ADDRESS} ] && echo Error EMAIL_ADDRESS must be set && exit 1
 [ -z ${NAMESPACE} ] && echo Error NAMESPACE must be set && exit 1
 [ -z ${SERVICE} ] && echo Error SERVICE must be set && exit 1
 
@@ -72,7 +72,7 @@ BACKEND_SERVICE=$(gcloud --project=${PROJECT} compute backend-services list --fi
 iap_patch='.iap = {
   "enabled": true,
   "oauth2ClientInfo": {
-    "developerEmailAddress": "iap@kubeflow.org",
+    "developerEmailAddress": "'"${EMAIL_ADDRESS}"'",
     "applicationName": "Kubeflow",
     "clientName": "kubeflow_iap_client"
   }
