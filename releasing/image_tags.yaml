@@ -1,0 +1,7 @@
+# This file is a map from images to tags that should be applied
+# to an image. The images should be referenced by sha so they are
+# immutable.
+images:
+  - image: gcr.io/kubeflow-images-public/tf_operator@sha256:4f20e349f79059a009ef75aea158ca0c555fcc4a22e7c80a7cb9bff54fbab6c1
+    tags: 
+      - gcr.io/kubeflow-images-public/tf_operator:v0.2.0
