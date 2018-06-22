@@ -6,7 +6,7 @@
   - [Create Release Workflow](#create-release-workflow)
   - [Update Release Config](#update-release-config)
 
-- [Manual Release Kubeflow](#manual-release-kubeflow)
+- [Release Kubeflow](#release-kubeflow)
   - [Authenticate to GCP](#authenticate-to-gcp)
   - [Update TFJob](#update-tfjob)
   - [Build TF Serving Images](#build-tf-serving-images)
@@ -83,7 +83,7 @@ A prototype would be:
 
 Your images will be auto released everyday.
 
-# Example: Manual Release Kubeflow
+# Release Kubeflow
 
 Some preliminary instructions for how to cut a release.
 
@@ -222,6 +222,36 @@ If you aren't already working on a release branch (of the form `v${MAJOR}.${MINO
 2.  they allow developers to track the development of a release before a release candidate is declared,
 2.  they allow sophisticated users to track the development of a release (by using the release branch as a `ksonnet` registry), and
 4.  they simplify backporting critical bugfixes to a patchlevel release particular release stream (e.g., producing a `v0.1.1` from `v0.1-branch`), when appropriate.
+
+## Updating ksonnet prototypes with docker image
+
+Here is the general process for how we update our Docker prototypes to point to
+the correct Docker image.
+
+1. Build a Docker image using whatever tagging schema you like 
+
+   * General convention is v${DATE}-${COMMIT}
+
+1. On the **release branch** update all references to images that will be updated as part
+   of the release to use the tag v${RELEASE} where ${RELEASE} will be the next release
+
+   * e.g if the next RC is v0.2.1-RC.0 then you would use tag v0.2.1
+   * You can modify and then run the script `releasing/update_ksonnet.sh` to update
+     the prototypes
+
+1. Update [image_tags.yaml](https://github.com/kubeflow/kubeflow/blob/master/releasing/image_tags.yaml) **on the master branch**
+   
+   * You can do this by updating and then running **update_image_tags.sh**
+      * This invokes some python scripts that use regexes to match
+        images and apply a tag to them
+      * You can use suitable regexes to get a group of images (e.g. all the 
+        notebook) images.
+   * There should be an entry for ever image you want to use referenced by the sha of the image
+   * If there was a previous release using an earlier image, remove the tag v${RELEASE}
+     from that entry
+   * Add the tag v${RELEASE} to the newly added image
+   * Run apply_image_tags.py
+   * Create a PR checking **into master** the changes in image_tags.yaml
 
 ### Release branching policy
 

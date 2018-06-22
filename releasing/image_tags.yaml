@@ -1,7 +1,150 @@
-# This file is a map from images to tags that should be applied
-# to an image. The images should be referenced by sha so they are
-# immutable.
 images:
-  - image: gcr.io/kubeflow-images-public/tf_operator@sha256:4f20e349f79059a009ef75aea158ca0c555fcc4a22e7c80a7cb9bff54fbab6c1
-    tags: 
-      - gcr.io/kubeflow-images-public/tf_operator:v0.2.0
+- name: gcr.io/kubeflow-images-public/tensorflow-1.4.1-notebook-cpu
+  versions:
+  - digest: sha256:f7fbde2e30a81d87df8987efb55ffeb9d3eb8d8436e9f4e4179a5aaf1557a860
+    tags:
+    - latest
+    - v20180619-c79194b3
+    - v0.2.0
+    timestamp:
+      datetime: '2018-06-19 10:40:06-07:00'
+      day: 19
+      hour: 10
+      microsecond: 0
+      minute: 40
+      month: 6
+      second: 6
+      year: 2018
+- name: gcr.io/kubeflow-images-public/tensorflow-1.5.1-notebook-cpu
+  versions:
+  - digest: sha256:9bbd319374e73f7632e0ffe4d8b52c5280c2c8ea00032629c91e03121d1ab4c3
+    tags:
+    - latest
+    - v20180619-c79194b3
+    - v0.2.0
+    timestamp:
+      datetime: '2018-06-19 10:40:09-07:00'
+      day: 19
+      hour: 10
+      microsecond: 0
+      minute: 40
+      month: 6
+      second: 9
+      year: 2018
+- name: gcr.io/kubeflow-images-public/tensorflow-1.5.1-notebook-gpu
+  versions:
+  - digest: sha256:eea72345728b29cfe77d859c3a4c7907fea2ccf71947f5580080592dc31a4017
+    tags:
+    - latest
+    - v20180619-c79194b3
+    - v0.2.0
+    timestamp:
+      datetime: '2018-06-19 10:08:08-07:00'
+      day: 19
+      hour: 10
+      microsecond: 0
+      minute: 8
+      month: 6
+      second: 8
+      year: 2018
+- name: gcr.io/kubeflow-images-public/tensorflow-1.6.0-notebook-cpu
+  versions:
+  - digest: sha256:dadb6730d9aadb7b024e3ebe0c4c76ff46e4b56f0c12367db3afbd4c1a732550
+    tags:
+    - latest
+    - v20180619-c79194b3
+    - v0.2.0
+    timestamp:
+      datetime: '2018-06-19 10:13:37-07:00'
+      day: 19
+      hour: 10
+      microsecond: 0
+      minute: 13
+      month: 6
+      second: 37
+      year: 2018
+- name: gcr.io/kubeflow-images-public/tensorflow-1.6.0-notebook-gpu
+  versions:
+  - digest: sha256:e1ffb27e9b831f5ad7db447e5cb1b4b6ecc135a3b95cbf7b4226fcf8f184be3b
+    tags:
+    - latest
+    - v20180619-c79194b3
+    - v0.2.0
+    timestamp:
+      datetime: '2018-06-19 10:35:55-07:00'
+      day: 19
+      hour: 10
+      microsecond: 0
+      minute: 35
+      month: 6
+      second: 55
+      year: 2018
+- name: gcr.io/kubeflow-images-public/tensorflow-1.7.0-notebook-cpu
+  versions:
+  - digest: sha256:01d4be10c25c9b44a3818eedb603eb97dcfbdb8368a1c6186780a142889e3687
+    tags:
+    - latest
+    - v20180619-c79194b3
+    - v0.2.0
+    timestamp:
+      datetime: '2018-06-19 10:12:10-07:00'
+      day: 19
+      hour: 10
+      microsecond: 0
+      minute: 12
+      month: 6
+      second: 10
+      year: 2018
+- name: gcr.io/kubeflow-images-public/tensorflow-1.7.0-notebook-gpu
+  versions:
+  - digest: sha256:2495fd5a62e6e1746255d0973f455171f5d939655bcb839b203c38032bf1f3e2
+    tags:
+    - latest
+    - v20180619-c79194b3
+    - v0.2.0
+    timestamp:
+      datetime: '2018-06-19 10:45:14-07:00'
+      day: 19
+      hour: 10
+      microsecond: 0
+      minute: 45
+      month: 6
+      second: 14
+      year: 2018
+- name: gcr.io/kubeflow-images-public/tensorflow-1.8.0-notebook-cpu
+  versions:
+  - digest: sha256:34be48e7c812f6fa68f6321587a90b571e8cd138614ab5ad4331e993f50beeae
+    tags:
+    - latest
+    - v20180619-c79194b3
+    - v0.2.0
+    timestamp:
+      datetime: '2018-06-19 10:11:42-07:00'
+      day: 19
+      hour: 10
+      microsecond: 0
+      minute: 11
+      month: 6
+      second: 42
+      year: 2018
+- name: gcr.io/kubeflow-images-public/tensorflow-1.8.0-notebook-gpu
+  versions:
+  - digest: sha256:6b928a95e2109eb45d078fce8a757c2218a2965f653a6ed1a492ee5cf497c012
+    tags:
+    - latest
+    - v20180619-c79194b3
+    - v0.2.0
+    timestamp:
+      datetime: '2018-06-19 10:46:20-07:00'
+      day: 19
+      hour: 10
+      microsecond: 0
+      minute: 46
+      month: 6
+      second: 20
+      year: 2018
+- name: gcr.io/kubeflow-images-public/tf_operator
+  versions:
+  - digest: sha256:4f20e349f79059a009ef75aea158ca0c555fcc4a22e7c80a7cb9bff54fbab6c1
+    tags:
+    - v0.2.0

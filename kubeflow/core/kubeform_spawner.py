@@ -14,16 +14,16 @@ class KubeFormSpawner(KubeSpawner):
     <label for='image'>Image</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <input list="image" name="image" placeholder='repo/image:tag'>
     <datalist id="image">
-      <option value="{0}/{1}/tensorflow-1.4.1-notebook-cpu:v20180607-476e150e">
-      <option value="{0}/{1}/tensorflow-1.4.1-notebook-gpu:v20180607-476e150e">
-      <option value="{0}/{1}/tensorflow-1.5.1-notebook-cpu:v20180607-476e150e">
-      <option value="{0}/{1}/tensorflow-1.5.1-notebook-gpu:v20180607-476e150e">
-      <option value="{0}/{1}/tensorflow-1.6.0-notebook-cpu:v20180607-476e150e">
-      <option value="{0}/{1}/tensorflow-1.6.0-notebook-gpu:v20180607-476e150e">
-      <option value="{0}/{1}/tensorflow-1.7.0-notebook-cpu:v20180607-476e150e">
-      <option value="{0}/{1}/tensorflow-1.7.0-notebook-gpu:v20180607-476e150e">
-      <option value="{0}/{1}/tensorflow-1.8.0-notebook-cpu:v20180607-476e150e">
-      <option value="{0}/{1}/tensorflow-1.8.0-notebook-gpu:v20180607-476e150e">
+      <option value="{0}/{1}/tensorflow-1.4.1-notebook-cpu:v0.2.0">
+      <option value="{0}/{1}/tensorflow-1.4.1-notebook-gpu:v0.2.0">
+      <option value="{0}/{1}/tensorflow-1.5.1-notebook-cpu:v0.2.0">
+      <option value="{0}/{1}/tensorflow-1.5.1-notebook-gpu:v0.2.0">
+      <option value="{0}/{1}/tensorflow-1.6.0-notebook-cpu:v0.2.0">
+      <option value="{0}/{1}/tensorflow-1.6.0-notebook-gpu:v0.2.0">
+      <option value="{0}/{1}/tensorflow-1.7.0-notebook-cpu:v0.2.0">
+      <option value="{0}/{1}/tensorflow-1.7.0-notebook-gpu:v0.2.0">
+      <option value="{0}/{1}/tensorflow-1.8.0-notebook-cpu:v0.2.0">
+      <option value="{0}/{1}/tensorflow-1.8.0-notebook-gpu:v0.2.0">
     </datalist>
     <br/><br/>
 
@@ -57,7 +57,7 @@ class KubeFormSpawner(KubeSpawner):
         if cloud == 'ack':
             image = 'registry.aliyuncs.com/kubeflow-images-public/tensorflow-notebook-cpu'
         else:
-            image = 'gcr.io/kubeflow-images-public/tensorflow-1.8.0-notebook-cpu:v20180619-c79194b3'
+            image = 'gcr.io/kubeflow-images-public/tensorflow-1.8.0-notebook-cpu:v0.2.0'
         if self.user_options.get('image'):
             image = self.user_options['image']
         return image
