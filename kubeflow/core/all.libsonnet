@@ -7,6 +7,7 @@
     local spartakus = import "kubeflow/core/spartakus.libsonnet",
     local centraldashboard = import "kubeflow/core/centraldashboard.libsonnet",
     local version = import "kubeflow/core/version.libsonnet",
+    local gpuDriver = import "kubeflow/core/gpu-driver-daemonset.libsonnet",
 
     all:: jupyterhub.all(params)
           + tfjob.all(params)
@@ -14,6 +15,7 @@
           + nfs.all(params)
           + spartakus.all(params)
           + centraldashboard.all(params)
-          + version.all(params),
+          + version.all(params)
+          + gpuDriver.all,
   },
 }
