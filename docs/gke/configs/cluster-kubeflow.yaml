@@ -65,7 +65,7 @@ resources:
       # - user:john@acme.com
       # - group:data-scientists@acme.com
     # Path for the bootstrapper image.
-    bootstrapperImage: gcr.io/kubeflow-images-public/bootstrapper:v20180618-715aafc
+    bootstrapperImage: gcr.io/kubeflow-images-public/bootstrapper:v0.2.0
     # This is the name of the GCP static ip address reserved for your domain.
     # Each Kubeflow deployment in your project should use one unique ipName among all configs.
     ipName: kubeflow-ip
