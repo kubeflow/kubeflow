@@ -6,7 +6,7 @@
 // @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
 // @optionalParam cloud string null String identifying the cloud to customize the deployment for.
 // @optionalParam tfAmbassadorServiceType string ClusterIP The service type for the API Gateway.
-// @optionalParam tfJobImage string gcr.io/kubeflow-images-public/tf_operator:v20180615-b2ac020 The image for the TfJob controller.
+// @optionalParam tfJobImage string gcr.io/kubeflow-images-public/tf_operator:v0.2.0 The image for the TfJob controller.
 // @optionalParam tfDefaultImage string null The default image to use for TensorFlow.
 // @optionalParam tfJobUiServiceType string ClusterIP The service type for the UI.
 // @optionalParam tfJobVersion string v1alpha2 which version of the TFJob operator to use
