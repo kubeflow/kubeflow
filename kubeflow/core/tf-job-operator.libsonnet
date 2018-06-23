@@ -427,9 +427,6 @@
               "name: tfjobs-ui-mapping",
               "prefix: /tfjobs/",
               "rewrite: /tfjobs/",
-              "cors:",
-              "  origins: https://kamkasravi.com",
-              "  credentials: yes",
               "service: tf-job-dashboard." + namespace,
             ]),
         },  //annotations
