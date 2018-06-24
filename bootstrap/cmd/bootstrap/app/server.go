@@ -292,7 +292,7 @@ func appGenerate(opt *options.ServerOption, kfApp *kApp.App, fs *afero.Fs, bootC
 		if err != nil {
 			return errors.New(fmt.Sprintf("Package %v didn't exist in registry %v", pkgName, regUris[p.Registry]))
 		}
-		full := fmt.Sprintf("kubeflow/%v", pkgName)
+		full := fmt.Sprintf("%v/%v", p.Registry, pkgName)
 		log.Infof("Installing package %v", full)
 
 		if _, found := libs[pkgName]; found {

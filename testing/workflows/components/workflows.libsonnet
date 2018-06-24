@@ -313,8 +313,12 @@
                     {
                       name: "test-dir-delete",
                       template: "test-dir-delete",
-                      dependencies: ["copy-artifacts"],
-                    },
+                      dependencies: ["copy-artifacts", "teardown-kubeflow-gcp" + v1alpha2Suffix],
+                    } else {
+                    name: "test-dir-delete",
+                    template: "test-dir-delete",
+                    dependencies: ["copy-artifacts"],
+                  },
                   {
                     name: "copy-artifacts",
                     template: "copy-artifacts",
