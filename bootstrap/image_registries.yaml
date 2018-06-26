@@ -4,6 +4,6 @@
 registries:
   - name: kubeflow
     repo: https://github.com/kubeflow/kubeflow.git
-    branch: master
+    branch: v0.2-branch
     # relative path to registry from git repo.
     path: kubeflow
