@@ -13,7 +13,7 @@ neural networks using [tf_cnn_benchmarks](https://github.com/tensorflow/benchmar
 which is optimized for performance.
 
 
-For instructions on running these jobs refere to the [user_guide](https://github.com/kubeflow/kubeflow/blob/master/user_guide.md#run-the-tfcnn-example)
+For instructions on running these jobs refere to the [user_guide](https://www.kubeflow.org/docs/user_guide/#run-the-tfcnn-example)
 
 By default the examples run using synthetic data and save the trained model
 inside the container.
