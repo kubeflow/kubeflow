@@ -67,7 +67,7 @@ functionality and actively soliciting help from companies and individuals intere
 
 ## Setup
 
-This documentation assumes you have a Kubernetes cluster already available. If you need help setting up a Kubernetes cluster please refer to [Kubernetes Setup](https://kubernetes.io/docs/setup/). Minikube users please check these [instructions](user_guide.md#minikube). If you want to use GPUs, be sure to follow the Kubernetes [instructions for enabling GPUs](https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/).
+This documentation assumes you have a Kubernetes cluster already available. If you need help setting up a Kubernetes cluster please refer to [Kubernetes Setup](https://kubernetes.io/docs/setup/). Minikube users please check these [instructions](https://www.kubeflow.org/docs/user_guide/#minikube). If you want to use GPUs, be sure to follow the Kubernetes [instructions for enabling GPUs](https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/).
 
 ## Quick Start
 
@@ -137,17 +137,17 @@ The above commands are used to setup JupyterHub and a custom resource for runnin
 Used together, these make it easy for a user to transition from training to model serving using Tensorflow with minimal
 effort, and in a portable fashion across different environments.
 
-For more detailed instructions about how to use Kubeflow, including testing the Jupyter Notebook, please refer to the [user guide](user_guide.md).
+For more detailed instructions about how to use Kubeflow, including testing the Jupyter Notebook, please refer to the [user guide](https://www.kubeflow.org/docs/user_guide/).
 
 **Important**: The commands above will enable collection of **anonymous** user data to help us improve Kubeflow; for more information including instructions for explictly
-disabling it please refer to the [Usage Reporting section](user_guide.md#usage-reporting) of the user guide.
+disabling it please refer to the [Usage Reporting section](https://www.kubeflow.org/docs/user_guide/#usage-reporting) of the user guide.
 
 ## Troubleshooting
-For detailed troubleshooting instructions, please refer to [this section of the user guide](user_guide.md#troubleshooting).
+For detailed troubleshooting instructions, please refer to [this section of the user guide](https://www.kubeflow.org/docs/user_guide/#troubleshooting).
 
 ## Resources
 
-* The [kubeflow user guide](user_guide.md) provides in-depth instructions for using Kubeflow
+* The [kubeflow user guide](https://www.kubeflow.org/docs/user_guide/) provides in-depth instructions for using Kubeflow
 * Katacoda has produced a [self-paced scenario](https://www.katacoda.com/kubeflow) for learning and trying out Kubeflow
 
 ## Get Involved
