@@ -3,7 +3,7 @@
 # Include registries you want here, they'll be baked into bootstrapper image.
 registries:
   - name: kubeflow
-    repo: https://github.com/kubeflow/kubeflow.git
-    branch: master
+    repo: https://github.com/kkasravi/kubeflow.git
+    branch: tfjobs_iap
     # relative path to registry from git repo.
     path: kubeflow

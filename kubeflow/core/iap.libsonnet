@@ -486,6 +486,20 @@
                             ],
                           },
                         },
+                        // TFJob uses the prefix /tfjobs/
+                        {
+                          timeout_ms: 10000,
+                          prefix: "/tfjobs",
+                          prefix_rewrite: "/tfjobs",
+                          weighted_clusters: {
+                            clusters: [
+                              {
+                                name: "cluster_tfjobs",
+                                weight: 100.0,
+                              },
+                            ],
+                          },
+                        },
                         {
                           // Route remaining traffic to Ambassador which supports dynamically adding
                           // routes based on service annotations.
@@ -604,6 +618,18 @@
             hosts: [
               {
                 url: "tcp://tf-hub-lb." + namespace + ":80",
+              },
+
+            ],
+          },
+          {
+            name: "cluster_tfjobs",
+            connect_timeout_ms: 3000,
+            type: "strict_dns",
+            lb_type: "round_robin",
+            hosts: [
+              {
+                url: "tcp://tf-job-dashboard." + namespace + ":80",
               },
 
             ],
