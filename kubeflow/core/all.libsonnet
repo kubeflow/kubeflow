@@ -1,4 +1,6 @@
 {
+  util:: import "kubeflow/core/util.libsonnet",
+
   parts(params):: {
     local ambassador = import "kubeflow/core/ambassador.libsonnet",
     local jupyterhub = import "kubeflow/core/jupyterhub.libsonnet",
@@ -16,6 +18,6 @@
           + spartakus.all(params)
           + centraldashboard.all(params)
           + version.all(params)
-          + gpuDriver.all,
+          + if $.util.toBool(params.deployGpuDriver) then gpuDriver.all else []
   },
 }
