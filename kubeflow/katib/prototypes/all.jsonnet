@@ -3,6 +3,7 @@
 // @description Kubeflow hyperparameter tuning component
 // @shortDescription hp-tuning
 // @param name string Name to give to each of the components
+// @optionalParam katibImageTag string latest Image tag for katib images
 // @optionalParam modeldbImage string mitdbg/modeldb-backend:latest The image for modeldb
 // @optionalParam modeldbDatabaseImage string mongo:3.4 The image for modeldb database.
 // @optionalParam modeldbFrontendImage string katib/katib-frontend The image for modeldb frontend.
