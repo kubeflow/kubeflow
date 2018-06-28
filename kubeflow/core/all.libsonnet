@@ -18,6 +18,6 @@
           + spartakus.all(params)
           + centraldashboard.all(params)
           + version.all(params)
-          + if $.util.toBool(params.deployGpuDriver) then gpuDriver.all else [],
+          + if $.util.toBool(params.deployGkeGpuDriver) then gpuDriver.all else [],
   },
 }
