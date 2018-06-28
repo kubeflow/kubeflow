@@ -16,9 +16,20 @@
 #   https://github.com/mattrobenolt/jinja2-cli
 #   pip install jinja2-clie
 IMG = gcr.io/kubeflow-images-staging/echo-server
-
-TAG := $(shell date +v%Y%m%d)-$(shell git describe --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6)
+PUBLIC = gcr.io/kubeflow-images-public/echo-server
 DIR := ${CURDIR}
+
+# List any changed  files. 
+CHANGED_FILES := $(shell git diff-files --relative=components/echo-server)
+
+ifeq ($(strip $(CHANGED_FILES)),)
+# Changed files is empty; not dirty
+# Don't include --dirty because it could be dirty if files outside the ones we care
+# about changed.
+TAG := $(shell date +v%Y%m%d)-$(shell git describe --always)
+else
+TAG := $(shell date +v%Y%m%d)-$(shell git describe --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6)
+endif
 
 all: build
 
@@ -38,3 +49,7 @@ push: build
 push-latest: push
 	gcloud container images add-tag --quiet $(IMG):$(TAG) $(IMG):latest --verbosity=info
 	echo created $(IMG):latest
+
+push-public: push-latest
+	gcloud container images add-tag --quiet $(IMG):$(TAG) $(PUBLIC):$(TAG) --verbosity=info
+	gcloud container images add-tag --quiet $(IMG):$(TAG) $(PUBLIC):latest --verbosity=info
