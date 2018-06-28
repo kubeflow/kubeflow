@@ -4,7 +4,7 @@
 # This is script defines values for all the variables used in
 # the instructions.
 
-# Bucket and project must be unique for each project 
+# Bucket and project must be unique for each project
 
 # Set PROJECT to the project you want to use with Kubeflow.
 export PROJECT=<your_project>

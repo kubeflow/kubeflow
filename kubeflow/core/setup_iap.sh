@@ -1,8 +1,9 @@
 #!/bin/bash
 #
 # A simple shell script to enable IAP and configure timeouts by using gcloud.
-[ -z ${CLIENT_ID} ] && echo Error CLIENT_ID must be set && exit 1
-[ -z ${CLIENT_SECRET} ] && echo Error CLIENT_SECRET must be set && exit 1
+
+set -x
+[ -z ${EMAIL_ADDRESS} ] && echo Error EMAIL_ADDRESS must be set && exit 1
 [ -z ${NAMESPACE} ] && echo Error NAMESPACE must be set && exit 1
 [ -z ${SERVICE} ] && echo Error SERVICE must be set && exit 1
 
@@ -68,9 +69,29 @@ echo BACKEND_ID=${BACKEND_ID}
 NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[0].nodePort}')
 BACKEND_SERVICE=$(gcloud --project=${PROJECT} compute backend-services list --filter=name~k8s-be-${NODE_PORT}- --uri)
 # Enable IAP on the backend service:
-gcloud --project=${PROJECT} compute backend-services update ${BACKEND_SERVICE} \
-    --global \
-    --iap=enabled,oauth2-client-id=${CLIENT_ID},oauth2-client-secret=${CLIENT_SECRET}
+iap_patch='.iap = {
+  "enabled": true,
+  "oauth2ClientInfo": {
+    "developerEmailAddress": "'"${EMAIL_ADDRESS}"'",
+    "applicationName": "Kubeflow",
+    "clientName": "kubeflow_iap_client"
+  }
+}'
+
+backend_service_json=$(curl -X GET \
+                  -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+                  -H "Content-Type: application/json" \
+                  https://www.googleapis.com/compute/beta/projects/${PROJECT}/global/backendServices/${BACKEND_SERVICE})
+
+# Patch the backend service to enable IAP
+echo "${backend_service_json}" | jq "${iap_patch}" > backend_service_updated.json
+
+# Update the patched backend service
+curl -X PUT \
+  -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+  -H "Content-Type: application/json" \
+  -d "@backend_service_updated.json" \
+  "https://www.googleapis.com/compute/beta/projects/${PROJECT}/global/backendServices/${BACKEND_SERVICE}"
 
 while [[ -z ${HEALTH_CHECK_URI} ]];
 do HEALTH_CHECK_URI=$(gcloud compute --project=${PROJECT} health-checks list --filter=name~k8s-be-${NODE_PORT}- --uri);
@@ -97,7 +118,7 @@ echo "JWT_AUDIENCE=${JWT_AUDIENCE}" > /var/shared/healthz.env
 echo "NODE_PORT=${NODE_PORT}" >> /var/shared/healthz.env
 echo "BACKEND_ID=${BACKEND_ID}" >> /var/shared/healthz.env
 
-# TODO(https://github.com/kubeflow/kubeflow/issues/942): We should publish the modified envoy 
+# TODO(https://github.com/kubeflow/kubeflow/issues/942): We should publish the modified envoy
 # config as a config map and use that in the envoy sidecars.
 kubectl get configmap -n ${NAMESPACE} envoy-config -o jsonpath='{.data.envoy-config\.json}' | \
 sed -e "s|{{JWT_AUDIENCE}}|${JWT_AUDIENCE}|g" > /var/shared/envoy-config.json
@@ -107,7 +128,7 @@ kubectl patch svc "${SERVICE}" -p "{\"metadata\": { \"annotations\": {\"iaplock\
 
 function checkIAP() {
 # created by init container.
-. /var/shared/healthz.env 
+. /var/shared/healthz.env
 
 # If node port or backend id change, so does the JWT audience.
 CURR_NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[0].nodePort}')
