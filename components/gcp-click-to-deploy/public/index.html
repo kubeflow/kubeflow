@@ -7,13 +7,17 @@
   <meta name="theme-color" content="#000000">
   <link rel="manifest" href="%PUBLIC_URL%/manifest.json">
   <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">
-  <script src="https://apis.google.com/js/client.js?onload=triggerGapiLoaded" async defer></script>
   <script type="text/javascript">
-    function triggerGapiLoaded() {
-      console.log("Gapi loaded");
-      window.dispatchEvent(new CustomEvent('gapiLoaded', { detail: gapi }));
-    }
+    var gapiPromise = (() => {
+      return new Promise((resolve, reject) => {
+        window.triggerGapiLoaded = () => {
+          resolve();
+        };
+      });
+    })();
+    window.gapiPromise = gapiPromise;
   </script>
+  <script src="https://apis.google.com/js/client.js?onload=triggerGapiLoaded" async defer></script>
   <title>React App</title>
 </head>
 
