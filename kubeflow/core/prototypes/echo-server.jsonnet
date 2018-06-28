@@ -3,7 +3,7 @@
 // @description Provides a simple server for testing connections; primarily IAP.
 // @shortDescription A simple echo server.
 // @param name string Name for the component
-// @optionalParam image string gcr.io/kubeflow-images-staging/echo-server:v20180628-e545118c-dirty-8a27d6 The image to use.
+// @optionalParam image string gcr.io/kubeflow-images-staging/echo-server:v20180628-44f08d31 The image to use.
 
 local k = import "k.libsonnet";
 
