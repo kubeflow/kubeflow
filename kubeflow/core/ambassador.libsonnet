@@ -5,7 +5,7 @@
     $.parts(params.namespace, params.AmbassadorImage).role,
     $.parts(params.namespace, params.AmbassadorImage).serviceAccount,
     $.parts(params.namespace, params.AmbassadorImage).roleBinding,
-    $.parts(params.namespace, params.AmbassadorImage).deploy(params.StatsdImage),
+    $.parts(params.namespace, params.AmbassadorImage).deploy(),
     $.parts(params.namespace, params.AmbassadorImage).k8sDashboard(params.cloud),
   ],
 
@@ -143,7 +143,7 @@
       ],
     },  // roleBinding
 
-    deploy(statsdImage):: {
+    deploy():: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -204,10 +204,6 @@
                     memory: "100Mi",
                   },
                 },
-              },
-              {
-                image: statsdImage,
-                name: "statsd",
               },
             ],
             restartPolicy: "Always",
