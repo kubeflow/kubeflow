@@ -4,8 +4,6 @@
 # given the information for the service.
 # Script executed by the iap container to configure IAP. When finished, the envoy config is created with the JWT audience.
 
-[ -z ${CLIENT_ID} ] && echo Error CLIENT_ID must be set && exit 1
-[ -z ${CLIENT_SECRET} ] && echo Error CLIENT_SECRET must be set && exit 1
 [ -z ${NAMESPACE} ] && echo Error NAMESPACE must be set && exit 1
 [ -z ${SERVICE} ] && echo Error SERVICE must be set && exit 1
 
@@ -56,7 +54,7 @@ curl -s ${ENVOY_ADMIN}/quitquitquit
 
 function checkIAP() {
 # created by init container.
-. /var/shared/healthz.env 
+. /var/shared/healthz.env
 
 # If node port or backend id change, so does the JWT audience.
 CURR_NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[0].nodePort}')
