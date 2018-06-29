@@ -80,7 +80,6 @@ local tfjob = {
         replicaName: "WORKER",
       },
     },
-    tfimage: image,
   },
 };
 

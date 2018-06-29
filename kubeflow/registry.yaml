@@ -4,9 +4,6 @@ libraries:
   core:
     version: master
     path: core
-  tf-job:
-    version: master
-    path: tf-job
   tf-serving:
     version: master
     path: tf-serving
