@@ -8,7 +8,7 @@
 local k = import "k.libsonnet";
 
 // TODO(https://github.com/ksonnet/ksonnet/issues/670) If we don't import the service
-// from a libsonnet file the annotation doesn't end up being escaped/represented in a way that 
+// from a libsonnet file the annotation doesn't end up being escaped/represented in a way that
 // Ambassador can understand.
 local echoParts = import "kubeflow/core/echo-server.libsonnet";
 local namespace = env.namespace;

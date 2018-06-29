@@ -8,18 +8,18 @@
       },
       name: name,
       namespace: namespace,
-         annotations: {
-            "getambassador.io/config":
-              std.join("\n", [
-                "---",
-                "apiVersion: ambassador/v0",
-                "kind:  Mapping",
-                "name: " + name + "-mapping",
-                "prefix: /" + name,
-                "rewrite: /",
-                "service: " + name + "." + namespace,
-              ]),
-          },  //annotations
+      annotations: {
+        "getambassador.io/config":
+          std.join("\n", [
+            "---",
+            "apiVersion: ambassador/v0",
+            "kind:  Mapping",
+            "name: " + name + "-mapping",
+            "prefix: /" + name,
+            "rewrite: /",
+            "service: " + name + "." + namespace,
+          ]),
+      },  //annotations
     },
     spec: {
       ports: [
@@ -61,16 +61,16 @@
                   containerPort: 8080,
                 },
               ],
-            
-            readinessProbe: {
-  	        httpGet: {
-  	          path: "/headers",
-  	          port: 8080,
-  	        },
-  	        initialDelaySeconds: 5,
-  	        periodSeconds: 30,
-  	      },
-  	      },
+
+              readinessProbe: {
+                httpGet: {
+                  path: "/headers",
+                  port: 8080,
+                },
+                initialDelaySeconds: 5,
+                periodSeconds: 30,
+              },
+            },
           ],
         },
       },
