@@ -68,7 +68,7 @@ export default class NameForm extends React.Component<NameFormProps & React.HTML
           <div>
             <label>
               hostname:
-              <input type='text' name='hostname' value={this.state.hostName} onChange={this._boundHandleChange} />
+              <input type='text' name='hostName' value={this.state.hostName} onChange={this._boundHandleChange} />
             </label>
           </div>
           <div>
