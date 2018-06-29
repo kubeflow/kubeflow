@@ -18,6 +18,56 @@ local gpus = params.gpus;
 local command = params.command;
 local args = params.args;
 
+local containerCommand =
+  if command != "null" then
+    {
+      command: [command],
+    }
+  else {};
+
+local containerArgs =
+  if args != "null" then
+    {
+      args: std.split(args, ","),
+    }
+  else {};
+
+local gpuLimits =
+  if gpus > 0 then
+    {
+      resources: {
+        limits: {
+          "nvidia.com/gpu": gpus,
+        },
+      },
+    }
+  else {};
+
+local chainerJobSimple = {
+  apiVersion: "kubeflow.org/v1alpha1",
+  kind: "ChainerJob",
+  metadata: {
+    name: name,
+    namespace: namespace,
+  },
+  spec: {
+    master: {
+      template: {
+        spec: {
+          containers: [
+            {
+              name: "chainer",
+              image: image,
+            } + gpuLimits
+            + containerCommand
+            + containerArgs,
+          ],
+        },
+      },
+    },
+  },
+};
+
 std.prune(k.core.v1.list.new([
-  chainerJob.simple(namespace, name, image, gpus, command, args),
+  chainerJobSimple,
 ]))
