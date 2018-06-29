@@ -95,20 +95,30 @@ type BootConfig struct {
 	App  AppConfig
 }
 
+type LibrarySpec struct {
+	Version string
+	Path string
+}
+
+type KsRegistry struct {
+	ApiVersion string
+	Kind string
+	Libraries map[string]LibrarySpec
+}
+
 // Load yaml config
-func LoadConfig(path string) (*BootConfig, error) {
+func LoadConfig(path string, o interface{}) error {
 	if path == "" {
-		return nil, errors.New("empty path")
+		return errors.New("empty path")
 	}
-	var c BootConfig
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	if err = yaml.Unmarshal(data, &c); err != nil {
-		return nil, err
+	if err = yaml.Unmarshal(data, o); err != nil {
+		return err
 	}
-	return &c, nil
+	return nil
 }
 
 // TODO(jlewi): If we use the same userid and groupid when running in a container then
@@ -281,32 +291,37 @@ func appGenerate(opt *options.ServerOption, kfApp *kApp.App, fs *afero.Fs, bootC
 		return errors.New(fmt.Sprintf("Could not list libraries for app; error %v", err))
 	}
 
-	regUris := make(map[string]string)
+	// Install all packages within each registry
 	for _, registry := range bootConfig.Registries {
-		regUris[registry.Name] = registry.RegUri
-	}
-	// Install packages.
-	for _, p := range bootConfig.App.Packages {
-		pkgName := p.Name
-		_, err = (*fs).Stat(path.Join(regUris[p.Registry], pkgName))
-		if err != nil {
-			return errors.New(fmt.Sprintf("Package %v didn't exist in registry %v", pkgName, regUris[p.Registry]))
-		}
-		full := fmt.Sprintf("kubeflow/%v", pkgName)
-		log.Infof("Installing package %v", full)
+		regFile := path.Join(registry.RegUri, "registry.yaml")
+		_, err = (*fs).Stat(regFile)
+		if err == nil {
+			log.Infof("processing registry file %v ", regFile)
+			var ksRegistry KsRegistry
+			if LoadConfig(regFile, &ksRegistry) == nil {
+				for pkgName, _ := range ksRegistry.Libraries {
+					_, err = (*fs).Stat(path.Join(registry.RegUri, pkgName))
+					if err != nil {
+						return errors.New(fmt.Sprintf("Package %v didn't exist in registry %v", pkgName, registry.RegUri))
+					}
+					full := fmt.Sprintf("%v/%v", registry.Name, pkgName)
+					log.Infof("Installing package %v", full)
 
-		if _, found := libs[pkgName]; found {
-			log.Infof("Package %v already exists", pkgName)
-			continue
-		}
-		err := actions.RunPkgInstall(map[string]interface{}{
-			actions.OptionApp:     *kfApp,
-			actions.OptionLibName: full,
-			actions.OptionName:    pkgName,
-		})
+					if _, found := libs[pkgName]; found {
+						log.Infof("Package %v already exists", pkgName)
+						continue
+					}
+					err := actions.RunPkgInstall(map[string]interface{}{
+						actions.OptionApp:     *kfApp,
+						actions.OptionLibName: full,
+						actions.OptionName:    pkgName,
+					})
 
-		if err != nil {
-			return errors.New(fmt.Sprintf("There was a problem installing package %v; error %v", full, err))
+					if err != nil {
+						return errors.New(fmt.Sprintf("There was a problem installing package %v; error %v", full, err))
+					}
+				}
+			}
 		}
 	}
 
@@ -357,12 +372,12 @@ func Run(opt *options.ServerOption) error {
 		return err
 	}
 
-	regConfig, err := LoadConfig(RegistriesDefaultConfig)
-	if err != nil {
+	var regConfig BootConfig
+	if LoadConfig(RegistriesDefaultConfig, &regConfig) != nil {
 		return err
 	}
-	bootConfig, err := LoadConfig(opt.Config)
-	if err != nil {
+	var bootConfig BootConfig
+	if LoadConfig(opt.Config, &bootConfig) != nil {
 		return err
 	}
 
@@ -496,7 +511,7 @@ func Run(opt *options.ServerOption) error {
 	}
 
 	// Load default kubeflow apps
-	if err = appGenerate(opt, &kfApp, &fs, bootConfig); err != nil {
+	if err = appGenerate(opt, &kfApp, &fs, &bootConfig); err != nil {
 		return err
 	}
 
