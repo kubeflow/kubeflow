@@ -1,15 +1,25 @@
+import { flattenDeploymentOperationError } from './Utils';
+
 export default class Gapi {
 
   public static deploymentmanager = class {
 
     public static async insert(project: string, resource: {}) {
       await this._load();
-      return this._deploymentManager.insert({ project, resource } as any).then(r => r.body);
+      return this._deploymentManager.insert({ project, resource } as any)
+        .then(r => r.result, badResult => {
+          throw new Error(
+            'Errors creating new deployment: ' + flattenDeploymentOperationError(badResult.result));
+        });
     }
 
-    public static async list(project: string) {
+    public static async get(project: string, deploymentName: string) {
       await this._load();
-      return this._deploymentManager.list({ project }).then(r => r.body);
+      return this._deploymentManager.get({ project, deployment: deploymentName})
+        .then(r => r.result, badResult => {
+          throw new Error(
+            'Errors creating new deployment: ' + flattenDeploymentOperationError(badResult.result));
+        });
     }
 
     private static _deploymentManager: gapi.client.deploymentmanager.DeploymentsResource;

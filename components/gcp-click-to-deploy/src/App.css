@@ -25,3 +25,11 @@
   height: 304px;
   width: 704px;
 }
+
+#logs {
+  background-color: '#eee';
+  box-sizing: border-box;
+  height: 400px;
+  padding: 5px;
+  width: 100%;
+}
