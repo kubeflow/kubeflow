@@ -74,12 +74,6 @@ local tfjob = {
         tfReplicaType: "PS",
       },
     },
-    terminationPolicy: {
-      chief: {
-        replicaIndex: 0,
-        replicaName: "WORKER",
-      },
-    },
   },
 };
 
