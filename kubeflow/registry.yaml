@@ -34,3 +34,6 @@ libraries:
   mpi-job:
     version: master
     path: mpi-job
+  seldon:
+    version: master
+    path: seldon
