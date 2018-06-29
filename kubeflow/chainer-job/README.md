@@ -22,12 +22,10 @@ Finally, in the ksonnet application directory, run the following:
 # Expand prototype as a Jsonnet file, place in a file in the
 # `components/` directory. (YAML and JSON are also available.)
 $ ks pkg install kubeflow/chainer-job@master
-$ ks prototype use io.ksonnet.pkg.chainer-operator chainer-operator \
-  --namespace default \
+$ ks generate io.ksonnet.pkg.chainer-operator chainer-operator \
   --name chainer-operator
 
-$ ks prototype use io.ksonnet.pkg.chainer-job chainer-job-simple \
-  --namespace default \
+$ ks generate io.ksonnet.pkg.chainer-job chainer-job-simple \
   --name chainer-job-simple
 
 # Apply to server.
@@ -52,7 +50,7 @@ A [Chainer Operator](https://github.com/kubeflow/chainer-operator).
 ```shell
 # Expand prototype as a Jsonnet file, place in a file in the
 # `components/` directory. (YAML and JSON are also available.)
-$ ks prototype use io.ksonnet.pkg.chainer-operator chainer-operator \
+$ ks generate io.ksonnet.pkg.chainer-operator chainer-operator \
   --name YOUR_NAME_HERE
 ```
 
@@ -72,7 +70,7 @@ A Simple [Chainer Job](https://github.com/kubeflow/chainer-operator).
 ```shell
 # Expand prototype as a Jsonnet file, place in a file in the
 # `components/` directory. (YAML and JSON are also available.)
-$ ks prototype use io.ksonnet.pkg.chainer-job-simple chainer-job-simple \
+$ ks generate io.ksonnet.pkg.chainer-job-simple chainer-job-simple \
   --name YOUR_NAME_HERE
 ```
 
@@ -85,14 +83,14 @@ $ ks prototype describe io.ksonnet.pkg.chainer-job-simple
 
 ### io.ksonnet.pkg.chainer-job
 
-A [Chainer Job](https://github.com/kubeflow/chainer-operator) which supporte distributed and non-distributed jobs.
+A [Chainer Job](https://github.com/kubeflow/chainer-operator) which supports distributed and non-distributed jobs.
 
 #### Example
 
 ```shell
 # Expand prototype as a Jsonnet file, place in a file in the
 # `components/` directory. (YAML and JSON are also available.)
-$ ks prototype use io.ksonnet.pkg.chainer-job chainer-job \
+$ ks generate io.ksonnet.pkg.chainer-job chainer-job \
   --name YOUR_NAME_HERE
 ```
 
