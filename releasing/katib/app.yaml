@@ -1,0 +1,31 @@
+apiVersion: 0.1.0
+environments:
+  default:
+    destination:
+      namespace: kubeflow-releasing
+      server: https://35.226.49.107
+    k8sVersion: v1.7.0
+    path: releasing
+kind: ksonnet.io/app
+libraries:
+  core:
+    gitVersion:
+      commitSha: 5c35580d76092788b089cb447be3f3097cffe60b
+      refSpec: master
+    name: core
+    registry: kubeflow
+name: katib
+registries:
+  incubator:
+    gitVersion:
+      commitSha: ea3408d44c2d8ea4d321364e5533d5c60e74bce0
+      refSpec: master
+    protocol: github
+    uri: github.com/ksonnet/parts/tree/master/incubator
+  kubeflow:
+    gitVersion:
+      commitSha: 5c35580d76092788b089cb447be3f3097cffe60b
+      refSpec: master
+    protocol: github
+    uri: github.com/google/kubeflow/tree/master/kubeflow
+version: 0.0.1
