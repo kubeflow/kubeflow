@@ -78,7 +78,7 @@
       local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
 
       // Location where build_image.sh
-      local cmdDir = srcRootDir + "/kubeflow/katib/cmd"
+      local cmdDir = srcRootDir + "/kubeflow/katib/cmd";
       local vizierCoreImageDir = cmdDir + "/manager";
       local vizierCoreImage = params.registry + "/vizier-core" + ":" + params.versionTag;
 
