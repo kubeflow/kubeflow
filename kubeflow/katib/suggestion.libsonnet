@@ -59,7 +59,7 @@
           spec: {
             containers: [
               {
-                image: params.suggestionRandomImage + ":" + params.katibImageTag,
+                image: params.suggestionRandomImage,
                 name: "vizier-suggestion-random",
                 ports: [
                   {
@@ -125,7 +125,7 @@
           spec: {
             containers: [
               {
-                image: params.suggestionGridImage + ":" + params.katibImageTag,
+                image: params.suggestionGridImage,
                 name: "vizier-suggestion-grid",
                 ports: [
                   {

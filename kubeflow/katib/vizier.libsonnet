@@ -70,7 +70,7 @@
                   "-i",
                   "k-cluster.example.net",
                 ],
-                image: params.vizierCoreImage + ":" + params.katibImageTag,
+                image: params.vizierCoreImage,
                 name: "vizier-core",
                 ports: [
                   {
