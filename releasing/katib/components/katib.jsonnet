@@ -2,7 +2,7 @@ local env = std.extVar("__ksonnet/environments");
 local params = std.extVar("__ksonnet/params").components["katib"];
 
 local k = import "k.libsonnet";
-local release = import "kubeflow/automation/release.libsonnet";
+local release = import "katib.libsonnet";
 local updatedParams = params {
   extra_args: if params.extra_args == "null" then "" else " " + params.extra_args,
 };
