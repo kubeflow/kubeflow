@@ -1,6 +1,7 @@
 import * as jsYaml from 'js-yaml';
 import * as React from 'react';
 import Gapi from './Gapi';
+import { log } from './Utils';
 
 // TODO(jlewi): Replace with official logo image. Also it would 
 // be good to use a .svg or at least a high res image.
@@ -30,11 +31,6 @@ declare global {
 // domain or automatically provisioned domain. Based on the response if the user
 // selects auto domain then we should automatically supply the suffix
 // <hostname>.endpoints.<Project>.cloud.goog
-
-function log(...args: any[]) {
-  // tslint:disable-next-line:no-console
-  console.log(...args);
-}
 
 class SignInButton extends React.Component {
   public onSignIn(_: any) {
@@ -87,7 +83,7 @@ class App extends React.Component<any, DeploymentTemplates> {
         <NameForm className='nameForm' appendLine={this._boundAppendLine}
                   getDeploymentTemplates={this._boundGetDeploymentTemplates} />
         <p> Logs </p>
-        <textarea id='logs' data-width='800' data-height='800' />
+        <textarea id='logs' readOnly={true} />
       </div>
     );
   }
@@ -151,18 +147,9 @@ class App extends React.Component<any, DeploymentTemplates> {
   }
 
   private _appendLine(newLine: any) {
-    const element = window.document.getElementById('logs') as HTMLInputElement;
-    if (element == null) {
-      log('Could not get logs element.');
-      return
-    }
-    let currentValue = element.value;
-
-    if (currentValue) {
-      currentValue += '\n';
-    }
-
-    element.value = currentValue + newLine;
+    const logsEl = document.querySelector('#logs') as HTMLInputElement;
+    logsEl.value += (!!logsEl.value ? '\n' : '') + newLine;
+    logsEl.scrollTop = logsEl.scrollHeight;
   }
 
 }

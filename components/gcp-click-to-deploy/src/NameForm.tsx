@@ -1,6 +1,7 @@
 import * as jsYaml from 'js-yaml';
 import * as React from 'react';
 import Gapi from './Gapi';
+import { flattenDeploymentOperationError } from './Utils';
 
 interface NameFormProps {
   getDeploymentTemplates: () => { clusterJinja: string, clusterSpec: any };
@@ -147,10 +148,14 @@ export default class NameForm extends React.Component<NameFormProps & React.HTML
 
     templates.clusterSpec.resources[0] = kubeflow;
     const yamlClusterSpec = jsYaml.dump(templates.clusterSpec);
+    this.props.appendLine('\n----------------\nNew deployment:');
     this.props.appendLine('Spec:\n' + jsYaml.dump(yamlClusterSpec));
 
+    const project = this.state.project;
+    const deploymentName = this.state.deploymentName;
+
     const resource = {
-      'name': this.state.deploymentName,
+      'name': deploymentName,
       'target': {
         'config': {
           'content': yamlClusterSpec,
@@ -164,15 +169,33 @@ export default class NameForm extends React.Component<NameFormProps & React.HTML
       },
     };
 
-    Gapi.deploymentmanager.insert(this.state.project, resource)
-      .then((res: any) => {
-        this.props.appendLine('Result of insert:\n' + res);
-      }, (err: any) => {
+    Gapi.deploymentmanager.insert(project, resource)
+      .then(res => {
+        this.props.appendLine('Result of insert:\n' + JSON.stringify(res));
+        this._monitorDeployment(project, deploymentName)
+      })
+      .catch(err => {
         this.props.appendLine('Error doing insert:\n' + err);
         alert('Error doing insert: ' + err)
       });
 
   } // insertDeployment
+
+  private _monitorDeployment(project: string, deploymentName: string) {
+    const monitorInterval = setInterval(() => {
+      Gapi.deploymentmanager.get(this.state.project, deploymentName)
+        .then(r => {
+          if (r.operation!.error && r.operation!.error!.errors!.length) {
+            this.props.appendLine(
+                'deployment failed with error:' + flattenDeploymentOperationError(r.operation!));
+            clearInterval(monitorInterval);
+          } else {
+            this.props.appendLine(r.operation!.status!);
+          }
+        })
+        .catch(err => this.props.appendLine('deployment failed with error:' + err));
+    }, 3000);
+  }
 
   private _handleChange(event: Event) {
     const target = event.target as any;
