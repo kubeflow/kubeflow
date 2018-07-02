@@ -7,6 +7,9 @@
     $.parts(params.namespace).jupyterHubRole,
     $.parts(params.namespace).jupyterHubServiceAccount,
     $.parts(params.namespace).jupyterHubRoleBinding,
+    $.parts(params.namespace).jupyterNotebookRole,
+    $.parts(params.namespace).jupyterNotebookServiceAccount,
+    $.parts(params.namespace).jupyterNotebookRoleBinding,
   ],
 
   parts(namespace):: {
@@ -46,7 +49,6 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
               claimName: v,
             },
           }, volumeClaims),
-
 
         local volumeMounts = std.map(function(v)
           {
@@ -278,6 +280,48 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
         },
       ],
     },
+    jupyterNotebookRole: {
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
+      kind: "Role",
+      metadata: {
+        name: "jupyter-notebook-role",
+        namespace: namespace,
+      },
+      rules: [
+        {
+          apiGroups: [
+            "",
+          ],
+          resources: [
+            "pods",
+            "deployments",
+            "services",
+          ],
+          verbs: [
+            "get",
+            "watch",
+            "list",
+            "create",
+            "delete",
+          ],
+        },
+        {
+          apiGroups: [
+            "kubeflow.org",
+          ],
+          resources: [
+            "tfjobs",
+          ],
+          verbs: [
+            "get",
+            "watch",
+            "list",
+            "create",
+            "delete",
+          ],
+        },
+      ],
+    },
 
     jupyterHubServiceAccount: {
       apiVersion: "v1",
@@ -287,6 +331,14 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
           app: "jupyter-hub",
         },
         name: "jupyter-hub",
+        namespace: namespace,
+      },
+    },
+    jupyterNotebookServiceAccount: {
+      apiVersion: "v1",
+      kind: "ServiceAccount",
+      metadata: {
+        name: "jupyter-notebook",
         namespace: namespace,
       },
     },
@@ -307,6 +359,26 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
         {
           kind: "ServiceAccount",
           name: "jupyter-hub",
+          namespace: namespace,
+        },
+      ],
+    },
+    jupyterNotebookRoleBinding: {
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
+      kind: "RoleBinding",
+      metadata: {
+        name: "jupyter-notebook-role",
+        namespace: namespace,
+      },
+      roleRef: {
+        apiGroup: "rbac.authorization.k8s.io",
+        kind: "Role",
+        name: "jupyter-notebook-role",
+      },
+      subjects: [
+        {
+          kind: "ServiceAccount",
+          name: "jupyter-notebook",
           namespace: namespace,
         },
       ],
