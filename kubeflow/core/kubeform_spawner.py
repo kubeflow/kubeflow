@@ -163,3 +163,7 @@ if cloud == 'aks' or cloud == 'acsengine':
 
 c.KubeSpawner.volumes = volumes
 c.KubeSpawner.volume_mounts = volume_mounts
+# Set both service_account and singleuser_service_account because
+# singleuser_service_account has been deprecated in a future release
+c.KubeSpawner.service_account = 'jupyter-notebook'
+c.KubeSpawner.singleuser_service_account = 'jupyter-notebook'
