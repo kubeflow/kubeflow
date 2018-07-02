@@ -1,4 +1,7 @@
 .App {
+  display: flex;
+  flex-flow: column;
+  flex-grow: 1;
   text-align: center;
 }
 
@@ -9,7 +12,7 @@
 .App-header {
   background-color: #222;
   color: white;
-  height: 150px;
+  flex: 150px 0 0;
   padding: 20px;
 }
 
@@ -24,4 +27,13 @@
 .NameForm {  
   height: 304px;
   width: 704px;
+}
+
+#logs {
+  background-color: #eee;
+  box-sizing: border-box;
+  flex-grow: 1;
+  height: 400px;
+  padding: 5px;
+  width: 100%;
 }
