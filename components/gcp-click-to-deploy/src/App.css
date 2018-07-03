@@ -2,7 +2,6 @@
   display: flex;
   flex-flow: column;
   flex-grow: 1;
-  text-align: center;
 }
 
 .App-logo {
@@ -18,15 +17,6 @@
 
 .App-title {
   font-size: 1.5em;
-}
-
-.App-intro {
-  font-size: large;
-}
-
-.NameForm {  
-  height: 304px;
-  width: 704px;
 }
 
 #logs {

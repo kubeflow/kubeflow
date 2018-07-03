@@ -1,14 +1,17 @@
+import Button from '@material-ui/core/Button';
+import TextField from '@material-ui/core/TextField';
+import glamorous from 'glamorous';
 import * as jsYaml from 'js-yaml';
 import * as React from 'react';
 import Gapi from './Gapi';
 import { flattenDeploymentOperationError } from './Utils';
 
-interface NameFormProps {
+interface DeployFormProps {
   getDeploymentTemplates: () => { clusterJinja: string, clusterSpec: any };
   appendLine: (line: string) => void;
 }
 
-interface NameFormState {
+interface DeployFormState {
   deploymentName: string;
   email: string;
   hostName: string;
@@ -17,12 +20,29 @@ interface NameFormState {
   zone: string;
 }
 
-export default class NameForm extends React.Component<NameFormProps & React.HTMLAttributes<HTMLFormElement>, NameFormState> {
+const Row = glamorous.div({
+  display: 'flex',
+});
+
+const Label = glamorous.label({
+  paddingLeft: 50,
+  textAlign: 'left',
+  width: 200,
+});
+
+const Input = glamorous(TextField)({
+  width: '50%',
+});
+
+const DeployBtn = glamorous(Button)({
+  margin: '20px !important',
+});
+
+export default class DeployForm extends React.Component<DeployFormProps & React.HTMLAttributes<HTMLFormElement>, DeployFormState> {
   private _boundHandleChange: (ev: React.FormEvent) => void;
-  private _boundHandleSubmit: (ev: React.FormEvent) => void;
   private _boundCreateDeployment: () => void;
 
-  constructor(props: NameFormProps) {
+  constructor(props: DeployFormProps) {
     super(props);
     this.state = {
       deploymentName: 'kubeflow',
@@ -34,58 +54,43 @@ export default class NameForm extends React.Component<NameFormProps & React.HTML
     };
 
     this._boundHandleChange = this._handleChange.bind(this);
-    this._boundHandleSubmit = this._handleSubmit.bind(this);
     this._boundCreateDeployment = this._createDeployment.bind(this);
   }
 
   public render() {
     return (
       <div>
-        <form onSubmit={this._boundHandleSubmit}>
-          <div>
-            <label>
-              Project:
-              <input type='text' name='project' value={this.state.project} onChange={this._boundHandleChange} />
-            </label>
-          </div>
-          <div>
-            <label>
-              Deployment name:
-              <input type='text' name='deploymentName' value={this.state.deploymentName} onChange={this._boundHandleChange} />
-            </label>
-          </div>
-          <div>
-            <label>
-              Zone
-              <input type='text' name='zone' value={this.state.zone} onChange={this._boundHandleChange} />
-            </label>
-          </div>
-          <div>
-            <label>
-              IP name:
-              <input type='text' name='ipName' value={this.state.ipName} onChange={this._boundHandleChange} />
-            </label>
-          </div>
-          <div>
-            <label>
-              hostname:
-              <input type='text' name='hostName' value={this.state.hostName} onChange={this._boundHandleChange} />
-            </label>
-          </div>
-          <div>
-            <label>
-              Email for Lets Encrypt:
-              <input type='text' name='email' value={this.state.email} onChange={this._boundHandleChange} />
-            </label>
-          </div>
-        </form>
-        <div>
-          {/* TODO: REVISIT */}
-          <button className='createDeployment' onClick={this._boundCreateDeployment}>
-            Create Deployment
-      </button>
-        </div>
-      </div>
+
+        <Row>
+          <Label>Project:</Label>
+          <Input name='project' value={this.state.project} onChange={this._boundHandleChange} />
+        </Row>
+        <Row>
+          <Label>Deployment name:</Label>
+          <Input name='deploymentName' value={this.state.deploymentName} onChange={this._boundHandleChange} />
+        </Row>
+        <Row>
+          <Label>Zone:</Label>
+          <Input name='zone' value={this.state.zone} onChange={this._boundHandleChange} />
+        </Row>
+        <Row>
+          <Label>IP Name:</Label>
+          <Input name='ipName' value={this.state.ipName} onChange={this._boundHandleChange} />
+        </Row>
+        <Row>
+          <Label>hostname:</Label>
+          <Input name='hostName' value={this.state.hostName} onChange={this._boundHandleChange} />
+        </Row>
+        <Row>
+          <Label>Email for Lets Encrypt:</Label>
+          <Input name='email' value={this.state.email} onChange={this._boundHandleChange} />
+        </Row>
+
+        <DeployBtn variant='contained' color='primary' onClick={this._boundCreateDeployment}>
+          Create Deployment
+        </DeployBtn>
+
+      </div >
     );
   }
 
@@ -187,7 +192,7 @@ export default class NameForm extends React.Component<NameFormProps & React.HTML
         .then(r => {
           if (r.operation!.error && r.operation!.error!.errors!.length) {
             this.props.appendLine(
-                'deployment failed with error:' + flattenDeploymentOperationError(r.operation!));
+              'deployment failed with error:' + flattenDeploymentOperationError(r.operation!));
             clearInterval(monitorInterval);
           } else {
             this.props.appendLine(r.operation!.status!);
@@ -202,11 +207,6 @@ export default class NameForm extends React.Component<NameFormProps & React.HTML
     this.setState({
       [target.name]: target.value
     } as any);
-  }
-
-  // TODO(jlewi): We aren't really using submit since we don't want to post the data anywhere.
-  private _handleSubmit(event: any) {
-    event.preventDefault();
   }
 
 }

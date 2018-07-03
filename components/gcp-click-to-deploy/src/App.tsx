@@ -18,7 +18,7 @@ import clusterJinjaPath from './configs/cluster.jinja';
 
 import './App.css';
 
-import NameForm from './NameForm';
+import DeployForm from './DeployForm';
 
 declare global {
   interface Window {
@@ -75,12 +75,12 @@ class App extends React.Component<any, DeploymentTemplates> {
           <img src={logo} className='App-logo' alt='logo' />
         </header>
         <SignInButton />
-        <p className='App-intro'>
+        <p>
           To get started
             * Fill out the fields below
             * Click create deployment
         </p>
-        <NameForm className='nameForm' appendLine={this._boundAppendLine}
+        <DeployForm appendLine={this._boundAppendLine}
                   getDeploymentTemplates={this._boundGetDeploymentTemplates} />
         <p> Logs </p>
         <textarea id='logs' readOnly={true} />
