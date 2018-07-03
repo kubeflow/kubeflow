@@ -1,8 +1,11 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # This script creates a kubeflow deployment on GCP
-# * It checks for kubectl, gcloud, ks
-# * Uses default PROJECT, ZONE, EMAIL from gcloud config
-# *
+# It checks for kubectl, gcloud, ks
+# Uses default PROJECT, ZONE, EMAIL from gcloud config
+# Creates a deployment manager config copy and edits appropriate values
+# Adds user to the IAP role
+# Creates the deployment
+# Creates the ksonnet app, installs packages, components and then applies them
 
 set -xe
 
@@ -13,24 +16,23 @@ check_install gcloud
 check_install kubectl
 check_install ks
 
-if [ -z "${CLIENT_ID}" ] || [ -z "${CLIENT_SECRET}" ]; then
-  echo "CLIENT_ID and CLIENT_SECRET need to be set"
-  exit 1
-fi
+check_variable "${CLIENT_ID}" "CLIENT_ID"
+check_variable "${CLIENT_SECRET}" "CLIENT_SECRET"
 # Name of the deployment
 DEPLOYMENT_NAME=${DEPLOYMENT_NAME:-"kubeflow"}
 
 # Kubeflow directories - Deployment Manager and Ksonnet App
 KUBEFLOW_DM_DIR=${KUBEFLOW_DM_DIR:-"`pwd`/${DEPLOYMENT_NAME}_deployment_manager_configs"}
 KUBEFLOW_KS_DIR=${KUBEFLOW_KS_DIR:-"`pwd`/${DEPLOYMENT_NAME}_ks_app"}
-#TODO(ankushagarwal): Deal with the case when gcloud config is not set
 # GCP Project
 PROJECT=${PROJECT:-$(gcloud config get-value project 2>/dev/null)}
+check_variable "${PROJECT}" "PROJECT"
 # GCP Zone
 ZONE=${ZONE:-$(gcloud config get-value compute/zone 2>/dev/null)}
 ZONE=${ZONE:-"us-central1-a"}
 # Email for cert manager
 EMAIL=${EMAIL:-$(gcloud config get-value account 2>/dev/null)}
+check_variable "${EMAIL}" "EMAIL"
 # GCP Static IP Name
 KUBEFLOW_IP_NAME=${KUBEFLOW_IP_NAME:-"${DEPLOYMENT_NAME}-ip"}
 # Name of the endpoint
@@ -95,8 +97,6 @@ gcloud --project=${PROJECT} container clusters get-credentials --zone=${ZONE} ${
 # Make yourself cluster admin
 kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --user=${EMAIL}
 
-# The namespace kubeflow may not exist yet because the bootstrapper can't run until the admin-gcp-sa
-# secret is created.
 kubectl create namespace ${K8S_NAMESPACE}
 
 # We want the secret name to be the same by default for all clusters so that users don't have to set it manually.

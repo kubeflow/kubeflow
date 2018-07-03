@@ -1,4 +1,7 @@
 #!/bin/bash
+# This script creates a kubeflow deployment on minikube
+# It checks for kubectl, ks
+# Creates the ksonnet app, installs packages, components and then applies them
 
 set -xe
 
