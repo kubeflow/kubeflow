@@ -2,6 +2,8 @@
   display: flex;
   flex-flow: column;
   flex-grow: 1;
+  font-size: 15px;
+  height: 100%;
 }
 
 .App-logo {
@@ -17,13 +19,4 @@
 
 .App-title {
   font-size: 1.5em;
-}
-
-#logs {
-  background-color: #eee;
-  box-sizing: border-box;
-  flex-grow: 1;
-  height: 400px;
-  padding: 5px;
-  width: 100%;
 }

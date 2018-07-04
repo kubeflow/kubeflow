@@ -1,3 +1,4 @@
+import { createMuiTheme, MuiThemeProvider } from '@material-ui/core';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import glamorous from 'glamorous';
@@ -22,20 +23,51 @@ interface DeployFormState {
 
 const Row = glamorous.div({
   display: 'flex',
+  marginBottom: 5,
+  minHeight: 35,
 });
 
 const Label = glamorous.label({
+  alignSelf: 'center',
   paddingLeft: 50,
   textAlign: 'left',
   width: 200,
 });
 
 const Input = glamorous(TextField)({
+  backgroundColor: '#f7f7f7',
+  borderRadius: 4,
+  color: '#666',
   width: '50%',
 });
 
 const DeployBtn = glamorous(Button)({
   margin: '20px !important',
+  width: 200,
+});
+
+const theme = createMuiTheme({
+  overrides: {
+    MuiButton: {
+      containedPrimary: {
+        fontWeight: 'inherit',
+      },
+    },
+    MuiInput: {
+      input: {
+        height: 35,
+        padding: 5,
+      },
+      underline: {
+        '&:before': {
+          borderBottom: '1px solid #ccc',
+        },
+        '&:hover:not($disabled):not($focused):not($error):before': {
+          borderBottom: '1px solid #555',
+        },
+      },
+    },
+  },
 });
 
 export default class DeployForm extends React.Component<DeployFormProps & React.HTMLAttributes<HTMLFormElement>, DeployFormState> {
@@ -59,11 +91,10 @@ export default class DeployForm extends React.Component<DeployFormProps & React.
 
   public render() {
     return (
-      <div>
-
+      <MuiThemeProvider theme={theme}>
         <Row>
           <Label>Project:</Label>
-          <Input name='project' value={this.state.project} onChange={this._boundHandleChange} />
+          <Input name='project' theme={theme} value={this.state.project} onChange={this._boundHandleChange} />
         </Row>
         <Row>
           <Label>Deployment name:</Label>
@@ -89,8 +120,7 @@ export default class DeployForm extends React.Component<DeployFormProps & React.
         <DeployBtn variant='contained' color='primary' onClick={this._boundCreateDeployment}>
           Create Deployment
         </DeployBtn>
-
-      </div >
+      </MuiThemeProvider >
     );
   }
 

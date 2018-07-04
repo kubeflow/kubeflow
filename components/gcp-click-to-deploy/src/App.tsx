@@ -18,6 +18,7 @@ import clusterJinjaPath from './configs/cluster.jinja';
 
 import './App.css';
 
+import glamorous from 'glamorous';
 import DeployForm from './DeployForm';
 
 declare global {
@@ -32,14 +33,24 @@ declare global {
 // selects auto domain then we should automatically supply the suffix
 // <hostname>.endpoints.<Project>.cloud.goog
 
-class SignInButton extends React.Component {
-  public onSignIn(_: any) {
-    // I want this method to be executed
-  }
+const Text = glamorous.div({
+  margin: '10px 30px',
+});
 
+const LogsArea = glamorous.textarea({
+  backgroundColor: '#eee',
+  boxSizing: 'border-box',
+  flexGrow: 1,
+  fontSize: 13,
+  height: 400,
+  margin: '10px auto',
+  padding: 5,
+  width: '90%',
+});
+
+class SignInButton extends React.Component {
   public render() {
     return (
-      // TODO(jlewi): How can we set data-onsuccess
       <div id='loginButton' className='g-signin2' data-theme='dark' />
     )
   }
@@ -75,15 +86,11 @@ class App extends React.Component<any, DeploymentTemplates> {
           <img src={logo} className='App-logo' alt='logo' />
         </header>
         <SignInButton />
-        <p>
-          To get started
-            * Fill out the fields below
-            * Click create deployment
-        </p>
+        <Text>To get started, fill out the fields below, then click create deployment.</Text>
         <DeployForm appendLine={this._boundAppendLine}
-                  getDeploymentTemplates={this._boundGetDeploymentTemplates} />
-        <p> Logs </p>
-        <textarea id='logs' readOnly={true} />
+          getDeploymentTemplates={this._boundGetDeploymentTemplates} />
+        <Text>Logs</Text>
+        <LogsArea id='logs' readOnly={true} />
       </div>
     );
   }
@@ -93,8 +100,12 @@ class App extends React.Component<any, DeploymentTemplates> {
       log('gapi loaded');
       await Gapi.load();
       // TODO: Hide this if the user is signed in, show the user's email instead.
-      await Gapi.loadSigninButton();
-      log(await Gapi.getSignedInEmail());
+      const user = await Gapi.getSignedInEmail();
+      if (user) {
+        this._appendLine('Signed in as: ' + user);
+      } else {
+        await Gapi.loadSigninButton();
+      }
     });
 
     // Load the YAML and jinja templates
@@ -105,6 +116,7 @@ class App extends React.Component<any, DeploymentTemplates> {
     this._appendLine('loadClusterJinjaPath');
     // Load the jinja template into a string because 
     // we will need it for the deployments insert request.
+    log(clusterJinjaPath);
     fetch(clusterJinjaPath, { mode: 'no-cors' })
       .then((response) => {
         log('Got response');
