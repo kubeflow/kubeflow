@@ -17,7 +17,7 @@
 // @optionalParam jupyterHubAuthenticator string null The authenticator to use
 // @optionalParam jupyterNotebookPVCMount string null Mount path for PVC. Set empty to disable PVC
 // @optionalParam jupyterNotebookRegistry string gcr.io The docker image registry for JupyterNotebook.
-// @optionalParam jupyterNotebookRepoName string kubeflow-images-public The repoistory name for JupyterNotebook.
+// @optionalParam jupyterNotebookRepoName string kubeflow-images-public The repository name for JupyterNotebook.
 // @optionalParam reportUsage string false Whether or not to report Kubeflow usage to kubeflow.org.
 // @optionalParam usageId string unknown_cluster Optional id to use when reporting usage to kubeflow.org
 // @optionalParam tfJobVersion string v1alpha2 which version of the TFJob operator to use
