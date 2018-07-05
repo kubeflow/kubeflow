@@ -139,7 +139,7 @@ effort, and in a portable fashion across different environments.
 
 For more detailed instructions about how to use Kubeflow, including testing the Jupyter Notebook, please refer to the [user guide](https://www.kubeflow.org/docs/user_guide/).
 
-**Important**: The commands above will enable collection of **anonymous** user data to help us improve Kubeflow; for more information including instructions for explictly
+**Important**: The commands above will enable collection of **anonymous** user data to help us improve Kubeflow; for more information including instructions for explicitly
 disabling it please refer to the [Usage Reporting section](https://www.kubeflow.org/docs/user_guide/#usage-reporting) of the user guide.
 
 ## Troubleshooting

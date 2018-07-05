@@ -84,7 +84,7 @@ def auth_info_firebase():
 @app.errorhandler(http_client.INTERNAL_SERVER_ERROR)
 def unexpected_error(e):
     """Handle exceptions by returning swagger-compliant json."""
-    logging.exception('An error occured while processing the request.')
+    logging.exception('An error occurred while processing the request.')
     response = jsonify({
         'code': http_client.INTERNAL_SERVER_ERROR,
         'message': 'Exception: {}'.format(e)})
