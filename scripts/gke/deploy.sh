@@ -9,9 +9,18 @@
 
 set -xe
 
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-source "${SCRIPT_DIR}/../util.sh"
-KUBEFLOW_REPO=$(cd "${SCRIPT_DIR}/../.."; pwd)
+KUBEFLOW_REPO=${KUBEFLOW_REPO:-"`pwd`/kubeflow_repo"}
+KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"}
+
+rm -rf "${KUBEFLOW_REPO}"
+
+git clone https://github.com/kubeflow/kubeflow.git "${KUBEFLOW_REPO}"
+cd "${KUBEFLOW_REPO}"
+git checkout "${KUBEFLOW_VERSION}"
+cd -
+
+source "${KUBEFLOW_REPO}/scripts/util.sh"
+
 check_install gcloud
 check_install kubectl
 # TODO(ankushagarwal): verify ks version is higher than 0.11.0
@@ -19,6 +28,7 @@ check_install ks
 
 check_variable "${CLIENT_ID}" "CLIENT_ID"
 check_variable "${CLIENT_SECRET}" "CLIENT_SECRET"
+
 # Name of the deployment
 DEPLOYMENT_NAME=${DEPLOYMENT_NAME:-"kubeflow"}
 
@@ -46,7 +56,7 @@ SETUP_PROJECT=${SETUP_PROJECT:true}
 K8S_NAMESPACE=${K8S_NAMESPACE:-"kubeflow"}
 CONFIG_FILE=${CONFIG_FILE:-"cluster-kubeflow.yaml"}
 PROJECT_NUMBER=`gcloud projects describe ${PROJECT} --format='value(project_number)'`
-SA_EMAIL=${DEPLOYMENT_NAME}-admin@${PROJECT}.iam.gserviceaccount.com
+ADMIN_EMAIL=${DEPLOYMENT_NAME}-admin@${PROJECT}.iam.gserviceaccount.com
 USER_EMAIL=${DEPLOYMENT_NAME}-user@${PROJECT}.iam.gserviceaccount.com
 
 if ${SETUP_PROJECT}; then
@@ -71,7 +81,7 @@ gcloud deployment-manager --project=${PROJECT} deployments describe ${DEPLOYMENT
 exists=$?
 set -e
 
-cp -r "${SCRIPT_DIR}/deployment_manager_configs" "${KUBEFLOW_DM_DIR}"
+cp -r "${KUBEFLOW_REPO}/scripts/gke/deployment_manager_configs" "${KUBEFLOW_DM_DIR}"
 cd "${KUBEFLOW_DM_DIR}"
 # Set values in DM config file
 sed -i.bak "s/zone: us-central1-a/zone: ${ZONE}/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
@@ -89,7 +99,7 @@ fi
 
 # TODO(jlewi): We should name the secrets more consistently based on the service account name.
 # We will need to update the component configs though
-gcloud --project=${PROJECT} iam service-accounts keys create ${SA_EMAIL}.json --iam-account ${SA_EMAIL}
+gcloud --project=${PROJECT} iam service-accounts keys create ${ADMIN_EMAIL}.json --iam-account ${ADMIN_EMAIL}
 gcloud --project=${PROJECT} iam service-accounts keys create ${USER_EMAIL}.json --iam-account ${USER_EMAIL}
 
 # Set credentials for kubectl context
@@ -101,11 +111,11 @@ kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --us
 kubectl create namespace ${K8S_NAMESPACE}
 
 # We want the secret name to be the same by default for all clusters so that users don't have to set it manually.
-kubectl create secret generic --namespace=${K8S_NAMESPACE} admin-gcp-sa --from-file=admin-gcp-sa.json=./${SA_EMAIL}.json
+kubectl create secret generic --namespace=${K8S_NAMESPACE} admin-gcp-sa --from-file=admin-gcp-sa.json=./${ADMIN_EMAIL}.json
 kubectl create secret generic --namespace=${K8S_NAMESPACE} user-gcp-sa --from-file=user-gcp-sa.json=./${USER_EMAIL}.json
 kubectl create secret generic --namespace=${K8S_NAMESPACE} kubeflow-oauth --from-literal=CLIENT_ID=${CLIENT_ID} --from-literal=CLIENT_SECRET=${CLIENT_SECRET}
 
-# Install the GPU driver. It has not effect on non-GPU nodes.
+# Install the GPU driver. It has no effect on non-GPU nodes.
 kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/stable/nvidia-driver-installer/cos/daemonset-preloaded.yaml
 
 # Create the ksonnet app

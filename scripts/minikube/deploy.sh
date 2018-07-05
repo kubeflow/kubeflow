@@ -5,14 +5,20 @@
 
 set -xe
 
+KUBEFLOW_REPO=${KUBEFLOW_REPO:-"`pwd`/kubeflow_repo"}
+KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"}
 
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-source "${SCRIPT_DIR}/../util.sh"
+git clone https://github.com/kubeflow/kubeflow.git "${KUBEFLOW_REPO}"
+cd "${KUBEFLOW_REPO}"
+git checkout "${KUBEFLOW_VERSION}"
+cd -
+
+source "${KUBEFLOW_REPO}/scripts/util.sh"
+
 # TODO(ankushagarwal): verify ks version is higher than 0.11.0
 check_install ks
 check_install kubectl
 
-KUBEFLOW_REPO=$(cd "${SCRIPT_DIR}/../.."; pwd)
 # Name of the deployment
 DEPLOYMENT_NAME=${DEPLOYMENT_NAME:-"kubeflow"}
 
