@@ -746,7 +746,7 @@
                 {
                   backend: {
                     // Due to https://github.com/kubernetes/contrib/blob/master/ingress/controllers/gce/examples/health_checks/README.md#limitations
-                    // Keep port the servicePort the same as the port we are targetting on the backend so that servicePort will be the same as targetPort for the purpose of
+                    // Keep port the servicePort the same as the port we are targeting on the backend so that servicePort will be the same as targetPort for the purpose of
                     // health checking.
                     serviceName: "envoy",
                     servicePort: envoyPort,
