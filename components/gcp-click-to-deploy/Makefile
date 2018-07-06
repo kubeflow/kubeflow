@@ -14,7 +14,7 @@
 #
 IMG = gcr.io/kubeflow-images-public/gcp-click-to-deploy
 
-TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6)
+TAG := $(shell date +v%Y%m%d)-$(shell git describe --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6)
 
 
 CHANGED_FILES := $(shell git diff-files)
