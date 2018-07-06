@@ -62,6 +62,7 @@ const theme = createMuiTheme({
     },
     MuiInput: {
       input: {
+        fontSize: 15,
         height: 25,
         padding: 5,
       },
@@ -78,8 +79,6 @@ const theme = createMuiTheme({
 });
 
 export default class DeployForm extends React.Component<DeployFormProps & React.HTMLAttributes<HTMLFormElement>, DeployFormState> {
-  private _boundHandleChange: (ev: React.FormEvent) => void;
-  private _boundCreateDeployment: () => void;
 
   constructor(props: DeployFormProps) {
     super(props);
@@ -93,9 +92,6 @@ export default class DeployForm extends React.Component<DeployFormProps & React.
       project: 'cloud-ml-dev',
       zone: 'us-east1-d',
     };
-
-    this._boundHandleChange = this._handleChange.bind(this);
-    this._boundCreateDeployment = this._createDeployment.bind(this);
   }
 
   public render() {
@@ -104,30 +100,30 @@ export default class DeployForm extends React.Component<DeployFormProps & React.
 
         <Row>
           <Label>Project:</Label>
-          <Input name='project' theme={theme} value={this.state.project} onChange={this._boundHandleChange} />
+          <Input name='project' theme={theme} value={this.state.project} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
           <Label>Deployment name:</Label>
-          <Input name='deploymentName' value={this.state.deploymentName} onChange={this._boundHandleChange} />
+          <Input name='deploymentName' value={this.state.deploymentName} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
           <Label>Zone:</Label>
-          <Input name='zone' value={this.state.zone} onChange={this._boundHandleChange} />
+          <Input name='zone' value={this.state.zone} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
           <Label>IP Name:</Label>
-          <Input name='ipName' value={this.state.ipName} onChange={this._boundHandleChange} />
+          <Input name='ipName' value={this.state.ipName} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
           <Label>Hostname:</Label>
-          <Input name='hostName' value={this.state.hostName} onChange={this._boundHandleChange} />
+          <Input name='hostName' value={this.state.hostName} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
           <Label>Email for Lets Encrypt:</Label>
-          <Input name='email' value={this.state.email} onChange={this._boundHandleChange} />
+          <Input name='email' value={this.state.email} onChange={this._handleChange.bind(this)} />
         </Row>
 
-        <DeployBtn variant='contained' color='primary' onClick={this._boundCreateDeployment}>
+        <DeployBtn variant='contained' color='primary' onClick={this._createDeployment.bind(this)}>
           Create Deployment
         </DeployBtn>
 
@@ -252,6 +248,7 @@ export default class DeployForm extends React.Component<DeployFormProps & React.
 
   private _handleChange(event: Event) {
     const target = event.target as any;
+    target.style.backgroundColor = !!target.value ? 'transparent' : '#fbecec';
     this.setState({
       [target.name]: target.value
     } as any);

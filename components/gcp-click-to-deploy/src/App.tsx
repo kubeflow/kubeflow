@@ -38,14 +38,15 @@ const Text = glamorous.div({
 });
 
 const LogsArea = glamorous.textarea({
-  backgroundColor: '#eee',
+  backgroundColor: '#333',
   boxSizing: 'border-box',
+  color: '#fff',
   flexGrow: 1,
   fontSize: 13,
   height: 400,
-  margin: '10px auto',
+  margin: '10px auto 30px',
   padding: 5,
-  width: '90%',
+  width: '100%',
 });
 
 class SignInButton extends React.Component {
@@ -63,20 +64,12 @@ interface DeploymentTemplates {
 
 class App extends React.Component<any, DeploymentTemplates> {
 
-  private _boundGetDeploymentTemplates: () => DeploymentTemplates;
-  private _boundAppendLine: (line: string) => void;
-
   constructor(props: any) {
     super(props);
     this.state = {
       clusterJinja: '',
       clusterSpec: null,
     };
-
-    this._boundGetDeploymentTemplates = this._getDeploymentTemplates.bind(this);
-    this._boundAppendLine = (line: string) => {
-      this._appendLine(line);
-    }
   }
 
   public render() {
@@ -88,8 +81,8 @@ class App extends React.Component<any, DeploymentTemplates> {
         <SignInButton />
         <br />
         <Text>To get started, fill out the fields below, then click create deployment.</Text>
-        <DeployForm appendLine={this._boundAppendLine}
-          getDeploymentTemplates={this._boundGetDeploymentTemplates} />
+        <DeployForm appendLine={this._appendLine.bind(this)}
+          getDeploymentTemplates={this._getDeploymentTemplates.bind(this)} />
         <Text>Logs</Text>
         <LogsArea id='logs' readOnly={true} />
       </div>
