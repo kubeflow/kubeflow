@@ -3,7 +3,7 @@
 import datetime
 import logging
 import os
-import sock
+import socket
 import ssl
 import subprocess
 import time
