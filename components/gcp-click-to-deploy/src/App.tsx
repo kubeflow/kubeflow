@@ -110,7 +110,6 @@ class App extends React.Component<any, DeploymentTemplates> {
     this._appendLine('loadClusterJinjaPath');
     // Load the jinja template into a string because 
     // we will need it for the deployments insert request.
-    log(clusterJinjaPath);
     fetch(clusterJinjaPath, { mode: 'no-cors' })
       .then((response) => {
         log('Got response');
