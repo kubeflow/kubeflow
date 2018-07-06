@@ -44,7 +44,7 @@ const LogsArea = glamorous.textarea({
   flexGrow: 1,
   fontSize: 13,
   height: 400,
-  margin: '10px auto 30px',
+  margin: '0 auto',
   padding: 5,
   width: '100%',
 });
