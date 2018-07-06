@@ -8,10 +8,12 @@ set -xe
 KUBEFLOW_REPO=${KUBEFLOW_REPO:-"`pwd`/kubeflow_repo"}
 KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"}
 
-git clone https://github.com/kubeflow/kubeflow.git "${KUBEFLOW_REPO}"
-cd "${KUBEFLOW_REPO}"
-git checkout "${KUBEFLOW_VERSION}"
-cd -
+if [[ ! -d "${KUBEFLOW_REPO}" ]]; then
+  git clone https://github.com/kubeflow/kubeflow.git "${KUBEFLOW_REPO}"
+  cd "${KUBEFLOW_REPO}"
+  git checkout "${KUBEFLOW_VERSION}"
+  cd -
+fi
 
 source "${KUBEFLOW_REPO}/scripts/util.sh"
 
