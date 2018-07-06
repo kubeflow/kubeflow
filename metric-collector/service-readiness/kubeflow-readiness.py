@@ -49,19 +49,19 @@ def main(unparsed_args=None):
 
   # Figure out what environment we're running in and get some preliminary
   # information about the service account.
-  bootstrap_credentials, _ = google.auth.default(
+  credentials, _ = google.auth.default(
     scopes=[IAM_SCOPE])
-  if isinstance(bootstrap_credentials,
+  if isinstance(credentials,
                 google.oauth2.credentials.Credentials):
     raise Exception('make_iap_request is only supported for service '
                     'accounts.')
 
   # For service account's using the Compute Engine metadata service,
   # service_account_email isn't available until refresh is called.
-  bootstrap_credentials.refresh(Request())
+  credentials.refresh(Request())
 
-  signer_email = bootstrap_credentials.service_account_email
-  if isinstance(bootstrap_credentials,
+  signer_email = credentials.service_account_email
+  if isinstance(credentials,
                 google.auth.compute_engine.credentials.Credentials):
     # Since the Compute Engine metadata service doesn't expose the service
     # account key, we use the IAM signBlob API to sign instead.
@@ -77,10 +77,10 @@ def main(unparsed_args=None):
     #    role. This can be found under the "Project" category in Cloud
     #    Console, or roles/iam.serviceAccountActor in gcloud.
     signer = google.auth.iam.Signer(
-      Request(), bootstrap_credentials, signer_email)
+      Request(), credentials, signer_email)
   else:
     # A Signer object can sign a JWT using the service account's key.
-    signer = bootstrap_credentials.signer
+    signer = credentials.signer
 
   # Construct OAuth 2.0 service account credentials using the signer
   # and email acquired from the bootstrap credentials.

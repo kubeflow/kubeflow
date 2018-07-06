@@ -58,6 +58,14 @@
               },
             ],
             restartPolicy: "Always",
+            volumes: [
+              {
+                name: "sa-key",
+                secret: {
+                  secretName: "admin-gcp-sa",
+                },
+              },
+            ],
           },
         },
       },
