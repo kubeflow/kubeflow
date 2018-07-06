@@ -1,5 +1,10 @@
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core';
 import Button from '@material-ui/core/Button';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
 import TextField from '@material-ui/core/TextField';
 import glamorous from 'glamorous';
 import * as jsYaml from 'js-yaml';
@@ -15,6 +20,8 @@ interface DeployFormProps {
 interface DeployFormState {
   deploymentName: string;
   email: string;
+  error: string;
+  errorMessage: string;
   hostName: string;
   ipName: string;
   project: string;
@@ -55,7 +62,7 @@ const theme = createMuiTheme({
     },
     MuiInput: {
       input: {
-        height: 35,
+        height: 25,
         padding: 5,
       },
       underline: {
@@ -79,6 +86,8 @@ export default class DeployForm extends React.Component<DeployFormProps & React.
     this.state = {
       deploymentName: 'kubeflow',
       email: 'john@doe.com',
+      error: '',
+      errorMessage: '',
       hostName: '<HOST>.endpoints.<PROJECT>.cloud.goog',
       ipName: 'kubeflow',
       project: 'cloud-ml-dev',
@@ -92,6 +101,7 @@ export default class DeployForm extends React.Component<DeployFormProps & React.
   public render() {
     return (
       <MuiThemeProvider theme={theme}>
+
         <Row>
           <Label>Project:</Label>
           <Input name='project' theme={theme} value={this.state.project} onChange={this._boundHandleChange} />
@@ -109,7 +119,7 @@ export default class DeployForm extends React.Component<DeployFormProps & React.
           <Input name='ipName' value={this.state.ipName} onChange={this._boundHandleChange} />
         </Row>
         <Row>
-          <Label>hostname:</Label>
+          <Label>Hostname:</Label>
           <Input name='hostName' value={this.state.hostName} onChange={this._boundHandleChange} />
         </Row>
         <Row>
@@ -120,6 +130,24 @@ export default class DeployForm extends React.Component<DeployFormProps & React.
         <DeployBtn variant='contained' color='primary' onClick={this._boundCreateDeployment}>
           Create Deployment
         </DeployBtn>
+
+        <Dialog open={!!this.state.error || !!this.state.errorMessage} keepMounted={true}
+          onClose={() => this.setState({ error: '', errorMessage: '' })}>
+          <DialogTitle>
+            {this.state.error}
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              {this.state.errorMessage}
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => this.setState({ error: '', errorMessage: '' })} color="primary">
+              Close
+            </Button>
+          </DialogActions>
+        </Dialog>
+
       </MuiThemeProvider >
     );
   }
@@ -127,30 +155,14 @@ export default class DeployForm extends React.Component<DeployFormProps & React.
   // Create a  Kubeflow deployment.
   private _createDeployment() {
     const templates = this.props.getDeploymentTemplates();
-    if (this.state.project === '') {
-      alert('You must set project');
-      return
-    }
-
-    if (this.state.zone === '') {
-      alert('You must set zone');
-      return
-    }
-    if (this.state.email === '') {
-      alert('You must set email');
-      return
-    }
-    if (this.state.ipName === '') {
-      alert('You must set IP Name');
-      return
-    }
-    if (this.state.deploymentName === '') {
-      alert('You must set deployment name');
-      return
-    }
-    if (this.state.hostName === '') {
-      alert('You must set hostname');
-      return
+    for (const prop of ['project', 'zone', 'email', 'ipName', 'deploymentName', 'hostName']) {
+      if (this.state[prop] === '') {
+        this.setState({
+          error: 'Missing field',
+          errorMessage: 'All fields are required, but it looks like you missed something.',
+        });
+        return;
+      }
     }
 
     const kubeflow = templates.clusterSpec.resources[0];
@@ -162,7 +174,10 @@ export default class DeployForm extends React.Component<DeployFormProps & React.
     const config: any = jsYaml.safeLoad(kubeflow.properties.bootstrapperConfig);
 
     if (config == null) {
-      alert('Property bootstrapperConfig not found in deployment config.');
+      this.setState({
+        error: 'Deployment Error',
+        errorMessage: 'Property bootstrapperConfig not found in deployment config.',
+      });
       return;
     }
 
@@ -211,7 +226,10 @@ export default class DeployForm extends React.Component<DeployFormProps & React.
       })
       .catch(err => {
         this.props.appendLine('Error doing insert:\n' + err);
-        alert('Error doing insert: ' + err)
+        this.setState({
+          error: 'Deployment Error',
+          errorMessage: 'Error trying to create deployment: ' + err,
+        });
       });
 
   } // insertDeployment

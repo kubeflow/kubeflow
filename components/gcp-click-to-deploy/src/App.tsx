@@ -86,6 +86,7 @@ class App extends React.Component<any, DeploymentTemplates> {
           <img src={logo} className='App-logo' alt='logo' />
         </header>
         <SignInButton />
+        <br />
         <Text>To get started, fill out the fields below, then click create deployment.</Text>
         <DeployForm appendLine={this._boundAppendLine}
           getDeploymentTemplates={this._boundGetDeploymentTemplates} />
