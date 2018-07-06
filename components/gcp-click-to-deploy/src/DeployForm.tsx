@@ -100,27 +100,27 @@ export default class DeployForm extends React.Component<DeployFormProps & React.
 
         <Row>
           <Label>Project:</Label>
-          <Input name='project' theme={theme} value={this.state.project} onChange={this._handleChange.bind(this)} />
+          <Input name='project' spellCheck={false} theme={theme} value={this.state.project} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
           <Label>Deployment name:</Label>
-          <Input name='deploymentName' value={this.state.deploymentName} onChange={this._handleChange.bind(this)} />
+          <Input name='deploymentName' spellCheck={false} value={this.state.deploymentName} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
           <Label>Zone:</Label>
-          <Input name='zone' value={this.state.zone} onChange={this._handleChange.bind(this)} />
+          <Input name='zone' spellCheck={false} value={this.state.zone} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
           <Label>IP Name:</Label>
-          <Input name='ipName' value={this.state.ipName} onChange={this._handleChange.bind(this)} />
+          <Input name='ipName' spellCheck={false} value={this.state.ipName} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
           <Label>Hostname:</Label>
-          <Input name='hostName' value={this.state.hostName} onChange={this._handleChange.bind(this)} />
+          <Input name='hostName' spellCheck={false} value={this.state.hostName} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
           <Label>Email for Lets Encrypt:</Label>
-          <Input name='email' value={this.state.email} onChange={this._handleChange.bind(this)} />
+          <Input name='email' spellCheck={false} value={this.state.email} onChange={this._handleChange.bind(this)} />
         </Row>
 
         <DeployBtn variant='contained' color='primary' onClick={this._createDeployment.bind(this)}>
