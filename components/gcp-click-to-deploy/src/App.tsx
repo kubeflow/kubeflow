@@ -18,7 +18,8 @@ import clusterJinjaPath from './configs/cluster.jinja';
 
 import './App.css';
 
-import NameForm from './NameForm';
+import glamorous from 'glamorous';
+import DeployForm from './DeployForm';
 
 declare global {
   interface Window {
@@ -32,14 +33,25 @@ declare global {
 // selects auto domain then we should automatically supply the suffix
 // <hostname>.endpoints.<Project>.cloud.goog
 
-class SignInButton extends React.Component {
-  public onSignIn(_: any) {
-    // I want this method to be executed
-  }
+const Text = glamorous.div({
+  margin: '10px 30px',
+});
 
+const LogsArea = glamorous.textarea({
+  backgroundColor: '#333',
+  boxSizing: 'border-box',
+  color: '#fff',
+  flexGrow: 1,
+  fontSize: 13,
+  height: 400,
+  margin: '0 auto',
+  padding: 5,
+  width: '100%',
+});
+
+class SignInButton extends React.Component {
   public render() {
     return (
-      // TODO(jlewi): How can we set data-onsuccess
       <div id='loginButton' className='g-signin2' data-theme='dark' />
     )
   }
@@ -52,20 +64,12 @@ interface DeploymentTemplates {
 
 class App extends React.Component<any, DeploymentTemplates> {
 
-  private _boundGetDeploymentTemplates: () => DeploymentTemplates;
-  private _boundAppendLine: (line: string) => void;
-
   constructor(props: any) {
     super(props);
     this.state = {
       clusterJinja: '',
       clusterSpec: null,
     };
-
-    this._boundGetDeploymentTemplates = this._getDeploymentTemplates.bind(this);
-    this._boundAppendLine = (line: string) => {
-      this._appendLine(line);
-    }
   }
 
   public render() {
@@ -75,15 +79,12 @@ class App extends React.Component<any, DeploymentTemplates> {
           <img src={logo} className='App-logo' alt='logo' />
         </header>
         <SignInButton />
-        <p className='App-intro'>
-          To get started
-            * Fill out the fields below
-            * Click create deployment
-        </p>
-        <NameForm className='nameForm' appendLine={this._boundAppendLine}
-                  getDeploymentTemplates={this._boundGetDeploymentTemplates} />
-        <p> Logs </p>
-        <textarea id='logs' readOnly={true} />
+        <br />
+        <Text>To get started, fill out the fields below, then click create deployment.</Text>
+        <DeployForm appendLine={this._appendLine.bind(this)}
+          getDeploymentTemplates={this._getDeploymentTemplates.bind(this)} />
+        <Text>Logs</Text>
+        <LogsArea id='logs' readOnly={true} />
       </div>
     );
   }
@@ -93,8 +94,12 @@ class App extends React.Component<any, DeploymentTemplates> {
       log('gapi loaded');
       await Gapi.load();
       // TODO: Hide this if the user is signed in, show the user's email instead.
-      await Gapi.loadSigninButton();
-      log(await Gapi.getSignedInEmail());
+      const user = await Gapi.getSignedInEmail();
+      if (user) {
+        this._appendLine('Signed in as: ' + user);
+      } else {
+        await Gapi.loadSigninButton();
+      }
     });
 
     // Load the YAML and jinja templates
