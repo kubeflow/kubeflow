@@ -16,35 +16,25 @@ package app
 
 import (
 	"errors"
-	"fmt"
+	"io/ioutil"
 	"net"
 	"os"
 	"os/user"
 	"path"
-	"path/filepath"
 	"regexp"
 	"strconv"
-	"time"
+
 	"github.com/ghodss/yaml"
-	"github.com/ksonnet/ksonnet/actions"
-	kApp "github.com/ksonnet/ksonnet/metadata/app"
 	"github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app/options"
 	"github.com/kubeflow/kubeflow/bootstrap/version"
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/afero"
-	core_v1 "k8s.io/api/core/v1"
-	rbac_v1 "k8s.io/api/rbac/v1"
 	"k8s.io/api/storage/v1"
-	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sVersion "k8s.io/apimachinery/pkg/version"
-	clientset "k8s.io/client-go/kubernetes"
-	type_v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-	"io/ioutil"
-	"os/exec"
-	"bytes"
+
+	"context"
 )
 
 // RecommendedConfigPathEnvVar is a environment variable for path configuration
@@ -57,53 +47,80 @@ const DefaultStorageAnnotation = "storageclass.beta.kubernetes.io/is-default-cla
 // Assume gcloud is on the path.
 const GcloudPath = "gcloud"
 
-const RegistriesDefaultConfig = "/opt/kubeflow/image_registries.yaml"
 const RegistriesRoot = "/opt/registries"
 
-type KsComponent struct{
+type KsComponent struct {
 	Name      string
 	Prototype string
 }
 
-type KsPackage struct{
+type KsPackage struct {
 	Name string
+	// Registry should be the name of the registry containing the package.
 	Registry string
 }
 
-type KsParameter struct{
+type KsParameter struct {
 	Component string
 	Name      string
 	Value     string
 }
 
+// RegistryConfig is used to configure registries that should
+// be baked into the bootstrapper docker image.
+// See: https://github.com/kubeflow/kubeflow/blob/master/bootstrap/image_registries.yaml
 type RegistryConfig struct {
-	Name string
-	Repo string
+	Name   string
+	Repo   string
 	Branch string
-	Path string
+	Path   string
+	RegUri string
+}
+
+// KsAppRegistry specifies a registry to add to an app.
+// RegistryConfig on the other hand describe a bunch of registries
+// that are baked into the docker image. These registries can then
+// be added to the app using file:// as the URI.
+// KsAppRegistry can use any URI that ksonnet understands.
+// Additionally if the RegUri is blank we will try to map it to one of
+// the registries baked into the Docker image using the name.
+type KsAppRegistry struct {
+	Name   string
 	RegUri string
 }
 
 type AppConfig struct {
+	Registries []KsAppRegistry
 	Packages   []KsPackage
 	Components []KsComponent
 	Parameters []KsParameter
 }
 
-type BootConfig struct {
+// RegistriesConfigFile corresponds to a YAML file specifying information
+// about known registries.
+type RegistriesConfigFile struct {
+	// Registries provides information about known registries.
 	Registries []RegistryConfig
-	App  AppConfig
+}
+
+// AppConfigFile corresponds to a YAML file specifying information
+// about the app to create.
+type AppConfigFile struct {
+	// App describes a ksonnet application.
+	App AppConfig
 }
 
 type LibrarySpec struct {
 	Version string
-	Path string
+	Path    string
 }
 
+// KsRegistry corresponds to ksonnet.io/registry
+// which is the registry.yaml file found in every registry.
 type KsRegistry struct {
 	ApiVersion string
-	Kind string
-	Libraries map[string]LibrarySpec
+	Kind       string
+	Libraries  map[string]LibrarySpec
 }
 
 // Load yaml config
@@ -121,15 +138,12 @@ func LoadConfig(path string, o interface{}) error {
 	return nil
 }
 
-// TODO(jlewi): If we use the same userid and groupid when running in a container then
-// we shoiuld be able to map in a user's home directory which could be useful e.g for
-// avoiding the oauth flow.
-
 // ModifyGcloudCommand modifies the cmd-path in the kubeconfig file.
 //
 // We do this because we want to be able to mount the kubeconfig file into the container.
 // The kubeconfig file typically uses the full path for the binary. This won't work inside the boostrap
 // container because the path will be different. However, we can assume gcloud is on the path.
+// TODO(jlewi): Do we still use this?
 func modifyGcloudCommand(config *clientcmdapi.Config) error {
 	for k, a := range config.AuthInfos {
 		if a.AuthProvider == nil || a.AuthProvider.Name != "gcp" {
@@ -145,7 +159,7 @@ func modifyGcloudCommand(config *clientcmdapi.Config) error {
 	return nil
 }
 
-// GetKubeConfigFile tries to find a kubeconfig file.
+// getKubeConfigFile tries to find a kubeconfig file.
 func getKubeConfigFile() string {
 	configFile := ""
 
@@ -164,7 +178,6 @@ func getKubeConfigFile() string {
 }
 
 // gGetClusterConfig obtain the config from the Kube configuration used by kubeconfig.
-//
 func getClusterConfig(inCluster bool) (*rest.Config, error) {
 	if inCluster {
 		return rest.InClusterConfig()
@@ -247,120 +260,47 @@ func hasDefaultStorage(sClasses *v1.StorageClassList) bool {
 	return false
 }
 
-func setupNamespace(namespaces type_v1.NamespaceInterface, name_space string) error {
-	namespace, err := namespaces.Get(name_space, meta_v1.GetOptions{})
-	if err == nil {
-		log.Infof("Using existing namespace: %v", namespace.Name)
-	} else {
-		log.Infof("Creating namespace: %v for all kubeflow resources", name_space)
-		_, err = namespaces.Create(
-			&core_v1.Namespace{
-				ObjectMeta: meta_v1.ObjectMeta{
-					Name: name_space,
-				},
-			},
-		)
+// processFile creates an app based on a configuration file.
+func processFile(opt *options.ServerOption, ksServer *ksServer) error {
+	ctx := context.Background()
+
+	appName := "kubeflow"
+
+	var appConfigFile AppConfigFile
+	if err := LoadConfig(opt.Config, &appConfigFile); err != nil {
 		return err
 	}
-	return err
-}
 
-func createComponent(opt *options.ServerOption, kfApp *kApp.App, fs *afero.Fs, args []string) error {
-	componentName := args[1]
-	componentPath := filepath.Join(opt.AppDir, "components", componentName+".jsonnet")
+	request := CreateRequest{
+		Name:          appName,
+		AppConfig:     appConfigFile.App,
+		Namespace:     opt.NameSpace,
+		AutoConfigure: true,
+	}
+	if err := ksServer.CreateApp(ctx, request); err != nil {
+		return err
+	}
 
-	if exists, _ := afero.Exists(*fs, componentPath); !exists {
-		log.Infof("Creating Component: %v ...", componentName)
-		err := actions.RunPrototypeUse(map[string]interface{}{
-			actions.OptionApp:       *kfApp,
-			actions.OptionArguments: args,
-		})
-		if err != nil {
-			return errors.New(fmt.Sprintf("There was a problem creating component %v: %v", componentName, err))
+	if opt.Apply {
+		req := ApplyRequest{
+			Name:        appName,
+			Environment: "default",
+			Components:  make([]string, 0),
 		}
-	} else {
-		log.Infof("Component %v already exists", componentName)
+
+		for _, component := range appConfigFile.App.Components {
+			req.Components = append(req.Components, component.Name)
+		}
+
+		if err := ksServer.Apply(ctx, req); err != nil {
+			log.Errorf("Failed to apply app %v; Error: %v", appName, err)
+			return err
+		}
 	}
 	return nil
 }
 
-func appGenerate(opt *options.ServerOption, kfApp *kApp.App, fs *afero.Fs, bootConfig *BootConfig) error {
-	libs, err := (*kfApp).Libraries()
-
-	if err != nil {
-		return errors.New(fmt.Sprintf("Could not list libraries for app; error %v", err))
-	}
-
-	// Install all packages within each registry
-	for _, registry := range bootConfig.Registries {
-		regFile := path.Join(registry.RegUri, "registry.yaml")
-		_, err = (*fs).Stat(regFile)
-		if err == nil {
-			log.Infof("processing registry file %v ", regFile)
-			var ksRegistry KsRegistry
-			if LoadConfig(regFile, &ksRegistry) == nil {
-				for pkgName, _ := range ksRegistry.Libraries {
-					_, err = (*fs).Stat(path.Join(registry.RegUri, pkgName))
-					if err != nil {
-						return errors.New(fmt.Sprintf("Package %v didn't exist in registry %v", pkgName, registry.RegUri))
-					}
-					full := fmt.Sprintf("%v/%v", registry.Name, pkgName)
-					log.Infof("Installing package %v", full)
-
-					if _, found := libs[pkgName]; found {
-						log.Infof("Package %v already exists", pkgName)
-						continue
-					}
-					err := actions.RunPkgInstall(map[string]interface{}{
-						actions.OptionApp:     *kfApp,
-						actions.OptionLibName: full,
-						actions.OptionName:    pkgName,
-					})
-
-					if err != nil {
-						return errors.New(fmt.Sprintf("There was a problem installing package %v; error %v", full, err))
-					}
-				}
-			}
-		}
-	}
-
-	paramMapping := make(map[string][]string)
-	// Extract params for each components
-	for _, p := range bootConfig.App.Parameters {
-		if val, ok := paramMapping[p.Component]; ok {
-			paramMapping[p.Component] = append(val, []string{"--" + p.Name, p.Value}...)
-		} else {
-			paramMapping[p.Component] = []string{"--" + p.Name, p.Value}
-		}
-	}
-
-	// Create Components
-	for _, c := range bootConfig.App.Components {
-		params := []string{c.Prototype, c.Name}
-		if val, ok := paramMapping[c.Name]; ok {
-			params = append(params, val...)
-		}
-		if err = createComponent(opt, kfApp, fs, params); err != nil {
-			return err
-		}
-	}
-	// Apply Params
-	for _, p := range bootConfig.App.Parameters {
-		err = actions.RunParamSet(map[string]interface{}{
-			actions.OptionApp:   *kfApp,
-			actions.OptionName:  p.Component,
-			actions.OptionPath:  p.Name,
-			actions.OptionValue: p.Value,
-		})
-		if err != nil {
-			return errors.New(fmt.Sprintf("Error when setting Parameters %v for Component %v: %v", p.Name, p.Component, err))
-		}
-	}
-	return err
-}
-
-// Run the tool.
+// Run the application.
 func Run(opt *options.ServerOption) error {
 	// Check if the -version flag was passed and, if so, print the version and exit.
 	if opt.PrintVersion {
@@ -372,207 +312,35 @@ func Run(opt *options.ServerOption) error {
 		return err
 	}
 
-	var regConfig BootConfig
-	if LoadConfig(RegistriesDefaultConfig, &regConfig) != nil {
-		return err
-	}
-	var bootConfig BootConfig
-	if LoadConfig(opt.Config, &bootConfig) != nil {
-		return err
-	}
+	// Load information about the default registries.
+	var regConfig RegistriesConfigFile
 
-	allRegistries := make(map[string]RegistryConfig)
-	for _, registry := range append(regConfig.Registries, bootConfig.Registries...) {
-		if _, ok := allRegistries[registry.Name]; !ok {
-			allRegistries[registry.Name] = registry
+	if opt.RegistriesConfigFile != "" {
+		log.Info("Loading registry info in file %v", opt.RegistriesConfigFile)
+		if err = LoadConfig(opt.RegistriesConfigFile, &regConfig); err != nil {
+			return err
 		}
-	}
-
-	bootConfig.Registries = make([]RegistryConfig, 0, len(allRegistries))
-	for _, val := range allRegistries {
-		bootConfig.Registries = append(bootConfig.Registries, val)
-	}
-
-	kubeClient, err := clientset.NewForConfig(rest.AddUserAgent(config, "kubeflow-bootstrapper"))
-	if err != nil {
-		return err
-	}
-
-	err = setupNamespace(kubeClient.CoreV1().Namespaces(), opt.NameSpace)
-	if err != nil {
-		return err
-	}
-
-	clusterVersion, err := kubeClient.DiscoveryClient.ServerVersion()
-
-	if err != nil {
-		return err
-	}
-
-	if (!opt.InCluster) && isGke(clusterVersion) {
-		roleBindingName := "kubeflow-admin"
-		_, err = kubeClient.RbacV1().ClusterRoleBindings().Get(roleBindingName, meta_v1.GetOptions{})
-		if err != nil {
-			log.Infof("GKE: create rolebinding kubeflow-admin for role permission")
-			if opt.Email == "" {
-				return errors.New("Please provide --email YOUR_GCP_ACCOUNT")
-			}
-			_, err = kubeClient.RbacV1().ClusterRoleBindings().Create(
-				&rbac_v1.ClusterRoleBinding{
-					ObjectMeta: meta_v1.ObjectMeta{Name: roleBindingName},
-					Subjects:   []rbac_v1.Subject{{Kind: "User", Name: opt.Email}},
-					RoleRef:    rbac_v1.RoleRef{Kind: "ClusterRole", Name: "cluster-admin"},
-				},
-			)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	log.Infof("Cluster version: %v", clusterVersion.String())
-
-	s := kubeClient.StorageV1()
-	sClasses, err := s.StorageClasses().List(meta_v1.ListOptions{})
-
-	if err != nil {
-		return err
-	}
-
-	hasDefault := hasDefaultStorage(sClasses)
-
-	fs := afero.NewOsFs()
-
-	_, err = fs.Stat(opt.AppDir)
-
-	log.Infof("Using K8s host %v", config.Host)
-
-	envName := "default"
-
-	if err != nil {
-		options := map[string]interface{}{
-			actions.OptionFs:       fs,
-			actions.OptionName:     "app",
-			actions.OptionEnvName:  envName,
-			actions.OptionRootPath: opt.AppDir,
-			actions.OptionServer:   config.Host,
-			// TODO(jlewi): What is the proper version to use? It shouldn't be a version like v1.9.0-gke as that
-			// will create an error because ksonnet will be unable to fetch a swagger spec.
-			actions.OptionSpecFlag:              "version:v1.7.0",
-			actions.OptionNamespace:             opt.NameSpace,
-			actions.OptionSkipDefaultRegistries: true,
-		}
-
-		err := actions.RunInit(options)
-
-		if err != nil {
-			return errors.New(fmt.Sprintf("There was a problem initializing the app: %v", err))
-		}
-
-		log.Infof("Successfully initialized the app %v.", opt.AppDir)
-
 	} else {
-		log.Infof("Directory %v exists", opt.AppDir)
+		log.Info("--registries-config-file not provided; not loading any registries")
 	}
 
-	kfApp, err := kApp.Load(fs, opt.AppDir, true)
+	ksServer, err := NewServer(opt.AppDir, regConfig.Registries, config)
 
 	if err != nil {
-		return errors.New(fmt.Sprintf("There was a problem loading the app: %v", err))
-	}
-
-	for idx, registry := range bootConfig.Registries {
-		bootConfig.Registries[idx].RegUri = path.Join(RegistriesRoot, registry.Name, registry.Path)
-		options := map[string]interface{}{
-			actions.OptionApp:  kfApp,
-			actions.OptionName: registry.Name,
-			actions.OptionURI:  bootConfig.Registries[idx].RegUri,
-			// Version doesn't actually appear to be used by the add function.
-			actions.OptionVersion: "",
-			// Looks like override allows us to override existing registries; we shouldn't
-			// need to do that.
-			actions.OptionOverride: false,
-		}
-
-		registries, err := kfApp.Registries()
-		if err != nil {
-			log.Fatal("There was a problem listing registries; %v", err)
-		}
-
-		if _, found := registries[registry.Name]; found {
-			log.Infof("App already has registry %v", registry.Name)
-		} else {
-
-			err = actions.RunRegistryAdd(options)
-			if err != nil {
-				return errors.New(fmt.Sprintf("There was a problem adding registry %v: %v", registry.Name, err))
-			}
-		}
-	}
-
-	// Load default kubeflow apps
-	if err = appGenerate(opt, &kfApp, &fs, &bootConfig); err != nil {
 		return err
 	}
 
-	// Component customization
-	for _, component := range bootConfig.App.Components {
-		if component.Name == "jupyterhub" {
-			pvcMount := ""
-			if hasDefault {
-				pvcMount = "/home/jovyan"
-			}
-
-			err = actions.RunParamSet(map[string]interface{}{
-				actions.OptionApp:   kfApp,
-				actions.OptionName:  component.Name,
-				actions.OptionPath:  "notebookPVCMount",
-				actions.OptionValue: pvcMount,
-			})
-
-			if err != nil {
-				return err
-			}
+	if opt.Config != "" {
+		log.Infof("Processing file: %v", opt.Config)
+		if err := processFile(opt, ksServer); err != nil {
+			log.Errorf("Error occurred tyring to process file %v; %v", opt.Config, err)
 		}
 	}
 
-	if err := os.Chdir(kfApp.Root()); err != nil {
-		return err
+	if opt.KeepAlive {
+		log.Infof("Starting http server.")
+		ksServer.StartHttp(opt.Port)
 	}
-	log.Infof("App root %v", kfApp.Root())
 
-	fmt.Printf("Initialized app %v\n", opt.AppDir)
-
-	if opt.Apply {
-		// (05092018): why not use API:
-		// ks runApply API expects clientcmd.ClientConfig, which kind of have soft dependency on existence of ~/.kube/config
-		// if use k8s client-go API, would be quite verbose if we create all resources one by one.
-		// TODO: use API to create ks Components
-		for _, component := range bootConfig.App.Components {
-			log.Infof("Apply kubeflow component %v", component.Name)
-			rawCmd := fmt.Sprintf(
-				"ks apply default -c %v --token=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)",
-				component.Name)
-			applyCmd := exec.Command("bash", "-c", rawCmd)
-
-			var out bytes.Buffer
-			var stderr bytes.Buffer
-			applyCmd.Stdout = &out
-			applyCmd.Stderr = &stderr
-			if err := applyCmd.Run(); err != nil {
-				log.Infof("Component apply failed: " + fmt.Sprint(err) + "\n" + out.String() + "\n" + stderr.String())
-				return err
-			} else {
-				// ks apply output to stderr on success case as well
-				log.Infof("Component apply successfully.\n" + out.String() + "\n" + stderr.String())
-			}
-		}
-	}
-	if opt.InCluster && opt.KeepAlive {
-		log.Infof("Keeping pod alive...")
-		for {
-			time.Sleep(time.Minute)
-		}
-	}
-	return err
+	return nil
 }
