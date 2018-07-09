@@ -1,3 +1,0 @@
-RUNTIME ERROR: foobar
-	error.inside_tostring_object.jsonnet:17:12-26	object <anonymous>
-	error.inside_tostring_object.jsonnet:17:1-28	

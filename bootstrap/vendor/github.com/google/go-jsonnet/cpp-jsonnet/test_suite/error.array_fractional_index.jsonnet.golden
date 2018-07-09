@@ -1,2 +1,0 @@
-RUNTIME ERROR: array index was not integer: 1.5
-	error.array_fractional_index.jsonnet:17:1-15	

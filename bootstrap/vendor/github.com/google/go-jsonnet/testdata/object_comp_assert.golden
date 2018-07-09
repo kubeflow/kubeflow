@@ -1,5 +1,0 @@
-testdata/object_comp_assert:1:32-35 Object comprehension cannot have asserts.
-
-{ assert self.x == 5, ["x"]: 5 for i in [42] }
-
-

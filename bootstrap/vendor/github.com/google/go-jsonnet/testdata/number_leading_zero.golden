@@ -1,5 +1,0 @@
-testdata/number_leading_zero:1:2-4 Did not expect: (NUMBER, "42")
-
-042
-
-

@@ -1,2 +1,0 @@
-NAME OVERRIDE PROTOCOL URI
-==== ======== ======== ===

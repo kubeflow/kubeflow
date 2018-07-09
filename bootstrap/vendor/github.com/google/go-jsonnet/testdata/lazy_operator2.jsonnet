@@ -1,1 +1,0 @@
-true && error "should happen"
