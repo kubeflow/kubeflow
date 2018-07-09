@@ -1,2 +1,0 @@
-RUNTIME ERROR: internal error: got positional param after named at index 1
-	error.function_arg_positional_after_named.jsonnet:19:1-12	

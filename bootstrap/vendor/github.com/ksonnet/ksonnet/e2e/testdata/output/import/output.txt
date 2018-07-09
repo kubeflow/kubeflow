@@ -1,4 +1,0 @@
-COMPONENT
-=========
-deployment
-guestbook-ui

@@ -1,3 +1,0 @@
-ksonnet version: (dev build)
-jsonnet version: v0.10.0
-client-go version: 1.8

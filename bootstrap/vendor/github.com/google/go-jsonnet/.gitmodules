@@ -1,3 +1,0 @@
-[submodule "cpp-jsonnet"]
-	path = cpp-jsonnet
-	url = https://github.com/google/jsonnet.git
