@@ -1,2 +1,0 @@
-RUNTIME ERROR: field does not exist: y
-	error.field_not_exist.jsonnet:17:1-11	

@@ -1,3 +1,0 @@
-COMPONENT    TYPE    INDEX APIVERSION KIND NAME
-=========    ====    ===== ========== ==== ====
-guestbook-ui jsonnet 0

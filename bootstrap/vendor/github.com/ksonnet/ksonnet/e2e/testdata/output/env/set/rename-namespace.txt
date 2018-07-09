@@ -1,7 +1,0 @@
-name: default
-kubernetesversion: v1.7.0
-path: default
-destination:
-  server: http://example.com
-  namespace: dev
-targets: []

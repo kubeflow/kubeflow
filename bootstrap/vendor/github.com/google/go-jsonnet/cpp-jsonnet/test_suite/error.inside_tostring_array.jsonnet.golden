@@ -1,3 +1,0 @@
-RUNTIME ERROR: foobar
-	error.inside_tostring_array.jsonnet:17:8-22	thunk <array_element>
-	error.inside_tostring_array.jsonnet:17:1-23	

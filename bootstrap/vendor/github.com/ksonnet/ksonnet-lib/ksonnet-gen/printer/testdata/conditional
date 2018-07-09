@@ -1,1 +1,0 @@
-if std.type(foo) == "array" then {foo: foo} else {foo: [foo]}

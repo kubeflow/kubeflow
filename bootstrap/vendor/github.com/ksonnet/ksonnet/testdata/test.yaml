@@ -1,3 +1,0 @@
-apiVersion: v0alpha0
-kind: YamlObject
-foo: bar
