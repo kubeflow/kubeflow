@@ -1,5 +1,0 @@
-testdata/object_comp_bad_field:1:9-12 Object comprehensions can only have [e] fields.
-
-{ x: 42 for _ in [1] }
-
-

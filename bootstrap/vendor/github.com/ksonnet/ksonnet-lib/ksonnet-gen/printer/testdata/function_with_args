@@ -1,3 +1,0 @@
-{
-  foo(one, two):: myVar + 2,
-}

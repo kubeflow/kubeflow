@@ -1,5 +1,0 @@
-local a = import 'a.jsonnet';  // xaaa
-local b = import 'b.jsonnet';  // xbbb
-local c = import 'c.jsonnet';  // xccc
-// end of imports
-true

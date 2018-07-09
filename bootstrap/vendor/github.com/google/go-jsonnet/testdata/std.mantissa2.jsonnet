@@ -1,1 +1,0 @@
-std.mantissa(42)
