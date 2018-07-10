@@ -101,6 +101,13 @@
               },
             },
             {
+              // The deploy script doesn't need to setup the project; e.g. enable APIs; they should already
+              // be enabled. This slows down setup and leads to test flakiness.
+              // If need be we can have a separate test for the new project case.
+              name: "SETUP_PROJECT",
+              value: "false",
+            },
+            {
               // We use a directory in our NFS share to store our kube config.
               // This way we can configure it on a single step and reuse it on subsequent steps.
               name: "KUBECONFIG",
