@@ -6,7 +6,7 @@ Authors:
 
 Status:
 
-	* 2018-07-08 Created
+  * 2018-07-08 Created
 
 ## TL;DR
 
