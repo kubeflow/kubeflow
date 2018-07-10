@@ -334,6 +334,11 @@ TODO(jlewi): Do we need to serialize API activation
             {# VM service account is used to write monitoring data. #}
             - {{ 'serviceAccount:' + KF_VM_SA_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
 
+        - role: roles/storage.objectViewer
+          members:
+            {# VM service account is used to pull image from gcr. #}
+            - {{ 'serviceAccount:' + KF_VM_SA_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
         {% if 'users' in properties %}
         {% if properties['users'] %}
         - role: roles/iap.httpsResourceAccessor
@@ -402,6 +407,11 @@ TODO(jlewi): Do we need to serialize API activation
         - role: roles/monitoring.metricWriter
           members:
             {# VM service account is used to write monitoring data. #}
+            - {{ 'serviceAccount:' + KF_VM_SA_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        - role: roles/storage.objectViewer
+          members:
+            {# VM service account is used to pull image from gcr. #}
             - {{ 'serviceAccount:' + KF_VM_SA_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
 
         {% if 'users' in properties %}
