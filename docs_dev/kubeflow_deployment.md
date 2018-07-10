@@ -2,11 +2,11 @@
 
 Authors:
 
-	- jlewi@google.com
+  * jlewi@google.com
 
 Status:
 
-	- 2018-07-08 Created
+	* 2018-07-08 Created
 
 ## TL;DR
 
@@ -197,10 +197,10 @@ For more information on testing
 
 # References
 
-[kubeflow/kubeflow#105](https://github.com/kubeflow/kubeflow/issues/105) - Make it
+* [kubeflow/kubeflow#105](https://github.com/kubeflow/kubeflow/issues/105) - Make it
   easy to get started with Kubeflow
-[kubeflow/kubeflow#23](https://github.com/kubeflow/kubeflow/issues/23) - Original issue about tooling and configuration.
-[kubeflow/kubeflow#376](https://github.com/kubeflow/kubeflow/issues/376) - Discussion of ksonnet patterns
+* [kubeflow/kubeflow#23](https://github.com/kubeflow/kubeflow/issues/23) - Original issue about tooling and configuration.
+* [kubeflow/kubeflow#376](https://github.com/kubeflow/kubeflow/issues/376) - Discussion of ksonnet patterns
 
 # Appendix: Other Approaches to Customization
 
