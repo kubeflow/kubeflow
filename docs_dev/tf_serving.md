@@ -18,15 +18,17 @@ Starting in TF 1.8, TF Serving also provides a REST [api](https://github.com/ten
 In Kubeflow, we have a TF Serving [component](https://github.com/kubeflow/kubeflow/tree/master/kubeflow/tf-serving).
 
 #### HTTP proxy
-The http proxy provides an REST api, which is the same as TF Serving's built-in REST api.
+The [http proxy](https://github.com/kubeflow/kubeflow/tree/master/components/k8s-model-server/http-proxy)
+provides an REST api, which is the same as TF Serving's built-in REST api.
 
 #### TF serving images
 We build TF serving images for different TF versions, and for both cpu and gpu.
 For example, gcr.io/kubeflow-images-public/tensorflow-serving-1.6gpu:v20180604-0da89b8a.
+Check out gcr.io/kubeflow-images-public registry for other versions.
 
 #### Istio integration
 We can optionally deploy [Istio](https://istio.io/) and get additional features, such as
-rpc metrics (request count, error count, latencies), and traffic routing / rollout out
+rpc metrics (request count, error count, latencies), and traffic routing / rollout
 (e.g. 95% to version 1, 5% to version 2).
 See [detail](https://github.com/kubeflow/kubeflow/blob/master/components/k8s-model-server/istio-integration.md).
 
