@@ -19,12 +19,13 @@ IMAGES_FILE=${ROOT_DIR}/releasing/image_tags.yaml
 # we depend on the python code in that repo.
 export PYTHONPATH=${PYTHONPATH}:${ROOT_DIR}/../git_kubeflow-testing/py
 
-RELEASE=v0.2.0
+JUPYTER_TAG=v20180707-5a11c84d
+RELEASE=v0.2.1
 
 # Fetch shas for Jupyter images
-python releasing/add_image_shas.py --pattern=.*tensorflow.*1.*notebook.*:v20180619.* \
+python ${ROOT_DIR}/releasing/add_image_shas.py --pattern=.*tensorflow.*1.*notebook.*:${JUPYTER_TAG} \
 	--images_file=${IMAGES_FILE}
 
 # Tag the Jupyter images we want with the desired relase tag.
-python releasing/add_image_tag.py --pattern=.*tensorflow.*1.*notebook.*:v20180619.* --tag=${RELEASE} \
+python ${ROOT_DIR}/releasing/add_image_tag.py --pattern=.*tensorflow.*1.*notebook.*:${JUPYTER_TAG} --tag=${RELEASE} \
     --images_file=${IMAGES_FILE}

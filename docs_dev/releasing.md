@@ -248,9 +248,18 @@ the correct Docker image.
         notebook) images.
    * There should be an entry for ever image you want to use referenced by the sha of the image
    * If there was a previous release using an earlier image, remove the tag v${RELEASE}
-     from that entry
-   * Add the tag v${RELEASE} to the newly added image
-   * Run apply_image_tags.py
+     from that entry   
+   * Run run_apply_image_tags.sh
+
+     * This script actually creates the tags in the GCR registry based on the data in image_tags.yaml
+
+     ```
+     IMAGE_PATTERN=".*tensorflow.*notebook.*:v0.2.1.*"
+     ./run_apply_image_tags.sh "${IMAGE_PATTERN}"
+
+     ```
+
+     * IMAGE_PATTERN should be a regex matching the images that you want to add the tag
    * Create a PR checking **into master** the changes in image_tags.yaml
 
 ### Release branching policy
