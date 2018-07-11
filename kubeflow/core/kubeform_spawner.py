@@ -167,3 +167,24 @@ c.KubeSpawner.volume_mounts = volume_mounts
 # singleuser_service_account has been deprecated in a future release
 c.KubeSpawner.service_account = 'jupyter-notebook'
 c.KubeSpawner.singleuser_service_account = 'jupyter-notebook'
+# Authenticator
+if os.environ.get('KF_AUTHENTICATOR') == 'iap':
+    c.JupyterHub.authenticator_class ='jhub_remote_user_authenticator.remote_user_auth.RemoteUserAuthenticator'
+    c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'
+else:
+    c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'
+
+# PVCs
+pvcs = os.environ.get('KF_PVC_LIST')
+if pvcs:
+    for pvc in pvcs.split(','):
+        volumes.append({
+            'name': pvc,
+            'persistentVolumeClaim': {
+                'claimName': pvc
+            }
+        })
+        volume_mounts.append({
+            'name': pvc,
+            'mountPath': '/mnt/' + pvc
+        })
