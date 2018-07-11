@@ -11,7 +11,7 @@
 #   $ ./deploy.sh
 #
 
-set -e
+set -xe
 
 # Required Variables
 export PROJECT=${PROJECT:-}
@@ -20,6 +20,9 @@ export ZONE=${ZONE:-}
 export CONFIG_FILE=${CONFIG_FILE:-}
 export CLIENT_ID=${CLIENT_ID:-}
 export CLIENT_SECRET=${CLIENT_SECRET:-}
+
+# Set to false to skip setting up the project.
+export SETUP_PROJECT=${SETUP_PROJECT:true}
 
 if [ -z "${PROJECT}" ] || \
    [ -z "${DEPLOYMENT_NAME}" ] || \
@@ -44,18 +47,34 @@ export USER_SECRET_NAME=${DEPLOYMENT_NAME}-user
 export K8S_ADMIN_NAMESPACE=kubeflow-admin
 export K8S_NAMESPACE=kubeflow
 
-# Enable GCloud APIs
-gcloud services enable deploymentmanager.googleapis.com --project=${PROJECT}
-gcloud services enable servicemanagement.googleapis.com --project=${PROJECT}
-gcloud services enable iam.googleapis.com --project=${PROJECT}
+# Perform project setup
+if ${SETUP_PROJECT}; then
+  # Enable GCloud APIs
+  gcloud services enable deploymentmanager.googleapis.com \
+                         servicemanagement.googleapis.com \
+                         iam.googleapis.com --project=${PROJECT}
 
-# Set IAM Admin Policy
-gcloud projects add-iam-policy-binding ${PROJECT} \
-   --member serviceAccount:${PROJECT_NUMBER}@cloudservices.gserviceaccount.com \
-   --role roles/resourcemanager.projectIamAdmin
+  # Set IAM Admin Policy
+  gcloud projects add-iam-policy-binding ${PROJECT} \
+     --member serviceAccount:${PROJECT_NUMBER}@cloudservices.gserviceaccount.com \
+     --role roles/resourcemanager.projectIamAdmin
+else
+  echo skipping project setup
+fi
 
-# Run Deployment Manager
-gcloud deployment-manager --project=${PROJECT} deployments create ${DEPLOYMENT_NAME} --config=${CONFIG_FILE}
+# Check if it already exists
+set +e
+gcloud deployment-manager --project=${PROJECT} deployments describe ${DEPLOYMENT_NAME}
+exists=$?
+set -e
+
+if [ ${exists} -eq 0 ]; then
+  echo ${DEPLOYMENT_NAME} exists
+  gcloud deployment-manager --project=${PROJECT} deployments update ${DEPLOYMENT_NAME} --config=${CONFIG_FILE}  
+else
+  # Run Deployment Manager
+  gcloud deployment-manager --project=${PROJECT} deployments create ${DEPLOYMENT_NAME} --config=${CONFIG_FILE}
+fi
 
 # TODO(jlewi): We should name the secrets more consistently based on the service account name.
 # We will need to update the component configs though
@@ -77,3 +96,7 @@ kubectl create secret generic --namespace=${K8S_ADMIN_NAMESPACE} admin-gcp-sa --
 kubectl create secret generic --namespace=${K8S_NAMESPACE} admin-gcp-sa --from-file=admin-gcp-sa.json=./${SA_EMAIL}.json
 kubectl create secret generic --namespace=${K8S_NAMESPACE} user-gcp-sa --from-file=user-gcp-sa.json=./${USER_EMAIL}.json
 kubectl create secret generic --namespace=${K8S_NAMESPACE} kubeflow-oauth --from-literal=CLIENT_ID=${CLIENT_ID} --from-literal=CLIENT_SECRET=${CLIENT_SECRET}
+
+# Install the GPU driver. It has not effect on non-GPU nodes.
+kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/stable/nvidia-driver-installer/cos/daemonset-preloaded.yaml
+
