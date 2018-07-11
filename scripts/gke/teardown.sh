@@ -23,4 +23,5 @@ gcloud deployment-manager deployments delete --quiet \
 
 gcloud beta filestore instances delete ${GCFS_INSTANCE} \
     --project=${PROJECT} \
-    --location=${ZONE}
+    --location=${ZONE} \
+    --quiet
