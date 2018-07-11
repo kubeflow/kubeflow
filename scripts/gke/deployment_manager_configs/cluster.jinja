@@ -181,6 +181,10 @@ resources:
         - role: roles/cloudbuild.builds.editor
           members:
             - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+        {# roles/viewer is required for viewing the logs of a GCB build #}
+        - role: roles/viewer
+          members:
+            - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
 
         {# Grant permissions needed to push the app to a cloud repository. #}
         - role: roles/source.admin
@@ -259,6 +263,10 @@ resources:
         remove:
         {# Grant permissions needed to submit builds to Google Cloud Container Builder #}
         - role: roles/cloudbuild.builds.editor
+          members:
+            - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+        {# roles/viewer is required for viewing the logs of a GCB build #}
+        - role: roles/viewer
           members:
             - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
 
