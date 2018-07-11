@@ -167,6 +167,27 @@ Here are some **guidelines (not requirements)** for creating the above scripts a
   * There is an open issue [ksonnet/ksonnet#64](https://github.com/ksonnet/ksonnet/issues/641) to support this pattern
     natively in ksonnet and address these limitations.
 
+## Open Question: Ensuring a common experience
+
+An open question is finding the right balance between ensuring a common experience across all platforms
+while still giving maintainers of a particular platform the ability to customize that experience.
+
+I think we'd like to have a well defined concept of base Kubeflow which consists of a good set of components
+that we think all users will want. Platform maintainers should be discouraged from removing components in base.
+If users want to remove certain base components they are free to do so and can easily do so.
+
+We have yet to find a good method for defining the base components. Currently, the base components
+is defined by the components generated in the deploy script. This works but will probably be difficult
+to avoid fragmentation as scripts are added for more platforms.
+
+We had previously tried defining a ksonnet core prototype consisting of all the components that should be 
+installed by default. This had some unfortunate side effects and I think we want to avoid creating a single prototype
+for multiple components going forward
+
+   * A user should be able to manage the components individually; e.g. updating JupyterHub without updating other components
+   * We end up combining the parameters for all the components into a single prototype file which is a bit unwieldy
+   * It limits our ability to organize components into ksonnet packages by application (e.g. TensorFlow, PyTorch, Jupyter)
+
 ## Monitoring Kubeflow Deployment
 
 Monitoring deployment is an open area. The initial focus is:
