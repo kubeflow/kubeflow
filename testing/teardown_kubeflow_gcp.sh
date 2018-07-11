@@ -11,6 +11,16 @@ if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS}" ]]; then
   gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
 fi
 
+# Delete kubeflow namespace - this deletes all the ingress objects
+# in the namespace which deletes the associated GCP resources
+set +e
+kubectl delete ns/kubeflow
+while kubectl get ns/kubeflow; do
+  echo "kubeflow namespace not yet deleted. sleeping 10 seconds..."
+  sleep 10
+done
+echo "kubeflow namespace successfully deleted."
+set -e
 # Add a jitter to reduce the chance of deployments updating at the same time
 # since tests are run in parallel
 sleep $((${RANDOM} % 30))
