@@ -21,11 +21,11 @@ export PYTHONPATH=${PYTHONPATH}:${ROOT_DIR}/../git_kubeflow-testing/py
 
 RELEASE=v0.2.0
 
-# Update the Jupyter Images
-sed -i "s/tensorflow-\([0-9\.]*\)-notebook-\(.*\):v20180607-476e150e/tensorflow-\1-notebook-\2:${RELEASE}/" \
-	kubeflow/core/kubeform_spawner.py 
+OLD_NOTEBOOK_RELEASE=v0.2.0
+NOTEBOOK_RELEASE=v0.2.1
 
-sed -i "s/tensorflow-\([0-9\.]*\)-notebook-\(.*\):v20180619-c79194b3/tensorflow-\1-notebook-\2:${RELEASE}/" \
+# Update the Jupyter Images
+sed -i "s/tensorflow-\([0-9\.]*\)-notebook-\(.*\):${OLD_NOTEBOOK_RELEASE}/tensorflow-\1-notebook-\2:${NOTEBOOK_RELEASE}/" \
 	kubeflow/core/kubeform_spawner.py 
 
 # Update the TFJob operator image
