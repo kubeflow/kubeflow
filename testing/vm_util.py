@@ -46,7 +46,7 @@ def wait_for_operation(client,
       else:
         op = client.globalOperations().get(project=project,
                                            operation=op_id).execute()
-    except socket.Error as e:
+    except socket.error as e:
       logging.error("Ignoring error %s", e)
       continue
     except ssl.SSLError as e:
