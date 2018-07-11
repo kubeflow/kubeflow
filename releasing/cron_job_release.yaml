@@ -1,0 +1,50 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: image-release-cron
+  namespace: kubeflow-releasing
+spec:
+  schedule: "0 0 * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    metadata:
+      name: image-release
+      namespace: kubeflow-releasing
+      labels:
+        app: image-release
+    spec:
+      template:
+        spec:
+          containers:
+            - name: release-images
+              command: ["/bin/bash", "-c", "/usr/local/bin/run_release.sh"]
+              image: gcr.io/kubeflow-releasing/worker:latest
+              env:
+              - name: GOOGLE_APPLICATION_CREDENTIALS
+                value: /secret/gcp-credentials/key.json
+              - name: GITHUB_TOKEN
+                valueFrom:
+                  secretKeyRef:
+                    key: github_token
+                    name: github-token
+              - name: JOB_NAME
+                value: image-release
+              - name: JOB_TYPE
+                value: postsubmit
+              - name: REPO_NAME
+                value: kubeflow
+              - name: REPO_OWNER
+                value: kubeflow
+              volumeMounts:
+              - mountPath: /secret/github-token
+                name: github-token
+              - mountPath: /secret/gcp-credentials
+                name: gcp-credentials
+          restartPolicy: Never
+          volumes:
+          - name: github-token
+            secret:
+              secretName: github-token
+          - name: gcp-credentials
+            secret:
+              secretName: gcp-credentials

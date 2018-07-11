@@ -1,3 +1,16 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [tf-serving](#tf-serving)
+  - [Quickstart](#quickstart)
+  - [Using the library](#using-the-library)
+    - [io.ksonnet.pkg.tf-serving](#ioksonnetpkgtf-serving)
+      - [Example](#example)
+      - [Parameters](#parameters)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # tf-serving
 
 > TensorFlow serving is a server for TensorFlow models.

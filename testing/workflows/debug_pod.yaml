@@ -9,18 +9,18 @@ spec:
     spec:
       containers:
       - name: test-container
-        image: gcr.io/mlkube-testing/kubeflow-testing:latest
+        image: gcr.io/kubeflow-ci/test-worker:latest
         command: ["tail", "-f", "/dev/null"]
         volumeMounts:
           - mountPath: /mnt/test-data-volume
             name: kubeflow-test-volume
           - mountPath: /secret/gcp-credentials
             name: gcp-credentials
-        env:        
+        env:
           - name: GOOGLE_APPLICATION_CREDENTIALS
             value: /secret/gcp-credentials/key.json
       restartPolicy: Never
-      volumes:      
+      volumes:
         - name: kubeflow-test-volume
           persistentVolumeClaim:
             claimName: kubeflow-testing

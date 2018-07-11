@@ -1,17 +1,29 @@
 {
+  util:: import "kubeflow/tf-serving/util.libsonnet",
+
   // Parameters are intended to be late bound.
   params:: {
     name: null,
-    namespace: null,
     numGpus: 0,
     labels: {
       app: $.params.name,
     },
     modelName: $.params.name,
     modelPath: null,
-    // TODO(jlewi): We should probably default to a string.
-    // We might also want to have a separate boolean to indicate whether or not to use the httpProxy.
-    httpProxyImage: 0,
+    modelStorageType: "cloud",
+
+    version: "v1",
+    firstVersion: true,
+
+    deployIstio: false,
+
+    deployHttpProxy: false,
+    defaultHttpProxyImage: "gcr.io/kubeflow-images-public/tf-model-server-http-proxy:v20180606-9dfda4f2",
+    httpProxyImage: "",
+    httpProxyImageToUse: if $.params.httpProxyImage == "" then
+      $.params.defaultHttpProxyImage
+    else
+      $.params.httpProxyImage,
 
     serviceType: "ClusterIP",
 
@@ -19,17 +31,25 @@
     // in which case the image used will still depend on whether GPUs are used or not.
     // Users can also override modelServerImage in which case the user supplied value will always be used
     // regardless of numGpus.
-    defaultCpuImage: "gcr.io/kubeflow-images-staging/tf-model-server:v20180227-master",
-    defaultGpuImage: "gcr.io/kubeflow-images-staging/tf-model-server-gpu:v20180305-pr362-7f250ae-5cc7",
+    defaultCpuImage: "gcr.io/kubeflow-images-public/tensorflow-serving-1.7:v20180604-0da89b8a",
+    defaultGpuImage: "gcr.io/kubeflow-images-public/tensorflow-serving-1.6gpu:v20180604-0da89b8a",
     modelServerImage: if $.params.numGpus == 0 then
       $.params.defaultCpuImage
     else
       $.params.defaultGpuImage,
 
 
-    // Which cloud to configure the model for.
+    // Whether or not to enable s3 parameters
+    s3Enable:: false,
+
+    // Which cloud to use
     cloud:: null,
   },
+
+  // Parametes specific to GCP.
+  gcpParams:: {
+    gcpCredentialSecretName: "",
+  } + $.params,
 
   // Parameters that control S3 access
   // params overrides s3params because params can be overwritten by the user to override the defaults.
@@ -61,17 +81,35 @@
 
   components:: {
 
-    all::
-      if $.params.cloud == "aws" then
-        [
-          $.s3parts.tfService,
-          $.s3parts.tfDeployment,
-        ]
-      else
-        [
-          $.parts.tfService,
-          $.parts.tfDeployment,
-        ],
+    all:: [
+            // Default routing rule for the first version of model.
+            if $.util.toBool($.params.deployIstio) && $.util.toBool($.params.firstVersion) then
+              $.parts.defaultRouteRule,
+          ] +
+          // TODO(jlewi): It would be better to structure s3 as a mixin.
+          // As an example it would be great to allow S3 and GCS parameters
+          // to be enabled simultaneously. This should be doable because
+          // each entails adding a set of environment variables and volumes
+          // to the containers. These volumes/environment variables shouldn't
+          // overlap so there's no reason we shouldn't be able to just add
+          // both modifications to the base container.
+          // I think we want to restructure things as mixins so they can just
+          // be added.
+          if $.params.s3Enable then
+            [
+              $.s3parts.tfService,
+              $.s3parts.tfDeployment,
+            ]
+          else if $.params.cloud == "gcp" then
+            [
+              $.gcpParts.tfService,
+              $.gcpParts.tfDeployment,
+            ]
+          else
+            [
+              $.parts.tfService,
+              $.parts.tfDeployment,
+            ],
   }.all,
 
   parts:: {
@@ -82,7 +120,7 @@
       image: $.params.modelServerImage,
       imagePullPolicy: "IfNotPresent",
       args: [
-	"/usr/bin/tensorflow_model_server",
+        "/usr/bin/tensorflow_model_server",
         "--port=9000",
         "--model_name=" + $.params.modelName,
         "--model_base_path=" + $.params.modelPath,
@@ -104,6 +142,17 @@
           cpu: "4",
         },
       },
+      // The is user and group should be defined in the Docker image.
+      // Per best practices we don't run as the root user.
+      securityContext: {
+        runAsUser: 1000,
+        fsGroup: 1000,
+      },
+      volumeMounts+: if $.params.modelStorageType == "nfs" then [{
+        name: "nfs",
+        mountPath: "/mnt",
+      }]
+      else [],
     },  // tfServingContainer
 
     tfServingContainer+: $.parts.tfServingContainerBase +
@@ -117,10 +166,16 @@
                            }
                          else {},
 
+    tfServingMetadata+: {
+      labels: $.params.labels { version: $.params.version },
+      annotations: {
+        "sidecar.istio.io/inject": if $.util.toBool($.params.deployIstio) then "true",
+      },
+    },
 
     httpProxyContainer:: {
       name: $.params.name + "-http-proxy",
-      image: $.params.httpProxyImage,
+      image: $.params.httpProxyImageToUse,
       imagePullPolicy: "IfNotPresent",
       command: [
         "python",
@@ -145,6 +200,10 @@
           cpu: "4",
         },
       },
+      securityContext: {
+        runAsUser: 1000,
+        fsGroup: 1000,
+      },
     },  // httpProxyContainer
 
 
@@ -152,28 +211,27 @@
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
-        name: $.params.name,
+        name: $.params.name + "-" + $.params.version,
         namespace: $.params.namespace,
         labels: $.params.labels,
       },
       spec: {
         template: {
-          metadata: {
-            labels: $.params.labels,
-          },
+          metadata: $.parts.tfServingMetadata,
           spec: {
             containers: [
               $.parts.tfServingContainer,
-              if $.params.httpProxyImage != 0 then
+              if $.util.toBool($.params.deployHttpProxy) then
                 $.parts.httpProxyContainer,
             ],
-            // See:  https://github.com/kubeflow/kubeflow/tree/master/components/k8s-model-server#set-the-user-optional
-            // The is user and group should be defined in the Docker image.
-            // Per best practices we don't run as the root user.
-            securityContext: {
-              runAsUser: 1000,
-              fsGroup: 1000,
-            },
+            volumes+: if $.params.modelStorageType == "nfs" then
+              [{
+                name: "nfs",
+                persistentVolumeClaim: {
+                  claimName: $.params.nfsPVC,
+                },
+              }]
+            else [],
           },
         },
       },
@@ -211,12 +269,12 @@
       spec: {
         ports: [
           {
-            name: "tf-serving",
+            name: "grpc-tf-serving",
             port: 9000,
             targetPort: 9000,
           },
           {
-            name: "tf-serving-proxy",
+            name: "http-tf-serving-proxy",
             port: 8000,
             targetPort: 8000,
           },
@@ -226,12 +284,32 @@
       },
     },  // tfService
 
+    defaultRouteRule: {
+      apiVersion: "config.istio.io/v1alpha2",
+      kind: "RouteRule",
+      metadata: {
+        name: $.params.name + "-default",
+        namespace: $.params.namespace,
+      },
+      spec: {
+        destination: {
+          name: $.params.name,
+        },
+        precedence: 0,
+        route: [
+          {
+            labels: { version: $.params.version },
+          },
+        ],
+      },
+    },
+
   },  // parts
 
   // Parts specific to S3
   s3parts:: $.parts {
     s3Env:: [
-      { name: "AWS_ACCESS_KEY_ID", valueFrom: { secretKeyRef: { name: $.s3params.s3SecretName, key: $.s3params.s3SecretAcesskeyidKeyName } } },
+      { name: "AWS_ACCESS_KEY_ID", valueFrom: { secretKeyRef: { name: $.s3params.s3SecretName, key: $.s3params.s3SecretAccesskeyidKeyName } } },
       { name: "AWS_SECRET_ACCESS_KEY", valueFrom: { secretKeyRef: { name: $.s3params.s3SecretName, key: $.s3params.s3SecretSecretaccesskeyKeyName } } },
       { name: "AWS_REGION", value: $.s3params.s3AwsRegion },
       { name: "S3_REGION", value: $.s3params.s3AwsRegion },
@@ -247,11 +325,11 @@
     tfDeployment: $.parts.tfDeployment {
       spec: +{
         template: +{
-
+          metadata: $.parts.tfServingMetadata,
           spec: +{
             containers: [
               $.s3parts.tfServingContainer,
-              if $.params.httpProxyImage != 0 then
+              if $.util.toBool($.params.deployHttpProxy) then
                 $.parts.httpProxyContainer,
             ],
           },
@@ -259,4 +337,47 @@
       },
     },  // tfDeployment
   },  // s3parts
+
+  // Parts specific to GCP
+  gcpParts:: $.parts {
+    gcpEnv:: [
+      if $.gcpParams.gcpCredentialSecretName != "" then
+        { name: "GOOGLE_APPLICATION_CREDENTIALS", value: "/secret/gcp-credentials/key.json" },
+    ],
+
+    tfServingContainer: $.parts.tfServingContainer {
+      env+: $.gcpParts.gcpEnv,
+      volumeMounts+: [
+        if $.gcpParams.gcpCredentialSecretName != "" then
+          {
+            name: "gcp-credentials",
+            mountPath: "/secret/gcp-credentials",
+          },
+      ],
+    },
+
+    tfDeployment: $.parts.tfDeployment {
+      spec+: {
+        template+: {
+          metadata: $.parts.tfServingMetadata,
+          spec+: {
+            containers: [
+              $.gcpParts.tfServingContainer,
+              if $.util.toBool($.params.deployHttpProxy) then
+                $.parts.httpProxyContainer,
+            ],
+            volumes: [
+              if $.gcpParams.gcpCredentialSecretName != "" then
+                {
+                  name: "gcp-credentials",
+                  secret: {
+                    secretName: $.gcpParams.gcpCredentialSecretName,
+                  },
+                },
+            ],
+          },
+        },
+      },
+    },  // tfDeployment
+  },  // gcpParts
 }

@@ -1,0 +1,3 @@
+StrictHostKeyChecking no
+Port 2022
+UserKnownHostsFile=/dev/null

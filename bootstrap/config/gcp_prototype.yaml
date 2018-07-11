@@ -1,0 +1,37 @@
+# Sample config for kubeflow bootstrapper
+---
+# App only apply if on GKE
+app:
+  packages:
+    - name: core
+      registry: kubeflow
+    - name: tf-serving
+      registry: kubeflow
+  components:
+    - name: kubeflow-core
+      prototype: kubeflow-core
+    - name: cloud-endpoints
+      prototype: cloud-endpoints
+    - name: cert-manager
+      prototype: cert-manager
+    - name: iap-ingress
+      prototype: iap-ingress
+  parameters:
+    - component: cloud-endpoints
+      name: secretName
+      value: admin-gcp-sa
+    - component: cert-manager
+      name: acmeEmail
+      # TODO: use your email for ssl cert
+      value: johnDoe@acme.com
+    - component: iap-ingress
+      name: ipName
+      # TODO: make sure value of ipName is the same as property <ipName>.
+      value: ipName
+    - component: iap-ingress
+      name: hostname
+      # TODO: replace with Name of GCP project. This is fully qualified domain name to use with ingress.
+      value: kubeflow.endpoints.<Project>.cloud.goog
+    - component: kubeflow-core
+      name: jupyterHubAuthenticator
+      value: iap

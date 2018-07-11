@@ -2,23 +2,35 @@
   parts(namespace):: {
     local k = import "k.libsonnet",
 
-    // We split the components into two protoypes.
-    // 1. Prototype contains the ingress and servcie
-    // 2. Deployment for Envoy which is the backend for the ingress and related apps.
-    //
-    // We do this because updating the ingress causes the backend service to change which disables IAP
-    // and changes the backend service which is used for the JWT audience.
-    // So we want to avoid updating the ingress when updating the Envoy pods or other backend services.
-    ingressParts(secretName, ipName):: std.prune(k.core.v1.list.new([
-      $.parts(namespace).service,
-      $.parts(namespace).ingress(secretName, ipName),
-    ])),
+    // Test if the given hostname is in the form of: "NAME.endpoints.PROJECT.cloud.goog"
+    local isCloudEndpoint = function(str) {
+      local toks = std.split(str, "."),
+      result::
+        (std.length(toks) == 5 && toks[1] == "endpoints" && toks[3] == "cloud" && toks[4] == "goog"),
+    }.result,
 
-    envoy(envoyImage, audiences, disableJwt):: std.prune(k.core.v1.list.new([
-      $.parts(namespace).deploy(envoyImage),
-      $.parts(namespace).configMap(audiences, disableJwt),
+    // Creates map of parameters from a given hostname in the form of: "NAME.endpoints.PROJECT.cloud.goog"
+    local makeEndpointParams = function(str) {
+      local toks = std.split(str, "."),
+      result:: {
+        name: toks[0],
+        project: toks[2],
+      },
+    }.result,
+
+    ingressParts(secretName, ipName, hostname, issuer, envoyImage, disableJwt, oauthSecretName):: std.prune(k.core.v1.list.new([
+      $.parts(namespace).service,
+      $.parts(namespace).ingress(secretName, ipName, hostname),
+      $.parts(namespace).certificate(secretName, hostname, issuer),
+      $.parts(namespace).initServiceAccount,
+      $.parts(namespace).initClusterRoleBinding,
+      $.parts(namespace).initClusterRole,
+      $.parts(namespace).deploy(envoyImage, oauthSecretName),
+      $.parts(namespace).iapEnabler(oauthSecretName),
+      $.parts(namespace).configMap(disableJwt),
       $.parts(namespace).whoamiService,
       $.parts(namespace).whoamiApp,
+      (if isCloudEndpoint(hostname) then $.parts(namespace).cloudEndpoint(makeEndpointParams(hostname))),
     ])),
 
     service:: {
@@ -46,6 +58,51 @@
         type: "NodePort",
       },
     },  // service
+
+    initServiceAccount:: {
+      apiVersion: "v1",
+      kind: "ServiceAccount",
+      metadata: {
+        name: "envoy",
+        namespace: namespace,
+      },
+    },  // initServiceAccount
+
+    initClusterRoleBinding:: {
+      kind: "ClusterRoleBinding",
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
+      metadata: {
+        name: "envoy",
+      },
+      subjects: [
+        {
+          kind: "ServiceAccount",
+          name: "envoy",
+          namespace: namespace,
+        },
+      ],
+      roleRef: {
+        kind: "ClusterRole",
+        name: "envoy",
+        apiGroup: "rbac.authorization.k8s.io",
+      },
+    },  // initClusterRoleBinding
+
+    initClusterRole:: {
+      kind: "ClusterRole",
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
+      metadata: {
+        name: "envoy",
+        namespace: namespace,
+      },
+      rules: [
+        {
+          apiGroups: [""],
+          resources: ["services", "configmaps"],
+          verbs: ["get", "list", "patch", "update"],
+        },
+      ],
+    },  // initClusterRoleBinding
 
     envoyContainer(params):: {
       image: params.image,
@@ -95,12 +152,12 @@
       volumeMounts: [
         {
           mountPath: "/etc/envoy",
-          name: "config-volume",
+          name: "shared",
         },
       ],
     },  // envoyContainer
 
-    deploy(image):: {
+    deploy(image, oauthSecretName):: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -116,17 +173,78 @@
             },
           },
           spec: {
+            serviceAccountName: "envoy",
             containers: [
               $.parts(namespace).envoyContainer({
                 image: image,
                 name: "envoy",
                 // We use the admin port for the health, readiness check because the main port will require a valid JWT.
-                healthPath: "/server_info",
-                healthPort: envoyAdminPort,
+                // healthPath: "/server_info",
+                healthPath: "/healthz",
+                healthPort: envoyPort,
                 configPath: "/etc/envoy/envoy-config.json",
                 baseId: "27000",
                 ports: [envoyPort, envoyAdminPort, envoyStatsPort],
               }),
+              {
+                name: "iap",
+                image: "google/cloud-sdk:alpine",
+                command: [
+                  "sh",
+                  "/var/envoy-config/configure_envoy_for_iap.sh",
+                ],
+                env: [
+                  {
+                    name: "NAMESPACE",
+                    value: namespace,
+                  },
+                  {
+                    name: "CLIENT_ID",
+                    valueFrom: {
+                      secretKeyRef: {
+                        name: oauthSecretName,
+                        key: "CLIENT_ID",
+                      },
+                    },
+                  },
+                  {
+                    name: "CLIENT_SECRET",
+                    valueFrom: {
+                      secretKeyRef: {
+                        name: oauthSecretName,
+                        key: "CLIENT_SECRET",
+                      },
+                    },
+                  },
+                  {
+                    name: "SERVICE",
+                    value: "envoy",
+                  },
+                  {
+                    name: "ENVOY_ADMIN",
+                    value: "http://localhost:" + envoyAdminPort,
+                  },
+                  {
+                    name: "GOOGLE_APPLICATION_CREDENTIALS",
+                    value: "/var/run/secrets/sa/admin-gcp-sa.json",
+                  },
+                ],
+                volumeMounts: [
+                  {
+                    mountPath: "/var/envoy-config/",
+                    name: "config-volume",
+                  },
+                  {
+                    mountPath: "/var/shared/",
+                    name: "shared",
+                  },
+                  {
+                    name: "sa-key",
+                    readOnly: true,
+                    mountPath: "/var/run/secrets/sa",
+                  },
+                ],
+              },
             ],
             restartPolicy: "Always",
             volumes: [
@@ -136,13 +254,120 @@
                 },
                 name: "config-volume",
               },
+              {
+                emptyDir: {
+                  medium: "Memory",
+                },
+                name: "shared",
+              },
+              {
+                name: "sa-key",
+                secret: {
+                  secretName: "admin-gcp-sa",
+                },
+              },
             ],
           },
         },
       },
     },  // deploy
 
-    configMap(audiences, disableJwt):: {
+    // Run the process to enable iap
+    iapEnabler(oauthSecretName):: {
+      apiVersion: "extensions/v1beta1",
+      kind: "Deployment",
+      metadata: {
+        name: "iap-enabler",
+        namespace: namespace,
+      },
+      spec: {
+        replicas: 1,
+        template: {
+          metadata: {
+            labels: {
+              service: "iap-enabler",
+            },
+          },
+          spec: {
+            serviceAccountName: "envoy",
+            containers: [
+              {
+                name: "iap",
+                image: "google/cloud-sdk:alpine",
+                command: [
+                  "sh",
+                  "/var/envoy-config/setup_iap.sh",
+                ],
+                env: [
+                  {
+                    name: "NAMESPACE",
+                    value: namespace,
+                  },
+                  {
+                    name: "CLIENT_ID",
+                    valueFrom: {
+                      secretKeyRef: {
+                        name: oauthSecretName,
+                        key: "CLIENT_ID",
+                      },
+                    },
+                  },
+                  {
+                    name: "CLIENT_SECRET",
+                    valueFrom: {
+                      secretKeyRef: {
+                        name: oauthSecretName,
+                        key: "CLIENT_SECRET",
+                      },
+                    },
+                  },
+                  {
+                    name: "SERVICE",
+                    value: "envoy",
+                  },
+                  {
+                    name: "ENVOY_ADMIN",
+                    value: "http://localhost:" + envoyAdminPort,
+                  },
+                  {
+                    name: "GOOGLE_APPLICATION_CREDENTIALS",
+                    value: "/var/run/secrets/sa/admin-gcp-sa.json",
+                  },
+                ],
+                volumeMounts: [
+                  {
+                    mountPath: "/var/envoy-config/",
+                    name: "config-volume",
+                  },
+                  {
+                    name: "sa-key",
+                    readOnly: true,
+                    mountPath: "/var/run/secrets/sa",
+                  },
+                ],
+              },
+            ],
+            restartPolicy: "Always",
+            volumes: [
+              {
+                configMap: {
+                  name: "envoy-config",
+                },
+                name: "config-volume",
+              },
+              {
+                name: "sa-key",
+                secret: {
+                  secretName: "admin-gcp-sa",
+                },
+              },
+            ],
+          },
+        },
+      },
+    },  // iapEnabler
+
+    configMap(disableJwt):: {
       apiVersion: "v1",
       kind: "ConfigMap",
       metadata: {
@@ -150,7 +375,9 @@
         namespace: namespace,
       },
       data: {
-        "envoy-config.json": std.manifestJson($.parts(namespace).envoyConfig(audiences, disableJwt)),
+        "envoy-config.json": std.manifestJson($.parts(namespace).envoyConfig(disableJwt)),
+        "setup_iap.sh": importstr "setup_iap.sh",
+        "configure_envoy_for_iap.sh": importstr "configure_envoy_for_iap.sh",
       },
     },
 
@@ -160,7 +387,7 @@
 
     // This is the config for the secondary envoy proxy which does JWT verification
     // and actually routes requests to the appropriate backend.
-    envoyConfig(audiences, disableJwt):: {
+    envoyConfig(disableJwt):: {
       listeners: [
         {
           address: "tcp://0.0.0.0:" + envoyPort,
@@ -227,7 +454,9 @@
                         // Jupyter uses the prefixes /hub & /user
                         {
                           // JupyterHub requires the prefix /hub
-                          timeout_ms: 10000,
+                          // Use a 10 minute timeout because downloading
+                          // images for jupyter notebook can take a while
+                          timeout_ms: 600000,
                           prefix: "/hub",
                           prefix_rewrite: "/hub",
                           use_websocket: true,
@@ -242,7 +471,9 @@
                         },
                         {
                           // JupyterHub requires the prefix /user
-                          timeout_ms: 10000,
+                          // Use a 10 minute timeout because downloading
+                          // images for jupyter notebook can take a while
+                          timeout_ms: 600000,
                           prefix: "/user",
                           prefix_rewrite: "/user",
                           use_websocket: true,
@@ -255,19 +486,15 @@
                             ],
                           },
                         },
-                        // TODO(ankushagarwal): We should eventually
-                        // redirect to the central UI once its ready
-                        // See https://github.com/kubeflow/kubeflow/pull/146
-                        // Redirect to jupyterhub when visiting /
+                        // TFJob uses the prefix /tfjobs/
                         {
                           timeout_ms: 10000,
-                          path: "/",
-                          prefix_rewrite: "/hub",
-                          use_websocket: true,
+                          prefix: "/tfjobs",
+                          prefix_rewrite: "/tfjobs",
                           weighted_clusters: {
                             clusters: [
                               {
-                                name: "cluster_jupyterhub",
+                                name: "cluster_tfjobs",
                                 weight: 100.0,
                               },
                             ],
@@ -302,7 +529,7 @@
                     jwts: [
                       {
                         issuer: "https://cloud.google.com/iap",
-                        audiences: audiences,
+                        audiences: "{{JWT_AUDIENCE}}",
                         jwks_uri: "https://www.gstatic.com/iap/verify/public_key-jwk",
                         jwks_uri_envoy_cluster: "iap_issuer",
                         jwt_headers: ["x-goog-iap-jwt-assertion"],
@@ -391,6 +618,18 @@
             hosts: [
               {
                 url: "tcp://tf-hub-lb." + namespace + ":80",
+              },
+
+            ],
+          },
+          {
+            name: "cluster_tfjobs",
+            connect_timeout_ms: 3000,
+            type: "strict_dns",
+            lb_type: "round_robin",
+            hosts: [
+              {
+                url: "tcp://tf-job-dashboard." + namespace + ":80",
               },
 
             ],
@@ -486,25 +725,28 @@
       },
     },
 
-    ingress(secretName, ipName):: {
+    ingress(secretName, ipName, hostname):: {
       apiVersion: "extensions/v1beta1",
       kind: "Ingress",
       metadata: {
         name: "envoy-ingress",
         namespace: namespace,
         annotations: {
+          "kubernetes.io/tls-acme": "true",
+          "ingress.kubernetes.io/ssl-redirect": "true",
           "kubernetes.io/ingress.global-static-ip-name": ipName,
         },
       },
       spec: {
         rules: [
           {
+            [if hostname != "null" then "host"]: hostname,
             http: {
               paths: [
                 {
                   backend: {
                     // Due to https://github.com/kubernetes/contrib/blob/master/ingress/controllers/gce/examples/health_checks/README.md#limitations
-                    // Keep port the servicePort the same as the port we are targetting on the backend so that servicePort will be the same as targetPort for the purpose of
+                    // Keep port the servicePort the same as the port we are targeting on the backend so that servicePort will be the same as targetPort for the purpose of
                     // health checking.
                     serviceName: "envoy",
                     servicePort: envoyPort,
@@ -522,5 +764,54 @@
         ],
       },
     },  // iapIngress
+
+    certificate(secretName, hostname, issuer):: {
+      apiVersion: "certmanager.k8s.io/v1alpha1",
+      kind: "Certificate",
+      metadata: {
+        name: secretName,
+        namespace: namespace,
+      },
+
+      spec: {
+        secretName: secretName,
+        issuerRef: {
+          name: issuer,
+        },
+        commonName: hostname,
+        dnsNames: [
+          hostname,
+        ],
+        acme: {
+          config: [
+            {
+              http01: {
+                ingress: "envoy-ingress",
+              },
+              domains: [
+                hostname,
+              ],
+            },
+          ],
+        },
+      },
+    },  // certificate
+
+    cloudEndpoint(params):: {
+      apiVersion: "ctl.isla.solutions/v1",
+      kind: "CloudEndpoint",
+      metadata: {
+        name: params.name,
+        namespace: namespace,
+      },
+      spec: {
+        project: params.project,
+        targetIngress: {
+          name: "envoy-ingress",
+          namespace: namespace,
+        },
+      },
+    },  // cloudEndpoint
+
   },  // parts
 }

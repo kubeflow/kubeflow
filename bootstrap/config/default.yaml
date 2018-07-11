@@ -1,0 +1,12 @@
+# Default kubeflow config for bootstrapper, included in bootstrapper image.
+# This config is consumed during bootstrapper execution.
+---
+app:
+  packages:
+    - name: core
+      registry: kubeflow
+    - name: tf-serving
+      registry: kubeflow
+  components:
+    - name: kubeflow-core
+      prototype: kubeflow-core

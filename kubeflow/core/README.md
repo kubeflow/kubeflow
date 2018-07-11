@@ -1,3 +1,16 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [core](#core)
+  - [Quickstart](#quickstart)
+  - [Using the library](#using-the-library)
+    - [io.ksonnet.pkg.kubeflow-core](#ioksonnetpkgkubeflow-core)
+      - [Example](#example)
+      - [Parameters](#parameters)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # core
 
 > Core components of Kubeflow.

@@ -1,0 +1,31 @@
+apiVersion: 0.1.0
+environments:
+  default:
+    destination:
+      namespace: kubeflow-releasing
+      server: https://35.226.49.107
+    k8sVersion: v1.8.8
+    path: default
+kind: ksonnet.io/app
+libraries:
+  automation:
+    gitVersion:
+      commitSha: c79194b3e2d8126f8af8e3323edeedbdcb35a1cc
+      refSpec: master
+    name: automation
+    registry: kubeflow
+name: pytorch-operator
+registries:
+  incubator:
+    gitVersion:
+      commitSha: 40285d8a14f1ac5787e405e1023cf0c07f6aa28c
+      refSpec: master
+    protocol: github
+    uri: github.com/ksonnet/parts/tree/master/incubator
+  kubeflow:
+    gitVersion:
+      commitSha: c79194b3e2d8126f8af8e3323edeedbdcb35a1cc
+      refSpec: master
+    protocol: github
+    uri: github.com/kubeflow/kubeflow/tree/master/kubeflow
+version: 0.0.1
