@@ -21,6 +21,7 @@ RUN set -ex \
 RUN pip3 install --upgrade wheel && \
     pip3 install requests && \
     pip3 install prometheus_client && \
+    pip3 install kubernetes && \
     pip3 install google-api-python-client
 
 COPY service-readiness/kubeflow-readiness.py /opt/
