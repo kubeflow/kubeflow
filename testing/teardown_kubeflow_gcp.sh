@@ -13,8 +13,8 @@ fi
 
 # Delete kubeflow namespace - this deletes all the ingress objects
 # in the namespace which deletes the associated GCP resources
-kubectl delete ns/kubeflow
 set +e
+kubectl delete ns/kubeflow
 while kubectl get ns/kubeflow; do
   echo "kubeflow namespace not yet deleted. sleeping 10 seconds..."
   sleep 10
