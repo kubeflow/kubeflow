@@ -1,0 +1,3 @@
+awscli==1.15.19
+kubernetes==6.0.0
+retrying==1.3.3

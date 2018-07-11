@@ -16,7 +16,7 @@ TF_VERSION=1.0
 TF_GPU_VERSION=1.4
 PROJECT_ID=kubeflow
 GCR_PROJECT=gcr.io/${PROJECT_ID}
-DOCKERHUB_PROJECT=hub.docker.com/r/${PROJECT_ID}
+DOCKERHUB_PROJECT=docker.io/${PROJECT_ID}
 
 define build
 	docker build --pull -t $(1)/tf-model-server-cpu:${TF_VERSION} -f Dockerfile.cpu .
@@ -58,7 +58,7 @@ push_gpu_gcr: build_gpu_gcr
 	gcloud docker -- push ${GCR_PROJECT}/tf-model-server-gpu:${TF_GPU_VERSION}
 
 push_gpu_dockerhub: build_gpu_dockerhub
-	docker -- push ${DOCKERHUB_PROJECT}/tf-model-server-gpu:${TF_GPU_VERSION}
+	docker push ${DOCKERHUB_PROJECT}/tf-model-server-gpu:${TF_GPU_VERSION}
 
 push_gpu: build_gpu_gcr build_gpu_dockerhub push_gpu_gcr push_gpu_dockerhub
 
