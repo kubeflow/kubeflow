@@ -147,6 +147,11 @@ ks generate cloud-endpoints cloud-endpoints
 ks generate cert-manager cert-manager --acmeEmail=${EMAIL}
 ks generate iap-ingress iap-ingress --ipName=${KUBEFLOW_IP_NAME} --hostname=${KUBEFLOW_HOSTNAME}
 
+# Enable collection of anonymous usage metrics
+# Skip this step if you don't want to enable collection.
+ks param set kubeflow-core reportUsage true
+ks param set kubeflow-core usageId $(uuidgen)
+
 # Apply the components generated
 ks apply default -c kubeflow-core
 ks apply default -c cloud-endpoints

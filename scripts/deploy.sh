@@ -51,7 +51,12 @@ ks pkg install kubeflow/tf-serving
 # Generate all required components
 ks generate kubeflow-core kubeflow-core
 
+# Enable collection of anonymous usage metrics
+# Skip this step if you don't want to enable collection.
+ks param set kubeflow-core reportUsage true
+ks param set kubeflow-core usageId $(uuidgen)
+
 # Apply the components generated
 if ${KUBEFLOW_DEPLOY}; then
-ks apply default
+  ks apply default
 fi
