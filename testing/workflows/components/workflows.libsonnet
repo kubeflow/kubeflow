@@ -588,7 +588,7 @@
               deploymentName + v1alpha2Suffix,
               srcDir + "/docs/gke/configs-" + deploymentName + v1alpha2Suffix + "/cluster-kubeflow.yaml",
               project,
-            ]),  // teardown-kubeflow-gcp
+            ], kubeConfig="v1alpha2"),  // teardown-kubeflow-gcp
           ],  // templates
         },
       },  // e2e
