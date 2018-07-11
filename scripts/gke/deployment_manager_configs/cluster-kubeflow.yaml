@@ -1,0 +1,70 @@
+# Copyright 2016 Google Inc. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+imports:
+- path: cluster.jinja
+
+resources:
+  # Deployment manager doesn't support depends on references in template type.
+  # So the two possible work arounds are
+  # 1. Use a single template (.jinja file for all resources) or
+  # 2. Create two separate deployments and launch the boot strapper
+  # after the cluster is created.
+  #
+  # Two separate deployments doesn't make much sense; we could just use
+  # kubectl at that point. So we put all resources in a single deployment.
+- name: kubeflow
+  type: cluster.jinja
+  properties:
+    zone: us-central1-a
+    # Set this to v1beta1 to use beta features such as private clusters,
+    gkeApiVersion: v1
+    # An arbitrary string appending to name of nodepools
+    # bump this if you want to modify the node pools.
+    # This will cause existing node pools to be deleted and new ones to be created.
+    # Use prefix v so it will be treated as a string.
+    pool-version: v1
+    # Two is small enough to fit within default quota.
+    cpu-pool-initialNodeCount: 2
+    gpu-pool-initialNodeCount: 0
+    # Whether to deploy the new Stackdriver Kubernetes agents
+    stackdriver-kubernetes: false
+    securityConfig:
+      # Whether to use a cluster with private IPs
+      # Use v1beta1 api
+      privatecluster: false
+      # masterIpv4CidrBlock for private clusters, if enabled
+      # Use v1beta1 api
+      masterIpv4CidrBlock: 172.16.0.16/28
+      # Protect worker node metadata from pods
+      # Use v1beta1 api
+      secureNodeMetadata: false
+      # Whether to enable Pod Security Policy Admission Controller
+      # Use v1beta1 api
+      podSecurityPolicy: false
+      masterAuthorizedNetworksConfig:
+          cidrBlocks:
+          - cidrBlock: 1.2.3.4/32
+          - cidrBlock: 5.6.7.8/32
+          enabled: false
+    users:
+      # List users to grant appropriate GCP permissions to use Kubeflow.
+      # These can either be individual users (Google accounts) or Google
+      # Groups.
+      # - user:john@acme.com
+      # - group:data-scientists@acme.com
+    # Path for the bootstrapper image.
+    # This is the name of the GCP static ip address reserved for your domain.
+    # Each Kubeflow deployment in your project should use one unique ipName among all configs.
+    ipName: kubeflow-ip
