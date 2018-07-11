@@ -1,3 +1,0 @@
-NAME    OVERRIDE KUBERNETES-VERSION NAMESPACE SERVER
-====    ======== ================== ========= ======
-default *        v1.7.0             new-name  http://example.com

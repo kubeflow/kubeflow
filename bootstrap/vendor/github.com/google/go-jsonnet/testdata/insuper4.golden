@@ -1,5 +1,0 @@
-testdata/insuper4:1:1-13 Can't use super outside of an object.
-
-"x" in super
-
-

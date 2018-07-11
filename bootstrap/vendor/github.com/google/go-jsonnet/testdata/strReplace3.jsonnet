@@ -1,1 +1,0 @@
-std.strReplace("test", "", "blah")

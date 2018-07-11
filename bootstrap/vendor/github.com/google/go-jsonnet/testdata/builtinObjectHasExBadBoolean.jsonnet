@@ -1,1 +1,0 @@
-std.objectHasEx({}, "xxx", "xxx")

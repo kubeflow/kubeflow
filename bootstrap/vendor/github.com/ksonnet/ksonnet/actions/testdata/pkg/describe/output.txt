@@ -1,7 +1,0 @@
-LIBRARY NAME:
-apache
-
-DESCRIPTION:
-description
-
-PROTOTYPES:
