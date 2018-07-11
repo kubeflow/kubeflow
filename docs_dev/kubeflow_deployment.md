@@ -101,7 +101,7 @@ different K8s versions and platforms.**
 We've tried a variety of approaches but the approach that is gaining traction
 is
 
-1. We provide simple, platform deployment scripts like this [one for GKE](https://github.com/kubeflow/kubeflow/blob/master/docs/gke/configs/deploy.sh)
+1. We provide simple, platform deployment scripts like this [one for GKE](https://github.com/kubeflow/kubeflow/blob/master/scripts/gke/deploy.sh)
 
 1. A corresponding platform specific getting started page ([see here]](https://github.com/kubeflow/website/tree/master/content/docs/started) provides platform specific instructions
 
