@@ -7,12 +7,17 @@ set -xe
 
 KUBEFLOW_REPO=${KUBEFLOW_REPO:-"`pwd`/kubeflow_repo"}
 KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"}
+KUBEFLOW_DEPLOY=${KUBEFLOW_DEPLOY:-true}
 
 if [[ ! -d "${KUBEFLOW_REPO}" ]]; then
-  git clone https://github.com/kubeflow/kubeflow.git "${KUBEFLOW_REPO}"
-  cd "${KUBEFLOW_REPO}"
-  git checkout "${KUBEFLOW_VERSION}"
-  cd -
+  if [ "${KUBEFLOW_VERSION}" == "master" ]; then
+	TAG=${KUBEFLOW_VERSION}
+  else
+  	TAG=v${KUBEFLOW_VERSION}
+  fi
+  curl -L -o /tmp/kubeflow.${KUBEFLOW_VERSION}.tar.gz https://github.com/kubeflow/kubeflow/archive/${TAG}.tar.gz
+  tar -xzvf /tmp/kubeflow.${KUBEFLOW_VERSION}.tar.gz  -C /tmp
+  mv /tmp/kubeflow-${TAG} "${KUBEFLOW_REPO}"
 fi
 
 source "${KUBEFLOW_REPO}/scripts/util.sh"
@@ -33,11 +38,20 @@ cd "${KUBEFLOW_KS_DIR}"
 # Add the local registry
 ks registry add kubeflow "${KUBEFLOW_REPO}/kubeflow"
 
-# Install all required packages
+# Install packages
+ks pkg install kubeflow/argo
 ks pkg install kubeflow/core
+ks pkg install kubeflow/examples
+ks pkg install kubeflow/katib
+ks pkg install kubeflow/mpi-job
+ks pkg install kubeflow/pytorch-job
+ks pkg install kubeflow/seldon
+ks pkg install kubeflow/tf-serving
 
 # Generate all required components
 ks generate kubeflow-core kubeflow-core
 
 # Apply the components generated
+if ${KUBEFLOW_DEPLOY}; then
 ks apply default
+fi
