@@ -111,6 +111,8 @@ cloud = os.environ.get('CLOUD_NAME')
 registry = os.environ.get('REGISTRY')
 repoName = os.environ.get('REPO_NAME')
 c.JupyterHub.spawner_class = KubeFormSpawner
+# Set both singleuser_image_spec and image_spec because
+# singleuser_image_spec has been deprecated in a future release
 c.KubeSpawner.singleuser_image_spec = '{0}/{1}/tensorflow-notebook'.format(registry, repoName)
 c.KubeSpawner.image_spec = '{0}/{1}/tensorflow-notebook'.format(registry, repoName)
 
