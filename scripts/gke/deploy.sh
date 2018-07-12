@@ -70,6 +70,7 @@ if ${SETUP_PROJECT}; then
                          servicemanagement.googleapis.com \
                          cloudresourcemanager.googleapis.com \
                          endpoints.googleapis.com \
+                         file.googleapis.com \
                          iam.googleapis.com --project=${PROJECT}
 
   # Set IAM Admin Policy
