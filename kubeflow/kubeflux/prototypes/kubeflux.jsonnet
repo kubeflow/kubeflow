@@ -6,7 +6,7 @@
 // @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
 
 local k = import "k.libsonnet";
-local all = import "kubeflow/kubeflux/all.libsonnet";
+local kubeflux = import "kubeflow/kubeflux/all.libsonnet";
 
 // updatedParams uses the environment namespace if
 // the namespace parameter is not explicitly set
