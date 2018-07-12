@@ -17,4 +17,4 @@ local updatedParams = params {
 local namespace = updatedParams.namespace;
 //local imageTag = import "param://imageTag";
 
-std.prune(k.core.v1.list.new(all.kubeflux(updatedParams)))
+std.prune(k.core.v1.list.new(all.kubeflux(params, env)))
