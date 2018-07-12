@@ -3,35 +3,27 @@
 // @description Creates PV and PVC based on Google Cloud Filestore NFS
 // @shortDescription Creates PV and PVC based on Google Cloud Filestore NFS
 // @param name string Name for the component
-// @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
 // @optionalParam storageCapacity string 1T Storage Capacity
 // @optionalParam path string /kubeflow Path in NFS server
 // @param serverIP string Google Cloud Filestore Server IP
-
-// updatedParams uses the environment namespace if
-// the namespace parameter is not explicitly set
-local updatedParams = params {
-  namespace: if params.namespace == "null" then env.namespace else params.namespace,
-};
-
 [
   {
     apiVersion: "v1",
     kind: "PersistentVolume",
     metadata: {
-      name: updatedParams.name,
-      namespace: updatedParams.namespace,
+      name: params.name,
+      namespace: env.namespace,
     },
     spec: {
       capacity: {
-        storage: updatedParams.storageCapacity,
+        storage: params.storageCapacity,
       },
       accessModes: [
         "ReadWriteMany",
       ],
       nfs: {
-        path: updatedParams.path,
-        server: updatedParams.serverIP,
+        path: params.path,
+        server: params.serverIP,
       },
     },
   },
@@ -39,8 +31,8 @@ local updatedParams = params {
     apiVersion: "v1",
     kind: "PersistentVolumeClaim",
     metadata: {
-      name: updatedParams.name,
-      namespace: updatedParams.namespace,
+      name: params.name,
+      namespace: env.namespace,
     },
     spec: {
       accessModes: [
@@ -49,7 +41,7 @@ local updatedParams = params {
       storageClassName: "",
       resources: {
         requests: {
-          storage: updatedParams.storageCapacity,
+          storage: params.storageCapacity,
         },
       },
     },
@@ -61,7 +53,7 @@ local updatedParams = params {
     kind: "Job",
     metadata: {
       name: "set-gcfs-permissions",
-      namespace: updatedParams.namespace,
+      namespace: env.namespace,
     },
     spec: {
       template: {
@@ -78,7 +70,7 @@ local updatedParams = params {
               volumeMounts: [
                 {
                   mountPath: "/kubeflow-gcfs",
-                  name: updatedParams.name,
+                  name: params.name,
                 },
               ],
             },
@@ -86,9 +78,9 @@ local updatedParams = params {
           restartPolicy: "OnFailure",
           volumes: [
             {
-              name: updatedParams.name,
+              name: params.name,
               persistentVolumeClaim: {
-                claimName: updatedParams.name,
+                claimName: params.name,
                 readOnly: false,
               },
             },
