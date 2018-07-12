@@ -3,15 +3,15 @@
   // Each prototype should be a list of different parts that together
   // provide a userful function such as WeaveWorks Flux
   kubeflux(params, env):: [
-    $.parts(params, env).flux,
-    $.parts(params, env).fluxaccount,
-    $.parts(params, env).fluxrbac,
-    $.parts(params, env).fluxbind,
     $.parts(params, env).nodeport,
     $.parts(params, env).fluxlb,
+    $.parts(params, env).flux,
     $.parts(params, env).memcachedep,
     $.parts(params, env).memcachesvc,
     $.parts(params, env).fluxsecret,
+    $.parts(params, env).serviceAccount,
+    $.parts(params, env).role,
+    $.parts(params, env).roleBinding,
 
   ],
 
@@ -25,7 +25,7 @@
     // case the namespace for a particular component will be a parameter.
     local namespace = if std.objectHas(params, "namespace") then params.namespace else env.namespace,
 
-    fluxaccount:: {
+    serviceAccount:: {
         "apiVersion": "v1",
         "kind": "ServiceAccount",
         "metadata": {
@@ -36,7 +36,7 @@
         }
       },
 
-    fluxrbac:: {
+    role:: {
         "apiVersion": "rbac.authorization.k8s.io/v1beta1",
         "kind": "ClusterRole",
         "metadata": {
@@ -68,7 +68,7 @@
         ]
       },
 
-      fluxbind:: {
+      roleBinding:: {
         "apiVersion": "rbac.authorization.k8s.io/v1beta1",
         "kind": "ClusterRoleBinding",
         "metadata": {
@@ -90,7 +90,6 @@
           }
         ]
       },
-    //},
 
     fluxsecret:: {
       // K8s Deployment,
