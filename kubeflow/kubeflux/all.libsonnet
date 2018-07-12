@@ -3,11 +3,11 @@
   // Each prototype should be a list of different parts that together
   // provide a userful function such as WeaveWorks Flux
   kubeflux(params, env):: [
+    $.parts(params, env).fluxaccount,
     $.parts(params, env).fluxsecret,
     $.parts(params, env).flux,
     $.parts(params, env).nodeport,
     $.parts(params, env).fluxlb,
-    $.parts(params, env).fluxaccount,
     $.parts(params, env).memcachedep,
     $.parts(params, env).memcachesvc,
 
@@ -22,16 +22,6 @@
     // However, in some cases an application may use multiple namespaces in which
     // case the namespace for a particular component will be a parameter.
     local namespace = if std.objectHas(params, "namespace") then params.namespace else env.namespace,
-
-    fluxsecret:: {
-      // K8s Deployment,
-      "apiVersion": "v1",
-      "kind": "Secret",
-      "metadata": {
-        "name": "flux-git-deploy"
-      },
-      "type": "Opaque"
-    },
 
     fluxaccount:: {
       // K8s Deployment,
@@ -100,6 +90,16 @@
           }
         ]
       },
+    },
+    
+    fluxsecret:: {
+      // K8s Deployment,
+      "apiVersion": "v1",
+      "kind": "Secret",
+      "metadata": {
+        "name": "flux-git-deploy"
+      },
+      "type": "Opaque"
     },
 
     flux:: {
