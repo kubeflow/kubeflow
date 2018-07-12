@@ -1,9 +1,9 @@
 {
   all(params):: [
-    $.parts(params.namespace).jupyterHubConfigMap(params.jupyterHubAuthenticator, params.disks),
+    $.parts(params.namespace).jupyterHubConfigMap(),
     $.parts(params.namespace).jupyterHubService,
     $.parts(params.namespace).jupyterHubLoadBalancer(params.jupyterHubServiceType),
-    $.parts(params.namespace).jupyterHub(params.jupyterHubImage, params.jupyterNotebookPVCMount, params.cloud, params.jupyterNotebookRegistry, params.jupyterNotebookRepoName),
+    $.parts(params.namespace).jupyterHub(params.jupyterHubImage, params.jupyterNotebookPVCMount, params.cloud, params.jupyterNotebookRegistry, params.jupyterNotebookRepoName, params.jupyterHubAuthenticator, params.disks, params.gcpSecretName),
     $.parts(params.namespace).jupyterHubRole,
     $.parts(params.namespace).jupyterHubServiceAccount,
     $.parts(params.namespace).jupyterHubRoleBinding,
@@ -13,78 +13,15 @@
   ],
 
   parts(namespace):: {
-    jupyterHubConfigMap(jupyterHubAuthenticator, disks): {
-      local util = import "kubeflow/core/util.libsonnet",
-      local diskNames = util.toArray(disks),
-      local kubeSpawner = $.parts(namespace).kubeSpawner(jupyterHubAuthenticator, diskNames),
-      result:: $.parts(namespace).jupyterHubConfigMapWithSpawner(kubeSpawner),
-    }.result,
-
-    kubeSpawner(authenticator, volumeClaims=[]): {
-      // TODO(jlewi): We should make whether we use PVC configurable.
-      local baseKubeConfigSpawner = importstr "kubeform_spawner.py",
-
-      authenticatorOptions:: {
-
-        //## Authenticator Options
-        local kubeConfigDummyAuthenticator = "c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'",
-
-        // This configuration allows us to use the id provided by IAP.
-        local kubeConfigIAPAuthenticator = @"c.JupyterHub.authenticator_class ='jhub_remote_user_authenticator.remote_user_auth.RemoteUserAuthenticator'
-c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
-
-        options:: std.join("\n", std.prune([
-          "######## Authenticator ######",
-          if authenticator == "iap" then
-            kubeConfigIAPAuthenticator else
-            kubeConfigDummyAuthenticator,
-        ])),
-      }.options,  // authenticatorOptions
-
-      volumeOptions:: {
-        local volumes = std.map(function(v)
-          {
-            name: v,
-            persistentVolumeClaim: {
-              claimName: v,
-            },
-          }, volumeClaims),
-
-        local volumeMounts = std.map(function(v)
-          {
-            mountPath: "/mnt/" + v,
-            name: v,
-          }, volumeClaims),
-
-        options::
-          if std.length(volumeClaims) > 0 then
-            // we need to merge the PVC from the spawner config
-            // with any added by a provisioner
-            std.join("\n",
-                     [
-                       "###### Volumes #######",
-                       "c.KubeSpawner.volumes.extend(" + std.manifestPython(volumes) + ")",
-                       "c.KubeSpawner.volume_mounts.extend(" + std.manifestPython(volumeMounts) + ")",
-                     ])
-          else "",
-
-      }.options,  // volumeOptions
-
-      spawner:: std.join("\n", std.prune([baseKubeConfigSpawner, self.authenticatorOptions, self.volumeOptions])),
-    }.spawner,  // kubeSpawner
-
-    local baseJupyterHubConfigMap = {
+    jupyterHubConfigMap(): {
       apiVersion: "v1",
       kind: "ConfigMap",
       metadata: {
         name: "jupyterhub-config",
         namespace: namespace,
       },
-    },
-
-    jupyterHubConfigMapWithSpawner(spawner): baseJupyterHubConfigMap {
       data: {
-        "jupyterhub_config.py": spawner,
+        "jupyterhub_config.py": importstr "kubeform_spawner.py",
       },
     },
 
@@ -161,7 +98,7 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
     },
 
     // image: Image for JupyterHub
-    jupyterHub(image, notebookPVCMount, cloud, registry, repoName): {
+    jupyterHub(image, notebookPVCMount, cloud, registry, repoName, jupyterHubAuthenticator, disks, gcpSecretName): {
       apiVersion: "apps/v1beta1",
       kind: "StatefulSet",
       metadata: {
@@ -220,6 +157,19 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
                     name: "REPO_NAME",
                     value: repoName,
                   },
+                  {
+                    name: "KF_AUTHENTICATOR",
+                    value: jupyterHubAuthenticator,
+                  },
+                  {
+                    name: "KF_PVC_LIST",
+                    value: disks,
+                  },
+                  if cloud == "gke" then
+                    {
+                      name: "GCP_SECRET_NAME",
+                      value: gcpSecretName,
+                    },
                 ],
               },  // jupyterHub container
             ],
@@ -310,14 +260,10 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
             "kubeflow.org",
           ],
           resources: [
-            "tfjobs",
+            "*",
           ],
           verbs: [
-            "get",
-            "watch",
-            "list",
-            "create",
-            "delete",
+            "*",
           ],
         },
       ],
