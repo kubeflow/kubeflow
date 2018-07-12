@@ -4,10 +4,10 @@
   // provide a userful function such as WeaveWorks Flux
   kubeflux(params, env):: [
     $.parts(params, env).flux,
-    $.parts(params, env).flux-secret,
+    $.parts(params, env).fluxsecret,
     $.parts(params, env).nodeport,
-    $.parts(params, env).flux-lb,
-    $.parts(params, env).flux-account,
+    $.parts(params, env).fluxlb,
+    $.parts(params, env).fluxaccount,
     $.parts(params, env).memcache-dep,
     $.parts(params, env).memcache-svc,
 
@@ -91,7 +91,7 @@
       }
     },
 
-    flux-secret:: {
+    fluxsecret:: {
       // K8s Deployment,
       "apiVersion": "v1",
       "kind": "Secret",
@@ -148,7 +148,7 @@
       }
     },
 
-    flux-account:: {
+    fluxaccount:: {
       // K8s Deployment,
       component_0:: {
         "apiVersion": "v1",
