@@ -42,7 +42,8 @@
         "kind": "ClusterRole",
         "metadata": {
           "labels": {
-            "name": "flux"
+            "name": "flux",
+            namespace: namespace,
           },
           "name": "flux"
         },
@@ -74,7 +75,8 @@
         "kind": "ClusterRoleBinding",
         "metadata": {
           "labels": {
-            "name": "flux"
+            "name": "flux",
+            namespace: namespace,
           },
           "name": "flux"
         },
