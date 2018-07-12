@@ -7,11 +7,11 @@
     $.parts(params, env).fluxaccount,
     $.parts(params, env).fluxrbac,
     $.parts(params, env).fluxbind,
-    $.parts(params, env).fluxsecret,
     $.parts(params, env).nodeport,
     $.parts(params, env).fluxlb,
     $.parts(params, env).memcachedep,
     $.parts(params, env).memcachesvc,
+    $.parts(params, env).fluxsecret,
 
   ],
 
