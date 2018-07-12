@@ -35,7 +35,8 @@ check_variable "${CLIENT_SECRET}" "CLIENT_SECRET"
 
 # Name of the deployment
 DEPLOYMENT_NAME=${DEPLOYMENT_NAME:-"kubeflow"}
-
+GCFS_INSTANCE=${GCFS_INSTANCE:-"${DEPLOYMENT_NAME}"}
+GCFS_STORAGE=${GCFS_STORAGE:-"1T"}
 # Kubeflow directories - Deployment Manager and Ksonnet App
 KUBEFLOW_DM_DIR=${KUBEFLOW_DM_DIR:-"`pwd`/${DEPLOYMENT_NAME}_deployment_manager_configs"}
 KUBEFLOW_KS_DIR=${KUBEFLOW_KS_DIR:-"`pwd`/${DEPLOYMENT_NAME}_ks_app"}
@@ -67,8 +68,10 @@ if ${SETUP_PROJECT}; then
   # Enable GCloud APIs
   gcloud services enable deploymentmanager.googleapis.com \
                          servicemanagement.googleapis.com \
+                         container.googleapis.com \
                          cloudresourcemanager.googleapis.com \
                          endpoints.googleapis.com \
+                         file.googleapis.com \
                          iam.googleapis.com --project=${PROJECT}
 
   # Set IAM Admin Policy
@@ -122,6 +125,20 @@ kubectl create secret generic --namespace=${K8S_NAMESPACE} kubeflow-oauth --from
 # Install the GPU driver. It has no effect on non-GPU nodes.
 kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/stable/nvidia-driver-installer/cos/daemonset-preloaded.yaml
 
+# Create GCFS Instance
+gcloud beta filestore instances create ${GCFS_INSTANCE} \
+    --project=${PROJECT} \
+    --location=${ZONE} \
+    --tier=STANDARD \
+    --file-share=name=kubeflow,capacity=${GCFS_STORAGE} \
+    --network=name="default"
+
+GCFS_INSTANCE_IP_ADDRESS=$(gcloud beta filestore instances describe \
+ ${GCFS_INSTANCE} --location ${ZONE} | \
+ grep --after-context=1 ipAddresses | \
+ tail -1 | \
+ awk '{print $2}')
+
 # Create the ksonnet app
 cd $(dirname "${KUBEFLOW_KS_DIR}")
 ks init $(basename "${KUBEFLOW_KS_DIR}")
@@ -142,7 +159,8 @@ ks pkg install kubeflow/seldon
 ks pkg install kubeflow/tf-serving
 
 # Generate all required components
-ks generate kubeflow-core kubeflow-core --jupyterHubAuthenticator iap
+ks generate google-cloud-filestore-pv google-cloud-filestore-pv --name="kubeflow-gcfs" --storageCapacity="${GCFS_STORAGE}" --serverIP="${GCFS_INSTANCE_IP_ADDRESS}"
+ks generate kubeflow-core kubeflow-core --jupyterHubAuthenticator iap --disks "kubeflow-gcfs"
 ks generate cloud-endpoints cloud-endpoints
 ks generate cert-manager cert-manager --acmeEmail=${EMAIL}
 ks generate iap-ingress iap-ingress --ipName=${KUBEFLOW_IP_NAME} --hostname=${KUBEFLOW_HOSTNAME}
@@ -153,6 +171,7 @@ ks param set kubeflow-core reportUsage true
 ks param set kubeflow-core usageId $(uuidgen)
 
 # Apply the components generated
+ks apply default -c google-cloud-filestore-pv
 ks apply default -c kubeflow-core
 ks apply default -c cloud-endpoints
 ks apply default -c cert-manager

@@ -4,6 +4,7 @@ from kubespawner.spawner import KubeSpawner
 from jhub_remote_user_authenticator.remote_user_auth import RemoteUserAuthenticator
 from oauthenticator.github import GitHubOAuthenticator
 
+SERVICE_ACCOUNT_SECRET_MOUNT = '/var/run/secrets/sa'
 
 class KubeFormSpawner(KubeSpawner):
 
@@ -62,6 +63,8 @@ class KubeFormSpawner(KubeSpawner):
             image = self.user_options['image']
         return image
 
+    image_spec = singleuser_image_spec
+
     @property
     def cpu_guarantee(self):
         cpu = '500m'
@@ -83,6 +86,13 @@ class KubeFormSpawner(KubeSpawner):
             extra = json.loads(self.user_options['extra_resource_limits'])
         return extra
 
+    def get_env(self):
+        env = super(KubeFormSpawner, self).get_env()
+        gcp_secret_name = os.environ.get('GCP_SECRET_NAME')
+        if gcp_secret_name:
+            env['GOOGLE_APPLICATION_CREDENTIALS'] = '{}/{}.json'.format(SERVICE_ACCOUNT_SECRET_MOUNT, gcp_secret_name)
+        return env
+
 
 ###################################################
 # JupyterHub Options
@@ -101,7 +111,10 @@ cloud = os.environ.get('CLOUD_NAME')
 registry = os.environ.get('REGISTRY')
 repoName = os.environ.get('REPO_NAME')
 c.JupyterHub.spawner_class = KubeFormSpawner
+# Set both singleuser_image_spec and image_spec because
+# singleuser_image_spec has been deprecated in a future release
 c.KubeSpawner.singleuser_image_spec = '{0}/{1}/tensorflow-notebook'.format(registry, repoName)
+c.KubeSpawner.image_spec = '{0}/{1}/tensorflow-notebook'.format(registry, repoName)
 
 c.KubeSpawner.cmd = 'start-singleuser.sh'
 c.KubeSpawner.args = ['--allow-root']
@@ -125,8 +138,10 @@ volume_mounts = []
 pvc_mount = os.environ.get('NOTEBOOK_PVC_MOUNT')
 if pvc_mount and pvc_mount != 'null':
     c.KubeSpawner.user_storage_pvc_ensure = True
+    c.KubeSpawner.storage_pvc_ensure = True
     # How much disk space do we want?
     c.KubeSpawner.user_storage_capacity = '10Gi'
+    c.KubeSpawner.storage_capacity = '10Gi'
     c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
     volumes.append(
         {
@@ -167,3 +182,37 @@ c.KubeSpawner.volume_mounts = volume_mounts
 # singleuser_service_account has been deprecated in a future release
 c.KubeSpawner.service_account = 'jupyter-notebook'
 c.KubeSpawner.singleuser_service_account = 'jupyter-notebook'
+# Authenticator
+if os.environ.get('KF_AUTHENTICATOR') == 'iap':
+    c.JupyterHub.authenticator_class ='jhub_remote_user_authenticator.remote_user_auth.RemoteUserAuthenticator'
+    c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'
+else:
+    c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'
+
+# PVCs
+pvcs = os.environ.get('KF_PVC_LIST')
+if pvcs and pvcs != 'null':
+    for pvc in pvcs.split(','):
+        volumes.append({
+            'name': pvc,
+            'persistentVolumeClaim': {
+                'claimName': pvc
+            }
+        })
+        volume_mounts.append({
+            'name': pvc,
+            'mountPath': '/mnt/' + pvc
+        })
+
+gcp_secret_name = os.environ.get('GCP_SECRET_NAME')
+if gcp_secret_name:
+    volumes.append({
+      'name': gcp_secret_name,
+      'secret': {
+        'secretName': gcp_secret_name,
+      }
+    })
+    volume_mounts.append({
+        'name': gcp_secret_name,
+        'mountPath': SERVICE_ACCOUNT_SECRET_MOUNT
+    })
