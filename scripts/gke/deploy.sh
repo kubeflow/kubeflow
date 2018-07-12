@@ -68,6 +68,7 @@ if ${SETUP_PROJECT}; then
   # Enable GCloud APIs
   gcloud services enable deploymentmanager.googleapis.com \
                          servicemanagement.googleapis.com \
+                         container.googleapis.com \
                          cloudresourcemanager.googleapis.com \
                          endpoints.googleapis.com \
                          file.googleapis.com \
