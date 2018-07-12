@@ -33,6 +33,75 @@
       "type": "Opaque"
     },
 
+    fluxaccount:: {
+      // K8s Deployment,
+      component_0:: {
+        "apiVersion": "v1",
+        "kind": "ServiceAccount",
+        "metadata": {
+          "labels": {
+            "name": "flux"
+          },
+          "name": "flux"
+        }
+      },
+
+      component_1:: {
+        "apiVersion": "rbac.authorization.k8s.io/v1beta1",
+        "kind": "ClusterRole",
+        "metadata": {
+          "labels": {
+            "name": "flux"
+          },
+          "name": "flux"
+        },
+        "rules": [
+          {
+            "apiGroups": [
+              "*"
+            ],
+            "resources": [
+              "*"
+            ],
+            "verbs": [
+              "*"
+            ]
+          },
+          {
+            "nonResourceURLs": [
+              "*"
+            ],
+            "verbs": [
+              "*"
+            ]
+          }
+        ]
+      },
+
+      component_2:: {
+        "apiVersion": "rbac.authorization.k8s.io/v1beta1",
+        "kind": "ClusterRoleBinding",
+        "metadata": {
+          "labels": {
+            "name": "flux"
+          },
+          "name": "flux"
+        },
+        "roleRef": {
+          "apiGroup": "rbac.authorization.k8s.io",
+          "kind": "ClusterRole",
+          "name": "flux"
+        },
+        "subjects": [
+          {
+            "kind": "ServiceAccount",
+            "name": "flux",
+            "namespace": "default"
+          }
+        ]
+      },
+    },
+
     flux:: {
       // K8s Deployment,
       "apiVersion": "apps/v1beta1",
@@ -146,75 +215,6 @@
         },
         "type": "LoadBalancer"
       }
-    },
-
-    fluxaccount:: {
-      // K8s Deployment,
-      component_0:: {
-        "apiVersion": "v1",
-        "kind": "ServiceAccount",
-        "metadata": {
-          "labels": {
-            "name": "flux"
-          },
-          "name": "flux"
-        }
-      },
-
-      component_1:: {
-        "apiVersion": "rbac.authorization.k8s.io/v1beta1",
-        "kind": "ClusterRole",
-        "metadata": {
-          "labels": {
-            "name": "flux"
-          },
-          "name": "flux"
-        },
-        "rules": [
-          {
-            "apiGroups": [
-              "*"
-            ],
-            "resources": [
-              "*"
-            ],
-            "verbs": [
-              "*"
-            ]
-          },
-          {
-            "nonResourceURLs": [
-              "*"
-            ],
-            "verbs": [
-              "*"
-            ]
-          }
-        ]
-      },
-
-      component_2:: {
-        "apiVersion": "rbac.authorization.k8s.io/v1beta1",
-        "kind": "ClusterRoleBinding",
-        "metadata": {
-          "labels": {
-            "name": "flux"
-          },
-          "name": "flux"
-        },
-        "roleRef": {
-          "apiGroup": "rbac.authorization.k8s.io",
-          "kind": "ClusterRole",
-          "name": "flux"
-        },
-        "subjects": [
-          {
-            "kind": "ServiceAccount",
-            "name": "flux",
-            "namespace": "default"
-          }
-        ]
-      },
     },
 
     memcachedep:: {
