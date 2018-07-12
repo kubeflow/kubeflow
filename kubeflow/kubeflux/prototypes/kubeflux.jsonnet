@@ -9,9 +9,9 @@ local kubeFlux = import "kubeflow/kubeflux/all.jsonnet";
 
 // updatedParams uses the environment namespace if
 // the namespace parameter is not explicitly set
-local updatedParams = params {
-  namespace: if params.namespace == "null" then env.namespace else params.namespace,
-};
+//local updatedParams = params {
+//  namespace: if params.namespace == "null" then env.namespace else params.namespace,
+//};
 
-local namespace = updatedParams.namespace;
+//local namespace = updatedParams.namespace;
 local imageTag = import "param://imageTag";
