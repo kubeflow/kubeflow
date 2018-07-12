@@ -8,8 +8,8 @@
     $.parts(params, env).nodeport,
     $.parts(params, env).fluxlb,
     $.parts(params, env).fluxaccount,
-    $.parts(params, env).memcache-dep,
-    $.parts(params, env).memcache-svc,
+    $.parts(params, env).memcachedep,
+    $.parts(params, env).memcachesvc,
 
   ],
 
@@ -217,7 +217,7 @@
       },
     },
 
-    memcache-dep:: {
+    memcachedep:: {
     // K8s Deployment,
     "apiVersion": "extensions/v1beta1",
     "kind": "Deployment",
@@ -256,7 +256,7 @@
     }
     },
 
-    memcache-svc:: {
+    memcachesvc:: {
       // K8s Deployment,
       "apiVersion": "v1",
       "kind": "Service",
