@@ -1,0 +1,36 @@
+{
+   "apiVersion": "v1",
+   "items": [
+      {
+         "apiVersion": "extensions/v1beta1",
+         "kind": "Deployment",
+         "metadata": {
+            "name": "flux-deployment"
+         },
+         "spec": {
+            "replicas": 2,
+            "template": {
+               "metadata": {
+                  "labels": {
+                     "app": "flux"
+                  }
+               },
+               "spec": {
+                  "containers": [
+                     {
+                        "image": "quay.io/weaveworks/flux:1.4.2",
+                        "name": "flux",
+                        "ports": [
+                           {
+                              "containerPort": 3030
+                           }
+                        ]
+                     }
+                  ]
+               }
+            }
+         }
+      }
+   ],
+   "kind": "List"
+}
