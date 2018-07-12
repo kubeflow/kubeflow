@@ -2,7 +2,7 @@
   // Define the various prototypes you want to support.
   // Each prototype should be a list of different parts that together
   // provide a userful function such as WeaveWorks Flux
-  all(params, env):: [
+  all(namespace, env):: [
     $.parts(namespace, env).nodeport,
     $.parts(namespace, env).fluxlb,
     $.parts(namespace, env).flux,
