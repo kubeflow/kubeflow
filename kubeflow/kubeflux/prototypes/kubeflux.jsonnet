@@ -5,7 +5,7 @@
 // @param name string Name to give to each of the components
 
 local k = import "k.libsonnet";
-local all = import "kubeflow/kubeflux/all.jsonnet";
+local all = import "kubeflow/kubeflux/all.libsonnet";
 
 // updatedParams uses the environment namespace if
 // the namespace parameter is not explicitly set
