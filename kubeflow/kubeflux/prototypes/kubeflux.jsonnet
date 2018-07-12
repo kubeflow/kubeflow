@@ -16,4 +16,4 @@ local all = import "kubeflow/kubeflux/all.libsonnet";
 //local namespace = updatedParams.namespace;
 //local imageTag = import "param://imageTag";
 
-std.prune(k.core.v1.list.new(all.tfPrototype(params, env)))
+std.prune(k.core.v1.list.new(all.kubeflux(params, env)))
