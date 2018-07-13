@@ -49,6 +49,9 @@ local apife = [
 
 local rbac = [
   core.parts(name,namespace).rbacServiceAccount(),
+  core.parts(name,namespace).rbacClusterRole(),
+  core.parts(name,namespace).rbacRole(),
+  core.parts(name,namespace).rbacRoleBinding(),  
   core.parts(name,namespace).rbacClusterRoleBinding(),
 ];
 

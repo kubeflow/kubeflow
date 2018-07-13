@@ -5,32 +5,61 @@ local service = k.core.v1.service.mixin;
 local serviceAccountMixin = k.core.v1.serviceAccount.mixin;
 local clusterRoleBindingMixin = k.rbac.v1beta1.clusterRoleBinding.mixin;
 local clusterRoleBinding = k.rbac.v1beta1.clusterRoleBinding;
+local roleBindingMixin = k.rbac.v1beta1.roleBinding.mixin;
+local roleBinding = k.rbac.v1beta1.roleBinding;
+local roleMixin = k.rbac.v1beta1.role.mixin;
 local serviceAccount = k.core.v1.serviceAccount;
-local baseApife = import "json/apife-deployment.json";
-local apifeService = import "json/apife-service.json";
+//local baseApife = import "json/apife-deployment.json";
+//local apifeService = import "json/apife-service.json";
 //local operatorDeployment = import "json/operator-deployment.json";
-local redisDeployment = import "json/redis-deployment.json";
-local redisService = import "json/redis-service.json";
-local rbacServiceAccount = import "json/rbac-service-account.json";
-local rbacClusterRoleBinding = import "json/rbac-cluster-binding.json";
+//local redisDeployment = import "json/redis-deployment.json";
+//local redisService = import "json/redis-service.json";
+//local rbacServiceAccount = import "json/rbac-service-account.json";
+//local rbacClusterRoleBinding = import "json/rbac-cluster-binding.json";
+
 local crdDefn = import "crd.libsonnet";
 local seldonTemplate = import "json/template.json";
 
 local getOperatorDeployment(x) = x.metadata.name == 'RELEASE-NAME-seldon-cluster-manager';
+local getApifeDeployment(x) = x.metadata.name == 'RELEASE-NAME-seldon-apiserver' && x.kind == "Deployment";
+local getApifeService(x) = x.metadata.name == 'RELEASE-NAME-seldon-apiserver' && x.kind == "Service";
+local getRedisDeployment(x) = x.metadata.name == 'RELEASE-NAME-redis' && x.kind == "Deployment";
+local getRedisService(x) = x.metadata.name == 'RELEASE-NAME-redis' && x.kind == "Service";
+local getServiceAccount(x) = x.kind == "ServiceAccount";
+local getClusterRole(x) = x.kind == "ClusterRole";
+local getClusterRoleBinding(x) = x.kind == "ClusterRoleBinding";
+local getRoleBinding(x) = x.kind == "RoleBinding";
+local getRole(x) = x.kind == "Role";
 
 {
   parts(name,namespace):: {
 
     apife(apifeImage, withRbac)::
 
+      local baseApife = std.filter(getApifeDeployment,seldonTemplate.items)[0];
+
+
       local c = baseApife.spec.template.spec.containers[0] +
                 container.withImage(apifeImage) +
-                container.withImagePullPolicy("IfNotPresent");
+		container.withImagePullPolicy("IfNotPresent");
 
-      local apiFeBase =
+      local labels = { "app.kubernetes.io/name" : name,
+      		       "heritage" : "ksonnet",
+      	    	       "release" : name
+      	    };
+
+
+      local apiFeBase1 =
         baseApife +
         deployment.mixin.metadata.withNamespace(namespace) +
+	deployment.mixin.metadata.withLabelsMixin(labels) +	
         deployment.mixin.spec.template.spec.withContainers([c]);
+
+      // Ensure labels copied to enclosed parts
+      local apiFeBase = apiFeBase1 +
+              deployment.mixin.spec.selector.withMatchLabels(apiFeBase1.metadata.labels) + 
+              deployment.mixin.spec.template.metadata.withLabels(apiFeBase1.metadata.labels);
+
 
       if withRbac == "true" then
         apiFeBase +
@@ -41,8 +70,14 @@ local getOperatorDeployment(x) = x.metadata.name == 'RELEASE-NAME-seldon-cluster
 
     apifeService(serviceType)::
 
+      local apifeService = std.filter(getApifeService,seldonTemplate.items)[0];
+
+      local labels = { "app.kubernetes.io/name" : name };
+
       apifeService +
+      service.metadata.withName(name+"-seldon-apiserver") +
       service.metadata.withNamespace(namespace) +
+      service.metadata.withLabelsMixin(labels) +	
       service.spec.withType(serviceType),
 
     deploymentOperator(engineImage, clusterManagerImage, springOpts, javaOpts, withRbac):
@@ -86,20 +121,60 @@ local getOperatorDeployment(x) = x.metadata.name == 'RELEASE-NAME-seldon-cluster
 
     redisDeployment():
 
-      redisDeployment +
-      deployment.mixin.metadata.withNamespace(namespace),
+      local redisDeployment = std.filter(getRedisDeployment,seldonTemplate.items)[0];
+
+      local labels = { "app" : name+"-redis-app",
+      	    	       "app.kubernetes.io/name" : name,
+      		       "heritage" : "ksonnet",
+      	    	       "release" : name
+      	    };
+
+      local redisDeployment1 = redisDeployment +
+      	      deployment.mixin.metadata.withName(name+"-redis") +       
+      	      deployment.mixin.metadata.withNamespace(namespace) +
+      	      deployment.mixin.metadata.withLabelsMixin(labels);
+
+      redisDeployment1 +
+              deployment.mixin.spec.selector.withMatchLabels(redisDeployment1.metadata.labels) + 
+              deployment.mixin.spec.template.metadata.withLabels(redisDeployment1.metadata.labels),
 
     redisService():
 
+      local redisService = std.filter(getRedisService,seldonTemplate.items)[0];
+
+      local labels = { "app.kubernetes.io/name" : name };
+
       redisService +
-      service.metadata.withNamespace(namespace),
+      service.metadata.withName(name+"-redis") +
+      service.metadata.withNamespace(namespace) +
+      service.metadata.withLabelsMixin(labels) +
+      service.spec.withSelector({"app":name+"-redis-app"}),
 
     rbacServiceAccount():
+
+      local rbacServiceAccount = std.filter(getServiceAccount,seldonTemplate.items)[0];
 
       rbacServiceAccount +
       serviceAccountMixin.metadata.withNamespace(namespace),
 
+
+    rbacClusterRole():
+
+      local clusterRole = std.filter(getClusterRole,seldonTemplate.items)[0];
+
+      clusterRole,
+
+    rbacRole():
+
+      local role = std.filter(getRole,seldonTemplate.items)[0];
+
+      role +
+      roleMixin.metadata.withNamespace(namespace),
+
+
     rbacClusterRoleBinding():
+
+      local rbacClusterRoleBinding = std.filter(getClusterRoleBinding,seldonTemplate.items)[0];
 
       local subject = rbacClusterRoleBinding.subjects[0]
                       { namespace: namespace };
@@ -107,6 +182,17 @@ local getOperatorDeployment(x) = x.metadata.name == 'RELEASE-NAME-seldon-cluster
       rbacClusterRoleBinding +
       clusterRoleBindingMixin.metadata.withNamespace(namespace) +
       clusterRoleBinding.withSubjects([subject]),
+
+    rbacRoleBinding():
+
+      local rbacRoleBinding = std.filter(getRoleBinding,seldonTemplate.items)[0];
+
+      local subject = rbacRoleBinding.subjects[0]
+                      { namespace: namespace };
+
+      rbacRoleBinding +
+      roleBindingMixin.metadata.withNamespace(namespace) +
+      roleBinding.withSubjects([subject]),
 
     crd():
 
