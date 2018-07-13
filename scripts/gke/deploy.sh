@@ -89,7 +89,7 @@ if ${SETUP_PROJECT}; then
 else
   echo skipping project setup
 fi
-
+IAP_IAM_ENTRY=${IAP_IAM_ENTRY:-"user:${EMAIL}"}
 # Create the DM configs if they don't exists
 if [ ! -d "${KUBEFLOW_DM_DIR}" ]; then
   echo creating Deployment Manager configs in directory "${KUBEFLOW_DM_DIR}"
@@ -97,7 +97,7 @@ if [ ! -d "${KUBEFLOW_DM_DIR}" ]; then
   cd "${KUBEFLOW_DM_DIR}"
   # Set values in DM config file
   sed -i.bak "s/zone: us-central1-a/zone: ${ZONE}/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
-  sed -i.bak "s/users:/users: [\"user:${EMAIL}\"]/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
+  sed -i.bak "s/users:/users: [\"${IAP_IAM_ENTRY}\"]/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
   sed -i.bak "s/ipName: kubeflow-ip/ipName: ${KUBEFLOW_IP_NAME}/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
   rm "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}.bak"
 else
