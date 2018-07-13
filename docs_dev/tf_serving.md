@@ -57,7 +57,7 @@ To use the TF Serving component, see document [here](https://github.com/kubeflow
 
 ## SeldonIO
 [SeldonIO](https://github.com/SeldonIO/seldon-core) is a platform for serving ML
-models. It's an open question on how should we integrate TF Serving with
+models. It's an open question how we should integrate TF Serving with
 Seldon to get nice features like routing and model management.
 
 ## Next steps
@@ -65,7 +65,8 @@ Seldon to get nice features like routing and model management.
 to enable continuous training and skew detection
 - [kubeflow/kubeflow#136](https://github.com/kubeflow/kubeflow/issues/136): Model management feature
 - [kubeflow/kubeflw#1004](https://github.com/kubeflow/kubeflow/issues/1004): Examples showcasing CUJ
-- [kubeflow/kubebench#30](https://github.com/kubeflow/kubebench/issues/30): Benchmark
+- [kubeflow/kubebench#30](https://github.com/kubeflow/kubebench/issues/30): Benchmark to understand performance, like
+  autoscaling.
 - [kubeflow/kubeflow#1036](https://github.com/kubeflow/kubeflow/issues/1036): metrics
 - Issues related to REST api:
   - Improve current http proxy [issue](https://github.com/kubeflow/kubeflow/issues/198)
