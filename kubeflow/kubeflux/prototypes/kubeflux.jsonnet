@@ -14,7 +14,7 @@ local updatedParams = params {
   namespace: if params.namespace == "null" then env.namespace else params.namespace,
 };
 
-local params.namespace = updatedParams.namespace;
+local namespace = updatedParams.namespace;
 //local imageTag = import "param://imageTag";
 
 std.prune(k.core.v1.list.new(all.kubeflux(params, env)))
