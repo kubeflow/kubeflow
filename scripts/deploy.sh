@@ -62,15 +62,13 @@ ks pkg install kubeflow/seldon
 ks pkg install kubeflow/tf-serving
 
 # Generate all required components
-ks generate kubeflow-core kubeflow-core --cloud=${KUBEFLOW_CLOUD}
 ks generate ambassador ambassador --cloud=${KUBEFLOW_CLOUD}
 ks generate jupyterhub jupyterhub --cloud=${KUBEFLOW_CLOUD}
 ks generate centraldashboard centraldashboard
-
+ks generate tf-job-operator tf-job-operator
 # Enable collection of anonymous usage metrics
 # Skip this step if you don't want to enable collection.
-ks param set kubeflow-core reportUsage true
-ks param set kubeflow-core usageId $(uuidgen)
+ks generate spartakus spartakus --usageId=$(uuidgen) --reportUsage=true
 
 # Apply the components generated
 if ${KUBEFLOW_DEPLOY}; then
