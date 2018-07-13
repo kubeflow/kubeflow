@@ -8,7 +8,7 @@
     $.parts(params, env).flux,
     $.parts(params, env).memcachedep,
     $.parts(params, env).memcachesvc,
-    $.parts(params, env).fluxsecret,
+    $.parts(params, env).secret,
     $.parts(params, env).serviceAccount,
     $.parts(params, env).role,
     $.parts(params, env).roleBinding,
@@ -94,13 +94,13 @@
         ]
       },
 
-    fluxsecret:: {
+    secret:: {
       // K8s Deployment,
       "apiVersion": "v1",
       "kind": "Secret",
       "metadata": {
         "name": "flux-git-deploy",
-        namespace: namespace
+        namespace: namespace,
       },
       "type": "Opaque"
     },
