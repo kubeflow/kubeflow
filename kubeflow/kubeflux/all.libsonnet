@@ -111,7 +111,6 @@
       "kind": "Deployment",
       "metadata": {
         "name": "flux",
-        "namespace": namespace,
       },
       "spec": {
         "replicas": 1,
