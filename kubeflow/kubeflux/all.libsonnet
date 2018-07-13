@@ -8,10 +8,10 @@
     $.parts(params, env).flux,
     $.parts(params, env).memcachedep,
     $.parts(params, env).memcachesvc,
-    $.parts(params, env).secret,
     $.parts(params, env).serviceAccount,
     $.parts(params, env).role,
     $.parts(params, env).roleBinding,
+    $.parts(params, env).secret,
 
   ],
 
