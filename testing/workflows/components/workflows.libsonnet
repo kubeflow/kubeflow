@@ -241,16 +241,16 @@
                         "wait-for-kubeflow",
                     ],
                   },
-                  {
-                    name: "tfjob-simple-prototype-test",
-                    template: "tfjob-simple-prototype-test",
-                    dependencies: [
-                      if platform == "minikube" then
-                        "deploy-kubeflow"
-                      else
-                        "wait-for-kubeflow",
-                    ],
-                  },
+                  //                  {
+                  //                    name: "tfjob-simple-prototype-test",
+                  //                    template: "tfjob-simple-prototype-test",
+                  //                    dependencies: [
+                  //                      if platform == "minikube" then
+                  //                        "deploy-kubeflow"
+                  //                      else
+                  //                        "wait-for-kubeflow",
+                  //                    ],
+                  //                  },
                   if platform == "gke" then {
                     name: "wait-for-kubeflow",
                     template: "wait-for-kubeflow",
