@@ -85,7 +85,8 @@
         "subjects": [
           {
             "kind": "ServiceAccount",
-            "name": "flux"
+            "name": "flux",
+            "namespace": namespace
           }
         ]
       },
