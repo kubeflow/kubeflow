@@ -180,6 +180,7 @@ ks generate kubeflow-core kubeflow-core --jupyterHubAuthenticator iap --disks "k
 ks generate cloud-endpoints cloud-endpoints
 ks generate cert-manager cert-manager --acmeEmail=${EMAIL}
 ks generate iap-ingress iap-ingress --ipName=${KUBEFLOW_IP_NAME} --hostname=${KUBEFLOW_HOSTNAME}
+ks generate pytorch-operator pytorch-operator
 
 if ! ${SKIP_METRICS_COLLECTION}; then
   ks param set kubeflow-core reportUsage true
@@ -193,4 +194,5 @@ if ${KUBEFLOW_DEPLOY}; then
   ks apply default -c cloud-endpoints
   ks apply default -c cert-manager
   ks apply default -c iap-ingress
+  ks apply default -c pytorch-operator
 fi
