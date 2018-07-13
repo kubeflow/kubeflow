@@ -10,11 +10,11 @@ local all = import "kubeflow/kubeflux/all.libsonnet";
 
 // updatedParams uses the environment namespace if
 // the namespace parameter is not explicitly set
-local updatedParams = params {
-  namespace: if params.namespace == "null" then env.namespace else params.namespace,
-};
+//local updatedParams = params {
+//  namespace: if params.namespace == "null" then env.namespace else params.namespace,
+//};
 
-local namespace = updatedParams.namespace;
+//local namespace = updatedParams.namespace;
 //local imageTag = import "param://imageTag";
 
 std.prune(k.core.v1.list.new(all.kubeflux(params, env)))
