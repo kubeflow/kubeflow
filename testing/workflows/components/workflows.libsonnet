@@ -281,17 +281,7 @@
                         else
                           "",
                   },
-                  if platform == "gke" then
-                    {
-                      name: "teardown-kubeflow-gcp" + v1alpha2Suffix,
-                      template: "teardown-kubeflow-gcp" + v1alpha2Suffix,
-                    },
-                  if platform == "gke" then
-                    {
-                      name: "test-dir-delete",
-                      template: "test-dir-delete",
-                      dependencies: ["copy-artifacts", "teardown-kubeflow-gcp" + v1alpha2Suffix],
-                    } else {
+                  {
                     name: "test-dir-delete",
                     template: "test-dir-delete",
                     dependencies: ["copy-artifacts"],
@@ -492,21 +482,8 @@
               "bash",
               srcDir + "/testing/teardown_kubeflow_gcp.sh",
               deploymentName,
-              srcDir + "/docs/gke/configs-" + deploymentName + "/cluster-kubeflow.yaml",
-              project,
+              testDir,
             ]),  // teardown-kubeflow-gcp
-            buildTemplate("teardown-kubeflow-gcp" + v1alpha2Suffix, [
-              "python",
-              "-m",
-              "testing.run_with_retry",
-              "--retries=5",
-              "--",
-              "bash",
-              srcDir + "/testing/teardown_kubeflow_gcp.sh",
-              deploymentName + v1alpha2Suffix,
-              srcDir + "/docs/gke/configs-" + deploymentName + v1alpha2Suffix + "/cluster-kubeflow.yaml",
-              project,
-            ], kubeConfig="v1alpha2"),  // teardown-kubeflow-gcp
           ],  // templates
         },
       },  // e2e

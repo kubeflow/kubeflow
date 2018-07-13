@@ -1,14 +1,12 @@
 #!/bin/bash
 # deploy_kubeflow_gcp.sh is used for testing the deployment manager
-# config at docs/gke/configs. It takes the following flags:
-# NAME, SRC_DIR, TFJOB_VERSION, BOOTSTRAPPER_IMAGE
+# config at scripts/gke. It takes the following flags:
+# NAME, TEST_DIR
 
 set -xe
 
 NAME="${1}"
 TEST_DIR="${2}"
-
-gcloud components update
 
 if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS}" ]]; then
   gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
