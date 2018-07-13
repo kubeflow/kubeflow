@@ -184,16 +184,6 @@
                     dependencies: ["checkout"],
                   },
                   {
-                    local bootstrapImageCreate = {
-                      name: "bootstrap-image-create",
-                      template: "bootstrap-image-create",
-                      dependencies: ["checkout"],
-                    },
-
-                    result:: if platform == "gke" then
-                      bootstrapImageCreate,
-                  }.result,
-                  {
                     name: "create-pr-symlink",
                     template: "create-pr-symlink",
                     dependencies: ["checkout"],
@@ -207,7 +197,7 @@
                     local bootstrapKubeflowGCP = {
                       name: "bootstrap-kf-gcp",
                       template: "bootstrap-kf-gcp",
-                      dependencies: ["bootstrap-image-create"],
+                      dependencies: ["checkout"],
                     },
                     local deployKubeflow = {
                       name: "deploy-kubeflow",
@@ -219,11 +209,6 @@
                     else
                       bootstrapKubeflowGCP,
                   }.result,
-                  if platform == "gke" then {
-                    name: "bootstrap-kf-gcp" + v1alpha2Suffix,
-                    template: "bootstrap-kf-gcp" + v1alpha2Suffix,
-                    dependencies: ["bootstrap-image-create"],
-                  },
                   {
                     name: "pytorchjob-deploy",
                     template: "pytorchjob-deploy",
@@ -267,25 +252,10 @@
                     ],
                   },
                   if platform == "gke" then {
-                    name: "tfjob-test" + v1alpha2Suffix,
-                    // TODO(https://github.com/kubeflow/kubeflow/issues/974): Reneable this test once
-                    // its fixed.
-                    // template: "tfjob-test" + v1alpha2Suffix,
-                    template: "skip-step",
-                    dependencies: ["wait-for-kubeflow" + v1alpha2Suffix],
-                  },
-                  if platform == "gke" then {
                     name: "wait-for-kubeflow",
                     template: "wait-for-kubeflow",
                     dependencies: [
                       "bootstrap-kf-gcp",
-                    ],
-                  } else {},
-                  if platform == "gke" then {
-                    name: "wait-for-kubeflow" + v1alpha2Suffix,
-                    template: "wait-for-kubeflow" + v1alpha2Suffix,
-                    dependencies: [
-                      "bootstrap-kf-gcp" + v1alpha2Suffix,
                     ],
                   } else {},
                   {
@@ -371,15 +341,6 @@
               "--zone=" + zone,
               "--timeout=5",
             ]),  // wait-for-kubeflow
-            buildTemplate("wait-for-kubeflow" + v1alpha2Suffix, [
-              "python",
-              "-m",
-              "testing.wait_for_deployment",
-              "--cluster=" + cluster + v1alpha2Suffix,
-              "--project=" + project,
-              "--zone=" + zone,
-              "--timeout=5",
-            ], kubeConfig="v1alpha2"),  // wait-for-kubeflow
             buildTemplate("test-jsonnet-formatting", [
               "python",
               "-m",
@@ -511,34 +472,6 @@
               "--deploy_name=test-argo-deploy",
               "deploy_argo",
             ]),  // test-argo-deploy
-            buildTemplate(
-              "bootstrap-image-create",
-              [
-                // We need to explicitly specify bash because
-                // build_image.sh is not in the container its a volume mounted file.
-                "/bin/bash",
-                "-c",
-                bootstrapDir + "/build_image.sh "
-                + bootstrapDir + "/Dockerfile "
-                + "gcr.io/kubeflow-ci/bootstrapper" + " "
-                + name + " "
-                + "kubeflow:" + srcDir,
-              ],
-              [
-                {
-                  name: "DOCKER_HOST",
-                  value: "127.0.0.1",
-                },
-              ],
-              [{
-                name: "dind",
-                image: "docker:17.10-dind",
-                securityContext: {
-                  privileged: true,
-                },
-                mirrorVolumeMounts: true,
-              }],
-            ),  // bootstrap-image-create
             buildTemplate("bootstrap-kf-gcp", [
               "python",
               "-m",
@@ -548,23 +481,8 @@
               "bash",
               srcDir + "/testing/deploy_kubeflow_gcp.sh",
               deploymentName,
-              srcDir,
-              "v1alpha1",
-              bootstrapperImage,
+              testDir,
             ]),  // bootstrap-kf-gcp
-            buildTemplate("bootstrap-kf-gcp" + v1alpha2Suffix, [
-              "python",
-              "-m",
-              "testing.run_with_retry",
-              "--retries=5",
-              "--",
-              "bash",
-              srcDir + "/testing/deploy_kubeflow_gcp.sh",
-              deploymentName + v1alpha2Suffix,
-              srcDir,
-              "v1alpha2",
-              bootstrapperImage,
-            ], kubeConfig="v1alpha2"),  // bootstrap-kf-gcp-v1a2
             buildTemplate("teardown-kubeflow-gcp", [
               "python",
               "-m",
