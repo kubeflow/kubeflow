@@ -14,10 +14,13 @@ if [[ ! -d "${KUBEFLOW_REPO}" ]]; then
 	TAG=${KUBEFLOW_VERSION}
   else
   	TAG=v${KUBEFLOW_VERSION}
-  fi
-  curl -L -o /tmp/kubeflow.${KUBEFLOW_VERSION}.tar.gz https://github.com/kubeflow/kubeflow/archive/${TAG}.tar.gz
-  tar -xzvf /tmp/kubeflow.${KUBEFLOW_VERSION}.tar.gz  -C /tmp
-  mv /tmp/kubeflow-${TAG} "${KUBEFLOW_REPO}"
+  fi  
+  TMPDIR=$(mktemp -d /tmp/tmp.kubeflow-repo-XXXX)
+  curl -L -o ${TMPDIR}/kubeflow.tar.gz https://github.com/kubeflow/kubeflow/archive/${TAG}.tar.gz
+  tar -xzvf ${TMPDIR}/kubeflow.tar.gz  -C ${TMPDIR}
+  # GitHub seems to strip out the v in the file name.
+  SOURCE_DIR=$(find ${TMPDIR} -maxdepth 1 -type d -name "kubeflow*")
+  mv ${SOURCE_DIR} "${KUBEFLOW_REPO}"
 fi
 
 source "${KUBEFLOW_REPO}/scripts/util.sh"
