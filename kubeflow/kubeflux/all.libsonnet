@@ -31,7 +31,7 @@
         "metadata": {
           "labels": {
             "name": "flux",
-            namespace: namespace,
+            namespace: params.namespace,
           },
           "name": "flux"
         }
@@ -43,7 +43,7 @@
         "metadata": {
           "labels": {
             "name": "flux",
-            namespace: namespace,
+            namespace: params.namespace,
           },
           "name": "flux"
         },
@@ -76,7 +76,7 @@
         "metadata": {
           "labels": {
             "name": "flux",
-            namespace: namespace,
+            namespace: params.namespace,
           },
           "name": "flux"
         },
