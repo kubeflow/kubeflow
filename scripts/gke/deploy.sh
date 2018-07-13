@@ -34,8 +34,12 @@ check_install kubectl
 # TODO(ankushagarwal): verify ks version is higher than 0.11.0
 check_install ks
 
-check_variable "${CLIENT_ID}" "CLIENT_ID"
-check_variable "${CLIENT_SECRET}" "CLIENT_SECRET"
+PRIVATE_CLUSTER=${PRIVATE_CLUSTER:-false}
+
+if ! ${PRIVATE_CLUSTER}; then
+  check_variable "${CLIENT_ID}" "CLIENT_ID"
+  check_variable "${CLIENT_SECRET}" "CLIENT_SECRET"
+fi
 
 # Name of the deployment
 DEPLOYMENT_NAME=${DEPLOYMENT_NAME:-"kubeflow"}
@@ -99,6 +103,10 @@ if [ ! -d "${KUBEFLOW_DM_DIR}" ]; then
   sed -i.bak "s/zone: us-central1-a/zone: ${ZONE}/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
   sed -i.bak "s/users:/users: [\"user:${EMAIL}\"]/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
   sed -i.bak "s/ipName: kubeflow-ip/ipName: ${KUBEFLOW_IP_NAME}/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
+  if ${PRIVATE_CLUSTER}; then
+    sed -i.bak "s/gkeApiVersion: v1/gkeApiVersion: v1beta1/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
+    sed -i.bak "s/privatecluster: false/privatecluster: true/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
+  fi
   rm "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}.bak"
 else
   echo Deployment Manager configs already exist in directory "${KUBEFLOW_DM_DIR}"
@@ -176,21 +184,25 @@ ks pkg install kubeflow/tf-serving
 
 # Generate all required components
 ks generate google-cloud-filestore-pv google-cloud-filestore-pv --name="kubeflow-gcfs" --storageCapacity="${GCFS_STORAGE}" --serverIP="${GCFS_INSTANCE_IP_ADDRESS}"
-ks generate kubeflow-core kubeflow-core --jupyterHubAuthenticator iap --disks "kubeflow-gcfs"
-ks generate cloud-endpoints cloud-endpoints
-ks generate cert-manager cert-manager --acmeEmail=${EMAIL}
-ks generate iap-ingress iap-ingress --ipName=${KUBEFLOW_IP_NAME} --hostname=${KUBEFLOW_HOSTNAME}
+ks generate kubeflow-core kubeflow-core --disks "kubeflow-gcfs" --AmbassadorImage "gcr.io/kubeflow-images-public/ambassador:0.30.1" --StatsdImage "gcr.io/kubeflow-images-public/statsd:0.30.1"
 
-# Enable collection of anonymous usage metrics
-# Skip this step if you don't want to enable collection.
-ks param set kubeflow-core reportUsage true
-ks param set kubeflow-core usageId $(uuidgen)
-
+if ! ${PRIVATE_CLUSTER}; then
+  ks generate cloud-endpoints cloud-endpoints
+  ks generate cert-manager cert-manager --acmeEmail=${EMAIL}
+  ks generate iap-ingress iap-ingress --ipName=${KUBEFLOW_IP_NAME} --hostname=${KUBEFLOW_HOSTNAME}
+  ks param set kubeflow-core jupyterHubAuthenticator iap
+  # Enable collection of anonymous usage metrics
+  # Skip this step if you don't want to enable collection.
+  ks param set kubeflow-core reportUsage true
+  ks param set kubeflow-core usageId $(uuidgen)
+fi
 # Apply the components generated
 if ${KUBEFLOW_DEPLOY}; then
   ks apply default -c google-cloud-filestore-pv
   ks apply default -c kubeflow-core
-  ks apply default -c cloud-endpoints
-  ks apply default -c cert-manager
-  ks apply default -c iap-ingress
+  if ! ${PRIVATE_CLUSTER}; then
+    ks apply default -c cloud-endpoints
+    ks apply default -c cert-manager
+    ks apply default -c iap-ingress
+  fi
 fi
