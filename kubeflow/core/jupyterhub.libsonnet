@@ -117,15 +117,10 @@
           spec: {
             containers: [
               {
-                //command: [
-                //  "jupyterhub",
-                //  "-f",
-                //  "/etc/config/jupyterhub_config.py",
-                //],
                 command: [
-                  "/bin/bash", 
-                  "-c", 
-                  "trap : TERM INT; sleep infinity & wait",
+                  "jupyterhub",
+                  "-f",
+                  "/etc/config/jupyterhub_config.py",
                 ],
                 image: image,
                 name: "tf-hub",

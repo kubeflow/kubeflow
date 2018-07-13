@@ -52,14 +52,4 @@ push_dockerhub: build_dockerhub
 
 push: build_gcr build_dockerhub push_gcr push_dockerhub
 
-push_gcr_latest: push_gcr
-        gcloud container images add-tag --quiet ${GCR_PROJECT}/jupyterhub-k8s:${VERSION} ${GCR_PROJECT}/jupyterhub-k8s:latest --verbosity=info
-        echo created ${GCR_PROJECT}/jupyterhub-k8s:latest
-
-push_dockerhub_latest: push_dockerhub
-        gcloud container images add-tag --quiet ${DOCKERHUB_PROJECT}/jupyterhub-k8s:${VERSION} ${DOCKERHUB_PROJECT}/jupyterhub-k8s:latest --verbosity=info
-        echo created ${DOCKERHUB_PROJECT}/jupyterhub-k8s:latest
-
-push_latest: push_gcr_latest push_dockerhub_latest
-
 .PHONY: all build build_dockerhub build_gcr push push_dockerhub push_gcr

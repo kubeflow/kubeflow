@@ -3,7 +3,6 @@ import os
 from kubespawner.spawner import KubeSpawner
 from jhub_remote_user_authenticator.remote_user_auth import RemoteUserAuthenticator
 from oauthenticator.github import GitHubOAuthenticator
-import escapism
 
 SERVICE_ACCOUNT_SECRET_MOUNT = '/var/run/secrets/sa'
 
@@ -86,26 +85,6 @@ class KubeFormSpawner(KubeSpawner):
         if self.user_options.get('extra_resource_limits'):
             extra = json.loads(self.user_options['extra_resource_limits'])
         return extra
-
-    def _expand_user_properties(self, template):
-        import pdb; pdb.set_trace()
-        # Make sure username and servername match the restrictions for DNS labels
-        safe_chars = set(string.ascii_lowercase + string.digits)
-
-        # Set servername based on whether named-server initialised
-        if self.name:
-            servername = '-{}'.format(self.name)
-        else:
-            servername = ''
-
-        legacy_escaped_username = ''.join([s if s in safe_chars else '-' for s in self.user.name.lower()])
-        safe_username = escapism.escape(self.user.name, safe=safe_chars, escape_char='-').lower()
-        return template.format(
-            userid=self.user.id,
-            username=safe_username,
-            legacy_escape_username=legacy_escaped_username,
-            servername=servername
-            )
 
     def get_env(self):
         env = super(KubeFormSpawner, self).get_env()
