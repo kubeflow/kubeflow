@@ -71,7 +71,7 @@ fi
 
 ADMIN_EMAIL=${DEPLOYMENT_NAME}-admin@${PROJECT}.iam.gserviceaccount.com
 USER_EMAIL=${DEPLOYMENT_NAME}-user@${PROJECT}.iam.gserviceaccount.com
-
+SKIP_METRICS_COLLECTION=${SKIP_METRICS_COLLECTION:-false}
 if ${SETUP_PROJECT}; then
   # Enable GCloud APIs
   gcloud services enable deploymentmanager.googleapis.com \
@@ -89,7 +89,7 @@ if ${SETUP_PROJECT}; then
 else
   echo skipping project setup
 fi
-
+IAP_IAM_ENTRY=${IAP_IAM_ENTRY:-"user:${EMAIL}"}
 # Create the DM configs if they don't exists
 if [ ! -d "${KUBEFLOW_DM_DIR}" ]; then
   echo creating Deployment Manager configs in directory "${KUBEFLOW_DM_DIR}"
@@ -97,7 +97,7 @@ if [ ! -d "${KUBEFLOW_DM_DIR}" ]; then
   cd "${KUBEFLOW_DM_DIR}"
   # Set values in DM config file
   sed -i.bak "s/zone: us-central1-a/zone: ${ZONE}/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
-  sed -i.bak "s/users:/users: [\"user:${EMAIL}\"]/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
+  sed -i.bak "s/users:/users: [\"${IAP_IAM_ENTRY}\"]/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
   sed -i.bak "s/ipName: kubeflow-ip/ipName: ${KUBEFLOW_IP_NAME}/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
   rm "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}.bak"
 else
@@ -180,11 +180,12 @@ ks generate kubeflow-core kubeflow-core --jupyterHubAuthenticator iap --disks "k
 ks generate cloud-endpoints cloud-endpoints
 ks generate cert-manager cert-manager --acmeEmail=${EMAIL}
 ks generate iap-ingress iap-ingress --ipName=${KUBEFLOW_IP_NAME} --hostname=${KUBEFLOW_HOSTNAME}
+ks generate pytorch-operator pytorch-operator
 
-# Enable collection of anonymous usage metrics
-# Skip this step if you don't want to enable collection.
-ks param set kubeflow-core reportUsage true
-ks param set kubeflow-core usageId $(uuidgen)
+if ! ${SKIP_METRICS_COLLECTION}; then
+  ks param set kubeflow-core reportUsage true
+  ks param set kubeflow-core usageId $(uuidgen)
+fi
 
 # Apply the components generated
 if ${KUBEFLOW_DEPLOY}; then
@@ -193,4 +194,5 @@ if ${KUBEFLOW_DEPLOY}; then
   ks apply default -c cloud-endpoints
   ks apply default -c cert-manager
   ks apply default -c iap-ingress
+  ks apply default -c pytorch-operator
 fi
