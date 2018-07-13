@@ -8,6 +8,8 @@ set -xe
 NAME="${1}"
 TEST_DIR="${2}"
 
+gcloud components update
+
 if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS}" ]]; then
   gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
 fi
