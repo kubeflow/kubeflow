@@ -99,7 +99,7 @@
       "apiVersion": "v1",
       "kind": "Secret",
       "metadata": {
-        "name": "flux-git-deploy"
+        "name": "flux-git-deploy",
         "namespace": namespace,
       },
       "type": "Opaque"
@@ -110,7 +110,7 @@
       "apiVersion": "apps/v1beta1",
       "kind": "Deployment",
       "metadata": {
-        "name": "flux"
+        "name": "flux",
         "namespace": namespace,
       },
       "spec": {
