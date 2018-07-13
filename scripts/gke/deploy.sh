@@ -71,7 +71,7 @@ fi
 
 ADMIN_EMAIL=${DEPLOYMENT_NAME}-admin@${PROJECT}.iam.gserviceaccount.com
 USER_EMAIL=${DEPLOYMENT_NAME}-user@${PROJECT}.iam.gserviceaccount.com
-
+SKIP_METRICS_COLLECTION=${SKIP_METRICS_COLLECTION:-false}
 if ${SETUP_PROJECT}; then
   # Enable GCloud APIs
   gcloud services enable deploymentmanager.googleapis.com \
@@ -181,10 +181,10 @@ ks generate cloud-endpoints cloud-endpoints
 ks generate cert-manager cert-manager --acmeEmail=${EMAIL}
 ks generate iap-ingress iap-ingress --ipName=${KUBEFLOW_IP_NAME} --hostname=${KUBEFLOW_HOSTNAME}
 
-# Enable collection of anonymous usage metrics
-# Skip this step if you don't want to enable collection.
-ks param set kubeflow-core reportUsage true
-ks param set kubeflow-core usageId $(uuidgen)
+if ! ${SKIP_METRICS_COLLECTION}; then
+  ks param set kubeflow-core reportUsage true
+  ks param set kubeflow-core usageId $(uuidgen)
+fi
 
 # Apply the components generated
 if ${KUBEFLOW_DEPLOY}; then

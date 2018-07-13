@@ -22,5 +22,6 @@ export CLIENT_ID=dummy \
   PROJECT=kubeflow-ci \
   ZONE=us-east1-d \
   SETUP_PROJECT=false \
+  SKIP_METRICS_COLLECTION=true \
   IAP_IAM_ENTRY="serviceAccount:kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com"
 bash src/kubeflow/kubeflow/scripts/gke/deploy.sh
