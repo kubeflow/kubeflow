@@ -2,16 +2,16 @@
   // Define the various prototypes you want to support.
   // Each prototype should be a list of different parts that together
   // provide a userful function such as WeaveWorks Flux
-  kubeflux(params, env):: [
-    $.parts(params, env).nodeport,
-    $.parts(params, env).fluxlb,
-    $.parts(params, env).flux,
-    $.parts(params, env).memcachedep,
-    $.parts(params, env).memcachesvc,
-    $.parts(params, env).fluxsecret,
-    $.parts(params, env).serviceAccount,
-    $.parts(params, env).role,
-    $.parts(params, env).roleBinding,
+  kubeflux(updatedParams, env):: [
+    $.parts(updatedParams, env).nodeport,
+    $.parts(updatedParams, env).fluxlb,
+    $.parts(updatedParams, env).flux,
+    $.parts(updatedParams, env).memcachedep,
+    $.parts(updatedParams, env).memcachesvc,
+    $.parts(updatedParams, env).fluxsecret,
+    $.parts(updatedParams, env).serviceAccount,
+    $.parts(updatedParams, env).role,
+    $.parts(updatedParams, env).roleBinding,
 
   ],
 
@@ -31,7 +31,7 @@
         "metadata": {
           "labels": {
             "name": "flux",
-            namespace: params.namespace,
+            namespace: updatedParams.namespace,
           },
           "name": "flux"
         }
@@ -43,7 +43,7 @@
         "metadata": {
           "labels": {
             "name": "flux",
-            namespace: params.namespace,
+            namespace: updatedParams.namespace,
           },
           "name": "flux"
         },
@@ -76,7 +76,7 @@
         "metadata": {
           "labels": {
             "name": "flux",
-            namespace: params.namespace,
+            namespace: updatedParams.namespace,
           },
           "name": "flux"
         },
