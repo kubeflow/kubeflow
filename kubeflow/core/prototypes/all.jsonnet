@@ -22,6 +22,7 @@
 // @optionalParam usageId string unknown_cluster Optional id to use when reporting usage to kubeflow.org
 // @optionalParam tfJobVersion string v1alpha2 which version of the TFJob operator to use
 // @optionalParam centralUiImage string gcr.io/kubeflow-images-public/centraldashboard:v0.2.1 Image to use for Central UI.
+// @optionalParam gcpSecretName string user-gcp-sa The name of the secret containing service account credentials for GCP
 
 local k = import "k.libsonnet";
 local all = import "kubeflow/core/all.libsonnet";
