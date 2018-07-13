@@ -31,7 +31,7 @@
         "metadata": {
           "labels": {
             "name": "flux",
-            namespace: namespace,
+            "namespace": namespace,
           },
           "name": "flux"
         }
@@ -43,7 +43,7 @@
         "metadata": {
           "labels": {
             "name": "flux",
-            namespace: namespace,
+            "namespace": namespace,
           },
           "name": "flux"
         },
@@ -76,7 +76,7 @@
         "metadata": {
           "labels": {
             "name": "flux",
-            namespace: namespace,
+            "namespace": namespace,
           },
           "name": "flux"
         },
@@ -100,6 +100,7 @@
       "kind": "Secret",
       "metadata": {
         "name": "flux-git-deploy"
+        "namespace": namespace,
       },
       "type": "Opaque"
     },
@@ -110,6 +111,7 @@
       "kind": "Deployment",
       "metadata": {
         "name": "flux"
+        "namespace": namespace,
       },
       "spec": {
         "replicas": 1,
