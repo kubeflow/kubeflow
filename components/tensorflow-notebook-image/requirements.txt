@@ -15,4 +15,5 @@ keras
 matplotlib
 
 # Google Cloud related packages
-google-cloud-storage
+google-cloud
+pandas-gbq
