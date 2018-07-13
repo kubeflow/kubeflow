@@ -86,7 +86,7 @@
           {
             "kind": "ServiceAccount",
             "name": "flux",
-            "namespace": "namespace",
+            "namespace": "kubeflow",
           }
         ]
       },
