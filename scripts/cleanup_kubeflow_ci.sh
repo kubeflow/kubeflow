@@ -5,14 +5,18 @@
 
 set -xe
 
-PROJECT="--project=kubeflow-ci"
+PROJECT="kubeflow-ci"
 
 # This id comes from ingress objects in kubeflow-testing cluster
 # They use a common suffix for GCP resources
 KUBEFLOW_TESTING_ID=c3cb19bff97cde34
 
 function cleanup() {
-  gcloud compute ${1} list ${PROJECT} | grep -v ${KUBEFLOW_TESTING_ID} | awk '{print $1}' | tail -n +2 | xargs gcloud compute ${1} delete ${2} --quiet ${PROJECT}
+  gcloud compute ${1} list --project=${PROJECT} \
+  | grep -v ${KUBEFLOW_TESTING_ID} \
+  | awk '{print $1}' \
+  | tail -n +2 \
+  | xargs gcloud compute ${1} delete ${2} --quiet --project=${PROJECT}
 }
 
 cleanup forwarding-rules --global
