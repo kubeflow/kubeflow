@@ -233,7 +233,12 @@
                     {},
                   {
                     name: "tfjob-test",
-                    template: "tfjob-test",
+                    template:
+                      if platform == "minikube" then
+                        "tfjob-test"
+                      else
+                        "tfjob-test" + v1alpha2Suffix
+                    ,
                     dependencies: [
                       if platform == "minikube" then
                         "deploy-kubeflow"
@@ -414,11 +419,11 @@
               "--zone=" + zone,
               "--project=" + project,
               "--app_dir=" + tfOperatorRoot + "/test/workflows",
-              "--tfjob_version=v1alpha2",
+              "--tfjob_version=v1alpha1",
               "--component=simple_tfjob",
               // Name is used for the test case name so it should be unique across
               // all E2E tests.
-              "--params=name=simple-tfjob-" + platform + ",namespace=" + stepsNamespace + ",apiVersion=kubeflow.org/" + "v1alpha2" + ",image=" + "gcr.io/kubeflow-ci/tf-dist-mnist-test:1.0",
+              "--params=name=simple-tfjob-" + platform + ",namespace=" + stepsNamespace + ",apiVersion=kubeflow.org/" + "v1alpha1" + ",image=" + "gcr.io/tf-on-k8s-dogfood/tf_sample:dc944ff",
               "--junit_path=" + artifactsDir + "/junit_e2e-" + platform + ".xml",
             ]),  // run tests
             buildTemplate("tfjob-test" + v1alpha2Suffix, [
