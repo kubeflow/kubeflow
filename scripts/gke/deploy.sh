@@ -14,7 +14,7 @@ KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"}
 
 if [[ ! -d "${KUBEFLOW_REPO}" ]]; then
   if [ "${KUBEFLOW_VERSION}" == "master" ]; then
-  TAG=${KUBEFLOW_VERSION}
+    TAG=${KUBEFLOW_VERSION}
   else
     TAG=v${KUBEFLOW_VERSION}
   fi  
