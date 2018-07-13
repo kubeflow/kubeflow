@@ -100,6 +100,7 @@
       "kind": "Secret",
       "metadata": {
         "name": "flux-git-deploy",
+        namespace: namespace
       },
       "type": "Opaque"
     },
