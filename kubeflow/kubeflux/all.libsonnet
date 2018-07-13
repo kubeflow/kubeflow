@@ -2,16 +2,16 @@
   // Define the various prototypes you want to support.
   // Each prototype should be a list of different parts that together
   // provide a userful function such as WeaveWorks Flux
-  kubeflux(namespace, env):: [
-    $.parts(namespace, env).nodeport,
-    $.parts(namespace, env).fluxlb,
-    $.parts(namespace, env).flux,
-    $.parts(namespace, env).memcachedep,
-    $.parts(namespace, env).memcachesvc,
-    $.parts(namespace, env).fluxsecret,
-    $.parts(namespace, env).serviceAccount,
-    $.parts(namespace, env).role,
-    $.parts(namespace, env).roleBinding,
+  kubeflux(params, env):: [
+    $.parts(params, env).nodeport,
+    $.parts(params, env).fluxlb,
+    $.parts(params, env).flux,
+    $.parts(params, env).memcachedep,
+    $.parts(params, env).memcachesvc,
+    $.parts(params, env).fluxsecret,
+    $.parts(params, env).serviceAccount,
+    $.parts(params, env).role,
+    $.parts(params, env).roleBinding,
 
   ],
 
