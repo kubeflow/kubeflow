@@ -85,8 +85,7 @@
         "subjects": [
           {
             "kind": "ServiceAccount",
-            "name": "flux",
-            "namespace": "kubeflow",
+            "name": "flux"
           }
         ]
       },
