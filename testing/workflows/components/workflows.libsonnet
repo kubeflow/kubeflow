@@ -431,7 +431,7 @@
               "-m",
               "py.test_runner",
               "test",
-              "--cluster=" + cluster + v1alpha2Suffix,
+              "--cluster=" + cluster,
               "--zone=" + zone,
               "--project=" + project,
               "--app_dir=" + tfOperatorRoot + "/test/workflows",
@@ -441,7 +441,7 @@
               // all E2E tests.
               "--params=name=simple-tfjob-" + platform + ",namespace=" + stepsNamespace + ",apiVersion=kubeflow.org/" + "v1alpha2" + ",image=" + "gcr.io/kubeflow-ci/tf-dist-mnist-test:1.0",
               "--junit_path=" + artifactsDir + "/junit_e2e-" + platform + v1alpha2Suffix + ".xml",
-            ], kubeConfig="v1alpha2"),  // run tests
+            ]),  // run tests
             buildTemplate("pytorchjob-deploy", [
               "python",
               "-m",
