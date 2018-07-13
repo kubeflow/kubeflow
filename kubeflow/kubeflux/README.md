@@ -1,5 +1,8 @@
 # KubeFlux
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> af6b95f... ReadMe Update 1
 
 KubeFlux is an integration allowing Kubeflow users to leverage [WeaveWorks &#174; Flux]("https://www.weave.works/oss/flux/") for GitOps. KubeFlux utilizes the [stand-alone]("https://github.com/weaveworks/flux/tree/master/site/standalone") implementation. Being stand-alone, most of the maintenance is manual. If you are looking for a more managed solution, we recommend you look at [Weave Cloud &#174;]("https://www.weave.works/product/cloud/").
 
@@ -9,7 +12,10 @@ We have packaged WeaveWorks&#174; Flux as a ksonnet package as to fit with the o
 
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> af6b95f... ReadMe Update 1
 ```
 ks pkg install kubeflow/kubeflux@${VERSION}
 
@@ -28,5 +34,8 @@ fluxctl list-controllers
 ```
 
 This method
+<<<<<<< HEAD
 =======
 >>>>>>> 44e40d9... README.md
+=======
+>>>>>>> af6b95f... ReadMe Update 1
