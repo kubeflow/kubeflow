@@ -12,6 +12,7 @@ set -xe
 KUBEFLOW_REPO=${KUBEFLOW_REPO:-"`pwd`/kubeflow_repo"}
 KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"}
 KUBEFLOW_DEPLOY=${KUBEFLOW_DEPLOY:-true}
+KUBEFLOW_CLOUD="gke"
 
 if [[ ! -d "${KUBEFLOW_REPO}" ]]; then
   if [ "${KUBEFLOW_VERSION}" == "master" ]; then
@@ -33,6 +34,7 @@ check_install gcloud
 check_install kubectl
 # TODO(ankushagarwal): verify ks version is higher than 0.11.0
 check_install ks
+check_install uuidgen
 
 PRIVATE_CLUSTER=${PRIVATE_CLUSTER:-false}
 
@@ -184,14 +186,17 @@ ks pkg install kubeflow/tf-serving
 
 # Generate all required components
 ks generate google-cloud-filestore-pv google-cloud-filestore-pv --name="kubeflow-gcfs" --storageCapacity="${GCFS_STORAGE}" --serverIP="${GCFS_INSTANCE_IP_ADDRESS}"
-ks generate kubeflow-core kubeflow-core --disks "kubeflow-gcfs" --AmbassadorImage "gcr.io/kubeflow-images-public/ambassador:0.30.1" --StatsdImage "gcr.io/kubeflow-images-public/statsd:0.30.1"
+ks generate kubeflow-core kubeflow-core
 ks generate pytorch-operator pytorch-operator
+ks generate ambassador ambassador --ambassadorImage="gcr.io/kubeflow-images-public/ambassador:0.30.1" --statsdImage="gcr.io/kubeflow-images-public/statsd:0.30.1" --cloud=${KUBEFLOW_CLOUD}
+ks generate jupyterhub jupyterhub --cloud=${KUBEFLOW_CLOUD} --disks="kubeflow-gcfs"
+ks generate centraldashboard centraldashboard
 
 if ! ${PRIVATE_CLUSTER}; then
   ks generate cloud-endpoints cloud-endpoints
   ks generate cert-manager cert-manager --acmeEmail=${EMAIL}
   ks generate iap-ingress iap-ingress --ipName=${KUBEFLOW_IP_NAME} --hostname=${KUBEFLOW_HOSTNAME}
-  ks param set kubeflow-core jupyterHubAuthenticator iap
+  ks param set jupyterhub jupyterHubAuthenticator iap
   if ! ${SKIP_METRICS_COLLECTION}; then
     # Enable collection of anonymous usage metrics
     # Skip this step if you don't want to enable collection.
@@ -203,6 +208,9 @@ fi
 if ${KUBEFLOW_DEPLOY}; then
   ks apply default -c google-cloud-filestore-pv
   ks apply default -c kubeflow-core
+  ks apply default -c ambassador
+  ks apply default -c jupyterhub
+  ks apply default -c centraldashboard
   if ! ${PRIVATE_CLUSTER}; then
     ks apply default -c cloud-endpoints
     ks apply default -c cert-manager
