@@ -163,19 +163,19 @@ if pvc_mount and pvc_mount != 'null':
     # How much disk space do we want?
     c.KubeSpawner.user_storage_capacity = '10Gi'
     c.KubeSpawner.storage_capacity = '10Gi'
-    c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
+    c.KubeSpawner.pvc_name_template = 'claim-{userid}'
     volumes.append(
         {
-            'name': 'volume-{username}{servername}',
+            'name': 'volume-{userid}',
             'persistentVolumeClaim': {
-                'claimName': 'claim-{username}{servername}'
+                'claimName': 'claim-{userid}'
             }
         }
     )
     volume_mounts.append(
         {
             'mountPath': pvc_mount,
-            'name': 'volume-{username}{servername}'
+            'name': 'volume-{userid}'
         }
     )
 
