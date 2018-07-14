@@ -1,11 +1,11 @@
 {
-  parts(params, env):: [
+  parts(params):: [
     {
       apiVersion: "v1",
       kind: "ConfigMap",
       metadata: {
         name: "jupyterhub-config",
-        namespace: env.namespace,
+        namespace: params.namespace,
       },
       data: {
         "jupyterhub_config.py": importstr "kubeform_spawner.py",
@@ -19,7 +19,7 @@
           app: "tf-hub",
         },
         name: "tf-hub-0",
-        namespace: env.namespace,
+        namespace: params.namespace,
       },
       spec: {
         // We want a headless service so we set the ClusterIP to be None.
@@ -45,7 +45,7 @@
           app: "tf-hub-lb",
         },
         name: "tf-hub-lb",
-        namespace: env.namespace,
+        namespace: params.namespace,
         annotations: {
           "getambassador.io/config":
             std.join("\n", [
@@ -56,7 +56,7 @@
               "prefix: /hub/",
               "rewrite: /hub/",
               "timeout_ms: 300000",
-              "service: tf-hub-lb." + env.namespace,
+              "service: tf-hub-lb." + params.namespace,
               "---",
               "apiVersion: ambassador/v0",
               "kind:  Mapping",
@@ -64,7 +64,7 @@
               "prefix: /user/",
               "rewrite: /user/",
               "timeout_ms: 300000",
-              "service: tf-hub-lb." + env.namespace,
+              "service: tf-hub-lb." + params.namespace,
             ]),
         },  //annotations
       },
@@ -87,7 +87,7 @@
       kind: "StatefulSet",
       metadata: {
         name: "tf-hub",
-        namespace: env.namespace,
+        namespace: params.namespace,
       },
       spec: {
         replicas: 1,
@@ -180,7 +180,7 @@
       kind: "Role",
       metadata: {
         name: "jupyter-role",
-        namespace: env.namespace,
+        namespace: params.namespace,
       },
       rules: [
         {
@@ -219,7 +219,7 @@
       kind: "Role",
       metadata: {
         name: "jupyter-notebook-role",
-        namespace: env.namespace,
+        namespace: params.namespace,
       },
       rules: [
         {
@@ -261,7 +261,7 @@
           app: "jupyter-hub",
         },
         name: "jupyter-hub",
-        namespace: env.namespace,
+        namespace: params.namespace,
       },
     },
     {
@@ -269,7 +269,7 @@
       kind: "ServiceAccount",
       metadata: {
         name: "jupyter-notebook",
-        namespace: env.namespace,
+        namespace: params.namespace,
       },
     },
 
@@ -278,7 +278,7 @@
       kind: "RoleBinding",
       metadata: {
         name: "jupyter-role",
-        namespace: env.namespace,
+        namespace: params.namespace,
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
@@ -289,7 +289,7 @@
         {
           kind: "ServiceAccount",
           name: "jupyter-hub",
-          namespace: env.namespace,
+          namespace: params.namespace,
         },
       ],
     },
@@ -298,7 +298,7 @@
       kind: "RoleBinding",
       metadata: {
         name: "jupyter-notebook-role",
-        namespace: env.namespace,
+        namespace: params.namespace,
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
@@ -309,7 +309,7 @@
         {
           kind: "ServiceAccount",
           name: "jupyter-notebook",
-          namespace: env.namespace,
+          namespace: params.namespace,
         },
       ],
     },
