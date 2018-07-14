@@ -13,11 +13,11 @@ local serviceAccount = k.core.v1.serviceAccount;
 local crdDefn = import "crd.libsonnet";
 local seldonTemplate = import "json/template.json";
 
-local getOperatorDeployment(x) = x.metadata.name == 'RELEASE-NAME-seldon-cluster-manager';
-local getApifeDeployment(x) = x.metadata.name == 'RELEASE-NAME-seldon-apiserver' && x.kind == "Deployment";
-local getApifeService(x) = x.metadata.name == 'RELEASE-NAME-seldon-apiserver' && x.kind == "Service";
-local getRedisDeployment(x) = x.metadata.name == 'RELEASE-NAME-redis' && x.kind == "Deployment";
-local getRedisService(x) = x.metadata.name == 'RELEASE-NAME-redis' && x.kind == "Service";
+local getOperatorDeployment(x) = x.metadata.name == "RELEASE-NAME-seldon-cluster-manager";
+local getApifeDeployment(x) = x.metadata.name == "RELEASE-NAME-seldon-apiserver" && x.kind == "Deployment";
+local getApifeService(x) = x.metadata.name == "RELEASE-NAME-seldon-apiserver" && x.kind == "Service";
+local getRedisDeployment(x) = x.metadata.name == "RELEASE-NAME-redis" && x.kind == "Deployment";
+local getRedisService(x) = x.metadata.name == "RELEASE-NAME-redis" && x.kind == "Service";
 local getServiceAccount(x) = x.kind == "ServiceAccount";
 local getClusterRole(x) = x.kind == "ClusterRole";
 local getClusterRoleBinding(x) = x.kind == "ClusterRoleBinding";
@@ -26,40 +26,41 @@ local getRole(x) = x.kind == "Role";
 local getEnvNotRedis(x) = x.name != "SELDON_CLUSTER_MANAGER_REDIS_HOST";
 
 {
-  parts(name,namespace):: {
+  parts(name, namespace):: {
 
     apife(apifeImage, withRbac)::
 
-      local baseApife = std.filter(getApifeDeployment,seldonTemplate.items)[0];
+      local baseApife = std.filter(getApifeDeployment, seldonTemplate.items)[0];
 
       local env = [
-        { name: "SELDON_CLUSTER_MANAGER_REDIS_HOST", value: name+"-redis" },
+        { name: "SELDON_CLUSTER_MANAGER_REDIS_HOST", value: name + "-redis" },
       ];
 
-      local env2 = std.filter(getEnvNotRedis,baseApife.spec.template.spec.containers[0].env);
+      local env2 = std.filter(getEnvNotRedis, baseApife.spec.template.spec.containers[0].env);
 
       local c = baseApife.spec.template.spec.containers[0] +
                 container.withImage(apifeImage) +
-                container.withEnv(env+env2) +		
-		container.withImagePullPolicy("IfNotPresent");
+                container.withEnv(env + env2) +
+                container.withImagePullPolicy("IfNotPresent");
 
-      local labels = { "app.kubernetes.io/name" : name,
-      		       "heritage" : "ksonnet",
-      	    	       "release" : name
-      	    };
+      local labels = {
+        "app.kubernetes.io/name": name,
+        heritage: "ksonnet",
+        release: name,
+      };
 
 
       local apiFeBase1 =
         baseApife +
-	deployment.mixin.metadata.withName(name+"-seldon-apiserver") +
+        deployment.mixin.metadata.withName(name + "-seldon-apiserver") +
         deployment.mixin.metadata.withNamespace(namespace) +
-	deployment.mixin.metadata.withLabelsMixin(labels) +	
+        deployment.mixin.metadata.withLabelsMixin(labels) +
         deployment.mixin.spec.template.spec.withContainers([c]);
 
       // Ensure labels copied to enclosed parts
       local apiFeBase = apiFeBase1 +
-              deployment.mixin.spec.selector.withMatchLabels(apiFeBase1.metadata.labels) + 
-              deployment.mixin.spec.template.metadata.withLabels(apiFeBase1.metadata.labels);
+                        deployment.mixin.spec.selector.withMatchLabels(apiFeBase1.metadata.labels) +
+                        deployment.mixin.spec.template.metadata.withLabels(apiFeBase1.metadata.labels);
 
 
       if withRbac == "true" then
@@ -71,26 +72,26 @@ local getEnvNotRedis(x) = x.name != "SELDON_CLUSTER_MANAGER_REDIS_HOST";
 
     apifeService(serviceType)::
 
-      local apifeService = std.filter(getApifeService,seldonTemplate.items)[0];
+      local apifeService = std.filter(getApifeService, seldonTemplate.items)[0];
 
-      local labels = { "app.kubernetes.io/name" : name };
+      local labels = { "app.kubernetes.io/name": name };
 
       apifeService +
-      service.metadata.withName(name+"-seldon-apiserver") +
+      service.metadata.withName(name + "-seldon-apiserver") +
       service.metadata.withNamespace(namespace) +
-      service.metadata.withLabelsMixin(labels) +	
+      service.metadata.withLabelsMixin(labels) +
       service.spec.withType(serviceType),
 
     deploymentOperator(engineImage, clusterManagerImage, springOpts, javaOpts, withRbac):
 
-      local op = std.filter(getOperatorDeployment,seldonTemplate.items)[0];
+      local op = std.filter(getOperatorDeployment, seldonTemplate.items)[0];
 
       local env = [
         { name: "JAVA_OPTS", value: javaOpts },
         { name: "SPRING_OPTS", value: springOpts },
         { name: "ENGINE_CONTAINER_IMAGE_AND_VERSION", value: engineImage },
-        { name: "SELDON_CLUSTER_MANAGER_REDIS_HOST", value: name+"-redis" },
-        { name: "SELDON_CLUSTER_MANAGER_POD_NAMESPACE", valueFrom: {fieldRef:{apiVersion: "v1",fieldPath: "metadata.namespace"}}},
+        { name: "SELDON_CLUSTER_MANAGER_REDIS_HOST", value: name + "-redis" },
+        { name: "SELDON_CLUSTER_MANAGER_POD_NAMESPACE", valueFrom: { fieldRef: { apiVersion: "v1", fieldPath: "metadata.namespace" } } },
       ];
 
       local c = op.spec.template.spec.containers[0] +
@@ -99,23 +100,24 @@ local getEnvNotRedis(x) = x.name != "SELDON_CLUSTER_MANAGER_REDIS_HOST";
                 container.withImagePullPolicy("IfNotPresent");
 
 
-      local labels = { "app.kubernetes.io/name" : name,
-      		       "heritage" : "ksonnet",
-      	    	       "release" : name
-      	    };
+      local labels = {
+        "app.kubernetes.io/name": name,
+        heritage: "ksonnet",
+        release: name,
+      };
 
       local depOp1 = op +
-      	            deployment.mixin.metadata.withName(name+"-seldon-cluster-manager") + 
-                    deployment.mixin.metadata.withNamespace(namespace) +
-		    deployment.mixin.metadata.withLabelsMixin(labels) +
-                    deployment.mixin.spec.template.spec.withContainers([c]);
+                     deployment.mixin.metadata.withName(name + "-seldon-cluster-manager") +
+                     deployment.mixin.metadata.withNamespace(namespace) +
+                     deployment.mixin.metadata.withLabelsMixin(labels) +
+                     deployment.mixin.spec.template.spec.withContainers([c]);
 
       // Ensure labels copied to enclosed parts
       local depOp = depOp1 +
-              deployment.mixin.spec.selector.withMatchLabels(depOp1.metadata.labels) + 
-              deployment.mixin.spec.template.metadata.withLabels(depOp1.metadata.labels);
-	      
- 
+                    deployment.mixin.spec.selector.withMatchLabels(depOp1.metadata.labels) +
+                    deployment.mixin.spec.template.metadata.withLabels(depOp1.metadata.labels);
+
+
       if withRbac == "true" then
         depOp +
         deployment.mixin.spec.template.spec.withServiceAccountName("seldon")
@@ -124,38 +126,39 @@ local getEnvNotRedis(x) = x.name != "SELDON_CLUSTER_MANAGER_REDIS_HOST";
 
     redisDeployment():
 
-      local redisDeployment = std.filter(getRedisDeployment,seldonTemplate.items)[0];
+      local redisDeployment = std.filter(getRedisDeployment, seldonTemplate.items)[0];
 
-      local labels = { "app" : name+"-redis-app",
-      	    	       "app.kubernetes.io/name" : name,
-      		       "heritage" : "ksonnet",
-      	    	       "release" : name
-      	    };
+      local labels = {
+        app: name + "-redis-app",
+        "app.kubernetes.io/name": name,
+        heritage: "ksonnet",
+        release: name,
+      };
 
       local redisDeployment1 = redisDeployment +
-      	      deployment.mixin.metadata.withName(name+"-redis") +       
-      	      deployment.mixin.metadata.withNamespace(namespace) +
-      	      deployment.mixin.metadata.withLabelsMixin(labels);
+                               deployment.mixin.metadata.withName(name + "-redis") +
+                               deployment.mixin.metadata.withNamespace(namespace) +
+                               deployment.mixin.metadata.withLabelsMixin(labels);
 
       redisDeployment1 +
-              deployment.mixin.spec.selector.withMatchLabels(redisDeployment1.metadata.labels) + 
-              deployment.mixin.spec.template.metadata.withLabels(redisDeployment1.metadata.labels),
+      deployment.mixin.spec.selector.withMatchLabels(redisDeployment1.metadata.labels) +
+      deployment.mixin.spec.template.metadata.withLabels(redisDeployment1.metadata.labels),
 
     redisService():
 
-      local redisService = std.filter(getRedisService,seldonTemplate.items)[0];
+      local redisService = std.filter(getRedisService, seldonTemplate.items)[0];
 
-      local labels = { "app.kubernetes.io/name" : name };
+      local labels = { "app.kubernetes.io/name": name };
 
       redisService +
-      service.metadata.withName(name+"-redis") +
+      service.metadata.withName(name + "-redis") +
       service.metadata.withNamespace(namespace) +
       service.metadata.withLabelsMixin(labels) +
-      service.spec.withSelector({"app":name+"-redis-app"}),
+      service.spec.withSelector({ app: name + "-redis-app" }),
 
     rbacServiceAccount():
 
-      local rbacServiceAccount = std.filter(getServiceAccount,seldonTemplate.items)[0];
+      local rbacServiceAccount = std.filter(getServiceAccount, seldonTemplate.items)[0];
 
       rbacServiceAccount +
       serviceAccountMixin.metadata.withNamespace(namespace),
@@ -163,13 +166,13 @@ local getEnvNotRedis(x) = x.name != "SELDON_CLUSTER_MANAGER_REDIS_HOST";
 
     rbacClusterRole():
 
-      local clusterRole = std.filter(getClusterRole,seldonTemplate.items)[0];
+      local clusterRole = std.filter(getClusterRole, seldonTemplate.items)[0];
 
       clusterRole,
 
     rbacRole():
 
-      local role = std.filter(getRole,seldonTemplate.items)[0];
+      local role = std.filter(getRole, seldonTemplate.items)[0];
 
       role +
       roleMixin.metadata.withNamespace(namespace),
@@ -177,7 +180,7 @@ local getEnvNotRedis(x) = x.name != "SELDON_CLUSTER_MANAGER_REDIS_HOST";
 
     rbacClusterRoleBinding():
 
-      local rbacClusterRoleBinding = std.filter(getClusterRoleBinding,seldonTemplate.items)[0];
+      local rbacClusterRoleBinding = std.filter(getClusterRoleBinding, seldonTemplate.items)[0];
 
       local subject = rbacClusterRoleBinding.subjects[0]
                       { namespace: namespace };
@@ -188,7 +191,7 @@ local getEnvNotRedis(x) = x.name != "SELDON_CLUSTER_MANAGER_REDIS_HOST";
 
     rbacRoleBinding():
 
-      local rbacRoleBinding = std.filter(getRoleBinding,seldonTemplate.items)[0];
+      local rbacRoleBinding = std.filter(getRoleBinding, seldonTemplate.items)[0];
 
       local subject = rbacRoleBinding.subjects[0]
                       { namespace: namespace };

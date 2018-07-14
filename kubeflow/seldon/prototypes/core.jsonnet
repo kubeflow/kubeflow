@@ -43,24 +43,24 @@ local engineImage = import "param://engineImage";
 
 // APIFE
 local apife = [
-  core.parts(name,namespace).apife(apifeImage, withRbac),
-  core.parts(name,namespace).apifeService(apifeServiceType),
+  core.parts(name, namespace).apife(apifeImage, withRbac),
+  core.parts(name, namespace).apifeService(apifeServiceType),
 ];
 
 local rbac = [
-  core.parts(name,namespace).rbacServiceAccount(),
-  core.parts(name,namespace).rbacClusterRole(),
-  core.parts(name,namespace).rbacRole(),
-  core.parts(name,namespace).rbacRoleBinding(),  
-  core.parts(name,namespace).rbacClusterRoleBinding(),
+  core.parts(name, namespace).rbacServiceAccount(),
+  core.parts(name, namespace).rbacClusterRole(),
+  core.parts(name, namespace).rbacRole(),
+  core.parts(name, namespace).rbacRoleBinding(),
+  core.parts(name, namespace).rbacClusterRoleBinding(),
 ];
 
 // Core
 local coreComponents = [
-  core.parts(name,namespace).deploymentOperator(engineImage, operatorImage, operatorSpringOpts, operatorJavaOpts, withRbac),
-  core.parts(name,namespace).redisDeployment(),
-  core.parts(name,namespace).redisService(),
-  core.parts(name,namespace).crd(),
+  core.parts(name, namespace).deploymentOperator(engineImage, operatorImage, operatorSpringOpts, operatorJavaOpts, withRbac),
+  core.parts(name, namespace).redisDeployment(),
+  core.parts(name, namespace).redisService(),
+  core.parts(name, namespace).crd(),
 ];
 
 if withRbac == "true" && withApife == "true" then
