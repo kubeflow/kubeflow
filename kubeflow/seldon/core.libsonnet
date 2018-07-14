@@ -9,13 +9,6 @@ local roleBindingMixin = k.rbac.v1beta1.roleBinding.mixin;
 local roleBinding = k.rbac.v1beta1.roleBinding;
 local roleMixin = k.rbac.v1beta1.role.mixin;
 local serviceAccount = k.core.v1.serviceAccount;
-//local baseApife = import "json/apife-deployment.json";
-//local apifeService = import "json/apife-service.json";
-//local operatorDeployment = import "json/operator-deployment.json";
-//local redisDeployment = import "json/redis-deployment.json";
-//local redisService = import "json/redis-service.json";
-//local rbacServiceAccount = import "json/rbac-service-account.json";
-//local rbacClusterRoleBinding = import "json/rbac-cluster-binding.json";
 
 local crdDefn = import "crd.libsonnet";
 local seldonTemplate = import "json/template.json";
@@ -30,6 +23,7 @@ local getClusterRole(x) = x.kind == "ClusterRole";
 local getClusterRoleBinding(x) = x.kind == "ClusterRoleBinding";
 local getRoleBinding(x) = x.kind == "RoleBinding";
 local getRole(x) = x.kind == "Role";
+local getEnvNotRedis(x) = x.name != "SELDON_CLUSTER_MANAGER_REDIS_HOST";
 
 {
   parts(name,namespace):: {
@@ -38,9 +32,15 @@ local getRole(x) = x.kind == "Role";
 
       local baseApife = std.filter(getApifeDeployment,seldonTemplate.items)[0];
 
+      local env = [
+        { name: "SELDON_CLUSTER_MANAGER_REDIS_HOST", value: name+"-redis" },
+      ];
+
+      local env2 = std.filter(getEnvNotRedis,baseApife.spec.template.spec.containers[0].env);
 
       local c = baseApife.spec.template.spec.containers[0] +
                 container.withImage(apifeImage) +
+                container.withEnv(env+env2) +		
 		container.withImagePullPolicy("IfNotPresent");
 
       local labels = { "app.kubernetes.io/name" : name,
@@ -51,6 +51,7 @@ local getRole(x) = x.kind == "Role";
 
       local apiFeBase1 =
         baseApife +
+	deployment.mixin.metadata.withName(name+"-seldon-apiserver") +
         deployment.mixin.metadata.withNamespace(namespace) +
 	deployment.mixin.metadata.withLabelsMixin(labels) +	
         deployment.mixin.spec.template.spec.withContainers([c]);
@@ -88,11 +89,13 @@ local getRole(x) = x.kind == "Role";
         { name: "JAVA_OPTS", value: javaOpts },
         { name: "SPRING_OPTS", value: springOpts },
         { name: "ENGINE_CONTAINER_IMAGE_AND_VERSION", value: engineImage },
+        { name: "SELDON_CLUSTER_MANAGER_REDIS_HOST", value: name+"-redis" },
+        { name: "SELDON_CLUSTER_MANAGER_POD_NAMESPACE", valueFrom: {fieldRef:{apiVersion: "v1",fieldPath: "metadata.namespace"}}},
       ];
 
       local c = op.spec.template.spec.containers[0] +
                 container.withImage(clusterManagerImage) +
-                container.withEnvMixin(env) +
+                container.withEnv(env) +
                 container.withImagePullPolicy("IfNotPresent");
 
 

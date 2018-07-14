@@ -20,7 +20,7 @@
     },  // createPVC
 
     serve(name, image, replicas, endpoint, pvcName):: {
-      apiVersion: "machinelearning.seldon.io/v1alpha1",
+      apiVersion: "machinelearning.seldon.io/v1alpha2",
       kind: "SeldonDeployment",
       metadata: {
         labels: {
@@ -40,7 +40,7 @@
             annotations: {
               predictor_version: "v1",
             },
-            componentSpec: {
+            componentSpecs: [{
               spec: {
                 containers: [
                   {
@@ -67,7 +67,7 @@
                   },
                 ] else [],
               },
-            },
+            }],
             graph: {
               children: [
 

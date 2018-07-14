@@ -321,7 +321,7 @@
                                     },
                                     {
                                         "name": "SELDON_CLUSTER_MANAGER_REDIS_HOST",
-                                        "value": "redis"
+                                        "value": "RELEASE-NAME-redis"
                                     },
                                     {
                                         "name": "ENGINE_CONTAINER_IMAGE_AND_VERSION",
