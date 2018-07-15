@@ -112,6 +112,16 @@ else
   echo Deployment Manager configs already exist in directory "${KUBEFLOW_DM_DIR}"
 fi
 
+# Create GCFS Instance in parallel with deployment manager to speed things up
+gcloud beta filestore instances create ${GCFS_INSTANCE} \
+    --project=${PROJECT} \
+    --location=${ZONE} \
+    --tier=STANDARD \
+    --file-share=name=kubeflow,capacity=${GCFS_STORAGE} \
+    --network=name="default" &
+
+gcfs_creation_pid=$!
+
 if ${KUBEFLOW_DEPLOY}; then
   # Check if it already exists
   set +e
@@ -149,13 +159,8 @@ if ${KUBEFLOW_DEPLOY}; then
   kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/stable/nvidia-driver-installer/cos/daemonset-preloaded.yaml
 fi
 
-# Create GCFS Instance
-gcloud beta filestore instances create ${GCFS_INSTANCE} \
-    --project=${PROJECT} \
-    --location=${ZONE} \
-    --tier=STANDARD \
-    --file-share=name=kubeflow,capacity=${GCFS_STORAGE} \
-    --network=name="default"
+# wait for gcfs creation to complete
+wait ${gcfs_creation_pid}
 
 GCFS_INSTANCE_IP_ADDRESS=$(gcloud beta filestore instances describe \
  ${GCFS_INSTANCE} --location ${ZONE} | \
