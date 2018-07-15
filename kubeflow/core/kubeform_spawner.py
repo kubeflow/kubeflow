@@ -121,6 +121,9 @@ class KubeFormSpawner(KubeSpawner):
         return legacy, safe, name
 
     def _expand_user_properties(self, template):
+        # override KubeSpawner method to remove prefix accounts.google: for iap
+        # and truncate to 63 characters 
+
         # Set servername based on whether named-server initialised
         if self.name:
             servername = '-{}'.format(self.name)
