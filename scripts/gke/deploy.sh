@@ -11,6 +11,7 @@ set -xe
 
 KUBEFLOW_REPO=${KUBEFLOW_REPO:-"`pwd`/kubeflow_repo"}
 KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"}
+KUBEFLOW_DEPLOY=${KUBEFLOW_DEPLOY:-true}
 
 if [[ ! -d "${KUBEFLOW_REPO}" ]]; then
   if [ "${KUBEFLOW_VERSION}" == "master" ]; then
@@ -18,9 +19,12 @@ if [[ ! -d "${KUBEFLOW_REPO}" ]]; then
   else
     TAG=v${KUBEFLOW_VERSION}
   fi
-  curl -L -o /tmp/kubeflow.${KUBEFLOW_VERSION}.tar.gz https://github.com/kubeflow/kubeflow/archive/${TAG}.tar.gz
-  tar -xzvf /tmp/kubeflow.${KUBEFLOW_VERSION}.tar.gz  -C /tmp
-  mv /tmp/kubeflow-${TAG} "${KUBEFLOW_REPO}"
+  TMPDIR=$(mktemp -d /tmp/tmp.kubeflow-repo-XXXX)
+  curl -L -o ${TMPDIR}/kubeflow.tar.gz https://github.com/kubeflow/kubeflow/archive/${TAG}.tar.gz
+  tar -xzvf ${TMPDIR}/kubeflow.tar.gz  -C ${TMPDIR}
+  # GitHub seems to strip out the v in the file name.
+  SOURCE_DIR=$(find ${TMPDIR} -maxdepth 1 -type d -name "kubeflow*")
+  mv ${SOURCE_DIR} "${KUBEFLOW_REPO}"
 fi
 
 source "${KUBEFLOW_REPO}/scripts/util.sh"
@@ -30,8 +34,12 @@ check_install kubectl
 # TODO(ankushagarwal): verify ks version is higher than 0.11.0
 check_install ks
 
-check_variable "${CLIENT_ID}" "CLIENT_ID"
-check_variable "${CLIENT_SECRET}" "CLIENT_SECRET"
+PRIVATE_CLUSTER=${PRIVATE_CLUSTER:-false}
+
+if ! ${PRIVATE_CLUSTER}; then
+  check_variable "${CLIENT_ID}" "CLIENT_ID"
+  check_variable "${CLIENT_SECRET}" "CLIENT_SECRET"
+fi
 
 # Name of the deployment
 DEPLOYMENT_NAME=${DEPLOYMENT_NAME:-"kubeflow"}
@@ -60,10 +68,14 @@ SETUP_PROJECT=${SETUP_PROJECT:true}
 # Namespace where kubeflow is deployed
 K8S_NAMESPACE=${K8S_NAMESPACE:-"kubeflow"}
 CONFIG_FILE=${CONFIG_FILE:-"cluster-kubeflow.yaml"}
-PROJECT_NUMBER=`gcloud projects describe ${PROJECT} --format='value(project_number)'`
+
+if [ -z "${PROJECT_NUMBER}" ]; then
+  PROJECT_NUMBER=`gcloud projects describe ${PROJECT} --format='value(project_number)'`
+fi
+
 ADMIN_EMAIL=${DEPLOYMENT_NAME}-admin@${PROJECT}.iam.gserviceaccount.com
 USER_EMAIL=${DEPLOYMENT_NAME}-user@${PROJECT}.iam.gserviceaccount.com
-
+SKIP_METRICS_COLLECTION=${SKIP_METRICS_COLLECTION:-false}
 if ${SETUP_PROJECT}; then
   # Enable GCloud APIs
   gcloud services enable deploymentmanager.googleapis.com \
@@ -81,49 +93,61 @@ if ${SETUP_PROJECT}; then
 else
   echo skipping project setup
 fi
-
-# Check if it already exists
-set +e
-gcloud deployment-manager --project=${PROJECT} deployments describe ${DEPLOYMENT_NAME}
-exists=$?
-set -e
-
-cp -r "${KUBEFLOW_REPO}/scripts/gke/deployment_manager_configs" "${KUBEFLOW_DM_DIR}"
-cd "${KUBEFLOW_DM_DIR}"
-# Set values in DM config file
-sed -i.bak "s/zone: us-central1-a/zone: ${ZONE}/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
-sed -i.bak "s/users:/users: [\"user:${EMAIL}\"]/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
-sed -i.bak "s/ipName: kubeflow-ip/ipName: ${KUBEFLOW_IP_NAME}/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
-rm "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}.bak"
-
-if [ ${exists} -eq 0 ]; then
-  echo ${DEPLOYMENT_NAME} exists
-  gcloud deployment-manager --project=${PROJECT} deployments update ${DEPLOYMENT_NAME} --config=${CONFIG_FILE}
+IAP_IAM_ENTRY=${IAP_IAM_ENTRY:-"user:${EMAIL}"}
+# Create the DM configs if they don't exists
+if [ ! -d "${KUBEFLOW_DM_DIR}" ]; then
+  echo creating Deployment Manager configs in directory "${KUBEFLOW_DM_DIR}"
+  cp -r "${KUBEFLOW_REPO}/scripts/gke/deployment_manager_configs" "${KUBEFLOW_DM_DIR}"
+  cd "${KUBEFLOW_DM_DIR}"
+  # Set values in DM config file
+  sed -i.bak "s/zone: us-central1-a/zone: ${ZONE}/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
+  sed -i.bak "s/users:/users: [\"${IAP_IAM_ENTRY}\"]/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
+  sed -i.bak "s/ipName: kubeflow-ip/ipName: ${KUBEFLOW_IP_NAME}/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
+  if ${PRIVATE_CLUSTER}; then
+    sed -i.bak "s/gkeApiVersion: v1/gkeApiVersion: v1beta1/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
+    sed -i.bak "s/privatecluster: false/privatecluster: true/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
+  fi
+  rm "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}.bak"
 else
-  # Run Deployment Manager
-  gcloud deployment-manager --project=${PROJECT} deployments create ${DEPLOYMENT_NAME} --config=${CONFIG_FILE}
+  echo Deployment Manager configs already exist in directory "${KUBEFLOW_DM_DIR}"
 fi
 
-# TODO(jlewi): We should name the secrets more consistently based on the service account name.
-# We will need to update the component configs though
-gcloud --project=${PROJECT} iam service-accounts keys create ${ADMIN_EMAIL}.json --iam-account ${ADMIN_EMAIL}
-gcloud --project=${PROJECT} iam service-accounts keys create ${USER_EMAIL}.json --iam-account ${USER_EMAIL}
+if ${KUBEFLOW_DEPLOY}; then
+  # Check if it already exists
+  set +e
+  gcloud deployment-manager --project=${PROJECT} deployments describe ${DEPLOYMENT_NAME}
+  exists=$?
+  set -e
 
-# Set credentials for kubectl context
-gcloud --project=${PROJECT} container clusters get-credentials --zone=${ZONE} ${DEPLOYMENT_NAME}
+  if [ ${exists} -eq 0 ]; then
+    echo ${DEPLOYMENT_NAME} exists
+    gcloud deployment-manager --project=${PROJECT} deployments update ${DEPLOYMENT_NAME} --config=${CONFIG_FILE}
+  else
+    # Run Deployment Manager
+    gcloud deployment-manager --project=${PROJECT} deployments create ${DEPLOYMENT_NAME} --config=${CONFIG_FILE}
+  fi
 
-# Make yourself cluster admin
-kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --user=${EMAIL}
+  # TODO(jlewi): We should name the secrets more consistently based on the service account name.
+  # We will need to update the component configs though
+  gcloud --project=${PROJECT} iam service-accounts keys create ${ADMIN_EMAIL}.json --iam-account ${ADMIN_EMAIL}
+  gcloud --project=${PROJECT} iam service-accounts keys create ${USER_EMAIL}.json --iam-account ${USER_EMAIL}
 
-kubectl create namespace ${K8S_NAMESPACE}
+  # Set credentials for kubectl context
+  gcloud --project=${PROJECT} container clusters get-credentials --zone=${ZONE} ${DEPLOYMENT_NAME}
 
-# We want the secret name to be the same by default for all clusters so that users don't have to set it manually.
-kubectl create secret generic --namespace=${K8S_NAMESPACE} admin-gcp-sa --from-file=admin-gcp-sa.json=./${ADMIN_EMAIL}.json
-kubectl create secret generic --namespace=${K8S_NAMESPACE} user-gcp-sa --from-file=user-gcp-sa.json=./${USER_EMAIL}.json
-kubectl create secret generic --namespace=${K8S_NAMESPACE} kubeflow-oauth --from-literal=CLIENT_ID=${CLIENT_ID} --from-literal=CLIENT_SECRET=${CLIENT_SECRET}
+  # Make yourself cluster admin
+  kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --user=${EMAIL}
 
-# Install the GPU driver. It has no effect on non-GPU nodes.
-kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/stable/nvidia-driver-installer/cos/daemonset-preloaded.yaml
+  kubectl create namespace ${K8S_NAMESPACE}
+
+  # We want the secret name to be the same by default for all clusters so that users don't have to set it manually.
+  kubectl create secret generic --namespace=${K8S_NAMESPACE} admin-gcp-sa --from-file=admin-gcp-sa.json=./${ADMIN_EMAIL}.json
+  kubectl create secret generic --namespace=${K8S_NAMESPACE} user-gcp-sa --from-file=user-gcp-sa.json=./${USER_EMAIL}.json
+  kubectl create secret generic --namespace=${K8S_NAMESPACE} kubeflow-oauth --from-literal=CLIENT_ID=${CLIENT_ID} --from-literal=CLIENT_SECRET=${CLIENT_SECRET}
+
+  # Install the GPU driver. It has no effect on non-GPU nodes.
+  kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/stable/nvidia-driver-installer/cos/daemonset-preloaded.yaml
+fi
 
 # Create GCFS Instance
 gcloud beta filestore instances create ${GCFS_INSTANCE} \
@@ -160,19 +184,29 @@ ks pkg install kubeflow/tf-serving
 
 # Generate all required components
 ks generate google-cloud-filestore-pv google-cloud-filestore-pv --name="kubeflow-gcfs" --storageCapacity="${GCFS_STORAGE}" --serverIP="${GCFS_INSTANCE_IP_ADDRESS}"
-ks generate kubeflow-core kubeflow-core --jupyterHubAuthenticator iap --disks "kubeflow-gcfs"
-ks generate cloud-endpoints cloud-endpoints
-ks generate cert-manager cert-manager --acmeEmail=${EMAIL}
-ks generate iap-ingress iap-ingress --ipName=${KUBEFLOW_IP_NAME} --hostname=${KUBEFLOW_HOSTNAME}
+ks generate kubeflow-core kubeflow-core --disks "kubeflow-gcfs" --AmbassadorImage "gcr.io/kubeflow-images-public/ambassador:0.30.1" --StatsdImage "gcr.io/kubeflow-images-public/statsd:0.30.1"
+ks generate pytorch-operator pytorch-operator
 
-# Enable collection of anonymous usage metrics
-# Skip this step if you don't want to enable collection.
-ks param set kubeflow-core reportUsage true
-ks param set kubeflow-core usageId $(uuidgen)
-
+if ! ${PRIVATE_CLUSTER}; then
+  ks generate cloud-endpoints cloud-endpoints
+  ks generate cert-manager cert-manager --acmeEmail=${EMAIL}
+  ks generate iap-ingress iap-ingress --ipName=${KUBEFLOW_IP_NAME} --hostname=${KUBEFLOW_HOSTNAME}
+  ks param set kubeflow-core jupyterHubAuthenticator iap
+  if ! ${SKIP_METRICS_COLLECTION}; then
+    # Enable collection of anonymous usage metrics
+    # Skip this step if you don't want to enable collection.
+    ks param set kubeflow-core reportUsage true
+    ks param set kubeflow-core usageId $(uuidgen)
+  fi
+fi
 # Apply the components generated
-ks apply default -c google-cloud-filestore-pv
-ks apply default -c kubeflow-core
-ks apply default -c cloud-endpoints
-ks apply default -c cert-manager
-ks apply default -c iap-ingress
+if ${KUBEFLOW_DEPLOY}; then
+  ks apply default -c google-cloud-filestore-pv
+  ks apply default -c kubeflow-core
+  if ! ${PRIVATE_CLUSTER}; then
+    ks apply default -c cloud-endpoints
+    ks apply default -c cert-manager
+    ks apply default -c iap-ingress
+  fi
+  ks apply default -c pytorch-operator
+fi
