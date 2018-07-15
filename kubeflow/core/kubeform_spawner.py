@@ -1,5 +1,7 @@
 import json
 import os
+import string
+import escapism
 from kubespawner.spawner import KubeSpawner
 from jhub_remote_user_authenticator.remote_user_auth import RemoteUserAuthenticator
 from oauthenticator.github import GitHubOAuthenticator
@@ -93,6 +95,30 @@ class KubeFormSpawner(KubeSpawner):
             env['GOOGLE_APPLICATION_CREDENTIALS'] = '{}/{}.json'.format(SERVICE_ACCOUNT_SECRET_MOUNT, gcp_secret_name)
         return env
 
+    def _parse_user_name(username): 
+        safe_chars = set(string.ascii_lowercase + string.digits)
+        name = username.split(':')[-1]
+        legacy = ''.join([s if s in safe_chars else '-' for s in name.lower()])
+        safe = escapism.escape(name, safe=safe_chars, escape_char='-').lower()
+        return legacy, safe, name
+
+    def _expand_user_properties(self, template):
+        # Set servername based on whether named-server initialised
+        if self.name:
+            servername = '-{}'.format(self.name)
+        else:
+            servername = ''
+
+        legacy, safe, name = self._parse_user_name(self.user.name)
+        rname = template.format(
+            userid=self.user.id,
+            username=safe,
+            unescaped_username=name,
+            legacy_escape_username=legacy,
+            servername=servername
+            )[:63]
+        return rname
+
 
 ###################################################
 # JupyterHub Options
@@ -142,19 +168,19 @@ if pvc_mount and pvc_mount != 'null':
     # How much disk space do we want?
     c.KubeSpawner.user_storage_capacity = '10Gi'
     c.KubeSpawner.storage_capacity = '10Gi'
-    c.KubeSpawner.pvc_name_template = 'claim-{userid}'
+    c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
     volumes.append(
         {
-            'name': 'volume-{userid}',
+            'name': 'volume-{username}{servername}',
             'persistentVolumeClaim': {
-                'claimName': 'claim-{userid}'
+                'claimName': 'claim-{username}{servername}'
             }
         }
     )
     volume_mounts.append(
         {
             'mountPath': pvc_mount,
-            'name': 'volume-{userid}'
+            'name': 'volume-{username}{servername}'
         }
     )
 
