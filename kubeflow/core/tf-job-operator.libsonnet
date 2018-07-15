@@ -564,6 +564,7 @@
           resources: [
             "configmaps",
             "pods",
+            "pods/log",
             "services",
             "endpoints",
             "persistentvolumeclaims",
