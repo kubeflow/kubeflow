@@ -12,34 +12,52 @@ class KubeFormSpawner(KubeSpawner):
     def _options_form_default(self):
         global registry, repoName
         return '''
-    <label for='image'>Image</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <input list="image" name="image" placeholder='repo/image:tag'>
-    <datalist id="image">
-      <option value="{0}/{1}/tensorflow-1.4.1-notebook-cpu:v0.2.1">
-      <option value="{0}/{1}/tensorflow-1.4.1-notebook-gpu:v0.2.1">
-      <option value="{0}/{1}/tensorflow-1.5.1-notebook-cpu:v0.2.1">
-      <option value="{0}/{1}/tensorflow-1.5.1-notebook-gpu:v0.2.1">
-      <option value="{0}/{1}/tensorflow-1.6.0-notebook-cpu:v0.2.1">
-      <option value="{0}/{1}/tensorflow-1.6.0-notebook-gpu:v0.2.1">
-      <option value="{0}/{1}/tensorflow-1.7.0-notebook-cpu:v0.2.1">
-      <option value="{0}/{1}/tensorflow-1.7.0-notebook-gpu:v0.2.1">
-      <option value="{0}/{1}/tensorflow-1.8.0-notebook-cpu:v0.2.1">
-      <option value="{0}/{1}/tensorflow-1.8.0-notebook-gpu:v0.2.1">
-    </datalist>
-    <br/><br/>
 
-    <label for='cpu_guarantee'>CPU</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <input name='cpu_guarantee' placeholder='200m, 1.0, 2.5, etc'></input>
-    <br/><br/>
+    <table style="width: 100%;">
+    <tr>
+        <td style="width: 30%;"><label for='image'>Image</label></td>
+        <td style="width: 70%;"><input value="{0}/{1}/tensorflow-1.8.0-notebook-cpu:v0.2.1" list="image" name="image" placeholder='repo/image:tag' style="width: 100%;">
+        <datalist id="image">
+          <option value="{0}/{1}/tensorflow-1.4.1-notebook-cpu:v0.2.1">
+          <option value="{0}/{1}/tensorflow-1.4.1-notebook-gpu:v0.2.1">
+          <option value="{0}/{1}/tensorflow-1.5.1-notebook-cpu:v0.2.1">
+          <option value="{0}/{1}/tensorflow-1.5.1-notebook-gpu:v0.2.1">
+          <option value="{0}/{1}/tensorflow-1.6.0-notebook-cpu:v0.2.1">
+          <option value="{0}/{1}/tensorflow-1.6.0-notebook-gpu:v0.2.1">
+          <option value="{0}/{1}/tensorflow-1.7.0-notebook-cpu:v0.2.1">
+          <option value="{0}/{1}/tensorflow-1.7.0-notebook-gpu:v0.2.1">
+          <option value="{0}/{1}/tensorflow-1.8.0-notebook-cpu:v0.2.1">
+          <option value="{0}/{1}/tensorflow-1.8.0-notebook-gpu:v0.2.1">
+        </datalist>
+        </td>
+    </tr>
+    </table>
+    <div style="text-align: center; padding: 10px;">
+      <a id="toggle_advanced_options" style="margin: 20%; cursor: pointer; font-weight: bold;">Advanced</a>
+    </div>
+    <table id="advanced_fields" style="display: none; width: 100%; border-spacing: 25px; border-collapse: separate;">
+    <tr>
+        <td><label for='cpu_guarantee'>CPU</label></td>
+        <td><input style="width: 100%;" name='cpu_guarantee' placeholder='200m, 1.0, 2.5, etc'></input></td>
+    </tr>
+    <tr>
+        <td><label for='mem_guarantee'>Memory</label></td>
+        <td><input style="width: 100%;" name='mem_guarantee' placeholder='100Mi, 1.5Gi'></input></td>
+    </tr>
+    <tr>
+        <td><label for='extra_resource_limits'>Extra Resource Limits</label></td>
+        <td><input style="width: 100%;" name='extra_resource_limits' placeholder='{{&quot;nvidia.com/gpu&quot;: 3}}'></input></td>
+    </tr>
+    </table>
 
-    <label for='mem_guarantee'>Memory</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <input name='mem_guarantee' placeholder='100Mi, 1.5Gi'></input>
-    <br/><br/>
+    <script type="text/javascript">
+      $('#toggle_advanced_options').on('click', function(e){{
+        $('#advanced_fields').toggle();
+      }});
+    </script>
 
-    <label for='extra_resource_limits'>Extra Resource Limits</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <input name='extra_resource_limits' placeholder='{{&quot;nvidia.com/gpu&quot;: 3}}'></input>
-    <br/><br/>
-    '''.format(registry, repoName)
+
+        '''.format(registry, repoName)
 
     def options_from_form(self, formdata):
         options = {}
