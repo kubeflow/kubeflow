@@ -4,6 +4,8 @@
 // @shortDescription A Flux meets Kubeflow
 // @param name string Name to give to each of the components
 // @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
+// @optionalParam giturl string null Your default git URL. 
+
 
 local k = import "k.libsonnet";
 local all = import "kubeflow/kubeflux/all.libsonnet";
