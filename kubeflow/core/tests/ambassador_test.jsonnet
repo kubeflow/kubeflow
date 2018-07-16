@@ -3,7 +3,6 @@ local params = {
   namespace:: "test-kf-001",
   tfAmbassadorServiceType:: "ClusterIP",
   tfAmbassadorImage:: "quay.io/datawire/ambassador:0.34.0",
-  tfStatsdImage:: "quay.io/datawire/statsd:0.34.0",
 };
 
 std.assertEqual(
@@ -155,7 +154,7 @@ std.assertEqual(
 ) &&
 
 std.assertEqual(
-  ambassador.parts(params.namespace, params.tfAmbassadorImage).deploy(params.tfStatsdImage),
+  ambassador.parts(params.namespace, params.tfAmbassadorImage).deploy(),
   {
     apiVersion: "extensions/v1beta1",
     kind: "Deployment",
@@ -217,10 +216,6 @@ std.assertEqual(
                   memory: "100Mi",
                 },
               },
-            },
-            {
-              image: "quay.io/datawire/statsd:0.34.0",
-              name: "statsd",
             },
           ],
           restartPolicy: "Always",
