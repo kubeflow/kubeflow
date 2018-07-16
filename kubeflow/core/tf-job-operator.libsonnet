@@ -386,6 +386,17 @@
             "*",
           ],
         },
+        {
+          apiGroups: [
+            "policy",
+          ],
+          resources: [
+            "poddisruptionbudgets",
+          ],
+          verbs: [
+            "*",
+          ],
+        },
       ],
     },  // operator-role
 
