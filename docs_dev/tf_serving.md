@@ -46,8 +46,8 @@ Currently we can get rpc metrics (request count, error count, latencies) if we
 deploy [Istio](https://istio.io/).
 See [detail](https://github.com/kubeflow/kubeflow/blob/master/components/k8s-model-server/istio-integration.md).
 
-We are working on surfacing those metrics and integrating with Prometheus
-without relying on Istio. See [kubeflow/kubeflow#1036](https://github.com/kubeflow/kubeflow/issues/1036).
+We are working on surfacing those metrics and other TF Serving specific metrics and integrating with Prometheus.
+See [kubeflow/kubeflow#1036](https://github.com/kubeflow/kubeflow/issues/1036).
 
 Also, there will be liveness and healthness check. See
 [issue](https://github.com/kubeflow/kubeflow/issues/368).
@@ -65,6 +65,7 @@ Seldon to get nice features like routing and model management.
 to enable continuous training and skew detection
 - [kubeflow/kubeflow#136](https://github.com/kubeflow/kubeflow/issues/136): Model management feature
 - [kubeflow/kubeflw#1004](https://github.com/kubeflow/kubeflow/issues/1004): Examples showcasing CUJ
+- [kubeflow/kubeflow#1219](https://github.com/kubeflow/kubeflow/issues/1219): Autoscaling
 - [kubeflow/kubebench#30](https://github.com/kubeflow/kubebench/issues/30): Benchmark to understand performance, like
   autoscaling.
 - [kubeflow/kubeflow#1036](https://github.com/kubeflow/kubeflow/issues/1036): metrics
