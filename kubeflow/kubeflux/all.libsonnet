@@ -125,7 +125,7 @@
               {
                 "args": [
                   --"ssh-keygen-dir=/var/fluxd/keygen",
-                  --"git-url"=giturl,
+                  --"git-url="+giturl,
                   --"git-branch=master",
                 ],
                 "image": "quay.io/weaveworks/flux:1.4.2",
