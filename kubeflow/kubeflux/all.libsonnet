@@ -25,6 +25,7 @@
     // However, in some cases an application may use multiple namespaces in which
     // case the namespace for a particular component will be a parameter.
     local namespace = if std.objectHas(params, "namespace") then params.namespace else env.namespace,
+    local giturl = if std.objectHas(params, "giturl") then params.giturl else env.giturl,
 
     serviceAccount:: {
         "apiVersion": "v1",
