@@ -12,7 +12,7 @@ local all = import "kubeflow/kubeflux/all.libsonnet";
 // the namespace parameter is not explicitly set
 local updatedParams = params {
   namespace: if params.namespace == "null" then env.namespace else params.namespace,
-  giturl: if params.giturl = "null" then env.giturl else params.giturl,
+  giturl: if params.giturl == "null" then env.giturl else params.giturl,
 };
 
 //namespace
