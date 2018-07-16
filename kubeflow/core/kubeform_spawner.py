@@ -113,7 +113,7 @@ class KubeFormSpawner(KubeSpawner):
             env['GOOGLE_APPLICATION_CREDENTIALS'] = '{}/{}.json'.format(SERVICE_ACCOUNT_SECRET_MOUNT, gcp_secret_name)
         return env
 
-    def _parse_user_name(username): 
+    def _parse_user_name(self, username): 
         safe_chars = set(string.ascii_lowercase + string.digits)
         name = username.split(':')[-1]
         legacy = ''.join([s if s in safe_chars else '-' for s in name.lower()])
