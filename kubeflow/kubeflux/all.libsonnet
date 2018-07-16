@@ -18,7 +18,6 @@
 
   // Parts should be a dictionary containing jsonnet representations of the various
   // K8s resources used to construct the prototypes listed above.
-  // Also have giturl for KubeFlux.
   parts(params, env):: {
     // All ksonnet environments are associated with a namespace and we
     // generally want to use that namespace for a component.
@@ -230,7 +229,7 @@
       "template": {
         "metadata": {
           "labels": {
-            "name": "memcached",
+            "name": "memcached"
           }
         },
         "spec": {
@@ -262,7 +261,7 @@
       "apiVersion": "v1",
       "kind": "Service",
       "metadata": {
-        "name": "memcached",
+        "name": "memcached"
       },
       "spec": {
         "clusterIP": "None",
@@ -273,7 +272,7 @@
           }
         ],
         "selector": {
-          "name": "memcached",
+          "name": "memcached"
         }
       }
     },
