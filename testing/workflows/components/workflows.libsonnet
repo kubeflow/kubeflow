@@ -471,6 +471,7 @@
               "--junit_path=" + artifactsDir + "/junit_e2e-" + platform + ".xml",
             ]),  // run tests
             buildTemplate("tfjob-test" + v1alpha2Suffix, [
+              # change this to debug
               "python",
               "-m",
               "py.test_runner",
