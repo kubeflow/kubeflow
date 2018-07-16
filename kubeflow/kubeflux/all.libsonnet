@@ -18,7 +18,7 @@
 
   // Parts should be a dictionary containing jsonnet representations of the various
   // K8s resources used to construct the prototypes listed above.
-  // Also have giturl for KubeFlux. 
+  // Also have giturl for KubeFlux.
   parts(params, env):: {
     // All ksonnet environments are associated with a namespace and we
     // generally want to use that namespace for a component.
@@ -124,9 +124,9 @@
             "containers": [
               {
                 "args": [
-                  "--ssh-keygen-dir=/var/fluxd/keygen",
-                  "--git-url="giturl,
-                  "--git-branch=master"
+                  --"ssh-keygen-dir"=""/var/fluxd/keygen",
+                  --"git-url"=giturl,
+                  --"git-branch"="master"
                 ],
                 "image": "quay.io/weaveworks/flux:1.4.2",
                 "imagePullPolicy": "IfNotPresent",
