@@ -90,7 +90,12 @@ resources:
         useIpAliases: true
       masterIpv4CidrBlock: {{ properties['securityConfig']['masterIpv4CidrBlock'] }}
       privateCluster: true
-      masterAuthorizedNetworksConfig: {{ properties['securityConfig']['masterAuthorizedNetworksConfig'] }}
+      masterAuthorizedNetworksConfig:
+        enabled: {{ properties['securityConfig']['masterAuthorizedNetworksConfigEnabled'] }}
+        {% if properties['securityConfig']['masterAuthorizedNetworksConfigEnabled'] %}
+        cidrBlocks:
+          {{ properties['securityConfig']['masterAuthorizedNetworksConfigCidr'] }}
+        {% endif %}
       {% endif %}
       nodeConfig:
         machineType: n1-standard-8
