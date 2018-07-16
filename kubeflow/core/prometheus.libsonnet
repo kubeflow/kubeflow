@@ -11,109 +11,109 @@
 
   parts:: {
     namespace:: {
-      "apiVersion": "v1",
-      "kind": "Namespace",
-      "metadata": {
-        "name": "stackdriver",
-      }
+      apiVersion: "v1",
+      kind: "Namespace",
+      metadata: {
+        name: "stackdriver",
+      },
     },
     clusterRole:: {
-      "apiVersion": "rbac.authorization.k8s.io/v1beta1",
-      "kind": "ClusterRole",
-      "metadata": {
-        "name": "prometheus",
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
+      kind: "ClusterRole",
+      metadata: {
+        name: "prometheus",
       },
-      "rules": [
+      rules: [
         {
-          "apiGroups": [
-            ""
+          apiGroups: [
+            "",
           ],
-          "resources": [
+          resources: [
             "nodes",
             "nodes/proxy",
             "services",
             "endpoints",
             "pods",
           ],
-          "verbs": [
+          verbs: [
             "get",
             "list",
-            "watch"
-          ]
+            "watch",
+          ],
         },
         {
-          "apiGroups": [
-            "extensions"
+          apiGroups: [
+            "extensions",
           ],
-          "resources": [
-            "ingresses"
+          resources: [
+            "ingresses",
           ],
-          "verbs": [
+          verbs: [
             "get",
             "list",
-            "watch"
-          ]
+            "watch",
+          ],
         },
         {
-          "nonResourceURLs": [
-            "/metrics"
+          nonResourceURLs: [
+            "/metrics",
           ],
-          "verbs": [
-            "get"
-          ]
-        }
-      ]
+          verbs: [
+            "get",
+          ],
+        },
+      ],
     },
     serviceAccount:: {
-      "apiVersion": "v1",
-      "kind": "ServiceAccount",
-      "metadata": {
-        "name": "prometheus",
-        "namespace": "stackdriver"
-      }
+      apiVersion: "v1",
+      kind: "ServiceAccount",
+      metadata: {
+        name: "prometheus",
+        namespace: "stackdriver",
+      },
     },
     clusterRoleBinding:: {
-      "apiVersion": "rbac.authorization.k8s.io/v1beta1",
-      "kind": "ClusterRoleBinding",
-      "metadata": {
-        "name": "prometheus-stackdriver"
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
+      kind: "ClusterRoleBinding",
+      metadata: {
+        name: "prometheus-stackdriver",
       },
-      "roleRef": {
-        "apiGroup": "rbac.authorization.k8s.io",
-        "kind": "ClusterRole",
-        "name": "prometheus"
+      roleRef: {
+        apiGroup: "rbac.authorization.k8s.io",
+        kind: "ClusterRole",
+        name: "prometheus",
       },
-      "subjects": [
+      subjects: [
         {
-          "kind": "ServiceAccount",
-          "name": "prometheus",
-          "namespace": "stackdriver"
-        }
-      ]
+          kind: "ServiceAccount",
+          name: "prometheus",
+          namespace: "stackdriver",
+        },
+      ],
     },
     service:: {
-      "apiVersion": "v1",
-      "kind": "Service",
-      "metadata": {
-        "labels": {
-          "name": "prometheus"
+      apiVersion: "v1",
+      kind: "Service",
+      metadata: {
+        labels: {
+          name: "prometheus",
         },
-        "name": "prometheus",
-        "namespace": "stackdriver"
+        name: "prometheus",
+        namespace: "stackdriver",
       },
-      "spec": {
-        "ports": [
+      spec: {
+        ports: [
           {
-            "name": "prometheus",
-            "port": 9090,
-            "protocol": "TCP"
-          }
+            name: "prometheus",
+            port: 9090,
+            protocol: "TCP",
+          },
         ],
-        "selector": {
-          "app": "prometheus"
+        selector: {
+          app: "prometheus",
         },
-        "type": "ClusterIP"
-      }
+        type: "ClusterIP",
+      },
     },
     configMap(projectId, clusterName, zone):: {
       apiVersion: "v1",
@@ -131,72 +131,72 @@
       },
     },
     deployment:: {
-       "apiVersion": "extensions/v1beta1",
-       "kind": "Deployment",
-       "metadata": {
-         "name": "prometheus",
-         "namespace": "stackdriver"
-       },
-       "spec": {
-         "replicas": 1,
-         "selector": {
-           "matchLabels": {
-             "app": "prometheus"
-           }
-         },
-         "template": {
-           "metadata": {
-             "annotations": {
-               "prometheus.io/scrape": "true"
-             },
-             "labels": {
-               "app": "prometheus"
-             },
-             "name": "prometheus",
-             "namespace": "stackdriver"
-           },
-           "spec": {
-             "containers": [
-               {
-                 "image": "gcr.io/stackdriver-prometheus/stackdriver-prometheus:release-0.4.2",
-                 "imagePullPolicy": "Always",
-                 "name": "prometheus",
-                 "ports": [
-                   {
-                     "containerPort": 9090,
-                     "name": "web"
-                   }
-                 ],
-                 "resources": {
-                   "limits": {
-                     "cpu": "400m",
-                     "memory": "1000Mi"
-                   },
-                   "requests": {
-                     "cpu": "20m",
-                     "memory": "50Mi"
-                   }
-                 },
-                 "volumeMounts": [
-                   {
-                     "mountPath": "/etc/prometheus",
-                     "name": "config-volume"
-                   }
-                 ]
-               }
-             ],
-             "serviceAccountName": "prometheus",
-             "volumes": [
-               {
-                 "configMap": {
-                   "name": "prometheus"
-                 },
-                 "name": "config-volume"
-               }
-             ]
-           }
-         }
-       }
-     },
+      apiVersion: "extensions/v1beta1",
+      kind: "Deployment",
+      metadata: {
+        name: "prometheus",
+        namespace: "stackdriver",
+      },
+      spec: {
+        replicas: 1,
+        selector: {
+          matchLabels: {
+            app: "prometheus",
+          },
+        },
+        template: {
+          metadata: {
+            annotations: {
+              "prometheus.io/scrape": "true",
+            },
+            labels: {
+              app: "prometheus",
+            },
+            name: "prometheus",
+            namespace: "stackdriver",
+          },
+          spec: {
+            containers: [
+              {
+                image: "gcr.io/stackdriver-prometheus/stackdriver-prometheus:release-0.4.2",
+                imagePullPolicy: "Always",
+                name: "prometheus",
+                ports: [
+                  {
+                    containerPort: 9090,
+                    name: "web",
+                  },
+                ],
+                resources: {
+                  limits: {
+                    cpu: "400m",
+                    memory: "1000Mi",
+                  },
+                  requests: {
+                    cpu: "20m",
+                    memory: "50Mi",
+                  },
+                },
+                volumeMounts: [
+                  {
+                    mountPath: "/etc/prometheus",
+                    name: "config-volume",
+                  },
+                ],
+              },
+            ],
+            serviceAccountName: "prometheus",
+            volumes: [
+              {
+                configMap: {
+                  name: "prometheus",
+                },
+                name: "config-volume",
+              },
+            ],
+          },
+        },
+      },
+    },
   },  // parts
 }
