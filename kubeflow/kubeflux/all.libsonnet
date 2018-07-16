@@ -124,9 +124,9 @@
             "containers": [
               {
                 "args": [
-                  --"ssh-keygen-dir"=""/var/fluxd/keygen",
+                  --"ssh-keygen-dir"="/var/fluxd/keygen",
                   --"git-url"=giturl,
-                  --"git-branch"="master"
+                  --"git-branch"="master",
                 ],
                 "image": "quay.io/weaveworks/flux:1.4.2",
                 "imagePullPolicy": "IfNotPresent",
