@@ -222,14 +222,14 @@
     "apiVersion": "extensions/v1beta1",
     "kind": "Deployment",
     "metadata": {
-      "name": "memcached"
+      "name": "memcached",
     },
     "spec": {
       "replicas": 1,
       "template": {
         "metadata": {
           "labels": {
-            "name": "memcached"
+            "name": "memcached",
           }
         },
         "spec": {
@@ -261,7 +261,7 @@
       "apiVersion": "v1",
       "kind": "Service",
       "metadata": {
-        "name": "memcached"
+        "name": "memcached",
       },
       "spec": {
         "clusterIP": "None",
@@ -272,7 +272,7 @@
           }
         ],
         "selector": {
-          "name": "memcached"
+          "name": "memcached",
         }
       }
     },
