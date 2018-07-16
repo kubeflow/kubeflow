@@ -2,23 +2,24 @@
   // Define the various prototypes you want to support.
   // Each prototype should be a list of different parts that together
   // provide a userful function such as WeaveWorks Flux
-  kubeflux(namespace, env):: [
-    $.parts(namespace, env).nodeport,
-    $.parts(namespace, env).fluxlb,
-    $.parts(namespace, env).flux,
-    $.parts(namespace, env).memcachedep,
-    $.parts(namespace, env).memcachesvc,
-    $.parts(namespace, env).serviceAccount,
-    $.parts(namespace, env).role,
-    $.parts(namespace, env).roleBinding,
-    $.parts(namespace, env).secret,
+  kubeflux(params, env):: [
+    $.parts(params, env).nodeport,
+    $.parts(params, env).fluxlb,
+    $.parts(params, env).flux,
+    $.parts(params, env).memcachedep,
+    $.parts(params, env).memcachesvc,
+    $.parts(params, env).serviceAccount,
+    $.parts(params, env).role,
+    $.parts(params, env).roleBinding,
+    $.parts(params, env).secret,
 
   ],
 
 
   // Parts should be a dictionary containing jsonnet representations of the various
   // K8s resources used to construct the prototypes listed above.
-  parts(namespace, env):: {
+  // Also have giturl for KubeFlux. 
+  parts(params, env):: {
     // All ksonnet environments are associated with a namespace and we
     // generally want to use that namespace for a component.
     // However, in some cases an application may use multiple namespaces in which
@@ -124,7 +125,7 @@
               {
                 "args": [
                   "--ssh-keygen-dir=/var/fluxd/keygen",
-                  "--git-url=git@github.com:weaveworks/flux-example",
+                  "--git-url="giturl,
                   "--git-branch=master"
                 ],
                 "image": "quay.io/weaveworks/flux:1.4.2",
