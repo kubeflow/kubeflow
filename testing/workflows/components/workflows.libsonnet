@@ -193,22 +193,22 @@
                     template: "test-jsonnet-formatting",
                     dependencies: ["checkout"],
                   },
-                  //{
-                  //  local bootstrapKubeflowGCP = {
-                  //    name: "bootstrap-kf-gcp",
-                  //    template: "bootstrap-kf-gcp",
-                  //    dependencies: ["checkout"],
-                  //  },
-                  //  local deployKubeflow = {
-                  //    name: "deploy-kubeflow",
-                  //    template: "deploy-kubeflow",
-                  //    dependencies: ["setup-minikube"],
-                  //  },
-                  //  result:: if platform == "minikube" then
-                  //    deployKubeflow
-                  //  else
-                  //    bootstrapKubeflowGCP,
-                  //}.result,
+                  {
+                    local bootstrapKubeflowGCP = {
+                      name: "bootstrap-kf-gcp",
+                      template: "bootstrap-kf-gcp",
+                      dependencies: ["checkout"],
+                    },
+                    local deployKubeflow = {
+                      name: "deploy-kubeflow",
+                      template: "deploy-kubeflow",
+                      dependencies: ["setup-minikube"],
+                    },
+                    result:: if platform == "minikube" then
+                      deployKubeflow
+                    else
+                      bootstrapKubeflowGCP,
+                  }.result,
                   //{
                   //  name: "pytorchjob-deploy",
                   //  template: "pytorchjob-deploy",

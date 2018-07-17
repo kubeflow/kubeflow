@@ -24,7 +24,11 @@ export CLIENT_ID=dummy \
   COLLECT_METRICS=false \
   IAP_IAM_ENTRY="serviceAccount:kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com"
 
+ls src/kubeflow/tf-operator/py
+
 bash src/kubeflow/kubeflow/scripts/gke/deploy.sh
+
+ls src/kubeflow/tf-operator/py
 
 # If deploy.sh fails, tear down deployment so that it can be retried
 

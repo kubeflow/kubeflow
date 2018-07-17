@@ -43,6 +43,8 @@ if ! ${PRIVATE_CLUSTER}; then
   check_variable "${CLIENT_SECRET}" "CLIENT_SECRET"
 fi
 
+ls src/kubeflow/tf-operator/py
+
 # Name of the deployment
 DEPLOYMENT_NAME=${DEPLOYMENT_NAME:-"kubeflow"}
 GCFS_INSTANCE=${GCFS_INSTANCE:-"${DEPLOYMENT_NAME}"}
@@ -95,6 +97,9 @@ if ${SETUP_PROJECT}; then
 else
   echo skipping project setup
 fi
+
+ls src/kubeflow/tf-operator/py
+
 IAP_IAM_ENTRY=${IAP_IAM_ENTRY:-"user:${EMAIL}"}
 # Create the DM configs if they don't exists
 if [ ! -d "${KUBEFLOW_DM_DIR}" ]; then
@@ -161,6 +166,8 @@ if ${KUBEFLOW_DEPLOY}; then
   kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/stable/nvidia-driver-installer/cos/daemonset-preloaded.yaml
 fi
 
+ls src/kubeflow/tf-operator/py
+
 # wait for gcfs creation to complete
 wait ${gcfs_creation_pid}
 
@@ -196,6 +203,8 @@ ks generate ambassador ambassador --ambassadorImage="gcr.io/kubeflow-images-publ
 ks generate jupyterhub jupyterhub --cloud=${KUBEFLOW_CLOUD} --disks="kubeflow-gcfs"
 ks generate centraldashboard centraldashboard
 ks generate tf-job-operator tf-job-operator
+
+ls src/kubeflow/tf-operator/py
 
 if ! ${PRIVATE_CLUSTER}; then
   # Enable collection of anonymous usage metrics
