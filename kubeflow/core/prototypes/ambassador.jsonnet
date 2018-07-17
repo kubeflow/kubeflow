@@ -41,7 +41,7 @@ local replicas = if params.cloud == "minikube" then 1 else 3;
     },
   },  // service
 
-  metricsService:: {
+  {
     apiVersion: "v1",
     kind: "Service",
     metadata: {
