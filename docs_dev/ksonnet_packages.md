@@ -5,7 +5,9 @@
 - [Developer Guide For Ksonnet Packages](#developer-guide-for-ksonnet-packages)
   - [Creating New Ksonnet Components](#creating-new-ksonnet-components)
   - [Testing changes to ksonnet components](#testing-changes-to-ksonnet-components)
+      - [ERROR Component parameters for 'jupyterhub' already exists](#error-component-parameters-for-jupyterhub-already-exists)
     - [New Packages](#new-packages)
+      - [Pull Requests](#pull-requests)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -25,7 +27,7 @@ Here are some instructions for creating new Kubeflow packages.
 			- Optional packages probably don't belong in core
 
 		- Otherwise, if there's an existing package that it belongs with put
-			it in that package 
+			it in that package
 		- If no existing package is a good fit create a new one
 
 1. If you are creating a new package follow these steps
@@ -58,10 +60,10 @@ Here are some instructions for creating new Kubeflow packages.
 1. Create one or more prototype files in the prototypes directory for your package
 
 	- Use [tf-prototype.jsonnet](https://github.com/kubeflow/kubeflow/tree/master/kubeflow/new-package-stub/prototypes/tf-prototype.jsonnet) as a template.
-	
+
 ## Testing changes to ksonnet components
 
-The easiest way to test ksonnet components is to follow the normal instructions for setting up a 
+The easiest way to test ksonnet components is to follow the normal instructions for setting up a
 ksonnet app to deploy kubeflow.
 
 Then replace the directory `vendor/kubeflow` with a symbolic link to `${GIT_KUBEFLOW}/kubeflow`
@@ -73,16 +75,16 @@ ln -sf ${GIT_KUBEFLOW}/kubeflow  ${APP_DIR}/vendor/kubeflow
 this way changes to your .libsonnet files will automaticaly be reflected in your components.
 
 If you make changes to prototypes you need to regenerate the prototype. You can just delete the `.jsonnet`
-file in your app's component directory and then regenerate the component using `ks generate`. 
+file in your app's component directory and then regenerate the component using `ks generate`.
 
 ```
-rm -rf ${APP_DIR}/components/kubeflow-core.jsonnet 
-ks generate kubeflow-core kubeflow-core
-INFO  Writing component at 'components/kubeflow-core'
-ERROR Component parameters for 'kubeflow-core' already exists
+rm -rf ${APP_DIR}/components/jupyterhub.jsonnet
+ks generate jupyterhub jupyterhub
+INFO  Writing component at 'components/jupyterhub'
+ERROR Component parameters for 'jupyterhub' already exists
 ```
 
-#### ERROR Component parameters for 'kubeflow-core' already exists
+#### ERROR Component parameters for 'jupyterhub' already exists
 If you use the same component name you will preserve the values of any parameters you have set.
 ksonnet will print a warning but it works.
 
