@@ -209,16 +209,16 @@
                     else
                       bootstrapKubeflowGCP,
                   }.result,
-                  {
-                    name: "pytorchjob-deploy",
-                    template: "pytorchjob-deploy",
-                    dependencies: [
-                      if platform == "minikube" then
-                        "deploy-kubeflow"
-                      else
-                        "wait-for-kubeflow",
-                    ],
-                  },
+                  //{
+                  //  name: "pytorchjob-deploy",
+                  //  template: "pytorchjob-deploy",
+                  //  dependencies: [
+                  //    if platform == "minikube" then
+                  //      "deploy-kubeflow"
+                  //    else
+                  //      "wait-for-kubeflow",
+                  //  ],
+                  //},
                   // Don't run argo test for gke since
                   // it runs in the same cluster as the
                   // test cluster. For minikube, we have
@@ -231,21 +231,21 @@
                     }
                   else
                     {},
-                  {
-                    name: "tfjob-test",
-                    template:
-                      if platform == "minikube" then
-                        "tfjob-test"
-                      else
-                        "tfjob-test" + v1alpha2Suffix
-                    ,
-                    dependencies: [
-                      if platform == "minikube" then
-                        "deploy-kubeflow"
-                      else
-                        "wait-for-kubeflow",
-                    ],
-                  },
+                  //{
+                  //  name: "tfjob-test",
+                  //  template:
+                  //    if platform == "minikube" then
+                  //      "tfjob-test"
+                  //    else
+                  //      "tfjob-test" + v1alpha2Suffix
+                  //  ,
+                  //  dependencies: [
+                  //    if platform == "minikube" then
+                  //      "deploy-kubeflow"
+                  //    else
+                  //      "wait-for-kubeflow",
+                  //  ],
+                  //},
                   if platform == "minikube" then
                     {
                       name: "tfjob-simple-prototype-test",
@@ -254,13 +254,13 @@
                         "deploy-kubeflow",
                       ],
                     },
-                  if platform == "gke" then {
-                    name: "wait-for-kubeflow",
-                    template: "wait-for-kubeflow",
-                    dependencies: [
-                      "bootstrap-kf-gcp",
-                    ],
-                  } else {},
+                  //if platform == "gke" then {
+                  //  name: "wait-for-kubeflow",
+                  //  template: "wait-for-kubeflow",
+                  //  dependencies: [
+                  //    "bootstrap-kf-gcp",
+                  //  ],
+                  //} else {},
                   {
                     name: "jsonnet-test",
                     template: "jsonnet-test",
