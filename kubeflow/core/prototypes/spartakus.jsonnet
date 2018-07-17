@@ -1,11 +1,16 @@
-local spartakus = import "../spartakus.libsonnet";
-local params = {
-  namespace:: "test-kf-001",
-  usageId:: "unknown_cluster",
-};
+// @apiVersion 0.1
+// @name io.ksonnet.pkg.spartakus
+// @description spartakus component for usage collection
+// @shortDescription spartakus component for usage collection
+// @param name string Name
+// @optionalParam usageId string unknown_cluster Optional id to use when reporting usage to kubeflow.org
+// @optionalParam reportUsage string false Whether or not to report Kubeflow usage to kubeflow.org.
 
-std.assertEqual(
-  spartakus.parts(params.namespace).role,
+local util = import "kubeflow/core/util.libsonnet";
+local reportUsageBool = util.toBool(params.reportUsage);
+
+if reportUsageBool then [
+  // Spartakus needs to be able to get information about the cluster in order to create a report.
   {
     apiVersion: "rbac.authorization.k8s.io/v1beta1",
     kind: "ClusterRole",
@@ -29,11 +34,8 @@ std.assertEqual(
         ],
       },
     ],
-  }
-) &&
+  },  // role
 
-std.assertEqual(
-  spartakus.parts(params.namespace).roleBinding,
   {
     apiVersion: "rbac.authorization.k8s.io/v1beta1",
     kind: "ClusterRoleBinding",
@@ -52,14 +54,11 @@ std.assertEqual(
       {
         kind: "ServiceAccount",
         name: "spartakus",
-        namespace: "test-kf-001",
+        namespace: env.namespace,
       },
     ],
-  }
-) &&
+  },  // operator-role binding
 
-std.assertEqual(
-  spartakus.parts(params.namespace).serviceAccount,
   {
     apiVersion: "v1",
     kind: "ServiceAccount",
@@ -68,19 +67,16 @@ std.assertEqual(
         app: "spartakus",
       },
       name: "spartakus",
-      namespace: "test-kf-001",
+      namespace: env.namespace,
     },
-  }
-) &&
+  },
 
-std.assertEqual(
-  spartakus.parts(params.namespace).deployment(params.usageId),
   {
     apiVersion: "extensions/v1beta1",
     kind: "Deployment",
     metadata: {
       name: "spartakus-volunteer",
-      namespace: "test-kf-001",
+      namespace: env.namespace,
     },
     spec: {
       replicas: 1,
@@ -93,18 +89,18 @@ std.assertEqual(
         spec: {
           containers: [
             {
-              args: [
-                "volunteer",
-                "--cluster-id=unknown_cluster",
-                "--database=https://stats-collector.kubeflow.org",
-              ],
               image: "gcr.io/google_containers/spartakus-amd64:v1.0.0",
               name: "volunteer",
+              args: [
+                "volunteer",
+                "--cluster-id=" + params.usageId,
+                "--database=https://stats-collector.kubeflow.org",
+              ],
             },
           ],
           serviceAccountName: "spartakus",
-        },
+        },  // spec
       },
     },
-  }
-)
+  },  // deployment
+] else []

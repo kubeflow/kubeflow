@@ -517,7 +517,7 @@ func Run(opt *options.ServerOption) error {
 
 	// Component customization
 	for _, component := range bootConfig.App.Components {
-		if component.Name == "kubeflow-core" {
+		if component.Name == "jupyterhub" {
 			pvcMount := ""
 			if hasDefault {
 				pvcMount = "/home/jovyan"
@@ -526,7 +526,7 @@ func Run(opt *options.ServerOption) error {
 			err = actions.RunParamSet(map[string]interface{}{
 				actions.OptionApp:   kfApp,
 				actions.OptionName:  component.Name,
-				actions.OptionPath:  "jupyterNotebookPVCMount",
+				actions.OptionPath:  "notebookPVCMount",
 				actions.OptionValue: pvcMount,
 			})
 
