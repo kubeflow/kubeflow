@@ -13,7 +13,7 @@
 
 Kubeflow is a Cloud Native platform for machine learning. 
 
-Please refer to the offical docs at [kubeflow.org](http://kubeflow.org)
+Please refer to the official docs at [kubeflow.org](http://kubeflow.org)
 
 ## Quick Links
 * [Prow test dashboard](https://k8s-testgrid.appspot.com/sig-big-data)
