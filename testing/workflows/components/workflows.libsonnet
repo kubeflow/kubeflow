@@ -284,11 +284,11 @@
                         else
                           "",
                   },
-                  {
-                    name: "test-dir-delete",
-                    template: "test-dir-delete",
-                    dependencies: ["copy-artifacts"],
-                  },
+                  //{
+                  //  name: "test-dir-delete",
+                  //  template: "test-dir-delete",
+                  //  dependencies: ["copy-artifacts"],
+                  //},
                   {
                     name: "copy-artifacts",
                     template: "copy-artifacts",
