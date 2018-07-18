@@ -3,7 +3,6 @@
   // Each prototype should be a list of different parts that together
   // provide a userful function such as WeaveWorks Flux
   kubeflux(params, env):: [
-    $.parts(params, env).nodeport,
     $.parts(params, env).fluxlb,
     $.parts(params, env).flux,
     $.parts(params, env).memcachedep,
