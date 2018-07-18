@@ -10,12 +10,11 @@ const styles = {
     fontWeight: 300,
   },
   google: {
-    fontWeight: 400,
+    fontWeight: 600,
     paddingRight: 5,
   },
   header: {
     color: '#fff',
-    fontFamily: '"open sans", Helvetica',
     fontSize: '1.3em',
     padding: 20,
   },

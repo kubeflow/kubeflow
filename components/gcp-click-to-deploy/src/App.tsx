@@ -19,6 +19,7 @@ const styles: { [p: string]: React.CSSProperties } = {
     backgroundColor: '#3b78e7',
     display: 'flex',
     flexFlow: 'column',
+    fontFamily: '"google sans", Helvetica',
     height: '100%',
     width: '100%',
   },
