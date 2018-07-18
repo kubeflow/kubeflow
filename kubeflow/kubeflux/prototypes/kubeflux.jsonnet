@@ -16,7 +16,7 @@ local updatedParams = params {
   giturl: if params.giturl == "null" then env.giturl else params.giturl,
 };
 
-
+// namespace giturl variables
 local giturl = updatedParams.giturl;
 local namespace = updatedParams.namespace;
 //local imageTag = import "param://imageTag";
