@@ -18,12 +18,13 @@
 
   // Parts should be a dictionary containing jsonnet representations of the various
   // K8s resources used to construct the prototypes listed above.
-  parts(namespace, env):: {
+  parts(params, env):: {
     // All ksonnet environments are associated with a namespace and we
     // generally want to use that namespace for a component.
     // However, in some cases an application may use multiple namespaces in which
     // case the namespace for a particular component will be a parameter.
-    //local namespace = if std.objectHas(params, "namespace") then params.namespace else env.namespace,
+    local namespace = if std.objectHas(params, "namespace") then params.namespace else env.namespace,
+    local giturl = if std.objectHas(params, "giturl") then params.giturl else env.giturl,
 
     serviceAccount:: {
         "apiVersion": "v1",
@@ -124,7 +125,7 @@
               {
                 "args": [
                   "--ssh-keygen-dir=/var/fluxd/keygen",
-                  "--git-url=git@github.com:weaveworks/flux-example",
+                  "--git-url="+giturl,
                   "--git-branch=master"
                 ],
                 "image": "quay.io/weaveworks/flux:1.4.2",
