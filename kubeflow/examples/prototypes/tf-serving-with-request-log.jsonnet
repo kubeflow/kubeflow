@@ -1,0 +1,199 @@
+// @apiVersion 0.1
+// @name io.ksonnet.pkg.tf-serving-simple
+// @description tf-serving-simple
+// @shortDescription tf-serving-simple
+// @param name string Name to give to each of the components
+
+local k = import "k.libsonnet";
+
+local namespace = "kubeflow";
+local appName = import "param://name";
+local modelBasePath = "gs://kubeflow-examples-data/mnist";
+local modelName = "mnist";
+local image = "gcr.io/kubeflow-images-public/tf-model-server-cpu:v20180327-995786ec";
+local httpProxyImage = "gcr.io/kubeflow-images-public/tf-model-server-http-proxy:v20180717";
+local loggingImage = "gcr.io/kubeflow-images-public/tf-model-server-request-logger:v20180717";
+
+local gcpSecretName = "SET_THIS";
+local gcpProject = "SET_THIS";
+local bigQueryDataset = "SET_THIS";
+local bigQueryTable = "SET_THIS";
+
+local service = {
+  apiVersion: "v1",
+  kind: "Service",
+  metadata: {
+    labels: {
+      app: appName,
+    },
+    name: appName,
+    namespace: namespace,
+  },
+  spec: {
+    ports: [
+      {
+        name: "grpc-tf-serving",
+        port: 9000,
+        targetPort: 9000,
+      },
+      {
+        name: "http-tf-serving-proxy",
+        port: 8000,
+        targetPort: 8000,
+      },
+    ],
+    selector: {
+      app: appName,
+    },
+    type: "ClusterIP",
+  },
+};
+
+local deployment = {
+  apiVersion: "extensions/v1beta1",
+  kind: "Deployment",
+  metadata: {
+    labels: {
+      app: appName,
+    },
+    name: appName,
+    namespace: namespace,
+  },
+  spec: {
+    template: {
+      metadata: {
+        labels: {
+          app: appName,
+        },
+      },
+      spec: {
+        containers: [
+          // ModelServer
+          {
+            args: [
+              "/usr/bin/tensorflow_model_server",
+              "--port=9000",
+              "--model_name=" + modelName,
+              "--model_base_path=" + modelBasePath,
+            ],
+            image: image,
+            imagePullPolicy: "IfNotPresent",
+            name: "mnist",
+            ports: [
+              {
+                containerPort: 9000,
+              },
+            ],
+            resources: {
+              limits: {
+                cpu: "4",
+                memory: "4Gi",
+              },
+              requests: {
+                cpu: "1",
+                memory: "1Gi",
+              },
+            },
+          },
+          // Http proxy
+          {
+            name: "mnist-http-proxy",
+            image: httpProxyImage,
+            imagePullPolicy: "IfNotPresent",
+            command: [
+              "python",
+              "/usr/src/app/server.py",
+              "--port=8000",
+              "--rpc_port=9000",
+              "--rpc_timeout=10.0",
+              "--log_request=true",
+            ],
+            env: [],
+            ports: [
+              {
+                containerPort: 8000,
+              },
+            ],
+            resources: {
+              requests: {
+                memory: "1Gi",
+                cpu: "1",
+              },
+              limits: {
+                memory: "4Gi",
+                cpu: "4",
+              },
+            },
+            securityContext: {
+              runAsUser: 1000,
+              fsGroup: 1000,
+            },
+            volumeMounts: [
+              {
+                name: "request-logs",
+                mountPath: "/tmp/logs"
+              }
+            ],
+          },
+          // Logging container.
+          {
+            name: "mnist-logging",
+            image: loggingImage",
+            imagePullPolicy: "IfNotPresent",
+            command: [
+              "python",
+              "/usr/src/app/logging_worker.py",
+              "project=" + gcpProject,
+              "dataset=" + bigQueryDataset,
+              "table=" + bigQueryTable,
+            ],
+            env: [
+              { name: "GOOGLE_APPLICATION_CREDENTIALS", value: "/secret/gcp-credentials/key.json" },
+            ],
+            resources: {
+              requests: {
+                memory: "250Mi",
+                cpu: "0.25",
+              },
+              limits: {
+                memory: "500Mi",
+                cpu: "0.5",
+              },
+            },
+            securityContext: {
+              runAsUser: 1000,
+              fsGroup: 1000,
+            },
+            volumeMounts: [
+              {
+                name: "request-logs",
+                mountPath: "/tmp/logs"
+              },
+              {
+                name: "gcp-credentials",
+                mountPath: "/secret/gcp-credentials",
+              },
+            ],
+          },
+        ],
+        volumes: [
+          {
+            name: "gcp-credentials",
+            secret: {
+              secretName: gcpSecretName,
+            },
+          },
+          {
+            name: "request-logs",
+            emptyDir: {},
+          },
+        ],
+      },
+    },
+  },
+};
+
+k.core.v1.list.new([
+  service,
+  deployment,
+])
