@@ -170,27 +170,6 @@
       }
     },
 
-    nodeport:: {
-      // K8s Deployment,
-      "apiVersion": "v1",
-      "kind": "Service",
-      "metadata": {
-        "name": "flux"
-      },
-      "spec": {
-        "ports": [
-          {
-            "port": 80,
-            "targetPort": 3030
-          }
-        ],
-        "selector": {
-          "name": "flux"
-        },
-        "type": "NodePort"
-      }
-    },
-
     fluxlb:: {
       // K8s Deployment,
       "apiVersion": "v1",
