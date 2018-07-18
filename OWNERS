@@ -10,8 +10,5 @@ approvers:
   - pdmack
   - ScorpioCPH
   - willb
-reviewers:
-  - Jimexist
-  - kunmingg
-  - wbuchwalter
-  - willingc
+reviewers:  
+  - richardsliu
