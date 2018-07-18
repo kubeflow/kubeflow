@@ -16,9 +16,6 @@ local updatedParams = params {
   giturl: if params.giturl == "null" then env.giturl else params.giturl,
 };
 
-//namespace and giturl
-  giturl: if params.giturl = "null" then env.giturl else params.giturl,
-};
 
 local giturl = updatedParams.giturl;
 local namespace = updatedParams.namespace;
