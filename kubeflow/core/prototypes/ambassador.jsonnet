@@ -46,6 +46,36 @@ local replicas = if params.cloud == "minikube" then 1 else 3;
     kind: "Service",
     metadata: {
       labels: {
+        service: "ambassador",
+      },
+      name: "ambassador-exporter",
+      namespace: env.namespace,
+      annotations: {
+        "prometheus.io/scrape": "true",
+        "prometheus.io/port": "9102",
+      },
+    },
+    spec: {
+      ports: [
+        {
+          name: "ambassador-exporter",
+          port: 9102,
+          targetPort: 9102,
+          protocol: "TCP",
+        },
+      ],
+      selector: {
+        service: "ambassador",
+      },
+      type: "ClusterIP",
+    },
+  },  // metricsService
+
+  {
+    apiVersion: "v1",
+    kind: "Service",
+    metadata: {
+      labels: {
         service: "ambassador-admin",
       },
       name: "ambassador-admin",
@@ -214,6 +244,10 @@ local replicas = if params.cloud == "minikube" then 1 else 3;
             {
               image: params.statsdImage,
               name: "statsd",
+            },
+            {
+              image: "prom/statsd-exporter",
+              name: "statsd-exporter",
             },
           ],
           restartPolicy: "Always",

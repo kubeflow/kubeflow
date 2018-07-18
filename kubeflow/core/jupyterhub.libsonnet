@@ -20,6 +20,9 @@
         },
         name: "tf-hub-0",
         namespace: params.namespace,
+        annotations: {
+          "prometheus.io/scrape": "true",
+        },
       },
       spec: {
         // We want a headless service so we set the ClusterIP to be None.

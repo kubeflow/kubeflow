@@ -1,0 +1,140 @@
+# Source: https://github.com/stackdriver/prometheus/blob/master/documentation/examples/prometheus.yml
+global:
+  external_labels:
+    _stackdriver_project_id: %(project-id-placeholder)s
+    _kubernetes_cluster_name: %(cluster-name-placeholder)s
+    _kubernetes_location: %(zone-placeholder)s
+
+# Scrape config for nodes (kubelet).
+#
+# Rather than connecting directly to the node, the scrape is proxied though the
+# Kubernetes apiserver.  This means it will work if Prometheus is running out of
+# cluster, or can't connect to nodes for some other reason (e.g. because of
+# firewalling).
+scrape_configs:
+- job_name: 'kubernetes-nodes'
+
+  # Default to scraping over https. If required, just disable this or change to
+  # `http`.
+  scheme: https
+
+  # This TLS & bearer token file config is used to connect to the actual scrape
+  # endpoints for cluster components. This is separate to discovery auth
+  # configuration because discovery & scraping are two separate concerns in
+  # Prometheus. The discovery auth config is automatic if Prometheus runs inside
+  # the cluster. Otherwise, more config options have to be provided within the
+  # <kubernetes_sd_config>.
+  tls_config:
+    ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+  bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+
+  kubernetes_sd_configs:
+  - role: node
+
+  relabel_configs:
+  - target_label: __address__
+    replacement: kubernetes.default.svc:443
+  - source_labels: [__meta_kubernetes_node_name]
+    regex: (.+)
+    target_label: __metrics_path__
+    replacement: /api/v1/nodes/${1}/proxy/metrics
+
+# Example scrape config for pods
+#
+# The relabeling allows the actual pod scrape endpoint to be configured via the
+# following annotations:
+#
+# * `prometheus.io/scrape`: Only scrape pods that have a value of `true`
+# * `prometheus.io/path`: If the metrics path is not `/metrics` override this.
+# * `prometheus.io/port`: Scrape the pod on the indicated port instead of the
+# pod's declared ports (default is a port-free target if none are declared).
+- job_name: 'kubernetes-pods-containers'
+
+  kubernetes_sd_configs:
+  - role: pod
+
+  relabel_configs:
+  - source_labels: [__meta_kubernetes_namespace,__meta_kubernetes_service_annotation_prometheus_io_scrape]
+    action: keep
+    regex: kubeflow;true
+  - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+    action: replace
+    target_label: __metrics_path__
+    regex: (.+)
+  - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+    action: replace
+    regex: ([^:]+)(?::\d+)?;(\d+)
+    replacement: $1:$2
+    target_label: __address__
+
+# Scrape config for service endpoints.
+#
+# The relabeling allows the actual service scrape endpoint to be configured
+# via the following annotations:
+#
+# * `prometheus.io/scrape`: Only scrape services that have a value of `true`
+# * `prometheus.io/scheme`: If the metrics endpoint is secured then you will need
+# to set this to `https` & most likely set the `tls_config` of the scrape config.
+# * `prometheus.io/path`: If the metrics path is not `/metrics` override this.
+# * `prometheus.io/port`: If the metrics are exposed on a different port to the
+# service then set this appropriately.
+- job_name: 'kubernetes-service-endpoints'
+
+  kubernetes_sd_configs:
+  - role: endpoints
+
+  relabel_configs:
+  - source_labels: [__meta_kubernetes_namespace,__meta_kubernetes_service_annotation_prometheus_io_scrape]
+    action: keep
+    regex: kubeflow;true
+  - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scheme]
+    action: replace
+    target_label: __scheme__
+    regex: (https?)
+  - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_path]
+    action: replace
+    target_label: __metrics_path__
+    regex: (.+)
+  - source_labels: [__address__, __meta_kubernetes_service_annotation_prometheus_io_port]
+    action: replace
+    target_label: __address__
+    regex: ([^:]+)(?::\d+)?;(\d+)
+    replacement: $1:$2
+
+
+# Scrape config for k8s services
+- job_name: 'kubernetes-services'
+
+  kubernetes_sd_configs:
+  - role: service
+
+  relabel_configs:
+  - source_labels: [__meta_kubernetes_namespace,__meta_kubernetes_service_annotation_prometheus_io_scrape]
+    action: keep
+    regex: kubeflow;true
+  - action: labelmap
+    regex: __meta_kubernetes_service_label_(.+)
+  - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_path]
+    action: replace
+    target_label: __metrics_path__
+  - source_labels: [__address__,__meta_kubernetes_service_annotation_prometheus_io_port]
+    action: replace
+    target_label: __address__
+    regex: (.+)(?::\d+);(\d+)
+    replacement: $1:$2
+
+remote_write:
+- url: "https://monitoring.googleapis.com:443/"
+  queue_config:
+    # Capacity should be 2*max_samples_per_send.
+    capacity: 2000
+    max_samples_per_send: 1000
+    max_shards: 10000
+  write_relabel_configs:
+  # These labels are generally redundant with the Stackdriver monitored resource labels.
+  - source_labels: [job]
+    target_label: job
+    replacement: ""
+  - source_labels: [instance]
+    target_label: instance
+    replacement: ""
