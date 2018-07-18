@@ -4,6 +4,7 @@
     $.parts(params.namespace, params.metricImage, params.targetUrl, params.oauthSecretName).metricRole,
     $.parts(params.namespace, params.metricImage, params.targetUrl, params.oauthSecretName).metricRoleBinding,
     $.parts(params.namespace, params.metricImage, params.targetUrl, params.oauthSecretName).deploy,
+    $.parts(params.namespace, params.metricImage, params.targetUrl, params.oauthSecretName).service,
   ],
   parts(namespace, image, targetUrl, oauthSecretName):: {
     metricServiceAccount: {
@@ -63,6 +64,36 @@
         },
       ],
     },
+    service:: {
+      apiVersion: "v1",
+      kind: "Service",
+      metadata: {
+        labels: {
+          service: "metric-collector",
+        },
+        name: "metric-collector",
+        namespace: namespace,
+        annotations: {
+          "prometheus.io/scrape": "true",
+          "prometheus.io/path": "/",
+          "prometheus.io/port": "8000",
+        },
+      },
+      spec: {
+        ports: [
+          {
+            name: "metric-collector",
+            port: 8000,
+            targetPort: 8000,
+            protocol: "TCP",
+          },
+        ],
+        selector: {
+          app: "metric-collector",
+        },
+        type: "ClusterIP",
+      },
+    },
     deploy:: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
@@ -74,11 +105,16 @@
         namespace: namespace,
       },
       spec: {
-        replicas: 2,
+        replicas: 1,
+        selector: {
+          matchLabels: {
+            app: "metric-collector",
+          },
+        },
         template: {
           metadata: {
             labels: {
-              service: "metric-collector",
+              app: "metric-collector",
             },
             namespace: namespace,
           },
