@@ -31,3 +31,40 @@ cd components/gcp-click-to-deploy
 npm install
 npm start
 ```
+
+## Deployment
+
+We have a dev instance running at [https://deploy-gcp.kubeflow.dev](https://deploy-gcp.kubeflow.dev)
+
+We have a dev instance running in our dev cluster
+
+```
+PROJECT=kubeflow-dev
+CLUSTER=dev-cluster
+NAMESPACE=gcp-deploy
+```
+
+To update the deployment
+
+1. Build and push a new docker image
+1. Update the manifest 
+    
+   ```
+   ks-app/webapp.jsonnet
+   ```
+
+ 1. Apply it
+
+    ```
+    cd ks-app
+    ks apply default -c webapp
+    ```
+
+
+The script
+
+```
+./ks-app/create_gcp_deploy_sa.sh
+```
+  
+Can be used to create a service account to work with external DNS.
