@@ -1,13 +1,21 @@
-local ambassador = import "../ambassador.libsonnet";
-local params = {
-  namespace:: "test-kf-001",
-  tfAmbassadorServiceType:: "ClusterIP",
-  tfAmbassadorImage:: "quay.io/datawire/ambassador:0.34.0",
-  tfStatsdImage:: "quay.io/datawire/statsd:0.34.0",
-};
+// @apiVersion 0.1
+// @name io.ksonnet.pkg.ambassador
+// @description Ambassador Component
+// @shortDescription Ambassador
+// @param name string Name
+// @optionalParam cloud string null Cloud
+// @optionalParam ambassadorServiceType string ClusterIP The service type for the API Gateway.
+// @optionalParam ambassadorImage string quay.io/datawire/ambassador:0.30.1 The image for the API Gateway.
+// @optionalParam statsdImage string quay.io/datawire/statsd:0.30.1 The image for the Stats and Monitoring.
+local isDashboardTls =
+  if params.cloud == "acsengine" || params.cloud == "aks" then
+    "false"
+  else
+    "true";
 
-std.assertEqual(
-  ambassador.parts(params.namespace, params.tfAmbassadorImage).service(params.tfAmbassadorServiceType),
+local replicas = if params.cloud == "minikube" then 1 else 3;
+
+[
   {
     apiVersion: "v1",
     kind: "Service",
@@ -16,7 +24,7 @@ std.assertEqual(
         service: "ambassador",
       },
       name: "ambassador",
-      namespace: "test-kf-001",
+      namespace: env.namespace,
     },
     spec: {
       ports: [
@@ -29,13 +37,40 @@ std.assertEqual(
       selector: {
         service: "ambassador",
       },
+      type: params.ambassadorServiceType,
+    },
+  },  // service
+
+  {
+    apiVersion: "v1",
+    kind: "Service",
+    metadata: {
+      labels: {
+        service: "ambassador",
+      },
+      name: "ambassador-exporter",
+      namespace: env.namespace,
+      annotations: {
+        "prometheus.io/scrape": "true",
+        "prometheus.io/port": "9102",
+      },
+    },
+    spec: {
+      ports: [
+        {
+          name: "ambassador-exporter",
+          port: 9102,
+          targetPort: 9102,
+          protocol: "TCP",
+        },
+      ],
+      selector: {
+        service: "ambassador",
+      },
       type: "ClusterIP",
     },
-  }
-) &&
+  },  // metricsService
 
-std.assertEqual(
-  ambassador.parts(params.namespace, params.tfAmbassadorImage).adminService,
   {
     apiVersion: "v1",
     kind: "Service",
@@ -44,7 +79,7 @@ std.assertEqual(
         service: "ambassador-admin",
       },
       name: "ambassador-admin",
-      namespace: "test-kf-001",
+      namespace: env.namespace,
     },
     spec: {
       ports: [
@@ -59,17 +94,14 @@ std.assertEqual(
       },
       type: "ClusterIP",
     },
-  }
-) &&
+  },  // adminService
 
-std.assertEqual(
-  ambassador.parts(params.namespace, params.tfAmbassadorImage).role,
   {
     apiVersion: "rbac.authorization.k8s.io/v1beta1",
     kind: "Role",
     metadata: {
       name: "ambassador",
-      namespace: "test-kf-001",
+      namespace: env.namespace,
     },
     rules: [
       {
@@ -115,29 +147,23 @@ std.assertEqual(
         ],
       },
     ],
-  }
-) &&
+  },  // role
 
-std.assertEqual(
-  ambassador.parts(params.namespace, params.tfAmbassadorImage).serviceAccount,
   {
     apiVersion: "v1",
     kind: "ServiceAccount",
     metadata: {
       name: "ambassador",
-      namespace: "test-kf-001",
+      namespace: env.namespace,
     },
-  }
-) &&
+  },  // serviceAccount
 
-std.assertEqual(
-  ambassador.parts(params.namespace, params.tfAmbassadorImage).roleBinding,
   {
     apiVersion: "rbac.authorization.k8s.io/v1beta1",
     kind: "RoleBinding",
     metadata: {
       name: "ambassador",
-      namespace: "test-kf-001",
+      namespace: env.namespace,
     },
     roleRef: {
       apiGroup: "rbac.authorization.k8s.io",
@@ -148,29 +174,26 @@ std.assertEqual(
       {
         kind: "ServiceAccount",
         name: "ambassador",
-        namespace: "test-kf-001",
+        namespace: env.namespace,
       },
     ],
-  }
-) &&
+  },  // roleBinding
 
-std.assertEqual(
-  ambassador.parts(params.namespace, params.tfAmbassadorImage).deploy(params.tfStatsdImage),
   {
     apiVersion: "extensions/v1beta1",
     kind: "Deployment",
     metadata: {
       name: "ambassador",
-      namespace: "test-kf-001",
+      namespace: env.namespace,
     },
     spec: {
-      replicas: 3,
+      replicas: replicas,
       template: {
         metadata: {
           labels: {
             service: "ambassador",
           },
-          namespace: "test-kf-001",
+          namespace: env.namespace,
         },
         spec: {
           containers: [
@@ -189,7 +212,7 @@ std.assertEqual(
                   value: "true",
                 },
               ],
-              image: "quay.io/datawire/ambassador:0.34.0",
+              image: params.ambassadorImage,
               livenessProbe: {
                 httpGet: {
                   path: "/ambassador/v0/check_alive",
@@ -219,8 +242,12 @@ std.assertEqual(
               },
             },
             {
-              image: "quay.io/datawire/statsd:0.34.0",
+              image: params.statsdImage,
               name: "statsd",
+            },
+            {
+              image: "prom/statsd-exporter",
+              name: "statsd-exporter",
             },
           ],
           restartPolicy: "Always",
@@ -228,20 +255,33 @@ std.assertEqual(
         },
       },
     },
-  }
-) &&
+  },  // deploy
 
-std.assertEqual(
-  ambassador.parts(params.namespace, params.tfAmbassadorImage).k8sDashboard("cloud"),
+  // This service adds a rule to our reverse proxy for accessing the K8s dashboard.
   {
     apiVersion: "v1",
     kind: "Service",
     metadata: {
-      annotations: {
-        "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind:  Mapping\nname: k8s-dashboard-ui-mapping\nprefix: /k8s/ui/\nrewrite: /\ntls: true\nservice: kubernetes-dashboard.kube-system",
-      },
       name: "k8s-dashboard",
-      namespace: "test-kf-001",
+      namespace: env.namespace,
+
+      annotations: {
+        "getambassador.io/config":
+          std.join("\n", [
+            "---",
+            "apiVersion: ambassador/v0",
+            "kind:  Mapping",
+            "name: k8s-dashboard-ui-mapping",
+            "prefix: /k8s/ui/",
+            "rewrite: /",
+            "tls: " + isDashboardTls,
+            // We redirect to the K8s service created for the dashboard
+            // in namespace kube-system. We don't use the k8s-dashboard service
+            // because that isn't in the kube-system namespace and I don't think
+            // it can select pods in a different namespace.
+            "service: kubernetes-dashboard.kube-system",
+          ]),
+      },  //annotations
     },
     spec: {
       ports: [
@@ -255,5 +295,6 @@ std.assertEqual(
       },
       type: "ClusterIP",
     },
-  }
-)
+  },  // k8sDashboard
+
+]

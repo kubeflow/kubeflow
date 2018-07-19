@@ -1,11 +1,10 @@
-local centraldashboard = import "../centraldashboard.libsonnet";
-local params = {
-  namespace:: "kubeflow",
-  cloud:: "gke",
-};
-
-std.assertEqual(
-  centraldashboard.parts(params.namespace).deployUi("dashboard/image:latest"),
+// @apiVersion 0.1
+// @name io.ksonnet.pkg.centraldashboard
+// @description centraldashboard Component
+// @shortDescription centraldashboard
+// @param name string Name
+// @optionalParam image string gcr.io/kubeflow-images-public/centraldashboard:v0.2.1 Image for the central dashboard
+[
   {
     apiVersion: "extensions/v1beta1",
     kind: "Deployment",
@@ -14,7 +13,7 @@ std.assertEqual(
         app: "centraldashboard",
       },
       name: "centraldashboard",
-      namespace: "kubeflow",
+      namespace: env.namespace,
     },
     spec: {
       template: {
@@ -26,7 +25,7 @@ std.assertEqual(
         spec: {
           containers: [
             {
-              image: "dashboard/image:latest",
+              image: params.image,
               name: "centraldashboard",
               ports: [
                 {
@@ -39,11 +38,8 @@ std.assertEqual(
         },
       },
     },
-  }
-) &&
+  },  // deployUi
 
-std.assertEqual(
-  centraldashboard.parts(params.namespace).uiService,
   {
     apiVersion: "v1",
     kind: "Service",
@@ -52,7 +48,7 @@ std.assertEqual(
         app: "centraldashboard",
       },
       name: "centraldashboard",
-      namespace: "kubeflow",
+      namespace: env.namespace,
       annotations: {
         "getambassador.io/config":
           std.join("\n", [
@@ -62,9 +58,9 @@ std.assertEqual(
             "name: centralui-mapping",
             "prefix: /",
             "rewrite: /",
-            "service: centraldashboard." + "kubeflow",
+            "service: centraldashboard." + env.namespace,
           ]),
-      },
+      },  //annotations
     },
     spec: {
       ports: [
@@ -79,23 +75,17 @@ std.assertEqual(
       sessionAffinity: "None",
       type: "ClusterIP",
     },
-  },
-) &&
+  },  //service
 
-std.assertEqual(
-  centraldashboard.parts(params.namespace).uiServiceAccount,
   {
     apiVersion: "v1",
     kind: "ServiceAccount",
     metadata: {
       name: "centraldashboard",
-      namespace: "kubeflow",
+      namespace: env.namespace,
     },
-  },
-) &&
+  },  // service account
 
-std.assertEqual(
-  centraldashboard.parts(params.namespace).uiRole,
   {
     apiVersion: "rbac.authorization.k8s.io/v1beta1",
     kind: "ClusterRole",
@@ -104,7 +94,7 @@ std.assertEqual(
         app: "centraldashboard",
       },
       name: "centraldashboard",
-      namespace: "kubeflow",
+      namespace: env.namespace,
     },
     rules: [
       {
@@ -130,11 +120,8 @@ std.assertEqual(
         ],
       },
     ],
-  },
-) &&
+  },  // operator-role
 
-std.assertEqual(
-  centraldashboard.parts(params.namespace).uiRoleBinding,
   {
     apiVersion: "rbac.authorization.k8s.io/v1beta1",
     kind: "ClusterRoleBinding",
@@ -143,7 +130,7 @@ std.assertEqual(
         app: "centraldashboard",
       },
       name: "centraldashboard",
-      namespace: "kubeflow",
+      namespace: env.namespace,
     },
     roleRef: {
       apiGroup: "rbac.authorization.k8s.io",
@@ -154,8 +141,8 @@ std.assertEqual(
       {
         kind: "ServiceAccount",
         name: "centraldashboard",
-        namespace: "kubeflow",
+        namespace: env.namespace,
       },
     ],
-  }
-)
+  },  // role binding
+]

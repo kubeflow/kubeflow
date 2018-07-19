@@ -69,7 +69,7 @@ Configuration for JupyterHub is shipped separately and contained within the conf
 the core component. To see a list of ksonnet parameters run
 
 ```
-ks prototype describe kubeflow-core
+ks prototype describe jupyterhub
 ```
 
 If the provided parameters don't provide the flexibility you need, you can take advantage of ksonnet to customize the core component and use a config file fully specified by you.
@@ -78,14 +78,14 @@ Configuration includes sections for KubeSpawner and Authenticators. Spawner para
 Jupyter notebooks, and configuration defining how JupyterHub creates and interacts with Kubernetes pods for individual notebooks.
 Authenticator parameters correspond to the authentication mechanism used by JupyterHub.
 
-Additional information about configuration can be found in the 
+Additional information about configuration can be found in the
 [Zero to JupyterHub with Kubernetes guide](https://zero-to-jupyterhub.readthedocs.io/en/latest/)
 and the [JupyterHub documentation](https://jupyterhub.readthedocs.io/en/latest/).
 
 
 ## Usage
 
-If you're using the quick-start, the external IP address of the JupyterHub 
+If you're using the quick-start, the external IP address of the JupyterHub
 instance can be obtained from `kubectl get svc`.
 
 ```commandline
@@ -127,7 +127,7 @@ via the default `PATH`.
 
 After creating the initial Hub and exposing it on a public IP address, you can add GitHub based authentication. First, you'll need to create a [GitHub oauth application](https://github.com/settings/applications/new). The callback URL would be of the form `http://xx.yy.zz.ww/hub/oauth_callback`.
 
-Once the GitHub application is created in the GitHub UI, update the 
+Once the GitHub application is created in the GitHub UI, update the
 `manifest/config.yaml` with the `callback_url`, `client_id` and `client_secret`
 provided by GitHub UI. You should comment out the `DummyAuthenticator` and
 set the JupyterHub `authenticator_class` to `GitHubOAuthenticator`. You will
@@ -150,7 +150,7 @@ kubectl delete pod tf-hub-0
 ```
 
 By deleting the old pod, a new pod will come up with the new configuration
-and be configured to use the GitHub authenticator you specified in the 
+and be configured to use the GitHub authenticator you specified in the
 previous step. You can additionally modify the JupyterHub configuration to add
 whitelists and admin users. For example, to limit the hub to only GitHub users,
 user1 and user2, one might use the following configuration:
