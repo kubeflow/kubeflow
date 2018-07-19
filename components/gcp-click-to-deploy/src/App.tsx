@@ -111,7 +111,7 @@ class App extends React.Component<any, { signedIn: boolean }> {
                 Specify details such as project, zone, name to create a
                 Kubeflow deployment. Learn more at
                 <a style={{ color: 'inherit', marginLeft: 5 }}
-                  href='https://github.com/kubeflow'>https://github.com/kubeflow</a>
+                  href='https://kubeflow.org'>https://kubeflow.org</a>
               </div>
             </div>
             <div style={styles.rightPane}>
