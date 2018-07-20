@@ -47,6 +47,26 @@ export default class Gapi {
 
   }
 
+  public static iam = class {
+
+    public static async createKey(projectId: string, serviceAccounts: string) {
+        await this._load();
+        return gapi.client.projects.serviceAccounts.keys.create({
+            name: `projects/${projectId}/serviceAccounts/${serviceAccounts}`
+        }).then(response => response.result,
+                badResult => {
+          throw new Error('Errors creating key for serviceAccount ${serviceAccounts}');
+        });
+    }
+
+    private static async _load() {
+        await Gapi.load();
+        return new Promise(resolve =>
+            gapi.client.load('iam', 'v1', () => resolve()))
+    }
+
+  }
+
   public static servicemanagement = class {
 
     public static async list(project: string) {
@@ -90,6 +110,22 @@ export default class Gapi {
     }
 
   }
+
+  public static async getToken(): Promise<string | null> {
+      await this.load();
+      const user = await this._getCurrentUser();
+      return user ? user.getAuthResponse().id_token : null;
+  }
+
+    public static async getClusterEndpoint(projectId: string, zone: string, clusterId: string) {
+        await this.load();
+        return gapi.client.request({
+            path: `https://container.googleapis.com/v1/projects/${projectId}/zones/${zone}/clusters/${clusterId}`
+        }).then(response => (response.result as any).endpoint,
+            badResult => {
+                throw new Error('Errors getting cluster endpoint: ' + flattenDeploymentOperationError(badResult.result));
+            });
+    }
 
   public static async signIn(doPrompt?: boolean): Promise<void> {
     const rePromptOptions = 'login consent select_account';

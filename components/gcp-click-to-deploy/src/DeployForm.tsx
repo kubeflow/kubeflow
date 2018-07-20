@@ -109,6 +109,8 @@ const theme = createMuiTheme({
   },
 });
 
+const k8s = require('@kubernetes/client-node');
+
 export default class DeployForm extends React.Component<any, DeployFormState> {
 
   constructor(props: any) {
@@ -402,8 +404,43 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         });
       });
 
+    // Step 4: In cluster resource set up
+    const endpoint = Gapi.getClusterEndpoint(project, this.state.zone, deploymentName);
+    k8s.Config.defaultClient();
+    var k8sApi = k8s.Core_v1Api(`https://${endpoint}`);
+    const token = await Gapi.getToken();
+    if (!token) {
+      this.setState({
+          error: 'You are not signed in',
+          errorMessage: 'You must be signed in to use deploy Kubeflow to your GCP account.',
+      });
+      return;
+    }
+    k8sApi.setApiKey(k8s.Core_v1ApiApiKeys.BearerToken, token);
+
+    k8sApi.createNamespacedSecret('kubeflow',
+        this._generateServiceAccountSecret(project, deploymentName, 'admin'));
+    k8sApi.createNamespacedSecret('kubeflow',
+        this._generateServiceAccountSecret(project, deploymentName, 'user'));
+
   }
 
+  private _generateServiceAccountSecret(project: string, deploymentName: string, role: string) {
+    const roleSecret = new k8s.V1Secret();
+    roleSecret.apiVersion = 'v1';
+    roleSecret.metadata = new k8s.V1ObjectMeta();
+    roleSecret.metadata.name = `${role}-gcp-sa`;
+    roleSecret.metadata.namespace = 'kubeflow';
+    roleSecret.type = 'Opaque';
+    roleSecret.data = {};
+
+    const saKey = Gapi.iam.createKey(
+        project,
+        `${deploymentName}-${role}@${project}.iam.gserviceaccount.com`
+    );
+    roleSecret.data[`${role}-gcp-sa.json`] = Buffer.from(JSON.stringify(saKey)).toString("base64");
+    return roleSecret;
+  }
   /**
    * Returns a list of services that are needed but not enabled for the given project.
    */
@@ -412,6 +449,8 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
 
     const servicesToEnable = new Set([
       'deploymentmanager.googleapis.com',
+      'servicemanagement.googleapis.com',
+      'container.googleapis.com',
       'cloudresourcemanager.googleapis.com',
       'endpoints.googleapis.com',
       'iam.googleapis.com',
