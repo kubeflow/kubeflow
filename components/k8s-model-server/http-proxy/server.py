@@ -28,6 +28,8 @@ from tensorflow_serving.apis import input_pb2
 from tensorflow_serving.apis import predict_pb2
 from tensorflow_serving.apis import prediction_service_pb2
 from tensorflow_serving.apis import get_model_metadata_pb2
+from tensorflow_serving.apis import model_service_pb2_grpc
+from tensorflow_serving.apis import get_model_status_pb2
 from tornado import gen
 from tornado.ioloop import IOLoop
 from tornado.options import define, options, parse_command_line
@@ -35,9 +37,12 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.saved_model import signature_constants
 import tornado.web
+from prometheus_client import start_http_server, REGISTRY
+from prometheus_client.core import GaugeMetricFamily
 
 
 define("port", default=8888, help="run on the given port", type=int)
+define("exporter_port", default=8500, help="run prometheus exporter on the given port", type=int)
 define("rpc_timeout", default=1.0, help="seconds for time out rpc request", type=float)
 define("rpc_port", default=9000, help="tf serving on the given port", type=int)
 define("rpc_address", default='localhost', help="tf serving on the given address", type=str)
@@ -46,6 +51,7 @@ define("debug", default=False, help="run in debug mode")
 B64_KEY = 'b64'
 WELCOME = "Hello World"
 MODEL_SERVER_METADATA_TIMEOUT_SEC = 20
+MODEL_SERVER_STATUS_TIMEOUT_SEC = 20
 
 
 DATA_TYPE = {
@@ -192,6 +198,16 @@ def get_signature(signature_map, signature_name=None):
   else:
     raise KeyError("No signature found for signature key %s." % signature_name)
 
+def model_available(state):
+  """Checks whether a model state is available or not.
+  Args:
+    state: The model state.
+
+  Returns:
+    bool. Whether a model state is available or not.
+  """
+  return state == get_model_status_pb2.ModelVersionStatus.AVAILABLE
+
 
 class MetadataHandler(tornado.web.RequestHandler):
   """
@@ -275,6 +291,47 @@ class ClassifyHandler(tornado.web.RequestHandler):
     self.write(MessageToDict(result))
 
 
+class MetricsHandler(object):
+  """
+  Metrics Handler proxy to export the metrics of tf serving for prometheus.
+  """
+  def __init__(self):
+    # the stub for model service requires grpc.insecure_channel
+    # https://github.com/tensorflow/serving/blob/1.9.0/tensorflow_serving/apis/model_service_pb2_grpc.py#L26
+    service_channel = grpc.insecure_channel(target='{}:{}'.format(options.rpc_address, options.rpc_port))
+    self.service_stub = model_service_pb2_grpc.ModelServiceStub(service_channel)
+
+  def collect(self):
+    metric = GaugeMetricFamily(
+      name='tf_serving_model_state',
+      documentation='model state on tf_serving',
+      labels=['model_name', 'model_version'])
+
+    # TODO: listing up model names on serving.
+    model_name = 'mnist'
+
+    # create request
+    request = get_model_status_pb2.GetModelStatusRequest()
+    request.model_spec.name = model_name
+    try:
+      result_future = self.service_stub.GetModelStatus.future(request, MODEL_SERVER_STATUS_TIMEOUT_SEC)
+      model_version_status = result_future.result().model_version_status
+    except grpc.RpcError as rpc_error:
+      logging.exception("GetModelStatus call to model server failed with code "
+                        "%s and message %s", rpc_error.code(),
+                        rpc_error.details())
+    else:
+      # success to connect to serving
+      for model in model_version_status:
+        metric.add_metric(
+          labels=[model_name, str(model.version)],
+          value=int(model_available(model.state)))
+        logging.debug(
+          'Add metric: name:%s, version:%s, state:%s',
+          model_name, model.version, model.state)
+      yield metric
+
+
 class IndexHanlder(tornado.web.RequestHandler):
   def get(self):
     self.write(WELCOME)
@@ -306,6 +363,9 @@ def main():
       stub = stub,
       signature_map = {},
   )
+  REGISTRY.register(MetricsHandler())
+  # TODO: merging with application port
+  start_http_server(options.exporter_port)
   app = get_application(**extra_settings)
   app.listen(options.port)
   logging.info('running at http://localhost:%s'%options.port)
