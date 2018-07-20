@@ -1,8 +1,4 @@
-<h1 align="center">
-	<br>
-    <img src="https://www.kubeflow.org/images/logo.svg" width="100">
-	<br>
-</h1>
+<img src="https://www.kubeflow.org/images/logo.svg" width="100">
 Kubeflow is a Cloud Native platform for machine learning.
 
 ---
