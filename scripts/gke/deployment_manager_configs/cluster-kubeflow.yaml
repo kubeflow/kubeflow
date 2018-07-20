@@ -38,8 +38,6 @@ resources:
     # Two is small enough to fit within default quota.
     cpu-pool-initialNodeCount: 2
     gpu-pool-initialNodeCount: 0
-    # Whether to deploy the new Stackdriver Kubernetes agents
-    stackdriver-kubernetes: false
     securityConfig:
       # Whether to use a cluster with private IPs
       # Use v1beta1 api
