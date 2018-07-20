@@ -3,7 +3,7 @@ IMG = gcr.io/kubeflow-images-public/centraldashboard
 # List any changed  files. We only include files in the notebooks directory.
 # because that is the code in the docker image.
 # In particular we exclude changes to the ksonnet configs.
-CHANGED_FILES := $(shell git diff-files --relative=components/centraldashboard/frontend)
+CHANGED_FILES := $(shell git diff-files --relative=components/centraldashboard)
 
 ifeq ($(strip $(CHANGED_FILES)),)
 # Changed files is empty; not dirty
@@ -26,7 +26,6 @@ build:
 	docker tag $(IMG):$(TAG) $(IMG):latest
 	@echo Built $(IMG):latest
 	@echo Built $(IMG):$(TAG)
-
 
 # Build but don't attach the latest tag. This allows manual testing/inspection of the image
 # first.

@@ -35,7 +35,7 @@ class KubeFormSpawner(KubeSpawner):
     <div style="text-align: center; padding: 10px;">
       <a id="toggle_advanced_options" style="margin: 20%; cursor: pointer; font-weight: bold;">Advanced</a>
     </div>
-    <table id="advanced_fields" style="display: none; width: 100%; border-spacing: 25px; border-collapse: separate;">
+    <table id="advanced_fields" style="display: none; width: 100%; border-spacing: 0px 25px; border-collapse: separate;">
     <tr>
         <td><label for='cpu_guarantee'>CPU</label></td>
         <td><input style="width: 100%;" name='cpu_guarantee' placeholder='200m, 1.0, 2.5, etc'></input></td>
