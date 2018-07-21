@@ -44,21 +44,18 @@ CLUSTER=dev-cluster
 NAMESPACE=gcp-deploy
 ```
 
-To update the deployment
+To update the deployment run
 
-1. Build and push a new docker image
-1. Update the manifest 
-    
-   ```
-   ks-app/webapp.jsonnet
-   ```
 
- 1. Apply it
+```
+make deploy-latest
+```
 
-    ```
-    cd ks-app
-    ks apply default -c webapp
-    ```
+this will
+
+  * build a new image
+  * Update the ksonnet component to use that image
+  * Update the deployment
 
 
 The script

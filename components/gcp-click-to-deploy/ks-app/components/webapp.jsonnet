@@ -51,7 +51,7 @@ local deployment = {
         containers: [
           {
             name: "app",
-            image: "gcr.io/kubeflow-images-public/gcp-click-to-deploy:v20180719-18305be1",
+            image: params.image,
           },
         ],
       },
