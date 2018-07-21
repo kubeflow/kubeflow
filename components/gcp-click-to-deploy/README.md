@@ -53,7 +53,7 @@ make deploy-latest
 
 this will
 
-  * build a new image
+  * build a new version of the image `gcr.io/kubeflow-images-public/gcp-click-to-deploy`
   * Update the ksonnet component to use that image
   * Update the deployment
 
