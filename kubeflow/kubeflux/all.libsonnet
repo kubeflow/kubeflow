@@ -3,7 +3,7 @@
   // Each prototype should be a list of different parts that together
   // provide a userful function such as WeaveWorks Flux
   kubeflux(params, env):: [
-    $.parts(params, env).fluxlb,
+    $.parts(params, env).fluxip,
     $.parts(params, env).flux,
     $.parts(params, env).memcachedep,
     $.parts(params, env).memcachesvc,
@@ -168,15 +168,15 @@
       }
     },
 
-    fluxlb:: {
-      // K8s Deployment,
+    fluxip:: {
+
       "apiVersion": "v1",
       "kind": "Service",
       "metadata": {
         "labels": {
           "app": "flux"
         },
-        "name": "flux-lb"
+        "name": "flux-ip"
       },
       "spec": {
         "externalTrafficPolicy": "Cluster",
@@ -190,51 +190,49 @@
         "selector": {
           "name": "flux"
         },
-        "type": "LoadBalancer"
+        "type": param.serviceType
       }
     },
 
     memcachedep:: {
-    // K8s Deployment,
-    "apiVersion": "extensions/v1beta1",
-    "kind": "Deployment",
-    "metadata": {
-      "name": "memcached",
-    },
-    "spec": {
-      "replicas": 1,
-      "template": {
-        "metadata": {
-          "labels": {
-            "name": "memcached"
-          }
-        },
-        "spec": {
-          "containers": [
-            {
-              "args": [
-                "-m 64",
-                "-p 11211",
-                "-vv"
-              ],
-              "image": "memcached:1.4.25",
-              "imagePullPolicy": "IfNotPresent",
-              "name": "memcached",
-              "ports": [
-                {
-                  "containerPort": 11211,
-                  "name": "clients"
-                }
-              ]
+      "apiVersion": "extensions/v1beta1",
+      "kind": "Deployment",
+      "metadata": {
+        "name": "memcached",
+      },
+      "spec": {
+        "replicas": 1,
+        "template": {
+          "metadata": {
+            "labels": {
+              "name": "memcached"
             }
-          ]
+          },
+          "spec": {
+            "containers": [
+              {
+                "args": [
+                  "-m 64",
+                  "-p 11211",
+                  "-vv"
+                ],
+                "image": "memcached:1.4.25",
+                "imagePullPolicy": "IfNotPresent",
+                "name": "memcached",
+                "ports": [
+                  {
+                    "containerPort": 11211,
+                    "name": "clients"
+                  }
+                ]
+              }
+            ]
+          }
         }
       }
-    }
     },
 
     memcachesvc:: {
-      // K8s Deployment,
       "apiVersion": "v1",
       "kind": "Service",
       "metadata": {
