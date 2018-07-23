@@ -24,7 +24,7 @@ export default class Header extends React.Component {
   public render() {
     return (
       <header style={styles.header}>
-        <a href='/' style={styles.anchor}>
+        <a href="/" style={styles.anchor}>
           <span style={styles.google}>Google</span>
           <span style={styles.cloudPlatform}>Cloud Platform</span>
         </a>
