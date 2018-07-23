@@ -13,9 +13,9 @@ KUBEFLOW_CLOUD=${KUBEFLOW_CLOUD:-"minikube"}
 
 if [[ ! -d "${KUBEFLOW_REPO}" ]]; then
   if [ "${KUBEFLOW_VERSION}" == "master" ]; then
-	TAG=${KUBEFLOW_VERSION}
+        TAG=${KUBEFLOW_VERSION}
   else
-  	TAG=v${KUBEFLOW_VERSION}
+        TAG=v${KUBEFLOW_VERSION}
   fi
   TMPDIR=$(mktemp -d /tmp/tmp.kubeflow-repo-XXXX)
   curl -L -o ${TMPDIR}/kubeflow.tar.gz https://github.com/kubeflow/kubeflow/archive/${TAG}.tar.gz
