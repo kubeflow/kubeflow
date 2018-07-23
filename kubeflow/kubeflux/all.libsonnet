@@ -179,7 +179,6 @@
         "name": "flux-ip"
       },
       "spec": {
-        "externalTrafficPolicy": "Cluster",
         "ports": [
           {
             "port": 3030,
