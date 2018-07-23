@@ -36,7 +36,7 @@ fi
 
 while [ "$1" != "" ]; do
     PARAM=`echo $1 | awk -F= '{print $1}'`
-    case $PARAM in 
+    case $PARAM in
         -h | --help)
             usage
             exit
@@ -54,8 +54,8 @@ while [ "$1" != "" ]; do
 done
 
 if $ALL_FILES; then
-    fmt_files=($(git ls-files -- '*.go')) 
-else 
+    fmt_files=($(git ls-files -- '*.go'))
+else
     fmt_files=($(git diff --name-only ${repo_name}/master -- '*.go'))
 fi
 
@@ -65,8 +65,8 @@ fi
 for f in "${fmt_files[@]}"
 do
   if [[ "${f}" =~ "/vendor/" ]]; then
-  	continue
-  fi  
+        continue
+  fi
   gofmt -w "$f"
   goimports -w "$f"
   echo "Autoformatted $f"
