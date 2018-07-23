@@ -190,7 +190,7 @@
         "selector": {
           "name": "flux"
         },
-        "type": param.serviceType
+        "type": params.serviceType
       }
     },
 
