@@ -14,4 +14,4 @@ EXPECTED_APP_DIR=${TMPDIR}/kubeflow_ks_app
 if [[ ! -d ${EXPECTED_APP_DIR} ]]; then
   echo ${EXPECTED_APP_DIR} was not created
   exit 1
-fi	
+fi
