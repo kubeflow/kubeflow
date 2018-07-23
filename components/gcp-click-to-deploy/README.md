@@ -31,3 +31,37 @@ cd components/gcp-click-to-deploy
 npm install
 npm start
 ```
+
+## Deployment
+
+We have a dev instance running at [https://deploy-gcp.kubeflow.dev](https://deploy-gcp.kubeflow.dev)
+
+We have a dev instance running in our dev cluster
+
+```
+PROJECT=kubeflow-dev
+CLUSTER=dev-cluster
+NAMESPACE=gcp-deploy
+```
+
+To update the deployment run
+
+
+```
+make deploy-latest
+```
+
+this will
+
+  * build a new version of the image `gcr.io/kubeflow-images-public/gcp-click-to-deploy`
+  * Update the ksonnet component to use that image
+  * Update the deployment
+
+
+The script
+
+```
+./ks-app/create_gcp_deploy_sa.sh
+```
+  
+Can be used to create a service account to work with external DNS.
