@@ -14,8 +14,6 @@
 #
 IMG = gcr.io/kubeflow-images-public/gcp-click-to-deploy
 
-TAG := $(shell date +v%Y%m%d)-$(shell git describe --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6)
-
 
 CHANGED_FILES := $(shell git diff-files)
 
@@ -23,15 +21,18 @@ ifeq ($(strip $(CHANGED_FILES)),)
 # Changed files is empty; not dirty
 # Don't include --dirty because it could be dirty if files outside the ones we care
 # about changed.
-TAG := $(shell date +v%Y%m%d)-$(shell git describe --always)
+GIT_VERSION := $(shell git describe --always)
 else
-TAG := $(shell date +v%Y%m%d)-$(shell git describe --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6)
+GIT_VERSION := $(shell git describe --always)-dirty-$(shell git diff | shasum -a256 | cut -c -6)
 endif
+
+TAG := $(shell date +v%Y%m%d)-$(GIT_VERSION)
 
 all: build
 
 build:
-	docker build . -t $(IMG):$(TAG)
+	docker build . -t $(IMG):$(TAG) \
+		--label=git-verions=$(GIT_VERSION)
 	docker tag $(IMG):$(TAG) $(IMG):latest
 	@echo Built $(IMG):latest
 	@echo Built $(IMG):$(TAG)
@@ -42,6 +43,12 @@ build:
 push: build
 	gcloud docker -- push $(IMG):$(TAG)
 	@echo Pushed $(IMG) with  :$(TAG) tags
+
+update-image: push
+	cd ks-app && ks param set webapp image $(IMG):$(TAG)
+
+deploy-latest: update-image
+	cd ks-app && ks apply default -c webapp
 
 push-latest: push
 	gcloud container images add-tag --quiet $(IMG):$(TAG) $(IMG):latest --verbosity=info
