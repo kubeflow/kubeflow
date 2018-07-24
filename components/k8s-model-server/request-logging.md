@@ -26,5 +26,5 @@ Start sending requests, and the fluentd worker will stream them to Bigquery.
 
 ## Next steps:
 1. Support different backends other than Bigquery
-1. Support request id (so that the logs can be joined). [Issue]()
+1. Support request id (so that the logs can be joined). [Issue](https://github.com/kubeflow/kubeflow/issues/1220).
 1. Optionally logs response and other metadata. We probably need a log config other than just sampling probability.
