@@ -2,10 +2,11 @@ import * as React from 'react';
 
 const styles = {
   message: {
-    color: '#fff',
-    fontSize: '1.2em',
-  }
-}
+    fontSize: '1em',
+    margin: 20,
+    textAlign: 'center',
+  } as React.CSSProperties
+};
 
 export default class Page404 extends React.Component {
   public render() {
