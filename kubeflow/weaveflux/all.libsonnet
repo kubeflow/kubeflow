@@ -1,8 +1,8 @@
 {
   // Define the various prototypes you want to support.
   // Each prototype should be a list of different parts that together
-  // provide a userful function such as WeaveWorks Flux
-  kubeflux(params, env):: [
+  // provide a userful function such as Weaveworks Flux
+  weaveflux(params, env):: [
     $.parts(params, env).fluxip,
     $.parts(params, env).flux,
     $.parts(params, env).memcachedep,
@@ -25,232 +25,231 @@
     // local namespace = if std.objectHas(params, "namespace") then params.namespace else env.namespace,
 
     serviceAccount:: {
-        "apiVersion": "v1",
-        "kind": "ServiceAccount",
-        "metadata": {
-          "labels": {
-            "name": "flux",
-          },
-          "name": "flux"
-        }
+      apiVersion: "v1",
+      kind: "ServiceAccount",
+      metadata: {
+        labels: {
+          name: "flux",
+        },
+        name: "flux",
       },
+    },
 
     role:: {
-        "apiVersion": "rbac.authorization.k8s.io/v1beta1",
-        "kind": "ClusterRole",
-        "metadata": {
-          "labels": {
-            "name": "flux",
-          },
-          "name": "flux"
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
+      kind: "ClusterRole",
+      metadata: {
+        labels: {
+          name: "flux",
         },
-        "rules": [
-          {
-            "apiGroups": [
-              "*"
-            ],
-            "resources": [
-              "*"
-            ],
-            "verbs": [
-              "*"
-            ]
-          },
-          {
-            "nonResourceURLs": [
-              "*"
-            ],
-            "verbs": [
-              "*"
-            ]
-          }
-        ]
+        name: "flux",
       },
+      rules: [
+        {
+          apiGroups: [
+            "*",
+          ],
+          resources: [
+            "*",
+          ],
+          verbs: [
+            "*",
+          ],
+        },
+        {
+          nonResourceURLs: [
+            "*",
+          ],
+          verbs: [
+            "*",
+          ],
+        },
+      ],
+    },
 
-      roleBinding:: {
-        "apiVersion": "rbac.authorization.k8s.io/v1beta1",
-        "kind": "ClusterRoleBinding",
-        "metadata": {
-          "labels": {
-            "name": "flux",
-          },
-          "name": "flux"
+    roleBinding:: {
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
+      kind: "ClusterRoleBinding",
+      metadata: {
+        labels: {
+          name: "flux",
         },
-        "roleRef": {
-          "apiGroup": "rbac.authorization.k8s.io",
-          "kind": "ClusterRole",
-          "name": "flux"
-        },
-        "subjects": [
-          {
-            "kind": "ServiceAccount",
-            "name": "flux",
-            "namespace": params.namespace
-          }
-        ]
+        name: "flux",
       },
+      roleRef: {
+        apiGroup: "rbac.authorization.k8s.io",
+        kind: "ClusterRole",
+        name: "flux",
+      },
+      subjects: [
+        {
+          kind: "ServiceAccount",
+          name: "flux",
+          namespace: params.namespace,
+        },
+      ],
+    },
 
     secret:: {
       // K8s Deployment,
-      "apiVersion": "v1",
-      "kind": "Secret",
-      "metadata": {
-        "name": "flux-git-deploy",
+      apiVersion: "v1",
+      kind: "Secret",
+      metadata: {
+        name: "flux-git-deploy",
       },
-      "type": "Opaque"
+      type: "Opaque",
     },
 
     flux:: {
       // K8s Deployment,
-      "apiVersion": "apps/v1beta1",
-      "kind": "Deployment",
-      "metadata": {
-        "name": "flux",
+      apiVersion: "apps/v1beta1",
+      kind: "Deployment",
+      metadata: {
+        name: "flux",
       },
-      "spec": {
-        "replicas": 1,
-        "strategy": {
-          "type": "Recreate"
+      spec: {
+        replicas: 1,
+        strategy: {
+          type: "Recreate",
         },
-        "template": {
-          "metadata": {
-            "labels": {
-              "name": "flux"
-            }
+        template: {
+          metadata: {
+            labels: {
+              name: "flux",
+            },
           },
-          "spec": {
-            "containers": [
+          spec: {
+            containers: [
               {
-                "args": [
+                args: [
                   "--ssh-keygen-dir=/var/fluxd/keygen",
-                  "--git-url="+params.giturl,
-                  "--git-branch=master"
+                  "--git-url=" + params.giturl,
+                  "--git-branch=master",
                 ],
-                "image": "quay.io/weaveworks/flux:1.4.2",
-                "imagePullPolicy": "IfNotPresent",
-                "name": "flux",
-                "ports": [
+                image: "quay.io/weaveworks/flux:1.4.2",
+                imagePullPolicy: "IfNotPresent",
+                name: "flux",
+                ports: [
                   {
-                    "containerPort": 3030
-                  }
+                    containerPort: 3030,
+                  },
                 ],
-                "volumeMounts": [
+                volumeMounts: [
                   {
-                    "mountPath": "/etc/fluxd/ssh",
-                    "name": "git-key",
-                    "readOnly": true
+                    mountPath: "/etc/fluxd/ssh",
+                    name: "git-key",
+                    readOnly: true,
                   },
                   {
-                    "mountPath": "/var/fluxd/keygen",
-                    "name": "git-keygen"
-                  }
-                ]
-              }
+                    mountPath: "/var/fluxd/keygen",
+                    name: "git-keygen",
+                  },
+                ],
+              },
             ],
-            "serviceAccount": "flux",
-            "volumes": [
+            serviceAccount: "flux",
+            volumes: [
               {
-                "name": "git-key",
-                "secret": {
-                  "defaultMode": 256,
-                  "secretName": "flux-git-deploy"
-                }
+                name: "git-key",
+                secret: {
+                  defaultMode: 256,
+                  secretName: "flux-git-deploy",
+                },
               },
               {
-                "emptyDir": {
-                  "medium": "Memory"
+                emptyDir: {
+                  medium: "Memory",
                 },
-                "name": "git-keygen"
-              }
-            ]
-          }
-        }
-      }
+                name: "git-keygen",
+              },
+            ],
+          },
+        },
+      },
     },
 
     fluxip:: {
 
-      "apiVersion": "v1",
-      "kind": "Service",
-      "metadata": {
-        "labels": {
-          "app": "flux"
+      apiVersion: "v1",
+      kind: "Service",
+      metadata: {
+        labels: {
+          app: "flux",
         },
-        "name": "flux-ip"
+        name: "flux-ip",
       },
-      "spec": {
-        "ports": [
+      spec: {
+        ports: [
           {
-            "port": 3030,
-            "protocol": "TCP",
-            "targetPort": 3030
-          }
+            port: 3030,
+            protocol: "TCP",
+            targetPort: 3030,
+          },
         ],
-        "selector": {
-          "name": "flux"
+        selector: {
+          name: "flux",
         },
-        "type": params.serviceType
-      }
+        type: params.serviceType,
+      },
     },
 
     memcachedep:: {
-      "apiVersion": "extensions/v1beta1",
-      "kind": "Deployment",
-      "metadata": {
-        "name": "memcached",
+      apiVersion: "extensions/v1beta1",
+      kind: "Deployment",
+      metadata: {
+        name: "memcached",
       },
-      "spec": {
-        "replicas": 1,
-        "template": {
-          "metadata": {
-            "labels": {
-              "name": "memcached"
-            }
+      spec: {
+        replicas: 1,
+        template: {
+          metadata: {
+            labels: {
+              name: "memcached",
+            },
           },
-          "spec": {
-            "containers": [
+          spec: {
+            containers: [
               {
-                "args": [
+                args: [
                   "-m 64",
                   "-p 11211",
-                  "-vv"
+                  "-vv",
                 ],
-                "image": "memcached:1.4.25",
-                "imagePullPolicy": "IfNotPresent",
-                "name": "memcached",
-                "ports": [
+                image: "memcached:1.4.25",
+                imagePullPolicy: "IfNotPresent",
+                name: "memcached",
+                ports: [
                   {
-                    "containerPort": 11211,
-                    "name": "clients"
-                  }
-                ]
-              }
-            ]
-          }
-        }
-      }
+                    containerPort: 11211,
+                    name: "clients",
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      },
     },
 
     memcachesvc:: {
-      "apiVersion": "v1",
-      "kind": "Service",
-      "metadata": {
-        "name": "memcached"
+      apiVersion: "v1",
+      kind: "Service",
+      metadata: {
+        name: "memcached",
       },
-      "spec": {
-        "clusterIP": "None",
-        "ports": [
+      spec: {
+        clusterIP: "None",
+        ports: [
           {
-            "name": "memcached",
-            "port": 11211
-          }
+            name: "memcached",
+            port: 11211,
+          },
         ],
-        "selector": {
-          "name": "memcached"
-        }
-      }
+        selector: {
+          name: "memcached",
+        },
+      },
     },
-
 
 
   },
