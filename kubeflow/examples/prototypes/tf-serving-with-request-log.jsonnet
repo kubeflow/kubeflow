@@ -141,8 +141,8 @@ local deployment = {
             volumeMounts: [
               {
                 name: "request-logs",
-                mountPath: "/tmp/logs"
-              }
+                mountPath: "/tmp/logs",
+              },
             ],
           },
           // Logging container.
@@ -175,7 +175,7 @@ local deployment = {
               {
                 name: "fluentd-config-volume",
                 mountPath: "/fluentd/etc/custom",
-              }
+              },
             ],
           },
         ],
@@ -195,7 +195,7 @@ local deployment = {
               name: "fluentd-config",
             },
             name: "fluentd-config-volume",
-          }
+          },
         ],
       },
     },
