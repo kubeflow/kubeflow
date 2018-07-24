@@ -18,6 +18,7 @@ from __future__ import print_function
 
 from itertools import repeat
 import base64
+import json
 import logging
 import random
 
@@ -45,8 +46,9 @@ define("rpc_address", default='localhost', help="tf serving on the given address
 define("instances_key", default='instances', help="requested instances json object key")
 define("debug", default=False, help="run in debug mode")
 define("log_request", default=False, help="whether to log requests")
-define("request_log_file", default="/tmp/logs/request_logs")
-define("request_log_prob", default=0.1, help="probability to log the request (will be sampled uniformly)")
+define("request_log_file", default="/tmp/logs/request.log")
+define("request_log_pos_file", default="/tmp/logs/request.log.pos")
+define("request_log_prob", default=0.01, help="probability to log the request (will be sampled uniformly)")
 B64_KEY = 'b64'
 WELCOME = "Hello World"
 MODEL_SERVER_METADATA_TIMEOUT_SEC = 20
@@ -252,10 +254,10 @@ class PredictHandler(tornado.web.RequestHandler):
     predictions = [dict(zip(*t)) for t in zip(repeat(output_keys), predictions)]
     self.write(dict(predictions=predictions))
 
-    if self.settings['request_logger'] is not None
+    if self.settings['request_logger'] is not None:
       for instance in instances:
         if random.random() < self.settings['request_log_prob']:
-          self.settings['request_logger'].info(instance)
+          self.settings['request_logger'].info(json.dumps(instance))
 
 
 class ClassifyHandler(tornado.web.RequestHandler):
@@ -318,6 +320,8 @@ def main():
     rorate_handler = logging.handlers.RotatingFileHandler(
         options.request_log_file, maxBytes=1000000, backupCount=1)
     request_logger.addHandler(rorate_handler)
+    # touch the pos file.
+    open(options.request_log_pos_file, "a").close()
   else:
     request_logger = None
 

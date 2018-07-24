@@ -1,7 +1,7 @@
 // @apiVersion 0.1
-// @name io.ksonnet.pkg.tf-serving-simple
-// @description tf-serving-simple
-// @shortDescription tf-serving-simple
+// @name io.ksonnet.pkg.tf-serving-request-log
+// @description tf-serving with request logging
+// @shortDescription tf-serving with request logging
 // @param name string Name to give to each of the components
 
 local k = import "k.libsonnet";
@@ -11,13 +11,11 @@ local appName = import "param://name";
 local modelBasePath = "gs://kubeflow-examples-data/mnist";
 local modelName = "mnist";
 local image = "gcr.io/kubeflow-images-public/tf-model-server-cpu:v20180327-995786ec";
-local httpProxyImage = "gcr.io/kubeflow-images-public/tf-model-server-http-proxy:v20180717";
-local loggingImage = "gcr.io/kubeflow-images-public/tf-model-server-request-logger:v20180717";
+local httpProxyImage = "gcr.io/kubeflow-images-public/tf-model-server-http-proxy:v20180723";
+local loggingImage = "gcr.io/kubeflow-images-public/tf-model-server-request-logger:v20180723";
 
-local gcpSecretName = "SET_THIS";
-local gcpProject = "SET_THIS";
-local bigQueryDataset = "SET_THIS";
-local bigQueryTable = "SET_THIS";
+// Change this!
+local gcpSecretName = "TBD";
 
 local service = {
   apiVersion: "v1",
@@ -46,6 +44,18 @@ local service = {
       app: appName,
     },
     type: "ClusterIP",
+  },
+};
+
+local configMap = {
+  apiVersion: "v1",
+  kind: "ConfigMap",
+  metadata: {
+    name: "fluentd-config",
+    namespace: namespace,
+  },
+  data: {
+    "fluent.conf": (importstr "kubeflow/examples/fluent.conf"),
   },
 };
 
@@ -99,7 +109,7 @@ local deployment = {
           {
             name: "mnist-http-proxy",
             image: httpProxyImage,
-            imagePullPolicy: "IfNotPresent",
+            imagePullPolicy: "Always",
             command: [
               "python",
               "/usr/src/app/server.py",
@@ -138,15 +148,8 @@ local deployment = {
           // Logging container.
           {
             name: "mnist-logging",
-            image: loggingImage",
-            imagePullPolicy: "IfNotPresent",
-            command: [
-              "python",
-              "/usr/src/app/logging_worker.py",
-              "project=" + gcpProject,
-              "dataset=" + bigQueryDataset,
-              "table=" + bigQueryTable,
-            ],
+            image: loggingImage,
+            imagePullPolicy: "Always",
             env: [
               { name: "GOOGLE_APPLICATION_CREDENTIALS", value: "/secret/gcp-credentials/key.json" },
             ],
@@ -160,19 +163,19 @@ local deployment = {
                 cpu: "0.5",
               },
             },
-            securityContext: {
-              runAsUser: 1000,
-              fsGroup: 1000,
-            },
             volumeMounts: [
               {
                 name: "request-logs",
-                mountPath: "/tmp/logs"
+                mountPath: "/tmp/logs",
               },
               {
                 name: "gcp-credentials",
                 mountPath: "/secret/gcp-credentials",
               },
+              {
+                name: "fluentd-config-volume",
+                mountPath: "/fluentd/etc/custom",
+              }
             ],
           },
         ],
@@ -187,6 +190,12 @@ local deployment = {
             name: "request-logs",
             emptyDir: {},
           },
+          {
+            configMap: {
+              name: "fluentd-config",
+            },
+            name: "fluentd-config-volume",
+          }
         ],
       },
     },
@@ -196,4 +205,5 @@ local deployment = {
 k.core.v1.list.new([
   service,
   deployment,
+  configMap,
 ])
