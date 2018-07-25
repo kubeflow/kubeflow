@@ -418,7 +418,7 @@
               "--project=" + project,
               "--app_dir=" + tfOperatorRoot + "/test/workflows",
               "--tfjob_version=v1alpha1",
-              "--component=simple_tfjob",
+              "--component=simple_tfjob_v1alpha2",
               // Name is used for the test case name so it should be unique across
               // all E2E tests.
               "--params=name=simple-tfjob-" + platform + ",namespace=" + stepsNamespace + ",apiVersion=kubeflow.org/" + "v1alpha1" + ",image=" + "gcr.io/tf-on-k8s-dogfood/tf_sample:dc944ff",
