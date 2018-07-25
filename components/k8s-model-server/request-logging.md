@@ -6,14 +6,14 @@ It currently supports streaming to BigQuery.
 Logging the requests and responses enables log analysis, continuous training, and skew detection.
 
 ## Usage:
-Create a GCP service account that has access to insert to your bigquery dataset.
-Create a secret in the cluster with the service account json key.
+Create the Bigquery dataset D and table T under your project P.
+The schema should also be set.
+
 ```
-ks pkg install kubeflow/examples
-ks generate tf-serving-request-log mnist
+ks pkg install kubeflow/tf-serving
+ks generate tf-serving-request-log mnist --gcpProject=P --dataset=D --table=T
 ```
 
-Modify bigquery dataset and schema in `fluent.conf`.
 Modify `tf-serving-with-request-log.jsonnet` as needed:
   - change the param of http proxy for logging, e.g. `--request_log_prob=0.1` (Default is 0.01).
 

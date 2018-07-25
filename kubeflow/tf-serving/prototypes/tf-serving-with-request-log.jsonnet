@@ -3,13 +3,16 @@
 // @description tf-serving with request logging
 // @shortDescription tf-serving with request logging
 // @param name string Name to give to each of the components
+// @param gcpProject string The gcp project for Bigquery dataset
+// @param dataset string The Bigquery dataset
+// @param table string The Bigquery table
+// @optionalParam modelBasePath string gs://kubeflow-examples-data/mnist The model path
+// @optionalParam modelName string mnist The model name
 
 local k = import "k.libsonnet";
 
 local namespace = "kubeflow";
 local appName = import "param://name";
-local modelBasePath = "gs://kubeflow-examples-data/mnist";
-local modelName = "mnist";
 local image = "gcr.io/kubeflow-images-public/tf-model-server-cpu:v20180327-995786ec";
 local httpProxyImage = "gcr.io/kubeflow-images-public/tf-model-server-http-proxy:v20180723";
 local loggingImage = "gcr.io/kubeflow-images-public/tf-model-server-request-logger:v20180723";
@@ -50,11 +53,29 @@ local configMap = {
   apiVersion: "v1",
   kind: "ConfigMap",
   metadata: {
-    name: "fluentd-config",
+    name: appName + "fluentd-config",
     namespace: namespace,
   },
   data: {
-    "fluent.conf": (importstr "kubeflow/examples/fluent.conf"),
+    "fluent.conf": std.format(|||
+        <source>
+          @type tail
+          path /tmp/logs/request.log
+          pos_file /tmp/logs/request.log.pos
+          <parse>
+            @type json
+          </parse>
+          tag dummy
+        </source>
+        <match dummy>
+          @type bigquery_insert
+          auth_method application_default
+          project %s
+          dataset %s
+          table %s
+          fetch_schema true
+        </match>
+|||, [params.gcpProject, params.dataset, params.table]),
   },
 };
 
@@ -82,8 +103,8 @@ local deployment = {
             args: [
               "/usr/bin/tensorflow_model_server",
               "--port=9000",
-              "--model_name=" + modelName,
-              "--model_base_path=" + modelBasePath,
+              "--model_name=" + params.modelName,
+              "--model_base_path=" + params.modelBasePath,
             ],
             image: image,
             imagePullPolicy: "IfNotPresent",
