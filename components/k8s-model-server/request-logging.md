@@ -15,7 +15,6 @@ ks generate tf-serving-request-log mnist
 
 Modify bigquery dataset and schema in `fluent.conf`.
 Modify `tf-serving-with-request-log.jsonnet` as needed:
-  - change the gcpSecretName
   - change the param of http proxy for logging, e.g. `--request_log_prob=0.1` (Default is 0.01).
 
 ```

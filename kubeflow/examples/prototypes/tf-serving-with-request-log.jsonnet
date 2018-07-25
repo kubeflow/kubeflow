@@ -14,8 +14,7 @@ local image = "gcr.io/kubeflow-images-public/tf-model-server-cpu:v20180327-99578
 local httpProxyImage = "gcr.io/kubeflow-images-public/tf-model-server-http-proxy:v20180723";
 local loggingImage = "gcr.io/kubeflow-images-public/tf-model-server-request-logger:v20180723";
 
-// Change this!
-local gcpSecretName = "TBD";
+local gcpSecretName = "user-gcp-sa";
 
 local service = {
   apiVersion: "v1",

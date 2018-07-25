@@ -1,5 +1,7 @@
 FROM fluent/fluentd:v1.2-debian
 
+# Fluentd image with plugin installed.
+
 RUN buildDeps="sudo make gcc g++ libc-dev ruby-dev" \
  && apt-get update \
  && apt-get install -y --no-install-recommends $buildDeps \
