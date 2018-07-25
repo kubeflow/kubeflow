@@ -58,24 +58,24 @@ local configMap = {
   },
   data: {
     "fluent.conf": std.format(|||
-        <source>
-          @type tail
-          path /tmp/logs/request.log
-          pos_file /tmp/logs/request.log.pos
-          <parse>
-            @type json
-          </parse>
-          tag dummy
-        </source>
-        <match dummy>
-          @type bigquery_insert
-          auth_method application_default
-          project %s
-          dataset %s
-          table %s
-          fetch_schema true
-        </match>
-|||, [params.gcpProject, params.dataset, params.table]),
+      <source>
+        @type tail
+        path /tmp/logs/request.log
+        pos_file /tmp/logs/request.log.pos
+        <parse>
+          @type json
+        </parse>
+        tag dummy
+      </source>
+      <match dummy>
+        @type bigquery_insert
+        auth_method application_default
+        project %s
+        dataset %s
+        table %s
+        fetch_schema true
+      </match>
+    |||, [params.gcpProject, params.dataset, params.table]),
   },
 };
 
