@@ -26,3 +26,4 @@ workflows:
       - postsubmit
     include_dirs:
       - kubeflow/tf-serving/*
+      - components/k8s-model-server/*
