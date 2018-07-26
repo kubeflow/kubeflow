@@ -417,7 +417,7 @@
               "--zone=" + zone,
               "--project=" + project,
               "--app_dir=" + tfOperatorRoot + "/test/workflows",
-              "--tfjob_version=v1alpha1",
+              "--tfjob_version=v1alpha2",
               "--component=simple_tfjob_v1alpha2",
               // Name is used for the test case name so it should be unique across
               // all E2E tests.
