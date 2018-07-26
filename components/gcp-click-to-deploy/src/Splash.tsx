@@ -42,14 +42,14 @@ const styles: { [p: string]: React.CSSProperties } = {
     color: '#777',
     padding: 50,
   },
-}
+};
 
 interface SplashProps {
   location: {
     state: {
       from: Location;
     }
-  }
+  };
 }
 
 // This element appears by default if the user tries to navigate to any page,
@@ -76,7 +76,7 @@ export default class Spash extends React.Component<SplashProps, { busy: boolean,
   public render() {
     // If the user is signed in, check to make sure we have something to
     // redirect back to, then do it.
-    const { from } = this.props.location.state || { from: { pathname: '/deploy' } };;
+    const { from } = this.props.location.state || { from: { pathname: '/deploy' } };
     if (this.state.signedIn) {
       return <Redirect to={from} />;
     }
@@ -85,21 +85,21 @@ export default class Spash extends React.Component<SplashProps, { busy: boolean,
       <div>
         <div style={styles.overlay} hidden={!this.state.busy}>
           <div style={styles.spinnerContainer}>
-            <CircularProgress id='sign-in-spinner' style={styles.spinner} />
+            <CircularProgress id="sign-in-spinner" style={styles.spinner} />
           </div>
         </div>
         <img src={hero} style={styles.heroImg} />
         <div style={styles.splashText}>
           <div style={styles.signInText}>
-            Sign in to use Kubeflow
+            Sign in to deploy Kubeflow
           </div>
           <div>
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do
-            eiusmod tempor incididunt ut labore et dolore magna.
+            Your credentials are needed to perform GCP actions and are stored
+            securely clientside in the web browser (never sent to Kubeflow
+            servers)
           </div>
 
-          You must login to view the page at {from.pathname}
-          <div id={signInButtonId} style={styles.signInButton} data-theme='dark' hidden={this.state.signedIn} />
+          <div id={signInButtonId} style={styles.signInButton} data-theme="dark" hidden={this.state.signedIn} />
         </div>
       </div>
     );

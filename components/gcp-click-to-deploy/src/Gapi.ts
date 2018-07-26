@@ -45,7 +45,7 @@ export default class Gapi {
         });
     }
 
-  }
+  };
 
   public static servicemanagement = class {
 
@@ -75,7 +75,7 @@ export default class Gapi {
         });
     }
 
-  }
+  };
 
   public static cloudresourcemanager = class {
 
@@ -89,7 +89,7 @@ export default class Gapi {
         });
     }
 
-  }
+  };
 
   public static async signIn(doPrompt?: boolean): Promise<void> {
     const rePromptOptions = 'login consent select_account';
