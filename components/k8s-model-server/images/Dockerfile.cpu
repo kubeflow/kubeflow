@@ -12,44 +12,75 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ARG base_image=ubuntu:16.04
+ARG base_image=centos:7
 FROM $base_image
 
-ARG package=http://storage.googleapis.com/tensorflow-serving-apt/pool/tensorflow-model-server/t/tensorflow-model-server/tensorflow-model-server_1.6.0_all.deb
-
-MAINTAINER Kenneth Owens <kowens@google.com>
+MAINTAINER Chad Roberts <croberts@redhat.com>
 
 ENV MS_USER=model-server
+USER root
 
-RUN     apt-get update && apt-get install -y software-properties-common && \
-        # TODO (pmackinn) see if explicit libstdc++6 is still really required with next pin
-        add-apt-repository ppa:ubuntu-toolchain-r/test -y && \
-        apt-get update && apt-get install -y \
+RUN yum --enablerepo=extras install -y epel-release && \
+    yum update -y && yum install -y \
         build-essential \
         curl \
-        libcurl3-dev \
         git \
-        libfreetype6-dev \
-        libpng12-dev \
-        libstdc++6 \
-        libzmq3-dev \
-        pkg-config \
-        python-dev \
-        python-numpy \
+        gcc \
+        gcc-c++ \
+        mlocate \
+        patch \
+        python-devel \
         python-pip \
         swig \
         zip \
-        zlib1g-dev && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+        wget \
+        unzip \
+        which \
+        && \
+    yum clean all
 
-RUN curl -o tensorflow-model-server.deb $package
-RUN dpkg -i tensorflow-model-server.deb
+# Set up grpc
+ENV LD_LIBRARY_PATH=/opt/rh/python27/root/usr/lib64
+RUN pip install --upgrade pip
+RUN pip install mock grpcio numpy
 
+# Set up Bazel.
+
+ENV BAZELRC /root/.bazelrc
+# Install the most recent bazel release.
+ENV BAZEL_VERSION 0.5.4
+WORKDIR /
+RUN mkdir /bazel && \
+    cd /bazel && \
+    curl -fSsL -O https://github.com/bazelbuild/bazel/releases/download/$BAZEL_VERSION/bazel-$BAZEL_VERSION-installer-linux-x86_64.sh && \
+    curl -fSsL -o /bazel/LICENSE.txt https://raw.githubusercontent.com/bazelbuild/bazel/master/LICENSE && \
+    chmod +x bazel-*.sh && \
+    ./bazel-$BAZEL_VERSION-installer-linux-x86_64.sh && \
+    cd / && \
+    rm -f /bazel/bazel-$BAZEL_VERSION-installer-linux-x86_64.sh
+
+ENV MS_USER=model-server
 RUN set -x \
     && useradd $MS_USER \
     && [ `id -u $MS_USER` -eq 1000 ] \
     && [ `id -g $MS_USER` -eq 1000 ]
+
+# Clone TensorFlow Serving repo and get submodules of TensorFlow Serving 1.6
+ENV TF_SERVING_VERSION=tags/1.6.0
+RUN cd /root && \
+    git clone --recurse-submodules https://github.com/tensorflow/serving && \
+    cd serving && \
+    git checkout $TF_SERVING_VERSION && \
+    git submodule init && \
+    git submodule update --recursive
+
+RUN cd /root/serving && \
+    bazel build -c opt tensorflow_serving/...
+
+# Add some softlinks for tensorflow model server and CUDA
+RUN ln -s /root/serving/bazel-bin/tensorflow_serving/model_servers/tensorflow_model_server /usr/bin/tensorflow_model_server
+
+CMD ["/bin/bash"]
 
 ENV TINI_VERSION v0.17.0
 
