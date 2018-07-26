@@ -197,6 +197,8 @@ ks generate jupyterhub jupyterhub --cloud=${KUBEFLOW_CLOUD} --disks="kubeflow-gc
 ks generate centraldashboard centraldashboard
 ks generate tf-job-operator tf-job-operator
 
+ks generate argo argo
+
 if ! ${PRIVATE_CLUSTER}; then
   # Enable collection of anonymous usage metrics
   # Skip this step if you don't want to enable collection.
@@ -213,6 +215,7 @@ if ${KUBEFLOW_DEPLOY}; then
   ks apply default -c jupyterhub
   ks apply default -c centraldashboard
   ks apply default -c tf-job-operator
+  ks apply default -c argo
   if ! ${PRIVATE_CLUSTER}; then
     ks apply default -c spartakus
     ks apply default -c cloud-endpoints
