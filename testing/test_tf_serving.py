@@ -80,11 +80,12 @@ def main():
   core_api = k8s_client.CoreV1Api(api_client)
   try:
     with open(args.input_path) as f:
-      instances = f.read()
+      instances = json.loads(f.read())
 
     service = core_api.read_namespaced_service(args.service_name, args.namespace)
     service_ip = service.spec.cluster_ip
-    result = requests.get("http://" + service_ip + ":8000")
+    model_url = "http://" + service_ip + ":8000/model/mnist:predict"
+    result = requests.post(model_url, data=instances)
     logging.info(result.text)
 
     #server = "{}.{}.svc.cluster.local:8000".format(args.service_name, args.namespace)
