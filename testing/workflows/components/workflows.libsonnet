@@ -260,17 +260,8 @@
                     {},
                   {
                     name: "tfjob-test",
-                    template: "tfjob-test",
-                    dependencies: [
-                      if platform == "minikube" then
-                        "deploy-kubeflow"
-                      else
-                        "wait-for-kubeflow",
-                    ],
-                  },
-                  {
-                    name: "tfjob-simple-prototype-test",
-                    template: "tfjob-simple-prototype-test",
+                    template: "tfjob-test" + v1alpha2Suffix
+                    ,
                     dependencies: [
                       if platform == "minikube" then
                         "deploy-kubeflow"
@@ -477,22 +468,6 @@
               "testing.tf_job_simple_test",
               "--src_dir=" + srcDir,
             ]),  // tfjob-simple-prototype-test
-            buildTemplate("tfjob-test", [
-              "python",
-              "-m",
-              "py.test_runner",
-              "test",
-              "--cluster=" + cluster,
-              "--zone=" + zone,
-              "--project=" + project,
-              "--app_dir=" + tfOperatorRoot + "/test/workflows",
-              "--tfjob_version=v1alpha1",
-              "--component=simple_tfjob",
-              // Name is used for the test case name so it should be unique across
-              // all E2E tests.
-              "--params=name=simple-tfjob-" + platform + ",namespace=" + stepsNamespace + ",apiVersion=kubeflow.org/" + "v1alpha1" + ",image=" + "gcr.io/tf-on-k8s-dogfood/tf_sample:dc944ff",
-              "--junit_path=" + artifactsDir + "/junit_e2e-" + platform + ".xml",
-            ]),  // run tests
             buildTemplate("tfjob-test" + v1alpha2Suffix, [
               "python",
               "-m",
@@ -503,10 +478,10 @@
               "--project=" + project,
               "--app_dir=" + tfOperatorRoot + "/test/workflows",
               "--tfjob_version=v1alpha2",
-              "--component=simple_tfjob",
+              "--component=simple_tfjob_v1alpha2",
               // Name is used for the test case name so it should be unique across
               // all E2E tests.
-              "--params=name=simple-tfjob-" + platform + ",namespace=" + stepsNamespace + ",apiVersion=kubeflow.org/" + "v1alpha2" + ",image=" + "gcr.io/kubeflow-ci/tf-dist-mnist-test:1.0",
+              "--params=name=simple-tfjob-" + platform + ",namespace=" + stepsNamespace,
               "--junit_path=" + artifactsDir + "/junit_e2e-" + platform + v1alpha2Suffix + ".xml",
             ], kubeConfig="v1alpha2"),  // run tests
             buildTemplate("pytorchjob-deploy", [
