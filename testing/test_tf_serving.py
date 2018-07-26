@@ -73,13 +73,21 @@ def main():
   t.name = "tf-serving-image-" + args.service_name
 
   start = time.time()
+  api_client = k8s_client.ApiClient()
+  core_client = k8s_client.CoreV1Api(api_client)
   try:
     with open(args.input_path) as f:
       instances = f.read()
 
-    server = "{}.{}.svc.cluster.local:8000".format(args.service_name, args.namespace)
-    result = requests.get(server)
-    logging.info(result)
+    service = core_client.read_namespaced_service(args.service_name, args.namespace)
+    logging.info(service)
+    logging.info(service.__dict__)
+    logging.info(service.status)
+    logging.info(service.spec)
+
+    #server = "{}.{}.svc.cluster.local:8000".format(args.service_name, args.namespace)
+    #result = requests.get(server)
+    #logging.info(result)
 
     # channel = implementations.insecure_channel(server, args.port)
     # stub = prediction_service_pb2.beta_create_PredictionService_stub(channel)
