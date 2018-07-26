@@ -55,10 +55,10 @@ def main():
     help="Directory to use for artifacts that should be preserved after "
          "the test runs. Defaults to test_dir if not set.")
   parser.add_argument(
-    "--image_path",
+    "--input_path",
     required=True,
     type=str,
-    help=("The image to use."))
+    help=("The input file to use."))
   parser.add_argument(
     "--result_path",
     type=str,
@@ -72,40 +72,46 @@ def main():
 
   start = time.time()
   try:
-    server = "{}.{}.svc.cluster.local".format(args.service_name, args.namespace)
-    channel = implementations.insecure_channel(server, args.port)
-    stub = prediction_service_pb2.beta_create_PredictionService_stub(channel)
+    with open(args.input_path) as f:
+      instances = f.read()
 
-    with tf.gfile.Open(args.image_path) as img:
-      raw_image = (img.read())
+    server = "{}.{}.svc.cluster.local:8000".format(args.service_name, args.namespace)
+    result = requests.get(server)
+    logging.info(result)
 
-    # Send request
-    # See prediction_service.proto for gRPC request/response details.
-    request = predict_pb2.PredictRequest()
-    request.model_spec.name = args.service_name
-    request.model_spec.signature_name = 'predict_images'
-    request.inputs['images'].CopyFrom(
-        tf.make_tensor_proto(raw_image, shape=[1,]))
+    # channel = implementations.insecure_channel(server, args.port)
+    # stub = prediction_service_pb2.beta_create_PredictionService_stub(channel)
 
-    num_try = 1
-    result = None
-    while True:
-      try:
-        result = str(stub.Predict(request, 10.0))  # 10 secs timeout
-      except Exception as e:
-        num_try += 1
-        if num_try > 10:
-          raise
-        logging.info('prediction failed: {}. Retrying...'.format(e))
-        time.sleep(5)
-      else:
-        break
-    logging.info('Got result: {}'.format(result))
-    if args.result_path:
-      with open(args.result_path) as f:
-        expected_result = f.read()
-        logging.info('Expected result: {}'.format(expected_result))
-        assert(expected_result == result)
+    # with tf.gfile.Open(args.image_path) as img:
+    #   raw_image = (img.read())
+
+    # # Send request
+    # # See prediction_service.proto for gRPC request/response details.
+    # request = predict_pb2.PredictRequest()
+    # request.model_spec.name = args.service_name
+    # request.model_spec.signature_name = 'predict_images'
+    # request.inputs['images'].CopyFrom(
+    #     tf.make_tensor_proto(raw_image, shape=[1,]))
+
+    # num_try = 1
+    # result = None
+    # while True:
+    #   try:
+    #     result = str(stub.Predict(request, 10.0))  # 10 secs timeout
+    #   except Exception as e:
+    #     num_try += 1
+    #     if num_try > 10:
+    #       raise
+    #     logging.info('prediction failed: {}. Retrying...'.format(e))
+    #     time.sleep(5)
+    #   else:
+    #     break
+    # logging.info('Got result: {}'.format(result))
+    # if args.result_path:
+    #   with open(args.result_path) as f:
+    #     expected_result = f.read()
+    #     logging.info('Expected result: {}'.format(expected_result))
+    #     assert(expected_result == result)
   except Exception as e:
     t.failure = "Test failed; " + e.message
     raise

@@ -90,7 +90,8 @@
       local deployParams = {
         name: "inception-cpu",
         namespace: stepsNamespace,
-        modelPath: "gs://kubeflow-models/inception",
+        modelPath: "gs://kubeflow-examples-data/mnist",
+        deployHttpProxy: true,
       } + if build_image then
         {
           modelServerImage: cpuImage,
@@ -98,7 +99,8 @@
       local deployGpuParams = {
         name: "inception-gpu",
         namespace: stepsNamespace,
-        modelPath: "gs://kubeflow-models/inception",
+        modelPath: "gs://kubeflow-examples-data/mnist",
+        deployHttpProxy: true,
         numGpus: 1,
       };
 
@@ -195,7 +197,7 @@
             "--namespace=" + stepsNamespace,
             "--artifacts_dir=" + artifactsDir,
             "--service_name=" + serviceName,
-            "--image_path=" + srcDir + "/components/k8s-model-server/inception-client/images/sleeping-pepper.jpg",
+            "--input_path=" + srcDir + "/components/k8s-model-server/test-data/mnist_input.json",
             "--result_path=" + srcDir + resultFile,
           ],
           env: prow_env + [
