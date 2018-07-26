@@ -83,9 +83,8 @@ def main():
       instances = f.read()
 
     service = core_api.read_namespaced_service(args.service_name, args.namespace)
-    logging.info(service)
-    logging.info(service.spec.cluster_ip)
-    result = requests.get(cluster_ip + ":8000")
+    service_ip = service.spec.cluster_ip
+    result = requests.get(service_ip + ":8000")
     logging.info(result.text)
 
     #server = "{}.{}.svc.cluster.local:8000".format(args.service_name, args.namespace)
