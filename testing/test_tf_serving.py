@@ -30,6 +30,7 @@ from tensorflow_serving.apis import predict_pb2
 from tensorflow_serving.apis import prediction_service_pb2
 
 from kubeflow.testing import test_util
+from kubeflow.testing import util
 
 
 def main():
@@ -73,17 +74,19 @@ def main():
   t.name = "tf-serving-image-" + args.service_name
 
   start = time.time()
+
+  util.load_kube_config(persist_config=False)
   api_client = k8s_client.ApiClient()
-  core_client = k8s_client.CoreV1Api(api_client)
+  core_api = k8s_client.CoreV1Api(api_client)
   try:
     with open(args.input_path) as f:
       instances = f.read()
 
-    service = core_client.read_namespaced_service(args.service_name, args.namespace)
+    service = core_api.read_namespaced_service(args.service_name, args.namespace)
     logging.info(service)
-    logging.info(service.__dict__)
-    logging.info(service.status)
-    logging.info(service.spec)
+    logging.info(service.spec.cluster_ip)
+    result = requests.get(cluster_ip + ":8000")
+    logging.info(result.text)
 
     #server = "{}.{}.svc.cluster.local:8000".format(args.service_name, args.namespace)
     #result = requests.get(server)
