@@ -16,13 +16,15 @@
 
 from __future__ import print_function
 
+
+import argparse
 import logging
 import os
 import time
 
-import argparse
 from grpc.beta import implementations
 from kubernetes import client as k8s_client
+import requests
 import tensorflow as tf
 from tensorflow_serving.apis import predict_pb2
 from tensorflow_serving.apis import prediction_service_pb2
