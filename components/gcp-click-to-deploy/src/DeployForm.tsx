@@ -1,4 +1,3 @@
-import { createMuiTheme, MuiThemeProvider } from '@material-ui/core';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -10,7 +9,7 @@ import glamorous from 'glamorous';
 import * as jsYaml from 'js-yaml';
 import * as React from 'react';
 import Gapi from './Gapi';
-import { flattenDeploymentOperationError, log } from './Utils';
+import { flattenDeploymentOperationError, log, wait } from './Utils';
 
 // TODO(jlewi): Can we fetch these directly from GitHub so we always get the latest value?
 // When I tried using fetch API to do that I ran into errors that I interpreted as chrome blocking
@@ -27,101 +26,92 @@ import clusterJinjaPath from './configs/cluster.jinja';
 // <hostname>.endpoints.<Project>.cloud.goog
 
 interface DeployFormState {
-  clusterJinja: string;
-  clusterSpec: any;
   deploymentName: string;
-  email: string;
-  error: string;
-  errorMessage: string;
+  dialogTitle: string;
+  dialogBody: string;
   hostName: string;
   ipName: string;
   project: string;
+  showLogs: boolean;
   zone: string;
 }
 
 const Text = glamorous.div({
   color: '#555',
-  margin: '30px',
+  fontSize: 20,
+  margin: '30px 60px',
 });
+
+const logsContainerStyle = (show: boolean) => {
+  return {
+    bottom: 0,
+    height: show ? 120 : 0,
+    left: 0,
+    padding: 0,
+    position: 'fixed',
+    right: 0,
+    transition: 'height 0.3s',
+  } as React.CSSProperties;
+};
+
+const logsToggle: React.CSSProperties = {
+  color: '#fff',
+  fontWeight: 'bold',
+  left: 20,
+  position: 'absolute',
+  top: -40,
+};
 
 const LogsArea = glamorous.textarea({
   backgroundColor: '#333',
+  border: 0,
   boxSizing: 'border-box',
-  color: '#fff',
-  flexGrow: 1,
-  fontSize: 13,
-  margin: '0 auto',
-  maxWidth: 600,
-  minHeight: 200,
-  padding: 5,
+  color: '#bbb',
+  fontFamily: 'Source Code Pro',
+  fontSize: 15,
+  height: '100%',
+  padding: 20,
   width: '100%',
 });
 
 const Row = glamorous.div({
   display: 'flex',
-  marginBottom: 5,
-  minHeight: 35,
-});
-
-const Label = glamorous.label({
-  alignSelf: 'center',
-  color: '#555',
-  paddingLeft: 50,
-  textAlign: 'left',
-  width: 200,
+  marginBottom: 12,
+  minHeight: 56,
 });
 
 const Input = glamorous(TextField)({
   backgroundColor: '#f7f7f7',
   borderRadius: 4,
   color: '#666',
-  width: '50%',
+  margin: '0px 60px !important',
+  width: '100%',
 });
 
 const DeployBtn = glamorous(Button)({
-  margin: '20px !important',
-  width: 200,
+  marginRight: '20px !important',
+  width: 180,
 });
 
-const theme = createMuiTheme({
-  overrides: {
-    MuiButton: {
-      containedPrimary: {
-        fontWeight: 'inherit',
-      },
-    },
-    MuiInput: {
-      input: {
-        fontSize: 15,
-        height: 25,
-        padding: 5,
-      },
-      underline: {
-        '&:before': {
-          borderBottom: '1px solid #ccc',
-        },
-        '&:hover:not($disabled):not($focused):not($error):before': {
-          borderBottom: '1px solid #555',
-        },
-      },
-    },
-  },
+const YamlBtn = glamorous(Button)({
+  width: 125,
 });
 
 export default class DeployForm extends React.Component<any, DeployFormState> {
 
+  private _clusterJinja = '';
+  private _clusterSpec: any;
+
   constructor(props: any) {
     super(props);
     this.state = {
-      clusterJinja: '',
-      clusterSpec: '',
       deploymentName: 'kubeflow',
-      email: 'john@doe.com',
-      error: '',
-      errorMessage: '',
+      dialogBody: '',
+      dialogTitle: '',
       hostName: '<HOST>.endpoints.<PROJECT>.cloud.goog',
       ipName: 'kubeflow',
       project: 'cloud-ml-dev',
+      showLogs: false,
       zone: 'us-east1-d',
     };
   }
@@ -132,19 +122,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     // be able to click submit until the fetches have succeeded. How can we do
     // that?
 
-    const email = await Gapi.getSignedInEmail();
-    if (!email) {
-      this.setState({
-        error: 'You are not signed in',
-        errorMessage: 'You must be signed in to use deploy Kubeflow to your GCP account.',
-      });
-      return;
-    }
-
-    this.setState({
-      email,
-    });
-
     this._appendLine('loadClusterJinjaPath');
     // Load the jinja template into a string because 
     // we will need it for the deployments insert request.
@@ -154,13 +131,11 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         return response.text();
       })
       .then((text) => {
-        this.setState({
-          clusterJinja: text,
-        });
+        this._clusterJinja = text;
         log('Loaded clusterJinja successfully');
       })
       .catch((error) => {
-        log('Request failed', error)
+        log('Request failed', error);
       });
 
     this._appendLine('loadClusterSpec');
@@ -171,73 +146,78 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         return response.text();
       })
       .then((text) => {
-        this.setState({
-          clusterSpec: jsYaml.safeLoad(text),
-        });
+        this._clusterSpec = jsYaml.safeLoad(text);
         // log('Loaded clusterSpecPath successfully');
       })
       .catch((error) => {
-        log('Request failed', error)
+        log('Request failed', error);
       });
 
   }
 
   public render() {
     return (
-      <MuiThemeProvider theme={theme}>
-        <Text>To get started, fill out the fields below, then click create deployment.</Text>
+      <div>
+        <Text>Create a Kubeflow deployment</Text>
 
         <Row>
-          <Label>Project:</Label>
-          <Input name='project' spellCheck={false} theme={theme} value={this.state.project} onChange={this._handleChange.bind(this)} />
+          <Input name="project" label="Project" spellCheck={false} value={this.state.project} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
-          <Label>Deployment name:</Label>
-          <Input name='deploymentName' spellCheck={false} value={this.state.deploymentName} onChange={this._handleChange.bind(this)} />
+          <Input name="deploymentName" label="Deployment name" spellCheck={false} value={this.state.deploymentName} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
-          <Label>Zone:</Label>
-          <Input name='zone' spellCheck={false} value={this.state.zone} onChange={this._handleChange.bind(this)} />
+          <Input name="zone" label="Zone" spellCheck={false} value={this.state.zone} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
-          <Label>IP Name:</Label>
-          <Input name='ipName' spellCheck={false} value={this.state.ipName} onChange={this._handleChange.bind(this)} />
+          <Input name="ipName" label="IP name" spellCheck={false} value={this.state.ipName} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
-          <Label>Hostname:</Label>
-          <Input name='hostName' spellCheck={false} value={this.state.hostName} onChange={this._handleChange.bind(this)} />
-        </Row>
-        <Row>
-          <Label>Email for Lets Encrypt:</Label>
-          <Input name='email' spellCheck={false} value={this.state.email} onChange={this._handleChange.bind(this)} />
+          <Input name="hostName" label="Hostname" spellCheck={false} value={this.state.hostName} onChange={this._handleChange.bind(this)} />
         </Row>
 
-        <DeployBtn variant='contained' color='primary' onClick={this._createDeployment.bind(this)}>
-          Create Deployment
-        </DeployBtn>
+        <div style={{ display: 'flex', padding: '20px 60px 40px' }}>
+          <DeployBtn variant="contained" color="primary" onClick={this._createDeployment.bind(this)}>
+            Create Deployment
+          </DeployBtn>
 
-        <Text>Logs</Text>
-        <LogsArea id='logs' readOnly={true} />
+          <YamlBtn variant="outlined" color="default" onClick={this._showYaml.bind(this)}>
+            View YAML
+          </YamlBtn>
+        </div>
 
-        <Dialog open={!!this.state.error || !!this.state.errorMessage} keepMounted={true}
-          onClose={() => this.setState({ error: '', errorMessage: '' })}>
+        <div style={logsContainerStyle(this.state.showLogs)} >
+          <Button style={logsToggle} onClick={this._toggleLogs.bind(this)} >
+            {this.state.showLogs ? 'Hide ' : 'Show '} Logs
+          </Button>
+          <LogsArea id="logs" readOnly={true} />
+        </div>
+
+        <Dialog open={!!this.state.dialogTitle || !!this.state.dialogBody} keepMounted={true}
+          onClose={() => this.setState({ dialogTitle: '', dialogBody: '' })}>
           <DialogTitle>
-            {this.state.error}
+            {this.state.dialogTitle}
           </DialogTitle>
           <DialogContent>
             <DialogContentText>
-              {this.state.errorMessage}
+              {this.state.dialogBody}
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => this.setState({ error: '', errorMessage: '' })} color="primary">
+            <Button onClick={() => this.setState({ dialogTitle: '', dialogBody: '' })} color="primary">
               Close
             </Button>
           </DialogActions>
         </Dialog>
 
-      </MuiThemeProvider >
+      </div >
     );
+  }
+
+  private _toggleLogs() {
+    this.setState({
+      showLogs: !this.state.showLogs,
+    });
   }
 
   private _appendLine(newLine: any) {
@@ -246,40 +226,40 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     logsEl.scrollTop = logsEl.scrollHeight;
   }
 
-  // Create a  Kubeflow deployment.
-  private _createDeployment() {
-    for (const prop of ['project', 'zone', 'email', 'ipName', 'deploymentName', 'hostName']) {
-      if (this.state[prop] === '') {
-        this.setState({
-          error: 'Missing field',
-          errorMessage: 'All fields are required, but it looks like you missed something.',
-        });
-        return;
-      }
+  private async _showYaml() {
+    const yaml = await this._getYaml();
+    this.setState({
+      dialogBody: JSON.stringify(yaml) || 'Error getting YAML',
+      dialogTitle: yaml ? 'Deployment YAML' : 'Could not build deployment YAML',
+    });
+  }
+
+  private async _getYaml() {
+    if (!this.state.deploymentName) {
+      this.setState({
+        dialogBody: 'All fields are required, but it looks like you missed something.',
+        dialogTitle: 'Missing field',
+      });
+      return;
     }
 
-    const kubeflow = this.state.clusterSpec.resources[0]
+    const kubeflow = this._clusterSpec.resources[0];
 
     kubeflow.name = this.state.deploymentName;
     kubeflow.properties.zone = this.state.zone;
 
-    // Load the bootstrapper config.
     const config: any = jsYaml.safeLoad(kubeflow.properties.bootstrapperConfig);
 
     if (config == null) {
       this.setState({
-        error: 'Deployment Error',
-        errorMessage: 'Property bootstrapperConfig not found in deployment config.',
+        dialogBody: 'Property bootstrapperConfig not found in deployment config.',
+        dialogTitle: 'Deployment Error',
       });
       return;
     }
 
     const state = this.state;
     config.app.parameters.forEach((p: any) => {
-      if (p.name === 'acmeEmail') {
-        p.value = state.email;
-      }
-
       if (p.name === 'ipName') {
         p.value = state.ipName;
       }
@@ -289,43 +269,164 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       }
     });
 
-    this.state.clusterSpec.resources[0] = kubeflow;
-    const yamlClusterSpec = jsYaml.dump(this.state.clusterSpec);
-    this._appendLine('\n----------------\nNew deployment:');
-    this._appendLine('Spec:\n' + jsYaml.dump(yamlClusterSpec));
+    this._clusterSpec.resources[0] = kubeflow;
+    const clusterSpec = jsYaml.dump(this._clusterSpec);
 
-    const project = this.state.project;
-    const deploymentName = this.state.deploymentName;
-
-    const resource = {
-      'name': deploymentName,
+    return {
+      'name': this.state.deploymentName,
       'target': {
         'config': {
-          'content': yamlClusterSpec,
+          'content': clusterSpec,
         },
         'imports': [
           {
-            'content': this.state.clusterJinja,
+            'content': this._clusterJinja,
             'name': 'cluster.jinja',
           }
         ],
       },
     };
 
+  }
+
+  // Create a  Kubeflow deployment.
+  private async _createDeployment() {
+    for (const prop of ['project', 'zone', 'ipName', 'deploymentName', 'hostName']) {
+      if (this.state[prop] === '') {
+        this.setState({
+          dialogBody: 'All fields are required, but it looks like you missed something.',
+          dialogTitle: 'Missing field',
+        });
+        return;
+      }
+    }
+
+    this.setState({
+      showLogs: true,
+    });
+
+    const project = this.state.project;
+
+    // Step 1: Enable required services
+    // Enabling takes some time, so we get the list of services that need
+    // enabling, make requests to enable them, then we repeat this in a loop
+    // until we have no more services left, or we try too many times.
+    this._appendLine(`Getting enabled services for project ${project}..`);
+
+    let servicesToEnable: string[] = [];
+    let enableAttempts = 0;
+    const retryTimeout = 3000;
+    do {
+      servicesToEnable = await this._getServicesToEnable(project)
+        .catch(e => {
+          this.setState({
+            dialogBody: 'Error trying to list enabled services: ' + e,
+            dialogTitle: 'Deployment Error',
+          });
+          return [];
+        });
+
+      if (this.state.dialogTitle) {
+        return;
+      }
+
+      if (servicesToEnable.length) {
+        if (enableAttempts) {
+          this._appendLine(`Retrying in ${retryTimeout / 1000} seconds`);
+          await wait(retryTimeout);
+        }
+
+        this._appendLine(
+          `Need to enable these services: ${servicesToEnable.join(', ')}..`);
+      }
+
+      for (const s of servicesToEnable) {
+        this._appendLine('Enabling ' + s);
+        await Gapi.servicemanagement.enable(project, s)
+          .catch(e => this.setState({
+            dialogBody: 'Error trying to enable this required service: ' + s + '.\n' + e,
+            dialogTitle: 'Deployment Error',
+          }));
+      }
+
+      if (this.state.dialogTitle) {
+        return;
+      }
+
+      enableAttempts++;
+    } while (servicesToEnable.length && enableAttempts < 5);
+
+    if (servicesToEnable.length && enableAttempts >= 5) {
+      this.setState({
+        dialogBody: 'Tried too many times to enable these services: ' +
+          servicesToEnable.join(', '),
+        dialogTitle: 'Deployment Error',
+      });
+      return;
+    }
+
+    // Step 2: Set IAM Adming Policy
+    const projectNumber = await Gapi.cloudresourcemanager.getProjectNumber(project)
+      .catch(e => {
+        this.setState({
+          dialogBody: 'Error trying to get the project number: ' + e,
+          dialogTitle: 'Deployment Error',
+        });
+        return undefined;
+      });
+
+    if (this.state.dialogTitle) {
+      return;
+    }
+
+    this._appendLine('Proceeding with project number: ' + projectNumber);
+
+    // Step 3: Create GCP Deployment
+
+    const resource = await this._getYaml();
+    if (!resource) {
+      return;
+    }
+
+    this._appendLine('Starting new deployment..');
+
+    const deploymentName = this.state.deploymentName;
     Gapi.deploymentmanager.insert(project, resource)
       .then(res => {
-        this._appendLine('Result of insert:\n' + JSON.stringify(res));
-        this._monitorDeployment(project, deploymentName)
+        this._appendLine('Result of create deployment operation:\n' + JSON.stringify(res));
+        this._monitorDeployment(project, deploymentName);
       })
       .catch(err => {
-        this._appendLine('Error doing insert:\n' + err);
+        this._appendLine('Error trying to create deployment:\n' + err);
         this.setState({
-          error: 'Deployment Error',
-          errorMessage: 'Error trying to create deployment: ' + err,
+          dialogBody: 'Error trying to create deployment: ' + err,
+          dialogTitle: 'Deployment Error',
         });
       });
 
-  } // insertDeployment
+  }
+
+  /**
+   * Returns a list of services that are needed but not enabled for the given project.
+   */
+  private async _getServicesToEnable(project: string) {
+    const enabledServices = await Gapi.servicemanagement.list(project);
+
+    const servicesToEnable = new Set([
+      'deploymentmanager.googleapis.com',
+      'cloudresourcemanager.googleapis.com',
+      'endpoints.googleapis.com',
+      'iam.googleapis.com',
+    ]);
+
+    for (const k of Array.from(servicesToEnable.keys())) {
+      if (enabledServices!.services!.find(s => s.serviceName === k)) {
+        servicesToEnable.delete(k);
+      }
+    }
+
+    return Array.from(servicesToEnable);
+  }
 
   private _monitorDeployment(project: string, deploymentName: string) {
     const monitorInterval = setInterval(() => {

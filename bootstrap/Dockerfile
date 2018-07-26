@@ -1,6 +1,6 @@
 # bootstrapper-builder contains the tool chain we need to build the image.
 # This primarily means glide.
-FROM gcr.io/kubeflow-images-public/bootstrapper-builder:v20180709-2ef5fe7a-dirty-39cf08 as builder
+FROM gcr.io/kubeflow-images-public/bootstrapper-builder:v20180712-4adef8c0 as builder
 
 RUN mkdir -p /opt/kubeflow
 
@@ -17,7 +17,7 @@ RUN cd $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap/ && \
 
 RUN go build -i -o /opt/kubeflow/bootstrapper ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/main.go
 
-FROM golang:1.8.2
+FROM golang:1.10.3
 
 # We need gcloud to get gke credentials.
 RUN wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.tar.gz && \

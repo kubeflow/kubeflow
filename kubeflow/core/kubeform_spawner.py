@@ -1,5 +1,7 @@
 import json
 import os
+import string
+import escapism
 from kubespawner.spawner import KubeSpawner
 from jhub_remote_user_authenticator.remote_user_auth import RemoteUserAuthenticator
 from oauthenticator.github import GitHubOAuthenticator
@@ -35,7 +37,7 @@ class KubeFormSpawner(KubeSpawner):
     <div style="text-align: center; padding: 10px;">
       <a id="toggle_advanced_options" style="margin: 20%; cursor: pointer; font-weight: bold;">Advanced</a>
     </div>
-    <table id="advanced_fields" style="display: none; width: 100%; border-spacing: 25px; border-collapse: separate;">
+    <table id="advanced_fields" style="display: none; width: 100%; border-spacing: 0px 25px; border-collapse: separate;">
     <tr>
         <td><label for='cpu_guarantee'>CPU</label></td>
         <td><input style="width: 100%;" name='cpu_guarantee' placeholder='200m, 1.0, 2.5, etc'></input></td>
@@ -110,6 +112,34 @@ class KubeFormSpawner(KubeSpawner):
         if gcp_secret_name:
             env['GOOGLE_APPLICATION_CREDENTIALS'] = '{}/{}.json'.format(SERVICE_ACCOUNT_SECRET_MOUNT, gcp_secret_name)
         return env
+
+    # TODO(kkasravi): add unit test
+    def _parse_user_name(self, username): 
+        safe_chars = set(string.ascii_lowercase + string.digits)
+        name = username.split(':')[-1]
+        legacy = ''.join([s if s in safe_chars else '-' for s in name.lower()])
+        safe = escapism.escape(name, safe=safe_chars, escape_char='-').lower()
+        return legacy, safe, name
+
+    def _expand_user_properties(self, template):
+        # override KubeSpawner method to remove prefix accounts.google: for iap
+        # and truncate to 63 characters 
+
+        # Set servername based on whether named-server initialised
+        if self.name:
+            servername = '-{}'.format(self.name)
+        else:
+            servername = ''
+
+        legacy, safe, name = self._parse_user_name(self.user.name)
+        rname = template.format(
+            userid=self.user.id,
+            username=safe,
+            unescaped_username=name,
+            legacy_escape_username=legacy,
+            servername=servername
+            )[:63]
+        return rname
 
 
 ###################################################

@@ -1,5 +1,17 @@
 import { flattenDeploymentOperationError } from './Utils';
 
+interface ManagedService {
+  producerProjectId?: string;
+  serviceName?: string;
+}
+interface ListServicesResponse {
+  nextPageToken?: string;
+  services?: ManagedService[];
+}
+interface EnableServiceRequest {
+  consumerId?: string;
+}
+
 export default class Gapi {
 
   public static deploymentmanager = class {
@@ -33,7 +45,51 @@ export default class Gapi {
         });
     }
 
-  }
+  };
+
+  public static servicemanagement = class {
+
+    public static async list(project: string) {
+      await Gapi.load();
+      const consumerId = encodeURIComponent(`project:${project}`);
+      return gapi.client.request({
+        path: `https://content-servicemanagement.googleapis.com/v1/services?consumerId=${consumerId}`,
+      }).then(response => response.result as ListServicesResponse,
+        badResult => {
+          throw new Error('Errors listing services: ' + flattenDeploymentOperationError(badResult.result));
+        });
+    }
+
+    public static async enable(project: string, serviceName: string) {
+      await Gapi.load();
+      const consumerId = `project:${project}`;
+      return gapi.client.request({
+        body: {
+          consumerId
+        },
+        method: 'POST',
+        path: `https://content-servicemanagement.googleapis.com/v1/services/${serviceName}:enable`,
+      }).then(response => response.result as EnableServiceRequest,
+        badResult => {
+          throw new Error('Errors enabling service: ' + flattenDeploymentOperationError(badResult.result));
+        });
+    }
+
+  };
+
+  public static cloudresourcemanager = class {
+
+    public static async getProjectNumber(projectId: string) {
+      await Gapi.load();
+      return gapi.client.request({
+        path: `https://cloudresourcemanager.googleapis.com/v1/projects/${projectId}`
+      }).then(response => (response.result as any).projectNumber as number,
+        badResult => {
+          throw new Error('Errors enabling service: ' + flattenDeploymentOperationError(badResult.result));
+        });
+    }
+
+  };
 
   public static async signIn(doPrompt?: boolean): Promise<void> {
     const rePromptOptions = 'login consent select_account';

@@ -1,5 +1,7 @@
+import { MuiThemeProvider } from '@material-ui/core';
 import * as React from 'react';
 import { Redirect, Route, Switch } from 'react-router-dom';
+import { CommonCss, theme } from './Css';
 import DeployForm from './DeployForm';
 import Gapi from './Gapi';
 import Header from './Header';
@@ -16,9 +18,10 @@ declare global {
 
 const styles: { [p: string]: React.CSSProperties } = {
   app: {
-    backgroundColor: '#3b78e7',
+    backgroundColor: CommonCss.accent,
     display: 'flex',
     flexFlow: 'column',
+    fontFamily: '"google sans", Helvetica',
     height: '100%',
     width: '100%',
   },
@@ -52,7 +55,7 @@ const styles: { [p: string]: React.CSSProperties } = {
   rightPane: {
     backgroundColor: '#fff',
     borderRadius: 5,
-    boxShadow: '0px 3 10px 0 #555',
+    boxShadow: '0 5px 15px 0 #666',
     margin: 'auto',
     position: 'relative',
     width: 600,
@@ -90,41 +93,44 @@ class App extends React.Component<any, { signedIn: boolean }> {
 
   public render() {
     return (
-      <div style={styles.app}>
-        <Header />
-        <div style={styles.container}>
-          <div style={styles.content}>
-            <div style={styles.leftPane}>
-              <div style={styles.logoContainer}>
-                <img src={logo} style={styles.logoImg} />
-                <img src={kubeflowText} style={styles.logoText} />
+      <MuiThemeProvider theme={theme}>
+        <div style={styles.app}>
+          <Header />
+          <div style={styles.container}>
+            <div style={styles.content}>
+              <div style={styles.leftPane}>
+                <div style={styles.logoContainer}>
+                  <img src={logo} style={styles.logoImg} />
+                  <img src={kubeflowText} style={styles.logoText} />
+                </div>
+                <div style={styles.title}>Deploy on GCP</div>
+                <div>
+                  This deployer will guide you through the process of deploying
+                  Kubeflow on Google Cloud Platform. It also eliminates the
+                  need to install any tools on your machine.
+                </div>
+                <br />
+                <div>
+                  Specify details such as project, zone, name to create a
+                  Kubeflow deployment. Learn more at
+                  <a style={{ color: 'inherit', marginLeft: 5 }}
+                    href="https://kubeflow.org">https://kubeflow.org</a>
+                </div>
               </div>
-              <div style={styles.title}>Deploy on GCP</div>
-              <div>
-                This deployer will guide you through the process of deploying
-                Kubeflow on Google Cloud Platform. It also eliminates the
-                need to install any tools on your machine.
+              <div style={styles.rightPane}>
+                <Switch>
+                  <Route exact={true} path="/" component={Splash} />
+                  <PrivateRoute signedIn={this.state.signedIn} exact={true} path="/deploy" component={DeployForm} />
+                  <Route component={Page404} />
+                </Switch>
               </div>
-              <br />
-              <div>
-                Specify details such as project, zone, name to create a
-                Kubeflow deployment. Learn more at
-                <a style={{ color: 'inherit', marginLeft: 5 }}
-                  href='https://github.com/kubeflow'>https://github.com/kubeflow</a>
-              </div>
-            </div>
-            <div style={styles.rightPane}>
-              <Switch>
-                <Route exact={true} path='/' component={Splash} />
-                <PrivateRoute signedIn={this.state.signedIn} exact={true} path='/deploy' component={DeployForm} />
-                <Route component={Page404} />
-              </Switch>
             </div>
           </div>
         </div>
-      </div>
+      </MuiThemeProvider >
     );
   }
+
 }
 
 export default App;
