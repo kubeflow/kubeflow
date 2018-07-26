@@ -69,6 +69,7 @@ ks generate tf-job-operator tf-job-operator
 # Enable collection of anonymous usage metrics
 # Skip this step if you don't want to enable collection.
 ks generate spartakus spartakus --usageId=$(uuidgen) --reportUsage=true
+ks generate argo argo
 
 # Apply the components generated
 if ${KUBEFLOW_DEPLOY}; then
