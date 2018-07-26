@@ -209,6 +209,10 @@
               name: "PYTHONPATH",
               value: kubeflowPy + ":" + kubeflowTestingPy,
             },
+            {
+              name: "KUBECONFIG",
+              value: testDir + "/.kube/config",
+            },
           ],
           image: tf_testing_image,
           volumeMounts: [
