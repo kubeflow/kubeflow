@@ -290,12 +290,12 @@
         "--artifacts_dir=" + artifactsDir,
       ];
       local deploy_tf_serving_command = deploy_tf_serving_command_base + [
-        "--deploy_name=inception-cpu",
+        "--deploy_name=mnist-cpu",
         "deploy_model",
         "--params=" + deployParamsList,
       ];
       local deploy_tf_serving_gpu_command = deploy_tf_serving_command_base + [
-        "--deploy_name=inception-gpu",
+        "--deploy_name=mnist-gpu",
         "deploy_model",
         "--params=" + deployGpuParamsList,
       ];
@@ -389,10 +389,10 @@
             ),
 
             buildTestTfImageTemplate("test-tf-serving",
-                                     "inception-cpu",
+                                     "mnist-cpu",
                                      "/components/k8s-model-server/images/test-worker/result.txt"),
             buildTestTfImageTemplate("test-tf-serving-gpu",
-                                     "inception-gpu",
+                                     "mnist-gpu",
                                      "/components/k8s-model-server/images/test-worker/result-gpu.txt"),
 
             buildTemplate("create-pr-symlink", [
