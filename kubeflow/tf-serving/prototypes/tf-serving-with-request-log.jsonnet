@@ -108,7 +108,7 @@ local deployment = {
             ],
             image: image,
             imagePullPolicy: "IfNotPresent",
-            name: "mnist",
+            name: "model-server",
             ports: [
               {
                 containerPort: 9000,
@@ -127,7 +127,7 @@ local deployment = {
           },
           // Http proxy
           {
-            name: "mnist-http-proxy",
+            name: "http-proxy",
             image: httpProxyImage,
             imagePullPolicy: "Always",
             command: [
@@ -165,9 +165,10 @@ local deployment = {
               },
             ],
           },
+          // TODO(lunkai): use admission controller to inject.
           // Logging container.
           {
-            name: "mnist-logging",
+            name: "logging",
             image: loggingImage,
             imagePullPolicy: "Always",
             env: [
