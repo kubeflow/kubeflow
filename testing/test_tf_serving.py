@@ -83,6 +83,8 @@ def main():
     with open(args.input_path) as f:
       instances = json.loads(f.read())
 
+    logging.info(instances)  
+
     service = core_api.read_namespaced_service(args.service_name, args.namespace)
     service_ip = service.spec.cluster_ip
     model_url = "http://" + service_ip + ":8000/model/mnist:predict"
