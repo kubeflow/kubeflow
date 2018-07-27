@@ -1,1 +1,0 @@
-std.type(error "xxx")

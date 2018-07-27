@@ -2,6 +2,7 @@
 
 import argparse
 import logging
+import os
 import re
 import yaml
 
@@ -26,6 +27,9 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
     help=("Regex pattern e.g. .*tensorflow.*notebook.*:v20180619.* "
           "to select the images to apply."))
   args = parser.parse_args()
+
+  if not os.path.exists(args.images_file):
+    raise ValueError("Missing image tags file: {0}".format(args.images_file))
 
   with open(args.images_file) as hf:
     config = yaml.load(hf)

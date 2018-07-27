@@ -121,8 +121,10 @@ RUN conda create -n py2 python=2 && \
     # tensorflow-model-analysis is only supported for TF 1.6 and above
     if [[ $INSTALL_TFMA == "yes" ]]; then \
       pip install --no-cache-dir tensorflow-model-analysis && \
-      jupyter nbextension install --py --symlink tensorflow_model_analysis && \
-      jupyter nbextension enable --py tensorflow_model_analysis ; \
+      # We use --system because if we don't the config is written to the home directory
+      # and the changes are lost when we mount a PV over them.
+      jupyter nbextension install --py --system --symlink tensorflow_model_analysis && \
+      jupyter nbextension enable --py --system tensorflow_model_analysis ; \
     fi \
     && \
     # Install jupyterlab-manager

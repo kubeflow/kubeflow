@@ -349,7 +349,7 @@ def deploy_minikube(args):
   """Create a VM and setup minikube."""
 
   credentials = GoogleCredentials.get_application_default()
-  gce = discovery.build("compute", "v1", credentials=credentials)
+  gce = discovery.build("compute", "v1", credentials=credentials, cache_discovery=False)
   instances = gce.instances()
   body = {
     "name":

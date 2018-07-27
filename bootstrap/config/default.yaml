@@ -7,8 +7,14 @@ app:
       registry: kubeflow
     - name: tf-serving
       registry: kubeflow
-    - name: tf-job
-      registry: kubeflow
   components:
-    - name: kubeflow-core
-      prototype: kubeflow-core
+    - name: jupyterhub
+      prototype: jupyterhub
+    - name: ambassador
+      prototype: ambassador
+    - name: centraldashboard
+      prototype: centraldashboard
+    - name: tf-job-operator
+      prototype: tf-job-operator
+    - name: spartakus
+      prototype: spartakus

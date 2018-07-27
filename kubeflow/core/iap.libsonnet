@@ -486,6 +486,20 @@
                             ],
                           },
                         },
+                        // TFJob uses the prefix /tfjobs/
+                        {
+                          timeout_ms: 10000,
+                          prefix: "/tfjobs",
+                          prefix_rewrite: "/tfjobs",
+                          weighted_clusters: {
+                            clusters: [
+                              {
+                                name: "cluster_tfjobs",
+                                weight: 100.0,
+                              },
+                            ],
+                          },
+                        },
                         {
                           // Route remaining traffic to Ambassador which supports dynamically adding
                           // routes based on service annotations.
@@ -609,6 +623,18 @@
             ],
           },
           {
+            name: "cluster_tfjobs",
+            connect_timeout_ms: 3000,
+            type: "strict_dns",
+            lb_type: "round_robin",
+            hosts: [
+              {
+                url: "tcp://tf-job-dashboard." + namespace + ":80",
+              },
+
+            ],
+          },
+          {
             name: "cluster_ambassador",
             connect_timeout_ms: 3000,
             type: "strict_dns",
@@ -720,7 +746,7 @@
                 {
                   backend: {
                     // Due to https://github.com/kubernetes/contrib/blob/master/ingress/controllers/gce/examples/health_checks/README.md#limitations
-                    // Keep port the servicePort the same as the port we are targetting on the backend so that servicePort will be the same as targetPort for the purpose of
+                    // Keep port the servicePort the same as the port we are targeting on the backend so that servicePort will be the same as targetPort for the purpose of
                     // health checking.
                     serviceName: "envoy",
                     servicePort: envoyPort,

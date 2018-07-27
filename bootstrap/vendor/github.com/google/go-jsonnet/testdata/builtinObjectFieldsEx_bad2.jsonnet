@@ -1,1 +1,0 @@
-std.objectFieldsEx({}, "xxx")

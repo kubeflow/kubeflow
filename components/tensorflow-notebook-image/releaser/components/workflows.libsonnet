@@ -79,7 +79,7 @@
       // Build an Argo template to execute a particular command.
       // step_name: Name for the template
       // command: List to pass as the container command.
-      local buildTemplate(step_name, command, env_vars=[], sidecars=[]) = {
+      local buildTemplate(step_name, command, env_vars=[], sidecars=[], resources=null) = {
         name: step_name,
         // The tensorflow notebook image builds are flaky because they are very
         // large builds and sometimes there are timeouts while downloading
@@ -110,6 +110,7 @@
               },
             },
           ] + prow_env + env_vars,
+          resources: resources,
           volumeMounts: [
             {
               name: dataVolume,
@@ -185,11 +186,33 @@
           [{
             name: "dind",
             image: "docker:17.10-dind",
+            resources: {
+              requests: {
+                memory: "1.5Gi",
+                cpu: "1",
+              },
+              limits: {
+                memory: "4Gi",
+                cpu: "4",
+              },
+            },
             securityContext: {
               privileged: true,
             },
             mirrorVolumeMounts: true,
           }],
+          // Resources to allocate to the build container.
+          // Is most of the resources used by the dind side car?
+          {
+            requests: {
+              memory: "500Mi",
+              cpu: "1",
+            },
+            limits: {
+              memory: "2Gi",
+              cpu: "4",
+            },
+          },
         ),  // buildImageTemplate
       }.result;
       {

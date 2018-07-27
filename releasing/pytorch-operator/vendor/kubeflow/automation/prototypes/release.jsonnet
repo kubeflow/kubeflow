@@ -17,7 +17,7 @@
 // @optionalParam prow_env string REPO_OWNER=kubeflow,REPO_NAME=kubeflow,PULL_BASE_SHA=master Self explanatory.
 // @optionalParam versionTag string latest Tag for released image.
 // @optionalParam dockerfile string Dockerfile Name of your dockerfile.
-// @optionalParam extra_repos string kubeflow/testing@HEAD Append your repo here (; seperated) if your image is not in kubeflow.
+// @optionalParam extra_repos string kubeflow/testing@HEAD Append your repo here (; separated) if your image is not in kubeflow.
 // @optionalParam extra_args string null args for your build_image.sh
 
 local k = import "k.libsonnet";

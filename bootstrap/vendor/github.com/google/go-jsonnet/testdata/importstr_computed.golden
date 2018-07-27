@@ -1,5 +1,0 @@
-testdata/importstr_computed:1:11-20 Computed imports are not allowed
-
-importstr "a" + "b"
-
-

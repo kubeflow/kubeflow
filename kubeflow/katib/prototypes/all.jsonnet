@@ -3,12 +3,12 @@
 // @description Kubeflow hyperparameter tuning component
 // @shortDescription hp-tuning
 // @param name string Name to give to each of the components
-// @optionalParam modeldbImage string mitdbg/modeldb-backend:latest The image for modeldb
+// @optionalParam modeldbImage string gcr.io/kubeflow-images-public/modeldb-backend:v0.2.0 The image for modeldb
 // @optionalParam modeldbDatabaseImage string mongo:3.4 The image for modeldb database.
-// @optionalParam modeldbFrontendImage string katib/katib-frontend The image for modeldb frontend.
-// @optionalParam suggestionRandomImage string katib/suggestion-random The image for random suggestion.
-// @optionalParam suggestionGridImage string katib/suggestion-grid The image for grid suggestion.
-// @optionalParam vizierCoreImage string katib/vizier-core The image for vizier core.
+// @optionalParam modeldbFrontendImage string gcr.io/kubeflow-images-public/katib-frontend:v0.2.0 The image for modeldb frontend.
+// @optionalParam suggestionRandomImage string gcr.io/kubeflow-images-public/katib-suggestion-random:v0.2.0 The image for random suggestion.
+// @optionalParam suggestionGridImage string gcr.io/kubeflow-images-public/katib-suggestion-grid:v0.2.0 The image for grid suggestion.
+// @optionalParam vizierCoreImage string gcr.io/kubeflow-images-public/katib-vizier-core:v0.2.0 The image for vizier core.
 // @optionalParam vizierDbImage string mysql:8.0.3 The image for vizier db.
 
 local k = import "k.libsonnet";
