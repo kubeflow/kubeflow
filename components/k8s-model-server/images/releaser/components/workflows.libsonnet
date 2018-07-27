@@ -223,7 +223,6 @@
               mountPath: mountPath,
             },
           ],
-          workingDir: srcDir + "/components/k8s-model-server/inception-client",
         },
       };  // buildTestTfImageTemplate
 
