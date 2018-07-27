@@ -38,6 +38,13 @@ resources:
     # Two is small enough to fit within default quota.
     cpu-pool-initialNodeCount: 2
     gpu-pool-initialNodeCount: 0
+    # Autoscaling parameters
+    cpu-pool-enable-autoscaling: true
+    cpu-pool-min-nodes: 0
+    cpu-pool-max-nodes: 10
+    gpu-pool-enable-autoscaling: true
+    gpu-pool-min-nodes: 0
+    gpu-pool-max-nodes: 10
     # Whether to deploy the new Stackdriver Kubernetes agents
     stackdriver-kubernetes: false
     securityConfig:
