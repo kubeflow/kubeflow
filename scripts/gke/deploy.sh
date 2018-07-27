@@ -38,6 +38,13 @@ check_install uuidgen
 
 PRIVATE_CLUSTER=${PRIVATE_CLUSTER:-false}
 
+# GKE autoscale parameters
+ENABLE_AUTOSCALE=${ENABLE_AUTOSCALE:-false}
+DEFAULT_MIN_NODES=${AUTOSCALE_MIN_NODES:-1}
+DEFAULT_MAX_NODES=${AUTOSCALE_MAX_NODES:-10}
+GPU_MIN_NODES=${AUTOSCALE_MIN_NODES:-1}
+GPU_MAX_NODES=${AUTOSCALE_MAX_NODES:-10}
+
 if ! ${PRIVATE_CLUSTER}; then
   check_variable "${CLIENT_ID}" "CLIENT_ID"
   check_variable "${CLIENT_SECRET}" "CLIENT_SECRET"
@@ -159,6 +166,12 @@ if ${KUBEFLOW_DEPLOY}; then
 
   # Install the GPU driver. It has no effect on non-GPU nodes.
   kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/stable/nvidia-driver-installer/cos/daemonset-preloaded.yaml
+
+  # Update the cluster if autoscaling is desired.
+  if ${ENABLE_AUTOSCALE}; then
+    gcloud container clusters update ${DEPLOYMENT_NAME} --enable-autoscaling --min-nodes ${DEFAULT_MIN_NODES} --max-nodes ${DEFAULT_MAX_NODES} --zone ${ZONE} --node-pool default-pool
+    gcloud container clusters update ${DEPLOYMENT_NAME} --enable-autoscaling --min-nodes ${GPU_MIN_NODES} --max-nodes ${GPU_MAX_NODES} --zone ${ZONE} --node-pool gpu-pool
+  fi
 fi
 
 # wait for gcfs creation to complete
