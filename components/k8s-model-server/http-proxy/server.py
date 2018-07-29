@@ -18,11 +18,14 @@ from __future__ import print_function
 
 from itertools import repeat
 import base64
+import json
 import logging
-import grpc
+import random
 
 from google.protobuf.json_format import MessageToDict
+import grpc
 from grpc.beta import implementations
+import numpy as np
 from tensorflow_serving.apis import classification_pb2
 from tensorflow_serving.apis import input_pb2
 from tensorflow_serving.apis import predict_pb2
@@ -31,7 +34,6 @@ from tensorflow_serving.apis import get_model_metadata_pb2
 from tornado import gen
 from tornado.ioloop import IOLoop
 from tornado.options import define, options, parse_command_line
-import numpy as np
 import tensorflow as tf
 from tensorflow.python.saved_model import signature_constants
 import tornado.web
@@ -43,6 +45,10 @@ define("rpc_port", default=9000, help="tf serving on the given port", type=int)
 define("rpc_address", default='localhost', help="tf serving on the given address", type=str)
 define("instances_key", default='instances', help="requested instances json object key")
 define("debug", default=False, help="run in debug mode")
+define("log_request", default=False, help="whether to log requests")
+define("request_log_file", default="/tmp/logs/request.log")
+define("request_log_pos_file", default="/tmp/logs/request.log.pos")
+define("request_log_prob", default=0.01, help="probability to log the request (will be sampled uniformly)")
 B64_KEY = 'b64'
 WELCOME = "Hello World"
 MODEL_SERVER_METADATA_TIMEOUT_SEC = 20
@@ -248,6 +254,11 @@ class PredictHandler(tornado.web.RequestHandler):
     predictions = [dict(zip(*t)) for t in zip(repeat(output_keys), predictions)]
     self.write(dict(predictions=predictions))
 
+    if self.settings['request_logger'] is not None:
+      for instance in instances:
+        if random.random() < self.settings['request_log_prob']:
+          self.settings['request_logger'].info(json.dumps(instance))
+
 
 class ClassifyHandler(tornado.web.RequestHandler):
   """
@@ -302,9 +313,23 @@ def main():
 
   channel = implementations.insecure_channel(options.rpc_address, options.rpc_port)
   stub = prediction_service_pb2.beta_create_PredictionService_stub(channel)
+
+  if options.log_request:
+    request_logger = logging.getLogger("RequestLogger")
+    request_logger.setLevel(logging.INFO)
+    rorate_handler = logging.handlers.RotatingFileHandler(
+        options.request_log_file, maxBytes=1000000, backupCount=1)
+    request_logger.addHandler(rorate_handler)
+    # touch the pos file.
+    open(options.request_log_pos_file, "a").close()
+  else:
+    request_logger = None
+
   extra_settings = dict(
       stub = stub,
       signature_map = {},
+      request_logger = request_logger,
+      request_log_prob = options.request_log_prob,
   )
   app = get_application(**extra_settings)
   app.listen(options.port)
