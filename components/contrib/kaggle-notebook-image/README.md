@@ -1,6 +1,6 @@
 # Kaggle notebook
 
-This Dockerfile builds an image that is derived from the latest [Kaggle python image](gcr.io/kaggle-images/pythoni:latest) but which is compatible for launching from the Kubeflow JupyterHub. [Kaggle](https://www.kaggle.com/) is the home of data science collaboration and competition.
+This Dockerfile builds an image that is derived from the latest [Kaggle python image](https://github.com/Kaggle/docker-python) but which is compatible for launching from the Kubeflow JupyterHub. [Kaggle](https://www.kaggle.com/) is the home of data science collaboration and competition.
 
 Important notes:
 * this notebook is not curated by the Kubeflow project and is not regularly tested
