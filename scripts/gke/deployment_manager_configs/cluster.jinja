@@ -63,9 +63,6 @@ resources:
     zone: {{ properties['zone'] }}
     cluster:
       name: {{ CLUSTER_NAME }}
-      # Create a very small minimal pool. Actual nodes will be managed
-      # as additional node pools. This makes it easier to
-      initialNodeCount: {{ properties['cpu-pool-initialNodeCount'] }}
       # We need 1.10.2 to support Stackdrivier GKE.
       initialClusterVersion: 1.10.5-gke.3
       loggingService: none
@@ -87,14 +84,23 @@ resources:
           {{ properties['securityConfig']['masterAuthorizedNetworksConfigCidr'] }}
         {% endif %}
       {% endif %}
-      nodeConfig:
-        machineType: n1-standard-8
-        serviceAccount: {{ KF_VM_SA_NAME }}@{{ env['project'] }}.iam.gserviceaccount.com
-        {% if properties['securityConfig']['secureNodeMetadata'] %}
-        workloadMetadataConfig:
-          nodeMetadata: SECURE
-        {% endif %}
-        oauthScopes: {{ VM_OAUTH_SCOPES }}
+      nodePools:
+      - name: default-pool
+        initialNodeCount: {{ properties['cpu-pool-initialNodeCount'] }}
+        autoscaling:
+          enabled: {{ properties['cpu-pool-enable-autoscaling'] }}
+          {% if properties['cpu-pool-enable-autoscaling'] %}
+          minNodeCount: {{ properties['cpu-pool-min-nodes'] }}
+          maxNodeCount: {{ properties['cpu-pool-max-nodes'] }}
+          {% endif %}
+        config:
+          {% if properties['securityConfig']['secureNodeMetadata'] %}
+          workloadMetadataConfig:
+            nodeMetadata: SECURE
+          {% endif %}
+          machineType: n1-standard-8
+          serviceAccount: {{ KF_VM_SA_NAME }}@{{ env['project'] }}.iam.gserviceaccount.com
+          oauthScopes: {{ VM_OAUTH_SCOPES }}
   metadata:
     dependsOn:
     - {{ KF_VM_SA_NAME }}
@@ -117,6 +123,12 @@ resources:
     nodePool:
       name: gpu-pool
       initialNodeCount: {{ properties['gpu-pool-initialNodeCount'] }}
+      autoscaling:
+        enabled: {{ properties['gpu-pool-enable-autoscaling'] }}
+        {% if properties['gpu-pool-enable-autoscaling'] %}
+        minNodeCount: {{ properties['gpu-pool-min-nodes'] }}
+        maxNodeCount: {{ properties['gpu-pool-max-nodes'] }}
+        {% endif %}
       config:
         {% if properties['securityConfig']['secureNodeMetadata'] %}
         workloadMetadataConfig:
