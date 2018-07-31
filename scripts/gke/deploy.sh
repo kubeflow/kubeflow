@@ -277,7 +277,7 @@ ks generate tf-job-operator tf-job-operator
 
 ks generate argo argo
 
-if [ ! -z ${GCFS_STORAGE} ]; then
+if [ ! -z ${GCFS_INSTANCE} ]; then
   ks generate google-cloud-filestore-pv google-cloud-filestore-pv --name="kubeflow-gcfs" --storageCapacity="${GCFS_STORAGE}" --serverIP="${GCFS_INSTANCE_IP_ADDRESS}"
   ks param set jupyterhub disks "kubeflow-gcfs"  
 fi
@@ -294,7 +294,7 @@ fi
 
 # Apply the components generated
 if ${KUBEFLOW_DEPLOY}; then
-  if [ ! -z ${GCFS_STORAGE} ]; then
+  if [ ! -z ${GCFS_INSTANCE} ]; then
     ks apply default -c google-cloud-filestore-pv
   fi
 
