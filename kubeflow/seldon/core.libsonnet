@@ -11,13 +11,14 @@ local roleMixin = k.rbac.v1beta1.role.mixin;
 local serviceAccount = k.core.v1.serviceAccount;
 
 local crdDefn = import "crd.libsonnet";
-local seldonTemplate = import "json/template.json";
+local seldonTemplate2 = import "json/template_0.2.json";
+local seldonTemplate1 = import "json/template_0.1.json";
 
-local getOperatorDeployment(x) = x.metadata.name == "RELEASE-NAME-seldon-cluster-manager";
-local getApifeDeployment(x) = x.metadata.name == "RELEASE-NAME-seldon-apiserver" && x.kind == "Deployment";
-local getApifeService(x) = x.metadata.name == "RELEASE-NAME-seldon-apiserver" && x.kind == "Service";
-local getRedisDeployment(x) = x.metadata.name == "RELEASE-NAME-redis" && x.kind == "Deployment";
-local getRedisService(x) = x.metadata.name == "RELEASE-NAME-redis" && x.kind == "Service";
+local getOperatorDeployment(x) = std.endsWith(x.metadata.name,"seldon-cluster-manager");
+local getApifeDeployment(x) = std.endsWith(x.metadata.name,"seldon-apiserver") && x.kind == "Deployment";
+local getApifeService(x) = std.endsWith(x.metadata.name,"seldon-apiserver") && x.kind == "Service";
+local getRedisDeployment(x) = std.endsWith(x.metadata.name,"redis") && x.kind == "Deployment";
+local getRedisService(x) = std.endsWith(x.metadata.name,"redis") && x.kind == "Service";
 local getServiceAccount(x) = x.kind == "ServiceAccount";
 local getClusterRole(x) = x.kind == "ClusterRole";
 local getClusterRoleBinding(x) = x.kind == "ClusterRoleBinding";
@@ -26,8 +27,11 @@ local getRole(x) = x.kind == "Role";
 local getEnvNotRedis(x) = x.name != "SELDON_CLUSTER_MANAGER_REDIS_HOST";
 
 {
-  parts(name, namespace):: {
+  parts(name, namespace, seldonVersion)::
 
+  local seldonTemplate = if std.startsWith(seldonVersion,"0.1") then seldonTemplate1 else seldonTemplate2;
+
+  {
     apife(apifeImage, withRbac)::
 
       local baseApife = std.filter(getApifeDeployment, seldonTemplate.items)[0];
@@ -202,7 +206,7 @@ local getEnvNotRedis(x) = x.name != "SELDON_CLUSTER_MANAGER_REDIS_HOST";
 
     crd():
 
-      crdDefn.crd(),
+      if std.startsWith(seldonVersion,"0.1") then crdDefn.crd1() else crdDefn.crd2(),
 
   },  // parts
 }

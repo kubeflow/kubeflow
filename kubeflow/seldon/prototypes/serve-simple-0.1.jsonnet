@@ -11,7 +11,7 @@
 
 
 local k = import "k.libsonnet";
-local serve = import "kubeflow/seldon/serve-simple.libsonnet";
+local serve = import "kubeflow/seldon/serve-simple-0.1.libsonnet";
 
 // updatedParams uses the environment namespace if
 // the namespace parameter is not explicitly set
