@@ -1,0 +1,12 @@
+imports:
+- path: cluster-kubeflow-util.jinja
+
+resources:
+- name: kubeflow-util
+  type: cluster-kubeflow-util.jinja
+  properties:
+    clusterType: type
+    namespace: kubeflow
+    saKey: value
+    clientId: clientId
+    clientSecret: clientSecret

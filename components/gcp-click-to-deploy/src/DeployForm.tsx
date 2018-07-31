@@ -18,8 +18,11 @@ import { flattenDeploymentOperationError, log, wait } from './Utils';
 // So for security reasons it might be better to just bundle the configs.
 // When we build a docker image as part of our release process we can just
 // copy in the latest configs.
+import clusterUtilJinjaPath from './configs/cluster-kubeflow-util.jinja';
+import clusterUtilSpecPath from './configs/cluster-kubeflow-util.yaml';
 import clusterSpecPath from './configs/cluster-kubeflow.yaml';
 import clusterJinjaPath from './configs/cluster.jinja';
+
 
 // TODO(jlewi): For the FQDN we should have a drop down box to select custom
 // domain or automatically provisioned domain. Based on the response if the user
@@ -29,6 +32,8 @@ import clusterJinjaPath from './configs/cluster.jinja';
 interface DeployFormState {
   clusterJinja: string;
   clusterSpec: any;
+  clusterUtilJinja: string;
+  clusterUtilSpec: any;
   deploymentName: string;
   email: string;
   error: string;
@@ -37,6 +42,8 @@ interface DeployFormState {
   ipName: string;
   project: string;
   zone: string;
+  clientId: string;
+  clientSecret: string;
 }
 
 const Text = glamorous.div({
@@ -109,15 +116,17 @@ const theme = createMuiTheme({
   },
 });
 
-const k8s = require('@kubernetes/client-node');
-
 export default class DeployForm extends React.Component<any, DeployFormState> {
 
   constructor(props: any) {
     super(props);
     this.state = {
+      clientId: '',
+      clientSecret: '',
       clusterJinja: '',
       clusterSpec: '',
+      clusterUtilJinja: '',
+      clusterUtilSpec: '',
       deploymentName: 'kubeflow',
       email: 'john@doe.com',
       error: '',
@@ -183,6 +192,41 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         log('Request failed', error)
       });
 
+    this._appendLine('loadClusterUtilJinjaPath');
+    // Load the jinja template into a string because
+    // we will need it for the deployments insert request.
+    fetch(clusterUtilJinjaPath, { mode: 'no-cors' })
+      .then((response) => {
+        log('Got response');
+        return response.text();
+      })
+      .then((text) => {
+        this.setState({
+          clusterUtilJinja: text,
+        });
+        log('Loaded clusterUtilJinja successfully');
+      })
+      .catch((error) => {
+        log('Request failed', error)
+      });
+
+    this._appendLine('loadClusterUtilSpec');
+    // Load the YAML for the actual config and parse it.
+    fetch(clusterUtilSpecPath, { mode: 'no-cors' })
+      .then((response) => {
+        log('Got response');
+        return response.text();
+      })
+      .then((text) => {
+        this.setState({
+          clusterUtilSpec: jsYaml.safeLoad(text),
+        });
+        log('Loaded clusterUtilSpecPath successfully');
+      })
+      .catch((error) => {
+        log('Request failed', error)
+      });
+
   }
 
   public render() {
@@ -213,6 +257,14 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         <Row>
           <Label>Email for Lets Encrypt:</Label>
           <Input name='email' spellCheck={false} value={this.state.email} onChange={this._handleChange.bind(this)} />
+        </Row>
+        <Row>
+          <Label>Web App Client Id:</Label>
+          <Input name='clientId' spellCheck={false} value={this.state.clientId} onChange={this._handleChange.bind(this)} />
+        </Row>
+        <Row>
+          <Label>Web App Client Secret:</Label>
+          <Input name='clientSecret' spellCheck={false} value={this.state.clientSecret} onChange={this._handleChange.bind(this)} />
         </Row>
 
         <DeployBtn variant='contained' color='primary' onClick={this._createDeployment.bind(this)}>
@@ -391,7 +443,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       },
     };
 
-    Gapi.deploymentmanager.insert(project, resource)
+    await Gapi.deploymentmanager.insert(project, resource)
       .then(res => {
         this._appendLine('Result of create deployment operation:\n' + JSON.stringify(res));
         this._monitorDeployment(project, deploymentName)
@@ -404,43 +456,69 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         });
       });
 
+
     // Step 4: In cluster resource set up
-    const endpoint = Gapi.getClusterEndpoint(project, this.state.zone, deploymentName);
-    k8s.Config.defaultClient();
-    var k8sApi = k8s.Core_v1Api(`https://${endpoint}`);
-    const token = await Gapi.getToken();
-    if (!token) {
-      this.setState({
-          error: 'You are not signed in',
-          errorMessage: 'You must be signed in to use deploy Kubeflow to your GCP account.',
-      });
-      return;
-    }
-    k8sApi.setApiKey(k8s.Core_v1ApiApiKeys.BearerToken, token);
+    let status = ""
+    let getAttempts = 0;
+    const getTimeout = 15000;
+    do {
+      getAttempts++;
+      const curStatus = await Gapi.deploymentmanager.get(this.state.project, deploymentName)
+            .catch(err => {
+              this._appendLine("Cluster endpoint not available yet.")
+            });
+      if (!curStatus) {
+        wait(getTimeout);
+        continue;
+      }
+      status = curStatus.operation!.status!
+    } while (status !== "DONE" && getAttempts < 20);
 
-    k8sApi.createNamespacedSecret('kubeflow',
-        this._generateServiceAccountSecret(project, deploymentName, 'admin'));
-    k8sApi.createNamespacedSecret('kubeflow',
-        this._generateServiceAccountSecret(project, deploymentName, 'user'));
-
-  }
-
-  private _generateServiceAccountSecret(project: string, deploymentName: string, role: string) {
-    const roleSecret = new k8s.V1Secret();
-    roleSecret.apiVersion = 'v1';
-    roleSecret.metadata = new k8s.V1ObjectMeta();
-    roleSecret.metadata.name = `${role}-gcp-sa`;
-    roleSecret.metadata.namespace = 'kubeflow';
-    roleSecret.type = 'Opaque';
-    roleSecret.data = {};
-
-    const saKey = Gapi.iam.createKey(
-        project,
-        `${deploymentName}-${role}@${project}.iam.gserviceaccount.com`
+    const saKey = await Gapi.iam.createKey(
+      project,
+      `${deploymentName}-admin@${project}.iam.gserviceaccount.com`
     );
-    roleSecret.data[`${role}-gcp-sa.json`] = Buffer.from(JSON.stringify(saKey)).toString("base64");
-    return roleSecret;
+    const kubeflowUtil = this.state.clusterUtilSpec.resources[0]
+
+    kubeflowUtil.properties.clusterType = this.state.deploymentName + '-type';
+    kubeflowUtil.properties.saKey = saKey.privateKeyData;
+    kubeflowUtil.properties.clientId = window.btoa(this.state.clientId);
+    kubeflowUtil.properties.clientSecret = window.btoa(this.state.clientSecret);
+
+    this.state.clusterUtilSpec.resources[0] = kubeflowUtil;
+
+    const deploymentUtilName = deploymentName + '-util';
+    const resourceUtil = {
+      'name': deploymentUtilName,
+      'target': {
+          'config': {
+              'content': jsYaml.dump(this.state.clusterUtilSpec),
+          },
+          'imports': [
+              {
+                  'content': this.state.clusterUtilJinja,
+                  'name': 'cluster-kubeflow-util.jinja',
+              }
+          ],
+      },
+    };
+
+    await Gapi.deploymentmanager.insert(project, resourceUtil)
+      .then(res => {
+        this._appendLine('Result of create deployment operation:\n' + JSON.stringify(res));
+        this._monitorDeployment(project, deploymentUtilName)
+      })
+      .catch(err => {
+        this._appendLine('Error trying to create deployment:\n' + err);
+        this.setState({
+          error: 'Deployment Error',
+          errorMessage: 'Error trying to create deployment: ' + err,
+        });
+        this._monitorDeployment(project, deploymentUtilName);
+      });
+
   }
+
   /**
    * Returns a list of services that are needed but not enabled for the given project.
    */
@@ -474,7 +552,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
               'deployment failed with error:' + flattenDeploymentOperationError(r.operation!));
             clearInterval(monitorInterval);
           } else {
-            this._appendLine(r.operation!.status!);
+            this._appendLine(`Status of ${deploymentName}: ` + r.operation!.status!);
           }
         })
         .catch(err => this._appendLine('deployment failed with error:' + err));

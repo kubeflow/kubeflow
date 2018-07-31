@@ -1,0 +1,27 @@
+{% set SECRETS_COLLECTION = '/api/v1/namespaces/{namespace}/secrets' %}
+{% set CLUSTER_TYPE = env['project'] + '/' + properties["clusterType"] %}
+
+resources:
+- name: kubeflow-admin-key
+  type: {{ CLUSTER_TYPE }}:{{ SECRETS_COLLECTION }}
+  properties:
+    apiVersion: v1
+    kind: Secret
+    namespace: {{ properties["namespace"] }}
+    metadata:
+      name: admin-gcp-sa
+    type: Opaque
+    data:
+      admin-gcp-sa.json: {{ properties["saKey"] }}
+- name: kubeflow-oauth-key
+  type: {{ CLUSTER_TYPE }}:{{ SECRETS_COLLECTION }}
+  properties:
+    apiVersion: v1
+    kind: Secret
+    namespace: {{ properties["namespace"] }}
+    metadata:
+      name: kubeflow-oauth
+    type: Opaque
+    data:
+      CLIENT_ID: {{ properties["clientId"] }}
+      CLIENT_SECRET: {{ properties["clientSecret"] }}
