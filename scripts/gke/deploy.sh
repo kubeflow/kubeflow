@@ -54,9 +54,8 @@ KUBEFLOW_KS_DIR=${KUBEFLOW_KS_DIR:-"`pwd`/${DEPLOYMENT_NAME}_ks_app"}
 PROJECT=${PROJECT:-$(gcloud config get-value project 2>/dev/null)}
 check_variable "${PROJECT}" "PROJECT"
 # GCP Zone
-# ZONE=${ZONE:-$(gcloud config get-value compute/zone 2>/dev/null)}
-#ZONE=${ZONE:-"us-central1-a"}
-ZONE="us-central1-a"
+ZONE=${ZONE:-$(gcloud config get-value compute/zone 2>/dev/null)}
+ZONE=${ZONE:-"us-central1-a"}
 # Email for cert manager
 EMAIL=${EMAIL:-$(gcloud config get-value account 2>/dev/null)}
 check_variable "${EMAIL}" "EMAIL"
