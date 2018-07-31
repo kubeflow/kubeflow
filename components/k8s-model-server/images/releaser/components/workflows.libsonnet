@@ -189,7 +189,7 @@
             mirrorVolumeMounts: true,
           }],
         );  // buildImageTemplate
-      local buildTestTfImageTemplate(stepName, serviceName, resultFile) = {
+      local buildTestTfImageTemplate(stepName, serviceName) = {
         name: stepName,
         container: {
           command: [
@@ -200,7 +200,7 @@
             "--artifacts_dir=" + artifactsDir,
             "--service_name=" + serviceName,
             "--input_path=" + srcDir + "/components/k8s-model-server/test-data/mnist_input.json",
-            "--result_path=" + srcDir + resultFile,
+            "--result_path=" + srcDir + "/components/k8s-model-server/test-data/mnist_result.json",
           ],
           env: prow_env + [
             {
@@ -388,11 +388,9 @@
             ),
 
             buildTestTfImageTemplate("test-tf-serving",
-                                     "mnist-cpu",
-                                     "/components/k8s-model-server/images/test-worker/result.txt"),
+                                     "mnist-cpu"),
             buildTestTfImageTemplate("test-tf-serving-gpu",
-                                     "mnist-gpu",
-                                     "/components/k8s-model-server/images/test-worker/result-gpu.txt"),
+                                     "mnist-gpu"),
 
             buildTemplate("create-pr-symlink", [
               "python",
