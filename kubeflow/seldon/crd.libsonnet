@@ -253,7 +253,6 @@ local k = import "k.libsonnet";
     },
 
 
-
   crd2()::
     {
       apiVersion: "apiextensions.k8s.io/v1beta1",

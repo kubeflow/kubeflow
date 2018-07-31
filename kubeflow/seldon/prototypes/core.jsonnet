@@ -28,46 +28,46 @@ local withRbac = import "param://withRbac";
 local withApife = import "param://withApife";
 
 // APIFE
-local apifeImage = "seldonio/apife:"+seldonVersion;
+local apifeImage = "seldonio/apife:" + seldonVersion;
 local apifeServiceType = import "param://apifeServiceType";
 
 // Cluster Manager (The CRD Operator)
-local operatorImage = "seldonio/cluster-manager:"+seldonVersion;
+local operatorImage = "seldonio/cluster-manager:" + seldonVersion;
 local operatorSpringOptsParam = import "param://operatorSpringOpts";
 local operatorSpringOpts = if operatorSpringOptsParam != "null" then operatorSpringOptsParam else "";
 local operatorJavaOptsParam = import "param://operatorJavaOpts";
 local operatorJavaOpts = if operatorJavaOptsParam != "null" then operatorJavaOptsParam else "";
 
 // Engine
-local engineImage = "seldonio/engine:"+seldonVersion;
+local engineImage = "seldonio/engine:" + seldonVersion;
 
 // APIFE
 local apife = [
-  core.parts(name, namespace,seldonVersion).apife(apifeImage, withRbac),
-  core.parts(name, namespace,seldonVersion).apifeService(apifeServiceType),
+  core.parts(name, namespace, seldonVersion).apife(apifeImage, withRbac),
+  core.parts(name, namespace, seldonVersion).apifeService(apifeServiceType),
 ];
 
 local rbac2 = [
-  core.parts(name, namespace,seldonVersion).rbacServiceAccount(),
-  core.parts(name, namespace,seldonVersion).rbacClusterRole(),
-  core.parts(name, namespace,seldonVersion).rbacRole(),
-  core.parts(name, namespace,seldonVersion).rbacRoleBinding(),
-  core.parts(name, namespace,seldonVersion).rbacClusterRoleBinding(),
+  core.parts(name, namespace, seldonVersion).rbacServiceAccount(),
+  core.parts(name, namespace, seldonVersion).rbacClusterRole(),
+  core.parts(name, namespace, seldonVersion).rbacRole(),
+  core.parts(name, namespace, seldonVersion).rbacRoleBinding(),
+  core.parts(name, namespace, seldonVersion).rbacClusterRoleBinding(),
 ];
 
 local rbac1 = [
-  core.parts(name, namespace,seldonVersion).rbacServiceAccount(),
-  core.parts(name, namespace,seldonVersion).rbacRoleBinding(),
+  core.parts(name, namespace, seldonVersion).rbacServiceAccount(),
+  core.parts(name, namespace, seldonVersion).rbacRoleBinding(),
 ];
 
-local rbac = if std.startsWith(seldonVersion,"0.1") then rbac1 else rbac2; 
+local rbac = if std.startsWith(seldonVersion, "0.1") then rbac1 else rbac2;
 
 // Core
 local coreComponents = [
-  core.parts(name, namespace,seldonVersion).deploymentOperator(engineImage, operatorImage, operatorSpringOpts, operatorJavaOpts, withRbac),
-  core.parts(name, namespace,seldonVersion).redisDeployment(),
-  core.parts(name, namespace,seldonVersion).redisService(),
-  core.parts(name, namespace,seldonVersion).crd(),
+  core.parts(name, namespace, seldonVersion).deploymentOperator(engineImage, operatorImage, operatorSpringOpts, operatorJavaOpts, withRbac),
+  core.parts(name, namespace, seldonVersion).redisDeployment(),
+  core.parts(name, namespace, seldonVersion).redisService(),
+  core.parts(name, namespace, seldonVersion).crd(),
 ];
 
 if withRbac == "true" && withApife == "true" then
