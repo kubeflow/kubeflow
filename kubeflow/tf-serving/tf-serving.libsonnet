@@ -18,12 +18,7 @@
     deployIstio: false,
 
     deployHttpProxy: false,
-    defaultHttpProxyImage: "gcr.io/kubeflow-images-public/tf-model-server-http-proxy:v20180606-9dfda4f2",
-    httpProxyImage: "",
-    httpProxyImageToUse: if $.params.httpProxyImage == "" then
-      $.params.defaultHttpProxyImage
-    else
-      $.params.httpProxyImage,
+    httpProxyImage: "gcr.io/kubeflow-images-public/tf-model-server-http-proxy:v20180606-9dfda4f2",
 
     serviceType: "ClusterIP",
 
@@ -175,7 +170,7 @@
 
     httpProxyContainer:: {
       name: $.params.name + "-http-proxy",
-      image: $.params.httpProxyImageToUse,
+      image: $.params.httpProxyImage,
       imagePullPolicy: "IfNotPresent",
       command: [
         "python",
@@ -192,12 +187,12 @@
       ],
       resources: {
         requests: {
-          memory: "1Gi",
-          cpu: "1",
+          memory: "500Mi",
+          cpu: "0.5",
         },
         limits: {
-          memory: "4Gi",
-          cpu: "4",
+          memory: "1Gi",
+          cpu: "1",
         },
       },
       securityContext: {

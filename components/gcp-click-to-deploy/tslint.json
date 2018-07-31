@@ -16,6 +16,8 @@
     "jsx-no-lambda": false,
     "max-classes-per-file": false,
     "no-reference": false,
+    "quotemark": [true, "single", "jsx-double"],
+    "semicolon": [true, "always"],
     "variable-name": false
   }
 }

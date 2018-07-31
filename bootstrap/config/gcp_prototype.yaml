@@ -8,8 +8,16 @@ app:
     - name: tf-serving
       registry: kubeflow
   components:
-    - name: kubeflow-core
-      prototype: kubeflow-core
+    - name: jupyterhub
+      prototype: jupyterhub
+    - name: ambassador
+      prototype: ambassador
+    - name: centraldashboard
+      prototype: centraldashboard
+    - name: tf-job-operator
+      prototype: tf-job-operator
+    - name: spartakus
+      prototype: spartakus
     - name: cloud-endpoints
       prototype: cloud-endpoints
     - name: cert-manager
@@ -32,6 +40,15 @@ app:
       name: hostname
       # TODO: replace with Name of GCP project. This is fully qualified domain name to use with ingress.
       value: kubeflow.endpoints.<Project>.cloud.goog
-    - component: kubeflow-core
+    - component: jupyterhub
       name: jupyterHubAuthenticator
       value: iap
+    - component: jupyterhub
+      name: cloud
+      value: gke
+    - component: ambassador
+      name: cloud
+      value: gke
+    - component: spartakus
+      name: reportUsage
+      value: true
