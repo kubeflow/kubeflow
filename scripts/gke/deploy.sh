@@ -6,12 +6,19 @@
 # Adds user to the IAP role
 # Creates the deployment
 # Creates the ksonnet app, installs packages, components and then applies them
-
+#
+# To avoid using GCFS set GCFS_INSTANCE to null like so
+# export GCFS_INSTANCE=
 set -xe
+
+# TODO(jlewi): We should check for a file env.sh and if it exists
+# source variables from it. We should then create that file the
+# first time we run deploy.sh
 
 KUBEFLOW_REPO=${KUBEFLOW_REPO:-"`pwd`/kubeflow_repo"}
 KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"}
 KUBEFLOW_DEPLOY=${KUBEFLOW_DEPLOY:-true}
+
 KUBEFLOW_CLOUD="gke"
 
 if [[ ! -d "${KUBEFLOW_REPO}" ]]; then
@@ -45,11 +52,34 @@ fi
 
 # Name of the deployment
 DEPLOYMENT_NAME=${DEPLOYMENT_NAME:-"kubeflow"}
-GCFS_INSTANCE=${GCFS_INSTANCE:-"${DEPLOYMENT_NAME}"}
+# We only set GCFS_INSTANCE to the default value if it is unset
+# but not if its null.
+# We use null to indicate we should not use GCFS
+GCFS_INSTANCE=${GCFS_INSTANCE-"${DEPLOYMENT_NAME}"}
 GCFS_STORAGE=${GCFS_STORAGE:-"1T"}
+
 # Kubeflow directories - Deployment Manager and Ksonnet App
+# TODO(jlewi): We should shorten the directory names. 
+# There's no reason to use ${DEPLOYMENT_NAME} as a prefix. Instead 
+# the pattern should be one directory per deployment and that directory
+# should have subdirectories for DM config, ksonnet app, and secrets.
 KUBEFLOW_DM_DIR=${KUBEFLOW_DM_DIR:-"`pwd`/${DEPLOYMENT_NAME}_deployment_manager_configs"}
 KUBEFLOW_KS_DIR=${KUBEFLOW_KS_DIR:-"`pwd`/${DEPLOYMENT_NAME}_ks_app"}
+KUBEFLOW_SECRETS_DIR=${KUBEFLOW_SECRETS_DIR:-"`pwd`/${DEPLOYMENT_NAME}_secrets"}
+
+mkdir -p ${KUBEFLOW_SECRETS_DIR}
+
+# We want to prevent secrets from being checked into source control.
+# We have two different checks.
+# 1. We put the secrets in a directory with a .gitignore file
+# 2. We will delete the secrets immediately.
+if [ ! -f ${KUBEFLOW_SECRETS_DIR}/.gitignore ]; then
+  cat > ${KUBEFLOW_SECRETS_DIR}/.gitignore << EOF
+**
+EOF
+
+fi
+
 # GCP Project
 PROJECT=${PROJECT:-$(gcloud config get-value project 2>/dev/null)}
 check_variable "${PROJECT}" "PROJECT"
@@ -115,21 +145,48 @@ fi
 cd "${KUBEFLOW_DM_DIR}"
 
 # Create GCFS Instance in parallel with deployment manager to speed things up
+if [ ! -z ${GCFS_INSTANCE} ]; then
+
+# TODO(jlewi): We should check if the GCFS_INSTANCE already exists and if not
+# create it.
 gcloud beta filestore instances create ${GCFS_INSTANCE} \
     --project=${PROJECT} \
     --location=${ZONE} \
     --tier=STANDARD \
     --file-share=name=kubeflow,capacity=${GCFS_STORAGE} \
     --network=name="default" &
-
 gcfs_creation_pid=$!
+
+else
+  echo Not creating a filestore instance
+fi
+
+function createGcpSecret() {
+  EMAIL=$1
+  SECRET=$2
+
+  O=`kubectl get secret --namespace=${K8S_NAMESPACE} ${SECRET} 2>&1`
+  RESULT=$?
+
+  if [ "${RESULT}" -eq 0 ]; then
+    echo secret ${SECRET} already exists
+    return
+  fi
+
+  FILE=${KUBEFLOW_SECRETS_DIR}/${EMAIL}.json
+  gcloud --project=${PROJECT} iam service-accounts keys create ${FILE} --iam-account ${EMAIL}
+
+  kubectl create secret generic --namespace=${K8S_NAMESPACE} ${SECRET} --from-file=${SECRET}.json=${FILE}
+
+  # Delete the secret to reduce the risk of compromise
+  rm ${FILE}
+}
 
 if ${KUBEFLOW_DEPLOY}; then
   # Check if it already exists
   set +e
   gcloud deployment-manager --project=${PROJECT} deployments describe ${DEPLOYMENT_NAME}
   exists=$?
-  set -e
 
   if [ ${exists} -eq 0 ]; then
     echo ${DEPLOYMENT_NAME} exists
@@ -139,28 +196,48 @@ if ${KUBEFLOW_DEPLOY}; then
     gcloud deployment-manager --project=${PROJECT} deployments create ${DEPLOYMENT_NAME} --config=${CONFIG_FILE}
   fi
 
-  # TODO(jlewi): We should name the secrets more consistently based on the service account name.
-  # We will need to update the component configs though
-  gcloud --project=${PROJECT} iam service-accounts keys create ${ADMIN_EMAIL}.json --iam-account ${ADMIN_EMAIL}
-  gcloud --project=${PROJECT} iam service-accounts keys create ${USER_EMAIL}.json --iam-account ${USER_EMAIL}
-
   # Set credentials for kubectl context
   gcloud --project=${PROJECT} container clusters get-credentials --zone=${ZONE} ${DEPLOYMENT_NAME}
 
   # Make yourself cluster admin
-  kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --user=${EMAIL}
+  O=`kubectl get clusterrolebinding default-admin 2>&1`
+  RESULT=$?
 
-  kubectl create namespace ${K8S_NAMESPACE}
+  if [ "${RESULT}" -eq 0 ]; then
+    echo clusterrolebinding default-admin already exists
+  else
+    kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --user=${EMAIL}
+  fi
 
+  O=`kubectl get namespace ${K8S_NAMESPACE} 2>&1`
+  RESULT=$?
+
+  if [ "${RESULT}" -eq 0 ]; then
+    echo namespace ${K8S_NAMESPACE} already exists
+  else
+    kubectl create namespace ${K8S_NAMESPACE}
+  fi
+  
   # We want the secret name to be the same by default for all clusters so that users don't have to set it manually.
-  kubectl create secret generic --namespace=${K8S_NAMESPACE} admin-gcp-sa --from-file=admin-gcp-sa.json=./${ADMIN_EMAIL}.json
-  kubectl create secret generic --namespace=${K8S_NAMESPACE} user-gcp-sa --from-file=user-gcp-sa.json=./${USER_EMAIL}.json
-  kubectl create secret generic --namespace=${K8S_NAMESPACE} kubeflow-oauth --from-literal=CLIENT_ID=${CLIENT_ID} --from-literal=CLIENT_SECRET=${CLIENT_SECRET}
+  createGcpSecret ${ADMIN_EMAIL} admin-gcp-sa
+  createGcpSecret ${USER_EMAIL} user-gcp-sa
+  
+  O=`kubectl get secret --namespace=${K8S_NAMESPACE} kubeflow-oauth 2>&1`
+  RESULT=$?
+
+  if [ "${RESULT}" -eq 0 ]; then
+    echo Secret kubeflow-oauth already exists
+  else
+    kubectl create secret generic --namespace=${K8S_NAMESPACE} kubeflow-oauth --from-literal=CLIENT_ID=${CLIENT_ID} --from-literal=CLIENT_SECRET=${CLIENT_SECRET}
+  fi
 
   # Install the GPU driver. It has no effect on non-GPU nodes.
   kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/stable/nvidia-driver-installer/cos/daemonset-preloaded.yaml
+
+  set -e
 fi
 
+if [ ! -z ${GCFS_INSTANCE} ]; then 
 # wait for gcfs creation to complete
 wait ${gcfs_creation_pid}
 
@@ -169,6 +246,7 @@ GCFS_INSTANCE_IP_ADDRESS=$(gcloud beta filestore instances describe \
  grep --after-context=1 ipAddresses | \
  tail -1 | \
  awk '{print $2}')
+fi
 
 # Create the ksonnet app
 cd $(dirname "${KUBEFLOW_KS_DIR}")
@@ -190,14 +268,19 @@ ks pkg install kubeflow/seldon
 ks pkg install kubeflow/tf-serving
 
 # Generate all required components
-ks generate google-cloud-filestore-pv google-cloud-filestore-pv --name="kubeflow-gcfs" --storageCapacity="${GCFS_STORAGE}" --serverIP="${GCFS_INSTANCE_IP_ADDRESS}"
+
 ks generate pytorch-operator pytorch-operator
 ks generate ambassador ambassador --ambassadorImage="gcr.io/kubeflow-images-public/ambassador:0.30.1" --statsdImage="gcr.io/kubeflow-images-public/statsd:0.30.1" --cloud=${KUBEFLOW_CLOUD}
-ks generate jupyterhub jupyterhub --cloud=${KUBEFLOW_CLOUD} --disks="kubeflow-gcfs"
+ks generate jupyterhub jupyterhub --cloud=${KUBEFLOW_CLOUD}
 ks generate centraldashboard centraldashboard
 ks generate tf-job-operator tf-job-operator
 
 ks generate argo argo
+
+if [ ! -z ${GCFS_INSTANCE} ]; then
+  ks generate google-cloud-filestore-pv google-cloud-filestore-pv --name="kubeflow-gcfs" --storageCapacity="${GCFS_STORAGE}" --serverIP="${GCFS_INSTANCE_IP_ADDRESS}"
+  ks param set jupyterhub disks "kubeflow-gcfs"  
+fi
 
 if ! ${PRIVATE_CLUSTER}; then
   # Enable collection of anonymous usage metrics
@@ -208,9 +291,13 @@ if ! ${PRIVATE_CLUSTER}; then
   ks generate iap-ingress iap-ingress --ipName=${KUBEFLOW_IP_NAME} --hostname=${KUBEFLOW_HOSTNAME}
   ks param set jupyterhub jupyterHubAuthenticator iap
 fi
+
 # Apply the components generated
 if ${KUBEFLOW_DEPLOY}; then
-  ks apply default -c google-cloud-filestore-pv
+  if [ ! -z ${GCFS_INSTANCE} ]; then
+    ks apply default -c google-cloud-filestore-pv
+  fi
+
   ks apply default -c ambassador
   ks apply default -c jupyterhub
   ks apply default -c centraldashboard
