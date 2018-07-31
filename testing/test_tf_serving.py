@@ -131,7 +131,7 @@ def main():
       with open(args.result_path) as f:
         expected_result = json.loads(f.read())
         logging.info('Expected result: {}'.format(expected_result))
-        assert(almost_equal(expected_result == json.loads(result.text)))
+        assert(almost_equal(expected_result, json.loads(result.text)))
   except Exception as e:
     t.failure = "Test failed; " + e.message
     raise
