@@ -18,7 +18,9 @@ from __future__ import print_function
 
 
 import argparse
+import json
 import logging
+import numbers
 import os
 import time
 
@@ -30,6 +32,27 @@ from tensorflow_serving.apis import predict_pb2
 from tensorflow_serving.apis import prediction_service_pb2
 
 from kubeflow.testing import test_util
+from kubeflow.testing import util
+
+
+def almost_equal(a, b, tol=0.001):
+  """
+  Compares two json objects (assuming same structure) with tolerance on numbers
+  """
+  if isinstance(a, dict):
+    for key in a.keys():
+      if not almost_equal(a[key], b[key]):
+        return False
+    return True
+  elif isinstance(a, list):
+    for i in xrange(len(a)):
+      if not almost_equal(a[i], b[i]):
+        return False
+    return True
+  elif isinstance(a, numbers.Number):
+    return abs(a - b) < tol
+  else:
+    return a == b
 
 
 def main():
@@ -73,55 +96,38 @@ def main():
   t.name = "tf-serving-image-" + args.service_name
 
   start = time.time()
+
+  util.load_kube_config(persist_config=False)
   api_client = k8s_client.ApiClient()
-  core_client = k8s_client.CoreV1Api(api_client)
+  core_api = k8s_client.CoreV1Api(api_client)
   try:
     with open(args.input_path) as f:
-      instances = f.read()
+      instances = json.loads(f.read())
 
-    service = core_client.read_namespaced_service(args.service_name, args.namespace)
-    logging.info(service)
-    logging.info(service.__dict__)
-    logging.info(service.status)
-    logging.info(service.spec)
+    service = core_api.read_namespaced_service(args.service_name, args.namespace)
+    service_ip = service.spec.cluster_ip
+    model_url = "http://" + service_ip + ":8000/model/mnist:predict"
 
-    #server = "{}.{}.svc.cluster.local:8000".format(args.service_name, args.namespace)
-    #result = requests.get(server)
-    #logging.info(result)
-
-    # channel = implementations.insecure_channel(server, args.port)
-    # stub = prediction_service_pb2.beta_create_PredictionService_stub(channel)
-
-    # with tf.gfile.Open(args.image_path) as img:
-    #   raw_image = (img.read())
-
-    # # Send request
-    # # See prediction_service.proto for gRPC request/response details.
-    # request = predict_pb2.PredictRequest()
-    # request.model_spec.name = args.service_name
-    # request.model_spec.signature_name = 'predict_images'
-    # request.inputs['images'].CopyFrom(
-    #     tf.make_tensor_proto(raw_image, shape=[1,]))
-
-    # num_try = 1
-    # result = None
-    # while True:
-    #   try:
-    #     result = str(stub.Predict(request, 10.0))  # 10 secs timeout
-    #   except Exception as e:
-    #     num_try += 1
-    #     if num_try > 10:
-    #       raise
-    #     logging.info('prediction failed: {}. Retrying...'.format(e))
-    #     time.sleep(5)
-    #   else:
-    #     break
-    # logging.info('Got result: {}'.format(result))
-    # if args.result_path:
-    #   with open(args.result_path) as f:
-    #     expected_result = f.read()
-    #     logging.info('Expected result: {}'.format(expected_result))
-    #     assert(expected_result == result)
+    num_try = 1
+    result = None
+    while True:
+      try:
+        result = requests.post(model_url, json=instances)
+        assert(result.status_code == 200)
+      except Exception as e:
+        num_try += 1
+        if num_try > 10:
+          raise
+        logging.info('prediction failed: {}. Retrying...'.format(e))
+        time.sleep(5)
+      else:
+        break
+    logging.info('Got result: {}'.format(result.text))
+    if args.result_path:
+      with open(args.result_path) as f:
+        expected_result = json.loads(f.read())
+        logging.info('Expected result: {}'.format(expected_result))
+        assert(almost_equal(expected_result, json.loads(result.text)))
   except Exception as e:
     t.failure = "Test failed; " + e.message
     raise
