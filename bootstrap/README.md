@@ -51,7 +51,7 @@ docker run -ti \
   -v ${HOME}/.kube:/home/${USER}/.kube \
   -v ${HOME}/.config:/home/${USER}/.config gcr.io/kubeflow-images-public/bootstrapper:latest
 ```
-Check [how to avoid getting a GitHub rate limit exceeded error](https://www.kubeflow.org/docs/guides/troubleshooting/#403-api-rate-limit-exceeded-error)
+Check [how to avoid getting a GitHub rate limit exceeded error](https://www.kubeflow.org/docs/guides/troubleshooting/#403-api-rate-limit-exceeded-error).
 
 **Inside container, choose one way to generate kubeflow apps**:
 1. On GKE, without Google Sign-in:
