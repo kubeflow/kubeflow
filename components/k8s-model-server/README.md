@@ -156,7 +156,7 @@ Now we will combine the image and model collected/created in the previous steps 
 
 We treat each deployed model as a [component](https://ksonnet.io/docs/tutorial#2-generate-and-deploy-an-app-component) in your ksonnet app.
 
-Create a component for your model inside your ksonnet app (refer to the [user_guide](https://www.kubeflow.org/docs/user_guide/) for more context on ksonnet)
+Create a component for your model inside your ksonnet app (refer to the [guide](https://www.kubeflow.org/docs/guides/components/ksonnet/) for more context on ksonnet)
 
 ```commandline
 ks init my-model-server
