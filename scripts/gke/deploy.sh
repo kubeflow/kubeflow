@@ -290,9 +290,9 @@ if ! ${PRIVATE_CLUSTER}; then
   # Enable collection of anonymous usage metrics
   # Skip this step if you don't want to enable collection.
   ks generate spartakus spartakus --usageId=$(uuidgen) --reportUsage=${COLLECT_METRICS}
-  ks generate cloud-endpoints cloud-endpoints
+  ks generate cloud-endpoints cloud-endpoints --secretName=admin-gcp-sa
   ks generate cert-manager cert-manager --acmeEmail=${EMAIL}
-  ks generate iap-ingress iap-ingress --ipName=${KUBEFLOW_IP_NAME} --hostname=${KUBEFLOW_HOSTNAME}
+  ks generate iap-ingress iap-ingress --ipName=${KUBEFLOW_IP_NAME} --hostname=${KUBEFLOW_HOSTNAME} --saSecretName=admin-gcp-sa
   ks param set jupyterhub jupyterHubAuthenticator iap
 fi
 

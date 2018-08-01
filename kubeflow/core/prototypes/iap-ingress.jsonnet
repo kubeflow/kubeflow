@@ -5,6 +5,7 @@
 // @param name string Name for the component
 // @param ipName string The name of the global ip address to use.
 // @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
+// @optionalParam saSecretName string null Name of secret containing the json service account key.
 // @optionalParam secretName string envoy-ingress-tls The name of the secret containing the SSL certificates.
 // @optionalParam hostname string null The hostname associated with this ingress. Eg: mykubeflow.example.com
 // @optionalParam issuer string letsencrypt-prod The cert-manager issuer name.

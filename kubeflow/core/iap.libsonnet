@@ -224,7 +224,7 @@
                     name: "ENVOY_ADMIN",
                     value: "http://localhost:" + envoyAdminPort,
                   },
-                  {
+                  if saSecretName != "null" then {
                     name: "GOOGLE_APPLICATION_CREDENTIALS",
                     value: "/var/run/secrets/sa/admin-gcp-sa.json",
                   },
@@ -238,7 +238,7 @@
                     mountPath: "/var/shared/",
                     name: "shared",
                   },
-                  {
+                  if saSecretName != "null" then {
                     name: "sa-key",
                     readOnly: true,
                     mountPath: "/var/run/secrets/sa",
@@ -260,10 +260,10 @@
                 },
                 name: "shared",
               },
-              {
+              if saSecretName != "null" then {
                 name: "sa-key",
                 secret: {
-                  secretName: "admin-gcp-sa",
+                  secretName: secretName,
                 },
               },
             ],
@@ -329,7 +329,7 @@
                     name: "ENVOY_ADMIN",
                     value: "http://localhost:" + envoyAdminPort,
                   },
-                  {
+                  if saSecretName != "null" then {
                     name: "GOOGLE_APPLICATION_CREDENTIALS",
                     value: "/var/run/secrets/sa/admin-gcp-sa.json",
                   },
@@ -339,7 +339,7 @@
                     mountPath: "/var/envoy-config/",
                     name: "config-volume",
                   },
-                  {
+                  if saSecretName != "null" then {
                     name: "sa-key",
                     readOnly: true,
                     mountPath: "/var/run/secrets/sa",
@@ -355,10 +355,10 @@
                 },
                 name: "config-volume",
               },
-              {
+              if saSecretName != "null" then {
                 name: "sa-key",
                 secret: {
-                  secretName: "admin-gcp-sa",
+                  secretName: secretName,
                 },
               },
             ],

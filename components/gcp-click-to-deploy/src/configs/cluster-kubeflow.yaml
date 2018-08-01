@@ -95,9 +95,6 @@ resources:
           - name: iap-ingress
             prototype: iap-ingress
         parameters:
-          - component: cloud-endpoints
-            name: secretName
-            value: cloudep-sa
           - component: cert-manager
             name: acmeEmail
             # TODO: use your email for ssl cert
