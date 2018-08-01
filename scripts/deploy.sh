@@ -10,6 +10,7 @@ KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"}
 KUBEFLOW_DEPLOY=${KUBEFLOW_DEPLOY:-true}
 K8S_NAMESPACE=${K8S_NAMESPACE:-"kubeflow"}
 KUBEFLOW_CLOUD=${KUBEFLOW_CLOUD:-"minikube"}
+KUBEFLOW_DOCKER_REGISTRY=${KUBEFLOW_DOCKER_REGISTRY:-""}
 
 if [[ ! -d "${KUBEFLOW_REPO}" ]]; then
   if [ "${KUBEFLOW_VERSION}" == "master" ]; then
@@ -37,6 +38,11 @@ DEPLOYMENT_NAME=${DEPLOYMENT_NAME:-"kubeflow"}
 
 KUBEFLOW_KS_DIR=${KUBEFLOW_KS_DIR:-"`pwd`/${DEPLOYMENT_NAME}_ks_app"}
 
+if [[ ! -z "$KUBEFLOW_DOCKER_REGISTRY" ]]; then
+  find $KUBEFLOW_REPO -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%gcr.io%$KUBEFLOW_DOCKER_REGISTRY%g"
+  find $KUBEFLOW_REPO -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%quay.io%$KUBEFLOW_DOCKER_REGISTRY%g"
+fi
+
 cd $(dirname "${KUBEFLOW_KS_DIR}")
 
 set +e
@@ -44,6 +50,7 @@ kubectl create ns ${K8S_NAMESPACE}
 set -e
 
 ks init $(basename "${KUBEFLOW_KS_DIR}")
+
 cd "${KUBEFLOW_KS_DIR}"
 
 ks env set default --namespace "${K8S_NAMESPACE}"
