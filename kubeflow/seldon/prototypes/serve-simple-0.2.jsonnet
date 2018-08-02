@@ -1,6 +1,6 @@
 // @apiVersion 0.1
-// @name io.ksonnet.pkg.seldon-serve-simple
-// @description A prototype to serve a single seldon model
+// @name io.ksonnet.pkg.seldon-serve-simple-v1alpha2
+// @description A prototype to serve a single seldon model for the v1alpha2 CRD (Seldon 0.2.X)
 // @shortDescription A prototype to serve a single seldon model
 // @param name string Name to give this deployment
 // @param image string Docker image which contains this model
@@ -26,15 +26,91 @@ local replicas = import "param://replicas";
 local endpoint = import "param://endpoint";
 local pvcName = import "param://pvcName";
 
-local serveComponents = [
-  serve.parts(namespace).serve(name, image, replicas, endpoint, pvcName),
-];
+local pvcClaim = {
+  apiVersion: "v1",
+  kind: "PersistentVolumeClaim",
+  metadata: {
+    name: pvcName,
+  },
+  spec: {
+    accessModes: [
+      "ReadWriteOnce",
+    ],
+    resources: {
+      requests: {
+        storage: "10Gi",
+      },
+    },
+  },
+};
 
-local pvcComponent = [
-  serve.parts(namespace).createPVC(pvcName),
-];
+local seldonDeployment = {
+  apiVersion: "machinelearning.seldon.io/v1alpha2",
+  kind: "SeldonDeployment",
+  metadata: {
+    labels: {
+      app: "seldon",
+    },
+    name: name,
+    namespace: namespace,
+  },
+  spec: {
+    annotations: {
+      deployment_version: "v1",
+      project_name: name,
+    },
+    name: name,
+    predictors: [
+      {
+        annotations: {
+          predictor_version: "v1",
+        },
+        componentSpecs: [{
+          spec: {
+            containers: [
+              {
+                image: image,
+                imagePullPolicy: "Always",
+                name: name,
+                volumeMounts+: if pvcName != "null" && pvcName != "" then [
+                  {
+                    mountPath: "/mnt",
+                    name: "persistent-storage",
+                  },
+                ] else [],
+              },
+            ],
+            terminationGracePeriodSeconds: 1,
+            volumes+: if pvcName != "null" && pvcName != "" then [
+              {
+                name: "persistent-storage",
+                volumeSource: {
+                  persistentVolumeClaim: {
+                    claimName: pvcName,
+                  },
+                },
+              },
+            ] else [],
+          },
+        }],
+        graph: {
+          children: [
 
-if pvcName != "null" && pvcName != "" then
-  k.core.v1.list.new(serveComponents + pvcComponent)
-else
-  k.core.v1.list.new(serveComponents)
+          ],
+          endpoint: {
+            type: endpoint,
+          },
+          name: name,
+          type: "MODEL",
+        },
+        name: name,
+        replicas: replicas,
+      },
+    ],
+  },
+};
+
+k.core.v1.list.new([
+  pvcClaim,
+  seldonDeployment,
+])
