@@ -8,6 +8,7 @@ import TextField from '@material-ui/core/TextField';
 import glamorous from 'glamorous';
 import * as jsYaml from 'js-yaml';
 import * as React from 'react';
+import * as request from 'request';
 import Gapi from './Gapi';
 import { flattenDeploymentOperationError, log, wait } from './Utils';
 
@@ -17,16 +18,16 @@ import { flattenDeploymentOperationError, log, wait } from './Utils';
 // So for security reasons it might be better to just bundle the configs.
 // When we build a docker image as part of our release process we can just
 // copy in the latest configs.
-import clusterUtilJinjaPath from './configs/cluster-kubeflow-util.jinja';
-import clusterUtilSpecPath from './configs/cluster-kubeflow-util.yaml';
 import clusterSpecPath from './configs/cluster-kubeflow.yaml';
 import clusterJinjaPath from './configs/cluster.jinja';
-
 
 // TODO(jlewi): For the FQDN we should have a drop down box to select custom
 // domain or automatically provisioned domain. Based on the response if the user
 // selects auto domain then we should automatically supply the suffix
 // <hostname>.endpoints.<Project>.cloud.goog
+
+// Assume user access app via kubectl proxy
+const BackendAddress = 'http://127.0.0.1:8001/api/v1/namespaces/default/services/kubeflow-controller:8080/proxy/';
 
 interface DeployFormState {
   deploymentName: string;
@@ -160,41 +161,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         log('Request failed', error);
       });
 
-    this._appendLine('loadClusterUtilJinjaPath');
-    // Load the jinja template into a string because
-    // we will need it for the deployments insert request.
-    fetch(clusterUtilJinjaPath, { mode: 'no-cors' })
-      .then((response) => {
-        log('Got response');
-        return response.text();
-      })
-      .then((text) => {
-        this.setState({
-          clusterUtilJinja: text,
-        });
-        log('Loaded clusterUtilJinja successfully');
-      })
-      .catch((error) => {
-        log('Request failed', error)
-      });
-
-    this._appendLine('loadClusterUtilSpec');
-    // Load the YAML for the actual config and parse it.
-    fetch(clusterUtilSpecPath, { mode: 'no-cors' })
-      .then((response) => {
-        log('Got response');
-        return response.text();
-      })
-      .then((text) => {
-        this.setState({
-          clusterUtilSpec: jsYaml.safeLoad(text),
-        });
-        log('Loaded clusterUtilSpecPath successfully');
-      })
-      .catch((error) => {
-        log('Request failed', error)
-      });
-
   }
 
   public render() {
@@ -218,12 +184,10 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           <Input name="hostName" label="Hostname" spellCheck={false} value={this.state.hostName} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
-          <Label>Web App Client Id:</Label>
-          <Input name='clientId' spellCheck={false} value={this.state.clientId} onChange={this._handleChange.bind(this)} />
+          <Input name='clientId' label="Web App Client Id" spellCheck={false} value={this.state.clientId} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
-          <Label>Web App Client Secret:</Label>
-          <Input name='clientSecret' spellCheck={false} value={this.state.clientSecret} onChange={this._handleChange.bind(this)} />
+          <Input name='clientSecret' label="Web App Client Secret" spellCheck={false} value={this.state.clientSecret} onChange={this._handleChange.bind(this)} />
         </Row>
 
         <div style={{ display: 'flex', padding: '20px 60px 40px' }}>
@@ -297,6 +261,8 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
 
     kubeflow.name = this.state.deploymentName;
     kubeflow.properties.zone = this.state.zone;
+    kubeflow.properties.clientId = btoa(this.state.clientId);
+    kubeflow.properties.clientSecret = btoa(this.state.clientSecret);
 
     const config: any = jsYaml.safeLoad(kubeflow.properties.bootstrapperConfig);
 
@@ -455,8 +421,8 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       });
 
 
-    // Step 4: In cluster resource set up
-    let status = ""
+    // Step 4: In-cluster resources set up
+    let status = "";
     let getAttempts = 0;
     const getTimeout = 15000;
     do {
@@ -466,55 +432,37 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
               this._appendLine("Cluster endpoint not available yet.")
             });
       if (!curStatus) {
-        wait(getTimeout);
+        await wait(getTimeout);
         continue;
       }
       status = curStatus.operation!.status!
     } while (status !== "DONE" && getAttempts < 20);
 
-    const saKey = await Gapi.iam.createKey(
-      project,
-      `${deploymentName}-admin@${project}.iam.gserviceaccount.com`
-    );
-    const kubeflowUtil = this.state.clusterUtilSpec.resources[0]
-
-    kubeflowUtil.properties.clusterType = this.state.deploymentName + '-type';
-    kubeflowUtil.properties.saKey = saKey.privateKeyData;
-    kubeflowUtil.properties.clientId = window.btoa(this.state.clientId);
-    kubeflowUtil.properties.clientSecret = window.btoa(this.state.clientSecret);
-
-    this.state.clusterUtilSpec.resources[0] = kubeflowUtil;
-
-    const deploymentUtilName = deploymentName + '-util';
-    const resourceUtil = {
-      'name': deploymentUtilName,
-      'target': {
-          'config': {
-              'content': jsYaml.dump(this.state.clusterUtilSpec),
-          },
-          'imports': [
-              {
-                  'content': this.state.clusterUtilJinja,
-                  'name': 'cluster-kubeflow-util.jinja',
-              }
-          ],
+    const token = await Gapi.getToken();
+    await request(
+      {
+        body: JSON.stringify(
+          {
+            namespace: 'kubeflow',
+            project,
+            secretKey: 'admin-gcp-sa.json',
+            secretName: 'admin-gcp-sa',
+            serviceAccount:  `${deploymentName}-admin@${project}.iam.gserviceaccount.com`,
+            token,
+          }
+        ),
+        headers: { 'content-type': 'application/json' },
+        method: 'PUT',
+        uri: BackendAddress + '/insertSaKey',
       },
-    };
-
-    await Gapi.deploymentmanager.insert(project, resourceUtil)
-      .then(res => {
-        this._appendLine('Result of create deployment operation:\n' + JSON.stringify(res));
-        this._monitorDeployment(project, deploymentUtilName)
-      })
-      .catch(err => {
-        this._appendLine('Error trying to create deployment:\n' + err);
-        this.setState({
-          error: 'Deployment Error',
-          errorMessage: 'Error trying to create deployment: ' + err,
-        });
-        this._monitorDeployment(project, deploymentUtilName);
-      });
-
+      (error, response, body) => {
+        if (!error) {
+          this._appendLine('Service Account Key inserted.');
+        } else {
+          this._appendLine('error: ' + response.statusCode);
+        }
+      }
+    );
   }
 
   /**
@@ -525,7 +473,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
 
     const servicesToEnable = new Set([
       'deploymentmanager.googleapis.com',
-      'servicemanagement.googleapis.com',
       'container.googleapis.com',
       'cloudresourcemanager.googleapis.com',
       'endpoints.googleapis.com',

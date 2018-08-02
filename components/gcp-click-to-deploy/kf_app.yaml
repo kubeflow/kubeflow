@@ -1,0 +1,82 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubeflow-controller
+  namespace: default
+spec:
+  ports:
+  - name: web-app
+    port: 3000
+  - name: backend
+    port: 8080
+  selector:
+    app: kubeflow-controller
+  type: ClusterIP
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: kubeflow-controller
+  name: kubeflow-controller
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubeflow-controller
+  template:
+    metadata:
+      labels:
+        app: kubeflow-controller
+      namespace: default
+    spec:
+      containers:
+      - name: web-app
+        image: gcr.io/kubeflow-images-public/gcp-click-to-deploy:test0802
+      - name: controller-backend
+        image: gcr.io/kubeflow-images-public/bootstrapper:latest
+        workingDir: /opt/bootstrap
+        command: [ "/opt/kubeflow/bootstrapper"]
+        args: [
+          "--in-cluster",
+          "--namespace=kubeflow",
+          "--apply",
+          # change config here if you want to use customized config.
+          # "--config=/opt/kubeflow/default.yaml"
+          # app-dir: path to store your ks apps in pod's PersistentVolume
+          "--app-dir=/opt/bootstrap/default"
+          ]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: controller-backend
+  namespace: default
+spec:
+  ports:
+  - name: http
+    port: 80
+  selector:
+    app: controller-backend
+  type: ClusterIP
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: controller-backend
+  name: controller-backend
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: controller-backend
+  template:
+    metadata:
+      labels:
+        app: controller-backend
+      namespace: default
+    spec:
+      containers:

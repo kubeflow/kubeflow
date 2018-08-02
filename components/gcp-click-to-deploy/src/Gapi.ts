@@ -11,11 +11,6 @@ interface ListServicesResponse {
 interface EnableServiceRequest {
   consumerId?: string;
 }
-interface CreateKeyResponse {
-  name: string;
-  privateKeyType: string;
-  privateKeyData: string;
-}
 
 export default class Gapi {
 
@@ -51,23 +46,6 @@ export default class Gapi {
     }
 
   };
-
-  public static iam = class {
-
-    public static async createKey(projectId: string, serviceAccounts: string) {
-      await Gapi.load();
-      return gapi.client.request({
-          method: 'POST',
-          path: `https://iam.googleapis.com/v1/projects/${projectId}/serviceAccounts/${serviceAccounts}/keys`,
-        }).then(response => {
-                return response.result as CreateKeyResponse;
-            },
-          badResult => {
-          throw new Error('Errors creating key for serviceAccount ${serviceAccounts}: '
-            + JSON.stringify(badResult));
-        });
-    }
-  }
 
   public static servicemanagement = class {
 
