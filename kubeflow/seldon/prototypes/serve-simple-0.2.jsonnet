@@ -70,7 +70,7 @@ local seldonDeployment = {
             containers: [
               {
                 image: image,
-                imagePullPolicy: "Always",
+                imagePullPolicy: "IfNotPresent",
                 name: name,
                 volumeMounts+: if pvcName != "null" && pvcName != "" then [
                   {
