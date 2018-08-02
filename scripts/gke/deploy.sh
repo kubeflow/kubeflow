@@ -11,9 +11,9 @@
 # export GCFS_INSTANCE=
 set -xe
 
-# TODO(jlewi): We should check for a file env.sh and if it exists
-# source variables from it. We should then create that file the
-# first time we run deploy.sh
+# TODO(jlewi): delete deploy.sh after updating the E2E test to use
+# kfctl.sh
+echo "WARNING teardown.sh is deprecated; use kfctl.sh"
 
 KUBEFLOW_REPO=${KUBEFLOW_REPO:-"`pwd`/kubeflow_repo"}
 KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"}
@@ -131,7 +131,7 @@ if [ ! -d "${KUBEFLOW_DM_DIR}" ]; then
   echo creating Deployment Manager configs in directory "${KUBEFLOW_DM_DIR}"
   cp -r "${KUBEFLOW_REPO}/scripts/gke/deployment_manager_configs" "${KUBEFLOW_DM_DIR}"
   # Set values in DM config file
-  sed -i.bak "s/zone: us-central1-a/zone: ${ZONE}/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
+  sed -i.bak "s/zone: SET_THE_ZONE/zone: ${ZONE}/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
   sed -i.bak "s/users:/users: [\"${IAP_IAM_ENTRY}\"]/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
   sed -i.bak "s/ipName: kubeflow-ip/ipName: ${KUBEFLOW_IP_NAME}/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
   if ${PRIVATE_CLUSTER}; then
@@ -235,8 +235,8 @@ if ${KUBEFLOW_DEPLOY}; then
   kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/stable/nvidia-driver-installer/cos/daemonset-preloaded.yaml
 
   # Install Stackdriver Kubernetes agents.
-  # kubectl apply -f https://storage.googleapis.com/stackdriver-kubernetes/stable/rbac-setup.yaml --as=admin --as-group=system:masters
-  # kubectl apply -f https://storage.googleapis.com/stackdriver-kubernetes/stable/agents.yaml
+  kubectl apply -f https://storage.googleapis.com/stackdriver-kubernetes/stable/rbac-setup.yaml --as=admin --as-group=system:masters
+  kubectl apply -f https://storage.googleapis.com/stackdriver-kubernetes/stable/agents.yaml
 
   set -e
 fi
