@@ -47,7 +47,7 @@ a form to specify cpu, memory, gpu, and desired image.
 
 ## Quick Start
 
-Refer to the [user_guide](https://www.kubeflow.org/docs/user_guide/) for instructions on deploying JupyterHub via ksonnet.
+Refer to the [guide](https://www.kubeflow.org/docs/guides/components/jupyter/) for instructions on deploying JupyterHub via ksonnet.
 
 Once that's completed, you will have a StatefulSet for JupyterHub, a configmap for configuration, and a LoadBalancer type of service, in addition to the requisite RBAC roles.
 If you are on Google Kubernetes Engine, the LoadBalancer type of service automatically creates an external IP address that can be
