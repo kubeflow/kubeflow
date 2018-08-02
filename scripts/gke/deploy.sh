@@ -11,9 +11,9 @@
 # export GCFS_INSTANCE=
 set -xe
 
-# TODO(jlewi): We should check for a file env.sh and if it exists
-# source variables from it. We should then create that file the
-# first time we run deploy.sh
+# TODO(jlewi): delete deploy.sh after updating the E2E test to use
+# kfctl.sh
+echo "WARNING teardown.sh is deprecated; use kfctl.sh"
 
 KUBEFLOW_REPO=${KUBEFLOW_REPO:-"`pwd`/kubeflow_repo"}
 KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"}
@@ -235,8 +235,8 @@ if ${KUBEFLOW_DEPLOY}; then
   kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/stable/nvidia-driver-installer/cos/daemonset-preloaded.yaml
 
   # Install Stackdriver Kubernetes agents.
-  # kubectl apply -f https://storage.googleapis.com/stackdriver-kubernetes/stable/rbac-setup.yaml --as=admin --as-group=system:masters
-  # kubectl apply -f https://storage.googleapis.com/stackdriver-kubernetes/stable/agents.yaml
+  kubectl apply -f https://storage.googleapis.com/stackdriver-kubernetes/stable/rbac-setup.yaml --as=admin --as-group=system:masters
+  kubectl apply -f https://storage.googleapis.com/stackdriver-kubernetes/stable/agents.yaml
 
   set -e
 fi

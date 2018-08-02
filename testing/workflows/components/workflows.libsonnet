@@ -223,6 +223,7 @@
                   // it runs in the same cluster as the
                   // test cluster. For minikube, we have
                   // a separate cluster.
+                  // TODO(jlewi): This is no longer true.
                   if platform == "minikube" then
                     {
                       name: "test-argo-deploy",
