@@ -290,13 +290,13 @@
                 name: "cloud-endpoints-controller",
                 image: cloudEndpointsImage,
                 imagePullPolicy: "Always",
-                [if secretName != "null" then 'env']: [
+                [if secretName != "null" then "env"]: [
                   {
                     name: "GOOGLE_APPLICATION_CREDENTIALS",
                     value: "/var/run/secrets/sa/" + secretKey,
                   },
                 ],
-                [if secretName != "null" then 'volumeMounts']: [
+                [if secretName != "null" then "volumeMounts"]: [
                   {
                     name: "sa-key",
                     readOnly: true,
@@ -316,7 +316,7 @@
                 },
               },
             ],
-            [if secretName != "null" then 'volumes']: [
+            [if secretName != "null" then "volumes"]: [
               {
                 name: "sa-key",
                 secret: {
