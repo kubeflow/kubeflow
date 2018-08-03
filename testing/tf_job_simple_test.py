@@ -23,7 +23,8 @@ and services with the appropriate label get created.
 import argparse
 import logging
 import os
-
+import re
+import subprocess
 from kubeflow.testing import test_helper, util
 from retrying import retry
 
@@ -67,12 +68,33 @@ def wait_for_tf_job():
     raise Exception("Could not find services with label tf_job_name=mycnnjob")
   logging.info("Found services with label tf_job_name=mycnnjob")
 
+@retry(stop_max_attempt_number=3)
 def test_tf_job_simple(test_case): # pylint: disable=redefined-outer-name
   args = parse_args()
-  util.run(["ks", "init", "tf-job-simple-app"])
+  try:
+    util.run(["ks", "init", "tf-job-simple-app", "--skip-default-registries"])
+  except subprocess.CalledProcessError as e:
+    # Keep going if the app already exists. This is a sign the a previous
+    # attempt failed and we are retrying.
+    if not re.search(".*already exists.*", e.output):
+      raise
+
   os.chdir("tf-job-simple-app")
-  util.run(["ks", "registry", "add", "kubeflow", args.src_dir + "/kubeflow"])
-  util.run(["ks", "pkg", "install", "kubeflow/examples"])
+  try:
+    util.run(["ks", "registry", "add", "kubeflow", args.src_dir + "/kubeflow"])
+  except subprocess.CalledProcessError as e:
+    # Keep going if the registry has already been added.
+    # This is a sign the a previous attempt failed and we are retrying.
+    if not re.search(".*already exists.*", e.output):
+      raise
+
+  try:
+    util.run(["ks", "pkg", "install", "kubeflow/examples"])
+  except subprocess.CalledProcessError as e:
+    # Keep going if the package has already been added.
+    # This is a sign the a previous attempt failed and we are retrying.
+    if not re.search(".*already exists.*", e.output):
+      raise
 
   if args.tf_job_version == "v1alpha2":
     prototype_name = "tf-job-simple"

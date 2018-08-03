@@ -341,7 +341,7 @@ the corresponding type provider.
       - admin-namespace
 
 {# Make the default service account in the kubeflow-admin namespace a cluster admin.
-   Cluster admin priveleges are needed by the bootstrapper.
+   Cluster admin privileges are needed by the bootstrapper.
 #}
 - name: bootstrap-rbac
   type: {{ env['project'] }}/$(ref.{{ RBAC_TYPE_NAME }}.name):{{ CLUSTER_ROLE_BINDING_COLLECTION }}

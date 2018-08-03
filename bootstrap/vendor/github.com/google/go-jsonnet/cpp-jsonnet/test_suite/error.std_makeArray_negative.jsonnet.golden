@@ -1,2 +1,0 @@
-RUNTIME ERROR: makeArray requires size >= 0, got -10
-	error.std_makeArray_negative.jsonnet:17:1-37	

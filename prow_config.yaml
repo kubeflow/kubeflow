@@ -5,14 +5,26 @@ workflows:
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: workflows
     name: kubeflow-e2e-gke
+    job_types:
+      - presubmit
+      - postsubmit
     params:
       platform: gke
   # Run tests on minikube
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: workflows
     name: kubeflow-e2e-minikube
+    job_types:
+      - postsubmit
     params:
       platform: minikube
   - app_dir: kubeflow/kubeflow/components/k8s-model-server/images/releaser
     component: workflows
     name: tf-serving-image
+    job_types:
+      - presubmit
+      - postsubmit
+    include_dirs:
+      - kubeflow/tf-serving/*
+      - components/k8s-model-server/*
+      - testing/*

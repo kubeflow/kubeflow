@@ -1,0 +1,336 @@
+{#
+Copyright 2016 Google Inc. All rights reserved.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+#}
+
+
+{% set NAME_PREFIX = env['deployment'] %}
+{% set CLUSTER_NAME = NAME_PREFIX %}
+{% set CPU_POOL = NAME_PREFIX + '-cpu-pool-' + properties['pool-version'] %}
+{% set GPU_POOL = NAME_PREFIX + '-gpu-pool-' + properties['pool-version'] %}
+
+{# Type names are the names to give to deployment manager type providers
+   that will be created to represent Kubernetes objects.
+   There is type corresponding to each API endpoint.
+#}
+{% set VM_OAUTH_SCOPES = ['https://www.googleapis.com/auth/logging.write', 'https://www.googleapis.com/auth/monitoring'] %}
+
+
+{# Names for service accounts.
+   -admin is to be used for admin tasks
+   -user is to be used by users for actual jobs.
+   -vm is used for the VM service account attached to the GKE VMs.
+ #}
+{% set KF_ADMIN_NAME = NAME_PREFIX + '-admin' %}
+{% set KF_USER_NAME = NAME_PREFIX + '-user' %}
+{% set KF_VM_SA_NAME = NAME_PREFIX + '-vm' %}
+
+resources:
+- name: {{ KF_ADMIN_NAME }}
+  type: iam.v1.serviceAccount
+  properties:
+    accountId: {{ KF_ADMIN_NAME }}
+    displayName: Service Account used for Kubeflow admin actions.
+
+- name: {{ KF_USER_NAME }}
+  type: iam.v1.serviceAccount
+  properties:
+    accountId: {{ KF_USER_NAME }}
+    displayName: Service Account used for Kubeflow user actions.
+
+- name: {{ KF_VM_SA_NAME }}
+  type: iam.v1.serviceAccount
+  properties:
+    accountId: {{ KF_VM_SA_NAME }}
+    displayName: GCP Service Account to use as VM Service Account for Kubeflow Cluster VMs
+
+- name: {{ CLUSTER_NAME }}
+  {% if properties['gkeApiVersion'] == 'v1beta1' %}
+  type: gcp-types/container-v1beta1:projects.locations.clusters
+  {% else %}
+  type: container.v1.cluster
+  {% endif %}
+  properties:
+    parent: projects/{{ env['project'] }}/locations/{{ properties['zone'] }}
+    zone: {{ properties['zone'] }}
+    cluster:
+      name: {{ CLUSTER_NAME }}
+      # We need 1.10.2 to support Stackdrivier GKE.
+      initialClusterVersion: 1.10.5-gke.3
+      loggingService: none
+      monitoringService: none
+      {% if properties['gkeApiVersion'] == 'v1beta1' %}
+      podSecurityPolicyConfig:
+        enabled: {{ properties['securityConfig']['podSecurityPolicy'] }}
+      {% endif %}
+      {% if properties['securityConfig']['privatecluster'] %}
+      ipAllocationPolicy:
+        createSubnetwork: true
+        useIpAliases: true
+      masterIpv4CidrBlock: {{ properties['securityConfig']['masterIpv4CidrBlock'] }}
+      privateCluster: true
+      masterAuthorizedNetworksConfig:
+        enabled: {{ properties['securityConfig']['masterAuthorizedNetworksConfigEnabled'] }}
+        {% if properties['securityConfig']['masterAuthorizedNetworksConfigEnabled'] %}
+        cidrBlocks:
+          {{ properties['securityConfig']['masterAuthorizedNetworksConfigCidr'] }}
+        {% endif %}
+      {% endif %}
+      nodePools:
+      - name: default-pool
+        initialNodeCount: {{ properties['cpu-pool-initialNodeCount'] }}
+        autoscaling:
+          enabled: {{ properties['cpu-pool-enable-autoscaling'] }}
+          {% if properties['cpu-pool-enable-autoscaling'] %}
+          minNodeCount: {{ properties['cpu-pool-min-nodes'] }}
+          maxNodeCount: {{ properties['cpu-pool-max-nodes'] }}
+          {% endif %}
+        config:
+          {% if properties['securityConfig']['secureNodeMetadata'] %}
+          workloadMetadataConfig:
+            nodeMetadata: SECURE
+          {% endif %}
+          machineType: n1-standard-8
+          serviceAccount: {{ KF_VM_SA_NAME }}@{{ env['project'] }}.iam.gserviceaccount.com
+          oauthScopes: {{ VM_OAUTH_SCOPES }}
+  metadata:
+    dependsOn:
+    - {{ KF_VM_SA_NAME }}
+
+# We manage the node pools as separate resources.
+# We do this so that if we want to make changes we can delete the existing resource and then recreate it.
+# Updating doesn't work so well because we are limited in what changes GKE's update method supports.
+
+- name: {{ GPU_POOL }}
+  {% if properties['gkeApiVersion'] == 'v1beta1' %}
+  type: gcp-types/container-v1beta1:projects.locations.clusters.nodePools
+  {% else %}
+  type: container.v1.nodePool
+  {% endif %}
+  properties:
+    parent: projects/{{ env['project'] }}/locations/{{ properties['zone'] }}/clusters/{{ CLUSTER_NAME }}
+    project: {{ properties['securityConfig']['project'] }}
+    zone: {{ properties['zone'] }}
+    clusterId: {{ CLUSTER_NAME }}
+    nodePool:
+      name: gpu-pool
+      initialNodeCount: {{ properties['gpu-pool-initialNodeCount'] }}
+      autoscaling:
+        enabled: {{ properties['gpu-pool-enable-autoscaling'] }}
+        {% if properties['gpu-pool-enable-autoscaling'] %}
+        minNodeCount: {{ properties['gpu-pool-min-nodes'] }}
+        maxNodeCount: {{ properties['gpu-pool-max-nodes'] }}
+        {% endif %}
+      config:
+        {% if properties['securityConfig']['secureNodeMetadata'] %}
+        workloadMetadataConfig:
+          nodeMetadata: SECURE
+        {% endif %}
+        machineType: n1-standard-8
+        serviceAccount: {{ KF_VM_SA_NAME }}@{{ env['project'] }}.iam.gserviceaccount.com
+        oauthScopes: {{ VM_OAUTH_SCOPES }}
+        accelerators:
+          - acceleratorCount: 1
+            acceleratorType: nvidia-tesla-k80
+
+  metadata:
+    dependsOn:
+    # We can only create 1 node pool at a time.
+    - {{ CLUSTER_NAME }}
+
+{# Project defaults to the project of the deployment. #}
+- name: {{ properties['ipName']  }}
+  type: compute.v1.globalAddress
+  properties:
+    description: "Static IP for Kubeflow ingress."
+
+
+{# Get the IAM policy first so that we do not remove any existing bindings. #}
+- name: get-iam-policy-add
+  action: gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.getIamPolicy
+  metadata:
+      runtimePolicy:
+        - UPDATE_ALWAYS
+  properties:
+      resource: {{ env["project"] }}
+{# Set the IAM policy patching the existing policy with what ever is currently in the
+  config.
+
+  We need to make the cloudservices account a GKE cluster admin because deployment manager
+  users the cloudservices account; so this will be the identity used with the K*s cluster.
+
+  Note: This will fail if the cloudservices account doesn't have IamProjectAdmin
+  permissions.
+#}
+- name: set-iam-policy-add
+  action: gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.setIamPolicy
+  metadata:
+      runtimePolicy:
+        - UPDATE_ON_CHANGE
+  properties:
+    resource: {{ env["project"] }}
+    policy: $(ref.get-iam-policy-add)
+    gcpIamPolicyPatch:
+        add:
+        - role: roles/container.admin
+          members:
+            {# Deployment manager uses cloudservices account. #}
+            - {{ 'serviceAccount:' + env['project_number'] + '@cloudservices.gserviceaccount.com' }}
+        {# Grant permissions needed to submit builds to Google Cloud Container Builder #}
+        - role: roles/cloudbuild.builds.editor
+          members:
+            - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+        {# roles/viewer is required for viewing the logs of a GCB build #}
+        - role: roles/viewer
+          members:
+            - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        {# Grant permissions needed to push the app to a cloud repository. #}
+        - role: roles/source.admin
+          members:
+            - {{ 'serviceAccount:' + KF_ADMIN_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+            - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        {# servicemanagement.admin is needed by CloudEndpoints controller
+           so we can create a service to get a hostname.
+         #}
+        - role: roles/servicemanagement.admin
+          members:
+            - {{ 'serviceAccount:' + KF_ADMIN_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+        {# Network admin is needed to enable IAP and configure network settings
+           like backend timeouts and health checks.
+        #}
+        - role: roles/compute.networkAdmin
+          members:
+            - {{ 'serviceAccount:' + KF_ADMIN_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        - role: roles/storage.admin
+          members:
+            - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        - role: roles/bigquery.admin
+          members:
+            - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        - role: roles/dataflow.admin
+          members:
+            - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        - role: roles/logging.logWriter
+          members:
+            {# VM service account is used to write logs. #}
+            - {{ 'serviceAccount:' + KF_VM_SA_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        - role: roles/monitoring.metricWriter
+          members:
+            {# VM service account is used to write monitoring data. #}
+            - {{ 'serviceAccount:' + KF_VM_SA_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        - role: roles/storage.objectViewer
+          members:
+            {# VM service account is used to pull image from gcr. #}
+            - {{ 'serviceAccount:' + KF_VM_SA_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        {% if 'users' in properties %}
+        {% if properties['users'] %}
+        - role: roles/iap.httpsResourceAccessor
+          members:
+            {% for user in properties['users'] %}
+            - {{ user }}
+            {% endfor %}
+        {% endif %}
+        {% endif %}
+# Use a second get-set IAM policy pair to have a fresh etag.
+- name: get-iam-policy-delete
+  action: gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.getIamPolicy
+  metadata:
+      dependsOn:
+       - set-iam-policy-add
+      runtimePolicy:
+        - UPDATE_ALWAYS
+  properties:
+      resource: {{ env["project"] }}
+- name: set-iam-policy-delete
+  action: gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.setIamPolicy
+  metadata:
+      runtimePolicy:
+        - DELETE
+  properties:
+    resource: {{ env["project"] }}
+    policy: $(ref.get-iam-policy-delete)
+    gcpIamPolicyPatch:
+        remove:
+        {# Grant permissions needed to submit builds to Google Cloud Container Builder #}
+        - role: roles/cloudbuild.builds.editor
+          members:
+            - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+        {# roles/viewer is required for viewing the logs of a GCB build #}
+        - role: roles/viewer
+          members:
+            - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        {# Grant permissions needed to push the app to a cloud repository. #}
+        - role: roles/source.admin
+          members:
+            - {{ 'serviceAccount:' + KF_ADMIN_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+            - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        {# servicemanagement.admin is needed by CloudEndpoints controller
+           so we can create a service to get a hostname.
+         #}
+        - role: roles/servicemanagement.admin
+          members:
+            - {{ 'serviceAccount:' + KF_ADMIN_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+        {# Network admin is needed to enable IAP and configure network settings
+           like backend timeouts and health checks.
+        #}
+        - role: roles/compute.networkAdmin
+          members:
+            - {{ 'serviceAccount:' + KF_ADMIN_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        - role: roles/storage.admin
+          members:
+            - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        - role: roles/bigquery.admin
+          members:
+            - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        - role: roles/dataflow.admin
+          members:
+            - {{ 'serviceAccount:' + KF_USER_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        - role: roles/logging.logWriter
+          members:
+            {# VM service account is used to write logs. #}
+            - {{ 'serviceAccount:' + KF_VM_SA_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        - role: roles/monitoring.metricWriter
+          members:
+            {# VM service account is used to write monitoring data. #}
+            - {{ 'serviceAccount:' + KF_VM_SA_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        - role: roles/storage.objectViewer
+          members:
+            {# VM service account is used to pull image from gcr. #}
+            - {{ 'serviceAccount:' + KF_VM_SA_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        {% if 'users' in properties %}
+        {% if properties['users'] %}
+        - role: roles/iap.httpsResourceAccessor
+          members:
+            {% for user in properties['users'] %}
+            - {{ user }}
+            {% endfor %}
+        {% endif %}
+        {% endif %}
+    {# This changes every time to ensure a fresh etag is obtained. #}
+    quotaUser: {{ env["current_time"] }}

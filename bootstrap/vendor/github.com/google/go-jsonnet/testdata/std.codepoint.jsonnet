@@ -1,1 +1,0 @@
-std.codepoint('A')

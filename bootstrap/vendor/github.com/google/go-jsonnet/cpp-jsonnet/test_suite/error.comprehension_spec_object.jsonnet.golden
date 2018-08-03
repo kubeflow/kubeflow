@@ -1,2 +1,0 @@
-RUNTIME ERROR: In comprehension, can only iterate over array.
-	error.comprehension_spec_object.jsonnet:17:1-22	

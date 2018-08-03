@@ -38,7 +38,7 @@ This bootstrapper example [config](config/gcp_prototype.yaml) can help explain h
 ```
 TAG=latest
 APP_DIR_HOST=$HOME/kfBootstrap
-GITHUB_TOKEN=<Get a [GitHub Token](https://www.kubeflow.org/docs/user_guide/#403-api-rate-limit-exceeded-error) to avoid API Limits>
+GITHUB_TOKEN=<Get a GitHub token to avoid API Limits>
 
 # Start container
 # Need to map config files like kubeconfig and gcloud config into the container.
@@ -51,6 +51,7 @@ docker run -ti \
   -v ${HOME}/.kube:/home/${USER}/.kube \
   -v ${HOME}/.config:/home/${USER}/.config gcr.io/kubeflow-images-public/bootstrapper:latest
 ```
+Check [how to avoid getting a GitHub rate limit exceeded error](https://www.kubeflow.org/docs/guides/troubleshooting/#403-api-rate-limit-exceeded-error).
 
 **Inside container, choose one way to generate kubeflow apps**:
 1. On GKE, without Google Sign-in:

@@ -1,1 +1,0 @@
-{assert false} + {assert true}

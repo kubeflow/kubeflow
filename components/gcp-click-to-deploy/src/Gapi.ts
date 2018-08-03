@@ -1,15 +1,37 @@
+import { flattenDeploymentOperationError } from './Utils';
+
+interface ManagedService {
+  producerProjectId?: string;
+  serviceName?: string;
+}
+interface ListServicesResponse {
+  nextPageToken?: string;
+  services?: ManagedService[];
+}
+interface EnableServiceRequest {
+  consumerId?: string;
+}
+
 export default class Gapi {
 
   public static deploymentmanager = class {
 
     public static async insert(project: string, resource: {}) {
       await this._load();
-      return this._deploymentManager.insert({ project, resource } as any).then(r => r.body);
+      return this._deploymentManager.insert({ project, resource } as any)
+        .then(r => r.result, badResult => {
+          throw new Error(
+            'Errors creating new deployment: ' + flattenDeploymentOperationError(badResult.result));
+        });
     }
 
-    public static async list(project: string) {
+    public static async get(project: string, deploymentName: string) {
       await this._load();
-      return this._deploymentManager.list({ project }).then(r => r.body);
+      return this._deploymentManager.get({ project, deployment: deploymentName })
+        .then(r => r.result, badResult => {
+          throw new Error(
+            'Errors creating new deployment: ' + flattenDeploymentOperationError(badResult.result));
+        });
     }
 
     private static _deploymentManager: gapi.client.deploymentmanager.DeploymentsResource;
@@ -23,7 +45,51 @@ export default class Gapi {
         });
     }
 
-  }
+  };
+
+  public static servicemanagement = class {
+
+    public static async list(project: string) {
+      await Gapi.load();
+      const consumerId = encodeURIComponent(`project:${project}`);
+      return gapi.client.request({
+        path: `https://content-servicemanagement.googleapis.com/v1/services?consumerId=${consumerId}`,
+      }).then(response => response.result as ListServicesResponse,
+        badResult => {
+          throw new Error('Errors listing services: ' + flattenDeploymentOperationError(badResult.result));
+        });
+    }
+
+    public static async enable(project: string, serviceName: string) {
+      await Gapi.load();
+      const consumerId = `project:${project}`;
+      return gapi.client.request({
+        body: {
+          consumerId
+        },
+        method: 'POST',
+        path: `https://content-servicemanagement.googleapis.com/v1/services/${serviceName}:enable`,
+      }).then(response => response.result as EnableServiceRequest,
+        badResult => {
+          throw new Error('Errors enabling service: ' + flattenDeploymentOperationError(badResult.result));
+        });
+    }
+
+  };
+
+  public static cloudresourcemanager = class {
+
+    public static async getProjectNumber(projectId: string) {
+      await Gapi.load();
+      return gapi.client.request({
+        path: `https://cloudresourcemanager.googleapis.com/v1/projects/${projectId}`
+      }).then(response => (response.result as any).projectNumber as number,
+        badResult => {
+          throw new Error('Errors enabling service: ' + flattenDeploymentOperationError(badResult.result));
+        });
+    }
+
+  };
 
   public static async signIn(doPrompt?: boolean): Promise<void> {
     const rePromptOptions = 'login consent select_account';
@@ -46,25 +112,40 @@ export default class Gapi {
     return user ? user.getBasicProfile().getEmail() : null;
   }
 
-  public static async loadSigninButton(): Promise<any> {
+  public static async loadSigninButton(buttonId: string): Promise<any> {
     await this.load();
     return this._loadPromise.then(() => new Promise((resolve, reject) => {
       gapi.load('signin2', { callback: resolve, onerror: (e: string) => reject(e) });
-    })).then(() => gapi.signin2.render('loginButton', {
+    })).then(() => gapi.signin2.render(buttonId, {
       height: 50,
+      longtitle: true,
       scope: this._SCOPE,
-      width: 200,
+      theme: 'dark',
+      width: 250,
     }));
   }
 
   public static load(): Promise<void> {
     if (!this._loadPromise) {
-      this._loadPromise = new Promise((resolve, reject) =>
-        gapi.load('client:auth2', { callback: resolve, onerror: (e: string) => reject(e) }))
+      this._loadPromise = window.gapiPromise
+        .then(() => new Promise((resolve, reject) =>
+          gapi.load('client:auth2', { callback: resolve, onerror: (e: string) => reject(e) })))
         .then(() => this._loadClient());
     }
 
     return this._loadPromise;
+  }
+
+  public static async listenForSignInChanges(signInChangedCallback: (isSignedIn: boolean) => void):
+    Promise<void> {
+    await this.load();
+    // Initialize the callback now
+    signInChangedCallback(gapi.auth2.getAuthInstance().isSignedIn.get());
+
+    // Listen for auth changes
+    gapi.auth2.getAuthInstance().isSignedIn.listen(() => {
+      signInChangedCallback(gapi.auth2.getAuthInstance().isSignedIn.get());
+    });
   }
 
   private static _loadPromise: Promise<void>;

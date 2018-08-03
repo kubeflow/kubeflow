@@ -53,7 +53,7 @@ fi
 
 while [ "$1" != "" ]; do
     PARAM=`echo $1 | awk -F= '{print $1}'`
-    case $PARAM in 
+    case $PARAM in
         -h | --help)
             usage
             exit

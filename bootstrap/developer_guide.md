@@ -19,8 +19,17 @@ Install dependencies, `-v` will ignore subpackage vendor
 glide install -v
 ```
 
+	* We decided not to check in vendor because it adds 150M + to the repository size.
+	* We want to keep the repository small so checking it out to get our ksonnet registry is fast.
+
 Build it
 
 ```sh
 go install github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap
+```
+
+or
+
+```sh
+go build -i -o /opt/kubeflow/bootstrapper ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/main.go
 ```
