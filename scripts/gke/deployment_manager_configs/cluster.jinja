@@ -21,7 +21,7 @@ limitations under the License.
    that will be created to represent Kubernetes objects.
    There is type corresponding to each API endpoint.
 #}
-{% set VM_OAUTH_SCOPES = ['https://www.googleapis.com/auth/logging.write', 'https://www.googleapis.com/auth/monitoring'] %}
+{% set VM_OAUTH_SCOPES = ['https://www.googleapis.com/auth/logging.write', 'https://www.googleapis.com/auth/monitoring', 'https://www.googleapis.com/auth/cloud-platform' ] %}
 
 
 {# Names for service accounts.
@@ -239,6 +239,16 @@ resources:
             {# VM service account is used to pull image from gcr. #}
             - {{ 'serviceAccount:' + KF_VM_SA_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
 
+        - role: roles/container.admin
+          members:
+            {# VM service account is used to kubenetes engine #}
+            - {{ 'serviceAccount:' + KF_VM_SA_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+            
+        - role: roles/storage.admin
+          members:
+            {# VM service account is used to storage #}
+            - {{ 'serviceAccount:' + KF_VM_SA_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
         {% if 'users' in properties %}
         {% if properties['users'] %}
         - role: roles/iap.httpsResourceAccessor
@@ -321,6 +331,16 @@ resources:
         - role: roles/storage.objectViewer
           members:
             {# VM service account is used to pull image from gcr. #}
+            - {{ 'serviceAccount:' + KF_VM_SA_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+
+        - role: roles/container.admin
+          members:
+            {# VM service account is used to kubenetes engine #}
+            - {{ 'serviceAccount:' + KF_VM_SA_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
+            
+        - role: roles/storage.admin
+          members:
+            {# VM service account is used to storage #}
             - {{ 'serviceAccount:' + KF_VM_SA_NAME + '@' + env['project'] + '.iam.gserviceaccount.com' }}
 
         {% if 'users' in properties %}
