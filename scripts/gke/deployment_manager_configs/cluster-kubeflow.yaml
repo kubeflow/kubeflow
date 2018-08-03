@@ -36,7 +36,7 @@ resources:
     # Use prefix v so it will be treated as a string.
     pool-version: v1
     # Two is small enough to fit within default quota.
-    cpu-pool-initialNodeCount: 2
+    cpu-pool-initialNodeCount: 3
     gpu-pool-initialNodeCount: 0
     # Autoscaling parameters
     cpu-pool-enable-autoscaling: true
