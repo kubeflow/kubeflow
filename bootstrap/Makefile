@@ -12,9 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-IMG = gcr.io/kubeflow-images-public/bootstrapper
+GCLOUD_PROJECT ?= kubeflow-images-public
+GOLANG_VERSION ?= 1.10.3
+# set to GOLANG_GCFLAGS=-gcflags "all=-N -l" to debug
+GOLANG_GCFLAGS ?= ""
+IMG = gcr.io/$(GCLOUD_PROJECT)/bootstrapper
 
-BUILDER_IMG = gcr.io/kubeflow-images-public/bootstrapper-builder
+BUILDER_IMG = gcr.io/$(GCLOUD_PROJECT)/bootstrapper-builder
+BUILDER_IMG_VERSION ?= latest
 
 TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6)
 
@@ -39,15 +44,16 @@ all: build
 
 # To edit which registries to add to bootstrapper, edit config (eg. config/default.yaml)
 build:
-	python build.py --image=$(IMG):$(TAG) --build_opts=$(DOCKER_BUILD_OPTS) --config=image_registries.yaml
+	python build.py --build_args=BUILDER_IMG=$(BUILDER_IMG),BUILDER_IMG_VERSION=$(BUILDER_IMG_VERSION) --image=$(IMG):$(TAG) --build_opts=$(DOCKER_BUILD_OPTS) --config=image_registries.yaml --target=build
 	docker tag $(IMG):$(TAG) $(IMG):latest
 	@echo Built $(IMG):latest
 	@echo Built $(IMG):$(TAG)
 
 
 build-builder:
-	docker build ${DOCKER_BUILD_OPTS} -t $(BUILDER_IMG):$(TAG) -f Dockerfile.Builder . \
-           --label=git-verions=$(GIT_VERSION)
+	docker build ${DOCKER_BUILD_OPTS} --build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
+           --build-arg GOLANG_GCFLAGS="$(GOLANG_GCFLAGS)" -t $(BUILDER_IMG):$(TAG) \
+           --target=build_base .  --label=git-verions=$(GIT_VERSION)
 	docker tag $(BUILDER_IMG):$(TAG) $(BUILDER_IMG):latest
 	@echo Built $(BUILDER_IMG):latest
 	@echo Built $(BUILDER_IMG):$(TAG)
