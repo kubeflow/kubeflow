@@ -88,17 +88,21 @@
 
       // Parameters to set on the modelServer component
       local deployParams = {
-        name: "inception-cpu",
+        name: "mnist-cpu",
+        modelName: "mnist",
         namespace: stepsNamespace,
-        modelPath: "gs://kubeflow-models/inception",
+        modelPath: "gs://kubeflow-examples-data/mnist",
+        deployHttpProxy: true,
       } + if build_image then
         {
           modelServerImage: cpuImage,
         } else {};
       local deployGpuParams = {
-        name: "inception-gpu",
+        name: "mnist-gpu",
+        modelName: "mnist",
         namespace: stepsNamespace,
-        modelPath: "gs://kubeflow-models/inception",
+        modelPath: "gs://kubeflow-examples-data/mnist",
+        deployHttpProxy: true,
         numGpus: 1,
       };
 
@@ -185,7 +189,7 @@
             mirrorVolumeMounts: true,
           }],
         );  // buildImageTemplate
-      local buildTestTfImageTemplate(stepName, serviceName, resultFile) = {
+      local buildTestTfImageTemplate(stepName, serviceName) = {
         name: stepName,
         container: {
           command: [
@@ -195,8 +199,8 @@
             "--namespace=" + stepsNamespace,
             "--artifacts_dir=" + artifactsDir,
             "--service_name=" + serviceName,
-            "--image_path=" + srcDir + "/components/k8s-model-server/inception-client/images/sleeping-pepper.jpg",
-            "--result_path=" + srcDir + resultFile,
+            "--input_path=" + srcDir + "/components/k8s-model-server/test-data/mnist_input.json",
+            "--result_path=" + srcDir + "/components/k8s-model-server/test-data/mnist_result.json",
           ],
           env: prow_env + [
             {
@@ -207,6 +211,10 @@
               name: "PYTHONPATH",
               value: kubeflowPy + ":" + kubeflowTestingPy,
             },
+            {
+              name: "KUBECONFIG",
+              value: testDir + "/.kube/config",
+            },
           ],
           image: tf_testing_image,
           volumeMounts: [
@@ -215,7 +223,6 @@
               mountPath: mountPath,
             },
           ],
-          workingDir: srcDir + "/components/k8s-model-server/inception-client",
         },
       };  // buildTestTfImageTemplate
 
@@ -282,12 +289,12 @@
         "--artifacts_dir=" + artifactsDir,
       ];
       local deploy_tf_serving_command = deploy_tf_serving_command_base + [
-        "--deploy_name=inception-cpu",
+        "--deploy_name=mnist-cpu",
         "deploy_model",
         "--params=" + deployParamsList,
       ];
       local deploy_tf_serving_gpu_command = deploy_tf_serving_command_base + [
-        "--deploy_name=inception-gpu",
+        "--deploy_name=mnist-gpu",
         "deploy_model",
         "--params=" + deployGpuParamsList,
       ];
@@ -381,11 +388,9 @@
             ),
 
             buildTestTfImageTemplate("test-tf-serving",
-                                     "inception-cpu",
-                                     "/components/k8s-model-server/images/test-worker/result.txt"),
+                                     "mnist-cpu"),
             buildTestTfImageTemplate("test-tf-serving-gpu",
-                                     "inception-gpu",
-                                     "/components/k8s-model-server/images/test-worker/result-gpu.txt"),
+                                     "mnist-gpu"),
 
             buildTemplate("create-pr-symlink", [
               "python",

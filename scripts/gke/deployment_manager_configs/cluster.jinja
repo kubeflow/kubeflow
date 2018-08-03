@@ -63,20 +63,10 @@ resources:
     zone: {{ properties['zone'] }}
     cluster:
       name: {{ CLUSTER_NAME }}
-      {% if properties['stackdriver-kubernetes'] %}
-      # TODO: remove alpha when 10.2 is public.
-      # https://github.com/kubeflow/kubeflow/issues/821
-      enableKubernetesAlpha: true
       # We need 1.10.2 to support Stackdrivier GKE.
-      initialClusterVersion: 1.10.2-gke.0
-      # Logging and monitoring have default value [logging/monitoring].googleapis.com
-      # if not set. We are using the new Stackdricer Kubernetes agents here.
-      # See cloud.google.com/monitoring/kubernetes-engine/.
-      loggingService: logging.googleapis.com/kubernetes
-      monitoringService: monitoring.googleapis.com/kubernetes
-      {% else %}
-      initialClusterVersion: 1.9.6-gke.1
-      {% endif %}
+      initialClusterVersion: 1.10.5-gke.3
+      loggingService: none
+      monitoringService: none
       {% if properties['gkeApiVersion'] == 'v1beta1' %}
       podSecurityPolicyConfig:
         enabled: {{ properties['securityConfig']['podSecurityPolicy'] }}
