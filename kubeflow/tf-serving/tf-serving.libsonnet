@@ -52,10 +52,10 @@
     //  Name of the k8s secrets containing S3 credentials
     s3SecretName: "",
     // Name of the key in the k8s secret containing AWS_ACCESS_KEY_ID.
-    s3SecretAccesskeyidKeyName: "",
+    s3SecretAccesskeyidKeyName: "AWS_ACCESS_KEY_ID",
 
     // Name of the key in the k8s secret containing AWS_SECRET_ACCESS_KEY.
-    s3SecretSecretaccesskeyKeyName: "",
+    s3SecretSecretaccesskeyKeyName: "AWS_SECRET_ACCESS_KEY",
 
     // S3 region
     s3AwsRegion: "us-west-1",
