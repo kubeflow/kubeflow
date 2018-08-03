@@ -235,8 +235,8 @@ if ${KUBEFLOW_DEPLOY}; then
   kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/stable/nvidia-driver-installer/cos/daemonset-preloaded.yaml
 
   # Install Stackdriver Kubernetes agents.
-  kubectl apply -f https://storage.googleapis.com/stackdriver-kubernetes/stable/rbac-setup.yaml --as=admin --as-group=system:masters
-  kubectl apply -f https://storage.googleapis.com/stackdriver-kubernetes/stable/agents.yaml
+  # kubectl apply -f https://storage.googleapis.com/stackdriver-kubernetes/stable/rbac-setup.yaml --as=admin --as-group=system:masters
+  # kubectl apply -f https://storage.googleapis.com/stackdriver-kubernetes/stable/agents.yaml
 
   set -e
 fi
