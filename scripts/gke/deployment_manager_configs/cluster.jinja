@@ -63,10 +63,10 @@ resources:
     zone: {{ properties['zone'] }}
     cluster:
       name: {{ CLUSTER_NAME }}
+      initialClusterVersion: 1.9.7-gke.3
       # We need 1.10.2 to support Stackdrivier GKE.
-      initialClusterVersion: 1.10.5-gke.3
-      loggingService: none
-      monitoringService: none
+      # loggingService: none
+      # monitoringService: none
       {% if properties['gkeApiVersion'] == 'v1beta1' %}
       podSecurityPolicyConfig:
         enabled: {{ properties['securityConfig']['podSecurityPolicy'] }}
