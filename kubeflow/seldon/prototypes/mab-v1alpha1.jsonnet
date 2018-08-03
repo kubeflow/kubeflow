@@ -6,22 +6,12 @@
 // @param imageA string Docker image which contains model A
 // @param imageB string Docker image which contains model
 // @optionalParam mabImage string seldonio/mab_epsilon_greedy:1.1 image for multi-armed bandit model
-// @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
 // @optionalParam replicas number 1 Number of replicas
 // @optionalParam endpointA string REST The endpoint type for modelA : REST or GRPC
 // @optionalParam endpointB string REST The endpoint type for modelB: REST or GRPC
 // @optionalParam pvcName string null Name of PVC
 
-
 local k = import "k.libsonnet";
-
-// updatedParams uses the environment namespace if
-// the namespace parameter is not explicitly set
-local updatedParams = params {
-  namespace: if params.namespace == "null" then env.namespace else params.namespace,
-};
-
-local namespace = updatedParams.namespace;
 
 local pvcClaim = {
   apiVersion: "v1",
@@ -50,6 +40,7 @@ local seldonDeployment =
         app: "seldon",
       },
       name: params.name,
+      namespace: env.namespace,
     },
     spec: {
       annotations: {

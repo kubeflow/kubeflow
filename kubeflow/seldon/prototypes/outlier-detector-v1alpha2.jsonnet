@@ -5,21 +5,11 @@
 // @param name string Name to give this deployment
 // @param image string Docker image which contains this model
 // @optionalParam outlierDetectorImage string seldonio/outlier_mahalanobis:0.2 Docker image for outlier detector
-// @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
 // @optionalParam replicas number 1 Number of replicas
 // @optionalParam endpoint string REST The endpoint type: REST or GRPC
 // @optionalParam pvcName string null Name of PVC
 
-
 local k = import "k.libsonnet";
-
-// updatedParams uses the environment namespace if
-// the namespace parameter is not explicitly set
-local updatedParams = params {
-  namespace: if params.namespace == "null" then env.namespace else params.namespace,
-};
-
-local namespace = updatedParams.namespace;
 
 local pvcClaim = {
   apiVersion: "v1",
@@ -47,7 +37,7 @@ local seldonDeployment = {
       app: "seldon",
     },
     name: params.name,
-    namespace: namespace,
+    namespace: env.namespace,
   },
   spec: {
     annotations: {
