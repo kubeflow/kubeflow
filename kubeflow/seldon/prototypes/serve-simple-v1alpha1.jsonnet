@@ -1,7 +1,7 @@
 // @apiVersion 0.1
 // @name io.ksonnet.pkg.seldon-serve-simple-v1alpha1
-// @description A prototype to serve a single seldon model  for the v1alpha1 CRD (Seldon 0.1.X)
-// @shortDescription A prototype to serve a single seldon model
+// @description Serve a single seldon model  for the v1alpha1 CRD (Seldon 0.1.X)
+// @shortDescription Serve a single seldon model
 // @param name string Name to give this deployment
 // @param image string Docker image which contains this model
 // @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.

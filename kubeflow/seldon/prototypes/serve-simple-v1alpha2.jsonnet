@@ -1,7 +1,7 @@
 // @apiVersion 0.1
 // @name io.ksonnet.pkg.seldon-serve-simple-v1alpha2
-// @description A prototype to serve a single seldon model for the v1alpha2 CRD (Seldon 0.2.X)
-// @shortDescription A prototype to serve a single seldon model
+// @description Serve a single seldon model for the v1alpha2 CRD (Seldon 0.2.X)
+// @shortDescription Serve a single seldon model
 // @param name string Name to give this deployment
 // @param image string Docker image which contains this model
 // @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
@@ -11,7 +11,6 @@
 
 
 local k = import "k.libsonnet";
-local serve = import "kubeflow/seldon/serve-simple-0.2.libsonnet";
 
 // updatedParams uses the environment namespace if
 // the namespace parameter is not explicitly set
@@ -19,18 +18,13 @@ local updatedParams = params {
   namespace: if params.namespace == "null" then env.namespace else params.namespace,
 };
 
-local name = import "param://name";
-local image = import "param://image";
 local namespace = updatedParams.namespace;
-local replicas = import "param://replicas";
-local endpoint = import "param://endpoint";
-local pvcName = import "param://pvcName";
 
 local pvcClaim = {
   apiVersion: "v1",
   kind: "PersistentVolumeClaim",
   metadata: {
-    name: pvcName,
+    name: params.pvcName,
   },
   spec: {
     accessModes: [
@@ -51,15 +45,15 @@ local seldonDeployment = {
     labels: {
       app: "seldon",
     },
-    name: name,
+    name: params.name,
     namespace: namespace,
   },
   spec: {
     annotations: {
       deployment_version: "v1",
-      project_name: name,
+      project_name: params.name,
     },
-    name: name,
+    name: params.name,
     predictors: [
       {
         annotations: {
@@ -69,10 +63,10 @@ local seldonDeployment = {
           spec: {
             containers: [
               {
-                image: image,
+                image: params.image,
                 imagePullPolicy: "IfNotPresent",
-                name: name,
-                volumeMounts+: if pvcName != "null" && pvcName != "" then [
+                name: params.name,
+                volumeMounts+: if params.pvcName != "null" && params.pvcName != "" then [
                   {
                     mountPath: "/mnt",
                     name: "persistent-storage",
@@ -81,12 +75,12 @@ local seldonDeployment = {
               },
             ],
             terminationGracePeriodSeconds: 1,
-            volumes+: if pvcName != "null" && pvcName != "" then [
+            volumes+: if params.pvcName != "null" && params.pvcName != "" then [
               {
                 name: "persistent-storage",
                 volumeSource: {
                   persistentVolumeClaim: {
-                    claimName: pvcName,
+                    claimName: params.pvcName,
                   },
                 },
               },
@@ -98,13 +92,13 @@ local seldonDeployment = {
 
           ],
           endpoint: {
-            type: endpoint,
+            type: params.endpoint,
           },
-          name: name,
+          name: params.name,
           type: "MODEL",
         },
-        name: name,
-        replicas: replicas,
+        name: params.name,
+        replicas: params.replicas,
       },
     ],
   },
