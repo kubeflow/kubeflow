@@ -1,0 +1,55 @@
+---
+# Namespace for bootstrapper
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kubeflow-admin
+---
+# Store ksonnet apps
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kubeflow-ksonnet-pvc
+  namespace: kubeflow-admin
+  labels:
+    app: kubeflow-ksonnet
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1beta2
+kind: StatefulSet
+metadata:
+  name: kubeflow-bootstrapper
+  namespace: kubeflow-admin
+spec:
+  selector:
+    matchLabels:
+      app: kubeflow-bootstrapper
+  serviceName: kubeflow-bootstrapper
+  template:
+    metadata:
+      name: kubeflow-bootstrapper
+      labels:
+        app: kubeflow-bootstrapper
+    spec:
+      containers:
+      - name: kubeflow-bootstrapper
+        image: gcr.io/constant-cubist-173123/bootstrapper:latest
+        workingDir: /opt/bootstrap
+        #command: ["/bin/bash", "-c", "trap : TERM INT; sleep infinity & wait"]
+        command: ["/opt/kubeflow/debug.sh"]
+        ports:
+        - containerPort: 2345
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: kubeflow-ksonnet-pvc
+          mountPath: /opt/bootstrap
+      volumes:
+      - name: kubeflow-ksonnet-pvc
+        persistentVolumeClaim:
+          claimName: kubeflow-ksonnet-pvc
