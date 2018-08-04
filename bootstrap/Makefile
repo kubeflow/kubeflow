@@ -53,7 +53,7 @@ build:
 build-builder:
 	docker build ${DOCKER_BUILD_OPTS} --build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
            --build-arg GOLANG_GCFLAGS="$(GOLANG_GCFLAGS)" -t $(BUILDER_IMG):$(TAG) \
-           --target=build_base .  --label=git-verions=$(GIT_VERSION)
+           --label=git-verions=$(GIT_VERSION) -f Dockerfile.Builder
 	docker tag $(BUILDER_IMG):$(TAG) $(BUILDER_IMG):latest
 	@echo Built $(BUILDER_IMG):latest
 	@echo Built $(BUILDER_IMG):$(TAG)
