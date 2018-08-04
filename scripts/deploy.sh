@@ -44,7 +44,7 @@ set +e
 kubectl create ns ${K8S_NAMESPACE}
 set -e
 
-ks init --api-spec=version:v{K8S_VERSION} $(basename "${KUBEFLOW_KS_DIR}")
+ks init --api-spec=version:v${K8S_VERSION} $(basename "${KUBEFLOW_KS_DIR}")
 cd "${KUBEFLOW_KS_DIR}"
 
 ks env set default --namespace "${K8S_NAMESPACE}"
