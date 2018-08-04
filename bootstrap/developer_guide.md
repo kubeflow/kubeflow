@@ -1,6 +1,6 @@
 # Developer guide for bootstrap
 
-## Building the Operator
+## Building bootstrapper locally
 
 Create a symbolic link inside your GOPATH to the location you checked out the code
 
@@ -31,10 +31,10 @@ go install github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap
 or
 
 ```sh
-go build -i -o /opt/kubeflow/bootstrapper ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/main.go
+go build -i -o ${GOPATH}/bin/bootstrapper ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/main.go
 ```
 
-Building and pushing the bootstrapper image.  
+## Building and pushing the bootstrapper-builder and bootstrapper images.  
 
 The bootstrapper image defaults to gcr.io/kubeflow-images-public/bootstrapper. This image inherits from a base "builder" image 
 which defaults to gcr.io/kubeflow-images-public/bootstrapper-builder. Both are configurable by overridding environment variables 
@@ -46,7 +46,7 @@ export GCLOUD_PROJECT=mygcloudproject
 make push-builder && make push
 ```
 
-- add debug to bootstrapper executable /opt/kubeflow/bootstrapper
+- add debug symbols to bootstrapper executable /opt/kubeflow/bootstrapper
 ```sh
 export GOLANG_GCFLAGS='-gcflags "all=-N -l"'
 make push-builder && make push
@@ -59,7 +59,6 @@ kubectl port-forward kubeflow-bootstrapper-0 2345
 ```
 In goland add a "Go Remote" debug configuration like below
 ![bootstrapper](./bootstrapper.png)
-
 
 - build using a particular bootstrapper-builder version and push the bootstrapper image
 ```sh
