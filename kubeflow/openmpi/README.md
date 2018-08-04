@@ -97,7 +97,7 @@ ks prototype describe openmpi
 # See https://hub.docker.com/r/uber/horovod/tags/ for available tags.
 IMAGE=uber/horovod:0.13.0-tf1.8.0-torch0.4.0-py2.7
 
-# Use one CPU per worker.
+# Use one GPU per worker.
 GPU=1
 
 # Run the MNIST example.
