@@ -36,9 +36,11 @@ go build -i -o ${GOPATH}/bin/bootstrapper ${GOPATH}/src/github.com/kubeflow/kube
 
 ## Building and pushing the bootstrapper-builder and bootstrapper images.  
 
-The bootstrapper image defaults to gcr.io/kubeflow-images-public/bootstrapper. This image inherits from a base "builder" image 
-which defaults to gcr.io/kubeflow-images-public/bootstrapper-builder. Both are configurable by overridding environment variables 
-used in the Makefile. Below are various options that can be used to specify how and where these images are built and pushed.
+The bootstrapper image defaults to [gcr.io/kubeflow-images-public/bootstrapper](https://gcr.io/kubeflow-images-public/bootstrapper). 
+This image inherits from a base "builder" image which defaults to 
+[gcr.io/kubeflow-images-public/bootstrapper-builder](https://gcr.io/kubeflow-images-public/bootstrapper-builder). 
+Both are configurable by overridding environment variables used in the Makefile. Below are various examples that 
+show how and where these images are built and pushed.
 
 - use a different gcloud project under gcr.io (may be private). Build and push boostrapper-build and bootstrapper images.
 ```sh
