@@ -57,7 +57,7 @@ make push-builder && make push
 3. Deploy and Debug bootstrapper 
 ```sh
 kubectl apply -f bootstrapper.debug.yaml
-kubectl port-forward kubeflow-bootstrapper-0 2345
+kubectl port-forward kubeflow-bootstrapper-0 2345 --namespace=kubeflow-admin
 ```
 In goland add a "Go Remote" debug configuration like below
 ![bootstrapper](./bootstrapper.png)
