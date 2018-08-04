@@ -9,6 +9,7 @@ KUBEFLOW_REPO=${KUBEFLOW_REPO:-"`pwd`/kubeflow_repo"}
 KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"}
 KUBEFLOW_DEPLOY=${KUBEFLOW_DEPLOY:-true}
 K8S_NAMESPACE=${K8S_NAMESPACE:-"kubeflow"}
+K8S_VERSION=${K8S_VERSION:-"1.8.0"}
 KUBEFLOW_CLOUD=${KUBEFLOW_CLOUD:-"minikube"}
 
 if [[ ! -d "${KUBEFLOW_REPO}" ]]; then
@@ -43,7 +44,7 @@ set +e
 kubectl create ns ${K8S_NAMESPACE}
 set -e
 
-ks init $(basename "${KUBEFLOW_KS_DIR}")
+ks init --api-spec=version:v{K8S_VERSION} $(basename "${KUBEFLOW_KS_DIR}")
 cd "${KUBEFLOW_KS_DIR}"
 
 ks env set default --namespace "${K8S_NAMESPACE}"
