@@ -62,6 +62,10 @@ push-builder: build-builder
 	gcloud docker -- push $(BUILDER_IMG):$(TAG)
 	@echo Pushed $(BUILDER_IMG):$(TAG)
 
+push-builder-latest: push-builder
+	gcloud container images add-tag --quiet $(BUILDER_IMG):$(TAG) $(BUILDER_IMG):latest --verbosity=info
+	@echo created $(BUILDER_IMG):latest
+
 # Build but don't attach the latest tag. This allows manual testing/inspection of the image
 # first.
 push: build

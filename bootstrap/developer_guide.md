@@ -33,3 +33,21 @@ or
 ```sh
 go build -i -o /opt/kubeflow/bootstrapper ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/main.go
 ```
+
+Building and pushing the bootstrapper image.  
+
+The bootstrapper image defaults to gcr.io/kubeflow-images-public/bootstrapper. This image inherits from a base "builder" image 
+which defaults to gcr.io/kubeflow-images-public/bootstrapper-builder. Both are configurable by overridding environment variables 
+used in the Makefile. Below are various options that can be used to specify how and where these images are built and pushed.
+
+- use a different gcloud project under gcr.io (may be private). Build and push builder-image and build.
+```sh
+export GCLOUD_PROJECT=mygcloudproject 
+make push-builder && make push
+```
+
+- add debug to bootstrapper executable /opt/kubeflow/bootstrapper
+```sh
+export GOLANG_GCFLAGS='-gcflags "all=-N -l"'
+make push-builder && make push
+```

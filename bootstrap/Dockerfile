@@ -2,8 +2,6 @@
 # This primarily means glide.
 ARG GOLANG_VERSION=1.10.3
 ARG GOLANG_GCFLAGS=""
-ARG BUILDER_IMG=gcr.io/kubeflow-images-public/bootstrapper-builder
-ARG BUILDER_IMG_VERSION=latest
 FROM golang:${GOLANG_VERSION} as build_base
 
 # Install glide. We need this in order to fetch dependencies.
@@ -21,9 +19,14 @@ COPY ./ $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap/
 RUN cd $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap/ && \
     glide install -v
 
-RUN go build ${GOLANG_GCFLAGS} -i -o /opt/kubeflow/bootstrapper ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/main.go
+RUN go build ${GOLANG_GCFLAGS} -i -o /opt/kubeflow/bootstrapper \
+    ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/main.go
+
+FROM ${BUILDER_IMG}:${BUILDER_IMG_VERSION} as build_base_remote
 
 FROM golang:${GOLANG_VERSION} as build
+ARG BUILDER_IMG=gcr.io/kubeflow-images-public/bootstrapper-builder
+ARG BUILDER_IMG_VERSION=latest
 
 # We need gcloud to get gke credentials.
 RUN wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.tar.gz && \
@@ -57,7 +60,7 @@ RUN wget -q https://github.com/ksonnet/ksonnet/releases/download/v0.11.0/ks_0.11
     cp ks_0.11.0_linux_amd64/ks /usr/local/bin && \
     rm -rf ks_0.11.0_linux_amd64
 
-COPY --from=build_base /opt/kubeflow/bootstrapper /opt/kubeflow/
+COPY --from=build_base_remote /opt/kubeflow/bootstrapper /opt/kubeflow/
 COPY start.sh /opt/kubeflow/
 COPY config/default.yaml /opt/kubeflow/
 COPY image_registries.yaml /opt/kubeflow/

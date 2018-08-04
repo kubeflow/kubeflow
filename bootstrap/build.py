@@ -76,10 +76,10 @@ def main(unparsed_args=None):
   for buildarg in args.build_args.split(","):
     bargs+="--build-arg "+buildarg+" "
 
-  print("docker build %s %s -t %s %s --build-arg registries=%s --target=%s" %
-            (args.build_opts, bargs, args.image, FILE_PATH, REG_FOLDER, args.target))
-  os.system("docker build %s %s -t %s %s --build-arg registries=%s --target=%s" %
-            (args.build_opts, bargs, args.image, FILE_PATH, REG_FOLDER, args.target))
+  print("docker build %s %s -t %s --build-arg registries=%s --target=%s %s" %
+            (args.build_opts, bargs, args.image, REG_FOLDER, args.target, FILE_PATH))
+  os.system("docker build %s %s -t %s --build-arg registries=%s --target=%s %s" %
+            (args.build_opts, bargs, args.image, REG_FOLDER, args.target, FILE_PATH))
 
 if __name__ == '__main__':
   main()
