@@ -42,19 +42,19 @@ This image inherits from a base "builder" image which defaults to
 Both are configurable by overridding environment variables used in the Makefile. Below are various examples that 
 show how and where these images are built and pushed.
 
-- use a different gcloud project under gcr.io (may be private). Build and push boostrapper-build and bootstrapper images.
+1. Use a different gcloud project than kubeflow-images-public. 
 ```sh
 export GCLOUD_PROJECT=mygcloudproject 
 make push-builder && make push
 ```
 
-- add debug symbols to bootstrapper executable /opt/kubeflow/bootstrapper
+2. Build with debug symbols included in the bootstrapper executable 
 ```sh
 export GOLANG_GCFLAGS='-gcflags "all=-N -l"'
 make push-builder && make push
 ```
 
-- debug bootstrapper 
+3. Deploy and Debug bootstrapper 
 ```sh
 kubectl apply -f bootstrapper.debug.yaml
 kubectl port-forward kubeflow-bootstrapper-0 2345
@@ -62,7 +62,7 @@ kubectl port-forward kubeflow-bootstrapper-0 2345
 In goland add a "Go Remote" debug configuration like below
 ![bootstrapper](./bootstrapper.png)
 
-- build using a particular bootstrapper-builder version and push the bootstrapper image
+4. Build the bootstrapper image based on a bootstrapper-builder version and push 
 ```sh
 BUILDER_IMG_VERSION=v20180804-5778003 make push-latest
 ```
