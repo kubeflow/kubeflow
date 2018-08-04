@@ -31,10 +31,6 @@ RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.10.0/
     mv kubectl /usr/local/bin && \
     chmod a+x /usr/local/bin/kubectl
 
-RUN git clone https://github.com/ksonnet/ksonnet.git /opt/ksonnet && \
-	cd /opt/ksonnet && \
-	git checkout v0.10.0-alpha.3
-
 ARG registries
 COPY $registries /opt/registries
 
