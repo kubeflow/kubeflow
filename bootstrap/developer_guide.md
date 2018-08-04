@@ -52,6 +52,15 @@ export GOLANG_GCFLAGS='-gcflags "all=-N -l"'
 make push-builder && make push
 ```
 
+- debug bootstrapper 
+```sh
+kubectl apply -f bootstrapper.debug.yaml
+kubectl port-forward kubeflow-bootstrapper-0 2345
+```
+In goland add a "Go Remote" debug configuration like below
+![bootstrapper](./bootstrapper.png)
+
+
 - build using a particular bootstrapper-builder version and push the bootstrapper image
 ```sh
 BUILDER_IMG_VERSION=v20180804-5778003 make push-latest
