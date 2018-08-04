@@ -184,10 +184,10 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           <Input name="hostName" label="Hostname" spellCheck={false} value={this.state.hostName} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
-          <Input name='clientId' label="Web App Client Id" spellCheck={false} value={this.state.clientId} onChange={this._handleChange.bind(this)} />
+          <Input name="clientId" label="Web App Client Id" spellCheck={false} value={this.state.clientId} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
-          <Input name='clientSecret' label="Web App Client Secret" spellCheck={false} value={this.state.clientSecret} onChange={this._handleChange.bind(this)} />
+          <Input name="clientSecret" label="Web App Client Secret" spellCheck={false} value={this.state.clientSecret} onChange={this._handleChange.bind(this)} />
         </Row>
 
         <div style={{ display: 'flex', padding: '20px 60px 40px' }}>
@@ -422,21 +422,21 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
 
 
     // Step 4: In-cluster resources set up
-    let status = "";
+    let status = '';
     let getAttempts = 0;
     const getTimeout = 15000;
     do {
       getAttempts++;
       const curStatus = await Gapi.deploymentmanager.get(this.state.project, deploymentName)
             .catch(err => {
-              this._appendLine("Cluster endpoint not available yet.")
+              this._appendLine('Cluster endpoint not available yet.');
             });
       if (!curStatus) {
         await wait(getTimeout);
         continue;
       }
-      status = curStatus.operation!.status!
-    } while (status !== "DONE" && getAttempts < 20);
+      status = curStatus.operation!.status!;
+    } while (status !== 'DONE' && getAttempts < 20);
 
     const token = await Gapi.getToken();
     await request(
