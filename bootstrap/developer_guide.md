@@ -40,7 +40,7 @@ The bootstrapper image defaults to gcr.io/kubeflow-images-public/bootstrapper. T
 which defaults to gcr.io/kubeflow-images-public/bootstrapper-builder. Both are configurable by overridding environment variables 
 used in the Makefile. Below are various options that can be used to specify how and where these images are built and pushed.
 
-- use a different gcloud project under gcr.io (may be private). Build and push builder-image and build.
+- use a different gcloud project under gcr.io (may be private). Build and push boostrapper-build and bootstrapper images.
 ```sh
 export GCLOUD_PROJECT=mygcloudproject 
 make push-builder && make push
@@ -50,4 +50,9 @@ make push-builder && make push
 ```sh
 export GOLANG_GCFLAGS='-gcflags "all=-N -l"'
 make push-builder && make push
+```
+
+- build using a particular bootstrapper-builder version and push the bootstrapper image
+```sh
+BUILDER_IMG_VERSION=v20180804-5778003 make push-latest
 ```
