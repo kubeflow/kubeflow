@@ -7,6 +7,9 @@ FROM ${BUILDER_IMG}:${BUILDER_IMG_VERSION} AS build_base_remote
 
 FROM golang:${GOLANG_VERSION} AS build
 
+# add vim 
+RUN apt-get update && apt-get install -y vim
+
 # We need gcloud to get gke credentials.
 RUN wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.tar.gz && \
     tar xzf google-cloud-sdk.tar.gz -C / && \
@@ -46,8 +49,6 @@ COPY image_registries.yaml /opt/kubeflow/
 
 RUN chmod a+rx /opt/kubeflow/bootstrapper
 RUN chmod a+rx /opt/kubeflow/start.sh
-
-RUN apt-get update && apt-get install -y vim
 
 # Set default values for USER, USER_ID, GROUP_ID
 # The startup script will create the user and su to that user.
