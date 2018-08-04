@@ -45,8 +45,6 @@ all: build
 # To edit which registries to add to bootstrapper, edit config (eg. config/default.yaml)
 build:
 	python build.py --build_args=BUILDER_IMG=$(BUILDER_IMG),BUILDER_IMG_VERSION=$(BUILDER_IMG_VERSION) --image=$(IMG):$(TAG) --build_opts=$(DOCKER_BUILD_OPTS) --config=image_registries.yaml --target=build
-	docker tag $(IMG):$(TAG) $(IMG):latest
-	@echo Built $(IMG):latest
 	@echo Built $(IMG):$(TAG)
 
 
@@ -54,8 +52,6 @@ build-builder:
 	docker build ${DOCKER_BUILD_OPTS} --build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
            --build-arg GOLANG_GCFLAGS="$(GOLANG_GCFLAGS)" -t $(BUILDER_IMG):$(TAG) \
            --label=git-verions=$(GIT_VERSION) -f Dockerfile.Builder .
-	docker tag $(BUILDER_IMG):$(TAG) $(BUILDER_IMG):latest
-	@echo Built $(BUILDER_IMG):latest
 	@echo Built $(BUILDER_IMG):$(TAG)
 
 push-builder: build-builder
