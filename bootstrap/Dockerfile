@@ -7,8 +7,11 @@ FROM ${BUILDER_IMG}:${BUILDER_IMG_VERSION} AS build_base_remote
 
 FROM golang:${GOLANG_VERSION} AS build
 
-# add vim 
+# install vim 
 RUN apt-get update && apt-get install -y vim
+
+# install dlv debugger
+RUN go get -u github.com/derekparker/delve/cmd/dlv
 
 # We need gcloud to get gke credentials.
 RUN wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.tar.gz && \

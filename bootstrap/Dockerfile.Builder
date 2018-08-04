@@ -4,9 +4,6 @@ ARG GOLANG_VERSION=1.10.3
 ARG GOLANG_GCFLAGS=""
 FROM golang:${GOLANG_VERSION}
 
-# Install debugger
-RUN go get -u github.com/derekparker/delve/cmd/dlv
-
 # Install glide. We need this in order to fetch dependencies.
 RUN curl https://glide.sh/get | sh
 RUN mkdir -p /opt/kubeflow
