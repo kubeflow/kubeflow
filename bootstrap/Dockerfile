@@ -43,7 +43,7 @@ RUN wget -q https://github.com/ksonnet/ksonnet/releases/download/v0.11.0/ks_0.11
 
 COPY --from=build_base_remote /opt/kubeflow/bootstrapper /opt/kubeflow/
 COPY start.sh /opt/kubeflow/
-COPY debug.sh /opt/kubeflow/
+COPY dlv.sh /opt/kubeflow/
 COPY config/default.yaml /opt/kubeflow/
 COPY image_registries.yaml /opt/kubeflow/
 

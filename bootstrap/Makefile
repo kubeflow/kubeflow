@@ -71,3 +71,6 @@ push: build
 push-latest: push
 	gcloud container images add-tag --quiet $(IMG):$(TAG) $(IMG):latest --verbosity=info
 	echo created $(IMG):latest
+
+debug:
+	@./debug.sh

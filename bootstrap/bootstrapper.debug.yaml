@@ -41,7 +41,7 @@ spec:
         image: gcr.io/constant-cubist-173123/bootstrapper:latest
         workingDir: /opt/bootstrap
         #command: ["/bin/bash", "-c", "trap : TERM INT; sleep infinity & wait"]
-        command: ["/opt/kubeflow/debug.sh"]
+        command: ["/opt/kubeflow/dlv.sh"]
         ports:
         - containerPort: 2345
         securityContext:

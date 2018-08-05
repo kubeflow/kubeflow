@@ -1,3 +1,26 @@
 #!/usr/bin/env bash
 
-dlv --listen=:2345 --headless=true --api-version=2 exec /opt/kubeflow/bootstrapper -- --in-cluster --namespace=kubeflow --config=/opt/kubeflow/default.yaml --app-dir=/opt/bootstrap/default --registries-config-file=/opt/kubeflow/image_registries.yaml
+cleanup()
+{
+  if [[ -n $portforwardcommand ]]; then
+    echo killing $portforwardcommand
+    pkill -f $portforwardcommand
+  fi
+}
+trap cleanup EXIT
+
+waitforpod()
+{
+  local cmd="kubectl get pods --no-headers -oname --selector=app=kubeflow-bootstrapper --field-selector=status.phase=Running --namespace=kubeflow-admin | sed 's/^pod.*\///'" found=$(eval "$cmd")
+  while [[ -z $found ]]; do
+    sleep 1
+    found=$(eval "$cmd")
+  done
+  echo $found
+}
+
+kubectl apply -f bootstrapper.debug.yaml
+pod=$(waitforpod)
+portforwardcommand="kubectl port-forward $pod 2345 --namespace=kubeflow-admin"
+eval "$portfowardcommand >/dev/null &"
+sleep infinity & wait
