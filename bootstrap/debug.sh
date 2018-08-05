@@ -13,8 +13,8 @@ portforward()
 {
   local pod=$1 namespace=$2 from_port=$3 to_port=$4 cmd
   cmd='kubectl port-forward $pod ${from_port}:${to_port} --namespace=$namespace 2>&1>/dev/null &'
-  portforwardcommand="kubectl port-forward $pod ${from_port}:${to_port}"
-  ( $verbose && echo $cmd && eval $cmd ) || eval $cmd
+  portforwardcommand="${cmd% 2>&1>/dev/null &}"
+  eval $cmd
 }
 
 waitforpod()
