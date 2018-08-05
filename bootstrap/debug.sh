@@ -19,8 +19,20 @@ waitforpod()
   echo $found
 }
 
+waitforever()
+{
+  which gsleep >/dev/null
+  if [[ $? == 1 ]]; then
+    while true; do
+      sleep 1
+    done
+  else
+    gsleep infinity
+  fi
+}
+
 kubectl apply -f bootstrapper.debug.yaml
+echo "Waiting for pod's status == Running"
 pod=$(waitforpod)
 portforwardcommand="kubectl port-forward $pod 2345 --namespace=kubeflow-admin"
 eval "$portfowardcommand >/dev/null &"
-sleep infinity & wait
