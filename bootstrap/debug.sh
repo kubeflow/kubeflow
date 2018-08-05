@@ -11,8 +11,8 @@ trap cleanup EXIT
 
 portforward()
 {
-  local pod=$1 from_port=$2 to_port=$3 cmd
-  cmd='kubectl port-forward $pod ${from_port}:${to_port} 2>&1>/dev/null &'
+  local pod=$1 namespace=$2 from_port=$3 to_port=$4 cmd
+  cmd='kubectl port-forward $pod ${from_port}:${to_port} --namespace=$namespace 2>&1>/dev/null &'
   portforwardcommand="kubectl port-forward $pod ${from_port}:${to_port}"
   ( $verbose && echo $cmd && eval $cmd ) || eval $cmd
 }
@@ -39,11 +39,12 @@ waitforever()
   fi
 }
 
+port=2345
+namespace=kubeflow-admin
 kubectl apply -f bootstrapper.debug.yaml
 echo "Waiting for pod's status == Running ..."
 pod=$(waitforpod)
-port=2345
 echo "Pod $pod is running. Setting up port-forward"
-portforward $pod $port $port
+portforward $pod $namespace $port $port
 echo "Type Ctrl^C to end debug session"
 waitforever
