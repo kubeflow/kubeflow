@@ -32,7 +32,8 @@ waitforever()
 }
 
 kubectl apply -f bootstrapper.debug.yaml
-echo "Waiting for pod's status == Running"
+echo "Waiting for pod's status == Running ..."
 pod=$(waitforpod)
 portforwardcommand="kubectl port-forward $pod 2345 --namespace=kubeflow-admin"
 eval "$portfowardcommand >/dev/null &"
+waitforever
