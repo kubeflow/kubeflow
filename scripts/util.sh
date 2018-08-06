@@ -10,7 +10,7 @@ function usage() {
     echo
     echo "what is one of"    
     echo "project - the GCP project"
-    echo "gcp - gcp resources"
+    echo "platform - platform resources (e.g. GCP, minikube); basically non K8s resources"
     echo "k8s - kubernetes resources"    
     echo "help - print this message"       
 }
