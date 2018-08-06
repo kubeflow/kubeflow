@@ -17,6 +17,7 @@
 
     deployIstio: false,
 
+    exposeRestApi:: false,
     deployHttpProxy: false,
     httpProxyImage: "gcr.io/kubeflow-images-public/tf-model-server-http-proxy:v20180606-9dfda4f2",
 
@@ -117,7 +118,9 @@
       args: [
         "/usr/bin/tensorflow_model_server",
         "--port=9000",
-        "--rest_api_port=8000",
+      ] +
+      if $.params.exposeRestApi then ["--rest_api_port=8000"] else []
+      + [
         "--model_name=" + $.params.modelName,
         "--model_base_path=" + $.params.modelPath,
       ],
