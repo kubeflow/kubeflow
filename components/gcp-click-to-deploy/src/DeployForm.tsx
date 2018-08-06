@@ -20,14 +20,12 @@ import { flattenDeploymentOperationError, log, wait } from './Utils';
 // copy in the latest configs.
 import clusterSpecPath from './configs/cluster-kubeflow.yaml';
 import clusterJinjaPath from './configs/cluster.jinja';
+import appConfigPath from './user_config/app-config.yaml';
 
 // TODO(jlewi): For the FQDN we should have a drop down box to select custom
 // domain or automatically provisioned domain. Based on the response if the user
 // selects auto domain then we should automatically supply the suffix
 // <hostname>.endpoints.<Project>.cloud.goog
-
-// Assume user access app via kubectl proxy
-const BackendAddress = 'http://127.0.0.1:8001/api/v1/namespaces/default/services/kubeflow-controller:8080/proxy/';
 
 interface DeployFormState {
   deploymentName: string;
@@ -107,6 +105,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
 
   private _clusterJinja = '';
   private _clusterSpec: any;
+  private _configSpec: any;
 
   constructor(props: any) {
     super(props);
@@ -159,6 +158,23 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       })
       .catch((error) => {
         log('Request failed', error);
+      });
+    fetch(appConfigPath, { mode: 'no-cors' })
+      .then((response) => {
+        log('Got response');
+        return response.text();
+      })
+      .then((text) => {
+        this._configSpec = jsYaml.safeLoad(text);
+        // log('Loaded clusterSpecPath successfully');
+      })
+      .catch((error) => {
+        log('Request failed', error);
+        this.setState({
+          dialogBody: 'Failed to load user config file.',
+          dialogTitle: 'Config loading Error',
+        });
+        return;
       });
 
   }
@@ -453,7 +469,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         ),
         headers: { 'content-type': 'application/json' },
         method: 'PUT',
-        uri: BackendAddress + '/insertSaKey',
+        uri: this._configSpec.appAddress + '/insertSaKey',
       },
       (error, response, body) => {
         if (!error) {
