@@ -197,8 +197,9 @@ ksApply () {
 
 source "${ENV_FILE}"
 
+echo PLATFORM=${PLATFORM}
 if [ "${COMMAND}" == "generate" ]; then
-  if [ "${WHAT}" == "gcp" ] || [ "${WHAT}" == "all" ]; then
+  if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ]; then
   	if [ "${PLATFORM}" == "gcp" ]; then
     	generateDMConfigs
     	downloadK8sManifests
@@ -216,7 +217,7 @@ if [ "${COMMAND}" == "generate" ]; then
 fi
 
 if [ "${COMMAND}" == "apply" ]; then  
-  if [ "${WHAT}" == "gcp" ] || [ "${WHAT}" == "all" ] ; then
+  if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ] ; then
   	if [ "${PLATFORM}" == "gcp" ]; then
     	updateDM
     	createSecrets
@@ -246,7 +247,7 @@ if [ "${COMMAND}" == "delete" ]; then
 	set -e
 
 
-	if [ "${WHAT}" == "gcp" ] || [ "${WHAT}" == "all" ] ; then
+	if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ] ; then
 	  	if [ "${PLATFORM}" == "gcp" ]; then
 			pushd .
 			cd ${KUBEFLOW_DM_DIR}

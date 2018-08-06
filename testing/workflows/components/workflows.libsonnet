@@ -38,7 +38,7 @@
       local testing_image = "gcr.io/kubeflow-ci/kubeflow-testing";
       local bootstrapperImage = "gcr.io/kubeflow-ci/bootstrapper:" + name;
       // The last 4 digits of the name should be a unique id.
-      local deploymentName = "kfctl-e2e-" + std.substr(name, std.length(name) - 4, 4);
+      local deploymentName = "e2e-" + std.substr(name, std.length(name) - 4, 4);
       local v1alpha2Suffix = "-v1a2";
 
       // The name of the NFS volume claim to use for test files.

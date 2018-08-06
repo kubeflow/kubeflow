@@ -33,7 +33,8 @@ local kfCtlPath = srcDir + "/scripts/kfctl.sh";
 // Name for the Kubeflow app.
 // This needs to be unique for each test run because it is
 // used to name GCP resources
-local appName = "e2e-" + std.substr(name, std.length(name) - 4, 4);
+// We take the suffix of the name because it should provide some random salt.
+local appName = "kctl-" + std.substr(name, std.length(name) - 4, 4);
 
 // Directory containing the app. This is the directory
 // we execute kfctl commands from
@@ -149,7 +150,7 @@ local dagTemplates = [
         runPath,
         kfCtlPath,
         "generate",
-        "gcp",
+        "platform",
       ],
       working_dir=appDir
     ),
@@ -162,7 +163,7 @@ local dagTemplates = [
         runPath,
         kfCtlPath,
         "apply",
-        "gcp",
+        "platform",
       ],
       env_vars=[
         {
