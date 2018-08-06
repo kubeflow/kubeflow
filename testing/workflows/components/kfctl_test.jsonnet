@@ -53,8 +53,6 @@ local kubeflowPy = srcDir;
 local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
 
 local project = "kubeflow-ci";
-// GKE cluster to use
-local zone = "us-east1-d";
 
 // Build an Argo template to execute a particular command.
 // step_name: Name for the template

@@ -58,8 +58,9 @@ createEnv() {
 		echo  KUBEFLOW_K8S_CONTEXT=${DEPLOYMENT_NAME} >> ${ENV_FILE}
 
 		# GCP Zone
+		# The default should be a zone that supports Haswell.
 		ZONE=${ZONE:-$(gcloud config get-value compute/zone 2>/dev/null)}
-		echo ZONE=${ZONE:-"us-central1-a"} >> ${ENV_FILE}
+		echo ZONE=${ZONE:-"us-east1-d"} >> ${ENV_FILE}
 
 		# Email for cert manager
 		EMAIL=${EMAIL:-$(gcloud config get-value account 2>/dev/null)}
