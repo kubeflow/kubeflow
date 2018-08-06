@@ -24,5 +24,5 @@ do
 
 	echo Command failed: "$@" 
 done
-echo command didn't succeed
+echo "command didn't succeed"
 exit 1
