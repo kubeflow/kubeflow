@@ -65,6 +65,9 @@ resources:
     ipName: kubeflow-ip
     # Name of the service account to use for k8s worker node pools
     vmServiceAccountName: kubeflow-service-account
+    # For oauth2, will be automated soon.
+    clientId: clientId
+    clientSecret: clientSecret
     # Provide the config for the bootstrapper. This should be a string
     # containing the YAML spec for the bootstrapper.
     #
