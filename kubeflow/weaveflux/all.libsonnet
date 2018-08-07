@@ -168,83 +168,85 @@
         },
       },
 
-      apiVersion: "v1",
-      kind: "Service",
-      metadata: {
-        labels: {
-          app: "flux",
-        },
-        name: "flux-ip",
-      },
-      spec: {
-        ports: [
-          {
-            port: 3030,
-            protocol: "TCP",
-            targetPort: 3030,
+      fluxip:: {
+        apiVersion: "v1",
+        kind: "Service",
+        metadata: {
+          labels: {
+            app: "flux",
           },
-        ],
-        selector: {
-          name: "flux",
+          name: "flux-ip",
         },
-        type: params.serviceType,
+        spec: {
+          ports: [
+            {
+              port: 3030,
+              protocol: "TCP",
+              targetPort: 3030,
+            },
+          ],
+          selector: {
+            name: "flux",
+          },
+          type: params.serviceType,
+        },
       },
-    },
 
-    memcachedep:: {
-      apiVersion: "extensions/v1beta1",
-      kind: "Deployment",
-      metadata: {
-        name: "memcached",
-      },
-      spec: {
-        replicas: 1,
-        template: {
-          metadata: {
-            labels: {
-              name: "memcached",
+      memcachedep:: {
+        apiVersion: "extensions/v1beta1",
+        kind: "Deployment",
+        metadata: {
+          name: "memcached",
+        },
+        spec: {
+          replicas: 1,
+          template: {
+            metadata: {
+              labels: {
+                name: "memcached",
+              },
+            },
+            spec: {
+              containers: [
+                {
+                  args: [
+                    "-m 64",
+                    "-p 11211",
+                    "-vv",
+                  ],
+                  image: "memcached:1.4.25",
+                  imagePullPolicy: "IfNotPresent",
+                  name: "memcached",
+                  ports: [
+                    {
+                      containerPort: 11211,
+                      name: "clients",
+                    },
+                  ],
+                },
+              ],
             },
           },
-          spec: {
-            containers: [
-              {
-                args: [
-                  "-m 64",
-                  "-p 11211",
-                  "-vv",
-                ],
-                image: "memcached:1.4.25",
-                imagePullPolicy: "IfNotPresent",
-                name: "memcached",
-                ports: [
-                  {
-                    containerPort: 11211,
-                    name: "clients",
-                  },
-                ],
-              },
-            ],
-          },
         },
       },
-    },
 
-    memcachesvc:: {
-      apiVersion: "v1",
-      kind: "Service",
-      metadata: {
-        name: "memcached",
-      },
-      spec: {
-        clusterIP: "None",
-        ports: [
-          {
-            name: "memcached",
-            port: 11211,
-          },
-        ],
-        selector: {
+      memcachesvc:: {
+        apiVersion: "v1",
+        kind: "Service",
+        metadata: {
           name: "memcached",
+        },
+        spec: {
+          clusterIP: "None",
+          ports: [
+            {
+              name: "memcached",
+              port: 11211,
+            },
+          ],
+          selector: {
+            name: "memcached",
+          },
         },
       },
     },
