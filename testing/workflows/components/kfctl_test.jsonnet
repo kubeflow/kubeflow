@@ -90,8 +90,9 @@ local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=
       {
         // We use a directory in our NFS share to store our kube config.
         // This way we can configure it on a single step and reuse it on subsequent steps.
+        // The directory should be unique for each workflow so that multiple workflows don't collide.
         name: "KUBECONFIG",
-        value: testDir + "/.kube/" + kubeConfig,
+        value: testDir + "/kfctl_test/.kube/" + kubeConfig,
       },
     ] + prowEnv + env_vars,
     volumeMounts: [
