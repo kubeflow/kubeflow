@@ -10,6 +10,18 @@ workflows:
       - postsubmit
     params:
       platform: gke
+  # kfctl test
+  - app_dir: kubeflow/kubeflow/testing/workflows
+    component: kfctl_test
+    name: kfctl
+    job_types:
+      - presubmit
+      - postsubmit
+    include_dirs:
+      - scripts/*
+      - kubeflow/*
+    params:
+      platform: gke
   # Run tests on minikube
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: workflows
