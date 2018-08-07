@@ -4,8 +4,6 @@
 # given the information for the service.
 # Script executed by the iap container to configure IAP. When finished, the envoy config is created with the JWT audience.
 
-[ -z ${CLIENT_ID} ] && echo Error CLIENT_ID must be set && exit 1
-[ -z ${CLIENT_SECRET} ] && echo Error CLIENT_SECRET must be set && exit 1
 [ -z ${NAMESPACE} ] && echo Error NAMESPACE must be set && exit 1
 [ -z ${SERVICE} ] && echo Error SERVICE must be set && exit 1
 

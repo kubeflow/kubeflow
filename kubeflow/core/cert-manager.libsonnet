@@ -1,8 +1,7 @@
 {
   parts(namespace):: {
     local k = import "k.libsonnet",
-    local certManagerImage = "quay.io/jetstack/cert-manager-controller:v0.2.4",
-    local certManagerIngressShimImage = "quay.io/jetstack/cert-manager-ingress-shim:v0.2.4",
+    local certManagerImage = "quay.io/jetstack/cert-manager-controller:v0.4.0",
 
     // Note, not using std.prune to preserve required empty http01 map in the Issuer spec.
     certManagerParts(acmeEmail, acmeUrl):: k.core.v1.list.new([
@@ -91,7 +90,7 @@
         },
         {
           apiGroups: [""],
-          resources: ["secrets", "events", "endpoints", "services", "pods"],
+          resources: ["secrets", "events", "endpoints", "services", "pods", "configmaps"],
           verbs: ["*"],
         },
         {
@@ -147,11 +146,10 @@
                 name: "cert-manager",
                 image: certManagerImage,
                 imagePullPolicy: "IfNotPresent",
-              },
-              {
-                name: "ingress-shim",
-                image: certManagerIngressShimImage,
-                imagePullPolicy: "IfNotPresent",
+                args: [
+                  "--cluster-resource-namespace=" + namespace,
+                  "--leader-election-namespace=" + namespace,
+                ],
               },
             ],
           },
