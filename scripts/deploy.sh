@@ -10,6 +10,7 @@ KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"}
 KUBEFLOW_DEPLOY=${KUBEFLOW_DEPLOY:-true}
 K8S_NAMESPACE=${K8S_NAMESPACE:-"kubeflow"}
 KUBEFLOW_CLOUD=${KUBEFLOW_CLOUD:-"minikube"}
+KUBEFLOW_DOCKER_REGISTRY=${KUBEFLOW_DOCKER_REGISTRY:-""}
 
 if [[ ! -d "${KUBEFLOW_REPO}" ]]; then
   if [ "${KUBEFLOW_VERSION}" == "master" ]; then
@@ -44,6 +45,7 @@ kubectl create ns ${K8S_NAMESPACE}
 set -e
 
 ks init $(basename "${KUBEFLOW_KS_DIR}")
+
 cd "${KUBEFLOW_KS_DIR}"
 
 ks env set default --namespace "${K8S_NAMESPACE}"
@@ -70,6 +72,12 @@ ks generate tf-job-operator tf-job-operator
 # Skip this step if you don't want to enable collection.
 ks generate spartakus spartakus --usageId=$(uuidgen) --reportUsage=true
 ks generate argo argo
+
+# customize docker registry
+if [[ ! -z "$KUBEFLOW_DOCKER_REGISTRY" ]]; then
+  find $KUBEFLOW_KS_DIR -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%gcr.io%$KUBEFLOW_DOCKER_REGISTRY%g"
+  find $KUBEFLOW_KS_DIR -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%quay.io%$KUBEFLOW_DOCKER_REGISTRY%g"
+fi
 
 # Apply the components generated
 if ${KUBEFLOW_DEPLOY}; then
