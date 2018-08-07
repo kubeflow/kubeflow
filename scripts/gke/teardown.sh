@@ -2,6 +2,10 @@
 
 set -xe
 
+# TODO(jlewi): delete deploy.sh after updating the E2E test to use
+# kfctl.sh
+echo "WARNING teardown.sh is deprecated; use kfctl.sh"
+
 DEPLOYMENT_NAME=${DEPLOYMENT_NAME:-"kubeflow"}
 CONFIG_FILE=${CONFIG_FILE:-"cluster-kubeflow.yaml"}
 PROJECT=${PROJECT:-$(gcloud config get-value project 2>/dev/null)}

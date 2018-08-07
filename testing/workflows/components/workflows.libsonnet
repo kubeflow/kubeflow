@@ -37,6 +37,7 @@
       local image = "gcr.io/kubeflow-ci/test-worker:latest";
       local testing_image = "gcr.io/kubeflow-ci/kubeflow-testing";
       local bootstrapperImage = "gcr.io/kubeflow-ci/bootstrapper:" + name;
+      // The last 4 digits of the name should be a unique id.
       local deploymentName = "e2e-" + std.substr(name, std.length(name) - 4, 4);
       local v1alpha2Suffix = "-v1a2";
 
@@ -223,6 +224,7 @@
                   // it runs in the same cluster as the
                   // test cluster. For minikube, we have
                   // a separate cluster.
+                  // TODO(jlewi): This is no longer true.
                   if platform == "minikube" then
                     {
                       name: "test-argo-deploy",
