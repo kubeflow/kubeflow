@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+#
+# this will deploy bootstrapper and setup port-forward in the remote container,
+# When the remote container starts, bootstrapper will be run under the golang debugger "dlv"
+# and wait for a connection which can be done using goland's remote go configuration.
+# See the [developer_guide.md](./developer_guide.md) for additional details.
+#
 
 cleanup()
 {

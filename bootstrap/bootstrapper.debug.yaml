@@ -40,7 +40,8 @@ spec:
       - name: kubeflow-bootstrapper
         image: gcr.io/constant-cubist-173123/bootstrapper:latest
         workingDir: /opt/bootstrap
-        #command: ["/bin/bash", "-c", "trap : TERM INT; sleep infinity & wait"]
+        # dlv.sh will run bootstrapper using dlv and wait for a connection.
+        # See the developer_guide.md for additional details.
         command: ["/opt/kubeflow/dlv.sh"]
         ports:
         - containerPort: 2345
