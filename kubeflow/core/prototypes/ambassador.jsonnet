@@ -5,8 +5,8 @@
 // @param name string Name
 // @optionalParam cloud string null Cloud
 // @optionalParam ambassadorServiceType string ClusterIP The service type for the API Gateway.
-// @optionalParam ambassadorImage string quay.io/datawire/ambassador:0.30.1 The image for the API Gateway.
-// @optionalParam statsdImage string quay.io/datawire/statsd:0.30.1 The image for the Stats and Monitoring.
+// @optionalParam ambassadorImage string quay.io/datawire/ambassador:0.37.0 The image for the API Gateway.
+// @optionalParam statsdImage string quay.io/datawire/statsd:0.37.0 The image for the Stats and Monitoring.
 local isDashboardTls =
   if params.cloud == "acsengine" || params.cloud == "aks" then
     "false"
