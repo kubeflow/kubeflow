@@ -131,7 +131,7 @@
                     valueFrom: {
                       secretKeyRef: {
                         name: oauthSecretName,
-                        key: "CLIENT_ID",
+                        key: "client_id",
                       },
                     },
                   },

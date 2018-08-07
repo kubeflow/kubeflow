@@ -7,6 +7,9 @@ std.assertEqual(iap.parts("namespace").service, {
     labels: {
       service: "envoy",
     },
+    annotations: {
+      "beta.cloud.google.com/backend-config": '{"ports": {"envoy":"envoy-iap"}}',
+    },
     name: "envoy",
     namespace: "namespace",
   },
@@ -25,7 +28,7 @@ std.assertEqual(iap.parts("namespace").service, {
   },
 }) &&
 
-std.assertEqual(iap.parts("namespace").ingress("secretName", "ipName", "hostname"), {
+std.assertEqual(iap.parts("namespace").ingress("ipName", "hostname"), {
   apiVersion: "extensions/v1beta1",
   kind: "Ingress",
   metadata: {
@@ -54,15 +57,10 @@ std.assertEqual(iap.parts("namespace").ingress("secretName", "ipName", "hostname
         },
       },
     ],
-    tls: [
-      {
-        secretName: "secretName",
-      },
-    ],
   },
 }) &&
 
-std.assertEqual(iap.parts("namespace").ingress("secretName", "ipName", "null"), {
+std.assertEqual(iap.parts("namespace").ingress("ipName", "null"), {
   apiVersion: "extensions/v1beta1",
   kind: "Ingress",
   metadata: {
@@ -90,11 +88,6 @@ std.assertEqual(iap.parts("namespace").ingress("secretName", "ipName", "null"), 
         },
       },
     ],
-    tls: [
-      {
-        secretName: "secretName",
-      },
-    ],
   },
 }) &&
 
@@ -109,6 +102,7 @@ std.assertEqual(iap.parts("namespace").certificate("secretName", "hostname", "is
     secretName: "secretName",
     issuerRef: {
       name: "issuer",
+      kind: "Issuer",
     },
     commonName: "hostname",
     dnsNames: [
