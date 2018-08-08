@@ -118,9 +118,7 @@
       args: [
         "/usr/bin/tensorflow_model_server",
         "--port=9000",
-      ] +
-      if $.params.exposeRestApi then ["--rest_api_port=8000"] else []
-      + [
+        if $.params.exposeRestApi then "--rest_api_port=8000",
         "--model_name=" + $.params.modelName,
         "--model_base_path=" + $.params.modelPath,
       ],
@@ -129,8 +127,8 @@
           containerPort: 9000,
         },
         {
-          containerPort: 8000,
-        },
+          [if $.params.exposeRestApi then "containerPort"]: 8000
+        }
       ],
       // TODO(jlewi): We should add readiness and liveness probes. I think the blocker is that
       // model-server doesn't have something we can use out of the box.
@@ -365,7 +363,7 @@
           spec+: {
             containers: [
               $.gcpParts.tfServingContainer,
-              if $.util.toBool($.params.deployHttpProxy) then
+              if $.util.toBool($.params.deployHttpProxy) && !$.params.exposeRestApi then
                 $.parts.httpProxyContainer,
             ],
             volumes: [
