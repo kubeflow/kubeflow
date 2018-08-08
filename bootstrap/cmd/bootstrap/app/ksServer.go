@@ -534,7 +534,7 @@ func makeCreateAppEndpoint(svc KsService) endpoint.Endpoint {
 	}
 }
 
-func makeLivenessEndpoint(svc KsService) endpoint.Endpoint {
+func makeHealthzEndpoint(svc KsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(LiveRequest)
 		r := &LiveResponse{}
@@ -566,7 +566,6 @@ func decodeCreateAppRequest(_ context.Context, r *http.Request) (interface{}, er
 
 // The same encoder can be used for all RPC responses.
 func encodeResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
-	log.Info("encode response: ")
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -583,8 +582,8 @@ func (s *ksServer) StartHttp(port int) {
 		encodeResponse,
 	)
 
-	livenessHandler := httptransport.NewServer(
-		makeLivenessEndpoint(s),
+	healthzHandler := httptransport.NewServer(
+		makeHealthzEndpoint(s),
 		func (_ context.Context, r *http.Request) (interface{}, error) {
 			var request LiveRequest
 			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -610,7 +609,7 @@ func (s *ksServer) StartHttp(port int) {
 	)
 
 	http.Handle("/apps/create", createAppHandler)
-	http.Handle("/liveness", livenessHandler)
+	http.Handle("/healthz", healthzHandler)
 	http.Handle("/iam/insertSaKey", insertSaKeyHandler)
 
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), nil))

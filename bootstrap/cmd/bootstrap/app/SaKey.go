@@ -66,7 +66,7 @@ func (s *ksServer) InsertSaKey(ctx context.Context, request InsertSaKeyRequest) 
 
 	c, err := iamadmin.NewIamClient(ctx, option.WithTokenSource(ts))
 	if err != nil {
-		log.Errorf("Can now create iam admin client: %v", err)
+		log.Errorf("Cannot create iam admin client: %v", err)
 		return err
 	}
 	createServiceAccountKeyRequest := admin.CreateServiceAccountKeyRequest{
