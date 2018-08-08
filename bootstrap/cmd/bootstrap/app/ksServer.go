@@ -141,11 +141,11 @@ type basicServerResponse struct {
 	Err string `json:"err,omitempty"` // errors don't JSON-marshal, so we use a string
 }
 
-type LiveRequest struct {
+type HealthzRequest struct {
 	Msg string
 }
 
-type LiveResponse struct {
+type HealthzResponse struct {
 	Reply string
 }
 
@@ -536,8 +536,8 @@ func makeCreateAppEndpoint(svc KsService) endpoint.Endpoint {
 
 func makeHealthzEndpoint(svc KsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(LiveRequest)
-		r := &LiveResponse{}
+		req := request.(HealthzRequest)
+		r := &HealthzResponse{}
 		r.Reply = req.Msg + "accepted! Sill alive!"
 		log.Info("response info: " + r.Reply)
 		return r, nil
@@ -585,7 +585,7 @@ func (s *ksServer) StartHttp(port int) {
 	healthzHandler := httptransport.NewServer(
 		makeHealthzEndpoint(s),
 		func (_ context.Context, r *http.Request) (interface{}, error) {
-			var request LiveRequest
+			var request HealthzRequest
 			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 				log.Info("Err decoding request: " + err.Error())
 				return nil, err
