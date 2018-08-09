@@ -1,0 +1,35 @@
+{
+   "name": "weaveflux",
+   "apiVersion": "0.0.1",
+   "kind": "ksonnet.io/parts",
+   "description": "Weaveworks Flux integration for Kubeflow\n",
+   "author": "kubeflow team <kubeflow-team@google.com>",
+   "contributors": [
+      {
+         "name": "Jay Smith",
+         "email": "jaysmith@google.com"
+      }
+   ],
+   "repository": {
+      "type": "git",
+      "url": "https://github.com/kubeflow/kubeflow"
+   },
+   "bugs": {
+      "url": "https://github.com/kubeflow/kubeflow/issues"
+   },
+   "keywords": [
+      "kubeflow",
+      "tensorflow",
+      "flux"
+   ],
+   "quickStart": {
+      "prototype": "io.ksonnet.pkg.weaveflux",
+      "componentName": "weaveflux",
+      "flags": {
+         "name": "weaveflux",
+         "namespace": "default"
+      },
+      "comment": "Install Weaveworks Flux"
+   },
+   "license": "Apache 2.0"
+}

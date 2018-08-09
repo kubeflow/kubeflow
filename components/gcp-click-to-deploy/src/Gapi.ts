@@ -85,11 +85,17 @@ export default class Gapi {
         path: `https://cloudresourcemanager.googleapis.com/v1/projects/${projectId}`
       }).then(response => (response.result as any).projectNumber as number,
         badResult => {
-          throw new Error('Errors enabling service: ' + flattenDeploymentOperationError(badResult.result));
+          throw new Error('Error trying to get the project number: ' + JSON.stringify(badResult));
         });
     }
 
   };
+
+  public static async getToken(): Promise<string | null> {
+      await this.load();
+      const user = await this._getCurrentUser();
+      return user ? user.getAuthResponse(true).access_token : null;
+  }
 
   public static async signIn(doPrompt?: boolean): Promise<void> {
     const rePromptOptions = 'login consent select_account';

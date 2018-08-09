@@ -32,6 +32,7 @@ const JUPYTER_PROTOTYPE = "jupyterhub"
 type KsService interface {
 	// CreateApp creates a ksonnet application.
 	CreateApp(context.Context, CreateRequest) error
+	InsertSaKey(context.Context, InsertSaKeyRequest) error
 }
 
 // appInfo keeps track of information about apps.
@@ -58,6 +59,7 @@ type ksServer struct {
 
 	apps    map[string]*appInfo
 	appsMux sync.Mutex
+	iamMux sync.Mutex
 }
 
 // NewServer constructs a ksServer.
@@ -134,9 +136,17 @@ type CreateRequest struct {
 	AutoConfigure bool
 }
 
-// createRequest is the response to a createRequest
-type createResponse struct {
+// basicServerResponse is general response contains nil if handler raise no error, otherwise an error message.
+type basicServerResponse struct {
 	Err string `json:"err,omitempty"` // errors don't JSON-marshal, so we use a string
+}
+
+type HealthzRequest struct {
+	Msg string
+}
+
+type HealthzResponse struct {
+	Reply string
 }
 
 // Request to apply an app.
@@ -515,8 +525,30 @@ func makeCreateAppEndpoint(svc KsService) endpoint.Endpoint {
 		req := request.(CreateRequest)
 		err := svc.CreateApp(ctx, req)
 
-		r := &createResponse{}
+		r := &basicServerResponse{}
 
+		if err != nil {
+			r.Err = err.Error()
+		}
+		return r, nil
+	}
+}
+
+func makeHealthzEndpoint(svc KsService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(HealthzRequest)
+		r := &HealthzResponse{}
+		r.Reply = req.Msg + "accepted! Sill alive!"
+		log.Info("response info: " + r.Reply)
+		return r, nil
+	}
+}
+
+func makeSaKeyEndpoint(svc KsService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(InsertSaKeyRequest)
+		err := svc.InsertSaKey(ctx, req)
+		r := &basicServerResponse{}
 		if err != nil {
 			r.Err = err.Error()
 		}
@@ -550,6 +582,35 @@ func (s *ksServer) StartHttp(port int) {
 		encodeResponse,
 	)
 
+	healthzHandler := httptransport.NewServer(
+		makeHealthzEndpoint(s),
+		func (_ context.Context, r *http.Request) (interface{}, error) {
+			var request HealthzRequest
+			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+				log.Info("Err decoding request: " + err.Error())
+				return nil, err
+			}
+			log.Info("Request received: " + request.Msg)
+			return request, nil
+		},
+		encodeResponse,
+	)
+
+	insertSaKeyHandler := httptransport.NewServer(
+		makeSaKeyEndpoint(s),
+		func (_ context.Context, r *http.Request) (interface{}, error) {
+			var request InsertSaKeyRequest
+			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+				return nil, err
+			}
+			return request, nil
+		},
+		encodeResponse,
+	)
+
 	http.Handle("/apps/create", createAppHandler)
+	http.Handle("/healthz", healthzHandler)
+	http.Handle("/iam/insertSaKey", insertSaKeyHandler)
+
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), nil))
 }

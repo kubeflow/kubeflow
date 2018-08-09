@@ -13,3 +13,12 @@ import:
   version: ^0.7.0
   subpackages:
   - endpoint
+- package: cloud.google.com/go
+  version: ^0.25.0
+- package: google.golang.org/genproto
+- package: github.com/spf13/pflag
+  version: ^1.0.1
+- package: github.com/golang/protobuf
+  version: ^1.1.0
+- package: golang.org/x/oauth2
+  version: fdc9e635145ae97e6c2cb777c48305600cf515cb

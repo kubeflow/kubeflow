@@ -27,7 +27,8 @@ resources:
 - name: kubeflow
   type: cluster.jinja
   properties:
-    zone: us-central1-a
+    # You need to use a zone with Haswell because that's what TFServing requires.
+    zone: SET_THE_ZONE
     # Set this to v1beta1 to use beta features such as private clusters,
     gkeApiVersion: v1
     # An arbitrary string appending to name of nodepools
