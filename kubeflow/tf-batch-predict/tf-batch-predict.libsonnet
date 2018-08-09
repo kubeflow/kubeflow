@@ -14,13 +14,15 @@
     batchSize: 64,
     numGpus: 0,
 
+    version: "v1",
+
     serviceType: "ClusterIP",
     // If users want to override the image then can override defaultCpuImage and/or defaultGpuImage
     // in which case the image used will still depend on whether GPUs are used or not.
-    // Users can also override predictImage in which case the user supplied value will always be used
+    // Users can also override the predictImage in which case the user supplied value will always be used
     // regardless of numGpus.
-    defaultCpuImage: "gcr.io/cloud-ml-dev/yxshi-batch-prediction:cpu17",
-    defaultGpuImage: "gcr.io/cloud-ml-dev/yxshi-batch-prediction:gpu17",
+    defaultCpuImage: "gcr.io/kubeflow-examples/batch-predict:tf18",
+    defaultGpuImage: "gcr.io/kubeflow-examples/batch-predict:tf18-gpu",
 
     predictImage: if $.params.numGpus == 0 then
       $.params.defaultCpuImage
@@ -39,25 +41,13 @@
 
 
   components:: {
-
     all::
-      // TODO(jlewi): It would be better to structure s3 as a mixin.
-      // As an example it would be great to allow S3 and GCS parameters
-      // to be enabled simultaneously. This should be doable because
-      // each entails adding a set of environment variables and volumes
-      // to the containers. These volumes/environment variables shouldn't
-      // overlap so there's no reason we shouldn't be able to just add
-      // both modifications to the base container.
-      // I think we want to restructure things as mixins so they can just
-      // be added.
-      if $.params.cloud == "gcp" then
+        if $.params.cloud == "gcp" then
         [
-          $.gcpParts.tfService,
           $.gcpParts.tfJob,
         ]
       else
         [
-          $.parts.tfService,
           $.parts.tfJob,
         ],
   }.all,
@@ -65,7 +55,7 @@
   parts:: {
     // We define the containers one level beneath parts because combined with jsonnet late binding
     // this makes it easy for users to override specific bits of the container.
-    tfBatchPredictionContainerBase:: {
+    tfBatchPredictContainerBase:: {
       name: $.params.name,
       image: $.params.predictImage,
       imagePullPolicy: "IfNotPresent",
@@ -94,9 +84,9 @@
           cpu: "4",
         },
       },
-    },  // tfBatchPredictionContainerBase
+    },  // tfBatchPredictContainerBase
 
-    tfBatchPredictionContainer+: $.parts.tfBatchPredictionContainerBase +
+    tfBatchPredictContainer+: $.parts.tfBatchPredictContainerBase +
                                  if $.params.numGpus > 0 then
                                   {
                                     resources+: {
@@ -108,12 +98,10 @@
                              else {},
 
     tfJob: {
-      // apiVersion: "extensions/v1beta1",
-      // apiVersion: "v1",
       apiVersion: "batch/v1",
       kind: "Job",
       metadata: {
-        name: $.params.name,
+        name: $.params.name + $.params.version,
         namespace: $.params.namespace,
         labels: $.params.labels,
       },
@@ -122,10 +110,10 @@
           metadata: {
             labels: $.params.labels,
           },
-		  backoffLimit: 2,
+          backoffLimit: 1,
           spec: {
             containers: [
-              $.parts.tfBatchPredictionContainer,
+              $.parts.tfBatchPredictContainer,
             ],
 			restartPolicy: "Never",
 			activeDeadlineSeconds: 3000,
@@ -140,27 +128,7 @@
         },
       },
     },  // tfJob
-
-    tfService: {
-      apiVersion: "v1",
-	  metadata: {
-        name: $.params.name,
-	  },
-      kind: "Service",
-      spec: {
-        ports: [
-          {
-            name: "tf-batch-predict",
-            port: 9000,
-            targetPort: 9000,
-          },
-        ],
-        selector: $.params.labels,
-        type: $.params.serviceType,
-      },
-    },  // tfService
-
-  },  // parts
+  }, // parts
 
   // Parts specific to GCP
   gcpParts:: $.parts {
@@ -169,7 +137,7 @@
         { name: "GOOGLE_APPLICATION_CREDENTIALS", value: "/secret/gcp-credentials/key.json" },
     ],
 
-    tfBatchPredictionContainer: $.parts.tfBatchPredictionContainer {
+    tfBatchPredictContainer: $.parts.tfBatchPredictContainer {
       env+: $.gcpParts.gcpEnv,
       volumeMounts+: [
         if $.gcpParams.gcpCredentialSecretName != "" then
@@ -186,7 +154,7 @@
 
           spec+: {
             containers: [
-              $.gcpParts.tfBatchPredictionContainer,
+              $.gcpParts.tfBatchPredictContainer,
             ],
 
             volumes: [
