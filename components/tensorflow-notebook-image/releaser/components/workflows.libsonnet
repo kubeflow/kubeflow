@@ -19,7 +19,6 @@
       )
     else [],
 
-
   // Default parameters.
   // The defaults are suitable based on suitable values for our test cluster.
   defaultParams:: {
@@ -80,7 +79,7 @@
       // Build an Argo template to execute a particular command.
       // step_name: Name for the template
       // command: List to pass as the container command.
-      local buildTemplate(step_name, command, env_vars=[], sidecars=[]) = {
+      local buildTemplate(step_name, command, env_vars=[], sidecars=[], resources=null) = {
         name: step_name,
         // The tensorflow notebook image builds are flaky because they are very
         // large builds and sometimes there are timeouts while downloading
@@ -111,6 +110,7 @@
               },
             },
           ] + prow_env + env_vars,
+          resources: resources,
           volumeMounts: [
             {
               name: dataVolume,
@@ -129,7 +129,7 @@
         sidecars: sidecars,
       };  // buildTemplate
       local buildImageTemplate(tf_version, workflow_name, device, is_latest=true) = {
-        local image = params.registry + "/tensorflow-" + tf_version + "-notebook-" +  device,
+        local image = params.registry + "/tensorflow-" + tf_version + "-notebook-" + device,
         local tag = params.versionTag,
         local base_image =
           if device == "cpu" then
@@ -186,11 +186,33 @@
           [{
             name: "dind",
             image: "docker:17.10-dind",
+            resources: {
+              requests: {
+                memory: "1.5Gi",
+                cpu: "1",
+              },
+              limits: {
+                memory: "4Gi",
+                cpu: "4",
+              },
+            },
             securityContext: {
               privileged: true,
             },
             mirrorVolumeMounts: true,
           }],
+          // Resources to allocate to the build container.
+          // Is most of the resources used by the dind side car?
+          {
+            requests: {
+              memory: "500Mi",
+              cpu: "1",
+            },
+            limits: {
+              memory: "2Gi",
+              cpu: "4",
+            },
+          },
         ),  // buildImageTemplate
       }.result;
       {
@@ -277,6 +299,16 @@
                     dependencies: ["checkout"],
                   },
                   {
+                    name: "build-1-8-0-gpu",
+                    template: "build-1-8-0-gpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
+                    name: "build-1-8-0-cpu",
+                    template: "build-1-8-0-cpu",
+                    dependencies: ["checkout"],
+                  },
+                  {
                     name: "create-pr-symlink",
                     template: "create-pr-symlink",
                     dependencies: ["checkout"],
@@ -292,6 +324,8 @@
             buildImageTemplate("1.6.0", "1-6-0", "gpu"),
             buildImageTemplate("1.7.0", "1-7-0", "cpu"),
             buildImageTemplate("1.7.0", "1-7-0", "gpu"),
+            buildImageTemplate("1.8.0", "1-8-0", "cpu"),
+            buildImageTemplate("1.8.0", "1-8-0", "gpu"),
             {
               name: "exit-handler",
               steps: [

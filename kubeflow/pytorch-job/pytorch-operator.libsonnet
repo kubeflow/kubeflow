@@ -9,7 +9,7 @@
   ],
 
   parts(params, env):: {
-    local namespace=if params.namespace != "null" then params.namespace else env.namespace,
+    local namespace = if params.namespace != "null" then params.namespace else env.namespace,
     crd: {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
@@ -95,11 +95,11 @@
 
     // Default value for
     defaultControllerConfig(pytorchDefaultImage):: if pytorchDefaultImage != "" && pytorchDefaultImage != "null" then
-                                                {
-                                                  pytorchImage: pytorchDefaultImage,
-                                                }
-                                              else
-                                                {},
+      {
+        pytorchImage: pytorchDefaultImage,
+      }
+    else
+      {},
 
     aksAccelerators:: {
       accelerators: {
@@ -140,17 +140,17 @@
     },
 
     configData(cloud, pytorchDefaultImage):: self.defaultControllerConfig(pytorchDefaultImage) +
-                                        if cloud == "aks" then
-                                          self.aksAccelerators
-                                        else if cloud == "acsengine" then
-                                          self.acsEngineAccelerators
-                                        else
-                                          {},
+                                             if cloud == "aks" then
+                                               self.aksAccelerators
+                                             else if cloud == "acsengine" then
+                                               self.acsEngineAccelerators
+                                             else
+                                               {},
 
     configMap(cloud, pytorchDefaultImage): {
       apiVersion: "v1",
       data: {
-        "controller_config_file.yaml": std.manifestJson($.parts(params,env).configData(cloud, pytorchDefaultImage)),
+        "controller_config_file.yaml": std.manifestJson($.parts(params, env).configData(cloud, pytorchDefaultImage)),
       },
       kind: "ConfigMap",
       metadata: {

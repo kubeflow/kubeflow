@@ -1,5 +1,7 @@
 local assets = import "kubeflow/openmpi/assets.libsonnet";
 local service = import "kubeflow/openmpi/service.libsonnet";
+local serviceaccount = import "kubeflow/openmpi/serviceaccount.libsonnet";
+local util = import "kubeflow/openmpi/util.libsonnet";
 
 local ROLE_MASTER = "master";
 local ROLE_WORKER = "worker";
@@ -42,24 +44,28 @@ local ROLE_WORKER = "worker";
       dnsPolicy: "ClusterFirst",
       schedulerName: params.schedulerName,
       volumes: $.volumes(params),
-      containers: $.containers(params, role),
+      containers: $.containers(params, role, podName),
+      imagePullSecrets: [{ name: secret } for secret in util.toArray(params.imagePullSecrets)],
+      serviceAccountName: serviceaccount.name(params),
+      nodeSelector: $.nodeSelector(params, role),
+      securityContext: $.securityContext(params),
     },
   },
 
   volumes(params):: [
     {
-      name: "kubeflow-openmpi-data",
+      name: "openmpi-data",
       emptyDir: {},
     },
     {
-      name: "kubeflow-openmpi-secrets",
+      name: "openmpi-secrets",
       secret: {
         secretName: params.secret,
         defaultMode: 256,  // 0400
       },
     },
     {
-      name: "kubeflow-openmpi-assets",
+      name: "openmpi-assets",
       configMap: {
         name: assets.name(params),
         items: [
@@ -90,12 +96,12 @@ local ROLE_WORKER = "worker";
     },
   ],
 
-  containers(params, role):: {
+  containers(params, role, podName):: {
     local job = {
       name: "openmpi-job",
       image: params.image,
       imagePullPolicy: params.imagePullPolicy,
-      resources: $.resources(role, params.gpus),
+      resources: std.mergePatch($.resources(params, role), $.customResources(params, role)),
       terminationMessagePath: "/dev/termination-log",
       terminationMessagePolicy: "File",
       workingDir: "/kubeflow/openmpi/data",
@@ -105,6 +111,7 @@ local ROLE_WORKER = "worker";
         role,
         std.toString(params.workers),
         params.exec,
+        std.toString(params.initTimeout),
       ],
       ports: [
         {
@@ -114,15 +121,15 @@ local ROLE_WORKER = "worker";
       ],
       volumeMounts: [
         {
-          name: "kubeflow-openmpi-data",
+          name: "openmpi-data",
           mountPath: "/kubeflow/openmpi/data",
         },
         {
-          name: "kubeflow-openmpi-assets",
+          name: "openmpi-assets",
           mountPath: "/kubeflow/openmpi/assets",
         },
         {
-          name: "kubeflow-openmpi-secrets",
+          name: "openmpi-secrets",
           mountPath: "/kubeflow/openmpi/secrets",
         },
       ],
@@ -134,17 +141,11 @@ local ROLE_WORKER = "worker";
       terminationMessagePath: "/dev/termination-log",
       terminationMessagePolicy: "File",
       workingDir: "/kubeflow/openmpi/data",
-      command: [
-        "python",
-        "/root/controller/main.py",
-        "--namespace",
-        params.namespace,
-        "--master",
-        $.masterName(params),
-      ],
+      command: $.controllerCommand(params, podName),
+      env: $.controllerEnv(params),
       volumeMounts: [
         {
-          name: "kubeflow-openmpi-data",
+          name: "openmpi-data",
           mountPath: "/kubeflow/openmpi/data",
         },
       ],
@@ -153,10 +154,80 @@ local ROLE_WORKER = "worker";
     result:: if role == ROLE_MASTER then [job] else [job, controller],
   }.result,
 
-  resources(role, gpus)::
-    if role == ROLE_WORKER && gpus > 0 then {
+  resources(params, role)::
+    if role == ROLE_WORKER then {
       limits: {
-        "nvidia.com/gpu": gpus,
+        cpu: if params.cpu != "null" then params.cpu,
+        memory: if params.memory != "null" then params.memory,
+        "nvidia.com/gpu": if params.gpu > 0 then params.gpu,
       },
     } else {},
+
+  nodeSelector(params, role)::
+    if role == ROLE_WORKER then util.toObject(params.nodeSelector) else {},
+
+  customResources(params, role)::
+    if role == ROLE_WORKER then {
+      limits: util.toObject(params.customResources),
+    } else {},
+
+  controllerCommand(params, podName):: {
+    local common = [
+      "python",
+      "/kubeflow/openmpi/openmpi-controller/controller/main.py",
+      "--namespace",
+      params.namespace,
+      "--master",
+      $.masterName(params),
+      "--num-gpus",
+      std.toString(params.gpu),
+      "--timeout-secs",
+      std.toString(params.initTimeout),
+    ],
+
+    local download = if params.downloadDataFrom != "null" && params.downloadDataTo != "null" then [
+      "--download-data-from",
+      params.downloadDataFrom,
+      "--download-data-to",
+      params.downloadDataTo,
+    ] else [],
+
+    local upload = if params.uploadDataFrom != "null" && params.uploadDataTo != "null" then [
+      "--upload-data-from",
+      params.uploadDataFrom,
+      "--upload-data-to",
+      "%s/%s/%s/%s" % [params.uploadDataTo, params.namespace, params.name, podName],
+    ] else [],
+
+    result:: common + download + upload,
+  }.result,
+
+  controllerEnv(params)::
+    if params.s3Secret != "null" then [
+      {
+        name: "AWS_ACCESS_KEY_ID",
+        valueFrom: {
+          secretKeyRef: {
+            name: params.s3Secret,
+            key: "AWS_ACCESS_KEY_ID",
+          },
+        },
+      },
+      {
+        name: "AWS_SECRET_ACCESS_KEY",
+        valueFrom: {
+          secretKeyRef: {
+            name: params.s3Secret,
+            key: "AWS_SECRET_ACCESS_KEY",
+          },
+        },
+      },
+    ] else [],
+
+  securityContext(params):: {
+    runAsUser: if params.runAsUser != "null" then params.runAsUser else {},
+    runAsGroup: if params.runAsGroup != "null" then params.runAsGroup else {},
+    supplementalGroups: [std.parseInt(g) for g in util.toArray(std.toString(params.supplementalGroups))],
+    fsGroup: if params.runAsGroup != "null" then params.runAsGroup else {},
+  },
 }

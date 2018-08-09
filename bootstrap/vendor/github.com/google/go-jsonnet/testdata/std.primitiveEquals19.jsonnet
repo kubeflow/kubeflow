@@ -1,1 +1,0 @@
-std.primitiveEquals(true, true)

@@ -1,1 +1,0 @@
-std.char("xxx")

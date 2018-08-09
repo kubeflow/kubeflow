@@ -1,4 +1,0 @@
-REGISTRY  NAME INSTALLED
-========  ==== =========
-incubator lib1 *
-incubator lib2

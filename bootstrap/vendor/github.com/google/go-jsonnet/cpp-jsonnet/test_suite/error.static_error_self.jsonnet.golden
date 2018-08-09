@@ -1,1 +1,0 @@
-STATIC ERROR: error.static_error_self.jsonnet:17:2-6: Can't use self outside of an object.

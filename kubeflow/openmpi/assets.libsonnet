@@ -18,9 +18,9 @@
     data: {
       "init.sh": importstr "assets/init.sh",
       "mca-params.conf": importstr "assets/mca-params.conf",
-      "ssh_config": importstr "assets/ssh_config",
-      'sshd_config': importstr "assets/sshd_config",
-      "hostfile": $.genHostfile(params),
+      ssh_config: importstr "assets/ssh_config",
+      sshd_config: importstr "assets/sshd_config",
+      hostfile: $.genHostfile(params),
     },
   },
 
@@ -31,7 +31,7 @@
           index: index,
           name: params.name,
           namespace: params.namespace,
-          slots: if params.gpus > 1 then params.gpus else 1,
+          slots: if params.gpu > 1 then params.gpu else 1,
         },
         std.range(0, params.workers - 1)
       )

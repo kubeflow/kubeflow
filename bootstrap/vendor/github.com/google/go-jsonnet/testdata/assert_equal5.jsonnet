@@ -1,1 +1,0 @@
-std.assertEqual("\n ", "\n")

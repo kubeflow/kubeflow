@@ -1,7 +1,7 @@
 # Kubeflow Bootstrap
 
-Bootstrap is a tool to create a ksonnet application configured to take advantage
-of a user's cluster.
+Bootstrap is a tool to manage ksonnet application configured to take advantage
+of a user's cluster. See [dev guide](./README.md#bootstrapper-dev-guide) for more details.
 
 The tool collects information from a variety of sources
 
@@ -19,49 +19,69 @@ and based on the results chooses good values for various Kubeflow parameters.
 
 ## Usage
 
-**Alpha stage(as of today) Requires** run ```make build``` to build docker image locally since there's no public release yet.
+### quick start
 
-Interactive use
+```
+    kubectl create -f bootstrapper.yaml
+```
+
+You should have kubeflow components deployed inside your k8s cluster. Generated ksonnet application is store in [app-dir](./bootstrapper.yaml#L65).
+Exec into pod ```kubeflow-bootstrapper-0``` in namespace ```kubeflow-admin``` if you need to edit your ksonnet app.
+
+The default components are defined in [default.yaml](config/default.yaml), user can customize which components to deploy by
+pointing ```--config``` args in [bootstrapper.yaml](./bootstrapper.yaml) to their own config (eg. a configmap in k8s clsuter)
+
+This bootstrapper example [config](config/gcp_prototype.yaml) can help explain how config customization works.
+
+### Interactive-use container
 
 ```
 TAG=latest
-APP_DIR_HOST=<Directory on host machine for the ksonnet apps>
-APP_FOLDER_DOCKER=<Folder name inside docker for the ksonnet apps>
-GITHUB_TOKEN=<Get a [GitHub Token](https://github.com/kubeflow/kubeflow/blob/master/user_guide.md#403-api-rate-limit-exceeded-error) to avoid API Limits>
+APP_DIR_HOST=$HOME/kfBootstrap
+GITHUB_TOKEN=<Get a GitHub token to avoid API Limits>
 
 # Start container
+# Need to map config files like kubeconfig and gcloud config into the container.
 docker run -ti \
   -e GITHUB_TOKEN=${GITHUB_TOKEN} \
   -e GROUP_ID=`id -g ${GROUP}` \
   -e USER_ID=`id -u ${USER}` \
   -e USER=${USER} \
-  -v ${APP_DIR_HOST}:/home/${USER}/${APP_FOLDER_DOCKER} \
+  -v ${APP_DIR_HOST}:/home/${USER}/kfBootstrap \
   -v ${HOME}/.kube:/home/${USER}/.kube \
   -v ${HOME}/.config:/home/${USER}/.config gcr.io/kubeflow-images-public/bootstrapper:latest
+```
+Check [how to avoid getting a GitHub rate limit exceeded error](https://www.kubeflow.org/docs/guides/troubleshooting/#403-api-rate-limit-exceeded-error).
 
-# Inside docker, run
-/opt/kubeflow/bootstrapper --app-dir=/home/${USER}/${APP_FOLDER_DOCKER}/<your_app_name> --namespace=<Your new namespace which hold bootstrap>
+**Inside container, choose one way to generate kubeflow apps**:
+1. On GKE, without Google Sign-in:
+```/opt/kubeflow/bootstrapper --app-dir=/home/${USER}/kfBootstrap/<your_app_name> --namespace=<new_namespace_for_bootstrap> --email=<GCP_account>```
+2. Outside GKE:
+```/opt/kubeflow/bootstrapper --app-dir=/home/${USER}/kfBootstrap/<your_app_name> --namespace=<new_namespace_for_bootstrap>```
 
-# (Optional) enable usage reporting
+Now the ksonnet app for deploying Kubeflow will be available in `${APP_DIR_HOST}/<your_app_name>`
+**(Optional) enable usage reporting**
+```
 ks param set kubeflow-core reportUsage true
 ks param set kubeflow-core usageId $(uuidgen)
+```
 
-# To deploy it
-cd /home/${USER}/${APP_FOLDER_DOCKER}/<your_app_name>
+**To deploy it**
+```
+# Inside container:
+cd /home/${USER}/kfBootstrap/<your_app_name>
 ks apply default
 ```
 
-#### To connect to your [Jupyter Notebook](http://jupyter.org/index.html) locally:
-On host machine:
-```
-PODNAME=`kubectl get pods --namespace=<Namespace for bootstrap> --selector="app=tf-hub" --output=template --template="{{with index .items 0}}{{.metadata.name}}{{end}}"`
-kubectl port-forward --namespace=<Namespace for bootstrap> $PODNAME 8000:8000
-```
-Then, open [http://127.0.0.1:8000](http://127.0.0.1:8000) in your browser.
+**To connect to your [Jupyter Notebook](http://jupyter.org/index.html)**:
 
-* After the tool runs the ksonnet app for deploying Kubeflow will be available in `${HOST_DIR}/${APP_NAME}`
-* The user's home directory is mapped into the container so that
-  config files like kubeconfig and gcloud config are accessible.
+    ```
+    # On your local machine:
+    PODNAME=`kubectl get pods --namespace=<Namespace for bootstrap> --selector="app=tf-hub" --output=template --template="{{with index .items     0}}{{.metadata.name}}{{end}}"`
+    kubectl port-forward --namespace=<Namespace for bootstrap> $PODNAME 8000:8000
+    ```
+
+    Then, open [http://127.0.0.1:8000](http://127.0.0.1:8000) in your browser.
 
 ## Explanation
 For Kubeflow we want a **low bar and a high ceiling**.
@@ -99,6 +119,13 @@ Non Goals
 
   1. wrap or replace ks/kubectl
 
+## Bootstrapper Dev Guide
+
+Bootstrapper create your ksonnet application by creating component set following config file ([config example](config/gcp_prototype.yaml)).
+In other word, bootstrapper provide user an easy way to use ksonnet api within k8s cluster by editing config file.
+
+Currently we only support using local registries within bootstrapper image.
+Edit [image config](./image_registries.yaml) to control which registries to include in bootstrapper image, then user can build custom image to [bootstrap](./bootstrapper.yaml#L55).
 
 ## Background
 

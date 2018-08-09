@@ -1,1 +1,0 @@
-"xxx" + (function() 42)

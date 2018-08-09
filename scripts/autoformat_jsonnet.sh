@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -ex
 # Copyright 2018 The Kubeflow Authors All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,9 +30,30 @@ function usage()
     echo "    --all : Formats all .jsonnet and .libjsonnet files."
 }
 
+# Checkout versions of the code that shouldn't be overwritten
+raw=`git remote`
+readarray -t remotes <<< "$raw"
+
+repo_name=''
+for r in "${remotes[@]}"
+do
+   url=`git remote get-url ${r}`
+   # Period is in brackets because its a special character.
+   if [[ ${url} =~ git@github[.]com:kubeflow/.* ]]; then
+      repo_name=${r}
+   fi
+done
+
+echo using ${repo_name}
+if [ -z "$repo_name" ]; then
+    echo "Could not find remote repository pointing at git@github.com:kubeflow/testing.git"
+    exit 1
+fi
+
+
 while [ "$1" != "" ]; do
     PARAM=`echo $1 | awk -F= '{print $1}'`
-    case $PARAM in 
+    case $PARAM in
         -h | --help)
             usage
             exit
@@ -52,7 +73,7 @@ done
 if $ALL_FILES; then
     fmt_files=($(git ls-files -- '*.libsonnet' '*.jsonnet')) 
 else 
-    fmt_files=($(git diff --name-only origin/master -- '*.libsonnet' '*.jsonnet'))
+    fmt_files=($(git diff --name-only ${repo_name}/master -- '*.libsonnet' '*.jsonnet'))
 fi
 
 # 2 spaces vertical indentation

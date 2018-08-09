@@ -1,0 +1,31 @@
+# This file configures the workflows to trigger in our release cron jobs.
+# Edit this config to add workflow for auto release of your image.
+# see kubeflow/testing/py/run_e2e_workflow.py
+workflows:
+  - app_dir: kubeflow/kubeflow/releasing/releaser
+    component: workflows
+    name: tf-serving-release
+    params:
+      cluster: "kubeflow-releasing"
+      gcpCredentialsSecretName: "gcp-credentials"
+      namespace: "kubeflow-releasing"
+      nfsVolumeClaim: "nfs-external"
+      project: "kubeflow-releasing"
+      registry: "gcr.io/kubeflow-images-public"
+      testing_image: "gcr.io/kubeflow-releasing/worker:latest"
+      zone: "us-central1-a"
+  - app_dir: kubeflow/kubeflow/components/tensorflow-notebook-image/releaser
+    component: workflows
+    name: tf-notebook-release
+    params:
+      cluster: "kubeflow-releasing"
+      gcpCredentialsSecretName: "gcp-credentials"
+      namespace: "kubeflow-releasing"
+      nfsVolumeClaim: "nfs-external"
+      project: "kubeflow-releasing"
+      registry: "gcr.io/kubeflow-images-public"
+      testing_image: "gcr.io/kubeflow-releasing/worker:latest"
+      zone: "us-central1-a"
+  - app_dir: kubeflow/kubeflow/releasing/pytorch-operator
+    component: pytorch-operator
+    name: pytorch-operator-release

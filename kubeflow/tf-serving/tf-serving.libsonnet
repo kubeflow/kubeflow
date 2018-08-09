@@ -10,6 +10,7 @@
     },
     modelName: $.params.name,
     modelPath: null,
+    modelStorageType: "cloud",
 
     version: "v1",
     firstVersion: true,
@@ -17,12 +18,7 @@
     deployIstio: false,
 
     deployHttpProxy: false,
-    defaultHttpProxyImage: "gcr.io/kubeflow-images-public/tf-model-server-http-proxy:v20180327-995786ec",
-    httpProxyImage: "",
-    httpProxyImageToUse: if $.params.httpProxyImage == "" then
-      $.params.defaultHttpProxyImage
-    else
-      $.params.httpProxyImage,
+    httpProxyImage: "gcr.io/kubeflow-images-public/tf-model-server-http-proxy:v20180606-9dfda4f2",
 
     serviceType: "ClusterIP",
 
@@ -30,8 +26,8 @@
     // in which case the image used will still depend on whether GPUs are used or not.
     // Users can also override modelServerImage in which case the user supplied value will always be used
     // regardless of numGpus.
-    defaultCpuImage: "gcr.io/kubeflow-images-public/tf-model-server-cpu:v20180327-995786ec",
-    defaultGpuImage: "gcr.io/kubeflow-images-public/tf-model-server-gpu:v20180327-995786ec",
+    defaultCpuImage: "gcr.io/kubeflow-images-public/tensorflow-serving-1.7:v20180604-0da89b8a",
+    defaultGpuImage: "gcr.io/kubeflow-images-public/tensorflow-serving-1.6gpu:v20180604-0da89b8a",
     modelServerImage: if $.params.numGpus == 0 then
       $.params.defaultCpuImage
     else
@@ -56,10 +52,10 @@
     //  Name of the k8s secrets containing S3 credentials
     s3SecretName: "",
     // Name of the key in the k8s secret containing AWS_ACCESS_KEY_ID.
-    s3SecretAccesskeyidKeyName: "",
+    s3SecretAccesskeyidKeyName: "AWS_ACCESS_KEY_ID",
 
     // Name of the key in the k8s secret containing AWS_SECRET_ACCESS_KEY.
-    s3SecretSecretaccesskeyKeyName: "",
+    s3SecretSecretaccesskeyKeyName: "AWS_SECRET_ACCESS_KEY",
 
     // S3 region
     s3AwsRegion: "us-west-1",
@@ -81,34 +77,34 @@
   components:: {
 
     all:: [
-      // Default routing rule for the first version of model.
-      if $.util.toBool($.params.deployIstio) && $.util.toBool($.params.firstVersion) then
-        $.parts.defaultRouteRule,
-    ] + 
-      // TODO(jlewi): It would be better to structure s3 as a mixin.
-      // As an example it would be great to allow S3 and GCS parameters
-      // to be enabled simultaneously. This should be doable because
-      // each entails adding a set of environment variables and volumes
-      // to the containers. These volumes/environment variables shouldn't
-      // overlap so there's no reason we shouldn't be able to just add
-      // both modifications to the base container.
-      // I think we want to restructure things as mixins so they can just
-      // be added.
-      if $.params.s3Enable then
-        [
-          $.s3parts.tfService,
-          $.s3parts.tfDeployment,
-        ]
-      else if $.params.cloud == "gcp" then
-        [
-          $.gcpParts.tfService,
-          $.gcpParts.tfDeployment,
-        ]
-      else
-        [
-          $.parts.tfService,
-          $.parts.tfDeployment,
-        ],
+            // Default routing rule for the first version of model.
+            if $.util.toBool($.params.deployIstio) && $.util.toBool($.params.firstVersion) then
+              $.parts.defaultRouteRule,
+          ] +
+          // TODO(jlewi): It would be better to structure s3 as a mixin.
+          // As an example it would be great to allow S3 and GCS parameters
+          // to be enabled simultaneously. This should be doable because
+          // each entails adding a set of environment variables and volumes
+          // to the containers. These volumes/environment variables shouldn't
+          // overlap so there's no reason we shouldn't be able to just add
+          // both modifications to the base container.
+          // I think we want to restructure things as mixins so they can just
+          // be added.
+          if $.params.s3Enable then
+            [
+              $.s3parts.tfService,
+              $.s3parts.tfDeployment,
+            ]
+          else if $.params.cloud == "gcp" then
+            [
+              $.gcpParts.tfService,
+              $.gcpParts.tfDeployment,
+            ]
+          else
+            [
+              $.parts.tfService,
+              $.parts.tfDeployment,
+            ],
   }.all,
 
   parts:: {
@@ -147,6 +143,11 @@
         runAsUser: 1000,
         fsGroup: 1000,
       },
+      volumeMounts+: if $.params.modelStorageType == "nfs" then [{
+        name: "nfs",
+        mountPath: "/mnt",
+      }]
+      else [],
     },  // tfServingContainer
 
     tfServingContainer+: $.parts.tfServingContainerBase +
@@ -160,10 +161,16 @@
                            }
                          else {},
 
+    tfServingMetadata+: {
+      labels: $.params.labels { version: $.params.version },
+      annotations: {
+        "sidecar.istio.io/inject": if $.util.toBool($.params.deployIstio) then "true",
+      },
+    },
 
     httpProxyContainer:: {
       name: $.params.name + "-http-proxy",
-      image: $.params.httpProxyImageToUse,
+      image: $.params.httpProxyImage,
       imagePullPolicy: "IfNotPresent",
       command: [
         "python",
@@ -180,12 +187,12 @@
       ],
       resources: {
         requests: {
-          memory: "1Gi",
-          cpu: "1",
+          memory: "500Mi",
+          cpu: "0.5",
         },
         limits: {
-          memory: "4Gi",
-          cpu: "4",
+          memory: "1Gi",
+          cpu: "1",
         },
       },
       securityContext: {
@@ -205,18 +212,21 @@
       },
       spec: {
         template: {
-          metadata: {
-            labels: $.params.labels + { version: $.params.version, },
-            annotations: {
-              "sidecar.istio.io/inject": if $.util.toBool($.params.deployIstio) then "true",
-            },
-          },
+          metadata: $.parts.tfServingMetadata,
           spec: {
             containers: [
               $.parts.tfServingContainer,
               if $.util.toBool($.params.deployHttpProxy) then
                 $.parts.httpProxyContainer,
             ],
+            volumes+: if $.params.modelStorageType == "nfs" then
+              [{
+                name: "nfs",
+                persistentVolumeClaim: {
+                  claimName: $.params.nfsPVC,
+                },
+              }]
+            else [],
           },
         },
       },
@@ -283,7 +293,7 @@
         precedence: 0,
         route: [
           {
-            labels: { version: $.params.version, },
+            labels: { version: $.params.version },
           },
         ],
       },
@@ -310,7 +320,7 @@
     tfDeployment: $.parts.tfDeployment {
       spec: +{
         template: +{
-
+          metadata: $.parts.tfServingMetadata,
           spec: +{
             containers: [
               $.s3parts.tfServingContainer,
@@ -344,14 +354,13 @@
     tfDeployment: $.parts.tfDeployment {
       spec+: {
         template+: {
-
+          metadata: $.parts.tfServingMetadata,
           spec+: {
             containers: [
               $.gcpParts.tfServingContainer,
               if $.util.toBool($.params.deployHttpProxy) then
                 $.parts.httpProxyContainer,
             ],
-
             volumes: [
               if $.gcpParams.gcpCredentialSecretName != "" then
                 {

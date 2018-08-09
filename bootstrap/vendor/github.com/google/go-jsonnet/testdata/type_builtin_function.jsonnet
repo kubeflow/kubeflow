@@ -1,1 +1,0 @@
-std.type(std.type)

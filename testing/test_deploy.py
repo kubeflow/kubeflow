@@ -31,6 +31,7 @@ import logging
 import os
 import shutil
 import tempfile
+import time
 import uuid
 
 import requests
@@ -123,7 +124,7 @@ def setup_kubeflow_ks_app(args, api_client):
     ["ks", "registry", "add", "kubeflow", kubeflow_registry], cwd=app_dir)
 
   # Install required packages
-  packages = ["kubeflow/core", "kubeflow/tf-serving", "kubeflow/tf-job", "kubeflow/pytorch-job"]
+  packages = ["kubeflow/core", "kubeflow/tf-serving", "kubeflow/tf-job", "kubeflow/pytorch-job", "kubeflow/argo"]
 
   # Instead of installing packages we edit the app.yaml file directly
   #for p in packages:
@@ -155,116 +156,6 @@ def setup_kubeflow_ks_app(args, api_client):
 
   return app_dir
 
-
-def get_gke_credentials(args):
-  """Configure kubeconfig to talk to the supplied GKE cluster."""
-  config_file = os.path.expanduser(kube_config.KUBE_CONFIG_DEFAULT_LOCATION)
-  logging.info("Using Kubernetes config file: %s", config_file)
-  project = args.project
-  cluster_name = args.cluster
-  zone = args.zone
-  logging.info("Using cluster: %s in project: %s in zone: %s", cluster_name,
-               project, zone)
-  # Print out config to help debug issues with accounts and
-  # credentials.
-  util.run(["gcloud", "config", "list"])
-  util.configure_kubectl(project, zone, cluster_name)
-  
-  # We want to modify the KUBECONFIG file to remove the gcloud commands
-  # for any users that are authenticating using service accounts.  
-  # This will allow the script to be truly headless and not require gcloud.
-  # More importantly, kubectl will properly attach auth.info scope so
-  # that RBAC rules can be applied to the email and not the id.
-  # See https://github.com/kubernetes/kubernetes/pull/58141
-  #
-  # TODO(jlewi): We might want to check GOOGLE_APPLICATION_CREDENTIALS
-  # to see whether we are actually using a service account. If we aren't
-  # using a service account then we might not want to delete the gcloud
-  # commands.
-  logging.info("Modifying kubeconfig %s", config_file)
-  with open(config_file, "r") as hf:
-    config = yaml.load(hf)
-
-  for user in config["users"]:
-    auth_provider = user.get("user", {}).get("auth-provider", {})
-    if auth_provider.get("name") != "gcp":
-      continue
-    logging.info("Modifying user %s which has gcp auth provider", user["name"])
-    if "config" in auth_provider:
-      logging.info("Deleting config from user %s", user["name"])
-      del auth_provider["config"]
-
-      # This is a hack because the python client library will complain
-      # about an invalid config if there is no config field.
-      #
-      # It looks like the code checks here but that doesn't seem to work
-      # https://github.com/kubernetes-client/python-base/blob/master/config/kube_config.py#L209
-      auth_provider["config"] = {
-        "dummy": "dummy",
-      }
-  logging.info("Writing update kubeconfig:\n %s", yaml.dump(config))
-  with open(config_file, "w") as hf:
-    yaml.dump(config, hf)
-
-
-def deploy_kubeflow(args):
-  """Deploy Kubeflow."""
-  api_client = create_k8s_client(args)
-  app_dir = setup_kubeflow_ks_app(args, api_client)
-
-  namespace = args.namespace
-  # TODO(jlewi): We don't need to generate a core component if we are
-  # just deploying TFServing. Might be better to refactor this code.
-  # Deploy Kubeflow
-  util.run(
-    [
-      "ks", "generate", "core", "kubeflow-core", "--name=kubeflow-core",
-      "--namespace=" + namespace
-    ],
-    cwd=app_dir)
-
-  util.run(
-    [
-      "ks", "generate", "pytorch-operator", "pytorch-operator", "--name=pytorch-operator",
-      "--namespace=" + namespace
-    ],
-    cwd=app_dir)
-
-  apply_command = [
-    "ks",
-    "apply",
-    "default",
-    "-c",
-    "kubeflow-core",
-    "-c",
-    "pytorch-operator",
-  ]
-
-  if args.as_gcloud_user:
-    account = get_gcp_identity()
-    logging.info("Impersonate %s", account)
-
-    # If we don't use --as to impersonate the service account then we
-    # observe RBAC errors when doing certain operations. The problem appears
-    # to be that we end up using the in cluster config (e.g. pod service account)
-    # and not the GCP service account which has more privileges.
-    apply_command.append("--as=" + account)
-  util.run(apply_command, cwd=app_dir)
-
-  # Verify that the TfJob operator is actually deployed.
-  tf_job_deployment_name = "tf-job-operator"
-  logging.info("Verifying TfJob controller started.")
-  util.wait_for_deployment(api_client, namespace, tf_job_deployment_name)
-
-  # Verify that JupyterHub is actually deployed.
-  jupyterhub_name = "tf-hub"
-  logging.info("Verifying TfHub started.")
-  util.wait_for_statefulset(api_client, namespace, jupyterhub_name)
-
-  # Verify that PyTorch Operator actually deployed
-  pytorch_operator_deployment_name = "pytorch-operator"
-  logging.info("Verifying PyTorchJob controller started.")
-  util.wait_for_deployment(api_client, namespace, pytorch_operator_deployment_name)
 
 def deploy_model(args):
   """Deploy a TF model using the TF serving component."""
@@ -298,13 +189,40 @@ def deploy_model(args):
     api_client, namespace, args.deploy_name + "-v1", timeout_minutes=10)
   logging.info("Verified TF serving started.")
 
+def deploy_argo(args):
+  api_client = create_k8s_client(args)
+  app_dir = setup_kubeflow_ks_app(args, api_client)
+
+  component = "argo"
+  logging.info("Deploying argo")
+  generate_command = ["ks", "generate", "argo", component,
+                        "--namespace", "default", "--name", "argo"]
+  util.run(generate_command, cwd=app_dir)
+
+  ks_deploy(app_dir, component, {}, env=None, account=None)
+
+  # Create a hello world workflow
+  util.run(["kubectl", "create", "-n", "default", "-f", "https://raw.githubusercontent.com/argoproj/argo/master/examples/hello-world.yaml"], cwd=app_dir)
+
+  # Wait for 100 seconds to check if the hello-world pod was created
+  retries = 20
+  i = 0
+  while True:
+    if i == retries:
+      raise Exception('Failed to run argo workflow')
+    output = util.run(["kubectl", "get", "pods", "-n", "default", "-lworkflows.argoproj.io/workflow"])
+    if "hello-world-" in output:
+      return True
+    time.sleep(5)
+    i += 1
+
 def deploy_pytorchjob(args):
   """Deploy Pytorchjob using the pytorch-job component"""
   api_client = create_k8s_client(args)
   app_dir = setup_kubeflow_ks_app(args, api_client)
 
   component = "example-job"
-  logging.info("Deploying tf-serving.")
+  logging.info("Deploying pytorch.")
   generate_command = ["ks", "generate", "pytorch-job", component]
 
   util.run(generate_command, cwd=app_dir)
@@ -431,7 +349,7 @@ def deploy_minikube(args):
   """Create a VM and setup minikube."""
 
   credentials = GoogleCredentials.get_application_default()
-  gce = discovery.build("compute", "v1", credentials=credentials)
+  gce = discovery.build("compute", "v1", credentials=credentials, cache_discovery=False)
   instances = gce.instances()
   body = {
     "name":
@@ -484,11 +402,11 @@ def deploy_minikube(args):
 
   op_id = response.get("name")
   final_op = vm_util.wait_for_operation(gce, args.project, args.zone, op_id)
-  
+
   logging.info("Final result for insert operation: %s", final_op)
   if final_op.get("status") != "DONE":
     raise ValueError("Insert operation has status %s", final_op.get("status"))
-  
+
   if final_op.get("error"):
     message = "Insert operation resulted in error %s".format(
       final_op.get("error"))
@@ -543,20 +461,20 @@ def teardown_minikube(args):
     project=args.project, zone=args.zone, instance=args.vm_name)
 
   response = request.execute()
-  
+
   op_id = response.get("name")
   final_op = vm_util.wait_for_operation(gce, args.project, args.zone, op_id)
-  
+
   logging.info("Final result for delete operation: %s", final_op)
   if final_op.get("status") != "DONE":
     raise ValueError("Delete operation has status %s", final_op.get("status"))
-  
+
   if final_op.get("error"):
     message = "Delete operation resulted in error %s".format(
       final_op.get("error"))
     logging.error(message)
     raise ValueError(message)
-  
+
   # Ensure the disk is deleted. The disk should be auto-deleted with
   # the VM but just in case we issue a delete request anyway.
   disks = gce.disks()
@@ -569,30 +487,30 @@ def teardown_minikube(args):
   except errors.HttpError as e:
     if not e.content:
       raise
-    content = json.loads(e.content)    
+    content = json.loads(e.content)
     if content.get("error", {}).get("code") == requests.codes.NOT_FOUND:
       logging.info("Disk %s in zone %s in project %s already deleted.",
                       args.vm_name, args.zone, args.project)
     else:
       raise
 
-  
+
   if response:
     logging.info("Waiting for disk to be deleted.")
     op_id = response.get("name")
     final_op = vm_util.wait_for_operation(gce, args.project, args.zone, op_id)
-    
+
     logging.info("Final result for disk delete operation: %s", final_op)
     if final_op.get("status") != "DONE":
-      raise ValueError("Disk delete operation has status %s", 
+      raise ValueError("Disk delete operation has status %s",
                        final_op.get("status"))
-    
+
     if final_op.get("error"):
       message = "Delete disk operation resulted in error %s".format(
         final_op.get("error"))
       logging.error(message)
       raise ValueError(message)
-    
+
 def get_gcp_identity():
   identity = util.run_and_output(["gcloud", "config", "get-value", "account"])
   logging.info("Current GCP account: %s", identity)
@@ -651,30 +569,10 @@ def main():  # pylint: disable=too-many-locals,too-many-statements
 
   subparsers = parser.add_subparsers()
 
-  parser_gke = subparsers.add_parser(
-    "get_gke_credentials", help="Configure kubectl for a GKE cluster.")
-
-  parser_gke.set_defaults(func=get_gke_credentials)
-
-  parser_gke.add_argument(
-    "--cluster",
-    default=None,
-    type=str,
-    help=("The name of the cluster. If not set assumes the "
-          "script is running in a cluster and uses that cluster."))
-
-  parser_gke.add_argument(
-    "--zone", default="us-east1-d", type=str, help="The zone for the cluster.")
-
   parser_teardown = subparsers.add_parser(
     "teardown", help="teardown the test infrastructure.")
 
   parser_teardown.set_defaults(func=teardown)
-
-  parser_kubeflow = subparsers.add_parser(
-    "deploy_kubeflow", help="Deploy kubeflow.")
-
-  parser_kubeflow.set_defaults(func=deploy_kubeflow)
 
   parser_tf_serving = subparsers.add_parser(
     "deploy_model", help="Deploy a TF serving model.")
@@ -697,6 +595,11 @@ def main():  # pylint: disable=too-many-locals,too-many-statements
     default="",
     type=str,
     help=("Comma separated list of parameters to set on the model."))
+
+  parser_argo_job = subparsers.add_parser(
+    "deploy_argo", help="Deploy argo")
+
+  parser_argo_job.set_defaults(func=deploy_argo)
 
   parser_minikube = subparsers.add_parser(
     "deploy_minikube", help="Setup a K8s cluster on minikube.")

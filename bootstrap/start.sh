@@ -5,6 +5,11 @@
 # with the same id as the user on the host system to
 # that we can read the user's home directory on the host
 # so that we can uss kubeconfig, gcloud config and other things.
+#
+# TODO(jlewi): Do we still need this script? I think
+# switching the user to match the host system is a remnant
+# of the original idea of running it on the host system.
+# That's no longer a supported approach.
 set -x
 
 # If it's run by deployment job, don't switch users
