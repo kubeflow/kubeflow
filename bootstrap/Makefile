@@ -74,3 +74,7 @@ push-latest: push
 
 debug:
 	@./debug.sh
+
+cleanup:
+	@echo Removing kubeflow-admin namespace
+	@kubectl delete ns kubeflow-admin

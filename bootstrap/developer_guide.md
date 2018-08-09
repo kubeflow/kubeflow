@@ -66,8 +66,10 @@ make debug
 The make debug target runs debug.sh which does the following
 1. deploys bootstrapper.debug.yaml.
 2. waits for pod kubeflow-bootstrapper-0 to be in phase 'Running'
-3. runs kubectl port-forward in the background, opening port 2345 to the pod's container
+3. runs "kubectl port-forward ..." in the background, opening port 2345 to the pod's container
 4. wait - cleanup (kill port-forward command) on Ctrl-C
+5. when the script exits (Ctrl-C) it will kill "kubectl port-forward ..." 
+6. in order to clean up all resources deployed in step 1 run `make cleanup`
 
 bootstrapper.debug.yaml will start the following process in the pod's kubeflow-bootstrapper-0 container
 "/opt/kubeflow/dlv.sh". This script runs
