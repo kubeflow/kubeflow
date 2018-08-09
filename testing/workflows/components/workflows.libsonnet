@@ -17,8 +17,9 @@
     else [],
 
   // kfTests defines an Argo DAG for running job tests to validate a Kubeflow deployment.
-  // The dag is intended to be used a subgraph in workflows.
-  // It is structured to allow late binding to be used to override falues.
+  //
+  // The dag is intended to be reused as a sub workflow by other workflows.
+  // It is structured to allow late binding to be used to override values.
   //
   // Usage is as follows
   //
@@ -27,17 +28,17 @@
   // local util = import "workflows.libsonnet";
   // local tests = util.kfTests + {
   //    name: "gke-tests",
-  //     platform: "gke-latest"
+  //    platform: "gke-latest"
   // }
   //
   // Tests contains the following variables which can be added to your argo workflow
   //   argoTemplates - This is a list of Argo templates. It includes an Argo template for a Dag representing the set of steps to run
-  //                   as well as the templates for the individual steps
+  //                   as well as the templates for the individual tasks in the dag.
   //   name - This is the name of the Dag template.
   //
   // So to add a nested workflow to your Argo graph
   //
-  // 1. In the Argo Dag that nests the dag defined by tests add a step that uses template tests.name
+  // 1. In your Argo Dag add a step that uses template tests.name
   // 2. In your Argo Workflow add argoTemplates as templates.
   //
   // TODO(jlewi): We need to add the remaining test steps in the e2e worfklow and then reuse kfTests in it.
@@ -150,9 +151,29 @@
       },
     },  // buildTemplate
 
-    // Create a list of dictionaries.
-    // Each item is a dictionary describing one step in the graph.
-    dagTemplates: [
+    // Tasks is a dictionary from which we generate:
+    //
+    // 1. An Argo Dag
+    // 2. A list of Argo templates for each task in the Dag.
+    //
+    // This dictionary is intended to be a "private" variable and not to be consumed externally
+    // by the workflows that are trying to nest this dag.
+    //
+    // This variable reduces the boilerplate of writing Argo Dags.
+    // We use tasks to construct argoTaskTemplates and argoDagTemplate
+    // below.
+    //
+    // In Argo we construct a Dag as follows
+    // 1. We define a Dag template (see argoDagTemplate below). A dag
+    //    is a list of tasks which are triplets (name, template, dependencies)
+    // 2. A list of templates (argoTaskTemplates) which define the work to be
+    //    done for each task in the Dag (e.g. run a container, run a dag etc...)
+    //
+    // argoDagTemplate is constructed by iterating over tasks and inserting tasks
+    // for each item. We use the same name as the template for the task.
+    //
+    // argoTaskTemplates is constructing from tasks as well.
+    tasks:: [
       {
         local v1alpha2Suffix = "-v1a2",
         template: tests.buildTemplate {
@@ -162,11 +183,6 @@
             "-m",
             "py.test_runner",
             "test",
-            // TODO(jlewi): We shouldn't have to set cluster or zone because KUBECONFIG should be pointing at a config
-            // file that points at the correct cluster.
-            //"--cluster=" + cluster,
-            // "--zone=" + zone,
-            //"--project=" + project,
             "--app_dir=" + tests.tfOperatorRoot + "/test/workflows",
             "--tfjob_version=v1alpha2",
             "--component=simple_tfjob_v1alpha2",
@@ -190,18 +206,17 @@
           name: i.template.name,
           template: i.template.name,
           dependencies: i.dependencies,
-        }, tests.dagTemplates),
+        }, tests.tasks),
       },
     },
 
-    // A list of templates for the actual steps
+    // A list of templates for tasks
     // doesn't include the argoDagTemplate
-    stepTemplates: std.map(function(i) i.template.argoTemplate
-                           , self.dagTemplates),
+    argoTaskTemplates: std.map(function(i) i.template.argoTemplate
+                               , self.tasks),
 
 
-    // All argo templates
-    argoTemplates: [self.argoDagTemplate] + self.stepTemplates,
+    argoTemplates: [self.argoDagTemplate] + self.argoTaskTemplates,
   },  // kfTests
 
   parts(namespace, name):: {
