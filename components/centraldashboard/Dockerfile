@@ -9,15 +9,12 @@ WORKDIR $GOPATH/src/github.com/kubeflow/kubeflow/components/centraldashboard
 COPY Gopkg.toml Gopkg.lock ./
 RUN dep ensure --vendor-only
 COPY . ./
-ENV PORT_1=8082
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix nocgo -o centraldashboard .
-RUN pwd && ls
 
 FROM alpine
 RUN apk --no-cache add ca-certificates
 WORKDIR /app
-RUN pwd && ls
-COPY --from=builder /go/src/github.com/kubeflow/kubeflow/components/centraldashboard/centraldashboard /app
-COPY --from=builder /go/src/github.com/kubeflow/kubeflow/components/centraldashboard/frontend /app
+COPY --from=builder /go/src/github.com/kubeflow/kubeflow/components/centraldashboard/ /app
+ENV PORT_1=8082
 EXPOSE 8082
 CMD [ "/app/centraldashboard" ]
