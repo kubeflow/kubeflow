@@ -22,10 +22,11 @@
       $.parts(namespace).service,
       $.parts(namespace).ingress(secretName, ipName, hostname),
       $.parts(namespace).certificate(secretName, hostname, issuer),
-      $.parts(namespace).initServiceAcount,
+      $.parts(namespace).initServiceAccount,
       $.parts(namespace).initClusterRoleBinding,
       $.parts(namespace).initClusterRole,
       $.parts(namespace).deploy(envoyImage, oauthSecretName),
+      $.parts(namespace).iapEnabler(oauthSecretName),
       $.parts(namespace).configMap(disableJwt),
       $.parts(namespace).whoamiService,
       $.parts(namespace).whoamiApp,
@@ -58,7 +59,7 @@
       },
     },  // service
 
-    initServiceAcount:: {
+    initServiceAccount:: {
       apiVersion: "v1",
       kind: "ServiceAccount",
       metadata: {
@@ -190,7 +191,7 @@
                 image: "google/cloud-sdk:alpine",
                 command: [
                   "sh",
-                  "/var/envoy-config/iap-init.sh",
+                  "/var/envoy-config/configure_envoy_for_iap.sh",
                 ],
                 env: [
                   {
@@ -223,6 +224,10 @@
                     name: "ENVOY_ADMIN",
                     value: "http://localhost:" + envoyAdminPort,
                   },
+                  {
+                    name: "GOOGLE_APPLICATION_CREDENTIALS",
+                    value: "/var/run/secrets/sa/admin-gcp-sa.json",
+                  },
                 ],
                 volumeMounts: [
                   {
@@ -232,6 +237,11 @@
                   {
                     mountPath: "/var/shared/",
                     name: "shared",
+                  },
+                  {
+                    name: "sa-key",
+                    readOnly: true,
+                    mountPath: "/var/run/secrets/sa",
                   },
                 ],
               },
@@ -250,11 +260,112 @@
                 },
                 name: "shared",
               },
+              {
+                name: "sa-key",
+                secret: {
+                  secretName: "admin-gcp-sa",
+                },
+              },
             ],
           },
         },
       },
     },  // deploy
+
+    // Run the process to enable iap
+    iapEnabler(oauthSecretName):: {
+      apiVersion: "extensions/v1beta1",
+      kind: "Deployment",
+      metadata: {
+        name: "iap-enabler",
+        namespace: namespace,
+      },
+      spec: {
+        replicas: 1,
+        template: {
+          metadata: {
+            labels: {
+              service: "iap-enabler",
+            },
+          },
+          spec: {
+            serviceAccountName: "envoy",
+            containers: [
+              {
+                name: "iap",
+                image: "google/cloud-sdk:alpine",
+                command: [
+                  "sh",
+                  "/var/envoy-config/setup_iap.sh",
+                ],
+                env: [
+                  {
+                    name: "NAMESPACE",
+                    value: namespace,
+                  },
+                  {
+                    name: "CLIENT_ID",
+                    valueFrom: {
+                      secretKeyRef: {
+                        name: oauthSecretName,
+                        key: "CLIENT_ID",
+                      },
+                    },
+                  },
+                  {
+                    name: "CLIENT_SECRET",
+                    valueFrom: {
+                      secretKeyRef: {
+                        name: oauthSecretName,
+                        key: "CLIENT_SECRET",
+                      },
+                    },
+                  },
+                  {
+                    name: "SERVICE",
+                    value: "envoy",
+                  },
+                  {
+                    name: "ENVOY_ADMIN",
+                    value: "http://localhost:" + envoyAdminPort,
+                  },
+                  {
+                    name: "GOOGLE_APPLICATION_CREDENTIALS",
+                    value: "/var/run/secrets/sa/admin-gcp-sa.json",
+                  },
+                ],
+                volumeMounts: [
+                  {
+                    mountPath: "/var/envoy-config/",
+                    name: "config-volume",
+                  },
+                  {
+                    name: "sa-key",
+                    readOnly: true,
+                    mountPath: "/var/run/secrets/sa",
+                  },
+                ],
+              },
+            ],
+            restartPolicy: "Always",
+            volumes: [
+              {
+                configMap: {
+                  name: "envoy-config",
+                },
+                name: "config-volume",
+              },
+              {
+                name: "sa-key",
+                secret: {
+                  secretName: "admin-gcp-sa",
+                },
+              },
+            ],
+          },
+        },
+      },
+    },  // iapEnabler
 
     configMap(disableJwt):: {
       apiVersion: "v1",
@@ -265,124 +376,8 @@
       },
       data: {
         "envoy-config.json": std.manifestJson($.parts(namespace).envoyConfig(disableJwt)),
-        // Script executed by the iap container to configure IAP. When finished, the envoy config is created with the JWT audience.
-        "iap-init.sh": |||
-          [ -z ${CLIENT_ID} ] && echo Error CLIENT_ID must be set && exit 1
-          [ -z ${CLIENT_SECRET} ] && echo Error CLIENT_SECRET must be set && exit 1
-          [ -z ${NAMESPACE} ] && echo Error NAMESPACE must be set && exit 1
-          [ -z ${SERVICE} ] && echo Error SERVICE must be set && exit 1
-
-          apk add --update jq
-          curl https://storage.googleapis.com/kubernetes-release/release/v1.9.4/bin/linux/amd64/kubectl > /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
-
-          # Stagger init of replicas when acquiring lock
-          sleep $(( $RANDOM % 5 + 1 ))
-
-          kubectl get svc ${SERVICE} -o json > service.json
-          LOCK=$(jq -r ".metadata.annotations.iaplock" service.json)
-
-          NOW=$(date -u +'%s')
-          if [[ -z "${LOCK}" || "${LOCK}" == "null" ]]; then
-            LOCK_T=$NOW
-          else
-            LOCK_T=$(echo "${LOCK}" | cut -d' ' -f2)
-          fi
-          LOCK_AGE=$(( $NOW - $LOCK_T ))
-          LOCK_TTL=120
-          if [[ -z "${LOCK}" || "${LOCK}" == "null" || "${LOCK_AGE}" -gt "${LOCK_TTL}" ]]; then
-            jq -r ".metadata.annotations.iaplock=\"$(hostname -s) ${NOW}\"" service.json > service_lock.json
-            kubectl apply -f service_lock.json 2>/dev/null
-            if [[ $? -eq 0 ]]; then
-              echo "Acquired lock on service annotation to update IAP."
-            else
-              echo "WARN: Failed to acquire lock on service annotation."
-              exit 1
-            fi
-          else
-            echo "WARN: Lock on service annotation already acquired by: $LOCK, age: $LOCK_AGE, TTL: $LOCK_TTL"
-            sleep 20
-            exit 1
-          fi
-
-          PROJECT=$(curl -s -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/project/project-id)
-          if [ -z ${PROJECT} ]; then
-            echo Error unable to fetch PROJECT from compute metadata
-            exit 1
-          fi
-
-          PROJECT_NUM=$(curl -s -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/project/numeric-project-id)
-          if [ -z ${PROJECT_NUM} ]; then
-            echo Error unable to fetch PROJECT_NUM from compute metadata
-            exit 1
-          fi
-
-          NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[0].nodePort}')
-          while [[ -z ${BACKEND_ID} ]];
-          do BACKEND_ID=$(gcloud compute --project=${PROJECT} backend-services list --filter=name~k8s-be-${NODE_PORT}- --format='value(id)');
-          echo "Waiting for backend id PROJECT=${PROJECT} NAMESPACE=${NAMESPACE} SERVICE=${SERVICE}...";
-          sleep 2;
-          done
-          echo BACKEND_ID=${BACKEND_ID}
-
-          NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[0].nodePort}')
-          BACKEND_SERVICE=$(gcloud --project=${PROJECT} compute backend-services list --filter=name~k8s-be-${NODE_PORT}- --uri)
-          # Enable IAP on the backend service:
-          gcloud --project=${PROJECT} compute backend-services update ${BACKEND_SERVICE} \
-                --global \
-                --iap=enabled,oauth2-client-id=${CLIENT_ID},oauth2-client-secret=${CLIENT_SECRET}
-
-          while [[ -z ${HEALTH_CHECK_URI} ]];
-            do HEALTH_CHECK_URI=$(gcloud compute --project=${PROJECT} health-checks list --filter=name~k8s-be-${NODE_PORT}- --uri);
-            echo "Waiting for the healthcheck resource PROJECT=${PROJECT} NODEPORT=${NODE_PORT} SERVICE=${SERVICE}...";
-            sleep 2;
-          done
-
-          # Since we create the envoy-ingress ingress object before creating the envoy
-          # deployment object, healthcheck will not be configured correctly in the GCP
-          # load balancer. It will default the healthcheck request path to a value of
-          # / instead of the intended /healthz.
-          # Manually update the healthcheck request path to /healthz
-          gcloud --project=${PROJECT} compute health-checks update http ${HEALTH_CHECK_URI} --request-path=/healthz
-
-          # Since JupyterHub uses websockets we want to increase the backend timeout
-          echo Increasing backend timeout for JupyterHub
-          gcloud --project=${PROJECT} compute backend-services update --global ${BACKEND_SERVICE} --timeout=3600
-
-          JWT_AUDIENCE="/projects/${PROJECT_NUM}/global/backendServices/${BACKEND_ID}"
-
-          # For healthcheck compare.
-          echo "JWT_AUDIENCE=${JWT_AUDIENCE}" > /var/shared/healthz.env
-          echo "NODE_PORT=${NODE_PORT}" >> /var/shared/healthz.env
-          echo "BACKEND_ID=${BACKEND_ID}" >> /var/shared/healthz.env
-
-          kubectl get configmap -n ${NAMESPACE} envoy-config -o jsonpath='{.data.envoy-config\.json}' | \
-            sed -e "s|{{JWT_AUDIENCE}}|${JWT_AUDIENCE}|g" > /var/shared/envoy-config.json
-
-          echo "Restarting envoy"
-          curl -s ${ENVOY_ADMIN}/quitquitquit
-
-          echo "Clearing lock on service annotation"
-          kubectl patch svc "${SERVICE}" -p "{\"metadata\": { \"annotations\": {\"iaplock\": \"\" }}}"
-
-          function checkIAP() {
-            # created by init container.
-            . /var/shared/healthz.env 
-
-            # If node port or backend id change, so does the JWT audience.
-            CURR_NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[0].nodePort}')
-            CURR_BACKEND_ID=$(gcloud compute --project=${PROJECT} backend-services list --filter=name~k8s-be-${CURR_NODE_PORT}- --format='value(id)')
-            [ "$BACKEND_ID" == "$CURR_BACKEND_ID" ]
-          }
-
-          # Verify IAP every 10 seconds.
-          while true; do
-            if ! checkIAP; then
-              echo "$(date) WARN: IAP check failed, restarting container."
-              exit 1
-            fi
-            sleep 10
-          done
-        |||,
+        "setup_iap.sh": importstr "setup_iap.sh",
+        "configure_envoy_for_iap.sh": importstr "configure_envoy_for_iap.sh",
       },
     },
 
@@ -491,19 +486,15 @@
                             ],
                           },
                         },
-                        // TODO(ankushagarwal): We should eventually
-                        // redirect to the central UI once its ready
-                        // See https://github.com/kubeflow/kubeflow/pull/146
-                        // Redirect to jupyterhub when visiting /
+                        // TFJob uses the prefix /tfjobs/
                         {
-                          timeout_ms: 600000,
-                          path: "/",
-                          prefix_rewrite: "/hub",
-                          use_websocket: true,
+                          timeout_ms: 10000,
+                          prefix: "/tfjobs",
+                          prefix_rewrite: "/tfjobs",
                           weighted_clusters: {
                             clusters: [
                               {
-                                name: "cluster_jupyterhub",
+                                name: "cluster_tfjobs",
                                 weight: 100.0,
                               },
                             ],
@@ -632,6 +623,18 @@
             ],
           },
           {
+            name: "cluster_tfjobs",
+            connect_timeout_ms: 3000,
+            type: "strict_dns",
+            lb_type: "round_robin",
+            hosts: [
+              {
+                url: "tcp://tf-job-dashboard." + namespace + ":80",
+              },
+
+            ],
+          },
+          {
             name: "cluster_ambassador",
             connect_timeout_ms: 3000,
             type: "strict_dns",
@@ -743,7 +746,7 @@
                 {
                   backend: {
                     // Due to https://github.com/kubernetes/contrib/blob/master/ingress/controllers/gce/examples/health_checks/README.md#limitations
-                    // Keep port the servicePort the same as the port we are targetting on the backend so that servicePort will be the same as targetPort for the purpose of
+                    // Keep port the servicePort the same as the port we are targeting on the backend so that servicePort will be the same as targetPort for the purpose of
                     // health checking.
                     serviceName: "envoy",
                     servicePort: envoyPort,

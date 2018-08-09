@@ -1,3 +1,0 @@
-RUNTIME ERROR: Array bounds error: 6 not within [0, 6)
-	std.jsonnet:92:46-58	thunk <array_element>
-	During manifestation	

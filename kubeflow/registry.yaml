@@ -4,9 +4,6 @@ libraries:
   core:
     version: master
     path: core
-  tf-job:
-    version: master
-    path: tf-job
   tf-serving:
     version: master
     path: tf-serving
@@ -25,3 +22,15 @@ libraries:
   openmpi:
     version: master
     path: openmpi
+  katib:
+    version: master
+    path: katib
+  automation:
+    version: master
+    path: automation
+  mpi-job:
+    version: master
+    path: mpi-job
+  seldon:
+    version: master
+    path: seldon

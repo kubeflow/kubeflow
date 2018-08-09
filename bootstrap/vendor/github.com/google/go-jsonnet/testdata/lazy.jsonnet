@@ -1,1 +1,0 @@
-local x = {'x': error "blah"}, f = function(x) 42, z = x.x; f(x.x)

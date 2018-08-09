@@ -1,5 +1,5 @@
 local params = import "../../components/params.libsonnet";
-params +{
+params {
   components+: {
     // Insert component parameter overrides here. Ex:
     // guestbook +: {

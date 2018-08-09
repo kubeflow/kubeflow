@@ -91,17 +91,17 @@
       imagePullPolicy: "IfNotPresent",
       args: [
         $.params.logDir,
-        "--port=9000"
+        "--port=9000",
       ],
       command: [
-		              "/usr/local/bin/tensorboard"
-		            ],
+        "/usr/local/bin/tensorboard",
+      ],
       ports: [
         {
           containerPort: 9000,
         },
       ],
-      
+
       resources: {
         requests: {
           memory: "1Gi",
@@ -129,9 +129,9 @@
           },
           spec: {
             containers: [
-              $.parts.tbContainer
+              $.parts.tbContainer,
             ],
-            
+
           },
         },
       },
@@ -154,7 +154,7 @@
               "prefix: /tensorboard/ " + $.params.name + "/",
               "rewrite: /",
               "method: GET",
-              "service: " + $.params.name + "." + $.params.namespace + ":9000"
+              "service: " + $.params.name + "." + $.params.namespace + ":9000",
             ]),
         },  //annotations
       },
@@ -164,7 +164,7 @@
             name: "tb",
             port: 9000,
             targetPort: 9000,
-          }
+          },
         ],
         selector: $.params.labels,
         type: $.params.serviceType,
@@ -195,7 +195,7 @@
 
           spec: +{
             containers: [
-              $.s3parts.tbContainer
+              $.s3parts.tbContainer,
             ],
           },
         },

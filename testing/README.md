@@ -41,7 +41,7 @@ You can access the Argo UI over the API Server proxy.
 We currently use the cluster
 
 ```
-PROJECT=mlkube-testing
+PROJECT=kubeflow-ci
 ZONE=us-east1-d
 CLUSTER=kubeflow-testing
 NAMESPACE=kubeflow-test-infra
@@ -87,7 +87,7 @@ for setting this.
 Create a GKE cluster
 
 ```
-PROJECT=mlkube-testing
+PROJECT=kubeflow-ci
 ZONE=us-east1-d
 CLUSTER=kubeflow-testing
 NAMESPACE=kubeflow-test-infra
@@ -106,7 +106,7 @@ gcloud --project=${PROJECT} container clusters create \
 
 ```
 SERVICE_ACCOUNT=kubeflow-testing
-gcloud iam service-accounts --project=mlkube-testing create ${SERVICE_ACCOUNT} --display-name "Kubeflow testing account"
+gcloud iam service-accounts --project=kubeflow-ci create ${SERVICE_ACCOUNT} --display-name "Kubeflow testing account"
 	gcloud projects add-iam-policy-binding ${PROJECT} \
     	--member serviceAccount:${SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com --role roles/container.developer
 ```

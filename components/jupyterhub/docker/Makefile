@@ -12,7 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-VERSION=1.0.1
+# List any changed  files. We only include files in the  image directory.
+# because that is the code in the docker image.
+CHANGED_FILES := $(shell git diff-files --relative=components/jupyterhub)
+
+ifeq ($(strip $(CHANGED_FILES)),)
+# Changed files is empty; not dirty
+# Don't include --dirty because it could be dirty if files outside the ones we care
+# about changed.
+VERSION := $(shell date +v%Y%m%d)-$(shell git describe --always)
+else
+VERSION := $(shell date +v%Y%m%d)-$(shell git describe --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6)
+endif
+
+
 PROJECT_ID=kubeflow
 GCR_PROJECT=gcr.io/${PROJECT_ID}
 DOCKERHUB_PROJECT=hub.docker.com/r/${PROJECT_ID}

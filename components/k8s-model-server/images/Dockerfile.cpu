@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM ubuntu:16.04
+ARG base_image=ubuntu:16.04
+FROM $base_image
+
+ARG package=http://storage.googleapis.com/tensorflow-serving-apt/pool/tensorflow-model-server/t/tensorflow-model-server/tensorflow-model-server_1.6.0_all.deb
 
 MAINTAINER Kenneth Owens <kowens@google.com>
 
@@ -40,8 +43,8 @@ RUN     apt-get update && apt-get install -y software-properties-common && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN curl -O http://storage.googleapis.com/tensorflow-serving-apt/pool/tensorflow-model-server/t/tensorflow-model-server/tensorflow-model-server_1.6.0_all.deb
-RUN dpkg -i tensorflow-model-server_1.6.0_all.deb
+RUN curl -o tensorflow-model-server.deb $package
+RUN dpkg -i tensorflow-model-server.deb
 
 RUN set -x \
     && useradd $MS_USER \

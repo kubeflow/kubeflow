@@ -23,9 +23,14 @@ type ServerOption struct {
 	Apply                bool
 	PrintVersion         bool
 	JsonLogFormat        bool
-	AppDir				 string
-	KfVersion			 string
-	NameSpace			 string
+	InCluster            bool
+	KeepAlive            bool
+	Port                 int
+	AppDir               string
+	Config               string
+	Email                string
+	NameSpace            string
+	RegistriesConfigFile string
 }
 
 // NewServerOption creates a new CMServer with a default config.
@@ -34,12 +39,25 @@ func NewServerOption() *ServerOption {
 	return &s
 }
 
+const RegistriesDefaultConfig = "/opt/kubeflow/image_registries.yaml"
+
 // AddFlags adds flags for a specific Server to the specified FlagSet
 func (s *ServerOption) AddFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&s.PrintVersion, "version", false, "Show version and quit")
 	fs.BoolVar(&s.JsonLogFormat, "json-log-format", true, "Set true to use json style log format. Set false to use plaintext style log format")
-	fs.StringVar(&s.AppDir, "app-dir", "", "The directory for the ksonnet application.")
-	fs.StringVar(&s.KfVersion, "kubeflow-version", "v0.1.0-rc.4", "The Kubeflow version to use.")
+	fs.IntVar(&s.Port, "port", 8080, "The port to use when running an http server.")
+	fs.StringVar(&s.AppDir, "app-dir", "/opt/bootstrap/default", "The directory for the ksonnet applications.")
 	fs.StringVar(&s.NameSpace, "namespace", "kubeflow", "The namespace where all resources for kubeflow will be created")
-	fs.BoolVar(&s.Apply, "apply", true, "Whether or not to apply the configuraiton.")
+	fs.BoolVar(&s.Apply, "apply", false, "Whether or not to apply the configuration.")
+
+	fs.StringVar(&s.RegistriesConfigFile, "registries-config-file", RegistriesDefaultConfig, "A file containing information about known ksonnet registries.")
+
+	// TODO(jlewi): Email is no longer used. We can remove it as soon as we verify no manifests are trying
+	// to set this command line argument.
+	fs.StringVar(&s.Email, "email", "", "Your Email address for GCP account, if you are using GKE.")
+	fs.BoolVar(&s.InCluster, "in-cluster", false, "Whether bootstrapper is executed inside a pod")
+	fs.BoolVar(&s.KeepAlive, "keep-alive", true, "Whether bootstrapper will stay alive after setup resources.")
+	// TODO(jlewi): We should probably change the default to the empty string because running as a server
+	// will be far more common then doing a one off batch job based on a config file.
+	fs.StringVar(&s.Config, "config", "/opt/kubeflow/default.yaml", "Path to a YAML file describing an app to create on startup.")
 }

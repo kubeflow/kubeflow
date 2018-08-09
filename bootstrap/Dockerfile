@@ -1,5 +1,6 @@
-# TODO(jlewi): How can we make it work with golang:1.8.2-alpine
-FROM golang:1.8.2 as builder
+# bootstrapper-builder contains the tool chain we need to build the image.
+# This primarily means glide.
+FROM gcr.io/kubeflow-images-public/bootstrapper-builder:v20180712-4adef8c0 as builder
 
 RUN mkdir -p /opt/kubeflow
 
@@ -8,9 +9,15 @@ ENV PATH /go/bin:/usr/local/go/bin:$PATH
 RUN mkdir -p $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap
 COPY ./ $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap/
 
+# Pull in dependencies. We don't check in vendor because that bloats
+# the size of kubeflow/kubeflow and we want to keep it small since
+# Users clone that repo to get our registry.
+RUN cd $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap/ && \
+    glide install -v
+
 RUN go build -i -o /opt/kubeflow/bootstrapper ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/main.go
 
-FROM golang:1.8.2
+FROM golang:1.10.3
 
 # We need gcloud to get gke credentials.
 RUN wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.tar.gz && \
@@ -34,41 +41,25 @@ RUN git clone https://github.com/ksonnet/ksonnet.git /opt/ksonnet && \
 	cd /opt/ksonnet && \
 	git checkout v0.10.0-alpha.3
 
-# TODO(jlewi): bootstrap is using an early dev version of ks (0.10) so we need
-# to build ks at the same commit because the generated app won't work with
-# earlier versions of ks.
-RUN cd /opt/ksonnet && \
-	mkdir -p /tmp/go/src/github.com/ksonnet && \
-	ln -sf /opt/ksonnet /tmp/go/src/github.com/ksonnet/ksonnet && \
-    cd /tmp/go/src/github.com/ksonnet/ksonnet && \
-	export GOPATH=/tmp/go && \
-	make install && \
-    cp /tmp/go/bin/ks /usr/local/bin && \
-    chmod a+rx /usr/local/bin/ks
+ARG registries
+COPY $registries /opt/registries
 
-# Pull kubeflow ksonnet repos
-
-# Ksonnet needs to have kubernetes env setup even for non-k8s actions.
-# TODO (inc0): remove this when we move to disk registry
-COPY kubeconfig_fake.yml /root/.kube/config
-
-ARG github_token
-
-# TODO (inc0): remove this when we move to disk registry
-RUN export GITHUB_TOKEN=${github_token} && cd / && ks init kubeflow && \
-    cd kubeflow && \
-    ks registry add kubeflow github.com/kubeflow/kubeflow/tree/master/kubeflow && \
-    ks pkg install kubeflow/core && \
-    ks pkg install kubeflow/tf-serving && \
-    ks pkg install kubeflow/tf-job && unset GITHUB_TOKEN
-COPY deploy.sh /kubeflow
-
-RUN mkdir -p /opt/kubeflow
+# bootstrap is using ksonnet 0.11.0
+RUN wget -q https://github.com/ksonnet/ksonnet/releases/download/v0.11.0/ks_0.11.0_linux_amd64.tar.gz && \
+    tar xzf ks_0.11.0_linux_amd64.tar.gz -C . && \
+    rm ks_0.11.0_linux_amd64.tar.gz && \
+    cp ks_0.11.0_linux_amd64/ks /usr/local/bin && \
+    rm -rf ks_0.11.0_linux_amd64
 
 COPY --from=builder /opt/kubeflow/bootstrapper /opt/kubeflow/
 COPY start.sh /opt/kubeflow/
+COPY config/default.yaml /opt/kubeflow/
+COPY image_registries.yaml /opt/kubeflow/
 
-RUN chmod a+rx /opt/kubeflow/*
+RUN chmod a+rx /opt/kubeflow/bootstrapper
+RUN chmod a+rx /opt/kubeflow/start.sh
+
+RUN apt-get update && apt-get install -y vim
 
 # Set default values for USER, USER_ID, GROUP_ID
 # The startup script will create the user and su to that user.
@@ -82,4 +73,4 @@ ENV GROUP_ID 1000
 ENV GROUP kubeflow
 
 WORKDIR /opt/kubeflow
-ENTRYPOINT ["/opt/kubeflow/start.sh"]
+CMD ["/opt/kubeflow/start.sh"]

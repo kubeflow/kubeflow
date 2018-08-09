@@ -3,6 +3,8 @@
 import datetime
 import logging
 import os
+import socket
+import ssl
 import subprocess
 import time
 import uuid
@@ -37,13 +39,19 @@ def wait_for_operation(client,
   """
   endtime = datetime.datetime.now() + timeout
   while True:
-    if zone:
-      op = client.zoneOperations().get(
-        project=project, zone=zone, operation=op_id).execute()
-    else:
-      op = client.globalOperations().get(project=project,
-                                         operation=op_id).execute()
-
+    try:
+      if zone:
+        op = client.zoneOperations().get(
+          project=project, zone=zone, operation=op_id).execute()
+      else:
+        op = client.globalOperations().get(project=project,
+                                           operation=op_id).execute()
+    except socket.error as e:
+      logging.error("Ignoring error %s", e)
+      continue
+    except ssl.SSLError as e:
+      logging.error("Ignoring error %s", e)
+      continue
     status = op.get("status", "")
     # Need to handle other status's
     if status == "DONE":
@@ -73,28 +81,28 @@ def wait_for_vm(project, zone, vm, timeout=datetime.timedelta(minutes=5),
       return
     except subprocess.CalledProcessError:
       pass
-    
+
     if datetime.datetime.now() > endtime:
       raise util.TimeoutError(
         ("Timed out waiting for VM to {0} be sshable. Check firewall rules "
          "aren't blocking ssh.").format(vm))
 
     time.sleep(polling_interval.total_seconds())
-     
+
 def execute(project, zone, vm, commands):
   """Execute the supplied commands on the VM."""
   util.run(["gcloud", "compute", "--project=" + project, "ssh",
             "--zone=" + zone, vm, "--", " && ".join(commands)])
-           
+
 def execute_script(project, zone, vm, script):
   """Execute the specified script on the VM."""
 
   target_path = os.path.join("/tmp", os.path.basename(script) + "." + uuid.uuid4().hex[0:4])
-  
+
   target = "{0}:{1}".format(vm, target_path)
   logging.info("Copying %s to %s", script, target)
   util.run(["gcloud", "compute", "--project=" + project, "scp",
             script, target, "--zone=" + zone])
-  
+
   util.run(["gcloud", "compute", "--project=" + project, "ssh",
-            "--zone=" + zone, vm, "--", "chmod a+rx " + target_path + " && " + target_path])  
+            "--zone=" + zone, vm, "--", "chmod a+rx " + target_path + " && " + target_path])

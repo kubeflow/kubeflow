@@ -4,7 +4,8 @@ USER root
 
 ENV HOME /root
 
-ADD requirements.txt $HOME
-ADD controller $HOME/controller
+RUN mkdir -p /kubeflow/openmpi/openmpi-controller
+ADD requirements.txt /kubeflow/openmpi/openmpi-controller/requirements.txt
+ADD controller /kubeflow/openmpi/openmpi-controller/controller
 
-RUN pip3 install -r $HOME/requirements.txt
+RUN pip3 install -r /kubeflow/openmpi/openmpi-controller/requirements.txt

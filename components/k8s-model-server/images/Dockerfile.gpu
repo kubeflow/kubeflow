@@ -10,7 +10,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM nvidia/cuda:8.0-cudnn6-devel-ubuntu16.04
+ARG base_image=nvidia/cuda:8.0-cudnn6-devel-ubuntu16.04
+FROM $base_image
+
+ARG tf_version=1.6.0
+ARG cuda_version=8.0
+ARG cudnn_version=6
+ARG bazel_version=0.5.4
+ARG tf_cuda_compatibility=3.5,5.2,6.1
+ARG cuda_config_version=8-0
 
 MAINTAINER Jingtian Peng <pjt73651@gmail.com>
 
@@ -41,13 +49,13 @@ RUN pip install mock grpcio
 
 # Set up all envs
 ENV BAZELRC=/root/.bazelrc \
-    TF_SERVING_VERSION=tags/1.6.0 \
-    TF_CUDA_VERSION=8.0 \
-    TF_CUDNN_VERSION=6 \
-    BAZEL_VERSION=0.5.4 \
+    TF_SERVING_VERSION=tags/$tf_version \
+    TF_CUDA_VERSION=$cuda_version \
+    TF_CUDNN_VERSION=$cudnn_version \
+    BAZEL_VERSION=$bazel_version \
     TF_NEED_CUDA=1 \
     TF_NEED_S3=1 \
-    TF_CUDA_COMPUTE_CAPABILITIES="3.5,5.2,6.1" \
+    TF_CUDA_COMPUTE_CAPABILITIES=$tf_cuda_compatibility \
     TF_NEED_GCP=1 \
     TF_NEED_JEMALLOC=0 \
     TF_NEED_HDFS=1 \
@@ -93,7 +101,7 @@ RUN cp /root/serving/bazel-bin/tensorflow_serving/model_servers/tensorflow_model
 # This seems to be some magic provided by nvidia-docker but we must be explicit
 # There didn't seem to be any special flags in the TF Dockerfile.devel-gpu to cover this either
 RUN ln -s /usr/local/cuda/lib64/stubs/libcuda.so /usr/local/cuda/lib64/stubs/libcuda.so.1 && \
-    sed -i '$ a /usr/local/cuda/lib64/stubs' /etc/ld.so.conf.d/cuda-8-0.conf && ldconfig
+    sed -i '$ a /usr/local/cuda/lib64/stubs' /etc/ld.so.conf.d/cuda-$cuda_config_version.conf && ldconfig
 
 WORKDIR /root
 

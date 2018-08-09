@@ -1,3 +1,0 @@
-COMPONENT  INDEX PARAM VALUE
-=========  ===== ===== =====
-deployment 0     key   "value"

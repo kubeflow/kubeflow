@@ -15,57 +15,135 @@
 package app
 
 import (
-	"fmt"
+	"errors"
+	"io/ioutil"
 	"net"
-	"os/user"
-	"path/filepath"
-
-	"github.com/ksonnet/ksonnet/actions"
-	kApp "github.com/ksonnet/ksonnet/metadata/app"
-	"github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app/options"
-	"github.com/kubeflow/kubeflow/bootstrap/version"
-	log "github.com/sirupsen/logrus"
-	"github.com/spf13/afero"
-	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	clientset "k8s.io/client-go/kubernetes"
-	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-	core_v1 "k8s.io/api/core/v1"
-	type_v1 "k8s.io/client-go/kubernetes/typed/core/v1"
-	rbac_v1 "k8s.io/api/rbac/v1"
-
 	"os"
+	"os/user"
 	"path"
 	"regexp"
 	"strconv"
-	"strings"
+
+	"github.com/ghodss/yaml"
+	"github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app/options"
+	"github.com/kubeflow/kubeflow/bootstrap/version"
+	log "github.com/sirupsen/logrus"
 	"k8s.io/api/storage/v1"
 	k8sVersion "k8s.io/apimachinery/pkg/version"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	"os/exec"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+
+	"context"
 )
 
 // RecommendedConfigPathEnvVar is a environment variable for path configuration
 const RecommendedConfigPathEnvVar = "KUBECONFIG"
 
-// DefaultStorageAnnotation is the name of the default annotation used to indicate
+// DefaultStorageAnnotation is the Name of the default annotation used to indicate
 // whether a storage class is the default.
 const DefaultStorageAnnotation = "storageclass.beta.kubernetes.io/is-default-class"
 
 // Assume gcloud is on the path.
 const GcloudPath = "gcloud"
 
-const Kubectl = "/usr/local/bin/kubectl"
+const RegistriesRoot = "/opt/registries"
 
-// TODO(jlewi): If we use the same userid and groupid when running in a container then
-// we shoiuld be able to map in a user's home directory which could be useful e.g for
-// avoiding the oauth flow.
+type KsComponent struct {
+	Name      string
+	Prototype string
+}
+
+type KsPackage struct {
+	Name string
+	// Registry should be the name of the registry containing the package.
+	Registry string
+}
+
+type KsParameter struct {
+	Component string
+	Name      string
+	Value     string
+}
+
+// RegistryConfig is used to configure registries that should
+// be baked into the bootstrapper docker image.
+// See: https://github.com/kubeflow/kubeflow/blob/master/bootstrap/image_registries.yaml
+type RegistryConfig struct {
+	Name   string
+	Repo   string
+	Branch string
+	Path   string
+	RegUri string
+}
+
+// KsAppRegistry specifies a registry to add to an app.
+// RegistryConfig on the other hand describe a bunch of registries
+// that are baked into the docker image. These registries can then
+// be added to the app using file:// as the URI.
+// KsAppRegistry can use any URI that ksonnet understands.
+// Additionally if the RegUri is blank we will try to map it to one of
+// the registries baked into the Docker image using the name.
+type KsAppRegistry struct {
+	Name   string
+	RegUri string
+}
+
+type AppConfig struct {
+	Registries []KsAppRegistry
+	Packages   []KsPackage
+	Components []KsComponent
+	Parameters []KsParameter
+}
+
+// RegistriesConfigFile corresponds to a YAML file specifying information
+// about known registries.
+type RegistriesConfigFile struct {
+	// Registries provides information about known registries.
+	Registries []RegistryConfig
+}
+
+// AppConfigFile corresponds to a YAML file specifying information
+// about the app to create.
+type AppConfigFile struct {
+	// App describes a ksonnet application.
+	App AppConfig
+}
+
+type LibrarySpec struct {
+	Version string
+	Path    string
+}
+
+// KsRegistry corresponds to ksonnet.io/registry
+// which is the registry.yaml file found in every registry.
+type KsRegistry struct {
+	ApiVersion string
+	Kind       string
+	Libraries  map[string]LibrarySpec
+}
+
+// Load yaml config
+func LoadConfig(path string, o interface{}) error {
+	if path == "" {
+		return errors.New("empty path")
+	}
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	if err = yaml.Unmarshal(data, o); err != nil {
+		return err
+	}
+	return nil
+}
 
 // ModifyGcloudCommand modifies the cmd-path in the kubeconfig file.
 //
 // We do this because we want to be able to mount the kubeconfig file into the container.
 // The kubeconfig file typically uses the full path for the binary. This won't work inside the boostrap
 // container because the path will be different. However, we can assume gcloud is on the path.
+// TODO(jlewi): Do we still use this?
 func modifyGcloudCommand(config *clientcmdapi.Config) error {
 	for k, a := range config.AuthInfos {
 		if a.AuthProvider == nil || a.AuthProvider.Name != "gcp" {
@@ -81,7 +159,7 @@ func modifyGcloudCommand(config *clientcmdapi.Config) error {
 	return nil
 }
 
-// GetKubeConfigFile tries to find a kubeconfig file.
+// getKubeConfigFile tries to find a kubeconfig file.
 func getKubeConfigFile() string {
 	configFile := ""
 
@@ -100,8 +178,10 @@ func getKubeConfigFile() string {
 }
 
 // gGetClusterConfig obtain the config from the Kube configuration used by kubeconfig.
-//
-func getClusterConfig() (*rest.Config, error) {
+func getClusterConfig(inCluster bool) (*rest.Config, error) {
+	if inCluster {
+		return rest.InClusterConfig()
+	}
 	configFile := getKubeConfigFile()
 
 	if len(configFile) > 0 {
@@ -180,237 +260,87 @@ func hasDefaultStorage(sClasses *v1.StorageClassList) bool {
 	return false
 }
 
-func setupNamespace(namespaces type_v1.NamespaceInterface, name_space string) error {
-	namespace, err := namespaces.Get(name_space, meta_v1.GetOptions{})
-	if err == nil {
-		log.Infof("Using existing namespace: %v", namespace.Name)
-	} else {
-		log.Infof("Creating namespace: %v for all kubeflow resources", name_space)
-		_, err = namespaces.Create(
-			&core_v1.Namespace{
-				ObjectMeta: meta_v1.ObjectMeta{
-					Name: name_space,
-				},
-			},
-		)
+// processFile creates an app based on a configuration file.
+func processFile(opt *options.ServerOption, ksServer *ksServer) error {
+	ctx := context.Background()
+
+	appName := "kubeflow"
+
+	var appConfigFile AppConfigFile
+	if err := LoadConfig(opt.Config, &appConfigFile); err != nil {
 		return err
 	}
-	return err
+
+	request := CreateRequest{
+		Name:          appName,
+		AppConfig:     appConfigFile.App,
+		Namespace:     opt.NameSpace,
+		AutoConfigure: true,
+	}
+	if err := ksServer.CreateApp(ctx, request); err != nil {
+		return err
+	}
+
+	if opt.Apply {
+		req := ApplyRequest{
+			Name:        appName,
+			Environment: "default",
+			Components:  make([]string, 0),
+		}
+
+		for _, component := range appConfigFile.App.Components {
+			req.Components = append(req.Components, component.Name)
+		}
+
+		if err := ksServer.Apply(ctx, req); err != nil {
+			log.Errorf("Failed to apply app %v; Error: %v", appName, err)
+			return err
+		}
+	}
+	return nil
 }
 
-// Run the tool.
+// Run the application.
 func Run(opt *options.ServerOption) error {
 	// Check if the -version flag was passed and, if so, print the version and exit.
 	if opt.PrintVersion {
 		version.PrintVersionAndExit()
 	}
 
-	config, err := getClusterConfig()
+	config, err := getClusterConfig(opt.InCluster)
 	if err != nil {
 		return err
 	}
 
-	kubeClient, err := clientset.NewForConfig(rest.AddUserAgent(config, "kubeflow-bootstraper"))
-	if err != nil {
-		return err
-	}
+	// Load information about the default registries.
+	var regConfig RegistriesConfigFile
 
-	err = setupNamespace(kubeClient.CoreV1().Namespaces(), opt.NameSpace)
-	if err != nil {
-		return err
-	}
-
-	clusterVersion, err := kubeClient.DiscoveryClient.ServerVersion()
-
-	if err != nil {
-		return err
-	}
-
-	if isGke(clusterVersion) {
-		roleBindingName := "kubeflow-admin"
-		_, err = kubeClient.RbacV1().ClusterRoleBindings().Get(roleBindingName, meta_v1.GetOptions{})
-		if err != nil {
-			log.Infof("GKE: create rolebinding kubeflow-admin for role permission")
-			user, err := exec.Command("gcloud", "config", "get-value", "account").Output()
-			if err != nil {
-				return err
-			}
-			username := strings.Trim(string(user), "\t\n ")
-
-			_, err = kubeClient.RbacV1().ClusterRoleBindings().Create(
-				&rbac_v1.ClusterRoleBinding{
-					ObjectMeta: meta_v1.ObjectMeta{Name: roleBindingName},
-					Subjects:   []rbac_v1.Subject{{Kind: "User", Name: username}},
-					RoleRef:    rbac_v1.RoleRef{Kind: "ClusterRole", Name: "cluster-admin"},
-				},
-			)
-			if err != nil {
-				return err
-			}
+	if opt.RegistriesConfigFile != "" {
+		log.Info("Loading registry info in file %v", opt.RegistriesConfigFile)
+		if err = LoadConfig(opt.RegistriesConfigFile, &regConfig); err != nil {
+			return err
 		}
-	}
-
-	log.Infof("Cluster version: %v", clusterVersion.String())
-
-	s := kubeClient.StorageV1()
-	sClasses, err := s.StorageClasses().List(meta_v1.ListOptions{})
-
-	if err != nil {
-		return err
-	}
-
-	hasDefault := hasDefaultStorage(sClasses)
-
-	fs := afero.NewOsFs()
-
-	_, err = fs.Stat(opt.AppDir)
-
-	log.Infof("Using K8s host %v", config.Host)
-
-	envName := "default"
-
-	if err != nil {
-		options := map[string]interface{}{
-			actions.OptionFs:                    fs,
-			actions.OptionName:                  "app",
-			actions.OptionEnvName:               envName,
-			actions.OptionRootPath:              opt.AppDir,
-			actions.OptionServer:                config.Host,
-			// TODO(jlewi): What is the proper version to use? It shouldn't be a version like v1.9.0-gke as that
-			// will create an error because ksonnet will be unable to fetch a swagger spec.
-			actions.OptionSpecFlag:              "version:v1.7.0",
-			actions.OptionNamespace:             opt.NameSpace,
-			actions.OptionSkipDefaultRegistries: true,
-		}
-
-		err := actions.RunInit(options)
-
-		if err != nil {
-			log.Fatalf("There was a problem initializing the app: %v", err)
-		}
-
-		log.Infof("Successfully initialized the app %v.", opt.AppDir)
-
 	} else {
-
-		log.Infof("Directory %v exists", opt.AppDir)
+		log.Info("--registries-config-file not provided; not loading any registries")
 	}
 
-	kfApp, err := kApp.Load(fs, opt.AppDir, true)
-
-	if err != nil {
-		log.Fatalf("There was a problem loading the app: %v", err)
-	}
-
-	registryUri := fmt.Sprintf("github.com/kubeflow/kubeflow/tree/%v/kubeflow", opt.KfVersion)
-
-	registryName := "kubeflow"
-
-	options := map[string]interface{}{
-		actions.OptionApp:  kfApp,
-		actions.OptionName: registryName,
-		actions.OptionURI:  registryUri,
-		// Version doesn't actually appear to be used by the add function.
-		actions.OptionVersion: "",
-		// Looks like override allows us to override existing registries; we shouldn't
-		// need to do that.
-		actions.OptionOverride: false,
-	}
-
-	registries, err := kfApp.Registries()
-
-	if err != nil {
-		log.Fatal("There was a problem listing registries; %v", err)
-	}
-
-	if _, found := registries[registryName]; found {
-		log.Infof("App already has registry %v", registryName)
-	} else {
-
-		err = actions.RunRegistryAdd(options)
-		if err != nil {
-			log.Fatalf("There was a problem adding the registry: %v", err)
-		}
-	}
-
-	libs, err := kfApp.Libraries()
-
-	if err != nil {
-		log.Fatalf("Could not list libraries for app; error %v", err)
-	}
-
-	// Install packages.
-	for _, p := range []string{"kubeflow/core", "kubeflow/tf-serving", "kubeflow/tf-job"} {
-		full := fmt.Sprintf("%v@%v", p, opt.KfVersion)
-		log.Infof("Installing package %v", full)
-
-		pieces := strings.Split(p, "/")
-		pkgName := pieces[1]
-
-		if _, found := libs[pkgName]; found {
-			log.Infof("Package %v already exists", pkgName)
-			continue
-		}
-		err := actions.RunPkgInstall(map[string]interface{}{
-			actions.OptionApp:     kfApp,
-			actions.OptionLibName: full,
-			actions.OptionName:    pkgName,
-		})
-
-		if err != nil {
-			log.Fatalf("There was a problem installing package %v; error %v", full, err)
-		}
-	}
-
-	// Create the Kubeflow component
-	prototypeName := "kubeflow-core"
-	componentName := "kubeflow-core"
-	componentPath := filepath.Join(opt.AppDir, "components", componentName+".jsonnet")
-
-	if exists, _ := afero.Exists(fs, componentPath); !exists {
-		err = actions.RunPrototypeUse(map[string]interface{}{
-			actions.OptionApp: kfApp,
-			actions.OptionArguments: []string{
-				prototypeName,
-				componentName,
-			},
-		})
-	} else {
-		log.Infof("Component %v already exists", componentName)
-	}
-
-	if err != nil {
-		log.Fatalf("There was a problem creating protoype package kubeflow-core; error %v", err)
-	}
-
-	pvcMount := ""
-	if hasDefault {
-		pvcMount = "/home/jovyan/work"
-	}
-
-	err = actions.RunParamSet(map[string]interface{}{
-		actions.OptionApp:   kfApp,
-		actions.OptionName:  componentName,
-		actions.OptionPath:  "jupyterNotebookPVCMount",
-		actions.OptionValue: pvcMount,
-	})
+	ksServer, err := NewServer(opt.AppDir, regConfig.Registries, config)
 
 	if err != nil {
 		return err
 	}
 
-
-	if err := os.Chdir(kfApp.Root()); err != nil {
-		return err
+	if opt.Config != "" {
+		log.Infof("Processing file: %v", opt.Config)
+		if err := processFile(opt, ksServer); err != nil {
+			log.Errorf("Error occurred tyring to process file %v; %v", opt.Config, err)
+		}
 	}
-	log.Infof("App root %v", kfApp.Root())
-	err = actions.RunShow(map[string]interface{}{
-		actions.OptionApp:   kfApp,
-		actions.OptionFormat: "yaml",
-		actions.OptionComponentNames: []string{},
-		actions.OptionEnvName:  envName,
-	})
 
-	fmt.Printf("Initialized app %v\n", opt.AppDir)
-	return err
+	if opt.KeepAlive {
+		log.Infof("Starting http server.")
+		ksServer.StartHttp(opt.Port)
+	}
+
+	return nil
 }
