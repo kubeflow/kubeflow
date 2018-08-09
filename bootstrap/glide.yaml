@@ -22,3 +22,6 @@ import:
   version: ^1.1.0
 - package: golang.org/x/oauth2
   version: fdc9e635145ae97e6c2cb777c48305600cf515cb
+- package: google.golang.org/api
+  subpackages:
+  - cloudresourcemanager/v1

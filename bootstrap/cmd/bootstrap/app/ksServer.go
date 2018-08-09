@@ -33,6 +33,7 @@ type KsService interface {
 	// CreateApp creates a ksonnet application.
 	CreateApp(context.Context, CreateRequest) error
 	InsertSaKey(context.Context, InsertSaKeyRequest) error
+	BindRole(context.Context, BindRoleRequest) error
 }
 
 // appInfo keeps track of information about apps.
@@ -608,9 +609,22 @@ func (s *ksServer) StartHttp(port int) {
 		encodeResponse,
 	)
 
+	bindRoleHandler := httptransport.NewServer(
+		makeBindRoleEndpoint(s),
+		func (_ context.Context, r *http.Request) (interface{}, error) {
+			var request BindRoleRequest
+			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+				return nil, err
+			}
+			return request, nil
+		},
+		encodeResponse,
+	)
+
 	http.Handle("/apps/create", createAppHandler)
 	http.Handle("/healthz", healthzHandler)
 	http.Handle("/iam/insertSaKey", insertSaKeyHandler)
+	http.Handle("/iam/bindRole", bindRoleHandler)
 
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), nil))
 }
