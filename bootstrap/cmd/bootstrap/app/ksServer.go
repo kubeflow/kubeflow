@@ -33,7 +33,7 @@ type KsService interface {
 	// CreateApp creates a ksonnet application.
 	CreateApp(context.Context, CreateRequest) error
 	InsertSaKey(context.Context, InsertSaKeyRequest) error
-	BindRole(context.Context, BindRoleRequest) error
+	BindRole(context.Context, InitProjectRequest, string) error
 }
 
 // appInfo keeps track of information about apps.
@@ -609,10 +609,10 @@ func (s *ksServer) StartHttp(port int) {
 		encodeResponse,
 	)
 
-	bindRoleHandler := httptransport.NewServer(
-		makeBindRoleEndpoint(s),
+	initProjectHandler := httptransport.NewServer(
+		makeInitProjectEndpoint(s),
 		func (_ context.Context, r *http.Request) (interface{}, error) {
-			var request BindRoleRequest
+			var request InitProjectRequest
 			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 				return nil, err
 			}
@@ -621,10 +621,12 @@ func (s *ksServer) StartHttp(port int) {
 		encodeResponse,
 	)
 
+	// TODO: add deployment manager config generate / deploy handler here. So we'll have user's DM configs stored in
+	// k8s storage / github, instead of gone with browser tabs.
 	http.Handle("/apps/create", createAppHandler)
 	http.Handle("/healthz", healthzHandler)
 	http.Handle("/iam/insertSaKey", insertSaKeyHandler)
-	http.Handle("/iam/bindRole", bindRoleHandler)
+	http.Handle("/iam/initProject", initProjectHandler)
 
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), nil))
 }

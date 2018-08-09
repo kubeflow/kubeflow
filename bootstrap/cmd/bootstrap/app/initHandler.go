@@ -8,17 +8,20 @@ import (
 				"google.golang.org/api/cloudresourcemanager/v1"
 )
 
-type BindRoleRequest struct {
+const IAM_ADMIN_ROLE = "roles/resourcemanager.projectIamAdmin"
+
+type InitProjectRequest struct {
 	Project string
-	Role string
-	ServiceAccount string
+	ProjectNumber string
 	Token string
 }
 
-func makeBindRoleEndpoint(svc KsService) endpoint.Endpoint {
+// TODO: migrate service enabling logic to initHandler
+func makeInitProjectEndpoint(svc KsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(BindRoleRequest)
-		err := svc.BindRole(ctx, req)
+		req := request.(InitProjectRequest)
+		dmServiceAccount := req.ProjectNumber + "@cloudservices.gserviceaccount.com"
+		err := svc.BindRole(ctx, req, dmServiceAccount)
 		r := &basicServerResponse{}
 		if err != nil {
 			r.Err = err.Error()
@@ -27,7 +30,7 @@ func makeBindRoleEndpoint(svc KsService) endpoint.Endpoint {
 	}
 }
 
-func (s *ksServer) BindRole(ctx context.Context, request BindRoleRequest) error {
+func (s *ksServer) BindRole(ctx context.Context, request InitProjectRequest, serviceAccount string) error {
 	ts := oauth2.StaticTokenSource(&oauth2.Token{
 		AccessToken: request.Token,
 	})
@@ -53,8 +56,8 @@ func (s *ksServer) BindRole(ctx context.Context, request BindRoleRequest) error 
 	}
 	saPolicy.Bindings = append(saPolicy.Bindings,
 		&cloudresourcemanager.Binding{
-			Members: []string{"serviceAccount:" + request.ServiceAccount},
-			Role: request.Role,
+			Members: []string{"serviceAccount:" + serviceAccount},
+			Role: IAM_ADMIN_ROLE,
 		})
 	_, err = resourcManger.Projects.SetIamPolicy(
 		request.Project,
