@@ -20,6 +20,7 @@ workflows:
     include_dirs:
       - scripts/*
       - kubeflow/*
+      - testing/*
     params:
       platform: gke
   # Run tests on minikube
