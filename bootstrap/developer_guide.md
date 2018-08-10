@@ -59,21 +59,26 @@ make push-builder && make push
 BUILDER_IMG_VERSION=v20180804-5778003 make push-latest
 ```
 
-4. Deploy and Debug bootstrapper 
+4. Deploy and Debug bootstrapper using your image and version
 ```sh
-make debug
+IMG=gcr.io/foo/bootstrapper TAG=latest make -e debug
 ```
 The make debug target runs debug.sh which does the following
-1. deploys bootstrapper.debug.yaml.
+1. deploys a Namespace, PersistentVolumeClaim and StatefulSet using $(IMG), $(TAG), $(PORT)
 2. waits for pod kubeflow-bootstrapper-0 to be in phase 'Running'
 3. runs "kubectl port-forward ..." in the background, opening port 2345 to the pod's container
 4. wait - cleanup (kill port-forward command) on Ctrl-C
 5. when the script exits (Ctrl-C) it will kill "kubectl port-forward ..." 
 6. in order to clean up all resources deployed in step 1 run `make cleanup`
 
-bootstrapper.debug.yaml will start the following process in the pod's kubeflow-bootstrapper-0 container
-"/opt/kubeflow/dlv.sh". This script runs
+The StatefulSet will create a pod and start the following process in the pod's kubeflow-bootstrapper-0 container
+```sh
+/opt/kubeflow/dlv.sh
 ```
+
+This script runs
+
+```sh
 dlv --listen=:2345 --headless=true --api-version=2 exec /opt/kubeflow/bootstrapper -- --in-cluster --namespace=kubeflow --config=/opt/kubeflow/default.yaml --app-dir=/opt/bootstrap/default --registries-config-file=/opt/kubeflow/image_registries.yaml
 ```
 

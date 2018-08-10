@@ -45,9 +45,69 @@ waitforever()
   fi
 }
 
-port=2345
+if [[ $# < 3 ]]; then
+  echo "usage: $0 <image> <tag> <port>"
+  exit 1
+fi
+image=$1
+tag=$2
+port=$3
 namespace=kubeflow-admin
-kubectl apply -f bootstrapper.debug.yaml
+cat <<EOF | kubectl create -f -
+# Namespace for bootstrapper
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kubeflow-admin
+---
+# Store ksonnet apps
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kubeflow-ksonnet-pvc
+  namespace: kubeflow-admin
+  labels:
+    app: kubeflow-ksonnet
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1beta2
+kind: StatefulSet
+metadata:
+  name: kubeflow-bootstrapper
+  namespace: kubeflow-admin
+spec:
+  selector:
+    matchLabels:
+      app: kubeflow-bootstrapper
+  serviceName: kubeflow-bootstrapper
+  template:
+    metadata:
+      name: kubeflow-bootstrapper
+      labels:
+        app: kubeflow-bootstrapper
+    spec:
+      containers:
+      - name: kubeflow-bootstrapper
+        image: ${image}:${tag}
+        workingDir: /opt/bootstrap
+        command: ["/opt/kubeflow/dlv.sh"]
+        ports:
+        - containerPort: $port
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: kubeflow-ksonnet-pvc
+          mountPath: /opt/bootstrap
+      volumes:
+      - name: kubeflow-ksonnet-pvc
+        persistentVolumeClaim:
+          claimName: kubeflow-ksonnet-pvc
+EOF
 echo "Waiting for pod's status == Running ..."
 pod=$(waitforpod)
 echo "Pod $pod is running. Setting up port-forward"

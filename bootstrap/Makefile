@@ -16,12 +16,13 @@ GCLOUD_PROJECT ?= kubeflow-images-public
 GOLANG_VERSION ?= 1.10.3
 # set to GOLANG_GCFLAGS=-gcflags "all=-N -l" to debug
 GOLANG_GCFLAGS ?= ""
-IMG = gcr.io/$(GCLOUD_PROJECT)/bootstrapper
+IMG ?= gcr.io/$(GCLOUD_PROJECT)/bootstrapper
 
-BUILDER_IMG = gcr.io/$(GCLOUD_PROJECT)/bootstrapper-builder
+BUILDER_IMG ?= gcr.io/$(GCLOUD_PROJECT)/bootstrapper-builder
 BUILDER_IMG_VERSION ?= latest
 
-TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6)
+TAG ?= $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6)
+PORT ?= 2345
 
 
 CHANGED_FILES := $(shell git diff-files)
@@ -73,7 +74,8 @@ push-latest: push
 	echo created $(IMG):latest
 
 debug:
-	@./debug.sh
+	@echo debugging $(IMG):$(TAG) using port $(PORT)
+	@./debug.sh $(IMG) $(TAG) $(PORT)
 
 cleanup:
 	@echo Removing kubeflow-admin namespace
