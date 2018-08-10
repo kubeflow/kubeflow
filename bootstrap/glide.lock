@@ -1,11 +1,13 @@
-hash: fc3ed8b04539672e17befa4853231ba10f35ff0713b20b8bf304a7587e08c194
-updated: 2018-08-07T14:34:21.793301-07:00
+hash: 12f6bdbc3acc39ee01b61d2c8236b6e5760e69306a735d95c6e8a05f5c2b1a5d
+updated: 2018-08-08T16:24:46.873185-07:00
 imports:
 - name: cloud.google.com/go
   version: 64a2037ec6be8a4b0c1d1f706ed35b428b989239
   subpackages:
   - compute/metadata
   - container/apiv1
+  - iam
+  - iam/admin/apiv1
   - internal/version
 - name: contrib.go.opencensus.io/exporter/stackdriver
   version: 2b93072101d466aa4120b3c23c2e1b08af01541c
@@ -255,8 +257,13 @@ imports:
 - name: google.golang.org/api
   version: 9bdf771af19ab16b6a5084e5d542a7e04cb97004
   subpackages:
+  - cloudresourcemanager/v1
+  - gensupport
+  - googleapi
+  - googleapi/internal/uritemplates
   - googleapi/transport
   - internal
+  - iterator
   - option
   - transport
   - transport/grpc
@@ -280,7 +287,10 @@ imports:
   subpackages:
   - googleapis/api/annotations
   - googleapis/container/v1
+  - googleapis/iam/admin/v1
+  - googleapis/iam/v1
   - googleapis/rpc/status
+  - protobuf/field_mask
 - name: google.golang.org/grpc
   version: 07ef407d991f1004e6c3367c8f452ed9a02f17ff
   subpackages:
@@ -332,6 +342,7 @@ imports:
   - certificates/v1beta1
   - core/v1
   - extensions/v1beta1
+  - imagepolicy/v1alpha1
   - networking/v1
   - policy/v1beta1
   - rbac/v1
