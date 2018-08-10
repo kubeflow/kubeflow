@@ -67,13 +67,6 @@
 		"--output_error_prefix=" + $.params.outputErrorPrefix,
 		"--batch_size=" + $.params.batchSize,
       ],
-      ports: [
-        {
-          containerPort: 9000,
-        },
-      ],
-      // TODO(jlewi): We should add readiness and liveness probes. I think the blocker is that
-      // model-server doesn't have something we can use out of the box.
       resources: {
         requests: {
           memory: "5Gi",
@@ -143,6 +136,7 @@
         if $.gcpParams.gcpCredentialSecretName != "" then
           {
             name: "gcp-credentials",
+			readOnly: True,
             mountPath: "/secret/gcp-credentials",
           },
       ],
