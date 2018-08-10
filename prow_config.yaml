@@ -1,6 +1,24 @@
 # This file configures the workflows to trigger in our Prow jobs.
 # see kubeflow/testing/py/run_e2e_workflow.py
 workflows:
+  # kfctl test runs tests on gke.
+  - app_dir: kubeflow/kubeflow/testing/workflows
+    component: kfctl_test
+    name: kfctl
+    job_types:
+      - presubmit
+      - postsubmit
+    include_dirs:
+      - scripts/*
+      - kubeflow/*
+      - testing/*
+    params:
+      platform: gke
+  # Run unittests
+  # TODO(jlewi): Need to add step to run go and python unittests
+  - app_dir: kubeflow/kubeflow/testing/workflows
+    component: unit_tests
+    name: unit_tests    
   # Run tests on GKE
   # TODO(jlewi): We need to refactor this. We don't
   # want to use workflows to run GKE tests anymore
@@ -17,20 +35,7 @@ workflows:
       - presubmit
       - postsubmit
     params:
-      platform: gke
-  # kfctl test
-  - app_dir: kubeflow/kubeflow/testing/workflows
-    component: kfctl_test
-    name: kfctl
-    job_types:
-      - presubmit
-      - postsubmit
-    include_dirs:
-      - scripts/*
-      - kubeflow/*
-      - testing/*
-    params:
-      platform: gke
+      platform: gke  
   # Run tests on minikube
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: workflows

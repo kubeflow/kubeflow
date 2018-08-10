@@ -133,18 +133,18 @@ local dagTemplates = [
                               value: "kubeflow/tf-operator@HEAD;kubeflow/testing@HEAD",
                             }]),
     dependencies: null,
-  }, // checkout
+  },  // checkout
   {
     template: buildTemplate("create-pr-symlink", [
-              "python",
-              "-m",
-              "kubeflow.testing.prow_artifacts",
-              "--artifacts_dir=" + outputDir,
-              "create_pr_symlink",
-              "--bucket=" + bucket,
-            ]),  // create-pr-symlink
+      "python",
+      "-m",
+      "kubeflow.testing.prow_artifacts",
+      "--artifacts_dir=" + outputDir,
+      "create_pr_symlink",
+      "--bucket=" + bucket,
+    ]),  // create-pr-symlink
     dependencies: null,
-  }, // create-pr-symlink
+  },  // create-pr-symlink
   {
     template: buildTemplate(
       "kfctl-init",
@@ -264,16 +264,17 @@ local exitTemplates = [
       ]),  // test-dir-delete
     dependencies: ["kfctl-delete"],
   },
-  { template: buildTemplate("copy-artifacts", [
-              "python",
-              "-m",
-              "kubeflow.testing.prow_artifacts",
-              "--artifacts_dir=" + outputDir,
-              "copy_artifacts",
-              "--bucket=" + bucket,
-            ]),  // copy-artifacts,
-            dependencies: "test-dir-delete",
-            },
+  {
+    template: buildTemplate("copy-artifacts", [
+      "python",
+      "-m",
+      "kubeflow.testing.prow_artifacts",
+      "--artifacts_dir=" + outputDir,
+      "copy_artifacts",
+      "--bucket=" + bucket,
+    ]),  // copy-artifacts,
+    dependencies: "test-dir-delete",
+  },
 ];
 
 // Dag defines the tasks in the graph

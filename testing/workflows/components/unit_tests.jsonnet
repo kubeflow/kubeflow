@@ -59,7 +59,7 @@ local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=
         name: "PYTHONPATH",
         value: kubeflowPy + ":" + kubeflowTestingPy,
       },
-            {
+      {
         name: "GOOGLE_APPLICATION_CREDENTIALS",
         value: "/secret/gcp-credentials/key.json",
       },
@@ -73,7 +73,7 @@ local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=
         name: "github-token",
         mountPath: "/secret/github-token",
       },
-            {
+      {
         name: "gcp-credentials",
         mountPath: "/secret/gcp-credentials",
       },
@@ -93,19 +93,44 @@ local dagTemplates = [
                               name: "EXTRA_REPOS",
                               value: "kubeflow/tf-operator@HEAD;kubeflow/testing@HEAD",
                             }]),
-    dependencies: null,    
+    dependencies: null,
   },
   {
     template: buildTemplate("create-pr-symlink", [
-              "python",
-              "-m",
-              "kubeflow.testing.prow_artifacts",
-              "--artifacts_dir=" + outputDir,
-              "create_pr_symlink",
-              "--bucket=" + bucket,
-            ]),  // create-pr-symlink
+      "python",
+      "-m",
+      "kubeflow.testing.prow_artifacts",
+      "--artifacts_dir=" + outputDir,
+      "create_pr_symlink",
+      "--bucket=" + bucket,
+    ]),  // create-pr-symlink
     dependencies: null,
-  }, // create-pr-symlink
+  },  // create-pr-symlink
+  {
+    template: buildTemplate("jsonnet-test", [
+      "python",
+      "-m",
+      "testing.test_jsonnet",
+      "--artifacts_dir=" + artifactsDir,
+      "--test_files_dirs=" + srcDir + "/kubeflow",
+      "--jsonnet_path_dirs=" + srcDir,
+    ]),  // jsonnet-test
+
+    dependencies: ["checkout"],
+  },
+  {
+    template: buildTemplate("test-jsonnet-formatting", [
+      "python",
+      "-m",
+      "kubeflow.testing.test_jsonnet_formatting",
+      "--project=" + project,
+      "--artifacts_dir=" + artifactsDir,
+      "--src_dir=" + srcDir,
+      "--exclude_dirs=" + srcDir + "/bootstrap/vendor/",
+    ]),  // test-jsonnet-formatting
+
+    dependencies: ["checkout"],
+  },
 ];
 
 // Each item is a dictionary describing one step in the graph
@@ -125,16 +150,17 @@ local exitTemplates = [
       ]),  // test-dir-delete
     dependencies: null,
   },
-  { template: buildTemplate("copy-artifacts", [
-              "python",
-              "-m",
-              "kubeflow.testing.prow_artifacts",
-              "--artifacts_dir=" + outputDir,
-              "copy_artifacts",
-              "--bucket=" + bucket,
-            ]),  // copy-artifacts,
-            dependencies: "test-dir-delete",
-            },
+  {
+    template: buildTemplate("copy-artifacts", [
+      "python",
+      "-m",
+      "kubeflow.testing.prow_artifacts",
+      "--artifacts_dir=" + outputDir,
+      "copy_artifacts",
+      "--bucket=" + bucket,
+    ]),  // copy-artifacts,
+    dependencies: "test-dir-delete",
+  },
 ];
 
 // Dag defines the tasks in the graph
