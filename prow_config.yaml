@@ -2,6 +2,14 @@
 # see kubeflow/testing/py/run_e2e_workflow.py
 workflows:
   # Run tests on GKE
+  # TODO(jlewi): We need to refactor this. We don't
+  # want to use workflows to run GKE tests anymore
+  # we use kfctl_test for that. We need to split
+  # workflows into 2 workflows
+  # 1. one for unittests like test_jsonnet
+  # 2. one for minikube
+  # minikube test should only run on presubmit
+  # when the test is modified.
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: workflows
     name: kubeflow-e2e-gke
