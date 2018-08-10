@@ -1,10 +1,8 @@
 # tf-batch-predict
 
-Kubeflow TensorFlow batch-predict can be used to run batch predict job for TensorFlow models
+Kubeflow TensorFlow batch-predict can be used to run batch predict job over a TensorFlow model
 in a Kubenetes cluster.
 
-
-* [Quickstart](#quickstart)
 
 ## Quickstart
 
@@ -21,22 +19,18 @@ In the ksonnet application directory, run the following:
 $ ks env set default --namespace <my_namespace>
 $ ks registry add my-registry <my_repo>/kubeflow/kubeflow
 
-
 # Install kubeflow core and tf-batch-prediction from the registry.
 $ ks pkg install my-reigtstry/core
 $ ks pkg install my-reigtstry/tf-batch-predict
 
-
 # Create tf-batch-prediction component.
 $ ks generate tf-batch-predict my-component
-
 
 # Set parameters for the batch-predict job
 $ ks param set my-component --env=default gcpCredentialSecretName my-secret
 $ ks param set my-component inputFileFormat tfrecord
 $ ks param set my-component numGpus 1
 $ ks param set my-component cloud gcp
-
 
 # Apply to server.
 $ ks show default -c my-component
@@ -47,12 +41,14 @@ $ ks apply default -f my-component
 
 The available options to pass prototype are:
 
-* `--modelPath`: The path where TF model files in SavedModel format are saved.
-* `--inputFileFormat`: One of json, tfrecord, tfrecord_gzip
-* `--inputFilePatterns`: The list of input files or file patterns, separated by commas.
-* `--outputResultPrefix`: The output path prefix to the prediction results.
-* `--outputErrorPrefix`: The output path prefix to the prediction errors.
-* `--batchSize`: Number of records in one batch in the input data.
-* `--numGpus`: Number of GPUs to use. Default to not use any GPUs.
+* `--name`: The name to give to each of the components [string]
+* `--modelPath`: The path where TF model files in SavedModel format are saved [string]
+* `--inputFileFormat`: One of json, tfrecord, tfrecord_gzip [string]
+* `--inputFilePatterns`: The list of input files or file patterns, separated by commas [string]
+* `--outputResultPrefix`: The output path prefix to the prediction results [string]
+* `--outputErrorPrefix`: The output path prefix to the prediction errors [string]
+* `--batchSize`: Number of records in one batch in the input data [int]
+* `--numGpus`: Number of GPUs to use. Default to not use any GPUs [int]
+* `--predictImage`: batch-predict docker image [string].
 
 [rootReadme]: https://github.com/ksonnet
