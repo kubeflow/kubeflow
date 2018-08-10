@@ -18,7 +18,7 @@ workflows:
   # TODO(jlewi): Need to add step to run go and python unittests
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: unit_tests
-    name: unit_tests    
+    name: unittests    
   # Run tests on GKE
   # TODO(jlewi): We need to refactor this. We don't
   # want to use workflows to run GKE tests anymore
