@@ -28,5 +28,11 @@
       namespace: "kubeflow-test-infra",
       prow_env: "",
     },
+    unit_tests: {
+      bucket: "kubeflow-ci_temp",
+      name: "somefakename",
+      namespace: "kubeflow-test-infra",
+      prow_env: "",
+    },
   },
 }

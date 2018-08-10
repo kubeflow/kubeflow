@@ -1,7 +1,6 @@
 """Wait for Kubeflow to be deployed."""
 import argparse
 import logging
-import retrying
 
 from testing import deploy_utils
 from kubeflow.testing import test_helper
@@ -25,7 +24,7 @@ def deploy_kubeflow(_):
   # Verify that the TfJob operator is actually deployed.
   tf_job_deployment_name = "tf-job-operator-v1alpha2"
   logging.info("Verifying TfJob controller started.")
-  wait_for_tf_job()
+  util.wait_for_deployment(api_client, namespace, tf_job_deployment_name)
 
   # Verify that JupyterHub is actually deployed.
   jupyterhub_name = "tf-hub"
