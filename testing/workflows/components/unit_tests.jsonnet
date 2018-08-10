@@ -135,7 +135,7 @@ local dagTemplates = [
 
 // Each item is a dictionary describing one step in the graph
 // to execute on exit
-local exitTemplates = [  
+local exitTemplates = [
   {
     template: buildTemplate("copy-artifacts", [
       "python",

@@ -259,7 +259,7 @@ local exitTemplates = [
       "copy_artifacts",
       "--bucket=" + bucket,
     ]),  // copy-artifacts,
-    
+
     dependencies: ["kfctl-delete"],
   },
   {
@@ -275,7 +275,7 @@ local exitTemplates = [
         testDir,
       ]),  // test-dir-delete
     dependencies: ["copy-artifacts"],
-  },  
+  },
 ];
 
 // Dag defines the tasks in the graph
