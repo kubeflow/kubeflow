@@ -15,8 +15,6 @@ def parse_args():
   args, _ = parser.parse_known_args()
   return args
 
-MAX_DELAY_MS = 2 * 60 * 1000
-
 def deploy_kubeflow(_):
   """Deploy Kubeflow."""
   args = parse_args()
@@ -27,32 +25,17 @@ def deploy_kubeflow(_):
   # Verify that the TfJob operator is actually deployed.
   tf_job_deployment_name = "tf-job-operator-v1alpha2"
   logging.info("Verifying TfJob controller started.")
-
-  @retry(stop_max_delay=MAX_DELAY_MS)
-  def wait_for_tf_job():
-    util.wait_for_deployment(api_client, namespace, tf_job_deployment_name)
-
   wait_for_tf_job()
 
   # Verify that JupyterHub is actually deployed.
   jupyterhub_name = "tf-hub"
   logging.info("Verifying TfHub started.")
-
-  @retry(stop_max_delay=MAX_DELAY_MS)
-  def wait_for_tfhub():
-    util.wait_for_statefulset(api_client, namespace, jupyterhub_name)
-
-  wait_for_tfhub()
+  util.wait_for_statefulset(api_client, namespace, jupyterhub_name)
 
   # Verify that PyTorch Operator actually deployed
   pytorch_operator_deployment_name = "pytorch-operator"
   logging.info("Verifying PyTorchJob controller started.")
-
-  @retry(stop_max_delay=MAX_DELAY_MS)
-  def wait_for_pytorch():
-    util.wait_for_deployment(api_client, namespace, pytorch_operator_deployment_name)
-
-  wait_for_pytorch()
+  util.wait_for_deployment(api_client, namespace, pytorch_operator_deployment_name)
 
 def main():
   test_case = test_helper.TestCase(
