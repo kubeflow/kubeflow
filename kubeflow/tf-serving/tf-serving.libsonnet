@@ -363,7 +363,8 @@
           spec+: {
             containers: [
               $.gcpParts.tfServingContainer,
-              if $.util.toBool($.params.deployHttpProxy) && !$.params.exposeRestApi then
+              if $.util.toBool($.params.deployHttpProxy) &&
+                 $.util.toBool($.params.exposeRestApi) == false then
                 $.parts.httpProxyContainer,
             ],
             volumes: [
