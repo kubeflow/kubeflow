@@ -20,6 +20,10 @@ Right now, it only checks for the presence of tfjobs and pytorchjobs crd. More t
 
 python -m testing.wait_for_deployment --cluster=kubeflow-testing --project=kubeflow-ci --zone=us-east1-d --timeout=3
 
+
+TODO(jlewi): Waiting for the CRD's to be created probably isn't that useful.
+I think that will be nearly instantaneous. If we're going to wait for something
+it should probably be waiting for the controllers to actually be deployed.
 """
 
 from __future__ import print_function
