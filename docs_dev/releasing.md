@@ -303,12 +303,12 @@ Ideally, this process will be automated to a greater extent in the future.
 ## Releasing a new version of the website
 
 With each stable release, we should also release a corresponding version of the Kubeflow [website](www.kubeflow.org). Each version of the website is generated from a separate [branch](https://github.com/kubeflow/website/branches)
-of the kubeflow/website repository. If documentation needs to be fixed, the changes should be commited to master and then cherry-pick to the proper release branch.
+of the kubeflow/website repository. If documentation needs to be fixed, the changes should be commited to master and then cherry-picked to the proper release branch.
 
 Releasing a new version on the website requires the following steps:
 
 1. When documentation for a release is complete, create a new versioned branch under the website [repository](https://github.com/kubeflow/website). This should follow the same format as Kubeflow releases (i.e.
-`v${MAJOR}.${MINOR}-branch').
+`v${MAJOR}.${MINOR}-branch`).
 
 1. Set up [netlify](https://www.netlify.com/):
    * Login with your Github credentials
@@ -320,9 +320,9 @@ Releasing a new version on the website requires the following steps:
 
 1. Set up DNS for the new site:
    * In [Cloud DNS](https://pantheon.corp.google.com/net-services/dns/zones?project=kubeflow-dns&organizationId=714441643818), select the kubeflow.org zone
-   * Create a new CNAME record for `v${MAJOR}.${MINOR}.kubeflow.org`, pointing to the new site (`something-something.netlify.com`)
+   * Create a new CNAME record for `v${MAJOR}.${MINOR}.kubeflow.org`, pointing to the new site (`something-something.netlify.com`), TTL 5 minutes
 
-1. Set up custom domain for the new site:
+1. Configure custom domain for the new site:
    * Go back to the Netlify configuration page, find the new website, and select *Settings*
    * Select *Domain settings*
    * Under *Custom domains*, add a domain alias for `v${MAJOR}.${MINOR}.kubeflow.org`.
