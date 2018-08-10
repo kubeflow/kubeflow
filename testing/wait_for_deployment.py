@@ -24,6 +24,7 @@ python -m testing.wait_for_deployment --cluster=kubeflow-testing --project=kubef
 TODO(jlewi): Waiting for the CRD's to be created probably isn't that useful.
 I think that will be nearly instantaneous. If we're going to wait for something
 it should probably be waiting for the controllers to actually be deployed.
+We can probably get rid of this and just use wait_for_kubeflow.py.
 """
 
 from __future__ import print_function

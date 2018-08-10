@@ -175,6 +175,22 @@
     // argoTaskTemplates is constructing from tasks as well.
     tasks:: [
       {
+
+        // Wait for Kubeflow and run some basic tests such as checking
+        // that various components started.
+        template: tests.buildTemplate {
+          name: "wait-for-kubeflow",
+          command: [
+            "python",
+            "-m",
+            "testing.wait_for_kubeflow",
+            "--test_dir=" + tests.testDir,
+            "--namespace=" + tests.stepsNamespace,
+          ],
+        },  // wait-for-kubeflow
+        dependencies: null,
+      },  // wait-for-kubeflow
+      {
         local v1alpha2Suffix = "-v1a2",
         template: tests.buildTemplate {
           name: "tfjob-test",
@@ -192,8 +208,8 @@
             "--junit_path=" + tests.artifactsDir + "/junit_e2e-" + tests.platform + v1alpha2Suffix + ".xml",
           ],
         },  // run tests
-        dependencies: null,
-      },
+        dependencies: ["wait-for-kubeflow"],
+      },  // tf-job-test
       {
 
         template: tests.buildTemplate {
@@ -211,7 +227,7 @@
             "deploy_argo",
           ],
         },
-        dependencies: null,
+        dependencies: ["wait-for-kubeflow"],
       },  // test-argo-deploy
       {
         template: tests.buildTemplate {
@@ -230,7 +246,7 @@
             "--params=image=pytorch/pytorch:v0.2,num_workers=1",
           ],
         },
-        dependencies: null,
+        dependencies: ["wait-for-kubeflow"],
       },  // pytorchjob - deploy,
       {
 
@@ -241,10 +257,11 @@
             "-m",
             "testing.tf_job_simple_test",
             "--src_dir=" + tests.srcDir,
+            "--tf_job_version=v1alpha2",
           ],
         },
 
-        dependencies: null,
+        dependencies: ["wait-for-kubeflow"],
       },  // tfjob-simple-prototype-test
     ],
 
@@ -581,10 +598,6 @@
               "python",
               "-m",
               "testing.wait_for_deployment",
-              "--cluster=" + cluster,
-              "--project=" + project,
-              "--zone=" + zone,
-              "--timeout=5",
             ]),  // wait-for-kubeflow
             buildTemplate("test-jsonnet-formatting", [
               "python",
