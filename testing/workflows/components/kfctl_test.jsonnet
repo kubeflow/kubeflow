@@ -30,11 +30,13 @@ local srcDir = srcRootDir + "/kubeflow/kubeflow";
 local runPath = srcDir + "/testing/workflows/run.sh";
 local kfCtlPath = srcDir + "/scripts/kfctl.sh";
 
+local kubeConfig = testDir + "/kfctl_test/.kube/kubeconfig";
+
 // Name for the Kubeflow app.
 // This needs to be unique for each test run because it is
 // used to name GCP resources
 // We take the suffix of the name because it should provide some random salt.
-local appName = "kctl-" + std.substr(name, std.length(name) - 4, 4);
+local appName = "kfctl-" + std.substr(name, std.length(name) - 4, 4);
 
 // Directory containing the app. This is the directory
 // we execute kfctl commands from
@@ -58,7 +60,7 @@ local project = "kubeflow-ci";
 // step_name: Name for the template
 // command: List to pass as the container command.
 // We use separate kubeConfig files for separate clusters
-local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=[], kubeConfig="config") = {
+local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=[]) = {
   name: step_name,
   activeDeadlineSeconds: 1800,  // Set 30 minute timeout for each template
   workingDir: working_dir,
@@ -92,7 +94,7 @@ local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=
         // This way we can configure it on a single step and reuse it on subsequent steps.
         // The directory should be unique for each workflow so that multiple workflows don't collide.
         name: "KUBECONFIG",
-        value: testDir + "/kfctl_test/.kube/" + kubeConfig,
+        value: kubeConfig,
       },
     ] + prowEnv + env_vars,
     volumeMounts: [
@@ -113,7 +115,14 @@ local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=
   sidecars: sidecars,
 };  // buildTemplate
 
-// Create a list of dictionary.
+local componentTests = util.kfTests {
+  name: "gke-tests",
+  platform: "gke",
+  testDir: testDir,
+  kubeConfig: kubeConfig,
+};
+
+// Create a list of dictionary.c
 // Each item is a dictionary describing one step in the graph.
 local dagTemplates = [
   {
@@ -207,6 +216,11 @@ local dagTemplates = [
     ),
     dependencies: ["kfctl-generate-k8s"],
   },
+  // Run the nested tests.
+  {
+    template: componentTests.argoDagTemplate,
+    dependencies: ["kfctl-apply-k8s"],
+  },
 ];
 
 // Each item is a dictionary describing one step in the graph
@@ -274,7 +288,7 @@ local exitDag = {
 local stepTemplates = std.map(function(i) i.template
                               , dagTemplates) +
                       std.map(function(i) i.template
-                              , exitTemplates);
+                              , exitTemplates) + componentTests.argoTaskTemplates;
 
 
 // Add a task to a dag.
