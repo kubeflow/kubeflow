@@ -240,7 +240,7 @@
             "python",
             "-m",
             "testing.tf_job_simple_test",
-            "--src_dir=" + srcDir,
+            "--src_dir=" + tests.srcDir,
           ],
         },
 
