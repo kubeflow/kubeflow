@@ -104,7 +104,7 @@ local dagTemplates = [
       "create_pr_symlink",
       "--bucket=" + bucket,
     ]),  // create-pr-symlink
-    dependencies: null,
+    dependencies: ["checkout"],
   },  // create-pr-symlink
   {
     template: buildTemplate("jsonnet-test", [
@@ -135,7 +135,18 @@ local dagTemplates = [
 
 // Each item is a dictionary describing one step in the graph
 // to execute on exit
-local exitTemplates = [
+local exitTemplates = [  
+  {
+    template: buildTemplate("copy-artifacts", [
+      "python",
+      "-m",
+      "kubeflow.testing.prow_artifacts",
+      "--artifacts_dir=" + outputDir,
+      "copy_artifacts",
+      "--bucket=" + bucket,
+    ]),  // copy-artifacts,
+    dependencies: null,
+  },
   {
     template:
       buildTemplate("test-dir-delete", [
@@ -148,18 +159,7 @@ local exitTemplates = [
         "-rf",
         testDir,
       ]),  // test-dir-delete
-    dependencies: null,
-  },
-  {
-    template: buildTemplate("copy-artifacts", [
-      "python",
-      "-m",
-      "kubeflow.testing.prow_artifacts",
-      "--artifacts_dir=" + outputDir,
-      "copy_artifacts",
-      "--bucket=" + bucket,
-    ]),  // copy-artifacts,
-    dependencies: "test-dir-delete",
+    dependencies: ["copy-artifacts"],
   },
 ];
 

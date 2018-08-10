@@ -143,7 +143,7 @@ local dagTemplates = [
       "create_pr_symlink",
       "--bucket=" + bucket,
     ]),  // create-pr-symlink
-    dependencies: null,
+    dependencies: ["checkout"],
   },  // create-pr-symlink
   {
     template: buildTemplate(
@@ -251,6 +251,18 @@ local exitTemplates = [
     dependencies: null,
   },
   {
+    template: buildTemplate("copy-artifacts", [
+      "python",
+      "-m",
+      "kubeflow.testing.prow_artifacts",
+      "--artifacts_dir=" + outputDir,
+      "copy_artifacts",
+      "--bucket=" + bucket,
+    ]),  // copy-artifacts,
+    
+    dependencies: ["kfctl-delete"],
+  },
+  {
     template:
       buildTemplate("test-dir-delete", [
         "python",
@@ -262,19 +274,8 @@ local exitTemplates = [
         "-rf",
         testDir,
       ]),  // test-dir-delete
-    dependencies: ["kfctl-delete"],
-  },
-  {
-    template: buildTemplate("copy-artifacts", [
-      "python",
-      "-m",
-      "kubeflow.testing.prow_artifacts",
-      "--artifacts_dir=" + outputDir,
-      "copy_artifacts",
-      "--bucket=" + bucket,
-    ]),  // copy-artifacts,
-    dependencies: "test-dir-delete",
-  },
+    dependencies: ["copy-artifacts"],
+  },  
 ];
 
 // Dag defines the tasks in the graph
