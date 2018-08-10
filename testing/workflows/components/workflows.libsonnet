@@ -194,6 +194,58 @@
         },  // run tests
         dependencies: null,
       },
+      {
+
+        template: tests.buildTemplate {
+          name: "test-argo-deploy",
+          command: [
+            "python",
+            "-m",
+            "testing.test_deploy",
+            "--project=kubeflow-ci",
+            "--github_token=$(GITHUB_TOKEN)",
+            "--namespace=" + tests.stepsNamespace,
+            "--test_dir=" + tests.testDir,
+            "--artifacts_dir=" + tests.artifactsDir,
+            "--deploy_name=test-argo-deploy",
+            "deploy_argo",
+          ],
+        },
+        dependencies: null,
+      },  // test-argo-deploy
+      {
+        template: tests.buildTemplate {
+          name: "pytorchjob-deploy",
+          command: [
+            "python",
+            "-m",
+            "testing.test_deploy",
+            "--project=kubeflow-ci",
+            "--github_token=$(GITHUB_TOKEN)",
+            "--namespace=" + tests.stepsNamespace,
+            "--test_dir=" + tests.testDir,
+            "--artifacts_dir=" + tests.artifactsDir,
+            "--deploy_name=pytorch-job",
+            "deploy_pytorchjob",
+            "--params=image=pytorch/pytorch:v0.2,num_workers=1",
+          ],
+        },
+        dependencies: null,
+      },  // pytorchjob - deploy,
+      {
+
+        template: tests.buildTemplate {
+          name: "tfjob-simple-prototype-test",
+          command: [
+            "python",
+            "-m",
+            "testing.tf_job_simple_test",
+            "--src_dir=" + srcDir,
+          ],
+        },
+
+        dependencies: null,
+      },  // tfjob-simple-prototype-test
     ],
 
     // An Argo template for the dag.
