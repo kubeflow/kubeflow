@@ -17,7 +17,6 @@
 
     deployIstio: false,
 
-    exposeRestApi:: true,
     deployHttpProxy: false,
     httpProxyImage: "gcr.io/kubeflow-images-public/tf-model-server-http-proxy:v20180606-9dfda4f2",
 
@@ -118,7 +117,7 @@
       args: [
         "/usr/bin/tensorflow_model_server",
         "--port=9000",
-        if $.params.exposeRestApi then "--rest_api_port=8000",
+        "--rest_api_port=9001",
         "--model_name=" + $.params.modelName,
         "--model_base_path=" + $.params.modelPath,
       ],
@@ -127,8 +126,8 @@
           containerPort: 9000,
         },
         {
-          [if $.params.exposeRestApi then "containerPort"]: 8000
-        }
+          containerPort: 9001,
+        },
       ],
       // TODO(jlewi): We should add readiness and liveness probes. I think the blocker is that
       // model-server doesn't have something we can use out of the box.
@@ -263,6 +262,22 @@
               "rewrite: /model/" + $.params.name + ":predict",
               "method: POST",
               "service: " + $.params.name + "." + $.params.namespace + ":8000",
+              "---",
+              "apiVersion: ambassador/v0",
+              "kind:  Mapping",
+              "name: tfserving-rest-mapping-" + $.params.name + "-get",
+              "prefix: /rest/models/" + $.params.name + "/",
+              "rewrite: /",
+              "method: GET",
+              "service: " + $.params.name + "." + $.params.namespace + ":9001",
+              "---",
+              "apiVersion: ambassador/v0",
+              "kind:  Mapping",
+              "name: tfserving-rest-mapping-" + $.params.name + "-post",
+              "prefix: /rest/models/" + $.params.name + "/",
+              "rewrite: /model/" + $.params.name + ":predict",
+              "method: POST",
+              "service: " + $.params.name + "." + $.params.namespace + ":9001",
             ]),
         },  //annotations
       },
@@ -363,9 +378,7 @@
           spec+: {
             containers: [
               $.gcpParts.tfServingContainer,
-              if $.util.toBool($.params.deployHttpProxy) &&
-                 $.util.toBool($.params.exposeRestApi) == false then
-                $.parts.httpProxyContainer,
+              if $.util.toBool($.params.deployHttpProxy) then $.parts.httpProxyContainer,
             ],
             volumes: [
               if $.gcpParams.gcpCredentialSecretName != "" then
