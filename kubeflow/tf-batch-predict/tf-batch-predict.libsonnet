@@ -11,7 +11,7 @@
     inputFileFormat: null,
     outputResultPrefix: null,
     outputErrorPrefix: null,
-    batchSize: 64,
+    batchSize: 8,
     numGpus: 0,
 
     version: "v1",
@@ -61,19 +61,19 @@
       imagePullPolicy: "IfNotPresent",
       args: [
         "--model_dir=" + $.params.modelPath,
-		"--input_file_patterns=" + $.params.inputFilePatterns,
-		"--input_file_format=" + $.params.inputFileFormat,
-		"--output_result_prefix=" + $.params.outputResultPrefix,
-		"--output_error_prefix=" + $.params.outputErrorPrefix,
-		"--batch_size=" + $.params.batchSize,
+        "--input_file_patterns=" + $.params.inputFilePatterns,
+        "--input_file_format=" + $.params.inputFileFormat,
+        "--output_result_prefix=" + $.params.outputResultPrefix,
+        "--output_error_prefix=" + $.params.outputErrorPrefix,
+        "--batch_size=" + $.params.batchSize,
       ],
       resources: {
         requests: {
-          memory: "5Gi",
+          memory: "4Gi",
           cpu: "1",
         },
         limits: {
-          memory: "5Gi",
+          memory: "4Gi",
           cpu: "4",
         },
       },
@@ -108,8 +108,8 @@
             containers: [
               $.parts.tfBatchPredictContainer,
             ],
-			restartPolicy: "Never",
-			activeDeadlineSeconds: 3000,
+            restartPolicy: "Never",
+            activeDeadlineSeconds: 3000,
             // See:  https://github.com/kubeflow/kubeflow/tree/master/components/k8s-model-server#set-the-user-optional
             // The is user and group should be defined in the Docker image.
             // Per best practices we don't run as the root user.
@@ -136,7 +136,7 @@
         if $.gcpParams.gcpCredentialSecretName != "" then
           {
             name: "gcp-credentials",
-			readOnly: True,
+            readOnly: true,
             mountPath: "/secret/gcp-credentials",
           },
       ],
@@ -165,4 +165,5 @@
       },
     },  // tfJob
   },  // gcpParts
+
 }
