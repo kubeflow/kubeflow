@@ -115,7 +115,7 @@
       image: $.params.modelServerImage,
       imagePullPolicy: "IfNotPresent",
       args: [
-        "/usr/bin/tensorflow_model_server",
+        "tensorflow_model_server",
         "--port=9000",
         "--rest_api_port=9001",
         "--model_name=" + $.params.modelName,
