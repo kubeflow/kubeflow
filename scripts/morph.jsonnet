@@ -22,4 +22,36 @@ local map(obj) =
 
 local jupyterhub = map(import 'kubeflow/core/jupyterhub.libsonnet');
 
-jupyterhub['Service/tf-hub-lb']
+jupyterhub
+
+/*
+// this will add to StatefulSet/tf-hub
+jupyterhub + {
+  'StatefulSet/tf-hub': jupyterhub['StatefulSet/tf-hub'] +
+    { foo: 'bar',},
+}
+*/
+
+/*
+// this will modify an element in StatefulSet/tf-hub
+jupyterhub + {
+  'StatefulSet/tf-hub': jupyterhub['StatefulSet/tf-hub'] +
+    {
+      spec+: {
+        replicas: 2,
+      },
+    },
+}
+*/
+
+/*
+// this will remove an element from StatefulSet/tf-hub
+jupyterhub + {
+  'StatefulSet/tf-hub': jupyterhub['StatefulSet/tf-hub'] +
+    {
+      spec+: {
+        replicas:: 2,
+      },
+    },
+}
+*/
