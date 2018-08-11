@@ -55,7 +55,6 @@
   // 1. In your Argo Dag add a step that uses template tests.name
   // 2. In your Argo Workflow add argoTemplates as templates.
   //
-  // TODO(jlewi): We need to add the remaining test steps in the e2e worfklow and then reuse kfTests in it.
   kfTests:: {
     // name and platform should be given unique values.
     name: "somename",
@@ -304,6 +303,13 @@
 
   parts(namespace, name):: {
     // Workflow to run the e2e test.
+    //
+    // TODO(jlewi): This needs to be refactored. Its only used for running the minikube
+    // tests. kfct_test.jsonnet is used for GKE and unit_tests is used for unittests.
+    // We should make the following changes.
+    //
+    // Create a new .jsonnet file for minikube and define the workflow there.
+    // Reuse kfTests above to add the actual tests to that file.
     e2e(prow_env, bucket, platform="minikube"):
       // The name for the workspace to run the steps in
       local stepsNamespace = "kubeflow";
