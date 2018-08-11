@@ -238,54 +238,54 @@ local dagTemplates = [
 // to execute on exit
 local deleteKubeflow = util.toBool(params.deleteKubeflow);
 
-local deleteStep = if deleteKubeflow  then
-    [{
-      template: buildTemplate(
-        "kfctl-delete",
-        [
-          runPath,
-          kfCtlPath,
-          "delete",
-          "all",
-        ],
-        working_dir=appDir
-      ),
-      dependencies: null,
-    }]
+local deleteStep = if deleteKubeflow then
+  [{
+    template: buildTemplate(
+      "kfctl-delete",
+      [
+        runPath,
+        kfCtlPath,
+        "delete",
+        "all",
+      ],
+      working_dir=appDir
+    ),
+    dependencies: null,
+  }]
 else [];
 
-local exitTemplates = 
+local exitTemplates =
   deleteStep +
-  [  
-  {
-    template: buildTemplate("copy-artifacts", [
-      "python",
-      "-m",
-      "kubeflow.testing.prow_artifacts",
-      "--artifacts_dir=" + outputDir,
-      "copy_artifacts",
-      "--bucket=" + bucket,
-    ]),  // copy-artifacts,
-
-    dependencies: if deleteKubeflow then
-     ["kfctl-delete"]
-     else null,
-  },
-  {
-    template:
-      buildTemplate("test-dir-delete", [
+  [
+    {
+      template: buildTemplate("copy-artifacts", [
         "python",
         "-m",
-        "testing.run_with_retry",
-        "--retries=5",
-        "--",
-        "rm",
-        "-rf",
-        testDir,
-      ]),  // test-dir-delete
-    dependencies: ["copy-artifacts"],
-  },
-];
+        "kubeflow.testing.prow_artifacts",
+        "--artifacts_dir=" + outputDir,
+        "copy_artifacts",
+        "--bucket=" + bucket,
+      ]),  // copy-artifacts,
+
+      dependencies: if deleteKubeflow then
+        ["kfctl-delete"]
+      else null,
+    },
+    {
+      template:
+        buildTemplate("test-dir-delete", [
+          "python",
+          "-m",
+          "testing.run_with_retry",
+          "--retries=5",
+          "--",
+          "rm",
+          "-rf",
+          testDir,
+        ]),  // test-dir-delete
+      dependencies: ["copy-artifacts"],
+    },
+  ];
 
 // Dag defines the tasks in the graph
 local dag = {
