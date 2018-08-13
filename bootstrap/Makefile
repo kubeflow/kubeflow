@@ -12,11 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-IMG = gcr.io/kubeflow-images-public/bootstrapper
+GCLOUD_PROJECT ?= kubeflow-images-public
+GOLANG_VERSION ?= 1.10.3
+# set to GOLANG_GCFLAGS=-gcflags "all=-N -l" to debug
+GOLANG_GCFLAGS ?= ""
+IMG ?= gcr.io/$(GCLOUD_PROJECT)/bootstrapper
 
-BUILDER_IMG = gcr.io/kubeflow-images-public/bootstrapper-builder
+BUILDER_IMG ?= gcr.io/$(GCLOUD_PROJECT)/bootstrapper-builder
+BUILDER_IMG_VERSION ?= latest
 
-TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6)
+TAG ?= $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6)
+PORT ?= 2345
 
 
 CHANGED_FILES := $(shell git diff-files)
@@ -39,22 +45,23 @@ all: build
 
 # To edit which registries to add to bootstrapper, edit config (eg. config/default.yaml)
 build:
-	python build.py --image=$(IMG):$(TAG) --build_opts=$(DOCKER_BUILD_OPTS) --config=image_registries.yaml
-	docker tag $(IMG):$(TAG) $(IMG):latest
-	@echo Built $(IMG):latest
+	python build.py --build_args=BUILDER_IMG=$(BUILDER_IMG),BUILDER_IMG_VERSION=$(BUILDER_IMG_VERSION) --image=$(IMG):$(TAG) --build_opts=$(DOCKER_BUILD_OPTS) --config=image_registries.yaml --target=build
 	@echo Built $(IMG):$(TAG)
 
 
 build-builder:
-	docker build ${DOCKER_BUILD_OPTS} -t $(BUILDER_IMG):$(TAG) -f Dockerfile.Builder . \
-           --label=git-verions=$(GIT_VERSION)
-	docker tag $(BUILDER_IMG):$(TAG) $(BUILDER_IMG):latest
-	@echo Built $(BUILDER_IMG):latest
+	docker build ${DOCKER_BUILD_OPTS} --build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
+           --build-arg GOLANG_GCFLAGS="$(GOLANG_GCFLAGS)" -t $(BUILDER_IMG):$(TAG) \
+           --label=git-verions=$(GIT_VERSION) -f Dockerfile.Builder .
 	@echo Built $(BUILDER_IMG):$(TAG)
 
 push-builder: build-builder
 	gcloud docker -- push $(BUILDER_IMG):$(TAG)
 	@echo Pushed $(BUILDER_IMG):$(TAG)
+
+push-builder-latest: push-builder
+	gcloud container images add-tag --quiet $(BUILDER_IMG):$(TAG) $(BUILDER_IMG):latest --verbosity=info
+	@echo created $(BUILDER_IMG):latest
 
 # Build but don't attach the latest tag. This allows manual testing/inspection of the image
 # first.
@@ -65,3 +72,11 @@ push: build
 push-latest: push
 	gcloud container images add-tag --quiet $(IMG):$(TAG) $(IMG):latest --verbosity=info
 	echo created $(IMG):latest
+
+debug:
+	@echo debugging $(IMG):$(TAG) using port $(PORT)
+	@./debug.sh $(IMG) $(TAG) $(PORT)
+
+cleanup:
+	@echo Removing kubeflow-admin namespace
+	@kubectl delete ns kubeflow-admin

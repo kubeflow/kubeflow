@@ -18,6 +18,11 @@ def main(unparsed_args=None):
     type=str,
     help="Image name.")
   parser.add_argument(
+    "--build_args",
+    default="",
+    type=str,
+    help="Docker build args.")
+  parser.add_argument(
     "--build_opts",
     default="",
     type=str,
@@ -32,6 +37,11 @@ def main(unparsed_args=None):
     default="",
     type=str,
     help="e2e test target registry, format is <registry name>:<registry path>")
+  parser.add_argument(
+    "--target",
+    default="",
+    type=str,
+    help="Docker build target.")
 
 
   args = parser.parse_args(args=unparsed_args)
@@ -62,8 +72,14 @@ def main(unparsed_args=None):
       print("Adding registry %s from %s %s" % (reg["name"], reg["repo"], reg["branch"]))
       os.system("git clone --depth 1 --branch %s %s %s" % (reg["branch"], reg["repo"], reg_path))
 
-  os.system("docker build %s -t %s %s --build-arg registries=%s" %
-            (args.build_opts, args.image, FILE_PATH, REG_FOLDER))
+  bargs=""
+  for buildarg in args.build_args.split(","):
+    bargs+="--build-arg "+buildarg+" "
+
+  print("docker build %s %s -t %s --build-arg registries=%s --target=%s %s" %
+            (args.build_opts, bargs, args.image, REG_FOLDER, args.target, FILE_PATH))
+  os.system("docker build %s %s -t %s --build-arg registries=%s --target=%s %s" %
+            (args.build_opts, bargs, args.image, REG_FOLDER, args.target, FILE_PATH))
 
 if __name__ == '__main__':
   main()
