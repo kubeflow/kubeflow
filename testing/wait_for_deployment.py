@@ -20,6 +20,11 @@ Right now, it only checks for the presence of tfjobs and pytorchjobs crd. More t
 
 python -m testing.wait_for_deployment --cluster=kubeflow-testing --project=kubeflow-ci --zone=us-east1-d --timeout=3
 
+
+TODO(jlewi): Waiting for the CRD's to be created probably isn't that useful.
+I think that will be nearly instantaneous. If we're going to wait for something
+it should probably be waiting for the controllers to actually be deployed.
+We can probably get rid of this and just use wait_for_kubeflow.py.
 """
 
 from __future__ import print_function
@@ -36,21 +41,6 @@ from kubeflow.testing import test_helper, util
 
 def parse_args():
   parser = argparse.ArgumentParser()
-  parser.add_argument(
-    "--cluster",
-    default="",
-    type=str,
-    help="Cluster Name")
-  parser.add_argument(
-    "--zone",
-    default="",
-    type=str,
-    help="Zone Name")
-  parser.add_argument(
-    "--project",
-    default="",
-    type=str,
-    help="Project ID")
   parser.add_argument(
     "--timeout",
     default=5,
@@ -74,7 +64,7 @@ def wait_for_resource(resource, end_time):
 def test_wait_for_deployment(test_case): # pylint: disable=redefined-outer-name
   args = parse_args()
   util.maybe_activate_service_account()
-  util.run(["gcloud",  "container", "clusters", "get-credentials", args.cluster, "--zone=" + args.zone,  "--project=" + args.project])
+  util.load_kube_config()
   end_time =  datetime.datetime.now() + datetime.timedelta(0, args.timeout*60)
   wait_for_resource("crd/tfjobs.kubeflow.org", end_time)
   wait_for_resource("crd/pytorchjobs.kubeflow.org", end_time)
