@@ -58,11 +58,11 @@ spec:
         args: [
           "--in-cluster",
           "--namespace=kubeflow",
-          "--apply"
+          "--apply",
           # change config here if you want to use customized config.
           # "--config=/opt/kubeflow/default.yaml"
           # app-dir: path to store your ks apps in pod's PersistentVolume
-#          "--app-dir=/opt/bootstrap"
+          # "--app-dir=/opt/bootstrap"
           ]
         volumeMounts:
         - name: kubeflow-ksonnet-pvc
