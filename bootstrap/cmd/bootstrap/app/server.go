@@ -316,7 +316,7 @@ func Run(opt *options.ServerOption) error {
 	var regConfig RegistriesConfigFile
 
 	if opt.RegistriesConfigFile != "" {
-		log.Info("Loading registry info in file %v", opt.RegistriesConfigFile)
+		log.Infof("Loading registry info in file %v", opt.RegistriesConfigFile)
 		if err = LoadConfig(opt.RegistriesConfigFile, &regConfig); err != nil {
 			return err
 		}
