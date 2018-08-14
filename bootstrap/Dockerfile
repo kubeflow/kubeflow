@@ -55,6 +55,7 @@ COPY --from=builder /opt/kubeflow/bootstrapper /opt/kubeflow/
 COPY start.sh /opt/kubeflow/
 COPY config/default.yaml /opt/kubeflow/
 COPY image_registries.yaml /opt/kubeflow/
+RUN mkdir -p /opt/bootstrap
 
 RUN chmod a+rx /opt/kubeflow/bootstrapper
 RUN chmod a+rx /opt/kubeflow/start.sh

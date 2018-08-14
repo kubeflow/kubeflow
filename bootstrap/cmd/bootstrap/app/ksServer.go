@@ -15,13 +15,15 @@ import (
 
 	"github.com/go-kit/kit/endpoint"
 	httptransport "github.com/go-kit/kit/transport/http"
-	"github.com/ksonnet/ksonnet/actions"
-	kApp "github.com/ksonnet/ksonnet/metadata/app"
+	"github.com/ksonnet/ksonnet/pkg/actions"
+	kApp "github.com/ksonnet/ksonnet/pkg/app"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"golang.org/x/net/context"
+	core_v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
+	type_v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 )
 
@@ -84,6 +86,7 @@ func NewServer(appsDir string, registries []RegistryConfig, config *rest.Config)
 		}
 	}
 
+	log.Infof("appsDir is %v", appsDir)
 	info, err := s.fs.Stat(appsDir)
 
 	// TODO(jlewi): Should we create the directory if it doesn't exist?
@@ -166,6 +169,24 @@ type ApplyRequest struct {
 	Token string
 }
 
+func setupNamespace(namespaces type_v1.NamespaceInterface, name_space string) error {
+	namespace, err := namespaces.Get(name_space, meta_v1.GetOptions{})
+	if err == nil {
+		log.Infof("Using existing namespace: %v", namespace.Name)
+	} else {
+		log.Infof("Creating namespace: %v for all kubeflow resources", name_space)
+		_, err = namespaces.Create(
+			&core_v1.Namespace{
+				ObjectMeta: meta_v1.ObjectMeta{
+					Name: name_space,
+				},
+			},
+		)
+		return err
+	}
+	return err
+}
+
 // CreateApp creates a ksonnet application based on the request.
 func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 	a, err := func() (*appInfo, error) {
@@ -246,7 +267,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 		options := map[string]interface{}{
 			actions.OptionApp:  a.App,
 			actions.OptionName: registry.Name,
-			actions.OptionURI:  registry.RegUri,
+			actions.OptionURI:  request.AppConfig.Registries[idx].RegUri,
 			// Version doesn't actually appear to be used by the add function.
 			actions.OptionVersion: "",
 			// Looks like override allows us to override existing registries; we shouldn't
@@ -270,9 +291,12 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 		}
 	}
 
-	s.appGenerate(a.App, &request.AppConfig)
+	err = s.appGenerate(a.App, &request.AppConfig)
+	if err != nil {
+		return fmt.Errorf("There was a problem generating app: %v", err)
+	}
 	if request.AutoConfigure {
-		return s.autoConfigureApp(&a.App, &request.AppConfig)
+		return s.autoConfigureApp(&a.App, &request.AppConfig, request.Namespace)
 	}
 
 	log.Infof("Created and initialized app at %v", a.App.Root())
@@ -410,7 +434,7 @@ func (s *ksServer) createComponent(kfApp kApp.App, args []string) error {
 
 // autoConfigureApp attempts to automatically optimize the Kubeflow application
 // based on the cluster setup.
-func (s *ksServer) autoConfigureApp(kfApp *kApp.App, appConfig *AppConfig) error {
+func (s *ksServer) autoConfigureApp(kfApp *kApp.App, appConfig *AppConfig, namespace string) error {
 
 	kubeClient, err := clientset.NewForConfig(rest.AddUserAgent(s.config, "kubeflow-bootstrapper"))
 	if err != nil {
@@ -424,6 +448,7 @@ func (s *ksServer) autoConfigureApp(kfApp *kApp.App, appConfig *AppConfig) error
 	}
 
 	log.Infof("Cluster version: %v", clusterVersion.String())
+	err = setupNamespace(kubeClient.CoreV1().Namespaces(), namespace)
 
 	storage := kubeClient.StorageV1()
 	sClasses, err := storage.StorageClasses().List(meta_v1.ListOptions{})
@@ -447,7 +472,7 @@ func (s *ksServer) autoConfigureApp(kfApp *kApp.App, appConfig *AppConfig) error
 			}
 
 			err = actions.RunParamSet(map[string]interface{}{
-				actions.OptionApp:   kfApp,
+				actions.OptionApp:   *kfApp,
 				actions.OptionName:  component.Name,
 				actions.OptionPath:  "jupyterNotebookPVCMount",
 				actions.OptionValue: pvcMount,
