@@ -72,4 +72,13 @@ function createKsApp() {
   # cd ks_app
   # ks component rm spartakus
   ks generate spartakus spartakus --usageId=$(uuidgen) --reportUsage=true
+  echo "Notice anonymous usage reporting enabled using spartakus"
+  echo "To disable it"
+  echo "If you have already deployed it run the following commands:"
+  echo "  cd $(pwd)"
+  echo "  ks delete default -c spartakus"
+  echo "  kubectl -n ${K8S_NAMESPACE} delete deploy -l app=spartakus"
+  echo " "
+  echo "Then run the following command to remove it from your ksonnet app"
+  echo "  ks component rm spartakus"
 }

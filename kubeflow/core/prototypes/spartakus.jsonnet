@@ -77,6 +77,9 @@ if reportUsageBool then [
     metadata: {
       name: "spartakus-volunteer",
       namespace: env.namespace,
+      labels: {
+        app: "spartakus",
+      },
     },
     spec: {
       replicas: 1,
