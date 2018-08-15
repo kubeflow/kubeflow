@@ -26,8 +26,10 @@ createEnv() {
 	# a file for consistency across runs.
 	echo PLATFORM=${PLATFORM} >> ${ENV_FILE}
 	DEFAULT_KUBEFLOW_REPO="$( cd "${DIR}/.." >/dev/null && pwd )"
-    echo KUBEFLOW_REPO=${KUBEFLOW_REPO:-"${DEFAULT_KUBEFLOW_REPO}"} >> ${ENV_FILE}
-    echo KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"} >> ${ENV_FILE}
+	echo KUBEFLOW_REPO=${KUBEFLOW_REPO:-"${DEFAULT_KUBEFLOW_REPO}"} >> ${ENV_FILE}
+	echo KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"} >> ${ENV_FILE}
+	echo KUBEFLOW_KS_DIR=${KUBEFLOW_KS_DIR:-"$(pwd)/ks_app"} >> ${ENV_FILE}
+	
 	# Namespace where kubeflow is deployed
 	echo K8S_NAMESPACE=${K8S_NAMESPACE:-"kubeflow"} >> ${ENV_FILE}
 
@@ -51,10 +53,9 @@ createEnv() {
 		echo DEPLOYMENT_NAME="${DEPLOYMENT_NAME}" >> ${ENV_FILE}
 
 		# Kubeflow directories		
-		echo KUBEFLOW_DM_DIR=${KUBEFLOW_DM_DIR:-"`pwd`/gcp_config"} >> ${ENV_FILE}
-		echo KUBEFLOW_KS_DIR=${KUBEFLOW_KS_DIR:-"`pwd`/ks_app"} >> ${ENV_FILE}
-		echo KUBEFLOW_SECRETS_DIR=${KUBEFLOW_SECRETS_DIR:-"`pwd`/secrets"} >> ${ENV_FILE}
-		echo KUBEFLOW_K8S_MANIFESTS_DIR="`pwd`/k8s_specs" >> ${ENV_FILE}
+		echo KUBEFLOW_DM_DIR=${KUBEFLOW_DM_DIR:-"$(pwd)/gcp_config"} >> ${ENV_FILE}	
+		echo KUBEFLOW_SECRETS_DIR=${KUBEFLOW_SECRETS_DIR:-"$(pwd)/secrets"} >> ${ENV_FILE}
+		echo KUBEFLOW_K8S_MANIFESTS_DIR="$(pwd)/k8s_specs" >> ${ENV_FILE}
 		
 		# Name of the K8s context to create.
 		echo  KUBEFLOW_K8S_CONTEXT=${DEPLOYMENT_NAME} >> ${ENV_FILE}
@@ -75,7 +76,7 @@ createEnv() {
 		echo KUBEFLOW_ENDPOINT_NAME=${KUBEFLOW_ENDPOINT_NAME} >> ${ENV_FILE}
 		# Complete hostname
 		echo KUBEFLOW_HOSTNAME=${KUBEFLOW_HOSTNAME:-"${KUBEFLOW_ENDPOINT_NAME}.endpoints.${PROJECT}.cloud.goog"} >> ${ENV_FILE}
-		
+
 		echo CONFIG_FILE=${CONFIG_FILE:-"cluster-kubeflow.yaml"} >> ${ENV_FILE}
 
 		if [ -z "${PROJECT_NUMBER}" ]; then
