@@ -18,4 +18,4 @@ local updatedParams = params {
   namespace: if params.namespace == "null" then env.namespace else params.namespace,
 };
 
-certManager.parts(updatedParams).certManagerParts(params.acmeEmail, params.acmeUrl)
+certManager.parts(updatedParams).certManagerParts()
