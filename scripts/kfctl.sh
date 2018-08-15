@@ -28,7 +28,7 @@ createEnv() {
 	DEFAULT_KUBEFLOW_REPO="$( cd "${DIR}/.." >/dev/null && pwd )"
 	echo KUBEFLOW_REPO=${KUBEFLOW_REPO:-"${DEFAULT_KUBEFLOW_REPO}"} >> ${ENV_FILE}
 	echo KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"} >> ${ENV_FILE}
-	echo KUBEFLOW_KS_DIR=${KUBEFLOW_KS_DIR:-"`pwd`/ks_app"} >> ${ENV_FILE}
+	echo KUBEFLOW_KS_DIR=${KUBEFLOW_KS_DIR:-"$(pwd)/ks_app"} >> ${ENV_FILE}
 
 	if [ "${PLATFORM}" == "minikube" ]; then
 	  echo KUBEFLOW_CLOUD=minikube >> ${ENV_FILE}
