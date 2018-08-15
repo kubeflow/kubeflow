@@ -344,6 +344,26 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     // enabling, make requests to enable them, then we repeat this in a loop
     // until we have no more services left, or we try too many times.
     this._appendLine(`Getting enabled services for project ${project}..`);
+    await request(
+      {
+        body: JSON.stringify(
+          {
+            Msg: 'Echo from web app?',
+          }
+        ),
+        headers: { 'content-type': 'application/json' },
+        method: 'PUT',
+        uri: this._configSpec.appAddress + '/healthz',
+      },
+      (error, response, body) => {
+        if (!error) {
+          const msg = JSON.parse(response.body).Reply;
+          this._appendLine('From Backend' + msg);
+        } else {
+          this._appendLine('Backend error: ' + response.statusCode);
+        }
+      }
+    );
 
     let servicesToEnable: string[] = [];
     let enableAttempts = 0;
@@ -412,6 +432,30 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     }
 
     this._appendLine('Proceeding with project number: ' + projectNumber);
+    const token = await Gapi.getToken();
+    await request(
+      {
+        body: JSON.stringify(
+          {
+            Project: project,
+            ProjectNumber: projectNumber,
+            Token: token,
+          }
+        ),
+        headers: { 'content-type': 'application/json' },
+        method: 'PUT',
+        uri: this._configSpec.appAddress + '/initProject',
+      },
+      (error, response, body) => {
+        if (!error) {
+          const msg = JSON.parse(response.body).Reply;
+          this._appendLine('project init succeeded: ' + msg);
+        } else {
+          this._appendLine('Backend error: ' + JSON.parse(response.body).Reply);
+          return;
+        }
+      }
+    );
 
     // Step 3: Create GCP Deployment
 
@@ -440,36 +484,38 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     // Step 4: In-cluster resources set up
     let status = '';
     let getAttempts = 0;
-    const getTimeout = 15000;
+    const getTimeout = 20000;
     do {
       getAttempts++;
+      await wait(getTimeout);
       const curStatus = await Gapi.deploymentmanager.get(this.state.project, deploymentName)
             .catch(err => {
-              this._appendLine('Cluster endpoint not available yet.');
+              this._appendLine('Deployment status not available yet.');
             });
       if (!curStatus) {
-        await wait(getTimeout);
         continue;
       }
       status = curStatus.operation!.status!;
-    } while (status !== 'DONE' && getAttempts < 20);
+      this._appendLine(`Status of ${deploymentName}: ` + status);
+    } while (status !== 'DONE' && getAttempts < 30);
 
-    const token = await Gapi.getToken();
     await request(
       {
         body: JSON.stringify(
           {
-            namespace: 'kubeflow',
-            project,
-            secretKey: 'admin-gcp-sa.json',
-            secretName: 'admin-gcp-sa',
-            serviceAccount:  `${deploymentName}-admin@${project}.iam.gserviceaccount.com`,
-            token,
+            Cluster: deploymentName,
+            Namespace: 'kubeflow',
+            Project: project,
+            SecretKey: 'admin-gcp-sa.json',
+            SecretName: 'admin-gcp-sa',
+            ServiceAccount:  `${deploymentName}-admin@${project}.iam.gserviceaccount.com`,
+            Token: token,
+            Zone: this.state.zone,
           }
         ),
         headers: { 'content-type': 'application/json' },
         method: 'PUT',
-        uri: this._configSpec.appAddress + '/insertSaKey',
+        uri: this._configSpec.appAddress + '/iam/insertSaKey',
       },
       (error, response, body) => {
         if (!error) {
