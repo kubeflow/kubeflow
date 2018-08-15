@@ -30,6 +30,9 @@ createEnv() {
 	echo KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"} >> ${ENV_FILE}
 	echo KUBEFLOW_KS_DIR=${KUBEFLOW_KS_DIR:-"$(pwd)/ks_app"} >> ${ENV_FILE}
 
+	# Namespace where kubeflow is deployed
+	echo K8S_NAMESPACE=${K8S_NAMESPACE:-"kubeflow"} >> ${ENV_FILE}
+
 	if [ "${PLATFORM}" == "minikube" ]; then
 	  echo KUBEFLOW_CLOUD=minikube >> ${ENV_FILE}
 	fi
@@ -74,8 +77,6 @@ createEnv() {
 		# Complete hostname
 		echo KUBEFLOW_HOSTNAME=${KUBEFLOW_HOSTNAME:-"${KUBEFLOW_ENDPOINT_NAME}.endpoints.${PROJECT}.cloud.goog"} >> ${ENV_FILE}
 
-		# Namespace where kubeflow is deployed
-		echo K8S_NAMESPACE=${K8S_NAMESPACE:-"kubeflow"} >> ${ENV_FILE}
 		echo CONFIG_FILE=${CONFIG_FILE:-"cluster-kubeflow.yaml"} >> ${ENV_FILE}
 
 		if [ -z "${PROJECT_NUMBER}" ]; then
