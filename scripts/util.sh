@@ -68,6 +68,8 @@ function createKsApp() {
   ks generate argo argo
 
   # Enable collection of anonymous usage metrics
-  # Skip this step if you don't want to enable collection.
-  ks generate spartakus spartakus --usageId=$(uuidgen) --reportUsage=${COLLECT_METRICS}
+  # To disable metrics collection. Remove the spartakus component.
+  # cd ks_app
+  # ks component rm spartakus
+  ks generate spartakus spartakus --usageId=$(uuidgen) --reportUsage=true
 }
