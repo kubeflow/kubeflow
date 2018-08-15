@@ -217,7 +217,7 @@ local dagTemplates = [
         "param",
         "set",
         "spartakus",
-        "reportUsage", 
+        "reportUsage",
         "false",
       ],
       working_dir=appDir
