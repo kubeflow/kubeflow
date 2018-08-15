@@ -1,23 +1,17 @@
 # bootstrapper-builder contains the tool chain we need to build the image.
 # This primarily means glide.
-FROM gcr.io/kubeflow-images-public/bootstrapper-builder:v20180712-4adef8c0 as builder
+ARG GOLANG_VERSION=1.10.3
+ARG BUILDER_IMG=gcr.io/kubeflow-images-public/bootstrapper-builder
+ARG BUILDER_IMG_VERSION=latest
+FROM ${BUILDER_IMG}:${BUILDER_IMG_VERSION} AS build_base_remote
 
-RUN mkdir -p /opt/kubeflow
+FROM golang:${GOLANG_VERSION} AS build
 
-ENV PATH /go/bin:/usr/local/go/bin:$PATH
+# install vim 
+RUN apt-get update && apt-get install -y vim
 
-RUN mkdir -p $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap
-COPY ./ $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap/
-
-# Pull in dependencies. We don't check in vendor because that bloats
-# the size of kubeflow/kubeflow and we want to keep it small since
-# Users clone that repo to get our registry.
-RUN cd $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap/ && \
-    glide install -v
-
-RUN go build -i -o /opt/kubeflow/bootstrapper ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/main.go
-
-FROM golang:1.10.3
+# install dlv debugger
+RUN go get -u github.com/derekparker/delve/cmd/dlv
 
 # We need gcloud to get gke credentials.
 RUN wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.tar.gz && \
@@ -37,10 +31,6 @@ RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.10.0/
     mv kubectl /usr/local/bin && \
     chmod a+x /usr/local/bin/kubectl
 
-RUN git clone https://github.com/ksonnet/ksonnet.git /opt/ksonnet && \
-	cd /opt/ksonnet && \
-	git checkout v0.10.0-alpha.3
-
 ARG registries
 COPY $registries /opt/registries
 
@@ -51,15 +41,15 @@ RUN wget -q https://github.com/ksonnet/ksonnet/releases/download/v0.11.0/ks_0.11
     cp ks_0.11.0_linux_amd64/ks /usr/local/bin && \
     rm -rf ks_0.11.0_linux_amd64
 
-COPY --from=builder /opt/kubeflow/bootstrapper /opt/kubeflow/
+COPY --from=build_base_remote /opt/kubeflow/bootstrapper /opt/kubeflow/
 COPY start.sh /opt/kubeflow/
+COPY dlv.sh /opt/kubeflow/
 COPY config/default.yaml /opt/kubeflow/
 COPY image_registries.yaml /opt/kubeflow/
+RUN mkdir -p /opt/bootstrap
 
 RUN chmod a+rx /opt/kubeflow/bootstrapper
 RUN chmod a+rx /opt/kubeflow/start.sh
-
-RUN apt-get update && apt-get install -y vim
 
 # Set default values for USER, USER_ID, GROUP_ID
 # The startup script will create the user and su to that user.

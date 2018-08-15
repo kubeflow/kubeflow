@@ -1,4 +1,4 @@
-local params = std.extVar("__ksonnet/params").components.kfctl_test;
+local params = std.extVar("__ksonnet/params").components.unit_tests;
 
 local k = import "k.libsonnet";
 local util = import "workflows.libsonnet";
@@ -12,8 +12,6 @@ local name = params.name;
 local prowEnv = util.parseEnv(params.prow_env);
 local bucket = params.bucket;
 
-// The name for the workspace to run the steps in
-local stepsNamespace = "kubeflow";
 // mountPath is the directory where the volume to store the test data
 // should be mounted.
 local mountPath = "/mnt/" + "test-data-volume";
@@ -26,21 +24,6 @@ local artifactsDir = outputDir + "/artifacts";
 local srcRootDir = testDir + "/src";
 // The directory containing the kubeflow/kubeflow repo
 local srcDir = srcRootDir + "/kubeflow/kubeflow";
-
-local runPath = srcDir + "/testing/workflows/run.sh";
-local kfCtlPath = srcDir + "/scripts/kfctl.sh";
-
-local kubeConfig = testDir + "/kfctl_test/.kube/kubeconfig";
-
-// Name for the Kubeflow app.
-// This needs to be unique for each test run because it is
-// used to name GCP resources
-// We take the suffix of the name because it should provide some random salt.
-local appName = "kfctl-" + std.substr(name, std.length(name) - 4, 4);
-
-// Directory containing the app. This is the directory
-// we execute kfctl commands from
-local appDir = testDir + "/" + appName;
 
 local image = "gcr.io/kubeflow-ci/test-worker:latest";
 local testing_image = "gcr.io/kubeflow-ci/kubeflow-testing";
@@ -80,22 +63,6 @@ local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=
         name: "GOOGLE_APPLICATION_CREDENTIALS",
         value: "/secret/gcp-credentials/key.json",
       },
-      {
-        name: "GITHUB_TOKEN",
-        valueFrom: {
-          secretKeyRef: {
-            name: "github-token",
-            key: "github_token",
-          },
-        },
-      },
-      {
-        // We use a directory in our NFS share to store our kube config.
-        // This way we can configure it on a single step and reuse it on subsequent steps.
-        // The directory should be unique for each workflow so that multiple workflows don't collide.
-        name: "KUBECONFIG",
-        value: kubeConfig,
-      },
     ] + prowEnv + env_vars,
     volumeMounts: [
       {
@@ -115,12 +82,6 @@ local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=
   sidecars: sidecars,
 };  // buildTemplate
 
-local componentTests = util.kfTests {
-  name: "gke-tests",
-  platform: "gke",
-  testDir: testDir,
-  kubeConfig: kubeConfig,
-};
 
 // Create a list of dictionary.c
 // Each item is a dictionary describing one step in the graph.
@@ -133,7 +94,7 @@ local dagTemplates = [
                               value: "kubeflow/tf-operator@HEAD;kubeflow/testing@HEAD",
                             }]),
     dependencies: null,
-  },  // checkout
+  },
   {
     template: buildTemplate("create-pr-symlink", [
       "python",
@@ -146,146 +107,61 @@ local dagTemplates = [
     dependencies: ["checkout"],
   },  // create-pr-symlink
   {
-    template: buildTemplate(
-      "kfctl-init",
-      [
-        runPath,
-        kfCtlPath,
-        "init",
-        appName,
-        "--platform",
-        "gcp",
-        "--project",
-        project,
-      ],
-      working_dir=testDir,
-    ),
+    template: buildTemplate("jsonnet-test", [
+      "python",
+      "-m",
+      "testing.test_jsonnet",
+      "--artifacts_dir=" + artifactsDir,
+      "--test_files_dirs=" + srcDir + "/kubeflow",
+      "--jsonnet_path_dirs=" + srcDir,
+    ]),  // jsonnet-test
+
     dependencies: ["checkout"],
   },
   {
-    template: buildTemplate(
-      "kfctl-generate-gcp",
-      [
-        runPath,
-        kfCtlPath,
-        "generate",
-        "platform",
-      ],
-      working_dir=appDir
-    ),
-    dependencies: ["kfctl-init"],
-  },
-  {
-    template: buildTemplate(
-      "kfctl-apply-gcp",
-      [
-        runPath,
-        kfCtlPath,
-        "apply",
-        "platform",
-      ],
-      env_vars=[
-        {
-          name: "CLIENT_ID",
-          value: "dummy",
-        },
-        {
-          name: "CLIENT_SECRET",
-          value: "dummy",
-        },
-      ],
-      working_dir=appDir
-    ),
-    dependencies: ["kfctl-generate-gcp"],
-  },
-  // We can't generate the ksonnet app
-  // until we create the GKE cluster because we need
-  // a KubeConfig file
-  {
-    template: buildTemplate(
-      "kfctl-generate-k8s",
-      [
-        runPath,
-        kfCtlPath,
-        "generate",
-        "k8s",
-      ],
-      working_dir=appDir
-    ),
-    dependencies: ["kfctl-apply-gcp"],
-  },
-  {
-    template: buildTemplate(
-      "kfctl-apply-k8s",
-      [
-        runPath,
-        kfCtlPath,
-        "apply",
-        "k8s",
-      ],
-      working_dir=appDir
-    ),
-    dependencies: ["kfctl-generate-k8s"],
-  },
-  // Run the nested tests.
-  {
-    template: componentTests.argoDagTemplate,
-    dependencies: ["kfctl-apply-k8s"],
+    template: buildTemplate("test-jsonnet-formatting", [
+      "python",
+      "-m",
+      "kubeflow.testing.test_jsonnet_formatting",
+      "--project=" + project,
+      "--artifacts_dir=" + artifactsDir,
+      "--src_dir=" + srcDir,
+      "--exclude_dirs=" + srcDir + "/bootstrap/vendor/",
+    ]),  // test-jsonnet-formatting
+
+    dependencies: ["checkout"],
   },
 ];
 
 // Each item is a dictionary describing one step in the graph
 // to execute on exit
-local deleteKubeflow = util.toBool(params.deleteKubeflow);
-
-local deleteStep = if deleteKubeflow then
-  [{
-    template: buildTemplate(
-      "kfctl-delete",
-      [
-        runPath,
-        kfCtlPath,
-        "delete",
-        "all",
-      ],
-      working_dir=appDir
-    ),
+local exitTemplates = [
+  {
+    template: buildTemplate("copy-artifacts", [
+      "python",
+      "-m",
+      "kubeflow.testing.prow_artifacts",
+      "--artifacts_dir=" + outputDir,
+      "copy_artifacts",
+      "--bucket=" + bucket,
+    ]),  // copy-artifacts,
     dependencies: null,
-  }]
-else [];
-
-local exitTemplates =
-  deleteStep +
-  [
-    {
-      template: buildTemplate("copy-artifacts", [
+  },
+  {
+    template:
+      buildTemplate("test-dir-delete", [
         "python",
         "-m",
-        "kubeflow.testing.prow_artifacts",
-        "--artifacts_dir=" + outputDir,
-        "copy_artifacts",
-        "--bucket=" + bucket,
-      ]),  // copy-artifacts,
-
-      dependencies: if deleteKubeflow then
-        ["kfctl-delete"]
-      else null,
-    },
-    {
-      template:
-        buildTemplate("test-dir-delete", [
-          "python",
-          "-m",
-          "testing.run_with_retry",
-          "--retries=5",
-          "--",
-          "rm",
-          "-rf",
-          testDir,
-        ]),  // test-dir-delete
-      dependencies: ["copy-artifacts"],
-    },
-  ];
+        "testing.run_with_retry",
+        "--retries=5",
+        "--",
+        "rm",
+        "-rf",
+        testDir,
+      ]),  // test-dir-delete
+    dependencies: ["copy-artifacts"],
+  },
+];
 
 // Dag defines the tasks in the graph
 local dag = {
@@ -319,7 +195,7 @@ local exitDag = {
 local stepTemplates = std.map(function(i) i.template
                               , dagTemplates) +
                       std.map(function(i) i.template
-                              , exitTemplates) + componentTests.argoTaskTemplates;
+                              , exitTemplates);
 
 
 // Add a task to a dag.

@@ -27,6 +27,13 @@
       name: "somefakename",
       namespace: "kubeflow-test-infra",
       prow_env: "",
+      deleteKubeflow: true,
+    },
+    unit_tests: {
+      bucket: "kubeflow-ci_temp",
+      name: "somefakename",
+      namespace: "kubeflow-test-infra",
+      prow_env: "",
     },
   },
 }

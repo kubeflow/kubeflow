@@ -2,11 +2,6 @@
 ---
 # App only apply if on GKE
 app:
-  packages:
-    - name: core
-      registry: kubeflow
-    - name: tf-serving
-      registry: kubeflow
   components:
     - name: jupyterhub
       prototype: jupyterhub
@@ -52,3 +47,5 @@ app:
     - component: spartakus
       name: reportUsage
       value: true
+  registries:
+    - name: kubeflow

@@ -237,24 +237,22 @@ fi
 if [ "${COMMAND}" == "delete" ]; then
   if [ "${WHAT}" == "k8s"  ] || [ "${WHAT}" == "all" ]; then 
     # Delete kubeflow namespace - this deletes all the ingress objects
-	# in the namespace which deletes the associated GCP resources
-	set +e
-	kubectl delete ns/${K8S_NAMESPACE}
-	while kubectl get ns/${K8S_NAMESPACE}; do
-	  echo "namespace ${K8S_NAMESPACE} not yet deleted. sleeping 10 seconds..."
-	  sleep 10
-	done
-	echo "namespace ${K8S_NAMESPACE} successfully deleted."
-	set -e
-
-
-	if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ] ; then
-	  	if [ "${PLATFORM}" == "gcp" ]; then
-			pushd .
-			cd ${KUBEFLOW_DM_DIR}
-			${DIR}/gke/delete_deployment.sh ${PROJECT} ${DEPLOYMENT_NAME} ${CONFIG_FILE}
-			popd
-	    fi
+    # in the namespace which deletes the associated GCP resources
+    set +e
+    kubectl delete ns/${K8S_NAMESPACE}
+    while kubectl get ns/${K8S_NAMESPACE}; do
+      echo "namespace ${K8S_NAMESPACE} not yet deleted. sleeping 10 seconds..."
+      sleep 10
+    done
+    echo "namespace ${K8S_NAMESPACE} successfully deleted."
+    set -e
+  fi
+  if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ] ; then
+    if [ "${PLATFORM}" == "gcp" ]; then
+      pushd .
+      cd ${KUBEFLOW_DM_DIR}
+      ${DIR}/gke/delete_deployment.sh ${PROJECT} ${DEPLOYMENT_NAME} ${CONFIG_FILE}
+      popd
     fi
-  fi   
+  fi
 fi

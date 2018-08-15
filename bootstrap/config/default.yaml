@@ -2,11 +2,6 @@
 # This config is consumed during bootstrapper execution.
 ---
 app:
-  packages:
-    - name: core
-      registry: kubeflow
-    - name: tf-serving
-      registry: kubeflow
   components:
     - name: jupyterhub
       prototype: jupyterhub
@@ -18,3 +13,5 @@ app:
       prototype: tf-job-operator
     - name: spartakus
       prototype: spartakus
+  registries:
+    - name: kubeflow
