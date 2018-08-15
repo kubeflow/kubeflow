@@ -79,7 +79,7 @@ createEnv() {
 		echo CONFIG_FILE=${CONFIG_FILE:-"cluster-kubeflow.yaml"} >> ${ENV_FILE}
 
 		if [ -z "${PROJECT_NUMBER}" ]; then
-		  PROJECT_NUMBER=`gcloud projects describe ${PROJECT} --format='value(project_number)'`
+		  PROJECT_NUMBER=$(gcloud projects describe ${PROJECT} --format='value(project_number)')
 		fi
 
 		echo PROJECT_NUMBER=${PROJECT_NUMBER} >> ${ENV_FILE}
@@ -176,7 +176,7 @@ ksApply () {
   cd "${KUBEFLOW_KS_DIR}"
 
     set +e
-  O=`ks env describe default 2>&1`
+  O=$(ks env describe default 2>&1)
   RESULT=$?
   set -e
 
