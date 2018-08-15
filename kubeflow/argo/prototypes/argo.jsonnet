@@ -4,7 +4,7 @@
 // @shortDescription Argo workflow engine
 // @param name string Name to give to the component
 // @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
-// @optionalParam imageTag string latest Docker image tag to use. It is automatically inherited from the environment if not set.
+// @optionalParam imageTag string v2.1.1 Docker image tag to use. It is automatically inherited from the environment if not set.
 
 local k = import "k.libsonnet";
 local argo = import "kubeflow/argo/argo.libsonnet";

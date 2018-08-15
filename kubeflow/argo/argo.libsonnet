@@ -96,7 +96,7 @@
                     },
                   },
                 ],
-                image: "argoproj/workflow-controller:" + imageTag,
+                image: "gcr.io/kubeflow-images-public/argoproj/workflow-controller:" + imageTag,
                 imagePullPolicy: "IfNotPresent",
                 name: "workflow-controller",
                 resources: {},
@@ -115,7 +115,6 @@
         },
       },
     },  // deploy
-
 
     deployUi: {
       apiVersion: "extensions/v1beta1",
@@ -168,7 +167,7 @@
                     value: "true",
                   },
                 ],
-                image: "argoproj/argoui:" + imageTag,
+                image: "gcr.io/kubeflow-images-public/argoproj/argoui:" + imageTag,
                 imagePullPolicy: "IfNotPresent",
                 name: "argo-ui",
                 resources: {},
@@ -222,7 +221,7 @@
     config: {
       apiVersion: "v1",
       data: {
-        config: @"executorImage: argoproj/argoexec:" + imageTag,
+        config: @"executorImage: gcr.io/kubeflow-images-public/argoproj/argoexec:" + imageTag,
       },
       kind: "ConfigMap",
       metadata: {

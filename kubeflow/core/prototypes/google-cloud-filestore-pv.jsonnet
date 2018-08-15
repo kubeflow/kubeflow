@@ -61,7 +61,7 @@
           containers: [
             {
               name: "set-gcfs-permissions",
-              image: "ubuntu",
+              image: "gcr.io/kubeflow-images-public/ubuntu:18.04",
               command: [
                 "chmod",
                 "777",
