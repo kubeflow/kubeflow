@@ -3,33 +3,24 @@
 // @description TensorFlow batch-predict
 // @shortDescription A TensorFlow batch-predict job
 // @param name string Name to give to each of the components
+// @optionalParam numGpus number 0 Name to give to each of the components
+// @param modelPath string 0 Name to give to each of the components
+// @param inputFilePatterns string Name to give to each of the components
+// @param outputResultPrefix string  Name to give to each of the components
+// @param outputErrorPrefix string Name to give to each of the components
+// @optionalParam batchSize number 8 Name to give to each of the components
 
 local k = import "k.libsonnet";
 
-// ksonnet appears to require name be a parameter of the prototype which is why we handle it differently.
-local name = import "param://name";
-local name = params.name;
-
-// updatedParams includes the namespace from env by default.
-// We can override namespace in params if needed
-// local updatedParams = env + params;
-local updatedParams = params;
-
-local tfBatchPredict = tfBatchPredictBase {
-  // Override parameters with user supplied parameters.
-  params+: updatedParams {
-    name: name,
-  },
-};
-
-tfBatchPredictBase: {
+local tfBatchPredictBase = {
   // Parameters are intended to be late bound.
+  local base = self,
   params:: {
     name: null,
     labels: {
-      app: $.params.name,
+      app: base.params.name,
     },
-    modelName: $.params.name,
+    modelName: self.name,
     modelPath: null,
     inputFilePatterns: null,
     inputFileFormat: null,
@@ -40,7 +31,6 @@ tfBatchPredictBase: {
 
     version: "v1",
 
-    serviceType: "ClusterIP",
     // If users want to override the image then can override defaultCpuImage and/or defaultGpuImage
     // in which case the image used will still depend on whether GPUs are used or not.
     // Users can also override the predictImage in which case the user supplied value will always be used
@@ -48,48 +38,36 @@ tfBatchPredictBase: {
     defaultCpuImage: "gcr.io/kubeflow-examples/batch-predict:tf18",
     defaultGpuImage: "gcr.io/kubeflow-examples/batch-predict:tf18-gpu",
 
-    predictImage: if $.params.numGpus == 0 then
-      $.params.defaultCpuImage
+    predictImage: if self.numGpus == 0 then
+      self.defaultCpuImage
     else
-      $.params.defaultGpuImage,
-
+      self.defaultGpuImage,
 
     // Which cloud to use
+    // cloud:: "gcp",
     cloud:: null,
   },
 
   // Parametes specific to GCP.
   gcpParams:: {
     gcpCredentialSecretName: "",
-  } + $.params,
+  } + self.params,
 
-
-  components:: {
-    all::
-        if $.params.cloud == "gcp" then
-        [
-          $.gcpParts.tfJob,
-        ]
-      else
-        [
-          $.parts.tfJob,
-        ],
-  }.all,
 
   parts:: {
     // We define the containers one level beneath parts because combined with jsonnet late binding
     // this makes it easy for users to override specific bits of the container.
     tfBatchPredictContainerBase:: {
-      name: $.params.name,
-      image: $.params.predictImage,
+      name: base.params.name,
+      image: base.params.predictImage,
       imagePullPolicy: "IfNotPresent",
       args: [
-        "--model_dir=" + $.params.modelPath,
-        "--input_file_patterns=" + $.params.inputFilePatterns,
-        "--input_file_format=" + $.params.inputFileFormat,
-        "--output_result_prefix=" + $.params.outputResultPrefix,
-        "--output_error_prefix=" + $.params.outputErrorPrefix,
-        "--batch_size=" + $.params.batchSize,
+        "--model_dir=" + base.params.modelPath,
+        "--input_file_patterns=" + base.params.inputFilePatterns,
+        "--input_file_format=" + base.params.inputFileFormat,
+        "--output_result_prefix=" + base.params.outputResultPrefix,
+        "--output_error_prefix=" + base.params.outputErrorPrefix,
+        "--batch_size=" + base.params.batchSize,
       ],
       resources: {
         requests: {
@@ -103,12 +81,12 @@ tfBatchPredictBase: {
       },
     },  // tfBatchPredictContainerBase
 
-    tfBatchPredictContainer+: $.parts.tfBatchPredictContainerBase +
-                                 if $.params.numGpus > 0 then
+    tfBatchPredictContainer+: base.parts.tfBatchPredictContainerBase +
+                                 if base.params.numGpus > 0 then
                                   {
                                     resources+: {
                                     limits+: {
-                                      "nvidia.com/gpu": $.params.numGpus,
+                                      "nvidia.com/gpu": base.params.numGpus,
                                     },
                                   },
                                  }
@@ -118,19 +96,19 @@ tfBatchPredictBase: {
       apiVersion: "batch/v1",
       kind: "Job",
       metadata: {
-        name: $.params.name + $.params.version,
-        namespace: $.params.namespace,
-        labels: $.params.labels,
+        name: base.params.name + base.params.version,
+        namespace: base.params.namespace,
+        labels: base.params.labels,
       },
       spec: {
         template: {
           metadata: {
-            labels: $.params.labels,
+            labels: base.params.labels,
           },
           backoffLimit: 1,
           spec: {
             containers: [
-              $.parts.tfBatchPredictContainer,
+              base.parts.tfBatchPredictContainer,
             ],
             restartPolicy: "Never",
             activeDeadlineSeconds: 3000,
@@ -148,16 +126,16 @@ tfBatchPredictBase: {
   }, // parts
 
   // Parts specific to GCP
-  gcpParts:: $.parts {
+  gcpParts:: base.parts {
     gcpEnv:: [
-      if $.gcpParams.gcpCredentialSecretName != "" then
+      if base.gcpParams.gcpCredentialSecretName != "" then
         { name: "GOOGLE_APPLICATION_CREDENTIALS", value: "/secret/gcp-credentials/key.json" },
     ],
 
-    tfBatchPredictContainer: $.parts.tfBatchPredictContainer {
-      // env+: $.gcpParts.gcpEnv,
+    tfBatchPredictContainer: base.parts.tfBatchPredictContainer {
+      env+: base.gcpParts.gcpEnv,
       volumeMounts+: [
-        if $.gcpParams.gcpCredentialSecretName != "" then
+        if base.gcpParams.gcpCredentialSecretName != "" then
           {
             name: "gcp-credentials",
             readOnly: true,
@@ -166,21 +144,21 @@ tfBatchPredictBase: {
       ],
     },
 
-    tfJob: $.parts.tfJob {
+    tfJob: base.parts.tfJob {
       spec+: {
         template+: {
 
           spec+: {
             containers: [
-              $.gcpParts.tfBatchPredictContainer,
+              base.gcpParts.tfBatchPredictContainer,
             ],
 
             volumes: [
-              if $.gcpParams.gcpCredentialSecretName != "" then
+              if base.gcpParams.gcpCredentialSecretName != "" then
                 {
                   name: "gcp-credentials",
                   secret: {
-                    secretName: $.gcpParams.gcpCredentialSecretName,
+                    secretName: base.gcpParams.gcpCredentialSecretName,
                   },
                 },
             ],
@@ -190,6 +168,34 @@ tfBatchPredictBase: {
     },  // tfJob
   },  // gcpParts
 
-}
+  components:: {
+    all::
+        if base.params.cloud == "gcp" then
+        [
+          base.gcpParts.tfJob,
+        ]
+      else
+        [
+          base.parts.tfJob,
+        ],
+  }.all,
 
-std.prune(k.core.v1.list.new(tfBatchPredict.components))
+};
+
+// ksonnet appears to require name be a parameter of the prototype which is why we handle it differently.
+local name = params.name;
+
+// updatedParams includes the namespace from env by default.
+// We can override namespace in params if needed
+local updatedParams = env + params;
+// local updatedParams = params;
+
+local tfBatchPredict = tfBatchPredictBase {
+  // Override parameters with user supplied parameters.
+  params+: updatedParams {
+    name: name,
+  },
+};
+
+
+std.prune(k.core.v1.list.new([tfBatchPredict.components]))
