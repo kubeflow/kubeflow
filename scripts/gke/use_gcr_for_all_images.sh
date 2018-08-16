@@ -3,6 +3,19 @@
 # app directory. It sets the docker image params in all the components to use the images
 # from gcr.io registries instead of non-gcr.io registries. This is useful when deploying
 # private GKE clusters where one can only pull images from gcr.io
+# To push an image from DockerHub / Quay to gcr.io/kubeflow-images-public registry, use
+# the following bash function
+# function sync_image() {
+#   local source="${1}"
+#   local target="gcr.io/kubeflow-images-public/${1}"
+#   docker pull "${source}"
+#   docker tag "${source}" "${target}"
+#   docker push "${target}"
+# }
+# Example invocations:
+# sync_image prom/statsd-exporter:v0.6.0
+# sync_image quay.io/datawire/ambassador:0.37.0
+
 set -x
 
 if ks component list | grep -q "^argo$" ; then
@@ -19,6 +32,7 @@ fi
 if ks component list | grep -q "^ambassador$" ; then
   ks param set ambassador ambassadorImage gcr.io/kubeflow-images-public/quay.io/datawire/ambassador:0.37.0
   ks param set ambassador statsdImage gcr.io/kubeflow-images-public/quay.io/datawire/statsd:0.37.0
+  ks param set ambassador statsdExporterImage gcr.io/kubeflow-images-public/prom/statsd-exporter:v0.6.0
 fi
 
 if ks component list | grep -q "^katib$" ; then
