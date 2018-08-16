@@ -20,3 +20,8 @@ if ks component list | grep -q "^ambassador$" ; then
   ks param set ambassador ambassadorImage gcr.io/kubeflow-images-public/quay.io/datawire/ambassador:0.37.0
   ks param set ambassador statsdImage gcr.io/kubeflow-images-public/quay.io/datawire/statsd:0.37.0
 fi
+
+if ks component list | grep -q "^katib$" ; then
+  ks param set katib modeldbDatabaseImage gcr.io/kubeflow-images-public/mongo:3.4
+  ks param set katib vizierDbImage gcr.io/kubeflow-images-public/mysql:8.0.3
+fi
