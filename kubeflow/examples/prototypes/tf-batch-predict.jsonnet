@@ -3,12 +3,13 @@
 // @description TensorFlow batch-predict
 // @shortDescription A TensorFlow batch-predict job
 // @param name string Name to give to each of the components
-// @optionalParam numGpus number 0 Name to give to each of the components
-// @param modelPath string 0 Name to give to each of the components
-// @param inputFilePatterns string Name to give to each of the components
-// @param outputResultPrefix string  Name to give to each of the components
-// @param outputErrorPrefix string Name to give to each of the components
-// @optionalParam batchSize number 8 Name to give to each of the components
+// @optionalParam numGpus number 0 number of GPUs to use
+// @param modelPath string 0 Path to the model directory
+// @param inputFilePatterns string Input file patterns
+// @param outputResultPrefix string Output result file prefix
+// @param outputErrorPrefix string Output error file prefix
+// @optionalParam batchSize number 8 Batch size
+// @optionalParam gcpCredentialSecretName string Secret name if used in GCP
 
 local k = import "k.libsonnet";
 
@@ -44,8 +45,7 @@ local tfBatchPredictBase = {
       self.defaultGpuImage,
 
     // Which cloud to use
-    // cloud:: "gcp",
-    cloud:: null,
+    cloud:: "gcp",
   },
 
   // Parametes specific to GCP.
@@ -168,16 +168,8 @@ local tfBatchPredictBase = {
     },  // tfJob
   },  // gcpParts
 
-  components:: {
-    all::
-        if base.params.cloud == "gcp" then
-        [
-          base.gcpParts.tfJob,
-        ]
-      else
-        [
-          base.parts.tfJob,
-        ],
+  components: {
+    all: if base.params.cloud == "gcp" then base.gcpParts.tfJob else base.parts.tfJob,
   }.all,
 
 };
