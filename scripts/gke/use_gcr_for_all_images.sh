@@ -3,7 +3,7 @@
 # app directory. It sets the docker image params in all the components to use the images
 # from gcr.io registries instead of non-gcr.io registries. This is useful when deploying
 # private GKE clusters where one can only pull images from gcr.io
-set -ex
+set -x
 
 if ks component list | grep -q "^argo$" ; then
   ks param set argo workflowControllerImage gcr.io/kubeflow-images-public/argoproj/workflow-controller:v2.1.1
