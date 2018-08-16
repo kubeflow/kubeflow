@@ -595,6 +595,21 @@ func encodeResponse(_ context.Context, w http.ResponseWriter, response interface
 	return json.NewEncoder(w).Encode(response)
 }
 
+// Handle "OPTIONS" request from browser
+// Decorate your browser-facing handlers with it.
+func optionsHandler(h http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+		if r.Method == "OPTIONS" {
+			return
+		} else {
+			h.ServeHTTP(w,r)
+		}
+	}
+}
+
 // StartHttp starts an HTTP server and blocks.
 func (s *ksServer) StartHttp(port int) {
 	if port <= 0 {
@@ -648,10 +663,10 @@ func (s *ksServer) StartHttp(port int) {
 
 	// TODO: add deployment manager config generate / deploy handler here. So we'll have user's DM configs stored in
 	// k8s storage / github, instead of gone with browser tabs.
-	http.Handle("/apps/create", createAppHandler)
-	http.Handle("/healthz", healthzHandler)
-	http.Handle("/iam/insertSaKey", insertSaKeyHandler)
-	http.Handle("/iam/initProject", initProjectHandler)
+	http.Handle("/apps/create", optionsHandler(createAppHandler))
+	http.Handle("/healthz", optionsHandler(healthzHandler))
+	http.Handle("/iam/insertSaKey", optionsHandler(insertSaKeyHandler))
+	http.Handle("/initProject", optionsHandler(initProjectHandler))
 
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), nil))
 }
