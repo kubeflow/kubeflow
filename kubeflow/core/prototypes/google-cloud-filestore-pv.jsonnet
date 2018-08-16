@@ -6,6 +6,8 @@
 // @optionalParam storageCapacity string 1T Storage Capacity
 // @optionalParam path string /kubeflow Path in NFS server
 // @param serverIP string Google Cloud Filestore Server IP
+// @optionalParam image string gcr.io/kubeflow-images-public/ubuntu:18.04 The docker image to use
+
 [
   {
     apiVersion: "v1",
@@ -61,7 +63,7 @@
           containers: [
             {
               name: "set-gcfs-permissions",
-              image: "ubuntu",
+              image: params.image,
               command: [
                 "chmod",
                 "777",
