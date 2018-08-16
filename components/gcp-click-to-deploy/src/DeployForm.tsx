@@ -356,11 +356,9 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         uri: this._configSpec.appAddress + '/healthz',
       },
       (error, response, body) => {
-        if (!error) {
-          const msg = JSON.parse(response.body).Reply;
-          this._appendLine('From Backend' + msg);
-        } else {
-          this._appendLine('Backend error: ' + response.statusCode);
+        if (error) {
+          this._appendLine('Could not reach backend server, exiting');
+          return;
         }
       }
     );
@@ -448,10 +446,15 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       },
       (error, response, body) => {
         if (!error) {
-          const msg = JSON.parse(response.body).Reply;
-          this._appendLine('project init succeeded: ' + msg);
+          try {
+            const msg = JSON.parse(response.body).Reply;
+            this._appendLine('project init succeeded: ' + msg);
+          }
+          catch (e) {
+            this._appendLine('Backend returned non-json response: ');
+          }
         } else {
-          this._appendLine('Backend error: ' + JSON.parse(response.body).Reply);
+          this._appendLine('Backend error: ' + error);
           return;
         }
       }
@@ -498,6 +501,12 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       status = curStatus.operation!.status!;
       this._appendLine(`Status of ${deploymentName}: ` + status);
     } while (status !== 'DONE' && getAttempts < 30);
+
+    if (status !== 'DONE') {
+      const dmConsole = 'https://console.cloud.google.com/deployments'
+      this._appendLine(`Deployment ${deploymentName} didn't finish within 10 minutes, check ${dmConsole} for more info`);
+      return
+    }
 
     await request(
       {
