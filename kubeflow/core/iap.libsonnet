@@ -288,7 +288,7 @@
                 name: "iap",
                 image: "google/cloud-sdk:alpine",
                 command: [
-                  "sh",
+                  "bash",
                   "/var/envoy-config/setup_backend.sh",
                 ],
                 env: [
