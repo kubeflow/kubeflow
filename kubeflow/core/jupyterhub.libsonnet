@@ -235,6 +235,7 @@
             "pods",
             "deployments",
             "services",
+            "jobs",
           ],
           verbs: [
             "get",
