@@ -1,3 +1,8 @@
+"""Deploy Kubeflow and wait for it to be deployed.
+
+TODO(jlewi): This script is outdated. Its no longer used for GKE.
+It is still used by minikube. For minikube we should be using kfctl.sh
+"""
 import argparse
 import logging
 import os
