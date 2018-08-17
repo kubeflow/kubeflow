@@ -52,8 +52,13 @@ echo Error unable to fetch PROJECT_NUM from compute metadata
 exit 1
 fi
 
-# Activate the service account
-gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
+if [[ -z "${GOOGLE_APPLICATION_CREDENTIALS}" ]]; then
+  echo Using VM Service Account
+else
+  # Activate the service account
+  gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
+fi
+
 # Print out the config for debugging
 gcloud config list
 
