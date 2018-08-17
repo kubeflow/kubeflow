@@ -200,7 +200,10 @@ func setupNamespace(namespaces type_v1.NamespaceInterface, name_space string) er
 
 // CreateApp creates a ksonnet application based on the request.
 func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
-	config, err := buildClusterConfig(ctx, request.Token, request.Project, request.Zone, request.Cluster)
+	config, err := rest.InClusterConfig()
+	if request.Token != "" {
+		config, err = buildClusterConfig(ctx, request.Token, request.Project, request.Zone, request.Cluster)
+	}
 	if err != nil {
 		log.Errorf("Failed getting GKE cluster config: %v", err)
 		return err
