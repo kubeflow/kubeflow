@@ -264,7 +264,7 @@ the correct Docker image.
 
 ### Release branching policy
 
-A release branch should be substantially _feature complete_ with respect to the intended release.  Code that is committed to `master` may be merged or cherry-picked on to a release branch, but code that is directly committed to the release branch should be solely applicable to that release (and should not be committed back to master).  In general, unless you're committing code that only applies to the release stream (for example, temporary hotfixes, backported security fixes, or image hashes), you should commit to `master` and then merge or cherry-pick to the reelase branch.
+A release branch should be substantially _feature complete_ with respect to the intended release.  Code that is committed to `master` may be merged or cherry-picked on to a release branch, but code that is directly committed to the release branch should be solely applicable to that release (and should not be committed back to master).  In general, unless you're committing code that only applies to the release stream (for example, temporary hotfixes, backported security fixes, or image hashes), you should commit to `master` and then merge or cherry-pick to the release branch.
 
 You can create a release branch via the GitHub UI.
 
@@ -299,3 +299,44 @@ Independently of numbered releases, it is a good idea to periodically update the
 5. Tag the commit corresponding to the passing postsubmit with the appropriate tags for the release.
 
 Ideally, this process will be automated to a greater extent in the future.
+
+## Releasing a new version of the website
+
+With each stable release, we should also release a corresponding version of the Kubeflow [website](www.kubeflow.org). Each version of the website is generated from a separate [branch](https://github.com/kubeflow/website/branches)
+of the kubeflow/website repository. If documentation needs to be fixed, the changes should be commited to master and then cherry-picked to the proper release branch.
+
+Releasing a new version on the website requires the following steps:
+
+1. When documentation for a release is complete, create a new versioned branch under the website [repository](https://github.com/kubeflow/website). This should follow the same format as Kubeflow releases (i.e.
+`v${MAJOR}.${MINOR}-branch`).
+
+1. Set up [netlify](https://www.netlify.com/):
+   * Login with your Github credentials
+   * Click on *New site from Git*
+   * Click on *GitHub* under Continuous Deployment
+   * Select `kubeflow/website` from the list
+   * Under "branch to deploy", select the new versioned branch.
+   * Click on *Deploy site*. This should give you a site URL ending with `netlify.com`.
+
+1. Set up DNS for the new site:
+   * In [Cloud DNS](https://pantheon.corp.google.com/net-services/dns/zones?project=kubeflow-dns&organizationId=714441643818), select the kubeflow.org zone
+   * Create a new CNAME record for `v${MAJOR}.${MINOR}.kubeflow.org`, pointing to the new site (`something-something.netlify.com`), TTL 5 minutes
+
+1. Configure custom domain for the new site:
+   * Go back to the Netlify configuration page, find the new website, and select *Settings*
+   * Select *Domain settings*
+   * Under *Custom domains*, add a domain alias for `v${MAJOR}.${MINOR}.kubeflow.org`.
+   * You can also add a domain alias for `www.kubeflow.org`, so that the website points to the latest stable version by default.
+   * Under *HTTPS*, enable the SSL certificate for the new site.
+   * Navigate to `v${MAJOR}.${MINOR}.kubeflow.org` in your browser to verify that this is done. If all the steps are done, you should not see any privacy or certificate warnings.
+
+1. Add the new version to the navigation bar:
+   * Edit [config.toml](https://github.com/kubeflow/website/blob/master/config.toml)
+   * Add a new version:
+    ```
+    [[Params.versions]]
+      version = "vX.Y"
+      githubbranch = "vX.Y-branch"
+      url = "https://vX-Y.kubeflow.org"
+    ```
+   * Make this change in the master branch, and then cherry-pick the commit back to the newly released branch. This allows the user to browse between all the released versions on the website.

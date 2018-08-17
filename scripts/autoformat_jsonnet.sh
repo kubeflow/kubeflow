@@ -76,6 +76,11 @@ else
     fmt_files=($(git diff --name-only ${repo_name}/master -- '*.libsonnet' '*.jsonnet'))
 fi
 
+# Need to execute from root because git will return full paths.
+ROOT=$(git rev-parse --show-toplevel)
+pushd .
+cd ${ROOT}
+
 # 2 spaces vertical indentation
 # Use double quotes for strings
 # Use // for comments
@@ -85,3 +90,4 @@ do
   echo "Autoformatted $f"
 done
 
+popd
