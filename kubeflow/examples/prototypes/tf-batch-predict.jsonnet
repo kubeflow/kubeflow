@@ -87,9 +87,7 @@ local tfBatchPredictBase = {
 
                 resources: {
                   limits: {
-                    memory: "4Gi",
-                    cpu: "4",
-                    [if base.params.numGpus > 0 then "nvidia/com/gpu"]: base.params.numGpus,
+                    [if base.params.numGpus > 0 then "nvidia.com/gpu"]: base.params.numGpus,
                   },
                 },
 
