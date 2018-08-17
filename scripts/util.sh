@@ -68,6 +68,23 @@ function createKsApp() {
   ks generate argo argo
 
   # Enable collection of anonymous usage metrics
-  # Skip this step if you don't want to enable collection.
-  ks generate spartakus spartakus --usageId=$(uuidgen) --reportUsage=${COLLECT_METRICS}
+  # To disable metrics collection. Remove the spartakus component.
+  # cd ks_app
+  # ks component rm spartakus
+  ks generate spartakus spartakus --usageId=$(uuidgen) --reportUsage=true
+  echo ""
+  echo "****************************************************************"
+  echo "Notice anonymous usage reporting enabled using spartakus"
+  echo "To disable it"
+  echo "If you have already deployed it run the following commands:"
+  echo "  cd $(pwd)"
+  echo "  ks delete default -c spartakus"
+  echo "  kubectl -n ${K8S_NAMESPACE} delete deploy -l app=spartakus"
+  echo " "
+  echo "Then run the following command to remove it from your ksonnet app"
+  echo "  ks component rm spartakus"
+  echo ""
+  echo "For more info: https://www.kubeflow.org/docs/guides/usage-reporting/"  
+  echo "****************************************************************"
+  echo ""
 }
