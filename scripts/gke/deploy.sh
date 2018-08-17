@@ -10,11 +10,11 @@
 set -xe
 
 KUBEFLOW_REPO=${KUBEFLOW_REPO:-"`pwd`/kubeflow_repo"}
-KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"}
+KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"v0.2-branch"}
 KUBEFLOW_DEPLOY=${KUBEFLOW_DEPLOY:-true}
 
 if [[ ! -d "${KUBEFLOW_REPO}" ]]; then
-  if [ "${KUBEFLOW_VERSION}" == "master" ]; then
+  if [ "${KUBEFLOW_VERSION}" == "v0.2-branch" ]; then
     TAG=${KUBEFLOW_VERSION}
   else
     TAG=v${KUBEFLOW_VERSION}
