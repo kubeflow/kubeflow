@@ -233,16 +233,24 @@
           ],
           resources: [
             "pods",
-            "deployments",
             "services",
-            "jobs",
           ],
           verbs: [
-            "get",
-            "watch",
-            "list",
-            "create",
-            "delete",
+            "*",
+          ],
+        },
+        {
+          apiGroups: [
+            "",
+            "apps",
+            "extensions",
+          ],
+          resources: [
+            "deployments",
+            "replicasets",
+          ],
+          verbs: [
+            "*",
           ],
         },
         {
@@ -251,6 +259,17 @@
           ],
           resources: [
             "*",
+          ],
+          verbs: [
+            "*",
+          ],
+        },
+        {
+          apiGroups: [
+            "batch",
+          ],
+          resources: [
+            "jobs",
           ],
           verbs: [
             "*",
