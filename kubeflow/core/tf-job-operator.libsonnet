@@ -63,7 +63,7 @@
                   tfReplicaSpecs: {
                     properties: {
                       // The validation works when the configuration contains
-                      // `Worker`, `PS` or `Chief`. Otherise it will not be validated.
+                      // `Worker`, `PS` or `Chief`. Otherwise it will not be validated.
                       Worker: {
                         properties: {
                           // We do not validate pod template because of

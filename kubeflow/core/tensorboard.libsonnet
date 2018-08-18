@@ -20,7 +20,7 @@
     cloud:: null,
   },
 
-  // Parametes specific to GCP.
+  // Parameters specific to GCP.
   gcpParams:: {
     gcpCredentialSecretName: "",
   } + $.params,
