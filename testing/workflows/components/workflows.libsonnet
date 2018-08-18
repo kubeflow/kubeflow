@@ -217,7 +217,7 @@
             "--component=simple_tfjob_v1alpha2",
             // Name is used for the test case name so it should be unique across
             // all E2E tests.
-            "--params=name=simple-tfjob-" + tests.platform + ",namespace=" + tests.stepsNamespace,
+            "--params=name=smoke-tfjob-" + tests.platform + ",namespace=" + tests.stepsNamespace,
             "--junit_path=" + tests.artifactsDir + "/junit_e2e-" + tests.platform + v1alpha2Suffix + ".xml",
           ],
         },  // run tests
