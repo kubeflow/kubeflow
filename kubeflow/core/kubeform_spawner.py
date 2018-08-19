@@ -177,6 +177,16 @@ c.KubeSpawner.singleuser_fs_gid = 100
 c.KubeSpawner.singleuser_working_dir = '/home/jovyan'
 volumes = []
 volume_mounts = []
+
+# Allow environment vars to override uid and gid.
+# This allows local host path mounts to be read/writable
+env_uid = os.environ.get('NOTEBOOK_UID')
+if env_uid and env_uid != 'null':
+    c.KubeSpawner.singleuser_uid = int(env_uid)
+env_gid = os.environ.get('NOTEBOOK_GID')
+if env_gid and env_gid != 'null':
+    c.KubeSpawner.singleuser_fs_gid = int(env_gid)
+
 ###################################################
 # Persistent volume options
 ###################################################
