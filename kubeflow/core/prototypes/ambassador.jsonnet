@@ -7,6 +7,8 @@
 // @optionalParam ambassadorServiceType string ClusterIP The service type for the API Gateway.
 // @optionalParam ambassadorImage string quay.io/datawire/ambassador:0.37.0 The image for the API Gateway.
 // @optionalParam statsdImage string quay.io/datawire/statsd:0.37.0 The image for the Stats and Monitoring.
+// @optionalParam statsdExporterImage string prom/statsd-exporter:v0.6.0 The image for the Statsd exporter.
+
 local isDashboardTls =
   if params.cloud == "acsengine" || params.cloud == "aks" then
     "false"
@@ -246,7 +248,7 @@ local replicas = if params.cloud == "minikube" then 1 else 3;
               name: "statsd",
             },
             {
-              image: "prom/statsd-exporter",
+              image: params.statsdExporterImage,
               name: "statsd-exporter",
             },
           ],

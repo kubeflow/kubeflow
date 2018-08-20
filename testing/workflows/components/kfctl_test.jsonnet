@@ -209,6 +209,16 @@ local dagTemplates = [
         kfCtlPath,
         "generate",
         "k8s",
+        // Disable spartakus metrics so CI clusters won't be counted.
+        "&&",
+        "cd",
+        "ks_app",
+        "ks",
+        "param",
+        "set",
+        "spartakus",
+        "reportUsage",
+        "false",
       ],
       working_dir=appDir
     ),
