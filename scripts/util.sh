@@ -88,3 +88,11 @@ function createKsApp() {
   echo "****************************************************************"
   echo ""
 }
+
+function customizeKsAppWithDockerImage() {
+   # customize docker registry
+   if [[ ! -z "$KUBEFLOW_DOCKER_REGISTRY" ]]; then
+      find ${KUBEFLOW_KS_DIR} -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%gcr.io%$KUBEFLOW_DOCKER_REGISTRY%g"
+      find ${KUBEFLOW_KS_DIR} -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%quay.io%$KUBEFLOW_DOCKER_REGISTRY%g"
+   fi
+}
