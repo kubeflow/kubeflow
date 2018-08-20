@@ -8,6 +8,7 @@ mv ks_0.11.0_linux_amd64/ks /usr/local/bin/
 curl https://raw.githubusercontent.com/cheyang/kubeflow/support_customized_image/scripts/download.sh | bash
 export PATH=${PWD}/scripts:$PATH
 
+kubectl create ns kubeflow
 kfctl.sh init myapp --platform ack
 cd myapp
 kfctl.sh generate all
