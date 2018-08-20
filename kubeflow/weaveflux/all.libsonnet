@@ -3,14 +3,14 @@
   // Each prototype should be a list of different parts that together
   // provide a userful function such as WeaveWorks Flux
   weaveflux(params, env):: [
-    $.parts(params, env).fluxip,
     $.parts(params, env).flux,
-    $.parts(params, env).memcachedep,
+    $.parts(params, env).memcached,
     $.parts(params, env).memcachesvc,
     $.parts(params, env).serviceAccount,
     $.parts(params, env).role,
     $.parts(params, env).roleBinding,
     $.parts(params, env).secret,
+    $.parts(params, env).fluxip,
 
   ],
 
@@ -85,7 +85,7 @@
         {
           kind: "ServiceAccount",
           name: "flux",
-          namespace: params.namespace,
+          namespace: "kubeflow",
         },
       ],
     },
@@ -167,86 +167,87 @@
           },
         },
       },
+    },
 
-      fluxip:: {
-        apiVersion: "v1",
-        kind: "Service",
-        metadata: {
-          labels: {
-            app: "flux",
-          },
-          name: "flux-ip",
+    fluxip:: {
+      apiVersion: "v1",
+      kind: "Service",
+      metadata: {
+        labels: {
+          app: "flux",
         },
-        spec: {
-          ports: [
-            {
-              port: 3030,
-              protocol: "TCP",
-              targetPort: 3030,
-            },
-          ],
-          selector: {
-            name: "flux",
-          },
-          type: params.serviceType,
-        },
+        name: "fluxip",
       },
-
-      memcachedep:: {
-        apiVersion: "extensions/v1beta1",
-        kind: "Deployment",
-        metadata: {
-          name: "memcached",
-        },
-        spec: {
-          replicas: 1,
-          template: {
-            metadata: {
-              labels: {
-                name: "memcached",
-              },
-            },
-            spec: {
-              containers: [
-                {
-                  args: [
-                    "-m 64",
-                    "-p 11211",
-                    "-vv",
-                  ],
-                  image: "memcached:1.4.25",
-                  imagePullPolicy: "IfNotPresent",
-                  name: "memcached",
-                  ports: [
-                    {
-                      containerPort: 11211,
-                      name: "clients",
-                    },
-                  ],
-                },
-              ],
-            },
+      spec: {
+        ports: [
+          {
+            port: 3030,
+            protocol: "TCP",
+            targetPort: 3030,
           },
+        ],
+        selector: {
+          name: "flux",
         },
+        type: params.serviceType,
       },
+    },
 
-      memcachesvc:: {
-        apiVersion: "v1",
-        kind: "Service",
-        metadata: {
-          name: "memcached",
-        },
-        spec: {
-          clusterIP: "None",
-          ports: [
-            {
+
+    memcached:: {
+      apiVersion: "extensions/v1beta1",
+      kind: "Deployment",
+      metadata: {
+        name: "memcached",
+      },
+      spec: {
+        replicas: 1,
+        template: {
+          metadata: {
+            labels: {
               name: "memcached",
-              port: 11211,
             },
-          ],
-          selector: {
-            name: "memcached",
           },
+          spec: {
+            containers: [
+              {
+                args: [
+                  "-m 64",
+                  "-p 11211",
+                  "-vv",
+                ],
+                image: "memcached:1.4.25",
+                imagePullPolicy: "IfNotPresent",
+                name: "memcached",
+                ports: [
+                  {
+                    containerPort: 11211,
+                    name: "clients",
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      },
+    },
+
+    memcachesvc:: {
+      apiVersion: "v1",
+      kind: "Service",
+      metadata: {
+        name: "memcachesvc",
+      },
+      spec: {
+        clusterIP: "None",
+        ports: [
+          {
+            name: "memcached",
+            port: 11211,
+          },
+        ],
+        selector: {
+          name: "memcached",
         },
       },
     },
