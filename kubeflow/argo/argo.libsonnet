@@ -201,7 +201,7 @@
           app: "argo-ui",
         },
         name: "argo-ui",
-        namespace: namespace,
+        namespace: params.namespace,
         annotations: {
           "getambassador.io/config":
             std.join("\n", [
@@ -211,7 +211,7 @@
               "name: argo-ui-mapping",
               "prefix: /argo/",
               "rewrite: /argo/",
-              "service: argo-ui." + namespace,
+              "service: argo-ui." + params.namespace,
             ]),
         },  //annotations
       },
