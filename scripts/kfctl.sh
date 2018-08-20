@@ -217,10 +217,7 @@ if [ "${COMMAND}" == "generate" ]; then
   if [ "${WHAT}" == "k8s" ] || [ "${WHAT}" == "all" ]; then  	   
     createKsApp
     customizeKsApp
-
-    if [ "${PLATFORM}" == "ack" ]; then
-      customizeKsAppWithDockerImage
-    fi
+    customizeKsAppWithDockerImage
 
     if [ "${PLATFORM}" == "gcp" ]; then
     	gcpGenerateKsApp
