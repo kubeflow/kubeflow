@@ -19,4 +19,37 @@ std.assertEqual(util.toBool(123), true) &&
 std.assertEqual(std.length(util.toArray("a,b,c,d")), 4) &&
 std.assertEqual(std.length(util.toArray(2)), 0) &&
 std.assertEqual(std.length(util.toArray("hello world")), 1) &&
-std.assertEqual(std.length(util.toArray([1, 2, 3, 4])), 0)
+std.assertEqual(std.length(util.toArray([1, 2, 3, 4])), 0) &&
+std.assertEqual(std.sort(std.objectFieldsAll(util.compose({foobar:{},}))), [
+   "apply",
+   "compose",
+   "foobar",
+   "toArray",
+   "toBool",
+   "toList",
+   "toMap",
+   "upper"
+]) && 
+std.assertEqual(util.compose({a: "1", b: "2", c: "3"}).toList, [
+  "1",
+  "2",
+  "3"
+]) &&
+std.assertEqual(std.objectFields(util.compose({parts(params):: [{
+  apiVersion: "rbac.authorization.k8s.io/v1",
+  kind: "Role",
+  metadata: {
+    name: "cloud-provider",
+  },
+  rules: [],
+},
+{
+  apiVersion: "v1",
+  kind: "ConfigMap",
+  metadata: {
+    name: "kube-dns",
+  },
+}]}).toMap({})), [
+   "ConfigMap/kube-dns",
+   "Role/cloud-provider"
+]) 
