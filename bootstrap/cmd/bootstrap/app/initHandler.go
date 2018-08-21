@@ -3,9 +3,9 @@ package app
 import (
 	"github.com/go-kit/kit/endpoint"
 	"golang.org/x/net/context"
-		"golang.org/x/oauth2"
+	"golang.org/x/oauth2"
 	log "github.com/sirupsen/logrus"
-				"google.golang.org/api/cloudresourcemanager/v1"
+	"google.golang.org/api/cloudresourcemanager/v1"
 )
 
 const IAM_ADMIN_ROLE = "roles/resourcemanager.projectIamAdmin"
