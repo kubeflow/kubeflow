@@ -25,6 +25,9 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 	type_v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
+	"k8s.io/api/rbac/v1"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	"github.com/ghodss/yaml"
 )
 
 // The name of the prototype for Jupyter.
@@ -36,7 +39,7 @@ type KsService interface {
 	CreateApp(context.Context, CreateRequest) error
 	// Apply ksonnet app to target GKE cluster
 	Apply(ctx context.Context, req ApplyRequest) error
-	InsertSaKey(context.Context, InsertSaKeyRequest) error
+	InsertSaKey(context.Context, InsertSaKeyRequest, string, string, string) error
 	BindRole(context.Context, InitProjectRequest, string) error
 }
 
@@ -62,6 +65,27 @@ type ksServer struct {
 	apps    map[string]*appInfo
 	appsMux sync.Mutex
 	iamMux sync.Mutex
+}
+
+type namedCluster struct {
+	Cluster *clientcmdapi.Cluster `json:"cluster"`
+	Name string `json:"name,omitempty"`
+}
+type namedAuthInfo struct {
+	AuthInfo *clientcmdapi.AuthInfo `json:"user"`
+	Name string `json:"name,omitempty"`
+}
+type namedContext struct {
+	Context *clientcmdapi.Context `json:"context"`
+	Name string `json:"name,omitempty"`
+}
+type k8sConfig struct {
+	Kind string `json:"kind,omitempty"`
+	APIVersion string `json:"apiVersion,omitempty"`
+	Clusters []namedCluster `json:"clusters"`
+	AuthInfos []namedAuthInfo `json:"users"`
+	Contexts []namedContext `json:"contexts"`
+	CurrentContext string `json:"current-context"`
 }
 
 // NewServer constructs a ksServer.
@@ -144,6 +168,8 @@ type CreateRequest struct {
 
 	// Access token, need to access target cluster in order for AutoConfigure
 	Token string
+	Apply bool
+	Email string
 }
 
 // basicServerResponse is general response contains nil if handler raise no error, otherwise an error message.
@@ -178,6 +204,7 @@ type ApplyRequest struct {
 	// Token is an authorization token to use to authorize to the K8s API Server.
 	// Leave blank to use the pods service account.
 	Token string
+	Email string
 }
 
 func setupNamespace(namespaces type_v1.NamespaceInterface, name_space string) error {
@@ -226,7 +253,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 		log.Infof("Using K8s host %v", config.Host)
 		envName := "default"
 
-		appDir := path.Join(s.appsDir, request.Name)
+		appDir := path.Join(s.appsDir, request.Project, request.Name)
 		_, err := s.fs.Stat(appDir)
 
 		if err != nil {
@@ -315,7 +342,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 		return fmt.Errorf("There was a problem generating app: %v", err)
 	}
 	if request.AutoConfigure {
-		return s.autoConfigureApp(&a.App, &request.AppConfig, request.Namespace, config)
+		s.autoConfigureApp(&a.App, &request.AppConfig, request.Namespace, config)
 	}
 
 	log.Infof("Created and initialized app at %v", a.App.Root())
@@ -539,6 +566,29 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 		a.mux.Lock()
 		defer a.mux.Unlock()
 
+		roleBinding := v1.ClusterRoleBinding{
+			TypeMeta: meta_v1.TypeMeta{
+				APIVersion: "rbac.authorization.k8s.io/v1beta1",
+				Kind:       "ClusterRoleBinding",
+			},
+			ObjectMeta: meta_v1.ObjectMeta{
+				Name: "default-admin",
+			},
+			RoleRef: v1.RoleRef{
+				APIGroup: "rbac.authorization.k8s.io",
+				Kind:     "ClusterRole",
+				Name:     "cluster-admin",
+			},
+			Subjects: []v1.Subject{
+				{
+					Kind:      v1.UserKind,
+					Name:      req.Email,
+				},
+			},
+		}
+
+		createK8sRoleBing(config, &roleBinding)
+
 		// (05092018): we shell out to ks apply and don't use ksonnet apply function because
 		// ks runApply API expects clientcmd.ClientConfig, which has a soft dependency on existence of ~/.kube/config
 		// if we use k8s client-go API, would be quite verbose if we create all resources one by one.
@@ -546,22 +596,62 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 		if err := os.Chdir(a.App.Root()); err != nil {
 			return err
 		}
-		_, err = s.fs.Stat(path.Join(a.App.Root(), "caFile"))
+
+		// k8s config template
+		cfg := k8sConfig{
+			Kind: "Config",
+			APIVersion: "v1",
+			Clusters: []namedCluster{
+				{
+					Name: "activeCluster",
+					Cluster: &clientcmdapi.Cluster{
+						CertificateAuthorityData: config.TLSClientConfig.CAData,
+						Server: config.Host,
+					},
+				},
+			},
+			Contexts: []namedContext{
+				{
+					Name: "activeCluster",
+					Context: &clientcmdapi.Context{
+						Cluster: "activeCluster",
+						AuthInfo: "activeCluster",
+					},
+				},
+			},
+			CurrentContext: "activeCluster",
+			AuthInfos: []namedAuthInfo{
+				{
+					Name: "activeCluster",
+					AuthInfo: &clientcmdapi.AuthInfo{
+						Token: token,
+					},
+				},
+			},
+		}
+
+		_, err = s.fs.Stat(path.Join(a.App.Root(), "kubeconfig"))
+		if err == nil {
+			os.Remove(path.Join(a.App.Root(), "kubeconfig"))
+		}
 
 		// Store CA file in app's root dir if not already exists
+		y, err := yaml.Marshal(cfg)
 		if err != nil {
-			f, err := os.Create(path.Join(a.App.Root(), "caFile"))
-			if err != nil {
-				return err
-			}
-			_, err = f.Write(config.TLSClientConfig.CAData)
-			if err != nil {
-				return err
-			}
-			f.Sync()
-			f.Close()
+			return err
 		}
-		applyArgs = fmt.Sprintf("--token=%v --server=%v --certificate-authority=caFile", token, config.Host)
+		f, err := os.Create(path.Join(a.App.Root(), "kubeconfig"))
+		if err != nil {
+			return err
+		}
+		_, err = f.Write(y)
+		if err != nil {
+			return err
+		}
+		f.Sync()
+		f.Close()
+
+		applyArgs = fmt.Sprintf("--kubeconfig=%v", "kubeconfig")
 	}
 
 	for _, component := range req.Components {
@@ -611,6 +701,26 @@ func makeCreateAppEndpoint(svc KsService) endpoint.Endpoint {
 
 		if err != nil {
 			r.Err = err.Error()
+		} else {
+			if req.Apply {
+				components := []string{}
+				for _, comp := range req.AppConfig.Components {
+					components = append(components, comp.Name)
+				}
+				err = svc.Apply(ctx, ApplyRequest{
+					Name: req.Name,
+					Environment: "default",
+					Components: components,
+					Cluster: req.Cluster,
+					Project: req.Project,
+					Zone: req.Zone,
+					Token: req.Token,
+					Email: req.Email,
+				})
+				if err != nil {
+					r.Err = err.Error()
+				}
+			}
 		}
 		return r, nil
 	}
@@ -629,8 +739,15 @@ func makeHealthzEndpoint(svc KsService) endpoint.Endpoint {
 func makeSaKeyEndpoint(svc KsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(InsertSaKeyRequest)
-		err := svc.InsertSaKey(ctx, req)
+		err := svc.InsertSaKey(ctx, req, "admin-gcp-sa.json", "admin-gcp-sa",
+			fmt.Sprintf("%v-admin@%v.iam.gserviceaccount.com", req.Cluster, req.Project))
 		r := &basicServerResponse{}
+		if err != nil {
+			r.Err = err.Error()
+			return r, nil
+		}
+		err = svc.InsertSaKey(ctx, req, "user-gcp-sa.json", "user-gcp-sa",
+			fmt.Sprintf("%v-user@%v.iam.gserviceaccount.com", req.Cluster, req.Project))
 		if err != nil {
 			r.Err = err.Error()
 		}

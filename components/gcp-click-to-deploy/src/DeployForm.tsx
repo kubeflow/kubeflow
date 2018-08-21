@@ -280,24 +280,19 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     kubeflow.properties.clientId = btoa(this.state.clientId);
     kubeflow.properties.clientSecret = btoa(this.state.clientSecret);
 
-    const config: any = jsYaml.safeLoad(kubeflow.properties.bootstrapperConfig);
-
-    if (config == null) {
-      this.setState({
-        dialogBody: 'Property bootstrapperConfig not found in deployment config.',
-        dialogTitle: 'Deployment Error',
-      });
-      return;
-    }
-
     const state = this.state;
-    config.app.parameters.forEach((p: any) => {
+    const email = await Gapi.getSignedInEmail();
+    this._configSpec.defaultApp.parameters.forEach((p: any) => {
       if (p.name === 'ipName') {
         p.value = state.ipName;
       }
 
-      if (p.hostname === 'hostname') {
+      if (p.name === 'hostname') {
         p.value = state.hostName;
+      }
+
+      if (p.name === 'acmeEmail') {
+        p.value = email;
       }
     });
 
@@ -415,7 +410,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       return;
     }
 
-    // Step 2: Set IAM Adming Policy
+    // Step 2: Set IAM Admin Policy
     const projectNumber = await Gapi.cloudresourcemanager.getProjectNumber(project)
       .catch(e => {
         this.setState({
@@ -431,6 +426,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
 
     this._appendLine('Proceeding with project number: ' + projectNumber);
     const token = await Gapi.getToken();
+    let readiness = false;
     await request(
       {
         body: JSON.stringify(
@@ -449,6 +445,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           try {
             const msg = JSON.parse(response.body).Reply;
             this._appendLine('project init succeeded: ' + msg);
+            readiness = true;
           }
           catch (e) {
             this._appendLine('Backend returned non-json response: ');
@@ -460,7 +457,18 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       }
     );
 
+    let initAttempts = 0;
+    const initTimeout = 2000;
+    do {
+      initAttempts++;
+      await wait(initTimeout);
+    } while (!readiness && initAttempts < 10);
+
     // Step 3: Create GCP Deployment
+
+    if (!readiness) {
+      return;
+    }
 
     const resource = await this._getYaml();
     if (!resource) {
@@ -503,12 +511,12 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     } while (status !== 'DONE' && getAttempts < 30);
 
     if (status !== 'DONE') {
-      const dmConsole = 'https://console.cloud.google.com/deployments'
+      const dmConsole = 'https://console.cloud.google.com/deployments';
       this._appendLine(`Deployment ${deploymentName} didn't finish within 10 minutes, check ${dmConsole} for more info`);
-      return
+      return;
     }
 
-    await request(
+    request(
       {
         body: JSON.stringify(
           {
@@ -529,6 +537,37 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       (error, response, body) => {
         if (!error) {
           this._appendLine('Service Account Key inserted.');
+        } else {
+          this._appendLine('error: ' + response.statusCode);
+        }
+      }
+    );
+
+    const email = await Gapi.getSignedInEmail();
+    const createBody = JSON.stringify(
+      {
+        AppConfig: this._configSpec.defaultApp,
+        Apply: true,
+        AutoConfigure: true,
+        Cluster: this.state.deploymentName,
+        Email: email,
+        Name: 'kubeflow',
+        Namespace: 'kubeflow',
+        Project: project,
+        Token: token,
+        Zone: this.state.zone,
+      }
+    );
+    request(
+      {
+        body: createBody,
+        headers: { 'content-type': 'application/json' },
+        method: 'PUT',
+        uri: this._configSpec.appAddress + '/apps/create',
+      },
+      (error, response, body) => {
+        if (!error) {
+          this._appendLine('ksonnet app created.');
         } else {
           this._appendLine('error: ' + response.statusCode);
         }

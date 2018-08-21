@@ -59,5 +59,5 @@ func (s *ServerOption) AddFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&s.KeepAlive, "keep-alive", true, "Whether bootstrapper will stay alive after setup resources.")
 	// TODO(jlewi): We should probably change the default to the empty string because running as a server
 	// will be far more common then doing a one off batch job based on a config file.
-	fs.StringVar(&s.Config, "config", "/opt/kubeflow/default.yaml", "Path to a YAML file describing an app to create on startup.")
+	fs.StringVar(&s.Config, "config", "", "Path to a YAML file describing an app to create on startup.")
 }
