@@ -9,7 +9,6 @@
 [ -z ${NAMESPACE} ] && echo Error NAMESPACE must be set && exit 1
 [ -z ${SERVICE} ] && echo Error SERVICE must be set && exit 1
 
-apk add --update jq
 curl https://storage.googleapis.com/kubernetes-release/release/v1.9.4/bin/linux/amd64/kubectl > /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
 
 
@@ -56,7 +55,7 @@ curl -s ${ENVOY_ADMIN}/quitquitquit
 
 function checkIAP() {
 # created by init container.
-. /var/shared/healthz.env 
+. /var/shared/healthz.env
 
 # If node port or backend id change, so does the JWT audience.
 CURR_NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[0].nodePort}')

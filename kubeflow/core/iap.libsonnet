@@ -18,15 +18,15 @@
       },
     }.result,
 
-    ingressParts(secretName, ipName, hostname, issuer, envoyImage, disableJwt, oauthSecretName):: std.prune(k.core.v1.list.new([
+    ingressParts(secretName, ipName, hostname, issuer, envoyImage, iapImage, disableJwt, oauthSecretName, privateGKECluster):: std.prune(k.core.v1.list.new([
       $.parts(namespace).service,
       $.parts(namespace).ingress(secretName, ipName, hostname),
-      $.parts(namespace).certificate(secretName, hostname, issuer),
+      (if privateGKECluster == "false" then $.parts(namespace).certificate(secretName, hostname, issuer)),
       $.parts(namespace).initServiceAccount,
       $.parts(namespace).initClusterRoleBinding,
       $.parts(namespace).initClusterRole,
-      $.parts(namespace).deploy(envoyImage, oauthSecretName),
-      $.parts(namespace).iapEnabler(oauthSecretName),
+      $.parts(namespace).deploy(envoyImage, oauthSecretName, iapImage),
+      $.parts(namespace).iapEnabler(oauthSecretName, iapImage),
       $.parts(namespace).configMap(disableJwt),
       $.parts(namespace).whoamiService,
       $.parts(namespace).whoamiApp,
@@ -157,7 +157,7 @@
       ],
     },  // envoyContainer
 
-    deploy(image, oauthSecretName):: {
+    deploy(image, oauthSecretName, iapImage):: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -188,7 +188,7 @@
               }),
               {
                 name: "iap",
-                image: "google/cloud-sdk:alpine",
+                image: iapImage,
                 command: [
                   "sh",
                   "/var/envoy-config/configure_envoy_for_iap.sh",
@@ -273,7 +273,7 @@
     },  // deploy
 
     // Run the process to enable iap
-    iapEnabler(oauthSecretName):: {
+    iapEnabler(oauthSecretName, iapImage):: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -293,7 +293,7 @@
             containers: [
               {
                 name: "iap",
-                image: "google/cloud-sdk:alpine",
+                image: iapImage,
                 command: [
                   "sh",
                   "/var/envoy-config/setup_iap.sh",
