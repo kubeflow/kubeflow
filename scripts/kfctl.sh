@@ -15,9 +15,12 @@ WHAT=$2
 
 ENV_FILE="env.sh"
 
+KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"}
+KUBEFLOW_DEPLOY=${KUBEFLOW_DEPLOY:-true}
+K8S_NAMESPACE=${K8S_NAMESPACE:-"kubeflow"}
+KUBEFLOW_CLOUD=${KUBEFLOW_CLOUD:-"minikube"}
+
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
-source "${DIR}/util.sh"
-source "${DIR}/gke/util.sh"
 
 createEnv() {
 	# Check if there is a file env.sh
@@ -35,6 +38,16 @@ createEnv() {
 
 	if [ "${PLATFORM}" == "minikube" ]; then
 	  echo KUBEFLOW_CLOUD=minikube >> ${ENV_FILE}
+    set +x
+    infer_minikube_settings
+    set -x
+    download_kubeflow_source
+    echo HOST_PLATFPORM=${HOST_PLATFPORM} >> ${ENV_FILE}
+    echo MOUNT_LOCAL=${MOUNT_LOCAL} >> ${ENV_FILE}
+    echo MINIKUBE_CMD=\"${MINIKUBE_CMD}\" >> ${ENV_FILE}
+    echo KUBEFLOW_REPO="$(pwd)/kubeflow-${KUBEFLOW_VERSION}" >> ${ENV_FILE}
+    echo MOUNT_LOCAL=${MOUNT_LOCAL} >> ${ENV_FILE}
+    cleanup_and_deploy_minikube
 	fi
 
 	if [ "${PLATFORM}" == "gcp" ]; then
@@ -87,6 +100,18 @@ createEnv() {
     fi
 }
 
+# For minikube single script download experience
+function download_kfctl_scripts() {
+  curl -O https://raw.githubusercontent.com/kubeflow/kubeflow/${KUBEFLOW_VERSION}/scripts/util.sh
+  cp ~/kubeflow/scripts/util-minikube.sh .
+  # curl -O https://raw.githubusercontent.com/kubeflow/kubeflow/${KUBEFLOW_VERSION}/scripts/util-minikube.sh
+  mkdir -p gke
+  pushd .
+  cd gke
+  curl -O https://raw.githubusercontent.com/kubeflow/kubeflow/${KUBEFLOW_VERSION}/scripts/gke/util.sh
+  popd
+}
+
 if [ "${COMMAND}" == "init" ]; then
 	DEPLOYMENT_NAME=${WHAT}	
 
@@ -107,6 +132,16 @@ if [ "${COMMAND}" == "init" ]; then
       esac
       shift
 	done
+
+  # Download minikube dependencies
+  if [ "${PLATFORM}" == "minikube" ]; then
+    download_kfctl_scripts
+  fi
+
+  source "${DIR}/util.sh"
+  source "${DIR}/gke/util.sh"
+  source "${DIR}/util-minikube.sh"
+
 	mkdir -p ${DEPLOYMENT_NAME}
 	# Most commands expect to be executed from the app directory
 	cd ${DEPLOYMENT_NAME}
@@ -143,6 +178,9 @@ if [ "${COMMAND}" == "init" ]; then
 fi
 
 source ${ENV_FILE}
+source "${DIR}/util.sh"
+source "${DIR}/gke/util.sh"
+source "${DIR}/util-minikube.sh"
 
 if [ -z "${COMMAND}" ]; then
   echo COMMAND must be provided
@@ -155,11 +193,6 @@ if [ -z "${WHAT}" ]; then
   usage
   exit 1
 fi
-
-KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"}
-KUBEFLOW_DEPLOY=${KUBEFLOW_DEPLOY:-true}
-K8S_NAMESPACE=${K8S_NAMESPACE:-"kubeflow"}
-KUBEFLOW_CLOUD=${KUBEFLOW_CLOUD:-"minikube"}
 
 # TODO(ankushagarwal): verify ks version is higher than 0.11.0
 check_install ks
@@ -176,7 +209,20 @@ ksApply () {
   pushd .
   cd "${KUBEFLOW_KS_DIR}"
 
+  if [ "${PLATFORM}" == "minikube" ]; then
     set +e
+    O=`kubectl get namespace ${K8S_NAMESPACE} 2>&1`
+    RESULT=$?
+    set -e
+
+    if [ "${RESULT}" -eq 0 ]; then
+      echo "namespace ${K8S_NAMESPACE} already exists"
+    else
+      kubectl create namespace ${K8S_NAMESPACE}
+    fi
+  fi
+
+  set +e
   O=$(ks env describe default 2>&1)
   RESULT=$?
   set -e
@@ -195,11 +241,21 @@ ksApply () {
   ks apply default -c argo
   ks apply default -c spartakus
   popd
+
+  set +x
+  if [ "${PLATFORM}" == "minikube" ]; then
+    if is_kubeflow_ready; then
+      mount_local_fs
+      setup_tunnels
+    else
+      echo -e "${RED}Unable to get kubeflow ready${NC}"
+    fi
+  fi
+  set -x
 }
 
 source "${ENV_FILE}"
 
-echo PLATFORM=${PLATFORM}
 if [ "${COMMAND}" == "generate" ]; then
   if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ]; then
   	if [ "${PLATFORM}" == "gcp" ]; then
@@ -214,6 +270,15 @@ if [ "${COMMAND}" == "generate" ]; then
 
     if [ "${PLATFORM}" == "gcp" ]; then
     	gcpGenerateKsApp
+    fi
+
+    if [ "${PLATFORM}" == "minikube" ]; then
+      create_local_fs_mount_spec
+      if ${MOUNT_LOCAL}; then
+        ks param set jupyterhub disks "local-notebooks" 
+        ks param set jupyterhub notebookUid `id -u`
+        ks param set jupyterhub notebookGid `id -g`
+      fi
     fi
   fi
 fi

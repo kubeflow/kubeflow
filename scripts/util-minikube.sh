@@ -11,8 +11,8 @@ NC='\033[0m'
 OSX="Darwin"
 LINUX="Linux"
 
-PLATFORM=`uname`
-if [[ $PLATFORM == $LINUX ]]
+HOST_PLATFORM=`uname`
+if [[ ${HOST_PLATFORM} == $LINUX ]]
 then
   fpn=`uname -a`
   if [[ $fpn =~ *(Ubuntu|Debian)* ]]
@@ -40,15 +40,35 @@ function main() {
   fi
 }
 
-function install_kubectl_minikube() {
+function install_ks_kubectl_minikube() {
+  # Installing ksonnet if needed
+  KS_VERSION=`ks version | grep 'ksonnet version' | awk '{print $3}'`
+  if [[ $KS_VERSION != "0.11.0" ]]
+  then
+    echo -e "${YELLOW}Installing ksonnet...${NC}"
+    if [[ ${HOST_PLATFORM} == $OSX ]]
+    then
+      curl -OL https://github.com/ksonnet/ksonnet/releases/download/v0.11.0/ks_0.11.0_darwin_amd64.tar.gz
+      tar zxf ks_0.11.0_darwin_amd64.tar.gz
+      export PATH=$PATH:$(pwd)/ks_0.11.0_darwin_amd64
+    
+    elif [[ ${HOST_PLATFORM} == $LINUX ]]
+    then
+      curl -OL https://github.com/ksonnet/ksonnet/releases/download/v0.11.0/ks_0.11.0_linux_amd64.tar.gz
+      tar zxf ks_0.11.0_linux_amd64.tar.gz
+      export PATH=$PATH:$(pwd)/ks_0.11.0_linux_amd64
+    fi
+    echo -e "${GREEN}[OK]${NC}"
+  fi
+
   # Installing kubectl if needed
   if ! kubectl -h 2>&1 >/dev/null
   then
     echo -e "${YELLOW}Installing kubectl...${NC}"
-    if [[ $PLATFORM == $OSX ]]
+    if [[ ${HOST_PLATFORM} == $OSX ]]
     then
       brew install kubectl
-    elif [[ $PLATFORM == $LINUX ]]
+    elif [[ ${HOST_PLATFORM} == $LINUX ]]
     then
       if [[ $DIST_TYPE == "Ubuntu" ]]
       then
@@ -79,10 +99,10 @@ EOF
   if ! minikube -h 2>&1 >/dev/null
   then
     echo -e "${YELLOW}Installing minikube...$NC}"
-    if [[ $PLATFORM == $OSX ]]
+    if [[ ${HOST_PLATFORM} == $OSX ]]
     then
       curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.28.0/minikube-darwin-amd64 && chmod +x minikube && sudo mv minikube /usr/local/bin/
-    elif [[ $PLATFORM == $LINUX ]]
+    elif [[ ${HOST_PLATFORM} == $LINUX ]]
     then
       curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.28.0/minikube-linux-amd64 && chmod +x minikube && sudo mv minikube /usr/local/bin/
     fi
@@ -91,15 +111,18 @@ EOF
 }
 
 function cleanup_and_deploy_minikube() {
-  install_kubectl_minikube
+  install_ks_kubectl_minikube
 
   # Stop and delete previous existence of Minikube VM.
   mini_running=`minikube status | grep 'minikube:' | awk '{print $2}'`
-  if [[ $mini_running = "Running" ]]
+  if [[ $mini_running != "" ]]
   then
-    minikube stop
+    if [[ $mini_running = "Running" ]]
+    then
+      minikube stop
+    fi
+    minikube delete
   fi
-  minikube delete
 
   # start minikube with desired settings
   $MINIKUBE_CMD
@@ -116,10 +139,10 @@ function cleanup_and_deploy_minikube() {
 function infer_minikube_settings() {
   # cpus
   local np=3
-  if [[ $PLATFORM == $LINUX ]]
+  if [[ ${HOST_PLATFORM} == $LINUX ]]
   then
     np=`nproc --all`
-  elif [[ $PLATFORM == $OSX ]]
+  elif [[ ${HOST_PLATFORM} == $OSX ]]
   then
     np=`sysctl -n hw.ncpu`
   fi
@@ -133,11 +156,11 @@ function infer_minikube_settings() {
 
   # memory
   local mm=8
-  if [[ $PLATFORM == $LINUX ]]
+  if [[ ${HOST_PLATFORM} == $LINUX ]]
   then
     local mm_kb=`cat /proc/meminfo | grep 'MemTotal' | awk '{print $2}'`
     mm=$(( mm_kb * KB1 / GB1 ))
-  elif [[ $PLATFORM == $OSX ]]
+  elif [[ ${HOST_PLATFORM} == $OSX ]]
   then
     mm=$(( `sysctl -n hw.memsize` / GB1 ))
   fi
@@ -186,72 +209,20 @@ function infer_minikube_settings() {
   fi
 }
 
-function download_kfctl_scripts() {
-  curl -O https://raw.githubusercontent.com/kubeflow/kubeflow/master/scripts/kfctl.sh
-  chmod +x kfctl.sh
-  curl -O https://raw.githubusercontent.com/kubeflow/kubeflow/master/scripts/util.sh
-  mkdir -p gke
-  pushd .
-  cd gke
-  curl -O https://raw.githubusercontent.com/kubeflow/kubeflow/master/scripts/gke/util.sh
-  popd
-}
-
-function deploy_kubeflow() {
-  # pull bootstrapper config and deloy kubeflow
-  # curl -O https://raw.githubusercontent.com/kubeflow/kubeflow/v0.2.0/bootstrap/bootstrapper.yaml
-  # kubectl create -f bootstrapper.yaml
-
-  # kfctl installation
-  set +e
-  O=`kubectl get namespace kubeflow 2>&1`
-  RESULT=$?
-  set -e
-
-  if [ "${RESULT}" -eq 0 ]; then
-    echo namespace kubeflow already exists
-  else
-    kubectl create namespace kubeflow
-  fi
-
-  if [ -e ./localapp ]
-  then
-    rm -rf ./localapp
-  fi
-
-  #download_kfctl_scripts
-  KUBEFLOW_REPO=/Users/abhishek/code/kubeflow ./kfctl.sh init localapp --platform minikube
-  pushd .
-  cd localapp
-  ../kfctl.sh generate all
-  ../kfctl.sh apply all
-  popd
-
-  if is_kubeflow_ready
-  then
-    mount_local_fs
-    setup_tunnels
-  else
-    echo -e "${RED}Unable to get kubeflow ready${NC}"
-  fi
+function download_kubeflow_source() {
+  # download source zip
+  curl -OL https://github.com/kubeflow/kubeflow/archive/${KUBEFLOW_VERSION}.zip
+  unzip ${KUBEFLOW_VERSION}.zip
+  rm ${KUBEFLOW_VERSION}.zip
 }
 
 function is_kubeflow_ready() {
-#  echo -ne "${YELLOW}Downloading bootstrapper image."
-#  until [[ `kubectl -n kubeflow-admin get pod kubeflow-bootstrapper-0 | tail -1 | awk '{print $3}'` == "Running" ]]
-#  do
-#    echo -n "."
-#    sleep 30
-#  done
-#  echo -e "${GREEN}[OK]${NC}"
-
   echo -en "${YELLOW}Getting kubeflow namespace ready...${NC}"
   local ns_ready=false
   for i in {1..5}
   do
-    kube_ns=`kubectl get namespaces | grep kubeflow | wc -l`
-    # if [ $kube_ns = 2 ]
-    if [ $kube_ns = 1 ]  # for kfctl
+    kube_ns=`kubectl get namespaces | grep ${K8S_NAMESPACE} | wc -l`
+    if [ $kube_ns = 1 ]
     then
        ns_ready=true
        echo -e "${GREEN}[OK]${NC}"
@@ -272,8 +243,8 @@ function is_kubeflow_ready() {
   until (( "$amb_up" > 0 && "$tf_hub_up" > 0 ))
   do
     sleep 30
-    amb_up=`kubectl -n kubeflow get pods | grep Running | grep ambassador | wc -l`
-    tf_hub_up=`kubectl -n kubeflow get pods | grep Running | grep tf-hub | wc -l`
+    amb_up=`kubectl -n ${K8S_NAMESPACE} get pods | grep Running | grep ambassador | wc -l`
+    tf_hub_up=`kubectl -n ${K8S_NAMESPACE} get pods | grep Running | grep tf-hub | wc -l`
     echo -n "."
     if (( "$amb_up" > 0 && "$tf_hub_up" > 0 ))
     then
@@ -289,14 +260,11 @@ function is_kubeflow_ready() {
   fi
 }
 
-
-# if user requested a local fs path to be mounted, make it accessible via
-# Jupyter Notebooks
-function mount_local_fs() {
+function create_local_fs_mount_spec() {
   if $MOUNT_LOCAL
   then
     # Create a persistent volume
-    cat <<EOF > ./pv.yaml
+    cat <<EOF > ${KUBEFLOW_KS_DIR}/pv.yaml
 kind: PersistentVolume
 apiVersion: v1
 metadata:
@@ -324,7 +292,7 @@ EOF
   kubectl create -f ./pv.yaml
 
   # Create a PVC attached to the volume
-  cat <<EOF > ./pv-claim.yaml
+  cat <<EOF > ${KUBEFLOW_KS_DIR}/pv-claim.yaml
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
@@ -338,13 +306,17 @@ spec:
       storage: 10Gi
   volumeName: local-volume
 EOF
-  kubectl create -n kubeflow -f ./pv-claim.yaml
+  kubectl create -n ${K8S_NAMESPACE} -f ./pv-claim.yaml
 
-  # update tf-hub stateful set env to use the claim
-  kubectl -n kubeflow set env statefulset tf-hub -e KF_PVC_LIST=local-notebooks
-  kubectl -n kubeflow set env statefulset tf-hub -e NOTEBOOK_UID=`id -u`
-  kubectl -n kubeflow set env statefulset tf-hub -e NOTEBOOK_GID=`id -g`
+}
 
+# if user requested a local fs path to be mounted, make it accessible via
+# Jupyter Notebooks
+function mount_local_fs() {
+  if $MOUNT_LOCAL
+  then
+    kubectl create -f ${KUBEFLOW_KS_DIR}/pv.yaml
+    kubectl create -n ${K8S_NAMESPACE} -f ${KUBEFLOW_KS_DIR}/pv-claim.yaml
   fi
 }
 
@@ -355,5 +327,3 @@ function setup_tunnels() {
   echo -e "Access Kubeflow dashboard at ${GREEN}http://localhost:8080/${NC}"
   echo -e "Access JupyterHub at ${GREEN}http://localhost:8080/hub/${NC}"
 }
-
-main "$@"

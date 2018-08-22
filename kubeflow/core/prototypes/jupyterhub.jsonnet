@@ -13,6 +13,8 @@
 // @optionalParam repoName string kubeflow-images-public The repository name for JupyterNotebook.
 // @optionalParam disks string null Comma separated list of Google persistent disks to attach to jupyter environments.
 // @optionalParam gcpSecretName string user-gcp-sa The name of the secret containing service account credentials for GCP
+// @optionalParam notebookUid string 1000 UserId of the host user for minikube local fs mount
+// @optionalParam notebookGid string 100 GroupID of the host user for minikube local fs mount
 
 // updatedParams uses the environment namespace if
 // the namespace parameter is not explicitly set
