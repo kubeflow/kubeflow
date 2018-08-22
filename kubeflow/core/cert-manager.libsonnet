@@ -2,8 +2,6 @@
   parts(params):: {
     local namespace = params.namespace,
     local k = import "k.libsonnet",
-    local certManagerImage = params.certManagerImage,
-    local certManagerIngressShimImage = params.certManagerIngressShimImage,
 
     // Note, not using std.prune to preserve required empty http01 map in the Issuer spec.
     certManagerParts():: k.core.v1.list.new([
@@ -13,7 +11,7 @@
       $.parts(params).serviceAccount,
       $.parts(params).clusterRole,
       $.parts(params).clusterRoleBinding,
-      $.parts(params).deploy,
+      $.parts(params).deploy(params.certManagerImage),
       $.parts(params).issuerLEProd(params.acmeEmail, params.acmeUrl),
     ]),
 
@@ -92,7 +90,7 @@
         },
         {
           apiGroups: [""],
-          resources: ["secrets", "events", "endpoints", "services", "pods"],
+          resources: ["secrets", "events", "endpoints", "services", "pods", "configmaps"],
           verbs: ["*"],
         },
         {
@@ -123,7 +121,7 @@
       ],
     },
 
-    deploy:: {
+    deploy(certManagerImage):: {
       apiVersion: "apps/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -148,11 +146,10 @@
                 name: "cert-manager",
                 image: certManagerImage,
                 imagePullPolicy: "IfNotPresent",
-              },
-              {
-                name: "ingress-shim",
-                image: certManagerIngressShimImage,
-                imagePullPolicy: "IfNotPresent",
+                args: [
+                  "--cluster-resource-namespace=" + namespace,
+                  "--leader-election-namespace=" + namespace,
+                ],
               },
             ],
           },
