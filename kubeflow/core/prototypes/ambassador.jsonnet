@@ -9,6 +9,8 @@
 // @optionalParam statsdImage string quay.io/datawire/statsd:0.37.0 The image for the Stats and Monitoring.
 // @optionalParam statsdExporterImage string prom/statsd-exporter:v0.6.0 The image for the Statsd exporter.
 
+local ambassador = import "kubeflow/core/ambassador.libsonnet";
+
 local isDashboardTls =
   if params.cloud == "acsengine" || params.cloud == "aks" then
     "false"
@@ -266,24 +268,7 @@ local replicas = if params.cloud == "minikube" then 1 else 3;
     metadata: {
       name: "k8s-dashboard",
       namespace: env.namespace,
-
-      annotations: {
-        "getambassador.io/config":
-          std.join("\n", [
-            "---",
-            "apiVersion: ambassador/v0",
-            "kind:  Mapping",
-            "name: k8s-dashboard-ui-mapping",
-            "prefix: /k8s/ui/",
-            "rewrite: /",
-            "tls: " + isDashboardTls,
-            // We redirect to the K8s service created for the dashboard
-            // in namespace kube-system. We don't use the k8s-dashboard service
-            // because that isn't in the kube-system namespace and I don't think
-            // it can select pods in a different namespace.
-            "service: kubernetes-dashboard.kube-system",
-          ]),
-      },  //annotations
+      annotations: ambassador.annotations(isDashboardTls),
     },
     spec: {
       ports: [
