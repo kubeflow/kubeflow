@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# A fragile and basic script to do Minikube & Kubeflow installation on
+# Helper functions for minikube deployment of kubeflow
 # Linux or Mac OS X
 
 RED='\033[0;31m'
@@ -30,15 +30,6 @@ MOUNT_LOCAL=false
 GB1=$(( 1024 * 1024 * 1024 ))
 MB1=$(( 1024 * 1024 ))
 KB1=$(( 1024 ))
-
-function main() {
-  infer_minikube_settings
-  if cleanup_and_deploy_minikube
-  then
-    sleep 30  # Give minikube time to take its first breath
-    deploy_kubeflow
-  fi
-}
 
 function install_ks_kubectl_minikube() {
   # Installing ksonnet if needed

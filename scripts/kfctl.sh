@@ -103,8 +103,7 @@ createEnv() {
 # For minikube single script download experience
 function download_kfctl_scripts() {
   curl -O https://raw.githubusercontent.com/kubeflow/kubeflow/${KUBEFLOW_VERSION}/scripts/util.sh
-  cp ~/kubeflow/scripts/util-minikube.sh .
-  # curl -O https://raw.githubusercontent.com/kubeflow/kubeflow/${KUBEFLOW_VERSION}/scripts/util-minikube.sh
+  curl -O https://raw.githubusercontent.com/kubeflow/kubeflow/${KUBEFLOW_VERSION}/scripts/util-minikube.sh
   mkdir -p gke
   pushd .
   cd gke
