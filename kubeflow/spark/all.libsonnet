@@ -5,6 +5,7 @@
   all(params, name, env):: [
     $.parts(params, name, env).serviceAccount,
     $.parts(params, name, env).clusterRole,
+    $.parts(params, name, env).clusterRoleBinding,
   ],
 
   // Parts should be a dictionary containing jsonnet representations of the various
@@ -121,6 +122,25 @@
 		]
 	    }
 	]
+    },
+    clusterRoleBinding:: {
+	"apiVersion": "rbac.authorization.k8s.io/v1beta1",
+	"kind": "ClusterRoleBinding",
+	"metadata": {
+	    "name": "sparkoperator"
+	},
+	"subjects": [
+	    {
+		"kind": "ServiceAccount",
+		"name": "sparkoperator",
+		"namespace": "sparkoperator"
+	    }
+	],
+	"roleRef": {
+	    "kind": "ClusterRole",
+	    "name": "sparkoperator",
+	    "apiGroup": "rbac.authorization.k8s.io"
+	}
     },
   }
 }
