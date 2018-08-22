@@ -116,7 +116,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       dialogBody: '',
       dialogTitle: '',
       hostName: '<HOST>.endpoints.<PROJECT>.cloud.goog',
-      ipName: 'kubeflow',
+      ipName: 'kubeflow-ip',
       project: 'cloud-ml-dev',
       showLogs: false,
       zone: 'us-east1-d',
@@ -279,6 +279,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     kubeflow.properties.zone = this.state.zone;
     kubeflow.properties.clientId = btoa(this.state.clientId);
     kubeflow.properties.clientSecret = btoa(this.state.clientSecret);
+    kubeflow.properties.ipName = this.state.ipName;
 
     const state = this.state;
     const email = await Gapi.getSignedInEmail();
