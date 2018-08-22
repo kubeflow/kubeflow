@@ -1,13 +1,10 @@
 package app
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
-	"os/exec"
 	"path"
 	"sync"
 
@@ -27,7 +24,8 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/api/rbac/v1"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-	"github.com/ghodss/yaml"
+	"github.com/ksonnet/ksonnet/pkg/client"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 // The name of the prototype for Jupyter.
@@ -65,27 +63,6 @@ type ksServer struct {
 	apps    map[string]*appInfo
 	appsMux sync.Mutex
 	iamMux sync.Mutex
-}
-
-type namedCluster struct {
-	Cluster *clientcmdapi.Cluster `json:"cluster"`
-	Name string `json:"name,omitempty"`
-}
-type namedAuthInfo struct {
-	AuthInfo *clientcmdapi.AuthInfo `json:"user"`
-	Name string `json:"name,omitempty"`
-}
-type namedContext struct {
-	Context *clientcmdapi.Context `json:"context"`
-	Name string `json:"name,omitempty"`
-}
-type k8sConfig struct {
-	Kind string `json:"kind,omitempty"`
-	APIVersion string `json:"apiVersion,omitempty"`
-	Clusters []namedCluster `json:"clusters"`
-	AuthInfos []namedAuthInfo `json:"users"`
-	Contexts []namedContext `json:"contexts"`
-	CurrentContext string `json:"current-context"`
 }
 
 // NewServer constructs a ksServer.
@@ -536,11 +513,8 @@ func (s *ksServer) autoConfigureApp(kfApp *kApp.App, appConfig *AppConfig, names
 // Apply runs apply on a ksonnet application.
 func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 	token := req.Token
-	applyArgs := ""
 	if token == "" {
-		log.Infof("No token specified in request; defaulting to service account")
-		token = "$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)"
-		applyArgs = fmt.Sprintf("--token=%v", token)
+		log.Infof("No token specified in request; dropping request.")
 	} else {
 		config, err := buildClusterConfig(ctx, req.Token, req.Project, req.Zone, req.Cluster)
 		if err != nil {
@@ -589,92 +563,52 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 
 		createK8sRoleBing(config, &roleBinding)
 
-		// (05092018): we shell out to ks apply and don't use ksonnet apply function because
-		// ks runApply API expects clientcmd.ClientConfig, which has a soft dependency on existence of ~/.kube/config
-		// if we use k8s client-go API, would be quite verbose if we create all resources one by one.
-		// TODO: use API to create ks Components
-		if err := os.Chdir(a.App.Root()); err != nil {
-			return err
-		}
-
-		// k8s config template
-		cfg := k8sConfig{
+		cfg := clientcmdapi.Config{
 			Kind: "Config",
 			APIVersion: "v1",
-			Clusters: []namedCluster{
-				{
-					Name: "activeCluster",
-					Cluster: &clientcmdapi.Cluster{
-						CertificateAuthorityData: config.TLSClientConfig.CAData,
-						Server: config.Host,
-					},
+			Clusters: map[string]*clientcmdapi.Cluster{
+				"activeCluster": {
+					CertificateAuthorityData: config.TLSClientConfig.CAData,
+					Server: config.Host,
 				},
 			},
-			Contexts: []namedContext{
-				{
-					Name: "activeCluster",
-					Context: &clientcmdapi.Context{
-						Cluster: "activeCluster",
-						AuthInfo: "activeCluster",
-					},
+			Contexts: map[string]*clientcmdapi.Context{
+				"activeCluster": {
+					Cluster: "activeCluster",
+					AuthInfo: "activeCluster",
 				},
 			},
 			CurrentContext: "activeCluster",
-			AuthInfos: []namedAuthInfo{
-				{
-					Name: "activeCluster",
-					AuthInfo: &clientcmdapi.AuthInfo{
-						Token: token,
-					},
+			AuthInfos: map[string]*clientcmdapi.AuthInfo{
+				"activeCluster": {
+					Token: token,
 				},
 			},
 		}
 
-		_, err = s.fs.Stat(path.Join(a.App.Root(), "kubeconfig"))
-		if err == nil {
-			os.Remove(path.Join(a.App.Root(), "kubeconfig"))
+		applyOptions := map[string]interface{}{
+			actions.OptionApp:            a.App,
+			actions.OptionClientConfig:   &client.Config{
+				Overrides: &clientcmd.ConfigOverrides{},
+				Config: clientcmd.NewDefaultClientConfig(cfg, &clientcmd.ConfigOverrides{}),
+			},
+			actions.OptionComponentNames: req.Components,
+			actions.OptionCreate:         true,
+			actions.OptionDryRun:         false,
+			actions.OptionEnvName:        "default",
+			actions.OptionGcTag:          "gc-tag",
+			actions.OptionSkipGc:         true,
 		}
-
-		// Store CA file in app's root dir if not already exists
-		y, err := yaml.Marshal(cfg)
+		err = actions.RunApply(applyOptions)
 		if err != nil {
-			return err
-		}
-		f, err := os.Create(path.Join(a.App.Root(), "kubeconfig"))
-		if err != nil {
-			return err
-		}
-		_, err = f.Write(y)
-		if err != nil {
-			return err
-		}
-		f.Sync()
-		f.Close()
-
-		applyArgs = fmt.Sprintf("--kubeconfig=%v", "kubeconfig")
-	}
-
-	for _, component := range req.Components {
-		log.Infof("Apply kubeflow component %v", component)
-		rawCmd := fmt.Sprintf("ks apply %v -c %v %v", req.Environment, component, applyArgs)
-		applyCmd := exec.Command("bash", "-c", rawCmd)
-
-		var out bytes.Buffer
-		var stderr bytes.Buffer
-		applyCmd.Stdout = &out
-		applyCmd.Stderr = &stderr
-		log.Infof("Run command: %v", rawCmd)
-		err := applyCmd.Run()
-		log.Info("Command: %v\nstdout:\n%vstderr:\n%v", rawCmd, out.String(), stderr.String())
-
-		if err != nil {
-			log.Errorf("Component %v apply failed; Error: %v", component, err)
+			log.Errorf("Components apply failed; Error: %v", err)
 			return err
 		} else {
 			// ks apply output to stderr on success case as well
-			log.Infof("Component %v apply succeded", component)
+			log.Infof("Components apply succeded")
 		}
 	}
+
 	return nil
 }
 
