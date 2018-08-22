@@ -17,11 +17,11 @@
     
     serviceAccount:: {
       apiVersion: "v1",
-	"kind": "ServiceAccount",
-	"metadata": {
-	    "name": name + "-sparkoperator",
-	    "namespace": namespace,
+	kind: "ServiceAccount",
+	metadata: {
+	    name: name + "-sparkoperator",
+	    namespace: namespace,
 	},
-    }
+    },
   }
 }
