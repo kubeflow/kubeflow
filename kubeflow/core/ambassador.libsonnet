@@ -15,5 +15,5 @@
         // it can select pods in a different namespace.
         "service: kubernetes-dashboard.kube-system",
       ]),
-  }
+  },
 }
