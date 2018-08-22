@@ -569,6 +569,7 @@
             "endpoints",
             "persistentvolumeclaims",
             "events",
+            "namespaces",
           ],
           verbs: [
             "*",
