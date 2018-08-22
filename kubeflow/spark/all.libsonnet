@@ -4,6 +4,7 @@
   // provide a userful function such as serving a TensorFlow or PyTorch model.
   all(params, name, env):: [
     $.parts(params, name, env).serviceAccount,
+    $.parts(params, name, env).clusterRole,
   ],
 
   // Parts should be a dictionary containing jsonnet representations of the various
@@ -22,6 +23,104 @@
 	    name: name + "-sparkoperator",
 	    namespace: namespace,
 	},
+    },
+    clusterRole:: {
+      kind: "ClusterRole",
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
+	"metadata": {
+	    "name": name + "-sparkoperator"
+	},
+	"rules": [
+	    {
+		"apiGroups": [
+		    ""
+		],
+		"resources": [
+		    "pods"
+		],
+		"verbs": [
+		    "*"
+		]
+	    },
+	    {
+		"apiGroups": [
+		    ""
+		],
+		"resources": [
+		    "services",
+		    "configmaps"
+		],
+		"verbs": [
+		    "create",
+		    "get",
+		    "delete"
+		]
+	    },
+	    {
+		"apiGroups": [
+		    ""
+		],
+		"resources": [
+		    "nodes"
+		],
+		"verbs": [
+		    "get"
+		]
+	    },
+	    {
+		"apiGroups": [
+		    ""
+		],
+		"resources": [
+		    "events"
+		],
+		"verbs": [
+		    "create",
+		    "update",
+		    "patch"
+		]
+	    },
+	    {
+		"apiGroups": [
+		    "apiextensions.k8s.io"
+		],
+		"resources": [
+		    "customresourcedefinitions"
+		],
+		"verbs": [
+		    "create",
+		    "get",
+		    "update",
+		    "delete"
+		]
+	    },
+	    {
+		"apiGroups": [
+		    "admissionregistration.k8s.io"
+		],
+		"resources": [
+		    "mutatingwebhookconfigurations"
+		],
+		"verbs": [
+		    "create",
+		    "get",
+		    "update",
+		    "delete"
+		]
+	    },
+	    {
+		"apiGroups": [
+		    "sparkoperator.k8s.io"
+		],
+		"resources": [
+		    "sparkapplications",
+		    "scheduledsparkapplications"
+		],
+		"verbs": [
+		    "*"
+		]
+	    }
+	]
     },
   }
 }
