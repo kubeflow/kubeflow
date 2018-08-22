@@ -106,7 +106,7 @@ std.assertEqual(
 ) &&
 
 std.assertEqual(
-  tfjob.parts(params.namespace).operatorRole,
+  tfjob.parts(params.namespace).operatorRole("cluster", "default"),
   {
     apiVersion: "rbac.authorization.k8s.io/v1beta1",
     kind: "ClusterRole",
@@ -195,7 +195,7 @@ std.assertEqual(
 ) &&
 
 std.assertEqual(
-  tfjob.parts(params.namespace).operatorRoleBinding,
+  tfjob.parts(params.namespace).operatorRoleBinding("cluster", "default"),
   {
     apiVersion: "rbac.authorization.k8s.io/v1beta1",
     kind: "ClusterRoleBinding",
