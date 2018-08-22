@@ -6,6 +6,7 @@
     $.parts(params, name, env).serviceAccount,
     $.parts(params, name, env).clusterRole,
     $.parts(params, name, env).clusterRoleBinding,
+    $.parts(params, name, env).deployment,
   ],
 
   // Parts should be a dictionary containing jsonnet representations of the various
@@ -140,6 +141,71 @@
 	    "kind": "ClusterRole",
 	    "name": "sparkoperator",
 	    "apiGroup": "rbac.authorization.k8s.io"
+	}
+    },
+    deployment:: {
+	"apiVersion": "apps/v1beta1",
+	"kind": "Deployment",
+	"metadata": {
+	    "name": "sparkoperator",
+	    "namespace": "sparkoperator",
+	    "labels": {
+		"app.kubernetes.io/name": "sparkoperator",
+		"app.kubernetes.io/version": "v2.3.1-v1alpha1"
+	    }
+	},
+	"spec": {
+	    "replicas": 1,
+	    "selector": {
+		"matchLabels": {
+		    "app.kubernetes.io/name": "sparkoperator",
+		    "app.kubernetes.io/version": "v2.3.1-v1alpha1"
+		}
+	    },
+	    "strategy": {
+		"type": "Recreate"
+	    },
+	    "template": {
+		"metadata": {
+		    "annotations": {
+			"prometheus.io/scrape": "true",
+			"prometheus.io/port": "10254",
+			"prometheus.io/path": "/metrics"
+		    },
+		    "labels": {
+			"app.kubernetes.io/name": "sparkoperator",
+			"app.kubernetes.io/version": "v2.3.1-v1alpha1"
+		    },
+		    "initializers": {
+			"pending": [
+
+			]
+		    }
+		},
+		"spec": {
+		    "serviceAccountName": "sparkoperator",
+		    "containers": [
+			{
+			    "name": "sparkoperator",
+			    "image": "gcr.io/spark-operator/spark-operator:v2.3.1-v1alpha1-latest",
+			    "imagePullPolicy": "Always",
+			    "command": [
+				"/usr/bin/spark-operator"
+			    ],
+			    "ports": [
+				{
+				    "containerPort": 10254
+				}
+			    ],
+			    "args": [
+				"-logtostderr",
+				"-enable-metrics=true",
+				"-metrics-labels=app_type"
+			    ]
+			}
+		    ]
+		}
+	    }
 	}
     },
   }
