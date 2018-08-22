@@ -186,6 +186,16 @@ if env_uid and env_uid != 'null':
 env_gid = os.environ.get('NOTEBOOK_GID')
 if env_gid and env_gid != 'null':
     c.KubeSpawner.singleuser_fs_gid = int(env_gid)
+    def modify_pod_hook(spawner, pod):
+       pod.spec.containers[0].lifecycle = {
+            'postStart' : {
+               'exec' : {
+                   'command' : ['ln', '-s', '/mnt/local-notebooks', '/home/jovyan/local-notebooks' ]
+               }
+            }
+        }
+       return pod
+    c.KubeSpawner.modify_pod_hook = modify_pod_hook
 
 ###################################################
 # Persistent volume options
