@@ -2,222 +2,26 @@
   // Define the various prototypes you want to support.
   // Each prototype should be a list of different parts that together
   // provide a userful function such as serving a TensorFlow or PyTorch model.
-  all(params, env):: [
-    $.parts(params, env).driver,
-    $.parts(params, env).serviceAccount,
+  all(params, name, env):: [
+    $.parts(params, name, env).serviceAccount,
   ],
 
   // Parts should be a dictionary containing jsonnet representations of the various
   // K8s resources used to construct the prototypes listed above.
-  parts(params, env):: {
+  parts(params, name, env):: {
     // All ksonnet environments are associated with a namespace and we
     // generally want to use that namespace for a component.
     // However, in some cases an application may use multiple namespaces in which
     // case the namespace for a particular component will be a parameter.
     local namespace = if std.objectHas(params, "namespace") then params.namespace else env.namespace,
-    // rbac stuff
-    // 1
-    {
-	"apiVersion": "v1",
-	"kind": "Namespace",
-        "metadata": {
-	    "name": "sparkoperator"
-	}
-    }
-    // 2
-    {
-	"apiVersion": "v1",
+    
+    serviceAccount:: {
+      apiVersion: "v1",
 	"kind": "ServiceAccount",
 	"metadata": {
-	    "name": "sparkoperator",
-	    "namespace": "sparkoperator"
-	}
-    }
-    // 3
-    {
-	"apiVersion": "rbac.authorization.k8s.io/v1beta1",
-	"kind": "ClusterRole",
-	"metadata": {
-	    "name": "sparkoperator"
+	    "name": name + "-sparkoperator",
+	    "namespace": namespace,
 	},
-	"rules": [
-	    {
-		"apiGroups": [
-		    ""
-		],
-		"resources": [
-		    "pods"
-		],
-		"verbs": [
-		    "*"
-		]
-	    },
-	    {
-		"apiGroups": [
-		    ""
-		],
-		"resources": [
-		    "services",
-		    "configmaps"
-		],
-		"verbs": [
-		    "create",
-		    "get",
-		    "delete"
-		]
-	    },
-	    {
-		"apiGroups": [
-		    ""
-		],
-		"resources": [
-		    "nodes"
-		],
-		"verbs": [
-		    "get"
-		]
-	    },
-	    {
-		"apiGroups": [
-		    ""
-		],
-		"resources": [
-		    "events"
-		],
-		"verbs": [
-		    "create",
-		    "update",
-		    "patch"
-		]
-	    },
-	    {
-		"apiGroups": [
-		    "apiextensions.k8s.io"
-		],
-		"resources": [
-		    "customresourcedefinitions"
-		],
-		"verbs": [
-		    "create",
-		    "get",
-		    "update",
-		    "delete"
-		]
-	    },
-	    {
-		"apiGroups": [
-		    "admissionregistration.k8s.io"
-		],
-		"resources": [
-		    "mutatingwebhookconfigurations"
-		],
-		"verbs": [
-		    "create",
-		    "get",
-		    "update",
-		    "delete"
-		]
-	    },
-	    {
-		"apiGroups": [
-		    "sparkoperator.k8s.io"
-		],
-		"resources": [
-		    "sparkapplications",
-		    "scheduledsparkapplications"
-		],
-		"verbs": [
-		    "*"
-		]
-	    }
-	]
     }
-    // 4
-    {
-	"apiVersion": "rbac.authorization.k8s.io/v1beta1",
-	"kind": "ClusterRoleBinding",
-	"metadata": {
-	    "name": "sparkoperator"
-	},
-	"subjects": [
-	    {
-		"kind": "ServiceAccount",
-		"name": "sparkoperator",
-		"namespace": "sparkoperator"
-	    }
-	],
-	"roleRef": {
-	    "kind": "ClusterRole",
-	    "name": "sparkoperator",
-	    "apiGroup": "rbac.authorization.k8s.io"
-	}
-    }
-    // spark-operator-with-metrics
-    {
-	"apiVersion": "apps/v1beta1",
-	"kind": "Deployment",
-	"metadata": {
-	    "name": "sparkoperator",
-	    "namespace": "sparkoperator",
-	    "labels": {
-		"app.kubernetes.io/name": "sparkoperator",
-		"app.kubernetes.io/version": "v2.3.1-v1alpha1"
-	    }
-	},
-	"spec": {
-	    "replicas": 1,
-	    "selector": {
-		"matchLabels": {
-		    "app.kubernetes.io/name": "sparkoperator",
-		    "app.kubernetes.io/version": "v2.3.1-v1alpha1"
-		}
-	    },
-	    "strategy": {
-		"type": "Recreate"
-	    },
-	    "template": {
-		"metadata": {
-		    "annotations": {
-			"prometheus.io/scrape": "true",
-			"prometheus.io/port": "10254",
-			"prometheus.io/path": "/metrics"
-		    },
-		    "labels": {
-			"app.kubernetes.io/name": "sparkoperator",
-			"app.kubernetes.io/version": "v2.3.1-v1alpha1"
-		    },
-		    "initializers": {
-			"pending": [
-
-			]
-		    }
-		},
-		"spec": {
-		    "serviceAccountName": "sparkoperator",
-		    "containers": [
-			{
-			    "name": "sparkoperator",
-			    "image": "gcr.io/spark-operator/spark-operator:v2.3.1-v1alpha1-latest",
-			    "imagePullPolicy": "Always",
-			    "command": [
-				"/usr/bin/spark-operator"
-			    ],
-			    "ports": [
-				{
-				    "containerPort": 10254
-				}
-			    ],
-			    "args": [
-				"-logtostderr",
-				"-enable-metrics=true",
-				"-metrics-labels=app_type"
-			    ]
-			}
-		    ]
-		}
-	    }
-	}
-    }  
-
-  },
+  }
 }

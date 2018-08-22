@@ -1,11 +1,14 @@
 {
-   "name": "spark"
+   "name": "spark",
    "apiVersion": "0.0.1",
    "kind": "ksonnet.io/parts",
    "description": "An empty package used as a stub for new packages.\n",
    "author": "kubeflow-team <kubeflow-discuss@googlegroups.com>",
    "contributors": [
-      "holdenk"
+     {
+      "name": "Holden Karau",
+      "email": "holden@pigscanfly.ca"
+     }
    ],
    "repository": {
       "type": "git",
