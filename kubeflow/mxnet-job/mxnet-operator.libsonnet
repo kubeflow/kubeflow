@@ -140,12 +140,12 @@
     },
 
     configData(cloud, mxnetDefaultImage):: self.defaultControllerConfig(mxnetDefaultImage) +
-                                             if cloud == "aks" then
-                                               self.aksAccelerators
-                                             else if cloud == "acsengine" then
-                                               self.acsEngineAccelerators
-                                             else
-                                               {},
+                                           if cloud == "aks" then
+                                             self.aksAccelerators
+                                           else if cloud == "acsengine" then
+                                             self.acsEngineAccelerators
+                                           else
+                                             {},
 
     configMap(cloud, mxnetDefaultImage): {
       apiVersion: "v1",
@@ -280,4 +280,3 @@
     },  // operator-role binding
   },
 }
-

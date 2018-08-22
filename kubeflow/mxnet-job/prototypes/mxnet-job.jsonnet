@@ -70,7 +70,7 @@ local schedulerSpec = util.mxnetJobReplica("SCHEDULER", numSchedulers, args, ima
 local workerSpec = if numGpus > 0 then
   util.mxnetJobReplica("WORKER", numWorkers, args, imageGpu, numGpus)
 else
-  util.,xmetJobReplica("WORKER", numWorkers, args, image);
+  util.mxnetJobReplica("WORKER", numWorkers, args, image);
 
 local serverSpec = util.mxnetJobReplica("SERVER", numServers, args, image);
 
@@ -90,4 +90,3 @@ local job = {
 };
 
 std.prune(k.core.v1.list.new([job]))
-
