@@ -41,14 +41,14 @@ generateDMConfigs() {
 	  echo creating Deployment Manager configs in directory "${KUBEFLOW_DM_DIR}"
     mkdir -p "${KUBEFLOW_DM_DIR}"
 	  cp -r "${KUBEFLOW_REPO}"/scripts/gke/deployment_manager_configs/cluster* "${KUBEFLOW_DM_DIR}"
-	  
+
 
     if [[ "$EMAIL" =~ .*iam\.gserviceaccount\.com ]]; then
       IAP_IAM_ENTRY="serviceAccount:${EMAIL}"
     else
       IAP_IAM_ENTRY="user:${EMAIL}"
     fi
-    
+
     # Set values in DM config file
 	  sed -i.bak "s/zone: SET_THE_ZONE/zone: ${ZONE}/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
 	  sed -i.bak "s/users:/users: [\"${IAP_IAM_ENTRY}\"]/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
@@ -85,7 +85,7 @@ createGcpSecret() {
 
 downloadK8sManifests() {
   # Download K8s manifests for resources to deploy on the cluster.
-  mkdir -p ${KUBEFLOW_K8S_MANIFESTS_DIR} 
+  mkdir -p ${KUBEFLOW_K8S_MANIFESTS_DIR}
   # Install the GPU driver. It has no effect on non-GPU nodes.
   curl -o ${KUBEFLOW_K8S_MANIFESTS_DIR}/daemonset-preloaded.yaml \
   	https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/stable/nvidia-driver-installer/cos/daemonset-preloaded.yaml
@@ -106,7 +106,7 @@ updateDeployment() {
   cd ${KUBEFLOW_DM_DIR}
   # Check if it already exists
   set +e
-  O=`gcloud deployment-manager --project=${PROJECT} deployments describe ${DEPLOYMENT_NAME} 2>&1`  
+  O=`gcloud deployment-manager --project=${PROJECT} deployments describe ${DEPLOYMENT_NAME} 2>&1`
   exists=$?
   set -e
 
@@ -121,7 +121,7 @@ updateDeployment() {
   popd
 }
 
-updateDM() {  
+updateDM() {
   # TODO(jlewi): We should create deployments for all .yaml files in
   # the gcp_config directory.
   updateDeployment ${DEPLOYMENT_NAME} ${CONFIG_FILE}
@@ -172,11 +172,11 @@ updateDM() {
   else
     kubectl create namespace ${K8S_NAMESPACE}
   fi
-  
+
   # Install the GPU driver. It has no effect on non-GPU nodes.
   kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/daemonset-preloaded.yaml
 
-  # Install Stackdriver Kubernetes agents.  
+  # Install Stackdriver Kubernetes agents.
   kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/rbac-setup.yaml --as=admin --as-group=system:masters
   kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/agents.yaml
 }
@@ -192,7 +192,7 @@ createSecrets() {
   # We want the secret name to be the same by default for all clusters so that users don't have to set it manually.
   createGcpSecret ${ADMIN_EMAIL} admin-gcp-sa
   createGcpSecret ${USER_EMAIL} user-gcp-sa
-  
+
   set +e
   O=`kubectl get secret --namespace=${K8S_NAMESPACE} kubeflow-oauth 2>&1`
   RESULT=$?
@@ -201,14 +201,14 @@ createSecrets() {
   if [ "${RESULT}" -eq 0 ]; then
     echo Secret kubeflow-oauth already exists
   else
-    kubectl create secret generic --namespace=${K8S_NAMESPACE} kubeflow-oauth --from-literal=CLIENT_ID=${CLIENT_ID} --from-literal=CLIENT_SECRET=${CLIENT_SECRET}
+    kubectl create secret generic --namespace=${K8S_NAMESPACE} kubeflow-oauth --from-literal=client_id=${CLIENT_ID} --from-literal=client_secret=${CLIENT_SECRET}
   fi
 }
 
 gcpGenerateKsApp() {
-  pushd . 
+  pushd .
   cd "${KUBEFLOW_KS_DIR}"
-  
+
   ks generate cloud-endpoints cloud-endpoints
   ks generate cert-manager cert-manager --acmeEmail=${EMAIL}
   ks generate iap-ingress iap-ingress --ipName=${KUBEFLOW_IP_NAME} --hostname=${KUBEFLOW_HOSTNAME}
@@ -228,8 +228,8 @@ gcpKsApply() {
 
   if [ "${RESULT}" -eq 0 ]; then
   	echo environment default already exists
-  else  	
-    ks env add default --namespace "${K8S_NAMESPACE}"    
+  else
+    ks env add default --namespace "${K8S_NAMESPACE}"
   fi
 
   ks apply default -c cloud-endpoints
