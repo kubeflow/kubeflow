@@ -4,9 +4,6 @@
 [ -z ${NAMESPACE} ] && echo Error NAMESPACE must be set && exit 1
 [ -z ${SERVICE} ] && echo Error SERVICE must be set && exit 1
 
-apk add --update jq
-curl https://storage.googleapis.com/kubernetes-release/release/v1.9.4/bin/linux/amd64/kubectl > /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
-
 # Stagger init of replicas when acquiring lock
 sleep $(( $RANDOM % 5 + 1 ))
 
@@ -91,7 +88,7 @@ echo "JWT_AUDIENCE=${JWT_AUDIENCE}" > /var/shared/healthz.env
 echo "NODE_PORT=${NODE_PORT}" >> /var/shared/healthz.env
 echo "BACKEND_ID=${BACKEND_ID}" >> /var/shared/healthz.env
 
-# TODO(https://github.com/kubeflow/kubeflow/issues/942): We should publish the modified envoy 
+# TODO(https://github.com/kubeflow/kubeflow/issues/942): We should publish the modified envoy
 # config as a config map and use that in the envoy sidecars.
 kubectl get configmap -n ${NAMESPACE} envoy-config -o jsonpath='{.data.envoy-config\.json}' | \
 sed -e "s|{{JWT_AUDIENCE}}|${JWT_AUDIENCE}|g" > /var/shared/envoy-config.json
@@ -101,7 +98,7 @@ kubectl patch svc "${SERVICE}" -p "{\"metadata\": { \"annotations\": {\"backendl
 
 function checkBackend() {
 # created by init container.
-. /var/shared/healthz.env 
+. /var/shared/healthz.env
 
 # If node port or backend id change, so does the JWT audience.
 CURR_NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[0].nodePort}')

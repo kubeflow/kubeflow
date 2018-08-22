@@ -18,18 +18,18 @@
       },
     }.result,
 
-    ingressParts(secretName, ipName, hostname, issuer, envoyImage, disableJwt, oauthSecretName):: std.prune(k.core.v1.list.new([
+    ingressParts(secretName, ipName, hostname, issuer, envoyImage, ingressSetupImage, disableJwt, oauthSecretName, privateGKECluster):: std.prune(k.core.v1.list.new([
       $.parts(namespace).service,
       $.parts(namespace).backendConfig(oauthSecretName),
       $.parts(namespace).ingressBootstrapConfigMap,
-      $.parts(namespace).ingressBootstrapJob(secretName),
+      $.parts(namespace).ingressBootstrapJob(secretName, ingressSetupImage),
       $.parts(namespace).ingress(ipName, hostname),
-      $.parts(namespace).certificate(secretName, hostname, issuer),
+      (if privateGKECluster == "false" then $.parts(namespace).certificate(secretName, hostname, issuer)),
       $.parts(namespace).initServiceAccount,
       $.parts(namespace).initClusterRoleBinding,
       $.parts(namespace).initClusterRole,
-      $.parts(namespace).deploy(envoyImage, oauthSecretName),
-      $.parts(namespace).iapEnabler(oauthSecretName),
+      $.parts(namespace).deploy(envoyImage, oauthSecretName, ingressSetupImage),
+      $.parts(namespace).iapEnabler(oauthSecretName, ingressSetupImage),
       $.parts(namespace).configMap(disableJwt),
       $.parts(namespace).whoamiService,
       $.parts(namespace).whoamiApp,
@@ -168,7 +168,7 @@
       ],
     },  // envoyContainer
 
-    deploy(image, oauthSecretName):: {
+    deploy(image, oauthSecretName, ingressSetupImage):: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -199,7 +199,7 @@
               }),
               {
                 name: "iap",
-                image: "google/cloud-sdk:alpine",
+                image: ingressSetupImage,
                 command: [
                   "sh",
                   "/var/envoy-config/configure_envoy_for_iap.sh",
@@ -266,7 +266,7 @@
     },  // deploy
 
     // Run the process to enable iap
-    iapEnabler(oauthSecretName):: {
+    iapEnabler(oauthSecretName, ingressSetupImage):: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -286,7 +286,7 @@
             containers: [
               {
                 name: "iap",
-                image: "google/cloud-sdk:alpine",
+                image: ingressSetupImage,
                 command: [
                   "bash",
                   "/var/envoy-config/setup_backend.sh",
@@ -730,7 +730,7 @@
       },
     },
 
-    ingressBootstrapJob(secretName):: {
+    ingressBootstrapJob(secretName, ingressSetupImage):: {
       apiVersion: "batch/v1",
       kind: "Job",
       metadata: {
@@ -745,7 +745,7 @@
             containers: [
               {
                 name: "bootstrap",
-                image: "google/cloud-sdk:alpine",
+                image: ingressSetupImage,
                 command: ["/var/ingress-config/ingress_bootstrap.sh"],
                 env: [
                   {
