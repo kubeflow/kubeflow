@@ -409,8 +409,8 @@ the corresponding type provider.
       name: kubeflow-oauth
     type: Opaque
     data:
-      CLIENT_ID: {{ properties["clientId"] }}
-      CLIENT_SECRET: {{ properties["clientSecret"] }}
+      client_id: {{ properties["clientId"] }}
+      client_secret: {{ properties["clientSecret"] }}
   metadata:
     dependsOn:
       - kf-namespace
