@@ -16,7 +16,7 @@
       namespace: $.params.namespace,
     },
     data: {
-      "jupyterhub_config.py": "a",  //importstr "kubeform_spawner.py",
+      "jupyterhub_config.py": importstr "kubeform_spawner.py",
     },
   },
   NotebookService:: {
