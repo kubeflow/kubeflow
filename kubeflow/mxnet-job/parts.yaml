@@ -1,0 +1,31 @@
+{
+   "name": "mxnet-job",
+   "apiVersion": "0.0.1",
+   "kind": "ksonnet.io/parts",
+   "description": "Prototypes for running MXNet jobs.\n",
+   "author": "kubeflow team <kubeflow-team@google.com>",
+   "contributors": [
+      {
+         "name": "Lei Su",
+         "email": "lei.su@tusimple.com"
+      }
+   ],
+   "repository": {
+      "type": "git",
+      "url": "https://github.com/kubeflow/kubeflow"
+   },
+   "keywords": [
+      "kubeflow",
+      "mxnet",
+   ],
+   "quickStart": {
+      "prototype": "io.ksonnet.pkg.mxnet-job",
+      "componentName": "mxnet-job",
+      "flags": {
+         "name": "mxnet-job",
+         "namespace": "default"
+      },
+      "comment": "Run MXNet Job"
+   },
+   "license": "Apache 2.0"
+}
