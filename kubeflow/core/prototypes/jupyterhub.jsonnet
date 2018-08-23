@@ -21,4 +21,4 @@ local updatedParams = params {
 };
 
 local jupyterhub = import "kubeflow/core/jupyterhub.libsonnet";
-jupyterhub.parts(updatedParams)
+jupyterhub.all(updatedParams).list

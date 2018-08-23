@@ -1,17 +1,22 @@
 {
-  parts(params):: [
-    {
+  all(_params):: self + {
+    params+: _params,
+  },
+  list:: [self[key] for key in std.objectFieldsAll(self) 
+    if key != "list" && key != "params" && key != "all"], 
+
+  ConfigMap::  {
       apiVersion: "v1",
       kind: "ConfigMap",
       metadata: {
         name: "jupyterhub-config",
-        namespace: params.namespace,
+        namespace: $.params.namespace,
       },
       data: {
-        "jupyterhub_config.py": importstr "kubeform_spawner.py",
+        "jupyterhub_config.py": "a",//importstr "kubeform_spawner.py",
       },
-    },
-    {
+  },
+  NotebookService:: {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
@@ -19,7 +24,7 @@
           app: "tf-hub",
         },
         name: "tf-hub-0",
-        namespace: params.namespace,
+        namespace: $.params.namespace,
         annotations: {
           "prometheus.io/scrape": "true",
         },
@@ -38,9 +43,8 @@
           app: "tf-hub",
         },
       },
-    },
-
-    {
+  },
+  HubService:: {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
@@ -48,7 +52,7 @@
           app: "tf-hub-lb",
         },
         name: "tf-hub-lb",
-        namespace: params.namespace,
+        namespace: $.params.namespace,
         annotations: {
           "getambassador.io/config":
             std.join("\n", [
@@ -59,7 +63,7 @@
               "prefix: /hub/",
               "rewrite: /hub/",
               "timeout_ms: 300000",
-              "service: tf-hub-lb." + params.namespace,
+              "service: tf-hub-lb." + $.params.namespace,
               "use_websocket: true",
               "---",
               "apiVersion: ambassador/v0",
@@ -68,7 +72,7 @@
               "prefix: /user/",
               "rewrite: /user/",
               "timeout_ms: 300000",
-              "service: tf-hub-lb." + params.namespace,
+              "service: tf-hub-lb." + $.params.namespace,
               "use_websocket: true",
             ]),
         },  //annotations
@@ -84,15 +88,15 @@
         selector: {
           app: "tf-hub",
         },
-        type: params.serviceType,
+        type: $.params.serviceType,
       },
-    },
-    {
+  },
+  StatefulSet:: {
       apiVersion: "apps/v1beta1",
       kind: "StatefulSet",
       metadata: {
         name: "tf-hub",
-        namespace: params.namespace,
+        namespace: $.params.namespace,
       },
       spec: {
         replicas: 1,
@@ -111,7 +115,7 @@
                   "-f",
                   "/etc/config/jupyterhub_config.py",
                 ],
-                image: params.image,
+                image: $.params.image,
                 name: "tf-hub",
                 volumeMounts: [
                   {
@@ -132,32 +136,32 @@
                 env: std.prune([
                   {
                     name: "NOTEBOOK_PVC_MOUNT",
-                    value: params.notebookPVCMount,
+                    value: $.params.notebookPVCMount,
                   },
                   {
                     name: "CLOUD_NAME",
-                    value: params.cloud,
+                    value: $.params.cloud,
                   },
                   {
                     name: "REGISTRY",
-                    value: params.registry,
+                    value: $.params.registry,
                   },
                   {
                     name: "REPO_NAME",
-                    value: params.repoName,
+                    value: $.params.repoName,
                   },
                   {
                     name: "KF_AUTHENTICATOR",
-                    value: params.jupyterHubAuthenticator,
+                    value: $.params.jupyterHubAuthenticator,
                   },
                   {
                     name: "KF_PVC_LIST",
-                    value: params.disks,
+                    value: $.params.disks,
                   },
-                  if params.cloud == "gke" then
+                  if $.params.cloud == "gke" then
                     {
                       name: "GCP_SECRET_NAME",
-                      value: params.gcpSecretName,
+                      value: $.params.gcpSecretName,
                     },
                 ]),
               },  // jupyterHub container
@@ -177,15 +181,14 @@
           type: "RollingUpdate",
         },
       },
-    },
-
-    // contents based on https://github.com/jupyterhub/zero-to-jupyterhub-k8s/blob/master/jupyterhub/templates/hub/rbac.yaml
-    {
+  },
+  // contents based on https://github.com/jupyterhub/zero-to-jupyterhub-k8s/blob/master/jupyterhub/templates/hub/rbac.yaml
+  HubRole::  {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "Role",
       metadata: {
         name: "jupyter-role",
-        namespace: params.namespace,
+        namespace: $.params.namespace,
       },
       rules: [
         {
@@ -218,13 +221,13 @@
           ],
         },
       ],
-    },
-    {
+  },
+  NotebookRole:: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "Role",
       metadata: {
         name: "jupyter-notebook-role",
-        namespace: params.namespace,
+        namespace: $.params.namespace,
       },
       rules: [
         {
@@ -276,9 +279,8 @@
           ],
         },
       ],
-    },
-
-    {
+  },
+  HubServiceAccount:: {
       apiVersion: "v1",
       kind: "ServiceAccount",
       metadata: {
@@ -286,24 +288,23 @@
           app: "jupyter-hub",
         },
         name: "jupyter-hub",
-        namespace: params.namespace,
+        namespace: $.params.namespace,
       },
-    },
-    {
+  },
+  NotebookServiceAccount:: {
       apiVersion: "v1",
       kind: "ServiceAccount",
       metadata: {
         name: "jupyter-notebook",
-        namespace: params.namespace,
+        namespace: $.params.namespace,
       },
-    },
-
-    {
+  },
+  HubRoleBinding:: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "RoleBinding",
       metadata: {
         name: "jupyter-role",
-        namespace: params.namespace,
+        namespace: $.params.namespace,
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
@@ -314,16 +315,16 @@
         {
           kind: "ServiceAccount",
           name: "jupyter-hub",
-          namespace: params.namespace,
+          namespace: $.params.namespace,
         },
       ],
-    },
-    {
+  },
+  NotebookRoleBinding:: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "RoleBinding",
       metadata: {
         name: "jupyter-notebook-role",
-        namespace: params.namespace,
+        namespace: $.params.namespace,
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
@@ -334,9 +335,8 @@
         {
           kind: "ServiceAccount",
           name: "jupyter-notebook",
-          namespace: params.namespace,
+          namespace: $.params.namespace,
         },
       ],
-    },
-  ],
+  },
 }
