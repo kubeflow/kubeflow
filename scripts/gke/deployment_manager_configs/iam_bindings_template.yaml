@@ -1,0 +1,37 @@
+gcpIamPolicy:
+  members:
+    admin: ["set-kubeflow-admin-service-account"]
+    user: ["set-kubeflow-user-service-account"]
+    vm: ["set-kubeflow-vm-service-account"]
+    # This service account is used by deployment manager
+    dm: ["set-kubeflow-dm-service-account"]
+    iap: ["set-kubeflow-iap-account"]
+  bindings:
+    admin:
+    # Grant permissions needed to push the app to a cloud repository
+    - roles/source.admin
+    # servicemanagement.admin is needed by CloudEndpoints controller so we can create a service to get a hostname.
+    - roles/servicemanagement.admin
+    # Network admin is needed to enable IAP and configure network settings like backend timeouts and health checks
+    - roles/compute.networkAdmin
+    user:
+    # Grant permissions needed to submit builds to Google Cloud Container Builder
+    - roles/cloudbuild.builds.editor
+    # roles/viewer is required for viewing the logs of a GCB build
+    - roles/viewer
+    # Grant permissions needed to push the app to a cloud repository
+    - roles/source.admin
+    - roles/storage.admin
+    - roles/bigquery.admin
+    - roles/dataflow.admin
+    vm:
+    # VM service account is used to write logs
+    - roles/logging.logWriter
+    # VM service account is used to write monitoring data
+    - roles/monitoring.metricWriter
+    # VM service account is used to pull image from gcr
+    - roles/storage.objectViewer
+    dm:
+    - roles/container.admin
+    iap:
+    - roles/iap.httpsResourceAccessor
