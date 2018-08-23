@@ -15,11 +15,12 @@ WHAT=$2
 
 ENV_FILE="env.sh"
 
-KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"}
 KUBEFLOW_DOCKER_REGISTRY=${KUBEFLOW_DOCKER_REGISTRY:-""}
 
-
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+source "${DIR}/util.sh"
+source "${DIR}/gke/util.sh"
+source "${DIR}/util-minikube.sh"
 
 createEnv() {
 	# Check if there is a file env.sh
@@ -35,19 +36,10 @@ createEnv() {
 	# Namespace where kubeflow is deployed
 	echo K8S_NAMESPACE=${K8S_NAMESPACE:-"kubeflow"} >> ${ENV_FILE}
 
-	if [ "${PLATFORM}" == "minikube" ]; then
-	  echo KUBEFLOW_CLOUD=minikube >> ${ENV_FILE}
-    set +x
-    infer_minikube_settings
-    set -x
-    download_kubeflow_source
-    echo HOST_PLATFPORM=${HOST_PLATFPORM} >> ${ENV_FILE}
-    echo MOUNT_LOCAL=${MOUNT_LOCAL} >> ${ENV_FILE}
-    echo MINIKUBE_CMD=\"${MINIKUBE_CMD}\" >> ${ENV_FILE}
-    echo KUBEFLOW_REPO="$(pwd)/kubeflow-${KUBEFLOW_VERSION}" >> ${ENV_FILE}
-    echo MOUNT_LOCAL=${MOUNT_LOCAL} >> ${ENV_FILE}
-    cleanup_and_deploy_minikube
-	fi
+        if [ "${PLATFORM}" == "minikube" ]; then
+          echo KUBEFLOW_CLOUD=minikube >> ${ENV_FILE}
+          echo MOUNT_LOCAL=${MOUNT_LOCAL} >> ${ENV_FILE}
+        fi
 
   if [ "${PLATFORM}" == "ack" ]; then
     echo KUBEFLOW_CLOUD=ack >> ${ENV_FILE}
@@ -103,17 +95,6 @@ createEnv() {
   fi
 }
 
-# For minikube single script download experience
-function download_kfctl_scripts() {
-  curl -O https://raw.githubusercontent.com/kubeflow/kubeflow/${KUBEFLOW_VERSION}/scripts/util.sh
-  curl -O https://raw.githubusercontent.com/kubeflow/kubeflow/${KUBEFLOW_VERSION}/scripts/util-minikube.sh
-  mkdir -p gke
-  pushd .
-  cd gke
-  curl -O https://raw.githubusercontent.com/kubeflow/kubeflow/${KUBEFLOW_VERSION}/scripts/gke/util.sh
-  popd
-}
-
 if [ "${COMMAND}" == "init" ]; then
 	DEPLOYMENT_NAME=${WHAT}	
 
@@ -134,14 +115,6 @@ if [ "${COMMAND}" == "init" ]; then
       esac
       shift
 	done
-
-  if [ "${PLATFORM}" == "minikube" ]; then
-    download_kfctl_scripts
-  fi
-
-  source "${DIR}/util.sh"
-  source "${DIR}/gke/util.sh"
-  source "${DIR}/util-minikube.sh"
 
 	mkdir -p ${DEPLOYMENT_NAME}
 	# Most commands expect to be executed from the app directory
@@ -179,9 +152,6 @@ if [ "${COMMAND}" == "init" ]; then
 fi
 
 source ${ENV_FILE}
-source "${DIR}/util.sh"
-source "${DIR}/gke/util.sh"
-source "${DIR}/util-minikube.sh"
 
 if [ -z "${COMMAND}" ]; then
   echo COMMAND must be provided
@@ -278,9 +248,9 @@ if [ "${COMMAND}" == "generate" ]; then
       create_local_fs_mount_spec
       if ${MOUNT_LOCAL}; then
         ks param set jupyterhub disks "local-notebooks" 
-        ks param set jupyterhub notebookUid \"`id -u`\"
-        ks param set jupyterhub notebookGid \"`id -g`\"
-        ks param set jupyterhub accessLocalFs "true"
+        ks param set jupyterhub notebookUid `id -u`
+        ks param set jupyterhub notebookGid `id -g`
+        ks param set jupyterhub accessLocalFs true
       fi
     fi
   fi

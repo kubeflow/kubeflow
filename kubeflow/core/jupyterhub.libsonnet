@@ -162,17 +162,17 @@
                   if params.cloud == "minikube" then
                     {
                       name: "NOTEBOOK_UID",
-                      value: params.notebookUid,
+                      value: std.toString(params.notebookUid),
                     },
                   if params.cloud == "minikube" then
                     {
                       name: "NOTEBOOK_GID",
-                      value: params.notebookGid,
+                      value: std.toString(params.notebookGid),
                     },
                   if params.cloud == "minikube" then
                     {
                       name: "ACCESS_LOCAL_FS",
-                      value: params.accessLocalFs,
+                      value: std.toString(params.accessLocalFs),
                     },
                 ]),
               },  // jupyterHub container
