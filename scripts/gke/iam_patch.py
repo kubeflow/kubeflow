@@ -69,15 +69,16 @@ def apply_iam_bindings_patch(current_policy, bindings_patch, action):
   Patches the current policy with the supplied patch.
   action can be add or remove.
   """
-  for member, roles in bindings_patch['gcpIamPolicy']['bindings'].items():
+  for item in bindings_patch['bindings']:
+    members = item['members']
+    roles = item['roles']
     for role in roles:
       if role not in current_policy.keys():
         current_policy[role] = set()
-      for member_email in bindings_patch['gcpIamPolicy']['members'][member]:
-        if action == "add":
-          current_policy[role].add(member_email)
-        else:
-          current_policy[role].discard(member_email)
+      if action == "add":
+        current_policy[role].update(members)
+      else:
+        current_policy[role].difference_update(members)
   return current_policy
 
 

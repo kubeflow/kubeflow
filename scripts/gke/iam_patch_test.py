@@ -10,14 +10,11 @@ class Test(unittest.TestCase):
         current_policy = {
         }
         bindings_patch = {
-            "gcpIamPolicy": {
-                "members": {
-                  "admin": ["admin-sa"]
-                },
-                "bindings": {
-                    "admin": ["roles/source.admin"]
-                }
+            "bindings": [ {
+                "members": ['admin-sa'],
+                "roles": ["roles/source.admin"]
             }
+            ]
         }
         expected = {'roles/source.admin': set(['admin-sa'])}
         result = iam_patch.apply_iam_bindings_patch(current_policy, bindings_patch, "add")
@@ -26,14 +23,11 @@ class Test(unittest.TestCase):
     def test_apply_iam_bindings_patch_remove(self):
         current_policy = {'roles/source.admin': set(['admin-sa'])}
         bindings_patch = {
-            "gcpIamPolicy": {
-                "members": {
-                  "admin": ["admin-sa"]
-                },
-                "bindings": {
-                    "admin": ["roles/source.admin"]
-                }
+            "bindings": [ {
+                "members": ['admin-sa'],
+                "roles": ["roles/source.admin"]
             }
+            ]
         }
         expected = {'roles/source.admin': set()}
         result = iam_patch.apply_iam_bindings_patch(current_policy, bindings_patch, "remove")
