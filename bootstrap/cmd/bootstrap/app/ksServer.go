@@ -26,6 +26,7 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"github.com/ksonnet/ksonnet/pkg/client"
 	"k8s.io/client-go/tools/clientcmd"
+	"time"
 )
 
 // The name of the prototype for Jupyter.
@@ -599,16 +600,21 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 			actions.OptionGcTag:          "gc-tag",
 			actions.OptionSkipGc:         true,
 		}
-		err = actions.RunApply(applyOptions)
-		if err != nil {
-			log.Errorf("Components apply failed; Error: %v", err)
-			return err
-		} else {
-			// ks apply output to stderr on success case as well
-			log.Infof("Components apply succeded")
+		retry := 0
+		for retry < 3 {
+			err = actions.RunApply(applyOptions)
+			if err == nil {
+				log.Infof("Components apply succeded")
+				return nil
+			} else {
+				log.Errorf("(Will retry) Components apply failed; Error: %v", err)
+				retry += 1
+				time.Sleep(5 * time.Second)
+			}
 		}
+		log.Errorf("Components apply failed; Error: %v", err)
+		return err
 	}
-
 	return nil
 }
 
@@ -664,7 +670,6 @@ func makeHealthzEndpoint(svc KsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		r := &HealthzResponse{}
 		r.Reply = "Request accepted! Sill alive!"
-		log.Info("response info: " + r.Reply)
 		return r, nil
 	}
 }

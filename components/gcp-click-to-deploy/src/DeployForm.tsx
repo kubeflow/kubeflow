@@ -342,14 +342,9 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     this._appendLine(`Getting enabled services for project ${project}..`);
     await request(
       {
-        body: JSON.stringify(
-          {
-            Msg: 'Echo from web app?',
-          }
-        ),
         headers: { 'content-type': 'application/json' },
-        method: 'PUT',
-        uri: this._configSpec.appAddress + '/healthz',
+        method: 'GET',
+        uri: this._configSpec.appAddress,
       },
       (error, response, body) => {
         if (error) {
@@ -439,7 +434,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         ),
         headers: { 'content-type': 'application/json' },
         method: 'PUT',
-        uri: this._configSpec.appAddress + '/initProject',
+        uri: this._configSpec.appAddress + '/kfctl/initProject',
       },
       (error, response, body) => {
         if (!error) {
@@ -533,7 +528,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         ),
         headers: { 'content-type': 'application/json' },
         method: 'PUT',
-        uri: this._configSpec.appAddress + '/iam/insertSaKey',
+        uri: this._configSpec.appAddress + '/kfctl/iam/insertSaKey',
       },
       (error, response, body) => {
         if (!error) {
@@ -550,9 +545,9 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         AppConfig: this._configSpec.defaultApp,
         Apply: true,
         AutoConfigure: true,
-        Cluster: this.state.deploymentName,
+        Cluster: deploymentName,
         Email: email,
-        Name: 'kubeflow',
+        Name: deploymentName,
         Namespace: 'kubeflow',
         Project: project,
         Token: token,
@@ -564,7 +559,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         body: createBody,
         headers: { 'content-type': 'application/json' },
         method: 'PUT',
-        uri: this._configSpec.appAddress + '/apps/create',
+        uri: this._configSpec.appAddress + '/kfctl/apps/create',
       },
       (error, response, body) => {
         if (!error) {
