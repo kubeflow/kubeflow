@@ -19,6 +19,8 @@ KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"}
 KUBEFLOW_DEPLOY=${KUBEFLOW_DEPLOY:-true}
 K8S_NAMESPACE=${K8S_NAMESPACE:-"kubeflow"}
 KUBEFLOW_CLOUD=${KUBEFLOW_CLOUD:-"minikube"}
+KUBEFLOW_DOCKER_REGISTRY=${KUBEFLOW_DOCKER_REGISTRY:-""}
+
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 
@@ -49,6 +51,11 @@ createEnv() {
     echo MOUNT_LOCAL=${MOUNT_LOCAL} >> ${ENV_FILE}
     cleanup_and_deploy_minikube
 	fi
+
+  if [ "${PLATFORM}" == "ack" ]; then
+    echo KUBEFLOW_CLOUD=ack >> ${ENV_FILE}
+    echo KUBEFLOW_DOCKER_REGISTRY=registry.aliyuncs.com >> ${ENV_FILE}
+  fi
 
 	if [ "${PLATFORM}" == "gcp" ]; then
 		PROJECT=${PROJECT:-$(gcloud config get-value project 2>/dev/null)}
@@ -97,7 +104,7 @@ createEnv() {
 		fi
 
 		echo PROJECT_NUMBER=${PROJECT_NUMBER} >> ${ENV_FILE}
-    fi
+  fi
 }
 
 # For minikube single script download experience
@@ -266,6 +273,7 @@ if [ "${COMMAND}" == "generate" ]; then
   if [ "${WHAT}" == "k8s" ] || [ "${WHAT}" == "all" ]; then  	   
     createKsApp
     customizeKsApp
+    customizeKsAppWithDockerImage
 
     if [ "${PLATFORM}" == "gcp" ]; then
     	gcpGenerateKsApp

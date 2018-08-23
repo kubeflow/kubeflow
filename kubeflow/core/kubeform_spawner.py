@@ -76,7 +76,7 @@ class KubeFormSpawner(KubeSpawner):
     def singleuser_image_spec(self):
         global cloud
         if cloud == 'ack':
-            image = 'registry.aliyuncs.com/kubeflow-images-public/tensorflow-notebook-cpu'
+            image = 'registry.aliyuncs.com/kubeflow-images-public/tensorflow-notebook-cpu:v0.2.1'
         else:
             image = 'gcr.io/kubeflow-images-public/tensorflow-1.8.0-notebook-cpu:v0.2.1'
         if self.user_options.get('image'):
