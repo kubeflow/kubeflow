@@ -54,7 +54,6 @@ generateDMConfigs() {
     sed -i.bak "s/set-kubeflow-admin-service-account/serviceAccount:${DEPLOYMENT_NAME}-admin@${PROJECT}.iam.gserviceaccount.com/" "${KUBEFLOW_DM_DIR}"/iam_bindings.yaml
     sed -i.bak "s/set-kubeflow-user-service-account/serviceAccount:${DEPLOYMENT_NAME}-user@${PROJECT}.iam.gserviceaccount.com/" "${KUBEFLOW_DM_DIR}"/iam_bindings.yaml
     sed -i.bak "s/set-kubeflow-vm-service-account/serviceAccount:${DEPLOYMENT_NAME}-vm@${PROJECT}.iam.gserviceaccount.com/" "${KUBEFLOW_DM_DIR}"/iam_bindings.yaml
-    sed -i.bak "s/set-kubeflow-dm-service-account/serviceAccount:${PROJECT_NUMBER}@cloudservices.gserviceaccount.com/" "${KUBEFLOW_DM_DIR}"/iam_bindings.yaml
     sed -i.bak "s/set-kubeflow-iap-account/${IAP_IAM_ENTRY}/" "${KUBEFLOW_DM_DIR}"/iam_bindings.yaml
     rm "${KUBEFLOW_DM_DIR}/iam_bindings.yaml.bak"
 
