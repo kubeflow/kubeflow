@@ -186,6 +186,8 @@ if env_uid and env_uid != 'null':
 env_gid = os.environ.get('NOTEBOOK_GID')
 if env_gid and env_gid != 'null':
     c.KubeSpawner.singleuser_fs_gid = int(env_gid)
+access_local_fs = os.environ.get('ACCESS_LOCAL_FS')
+if access_local_fs == 'true':
     def modify_pod_hook(spawner, pod):
        pod.spec.containers[0].lifecycle = {
             'postStart' : {

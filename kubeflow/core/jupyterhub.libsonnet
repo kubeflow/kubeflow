@@ -169,6 +169,11 @@
                       name: "NOTEBOOK_GID",
                       value: params.notebookGid,
                     },
+                  if params.cloud == "minikube" then
+                    {
+                      name: "ACCESS_LOCAL_FS",
+                      value: params.accessLocalFs,
+                    },
                 ]),
               },  // jupyterHub container
             ],

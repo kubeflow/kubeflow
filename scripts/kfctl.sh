@@ -16,9 +16,6 @@ WHAT=$2
 ENV_FILE="env.sh"
 
 KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"}
-KUBEFLOW_DEPLOY=${KUBEFLOW_DEPLOY:-true}
-K8S_NAMESPACE=${K8S_NAMESPACE:-"kubeflow"}
-KUBEFLOW_CLOUD=${KUBEFLOW_CLOUD:-"minikube"}
 KUBEFLOW_DOCKER_REGISTRY=${KUBEFLOW_DOCKER_REGISTRY:-""}
 
 
@@ -66,7 +63,6 @@ createEnv() {
 			echo or by setting the default project in gcloud
 			exit 1
 		fi		
-		echo KUBEFLOW_DEPLOY=${KUBEFLOW_DEPLOY:-true} >> ${ENV_FILE}
 
 		# Name of the deployment
 		DEPLOYMENT_NAME=${DEPLOYMENT_NAME:-"kubeflow"} 
@@ -139,7 +135,6 @@ if [ "${COMMAND}" == "init" ]; then
       shift
 	done
 
-  # Download minikube dependencies
   if [ "${PLATFORM}" == "minikube" ]; then
     download_kfctl_scripts
   fi
@@ -285,6 +280,7 @@ if [ "${COMMAND}" == "generate" ]; then
         ks param set jupyterhub disks "local-notebooks" 
         ks param set jupyterhub notebookUid \"`id -u`\"
         ks param set jupyterhub notebookGid \"`id -g`\"
+        ks param set jupyterhub accessLocalFs "true"
       fi
     fi
   fi
