@@ -159,12 +159,12 @@
                       name: "GCP_SECRET_NAME",
                       value: params.gcpSecretName,
                     },
-                  if param.cloud = "minikube" then
+                  if param.cloud == "minikube" then
                     {
                       name: "NOTEBOOK_UID",
                       value: params.notebookUid,
                     },
-                  if param.cloud = "minikube" then
+                  if param.cloud == "minikube" then
                     {
                       name: "NOTEBOOK_GID",
                       value: params.notebookGid,
