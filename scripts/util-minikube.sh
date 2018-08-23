@@ -10,13 +10,6 @@ NC='\033[0m'
 
 MOUNT_LOCAL=${MOUNT_LOCAL:-"false"}
 
-function download_kubeflow_source() {
-  # download source zip
-  curl -OL https://github.com/kubeflow/kubeflow/archive/${KUBEFLOW_VERSION}.zip
-  unzip ${KUBEFLOW_VERSION}.zip
-  rm ${KUBEFLOW_VERSION}.zip
-}
-
 function is_kubeflow_ready() {
   echo -en "${YELLOW}Getting kubeflow namespace ready...${NC}"
   local ns_ready=false
