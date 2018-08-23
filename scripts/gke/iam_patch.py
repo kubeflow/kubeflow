@@ -49,8 +49,7 @@ def iam_policy_to_dict(bindings):
   for binding in bindings:
     role = binding['role']
     bindings_dict[role] = set()
-    for member in binding['members']:
-      bindings_dict[role].add(member)
+    bindings_dict[role].update(binding['members'])
   return bindings_dict
 
 

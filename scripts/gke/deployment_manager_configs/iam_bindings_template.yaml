@@ -1,4 +1,9 @@
 # This config is used by iam_patch.py. It is not a DM config.
+#
+# Schema for this yaml file
+# * bindings is a list of (members, roles) dict
+# * members and roles are lists
+# * each role in roles is granted to each member in members
 bindings:
 - members:
   - set-kubeflow-admin-service-account
