@@ -486,21 +486,10 @@
                     dependencies: ["checkout"],
                   },
                   {
-                    local bootstrapKubeflowGCP = {
-                      name: "bootstrap-kf-gcp",
-                      template: "bootstrap-kf-gcp",
-                      dependencies: ["checkout"],
-                    },
-                    local deployKubeflow = {
-                      name: "deploy-kubeflow",
-                      template: "deploy-kubeflow",
-                      dependencies: ["setup-minikube"],
-                    },
-                    result:: if platform == "minikube" then
-                      deployKubeflow
-                    else
-                      bootstrapKubeflowGCP,
-                  }.result,
+                    name: "deploy-kubeflow",
+                    template: "deploy-kubeflow",
+                    dependencies: ["setup-minikube"],
+                  },
                   {
                     name: "pytorchjob-deploy",
                     template: "pytorchjob-deploy",
@@ -529,27 +518,16 @@
                     template: "tfjob-test" + v1alpha2Suffix
                     ,
                     dependencies: [
-                      if platform == "minikube" then
-                        "deploy-kubeflow"
-                      else
-                        "wait-for-kubeflow",
+                      "deploy-kubeflow",
                     ],
                   },
-                  if platform == "minikube" then
-                    {
-                      name: "tfjob-simple-prototype-test",
-                      template: "tfjob-simple-prototype-test",
-                      dependencies: [
-                        "deploy-kubeflow",
-                      ],
-                    },
-                  if platform == "gke" then {
-                    name: "wait-for-kubeflow",
-                    template: "wait-for-kubeflow",
+                  {
+                    name: "tfjob-simple-prototype-test",
+                    template: "tfjob-simple-prototype-test",
                     dependencies: [
-                      "bootstrap-kf-gcp",
+                      "deploy-kubeflow",
                     ],
-                  } else {},
+                  },
                   {
                     name: "jsonnet-test",
                     template: "jsonnet-test",
@@ -564,14 +542,7 @@
                 tasks: [
                   {
                     name: "teardown",
-                    template:
-                      if platform == "gke" then
-                        "teardown-kubeflow-gcp"
-                      else
-                        if platform == "minikube" then
-                          "teardown-minikube"
-                        else
-                          "",
+                    template: "teardown-minikube",
                   },
                   {
                     name: "test-dir-delete",
@@ -734,28 +705,6 @@
               "--deploy_name=test-argo-deploy",
               "deploy_argo",
             ]),  // test-argo-deploy
-            buildTemplate("bootstrap-kf-gcp", [
-              "python",
-              "-m",
-              "testing.run_with_retry",
-              "--retries=5",
-              "--",
-              "bash",
-              srcDir + "/testing/deploy_kubeflow_gcp.sh",
-              deploymentName,
-              testDir,
-            ]),  // bootstrap-kf-gcp
-            buildTemplate("teardown-kubeflow-gcp", [
-              "python",
-              "-m",
-              "testing.run_with_retry",
-              "--retries=5",
-              "--",
-              "bash",
-              srcDir + "/testing/teardown_kubeflow_gcp.sh",
-              deploymentName,
-              testDir,
-            ]),  // teardown-kubeflow-gcp
           ],  // templates
         },
       },  // e2e
