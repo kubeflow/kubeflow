@@ -298,7 +298,7 @@ spec:
   volumeName: local-volume
 EOF
   kubectl create -n ${K8S_NAMESPACE} -f ./pv-claim.yaml
-
+  fi
 }
 
 # if user requested a local fs path to be mounted, make it accessible via

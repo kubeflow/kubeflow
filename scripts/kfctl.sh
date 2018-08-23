@@ -283,8 +283,8 @@ if [ "${COMMAND}" == "generate" ]; then
       create_local_fs_mount_spec
       if ${MOUNT_LOCAL}; then
         ks param set jupyterhub disks "local-notebooks" 
-        ks param set jupyterhub notebookUid `id -u`
-        ks param set jupyterhub notebookGid `id -g`
+        ks param set jupyterhub notebookUid \"`id -u`\"
+        ks param set jupyterhub notebookGid \"`id -g`\"
       fi
     fi
   fi
