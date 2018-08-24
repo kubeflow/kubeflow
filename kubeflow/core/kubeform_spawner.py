@@ -181,10 +181,10 @@ volume_mounts = []
 # Allow environment vars to override uid and gid.
 # This allows local host path mounts to be read/writable
 env_uid = os.environ.get('NOTEBOOK_UID')
-if env_uid and env_uid != '0':
+if env_uid:
     c.KubeSpawner.singleuser_uid = int(env_uid)
 env_gid = os.environ.get('NOTEBOOK_GID')
-if env_gid and env_gid != '0':
+if env_gid:
     c.KubeSpawner.singleuser_fs_gid = int(env_gid)
 access_local_fs = os.environ.get('ACCESS_LOCAL_FS')
 if access_local_fs == 'true':
