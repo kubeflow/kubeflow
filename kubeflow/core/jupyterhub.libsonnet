@@ -8,7 +8,7 @@
     if key != "list" && key != "params" && key != "all"
   ],
 
-  ConfigMap:: {
+  KubeSpawnerConfig:: {
     apiVersion: "v1",
     kind: "ConfigMap",
     metadata: {
@@ -94,7 +94,7 @@
       type: $.params.serviceType,
     },
   },
-  StatefulSet:: {
+  HubStatefulSet:: {
     apiVersion: "apps/v1beta1",
     kind: "StatefulSet",
     metadata: {
