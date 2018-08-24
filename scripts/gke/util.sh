@@ -6,17 +6,17 @@ set -xe
 
 gcpCreateSecretsDir() {
   # Create a directory to contain GCP secrets.
-	mkdir -p ${KUBEFLOW_SECRETS_DIR}
+  mkdir -p ${KUBEFLOW_SECRETS_DIR}
 
-	# We want to prevent secrets from being checked into source control.
-	# We have two different checks.
-	# 1. We put the secrets in a directory with a .gitignore file
-	# 2. We will delete the secrets immediately.
-	if [ ! -f ${KUBEFLOW_SECRETS_DIR}/.gitignore ]; then
+  # We want to prevent secrets from being checked into source control.
+  # We have two different checks.
+  # 1. We put the secrets in a directory with a .gitignore file
+  # 2. We will delete the secrets immediately.
+  if [ ! -f ${KUBEFLOW_SECRETS_DIR}/.gitignore ]; then
   cat > ${KUBEFLOW_SECRETS_DIR}/.gitignore << EOF
 **
 EOF
-	fi
+  fi
 }
 
 gcpInitProject() {
@@ -36,12 +36,11 @@ gcpInitProject() {
 }
 
 generateDMConfigs() {
-	# Create the DM configs if they don't exist.
-	if [ ! -d "${KUBEFLOW_DM_DIR}" ]; then
-	  echo creating Deployment Manager configs in directory "${KUBEFLOW_DM_DIR}"
+  # Create the DM configs if they don't exist.
+  if [ ! -d "${KUBEFLOW_DM_DIR}" ]; then
+    echo creating Deployment Manager configs in directory "${KUBEFLOW_DM_DIR}"
     mkdir -p "${KUBEFLOW_DM_DIR}"
-	  cp -r "${KUBEFLOW_REPO}"/scripts/gke/deployment_manager_configs/cluster* "${KUBEFLOW_DM_DIR}"
-
+    cp -r "${KUBEFLOW_REPO}"/scripts/gke/deployment_manager_configs/cluster* "${KUBEFLOW_DM_DIR}"
 
     if [[ "$EMAIL" =~ .*iam\.gserviceaccount\.com ]]; then
       IAP_IAM_ENTRY="serviceAccount:${EMAIL}"
@@ -49,14 +48,23 @@ generateDMConfigs() {
       IAP_IAM_ENTRY="user:${EMAIL}"
     fi
 
+    cp "${KUBEFLOW_REPO}"/scripts/gke/deployment_manager_configs/iam_bindings_template.yaml "${KUBEFLOW_DM_DIR}"/iam_bindings.yaml
+
+    # Set the various service accounts in iam_bindings.yaml
+    sed -i.bak "s/set-kubeflow-admin-service-account/serviceAccount:${DEPLOYMENT_NAME}-admin@${PROJECT}.iam.gserviceaccount.com/" "${KUBEFLOW_DM_DIR}"/iam_bindings.yaml
+    sed -i.bak "s/set-kubeflow-user-service-account/serviceAccount:${DEPLOYMENT_NAME}-user@${PROJECT}.iam.gserviceaccount.com/" "${KUBEFLOW_DM_DIR}"/iam_bindings.yaml
+    sed -i.bak "s/set-kubeflow-vm-service-account/serviceAccount:${DEPLOYMENT_NAME}-vm@${PROJECT}.iam.gserviceaccount.com/" "${KUBEFLOW_DM_DIR}"/iam_bindings.yaml
+    sed -i.bak "s/set-kubeflow-iap-account/${IAP_IAM_ENTRY}/" "${KUBEFLOW_DM_DIR}"/iam_bindings.yaml
+    rm "${KUBEFLOW_DM_DIR}/iam_bindings.yaml.bak"
+
     # Set values in DM config file
-	  sed -i.bak "s/zone: SET_THE_ZONE/zone: ${ZONE}/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
-	  sed -i.bak "s/users:/users: [\"${IAP_IAM_ENTRY}\"]/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
-	  sed -i.bak "s/ipName: kubeflow-ip/ipName: ${KUBEFLOW_IP_NAME}/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
-	  rm "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}.bak"
-	else
-	  echo Deployment Manager configs already exist in directory "${KUBEFLOW_DM_DIR}"
-	fi
+    sed -i.bak "s/zone: SET_THE_ZONE/zone: ${ZONE}/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
+    sed -i.bak "s/users:/users: [\"${IAP_IAM_ENTRY}\"]/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
+    sed -i.bak "s/ipName: kubeflow-ip/ipName: ${KUBEFLOW_IP_NAME}/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
+    rm "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}.bak"
+  else
+    echo Deployment Manager configs already exist in directory "${KUBEFLOW_DM_DIR}"
+  fi
 }
 
 createGcpSecret() {
@@ -88,13 +96,13 @@ downloadK8sManifests() {
   mkdir -p ${KUBEFLOW_K8S_MANIFESTS_DIR}
   # Install the GPU driver. It has no effect on non-GPU nodes.
   curl -o ${KUBEFLOW_K8S_MANIFESTS_DIR}/daemonset-preloaded.yaml \
-  	https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/stable/nvidia-driver-installer/cos/daemonset-preloaded.yaml
+    https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/stable/nvidia-driver-installer/cos/daemonset-preloaded.yaml
 
   curl -o ${KUBEFLOW_K8S_MANIFESTS_DIR}/rbac-setup.yaml \
-	https://storage.googleapis.com/stackdriver-kubernetes/stable/rbac-setup.yaml
+  https://storage.googleapis.com/stackdriver-kubernetes/stable/rbac-setup.yaml
 
   curl -o ${KUBEFLOW_K8S_MANIFESTS_DIR}/agents.yaml \
-  		  https://storage.googleapis.com/stackdriver-kubernetes/stable/agents.yaml
+        https://storage.googleapis.com/stackdriver-kubernetes/stable/agents.yaml
 
 }
 
@@ -135,6 +143,10 @@ updateDM() {
     updateDeployment ${DEPLOYMENT_NAME}-gcfs gcfs.yaml
   fi
 
+  python "${KUBEFLOW_REPO}/scripts/gke/iam_patch.py" --action=add \
+    --project=${PROJECT} \
+    --iam_bindings_file="${KUBEFLOW_DM_DIR}/iam_bindings.yaml"
+
   # Set credentials for kubectl context
   gcloud --project=${PROJECT} container clusters get-credentials --zone=${ZONE} ${DEPLOYMENT_NAME}
 
@@ -145,11 +157,11 @@ updateDM() {
 
   kubectl config set-context ${KUBEFLOW_K8S_CONTEXT} \
     --namespace ${K8S_NAMESPACE} \
-	--cluster $CURRENT_CLUSTER \
-	--user $CURRENT_USER
+  --cluster $CURRENT_CLUSTER \
+  --user $CURRENT_USER
 
-	echo created context named: ${KUBEFLOW_K8S_CONTEXT}
-	kubectl config use-context ${KUBEFLOW_K8S_CONTEXT}
+  echo created context named: ${KUBEFLOW_K8S_CONTEXT}
+  kubectl config use-context ${KUBEFLOW_K8S_CONTEXT}
   # Make yourself cluster admin
   set +e
   O=`kubectl get clusterrolebinding default-admin 2>&1`
@@ -227,7 +239,7 @@ gcpKsApply() {
   set -e
 
   if [ "${RESULT}" -eq 0 ]; then
-  	echo environment default already exists
+    echo environment default already exists
   else
     ks env add default --namespace "${K8S_NAMESPACE}"
   fi
