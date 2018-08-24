@@ -18,15 +18,18 @@
       },
     }.result,
 
-    ingressParts(secretName, ipName, hostname, issuer, envoyImage, disableJwt, oauthSecretName):: std.prune(k.core.v1.list.new([
+    ingressParts(secretName, ipName, hostname, issuer, envoyImage, ingressSetupImage, disableJwt, oauthSecretName, privateGKECluster):: std.prune(k.core.v1.list.new([
       $.parts(namespace).service,
-      $.parts(namespace).ingress(secretName, ipName, hostname),
-      $.parts(namespace).certificate(secretName, hostname, issuer),
+      $.parts(namespace).backendConfig(oauthSecretName),
+      $.parts(namespace).ingressBootstrapConfigMap,
+      $.parts(namespace).ingressBootstrapJob(secretName, ingressSetupImage),
+      $.parts(namespace).ingress(ipName, hostname),
+      (if privateGKECluster == "false" then $.parts(namespace).certificate(secretName, hostname, issuer)),
       $.parts(namespace).initServiceAccount,
       $.parts(namespace).initClusterRoleBinding,
       $.parts(namespace).initClusterRole,
-      $.parts(namespace).deploy(envoyImage, oauthSecretName),
-      $.parts(namespace).iapEnabler(oauthSecretName),
+      $.parts(namespace).deploy(envoyImage, oauthSecretName, ingressSetupImage),
+      $.parts(namespace).iapEnabler(oauthSecretName, ingressSetupImage),
       $.parts(namespace).configMap(disableJwt),
       $.parts(namespace).whoamiService,
       $.parts(namespace).whoamiApp,
@@ -42,6 +45,9 @@
         },
         name: "envoy",
         namespace: namespace,
+        annotations: {
+          "beta.cloud.google.com/backend-config": '{"ports": {"envoy":"envoy-iap"}}',
+        },
       },
       spec: {
         ports: [
@@ -98,8 +104,13 @@
       rules: [
         {
           apiGroups: [""],
-          resources: ["services", "configmaps"],
+          resources: ["services", "configmaps", "secrets"],
           verbs: ["get", "list", "patch", "update"],
+        },
+        {
+          apiGroups: ["extensions"],
+          resources: ["ingresses"],
+          verbs: ["get", "list", "update", "patch"],
         },
       ],
     },  // initClusterRoleBinding
@@ -157,7 +168,7 @@
       ],
     },  // envoyContainer
 
-    deploy(image, oauthSecretName):: {
+    deploy(image, oauthSecretName, ingressSetupImage):: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -188,7 +199,7 @@
               }),
               {
                 name: "iap",
-                image: "google/cloud-sdk:alpine",
+                image: ingressSetupImage,
                 command: [
                   "sh",
                   "/var/envoy-config/configure_envoy_for_iap.sh",
@@ -197,24 +208,6 @@
                   {
                     name: "NAMESPACE",
                     value: namespace,
-                  },
-                  {
-                    name: "CLIENT_ID",
-                    valueFrom: {
-                      secretKeyRef: {
-                        name: oauthSecretName,
-                        key: "CLIENT_ID",
-                      },
-                    },
-                  },
-                  {
-                    name: "CLIENT_SECRET",
-                    valueFrom: {
-                      secretKeyRef: {
-                        name: oauthSecretName,
-                        key: "CLIENT_SECRET",
-                      },
-                    },
                   },
                   {
                     name: "SERVICE",
@@ -273,7 +266,7 @@
     },  // deploy
 
     // Run the process to enable iap
-    iapEnabler(oauthSecretName):: {
+    iapEnabler(oauthSecretName, ingressSetupImage):: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -293,33 +286,15 @@
             containers: [
               {
                 name: "iap",
-                image: "google/cloud-sdk:alpine",
+                image: ingressSetupImage,
                 command: [
-                  "sh",
-                  "/var/envoy-config/setup_iap.sh",
+                  "bash",
+                  "/var/envoy-config/setup_backend.sh",
                 ],
                 env: [
                   {
                     name: "NAMESPACE",
                     value: namespace,
-                  },
-                  {
-                    name: "CLIENT_ID",
-                    valueFrom: {
-                      secretKeyRef: {
-                        name: oauthSecretName,
-                        key: "CLIENT_ID",
-                      },
-                    },
-                  },
-                  {
-                    name: "CLIENT_SECRET",
-                    valueFrom: {
-                      secretKeyRef: {
-                        name: oauthSecretName,
-                        key: "CLIENT_SECRET",
-                      },
-                    },
                   },
                   {
                     name: "SERVICE",
@@ -376,7 +351,7 @@
       },
       data: {
         "envoy-config.json": std.manifestJson($.parts(namespace).envoyConfig(disableJwt)),
-        "setup_iap.sh": importstr "setup_iap.sh",
+        "setup_backend.sh": importstr "setup_backend.sh",
         "configure_envoy_for_iap.sh": importstr "configure_envoy_for_iap.sh",
       },
     },
@@ -725,7 +700,91 @@
       },
     },
 
-    ingress(secretName, ipName, hostname):: {
+    backendConfig(oauthSecretName):: {
+      apiVersion: "cloud.google.com/v1beta1",
+      kind: "BackendConfig",
+      metadata: {
+        name: "envoy-iap",
+        namespace: namespace,
+      },
+      spec: {
+        iap: {
+          enabled: true,
+          oauthclientCredentials: {
+            secretName: oauthSecretName,
+          },
+        },
+      },
+    },  // backendConfig
+
+    // TODO(danisla): Remove afer https://github.com/kubernetes/ingress-gce/pull/388 is resolved per #1327.
+    ingressBootstrapConfigMap:: {
+      apiVersion: "v1",
+      kind: "ConfigMap",
+      metadata: {
+        name: "ingress-bootstrap-config",
+        namespace: namespace,
+      },
+      data: {
+        "ingress_bootstrap.sh": importstr "ingress_bootstrap.sh",
+      },
+    },
+
+    ingressBootstrapJob(secretName, ingressSetupImage):: {
+      apiVersion: "batch/v1",
+      kind: "Job",
+      metadata: {
+        name: "ingress-bootstrap",
+        namespace: namespace,
+      },
+      spec: {
+        template: {
+          spec: {
+            restartPolicy: "OnFailure",
+            serviceAccountName: "envoy",
+            containers: [
+              {
+                name: "bootstrap",
+                image: ingressSetupImage,
+                command: ["/var/ingress-config/ingress_bootstrap.sh"],
+                env: [
+                  {
+                    name: "NAMESPACE",
+                    value: namespace,
+                  },
+                  {
+                    name: "TLS_SECRET_NAME",
+                    value: secretName,
+                  },
+                  {
+                    name: "INGRESS_NAME",
+                    value: "envoy-ingress",
+                  },
+                ],
+                volumeMounts: [
+                  {
+                    mountPath: "/var/ingress-config/",
+                    name: "ingress-config",
+                  },
+                ],
+              },
+            ],
+            volumes: [
+              {
+                configMap: {
+                  name: "ingress-bootstrap-config",
+                  // TODO(danisla): replace with std.parseOctal("0755") after upgrading to ksonnet 0.12
+                  defaultMode: 493,
+                },
+                name: "ingress-config",
+              },
+            ],
+          },
+        },
+      },
+    },  // ingressBootstrapJob
+
+    ingress(ipName, hostname):: {
       apiVersion: "extensions/v1beta1",
       kind: "Ingress",
       metadata: {
@@ -757,11 +816,6 @@
             },
           },
         ],
-        tls: [
-          {
-            secretName: secretName,
-          },
-        ],
       },
     },  // iapIngress
 
@@ -777,6 +831,7 @@
         secretName: secretName,
         issuerRef: {
           name: issuer,
+          kind: "Issuer",
         },
         commonName: hostname,
         dnsNames: [

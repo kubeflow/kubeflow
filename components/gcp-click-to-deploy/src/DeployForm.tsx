@@ -8,6 +8,7 @@ import TextField from '@material-ui/core/TextField';
 import glamorous from 'glamorous';
 import * as jsYaml from 'js-yaml';
 import * as React from 'react';
+import * as request from 'request';
 import Gapi from './Gapi';
 import { flattenDeploymentOperationError, log, wait } from './Utils';
 
@@ -19,6 +20,7 @@ import { flattenDeploymentOperationError, log, wait } from './Utils';
 // copy in the latest configs.
 import clusterSpecPath from './configs/cluster-kubeflow.yaml';
 import clusterJinjaPath from './configs/cluster.jinja';
+import appConfigPath from './user_config/app-config.yaml';
 
 // TODO(jlewi): For the FQDN we should have a drop down box to select custom
 // domain or automatically provisioned domain. Based on the response if the user
@@ -34,6 +36,8 @@ interface DeployFormState {
   project: string;
   showLogs: boolean;
   zone: string;
+  clientId: string;
+  clientSecret: string;
 }
 
 const Text = glamorous.div({
@@ -101,10 +105,13 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
 
   private _clusterJinja = '';
   private _clusterSpec: any;
+  private _configSpec: any;
 
   constructor(props: any) {
     super(props);
     this.state = {
+      clientId: '',
+      clientSecret: '',
       deploymentName: 'kubeflow',
       dialogBody: '',
       dialogTitle: '',
@@ -152,6 +159,23 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       .catch((error) => {
         log('Request failed', error);
       });
+    fetch(appConfigPath, { mode: 'no-cors' })
+      .then((response) => {
+        log('Got response');
+        return response.text();
+      })
+      .then((text) => {
+        this._configSpec = jsYaml.safeLoad(text);
+        // log('Loaded clusterSpecPath successfully');
+      })
+      .catch((error) => {
+        log('Request failed', error);
+        this.setState({
+          dialogBody: 'Failed to load user config file.',
+          dialogTitle: 'Config loading Error',
+        });
+        return;
+      });
 
   }
 
@@ -174,6 +198,12 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         </Row>
         <Row>
           <Input name="hostName" label="Hostname" spellCheck={false} value={this.state.hostName} onChange={this._handleChange.bind(this)} />
+        </Row>
+        <Row>
+          <Input name="clientId" label="Web App Client Id" spellCheck={false} value={this.state.clientId} onChange={this._handleChange.bind(this)} />
+        </Row>
+        <Row>
+          <Input name="clientSecret" label="Web App Client Secret" spellCheck={false} value={this.state.clientSecret} onChange={this._handleChange.bind(this)} />
         </Row>
 
         <div style={{ display: 'flex', padding: '20px 60px 40px' }}>
@@ -247,6 +277,8 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
 
     kubeflow.name = this.state.deploymentName;
     kubeflow.properties.zone = this.state.zone;
+    kubeflow.properties.clientId = btoa(this.state.clientId);
+    kubeflow.properties.clientSecret = btoa(this.state.clientSecret);
 
     const config: any = jsYaml.safeLoad(kubeflow.properties.bootstrapperConfig);
 
@@ -391,7 +423,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     this._appendLine('Starting new deployment..');
 
     const deploymentName = this.state.deploymentName;
-    Gapi.deploymentmanager.insert(project, resource)
+    await Gapi.deploymentmanager.insert(project, resource)
       .then(res => {
         this._appendLine('Result of create deployment operation:\n' + JSON.stringify(res));
         this._monitorDeployment(project, deploymentName);
@@ -404,6 +436,49 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         });
       });
 
+
+    // Step 4: In-cluster resources set up
+    let status = '';
+    let getAttempts = 0;
+    const getTimeout = 15000;
+    do {
+      getAttempts++;
+      const curStatus = await Gapi.deploymentmanager.get(this.state.project, deploymentName)
+            .catch(err => {
+              this._appendLine('Cluster endpoint not available yet.');
+            });
+      if (!curStatus) {
+        await wait(getTimeout);
+        continue;
+      }
+      status = curStatus.operation!.status!;
+    } while (status !== 'DONE' && getAttempts < 20);
+
+    const token = await Gapi.getToken();
+    await request(
+      {
+        body: JSON.stringify(
+          {
+            namespace: 'kubeflow',
+            project,
+            secretKey: 'admin-gcp-sa.json',
+            secretName: 'admin-gcp-sa',
+            serviceAccount:  `${deploymentName}-admin@${project}.iam.gserviceaccount.com`,
+            token,
+          }
+        ),
+        headers: { 'content-type': 'application/json' },
+        method: 'PUT',
+        uri: this._configSpec.appAddress + '/insertSaKey',
+      },
+      (error, response, body) => {
+        if (!error) {
+          this._appendLine('Service Account Key inserted.');
+        } else {
+          this._appendLine('error: ' + response.statusCode);
+        }
+      }
+    );
   }
 
   /**
@@ -414,6 +489,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
 
     const servicesToEnable = new Set([
       'deploymentmanager.googleapis.com',
+      'container.googleapis.com',
       'cloudresourcemanager.googleapis.com',
       'endpoints.googleapis.com',
       'iam.googleapis.com',
@@ -437,7 +513,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
               'deployment failed with error:' + flattenDeploymentOperationError(r.operation!));
             clearInterval(monitorInterval);
           } else {
-            this._appendLine(r.operation!.status!);
+            this._appendLine(`Status of ${deploymentName}: ` + r.operation!.status!);
           }
         })
         .catch(err => this._appendLine('deployment failed with error:' + err));

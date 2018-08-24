@@ -307,24 +307,19 @@ func Run(opt *options.ServerOption) error {
 		version.PrintVersionAndExit()
 	}
 
-	config, err := getClusterConfig(opt.InCluster)
-	if err != nil {
-		return err
-	}
-
 	// Load information about the default registries.
 	var regConfig RegistriesConfigFile
 
 	if opt.RegistriesConfigFile != "" {
-		log.Info("Loading registry info in file %v", opt.RegistriesConfigFile)
-		if err = LoadConfig(opt.RegistriesConfigFile, &regConfig); err != nil {
+		log.Infof("Loading registry info in file %v", opt.RegistriesConfigFile)
+		if err := LoadConfig(opt.RegistriesConfigFile, &regConfig); err != nil {
 			return err
 		}
 	} else {
 		log.Info("--registries-config-file not provided; not loading any registries")
 	}
 
-	ksServer, err := NewServer(opt.AppDir, regConfig.Registries, config)
+	ksServer, err := NewServer(opt.AppDir, regConfig.Registries)
 
 	if err != nil {
 		return err

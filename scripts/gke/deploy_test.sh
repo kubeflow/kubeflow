@@ -14,7 +14,7 @@ export CLIENT_ID=fake_id
 export CLIENT_SECRET=fake_secret
 
 cd ${TMPDIR}
-${DIR}/deploy.sh
+${DIR}/deploy.sh configure
 
 EXPECTED_DM_DIR=${TMPDIR}/kubeflow_deployment_manager_configs
 

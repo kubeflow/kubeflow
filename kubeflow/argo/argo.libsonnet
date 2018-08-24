@@ -2,19 +2,19 @@
   // TODO(jlewi): Do we need to add parts corresponding to a service account and cluster binding role?
   // see https://github.com/argoproj/argo/blob/master/cmd/argo/commands/install.go
 
-  parts(namespace, imageTag):: {
+  parts(params):: {
     all:: [
-      $.parts(namespace, imageTag).crd,
-      $.parts(namespace, imageTag).config,
-      $.parts(namespace, imageTag).deploy,
-      $.parts(namespace, imageTag).deployUi,
-      $.parts(namespace, imageTag).uiService,
-      $.parts(namespace, imageTag).serviceAccount,
-      $.parts(namespace, imageTag).role,
-      $.parts(namespace, imageTag).roleBinding,
-      $.parts(namespace, imageTag).uiServiceAccount,
-      $.parts(namespace, imageTag).uiRole,
-      $.parts(namespace, imageTag).uiRoleBinding,
+      $.parts(params).crd,
+      $.parts(params).config,
+      $.parts(params).deploy,
+      $.parts(params).deployUi,
+      $.parts(params).uiService,
+      $.parts(params).serviceAccount,
+      $.parts(params).role,
+      $.parts(params).roleBinding,
+      $.parts(params).uiServiceAccount,
+      $.parts(params).uiRole,
+      $.parts(params).uiRoleBinding,
     ],
 
     // CRD's are not namespace scoped; see
@@ -50,7 +50,7 @@
       },
       metadata: {
         name: "workflow-controller",
-        namespace: namespace,
+        namespace: params.namespace,
       },
       spec: {
         progressDeadlineSeconds: 600,
@@ -96,7 +96,7 @@
                     },
                   },
                 ],
-                image: "argoproj/workflow-controller:" + imageTag,
+                image: params.workflowControllerImage,
                 imagePullPolicy: "IfNotPresent",
                 name: "workflow-controller",
                 resources: {},
@@ -116,7 +116,6 @@
       },
     },  // deploy
 
-
     deployUi: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
@@ -125,7 +124,7 @@
           app: "argo-ui",
         },
         name: "argo-ui",
-        namespace: namespace,
+        namespace: params.namespace,
       },
       spec: {
         progressDeadlineSeconds: 600,
@@ -168,7 +167,7 @@
                     value: "true",
                   },
                 ],
-                image: "argoproj/argoui:" + imageTag,
+                image: params.uiImage,
                 imagePullPolicy: "IfNotPresent",
                 name: "argo-ui",
                 resources: {},
@@ -202,7 +201,19 @@
           app: "argo-ui",
         },
         name: "argo-ui",
-        namespace: namespace,
+        namespace: params.namespace,
+        annotations: {
+          "getambassador.io/config":
+            std.join("\n", [
+              "---",
+              "apiVersion: ambassador/v0",
+              "kind:  Mapping",
+              "name: argo-ui-mapping",
+              "prefix: /argo/",
+              "rewrite: /argo/",
+              "service: argo-ui." + params.namespace,
+            ]),
+        },  //annotations
       },
       spec: {
         ports: [
@@ -222,12 +233,12 @@
     config: {
       apiVersion: "v1",
       data: {
-        config: @"executorImage: argoproj/argoexec:" + imageTag,
+        config: @"executorImage: " + params.executorImage,
       },
       kind: "ConfigMap",
       metadata: {
         name: "workflow-controller-configmap",
-        namespace: namespace,
+        namespace: params.namespace,
       },
     },
 
@@ -236,7 +247,7 @@
       kind: "ServiceAccount",
       metadata: {
         name: "argo",
-        namespace: namespace,
+        namespace: params.namespace,
       },
     },  // service account
 
@@ -253,7 +264,7 @@
           app: "argo",
         },
         name: "argo",
-        namespace: namespace,
+        namespace: params.namespace,
       },
       rules: [
         {
@@ -320,7 +331,7 @@
           app: "argo",
         },
         name: "argo",
-        namespace: namespace,
+        namespace: params.namespace,
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
@@ -331,7 +342,7 @@
         {
           kind: "ServiceAccount",
           name: "argo",
-          namespace: namespace,
+          namespace: params.namespace,
         },
       ],
     },  // role binding
@@ -341,7 +352,7 @@
       kind: "ServiceAccount",
       metadata: {
         name: "argo-ui",
-        namespace: namespace,
+        namespace: params.namespace,
       },
     },  // service account
 
@@ -358,7 +369,7 @@
           app: "argo",
         },
         name: "argo-ui",
-        namespace: namespace,
+        namespace: params.namespace,
       },
       rules: [
         {
@@ -407,7 +418,7 @@
           app: "argo-ui",
         },
         name: "argo-ui",
-        namespace: namespace,
+        namespace: params.namespace,
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
@@ -418,7 +429,7 @@
         {
           kind: "ServiceAccount",
           name: "argo-ui",
-          namespace: namespace,
+          namespace: params.namespace,
         },
       ],
     },  // role binding

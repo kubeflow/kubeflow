@@ -60,6 +60,7 @@
               "rewrite: /hub/",
               "timeout_ms: 300000",
               "service: tf-hub-lb." + params.namespace,
+              "use_websocket: true",
               "---",
               "apiVersion: ambassador/v0",
               "kind:  Mapping",
@@ -68,6 +69,7 @@
               "rewrite: /user/",
               "timeout_ms: 300000",
               "service: tf-hub-lb." + params.namespace,
+              "use_websocket: true",
             ]),
         },  //annotations
       },
@@ -231,15 +233,24 @@
           ],
           resources: [
             "pods",
-            "deployments",
             "services",
           ],
           verbs: [
-            "get",
-            "watch",
-            "list",
-            "create",
-            "delete",
+            "*",
+          ],
+        },
+        {
+          apiGroups: [
+            "",
+            "apps",
+            "extensions",
+          ],
+          resources: [
+            "deployments",
+            "replicasets",
+          ],
+          verbs: [
+            "*",
           ],
         },
         {
@@ -248,6 +259,17 @@
           ],
           resources: [
             "*",
+          ],
+          verbs: [
+            "*",
+          ],
+        },
+        {
+          apiGroups: [
+            "batch",
+          ],
+          resources: [
+            "jobs",
           ],
           verbs: [
             "*",

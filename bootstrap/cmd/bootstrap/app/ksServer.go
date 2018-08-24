@@ -15,13 +15,15 @@ import (
 
 	"github.com/go-kit/kit/endpoint"
 	httptransport "github.com/go-kit/kit/transport/http"
-	"github.com/ksonnet/ksonnet/actions"
-	kApp "github.com/ksonnet/ksonnet/metadata/app"
+	"github.com/ksonnet/ksonnet/pkg/actions"
+	kApp "github.com/ksonnet/ksonnet/pkg/app"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"golang.org/x/net/context"
+	core_v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
+	type_v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 )
 
@@ -32,6 +34,10 @@ const JUPYTER_PROTOTYPE = "jupyterhub"
 type KsService interface {
 	// CreateApp creates a ksonnet application.
 	CreateApp(context.Context, CreateRequest) error
+	// Apply ksonnet app to target GKE cluster
+	Apply(ctx context.Context, req ApplyRequest) error
+	InsertSaKey(context.Context, InsertSaKeyRequest) error
+	BindRole(context.Context, InitProjectRequest, string) error
 }
 
 // appInfo keeps track of information about apps.
@@ -51,17 +57,15 @@ type ksServer struct {
 	// other information about the regisry.
 	knownRegistries map[string]RegistryConfig
 
-	// Config used to talk to Kubernetes.
-	config *rest.Config
-
 	fs afero.Fs
 
 	apps    map[string]*appInfo
 	appsMux sync.Mutex
+	iamMux sync.Mutex
 }
 
 // NewServer constructs a ksServer.
-func NewServer(appsDir string, registries []RegistryConfig, config *rest.Config) (*ksServer, error) {
+func NewServer(appsDir string, registries []RegistryConfig) (*ksServer, error) {
 	if appsDir == "" {
 		return nil, fmt.Errorf("appsDir can't be empty")
 	}
@@ -71,7 +75,6 @@ func NewServer(appsDir string, registries []RegistryConfig, config *rest.Config)
 		apps:            make(map[string]*appInfo),
 		knownRegistries: make(map[string]RegistryConfig),
 		fs:              afero.NewOsFs(),
-		config:          config,
 	}
 
 	for _, r := range registries {
@@ -81,6 +84,7 @@ func NewServer(appsDir string, registries []RegistryConfig, config *rest.Config)
 		}
 	}
 
+	log.Infof("appsDir is %v", appsDir)
 	info, err := s.fs.Stat(appsDir)
 
 	// TODO(jlewi): Should we create the directory if it doesn't exist?
@@ -132,11 +136,27 @@ type CreateRequest struct {
 
 	// Whether to try to autoconfigure the app.
 	AutoConfigure bool
+
+	// target GKE cLuster info
+	Cluster string
+	Project string
+	Zone string
+
+	// Access token, need to access target cluster in order for AutoConfigure
+	Token string
 }
 
-// createRequest is the response to a createRequest
-type createResponse struct {
+// basicServerResponse is general response contains nil if handler raise no error, otherwise an error message.
+type basicServerResponse struct {
 	Err string `json:"err,omitempty"` // errors don't JSON-marshal, so we use a string
+}
+
+type HealthzRequest struct {
+	Msg string
+}
+
+type HealthzResponse struct {
+	Reply string
 }
 
 // Request to apply an app.
@@ -150,13 +170,44 @@ type ApplyRequest struct {
 	// Components is a list of the names of the components to apply.
 	Components []string
 
+	// target GKE cLuster info
+	Cluster string
+	Project string
+	Zone string
+
 	// Token is an authorization token to use to authorize to the K8s API Server.
 	// Leave blank to use the pods service account.
 	Token string
 }
 
+func setupNamespace(namespaces type_v1.NamespaceInterface, name_space string) error {
+	namespace, err := namespaces.Get(name_space, meta_v1.GetOptions{})
+	if err == nil {
+		log.Infof("Using existing namespace: %v", namespace.Name)
+	} else {
+		log.Infof("Creating namespace: %v for all kubeflow resources", name_space)
+		_, err = namespaces.Create(
+			&core_v1.Namespace{
+				ObjectMeta: meta_v1.ObjectMeta{
+					Name: name_space,
+				},
+			},
+		)
+		return err
+	}
+	return err
+}
+
 // CreateApp creates a ksonnet application based on the request.
 func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
+	config, err := rest.InClusterConfig()
+	if request.Token != "" {
+		config, err = buildClusterConfig(ctx, request.Token, request.Project, request.Zone, request.Cluster)
+	}
+	if err != nil {
+		log.Errorf("Failed getting GKE cluster config: %v", err)
+		return err
+	}
 	a, err := func() (*appInfo, error) {
 		s.appsMux.Lock()
 		defer s.appsMux.Unlock()
@@ -172,7 +223,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 		}
 
 		log.Infof("Creating app %v", request.Name)
-		log.Infof("Using K8s host %v", s.config.Host)
+		log.Infof("Using K8s host %v", config.Host)
 		envName := "default"
 
 		appDir := path.Join(s.appsDir, request.Name)
@@ -184,7 +235,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 				actions.OptionName:     "app",
 				actions.OptionEnvName:  envName,
 				actions.OptionRootPath: appDir,
-				actions.OptionServer:   s.config.Host,
+				actions.OptionServer:   config.Host,
 				// TODO(jlewi): What is the proper version to use? It shouldn't be a version like v1.9.0-gke as that
 				// will create an error because ksonnet will be unable to fetch a swagger spec.
 				actions.OptionSpecFlag:              "version:v1.7.0",
@@ -235,7 +286,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 		options := map[string]interface{}{
 			actions.OptionApp:  a.App,
 			actions.OptionName: registry.Name,
-			actions.OptionURI:  registry.RegUri,
+			actions.OptionURI:  request.AppConfig.Registries[idx].RegUri,
 			// Version doesn't actually appear to be used by the add function.
 			actions.OptionVersion: "",
 			// Looks like override allows us to override existing registries; we shouldn't
@@ -259,9 +310,12 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 		}
 	}
 
-	s.appGenerate(a.App, &request.AppConfig)
+	err = s.appGenerate(a.App, &request.AppConfig)
+	if err != nil {
+		return fmt.Errorf("There was a problem generating app: %v", err)
+	}
 	if request.AutoConfigure {
-		return s.autoConfigureApp(&a.App, &request.AppConfig)
+		return s.autoConfigureApp(&a.App, &request.AppConfig, request.Namespace, config)
 	}
 
 	log.Infof("Created and initialized app at %v", a.App.Root())
@@ -399,9 +453,9 @@ func (s *ksServer) createComponent(kfApp kApp.App, args []string) error {
 
 // autoConfigureApp attempts to automatically optimize the Kubeflow application
 // based on the cluster setup.
-func (s *ksServer) autoConfigureApp(kfApp *kApp.App, appConfig *AppConfig) error {
+func (s *ksServer) autoConfigureApp(kfApp *kApp.App, appConfig *AppConfig, namespace string, config *rest.Config) error {
 
-	kubeClient, err := clientset.NewForConfig(rest.AddUserAgent(s.config, "kubeflow-bootstrapper"))
+	kubeClient, err := clientset.NewForConfig(rest.AddUserAgent(config, "kubeflow-bootstrapper"))
 	if err != nil {
 		return err
 	}
@@ -413,6 +467,7 @@ func (s *ksServer) autoConfigureApp(kfApp *kApp.App, appConfig *AppConfig) error
 	}
 
 	log.Infof("Cluster version: %v", clusterVersion.String())
+	err = setupNamespace(kubeClient.CoreV1().Namespaces(), namespace)
 
 	storage := kubeClient.StorageV1()
 	sClasses, err := storage.StorageClasses().List(meta_v1.ListOptions{})
@@ -436,7 +491,7 @@ func (s *ksServer) autoConfigureApp(kfApp *kApp.App, appConfig *AppConfig) error
 			}
 
 			err = actions.RunParamSet(map[string]interface{}{
-				actions.OptionApp:   kfApp,
+				actions.OptionApp:   *kfApp,
 				actions.OptionName:  component.Name,
 				actions.OptionPath:  "jupyterNotebookPVCMount",
 				actions.OptionValue: pvcMount,
@@ -453,42 +508,65 @@ func (s *ksServer) autoConfigureApp(kfApp *kApp.App, appConfig *AppConfig) error
 
 // Apply runs apply on a ksonnet application.
 func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
-	a, err := func() (*appInfo, error) {
-		s.appsMux.Lock()
-		defer s.appsMux.Unlock()
-
-		info, ok := s.apps[req.Name]
-
-		if !ok {
-			return nil, fmt.Errorf("App %s doesn't exist", req.Name)
-		}
-		return info, nil
-	}()
-
-	if err != nil {
-		return err
-	}
-
-	a.mux.Lock()
-	defer a.mux.Unlock()
-
-	// (05092018): we shell out to ks apply and don't use ksonnet apply function because
-	// ks runApply API expects clientcmd.ClientConfig, which has a soft dependency on existence of ~/.kube/config
-	// if we use k8s client-go API, would be quite verbose if we create all resources one by one.
-	// TODO: use API to create ks Components
-	if err := os.Chdir(a.App.Root()); err != nil {
-		return err
-	}
-
 	token := req.Token
-
+	applyArgs := ""
 	if token == "" {
 		log.Infof("No token specified in request; defaulting to service account")
 		token = "$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)"
+		applyArgs = fmt.Sprintf("--token=%v", token)
+	} else {
+		config, err := buildClusterConfig(ctx, req.Token, req.Project, req.Zone, req.Cluster)
+		if err != nil {
+			log.Errorf("Failed getting GKE cluster config: %v", err)
+			return err
+		}
+		a, err := func() (*appInfo, error) {
+			s.appsMux.Lock()
+			defer s.appsMux.Unlock()
+
+			info, ok := s.apps[req.Name]
+
+			if !ok {
+				return nil, fmt.Errorf("App %s doesn't exist", req.Name)
+			}
+			return info, nil
+		}()
+
+		if err != nil {
+			return err
+		}
+
+		a.mux.Lock()
+		defer a.mux.Unlock()
+
+		// (05092018): we shell out to ks apply and don't use ksonnet apply function because
+		// ks runApply API expects clientcmd.ClientConfig, which has a soft dependency on existence of ~/.kube/config
+		// if we use k8s client-go API, would be quite verbose if we create all resources one by one.
+		// TODO: use API to create ks Components
+		if err := os.Chdir(a.App.Root()); err != nil {
+			return err
+		}
+		_, err = s.fs.Stat(path.Join(a.App.Root(), "caFile"))
+
+		// Store CA file in app's root dir if not already exists
+		if err != nil {
+			f, err := os.Create(path.Join(a.App.Root(), "caFile"))
+			if err != nil {
+				return err
+			}
+			_, err = f.Write(config.TLSClientConfig.CAData)
+			if err != nil {
+				return err
+			}
+			f.Sync()
+			f.Close()
+		}
+		applyArgs = fmt.Sprintf("--token=%v --server=%v --certificate-authority=caFile", token, config.Host)
 	}
+
 	for _, component := range req.Components {
 		log.Infof("Apply kubeflow component %v", component)
-		rawCmd := fmt.Sprintf("ks apply %v -c %v --token=%v", req.Environment, component, token)
+		rawCmd := fmt.Sprintf("ks apply %v -c %v %v", req.Environment, component, applyArgs)
 		applyCmd := exec.Command("bash", "-c", rawCmd)
 
 		var out bytes.Buffer
@@ -510,13 +588,49 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 	return nil
 }
 
+func makeApplyAppEndpoint(svc KsService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(ApplyRequest)
+		err := svc.Apply(ctx, req)
+
+		r := &basicServerResponse{}
+
+		if err != nil {
+			r.Err = err.Error()
+		}
+		return r, nil
+	}
+}
+
 func makeCreateAppEndpoint(svc KsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(CreateRequest)
 		err := svc.CreateApp(ctx, req)
 
-		r := &createResponse{}
+		r := &basicServerResponse{}
 
+		if err != nil {
+			r.Err = err.Error()
+		}
+		return r, nil
+	}
+}
+
+func makeHealthzEndpoint(svc KsService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(HealthzRequest)
+		r := &HealthzResponse{}
+		r.Reply = req.Msg + "accepted! Sill alive!"
+		log.Info("response info: " + r.Reply)
+		return r, nil
+	}
+}
+
+func makeSaKeyEndpoint(svc KsService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(InsertSaKeyRequest)
+		err := svc.InsertSaKey(ctx, req)
+		r := &basicServerResponse{}
 		if err != nil {
 			r.Err = err.Error()
 		}
@@ -537,6 +651,21 @@ func encodeResponse(_ context.Context, w http.ResponseWriter, response interface
 	return json.NewEncoder(w).Encode(response)
 }
 
+// Handle "OPTIONS" request from browser
+// Decorate your browser-facing handlers with it.
+func optionsHandler(h http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+		if r.Method == "OPTIONS" {
+			return
+		} else {
+			h.ServeHTTP(w,r)
+		}
+	}
+}
+
 // StartHttp starts an HTTP server and blocks.
 func (s *ksServer) StartHttp(port int) {
 	if port <= 0 {
@@ -544,12 +673,70 @@ func (s *ksServer) StartHttp(port int) {
 	}
 	// ctx := context.Background()
 
+	applyAppHandler := httptransport.NewServer(
+		makeApplyAppEndpoint(s),
+		func (_ context.Context, r *http.Request) (interface{}, error) {
+			var request ApplyRequest
+			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+				log.Info("Err decoding apply request: " + err.Error())
+				return nil, err
+			}
+			return request, nil
+		},
+		encodeResponse,
+	)
+
 	createAppHandler := httptransport.NewServer(
 		makeCreateAppEndpoint(s),
 		decodeCreateAppRequest,
 		encodeResponse,
 	)
 
-	http.Handle("/apps/create", createAppHandler)
+	healthzHandler := httptransport.NewServer(
+		makeHealthzEndpoint(s),
+		func (_ context.Context, r *http.Request) (interface{}, error) {
+			var request HealthzRequest
+			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+				log.Info("Err decoding request: " + err.Error())
+				return nil, err
+			}
+			log.Info("Request received: " + request.Msg)
+			return request, nil
+		},
+		encodeResponse,
+	)
+
+	insertSaKeyHandler := httptransport.NewServer(
+		makeSaKeyEndpoint(s),
+		func (_ context.Context, r *http.Request) (interface{}, error) {
+			var request InsertSaKeyRequest
+			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+				return nil, err
+			}
+			return request, nil
+		},
+		encodeResponse,
+	)
+
+	initProjectHandler := httptransport.NewServer(
+		makeInitProjectEndpoint(s),
+		func (_ context.Context, r *http.Request) (interface{}, error) {
+			var request InitProjectRequest
+			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+				return nil, err
+			}
+			return request, nil
+		},
+		encodeResponse,
+	)
+
+	// TODO: add deployment manager config generate / deploy handler here. So we'll have user's DM configs stored in
+	// k8s storage / github, instead of gone with browser tabs.
+	http.Handle("/apps/apply", optionsHandler(applyAppHandler))
+	http.Handle("/apps/create", optionsHandler(createAppHandler))
+	http.Handle("/healthz", optionsHandler(healthzHandler))
+	http.Handle("/iam/insertSaKey", optionsHandler(insertSaKeyHandler))
+	http.Handle("/initProject", optionsHandler(initProjectHandler))
+
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), nil))
 }

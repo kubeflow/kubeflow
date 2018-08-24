@@ -22,5 +22,18 @@
       prow: "JOB_NAME=kubeflow-presubmit-test,JOB_TYPE=presubmit,PULL_NUMBER=209,REPO_NAME=kubeflow,REPO_OWNER=kubeflow,BUILD_NUMBER=997a",
       prow_env: "JOB_NAME=kubeflow-gke-deploy-test,JOB_TYPE=presubmit,PULL_NUMBER=4,REPO_NAME=kubeflow,REPO_OWNER=jlewi,BUILD_NUMBER=3a8b",
     },
+    kfctl_test: {
+      bucket: "kubeflow-ci_temp",
+      name: "somefakename",
+      namespace: "kubeflow-test-infra",
+      prow_env: "",
+      deleteKubeflow: true,
+    },
+    unit_tests: {
+      bucket: "kubeflow-ci_temp",
+      name: "somefakename",
+      namespace: "kubeflow-test-infra",
+      prow_env: "",
+    },
   },
 }

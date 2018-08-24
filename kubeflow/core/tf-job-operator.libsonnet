@@ -3,8 +3,8 @@
 
                   $.parts(params.namespace).configMap(params.cloud, params.tfDefaultImage),
                   $.parts(params.namespace).serviceAccount,
-                  $.parts(params.namespace).operatorRole,
-                  $.parts(params.namespace).operatorRoleBinding,
+                  $.parts(params.namespace).operatorRole(params.deploymentScope, params.deploymentNamespace),
+                  $.parts(params.namespace).operatorRoleBinding(params.deploymentScope, params.deploymentNamespace),
                   $.parts(params.namespace).uiRole,
                   $.parts(params.namespace).uiRoleBinding,
                   $.parts(params.namespace).uiService(params.tfJobUiServiceType),
@@ -15,7 +15,7 @@
                 if params.tfJobVersion == "v1alpha2" then
                   [
                     $.parts(params.namespace).crdv1alpha2,
-                    $.parts(params.namespace).tfJobDeployV1Alpha2(params.tfJobImage),
+                    $.parts(params.namespace).tfJobDeployV1Alpha2(params.tfJobImage, params.deploymentScope, params.deploymentNamespace),
                   ]
                 else
                   [
@@ -63,7 +63,7 @@
                   tfReplicaSpecs: {
                     properties: {
                       // The validation works when the configuration contains
-                      // `Worker`, `PS` or `Chief`. Otherise it will not be validated.
+                      // `Worker`, `PS` or `Chief`. Otherwise it will not be validated.
                       Worker: {
                         properties: {
                           // We do not validate pod template because of
@@ -167,7 +167,7 @@
       },
     },  // tfJobDeploy
 
-    tfJobDeployV1Alpha2(image): {
+    tfJobDeployV1Alpha2(image, deploymentScope, deploymentNamespace): {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -185,12 +185,13 @@
           spec: {
             containers: [
               {
-                command: [
+                command: std.prune([
                   "/opt/kubeflow/tf-operator.v2",
                   "--alsologtostderr",
                   "-v=1",
-                ],
-                env: [
+                  if deploymentScope == "namespace" then ("--namespace=" + deploymentNamespace),
+                ]),
+                env: std.prune([
                   {
                     name: "MY_POD_NAMESPACE",
                     valueFrom: {
@@ -207,7 +208,15 @@
                       },
                     },
                   },
-                ],
+                  if deploymentScope == "namespace" then {
+                    name: "KUBEFLOW_NAMESPACE",
+                    valueFrom: {
+                      fieldRef: {
+                        fieldPath: "metadata.namespace",
+                      },
+                    },
+                  },
+                ]),
                 image: image,
                 name: "tf-job-operator",
                 volumeMounts: [
@@ -303,14 +312,16 @@
       },
     },
 
-    operatorRole: {
+    operatorRole(deploymentScope, deploymentNamespace): {
+      local roleType = if deploymentScope == "cluster" then "ClusterRole" else "Role",
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "ClusterRole",
+      kind: roleType,
       metadata: {
         labels: {
           app: "tf-job-operator",
         },
         name: "tf-job-operator",
+        [if deploymentScope == "namespace" then "namespace"]: deploymentNamespace,
       },
       rules: [
         {
@@ -389,18 +400,21 @@
       ],
     },  // operator-role
 
-    operatorRoleBinding:: {
+    operatorRoleBinding(deploymentScope, deploymentNamespace): {
+      local bindingType = if deploymentScope == "cluster" then "ClusterRoleBinding" else "RoleBinding",
+      local roleType = if deploymentScope == "cluster" then "ClusterRole" else "Role",
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "ClusterRoleBinding",
+      kind: bindingType,
       metadata: {
         labels: {
           app: "tf-job-operator",
         },
         name: "tf-job-operator",
+        [if deploymentScope == "namespace" then "namespace"]: deploymentNamespace,
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
-        kind: "ClusterRole",
+        kind: roleType,
         name: "tf-job-operator",
       },
       subjects: [
@@ -569,6 +583,7 @@
             "endpoints",
             "persistentvolumeclaims",
             "events",
+            "namespaces",
           ],
           verbs: [
             "*",

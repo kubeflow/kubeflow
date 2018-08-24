@@ -1,15 +1,32 @@
 # This file configures the workflows to trigger in our Prow jobs.
 # see kubeflow/testing/py/run_e2e_workflow.py
 workflows:
-  # Run tests on GKE
+  # kfctl test runs tests on gke.
   - app_dir: kubeflow/kubeflow/testing/workflows
-    component: workflows
-    name: kubeflow-e2e-gke
+    component: kfctl_test
+    name: kfctl
     job_types:
       - presubmit
       - postsubmit
+    include_dirs:
+      - scripts/*
+      - kubeflow/*
+      - testing/*
     params:
       platform: gke
+  # Run unittests
+  # TODO(jlewi): Need to add step to run go and python unittests
+  - app_dir: kubeflow/kubeflow/testing/workflows
+    component: unit_tests
+    name: unittests    
+  # TODO(jlewi): We should be running the minikube workflow
+  # on presubmit when the minikube E2E test itself changes
+  # so we verify the test is working before submitting
+  # changes to it. But right now we can't match a regex or
+  # glob.
+  # see: https://github.com/kubeflow/testing/issues/187
+  # see: https://github.com/kubeflow/kubeflow/issues/1350
+  #   
   # Run tests on minikube
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: workflows

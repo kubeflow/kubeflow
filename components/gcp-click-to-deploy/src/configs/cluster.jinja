@@ -36,6 +36,7 @@ limitations under the License.
 {% set NAMESPACE_COLLECTION = '/api/v1/namespaces' %}
 {% set CM_COLLECTION = COLLECTION_PREFIX + 'configmaps' %}
 {% set RC_COLLECTION = COLLECTION_PREFIX + 'replicationcontrollers' %}
+{% set SECRETS_COLLECTION = COLLECTION_PREFIX + 'secrets' %}
 {% set SERVICE_COLLECTION = COLLECTION_PREFIX + 'services' %}
 {% set PVC_COLLECTION = COLLECTION_PREFIX + 'persistentvolumeclaims' %}
 {% set STATEFULSETS_COLLECTION = '/apis/apps/v1/namespaces/{namespace}/statefulsets' %}
@@ -318,6 +319,16 @@ the corresponding type provider.
       name: kubeflow-admin
     spec:
 
+{#  Namespace for kubeflow. #}
+- name: kf-namespace
+  type: {{ env['project'] }}/$(ref.{{ TYPE_NAME }}.name):{{ NAMESPACE_COLLECTION }}
+  properties:
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: kubeflow
+    spec:
+
 {# The deployment manager uses the cloudservices account. We need to create
    a cluster role binding making the cloudservices account cluster admin
    so that we can then create other cluster role bindings.
@@ -387,6 +398,22 @@ the corresponding type provider.
   metadata:
     dependsOn:
       - admin-namespace
+
+- name: kubeflow-oauth-key
+  type: {{ env['project'] }}/$(ref.{{ TYPE_NAME }}.name):{{ SECRETS_COLLECTION }}
+  properties:
+    apiVersion: v1
+    kind: Secret
+    namespace: {{ properties["namespace"] }}
+    metadata:
+      name: kubeflow-oauth
+    type: Opaque
+    data:
+      client_id: {{ properties["clientId"] }}
+      client_secret: {{ properties["clientSecret"] }}
+  metadata:
+    dependsOn:
+      - kf-namespace
 
 {# ConfigMap for the bootstrapper #}
 - name: bootstrap-configmap

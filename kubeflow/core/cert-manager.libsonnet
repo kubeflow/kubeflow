@@ -1,19 +1,18 @@
 {
-  parts(namespace):: {
+  parts(params):: {
+    local namespace = params.namespace,
     local k = import "k.libsonnet",
-    local certManagerImage = "quay.io/jetstack/cert-manager-controller:v0.2.4",
-    local certManagerIngressShimImage = "quay.io/jetstack/cert-manager-ingress-shim:v0.2.4",
 
     // Note, not using std.prune to preserve required empty http01 map in the Issuer spec.
-    certManagerParts(acmeEmail, acmeUrl):: k.core.v1.list.new([
-      $.parts(namespace).certificateCRD,
-      $.parts(namespace).clusterIssuerCRD,
-      $.parts(namespace).issuerCRD,
-      $.parts(namespace).serviceAccount,
-      $.parts(namespace).clusterRole,
-      $.parts(namespace).clusterRoleBinding,
-      $.parts(namespace).deploy,
-      $.parts(namespace).issuerLEProd(acmeEmail, acmeUrl),
+    certManagerParts():: k.core.v1.list.new([
+      $.parts(params).certificateCRD,
+      $.parts(params).clusterIssuerCRD,
+      $.parts(params).issuerCRD,
+      $.parts(params).serviceAccount,
+      $.parts(params).clusterRole,
+      $.parts(params).clusterRoleBinding,
+      $.parts(params).deploy(params.certManagerImage),
+      $.parts(params).issuerLEProd(params.acmeEmail, params.acmeUrl),
     ]),
 
     certificateCRD:: {
@@ -91,7 +90,7 @@
         },
         {
           apiGroups: [""],
-          resources: ["secrets", "events", "endpoints", "services", "pods"],
+          resources: ["secrets", "events", "endpoints", "services", "pods", "configmaps"],
           verbs: ["*"],
         },
         {
@@ -122,7 +121,7 @@
       ],
     },
 
-    deploy:: {
+    deploy(certManagerImage):: {
       apiVersion: "apps/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -147,11 +146,10 @@
                 name: "cert-manager",
                 image: certManagerImage,
                 imagePullPolicy: "IfNotPresent",
-              },
-              {
-                name: "ingress-shim",
-                image: certManagerIngressShimImage,
-                imagePullPolicy: "IfNotPresent",
+                args: [
+                  "--cluster-resource-namespace=" + namespace,
+                  "--leader-election-namespace=" + namespace,
+                ],
               },
             ],
           },
