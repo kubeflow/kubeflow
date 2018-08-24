@@ -60,8 +60,6 @@ def deploy_kubeflow(test_case):
     [
       "ks", "generate", "tf-job-operator", "tf-job-operator",
       "--namespace=" + namespace,
-      "--tfJobImage=gcr.io/kubeflow-images-public/tf_operator:v20180522-77375baf",
-      "--tfJobVersion=v1alpha1"
     ],
     cwd=app_dir)
 
