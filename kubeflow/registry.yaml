@@ -34,3 +34,6 @@ libraries:
   seldon:
     version: master
     path: seldon
+  mxnet-job:
+    version: master
+    path: mxnet-job
