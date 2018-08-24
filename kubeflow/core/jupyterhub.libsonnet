@@ -16,7 +16,7 @@
       kind: "Service",
       metadata: {
         labels: {
-          app: "tf-hub",
+          app: "jupyter-hub",
         },
         name: "tf-hub-0",
         namespace: params.namespace,
@@ -35,7 +35,7 @@
           },
         ],
         selector: {
-          app: "tf-hub",
+          app: "jupyter-hub",
         },
       },
     },
@@ -82,7 +82,7 @@
           },
         ],
         selector: {
-          app: "tf-hub",
+          app: "jupyter-hub",
         },
         type: params.serviceType,
       },
@@ -100,7 +100,7 @@
         template: {
           metadata: {
             labels: {
-              app: "tf-hub",
+              app: "jupyter-hub",
             },
           },
           spec: {
