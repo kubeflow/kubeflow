@@ -37,6 +37,11 @@ createEnv() {
 	  echo KUBEFLOW_CLOUD=minikube >> ${ENV_FILE}
 	fi
 
+  if [ "${PLATFORM}" == "ack" ]; then
+    echo KUBEFLOW_CLOUD=ack >> ${ENV_FILE}
+    echo KUBEFLOW_DOCKER_REGISTRY=registry.aliyuncs.com >> ${ENV_FILE}
+  fi
+
 	if [ "${PLATFORM}" == "gcp" ]; then
 		PROJECT=${PROJECT:-$(gcloud config get-value project 2>/dev/null)}
 		echo KUBEFLOW_CLOUD=gke >> ${ENV_FILE}
@@ -84,7 +89,7 @@ createEnv() {
 		fi
 
 		echo PROJECT_NUMBER=${PROJECT_NUMBER} >> ${ENV_FILE}
-    fi
+  fi
 }
 
 if [ "${COMMAND}" == "init" ]; then
@@ -160,6 +165,7 @@ KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"}
 KUBEFLOW_DEPLOY=${KUBEFLOW_DEPLOY:-true}
 K8S_NAMESPACE=${K8S_NAMESPACE:-"kubeflow"}
 KUBEFLOW_CLOUD=${KUBEFLOW_CLOUD:-"minikube"}
+KUBEFLOW_DOCKER_REGISTRY=${KUBEFLOW_DOCKER_REGISTRY:-""}
 
 # TODO(ankushagarwal): verify ks version is higher than 0.11.0
 check_install ks
@@ -211,6 +217,7 @@ if [ "${COMMAND}" == "generate" ]; then
   if [ "${WHAT}" == "k8s" ] || [ "${WHAT}" == "all" ]; then  	   
     createKsApp
     customizeKsApp
+    customizeKsAppWithDockerImage
 
     if [ "${PLATFORM}" == "gcp" ]; then
     	gcpGenerateKsApp

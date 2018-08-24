@@ -4,6 +4,8 @@
 // @shortDescription centraldashboard
 // @param name string Name
 // @optionalParam image string gcr.io/kubeflow-images-public/centraldashboard:v0.2.1 Image for the central dashboard
+local centraldashboard = import "kubeflow/core/centraldashboard.libsonnet";
+
 [
   {
     apiVersion: "extensions/v1beta1",
@@ -49,18 +51,7 @@
       },
       name: "centraldashboard",
       namespace: env.namespace,
-      annotations: {
-        "getambassador.io/config":
-          std.join("\n", [
-            "---",
-            "apiVersion: ambassador/v0",
-            "kind:  Mapping",
-            "name: centralui-mapping",
-            "prefix: /",
-            "rewrite: /",
-            "service: centraldashboard." + env.namespace,
-          ]),
-      },  //annotations
+      annotations: centraldashboard.annotations(env.namespace),
     },
     spec: {
       ports: [

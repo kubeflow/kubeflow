@@ -59,8 +59,8 @@ GCFS_INSTANCE=${GCFS_INSTANCE-"${DEPLOYMENT_NAME}"}
 GCFS_STORAGE=${GCFS_STORAGE:-"1T"}
 
 # Kubeflow directories - Deployment Manager and Ksonnet App
-# TODO(jlewi): We should shorten the directory names. 
-# There's no reason to use ${DEPLOYMENT_NAME} as a prefix. Instead 
+# TODO(jlewi): We should shorten the directory names.
+# There's no reason to use ${DEPLOYMENT_NAME} as a prefix. Instead
 # the pattern should be one directory per deployment and that directory
 # should have subdirectories for DM config, ksonnet app, and secrets.
 KUBEFLOW_DM_DIR=${KUBEFLOW_DM_DIR:-"`pwd`/${DEPLOYMENT_NAME}_deployment_manager_configs"}
@@ -217,18 +217,18 @@ if ${KUBEFLOW_DEPLOY}; then
   else
     kubectl create namespace ${K8S_NAMESPACE}
   fi
-  
+
   # We want the secret name to be the same by default for all clusters so that users don't have to set it manually.
   createGcpSecret ${ADMIN_EMAIL} admin-gcp-sa
   createGcpSecret ${USER_EMAIL} user-gcp-sa
-  
+
   O=`kubectl get secret --namespace=${K8S_NAMESPACE} kubeflow-oauth 2>&1`
   RESULT=$?
 
   if [ "${RESULT}" -eq 0 ]; then
     echo Secret kubeflow-oauth already exists
   else
-    kubectl create secret generic --namespace=${K8S_NAMESPACE} kubeflow-oauth --from-literal=CLIENT_ID=${CLIENT_ID} --from-literal=CLIENT_SECRET=${CLIENT_SECRET}
+    kubectl create secret generic --namespace=${K8S_NAMESPACE} kubeflow-oauth --from-literal=client_id=${CLIENT_ID} --from-literal=client_secret=${CLIENT_SECRET}
   fi
 
   # Install the GPU driver. It has no effect on non-GPU nodes.
@@ -241,7 +241,7 @@ if ${KUBEFLOW_DEPLOY}; then
   set -e
 fi
 
-if [ ! -z ${GCFS_INSTANCE} ]; then 
+if [ ! -z ${GCFS_INSTANCE} ]; then
 # wait for gcfs creation to complete
 wait ${gcfs_creation_pid}
 
@@ -283,7 +283,7 @@ ks generate argo argo
 
 if [ ! -z ${GCFS_INSTANCE} ]; then
   ks generate google-cloud-filestore-pv google-cloud-filestore-pv --name="kubeflow-gcfs" --storageCapacity="${GCFS_STORAGE}" --serverIP="${GCFS_INSTANCE_IP_ADDRESS}"
-  ks param set jupyterhub disks "kubeflow-gcfs"  
+  ks param set jupyterhub disks "kubeflow-gcfs"
 fi
 
 if ! ${PRIVATE_CLUSTER}; then
