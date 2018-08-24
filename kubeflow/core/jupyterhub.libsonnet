@@ -18,7 +18,7 @@
         labels: {
           app: "jupyter-hub",
         },
-        name: "tf-hub-0",
+        name: "jupyter-hub-0",
         namespace: params.namespace,
         annotations: {
           "prometheus.io/scrape": "true",
@@ -91,7 +91,7 @@
       apiVersion: "apps/v1beta1",
       kind: "StatefulSet",
       metadata: {
-        name: "tf-hub",
+        name: "jupyter-hub",
         namespace: params.namespace,
       },
       spec: {
@@ -112,7 +112,7 @@
                   "/etc/config/jupyterhub_config.py",
                 ],
                 image: params.image,
-                name: "tf-hub",
+                name: "jupyter-hub",
                 volumeMounts: [
                   {
                     mountPath: "/etc/config",
