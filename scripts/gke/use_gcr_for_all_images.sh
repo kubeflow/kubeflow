@@ -18,24 +18,24 @@
 
 set -x
 
-if ks component list | grep -q "^argo$" ; then
+if ks component list | awk '{print $1}' | grep -q "^argo$" ; then
   ks param set argo workflowControllerImage gcr.io/kubeflow-images-public/argoproj/workflow-controller:v2.1.1
   ks param set argo uiImage gcr.io/kubeflow-images-public/argoproj/argoui:v2.1.1
   ks param set argo executorImage gcr.io/kubeflow-images-public/argoproj/argoexec:v2.1.1
 fi
 
-if ks component list | grep -q "^cert-manager$" ; then
+if ks component list | awk '{print $1}' | grep -q "^cert-manager$" ; then
   ks param set cert-manager certManagerImage gcr.io/kubeflow-images-public/quay.io/jetstack/cert-manager-controller:v0.2.4
   ks param set cert-manager certManagerIngressShimImage gcr.io/kubeflow-images-public/quay.io/jetstack/cert-manager-ingress-shim:v0.2.4
 fi
 
-if ks component list | grep -q "^ambassador$" ; then
+if ks component list | awk '{print $1}' | grep -q "^ambassador$" ; then
   ks param set ambassador ambassadorImage gcr.io/kubeflow-images-public/quay.io/datawire/ambassador:0.37.0
   ks param set ambassador statsdImage gcr.io/kubeflow-images-public/quay.io/datawire/statsd:0.37.0
   ks param set ambassador statsdExporterImage gcr.io/kubeflow-images-public/prom/statsd-exporter:v0.6.0
 fi
 
-if ks component list | grep -q "^katib$" ; then
+if ks component list | awk '{print $1}' | grep -q "^katib$" ; then
   ks param set katib modeldbDatabaseImage gcr.io/kubeflow-images-public/mongo:3.4
   ks param set katib vizierDbImage gcr.io/kubeflow-images-public/mysql:8.0.3
 fi
