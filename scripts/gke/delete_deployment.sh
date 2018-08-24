@@ -13,12 +13,6 @@ PROJECT=$1
 DEPLOYMENT_NAME=$2
 CONFIG_FILE=$3
 
-# We need to run an update because for deleting IAM roles,
-# we need to obtain a fresh copy of the IAM policy. A stale
-# copy of IAM policy causes issues during deletion.
-gcloud deployment-manager deployments update \
- ${DEPLOYMENT_NAME} --config=${CONFIG_FILE} --project=${PROJECT}
-
 gcloud deployment-manager --project=${PROJECT} deployments delete \
 	${DEPLOYMENT_NAME} \
 	--quiet
@@ -37,6 +31,11 @@ fi
 # Ensure resources are deleted.
 gcloud --project=${PROJECT} container clusters delete --zone=${ZONE} \
 	${DEPLOYMENT_NAME} --quiet
+
+# Delete IAM bindings
+python "${DIR}/iam_patch.py" --action=remove \
+  --project=${PROJECT} \
+  --iam_bindings_file="iam_bindings.yaml"
 
 # Delete service accounts and all role bindings for the service accounts
 declare -a accounts=("vm" "admin" "user")
@@ -63,6 +62,5 @@ for suffix in "${accounts[@]}";
 do   
    # Delete all role bindings.
    SA=${DEPLOYMENT_NAME}-${suffix}@${PROJECT}.iam.gserviceaccount.com
-   python ${DIR}/delete_role_bindings.py --project=${PROJECT} --service_account=${SA}
    deleteSa ${SA}
 done
