@@ -3,7 +3,7 @@
 # deployments.
 #
 # Basic usage
-# 
+#
 # kfctl.sh init myapp --platform generatic
 # cd myapp
 # kfctl.sh generate all
@@ -56,14 +56,14 @@ createEnv() {
 		fi		
 
 		# Name of the deployment
-		DEPLOYMENT_NAME=${DEPLOYMENT_NAME:-"kubeflow"} 
+		DEPLOYMENT_NAME=${DEPLOYMENT_NAME:-"kubeflow"}
 		echo DEPLOYMENT_NAME="${DEPLOYMENT_NAME}" >> ${ENV_FILE}
 
-		# Kubeflow directories		
-		echo KUBEFLOW_DM_DIR=${KUBEFLOW_DM_DIR:-"$(pwd)/gcp_config"} >> ${ENV_FILE}	
+		# Kubeflow directories
+		echo KUBEFLOW_DM_DIR=${KUBEFLOW_DM_DIR:-"$(pwd)/gcp_config"} >> ${ENV_FILE}
 		echo KUBEFLOW_SECRETS_DIR=${KUBEFLOW_SECRETS_DIR:-"$(pwd)/secrets"} >> ${ENV_FILE}
 		echo KUBEFLOW_K8S_MANIFESTS_DIR="$(pwd)/k8s_specs" >> ${ENV_FILE}
-		
+
 		# Name of the K8s context to create.
 		echo  KUBEFLOW_K8S_CONTEXT=${DEPLOYMENT_NAME} >> ${ENV_FILE}
 
@@ -75,7 +75,7 @@ createEnv() {
 		# Email for cert manager
 		EMAIL=${EMAIL:-$(gcloud config get-value account 2>/dev/null)}
 		echo EMAIL=${EMAIL} >> ${ENV_FILE}
-		
+
 		# GCP Static IP Name
 		echo KUBEFLOW_IP_NAME=${KUBEFLOW_IP_NAME:-"${DEPLOYMENT_NAME}-ip"} >> ${ENV_FILE}
 		# Name of the endpoint
@@ -95,7 +95,7 @@ createEnv() {
 }
 
 if [ "${COMMAND}" == "init" ]; then
-	DEPLOYMENT_NAME=${WHAT}	
+	DEPLOYMENT_NAME=${WHAT}
 
 	while [ "$1" != "" ]; do
     case $1 in
@@ -167,7 +167,6 @@ fi
 # TODO(ankushagarwal): verify ks version is higher than 0.11.0
 check_install ks
 check_install kubectl
-check_install uuidgen
 
 # Generate all required components
 customizeKsApp() {
@@ -199,8 +198,8 @@ ksApply () {
 
   if [ "${RESULT}" -eq 0 ]; then
   	echo environment default already exists
-  else  	
-    ks env add default --namespace "${K8S_NAMESPACE}"    
+  else
+    ks env add default --namespace "${K8S_NAMESPACE}"
   fi
 
   # Create all the core components
@@ -233,8 +232,8 @@ if [ "${COMMAND}" == "generate" ]; then
     	downloadK8sManifests
     fi
   fi
-  
-  if [ "${WHAT}" == "k8s" ] || [ "${WHAT}" == "all" ]; then  	   
+
+  if [ "${WHAT}" == "k8s" ] || [ "${WHAT}" == "all" ]; then
     createKsApp
     customizeKsApp
     customizeKsAppWithDockerImage
@@ -255,15 +254,15 @@ if [ "${COMMAND}" == "generate" ]; then
   fi
 fi
 
-if [ "${COMMAND}" == "apply" ]; then  
+if [ "${COMMAND}" == "apply" ]; then
   if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ] ; then
   	if [ "${PLATFORM}" == "gcp" ]; then
     	updateDM
     	createSecrets
     fi
   fi
-  
-  if [ "${WHAT}" == "k8s"  ] || [ "${WHAT}" == "all" ]; then    
+
+  if [ "${WHAT}" == "k8s"  ] || [ "${WHAT}" == "all" ]; then
     ksApply
 
     if [ "${PLATFORM}" == "gcp" ]; then
@@ -273,7 +272,7 @@ if [ "${COMMAND}" == "apply" ]; then
 fi
 
 if [ "${COMMAND}" == "delete" ]; then
-  if [ "${WHAT}" == "k8s"  ] || [ "${WHAT}" == "all" ]; then 
+  if [ "${WHAT}" == "k8s"  ] || [ "${WHAT}" == "all" ]; then
     # Delete kubeflow namespace - this deletes all the ingress objects
     # in the namespace which deletes the associated GCP resources
     set +e
