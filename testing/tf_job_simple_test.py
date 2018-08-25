@@ -98,7 +98,7 @@ def test_tf_job_simple(test_case): # pylint: disable=redefined-outer-name
   try:
     tf_job_client.wait_for_condition(
         api_client, namespace, name, ["Running"],
-        status_callback=tf_job_client.status_callback)
+        status_callback=tf_job_client.log_status)
     logging.info("TFJob launched successfully")
   except Exception as e:
     logging.error("Test failed waiting for job; %s", e)
