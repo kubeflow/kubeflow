@@ -41,7 +41,6 @@ check_install gcloud
 check_install kubectl
 # TODO(ankushagarwal): verify ks version is higher than 0.11.0
 check_install ks
-check_install uuidgen
 
 PRIVATE_CLUSTER=${PRIVATE_CLUSTER:-false}
 
@@ -289,7 +288,9 @@ fi
 if ! ${PRIVATE_CLUSTER}; then
   # Enable collection of anonymous usage metrics
   # Skip this step if you don't want to enable collection.
-  ks generate spartakus spartakus --usageId=$(uuidgen) --reportUsage=${COLLECT_METRICS}
+  # Generate a random 30 bit number
+  local usageId=$(((RANDOM<<15)|RANDOM))
+  ks generate spartakus spartakus --usageId=${usageId} --reportUsage=true
   ks generate cloud-endpoints cloud-endpoints
   ks generate cert-manager cert-manager --acmeEmail=${EMAIL}
   ks generate iap-ingress iap-ingress --ipName=${KUBEFLOW_IP_NAME} --hostname=${KUBEFLOW_HOSTNAME}

@@ -8,11 +8,11 @@ function usage() {
     echo "apply  -- apply some config"
     echo "delete - delete some components"
     echo
-    echo "what is one of"    
+    echo "what is one of"
     echo "project - the GCP project"
     echo "platform - platform resources (e.g. GCP, minikube); basically non K8s resources"
-    echo "k8s - kubernetes resources"    
-    echo "help - print this message"       
+    echo "k8s - kubernetes resources"
+    echo "help - print this message"
 }
 
 
@@ -71,7 +71,9 @@ function createKsApp() {
   # To disable metrics collection. Remove the spartakus component.
   # cd ks_app
   # ks component rm spartakus
-  ks generate spartakus spartakus --usageId=$(uuidgen) --reportUsage=true
+  # Generate a random 30 bit number
+  local usageId=$(((RANDOM<<15)|RANDOM))
+  ks generate spartakus spartakus --usageId=${usageId} --reportUsage=true
   echo ""
   echo "****************************************************************"
   echo "Notice anonymous usage reporting enabled using spartakus"
@@ -84,7 +86,7 @@ function createKsApp() {
   echo "Then run the following command to remove it from your ksonnet app"
   echo "  ks component rm spartakus"
   echo ""
-  echo "For more info: https://www.kubeflow.org/docs/guides/usage-reporting/"  
+  echo "For more info: https://www.kubeflow.org/docs/guides/usage-reporting/"
   echo "****************************************************************"
   echo ""
 }
