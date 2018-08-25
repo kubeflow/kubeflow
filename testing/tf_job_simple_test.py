@@ -59,12 +59,14 @@ def wait_for_tf_job():
                   "tf_job_name=mycnnjob", "-n" + NAMESPACE])
   if "No resources found" in out \
        or out.count('Running') != 2:
+    logging.warning("Could not find pods with label tf_job_name=mycnnjob")
     raise Exception("Could not find pods with label tf_job_name=mycnnjob")
   logging.info("Found pods with label tf_job_name=mycnnjob")
   out = util.run(["kubectl", "get", "services", "-l",
                   "tf_job_name=mycnnjob", "-ndefault"])
   if "No resources found" in out \
        or len(out.split("\n")) != 3:
+    logging.warning("Could not find services with label tf_job_name=mycnnjob")
     raise Exception("Could not find services with label tf_job_name=mycnnjob")
   logging.info("Found services with label tf_job_name=mycnnjob")
 
@@ -110,6 +112,7 @@ def test_tf_job_simple(test_case): # pylint: disable=redefined-outer-name
     wait_for_tf_job()
     logging.info("TFJob launched successfully")
   except Exception as e:
+    logging.error("Test failed waiting for job; %s", e)
     test_case.add_failure_info(e.message)
 
 
