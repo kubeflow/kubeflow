@@ -158,6 +158,10 @@
                   value: $.params.jupyterHubAuthenticator,
                 },
                 {
+                  name: "DEFAULT_JUPYTERLAB",
+                  value: $.params.useJupyterLabAsDefault,
+                },
+                {
                   name: "KF_PVC_LIST",
                   value: $.params.disks,
                 },
