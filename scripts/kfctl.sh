@@ -18,6 +18,7 @@ ENV_FILE="env.sh"
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 source "${DIR}/util.sh"
 source "${DIR}/gke/util.sh"
+source "${DIR}/util-minikube.sh"
 
 createEnv() {
 	# Check if there is a file env.sh
@@ -29,13 +30,15 @@ createEnv() {
 	echo KUBEFLOW_REPO=${KUBEFLOW_REPO:-"${DEFAULT_KUBEFLOW_REPO}"} >> ${ENV_FILE}
 	echo KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"} >> ${ENV_FILE}
 	echo KUBEFLOW_KS_DIR=${KUBEFLOW_KS_DIR:-"$(pwd)/ks_app"} >> ${ENV_FILE}
+        echo KUBEFLOW_DOCKER_REGISTRY=${KUBEFLOW_DOCKER_REGISTRY:-""} >> ${ENV_FILE}
 
 	# Namespace where kubeflow is deployed
 	echo K8S_NAMESPACE=${K8S_NAMESPACE:-"kubeflow"} >> ${ENV_FILE}
 
-	if [ "${PLATFORM}" == "minikube" ]; then
-	  echo KUBEFLOW_CLOUD=minikube >> ${ENV_FILE}
-	fi
+        if [ "${PLATFORM}" == "minikube" ]; then
+          echo KUBEFLOW_CLOUD=minikube >> ${ENV_FILE}
+          echo MOUNT_LOCAL=${MOUNT_LOCAL} >> ${ENV_FILE}
+        fi
 
   if [ "${PLATFORM}" == "ack" ]; then
     echo KUBEFLOW_CLOUD=ack >> ${ENV_FILE}
@@ -50,8 +53,7 @@ createEnv() {
 			echo PROJECT must be set either using environment variable PROJECT
 			echo or by setting the default project in gcloud
 			exit 1
-		fi
-		echo KUBEFLOW_DEPLOY=${KUBEFLOW_DEPLOY:-true} >> ${ENV_FILE}
+		fi		
 
 		# Name of the deployment
 		DEPLOYMENT_NAME=${DEPLOYMENT_NAME:-"kubeflow"}
@@ -112,6 +114,7 @@ if [ "${COMMAND}" == "init" ]; then
       esac
       shift
 	done
+
 	mkdir -p ${DEPLOYMENT_NAME}
 	# Most commands expect to be executed from the app directory
 	cd ${DEPLOYMENT_NAME}
@@ -161,12 +164,6 @@ if [ -z "${WHAT}" ]; then
   exit 1
 fi
 
-KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"}
-KUBEFLOW_DEPLOY=${KUBEFLOW_DEPLOY:-true}
-K8S_NAMESPACE=${K8S_NAMESPACE:-"kubeflow"}
-KUBEFLOW_CLOUD=${KUBEFLOW_CLOUD:-"minikube"}
-KUBEFLOW_DOCKER_REGISTRY=${KUBEFLOW_DOCKER_REGISTRY:-""}
-
 # TODO(ankushagarwal): verify ks version is higher than 0.11.0
 check_install ks
 check_install kubectl
@@ -181,7 +178,20 @@ ksApply () {
   pushd .
   cd "${KUBEFLOW_KS_DIR}"
 
+  if [ "${PLATFORM}" == "minikube" ]; then
     set +e
+    O=`kubectl get namespace ${K8S_NAMESPACE} 2>&1`
+    RESULT=$?
+    set -e
+
+    if [ "${RESULT}" -eq 0 ]; then
+      echo "namespace ${K8S_NAMESPACE} already exists"
+    else
+      kubectl create namespace ${K8S_NAMESPACE}
+    fi
+  fi
+
+  set +e
   O=$(ks env describe default 2>&1)
   RESULT=$?
   set -e
@@ -200,11 +210,21 @@ ksApply () {
   ks apply default -c argo
   ks apply default -c spartakus
   popd
+
+  set +x
+  if [ "${PLATFORM}" == "minikube" ]; then
+    if is_kubeflow_ready; then
+      mount_local_fs
+      setup_tunnels
+    else
+      echo -e "${RED}Unable to get kubeflow ready${NC}"
+    fi
+  fi
+  set -x
 }
 
 source "${ENV_FILE}"
 
-echo PLATFORM=${PLATFORM}
 if [ "${COMMAND}" == "generate" ]; then
   if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ]; then
   	if [ "${PLATFORM}" == "gcp" ]; then
@@ -220,6 +240,16 @@ if [ "${COMMAND}" == "generate" ]; then
 
     if [ "${PLATFORM}" == "gcp" ]; then
     	gcpGenerateKsApp
+    fi
+
+    if [ "${PLATFORM}" == "minikube" ]; then
+      create_local_fs_mount_spec
+      if ${MOUNT_LOCAL}; then
+        ks param set jupyterhub disks "local-notebooks" 
+        ks param set jupyterhub notebookUid `id -u`
+        ks param set jupyterhub notebookGid `id -g`
+        ks param set jupyterhub accessLocalFs true
+      fi
     fi
   fi
 fi

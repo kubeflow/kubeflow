@@ -166,6 +166,21 @@
                     name: "GCP_SECRET_NAME",
                     value: $.params.gcpSecretName,
                   },
+                if $.params.cloud == "minikube" && std.toString($.params.notebookUid) != "-1" then
+                  {
+                    name: "NOTEBOOK_UID",
+                    value: std.toString($.params.notebookUid),
+                  },
+                if $.params.cloud == "minikube" && std.toString($.params.notebookGid) != "-1" then
+                  {
+                    name: "NOTEBOOK_GID",
+                    value: std.toString($.params.notebookGid),
+                  },
+                if $.params.cloud == "minikube" then
+                  {
+                    name: "ACCESS_LOCAL_FS",
+                    value: std.toString($.params.accessLocalFs),
+                  },
               ]),
             },  // jupyterHub container
           ],
