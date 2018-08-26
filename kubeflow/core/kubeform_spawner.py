@@ -237,7 +237,7 @@ if os.environ.get('KF_AUTHENTICATOR') == 'iap':
 else:
     c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'
 
-if os.environ.get('DEFAULT_JUPYTERLAB') == 'true':
+if os.environ.get('DEFAULT_JUPYTERLAB').lower() == 'true':
     c.KubeSpawner.default_url = '/lab'
 
 # PVCs
