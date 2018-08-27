@@ -177,6 +177,28 @@ c.KubeSpawner.singleuser_fs_gid = 100
 c.KubeSpawner.singleuser_working_dir = '/home/jovyan'
 volumes = []
 volume_mounts = []
+
+# Allow environment vars to override uid and gid.
+# This allows local host path mounts to be read/writable
+env_uid = os.environ.get('NOTEBOOK_UID')
+if env_uid:
+    c.KubeSpawner.singleuser_uid = int(env_uid)
+env_gid = os.environ.get('NOTEBOOK_GID')
+if env_gid:
+    c.KubeSpawner.singleuser_fs_gid = int(env_gid)
+access_local_fs = os.environ.get('ACCESS_LOCAL_FS')
+if access_local_fs == 'true':
+    def modify_pod_hook(spawner, pod):
+       pod.spec.containers[0].lifecycle = {
+            'postStart' : {
+               'exec' : {
+                   'command' : ['ln', '-s', '/mnt/local-notebooks', '/home/jovyan/local-notebooks' ]
+               }
+            }
+        }
+       return pod
+    c.KubeSpawner.modify_pod_hook = modify_pod_hook
+
 ###################################################
 # Persistent volume options
 ###################################################
