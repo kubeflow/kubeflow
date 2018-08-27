@@ -7,21 +7,15 @@
 // @optionalParam replicas number 1 Number of replicas
 // @optionalParam endpoint string REST The endpoint type: REST or GRPC
 // @optionalParam pvcName string null Name of PVC
-
+// @optionalParam imagePullSecret string null name of image pull secret
 
 local k = import "k.libsonnet";
-local endpoint = import "param://endpoint";
-local image = import "param://image";
-local name = import "param://name";
-local pvcName = import "param://pvcName";
-local replicas = import "param://replicas";
-
 
 local pvcClaim = {
   apiVersion: "v1",
   kind: "PersistentVolumeClaim",
   metadata: {
-    name: pvcName,
+    name: params.pvcName,
   },
   spec: {
     accessModes: [
@@ -43,15 +37,15 @@ local seldonDeployment = {
     labels: {
       app: "seldon",
     },
-    name: name,
+    name: params.name,
     namespace: env.namespace,
   },
   spec: {
     annotations: {
       deployment_version: "v1",
-      project_name: name,
+      project_name: params.name,
     },
-    name: name,
+    name: params.name,
     predictors: [
       {
         annotations: {
@@ -61,10 +55,10 @@ local seldonDeployment = {
           spec: {
             containers: [
               {
-                image: image,
+                image: params.image,
                 imagePullPolicy: "IfNotPresent",
-                name: name,
-                volumeMounts+: if pvcName != "null" && pvcName != "" then [
+                name: params.name,
+                volumeMounts+: if params.pvcName != "null" && params.pvcName != "" then [
                   {
                     mountPath: "/mnt",
                     name: "persistent-storage",
@@ -73,12 +67,17 @@ local seldonDeployment = {
               },
             ],
             terminationGracePeriodSeconds: 1,
-            volumes+: if pvcName != "null" && pvcName != "" then [
+            imagePullSecrets+: if params.imagePullSecret != "null" && params.imagePullSecret != "" then [
+              {
+                name: params.imagePullSecret,
+              },
+            ] else [],
+            volumes+: if params.pvcName != "null" && params.pvcName != "" then [
               {
                 name: "persistent-storage",
                 volumeSource: {
                   persistentVolumeClaim: {
-                    claimName: pvcName,
+                    claimName: params.pvcName,
                   },
                 },
               },
@@ -90,13 +89,13 @@ local seldonDeployment = {
 
           ],
           endpoint: {
-            type: endpoint,
+            type: params.endpoint,
           },
-          name: name,
+          name: params.name,
           type: "MODEL",
         },
-        name: name,
-        replicas: replicas,
+        name: params.name,
+        replicas: params.replicas,
       },
     ],
   },
