@@ -8,15 +8,15 @@
 // @optionalParam uiImage string argoproj/argoui:v2.1.1 uiImage
 // @optionalParam executorImage string argoproj/argoexec:v2.1.1 executorImage
 
-local k = import "k.libsonnet";
-local argo = import "kubeflow/argo/argo.libsonnet";
-
-// updatedParams uses the environment namespace if
-// the namespace parameter is not explicitly set
-local updatedParams = params {
-  namespace: if params.namespace == "null" then env.namespace else params.namespace,
+local params = {
+  workflowControllerImage: 'argoproj/workflow-controller:v2.1.1',
+  uiImage: 'argoproj/argoui:v2.1.1',
+  executorImage: 'argoproj/argoexec:v2.1.1',
+};
+local env = {
+  namespace: 'foo',
 };
 
-local namespace = updatedParams.namespace;
+local argo = import "kubeflow/argo/argo.libsonnet";
+argo.all(env+params).list
 
-std.prune(k.core.v1.list.new(argo.parts(updatedParams).all))

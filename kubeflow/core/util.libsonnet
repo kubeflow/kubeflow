@@ -1,5 +1,15 @@
 // Some useful routines.
 {
+  // Is the character upper case?
+  isUpper:: function(c) {
+    local cp = std.codepoint,
+    local value = if cp(c) >= 65 && cp(c) < 91 then
+      true
+    else
+      false,
+    result:: value,
+  }.result,
+
   // Convert a string to upper case.
   upper:: function(x) {
     local cp(c) = std.codepoint(c),
@@ -31,5 +41,10 @@
       else [],
   }.result,
 
-
+  local e = self,
+  local k = import "k.libsonnet",
+  list:: std.prune(k.core.v1.list.new([
+    self[key] 
+    for key in std.objectFieldsAll(self) if self.isUpper(std.substr(key, 0, 1))
+  ])),
 }

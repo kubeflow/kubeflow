@@ -14,17 +14,21 @@
 // @optionalParam oauthSecretName string kubeflow-oauth The name of the secret containing the OAuth client_id and client_secret.
 // @optionalParam privateGKECluster string false Is the k8s cluster a private GKE cluster
 
-local k = import "k.libsonnet";
-local iap = import "kubeflow/core/iap.libsonnet";
-local util = import "kubeflow/core/util.libsonnet";
-
-// updatedParams uses the environment namespace if
-// the namespace parameter is not explicitly set
-local updatedParams = params {
-  namespace: if params.namespace == "null" then env.namespace else params.namespace,
+local params = {
+  name: 'iap',
+  ipName: 'foo',
+  secretName: 'envoy-ingress-tls',
+  hostname: 'mykubeflow.example.com',
+  issuer: 'letsencrypt-prod',
+  envoyImage: 'gcr.io/kubeflow-images-public/envoy:v20180309-0fb4886b463698702b6a08955045731903a18738',
+  ingressSetupImage: 'gcr.io/kubeflow-images-public/ingress-setup:latest',
+  disableJwtChecking: 'false',
+  oauthSecretName: 'kubeflow-oauth',
+  privateGKECluster: 'false',
+};
+local env = {
+  namespace: 'foo',
 };
 
-local namespace = updatedParams.namespace;
-local disableJwtChecking = util.toBool(params.disableJwtChecking);
-
-iap.parts(namespace).ingressParts(params.secretName, params.ipName, params.hostname, params.issuer, params.envoyImage, params.ingressSetupImage, disableJwtChecking, params.oauthSecretName, params.privateGKECluster)
+local iap = import "kubeflow/core/iap.libsonnet";
+iap.new(env+params).list

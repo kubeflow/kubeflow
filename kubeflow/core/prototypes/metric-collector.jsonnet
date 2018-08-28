@@ -8,13 +8,14 @@
 // @optionalParam metricImage string gcr.io/kubeflow-images-public/metric-collector:latest Image for running metric exporter of kubeflow availability.
 // @optionalParam oauthSecretName string kubeflow-oauth The name of the secret containing the OAuth client_id and client_secret.
 
-local k = import "k.libsonnet";
-local metricCollector = import "kubeflow/core/metric-collector.libsonnet";
-
-// updatedParams uses the environment namespace if
-// the namespace parameter is not explicitly set
-local updatedParams = params {
-  namespace: if params.namespace == "null" then env.namespace else params.namespace,
+local params = {
+  targetUrl: 'Https',
+  metricImage: 'gcr.io/kubeflow-images-public/metric-collector:latest',
+  oauthSecretName: 'kubeflow-oauth',
+};
+local env = {
+  namespace: 'foo',
 };
 
-std.prune(k.core.v1.list.new(metricCollector.all(updatedParams)))
+local metricCollector = import "kubeflow/core/metric-collector.libsonnet";
+metricCollector.new(env+params).list

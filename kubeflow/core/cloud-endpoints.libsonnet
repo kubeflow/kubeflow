@@ -1,35 +1,21 @@
 {
-  parts(namespace):: {
-    local k = import "k.libsonnet",
-    local cloudEndpointsImage = "gcr.io/cloud-solutions-group/cloud-endpoints-controller:0.1.1",
-    local metacontrollerImage = "gcr.io/enisoc-kubernetes/metacontroller@sha256:18561c63e1c5380ac5bbaabefa933e484bdb499f10b61071506f9a0070bc65f6",
+  local util = import "kubeflow/core/util.libsonnet",
+  new(_params):: self + util + {
+    local params = _params + {
+      cloudEndpointsImage: "gcr.io/cloud-solutions-group/cloud-endpoints-controller:0.1.1",
+      metacontrollerImage: "gcr.io/enisoc-kubernetes/metacontroller@sha256:18561c63e1c5380ac5bbaabefa933e484bdb499f10b61071506f9a0070bc65f6",
+    },
 
-    cloudEndpointsParts(secretName, secretKey):: k.core.v1.list.new([
-      $.parts(namespace).metaServiceAccount,
-      $.parts(namespace).metaClusterRole,
-      $.parts(namespace).metaClusterRoleBinding,
-      $.parts(namespace).metaInitializerCRD,
-      $.parts(namespace).metaLambdaCRD,
-      $.parts(namespace).metaDeployment,
-      $.parts(namespace).endpointsCRD,
-      $.parts(namespace).endpointsService,
-      $.parts(namespace).endpointsServiceAccount,
-      $.parts(namespace).endpointsClusterRole,
-      $.parts(namespace).endpointsClusterRoleBinding,
-      $.parts(namespace).endpointsDeploy(secretName, secretKey),
-      $.parts(namespace).endpointsLambdaController,
-    ]),
-
-    metaServiceAccount:: {
+    MetaServiceAccount:: {
       apiVersion: "v1",
       kind: "ServiceAccount",
       metadata: {
         name: "kube-metacontroller",
-        namespace: namespace,
+        namespace: params.namespace,
       },
     },  // metaServiceAccount
-
-    metaClusterRole:: {
+  
+    MetaClusterRole:: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRole",
       metadata: {
@@ -43,8 +29,8 @@
         },
       ],
     },  // metaClusterRole
-
-    metaClusterRoleBinding:: {
+  
+    MetaClusterRoleBinding:: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRoleBinding",
       metadata: {
@@ -54,7 +40,7 @@
         {
           kind: "ServiceAccount",
           name: "kube-metacontroller",
-          namespace: namespace,
+          namespace: params.namespace,
         },
       ],
       roleRef: {
@@ -63,8 +49,8 @@
         apiGroup: "rbac.authorization.k8s.io",
       },
     },  // metaClusterRoleBinding
-
-    metaInitializerCRD:: {
+  
+    MetaInitializerCRD:: {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
       metadata: {
@@ -85,8 +71,8 @@
         },
       },
     },  // metaInitializerCRD
-
-    metaLambdaCRD:: {
+  
+    MetaLambdaCRD:: {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
       metadata: {
@@ -107,13 +93,13 @@
         },
       },
     },  // metaLambdaCRD
-
-    metaDeployment:: {
+  
+    MetaDeployment:: {
       apiVersion: "apps/v1beta1",
       kind: "Deployment",
       metadata: {
         name: "kube-metacontroller",
-        namespace: namespace,
+        namespace: params.namespace,
         labels: {
           app: "kube-metacontroller",
         },
@@ -131,7 +117,7 @@
             containers: [
               {
                 name: "kube-metacontroller",
-                image: metacontrollerImage,
+                image: params.metacontrollerImage,
                 command: [
                   "/usr/bin/metacontroller",
                 ],
@@ -145,8 +131,8 @@
         },
       },
     },  // metaDeployment
-
-    endpointsCRD:: {
+  
+    EndpointsCRD:: {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
       metadata: {
@@ -167,13 +153,13 @@
         },
       },
     },  // endpointsCRD
-
-    endpointsService:: {
+  
+    EndpointsService:: {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
         name: "cloud-endpoints-controller",
-        namespace: namespace,
+        namespace: params.namespace,
       },
       spec: {
         type: "ClusterIP",
@@ -188,8 +174,8 @@
         },
       },
     },  // endpointsService
-
-    endpointsLambdaController:: {
+  
+    EndpointsLambdaController:: {
       apiVersion: "metacontroller.k8s.io/v1alpha1",
       kind: "LambdaController",
       metadata: {
@@ -204,7 +190,7 @@
         clientConfig: {
           service: {
             name: "cloud-endpoints-controller",
-            namespace: namespace,
+            namespace: params.namespace,
             caBundle: "...",
           },
         },
@@ -216,22 +202,22 @@
         generateSelector: true,
       },
     },  // endpointsLambdaController
-
-    endpointsServiceAccount:: {
+  
+    EndpointsServiceAccount:: {
       apiVersion: "v1",
       kind: "ServiceAccount",
       metadata: {
         name: "cloud-endpoints-controller",
-        namespace: namespace,
+        namespace: params.namespace,
       },
     },  // endpointsServiceAccount
-
-    endpointsClusterRole:: {
+  
+    EndpointsClusterRole:: {
       kind: "ClusterRole",
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       metadata: {
         name: "cloud-endpoints-controller",
-        namespace: namespace,
+        namespace: params.namespace,
       },
       rules: [
         {
@@ -246,8 +232,8 @@
         },
       ],
     },  // endpointsClusterRole
-
-    endpointsClusterRoleBinding:: {
+  
+    EndpointsClusterRoleBinding:: {
       kind: "ClusterRoleBinding",
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       metadata: {
@@ -257,7 +243,7 @@
         {
           kind: "ServiceAccount",
           name: "cloud-endpoints-controller",
-          namespace: namespace,
+          namespace: params.namespace,
         },
       ],
       roleRef: {
@@ -266,13 +252,13 @@
         apiGroup: "rbac.authorization.k8s.io",
       },
     },  // endpointsClusterRoleBinding
-
-    endpointsDeploy(secretName, secretKey):: {
+  
+    EndpointsDeploy:: {
       apiVersion: "apps/v1beta1",
       kind: "Deployment",
       metadata: {
         name: "cloud-endpoints-controller",
-        namespace: namespace,
+        namespace: params.namespace,
       },
       spec: {
         replicas: 1,
@@ -288,12 +274,12 @@
             containers: [
               {
                 name: "cloud-endpoints-controller",
-                image: cloudEndpointsImage,
+                image: params.cloudEndpointsImage,
                 imagePullPolicy: "Always",
                 env: [
                   {
                     name: "GOOGLE_APPLICATION_CREDENTIALS",
-                    value: "/var/run/secrets/sa/" + secretKey,
+                    value: "/var/run/secrets/sa/" + params.secretKey,
                   },
                 ],
                 volumeMounts: [
@@ -320,7 +306,7 @@
               {
                 name: "sa-key",
                 secret: {
-                  secretName: secretName,
+                  secretName: params.secretName,
                 },
               },
             ],
@@ -328,5 +314,5 @@
         },
       },
     },  // endpointsDeploy
-  },  // parts
+  },
 }

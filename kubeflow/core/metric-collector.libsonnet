@@ -1,13 +1,8 @@
 {
-  all(params):: [
-    $.parts(params.namespace, params.metricImage, params.targetUrl, params.oauthSecretName).metricServiceAccount,
-    $.parts(params.namespace, params.metricImage, params.targetUrl, params.oauthSecretName).metricRole,
-    $.parts(params.namespace, params.metricImage, params.targetUrl, params.oauthSecretName).metricRoleBinding,
-    $.parts(params.namespace, params.metricImage, params.targetUrl, params.oauthSecretName).deploy,
-    $.parts(params.namespace, params.metricImage, params.targetUrl, params.oauthSecretName).service,
-  ],
-  parts(namespace, image, targetUrl, oauthSecretName):: {
-    metricServiceAccount: {
+  local util = import "kubeflow/core/util.libsonnet",
+  new(params):: self + util + {
+
+    MetricServiceAccount:: {
       apiVersion: "v1",
       kind: "ServiceAccount",
       metadata: {
@@ -15,10 +10,11 @@
           app: "metric-collector",
         },
         name: "metric-collector",
-        namespace: namespace,
+        namespace: params.namespace,
       },
     },
-    metricRole:: {
+  
+    MetricRole:: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRole",
       metadata: {
@@ -42,7 +38,8 @@
         },
       ],
     },
-    metricRoleBinding:: {
+  
+    MetricRoleBinding:: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRoleBinding",
       metadata: {
@@ -60,11 +57,12 @@
         {
           kind: "ServiceAccount",
           name: "metric-collector",
-          namespace: namespace,
+          namespace: params.namespace,
         },
       ],
     },
-    service:: {
+  
+    Service:: {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
@@ -72,7 +70,7 @@
           service: "metric-collector",
         },
         name: "metric-collector",
-        namespace: namespace,
+        namespace: params.namespace,
         annotations: {
           "prometheus.io/scrape": "true",
           "prometheus.io/path": "/",
@@ -94,7 +92,8 @@
         type: "ClusterIP",
       },
     },
-    deploy:: {
+  
+    Deploy:: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -102,7 +101,7 @@
           app: "metric-collector",
         },
         name: "metric-collector",
-        namespace: namespace,
+        namespace: params.namespace,
       },
       spec: {
         replicas: 1,
@@ -116,7 +115,7 @@
             labels: {
               app: "metric-collector",
             },
-            namespace: namespace,
+            namespace: params.namespace,
           },
           spec: {
             containers: [
@@ -130,7 +129,7 @@
                     name: "CLIENT_ID",
                     valueFrom: {
                       secretKeyRef: {
-                        name: oauthSecretName,
+                        name: params.oauthSecretName,
                         key: "client_id",
                       },
                     },
@@ -141,7 +140,7 @@
                   "/opt/kubeflow-readiness.py",
                 ],
                 args: [
-                  "--url=" + targetUrl,
+                  "--url=" + params.targetUrl,
                   "--client_id=$(CLIENT_ID)",
                 ],
                 volumeMounts: [
@@ -151,7 +150,7 @@
                     mountPath: "/var/run/secrets/sa",
                   },
                 ],
-                image: image,
+                image: params.metricImage,
                 name: "exporter",
               },
             ],
@@ -169,5 +168,5 @@
         },
       },
     },  // deploy
-  },  // parts
+  },
 }

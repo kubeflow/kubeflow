@@ -1,23 +1,16 @@
 {
-  all(params):: [
-    $.parts.namespace,
-    $.parts.clusterRole,
-    $.parts.serviceAccount,
-    $.parts.clusterRoleBinding,
-    $.parts.service,
-    $.parts.configMap(params.projectId, params.clusterName, params.zone),
-    $.parts.deployment,
-  ],
+  local util = import "kubeflow/core/util.libsonnet",
+  new(params):: self + util + {
 
-  parts:: {
-    namespace:: {
+    Namespace:: {
       apiVersion: "v1",
       kind: "Namespace",
       metadata: {
         name: "stackdriver",
       },
     },
-    clusterRole:: {
+  
+    ClusterRole:: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRole",
       metadata: {
@@ -64,7 +57,8 @@
         },
       ],
     },
-    serviceAccount:: {
+  
+    ServiceAccount:: {
       apiVersion: "v1",
       kind: "ServiceAccount",
       metadata: {
@@ -72,7 +66,8 @@
         namespace: "stackdriver",
       },
     },
-    clusterRoleBinding:: {
+  
+    ClusterRoleBinding:: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRoleBinding",
       metadata: {
@@ -91,7 +86,8 @@
         },
       ],
     },
-    service:: {
+  
+    Service:: {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
@@ -115,7 +111,8 @@
         type: "ClusterIP",
       },
     },
-    configMap(projectId, clusterName, zone):: {
+  
+    ConfigMap:: {
       apiVersion: "v1",
       kind: "ConfigMap",
       metadata: {
@@ -124,13 +121,14 @@
       },
       data: {
         "prometheus.yml": (importstr "prometheus.yml") % {
-          "project-id-placeholder": projectId,
-          "cluster-name-placeholder": clusterName,
-          "zone-placeholder": zone,
+          "project-id-placeholder": params.projectId,
+          "cluster-name-placeholder": params.clusterName,
+          "zone-placeholder": params.zone,
         },
       },
     },
-    deployment:: {
+  
+    Deployment:: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -198,5 +196,5 @@
         },
       },
     },
-  },  // parts
+  },
 }

@@ -8,13 +8,14 @@
 // @optionalParam acmeUrl string https://acme-v02.api.letsencrypt.org/directory The ACME server URL, set to https://acme-staging-v02.api.letsencrypt.org/directory for staging API.
 // @optionalParam certManagerImage string quay.io/jetstack/cert-manager-controller:v0.4.0 certManagerImage
 
-local k = import "k.libsonnet";
-local certManager = import "kubeflow/core/cert-manager.libsonnet";
-
-// updatedParams uses the environment namespace if
-// the namespace parameter is not explicitly set
-local updatedParams = params {
-  namespace: if params.namespace == "null" then env.namespace else params.namespace,
+local params = {
+  acmeEmail: 'user@letsencrypt.com',
+  acmeUrl: 'https://acme-v02.api.letsencrypt.org/directory',
+  certManagerImage: 'quay.io/jetstack/cert-manager-controller:v0.4.0',
+};
+local env = {
+  namespace: 'foo',
 };
 
-certManager.parts(updatedParams).certManagerParts()
+local certManager = import "kubeflow/core/cert-manager.libsonnet";
+certManager.new(env+params).list

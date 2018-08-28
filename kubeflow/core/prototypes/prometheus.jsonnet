@@ -7,7 +7,14 @@
 // @param clusterName string GKE cluster name.
 // @param zone string GKE cluster zone.
 
-local k = import "k.libsonnet";
-local prometheus = import "kubeflow/core/prometheus.libsonnet";
+local params = {
+  projectId: 'GCP',
+  clusterName: 'GKE',
+  zone: 'GKE',
+};
+local env = {
+  namespace: 'foo',
+};
 
-std.prune(k.core.v1.list.new(prometheus.all(params)))
+local prometheus = import "kubeflow/core/prometheus.libsonnet";
+prometheus.new(env+params).list
