@@ -10,6 +10,7 @@
 // @optionalParam endpointA string REST The endpoint type for modelA : REST or GRPC
 // @optionalParam endpointB string REST The endpoint type for modelB: REST or GRPC
 // @optionalParam pvcName string null Name of PVC
+// @optionalParam imagePullSecret string null name of image pull secret
 
 local k = import "k.libsonnet";
 
@@ -72,6 +73,11 @@ local seldonDeployment =
                   },
                 ],
                 terminationGracePeriodSeconds: 1,
+                imagePullSecrets+: if params.imagePullSecret != "null" && params.imagePullSecret != "" then [
+                  {
+                    name: params.imagePullSecret,
+                  },
+                ] else [],
                 volumes+: if params.pvcName != "null" && params.pvcName != "" then [
                   {
                     name: "persistent-storage",
@@ -105,6 +111,11 @@ local seldonDeployment =
                   },
                 ],
                 terminationGracePeriodSeconds: 1,
+                imagePullSecrets+: if params.imagePullSecret != "null" && params.imagePullSecret != "" then [
+                  {
+                    name: params.imagePullSecret,
+                  },
+                ] else [],
                 volumes+: if params.pvcName != "null" && params.pvcName != "" then [
                   {
                     name: "persistent-storage",

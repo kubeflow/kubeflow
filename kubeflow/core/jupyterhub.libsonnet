@@ -155,6 +155,10 @@
                     value: params.jupyterHubAuthenticator,
                   },
                   {
+                    name: "DEFAULT_JUPYTERLAB",
+                    value: params.useJupyterLabAsDefault,
+                  },
+                  {
                     name: "KF_PVC_LIST",
                     value: params.disks,
                   },
@@ -197,7 +201,7 @@
         },
       },
     },
-  
+
     // contents based on https://github.com/jupyterhub/zero-to-jupyterhub-k8s/blob/master/jupyterhub/templates/hub/rbac.yaml
     HubRole:: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
