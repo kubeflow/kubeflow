@@ -13,7 +13,7 @@
         "jupyterhub_config.py": importstr "kubeform_spawner.py",
       },
     },
-  
+
     NotebookService:: {
       apiVersion: "v1",
       kind: "Service",
@@ -42,7 +42,7 @@
         },
       },
     },
-  
+
     HubService:: {
       apiVersion: "v1",
       kind: "Service",
@@ -90,7 +90,7 @@
         type: params.serviceType,
       },
     },
-  
+
     HubStatefulSet:: {
       apiVersion: "apps/v1beta1",
       kind: "StatefulSet",
@@ -242,7 +242,7 @@
         },
       ],
     },
-  
+
     NotebookRole:: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "Role",
@@ -301,7 +301,7 @@
         },
       ],
     },
-  
+
     HubServiceAccount:: {
       apiVersion: "v1",
       kind: "ServiceAccount",
@@ -313,7 +313,7 @@
         namespace: params.namespace,
       },
     },
-  
+
     NotebookServiceAccount:: {
       apiVersion: "v1",
       kind: "ServiceAccount",
@@ -322,7 +322,7 @@
         namespace: params.namespace,
       },
     },
-  
+
     HubRoleBinding:: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "RoleBinding",
@@ -343,7 +343,7 @@
         },
       ],
     },
-  
+
     NotebookRoleBinding:: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "RoleBinding",

@@ -8,17 +8,5 @@
 // @param serverIP string Google Cloud Filestore Server IP
 // @optionalParam image string gcr.io/kubeflow-images-public/ubuntu:18.04 The docker image to use
 
-local params = {
-  name: 'Name',
-  storageCapacity: '1T',
-  path: '/kubeflow',
-  serverIP: '129,11.10.1',
-  image: 'gcr.io/kubeflow-images-public/ubuntu:18.04',
-};
-local env = {
-  namespace: 'foo',
-};
-
 local google_cloud_file_store_pv = import "kubeflow/core/google-cloud-filestore-pv.libsonnet";
-google_cloud_file_store_pv.new(env+params).list
-
+google_cloud_file_store_pv.new(env + params).list

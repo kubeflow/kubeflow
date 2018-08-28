@@ -44,7 +44,8 @@
   local e = self,
   local k = import "k.libsonnet",
   list:: std.prune(k.core.v1.list.new([
-    self[key] 
-    for key in std.objectFieldsAll(self) if self.isUpper(std.substr(key, 0, 1))
+    self[key]
+    for key in std.objectFieldsAll(self)
+    if self.isUpper(std.substr(key, 0, 1))
   ])),
 }

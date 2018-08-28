@@ -1,7 +1,7 @@
 {
   local util = import "kubeflow/core/util.libsonnet",
   new(_params):: self + util + {
-    local params = _params + {
+    local params = _params {
       cloudEndpointsImage: "gcr.io/cloud-solutions-group/cloud-endpoints-controller:0.1.1",
       metacontrollerImage: "gcr.io/enisoc-kubernetes/metacontroller@sha256:18561c63e1c5380ac5bbaabefa933e484bdb499f10b61071506f9a0070bc65f6",
     },
@@ -14,7 +14,7 @@
         namespace: params.namespace,
       },
     },  // metaServiceAccount
-  
+
     MetaClusterRole:: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRole",
@@ -29,7 +29,7 @@
         },
       ],
     },  // metaClusterRole
-  
+
     MetaClusterRoleBinding:: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRoleBinding",
@@ -49,7 +49,7 @@
         apiGroup: "rbac.authorization.k8s.io",
       },
     },  // metaClusterRoleBinding
-  
+
     MetaInitializerCRD:: {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
@@ -71,7 +71,7 @@
         },
       },
     },  // metaInitializerCRD
-  
+
     MetaLambdaCRD:: {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
@@ -93,7 +93,7 @@
         },
       },
     },  // metaLambdaCRD
-  
+
     MetaDeployment:: {
       apiVersion: "apps/v1beta1",
       kind: "Deployment",
@@ -131,7 +131,7 @@
         },
       },
     },  // metaDeployment
-  
+
     EndpointsCRD:: {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
@@ -153,7 +153,7 @@
         },
       },
     },  // endpointsCRD
-  
+
     EndpointsService:: {
       apiVersion: "v1",
       kind: "Service",
@@ -174,7 +174,7 @@
         },
       },
     },  // endpointsService
-  
+
     EndpointsLambdaController:: {
       apiVersion: "metacontroller.k8s.io/v1alpha1",
       kind: "LambdaController",
@@ -202,7 +202,7 @@
         generateSelector: true,
       },
     },  // endpointsLambdaController
-  
+
     EndpointsServiceAccount:: {
       apiVersion: "v1",
       kind: "ServiceAccount",
@@ -211,7 +211,7 @@
         namespace: params.namespace,
       },
     },  // endpointsServiceAccount
-  
+
     EndpointsClusterRole:: {
       kind: "ClusterRole",
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
@@ -232,7 +232,7 @@
         },
       ],
     },  // endpointsClusterRole
-  
+
     EndpointsClusterRoleBinding:: {
       kind: "ClusterRoleBinding",
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
@@ -252,7 +252,7 @@
         apiGroup: "rbac.authorization.k8s.io",
       },
     },  // endpointsClusterRoleBinding
-  
+
     EndpointsDeploy:: {
       apiVersion: "apps/v1beta1",
       kind: "Deployment",

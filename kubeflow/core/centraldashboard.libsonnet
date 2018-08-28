@@ -36,7 +36,7 @@
         },
       },
     },  // deployUi
-  
+
     CentralDashboardService:: {
       // Due to https://github.com/ksonnet/ksonnet/issues/670, escaped characters in
       // jsonnet files are not interpreted correctly by ksonnet, which causes runtime
@@ -78,7 +78,7 @@
         type: "ClusterIP",
       },
     },  //service
-  
+
     CentralDashboardServiceAccount:: {
       apiVersion: "v1",
       kind: "ServiceAccount",
@@ -87,7 +87,7 @@
         namespace: params.namespace,
       },
     },  // service account
-  
+
     CentralDashboardClusterRole:: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRole",
@@ -123,7 +123,7 @@
         },
       ],
     },  // operator-role
-  
+
     CentralDashboardClusterRoleBinding:: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRoleBinding",

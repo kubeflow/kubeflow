@@ -8,5 +8,4 @@
 // so that PACKAGE is the directory containing your package and LIB is the
 // .libsonnet file defining your resources
 local newpackage = import "kubeflow/new-package-stub/newpackage.libsonnet";
-newpackage.all(env+params).list
-
+newpackage.new(env+params).list

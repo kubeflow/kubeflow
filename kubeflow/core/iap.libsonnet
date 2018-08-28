@@ -1,7 +1,7 @@
 {
   local util = import "kubeflow/core/util.libsonnet",
   new(_params):: self + util + {
-    local params =  _params + {
+    local params = _params {
       disableJwtChecking: util.toBool(_params.disableJwtChecking),
       envoyPort: 8080,
       envoyAdminPort: 8001,
@@ -14,7 +14,7 @@
       result::
         (std.length(toks) == 5 && toks[1] == "endpoints" && toks[3] == "cloud" && toks[4] == "goog"),
     }.result,
-  
+
     Service:: {
       apiVersion: "v1",
       kind: "Service",
@@ -43,7 +43,7 @@
         type: "NodePort",
       },
     },  // service
-  
+
     InitServiceAccount:: {
       apiVersion: "v1",
       kind: "ServiceAccount",
@@ -52,7 +52,7 @@
         namespace: params.namespace,
       },
     },  // initServiceAccount
-  
+
     InitClusterRoleBinding:: {
       kind: "ClusterRoleBinding",
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
@@ -72,7 +72,7 @@
         apiGroup: "rbac.authorization.k8s.io",
       },
     },  // initClusterRoleBinding
-  
+
     InitClusterRole:: {
       kind: "ClusterRole",
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
@@ -93,7 +93,7 @@
         },
       ],
     },  // initClusterRoleBinding
-  
+
     Deploy:: {
       local envoyContainer(params) = {
         image: params.image,
@@ -243,7 +243,7 @@
         },
       },
     },  // deploy
-  
+
     // Run the process to enable iap
     IapEnabler:: {
       apiVersion: "extensions/v1beta1",
@@ -320,7 +320,7 @@
         },
       },
     },  // iapEnabler
-  
+
     ConfigMap:: {
       // This is the config for the secondary envoy proxy which does JWT verification
       // and actually routes requests to the appropriate backend.
@@ -354,9 +354,9 @@
                             prefix_rewrite: "/server_info",
                             weighted_clusters: {
                               clusters: [
-    
+
                                 { name: "cluster_healthz", weight: 100.0 },
-    
+
                               ],
                             },
                           },
@@ -516,7 +516,7 @@
                   // We just use the admin server for the health check
                   url: "tcp://127.0.0.1:" + params.envoyAdminPort,
                 },
-    
+
               ],
             },
             {
@@ -556,7 +556,7 @@
                 {
                   url: "tcp://tf-hub-lb." + params.namespace + ":80",
                 },
-    
+
               ],
             },
             {
@@ -568,7 +568,7 @@
                 {
                   url: "tcp://tf-job-dashboard." + params.namespace + ":80",
                 },
-    
+
               ],
             },
             {
@@ -580,7 +580,7 @@
                 {
                   url: "tcp://ambassador." + params.namespace + ":80",
                 },
-    
+
               ],
             },
           ],
@@ -601,7 +601,7 @@
         "configure_envoy_for_iap.sh": importstr "configure_envoy_for_iap.sh",
       },
     },
-  
+
     WhoamiService:: {
       apiVersion: "v1",
       kind: "Service",
@@ -625,7 +625,7 @@
         type: "ClusterIP",
       },
     },  // whoamiService
-  
+
     WhoamiApp:: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
@@ -674,7 +674,7 @@
         },
       },
     },
-  
+
     BackendConfig:: {
       apiVersion: "cloud.google.com/v1beta1",
       kind: "BackendConfig",
@@ -691,7 +691,7 @@
         },
       },
     },  // backendConfig
-  
+
     // TODO(danisla): Remove afer https://github.com/kubernetes/ingress-gce/pull/388 is resolved per #1327.
     IngressBootstrapConfigMap:: {
       apiVersion: "v1",
@@ -704,7 +704,7 @@
         "ingress_bootstrap.sh": importstr "ingress_bootstrap.sh",
       },
     },
-  
+
     IngressBootstrapJob:: {
       apiVersion: "batch/v1",
       kind: "Job",
@@ -758,7 +758,7 @@
         },
       },
     },  // ingressBootstrapJob
-  
+
     Ingress:: {
       apiVersion: "extensions/v1beta1",
       kind: "Ingress",
@@ -793,66 +793,66 @@
         ],
       },
     },  // iapIngress
-  
+
     Certificate:: if params.privateGKECluster == "false" then (
-    {
-      apiVersion: "certmanager.k8s.io/v1alpha1",
-      kind: "Certificate",
-      metadata: {
-        name: params.secretName,
-        namespace: params.namespace,
-      },
-  
-      spec: {
-        secretName: params.secretName,
-        issuerRef: {
-          name: params.issuer,
-          kind: "Issuer",
-        },
-        commonName: params.hostname,
-        dnsNames: [
-          params.hostname,
-        ],
-        acme: {
-          config: [
-            {
-              http01: {
-                ingress: "envoy-ingress",
-              },
-              domains: [
-                params.hostname,
-              ],
-            },
-          ],
-        },
-      },
-    }  // certificate
-    ),
-  
-    CloudEndpoint:: if isCloudEndpoint(params.hostname) then (
-    {
-      local makeEndpointParams(str)  = {
-        local toks = std.split(str, "."),
-        result:: {
-          name: toks[0],
-          project: toks[2],
-        },
-      }.result,
-      local params = makeEndpointParams(params.hostname),
-      apiVersion: "ctl.isla.solutions/v1",
-      kind: "CloudEndpoint",
-      metadata: {
-        name: params.name,
-        namespace: params.namespace,
-      },
-      spec: {
-        project: params.project,
-        targetIngress: {
-          name: "envoy-ingress",
+      {
+        apiVersion: "certmanager.k8s.io/v1alpha1",
+        kind: "Certificate",
+        metadata: {
+          name: params.secretName,
           namespace: params.namespace,
         },
-      },
-    }  // cloudEndpoint
+
+        spec: {
+          secretName: params.secretName,
+          issuerRef: {
+            name: params.issuer,
+            kind: "Issuer",
+          },
+          commonName: params.hostname,
+          dnsNames: [
+            params.hostname,
+          ],
+          acme: {
+            config: [
+              {
+                http01: {
+                  ingress: "envoy-ingress",
+                },
+                domains: [
+                  params.hostname,
+                ],
+              },
+            ],
+          },
+        },
+      }  // certificate
+    ),
+
+    CloudEndpoint:: if isCloudEndpoint(params.hostname) then (
+      {
+        local makeEndpointParams(str) = {
+          local toks = std.split(str, "."),
+          result:: {
+            name: toks[0],
+            project: toks[2],
+          },
+        }.result,
+        local params = makeEndpointParams(params.hostname),
+        apiVersion: "ctl.isla.solutions/v1",
+        kind: "CloudEndpoint",
+        metadata: {
+          name: params.name,
+          namespace: params.namespace,
+        },
+        spec: {
+          project: params.project,
+          targetIngress: {
+            name: "envoy-ingress",
+            namespace: params.namespace,
+          },
+        },
+      }  // cloudEndpoint
     ),
   },
 }

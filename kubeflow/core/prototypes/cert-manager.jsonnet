@@ -8,14 +8,5 @@
 // @optionalParam acmeUrl string https://acme-v02.api.letsencrypt.org/directory The ACME server URL, set to https://acme-staging-v02.api.letsencrypt.org/directory for staging API.
 // @optionalParam certManagerImage string quay.io/jetstack/cert-manager-controller:v0.4.0 certManagerImage
 
-local params = {
-  acmeEmail: 'user@letsencrypt.com',
-  acmeUrl: 'https://acme-v02.api.letsencrypt.org/directory',
-  certManagerImage: 'quay.io/jetstack/cert-manager-controller:v0.4.0',
-};
-local env = {
-  namespace: 'foo',
-};
-
 local certManager = import "kubeflow/core/cert-manager.libsonnet";
-certManager.new(env+params).list
+certManager.new(env + params).list

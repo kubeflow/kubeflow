@@ -37,14 +37,14 @@
         type: "ClusterIP",
       },
     },
-  
+
     Deployment:: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
         name: params.name,
         namespace: params.namespace,
-  
+
       },
       spec: {
         replicas: 1,
@@ -64,7 +64,7 @@
                     containerPort: 8080,
                   },
                 ],
-  
+
                 readinessProbe: {
                   httpGet: {
                     path: "/headers",

@@ -18,14 +18,14 @@
         scope: "Namespaced",
       },
     },
-  
+
     ClusterIssuerCRD:: {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
       metadata: {
         name: "clusterissuers.certmanager.k8s.io",
       },
-  
+
       spec: {
         group: "certmanager.k8s.io",
         version: "v1alpha1",
@@ -36,7 +36,7 @@
         scope: "Cluster",
       },
     },
-  
+
     IssuerCRD:: {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
@@ -53,7 +53,7 @@
         scope: "Namespaced",
       },
     },
-  
+
     ServiceAccount:: {
       apiVersion: "v1",
       kind: "ServiceAccount",
@@ -62,7 +62,7 @@
         namespace: params.namespace,
       },
     },
-  
+
     ClusterRole:: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRole",
@@ -87,7 +87,7 @@
         },
       ],
     },
-  
+
     ClusterRoleBinding:: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRoleBinding",
@@ -107,7 +107,7 @@
         },
       ],
     },
-  
+
     Deploy:: {
       apiVersion: "apps/v1beta1",
       kind: "Deployment",
@@ -143,7 +143,7 @@
         },
       },
     },
-  
+
     IssuerLEProd:: {
       apiVersion: "certmanager.k8s.io/v1alpha1",
       kind: "Issuer",

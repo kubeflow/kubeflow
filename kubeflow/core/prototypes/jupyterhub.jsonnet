@@ -18,25 +18,5 @@
 // @optionalParam notebookGid string -1 GroupID of the host user for minikube local fs mount
 // @optionalParam accessLocalFs string false Set true if mounting a local fs directory that needs to be accessed by Jupyter Notebook in Minikube.
 
-local params = {
-  cloud: 'minikube',
-  disks: 'null',
-  gcpSecretName: 'user-gcp-sa',
-  image: 'gcr.io/kubeflow/jupyterhub-k8s:v20180531-3bb991b1',
-  jupyterHubAuthenticator: 'null',
-  useJupyterLabAsDefault: 'true',
-  name: 'jupyterhub',
-  notebookPVCMount: '/home/jovyan',
-  notebookUid: "-1",
-  notebookGid: "-1",
-  accessLocalFs: "false",
-  registry: 'gcr.io',
-  repoName: 'kubeflow-images-public',
-  serviceType: 'ClusterIP',
-};
-local env = {
-  namespace: 'foo',
-};
-
 local jupyterhub = import "kubeflow/core/jupyterhub.libsonnet";
-jupyterhub.new(env+params).list
+jupyterhub.new(env + params).list

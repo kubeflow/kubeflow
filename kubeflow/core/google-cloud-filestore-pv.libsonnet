@@ -22,7 +22,7 @@
         },
       },
     },
-  
+
     PersistentVolumeClaim:: {
       apiVersion: "v1",
       kind: "PersistentVolumeClaim",
@@ -42,7 +42,7 @@
         },
       },
     },
-  
+
     // Set 777 permissions on the GCFS NFS so that non-root users
     // like jovyan can use that NFS share
     GcfsPersmissions:: {

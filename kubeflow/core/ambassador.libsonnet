@@ -25,8 +25,8 @@
         },
         type: params.ambassadorServiceType,
       },
-    }, // service
-  
+    },  // service
+
     MetricsService:: {
       apiVersion: "v1",
       kind: "Service",
@@ -56,7 +56,7 @@
         type: "ClusterIP",
       },
     },  // metricsService
-  
+
     AdminService:: {
       apiVersion: "v1",
       kind: "Service",
@@ -81,7 +81,7 @@
         type: "ClusterIP",
       },
     },  // adminService
-  
+
     AmbassadorRole:: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "Role",
@@ -134,7 +134,7 @@
         },
       ],
     },  // role
-  
+
     AmbassadorServiceAccount:: {
       apiVersion: "v1",
       kind: "ServiceAccount",
@@ -143,7 +143,7 @@
         namespace: params.namespace,
       },
     },  // serviceAccount
-  
+
     AmbassadorRoleBinding:: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "RoleBinding",
@@ -164,7 +164,7 @@
         },
       ],
     },  // roleBinding
-  
+
     AmbassadorDeployment:: {
       local replicas = if params.cloud == "minikube" then 1 else 3,
       apiVersion: "extensions/v1beta1",
@@ -243,7 +243,7 @@
         },
       },
     },  // deploy
-  
+
     // This service adds a rule to our reverse proxy for accessing the K8s dashboard.
     K8sDashboard:: {
       local isDashboardTls = if params.cloud == "acsengine" || params.cloud == "aks" then

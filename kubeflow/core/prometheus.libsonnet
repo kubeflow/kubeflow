@@ -9,7 +9,7 @@
         name: "stackdriver",
       },
     },
-  
+
     ClusterRole:: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRole",
@@ -57,7 +57,7 @@
         },
       ],
     },
-  
+
     ServiceAccount:: {
       apiVersion: "v1",
       kind: "ServiceAccount",
@@ -66,7 +66,7 @@
         namespace: "stackdriver",
       },
     },
-  
+
     ClusterRoleBinding:: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRoleBinding",
@@ -86,7 +86,7 @@
         },
       ],
     },
-  
+
     Service:: {
       apiVersion: "v1",
       kind: "Service",
@@ -111,7 +111,7 @@
         type: "ClusterIP",
       },
     },
-  
+
     ConfigMap:: {
       apiVersion: "v1",
       kind: "ConfigMap",
@@ -127,7 +127,7 @@
         },
       },
     },
-  
+
     Deployment:: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",

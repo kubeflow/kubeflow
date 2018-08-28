@@ -14,21 +14,5 @@
 // @optionalParam oauthSecretName string kubeflow-oauth The name of the secret containing the OAuth client_id and client_secret.
 // @optionalParam privateGKECluster string false Is the k8s cluster a private GKE cluster
 
-local params = {
-  name: 'iap',
-  ipName: 'foo',
-  secretName: 'envoy-ingress-tls',
-  hostname: 'mykubeflow.example.com',
-  issuer: 'letsencrypt-prod',
-  envoyImage: 'gcr.io/kubeflow-images-public/envoy:v20180309-0fb4886b463698702b6a08955045731903a18738',
-  ingressSetupImage: 'gcr.io/kubeflow-images-public/ingress-setup:latest',
-  disableJwtChecking: 'false',
-  oauthSecretName: 'kubeflow-oauth',
-  privateGKECluster: 'false',
-};
-local env = {
-  namespace: 'foo',
-};
-
 local iap = import "kubeflow/core/iap.libsonnet";
-iap.new(env+params).list
+iap.new(env + params).list

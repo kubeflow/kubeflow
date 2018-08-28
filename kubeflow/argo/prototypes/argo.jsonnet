@@ -8,15 +8,5 @@
 // @optionalParam uiImage string argoproj/argoui:v2.1.1 uiImage
 // @optionalParam executorImage string argoproj/argoexec:v2.1.1 executorImage
 
-local params = {
-  workflowControllerImage: 'argoproj/workflow-controller:v2.1.1',
-  uiImage: 'argoproj/argoui:v2.1.1',
-  executorImage: 'argoproj/argoexec:v2.1.1',
-};
-local env = {
-  namespace: 'foo',
-};
-
 local argo = import "kubeflow/argo/argo.libsonnet";
-argo.all(env+params).list
-
+argo.all(env + params).list
