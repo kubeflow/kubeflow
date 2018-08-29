@@ -423,7 +423,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     this._appendLine('Proceeding with project number: ' + projectNumber);
     const token = await Gapi.getToken();
     let readiness = false;
-    await request(
+    request(
       {
         body: JSON.stringify(
           {
@@ -534,7 +534,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         if (!error) {
           this._appendLine('Service Account Key inserted.');
         } else {
-          this._appendLine('error: ' + response.statusCode);
+          this._appendLine('error: ' + error);
         }
       }
     );
@@ -565,7 +565,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         if (!error) {
           this._appendLine('ksonnet app created.');
         } else {
-          this._appendLine('error: ' + response.statusCode);
+          this._appendLine('error: ' + error);
         }
       }
     );
