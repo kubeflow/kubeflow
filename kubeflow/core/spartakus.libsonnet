@@ -5,103 +5,107 @@
       reportUsageBool: util.toBool(_params.reportUsage),
     },
 
-    AllResources:: if params.reportUsageBool then (self + {
-                                                     // Spartakus needs to be able to get information about the cluster to create a report.
-                                                     ClusterRole: {
-                                                       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-                                                       kind: "ClusterRole",
-                                                       metadata: {
-                                                         labels: {
-                                                           app: "spartakus",
-                                                         },
-                                                         name: "spartakus",
-                                                       },
-                                                       rules: [
-                                                         {
-                                                           apiGroups: [
-                                                             "",
-                                                           ],
-                                                           resources: [
-                                                             "nodes",
-                                                           ],
-                                                           verbs: [
-                                                             "get",
-                                                             "list",
-                                                           ],
-                                                         },
-                                                       ],
-                                                     },  // role
+    AllResources::
+      if params.reportUsageBool then
+        (
+          self + {
+            // Spartakus needs to be able to get information about the cluster to create a report.
+            ClusterRole: {
+              apiVersion: "rbac.authorization.k8s.io/v1beta1",
+              kind: "ClusterRole",
+              metadata: {
+                labels: {
+                  app: "spartakus",
+                },
+                name: "spartakus",
+              },
+              rules: [
+                {
+                  apiGroups: [
+                    "",
+                  ],
+                  resources: [
+                    "nodes",
+                  ],
+                  verbs: [
+                    "get",
+                    "list",
+                  ],
+                },
+              ],
+            },  // role
 
-                                                     ClusterRoleBinding: {
-                                                       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-                                                       kind: "ClusterRoleBinding",
-                                                       metadata: {
-                                                         labels: {
-                                                           app: "spartakus",
-                                                         },
-                                                         name: "spartakus",
-                                                       },
-                                                       roleRef: {
-                                                         apiGroup: "rbac.authorization.k8s.io",
-                                                         kind: "ClusterRole",
-                                                         name: "spartakus",
-                                                       },
-                                                       subjects: [
-                                                         {
-                                                           kind: "ServiceAccount",
-                                                           name: "spartakus",
-                                                           namespace: params.namespace,
-                                                         },
-                                                       ],
-                                                     },  // operator-role binding
+            ClusterRoleBinding: {
+              apiVersion: "rbac.authorization.k8s.io/v1beta1",
+              kind: "ClusterRoleBinding",
+              metadata: {
+                labels: {
+                  app: "spartakus",
+                },
+                name: "spartakus",
+              },
+              roleRef: {
+                apiGroup: "rbac.authorization.k8s.io",
+                kind: "ClusterRole",
+                name: "spartakus",
+              },
+              subjects: [
+                {
+                  kind: "ServiceAccount",
+                  name: "spartakus",
+                  namespace: params.namespace,
+                },
+              ],
+            },  // operator-role binding
 
-                                                     ServiceAccount: {
-                                                       apiVersion: "v1",
-                                                       kind: "ServiceAccount",
-                                                       metadata: {
-                                                         labels: {
-                                                           app: "spartakus",
-                                                         },
-                                                         name: "spartakus",
-                                                         namespace: params.namespace,
-                                                       },
-                                                     },
+            ServiceAccount: {
+              apiVersion: "v1",
+              kind: "ServiceAccount",
+              metadata: {
+                labels: {
+                  app: "spartakus",
+                },
+                name: "spartakus",
+                namespace: params.namespace,
+              },
+            },
 
-                                                     Volunteer: {
-                                                       apiVersion: "extensions/v1beta1",
-                                                       kind: "Deployment",
-                                                       metadata: {
-                                                         name: "spartakus-volunteer",
-                                                         namespace: params.namespace,
-                                                         labels: {
-                                                           app: "spartakus",
-                                                         },
-                                                       },
-                                                       spec: {
-                                                         replicas: 1,
-                                                         template: {
-                                                           metadata: {
-                                                             labels: {
-                                                               app: "spartakus-volunteer",
-                                                             },
-                                                           },
-                                                           spec: {
-                                                             containers: [
-                                                               {
-                                                                 image: "gcr.io/google_containers/spartakus-amd64:v1.0.0",
-                                                                 name: "volunteer",
-                                                                 args: [
-                                                                   "volunteer",
-                                                                   "--cluster-id=" + params.usageId,
-                                                                   "--database=https://stats-collector.kubeflow.org",
-                                                                 ],
-                                                               },
-                                                             ],
-                                                             serviceAccountName: "spartakus",
-                                                           },  // spec
-                                                         },
-                                                       },
-                                                     },  // deployment
-                                                   }),
+            Volunteer: {
+              apiVersion: "extensions/v1beta1",
+              kind: "Deployment",
+              metadata: {
+                name: "spartakus-volunteer",
+                namespace: params.namespace,
+                labels: {
+                  app: "spartakus",
+                },
+              },
+              spec: {
+                replicas: 1,
+                template: {
+                  metadata: {
+                    labels: {
+                      app: "spartakus-volunteer",
+                    },
+                  },
+                  spec: {
+                    containers: [
+                      {
+                        image: "gcr.io/google_containers/spartakus-amd64:v1.0.0",
+                        name: "volunteer",
+                        args: [
+                          "volunteer",
+                          "--cluster-id=" + params.usageId,
+                          "--database=https://stats-collector.kubeflow.org",
+                        ],
+                      },
+                    ],
+                    serviceAccountName: "spartakus",
+                  },  // spec
+                },
+              },
+            },  // deployment
+          }
+        ),
   },
 }

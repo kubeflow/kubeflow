@@ -1,6 +1,6 @@
 local iap = import "../iap.libsonnet";
 
-std.assertEqual(iap.parts("namespace").service, {
+std.assertEqual(iap.new({ namespace: "namespace", envoyPort: 8080 }).Service, {
   apiVersion: "v1",
   kind: "Service",
   metadata: {
@@ -28,7 +28,14 @@ std.assertEqual(iap.parts("namespace").service, {
   },
 }) &&
 
-std.assertEqual(iap.parts("namespace").ingress("ipName", "hostname"), {
+std.assertEqual(iap.new(
+  {
+    namespace: "namespace",
+    envoyPort: 8080,
+    ipName: "ipName",
+    hostname: "hostname",
+  }
+).Ingress, {
   apiVersion: "extensions/v1beta1",
   kind: "Ingress",
   metadata: {
@@ -60,7 +67,14 @@ std.assertEqual(iap.parts("namespace").ingress("ipName", "hostname"), {
   },
 }) &&
 
-std.assertEqual(iap.parts("namespace").ingress("ipName", "null"), {
+std.assertEqual(iap.new(
+  {
+    namespace: "namespace",
+    envoyPort: 8080,
+    ipName: "ipName",
+    hostname: "null",
+  }
+).Ingress, {
   apiVersion: "extensions/v1beta1",
   kind: "Ingress",
   metadata: {
@@ -91,7 +105,15 @@ std.assertEqual(iap.parts("namespace").ingress("ipName", "null"), {
   },
 }) &&
 
-std.assertEqual(iap.parts("namespace").certificate("secretName", "hostname", "issuer"), {
+std.assertEqual(iap.new(
+  {
+    namespace: "namespace",
+    secretName: "secretName",
+    hostname: "hostname",
+    issuer: "issuer",
+    privateGKECluster: "false",
+  }
+).Certificate, {
   apiVersion: "certmanager.k8s.io/v1alpha1",
   kind: "Certificate",
   metadata: {
@@ -123,7 +145,11 @@ std.assertEqual(iap.parts("namespace").certificate("secretName", "hostname", "is
   },
 }) &&
 
-std.assertEqual(iap.parts("namespace").whoamiApp, {
+std.assertEqual(iap.new(
+  {
+    namespace: "namespace",
+  }
+).WhoamiApp, {
   apiVersion: "extensions/v1beta1",
   kind: "Deployment",
   metadata: {
@@ -172,7 +198,11 @@ std.assertEqual(iap.parts("namespace").whoamiApp, {
   },
 }) &&
 
-std.assertEqual(iap.parts("namespace").whoamiService, {
+std.assertEqual(iap.new(
+  {
+    namespace: "namespace",
+  }
+).WhoamiService, {
   apiVersion: "v1",
   kind: "Service",
   metadata: {

@@ -1,5 +1,7 @@
 // Some useful routines.
 {
+  local k = import "k.libsonnet",
+
   // Is the character upper case?
   isUpper:: function(c) {
     local cp = std.codepoint,
@@ -41,8 +43,6 @@
       else [],
   }.result,
 
-  local e = self,
-  local k = import "k.libsonnet",
   list:: std.prune(k.core.v1.list.new([
     self[key]
     for key in std.objectFieldsAll(self)

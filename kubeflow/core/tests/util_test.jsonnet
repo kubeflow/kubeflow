@@ -19,4 +19,30 @@ std.assertEqual(util.toBool(123), true) &&
 std.assertEqual(std.length(util.toArray("a,b,c,d")), 4) &&
 std.assertEqual(std.length(util.toArray(2)), 0) &&
 std.assertEqual(std.length(util.toArray("hello world")), 1) &&
-std.assertEqual(std.length(util.toArray([1, 2, 3, 4])), 0)
+std.assertEqual(std.length(util.toArray([1, 2, 3, 4])), 0) &&
+std.assertEqual(util.isUpper(std.substr("Hi", 0, 1)), true) &&
+std.assertEqual(util.isUpper(std.substr("lo", 0, 1)), false) &&
+std.assertEqual(
+  {
+    new():: self + util + {
+      ConfigMap:: {
+        kind: "ConfigMap",
+      },
+      Service:: {
+        kind: "Service",
+      },
+    },
+  }.new().list,
+  {
+    apiVersion: "v1",
+    items: [
+      {
+        kind: "ConfigMap",
+      },
+      {
+        kind: "Service",
+      },
+    ],
+    kind: "List",
+  }
+)
