@@ -218,7 +218,7 @@ function deploy_kubeflow() {
   then
     rm -rf ./localapp
   fi
-  KUBEFLOW_REPO=$(pwd) ./scripts/kfctl.sh init localapp --platform minikube
+  KUBEFLOW_REPO=$(pwd) MOUNT_LOCAL=${MOUNT_LOCAL} ./scripts/kfctl.sh init localapp --platform minikube
   pushd .
   cd localapp
   ../scripts/kfctl.sh generate all
