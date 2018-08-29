@@ -1,13 +1,10 @@
 package app
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
-	"os/exec"
 	"path"
 	"sync"
 
@@ -25,6 +22,11 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 	type_v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
+	"k8s.io/api/rbac/v1"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	"github.com/ksonnet/ksonnet/pkg/client"
+	"k8s.io/client-go/tools/clientcmd"
+	"time"
 )
 
 // The name of the prototype for Jupyter.
@@ -36,7 +38,7 @@ type KsService interface {
 	CreateApp(context.Context, CreateRequest) error
 	// Apply ksonnet app to target GKE cluster
 	Apply(ctx context.Context, req ApplyRequest) error
-	InsertSaKey(context.Context, InsertSaKeyRequest) error
+	InsertSaKey(context.Context, InsertSaKeyRequest, string, string, string) error
 	BindRole(context.Context, InitProjectRequest, string) error
 }
 
@@ -144,6 +146,8 @@ type CreateRequest struct {
 
 	// Access token, need to access target cluster in order for AutoConfigure
 	Token string
+	Apply bool
+	Email string
 }
 
 // basicServerResponse is general response contains nil if handler raise no error, otherwise an error message.
@@ -178,6 +182,7 @@ type ApplyRequest struct {
 	// Token is an authorization token to use to authorize to the K8s API Server.
 	// Leave blank to use the pods service account.
 	Token string
+	Email string
 }
 
 func setupNamespace(namespaces type_v1.NamespaceInterface, name_space string) error {
@@ -226,7 +231,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 		log.Infof("Using K8s host %v", config.Host)
 		envName := "default"
 
-		appDir := path.Join(s.appsDir, request.Name)
+		appDir := path.Join(s.appsDir, request.Project, request.Name)
 		_, err := s.fs.Stat(appDir)
 
 		if err != nil {
@@ -315,7 +320,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 		return fmt.Errorf("There was a problem generating app: %v", err)
 	}
 	if request.AutoConfigure {
-		return s.autoConfigureApp(&a.App, &request.AppConfig, request.Namespace, config)
+		s.autoConfigureApp(&a.App, &request.AppConfig, request.Namespace, config)
 	}
 
 	log.Infof("Created and initialized app at %v", a.App.Root())
@@ -509,11 +514,8 @@ func (s *ksServer) autoConfigureApp(kfApp *kApp.App, appConfig *AppConfig, names
 // Apply runs apply on a ksonnet application.
 func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 	token := req.Token
-	applyArgs := ""
 	if token == "" {
-		log.Infof("No token specified in request; defaulting to service account")
-		token = "$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)"
-		applyArgs = fmt.Sprintf("--token=%v", token)
+		log.Infof("No token specified in request; dropping request.")
 	} else {
 		config, err := buildClusterConfig(ctx, req.Token, req.Project, req.Zone, req.Cluster)
 		if err != nil {
@@ -539,51 +541,79 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 		a.mux.Lock()
 		defer a.mux.Unlock()
 
-		// (05092018): we shell out to ks apply and don't use ksonnet apply function because
-		// ks runApply API expects clientcmd.ClientConfig, which has a soft dependency on existence of ~/.kube/config
-		// if we use k8s client-go API, would be quite verbose if we create all resources one by one.
-		// TODO: use API to create ks Components
-		if err := os.Chdir(a.App.Root()); err != nil {
-			return err
+		roleBinding := v1.ClusterRoleBinding{
+			TypeMeta: meta_v1.TypeMeta{
+				APIVersion: "rbac.authorization.k8s.io/v1beta1",
+				Kind:       "ClusterRoleBinding",
+			},
+			ObjectMeta: meta_v1.ObjectMeta{
+				Name: "default-admin",
+			},
+			RoleRef: v1.RoleRef{
+				APIGroup: "rbac.authorization.k8s.io",
+				Kind:     "ClusterRole",
+				Name:     "cluster-admin",
+			},
+			Subjects: []v1.Subject{
+				{
+					Kind:      v1.UserKind,
+					Name:      req.Email,
+				},
+			},
 		}
-		_, err = s.fs.Stat(path.Join(a.App.Root(), "caFile"))
 
-		// Store CA file in app's root dir if not already exists
-		if err != nil {
-			f, err := os.Create(path.Join(a.App.Root(), "caFile"))
-			if err != nil {
-				return err
+		createK8sRoleBing(config, &roleBinding)
+
+		cfg := clientcmdapi.Config{
+			Kind: "Config",
+			APIVersion: "v1",
+			Clusters: map[string]*clientcmdapi.Cluster{
+				"activeCluster": {
+					CertificateAuthorityData: config.TLSClientConfig.CAData,
+					Server: config.Host,
+				},
+			},
+			Contexts: map[string]*clientcmdapi.Context{
+				"activeCluster": {
+					Cluster: "activeCluster",
+					AuthInfo: "activeCluster",
+				},
+			},
+			CurrentContext: "activeCluster",
+			AuthInfos: map[string]*clientcmdapi.AuthInfo{
+				"activeCluster": {
+					Token: token,
+				},
+			},
+		}
+
+		applyOptions := map[string]interface{}{
+			actions.OptionApp:            a.App,
+			actions.OptionClientConfig:   &client.Config{
+				Overrides: &clientcmd.ConfigOverrides{},
+				Config: clientcmd.NewDefaultClientConfig(cfg, &clientcmd.ConfigOverrides{}),
+			},
+			actions.OptionComponentNames: req.Components,
+			actions.OptionCreate:         true,
+			actions.OptionDryRun:         false,
+			actions.OptionEnvName:        "default",
+			actions.OptionGcTag:          "gc-tag",
+			actions.OptionSkipGc:         true,
+		}
+		retry := 0
+		for retry < 3 {
+			err = actions.RunApply(applyOptions)
+			if err == nil {
+				log.Infof("Components apply succeded")
+				return nil
+			} else {
+				log.Errorf("(Will retry) Components apply failed; Error: %v", err)
+				retry += 1
+				time.Sleep(5 * time.Second)
 			}
-			_, err = f.Write(config.TLSClientConfig.CAData)
-			if err != nil {
-				return err
-			}
-			f.Sync()
-			f.Close()
 		}
-		applyArgs = fmt.Sprintf("--token=%v --server=%v --certificate-authority=caFile", token, config.Host)
-	}
-
-	for _, component := range req.Components {
-		log.Infof("Apply kubeflow component %v", component)
-		rawCmd := fmt.Sprintf("ks apply %v -c %v %v", req.Environment, component, applyArgs)
-		applyCmd := exec.Command("bash", "-c", rawCmd)
-
-		var out bytes.Buffer
-		var stderr bytes.Buffer
-		applyCmd.Stdout = &out
-		applyCmd.Stderr = &stderr
-		log.Infof("Run command: %v", rawCmd)
-		err := applyCmd.Run()
-		log.Info("Command: %v\nstdout:\n%vstderr:\n%v", rawCmd, out.String(), stderr.String())
-
-		if err != nil {
-			log.Errorf("Component %v apply failed; Error: %v", component, err)
-			return err
-		} else {
-			// ks apply output to stderr on success case as well
-			log.Infof("Component %v apply succeded", component)
-		}
+		log.Errorf("Components apply failed; Error: %v", err)
+		return err
 	}
 	return nil
 }
@@ -611,6 +641,26 @@ func makeCreateAppEndpoint(svc KsService) endpoint.Endpoint {
 
 		if err != nil {
 			r.Err = err.Error()
+		} else {
+			if req.Apply {
+				components := []string{}
+				for _, comp := range req.AppConfig.Components {
+					components = append(components, comp.Name)
+				}
+				err = svc.Apply(ctx, ApplyRequest{
+					Name: req.Name,
+					Environment: "default",
+					Components: components,
+					Cluster: req.Cluster,
+					Project: req.Project,
+					Zone: req.Zone,
+					Token: req.Token,
+					Email: req.Email,
+				})
+				if err != nil {
+					r.Err = err.Error()
+				}
+			}
 		}
 		return r, nil
 	}
@@ -618,10 +668,8 @@ func makeCreateAppEndpoint(svc KsService) endpoint.Endpoint {
 
 func makeHealthzEndpoint(svc KsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(HealthzRequest)
 		r := &HealthzResponse{}
-		r.Reply = req.Msg + "accepted! Sill alive!"
-		log.Info("response info: " + r.Reply)
+		r.Reply = "Request accepted! Sill alive!"
 		return r, nil
 	}
 }
@@ -629,8 +677,15 @@ func makeHealthzEndpoint(svc KsService) endpoint.Endpoint {
 func makeSaKeyEndpoint(svc KsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(InsertSaKeyRequest)
-		err := svc.InsertSaKey(ctx, req)
+		err := svc.InsertSaKey(ctx, req, "admin-gcp-sa.json", "admin-gcp-sa",
+			fmt.Sprintf("%v-admin@%v.iam.gserviceaccount.com", req.Cluster, req.Project))
 		r := &basicServerResponse{}
+		if err != nil {
+			r.Err = err.Error()
+			return r, nil
+		}
+		err = svc.InsertSaKey(ctx, req, "user-gcp-sa.json", "user-gcp-sa",
+			fmt.Sprintf("%v-user@%v.iam.gserviceaccount.com", req.Cluster, req.Project))
 		if err != nil {
 			r.Err = err.Error()
 		}
@@ -695,13 +750,7 @@ func (s *ksServer) StartHttp(port int) {
 	healthzHandler := httptransport.NewServer(
 		makeHealthzEndpoint(s),
 		func (_ context.Context, r *http.Request) (interface{}, error) {
-			var request HealthzRequest
-			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-				log.Info("Err decoding request: " + err.Error())
-				return nil, err
-			}
-			log.Info("Request received: " + request.Msg)
-			return request, nil
+			return nil, nil
 		},
 		encodeResponse,
 	)
@@ -732,11 +781,11 @@ func (s *ksServer) StartHttp(port int) {
 
 	// TODO: add deployment manager config generate / deploy handler here. So we'll have user's DM configs stored in
 	// k8s storage / github, instead of gone with browser tabs.
-	http.Handle("/apps/apply", optionsHandler(applyAppHandler))
-	http.Handle("/apps/create", optionsHandler(createAppHandler))
-	http.Handle("/healthz", optionsHandler(healthzHandler))
-	http.Handle("/iam/insertSaKey", optionsHandler(insertSaKeyHandler))
-	http.Handle("/initProject", optionsHandler(initProjectHandler))
+	http.Handle("/", optionsHandler(healthzHandler))
+	http.Handle("/kfctl/apps/apply", optionsHandler(applyAppHandler))
+	http.Handle("/kfctl/apps/create", optionsHandler(createAppHandler))
+	http.Handle("/kfctl/iam/insertSaKey", optionsHandler(insertSaKeyHandler))
+	http.Handle("/kfctl/initProject", optionsHandler(initProjectHandler))
 
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), nil))
 }

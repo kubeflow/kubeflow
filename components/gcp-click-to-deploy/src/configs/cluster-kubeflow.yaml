@@ -27,7 +27,7 @@ resources:
 - name: kubeflow
   type: cluster.jinja
   properties:
-    zone: us-east1-d
+    zone: us-central1-a
     # Set this to v1beta1 to use beta features such as private clusters,
     gkeApiVersion: v1
     # An arbitrary string appending to name of nodepools
@@ -38,6 +38,13 @@ resources:
     # Two is small enough to fit within default quota.
     cpu-pool-initialNodeCount: 2
     gpu-pool-initialNodeCount: 0
+    # Autoscaling parameters
+    cpu-pool-enable-autoscaling: true
+    cpu-pool-min-nodes: 0
+    cpu-pool-max-nodes: 10
+    gpu-pool-enable-autoscaling: true
+    gpu-pool-min-nodes: 0
+    gpu-pool-max-nodes: 10
     # Whether to deploy the new Stackdriver Kubernetes agents
     stackdriver-kubernetes: false
     securityConfig:
@@ -53,66 +60,18 @@ resources:
       # Whether to enable Pod Security Policy Admission Controller
       # Use v1beta1 api
       podSecurityPolicy: false
-      masterAuthorizedNetworksConfig:
-          cidrBlocks:
-          - cidrBlock: 1.2.3.4/32
-          - cidrBlock: 5.6.7.8/32
-          enabled: false
-    # Path for the bootstrapper image.
-    bootstrapperImage: gcr.io/kubeflow-images-public/bootstrapper:latest
+      masterAuthorizedNetworksConfigEnabled: false
+      masterAuthorizedNetworksConfigCidr:
+      - cidrBlock: 1.2.3.4/32
+    users:
+      # List users to grant appropriate GCP permissions to use Kubeflow.
+      # These can either be individual users (Google accounts) or Google
+      # Groups.
+      # - user:john@acme.com
+      # - group:data-scientists@acme.com
     # This is the name of the GCP static ip address to reserve for your domain.
     # This must be different for each Kubeflow deployment in your project.
     ipName: kubeflow-ip
-    # Name of the service account to use for k8s worker node pools
-    vmServiceAccountName: kubeflow-service-account
     # For oauth2, will be automated soon.
     clientId: clientId
     clientSecret: clientSecret
-    # Provide the config for the bootstrapper. This should be a string
-    # containing the YAML spec for the bootstrapper.
-    #
-    # You should set the following parameters in bootstrapperConfig.
-    #    acmeEmail - Set this to your email address; this is used with lets-encrypt.
-    #    ipName - This is the name of the static ip address reserved in GCP to be used with ingress.
-    #             keep this in sync with the value of property ipName
-    #    hostName - This is the fully qualified domain name to serve Kubeflow at.
-    #       1. To use the GCP provided domain endpoints.<Project>.cloud.goog set this to
-    #          <name>.endpoints.<Project>.cloud.goog
-    #          name - This is a "hostname" for your deployment. This needs to be different for each Kubeflow
-    #                 deployment in your project
-    #          Project - This is the name of your GCP provided project.
-    bootstrapperConfig: |
-      # Apps only apply if on GKE
-      app:
-        packages:
-          - name: core
-          - name: tf-serving
-          - name: tf-job
-        components:
-          - name: kubeflow-core
-            prototype: kubeflow-core
-          - name: cloud-endpoints
-            prototype: cloud-endpoints
-          - name: cert-manager
-            prototype: cert-manager
-          - name: iap-ingress
-            prototype: iap-ingress
-        parameters:
-          - component: cloud-endpoints
-            name: secretName
-            value: cloudep-sa
-          - component: cert-manager
-            name: acmeEmail
-            # TODO: use your email for ssl cert
-            value: johnDoe@acme.com
-          - component: iap-ingress
-            name: ipName
-            # TODO: Keep this in sync with the value of property ipName
-            value: ipName
-          - component: iap-ingress
-            name: hostname
-            # TODO: replace with Name of GCP project. This is fully qualified domain name to use with ingress.
-            value: kubeflow.endpoints.<Project>.cloud.goog
-          - component: kubeflow-core
-            name: jupyterHubAuthenticator
-            value: iap
