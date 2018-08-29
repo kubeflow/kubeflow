@@ -8,6 +8,7 @@
 // @optionalParam cloud string null String identifying the cloud to customize the deployment for.
 // @optionalParam pytorchJobImage string gcr.io/kubeflow-images-public/pytorch-operator:v20180619-2e19016 The image for the PyTorchJob controller
 // @optionalParam pytorchDefaultImage string null The default image to use for pytorch
+// @optionalParam pytorchJobVersion string v1alpha1 which version of the PyTorchJob operator to use
 
 local k = import "k.libsonnet";
 local operator = import "kubeflow/pytorch-job/pytorch-operator.libsonnet";
