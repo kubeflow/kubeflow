@@ -32,9 +32,16 @@ workflows:
     component: workflows
     name: kubeflow-e2e-minikube
     job_types:
+      - presubmit
       - postsubmit
     params:
       platform: minikube
+    include_dirs:
+      # Run on presubmit if any files used by minikube change
+      - testing/deploy_kubeflow.py
+      - testing/workflows/components/workflows.jsonnet
+      - testing/workflows/components/workflows.libsonnet
+      - testing/install_minikube.sh
   - app_dir: kubeflow/kubeflow/components/k8s-model-server/images/releaser
     component: workflows
     name: tf-serving-image
