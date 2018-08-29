@@ -1,4 +1,4 @@
-local util = import "../util.libsonnet";
+local util = import "kubeflow/core/util.libsonnet";
 
 std.assertEqual(util.upper("True"), "TRUE") &&
 std.assertEqual(util.upper("TrUe"), "TRUE") &&
