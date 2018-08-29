@@ -113,7 +113,7 @@ local dagTemplates = [
       "testing.test_jsonnet",
       "--artifacts_dir=" + artifactsDir,
       "--test_files_dirs=" + srcDir + "/kubeflow",
-      "--jsonnet_path_dirs=" + srcDir + "," + srcRootDir,
+      "--jsonnet_path_dirs=" + srcDir + "," + srcRootDir + "," + srcDir + "/core",
     ]),  // jsonnet-test
 
     dependencies: ["checkout"],
