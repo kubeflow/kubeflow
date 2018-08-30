@@ -8,7 +8,7 @@ data:
 # Assume user access app via "kubectl port-forward ${pod-name} 3000:3000 8080:8080,
 # otherwise change address below to your address pointing to controller-backend
   app-config.yaml: |
-    appAddress: http://localhost:8080
+    appAddress: https://kfdeploy.kubeflow.dev
     defaultApp:
       components:
       - name: jupyterhub
@@ -72,7 +72,7 @@ spec:
     port: 8080
   selector:
     app: kubeflow-controller
-  type: ClusterIP
+  type: NodePort
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -94,14 +94,14 @@ spec:
     spec:
       containers:
       - name: web-app
-        image: gcr.io/kubeflow-images-public/test-app:082101
+        image: gcr.io/kubeflow-images-public/test-app:0829
         ports:
         - containerPort: 3000
         volumeMounts:
         - name: config-volume
           mountPath: /app/src/user_config
       - name: controller-backend
-        image: gcr.io/kubeflow-images-public/bootstrapper:v20180822-81fe1b6-dirty-255417
+        image: gcr.io/kubeflow-images-public/bootstrapper:v20180823-1ff4f8a-dirty-4be9a0 
         workingDir: /opt/bootstrap
         command: [ "/opt/kubeflow/bootstrapper"]
         args: [
