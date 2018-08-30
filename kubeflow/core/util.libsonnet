@@ -43,9 +43,9 @@
       else [],
   }.result,
 
-  list:: std.prune(k.core.v1.list.new([
-    self[key]
-    for key in std.objectFieldsAll(self)
+  list(obj):: std.prune(k.core.v1.list.new([
+    obj[key]
+    for key in std.objectFieldsAll(obj)
     if self.isUpper(std.substr(key, 0, 1))
   ])),
 }

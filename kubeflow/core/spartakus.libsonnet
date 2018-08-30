@@ -1,9 +1,10 @@
 {
   local util = import "kubeflow/core/util.libsonnet",
-  new(_params):: self + util + {
+  new(_params):: self + {
     local params = _params {
       reportUsageBool: util.toBool(_params.reportUsage),
     },
+    list:: util.list(self),
 
     AllResources::
       if params.reportUsageBool then

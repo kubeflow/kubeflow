@@ -1,6 +1,6 @@
 {
   local util = import "kubeflow/core/util.libsonnet",
-  new(_params):: self + util + {
+  new(_params):: self + {
     local params = _params {
       disableJwtChecking: util.toBool(_params.disableJwtChecking),
       hostname: if std.objectHas(_params, "hostname") then _params.hostname else "null",
@@ -8,6 +8,7 @@
       envoyAdminPort: 8001,
       envoyStatsPort: 8025,
     },
+    list:: util.list(self),
 
     // Test if the given hostname is in the form of: "NAME.endpoints.PROJECT.cloud.goog"
     local isCloudEndpoint(str) = {
