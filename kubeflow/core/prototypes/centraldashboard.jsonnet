@@ -6,4 +6,4 @@
 // @optionalParam image string gcr.io/kubeflow-images-public/centraldashboard:v0.2.1 Image for the central dashboard
 
 local centraldashboard = import "kubeflow/core/centraldashboard.libsonnet";
-centraldashboard.new(env + params).list
+centraldashboard.new(env, params).list

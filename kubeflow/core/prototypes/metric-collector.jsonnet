@@ -9,4 +9,4 @@
 // @optionalParam oauthSecretName string kubeflow-oauth The name of the secret containing the OAuth client_id and client_secret.
 
 local metricCollector = import "kubeflow/core/metric-collector.libsonnet";
-metricCollector.new(env + params).list
+metricCollector.new(env, params).list

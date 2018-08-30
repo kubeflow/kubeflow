@@ -1,6 +1,10 @@
 {
   local util = import "kubeflow/core/util.libsonnet",
-  new(params):: self + {
+  new(_env, _params):: self + {
+    local params = _env + _params {
+      namespace: if std.objectHas(_params, "namespace") && _params.namespace != "null" then
+        _params.namespace else _env.namespace,
+    },
     list:: util.list(self),
 
     PersistentVolume:: {
