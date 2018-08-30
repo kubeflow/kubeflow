@@ -6,14 +6,14 @@
         _params.namespace else _env.namespace,
       reportUsageBool: util.toBool(_params.reportUsage),
     },
-    list:: util.list(self),
+    list:: util.list(self.AllResources),
 
     AllResources::
       if params.reportUsageBool then
         (
           self + {
             // Spartakus needs to be able to get information about the cluster to create a report.
-            ClusterRole: {
+            ClusterRole:: {
               apiVersion: "rbac.authorization.k8s.io/v1beta1",
               kind: "ClusterRole",
               metadata: {
@@ -38,7 +38,7 @@
               ],
             },  // role
 
-            ClusterRoleBinding: {
+            ClusterRoleBinding:: {
               apiVersion: "rbac.authorization.k8s.io/v1beta1",
               kind: "ClusterRoleBinding",
               metadata: {
@@ -61,7 +61,7 @@
               ],
             },  // operator-role binding
 
-            ServiceAccount: {
+            ServiceAccount:: {
               apiVersion: "v1",
               kind: "ServiceAccount",
               metadata: {
@@ -73,7 +73,7 @@
               },
             },
 
-            Volunteer: {
+            Volunteer:: {
               apiVersion: "extensions/v1beta1",
               kind: "Deployment",
               metadata: {
