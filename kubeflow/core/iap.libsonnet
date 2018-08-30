@@ -3,6 +3,7 @@
   new(_params):: self + util + {
     local params = _params {
       disableJwtChecking: util.toBool(_params.disableJwtChecking),
+      hostname: if std.objectHas(_params, 'hostname') then _params.hostname else 'null',
       envoyPort: 8080,
       envoyAdminPort: 8001,
       envoyStatsPort: 8025,
@@ -10,7 +11,7 @@
 
     // Test if the given hostname is in the form of: "NAME.endpoints.PROJECT.cloud.goog"
     local isCloudEndpoint(str) = {
-      local toks = std.split(str, "."),
+      local toks = if std.type(str) == 'null' then [] else std.split(str, "."),
       result::
         (std.length(toks) == 5 && toks[1] == "endpoints" && toks[3] == "cloud" && toks[4] == "goog"),
     }.result,
