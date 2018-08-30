@@ -25,6 +25,7 @@ std.assertEqual(util.isUpper(std.substr("lo", 0, 1)), false) &&
 std.assertEqual(
   {
     new():: self + util + {
+      list:: util.list(self),
       ConfigMap:: {
         kind: "ConfigMap",
       },
