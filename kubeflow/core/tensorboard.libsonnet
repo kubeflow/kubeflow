@@ -1,4 +1,97 @@
 {
+  local util = import "kubeflow/core/util.libsonnet",
+  new(params):: self + util + {
+
+    // We define the containers one level beneath parts because combined with jsonnet late binding
+    // this makes it easy for users to override specific bits of the container.
+    TBContainer:: {
+      name: $.params.name,
+      image: $.params.defaultTbImage,
+      imagePullPolicy: "IfNotPresent",
+      args: [
+        $.params.logDir,
+        "--port=9000",
+      ],
+      command: [
+        "/usr/local/bin/tensorboard",
+      ],
+      ports: [
+        {
+          containerPort: 9000,
+        },
+      ],
+
+      resources: {
+        requests: {
+          memory: "1Gi",
+          cpu: "1",
+        },
+        limits: {
+          memory: "4Gi",
+          cpu: "4",
+        },
+      },
+    },  // tbContainer
+
+    TFDeployment: {
+      apiVersion: "extensions/v1beta1",
+      kind: "Deployment",
+      metadata: {
+        name: $.params.name,
+        namespace: $.params.namespace,
+        labels: $.params.labels,
+      },
+      spec: {
+        template: {
+          metadata: {
+            labels: $.params.labels,
+          },
+          spec: {
+            containers: [
+              $.parts.tbContainer,
+            ],
+
+          },
+        },
+      },
+    },  // tfDeployment
+
+    TB: {
+      apiVersion: "v1",
+      kind: "Service",
+      metadata: {
+        labels: $.params.labels,
+        name: $.params.name,
+        namespace: $.params.namespace,
+        annotations: {
+          "getambassador.io/config":
+            std.join("\n", [
+              "---",
+              "apiVersion: ambassador/v0",
+              "kind:  Mapping",
+              "name: tb-mapping-" + $.params.name + "-get",
+              "prefix: /tensorboard/ " + $.params.name + "/",
+              "rewrite: /",
+              "method: GET",
+              "service: " + $.params.name + "." + $.params.namespace + ":9000",
+            ]),
+        },  //annotations
+      },
+      spec: {
+        ports: [
+          {
+            name: "tb",
+            port: 9000,
+            targetPort: 9000,
+          },
+        ],
+        selector: $.params.labels,
+        type: $.params.serviceType,
+      },
+    },  // tb
+
+
+{
   // Parameters are intended to be late bound.
   params:: {
     name: null,
