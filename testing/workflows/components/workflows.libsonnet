@@ -665,6 +665,7 @@
               "-m",
               "testing.tf_job_simple_test",
               "--src_dir=" + srcDir,
+              "--tf_job_version=v1alpha2",
             ]),  // tfjob-simple-prototype-test
             buildTemplate("tfjob-test" + v1alpha2Suffix, [
               "python",

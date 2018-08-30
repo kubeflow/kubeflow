@@ -116,7 +116,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       dialogBody: '',
       dialogTitle: '',
       hostName: '<HOST>.endpoints.<PROJECT>.cloud.goog',
-      ipName: 'kubeflow',
+      ipName: 'kubeflow-ip',
       project: 'cloud-ml-dev',
       showLogs: false,
       zone: 'us-east1-d',
@@ -279,25 +279,21 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     kubeflow.properties.zone = this.state.zone;
     kubeflow.properties.clientId = btoa(this.state.clientId);
     kubeflow.properties.clientSecret = btoa(this.state.clientSecret);
-
-    const config: any = jsYaml.safeLoad(kubeflow.properties.bootstrapperConfig);
-
-    if (config == null) {
-      this.setState({
-        dialogBody: 'Property bootstrapperConfig not found in deployment config.',
-        dialogTitle: 'Deployment Error',
-      });
-      return;
-    }
+    kubeflow.properties.ipName = this.state.ipName;
 
     const state = this.state;
-    config.app.parameters.forEach((p: any) => {
+    const email = await Gapi.getSignedInEmail();
+    this._configSpec.defaultApp.parameters.forEach((p: any) => {
       if (p.name === 'ipName') {
         p.value = state.ipName;
       }
 
-      if (p.hostname === 'hostname') {
+      if (p.name === 'hostname') {
         p.value = state.hostName;
+      }
+
+      if (p.name === 'acmeEmail') {
+        p.value = email;
       }
     });
 
@@ -344,6 +340,19 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     // enabling, make requests to enable them, then we repeat this in a loop
     // until we have no more services left, or we try too many times.
     this._appendLine(`Getting enabled services for project ${project}..`);
+    await request(
+      {
+        headers: { 'content-type': 'application/json' },
+        method: 'GET',
+        uri: this._configSpec.appAddress,
+      },
+      (error, response, body) => {
+        if (error) {
+          this._appendLine('Could not reach backend server, exiting');
+          return;
+        }
+      }
+    );
 
     let servicesToEnable: string[] = [];
     let enableAttempts = 0;
@@ -397,7 +406,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       return;
     }
 
-    // Step 2: Set IAM Adming Policy
+    // Step 2: Set IAM Admin Policy
     const projectNumber = await Gapi.cloudresourcemanager.getProjectNumber(project)
       .catch(e => {
         this.setState({
@@ -412,8 +421,50 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     }
 
     this._appendLine('Proceeding with project number: ' + projectNumber);
+    const token = await Gapi.getToken();
+    let readiness = false;
+    request(
+      {
+        body: JSON.stringify(
+          {
+            Project: project,
+            ProjectNumber: projectNumber,
+            Token: token,
+          }
+        ),
+        headers: { 'content-type': 'application/json' },
+        method: 'PUT',
+        uri: this._configSpec.appAddress + '/kfctl/initProject',
+      },
+      (error, response, body) => {
+        if (!error) {
+          try {
+            const msg = JSON.parse(response.body).Reply;
+            this._appendLine('project init succeeded: ' + msg);
+            readiness = true;
+          }
+          catch (e) {
+            this._appendLine('Backend returned non-json response: ');
+          }
+        } else {
+          this._appendLine('Backend error: ' + error);
+          return;
+        }
+      }
+    );
+
+    let initAttempts = 0;
+    const initTimeout = 2000;
+    do {
+      initAttempts++;
+      await wait(initTimeout);
+    } while (!readiness && initAttempts < 10);
 
     // Step 3: Create GCP Deployment
+
+    if (!readiness) {
+      return;
+    }
 
     const resource = await this._getYaml();
     if (!resource) {
@@ -440,42 +491,81 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     // Step 4: In-cluster resources set up
     let status = '';
     let getAttempts = 0;
-    const getTimeout = 15000;
+    const getTimeout = 20000;
     do {
       getAttempts++;
+      await wait(getTimeout);
       const curStatus = await Gapi.deploymentmanager.get(this.state.project, deploymentName)
             .catch(err => {
-              this._appendLine('Cluster endpoint not available yet.');
+              this._appendLine('Deployment status not available yet.');
             });
       if (!curStatus) {
-        await wait(getTimeout);
         continue;
       }
       status = curStatus.operation!.status!;
-    } while (status !== 'DONE' && getAttempts < 20);
+      this._appendLine(`Status of ${deploymentName}: ` + status);
+    } while (status !== 'DONE' && getAttempts < 30);
 
-    const token = await Gapi.getToken();
-    await request(
+    if (status !== 'DONE') {
+      const dmConsole = 'https://console.cloud.google.com/deployments';
+      this._appendLine(`Deployment ${deploymentName} didn't finish within 10 minutes, check ${dmConsole} for more info`);
+      return;
+    }
+
+    request(
       {
         body: JSON.stringify(
           {
-            namespace: 'kubeflow',
-            project,
-            secretKey: 'admin-gcp-sa.json',
-            secretName: 'admin-gcp-sa',
-            serviceAccount:  `${deploymentName}-admin@${project}.iam.gserviceaccount.com`,
-            token,
+            Cluster: deploymentName,
+            Namespace: 'kubeflow',
+            Project: project,
+            SecretKey: 'admin-gcp-sa.json',
+            SecretName: 'admin-gcp-sa',
+            ServiceAccount:  `${deploymentName}-admin@${project}.iam.gserviceaccount.com`,
+            Token: token,
+            Zone: this.state.zone,
           }
         ),
         headers: { 'content-type': 'application/json' },
         method: 'PUT',
-        uri: this._configSpec.appAddress + '/insertSaKey',
+        uri: this._configSpec.appAddress + '/kfctl/iam/insertSaKey',
       },
       (error, response, body) => {
         if (!error) {
           this._appendLine('Service Account Key inserted.');
         } else {
-          this._appendLine('error: ' + response.statusCode);
+          this._appendLine('error: ' + error);
+        }
+      }
+    );
+
+    const email = await Gapi.getSignedInEmail();
+    const createBody = JSON.stringify(
+      {
+        AppConfig: this._configSpec.defaultApp,
+        Apply: true,
+        AutoConfigure: true,
+        Cluster: deploymentName,
+        Email: email,
+        Name: deploymentName,
+        Namespace: 'kubeflow',
+        Project: project,
+        Token: token,
+        Zone: this.state.zone,
+      }
+    );
+    request(
+      {
+        body: createBody,
+        headers: { 'content-type': 'application/json' },
+        method: 'PUT',
+        uri: this._configSpec.appAddress + '/kfctl/apps/create',
+      },
+      (error, response, body) => {
+        if (!error) {
+          this._appendLine('ksonnet app created.');
+        } else {
+          this._appendLine('error: ' + error);
         }
       }
     );

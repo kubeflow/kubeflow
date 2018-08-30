@@ -25,6 +25,12 @@ Finally, we will deploy the application
 ks apply default -c weaveflux
 ```
 
+You will need to expose the service in order to use this. You are free to use different methods to expose.
+
+```
+kubectl port-forward deployment/flux 3030:3030
+```
+
 We will then setup our FLUX_URL and test fluxctl
 
 ```
