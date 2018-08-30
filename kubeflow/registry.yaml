@@ -37,3 +37,6 @@ libraries:
   mxnet-job:
     version: master
     path: mxnet-job
+  nvidia-inference-server:
+    version: master
+    path: nvidia-inference-server
