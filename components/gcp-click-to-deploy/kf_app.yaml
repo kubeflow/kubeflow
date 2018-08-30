@@ -5,10 +5,55 @@
 
 apiVersion: v1
 data:
-# Default config assume user access app via kubectl proxy (default at localhost:8001),
+# Assume user access app via "kubectl port-forward ${pod-name} 3000:3000 8080:8080,
 # otherwise change address below to your address pointing to controller-backend
   app-config.yaml: |
-    appAddress: http://localhost:8001/api/v1/namespaces/default/services/kubeflow-controller:8080/proxy
+    appAddress: http://localhost:8080
+    defaultApp:
+      components:
+      - name: jupyterhub
+        prototype: jupyterhub
+      - name: ambassador
+        prototype: ambassador
+      - name: centraldashboard
+        prototype: centraldashboard
+      - name: tf-job-operator
+        prototype: tf-job-operator
+      - name: spartakus
+        prototype: spartakus
+      - name: cloud-endpoints
+        prototype: cloud-endpoints
+      - name: cert-manager
+        prototype: cert-manager
+      - name: iap-ingress
+        prototype: iap-ingress
+      parameters:
+      - component: cloud-endpoints
+        name: secretName
+        value: admin-gcp-sa
+      - component: cert-manager
+        name: acmeEmail
+        # TODO: use your email for ssl cert
+        value: johnDoe@acme.com
+      - component: iap-ingress
+        name: ipName
+        # TODO: make sure value of ipName is the same as property <ipName>.
+        value: ipName
+      - component: iap-ingress
+        name: hostname
+        # TODO: replace with Name of GCP project. This is fully qualified domain name to use with ingress.
+        value: kubeflow.endpoints.<Project>.cloud.goog
+      - component: jupyterhub
+        name: jupyterHubAuthenticator
+        value: iap
+      - component: jupyterhub
+        name: cloud
+        value: gke
+      - component: ambassador
+        name: cloud
+        value: gke
+      registries:
+      - name: kubeflow
 kind: ConfigMap
 metadata:
   name: kubeflow-controller
@@ -49,20 +94,19 @@ spec:
     spec:
       containers:
       - name: web-app
-        image: gcr.io/kubeflow-images-public/test-app:0806
+        image: gcr.io/kubeflow-images-public/test-app:082101
         ports:
         - containerPort: 3000
         volumeMounts:
         - name: config-volume
           mountPath: /app/src/user_config
       - name: controller-backend
-        image: gcr.io/kubeflow-images-public/bootstrapper:latest
+        image: gcr.io/kubeflow-images-public/bootstrapper:v20180822-81fe1b6-dirty-255417
         workingDir: /opt/bootstrap
         command: [ "/opt/kubeflow/bootstrapper"]
         args: [
           "--in-cluster",
-          "--namespace=kubeflow",
-          "--app-dir=/opt/bootstrap/default"
+          "--namespace=kubeflow"
           ]
         ports:
         - containerPort: 8080
