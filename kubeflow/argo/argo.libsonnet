@@ -38,7 +38,7 @@
       },
       metadata: {
         name: "workflow-controller",
-        namespace: $.params.namespace,
+        namespace: params.namespace,
       },
       spec: {
         progressDeadlineSeconds: 600,
@@ -84,7 +84,7 @@
                     },
                   },
                 ],
-                image: $.params.workflowControllerImage,
+                image: params.workflowControllerImage,
                 imagePullPolicy: "IfNotPresent",
                 name: "workflow-controller",
                 resources: {},
@@ -112,7 +112,7 @@
           app: "argo-ui",
         },
         name: "argo-ui",
-        namespace: $.params.namespace,
+        namespace: params.namespace,
       },
       spec: {
         progressDeadlineSeconds: 600,
@@ -155,7 +155,7 @@
                     value: "true",
                   },
                 ],
-                image: $.params.uiImage,
+                image: params.uiImage,
                 imagePullPolicy: "IfNotPresent",
                 name: "argo-ui",
                 resources: {},
@@ -189,7 +189,7 @@
           app: "argo-ui",
         },
         name: "argo-ui",
-        namespace: $.params.namespace,
+        namespace: params.namespace,
         annotations: {
           "getambassador.io/config":
             std.join("\n", [
@@ -199,7 +199,7 @@
               "name: argo-ui-mapping",
               "prefix: /argo/",
               "rewrite: /argo/",
-              "service: argo-ui." + $.params.namespace,
+              "service: argo-ui." + params.namespace,
             ]),
         },  //annotations
       },
@@ -221,12 +221,12 @@
     WorkflowControllerConfigmap:: {
       apiVersion: "v1",
       data: {
-        config: @"executorImage: " + $.params.executorImage,
+        config: @"executorImage: " + params.executorImage,
       },
       kind: "ConfigMap",
       metadata: {
         name: "workflow-controller-configmap",
-        namespace: $.params.namespace,
+        namespace: params.namespace,
       },
     },
 
@@ -235,7 +235,7 @@
       kind: "ServiceAccount",
       metadata: {
         name: "argo",
-        namespace: $.params.namespace,
+        namespace: params.namespace,
       },
     },  // service account
 
@@ -252,7 +252,7 @@
           app: "argo",
         },
         name: "argo",
-        namespace: $.params.namespace,
+        namespace: params.namespace,
       },
       rules: [
         {
@@ -319,7 +319,7 @@
           app: "argo",
         },
         name: "argo",
-        namespace: $.params.namespace,
+        namespace: params.namespace,
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
@@ -330,7 +330,7 @@
         {
           kind: "ServiceAccount",
           name: "argo",
-          namespace: $.params.namespace,
+          namespace: params.namespace,
         },
       ],
     },  // role binding
@@ -340,7 +340,7 @@
       kind: "ServiceAccount",
       metadata: {
         name: "argo-ui",
-        namespace: $.params.namespace,
+        namespace: params.namespace,
       },
     },  // service account
 
@@ -357,7 +357,7 @@
           app: "argo",
         },
         name: "argo-ui",
-        namespace: $.params.namespace,
+        namespace: params.namespace,
       },
       rules: [
         {
@@ -406,7 +406,7 @@
           app: "argo-ui",
         },
         name: "argo-ui",
-        namespace: $.params.namespace,
+        namespace: params.namespace,
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
@@ -417,7 +417,7 @@
         {
           kind: "ServiceAccount",
           name: "argo-ui",
-          namespace: $.params.namespace,
+          namespace: params.namespace,
         },
       ],
     },  // role binding
