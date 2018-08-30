@@ -839,15 +839,15 @@
             project: toks[2],
           },
         }.result,
-        local params = makeEndpointParams(params.hostname),
+        local endpointParams = makeEndpointParams(params.hostname),
         apiVersion: "ctl.isla.solutions/v1",
         kind: "CloudEndpoint",
         metadata: {
-          name: params.name,
+          name: endpointParams.name,
           namespace: params.namespace,
         },
         spec: {
-          project: params.project,
+          project: endpointParams.project,
           targetIngress: {
             name: "envoy-ingress",
             namespace: params.namespace,
