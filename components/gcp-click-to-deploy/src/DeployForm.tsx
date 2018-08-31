@@ -31,8 +31,6 @@ interface DeployFormState {
   deploymentName: string;
   dialogTitle: string;
   dialogBody: string;
-  hostName: string;
-  ipName: string;
   project: string;
   showLogs: boolean;
   zone: string;
@@ -115,8 +113,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       deploymentName: 'kubeflow',
       dialogBody: '',
       dialogTitle: '',
-      hostName: '<HOST>.endpoints.<PROJECT>.cloud.goog',
-      ipName: 'kubeflow-ip',
       project: 'cloud-ml-dev',
       showLogs: false,
       zone: 'us-east1-d',
@@ -192,12 +188,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         </Row>
         <Row>
           <Input name="zone" label="Zone" spellCheck={false} value={this.state.zone} onChange={this._handleChange.bind(this)} />
-        </Row>
-        <Row>
-          <Input name="ipName" label="IP name" spellCheck={false} value={this.state.ipName} onChange={this._handleChange.bind(this)} />
-        </Row>
-        <Row>
-          <Input name="hostName" label="Hostname" spellCheck={false} value={this.state.hostName} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
           <Input name="clientId" label="Web App Client Id" spellCheck={false} value={this.state.clientId} onChange={this._handleChange.bind(this)} />
@@ -279,17 +269,18 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     kubeflow.properties.zone = this.state.zone;
     kubeflow.properties.clientId = btoa(this.state.clientId);
     kubeflow.properties.clientSecret = btoa(this.state.clientSecret);
-    kubeflow.properties.ipName = this.state.ipName;
+    kubeflow.properties.ipName = this.state.deploymentName + '-ip';
 
     const state = this.state;
     const email = await Gapi.getSignedInEmail();
+
     this._configSpec.defaultApp.parameters.forEach((p: any) => {
       if (p.name === 'ipName') {
-        p.value = state.ipName;
+        p.value = kubeflow.properties.ipName;
       }
 
       if (p.name === 'hostname') {
-        p.value = state.hostName;
+        p.value = state.deploymentName + '.endpoints.' + state.project + '.cloud.goog';
       }
 
       if (p.name === 'acmeEmail') {
@@ -319,10 +310,10 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
 
   // Create a  Kubeflow deployment.
   private async _createDeployment() {
-    for (const prop of ['project', 'zone', 'ipName', 'deploymentName', 'hostName']) {
+    for (const prop of ['project', 'zone', 'deploymentName']) {
       if (this.state[prop] === '') {
         this.setState({
-          dialogBody: 'All fields are required, but it looks like you missed something.',
+          dialogBody: 'Some required fields (project, zone, deploymentName) are missing',
           dialogTitle: 'Missing field',
         });
         return;
