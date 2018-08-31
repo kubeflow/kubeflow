@@ -21,6 +21,17 @@ type InsertSaKeyRequest struct {
 	Zone string
 }
 
+func (s *ksServer) InsertSaKeys(ctx context.Context, req InsertSaKeyRequest) error {
+	err := s.InsertSaKey(ctx, req, "admin-gcp-sa.json", "admin-gcp-sa",
+		fmt.Sprintf("%v-admin@%v.iam.gserviceaccount.com", req.Cluster, req.Project))
+	if err != nil {
+		return err
+	}
+	err = s.InsertSaKey(ctx, req, "user-gcp-sa.json", "user-gcp-sa",
+		fmt.Sprintf("%v-user@%v.iam.gserviceaccount.com", req.Cluster, req.Project))
+	return err
+}
+
 func (s *ksServer) InsertSaKey(ctx context.Context, request InsertSaKeyRequest, secretKey string,
 	secretName string, serviceAccount string) error {
 	ts := oauth2.StaticTokenSource(&oauth2.Token{
@@ -41,8 +52,8 @@ func (s *ksServer) InsertSaKey(ctx context.Context, request InsertSaKeyRequest, 
 		Name: fmt.Sprintf("projects/%v/serviceAccounts/%v", request.Project, serviceAccount),
 	}
 
-	s.iamMux.Lock()
-	defer s.iamMux.Unlock()
+	s.serverMux.Lock()
+	defer s.serverMux.Unlock()
 
 	createdKey, err := c.CreateServiceAccountKey(ctx, &createServiceAccountKeyRequest)
 	if err != nil {
