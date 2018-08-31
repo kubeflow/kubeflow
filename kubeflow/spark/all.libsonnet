@@ -3,9 +3,9 @@
   // Each prototype should be a list of different parts that together
   // provide a userful function such as serving a TensorFlow or PyTorch model.
   all(params, name, env):: [
-    $.parts(params, name, env).serviceAccount,
-    $.parts(params, name, env).clusterRole,
-    $.parts(params, name, env).clusterRoleBinding,
+    $.parts(params, name, env).operatorServiceAccount,
+    $.parts(params, name, env).operatorClusterRole,
+    $.parts(params, name, env).operatorClusterRoleBinding,
     $.parts(params, name, env).deployment,
   ],
 
@@ -17,8 +17,69 @@
     // However, in some cases an application may use multiple namespaces in which
     // case the namespace for a particular component will be a parameter.
     local namespace = if std.objectHas(params, "namespace") then params.namespace else env.namespace,
-    
-    serviceAccount:: {
+
+    jobServiceAccount:: {
+      apiVersion: "v1",
+      kind: "ServiceAccount",
+      "metadata": {
+        "name": name + "-spark",
+        "namespace": namespace,
+      }
+    },
+
+    jobClusterRole:: {
+      "apiVersion": "rbac.authorization.k8s.io/v1beta1",
+      "kind": "Role",
+      "metadata": {
+        "namespace": namespace,
+        "name": name + "-spark-role"
+       },
+      "rules": [
+        {
+      "apiGroups": [
+        ""
+      ],
+      "resources": [
+        "pods"
+      ],
+      "verbs": [
+        "*"
+      ]
+    },
+    {
+      "apiGroups": [
+        ""
+      ],
+      "resources": [
+        "services"
+      ],
+      "verbs": [
+        "*"
+      ]
+    }
+  ]
+},
+    jobClusterRoleBinding:: {
+  "apiVersion": "rbac.authorization.k8s.io/v1beta1",
+  "kind": "RoleBinding",
+  "metadata": {
+    "name": name + "-spark-role-binding",
+    "namespace": namespace
+  },
+  "subjects": [
+    {
+      "kind": "ServiceAccount",
+      "name": name + "-spark",
+      "namespace": "default"
+    }
+  ],
+  "roleRef": {
+    "kind": "Role",
+    "name": name + "-spark-role",
+    "apiGroup": "rbac.authorization.k8s.io"
+  }
+},
+    operatorServiceAccount:: {
       apiVersion: "v1",
 	kind: "ServiceAccount",
 	metadata: {
@@ -26,7 +87,7 @@
 	    namespace: namespace,
 	},
     },
-    clusterRole:: {
+    operatorClusterRole:: {
       kind: "ClusterRole",
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
 	"metadata": {
@@ -124,7 +185,7 @@
 	    }
 	]
     },
-    clusterRoleBinding:: {
+    operatorClusterRoleBinding:: {
 	"apiVersion": "rbac.authorization.k8s.io/v1beta1",
 	"kind": "ClusterRoleBinding",
 	"metadata": {
