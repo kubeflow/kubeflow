@@ -21,7 +21,7 @@ func makeInitProjectEndpoint(svc KsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(InitProjectRequest)
 		dmServiceAccount := req.ProjectNumber + "@cloudservices.gserviceaccount.com"
-		err := svc.BindRole(ctx, req, dmServiceAccount)
+		err := svc.BindRole(ctx, req.Project, req.Token, dmServiceAccount)
 		r := &basicServerResponse{}
 		if err != nil {
 			r.Err = err.Error()
@@ -30,9 +30,9 @@ func makeInitProjectEndpoint(svc KsService) endpoint.Endpoint {
 	}
 }
 
-func (s *ksServer) BindRole(ctx context.Context, request InitProjectRequest, serviceAccount string) error {
+func (s *ksServer) BindRole(ctx context.Context, project string, token string, serviceAccount string) error {
 	ts := oauth2.StaticTokenSource(&oauth2.Token{
-		AccessToken: request.Token,
+		AccessToken: token,
 	})
 	resourcManger, err := cloudresourcemanager.New(oauth2.NewClient(ctx, ts))
 	if err != nil {
@@ -42,11 +42,11 @@ func (s *ksServer) BindRole(ctx context.Context, request InitProjectRequest, ser
 
 	// Even with lock here, there's still very small chance that updating project iam policy will fail
 	// if other users are editing policy directly at the same time.
-	s.iamMux.Lock()
-	defer s.iamMux.Unlock()
+	s.serverMux.Lock()
+	defer s.serverMux.Unlock()
 
 	saPolicy, err := resourcManger.Projects.GetIamPolicy(
-		request.Project,
+		project,
 		&cloudresourcemanager.GetIamPolicyRequest{
 		}).Do()
 
@@ -60,7 +60,7 @@ func (s *ksServer) BindRole(ctx context.Context, request InitProjectRequest, ser
 			Role: IAM_ADMIN_ROLE,
 		})
 	_, err = resourcManger.Projects.SetIamPolicy(
-		request.Project,
+		project,
 		&cloudresourcemanager.SetIamPolicyRequest{
 			Policy: saPolicy,
 		}).Do()
