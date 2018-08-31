@@ -128,18 +128,18 @@
 	"apiVersion": "rbac.authorization.k8s.io/v1beta1",
 	"kind": "ClusterRoleBinding",
 	"metadata": {
-	    "name": "sparkoperator"
+	    "name": name + "-sparkoperator"
 	},
 	"subjects": [
 	    {
 		"kind": "ServiceAccount",
-		"name": "sparkoperator",
-		"namespace": "sparkoperator"
+		"name": name + "-sparkoperator",
+		"namespace": namespace,
 	    }
 	],
 	"roleRef": {
 	    "kind": "ClusterRole",
-	    "name": "sparkoperator",
+	    "name": name + "-sparkoperator",
 	    "apiGroup": "rbac.authorization.k8s.io"
 	}
     },
@@ -147,10 +147,10 @@
 	"apiVersion": "apps/v1beta1",
 	"kind": "Deployment",
 	"metadata": {
-	    "name": "sparkoperator",
-	    "namespace": "sparkoperator",
+	    "name": name + "-sparkoperator",
+	    "namespace": namespace,
 	    "labels": {
-		"app.kubernetes.io/name": "sparkoperator",
+		"app.kubernetes.io/name": name + "-sparkoperator",
 		"app.kubernetes.io/version": "v2.3.1-v1alpha1"
 	    }
 	},
@@ -158,7 +158,7 @@
 	    "replicas": 1,
 	    "selector": {
 		"matchLabels": {
-		    "app.kubernetes.io/name": "sparkoperator",
+		    "app.kubernetes.io/name": name + "-sparkoperator",
 		    "app.kubernetes.io/version": "v2.3.1-v1alpha1"
 		}
 	    },
@@ -173,7 +173,7 @@
 			"prometheus.io/path": "/metrics"
 		    },
 		    "labels": {
-			"app.kubernetes.io/name": "sparkoperator",
+			"app.kubernetes.io/name": name + "-sparkoperator",
 			"app.kubernetes.io/version": "v2.3.1-v1alpha1"
 		    },
 		    "initializers": {
@@ -183,10 +183,10 @@
 		    }
 		},
 		"spec": {
-		    "serviceAccountName": "sparkoperator",
+		    "serviceAccountName": name + "-sparkoperator",
 		    "containers": [
 			{
-			    "name": "sparkoperator",
+			    "name": name + "-sparkoperator",
 			    "image": "gcr.io/spark-operator/spark-operator:v2.3.1-v1alpha1-latest",
 			    "imagePullPolicy": "Always",
 			    "command": [
