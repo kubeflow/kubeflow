@@ -3,7 +3,7 @@
   // see https://github.com/argoproj/argo/blob/master/cmd/argo/commands/install.go
   local util = import "kubeflow/core/util.libsonnet",
   new(_env, _params):: self + {
-    local params = _env + _params {
+    local params = _env + _params + {
       namespace: if std.objectHas(_params, "namespace") && _params.namespace != "null" then
         _params.namespace else _env.namespace,
     },

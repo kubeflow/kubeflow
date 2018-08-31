@@ -1,7 +1,7 @@
 {
   local util = import "kubeflow/core/util.libsonnet",
   new(_env, _params):: self + {
-    local params = _env + _params {
+    local params = _env + _params + {
       namespace: if std.objectHas(_params, "namespace") && _params.namespace != "null" then
         _params.namespace else _env.namespace,
       cloudEndpointsImage: "gcr.io/cloud-solutions-group/cloud-endpoints-controller:0.1.1",
