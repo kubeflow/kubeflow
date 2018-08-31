@@ -113,8 +113,8 @@ class App extends React.Component<any, { signedIn: boolean }> {
                 <div>
                   Specify details such as project, zone, name to create a
                   Kubeflow deployment. Hostname will default to
-                  deploymentName.endpoints.project.cloud.goog
-                  if not specified. Learn more at
+                  deploymentName.endpoints.project.cloud.goog.
+                  Learn more at
                   <a style={{ color: 'inherit', marginLeft: 5 }}
                     href="https://kubeflow.org">https://kubeflow.org</a>
                 </div>
