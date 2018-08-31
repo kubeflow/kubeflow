@@ -38,8 +38,10 @@ type KsService interface {
 	CreateApp(context.Context, CreateRequest) error
 	// Apply ksonnet app to target GKE cluster
 	Apply(ctx context.Context, req ApplyRequest) error
-	InsertSaKey(context.Context, InsertSaKeyRequest, string, string, string) error
-	BindRole(context.Context, InitProjectRequest, string) error
+	InsertSaKeys(context.Context, InsertSaKeyRequest) error
+	BindRole(context.Context, string, string, string) error
+	InsertDeployment(context.Context, CreateRequest) error
+	GetDeploymentStatus(context.Context, CreateRequest) (string, error)
 }
 
 // appInfo keeps track of information about apps.
@@ -61,9 +63,8 @@ type ksServer struct {
 
 	fs afero.Fs
 
-	apps    map[string]*appInfo
-	appsMux sync.Mutex
-	iamMux sync.Mutex
+	apps      map[string]*appInfo
+	serverMux sync.Mutex
 }
 
 // NewServer constructs a ksServer.
@@ -98,29 +99,38 @@ func NewServer(appsDir string, registries []RegistryConfig) (*ksServer, error) {
 		return nil, fmt.Errorf("appsDir %v is not a directory", appsDir)
 	}
 
-	files, err := ioutil.ReadDir(appsDir)
+	projFiles, err := ioutil.ReadDir(appsDir)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, file := range files {
-		if !file.IsDir() {
+	for _, projFile := range projFiles {
+		if !projFile.IsDir() {
 			continue
 		}
 
-		// Try loading the directory
-		appName := file.Name()
-		appDir := path.Join(appsDir, appName)
-		kfApp, err := kApp.Load(s.fs, appDir, true)
-
+		// Try loading the project directory
+		project := projFile.Name()
+		appFiles, err := ioutil.ReadDir(path.Join(appsDir, project))
 		if err != nil {
-			// Keep going if there is a problem loading an existing app.
-			log.Errorf("There was a problem loading the app: %v", appsDir)
-			continue
+			return nil, err
 		}
+		for _, appFile := range appFiles {
+			if !appFile.IsDir() {
+				continue
+			}
+			appName := appFile.Name()
+			appDir := path.Join(appsDir, project, appName)
+			kfApp, err := kApp.Load(s.fs, appDir, true)
 
-		s.apps[appName] = &appInfo{
-			App: kfApp,
+			if err != nil {
+				// Keep going if there is a problem loading an existing app.
+				log.Errorf("There was a problem loading the app: %v", appsDir)
+				continue
+			}
+			s.InsertApp(project, appName, &appInfo{
+				App: kfApp,
+			})
 		}
 	}
 	return s, nil
@@ -142,12 +152,17 @@ type CreateRequest struct {
 	// target GKE cLuster info
 	Cluster string
 	Project string
+	ProjectNumber string
 	Zone string
 
 	// Access token, need to access target cluster in order for AutoConfigure
 	Token string
 	Apply bool
 	Email string
+	// temporary
+	ClientId string
+	ClientSecret string
+	IpName string
 }
 
 // basicServerResponse is general response contains nil if handler raise no error, otherwise an error message.
@@ -214,16 +229,16 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 		return err
 	}
 	a, err := func() (*appInfo, error) {
-		s.appsMux.Lock()
-		defer s.appsMux.Unlock()
+		s.serverMux.Lock()
+		defer s.serverMux.Unlock()
 
 		if request.Name == "" {
 			return nil, fmt.Errorf("Name must be a non empty string.")
 		}
-		info, ok := s.apps[request.Name]
+		info, err := s.GetApp(request.Project, request.Name)
 
-		if ok {
-			log.Infof("App %v exists", request.Name)
+		if err == nil {
+			log.Infof("App %v exists in project %v", request.Name, request.Project)
 			return info, nil
 		}
 
@@ -232,7 +247,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 		envName := "default"
 
 		appDir := path.Join(s.appsDir, request.Project, request.Name)
-		_, err := s.fs.Stat(appDir)
+		_, err = s.fs.Stat(appDir)
 
 		if err != nil {
 			options := map[string]interface{}{
@@ -264,10 +279,11 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 			log.Errorf("There was a problem loading app %v. Error: %v", request.Name, err)
 			return nil, err
 		}
-		s.apps[request.Name] = &appInfo{
+		newApp := &appInfo{
 			App: kfApp,
 		}
-		return s.apps[request.Name], nil
+		s.InsertApp(request.Project, request.Name, newApp)
+		return newApp, nil
 	}()
 
 	if err != nil {
@@ -511,6 +527,20 @@ func (s *ksServer) autoConfigureApp(kfApp *kApp.App, appConfig *AppConfig, names
 	return nil
 }
 
+func (s *ksServer) GetApp(project string, appName string) (*appInfo, error) {
+	mapKey := fmt.Sprintf(" %s-%s", project, appName)
+	info, ok := s.apps[mapKey]
+	if !ok {
+		return nil, fmt.Errorf("App %s doesn't exist in Project %s", appName, project)
+	}
+	return info, nil
+}
+// Not thread safe, be aware when call it.
+func (s *ksServer) InsertApp(project string, appName string, app *appInfo) {
+	mapKey := fmt.Sprintf(" %s-%s", project, appName)
+	s.apps[mapKey] = app
+}
+
 // Apply runs apply on a ksonnet application.
 func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 	token := req.Token
@@ -522,18 +552,7 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 			log.Errorf("Failed getting GKE cluster config: %v", err)
 			return err
 		}
-		a, err := func() (*appInfo, error) {
-			s.appsMux.Lock()
-			defer s.appsMux.Unlock()
-
-			info, ok := s.apps[req.Name]
-
-			if !ok {
-				return nil, fmt.Errorf("App %s doesn't exist", req.Name)
-			}
-			return info, nil
-		}()
-
+		a, err := s.GetApp(req.Project, req.Name)
 		if err != nil {
 			return err
 		}
@@ -632,6 +651,7 @@ func makeApplyAppEndpoint(svc KsService) endpoint.Endpoint {
 	}
 }
 
+// Create ksonnet app, and optionally apply it to target GKE cluster
 func makeCreateAppEndpoint(svc KsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(CreateRequest)
@@ -666,6 +686,84 @@ func makeCreateAppEndpoint(svc KsService) endpoint.Endpoint {
 	}
 }
 
+func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(CreateRequest)
+		r := &basicServerResponse{}
+
+		dmServiceAccount := req.ProjectNumber + "@cloudservices.gserviceaccount.com"
+		err := svc.BindRole(ctx, req.Project, req.Token, dmServiceAccount)
+		if err != nil {
+			r.Err = err.Error()
+			return r, err
+		}
+
+		err = svc.InsertDeployment(ctx, req)
+		if err != nil {
+			r.Err = err.Error()
+			return r, err
+		}
+		retry := 0
+		status := ""
+		for retry < 40 {
+			status, err = svc.GetDeploymentStatus(ctx, req)
+			if err != nil {
+				r.Err = err.Error()
+				return r, err
+			}
+			if status == "DONE" {
+				break
+			}
+			log.Infof("status: %v, waiting...", status)
+			retry += 1
+			time.Sleep(10 * time.Second)
+		}
+		if status != "DONE" {
+			r.Err = "Deployment didn't complete in 400 second"
+			return r, err
+		}
+
+		err = svc.InsertSaKeys(ctx, InsertSaKeyRequest{
+			Cluster: req.Cluster,
+			Namespace: req.Namespace,
+			Project: req.Project,
+			Token: req.Token,
+			Zone: req.Zone,
+		})
+		if err != nil {
+			r.Err = err.Error()
+			return r, err
+		}
+
+		err = svc.CreateApp(ctx, req)
+		if err != nil {
+			r.Err = err.Error()
+			return r, err
+		}
+
+		if req.Apply {
+			components := []string{}
+			for _, comp := range req.AppConfig.Components {
+				components = append(components, comp.Name)
+			}
+			err = svc.Apply(ctx, ApplyRequest{
+				Name: req.Name,
+				Environment: "default",
+				Components: components,
+				Cluster: req.Cluster,
+				Project: req.Project,
+				Zone: req.Zone,
+				Token: req.Token,
+				Email: req.Email,
+			})
+			if err != nil {
+				r.Err = err.Error()
+			}
+		}
+		return r, nil
+	}
+}
+
 func makeHealthzEndpoint(svc KsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		r := &HealthzResponse{}
@@ -677,15 +775,8 @@ func makeHealthzEndpoint(svc KsService) endpoint.Endpoint {
 func makeSaKeyEndpoint(svc KsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(InsertSaKeyRequest)
-		err := svc.InsertSaKey(ctx, req, "admin-gcp-sa.json", "admin-gcp-sa",
-			fmt.Sprintf("%v-admin@%v.iam.gserviceaccount.com", req.Cluster, req.Project))
+		err := svc.InsertSaKeys(ctx, req)
 		r := &basicServerResponse{}
-		if err != nil {
-			r.Err = err.Error()
-			return r, nil
-		}
-		err = svc.InsertSaKey(ctx, req, "user-gcp-sa.json", "user-gcp-sa",
-			fmt.Sprintf("%v-user@%v.iam.gserviceaccount.com", req.Cluster, req.Project))
 		if err != nil {
 			r.Err = err.Error()
 		}
@@ -779,6 +870,12 @@ func (s *ksServer) StartHttp(port int) {
 		encodeResponse,
 	)
 
+	deployHandler := httptransport.NewServer(
+		makeDeployEndpoint(s),
+		decodeCreateAppRequest,
+		encodeResponse,
+	)
+
 	// TODO: add deployment manager config generate / deploy handler here. So we'll have user's DM configs stored in
 	// k8s storage / github, instead of gone with browser tabs.
 	http.Handle("/", optionsHandler(healthzHandler))
@@ -786,6 +883,7 @@ func (s *ksServer) StartHttp(port int) {
 	http.Handle("/kfctl/apps/create", optionsHandler(createAppHandler))
 	http.Handle("/kfctl/iam/insertSaKey", optionsHandler(insertSaKeyHandler))
 	http.Handle("/kfctl/initProject", optionsHandler(initProjectHandler))
+	http.Handle("/kfctl/e2eDeploy", optionsHandler(deployHandler))
 
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), nil))
 }
