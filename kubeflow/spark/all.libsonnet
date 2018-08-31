@@ -187,7 +187,7 @@
 		    "containers": [
 			{
 			    "name": name + "-sparkoperator",
-			    "image": "gcr.io/spark-operator/spark-operator:v2.3.1-v1alpha1-latest",
+			    "image": params.image,
 			    "imagePullPolicy": "Always",
 			    "command": [
 				"/usr/bin/spark-operator"
