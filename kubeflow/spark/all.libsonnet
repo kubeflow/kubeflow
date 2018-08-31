@@ -6,6 +6,9 @@
     $.parts(params, name, env).operatorServiceAccount,
     $.parts(params, name, env).operatorClusterRole,
     $.parts(params, name, env).operatorClusterRoleBinding,
+    $.parts(params, name, env).jobServiceAccount,
+    $.parts(params, name, env).jobClusterRole,
+    $.parts(params, name, env).jobClusterRoleBinding,
     $.parts(params, name, env).deployment,
   ],
 
