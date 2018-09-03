@@ -15,66 +15,7 @@
 // @optionalParam jobArguments string "" Comma-delimited arguments to pass to your Spark job on the driver.
 
 local k = import "k.libsonnet";
-local namespace = params.namespace;
+local spark = import "kubeflow/spark/all.libsonnet";
 
-local sparkJob = {
-  "apiVersion": "sparkoperator.k8s.io/v1alpha1",
-  "kind": "SparkApplication",
-  "metadata": {
-    "name": params.jobName,
-    "namespace": namespace
-  },
-  "spec": {
-    "type": params.type,
-    "mode": "cluster",
-    "image": params.image,
-    "imagePullPolicy": "Always",
-    "mainClass": params.mainClass,
-    "mainApplicationFile": params.applicationResource,
-    "arguments": std.split(params.jobArguments, ","),
-    "volumes": [
-      {
-        "name": "test-volume",
-        "hostPath": {
-          "path": "/tmp",
-          "type": "Directory"
-        }
-      }
-    ],
-    "driver": {
-      "cores": params.driverCores,
-      "memory": params.driverMemory,
-      "labels": {
-        "version": params.sparkVersion
-      },
-      // Fix this
-      "serviceAccount": params.name + "-spark",
-      "volumeMounts": [
-        {
-          "name": "test-volume",
-          "mountPath": "/tmp"
-        }
-      ]
-    },
-    "executor": {
-      "cores": 1,
-      "instances": 1,
-      "memory": params.executorMemory,
-      "labels": {
-        "version": "2.3.1"
-      },
-      "volumeMounts": [
-        {
-          "name": "test-volume",
-          "mountPath": "/tmp"
-        }
-      ]
-    },
-    "restartPolicy": "Never"
-  }
-};
-
-std.prune(k.core.v1.list.new([
-  sparkJob  
-]))
-
+std.prune(
+    k.core.v1.list.new(spark.sparkJob(params, params.name, env)))
