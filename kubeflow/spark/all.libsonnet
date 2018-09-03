@@ -24,8 +24,8 @@
     // However, in some cases an application may use multiple namespaces in which
     // case the namespace for a particular component will be a parameter.
     local namespace = if std.objectHas(params, "namespace") then params.namespace else env.namespace,
-    local mainClass = if params.mainClass == "null" then "" else params.mainClass,
-    local jobArguments = if params.jobArguments == "null" then [] else params.jobArguments.split(","),
+    local mainClass = if params.mainClass == "null"  then "" else params.mainClass,
+    local jobArguments = if params.jobArguments == "null" then [] else std.split(params.jobArguments, ","),
 
     jobServiceAccount:: {
       apiVersion: "v1",
