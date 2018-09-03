@@ -6,10 +6,14 @@
     $.parts(params, name, env).operatorServiceAccount,
     $.parts(params, name, env).operatorClusterRole,
     $.parts(params, name, env).operatorClusterRoleBinding,
+    $.parts(params, name, env).deployment,
+  ],
+
+  sparkJob(params, name, env):: [
     $.parts(params, name, env).jobServiceAccount,
     $.parts(params, name, env).jobClusterRole,
     $.parts(params, name, env).jobClusterRoleBinding,
-    $.parts(params, name, env).deployment,
+    $.parts(params, name, env).sparkJob,
   ],
 
   // Parts should be a dictionary containing jsonnet representations of the various
@@ -20,6 +24,8 @@
     // However, in some cases an application may use multiple namespaces in which
     // case the namespace for a particular component will be a parameter.
     local namespace = if std.objectHas(params, "namespace") then params.namespace else env.namespace,
+    local mainClass = if params.mainClass == "null" then "" else params.mainClass,
+    local jobArguments = if params.jobArguments == "null" then [] else params.jobArguments.split(","),
 
     jobServiceAccount:: {
       apiVersion: "v1",
@@ -271,6 +277,63 @@
 		}
 	    }
 	}
+    },
+    // Job specific configuration
+    sparkJob:: {
+      "apiVersion": "sparkoperator.k8s.io/v1alpha1",
+      "kind": "SparkApplication",
+      "metadata": {
+	"name": params.jobName,
+	"namespace": namespace
+      },
+      "spec": {
+	"type": params.type,
+	"mode": "cluster",
+	"image": params.image,
+	"imagePullPolicy": "Always",
+	"mainClass": mainClass,
+	"mainApplicationFile": params.applicationResource,
+        "arguments": jobArguments,
+	"volumes": [
+	  {
+	    "name": "test-volume",
+	    "hostPath": {
+	      "path": "/tmp",
+	      "type": "Directory"
+	    }
+	  }
+	],
+	"driver": {
+	  "cores": params.driverCores,
+	  "memory": params.driverMemory,
+	  "labels": {
+	    "version": params.sparkVersion
+	  },
+	  // Fix this
+	  "serviceAccount": params.name + "-spark",
+	  "volumeMounts": [
+	    {
+	      "name": "test-volume",
+	      "mountPath": "/tmp"
+	    }
+	  ]
+	},
+	"executor": {
+	  "cores": 1,
+	  "instances": 1,
+	  "memory": params.executorMemory,
+	  "labels": {
+	    "version": "2.3.1"
+	  },
+	  "volumeMounts": [
+	    {
+	      "name": "test-volume",
+	      "mountPath": "/tmp"
+	    }
+	  ]
+	},
+	"restartPolicy": "Never"
+      }
     },
   }
 }
