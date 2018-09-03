@@ -5,7 +5,7 @@
 // @optionalParam image string gcr.io/spark-operator/spark-operator:v2.3.1-v1alpha1-latest Image to use for spark operator
 
 local k = import "k.libsonnet";
-local operator = import "kubeflow/spark/all.libsonnet";
+local spark = import "kubeflow/spark/all.libsonnet";
 
 std.prune(
-    k.core.v1.list.new(operator.all(params, params.name, env)))
+    k.core.v1.list.new(spark.all(params, params.name, env)))
