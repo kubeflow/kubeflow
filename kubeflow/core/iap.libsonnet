@@ -47,6 +47,7 @@
         type: "NodePort",
       },
     },  // service
+    service:: service,
 
     local initServiceAccount = {
       apiVersion: "v1",
@@ -629,6 +630,7 @@
         type: "ClusterIP",
       },
     },  // whoamiService
+    whoamiService:: whoamiService,
 
     local whoamiApp = {
       apiVersion: "extensions/v1beta1",
@@ -678,6 +680,7 @@
         },
       },
     },
+    whoamiApp:: whoamiApp,
 
     local backendConfig = {
       apiVersion: "cloud.google.com/v1beta1",
@@ -797,6 +800,7 @@
         ],
       },
     },  // iapIngress
+    ingress:: ingress,
 
     local certificate = if params.privateGKECluster == "false" then (
       {
@@ -832,6 +836,7 @@
         },
       }  // certificate
     ),
+    certificate:: certificate,
 
     local cloudEndpoint = if isCloudEndpoint(params.hostname) then (
       {

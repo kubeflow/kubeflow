@@ -1,6 +1,10 @@
 local iap = import "../iap.libsonnet";
 
-std.assertEqual(iap.new({ namespace: "namespace", envoyPort: 8080 }).Service, {
+std.assertEqual(iap.new(
+  { namespace: "namespace" },
+  { envoyPort: 8080 }
+).service, {
+
   apiVersion: "v1",
   kind: "Service",
   metadata: {
@@ -29,13 +33,13 @@ std.assertEqual(iap.new({ namespace: "namespace", envoyPort: 8080 }).Service, {
 }) &&
 
 std.assertEqual(iap.new(
+  { namespace: "namespace" },
   {
-    namespace: "namespace",
     envoyPort: 8080,
     ipName: "ipName",
     hostname: "hostname",
   }
-).Ingress, {
+).ingress, {
   apiVersion: "extensions/v1beta1",
   kind: "Ingress",
   metadata: {
@@ -70,11 +74,13 @@ std.assertEqual(iap.new(
 std.assertEqual(iap.new(
   {
     namespace: "namespace",
+  },
+  {
     envoyPort: 8080,
     ipName: "ipName",
     hostname: "null",
   }
-).Ingress, {
+).ingress, {
   apiVersion: "extensions/v1beta1",
   kind: "Ingress",
   metadata: {
@@ -108,12 +114,14 @@ std.assertEqual(iap.new(
 std.assertEqual(iap.new(
   {
     namespace: "namespace",
+  },
+  {
     secretName: "secretName",
     hostname: "hostname",
     issuer: "issuer",
     privateGKECluster: "false",
   }
-).Certificate, {
+).certificate, {
   apiVersion: "certmanager.k8s.io/v1alpha1",
   kind: "Certificate",
   metadata: {
@@ -148,8 +156,10 @@ std.assertEqual(iap.new(
 std.assertEqual(iap.new(
   {
     namespace: "namespace",
+  },
+  {
   }
-).WhoamiApp, {
+).whoamiApp, {
   apiVersion: "extensions/v1beta1",
   kind: "Deployment",
   metadata: {
@@ -201,8 +211,10 @@ std.assertEqual(iap.new(
 std.assertEqual(iap.new(
   {
     namespace: "namespace",
+  },
+  {
   }
-).WhoamiService, {
+).whoamiService, {
   apiVersion: "v1",
   kind: "Service",
   metadata: {
