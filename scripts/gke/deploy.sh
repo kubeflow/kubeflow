@@ -102,12 +102,13 @@ else
 fi
 
 if ${KUBEFLOW_DEPLOY}; then
-  # Check if it already exists
-  set +e
+  # Check if it already exists  
+  set +e    
   gcloud deployment-manager --project=${PROJECT} deployments describe ${DEPLOYMENT_NAME}
   exists=$?
   set -e
 
+  cd "${KUBEFLOW_DM_DIR}"
   if [ ${exists} -eq 0 ]; then
     echo ${DEPLOYMENT_NAME} exists
     gcloud deployment-manager --project=${PROJECT} deployments update ${DEPLOYMENT_NAME} --config=${CONFIG_FILE}
