@@ -1,13 +1,13 @@
 {
+  local k = import "k.libsonnet",
   local util = import "kubeflow/core/util.libsonnet",
-  new(_env, _params):: self + {
-    local params = _env + _params + {
+  new(_env, _params):: self {
+    local params = _env + _params {
       namespace: if std.objectHas(_params, "namespace") && _params.namespace != "null" then
         _params.namespace else _env.namespace,
     },
-    list:: util.list(self),
 
-    MetricServiceAccount:: {
+    local metricServiceAccount = {
       apiVersion: "v1",
       kind: "ServiceAccount",
       metadata: {
@@ -19,7 +19,7 @@
       },
     },
 
-    MetricRole:: {
+    local metricRole = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRole",
       metadata: {
@@ -44,7 +44,7 @@
       ],
     },
 
-    MetricRoleBinding:: {
+    local metricRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRoleBinding",
       metadata: {
@@ -67,7 +67,7 @@
       ],
     },
 
-    Service:: {
+    local service = {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
@@ -98,7 +98,7 @@
       },
     },
 
-    Deploy:: {
+    local deploy = {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -173,5 +173,13 @@
         },
       },
     },  // deploy
+
+    list:: util.list([
+      metricServiceAccount,
+      metricRole,
+      metricRoleBinding,
+      service,
+      deploy,
+    ]),
   },
 }

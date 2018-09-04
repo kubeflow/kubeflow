@@ -1,13 +1,13 @@
 {
+  local k = import "k.libsonnet",
   local util = import "kubeflow/core/util.libsonnet",
-  new(_env, _params):: self + {
-    local params = _env + _params + {
+  new(_env, _params):: self {
+    local params = _env + _params {
       namespace: if std.objectHas(_params, "namespace") && _params.namespace != "null" then
         _params.namespace else _env.namespace,
     },
-    list:: util.list(self),
 
-    Namespace:: {
+    local namespace = {
       apiVersion: "v1",
       kind: "Namespace",
       metadata: {
@@ -15,7 +15,7 @@
       },
     },
 
-    ClusterRole:: {
+    local clusterRole = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRole",
       metadata: {
@@ -63,7 +63,7 @@
       ],
     },
 
-    ServiceAccount:: {
+    local serviceAccount = {
       apiVersion: "v1",
       kind: "ServiceAccount",
       metadata: {
@@ -72,7 +72,7 @@
       },
     },
 
-    ClusterRoleBinding:: {
+    local clusterRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRoleBinding",
       metadata: {
@@ -92,7 +92,7 @@
       ],
     },
 
-    Service:: {
+    local service = {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
@@ -117,7 +117,7 @@
       },
     },
 
-    ConfigMap:: {
+    local configMap = {
       apiVersion: "v1",
       kind: "ConfigMap",
       metadata: {
@@ -133,7 +133,7 @@
       },
     },
 
-    Deployment:: {
+    local deployment = {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -201,5 +201,15 @@
         },
       },
     },
+
+    list:: util.list([
+      namespace,
+      clusterRole,
+      serviceAccount,
+      clusterRoleBinding,
+      service,
+      configMap,
+      deployment,
+    ]),
   },
 }

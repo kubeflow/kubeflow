@@ -24,14 +24,14 @@ std.assertEqual(util.isUpper(std.substr("Hi", 0, 1)), true) &&
 std.assertEqual(util.isUpper(std.substr("lo", 0, 1)), false) &&
 std.assertEqual(
   {
-    new():: self + util + {
-      list:: util.list(self),
-      ConfigMap:: {
+    new():: self + {
+      local configMap = {
         kind: "ConfigMap",
       },
-      Service:: {
+      local service = {
         kind: "Service",
       },
+      list:: util.list([configMap, service]),
     },
   }.new().list,
   {

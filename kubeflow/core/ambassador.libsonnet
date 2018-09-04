@@ -1,13 +1,13 @@
 {
+  local k = import "k.libsonnet",
   local util = import "kubeflow/core/util.libsonnet",
-  new(_env, _params):: self + {
-    local params = _env + _params + {
+  new(_env, _params):: self {
+    local params = _env + _params {
       namespace: if std.objectHas(_params, "namespace") && _params.namespace != "null" then
         _params.namespace else _env.namespace,
     },
-    list:: util.list(self),
 
-    AmbassadorService:: {
+    local ambassadorService = {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
@@ -32,7 +32,7 @@
       },
     },  // service
 
-    MetricsService:: {
+    local metricsService = {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
@@ -62,7 +62,7 @@
       },
     },  // metricsService
 
-    AdminService:: {
+    local adminService = {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
@@ -87,7 +87,7 @@
       },
     },  // adminService
 
-    AmbassadorRole:: {
+    local ambassadorRole = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "Role",
       metadata: {
@@ -140,7 +140,7 @@
       ],
     },  // role
 
-    AmbassadorServiceAccount:: {
+    local ambassadorServiceAccount = {
       apiVersion: "v1",
       kind: "ServiceAccount",
       metadata: {
@@ -149,7 +149,7 @@
       },
     },  // serviceAccount
 
-    AmbassadorRoleBinding:: {
+    local ambassadorRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "RoleBinding",
       metadata: {
@@ -170,7 +170,7 @@
       ],
     },  // roleBinding
 
-    AmbassadorDeployment:: {
+    local ambassadorDeployment = {
       local replicas = if params.cloud == "minikube" then 1 else 3,
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
@@ -250,7 +250,7 @@
     },  // deploy
 
     // This service adds a rule to our reverse proxy for accessing the K8s dashboard.
-    K8sDashboard:: {
+    local k8sDashboard = {
       local isDashboardTls = if params.cloud == "acsengine" || params.cloud == "aks" then
         "false"
       else
@@ -296,5 +296,16 @@
         type: "ClusterIP",
       },
     },  // k8sDashboard
+
+    list:: util.list([
+      ambassadorService,
+      metricsService,
+      adminService,
+      ambassadorRole,
+      ambassadorServiceAccount,
+      ambassadorRoleBinding,
+      ambassadorDeployment,
+      k8sDashboard,
+    ],),
   },
 }

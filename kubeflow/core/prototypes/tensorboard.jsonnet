@@ -6,4 +6,3 @@
 
 local tensorboard = import "kubeflow/core/tensorboard.libsonnet";
 tensorboard.new(env, params).list
-

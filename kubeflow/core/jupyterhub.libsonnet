@@ -1,13 +1,13 @@
 {
+  local k = import "k.libsonnet",
   local util = import "kubeflow/core/util.libsonnet",
-  new(_env, _params):: self + {
-    local params = _env + _params + {
+  new(_env, _params):: self {
+    local params = _env + _params {
       namespace: if std.objectHas(_params, "namespace") && _params.namespace != "null" then
         _params.namespace else _env.namespace,
     },
-    list:: util.list(self),
 
-    KubeSpawnerConfig:: {
+    local kubeSpawnerConfig = {
       apiVersion: "v1",
       kind: "ConfigMap",
       metadata: {
@@ -19,7 +19,7 @@
       },
     },
 
-    NotebookService:: {
+    local notebookService = {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
@@ -48,7 +48,7 @@
       },
     },
 
-    HubService:: {
+    local hubService = {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
@@ -96,7 +96,7 @@
       },
     },
 
-    HubStatefulSet:: {
+    local hubStatefulSet = {
       apiVersion: "apps/v1beta1",
       kind: "StatefulSet",
       metadata: {
@@ -208,7 +208,7 @@
     },
 
     // contents based on https://github.com/jupyterhub/zero-to-jupyterhub-k8s/blob/master/jupyterhub/templates/hub/rbac.yaml
-    HubRole:: {
+    local hubRole = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "Role",
       metadata: {
@@ -248,7 +248,7 @@
       ],
     },
 
-    NotebookRole:: {
+    local notebookRole = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "Role",
       metadata: {
@@ -307,7 +307,7 @@
       ],
     },
 
-    HubServiceAccount:: {
+    local hubServiceAccount = {
       apiVersion: "v1",
       kind: "ServiceAccount",
       metadata: {
@@ -319,7 +319,7 @@
       },
     },
 
-    NotebookServiceAccount:: {
+    local notebookServiceAccount = {
       apiVersion: "v1",
       kind: "ServiceAccount",
       metadata: {
@@ -328,7 +328,7 @@
       },
     },
 
-    HubRoleBinding:: {
+    local hubRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "RoleBinding",
       metadata: {
@@ -349,7 +349,7 @@
       ],
     },
 
-    NotebookRoleBinding:: {
+    local notebookRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "RoleBinding",
       metadata: {
@@ -369,5 +369,17 @@
         },
       ],
     },
+
+    list:: util.list([
+      kubeSpawnerConfig,
+      notebookService,
+      hubStatefulSet,
+      hubRole,
+      notebookRole,
+      hubServiceAccount,
+      notebookServiceAccount,
+      hubRoleBinding,
+      notebookRoleBinding,
+    ]),
   },
 }

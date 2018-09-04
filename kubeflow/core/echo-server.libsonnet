@@ -1,13 +1,12 @@
 {
   local util = import "kubeflow/core/util.libsonnet",
-  new(_env, _params):: self + {
-    local params = _env + _params + {
+  new(_env, _params):: self {
+    local params = _env + _params {
       namespace: if std.objectHas(_params, "namespace") && _params.namespace != "null" then
         _params.namespace else _env.namespace,
     },
-    list:: util.list(self),
 
-    Service:: {
+    local service = {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
@@ -43,7 +42,7 @@
       },
     },
 
-    Deployment:: {
+    local deployment = {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -84,5 +83,10 @@
         },
       },
     },
+
+    list:: util.list([
+      service,
+      deployment,
+    ]),
   },
 }

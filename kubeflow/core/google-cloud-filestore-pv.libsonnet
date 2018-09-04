@@ -1,13 +1,13 @@
 {
+  local k = import "k.libsonnet",
   local util = import "kubeflow/core/util.libsonnet",
-  new(_env, _params):: self + {
-    local params = _env + _params + {
+  new(_env, _params):: self {
+    local params = _env + _params {
       namespace: if std.objectHas(_params, "namespace") && _params.namespace != "null" then
         _params.namespace else _env.namespace,
     },
-    list:: util.list(self),
 
-    PersistentVolume:: {
+    local persistentVolume = {
       apiVersion: "v1",
       kind: "PersistentVolume",
       metadata: {
@@ -28,7 +28,7 @@
       },
     },
 
-    PersistentVolumeClaim:: {
+    local persistentVolumeClaim = {
       apiVersion: "v1",
       kind: "PersistentVolumeClaim",
       metadata: {
@@ -50,7 +50,7 @@
 
     // Set 777 permissions on the GCFS NFS so that non-root users
     // like jovyan can use that NFS share
-    GcfsPersmissions:: {
+    local gcfsPersmissions = {
       apiVersion: "batch/v1",
       kind: "Job",
       metadata: {
@@ -91,5 +91,11 @@
         },
       },
     },
+
+    list:: util.list([
+      persistentVolume,
+      persistentVolumeClaim,
+      gcfsPersmissions,
+    ]),
   },
 }

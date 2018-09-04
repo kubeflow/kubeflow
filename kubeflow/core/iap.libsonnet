@@ -1,7 +1,8 @@
 {
+  local k = import "k.libsonnet",
   local util = import "kubeflow/core/util.libsonnet",
-  new(_env, _params):: self + {
-    local params = _env + _params + {
+  new(_env, _params):: self {
+    local params = _env + _params {
       namespace: if std.objectHas(_params, "namespace") && _params.namespace != "null" then
         _params.namespace else _env.namespace,
       disableJwtChecking: util.toBool(_params.disableJwtChecking),
@@ -10,7 +11,6 @@
       envoyAdminPort: 8001,
       envoyStatsPort: 8025,
     },
-    list:: util.list(self),
 
     // Test if the given hostname is in the form of: "NAME.endpoints.PROJECT.cloud.goog"
     local isCloudEndpoint(str) = {
@@ -19,7 +19,7 @@
         (std.length(toks) == 5 && toks[1] == "endpoints" && toks[3] == "cloud" && toks[4] == "goog"),
     }.result,
 
-    Service:: {
+    local service = {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
@@ -48,7 +48,7 @@
       },
     },  // service
 
-    InitServiceAccount:: {
+    local initServiceAccount = {
       apiVersion: "v1",
       kind: "ServiceAccount",
       metadata: {
@@ -57,7 +57,7 @@
       },
     },  // initServiceAccount
 
-    InitClusterRoleBinding:: {
+    local initClusterRoleBinding = {
       kind: "ClusterRoleBinding",
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       metadata: {
@@ -77,7 +77,7 @@
       },
     },  // initClusterRoleBinding
 
-    InitClusterRole:: {
+    local initClusterRole = {
       kind: "ClusterRole",
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       metadata: {
@@ -98,7 +98,7 @@
       ],
     },  // initClusterRoleBinding
 
-    Deploy:: {
+    local deploy = {
       local envoyContainer(params) = {
         image: params.image,
         command: [
@@ -249,7 +249,7 @@
     },  // deploy
 
     // Run the process to enable iap
-    IapEnabler:: {
+    local iapEnabler = {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -325,7 +325,7 @@
       },
     },  // iapEnabler
 
-    ConfigMap:: {
+    local configMap = {
       // This is the config for the secondary envoy proxy which does JWT verification
       // and actually routes requests to the appropriate backend.
       local envoyConfig(params) = {
@@ -606,7 +606,7 @@
       },
     },
 
-    WhoamiService:: {
+    local whoamiService = {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
@@ -630,7 +630,7 @@
       },
     },  // whoamiService
 
-    WhoamiApp:: {
+    local whoamiApp = {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -679,7 +679,7 @@
       },
     },
 
-    BackendConfig:: {
+    local backendConfig = {
       apiVersion: "cloud.google.com/v1beta1",
       kind: "BackendConfig",
       metadata: {
@@ -697,7 +697,7 @@
     },  // backendConfig
 
     // TODO(danisla): Remove afer https://github.com/kubernetes/ingress-gce/pull/388 is resolved per #1327.
-    IngressBootstrapConfigMap:: {
+    local ingressBootstrapConfigMap = {
       apiVersion: "v1",
       kind: "ConfigMap",
       metadata: {
@@ -709,7 +709,7 @@
       },
     },
 
-    IngressBootstrapJob:: {
+    local ingressBootstrapJob = {
       apiVersion: "batch/v1",
       kind: "Job",
       metadata: {
@@ -763,7 +763,7 @@
       },
     },  // ingressBootstrapJob
 
-    Ingress:: {
+    local ingress = {
       apiVersion: "extensions/v1beta1",
       kind: "Ingress",
       metadata: {
@@ -798,7 +798,7 @@
       },
     },  // iapIngress
 
-    Certificate:: if params.privateGKECluster == "false" then (
+    local certificate = if params.privateGKECluster == "false" then (
       {
         apiVersion: "certmanager.k8s.io/v1alpha1",
         kind: "Certificate",
@@ -833,7 +833,7 @@
       }  // certificate
     ),
 
-    CloudEndpoint:: if isCloudEndpoint(params.hostname) then (
+    local cloudEndpoint = if isCloudEndpoint(params.hostname) then (
       {
         local makeEndpointParams(str) = {
           local toks = std.split(str, "."),
@@ -858,5 +858,23 @@
         },
       }  // cloudEndpoint
     ),
+
+    list:: util.list([
+      service,
+      initServiceAccount,
+      initClusterRoleBinding,
+      initClusterRole,
+      deploy,
+      iapEnabler,
+      configMap,
+      whoamiService,
+      whoamiApp,
+      backendConfig,
+      ingressBootstrapConfigMap,
+      ingressBootstrapJob,
+      ingress,
+      certificate,
+      cloudEndpoint,
+    ]),
   },
 }

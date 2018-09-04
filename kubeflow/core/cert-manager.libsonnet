@@ -1,13 +1,12 @@
 {
   local util = import "kubeflow/core/util.libsonnet",
-  new(_env, _params):: self + {
-    local params = _env + _params + {
+  new(_env, _params):: self {
+    local params = _env + _params {
       namespace: if std.objectHas(_params, "namespace") && _params.namespace != "null" then
         _params.namespace else _env.namespace,
     },
-    list:: util.list(self),
 
-    CertificateCRD:: {
+    local certificateCRD = {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
       metadata: {
@@ -24,7 +23,7 @@
       },
     },
 
-    ClusterIssuerCRD:: {
+    local clusterIssuerCRD = {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
       metadata: {
@@ -42,7 +41,7 @@
       },
     },
 
-    IssuerCRD:: {
+    local issuerCRD = {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
       metadata: {
@@ -59,7 +58,7 @@
       },
     },
 
-    ServiceAccount:: {
+    local serviceAccount = {
       apiVersion: "v1",
       kind: "ServiceAccount",
       metadata: {
@@ -68,7 +67,7 @@
       },
     },
 
-    ClusterRole:: {
+    local clusterRole = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRole",
       metadata: {
@@ -93,7 +92,7 @@
       ],
     },
 
-    ClusterRoleBinding:: {
+    local clusterRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRoleBinding",
       metadata: {
@@ -113,7 +112,7 @@
       ],
     },
 
-    Deploy:: {
+    local deploy = {
       apiVersion: "apps/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -149,7 +148,7 @@
       },
     },
 
-    IssuerLEProd:: {
+    local issuerLEProd = {
       apiVersion: "certmanager.k8s.io/v1alpha1",
       kind: "Issuer",
       metadata: {
@@ -168,5 +167,15 @@
         },
       },
     },
+
+    list:: util.list([
+      certificateCRD,
+      clusterIssuerCRD,
+      issuerCRD,
+      serviceAccount,
+      clusterRoleBinding,
+      deploy,
+      issuerLEProd,
+    ]),
   },
 }

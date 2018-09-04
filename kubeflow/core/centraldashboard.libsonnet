@@ -1,13 +1,13 @@
 {
+  local k = import "k.libsonnet",
   local util = import "kubeflow/core/util.libsonnet",
-  new(_env, _params):: self + {
+  new(_env, _params):: self {
     local params = _env + _params + {
       namespace: if std.objectHas(_params, "namespace") && _params.namespace != "null" then
         _params.namespace else _env.namespace,
     },
-    list:: util.list(self),
 
-    CentralDashboardDeployment:: {
+    local centralDashboardDeployment = {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -42,7 +42,7 @@
       },
     },  // deployUi
 
-    CentralDashboardService:: {
+    local centralDashboardService = {
       // Due to https://github.com/ksonnet/ksonnet/issues/670, escaped characters in
       // jsonnet files are not interpreted correctly by ksonnet, which causes runtime
       // parsing failures. This is fixed in ksonnet 0.12.0, so we can merge this back
@@ -84,7 +84,7 @@
       },
     },  //service
 
-    CentralDashboardServiceAccount:: {
+    local centralDashboardServiceAccount = {
       apiVersion: "v1",
       kind: "ServiceAccount",
       metadata: {
@@ -93,7 +93,7 @@
       },
     },  // service account
 
-    CentralDashboardClusterRole:: {
+    local centralDashboardClusterRole = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRole",
       metadata: {
@@ -129,7 +129,7 @@
       ],
     },  // operator-role
 
-    CentralDashboardClusterRoleBinding:: {
+    local centralDashboardClusterRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRoleBinding",
       metadata: {
@@ -152,5 +152,12 @@
         },
       ],
     },  // role binding
+
+    list:: util.list([
+      centralDashboardDeployment,
+      centralDashboardService,
+      centralDashboardServiceAccount,
+      centralDashboardClusterRole,
+    ]),
   },
 }
