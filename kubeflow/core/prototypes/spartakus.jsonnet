@@ -7,5 +7,5 @@
 // @optionalParam reportUsage string false Whether or not to report Kubeflow usage to kubeflow.org.
 
 local spartakus = import "kubeflow/core/spartakus.libsonnet";
-local instance = spartacus.new(env, params);
+local instance = spartakus.new(env, params);
 instance.list
