@@ -4,18 +4,6 @@
 // @shortDescription ksonnet components for Tensorboard
 // @param name string Name to give to each of the components
 
-local params = {
-  name: "tensorboard",
-  serviceType: "ClusterIP",
-  targetPort: 9000,
-  logDir: "tmp/logdir",
-  defaultTbImage: "gcr.io/kubeflow_public_images/tensorboard:latest",
-  gcpCredentialSecretName: "voodoo",
-};
-local env = {
-  namespace: "foo",
-};
-
 local tensorboard = {
   local k = import "k.libsonnet",
   local util = import "kubeflow/core/util.libsonnet",
