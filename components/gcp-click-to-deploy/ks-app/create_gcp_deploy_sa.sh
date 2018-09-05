@@ -4,18 +4,18 @@
 # We need a service account to work with external DNS.
 set -x
 
-PROJECT=kubeflow-dev
+PROJECT=${PROJECT:=kubeflow-dev}
 
 NAME=gcp-deploy
 EMAIL=${NAME}@${PROJECT}.iam.gserviceaccount.com
 NAMESPACE=gcp-deploy
 
 # Project that administers DNS.
-DNS_PROJECT=kubeflow-dns
+DNS_PROJECT=${DNS_PROJECT:-kubeflow-dns}
 
 # Check that the current kubectl context points to the correct cluster
 # IP addres of kubeflow-dev master
-EXPECTED_MASTER_IP=35.188.73.10
+EXPECTED_MASTER_IP=${EXPECTED_MASTER_IP:-35.188.73.10}
 
 # TODO(jlewi): We'd like to check that kubectl is pointing
 # at the correct cluster. the code below doesn't quite work.

@@ -1,79 +1,92 @@
 {
-  service(namespace, name):: {
-    apiVersion: "v1",
-    kind: "Service",
-    metadata: {
-      labels: {
-        app: name,
-      },
-      name: name,
-      namespace: namespace,
-      annotations: {
-        "getambassador.io/config":
-          std.join("\n", [
-            "---",
-            "apiVersion: ambassador/v0",
-            "kind:  Mapping",
-            "name: " + name + "-mapping",
-            "prefix: /" + name,
-            "rewrite: /",
-            "service: " + name + "." + namespace,
-          ]),
-      },  //annotations
+  local util = import "kubeflow/core/util.libsonnet",
+  new(_env, _params):: {
+    local params = _env + _params {
+      namespace: if std.objectHas(_params, "namespace") && _params.namespace != "null" then
+        _params.namespace else _env.namespace,
     },
-    spec: {
-      ports: [
-        {
-          port: 80,
-          targetPort: 8080,
+
+    local service = {
+      apiVersion: "v1",
+      kind: "Service",
+      metadata: {
+        labels: {
+          app: params.name,
         },
-      ],
-      selector: {
-        app: name,
+        name: params.name,
+        namespace: params.namespace,
+        annotations: {
+          "getambassador.io/config":
+            std.join("\n", [
+              "---",
+              "apiVersion: ambassador/v0",
+              "kind:  Mapping",
+              "name: " + params.name + "-mapping",
+              "prefix: /" + params.name,
+              "rewrite: /",
+              "service: " + params.name + "." + params.namespace,
+            ]),
+        },  //annotations
       },
-      type: "ClusterIP",
+      spec: {
+        ports: [
+          {
+            port: 80,
+            targetPort: 8080,
+          },
+        ],
+        selector: {
+          app: params.name,
+        },
+        type: "ClusterIP",
+      },
     },
-  },
 
-  deploy(namespace, name, image):: {
-    apiVersion: "extensions/v1beta1",
-    kind: "Deployment",
-    metadata: {
-      name: name,
-      namespace: namespace,
+    local deployment = {
+      apiVersion: "extensions/v1beta1",
+      kind: "Deployment",
+      metadata: {
+        name: params.name,
+        namespace: params.namespace,
 
-    },
-    spec: {
-      replicas: 1,
-      template: {
-        metadata: {
-          labels: {
-            app: name,
+      },
+      spec: {
+        replicas: 1,
+        template: {
+          metadata: {
+            labels: {
+              app: params.name,
+            },
+          },
+          spec: {
+            containers: [
+              {
+                image: params.image,
+                name: "app",
+                ports: [
+                  {
+                    containerPort: 8080,
+                  },
+                ],
+
+                readinessProbe: {
+                  httpGet: {
+                    path: "/headers",
+                    port: 8080,
+                  },
+                  initialDelaySeconds: 5,
+                  periodSeconds: 30,
+                },
+              },
+            ],
           },
         },
-        spec: {
-          containers: [
-            {
-              image: image,
-              name: "app",
-              ports: [
-                {
-                  containerPort: 8080,
-                },
-              ],
-
-              readinessProbe: {
-                httpGet: {
-                  path: "/headers",
-                  port: 8080,
-                },
-                initialDelaySeconds: 5,
-                periodSeconds: 30,
-              },
-            },
-          ],
-        },
       },
     },
+
+    list:: util.list([
+      service,
+      deployment,
+    ]),
   },
 }
