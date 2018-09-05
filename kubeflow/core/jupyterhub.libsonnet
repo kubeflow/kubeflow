@@ -18,6 +18,7 @@
         "jupyterhub_config.py": importstr "kubeform_spawner.py",
       },
     },
+    kubeSpawnerConfig:: kubeSpawnerConfig,
 
     local notebookService = {
       apiVersion: "v1",
@@ -47,6 +48,7 @@
         },
       },
     },
+    notebookService:: notebookService,
 
     local hubService = {
       apiVersion: "v1",
@@ -95,6 +97,7 @@
         type: params.serviceType,
       },
     },
+    hubService:: hubService,
 
     local hubStatefulSet = {
       apiVersion: "apps/v1beta1",
@@ -206,6 +209,7 @@
         },
       },
     },
+    hubStatefulSet:: hubStatefulSet,
 
     // contents based on https://github.com/jupyterhub/zero-to-jupyterhub-k8s/blob/master/jupyterhub/templates/hub/rbac.yaml
     local hubRole = {
@@ -247,6 +251,7 @@
         },
       ],
     },
+    hubRole:: hubRole,
 
     local notebookRole = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
@@ -306,6 +311,7 @@
         },
       ],
     },
+    notebookRole:: notebookRole,
 
     local hubServiceAccount = {
       apiVersion: "v1",
@@ -318,6 +324,7 @@
         namespace: params.namespace,
       },
     },
+    hubServiceAccount:: hubServiceAccount,
 
     local notebookServiceAccount = {
       apiVersion: "v1",
@@ -327,6 +334,7 @@
         namespace: params.namespace,
       },
     },
+    notebookServiceAccount:: notebookServiceAccount,
 
     local hubRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
@@ -348,6 +356,7 @@
         },
       ],
     },
+    hubRoleBinding:: hubRoleBinding,
 
     local notebookRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
@@ -369,17 +378,20 @@
         },
       ],
     },
+    notebookRoleBinding:: notebookRoleBinding,
 
-    list:: util.list([
-      kubeSpawnerConfig,
-      notebookService,
-      hubStatefulSet,
-      hubRole,
-      notebookRole,
-      hubServiceAccount,
-      notebookServiceAccount,
-      hubRoleBinding,
-      notebookRoleBinding,
-    ]),
+    local all = [
+      self.kubeSpawnerConfig,
+      self.notebookService,
+      self.hubStatefulSet,
+      self.hubRole,
+      self.notebookRole,
+      self.hubServiceAccount,
+      self.notebookServiceAccount,
+      self.hubRoleBinding,
+      self.notebookRoleBinding,
+    ],
+
+    list(obj=all):: util.list(obj),
   },
 }

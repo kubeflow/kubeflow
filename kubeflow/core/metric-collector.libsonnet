@@ -18,6 +18,7 @@
         namespace: params.namespace,
       },
     },
+    metricServiceAccount:: metricServiceAccount,
 
     local metricRole = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
@@ -43,6 +44,7 @@
         },
       ],
     },
+    metricRole:: metricRole,
 
     local metricRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
@@ -66,6 +68,7 @@
         },
       ],
     },
+    metricRoleBinding:: metricRoleBinding,
 
     local service = {
       apiVersion: "v1",
@@ -97,6 +100,7 @@
         type: "ClusterIP",
       },
     },
+    service:: service,
 
     local deploy = {
       apiVersion: "extensions/v1beta1",
@@ -173,13 +177,16 @@
         },
       },
     },  // deploy
+    deploy:: deploy,
 
-    list:: util.list([
-      metricServiceAccount,
-      metricRole,
-      metricRoleBinding,
-      service,
-      deploy,
-    ]),
+    local all = [
+      self.metricServiceAccount,
+      self.metricRole,
+      self.metricRoleBinding,
+      self.service,
+      self.deploy,
+    ],
+
+    list(obj=all):: util.list(obj),
   },
 }

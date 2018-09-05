@@ -27,6 +27,7 @@
         },
       },
     },
+    persistentVolume:: persistentVolume,
 
     local persistentVolumeClaim = {
       apiVersion: "v1",
@@ -47,6 +48,7 @@
         },
       },
     },
+    persistentVolumeClaim:: persistentVolumeClaim,
 
     // Set 777 permissions on the GCFS NFS so that non-root users
     // like jovyan can use that NFS share
@@ -91,11 +93,14 @@
         },
       },
     },
+    gcfsPersmissions:: gcfsPersmissions,
 
-    list:: util.list([
-      persistentVolume,
-      persistentVolumeClaim,
-      gcfsPersmissions,
-    ]),
+    local all = [
+      self.persistentVolume,
+      self.persistentVolumeClaim,
+      self.gcfsPersmissions,
+    ],
+
+    list(obj=all):: util.list(obj),
   },
 }

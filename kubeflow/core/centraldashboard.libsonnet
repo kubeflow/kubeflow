@@ -41,6 +41,7 @@
         },
       },
     },  // deployUi
+    centralDashboardDeployment:: centralDashboardDeployment,
 
     local centralDashboardService = {
       // Due to https://github.com/ksonnet/ksonnet/issues/670, escaped characters in
@@ -83,6 +84,7 @@
         type: "ClusterIP",
       },
     },  //service
+    centralDashboardService:: centralDashboardService,
 
     local centralDashboardServiceAccount = {
       apiVersion: "v1",
@@ -92,6 +94,7 @@
         namespace: params.namespace,
       },
     },  // service account
+    centralDashboardServiceAccount:: centralDashboardServiceAccount,
 
     local centralDashboardClusterRole = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
@@ -128,6 +131,7 @@
         },
       ],
     },  // operator-role
+    centralDashboardClusterRole:: centralDashboardClusterRole,
 
     local centralDashboardClusterRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
@@ -152,12 +156,15 @@
         },
       ],
     },  // role binding
+    centralDashboardClusterRoleBinding:: centralDashboardClusterRoleBinding,
 
-    list:: util.list([
-      centralDashboardDeployment,
-      centralDashboardService,
-      centralDashboardServiceAccount,
-      centralDashboardClusterRole,
-    ]),
+    local all = [
+      self.centralDashboardDeployment,
+      self.centralDashboardService,
+      self.centralDashboardServiceAccount,
+      self.centralDashboardClusterRole,
+    ],
+
+    list(obj=all):: util.list(obj),
   },
 }

@@ -57,6 +57,7 @@
         namespace: params.namespace,
       },
     },  // initServiceAccount
+    initServiceAccount:: initServiceAccount,
 
     local initClusterRoleBinding = {
       kind: "ClusterRoleBinding",
@@ -77,6 +78,7 @@
         apiGroup: "rbac.authorization.k8s.io",
       },
     },  // initClusterRoleBinding
+    initClusterRoleBinding:: initClusterRoleBinding,
 
     local initClusterRole = {
       kind: "ClusterRole",
@@ -98,6 +100,7 @@
         },
       ],
     },  // initClusterRoleBinding
+    initClusterRole:: initClusterRole,
 
     local deploy = {
       local envoyContainer(params) = {
@@ -248,6 +251,7 @@
         },
       },
     },  // deploy
+    deploy:: deploy,
 
     // Run the process to enable iap
     local iapEnabler = {
@@ -325,6 +329,7 @@
         },
       },
     },  // iapEnabler
+    iapEnabler:: iapEnabler,
 
     local configMap = {
       // This is the config for the secondary envoy proxy which does JWT verification
@@ -606,6 +611,7 @@
         "configure_envoy_for_iap.sh": importstr "configure_envoy_for_iap.sh",
       },
     },
+    configMap:: configMap,
 
     local whoamiService = {
       apiVersion: "v1",
@@ -698,6 +704,7 @@
         },
       },
     },  // backendConfig
+    backendConfig:: backendConfig,
 
     // TODO(danisla): Remove afer https://github.com/kubernetes/ingress-gce/pull/388 is resolved per #1327.
     local ingressBootstrapConfigMap = {
@@ -711,6 +718,7 @@
         "ingress_bootstrap.sh": importstr "ingress_bootstrap.sh",
       },
     },
+    ingressBootstrapConfigMap:: ingressBootstrapConfigMap,
 
     local ingressBootstrapJob = {
       apiVersion: "batch/v1",
@@ -765,6 +773,7 @@
         },
       },
     },  // ingressBootstrapJob
+    ingressBootstrapJob:: ingressBootstrapJob,
 
     local ingress = {
       apiVersion: "extensions/v1beta1",
@@ -863,23 +872,26 @@
         },
       }  // cloudEndpoint
     ),
+    cloudEndpoint:: cloudEndpoint,
 
-    list:: util.list([
-      service,
-      initServiceAccount,
-      initClusterRoleBinding,
-      initClusterRole,
-      deploy,
-      iapEnabler,
-      configMap,
-      whoamiService,
-      whoamiApp,
-      backendConfig,
-      ingressBootstrapConfigMap,
-      ingressBootstrapJob,
-      ingress,
-      certificate,
-      cloudEndpoint,
-    ]),
+    local all = [
+      self.service,
+      self.initServiceAccount,
+      self.initClusterRoleBinding,
+      self.initClusterRole,
+      self.deploy,
+      self.iapEnabler,
+      self.configMap,
+      self.whoamiService,
+      self.whoamiApp,
+      self.backendConfig,
+      self.ingressBootstrapConfigMap,
+      self.ingressBootstrapJob,
+      self.ingress,
+      self.certificate,
+      self.cloudEndpoint,
+    ],
+
+    list(obj=all):: util.list(obj),
   },
 }

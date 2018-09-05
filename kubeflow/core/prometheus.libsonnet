@@ -14,6 +14,7 @@
         name: "stackdriver",
       },
     },
+    namespace:: namespace,
 
     local clusterRole = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
@@ -62,6 +63,7 @@
         },
       ],
     },
+    clusterRole:: clusterRole,
 
     local serviceAccount = {
       apiVersion: "v1",
@@ -71,6 +73,7 @@
         namespace: "stackdriver",
       },
     },
+    serviceAccount:: serviceAccount,
 
     local clusterRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
@@ -91,6 +94,7 @@
         },
       ],
     },
+    clusterRoleBinding:: clusterRoleBinding,
 
     local service = {
       apiVersion: "v1",
@@ -116,6 +120,7 @@
         type: "ClusterIP",
       },
     },
+    service:: service,
 
     local configMap = {
       apiVersion: "v1",
@@ -132,6 +137,7 @@
         },
       },
     },
+    configMap:: configMap,
 
     local deployment = {
       apiVersion: "extensions/v1beta1",
@@ -201,15 +207,18 @@
         },
       },
     },
+    deployment:: deployment,
 
-    list:: util.list([
-      namespace,
-      clusterRole,
-      serviceAccount,
-      clusterRoleBinding,
-      service,
-      configMap,
-      deployment,
-    ]),
+    local all = [
+      self.namespace,
+      self.clusterRole,
+      self.serviceAccount,
+      self.clusterRoleBinding,
+      self.service,
+      self.configMap,
+      self.deployment,
+    ],
+
+    list(obj=all):: util.list(obj),
   },
 }

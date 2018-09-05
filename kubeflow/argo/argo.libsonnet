@@ -32,6 +32,7 @@
         version: "v1alpha1",
       },
     },  // crd
+    workflowCRD:: workflowCRD,
 
     // Deploy the controller
     local workflowController = {
@@ -107,6 +108,7 @@
         },
       },
     },  // deploy
+    workflowController:: workflowController,
 
     local argoUI = {
       apiVersion: "extensions/v1beta1",
@@ -184,6 +186,7 @@
         },
       },
     },  // deployUi
+    argoUI:: argoUI,
 
     local argUIService = {
       apiVersion: "v1",
@@ -221,6 +224,7 @@
         type: "NodePort",
       },
     },
+    argUIService:: argUIService,
 
     local workflowControllerConfigmap = {
       apiVersion: "v1",
@@ -233,6 +237,7 @@
         namespace: params.namespace,
       },
     },
+    workflowControllerConfigmap:: workflowControllerConfigmap,
 
     local argoServiceAccount = {
       apiVersion: "v1",
@@ -242,6 +247,7 @@
         namespace: params.namespace,
       },
     },  // service account
+    argoServiceAccount:: argoServiceAccount,
 
     // Keep in sync with https://github.com/argoproj/argo/blob/master/cmd/argo/commands/const.go#L20
     // Permissions need to be cluster wide for the workflow controller to be able to process workflows
@@ -314,6 +320,7 @@
         },
       ],
     },  // operator-role
+    argoClusterRole:: argoClusterRole,
 
     local argoClusterRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
@@ -338,6 +345,7 @@
         },
       ],
     },  // role binding
+    argoClusterRoleBinding:: argoClusterRoleBinding,
 
     local argoUIServiceAccount = {
       apiVersion: "v1",
@@ -347,6 +355,7 @@
         namespace: params.namespace,
       },
     },  // service account
+    argoUIServiceAccount:: argoUIServiceAccount,
 
     // Keep in sync with https://github.com/argoproj/argo/blob/master/cmd/argo/commands/const.go#L44
     // Permissions need to be cluster wide for the workflow controller to be able to process workflows
@@ -401,6 +410,7 @@
         },
       ],
     },  // operator-role
+    argoUIRole:: argoUIRole,
 
     local argUIClusterRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
@@ -425,19 +435,22 @@
         },
       ],
     },  // role binding
+    argUIClusterRoleBinding:: argUIClusterRoleBinding,
 
-    list:: util.list([
-      workflowCRD,
-      workflowController,
-      argoUI,
-      argUIService,
-      workflowControllerConfigmap,
-      argoServiceAccount,
-      argoClusterRole,
-      argoClusterRoleBinding,
-      argoUIServiceAccount,
-      argoUIRole,
-      argUIClusterRoleBinding,
-    ]),
+    local all = [
+      self.workflowCRD,
+      self.workflowController,
+      self.argoUI,
+      self.argUIService,
+      self.workflowControllerConfigmap,
+      self.argoServiceAccount,
+      self.argoClusterRole,
+      self.argoClusterRoleBinding,
+      self.argoUIServiceAccount,
+      self.argoUIRole,
+      self.argUIClusterRoleBinding,
+    ],
+
+    list(obj=all):: util.list(obj),
   },
 }

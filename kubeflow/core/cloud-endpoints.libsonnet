@@ -23,6 +23,7 @@
         }],),
       instance:: instance,
     }.instance,
+    metaClusterRole:: metaClusterRole,
 
     local metaClusterRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
@@ -43,6 +44,7 @@
         apiGroup: "rbac.authorization.k8s.io",
       },
     },
+    metaClusterRoleBinding:: metaClusterRoleBinding,
 
     local endpointsClusterRole = {
       kind: "ClusterRole",
@@ -64,6 +66,7 @@
         },
       ],
     },
+    endpointsClusterRole:: endpointsClusterRole,
 
     local endpointsClusterRoleBinding = {
       kind: "ClusterRoleBinding",
@@ -84,6 +87,7 @@
         apiGroup: "rbac.authorization.k8s.io",
       },
     },
+    endpointsClusterRoleBinding:: endpointsClusterRoleBinding,
 
     local metaInitializersCRD = {
       apiVersion: "apiextensions.k8s.io/v1beta1",
@@ -106,6 +110,7 @@
         },
       },
     },
+    metaInitializersCRD:: metaInitializersCRD,
 
     local metaLambdaCRD = {
       apiVersion: "apiextensions.k8s.io/v1beta1",
@@ -128,6 +133,7 @@
         },
       },
     },  // metaLambdaCRD
+    metaLambdaCRD:: metaLambdaCRD,
 
     local endpointsCRD = {
       apiVersion: "apiextensions.k8s.io/v1beta1",
@@ -150,6 +156,7 @@
         },
       },
     },  // endpointsCRD
+    endpointsCRD:: endpointsCRD,
 
     local metaServiceAccount = {
       apiVersion: "v1",
@@ -159,6 +166,7 @@
         namespace: params.namespace,
       },
     },  // metaServiceAccount
+    metaServiceAccount:: metaServiceAccount,
 
     local metaDeployment = {
       apiVersion: "apps/v1beta1",
@@ -197,6 +205,7 @@
         },
       },
     },  // metaDeployment
+    metaDeployment:: metaDeployment,
 
     local endpointsService = {
       apiVersion: "v1",
@@ -218,6 +227,7 @@
         },
       },
     },  // endpointsService
+    endpointsService:: endpointsService,
 
     local endpointsServiceAccount = {
       apiVersion: "v1",
@@ -227,6 +237,7 @@
         namespace: params.namespace,
       },
     },  // endpointsServiceAccount
+    endpointsServiceAccount:: endpointsServiceAccount,
 
     local endpointsDeploy = {
       apiVersion: "apps/v1beta1",
@@ -289,6 +300,7 @@
         },
       },
     },  // endpointsDeploy
+    endpointsDeploy:: endpointsDeploy,
 
     local endpointsLambdaController = {
       apiVersion: "metacontroller.k8s.io/v1alpha1",
@@ -317,37 +329,39 @@
         generateSelector: true,
       },
     },  // endpointsLambdaController
+    endpointsLambdaController:: endpointsLambdaController,
 
     local CRDs = [
-      metaInitializersCRD,
-      metaLambdaCRD,
-      endpointsCRD,
+      self.metaInitializersCRD,
+      self.metaLambdaCRD,
+      self.endpointsCRD,
     ],
 
     local RBACs = [
-      metaClusterRole,
-      metaClusterRoleBinding,
-      endpointsClusterRole,
-      endpointsClusterRoleBinding,
+      self.metaClusterRole,
+      self.metaClusterRoleBinding,
+      self.endpointsClusterRole,
+      self.endpointsClusterRoleBinding,
     ],
 
     local Services = [
-      metaServiceAccount,
-      endpointsService,
-      endpointsServiceAccount,
+      self.metaServiceAccount,
+      self.endpointsService,
+      self.endpointsServiceAccount,
     ],
 
     local Deployments = [
-      metaDeployment,
-      endpointsDeploy,
-      endpointsLambdaController,
+      self.metaDeployment,
+      self.endpointsDeploy,
+      self.endpointsLambdaController,
     ],
 
-    list:: util.list(
+    local all =
       CRDs +
       RBACs +
       Services +
       Deployments,
-    ),
+
+    list(obj=all):: util.list(obj),
   },
 }

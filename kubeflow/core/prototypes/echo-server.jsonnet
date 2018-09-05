@@ -5,5 +5,5 @@
 // @param name string Name for the component
 // @optionalParam image string gcr.io/kubeflow-images-staging/echo-server:v20180628-44f08d31 The image to use.
 
-local echoserver = import "kubeflow/core/echo-server.libsonnet";
-echoserver.new(env, params).list
+local echoserver = (import "kubeflow/core/echo-server.libsonnet").new(env, params);
+echoserver.list

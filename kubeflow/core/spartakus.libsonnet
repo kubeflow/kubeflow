@@ -33,6 +33,7 @@
         },
       ],
     },  // role
+    clusterRole:: clusterRole,
 
     local clusterRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
@@ -56,6 +57,7 @@
         },
       ],
     },  // operator-role binding
+    clusterRoleBinding:: clusterRoleBinding,
 
     local serviceAccount = {
       apiVersion: "v1",
@@ -68,6 +70,7 @@
         namespace: params.namespace,
       },
     },
+    serviceAccount:: serviceAccount,
 
     local volunteer = {
       apiVersion: "extensions/v1beta1",
@@ -104,16 +107,17 @@
         },
       },
     },  // deployment
+    volunteer:: volunteer,
 
-    local allResources = if params.reportUsageBool then ([
-                                                           clusterRole,
-                                                           clusterRoleBinding,
-                                                           serviceAccount,
-                                                           volunteer,
-                                                         ]) else [],
+    local all = if params.reportUsageBool then (
+      [
+        self.clusterRole,
+        self.clusterRoleBinding,
+        self.serviceAccount,
+        self.volunteer,
+      ]
+    ) else [],
 
-    list:: util.list(
-      allResources,
-    ),
+    list(obj=all):: util.list(obj),
   },
 }

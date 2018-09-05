@@ -41,6 +41,7 @@
         type: "ClusterIP",
       },
     },
+    service:: service,
 
     local deployment = {
       apiVersion: "extensions/v1beta1",
@@ -83,10 +84,13 @@
         },
       },
     },
+    deployment:: deployment,
 
-    list:: util.list([
-      service,
-      deployment,
-    ]),
+    local all = [
+      self.service,
+      self.deployment,
+    ],
+
+    list(obj=all):: util.list(obj),
   },
 }

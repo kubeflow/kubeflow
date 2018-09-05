@@ -16,5 +16,5 @@ local env = {
   namespace: "foo",
 };
 
-local newpackage = import "kubeflow/new-package-stub/newpackage.libsonnet";
-newpackage.new(env, params).list
+local newpackage = (import "kubeflow/new-package-stub/newpackage.libsonnet").new(env, params);
+newpackage.list

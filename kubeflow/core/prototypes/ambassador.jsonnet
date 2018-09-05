@@ -9,5 +9,5 @@
 // @optionalParam statsdImage string quay.io/datawire/statsd:0.37.0 The image for the Stats and Monitoring.
 // @optionalParam statsdExporterImage string prom/statsd-exporter:v0.6.0 The image for the Statsd exporter.
 
-local ambassador = import "kubeflow/core/ambassador.libsonnet";
-ambassador.new(env, params).list
+local ambassador = (import "kubeflow/core/ambassador.libsonnet").new(env, params);
+ambassador.list
