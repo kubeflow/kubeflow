@@ -9,6 +9,8 @@
 // @optionalParam pytorchJobImage string gcr.io/kubeflow-images-public/pytorch-operator:v20180619-2e19016 The image for the PyTorchJob controller
 // @optionalParam pytorchDefaultImage string null The default image to use for pytorch
 // @optionalParam pytorchJobVersion string v1alpha1 which version of the PyTorchJob operator to use
+// @optionalParam deploymentScope string cluster The scope at which pytorch-operator should be deployed - valid values are cluster, namespace.
+// @optionalParam deploymentNamespace string null The namespace to which pytorch-operator should be scoped. If deploymentScope is set to cluster, this is ignored.
 
 local k = import "k.libsonnet";
 local operator = import "kubeflow/pytorch-job/pytorch-operator.libsonnet";

@@ -2,14 +2,14 @@
   all(params, env):: [
                        $.parts(params, env).configMap(params.cloud, params.pytorchDefaultImage),
                        $.parts(params, env).serviceAccount,
-                       $.parts(params, env).operatorRole,
-                       $.parts(params, env).operatorRoleBinding,
+                       $.parts(params, env).operatorRole(params.deploymentScope, params.deploymentNamespace),
+                       $.parts(params, env).operatorRoleBinding(params.deploymentScope, params.deploymentNamespace),
                      ] +
 
                      if params.pytorchJobVersion == "v1alpha2" then
                        [
                          $.parts(params, env).crdV1alpha2,
-                         $.parts(params, env).pytorchJobDeployV1alpha2(params.pytorchJobImage),
+                         $.parts(params, env).pytorchJobDeployV1alpha2(params.pytorchJobImage, params.deploymentScope, params.deploymentNamespace),
                        ]
                      else
                        [
@@ -150,7 +150,7 @@
       },
     },  // pytorchJobDeploy
 
-    pytorchJobDeployV1alpha2(image): {
+    pytorchJobDeployV1alpha2(image, deploymentScope, deploymentNamespace): {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -168,12 +168,13 @@
           spec: {
             containers: [
               {
-                command: [
+                command: std.prune([
                   "/pytorch-operator.v2",
                   "--alsologtostderr",
                   "-v=1",
-                ],
-                env: [
+                  if deploymentScope == "namespace" then ("--namespace=" + deploymentNamespace),
+                ]),
+                env: std.prune([
                   {
                     name: "MY_POD_NAMESPACE",
                     valueFrom: {
@@ -190,7 +191,15 @@
                       },
                     },
                   },
-                ],
+                  if deploymentScope == "namespace" then {
+                    name: "KUBEFLOW_NAMESPACE",
+                    valueFrom: {
+                      fieldRef: {
+                        fieldPath: "metadata.namespace",
+                      },
+                    },
+                  },
+                ]),
                 image: image,
                 name: "pytorch-operator",
                 volumeMounts: [
@@ -294,14 +303,16 @@
       },
     },
 
-    operatorRole: {
+    operatorRole(deploymentScope, deploymentNamespace): {
+      local roleType = if deploymentScope == "cluster" then "ClusterRole" else "Role",
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "ClusterRole",
+      kind: roleType,
       metadata: {
         labels: {
           app: "pytorch-operator",
         },
         name: "pytorch-operator",
+        [if deploymentScope == "namespace" then "namespace"]: deploymentNamespace,
       },
       rules: [
         {
@@ -379,18 +390,21 @@
       ],
     },  // operator-role
 
-    operatorRoleBinding:: {
+    operatorRoleBinding(deploymentScope, deploymentNamespace): {
+      local bindingType = if deploymentScope == "cluster" then "ClusterRoleBinding" else "RoleBinding",
+      local roleType = if deploymentScope == "cluster" then "ClusterRole" else "Role",
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "ClusterRoleBinding",
+      kind: bindingType,
       metadata: {
         labels: {
           app: "pytorch-operator",
         },
         name: "pytorch-operator",
+        [if deploymentScope == "namespace" then "namespace"]: deploymentNamespace,
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
-        kind: "ClusterRole",
+        kind: roleType,
         name: "pytorch-operator",
       },
       subjects: [
