@@ -17,7 +17,7 @@ local env = {
 };
 
 local tensorboard = {
-  local k = import "../k.libsonnet",
+  local k = import "k.libsonnet",
   local util = import "kubeflow/core/util.libsonnet",
   local deployment = k.apps.v1beta1.deployment,
 
@@ -32,7 +32,7 @@ local tensorboard = {
       },
     },
 
-    local tensorboard = (import "kubeflow/core/tensorboard.libsonnet").new(_env, _params),
+    local tensorboard = (import "kubeflow/tensorboard/tensorboard.libsonnet").new(_env, _params),
 
     tbService:: tensorboard.tbService,
 
