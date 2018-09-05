@@ -4,7 +4,7 @@ local util = import "kubeflow/core/util.libsonnet",
 local service = k.core.v1.service,
 local deployment = k.apps.v1beta1.deployment,
 local container = deployment.mixin.spec.template.spec.containersType,
-  new(_env, _params):: self {
+  new(_env, _params):: {
     local params = _env + _params {
       namespace: if std.objectHas(_params, "namespace") &&
                     _params.namespace != "null" then

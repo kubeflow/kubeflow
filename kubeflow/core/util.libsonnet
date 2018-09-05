@@ -1,5 +1,17 @@
 // Some useful routines.
 {
+  local k = import "k.libsonnet",
+
+  // Is the character upper case?
+  isUpper:: function(c) {
+    local cp = std.codepoint,
+    local value = if cp(c) >= 65 && cp(c) < 91 then
+      true
+    else
+      false,
+    result:: value,
+  }.result,
+
   // Convert a string to upper case.
   upper:: function(x) {
     local cp(c) = std.codepoint(c),
@@ -31,5 +43,6 @@
       else [],
   }.result,
 
-
+  // Produce a list of manifests. obj must be an array
+  list(obj):: std.prune(k.core.v1.list.new(obj,),),
 }
