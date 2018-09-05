@@ -6,5 +6,6 @@
 // @optionalParam usageId string unknown_cluster Optional id to use when reporting usage to kubeflow.org
 // @optionalParam reportUsage string false Whether or not to report Kubeflow usage to kubeflow.org.
 
-local spartakus = (import "kubeflow/core/spartakus.libsonnet").new(env, params);
-spartakus.list
+local spartakus = import "kubeflow/core/spartakus.libsonnet";
+local instance = spartacus.new(env, params);
+instance.list

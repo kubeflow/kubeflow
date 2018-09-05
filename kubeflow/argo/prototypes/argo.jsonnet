@@ -8,5 +8,6 @@
 // @optionalParam uiImage string argoproj/argoui:v2.1.1 uiImage
 // @optionalParam executorImage string argoproj/argoexec:v2.1.1 executorImage
 
-local argo = (import "kubeflow/argo/argo.libsonnet").new(env, params);
-argo.list
+local argo = import "kubeflow/argo/argo.libsonnet";
+local instance = arg.new(env, params);
+instance.list

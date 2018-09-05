@@ -7,5 +7,6 @@
 // @param clusterName string GKE cluster name.
 // @param zone string GKE cluster zone.
 
-local prometheus = (import "kubeflow/core/prometheus.libsonnet").new(env, params);
-prometheus.list
+local prometheus = import "kubeflow/core/prometheus.libsonnet";
+local instance = prometheus.new(env, params);
+instance.list
