@@ -38,7 +38,7 @@ Here are some instructions for creating new Kubeflow packages.
 		- description
 	- modify registry.yaml adding an entry for the new package
 
-1. Create a libsonnet file see [all.libsonnet](https://github.com/kubeflow/kubeflow/tree/master/kubeflow/new-package-stub/all.libsonnet) to define the prototypes and parts for your component
+1. Create a libsonnet file see [newpackage.libsonnet](https://github.com/kubeflow/kubeflow/tree/master/kubeflow/new-package-stub/newpackage.libsonnet) to define the manifests for your component
 
 	- If you have an existing YAML manifest you can just convert that to json
 	  and use that as a starting point for your parts
@@ -53,13 +53,12 @@ Here are some instructions for creating new Kubeflow packages.
 
 	- Typically you will want to make the following changes
 
-		- Set the namespace for most components
 		- Use params for any variables that should be easily overwritable
 		- For helm packages substitute `params.name` for the name of the release
 
 1. Create one or more prototype files in the prototypes directory for your package
 
-	- Use [tf-prototype.jsonnet](https://github.com/kubeflow/kubeflow/tree/master/kubeflow/new-package-stub/prototypes/tf-prototype.jsonnet) as a template.
+	- Use [newpackage.jsonnet](https://github.com/kubeflow/kubeflow/tree/master/kubeflow/new-package-stub/prototypes/newpackage.jsonnet) as a template.
 
 ## Testing changes to ksonnet components
 
