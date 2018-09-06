@@ -109,7 +109,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       deploymentName: 'kubeflow',
       dialogBody: '',
       dialogTitle: '',
-      project: 'cloud-ml-dev',
+      project: '',
       showLogs: false,
       zone: 'us-east1-d',
     };
