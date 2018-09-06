@@ -437,7 +437,7 @@
     },  // role binding
     argUIClusterRoleBinding:: argUIClusterRoleBinding,
 
-    local all = [
+    all:: [
       self.workflowCRD,
       self.workflowController,
       self.argoUI,
@@ -451,6 +451,6 @@
       self.argUIClusterRoleBinding,
     ],
 
-    list(obj=all):: util.list(obj),
+    list(obj=self.all):: util.list(obj),
   },
 }

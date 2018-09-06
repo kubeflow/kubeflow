@@ -8,4 +8,4 @@
 
 local spartakus = import "kubeflow/core/spartakus.libsonnet";
 local instance = spartakus.new(env, params);
-instance.list
+instance.list(instance.all)

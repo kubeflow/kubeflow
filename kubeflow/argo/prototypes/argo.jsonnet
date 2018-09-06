@@ -10,4 +10,4 @@
 
 local argo = import "kubeflow/argo/argo.libsonnet";
 local instance = argo.new(env, params);
-instance.list
+instance.list(instance.all)

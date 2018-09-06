@@ -158,13 +158,13 @@
     },  // role binding
     centralDashboardClusterRoleBinding:: centralDashboardClusterRoleBinding,
 
-    local all = [
+    all:: [
       self.centralDashboardDeployment,
       self.centralDashboardService,
       self.centralDashboardServiceAccount,
       self.centralDashboardClusterRole,
     ],
 
-    list(obj=all):: util.list(obj),
+    list(obj=self.all):: util.list(obj),
   },
 }

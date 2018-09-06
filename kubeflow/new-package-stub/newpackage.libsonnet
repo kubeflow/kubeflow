@@ -55,8 +55,8 @@
                                     self.uiDeployment,
                                   ]),
 
-    local all = tfPrototype + pyTorchPrototype,
+    all:: tfPrototype + pyTorchPrototype,
 
-    list(obj=all):: util.list(obj),
+    list(obj=self.all):: util.list(obj),
   },
 }

@@ -179,7 +179,7 @@
     },  // deploy
     deploy:: deploy,
 
-    local all = [
+    all:: [
       self.metricServiceAccount,
       self.metricRole,
       self.metricRoleBinding,
@@ -187,6 +187,6 @@
       self.deploy,
     ],
 
-    list(obj=all):: util.list(obj),
+    list(obj=self.all):: util.list(obj),
   },
 }

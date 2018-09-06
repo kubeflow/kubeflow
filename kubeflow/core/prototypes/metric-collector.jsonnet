@@ -10,4 +10,4 @@
 
 local metricCollector = import "kubeflow/core/metric-collector.libsonnet";
 local instance = metricCollector.new(env, params);
-instance.list
+instance.list(instance.all)

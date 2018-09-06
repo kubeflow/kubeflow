@@ -11,4 +11,4 @@
 
 local ambassador = import "kubeflow/core/ambassador.libsonnet";
 local instance = ambassador.new(env, params);
-instance.list
+instance.list(instance.all)

@@ -356,12 +356,12 @@
       self.endpointsLambdaController,
     ],
 
-    local all =
+    all::
       CRDs +
       RBACs +
       Services +
       Deployments,
 
-    list(obj=all):: util.list(obj),
+    list(obj=self.all):: util.list(obj),
   },
 }

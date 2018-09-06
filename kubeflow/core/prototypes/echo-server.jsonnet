@@ -7,4 +7,4 @@
 
 local echoserver = import "kubeflow/core/echo-server.libsonnet";
 local instance = echoserver.new(env, params);
-instance.list
+instance.list(instance.all)

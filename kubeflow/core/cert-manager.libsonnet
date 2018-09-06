@@ -176,7 +176,7 @@
     },
     issuerLEProd:: issuerLEProd,
 
-    local all = [
+    all:: [
       self.certificateCRD,
       self.clusterIssuerCRD,
       self.issuerCRD,
@@ -186,6 +186,6 @@
       self.issuerLEProd,
     ],
 
-    list(obj=all):: util.list(obj),
+    list(obj=self.all):: util.list(obj),
   },
 }

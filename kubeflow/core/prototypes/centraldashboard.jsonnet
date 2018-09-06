@@ -7,4 +7,4 @@
 
 local centraldashboard = import "kubeflow/core/centraldashboard.libsonnet";
 local instance = centraldashboard.new(env, params);
-instance.list
+instance.list(instance.all)

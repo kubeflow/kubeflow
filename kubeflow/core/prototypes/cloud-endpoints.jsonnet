@@ -9,4 +9,4 @@
 
 local cloudEndpoints = import "kubeflow/core/cloud-endpoints.libsonnet";
 local instance = cloudEndpoints.new(env, params);
-instance.list
+instance.list(instance.all)

@@ -9,4 +9,4 @@
 
 local prometheus = import "kubeflow/core/prometheus.libsonnet";
 local instance = prometheus.new(env, params);
-instance.list
+instance.list(instance.all)

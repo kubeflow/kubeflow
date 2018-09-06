@@ -10,4 +10,4 @@
 
 local certManager = import "kubeflow/core/cert-manager.libsonnet";
 local instance = certManager.new(env, params);
-instance.list
+instance.list(instance.all)

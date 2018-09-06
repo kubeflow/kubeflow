@@ -305,7 +305,7 @@
     },  // k8sDashboard
     k8sDashboard:: k8sDashboard,
 
-    local all = [
+    all:: [
       self.ambassadorService,
       self.metricsService,
       self.adminService,
@@ -316,6 +316,6 @@
       self.k8sDashboard,
     ],
 
-    list(obj=all):: util.list(obj),
+    list(obj=self.all):: util.list(obj),
   },
 }

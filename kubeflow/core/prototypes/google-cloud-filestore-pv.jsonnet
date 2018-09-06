@@ -10,4 +10,4 @@
 
 local google_cloud_file_store_pv = import "kubeflow/core/google-cloud-filestore-pv.libsonnet";
 local instance = google_cloud_file_store_pv.new(env, params);
-instance.list
+instance.list(instance.all)

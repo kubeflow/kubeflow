@@ -209,7 +209,7 @@
     },
     deployment:: deployment,
 
-    local all = [
+    all:: [
       self.namespace,
       self.clusterRole,
       self.serviceAccount,
@@ -219,6 +219,6 @@
       self.deployment,
     ],
 
-    list(obj=all):: util.list(obj),
+    list(obj=self.all):: util.list(obj),
   },
 }

@@ -95,12 +95,12 @@
     },
     gcfsPersmissions:: gcfsPersmissions,
 
-    local all = [
+    all:: [
       self.persistentVolume,
       self.persistentVolumeClaim,
       self.gcfsPersmissions,
     ],
 
-    list(obj=all):: util.list(obj),
+    list(obj=self.all):: util.list(obj),
   },
 }

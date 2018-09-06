@@ -16,4 +16,4 @@
 
 local iap = import "kubeflow/core/iap.libsonnet";
 local instance = iap.new(env, params);
-instance.list
+instance.list(instance.all)

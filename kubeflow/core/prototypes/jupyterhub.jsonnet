@@ -20,4 +20,4 @@
 
 local jupyterhub = import "kubeflow/core/jupyterhub.libsonnet";
 local instance = jupyterhub.new(env, params);
-instance.list
+instance.list(instance.all)

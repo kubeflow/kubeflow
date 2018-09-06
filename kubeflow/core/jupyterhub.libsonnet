@@ -380,7 +380,7 @@
     },
     notebookRoleBinding:: notebookRoleBinding,
 
-    local all = [
+    all:: [
       self.kubeSpawnerConfig,
       self.notebookService,
       self.hubStatefulSet,
@@ -392,6 +392,6 @@
       self.notebookRoleBinding,
     ],
 
-    list(obj=all):: util.list(obj),
+    list(obj=self.all):: util.list(obj),
   },
 }

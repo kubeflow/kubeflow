@@ -109,7 +109,7 @@
     },  // deployment
     volunteer:: volunteer,
 
-    local all = if params.reportUsageBool then (
+    all:: if params.reportUsageBool then (
       [
         self.clusterRole,
         self.clusterRoleBinding,
@@ -118,6 +118,6 @@
       ]
     ) else [],
 
-    list(obj=all):: util.list(obj),
+    list(obj=self.all):: util.list(obj),
   },
 }

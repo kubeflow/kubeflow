@@ -874,7 +874,7 @@
     ),
     cloudEndpoint:: cloudEndpoint,
 
-    local all = [
+    all:: [
       self.service,
       self.initServiceAccount,
       self.initClusterRoleBinding,
@@ -892,6 +892,6 @@
       self.cloudEndpoint,
     ],
 
-    list(obj=all):: util.list(obj),
+    list(obj=self.all):: util.list(obj),
   },
 }
