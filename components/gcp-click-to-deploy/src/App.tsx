@@ -113,10 +113,13 @@ class App extends React.Component<any, { signedIn: boolean }> {
                 <div>
                   Specify details such as project, zone, name to create a
                   Kubeflow deployment. Hostname will default to
-                  deploymentName.endpoints.project.cloud.goog.
+                  [deploymentName].endpoints.[project].cloud.goog.
+                  To get client ID and client secret,
+                  follow instruction <a style={{ color: 'inherit', marginLeft: 5 }}
+                    href="https://www.kubeflow.org/docs/started/getting-started-gke/">here</a>.
                   Learn more at
                   <a style={{ color: 'inherit', marginLeft: 5 }}
-                    href="https://kubeflow.org">https://kubeflow.org</a>
+                    href="https://kubeflow.org">https://kubeflow.org</a>.
                 </div>
               </div>
               <div style={styles.rightPane}>
