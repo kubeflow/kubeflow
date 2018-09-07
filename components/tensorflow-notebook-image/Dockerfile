@@ -103,6 +103,9 @@ RUN pip install --upgrade pip && \
     # Cleanup
     && conda clean -tipsy
 
+# NB: the COPY chown can't expand a bash variable for NB_USER
+COPY --chown=jovyan:users requirements.txt /tmp
+
 # Install python2 and ipython2 kernel for jupyter notebook
 # Install tf packages which only support py2
 RUN conda create -n py2 python=2 && \
@@ -132,17 +135,16 @@ RUN conda create -n py2 python=2 && \
     # nodejs required for jupyterlab-manager
     nodejs && \
     jupyter labextension install @jupyter-widgets/jupyterlab-manager && \
+    # Install common packages from requirements.txt for both python2 and python3
+    pip --no-cache-dir install -r /tmp/requirements.txt && \
+    source activate py2 && \
+    pip --no-cache-dir install -r /tmp/requirements.txt && \
     # Do chown in this layer for significant size savings
     chown -R ${NB_USER}:users $HOME && \
     chown -R ${NB_USER}:users $CONDA_DIR
 
-# Install common packages from requirements.txt for both python2 and python3
-# NB: the COPY chown can't expand a bash variable for NB_USER
-COPY --chown=jovyan:users requirements.txt /tmp
+# Add basic config
 COPY --chown=jovyan:users  jupyter_notebook_config.py /tmp
-RUN pip --no-cache-dir install -r /tmp/requirements.txt && \
-    source activate py2 && \
-    pip --no-cache-dir install -r /tmp/requirements.txt
 
 # Wipe $HOME for PVC detection later
 WORKDIR $HOME
