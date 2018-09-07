@@ -43,7 +43,9 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
     apt-get install -y google-cloud-sdk kubectl && \
     # pin to 0.8.1 due to conflicts with tornado>=5.x and pyzmq>=17.x
     # we just really need jupyterhub-singleuser for our KF scripts
-    pip install jupyterhub==0.8.1
+    pip install jupyterhub==0.8.1 \
+    # Kaggle image doesn't include their own API package (yet)
+    kaggle
 
 # Install Tini - used as entrypoint for container
 RUN cd /tmp && \

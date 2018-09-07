@@ -21,9 +21,11 @@ limitations under the License.
    that will be created to represent Kubernetes objects.
    There is type corresponding to each API endpoint.
 #}
-{% set VM_OAUTH_SCOPES = ['https://www.googleapis.com/auth/logging.write', 'https://www.googleapis.com/auth/monitoring'] %}
 
-
+{% set VM_OAUTH_SCOPES = ['https://www.googleapis.com/auth/logging.write', 
+                          'https://www.googleapis.com/auth/monitoring',
+                          'https://www.googleapis.com/auth/devstorage.read_only'] %}
+                          
 {# Names for service accounts.
    -admin is to be used for admin tasks
    -user is to be used by users for actual jobs.
