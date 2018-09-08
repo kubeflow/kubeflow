@@ -10,4 +10,5 @@
 // @optionalParam statsdExporterImage string prom/statsd-exporter:v0.6.0 The image for the Statsd exporter.
 
 local ambassador = import "kubeflow/core/ambassador.libsonnet";
-ambassador.new(env, params).list
+local instance = ambassador.new(env, params);
+instance.list(instance.all)

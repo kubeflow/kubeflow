@@ -22,6 +22,7 @@
         scope: "Namespaced",
       },
     },
+    certificateCRD:: certificateCRD,
 
     local clusterIssuerCRD = {
       apiVersion: "apiextensions.k8s.io/v1beta1",
@@ -40,6 +41,7 @@
         scope: "Cluster",
       },
     },
+    clusterIssuerCRD:: clusterIssuerCRD,
 
     local issuerCRD = {
       apiVersion: "apiextensions.k8s.io/v1beta1",
@@ -57,6 +59,7 @@
         scope: "Namespaced",
       },
     },
+    issuerCRD:: issuerCRD,
 
     local serviceAccount = {
       apiVersion: "v1",
@@ -66,6 +69,7 @@
         namespace: params.namespace,
       },
     },
+    serviceAccount:: serviceAccount,
 
     local clusterRole = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
@@ -91,6 +95,7 @@
         },
       ],
     },
+    clusterRole:: clusterRole,
 
     local clusterRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
@@ -111,6 +116,7 @@
         },
       ],
     },
+    clusterRoleBinding:: clusterRoleBinding,
 
     local deploy = {
       apiVersion: "apps/v1beta1",
@@ -147,6 +153,7 @@
         },
       },
     },
+    deploy:: deploy,
 
     local issuerLEProd = {
       apiVersion: "certmanager.k8s.io/v1alpha1",
@@ -167,15 +174,18 @@
         },
       },
     },
+    issuerLEProd:: issuerLEProd,
 
-    list:: util.list([
-      certificateCRD,
-      clusterIssuerCRD,
-      issuerCRD,
-      serviceAccount,
-      clusterRoleBinding,
-      deploy,
-      issuerLEProd,
-    ]),
+    all:: [
+      self.certificateCRD,
+      self.clusterIssuerCRD,
+      self.issuerCRD,
+      self.serviceAccount,
+      self.clusterRoleBinding,
+      self.deploy,
+      self.issuerLEProd,
+    ],
+
+    list(obj=self.all):: util.list(obj),
   },
 }

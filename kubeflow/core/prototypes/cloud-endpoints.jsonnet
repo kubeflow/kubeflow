@@ -8,4 +8,5 @@
 // @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
 
 local cloudEndpoints = import "kubeflow/core/cloud-endpoints.libsonnet";
-cloudEndpoints.new(env, params).list
+local instance = cloudEndpoints.new(env, params);
+instance.list(instance.all)
