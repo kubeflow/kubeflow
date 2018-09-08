@@ -15,4 +15,5 @@
 // @optionalParam privateGKECluster string false Is the k8s cluster a private GKE cluster
 
 local iap = import "kubeflow/core/iap.libsonnet";
-iap.new(env, params).list
+local instance = iap.new(env, params);
+instance.list(instance.all)

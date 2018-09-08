@@ -19,4 +19,5 @@
 // @optionalParam accessLocalFs string false Set true if mounting a local fs directory that needs to be accessed by Jupyter Notebook in Minikube.
 
 local jupyterhub = import "kubeflow/core/jupyterhub.libsonnet";
-jupyterhub.new(env, params).list
+local instance = jupyterhub.new(env, params);
+instance.list(instance.all)
