@@ -9,4 +9,5 @@
 // @optionalParam executorImage string argoproj/argoexec:v2.1.1 executorImage
 
 local argo = import "kubeflow/argo/argo.libsonnet";
-argo.new(env, params).list
+local instance = argo.new(env, params);
+instance.list(instance.all)
