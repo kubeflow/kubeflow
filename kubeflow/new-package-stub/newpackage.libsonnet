@@ -33,26 +33,30 @@
         type: "ClusterIP",
       },
     },
+    uiService:: uiService,
 
     local uiDeployment = {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       // K8s Deployment,
     },
+    uiDeployment:: uiDeployment,
 
     // Groupings of manifests allows for prototypes to be defined.
     // For example if you just wanted to export TensorFlow manifests
     // you could do the following:
-    local tfPrototype = if params.TensorflowOnly then ([
-                                                         uiService,
-                                                       ]),
+    local tfPrototype =
+      if params.TensorflowOnly then ([
+                                       self.uiService,
+                                     ]),
 
-    local pyTorchPrototype = if params.PyTorchOnly then ([
-                                                           uiDeployment,
-                                                         ]),
+    local pyTorchPrototype =
+      if params.PyTorchOnly then ([
+                                    self.uiDeployment,
+                                  ]),
 
-    list:: util.list(
-      tfPrototype + pyTorchPrototype
-    ),
+    all:: tfPrototype + pyTorchPrototype,
+
+    list(obj=self.all):: util.list(obj),
   },
 }

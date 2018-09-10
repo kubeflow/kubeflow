@@ -9,4 +9,5 @@
 // @optionalParam certManagerImage string quay.io/jetstack/cert-manager-controller:v0.4.0 certManagerImage
 
 local certManager = import "kubeflow/core/cert-manager.libsonnet";
-certManager.new(env, params).list
+local instance = certManager.new(env, params);
+instance.list(instance.all)

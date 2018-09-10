@@ -8,13 +8,6 @@
 // so that PACKAGE is the directory containing your package and LIB is the
 // .libsonnet file defining your resources
 
-local params = {
-  TensorflowOnly: true,
-  PyTorchOnly: true,
-};
-local env = {
-  namespace: "foo",
-};
-
 local newpackage = import "kubeflow/new-package-stub/newpackage.libsonnet";
-newpackage.new(env, params).list
+local instance = newpackage.new(env, params);
+instance.list(instance.all)
