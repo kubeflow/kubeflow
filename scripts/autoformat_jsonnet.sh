@@ -39,14 +39,16 @@ for r in "${remotes[@]}"
 do
    url=`git remote get-url ${r}`
    # Period is in brackets because its a special character.
-   if [[ ${url} =~ git@github[.]com:kubeflow/.* ]]; then
-      repo_name=${r}
+   if [[ ${url} =~ (git@github[.]com:kubeflow/.*|https://github[.]com/kubeflow/.*) ]]; then
+       repo_name=${r}
+   else
+       echo "${r} at ${url} did not match"
    fi
 done
 
 echo using ${repo_name}
 if [ -z "$repo_name" ]; then
-    echo "Could not find remote repository pointing at git@github.com:kubeflow/testing.git"
+    echo "Could not find remote repository pointing at git@github.com:kubeflow/.*.git"
     exit 1
 fi
 
