@@ -14,8 +14,8 @@
 
 FROM jupyterhub/jupyterhub:0.9
 
-RUN pip3 install --no-cache-dir \                 
-                 jupyterhub-kubespawner==0.8.1 \
+RUN pip install  --no-cache-dir \
+                 jupyterhub-kubespawner==0.9.0 \
                  jupyterhub-dummyauthenticator \
                  jhub_remote_user_authenticator \
                  oauthenticator
