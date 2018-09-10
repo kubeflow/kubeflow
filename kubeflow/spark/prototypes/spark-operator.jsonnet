@@ -8,4 +8,5 @@ local k = import "k.libsonnet";
 local spark = import "kubeflow/spark/all.libsonnet";
 
 std.prune(
-    k.core.v1.list.new(spark.all(params, params.name, env)))
+  k.core.v1.list.new(spark.all(params, params.name, env))
+)
