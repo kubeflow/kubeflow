@@ -11,10 +11,10 @@ spec:
     - dns01:
         provider: prod-dns
       domains:
-      - kfdeploy.kubeflow.dev
-  commonName: kfdeploy.kubeflow.dev
+      - deploy.kubeflow.dev
+  commonName: deploy.kubeflow.dev
   dnsNames:
-  - kfdeploy.kubeflow.dev
+  - deploy.kubeflow.dev
   issuerRef:
     name: letsencrypt
   secretName: gcp-deploy-tls
@@ -45,7 +45,7 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: kfdeploy.kubeflow.dev
+    external-dns.alpha.kubernetes.io/hostname: deploy.kubeflow.dev
     kubernetes.io/tls-acme: "true"
   labels:
     ksonnet.io/component: ingress
@@ -64,6 +64,6 @@ spec:
         path: /kfctl/*
   tls:
   - hosts:
-    - kfdeploy.kubeflow.dev
+    - deploy.kubeflow.dev
     secretName: gcp-deploy-tls
 

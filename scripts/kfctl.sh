@@ -21,77 +21,80 @@ source "${DIR}/gke/util.sh"
 source "${DIR}/util-minikube.sh"
 
 createEnv() {
-	# Check if there is a file env.sh
-	# If there is source it otherwise create it.
-	# this ensures all relevant environment variables are persisted in
-	# a file for consistency across runs.
-	echo PLATFORM=${PLATFORM} >> ${ENV_FILE}
-	DEFAULT_KUBEFLOW_REPO="$( cd "${DIR}/.." >/dev/null && pwd )"
-	echo KUBEFLOW_REPO=${KUBEFLOW_REPO:-"${DEFAULT_KUBEFLOW_REPO}"} >> ${ENV_FILE}
-	echo KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"} >> ${ENV_FILE}
-	echo KUBEFLOW_KS_DIR=${KUBEFLOW_KS_DIR:-"$(pwd)/ks_app"} >> ${ENV_FILE}
-        echo KUBEFLOW_DOCKER_REGISTRY=${KUBEFLOW_DOCKER_REGISTRY:-""} >> ${ENV_FILE}
+  # Check if there is a file env.sh
+  # If there is source it otherwise create it.
+  # this ensures all relevant environment variables are persisted in
+  # a file for consistency across runs.
+  echo PLATFORM=${PLATFORM} >> ${ENV_FILE}
+  DEFAULT_KUBEFLOW_REPO="$( cd "${DIR}/.." >/dev/null && pwd )"
+  echo KUBEFLOW_REPO=${KUBEFLOW_REPO:-"${DEFAULT_KUBEFLOW_REPO}"} >> ${ENV_FILE}
+  echo KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"} >> ${ENV_FILE}
+  echo KUBEFLOW_KS_DIR=${KUBEFLOW_KS_DIR:-"$(pwd)/ks_app"} >> ${ENV_FILE}
+  echo KUBEFLOW_DOCKER_REGISTRY=${KUBEFLOW_DOCKER_REGISTRY:-""} >> ${ENV_FILE}
 
-	# Namespace where kubeflow is deployed
-	echo K8S_NAMESPACE=${K8S_NAMESPACE:-"kubeflow"} >> ${ENV_FILE}
+  # Namespace where kubeflow is deployed
+  echo K8S_NAMESPACE=${K8S_NAMESPACE:-"kubeflow"} >> ${ENV_FILE}
 
-        if [ "${PLATFORM}" == "minikube" ]; then
-          echo KUBEFLOW_CLOUD=minikube >> ${ENV_FILE}
-          echo MOUNT_LOCAL=${MOUNT_LOCAL} >> ${ENV_FILE}
-        fi
-
-  if [ "${PLATFORM}" == "ack" ]; then
-    echo KUBEFLOW_CLOUD=ack >> ${ENV_FILE}
-    echo KUBEFLOW_DOCKER_REGISTRY=registry.aliyuncs.com >> ${ENV_FILE}
-  fi
-
-	if [ "${PLATFORM}" == "gcp" ]; then
-		PROJECT=${PROJECT:-$(gcloud config get-value project 2>/dev/null)}
-		echo KUBEFLOW_CLOUD=gke >> ${ENV_FILE}
-		echo PROJECT="${PROJECT}" >> ${ENV_FILE}
-		if [ -z "${PROJECT}" ]; then
-			echo PROJECT must be set either using environment variable PROJECT
-			echo or by setting the default project in gcloud
-			exit 1
-		fi		
-
-		# Name of the deployment
-		DEPLOYMENT_NAME=${DEPLOYMENT_NAME:-"kubeflow"}
-		echo DEPLOYMENT_NAME="${DEPLOYMENT_NAME}" >> ${ENV_FILE}
-
-		# Kubeflow directories
-		echo KUBEFLOW_DM_DIR=${KUBEFLOW_DM_DIR:-"$(pwd)/gcp_config"} >> ${ENV_FILE}
-		echo KUBEFLOW_SECRETS_DIR=${KUBEFLOW_SECRETS_DIR:-"$(pwd)/secrets"} >> ${ENV_FILE}
-		echo KUBEFLOW_K8S_MANIFESTS_DIR="$(pwd)/k8s_specs" >> ${ENV_FILE}
-
-		# Name of the K8s context to create.
-		echo  KUBEFLOW_K8S_CONTEXT=${DEPLOYMENT_NAME} >> ${ENV_FILE}
-
-		# GCP Zone
-		# The default should be a zone that supports Haswell.
-		ZONE=${ZONE:-$(gcloud config get-value compute/zone 2>/dev/null)}
-		echo ZONE=${ZONE:-"us-east1-d"} >> ${ENV_FILE}
-
-		# Email for cert manager
-		EMAIL=${EMAIL:-$(gcloud config get-value account 2>/dev/null)}
-		echo EMAIL=${EMAIL} >> ${ENV_FILE}
-
-		# GCP Static IP Name
-		echo KUBEFLOW_IP_NAME=${KUBEFLOW_IP_NAME:-"${DEPLOYMENT_NAME}-ip"} >> ${ENV_FILE}
-		# Name of the endpoint
-		KUBEFLOW_ENDPOINT_NAME=${KUBEFLOW_ENDPOINT_NAME:-"${DEPLOYMENT_NAME}"}
-		echo KUBEFLOW_ENDPOINT_NAME=${KUBEFLOW_ENDPOINT_NAME} >> ${ENV_FILE}
-		# Complete hostname
-		echo KUBEFLOW_HOSTNAME=${KUBEFLOW_HOSTNAME:-"${KUBEFLOW_ENDPOINT_NAME}.endpoints.${PROJECT}.cloud.goog"} >> ${ENV_FILE}
-
-		echo CONFIG_FILE=${CONFIG_FILE:-"cluster-kubeflow.yaml"} >> ${ENV_FILE}
-
-		if [ -z "${PROJECT_NUMBER}" ]; then
-		  PROJECT_NUMBER=$(gcloud projects describe ${PROJECT} --format='value(project_number)')
-		fi
-
-		echo PROJECT_NUMBER=${PROJECT_NUMBER} >> ${ENV_FILE}
-  fi
+  case "$PLATFORM" in 
+    minikube)
+      echo KUBEFLOW_CLOUD=minikube >> ${ENV_FILE}
+      echo MOUNT_LOCAL=${MOUNT_LOCAL} >> ${ENV_FILE}
+      ;;
+    ack)
+      echo KUBEFLOW_CLOUD=ack >> ${ENV_FILE}
+      echo KUBEFLOW_DOCKER_REGISTRY=registry.aliyuncs.com >> ${ENV_FILE}
+      ;;
+    gcp)
+      PROJECT=${PROJECT:-$(gcloud config get-value project 2>/dev/null)}
+      echo KUBEFLOW_CLOUD=gke >> ${ENV_FILE}
+      echo PROJECT="${PROJECT}" >> ${ENV_FILE}
+      if [ -z "${PROJECT}" ]; then
+        echo PROJECT must be set either using environment variable PROJECT
+        echo or by setting the default project in gcloud
+        exit 1
+      fi    
+  
+      # Name of the deployment
+      DEPLOYMENT_NAME=${DEPLOYMENT_NAME:-"kubeflow"}
+      echo DEPLOYMENT_NAME="${DEPLOYMENT_NAME}" >> ${ENV_FILE}
+  
+      # Kubeflow directories
+      echo KUBEFLOW_DM_DIR=${KUBEFLOW_DM_DIR:-"$(pwd)/gcp_config"} >> ${ENV_FILE}
+      echo KUBEFLOW_SECRETS_DIR=${KUBEFLOW_SECRETS_DIR:-"$(pwd)/secrets"} >> ${ENV_FILE}
+      echo KUBEFLOW_K8S_MANIFESTS_DIR="$(pwd)/k8s_specs" >> ${ENV_FILE}
+  
+      # Name of the K8s context to create.
+      echo  KUBEFLOW_K8S_CONTEXT=${DEPLOYMENT_NAME} >> ${ENV_FILE}
+  
+      # GCP Zone
+      # The default should be a zone that supports Haswell.
+      ZONE=${ZONE:-$(gcloud config get-value compute/zone 2>/dev/null)}
+      echo ZONE=${ZONE:-"us-east1-d"} >> ${ENV_FILE}
+  
+      # Email for cert manager
+      EMAIL=${EMAIL:-$(gcloud config get-value account 2>/dev/null)}
+      echo EMAIL=${EMAIL} >> ${ENV_FILE}
+  
+      # GCP Static IP Name
+      echo KUBEFLOW_IP_NAME=${KUBEFLOW_IP_NAME:-"${DEPLOYMENT_NAME}-ip"} >> ${ENV_FILE}
+      # Name of the endpoint
+      KUBEFLOW_ENDPOINT_NAME=${KUBEFLOW_ENDPOINT_NAME:-"${DEPLOYMENT_NAME}"}
+      echo KUBEFLOW_ENDPOINT_NAME=${KUBEFLOW_ENDPOINT_NAME} >> ${ENV_FILE}
+      # Complete hostname
+      echo KUBEFLOW_HOSTNAME=${KUBEFLOW_HOSTNAME:-"${KUBEFLOW_ENDPOINT_NAME}.endpoints.${PROJECT}.cloud.goog"} >> ${ENV_FILE}
+  
+      echo CONFIG_FILE=${CONFIG_FILE:-"cluster-kubeflow.yaml"} >> ${ENV_FILE}
+  
+      if [ -z "${PROJECT_NUMBER}" ]; then
+        PROJECT_NUMBER=$(gcloud projects describe ${PROJECT} --format='value(project_number)')
+      fi
+  
+      echo PROJECT_NUMBER=${PROJECT_NUMBER} >> ${ENV_FILE}
+      ;;
+    *)
+      echo KUBEFLOW_CLOUD=null >> ${ENV_FILE}
+      ;;
+  esac
 }
 
 if [ "${COMMAND}" == "init" ]; then
