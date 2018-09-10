@@ -686,6 +686,72 @@ func makeCreateAppEndpoint(svc KsService) endpoint.Endpoint {
 	}
 }
 
+func finishDeployment(svc KsService, req CreateRequest) {
+	retry := 0
+	status := ""
+	var err error
+	ctx := context.TODO()
+	for retry < 40 {
+		status, err = svc.GetDeploymentStatus(ctx, req)
+		if err != nil {
+			log.Errorf("Failed to get deployment status: %v", err)
+			return
+		}
+		if status == "DONE" {
+			log.Infof("Deployment is done")
+			break
+		}
+		log.Infof("status: %v, waiting...", status)
+		retry += 1
+		time.Sleep(10 * time.Second)
+	}
+	if status != "DONE" {
+		log.Errorf("Deployment status is not done: %v", status)
+		return
+	}
+
+	log.Infof("Inserting sa keys...")
+	err = svc.InsertSaKeys(ctx, InsertSaKeyRequest{
+		Cluster: req.Cluster,
+		Namespace: req.Namespace,
+		Project: req.Project,
+		Token: req.Token,
+		Zone: req.Zone,
+	})
+	if err != nil {
+		log.Errorf("Failed to insert service account key: %v", err)
+		return
+	}
+
+	log.Infof("Creating app...")
+	err = svc.CreateApp(ctx, req)
+	if err != nil {
+		log.Errorf("Failed to create app: %v", err)
+		return
+	}
+
+	if req.Apply {
+		components := []string{}
+		for _, comp := range req.AppConfig.Components {
+			components = append(components, comp.Name)
+		}
+		err = svc.Apply(ctx, ApplyRequest{
+			Name: req.Name,
+			Environment: "default",
+			Components: components,
+			Cluster: req.Cluster,
+			Project: req.Project,
+			Zone: req.Zone,
+			Token: req.Token,
+			Email: req.Email,
+		})
+		if err != nil {
+			log.Errorf("Failed to apply app: %v", err)
+			return
+		}
+	}
+}
+
 func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(CreateRequest)
@@ -703,63 +769,7 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 			r.Err = err.Error()
 			return r, err
 		}
-		retry := 0
-		status := ""
-		for retry < 40 {
-			status, err = svc.GetDeploymentStatus(ctx, req)
-			if err != nil {
-				r.Err = err.Error()
-				return r, err
-			}
-			if status == "DONE" {
-				break
-			}
-			log.Infof("status: %v, waiting...", status)
-			retry += 1
-			time.Sleep(10 * time.Second)
-		}
-		if status != "DONE" {
-			r.Err = "Deployment didn't complete in 400 second"
-			return r, err
-		}
-
-		err = svc.InsertSaKeys(ctx, InsertSaKeyRequest{
-			Cluster: req.Cluster,
-			Namespace: req.Namespace,
-			Project: req.Project,
-			Token: req.Token,
-			Zone: req.Zone,
-		})
-		if err != nil {
-			r.Err = err.Error()
-			return r, err
-		}
-
-		err = svc.CreateApp(ctx, req)
-		if err != nil {
-			r.Err = err.Error()
-			return r, err
-		}
-
-		if req.Apply {
-			components := []string{}
-			for _, comp := range req.AppConfig.Components {
-				components = append(components, comp.Name)
-			}
-			err = svc.Apply(ctx, ApplyRequest{
-				Name: req.Name,
-				Environment: "default",
-				Components: components,
-				Cluster: req.Cluster,
-				Project: req.Project,
-				Zone: req.Zone,
-				Token: req.Token,
-				Email: req.Email,
-			})
-			if err != nil {
-				r.Err = err.Error()
-			}
-		}
+		go finishDeployment(svc, req)
 		return r, nil
 	}
 }
