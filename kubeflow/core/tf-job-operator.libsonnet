@@ -2,6 +2,7 @@
   local k8s = import "kubeflow/core/k8s.libsonnet",
   local util = import "kubeflow/core/util.libsonnet",
   local crd = k8s.apiextensions.v1beta1.customResourceDefinition,
+  local deployment = k.apps.v1beta1.deployment,
   new(_env, _params):: {
     local params = _env + _params {
       namespace: if std.objectHas(_params, "namespace") && _params.namespace != "null" then
@@ -19,6 +20,72 @@
         withPlural("tfjobs").
         withSingular("tfjob"),
     tfJobCrdv1alpha1:: tfJobCrdv1alpha1,
+
+    tfJobDeployv1alpha1: {
+      apiVersion: "extensions/v1beta1",
+      kind: "Deployment",
+      metadata: {
+        name: "tf-job-operator",
+        namespace: namespace,
+      },
+      spec: {
+        replicas: 1,
+        template: {
+          metadata: {
+            labels: {
+              name: "tf-job-operator",
+            },
+          },
+          spec: {
+            containers: [
+              {
+                command: [
+                  "/opt/mlkube/tf-operator",
+                  "--controller-config-file=/etc/config/controller_config_file.yaml",
+                  "--alsologtostderr",
+                  "-v=1",
+                ],
+                env: [
+                  {
+                    name: "MY_POD_NAMESPACE",
+                    valueFrom: {
+                      fieldRef: {
+                        fieldPath: "metadata.namespace",
+                      },
+                    },
+                  },
+                  {
+                    name: "MY_POD_NAME",
+                    valueFrom: {
+                      fieldRef: {
+                        fieldPath: "metadata.name",
+                      },
+                    },
+                  },
+                ],
+                image: parameters.image,
+                name: "tf-job-operator",
+                volumeMounts: [
+                  {
+                    mountPath: "/etc/config",
+                    name: "config-volume",
+                  },
+                ],
+              },
+            ],
+            serviceAccountName: "tf-job-operator",
+            volumes: [
+              {
+                configMap: {
+                  name: "tf-job-operator-config",
+                },
+                name: "config-volume",
+              },
+            ],
+          },
+        },
+      },
+    },  // tfJobDeploy
 
     local tfJobCrdv1alpha2 =
       crd.new() + crd.mixin.metadata.
@@ -73,6 +140,7 @@
         }),  
     tfJobCrdv1alpha2:: tfJobCrdv1alpha2,
 
+
     all:: [
       self.tfJobCrdv1alpha1,
       self.tfJobCrdv1alpha2,
@@ -114,71 +182,6 @@
 
   parts(namespace):: {
 
-    tfJobDeploy(image): {
-      apiVersion: "extensions/v1beta1",
-      kind: "Deployment",
-      metadata: {
-        name: "tf-job-operator",
-        namespace: namespace,
-      },
-      spec: {
-        replicas: 1,
-        template: {
-          metadata: {
-            labels: {
-              name: "tf-job-operator",
-            },
-          },
-          spec: {
-            containers: [
-              {
-                command: [
-                  "/opt/mlkube/tf-operator",
-                  "--controller-config-file=/etc/config/controller_config_file.yaml",
-                  "--alsologtostderr",
-                  "-v=1",
-                ],
-                env: [
-                  {
-                    name: "MY_POD_NAMESPACE",
-                    valueFrom: {
-                      fieldRef: {
-                        fieldPath: "metadata.namespace",
-                      },
-                    },
-                  },
-                  {
-                    name: "MY_POD_NAME",
-                    valueFrom: {
-                      fieldRef: {
-                        fieldPath: "metadata.name",
-                      },
-                    },
-                  },
-                ],
-                image: image,
-                name: "tf-job-operator",
-                volumeMounts: [
-                  {
-                    mountPath: "/etc/config",
-                    name: "config-volume",
-                  },
-                ],
-              },
-            ],
-            serviceAccountName: "tf-job-operator",
-            volumes: [
-              {
-                configMap: {
-                  name: "tf-job-operator-config",
-                },
-                name: "config-volume",
-              },
-            ],
-          },
-        },
-      },
-    },  // tfJobDeploy
 
     tfJobDeployV1Alpha2(image, deploymentScope, deploymentNamespace): {
       apiVersion: "extensions/v1beta1",
