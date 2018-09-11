@@ -101,7 +101,7 @@ spec:
         - name: config-volume
           mountPath: /app/src/user_config
       - name: controller-backend
-        image: gcr.io/kubeflow-images-public/bootstrapper:v20180910-38b7da4c-dirty-cd31a3
+        image: gcr.io/kubeflow-images-public/bootstrapper:v20180910-eaf4a550-dirty-b2d739 
         workingDir: /opt/bootstrap
         command: [ "/opt/kubeflow/bootstrapper"]
         args: [
