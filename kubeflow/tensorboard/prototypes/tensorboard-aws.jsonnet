@@ -74,13 +74,14 @@ local tensorboard = {
       ),
     tbDeployment:: tbDeployment,
 
-    local all = [
+    all:: [
       self.tbService,
       self.tbDeployment,
     ],
 
-    list(obj=all):: util.list(obj),
+    list(obj=self.all):: util.list(obj),
 
   },
-}.new(env, params);
-tensorboard.list
+};
+local instance = tensorboard.new(env, params);
+instance.list(instance.all)
