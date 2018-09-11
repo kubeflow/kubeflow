@@ -146,7 +146,7 @@ if [ "${COMMAND}" == "init" ]; then
 	# TODO(jlewi): How can we skip GCP project setup? Add a command line argument
 	# to skip it?
 	if [ "${PLATFORM}" == "gcp" ]; then
-	  if ! ${SKIP_INIT_PROJECT}; then
+	  if [ ! ${SKIP_INIT_PROJECT} ]; then
 	  	gcpInitProject
 	  fi
 	fi
