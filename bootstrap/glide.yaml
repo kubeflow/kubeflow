@@ -25,6 +25,8 @@ import:
 - package: google.golang.org/api
   subpackages:
   - cloudresourcemanager/v1
+- package: google.golang.org/grpc
+  version: ^1.15.0
 - package: k8s.io/kubernetes
   version: v1.10.2
 - package: k8s.io/client-go
