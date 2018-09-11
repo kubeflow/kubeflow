@@ -16,7 +16,8 @@ std.assertEqual(util.toBool("random string"), false) &&
 std.assertEqual(util.toBool(1), true) &&
 std.assertEqual(util.toBool(0), false) &&
 std.assertEqual(util.toBool(123), true) &&
-std.assertEqual(std.length(util.toArray("a,b,c,d")), 4) &&
+std.assertEqual(util.toArray("a,b,c,d"),["a","b","c","d"]) &&
+std.assertEqual(util.toArray("ca, or,fl, mo"),["ca","or","fl","mo"]) &&
 std.assertEqual(std.length(util.toArray(2)), 0) &&
 std.assertEqual(std.length(util.toArray("hello world")), 1) &&
 std.assertEqual(std.length(util.toArray([1, 2, 3, 4])), 0) &&

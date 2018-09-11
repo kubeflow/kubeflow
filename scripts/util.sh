@@ -48,6 +48,7 @@ function createKsApp() {
   ks registry add kubeflow "${KUBEFLOW_REPO}/kubeflow"
 
   # Install all required packages
+  ks pkg install kubeflow/application
   ks pkg install kubeflow/argo
   ks pkg install kubeflow/core
   ks pkg install kubeflow/examples
@@ -60,6 +61,7 @@ function createKsApp() {
   # Generate all required components
   ks generate pytorch-operator pytorch-operator
   # TODO(jlewi): Why are we overloading the ambassador images here?
+  ks generate application application
   ks generate ambassador ambassador
   ks generate jupyterhub jupyterhub
   ks generate centraldashboard centraldashboard

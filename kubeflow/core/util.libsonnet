@@ -37,9 +37,16 @@
 
   // Convert a comma-delimited string to an Array
   toArray:: function(str) {
+    local trim(str) = {
+      rest::
+        if std.startsWith(str, ' ') then
+          std.substr(str, 1, std.length(str)-1)
+        else 
+          str,
+    }.rest,
     result::
       if std.type(str) == "string" && str != "null" && std.length(str) > 0 then
-        std.split(str, ",")
+        std.map(trim,std.split(str, ","))
       else [],
   }.result,
 
