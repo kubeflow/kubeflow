@@ -6,10 +6,10 @@
 // @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
 // @optionalParam args string null Comma separated list of arguments to pass to the job
 // @optionalParam image string gcr.io/kubeflow-examples/pytorch-dist-mnist:v20180702-a57993c The docker image to use for the job.
-// @optionalParam image_gpu string null The docker image to use when using GPUs.
 // @optionalParam num_masters number 1 The number of masters to use
 // @optionalParam num_workers number 1 The number of workers to use
 // @optionalParam num_gpus number 0 The number of GPUs to attach to workers.
+// @optionalParam version string v1alpha2 The pytorch operator version to use
 
 local k = import "k.libsonnet";
 
@@ -45,11 +45,39 @@ local util = {
         replicaType: replicaType,
       }
     else {},
+
+  pytorchJobReplicaV1alpha2(replicaType, number, args, image, numGpus=0)::
+    local baseContainer = {
+      image: image,
+      name: "pytorch",
+    };
+    local containerArgs = if std.length(args) > 0 then
+      {
+        args: args,
+      }
+    else {};
+    local resources = if numGpus > 0 then {
+      resources: {
+        limits: {
+          "nvidia.com/gpu": numGpus,
+        },
+      },
+    } else {};
+    if number > 0 then {
+      replicas: number,
+      template: {
+        spec: {
+          containers: [
+            baseContainer + containerArgs + resources,
+          ],
+        },
+      },
+    } else {},
 };
 
 local namespace = env.namespace;
 local name = params.name;
-
+local version = params.version;
 local argsParam = params.args;
 local args =
   if argsParam == "null" then
@@ -63,16 +91,19 @@ local numMasters = params.num_masters;
 local numWorkers = params.num_workers;
 local numGpus = params.num_gpus;
 
-local workerSpec = if numGpus > 0 then
-  util.pytorchJobReplica("WORKER", numWorkers, args, imageGpu, numGpus)
+local replicaSpec = if version == "v1alpha1" then
+  util.pytorchJobReplica
 else
-  util.pytorchJobReplica("WORKER", numWorkers, args, image);
+  util.pytorchJobReplicaV1alpha2;
 
-local masterSpec = util.pytorchJobReplica("MASTER", numMasters, args, image);
-local replicas = [masterSpec, workerSpec];
+local workerSpec = if numGpus > 0 then
+  replicaSpec("WORKER", numWorkers, args, image, numGpus)
+else
+  replicaSpec("WORKER", numWorkers, args, image);
 
+local masterSpec = replicaSpec("MASTER", numMasters, args, image);
 
-local job = {
+local job = if version == "v1alpha1" then {
   apiVersion: "kubeflow.org/v1alpha1",
   kind: "PyTorchJob",
   metadata: {
@@ -80,7 +111,21 @@ local job = {
     namespace: namespace,
   },
   spec: {
-    replicaSpecs: replicas,
+    replicaSpecs: [masterSpec, workerSpec],
+  },
+
+} else {
+  apiVersion: "kubeflow.org/v1alpha2",
+  kind: "PyTorchJob",
+  metadata: {
+    name: name,
+    namespace: namespace,
+  },
+  spec: {
+    pytorchReplicaSpecs: {
+      Master: masterSpec,
+      Worker: workerSpec,
+    },
   },
 };
 
