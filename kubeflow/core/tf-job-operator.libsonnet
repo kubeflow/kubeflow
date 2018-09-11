@@ -21,6 +21,16 @@
         withSingular("tfjob"),
     tfJobCrdv1alpha1:: tfJobCrdv1alpha1,
 
+    local tfJobDeployv1alpha1 =
+      deployment.new(
+        name=params.name,
+        replicas=1,
+        containers=container,
+        podLabels=params.labels,
+      ) + deployment.mixin.metadata.
+        withNamespace(params.namespace).
+        withLabelsMixin(params.labels),
+
     tfJobDeployv1alpha1: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
