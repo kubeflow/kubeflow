@@ -1,4 +1,93 @@
 {
+  local k8s = import "kubeflow/core/k8s.libsonnet",
+  local util = import "kubeflow/core/util.libsonnet",
+  local crd = k8s.apiextensions.v1beta1.customResourceDefinition,
+  new(_env, _params):: {
+    local params = _env + _params {
+      namespace: if std.objectHas(_params, "namespace") && _params.namespace != "null" then
+        _params.namespace else _env.namespace,
+    },
+
+    local tfJobCrdv1alpha1 = 
+      crd.new() + crd.mixin.metadata.
+        withName("tfjobs.kubeflow.org").
+        withNamespace(params.namespace) + crd.mixin.spec.
+        withGroup("kubeflow.org").
+        withVersion("v1alpha1").
+        withScope("Namespaced") + crd.mixin.spec.names.
+        withKind("TFJob").
+        withPlural("tfjobs").
+        withSingular("tfjob"),
+    tfJobCrdv1alpha1:: tfJobCrdv1alpha1,
+
+    local tfJobCrdv1alpha2 =
+      crd.new() + crd.mixin.metadata.
+        withName("tfjobs.kubeflow.org").
+        withNamespace(params.namespace) + crd.mixin.spec.
+        withGroup("kubeflow.org").
+        withVersion("v1alpha2").
+        withScope("Namespaced") + crd.mixin.spec.names.
+        withKind("TFJob").
+        withPlural("tfjobs").
+        withSingular("tfjob") + crd.mixin.spec.validation.
+        withOpenApiV3SchemaMixin({
+          properties: {
+            spec: {
+              properties: {
+                tfReplicaSpecs: {
+                  properties: {
+                    // The validation works when the configuration contains
+                    // `Worker`, `PS` or `Chief`. Otherwise it will not be validated.
+                    Worker: {
+                      properties: {
+                        // We do not validate pod template because of
+                        // https://github.com/kubernetes/kubernetes/issues/54579
+                        replicas: {
+                          type: "integer",
+                          minimum: 1,
+                        },
+                      },
+                    },
+                    PS: {
+                      properties: {
+                        replicas: {
+                          type: "integer",
+                          minimum: 1,
+                        },
+                      },
+                    },
+                    Chief: {
+                      properties: {
+                        replicas: {
+                          type: "integer",
+                          minimum: 1,
+                          maximum: 1,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        }),  
+    tfJobCrdv1alpha2:: tfJobCrdv1alpha2,
+
+    all:: [
+      self.tfJobCrdv1alpha1,
+      self.tfJobCrdv1alpha2,
+    ],
+
+    list(obj=self.all):: util.list(obj),
+  },
+}
+
+
+
+
+/*
+---
+{
   all(params):: [
 
                   $.parts(params.namespace).configMap(params.cloud, params.tfDefaultImage),
@@ -24,82 +113,6 @@
                   ],
 
   parts(namespace):: {
-    crd: {
-      apiVersion: "apiextensions.k8s.io/v1beta1",
-      kind: "CustomResourceDefinition",
-      metadata: {
-        name: "tfjobs.kubeflow.org",
-      },
-      spec: {
-        group: "kubeflow.org",
-        version: "v1alpha1",
-        names: {
-          kind: "TFJob",
-          singular: "tfjob",
-          plural: "tfjobs",
-        },
-      },
-    },
-
-    crdv1alpha2: {
-      apiVersion: "apiextensions.k8s.io/v1beta1",
-      kind: "CustomResourceDefinition",
-      metadata: {
-        name: "tfjobs.kubeflow.org",
-      },
-      spec: {
-        group: "kubeflow.org",
-        version: "v1alpha2",
-        names: {
-          kind: "TFJob",
-          singular: "tfjob",
-          plural: "tfjobs",
-        },
-        validation: {
-          openAPIV3Schema: {
-            properties: {
-              spec: {
-                properties: {
-                  tfReplicaSpecs: {
-                    properties: {
-                      // The validation works when the configuration contains
-                      // `Worker`, `PS` or `Chief`. Otherwise it will not be validated.
-                      Worker: {
-                        properties: {
-                          // We do not validate pod template because of
-                          // https://github.com/kubernetes/kubernetes/issues/54579
-                          replicas: {
-                            type: "integer",
-                            minimum: 1,
-                          },
-                        },
-                      },
-                      PS: {
-                        properties: {
-                          replicas: {
-                            type: "integer",
-                            minimum: 1,
-                          },
-                        },
-                      },
-                      Chief: {
-                        properties: {
-                          replicas: {
-                            type: "integer",
-                            minimum: 1,
-                            maximum: 1,
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
 
     tfJobDeploy(image): {
       apiVersion: "extensions/v1beta1",
@@ -628,3 +641,4 @@
     },  // uiRoleBinding
   },
 }
+*/
