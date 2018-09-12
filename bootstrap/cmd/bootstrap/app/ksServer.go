@@ -65,6 +65,7 @@ type ksServer struct {
 
 	fs afero.Fs
 
+	// project-id -> project lock
 	projectLocks map[string]*sync.Mutex
 	serverMux sync.Mutex
 }
