@@ -500,6 +500,7 @@ func GetRepoName(project string) string {
 }
 
 // Not thread-safe, make sure project lock is on.
+// Clone project repo to local disk, which contains all existing ks apps config in the project
 func (s *ksServer) CloneRepoToLocal(project string, token string) error {
 	repoDir := path.Join(s.appsDir, GetRepoName(project))
 	_, err := s.fs.Stat(repoDir)
@@ -552,7 +553,7 @@ func (s *ksServer) GetApp(project string, appName string, token string) (*appInf
 	}, nil
 }
 
-// Save ks app config to cloud source repos
+// Save ks app config local changes to project source repo.
 // Not thread safe, be aware when call it.
 func (s *ksServer) SaveAppToRepo(project string) error {
 	repoDir := path.Join(s.appsDir, GetRepoName(project))
