@@ -305,7 +305,11 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 		s.autoConfigureApp(&a.App, &request.AppConfig, request.Namespace, config)
 	}
 
-	s.SaveAppToRepo(request.Project)
+	err = s.SaveAppToRepo(request.Project, request.Email)
+	if err != nil {
+		log.Fatal("There was a problem saving config to cloud repo; %v", err)
+		return err
+	}
 	log.Infof("Created and initialized app at %v", a.App.Root())
 	return nil
 }
@@ -557,14 +561,17 @@ func (s *ksServer) GetApp(project string, appName string, token string) (*appInf
 
 // Save ks app config local changes to project source repo.
 // Not thread safe, be aware when call it.
-func (s *ksServer) SaveAppToRepo(project string) error {
+func (s *ksServer) SaveAppToRepo(project string, email string) error {
 	repoDir := path.Join(s.appsDir, GetRepoName(project))
 	err := os.Chdir(repoDir)
 	if err != nil {
 		return err
 	}
+
+
 	cmd := exec.Command("sh", "-c",
-		"git add .; git commit -m 'auto commit from deployment'; git pull --rebase; git push origin master")
+		fmt.Sprintf("git config user.email '%s'; git config user.name 'auto-commit'; git add .; " +
+			"git commit -m 'auto commit from deployment'; git pull --rebase; git push origin master", email))
 	return cmd.Run()
 }
 
