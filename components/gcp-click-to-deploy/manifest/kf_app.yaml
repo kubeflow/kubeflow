@@ -19,8 +19,6 @@ data:
         prototype: centraldashboard
       - name: tf-job-operator
         prototype: tf-job-operator
-      - name: spartakus
-        prototype: spartakus
       - name: cloud-endpoints
         prototype: cloud-endpoints
       - name: cert-manager
