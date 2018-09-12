@@ -305,7 +305,11 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 		s.autoConfigureApp(&a.App, &request.AppConfig, request.Namespace, config)
 	}
 
-	s.SaveAppToRepo(request.Project)
+	err = s.SaveAppToRepo(request.Project)
+	if err != nil {
+		log.Fatal("There was a problem saving config to cloud repo; %v", err)
+		return err
+	}
 	log.Infof("Created and initialized app at %v", a.App.Root())
 	return nil
 }
