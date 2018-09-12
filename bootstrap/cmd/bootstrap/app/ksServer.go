@@ -233,7 +233,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 				actions.OptionServer:   config.Host,
 				// TODO(jlewi): What is the proper version to use? It shouldn't be a version like v1.9.0-gke as that
 				// will create an error because ksonnet will be unable to fetch a swagger spec.
-				actions.OptionSpecFlag:              "version:v1.7.0",
+				actions.OptionSpecFlag:              "version:v1.10.6",
 				actions.OptionNamespace:             request.Namespace,
 				actions.OptionSkipDefaultRegistries: true,
 			}
@@ -354,6 +354,7 @@ func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *AppConfig) error {
 						actions.OptionApp:     kfApp,
 						actions.OptionLibName: full,
 						actions.OptionName:    pkgName,
+						actions.OptionForce:	false,
 					})
 
 					if err != nil {
@@ -377,6 +378,7 @@ func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *AppConfig) error {
 			actions.OptionApp:     kfApp,
 			actions.OptionLibName: full,
 			actions.OptionName:    pkg.Name,
+			actions.OptionForce:	false,
 		})
 
 		if err != nil {
