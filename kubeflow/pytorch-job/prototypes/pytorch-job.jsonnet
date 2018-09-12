@@ -6,10 +6,10 @@
 // @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
 // @optionalParam args string null Comma separated list of arguments to pass to the job
 // @optionalParam image string gcr.io/kubeflow-examples/pytorch-dist-mnist:v20180702-a57993c The docker image to use for the job.
-// @optionalParam num_masters number 1 The number of masters to use
-// @optionalParam num_workers number 1 The number of workers to use
-// @optionalParam num_gpus number 0 The number of GPUs to attach to workers.
-// @optionalParam version string v1alpha2 The pytorch operator version to use
+// @optionalParam numMasters number 1 The number of masters to use
+// @optionalParam numWorkers number 1 The number of workers to use
+// @optionalParam numGpus number 0 The number of GPUs to attach to workers.
+// @optionalParam jobVersion string v1alpha2 The pytorch operator version to use
 
 local k = import "k.libsonnet";
 
@@ -77,7 +77,7 @@ local util = {
 
 local namespace = env.namespace;
 local name = params.name;
-local version = params.version;
+local jobVersion = params.jobVersion;
 local argsParam = params.args;
 local args =
   if argsParam == "null" then
@@ -87,11 +87,11 @@ local args =
 
 local image = params.image;
 local imageGpu = params.image_gpu;
-local numMasters = params.num_masters;
-local numWorkers = params.num_workers;
-local numGpus = params.num_gpus;
+local numMasters = params.numMasters;
+local numWorkers = params.numWorkers;
+local numGpus = params.numGpus;
 
-local replicaSpec = if version == "v1alpha1" then
+local replicaSpec = if jobVersion == "v1alpha1" then
   util.pytorchJobReplica
 else
   util.pytorchJobReplicaV1alpha2;
@@ -103,7 +103,7 @@ else
 
 local masterSpec = replicaSpec("MASTER", numMasters, args, image);
 
-local job = if version == "v1alpha1" then {
+local job = if jobVersion == "v1alpha1" then {
   apiVersion: "kubeflow.org/v1alpha1",
   kind: "PyTorchJob",
   metadata: {
