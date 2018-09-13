@@ -1,37 +1,107 @@
 {
-  local k8s = import "kubeflow/core/k8s.libsonnet",
-  local util = import "kubeflow/core/util.libsonnet",
-  local crd = k8s.apiextensions.v1beta1.customResourceDefinition,
-  local deployment = k.apps.v1beta1.deployment,
-  new(_env, _params):: {
-    local params = _env + _params {
-      namespace: if std.objectHas(_params, "namespace") && _params.namespace != "null" then
-        _params.namespace else _env.namespace,
+  all(params):: [
+
+                  $.parts(params.namespace).configMap(params.tfDefaultImage),
+                  $.parts(params.namespace).serviceAccount,
+                  $.parts(params.namespace).operatorRole(params.deploymentScope, params.deploymentNamespace),
+                  $.parts(params.namespace).operatorRoleBinding(params.deploymentScope, params.deploymentNamespace),
+                  $.parts(params.namespace).uiRole,
+                  $.parts(params.namespace).uiRoleBinding,
+                  $.parts(params.namespace).uiService(params.tfJobUiServiceType),
+                  $.parts(params.namespace).uiServiceAccount,
+                  $.parts(params.namespace).ui(params.tfJobImage),
+                ] +
+
+                if params.tfJobVersion == "v1alpha2" then
+                  [
+                    $.parts(params.namespace).crdv1alpha2,
+                    $.parts(params.namespace).tfJobDeployV1Alpha2(params.tfJobImage, params.deploymentScope, params.deploymentNamespace),
+                  ]
+                else
+                  [
+                    $.parts(params.namespace).crd,
+                    $.parts(params.namespace).tfJobDeploy(params.tfJobImage),
+                  ],
+
+  parts(namespace):: {
+    crd: {
+      apiVersion: "apiextensions.k8s.io/v1beta1",
+      kind: "CustomResourceDefinition",
+      metadata: {
+        name: "tfjobs.kubeflow.org",
+      },
+      spec: {
+        group: "kubeflow.org",
+        version: "v1alpha1",
+        names: {
+          kind: "TFJob",
+          singular: "tfjob",
+          plural: "tfjobs",
+        },
+      },
     },
 
-    local tfJobCrdv1alpha1 = 
-      crd.new() + crd.mixin.metadata.
-        withName("tfjobs.kubeflow.org").
-        withNamespace(params.namespace) + crd.mixin.spec.
-        withGroup("kubeflow.org").
-        withVersion("v1alpha1").
-        withScope("Namespaced") + crd.mixin.spec.names.
-        withKind("TFJob").
-        withPlural("tfjobs").
-        withSingular("tfjob"),
-    tfJobCrdv1alpha1:: tfJobCrdv1alpha1,
+    crdv1alpha2: {
+      apiVersion: "apiextensions.k8s.io/v1beta1",
+      kind: "CustomResourceDefinition",
+      metadata: {
+        name: "tfjobs.kubeflow.org",
+      },
+      spec: {
+        group: "kubeflow.org",
+        version: "v1alpha2",
+        names: {
+          kind: "TFJob",
+          singular: "tfjob",
+          plural: "tfjobs",
+        },
+        validation: {
+          openAPIV3Schema: {
+            properties: {
+              spec: {
+                properties: {
+                  tfReplicaSpecs: {
+                    properties: {
+                      // The validation works when the configuration contains
+                      // `Worker`, `PS` or `Chief`. Otherwise it will not be validated.
+                      Worker: {
+                        properties: {
+                          // We do not validate pod template because of
+                          // https://github.com/kubernetes/kubernetes/issues/54579
+                          replicas: {
+                            type: "integer",
+                            minimum: 1,
+                          },
+                        },
+                      },
+                      PS: {
+                        properties: {
+                          replicas: {
+                            type: "integer",
+                            minimum: 1,
+                          },
+                        },
+                      },
+                      Chief: {
+                        properties: {
+                          replicas: {
+                            type: "integer",
+                            minimum: 1,
+                            maximum: 1,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
 
-    local tfJobDeployv1alpha1 =
-      deployment.new(
-        name=params.name,
-        replicas=1,
-        containers=container,
-        podLabels=params.labels,
-      ) + deployment.mixin.metadata.
-        withNamespace(params.namespace).
-        withLabelsMixin(params.labels),
-
-    tfJobDeployv1alpha1: {
+    tfJobDeploy(image): {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -73,7 +143,7 @@
                     },
                   },
                 ],
-                image: parameters.image,
+                image: image,
                 name: "tf-job-operator",
                 volumeMounts: [
                   {
@@ -96,102 +166,6 @@
         },
       },
     },  // tfJobDeploy
-
-    local tfJobCrdv1alpha2 =
-      crd.new() + crd.mixin.metadata.
-        withName("tfjobs.kubeflow.org").
-        withNamespace(params.namespace) + crd.mixin.spec.
-        withGroup("kubeflow.org").
-        withVersion("v1alpha2").
-        withScope("Namespaced") + crd.mixin.spec.names.
-        withKind("TFJob").
-        withPlural("tfjobs").
-        withSingular("tfjob") + crd.mixin.spec.validation.
-        withOpenApiV3SchemaMixin({
-          properties: {
-            spec: {
-              properties: {
-                tfReplicaSpecs: {
-                  properties: {
-                    // The validation works when the configuration contains
-                    // `Worker`, `PS` or `Chief`. Otherwise it will not be validated.
-                    Worker: {
-                      properties: {
-                        // We do not validate pod template because of
-                        // https://github.com/kubernetes/kubernetes/issues/54579
-                        replicas: {
-                          type: "integer",
-                          minimum: 1,
-                        },
-                      },
-                    },
-                    PS: {
-                      properties: {
-                        replicas: {
-                          type: "integer",
-                          minimum: 1,
-                        },
-                      },
-                    },
-                    Chief: {
-                      properties: {
-                        replicas: {
-                          type: "integer",
-                          minimum: 1,
-                          maximum: 1,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        }),  
-    tfJobCrdv1alpha2:: tfJobCrdv1alpha2,
-
-
-    all:: [
-      self.tfJobCrdv1alpha1,
-      self.tfJobCrdv1alpha2,
-    ],
-
-    list(obj=self.all):: util.list(obj),
-  },
-}
-
-
-
-
-/*
----
-{
-  all(params):: [
-
-                  $.parts(params.namespace).configMap(params.cloud, params.tfDefaultImage),
-                  $.parts(params.namespace).serviceAccount,
-                  $.parts(params.namespace).operatorRole(params.deploymentScope, params.deploymentNamespace),
-                  $.parts(params.namespace).operatorRoleBinding(params.deploymentScope, params.deploymentNamespace),
-                  $.parts(params.namespace).uiRole,
-                  $.parts(params.namespace).uiRoleBinding,
-                  $.parts(params.namespace).uiService(params.tfJobUiServiceType),
-                  $.parts(params.namespace).uiServiceAccount,
-                  $.parts(params.namespace).ui(params.tfJobImage),
-                ] +
-
-                if params.tfJobVersion == "v1alpha2" then
-                  [
-                    $.parts(params.namespace).crdv1alpha2,
-                    $.parts(params.namespace).tfJobDeployV1Alpha2(params.tfJobImage, params.deploymentScope, params.deploymentNamespace),
-                  ]
-                else
-                  [
-                    $.parts(params.namespace).crd,
-                    $.parts(params.namespace).tfJobDeploy(params.tfJobImage),
-                  ],
-
-  parts(namespace):: {
-
 
     tfJobDeployV1Alpha2(image, deploymentScope, deploymentNamespace): {
       apiVersion: "extensions/v1beta1",
@@ -278,46 +252,10 @@
                                               else
                                                 {},
 
-    aksAccelerators:: {
-      accelerators: {
-        "alpha.kubernetes.io/nvidia-gpu": {
-          volumes: [
-            {
-              name: "nvidia",
-              mountPath: "/usr/local/nvidia",
-              hostPath: "/usr/local/nvidia",
-            },
-          ],
-        },
-      },
-    },
-
-    acsEngineAccelerators:: {
-      accelerators: {
-        "alpha.kubernetes.io/nvidia-gpu": {
-          volumes: [
-            {
-              name: "nvidia",
-              mountPath: "/usr/local/nvidia",
-              hostPath: "/usr/local/nvidia",
-            },
-          ],
-        },
-      },
-    },
-
-    configData(cloud, tfDefaultImage):: self.defaultControllerConfig(tfDefaultImage) +
-                                        if cloud == "aks" then
-                                          self.aksAccelerators
-                                        else if cloud == "acsengine" then
-                                          self.acsEngineAccelerators
-                                        else
-                                          {},
-
-    configMap(cloud, tfDefaultImage): {
+    configMap(tfDefaultImage): {
       apiVersion: "v1",
       data: {
-        "controller_config_file.yaml": std.manifestJson($.parts(namespace).configData(cloud, tfDefaultImage)),
+        "controller_config_file.yaml": std.manifestJson($.parts(namespace).defaultControllerConfig(tfDefaultImage)),
       },
       kind: "ConfigMap",
       metadata: {
@@ -654,4 +592,3 @@
     },  // uiRoleBinding
   },
 }
-*/

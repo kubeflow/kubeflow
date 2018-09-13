@@ -19,8 +19,6 @@ data:
         prototype: centraldashboard
       - name: tf-job-operator
         prototype: tf-job-operator
-      - name: spartakus
-        prototype: spartakus
       - name: cloud-endpoints
         prototype: cloud-endpoints
       - name: cert-manager
@@ -94,14 +92,14 @@ spec:
     spec:
       containers:
       - name: web-app
-        image: gcr.io/kubeflow-images-public/test-app:0906
+        image: gcr.io/kubeflow-images-public/test-app:0912
         ports:
         - containerPort: 3000
         volumeMounts:
         - name: config-volume
           mountPath: /app/src/user_config
       - name: controller-backend
-        image: gcr.io/kubeflow-images-public/bootstrapper:v20180907-299acdaa-dirty-aead57
+        image: gcr.io/kubeflow-images-public/bootstrapper:v20180912-982bc22e-dirty-ee4259 
         workingDir: /opt/bootstrap
         command: [ "/opt/kubeflow/bootstrapper"]
         args: [

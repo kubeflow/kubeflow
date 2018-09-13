@@ -1,7 +1,6 @@
 local tfjob = import "../tf-job-operator.libsonnet";
 local params = {
   namespace:: "test-kf-001",
-  cloud:: "azure",
   tfJobImage:: "gcr.io/kubeflow-images-public/tf_operator:v20180226-403",
   tfDefaultImage:: "null",
 };
@@ -76,7 +75,7 @@ std.assertEqual(
 ) &&
 
 std.assertEqual(
-  tfjob.parts(params.namespace).configMap(params.cloud, params.tfDefaultImage),
+  tfjob.parts(params.namespace).configMap(params.tfDefaultImage),
   {
     apiVersion: "v1",
     data: {
