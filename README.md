@@ -1,5 +1,5 @@
 <img src="https://www.kubeflow.org/images/logo.svg" width="100">
-Kubeflow is a Cloud Native platform for machine learning.
+Kubeflow is a Cloud Native platform for machine learning based on Google’s internal machine learning pipelines.
 
 ---
 Please refer to the official docs at [kubeflow.org](http://kubeflow.org).
