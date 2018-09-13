@@ -61,7 +61,8 @@ function createKsApp() {
   # Generate all required components
   ks generate pytorch-operator pytorch-operator
   # TODO(jlewi): Why are we overloading the ambassador images here?
-  ks generate application application
+  ks generate kubeflow-01 kubeflow-01
+  ks generate kubeflow-02 kubeflow-02
   ks generate ambassador ambassador
   ks generate jupyterhub jupyterhub
   ks generate centraldashboard centraldashboard

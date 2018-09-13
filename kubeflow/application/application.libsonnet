@@ -19,9 +19,9 @@
         withName("applications.app.k8s.io").
         withNamespace(params.namespace).
         withLabelsMixin({
-          api: "default",
-          "kubebuilder.k8s.io": "0.1.10",
-        }) + crd.mixin.spec.
+        api: "default",
+        "kubebuilder.k8s.io": "0.1.10",
+      }) + crd.mixin.spec.
         withGroup("app.k8s.io").
         withVersion("v1beta1").
         withScope("Namespaced") + crd.mixin.spec.names.
@@ -30,18 +30,19 @@
         withSingular("application"),
     applicationCrd:: applicationCrd,
 
-    local generateComponentKinds(resource) = {
-      local name = 
-        if std.objectHas(resource.metadata, 'name') then 
-          resource.metadata.name 
+    local generateComponentTuples(resource) = {
+      local name =
+        if std.objectHas(resource.metadata, "name") then
+          resource.metadata.name
         else null,
+      local gname = std.split(resource.apiVersion, "/")[0],
       local groupKindAndResource = {
         tuple: [
-          { 
-            name: name, 
-          },
-          {
-            group: std.split(resource.apiVersion, '/')[0],
+          { name: name },
+          if gname != "v1" then {
+            group: gname,
+            kind: resource.kind,
+          } else {
             kind: resource.kind,
           },
           resource,
@@ -55,16 +56,20 @@
       local componentlib = pair[1],
       local cparams = std.extVar("__ksonnet/params").components[name],
       local instance = componentlib.new(_env, cparams),
-      rest:: std.map(generateComponentKinds, instance.all),
+      rest:: std.map(generateComponentTuples, instance.all),
     }.rest,
 
     local byResource(wrapper) = {
       local tuple = wrapper.tuple,
       local resource = tuple[2],
-      rest:: resource + { 
+      rest:: resource {
         metadata+: {
           annotations+: {
             "kubernetes.io/application": params.name,
+          },
+          labels+: {
+            app: params.name,
+            component: resource.metadata.name,
           },
         },
       },
@@ -96,7 +101,7 @@
         type: "kubeflow",
         selector: {
           matchLabels: {
-           "app.kubernetes.io/name": "kubeflow-01",
+            "app.kubernetes.io/name": "kubeflow-01",
           },
         },
         components+: std.map(byComponent, tuples),
@@ -105,11 +110,36 @@
     },
     application:: application,
 
+/*
+---
+apiVersion: metacontroller.k8s.io/v1alpha1
+kind: CompositeController
+metadata:
+  name: application-controller
+  namespace: isolation-admin
+spec:
+  generateSelector: true
+  parentResource:
+    apiVersion: app.k8s.io/v1beta1
+    resource: applications
+  childResources:
+  - apiVersion: app.intelai.org/v1alpha1
+    resource: apps
+  hooks:
+    sync:
+      webhook:
+        url: http://isolation-operator.isolation-admin/sync-application
+---
+*/
+
     components+: std.map(byResource, tuples),
-    all:: [
+
+    local all = [
       self.applicationCrd,
       self.application,
     ] + self.components,
+    
+    all:: all,
 
     list(obj=self.all):: util.list(obj),
   },
