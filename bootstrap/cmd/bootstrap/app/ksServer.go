@@ -548,7 +548,7 @@ func (s *ksServer) GetApp(project string, appName string, token string) (*appInf
 		return nil, err
 	}
 	appDir := path.Join(s.appsDir, GetRepoName(project), appName)
-	_, err := s.fs.Stat(appDir)
+	_, err = s.fs.Stat(appDir)
 	if err != nil {
 		return nil, fmt.Errorf("App %s doesn't exist in Project %s", appName, project)
 	}
