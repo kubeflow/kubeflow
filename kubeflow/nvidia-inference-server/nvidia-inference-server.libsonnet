@@ -48,18 +48,18 @@
       livenessProbe: {
         httpGet: {
           path: "/api/health/live",
-          port: 8000
+          port: 8000,
         },
         initialDelaySeconds: 5,
-        periodSeconds: 5
+        periodSeconds: 5,
       },
       readinessProbe: {
         httpGet: {
           path: "/api/health/ready",
-          port: 8000
+          port: 8000,
         },
         initialDelaySeconds: 5,
-        periodSeconds: 5
+        periodSeconds: 5,
       },
       resources: {
         limits: {
@@ -96,7 +96,7 @@
             imagePullSecrets: [
               {
                 name: "ngc",
-              }
+              },
             ],
           },
         },
