@@ -52,6 +52,10 @@ data:
         value: gke
       registries:
       - name: kubeflow
+        repo: https://github.com/kubeflow/kubeflow
+        # default leave empty
+        version:
+        path: kubeflow
 kind: ConfigMap
 metadata:
   name: kubeflow-controller
