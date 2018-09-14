@@ -283,7 +283,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 
 		registries, err := a.App.Registries()
 		if err != nil {
-			log.Fatal("There was a problem listing registries; %v", err)
+			log.Errorf("There was a problem listing registries; %v", err)
 		}
 
 		if _, found := registries[registry.Name]; found {
@@ -307,7 +307,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 
 	err = s.SaveAppToRepo(request.Project, request.Email)
 	if err != nil {
-		log.Fatal("There was a problem saving config to cloud repo; %v", err)
+		log.Errorf("There was a problem saving config to cloud repo; %v", err)
 		return err
 	}
 	log.Infof("Created and initialized app at %v", a.App.Root())
@@ -526,6 +526,7 @@ func (s *ksServer) CloneRepoToLocal(project string, token string) error {
 			Name: fmt.Sprintf("projects/%s/repos/%s", project, GetRepoName(project)),
 		}).Do()
 		if err != nil {
+			log.Errorf("Fail to create repo %v", err)
 			return err
 		}
 	}
@@ -542,9 +543,12 @@ func (s *ksServer) CloneRepoToLocal(project string, token string) error {
 }
 
 func (s *ksServer) GetApp(project string, appName string, token string) (*appInfo, error) {
-	s.CloneRepoToLocal(project, token)
+	err := s.CloneRepoToLocal(project, token)
+	if err != nil {
+		return nil, err
+	}
 	appDir := path.Join(s.appsDir, GetRepoName(project), appName)
-	_, err := s.fs.Stat(appDir)
+	_, err = s.fs.Stat(appDir)
 	if err != nil {
 		return nil, fmt.Errorf("App %s doesn't exist in Project %s", appName, project)
 	}
