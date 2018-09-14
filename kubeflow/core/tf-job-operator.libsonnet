@@ -7,6 +7,7 @@
   local crd = k.apiextensions.v1beta1.customResourceDefinition,
   local role = k.rbac.v1beta1.role,
   local roleBinding = k.rbac.v1beta1.roleBinding,
+  local rule = role.rulesType,
   local service = k.core.v1.service,
   local serviceAccount = k.core.v1.serviceAccount,
   new(_env, _params):: {
@@ -15,14 +16,87 @@
         _params.namespace else _env.namespace,
     },
 
-    local operatorRole = if params.deploymentScope == "cluster" then
-      k.rbac.v1beta1.clusterRole
-    else
-      k.rbac.v1beta1.role,
-    local operatorRoleBinding = if params.deploymentScope == "cluster" then
-      k.rbac.v1beta1.clusterRoleBinding
-    else
-      k.rbac.v1beta1.roleBinding,
+    local roleType(deploymentScope) = {
+      return:: if deploymentScope == "cluster" then [
+        k.rbac.v1beta1.clusterRole,
+        k.rbac.v1beta1.clusterRoleBinding,
+      ] else [
+        k.rbac.v1beta1.role,
+        k.rbac.v1beta1.roleBinding,
+      ],
+    }.return,
+    local roles = roleType(params.deploymentScope),
+    local operatorRole = roles[0],
+    local operatorRoleBinding = roles[1],
+    local rules = {
+      tfJobsRule:: rule.new() + rule.
+        withApiGroupsMixin([
+        "tensorflow.org",
+        "kubeflow.org",
+        ],).
+        withResourcesMixin([
+        "tfjobs",
+        ],).
+        withVerbsMixin([
+        "*",
+        ],),
+      tfCrdRule:: rule.new() + rule.
+        withApiGroupsMixin([
+        "apiextensions.k8s.io",
+        ],).
+        withResourcesMixin([
+        "customresourcedefinitions",
+        ],).
+        withVerbsMixin([
+        "*",
+        ],),
+      tfStorageRule:: rule.new() + rule.
+        withApiGroupsMixin([
+        "storage.k8s.io",
+        ],).
+        withResourcesMixin([
+        "storageclasses",
+        ],).
+        withVerbsMixin([
+        "*",
+        ],),
+      tfBatchRule:: rule.new() + rule.
+        withApiGroupsMixin([
+        "batch",
+        ],).
+        withResourcesMixin([
+        "jobs",
+        ],).
+        withVerbsMixin([
+        "*",
+        ],),
+      tfCoreRule:: rule.new() + rule.
+        withApiGroupsMixin([
+        "",
+        ],).
+        withResourcesMixin([
+        "configmaps",
+        "pods",
+        "services",
+        "endpoints",
+        "persistentvolumeclaims",
+        "events",
+        ],).
+        withVerbsMixin([
+        "*",
+        ],),
+      tfAppsRule:: rule.new() + rule.
+        withApiGroupsMixin([
+        "apps",
+        "extensions",
+        ],).
+        withResourcesMixin([
+        "deployments",
+        ],).
+        withVerbsMixin([
+        "*",
+        ],),
+    },
 
     local openApiV3Schema = {
       properties: {
@@ -162,81 +236,15 @@
         withLabelsMixin({
         app: "tf-job-operator",
       },).
-        withName("tf-job-operator") + operatorRole.withRulesMixin([
-        {
-          apiGroups: [
-            "tensorflow.org",
-            "kubeflow.org",
-          ],
-          resources: [
-            "tfjobs",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-        {
-          apiGroups: [
-            "apiextensions.k8s.io",
-          ],
-          resources: [
-            "customresourcedefinitions",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-        {
-          apiGroups: [
-            "storage.k8s.io",
-          ],
-          resources: [
-            "storageclasses",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-        {
-          apiGroups: [
-            "batch",
-          ],
-          resources: [
-            "jobs",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-        {
-          apiGroups: [
-            "",
-          ],
-          resources: [
-            "configmaps",
-            "pods",
-            "services",
-            "endpoints",
-            "persistentvolumeclaims",
-            "events",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-        {
-          apiGroups: [
-            "apps",
-            "extensions",
-          ],
-          resources: [
-            "deployments",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-      ]) +
+        withName("tf-job-operator") +
+      operatorRole.withRulesMixin([
+        rules.tfJobsRule,
+        rules.tfCrdRule,
+        rules.tfStorageRule,
+        rules.tfBatchRule,
+        rules.tfCoreRule,
+        rules.tfAppsRule,
+      ],) +
       if params.deploymentScope == "namespace" then
         operatorRole.mixin.metadata.withNamespace(params.deploymentNamespace),
     tfOperatorRole:: tfOperatorRole,
@@ -331,82 +339,17 @@
         withLabelsMixin({
         app: "tf-job-dashboard",
       },).
-        withName("tf-job-dashboard") + role.withRulesMixin([
-        {
-          apiGroups: [
-            "tensorflow.org",
-            "kubeflow.org",
-          ],
-          resources: [
-            "tfjobs",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-        {
-          apiGroups: [
-            "apiextensions.k8s.io",
-          ],
-          resources: [
-            "customresourcedefinitions",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-        {
-          apiGroups: [
-            "storage.k8s.io",
-          ],
-          resources: [
-            "storageclasses",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-        {
-          apiGroups: [
-            "batch",
-          ],
-          resources: [
-            "jobs",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-        {
-          apiGroups: [
-            "",
-          ],
-          resources: [
-            "configmaps",
-            "pods",
-            "pods/log",
-            "services",
-            "endpoints",
-            "persistentvolumeclaims",
-            "events",
-            "namespaces",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-        {
-          apiGroups: [
-            "apps",
-            "extensions",
-          ],
-          resources: [
-            "deployments",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
+        withName("tf-job-dashboard") +
+      role.withRulesMixin([
+        rules.tfJobsRule,
+        rules.tfCrdRule,
+        rules.tfStorageRule,
+        rules.tfBatchRule,
+        rules.tfCoreRule.withResourcesMixin([
+          "pods/log",
+          "namespaces",
+        ]),
+        rules.tfAppsRule,
       ],),
     tfUiRole:: tfUiRole,
 
