@@ -17,7 +17,7 @@
         _params.namespace else _env.namespace,
     },
 
-    // set the right roleTypes 
+    // set the right roleTypes
     local roleType(deploymentScope) = {
       return:: if deploymentScope == "cluster" then [
         k.rbac.v1beta1.clusterRole,
@@ -37,47 +37,47 @@
         withApiGroupsMixin([
         "tensorflow.org",
         "kubeflow.org",
-        ],).
+      ],).
         withResourcesMixin([
         "tfjobs",
-        ],).
+      ],).
         withVerbsMixin([
         "*",
-        ],),
+      ],),
       tfCrdRule:: rule.new() + rule.
         withApiGroupsMixin([
         "apiextensions.k8s.io",
-        ],).
+      ],).
         withResourcesMixin([
         "customresourcedefinitions",
-        ],).
+      ],).
         withVerbsMixin([
         "*",
-        ],),
+      ],),
       tfStorageRule:: rule.new() + rule.
         withApiGroupsMixin([
         "storage.k8s.io",
-        ],).
+      ],).
         withResourcesMixin([
         "storageclasses",
-        ],).
+      ],).
         withVerbsMixin([
         "*",
-        ],),
+      ],),
       tfBatchRule:: rule.new() + rule.
         withApiGroupsMixin([
         "batch",
-        ],).
+      ],).
         withResourcesMixin([
         "jobs",
-        ],).
+      ],).
         withVerbsMixin([
         "*",
-        ],),
+      ],),
       tfCoreRule:: rule.new() + rule.
         withApiGroupsMixin([
         "",
-        ],).
+      ],).
         withResourcesMixin([
         "configmaps",
         "pods",
@@ -85,21 +85,21 @@
         "endpoints",
         "persistentvolumeclaims",
         "events",
-        ],).
+      ],).
         withVerbsMixin([
         "*",
-        ],),
+      ],),
       tfAppsRule:: rule.new() + rule.
         withApiGroupsMixin([
         "apps",
         "extensions",
-        ],).
+      ],).
         withResourcesMixin([
         "deployments",
-        ],).
+      ],).
         withVerbsMixin([
         "*",
-        ],),
+      ],),
     },
 
     // tfJobCrd schema
@@ -147,11 +147,12 @@
 
     local tfJobCrd =
       crd.new() + crd.mixin.metadata.
-        withName("tfjobs.kubeflow.org").
-        withNamespace(params.namespace) + crd.mixin.spec.
+        withName("tfjobs.kubeflow.org") +
+      crd.mixin.spec.
         withGroup("kubeflow.org").
         withVersion("v1alpha1").
-        withScope("Namespaced") + crd.mixin.spec.names.
+        withScope("Namespaced") + 
+      crd.mixin.spec.names.
         withKind("TFJob").
         withPlural("tfjobs").
         withSingular("tfjob"),
@@ -193,14 +194,15 @@
     ),
     tfJobContainer:: tfJobContainer,
 
-    local tfJobDeploy =
+    local tfJobDeployment =
       deployment.new(
         name=params.name,
         replicas=1,
         containers=tfJobContainer,
-      ) + deployment.mixin.spec.template.metadata.
-        withNamespace(params.namespace).
-        withLabelsMixin({
+      ) + deployment.mixin.metadata.
+        withNamespace(params.namespace) +
+      deployment.mixin.spec.template.metadata.
+        withLabels({
         name: "tf-job-operator",
       }) +
       deployment.mixin.spec.template.spec.
@@ -211,7 +213,7 @@
         },
         name: "config-volume",
       }],),
-    tfJobDeploy:: tfJobDeploy,
+    tfJobDeployment:: tfJobDeployment,
 
     local tfConfigMap = configMap.new(
       name="tf-job-operator-config",
@@ -251,16 +253,19 @@
         rules.tfAppsRule,
       ],) +
       if params.deploymentScope == "namespace" then
-        operatorRole.mixin.metadata.withNamespace(params.deploymentNamespace),
+        operatorRole.mixin.metadata.withNamespace(params.deploymentNamespace)
+      else
+        {},
     tfOperatorRole:: tfOperatorRole,
 
     local tfOperatorRoleBinding =
       operatorRoleBinding.new() + operatorRoleBinding.
         withSubjectsMixin({
         kind: tfServiceAccount.kind,
-        name: tfServiceAccount.name,
-        namespace: tfServiceAccount.namespace,
-      }).mixin.metadata.
+        name: tfServiceAccount.metadata.name,
+        namespace: params.namespace,
+      }) + 
+      operatorRoleBinding.mixin.metadata.
         withLabels({ app: "tf-job-operator" }).
         withName("tf-job-operator") +
       operatorRoleBinding.mixin.roleRef.
@@ -268,7 +273,9 @@
         withApiGroup("rbac.authorization.k8s.io").
         withKind(tfOperatorRole.kind) +
       if params.deploymentScope == "namespace" then
-        operatorRoleBinding.mixin.metadata.withNamespace(params.deploymentNamespace),
+        operatorRoleBinding.mixin.metadata.withNamespace(params.deploymentNamespace)
+      else
+        {},
     tfOperatorRoleBinding:: tfOperatorRoleBinding,
 
     local tfUiService = service.new(
@@ -304,7 +311,6 @@
     }).withNamespace(params.namespace),
     tfUiServiceAccount:: tfUiServiceAccount,
 
-
     local tfUiContainer = container.new(
       name="tf-job-operator",
       image=params.tfJobImage,
@@ -330,8 +336,11 @@
         podLabels={
           name: "tf-job-dashboard",
         },
-      ) + deployment.mixin.spec.template.metadata.
+      ) + deployment.mixin.metadata.
         withNamespace(params.namespace).
+        withLabelsMixin({
+        name: "tf-job-dashboard",
+      }) + deployment.mixin.spec.template.metadata.
         withLabelsMixin({
         name: "tf-job-dashboard",
       }) + deployment.mixin.spec.template.spec.
@@ -375,12 +384,12 @@
 
     all:: if params.tfJobVersion == "v1alpha1" then [
       self.tfJobCrd,
-      self.tfJobDeploy,
+      self.tfJobDeployment,
     ] else [
       self.tfJobCrd + crd.mixin.spec.
         withVersion("v1alpha2").validation.
         withOpenApiV3SchemaMixin(openApiV3Schema),
-      self.tfJobDeploy + deployment.mixin.metadata.
+      self.tfJobDeployment + deployment.mixin.metadata.
         withName("tf-job-operator-v1alpha2") +
       deployment.mapContainers(
         function(c) {
