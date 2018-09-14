@@ -200,6 +200,24 @@ local k = import "k.libsonnet";
         },
       } else {};  // buildTemplate
 
+      local buildResourceTemplate(stepName, action, manifest, successCondition=null, failureCondition=null, inParams=[], outParams=[]) = {
+        name: stepName,
+        resource: {
+          action: action,
+          manifest: manifest,
+          [if successCondition != null then "successCondition"]: successCondition,
+          [if failureCondition != null then "failureCondition"]: failureCondition,
+        },
+      } + if std.length(inParams) > 0 then {
+        inputs: {
+          parameters: inParams,
+        },
+      } else {} + if std.length(outParams) > 0 then {
+        outputs: {
+          parameters: outParams,
+        },
+      } else {};  // buildResourceTemplate
+
       {
         apiVersion: "argoproj.io/v1alpha1",
         kind: "Workflow",
@@ -310,28 +328,20 @@ local k = import "k.libsonnet";
                 },
               ],
             ),
-            {
-              name: "main-job",
-              resource: {
-                action: "create",
-                successCondition: "status.startTime",
-                manifest: "{{inputs.parameters.kf-job-manifest}}",
-              },
-              inputs: {
-                parameters: [{ name: "kf-job-manifest" }],
-              },
-            },
-            {
-              name: "main-job-monitor",
-              resource: {
-                action: "get",
-                successCondition: "status.completionTime",
-                manifest: "{{inputs.parameters.kf-job-manifest}}",
-              },
-              inputs: {
-                parameters: [{ name: "kf-job-manifest" }],
-              },
-            },
+            buildResourceTemplate(
+              "main-job",
+              "create",
+              "{{inputs.parameters.kf-job-manifest}}",
+              successCondition="status.startTime",
+              inParams=[{ name: "kf-job-manifest" }],
+            ),
+            buildResourceTemplate(
+              "main-job-monitor",
+              "get",
+              "{{inputs.parameters.kf-job-manifest}}",
+              successCondition="status.completionTime",
+              inParams=[{ name: "kf-job-manifest" }],
+            ),
             buildTemplate(
               "post-job",
               postJobImage,

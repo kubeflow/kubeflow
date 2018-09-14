@@ -54,17 +54,17 @@ local postJobArgs =
   else
     std.split(postJobArgs, ",");
 
-local newUser = if serviceAccount == "null" then "kubebench-user-" + name else serviceAccount;
-local rbacParts = if newUser != serviceAccount then [
-  kubebenchRbac.parts.serviceAccount(newUser, namespace),
-  kubebenchRbac.parts.role(newUser, namespace),
-  kubebenchRbac.parts.roleBinding(newUser, newUser, newUser, namespace),
+local newServiceAccount = if serviceAccount == "null" then "kubebench-user-" + name else serviceAccount;
+local rbacParts = if newServiceAccount != serviceAccount then [
+  kubebenchRbac.parts.serviceAccount(newServiceAccount, namespace),
+  kubebenchRbac.parts.role(newServiceAccount, namespace),
+  kubebenchRbac.parts.roleBinding(newServiceAccount, newServiceAccount, newServiceAccount, namespace),
 ] else [];
 
 local jobParts = [
   kubebenchJob.parts.workflow(name,
                               namespace,
-                              newUser,
+                              newServiceAccount,
                               controllerImage,
                               configPvc,
                               dataPvc,
