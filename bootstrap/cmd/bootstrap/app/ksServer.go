@@ -30,10 +30,13 @@ import (
 	"golang.org/x/oauth2"
 	"google.golang.org/api/sourcerepo/v1"
 	"os"
-)
+	)
 
 // The name of the prototype for Jupyter.
 const JUPYTER_PROTOTYPE = "jupyterhub"
+
+// root dir of local cached VERSIONED REGISTRIES
+const CACHED_REGISTRIES = "/opt/versioned_registries"
 
 // KsService defines an interface for working with ksonnet.
 type KsService interface {
@@ -269,14 +272,12 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 
 	// Add the registries to the app.
 	for idx, registry := range request.AppConfig.Registries {
-		if registry.RegUri == "" {
-			v, ok := s.knownRegistries[registry.Name]
-			if !ok {
-				return fmt.Errorf("App %v uses registry %v but no URI is specified and this is not a known registry", request.Name, registry.Name)
-			}
-			log.Infof("No URI provided for registry %v; setting URI to %v.", registry.Name, v.RegUri)
-			request.AppConfig.Registries[idx].RegUri = v.RegUri
+		RegUri, err := s.getRegistryUri(&registry)
+		if err != nil {
+			log.Errorf("There was a problem getRegistryUri for registry %v. Error: %v", registry.Name, err)
+			return err
 		}
+		request.AppConfig.Registries[idx].RegUri = RegUri
 		log.Infof("App %v add registry %v URI %v", request.Name, registry.Name, registry.RegUri)
 		options := map[string]interface{}{
 			actions.OptionApp:  a.App,
@@ -320,6 +321,66 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 	}
 	log.Infof("Created and initialized app at %v", a.App.Root())
 	return nil
+}
+
+// fetch remote registry to local disk, or use baked-in registry if version not specified in user request.
+// Then return registry's RegUri.
+func (s *ksServer) getRegistryUri(registry *RegistryConfig) (string, error) {
+	if registry.Name == "" ||
+		registry.Path == "" ||
+		registry.Repo == "" ||
+		registry.Version == "" ||
+		registry.Version == "default" {
+
+		v, ok := s.knownRegistries[registry.Name]
+		if !ok {
+			return "", fmt.Errorf("Create request uses registry %v but some " +
+				"required fields are not specified and this is not a known registry.", registry.Name)
+		}
+		log.Infof("No remote registry provided for registry %v; setting URI to local %v.", registry.Name, v.RegUri)
+		return v.RegUri, nil
+	} else {
+		versionPath := path.Join(CACHED_REGISTRIES, registry.Name, registry.Version)
+
+		s.serverMux.Lock()
+		defer s.serverMux.Unlock()
+		_, err := s.fs.Stat(versionPath)
+
+		// If specific version doesn't exist locally, will download.
+		// The local cache path will be CACHED_REGISTRIES/registry_name/registry_version/
+		if err != nil {
+			registryPath := path.Join(CACHED_REGISTRIES, registry.Name)
+			_, err := s.fs.Stat(registryPath)
+			if err != nil {
+				os.Mkdir(registryPath, os.ModePerm)
+			}
+			fileUrl := path.Join(registry.Repo, "archive", registry.Version + ".tar.gz")
+
+			err = runCmd(fmt.Sprintf("curl -L -o %v %v", versionPath + ".tar.gz", fileUrl))
+			if err != nil {
+				return "", err
+			}
+			err = runCmd(fmt.Sprintf("tar -xzvf %s  -C %s", versionPath+".tar.gz", registryPath))
+			if err != nil {
+				return "", err
+			}
+			err = os.Rename(path.Join(registryPath, registry.Name + "-" + registry.Version), versionPath)
+			if err != nil {
+				log.Errorf("Error occrued during os.Rename. Error: %v", err)
+				return "", err
+			}
+		}
+		return path.Join(versionPath, registry.Path), nil
+	}
+}
+
+func runCmd(rawcmd string) error {
+	cmd := exec.Command("sh", "-c", rawcmd)
+	err := cmd.Run()
+	if err != nil {
+		log.Errorf("Error occrued during execute cmd %v. Error: %v", rawcmd, err)
+	}
+	return err
 }
 
 // appGenerate installs packages and creates components.
@@ -580,11 +641,8 @@ func (s *ksServer) SaveAppToRepo(project string, email string) error {
 		return err
 	}
 
-
-	cmd := exec.Command("sh", "-c",
-		fmt.Sprintf("git config user.email '%s'; git config user.name 'auto-commit'; git add .; " +
-			"git commit -m 'auto commit from deployment'; git pull --rebase; git push origin master", email))
-	return cmd.Run()
+	return runCmd(fmt.Sprintf("git config user.email '%s'; git config user.name 'auto-commit'; git add .; " +
+		"git commit -m 'auto commit from deployment'; git pull --rebase; git push origin master", email))
 }
 
 // Apply runs apply on a ksonnet application.
