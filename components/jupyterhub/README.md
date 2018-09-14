@@ -61,7 +61,7 @@ If you're testing and want to avoid exposing JupyterHub on an external IP addres
 kubectl port-forward <jupyterhub-pod-name> 8000:8000
 ```
 
-The above will expose JupyterHub on http://localhost:8000. The pod name can be obtained by running `kubectl get pods`, and will be `tf-hub-0` by default.
+The above will expose JupyterHub on http://localhost:8000. The pod name can be obtained by running `kubectl get pods`, and will be `jupyterhub-0` by default.
 
 ## Configuration
 
@@ -92,8 +92,8 @@ instance can be obtained from `kubectl get svc`.
  kubectl get svc
 
 NAME         TYPE           CLUSTER-IP      EXTERNAL-IP     PORT(S)        AGE
-tf-hub-0       ClusterIP      None            <none>          <none>         1h
-tf-hub-lb    LoadBalancer   10.43.246.148   xx.yy.zz.ww   80:32689/TCP   36m
+jupyterhub-0       ClusterIP      None            <none>          <none>         1h
+jupyterhub-lb    LoadBalancer   10.43.246.148   xx.yy.zz.ww   80:32689/TCP   36m
 ```
 
 Now, you can access the external IP, http://xx.yy.zz.ww, with your browser.
@@ -146,7 +146,7 @@ doing the following:
 
 ```commandline
 ks apply ${ENVIRONMENT} -c ${COMPONENT_NAME}
-kubectl delete pod tf-hub-0
+kubectl delete pod jupyterhub-0
 ```
 
 By deleting the old pod, a new pod will come up with the new configuration
