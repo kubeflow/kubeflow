@@ -10,12 +10,14 @@
   local rule = role.rulesType,
   local service = k.core.v1.service,
   local serviceAccount = k.core.v1.serviceAccount,
+
   new(_env, _params):: {
     local params = _env + _params {
       namespace: if std.objectHas(_params, "namespace") && _params.namespace != "null" then
         _params.namespace else _env.namespace,
     },
 
+    // set the right roleTypes 
     local roleType(deploymentScope) = {
       return:: if deploymentScope == "cluster" then [
         k.rbac.v1beta1.clusterRole,
@@ -28,6 +30,8 @@
     local roles = roleType(params.deploymentScope),
     local operatorRole = roles[0],
     local operatorRoleBinding = roles[1],
+
+    // consolidated rules shared between tfOperatorRole and tfUiRole
     local rules = {
       tfJobsRule:: rule.new() + rule.
         withApiGroupsMixin([
@@ -98,6 +102,7 @@
         ],),
     },
 
+    // tfJobCrd schema
     local openApiV3Schema = {
       properties: {
         spec: {
