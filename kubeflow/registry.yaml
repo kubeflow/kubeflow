@@ -40,3 +40,6 @@ libraries:
   nvidia-inference-server:
     version: master
     path: nvidia-inference-server
+  chainer-job:
+    version: master
+    path: chainer-job
