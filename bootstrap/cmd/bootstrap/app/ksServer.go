@@ -213,13 +213,21 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 		return fmt.Errorf("Name must be a non empty string.")
 	}
 	a, err := s.GetApp(request.Project, request.Name, request.Token)
-
+	envName := "default"
 	if err == nil {
 		log.Infof("App %v exists in project %v", request.Name, request.Project)
+		options := map[string]interface{}{
+			actions.OptionApp:     a.App,
+			actions.OptionEnvName: envName,
+			actions.OptionServer:  config.Host,
+		}
+		err := actions.RunEnvSet(options)
+		if err != nil {
+			return fmt.Errorf("There was a problem setting app env: %v", err)
+		}
 	} else {
 		log.Infof("Creating app %v", request.Name)
 		log.Infof("Using K8s host %v", config.Host)
-		envName := "default"
 
 		appDir := path.Join(s.appsDir, GetRepoName(request.Project), request.Name)
 		_, err = s.fs.Stat(appDir)
