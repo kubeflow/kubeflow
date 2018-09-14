@@ -156,7 +156,7 @@ export default class Gapi {
 
   private static _loadPromise: Promise<void>;
   // TODO(jlewi): ClientId for project cloud-ml-dev we should change this.
-  private static readonly _CLIENT_ID = '236417448818-pksajgd0a6ghtjv3rlbvr7h9lo6uu17t.apps.googleusercontent.com';
+  private static readonly _CLIENT_ID = '848270605882-24q1l9p37opq3i0ououumpts6rv5s0mb.apps.googleusercontent.com';
   private static readonly _SCOPE = 'https://www.googleapis.com/auth/cloud-platform';
   private static _currentUser: null | gapi.auth2.GoogleUser = null; // Gets set by _loadClientId
 
