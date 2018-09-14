@@ -264,9 +264,10 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 
 	// Add the registries to the app.
 	for idx, registry := range request.AppConfig.Registries {
-		RegUri, error := s.regUriProcess(&registry)
+		RegUri, err := s.getRegistryUri(&registry)
 		if err != nil {
-			return error
+			log.Errorf("There was a problem getRegistryUri for registry %v. Error: %v", registry.Name, err)
+			return err
 		}
 		request.AppConfig.Registries[idx].RegUri = RegUri
 		log.Infof("App %v add registry %v URI %v", request.Name, registry.Name, registry.RegUri)
@@ -316,7 +317,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 
 // fetch remote registry to local disk, or use baked-in registry if version not specified in user request.
 // Then return registry's RegUri.
-func (s *ksServer) regUriProcess(registry *RegistryConfig) (string, error) {
+func (s *ksServer) getRegistryUri(registry *RegistryConfig) (string, error) {
 	if registry.Name == "" ||
 		registry.Path == "" ||
 		registry.Repo == "" ||
@@ -357,6 +358,7 @@ func (s *ksServer) regUriProcess(registry *RegistryConfig) (string, error) {
 			}
 			err = os.Rename(path.Join(registryPath, registry.Name + "-" + registry.Version), versionPath)
 			if err != nil {
+				log.Errorf("Error occrued during os.Rename. Error: %v", err)
 				return "", err
 			}
 		}
@@ -366,7 +368,11 @@ func (s *ksServer) regUriProcess(registry *RegistryConfig) (string, error) {
 
 func runCmd(rawcmd string) error {
 	cmd := exec.Command("sh", "-c", rawcmd)
-	return cmd.Run()
+	err := cmd.Run()
+	if err != nil {
+		log.Errorf("Error occrued during execute cmd %v. Error: %v", rawcmd, err)
+	}
+	return err
 }
 
 // appGenerate installs packages and creates components.

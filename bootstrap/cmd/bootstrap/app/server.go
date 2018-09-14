@@ -81,18 +81,6 @@ type RegistryConfig struct {
 	RegUri  string
 }
 
-// KsAppRegistry specifies a registry to add to an app.
-// RegistryConfig on the other hand describe a bunch of registries
-// that are baked into the docker image. These registries can then
-// be added to the app using file:// as the URI.
-// KsAppRegistry can use any URI that ksonnet understands.
-// Additionally if the RegUri is blank we will try to map it to one of
-// the registries baked into the Docker image using the name.
-//type KsAppRegistry struct {
-//	Name   string
-//	RegUri string
-//}
-
 type AppConfig struct {
 	Registries []RegistryConfig
 	Packages   []KsPackage
