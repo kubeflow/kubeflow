@@ -92,8 +92,7 @@ function createKsApp() {
 }
 
 function removeKsEnv() {
-  pushd .
-  cd ${KUBEFLOW_KS_DIR}
+  pushd ${KUBEFLOW_KS_DIR}
   set +e
   O=$(ks env describe default 2>&1)
   RESULT=$?
