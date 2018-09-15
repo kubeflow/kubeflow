@@ -294,10 +294,19 @@ if [ "${COMMAND}" == "delete" ]; then
       ${DIR}/gke/delete_deployment.sh ${PROJECT} ${DEPLOYMENT_NAME} ${CONFIG_FILE}
       popd
     fi
+
     pushd .
     cd ${KUBEFLOW_KS_DIR}
-    # Remove the deleted cluster's environment
-    ks env rm default
+    set +e
+    O=$(ks env describe default 2>&1)
+    RESULT=$?
+    set -e
+    if [ "${RESULT}" -eq 0 ]; then
+      # Remove the default environment for the deleted cluster
+      ks env rm default
+    else
+      echo environment default is already removed
+    fi
     popd
   fi
 fi
