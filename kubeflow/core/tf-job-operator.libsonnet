@@ -150,8 +150,7 @@
         withName("tfjobs.kubeflow.org") +
       crd.mixin.spec.
         withGroup("kubeflow.org").
-        withVersion("v1alpha1").
-        withScope("Namespaced") + 
+        withVersion("v1alpha1") +
       crd.mixin.spec.names.
         withKind("TFJob").
         withPlural("tfjobs").
@@ -386,10 +385,13 @@
       self.tfJobCrd,
       self.tfJobDeployment,
     ] else [
-      self.tfJobCrd + crd.mixin.spec.
-        withVersion("v1alpha2").validation.
+      self.tfJobCrd + 
+      crd.mixin.spec.
+        withVersion("v1alpha2") +
+      crd.mixin.spec.validation.
         withOpenApiV3SchemaMixin(openApiV3Schema),
-      self.tfJobDeployment + deployment.mixin.metadata.
+      self.tfJobDeployment + 
+      deployment.mixin.metadata.
         withName("tf-job-operator-v1alpha2") +
       deployment.mapContainers(
         function(c) {

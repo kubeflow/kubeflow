@@ -242,7 +242,6 @@ std.assertEqual(
            "plural": "tfjobs",
            "singular": "tfjob"
         },
-        "scope": "Namespaced",
         "version": "v1alpha1"
      }
   }

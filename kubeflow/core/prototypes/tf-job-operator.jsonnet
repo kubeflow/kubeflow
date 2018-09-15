@@ -12,6 +12,19 @@
 // @optionalParam deploymentScope string cluster The scope at which tf-job-operator should be deployed - valid values are cluster, namespace.
 // @optionalParam deploymentNamespace string null The namespace to which tf-job-operator should be scoped. If deploymentScope is set to cluster, this is ignored.
 
+local params = {
+  cloud: 'null',
+  deploymentNamespace: 'foo',
+  deploymentScope: 'namespace',
+  name: 'tf-job-operator',
+  tfDefaultImage: 'null',
+  tfJobImage: 'gcr.io/kubeflow-images-public/tf_operator:v20180822-b576c253',
+  tfJobUiServiceType: 'ClusterIP',
+  tfJobVersion: 'v1alpha2',
+};
+local env = {
+  namespace: 'foo',
+};
 local tfJobOperator = import "kubeflow/core/tf-job-operator.libsonnet";
 local instance = tfJobOperator.new(env, params);
 instance.list(instance.all)
