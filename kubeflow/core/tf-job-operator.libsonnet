@@ -204,12 +204,14 @@
       deployment.new(
         name=params.name,
         replicas=1,
-        containers=tfJobContainer) + 
+        containers=tfJobContainer
+      ) +
       deployment.mixin.metadata.
         withNamespace(params.namespace) +
       deployment.mixin.spec.template.metadata.
         withLabels({
-        name: "tf-job-operator"}) +
+        name: "tf-job-operator",
+      }) +
       deployment.mixin.spec.template.spec.
         withServiceAccountName("tf-job-operator").
         withVolumesMixin([{
@@ -300,10 +302,11 @@
       operatorRoleBinding.mixin.metadata.
         withLabels({ app: "tf-job-operator" }).
         withName("tf-job-operator") +
-      operatorRoleBinding.mixin.roleRef.
-        withName(tfOperatorRole.metadata.name).
-        withApiGroup("rbac.authorization.k8s.io").
-        withKind(tfOperatorRole.kind) +
+      operatorRoleBinding.mixin.roleRef.mixinInstance({
+        apiGroup: "rbac.authorization.k8s.io",
+        kind: tfOperatorRole.kind,
+        name: tfOperatorRole.metadata.name,
+      }) +
       if params.deploymentScope == "namespace" then
         operatorRoleBinding.mixin.metadata.withNamespace(params.deploymentNamespace)
       else
