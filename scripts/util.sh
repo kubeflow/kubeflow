@@ -91,6 +91,21 @@ function createKsApp() {
   echo ""
 }
 
+function removeKsEnv() {
+  pushd ${KUBEFLOW_KS_DIR}
+  set +e
+  O=$(ks env describe default 2>&1)
+  RESULT=$?
+  set -e
+  if [ "${RESULT}" -eq 0 ]; then
+    # Remove the default environment for the deleted cluster
+    ks env rm default
+  else
+    echo environment default is already removed
+  fi
+  popd
+}
+
 function customizeKsAppWithDockerImage() {
    # customize docker registry
    if [[ ! -z "$KUBEFLOW_DOCKER_REGISTRY" ]]; then
