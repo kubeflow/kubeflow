@@ -154,7 +154,14 @@
       crd.mixin.spec.names.
         withKind("TFJob").
         withPlural("tfjobs").
-        withSingular("tfjob"),
+        withSingular("tfjob") +
+      if params.tfJobVersion == "v1alpha2" then
+        crd.mixin.spec.
+          withVersion("v1alpha2") +
+        crd.mixin.spec.validation.
+          withOpenApiV3SchemaMixin(openApiV3Schema)
+      else
+        {},
     tfJobCrd:: tfJobCrd,
 
     local tfJobContainer = container.new(
@@ -197,13 +204,12 @@
       deployment.new(
         name=params.name,
         replicas=1,
-        containers=tfJobContainer,
-      ) + deployment.mixin.metadata.
+        containers=tfJobContainer) + 
+      deployment.mixin.metadata.
         withNamespace(params.namespace) +
       deployment.mixin.spec.template.metadata.
         withLabels({
-        name: "tf-job-operator",
-      }) +
+        name: "tf-job-operator"}) +
       deployment.mixin.spec.template.spec.
         withServiceAccountName("tf-job-operator").
         withVolumesMixin([{
@@ -211,7 +217,34 @@
           name: "tf-job-operator-config",
         },
         name: "config-volume",
-      }],),
+      }],) +
+      if params.tfJobVersion == "v1alpha2" then
+        deployment.mixin.metadata.
+          withName("tf-job-operator-v1alpha2") +
+        deployment.mapContainers(
+          function(c) {
+            result:: c.withEnvMixin([
+              if params.deploymentScope == "namespace" then {
+                name: "KUBEFLOW_NAMESPACE",
+                valueFrom: {
+                  fieldRef: {
+                    fieldPath: "metadata.namespace",
+                  },
+                },
+              },
+            ],).
+              withCommand("/opt/kubeflow/tf-operator.v2").
+              withArgs([
+              "--alsologtostderr",
+              "-v=1",
+              if params.deploymentScope == "namespace" then (
+                "--namespace=" + params.deploymentNamespace
+              ),
+            ],),
+          }.result,
+        )
+      else
+        {},
     tfJobDeployment:: tfJobDeployment,
 
     local tfConfigMap = configMap.new(
@@ -263,7 +296,7 @@
         kind: tfServiceAccount.kind,
         name: tfServiceAccount.metadata.name,
         namespace: params.namespace,
-      }) + 
+      }) +
       operatorRoleBinding.mixin.metadata.
         withLabels({ app: "tf-job-operator" }).
         withName("tf-job-operator") +
@@ -381,41 +414,9 @@
         withKind(tfUiRole.kind),
     tfUiRoleBinding:: tfUiRoleBinding,
 
-    all:: if params.tfJobVersion == "v1alpha1" then [
+    all:: [
       self.tfJobCrd,
       self.tfJobDeployment,
-    ] else [
-      self.tfJobCrd + 
-      crd.mixin.spec.
-        withVersion("v1alpha2") +
-      crd.mixin.spec.validation.
-        withOpenApiV3SchemaMixin(openApiV3Schema),
-      self.tfJobDeployment + 
-      deployment.mixin.metadata.
-        withName("tf-job-operator-v1alpha2") +
-      deployment.mapContainers(
-        function(c) {
-          result:: c.withEnvMixin([
-            if params.deploymentScope == "namespace" then {
-              name: "KUBEFLOW_NAMESPACE",
-              valueFrom: {
-                fieldRef: {
-                  fieldPath: "metadata.namespace",
-                },
-              },
-            },
-          ],).
-            withCommand("/opt/kubeflow/tf-operator.v2").
-            withArgs([
-            "--alsologtostderr",
-            "-v=1",
-            if params.deploymentScope == "namespace" then (
-              "--namespace=" + params.deploymentNamespace
-            ),
-          ],),
-        }.result,
-      ),
-    ] + [
       self.tfConfigMap,
       self.tfServiceAccount,
       self.tfOperatorRole,
