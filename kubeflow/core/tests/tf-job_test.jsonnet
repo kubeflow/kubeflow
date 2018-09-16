@@ -241,79 +241,81 @@ std.assertEqual(
 std.assertEqual(
   tfjobv1alpha1.tfJobCrd,
   {
-    apiVersion: "apiextensions.k8s.io/v1beta1",
-    kind: "CustomResourceDefinition",
-    metadata: {
-      name: "tfjobs.kubeflow.org",
-    },
-    spec: {
-      group: "kubeflow.org",
-      names: {
-        kind: "TFJob",
-        plural: "tfjobs",
-        singular: "tfjob",
-      },
-      version: "v1alpha1",
-    },
+     "apiVersion": "apiextensions.k8s.io/v1beta1",
+     "kind": "CustomResourceDefinition",
+     "metadata": {
+        "name": "tfjobs.kubeflow.org"
+     },
+     "spec": {
+        "group": "kubeflow.org",
+        "names": {
+           "kind": "TFJob",
+           "plural": "tfjobs",
+           "singular": "tfjob"
+        },
+        "scope": "Cluster",
+        "version": "v1alpha1"
+     }
   }
 ) &&
 
 std.assertEqual(
   tfjobv1alpha2.tfJobCrd,
   {
-    apiVersion: "apiextensions.k8s.io/v1beta1",
-    kind: "CustomResourceDefinition",
-    metadata: {
-      name: "tfjobs.kubeflow.org",
-    },
-    spec: {
-      group: "kubeflow.org",
-      names: {
-        kind: "TFJob",
-        plural: "tfjobs",
-        singular: "tfjob",
-      },
-      validation: {
-        openAPIV3Schema: {
-          properties: {
-            spec: {
-              properties: {
-                tfReplicaSpecs: {
-                  properties: {
-                    Chief: {
-                      properties: {
-                        replicas: {
-                          maximum: 1,
-                          minimum: 1,
-                          type: "integer",
-                        },
-                      },
-                    },
-                    PS: {
-                      properties: {
-                        replicas: {
-                          minimum: 1,
-                          type: "integer",
-                        },
-                      },
-                    },
-                    Worker: {
-                      properties: {
-                        replicas: {
-                          minimum: 1,
-                          type: "integer",
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
+     "apiVersion": "apiextensions.k8s.io/v1beta1",
+     "kind": "CustomResourceDefinition",
+     "metadata": {
+        "name": "tfjobs.kubeflow.org"
+     },
+     "spec": {
+        "group": "kubeflow.org",
+        "names": {
+           "kind": "TFJob",
+           "plural": "tfjobs",
+           "singular": "tfjob"
         },
-      },
-      version: "v1alpha2",
-    },
+        "scope": "Namespaced",
+        "validation": {
+           "openAPIV3Schema": {
+              "properties": {
+                 "spec": {
+                    "properties": {
+                       "tfReplicaSpecs": {
+                          "properties": {
+                             "Chief": {
+                                "properties": {
+                                   "replicas": {
+                                      "maximum": 1,
+                                      "minimum": 1,
+                                      "type": "integer"
+                                   }
+                                }
+                             },
+                             "PS": {
+                                "properties": {
+                                   "replicas": {
+                                      "minimum": 1,
+                                      "type": "integer"
+                                   }
+                                }
+                             },
+                             "Worker": {
+                                "properties": {
+                                   "replicas": {
+                                      "minimum": 1,
+                                      "type": "integer"
+                                   }
+                                }
+                             }
+                          }
+                       }
+                    }
+                 }
+              }
+           }
+        },
+        "version": "v1alpha2"
+     }
   }
 ) &&
 

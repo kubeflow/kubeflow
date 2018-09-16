@@ -155,6 +155,10 @@
         withKind("TFJob").
         withPlural("tfjobs").
         withSingular("tfjob") +
+      if params.deploymentScope == "cluster" then
+        crd.mixin.spec.withScope("Cluster")
+      else
+        crd.mixin.spec.withScope("Namespaced") +
       if params.tfJobVersion == "v1alpha2" then
         crd.mixin.spec.
           withVersion("v1alpha2") +
