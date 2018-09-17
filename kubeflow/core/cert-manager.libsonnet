@@ -170,6 +170,8 @@
             name: "letsencrypt-prod-secret",
           },
           http01: {
+            // ksonnet removes an empty object
+            "dummy": "",
           },
         },
       },
