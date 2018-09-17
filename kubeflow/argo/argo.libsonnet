@@ -1,25 +1,17 @@
 {
   // TODO(jlewi): Do we need to add parts corresponding to a service account and cluster binding role?
   // see https://github.com/argoproj/argo/blob/master/cmd/argo/commands/install.go
-
-  parts(params):: {
-    all:: [
-      $.parts(params).crd,
-      $.parts(params).config,
-      $.parts(params).deploy,
-      $.parts(params).deployUi,
-      $.parts(params).uiService,
-      $.parts(params).serviceAccount,
-      $.parts(params).role,
-      $.parts(params).roleBinding,
-      $.parts(params).uiServiceAccount,
-      $.parts(params).uiRole,
-      $.parts(params).uiRoleBinding,
-    ],
+  local k = import "k.libsonnet",
+  local util = import "kubeflow/core/util.libsonnet",
+  new(_env, _params):: self + {
+    local params = _env + _params + {
+      namespace: if std.objectHas(_params, "namespace") && _params.namespace != "null" then
+        _params.namespace else _env.namespace,
+    },
 
     // CRD's are not namespace scoped; see
     // https://kubernetes.io/docs/tasks/access-kubernetes-api/extend-api-custom-resource-definitions/
-    crd: {
+    local workflowCRD = {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
       metadata: {
@@ -40,9 +32,10 @@
         version: "v1alpha1",
       },
     },  // crd
+    workflowCRD:: workflowCRD,
 
     // Deploy the controller
-    deploy: {
+    local workflowController = {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       labels: {
@@ -115,8 +108,9 @@
         },
       },
     },  // deploy
+    workflowController:: workflowController,
 
-    deployUi: {
+    local argoUI = {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -192,8 +186,9 @@
         },
       },
     },  // deployUi
+    argoUI:: argoUI,
 
-    uiService: {
+    local argUIService = {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
@@ -229,8 +224,9 @@
         type: "NodePort",
       },
     },
+    argUIService:: argUIService,
 
-    config: {
+    local workflowControllerConfigmap = {
       apiVersion: "v1",
       data: {
         config: @"executorImage: " + params.executorImage,
@@ -241,8 +237,9 @@
         namespace: params.namespace,
       },
     },
+    workflowControllerConfigmap:: workflowControllerConfigmap,
 
-    serviceAccount: {
+    local argoServiceAccount = {
       apiVersion: "v1",
       kind: "ServiceAccount",
       metadata: {
@@ -250,13 +247,14 @@
         namespace: params.namespace,
       },
     },  // service account
+    argoServiceAccount:: argoServiceAccount,
 
     // Keep in sync with https://github.com/argoproj/argo/blob/master/cmd/argo/commands/const.go#L20
     // Permissions need to be cluster wide for the workflow controller to be able to process workflows
     // in other namespaces. We could potentially use the ConfigMap of the workflow-controller to
     // scope it to a particular namespace in which case we might be able to restrict the permissions
     // to a particular namespace.
-    role: {
+    local argoClusterRole = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRole",
       metadata: {
@@ -322,8 +320,9 @@
         },
       ],
     },  // operator-role
+    argoClusterRole:: argoClusterRole,
 
-    roleBinding:: {
+    local argoClusterRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRoleBinding",
       metadata: {
@@ -346,8 +345,9 @@
         },
       ],
     },  // role binding
+    argoClusterRoleBinding:: argoClusterRoleBinding,
 
-    uiServiceAccount: {
+    local argoUIServiceAccount = {
       apiVersion: "v1",
       kind: "ServiceAccount",
       metadata: {
@@ -355,13 +355,14 @@
         namespace: params.namespace,
       },
     },  // service account
+    argoUIServiceAccount:: argoUIServiceAccount,
 
     // Keep in sync with https://github.com/argoproj/argo/blob/master/cmd/argo/commands/const.go#L44
     // Permissions need to be cluster wide for the workflow controller to be able to process workflows
     // in other namespaces. We could potentially use the ConfigMap of the workflow-controller to
     // scope it to a particular namespace in which case we might be able to restrict the permissions
     // to a particular namespace.
-    uiRole: {
+    local argoUIRole = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRole",
       metadata: {
@@ -409,8 +410,9 @@
         },
       ],
     },  // operator-role
+    argoUIRole:: argoUIRole,
 
-    uiRoleBinding:: {
+    local argUIClusterRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRoleBinding",
       metadata: {
@@ -433,5 +435,22 @@
         },
       ],
     },  // role binding
-  },  // parts
+    argUIClusterRoleBinding:: argUIClusterRoleBinding,
+
+    all:: [
+      self.workflowCRD,
+      self.workflowController,
+      self.argoUI,
+      self.argUIService,
+      self.workflowControllerConfigmap,
+      self.argoServiceAccount,
+      self.argoClusterRole,
+      self.argoClusterRoleBinding,
+      self.argoUIServiceAccount,
+      self.argoUIRole,
+      self.argUIClusterRoleBinding,
+    ],
+
+    list(obj=self.all):: util.list(obj),
+  },
 }

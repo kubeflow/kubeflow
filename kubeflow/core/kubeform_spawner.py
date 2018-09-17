@@ -114,7 +114,7 @@ class KubeFormSpawner(KubeSpawner):
         return env
 
     # TODO(kkasravi): add unit test
-    def _parse_user_name(self, username): 
+    def _parse_user_name(self, username):
         safe_chars = set(string.ascii_lowercase + string.digits)
         name = username.split(':')[-1]
         legacy = ''.join([s if s in safe_chars else '-' for s in name.lower()])
@@ -123,7 +123,7 @@ class KubeFormSpawner(KubeSpawner):
 
     def _expand_user_properties(self, template):
         # override KubeSpawner method to remove prefix accounts.google: for iap
-        # and truncate to 63 characters 
+        # and truncate to 63 characters
 
         # Set servername based on whether named-server initialised
         if self.name:
@@ -228,24 +228,6 @@ if pvc_mount and pvc_mount != 'null':
         }
     )
 
-# ###################################################
-# ### Extra volumes for NVIDIA drivers (Azure)
-# ###################################################
-# # Temporary fix:
-# # AKS / acs-engine doesn't yet use device plugin so we have to mount the drivers to use GPU
-# # TODO(wbuchwalter): Remove once device plugin is merged
-if cloud == 'aks' or cloud == 'acsengine':
-    volumes.append({
-        'name': 'nvidia',
-        'hostPath': {
-            'path': '/usr/local/nvidia'
-        }
-    })
-    volume_mounts.append({
-        'name': 'nvidia',
-        'mountPath': '/usr/local/nvidia'
-    })
-
 c.KubeSpawner.volumes = volumes
 c.KubeSpawner.volume_mounts = volume_mounts
 # Set both service_account and singleuser_service_account because
@@ -258,6 +240,9 @@ if os.environ.get('KF_AUTHENTICATOR') == 'iap':
     c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'
 else:
     c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'
+
+if os.environ.get('DEFAULT_JUPYTERLAB').lower() == 'true':
+    c.KubeSpawner.default_url = '/lab'
 
 # PVCs
 pvcs = os.environ.get('KF_PVC_LIST')

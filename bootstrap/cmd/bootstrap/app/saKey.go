@@ -5,7 +5,7 @@ import (
 	iamadmin "cloud.google.com/go/iam/admin/apiv1"
 	"google.golang.org/api/option"
 	"golang.org/x/oauth2"
-		"google.golang.org/genproto/googleapis/iam/admin/v1"
+	"google.golang.org/genproto/googleapis/iam/admin/v1"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
@@ -13,21 +13,27 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 	)
 
-
 type InsertSaKeyRequest struct {
 	Cluster string
 	Namespace string
 	Project string
-	SecretKey string
-	SecretName string
-	ServiceAccount string
 	Token string
 	Zone string
 }
 
+func (s *ksServer) InsertSaKeys(ctx context.Context, req InsertSaKeyRequest) error {
+	err := s.InsertSaKey(ctx, req, "admin-gcp-sa.json", "admin-gcp-sa",
+		fmt.Sprintf("%v-admin@%v.iam.gserviceaccount.com", req.Cluster, req.Project))
+	if err != nil {
+		return err
+	}
+	err = s.InsertSaKey(ctx, req, "user-gcp-sa.json", "user-gcp-sa",
+		fmt.Sprintf("%v-user@%v.iam.gserviceaccount.com", req.Cluster, req.Project))
+	return err
+}
 
-
-func (s *ksServer) InsertSaKey(ctx context.Context, request InsertSaKeyRequest) error {
+func (s *ksServer) InsertSaKey(ctx context.Context, request InsertSaKeyRequest, secretKey string,
+	secretName string, serviceAccount string) error {
 	ts := oauth2.StaticTokenSource(&oauth2.Token{
 		AccessToken: request.Token,
 	})
@@ -43,11 +49,11 @@ func (s *ksServer) InsertSaKey(ctx context.Context, request InsertSaKeyRequest) 
 		return err
 	}
 	createServiceAccountKeyRequest := admin.CreateServiceAccountKeyRequest{
-		Name: fmt.Sprintf("projects/%v/serviceAccounts/%v", request.Project, request.ServiceAccount),
+		Name: fmt.Sprintf("projects/%v/serviceAccounts/%v", request.Project, serviceAccount),
 	}
 
-	s.iamMux.Lock()
-	defer s.iamMux.Unlock()
+	s.serverMux.Lock()
+	defer s.serverMux.Unlock()
 
 	createdKey, err := c.CreateServiceAccountKey(ctx, &createServiceAccountKeyRequest)
 	if err != nil {
@@ -56,12 +62,12 @@ func (s *ksServer) InsertSaKey(ctx context.Context, request InsertSaKeyRequest) 
 	}
 	k8sClientset, err := clientset.NewForConfig(k8sConfig)
 	secretData := make(map[string][]byte)
-	secretData[request.SecretKey] = createdKey.PrivateKeyData
+	secretData[secretKey] = createdKey.PrivateKeyData
 	_, err = k8sClientset.CoreV1().Secrets(request.Namespace).Create(
 		&v1.Secret{
 			ObjectMeta: meta_v1.ObjectMeta{
 				Namespace: request.Namespace,
-				Name:      request.SecretName,
+				Name:      secretName,
 			},
 			Data: secretData,
 		})

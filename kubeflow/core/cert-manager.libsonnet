@@ -1,21 +1,12 @@
 {
-  parts(params):: {
-    local namespace = params.namespace,
-    local k = import "k.libsonnet",
+  local util = import "kubeflow/core/util.libsonnet",
+  new(_env, _params):: {
+    local params = _env + _params {
+      namespace: if std.objectHas(_params, "namespace") && _params.namespace != "null" then
+        _params.namespace else _env.namespace,
+    },
 
-    // Note, not using std.prune to preserve required empty http01 map in the Issuer spec.
-    certManagerParts():: k.core.v1.list.new([
-      $.parts(params).certificateCRD,
-      $.parts(params).clusterIssuerCRD,
-      $.parts(params).issuerCRD,
-      $.parts(params).serviceAccount,
-      $.parts(params).clusterRole,
-      $.parts(params).clusterRoleBinding,
-      $.parts(params).deploy(params.certManagerImage),
-      $.parts(params).issuerLEProd(params.acmeEmail, params.acmeUrl),
-    ]),
-
-    certificateCRD:: {
+    local certificateCRD = {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
       metadata: {
@@ -31,8 +22,9 @@
         scope: "Namespaced",
       },
     },
+    certificateCRD:: certificateCRD,
 
-    clusterIssuerCRD:: {
+    local clusterIssuerCRD = {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
       metadata: {
@@ -49,8 +41,9 @@
         scope: "Cluster",
       },
     },
+    clusterIssuerCRD:: clusterIssuerCRD,
 
-    issuerCRD:: {
+    local issuerCRD = {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
       metadata: {
@@ -66,17 +59,19 @@
         scope: "Namespaced",
       },
     },
+    issuerCRD:: issuerCRD,
 
-    serviceAccount:: {
+    local serviceAccount = {
       apiVersion: "v1",
       kind: "ServiceAccount",
       metadata: {
         name: "cert-manager",
-        namespace: namespace,
+        namespace: params.namespace,
       },
     },
+    serviceAccount:: serviceAccount,
 
-    clusterRole:: {
+    local clusterRole = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRole",
       metadata: {
@@ -100,8 +95,9 @@
         },
       ],
     },
+    clusterRole:: clusterRole,
 
-    clusterRoleBinding:: {
+    local clusterRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRoleBinding",
       metadata: {
@@ -115,18 +111,19 @@
       subjects: [
         {
           name: "cert-manager",
-          namespace: namespace,
+          namespace: params.namespace,
           kind: "ServiceAccount",
         },
       ],
     },
+    clusterRoleBinding:: clusterRoleBinding,
 
-    deploy(certManagerImage):: {
+    local deploy = {
       apiVersion: "apps/v1beta1",
       kind: "Deployment",
       metadata: {
         name: "cert-manager",
-        namespace: namespace,
+        namespace: params.namespace,
         labels: {
           app: "cert-manager",
         },
@@ -144,11 +141,11 @@
             containers: [
               {
                 name: "cert-manager",
-                image: certManagerImage,
+                image: params.certManagerImage,
                 imagePullPolicy: "IfNotPresent",
                 args: [
-                  "--cluster-resource-namespace=" + namespace,
-                  "--leader-election-namespace=" + namespace,
+                  "--cluster-resource-namespace=" + params.namespace,
+                  "--leader-election-namespace=" + params.namespace,
                 ],
               },
             ],
@@ -156,18 +153,19 @@
         },
       },
     },
+    deploy:: deploy,
 
-    issuerLEProd(acmeEmail, acmeUrl):: {
+    local issuerLEProd = {
       apiVersion: "certmanager.k8s.io/v1alpha1",
       kind: "Issuer",
       metadata: {
         name: "letsencrypt-prod",
-        namespace: namespace,
+        namespace: params.namespace,
       },
       spec: {
         acme: {
-          server: acmeUrl,
-          email: acmeEmail,
+          server: params.acmeUrl,
+          email: params.acmeEmail,
           privateKeySecretRef: {
             name: "letsencrypt-prod-secret",
           },
@@ -176,5 +174,18 @@
         },
       },
     },
+    issuerLEProd:: issuerLEProd,
+
+    all:: [
+      self.certificateCRD,
+      self.clusterIssuerCRD,
+      self.issuerCRD,
+      self.serviceAccount,
+      self.clusterRoleBinding,
+      self.deploy,
+      self.issuerLEProd,
+    ],
+
+    list(obj=self.all):: util.list(obj),
   },
 }

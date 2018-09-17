@@ -1,7 +1,7 @@
 {
   all(params):: [
 
-                  $.parts(params.namespace).configMap(params.cloud, params.tfDefaultImage),
+                  $.parts(params.namespace).configMap(params.tfDefaultImage),
                   $.parts(params.namespace).serviceAccount,
                   $.parts(params.namespace).operatorRole(params.deploymentScope, params.deploymentNamespace),
                   $.parts(params.namespace).operatorRoleBinding(params.deploymentScope, params.deploymentNamespace),
@@ -252,46 +252,10 @@
                                               else
                                                 {},
 
-    aksAccelerators:: {
-      accelerators: {
-        "alpha.kubernetes.io/nvidia-gpu": {
-          volumes: [
-            {
-              name: "nvidia",
-              mountPath: "/usr/local/nvidia",
-              hostPath: "/usr/local/nvidia",
-            },
-          ],
-        },
-      },
-    },
-
-    acsEngineAccelerators:: {
-      accelerators: {
-        "alpha.kubernetes.io/nvidia-gpu": {
-          volumes: [
-            {
-              name: "nvidia",
-              mountPath: "/usr/local/nvidia",
-              hostPath: "/usr/local/nvidia",
-            },
-          ],
-        },
-      },
-    },
-
-    configData(cloud, tfDefaultImage):: self.defaultControllerConfig(tfDefaultImage) +
-                                        if cloud == "aks" then
-                                          self.aksAccelerators
-                                        else if cloud == "acsengine" then
-                                          self.acsEngineAccelerators
-                                        else
-                                          {},
-
-    configMap(cloud, tfDefaultImage): {
+    configMap(tfDefaultImage): {
       apiVersion: "v1",
       data: {
-        "controller_config_file.yaml": std.manifestJson($.parts(namespace).configData(cloud, tfDefaultImage)),
+        "controller_config_file.yaml": std.manifestJson($.parts(namespace).defaultControllerConfig(tfDefaultImage)),
       },
       kind: "ConfigMap",
       metadata: {

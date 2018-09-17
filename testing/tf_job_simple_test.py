@@ -25,7 +25,10 @@ import logging
 import os
 import re
 import subprocess
+
+from kubernetes import client as k8s_client
 from kubeflow.testing import test_helper, util
+from py import tf_job_client
 from retrying import retry
 
 NAMESPACE = "default"
@@ -45,34 +48,11 @@ def parse_args():
   args, _ = parser.parse_known_args()
   return args
 
-@retry(wait_fixed=5000, stop_max_attempt_number=20)
-def wait_for_tf_job():
-  """Ensure pods enter running state."""
-  # For debugging purposes list all pods and their labels.
-  # This makes it easy to see if the problem is that we specified
-  # the wrong label selector.
-  util.run(["kubectl", "--namespace=" + NAMESPACE,
-            "get", "pods", "-o",
-            ("custom-columns=name:metadata.name,"
-             "labels:.metadata.labels,status:status.phase")])
-  out = util.run(["kubectl", "get", "pods", "-l",
-                  "tf_job_name=mycnnjob", "-n" + NAMESPACE])
-  if "No resources found" in out \
-       or out.count('Running') != 2:
-    raise Exception("Could not find pods with label tf_job_name=mycnnjob")
-  logging.info("Found pods with label tf_job_name=mycnnjob")
-  out = util.run(["kubectl", "get", "services", "-l",
-                  "tf_job_name=mycnnjob", "-ndefault"])
-  if "No resources found" in out \
-       or len(out.split("\n")) != 3:
-    raise Exception("Could not find services with label tf_job_name=mycnnjob")
-  logging.info("Found services with label tf_job_name=mycnnjob")
-
 @retry(stop_max_attempt_number=3)
-def test_tf_job_simple(test_case): # pylint: disable=redefined-outer-name
-  args = parse_args()
+def create_app_and_job(args, namespace, name):
   try:
-    util.run(["ks", "init", "tf-job-simple-app", "--skip-default-registries"])
+    util.run(["ks", "init", "tf-job-simple-app", "--skip-default-registries",
+              "--namespace=" + namespace])
   except subprocess.CalledProcessError as e:
     # Keep going if the app already exists. This is a sign the a previous
     # attempt failed and we are retrying.
@@ -104,18 +84,29 @@ def test_tf_job_simple(test_case): # pylint: disable=redefined-outer-name
     raise ValueError("Unrecognized value for tf_job_version: %s" %
                      args.tf_job_version)
 
-  util.run(["ks", "generate", prototype_name, "tf-job-simple"])
+  util.run(["ks", "generate", prototype_name, name])
   util.run(["ks", "apply", "default", "-c", "tf-job-simple"])
+
+def test_tf_job_simple(test_case): # pylint: disable=redefined-outer-name
+  args = parse_args()
+  namespace = "default"
+  name = "tf-job-simple"
+
+  util.load_kube_config()
+  api_client = k8s_client.ApiClient()
+  create_app_and_job(args, namespace, name)
   try:
-    wait_for_tf_job()
+    tf_job_client.wait_for_condition(
+        api_client, namespace, name, ["Running"],
+        status_callback=tf_job_client.log_status)
     logging.info("TFJob launched successfully")
   except Exception as e:
+    logging.error("Test failed waiting for job; %s", e)
     test_case.add_failure_info(e.message)
-
 
 if __name__ == "__main__":
   test_case = test_helper.TestCase(
     name="test_tf_job_simple", test_func=test_tf_job_simple)
   test_suite = test_helper.init(
-    name="", test_cases=[test_case])
+    name="test_tf_job_simple", test_cases=[test_case])
   test_suite.run()

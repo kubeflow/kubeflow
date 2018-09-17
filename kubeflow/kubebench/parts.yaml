@@ -1,0 +1,34 @@
+{
+   "name": "kubebench-job",
+   "apiVersion": "0.0.1",
+   "kind": "ksonnet.io/parts",
+   "description": "Kubebench is a benchmark tool for Kubeflow jobs.\n",
+   "author": "Cisco Systems, Inc.",
+   "contributors": [
+      {
+         "name": "Xinyuan Huang",
+         "email": "xinyuahu@cisco.com"
+      }
+   ],
+   "repository": {
+      "type": "git",
+      "url": "https://github.com/kubeflow/kubebench"
+   },
+   "bugs": {
+      "url": "https://github.com/kubeflow/kubebench/issues"
+   },
+   "keywords": [
+      "kubeflow",
+      "benchmark"
+   ],
+   "quickStart": {
+      "prototype": "io.ksonnet.pkg.kubebench-job",
+      "componentName": "kubebench-job",
+      "flags": {
+         "name": "kubebench-job",
+         "namespace": "default"
+      },
+      "comment": "Run Kubebench Job"
+   },
+   "license": "Apache 2.0"
+}

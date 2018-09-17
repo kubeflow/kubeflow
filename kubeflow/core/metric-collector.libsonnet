@@ -1,13 +1,13 @@
 {
-  all(params):: [
-    $.parts(params.namespace, params.metricImage, params.targetUrl, params.oauthSecretName).metricServiceAccount,
-    $.parts(params.namespace, params.metricImage, params.targetUrl, params.oauthSecretName).metricRole,
-    $.parts(params.namespace, params.metricImage, params.targetUrl, params.oauthSecretName).metricRoleBinding,
-    $.parts(params.namespace, params.metricImage, params.targetUrl, params.oauthSecretName).deploy,
-    $.parts(params.namespace, params.metricImage, params.targetUrl, params.oauthSecretName).service,
-  ],
-  parts(namespace, image, targetUrl, oauthSecretName):: {
-    metricServiceAccount: {
+  local k = import "k.libsonnet",
+  local util = import "kubeflow/core/util.libsonnet",
+  new(_env, _params):: {
+    local params = _env + _params {
+      namespace: if std.objectHas(_params, "namespace") && _params.namespace != "null" then
+        _params.namespace else _env.namespace,
+    },
+
+    local metricServiceAccount = {
       apiVersion: "v1",
       kind: "ServiceAccount",
       metadata: {
@@ -15,10 +15,12 @@
           app: "metric-collector",
         },
         name: "metric-collector",
-        namespace: namespace,
+        namespace: params.namespace,
       },
     },
-    metricRole:: {
+    metricServiceAccount:: metricServiceAccount,
+
+    local metricRole = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRole",
       metadata: {
@@ -42,7 +44,9 @@
         },
       ],
     },
-    metricRoleBinding:: {
+    metricRole:: metricRole,
+
+    local metricRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRoleBinding",
       metadata: {
@@ -60,11 +64,13 @@
         {
           kind: "ServiceAccount",
           name: "metric-collector",
-          namespace: namespace,
+          namespace: params.namespace,
         },
       ],
     },
-    service:: {
+    metricRoleBinding:: metricRoleBinding,
+
+    local service = {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
@@ -72,7 +78,7 @@
           service: "metric-collector",
         },
         name: "metric-collector",
-        namespace: namespace,
+        namespace: params.namespace,
         annotations: {
           "prometheus.io/scrape": "true",
           "prometheus.io/path": "/",
@@ -94,7 +100,9 @@
         type: "ClusterIP",
       },
     },
-    deploy:: {
+    service:: service,
+
+    local deploy = {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -102,7 +110,7 @@
           app: "metric-collector",
         },
         name: "metric-collector",
-        namespace: namespace,
+        namespace: params.namespace,
       },
       spec: {
         replicas: 1,
@@ -116,7 +124,7 @@
             labels: {
               app: "metric-collector",
             },
-            namespace: namespace,
+            namespace: params.namespace,
           },
           spec: {
             containers: [
@@ -130,7 +138,7 @@
                     name: "CLIENT_ID",
                     valueFrom: {
                       secretKeyRef: {
-                        name: oauthSecretName,
+                        name: params.oauthSecretName,
                         key: "client_id",
                       },
                     },
@@ -141,7 +149,7 @@
                   "/opt/kubeflow-readiness.py",
                 ],
                 args: [
-                  "--url=" + targetUrl,
+                  "--url=" + params.targetUrl,
                   "--client_id=$(CLIENT_ID)",
                 ],
                 volumeMounts: [
@@ -151,7 +159,7 @@
                     mountPath: "/var/run/secrets/sa",
                   },
                 ],
-                image: image,
+                image: params.metricImage,
                 name: "exporter",
               },
             ],
@@ -169,5 +177,16 @@
         },
       },
     },  // deploy
-  },  // parts
+    deploy:: deploy,
+
+    all:: [
+      self.metricServiceAccount,
+      self.metricRole,
+      self.metricRoleBinding,
+      self.service,
+      self.deploy,
+    ],
+
+    list(obj=self.all):: util.list(obj),
+  },
 }
