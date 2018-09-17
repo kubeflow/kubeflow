@@ -32,3 +32,6 @@ workflows:
   - app_dir: kubeflow/kubeflow/releasing/pytorch-operator
     component: pytorch-operator
     name: pytorch-operator-release
+  - app_dir: kubeflow/kubeflow/releasing/katib
+    component: katib
+    name: katib-release
