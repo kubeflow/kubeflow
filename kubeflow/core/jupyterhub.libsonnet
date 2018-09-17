@@ -386,6 +386,7 @@
       self.hubStatefulSet,
       self.hubRole,
       self.notebookRole,
+      self.hubService,
       self.hubServiceAccount,
       self.notebookServiceAccount,
       self.hubRoleBinding,
