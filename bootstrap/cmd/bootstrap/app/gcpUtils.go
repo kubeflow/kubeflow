@@ -155,6 +155,16 @@ func GetUpdatedPolicy(currentPolicy *cloudresourcemanager.Policy, iamConf *IamCo
 }
 
 func (s *ksServer)ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) error {
+	// Get the iam change from config.
+	regPath := s.knownRegistries["kubeflow"].RegUri
+	templatePath := path.Join(regPath, "../components/gcp-click-to-deploy/src/configs/iam_bindings_template.yaml")
+	var iamConf IamConf
+	err := LoadConfig(templatePath, &iamConf)
+	if err != nil {
+		log.Errorf("Failed to load iam config: %v", err)
+		return err
+	}
+
 	ts := oauth2.StaticTokenSource(&oauth2.Token{
 		AccessToken: req.Token,
 	})
@@ -166,38 +176,22 @@ func (s *ksServer)ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) error
 	s.serverMux.Lock()
 	defer s.serverMux.Unlock()
 
-	// Get current policy
 	retry := 0
-	var saPolicy *cloudresourcemanager.Policy
 	for retry < 5 {
-		saPolicy, err = resourceManager.Projects.GetIamPolicy(
+		// Get current policy
+		saPolicy, err := resourceManager.Projects.GetIamPolicy(
 			req.Project,
 			&cloudresourcemanager.GetIamPolicyRequest{
 			}).Do()
 		if err != nil {
 			retry += 1
+			log.Warningf("Cannot get current policy: %v", err)
 			time.Sleep(3 * time.Second)
+			continue
 		}
-	}
-	if err != nil {
-		log.Errorf("Cannot get current policy: %v", err)
-		return err
-	}
 
-    // Get the iam change from config.
-	regPath := s.knownRegistries["kubeflow"].RegUri
-	templatePath := path.Join(regPath, "../components/gcp-click-to-deploy/src/configs/iam_bindings_template.yaml")
-	var iamConf IamConf
-	err = LoadConfig(templatePath, &iamConf)
-	if err != nil {
-		log.Errorf("Failed to load iam config: %v", err)
-		return err
-	}
-
-	// Get the updated policy and apply it.
-	newPolicy := GetUpdatedPolicy(saPolicy, &iamConf, req)
-	retry = 0
-	if retry < 5 {
+		// Get the updated policy and apply it.
+		newPolicy := GetUpdatedPolicy(saPolicy, &iamConf, req)
 		_, err = resourceManager.Projects.SetIamPolicy(
 			req.Project,
 			&cloudresourcemanager.SetIamPolicyRequest{
@@ -205,13 +199,12 @@ func (s *ksServer)ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) error
 			}).Do()
 		if err != nil {
 			retry += 1
+			log.Warningf("Cannot set new ploicy: %v", err)
 			time.Sleep(3 * time.Second)
 		}
 	}
 	if err != nil {
-		log.Errorf("Cannot set new ploicy: %v", err)
 		return err
 	}
-
 	return nil
 }
