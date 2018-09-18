@@ -11,7 +11,7 @@ local paramsv1alpha2 = {
   name:: "tf-job-operator",
   tfJobImage:: "gcr.io/kubeflow-images-public/tf_operator:v20180226-403",
   tfDefaultImage:: "null",
-  deploymentScope:: "cluster",
+  deploymentScope:: "namespace",
   deploymentNamespace:: "test-kf-002",
   tfJobVersion: "v1alpha2",
 };
@@ -22,8 +22,6 @@ local env = {
 local tfjobv1alpha1 = tfjob.new(env, paramsv1alpha1);
 local tfjobv1alpha2 = tfjob.new(env, paramsv1alpha2);
 
-  tfjobv1alpha2.tfJobCrd
-/*
 std.assertEqual(
   tfjobv1alpha1.tfJobDeployment,
   {
@@ -128,89 +126,89 @@ std.assertEqual(
 std.assertEqual(
   tfjobv1alpha1.tfOperatorRole,
   {
-    apiVersion: "rbac.authorization.k8s.io/v1beta1",
-    kind: "ClusterRole",
-    metadata: {
-      labels: {
-        app: "tf-job-operator",
-      },
-      name: "tf-job-operator",
-    },
-    rules: [
-      {
-        apiGroups: [
-          "tensorflow.org",
-          "kubeflow.org",
-        ],
-        resources: [
-          "tfjobs",
-        ],
-        verbs: [
-          "*",
-        ],
-      },
-      {
-        apiGroups: [
-          "apiextensions.k8s.io",
-        ],
-        resources: [
-          "customresourcedefinitions",
-        ],
-        verbs: [
-          "*",
-        ],
-      },
-      {
-        apiGroups: [
-          "storage.k8s.io",
-        ],
-        resources: [
-          "storageclasses",
-        ],
-        verbs: [
-          "*",
-        ],
-      },
-      {
-        apiGroups: [
-          "batch",
-        ],
-        resources: [
-          "jobs",
-        ],
-        verbs: [
-          "*",
-        ],
-      },
-      {
-        apiGroups: [
-          "",
-        ],
-        resources: [
-          "configmaps",
-          "pods",
-          "services",
-          "endpoints",
-          "persistentvolumeclaims",
-          "events",
-        ],
-        verbs: [
-          "*",
-        ],
-      },
-      {
-        apiGroups: [
-          "apps",
-          "extensions",
-        ],
-        resources: [
-          "deployments",
-        ],
-        verbs: [
-          "*",
-        ],
-      },
-    ],
+     "apiVersion": "rbac.authorization.k8s.io/v1beta1",
+     "kind": "ClusterRole",
+     "metadata": {
+        "labels": {
+           "app": "tf-job-operator"
+        },
+        "name": "tf-job-operator"
+     },
+     "rules": [
+        {
+           "apiGroups": [
+              "tensorflow.org",
+              "kubeflow.org"
+           ],
+           "resources": [
+              "tfjobs"
+           ],
+           "verbs": [
+              "*"
+           ]
+        },
+        {
+           "apiGroups": [
+              "apiextensions.k8s.io"
+           ],
+           "resources": [
+              "customresourcedefinitions"
+           ],
+           "verbs": [
+              "*"
+           ]
+        },
+        {
+           "apiGroups": [
+              "storage.k8s.io"
+           ],
+           "resources": [
+              "storageclasses"
+           ],
+           "verbs": [
+              "*"
+           ]
+        },
+        {
+           "apiGroups": [
+              "batch"
+           ],
+           "resources": [
+              "jobs"
+           ],
+           "verbs": [
+              "*"
+           ]
+        },
+        {
+           "apiGroups": [
+              ""
+           ],
+           "resources": [
+              "configmaps",
+              "pods",
+              "services",
+              "endpoints",
+              "persistentvolumeclaims",
+              "events"
+           ],
+           "verbs": [
+              "*"
+           ]
+        },
+        {
+           "apiGroups": [
+              "apps",
+              "extensions"
+           ],
+           "resources": [
+              "deployments"
+           ],
+           "verbs": [
+              "*"
+           ]
+        }
+     ]
   }
 ) &&
 
@@ -446,5 +444,95 @@ std.assertEqual(
         }
      }
   }
+) &&
+
+std.assertEqual(
+  tfjobv1alpha2.tfUiRole,
+  {
+     "apiVersion": "rbac.authorization.k8s.io/v1beta1",
+     "kind": "ClusterRole",
+     "metadata": {
+        "labels": {
+           "app": "tf-job-dashboard"
+        },
+        "name": "tf-job-dashboard"
+     },
+     "rules": [
+        {
+           "apiGroups": [
+              "tensorflow.org",
+              "kubeflow.org"
+           ],
+           "resources": [
+              "tfjobs"
+           ],
+           "verbs": [
+              "*"
+           ]
+        },
+        {
+           "apiGroups": [
+              "apiextensions.k8s.io"
+           ],
+           "resources": [
+              "customresourcedefinitions"
+           ],
+           "verbs": [
+              "*"
+           ]
+        },
+        {
+           "apiGroups": [
+              "storage.k8s.io"
+           ],
+           "resources": [
+              "storageclasses"
+           ],
+           "verbs": [
+              "*"
+           ]
+        },
+        {
+           "apiGroups": [
+              "batch"
+           ],
+           "resources": [
+              "jobs"
+           ],
+           "verbs": [
+              "*"
+           ]
+        },
+        {
+           "apiGroups": [
+              ""
+           ],
+           "resources": [
+              "configmaps",
+              "pods",
+              "services",
+              "endpoints",
+              "persistentvolumeclaims",
+              "events",
+              "pods/log",
+              "namespaces"
+           ],
+           "verbs": [
+              "*"
+           ]
+        },
+        {
+           "apiGroups": [
+              "apps",
+              "extensions"
+           ],
+           "resources": [
+              "deployments"
+           ],
+           "verbs": [
+              "*"
+           ]
+        }
+     ]
+  }
 )
-*/

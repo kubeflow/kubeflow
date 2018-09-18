@@ -299,7 +299,15 @@
         "*",
       ],),
     },
-    local tfOperatorRole = {
+    local role(inst) = {
+      local ns = inst + 
+        if params.deploymentScope == "namespace" then
+          operatorRole.mixin.metadata.withNamespace(params.deploymentNamespace)
+        else
+          {},
+      return:: ns,
+    }.return,
+    local tfOperatorRole = role({
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: operatorRole.new().kind,
       metadata: {
@@ -308,17 +316,15 @@
         },
         name: "tf-job-operator",
       },
-    } + operatorRole.withRulesMixin([
-      rules.tfJobsRule,
-      rules.tfCrdRule,
-      rules.tfStorageRule,
-      rules.tfBatchRule,
-      rules.tfCoreRule,
-      rules.tfAppsRule,
-    ],) + if params.deploymentScope == "namespace" then
-      operatorRole.mixin.metadata.withNamespace(params.deploymentNamespace)
-    else
-      {},
+    } + k.rbac.v1beta1.role.withRulesMixin([
+        rules.tfJobsRule,
+        rules.tfCrdRule,
+        rules.tfStorageRule,
+        rules.tfBatchRule,
+        rules.tfCoreRule,
+        rules.tfAppsRule,
+      ],),
+    ),
     tfOperatorRole:: tfOperatorRole,
 
     local tfOperatorRoleBinding = {
@@ -450,7 +456,8 @@
           app: "tf-job-dashboard",
         },
         name: "tf-job-dashboard",
-      } + k.rbac.v1beta1.role.withRulesMixin([
+      },
+    } + k.rbac.v1beta1.role.withRulesMixin([
         rules.tfJobsRule,
         rules.tfCrdRule,
         rules.tfStorageRule,
@@ -460,8 +467,7 @@
           "namespaces",
         ]),
         rules.tfAppsRule,
-      ],),
-    },
+      ],), 
     tfUiRole:: tfUiRole,
 
     local tfUiRoleBinding = {
