@@ -25,71 +25,71 @@ local tfjobv1alpha2 = tfjob.new(env, paramsv1alpha2);
 std.assertEqual(
   tfjobv1alpha1.tfJobDeployment,
   {
-    apiVersion: "apps/v1beta1",
-    kind: "Deployment",
-    metadata: {
-      name: "tf-job-operator",
-      namespace: "test-kf-001",
-    },
-    spec: {
-      replicas: 1,
-      template: {
-        metadata: {
-          labels: {
-            name: "tf-job-operator",
-          },
-        },
-        spec: {
-          containers: [
-            {
-              args: [
-                "--controller-config-file=/etc/config/controller_config_file.yaml",
-                "--alsologtostderr",
-                "-v=1",
+     "apiVersion": "extensions/v1beta1",
+     "kind": "Deployment",
+     "metadata": {
+        "name": "tf-job-operator",
+        "namespace": "test-kf-001"
+     },
+     "spec": {
+        "replicas": 1,
+        "template": {
+           "metadata": {
+              "labels": {
+                 "name": "tf-job-operator"
+              }
+           },
+           "spec": {
+              "containers": [
+                 {
+                    "args": [
+                       "--controller-config-file=/etc/config/controller_config_file.yaml",
+                       "--alsologtostderr",
+                       "-v=1"
+                    ],
+                    "command": [
+                       "/opt/mlkube/tf-operator"
+                    ],
+                    "env": [
+                       {
+                          "name": "MY_POD_NAMESPACE",
+                          "valueFrom": {
+                             "fieldRef": {
+                                "fieldPath": "metadata.namespace"
+                             }
+                          }
+                       },
+                       {
+                          "name": "MY_POD_NAME",
+                          "valueFrom": {
+                             "fieldRef": {
+                                "fieldPath": "metadata.name"
+                             }
+                          }
+                       }
+                    ],
+                    "image": "gcr.io/kubeflow-images-public/tf_operator:v20180226-403",
+                    "name": "tf-job-operator",
+                    "volumeMounts": [
+                       {
+                          "mountPath": "/etc/config",
+                          "name": "config-volume"
+                       }
+                    ]
+                 }
               ],
-              command: [
-                "/opt/mlkube/tf-operator",
-              ],
-              env: [
-                {
-                  name: "MY_POD_NAMESPACE",
-                  valueFrom: {
-                    fieldRef: {
-                      fieldPath: "metadata.namespace",
+              "serviceAccountName": "tf-job-operator",
+              "volumes": [
+                 {
+                    "configMap": {
+                       "name": "tf-job-operator-config"
                     },
-                  },
-                },
-                {
-                  name: "MY_POD_NAME",
-                  valueFrom: {
-                    fieldRef: {
-                      fieldPath: "metadata.name",
-                    },
-                  },
-                },
-              ],
-              image: "gcr.io/kubeflow-images-public/tf_operator:v20180226-403",
-              name: "tf-job-operator",
-              volumeMounts: [
-                {
-                  mountPath: "/etc/config",
-                  name: "config-volume",
-                },
-              ],
-            },
-          ],
-          serviceAccountName: "tf-job-operator",
-          volumes: [
-            {
-              configMap: {
-                name: "tf-job-operator-config",
-              },
-              name: "config-volume",
-            },
-          ],
-        },
-      },
-    },
+                    "name": "config-volume"
+                 }
+              ]
+           }
+        }
+     }
   }
 ) &&
 
@@ -322,78 +322,126 @@ std.assertEqual(
 std.assertEqual(
   tfjobv1alpha2.tfJobDeployment,
   {
-    apiVersion: "apps/v1beta1",
-    kind: "Deployment",
-    metadata: {
-      name: "tf-job-operator-v1alpha2",
-      namespace: "test-kf-001",
-    },
-    spec: {
-      replicas: 1,
-      template: {
-        metadata: {
-          labels: {
-            name: "tf-job-operator",
-          },
-        },
-        spec: {
-          containers: [
-            {
-              args: [
-                "--alsologtostderr",
-                "-v=1",
-                "--namespace=test-kf-002",
+     "apiVersion": "extensions/v1beta1",
+     "kind": "Deployment",
+     "metadata": {
+        "name": "tf-job-operator-v1alpha2",
+        "namespace": "test-kf-001"
+     },
+     "spec": {
+        "replicas": 1,
+        "template": {
+           "metadata": {
+              "labels": {
+                 "name": "tf-job-operator"
+              }
+           },
+           "spec": {
+              "containers": [
+                 {
+                    "args": [
+                       "--alsologtostderr",
+                       "-v=1",
+                       "--namespace=test-kf-002"
+                    ],
+                    "command": [
+                       "/opt/kubeflow/tf-operator.v2"
+                    ],
+                    "env": [
+                       {
+                          "name": "MY_POD_NAMESPACE",
+                          "valueFrom": {
+                             "fieldRef": {
+                                "fieldPath": "metadata.namespace"
+                             }
+                          }
+                       },
+                       {
+                          "name": "MY_POD_NAME",
+                          "valueFrom": {
+                             "fieldRef": {
+                                "fieldPath": "metadata.name"
+                             }
+                          }
+                       },
+                       {
+                          "name": "KUBEFLOW_NAMESPACE",
+                          "valueFrom": {
+                             "fieldRef": {
+                                "fieldPath": "metadata.namespace"
+                             }
+                          }
+                       }
+                    ],
+                    "image": "gcr.io/kubeflow-images-public/tf_operator:v20180226-403",
+                    "name": "tf-job-operator",
+                    "volumeMounts": [
+                       {
+                          "mountPath": "/etc/config",
+                          "name": "config-volume"
+                       }
+                    ]
+                 }
               ],
-              command: [
-                "/opt/kubeflow/tf-operator.v2",
-              ],
-              env: [
-                {
-                  name: "MY_POD_NAMESPACE",
-                  valueFrom: {
-                    fieldRef: {
-                      fieldPath: "metadata.namespace",
+              "serviceAccountName": "tf-job-operator",
+              "volumes": [
+                 {
+                    "configMap": {
+                       "name": "tf-job-operator-config"
                     },
-                  },
-                },
-                {
-                  name: "MY_POD_NAME",
-                  valueFrom: {
-                    fieldRef: {
-                      fieldPath: "metadata.name",
-                    },
-                  },
-                },
-                {
-                  name: "KUBEFLOW_NAMESPACE",
-                  valueFrom: {
-                    fieldRef: {
-                      fieldPath: "metadata.namespace",
-                    },
-                  },
-                },
+                    "name": "config-volume"
+                 }
+              ]
+           }
+        }
+     }
+  }
+) &&
+
+std.assertEqual(
+  tfjobv1alpha2.tfUiDeployment,
+  {
+     "apiVersion": "extensions/v1beta1",
+     "kind": "Deployment",
+     "metadata": {
+        "name": "tf-job-dashboard",
+        "namespace": "test-kf-001"
+     },
+     "spec": {
+        "template": {
+           "metadata": {
+              "labels": {
+                 "name": "tf-job-dashboard"
+              }
+           },
+           "spec": {
+              "containers": [
+                 {
+                    "command": [
+                       "/opt/tensorflow_k8s/dashboard/backend"
+                    ],
+                    "env": [
+                       {
+                          "name": "KUBEFLOW_NAMESPACE",
+                          "valueFrom": {
+                             "fieldRef": {
+                                "fieldPath": "metadata.namespace"
+                             }
+                          }
+                       }
+                    ],
+                    "image": "gcr.io/kubeflow-images-public/tf_operator:v20180226-403",
+                    "name": "tf-job-dashboard",
+                    "ports": [
+                       {
+                          "containerPort": 8080
+                       }
+                    ]
+                 }
               ],
-              image: "gcr.io/kubeflow-images-public/tf_operator:v20180226-403",
-              name: "tf-job-operator",
-              volumeMounts: [
-                {
-                  mountPath: "/etc/config",
-                  name: "config-volume",
-                },
-              ],
-            },
-          ],
-          serviceAccountName: "tf-job-operator",
-          volumes: [
-            {
-              configMap: {
-                name: "tf-job-operator-config",
-              },
-              name: "config-volume",
-            },
-          ],
-        },
-      },
-    },
+              "serviceAccountName": "tf-job-dashboard"
+           }
+        }
+     }
   }
 )
