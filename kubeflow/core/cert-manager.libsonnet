@@ -181,6 +181,7 @@
       self.clusterIssuerCRD,
       self.issuerCRD,
       self.serviceAccount,
+      self.clusterRole,
       self.clusterRoleBinding,
       self.deploy,
       self.issuerLEProd,
