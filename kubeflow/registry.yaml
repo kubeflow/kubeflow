@@ -43,3 +43,6 @@ libraries:
   chainer-job:
     version: master
     path: chainer-job
+  kubebench:
+    version: master
+    path: kubebench
