@@ -11,7 +11,7 @@ local paramsv1alpha2 = {
   name:: "tf-job-operator",
   tfJobImage:: "gcr.io/kubeflow-images-public/tf_operator:v20180226-403",
   tfDefaultImage:: "null",
-  deploymentScope:: "namespace",
+  deploymentScope:: "cluster",
   deploymentNamespace:: "test-kf-002",
   tfJobVersion: "v1alpha2",
 };
@@ -22,6 +22,8 @@ local env = {
 local tfjobv1alpha1 = tfjob.new(env, paramsv1alpha1);
 local tfjobv1alpha2 = tfjob.new(env, paramsv1alpha2);
 
+  tfjobv1alpha2.tfJobCrd
+/*
 std.assertEqual(
   tfjobv1alpha1.tfJobDeployment,
   {
@@ -445,3 +447,4 @@ std.assertEqual(
      }
   }
 )
+*/

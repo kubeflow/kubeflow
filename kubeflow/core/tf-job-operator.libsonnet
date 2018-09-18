@@ -51,8 +51,22 @@
         },
       },
     },
+    local crd(inst) = {
+      local scope = inst + 
+        if params.deploymentScope == "cluster" then
+          { spec+: { scope: "Cluster", }, }
+        else
+          { spec+: { scope: "Namespaced", }, },
+      local version = scope +
+        if params.tfJobVersion == "v1alpha2" then
+          { spec+: { version: "v1alpha2", }, } +
+          { spec+: { validation: { openAPIV3Schema: openAPIV3Schema, }, }, }
+        else
+          {},
+      return:: version,
+    }.return,
 
-    local tfJobCrd = {
+    local tfJobCrd = crd({
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
       metadata: {
@@ -67,15 +81,7 @@
           plural: "tfjobs",
         },
       },
-    } + if params.deploymentScope == "cluster" then
-      { spec+: { scope: "Cluster" }, }
-    else
-      { spec+: { scope: "Namespaced", }, } +
-    if params.tfJobVersion == "v1alpha2" then
-      { spec+: { version: "v1alpha2", }, } +
-      { spec+: { validation: { openAPIV3Schema: openAPIV3Schema, }, }, }
-    else
-      {},
+    }),
     tfJobCrd:: tfJobCrd,
 
     local tfJobContainer = {
