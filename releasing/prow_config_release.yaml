@@ -32,3 +32,6 @@ workflows:
   - app_dir: kubeflow/kubeflow/releasing/pytorch-operator
     component: pytorch-operator
     name: pytorch-operator-release
+  - app_dir: kubeflow/kubeflow/releasing/chainer-operator
+    component: chainer-operator
+    name: chainer-operator-release
