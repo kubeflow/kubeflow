@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"time"
 
 	"golang.org/x/net/context"
 	"google.golang.org/api/deploymentmanager/v2"
@@ -165,11 +166,19 @@ func (s *ksServer)ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) error
 	s.serverMux.Lock()
 	defer s.serverMux.Unlock()
 
-    // Get current policy
-	saPolicy, err := resourceManager.Projects.GetIamPolicy(
-		req.Project,
-		&cloudresourcemanager.GetIamPolicyRequest{
-		}).Do()
+	// Get current policy
+	retry := 0
+	var saPolicy *cloudresourcemanager.Policy
+	for retry < 5 {
+		saPolicy, err = resourceManager.Projects.GetIamPolicy(
+			req.Project,
+			&cloudresourcemanager.GetIamPolicyRequest{
+			}).Do()
+		if err != nil {
+			retry += 1
+			time.Sleep(3 * time.Second)
+		}
+	}
 	if err != nil {
 		log.Errorf("Cannot get current policy: %v", err)
 		return err
@@ -187,11 +196,18 @@ func (s *ksServer)ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) error
 
 	// Get the updated policy and apply it.
 	newPolicy := GetUpdatedPolicy(saPolicy, &iamConf, req)
-	_, err = resourceManager.Projects.SetIamPolicy(
-		req.Project,
-		&cloudresourcemanager.SetIamPolicyRequest{
-			Policy: &newPolicy,
-		}).Do()
+	retry = 0
+	if retry < 5 {
+		_, err = resourceManager.Projects.SetIamPolicy(
+			req.Project,
+			&cloudresourcemanager.SetIamPolicyRequest{
+				Policy: &newPolicy,
+			}).Do()
+		if err != nil {
+			retry += 1
+			time.Sleep(3 * time.Second)
+		}
+	}
 	if err != nil {
 		log.Errorf("Cannot set new ploicy: %v", err)
 		return err
