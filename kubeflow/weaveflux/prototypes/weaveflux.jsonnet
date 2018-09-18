@@ -3,7 +3,7 @@
 // @description Weaveworks Flux integration with Kubeflow
 // @shortDescription A Flux meets Kubeflow
 // @param name string Name to give to each of the components
-// @optionalParam giturl string null Your default git URL.
+// @optionalParam gitUrl string null Your default git URL.
 // @optionalParam serviceType string ClusterIP The service type for WeaveFlux.
 
 local k = import "k.libsonnet";

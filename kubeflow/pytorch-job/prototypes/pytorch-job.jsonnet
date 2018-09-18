@@ -86,7 +86,7 @@ local args =
     std.split(argsParam, ",");
 
 local image = params.image;
-local imageGpu = params.image_gpu;
+local imageGpu = params.imageGpu;
 local numMasters = params.numMasters;
 local numWorkers = params.numWorkers;
 local numGpus = params.numGpus;
