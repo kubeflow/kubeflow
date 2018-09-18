@@ -25,6 +25,8 @@ import:
 - package: google.golang.org/api
   subpackages:
   - cloudresourcemanager/v1
+- package: google.golang.org/grpc
+  version: ^1.15.0
 - package: k8s.io/kubernetes
   version: v1.10.2
 - package: k8s.io/client-go
@@ -36,7 +38,7 @@ import:
 - package: k8s.io/apiserver
   version: kubernetes-1.10.2
 - package: github.com/ksonnet/ksonnet
-  version: ~0.11.0
+  version: ~0.12.0
 - package: github.com/go-openapi/spec
   version: 1de3e0542de65ad8d75452a595886fdd0befb363
 - package: github.com/go-openapi/swag

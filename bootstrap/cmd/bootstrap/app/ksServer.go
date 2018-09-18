@@ -3,7 +3,6 @@ package app
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"path"
 	"sync"
@@ -27,10 +26,17 @@ import (
 	"github.com/ksonnet/ksonnet/pkg/client"
 	"k8s.io/client-go/tools/clientcmd"
 	"time"
-)
+	"os/exec"
+	"golang.org/x/oauth2"
+	"google.golang.org/api/sourcerepo/v1"
+	"os"
+	)
 
 // The name of the prototype for Jupyter.
 const JUPYTER_PROTOTYPE = "jupyterhub"
+
+// root dir of local cached VERSIONED REGISTRIES
+const CACHED_REGISTRIES = "/opt/versioned_registries"
 
 // KsService defines an interface for working with ksonnet.
 type KsService interface {
@@ -47,7 +53,6 @@ type KsService interface {
 // appInfo keeps track of information about apps.
 type appInfo struct {
 	App kApp.App
-	mux sync.Mutex
 }
 
 // ksServer provides a server to wrap ksonnet.
@@ -63,7 +68,8 @@ type ksServer struct {
 
 	fs afero.Fs
 
-	apps      map[string]*appInfo
+	// project-id -> project lock
+	projectLocks map[string]*sync.Mutex
 	serverMux sync.Mutex
 }
 
@@ -75,7 +81,7 @@ func NewServer(appsDir string, registries []RegistryConfig) (*ksServer, error) {
 
 	s := &ksServer{
 		appsDir:         appsDir,
-		apps:            make(map[string]*appInfo),
+		projectLocks:    make(map[string]*sync.Mutex),
 		knownRegistries: make(map[string]RegistryConfig),
 		fs:              afero.NewOsFs(),
 	}
@@ -99,40 +105,6 @@ func NewServer(appsDir string, registries []RegistryConfig) (*ksServer, error) {
 		return nil, fmt.Errorf("appsDir %v is not a directory", appsDir)
 	}
 
-	projFiles, err := ioutil.ReadDir(appsDir)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, projFile := range projFiles {
-		if !projFile.IsDir() {
-			continue
-		}
-
-		// Try loading the project directory
-		project := projFile.Name()
-		appFiles, err := ioutil.ReadDir(path.Join(appsDir, project))
-		if err != nil {
-			return nil, err
-		}
-		for _, appFile := range appFiles {
-			if !appFile.IsDir() {
-				continue
-			}
-			appName := appFile.Name()
-			appDir := path.Join(appsDir, project, appName)
-			kfApp, err := kApp.Load(s.fs, appDir, true)
-
-			if err != nil {
-				// Keep going if there is a problem loading an existing app.
-				log.Errorf("There was a problem loading the app: %v", appsDir)
-				continue
-			}
-			s.InsertApp(project, appName, &appInfo{
-				App: kfApp,
-			})
-		}
-	}
 	return s, nil
 }
 
@@ -228,25 +200,39 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 		log.Errorf("Failed getting GKE cluster config: %v", err)
 		return err
 	}
-	a, err := func() (*appInfo, error) {
+	func() {
 		s.serverMux.Lock()
 		defer s.serverMux.Unlock()
-
-		if request.Name == "" {
-			return nil, fmt.Errorf("Name must be a non empty string.")
+		_, ok := s.projectLocks[request.Project]
+		if !ok {
+			s.projectLocks[request.Project] = &sync.Mutex{}
 		}
-		info, err := s.GetApp(request.Project, request.Name)
+	}()
 
-		if err == nil {
-			log.Infof("App %v exists in project %v", request.Name, request.Project)
-			return info, nil
+	s.projectLocks[request.Project].Lock()
+	defer s.projectLocks[request.Project].Unlock()
+
+	if request.Name == "" {
+		return fmt.Errorf("Name must be a non empty string.")
+	}
+	a, err := s.GetApp(request.Project, request.Name, request.Token)
+	envName := "default"
+	if err == nil {
+		log.Infof("App %v exists in project %v", request.Name, request.Project)
+		options := map[string]interface{}{
+			actions.OptionApp:     a.App,
+			actions.OptionEnvName: envName,
+			actions.OptionServer:  config.Host,
 		}
-
+		err := actions.RunEnvSet(options)
+		if err != nil {
+			return fmt.Errorf("There was a problem setting app env: %v", err)
+		}
+	} else {
 		log.Infof("Creating app %v", request.Name)
 		log.Infof("Using K8s host %v", config.Host)
-		envName := "default"
 
-		appDir := path.Join(s.appsDir, request.Project, request.Name)
+		appDir := path.Join(s.appsDir, GetRepoName(request.Project), request.Name)
 		_, err = s.fs.Stat(appDir)
 
 		if err != nil {
@@ -258,14 +244,14 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 				actions.OptionServer:   config.Host,
 				// TODO(jlewi): What is the proper version to use? It shouldn't be a version like v1.9.0-gke as that
 				// will create an error because ksonnet will be unable to fetch a swagger spec.
-				actions.OptionSpecFlag:              "version:v1.7.0",
+				actions.OptionSpecFlag:              "version:v1.10.6",
 				actions.OptionNamespace:             request.Namespace,
 				actions.OptionSkipDefaultRegistries: true,
 			}
 
 			err := actions.RunInit(options)
 			if err != nil {
-				return nil, fmt.Errorf("There was a problem initializing the app: %v", err)
+				return fmt.Errorf("There was a problem initializing the app: %v", err)
 			}
 			log.Infof("Successfully initialized the app %v.", appDir)
 
@@ -277,32 +263,21 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 
 		if err != nil {
 			log.Errorf("There was a problem loading app %v. Error: %v", request.Name, err)
-			return nil, err
+			return err
 		}
-		newApp := &appInfo{
+		a = &appInfo{
 			App: kfApp,
 		}
-		s.InsertApp(request.Project, request.Name, newApp)
-		return newApp, nil
-	}()
-
-	if err != nil {
-		return err
 	}
-
-	a.mux.Lock()
-	defer a.mux.Unlock()
 
 	// Add the registries to the app.
 	for idx, registry := range request.AppConfig.Registries {
-		if registry.RegUri == "" {
-			v, ok := s.knownRegistries[registry.Name]
-			if !ok {
-				return fmt.Errorf("App %v uses registry %v but no URI is specified and this is not a known registry", request.Name, registry.Name)
-			}
-			log.Infof("No URI provided for registry %v; setting URI to %v.", registry.Name, v.RegUri)
-			request.AppConfig.Registries[idx].RegUri = v.RegUri
+		RegUri, err := s.getRegistryUri(&registry)
+		if err != nil {
+			log.Errorf("There was a problem getRegistryUri for registry %v. Error: %v", registry.Name, err)
+			return err
 		}
+		request.AppConfig.Registries[idx].RegUri = RegUri
 		log.Infof("App %v add registry %v URI %v", request.Name, registry.Name, registry.RegUri)
 		options := map[string]interface{}{
 			actions.OptionApp:  a.App,
@@ -317,7 +292,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 
 		registries, err := a.App.Registries()
 		if err != nil {
-			log.Fatal("There was a problem listing registries; %v", err)
+			log.Errorf("There was a problem listing registries; %v", err)
 		}
 
 		if _, found := registries[registry.Name]; found {
@@ -339,8 +314,73 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 		s.autoConfigureApp(&a.App, &request.AppConfig, request.Namespace, config)
 	}
 
+	err = s.SaveAppToRepo(request.Project, request.Email)
+	if err != nil {
+		log.Errorf("There was a problem saving config to cloud repo; %v", err)
+		return err
+	}
 	log.Infof("Created and initialized app at %v", a.App.Root())
 	return nil
+}
+
+// fetch remote registry to local disk, or use baked-in registry if version not specified in user request.
+// Then return registry's RegUri.
+func (s *ksServer) getRegistryUri(registry *RegistryConfig) (string, error) {
+	if registry.Name == "" ||
+		registry.Path == "" ||
+		registry.Repo == "" ||
+		registry.Version == "" ||
+		registry.Version == "default" {
+
+		v, ok := s.knownRegistries[registry.Name]
+		if !ok {
+			return "", fmt.Errorf("Create request uses registry %v but some " +
+				"required fields are not specified and this is not a known registry.", registry.Name)
+		}
+		log.Infof("No remote registry provided for registry %v; setting URI to local %v.", registry.Name, v.RegUri)
+		return v.RegUri, nil
+	} else {
+		versionPath := path.Join(CACHED_REGISTRIES, registry.Name, registry.Version)
+
+		s.serverMux.Lock()
+		defer s.serverMux.Unlock()
+		_, err := s.fs.Stat(versionPath)
+
+		// If specific version doesn't exist locally, will download.
+		// The local cache path will be CACHED_REGISTRIES/registry_name/registry_version/
+		if err != nil {
+			registryPath := path.Join(CACHED_REGISTRIES, registry.Name)
+			_, err := s.fs.Stat(registryPath)
+			if err != nil {
+				os.Mkdir(registryPath, os.ModePerm)
+			}
+			fileUrl := path.Join(registry.Repo, "archive", registry.Version + ".tar.gz")
+
+			err = runCmd(fmt.Sprintf("curl -L -o %v %v", versionPath + ".tar.gz", fileUrl))
+			if err != nil {
+				return "", err
+			}
+			err = runCmd(fmt.Sprintf("tar -xzvf %s  -C %s", versionPath+".tar.gz", registryPath))
+			if err != nil {
+				return "", err
+			}
+			err = os.Rename(path.Join(registryPath, registry.Name + "-" + registry.Version), versionPath)
+			if err != nil {
+				log.Errorf("Error occrued during os.Rename. Error: %v", err)
+				return "", err
+			}
+		}
+		return path.Join(versionPath, registry.Path), nil
+	}
+}
+
+func runCmd(rawcmd string) error {
+	cmd := exec.Command("sh", "-c", rawcmd)
+	err := cmd.Run()
+	if err != nil {
+		log.Errorf("Error occrued during execute cmd %v. Error: %v", rawcmd, err)
+	}
+	return err
 }
 
 // appGenerate installs packages and creates components.
@@ -387,6 +427,7 @@ func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *AppConfig) error {
 						actions.OptionApp:     kfApp,
 						actions.OptionLibName: full,
 						actions.OptionName:    pkgName,
+						actions.OptionForce:	false,
 					})
 
 					if err != nil {
@@ -410,6 +451,7 @@ func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *AppConfig) error {
 			actions.OptionApp:     kfApp,
 			actions.OptionLibName: full,
 			actions.OptionName:    pkg.Name,
+			actions.OptionForce:	false,
 		})
 
 		if err != nil {
@@ -527,18 +569,80 @@ func (s *ksServer) autoConfigureApp(kfApp *kApp.App, appConfig *AppConfig, names
 	return nil
 }
 
-func (s *ksServer) GetApp(project string, appName string) (*appInfo, error) {
-	mapKey := fmt.Sprintf(" %s-%s", project, appName)
-	info, ok := s.apps[mapKey]
-	if !ok {
+
+func GetRepoName(project string) string {
+	return fmt.Sprintf("%s-kubeflow-config", project)
+}
+
+// Not thread-safe, make sure project lock is on.
+// Clone project repo to local disk, which contains all existing ks apps config in the project
+func (s *ksServer) CloneRepoToLocal(project string, token string) error {
+	repoDir := path.Join(s.appsDir, GetRepoName(project))
+	_, err := s.fs.Stat(repoDir)
+
+	// delete existing local repo, pull from cloud
+	if err == nil {
+		os.RemoveAll(repoDir)
+	}
+	ts := oauth2.StaticTokenSource(&oauth2.Token{
+		AccessToken: token,
+	})
+	sourcerepoService, err := sourcerepo.New(oauth2.NewClient(context.Background(), ts))
+	_, err = sourcerepoService.Projects.Repos.Get(fmt.Sprintf("projects/%s/repos/%s", project, GetRepoName(project))).Do()
+	if err != nil {
+		// repo does't exist in target project, create one
+		_, err = sourcerepoService.Projects.Repos.Create(fmt.Sprintf("projects/%s", project), &sourcerepo.Repo{
+			Name: fmt.Sprintf("projects/%s/repos/%s", project, GetRepoName(project)),
+		}).Do()
+		if err != nil {
+			log.Errorf("Fail to create repo %v", err)
+			return err
+		}
+	}
+	err = os.Chdir(s.appsDir)
+	if err != nil {
+		return err
+	}
+	cloneCmd := fmt.Sprintf("git clone https://%s:%s@source.developers.google.com/p/%s/r/%s",
+		"user1", token, project, GetRepoName(project))
+	cmd := exec.Command("sh", "-c", cloneCmd)
+	result, err := cmd.CombinedOutput()
+	log.Infof(string(result))
+	return err
+}
+
+func (s *ksServer) GetApp(project string, appName string, token string) (*appInfo, error) {
+	err := s.CloneRepoToLocal(project, token)
+	if err != nil {
+		return nil, err
+	}
+	appDir := path.Join(s.appsDir, GetRepoName(project), appName)
+	_, err = s.fs.Stat(appDir)
+	if err != nil {
 		return nil, fmt.Errorf("App %s doesn't exist in Project %s", appName, project)
 	}
-	return info, nil
+	kfApp, err := kApp.Load(s.fs, appDir, true)
+
+	if err != nil {
+		return nil, fmt.Errorf("There was a problem loading app %v. Error: %v", appName, err)
+	}
+
+	return &appInfo{
+		App: kfApp,
+	}, nil
 }
+
+// Save ks app config local changes to project source repo.
 // Not thread safe, be aware when call it.
-func (s *ksServer) InsertApp(project string, appName string, app *appInfo) {
-	mapKey := fmt.Sprintf(" %s-%s", project, appName)
-	s.apps[mapKey] = app
+func (s *ksServer) SaveAppToRepo(project string, email string) error {
+	repoDir := path.Join(s.appsDir, GetRepoName(project))
+	err := os.Chdir(repoDir)
+	if err != nil {
+		return err
+	}
+
+	return runCmd(fmt.Sprintf("git config user.email '%s'; git config user.name 'auto-commit'; git add .; " +
+		"git commit -m 'auto commit from deployment'; git pull --rebase; git push origin master", email))
 }
 
 // Apply runs apply on a ksonnet application.
@@ -552,13 +656,12 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 			log.Errorf("Failed getting GKE cluster config: %v", err)
 			return err
 		}
-		a, err := s.GetApp(req.Project, req.Name)
+		s.projectLocks[req.Project].Lock()
+		defer s.projectLocks[req.Project].Unlock()
+		a, err := s.GetApp(req.Project, req.Name, req.Token)
 		if err != nil {
 			return err
 		}
-
-		a.mux.Lock()
-		defer a.mux.Unlock()
 
 		roleBinding := v1.ClusterRoleBinding{
 			TypeMeta: meta_v1.TypeMeta{

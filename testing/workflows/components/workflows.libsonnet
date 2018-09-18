@@ -483,11 +483,6 @@
                     dependencies: ["checkout"],
                   },
                   {
-                    name: "test-jsonnet-formatting",
-                    template: "test-jsonnet-formatting",
-                    dependencies: ["checkout"],
-                  },
-                  {
                     name: "deploy-kubeflow",
                     template: "deploy-kubeflow",
                     dependencies: ["setup-minikube"],
@@ -529,11 +524,6 @@
                     dependencies: [
                       "deploy-kubeflow",
                     ],
-                  },
-                  {
-                    name: "jsonnet-test",
-                    template: "jsonnet-test",
-                    dependencies: ["checkout"],
                   },
                 ]),  // tasks
               },  // dag
@@ -592,15 +582,6 @@
               "-m",
               "testing.wait_for_deployment",
             ]),  // wait-for-kubeflow
-            buildTemplate("test-jsonnet-formatting", [
-              "python",
-              "-m",
-              "kubeflow.testing.test_jsonnet_formatting",
-              "--project=" + project,
-              "--artifacts_dir=" + artifactsDir,
-              "--src_dir=" + srcDir,
-              "--exclude_dirs=" + srcDir + "/bootstrap/vendor/",
-            ]),  // test-jsonnet-formatting
             // Setup and teardown using minikube
             buildTemplate("setup-minikube", [
               "python",
@@ -652,14 +633,6 @@
               "copy_artifacts",
               "--bucket=" + bucket,
             ]),  // copy-artifacts
-            buildTemplate("jsonnet-test", [
-              "python",
-              "-m",
-              "testing.test_jsonnet",
-              "--artifacts_dir=" + artifactsDir,
-              "--test_files_dirs=" + srcDir + "/kubeflow",
-              "--jsonnet_path_dirs=" + srcDir,
-            ]),  // jsonnet-test
             buildTemplate("tfjob-simple-prototype-test", [
               "python",
               "-m",

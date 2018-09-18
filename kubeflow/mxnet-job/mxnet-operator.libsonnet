@@ -1,7 +1,7 @@
 {
   all(params, env):: [
     $.parts(params, env).mxnetJobDeploy(params.mxnetJobImage),
-    $.parts(params, env).configMap(params.cloud, params.mxnetDefaultImage),
+    $.parts(params, env).configMap(params.mxnetDefaultImage),
     $.parts(params, env).serviceAccount,
     $.parts(params, env).operatorRole,
     $.parts(params, env).operatorRoleBinding,
@@ -101,56 +101,10 @@
     else
       {},
 
-    aksAccelerators:: {
-      accelerators: {
-        "alpha.kubernetes.io/nvidia-gpu": {
-          volumes: [
-            {
-              name: "lib",
-              mountPath: "/usr/local/nvidia/lib64",
-              hostPath: "/usr/lib/nvidia-384",
-            },
-            {
-              name: "bin",
-              mountPath: "/usr/local/nvidia/bin",
-              hostPath: "/usr/lib/nvidia-384/bin",
-            },
-            {
-              name: "libcuda",
-              mountPath: "/usr/lib/x86_64-linux-gnu/libcuda.so.1",
-              hostPath: "/usr/lib/x86_64-linux-gnu/libcuda.so.1",
-            },
-          ],
-        },
-      },
-    },
-
-    acsEngineAccelerators:: {
-      accelerators: {
-        "alpha.kubernetes.io/nvidia-gpu": {
-          volumes: [
-            {
-              name: "nvidia",
-              mountPath: "/usr/local/nvidia",
-              hostPath: "/usr/local/nvidia",
-            },
-          ],
-        },
-      },
-    },
-
-    configData(cloud, mxnetDefaultImage):: self.defaultControllerConfig(mxnetDefaultImage) +
-                                           if cloud == "aks" then
-                                             self.aksAccelerators
-                                           else if cloud == "acsengine" then
-                                             self.acsEngineAccelerators
-                                           else
-                                             {},
-
-    configMap(cloud, mxnetDefaultImage): {
+    configMap(mxnetDefaultImage): {
       apiVersion: "v1",
       data: {
-        "controller_config_file.yaml": std.manifestJson($.parts(params, env).configData(cloud, mxnetDefaultImage)),
+        "controller_config_file.yaml": std.manifestJson($.parts(params, env).defaultControllerConfig(mxnetDefaultImage)),
       },
       kind: "ConfigMap",
       metadata: {

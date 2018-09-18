@@ -1,6 +1,6 @@
 {
   all(params, env):: [
-                       $.parts(params, env).configMap(params.cloud, params.pytorchDefaultImage),
+                       $.parts(params, env).configMap(params.pytorchDefaultImage),
                        $.parts(params, env).serviceAccount,
                        $.parts(params, env).operatorRole(params.deploymentScope, params.deploymentNamespace),
                        $.parts(params, env).operatorRoleBinding(params.deploymentScope, params.deploymentNamespace),
@@ -233,56 +233,10 @@
     else
       {},
 
-    aksAccelerators:: {
-      accelerators: {
-        "alpha.kubernetes.io/nvidia-gpu": {
-          volumes: [
-            {
-              name: "lib",
-              mountPath: "/usr/local/nvidia/lib64",
-              hostPath: "/usr/lib/nvidia-384",
-            },
-            {
-              name: "bin",
-              mountPath: "/usr/local/nvidia/bin",
-              hostPath: "/usr/lib/nvidia-384/bin",
-            },
-            {
-              name: "libcuda",
-              mountPath: "/usr/lib/x86_64-linux-gnu/libcuda.so.1",
-              hostPath: "/usr/lib/x86_64-linux-gnu/libcuda.so.1",
-            },
-          ],
-        },
-      },
-    },
-
-    acsEngineAccelerators:: {
-      accelerators: {
-        "alpha.kubernetes.io/nvidia-gpu": {
-          volumes: [
-            {
-              name: "nvidia",
-              mountPath: "/usr/local/nvidia",
-              hostPath: "/usr/local/nvidia",
-            },
-          ],
-        },
-      },
-    },
-
-    configData(cloud, pytorchDefaultImage):: self.defaultControllerConfig(pytorchDefaultImage) +
-                                             if cloud == "aks" then
-                                               self.aksAccelerators
-                                             else if cloud == "acsengine" then
-                                               self.acsEngineAccelerators
-                                             else
-                                               {},
-
-    configMap(cloud, pytorchDefaultImage): {
+    configMap(pytorchDefaultImage): {
       apiVersion: "v1",
       data: {
-        "controller_config_file.yaml": std.manifestJson($.parts(params, env).configData(cloud, pytorchDefaultImage)),
+        "controller_config_file.yaml": std.manifestJson($.parts(params, env).defaultControllerConfig(pytorchDefaultImage)),
       },
       kind: "ConfigMap",
       metadata: {

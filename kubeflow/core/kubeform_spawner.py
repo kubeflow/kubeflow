@@ -228,24 +228,6 @@ if pvc_mount and pvc_mount != 'null':
         }
     )
 
-# ###################################################
-# ### Extra volumes for NVIDIA drivers (Azure)
-# ###################################################
-# # Temporary fix:
-# # AKS / acs-engine doesn't yet use device plugin so we have to mount the drivers to use GPU
-# # TODO(wbuchwalter): Remove once device plugin is merged
-if cloud == 'aks' or cloud == 'acsengine':
-    volumes.append({
-        'name': 'nvidia',
-        'hostPath': {
-            'path': '/usr/local/nvidia'
-        }
-    })
-    volume_mounts.append({
-        'name': 'nvidia',
-        'mountPath': '/usr/local/nvidia'
-    })
-
 c.KubeSpawner.volumes = volumes
 c.KubeSpawner.volume_mounts = volume_mounts
 # Set both service_account and singleuser_service_account because

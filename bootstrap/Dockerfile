@@ -34,12 +34,12 @@ RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.10.0/
 ARG registries
 COPY $registries /opt/registries
 
-# bootstrap is using ksonnet 0.11.0
-RUN wget -q https://github.com/ksonnet/ksonnet/releases/download/v0.11.0/ks_0.11.0_linux_amd64.tar.gz && \
-    tar xzf ks_0.11.0_linux_amd64.tar.gz -C . && \
-    rm ks_0.11.0_linux_amd64.tar.gz && \
-    cp ks_0.11.0_linux_amd64/ks /usr/local/bin && \
-    rm -rf ks_0.11.0_linux_amd64
+# bootstrap is using ksonnet 0.12.0
+RUN wget -q https://github.com/ksonnet/ksonnet/releases/download/v0.12.0/ks_0.12.0_linux_amd64.tar.gz && \
+    tar xzf ks_0.12.0_linux_amd64.tar.gz -C . && \
+    rm ks_0.12.0_linux_amd64.tar.gz && \
+    cp ks_0.12.0_linux_amd64/ks /usr/local/bin && \
+    rm -rf ks_0.12.0_linux_amd64
 
 COPY --from=build_base_remote /opt/kubeflow/bootstrapper /opt/kubeflow/
 COPY start.sh /opt/kubeflow/
