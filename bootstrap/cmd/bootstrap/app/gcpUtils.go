@@ -1,10 +1,15 @@
 package app
 
 import (
+	"fmt"
+	"time"
+
 	"golang.org/x/net/context"
 	"google.golang.org/api/deploymentmanager/v2"
 	"golang.org/x/oauth2"
 	"github.com/ghodss/yaml"
+	log "github.com/sirupsen/logrus"
+	"google.golang.org/api/cloudresourcemanager/v1"
 	"io/ioutil"
 	"path"
 )
@@ -18,6 +23,23 @@ type Resource struct {
 type DmConf struct {
 	Imports interface{} `json:"imports"`
 	Resources []Resource `json:"resources"`
+}
+
+type IamBinding struct {
+	Members []string `type:"members`
+	Roles   []string `type:"roles"`
+}
+
+type IamConf struct {
+	IamBindings []IamBinding `json:"bindings"`
+}
+
+type ApplyIamRequest struct {
+	Project string `json:"project"`
+	Cluster string `json:"cluster"`
+	Email string `json:"email"`
+	Token string `json:"token"`
+	Action string `json:"action`
 }
 
 // TODO: handle concurrent & repetitive deployment requests.
@@ -83,4 +105,106 @@ func (s *ksServer)GetDeploymentStatus(ctx context.Context, req CreateRequest) (s
 		return "", err
 	}
 	return dm.Operation.Status, nil
+}
+
+func GetUpdatedPolicy(currentPolicy *cloudresourcemanager.Policy, iamConf *IamConf, req ApplyIamRequest) cloudresourcemanager.Policy {
+	// map from role to members.
+	policyMap := map[string]map[string]bool {}
+	for _, binding := range currentPolicy.Bindings {
+		policyMap[binding.Role] = make(map[string]bool)
+		for _, member := range binding.Members {
+			policyMap[binding.Role][member] = true
+		}
+	}
+
+	// Replace placeholder with actual identity.
+	saMapping := map[string]string {
+		"set-kubeflow-admin-service-account": fmt.Sprintf("serviceAccount:%v-admin@%v.iam.gserviceaccount.com", req.Cluster, req.Project),
+		"set-kubeflow-user-service-account": fmt.Sprintf("serviceAccount:%v-user@%v.iam.gserviceaccount.com", req.Cluster, req.Project),
+		"set-kubeflow-vm-service-account": fmt.Sprintf("serviceAccount:%v-vm@%v.iam.gserviceaccount.com", req.Cluster, req.Project),
+		"set-kubeflow-iap-account": fmt.Sprintf("user:%v", req.Email),
+	}
+	for _, binding := range iamConf.IamBindings {
+		for _, member := range binding.Members {
+			actualMember := member
+			if val, ok := saMapping[member]; ok {
+				actualMember = val
+			}
+			for _, role := range binding.Roles {
+				if req.Action == "add" {
+					policyMap[role][actualMember] = true
+				} else {
+					// action == "remove"
+					policyMap[role][actualMember] = false
+				}
+			}
+		}
+	}
+	newPolicy := cloudresourcemanager.Policy{}
+	for role, memberSet := range policyMap {
+		binding := cloudresourcemanager.Binding{}
+		binding.Role = role
+		for member, exists := range memberSet {
+			if exists {
+				binding.Members = append(binding.Members, member)
+			}
+		}
+		newPolicy.Bindings = append(newPolicy.Bindings, &binding)
+	}
+	return newPolicy
+}
+
+func (s *ksServer)ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) error {
+	// Get the iam change from config.
+	regPath := s.knownRegistries["kubeflow"].RegUri
+	templatePath := path.Join(regPath, "../components/gcp-click-to-deploy/src/configs/iam_bindings_template.yaml")
+	var iamConf IamConf
+	err := LoadConfig(templatePath, &iamConf)
+	if err != nil {
+		log.Errorf("Failed to load iam config: %v", err)
+		return err
+	}
+
+	ts := oauth2.StaticTokenSource(&oauth2.Token{
+		AccessToken: req.Token,
+	})
+	resourceManager, err := cloudresourcemanager.New(oauth2.NewClient(ctx, ts))
+	if err != nil {
+		log.Errorf("Cannot create resource manager client: %v", err)
+		return err
+	}
+	s.serverMux.Lock()
+	defer s.serverMux.Unlock()
+
+	retry := 0
+	for retry < 5 {
+		// Get current policy
+		saPolicy, err := resourceManager.Projects.GetIamPolicy(
+			req.Project,
+			&cloudresourcemanager.GetIamPolicyRequest{
+			}).Do()
+		if err != nil {
+			retry += 1
+			log.Warningf("Cannot get current policy: %v", err)
+			time.Sleep(3 * time.Second)
+			continue
+		}
+
+		// Get the updated policy and apply it.
+		newPolicy := GetUpdatedPolicy(saPolicy, &iamConf, req)
+		_, err = resourceManager.Projects.SetIamPolicy(
+			req.Project,
+			&cloudresourcemanager.SetIamPolicyRequest{
+				Policy: &newPolicy,
+			}).Do()
+		if err != nil {
+			retry += 1
+			log.Warningf("Cannot set new ploicy: %v", err)
+			time.Sleep(3 * time.Second)
+		}
+	}
+	if err != nil {
+		return err
+	}
+	return nil
 }
