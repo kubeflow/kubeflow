@@ -1,0 +1,6 @@
+<<<<<<< HEAD
+=======
+APScheduler
+>>>>>>> 32dc64a6... hubsync
+pyyaml
+jinja2

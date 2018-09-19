@@ -25,8 +25,17 @@ Finally, we will deploy the application
 ks apply default -c weaveflux
 ```
 
+<<<<<<< HEAD
+<<<<<<< HEAD
 You will need to expose the service in order to use this. You are free to use different methods to expose.
 
+=======
+You will need to expose the service in order to use this.
+>>>>>>> 8f29b8b6... fixed and rebased
+=======
+You will need to expose the service in order to use this. You are free to use different methods to expose.
+
+>>>>>>> 0e271aa1... new v0.1.2
 ```
 kubectl port-forward deployment/flux 3030:3030
 ```
