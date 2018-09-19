@@ -52,17 +52,17 @@
       },
     },
     local crd(inst) = {
-      local scope = inst + 
-        if params.deploymentScope == "cluster" then
-          { spec+: { scope: "Cluster", }, }
-        else
-          { spec+: { scope: "Namespaced", }, },
+      local scope = inst +
+                    if params.deploymentScope == "cluster" then
+                      { spec+: { scope: "Cluster" } }
+                    else
+                      { spec+: { scope: "Namespaced" } },
       local version = scope +
-        if params.tfJobVersion == "v1alpha2" then
-          { spec+: { version: "v1alpha2", }, } +
-          { spec+: { validation: { openAPIV3Schema: openAPIV3Schema, }, }, }
-        else
-          {},
+                      if params.tfJobVersion == "v1alpha2" then
+                        { spec+: { version: "v1alpha2" } } +
+                        { spec+: { validation: { openAPIV3Schema: openAPIV3Schema } } }
+                      else
+                        {},
       return:: version,
     }.return,
 
@@ -85,13 +85,13 @@
     tfJobCrd:: tfJobCrd,
 
     local tfJobContainer = {
-      "args": [
+      args: [
         "--controller-config-file=/etc/config/controller_config_file.yaml",
         "--alsologtostderr",
-        "-v=1"
+        "-v=1",
       ],
-      "command": [
-        "/opt/mlkube/tf-operator"
+      command: [
+        "/opt/mlkube/tf-operator",
       ],
       env: [
         {
@@ -300,23 +300,24 @@
       ],),
     },
     local role(inst) = {
-      local ns = inst + 
-        if params.deploymentScope == "namespace" then
-          operatorRole.mixin.metadata.withNamespace(params.deploymentNamespace)
-        else
-          {},
+      local ns = inst +
+                 if params.deploymentScope == "namespace" then
+                   operatorRole.mixin.metadata.withNamespace(params.deploymentNamespace)
+                 else
+                   {},
       return:: ns,
     }.return,
-    local tfOperatorRole = role({
-      apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: operatorRole.new().kind,
-      metadata: {
-        labels: {
-          app: "tf-job-operator",
+    local tfOperatorRole = role(
+      {
+        apiVersion: "rbac.authorization.k8s.io/v1beta1",
+        kind: operatorRole.new().kind,
+        metadata: {
+          labels: {
+            app: "tf-job-operator",
+          },
+          name: "tf-job-operator",
         },
-        name: "tf-job-operator",
-      },
-    } + k.rbac.v1beta1.role.withRulesMixin([
+      } + k.rbac.v1beta1.role.withRulesMixin([
         rules.tfJobsRule,
         rules.tfCrdRule,
         rules.tfStorageRule,
@@ -398,15 +399,16 @@
         name: "tf-job-dashboard",
         namespace: params.namespace,
       },
-    },  
+    },
     tfUiServiceAccount:: tfUiServiceAccount,
 
     local tfUiContainer = {
       command: [
         "/opt/tensorflow_k8s/dashboard/backend",
       ],
-      env: [{
-        name: "KUBEFLOW_NAMESPACE",
+      env: [
+        {
+          name: "KUBEFLOW_NAMESPACE",
           valueFrom: {
             fieldRef: {
               fieldPath: "metadata.namespace",
@@ -441,7 +443,7 @@
             containers: [
               tfUiContainer,
             ],
-           serviceAccountName: "tf-job-dashboard",
+            serviceAccountName: "tf-job-dashboard",
           },
         },
       },
@@ -458,16 +460,16 @@
         name: "tf-job-dashboard",
       },
     } + k.rbac.v1beta1.role.withRulesMixin([
-        rules.tfJobsRule,
-        rules.tfCrdRule,
-        rules.tfStorageRule,
-        rules.tfBatchRule,
-        rules.tfCoreRule.withResourcesMixin([
-          "pods/log",
-          "namespaces",
-        ]),
-        rules.tfAppsRule,
-      ],), 
+      rules.tfJobsRule,
+      rules.tfCrdRule,
+      rules.tfStorageRule,
+      rules.tfBatchRule,
+      rules.tfCoreRule.withResourcesMixin([
+        "pods/log",
+        "namespaces",
+      ]),
+      rules.tfAppsRule,
+    ],),
     tfUiRole:: tfUiRole,
 
     local tfUiRoleBinding = {
