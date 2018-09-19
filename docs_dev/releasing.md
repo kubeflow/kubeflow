@@ -33,15 +33,12 @@ Currently auto release will use master branch.
 ```
     build_image.sh should build image and push to gcr. Check existing ones as example.
 
-2. Create your workflow:
+2. Create your workflow in **../releasing/releaser** ksonnet app:
 
-  * Under [releasing](../releasing):
+  * Under [releasing](../releasing/releaser):
 ```
-  export RELEASENAME=<name it>
-  ks init ${RELEASENAME}
-  cd ${RELEASENAME}
-  ks registry add kubeflow github.com/kubeflow/kubeflow/tree/master/kubeflow
-  ks pkg install kubeflow/automation@master
+  cd releasing/releaser
+  export RELEASENAME=<name it>    
   ks generate release ${RELEASENAME} --image=<your image name> --dockerfileDir=kubeflow/repo_name/<path to docker build context>
 ```
 
@@ -67,6 +64,21 @@ Currently auto release will use master branch.
 ```
     git add -f vendor
 ```
+
+### Monitoring the auto image job
+
+The auto image job runs in
+
+ * **Project** - kubeflow-releasing
+ * **Cluster** - kubeflow-releasing
+ * **Namespace** - kubeflow-releasing
+
+ You can check the K8s jobs to see if they completed successfully
+
+ ```
+ kubectl -n kubeflow-releasing get jobs
+ ```
+You can also use the Argo UI to check individual release workflows.
 
 ## Update Release Config
 
