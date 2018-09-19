@@ -156,6 +156,7 @@ local dagTemplates = [
         "--platform",
         "gcp",
         "--project",
+        "--skipInitProject",
         project,
       ],
       working_dir=testDir,
