@@ -14,7 +14,7 @@
 local k = import "k.libsonnet";
 
 local util = {
-  pytorchJobReplica(replicaType, number, args, image, numGpus=0)::
+  pytorchJobReplica(replica_type, number, args, image, num_gpus=0)::
     local baseContainer = {
       image: image,
       name: "pytorch",
@@ -24,10 +24,10 @@ local util = {
         args: args,
       }
     else {};
-    local resources = if numGpus > 0 then {
+    local resources = if num_gpus > 0 then {
       resources: {
         limits: {
-          "nvidia.com/gpu": numGpus,
+          "nvidia.com/gpu": num_gpus,
         },
       },
     } else {};
@@ -42,11 +42,11 @@ local util = {
             restartPolicy: "OnFailure",
           },
         },
-        replicaType: replicaType,
+        replicaType: replica_type,
       }
     else {},
 
-  pytorchJobReplicaV1alpha2(replicaType, number, args, image, numGpus=0)::
+  pytorchJobReplicaV1alpha2(replica_type, number, args, image, num_gpus=0)::
     local baseContainer = {
       image: image,
       name: "pytorch",
@@ -56,10 +56,10 @@ local util = {
         args: args,
       }
     else {};
-    local resources = if numGpus > 0 then {
+    local resources = if num_gpus > 0 then {
       resources: {
         limits: {
-          "nvidia.com/gpu": numGpus,
+          "nvidia.com/gpu": num_gpus,
         },
       },
     } else {};
@@ -86,22 +86,22 @@ local args =
     std.split(argsParam, ",");
 
 local image = params.image;
-local imageGpu = params.image_gpu;
-local numMasters = params.numMasters;
-local numWorkers = params.numWorkers;
-local numGpus = params.numGpus;
+local image_gpu = params.imageGpu;
+local num_masters = params.numMasters;
+local num_workers = params.numWorkers;
+local num_gpus = params.numGpus;
 
 local replicaSpec = if jobVersion == "v1alpha1" then
   util.pytorchJobReplica
 else
   util.pytorchJobReplicaV1alpha2;
 
-local workerSpec = if numGpus > 0 then
-  replicaSpec("WORKER", numWorkers, args, image, numGpus)
+local workerSpec = if num_gpus > 0 then
+  replicaSpec("WORKER", num_workers, args, image, num_gpus)
 else
-  replicaSpec("WORKER", numWorkers, args, image);
+  replicaSpec("WORKER", num_workers, args, image);
 
-local masterSpec = replicaSpec("MASTER", numMasters, args, image);
+local masterSpec = replicaSpec("MASTER", num_masters, args, image);
 
 local job = if jobVersion == "v1alpha1" then {
   apiVersion: "kubeflow.org/v1alpha1",
