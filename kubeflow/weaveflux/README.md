@@ -15,7 +15,7 @@ ks pkg install kubeflow/weaveflux@${VERSION}
 Next we need to set a few environment variables. Make sure that you set "GITURL" to your Github repository ( For example git@github.com:weaveworks/flux-example ).
 
 ```
-ks param set weaveflux giturl ${GITURL}
+ks param set weaveflux gitUrl ${GITURL}
 ks param set weaveflux namespace ${NAMESPACE}
 
 ```
