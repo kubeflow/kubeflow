@@ -48,6 +48,7 @@ type KsService interface {
 	BindRole(context.Context, string, string, string) error
 	InsertDeployment(context.Context, CreateRequest) error
 	GetDeploymentStatus(context.Context, CreateRequest) (string, error)
+	ApplyIamPolicy(context.Context, ApplyIamRequest) error
 }
 
 // appInfo keeps track of information about apps.
@@ -813,6 +814,19 @@ func finishDeployment(svc KsService, req CreateRequest) {
 		return
 	}
 
+	log.Info("Patching IAM bindings...")
+	err = svc.ApplyIamPolicy(ctx, ApplyIamRequest{
+		Project: req.Project,
+		Cluster: req.Cluster,
+		Email: req.Email,
+		Token: req.Token,
+		Action: "add",
+	})
+	if err != nil {
+		log.Errorf("Failed to update IAM: %v", err)
+		return
+	}
+
 	log.Infof("Inserting sa keys...")
 	err = svc.InsertSaKeys(ctx, InsertSaKeyRequest{
 		Cluster: req.Cluster,
@@ -897,6 +911,18 @@ func makeSaKeyEndpoint(svc KsService) endpoint.Endpoint {
 	}
 }
 
+func makeIamEndpoint(svc KsService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(ApplyIamRequest)
+		err := svc.ApplyIamPolicy(ctx, req)
+		r := &basicServerResponse{}
+		if err != nil {
+			r.Err = err.Error()
+		}
+		return r, nil
+	}
+}
+
 func decodeCreateAppRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	var request CreateRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -971,6 +997,18 @@ func (s *ksServer) StartHttp(port int) {
 		encodeResponse,
 	)
 
+	applyIamHandler := httptransport.NewServer(
+		makeIamEndpoint(s),
+		func (_ context.Context, r *http.Request) (interface{}, error) {
+			var request ApplyIamRequest
+			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+				return nil, err
+			}
+			return request, nil
+		},
+		encodeResponse,
+	)
+
 	initProjectHandler := httptransport.NewServer(
 		makeInitProjectEndpoint(s),
 		func (_ context.Context, r *http.Request) (interface{}, error) {
@@ -995,6 +1033,7 @@ func (s *ksServer) StartHttp(port int) {
 	http.Handle("/kfctl/apps/apply", optionsHandler(applyAppHandler))
 	http.Handle("/kfctl/apps/create", optionsHandler(createAppHandler))
 	http.Handle("/kfctl/iam/insertSaKey", optionsHandler(insertSaKeyHandler))
+	http.Handle("/kfctl/iam/apply", optionsHandler(applyIamHandler))
 	http.Handle("/kfctl/initProject", optionsHandler(initProjectHandler))
 	http.Handle("/kfctl/e2eDeploy", optionsHandler(deployHandler))
 

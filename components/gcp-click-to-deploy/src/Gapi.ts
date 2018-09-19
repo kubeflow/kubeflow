@@ -53,7 +53,7 @@ export default class Gapi {
       await Gapi.load();
       const consumerId = encodeURIComponent(`project:${project}`);
       return gapi.client.request({
-        path: `https://content-servicemanagement.googleapis.com/v1/services?consumerId=${consumerId}`,
+        path: `https://content-servicemanagement.googleapis.com/v1/services?pageSize=100&consumerId=${consumerId}`,
       }).then(response => response.result as ListServicesResponse,
         badResult => {
           throw new Error('Errors listing services: ' + flattenDeploymentOperationError(badResult.result));
