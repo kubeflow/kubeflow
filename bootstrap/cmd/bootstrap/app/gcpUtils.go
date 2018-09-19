@@ -201,7 +201,9 @@ func (s *ksServer)ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) error
 			retry += 1
 			log.Warningf("Cannot set new ploicy: %v", err)
 			time.Sleep(3 * time.Second)
+			continue
 		}
+		break
 	}
 	if err != nil {
 		return err
