@@ -110,14 +110,14 @@
             },
           ] + prow_env + env_vars,
           resources: {
-              requests: {
-                memory: "2Gi",
-                cpu: "2",
-              },
-              limits: {
-                memory: "32Gi",
-                cpu: "16",
-              },
+            requests: {
+              memory: "2Gi",
+              cpu: "2",
+            },
+            limits: {
+              memory: "32Gi",
+              cpu: "16",
+            },
           },
           volumeMounts: [
             {
