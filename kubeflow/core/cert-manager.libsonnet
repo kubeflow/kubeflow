@@ -169,8 +169,7 @@
           privateKeySecretRef: {
             name: "letsencrypt-prod-secret",
           },
-          http01: {
-          },
+          http01: "",
         },
       },
     },
@@ -181,6 +180,7 @@
       self.clusterIssuerCRD,
       self.issuerCRD,
       self.serviceAccount,
+      self.clusterRole,
       self.clusterRoleBinding,
       self.deploy,
       self.issuerLEProd,
