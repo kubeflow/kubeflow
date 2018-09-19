@@ -25,6 +25,9 @@
 We have nightly release for all images covered by workflows in [release config](../releasing/prow_config_release.yaml)
 Currently auto release will use master branch.
 
+See [#1574](https://github.com/kubeflow/kubeflow/issues/1574) we are moving away from using cron to using prow to trigger
+our release image workflows.
+
 ## Create Release Workflow
 
 1. To have your image release workflow, you need build context which contains a script, build_image.sh which has the executable bit set:
