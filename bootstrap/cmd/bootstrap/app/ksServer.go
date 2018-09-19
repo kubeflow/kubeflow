@@ -355,7 +355,7 @@ func (s *ksServer) getRegistryUri(registry *RegistryConfig) (string, error) {
 			if err != nil {
 				os.Mkdir(registryPath, os.ModePerm)
 			}
-			fileUrl := path.Join(registry.Repo, "archive", registry.Version + ".tar.gz")
+			fileUrl := registry.Repo + "/archive/" + registry.Version + ".tar.gz"
 
 			err = runCmd(fmt.Sprintf("curl -L -o %v %v", versionPath + ".tar.gz", fileUrl))
 			if err != nil {
