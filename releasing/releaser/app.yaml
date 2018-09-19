@@ -1,5 +1,5 @@
 apiVersion: 0.1.0
-environments:
+environments:  
   prow:
     destination:
       namespace: kubeflow-testing
@@ -14,6 +14,12 @@ environments:
     path: releasing
 kind: ksonnet.io/app
 libraries:
+  automation:
+    gitVersion:
+      commitSha: faea44afcef9dc64a672d22f6bb3808e4706ac45
+      refSpec: master
+    name: automation
+    registry: kubeflow
   core:
     gitVersion:
       commitSha: 5c35580d76092788b089cb447be3f3097cffe60b
