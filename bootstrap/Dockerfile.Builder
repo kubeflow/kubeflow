@@ -11,13 +11,16 @@ RUN mkdir -p /opt/kubeflow
 ENV PATH /go/bin:/usr/local/go/bin:$PATH
 
 RUN mkdir -p $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap
-COPY ./ $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap/
 
 # Pull in dependencies. We don't check in vendor because that bloats
 # the size of kubeflow/kubeflow and we want to keep it small since
 # Users clone that repo to get our registry.
+COPY ./glide* $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap/
 RUN cd $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap/ && \
     glide install -v
+
+# Copy the src
+COPY ./ $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap/
 
 RUN go build ${GOLANG_GCFLAGS} -i -o /opt/kubeflow/bootstrapper \
     ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/main.go

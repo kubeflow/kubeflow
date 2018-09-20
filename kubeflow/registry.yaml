@@ -37,3 +37,12 @@ libraries:
   mxnet-job:
     version: master
     path: mxnet-job
+  nvidia-inference-server:
+    version: master
+    path: nvidia-inference-server
+  chainer-job:
+    version: master
+    path: chainer-job
+  kubebench:
+    version: master
+    path: kubebench

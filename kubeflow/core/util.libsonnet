@@ -44,5 +44,5 @@
   }.result,
 
   // Produce a list of manifests. obj must be an array
-  list(obj):: std.prune(k.core.v1.list.new(obj,),),
+  list(obj):: k.core.v1.list.new(obj,),
 }

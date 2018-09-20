@@ -32,6 +32,7 @@ interface DeployFormState {
   project: string;
   showLogs: boolean;
   zone: string;
+  kfverison: string;
   clientId: string;
   clientSecret: string;
 }
@@ -109,6 +110,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       deploymentName: 'kubeflow',
       dialogBody: '',
       dialogTitle: '',
+      kfverison: 'default',
       project: '',
       showLogs: false,
       zone: 'us-east1-d',
@@ -154,6 +156,9 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         </Row>
         <Row>
           <Input name="zone" label="Zone" spellCheck={false} value={this.state.zone} onChange={this._handleChange.bind(this)} />
+        </Row>
+        <Row>
+          <Input name="kfverison" label="Kubeflow Version" spellCheck={false} value={this.state.kfverison} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
           <Input name="clientId" label="Web App Client Id" spellCheck={false} value={this.state.clientId} onChange={this._handleChange.bind(this)} />
@@ -245,6 +250,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         p.value = email;
       }
     });
+    this._configSpec.defaultApp.registries[0].version = this.state.kfverison;
 
     return this._configSpec;
   }
@@ -420,6 +426,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       'cloudresourcemanager.googleapis.com',
       'endpoints.googleapis.com',
       'iam.googleapis.com',
+      'sourcerepo.googleapis.com',
     ]);
 
     for (const k of Array.from(servicesToEnable.keys())) {
@@ -439,12 +446,15 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             this._appendLine(
               'deployment failed with error:' + flattenDeploymentOperationError(r.operation!));
             clearInterval(monitorInterval);
+          } else if (r.operation!.status! && r.operation!.status === 'DONE') {
+            this._appendLine('Deployment is done');
+            clearInterval(monitorInterval);
           } else {
             this._appendLine(`Status of ${deploymentName}: ` + r.operation!.status!);
           }
         })
         .catch(err => this._appendLine('deployment failed with error:' + err));
-    }, 3000);
+    }, 10000);
   }
 
   private _handleChange(event: Event) {

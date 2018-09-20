@@ -146,7 +146,7 @@ if [ "${COMMAND}" == "init" ]; then
 	# TODO(jlewi): How can we skip GCP project setup? Add a command line argument
 	# to skip it?
 	if [ "${PLATFORM}" == "gcp" ]; then
-	  if ! ${SKIP_INIT_PROJECT}; then
+	  if [ ! ${SKIP_INIT_PROJECT} ]; then
 	  	gcpInitProject
 	  fi
 	fi
@@ -178,8 +178,7 @@ customizeKsApp() {
 }
 
 ksApply () {
-  pushd .
-  cd "${KUBEFLOW_KS_DIR}"
+  pushd ${KUBEFLOW_KS_DIR}
 
   if [ "${PLATFORM}" == "minikube" ]; then
     set +e
@@ -289,10 +288,10 @@ if [ "${COMMAND}" == "delete" ]; then
   fi
   if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ] ; then
     if [ "${PLATFORM}" == "gcp" ]; then
-      pushd .
-      cd ${KUBEFLOW_DM_DIR}
+      pushd ${KUBEFLOW_DM_DIR}
       ${DIR}/gke/delete_deployment.sh ${PROJECT} ${DEPLOYMENT_NAME} ${CONFIG_FILE}
       popd
     fi
+    removeKsEnv
   fi
 fi

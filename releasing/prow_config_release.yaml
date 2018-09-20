@@ -14,6 +14,9 @@ workflows:
       registry: "gcr.io/kubeflow-images-public"
       testing_image: "gcr.io/kubeflow-releasing/worker:latest"
       zone: "us-central1-a"
+  - app_dir: kubeflow/kubeflow/releasing/releaser
+    component: centraldashboard
+    name: centraldashboard-release
   - app_dir: kubeflow/kubeflow/components/tensorflow-notebook-image/releaser
     component: workflows
     name: tf-notebook-release
@@ -26,6 +29,9 @@ workflows:
       registry: "gcr.io/kubeflow-images-public"
       testing_image: "gcr.io/kubeflow-releasing/worker:latest"
       zone: "us-central1-a"
-  - app_dir: kubeflow/kubeflow/releasing/pytorch-operator
+  - app_dir: kubeflow/kubeflow/releasing/releaser
     component: pytorch-operator
     name: pytorch-operator-release
+  - app_dir: kubeflow/kubeflow/releasing/releaser
+    component: chainer-operator
+    name: chainer-operator-release

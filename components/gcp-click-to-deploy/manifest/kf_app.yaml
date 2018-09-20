@@ -19,8 +19,6 @@ data:
         prototype: centraldashboard
       - name: tf-job-operator
         prototype: tf-job-operator
-      - name: spartakus
-        prototype: spartakus
       - name: cloud-endpoints
         prototype: cloud-endpoints
       - name: cert-manager
@@ -54,6 +52,10 @@ data:
         value: gke
       registries:
       - name: kubeflow
+        repo: https://github.com/kubeflow/kubeflow
+        # default leave empty
+        version:
+        path: kubeflow
 kind: ConfigMap
 metadata:
   name: kubeflow-controller
@@ -94,14 +96,14 @@ spec:
     spec:
       containers:
       - name: web-app
-        image: gcr.io/kubeflow-images-public/test-app:0906
+        image: gcr.io/kubeflow-images-public/test-app:091802
         ports:
         - containerPort: 3000
         volumeMounts:
         - name: config-volume
           mountPath: /app/src/user_config
       - name: controller-backend
-        image: gcr.io/kubeflow-images-public/bootstrapper:v20180907-299acdaa-dirty-aead57
+        image: gcr.io/kubeflow-images-public/bootstrapper:v20180919-8a2e8c7-dirty-9c6b53
         workingDir: /opt/bootstrap
         command: [ "/opt/kubeflow/bootstrapper"]
         args: [
