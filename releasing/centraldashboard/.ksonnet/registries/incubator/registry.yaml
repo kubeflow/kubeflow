@@ -1,0 +1,37 @@
+apiVersion: 0.2.0
+kind: ksonnet.io/registry
+libraries:
+  apache:
+    path: apache
+    version: 40285d8a14f1ac5787e405e1023cf0c07f6aa28c
+  efk:
+    path: efk
+    version: 40285d8a14f1ac5787e405e1023cf0c07f6aa28c
+  mariadb:
+    path: mariadb
+    version: 40285d8a14f1ac5787e405e1023cf0c07f6aa28c
+  memcached:
+    path: memcached
+    version: 40285d8a14f1ac5787e405e1023cf0c07f6aa28c
+  mongodb:
+    path: mongodb
+    version: 40285d8a14f1ac5787e405e1023cf0c07f6aa28c
+  mysql:
+    path: mysql
+    version: 40285d8a14f1ac5787e405e1023cf0c07f6aa28c
+  nginx:
+    path: nginx
+    version: 40285d8a14f1ac5787e405e1023cf0c07f6aa28c
+  node:
+    path: node
+    version: 40285d8a14f1ac5787e405e1023cf0c07f6aa28c
+  postgres:
+    path: postgres
+    version: 40285d8a14f1ac5787e405e1023cf0c07f6aa28c
+  redis:
+    path: redis
+    version: 40285d8a14f1ac5787e405e1023cf0c07f6aa28c
+  tomcat:
+    path: tomcat
+    version: 40285d8a14f1ac5787e405e1023cf0c07f6aa28c
+version: 40285d8a14f1ac5787e405e1023cf0c07f6aa28c

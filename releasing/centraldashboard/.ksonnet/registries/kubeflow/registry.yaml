@@ -1,0 +1,43 @@
+apiVersion: 0.2.0
+kind: ksonnet.io/registry
+libraries:
+  argo:
+    path: argo
+    version: 54dc98525d5da7beab15cc8ed1d9ae9ffa07811f
+  automation:
+    path: automation
+    version: 54dc98525d5da7beab15cc8ed1d9ae9ffa07811f
+  core:
+    path: core
+    version: 54dc98525d5da7beab15cc8ed1d9ae9ffa07811f
+  katib:
+    path: katib
+    version: 54dc98525d5da7beab15cc8ed1d9ae9ffa07811f
+  mpi-job:
+    path: mpi-job
+    version: 54dc98525d5da7beab15cc8ed1d9ae9ffa07811f
+  mxnet-job:
+    path: mxnet-job
+    version: 54dc98525d5da7beab15cc8ed1d9ae9ffa07811f
+  new-package-stub:
+    path: new-package-stub
+    version: 54dc98525d5da7beab15cc8ed1d9ae9ffa07811f
+  nvidia-inference-server:
+    path: nvidia-inference-server
+    version: 54dc98525d5da7beab15cc8ed1d9ae9ffa07811f
+  openmpi:
+    path: openmpi
+    version: 54dc98525d5da7beab15cc8ed1d9ae9ffa07811f
+  pachyderm:
+    path: pachyderm
+    version: 54dc98525d5da7beab15cc8ed1d9ae9ffa07811f
+  pytorch-job:
+    path: pytorch-job
+    version: 54dc98525d5da7beab15cc8ed1d9ae9ffa07811f
+  seldon:
+    path: seldon
+    version: 54dc98525d5da7beab15cc8ed1d9ae9ffa07811f
+  tf-serving:
+    path: tf-serving
+    version: 54dc98525d5da7beab15cc8ed1d9ae9ffa07811f
+version: 54dc98525d5da7beab15cc8ed1d9ae9ffa07811f
