@@ -3,7 +3,7 @@
 // @description TensorFlow serving
 // @shortDescription A TensorFlow serving deployment
 // @param name string Name to give to each of the components
-// @optionalPAram modelName string model The model name
+// @optionalParam modelName string null The model name
 // @optionalParam namespace string kubeflow The namespace
 // @optionalParam numGpus string 0 Number of gpus to use
 // @optionalParam deployHttpProxy string false Whether to deploy http proxy
@@ -19,7 +19,7 @@ local util = import "kubeflow/tf-serving/util.libsonnet";
 
 // Common section. Please cusomize as needed.
 local namespace = params.namespace;
-local name = params.modelName;
+local name = if params.modelName == "null" then params.name else params.modelName;
 local appName = params.name;
 local numGpus = std.parseInt(params.numGpus);
 local modelServerImage =
