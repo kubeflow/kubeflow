@@ -169,7 +169,8 @@
           privateKeySecretRef: {
             name: "letsencrypt-prod-secret",
           },
-          http01: "",
+          http01: {
+          },
         },
       },
     },
