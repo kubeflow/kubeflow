@@ -1,5 +1,5 @@
 {
-  local k8s = import "kubeflow/core/k8s.libsonnet",
+  local k8s = import "k8s.libsonnet",
   local util = import "kubeflow/core/util.libsonnet",
   local crd = k8s.apiextensions.v1beta1.customResourceDefinition,
 
@@ -20,11 +20,12 @@
         withNamespace(params.namespace).
         withLabelsMixin({
         api: "default",
-        "kubebuilder.k8s.io": "0.1.10",
-      }) + crd.mixin.spec.
+        "kubebuilder.k8s.io": "0.1.10", }) + 
+      crd.mixin.spec.
         withGroup("app.k8s.io").
         withVersion("v1beta1").
-        withScope("Namespaced") + crd.mixin.spec.names.
+        withScope("Namespaced") + 
+      crd.mixin.spec.names.
         withKind("Application").
         withPlural("applications").
         withSingular("application"),
