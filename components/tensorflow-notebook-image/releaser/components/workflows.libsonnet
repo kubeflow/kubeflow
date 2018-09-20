@@ -1,7 +1,7 @@
 {
   // TODO(https://github.com/ksonnet/ksonnet/issues/222): Taking namespace as an argument is a work around for the fact that ksonnet
   // doesn't support automatically piping in the namespace from the environment to prototypes.
-
+  //
   // convert a list of two items into a map representing an environment variable
   listToMap:: function(v)
     {
