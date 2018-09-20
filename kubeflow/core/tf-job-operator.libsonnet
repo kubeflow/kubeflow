@@ -52,11 +52,11 @@
       },
     },
     local crd(inst) = {
-      local scope = inst +
-                    if params.deploymentScope == "cluster" then
-                      { spec+: { scope: "Cluster" } }
-                    else
-                      { spec+: { scope: "Namespaced" } },
+      local scope =
+        inst + if params.deploymentScope == "cluster" && params.deploymentNamespace != null then
+          { spec+: { scope: "Cluster" } }
+        else
+          { spec+: { scope: "Namespaced" } },
       local version = scope +
                       if params.tfJobVersion == "v1alpha2" then
                         { spec+: { version: "v1alpha2" } } +
@@ -85,13 +85,11 @@
     tfJobCrd:: tfJobCrd,
 
     local tfJobContainer = {
-      args: [
+      command: [
+        "/opt/mlkube/tf-operator",
         "--controller-config-file=/etc/config/controller_config_file.yaml",
         "--alsologtostderr",
         "-v=1",
-      ],
-      command: [
-        "/opt/mlkube/tf-operator",
       ],
       env: [
         {
@@ -159,24 +157,24 @@
       deployment.mapContainers(
         function(c) {
           local container = deployment.mixin.spec.template.spec.containersType,
-          result:: c + container.withEnvMixin([
-            if params.deploymentScope == "namespace" then {
+          local env =
+            if params.deploymentScope == "namespace" && params.deploymentNamespace != null then [{
               name: "KUBEFLOW_NAMESPACE",
               valueFrom: {
                 fieldRef: {
                   fieldPath: "metadata.namespace",
                 },
               },
-            },
-          ],).
-            withCommand("/opt/kubeflow/tf-operator.v2").
-            withArgs([
+            }] else [],
+          local cmd = [
+            "/opt/kubeflow/tf-operator.v2",
             "--alsologtostderr",
             "-v=1",
-            if params.deploymentScope == "namespace" then (
-              "--namespace=" + params.deploymentNamespace
-            ),
-          ],),
+          ] + if params.deploymentScope == "namespace" &&
+                 params.deploymentNamespace != null then [
+            "--namespace=" + params.deploymentNamespace,
+          ] else [],
+          result:: c + container.withEnvMixin(env) + container.withCommand(cmd),
         }.result,
       )
     else
@@ -216,12 +214,12 @@
 
     // set the right roleTypes
     local roleType(deploymentScope) = {
-      return:: if deploymentScope == "cluster" then [
-        k.rbac.v1beta1.clusterRole,
-        k.rbac.v1beta1.clusterRoleBinding,
-      ] else [
+      return:: if deploymentScope == "namespace" && params.deploymentNamespace != null then [
         k.rbac.v1beta1.role,
         k.rbac.v1beta1.roleBinding,
+      ] else [
+        k.rbac.v1beta1.clusterRole,
+        k.rbac.v1beta1.clusterRoleBinding,
       ],
     }.return,
     local roles = roleType(params.deploymentScope),
@@ -300,11 +298,11 @@
       ],),
     },
     local role(inst) = {
-      local ns = inst +
-                 if params.deploymentScope == "namespace" then
-                   operatorRole.mixin.metadata.withNamespace(params.deploymentNamespace)
-                 else
-                   {},
+      local ns =
+        inst + if params.deploymentScope == "namespace" && params.deploymentNamespace != null then
+          operatorRole.mixin.metadata.withNamespace(params.deploymentNamespace)
+        else
+          {},
       return:: ns,
     }.return,
     local tfOperatorRole = role(
@@ -349,7 +347,7 @@
           namespace: params.namespace,
         },
       ],
-    } + if params.deploymentScope == "namespace" then
+    } + if params.deploymentScope == "namespace" && params.deploymentNamespace != null then
       operatorRoleBinding.mixin.metadata.withNamespace(params.deploymentNamespace)
     else
       {},
