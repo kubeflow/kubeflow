@@ -22,14 +22,14 @@
 
 # Image Auto Release
 
-We use prow and Argo workflows to regularly push updated Docker images to the public bucket 
-gcr.io/kubeflow-images-public.
+We use prow and Argo workflows to regularly push updated Docker images to the public registry 
+**gcr.io/kubeflow-images-public**.
 
 You write and manage these Argo workflows just like [E2E test workflows](https://github.com/kubeflow/testing).
 
 In fact the recommended pattern is to have a single Argo workflow that builds and tests the docker image.
 This workflow should be parameterized such that in Prow postsubmit and periodic jobs the image is pushed 
-to gcr.io/kubeflow-images-public but the presubmit uses gcr.io/kubeflow-ci.
+to **gcr.io/kubeflow-images-public** but the presubmit uses **gcr.io/kubeflow-ci**.
 
 Here are some guidelines for writing workflows that work well for auto-pushing images.
 
@@ -37,7 +37,7 @@ Here are some guidelines for writing workflows that work well for auto-pushing i
 
    * For an example you can look at [Katib Workflow](https://github.com/kubeflow/katib/blob/master/test/workflows/components/workflows.libsonnet)
    * The [automation ksonnet package](https://github.com/kubeflow/kubeflow/tree/master/kubeflow/automation)
-     contains a ksonnet prototype for An argo workflow that uses Docker in Docker to build images
+     contains a ksonnet prototype for an argo workflow that uses Docker in Docker to build images
 
      * This is a good starting point for creating an Argo workflow to build your container if you
        don't already have one.
@@ -62,7 +62,7 @@ Here are some guidelines for writing workflows that work well for auto-pushing i
    * Docker in Docker
 
       * The [automation ksonnet package](https://github.com/kubeflow/kubeflow/tree/master/kubeflow/automation)
-        contains a ksonnet prototype for An argo workflow that uses Docker in Docker to build images
+        contains a ksonnet prototype for an argo workflow that uses Docker in Docker to build images
 
    * Google Container Builder - For example see Katib
 
@@ -75,7 +75,7 @@ Here are some detailed instructions for using [automation ksonnet package](https
 
 This is a good place to start if you don't have an existing E2E workflow that is building the Docker images.
 
-1. To use the package you need a build context which contains a script, build_image.sh which has the executable bit set:
+1. To use the package you need a **build_image.sh** that the workflow invokes to build the image
 
    ```
    build_image.sh ${DOCKERFILE} ${IMAGE} ${TAG} ...EXTRA_ARGS
@@ -112,7 +112,7 @@ This is a good place to start if you don't have an existing E2E workflow that is
    ks generate release ${RELEASENAME} --image=<your image name> --dockerfileDir=kubeflow/${REPO_NAME}/<path to docker build context>
    ```
 
-  * Example: for bootstrapper release we can do:
+  * Example: for bootstrapper release we can do
 
     ```
     ks generate release bootstrapper-release --image=bootstrapper --dockerfileDir=kubeflow/kubeflow/bootstrap
