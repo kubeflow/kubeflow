@@ -203,17 +203,6 @@ ks apply ${ENV} -c workflows
 Create a PR to update [kubeform_spawner.py](https://github.com/kubeflow/kubeflow/blob/master/kubeflow/core/kubeform_spawner.py#L15) 
 to point to the newly built Jupyter notebook images.
 
-## Update the bootstrapper
-
-Build and push a new bootstrapper image
-
-```
-cd bootstrap
-make push
-```
-
-Update [cluster-kubeflow.yaml](https://github.com/kubeflow/kubeflow/blob/master/docs/gke/configs/cluster-kubeflow.yaml) to point to the new image.
-
 ## Create a release branch (if necessary)
 
 If you aren't already working on a release branch (of the form `v${MAJOR}.${MINOR}-branch`, where `${MAJOR}.${MINOR}` is a major-minor version number), then create one.  Release branches serve several purposes:
@@ -226,7 +215,7 @@ If you aren't already working on a release branch (of the form `v${MAJOR}.${MINO
 ## Updating ksonnet prototypes with docker image
 
 Here is the general process for how we update our Docker prototypes to point to
-the correct Docker image.
+the correct Docker image. See sections below for component specific instructions.
 
 1. Build a Docker image using whatever tagging schema you like 
 
@@ -261,6 +250,20 @@ the correct Docker image.
 
      * IMAGE_PATTERN should be a regex matching the images that you want to add the tag
    * Create a PR checking **into master** the changes in image_tags.yaml
+
+### Katib
+
+1. Identify the tag of the Katib images to use
+
+   * Katib images should be pushed for each postsubmit
+
+1. Modify the script update_katib_ksonnet.sh 
+
+    * set REALEASE to the tag you want to use
+
+1. Run `update_katib_ksonnet.sh`
+
+1. Submit a PR with the modified changes to the prototype.
 
 ### Release branching policy
 
