@@ -96,14 +96,14 @@ spec:
     spec:
       containers:
       - name: web-app
-        image: gcr.io/kubeflow-images-public/test-app:0921
+        image: gcr.io/kubeflow-images-public/test-app:092102
         ports:
         - containerPort: 3000
         volumeMounts:
         - name: config-volume
           mountPath: /app/src/user_config
       - name: controller-backend
-        image: gcr.io/kubeflow-images-public/bootstrapper:v20180921-a6935f9-dirty-2725f7
+        image: gcr.io/kubeflow-images-public/bootstrapper:v20180921-c4bf3cc-dirty-7abd26
         workingDir: /opt/bootstrap
         command: [ "/opt/kubeflow/bootstrapper"]
         args: [
