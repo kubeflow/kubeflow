@@ -30,6 +30,7 @@ limitations under the License.
 {% set NAMESPACE_COLLECTION = '/api/v1/namespaces' %}
 {% set COLLECTION_PREFIX = '/api/v1/namespaces/{namespace}/' %}
 {% set SECRETS_COLLECTION = COLLECTION_PREFIX + 'secrets' %}
+{% set K8S_ENDPOINTS = {'': 'api/v1'}  %}
 {% endif %}
                           
 {# Names for service accounts.
