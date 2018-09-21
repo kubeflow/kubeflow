@@ -75,7 +75,7 @@ resources:
     ipName: kubeflow-ip
     # Some resources are for webapp only, not for kfctl.
     # TODO: remove after move kfctl to commandline.
-    isWebapp: true
+    isWebapp: false
     # For webapp only
     clientId: clientId
     clientSecret: clientSecret
