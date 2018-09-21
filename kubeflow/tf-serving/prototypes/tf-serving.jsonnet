@@ -20,9 +20,8 @@ local util = import "kubeflow/tf-serving/util.libsonnet";
 local namespace = params.namespace;
 local name = params.name;
 local appName = params.name;
-local numGpus = std.parseInt(params.numGpus);
 local modelServerImage =
-  if numGpus == 0 then
+  if params.numGpus == "0" then
     params.defaultCpuImage
   else
     params.defaultGpuImage;
@@ -150,7 +149,7 @@ local modelServerContainer = {
     limits: {
       cpu: "4",
       memory: "4Gi",
-    } + if numGpus > 0 then {
+    } + if params.numGpus != "0" then {
       "nvidia.com/gpu": params.numGpus,
     } else {},
     requests: {
