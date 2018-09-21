@@ -131,9 +131,6 @@ func GetUpdatedPolicy(currentPolicy *cloudresourcemanager.Policy, iamConf *IamCo
 				actualMember = val
 			}
 			for _, role := range binding.Roles {
-				if _, ok := policyMap[role]; !ok {
-					policyMap[role] = make(map[string]bool)
-				}
 				if req.Action == "add" {
 					policyMap[role][actualMember] = true
 				} else {
