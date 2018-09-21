@@ -35,3 +35,9 @@ workflows:
   - app_dir: kubeflow/kubeflow/releasing/releaser
     component: chainer-operator
     name: chainer-operator-release
+  - app_dir: kubeflow/kubeflow/releasing/kubebench
+    component: kubebench-controller
+    name: kubebench-controller-release
+  - app_dir: kubeflow/kubeflow/releasing/kubebench
+    component: kubebench-examples
+    name: kubebench-examples-release
