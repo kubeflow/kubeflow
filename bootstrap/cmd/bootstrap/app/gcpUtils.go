@@ -224,7 +224,7 @@ func (s *ksServer)ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) error
 				Policy: &clearedPolicy,
 			}).Do()
 		if err != nil {
-			log.Warningf("Cannot set refresh ploicy: %v", err)
+			log.Warningf("Cannot set refresh policy: %v", err)
 			time.Sleep(3 * time.Second)
 			continue
 		}
@@ -237,7 +237,7 @@ func (s *ksServer)ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) error
 				Policy: &newPolicy,
 			}).Do()
 		if err != nil {
-			log.Warningf("Cannot set new ploicy: %v", err)
+			log.Warningf("Cannot set new policy: %v", err)
 			time.Sleep(3 * time.Second)
 			continue
 		}

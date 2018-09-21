@@ -447,7 +447,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
               'deployment failed with error:' + flattenDeploymentOperationError(r.operation!));
             clearInterval(monitorInterval);
           } else if (r.operation!.status! && r.operation!.status === 'DONE') {
-            this._appendLine('Deployment is done, your kubeflow app url should be ready within 15 minutes: '
+            this._appendLine('Deployment is done, your kubeflow app url should be ready within 15 minutes: https://'
               + this.state.deploymentName + '.endpoints.' + this.state.project + '.cloud.goog');
             clearInterval(monitorInterval);
           } else {
