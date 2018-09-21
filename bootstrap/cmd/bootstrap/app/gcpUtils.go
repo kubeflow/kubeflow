@@ -55,6 +55,7 @@ func (s *ksServer)InsertDeployment(ctx context.Context, req CreateRequest) error
 		dmconf.Resources[0].Properties["clientSecret"] = req.ClientSecret
 		dmconf.Resources[0].Properties["ipName"] = req.IpName
 		dmconf.Resources[0].Properties["users"] = []string { "user:" + req.Email }
+		dmconf.Resources[0].Properties["isWebapp"] = true
 	}
 	confByte, err := yaml.Marshal(dmconf)
 	if err != nil {
