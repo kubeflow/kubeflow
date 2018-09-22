@@ -140,7 +140,7 @@
           else
             "nvidia/cuda:9.0-cudnn7-devel-ubuntu16.04",
         local installTfma =
-          if tf_version < "1.6" then
+          if tf_version < "1.9" then
             "no"
           else
             "yes",
