@@ -94,6 +94,7 @@ local getEnvNotRedis(x) = x.name != "SELDON_CLUSTER_MANAGER_REDIS_HOST";
           { name: "JAVA_OPTS", value: javaOpts },
           { name: "SPRING_OPTS", value: springOpts },
           { name: "ENGINE_CONTAINER_IMAGE_AND_VERSION", value: engineImage },
+          { name: "ENGINE_CONTAINER_IMAGE_PULL_POLICY", value: "IfNotPresent" },
           { name: "SELDON_CLUSTER_MANAGER_REDIS_HOST", value: name + "-redis" },
           { name: "SELDON_CLUSTER_MANAGER_POD_NAMESPACE", valueFrom: { fieldRef: { apiVersion: "v1", fieldPath: "metadata.namespace" } } },
         ];
