@@ -57,12 +57,12 @@
           { spec+: { scope: "Namespaced" } }
         else
           {},
-      local version = 
+      local version =
         scope + if params.tfJobVersion == "v1alpha2" then
-                        { spec+: { version: "v1alpha2" } } +
-                        { spec+: { validation: { openAPIV3Schema: openAPIV3Schema } } }
-                      else
-                        {},
+          { spec+: { version: "v1alpha2" } } +
+          { spec+: { validation: { openAPIV3Schema: openAPIV3Schema } } }
+        else
+          {},
       return:: version,
     }.return,
 
