@@ -53,12 +53,12 @@
     },
     local crd(inst) = {
       local scope =
-        inst + if params.deploymentScope == "cluster" && params.deploymentNamespace != null then
-          { spec+: { scope: "Cluster" } }
+        inst + if params.deploymentScope == "namespace" && params.deploymentNamespace != null then
+          { spec+: { scope: "Namespaced" } }
         else
-          { spec+: { scope: "Namespaced" } },
-      local version = scope +
-                      if params.tfJobVersion == "v1alpha2" then
+          {},
+      local version = 
+        scope + if params.tfJobVersion == "v1alpha2" then
                         { spec+: { version: "v1alpha2" } } +
                         { spec+: { validation: { openAPIV3Schema: openAPIV3Schema } } }
                       else
