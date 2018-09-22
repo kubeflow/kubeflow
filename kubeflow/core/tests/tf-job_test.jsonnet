@@ -189,6 +189,17 @@ std.assertEqual(
           "*",
         ],
       },
+      {
+        apiGroups: [
+          "policy",
+        ],
+        resources: [
+          "poddisruptionbudgets",
+        ],
+        verbs: [
+          "*",
+        ],
+      },
     ],
   }
 ) &&
