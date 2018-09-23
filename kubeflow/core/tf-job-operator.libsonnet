@@ -59,7 +59,8 @@
     local crd(inst) = {
       local scope =
         inst + if params.deploymentScope == "namespace" && params.deploymentNamespace != "null" then
-          { spec+: { scope: "Namespaced" } }
+          // this doesn't work { spec+: { scope: "Namespaced" } }
+          {}
         else
           {},
       local version =
