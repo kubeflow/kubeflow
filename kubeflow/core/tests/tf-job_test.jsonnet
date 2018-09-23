@@ -11,8 +11,8 @@ local paramsv1alpha2 = {
   name:: "tf-job-operator",
   tfJobImage:: "gcr.io/kubeflow-images-public/tf_operator:v20180226-403",
   tfDefaultImage:: "null",
-  deploymentScope:: "cluster",
-  deploymentNamespace:: "null",
+  deploymentScope:: "namespace",
+  deploymentNamespace:: "test-kf-001",
   tfJobVersion: "v1alpha2",
 };
 local env = {
@@ -271,6 +271,7 @@ std.assertEqual(
         plural: "tfjobs",
         singular: "tfjob",
       },
+      scope: "Namespaced",
       validation: {
         openAPIV3Schema: {
           properties: {
@@ -339,6 +340,7 @@ std.assertEqual(
                 "/opt/kubeflow/tf-operator.v2",
                 "--alsologtostderr",
                 "-v=1",
+                "--namespace=test-kf-001",
               ],
               env: [
                 {
@@ -354,6 +356,14 @@ std.assertEqual(
                   valueFrom: {
                     fieldRef: {
                       fieldPath: "metadata.name",
+                    },
+                  },
+                },
+                {
+                  name: "KUBEFLOW_NAMESPACE",
+                  valueFrom: {
+                    fieldRef: {
+                      fieldPath: "metadata.namespace",
                     },
                   },
                 },

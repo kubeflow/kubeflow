@@ -9,7 +9,7 @@
 // @optionalParam tfDefaultImage string null The default image to use for TensorFlow.
 // @optionalParam tfJobUiServiceType string ClusterIP The service type for the UI.
 // @optionalParam tfJobVersion string v1alpha2 which version of the TFJob operator to use
-// @optionalParam deploymentScope string cluster The scope at which tf-job-operator should be deployed - valid values are cluster, namespace.
+// @optionalParam deploymentScope string namespace The scope at which tf-job-operator should be deployed - valid values are cluster, namespace.
 // @optionalParam deploymentNamespace string null The namespace to which tf-job-operator should be scoped. If deploymentScope is set to cluster, this is ignored.
 
 local tfJobOperator = import "kubeflow/core/tf-job-operator.libsonnet";
