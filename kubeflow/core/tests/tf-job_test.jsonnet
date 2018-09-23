@@ -1,7 +1,7 @@
 local tfjob = import "../tf-job-operator.libsonnet";
 local paramsv1alpha1 = {
   name:: "tf-job-operator",
-  tfJobImage:: "gcr.io/kubeflow-images-public/tf_operator:v20180226-403",
+  tfJobImage:: "gcr.io/kubeflow-images-public/tf_operator:v0.3.0",
   tfDefaultImage:: "null",
   deploymentScope:: "cluster",
   deploymentNamespace:: "null",
@@ -9,7 +9,7 @@ local paramsv1alpha1 = {
 };
 local paramsv1alpha2 = {
   name:: "tf-job-operator",
-  tfJobImage:: "gcr.io/kubeflow-images-public/tf_operator:v20180226-403",
+  tfJobImage:: "gcr.io/kubeflow-images-public/tf_operator:v0.3.0",
   tfDefaultImage:: "null",
   deploymentScope:: "cluster",
   deploymentNamespace:: "null",
