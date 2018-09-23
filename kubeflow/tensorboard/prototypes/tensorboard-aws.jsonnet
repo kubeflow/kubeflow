@@ -1,8 +1,18 @@
 // @apiVersion 1
-// @name io.ksonnet.pkg.tensorboard
+// @name io.ksonnet.pkg.tensorboard-aws
 // @description Tensorboard components
 // @shortDescription ksonnet components for Tensorboard
 // @param name string Name to give to each of the components
+// @optionalParam logDir string logs Name of the log directory holding the TF events file
+// @optionalParam targetPort number 6006 Name of the targetPort
+// @optionalParam serviceType string ClusterIP The service type for Jupyterhub.
+// @optionalParam s3SecretName string null Name of the k8s secrets containing S3 credentials
+// @optionalParam s3SecretAccesskeyidKeyName string null Name of the key in the k8s secret containing AWS_ACCESS_KEY_ID
+// @optionalParam s3SecretSecretaccesskeyKeyName string null Name of the key in the k8s secret containing AWS_SECRET_ACCESS_KEY
+// @optionalParam s3AwsRegion string us-west-1 S3 region
+// @optionalParam s3UseHttps string true Whether or not to use https
+// @optionalParam s3VerifySsl string true Whether or not to verify https certificates for S3 connections
+// @optionalParam s3Endpoint string http://s3.us-west-1.amazonaws.com URL for your s3-compatible endpoint
 
 local tensorboard = {
   local k = import "k.libsonnet",
@@ -20,7 +30,8 @@ local tensorboard = {
       },
     },
 
-    local tensorboard = (import "kubeflow/tensorboard/tensorboard.libsonnet").new(_env, _params),
+    local base = import "kubeflow/tensorboard/tensorboard.libsonnet",
+    local tensorboard = base.new(_env, _params),
 
     tbService:: tensorboard.tbService,
 
