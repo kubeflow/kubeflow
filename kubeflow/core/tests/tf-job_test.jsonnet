@@ -271,7 +271,8 @@ std.assertEqual(
         plural: "tfjobs",
         singular: "tfjob",
       },
-      scope: "Namespaced",
+      // when scope is added the TFJob never starts See #1606
+      // scope: "Namespaced",
       validation: {
         openAPIV3Schema: {
           properties: {
