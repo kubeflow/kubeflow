@@ -38,7 +38,7 @@ local tensorboard = {
             secret: {
               secretName: params.gcpCredentialSecretName,
             },
-          }, ]
+          }]
         ) else [],
       ) +
       deployment.mapContainers(
