@@ -259,7 +259,7 @@ the correct Docker image. See sections below for component specific instructions
 
 1. Modify the script update_katib_ksonnet.sh 
 
-    * set REALEASE to the tag you want to use
+    * set RELEASE to the tag you want to use
 
 1. Run `update_katib_ksonnet.sh`
 
