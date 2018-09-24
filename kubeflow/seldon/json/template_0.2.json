@@ -119,7 +119,7 @@
                     "app": "seldon-apiserver-container-app",
                     "app.kubernetes.io/component": "seldon-core-apiserver",
                     "app.kubernetes.io/name": "RELEASE-NAME",
-                    "chart": "seldon-core-0.2.2-SNAPSHOT",
+                    "chart": "seldon-core-0.2.3",
                     "component": "seldon-core",
                     "heritage": "Tiller",
                     "release": "RELEASE-NAME"
@@ -132,7 +132,7 @@
                         "app": "seldon-apiserver-container-app",
                         "app.kubernetes.io/component": "seldon-core-apiserver",
                         "app.kubernetes.io/name": "RELEASE-NAME",
-                        "chart": "seldon-core-0.2.2-SNAPSHOT",
+                        "chart": "seldon-core-0.2.3",
                         "component": "seldon-core",
                         "heritage": "Tiller",
                         "release": "RELEASE-NAME"
@@ -145,7 +145,7 @@
                             "app": "seldon-apiserver-container-app",
                             "app.kubernetes.io/component": "seldon-core-apiserver",
                             "app.kubernetes.io/name": "RELEASE-NAME",
-                            "chart": "seldon-core-0.2.2-SNAPSHOT",
+                            "chart": "seldon-core-0.2.3",
                             "component": "seldon-core",
                             "heritage": "Tiller",
                             "release": "RELEASE-NAME"
@@ -157,10 +157,27 @@
                         }
                     },
                     "spec": {
+                        "volumes": [
+                            {
+                                "name": "podinfo",
+                                "downwardAPI": {
+                                    "items": [
+                                        {
+                                            "path": "annotations",
+                                            "fieldRef": {
+                                                "apiVersion": "v1",
+                                                "fieldPath": "metadata.annotations"
+                                            }
+                                        }
+                                    ],
+                                    "defaultMode": 420
+                                }
+                            }
+                        ],
                         "containers": [
                             {
                                 "name": "seldon-apiserver-container",
-                                "image": "seldonio/apife:0.2.2-SNAPSHOT",
+                                "image": "seldonio/apife:0.2.3",
                                 "ports": [
                                     {
                                         "containerPort": 8080,
@@ -191,6 +208,12 @@
                                     }
                                 ],
                                 "resources": {},
+                                "volumeMounts": [
+                                    {
+                                        "name": "podinfo",
+                                        "mountPath": "/etc/podinfo"
+                                    }
+                                ],
                                 "terminationMessagePath": "/dev/termination-log",
                                 "terminationMessagePolicy": "File",
                                 "imagePullPolicy": "IfNotPresent",
@@ -269,7 +292,7 @@
                     "app": "seldon-cluster-manager-server",
                     "app.kubernetes.io/component": "seldon-core-operator",
                     "app.kubernetes.io/name": "RELEASE-NAME",
-                    "chart": "seldon-core-0.2.2-SNAPSHOT",
+                    "chart": "seldon-core-0.2.3",
                     "component": "seldon-core",
                     "heritage": "Tiller",
                     "release": "RELEASE-NAME"
@@ -282,7 +305,7 @@
                         "app": "seldon-cluster-manager-server",
                         "app.kubernetes.io/component": "seldon-core-operator",
                         "app.kubernetes.io/name": "RELEASE-NAME",
-                        "chart": "seldon-core-0.2.2-SNAPSHOT",
+                        "chart": "seldon-core-0.2.3",
                         "component": "seldon-core",
                         "heritage": "Tiller",
                         "release": "RELEASE-NAME"
@@ -295,7 +318,7 @@
                             "app": "seldon-cluster-manager-server",
                             "app.kubernetes.io/component": "seldon-core-operator",
                             "app.kubernetes.io/name": "RELEASE-NAME",
-                            "chart": "seldon-core-0.2.2-SNAPSHOT",
+                            "chart": "seldon-core-0.2.3",
                             "component": "seldon-core",
                             "heritage": "Tiller",
                             "release": "RELEASE-NAME"
@@ -305,7 +328,7 @@
                         "containers": [
                             {
                                 "name": "seldon-cluster-manager-container",
-                                "image": "seldonio/cluster-manager:0.2.2-SNAPSHOT",
+                                "image": "seldonio/cluster-manager:0.2.3",
                                 "ports": [
                                     {
                                         "containerPort": 8080,
@@ -325,7 +348,11 @@
                                     },
                                     {
                                         "name": "ENGINE_CONTAINER_IMAGE_AND_VERSION",
-                                        "value": "seldonio/engine:0.2.2-SNAPSHOT"
+                                        "value": "seldonio/engine:0.2.3"
+                                    },
+                                    {
+                                        "name": "ENGINE_CONTAINER_IMAGE_PULL_POLICY",
+                                        "value": "IfNotPresent"
                                     },
                                     {
                                         "name": "SELDON_CLUSTER_MANAGER_POD_NAMESPACE",
@@ -347,7 +374,7 @@
                             }
                         ],
                         "restartPolicy": "Always",
-                        "terminationGracePeriodSeconds": 30,
+                        "terminationGracePeriodSeconds": 1,
                         "dnsPolicy": "ClusterFirst",
                         "serviceAccountName": "seldon",
                         "serviceAccount": "seldon",
@@ -376,7 +403,7 @@
                     "app": "RELEASE-NAME-redis-app",
                     "app.kubernetes.io/component": "seldon-core-redis",
                     "app.kubernetes.io/name": "RELEASE-NAME",
-                    "chart": "seldon-core-0.2.2-SNAPSHOT",
+                    "chart": "seldon-core-0.2.3",
                     "component": "seldon-core",
                     "heritage": "Tiller",
                     "release": "RELEASE-NAME"
@@ -389,7 +416,7 @@
                         "app": "RELEASE-NAME-redis-app",
                         "app.kubernetes.io/component": "seldon-core-redis",
                         "app.kubernetes.io/name": "RELEASE-NAME",
-                        "chart": "seldon-core-0.2.2-SNAPSHOT",
+                        "chart": "seldon-core-0.2.3",
                         "component": "seldon-core",
                         "heritage": "Tiller",
                         "release": "RELEASE-NAME"
@@ -402,7 +429,7 @@
                             "app": "RELEASE-NAME-redis-app",
                             "app.kubernetes.io/component": "seldon-core-redis",
                             "app.kubernetes.io/name": "RELEASE-NAME",
-                            "chart": "seldon-core-0.2.2-SNAPSHOT",
+                            "chart": "seldon-core-0.2.3",
                             "component": "seldon-core",
                             "heritage": "Tiller",
                             "release": "RELEASE-NAME"
