@@ -107,6 +107,31 @@ func (s *ksServer)GetDeploymentStatus(ctx context.Context, req CreateRequest) (s
 	return dm.Operation.Status, nil
 }
 
+// Clear existing bindings for auto-generated service accounts of current deployment.
+// Those bindings could be leftover from previous actions.
+func GetClearServiceAccountpolicy(currentPolicy *cloudresourcemanager.Policy, req ApplyIamRequest) cloudresourcemanager.Policy {
+	serviceAccounts := map[string]bool {
+		fmt.Sprintf("serviceAccount:%v-admin@%v.iam.gserviceaccount.com", req.Cluster, req.Project): true,
+		fmt.Sprintf("serviceAccount:%v-user@%v.iam.gserviceaccount.com", req.Cluster, req.Project): true,
+		fmt.Sprintf("serviceAccount:%v-vm@%v.iam.gserviceaccount.com", req.Cluster, req.Project): true,
+	}
+	newPolicy := cloudresourcemanager.Policy{}
+	for _, binding := range currentPolicy.Bindings {
+		newBinding := cloudresourcemanager.Binding{
+			Role: binding.Role,
+		}
+		for _, member := range binding.Members {
+			// Skip bindings for service accounts of current deployment.
+			// We'll reset bindings for them in following steps.
+			if _, ok := serviceAccounts[member]; !ok {
+				newBinding.Members = append(newBinding.Members, member)
+			}
+		}
+		newPolicy.Bindings = append(newPolicy.Bindings, &newBinding)
+	}
+	return newPolicy
+}
+
 func GetUpdatedPolicy(currentPolicy *cloudresourcemanager.Policy, iamConf *IamConf, req ApplyIamRequest) cloudresourcemanager.Policy {
 	// map from role to members.
 	policyMap := map[string]map[string]bool {}
@@ -181,14 +206,27 @@ func (s *ksServer)ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) error
 
 	retry := 0
 	for retry < 5 {
+		retry += 1
 		// Get current policy
 		saPolicy, err := resourceManager.Projects.GetIamPolicy(
 			req.Project,
 			&cloudresourcemanager.GetIamPolicyRequest{
 			}).Do()
 		if err != nil {
-			retry += 1
 			log.Warningf("Cannot get current policy: %v", err)
+			time.Sleep(3 * time.Second)
+			continue
+		}
+
+		// Force update iam bindings of service accounts
+		clearedPolicy := GetClearServiceAccountpolicy(saPolicy, req)
+		_, err = resourceManager.Projects.SetIamPolicy(
+			req.Project,
+			&cloudresourcemanager.SetIamPolicyRequest{
+				Policy: &clearedPolicy,
+			}).Do()
+		if err != nil {
+			log.Warningf("Cannot set refresh policy: %v", err)
 			time.Sleep(3 * time.Second)
 			continue
 		}
@@ -201,8 +239,7 @@ func (s *ksServer)ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) error
 				Policy: &newPolicy,
 			}).Do()
 		if err != nil {
-			retry += 1
-			log.Warningf("Cannot set new ploicy: %v", err)
+			log.Warningf("Cannot set new policy: %v", err)
 			time.Sleep(3 * time.Second)
 			continue
 		}
