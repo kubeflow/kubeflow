@@ -18,10 +18,3 @@ RUN mkdir -p $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap
 COPY ./glide* $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap/
 RUN cd $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap/ && \
     glide install -v
-
-# Copy the src
-COPY ./ $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap/
-
-RUN go build ${GOLANG_GCFLAGS} -i -o /opt/kubeflow/bootstrapper \
-    ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/main.go
-
