@@ -45,7 +45,7 @@ local tfDeployment = base.tfDeployment +
               { name: "S3_VERIFY_SSL", value: params.s3VerifySsl },
               { name: "S3_ENDPOINT", value: params.s3Endpoint },
             ]
-          )
+          ) else [],
         ),
     }.result,
   );
