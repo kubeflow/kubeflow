@@ -288,9 +288,11 @@ if [ "${COMMAND}" == "delete" ]; then
   fi
   if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ] ; then
     if [ "${PLATFORM}" == "gcp" ]; then
-      pushd ${KUBEFLOW_DM_DIR}
-      ${DIR}/gke/delete_deployment.sh ${PROJECT} ${DEPLOYMENT_NAME} ${CONFIG_FILE}
-      popd
+      if [ -d "${KUBEFLOW_DM_DIR}" ]; then
+        pushd ${KUBEFLOW_DM_DIR}
+        ${DIR}/gke/delete_deployment.sh ${PROJECT} ${DEPLOYMENT_NAME} ${CONFIG_FILE}
+        popd
+      fi
     fi
     removeKsEnv
   fi
