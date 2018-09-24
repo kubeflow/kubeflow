@@ -5,21 +5,23 @@
 // @param name string Name
 // @optionalParam type string null Type of application.
 // @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
+// @optionalParam projectNamespace string null Name of the project namespace
 // @optionalParam components array [] Array of arrays
 
 local ambassador = import "kubeflow/core/ambassador.libsonnet";
-local jupyterhub = import "kubeflow/core/jupyterhub.libsonnet";
 local centraldashboard = import "kubeflow/core/centraldashboard.libsonnet";
+local jupyterhub = import "kubeflow/core/jupyterhub.libsonnet";
 local params = {
-  components:  [
+  projectNamespace: "kf-100",
+  components: [
     ["ambassador", ambassador],
-    ["jupyterhub", jupyterhub], 
+    ["jupyterhub", jupyterhub],
     ["centraldashboard", centraldashboard],
   ],
-  name: 'kubeflow-01',
+  name: "kubeflow-01",
 };
 local env = {
-  namespace: 'kubeflow-01',
+  namespace: "kubeflow-01",
 };
 
 local application = import "kubeflow/application/application.libsonnet";

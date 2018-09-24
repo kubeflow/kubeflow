@@ -20,11 +20,12 @@
         withNamespace(params.namespace).
         withLabelsMixin({
         api: "default",
-        "kubebuilder.k8s.io": "0.1.10", }) + 
+        "kubebuilder.k8s.io": "0.1.10",
+      }) +
       crd.mixin.spec.
         withGroup("app.k8s.io").
         withVersion("v1beta1").
-        withScope("Namespaced") + 
+        withScope("Namespaced") +
       crd.mixin.spec.names.
         withKind("Application").
         withPlural("applications").
@@ -102,7 +103,7 @@
         type: "kubeflow",
         selector: {
           matchLabels: {
-            "app.kubernetes.io/name": "kubeflow-01",
+            "app.kubernetes.io/name": "kubeflow-02",
           },
         },
         components+: std.map(byComponent, tuples),
@@ -111,35 +112,125 @@
     },
     application:: application,
 
-/*
----
-apiVersion: metacontroller.k8s.io/v1alpha1
-kind: CompositeController
-metadata:
-  name: application-controller
-  namespace: isolation-admin
-spec:
-  generateSelector: true
-  parentResource:
-    apiVersion: app.k8s.io/v1beta1
-    resource: applications
-  childResources:
-  - apiVersion: app.intelai.org/v1alpha1
-    resource: apps
-  hooks:
-    sync:
-      webhook:
-        url: http://isolation-operator.isolation-admin/sync-application
----
-*/
-
     components+: std.map(byResource, tuples),
+
+    local applicationDeployment = {
+      apiVersion: "apps/v1beta1",
+      kind: "Deployment",
+      metadata: {
+        name: "application-operator",
+        namespace: params.projectNamespace,
+      },
+      spec: {
+        selector: {
+          matchLabels: {
+            app: "application-operator",
+          },
+        },
+        template: {
+          metadata: {
+            labels: {
+              app: "application-operator",
+            },
+          },
+          spec: {
+            containers: [
+              {
+                name: "hooks",
+                image: "metacontroller/jsonnetd:0.1",
+                imagePullPolicy: "Always",
+                workingDir: "/opt/isolation/operator/hooks",
+                volumeMounts: [
+                  {
+                    name: "hooks",
+                    mountPath: "/opt/isolation/operator/hooks",
+                  },
+                ],
+              },
+            ],
+            volumes: [
+              {
+                name: "hooks",
+                configMap: {
+                  name: "application-operator-hooks",
+                },
+              },
+            ],
+          },
+        },
+      },
+    },
+    applicationDeployment:: applicationDeployment,
+
+    local applicationService = {
+      apiVersion: "v1",
+      kind: "Service",
+      metadata: {
+        name: "application-operator",
+        namespace: params.projectNamespace,
+      },
+      spec: {
+        selector: {
+          app: "application-operator",
+        },
+        ports: [
+          {
+            port: 80,
+            targetPort: 8080,
+          },
+        ],
+      },
+    },
+    applicationService:: applicationService,
+
+    local forChildResources(wrapper) = {
+      local tuple = wrapper.tuple,
+      local resource = tuple[2],
+      local childResource = {
+        apiVersion: resource.apiVersion,
+        resource: std.asciiLower(resource.kind) + "s",
+      },
+      rest:: childResource,
+    }.rest,
+
+    local makeKey(resource) =
+      resource.resource + "." + resource.apiVersion,
+
+    local applicationController = {
+      apiVersion: "metacontroller.k8s.io/v1alpha1",
+      kind: "CompositeController",
+      metadata: {
+        name: "application-controller",
+        namespace: params.namespace,
+      },
+      spec: {
+        generateSelector: true,
+        parentResource: {
+          apiVersion: "app.k8s.io/v1beta1",
+          resource: "applications",
+        },
+        local childResources = std.map(forChildResources, tuples),
+        local childResourcesMap = util.foldl(makeKey, childResources),
+        childResources: [childResourcesMap[key] for key in std.objectFields(childResourcesMap)],
+        hooks: {
+          sync: {
+            webhook: {
+              url: "http://application-operator." + params.projectNamespace + "/sync-application",
+            },
+          },
+        },
+      },
+    },
+    applicationController:: applicationController,
 
     local all = [
       self.applicationCrd,
       self.application,
+      self.applicationDeployment,
+      self.applicationService,
+      self.applicationController,
     ] + self.components,
-    
+
     all:: all,
 
     list(obj=self.all):: util.list(obj),
