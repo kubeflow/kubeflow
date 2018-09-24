@@ -1,5 +1,7 @@
 // Some useful routines.
 {
+  local k = import "k.libsonnet",
+
   // Convert a string to upper case.
   upper:: function(x) {
     local cp(c) = std.codepoint(c),
@@ -22,4 +24,7 @@
       else
         false,
   }.result,
+
+  // Produce a list of manifests. obj must be an array
+  list(obj):: k.core.v1.list.new(obj,),
 }
