@@ -109,7 +109,7 @@ func (s *ksServer)GetDeploymentStatus(ctx context.Context, req CreateRequest) (s
 
 // Clear existing bindings for auto-generated service accounts of current deployment.
 // Those bindings could be leftover from previous actions.
-func ClearServiceAccountpolicy(currentPolicy *cloudresourcemanager.Policy, req ApplyIamRequest) cloudresourcemanager.Policy {
+func GetClearServiceAccountpolicy(currentPolicy *cloudresourcemanager.Policy, req ApplyIamRequest) cloudresourcemanager.Policy {
 	serviceAccounts := map[string]bool {
 		fmt.Sprintf("serviceAccount:%v-admin@%v.iam.gserviceaccount.com", req.Cluster, req.Project): true,
 		fmt.Sprintf("serviceAccount:%v-user@%v.iam.gserviceaccount.com", req.Cluster, req.Project): true,
@@ -121,6 +121,8 @@ func ClearServiceAccountpolicy(currentPolicy *cloudresourcemanager.Policy, req A
 			Role: binding.Role,
 		}
 		for _, member := range binding.Members {
+			// Skip bindings for service accounts of current deployment.
+			// We'll reset bindings for them in following steps.
 			if _, ok := serviceAccounts[member]; !ok {
 				newBinding.Members = append(newBinding.Members, member)
 			}
@@ -217,7 +219,7 @@ func (s *ksServer)ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) error
 		}
 
 		// Force update iam bindings of service accounts
-		clearedPolicy := ClearServiceAccountpolicy(saPolicy, req)
+		clearedPolicy := GetClearServiceAccountpolicy(saPolicy, req)
 		_, err = resourceManager.Projects.SetIamPolicy(
 			req.Project,
 			&cloudresourcemanager.SetIamPolicyRequest{
