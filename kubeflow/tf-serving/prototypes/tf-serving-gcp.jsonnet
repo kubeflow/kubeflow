@@ -41,7 +41,7 @@ local tfDeployment = base.tfDeployment +
               name: "GOOGLE_APPLICATION_CREDENTIALS",
               value: "/secret/gcp-credentials/key.json",
             }]
-          )
+          ) else [],
         ) +
         container.withVolumeMountsMixin(
           if params.gcpCredentialSecretName != "null" then (
@@ -49,7 +49,7 @@ local tfDeployment = base.tfDeployment +
               name: "gcp-credentials",
               mountPath: "/secret/gcp-credentials",
             }]
-          )
+          ) else [],
         ),
     }.result,
   );
