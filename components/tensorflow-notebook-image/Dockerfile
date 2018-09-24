@@ -100,6 +100,7 @@ RUN pip install --upgrade pip && \
     jupyter \
     jupyterhub \
     jupyterlab \
+    s3contents==0.2.2 \
     # Cleanup
     && conda clean -tipsy
 
