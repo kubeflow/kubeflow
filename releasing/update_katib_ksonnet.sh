@@ -10,9 +10,9 @@ export PYTHONPATH=${PYTHONPATH}:${ROOT_DIR}/../git_kubeflow-testing/py
 RELEASE=v0.1.2-alpha-34-gb46378c
 
 VALUES="modeldbFrontendImage=gcr.io/kubeflow-images-public/katib/katib-frontend:${RELEASE}"
-VALUES="${VALUES},suggestionRandomImage=gcr.io/kubeflow-images-public/katib/katib-suggestion-random:${RELEASE}"
-VALUES="${VALUES},suggestionGridImage=gcr.io/kubeflow-images-public/katib/katib-suggestion-grid:${RELEASE}"
-VALUES="${VALUES},vizierCoreImage=gcr.io/kubeflow-images-public/katib/katib-vizier-core:${RELEASE}"
+VALUES="${VALUES},suggestionRandomImage=gcr.io/kubeflow-images-public/katib/suggestion-random:${RELEASE}"
+VALUES="${VALUES},suggestionGridImage=gcr.io/kubeflow-images-public/katib/suggestion-grid:${RELEASE}"
+VALUES="${VALUES},vizierCoreImage=gcr.io/kubeflow-images-public/katib/vizier-core:${RELEASE}"
 # Update the TFJob operator image
 python ${ROOT_DIR}/scripts/update_prototype.py \
 	--file=${ROOT_DIR}/kubeflow/katib/prototypes/all.jsonnet \
