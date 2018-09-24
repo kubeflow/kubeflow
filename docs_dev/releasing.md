@@ -124,6 +124,9 @@ to point to the new image.
 Update [workflows.libsonnet](https://github.com/kubeflow/kubeflow/blob/master/testing/workflows/components/workflows.libsonnet#L183) 
 to checkout kubeflow/tf-operator at the tag corresponding to the release.
 
+**Note** We should make extra_repos and their versions a ksonnet parameter and
+set it in prow_config.yaml. We can then set it differently on the release branch.
+
 ## Update PyTorchJob
 Identify the [release](https://github.com/kubeflow/pytorch-operator/releases) of pytorch-operator you want to use.
   * If you need to cut a new PyTorch operator release follow the instructions in [kubeflow/pytorch-operator](https://github.com/kubeflow/pytorch-operator/blob/master/releasing.md)
@@ -264,6 +267,34 @@ the correct Docker image. See sections below for component specific instructions
 1. Run `update_katib_ksonnet.sh`
 
 1. Submit a PR with the modified changes to the prototype.
+
+### TFJob Operator
+
+1. Identify the docker image in [gcr.io/kubeflow-images-public/tf_operator](https://gcr.io/kubeflow-images-public/tf_operator)
+
+   * Docker images are pushed by kubeflow/tf-operator postsubmit jobs
+   * You should pick an image corresponding to a green postsubmit at the desired
+     commit
+
+1. Update the entry for **gcr.io/kubeflow-images-public/tf_operator** in [image_tags.yaml](https://github.com/kubeflow/kubeflow/blob/master/releasing/image_tags.yaml#L288)
+
+    * Add a version that specifies the sha of the image you want to use and the release
+      tag you want to add e.g. "vX.Y.Z"
+
+    ```
+
+    ```
+1. Run the following command to apply the new image tag
+
+   ```
+   releasing/run_apply_image_tags.sh .*tf_operator.*:vX.Y.Z
+   ```
+
+   * The command needs to be run by someone with write permissions on 
+     gcr.io/kubeflow-images-public
+
+   * Typically this will be the release czar but you can also consult 
+     [kubeflow-images-public.iam.policy.yaml](https://github.com/kubeflow/testing/blob/master/release-infra/kubeflow-images-public.iam.policy.yaml)
 
 ### Release branching policy
 
