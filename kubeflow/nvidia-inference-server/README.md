@@ -169,7 +169,7 @@ set up earlier.
 ```shell
 $ ks init my-inference-server
 $ cd my-inference-server
-$ ks registry add kubeflow https://github.com/kubeflow/kubeflow
+$ ks registry add kubeflow https://github.com/kubeflow/kubeflow/tree/master/kubeflow
 $ ks pkg install kubeflow/nvidia-inference-server
 $ ks generate nvidia-inference-server iscomp --name=inference-server --image=nvcr.io/nvidia/inferenceserver:18.08.1-py2 --modelRepositoryPath=gs://inference-server-model-store/tf_model_store
 ```
