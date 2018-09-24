@@ -290,6 +290,9 @@ images:
   - digest: sha256:4f20e349f79059a009ef75aea158ca0c555fcc4a22e7c80a7cb9bff54fbab6c1
     tags:
     - v0.2.0
+  - digest: sha256:9007f398a8da9287e4693f7cb01e711c94d1404e8bf91885837fdd5fe3cca35
+    tags:
+    - v0.3.0
 - name: gcr.io/kubeflow-images-public/pytorch-operator
   versions:
   - digest: sha256:33aa95a3aa0108d5bc631fa3f8a04e646d4eef08a0e8c4695842f92ef0c79027
