@@ -84,10 +84,17 @@ cd ${ROOT}
 # 2 spaces vertical indentation
 # Use double quotes for strings
 # Use // for comments
+#
+# TODO(jlewi): We should probably exclude vendor and k8s lib files.
 for f in "${fmt_files[@]}"
 do
+  if [ ! -f $f ]; then
+    echo "$f doesn't exist; it was probably deleted"
+    continue
+  fi
   jsonnet fmt -i --string-style d --comment-style s --indent 2 $f 
   echo "Autoformatted $f"
 done
 
+echo "Done Autoformatting files"
 popd

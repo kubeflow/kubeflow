@@ -9,7 +9,7 @@
 // @optionalParam apifeServiceType string NodePort API Front End Service Type
 // @optionalParam operatorSpringOpts string null cluster manager spring opts
 // @optionalParam operatorJavaOpts string null cluster manager java opts
-// @optionalParam seldonVersion string 0.2.1 Seldon version
+// @optionalParam seldonVersion string 0.2.3 Seldon version
 
 local k = import "k.libsonnet";
 local core = import "kubeflow/seldon/core.libsonnet";
