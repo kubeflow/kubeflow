@@ -446,12 +446,15 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             this._appendLine(
               'deployment failed with error:' + flattenDeploymentOperationError(r.operation!));
             clearInterval(monitorInterval);
+          } else if (r.operation!.status! && r.operation!.status === 'DONE') {
+            this._appendLine('Deployment is done');
+            clearInterval(monitorInterval);
           } else {
             this._appendLine(`Status of ${deploymentName}: ` + r.operation!.status!);
           }
         })
         .catch(err => this._appendLine('deployment failed with error:' + err));
-    }, 3000);
+    }, 10000);
   }
 
   private _handleChange(event: Event) {

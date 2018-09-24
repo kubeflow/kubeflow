@@ -109,6 +109,16 @@
               },
             },
           ] + prow_env + env_vars,
+          resources: {
+            requests: {
+              memory: "2Gi",
+              cpu: "2",
+            },
+            limits: {
+              memory: "32Gi",
+              cpu: "16",
+            },
+          },
           volumeMounts: [
             {
               name: dataVolume,
@@ -153,6 +163,16 @@
             image: "docker:17.10-dind",
             securityContext: {
               privileged: true,
+            },
+            resources: {
+              requests: {
+                memory: "2Gi",
+                cpu: "2",
+              },
+              limits: {
+                memory: "32Gi",
+                cpu: "16",
+              },
             },
             mirrorVolumeMounts: true,
           }],

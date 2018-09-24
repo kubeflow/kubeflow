@@ -1,8 +1,12 @@
 // @apiVersion 1
-// @name io.ksonnet.pkg.tensorboard
+// @name io.ksonnet.pkg.tensorboard-gcp
 // @description Tensorboard components
 // @shortDescription ksonnet components for Tensorboard
 // @param name string Name to give to each of the components
+// @optionalParam logDir string logs Name of the log directory holding the TF events file
+// @optionalParam targetPort number 6006 Name of the targetPort
+// @optionalParam serviceType string ClusterIP The service type for Jupyterhub.
+// @optionalParam gcpCredentialSecretName string null Name of the k8s secrets containing gcp credentials
 
 local tensorboard = {
   local k = import "k.libsonnet",
@@ -20,7 +24,8 @@ local tensorboard = {
       },
     },
 
-    local tensorboard = (import "kubeflow/tensorboard/tensorboard.libsonnet").new(_env, _params),
+    local base = import "kubeflow/tensorboard/tensorboard.libsonnet",
+    local tensorboard = base.new(_env, _params),
 
     tbService:: tensorboard.tbService,
 
@@ -34,7 +39,7 @@ local tensorboard = {
               secretName: params.gcpCredentialSecretName,
             },
           }]
-        )
+        ) else [],
       ) +
       deployment.mapContainers(
         function(c) {
