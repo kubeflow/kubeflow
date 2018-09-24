@@ -7,6 +7,11 @@
     local params = _env + _params {
       namespace: if std.objectHas(_params, "namespace") && _params.namespace != "null" then
         _params.namespace else _env.namespace,
+      deploymentNamespace: if _params.deploymentScope == "namespace" &&
+                              _params.deploymentNamespace == "null" then
+        self.namespace
+      else
+        _params.deploymentNamespace,
     },
 
     // tfJobCrd schema
@@ -53,8 +58,9 @@
     },
     local crd(inst) = {
       local scope =
-        inst + if params.deploymentScope == "namespace" && params.deploymentNamespace != null then
-          { spec+: { scope: "Namespaced" } }
+        inst + if params.deploymentScope == "namespace" && params.deploymentNamespace != "null" then
+          // this doesn't work { spec+: { scope: "Namespaced" } }
+          {}
         else
           {},
       local version =
@@ -158,7 +164,7 @@
         function(c) {
           local container = deployment.mixin.spec.template.spec.containersType,
           local env =
-            if params.deploymentScope == "namespace" && params.deploymentNamespace != null then [{
+            if params.deploymentScope == "namespace" && params.deploymentNamespace != "null" then [{
               name: "KUBEFLOW_NAMESPACE",
               valueFrom: {
                 fieldRef: {
@@ -171,7 +177,7 @@
             "--alsologtostderr",
             "-v=1",
           ] + if params.deploymentScope == "namespace" &&
-                 params.deploymentNamespace != null then [
+                 params.deploymentNamespace != "null" then [
             "--namespace=" + params.deploymentNamespace,
           ] else [],
           result:: c + container.withEnvMixin(env) + container.withCommand(cmd),
@@ -214,7 +220,7 @@
 
     // set the right roleTypes
     local roleType(deploymentScope) = {
-      return:: if deploymentScope == "namespace" && params.deploymentNamespace != null then [
+      return:: if deploymentScope == "namespace" && params.deploymentNamespace != "null" then [
         k.rbac.v1beta1.role,
         k.rbac.v1beta1.roleBinding,
       ] else [
@@ -299,7 +305,7 @@
     },
     local role(inst) = {
       local ns =
-        inst + if params.deploymentScope == "namespace" && params.deploymentNamespace != null then
+        inst + if params.deploymentScope == "namespace" && params.deploymentNamespace != "null" then
           operatorRole.mixin.metadata.withNamespace(params.deploymentNamespace)
         else
           {},
@@ -347,7 +353,7 @@
           namespace: params.namespace,
         },
       ],
-    } + if params.deploymentScope == "namespace" && params.deploymentNamespace != null then
+    } + if params.deploymentScope == "namespace" && params.deploymentNamespace != "null" then
       operatorRoleBinding.mixin.metadata.withNamespace(params.deploymentNamespace)
     else
       {},
