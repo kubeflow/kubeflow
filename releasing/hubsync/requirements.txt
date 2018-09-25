@@ -1,3 +1,2 @@
-APScheduler
 pyyaml
 jinja2

@@ -26,13 +26,13 @@ import argparse
 #declaring some variables
 images = []
 timeout = '7200s'
-filename = 'cloudbuild.yml'
+filename = 'cloudbuild.yaml'
 builder = 'gcr.io/cloud-builders/docker'
 kfRepo = 'gcr.io/kubeflow-images-public/'
 myRepo = 'gcr.io/<my_repo>'
 
 #Get Auth
-with open('keys.yml', 'r') as keyfile:
+with open('keys.yaml', 'r') as keyfile:
     kcfg = yaml.load(keyfile)
 
 login = kcfg['username']
