@@ -46,23 +46,18 @@ for data in my_json:
         #get Tags and Repos
         raw_images = subprocess.run(["gcloud","container","images","list","--repository="+image+"","--format=json"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         imgData = raw_images.stdout.decode("utf-8")
-        #print(imgData)
         if "[]" not in imgData:
             imgJson = json.loads(raw_images.stdout.decode("utf-8").strip().replace("'", '"'))
             for stuff in imgJson:
                 for a,b in stuff.items():
-                #print(imgData)
                     images.append(b)
         else:
-            #print(image)
             images.append(image)
 
 
 for item in images:
     getTags = subprocess.run(["gcloud","--project=kubeflow-images-public","container","images","list-tags",item,"--format=json","--limit=1"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    #print(getTags)
     preTags = json.loads(getTags.stdout.decode('utf8').replace("'", '"'))
-    #print(type(preTags))
     for datum in preTags:
         t = datum['digest']
         s = item[30:]
