@@ -165,12 +165,5 @@
       },
     },  // tfDeployment
     tfDeployment:: tfDeployment,
-
-    all:: [
-      self.tfService,
-      self.tfDeployment,
-    ],
-
-    list(obj=self.all):: util.list(obj),
   },  // new
 }
