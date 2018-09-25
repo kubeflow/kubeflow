@@ -35,6 +35,7 @@ raw=`git remote`
 readarray -t remotes <<< "$raw"
 
 repo_name=''
+non_matching=''
 for r in "${remotes[@]}"
 do
    url=`git remote get-url ${r}`
@@ -42,13 +43,13 @@ do
    if [[ ${url} =~ (git@github[.]com:kubeflow/.*|https://github[.]com/kubeflow/.*) ]]; then
        repo_name=${r}
    else
-       echo "${r} at ${url} did not match"
+       non_matching="${non_matching}${r} at ${url} did not match"
    fi
 done
 
 echo using ${repo_name}
 if [ -z "$repo_name" ]; then
-    echo "Could not find remote repository pointing at git@github.com:kubeflow/.*.git"
+    echo "Could not find remote repository pointing at git@github.com:kubeflow/.*.git in ${non_matching}"
     exit 1
 fi
 
