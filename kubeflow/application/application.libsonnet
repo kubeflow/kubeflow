@@ -220,7 +220,7 @@
       local name = pair[0],
       local componentlib = pair[1],
       local cparams = std.extVar("__ksonnet/params").components[name],
-      local instance = componentlib.new(_env, cparams),
+      local instance = componentlib.new(_env, cparams + params),
       rest:: std.map(generateComponentTuples, instance.all),
     }.rest,
 
@@ -275,7 +275,7 @@
     },
     application:: application,
 
-    components+: std.map(byResource, tuples),
+    components:: std.map(byResource, tuples),
 
     local applicationConfigmap = {
       apiVersion: 'v1',

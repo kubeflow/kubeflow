@@ -5,7 +5,7 @@
 // @param name string Name
 // @optionalParam type string null Type of application.
 // @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
-// @optionalParam projectNamespace string null Name of the project namespace
+// @optionalParam deploymentNamespace string null Name of the project namespace
 // @optionalParam components array [] Array of arrays
 
 local ambassador = import "kubeflow/core/ambassador.libsonnet";
