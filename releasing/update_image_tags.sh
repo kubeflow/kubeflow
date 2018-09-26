@@ -17,7 +17,7 @@ IMAGES_FILE=${ROOT_DIR}/releasing/image_tags.yaml
 
 # Assume the testing repo is checkout in git_kubeflow_testing because 
 # we depend on the python code in that repo.
-export PYTHONPATH=${PYTHONPATH}:${ROOT_DIR}/../git_kubeflow_testing/py
+export PYTHONPATH=${PYTHONPATH}:${ROOT_DIR}/../git_kubeflow-testing/py
 
 # TODO(richardsliu): Current postsubmits apply this tag to all TF notebook images.
 # We should fix our postsubmit jobs such that each postsubmit generates an unique tag based on commit hash.
