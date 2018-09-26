@@ -282,7 +282,7 @@
       kind: 'ConfigMap',
       metadata: {
         name: 'application-operator-hooks',
-        namespace: params.projectNamespace,
+        namespace: params.deploymentNamespace,
       },
       data: {
         'sync-application': importstr "sync-application.jsonnet",
@@ -295,7 +295,7 @@
       kind: "Deployment",
       metadata: {
         name: "application-operator",
-        namespace: params.projectNamespace,
+        namespace: params.deploymentNamespace,
       },
       spec: {
         selector: {
@@ -343,7 +343,7 @@
       kind: "Service",
       metadata: {
         name: "application-operator",
-        namespace: params.projectNamespace,
+        namespace: params.deploymentNamespace,
       },
       spec: {
         selector: {
@@ -391,7 +391,7 @@
         hooks: {
           sync: {
             webhook: {
-              url: "http://application-operator." + params.projectNamespace + "/sync-application",
+              url: "http://application-operator." + params.deploymentNamespace + "/sync-application",
             },
           },
         },
