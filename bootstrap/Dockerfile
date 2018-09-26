@@ -4,6 +4,11 @@ ARG GOLANG_VERSION=1.10.3
 ARG BUILDER_IMG=gcr.io/kubeflow-images-public/bootstrapper-builder
 ARG BUILDER_IMG_VERSION=latest
 FROM ${BUILDER_IMG}:${BUILDER_IMG_VERSION} AS build_base_remote
+# Copy the src
+COPY ./ $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap/
+
+RUN go build ${GOLANG_GCFLAGS} -i -o /opt/kubeflow/bootstrapper \
+    ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/main.go
 
 FROM golang:${GOLANG_VERSION} AS build
 
