@@ -39,14 +39,14 @@
   toArray:: function(str) {
     local trim(str) = {
       rest::
-        if std.startsWith(str, ' ') then
-          std.substr(str, 1, std.length(str)-1)
-        else 
+        if std.startsWith(str, " ") then
+          std.substr(str, 1, std.length(str) - 1)
+        else
           str,
     }.rest,
     result::
       if std.type(str) == "string" && str != "null" && std.length(str) > 0 then
-        std.map(trim,std.split(str, ","))
+        std.map(trim, std.split(str, ","))
       else [],
   }.result,
 
@@ -55,8 +55,8 @@
       if i >= std.length(arr) then
         running
       else
-        aux(arr, i + 1, running + {[key(arr[i])]: arr[i],}) tailstrict,
-    return:: aux(objs, 0, {}, ),
+        aux(arr, i + 1, running { [key(arr[i])]: arr[i] }) tailstrict,
+    return:: aux(objs, 0, {},),
   }.return,
 
   // Produce a list of manifests. obj must be an array
