@@ -156,9 +156,9 @@ local dagTemplates = [
         "--platform",
         "gcp",
         "--project",
+        project,
         // Temporary fix for https://github.com/kubeflow/kubeflow/issues/1562
         "--skipInitProject",
-        project,
       ],
       working_dir=testDir,
     ),
