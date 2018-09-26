@@ -29,7 +29,170 @@
       crd.mixin.spec.names.
         withKind("Application").
         withPlural("applications").
-        withSingular("application"),
+        withSingular("application") +
+      crd.mixin.spec.validation.
+        withOpenApiV3Schema({
+          properties: {
+            apiVersion: {
+              type: 'string',
+            },
+            kind: {
+              type: 'string',
+            },
+            metadata: {
+              type: 'object',
+            },
+            spec: {
+              type: 'object',
+              properties: {
+                selector: {
+                  type: 'object',
+                },
+                assemblyPhase: {
+                  type: 'string',
+                },
+                componentKinds: {
+                  items: {
+                    type: 'object',
+                  },
+                  type: 'array',
+                },
+                description: {
+                  type: 'string',
+                },
+                info: {
+                  items: {
+                    properties: {
+                      name: {
+                        type: 'string',
+                      },
+                      type: {
+                        type: 'string',
+                      },
+                      value: {
+                        type: 'string',
+                      },
+                      valueFrom: {
+                        properties: {
+                          configMapKeyRef: {
+                            properties: {
+                              key: {
+                                type: 'string',
+                              },
+                            },
+                            type: 'object',
+                          },
+                          ingressRef: {
+                            properties: {
+                              host: {
+                                type: 'string',
+                              },
+                              path: {
+                                type: 'string',
+                              },
+                            },
+                            type: 'object',
+                          },
+                          secretKeyRef: {
+                            properties: {
+                              key: {
+                                type: 'string',
+                              },
+                            },
+                            type: 'object',
+                          },
+                          serviceRef: {
+                            properties: {
+                              path: {
+                                type: 'string',
+                              },
+                              port: {
+                                type: 'int32',
+                              },
+                            },
+                            type: 'object',
+                          },
+                          type: {
+                            type: 'string',
+                          },
+                        },
+                        type: 'object',
+                      },
+                    },
+                    type: 'object',
+                  },
+                  type: 'array',
+                },
+                descriptor: {
+                  type: 'object',
+                  properties: {
+                    keywords: {
+                      items: {
+                        type: 'string',
+                      },
+                      type: 'array',
+                    },
+                    links: {
+                      items: {
+                        properties: {
+                          description: {
+                            type: 'string',
+                          },
+                          url: {
+                            type: 'string',
+                          },
+                        },
+                        type: 'object',
+                      },
+                      type: 'array',
+                    },
+                    maintainers: {
+                      items: {
+                        properties: {
+                          email: {
+                            type: 'string',
+                          },
+                          name: {
+                            type: 'string',
+                          },
+                          url: {
+                            type: 'string',
+                          },
+                        },
+                        type: 'object',
+                      },
+                      type: 'array',
+                    },
+                    notes: {
+                      type: 'string',
+                    },
+                    owners: {
+                      items: {
+                        type: 'string',
+                      },
+                      type: 'array',
+                    },
+                    type: {
+                      type: 'string',
+                    },
+                    version: {
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+            status: {
+              properties: {
+                observedGeneration: {
+                  type: 'int64',
+                },
+              },
+              type: 'object',
+            },
+          },
+          type: 'object',
+        },),
     applicationCrd:: applicationCrd,
 
     local generateComponentTuples(resource) = {
@@ -113,6 +276,19 @@
     application:: application,
 
     components+: std.map(byResource, tuples),
+
+    local applicationConfigmap = {
+      apiVersion: 'v1',
+      kind: 'ConfigMap',
+      metadata: {
+        name: 'application-operator-hooks',
+        namespace: params.projectNamespace,
+      },
+      data: {
+        'sync-application': importstr "sync-application.jsonnet",
+      },
+    },
+    applicationConfigmap:: applicationConfigmap,
 
     local applicationDeployment = {
       apiVersion: "apps/v1beta1",
@@ -226,6 +402,7 @@
     local all = [
       self.applicationCrd,
       self.application,
+      self.applicationConfigmap,
       self.applicationDeployment,
       self.applicationService,
       self.applicationController,

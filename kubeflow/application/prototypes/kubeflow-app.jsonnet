@@ -1,7 +1,7 @@
 // @apiVersion 0.1
-// @name io.ksonnet.pkg.kubeflow-02
-// @description kubeflow-02 Component
-// @shortDescription kubeflow-02 Component
+// @name io.ksonnet.pkg.kubeflow-app
+// @description kubeflow-app Component
+// @shortDescription kubeflow-app Component
 // @param name string Name
 // @optionalParam type string null Type of application.
 // @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
@@ -9,21 +9,22 @@
 // @optionalParam components array [] Array of arrays
 
 local ambassador = import "kubeflow/core/ambassador.libsonnet";
+local centraldashboard = import "kubeflow/core/centraldashboard.libsonnet";
 local jupyterhub = import "kubeflow/core/jupyterhub.libsonnet";
-local spartakus = import "kubeflow/core/spartakus.libsonnet";
 local tfjoboperator = import "kubeflow/core/tf-job-operator.libsonnet";
 local params = {
-  projectNamespace: "kf-100",
+  deploymentScope: "namespace",
+  deploymentNamespace: "kf-100-user",
   components: [
     ["ambassador", ambassador],
+    ["centraldashboard", centraldashboard],
     ["jupyterhub", jupyterhub],
     ["tf-job-operator", tfjoboperator],
-    ["spartakus", spartakus],
   ],
-  name: "kubeflow-02",
+  name: "kubeflow-app",
 };
 local env = {
-  namespace: "kubeflow-02",
+  namespace: "kf-100-user",
 };
 
 local application = import "kubeflow/application/application.libsonnet";
