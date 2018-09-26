@@ -725,13 +725,22 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 		}
 		retry := 0
 		for retry < 3 {
-			err = actions.RunApply(applyOptions)
-			if err == nil {
-				log.Infof("Components apply succeded")
+			succeeded := true
+			retry += 1
+			for _, comp := range req.Components {
+				applyOptions[actions.OptionComponentNames] = []string{comp}
+				err = actions.RunApply(applyOptions)
+				if err == nil {
+					log.Infof("Component %v apply succeeded", comp)
+				} else {
+					log.Errorf("(Will retry) Component %v apply failed; Error: %v", comp, err)
+					succeeded = false
+				}
+			}
+			if succeeded {
+				log.Infof("All component apply succeeded")
 				return nil
 			} else {
-				log.Errorf("(Will retry) Components apply failed; Error: %v", err)
-				retry += 1
 				time.Sleep(5 * time.Second)
 			}
 		}

@@ -169,6 +169,9 @@ to point to the new image.
 Update [workflows.libsonnet](https://github.com/kubeflow/kubeflow/blob/master/testing/workflows/components/workflows.libsonnet#L183) 
 to checkout kubeflow/tf-operator at the tag corresponding to the release.
 
+**Note** We should make extra_repos and their versions a ksonnet parameter and
+set it in prow_config.yaml. We can then set it differently on the release branch.
+
 ## Update PyTorchJob
 Identify the [release](https://github.com/kubeflow/pytorch-operator/releases) of pytorch-operator you want to use.
   * If you need to cut a new PyTorch operator release follow the instructions in [kubeflow/pytorch-operator](https://github.com/kubeflow/pytorch-operator/blob/master/releasing.md)
@@ -248,17 +251,6 @@ ks apply ${ENV} -c workflows
 Create a PR to update [kubeform_spawner.py](https://github.com/kubeflow/kubeflow/blob/master/kubeflow/core/kubeform_spawner.py#L15) 
 to point to the newly built Jupyter notebook images.
 
-## Update the bootstrapper
-
-Build and push a new bootstrapper image
-
-```
-cd bootstrap
-make push
-```
-
-Update [cluster-kubeflow.yaml](https://github.com/kubeflow/kubeflow/blob/master/docs/gke/configs/cluster-kubeflow.yaml) to point to the new image.
-
 ## Create a release branch (if necessary)
 
 If you aren't already working on a release branch (of the form `v${MAJOR}.${MINOR}-branch`, where `${MAJOR}.${MINOR}` is a major-minor version number), then create one.  Release branches serve several purposes:
@@ -271,7 +263,7 @@ If you aren't already working on a release branch (of the form `v${MAJOR}.${MINO
 ## Updating ksonnet prototypes with docker image
 
 Here is the general process for how we update our Docker prototypes to point to
-the correct Docker image.
+the correct Docker image. See sections below for component specific instructions.
 
 1. Build a Docker image using whatever tagging schema you like 
 
@@ -306,6 +298,49 @@ the correct Docker image.
 
      * IMAGE_PATTERN should be a regex matching the images that you want to add the tag
    * Create a PR checking **into master** the changes in image_tags.yaml
+
+### TFJob Operator
+
+1. Identify the docker image in [gcr.io/kubeflow-images-public/tf_operator](https://gcr.io/kubeflow-images-public/tf_operator)
+
+   * Docker images are pushed by kubeflow/tf-operator postsubmit jobs
+   * You should pick an image corresponding to a green postsubmit at the desired
+     commit
+
+1. Update the entry for **gcr.io/kubeflow-images-public/tf_operator** in [image_tags.yaml](https://github.com/kubeflow/kubeflow/blob/master/releasing/image_tags.yaml#L288)
+
+    * Add a version that specifies the sha of the image you want to use and the release
+      tag you want to add e.g. "vX.Y.Z"
+
+    ```
+
+    ```
+1. Run the following command to apply the new image tag
+
+   ```
+   releasing/run_apply_image_tags.sh .*tf_operator.*:vX.Y.Z
+   ```
+
+   * The command needs to be run by someone with write permissions on 
+     gcr.io/kubeflow-images-public
+
+   * Typically this will be the release czar but you can also consult 
+     [kubeflow-images-public.iam.policy.yaml](https://github.com/kubeflow/testing/blob/master/release-infra/kubeflow-images-public.iam.policy.yaml)
+
+
+### Katib
+
+1. Identify the tag of the Katib images to use
+
+   * Katib images should be pushed for each postsubmit
+
+1. Modify the script update_katib_ksonnet.sh 
+
+    * set REALEASE to the tag you want to use
+
+1. Run `update_katib_ksonnet.sh`
+
+1. Submit a PR with the modified changes to the prototype.
 
 ### Release branching policy
 
