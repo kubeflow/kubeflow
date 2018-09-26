@@ -10,11 +10,13 @@
 // @optionalParam suggestionGridImage string gcr.io/kubeflow-images-public/katib/suggestion-grid:v0.1.2-alpha-34-gb46378c The image for grid suggestion.
 // @optionalParam vizierCoreImage string gcr.io/kubeflow-images-public/katib/vizier-core:v0.1.2-alpha-34-gb46378c The image for vizier core.
 // @optionalParam vizierDbImage string mysql:8.0.3 The image for vizier db.
+// @optionalParam studyJobControllerImage string katib/studyjob-controller The image for studyjob-controller.
 
 local k = import "k.libsonnet";
 
 local vizier = import "kubeflow/katib/vizier.libsonnet";
 local modeldb = import "kubeflow/katib/modeldb.libsonnet";
+local studyjobcontroller = import "kubeflow/katib/studyjobcontroller.libsonnet";
 local suggestion = import "kubeflow/katib/suggestion.libsonnet";
 
 local namespace = env.namespace;
@@ -23,4 +25,5 @@ std.prune(
   k.core.v1.list.new(vizier.all(params, namespace))
   + k.core.v1.list.new(suggestion.all(params, namespace))
   + k.core.v1.list.new(modeldb.all(params, namespace))
+  + k.core.v1.list.new(studyjobcontroller.all(params, namespace))
 )

@@ -63,35 +63,33 @@ workflows:
     job_types:
       # TODO(jlewi): Reenable on presubmit once its passing.
       #- presubmit
-      # TODO(jlewi): We should probably create a separate postsubmit job that pushes
-      # to kubeflow-images-public.
-      - postsubmit
     params:
-      cluster: "kubeflow-testing"
-      gcpCredentialsSecretName: "gcp-credentials"
-      namespace: "kubeflow-test-infra"
-      nfsVolumeClaim: "nfs-external"
-      project: "kubeflow-releasing"
       registry: "gcr.io/kubeflow-ci"
-      testing_image: "gcr.io/kubeflow-ci/test-worker:latest"
     include_dirs:
       - components/centraldashboard/*
       - releasing/releaser/components/centraldashboard.jsonnet
+  # The postsubmit run publishes the docker images to gcr.io/kubeflow-images-public
+  - app_dir: kubeflow/kubeflow/releasing/releaser
+    component: centraldashboard
+    name: dashboard-release
+    job_types:
+      - postsubmit
+    params:
+      registry: "gcr.io/kubeflow-images-public"
   - app_dir: kubeflow/kubeflow/components/tensorflow-notebook-image/releaser
     component: workflows
     name: tf-notebook-release
     job_types:
       - presubmit
-      # TODO(jlewi): We should probably create a separate postsubmit job that pushes
-      # to kubeflow-images-public.
-      - postsubmit
     params:
-      cluster: "kubeflow-testing"
-      gcpCredentialsSecretName: "gcp-credentials"
-      namespace: "kubeflow-test-infra"
-      nfsVolumeClaim: "nfs-external"
-      project: "kubeflow-releasing"
       registry: "gcr.io/kubeflow-ci"
-      testing_image: "gcr.io/kubeflow-ci/test-worker:latest"
     include_dirs:
       - components/tensorflow-notebook-image/*
+  # The postsubmit run publishes the docker images to gcr.io/kubeflow-images-public
+  - app_dir: kubeflow/kubeflow/components/tensorflow-notebook-image/releaser
+    component: workflows
+    name: tf-notebook-release
+    job_types:
+      - postsubmit
+    params:
+      registry: "gcr.io/kubeflow-images-public"
