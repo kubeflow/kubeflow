@@ -298,3 +298,8 @@ images:
   - digest: sha256:33aa95a3aa0108d5bc631fa3f8a04e646d4eef08a0e8c4695842f92ef0c79027
     tags:
     - v0.3.0
+- name: gcr.io/kubeflow-images-public/kubebench/kubebench-controller
+  versions:
+  - digest: sha256:7e118120f7b4cba2347bd90d6f2ec52d56882111e2c0ecc7079f89042c0602ea
+    tags:
+    - v0.3.0
