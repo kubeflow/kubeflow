@@ -113,6 +113,14 @@
                 },
               },
             },
+            {
+              name: "GCP_REGISTRY",
+              value: params.registry,
+            },
+            {
+              name: "GCP_PROJECT",
+              value: project,
+            },
           ] + prow_env + env_vars,
           volumeMounts: [
             {
