@@ -189,6 +189,20 @@ def deploy_model(args):
     api_client, namespace, args.deploy_name + "-v1", timeout_minutes=10)
   logging.info("Verified TF serving started.")
 
+def test_katib(args):
+  # Wait for 100 seconds to check if the studyjob-controller pod was created
+  retries = 20
+  i = 0
+  while True:
+    if i == retries:
+      raise Exception('Failed to run deploy katib')
+    output = util.run(["kubectl", "get", "pods", "-lapp=studyjob-controller"])
+    if "studyjob-controller-" in output and "Running" in output:
+      return True
+    time.sleep(5)
+    i += 1
+
+
 def deploy_argo(args):
   api_client = create_k8s_client(args)
   app_dir = setup_kubeflow_ks_app(args, api_client)
@@ -600,6 +614,11 @@ def main():  # pylint: disable=too-many-locals,too-many-statements
     "deploy_argo", help="Deploy argo")
 
   parser_argo_job.set_defaults(func=deploy_argo)
+
+  parser_katib_test = subparsers.add_parser(
+    "test_katib", help="Test Katib")
+
+  parser_katib_test.set_defaults(func=test_katib)
 
   parser_minikube = subparsers.add_parser(
     "deploy_minikube", help="Setup a K8s cluster on minikube.")
