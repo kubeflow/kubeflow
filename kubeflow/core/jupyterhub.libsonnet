@@ -25,9 +25,9 @@
       kind: "Service",
       metadata: {
         labels: {
-          app: "tf-hub",
+          app: "jupyterhub",
         },
-        name: "tf-hub-0",
+        name: "jupyterhub-0",
         namespace: params.namespace,
         annotations: {
           "prometheus.io/scrape": "true",
@@ -44,7 +44,7 @@
           },
         ],
         selector: {
-          app: "tf-hub",
+          app: "jupyterhub",
         },
       },
     },
@@ -55,9 +55,9 @@
       kind: "Service",
       metadata: {
         labels: {
-          app: "tf-hub-lb",
+          app: "jupyterhub-lb",
         },
-        name: "tf-hub-lb",
+        name: "jupyterhub-lb",
         namespace: params.namespace,
         annotations: {
           "getambassador.io/config":
@@ -65,20 +65,20 @@
               "---",
               "apiVersion: ambassador/v0",
               "kind:  Mapping",
-              "name: tf-hub-lb-hub-mapping",
+              "name: jupyterhub-lb-hub-mapping",
               "prefix: /hub/",
               "rewrite: /hub/",
               "timeout_ms: 300000",
-              "service: tf-hub-lb." + params.namespace,
+              "service: jupyterhub-lb." + params.namespace,
               "use_websocket: true",
               "---",
               "apiVersion: ambassador/v0",
               "kind:  Mapping",
-              "name: tf-hub-lb-user-mapping",
+              "name: jupyterhub-lb-user-mapping",
               "prefix: /user/",
               "rewrite: /user/",
               "timeout_ms: 300000",
-              "service: tf-hub-lb." + params.namespace,
+              "service: jupyterhub-lb." + params.namespace,
               "use_websocket: true",
             ]),
         },  //annotations
@@ -92,7 +92,7 @@
           },
         ],
         selector: {
-          app: "tf-hub",
+          app: "jupyterhub",
         },
         type: params.serviceType,
       },
@@ -103,7 +103,7 @@
       apiVersion: "apps/v1beta1",
       kind: "StatefulSet",
       metadata: {
-        name: "tf-hub",
+        name: "jupyterhub",
         namespace: params.namespace,
       },
       spec: {
@@ -112,7 +112,7 @@
         template: {
           metadata: {
             labels: {
-              app: "tf-hub",
+              app: "jupyterhub",
             },
           },
           spec: {
@@ -124,7 +124,7 @@
                   "/etc/config/jupyterhub_config.py",
                 ],
                 image: params.image,
-                name: "tf-hub",
+                name: "jupyterhub",
                 volumeMounts: [
                   {
                     mountPath: "/etc/config",
@@ -193,7 +193,7 @@
                 ]),
               },  // jupyterHub container
             ],
-            serviceAccountName: "jupyter-hub",
+            serviceAccountName: "jupyterhub",
             volumes: [
               {
                 configMap: {
@@ -318,9 +318,9 @@
       kind: "ServiceAccount",
       metadata: {
         labels: {
-          app: "jupyter-hub",
+          app: "jupyterhub",
         },
-        name: "jupyter-hub",
+        name: "jupyterhub",
         namespace: params.namespace,
       },
     },
@@ -351,7 +351,7 @@
       subjects: [
         {
           kind: "ServiceAccount",
-          name: "jupyter-hub",
+          name: "jupyterhub",
           namespace: params.namespace,
         },
       ],
