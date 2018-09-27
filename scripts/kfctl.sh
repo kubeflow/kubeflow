@@ -14,6 +14,7 @@ COMMAND=$1
 WHAT=$2
 
 ENV_FILE="env.sh"
+SKIP_INIT_PROJECT=false
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 source "${DIR}/util.sh"
@@ -35,7 +36,7 @@ createEnv() {
   # Namespace where kubeflow is deployed
   echo K8S_NAMESPACE=${K8S_NAMESPACE:-"kubeflow"} >> ${ENV_FILE}
 
-  case "$PLATFORM" in 
+  case "$PLATFORM" in
     minikube)
       echo KUBEFLOW_CLOUD=minikube >> ${ENV_FILE}
       echo MOUNT_LOCAL=${MOUNT_LOCAL} >> ${ENV_FILE}
@@ -52,29 +53,29 @@ createEnv() {
         echo PROJECT must be set either using environment variable PROJECT
         echo or by setting the default project in gcloud
         exit 1
-      fi    
-  
+      fi
+
       # Name of the deployment
       DEPLOYMENT_NAME=${DEPLOYMENT_NAME:-"kubeflow"}
       echo DEPLOYMENT_NAME="${DEPLOYMENT_NAME}" >> ${ENV_FILE}
-  
+
       # Kubeflow directories
       echo KUBEFLOW_DM_DIR=${KUBEFLOW_DM_DIR:-"$(pwd)/gcp_config"} >> ${ENV_FILE}
       echo KUBEFLOW_SECRETS_DIR=${KUBEFLOW_SECRETS_DIR:-"$(pwd)/secrets"} >> ${ENV_FILE}
       echo KUBEFLOW_K8S_MANIFESTS_DIR="$(pwd)/k8s_specs" >> ${ENV_FILE}
-  
+
       # Name of the K8s context to create.
       echo  KUBEFLOW_K8S_CONTEXT=${DEPLOYMENT_NAME} >> ${ENV_FILE}
-  
+
       # GCP Zone
       # The default should be a zone that supports Haswell.
       ZONE=${ZONE:-$(gcloud config get-value compute/zone 2>/dev/null)}
       echo ZONE=${ZONE:-"us-east1-d"} >> ${ENV_FILE}
-  
+
       # Email for cert manager
       EMAIL=${EMAIL:-$(gcloud config get-value account 2>/dev/null)}
       echo EMAIL=${EMAIL} >> ${ENV_FILE}
-  
+
       # GCP Static IP Name
       echo KUBEFLOW_IP_NAME=${KUBEFLOW_IP_NAME:-"${DEPLOYMENT_NAME}-ip"} >> ${ENV_FILE}
       # Name of the endpoint
@@ -82,13 +83,13 @@ createEnv() {
       echo KUBEFLOW_ENDPOINT_NAME=${KUBEFLOW_ENDPOINT_NAME} >> ${ENV_FILE}
       # Complete hostname
       echo KUBEFLOW_HOSTNAME=${KUBEFLOW_HOSTNAME:-"${KUBEFLOW_ENDPOINT_NAME}.endpoints.${PROJECT}.cloud.goog"} >> ${ENV_FILE}
-  
+
       echo CONFIG_FILE=${CONFIG_FILE:-"cluster-kubeflow.yaml"} >> ${ENV_FILE}
-  
+
       if [ -z "${PROJECT_NUMBER}" ]; then
         PROJECT_NUMBER=$(gcloud projects describe ${PROJECT} --format='value(project_number)')
       fi
-  
+
       echo PROJECT_NUMBER=${PROJECT_NUMBER} >> ${ENV_FILE}
       ;;
     *)
@@ -100,20 +101,27 @@ createEnv() {
 if [ "${COMMAND}" == "init" ]; then
 	DEPLOYMENT_NAME=${WHAT}
 
-	while [ "$1" != "" ]; do
+    while [[ $# -gt 0 ]]; do
     case $1 in
-    	--platform)                  shift
-                                     PLATFORM=$1
-                                     ;;
-        --project)                   shift
-                                     PROJECT=$1
-                                     ;;
-		--skipInitProject)           shift
-                                     SKIP_INIT_PROJECT=$1
-                                     ;;
-        --email)                     shift
-                                     EMAIL=$1
-                                     ;;
+        -h | --help)
+            usage
+            exit
+            ;;
+        --platform)
+            shift
+            PLATFORM=$1
+            ;;
+        --project)
+            shift
+            PROJECT=$1
+            ;;
+        --skipInitProject)
+            SKIP_INIT_PROJECT=true
+            ;;
+        --email)
+            shift
+            EMAIL=$1
+            ;;
       esac
       shift
 	done
@@ -247,7 +255,7 @@ if [ "${COMMAND}" == "generate" ]; then
     if [ "${PLATFORM}" == "minikube" ]; then
       create_local_fs_mount_spec
       if ${MOUNT_LOCAL}; then
-        ks param set jupyterhub disks "local-notebooks" 
+        ks param set jupyterhub disks "local-notebooks"
         ks param set jupyterhub notebookUid `id -u`
         ks param set jupyterhub notebookGid `id -g`
         ks param set jupyterhub accessLocalFs true
@@ -288,9 +296,11 @@ if [ "${COMMAND}" == "delete" ]; then
   fi
   if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ] ; then
     if [ "${PLATFORM}" == "gcp" ]; then
-      pushd ${KUBEFLOW_DM_DIR}
-      ${DIR}/gke/delete_deployment.sh ${PROJECT} ${DEPLOYMENT_NAME} ${CONFIG_FILE}
-      popd
+      if [ -d "${KUBEFLOW_DM_DIR}" ]; then
+        pushd ${KUBEFLOW_DM_DIR}
+        ${DIR}/gke/delete_deployment.sh ${PROJECT} ${DEPLOYMENT_NAME} ${CONFIG_FILE}
+        popd
+      fi
     fi
     removeKsEnv
   fi
