@@ -81,8 +81,7 @@ workflows:
     component: workflows
     name: tf-notebook-release
     job_types:
-      # TODO(jlewi): Reenable on presubmit once its passing.
-      # - presubmit
+      - presubmit
       # TODO(jlewi): We should probably create a separate postsubmit job that pushes
       # to kubeflow-images-public.
       - postsubmit
