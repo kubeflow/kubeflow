@@ -12,4 +12,4 @@ pip install -r requirements.txt
 ```
 
 
-This will install a few components such as pyyaml.
+This will install a few components such as pyyaml and jinja.
