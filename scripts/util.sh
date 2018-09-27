@@ -61,13 +61,14 @@ function createKsApp() {
   # Generate all required components
   ks generate pytorch-operator pytorch-operator
   # TODO(jlewi): Why are we overloading the ambassador images here?
-  ks generate kubeflow-app kubeflow-app
   ks generate ambassador ambassador
   ks generate jupyterhub jupyterhub
   ks generate centraldashboard centraldashboard
   ks generate tf-job-operator tf-job-operator
-
   ks generate argo argo
+
+  # kubeflow-app which will emit all components unless its params.components specifies a subset
+  ks generate kubeflow-app kubeflow-app
 
   # Enable collection of anonymous usage metrics
   # To disable metrics collection. Remove the spartakus component.

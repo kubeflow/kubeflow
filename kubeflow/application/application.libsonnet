@@ -14,6 +14,168 @@
       },
     },
 
+    local openApiV3Schema = {
+      properties: {
+        apiVersion: {
+          type: "string",
+        },
+        kind: {
+          type: "string",
+        },
+        metadata: {
+          type: "object",
+        },
+        spec: {
+          type: "object",
+          properties: {
+            selector: {
+              type: "object",
+            },
+            assemblyPhase: {
+              type: "string",
+            },
+            componentKinds: {
+              items: {
+                type: "object",
+              },
+              type: "array",
+            },
+            description: {
+              type: "string",
+            },
+            info: {
+              items: {
+                properties: {
+                  name: {
+                    type: "string",
+                  },
+                  type: {
+                    type: "string",
+                  },
+                  value: {
+                    type: "string",
+                  },
+                  valueFrom: {
+                    properties: {
+                      configMapKeyRef: {
+                        properties: {
+                          key: {
+                            type: "string",
+                          },
+                        },
+                        type: "object",
+                      },
+                      ingressRef: {
+                        properties: {
+                          host: {
+                            type: "string",
+                          },
+                          path: {
+                            type: "string",
+                          },
+                        },
+                        type: "object",
+                      },
+                      secretKeyRef: {
+                        properties: {
+                          key: {
+                            type: "string",
+                          },
+                        },
+                        type: "object",
+                      },
+                      serviceRef: {
+                        properties: {
+                          path: {
+                            type: "string",
+                          },
+                          port: {
+                            type: "int32",
+                          },
+                        },
+                        type: "object",
+                      },
+                      type: {
+                        type: "string",
+                      },
+                    },
+                    type: "object",
+                  },
+                },
+                type: "object",
+              },
+              type: "array",
+            },
+            descriptor: {
+              type: "object",
+              properties: {
+                keywords: {
+                  items: {
+                    type: "string",
+                  },
+                  type: "array",
+                },
+                links: {
+                  items: {
+                    properties: {
+                      description: {
+                        type: "string",
+                      },
+                      url: {
+                        type: "string",
+                      },
+                    },
+                    type: "object",
+                  },
+                  type: "array",
+                },
+                maintainers: {
+                  items: {
+                    properties: {
+                      email: {
+                        type: "string",
+                      },
+                      name: {
+                        type: "string",
+                      },
+                      url: {
+                        type: "string",
+                      },
+                    },
+                    type: "object",
+                  },
+                  type: "array",
+                },
+                notes: {
+                  type: "string",
+                },
+                owners: {
+                  items: {
+                    type: "string",
+                  },
+                  type: "array",
+                },
+                type: {
+                  type: "string",
+                },
+                version: {
+                  type: "string",
+                },
+              },
+            },
+          },
+        },
+        status: {
+          properties: {
+            observedGeneration: {
+              type: "int64",
+            },
+          },
+          type: "object",
+        },
+      },
+    },
+
     local applicationCrd =
       crd.new() + crd.mixin.metadata.
         withName("applications.app.k8s.io").
@@ -31,168 +193,7 @@
         withPlural("applications").
         withSingular("application") +
       crd.mixin.spec.validation.
-        withOpenApiV3Schema({
-        properties: {
-          apiVersion: {
-            type: "string",
-          },
-          kind: {
-            type: "string",
-          },
-          metadata: {
-            type: "object",
-          },
-          spec: {
-            type: "object",
-            properties: {
-              selector: {
-                type: "object",
-              },
-              assemblyPhase: {
-                type: "string",
-              },
-              componentKinds: {
-                items: {
-                  type: "object",
-                },
-                type: "array",
-              },
-              description: {
-                type: "string",
-              },
-              info: {
-                items: {
-                  properties: {
-                    name: {
-                      type: "string",
-                    },
-                    type: {
-                      type: "string",
-                    },
-                    value: {
-                      type: "string",
-                    },
-                    valueFrom: {
-                      properties: {
-                        configMapKeyRef: {
-                          properties: {
-                            key: {
-                              type: "string",
-                            },
-                          },
-                          type: "object",
-                        },
-                        ingressRef: {
-                          properties: {
-                            host: {
-                              type: "string",
-                            },
-                            path: {
-                              type: "string",
-                            },
-                          },
-                          type: "object",
-                        },
-                        secretKeyRef: {
-                          properties: {
-                            key: {
-                              type: "string",
-                            },
-                          },
-                          type: "object",
-                        },
-                        serviceRef: {
-                          properties: {
-                            path: {
-                              type: "string",
-                            },
-                            port: {
-                              type: "int32",
-                            },
-                          },
-                          type: "object",
-                        },
-                        type: {
-                          type: "string",
-                        },
-                      },
-                      type: "object",
-                    },
-                  },
-                  type: "object",
-                },
-                type: "array",
-              },
-              descriptor: {
-                type: "object",
-                properties: {
-                  keywords: {
-                    items: {
-                      type: "string",
-                    },
-                    type: "array",
-                  },
-                  links: {
-                    items: {
-                      properties: {
-                        description: {
-                          type: "string",
-                        },
-                        url: {
-                          type: "string",
-                        },
-                      },
-                      type: "object",
-                    },
-                    type: "array",
-                  },
-                  maintainers: {
-                    items: {
-                      properties: {
-                        email: {
-                          type: "string",
-                        },
-                        name: {
-                          type: "string",
-                        },
-                        url: {
-                          type: "string",
-                        },
-                      },
-                      type: "object",
-                    },
-                    type: "array",
-                  },
-                  notes: {
-                    type: "string",
-                  },
-                  owners: {
-                    items: {
-                      type: "string",
-                    },
-                    type: "array",
-                  },
-                  type: {
-                    type: "string",
-                  },
-                  version: {
-                    type: "string",
-                  },
-                },
-              },
-            },
-          },
-          status: {
-            properties: {
-              observedGeneration: {
-                type: "int64",
-              },
-            },
-            type: "object",
-          },
-        },
-        type: "object",
-      },),
+        withOpenApiV3Schema(openApiV3Schema),
     applicationCrd:: applicationCrd,
 
     local generateComponentTuples(resource) = {
@@ -213,21 +214,18 @@
           resource,
         ],
       },
-      rest:: groupKindAndResource,
-    }.rest,
+      return:: groupKindAndResource,
+    }.return,
 
-    local perComponent(pair) = {
-      local name = pair[0],
-      local componentlib = pair[1],
-      local cparams = std.extVar("__ksonnet/params").components[name],
-      local instance = componentlib.new(_env, cparams + params),
-      rest:: std.map(generateComponentTuples, instance.all),
-    }.rest,
+    local perComponent(name) = {
+      local list = std.extVar("__ksonnet/components")[name],
+      return:: std.map(generateComponentTuples, list.items),
+    }.return,
 
     local byResource(wrapper) = {
       local tuple = wrapper.tuple,
       local resource = tuple[2],
-      rest:: resource {
+      return:: resource {
         metadata+: {
           annotations+: {
             "kubernetes.io/application": params.name,
@@ -238,7 +236,7 @@
           },
         },
       },
-    }.rest,
+    }.return,
 
     local byComponent(wrapper) = {
       local tuple = wrapper.tuple,
@@ -247,10 +245,23 @@
       local component = {
         [name]: groupKind,
       },
-      rest:: component,
-    }.rest,
+      return:: component,
+    }.return,
 
-    local tuples = std.flattenArrays(std.map(perComponent, params.components)),
+    local getComponents = {
+      local isEmpty = 
+        if std.length(params.components) == 0 then
+          true
+        else
+          false,
+      return:: 
+        if isEmpty then 
+          std.objectFields(std.extVar("__ksonnet/components"))
+        else
+          params.components,
+    }.return,
+
+    local tuples = std.flattenArrays(std.map(perComponent, getComponents)),
 
     local application = {
       apiVersion: "app.k8s.io/v1beta1",
@@ -277,15 +288,23 @@
 
     components:: std.map(byResource, tuples),
 
+    local syncApplication = "function(request) {\n" +
+      "  local desired = "+std.manifestJsonEx(self.components, "  ")+",\n" +
+      "  children: desired,\n" +
+      "  status: {\n" +
+      "    foo: 'bar',\n" +
+      "  },\n" +
+    "}\n",
+
     local applicationConfigmap = {
       apiVersion: "v1",
       kind: "ConfigMap",
       metadata: {
         name: "application-operator-hooks",
-        namespace: params.deploymentNamespace,
+        namespace: params.namespace,
       },
       data: {
-        "sync-application": importstr "sync-application.jsonnet",
+        "sync-application.jsonnet": syncApplication,
       },
     },
     applicationConfigmap:: applicationConfigmap,
@@ -295,7 +314,7 @@
       kind: "Deployment",
       metadata: {
         name: "application-operator",
-        namespace: params.deploymentNamespace,
+        namespace: params.namespace,
       },
       spec: {
         selector: {
@@ -343,7 +362,7 @@
       kind: "Service",
       metadata: {
         name: "application-operator",
-        namespace: params.deploymentNamespace,
+        namespace: params.namespace,
       },
       spec: {
         selector: {
@@ -366,8 +385,8 @@
         apiVersion: resource.apiVersion,
         resource: std.asciiLower(resource.kind) + "s",
       },
-      rest:: childResource,
-    }.rest,
+      return:: childResource,
+    }.return,
 
     local makeKey(resource) =
       resource.resource + "." + resource.apiVersion,
@@ -391,7 +410,7 @@
         hooks: {
           sync: {
             webhook: {
-              url: "http://application-operator." + params.deploymentNamespace + "/sync-application",
+              url: "http://application-operator." + params.namespace + "/sync-application",
             },
           },
         },
@@ -406,7 +425,7 @@
       self.applicationDeployment,
       self.applicationService,
       self.applicationController,
-    ] + self.components,
+    ],
 
     all:: all,
 
