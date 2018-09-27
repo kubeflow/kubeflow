@@ -29,7 +29,9 @@ import datetime
 import json
 import logging
 import os
+import re
 import shutil
+import subprocess
 import tempfile
 import time
 import uuid
@@ -188,6 +190,50 @@ def deploy_model(args):
   util.wait_for_deployment(
     api_client, namespace, args.deploy_name, timeout_minutes=10)
   logging.info("Verified TF serving started.")
+
+def test_successful_deployment(deployment_name):
+  """ Tests if deployment_name is successfully running using kubectl """
+  # TODO use the python kubernetes library to get deployment status
+  # This is using kubectl right now
+  retries = 20
+  i = 0
+  while True:
+    if i == retries:
+      raise Exception('Deployment failed: ' + deployment_name)
+    try:
+      output = util.run(["kubectl", "get", "deployment", deployment_name])
+      logging.info("output = \n" + output)
+      if output.count('\n') == 1:
+        output = output.split('\n')[1]
+        output = re.split(' +', output)
+        desired_pods = output[1]
+        current_pods = output[2]
+        uptodate_pods = output[3]
+        available_pods = output[4]
+        logging.info("desired_pods " + desired_pods)
+        logging.info("current_pods " + current_pods)
+        logging.info("uptodate_pods " + uptodate_pods)
+        logging.info("available_pods " + available_pods)
+        if desired_pods == current_pods and \
+           desired_pods == uptodate_pods and \
+           desired_pods == available_pods:
+          return True
+    except subprocess.CalledProcessError as e:
+      logging.error(e)
+    logging.info("Sleeping 5 seconds and retrying..")
+    time.sleep(5)
+    i += 1
+
+
+def test_katib(args):
+  test_successful_deployment('vizier-core')
+  test_successful_deployment('vizier-db')
+  test_successful_deployment('vizier-suggestion-grid')
+  test_successful_deployment('vizier-suggestion-random')
+  test_successful_deployment('studyjob-controller')
+  test_successful_deployment('modeldb-backend')
+  test_successful_deployment('modeldb-db')
+  test_successful_deployment('modeldb-frontend')
 
 def deploy_argo(args):
   api_client = create_k8s_client(args)
@@ -600,6 +646,11 @@ def main():  # pylint: disable=too-many-locals,too-many-statements
     "deploy_argo", help="Deploy argo")
 
   parser_argo_job.set_defaults(func=deploy_argo)
+
+  parser_katib_test = subparsers.add_parser(
+    "test_katib", help="Test Katib")
+
+  parser_katib_test.set_defaults(func=test_katib)
 
   parser_minikube = subparsers.add_parser(
     "deploy_minikube", help="Setup a K8s cluster on minikube.")
