@@ -10,8 +10,8 @@ DOCKERFILE=$1
 IMAGE=$2
 TAG=$3
 CONTEXT_DIR=$(dirname "$DOCKERFILE")
-PROJECT="$GCP_PROJECT}"
-REGISTRY="$GCP_REGISTRY}"
+PROJECT="${GCP_PROJECT}"
+REGISTRY="${GCP_REGISTRY}"
 
 # Wait for the Docker daemon to be available.
 until docker ps
