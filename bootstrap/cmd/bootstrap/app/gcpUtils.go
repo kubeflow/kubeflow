@@ -46,7 +46,7 @@ type ApplyIamRequest struct {
 func (s *ksServer)InsertDeployment(ctx context.Context, req CreateRequest) error {
 	regPath := s.knownRegistries["kubeflow"].RegUri
 	var dmconf DmConf
-	err := LoadConfig(path.Join(regPath, "../scripts/gke/deployment_manager_configs/cluster-kubeflow.yaml"), &dmconf)
+	err := LoadConfig(path.Join(regPath, "../deployment/gke/deployment_manager_configs/cluster-kubeflow.yaml"), &dmconf)
 
 	if err == nil {
 		dmconf.Resources[0].Name = req.Name
@@ -61,7 +61,7 @@ func (s *ksServer)InsertDeployment(ctx context.Context, req CreateRequest) error
 	if err != nil {
 		return err
 	}
-	templateData, err := ioutil.ReadFile(path.Join(regPath, "../scripts/gke/deployment_manager_configs/cluster.jinja"))
+	templateData, err := ioutil.ReadFile(path.Join(regPath, "../deployment/gke/deployment_manager_configs/cluster.jinja"))
 	if err != nil {
 		return err
 	}
@@ -186,7 +186,7 @@ func GetUpdatedPolicy(currentPolicy *cloudresourcemanager.Policy, iamConf *IamCo
 func (s *ksServer)ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) error {
 	// Get the iam change from config.
 	regPath := s.knownRegistries["kubeflow"].RegUri
-	templatePath := path.Join(regPath, "../scripts/gke/deployment_manager_configs/iam_bindings_template.yaml")
+	templatePath := path.Join(regPath, "../deployment/gke/deployment_manager_configs/iam_bindings_template.yaml")
 	var iamConf IamConf
 	err := LoadConfig(templatePath, &iamConf)
 	if err != nil {
