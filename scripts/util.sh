@@ -66,7 +66,7 @@ function createKsApp() {
   ks generate centraldashboard centraldashboard
   ks generate tf-job-operator tf-job-operator
   ks generate argo argo
-
+  ks generate katib katib
   # kubeflow-app which will emit all components unless its params.components specifies a subset
   ks generate kubeflow-app kubeflow-app
 

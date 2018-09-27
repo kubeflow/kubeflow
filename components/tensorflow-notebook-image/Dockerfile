@@ -88,7 +88,7 @@ RUN cd /tmp && \
     conda clean -tipsy
 
 # NOTE: Beyond this point be careful of breaking out
-# or otherwise adding new layers with RUN, chown, etc. 
+# or otherwise adding new layers with RUN, chown, etc.
 # The image size can grow significantly.
 
 # Install base python3 packages
@@ -124,8 +124,10 @@ RUN conda create -n py2 python=2 && \
     # tensorflow-model-analysis is only supported for TF 1.6 and above
     if [[ $INSTALL_TFMA == "yes" ]]; then \
       pip install --no-cache-dir tensorflow-model-analysis && \
+      pip install --no-cache-dir tensorflow-data-validation && \
       # We use --system because if we don't the config is written to the home directory
       # and the changes are lost when we mount a PV over them.
+      jupyter nbextension enable --py --system widgetsnbextension && \
       jupyter nbextension install --py --system --symlink tensorflow_model_analysis && \
       jupyter nbextension enable --py --system tensorflow_model_analysis ; \
     fi \

@@ -5,7 +5,7 @@
 // @param name string Name to give to each of the components
 // @optionalParam namespace string null Namespace
 // @optionalParam serviceAccount string null The service account used to run the job
-// @optionalParam controllerImage string gcr.io/xyhuang-kubeflow/kubebench-controller:v20180913-1 Configurator image
+// @optionalParam controllerImage string gcr.io/kubeflow-images-public/kubebench/kubebench-controller:v0.3.0 Configurator image
 // @optionalParam githubTokenSecret string null Github token secret
 // @optionalParam githubTokenSecretKey string null Key of Github token secret
 // @optionalParam gcpCredentialsSecret string null GCP credentials secret

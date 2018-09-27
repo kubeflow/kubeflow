@@ -249,13 +249,13 @@
     }.return,
 
     local getComponents = {
-      local isEmpty = 
+      local isEmpty =
         if std.length(params.components) == 0 then
           true
         else
           false,
-      return:: 
-        if isEmpty then 
+      return::
+        if isEmpty then
           std.objectFields(std.extVar("__ksonnet/components"))
         else
           params.components,
@@ -289,12 +289,12 @@
     components:: std.map(byResource, tuples),
 
     local syncApplication = "function(request) {\n" +
-      "  local desired = "+std.manifestJsonEx(self.components, "  ")+",\n" +
-      "  children: desired,\n" +
-      "  status: {\n" +
-      "    foo: 'bar',\n" +
-      "  },\n" +
-    "}\n",
+                            "  local desired = " + std.manifestJsonEx(self.components, "  ") + ",\n" +
+                            "  children: desired,\n" +
+                            "  status: {\n" +
+                            "    foo: 'bar',\n" +
+                            "  },\n" +
+                            "}\n",
 
     local applicationConfigmap = {
       apiVersion: "v1",
