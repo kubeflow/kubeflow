@@ -108,6 +108,14 @@
                 },
               },
             },
+            {
+              name: "GCP_PROJECT",
+              value: project,
+            },
+            {
+              name: "GCP_REGISTRY",
+              value: params.registry,
+            },
           ] + prow_env + env_vars,
           resources: {
             requests: {

@@ -10,7 +10,8 @@ DOCKERFILE=$1
 IMAGE=$2
 TAG=$3
 CONTEXT_DIR=$(dirname "$DOCKERFILE")
-
+PROJECT="{GCP_PROJECT}"
+REGISTRY="{GCP_REGISTRY}"
 
 # Wait for the Docker daemon to be available.
 until docker ps
@@ -22,4 +23,4 @@ gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS
 cd $CONTEXT_DIR
 
 echo "Building centraldashboard using gcloud build"
-gcloud builds submit --tag=${IMAGE}:${TAG} .
+gcloud builds submit --tag=${REGISTRY}/${IMAGE}:${TAG} --project=${PROJECT} .
