@@ -14,6 +14,7 @@ COMMAND=$1
 WHAT=$2
 
 ENV_FILE="env.sh"
+SKIP_INIT_PROJECT=false
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 source "${DIR}/util.sh"
@@ -100,20 +101,27 @@ createEnv() {
 if [ "${COMMAND}" == "init" ]; then
 	DEPLOYMENT_NAME=${WHAT}
 
-	while [ "$1" != "" ]; do
+    while [[ “$#” -gt "0" ]]; do
     case $1 in
-    	--platform)                  shift
-                                     PLATFORM=$1
-                                     ;;
-        --project)                   shift
-                                     PROJECT=$1
-                                     ;;
-		--skipInitProject)           shift
-                                     SKIP_INIT_PROJECT=$1
-                                     ;;
-        --email)                     shift
-                                     EMAIL=$1
-                                     ;;
+        -h | --help)
+            usage
+            exit
+            ;;
+        --platform)
+            shift
+            PLATFORM=$1
+            ;;
+        --project)
+            shift
+            PROJECT=$1
+            ;;
+        --skipInitProject)
+            SKIP_INIT_PROJECT=true
+            ;;
+        --email)
+            shift
+            EMAIL=$1
+            ;;
       esac
       shift
 	done
@@ -146,7 +154,7 @@ if [ "${COMMAND}" == "init" ]; then
 	# TODO(jlewi): How can we skip GCP project setup? Add a command line argument
 	# to skip it?
 	if [ "${PLATFORM}" == "gcp" ]; then
-	  if [ "${SKIP_INIT_PROJECT}" != "--skipInitProject" ]; then
+	  if [ ! ${SKIP_INIT_PROJECT} ]; then
 	  	gcpInitProject
 	  fi
 	fi
