@@ -19,23 +19,9 @@ For example if you just wanted to deploy components ambassador and jupyterhub yo
 ks param set kubeflow-app components '["ambassador", "jupyterhub"]'
 ```
 
-With the app directory created by kfctl the user would run
-```bash
-ks show default -c kubeflow-app | tee kubeflow-app.yaml
-kubectl apply --validate=false -f kubeflow-app.yaml
-```
+## Generating the application
 
-which will result in the following output
-```
-configmap/application-operator-hooks created
-service/application-operator created
-customresourcedefinition.apiextensions.k8s.io/applications.app.k8s.io configured
-application.app.k8s.io/kubeflow-app created
-deployment.apps/application-operator created
-compositecontroller.metacontroller.k8s.io/application-controller created
-```
-
-An example of generating a kubeflow-app:
+Below are commands to generate a kubeflow-app that deploys ambassador and jupyterhub:
 
 ```bash
 # add kfctl.sh to your path or alias kfctl.sh to point to its file location 
@@ -48,7 +34,20 @@ $ kfctl.sh generate k8s
 $ pushd ks_app
 $ ks env add default
 $ ks env current --set default
-$ ks param set kubeflow-app components '["ambassador", "centraldashboard", "jupyterhub", "tf-job-operator"]'
+$ ks param set kubeflow-app components '["ambassador", "jupyterhub"]'
 $ ks show default -c kubeflow-app | tee kubeflow-app.yaml
 $ kubectl apply --validate=false -f kubeflow-app.yaml
 ```
+
+The last command will result in the following output:
+
+```bash
+configmap/application-operator-hooks created
+service/application-operator created
+customresourcedefinition.apiextensions.k8s.io/applications.app.k8s.io configured
+application.app.k8s.io/kubeflow-app created
+deployment.apps/application-operator created
+compositecontroller.metacontroller.k8s.io/application-controller created
+```
+
+## Deployment flow and artifacts
