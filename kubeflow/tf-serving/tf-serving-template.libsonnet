@@ -69,6 +69,11 @@
             port: 8000,
             targetPort: 8000,
           },
+          {
+            name: "tf-serving-builtin-http",
+            port: 8500,
+            targetPort: 8500,
+          },
         ],
         selector: {
           app: name,
@@ -94,6 +99,9 @@
       ports: [
         {
           containerPort: 9000,
+        },
+        {
+          containerPort: 8500,
         },
       ],
       env: [],
