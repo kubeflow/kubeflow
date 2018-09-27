@@ -34,7 +34,7 @@
       project: "kubeflow-releasing",
       prow_env: "REPO_OWNER=kubeflow,REPO_NAME=kubeflow,PULL_BASE_SHA=master",
       registry: "gcr.io/kubeflow-images-public",
-      testing_image: "gcr.io/kubeflow-releasing/worker:latest",
+      testing_image: "gcr.io/kubeflow-ci/test-worker:latest",
       versionTag: "latest",
       zone: "us-central1-a",
     },
