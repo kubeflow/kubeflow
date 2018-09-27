@@ -29,26 +29,30 @@ local tfserving = import "kubeflow/tf-serving/tf-serving-template.libsonnet";
 
 local base = tfserving.new(env, params);
 local tfDeployment = base.tfDeployment +
-  deployment.mapContainers(
-    function(c) {
-      result::
-        c + container.withEnvMixin(
-          if util.toBool(params.s3Enable) then (
-            [
-              { name: "AWS_ACCESS_KEY_ID",
-                valueFrom: { secretKeyRef: { name: params.s3SecretName, key: params.s3SecretAccesskeyidKeyName } } },
-              { name: "AWS_SECRET_ACCESS_KEY",
-                valueFrom: { secretKeyRef: { name: params.s3SecretName, key: params.s3SecretSecretaccesskeyKeyName } } },
-              { name: "AWS_REGION", value: params.s3AwsRegion },
-              { name: "S3_REGION", value: params.s3AwsRegion },
-              { name: "S3_USE_HTTPS", value: params.s3UseHttps },
-              { name: "S3_VERIFY_SSL", value: params.s3VerifySsl },
-              { name: "S3_ENDPOINT", value: params.s3Endpoint },
-            ]
-          ) else [],
-        ),
-    }.result,
-  );
+                     deployment.mapContainers(
+                       function(c) {
+                         result::
+                           c + container.withEnvMixin(
+                             if util.toBool(params.s3Enable) then (
+                               [
+                                 {
+                                   name: "AWS_ACCESS_KEY_ID",
+                                   valueFrom: { secretKeyRef: { name: params.s3SecretName, key: params.s3SecretAccesskeyidKeyName } },
+                                 },
+                                 {
+                                   name: "AWS_SECRET_ACCESS_KEY",
+                                   valueFrom: { secretKeyRef: { name: params.s3SecretName, key: params.s3SecretSecretaccesskeyKeyName } },
+                                 },
+                                 { name: "AWS_REGION", value: params.s3AwsRegion },
+                                 { name: "S3_REGION", value: params.s3AwsRegion },
+                                 { name: "S3_USE_HTTPS", value: params.s3UseHttps },
+                                 { name: "S3_VERIFY_SSL", value: params.s3VerifySsl },
+                                 { name: "S3_ENDPOINT", value: params.s3Endpoint },
+                               ]
+                             ) else [],
+                           ),
+                       }.result,
+                     );
 util.list([
   tfDeployment,
   base.tfService,
