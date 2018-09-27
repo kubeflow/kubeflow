@@ -1,4 +1,4 @@
-local params = std.extVar("__ksonnet/params").components.workflows;
+local params = std.extVar("__ksonnet/params").components.tfserving;
 
 local k = import "k.libsonnet";
 local workflows = import "tfserving.libsonnet";
