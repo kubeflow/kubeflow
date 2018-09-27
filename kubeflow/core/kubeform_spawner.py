@@ -18,18 +18,18 @@ class KubeFormSpawner(KubeSpawner):
     <table style="width: 100%;">
     <tr>
         <td style="width: 30%;"><label for='image'>Image</label></td>
-        <td style="width: 70%;"><input value="{0}/{1}/tensorflow-1.8.0-notebook-cpu:v0.2.1" list="image" name="image" placeholder='repo/image:tag' style="width: 100%;">
+        <td style="width: 70%;"><input value="{0}/{1}/tensorflow-1.8.0-notebook-cpu:v0.3.0" list="image" name="image" placeholder='repo/image:tag' style="width: 100%;">
         <datalist id="image">
-          <option value="{0}/{1}/tensorflow-1.4.1-notebook-cpu:v0.2.1">
-          <option value="{0}/{1}/tensorflow-1.4.1-notebook-gpu:v0.2.1">
-          <option value="{0}/{1}/tensorflow-1.5.1-notebook-cpu:v0.2.1">
-          <option value="{0}/{1}/tensorflow-1.5.1-notebook-gpu:v0.2.1">
-          <option value="{0}/{1}/tensorflow-1.6.0-notebook-cpu:v0.2.1">
-          <option value="{0}/{1}/tensorflow-1.6.0-notebook-gpu:v0.2.1">
-          <option value="{0}/{1}/tensorflow-1.7.0-notebook-cpu:v0.2.1">
-          <option value="{0}/{1}/tensorflow-1.7.0-notebook-gpu:v0.2.1">
-          <option value="{0}/{1}/tensorflow-1.8.0-notebook-cpu:v0.2.1">
-          <option value="{0}/{1}/tensorflow-1.8.0-notebook-gpu:v0.2.1">
+          <option value="{0}/{1}/tensorflow-1.4.1-notebook-cpu:v0.3.0">
+          <option value="{0}/{1}/tensorflow-1.4.1-notebook-gpu:v0.3.0">
+          <option value="{0}/{1}/tensorflow-1.5.1-notebook-cpu:v0.3.0">
+          <option value="{0}/{1}/tensorflow-1.5.1-notebook-gpu:v0.3.0">
+          <option value="{0}/{1}/tensorflow-1.6.0-notebook-cpu:v0.3.0">
+          <option value="{0}/{1}/tensorflow-1.6.0-notebook-gpu:v0.3.0">
+          <option value="{0}/{1}/tensorflow-1.7.0-notebook-cpu:v0.3.0">
+          <option value="{0}/{1}/tensorflow-1.7.0-notebook-gpu:v0.3.0">
+          <option value="{0}/{1}/tensorflow-1.8.0-notebook-cpu:v0.3.0">
+          <option value="{0}/{1}/tensorflow-1.8.0-notebook-gpu:v0.3.0">
         </datalist>
         </td>
     </tr>
@@ -78,7 +78,7 @@ class KubeFormSpawner(KubeSpawner):
         if cloud == 'ack':
             image = 'registry.aliyuncs.com/kubeflow-images-public/tensorflow-notebook-cpu:v0.2.1'
         else:
-            image = 'gcr.io/kubeflow-images-public/tensorflow-1.8.0-notebook-cpu:v0.2.1'
+            image = 'gcr.io/kubeflow-images-public/tensorflow-1.8.0-notebook-cpu:v0.3.0'
         if self.user_options.get('image'):
             image = self.user_options['image']
         return image
