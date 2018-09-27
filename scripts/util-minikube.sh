@@ -38,7 +38,7 @@ function is_kubeflow_ready() {
   do
     sleep 30
     amb_up=`kubectl -n ${K8S_NAMESPACE} get pods | grep Running | grep ambassador | wc -l`
-    tf_hub_up=`kubectl -n ${K8S_NAMESPACE} get pods | grep Running | grep tf-hub | wc -l`
+    tf_hub_up=`kubectl -n ${K8S_NAMESPACE} get pods | grep Running | grep jupyterhub | wc -l`
     echo -n "."
     if (( "$amb_up" > 0 && "$tf_hub_up" > 0 ))
     then
