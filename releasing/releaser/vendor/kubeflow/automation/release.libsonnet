@@ -31,7 +31,7 @@
     registry: "gcr.io/kubeflow-images-public",
     versionTag: "latest",
     // The default image to use for the steps in the Argo workflow.
-    testing_image: "gcr.io/kubeflow-releasing/worker:latest",
+    testing_image: "gcr.io/kubeflow-ci/worker:latest",
     project: "kubeflow-releasing",
     cluster: "kubeflow-releasing",
     zone: "us-central1-a",

@@ -61,11 +61,7 @@ workflows:
     component: centraldashboard
     name: dashboard-release
     job_types:
-      # TODO(jlewi): Reenable on presubmit once its passing.
       - presubmit
-      # TODO(jlewi): We should probably create a separate postsubmit job that pushes
-      # to kubeflow-images-public.
-      - postsubmit
     params:
       registry: "gcr.io/kubeflow-ci"
     include_dirs:
