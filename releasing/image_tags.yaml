@@ -303,3 +303,17 @@ images:
   - digest: sha256:7e118120f7b4cba2347bd90d6f2ec52d56882111e2c0ecc7079f89042c0602ea
     tags:
     - v0.3.0
+- name: gcr.io/kubeflow-images-public/chainer-operator
+  versions:
+  - digest: sha256:2cd5d5adbb97373f0ef978f39618cb43d214973aadee0d1b01dae61a9d0c48cc
+    tags:
+    - v0.3.0
+    timestamp:
+      datetime: '2018-09-26 15:19:13+09:00'
+      day: 26
+      hour: 15
+      microsecond: 0
+      minute: 19
+      month: 9
+      second: 13
+      year: 2018
