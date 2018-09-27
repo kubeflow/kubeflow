@@ -220,6 +220,7 @@ def test_successful_deployment(deployment_name):
           return True
     except subprocess.CalledProcessError as e:
       logging.error(e)
+    logging.info("Sleeping 5 seconds and retrying..")
     time.sleep(5)
     i += 1
 
