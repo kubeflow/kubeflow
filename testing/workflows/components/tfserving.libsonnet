@@ -54,7 +54,6 @@
       local cluster = params.cluster;
       local zone = params.zone;
       local name = params.name;
-      local build_image = params.build_image;
 
       local prow_env = $.parseEnv(params.prow_env);
       local bucket = params.bucket;
@@ -79,9 +78,6 @@
       // py scripts to use.
       local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
 
-      // Location where build_image.sh
-      local imageDir = srcRootDir + "/kubeflow/kubeflow/components/k8s-model-server/images";
-
       local cpuImage = params.registry + "/tf-model-server-cpu" + ":" + params.versionTag;
       local gpuImage = params.registry + "/tf-model-server-gpu" + ":" + params.versionTag;
 
@@ -92,10 +88,7 @@
         namespace: stepsNamespace,
         modelPath: "gs://kubeflow-examples-data/mnist",
         deployHttpProxy: true,
-      } + if build_image then
-        {
-          modelServerImage: cpuImage,
-        } else {};
+      };
       local deployGpuParams = {
         name: "mnist-gpu",
         modelName: "mnist",
