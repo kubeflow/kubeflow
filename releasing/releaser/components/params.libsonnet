@@ -20,8 +20,8 @@
       zone: "us-east1-d",
     },
     centraldashboard: {
-      bucket: "kubeflow-ci-artifacts",
-      cluster: "kubeflow-ci",
+      bucket: "kubeflow-ci_temp",
+      cluster: "kubeflow-testing",
       dockerfile: "Dockerfile",
       dockerfileDir: "kubeflow/kubeflow/components/centraldashboard",
       extra_args: "null",
