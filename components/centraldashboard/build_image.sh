@@ -22,5 +22,9 @@ gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS
 
 cd $CONTEXT_DIR
 
+echo "GCP Project: "$PROJECT
+echo "GCP Registry: "$REGISTRY
+
 echo "Building centraldashboard using gcloud build"
 gcloud builds submit --tag=${REGISTRY}/${IMAGE}:${TAG} --project=${PROJECT} .
+echo "Finished building image"
