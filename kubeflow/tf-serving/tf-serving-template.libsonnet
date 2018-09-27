@@ -46,6 +46,14 @@
               "rewrite: /model/" + name + ":predict",
               "method: POST",
               "service: " + name + "." + namespace + ":8000",
+              "---",
+              "apiVersion: ambassador/v0",
+              "kind:  Mapping",
+              "name: tfserving-predict-mapping-" + name,
+              "prefix: tfserving/models/" + name + "/",
+              "rewrite: /v1/models/" + name + ":predict",
+              "method: POST",
+              "service: " + name + "." + namespace + ":8500",
             ]),
         },  //annotations
       },
@@ -65,7 +73,7 @@
         selector: {
           app: name,
         },
-        type: "ClusterIP",
+        type: params.serviceType,
       },
     },  // tfService
     tfService:: tfService,
@@ -76,6 +84,7 @@
       ],
       args: [
         "--port=9000",
+        "--rest_api_port=8500",
         "--model_name=" + params.modelName,
         "--model_base_path=" + params.modelBasePath,
       ],
