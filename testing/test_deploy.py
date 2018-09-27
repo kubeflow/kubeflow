@@ -164,7 +164,7 @@ def deploy_model(args):
 
   component = "modelServer"
   logging.info("Deploying tf-serving.")
-  generate_command = ["ks", "generate", "tf-serving", component]
+  generate_command = ["ks", "generate", "tf-serving-gcp", component]
 
   util.run(generate_command, cwd=app_dir)
 
@@ -186,7 +186,7 @@ def deploy_model(args):
   if not cluster_ip:
     raise ValueError("inception service wasn't assigned a cluster ip.")
   util.wait_for_deployment(
-    api_client, namespace, args.deploy_name + "-v1", timeout_minutes=10)
+    api_client, namespace, args.deploy_name, timeout_minutes=10)
   logging.info("Verified TF serving started.")
 
 def deploy_argo(args):
@@ -204,7 +204,7 @@ def deploy_argo(args):
   # Create a hello world workflow
   util.run(["kubectl", "create", "-n", "default", "-f", "https://raw.githubusercontent.com/argoproj/argo/master/examples/hello-world.yaml"], cwd=app_dir)
 
-  # Wait for 100 seconds to check if the hello-world pod was created
+  # Wait for 200 seconds to check if the hello-world pod was created
   retries = 20
   i = 0
   while True:
@@ -213,7 +213,7 @@ def deploy_argo(args):
     output = util.run(["kubectl", "get", "pods", "-n", "default", "-lworkflows.argoproj.io/workflow"])
     if "hello-world-" in output:
       return True
-    time.sleep(5)
+    time.sleep(10)
     i += 1
 
 def deploy_pytorchjob(args):
