@@ -31,7 +31,7 @@
     registry: "gcr.io/kubeflow-images-public",
     versionTag: "latest",
     // The default image to use for the steps in the Argo workflow.
-    testing_image: "gcr.io/kubeflow-releasing/worker:latest",
+    testing_image: "gcr.io/kubeflow-ci/worker:latest",
     project: "kubeflow-releasing",
     cluster: "kubeflow-releasing",
     zone: "us-central1-a",
@@ -107,6 +107,14 @@
                   key: "github_token",
                 },
               },
+            },
+            {
+              name: "GCP_PROJECT",
+              value: project,
+            },
+            {
+              name: "GCP_REGISTRY",
+              value: params.registry,
             },
           ] + prow_env + env_vars,
           resources: {
@@ -230,12 +238,6 @@
             {
               name: "exit-handler",
               steps: [
-                [
-                  {
-                    name: "teardown",
-                    template: "teardown",
-                  },
-                ],
                 [{
                   name: "copy-artifacts",
                   template: "copy-artifacts",
@@ -278,19 +280,6 @@
                 "--bucket=" + bucket,
               ]
             ),  // copy-artifacts
-            buildTemplate(
-              "teardown",
-              [
-                "python",
-                "-m",
-                "testing.test_deploy",
-                "--project=" + project,
-                "--namespace=" + stepsNamespace,
-                "--test_dir=" + testDir,
-                "--artifacts_dir=" + artifactsDir,
-                "teardown",
-              ]
-            ),  // teardown
           ],  // templates
         },
       },  // release
