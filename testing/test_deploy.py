@@ -166,7 +166,7 @@ def deploy_model(args):
 
   component = "modelServer"
   logging.info("Deploying tf-serving.")
-  generate_command = ["ks", "generate", "tf-serving", component]
+  generate_command = ["ks", "generate", "tf-serving-gcp", component]
 
   util.run(generate_command, cwd=app_dir)
 
@@ -188,7 +188,7 @@ def deploy_model(args):
   if not cluster_ip:
     raise ValueError("inception service wasn't assigned a cluster ip.")
   util.wait_for_deployment(
-    api_client, namespace, args.deploy_name + "-v1", timeout_minutes=10)
+    api_client, namespace, args.deploy_name, timeout_minutes=10)
   logging.info("Verified TF serving started.")
 
 def test_successful_deployment(deployment_name):
