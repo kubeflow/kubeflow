@@ -22,10 +22,10 @@ limitations under the License.
    There is type corresponding to each API endpoint.
 #}
 
-{% set VM_OAUTH_SCOPES = ['https://www.googleapis.com/auth/logging.write', 
+{% set VM_OAUTH_SCOPES = ['https://www.googleapis.com/auth/logging.write',
                           'https://www.googleapis.com/auth/monitoring',
                           'https://www.googleapis.com/auth/devstorage.read_only'] %}
-                          
+
 {# Names for service accounts.
    -admin is to be used for admin tasks
    -user is to be used by users for actual jobs.
@@ -65,7 +65,7 @@ resources:
     zone: {{ properties['zone'] }}
     cluster:
       name: {{ CLUSTER_NAME }}
-      initialClusterVersion: 1.10.7-gke.2
+      initialClusterVersion: {{ properties['cluster-version'] }}
       # We need 1.10.2 to support Stackdrivier GKE.
       # loggingService: none
       # monitoringService: none
