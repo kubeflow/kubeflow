@@ -238,12 +238,6 @@
             {
               name: "exit-handler",
               steps: [
-                [
-                  {
-                    name: "teardown",
-                    template: "teardown",
-                  },
-                ],
                 [{
                   name: "copy-artifacts",
                   template: "copy-artifacts",
@@ -286,19 +280,6 @@
                 "--bucket=" + bucket,
               ]
             ),  // copy-artifacts
-            buildTemplate(
-              "teardown",
-              [
-                "python",
-                "-m",
-                "testing.test_deploy",
-                "--project=" + project,
-                "--namespace=" + stepsNamespace,
-                "--test_dir=" + testDir,
-                "--artifacts_dir=" + artifactsDir,
-                "teardown",
-              ]
-            ),  // teardown
           ],  // templates
         },
       },  // release
