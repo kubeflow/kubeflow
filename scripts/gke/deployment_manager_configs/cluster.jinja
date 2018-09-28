@@ -65,7 +65,7 @@ resources:
     zone: {{ properties['zone'] }}
     cluster:
       name: {{ CLUSTER_NAME }}
-      initialClusterVersion: {{ CLUSTER_VERSION }}
+      initialClusterVersion: {{ properties['cluster-version'] }}
       # We need 1.10.2 to support Stackdrivier GKE.
       # loggingService: none
       # monitoringService: none
