@@ -4,6 +4,7 @@
 // @shortDescription A TensorFlow serving deployment
 // @param name string Name to give to each of the components
 // @optionalParam namespace string kubeflow The namespace
+// @optionalParam serviceType string ClusterIP The k8s service type for tf serving.
 // @optionalParam numGpus string 0 Number of gpus to use
 // @optionalParam deployHttpProxy string false Whether to deploy http proxy
 // @optionalParam modelBasePath string gs://kubeflow-examples-data/mnist The model path
