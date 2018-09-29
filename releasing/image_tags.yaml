@@ -440,7 +440,7 @@ images:
     - v0.3.0
 - name: gcr.io/kubeflow-images-public/kubebench/kubebench-controller
   versions:
-  - digest: sha256:7e118120f7b4cba2347bd90d6f2ec52d56882111e2c0ecc7079f89042c0602ea
+  - digest: sha256:275d44380f23019f77222f23a3816786759b752e5db9ccb0da24f5471b0eff96
     tags:
     - v0.3.0
 - name: gcr.io/kubeflow-images-public/chainer-operator
