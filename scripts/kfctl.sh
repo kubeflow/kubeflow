@@ -15,6 +15,7 @@ WHAT=$2
 
 ENV_FILE="env.sh"
 SKIP_INIT_PROJECT=false
+MIN_CLUSTER_VERSION="1.10.7-gke.2"
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 source "${DIR}/util.sh"
@@ -91,6 +92,19 @@ createEnv() {
       fi
 
       echo PROJECT_NUMBER=${PROJECT_NUMBER} >> ${ENV_FILE}
+
+      # Settig cluster version, while ensuring we still stick with kubernetes 'v1.10.x'
+      CLUSTER_VERSION=$(\
+          gcloud --project=${PROJECT} container get-server-config --zone=${ZONE} | \
+          awk '/validNodeVersions/{f=0} f; /validMasterVersions/{f=1}' | \
+          awk '{print $2}' | \
+          grep '^1.10.[0-9]*[-d]gke.[0-9]*$' | \
+          head -1)
+      if [[ ${CLUSTER_VERSION} == "" ]]; then
+          echo "Setting cluster version to ${MIN_CLUSTER_VERSION}"
+          CLUSTER_VERSION=${MIN_CLUSTER_VERSION}
+      fi
+      echo CLUSTER_VERSION=${CLUSTER_VERSION} >> ${ENV_FILE}
       ;;
     *)
       echo KUBEFLOW_CLOUD=null >> ${ENV_FILE}
