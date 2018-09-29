@@ -80,7 +80,6 @@
     srcDir: self.srcRootDir + "/kubeflow/kubeflow",
     image: "gcr.io/kubeflow-ci/test-worker:latest",
 
-
     // value of KUBECONFIG environment variable. This should be  a full path.
     kubeConfig: self.testDir + "/.kube/kubeconfig",
 
@@ -106,7 +105,6 @@
       command:: "",
       env_vars:: [],
       side_cars: [],
-
 
       activeDeadlineSeconds: 1800,  // Set 30 minute timeout for each template
 
@@ -243,6 +241,25 @@
         dependencies: ["wait-for-kubeflow"],
       },  // test-argo-deploy
       {
+
+        template: tests.buildTemplate {
+          name: "test-katib-deploy",
+          command: [
+            "python",
+            "-m",
+            "testing.test_deploy",
+            "--project=kubeflow-ci",
+            "--github_token=$(GITHUB_TOKEN)",
+            "--namespace=" + tests.stepsNamespace,
+            "--test_dir=" + tests.testDir,
+            "--artifacts_dir=" + tests.artifactsDir,
+            "--deploy_name=test-katib",
+            "test_katib",
+          ],
+        },
+        dependencies: ["wait-for-kubeflow"],
+      },  // test-katib
+      {
         template: tests.buildTemplate {
           name: "pytorchjob-deploy",
           command: [
@@ -298,7 +315,6 @@
     // doesn't include the argoDagTemplate
     argoTaskTemplates: std.map(function(i) i.template.argoTemplate
                                , self.tasks),
-
 
     argoTemplates: [self.argoDagTemplate] + self.argoTaskTemplates,
   },  // kfTests

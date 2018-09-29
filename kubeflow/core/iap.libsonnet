@@ -564,7 +564,7 @@
               lb_type: "round_robin",
               hosts: [
                 {
-                  url: "tcp://tf-hub-lb." + params.namespace + ":80",
+                  url: "tcp://jupyterhub-lb." + params.namespace + ":80",
                 },
 
               ],

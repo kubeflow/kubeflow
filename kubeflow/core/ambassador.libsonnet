@@ -40,7 +40,7 @@
         labels: {
           service: "ambassador",
         },
-        name: "ambassador-exporter",
+        name: "statsd-sink",
         namespace: params.namespace,
         annotations: {
           "prometheus.io/scrape": "true",
@@ -50,7 +50,7 @@
       spec: {
         ports: [
           {
-            name: "ambassador-exporter",
+            name: "statsd-sink",
             port: 9102,
             targetPort: 9102,
             protocol: "TCP",
@@ -244,8 +244,8 @@
                 name: "statsd",
               },
               {
-                image: params.statsdExporterImage,
-                name: "statsd-exporter",
+                image: params.statsdSinkImage,
+                name: "statsd-sink",
               },
             ],
             restartPolicy: "Always",

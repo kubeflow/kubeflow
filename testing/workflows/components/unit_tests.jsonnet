@@ -126,7 +126,7 @@ local dagTemplates = [
       "--project=" + project,
       "--artifacts_dir=" + artifactsDir,
       "--src_dir=" + srcDir,
-      "--exclude_dirs=" + srcDir + "/bootstrap/vendor/",
+      "--exclude_dirs=" + srcDir + "/bootstrap/vendor/," + srcDir + "/releasing/releaser/lib," + srcDir + "/releasing/releaser/vendor",
     ]),  // test-jsonnet-formatting
 
     dependencies: ["checkout"],
