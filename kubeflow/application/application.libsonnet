@@ -168,7 +168,8 @@
         status: {
           properties: {
             observedGeneration: {
-              type: "int64",
+              type: "string",
+              format: "int64",
             },
           },
           type: "object",
@@ -274,27 +275,41 @@
         namespace: params.namespace,
       },
       spec: {
-        type: "kubeflow",
         selector: {
           matchLabels: {
-            "app.kubernetes.io/name": "kubeflow-02",
+            "app.kubernetes.io/name": params.type,
           },
         },
-        components+: std.map(byComponent, tuples),
-        version: "0.3",
+        componentKinds+: std.map(byComponent, tuples),
+        descriptor: {
+          type: params.type,
+          version: params.version,
+          description: "",
+          icons: [],
+          maintainers: [],
+          owners: [],
+          keywords: [],
+          links: [],
+          notes: "",
+        },
+        assemblyPhase: "Pending",
+        info: [],
       },
     },
     application:: application,
 
     components:: std.map(byResource, tuples),
 
-    local syncApplication = "function(request) {\n" +
-                            "  local desired = " + std.manifestJsonEx(self.components, "  ") + ",\n" +
-                            "  children: desired,\n" +
-                            "  status: {\n" +
-                            "    foo: 'bar',\n" +
-                            "  },\n" +
-                            "}\n",
+    local syncApplication =
+      "function(request) {\n" +
+      "  local desired = " + std.manifestJsonEx(self.components, "  ") + ",\n" +
+      "  children: desired,\n" +
+      "  status: {\n" +
+      "    observedGeneration: '1',\n" +
+      "    installed: [],\n" +
+      "    ready: true,\n" +
+      "  },\n" +
+      "}\n",
 
     local applicationConfigmap = {
       apiVersion: "v1",
