@@ -2,6 +2,8 @@
 import argparse
 import os
 import shutil
+import tempfile
+
 import yaml
 
 FILE_PATH = os.path.dirname(os.path.abspath(__file__))
@@ -51,6 +53,10 @@ def main(unparsed_args=None):
   if os.path.exists(tmp_dir):
     shutil.rmtree(tmp_dir)
   os.mkdir(tmp_dir)
+
+  os_tmp_dir = tempfile.mkdtemp()
+  print("Using tmp dir: " + os_tmp_dir)
+
   with open(os.path.join(FILE_PATH, args.config), 'r') as conf_input:
     conf = yaml.load(conf_input)
 
@@ -61,17 +67,20 @@ def main(unparsed_args=None):
 
   for reg in conf['registries']:
     if test_reg_name == reg["name"]:
-      src_registry = os.path.join(test_reg_path, reg["path"])
-      reg_path = os.path.join(tmp_dir, *os.path.join(reg["name"], reg["path"]).split('/')[:-1])
-      if not os.path.exists(reg_path):
-        os.makedirs(reg_path)
-      print("cp -r %s %s" % (src_registry, reg_path))
-      os.system("cp -r %s %s" % (src_registry, reg_path))
+      # src_registry = os.path.join(test_reg_path, reg["path"])
+      # reg_path = os.path.join(os_tmp_dir, *os.path.join(reg["name"], reg["path"]).split('/')[:-1])
+      # if not os.path.exists(reg_path):
+      #   os.makedirs(reg_path)
+      excludes = [".git*", ".idea", "vendor", "node_modules"]
+      sync_cmd = "rsync -a %s %s %s" % (test_reg_path, os_tmp_dir, " ".join(["--exclude=" + term for term in excludes]))
+      print(sync_cmd)
+      os.system(sync_cmd)
     else:
-      reg_path = os.path.join(tmp_dir, reg["name"])
-      print("Adding registry %s from %s %s" % (reg["name"], reg["repo"], reg["branch"]))
-      os.system("git clone --depth 1 --branch %s %s %s" % (reg["branch"], reg["repo"], reg_path))
+      reg_path = os.path.join(os_tmp_dir, reg["name"])
+      print("Adding registry %s from %s %s" % (reg["name"], reg["repo"], reg["version"]))
+      os.system("git clone --depth 1 --branch %s %s %s" % (reg["version"], reg["repo"], reg_path))
 
+  os.system("cp -r %s/* %s" % (os_tmp_dir, tmp_dir))
   bargs=""
   for buildarg in args.build_args.split(","):
     bargs+="--build-arg "+buildarg+" "
