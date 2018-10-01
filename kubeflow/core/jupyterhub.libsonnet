@@ -1,5 +1,4 @@
-// jerry keen
-{ 
+{
   all(params):: [
     $.parts(params.namespace).jupyterHubConfigMap(params.jupyterHubAuthenticator, params.disks),
     $.parts(params.namespace).jupyterHubService,
@@ -8,6 +7,7 @@
     $.parts(params.namespace).jupyterHubRole,
     $.parts(params.namespace).jupyterHubServiceAccount,
     $.parts(params.namespace).jupyterHubRoleBinding,
+    $.parts(params.namespace).jupyterHub(params.jupyterHubLDAP_ServerAddress),
   ],
 
   parts(namespace):: {
@@ -27,6 +27,34 @@
         //## Authenticator Options
         local kubeConfigDummyAuthenticator = "c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'",
 
+	//## LDAP Authenticator
+
+//        local kubeConfigLDAPAuthenticator = "c.JupyterHub.authenticator_class = 'ldapauthenticator.LDAPAuthenticator'",
+//	local kubeConfigLDAPServerAddress = std.join("\n",
+//			[
+//				"c.JupyterHub.authenticator_class = 'ldapauthenticator.LDAPAuthenticator'",
+//				"c.LDAPAuthenticator.server_address = "+jupyterHubLDAP_ServerAddress,
+//				"c.LDAPAuthenticator.user_search_base = "+$.parts(namespace).jupyterHubLDAP_UserSearchBase,
+//				"c.LDAPAuthenticator.bind_dn_template = "+$.parts(namespace).jupyterhubLDAP_binddntemplate,
+//			]),
+//
+
+
+       local kubeConfigLDAPAuthenticator = "c.JupyterHub.authenticator_class = 'ldapauthenticator.LDAPAuthenticator'",
+        local kubeConfigLDAPServerAddress = std.join("\n",
+                        [
+                                "c.JupyterHub.authenticator_class = 'ldapauthenticator.LDAPAuthenticator'",
+                                "c.LDAPAuthenticator.server_address = 'cassini-ldap.cassini.lan'",
+                                "c.LDAPAuthenticator.user_search_base = 'dc=cassini,dc=lan'",
+                                "c.LDAPAuthenticator.bind_dn_template = ['cn={username},ou=people,dc=cassini,dc=lan','cn={username},dc=cassini,dc=lan','uid={username},ou=people,dc=cassini,dc=lan']",
+                        ]),                           
+
+
+
+
+
+
+      
         // This configuration allows us to use the id provided by IAP.
         local kubeConfigIAPAuthenticator = @"c.JupyterHub.authenticator_class ='jhub_remote_user_authenticator.remote_user_auth.RemoteUserAuthenticator'
 c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
@@ -34,9 +62,12 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
         options:: std.join("\n", std.prune([
           "######## Authenticator ######",
           if authenticator == "iap" then
-            kubeConfigIAPAuthenticator else
-            kubeConfigDummyAuthenticator,
-        ])),
+            kubeConfigIAPAuthenticator 
+	  else if authenticator == "ldap" then
+            kubeConfigLDAPAuthenticator
+          else
+            kubeConfigDummyAuthenticator
+        ,kubeConfigLDAPServerAddress])),
       }.options,  // authenticatorOptions
 
       volumeOptions:: {
@@ -156,11 +187,13 @@ c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'",
           spec: {
             containers: [
               {
-                command: [
-                  "jupyterhub",
-                  "-f",
-                  "/etc/config/jupyterhub_config.py",
-                ],
+//                command: [
+//                  "jupyterhub",
+//                 "-f",
+//                  "/etc/config/jupyterhub_config.py",
+//                ],
+                command: ["/bin/bash"],
+                args: ["-c", "pip install jupyterhub-ldapauthenticator; jupyterhub -f /etc/config/jupyterhub_config.py"],
                 image: image,
                 name: "tf-hub",
                 volumeMounts: [
