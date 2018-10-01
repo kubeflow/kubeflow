@@ -19,9 +19,9 @@
 set -x
 
 if ks component list | awk '{print $1}' | grep -q "^argo$" ; then
-  ks param set argo workflowControllerImage gcr.io/kubeflow-images-public/argoproj/workflow-controller:v2.1.1
-  ks param set argo uiImage gcr.io/kubeflow-images-public/argoproj/argoui:v2.1.1
-  ks param set argo executorImage gcr.io/kubeflow-images-public/argoproj/argoexec:v2.1.1
+  ks param set argo workflowControllerImage gcr.io/kubeflow-images-public/argoproj/workflow-controller:v2.2.0
+  ks param set argo uiImage gcr.io/kubeflow-images-public/argoproj/argoui:v2.2.0
+  ks param set argo executorImage gcr.io/kubeflow-images-public/argoproj/argoexec:v2.2.0
 fi
 
 if ks component list | awk '{print $1}' | grep -q "^cert-manager$" ; then
