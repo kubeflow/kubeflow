@@ -255,9 +255,16 @@
           true
         else
           false,
+      local exclude(name) = {
+        return::
+          if name == params.name then
+            false
+          else
+            true,
+      }.return,
       return::
         if isEmpty then
-          std.objectFields(std.extVar("__ksonnet/components"))
+          std.filter(exclude, std.objectFields(std.extVar("__ksonnet/components")))
         else
           params.components,
     }.return,
@@ -303,12 +310,12 @@
     local syncApplication =
       "function(request) {\n" +
       "  local desired = " + std.manifestJsonEx(components, "  ") + ",\n" +
-      "  children: desired,\n" +
-      "  status: {\n" +
-      "    observedGeneration: '1',\n" +
-      "    installed: [],\n" +
-      "    ready: true,\n" +
-      "  },\n" +
+      "children: desired,\n" +
+      "status: {\n" +
+      "  observedGeneration: '1',\n" +
+      "  installed: [],\n" +
+      "  ready: true,\n" +
+      "},\n" +
       "}\n",
 
     local applicationConfigmap = {
