@@ -425,6 +425,34 @@ images:
       month: 6
       second: 20
       year: 2018
+- name: gcr.io/kubeflow-images-public/tensorflow-1.9.0-notebook-cpu
+  versions:
+  - digest: sha256:94c6d15c49dfa8999f850ab08a12be72d9333a766b2551ced53d45af5eb9f8d9
+    tags:
+    - latest
+    - v20180301-pr317
+    - v0.3.0
+- name: gcr.io/kubeflow-images-public/tensorflow-1.9.0-notebook-gpu
+  versions:
+  - digest: sha256:15e1f791e814d35f9434cd73eb0d13497faedb0930ec341db71b56e8dbc1f20a
+    tags:
+    - latest
+    - v20180301-pr317
+    - v0.3.0
+- name: gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu
+  versions:
+  - digest: sha256:bd3d2ae9a4e07b2b58910e99a26676ab31f4ba5ae2a633fbde5ce8dee8b63024
+    tags:
+    - latest
+    - v20180301-pr317
+    - v0.3.0
+- name: gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-gpu
+  versions:
+  - digest: sha256:24a32e6a533a6e7d46a649cbff247ebd86dee078d37489035d9bc440a9e2487f
+    tags:
+    - latest
+    - v20180301-pr317
+    - v0.3.0
 - name: gcr.io/kubeflow-images-public/tf_operator
   versions:
   - digest: sha256:4f20e349f79059a009ef75aea158ca0c555fcc4a22e7c80a7cb9bff54fbab6c1
