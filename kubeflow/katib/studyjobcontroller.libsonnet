@@ -97,7 +97,7 @@
           namespace: namespace,
         },
         data: {
-          "defaultMetricsCollectorTemplate.yaml": 'apiVersion: batch/v1beta1\nkind: CronJob\nmetadata:\n  name: {{.WorkerId}}\n  spec:\n  schedule: "*/1 * * * *"\n  successfulJobsHistoryLimit: 1\n  failedJobsHistoryLimit: 1\n  jobTemplate:\n    spec:\n      template:\n        spec:\n          serviceAccountName: metrics-collector\n          containers:\n          - name: {{.WorkerId}}\n            image: katib/metrics-collector\n            args:\n            - "./metricscollector"\n            - "-s"\n            - "{{.StudyId}}"\n            - "-t"\n            - "{{.TrialId}}"\n            - "-w"\n            - "{{.WorkerId}}"\n            - "-n"\n            - "{{.NameSpace}}"\n          restartPolicy: Never',
+          "defaultMetricsCollectorTemplate.yaml": 'apiVersion: batch/v1beta1\nkind: CronJob\nmetadata:\n  name: {{.WorkerId}}\n  namespace: {{.NameSpace}}  spec:\n  schedule: "*/1 * * * *"\n  successfulJobsHistoryLimit: 1\n  failedJobsHistoryLimit: 1\n  jobTemplate:\n    spec:\n      template:\n        spec:\n          serviceAccountName: metrics-collector\n          containers:\n          - name: {{.WorkerId}}\n            image: katib/metrics-collector\n            args:\n            - "./metricscollector"\n            - "-s"\n            - "{{.StudyId}}"\n            - "-t"\n            - "{{.TrialId}}"\n            - "-w"\n            - "{{.WorkerId}}"\n            - "-n"\n            - "{{.NameSpace}}"\n          restartPolicy: Never',
         },
       },
     ],
