@@ -67,8 +67,6 @@ function createKsApp() {
   ks generate tf-job-operator tf-job-operator
   ks generate argo argo
   ks generate katib katib
-  # kubeflow-app which will emit all components unless its params.components specifies a subset
-  ks generate kubeflow-app kubeflow-app
 
   # Enable collection of anonymous usage metrics
   # To disable metrics collection. Remove the spartakus component.
@@ -92,6 +90,9 @@ function createKsApp() {
   echo "For more info: https://www.kubeflow.org/docs/guides/usage-reporting/"
   echo "****************************************************************"
   echo ""
+
+  # kubeflow-app which will emit all components unless its params.components specifies a subset
+  ks generate kubeflow-app kubeflow-app
 }
 
 function removeKsEnv() {

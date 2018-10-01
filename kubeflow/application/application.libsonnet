@@ -298,11 +298,11 @@
     },
     application:: application,
 
-    components:: std.map(byResource, tuples),
+    local components = std.map(byResource, tuples),
 
     local syncApplication =
       "function(request) {\n" +
-      "  local desired = " + std.manifestJsonEx(self.components, "  ") + ",\n" +
+      "  local desired = " + std.manifestJsonEx(components, "  ") + ",\n" +
       "  children: desired,\n" +
       "  status: {\n" +
       "    observedGeneration: '1',\n" +
