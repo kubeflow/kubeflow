@@ -1,4 +1,5 @@
-{
+// jerry keen
+{ 
   all(params):: [
     $.parts(params.namespace).jupyterHubConfigMap(params.jupyterHubAuthenticator, params.disks),
     $.parts(params.namespace).jupyterHubService,
