@@ -459,6 +459,6 @@ images:
       year: 2018
 - name: gcr.io/kubeflow-images-public/centraldashboard
   versions:
-  - digest: sha256:759d98f209ebbc57fdc73bea8df6c43209808b86c7da7845cd201f45eee6eedb
+  - digest: sha256:9a410ef29484aa6d8b2acacbed8cc708bbf928436b67f1ab326eaf096424139a
     tags:
     - v0.3.0
