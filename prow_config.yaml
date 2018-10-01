@@ -42,9 +42,9 @@ workflows:
       - testing/workflows/components/workflows.jsonnet
       - testing/workflows/components/workflows.libsonnet
       - testing/install_minikube.sh
-  - app_dir: kubeflow/kubeflow/components/k8s-model-server/images/releaser
-    component: workflows
-    name: tf-serving-image
+  - app_dir: kubeflow/kubeflow/testing/workflows
+    component: tfserving
+    name: tf-serving
     job_types:
       - presubmit
       - postsubmit
