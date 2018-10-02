@@ -246,6 +246,11 @@
                 ],
                 image: params.vizierDbImage,
                 name: "vizier-db",
+                // If we mount block device with ext4 fs as pvc, default data dir has lost+found dir in, and mysql fails to init
+                args: [
+                  "--datadir",
+                  "/var/lib/mysql/datadir",
+                ],
                 volumeMounts: [
                   {
                     name: "vizier-db",
