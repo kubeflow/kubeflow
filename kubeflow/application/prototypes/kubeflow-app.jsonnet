@@ -6,6 +6,7 @@
 // @optionalParam type string kubeflow Type of application.
 // @optionalParam version string 0.3 Version of kubeflow
 // @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
+// @optionalParam metacontroller boolean true Create the metacontroller manifests
 // @optionalParam components array [] names of components or empty for all components
 
 local application = import "kubeflow/application/application.libsonnet";
