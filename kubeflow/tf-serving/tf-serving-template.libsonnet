@@ -118,6 +118,14 @@
         },
       },
       volumeMounts: [],
+      // TCP liveness probe on gRPC port
+      livenessProbe: {
+        tcpSocket: {
+          port: 9000,
+        },
+        initialDelaySeconds: 15,
+        periodSeconds: 20,
+      },
     },  // modelServerContainer
 
     local httpProxyContainer = {
