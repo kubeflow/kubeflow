@@ -9,51 +9,58 @@
         if std.objectHas(_params, "namespace") &&
            _params.namespace != "null" then
           _params.namespace else _env.namespace,
+      metacontroller: util.toBool(_params.metacontroller),
       labels: {
         app: _params.name,
       },
     },
 
-    local compositeController = {
-      apiVersion: 'apiextensions.k8s.io/v1beta1',
-      kind: 'CustomResourceDefinition',
+    local compositeControllerCRD = {
+      apiVersion: "apiextensions.k8s.io/v1beta1",
+      kind: "CustomResourceDefinition",
       metadata: {
-        name: 'compositecontrollers.metacontroller.k8s.io',
+        name: "compositecontrollers.metacontroller.k8s.io",
+        annotations: {
+          group: "metacontroller",
+        },
       },
       spec: {
-        group: 'metacontroller.k8s.io',
-        version: 'v1alpha1',
-        scope: 'Cluster',
+        group: "metacontroller.k8s.io",
+        version: "v1alpha1",
+        scope: "Cluster",
         names: {
-          plural: 'compositecontrollers',
-          singular: 'compositecontroller',
-          kind: 'CompositeController',
+          plural: "compositecontrollers",
+          singular: "compositecontroller",
+          kind: "CompositeController",
           shortNames: [
-            'cc',
-            'cctl',
+            "cc",
+            "cctl",
           ],
         },
       },
     },
     compositeController:: compositeController,
 
-    local decoratorController = {
-      apiVersion: 'apiextensions.k8s.io/v1beta1',
-      kind: 'CustomResourceDefinition',
+    local decoratorControllerCRD = {
+      apiVersion: "apiextensions.k8s.io/v1beta1",
+      kind: "CustomResourceDefinition",
       metadata: {
-        name: 'decoratorcontrollers.metacontroller.k8s.io',
+        name: "decoratorcontrollers.metacontroller.k8s.io",
+        annotations: {
+          group: "metacontroller",
+        },
       },
       spec: {
-        group: 'metacontroller.k8s.io',
-        version: 'v1alpha1',
-        scope: 'Cluster',
+        group: "metacontroller.k8s.io",
+        version: "v1alpha1",
+        scope: "Cluster",
         names: {
-          plural: 'decoratorcontrollers',
-          singular: 'decoratorcontroller',
-          kind: 'DecoratorController',
+          plural: "decoratorcontrollers",
+          singular: "decoratorcontroller",
+          kind: "DecoratorController",
           shortNames: [
-            'dec',
-            'decorators',
+            "dec",
+            "decorators",
           ],
         },
       },
@@ -61,49 +68,58 @@
     decoratorController:: decoratorController,
 
     local controllerRevisions = {
-      apiVersion: 'apiextensions.k8s.io/v1beta1',
-      kind: 'CustomResourceDefinition',
+      apiVersion: "apiextensions.k8s.io/v1beta1",
+      kind: "CustomResourceDefinition",
       metadata: {
-        name: 'controllerrevisions.metacontroller.k8s.io',
+        name: "controllerrevisions.metacontroller.k8s.io",
+        annotations: {
+          group: "metacontroller",
+        },
       },
       spec: {
-        group: 'metacontroller.k8s.io',
-        version: 'v1alpha1',
-        scope: 'Cluster',
+        group: "metacontroller.k8s.io",
+        version: "v1alpha1",
+        scope: "Cluster",
         names: {
-          plural: 'controllerrevisions',
-          singular: 'controllerrevision',
-          kind: 'ControllerRevision',
+          plural: "controllerrevisions",
+          singular: "controllerrevision",
+          kind: "ControllerRevision",
         },
       },
     },
     controllerRevisions:: controllerRevisions,
 
     local metaControllerServiceAccount = {
-      apiVersion: 'v1',
-      kind: 'ServiceAccount',
+      apiVersion: "v1",
+      kind: "ServiceAccount",
       metadata: {
-        name: 'meta-controller-service',
+        name: "meta-controller-service",
         namespace: params.namespace,
+        annotations: {
+          group: "metacontroller",
+        },
       },
     },
     metaControllerServiceAccount:: metaControllerServiceAccount,
 
     local metaControllerClusterRoleBinding = {
-      apiVersion: 'rbac.authorization.k8s.io/v1',
-      kind: 'ClusterRoleBinding',
+      apiVersion: "rbac.authorization.k8s.io/v1",
+      kind: "ClusterRoleBinding",
       metadata: {
-        name: 'meta-controller-cluster-role-binding',
+        name: "meta-controller-cluster-role-binding",
+        annotations: {
+          group: "metacontroller",
+        },
       },
       roleRef: {
-        kind: 'ClusterRole',
-        name: 'cluster-admin',
-        apiGroup: 'rbac.authorization.k8s.io',
+        kind: "ClusterRole",
+        name: "cluster-admin",
+        apiGroup: "rbac.authorization.k8s.io",
       },
       subjects: [
         {
-          kind: 'ServiceAccount',
-          name: 'meta-controller-service',
+          kind: "ServiceAccount",
+          name: "meta-controller-service",
           namespace: params.namespace,
         },
       ],
@@ -111,55 +127,58 @@
     metaControllerClusterRoleBinding:: metaControllerClusterRoleBinding,
 
     local metaControllerStatefulSet = {
-      apiVersion: 'apps/v1beta2',
-      kind: 'StatefulSet',
+      apiVersion: "apps/v1beta2",
+      kind: "StatefulSet",
       metadata: {
-        name: 'metacontroller',
+        name: "metacontroller",
         namespace: params.namespace,
         labels: {
-          app: 'metacontroller',
+          app: "metacontroller",
+        },
+        annotations: {
+          group: "metacontroller",
         },
       },
       spec: {
         replicas: 1,
         selector: {
           matchLabels: {
-            app: 'metacontroller',
+            app: "metacontroller",
           },
         },
-        serviceName: '',
+        serviceName: "",
         template: {
           metadata: {
             labels: {
-              app: 'metacontroller',
+              app: "metacontroller",
             },
           },
           spec: {
-            serviceAccountName: 'meta-controller-service',
+            serviceAccountName: "meta-controller-service",
             containers: [
               {
-                name: 'metacontroller',
+                name: "metacontroller",
                 command: [
-                  '/usr/bin/metacontroller',
-                  '--logtostderr',
-                  '-v=4',
-                  '--discovery-interval=20s',
+                  "/usr/bin/metacontroller",
+                  "--logtostderr",
+                  "-v=4",
+                  "--discovery-interval=20s",
                 ],
-                image: 'metacontroller/metacontroller:0.2.0',
+                image: "metacontroller/metacontroller:0.2.0",
                 ports: [
                   {
                     containerPort: 2345,
                   },
                 ],
-                imagePullPolicy: 'Always',
+                imagePullPolicy: "Always",
                 resources: {
                   limits: {
-                    cpu: '4',
-                    memory: '4Gi',
+                    cpu: "4",
+                    memory: "4Gi",
                   },
                   requests: {
-                    cpu: '500m',
-                    memory: '1Gi',
+                    cpu: "500m",
+                    memory: "1Gi",
                   },
                 },
                 securityContext: {
@@ -615,7 +634,17 @@
       self.applicationController,
     ],
 
-    all:: all,
+    all:: std.filter(function(resource) {
+      return::
+        if params.metacontroller == false &&
+           std.objectHas(resource, "metadata") &&
+           std.objectHas(resource.metadata, "annotations") &&
+           std.objectHas(resource.metadata.annotations, "group") &&
+           resource.metadata.annotations.group == "metacontroller" then
+          false
+        else
+          true,
+    }.return, all),
 
     list(obj=self.all):: util.list(obj),
   },
