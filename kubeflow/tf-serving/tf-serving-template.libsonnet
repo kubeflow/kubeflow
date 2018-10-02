@@ -123,8 +123,8 @@
         tcpSocket: {
           port: 9000,
         },
-        initialDelaySeconds: 15,
-        periodSeconds: 20,
+        initialDelaySeconds: 30,
+        periodSeconds: 30,
       },
     },  // modelServerContainer
 
