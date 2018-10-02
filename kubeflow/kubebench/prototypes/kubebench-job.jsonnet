@@ -13,11 +13,11 @@
 // @optionalParam mainJobKsPrototype string kubebench-example-tfcnn The Ksonnet prototype of the job being benchmarked
 // @optionalParam mainJobKsPackage string kubebench-examples The Ksonnet package of the job being benchmarked
 // @optionalParam mainJobKsRegistry string github.com/kubeflow/kubebench/tree/master/kubebench The Ksonnet registry of the job being benchmarked
-// @optionalParam mainJobConfig string tf-cnn-dummy.yaml Path to the config of the benchmarked job
+// @optionalParam mainJobConfig string tf-cnn/tf-cnn-dummy.yaml Path to the config of the benchmarked job
 // @optionalParam experimentConfigPvc string kubebench-config-pvc Configuration PVC
 // @optionalParam experimentDataPvc string null Data PVC
 // @optionalParam experimentRecordPvc string kubebench-exp-pvc Experiment PVC
-// @optionalParam postJobImage string gcr.io/xyhuang-kubeflow/kubebench-example-tfcnn-postprocessor:v20180909-1 Image of post processor
+// @optionalParam postJobImage string gcr.io/kubeflow-images-public/kubebench/kubebench-example-tf-cnn-post-processor:3c75b50 Image of post processor
 // @optionalParam postJobArgs string null Arguments of post processor
 // @optionalParam reporterType string csv Type of reporter
 // @optionalParam csvReporterInput string result.json The input of CSV reporter

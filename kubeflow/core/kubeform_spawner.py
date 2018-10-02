@@ -18,7 +18,7 @@ class KubeFormSpawner(KubeSpawner):
     <table style="width: 100%;">
     <tr>
         <td style="width: 30%;"><label for='image'>Image</label></td>
-        <td style="width: 70%;"><input value="{0}/{1}/tensorflow-1.8.0-notebook-cpu:v0.3.0" list="image" name="image" placeholder='repo/image:tag' style="width: 100%;">
+        <td style="width: 70%;"><input value="" list="image" name="image" placeholder='repo/image:tag' style="width: 100%;">
         <datalist id="image">
           <option value="{0}/{1}/tensorflow-1.4.1-notebook-cpu:v0.3.0">
           <option value="{0}/{1}/tensorflow-1.4.1-notebook-gpu:v0.3.0">
@@ -30,6 +30,10 @@ class KubeFormSpawner(KubeSpawner):
           <option value="{0}/{1}/tensorflow-1.7.0-notebook-gpu:v0.3.0">
           <option value="{0}/{1}/tensorflow-1.8.0-notebook-cpu:v0.3.0">
           <option value="{0}/{1}/tensorflow-1.8.0-notebook-gpu:v0.3.0">
+          <option value="{0}/{1}/tensorflow-1.9.0-notebook-cpu:v0.3.0">
+          <option value="{0}/{1}/tensorflow-1.9.0-notebook-gpu:v0.3.0">
+          <option value="{0}/{1}/tensorflow-1.10.1-notebook-cpu:v0.3.0">
+          <option value="{0}/{1}/tensorflow-1.10.1-notebook-gpu:v0.3.0">
         </datalist>
         </td>
     </tr>

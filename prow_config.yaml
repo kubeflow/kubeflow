@@ -78,6 +78,9 @@ workflows:
       - postsubmit
     params:
       registry: "gcr.io/kubeflow-images-public"
+    include_dirs:
+      - components/centraldashboard/*
+      - releasing/releaser/components/centraldashboard.jsonnet
   - app_dir: kubeflow/kubeflow/components/tensorflow-notebook-image/releaser
     component: workflows
     name: tf-notebook-release
@@ -95,3 +98,5 @@ workflows:
       - postsubmit
     params:
       registry: "gcr.io/kubeflow-images-public"
+    include_dirs:
+      - components/tensorflow-notebook-image/*
