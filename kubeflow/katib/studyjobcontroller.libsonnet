@@ -303,7 +303,7 @@
                   - name: {{.WorkerId}}
                     image: alpine
                   restartPolicy: Never
-          |||% {ns: namespace},
+          ||| % { ns: namespace },
         },
       },
     ],
