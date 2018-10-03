@@ -51,7 +51,6 @@ def deploy_kubeflow(test_case):
   api_client = deploy_utils.create_k8s_client()
   app_dir = deploy_utils.setup_kubeflow_ks_app(test_dir, namespace, args.github_token, api_client)
 
-  # trivial change
   # ks generate tf-job-operator tf-job-operator
   # TODO(jlewi): We don't need to generate a core component if we are
   # just deploying TFServing. Might be better to refactor this code.
