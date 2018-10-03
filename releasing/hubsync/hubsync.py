@@ -14,7 +14,7 @@
 
 # [START app]
 
-#import
+#import modules
 
 import os
 import subprocess
