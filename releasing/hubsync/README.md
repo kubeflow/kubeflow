@@ -11,4 +11,4 @@ Before executing, be sure to run this line to install Python modules (be sure to
 pip install -r requirements.txt
 ```
 
-This will install a few components such as pyyaml and jinja2.
+This will install a few components such as pyyaml and jinja.
