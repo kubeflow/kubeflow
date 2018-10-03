@@ -109,7 +109,7 @@ class App extends React.Component<any, { signedIn: boolean }> {
                 </div>
                 <br />
                 <div>
-                  <ol>
+                  <ul>
                     <li> Enter the name of the GCP project you want to use  </li>
                     <li> Pick a name for your deployment </li>
                     <li> Pick a zone where you want Kubeflow to be deployed </li>
@@ -122,7 +122,7 @@ class App extends React.Component<any, { signedIn: boolean }> {
                     <li> (Optional) Change the value of Kubeflow version 
                          if you don't want to use the default version. </li>
                     <li> Click deploy </li>
-                  </ol>
+                  </ul>
                 </div>
                 <div> <a style={{ color: 'inherit', marginLeft: 5 }} href="https://policies.google.com/terms">Terms</a></div>
                 <div> <a style={{ color: 'inherit', marginLeft: 5 }} href="https://policies.google.com/privacy">Privacy</a></div>
