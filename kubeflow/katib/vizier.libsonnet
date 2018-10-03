@@ -3,6 +3,7 @@
     $.parts(params, namespace).coreService,
     $.parts(params, namespace).coreDeployment,
     $.parts(params, namespace).dbService,
+    $.parts(params, namespace).dbPVC,
     $.parts(params, namespace).dbDeployment,
     $.parts(params, namespace).clusterRole,
     $.parts(params, namespace).clusterRoleBinding,
@@ -182,6 +183,29 @@
       },
     },
 
+    dbPVC: {
+      apiVersion: "v1",
+      kind: "PersistentVolumeClaim",
+      metadata: {
+        labels: {
+          app: "vizier",
+          component: "db",
+        },
+        name: "vizier-db",
+        namespace: namespace,
+      },
+      spec: {
+        accessModes: [
+          "ReadWriteOnce",
+        ],
+        resources: {
+          requests: {
+            storage: "10Gi",
+          },
+        },
+      },
+    },  // dbPVC
+
     dbDeployment: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
@@ -222,12 +246,31 @@
                 ],
                 image: params.vizierDbImage,
                 name: "vizier-db",
+                // If we mount block device with ext4 fs as pvc, default data dir has lost+found dir in, and mysql fails to init
+                args: [
+                  "--datadir",
+                  "/var/lib/mysql/datadir",
+                ],
+                volumeMounts: [
+                  {
+                    name: "vizier-db",
+                    mountPath: "/var/lib/mysql",
+                  },
+                ],
                 ports: [
                   {
                     containerPort: 3306,
                     name: "dbapi",
                   },
                 ],
+              },
+            ],
+            volumes: [
+              {
+                name: "vizier-db",
+                persistentVolumeClaim: {
+                  claimName: "vizier-db",
+                },
               },
             ],
           },
