@@ -97,7 +97,36 @@
           namespace: namespace,
         },
         data: {
-          "defaultMetricsCollectorTemplate.yaml": 'apiVersion: batch/v1beta1\nkind: CronJob\nmetadata:\n  name: {{.WorkerId}}\n  spec:\n  schedule: "*/1 * * * *"\n  successfulJobsHistoryLimit: 1\n  failedJobsHistoryLimit: 1\n  jobTemplate:\n    spec:\n      template:\n        spec:\n          serviceAccountName: metrics-collector\n          containers:\n          - name: {{.WorkerId}}\n            image: katib/metrics-collector\n            args:\n            - "./metricscollector"\n            - "-s"\n            - "{{.StudyId}}"\n            - "-t"\n            - "{{.TrialId}}"\n            - "-w"\n            - "{{.WorkerId}}"\n            - "-n"\n            - "{{.NameSpace}}"\n          restartPolicy: Never',
+          "defaultMetricsCollectorTemplate.yaml": |||
+            apiVersion: batch/v1beta1
+            kind: CronJob
+            metadata:
+              name: {{.WorkerId}}
+              namespace: {{.NameSpace}}  
+            spec:
+              schedule: "*/1 * * * *"
+              successfulJobsHistoryLimit: 1
+              failedJobsHistoryLimit: 1
+              jobTemplate:
+                spec:
+                  template:
+                    spec:
+                      serviceAccountName: metrics-collector
+                      containers:
+                      - name: {{.WorkerId}}
+                        image: katib/metrics-collector
+                        args:
+                        - "./metricscollector"
+                        - "-s"
+                        - "{{.StudyId}}"
+                        - "-t"
+                        - "{{.TrialId}}"
+                        - "-w"
+                        - "{{.WorkerId}}"
+                        - "-n"
+                        - "{{.NameSpace}}"
+                      restartPolicy: Never
+          |||,
         },
       },
     ],
@@ -261,7 +290,20 @@
           namespace: namespace,
         },
         data: {
-          "defaultWorkerTemplate.yaml": "apiVersion: batch/v1\nkind: Job\nmetadata:\n  name: {{.WorkerId}}\n  spec:\n  template:\n    spec:\n      containers:\n      - name: {{.WorkerId}}\n        image: alpine\n      restartPolicy: Never",
+          "defaultWorkerTemplate.yaml": |||
+            apiVersion: batch/v1
+            namespace: %(ns)s
+            kind: Job
+            metadata:
+              name: {{.WorkerId}}
+            spec:
+              template:
+                spec:
+                  containers:
+                  - name: {{.WorkerId}}
+                    image: alpine
+                  restartPolicy: Never
+          ||| % { ns: namespace },
         },
       },
     ],
