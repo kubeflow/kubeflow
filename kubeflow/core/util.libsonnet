@@ -21,6 +21,15 @@
     result:: std.join("", std.map(upperLetter, std.stringChars(x))),
   }.result,
 
+  // Convert a string to lower case.
+  lower:: function(x) {
+    local cp(c) = std.codepoint(c),
+    local lowerLetter(c) = if cp(c) >= 65 && cp(c) < 91 then
+      std.char(cp(c) + 32)
+    else c,
+    result:: std.join("", std.map(lowerLetter, std.stringChars(x))),
+  }.result,
+
   // Convert non-boolean types like string,number to a boolean.
   // This is primarily intended for dealing with parameters that should be booleans.
   toBool:: function(x) {
@@ -50,12 +59,12 @@
       else [],
   }.result,
 
-  foldl:: function(key, objs) {
+  foldl:: function(key, value, objs) {
     local aux(arr, i, running) =
       if i >= std.length(arr) then
         running
       else
-        aux(arr, i + 1, running { [key(arr[i])]: arr[i] }) tailstrict,
+        aux(arr, i + 1, running { [key(arr[i])]+: value(arr[i]) }) tailstrict,
     return:: aux(objs, 0, {},),
   }.return,
 

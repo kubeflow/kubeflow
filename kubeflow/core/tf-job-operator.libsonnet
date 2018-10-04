@@ -450,12 +450,13 @@
 
     local tfUiRole = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "ClusterRole",
+      kind: "Role",
       metadata: {
         labels: {
           app: "tf-job-dashboard",
         },
         name: "tf-job-dashboard",
+        namespace: params.namespace,
       },
     } + k.rbac.v1beta1.role.withRulesMixin([
       rules.tfJobsRule,
@@ -472,12 +473,13 @@
 
     local tfUiRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "ClusterRoleBinding",
+      kind: "RoleBinding",
       metadata: {
         labels: {
           app: "tf-job-dashboard",
         },
         name: "tf-job-dashboard",
+        namespace: params.namespace,
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",

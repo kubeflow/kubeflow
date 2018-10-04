@@ -9,7 +9,7 @@
         if std.objectHas(_params, "namespace") &&
            _params.namespace != "null" then
           _params.namespace else _env.namespace,
-      metacontroller: util.toBool(_params.metacontroller),
+      metacontroller: util.toBool(_params["install-metacontroller"]),
       labels: {
         app: _params.name,
       },
@@ -27,7 +27,7 @@
       spec: {
         group: "metacontroller.k8s.io",
         version: "v1alpha1",
-        scope: "Cluster",
+        scope: "Namespaced",
         names: {
           plural: "compositecontrollers",
           singular: "compositecontroller",
@@ -39,7 +39,7 @@
         },
       },
     },
-    compositeController:: compositeController,
+    compositeControllerCRD:: compositeControllerCRD,
 
     local decoratorControllerCRD = {
       apiVersion: "apiextensions.k8s.io/v1beta1",
@@ -53,7 +53,7 @@
       spec: {
         group: "metacontroller.k8s.io",
         version: "v1alpha1",
-        scope: "Cluster",
+        scope: "Namespaced",
         names: {
           plural: "decoratorcontrollers",
           singular: "decoratorcontroller",
@@ -65,9 +65,9 @@
         },
       },
     },
-    decoratorController:: decoratorController,
+    decoratorControllerCRD:: decoratorControllerCRD,
 
-    local controllerRevisions = {
+    local controllerRevisionsCRD = {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
       metadata: {
@@ -79,7 +79,7 @@
       spec: {
         group: "metacontroller.k8s.io",
         version: "v1alpha1",
-        scope: "Cluster",
+        scope: "Namespaced",
         names: {
           plural: "controllerrevisions",
           singular: "controllerrevision",
@@ -87,7 +87,7 @@
         },
       },
     },
-    controllerRevisions:: controllerRevisions,
+    controllerRevisionsCRD:: controllerRevisionsCRD,
 
     local metaControllerServiceAccount = {
       apiVersion: "v1",
@@ -209,9 +209,6 @@
           properties: {
             selector: {
               type: "object",
-            },
-            assemblyPhase: {
-              type: "string",
             },
             componentKinds: {
               items: {
@@ -350,6 +347,15 @@
               type: "string",
               format: "int64",
             },
+            assemblyPhase: {
+              type: "string",
+            },
+            installed: {
+              items: {
+                type: "string",
+              },
+              type: "array",
+            },
           },
           type: "object",
         },
@@ -448,7 +454,29 @@
           params.components,
     }.return,
 
+    local groupByName(components) = {
+      [resource.name]+: resource
+      for resource in components
+    },
+
+    local groupByResource(tuples) = {
+      local getKey(wrapper) = {
+        local tuple = wrapper.tuple,
+        local resource = tuple[2],
+        return::
+          resource.kind + "." + resource.apiVersion,
+      }.return,
+      local getValue(wrapper) = {
+        local tuple = wrapper.tuple,
+        return::
+          { [tuple[0].name]+: tuple[2] },
+      }.return,
+      return:: util.foldl(getKey, getValue, tuples),
+    }.return,
+
     local tuples = std.flattenArrays(std.map(perComponent, getComponents)),
+    local components = std.map(byResource, tuples),
+    local resources = groupByResource(tuples),
 
     local application = {
       apiVersion: "app.k8s.io/v1beta1",
@@ -478,24 +506,103 @@
           links: [],
           notes: "",
         },
-        assemblyPhase: "Pending",
         info: [],
       },
     },
     application:: application,
 
-    local components = std.map(byResource, tuples),
-
-    local syncApplication =
-      "function(request) {\n" +
-      "  local desired = " + std.manifestJsonEx(components, "  ") + ",\n" +
-      "children: desired,\n" +
-      "status: {\n" +
-      "  observedGeneration: '1',\n" +
-      "  installed: [],\n" +
-      "  ready: true,\n" +
-      "},\n" +
-      "}\n",
+    local syncApplication = |||
+                              function(request) {
+                                local resources = %(resources)s,
+                                local components = %(components)s,
+                                local lower(x) = {
+                                  local cp(c) = std.codepoint(c),
+                                  local lowerLetter(c) = if cp(c) >= 65 && cp(c) < 91 then
+                                    std.char(cp(c) + 32)
+                                  else c,
+                                  result:: std.join("", std.map(lowerLetter, std.stringChars(x))),
+                                }.result,
+                                local existingGroups =
+                                  if std.type(request.children) == "object" then
+                                    [ request.children[key] for key in std.objectFields(request.children) ]
+                                  else
+                                    [],
+                                local existingResources(group) =
+                                  if std.type(group) == "object" then
+                                    [ group[key] for key in std.objectFields(group) ]
+                                  else
+                                    [],
+                                local existingResource(resource) = {
+                                  local validateResource(resource) = {
+                                    return::
+                                      if std.type(resource) == "object" &&
+                                      std.objectHas(resource, 'kind') &&
+                                      std.objectHas(resource, 'apiVersion') &&
+                                      std.objectHas(resource, 'metadata') &&
+                                      std.objectHas(resource.metadata, 'name') then
+                                        true
+                                      else
+                                        false
+                                  }.return,
+                                  local resourceExists(kindAndResource, name) = {
+                                    return::
+                                      if std.objectHas(resources, kindAndResource) &&
+                                      std.objectHas(resources[kindAndResource], name) then
+                                        true
+                                      else
+                                        false,
+                                  }.return,
+                                  return::
+                                    if validateResource(resource) then 
+                                      resourceExists(resource.kind + "." + resource.apiVersion, resource.metadata.name)
+                                    else
+                                      false,
+                                }.return,
+                                local foundChildren = 
+                                  std.filter(existingResource, 
+                                    std.flattenArrays(std.map(existingResources, existingGroups))),
+                                local initialized = {
+                                  return::
+                                    if std.objectHas(request.parent, "status") &&
+                                       std.objectHas(request.parent.status, "created") &&
+                                       request.parent.status.created == true then
+                                      true
+                                    else
+                                      false,
+                                }.return,
+                                local desired =
+                                  if std.length(foundChildren) == 0 then
+                                    if initialized == false then
+                                      components
+                                    else
+                                      []
+                                  else
+                                    foundChildren,
+                                local assemblyPhase = {
+                                  return::
+                                    if std.length(foundChildren) == std.length(components) then
+                                      "Success"
+                                    else
+                                      "Pending",
+                                }.return,
+                                local installedName(resource) = {
+                                  return::
+                                   lower(resource.kind) + "s" + "/" + resource.metadata.name,
+                                }.return,
+                                children: desired,
+                                status: {
+                                  observedGeneration: '1',
+                                  installed: std.map(installedName, foundChildren),
+                                  assemblyPhase: assemblyPhase,
+                                  ready: true,
+                                  created: true,
+                                },
+                              }
+                            ||| %
+                            {
+                              components: std.manifestJsonEx(components, "  "),
+                              resources: std.manifestJsonEx(resources, "  "),
+                            },
 
     local applicationConfigmap = {
       apiVersion: "v1",
@@ -584,13 +691,10 @@
       local resource = tuple[2],
       local childResource = {
         apiVersion: resource.apiVersion,
-        resource: std.asciiLower(resource.kind) + "s",
+        resource: util.lower(resource.kind) + "s",
       },
       return:: childResource,
     }.return,
-
-    local makeKey(resource) =
-      resource.resource + "." + resource.apiVersion,
 
     local applicationController = {
       apiVersion: "metacontroller.k8s.io/v1alpha1",
@@ -605,8 +709,12 @@
           apiVersion: "app.k8s.io/v1beta1",
           resource: "applications",
         },
+        local getKey(resource) =
+          resource.resource + "." + resource.apiVersion,
+        local getValue(resource) =
+          resource,
         local childResources = std.map(forChildResources, tuples),
-        local childResourcesMap = util.foldl(makeKey, childResources),
+        local childResourcesMap = util.foldl(getKey, getValue, childResources),
         childResources: [childResourcesMap[key] for key in std.objectFields(childResourcesMap)],
         hooks: {
           sync: {
@@ -620,9 +728,9 @@
     applicationController:: applicationController,
 
     local all = [
-      self.compositeController,
-      self.decoratorController,
-      self.controllerRevisions,
+      self.compositeControllerCRD,
+      self.decoratorControllerCRD,
+      self.controllerRevisionsCRD,
       self.metaControllerServiceAccount,
       self.metaControllerClusterRoleBinding,
       self.metaControllerStatefulSet,
