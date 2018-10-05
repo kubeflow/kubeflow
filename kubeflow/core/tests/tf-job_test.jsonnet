@@ -520,7 +520,7 @@ std.assertEqual(
       },
     ],
   }
-) 
+)
 
 &&
 
@@ -531,7 +531,7 @@ std.assertEqual(
     kind: "ClusterRoleBinding",
     metadata: {
       labels: {
-        app: "tf-job-dasbhoard",
+        app: "tf-job-dashboard",
       },
       name: "tf-job-dashboard",
     },
@@ -548,4 +548,4 @@ std.assertEqual(
       },
     ],
   }
-) 
+)
