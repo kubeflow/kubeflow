@@ -1,6 +1,5 @@
 local util = import "../util.libsonnet";
 
-/*
 std.assertEqual(util.upper("True"), "TRUE") &&
 std.assertEqual(util.upper("TrUe"), "TRUE") &&
 std.assertEqual(util.upper("true"), "TRUE") &&
@@ -56,24 +55,8 @@ std.assertEqual(
 ) &&
 std.assertEqual(
   util.setDiff(
-    util.sort(["CCall", "Craydad", "crayon"]),
-    util.sort(["CCall", "Craydad", "crayon", "fuzzball"])),
+    util.sort(["CCall", "Craydad", "crayon", "fuzzball"]),
+    util.sort(["CCall", "Craydad", "crayon"])
+  ),
   ["fuzzball"]
-)
-local a = [{foo:"1",bar:"2"},{baz:"3",rab:"4"},{flurry:"5",crest:"6"}];
-local b = [{foo:"1",bar:"2"},{baz:"3",rab:"4"}];
-std.setDiff(a, b)
-*/
-util.setDiff(
-  util.sort(["CCall", "Craydad", "crayon"]),
-  util.sort(["CCall", "Craydad", "crayon", "fuzzball"]),
-  function(a, b) {
-    return::
-      if a == b then
-        0
-      else if a < b then
-        -1
-      else
-        1,
-  }.return
 )
