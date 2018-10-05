@@ -1,6 +1,7 @@
 // Some useful routines.
 {
   local k = import "k.libsonnet",
+  local util = self,
 
   // Is the character upper case?
   isUpper:: function(c) {
@@ -66,6 +67,54 @@
       else
         aux(arr, i + 1, running { [key(arr[i])]+: value(arr[i]) }) tailstrict,
     return:: aux(objs, 0, {},),
+  }.return,
+
+  sort:: function(arr, compare=function(a, b) {
+    return::
+      if a == b then
+        0
+      else if a < b then
+        -1
+      else
+        1,
+  }.return) {
+    local l = std.length(arr),
+    local f = {
+      local pivot = arr[0],
+      local rest = std.makeArray(l - 1, function(i) arr[i + 1]),
+      local left = std.filter(function(x) compare(x, pivot) <= 0, rest),
+      local right = std.filter(function(x) compare(x, pivot) > 0, rest),
+      return:: util.sort(left, compare) + [pivot] + util.sort(right, compare),
+    }.return,
+    return::
+      if std.length(arr) == 0 then
+        []
+      else
+        f,
+  }.return,
+
+  setDiff:: function(a, b, compare=function(a, b) {
+    return::
+      if a == b then
+        0
+      else if a < b then
+        -1
+      else
+        1,
+  }.return) {
+    local aux(a, b, i, j, acc) =
+      if i >= std.length(a) then
+        acc
+      else if j >= std.length(b) then
+        aux(a, b, i + 1, j, acc + [a[i]]) tailstrict
+      else
+        if compare(a[i], b[j]) == 0 then
+          aux(a, b, i + 1, j + 1, acc) tailstrict
+        else if compare(a[i], b[j]) == -1 then
+          aux(a, b, i + 1, j, acc + [a[i]]) tailstrict
+        else
+          aux(a, b, i, j + 1, acc) tailstrict,
+    return:: aux(a, b, 0, 0, []) tailstrict,
   }.return,
 
   // Produce a list of manifests. obj must be an array

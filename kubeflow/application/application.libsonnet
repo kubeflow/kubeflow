@@ -511,98 +511,124 @@
     },
     application:: application,
 
-    local syncApplication = |||
-                              function(request) {
-                                local resources = %(resources)s,
-                                local components = %(components)s,
-                                local lower(x) = {
-                                  local cp(c) = std.codepoint(c),
-                                  local lowerLetter(c) = if cp(c) >= 65 && cp(c) < 91 then
-                                    std.char(cp(c) + 32)
-                                  else c,
-                                  result:: std.join("", std.map(lowerLetter, std.stringChars(x))),
-                                }.result,
-                                local existingGroups =
-                                  if std.type(request.children) == "object" then
-                                    [ request.children[key] for key in std.objectFields(request.children) ]
-                                  else
-                                    [],
-                                local existingResources(group) =
-                                  if std.type(group) == "object" then
-                                    [ group[key] for key in std.objectFields(group) ]
-                                  else
-                                    [],
-                                local existingResource(resource) = {
-                                  local validateResource(resource) = {
-                                    return::
-                                      if std.type(resource) == "object" &&
-                                      std.objectHas(resource, 'kind') &&
-                                      std.objectHas(resource, 'apiVersion') &&
-                                      std.objectHas(resource, 'metadata') &&
-                                      std.objectHas(resource.metadata, 'name') then
-                                        true
-                                      else
-                                        false
-                                  }.return,
-                                  local resourceExists(kindAndResource, name) = {
-                                    return::
-                                      if std.objectHas(resources, kindAndResource) &&
-                                      std.objectHas(resources[kindAndResource], name) then
-                                        true
-                                      else
-                                        false,
-                                  }.return,
-                                  return::
-                                    if validateResource(resource) then 
-                                      resourceExists(resource.kind + "." + resource.apiVersion, resource.metadata.name)
-                                    else
-                                      false,
-                                }.return,
-                                local foundChildren = 
-                                  std.filter(existingResource, 
-                                    std.flattenArrays(std.map(existingResources, existingGroups))),
-                                local initialized = {
-                                  return::
-                                    if std.objectHas(request.parent, "status") &&
-                                       std.objectHas(request.parent.status, "created") &&
-                                       request.parent.status.created == true then
-                                      true
-                                    else
-                                      false,
-                                }.return,
-                                local desired =
-                                  if std.length(foundChildren) == 0 then
-                                    if initialized == false then
-                                      components
-                                    else
-                                      []
-                                  else
-                                    foundChildren,
-                                local assemblyPhase = {
-                                  return::
-                                    if std.length(foundChildren) == std.length(components) then
-                                      "Success"
-                                    else
-                                      "Pending",
-                                }.return,
-                                local installedName(resource) = {
-                                  return::
-                                   lower(resource.kind) + "s" + "/" + resource.metadata.name,
-                                }.return,
-                                children: desired,
-                                status: {
-                                  observedGeneration: '1',
-                                  installed: std.map(installedName, foundChildren),
-                                  assemblyPhase: assemblyPhase,
-                                  ready: true,
-                                  created: true,
-                                },
-                              }
-                            ||| %
-                            {
-                              components: std.manifestJsonEx(components, "  "),
-                              resources: std.manifestJsonEx(resources, "  "),
-                            },
+    local syncApplication =
+      |||
+        function(request) {
+          local util = import "util.libsonnet",
+          local resources = %(resources)s,
+          local components = %(components)s,
+          local filteredComponents = std.filter(validateResource, %(components)s),
+          local validateResource(resource) = {
+            return::
+              if std.type(resource) == "object" &&
+              std.objectHas(resource, 'kind') &&
+              std.objectHas(resource, 'apiVersion') &&
+              std.objectHas(resource, 'metadata') &&
+              std.objectHas(resource.metadata, 'name') &&
+              std.objectHas(resource.metadata, 'namespace') &&
+              resource.metadata.namespace == request.parent.metadata.namespace then
+                true
+              else
+                false
+          }.return,
+          local existingGroups(obj) =
+            if std.type(obj) == "object" then
+              [ obj[key] for key in std.objectFields(obj) ]
+            else
+              [],
+          local existingResources(group) =
+            if std.type(group) == "object" then
+              [ group[key] for key in std.objectFields(group) ]
+            else
+              [],
+          local continuation(resources) = {
+            local existingResource(resource) = {
+              local resourceExists(kindAndResource, name) = {
+                return::
+                  if std.objectHas(resources, kindAndResource) &&
+                  std.objectHas(resources[kindAndResource], name) then
+                    true
+                  else
+                    false,
+              }.return,
+              return::
+                if validateResource(resource) then 
+                  resourceExists(resource.kind + "." + resource.apiVersion, resource.metadata.name)
+                else
+                  false,
+            }.return,
+            return:: existingResource,
+          }.return,
+          local foundChildren = 
+            std.filter(continuation(resources), 
+              std.flattenArrays(std.map(existingResources, existingGroups(request.children)))),
+          local comparator(a, b) = {
+            return::
+              if a.metadata.name == b.metadata.name then
+                0
+              else if a.metadata.name < b.metadata.name then
+                -1
+              else
+                1,
+          }.return,
+          local missingChildren = {
+            return::
+              if std.type(filteredComponents) == "array" &&
+              std.type(foundChildren) == "array" then
+                util.setDiff(util.sort(filteredComponents, comparator), 
+                  util.sort(foundChildren, comparator), comparator)
+              else
+                [],
+          }.return,
+          local initialized = {
+            return::
+              if std.objectHas(request.parent, "status") &&
+                 std.objectHas(request.parent.status, "created") &&
+                 request.parent.status.created == true then
+                true
+              else
+                false,
+          }.return,
+          local desired =
+            if std.length(foundChildren) == 0 then
+              if initialized == false then
+                components
+              else
+                []
+            else
+              foundChildren,
+          local assemblyPhase = {
+            return::
+              if std.length(foundChildren) == std.length(filteredComponents) then
+                "Success"
+              else
+                "Pending",
+          }.return,
+          local installedName(resource) = {
+            return::
+             util.lower(resource.kind) + "s" + "/" + resource.metadata.name,
+          }.return,
+          children: desired,
+          status: {
+            observedGeneration: '1',
+            assemblyPhase: assemblyPhase,
+            installed: std.map(installedName, foundChildren),
+            ready: true,
+            created: true,
+
+            request_children: request.children,
+            found_children_length: std.length(foundChildren),
+            components_length: std.length(components),
+            filtered_components_length: std.length(filteredComponents),
+            missing_children_length: std.length(missingChildren),
+            missing_children: missingChildren,
+          },
+        }
+      ||| %
+      {
+        components: std.manifestJsonEx(components, "  "),
+        resources: std.manifestJsonEx(resources, "  "),
+      },
 
     local applicationConfigmap = {
       apiVersion: "v1",
@@ -613,6 +639,7 @@
       },
       data: {
         "sync-application.jsonnet": syncApplication,
+        "util.libsonnet": importstr "kubeflow/core/util.libsonnet",
       },
     },
     applicationConfigmap:: applicationConfigmap,

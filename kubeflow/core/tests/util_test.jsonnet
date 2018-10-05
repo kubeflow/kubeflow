@@ -1,5 +1,6 @@
 local util = import "../util.libsonnet";
 
+/*
 std.assertEqual(util.upper("True"), "TRUE") &&
 std.assertEqual(util.upper("TrUe"), "TRUE") &&
 std.assertEqual(util.upper("true"), "TRUE") &&
@@ -27,6 +28,7 @@ std.assertEqual(std.length(util.toArray("hello world")), 1) &&
 std.assertEqual(std.length(util.toArray([1, 2, 3, 4])), 0) &&
 std.assertEqual(util.isUpper(std.substr("Hi", 0, 1)), true) &&
 std.assertEqual(util.isUpper(std.substr("lo", 0, 1)), false) &&
+std.assertEqual(util.sort(["Craydad", "CCall", "crayon"]), ["CCall", "Craydad", "crayon"]) &&
 std.assertEqual(
   {
     new():: self + {
@@ -51,4 +53,27 @@ std.assertEqual(
     ],
     kind: "List",
   }
+) &&
+std.assertEqual(
+  util.setDiff(
+    util.sort(["CCall", "Craydad", "crayon"]),
+    util.sort(["CCall", "Craydad", "crayon", "fuzzball"])),
+  ["fuzzball"]
+)
+local a = [{foo:"1",bar:"2"},{baz:"3",rab:"4"},{flurry:"5",crest:"6"}];
+local b = [{foo:"1",bar:"2"},{baz:"3",rab:"4"}];
+std.setDiff(a, b)
+*/
+util.setDiff(
+  util.sort(["CCall", "Craydad", "crayon"]),
+  util.sort(["CCall", "Craydad", "crayon", "fuzzball"]),
+  function(a, b) {
+    return::
+      if a == b then
+        0
+      else if a < b then
+        -1
+      else
+        1,
+  }.return
 )
