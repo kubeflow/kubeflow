@@ -105,22 +105,27 @@ class App extends React.Component<any, { signedIn: boolean }> {
                 </div>
                 <div style={styles.title}>Deploy on GCP</div>
                 <div>
-                  This deployer will guide you through the process of deploying
-                  Kubeflow on Google Cloud Platform. It also eliminates the
-                  need to install any tools on your machine.
+                  To deploy Kubeflow on Google Cloud Platform:
                 </div>
                 <br />
                 <div>
-                  Specify details such as project, zone, name to create a
-                  Kubeflow deployment. Hostname will default to
-                  [deploymentName].endpoints.[project].cloud.goog.
-                  To get client ID and client secret,
-                  follow instruction <a style={{ color: 'inherit', marginLeft: 5 }}
-                    href="https://www.kubeflow.org/docs/started/getting-started-gke/">here</a>.
-                  Learn more at
-                  <a style={{ color: 'inherit', marginLeft: 5 }}
-                    href="https://kubeflow.org">https://kubeflow.org</a>.
+                  <ul>
+                    <li> Enter the name of the GCP project you want to use  </li>
+                    <li> Pick a name for your deployment </li>
+                    <li> Pick a zone where you want Kubeflow to be deployed </li>
+                    <li> Follow these 
+                         <a href="https://www.kubeflow.org/docs/started/getting-started-gke/#create-oauth-client-credentials"
+                            style={{ color: 'inherit', marginLeft: 5 }}
+                         >
+                         instructions</a> to create an OAuth client and
+                         then enter the id and secret</li>
+                    <li> (Optional) Change the value of Kubeflow version 
+                         if you don't want to use the default version. </li>
+                    <li> Click deploy </li>
+                  </ul>
                 </div>
+                <div> <a style={{ color: 'inherit', marginLeft: 5 }} href="https://policies.google.com/terms">Terms</a></div>
+                <div> <a style={{ color: 'inherit', marginLeft: 5 }} href="https://policies.google.com/privacy">Privacy</a></div>
               </div>
               <div style={styles.rightPane}>
                 <Switch>
