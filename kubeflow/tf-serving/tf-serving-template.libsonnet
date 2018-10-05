@@ -118,7 +118,7 @@
         namespace: namespace,
         annotations: {
           "sidecar.istio.io/inject": params.injectIstio,
-        }
+        },
       },
       spec: {
         template: {
