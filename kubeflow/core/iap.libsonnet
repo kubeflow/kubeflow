@@ -564,7 +564,7 @@
               lb_type: "round_robin",
               hosts: [
                 {
-                  url: "tcp://tf-hub-lb." + params.namespace + ":80",
+                  url: "tcp://jupyterhub-lb." + params.namespace + ":80",
                 },
 
               ],
@@ -747,6 +747,10 @@
                     value: params.secretName,
                   },
                   {
+                    name: "TLS_HOST_NAME",
+                    value: params.hostname,
+                  },
+                  {
                     name: "INGRESS_NAME",
                     value: "envoy-ingress",
                   },
@@ -785,6 +789,7 @@
           "kubernetes.io/tls-acme": "true",
           "ingress.kubernetes.io/ssl-redirect": "true",
           "kubernetes.io/ingress.global-static-ip-name": params.ipName,
+          "certmanager.k8s.io/issuer": params.issuer,
         },
       },
       spec: {

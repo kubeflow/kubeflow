@@ -8,7 +8,7 @@
 // @optionalParam serviceType string ClusterIP The service type for Jupyterhub.
 // @optionalParam image string gcr.io/kubeflow/jupyterhub-k8s:v20180531-3bb991b1 The image to use for JupyterHub.
 // @optionalParam jupyterHubAuthenticator string null The authenticator to use
-// @optionalParam useJupyterLabAsDefault string true Set JupterLab interface as the default
+// @optionalParam useJupyterLabAsDefault string false Set JupterLab interface as the default
 // @optionalParam notebookPVCMount string /home/jovyan Mount path for PVC. Set empty to disable PVC
 // @optionalParam registry string gcr.io The docker image registry for JupyterNotebook.
 // @optionalParam repoName string kubeflow-images-public The repository name for JupyterNotebook.

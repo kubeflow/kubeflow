@@ -339,7 +339,7 @@
   gcpParts:: $.parts {
     gcpEnv:: [
       if $.gcpParams.gcpCredentialSecretName != "" then
-        { name: "GOOGLE_APPLICATION_CREDENTIALS", value: "/secret/gcp-credentials/key.json" },
+        { name: "GOOGLE_APPLICATION_CREDENTIALS", value: "/secret/gcp-credentials/user-gcp-sa.json" },
     ],
 
     tfServingContainer: $.parts.tfServingContainer {
