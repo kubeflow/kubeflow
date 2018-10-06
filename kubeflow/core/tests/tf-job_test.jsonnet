@@ -11,7 +11,7 @@ local paramsv1alpha2 = {
   name:: "tf-job-operator",
   tfJobImage:: "gcr.io/kubeflow-images-public/tf_operator:v0.3.0",
   tfDefaultImage:: "null",
-  deploymentScope:: "cluster",
+  deploymentScope:: "namespace",
   deploymentNamespace:: "null",
   tfJobVersion: "v1alpha2",
 };
@@ -271,6 +271,7 @@ std.assertEqual(
         plural: "tfjobs",
         singular: "tfjob",
       },
+      scope: "Namespaced",
       validation: {
         openAPIV3Schema: {
           properties: {
@@ -339,6 +340,7 @@ std.assertEqual(
                 "/opt/kubeflow/tf-operator.v2",
                 "--alsologtostderr",
                 "-v=1",
+                "--namespace=null",
               ],
               env: [
                 {
@@ -354,6 +356,14 @@ std.assertEqual(
                   valueFrom: {
                     fieldRef: {
                       fieldPath: "metadata.name",
+                    },
+                  },
+                },
+                {
+                  name: "KUBEFLOW_NAMESPACE",
+                  valueFrom: {
+                    fieldRef: {
+                      fieldPath: "metadata.namespace",
                     },
                   },
                 },
@@ -435,12 +445,13 @@ std.assertEqual(
   tfjobv1alpha2.tfUiRole,
   {
     apiVersion: "rbac.authorization.k8s.io/v1beta1",
-    kind: "ClusterRole",
+    kind: "Role",
     metadata: {
       labels: {
         app: "tf-job-dashboard",
       },
       name: "tf-job-dashboard",
+      namespace: "null",
     },
     rules: [
       {

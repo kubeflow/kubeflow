@@ -67,6 +67,7 @@ function createKsApp() {
   ks generate tf-job-operator tf-job-operator
   ks generate argo argo
   ks generate katib katib
+  ks generate prometheus prometheus
 
   # Enable collection of anonymous usage metrics
   # To disable metrics collection. Remove the spartakus component.

@@ -448,9 +448,9 @@
     },
     tfUiDeployment:: tfUiDeployment,
 
-    local tfUiRole = {
+    local tfUiRole = role({
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "Role",
+      kind: operatorRole.new().kind,
       metadata: {
         labels: {
           app: "tf-job-dashboard",
@@ -469,11 +469,12 @@
       ]),
       rules.tfAppsRule,
     ],),
+    ),
     tfUiRole:: tfUiRole,
 
     local tfUiRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "RoleBinding",
+      kind: operatorRoleBinding.new().kind,
       metadata: {
         labels: {
           app: "tf-job-dashboard",
