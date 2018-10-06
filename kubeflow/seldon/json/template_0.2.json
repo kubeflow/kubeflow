@@ -8,16 +8,14 @@
             "apiVersion": "v1",
             "metadata": {
                 "name": "seldon",
-                "namespace": "kubeflow",
                 "creationTimestamp": null
             }
         },
         {
             "kind": "Role",
-            "apiVersion": "rbac.authorization.k8s.io/v1beta1",
+            "apiVersion": "rbac.authorization.k8s.io/v1",
             "metadata": {
                 "name": "seldon-local",
-                "namespace": "kubeflow",
                 "creationTimestamp": null
             },
             "rules": [
@@ -48,7 +46,7 @@
         },
         {
             "kind": "ClusterRole",
-            "apiVersion": "rbac.authorization.k8s.io/v1beta1",
+            "apiVersion": "rbac.authorization.k8s.io/v1",
             "metadata": {
                 "name": "seldon-crd",
                 "creationTimestamp": null
@@ -72,14 +70,13 @@
             "apiVersion": "rbac.authorization.k8s.io/v1",
             "metadata": {
                 "name": "seldon",
-                "namespace": "kubeflow",
                 "creationTimestamp": null
             },
             "subjects": [
                 {
                     "kind": "ServiceAccount",
                     "name": "seldon",
-                    "namespace": "kubeflow"
+                    "namespace": "seldon"
                 }
             ],
             "roleRef": {
@@ -99,7 +96,7 @@
                 {
                     "kind": "ServiceAccount",
                     "name": "seldon",
-                    "namespace": "kubeflow"
+                    "namespace": "seldon"
                 }
             ],
             "roleRef": {
@@ -109,11 +106,285 @@
             }
         },
         {
+            "kind": "Role",
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "metadata": {
+                "name": "ambassador",
+                "creationTimestamp": null
+            },
+            "rules": [
+                {
+                    "verbs": [
+                        "get",
+                        "list",
+                        "watch"
+                    ],
+                    "apiGroups": [
+                        ""
+                    ],
+                    "resources": [
+                        "services"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "create",
+                        "update",
+                        "patch",
+                        "get",
+                        "list",
+                        "watch"
+                    ],
+                    "apiGroups": [
+                        ""
+                    ],
+                    "resources": [
+                        "configmaps"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "get",
+                        "list",
+                        "watch"
+                    ],
+                    "apiGroups": [
+                        ""
+                    ],
+                    "resources": [
+                        "secrets"
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "RoleBinding",
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "metadata": {
+                "name": "ambassador",
+                "creationTimestamp": null
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "seldon",
+                    "namespace": "seldon"
+                }
+            ],
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "Role",
+                "name": "ambassador"
+            }
+        },
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "RELEASE-NAME-ambassador",
+                "creationTimestamp": null,
+                "labels": {
+                    "service": "ambassador"
+                },
+                "annotations": {
+                    "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind:  Module\nname:  ambassador\nconfig:\n  service_port: 8080\n"
+                }
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "name": "http",
+                        "protocol": "TCP",
+                        "port": 8080,
+                        "targetPort": 8080
+                    }
+                ],
+                "selector": {
+                    "service": "ambassador"
+                },
+                "type": "NodePort",
+                "sessionAffinity": "None",
+                "externalTrafficPolicy": "Cluster"
+            },
+            "status": {
+                "loadBalancer": {}
+            }
+        },
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "RELEASE-NAME-ambassador-admin",
+                "creationTimestamp": null,
+                "labels": {
+                    "service": "ambassador-admin"
+                }
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "name": "ambassador-admin",
+                        "protocol": "TCP",
+                        "port": 8877,
+                        "targetPort": 8877
+                    }
+                ],
+                "selector": {
+                    "service": "ambassador"
+                },
+                "type": "NodePort",
+                "sessionAffinity": "None",
+                "externalTrafficPolicy": "Cluster"
+            },
+            "status": {
+                "loadBalancer": {}
+            }
+        },
+        {
             "kind": "Deployment",
-            "apiVersion": "apps/v1beta1",
+            "apiVersion": "apps/v1",
+            "metadata": {
+                "name": "RELEASE-NAME-ambassador",
+                "creationTimestamp": null,
+                "labels": {
+                    "service": "ambassador"
+                }
+            },
+            "spec": {
+                "replicas": 1,
+                "selector": {
+                    "matchLabels": {
+                        "service": "ambassador"
+                    }
+                },
+                "template": {
+                    "metadata": {
+                        "creationTimestamp": null,
+                        "labels": {
+                            "service": "ambassador"
+                        },
+                        "annotations": {
+                            "sidecar.istio.io/inject": "false"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "name": "ambassador",
+                                "image": "quay.io/datawire/ambassador:0.35.1",
+                                "ports": [
+                                    {
+                                        "name": "http",
+                                        "containerPort": 8080,
+                                        "protocol": "TCP"
+                                    },
+                                    {
+                                        "name": "https",
+                                        "containerPort": 443,
+                                        "protocol": "TCP"
+                                    },
+                                    {
+                                        "name": "admin",
+                                        "containerPort": 8877,
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "env": [
+                                    {
+                                        "name": "AMBASSADOR_SINGLE_NAMESPACE",
+                                        "value": "true"
+                                    },
+                                    {
+                                        "name": "AMBASSADOR_NAMESPACE",
+                                        "valueFrom": {
+                                            "fieldRef": {
+                                                "apiVersion": "v1",
+                                                "fieldPath": "metadata.namespace"
+                                            }
+                                        }
+                                    }
+                                ],
+                                "resources": {
+                                    "limits": {
+                                        "cpu": "1",
+                                        "memory": "400Mi"
+                                    },
+                                    "requests": {
+                                        "cpu": "200m",
+                                        "memory": "128Mi"
+                                    }
+                                },
+                                "livenessProbe": {
+                                    "httpGet": {
+                                        "path": "/ambassador/v0/check_alive",
+                                        "port": "admin",
+                                        "scheme": "HTTP"
+                                    },
+                                    "initialDelaySeconds": 30,
+                                    "timeoutSeconds": 1,
+                                    "periodSeconds": 3,
+                                    "successThreshold": 1,
+                                    "failureThreshold": 3
+                                },
+                                "readinessProbe": {
+                                    "httpGet": {
+                                        "path": "/ambassador/v0/check_ready",
+                                        "port": "admin",
+                                        "scheme": "HTTP"
+                                    },
+                                    "initialDelaySeconds": 30,
+                                    "timeoutSeconds": 1,
+                                    "periodSeconds": 3,
+                                    "successThreshold": 1,
+                                    "failureThreshold": 3
+                                },
+                                "terminationMessagePath": "/dev/termination-log",
+                                "terminationMessagePolicy": "File",
+                                "imagePullPolicy": "IfNotPresent"
+                            },
+                            {
+                                "name": "statsd",
+                                "image": "datawire/prom-statsd-exporter:0.6.0",
+                                "ports": [
+                                    {
+                                        "name": "metrics",
+                                        "containerPort": 9102,
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "resources": {},
+                                "terminationMessagePath": "/dev/termination-log",
+                                "terminationMessagePolicy": "File",
+                                "imagePullPolicy": "IfNotPresent"
+                            }
+                        ],
+                        "restartPolicy": "Always",
+                        "terminationGracePeriodSeconds": 30,
+                        "dnsPolicy": "ClusterFirst",
+                        "serviceAccountName": "seldon",
+                        "serviceAccount": "seldon",
+                        "securityContext": {
+                            "runAsUser": 8888
+                        },
+                        "schedulerName": "default-scheduler"
+                    }
+                },
+                "strategy": {
+                    "type": "RollingUpdate",
+                    "rollingUpdate": {
+                        "maxUnavailable": 1,
+                        "maxSurge": 1
+                    }
+                },
+                "progressDeadlineSeconds": 2147483647
+            },
+            "status": {}
+        },
+        {
+            "kind": "Deployment",
+            "apiVersion": "apps/v1",
             "metadata": {
                 "name": "RELEASE-NAME-seldon-apiserver",
-                "namespace": "kubeflow",
                 "creationTimestamp": null,
                 "labels": {
                     "app": "seldon-apiserver-container-app",
@@ -218,7 +489,8 @@
                                 "terminationMessagePolicy": "File",
                                 "imagePullPolicy": "IfNotPresent",
                                 "securityContext": {
-                                    "runAsUser": 8888
+                                    "runAsUser": 8888,
+                                    "procMount": null
                                 }
                             }
                         ],
@@ -283,10 +555,9 @@
         },
         {
             "kind": "Deployment",
-            "apiVersion": "extensions/v1beta1",
+            "apiVersion": "apps/v1",
             "metadata": {
                 "name": "RELEASE-NAME-seldon-cluster-manager",
-                "namespace": "kubeflow",
                 "creationTimestamp": null,
                 "labels": {
                     "app": "seldon-cluster-manager-server",
@@ -369,7 +640,8 @@
                                 "terminationMessagePolicy": "File",
                                 "imagePullPolicy": "IfNotPresent",
                                 "securityContext": {
-                                    "runAsUser": 8888
+                                    "runAsUser": 8888,
+                                    "procMount": null
                                 }
                             }
                         ],
@@ -388,16 +660,16 @@
                         "maxUnavailable": 1,
                         "maxSurge": 1
                     }
-                }
+                },
+                "progressDeadlineSeconds": 2147483647
             },
             "status": {}
         },
         {
             "kind": "Deployment",
-            "apiVersion": "extensions/v1beta1",
+            "apiVersion": "apps/v1",
             "metadata": {
                 "name": "RELEASE-NAME-redis",
-                "namespace": "kubeflow",
                 "creationTimestamp": null,
                 "labels": {
                     "app": "RELEASE-NAME-redis-app",
@@ -465,7 +737,8 @@
                         "maxUnavailable": 1,
                         "maxSurge": 1
                     }
-                }
+                },
+                "progressDeadlineSeconds": 2147483647
             },
             "status": {}
         },
