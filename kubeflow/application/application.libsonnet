@@ -1,4 +1,5 @@
 {
+  // Implements [Kubernetes Application API draft-20180115](https://github.com/kow3ns/community/blob/8cb87419883197032f4e5cce8d5518c9c5792f6c/keps/sig-apps/0003-kubernetes-application-api.md)
   local k8s = import "k8s.libsonnet",
   local util = import "kubeflow/core/util.libsonnet",
   local crd = k8s.apiextensions.v1beta1.customResourceDefinition,
@@ -193,6 +194,7 @@
     },
     metaControllerStatefulSet:: metaControllerStatefulSet,
 
+    // see [API](https://github.com/kow3ns/community/blob/8cb87419883197032f4e5cce8d5518c9c5792f6c/keps/sig-apps/0003-kubernetes-application-api.md#api)
     local openApiV3Schema = {
       properties: {
         apiVersion: {
@@ -356,20 +358,24 @@
               },
               type: "array",
             },
+            ready: {
+              type: "string",
+            },
           },
           type: "object",
         },
       },
     },
 
-    local applicationCrd =
+    local applicationCRD =
       crd.new() + crd.mixin.metadata.
         withName("applications.app.k8s.io").
         withNamespace(params.namespace).
         withLabelsMixin({
         api: "default",
-        "kubebuilder.k8s.io": "0.1.10",
-      }) +
+        "kubebuilder.k8s.io": "0.1.10",}).
+        withAnnotationsMixin({
+          group: "metacontroller",}) +
       crd.mixin.spec.
         withGroup("app.k8s.io").
         withVersion("v1beta1").
@@ -380,7 +386,41 @@
         withSingular("application") +
       crd.mixin.spec.validation.
         withOpenApiV3Schema(openApiV3Schema),
-    applicationCrd:: applicationCrd,
+    applicationCRD:: applicationCRD,
+
+    local application = {
+      apiVersion: "app.k8s.io/v1beta1",
+      kind: "Application",
+      metadata: {
+        name: params.name,
+        labels: {
+          app: params.name,
+        },
+        namespace: params.namespace,
+      },
+      spec: {
+        selector: {
+          matchLabels: {
+            "app.kubernetes.io/name": params.type,
+          },
+        },
+        componentKinds+: std.map(byComponent, tuples),
+        descriptor: {
+          type: params.type,
+          version: params.version,
+          description: "",
+          icons: [],
+          maintainers: [],
+          owners: [],
+          keywords: [],
+          links: [],
+          notes: "",
+        },
+        info: [],
+        assemblyPhase: "Succeeded",
+      },
+    },
+    application:: application,
 
     local generateComponentTuples(resource) = {
       local name =
@@ -404,8 +444,14 @@
     }.return,
 
     local perComponent(name) = {
-      local list = std.extVar("__ksonnet/components")[name],
-      return:: std.map(generateComponentTuples, list.items),
+      local list = std.extVar("__ksonnet/components"),
+      return:: 
+        if std.objectHas(list, name) && 
+        std.objectHas(list[name], 'items') && 
+        std.type(list[name].items) == "array" then
+          std.map(generateComponentTuples, list[name].items)
+        else
+          [],
     }.return,
 
     local byResource(wrapper) = {
@@ -477,39 +523,6 @@
     local tuples = std.flattenArrays(std.map(perComponent, getComponents)),
     local components = std.map(byResource, tuples),
     local resources = groupByResource(tuples),
-
-    local application = {
-      apiVersion: "app.k8s.io/v1beta1",
-      kind: "Application",
-      metadata: {
-        name: params.name,
-        labels: {
-          app: params.name,
-        },
-        namespace: params.namespace,
-      },
-      spec: {
-        selector: {
-          matchLabels: {
-            "app.kubernetes.io/name": params.type,
-          },
-        },
-        componentKinds+: std.map(byComponent, tuples),
-        descriptor: {
-          type: params.type,
-          version: params.version,
-          description: "",
-          icons: [],
-          maintainers: [],
-          owners: [],
-          keywords: [],
-          links: [],
-          notes: "",
-        },
-        info: [],
-      },
-    },
-    application:: application,
 
     local syncApplication =
       |||
@@ -600,7 +613,7 @@
           local assemblyPhase = {
             return::
               if std.length(foundChildren) == std.length(filteredComponents) then
-                "Success"
+                "Succeeded"
               else
                 "Pending",
           }.return,
@@ -613,10 +626,10 @@
             observedGeneration: '1',
             assemblyPhase: assemblyPhase,
             installed: std.map(installedName, foundChildren),
-            ready: true,
+            ready: "True",
             created: true,
-
-            request_children: request.children,
+            //debug
+            request_children_length: std.length(request.children),
             found_children_length: std.length(foundChildren),
             components_length: std.length(components),
             filtered_components_length: std.length(filteredComponents),
@@ -713,16 +726,6 @@
     },
     applicationService:: applicationService,
 
-    local forChildResources(wrapper) = {
-      local tuple = wrapper.tuple,
-      local resource = tuple[2],
-      local childResource = {
-        apiVersion: resource.apiVersion,
-        resource: util.lower(resource.kind) + "s",
-      },
-      return:: childResource,
-    }.return,
-
     local applicationController = {
       apiVersion: "metacontroller.k8s.io/v1alpha1",
       kind: "CompositeController",
@@ -754,19 +757,31 @@
     },
     applicationController:: applicationController,
 
+    local forChildResources(wrapper) = {
+      local tuple = wrapper.tuple,
+      local resource = tuple[2],
+      local childResource = {
+        apiVersion: resource.apiVersion,
+        resource: util.lower(resource.kind) + "s",
+      },
+      return:: childResource,
+    }.return,
+
     local all = [
+      //should be separate component, requires cluster-admin
+      self.applicationCRD,
       self.compositeControllerCRD,
-      self.decoratorControllerCRD,
       self.controllerRevisionsCRD,
+      self.decoratorControllerCRD,
       self.metaControllerServiceAccount,
       self.metaControllerClusterRoleBinding,
       self.metaControllerStatefulSet,
-      self.applicationCrd,
-      self.application,
+      //application
       self.applicationConfigmap,
       self.applicationDeployment,
       self.applicationService,
       self.applicationController,
+      self.application,
     ],
 
     all:: std.filter(function(resource) {
