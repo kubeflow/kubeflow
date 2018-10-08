@@ -97,7 +97,6 @@ RUN pip install --upgrade pip && \
     # Tensorflow
     ${TF_PACKAGE} \
     # Jupyter Stuff
-    jupyter \
     jupyterhub \
     jupyterlab \
     # Cleanup
