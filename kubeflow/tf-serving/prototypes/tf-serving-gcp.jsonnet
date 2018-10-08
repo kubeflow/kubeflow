@@ -13,6 +13,7 @@
 // @optionalParam defaultGpuImage string tensorflow/serving:1.10.0-gpu The default model server image (gpu)
 // @optionalParam httpProxyImage string gcr.io/kubeflow-images-public/tf-model-server-http-proxy:v20180723 Http proxy image
 // @optionalParam gcpCredentialSecretName string null If not empty, insert the secret credential
+// @optionalParam injectIstio string false Whether to inject istio sidecar; should be true or false.
 
 local k = import "k.libsonnet";
 local deployment = k.apps.v1beta1.deployment;
