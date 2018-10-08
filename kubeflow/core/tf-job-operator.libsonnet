@@ -52,15 +52,15 @@
       },
     },
     local crd(inst) = {
-      local scope = inst + 
-        if params.deploymentScope == "namespace" && 
-        params.deploymentNamespace != null then
-          { spec+: { scope: "Namespaced" }, }
-        else
-          {},
+      local scope = inst +
+                    if params.deploymentScope == "namespace" &&
+                       params.deploymentNamespace != null then
+                      { spec+: { scope: "Namespaced" } }
+                    else
+                      {},
       local version =
         scope + if params.tfJobVersion == "v1alpha2" then
-          { spec+: { version: "v1alpha2" }, } +
+          { spec+: { version: "v1alpha2" } } +
           { spec+: { validation: { openAPIV3Schema: openAPIV3Schema } } }
         else
           {},
@@ -449,27 +449,28 @@
     },
     tfUiDeployment:: tfUiDeployment,
 
-    local tfUiRole = role({
-      apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: operatorRole.new().kind,
-      metadata: {
-        labels: {
-          app: "tf-job-dashboard",
+    local tfUiRole = role(
+      {
+        apiVersion: "rbac.authorization.k8s.io/v1beta1",
+        kind: operatorRole.new().kind,
+        metadata: {
+          labels: {
+            app: "tf-job-dashboard",
+          },
+          name: "tf-job-dashboard",
+          namespace: params.namespace,
         },
-        name: "tf-job-dashboard",
-        namespace: params.namespace,
-      },
-    } + k.rbac.v1beta1.role.withRulesMixin([
-      rules.tfJobsRule,
-      rules.tfCrdRule,
-      rules.tfStorageRule,
-      rules.tfBatchRule,
-      rules.tfCoreRule.withResourcesMixin([
-        "pods/log",
-        "namespaces",
-      ]),
-      rules.tfAppsRule,
-    ],),
+      } + k.rbac.v1beta1.role.withRulesMixin([
+        rules.tfJobsRule,
+        rules.tfCrdRule,
+        rules.tfStorageRule,
+        rules.tfBatchRule,
+        rules.tfCoreRule.withResourcesMixin([
+          "pods/log",
+          "namespaces",
+        ]),
+        rules.tfAppsRule,
+      ],),
     ),
     tfUiRole:: tfUiRole,
 

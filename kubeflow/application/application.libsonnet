@@ -373,9 +373,11 @@
         withNamespace(params.namespace).
         withLabelsMixin({
         api: "default",
-        "kubebuilder.k8s.io": "0.1.10",}).
+        "kubebuilder.k8s.io": "0.1.10",
+      }).
         withAnnotationsMixin({
-          group: "metacontroller",}) +
+        group: "metacontroller",
+      }) +
       crd.mixin.spec.
         withGroup("app.k8s.io").
         withVersion("v1beta1").
@@ -445,10 +447,10 @@
 
     local perComponent(name) = {
       local list = std.extVar("__ksonnet/components"),
-      return:: 
-        if std.objectHas(list, name) && 
-        std.objectHas(list[name], 'items') && 
-        std.type(list[name].items) == "array" then
+      return::
+        if std.objectHas(list, name) &&
+           std.objectHas(list[name], "items") &&
+           std.type(list[name].items) == "array" then
           std.map(generateComponentTuples, list[name].items)
         else
           [],
