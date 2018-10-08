@@ -4,7 +4,7 @@
 // @shortDescription Serve an outlier detector with a model
 // @param name string Name to give this deployment
 // @param image string Docker image which contains this model
-// @optionalParam outlierDetectorImage string seldonio/outlier_mahalanobis:0.2 Docker image for outlier detector
+// @optionalParam outlierDetectorImage string seldonio/outlier_mahalanobis:0.3 Docker image for outlier detector
 // @optionalParam replicas number 1 Number of replicas
 // @optionalParam endpoint string REST The endpoint type: REST or GRPC
 // @optionalParam pvcName string null Name of PVC
@@ -113,7 +113,4 @@ local seldonDeployment = {
   },
 };
 
-k.core.v1.list.new([
-  pvcClaim,
-  seldonDeployment,
-])
+if params.pvcName == "null" then k.core.v1.list.new([seldonDeployment]) else k.core.v1.list.new([pvcClaim, seldonDeployment])
