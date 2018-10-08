@@ -27,3 +27,4 @@ KUBEFLOW_SOURCE=$(find ${TMPDIR} -maxdepth 1 -type d -name "kubeflow*")
 # Copy over the directories we need
 cp -r ${KUBEFLOW_SOURCE}/kubeflow ./
 cp -r ${KUBEFLOW_SOURCE}/scripts ./
+cp -r ${KUBEFLOW_SOURCE}/deployment ./
