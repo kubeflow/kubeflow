@@ -11,8 +11,6 @@ app:
       prototype: centraldashboard
     - name: tf-job-operator
       prototype: tf-job-operator
-    - name: spartakus
-      prototype: spartakus
     - name: cloud-endpoints
       prototype: cloud-endpoints
     - name: cert-manager
@@ -25,15 +23,15 @@ app:
       value: admin-gcp-sa
     - component: cert-manager
       name: acmeEmail
-      # TODO: use your email for ssl cert
+        # TODO: use your email for ssl cert
       value: johnDoe@acme.com
     - component: iap-ingress
       name: ipName
-      # TODO: make sure value of ipName is the same as property <ipName>.
+        # TODO: make sure value of ipName is the same as property <ipName>.
       value: ipName
     - component: iap-ingress
       name: hostname
-      # TODO: replace with Name of GCP project. This is fully qualified domain name to use with ingress.
+        # TODO: replace with Name of GCP project. This is fully qualified domain name to use with ingress.
       value: kubeflow.endpoints.<Project>.cloud.goog
     - component: jupyterhub
       name: jupyterHubAuthenticator
@@ -44,8 +42,10 @@ app:
     - component: ambassador
       name: cloud
       value: gke
-    - component: spartakus
-      name: reportUsage
-      value: true
   registries:
     - name: kubeflow
+      repo: https://github.com/kubeflow/kubeflow
+        # default leave empty
+      version:
+      path: kubeflow
+
