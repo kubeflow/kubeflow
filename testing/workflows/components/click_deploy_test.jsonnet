@@ -325,6 +325,12 @@ local workflow = {
         },
       },
       {
+        name: "kubeflow-oauth",
+        secret: {
+          secretName: "kubeflow-oauth",
+        },
+      },
+      {
         name: dataVolume,
         persistentVolumeClaim: {
           claimName: nfsVolumeClaim,
