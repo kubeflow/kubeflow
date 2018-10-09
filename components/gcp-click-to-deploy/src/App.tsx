@@ -124,8 +124,26 @@ class App extends React.Component<any, { signedIn: boolean }> {
                     <li> Click deploy </li>
                   </ul>
                 </div>
-                <div> <a style={{ color: 'inherit', marginLeft: 5 }} href="https://policies.google.com/terms">Terms</a></div>
-                <div> <a style={{ color: 'inherit', marginLeft: 5 }} href="https://policies.google.com/privacy">Privacy</a></div>
+                <div>
+                  Notice:
+                  <ul>
+
+                     <li> When you click deploy a short lived OAuth token granting access to your GCP resources will be sent to the
+                          Kubeflow deploy service
+                     </li>
+                     <li> The Kubeflow deploy service uses this to create Kubeflow GCP resources on your behalf
+                     </li>
+                     <li> If you don't want to delegate a credential to the service please use our
+                          <a href="https://www.kubeflow.org/docs/started/getting-started-gke/"
+                            style={{ color: 'inherit', marginLeft: 5 }}
+                          >CLI to deploy Kubeflow</a>
+                     </li>
+                     <li> <a style={{ color: 'inherit', marginLeft: 5 }} href="https://policies.google.com/terms">Terms</a>
+                     </li>
+                     <li><a style={{ color: 'inherit', marginLeft: 5 }} href="https://policies.google.com/privacy">Privacy</a>
+                     </li>
+                  </ul>
+                </div>                
               </div>
               <div style={styles.rightPane}>
                 <Switch>
