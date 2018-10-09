@@ -40,9 +40,8 @@ npm start
 
 ## Deployment
 
-We have a dev instance running at [https://deploy-gcp.kubeflow.dev](https://deploy-gcp.kubeflow.dev)
+We have a dev instance running at [https://deploy.kubeflow.dev](https://deploy.kubeflow.dev)
 
-We have a dev instance running in our dev cluster
 
 ```
 PROJECT=kubeflow-dev

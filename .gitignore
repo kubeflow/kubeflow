@@ -39,3 +39,7 @@ examples/.ipynb_checkpoints/
 
 
 !testing/test-infra/vendor
+
+# This is required for testing but we don't
+# want to check it in right now.
+components/gcp-click-to-deploy/src/user_config/**

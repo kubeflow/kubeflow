@@ -46,7 +46,7 @@ type ApplyIamRequest struct {
 func (s *ksServer)InsertDeployment(ctx context.Context, req CreateRequest) error {
 	regPath := s.knownRegistries["kubeflow"].RegUri
 	var dmconf DmConf
-	err := LoadConfig(path.Join(regPath, "../components/gcp-click-to-deploy/src/configs/cluster-kubeflow.yaml"), &dmconf)
+	err := LoadConfig(path.Join(regPath, "../deployment/gke/deployment_manager_configs/cluster-kubeflow.yaml"), &dmconf)
 
 	if err == nil {
 		dmconf.Resources[0].Name = req.Name
@@ -55,12 +55,15 @@ func (s *ksServer)InsertDeployment(ctx context.Context, req CreateRequest) error
 		dmconf.Resources[0].Properties["clientSecret"] = req.ClientSecret
 		dmconf.Resources[0].Properties["ipName"] = req.IpName
 		dmconf.Resources[0].Properties["users"] = []string { "user:" + req.Email }
+		dmconf.Resources[0].Properties["isWebapp"] = true
+		// TODO: use get-server-config
+		dmconf.Resources[0].Properties["cluster-version"] = "1.10.7-gke.2"
 	}
 	confByte, err := yaml.Marshal(dmconf)
 	if err != nil {
 		return err
 	}
-	templateData, err := ioutil.ReadFile(path.Join(regPath, "../components/gcp-click-to-deploy/src/configs/cluster.jinja"))
+	templateData, err := ioutil.ReadFile(path.Join(regPath, "../deployment/gke/deployment_manager_configs/cluster.jinja"))
 	if err != nil {
 		return err
 	}
@@ -185,7 +188,7 @@ func GetUpdatedPolicy(currentPolicy *cloudresourcemanager.Policy, iamConf *IamCo
 func (s *ksServer)ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) error {
 	// Get the iam change from config.
 	regPath := s.knownRegistries["kubeflow"].RegUri
-	templatePath := path.Join(regPath, "../components/gcp-click-to-deploy/src/configs/iam_bindings_template.yaml")
+	templatePath := path.Join(regPath, "../deployment/gke/deployment_manager_configs/iam_bindings_template.yaml")
 	var iamConf IamConf
 	err := LoadConfig(templatePath, &iamConf)
 	if err != nil {
