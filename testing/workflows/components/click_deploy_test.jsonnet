@@ -1,4 +1,4 @@
-local params = std.extVar("__ksonnet/params").components.kfctl_test;
+local params = std.extVar("__ksonnet/params").components.click_deploy_test;
 
 local k = import "k.libsonnet";
 local util = import "workflows.libsonnet";
@@ -31,7 +31,7 @@ local runPath = srcDir + "/testing/workflows/run.sh";
 local kfCtlPath = srcDir + "/scripts/kfctl.sh";
 local bootstrapDir = srcDir + "/bootstrap";
 
-local kubeConfig = testDir + "/kfctl_test/.kube/kubeconfig";
+local kubeConfig = testDir + "/click_deploy_test/.kube/kubeconfig";
 
 // Name for the Kubeflow app.
 // This needs to be unique for each test run because it is
@@ -200,6 +200,7 @@ local dagTemplates = [
         "python3",
         "-m",
         "testing.test_deploy_app",
+        "--namespace=" + name,
       ],
       working_dir=appDir
     ),

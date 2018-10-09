@@ -59,7 +59,7 @@ def make_deploy_call(args):
     "Token": access_token,
     "Zone": "us-east1-d"
   }
-  resp = requests.post("http://localhost:8080/kfctl/e2eDeploy", json=req_data)
+  resp = requests.post("http://kubeflow-controller.%v.svc.cluster.local:8080/kfctl/e2eDeploy" % args.namespace, json=req_data)
   if resp.status_code != 200:
     raise RuntimeError("deploy request received status code: %v" % resp.status_code)
 
@@ -147,6 +147,11 @@ def main(unparsed_args=None):
     default="593963025935",
     type=str,
     help="e2e test project number")
+  parser.add_argument(
+    "--namespace",
+    default="",
+    type=str,
+    help="namespace where deployment service is running")
   parser.add_argument(
     "--SA_CREDENTIALS",
     default="",
