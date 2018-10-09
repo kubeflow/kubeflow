@@ -56,11 +56,7 @@ local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=
   workingDir: working_dir,
   container: {
     command: command,
-    image:
-      if step_name == "test-deploy" then
-        bootstrapImage + ":" + params.name
-      else
-        image,
+    image: image,
     workingDir: working_dir,
     // TODO(jlewi): Change to IfNotPresent.
     imagePullPolicy: "Always",
