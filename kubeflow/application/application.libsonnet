@@ -728,12 +728,21 @@
     },
     applicationService:: applicationService,
 
+    local forChildResources(wrapper) = {
+      local tuple = wrapper.tuple,
+      local resource = tuple[2],
+      local childResource = {
+        apiVersion: resource.apiVersion,
+        resource: util.lower(resource.kind) + "s",
+      },
+      return:: childResource,
+    }.return,
+
     local applicationController = {
       apiVersion: "metacontroller.k8s.io/v1alpha1",
       kind: "CompositeController",
       metadata: {
         name: "application-controller",
-        namespace: params.namespace,
       },
       spec: {
         generateSelector: true,
@@ -741,10 +750,8 @@
           apiVersion: "app.k8s.io/v1beta1",
           resource: "applications",
         },
-        local getKey(resource) =
-          resource.resource + "." + resource.apiVersion,
-        local getValue(resource) =
-          resource,
+        local getKey(resource) = resource.resource + "." + resource.apiVersion,
+        local getValue(resource) = resource,
         local childResources = std.map(forChildResources, tuples),
         local childResourcesMap = util.foldl(getKey, getValue, childResources),
         childResources: [childResourcesMap[key] for key in std.objectFields(childResourcesMap)],
@@ -758,16 +765,6 @@
       },
     },
     applicationController:: applicationController,
-
-    local forChildResources(wrapper) = {
-      local tuple = wrapper.tuple,
-      local resource = tuple[2],
-      local childResource = {
-        apiVersion: resource.apiVersion,
-        resource: util.lower(resource.kind) + "s",
-      },
-      return:: childResource,
-    }.return,
 
     local all = [
       //should be separate component, requires cluster-admin
