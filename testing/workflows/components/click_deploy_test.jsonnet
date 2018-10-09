@@ -195,7 +195,7 @@ local dagTemplates = [
   },
   {
     template: buildTemplate(
-      "test_deploy",
+      "test-deploy",
       [
         "python3",
         "-m",
@@ -209,7 +209,7 @@ local dagTemplates = [
   // Run the nested tests.
   {
     template: componentTests.argoDagTemplate,
-    dependencies: ["test_deploy"],
+    dependencies: ["test-deploy"],
   },
 ];
 
