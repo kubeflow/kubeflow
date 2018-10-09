@@ -24,7 +24,7 @@ def may_get_env_var(name):
     raise Exception("%v not set" % name)
 
 def make_deploy_call(args):
-  with open(os.path.join(FILE_PATH, "config/gcp_prototype.yaml"), 'r') as conf_input:
+  with open(os.path.join(FILE_PATH, "../bootstrap/config/gcp_prototype.yaml"), 'r') as conf_input:
     defaultApp = yaml.load(conf_input)["app"]
 
   for param in defaultApp["parameters"]:
