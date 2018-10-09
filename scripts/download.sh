@@ -10,7 +10,7 @@ if [ ! -z "${KUBEFLOW_VERSION}" ]; then
 	KUBEFLOW_TAG=v${KUBEFLOW_VERSION}
 fi
 
-KUBEFLOW_TAG=${KUBEFLOW_TAG:-master}
+KUBEFLOW_TAG=${KUBEFLOW_TAG:-v0.3-branch}
 
 if [ -d "${KUBEFLOW_REPO}" ]; then
   echo Directory ${KUBEFLOW_REPO} already exists
