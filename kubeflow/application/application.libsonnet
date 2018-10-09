@@ -397,6 +397,7 @@
         name: params.name,
         labels: {
           app: params.name,
+          "app.kubernetes.io/name": params.type,
         },
         namespace: params.namespace,
       },
