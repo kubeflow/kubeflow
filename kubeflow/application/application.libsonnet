@@ -397,14 +397,14 @@
         name: params.name,
         labels: {
           app: params.name,
-          "app.kubernetes.io/name": params.type,
+          "app.kubernetes.io/name": params.name,
         },
         namespace: params.namespace,
       },
       spec: {
         selector: {
           matchLabels: {
-            "app.kubernetes.io/name": params.type,
+            "app.kubernetes.io/name": params.name,
           },
         },
         componentKinds+: std.map(byComponent, tuples),
