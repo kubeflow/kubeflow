@@ -18,10 +18,10 @@ METHOD = 'GET'
 
 def may_get_env_var(name):
   if os.getenv(name):
-    logging.info("%v is set" % name)
+    logging.info("%s is set" % name)
     return os.getenv(name)
   else:
-    raise Exception("%v not set" % name)
+    raise Exception("%s not set" % name)
 
 def make_deploy_call(args):
   with open(os.path.join(FILE_PATH, "../bootstrap/config/gcp_prototype.yaml"), 'r') as conf_input:
@@ -59,9 +59,9 @@ def make_deploy_call(args):
     "Token": access_token,
     "Zone": "us-east1-d"
   }
-  resp = requests.post("http://kubeflow-controller.%v.svc.cluster.local:8080/kfctl/e2eDeploy" % args.namespace, json=req_data)
+  resp = requests.post("http://kubeflow-controller.%s.svc.cluster.local:8080/kfctl/e2eDeploy" % args.namespace, json=req_data)
   if resp.status_code != 200:
-    raise RuntimeError("deploy request received status code: %v" % resp.status_code)
+    raise RuntimeError("deploy request received status code: %s" % resp.status_code)
 
 def check_deploy_status(args):
     # Figure out what environment we're running in and get some preliminary
