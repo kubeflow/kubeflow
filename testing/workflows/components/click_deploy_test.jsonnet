@@ -28,20 +28,9 @@ local srcRootDir = testDir + "/src";
 local srcDir = srcRootDir + "/kubeflow/kubeflow";
 
 local runPath = srcDir + "/testing/workflows/run.sh";
-local kfCtlPath = srcDir + "/scripts/kfctl.sh";
 local bootstrapDir = srcDir + "/bootstrap";
 
 local kubeConfig = testDir + "/click_deploy_test/.kube/kubeconfig";
-
-// Name for the Kubeflow app.
-// This needs to be unique for each test run because it is
-// used to name GCP resources
-// We take the suffix of the name because it should provide some random salt.
-local appName = "kfctl-" + std.substr(name, std.length(name) - 4, 4);
-
-// Directory containing the app. This is the directory
-// we execute kfctl commands from
-local appDir = testDir + "/" + appName;
 
 local image = "gcr.io/kubeflow-ci/test-worker:latest";
 local bootstrapImage = "gcr.io/kubeflow-ci/bootstrapper";
@@ -216,7 +205,7 @@ local dagTemplates = [
         "testing.test_deploy_app",
         "--namespace=" + name,
       ],
-      working_dir=appDir
+      working_dir=testDir
     ),
     dependencies: ["setup"],
   },
@@ -241,7 +230,7 @@ local exitTemplates =
           "us-east1-d",
           name,
         ],
-        working_dir=appDir
+        working_dir=testDir
       ),
       dependencies: null,
     },
