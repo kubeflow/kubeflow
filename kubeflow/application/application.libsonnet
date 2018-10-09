@@ -465,6 +465,8 @@
             "kubernetes.io/application": params.name,
           },
           labels+: {
+            "app.kubernetes.io/name": params.name,
+            "app.kubernetes.io/component": resource.metadata.name,
             app: params.name,
             component: resource.metadata.name,
           },
