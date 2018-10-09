@@ -12,7 +12,7 @@ IMAGE=$2
 TAG=$3
 
 BUILDER_IMG=gcr.io/kubeflow-images-public/bootstrapper-builder
-BUILDER_IMG_VERSION=$(head -1 glide.lock | cut -d ' ' -f 2)
+BUILDER_IMG_VERSION=$(head -1 ${CONTEXT_DIR}/glide.lock | cut -d ' ' -f 2)
 
 # pull builder image from GCR or build it from local if required one doesn't exist.
 docker pull ${BUILDER_IMG}:${BUILDER_IMG_VERSION} || docker build -t ${BUILDER_IMG}:${BUILDER_IMG_VERSION} -f ${CONTEXT_DIR}/Dockerfile.Builder .
