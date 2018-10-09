@@ -17,8 +17,9 @@ NAMESPACE=$6
 
 # insert image tag
 sed -i -e "s/tag-placeholder/${TAG}/g" ${MANIFEST}
+sed -i -e "s/namespace-placeholder/${NAMESPACE}/g" ${MANIFEST}
 
 gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
 gcloud container clusters get-credentials ${CLUSTER} --zone ${ZONE} --project ${PROJECT}
 # start deployment service
-kubectl create -f ${MANIFEST} -n ${NAMESPACE}
+kubectl create -f ${MANIFEST}

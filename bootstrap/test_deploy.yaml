@@ -38,14 +38,12 @@ spec:
     spec:
       containers:
       - name: controller-backend
-        image: gcr.io/kubeflow-ci/bootstrapper:llaatt
-        command: [ "/bin/bash", "-c", "--" ]
-        args: [ "while true; do sleep 30; done;" ]
-#        workingDir: /opt/bootstrap
-#        command: [ "/opt/kubeflow/bootstrapper"]
-#        args: [
-#          "--in-cluster",
-#          "--namespace=kubeflow"
-#        ]
-#        ports:
-#        - containerPort: 8080
+        image: gcr.io/kubeflow-ci/bootstrapper:tag-placeholder
+        workingDir: /opt/bootstrap
+        command: [ "/opt/kubeflow/bootstrapper"]
+        args: [
+          "--in-cluster",
+          "--namespace=kubeflow"
+        ]
+        ports:
+        - containerPort: 8080
