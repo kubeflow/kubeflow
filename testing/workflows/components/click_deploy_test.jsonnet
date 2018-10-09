@@ -173,6 +173,20 @@ local dagTemplates = [
         name,
       ],
       working_dir=testDir,
+      env_vars=[
+        {
+          name: "DOCKER_HOST",
+          value: "127.0.0.1",
+        },
+      ],
+      sidecars=[{
+        name: "dind",
+        image: "docker:17.10-dind",
+        securityContext: {
+          privileged: true,
+        },
+        mirrorVolumeMounts: true,
+      }],
     ),
     dependencies: ["checkout"],
   },
