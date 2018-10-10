@@ -16,6 +16,6 @@ gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS
 
 gcloud container clusters get-credentials ${CLUSTER} --zone ${ZONE} --project ${PROJECT}
 # delete test namespace
-kubectl delete namespace ${NAMESPACE}
+# kubectl delete namespace ${NAMESPACE}
 
-gcloud deployment-manager deployments delete ${DEPLOYMENT} --project=${PROJECT}
+gcloud -q deployment-manager deployments delete ${DEPLOYMENT} --project=${PROJECT}

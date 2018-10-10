@@ -65,7 +65,7 @@ def make_deploy_call(args):
   }
   resp = requests.post("http://kubeflow-controller.%s.svc.cluster.local:8080/kfctl/e2eDeploy" % args.namespace, json=req_data)
   if resp.status_code != 200:
-    raise RuntimeError("deploy request received status code: %s" % resp.status_code)
+    raise RuntimeError("deploy request received status code: %s, message: %s" % (resp.status_code, resp.text))
 
 def check_deploy_status(args):
     # Figure out what environment we're running in and get some preliminary
@@ -171,9 +171,14 @@ def main(unparsed_args=None):
     default="",
     type=str,
     help="oauth client secret")
+  parser.add_argument(
+    "--wait_sec",
+    default=60,
+    type=int,
+    help="oauth client secret")
 
   args = parser.parse_args(args=unparsed_args)
-  sleep(60)
+  sleep(args.wait_sec)
 
   make_deploy_call(args)
 
