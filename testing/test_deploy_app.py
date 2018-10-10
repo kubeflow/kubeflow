@@ -33,7 +33,7 @@ def make_deploy_call(args):
 
   for param in defaultApp["parameters"]:
     if param["name"] == "acmeEmail":
-      param["value"] = ""
+      param["value"] = args.email
     if param["name"] == "ipName":
       param["value"] = args.deployment + "-ip"
     if param["name"] == "hostname":
@@ -104,13 +104,18 @@ def check_deploy_status(args):
   status_code = 0
   while retry_credit > 0:
     retry_credit -= 1
-    resp = requests.request(
-      METHOD, "https://%s.endpoints.%s.cloud.goog" % (args.deployment, args.project),
-      headers={'Authorization': 'Bearer {}'.format(
-        google_open_id_connect_token)})
-    status_code = resp.status_code
-    if resp.status_code == 200:
-      break
+    sleep(10)
+    try:
+      resp = requests.request(
+        METHOD, "https://%s.endpoints.%s.cloud.goog" % (args.deployment, args.project),
+        headers={'Authorization': 'Bearer {}'.format(
+          google_open_id_connect_token)})
+      status_code = resp.status_code
+      if resp.status_code == 200:
+        break
+    except Exception:
+      continue
+
   if status_code != 200:
     raise Exception("IAP endpoint not ready after 30 minutes, time out...")
 
@@ -138,7 +143,7 @@ def main(unparsed_args=None):
     help="Deployment name.")
   parser.add_argument(
     "--email",
-    default="google-kubeflow-support@google.com",
+    default="kunming@google.com",
     type=str,
     help="Email used during e2e test")
   parser.add_argument(
