@@ -38,7 +38,7 @@
     s3Enable:: false,
 
     // Which storageType to use
-    sorageType:: null,
+    storageType:: null,
   },
 
   // Parametes specific to GCP.
