@@ -2,7 +2,7 @@
    "name": "spark",
    "apiVersion": "0.0.1",
    "kind": "ksonnet.io/parts",
-   "description": "An empty package used as a stub for new packages.\n",
+   "description": "Holden's awesome Spark Job prototype\n"
    "author": "kubeflow-team <kubeflow-discuss@googlegroups.com>",
    "contributors": [
      {

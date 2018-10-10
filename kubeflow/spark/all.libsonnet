@@ -26,6 +26,7 @@
     local namespace = if std.objectHas(params, "namespace") then params.namespace else env.namespace,
     local mainClass = if params.mainClass == "null" then "" else params.mainClass,
     local jobArguments = if params.jobArguments == "null" then [] else std.split(params.jobArguments, ","),
+    local sparkVersion = params.sparkVersion,
 
     jobServiceAccount:: {
       apiVersion: "v1",
@@ -79,7 +80,7 @@
         {
           kind: "ServiceAccount",
           name: name + "-spark",
-          namespace: "default",
+          namespace: namespace,
         },
       ],
       roleRef: {
@@ -221,7 +222,7 @@
         namespace: namespace,
         labels: {
           "app.kubernetes.io/name": name + "-sparkoperator",
-          "app.kubernetes.io/version": "v2.3.1-v1alpha1",
+          "app.kubernetes.io/version": sparkVersion,
         },
       },
       spec: {
@@ -229,7 +230,7 @@
         selector: {
           matchLabels: {
             "app.kubernetes.io/name": name + "-sparkoperator",
-            "app.kubernetes.io/version": "v2.3.1-v1alpha1",
+            "app.kubernetes.io/version": sparkVersion,
           },
         },
         strategy: {
@@ -244,7 +245,7 @@
             },
             labels: {
               "app.kubernetes.io/name": name + "-sparkoperator",
-              "app.kubernetes.io/version": "v2.3.1-v1alpha1",
+              "app.kubernetes.io/version": sparkVersion,
             },
             initializers: {
               pending: [
@@ -307,7 +308,7 @@
           cores: params.driverCores,
           memory: params.driverMemory,
           labels: {
-            version: params.sparkVersion,
+            version: sparkVersion,
           },
           // Fix this
           serviceAccount: params.name + "-spark",
