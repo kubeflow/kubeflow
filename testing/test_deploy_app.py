@@ -28,6 +28,7 @@ def may_get_env_var(name):
     raise Exception("%s not set" % name)
 
 def make_deploy_call(args):
+  print("prepare deploy call data")
   with open(os.path.join(FILE_PATH, "../bootstrap/config/gcp_prototype.yaml"), 'r') as conf_input:
     defaultApp = yaml.load(conf_input)["app"]
 
@@ -66,8 +67,10 @@ def make_deploy_call(args):
   resp = requests.post("http://kubeflow-controller.%s.svc.cluster.local:8080/kfctl/e2eDeploy" % args.namespace, json=req_data)
   if resp.status_code != 200:
     raise RuntimeError("deploy request received status code: %s, message: %s" % (resp.status_code, resp.text))
+  print("deploy call done")
 
 def check_deploy_status(args):
+  print("check deployment status")
     # Figure out what environment we're running in and get some preliminary
     # information about the service account.
   credentials, _ = google.auth.default(
@@ -114,7 +117,9 @@ def check_deploy_status(args):
       if resp.status_code == 200:
         break
     except Exception:
+      print("IAP not ready, exception caught, retry credit: %s" % retry_credit)
       continue
+    print("IAP not ready, retry credit: %s" % retry_credit)
 
   if status_code != 200:
     raise Exception("IAP endpoint not ready after 30 minutes, time out...")
