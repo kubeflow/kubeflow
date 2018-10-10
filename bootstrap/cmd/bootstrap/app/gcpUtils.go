@@ -55,7 +55,6 @@ func (s *ksServer)InsertDeployment(ctx context.Context, req CreateRequest) error
 		dmconf.Resources[0].Properties["clientId"] = req.ClientId
 		dmconf.Resources[0].Properties["clientSecret"] = req.ClientSecret
 		dmconf.Resources[0].Properties["ipName"] = req.IpName
-		dmconf.Resources[0].Properties["users"] = []string { "user:" + req.Email }
 		dmconf.Resources[0].Properties["isWebapp"] = true
 		// TODO: use get-server-config
 		dmconf.Resources[0].Properties["cluster-version"] = "1.10.6-gke.2"
@@ -139,6 +138,9 @@ func GetClearServiceAccountpolicy(currentPolicy *cloudresourcemanager.Policy, re
 func PrepareAccount(account string) string {
 	if strings.Contains(account, "iam.gserviceaccount.com") {
 		return "serviceAccount:" + account
+	}
+	if strings.Contains(account, "google-kubeflow-support") {
+		return "group:" + account
 	} else {
 		return "user:" + account
 	}

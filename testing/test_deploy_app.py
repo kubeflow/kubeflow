@@ -61,6 +61,8 @@ def make_deploy_call(args):
     "Namespace": 'kubeflow',
     "Project": args.project,
     "ProjectNumber": args.project_number,
+    # service account client id of account: kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
+    "SAClientId": "111670663612681935351",
     "Token": access_token,
     "Zone": "us-east1-d"
   }
@@ -148,7 +150,7 @@ def main(unparsed_args=None):
     help="Deployment name.")
   parser.add_argument(
     "--email",
-    default="kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com",
+    default="google-kubeflow-support@google.com",
     type=str,
     help="Email used during e2e test")
   parser.add_argument(

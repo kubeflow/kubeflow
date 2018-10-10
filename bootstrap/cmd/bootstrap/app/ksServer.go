@@ -136,6 +136,9 @@ type CreateRequest struct {
 	ClientId string
 	ClientSecret string
 	IpName string
+
+	//For test: GCP service account client id
+	SAClientId string
 }
 
 // basicServerResponse is general response contains nil if handler raise no error, otherwise an error message.
@@ -171,6 +174,9 @@ type ApplyRequest struct {
 	// Leave blank to use the pods service account.
 	Token string
 	Email string
+
+	//For test: GCP service account client id
+	SAClientId string
 }
 
 func setupNamespace(namespaces type_v1.NamespaceInterface, name_space string) error {
@@ -664,6 +670,11 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 			return err
 		}
 
+		bindAccount := req.Email
+		if req.SAClientId != "" {
+			bindAccount = req.SAClientId
+		}
+
 		roleBinding := v1.ClusterRoleBinding{
 			TypeMeta: meta_v1.TypeMeta{
 				APIVersion: "rbac.authorization.k8s.io/v1beta1",
@@ -680,7 +691,7 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 			Subjects: []v1.Subject{
 				{
 					Kind:      v1.UserKind,
-					Name:      req.Email,
+					Name:      bindAccount,
 				},
 			},
 		}
@@ -870,6 +881,7 @@ func finishDeployment(svc KsService, req CreateRequest) {
 			Zone: req.Zone,
 			Token: req.Token,
 			Email: req.Email,
+			SAClientId: req.SAClientId,
 		})
 		if err != nil {
 			log.Errorf("Failed to apply app: %v", err)
