@@ -57,7 +57,7 @@ func (s *ksServer)InsertDeployment(ctx context.Context, req CreateRequest) error
 		dmconf.Resources[0].Properties["users"] = []string { "user:" + req.Email }
 		dmconf.Resources[0].Properties["isWebapp"] = true
 		// TODO: use get-server-config
-		dmconf.Resources[0].Properties["cluster-version"] = "1.10.7-gke.2"
+		dmconf.Resources[0].Properties["cluster-version"] = "1.10.6-gke.2"
 	}
 	confByte, err := yaml.Marshal(dmconf)
 	if err != nil {
