@@ -310,7 +310,6 @@
           labels: {
             version: sparkVersion,
           },
-          // Fix this
           serviceAccount: params.name + "-spark",
           volumeMounts: [
             {
