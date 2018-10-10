@@ -371,13 +371,8 @@
       crd.new() + crd.mixin.metadata.
         withName("applications.app.k8s.io").
         withNamespace(params.namespace).
-        withLabelsMixin({
-        api: "default",
-        "kubebuilder.k8s.io": "0.1.10",
-      }).
-        withAnnotationsMixin({
-        group: "metacontroller",
-      }) +
+        withLabelsMixin({ api: "default" }).
+        withAnnotationsMixin({ group: "metacontroller" }) +
       crd.mixin.spec.
         withGroup("app.k8s.io").
         withVersion("v1beta1").
