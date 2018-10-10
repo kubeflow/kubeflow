@@ -10,6 +10,10 @@ from google.auth.transport.requests import Request
 import requests
 import yaml
 import google.auth
+import google.auth.compute_engine.credentials
+import google.auth.iam
+import google.oauth2.credentials
+import google.oauth2.service_account
 
 FILE_PATH = os.path.dirname(os.path.abspath(__file__))
 IAM_SCOPE = 'https://www.googleapis.com/auth/iam'
