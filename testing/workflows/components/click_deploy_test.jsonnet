@@ -72,11 +72,21 @@ local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=
       },
       {
         name: "CLIENT_ID",
-        value: "/secret/kubeflow-oauth/client_id",
+        valueFrom: {
+          secretKeyRef: {
+            name: "kubeflow-oauth",
+            key: "client_id",
+          },
+        },
       },
       {
         name: "CLIENT_SECRET",
-        value: "/secret/kubeflow-oauth/client_secret",
+        valueFrom: {
+          secretKeyRef: {
+            name: "kubeflow-oauth",
+            key: "client_secret",
+          },
+        },
       },
       {
         name: "GITHUB_TOKEN",
@@ -107,10 +117,6 @@ local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=
       {
         name: "gcp-credentials",
         mountPath: "/secret/gcp-credentials",
-      },
-      {
-        name: "kubeflow-oauth",
-        mountPath: "/secret/kubeflow-oauth",
       },
     ],
   },
@@ -321,12 +327,6 @@ local workflow = {
         name: "gcp-credentials",
         secret: {
           secretName: "kubeflow-testing-credentials",
-        },
-      },
-      {
-        name: "kubeflow-oauth",
-        secret: {
-          secretName: "kubeflow-oauth",
         },
       },
       {
