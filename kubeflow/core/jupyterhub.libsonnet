@@ -170,7 +170,7 @@
                     name: "KF_PVC_LIST",
                     value: params.disks,
                   },
-                  if params.platform== "gke" then
+                  if params.platform == "gke" then
                     {
                       name: "GCP_SECRET_NAME",
                       value: params.gcpSecretName,
