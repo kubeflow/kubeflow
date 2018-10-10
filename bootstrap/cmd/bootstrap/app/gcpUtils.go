@@ -12,6 +12,7 @@ import (
 	"google.golang.org/api/cloudresourcemanager/v1"
 	"io/ioutil"
 	"path"
+	"strings"
 )
 
 type Resource struct {
@@ -135,6 +136,14 @@ func GetClearServiceAccountpolicy(currentPolicy *cloudresourcemanager.Policy, re
 	return newPolicy
 }
 
+func PrepareAccount(account string) string {
+	if strings.Contains(account, "iam.gserviceaccount.com") {
+		return "serviceAccount:" + account
+	} else {
+		return "user:" + account
+	}
+}
+
 func GetUpdatedPolicy(currentPolicy *cloudresourcemanager.Policy, iamConf *IamConf, req ApplyIamRequest) cloudresourcemanager.Policy {
 	// map from role to members.
 	policyMap := map[string]map[string]bool {}
@@ -147,10 +156,10 @@ func GetUpdatedPolicy(currentPolicy *cloudresourcemanager.Policy, iamConf *IamCo
 
 	// Replace placeholder with actual identity.
 	saMapping := map[string]string {
-		"set-kubeflow-admin-service-account": fmt.Sprintf("serviceAccount:%v-admin@%v.iam.gserviceaccount.com", req.Cluster, req.Project),
-		"set-kubeflow-user-service-account": fmt.Sprintf("serviceAccount:%v-user@%v.iam.gserviceaccount.com", req.Cluster, req.Project),
-		"set-kubeflow-vm-service-account": fmt.Sprintf("serviceAccount:%v-vm@%v.iam.gserviceaccount.com", req.Cluster, req.Project),
-		"set-kubeflow-iap-account": fmt.Sprintf("user:%v", req.Email),
+		"set-kubeflow-admin-service-account": PrepareAccount(fmt.Sprintf("%v-admin@%v.iam.gserviceaccount.com", req.Cluster, req.Project)),
+		"set-kubeflow-user-service-account": PrepareAccount(fmt.Sprintf("%v-user@%v.iam.gserviceaccount.com", req.Cluster, req.Project)),
+		"set-kubeflow-vm-service-account": PrepareAccount(fmt.Sprintf("%v-vm@%v.iam.gserviceaccount.com", req.Cluster, req.Project)),
+		"set-kubeflow-iap-account": PrepareAccount(req.Email),
 	}
 	for _, binding := range iamConf.IamBindings {
 		for _, member := range binding.Members {

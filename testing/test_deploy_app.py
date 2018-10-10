@@ -148,7 +148,7 @@ def main(unparsed_args=None):
     help="Deployment name.")
   parser.add_argument(
     "--email",
-    default="kunming@google.com",
+    default="kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com",
     type=str,
     help="Email used during e2e test")
   parser.add_argument(
