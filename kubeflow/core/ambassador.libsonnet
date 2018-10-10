@@ -177,7 +177,7 @@
     ambassadorRoleBinding:: ambassadorRoleBinding,
 
     local ambassadorDeployment = {
-      local replicas = if params.cloud == "minikube" then 1 else 3,
+      local replicas = if params.platform == "minikube" then 1 else 3,
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -258,7 +258,7 @@
 
     // This service adds a rule to our reverse proxy for accessing the K8s dashboard.
     local k8sDashboard = {
-      local isDashboardTls = if params.cloud == "acsengine" || params.cloud == "aks" then
+      local isDashboardTls = if params.isDashboardTls == "acsengine" || params.isDashboardTls == "aks" then
         "false"
       else
         "true",
