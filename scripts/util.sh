@@ -57,6 +57,7 @@ function createKsApp() {
   ks pkg install kubeflow/pytorch-job
   ks pkg install kubeflow/seldon
   ks pkg install kubeflow/tf-serving
+  ks pkg install kubeflow/tensorboard
 
   # Generate all required components
   ks generate pytorch-operator pytorch-operator
@@ -66,6 +67,7 @@ function createKsApp() {
   ks generate centraldashboard centraldashboard
   ks generate tf-job-operator tf-job-operator
   ks generate tf-job-simple tf-job-simple
+  ks generate tensorboard-aws tensorboard-aws
   ks generate argo argo
   ks generate katib katib
   ks generate prometheus prometheus
