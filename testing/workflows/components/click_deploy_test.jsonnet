@@ -211,11 +211,6 @@ local dagTemplates = [
     ),
     dependencies: ["setup"],
   },
-  // Run the nested tests.
-  {
-    template: componentTests.argoDagTemplate,
-    dependencies: ["test-deploy"],
-  },
 ];
 
 local exitTemplates =
