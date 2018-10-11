@@ -6,7 +6,6 @@ workflows:
     component: click_deploy_test
     name: deployapp
     job_types:
-    - presubmit
     - periodic
     include_dirs:
     - bootstrap/*

@@ -15,7 +15,7 @@ gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS
 
 gcloud container clusters get-credentials ${CLUSTER} --zone ${ZONE} --project kubeflow-ci
 # delete test namespace
-# kubectl delete namespace ${NAMESPACE}
+kubectl delete namespace ${NAMESPACE}
 
 for i in 1 2 3 4 5
 do gcloud -q deployment-manager deployments delete ${DEPLOYMENT} --project=kubeflow-ci-deploy && break || sleep 30
