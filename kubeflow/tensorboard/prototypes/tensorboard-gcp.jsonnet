@@ -6,6 +6,7 @@
 // @optionalParam logDir string logs Name of the log directory holding the TF events file
 // @optionalParam targetPort number 6006 Name of the targetPort
 // @optionalParam serviceType string ClusterIP The service type for Jupyterhub.
+// @optionalParam defaultTbImage string tensorflow/tensorflow:1.8.0 default tensorboard image to use
 // @optionalParam gcpCredentialSecretName string null Name of the k8s secrets containing gcp credentials
 
 local tensorboard = {
@@ -44,7 +45,7 @@ local tensorboard = {
       deployment.mapContainers(
         function(c) {
           result::
-            c.withEnvMixin(
+            c + c.withEnvMixin(
               if params.gcpCredentialSecretName != "" then (
                 [{
                   name: "GOOGLE_APPLICATION_CREDENTIALS",

@@ -59,7 +59,7 @@
       deployment.new(
         name=params.name,
         replicas=1,
-        containers=container,
+        containers=tbContainer,
         podLabels=params.labels,
       ) +
       deployment.mixin.metadata.
