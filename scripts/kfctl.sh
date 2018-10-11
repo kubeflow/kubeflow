@@ -114,6 +114,19 @@ createEnv() {
   esac
 }
 
+createNamespace() {
+  set +e
+  O=`kubectl get namespace ${K8S_NAMESPACE} 2>&1`
+  RESULT=$?
+  set -e
+
+  if [ "${RESULT}" -eq 0 ]; then
+    echo "namespace ${K8S_NAMESPACE} already exists"
+  else
+    kubectl create namespace ${K8S_NAMESPACE}
+  fi
+}
+
 if [ "${COMMAND}" == "init" ]; then
 	DEPLOYMENT_NAME=${WHAT}
 
@@ -205,16 +218,7 @@ ksApply () {
   pushd ${KUBEFLOW_KS_DIR}
 
   if [ "${PLATFORM}" == "minikube" ]; then
-    set +e
-    O=`kubectl get namespace ${K8S_NAMESPACE} 2>&1`
-    RESULT=$?
-    set -e
-
-    if [ "${RESULT}" -eq 0 ]; then
-      echo "namespace ${K8S_NAMESPACE} already exists"
-    else
-      kubectl create namespace ${K8S_NAMESPACE}
-    fi
+    createNamespace
   fi
 
   set +e
@@ -290,6 +294,7 @@ if [ "${COMMAND}" == "apply" ]; then
   fi
 
   if [ "${WHAT}" == "k8s"  ] || [ "${WHAT}" == "all" ]; then
+    createNamespace
     ksApply
 
     if [ "${PLATFORM}" == "gcp" ]; then
