@@ -67,10 +67,6 @@ def main(unparsed_args=None):
 
   for reg in conf['registries']:
     if test_reg_name == reg["name"]:
-      # src_registry = os.path.join(test_reg_path, reg["path"])
-      # reg_path = os.path.join(os_tmp_dir, *os.path.join(reg["name"], reg["path"]).split('/')[:-1])
-      # if not os.path.exists(reg_path):
-      #   os.makedirs(reg_path)
       excludes = [".git*", ".idea", "vendor", "node_modules"]
       sync_cmd = "rsync -a %s %s %s" % (test_reg_path, os_tmp_dir, " ".join(["--exclude=" + term for term in excludes]))
       print(sync_cmd)

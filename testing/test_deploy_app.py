@@ -21,9 +21,10 @@ OAUTH_TOKEN_URI = 'https://www.googleapis.com/oauth2/v4/token'
 METHOD = 'GET'
 
 def may_get_env_var(name):
-  if os.getenv(name):
+  env_val = os.getenv(name)
+  if env_val:
     logging.info("%s is set" % name)
-    return os.getenv(name)
+    return env_val
   else:
     raise Exception("%s not set" % name)
 
@@ -73,8 +74,8 @@ def make_deploy_call(args):
 
 def check_deploy_status(args):
   print("check deployment status")
-    # Figure out what environment we're running in and get some preliminary
-    # information about the service account.
+  # Figure out what environment we're running in and get some preliminary
+  # information about the service account.
   credentials, _ = google.auth.default(
     scopes=[IAM_SCOPE])
   if isinstance(credentials,

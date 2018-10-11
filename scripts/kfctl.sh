@@ -15,7 +15,7 @@ WHAT=$2
 
 ENV_FILE="env.sh"
 SKIP_INIT_PROJECT=false
-MIN_CLUSTER_VERSION="1.10.7-gke.2"
+MIN_CLUSTER_VERSION="1.10.6-gke.2"
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 source "${DIR}/util.sh"

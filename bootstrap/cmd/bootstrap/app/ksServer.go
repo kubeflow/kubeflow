@@ -137,7 +137,7 @@ type CreateRequest struct {
 	ClientSecret string
 	IpName string
 
-	//For test: GCP service account client id
+	// For test: GCP service account client id
 	SAClientId string
 }
 
@@ -175,7 +175,7 @@ type ApplyRequest struct {
 	Token string
 	Email string
 
-	//For test: GCP service account client id
+	// For test: GCP service account client id
 	SAClientId string
 }
 
