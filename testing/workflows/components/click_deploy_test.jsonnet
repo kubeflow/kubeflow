@@ -202,7 +202,7 @@ local dagTemplates = [
     template: buildTemplate(
       "test-deploy",
       [
-        "python3",
+        "python",
         "-m",
         "testing.test_deploy_app",
         "--namespace=" + name,

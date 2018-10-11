@@ -3,7 +3,6 @@ import argparse
 import base64
 import logging
 import os
-import subprocess
 from time import sleep
 from google.auth.transport.requests import Request
 
@@ -41,10 +40,9 @@ def make_deploy_call(args):
     if param["name"] == "hostname":
       param["value"] = "%s.endpoints.%s.cloud.goog" % (args.deployment, args.project)
 
-
-  subprocess.run(['gcloud', 'auth', 'activate-service-account', '--key-file=' + may_get_env_var("GOOGLE_APPLICATION_CREDENTIALS")])
-  result = subprocess.run(['gcloud', 'auth', 'application-default', 'print-access-token'], stdout=subprocess.PIPE)
-  access_token = result.stdout.decode()[:-1]
+  os.system('gcloud auth activate-service-account --key-file=' + may_get_env_var("GOOGLE_APPLICATION_CREDENTIALS"))
+  result = os.popen('gcloud auth application-default print-access-token').read()
+  access_token = result[:-1]
 
   client_id = may_get_env_var("CLIENT_ID")
   client_secret = may_get_env_var("CLIENT_SECRET")
@@ -125,7 +123,7 @@ def check_deploy_status(args):
     print("IAP not ready, retry credit: %s" % retry_credit)
 
   if status_code != 200:
-    raise Exception("IAP endpoint not ready after 30 minutes, time out...")
+    raise RuntimeError("IAP endpoint not ready after 30 minutes, time out...")
 
 def get_google_open_id_connect_token(service_account_credentials):
   service_account_jwt = (
