@@ -97,8 +97,9 @@ createEnv() {
       echo PROJECT_NUMBER=${PROJECT_NUMBER} >> ${ENV_FILE}
 
       # Settig cluster version, while ensuring we still stick with kubernetes 'v1.10.x'
+      SERVER_CONFIG=$(gcloud --project=${PROJECT} container get-server-config --zone=${ZONE})
       CLUSTER_VERSION=$(\
-          gcloud --project=${PROJECT} container get-server-config --zone=${ZONE} | \
+          echo "${SERVER_CONFIG}" | \
           awk '/validNodeVersions/{f=0} f; /validMasterVersions/{f=1}' | \
           awk '{print $2}' | \
           grep '^1.10.[0-9]*[-d]gke.[0-9]*$' | \
