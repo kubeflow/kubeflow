@@ -1,0 +1,49 @@
+---
+# Namespace for bootstrapper
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: namespace-placeholder
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubeflow-controller
+  namespace: namespace-placeholder
+spec:
+  ports:
+  - name: backend
+    port: 8080
+  selector:
+    app: kubeflow-controller
+  type: NodePort
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: kubeflow-controller
+  name: kubeflow-controller
+  namespace: namespace-placeholder
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubeflow-controller
+  template:
+    metadata:
+      labels:
+        app: kubeflow-controller
+      namespace: namespace-placeholder
+    spec:
+      containers:
+      - name: controller-backend
+        image: gcr.io/kubeflow-ci/bootstrapper:tag-placeholder
+        workingDir: /opt/bootstrap
+        command: [ "/opt/kubeflow/bootstrapper"]
+        args: [
+          "--in-cluster",
+          "--namespace=kubeflow"
+        ]
+        ports:
+        - containerPort: 8080

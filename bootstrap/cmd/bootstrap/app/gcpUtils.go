@@ -12,6 +12,7 @@ import (
 	"google.golang.org/api/cloudresourcemanager/v1"
 	"io/ioutil"
 	"path"
+	"strings"
 )
 
 type Resource struct {
@@ -54,10 +55,9 @@ func (s *ksServer)InsertDeployment(ctx context.Context, req CreateRequest) error
 		dmconf.Resources[0].Properties["clientId"] = req.ClientId
 		dmconf.Resources[0].Properties["clientSecret"] = req.ClientSecret
 		dmconf.Resources[0].Properties["ipName"] = req.IpName
-		dmconf.Resources[0].Properties["users"] = []string { "user:" + req.Email }
 		dmconf.Resources[0].Properties["isWebapp"] = true
 		// TODO: use get-server-config
-		dmconf.Resources[0].Properties["cluster-version"] = "1.10.7-gke.2"
+		dmconf.Resources[0].Properties["cluster-version"] = "1.10.6-gke.2"
 	}
 	confByte, err := yaml.Marshal(dmconf)
 	if err != nil {
@@ -135,6 +135,17 @@ func GetClearServiceAccountpolicy(currentPolicy *cloudresourcemanager.Policy, re
 	return newPolicy
 }
 
+func PrepareAccount(account string) string {
+	if strings.Contains(account, "iam.gserviceaccount.com") {
+		return "serviceAccount:" + account
+	}
+	if strings.Contains(account, "google-kubeflow-support") {
+		return "group:" + account
+	} else {
+		return "user:" + account
+	}
+}
+
 func GetUpdatedPolicy(currentPolicy *cloudresourcemanager.Policy, iamConf *IamConf, req ApplyIamRequest) cloudresourcemanager.Policy {
 	// map from role to members.
 	policyMap := map[string]map[string]bool {}
@@ -147,10 +158,10 @@ func GetUpdatedPolicy(currentPolicy *cloudresourcemanager.Policy, iamConf *IamCo
 
 	// Replace placeholder with actual identity.
 	saMapping := map[string]string {
-		"set-kubeflow-admin-service-account": fmt.Sprintf("serviceAccount:%v-admin@%v.iam.gserviceaccount.com", req.Cluster, req.Project),
-		"set-kubeflow-user-service-account": fmt.Sprintf("serviceAccount:%v-user@%v.iam.gserviceaccount.com", req.Cluster, req.Project),
-		"set-kubeflow-vm-service-account": fmt.Sprintf("serviceAccount:%v-vm@%v.iam.gserviceaccount.com", req.Cluster, req.Project),
-		"set-kubeflow-iap-account": fmt.Sprintf("user:%v", req.Email),
+		"set-kubeflow-admin-service-account": PrepareAccount(fmt.Sprintf("%v-admin@%v.iam.gserviceaccount.com", req.Cluster, req.Project)),
+		"set-kubeflow-user-service-account": PrepareAccount(fmt.Sprintf("%v-user@%v.iam.gserviceaccount.com", req.Cluster, req.Project)),
+		"set-kubeflow-vm-service-account": PrepareAccount(fmt.Sprintf("%v-vm@%v.iam.gserviceaccount.com", req.Cluster, req.Project)),
+		"set-kubeflow-iap-account": PrepareAccount(req.Email),
 	}
 	for _, binding := range iamConf.IamBindings {
 		for _, member := range binding.Members {
