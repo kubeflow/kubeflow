@@ -1,37 +1,37 @@
-local centraldashboard = import '../centraldashboard.libsonnet';
+local centraldashboard = import "../centraldashboard.libsonnet";
 local params = {
-  namespace:: 'kftest',
-  image:: 'gcr.io/kubeflow-images-public/centraldashboard:v0.3.0',
+  namespace:: "kftest",
+  image:: "gcr.io/kubeflow-images-public/centraldashboard:v0.3.0",
 };
 local env = {
-  namespace:: 'kftest',
+  namespace:: "kftest",
 };
 local centraldash = centraldashboard.new(params, env);
 
 std.assertEqual(
   centraldash.centralDashboardDeployment,
   {
-    apiVersion: 'extensions/v1beta1',
-    kind: 'Deployment',
+    apiVersion: "extensions/v1beta1",
+    kind: "Deployment",
     metadata: {
       labels: {
-        app: 'centraldashboard',
+        app: "centraldashboard",
       },
-      name: 'centraldashboard',
-      namespace: 'kftest',
+      name: "centraldashboard",
+      namespace: "kftest",
     },
     spec: {
       template: {
         metadata: {
           labels: {
-            app: 'centraldashboard',
+            app: "centraldashboard",
           },
         },
         spec: {
           containers: [
             {
-              image: 'gcr.io/kubeflow-images-public/centraldashboard:v0.3.0',
-              name: 'centraldashboard',
+              image: "gcr.io/kubeflow-images-public/centraldashboard:v0.3.0",
+              name: "centraldashboard",
               ports: [
                 {
                   containerPort: 8082,
@@ -39,7 +39,7 @@ std.assertEqual(
               ],
             },
           ],
-          serviceAccountName: 'centraldashboard',
+          serviceAccountName: "centraldashboard",
         },
       },
     },
@@ -50,26 +50,26 @@ std.assertEqual(
   centraldash.centralDashboardService,
   {
     local annotations = function(namespace) {
-      'getambassador.io/config':
-        std.join('\n', [
-          '---',
-          'apiVersion: ambassador/v0',
-          'kind:  Mapping',
-          'name: centralui-mapping',
-          'prefix: /',
-          'rewrite: /',
-          'service: centraldashboard.' + namespace,
+      "getambassador.io/config":
+        std.join("\n", [
+          "---",
+          "apiVersion: ambassador/v0",
+          "kind:  Mapping",
+          "name: centralui-mapping",
+          "prefix: /",
+          "rewrite: /",
+          "service: centraldashboard." + namespace,
         ]),
     },
-    apiVersion: 'v1',
-    kind: 'Service',
+    apiVersion: "v1",
+    kind: "Service",
     metadata: {
       labels: {
-        app: 'centraldashboard',
+        app: "centraldashboard",
       },
-      name: 'centraldashboard',
-      namespace: 'kftest',
-      annotations: annotations('kftest'),
+      name: "centraldashboard",
+      namespace: "kftest",
+      annotations: annotations("kftest"),
     },
     spec: {
       ports: [
@@ -79,10 +79,10 @@ std.assertEqual(
         },
       ],
       selector: {
-        app: 'centraldashboard',
+        app: "centraldashboard",
       },
-      sessionAffinity: 'None',
-      type: 'ClusterIP',
+      sessionAffinity: "None",
+      type: "ClusterIP",
     },
   },
 ) &&
@@ -90,11 +90,11 @@ std.assertEqual(
 std.assertEqual(
   centraldash.centralDashboardServiceAccount,
   {
-    apiVersion: 'v1',
-    kind: 'ServiceAccount',
+    apiVersion: "v1",
+    kind: "ServiceAccount",
     metadata: {
-      name: 'centraldashboard',
-      namespace: 'kftest',
+      name: "centraldashboard",
+      namespace: "kftest",
     },
   },
 ) &&
@@ -102,36 +102,36 @@ std.assertEqual(
 std.assertEqual(
   centraldash.centralDashboardRole,
   {
-    apiVersion: 'rbac.authorization.k8s.io/v1beta1',
-    kind: 'Role',
+    apiVersion: "rbac.authorization.k8s.io/v1beta1",
+    kind: "Role",
     metadata: {
       labels: {
-        app: 'centraldashboard',
+        app: "centraldashboard",
       },
-      name: 'centraldashboard',
+      name: "centraldashboard",
       namespace: "kftest",
     },
     rules: [
       {
-        apiGroups: [''],
+        apiGroups: [""],
         resources: [
-          'pods',
-          'pods/exec',
-          'pods/log',
+          "pods",
+          "pods/exec",
+          "pods/log",
         ],
         verbs: [
-          'get',
-          'list',
-          'watch',
+          "get",
+          "list",
+          "watch",
         ],
       },
       {
-        apiGroups: [''],
+        apiGroups: [""],
         resources: [
-          'secrets',
+          "secrets",
         ],
         verbs: [
-          'get',
+          "get",
         ],
       },
     ],
@@ -141,27 +141,27 @@ std.assertEqual(
 std.assertEqual(
   centraldash.centralDashboardRoleBinding,
   {
-    apiVersion: 'rbac.authorization.k8s.io/v1beta1',
-    kind: 'RoleBinding',
+    apiVersion: "rbac.authorization.k8s.io/v1beta1",
+    kind: "RoleBinding",
     metadata: {
       labels: {
-        app: 'centraldashboard',
+        app: "centraldashboard",
       },
-      name: 'centraldashboard',
+      name: "centraldashboard",
       namespace: "kftest",
     },
     roleRef: {
-      apiGroup: 'rbac.authorization.k8s.io',
-      kind: 'Role',
-      name: 'centraldashboard',
+      apiGroup: "rbac.authorization.k8s.io",
+      kind: "Role",
+      name: "centraldashboard",
     },
     subjects: [
       {
-        kind: 'ServiceAccount',
-        name: 'centraldashboard',
+        kind: "ServiceAccount",
+        name: "centraldashboard",
         namespace: "kftest",
       },
     ],
   },
-) && 
+) &&
 true
