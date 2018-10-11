@@ -98,6 +98,7 @@ RUN pip install --upgrade pip && \
     ${TF_PACKAGE} \
     # Jupyter Stuff
     jupyter \
+    jupyter-console==6.0.0 \
     jupyterhub \
     jupyterlab \
     # Cleanup
