@@ -115,7 +115,7 @@ updateDeployment() {
   cd ${KUBEFLOW_DM_DIR}
   # Check if it already exists
   set +e
-  O=`gcloud deployment-manager --project=${PROJECT} deployments describe ${DEPLOYMENT_NAME} 2>&1`
+  O=`gcloud deployment-manager --project=${PROJECT} deployments describe ${NAME} 2>&1`
   exists=$?
   set -e
 
