@@ -44,7 +44,7 @@
       container.new(
         params.name, params.defaultTbImage
       ).withImagePullPolicy("IfNotPresent").
-        withArgs([params.logDir, "--port=9000"]).
+        withArgs(["--logdir=" + params.logDir, "--port=" + params.targetPort]).
         withPorts(container.portsType.new(params.targetPort)).
         withCommand(["/usr/local/bin/tensorboard"]) +
       container.mixin.resources.withLimitsMixin({
