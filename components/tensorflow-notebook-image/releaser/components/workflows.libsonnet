@@ -22,6 +22,25 @@
       )
     else [],
 
+  // Function turn comma separated list of prow environment variables into a dictionary.
+
+  listToDict:: function(v)
+    {
+      [v[0]]: v[1],
+    },
+
+  parseEnvToDict: function(v)
+    local pieces = std.split(v, ",");
+    if v != "" && std.length(pieces) > 0 then
+      std.foldl(
+        function(a, b) a +b,
+        std.map(
+          function(i) $.listToDict(std.split(i, "=")),
+          std.split(v, ",")
+        ),
+        {})
+    else {},
+
   // Default parameters.
   // The defaults are suitable based on suitable values for our test cluster.
   defaultParams:: {
@@ -53,6 +72,7 @@
       local name = params.name;
 
       local prow_env = $.parseEnv(params.prow_env);
+      local prowDict = $.parseEnvToDict(params.prow_env);      
       local bucket = params.bucket;
 
       local stepsNamespace = name;
@@ -79,14 +99,22 @@
       // Location where Dockerfiles and other sources are found.
       local notebookDir = srcRootDir + "/kubeflow/kubeflow/components/tensorflow-notebook-image/";
 
+      // Subdirectory containing the version config.
       local supportedVersions = [
-        "1.4.1",
-        "1.5.1",
-        "1.6.0",
-        "1.7.0",
-        "1.8.0",
-        "1.9.0",
-        "1.10.1",
+        ["1.4.1", "cpu"],
+        ["1.4.1gpu", "gpu"],
+        ["1.5.1", "cpu"],
+        ["1.5.1gpu", "gpu"],
+        ["1.6.0", "cpu"],
+        ["1.6.0gpu", "gpu"],
+        ["1.7.0", "cpu"],
+        ["1.7.0gpu", "gpu"],
+        ["1.8.0", "cpu"],
+        ["1.8.0gpu", "gpu"],
+        ["1.9.0", "cpu"],
+        ["1.9.0gpu", "gpu"],
+        ["1.10.1", "cpu"],
+        ["1.10.1gpu", "gpu"],
       ];
 
       // Build an Argo template to execute a particular command.
@@ -141,46 +169,45 @@
         },
         sidecars: sidecars,
       };  // buildTemplate
+
       local buildImageTemplate(tf_version, device, is_latest=true) = {
         local workflow_name = $.workflowName(tf_version, device),
-        local image = params.registry + "/tensorflow-" + tf_version + "-notebook-" + device,
-        local tag = params.versionTag,
-        local base_image =
-          if device == "cpu" then
-            "ubuntu:latest"
-          // device = gpu
-          else if std.startsWith(tf_version, "1.4.") then
-            "nvidia/cuda:8.0-cudnn6-devel-ubuntu16.04"
-          else
-            "nvidia/cuda:9.0-cudnn7-devel-ubuntu16.04",
-        local tf_serving_version =
-          if tf_version == "1.4.1" then
-            "1.4.0"
-          else if tf_version == "1.5.1" then
-            "1.5.0"
-          else
-            tf_version,
-        local installTfma =
-          if tf_version < "1.9" then
-            "no"
-          else
-            "yes",
-        local tf_package =
-          "https://storage.googleapis.com/tensorflow/linux/" +
-          device +
-          "/tensorflow" +
-          (if device == "gpu" then "_gpu" else "") +
-          "-" +
-          tf_version +
-          "-cp36-cp36m-linux_x86_64.whl",
-        local tf_package_py_27 =
-          "https://storage.googleapis.com/tensorflow/linux/" +
-          device +
-          "/tensorflow" +
-          (if device == "gpu" then "_gpu" else "") +
-          "-" +
-          tf_version +
-          "-cp27-none-linux_x86_64.whl",
+
+        local version_label = if std.endsWith(tf_version, "gpu") then
+          std.substr(tf_version, 0, std.length(tf_version) - 3)
+        else
+          tf_version,
+
+        local image = params.registry + "/tensorflow-" + version_label + "-notebook-" + device,
+
+        local jobType = if std.objectHas(prowDict, "JOB_TYPE") then
+          prowDict["JOB_TYPE"]
+          else "",
+
+        local tagElements = [
+          "v",
+          if std.length(params.versionTag) > 0 then
+            params.versiontag
+          else null,
+          if std.objectHas(prowDict, "PULL_BASE_SHA") then
+            "base-" + std.substr(prowDict["PULL_BASE_SHA"], 0, 7)
+          else null,
+          if std.objectHas(prowDict, "PULL_PULL_SHA") then
+            "pull-" + std.substr(prowDict["PULL_PULL_SHA"], 0, 7)
+          else null,
+                    
+          if std.objectHas(prowDict, "PULL_NUMBER") then
+            "pr-" + prowDict["PULL_NUMBER"]
+          else null,
+          if std.objectHas(prowDict, "BUILD_NUMBER") then
+            prowDict["BUILD_NUMBER"]
+          else null,
+        ],
+
+        local tag = std.join(
+          "-",
+          std.prune(tagElements)),
+        
         result:: buildTemplate(
           workflow_name,
           [
@@ -192,12 +219,7 @@
             + notebookDir + "Dockerfile" + " "
             + image + " "
             + tag + " "
-            + std.toString(is_latest) + " "
-            + base_image + " "
-            + tf_package + " "
-            + tf_package_py_27 + " "
-            + installTfma + " "
-            + tf_serving_version,
+            + notebookDir + "versions/" + tf_version + "/version-config.json" + " ",
           ],
           [
             {
@@ -288,16 +310,8 @@
                                   ] +
                                   [
                                     {
-                                      name: $.workflowName(version, "cpu"),
-                                      template: $.workflowName(version, "cpu"),
-                                      dependencies: ["checkout"],
-                                    }
-                                    for version in supportedVersions
-                                  ] +
-                                  [
-                                    {
-                                      name: $.workflowName(version, "gpu"),
-                                      template: $.workflowName(version, "gpu"),
+                                      name: $.workflowName(version[0], version[1]),
+                                      template: $.workflowName(version[0], version[1]),
                                       dependencies: ["checkout"],
                                     }
                                     for version in supportedVersions
@@ -356,11 +370,7 @@
                        ),  // copy-artifacts
                      ] +
                      [
-                       buildImageTemplate(version, "cpu")
-                       for version in supportedVersions
-                     ] +
-                     [
-                       buildImageTemplate(version, "gpu")
+                       buildImageTemplate(version[0], version[1])
                        for version in supportedVersions
                      ],  // templates
         },
