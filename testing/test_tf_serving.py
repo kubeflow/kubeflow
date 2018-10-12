@@ -108,7 +108,6 @@ def main():
     service_ip = service.spec.cluster_ip
     model_urls = [
       "http://" + service_ip + ":8500/v1/models/mnist:predict",  # tf serving's http server
-      "http://" + service_ip + ":8000/model/mnist:predict"  # http proxy
     ]
     for model_url in model_urls:
       logging.info("Try predicting with endpoint {}".format(model_url))

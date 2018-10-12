@@ -486,9 +486,9 @@
       },
       subjects: [
         {
-          kind: tfServiceAccount.kind,
-          name: tfServiceAccount.metadata.name,
-          namespace: tfServiceAccount.metadata.namespace,
+          kind: tfUiServiceAccount.kind,
+          name: tfUiServiceAccount.metadata.name,
+          namespace: tfUiServiceAccount.metadata.namespace,
         },
       ],
     },

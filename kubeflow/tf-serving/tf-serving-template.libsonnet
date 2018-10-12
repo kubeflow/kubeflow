@@ -33,22 +33,6 @@
               "---",
               "apiVersion: ambassador/v0",
               "kind:  Mapping",
-              "name: tfserving-mapping-" + name + "-get",
-              "prefix: /models/" + name + "/",
-              "rewrite: /",
-              "method: GET",
-              "service: " + name + "." + namespace + ":8000",
-              "---",
-              "apiVersion: ambassador/v0",
-              "kind:  Mapping",
-              "name: tfserving-mapping-" + name + "-post",
-              "prefix: /models/" + name + "/",
-              "rewrite: /model/" + name + ":predict",
-              "method: POST",
-              "service: " + name + "." + namespace + ":8000",
-              "---",
-              "apiVersion: ambassador/v0",
-              "kind:  Mapping",
               "name: tfserving-predict-mapping-" + name,
               "prefix: tfserving/models/" + name + "/",
               "rewrite: /v1/models/" + name + ":predict",
@@ -65,12 +49,7 @@
             targetPort: 9000,
           },
           {
-            name: "http-tf-serving-proxy",
-            port: 8000,
-            targetPort: 8000,
-          },
-          {
-            name: "tf-serving-builtin-http",
+            name: "http-tf-serving",
             port: 8500,
             targetPort: 8500,
           },
@@ -128,39 +107,6 @@
       },
     },  // modelServerContainer
 
-    local httpProxyContainer = {
-      name: name + "-http-proxy",
-      image: params.httpProxyImage,
-      imagePullPolicy: "IfNotPresent",
-      command: [
-        "python",
-        "/usr/src/app/server.py",
-        "--port=8000",
-        "--rpc_port=9000",
-        "--rpc_timeout=10.0",
-      ],
-      env: [],
-      ports: [
-        {
-          containerPort: 8000,
-        },
-      ],
-      resources: {
-        requests: {
-          memory: "500Mi",
-          cpu: "0.5",
-        },
-        limits: {
-          memory: "1Gi",
-          cpu: "1",
-        },
-      },
-      securityContext: {
-        runAsUser: 1000,
-        fsGroup: 1000,
-      },
-    },  // httpProxyContainer
-
     local tfDeployment = {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
@@ -170,6 +116,9 @@
         },
         name: name,
         namespace: namespace,
+        annotations: {
+          "sidecar.istio.io/inject": params.injectIstio,
+        },
       },
       spec: {
         template: {
@@ -181,9 +130,7 @@
           spec: {
             containers: [
               modelServerContainer,
-            ] + if util.toBool(params.deployHttpProxy) then [
-              httpProxyContainer,
-            ] else [],
+            ],
             volumes: [],
           },
         },

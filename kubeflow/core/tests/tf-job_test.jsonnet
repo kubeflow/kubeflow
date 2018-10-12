@@ -521,3 +521,31 @@ std.assertEqual(
     ],
   }
 )
+
+&&
+
+std.assertEqual(
+  tfjobv1alpha1.tfUiRoleBinding,
+  {
+    apiVersion: "rbac.authorization.k8s.io/v1beta1",
+    kind: "ClusterRoleBinding",
+    metadata: {
+      labels: {
+        app: "tf-job-dashboard",
+      },
+      name: "tf-job-dashboard",
+    },
+    roleRef: {
+      apiGroup: "rbac.authorization.k8s.io",
+      kind: "ClusterRole",
+      name: "tf-job-dashboard",
+    },
+    subjects: [
+      {
+        kind: "ServiceAccount",
+        name: "tf-job-dashboard",
+        namespace: "test-kf-001",
+      },
+    ],
+  }
+)
