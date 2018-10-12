@@ -99,6 +99,7 @@ workflows:
       - presubmit
     params:
       registry: "gcr.io/kubeflow-ci"
+      step_image: "gcr.io/kubeflow-ci/test-worker:v20181017-bfeaaf5-dirty-4adcd0"
     include_dirs:
       - components/tensorflow-notebook-image/*
   # The postsubmit run publishes the docker images to gcr.io/kubeflow-images-public
@@ -109,5 +110,6 @@ workflows:
       - postsubmit
     params:
       registry: "gcr.io/kubeflow-images-public"
+      step_image: "gcr.io/kubeflow-ci/test-worker:v20181017-bfeaaf5-dirty-4adcd0"
     include_dirs:
       - components/tensorflow-notebook-image/*
