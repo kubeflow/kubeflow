@@ -76,13 +76,13 @@ local coreComponents = [
 
 //Ambassador
 local ambassadorRbac = [
-  core.parts(name,namespace, seldonVersion).rbacAmbassadorRole(),
-  core.parts(name,namespace, seldonVersion).rbacAmbassadorRoleBinding(),  
+  core.parts(name, namespace, seldonVersion).rbacAmbassadorRole(),
+  core.parts(name, namespace, seldonVersion).rbacAmbassadorRoleBinding(),
 ];
 
 local ambassador = [
-  core.parts(name,namespace, seldonVersion).ambassadorDeployment(),
-  core.parts(name,namespace, seldonVersion).ambassadorService(),  
+  core.parts(name, namespace, seldonVersion).ambassadorDeployment(),
+  core.parts(name, namespace, seldonVersion).ambassadorService(),
 ];
 
 local l1 = if withRbac == "true" then rbac + coreComponents else coreComponents;
