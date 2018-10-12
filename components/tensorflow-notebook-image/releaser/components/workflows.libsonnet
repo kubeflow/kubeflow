@@ -161,10 +161,15 @@
           else
             tf_version,
         local installTfma =
-          if tf_version < "1.9" then
+          if tf_version < "1.6" then
             "no"
           else
             "yes",
+        local tfmaVersion =
+          if tf_version < "1.9" then
+            "0.6.0"
+          else
+            "default",
         local tf_package =
           "https://storage.googleapis.com/tensorflow/linux/" +
           device +
@@ -198,6 +203,7 @@
             + tf_package_py_27 + " "
             + installTfma + " "
             + tf_serving_version,
+            + tfmaVersion ,
           ],
           [
             {
