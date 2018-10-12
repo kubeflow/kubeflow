@@ -8,37 +8,37 @@
 
   local tbDeployment =
     super.tbDeployment +
-      deployment.mixin.spec.template.spec.withVolumesMixin(
-        if params.gcpCredentialSecretName != "" then (
-          [{
-            name: "gcp-credentials",
-            secret: {
-              secretName: params.gcpCredentialSecretName,
-            },
-          }]
-        ) else [],
-      ) +
-      deployment.mapContainers(
-        function(c) {
-          result::
-            c + c.withEnvMixin(
-              if params.gcpCredentialSecretName != "" then (
-                [{
-                  name: "GOOGLE_APPLICATION_CREDENTIALS",
-                  value: "/secret/gcp-credentials/key.json",
-                }]
-              )
-            ) +
-            c.withVolumeMountsMixin(
-              if params.gcpCredentialSecretName != "" then (
-                [{
-                  name: "gcp-credentials",
-                  mountPath: "/secret/gcp-credentials",
-                }]
-              )
-            ),
-        }.result,
-      ),
+    deployment.mixin.spec.template.spec.withVolumesMixin(
+      if params.gcpCredentialSecretName != "" then (
+        [{
+          name: "gcp-credentials",
+          secret: {
+            secretName: params.gcpCredentialSecretName,
+          },
+        }]
+      ) else [],
+    ) +
+    deployment.mapContainers(
+      function(c) {
+        result::
+          c + c.withEnvMixin(
+            if params.gcpCredentialSecretName != "" then (
+              [{
+                name: "GOOGLE_APPLICATION_CREDENTIALS",
+                value: "/secret/gcp-credentials/key.json",
+              }]
+            )
+          ) +
+          c.withVolumeMountsMixin(
+            if params.gcpCredentialSecretName != "" then (
+              [{
+                name: "gcp-credentials",
+                mountPath: "/secret/gcp-credentials",
+              }]
+            )
+          ),
+      }.result,
+    ),
   tbDeployment:: tbDeployment,
 
   all:: [

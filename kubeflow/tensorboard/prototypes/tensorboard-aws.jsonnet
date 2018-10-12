@@ -16,7 +16,7 @@
 // @optionalParam s3VerifySsl string true Whether or not to verify https certificates for S3 connections
 // @optionalParam s3Endpoint string null url of the s3 endpoint
 
-local tensorboard = import "kubeflow/tensorboard/tensorboard.libsonnet";
 local aws = import "kubeflow/tensorboard/aws.libsonnet";
+local tensorboard = import "kubeflow/tensorboard/tensorboard.libsonnet";
 local instance = tensorboard.new(env, params) + aws;
 instance.list(instance.all)

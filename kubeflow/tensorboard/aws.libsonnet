@@ -8,52 +8,52 @@
 
   local tbDeployment =
     super.tbDeployment +
-      deployment.mapContainers(
-        function(c) {
-          result:: c + c.withEnvMixin(
-            [
-              {
-                name: "AWS_ACCESS_KEY_ID",
-                valueFrom: {
-                  secretKeyRef: {
-                    name: params.s3SecretName,
-                    key: params.s3SecretAccesskeyidKeyName,
-                  },
+    deployment.mapContainers(
+      function(c) {
+        result:: c + c.withEnvMixin(
+          [
+            {
+              name: "AWS_ACCESS_KEY_ID",
+              valueFrom: {
+                secretKeyRef: {
+                  name: params.s3SecretName,
+                  key: params.s3SecretAccesskeyidKeyName,
                 },
               },
-              {
-                name: "AWS_SECRET_ACCESS_KEY",
-                valueFrom: {
-                  secretKeyRef: {
-                    name: params.s3SecretName,
-                    key: params.s3SecretSecretaccesskeyKeyName,
-                  },
+            },
+            {
+              name: "AWS_SECRET_ACCESS_KEY",
+              valueFrom: {
+                secretKeyRef: {
+                  name: params.s3SecretName,
+                  key: params.s3SecretSecretaccesskeyKeyName,
                 },
               },
-              {
-                name: "AWS_REGION",
-                value: params.s3AwsRegion,
-              },
-              {
-                name: "S3_REGION",
-                value: params.s3AwsRegion,
-              },
-              {
-                name: "S3_USE_HTTPS",
-                value: params.s3UseHttps,
-              },
-              {
-                name: "S3_VERIFY_SSL",
-                value: params.s3VerifySsl,
-              },
-              {
-                name: "S3_ENDPOINT",
-                value: params.s3Endpoint,
-              },
-            ]
-          ),
-        }.result,
-      ),
+            },
+            {
+              name: "AWS_REGION",
+              value: params.s3AwsRegion,
+            },
+            {
+              name: "S3_REGION",
+              value: params.s3AwsRegion,
+            },
+            {
+              name: "S3_USE_HTTPS",
+              value: params.s3UseHttps,
+            },
+            {
+              name: "S3_VERIFY_SSL",
+              value: params.s3VerifySsl,
+            },
+            {
+              name: "S3_ENDPOINT",
+              value: params.s3Endpoint,
+            },
+          ]
+        ),
+      }.result,
+    ),
   tbDeployment:: tbDeployment,
 
   all:: [
