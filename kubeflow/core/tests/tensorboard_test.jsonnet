@@ -3,8 +3,8 @@ local tensorboard = import "kubeflow/tensorboard/tensorboard.libsonnet";
 local params = {
   name: "tensorboard",
   logDir: "logs",
-  targetPort: "6010",
-  servicePort: "9050",
+  targetPort: "6006",
+  servicePort: "9000",
   serviceType: "LoadBalancer",
   defaultTbImage: "tensorflow/tensorflow:1.9.0",
 };
@@ -21,7 +21,7 @@ std.assertEqual(
      "kind": "Service",
      "metadata": {
         "annotations": {
-           "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind:  Mapping\nname: tb-mapping-tensorboard-get\nprefix: /tensorboard/ tensorboard/\nrewrite: /\nmethod: GET\nservice: tensorboard.test-kf-001:9050"
+           "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind:  Mapping\nname: tb-mapping-tensorboard-get\nprefix: /tensorboard/ tensorboard/\nrewrite: /\nmethod: GET\nservice: tensorboard.test-kf-001:9000"
         },
         "labels": {
            "app": "tensorboard"
@@ -33,8 +33,8 @@ std.assertEqual(
         "ports": [
            {
               "name": "tb",
-              "port": "9050",
-              "targetPort": "6010"
+              "port": "9000",
+              "targetPort": "6006"
            }
         ],
         "selector": {
@@ -70,7 +70,7 @@ std.assertEqual(
                  {
                     "args": [
                        "--logdir=logs",
-                       "--port=6010"
+                       "--port=6006"
                     ],
                     "command": [
                        "/usr/local/bin/tensorboard"
@@ -80,7 +80,7 @@ std.assertEqual(
                     "name": "tensorboard",
                     "ports": [
                        {
-                          "containerPort": "6010"
+                          "containerPort": "6006"
                        }
                     ],
                     "resources": {
