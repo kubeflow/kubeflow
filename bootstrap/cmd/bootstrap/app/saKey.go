@@ -1,24 +1,24 @@
 package app
 
 import (
-	"golang.org/x/net/context"
 	iamadmin "cloud.google.com/go/iam/admin/apiv1"
-	"google.golang.org/api/option"
-	"golang.org/x/oauth2"
-	"google.golang.org/genproto/googleapis/iam/admin/v1"
 	"fmt"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/net/context"
+	"golang.org/x/oauth2"
+	"google.golang.org/api/option"
+	"google.golang.org/genproto/googleapis/iam/admin/v1"
 	"k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
-	)
+)
 
 type InsertSaKeyRequest struct {
-	Cluster string
+	Cluster   string
 	Namespace string
-	Project string
-	Token string
-	Zone string
+	Project   string
+	Token     string
+	Zone      string
 }
 
 func (s *ksServer) InsertSaKeys(ctx context.Context, req InsertSaKeyRequest) error {
@@ -75,5 +75,5 @@ func (s *ksServer) InsertSaKey(ctx context.Context, request InsertSaKeyRequest, 
 		log.Errorf("Failed creating secret in GKE cluster: %v", err)
 		return err
 	}
-	return  nil
+	return nil
 }
