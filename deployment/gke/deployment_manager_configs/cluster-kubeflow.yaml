@@ -48,6 +48,8 @@ resources:
     gpu-pool-enable-autoscaling: true
     gpu-pool-min-nodes: 0
     gpu-pool-max-nodes: 10
+    # Whether to enable TPUs
+    enable_tpu: false
     # Whether to deploy the new Stackdriver Kubernetes agents
     stackdriver-kubernetes: false
     securityConfig:
