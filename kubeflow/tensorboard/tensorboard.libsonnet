@@ -20,7 +20,7 @@
       service.new(
         name=params.name,
         selector=params.labels,
-        ports=service.mixin.spec.portsType.newNamed("tb", 9000, params.targetPort),
+        ports=service.mixin.spec.portsType.newNamed("tb", params.servicePort, params.targetPort),
       ).withType(params.serviceType) +
       service.mixin.metadata.
         withNamespace(params.namespace).
@@ -35,7 +35,7 @@
             "prefix: /tensorboard/ " + params.name + "/",
             "rewrite: /",
             "method: GET",
-            "service: " + params.name + "." + params.namespace + ":9000",
+            "service: " + params.name + "." + params.namespace + ":" + params.servicePort,
           ]),
       }),
     tbService:: tbService,
@@ -44,7 +44,7 @@
       container.new(
         params.name, params.defaultTbImage
       ).withImagePullPolicy("IfNotPresent").
-        withArgs(["--logdir="+params.logDir, "--port=9000"]).
+        withArgs(["--logdir=" + params.logDir, "--port="+params.targetPort]).
         withPorts(container.portsType.new(params.targetPort)).
         withCommand(["/usr/local/bin/tensorboard"]) +
       container.mixin.resources.withLimitsMixin({
@@ -66,5 +66,12 @@
         withNamespace(params.namespace).
         withLabelsMixin(params.labels),
     tbDeployment:: tbDeployment,
+
+    all:: [
+      self.tbService,
+      self.tbDeployment,
+    ],
+
+    list(obj=self.all):: util.list(obj),
   },
 }
