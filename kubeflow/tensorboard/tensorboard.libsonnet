@@ -15,6 +15,7 @@
         app: _params.name,
       },
     },
+    params:: params,
 
     local tbService =
       service.new(
