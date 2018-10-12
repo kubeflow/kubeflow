@@ -15,7 +15,7 @@ WHAT=$2
 
 ENV_FILE="env.sh"
 SKIP_INIT_PROJECT=false
-MIN_CLUSTER_VERSION="1.10"
+CLUSTER_VERSION="1.10"
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 source "${DIR}/util.sh"
@@ -98,8 +98,7 @@ createEnv() {
 
       # "1.X": picks the highest valid patch+gke.N patch in the 1.X version
       # https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters
-      echo "Setting cluster version to ${MIN_CLUSTER_VERSION}"
-      CLUSTER_VERSION=${MIN_CLUSTER_VERSION}
+      echo "Setting cluster version to ${CLUSTER_VERSION}"
       echo CLUSTER_VERSION=${CLUSTER_VERSION} >> ${ENV_FILE}
       ;;
     *)
