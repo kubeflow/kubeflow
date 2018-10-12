@@ -8,6 +8,7 @@ FROM $BASE_IMAGE
 ARG INSTALL_TFMA=yes
 ARG TF_PACKAGE=https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.7.0-cp36-cp36m-linux_x86_64.whl
 ARG TF_PACKAGE_PY_27=https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.7.0-cp27-none-linux_x86_64.whl
+ARG TFMA_VERSION=default
 
 USER root
 
@@ -124,7 +125,15 @@ RUN conda create -n py2 python=2 && \
     python -m ipykernel install && \
     # tensorflow-model-analysis is only supported for TF 1.6 and above
     if [[ $INSTALL_TFMA == "yes" ]]; then \
-      pip install --no-cache-dir tensorflow-model-analysis && \
+      # if you find any dependency problems in the future
+      # please visit https://github.com/tensorflow/model-analysis#compatible-versions
+      # and fix the TFMA_VERSION with compatible version number in the config json
+      if [[ $TFMA_VERSION == "default" ]]; then \
+        pip install --no-cache-dir tensorflow-model-analysis; \
+      else \
+        pip install --no-cache-dir tensorflow-model-analysis==$TFMA_VERSION; \
+      fi \
+      && \
       pip install --no-cache-dir tensorflow-data-validation && \
       # We use --system because if we don't the config is written to the home directory
       # and the changes are lost when we mount a PV over them.

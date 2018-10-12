@@ -140,10 +140,15 @@
           else
             "nvidia/cuda:9.0-cudnn7-devel-ubuntu16.04",
         local installTfma =
-          if tf_version < "1.9" then
+          if tf_version < "1.6" then
             "no"
           else
             "yes",
+        local tfmaVersion =
+          if tf_version < "1.9" then
+            "0.6.0"
+          else
+            "default",
         local tf_package =
           "https://storage.googleapis.com/tensorflow/linux/" +
           device +
@@ -175,7 +180,8 @@
             + base_image + " "
             + tf_package + " "
             + tf_package_py_27 + " "
-            + installTfma,
+            + installTfma + " "
+            + tfmaVersion ,
           ],
           [
             {
