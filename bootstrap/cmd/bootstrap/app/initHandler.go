@@ -2,18 +2,18 @@ package app
 
 import (
 	"github.com/go-kit/kit/endpoint"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
-	log "github.com/sirupsen/logrus"
 	"google.golang.org/api/cloudresourcemanager/v1"
 )
 
 const IAM_ADMIN_ROLE = "roles/resourcemanager.projectIamAdmin"
 
 type InitProjectRequest struct {
-	Project string
+	Project       string
 	ProjectNumber string
-	Token string
+	Token         string
 }
 
 // TODO: migrate service enabling logic to initHandler
@@ -47,8 +47,7 @@ func (s *ksServer) BindRole(ctx context.Context, project string, token string, s
 
 	saPolicy, err := resourcManger.Projects.GetIamPolicy(
 		project,
-		&cloudresourcemanager.GetIamPolicyRequest{
-		}).Do()
+		&cloudresourcemanager.GetIamPolicyRequest{}).Do()
 
 	if err != nil {
 		log.Errorf("Cannot get current ploicy: %v", err)
@@ -57,7 +56,7 @@ func (s *ksServer) BindRole(ctx context.Context, project string, token string, s
 	saPolicy.Bindings = append(saPolicy.Bindings,
 		&cloudresourcemanager.Binding{
 			Members: []string{"serviceAccount:" + serviceAccount},
-			Role: IAM_ADMIN_ROLE,
+			Role:    IAM_ADMIN_ROLE,
 		})
 	_, err = resourcManger.Projects.SetIamPolicy(
 		project,
