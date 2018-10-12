@@ -74,7 +74,8 @@ createEnv() {
       # GCP Zone
       # The default should be a zone that supports Haswell.
       ZONE=${ZONE:-$(gcloud config get-value compute/zone 2>/dev/null)}
-      echo ZONE=${ZONE:-"us-east1-d"} >> ${ENV_FILE}
+      ZONE=${ZONE:-"us-east1-d"} 
+      echo ZONE=${ZONE} >> ${ENV_FILE}
 
       # Email for cert manager
       EMAIL=${EMAIL:-$(gcloud config get-value account 2>/dev/null)}
@@ -97,8 +98,9 @@ createEnv() {
       echo PROJECT_NUMBER=${PROJECT_NUMBER} >> ${ENV_FILE}
 
       # Settig cluster version, while ensuring we still stick with kubernetes 'v1.10.x'
+      SERVER_CONFIG=$(gcloud --project=${PROJECT} container get-server-config --zone=${ZONE})
       CLUSTER_VERSION=$(\
-          gcloud --project=${PROJECT} container get-server-config --zone=${ZONE} | \
+          echo "${SERVER_CONFIG}" | \
           awk '/validNodeVersions/{f=0} f; /validMasterVersions/{f=1}' | \
           awk '{print $2}' | \
           grep '^1.10.[0-9]*[-d]gke.[0-9]*$' | \
@@ -113,6 +115,19 @@ createEnv() {
       echo KUBEFLOW_CLOUD=null >> ${ENV_FILE}
       ;;
   esac
+}
+
+createNamespace() {
+  set +e
+  O=`kubectl get namespace ${K8S_NAMESPACE} 2>&1`
+  RESULT=$?
+  set -e
+
+  if [ "${RESULT}" -eq 0 ]; then
+    echo "namespace ${K8S_NAMESPACE} already exists"
+  else
+    kubectl create namespace ${K8S_NAMESPACE}
+  fi
 }
 
 if [ "${COMMAND}" == "init" ]; then
@@ -199,16 +214,7 @@ ksApply () {
   pushd ${KUBEFLOW_KS_DIR}
 
   if [ "${PLATFORM}" == "minikube" ]; then
-    set +e
-    O=`kubectl get namespace ${K8S_NAMESPACE} 2>&1`
-    RESULT=$?
-    set -e
-
-    if [ "${RESULT}" -eq 0 ]; then
-      echo "namespace ${K8S_NAMESPACE} already exists"
-    else
-      kubectl create namespace ${K8S_NAMESPACE}
-    fi
+    createNamespace
   fi
 
   set +e
@@ -284,6 +290,7 @@ if [ "${COMMAND}" == "apply" ]; then
   fi
 
   if [ "${WHAT}" == "k8s"  ] || [ "${WHAT}" == "all" ]; then
+    createNamespace
     ksApply
 
     if [ "${PLATFORM}" == "gcp" ]; then
