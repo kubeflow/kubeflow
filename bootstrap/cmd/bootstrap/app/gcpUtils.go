@@ -4,15 +4,16 @@ import (
 	"fmt"
 	"time"
 
+	"io/ioutil"
+	"path"
+	"strings"
+
 	"github.com/ghodss/yaml"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/cloudresourcemanager/v1"
 	"google.golang.org/api/deploymentmanager/v2"
-	"io/ioutil"
-	"path"
-	"strings"
 )
 
 type Resource struct {
@@ -56,8 +57,9 @@ func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) erro
 		dmconf.Resources[0].Properties["clientSecret"] = req.ClientSecret
 		dmconf.Resources[0].Properties["ipName"] = req.IpName
 		dmconf.Resources[0].Properties["isWebapp"] = true
-		// TODO: use get-server-config
-		dmconf.Resources[0].Properties["cluster-version"] = "1.10.6-gke.2"
+		// "1.X": picks the highest valid patch+gke.N patch in the 1.X version
+		// https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters
+		dmconf.Resources[0].Properties["cluster-version"] = "1.10"
 	}
 	confByte, err := yaml.Marshal(dmconf)
 	if err != nil {
