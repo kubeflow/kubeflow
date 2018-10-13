@@ -6,6 +6,7 @@
       namespace: if std.objectHas(_params, "namespace") && _params.namespace != "null" then
         _params.namespace else _env.namespace,
     },
+    parts:: self,
 
     local kubeSpawnerConfig = {
       apiVersion: "v1",
