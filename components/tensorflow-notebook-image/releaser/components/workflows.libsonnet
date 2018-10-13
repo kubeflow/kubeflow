@@ -19,6 +19,30 @@
       )
     else [],
 
+  // Function to parse and compare version strings. Assumes version strings are in the
+  // format of "x.y.z".
+  // compareVersion("1.2.3", "1.2.4") -> -1
+  // compareVersion("1.4.1", "1.2.0") -> 1
+  // compareVersion("1.5.0", "1.5.0") -> 0
+  compareVersion:: function(x, y)
+    local x_parts = std.split(x, ".");
+    local y_parts = std.split(y, ".");
+
+    if std.parseInt(x_parts[0]) < std.parseInt(y_parts[0]) then
+      -1
+    else if std.parseInt(x_parts[0]) > std.parseInt(y_parts[0]) then
+      1
+    else if std.parseInt(x_parts[1]) < std.parseInt(y_parts[1]) then
+      -1
+    else if std.parseInt(x_parts[1]) > std.parseInt(y_parts[1]) then
+      1
+    else if std.parseInt(x_parts[2]) < std.parseInt(y_parts[2]) then
+      -1
+    else if std.parseInt(x_parts[2]) > std.parseInt(y_parts[2]) then
+      1
+    else
+      0,
+
   // Default parameters.
   // The defaults are suitable based on suitable values for our test cluster.
   defaultParams:: {
@@ -140,7 +164,7 @@
           else
             "nvidia/cuda:9.0-cudnn7-devel-ubuntu16.04",
         local installTfma =
-          if tf_version < "1.9" then
+          if $.compareVersion(tf_version, "1.9.0") < 0 then
             "no"
           else
             "yes",
