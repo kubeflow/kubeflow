@@ -14,7 +14,7 @@
 // @optionalParam s3AwsRegion string us-west-1 S3 region
 // @optionalParam s3UseHttps string true Whether or not to use https
 // @optionalParam s3VerifySsl string true Whether or not to verify https certificates for S3 connections
-// @optionalParam s3Endpoint string null url of the s3 endpoint
+// @optionalParam s3Endpoint string http://s3.us-west-1.amazonaws.com URL for your s3-compatible endpoint
 
 local aws = import "kubeflow/tensorboard/aws.libsonnet";
 local tensorboard = import "kubeflow/tensorboard/tensorboard.libsonnet";
