@@ -130,7 +130,7 @@
           ],
         },
       ],
-    },  // operator-role
+    },  // role
     centralDashboardRole:: centralDashboardRole,
 
     local centralDashboardRoleBinding = {
