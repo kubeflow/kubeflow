@@ -25,20 +25,19 @@
   // compareVersion("1.4.1", "1.2.0") -> 1
   // compareVersion("1.5.0", "1.5.0") -> 0
   compareVersion:: function(x, y)
-    local x_parts = std.split(x, ".");
-    local y_parts = std.split(y, ".");
-
-    if std.parseInt(x_parts[0]) < std.parseInt(y_parts[0]) then
+    local x_parts = [std.parseInt(s) for s in std.split(x, ".")];
+    local y_parts = [std.parseInt(s) for s in std.split(y, ".")];
+    if x_parts[0] < y_parts[0] then
       -1
-    else if std.parseInt(x_parts[0]) > std.parseInt(y_parts[0]) then
+    else if x_parts[0] > y_parts[0] then
       1
-    else if std.parseInt(x_parts[1]) < std.parseInt(y_parts[1]) then
+    else if x_parts[1] < y_parts[1] then
       -1
-    else if std.parseInt(x_parts[1]) > std.parseInt(y_parts[1]) then
+    else if x_parts[1] > y_parts[1] then
       1
-    else if std.parseInt(x_parts[2]) < std.parseInt(y_parts[2]) then
+    else if x_parts[2] < y_parts[2] then
       -1
-    else if std.parseInt(x_parts[2]) > std.parseInt(y_parts[2]) then
+    else if x_parts[2] > y_parts[2] then
       1
     else
       0,
