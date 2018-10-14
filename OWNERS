@@ -2,16 +2,10 @@
 # list approvers for individual components (e.g. Seldon folks for Seldon component)
 approvers:
   - abhi-g
-  - DjangoPeng
   - gaocegege
   - jlewi
   - kunmingg
   - lluunn
   - pdmack
   - richardsliu
-  - ScorpioCPH
-  - texasmichelle
-  - willb
 reviewers:
-  - richardsliu
-  - swiftdiaries
