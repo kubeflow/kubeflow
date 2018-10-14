@@ -8,7 +8,6 @@
             "apiVersion": "v1",
             "metadata": {
                 "name": "seldon",
-                "namespace": "kubeflow-seldon",
                 "creationTimestamp": null
             }
         },
@@ -17,14 +16,13 @@
             "apiVersion": "rbac.authorization.k8s.io/v1",
             "metadata": {
                 "name": "seldon",
-                "namespace": "kubeflow-seldon",
                 "creationTimestamp": null
             },
             "subjects": [
                 {
                     "kind": "ServiceAccount",
                     "name": "seldon",
-                    "namespace": "kubeflow-seldon"
+                    "namespace": "seldon"
                 }
             ],
             "roleRef": {
@@ -38,7 +36,6 @@
             "apiVersion": "apps/v1",
             "metadata": {
                 "name": "seldon-cluster-manager",
-                "namespace": "kubeflow-seldon",
                 "creationTimestamp": null,
                 "labels": {
                     "app": "seldon-cluster-manager-server"
@@ -115,7 +112,8 @@
                         "maxUnavailable": 1,
                         "maxSurge": 1
                     }
-                }
+                },
+                "progressDeadlineSeconds": 2147483647
             },
             "status": {}
         },
@@ -124,7 +122,6 @@
             "apiVersion": "apps/v1",
             "metadata": {
                 "name": "redis",
-                "namespace": "kubeflow-seldon",
                 "creationTimestamp": null,
                 "labels": {
                     "app": "redis-app"
@@ -174,7 +171,8 @@
                         "maxUnavailable": 1,
                         "maxSurge": 1
                     }
-                }
+                },
+                "progressDeadlineSeconds": 2147483647
             },
             "status": {}
         },
@@ -208,7 +206,6 @@
             "apiVersion": "apps/v1",
             "metadata": {
                 "name": "seldon-apiserver",
-                "namespace": "kubeflow-seldon",
                 "creationTimestamp": null,
                 "labels": {
                     "app": "seldon-apiserver-container-app",
@@ -291,7 +288,8 @@
                         "maxUnavailable": 1,
                         "maxSurge": 1
                     }
-                }
+                },
+                "progressDeadlineSeconds": 2147483647
             },
             "status": {}
         },

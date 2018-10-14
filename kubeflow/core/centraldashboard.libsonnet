@@ -96,9 +96,9 @@
     },  // service account
     centralDashboardServiceAccount:: centralDashboardServiceAccount,
 
-    local centralDashboardClusterRole = {
+    local centralDashboardRole = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "ClusterRole",
+      kind: "Role",
       metadata: {
         labels: {
           app: "centraldashboard",
@@ -130,12 +130,12 @@
           ],
         },
       ],
-    },  // operator-role
-    centralDashboardClusterRole:: centralDashboardClusterRole,
+    },  // role
+    centralDashboardRole:: centralDashboardRole,
 
-    local centralDashboardClusterRoleBinding = {
+    local centralDashboardRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "ClusterRoleBinding",
+      kind: "RoleBinding",
       metadata: {
         labels: {
           app: "centraldashboard",
@@ -145,7 +145,7 @@
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
-        kind: "ClusterRole",
+        kind: "Role",
         name: "centraldashboard",
       },
       subjects: [
@@ -156,13 +156,13 @@
         },
       ],
     },  // role binding
-    centralDashboardClusterRoleBinding:: centralDashboardClusterRoleBinding,
+    centralDashboardRoleBinding:: centralDashboardRoleBinding,
 
     all:: [
       self.centralDashboardDeployment,
       self.centralDashboardService,
       self.centralDashboardServiceAccount,
-      self.centralDashboardClusterRole,
+      self.centralDashboardRole,
     ],
 
     list(obj=self.all):: util.list(obj),
