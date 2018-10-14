@@ -78,9 +78,9 @@ resources:
       loggingService: logging.googleapis.com/kubernetes
       monitoringService: monitoring.googleapis.com/kubernetes
       {% if properties['enable_tpu'] %}
-        enable_tpu: {{ properties['enable_tpu'] }}
-        ipAllocationPolicy:
-          useIpAliases: {{ properties['enable_tpu'] }}
+      enable_tpu: {{ properties['enable_tpu'] }}
+      ipAllocationPolicy:
+        useIpAliases: {{ properties['enable_tpu'] }}
       {% endif %}
       podSecurityPolicyConfig:
         enabled: {{ properties['securityConfig']['podSecurityPolicy'] }}
