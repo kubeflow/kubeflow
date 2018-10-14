@@ -72,7 +72,7 @@ resources:
     zone: {{ properties['zone'] }}
     cluster:
       name: {{ CLUSTER_NAME }}
-      initialClusterVersion: {{ properties['cluster-version'] }}
+      initialClusterVersion: "{{ properties['cluster-version'] }}"
       {% if properties['gkeApiVersion'] == 'v1beta1' %}
       # We need 1.10.2 to support Stackdrivier GKE.
       loggingService: logging.googleapis.com/kubernetes
