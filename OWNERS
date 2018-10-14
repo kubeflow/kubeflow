@@ -2,7 +2,6 @@
 # list approvers for individual components (e.g. Seldon folks for Seldon component)
 approvers:
   - abhi-g
-  - gaocegege
   - jlewi
   - kunmingg
   - lluunn
