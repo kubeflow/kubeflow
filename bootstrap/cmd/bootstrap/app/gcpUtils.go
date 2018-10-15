@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/ghodss/yaml"
+	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
@@ -42,6 +43,18 @@ type ApplyIamRequest struct {
 	Email   string `json:"email"`
 	Token   string `json:"token"`
 	Action  string `json:"action`
+}
+
+var (
+	deploymentsStartedCounter = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "deployments_started",
+		Help: "Number of deployments kicked off",
+	})
+)
+
+func init() {
+	// Initialize prometheus counters
+	prometheus.MustRegister(deploymentsStartedCounter)
 }
 
 // TODO: handle concurrent & repetitive deployment requests.
@@ -94,6 +107,7 @@ func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) erro
 	if err != nil {
 		return err
 	}
+	deploymentsStartedCounter.Inc()
 	return nil
 }
 
