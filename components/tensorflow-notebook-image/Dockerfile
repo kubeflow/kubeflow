@@ -5,7 +5,6 @@ ARG BASE_IMAGE=ubuntu:latest
 
 FROM $BASE_IMAGE
 
-ARG INSTALL_TFMA=yes
 ARG TF_PACKAGE=https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.7.0-cp36-cp36m-linux_x86_64.whl
 ARG TF_PACKAGE_PY_27=https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.7.0-cp27-none-linux_x86_64.whl
 ARG TFMA_VERSION=default
@@ -124,7 +123,7 @@ RUN conda create -n py2 python=2 && \
     && \
     python -m ipykernel install && \
     # tensorflow-model-analysis is only supported for TF 1.6 and above
-    if [[ $INSTALL_TFMA == "yes" ]]; then \
+    if [[ $TFMA_VERSION != "disable_install" ]]; then \
       # if you find any dependency problems in the future
       # please visit https://github.com/tensorflow/model-analysis#compatible-versions
       # and fix the TFMA_VERSION with compatible version number in the config json
