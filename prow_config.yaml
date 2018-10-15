@@ -23,6 +23,7 @@ workflows:
       - scripts/*
       - kubeflow/*
       - testing/*
+      - deployment/*
     params:
       platform: gke
   # Run unittests
