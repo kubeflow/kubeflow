@@ -10,7 +10,7 @@
 // @optionalParam defaultTbImage string tensorflow/tensorflow:1.8.0 default tensorboard image to use
 // @optionalParam gcpCredentialSecretName string null Name of the k8s secrets containing gcp credentials
 
-local basetype = import "kubeflow/tensorboard/tensorboard.libsonnet";
 local subtype = import "kubeflow/tensorboard/gcp.libsonnet";
+local basetype = import "kubeflow/tensorboard/tensorboard.libsonnet";
 local instance = basetype.new(env, params) + subtype;
 instance.list(instance.all)
