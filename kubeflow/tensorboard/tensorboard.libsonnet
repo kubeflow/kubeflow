@@ -66,5 +66,13 @@
         withNamespace(params.namespace).
         withLabelsMixin(params.labels),
     tbDeployment:: tbDeployment,
+
+    parts:: self,
+    all:: [
+      self.tbService,
+      self.tbDeployment,
+    ],
+
+    list(obj=self.all):: util.list(obj),
   },
 }
