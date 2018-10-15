@@ -34,6 +34,8 @@ class KubeFormSpawner(KubeSpawner):
           <option value="{0}/{1}/tensorflow-1.9.0-notebook-gpu:v0.3.0">
           <option value="{0}/{1}/tensorflow-1.10.1-notebook-cpu:v0.3.0">
           <option value="{0}/{1}/tensorflow-1.10.1-notebook-gpu:v0.3.0">
+          <option value="{0}/{1}/tensorflow-1.11.0-notebook-cpu:v0.3.0">
+          <option value="{0}/{1}/tensorflow-1.11.0-notebook-gpu:v0.3.0">
         </datalist>
         </td>
     </tr>
