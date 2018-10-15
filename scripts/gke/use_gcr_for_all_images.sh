@@ -31,8 +31,6 @@ fi
 
 if ks component list | awk '{print $1}' | grep -q "^ambassador$" ; then
   ks param set ambassador ambassadorImage gcr.io/kubeflow-images-public/quay.io/datawire/ambassador:0.37.0
-  ks param set ambassador statsdImage gcr.io/kubeflow-images-public/quay.io/datawire/statsd:0.37.0
-  ks param set ambassador statsdSinkImage gcr.io/kubeflow-images-public/prom/statsd-exporter:v0.6.0
 fi
 
 if ks component list | awk '{print $1}' | grep -q "^katib$" ; then
