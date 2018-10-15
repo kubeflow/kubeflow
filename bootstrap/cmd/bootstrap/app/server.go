@@ -27,7 +27,6 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app/options"
 	"github.com/kubeflow/kubeflow/bootstrap/version"
-	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
 	"k8s.io/api/storage/v1"
 	k8sVersion "k8s.io/apimachinery/pkg/version"
@@ -49,13 +48,6 @@ const DefaultStorageAnnotation = "storageclass.beta.kubernetes.io/is-default-cla
 const GcloudPath = "gcloud"
 
 const RegistriesRoot = "/opt/registries"
-
-var (
-	restarts = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "deployment_backend_restarts_total",
-		Help: "Total number of restarts of the service",
-	})
-)
 
 type KsComponent struct {
 	Name      string
@@ -300,11 +292,6 @@ func processFile(opt *options.ServerOption, ksServer *ksServer) error {
 	return nil
 }
 
-// Initialize the counters
-func init() {
-	prometheus.MustRegister(restarts)
-}
-
 // Run the application.
 func Run(opt *options.ServerOption) error {
 	// Check if the -version flag was passed and, if so, print the version and exit.
@@ -340,7 +327,6 @@ func Run(opt *options.ServerOption) error {
 	if opt.KeepAlive {
 		log.Infof("Starting http server.")
 		ksServer.StartHttp(opt.Port)
-		restarts.Inc()
 	}
 
 	return nil
