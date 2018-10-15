@@ -12,6 +12,8 @@ RELEASE=v0.1.2-alpha-34-gb46378c
 VALUES="modeldbFrontendImage=gcr.io/kubeflow-images-public/katib/katib-frontend:${RELEASE}"
 VALUES="${VALUES},suggestionRandomImage=gcr.io/kubeflow-images-public/katib/suggestion-random:${RELEASE}"
 VALUES="${VALUES},suggestionGridImage=gcr.io/kubeflow-images-public/katib/suggestion-grid:${RELEASE}"
+VALUES="${VALUES},suggestionHyperbandImage=gcr.io/kubeflow-images-public/katib/suggestion-hyperband:${RELEASE}"
+VALUES="${VALUES},suggestionBayesianOptimizationImage=gcr.io/kubeflow-images-public/katib/suggestion-bayesianoptimization:${RELEASE}"
 VALUES="${VALUES},vizierCoreImage=gcr.io/kubeflow-images-public/katib/vizier-core:${RELEASE}"
 # Update the TFJob operator image
 python ${ROOT_DIR}/scripts/update_prototype.py \
