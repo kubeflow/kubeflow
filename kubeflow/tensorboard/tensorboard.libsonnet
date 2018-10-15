@@ -68,6 +68,7 @@
         withLabelsMixin(params.labels),
     tbDeployment:: tbDeployment,
 
+    parts:: self,
     all:: [
       self.tbService,
       self.tbDeployment,

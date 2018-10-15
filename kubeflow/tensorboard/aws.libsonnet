@@ -2,11 +2,13 @@
   local k = import "k.libsonnet",
   local util = import "kubeflow/core/util.libsonnet",
   local deployment = k.apps.v1beta1.deployment,
+  // super resolves to any object which has a params field.
   local params = super.params,
 
+  // super resolves to any object which has a tbService field
   tbService:: super.tbService,
 
-  local tbDeployment =
+  tbDeployment::
     super.tbDeployment +
     deployment.mapContainers(
       function(c) {
@@ -54,8 +56,8 @@
         ),
       }.result,
     ),
-  tbDeployment:: tbDeployment,
 
+  parts:: self,
   all:: [
     self.tbService,
     self.tbDeployment,
