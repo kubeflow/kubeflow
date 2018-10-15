@@ -28,6 +28,8 @@
 // @optionalParam runAsUser string null uid of the first process of containers in master/worker pods. If not set, this will be default value of your cluster configuration.
 // @optionalParam runAsGroup string null Primary gid of the first process of containers in master/worker pods. If not set, this will be default value of your cluster configuration.
 // @optionalParam supplementalGroups string null Comma-delimited list of supplemental group ids to put the user of the first process of containers in master/worker pods.
+// @optionalParam volumes array [] 'volumes' to put master/workers pods.
+// @optionalParam volumeMounts array [] 'volumes' to put job containers in master/workers pods.
 
 local k = import "k.libsonnet";
 local openmpi = import "kubeflow/openmpi/all.libsonnet";
