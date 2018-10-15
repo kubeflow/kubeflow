@@ -8,6 +8,8 @@
 // @optionalParam modeldbFrontendImage string gcr.io/kubeflow-images-public/katib/katib-frontend:v0.1.2-alpha-34-gb46378c The image for modeldb frontend.
 // @optionalParam suggestionRandomImage string gcr.io/kubeflow-images-public/katib/suggestion-random:v0.1.2-alpha-34-gb46378c The image for random suggestion.
 // @optionalParam suggestionGridImage string gcr.io/kubeflow-images-public/katib/suggestion-grid:v0.1.2-alpha-34-gb46378c The image for grid suggestion.
+// @optionalParam suggestionHyperbandImage string gcr.io/kubeflow-images-public/katib/suggestion-hyperband:v0.1.2-alpha-34-gb46378c The image for grid suggestion.
+// @optionalParam suggestionBayesianOptimizationImage string gcr.io/kubeflow-images-public/katib/suggestion-bayesianoptimization:v0.1.2-alpha-34-gb46378c The image for grid suggestion.
 // @optionalParam vizierCoreImage string gcr.io/kubeflow-images-public/katib/vizier-core:v0.1.2-alpha-34-gb46378c The image for vizier core.
 // @optionalParam vizierDbImage string mysql:8.0.3 The image for vizier db.
 // @optionalParam studyJobControllerImage string katib/studyjob-controller The image for studyjob-controller.
