@@ -10,7 +10,7 @@
     },
 
   workflowName:: function(version, device)
-    "build-"+std.strReplace(version,".","-")+"-"+device,
+    "build-" + std.strReplace(version, ".", "-") + "-" + device,
 
   // Function to turn comma separated list of prow environment variables into a dictionary.
   parseEnv:: function(v)
@@ -153,7 +153,7 @@
             "nvidia/cuda:8.0-cudnn6-devel-ubuntu16.04"
           else
             "nvidia/cuda:9.0-cudnn7-devel-ubuntu16.04",
-        local tf_serving_version = 
+        local tf_serving_version =
           if tf_version == "1.4.1" then
             "1.4.0"
           else if tf_version == "1.5.1" then
@@ -272,97 +272,97 @@
           onExit: "exit-handler",
 
           templates: [
-            {
-              name: "e2e",
-              dag: {
-                tasks: [
-                  {
-                    name: "checkout",
-                    template: "checkout",
-                  },
-                  {
-                    name: "create-pr-symlink",
-                    template: "create-pr-symlink",
-                    dependencies: ["checkout"],
-                  }
-                ] +
-                [
-                  {
-                    name: $.workflowName(version, "cpu"),
-                    template: $.workflowName(version, "cpu"),
-                    dependencies: ["checkout"]
-                  },
-                  for version in supportedVersions
-                ] +
-                [
-                  {
-                    name: $.workflowName(version, "gpu"),
-                    template: $.workflowName(version, "gpu"),
-                    dependencies: ["checkout"]
-                  },
-                  for version in supportedVersions
-                ],
-              },  //dag
-            },
-            {
-              name: "exit-handler",
-              steps: [
-                [{
-                  name: "copy-artifacts",
-                  template: "copy-artifacts",
-                }],
-              ],
-            },
-            {
-              name: "checkout",
-              container: {
-                command: [
-                  "/usr/local/bin/checkout.sh",
-                ],
-                args: [
-                  srcRootDir,
-                ],
-                env: prow_env + [{
-                  name: "EXTRA_REPOS",
-                  value: "kubeflow/testing@HEAD",
-                }],
-                image: params.step_image,
-                volumeMounts: [
-                  {
-                    name: dataVolume,
-                    mountPath: mountPath,
-                  },
-                ],
-              },
-            },  // checkout
-            buildTemplate("create-pr-symlink", [
-              "python",
-              "-m",
-              "kubeflow.testing.prow_artifacts",
-              "--artifacts_dir=" + outputDir,
-              "create_pr_symlink",
-              "--bucket=" + bucket,
-            ]),  // create-pr-symlink
-            buildTemplate(
-              "copy-artifacts",
-              [
-                "python",
-                "-m",
-                "kubeflow.testing.prow_artifacts",
-                "--artifacts_dir=" + outputDir,
-                "copy_artifacts",
-                "--bucket=" + bucket,
-              ]
-            ),  // copy-artifacts
-          ] + 
-          [
-            buildImageTemplate(version, "cpu"),
-            for version in supportedVersions
-          ] +
-          [
-            buildImageTemplate(version, "gpu"),
-            for version in supportedVersions
-          ], // templates
+                       {
+                         name: "e2e",
+                         dag: {
+                           tasks: [
+                                    {
+                                      name: "checkout",
+                                      template: "checkout",
+                                    },
+                                    {
+                                      name: "create-pr-symlink",
+                                      template: "create-pr-symlink",
+                                      dependencies: ["checkout"],
+                                    },
+                                  ] +
+                                  [
+                                    {
+                                      name: $.workflowName(version, "cpu"),
+                                      template: $.workflowName(version, "cpu"),
+                                      dependencies: ["checkout"],
+                                    }
+                                    for version in supportedVersions
+                                  ] +
+                                  [
+                                    {
+                                      name: $.workflowName(version, "gpu"),
+                                      template: $.workflowName(version, "gpu"),
+                                      dependencies: ["checkout"],
+                                    }
+                                    for version in supportedVersions
+                                  ],
+                         },  //dag
+                       },
+                       {
+                         name: "exit-handler",
+                         steps: [
+                           [{
+                             name: "copy-artifacts",
+                             template: "copy-artifacts",
+                           }],
+                         ],
+                       },
+                       {
+                         name: "checkout",
+                         container: {
+                           command: [
+                             "/usr/local/bin/checkout.sh",
+                           ],
+                           args: [
+                             srcRootDir,
+                           ],
+                           env: prow_env + [{
+                             name: "EXTRA_REPOS",
+                             value: "kubeflow/testing@HEAD",
+                           }],
+                           image: params.step_image,
+                           volumeMounts: [
+                             {
+                               name: dataVolume,
+                               mountPath: mountPath,
+                             },
+                           ],
+                         },
+                       },  // checkout
+                       buildTemplate("create-pr-symlink", [
+                         "python",
+                         "-m",
+                         "kubeflow.testing.prow_artifacts",
+                         "--artifacts_dir=" + outputDir,
+                         "create_pr_symlink",
+                         "--bucket=" + bucket,
+                       ]),  // create-pr-symlink
+                       buildTemplate(
+                         "copy-artifacts",
+                         [
+                           "python",
+                           "-m",
+                           "kubeflow.testing.prow_artifacts",
+                           "--artifacts_dir=" + outputDir,
+                           "copy_artifacts",
+                           "--bucket=" + bucket,
+                         ]
+                       ),  // copy-artifacts
+                     ] +
+                     [
+                       buildImageTemplate(version, "cpu")
+                       for version in supportedVersions
+                     ] +
+                     [
+                       buildImageTemplate(version, "gpu")
+                       for version in supportedVersions
+                     ],  // templates
         },
       },  // e2e
   },  // parts
