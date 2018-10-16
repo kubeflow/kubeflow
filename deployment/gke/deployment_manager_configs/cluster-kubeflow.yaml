@@ -31,7 +31,8 @@ resources:
     zone: SET_THE_ZONE
     # We need to set the initialCluserVersion to prevent auto upgrading
     cluster-version: SET_CLUSTER_VERSION
-    # Set this to v1beta1 to use beta features such as private clusters,
+    # Set this to v1beta1 to use beta features such as private clusterss
+    # and the Kubernetes stackdriver agents.
     gkeApiVersion: v1
     # An arbitrary string appending to name of nodepools
     # bump this if you want to modify the node pools.
@@ -48,8 +49,6 @@ resources:
     gpu-pool-enable-autoscaling: true
     gpu-pool-min-nodes: 0
     gpu-pool-max-nodes: 10
-    # Whether to deploy the new Stackdriver Kubernetes agents
-    stackdriver-kubernetes: false
     securityConfig:
       # Whether to use a cluster with private IPs
       # Use v1beta1 api
