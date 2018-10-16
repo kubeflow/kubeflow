@@ -9,6 +9,9 @@
       value: v[1],
     },
 
+  workflowName:: function(version, device)
+    "build-"+std.strReplace(version,".","-")+"-"+device,
+
   // Function to turn comma separated list of prow environment variables into a dictionary.
   parseEnv:: function(v)
     local pieces = std.split(v, ",");
@@ -76,6 +79,16 @@
       // Location where Dockerfiles and other sources are found.
       local notebookDir = srcRootDir + "/kubeflow/kubeflow/components/tensorflow-notebook-image/";
 
+      local supportedVersions = [
+        "1.4.1",
+        "1.5.1",
+        "1.6.0",
+        "1.7.0",
+        "1.8.0",
+        "1.9.0",
+        "1.10.1",
+      ];
+
       // Build an Argo template to execute a particular command.
       // step_name: Name for the template
       // command: List to pass as the container command.
@@ -128,7 +141,8 @@
         },
         sidecars: sidecars,
       };  // buildTemplate
-      local buildImageTemplate(tf_version, workflow_name, device, is_latest=true) = {
+      local buildImageTemplate(tf_version, device, is_latest=true) = {
+        local workflow_name = $.workflowName(tf_version, device),
         local image = params.registry + "/tensorflow-" + tf_version + "-notebook-" + device,
         local tag = params.versionTag,
         local base_image =
@@ -161,7 +175,7 @@
           tf_version +
           "-cp27-none-linux_x86_64.whl",
         result:: buildTemplate(
-          "build-" + workflow_name + "-" + device,
+          workflow_name,
           [
             // We need to explicitly specify bash because
             // build_image.sh is not in the container its a volume mounted file.
@@ -175,7 +189,7 @@
             + base_image + " "
             + tf_package + " "
             + tf_package_py_27 + " "
-            + installTfma,
+            + installTfma, 
           ],
           [
             {
@@ -259,97 +273,29 @@
                     template: "checkout",
                   },
                   {
-                    name: "build-1-4-1-gpu",
-                    template: "build-1-4-1-gpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-4-1-cpu",
-                    template: "build-1-4-1-cpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-5-1-gpu",
-                    template: "build-1-5-1-gpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-5-1-cpu",
-                    template: "build-1-5-1-cpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-6-0-gpu",
-                    template: "build-1-6-0-gpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-6-0-cpu",
-                    template: "build-1-6-0-cpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-7-0-gpu",
-                    template: "build-1-7-0-gpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-7-0-cpu",
-                    template: "build-1-7-0-cpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-8-0-gpu",
-                    template: "build-1-8-0-gpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-8-0-cpu",
-                    template: "build-1-8-0-cpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-9-0-gpu",
-                    template: "build-1-9-0-gpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-9-0-cpu",
-                    template: "build-1-9-0-cpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-10-1-gpu",
-                    template: "build-1-10-1-gpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-10-1-cpu",
-                    template: "build-1-10-1-cpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
                     name: "create-pr-symlink",
                     template: "create-pr-symlink",
                     dependencies: ["checkout"],
+                  }
+                ] +
+                [
+                  {
+                    name: $.workflowName(version, "cpu"),
+                    template: $.workflowName(version, "cpu"),
+                    dependencies: ["checkout"]
                   },
+                  for version in supportedVersions
+                ] +
+                [
+                  {
+                    name: $.workflowName(version, "gpu"),
+                    template: $.workflowName(version, "gpu"),
+                    dependencies: ["checkout"]
+                  },
+                  for version in supportedVersions
                 ],
               },  //dag
             },
-            buildImageTemplate("1.4.1", "1-4-1", "cpu"),
-            buildImageTemplate("1.4.1", "1-4-1", "gpu"),
-            buildImageTemplate("1.5.1", "1-5-1", "cpu"),
-            buildImageTemplate("1.5.1", "1-5-1", "gpu"),
-            buildImageTemplate("1.6.0", "1-6-0", "cpu"),
-            buildImageTemplate("1.6.0", "1-6-0", "gpu"),
-            buildImageTemplate("1.7.0", "1-7-0", "cpu"),
-            buildImageTemplate("1.7.0", "1-7-0", "gpu"),
-            buildImageTemplate("1.8.0", "1-8-0", "cpu"),
-            buildImageTemplate("1.8.0", "1-8-0", "gpu"),
-            buildImageTemplate("1.9.0", "1-9-0", "cpu"),
-            buildImageTemplate("1.9.0", "1-9-0", "gpu"),
-            buildImageTemplate("1.10.1", "1-10-1", "cpu"),
-            buildImageTemplate("1.10.1", "1-10-1", "gpu"),
             {
               name: "exit-handler",
               steps: [
@@ -400,7 +346,15 @@
                 "--bucket=" + bucket,
               ]
             ),  // copy-artifacts
-          ],  // templates
+          ] + 
+          [
+            buildImageTemplate(version, "cpu"),
+            for version in supportedVersions
+          ] +
+          [
+            buildImageTemplate(version, "gpu"),
+            for version in supportedVersions
+          ], // templates
         },
       },  // e2e
   },  // parts
