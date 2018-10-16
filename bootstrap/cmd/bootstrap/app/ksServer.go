@@ -9,28 +9,31 @@ import (
 
 	"path/filepath"
 
+	"os"
+	"os/exec"
+	"time"
+
 	"github.com/go-kit/kit/endpoint"
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/ksonnet/ksonnet/pkg/actions"
 	kApp "github.com/ksonnet/ksonnet/pkg/app"
+	"github.com/ksonnet/ksonnet/pkg/client"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"golang.org/x/net/context"
+	"golang.org/x/oauth2"
+	"google.golang.org/api/sourcerepo/v1"
 	core_v1 "k8s.io/api/core/v1"
+	"k8s.io/api/rbac/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
 	type_v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
-	"k8s.io/api/rbac/v1"
-	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-	"github.com/ksonnet/ksonnet/pkg/client"
 	"k8s.io/client-go/tools/clientcmd"
-	"time"
-	"os/exec"
-	"golang.org/x/oauth2"
-	"google.golang.org/api/sourcerepo/v1"
-	"os"
-	)
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+)
 
 // The name of the prototype for Jupyter.
 const JUPYTER_PROTOTYPE = "jupyterhub"
@@ -71,7 +74,7 @@ type ksServer struct {
 
 	// project-id -> project lock
 	projectLocks map[string]*sync.Mutex
-	serverMux sync.Mutex
+	serverMux    sync.Mutex
 }
 
 // NewServer constructs a ksServer.
@@ -123,19 +126,19 @@ type CreateRequest struct {
 	AutoConfigure bool
 
 	// target GKE cLuster info
-	Cluster string
-	Project string
+	Cluster       string
+	Project       string
 	ProjectNumber string
-	Zone string
+	Zone          string
 
 	// Access token, need to access target cluster in order for AutoConfigure
 	Token string
 	Apply bool
 	Email string
 	// temporary
-	ClientId string
+	ClientId     string
 	ClientSecret string
-	IpName string
+	IpName       string
 
 	// For test: GCP service account client id
 	SAClientId string
@@ -168,7 +171,7 @@ type ApplyRequest struct {
 	// target GKE cLuster info
 	Cluster string
 	Project string
-	Zone string
+	Zone    string
 
 	// Token is an authorization token to use to authorize to the K8s API Server.
 	// Leave blank to use the pods service account.
@@ -177,6 +180,28 @@ type ApplyRequest struct {
 
 	// For test: GCP service account client id
 	SAClientId string
+}
+
+var ( // counters
+	deployReqCounter = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "deploy_requests",
+		Help: "Number of requests for deployments",
+	})
+	clusterDeploymentsDone = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "cluster_deployments_done",
+		Help: "Number of successfully finished GKE deployments",
+	})
+	kfDeploymentsDoneCounter = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "kubeflow_deployments_done",
+		Help: "Number of successfully finished Kubeflow deployments",
+	})
+)
+
+func init() {
+	// Register prometheus counters
+	prometheus.MustRegister(deployReqCounter)
+	prometheus.MustRegister(clusterDeploymentsDone)
+	prometheus.MustRegister(kfDeploymentsDoneCounter)
 }
 
 func setupNamespace(namespaces type_v1.NamespaceInterface, name_space string) error {
@@ -341,7 +366,7 @@ func (s *ksServer) getRegistryUri(registry *RegistryConfig) (string, error) {
 
 		v, ok := s.knownRegistries[registry.Name]
 		if !ok {
-			return "", fmt.Errorf("Create request uses registry %v but some " +
+			return "", fmt.Errorf("Create request uses registry %v but some "+
 				"required fields are not specified and this is not a known registry.", registry.Name)
 		}
 		log.Infof("No remote registry provided for registry %v; setting URI to local %v.", registry.Name, v.RegUri)
@@ -363,7 +388,7 @@ func (s *ksServer) getRegistryUri(registry *RegistryConfig) (string, error) {
 			}
 			fileUrl := registry.Repo + "/archive/" + registry.Version + ".tar.gz"
 
-			err = runCmd(fmt.Sprintf("curl -L -o %v %v", versionPath + ".tar.gz", fileUrl))
+			err = runCmd(fmt.Sprintf("curl -L -o %v %v", versionPath+".tar.gz", fileUrl))
 			if err != nil {
 				return "", err
 			}
@@ -371,7 +396,7 @@ func (s *ksServer) getRegistryUri(registry *RegistryConfig) (string, error) {
 			if err != nil {
 				return "", err
 			}
-			err = os.Rename(path.Join(registryPath, registry.Name + "-" + registry.Version), versionPath)
+			err = os.Rename(path.Join(registryPath, registry.Name+"-"+registry.Version), versionPath)
 			if err != nil {
 				log.Errorf("Error occrued during os.Rename. Error: %v", err)
 				return "", err
@@ -434,7 +459,7 @@ func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *AppConfig) error {
 						actions.OptionApp:     kfApp,
 						actions.OptionLibName: full,
 						actions.OptionName:    pkgName,
-						actions.OptionForce:	false,
+						actions.OptionForce:   false,
 					})
 
 					if err != nil {
@@ -458,7 +483,7 @@ func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *AppConfig) error {
 			actions.OptionApp:     kfApp,
 			actions.OptionLibName: full,
 			actions.OptionName:    pkg.Name,
-			actions.OptionForce:	false,
+			actions.OptionForce:   false,
 		})
 
 		if err != nil {
@@ -553,7 +578,7 @@ func (s *ksServer) autoConfigureApp(kfApp *kApp.App, appConfig *AppConfig, names
 	// Could we avoid this dependency by looking at an existing app and seeing
 	// which components correspond to which prototypes? Would we have to parse
 	// the actual jsonnet files?
-	for _, component := range appConfig.Components {		
+	for _, component := range appConfig.Components {
 		if component.Prototype == JUPYTER_PROTOTYPE {
 			pvcMount := ""
 			if hasDefault {
@@ -575,7 +600,6 @@ func (s *ksServer) autoConfigureApp(kfApp *kApp.App, appConfig *AppConfig, names
 
 	return nil
 }
-
 
 func GetRepoName(project string) string {
 	return fmt.Sprintf("%s-kubeflow-config", project)
@@ -648,7 +672,7 @@ func (s *ksServer) SaveAppToRepo(project string, email string) error {
 		return err
 	}
 
-	return runCmd(fmt.Sprintf("git config user.email '%s'; git config user.name 'auto-commit'; git add .; " +
+	return runCmd(fmt.Sprintf("git config user.email '%s'; git config user.name 'auto-commit'; git add .; "+
 		"git commit -m 'auto commit from deployment'; git pull --rebase; git push origin master", email))
 }
 
@@ -690,8 +714,8 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 			},
 			Subjects: []v1.Subject{
 				{
-					Kind:      v1.UserKind,
-					Name:      bindAccount,
+					Kind: v1.UserKind,
+					Name: bindAccount,
 				},
 			},
 		}
@@ -699,17 +723,17 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 		createK8sRoleBing(config, &roleBinding)
 
 		cfg := clientcmdapi.Config{
-			Kind: "Config",
+			Kind:       "Config",
 			APIVersion: "v1",
 			Clusters: map[string]*clientcmdapi.Cluster{
 				"activeCluster": {
 					CertificateAuthorityData: config.TLSClientConfig.CAData,
-					Server: config.Host,
+					Server:                   config.Host,
 				},
 			},
 			Contexts: map[string]*clientcmdapi.Context{
 				"activeCluster": {
-					Cluster: "activeCluster",
+					Cluster:  "activeCluster",
 					AuthInfo: "activeCluster",
 				},
 			},
@@ -722,10 +746,10 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 		}
 
 		applyOptions := map[string]interface{}{
-			actions.OptionApp:            a.App,
-			actions.OptionClientConfig:   &client.Config{
+			actions.OptionApp: a.App,
+			actions.OptionClientConfig: &client.Config{
 				Overrides: &clientcmd.ConfigOverrides{},
-				Config: clientcmd.NewDefaultClientConfig(cfg, &clientcmd.ConfigOverrides{}),
+				Config:    clientcmd.NewDefaultClientConfig(cfg, &clientcmd.ConfigOverrides{}),
 			},
 			actions.OptionComponentNames: req.Components,
 			actions.OptionCreate:         true,
@@ -792,14 +816,14 @@ func makeCreateAppEndpoint(svc KsService) endpoint.Endpoint {
 					components = append(components, comp.Name)
 				}
 				err = svc.Apply(ctx, ApplyRequest{
-					Name: req.Name,
+					Name:        req.Name,
 					Environment: "default",
-					Components: components,
-					Cluster: req.Cluster,
-					Project: req.Project,
-					Zone: req.Zone,
-					Token: req.Token,
-					Email: req.Email,
+					Components:  components,
+					Cluster:     req.Cluster,
+					Project:     req.Project,
+					Zone:        req.Zone,
+					Token:       req.Token,
+					Email:       req.Email,
 				})
 				if err != nil {
 					r.Err = err.Error()
@@ -822,6 +846,7 @@ func finishDeployment(svc KsService, req CreateRequest) {
 			return
 		}
 		if status == "DONE" {
+			clusterDeploymentsDone.Inc()
 			log.Infof("Deployment is done")
 			break
 		}
@@ -838,9 +863,9 @@ func finishDeployment(svc KsService, req CreateRequest) {
 	err = svc.ApplyIamPolicy(ctx, ApplyIamRequest{
 		Project: req.Project,
 		Cluster: req.Cluster,
-		Email: req.Email,
-		Token: req.Token,
-		Action: "add",
+		Email:   req.Email,
+		Token:   req.Token,
+		Action:  "add",
 	})
 	if err != nil {
 		log.Errorf("Failed to update IAM: %v", err)
@@ -849,11 +874,11 @@ func finishDeployment(svc KsService, req CreateRequest) {
 
 	log.Infof("Inserting sa keys...")
 	err = svc.InsertSaKeys(ctx, InsertSaKeyRequest{
-		Cluster: req.Cluster,
+		Cluster:   req.Cluster,
 		Namespace: req.Namespace,
-		Project: req.Project,
-		Token: req.Token,
-		Zone: req.Zone,
+		Project:   req.Project,
+		Token:     req.Token,
+		Zone:      req.Zone,
 	})
 	if err != nil {
 		log.Errorf("Failed to insert service account key: %v", err)
@@ -873,27 +898,29 @@ func finishDeployment(svc KsService, req CreateRequest) {
 			components = append(components, comp.Name)
 		}
 		err = svc.Apply(ctx, ApplyRequest{
-			Name: req.Name,
+			Name:        req.Name,
 			Environment: "default",
-			Components: components,
-			Cluster: req.Cluster,
-			Project: req.Project,
-			Zone: req.Zone,
-			Token: req.Token,
-			Email: req.Email,
-			SAClientId: req.SAClientId,
+			Components:  components,
+			Cluster:     req.Cluster,
+			Project:     req.Project,
+			Zone:        req.Zone,
+			Token:       req.Token,
+			Email:       req.Email,
+			SAClientId:  req.SAClientId,
 		})
 		if err != nil {
 			log.Errorf("Failed to apply app: %v", err)
 			return
 		}
 	}
+	kfDeploymentsDoneCounter.Inc()
 }
 
 func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(CreateRequest)
 		r := &basicServerResponse{}
+		deployReqCounter.Inc()
 
 		dmServiceAccount := req.ProjectNumber + "@cloudservices.gserviceaccount.com"
 		err := svc.BindRole(ctx, req.Project, req.Token, dmServiceAccount)
@@ -967,7 +994,7 @@ func optionsHandler(h http.Handler) http.HandlerFunc {
 		if r.Method == "OPTIONS" {
 			return
 		} else {
-			h.ServeHTTP(w,r)
+			h.ServeHTTP(w, r)
 		}
 	}
 }
@@ -981,7 +1008,7 @@ func (s *ksServer) StartHttp(port int) {
 
 	applyAppHandler := httptransport.NewServer(
 		makeApplyAppEndpoint(s),
-		func (_ context.Context, r *http.Request) (interface{}, error) {
+		func(_ context.Context, r *http.Request) (interface{}, error) {
 			var request ApplyRequest
 			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 				log.Info("Err decoding apply request: " + err.Error())
@@ -1000,7 +1027,7 @@ func (s *ksServer) StartHttp(port int) {
 
 	healthzHandler := httptransport.NewServer(
 		makeHealthzEndpoint(s),
-		func (_ context.Context, r *http.Request) (interface{}, error) {
+		func(_ context.Context, r *http.Request) (interface{}, error) {
 			return nil, nil
 		},
 		encodeResponse,
@@ -1008,7 +1035,7 @@ func (s *ksServer) StartHttp(port int) {
 
 	insertSaKeyHandler := httptransport.NewServer(
 		makeSaKeyEndpoint(s),
-		func (_ context.Context, r *http.Request) (interface{}, error) {
+		func(_ context.Context, r *http.Request) (interface{}, error) {
 			var request InsertSaKeyRequest
 			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 				return nil, err
@@ -1020,7 +1047,7 @@ func (s *ksServer) StartHttp(port int) {
 
 	applyIamHandler := httptransport.NewServer(
 		makeIamEndpoint(s),
-		func (_ context.Context, r *http.Request) (interface{}, error) {
+		func(_ context.Context, r *http.Request) (interface{}, error) {
 			var request ApplyIamRequest
 			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 				return nil, err
@@ -1032,7 +1059,7 @@ func (s *ksServer) StartHttp(port int) {
 
 	initProjectHandler := httptransport.NewServer(
 		makeInitProjectEndpoint(s),
-		func (_ context.Context, r *http.Request) (interface{}, error) {
+		func(_ context.Context, r *http.Request) (interface{}, error) {
 			var request InitProjectRequest
 			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 				return nil, err
@@ -1057,6 +1084,9 @@ func (s *ksServer) StartHttp(port int) {
 	http.Handle("/kfctl/iam/apply", optionsHandler(applyIamHandler))
 	http.Handle("/kfctl/initProject", optionsHandler(initProjectHandler))
 	http.Handle("/kfctl/e2eDeploy", optionsHandler(deployHandler))
+
+	// add an http handler for prometheus metrics
+	http.Handle("/metrics", promhttp.Handler())
 
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), nil))
 }

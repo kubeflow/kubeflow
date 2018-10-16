@@ -72,11 +72,11 @@ resources:
     zone: {{ properties['zone'] }}
     cluster:
       name: {{ CLUSTER_NAME }}
-      initialClusterVersion: {{ properties['cluster-version'] }}
-      # We need 1.10.2 to support Stackdrivier GKE.
-      # loggingService: none
-      # monitoringService: none
+      initialClusterVersion: "{{ properties['cluster-version'] }}"
       {% if properties['gkeApiVersion'] == 'v1beta1' %}
+      # We need 1.10.2 to support Stackdrivier GKE.
+      loggingService: logging.googleapis.com/kubernetes
+      monitoringService: monitoring.googleapis.com/kubernetes
       podSecurityPolicyConfig:
         enabled: {{ properties['securityConfig']['podSecurityPolicy'] }}
       {% endif %}

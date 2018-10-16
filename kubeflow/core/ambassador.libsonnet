@@ -33,37 +33,6 @@
     },  // service
     ambassadorService:: ambassadorService,
 
-    local metricsService = {
-      apiVersion: "v1",
-      kind: "Service",
-      metadata: {
-        labels: {
-          service: "ambassador",
-        },
-        name: "statsd-sink",
-        namespace: params.namespace,
-        annotations: {
-          "prometheus.io/scrape": "true",
-          "prometheus.io/port": "9102",
-        },
-      },
-      spec: {
-        ports: [
-          {
-            name: "statsd-sink",
-            port: 9102,
-            targetPort: 9102,
-            protocol: "TCP",
-          },
-        ],
-        selector: {
-          service: "ambassador",
-        },
-        type: "ClusterIP",
-      },
-    },  // metricsService
-    metricsService:: metricsService,
-
     local adminService = {
       apiVersion: "v1",
       kind: "Service",
@@ -239,14 +208,6 @@
                   },
                 },
               },
-              {
-                image: params.statsdImage,
-                name: "statsd",
-              },
-              {
-                image: params.statsdSinkImage,
-                name: "statsd-sink",
-              },
             ],
             restartPolicy: "Always",
             serviceAccountName: "ambassador",
@@ -307,7 +268,6 @@
 
     all:: [
       self.ambassadorService,
-      self.metricsService,
       self.adminService,
       self.ambassadorRole,
       self.ambassadorServiceAccount,
