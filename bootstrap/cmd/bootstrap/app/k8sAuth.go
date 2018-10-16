@@ -8,9 +8,9 @@ import (
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
 	containerpb "google.golang.org/genproto/googleapis/container/v1"
-	"k8s.io/api/rbac/v1"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	log "github.com/sirupsen/logrus"
 )
 
 func buildClusterConfig(ctx context.Context, token string, project string, zone string,
@@ -39,6 +39,20 @@ func buildClusterConfig(ctx context.Context, token string, project string, zone 
 			CAData: []byte(string(caDec)),
 		},
 	}, nil
+}
+
+func getK8sClientSet(ctx context.Context, token string, project string, zone string,
+	cluster string) (*clientset.Clientset, error) {
+	k8sConfig, err := buildClusterConfig(ctx, token, project, zone, cluster)
+	if err != nil {
+		log.Errorf("Failed getting GKE cluster config: %v", err)
+		return nil, err
+	}
+	k8sClientset, err := clientset.NewForConfig(k8sConfig)
+	if err != nil {
+		return nil, err
+	}
+	return k8sClientset, nil
 }
 
 func createK8sRoleBing(config *rest.Config, roleBinding *v1.ClusterRoleBinding) error {

@@ -640,12 +640,13 @@ func (s *ksServer) CloneRepoToLocal(project string, token string, repoName strin
 		AccessToken: token,
 	})
 	sourcerepoService, err := sourcerepo.New(oauth2.NewClient(context.Background(), ts))
-	_, err = sourcerepoService.Projects.Repos.Get(fmt.Sprintf("projects/%s/repos/%s", project, repoName)).Do()
+	repoId := fmt.Sprintf("projects/%s/repos/%s", project, repoName)
+	_, err = sourcerepoService.Projects.Repos.Get(repoId).Do()
 	if err != nil {
 		if createIfNotExist {
 			// repo does't exist in target project, create one
 			_, err = sourcerepoService.Projects.Repos.Create(fmt.Sprintf("projects/%s", project), &sourcerepo.Repo{
-				Name: fmt.Sprintf("projects/%s/repos/%s", project, repoName),
+				Name: repoId,
 			}).Do()
 			if err != nil {
 				log.Errorf("Fail to create repo %v", err)
@@ -713,8 +714,10 @@ func (s *ksServer) LoadPersistentResource(ctx context.Context, req ApplyRequest)
 	if err != nil {
 		return err
 	}
-	k8sConfig, err := buildClusterConfig(ctx, req.Token, req.Project, req.Zone, req.Cluster)
-	k8sClientset, err := clientset.NewForConfig(k8sConfig)
+	k8sClientset, err := getK8sClientSet(ctx, req.Token, req.Project, req.Zone, req.Cluster)
+	if err != nil {
+		return err
+	}
 	files, _ := ioutil.ReadDir(secretDir)
 	for _, file := range files {
 		var sec core_v1.Secret
@@ -735,7 +738,6 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 	} else {
 		config, err := buildClusterConfig(ctx, req.Token, req.Project, req.Zone, req.Cluster)
 		if err != nil {
-			log.Errorf("Failed getting GKE cluster config: %v", err)
 			return err
 		}
 		s.projectLocks[req.Project].Lock()
@@ -771,7 +773,9 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 			},
 		}
 
-		createK8sRoleBing(config, &roleBinding)
+		if err = createK8sRoleBing(config, &roleBinding); err != nil {
+			return err
+		}
 		s.LoadPersistentResource(ctx, req)
 
 		cfg := clientcmdapi.Config{
@@ -996,8 +1000,7 @@ func makeSyncResourceEndpoint(svc KsService) endpoint.Endpoint {
 		req := request.(SyncResourceRequest)
 		r := &basicServerResponse{}
 
-		err := svc.SyncPersistentResource(ctx, req)
-		if err != nil {
+		if err := svc.SyncPersistentResource(ctx, req); err != nil {
 			r.Err = err.Error()
 			return r, err
 		}
@@ -1146,7 +1149,7 @@ func (s *ksServer) StartHttp(port int) {
 		func(_ context.Context, r *http.Request) (interface{}, error) {
 			var request SyncResourceRequest
 			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-				log.Info("Err decoding apply request: " + err.Error())
+				log.Info("Err decoding SyncResourceRequest: %v", err)
 				return nil, err
 			}
 			return request, nil
