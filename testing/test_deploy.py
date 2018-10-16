@@ -164,7 +164,7 @@ def deploy_model(args):
   api_client = create_k8s_client(args)
   app_dir = setup_kubeflow_ks_app(args, api_client)
 
-  component = "modelServer"
+  component = "mnist"
   logging.info("Deploying tf-serving.")
   generate_command = ["ks", "generate", "tf-serving-gcp", component]
 
