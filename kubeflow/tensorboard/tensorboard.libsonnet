@@ -15,12 +15,13 @@
         app: _params.name,
       },
     },
+    params:: params,
 
     local tbService =
       service.new(
         name=params.name,
         selector=params.labels,
-        ports=service.mixin.spec.portsType.newNamed("tb", 9000, params.targetPort),
+        ports=service.mixin.spec.portsType.newNamed("tb", params.servicePort, params.targetPort),
       ).withType(params.serviceType) +
       service.mixin.metadata.
         withNamespace(params.namespace).
@@ -35,7 +36,7 @@
             "prefix: /tensorboard/ " + params.name + "/",
             "rewrite: /",
             "method: GET",
-            "service: " + params.name + "." + params.namespace + ":9000",
+            "service: " + params.name + "." + params.namespace + ":" + params.servicePort,
           ]),
       }),
     tbService:: tbService,
@@ -59,7 +60,7 @@
       deployment.new(
         name=params.name,
         replicas=1,
-        containers=container,
+        containers=tbContainer,
         podLabels=params.labels,
       ) +
       deployment.mixin.metadata.
