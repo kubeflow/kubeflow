@@ -725,6 +725,7 @@ func (s *ksServer) LoadPersistentResource(ctx context.Context, req ApplyRequest)
 	for _, file := range files {
 		var sec core_v1.Secret
 		LoadConfig(path.Join(secretDir, file.Name()), &sec)
+		sec.ResourceVersion = ""
 		_, err = k8sClientset.CoreV1().Secrets(sec.Namespace).Create(&sec)
 		if err != nil {
 			log.Errorf("Failed creating persistent secret in GKE cluster: %v", err)

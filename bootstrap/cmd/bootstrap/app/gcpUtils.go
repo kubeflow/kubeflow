@@ -293,7 +293,7 @@ func (s *ksServer) SyncPersistentResource(ctx context.Context, req SyncResourceR
 	if err == nil {
 		os.RemoveAll(secretDir)
 	}
-	if err = os.Mkdir(secretDir, os.ModePerm); err != nil {
+	if err = os.MkdirAll(secretDir, os.ModePerm); err != nil {
 		return err
 	}
 	k8sClientset, err := getK8sClientSet(ctx, req.Token, req.Project, req.Zone, req.Cluster)
@@ -305,7 +305,7 @@ func (s *ksServer) SyncPersistentResource(ctx context.Context, req SyncResourceR
 		if err != nil {
 			return err
 		}
-		DumpConfig(path.Join(secretDir, sec), secret)
+		DumpConfig(path.Join(secretDir, sec + ".yaml"), secret)
 	}
 	if err = os.Chdir(secretDir); err != nil {
 		return err
