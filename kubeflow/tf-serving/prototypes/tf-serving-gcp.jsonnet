@@ -14,6 +14,7 @@
 // @optionalParam httpProxyImage string gcr.io/kubeflow-images-public/tf-model-server-http-proxy:v20180723 Http proxy image
 // @optionalParam gcpCredentialSecretName string null If not empty, insert the secret credential
 // @optionalParam injectIstio string false Whether to inject istio sidecar; should be true or false.
+// @optionalParam istioOutboundIPRanges string null The outbound ip ranges, e.g. "10.32.0.0/14,10.35.240.0/20"
 
 local k = import "k.libsonnet";
 local deployment = k.apps.v1beta1.deployment;
@@ -41,7 +42,7 @@ local tfDeployment = base.tfDeployment +
                              if params.gcpCredentialSecretName != "null" then (
                                [{
                                  name: "GOOGLE_APPLICATION_CREDENTIALS",
-                                 value: "/secret/gcp-credentials/key.json",
+                                 value: "/secret/gcp-credentials/user-gcp-sa.json",
                                }]
                              ) else [],
                            ) +

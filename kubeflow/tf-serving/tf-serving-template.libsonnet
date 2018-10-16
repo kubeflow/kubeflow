@@ -116,15 +116,16 @@
         },
         name: name,
         namespace: namespace,
-        annotations: {
-          "sidecar.istio.io/inject": params.injectIstio,
-        },
       },
       spec: {
         template: {
           metadata: {
             labels: {
               app: name,
+            },
+            annotations: {
+              "traffic.sidecar.istio.io/includeOutboundIPRanges": if util.toBool(params.injectIstio) then params.istioOutboundIPRanges,
+              "sidecar.istio.io/inject": if util.toBool(params.injectIstio) then "true",
             },
           },
           spec: {
