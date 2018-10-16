@@ -153,6 +153,13 @@
             "nvidia/cuda:8.0-cudnn6-devel-ubuntu16.04"
           else
             "nvidia/cuda:9.0-cudnn7-devel-ubuntu16.04",
+        local tf_serving_version = 
+          if tf_version == "1.4.1" then
+            "1.4.0"
+          else if tf_version == "1.5.1" then
+            "1.5.0"
+          else
+            tf_version,
         local installTfma =
           if tf_version < "1.9" then
             "no"
@@ -189,7 +196,8 @@
             + base_image + " "
             + tf_package + " "
             + tf_package_py_27 + " "
-            + installTfma, 
+            + installTfma + " "
+            + tf_serving_version,
           ],
           [
             {

@@ -18,6 +18,7 @@ BASE_IMAGE=${5:-"ubuntu:latest"}
 TF_PACKAGE=${6:-"tf-nightly"}
 TF_PACKAGE_PY_27=${7:-"tf-nightly"}
 INSTALL_TFMA=$8
+TF_SERVING_VERSION=$9
 
 # Wait for the Docker daemon to be available.
 until docker ps
@@ -29,6 +30,7 @@ docker build --pull \
         --build-arg "TF_PACKAGE=${TF_PACKAGE}" \
         --build-arg "TF_PACKAGE_PY_27=${TF_PACKAGE_PY_27}" \
         --build-arg "INSTALL_TFMA=${INSTALL_TFMA}" \
+        --build-arg "TF_SERVING_VERSION=${TF_SERVING_VERSION}" \
         -t "${IMAGE}:${TAG}" \
 	-f ${DOCKERFILE} ${CONTEXT_DIR}
 

@@ -8,7 +8,7 @@ FROM $BASE_IMAGE
 ARG INSTALL_TFMA=yes
 ARG TF_PACKAGE=https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.7.0-cp36-cp36m-linux_x86_64.whl
 ARG TF_PACKAGE_PY_27=https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.7.0-cp27-none-linux_x86_64.whl
-
+ARG TF_SERVING_VERSION=0.0.0
 USER root
 
 ENV DEBIAN_FRONTEND noninteractive
@@ -118,7 +118,7 @@ RUN conda create -n py2 python=2 && \
     ${TF_PACKAGE_PY_27} \
     # Tensorflow packages which only supports python 2
     tensorflow-transform \
-    tensorflow-serving-api \
+    tensorflow-serving-api===${TF_SERVING_VERSION} \
     # ipykernel for python 2 jupyter notebook kernel
     && \
     python -m ipykernel install && \
