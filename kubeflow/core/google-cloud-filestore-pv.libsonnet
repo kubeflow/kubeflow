@@ -95,6 +95,7 @@
     },
     gcfsPersmissions:: gcfsPersmissions,
 
+    parts:: self,
     all:: [
       self.persistentVolume,
       self.persistentVolumeClaim,

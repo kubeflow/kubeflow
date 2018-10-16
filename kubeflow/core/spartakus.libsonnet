@@ -109,6 +109,7 @@
     },  // deployment
     volunteer:: volunteer,
 
+    parts:: self,
     all:: if params.reportUsageBool then (
       [
         self.clusterRole,

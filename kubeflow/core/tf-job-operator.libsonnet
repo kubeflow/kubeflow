@@ -494,6 +494,7 @@
     },
     tfUiRoleBinding:: tfUiRoleBinding,
 
+    parts:: self,
     all:: [
       self.tfJobCrd,
       self.tfJobDeployment,

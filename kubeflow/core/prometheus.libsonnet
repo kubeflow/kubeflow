@@ -209,6 +209,7 @@
     },
     deployment:: deployment,
 
+    parts:: self,
     all:: [
       self.namespace,
       self.clusterRole,
