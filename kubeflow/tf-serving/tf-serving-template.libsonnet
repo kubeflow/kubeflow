@@ -8,6 +8,11 @@
     },
     local namespace = params.namespace,
     local name = params.name,
+    local modelName =
+      if params.modelName == "null" then
+        params.name
+      else
+        params.modelName,
     local modelServerImage =
       if params.numGpus == "0" then
         params.defaultCpuImage
@@ -77,7 +82,7 @@
       args: [
         "--port=9000",
         "--rest_api_port=8500",
-        "--model_name=" + name,
+        "--model_name=" + modelName,
         "--model_base_path=" + params.modelBasePath,
       ],
       image: modelServerImage,

@@ -8,6 +8,7 @@
 // @optionalParam numGpus string 0 Number of gpus to use
 // @optionalParam deployHttpProxy string false Whether to deploy http proxy
 // @optionalParam modelBasePath string gs://kubeflow-examples-data/mnist The model path
+// @optionalParam modelName string null The model name
 // @optionalParam defaultCpuImage string tensorflow/serving:1.8.0 The default model server image (cpu)
 // @optionalParam defaultGpuImage string tensorflow/serving:1.10.0-gpu The default model server image (gpu)
 // @optionalParam httpProxyImage string gcr.io/kubeflow-images-public/tf-model-server-http-proxy:v20180723 Http proxy image
