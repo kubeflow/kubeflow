@@ -8,13 +8,11 @@
 // @optionalParam numGpus string 0 Number of gpus to use
 // @optionalParam deployHttpProxy string false Whether to deploy http proxy
 // @optionalParam modelBasePath string gs://kubeflow-examples-data/mnist The model path
-// @optionalParam modelName string mnist The model name
 // @optionalParam defaultCpuImage string tensorflow/serving:1.8.0 The default model server image (cpu)
 // @optionalParam defaultGpuImage string tensorflow/serving:1.10.0-gpu The default model server image (gpu)
 // @optionalParam httpProxyImage string gcr.io/kubeflow-images-public/tf-model-server-http-proxy:v20180723 Http proxy image
 // @optionalParam gcpCredentialSecretName string null If not empty, insert the secret credential
 // @optionalParam injectIstio string false Whether to inject istio sidecar; should be true or false.
-// @optionalParam istioOutboundIPRanges string null The outbound ip ranges, e.g. "10.32.0.0/14,10.35.240.0/20"
 
 local k = import "k.libsonnet";
 local deployment = k.apps.v1beta1.deployment;
