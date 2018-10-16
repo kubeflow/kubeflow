@@ -30,6 +30,7 @@
 // @optionalParam supplementalGroups string null Comma-delimited list of supplemental group ids to put the user of the first process of containers in master/worker pods.
 // @optionalParam volumes array [] 'volumes' to put master/workers pods.
 // @optionalParam volumeMounts array [] 'volumes' to put job containers in master/workers pods.
+// @optionalParam useHostNetwork string false Use host network for worker pods.
 
 local k = import "k.libsonnet";
 local openmpi = import "kubeflow/openmpi/all.libsonnet";
