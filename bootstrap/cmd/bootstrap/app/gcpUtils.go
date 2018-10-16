@@ -15,6 +15,8 @@ import (
 	"golang.org/x/oauth2"
 	"google.golang.org/api/cloudresourcemanager/v1"
 	"google.golang.org/api/deploymentmanager/v2"
+	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"os"
 )
 
 type Resource struct {
@@ -278,4 +280,36 @@ func (s *ksServer) ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) erro
 		return err
 	}
 	return nil
+}
+
+func (s *ksServer) SyncPersistentResource(ctx context.Context, req SyncResourceRequest) error {
+	resoureRepo := fmt.Sprintf("%s-persistent-resource", req.Project)
+	err := s.CloneRepoToLocal(req.Project, req.Token, resoureRepo, true)
+	if err != nil {
+		return err
+	}
+	secretDir := path.Join(s.appsDir, resoureRepo, req.Name, "secret")
+	_, err = s.fs.Stat(secretDir)
+	if err == nil {
+		os.RemoveAll(secretDir)
+	}
+	if err = os.MkdirAll(secretDir, os.ModePerm); err != nil {
+		return err
+	}
+	k8sClientset, err := getK8sClientSet(ctx, req.Token, req.Project, req.Zone, req.Cluster)
+	if err != nil {
+		return err
+	}
+	for _, sec := range []string{"envoy-ingress-tls", "letsencrypt-prod-secret"} {
+		secret, err := k8sClientset.CoreV1().Secrets(req.Namespace).Get(sec, meta_v1.GetOptions{})
+		if err != nil {
+			return err
+		}
+		DumpConfig(path.Join(secretDir, sec + ".yaml"), secret)
+	}
+	if err = os.Chdir(secretDir); err != nil {
+		return err
+	}
+	return runCmd(fmt.Sprintf("git config user.email '%s'; git config user.name 'auto-commit'; git add .; "+
+		"git commit -m 'auto commit from sync resource'; git pull --rebase; git push origin master", req.Email))
 }

@@ -33,6 +33,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	"io/ioutil"
 )
 
 // The name of the prototype for Jupyter.
@@ -52,6 +53,7 @@ type KsService interface {
 	InsertDeployment(context.Context, CreateRequest) error
 	GetDeploymentStatus(context.Context, CreateRequest) (string, error)
 	ApplyIamPolicy(context.Context, ApplyIamRequest) error
+	SyncPersistentResource(context.Context, SyncResourceRequest) error
 }
 
 // appInfo keeps track of information about apps.
@@ -180,6 +182,25 @@ type ApplyRequest struct {
 
 	// For test: GCP service account client id
 	SAClientId string
+}
+
+// Request to apply an app.
+type SyncResourceRequest struct {
+	// Name of the app to apply
+	Name string
+
+	// Environment is the environment to use.
+	Namespace string
+
+	// target GKE cLuster info
+	Cluster string
+	Project string
+	Zone    string
+
+	// Token is an authorization token to use to authorize to the K8s API Server.
+	// Leave blank to use the pods service account.
+	Token string
+	Email string
 }
 
 var ( // counters
@@ -607,8 +628,8 @@ func GetRepoName(project string) string {
 
 // Not thread-safe, make sure project lock is on.
 // Clone project repo to local disk, which contains all existing ks apps config in the project
-func (s *ksServer) CloneRepoToLocal(project string, token string) error {
-	repoDir := path.Join(s.appsDir, GetRepoName(project))
+func (s *ksServer) CloneRepoToLocal(project string, token string, repoName string, createIfNotExist bool) error {
+	repoDir := path.Join(s.appsDir, repoName)
 	_, err := s.fs.Stat(repoDir)
 
 	// delete existing local repo, pull from cloud
@@ -619,14 +640,19 @@ func (s *ksServer) CloneRepoToLocal(project string, token string) error {
 		AccessToken: token,
 	})
 	sourcerepoService, err := sourcerepo.New(oauth2.NewClient(context.Background(), ts))
-	_, err = sourcerepoService.Projects.Repos.Get(fmt.Sprintf("projects/%s/repos/%s", project, GetRepoName(project))).Do()
+	repoId := fmt.Sprintf("projects/%s/repos/%s", project, repoName)
+	_, err = sourcerepoService.Projects.Repos.Get(repoId).Do()
 	if err != nil {
-		// repo does't exist in target project, create one
-		_, err = sourcerepoService.Projects.Repos.Create(fmt.Sprintf("projects/%s", project), &sourcerepo.Repo{
-			Name: fmt.Sprintf("projects/%s/repos/%s", project, GetRepoName(project)),
-		}).Do()
-		if err != nil {
-			log.Errorf("Fail to create repo %v", err)
+		if createIfNotExist {
+			// repo does't exist in target project, create one
+			_, err = sourcerepoService.Projects.Repos.Create(fmt.Sprintf("projects/%s", project), &sourcerepo.Repo{
+				Name: repoId,
+			}).Do()
+			if err != nil {
+				log.Errorf("Fail to create repo %v", err)
+				return err
+			}
+		} else {
 			return err
 		}
 	}
@@ -635,7 +661,7 @@ func (s *ksServer) CloneRepoToLocal(project string, token string) error {
 		return err
 	}
 	cloneCmd := fmt.Sprintf("git clone https://%s:%s@source.developers.google.com/p/%s/r/%s",
-		"user1", token, project, GetRepoName(project))
+		"user1", token, project, repoName)
 	cmd := exec.Command("sh", "-c", cloneCmd)
 	result, err := cmd.CombinedOutput()
 	log.Infof(string(result))
@@ -643,7 +669,7 @@ func (s *ksServer) CloneRepoToLocal(project string, token string) error {
 }
 
 func (s *ksServer) GetApp(project string, appName string, token string) (*appInfo, error) {
-	err := s.CloneRepoToLocal(project, token)
+	err := s.CloneRepoToLocal(project, token, GetRepoName(project), true)
 	if err != nil {
 		return nil, err
 	}
@@ -676,6 +702,38 @@ func (s *ksServer) SaveAppToRepo(project string, email string) error {
 		"git commit -m 'auto commit from deployment'; git pull --rebase; git push origin master", email))
 }
 
+// Load Persistent Resource from source repo to cluster
+func (s *ksServer) LoadPersistentResource(ctx context.Context, req ApplyRequest) error {
+	resoureRepo := fmt.Sprintf("%s-persistent-resource", req.Project)
+	err := s.CloneRepoToLocal(req.Project, req.Token, resoureRepo, false)
+	if err != nil {
+		return err
+	}
+	secretDir := path.Join(s.appsDir, resoureRepo, req.Name, "secret")
+	_, err = s.fs.Stat(secretDir)
+	if err != nil {
+		return err
+	}
+	k8sClientset, err := getK8sClientSet(ctx, req.Token, req.Project, req.Zone, req.Cluster)
+	if err != nil {
+		return err
+	}
+	files, err := ioutil.ReadDir(secretDir)
+	if err != nil {
+		return err
+	}
+	for _, file := range files {
+		var sec core_v1.Secret
+		LoadConfig(path.Join(secretDir, file.Name()), &sec)
+		sec.ResourceVersion = ""
+		_, err = k8sClientset.CoreV1().Secrets(sec.Namespace).Create(&sec)
+		if err != nil {
+			log.Errorf("Failed creating persistent secret in GKE cluster: %v", err)
+		}
+	}
+	return nil
+}
+
 // Apply runs apply on a ksonnet application.
 func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 	token := req.Token
@@ -684,7 +742,6 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 	} else {
 		config, err := buildClusterConfig(ctx, req.Token, req.Project, req.Zone, req.Cluster)
 		if err != nil {
-			log.Errorf("Failed getting GKE cluster config: %v", err)
 			return err
 		}
 		s.projectLocks[req.Project].Lock()
@@ -720,7 +777,10 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 			},
 		}
 
-		createK8sRoleBing(config, &roleBinding)
+		if err = createK8sRoleBing(config, &roleBinding); err != nil {
+			return err
+		}
+		s.LoadPersistentResource(ctx, req)
 
 		cfg := clientcmdapi.Config{
 			Kind:       "Config",
@@ -939,6 +999,19 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 	}
 }
 
+func makeSyncResourceEndpoint(svc KsService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(SyncResourceRequest)
+		r := &basicServerResponse{}
+
+		if err := svc.SyncPersistentResource(ctx, req); err != nil {
+			r.Err = err.Error()
+			return r, err
+		}
+		return r, nil
+	}
+}
+
 func makeHealthzEndpoint(svc KsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		r := &HealthzResponse{}
@@ -1075,6 +1148,19 @@ func (s *ksServer) StartHttp(port int) {
 		encodeResponse,
 	)
 
+	syncResourceHandler := httptransport.NewServer(
+		makeSyncResourceEndpoint(s),
+		func(_ context.Context, r *http.Request) (interface{}, error) {
+			var request SyncResourceRequest
+			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+				log.Info("Err decoding SyncResourceRequest: %v", err)
+				return nil, err
+			}
+			return request, nil
+		},
+		encodeResponse,
+	)
+
 	// TODO: add deployment manager config generate / deploy handler here. So we'll have user's DM configs stored in
 	// k8s storage / github, instead of gone with browser tabs.
 	http.Handle("/", optionsHandler(healthzHandler))
@@ -1084,6 +1170,8 @@ func (s *ksServer) StartHttp(port int) {
 	http.Handle("/kfctl/iam/apply", optionsHandler(applyIamHandler))
 	http.Handle("/kfctl/initProject", optionsHandler(initProjectHandler))
 	http.Handle("/kfctl/e2eDeploy", optionsHandler(deployHandler))
+	// Sync persistent resources from cluster to source repo. in yaml format
+	http.Handle("/kfctl/syncResource", optionsHandler(syncResourceHandler))
 
 	// add an http handler for prometheus metrics
 	http.Handle("/metrics", promhttp.Handler())

@@ -10,8 +10,7 @@ import (
 	"google.golang.org/genproto/googleapis/iam/admin/v1"
 	"k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	clientset "k8s.io/client-go/kubernetes"
-)
+	)
 
 type InsertSaKeyRequest struct {
 	Cluster   string
@@ -37,9 +36,8 @@ func (s *ksServer) InsertSaKey(ctx context.Context, request InsertSaKeyRequest, 
 	ts := oauth2.StaticTokenSource(&oauth2.Token{
 		AccessToken: request.Token,
 	})
-	k8sConfig, err := buildClusterConfig(ctx, request.Token, request.Project, request.Zone, request.Cluster)
+	k8sClientset, err := getK8sClientSet(ctx, request.Token, request.Project, request.Zone, request.Cluster)
 	if err != nil {
-		log.Errorf("Failed getting GKE cluster config: %v", err)
 		return err
 	}
 
@@ -60,7 +58,6 @@ func (s *ksServer) InsertSaKey(ctx context.Context, request InsertSaKeyRequest, 
 		log.Errorf("Failed creating sa key: %v", err)
 		return err
 	}
-	k8sClientset, err := clientset.NewForConfig(k8sConfig)
 	secretData := make(map[string][]byte)
 	secretData[secretKey] = createdKey.PrivateKeyData
 	_, err = k8sClientset.CoreV1().Secrets(request.Namespace).Create(

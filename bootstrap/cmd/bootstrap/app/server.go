@@ -130,6 +130,21 @@ func LoadConfig(path string, o interface{}) error {
 	return nil
 }
 
+// Dump object to yaml file
+func DumpConfig(path string, o interface{}) error {
+	if path == "" {
+		return errors.New("empty path")
+	}
+	data, err := yaml.Marshal(o)
+	if err != nil {
+		return err
+	}
+	if err = ioutil.WriteFile(path, data, os.ModePerm); err != nil {
+		return err
+	}
+	return nil
+}
+
 // ModifyGcloudCommand modifies the cmd-path in the kubeconfig file.
 //
 // We do this because we want to be able to mount the kubeconfig file into the container.
