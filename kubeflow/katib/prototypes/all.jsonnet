@@ -5,10 +5,12 @@
 // @param name string Name to give to each of the components
 // @optionalParam modeldbImage string gcr.io/kubeflow-images-public/modeldb-backend:v0.2.0 The image for modeldb
 // @optionalParam modeldbDatabaseImage string mongo:3.4 The image for modeldb database.
-// @optionalParam modeldbFrontendImage string gcr.io/kubeflow-images-public/katib/katib-frontend:v0.1.2-alpha-34-gb46378c The image for modeldb frontend.
-// @optionalParam suggestionRandomImage string gcr.io/kubeflow-images-public/katib/suggestion-random:v0.1.2-alpha-34-gb46378c The image for random suggestion.
-// @optionalParam suggestionGridImage string gcr.io/kubeflow-images-public/katib/suggestion-grid:v0.1.2-alpha-34-gb46378c The image for grid suggestion.
-// @optionalParam vizierCoreImage string gcr.io/kubeflow-images-public/katib/vizier-core:v0.1.2-alpha-34-gb46378c The image for vizier core.
+// @optionalParam modeldbFrontendImage string gcr.io/kubeflow-images-public/katib/katib-frontend:v0.1.2-alpha-45-g3dce496 The image for modeldb frontend.
+// @optionalParam suggestionRandomImage string gcr.io/kubeflow-images-public/katib/suggestion-random:v0.1.2-alpha-45-g3dce496 The image for random suggestion.
+// @optionalParam suggestionGridImage string gcr.io/kubeflow-images-public/katib/suggestion-grid:v0.1.2-alpha-45-g3dce496 The image for grid suggestion.
+// @optionalParam suggestionHyperbandImage string gcr.io/kubeflow-images-public/katib/suggestion-hyperband:v0.1.2-alpha-45-g3dce496 The image for grid suggestion.
+// @optionalParam suggestionBayesianOptimizationImage string gcr.io/kubeflow-images-public/katib/suggestion-bayesianoptimization:v0.1.2-alpha-45-g3dce496 The image for grid suggestion.
+// @optionalParam vizierCoreImage string gcr.io/kubeflow-images-public/katib/vizier-core:v0.1.2-alpha-45-g3dce496 The image for vizier core.
 // @optionalParam vizierDbImage string mysql:8.0.3 The image for vizier db.
 // @optionalParam studyJobControllerImage string katib/studyjob-controller The image for studyjob-controller.
 
