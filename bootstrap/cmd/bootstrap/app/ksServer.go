@@ -718,7 +718,10 @@ func (s *ksServer) LoadPersistentResource(ctx context.Context, req ApplyRequest)
 	if err != nil {
 		return err
 	}
-	files, _ := ioutil.ReadDir(secretDir)
+	files, err := ioutil.ReadDir(secretDir)
+	if err != nil {
+		return err
+	}
 	for _, file := range files {
 		var sec core_v1.Secret
 		LoadConfig(path.Join(secretDir, file.Name()), &sec)
