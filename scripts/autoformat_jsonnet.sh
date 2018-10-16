@@ -30,30 +30,6 @@ function usage()
     echo "    --all : Formats all .jsonnet and .libjsonnet files."
 }
 
-# Checkout versions of the code that shouldn't be overwritten
-raw=`git remote`
-readarray -t remotes <<< "$raw"
-
-repo_name=''
-non_matching=''
-for r in "${remotes[@]}"
-do
-   url=`git remote get-url ${r}`
-   # Period is in brackets because its a special character.
-   if [[ ${url} =~ (git@github[.]com:kubeflow/.*|https://github[.]com/kubeflow/.*) ]]; then
-       repo_name=${r}
-   else
-       non_matching="${non_matching}${r} at ${url} did not match"
-   fi
-done
-
-echo using ${repo_name}
-if [ -z "$repo_name" ]; then
-    echo "Could not find remote repository pointing at git@github.com:kubeflow/.*.git in ${non_matching}"
-    exit 1
-fi
-
-
 while [ "$1" != "" ]; do
     PARAM=`echo $1 | awk -F= '{print $1}'`
     case $PARAM in
@@ -76,6 +52,27 @@ done
 if $ALL_FILES; then
     fmt_files=($(git ls-files -- '*.libsonnet' '*.jsonnet')) 
 else 
+    # Checkout versions of the code that shouldn't be overwritten
+    raw=`git remote`
+    readarray -t remotes <<< "$raw"
+
+    repo_name=''
+    non_matching=''
+    for r in "${remotes[@]}"
+    do
+    url=`git remote get-url ${r}`
+    # Period is in brackets because its a special character.
+    if [[ ${url} =~ (git@github[.]com:kubeflow/.*|https://github[.]com/kubeflow/.*) ]]; then
+        repo_name=${r}
+    else
+        non_matching="${non_matching}${r} at ${url} did not match"
+    fi
+    done
+    echo using ${repo_name}
+    if [ -z "$repo_name" ]; then
+        echo "Could not find remote repository pointing at git@github.com:kubeflow/.*.git in ${non_matching}"
+        exit 1
+    fi
     fmt_files=($(git diff --name-only ${repo_name}/master -- '*.libsonnet' '*.jsonnet'))
 fi
 
