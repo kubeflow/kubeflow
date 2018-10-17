@@ -13,7 +13,10 @@
       },
       data: {
         "jupyterhub_config.py": importstr "jupyterhub_config.py",
-        "spawner.py": importstr "spawner.py"
+        "template.html": importstr "template.html",
+        "script.js": importstr "script.js",
+        "style.css": importstr "style.css",
+        "spawner.py": importstr "spawner.py",
       },
     },
     kubeSpawnerConfig:: kubeSpawnerConfig,

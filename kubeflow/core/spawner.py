@@ -1,8 +1,9 @@
 import json
 import string
 import escapism
-from kubespawner.spawner import KubeSpawner
 from traitlets import Dict
+from kubespawner.spawner import KubeSpawner
+from jinja2 import FileSystemLoader, Environment
 
 SERVICE_ACCOUNT_SECRET_MOUNT = '/var/run/secrets/sa'
 
@@ -21,57 +22,15 @@ class KubeFormSpawner(KubeSpawner):
     def _options_form_default(self):
         registry = self.extra_spawner_config['registry']
         repoName = self.extra_spawner_config['repoName']
-        return '''
 
-    <table style="width: 100%;">
-    <tr>
-        <td style="width: 30%;"><label for='image'>Image</label></td>
-        <td style="width: 70%;"><input value="" list="image" name="image" placeholder='repo/image:tag' style="width: 100%;">
-        <datalist id="image">
-          <option value="{0}/{1}/tensorflow-1.4.1-notebook-cpu:v0.3.1">
-          <option value="{0}/{1}/tensorflow-1.4.1-notebook-gpu:v0.3.1">
-          <option value="{0}/{1}/tensorflow-1.5.1-notebook-cpu:v0.3.1">
-          <option value="{0}/{1}/tensorflow-1.5.1-notebook-gpu:v0.3.1">
-          <option value="{0}/{1}/tensorflow-1.6.0-notebook-cpu:v0.3.1">
-          <option value="{0}/{1}/tensorflow-1.6.0-notebook-gpu:v0.3.1">
-          <option value="{0}/{1}/tensorflow-1.7.0-notebook-cpu:v0.3.1">
-          <option value="{0}/{1}/tensorflow-1.7.0-notebook-gpu:v0.3.1">
-          <option value="{0}/{1}/tensorflow-1.8.0-notebook-cpu:v0.3.1">
-          <option value="{0}/{1}/tensorflow-1.8.0-notebook-gpu:v0.3.1">
-          <option value="{0}/{1}/tensorflow-1.9.0-notebook-cpu:v0.3.1">
-          <option value="{0}/{1}/tensorflow-1.9.0-notebook-gpu:v0.3.1">
-          <option value="{0}/{1}/tensorflow-1.10.1-notebook-cpu:v0.3.1">
-          <option value="{0}/{1}/tensorflow-1.10.1-notebook-gpu:v0.3.1">
-        </datalist>
-        </td>
-    </tr>
-    </table>
-    <div style="text-align: center; padding: 10px;">
-      <a id="toggle_advanced_options" style="margin: 20%; cursor: pointer; font-weight: bold;">Advanced</a>
-    </div>
-    <table id="advanced_fields" style="display: none; width: 100%; border-spacing: 0px 25px; border-collapse: separate;">
-    <tr>
-        <td><label for='cpu_guarantee'>CPU</label></td>
-        <td><input style="width: 100%;" name='cpu_guarantee' placeholder='200m, 1.0, 2.5, etc'></input></td>
-    </tr>
-    <tr>
-        <td><label for='mem_guarantee'>Memory</label></td>
-        <td><input style="width: 100%;" name='mem_guarantee' placeholder='100Mi, 1.5Gi'></input></td>
-    </tr>
-    <tr>
-        <td><label for='extra_resource_limits'>Extra Resource Limits</label></td>
-        <td><input style="width: 100%;" name='extra_resource_limits' placeholder='{{&quot;nvidia.com/gpu&quot;: 3}}'></input></td>
-    </tr>
-    </table>
+        # Create Jinja environment to dynamically load templates
+        j2_env = Environment(loader=FileSystemLoader('/etc/config'))
 
-    <script type="text/javascript">
-      $('#toggle_advanced_options').on('click', function(e){{
-        $('#advanced_fields').toggle();
-      }});
-    </script>
-
-
-        '''.format(registry, repoName)
+        # Return the rendered template as unicode string
+        return j2_env.get_template('template.html').render(
+            registry=registry,
+            repoName=repoName
+        )
 
     def options_from_form(self, formdata):
         options = {}
