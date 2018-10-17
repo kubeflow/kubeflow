@@ -48,7 +48,6 @@ function createKsApp() {
   ks registry add kubeflow "${KUBEFLOW_REPO}/kubeflow"
 
   # Install all required packages
-  ks pkg install kubeflow/application
   ks pkg install kubeflow/argo
   ks pkg install kubeflow/core
   ks pkg install kubeflow/examples
@@ -57,7 +56,7 @@ function createKsApp() {
   ks pkg install kubeflow/pytorch-job
   ks pkg install kubeflow/seldon
   ks pkg install kubeflow/tf-serving
-  ks pkg install kubeflow/tensorboard
+  ks pkg install kubeflow/application
 
   # Generate all required components
   ks generate pytorch-operator pytorch-operator
@@ -66,12 +65,10 @@ function createKsApp() {
   ks generate jupyterhub jupyterhub
   ks generate centraldashboard centraldashboard
   ks generate tf-job-operator tf-job-operator
-  ks generate tf-job-simple tf-job-simple
-  ks generate tensorboard-aws tensorboard-aws
+
   ks generate argo argo
   ks generate katib katib
-  ks generate prometheus prometheus
-
+  ks generate application application
   # Enable collection of anonymous usage metrics
   # To disable metrics collection. Remove the spartakus component.
   # cd ks_app
@@ -94,9 +91,6 @@ function createKsApp() {
   echo "For more info: https://www.kubeflow.org/docs/guides/usage-reporting/"
   echo "****************************************************************"
   echo ""
-
-  # kubeflow-app which will emit all components unless its params.components specifies a subset
-  ks generate kubeflow-app kubeflow-app
 }
 
 function removeKsEnv() {

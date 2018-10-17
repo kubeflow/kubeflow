@@ -164,7 +164,6 @@
       self.centralDashboardService,
       self.centralDashboardServiceAccount,
       self.centralDashboardRole,
-      self.centralDashboardRoleBinding,
     ],
 
     list(obj=self.all):: util.list(obj),

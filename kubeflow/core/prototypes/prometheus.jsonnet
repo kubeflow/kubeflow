@@ -3,9 +3,9 @@
 // @description Provides prometheus prototype in kubeflow core.
 // @shortDescription Prometheus Service.
 // @param name string Name for the component
-// @optionalParam projectId string GCP project id.
-// @optionalParam clusterName string GKE cluster name.
-// @optionalParam zone string GKE cluster zone.
+// @param projectId string GCP project id.
+// @param clusterName string GKE cluster name.
+// @param zone string GKE cluster zone.
 
 local prometheus = import "kubeflow/core/prometheus.libsonnet";
 local instance = prometheus.new(env, params);

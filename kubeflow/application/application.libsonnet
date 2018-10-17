@@ -13,169 +13,8 @@
       labels: {
         app: _params.name,
       },
-      hasOwner: util.toBool(_params.owner != "null"),
       bootstrap: util.toBool(_params.bootstrap),
     },
-
-    local compositeControllerCRD = {
-      apiVersion: "apiextensions.k8s.io/v1beta1",
-      kind: "CustomResourceDefinition",
-      metadata: {
-        name: "compositecontrollers.metacontroller.k8s.io",
-      },
-      spec: {
-        group: "metacontroller.k8s.io",
-        version: "v1alpha1",
-        scope: "Namespaced",
-        names: {
-          plural: "compositecontrollers",
-          singular: "compositecontroller",
-          kind: "CompositeController",
-          shortNames: [
-            "cc",
-            "cctl",
-          ],
-        },
-      },
-    },
-    compositeControllerCRD:: compositeControllerCRD,
-
-    local decoratorControllerCRD = {
-      apiVersion: "apiextensions.k8s.io/v1beta1",
-      kind: "CustomResourceDefinition",
-      metadata: {
-        name: "decoratorcontrollers.metacontroller.k8s.io",
-      },
-      spec: {
-        group: "metacontroller.k8s.io",
-        version: "v1alpha1",
-        scope: "Namespaced",
-        names: {
-          plural: "decoratorcontrollers",
-          singular: "decoratorcontroller",
-          kind: "DecoratorController",
-          shortNames: [
-            "dec",
-            "decorators",
-          ],
-        },
-      },
-    },
-    decoratorControllerCRD:: decoratorControllerCRD,
-
-    local controllerRevisionsCRD = {
-      apiVersion: "apiextensions.k8s.io/v1beta1",
-      kind: "CustomResourceDefinition",
-      metadata: {
-        name: "controllerrevisions.metacontroller.k8s.io",
-      },
-      spec: {
-        group: "metacontroller.k8s.io",
-        version: "v1alpha1",
-        scope: "Namespaced",
-        names: {
-          plural: "controllerrevisions",
-          singular: "controllerrevision",
-          kind: "ControllerRevision",
-        },
-      },
-    },
-    controllerRevisionsCRD:: controllerRevisionsCRD,
-
-    local metaControllerServiceAccount = {
-      apiVersion: "v1",
-      kind: "ServiceAccount",
-      metadata: {
-        name: "meta-controller-service",
-        namespace: params.namespace,
-      },
-    },
-    metaControllerServiceAccount:: metaControllerServiceAccount,
-
-    local metaControllerClusterRoleBinding = {
-      apiVersion: "rbac.authorization.k8s.io/v1",
-      kind: "ClusterRoleBinding",
-      metadata: {
-        name: "meta-controller-cluster-role-binding",
-      },
-      roleRef: {
-        kind: "ClusterRole",
-        name: "cluster-admin",
-        apiGroup: "rbac.authorization.k8s.io",
-      },
-      subjects: [
-        {
-          kind: "ServiceAccount",
-          name: "meta-controller-service",
-          namespace: params.namespace,
-        },
-      ],
-    },
-    metaControllerClusterRoleBinding:: metaControllerClusterRoleBinding,
-
-    local metaControllerStatefulSet = {
-      apiVersion: "apps/v1beta2",
-      kind: "StatefulSet",
-      metadata: {
-        name: "metacontroller",
-        namespace: params.namespace,
-        labels: {
-          app: "metacontroller",
-        },
-      },
-      spec: {
-        replicas: 1,
-        selector: {
-          matchLabels: {
-            app: "metacontroller",
-          },
-        },
-        serviceName: "",
-        template: {
-          metadata: {
-            labels: {
-              app: "metacontroller",
-            },
-          },
-          spec: {
-            serviceAccountName: "meta-controller-service",
-            containers: [
-              {
-                name: "metacontroller",
-                command: [
-                  "/usr/bin/metacontroller",
-                  "--logtostderr",
-                  "-v=4",
-                  "--discovery-interval=20s",
-                ],
-                image: "metacontroller/metacontroller:0.2.0",
-                ports: [
-                  {
-                    containerPort: 2345,
-                  },
-                ],
-                imagePullPolicy: "Always",
-                resources: {
-                  limits: {
-                    cpu: "4",
-                    memory: "4Gi",
-                  },
-                  requests: {
-                    cpu: "500m",
-                    memory: "1Gi",
-                  },
-                },
-                securityContext: {
-                  privileged: true,
-                  allowPrivilegeEscalation: true,
-                },
-              },
-            ],
-          },
-        },
-      },
-    },
-    metaControllerStatefulSet:: metaControllerStatefulSet,
 
     // see [API](https://github.com/kow3ns/community/blob/8cb87419883197032f4e5cce8d5518c9c5792f6c/keps/sig-apps/0003-kubernetes-application-api.md#api)
     local openApiV3Schema = {
@@ -427,9 +266,8 @@
       return::
         if std.objectHas(list, name) &&
            std.objectHas(list[name], "items") &&
-           std.type(list[name].items) == "array" &&
-           !params.bootstrap then
-          std.filter(byPrivileged(!params.hasOwner), 
+           std.type(list[name].items) == "array" then
+          std.filter(byPrivileged(params.bootstrap), 
             std.map(generateComponentTuples, list[name].items))
         else
           [],
@@ -464,11 +302,6 @@
     }.return,
 
     local getComponents = {
-      local isEmpty =
-        if std.length(params.components) == 0 then
-          true
-        else
-          false,
       local exclude(name) = {
         return::
           if name == params.name then
@@ -477,288 +310,11 @@
             true,
       }.return,
       return::
-        if isEmpty then
-          std.filter(exclude, std.objectFields(std.extVar("__ksonnet/components")))
-        else
-          params.components,
+        std.filter(exclude, std.objectFields(std.extVar("__ksonnet/components"))),
     }.return,
 
-    local groupByName(resources) = {
-      [resource.name]+: resource
-      for resource in resources
-    },
-
-    local groupByResource(tuples) = {
-      local getKey(wrapper) = {
-        local tuple = wrapper.tuple,
-        local resource = tuple[2],
-        return::
-          resource.kind + "." + resource.apiVersion,
-      }.return,
-      local getValue(wrapper) = {
-        local tuple = wrapper.tuple,
-        return::
-          { [tuple[0].name]+: tuple[2] },
-      }.return,
-      return:: util.foldl(getKey, getValue, tuples),
-    }.return,
-
-    local tuples = std.flattenArrays(std.map(perComponent, getComponents)) + 
-      [ generateComponentTuples(self.applicationController) ],
+    local tuples = std.flattenArrays(std.map(perComponent, getComponents)),
     local components = std.map(byResource, tuples),
-    local resources = groupByResource(tuples),
-
-    local syncApplication =
-      |||
-        function(request) {
-          local util = import "util.libsonnet",
-          local resources = %(resources)s,
-          local components = %(components)s,
-          local filteredComponents = std.filter(validateResource, %(components)s),
-          local validateResource(resource) = {
-            return::
-              if std.type(resource) == "object" &&
-              std.objectHas(resource, 'kind') &&
-              std.objectHas(resource, 'apiVersion') &&
-              std.objectHas(resource, 'metadata') &&
-              std.objectHas(resource.metadata, 'name') &&
-              std.objectHas(resource.metadata, 'namespace') &&
-              resource.metadata.namespace == request.parent.metadata.namespace then
-                true
-              else
-                false
-          }.return,
-          local existingGroups(obj) =
-            if std.type(obj) == "object" then
-              [ obj[key] for key in std.objectFields(obj) ]
-            else
-              [],
-          local existingResources(group) =
-            if std.type(group) == "object" then
-              [ group[key] for key in std.objectFields(group) ]
-            else
-              [],
-          local continuation(resources) = {
-            local existingResource(resource) = {
-              local resourceExists(kindAndResource, name) = {
-                return::
-                  if std.objectHas(resources, kindAndResource) &&
-                  std.objectHas(resources[kindAndResource], name) then
-                    true
-                  else
-                    false,
-              }.return,
-              return::
-                if validateResource(resource) then 
-                  resourceExists(resource.kind + "." + resource.apiVersion, resource.metadata.name)
-                else
-                  false,
-            }.return,
-            return:: existingResource,
-          }.return,
-          local foundChildren = 
-            std.filter(continuation(resources), 
-              std.flattenArrays(std.map(existingResources, existingGroups(request.children)))),
-          local comparator(a, b) = {
-            return::
-              if a.metadata.name == b.metadata.name then
-                0
-              else if a.metadata.name < b.metadata.name then
-                -1
-              else
-                1,
-          }.return,
-          local missingChildren = {
-            return::
-              if std.type(filteredComponents) == "array" &&
-              std.type(foundChildren) == "array" then
-                util.setDiff(util.sort(filteredComponents, comparator), 
-                  util.sort(foundChildren, comparator), comparator)
-              else
-                [],
-          }.return,
-          local initialized = {
-            return::
-              if std.objectHas(request.parent, "status") &&
-                 std.objectHas(request.parent.status, "created") &&
-                 request.parent.status.created == true then
-                true
-              else
-                false,
-          }.return,
-          local desired =
-            if std.length(foundChildren) == 0 then
-              if initialized == false then
-                components
-              else
-                []
-            else
-              foundChildren,
-          local assemblyPhase = {
-            return::
-              if std.length(foundChildren) == std.length(filteredComponents) then
-                "Succeeded"
-              else
-                "Pending",
-          }.return,
-          local installedName(resource) = {
-            return::
-             util.lower(resource.kind) + "s" + "/" + resource.metadata.name,
-          }.return,
-          children: desired,
-          status: {
-            observedGeneration: '1',
-            assemblyPhase: assemblyPhase,
-            installed: std.map(installedName, foundChildren),
-            ready: "True",
-            created: true,
-            //debug
-            request_children_length: std.length(request.children),
-            found_children_length: std.length(foundChildren),
-            components_length: std.length(components),
-            filtered_components_length: std.length(filteredComponents),
-            missing_children_length: std.length(missingChildren),
-            missing_children: missingChildren,
-          },
-        }
-      ||| %
-      {
-        components: std.manifestJsonEx(components, "  "),
-        resources: std.manifestJsonEx(resources, "  "),
-      },
-
-    local applicationConfigMap = {
-      apiVersion: "v1",
-      kind: "ConfigMap",
-      metadata: {
-        name: "application-controller-hooks",
-        namespace: params.namespace,
-      },
-      data: {
-        "sync-application.jsonnet": syncApplication,
-        "util.libsonnet": importstr "kubeflow/core/util.libsonnet",
-      },
-    },
-    applicationConfigMap:: applicationConfigMap,
-
-    local applicationDeployment = {
-      apiVersion: "apps/v1beta1",
-      kind: "Deployment",
-      metadata: {
-        name: "application-controller",
-        namespace: params.namespace,
-      },
-      spec: {
-        selector: {
-          matchLabels: {
-            app: "application-controller",
-          },
-        },
-        template: {
-          metadata: {
-            labels: {
-              app: "application-controller",
-            },
-          },
-          spec: {
-            containers: [
-              {
-                name: "hooks",
-                image: "metacontroller/jsonnetd:0.1",
-                imagePullPolicy: "Always",
-                workingDir: "/opt/isolation/operator/hooks",
-                volumeMounts: [
-                  {
-                    name: "hooks",
-                    mountPath: "/opt/isolation/operator/hooks",
-                  },
-                ],
-              },
-            ],
-            volumes: [
-              {
-                name: "hooks",
-                configMap: {
-                  name: "application-controller-hooks",
-                },
-              },
-            ],
-          },
-        },
-      },
-    },
-    applicationDeployment:: applicationDeployment,
-
-    local applicationService = {
-      apiVersion: "v1",
-      kind: "Service",
-      metadata: {
-        name: "application-controller",
-        namespace: params.namespace,
-      },
-      spec: {
-        selector: {
-          app: "application-controller",
-        },
-        ports: [
-          {
-            port: 80,
-            targetPort: 8080,
-          },
-        ],
-      },
-    },
-    applicationService:: applicationService,
-
-    local forChildResources(wrapper) = {
-      local tuple = wrapper.tuple,
-      local resource = tuple[2],
-      local childResource = {
-        apiVersion: resource.apiVersion,
-        resource: util.lower(resource.kind) + "s",
-      },
-      return:: childResource,
-    }.return,
-
-    local applicationController = {
-      apiVersion: "metacontroller.k8s.io/v1alpha1",
-      kind: "CompositeController",
-      metadata: {
-        name: "application-controller",
-      },
-      spec: {
-        generateSelector: true,
-        parentResource: {
-          apiVersion: "app.k8s.io/v1beta1",
-          resource: "applications",
-        },
-        local getKey(resource) = resource.resource + "." + resource.apiVersion,
-        local getValue(resource) = resource,
-        local childResources = std.map(forChildResources, tuples),
-        local childResourcesMap = util.foldl(getKey, getValue, childResources),
-        childResources: [childResourcesMap[key] for key in std.objectFields(childResourcesMap)],
-        hooks: {
-          sync: {
-            webhook: {
-              url: "http://application-controller." + params.namespace + "/sync-application",
-            },
-          },
-        },
-      },
-    },
-    applicationController:: applicationController,
-
-    local privileged = [
-      { name: "meta-controller-service",
-        apiVersion: "v1",
-        kind: "ServiceAccount", 
-      },
-      { name: "metacontroller",
-        apiVersion: "apps/v1beta2",
-        kind: "StatefulSet", 
-      },
-    ],
-    local privilegedMap = groupByName(privileged),
 
     local byPrivileged(yesorno) = {
       local privileged(maybeWrapper) = {
@@ -768,11 +324,8 @@
           else
             maybeWrapper,
         return::
-          if (std.objectHas(resource, "metadata") &&
-             !std.objectHas(resource.metadata, "namespace")) || 
-             (std.objectHas(privilegedMap, resource.metadata.name) &&
-             privilegedMap[resource.metadata.name].kind == resource.kind &&
-             privilegedMap[resource.metadata.name].apiVersion == resource.apiVersion) then
+          if std.objectHas(resource, "metadata") &&
+             !std.objectHas(resource.metadata, "namespace") then
             yesorno
           else
             !yesorno,
@@ -780,19 +333,8 @@
       return:: privileged,
     }.return,
 
-    local all = [
-      // requires cluster-admin
+    local all = components + [
       self.applicationCRD,
-      self.compositeControllerCRD,
-      self.controllerRevisionsCRD,
-      self.decoratorControllerCRD,
-      self.metaControllerServiceAccount,
-      self.metaControllerClusterRoleBinding,
-      self.metaControllerStatefulSet,
-      //application
-      self.applicationConfigMap,
-      self.applicationDeployment,
-      self.applicationService,
       self.application,
     ],
     all:: std.filter(byPrivileged(params.bootstrap), all),
