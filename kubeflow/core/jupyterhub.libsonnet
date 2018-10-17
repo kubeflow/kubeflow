@@ -4,6 +4,14 @@
   new(_env, _params):: {
     local params = _env + _params,
 
+    local defaultSpawnerData = {
+      // Default JH Spawner UI files
+      "template.html": importstr "ui/default/template.html",
+      "script.js": importstr "ui/default/script.js",
+      "style.css": importstr "ui/default/style.css",
+      "spawner.py": importstr "ui/default/spawner.py",
+    },
+
     local kubeSpawnerConfig = {
       apiVersion: "v1",
       kind: "ConfigMap",
@@ -11,13 +19,11 @@
         name: "jupyterhub-config",
         namespace: params.namespace,
       },
-      data: {
+      // JH config file
+      local config = {
         "jupyterhub_config.py": importstr "jupyterhub_config.py",
-        "template.html": importstr "template.html",
-        "script.js": importstr "script.js",
-        "style.css": importstr "style.css",
-        "spawner.py": importstr "spawner.py",
       },
+      data: config + if params.ui == "default" then defaultSpawnerData,
     },
     kubeSpawnerConfig:: kubeSpawnerConfig,
 
