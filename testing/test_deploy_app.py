@@ -19,7 +19,7 @@ import google.oauth2.service_account
 
 FILE_PATH = os.path.dirname(os.path.abspath(__file__))
 SSL_DIR = os.path.join(FILE_PATH, "sslcert")
-SSL_BUCKET = 'kubeflow-test-infra'
+SSL_BUCKET = 'kubeflow-ci-deploy-cert'
 IAM_SCOPE = 'https://www.googleapis.com/auth/iam'
 OAUTH_TOKEN_URI = 'https://www.googleapis.com/oauth2/v4/token'
 METHOD = 'GET'
@@ -185,7 +185,7 @@ def main(unparsed_args=None):
 
   parser.add_argument(
     "--deployment",
-    default="periodictest",
+    default="periodic-test",
     type=str,
     help="Deployment name.")
   parser.add_argument(
