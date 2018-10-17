@@ -268,6 +268,7 @@
           resources: [
             "pods",
             "services",
+            "services/proxy",
           ],
           verbs: [
             "*",
