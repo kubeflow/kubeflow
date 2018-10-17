@@ -12,7 +12,8 @@
         namespace: params.namespace,
       },
       data: {
-        "jupyterhub_config.py": importstr "kubeform_spawner.py",
+        "jupyterhub_config.py": importstr "jupyterhub_config.py",
+        "spawner.py": importstr "spawner.py"
       },
     },
     kubeSpawnerConfig:: kubeSpawnerConfig,
