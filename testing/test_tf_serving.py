@@ -116,6 +116,7 @@ def main():
       while True:
         try:
           result = requests.post(model_url, json=instances)
+          logging.info('Got result: {}'.format(result.text))
           assert(result.status_code == 200)
         except Exception as e:
           num_try += 1
@@ -125,7 +126,6 @@ def main():
           time.sleep(5)
         else:
           break
-      logging.info('Got result: {}'.format(result.text))
       if args.result_path:
         with open(args.result_path) as f:
           expected_result = json.loads(f.read())
