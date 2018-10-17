@@ -10,10 +10,11 @@
         if std.objectHas(_params, "namespace") &&
            _params.namespace != "null" then
           _params.namespace else _env.namespace,
-      metacontroller: util.toBool(_params["install-metacontroller"]),
       labels: {
         app: _params.name,
       },
+      hasOwner: util.toBool(_params.owner != "null"),
+      bootstrap: util.toBool(_params.bootstrap),
     },
 
     local compositeControllerCRD = {
@@ -21,9 +22,6 @@
       kind: "CustomResourceDefinition",
       metadata: {
         name: "compositecontrollers.metacontroller.k8s.io",
-        annotations: {
-          group: "metacontroller",
-        },
       },
       spec: {
         group: "metacontroller.k8s.io",
@@ -47,9 +45,6 @@
       kind: "CustomResourceDefinition",
       metadata: {
         name: "decoratorcontrollers.metacontroller.k8s.io",
-        annotations: {
-          group: "metacontroller",
-        },
       },
       spec: {
         group: "metacontroller.k8s.io",
@@ -73,9 +68,6 @@
       kind: "CustomResourceDefinition",
       metadata: {
         name: "controllerrevisions.metacontroller.k8s.io",
-        annotations: {
-          group: "metacontroller",
-        },
       },
       spec: {
         group: "metacontroller.k8s.io",
@@ -96,9 +88,6 @@
       metadata: {
         name: "meta-controller-service",
         namespace: params.namespace,
-        annotations: {
-          group: "metacontroller",
-        },
       },
     },
     metaControllerServiceAccount:: metaControllerServiceAccount,
@@ -108,9 +97,6 @@
       kind: "ClusterRoleBinding",
       metadata: {
         name: "meta-controller-cluster-role-binding",
-        annotations: {
-          group: "metacontroller",
-        },
       },
       roleRef: {
         kind: "ClusterRole",
@@ -135,9 +121,6 @@
         namespace: params.namespace,
         labels: {
           app: "metacontroller",
-        },
-        annotations: {
-          group: "metacontroller",
         },
       },
       spec: {
@@ -370,9 +353,7 @@
     local applicationCRD =
       crd.new() + crd.mixin.metadata.
         withName("applications.app.k8s.io").
-        withNamespace(params.namespace).
-        withLabelsMixin({ api: "default" }).
-        withAnnotationsMixin({ group: "metacontroller" }) +
+        withLabelsMixin({ api: "default" }) +
       crd.mixin.spec.
         withGroup("app.k8s.io").
         withVersion("v1beta1").
@@ -446,8 +427,10 @@
       return::
         if std.objectHas(list, name) &&
            std.objectHas(list[name], "items") &&
-           std.type(list[name].items) == "array" then
-          std.map(generateComponentTuples, list[name].items)
+           std.type(list[name].items) == "array" &&
+           !params.bootstrap then
+          std.filter(byPrivileged(!params.hasOwner), 
+            std.map(generateComponentTuples, list[name].items))
         else
           [],
     }.return,
@@ -500,9 +483,9 @@
           params.components,
     }.return,
 
-    local groupByName(components) = {
+    local groupByName(resources) = {
       [resource.name]+: resource
-      for resource in components
+      for resource in resources
     },
 
     local groupByResource(tuples) = {
@@ -520,7 +503,8 @@
       return:: util.foldl(getKey, getValue, tuples),
     }.return,
 
-    local tuples = std.flattenArrays(std.map(perComponent, getComponents)),
+    local tuples = std.flattenArrays(std.map(perComponent, getComponents)) + 
+      [ generateComponentTuples(self.applicationController) ],
     local components = std.map(byResource, tuples),
     local resources = groupByResource(tuples),
 
@@ -643,11 +627,11 @@
         resources: std.manifestJsonEx(resources, "  "),
       },
 
-    local applicationConfigmap = {
+    local applicationConfigMap = {
       apiVersion: "v1",
       kind: "ConfigMap",
       metadata: {
-        name: "application-operator-hooks",
+        name: "application-controller-hooks",
         namespace: params.namespace,
       },
       data: {
@@ -655,25 +639,25 @@
         "util.libsonnet": importstr "kubeflow/core/util.libsonnet",
       },
     },
-    applicationConfigmap:: applicationConfigmap,
+    applicationConfigMap:: applicationConfigMap,
 
     local applicationDeployment = {
       apiVersion: "apps/v1beta1",
       kind: "Deployment",
       metadata: {
-        name: "application-operator",
+        name: "application-controller",
         namespace: params.namespace,
       },
       spec: {
         selector: {
           matchLabels: {
-            app: "application-operator",
+            app: "application-controller",
           },
         },
         template: {
           metadata: {
             labels: {
-              app: "application-operator",
+              app: "application-controller",
             },
           },
           spec: {
@@ -695,7 +679,7 @@
               {
                 name: "hooks",
                 configMap: {
-                  name: "application-operator-hooks",
+                  name: "application-controller-hooks",
                 },
               },
             ],
@@ -709,12 +693,12 @@
       apiVersion: "v1",
       kind: "Service",
       metadata: {
-        name: "application-operator",
+        name: "application-controller",
         namespace: params.namespace,
       },
       spec: {
         selector: {
-          app: "application-operator",
+          app: "application-controller",
         },
         ports: [
           {
@@ -756,7 +740,7 @@
         hooks: {
           sync: {
             webhook: {
-              url: "http://application-operator." + params.namespace + "/sync-application",
+              url: "http://application-controller." + params.namespace + "/sync-application",
             },
           },
         },
@@ -764,8 +748,40 @@
     },
     applicationController:: applicationController,
 
+    local privileged = [
+      { name: "meta-controller-service",
+        apiVersion: "v1",
+        kind: "ServiceAccount", 
+      },
+      { name: "metacontroller",
+        apiVersion: "apps/v1beta2",
+        kind: "StatefulSet", 
+      },
+    ],
+    local privilegedMap = groupByName(privileged),
+
+    local byPrivileged(yesorno) = {
+      local privileged(maybeWrapper) = {
+        local resource = 
+          if std.objectHas(maybeWrapper, "tuple") then 
+            maybeWrapper.tuple[2]
+          else
+            maybeWrapper,
+        return::
+          if (std.objectHas(resource, "metadata") &&
+             !std.objectHas(resource.metadata, "namespace")) || 
+             (std.objectHas(privilegedMap, resource.metadata.name) &&
+             privilegedMap[resource.metadata.name].kind == resource.kind &&
+             privilegedMap[resource.metadata.name].apiVersion == resource.apiVersion) then
+            yesorno
+          else
+            !yesorno,
+      }.return,
+      return:: privileged,
+    }.return,
+
     local all = [
-      //should be separate component, requires cluster-admin
+      // requires cluster-admin
       self.applicationCRD,
       self.compositeControllerCRD,
       self.controllerRevisionsCRD,
@@ -774,24 +790,12 @@
       self.metaControllerClusterRoleBinding,
       self.metaControllerStatefulSet,
       //application
-      self.applicationConfigmap,
+      self.applicationConfigMap,
       self.applicationDeployment,
       self.applicationService,
-      self.applicationController,
       self.application,
     ],
-
-    all:: std.filter(function(resource) {
-      return::
-        if params.metacontroller == false &&
-           std.objectHas(resource, "metadata") &&
-           std.objectHas(resource.metadata, "annotations") &&
-           std.objectHas(resource.metadata.annotations, "group") &&
-           resource.metadata.annotations.group == "metacontroller" then
-          false
-        else
-          true,
-    }.return, all),
+    all:: std.filter(byPrivileged(params.bootstrap), all),
 
     list(obj=self.all):: util.list(obj),
   },
