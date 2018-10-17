@@ -158,6 +158,7 @@
     },  // role binding
     centralDashboardRoleBinding:: centralDashboardRoleBinding,
 
+    parts:: self,
     all:: [
       self.centralDashboardDeployment,
       self.centralDashboardService,

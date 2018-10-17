@@ -86,6 +86,7 @@
     },
     deployment:: deployment,
 
+    parts:: self,
     all:: [
       self.service,
       self.deployment,

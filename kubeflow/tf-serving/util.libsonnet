@@ -9,7 +9,7 @@
       if std.type(x) == "boolean" then
         x
       else if std.type(x) == "string" then
-        $.upper(x) == "TRUE"
+        std.asciiUpper(x) == "TRUE"
       else if std.type(x) == "number" then
         x != 0
       else

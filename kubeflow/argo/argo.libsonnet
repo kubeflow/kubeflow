@@ -437,6 +437,7 @@
     },  // role binding
     argUIClusterRoleBinding:: argUIClusterRoleBinding,
 
+    parts: self,
     all:: [
       self.workflowCRD,
       self.workflowController,

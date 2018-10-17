@@ -176,6 +176,7 @@
     },
     issuerLEProd:: issuerLEProd,
 
+    parts:: self,
     all:: [
       self.certificateCRD,
       self.clusterIssuerCRD,
