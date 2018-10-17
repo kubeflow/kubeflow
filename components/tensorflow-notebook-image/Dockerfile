@@ -8,6 +8,7 @@ FROM $BASE_IMAGE
 ARG TF_PACKAGE=https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.7.0-cp36-cp36m-linux_x86_64.whl
 ARG TF_PACKAGE_PY_27=https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.7.0-cp27-none-linux_x86_64.whl
 ARG TFMA_VERSION
+ARG TFDV_VERSION
 
 USER root
 
@@ -127,7 +128,10 @@ RUN conda create -n py2 python=2 && \
       # please visit https://github.com/tensorflow/model-analysis#compatible-versions
       # and fix the TFMA_VERSION with compatible version number in the config json
       pip install --no-cache-dir tensorflow-model-analysis==$TFMA_VERSION && \
-      pip install --no-cache-dir tensorflow-data-validation && \
+      if [[ $TFDV_VERSION ]]; then \
+        pip install --no-cache-dir tensorflow-data-validation==$TFDV_VERSION ; \
+      fi \
+      && \
       # We use --system because if we don't the config is written to the home directory
       # and the changes are lost when we mount a PV over them.
       jupyter nbextension enable --py --system widgetsnbextension && \

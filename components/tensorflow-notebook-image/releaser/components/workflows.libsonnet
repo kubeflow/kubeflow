@@ -128,7 +128,7 @@
         },
         sidecars: sidecars,
       };  // buildTemplate
-      local buildImageTemplate(tf_version, workflow_name, device, tfma_version, is_latest=true) = {
+      local buildImageTemplate(tf_version, workflow_name, device, tfma_version, tfdv_version, is_latest=true) = {
         local image = params.registry + "/tensorflow-" + tf_version + "-notebook-" + device,
         local tag = params.versionTag,
         local base_image =
@@ -170,6 +170,7 @@
             + base_image + " "
             + tf_package + " "
             + tf_package_py_27 + " "
+            + tfdv_version + " "
             + tfma_version ,
           ],
           [
@@ -332,20 +333,20 @@
               },  //dag
             },
             //TODO tfma_version should be read from config.json. And so as the tf_package ...
-            buildImageTemplate("1.4.1", "1-4-1", "cpu", ""),
-            buildImageTemplate("1.4.1", "1-4-1", "gpu", ""),
-            buildImageTemplate("1.5.1", "1-5-1", "cpu", ""),
-            buildImageTemplate("1.5.1", "1-5-1", "gpu", ""),
-            buildImageTemplate("1.6.0", "1-6-0", "cpu", "0.6.0"),
-            buildImageTemplate("1.6.0", "1-6-0", "gpu", "0.6.0"),
-            buildImageTemplate("1.7.0", "1-7-0", "cpu", "0.6.0"),
-            buildImageTemplate("1.7.0", "1-7-0", "gpu", "0.6.0"),
-            buildImageTemplate("1.8.0", "1-8-0", "cpu", "0.6.0"),
-            buildImageTemplate("1.8.0", "1-8-0", "gpu", "0.6.0"),
-            buildImageTemplate("1.9.0", "1-9-0", "cpu", "0.9.2"),
-            buildImageTemplate("1.9.0", "1-9-0", "gpu", "0.9.2"),
-            buildImageTemplate("1.10.1", "1-10-1", "cpu", "0.9.2"),
-            buildImageTemplate("1.10.1", "1-10-1", "gpu", "0.9.2"),
+            buildImageTemplate("1.4.1", "1-4-1", "cpu", "", ""),
+            buildImageTemplate("1.4.1", "1-4-1", "gpu", "", ""),
+            buildImageTemplate("1.5.1", "1-5-1", "cpu", "", ""),
+            buildImageTemplate("1.5.1", "1-5-1", "gpu", "", ""),
+            buildImageTemplate("1.6.0", "1-6-0", "cpu", "0.6.0", ""),
+            buildImageTemplate("1.6.0", "1-6-0", "gpu", "0.6.0", ""),
+            buildImageTemplate("1.7.0", "1-7-0", "cpu", "0.6.0", ""),
+            buildImageTemplate("1.7.0", "1-7-0", "gpu", "0.6.0", ""),
+            buildImageTemplate("1.8.0", "1-8-0", "cpu", "0.6.0", ""),
+            buildImageTemplate("1.8.0", "1-8-0", "gpu", "0.6.0", ""),
+            buildImageTemplate("1.9.0", "1-9-0", "cpu", "0.9.2", "0.9.0"),
+            buildImageTemplate("1.9.0", "1-9-0", "gpu", "0.9.2", "0.9.0"),
+            buildImageTemplate("1.10.1", "1-10-1", "cpu", "0.9.2", "0.9.0"),
+            buildImageTemplate("1.10.1", "1-10-1", "gpu", "0.9.2", "0.9.0"),
             {
               name: "exit-handler",
               steps: [
