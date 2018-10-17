@@ -118,7 +118,6 @@ RUN conda create -n py2 python=2 && \
     ${TF_PACKAGE_PY_27} \
     # Tensorflow packages which only supports python 2
     tensorflow-transform \
-    tensorflow-serving-api \
     # ipykernel for python 2 jupyter notebook kernel
     && \
     python -m ipykernel install && \
@@ -136,6 +135,10 @@ RUN conda create -n py2 python=2 && \
       jupyter nbextension enable --py --system tensorflow_model_analysis ; \
     fi \
     && \
+    # TODO a quick fix for tensorflow_serving_api when install gpu
+    # https://github.com/tensorflow/serving/issues/1142
+    # now the dep in tensorflow can meet the require of tensorflow-serving-api but not ensure future
+    pip install --no-cache-dir --no-deps tensorflow-serving-api && \
     # Install jupyterlab-manager
     conda install --quiet --yes \
     # nodejs required for jupyterlab-manager
