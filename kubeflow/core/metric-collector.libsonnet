@@ -179,6 +179,7 @@
     },  // deploy
     deploy:: deploy,
 
+    parts:: self,
     all:: [
       self.metricServiceAccount,
       self.metricRole,

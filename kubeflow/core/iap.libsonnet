@@ -879,6 +879,7 @@
     ),
     cloudEndpoint:: cloudEndpoint,
 
+    parts:: self,
     all:: [
       self.service,
       self.initServiceAccount,

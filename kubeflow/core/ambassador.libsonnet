@@ -266,6 +266,7 @@
     },  // k8sDashboard
     k8sDashboard:: k8sDashboard,
 
+    parts:: self,
     all:: [
       self.ambassadorService,
       self.adminService,
