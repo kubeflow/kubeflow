@@ -6,6 +6,7 @@
 
 {% block javascript %}
   <script type="text/javascript">
+    var formDefaults = {{ form_defaults|tojson }};
     {% include "script.js" %}
   </script>
 {% endblock %}
@@ -13,23 +14,8 @@
 <table style="width: 100%;">
   <tr>
       <td style="width: 30%;"><label for='image'>Image</label></td>
-      <td style="width: 70%;"><input value="" list="image" name="image" placeholder='repo/image:tag' style="width: 100%;">
-      <datalist id="image">
-        <option value="{{ registry }}/{{ repoName }}/tensorflow-1.4.1-notebook-cpu:v0.3.1">
-        <option value="{{ registry }}/{{ repoName }}/tensorflow-1.4.1-notebook-gpu:v0.3.1">
-        <option value="{{ registry }}/{{ repoName }}/tensorflow-1.5.1-notebook-cpu:v0.3.1">
-        <option value="{{ registry }}/{{ repoName }}/tensorflow-1.5.1-notebook-gpu:v0.3.1">
-        <option value="{{ registry }}/{{ repoName }}/tensorflow-1.6.0-notebook-cpu:v0.3.1">
-        <option value="{{ registry }}/{{ repoName }}/tensorflow-1.6.0-notebook-gpu:v0.3.1">
-        <option value="{{ registry }}/{{ repoName }}/tensorflow-1.7.0-notebook-cpu:v0.3.1">
-        <option value="{{ registry }}/{{ repoName }}/tensorflow-1.7.0-notebook-gpu:v0.3.1">
-        <option value="{{ registry }}/{{ repoName }}/tensorflow-1.8.0-notebook-cpu:v0.3.1">
-        <option value="{{ registry }}/{{ repoName }}/tensorflow-1.8.0-notebook-gpu:v0.3.1">
-        <option value="{{ registry }}/{{ repoName }}/tensorflow-1.9.0-notebook-cpu:v0.3.1">
-        <option value="{{ registry }}/{{ repoName }}/tensorflow-1.9.0-notebook-gpu:v0.3.1">
-        <option value="{{ registry }}/{{ repoName }}/tensorflow-1.10.1-notebook-cpu:v0.3.1">
-        <option value="{{ registry }}/{{ repoName }}/tensorflow-1.10.1-notebook-gpu:v0.3.1">
-      </datalist>
+      <td style="width: 70%;"><input id="image" value="" list="image_list" name="image" placeholder='repo/image:tag' style="width: 100%;">
+      <datalist id="image_list"></datalist>
       </td>
   </tr>
   </table>
@@ -39,17 +25,17 @@
   <table id="advanced_fields" style="display: none; width: 100%; border-spacing: 0px 25px; border-collapse: separate;">
   <tr>
       <td><label for='cpu_guarantee'>CPU</label></td>
-      <td><input style="width: 100%;" name='cpu_guarantee' placeholder='200m, 1.0, 2.5, etc'></input></td>
+      <td><input id='cpu' style="width: 100%;" name='cpu' placeholder='200m, 1.0, 2.5, etc'></input></td>
   </tr>
   <tr>
       <td><label for='mem_guarantee'>Memory</label></td>
-      <td><input style="width: 100%;" name='mem_guarantee' placeholder='100Mi, 1.5Gi'></input></td>
+      <td><input id='memory' style="width: 100%;" name='memory' placeholder='100Mi, 1.5Gi'></input></td>
   </tr>
   <tr>
       <td><label for='extra_resource_limits'>Extra Resource Limits</label></td>
       <td>
         {% raw %}
-          <input class="form-control" name='extra_resources' placeholder='{"nvidia.com/gpu": 3}'></input>
+          <input  id='extraResources' class="form-control" name='extraResources' placeholder='{"nvidia.com/gpu": 3}'></input>
         {% endraw %}
       </td>
   </tr>

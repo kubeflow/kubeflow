@@ -1,4 +1,5 @@
 import json
+import yaml
 import string
 import escapism
 from traitlets import Dict
@@ -9,6 +10,13 @@ SERVICE_ACCOUNT_SECRET_MOUNT = '/var/run/secrets/sa'
 
 
 class KubeFormSpawner(KubeSpawner):
+    """Implement a custom Spawner to spawn pods in a Kubernetes Cluster."""
+
+    def __init__(self, *args, **kwargs):
+        """Override KubeSpawner class init method."""
+        with open('/etc/config/spawner_ui_config.yaml', 'r') as f:
+            self.spawner_ui_config = yaml.load(f)
+        super(KubeFormSpawner, self).__init__(*args, **kwargs)
 
     extra_spawner_config = Dict(
         {},
@@ -20,64 +28,58 @@ class KubeFormSpawner(KubeSpawner):
 
     # relies on HTML5 for image datalist
     def _options_form_default(self):
-        registry = self.extra_spawner_config['registry']
-        repoName = self.extra_spawner_config['repoName']
 
         # Create Jinja environment to dynamically load templates
         j2_env = Environment(loader=FileSystemLoader('/etc/config'))
 
         # Return the rendered template as unicode string
         return j2_env.get_template('template.html').render(
-            registry=registry,
-            repoName=repoName
+            form_defaults=self.spawner_ui_config['spawnerFormDefaults'],
         )
 
     def options_from_form(self, formdata):
         options = {}
-        options['image'] = formdata.get('image', [''])[0].strip()
-        options['cpu_guarantee'] = formdata.get(
-            'cpu_guarantee', [''])[0].strip()
-        options['mem_guarantee'] = formdata.get(
-            'mem_guarantee', [''])[0].strip()
-        options['extra_resource_limits'] = formdata.get(
-            'extra_resource_limits', [''])[0].strip()
+        form_defaults = self.spawner_ui_config['spawnerFormDefaults']
+
+        # Manage Image
+        options['image'] = form_defaults['image']['value']
+        if 'image' in formdata and formdata['image'][0]:
+            options['image'] = formdata['image'][0].strip()
+
+        # Manage CPU
+        options['cpu'] = form_defaults['cpu']['value']
+        if 'cpu' in formdata and formdata['cpu'][0]:
+            options['cpu'] = formdata['cpu'][0].strip()
+
+        # Manage Memory
+        options['memory'] = form_defaults['memory']['value']
+        if 'memory' in formdata and formdata['memory'][0]:
+            options['memory'] = formdata['memory'][0].strip()
+
+        # Manage Extra Resources
+        options['extraResources'] = form_defaults['extraResources']['value']
+        if 'extraResources' in formdata and formdata['extraResources'][0]:
+            options['extraResources'] = formdata['extraResources'][0].strip()
+
         return options
 
     @property
     def singleuser_image_spec(self):
-        platform = self.extra_spawner_config['platform']
-        if platform == 'ack':
-            image = ('registry.aliyuncs.com/kubeflow-images-public/'
-                     'tensorflow-notebook-cpu:v0.2.1')
-        else:
-            image = ('gcr.io/kubeflow-images-public/'
-                     'tensorflow-1.8.0-notebook-cpu:v0.3.1')
-        if self.user_options.get('image'):
-            image = self.user_options['image']
-        return image
+        return self.user_options['image']
 
     image_spec = singleuser_image_spec
 
     @property
     def cpu_guarantee(self):
-        cpu = '500m'
-        if self.user_options.get('cpu_guarantee'):
-            cpu = self.user_options['cpu_guarantee']
-        return cpu
+        return self.user_options['cpu']
 
     @property
     def mem_guarantee(self):
-        mem = '1Gi'
-        if self.user_options.get('mem_guarantee'):
-            mem = self.user_options['mem_guarantee']
-        return mem
+        return self.user_options['memory']
 
     @property
-    def extra_resource_limits(self):
-        extra = ''
-        if self.user_options.get('extra_resource_limits'):
-            extra = json.loads(self.user_options['extra_resource_limits'])
-        return extra
+    def extra_resources(self):
+        return json.loads(self.user_options['extraResources'])
 
     def get_env(self):
         env = super(KubeFormSpawner, self).get_env()
@@ -113,5 +115,5 @@ class KubeFormSpawner(KubeSpawner):
             unescaped_username=name,
             legacy_escape_username=legacy,
             servername=servername
-            )[:63]
+        )[:63]
         return rname
