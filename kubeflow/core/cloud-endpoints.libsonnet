@@ -356,6 +356,7 @@
       self.endpointsLambdaController,
     ],
 
+    parts:: self,
     all::
       CRDs +
       RBACs +
