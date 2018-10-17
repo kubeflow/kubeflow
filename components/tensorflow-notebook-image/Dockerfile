@@ -123,7 +123,9 @@ RUN conda create -n py2 python=2 && \
     && \
     python -m ipykernel install && \
     # tensorflow-model-analysis is only supported for TF 1.6 and above
-    if [[ $TFMA_VERSION ]]; then \
+    # TODO temporarily remove tensorflow-model-analysis because of gpu problem 
+    # https://github.com/kubeflow/kubeflow/pull/1759
+    if [[ $TFMA_VERSION ]] && [[ $TF_PACKAGE  =~ "cpu" ]]; then \
       # if you find any dependency problems in the future
       # please visit https://github.com/tensorflow/model-analysis#compatible-versions
       # and fix the TFMA_VERSION with compatible version number in the config json
