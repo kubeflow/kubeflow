@@ -159,7 +159,7 @@ resources:
     dependsOn:
     # We can only create 1 node pool at a time.
     - {{ CLUSTER_NAME }}
-{% end if %}
+{% endif %}
 
 {# Project defaults to the project of the deployment. #}
 - name: {{ properties['ipName']  }}
