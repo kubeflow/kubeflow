@@ -120,6 +120,7 @@ resources:
 # We do this so that if we want to make changes we can delete the existing resource and then recreate it.
 # Updating doesn't work so well because we are limited in what changes GKE's update method supports.
 
+{% if properties['gpu-pool-max-nodes'] > 0 %}
 - name: {{ GPU_POOL }}
   {% if properties['gkeApiVersion'] == 'v1beta1' %}
   type: gcp-types/container-v1beta1:projects.locations.clusters.nodePools
@@ -152,12 +153,13 @@ resources:
         minCpuPlatform: 'Intel Haswell'
         accelerators:
           - acceleratorCount: 1
-            acceleratorType: nvidia-tesla-k80
+            acceleratorType: properties['gpu-type'] 
 
   metadata:
     dependsOn:
     # We can only create 1 node pool at a time.
     - {{ CLUSTER_NAME }}
+{% end if %}
 
 {# Project defaults to the project of the deployment. #}
 - name: {{ properties['ipName']  }}

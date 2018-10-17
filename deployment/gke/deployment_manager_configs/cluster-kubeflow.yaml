@@ -49,6 +49,7 @@ resources:
     gpu-pool-enable-autoscaling: true
     gpu-pool-min-nodes: 0
     gpu-pool-max-nodes: 10
+    gpu-type: nvidia-tesla-k80
     securityConfig:
       # Whether to use a cluster with private IPs
       # Use v1beta1 api
