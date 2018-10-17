@@ -3,7 +3,7 @@
 # A simple script to build the Docker images.
 # This is intended to be invoked as a step in Argo to build the docker image.
 #
-# build_image.sh ${DOCKERFILE} ${IMAGE} ${TAG} ${IS_LATEST} ${BASE_IMAGE} ${TF_PACKAGE} ${TFMA_VERSION}
+# build_image.sh ${DOCKERFILE} ${IMAGE} ${TAG} ${IS_LATEST} ${BASE_IMAGE} ${TF_PACKAGE} ${TFMA_VERSION} ${TFDV_VERSION}
 set -ex
 
 DOCKERFILE=$1
@@ -30,15 +30,10 @@ docker build --pull \
         --build-arg "BASE_IMAGE=${BASE_IMAGE}" \
         --build-arg "TF_PACKAGE=${TF_PACKAGE}" \
         --build-arg "TF_PACKAGE_PY_27=${TF_PACKAGE_PY_27}" \
-<<<<<<< HEAD
         --build-arg "INSTALL_TFMA=${INSTALL_TFMA}" \
-<<<<<<< HEAD
         --build-arg "TF_SERVING_VERSION=${TF_SERVING_VERSION}" \
-=======
-=======
->>>>>>> 7f4af611... get rid of install_tfma [1754](https://github.com/kubeflow/kubeflow/issues/1745)
         --build-arg "TFMA_VERSION=${TFMA_VERSION}" \
->>>>>>> 5374cd5a... add tfma version [1754](https://github.com/kubeflow/kubeflow/issues/1745)
+        --build-arg "TFDV_VERSION=${TFDV_VERSION}" \
         -t "${IMAGE}:${TAG}" \
 	-f ${DOCKERFILE} ${CONTEXT_DIR}
 
