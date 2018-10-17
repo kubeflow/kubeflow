@@ -153,7 +153,7 @@ resources:
         minCpuPlatform: 'Intel Haswell'
         accelerators:
           - acceleratorCount: 1
-            acceleratorType: properties['gpu-type'] 
+            acceleratorType: {{ properties['gpu-type'] }}
 
   metadata:
     dependsOn:
