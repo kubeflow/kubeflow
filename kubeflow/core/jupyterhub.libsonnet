@@ -10,6 +10,7 @@
       "script.js": importstr "ui/default/script.js",
       "style.css": importstr "ui/default/style.css",
       "spawner.py": importstr "ui/default/spawner.py",
+      "spawner_ui_config.yaml": importstr "ui/default/config.yaml",
     },
 
     local kubeSpawnerConfig = {
@@ -152,18 +153,6 @@
                   {
                     name: "NOTEBOOK_PVC_MOUNT",
                     value: params.notebookPVCMount,
-                  },
-                  {
-                    name: "PLATFORM_NAME",
-                    value: params.platform,
-                  },
-                  {
-                    name: "REGISTRY",
-                    value: params.registry,
-                  },
-                  {
-                    name: "REPO_NAME",
-                    value: params.repoName,
                   },
                   {
                     name: "KF_AUTHENTICATOR",

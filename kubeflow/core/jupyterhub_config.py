@@ -22,16 +22,7 @@ c.JupyterHub.cleanup_servers = False
 ###################################################
 # Spawner Options
 ###################################################
-platform = os.environ.get('PLATFORM_NAME')
-registry = os.environ.get('REGISTRY')
-repoName = os.environ.get('REPO_NAME')
-
 c.JupyterHub.spawner_class = spawner.KubeFormSpawner
-# Set both singleuser_image_spec and image_spec because
-# singleuser_image_spec has been deprecated in a future release
-image_spec_url = '{0}/{1}/tensorflow-notebook'
-c.KubeSpawner.singleuser_image_spec = image_spec_url.format(registry, repoName)
-c.KubeSpawner.image_spec = image_spec_url.format(registry, repoName)
 
 c.KubeSpawner.cmd = 'start-singleuser.sh'
 c.KubeSpawner.args = ['--allow-root']
@@ -146,8 +137,5 @@ if gcp_secret_name:
 
 # Set extra spawner configuration variables
 c.KubeSpawner.extra_spawner_config = {
-    'platform': platform,
-    'registry': registry,
-    'repoName': repoName,
     'gcp_secret_name': gcp_secret_name
 }
