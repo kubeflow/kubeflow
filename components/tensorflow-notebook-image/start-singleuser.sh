@@ -60,6 +60,8 @@ if [ -z "$DISABLE_TFMA_EXTENSION" ]; then
   # The commands will fail on older images which don't have TFMA in them.
   # We also get errors when rerunning install if its already been installed.
   set +e
+  # Need to activate the py2 environment to install TFMA
+  source activate py2
   jupyter nbextension install --py --user --symlink tensorflow_model_analysis
   jupyter nbextension enable --py --user tensorflow_model_analysis
   -e
