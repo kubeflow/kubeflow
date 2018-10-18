@@ -189,7 +189,7 @@
               },
               limits: {
                 memory: "4Gi",
-                cpu: "4",                
+                cpu: "4",
               },
             },
             securityContext: {

@@ -46,6 +46,13 @@ if [ ! -z "$JPY_HUB_API_URL" ]; then
   NOTEBOOK_ARGS="--hub-api-url=$JPY_HUB_API_URL $NOTEBOOK_ARGS"
 fi
 
+# We delay enabling the Jupyter extension until runtime because
+# enabling it tries to import tensorflow and on GPUs that requires
+# the CUDA libraries.
+if [ ! -z "$DISABLE_TFMA_EXTENSION" ]; then
+  jupyter nbextension enable --py --system tensorflow_model_analysis
+fi
+
 # check to see if a PV has been mounted 
 . /usr/local/bin/pvc-check.sh
 

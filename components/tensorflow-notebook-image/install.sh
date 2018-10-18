@@ -33,7 +33,6 @@ if [[ $TFMA_VERSION ]]; then
   # and the changes are lost when we mount a PV over them.
   jupyter nbextension enable --py --system widgetsnbextension
   jupyter nbextension install --py --system --symlink tensorflow_model_analysis
-  jupyter nbextension enable --py --system tensorflow_model_analysis
 fi
 
 # TODO a quick fix for tensorflow_serving_api when install gpu
