@@ -24,6 +24,11 @@ TFMA_VERSION==$(jq -r .TFMA_VERSION ${CONFIG_FILE})
 TFDV_VERSION=$(jq -r .TFDV_VERSION ${CONFIG_FILE})
 
 
+# JQ returns null for non defined values.
+if [ ${BASE_IMAGE} == "null" ]; then
+   BASE_IMAGE=""
+fi
+
 if [ ${TFMA_VERSION} == "null" ]; then
    TFMA_VERSION=""
 fi
