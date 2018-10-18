@@ -186,8 +186,8 @@
         if std.objectHas(list, name) &&
            std.objectHas(list[name], "items") &&
            std.type(list[name].items) == "array" then
-          std.filter(byPrivileged(params.bootstrap), 
-            std.map(generateComponentTuples, list[name].items))
+          std.filter(byPrivileged(params.bootstrap),
+                     std.map(generateComponentTuples, list[name].items))
         else
           [],
     }.return,
@@ -237,8 +237,8 @@
 
     local byPrivileged(yesorno) = {
       local privileged(maybeWrapper) = {
-        local resource = 
-          if std.objectHas(maybeWrapper, "tuple") then 
+        local resource =
+          if std.objectHas(maybeWrapper, "tuple") then
             maybeWrapper.tuple[2]
           else
             maybeWrapper,
