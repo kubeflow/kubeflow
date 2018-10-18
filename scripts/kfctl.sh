@@ -225,7 +225,7 @@ ksApply () {
     ks env add default --namespace "${K8S_NAMESPACE}"
   fi
 
-  # Create the kubeflow application
+  # Deploy the kubeflow application
   # - first create all cluster resources
   ks param set application bootstrap true
   ks apply default -c application

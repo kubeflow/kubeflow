@@ -245,10 +245,14 @@ gcpKsApply() {
     ks env add default --namespace "${K8S_NAMESPACE}"
   fi
 
-  ks apply default -c cloud-endpoints
-  ks apply default -c cert-manager
-  ks apply default -c iap-ingress
-  ks apply default -c pytorch-operator
+  # Deploy the kubeflow application
+  # - first create all cluster resources
+  ks param set application components '["cloud-endpoints", "cert-manager", "iap-ingress"]' 
+  ks param set application bootstrap true
+  ks apply default -c application
+  # - second create all namespace scoped resources.
+  ks param set application bootstrap false
+  ks apply default -c application
 
   popd
 }

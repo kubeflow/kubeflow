@@ -221,6 +221,11 @@
     }.return,
 
     local getComponents = {
+      local isEmpty =
+        if std.length(params.components) == 0 then
+          true
+        else
+          false,
       local exclude(name) = {
         return::
           if name == params.name then
@@ -229,7 +234,10 @@
             true,
       }.return,
       return::
-        std.filter(exclude, std.objectFields(std.extVar("__ksonnet/components"))),
+        if isEmpty then
+          std.filter(exclude, std.objectFields(std.extVar("__ksonnet/components")))
+        else
+          params.components,
     }.return,
 
     local tuples = std.flattenArrays(std.map(perComponent, getComponents)),
