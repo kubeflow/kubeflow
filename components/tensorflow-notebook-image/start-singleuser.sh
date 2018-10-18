@@ -64,7 +64,7 @@ if [ -z "$DISABLE_TFMA_EXTENSION" ]; then
   source activate py2
   jupyter nbextension install --py --user --symlink tensorflow_model_analysis
   jupyter nbextension enable --py --user tensorflow_model_analysis
-  -e
+  set -e
 fi
 
 . /usr/local/bin/start.sh jupyterhub-singleuser $NOTEBOOK_ARGS $@
