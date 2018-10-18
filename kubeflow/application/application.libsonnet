@@ -31,136 +31,61 @@
         spec: {
           type: "object",
           properties: {
-            selector: {
-              type: "object",
+            type: {
+              type: "string",
             },
-            componentKinds: {
+            components: {
+              type: "array",
               items: {
                 type: "object",
               },
+            },
+            dependencies: {
               type: "array",
+              items: {
+                type: "string",
+              },
+            },
+            selector: {
+              type: "object",
+            },
+            healthCheck: {
+              type: "string",
+            },
+            version: {
+              type: "string",
             },
             description: {
               type: "string",
             },
-            info: {
+            maintainers: {
+              type: "array",
               items: {
-                properties: {
-                  name: {
-                    type: "string",
-                  },
-                  type: {
-                    type: "string",
-                  },
-                  value: {
-                    type: "string",
-                  },
-                  valueFrom: {
-                    properties: {
-                      configMapKeyRef: {
-                        properties: {
-                          key: {
-                            type: "string",
-                          },
-                        },
-                        type: "object",
-                      },
-                      ingressRef: {
-                        properties: {
-                          host: {
-                            type: "string",
-                          },
-                          path: {
-                            type: "string",
-                          },
-                        },
-                        type: "object",
-                      },
-                      secretKeyRef: {
-                        properties: {
-                          key: {
-                            type: "string",
-                          },
-                        },
-                        type: "object",
-                      },
-                      serviceRef: {
-                        properties: {
-                          path: {
-                            type: "string",
-                          },
-                          port: {
-                            type: "int32",
-                          },
-                        },
-                        type: "object",
-                      },
-                      type: {
-                        type: "string",
-                      },
-                    },
-                    type: "object",
-                  },
-                },
+                type: "string",
+              },
+            },
+            owners: {
+              type: "array",
+              items: {
+                type: "string",
+              },
+            },
+            keywords: {
+              type: "array",
+              items: {
+                type: "string",
+              },
+            },
+            links: {
+              type: "array",
+              items: {
                 type: "object",
               },
-              type: "array",
             },
-            descriptor: {
-              type: "object",
-              properties: {
-                keywords: {
-                  items: {
-                    type: "string",
-                  },
-                  type: "array",
-                },
-                links: {
-                  items: {
-                    properties: {
-                      description: {
-                        type: "string",
-                      },
-                      url: {
-                        type: "string",
-                      },
-                    },
-                    type: "object",
-                  },
-                  type: "array",
-                },
-                maintainers: {
-                  items: {
-                    properties: {
-                      email: {
-                        type: "string",
-                      },
-                      name: {
-                        type: "string",
-                      },
-                      url: {
-                        type: "string",
-                      },
-                    },
-                    type: "object",
-                  },
-                  type: "array",
-                },
-                notes: {
-                  type: "string",
-                },
-                owners: {
-                  items: {
-                    type: "string",
-                  },
-                  type: "array",
-                },
-                type: {
-                  type: "string",
-                },
-                version: {
-                  type: "string",
-                },
+            info: {
+              type: "array",
+              items: {
+                type: "object",
               },
             },
           },
@@ -170,9 +95,6 @@
             observedGeneration: {
               type: "string",
               format: "int64",
-            },
-            assemblyPhase: {
-              type: "string",
             },
             installed: {
               items: {
@@ -217,25 +139,22 @@
         namespace: params.namespace,
       },
       spec: {
+        type: params.type,
+        components+: std.map(byComponent, tuples),
+        dependencies: [],
         selector: {
           matchLabels: {
             "app.kubernetes.io/name": params.name,
           },
         },
-        componentKinds+: std.map(byComponent, tuples),
-        descriptor: {
-          type: params.type,
-          version: params.version,
-          description: "",
-          icons: [],
-          maintainers: [],
-          owners: [],
-          keywords: [],
-          links: [],
-          notes: "",
-        },
+        healthCheck: "",
+        version: params.version,
+        description: "",
+        maintainers: [],
+        owners: [],
+        keywords: [],
+        links: [],
         info: [],
-        assemblyPhase: "Succeeded",
       },
     },
     application:: application,

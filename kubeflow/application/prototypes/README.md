@@ -204,24 +204,20 @@ INFO Creating non-existent deployments kubeflow.modeldb-db
 apiVersion: app.k8s.io/v1beta1
 kind: Application
 metadata:
-  annotations:
-    ksonnet.io/managed: '{"pristine":"H4sIAAAAAAAA/6yXT3OzNhDG7/0YOoP7pr10fHv79tZ2JlPP5JLJYZHWRkHSaqTFLsn4u3dkExtcCMbODcRv/zwPCEnvArx+whA1ObEU4P2i+i0uNP28fSiQ4UFkotJOiaX47r3REjiRmbDIoIBBLN+FgQJNTFfg/TFLhzzkrAsMDhkPqR1Y/B9WRXIOOT2XZD05dHwB7TMxGJoGoweZnqRKa0O7BEeP8tBVjGgL0zyWEBOzqqVEVKhEJk61/tRORbF8fhdgC4gRFIUU3KpfYdhqiWK/z7pEDspqN80lYhOoTvaEAuQCai4p6LeDhtbzs9f/kBlM0S/yXUqqHX9Brd+1U9ptPsuE/zK69JnEc+gf6A01Fj962FGokvm5JMeBjMHZKSBsKK/1HWFDL2KgsXS51hsLvhP04zD2N/hz1inbxwr3KImOAxgFsSwIgporbyh+SOc0d3Vbs77S19o3jKGsi9bWcU876LcxGWem2xF437FoxcC4rs0KuReUh9TVnUJyR4wFUfUl2ZJWU1wn9pO3ddnblfiNCnq/hK+ypZd0q9/0YR4GHPPmApkzZdpQNer7EPCYVsLI6PiJTG3xhwFtB/AbGhmW2XtjLRnrzQZj8jAP4BTZCQWD/A0ddvJsgh79x4zT99UsG4+hADejcC/kvuoFNBg1OPKsbfsJX9/IWPScniwpNKrIC5AVjrswgN1SZXxe9Ilbcq8DOb5CQpebVQc5aBlzmRZyyZNbo5Y/4Tmj9QYYx1epyLVqXqm42Ml8UmQkYu72Ca/pzjdMQZY5eQyQBE0tupcBE1qG8DlCoofAUNVxyrMPLt+SqR3jfM94nSfTT05sH8D4En65N8+Uoxf8hNCWnty/TXOTaa8W/ZIJhVEG7dv+P+6OR0GRCS1T9PL5JRMVNjsKqr0z2lXtpQXtGLTD0A6kLUI8xtPuPMyN7x3PMrE9nTq/LX5NxzXt1nSEI57ntQWW5V/dE+b0aXK/3+9/+g8AAP//AQAA//9VguNJ2w4AAA=="}'
   clusterName: ""
-  creationTimestamp: 2018-10-18T00:19:45Z
+  creationTimestamp: 2018-10-18T05:29:48Z
   generation: 1
   labels:
     app: application
-    app.kubernetes.io/deploy-manager: ksonnet
     app.kubernetes.io/name: application
     ksonnet.io/component: application
   name: application
   namespace: kubeflow
-  resourceVersion: "3935594"
+  resourceVersion: "3974222"
   selfLink: /apis/app.k8s.io/v1beta1/namespaces/kubeflow/applications/application
-  uid: 8466e9c8-d26b-11e8-83f2-42010a8a0020
+  uid: d468b6aa-d296-11e8-83f2-42010a8a0020
 spec:
-  assemblyPhase: Succeeded
-  componentKinds:
+  components:
   - ambassador:
       kind: Service
   - ambassador-admin:
@@ -365,6 +361,12 @@ spec:
       kind: ConfigMap
   - tf-job-operator:
       kind: ServiceAccount
+  - tf-job-operator:
+      group: rbac.authorization.k8s.io
+      kind: Role
+  - tf-job-operator:
+      group: rbac.authorization.k8s.io
+      kind: RoleBinding
   - tf-job-dashboard:
       kind: Service
   - tf-job-dashboard:
@@ -372,19 +374,18 @@ spec:
   - tf-job-dashboard:
       group: extensions
       kind: Deployment
-  descriptor:
-    description: ""
-    icons: []
-    keywords: []
-    links: []
-    maintainers: []
-    notes: ""
-    owners: []
-    type: kubeflow
-    version: "0.3"
+  dependencies: []
+  description: ""
+  healthCheck: ""
   info: []
+  keywords: []
+  links: []
+  maintainers: []
+  owners: []
   selector:
     matchLabels:
       app.kubernetes.io/name: application
+  type: kubeflow
+  version: "0.3"
 ```
 
