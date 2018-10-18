@@ -1,7 +1,8 @@
 {% block css %}
-  <style type="text/css">
-    {% include "style.css" %}
-  </style>
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css">
+<style type="text/css">
+  {% include "style.css" %}
+</style>
 {% endblock %}
 
 {% block javascript %}
@@ -11,32 +12,99 @@
   </script>
 {% endblock %}
 
-<table style="width: 100%;">
-  <tr>
-      <td style="width: 30%;"><label for='image'>Image</label></td>
-      <td style="width: 70%;"><input id="image" value="" list="image_list" name="image" placeholder='repo/image:tag' style="width: 100%;">
-      <datalist id="image_list"></datalist>
-      </td>
-  </tr>
-  </table>
-  <div style="text-align: center; padding: 10px;">
-    <a id="toggle_advanced_options" style="margin: 20%; cursor: pointer; font-weight: bold;">Advanced</a>
+{% block header %}
+<div class="panel-info">
+  <div class="panel-heading">Fill out the form to customize your Jupyter Notebook.</div>
+</div>
+{% endblock %}
+
+{% block image %}
+<!-- Image -->
+<div class="panel panel-primary" style="margin: 5px 0px">
+  <div class="panel-heading">
+    <i class="fab fa-docker"></i>
+    <label>Image</label>
   </div>
-  <table id="advanced_fields" style="display: none; width: 100%; border-spacing: 0px 25px; border-collapse: separate;">
-  <tr>
-      <td><label for='cpu_guarantee'>CPU</label></td>
-      <td><input id='cpu' style="width: 100%;" name='cpu' placeholder='200m, 1.0, 2.5, etc'></input></td>
-  </tr>
-  <tr>
-      <td><label for='mem_guarantee'>Memory</label></td>
-      <td><input id='memory' style="width: 100%;" name='memory' placeholder='100Mi, 1.5Gi'></input></td>
-  </tr>
-  <tr>
-      <td><label for='extra_resource_limits'>Extra Resource Limits</label></td>
-      <td>
-        {% raw %}
-          <input  id='extraResources' class="form-control" name='extraResources' placeholder='{"nvidia.com/gpu": 3}'></input>
-        {% endraw %}
-      </td>
-  </tr>
-  </table>
+  <div class="panel-body" style="padding: 10px;">
+    <select id="image" class="form-control" name="image" placeholder='repo/image:tag'/></select>
+  </div>
+  <p class="text-muted" style="padding: 10px;">
+    A starter Docker image for JupyterHub with a baseline deployment and typical ML packages.
+  </p>
+</div>
+{% endblock %}
+
+<!-- Advanced Options Toggle Button -->
+<div style="text-align: center; padding: 10px;">
+  <a id="toggle_advanced_options" class="btn btn-primary">Toggle Advanced</a>
+</div>
+
+{% block advanced_fields %}
+<div id="advanced_fields" style="display: none;">
+
+  {% block cpu %}
+  <!-- CPU -->
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <i class="fas fa-microchip"></i>
+      <label>CPU</label>
+    </div>
+    <div class="panel-body" style="padding: 10px;">
+      <input class="form-control" id='cpu' name='cpu'
+             placeholder='200m, 2.5, etc'>
+      </input>
+    </div>
+    <p class="text-muted" style="padding: 10px;">
+      For CPU-intensive workloads, you can choose more than 1 CPU
+      (e.g. <span><code>1.5</code></span>).
+    </p>
+  </div>
+  {% endblock %}
+
+  {% block memory %}
+  <!-- Memory -->
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <i class="fas fa-memory"></i>
+      <label>Memory</label>
+    </div>
+    <div class="panel-body" style="padding: 10px;">
+      <input class="form-control" id='memory' name='memory'
+             placeholder='100Mi, 1.5Gi, etc'>
+      </input>
+    </div>
+    <p class="text-muted" style="padding: 10px;">
+      Specify the total amount of RAM reserved by your Notebook
+      (e.g. <span><code>2.0Gi</code></span>).
+    </p>
+  </div>
+  {% endblock %}
+
+  {% block extra_resources %}
+  <!-- Extra Resources -->
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <i class="fas fa-cogs"></i>
+      <label>Extra Resources</label>
+    </div>
+    <div class="panel-body" style="padding: 10px;">
+      {% raw %}
+      <input class="form-control" id="extraResources" name='extraResources' placeholder='{"nvidia.com/gpu": 3}'></input>
+      {% endraw %}
+    </div>
+    <p class="text-muted" style="padding: 10px;">
+      Reserve additional resources.</br>
+      For example, to reserve 2 GPUs: <span><code>{"nvidia.com/gpu": 2}</code></span>
+    </p>
+  </div>
+  {% endblock %}
+
+</div>
+{% endblock %}
+
+{% block footer %}
+<div class="panel-warning">
+  <div class="panel-heading">
+    In case your Jupyter Notebook does not start, make sure that the resource quotas you specified are available in the cluster.</div>
+</div>
+{% endblock %}

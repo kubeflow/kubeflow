@@ -1,0 +1,21 @@
+body {
+    font-family:
+      "Lato", -apple-system, BlinkMacSystemFont, "Avenir Next",
+      "Avenir", "Segoe UI", "Lucida Grande", "Helvetica Neue", "Helvetica",
+      "Fira Sans", "Roboto", "Noto", "Droid Sans", "Cantarell", "Oxygen",
+      "Ubuntu", "Franklin Gothic Medium", "Century Gothic", "Liberation Sans",
+      sans-serif;
+}
+
+ b, strong {
+    font-weight: 600;
+}
+
+.panel-primary>.panel-heading {
+  padding-bottom: 4.5px;
+}
+
+.btn-jupyter[disabled] {
+  background-color: #F37524;
+  border-color: #E34F21;
+}

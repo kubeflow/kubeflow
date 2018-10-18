@@ -26,7 +26,6 @@ class KubeFormSpawner(KubeSpawner):
         """
     )
 
-    # relies on HTML5 for image datalist
     def _options_form_default(self):
 
         # Create Jinja environment to dynamically load templates
