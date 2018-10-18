@@ -23,6 +23,7 @@ SSL_BUCKET = 'kubeflow-ci-deploy-cert'
 IAM_SCOPE = 'https://www.googleapis.com/auth/iam'
 OAUTH_TOKEN_URI = 'https://www.googleapis.com/oauth2/v4/token'
 METHOD = 'GET'
+logging.getLogger('googleapiclient.discovery_cache').setLevel(logging.ERROR)
 
 def may_get_env_var(name):
   env_val = os.getenv(name)
