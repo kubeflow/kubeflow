@@ -22,6 +22,25 @@
       )
     else [],
 
+  // Function turn comma separated list of prow environment variables into a dictionary.
+
+  listToDict:: function(v)
+    {
+      [v[0]]: v[1],
+    },
+
+  parseEnvToDict: function(v)
+    local pieces = std.split(v, ",");
+    if v != "" && std.length(pieces) > 0 then
+      std.foldl(
+        function(a, b) a +b,
+        std.map(
+          function(i) $.listToDict(std.split(i, "=")),
+          std.split(v, ",")
+        ),
+        {})
+    else {},
+
   // Default parameters.
   // The defaults are suitable based on suitable values for our test cluster.
   defaultParams:: {
@@ -53,6 +72,7 @@
       local name = params.name;
 
       local prow_env = $.parseEnv(params.prow_env);
+      local prowDict = $.parseEnvToDict(params.prow_env);      
       local bucket = params.bucket;
 
       local stepsNamespace = name;
@@ -154,12 +174,40 @@
         local workflow_name = $.workflowName(tf_version, device),
 
         local version_label = if std.endsWith(tf_version, "gpu") then
-            std.substr(tf_version, 0, std.length(tf_version) - 3)
-          else
-            tf_version,
+          std.substr(tf_version, 0, std.length(tf_version) - 3)
+        else
+          tf_version,
 
         local image = params.registry + "/tensorflow-" + version_label + "-notebook-" + device,
-        local tag = params.versionTag,
+
+        local jobType = if std.objectHas(prowDict, "JOB_TYPE") then
+          prowDict["JOB_TYPE"]
+          else "",
+
+        local tagElements = [
+          "v",
+          if std.length(params.versionTag) > 0 then
+            params.versiontag
+          else null,
+          if std.objectHas(prowDict, "PULL_BASE_SHA") then
+            "base-" + std.substr(prowDict["PULL_BASE_SHA"], 0, 7)
+          else null,
+          if std.objectHas(prowDict, "PULL_PULL_SHA") then
+            "pull-" + std.substr(prowDict["PULL_PULL_SHA"], 0, 7)
+          else null,
+                    
+          if std.objectHas(prowDict, "PULL_NUMBER") then
+            "pr-" + prowDict["PULL_NUMBER"]
+          else null,
+          if std.objectHas(prowDict, "BUILD_NUMBER") then
+            prowDict["BUILD_NUMBER"]
+          else null,
+        ],
+
+        local tag = std.join(
+          "-",
+          std.prune(tagElements)),
+        
         result:: buildTemplate(
           workflow_name,
           [
