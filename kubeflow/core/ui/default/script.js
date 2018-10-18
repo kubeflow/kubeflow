@@ -1,7 +1,25 @@
 // This function is executed when the document is ready
 $(function() {
+
+  // Toggle advanced options inside the Spawner form
   $('#toggle_advanced_options').on('click', function(e) {
     $('#advanced_fields').toggle();
+  });
+
+  // Resize Spawner form to take up more page width
+  $('.row.col-sm-offset-2.col-sm-8').attr({
+    'class': 'row col-sm-offset-1 col-sm-10',
+    'style': 'padding:15px;'
+  });
+
+  // Update upper-right sign-out icon to FontAwesome 5
+  $('.fa.fa-sign-out').attr('class', 'fas fa-sign-out-alt');
+
+  // Update Spawn button text upon form submission
+  $('#spawn_form').one('submit', function() {
+    $(this).find('input[type="submit"]')
+      .attr('disabled', true)
+      .val('Spawning...');
   });
 
   // Fill the form with values defined in the YAML config file
@@ -16,7 +34,7 @@ function setDefaultFormValues() {
 
   // Set default Container Image - Disable if specified
   formDefaults.image.options.forEach(function(item) {
-    $('#image_list').append($('<option/>').attr('value', item));
+    $('#image').append($('<option/>').attr('value', item).text(item));
   });
 
   $('#image').val(formDefaults.image.value)
