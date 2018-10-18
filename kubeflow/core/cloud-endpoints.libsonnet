@@ -51,7 +51,6 @@
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       metadata: {
         name: "cloud-endpoints-controller",
-        namespace: params.namespace,
       },
       rules: [
         {
