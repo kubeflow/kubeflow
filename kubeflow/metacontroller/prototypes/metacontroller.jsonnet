@@ -3,7 +3,7 @@
 // @description metacontroller Component
 // @shortDescription metacontroller Component
 // @param name string Name
-// @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
+// @optionalParam namespace string default Namespace for metacontroller 
 
 local metacontroller = import "kubeflow/metacontroller/metacontroller.libsonnet";
 local instance = metacontroller.new(env, params);
