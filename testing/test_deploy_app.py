@@ -34,7 +34,7 @@ def may_get_env_var(name):
     raise Exception("%s not set" % name)
 
 def make_deploy_call(args):
-  print("prepare deploy call data")
+  logging.info("prepare deploy call data")
   with open(os.path.join(FILE_PATH, "../bootstrap/config/gcp_prototype.yaml"), 'r') as conf_input:
     defaultApp = yaml.load(conf_input)["app"]
 
@@ -74,11 +74,11 @@ def make_deploy_call(args):
   resp = requests.post("http://kubeflow-controller.%s.svc.cluster.local:8080/kfctl/e2eDeploy" % args.namespace, json=req_data)
   if resp.status_code != 200:
     raise RuntimeError("deploy request received status code: %s, message: %s" % (resp.status_code, resp.text))
-  print("deploy call done")
+  logging.info("deploy call done")
 
 # Insert ssl cert into GKE cluster
 def insert_ssl_cert(args):
-  print("Wait till deployment is done and GKE cluster is up")
+  logging.info("Wait till deployment is done and GKE cluster is up")
   credentials = GoogleCredentials.get_application_default()
 
   service = discovery.build('deploymentmanager', 'v2', credentials=credentials)
@@ -90,24 +90,24 @@ def insert_ssl_cert(args):
       request = service.deployments().get(project=args.project, deployment=args.deployment)
       response = request.execute()
       if response['operation']['status'] != 'DONE':
-        print("Deployment running")
+        logging.info("Deployment running")
         continue
     except Exception as e:
-      print("Deployment hasn't started")
+      logging.info("Deployment hasn't started")
       continue
     break
 
   if os.path.exists(SSL_DIR):
     shutil.rmtree(SSL_DIR)
   os.mkdir(SSL_DIR)
-  print("donwload ssl cert and insert to GKE cluster")
+  logging.info("donwload ssl cert and insert to GKE cluster")
   os.system("gsutil cp gs://%s/%s/* %s" % (SSL_BUCKET, args.cert_group, SSL_DIR))
   os.system("gcloud container clusters get-credentials %s --zone %s --project %s" % (args.deployment, args.zone, args.project))
   os.system("kubectl create -f %s" % SSL_DIR)
 
 
 def check_deploy_status(args):
-  print("check deployment status")
+  logging.info("check deployment status")
   # Figure out what environment we're running in and get some preliminary
   # information about the service account.
   credentials, _ = google.auth.default(
@@ -154,9 +154,9 @@ def check_deploy_status(args):
       if resp.status_code == 200:
         break
     except Exception:
-      print("IAP not ready, exception caught, retry credit: %s" % retry_credit)
+      logging.info("IAP not ready, exception caught, retry credit: %s" % retry_credit)
       continue
-    print("IAP not ready, retry credit: %s" % retry_credit)
+    logging.info("IAP not ready, retry credit: %s" % retry_credit)
 
   if status_code != 200:
     raise RuntimeError("IAP endpoint not ready after 30 minutes, time out...")
