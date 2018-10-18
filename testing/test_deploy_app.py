@@ -3,8 +3,11 @@ import argparse
 import base64
 import logging
 import os
+import shutil
 from time import sleep
 from google.auth.transport.requests import Request
+from googleapiclient import discovery
+from oauth2client.client import GoogleCredentials
 
 import requests
 import yaml
@@ -15,9 +18,12 @@ import google.oauth2.credentials
 import google.oauth2.service_account
 
 FILE_PATH = os.path.dirname(os.path.abspath(__file__))
+SSL_DIR = os.path.join(FILE_PATH, "sslcert")
+SSL_BUCKET = 'kubeflow-ci-deploy-cert'
 IAM_SCOPE = 'https://www.googleapis.com/auth/iam'
 OAUTH_TOKEN_URI = 'https://www.googleapis.com/oauth2/v4/token'
 METHOD = 'GET'
+logging.getLogger('googleapiclient.discovery_cache').setLevel(logging.ERROR)
 
 def may_get_env_var(name):
   env_val = os.getenv(name)
@@ -28,7 +34,7 @@ def may_get_env_var(name):
     raise Exception("%s not set" % name)
 
 def make_deploy_call(args):
-  print("prepare deploy call data")
+  logging.info("prepare deploy call data")
   with open(os.path.join(FILE_PATH, "../bootstrap/config/gcp_prototype.yaml"), 'r') as conf_input:
     defaultApp = yaml.load(conf_input)["app"]
 
@@ -63,15 +69,45 @@ def make_deploy_call(args):
     # service account client id of account: kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
     "SAClientId": "111670663612681935351",
     "Token": access_token,
-    "Zone": "us-east1-d"
+    "Zone": args.zone
   }
   resp = requests.post("http://kubeflow-controller.%s.svc.cluster.local:8080/kfctl/e2eDeploy" % args.namespace, json=req_data)
   if resp.status_code != 200:
     raise RuntimeError("deploy request received status code: %s, message: %s" % (resp.status_code, resp.text))
-  print("deploy call done")
+  logging.info("deploy call done")
+
+# Insert ssl cert into GKE cluster
+def insert_ssl_cert(args):
+  logging.info("Wait till deployment is done and GKE cluster is up")
+  credentials = GoogleCredentials.get_application_default()
+
+  service = discovery.build('deploymentmanager', 'v2', credentials=credentials)
+  retry_credit = 100
+  while retry_credit > 0:
+    retry_credit -= 1
+    sleep(5)
+    try:
+      request = service.deployments().get(project=args.project, deployment=args.deployment)
+      response = request.execute()
+      if response['operation']['status'] != 'DONE':
+        logging.info("Deployment running")
+        continue
+    except Exception as e:
+      logging.info("Deployment hasn't started")
+      continue
+    break
+
+  if os.path.exists(SSL_DIR):
+    shutil.rmtree(SSL_DIR)
+  os.mkdir(SSL_DIR)
+  logging.info("donwload ssl cert and insert to GKE cluster")
+  os.system("gsutil cp gs://%s/%s/* %s" % (SSL_BUCKET, args.cert_group, SSL_DIR))
+  os.system("gcloud container clusters get-credentials %s --zone %s --project %s" % (args.deployment, args.zone, args.project))
+  os.system("kubectl create -f %s" % SSL_DIR)
+
 
 def check_deploy_status(args):
-  print("check deployment status")
+  logging.info("check deployment status")
   # Figure out what environment we're running in and get some preliminary
   # information about the service account.
   credentials, _ = google.auth.default(
@@ -118,12 +154,18 @@ def check_deploy_status(args):
       if resp.status_code == 200:
         break
     except Exception:
-      print("IAP not ready, exception caught, retry credit: %s" % retry_credit)
+      logging.info("IAP not ready, exception caught, retry credit: %s" % retry_credit)
       continue
-    print("IAP not ready, retry credit: %s" % retry_credit)
+    logging.info("IAP not ready, retry credit: %s" % retry_credit)
 
   if status_code != 200:
     raise RuntimeError("IAP endpoint not ready after 30 minutes, time out...")
+  else:
+    # Optionally upload ssl cert
+    if os.listdir(SSL_DIR) == []:
+      for sec in ["envoy-ingress-tls", "letsencrypt-prod-secret"]:
+        os.system("kubectl get secret %s -n kubeflow -o yaml > %s" % (sec, os.path.join(SSL_DIR, sec + ".yaml")))
+      os.system("gsutil cp %s/* gs://%s/%s/" % (SSL_DIR, SSL_BUCKET, args.cert_group))
 
 def get_google_open_id_connect_token(service_account_credentials):
   service_account_jwt = (
@@ -144,7 +186,7 @@ def main(unparsed_args=None):
 
   parser.add_argument(
     "--deployment",
-    default="periodictest",
+    default="periodic-test",
     type=str,
     help="Deployment name.")
   parser.add_argument(
@@ -187,13 +229,29 @@ def main(unparsed_args=None):
     default=60,
     type=int,
     help="oauth client secret")
+  parser.add_argument(
+    "--zone",
+    default="us-east1-d",
+    type=str,
+    help="GKE cluster zone")
+  parser.add_argument(
+    "--cert_group",
+    default="e2e",
+    type=str,
+    help="cert folder in GCS bucket, valid values are e2e, prober0, prober1")
+  parser.add_argument(
+    "--mode",
+    default="e2e",
+    type=str,
+    help="offer three test mode: e2e, prober, and load test")
 
   args = parser.parse_args(args=unparsed_args)
-  sleep(args.wait_sec)
 
-  make_deploy_call(args)
-
-  check_deploy_status(args)
+  if args.mode == "e2e":
+    sleep(args.wait_sec)
+    make_deploy_call(args)
+    insert_ssl_cert(args)
+    check_deploy_status(args)
 
 if __name__ == '__main__':
   main()
