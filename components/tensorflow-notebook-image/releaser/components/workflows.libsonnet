@@ -33,12 +33,13 @@
     local pieces = std.split(v, ",");
     if v != "" && std.length(pieces) > 0 then
       std.foldl(
-        function(a, b) a +b,
+        function(a, b) a + b,
         std.map(
           function(i) $.listToDict(std.split(i, "=")),
           std.split(v, ",")
         ),
-        {})
+        {}
+      )
     else {},
 
   // Default parameters.
@@ -72,7 +73,7 @@
       local name = params.name;
 
       local prow_env = $.parseEnv(params.prow_env);
-      local prowDict = $.parseEnvToDict(params.prow_env);      
+      local prowDict = $.parseEnvToDict(params.prow_env);
       local bucket = params.bucket;
 
       local stepsNamespace = name;
@@ -181,8 +182,8 @@
         local image = params.registry + "/tensorflow-" + version_label + "-notebook-" + device,
 
         local jobType = if std.objectHas(prowDict, "JOB_TYPE") then
-          prowDict["JOB_TYPE"]
-          else "",
+          prowDict.JOB_TYPE
+        else "",
 
         local tagElements = [
           "v",
@@ -190,24 +191,25 @@
             params.versiontag
           else null,
           if std.objectHas(prowDict, "PULL_BASE_SHA") then
-            "base-" + std.substr(prowDict["PULL_BASE_SHA"], 0, 7)
+            "base-" + std.substr(prowDict.PULL_BASE_SHA, 0, 7)
           else null,
           if std.objectHas(prowDict, "PULL_PULL_SHA") then
-            "pull-" + std.substr(prowDict["PULL_PULL_SHA"], 0, 7)
+            "pull-" + std.substr(prowDict.PULL_PULL_SHA, 0, 7)
           else null,
-                    
+
           if std.objectHas(prowDict, "PULL_NUMBER") then
-            "pr-" + prowDict["PULL_NUMBER"]
+            "pr-" + prowDict.PULL_NUMBER
           else null,
           if std.objectHas(prowDict, "BUILD_NUMBER") then
-            prowDict["BUILD_NUMBER"]
+            prowDict.BUILD_NUMBER
           else null,
         ],
 
         local tag = std.join(
           "-",
-          std.prune(tagElements)),
-        
+          std.prune(tagElements)
+        ),
+
         result:: buildTemplate(
           workflow_name,
           [
