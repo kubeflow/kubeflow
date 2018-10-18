@@ -153,7 +153,12 @@
       local buildImageTemplate(tf_version, device, is_latest=true) = {
         local workflow_name = $.workflowName(tf_version, device),
 
-        local image = params.registry + "/tensorflow-" + tf_version + "-notebook-" + device,
+        local version_label = if std.endsWith(tf_version, "gpu") then
+            std.substr(tf_version, 0, std.length(tf_version) - 3)
+          else
+            tf_version,
+
+        local image = params.registry + "/tensorflow-" + version_label + "-notebook-" + device,
         local tag = params.versionTag,
         result:: buildTemplate(
           workflow_name,

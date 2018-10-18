@@ -121,7 +121,7 @@ COPY --chown=jovyan:users requirements.txt /tmp
 # Install tf packages which only support py2
 COPY --chown=jovyan:users install.sh /tmp/
 RUN chmod a+rx /tmp/install.sh && \
-    install.sh
+    /tmp/install.sh
 
 # Add basic config
 COPY --chown=jovyan:users  jupyter_notebook_config.py /tmp
