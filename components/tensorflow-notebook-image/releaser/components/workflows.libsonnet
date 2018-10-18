@@ -79,8 +79,8 @@
       // Location where Dockerfiles and other sources are found.
       local notebookDir = srcRootDir + "/kubeflow/kubeflow/components/tensorflow-notebook-image/";
 
-      # Subdirectory containing the version config.
-      local supportedVersions = [        
+      // Subdirectory containing the version config.
+      local supportedVersions = [
         ["1.4.1", "cpu"],
         ["1.4.1gpu", "gpu"],
         ["1.5.1", "cpu"],
@@ -154,7 +154,7 @@
         local workflow_name = $.workflowName(tf_version, device),
 
         local image = params.registry + "/tensorflow-" + tf_version + "-notebook-" + device,
-        local tag = params.versionTag,        
+        local tag = params.versionTag,
         result:: buildTemplate(
           workflow_name,
           [
@@ -163,10 +163,10 @@
             "/bin/bash",
             "-c",
             notebookDir + "build_image.sh "
-            + notebookDir + "Dockerfile" + " "            
+            + notebookDir + "Dockerfile" + " "
             + image + " "
             + tag + " "
-            + notebookDir + "versions/" + tf_version + "/version-config.json" + " "            
+            + notebookDir + "versions/" + tf_version + "/version-config.json" + " ",
           ],
           [
             {
@@ -319,7 +319,7 @@
                      [
                        buildImageTemplate(version[0], version[1])
                        for version in supportedVersions
-                     ] // templates
+                     ],  // templates
         },
       },  // e2e
   },  // parts
