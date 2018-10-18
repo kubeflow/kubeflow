@@ -16,7 +16,7 @@ TAG=$3
 #
 # TODO(jlewi): We should take in the json config file and then parse that.
 CONFIG_FILE=$4
-BASE_IMAGE=$(jq -r .BASE_IMAGE2  ${CONFIG_FILE})
+BASE_IMAGE=$(jq -r .BASE_IMAGE  ${CONFIG_FILE})
 TF_PACKAGE=$(jq -r .TF_PACKAGE  ${CONFIG_FILE})
 TF_PACKAGE_PY_27=$(jq -r .TF_PACKAGE_PY_27 ${CONFIG_FILE})
 TF_SERVING_VERSION=$(jq -r .TF_SERVING_VERSION ${CONFIG_FILE})
