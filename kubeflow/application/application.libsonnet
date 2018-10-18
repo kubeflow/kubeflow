@@ -13,7 +13,7 @@
       labels: {
         app: _params.name,
       },
-      bootstrap: util.toBool(_params.bootstrap),
+      emitCRD: util.toBool(_params.emitCRD),
     },
 
     // see [API](https://github.com/kow3ns/community/blob/8cb87419883197032f4e5cce8d5518c9c5792f6c/keps/sig-apps/0003-kubernetes-application-api.md#api)
@@ -186,8 +186,7 @@
         if std.objectHas(list, name) &&
            std.objectHas(list[name], "items") &&
            std.type(list[name].items) == "array" then
-          std.filter(byPrivileged(params.bootstrap),
-                     std.map(generateComponentTuples, list[name].items))
+          std.map(generateComponentTuples, list[name].items)
         else
           [],
     }.return,
@@ -243,28 +242,11 @@
     local tuples = std.flattenArrays(std.map(perComponent, getComponents)),
     local components = std.map(byResource, tuples),
 
-    local byPrivileged(yesorno) = {
-      local privileged(maybeWrapper) = {
-        local resource =
-          if std.objectHas(maybeWrapper, "tuple") then
-            maybeWrapper.tuple[2]
-          else
-            maybeWrapper,
-        return::
-          if std.objectHas(resource, "metadata") &&
-             !std.objectHas(resource.metadata, "namespace") then
-            yesorno
-          else
-            !yesorno,
-      }.return,
-      return:: privileged,
-    }.return,
-
-    local all = components + [
-      self.applicationCRD,
+    all:: [
+      if params.emitCRD then 
+        self.applicationCRD,
       self.application,
     ],
-    all:: std.filter(byPrivileged(params.bootstrap), all),
 
     list(obj=self.all):: util.list(obj),
   },

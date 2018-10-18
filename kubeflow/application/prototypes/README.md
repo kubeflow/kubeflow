@@ -2,7 +2,16 @@
 
 The application component creates an Application Kind based on the 
 components ksonnet has generated. If using kfctl this would be all components 
-or the result of executing `kfctl generate all`
+or the result of executing `kfctl generate all`.
+
+Alternatively, the application component can produce an Application Kind based on a subset 
+of the generated components by setting a parameter
+
+```bash
+ks param application components '["ambassador", "jupyterhub"]'
+```
+
+for example.
 
 ## Sample script
 
@@ -16,7 +25,7 @@ or the result of executing `kfctl generate all`
 
 ## Expected output
 
-### all cluster-wide resources are created
+### both the ApplicationCRD and the Application will be emitted with the other components
 
 ```bash
 INFO Applying customresourcedefinitions workflows.argoproj.io

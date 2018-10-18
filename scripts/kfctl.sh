@@ -225,12 +225,14 @@ ksApply () {
     ks env add default --namespace "${K8S_NAMESPACE}"
   fi
 
-  # Deploy the kubeflow application
-  # - first create all cluster resources
-  ks param set application bootstrap true
-  ks apply default -c application
-  # - second create all namespace scoped resources.
-  ks param set application bootstrap false
+  # Create all the core components
+  ks apply default -c ambassador
+  ks apply default -c jupyterhub
+  ks apply default -c centraldashboard
+  ks apply default -c tf-job-operator
+  ks apply default -c argo
+  ks apply default -c katib
+  ks apply default -c spartakus
   ks apply default -c application
   popd
 
