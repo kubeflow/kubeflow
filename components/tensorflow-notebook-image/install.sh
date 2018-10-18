@@ -31,8 +31,7 @@ if [[ $TFMA_VERSION ]]; then
   pip install --no-cache-dir tensorflow-model-analysis==$TFMA_VERSION
   # We use --system because if we don't the config is written to the home directory
   # and the changes are lost when we mount a PV over them.
-  jupyter nbextension enable --py --system widgetsnbextension
-  jupyter nbextension install --py --system --symlink tensorflow_model_analysis
+  jupyter nbextension enable --py --system widgetsnbextension  
 fi
 
 # TODO a quick fix for tensorflow_serving_api when install gpu

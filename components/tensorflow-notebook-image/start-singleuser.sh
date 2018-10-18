@@ -50,6 +50,7 @@ fi
 # enabling it tries to import tensorflow and on GPUs that requires
 # the CUDA libraries.
 if [ ! -z "$DISABLE_TFMA_EXTENSION" ]; then
+  jupyter nbextension install --py --system --symlink tensorflow_model_analysis
   jupyter nbextension enable --py --system tensorflow_model_analysis
 fi
 
