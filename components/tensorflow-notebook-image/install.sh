@@ -6,11 +6,11 @@ conda create -n py2 python=2
 
 source activate py2
 pip install --upgrade pip 
+
+# TFX packages only supports python 2 
 pip --no-cache-dir install \
     ipykernel \
-    # Tensorflow
     ${TF_PACKAGE_PY_27} \
-    # Tensorflow packages which only supports python 2
     tensorflow-transform \
     tensorflow-serving-api===${TF_SERVING_VERSION}    
 
