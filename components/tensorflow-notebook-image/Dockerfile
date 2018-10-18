@@ -124,18 +124,18 @@ RUN conda create -n py2 python=2 && \
     # ipykernel for python 2 jupyter notebook kernel
     && \
     python -m ipykernel install && \
+    # TODO(jlewi): Does TFDV not have jupyter extensions?
+    if [[ $TFDV_VERSION ]]; then \
+        pip install --no-cache-dir tensorflow-data-validation==$TFDV_VERSION && \
+    fi \
     # tensorflow-model-analysis is only supported for TF 1.6 and above
     # TODO temporarily remove tensorflow-model-analysis because of gpu problem 
     # https://github.com/kubeflow/kubeflow/pull/1759
-    if [[ $TFMA_VERSION ]] && [[ $TF_PACKAGE  =~ "cpu" ]]; then \
+    if [[ $TFMA_VERSION ]]; then \
       # if you find any dependency problems in the future
       # please visit https://github.com/tensorflow/model-analysis#compatible-versions
-      # and fix the TFMA_VERSION with compatible version number in the config json
-      pip install --no-cache-dir tensorflow-model-analysis==$TFMA_VERSION && \
-      if [[ $TFDV_VERSION ]]; then \
-        pip install --no-cache-dir tensorflow-data-validation==$TFDV_VERSION ; \
-      fi \
-      && \
+      # and fix the TFA_VERSION with compatible version number in the config json
+      pip install --no-cache-dir tensorflow-model-analysis==$TFMA_VERSION && \      
       # We use --system because if we don't the config is written to the home directory
       # and the changes are lost when we mount a PV over them.
       jupyter nbextension enable --py --system widgetsnbextension && \

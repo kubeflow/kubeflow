@@ -79,14 +79,22 @@
       // Location where Dockerfiles and other sources are found.
       local notebookDir = srcRootDir + "/kubeflow/kubeflow/components/tensorflow-notebook-image/";
 
-      local supportedVersions = [
-        "1.4.1",
-        "1.5.1",
-        "1.6.0",
-        "1.7.0",
-        "1.8.0",
-        "1.9.0",
-        "1.10.1",
+      # Subdirectory containing the version config.
+      local supportedVersions = [        
+        ["1.4.1", "cpu"],
+        ["1.4.1gpu", "gpu"],
+        ["1.5.1", "cpu"],
+        ["1.5.1gpu", "gpu"],
+        ["1.6.0", "cpu"],
+        ["1.6.0gpu", "gpu"],
+        ["1.7.0", "cpu"],
+        ["1.7.0gpu", "gpu"],
+        ["1.8.0", "cpu"],
+        ["1.8.0gpu", "gpu"],
+        ["1.9.0", "cpu"],
+        ["1.9.0gpu", "gpu"],
+        ["1.10.1", "cpu"],
+        ["1.10.1gpu", "gpu"],
       ];
 
       // Build an Argo template to execute a particular command.
@@ -141,62 +149,12 @@
         },
         sidecars: sidecars,
       };  // buildTemplate
-<<<<<<< HEAD
-<<<<<<< HEAD
+
       local buildImageTemplate(tf_version, device, is_latest=true) = {
         local workflow_name = $.workflowName(tf_version, device),
-=======
-      local buildImageTemplate(tf_version, workflow_name, device, tfma_version, is_latest=true) = {
->>>>>>> 7f4af611... get rid of install_tfma [1754](https://github.com/kubeflow/kubeflow/issues/1745)
-=======
-      local buildImageTemplate(tf_version, workflow_name, device, tfma_version, tfdv_version, is_latest=true) = {
->>>>>>> 19f27e66... add tfdv version
+
         local image = params.registry + "/tensorflow-" + tf_version + "-notebook-" + device,
-        local tag = params.versionTag,
-        local base_image =
-          if device == "cpu" then
-            "ubuntu:latest"
-          // device = gpu
-          else if std.startsWith(tf_version, "1.4.") then
-            "nvidia/cuda:8.0-cudnn6-devel-ubuntu16.04"
-          else
-            "nvidia/cuda:9.0-cudnn7-devel-ubuntu16.04",
-<<<<<<< HEAD
-        local tf_serving_version =
-          if tf_version == "1.4.1" then
-            "1.4.0"
-          else if tf_version == "1.5.1" then
-            "1.5.0"
-          else
-            tf_version,
-        local installTfma =
-          if tf_version < "1.6" then
-            "no"
-          else
-            "yes",
-        local tfmaVersion =
-          if tf_version < "1.9" then
-            "0.6.0"
-          else
-            "default",
-=======
->>>>>>> 7f4af611... get rid of install_tfma [1754](https://github.com/kubeflow/kubeflow/issues/1745)
-        local tf_package =
-          "https://storage.googleapis.com/tensorflow/linux/" +
-          device +
-          "/tensorflow" +
-          (if device == "gpu" then "_gpu" else "") +
-          "-" +
-          tf_version +
-          "-cp36-cp36m-linux_x86_64.whl",
-        local tf_package_py_27 =
-          "https://storage.googleapis.com/tensorflow/linux/" +
-          device +
-          "/tensorflow" +
-          (if device == "gpu" then "_gpu" else "") +
-          "-" +
-          tf_version +
-          "-cp27-none-linux_x86_64.whl",
+        local tag = params.versionTag,        
         result:: buildTemplate(
           workflow_name,
           [
@@ -205,20 +163,10 @@
             "/bin/bash",
             "-c",
             notebookDir + "build_image.sh "
-            + notebookDir + "Dockerfile" + " "
+            + notebookDir + "Dockerfile" + " "            
             + image + " "
             + tag + " "
-            + std.toString(is_latest) + " "
-            + base_image + " "
-            + tf_package + " "
-            + tf_package_py_27 + " "
-<<<<<<< HEAD
-            + installTfma + " "
-            + tf_serving_version,            
-=======
-            + tfdv_version + " "
->>>>>>> 19f27e66... add tfdv version
-            + tfma_version ,
+            + notebookDir + "versions/" + tf_version + "/version-config.json" + " "            
           ],
           [
             {
@@ -293,7 +241,6 @@
           onExit: "exit-handler",
 
           templates: [
-<<<<<<< HEAD
                        {
                          name: "e2e",
                          dag: {
@@ -310,16 +257,8 @@
                                   ] +
                                   [
                                     {
-                                      name: $.workflowName(version, "cpu"),
-                                      template: $.workflowName(version, "cpu"),
-                                      dependencies: ["checkout"],
-                                    }
-                                    for version in supportedVersions
-                                  ] +
-                                  [
-                                    {
-                                      name: $.workflowName(version, "gpu"),
-                                      template: $.workflowName(version, "gpu"),
+                                      name: $.workflowName(version[0], version[1]),
+                                      template: $.workflowName(version[0], version[1]),
                                       dependencies: ["checkout"],
                                     }
                                     for version in supportedVersions
@@ -378,167 +317,9 @@
                        ),  // copy-artifacts
                      ] +
                      [
-                       buildImageTemplate(version, "cpu")
+                       buildImageTemplate(version[0], version[1])
                        for version in supportedVersions
-                     ] +
-                     [
-                       buildImageTemplate(version, "gpu")
-                       for version in supportedVersions
-                     ],  // templates
-=======
-            {
-              name: "e2e",
-              dag: {
-                tasks: [
-                  {
-                    name: "checkout",
-                    template: "checkout",
-                  },
-                  {
-                    name: "build-1-4-1-gpu",
-                    template: "build-1-4-1-gpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-4-1-cpu",
-                    template: "build-1-4-1-cpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-5-1-gpu",
-                    template: "build-1-5-1-gpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-5-1-cpu",
-                    template: "build-1-5-1-cpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-6-0-gpu",
-                    template: "build-1-6-0-gpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-6-0-cpu",
-                    template: "build-1-6-0-cpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-7-0-gpu",
-                    template: "build-1-7-0-gpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-7-0-cpu",
-                    template: "build-1-7-0-cpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-8-0-gpu",
-                    template: "build-1-8-0-gpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-8-0-cpu",
-                    template: "build-1-8-0-cpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-9-0-gpu",
-                    template: "build-1-9-0-gpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-9-0-cpu",
-                    template: "build-1-9-0-cpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-10-1-gpu",
-                    template: "build-1-10-1-gpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-10-1-cpu",
-                    template: "build-1-10-1-cpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "create-pr-symlink",
-                    template: "create-pr-symlink",
-                    dependencies: ["checkout"],
-                  },
-                ],
-              },  //dag
-            },
-            //TODO tfma_version should be read from config.json. And so as the tf_package ...
-            buildImageTemplate("1.4.1", "1-4-1", "cpu", "", ""),
-            buildImageTemplate("1.4.1", "1-4-1", "gpu", "", ""),
-            buildImageTemplate("1.5.1", "1-5-1", "cpu", "", ""),
-            buildImageTemplate("1.5.1", "1-5-1", "gpu", "", ""),
-            buildImageTemplate("1.6.0", "1-6-0", "cpu", "0.6.0", ""),
-            buildImageTemplate("1.6.0", "1-6-0", "gpu", "0.6.0", ""),
-            buildImageTemplate("1.7.0", "1-7-0", "cpu", "0.6.0", ""),
-            buildImageTemplate("1.7.0", "1-7-0", "gpu", "0.6.0", ""),
-            buildImageTemplate("1.8.0", "1-8-0", "cpu", "0.6.0", ""),
-            buildImageTemplate("1.8.0", "1-8-0", "gpu", "0.6.0", ""),
-            buildImageTemplate("1.9.0", "1-9-0", "cpu", "0.9.2", "0.9.0"),
-            buildImageTemplate("1.9.0", "1-9-0", "gpu", "0.9.2", "0.9.0"),
-            buildImageTemplate("1.10.1", "1-10-1", "cpu", "0.9.2", "0.9.0"),
-            buildImageTemplate("1.10.1", "1-10-1", "gpu", "0.9.2", "0.9.0"),
-            {
-              name: "exit-handler",
-              steps: [
-                [{
-                  name: "copy-artifacts",
-                  template: "copy-artifacts",
-                }],
-              ],
-            },
-            {
-              name: "checkout",
-              container: {
-                command: [
-                  "/usr/local/bin/checkout.sh",
-                ],
-                args: [
-                  srcRootDir,
-                ],
-                env: prow_env + [{
-                  name: "EXTRA_REPOS",
-                  value: "kubeflow/testing@HEAD",
-                }],
-                image: params.step_image,
-                volumeMounts: [
-                  {
-                    name: dataVolume,
-                    mountPath: mountPath,
-                  },
-                ],
-              },
-            },  // checkout
-            buildTemplate("create-pr-symlink", [
-              "python",
-              "-m",
-              "kubeflow.testing.prow_artifacts",
-              "--artifacts_dir=" + outputDir,
-              "create_pr_symlink",
-              "--bucket=" + bucket,
-            ]),  // create-pr-symlink
-            buildTemplate(
-              "copy-artifacts",
-              [
-                "python",
-                "-m",
-                "kubeflow.testing.prow_artifacts",
-                "--artifacts_dir=" + outputDir,
-                "copy_artifacts",
-                "--bucket=" + bucket,
-              ]
-            ),  // copy-artifacts
-          ],  // templates
->>>>>>> 7f4af611... get rid of install_tfma [1754](https://github.com/kubeflow/kubeflow/issues/1745)
+                     ] // templates
         },
       },  // e2e
   },  // parts
