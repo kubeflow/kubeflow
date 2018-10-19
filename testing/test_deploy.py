@@ -241,8 +241,7 @@ def deploy_argo(args):
 
   component = "argo"
   logging.info("Deploying argo")
-  generate_command = ["ks", "generate", "argo", component,
-                        "--namespace", "default", "--name", "argo"]
+  generate_command = ["ks", "generate", "argo", component, "--name", "argo"]
   util.run(generate_command, cwd=app_dir)
 
   ks_deploy(app_dir, component, {}, env=None, account=None)
