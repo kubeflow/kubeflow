@@ -240,7 +240,7 @@
 
     parts:: self,
     all:: [
-      if params.emitCRD then 
+      if params.emitCRD then
         self.applicationCRD,
       self.application,
     ],
