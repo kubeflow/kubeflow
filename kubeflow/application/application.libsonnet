@@ -124,10 +124,6 @@
           plural: "applications",
           singular: "application",
           kind: "Application",
-          shortNames: [
-            "ic",
-            "ictl",
-          ],
         },
         validation: {
           openAPIV3Schema: openApiV3Schema,
