@@ -380,6 +380,7 @@
     },
     notebookRoleBinding:: notebookRoleBinding,
 
+    parts:: self,
     all:: [
       self.kubeSpawnerConfig,
       self.notebookService,

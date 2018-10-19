@@ -8,6 +8,11 @@
     },
     local namespace = params.namespace,
     local name = params.name,
+    local modelName =
+      if params.modelName == "null" then
+        params.name
+      else
+        params.modelName,
     local modelServerImage =
       if params.numGpus == "0" then
         params.defaultCpuImage
@@ -34,9 +39,17 @@
               "apiVersion: ambassador/v0",
               "kind:  Mapping",
               "name: tfserving-predict-mapping-" + name,
-              "prefix: tfserving/models/" + name + "/",
+              "prefix: /tfserving/models/" + name,
               "rewrite: /v1/models/" + name + ":predict",
               "method: POST",
+              "service: " + name + "." + namespace + ":8500",
+              "---",
+              "apiVersion: ambassador/v0",
+              "kind:  Mapping",
+              "name: tfserving-predict-mapping-" + name + "-get",
+              "prefix: /tfserving/models/" + name,
+              "rewrite: /v1/models/" + name,
+              "method: GET",
               "service: " + name + "." + namespace + ":8500",
             ]),
         },  //annotations
@@ -69,7 +82,7 @@
       args: [
         "--port=9000",
         "--rest_api_port=8500",
-        "--model_name=" + params.modelName,
+        "--model_name=" + modelName,
         "--model_base_path=" + params.modelBasePath,
       ],
       image: modelServerImage,
@@ -116,15 +129,15 @@
         },
         name: name,
         namespace: namespace,
-        annotations: {
-          "sidecar.istio.io/inject": params.injectIstio,
-        },
       },
       spec: {
         template: {
           metadata: {
             labels: {
               app: name,
+            },
+            annotations: {
+              "sidecar.istio.io/inject": if util.toBool(params.injectIstio) then "true",
             },
           },
           spec: {

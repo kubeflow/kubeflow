@@ -9,11 +9,17 @@ import (
 
 	"path/filepath"
 
+	"os"
+	"os/exec"
+	"time"
+
 	"github.com/go-kit/kit/endpoint"
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/ksonnet/ksonnet/pkg/actions"
 	kApp "github.com/ksonnet/ksonnet/pkg/app"
 	"github.com/ksonnet/ksonnet/pkg/client"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"golang.org/x/net/context"
@@ -27,9 +33,6 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-	"os"
-	"os/exec"
-	"time"
 )
 
 // The name of the prototype for Jupyter.
@@ -177,6 +180,28 @@ type ApplyRequest struct {
 
 	// For test: GCP service account client id
 	SAClientId string
+}
+
+var ( // counters
+	deployReqCounter = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "deploy_requests",
+		Help: "Number of requests for deployments",
+	})
+	clusterDeploymentsDone = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "cluster_deployments_done",
+		Help: "Number of successfully finished GKE deployments",
+	})
+	kfDeploymentsDoneCounter = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "kubeflow_deployments_done",
+		Help: "Number of successfully finished Kubeflow deployments",
+	})
+)
+
+func init() {
+	// Register prometheus counters
+	prometheus.MustRegister(deployReqCounter)
+	prometheus.MustRegister(clusterDeploymentsDone)
+	prometheus.MustRegister(kfDeploymentsDoneCounter)
 }
 
 func setupNamespace(namespaces type_v1.NamespaceInterface, name_space string) error {
@@ -703,7 +728,7 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 			Clusters: map[string]*clientcmdapi.Cluster{
 				"activeCluster": {
 					CertificateAuthorityData: config.TLSClientConfig.CAData,
-					Server: config.Host,
+					Server:                   config.Host,
 				},
 			},
 			Contexts: map[string]*clientcmdapi.Context{
@@ -821,6 +846,7 @@ func finishDeployment(svc KsService, req CreateRequest) {
 			return
 		}
 		if status == "DONE" {
+			clusterDeploymentsDone.Inc()
 			log.Infof("Deployment is done")
 			break
 		}
@@ -887,12 +913,14 @@ func finishDeployment(svc KsService, req CreateRequest) {
 			return
 		}
 	}
+	kfDeploymentsDoneCounter.Inc()
 }
 
 func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(CreateRequest)
 		r := &basicServerResponse{}
+		deployReqCounter.Inc()
 
 		dmServiceAccount := req.ProjectNumber + "@cloudservices.gserviceaccount.com"
 		err := svc.BindRole(ctx, req.Project, req.Token, dmServiceAccount)
@@ -1056,6 +1084,9 @@ func (s *ksServer) StartHttp(port int) {
 	http.Handle("/kfctl/iam/apply", optionsHandler(applyIamHandler))
 	http.Handle("/kfctl/initProject", optionsHandler(initProjectHandler))
 	http.Handle("/kfctl/e2eDeploy", optionsHandler(deployHandler))
+
+	// add an http handler for prometheus metrics
+	http.Handle("/metrics", promhttp.Handler())
 
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), nil))
 }

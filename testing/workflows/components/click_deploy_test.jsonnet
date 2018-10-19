@@ -221,7 +221,7 @@ local exitTemplates =
         [
           runPath,
           bootstrapDir + "/test_delete.sh",
-          "periodictest",
+          "periodic-test",
           "kubeflow-testing",
           "us-east1-d",
           name,
