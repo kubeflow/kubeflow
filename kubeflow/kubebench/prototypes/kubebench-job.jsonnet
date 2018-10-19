@@ -3,7 +3,6 @@
 // @description A benchmark job on Kubeflow
 // @shortDescription A benchmark job on Kubeflow
 // @param name string Name to give to each of the components
-// @optionalParam namespace string null Namespace
 // @optionalParam serviceAccount string null The service account used to run the job
 // @optionalParam controllerImage string gcr.io/kubeflow-images-public/kubebench/kubebench-controller:v0.3.0 Configurator image
 // @optionalParam githubTokenSecret string null Github token secret
@@ -28,7 +27,7 @@ local kubebenchJob = import "kubeflow/kubebench/kubebench-job.libsonnet";
 local kubebenchRbac = import "kubeflow/kubebench/kubebench-rbac.libsonnet";
 
 local name = params.name;
-local namespace = if params.namespace == "null" then env.namespace else params.namespace;
+local namespace = env.namespace;
 local serviceAccount = params.serviceAccount;
 local controllerImage = params.controllerImage;
 local configPvc = params.experimentConfigPvc;

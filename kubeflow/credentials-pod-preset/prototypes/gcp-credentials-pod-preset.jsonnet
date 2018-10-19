@@ -5,14 +5,13 @@
 // @param name string Name to give to each of the components
 // @param serviceAccountName string Name of the GCP service account
 // @param secretName string Name of the kubernetes secret containing the credentials
-// @optionalParam namespace string null Namespace to use for the pod preset. It is automatically inherited from the environment if not set.
 
 local k = import "k.libsonnet";
 
 // updatedParams uses the environment namespace if
 // the namespace parameter is not explicitly set
 local updatedParams = params {
-  namespace: if params.namespace == "null" then env.namespace else params.namespace,
+  namespace: env.namespace,
 };
 
 local podPreset = {

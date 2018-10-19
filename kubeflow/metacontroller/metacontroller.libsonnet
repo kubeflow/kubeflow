@@ -4,12 +4,7 @@
   local crd = k8s.apiextensions.v1beta1.customResourceDefinition,
 
   new(_env, _params):: {
-    local params = _env + _params {
-      namespace:
-        if std.objectHas(_params, "namespace") &&
-           _params.namespace != "null" then
-          _params.namespace else _env.namespace,
-    },
+    local params = _env + _params,
 
     local compositeControllerCRD = {
       apiVersion: "apiextensions.k8s.io/v1beta1",
