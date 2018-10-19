@@ -21,8 +21,8 @@ export PYTHONPATH=${PYTHONPATH}:${ROOT_DIR}/../git_kubeflow-testing/py
 
 # TODO(richardsliu): Current postsubmits apply this tag to all TF notebook images.
 # We should fix our postsubmit jobs such that each postsubmit generates an unique tag based on commit hash.
-JUPYTER_TAG=v20180301-pr317
-RELEASE=v0.3.0
+JUPYTER_TAG=v-base-b321075-822
+RELEASE=v0.3.1
 
 # Fetch shas for Jupyter images
 python ${ROOT_DIR}/releasing/add_image_shas.py --pattern=.*tensorflow.*1.*notebook.*:${JUPYTER_TAG} \
