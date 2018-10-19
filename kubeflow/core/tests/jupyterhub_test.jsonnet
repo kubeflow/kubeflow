@@ -2,7 +2,7 @@ local jupyterhub = import "kubeflow/core/jupyterhub.libsonnet";
 
 local params = {
   name: "jupyterhub",
-  cloud: "gke",
+  platform: "gke",
   serviceType: "ClusterIP",
   disks: "null",
   gcpSecretName: "user-gcp-sa",
