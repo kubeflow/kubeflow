@@ -233,7 +233,6 @@ ksApply () {
   ks apply default -c argo
   ks apply default -c katib
   ks apply default -c spartakus
-  ks apply default -c application
   popd
 
   set +x
@@ -294,6 +293,12 @@ if [ "${COMMAND}" == "apply" ]; then
     if [ "${PLATFORM}" == "gcp" ]; then
     	gcpKsApply
     fi
+
+    # all components deployed
+    # deploy the application CR
+    pushd ${KUBEFLOW_KS_DIR}
+      ks apply default -c application
+    popd
   fi
 fi
 
