@@ -13,6 +13,7 @@
         params.name
       else
         params.modelName,
+    local versionName = params.versionName,
     local modelServerImage =
       if params.numGpus == "0" then
         params.defaultCpuImage
@@ -20,60 +21,7 @@
         params.defaultGpuImage,
 
     // Optional features.
-    // TODO(lunkai): Add Istio
     // TODO(lunkai): Add request logging
-
-    local tfService = {
-      apiVersion: "v1",
-      kind: "Service",
-      metadata: {
-        labels: {
-          app: name,
-        },
-        name: name,
-        namespace: namespace,
-        annotations: {
-          "getambassador.io/config":
-            std.join("\n", [
-              "---",
-              "apiVersion: ambassador/v0",
-              "kind:  Mapping",
-              "name: tfserving-predict-mapping-" + name,
-              "prefix: /tfserving/models/" + name,
-              "rewrite: /v1/models/" + name + ":predict",
-              "method: POST",
-              "service: " + name + "." + namespace + ":8500",
-              "---",
-              "apiVersion: ambassador/v0",
-              "kind:  Mapping",
-              "name: tfserving-predict-mapping-" + name + "-get",
-              "prefix: /tfserving/models/" + name,
-              "rewrite: /v1/models/" + name,
-              "method: GET",
-              "service: " + name + "." + namespace + ":8500",
-            ]),
-        },  //annotations
-      },
-      spec: {
-        ports: [
-          {
-            name: "grpc-tf-serving",
-            port: 9000,
-            targetPort: 9000,
-          },
-          {
-            name: "http-tf-serving",
-            port: 8500,
-            targetPort: 8500,
-          },
-        ],
-        selector: {
-          app: name,
-        },
-        type: params.serviceType,
-      },
-    },  // tfService
-    tfService:: tfService,
 
     local modelServerContainer = {
       command: [
@@ -87,7 +35,7 @@
       ],
       image: modelServerImage,
       imagePullPolicy: "IfNotPresent",
-      name: name,
+      name: modelName,
       ports: [
         {
           containerPort: 9000,
@@ -125,16 +73,17 @@
       kind: "Deployment",
       metadata: {
         labels: {
-          app: name,
+          app: modelName,
         },
-        name: name,
+        name: modelName + "-" + versionName,
         namespace: namespace,
       },
       spec: {
         template: {
           metadata: {
             labels: {
-              app: name,
+              app: modelName,
+              version: versionName,
             },
             annotations: {
               "sidecar.istio.io/inject": if util.toBool(params.injectIstio) then "true",

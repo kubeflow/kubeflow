@@ -1,14 +1,14 @@
 // @apiVersion 0.1
-// @name io.ksonnet.pkg.tf-serving-gcp
+// @name io.ksonnet.pkg.tf-serving-deployment-gcp
 // @description TensorFlow serving
 // @shortDescription A TensorFlow serving deployment
 // @param name string Name to give to each of the components
 // @optionalParam namespace string kubeflow The namespace
-// @optionalParam serviceType string ClusterIP The k8s service type for tf serving.
 // @optionalParam numGpus string 0 Number of gpus to use
 // @optionalParam deployHttpProxy string false Whether to deploy http proxy
 // @optionalParam modelBasePath string gs://kubeflow-examples-data/mnist The model path
 // @optionalParam modelName string null The model name
+// @optionalParam versionName string v1 The version name
 // @optionalParam defaultCpuImage string tensorflow/serving:1.8.0 The default model server image (cpu)
 // @optionalParam defaultGpuImage string tensorflow/serving:1.10.0-gpu The default model server image (gpu)
 // @optionalParam httpProxyImage string gcr.io/kubeflow-images-public/tf-model-server-http-proxy:v20180723 Http proxy image
@@ -57,5 +57,4 @@ local tfDeployment = base.tfDeployment +
                      );
 util.list([
   tfDeployment,
-  base.tfService,
 ],)
