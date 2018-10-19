@@ -73,7 +73,7 @@ createEnv() {
       # GCP Zone
       # The default should be a zone that supports Haswell.
       ZONE=${ZONE:-$(gcloud config get-value compute/zone 2>/dev/null)}
-      ZONE=${ZONE:-"us-east1-d"} 
+      ZONE=${ZONE:-"us-east1-d"}
       echo ZONE=${ZONE} >> ${ENV_FILE}
 
       # Email for cert manager

@@ -99,7 +99,7 @@ std.assertEqual(
                   value: "/home/jovyan",
                 },
                 {
-                  name: "CLOUD_NAME",
+                  name: "PLATFORM_NAME",
                   value: "gke",
                 },
                 {

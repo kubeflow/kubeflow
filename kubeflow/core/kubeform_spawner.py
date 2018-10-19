@@ -159,7 +159,7 @@ c.JupyterHub.cleanup_servers = False
 ###################################################
 # Spawner Options
 ###################################################
-cloud = os.environ.get('CLOUD_NAME')
+cloud = os.environ.get('PLATFORM_NAME')
 registry = os.environ.get('REGISTRY')
 repoName = os.environ.get('REPO_NAME')
 c.JupyterHub.spawner_class = KubeFormSpawner

@@ -147,7 +147,7 @@
                     value: params.notebookPVCMount,
                   },
                   {
-                    name: "CLOUD_NAME",
+                    name: "PLATFORM_NAME",
                     value: params.platform,
                   },
                   {
