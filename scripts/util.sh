@@ -68,7 +68,6 @@ function createKsApp() {
 
   ks generate argo argo
   ks generate katib katib
-  ks generate application application
   # Enable collection of anonymous usage metrics
   # To disable metrics collection. Remove the spartakus component.
   # cd ks_app
@@ -91,6 +90,7 @@ function createKsApp() {
   echo "For more info: https://www.kubeflow.org/docs/guides/usage-reporting/"
   echo "****************************************************************"
   echo ""
+  ks generate application application
 }
 
 function removeKsEnv() {
