@@ -3,7 +3,6 @@
 // @description PyTorch Operator
 // @shortDescription PyTorch Operator for distributed pytorch on Kubernetes
 // @param name string Name to give to each of the components
-// @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
 // @optionalParam disks string null Comma separated list of Google persistent disks to attach to jupyter environments.
 // @optionalParam cloud string null String identifying the cloud to customize the deployment for.
 // @optionalParam pytorchJobImage string gcr.io/kubeflow-images-public/pytorch-operator:v0.3.0 The image for the PyTorchJob controller

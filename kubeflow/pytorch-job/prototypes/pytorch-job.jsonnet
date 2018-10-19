@@ -3,7 +3,6 @@
 // @description A PyTorch job (could be training or evaluation).
 // @shortDescription A PyTorch job.
 // @param name string Name to give to each of the components
-// @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
 // @optionalParam args string null Comma separated list of arguments to pass to the job
 // @optionalParam image string gcr.io/kubeflow-examples/pytorch-dist-mnist:v20180702-a57993c The docker image to use for the job.
 // @optionalParam numMasters number 1 The number of masters to use

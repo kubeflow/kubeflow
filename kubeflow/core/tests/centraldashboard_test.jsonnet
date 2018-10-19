@@ -1,6 +1,5 @@
 local centraldashboard = import "../centraldashboard.libsonnet";
 local params = {
-  namespace:: "kftest",
   image:: "gcr.io/kubeflow-images-public/centraldashboard:v0.3.0",
 };
 local env = {

@@ -3,8 +3,6 @@
   local util = import "kubeflow/core/util.libsonnet",
   new(_env, _params):: {
     local params = _env + _params {
-      namespace: if std.objectHas(_params, "namespace") && _params.namespace != "null" then
-        _params.namespace else _env.namespace,
       disableJwtChecking: util.toBool(_params.disableJwtChecking),
       hostname: if std.objectHas(_params, "hostname") then _params.hostname else "null",
       envoyPort: 8080,
