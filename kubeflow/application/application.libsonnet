@@ -107,20 +107,33 @@
       },
     },
 
-    local applicationCRD =
-      crd.new() + crd.mixin.metadata.
-        withName("applications.app.k8s.io").
-        withLabelsMixin({ api: "default" }) +
-      crd.mixin.spec.
-        withGroup("app.k8s.io").
-        withVersion("v1beta1").
-        withScope("Namespaced") +
-      crd.mixin.spec.names.
-        withKind("Application").
-        withPlural("applications").
-        withSingular("application") +
-      crd.mixin.spec.validation.
-        withOpenApiV3Schema(openApiV3Schema),
+    local applicationCRD = {
+      apiVersion: "apiextensions.k8s.io/v1beta1",
+      kind: "CustomResourceDefinition",
+      metadata: {
+        name: "applications.app.k8s.io",
+        labels: {
+          api: "default",
+        },
+      },
+      spec: {
+        group: "app.k8s.io",
+        version: "v1beta1",
+        scope: "Namespaced",
+        names: {
+          plural: "applications",
+          singular: "application",
+          kind: "Application",
+          shortNames: [
+            "ic",
+            "ictl",
+          ],
+        },
+        validation: {
+          openAPIV3Schema: openApiV3Schema,
+        },
+      },
+    },
     applicationCRD:: applicationCRD,
 
     local application = {
