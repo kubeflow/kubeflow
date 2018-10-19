@@ -2,10 +2,7 @@
   local k = import "k.libsonnet",
   local util = import "kubeflow/core/util.libsonnet",
   new(_env, _params):: {
-    local params = _env + _params {
-      namespace: if std.objectHas(_params, "namespace") && _params.namespace != "null" then
-        _params.namespace else _env.namespace,
-    },
+    local params = _env + _params,
 
     local persistentVolume = {
       apiVersion: "v1",

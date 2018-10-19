@@ -3,7 +3,6 @@
 // @description A MXNet job (could be training or evaluation).
 // @shortDescription A MXNet job.
 // @param name string Name to give to each of the components
-// @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
 // @optionalParam args string null Comma separated list of arguments to pass to the job
 // @optionalParam image string null The docker image to use for the job.
 // @optionalParam imageGpu string mxjob/mxnet:gpu The docker image to use when using GPUs.

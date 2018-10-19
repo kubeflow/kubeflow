@@ -4,10 +4,7 @@
   local deployment = k.apps.v1beta1.deployment,
 
   new(_env, _params):: {
-    local params = _env + _params {
-      namespace: if std.objectHas(_params, "namespace") && _params.namespace != "null" then
-        _params.namespace else _env.namespace,
-    },
+    local params = _env + _params,
 
     // tfJobCrd schema
     local openAPIV3Schema = {
