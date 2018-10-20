@@ -72,7 +72,6 @@
         apiVersion: "rbac.authorization.k8s.io/v1",
         metadata: {
           name: "metrics-collector",
-          namespace: namespace,
         },
         roleRef: {
           apiGroup: "rbac.authorization.k8s.io",
@@ -203,7 +202,6 @@
         apiVersion: "rbac.authorization.k8s.io/v1",
         metadata: {
           name: "studyjob-controller",
-          namespace: namespace,
         },
         roleRef: {
           apiGroup: "rbac.authorization.k8s.io",
