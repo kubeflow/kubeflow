@@ -33,7 +33,17 @@ def all_handler(path=None):
     prefix = "http"
     new_url = "https" + new_url[len(prefix):]
   logging.info("Redirecting to: %s", new_url)
-  return redirect(new_url)
+
+  response = redirect(new_url)
+
+  # For "/" we return a 200 (ok) and not a 302 (redirect) because on GKE
+  # we want to be able to use this to redirect http://mydomain.com/ to
+  # https://mydomain.com/. However, the Ingress sets up the GCP loadbalancer
+  # health check requires that a 200 be served on "/". So if we return a 302
+  # the backend will be considered unhealthy.
+  if not path:
+    response.status_code = 200
+  return response
 
 if __name__ == '__main__':
   logging.basicConfig(
