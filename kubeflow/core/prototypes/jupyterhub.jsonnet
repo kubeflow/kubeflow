@@ -3,7 +3,7 @@
 // @description jupyterhub Component
 // @shortDescription jupyterhub Component
 // @param name string Name
-// @optionalParam cloud string null Cloud
+// @optionalParam platform string none {none|gke|minikube}
 // @optionalParam serviceType string ClusterIP The service type for Jupyterhub.
 // @optionalParam image string gcr.io/kubeflow/jupyterhub-k8s:v20180531-3bb991b1 The image to use for JupyterHub.
 // @optionalParam jupyterHubAuthenticator string null The authenticator to use
