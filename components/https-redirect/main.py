@@ -17,9 +17,13 @@
 
 import logging
 
-from flask import Flask, redirect, request
+from flask import Flask, jsonify, redirect, request
 
 app = Flask(__name__)
+
+@app.route('/healthz')
+def health_check():
+  return jsonify({'isHealthy': True})
 
 @app.route('/')
 @app.route('/<path:path>')

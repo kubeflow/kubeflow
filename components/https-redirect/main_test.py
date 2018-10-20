@@ -31,5 +31,18 @@ class TestRedirect(unittest.TestCase):
     self.assertEqual(r.data,
                      '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">\n<title>Redirecting...</title>\n<h1>Redirecting...</h1>\n<p>You should be redirected automatically to target URL: <a href="https://localhost/hello/world">https://localhost/hello/world</a>.  If not click the link.')
 
+  def test_health_check(self):
+    main.app.testing = True
+    client = main.app.test_client()
+
+    endpoint = '/healthz'
+    r = client.get(
+          endpoint,
+            headers={
+              'Content-Type': 'application/json'
+            })
+
+    self.assertEqual(200, r.status_code)
+
 if __name__ == "__main__":
   unittest.main()
