@@ -106,7 +106,7 @@ def deploy_kubeflow(test_case):
   util.wait_for_deployment(api_client, namespace, tf_job_deployment_name)
 
   # Verify that JupyterHub is actually deployed.
-  jupyterhub_name = "tf-hub"
+  jupyterhub_name = "jupyterhub"
   logging.info("Verifying TfHub started.")
   util.wait_for_statefulset(api_client, namespace, jupyterhub_name)
 

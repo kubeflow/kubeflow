@@ -19,7 +19,7 @@ GOLANG_GCFLAGS ?= ""
 IMG ?= gcr.io/$(GCLOUD_PROJECT)/bootstrapper
 
 BUILDER_IMG ?= gcr.io/$(GCLOUD_PROJECT)/bootstrapper-builder
-BUILDER_IMG_VERSION ?= latest
+BUILDER_IMG_VERSION ?= $(shell head -1 glide.lock | cut -d ' ' -f 2)
 
 TAG ?= $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6)
 PORT ?= 2345
@@ -51,16 +51,16 @@ build:
 
 build-builder:
 	docker build ${DOCKER_BUILD_OPTS} --build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
-           --build-arg GOLANG_GCFLAGS="$(GOLANG_GCFLAGS)" -t $(BUILDER_IMG):$(TAG) \
+           --build-arg GOLANG_GCFLAGS="$(GOLANG_GCFLAGS)" -t $(BUILDER_IMG):$(BUILDER_IMG_VERSION) \
            --label=git-verions=$(GIT_VERSION) -f Dockerfile.Builder .
-	@echo Built $(BUILDER_IMG):$(TAG)
+	@echo Built $(BUILDER_IMG):$(BUILDER_IMG_VERSION)
 
 push-builder: build-builder
-	gcloud docker -- push $(BUILDER_IMG):$(TAG)
-	@echo Pushed $(BUILDER_IMG):$(TAG)
+	gcloud docker -- push $(BUILDER_IMG):$(BUILDER_IMG_VERSION)
+	@echo Pushed $(BUILDER_IMG):$(BUILDER_IMG_VERSION)
 
 push-builder-latest: push-builder
-	gcloud container images add-tag --quiet $(BUILDER_IMG):$(TAG) $(BUILDER_IMG):latest --verbosity=info
+	gcloud container images add-tag --quiet $(BUILDER_IMG):$(BUILDER_IMG_VERSION) $(BUILDER_IMG):latest --verbosity=info
 	@echo created $(BUILDER_IMG):latest
 
 # Build but don't attach the latest tag. This allows manual testing/inspection of the image

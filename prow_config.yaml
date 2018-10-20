@@ -1,6 +1,16 @@
 # This file configures the workflows to trigger in our Prow jobs.
 # see kubeflow/testing/py/run_e2e_workflow.py
 workflows:
+  # deploy app test runs tests on gke.
+  - app_dir: kubeflow/kubeflow/testing/workflows
+    component: click_deploy_test
+    name: deployapp
+    job_types:
+    - periodic
+    include_dirs:
+    - bootstrap/*
+    - kubeflow/*
+    - testing/*
   # kfctl test runs tests on gke.
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: kfctl_test
@@ -8,10 +18,12 @@ workflows:
     job_types:
       - presubmit
       - postsubmit
+      - periodic
     include_dirs:
       - scripts/*
       - kubeflow/*
       - testing/*
+      - deployment/*
     params:
       platform: gke
   # Run unittests
@@ -34,6 +46,7 @@ workflows:
     job_types:
       - presubmit
       - postsubmit
+      - periodic
     params:
       platform: minikube
     include_dirs:
@@ -42,12 +55,13 @@ workflows:
       - testing/workflows/components/workflows.jsonnet
       - testing/workflows/components/workflows.libsonnet
       - testing/install_minikube.sh
-  - app_dir: kubeflow/kubeflow/components/k8s-model-server/images/releaser
-    component: workflows
-    name: tf-serving-image
+  - app_dir: kubeflow/kubeflow/testing/workflows
+    component: tfserving
+    name: tf-serving
     job_types:
       - presubmit
       - postsubmit
+      - periodic
     include_dirs:
       - kubeflow/tf-serving/*
       - components/k8s-model-server/*
@@ -61,19 +75,20 @@ workflows:
     component: centraldashboard
     name: dashboard-release
     job_types:
-      # TODO(jlewi): Reenable on presubmit once its passing.
-      #- presubmit
-      # TODO(jlewi): We should probably create a separate postsubmit job that pushes
-      # to kubeflow-images-public.
+      - presubmit
+    params:
+      registry: "gcr.io/kubeflow-ci"
+    include_dirs:
+      - components/centraldashboard/*
+      - releasing/releaser/components/centraldashboard.jsonnet
+  # The postsubmit run publishes the docker images to gcr.io/kubeflow-images-public
+  - app_dir: kubeflow/kubeflow/releasing/releaser
+    component: centraldashboard
+    name: dashboard-release
+    job_types:
       - postsubmit
     params:
-      cluster: "kubeflow-testing"
-      gcpCredentialsSecretName: "gcp-credentials"
-      namespace: "kubeflow-test-infra"
-      nfsVolumeClaim: "nfs-external"
-      project: "kubeflow-releasing"
-      registry: "gcr.io/kubeflow-ci"
-      testing_image: "gcr.io/kubeflow-ci/test-worker:latest"
+      registry: "gcr.io/kubeflow-images-public"
     include_dirs:
       - components/centraldashboard/*
       - releasing/releaser/components/centraldashboard.jsonnet
@@ -81,18 +96,20 @@ workflows:
     component: workflows
     name: tf-notebook-release
     job_types:
-      # TODO(jlewi): Reenable on presubmit once its passing.
-      # - presubmit
-      # TODO(jlewi): We should probably create a separate postsubmit job that pushes
-      # to kubeflow-images-public.
+      - presubmit
+    params:
+      registry: "gcr.io/kubeflow-ci"
+      step_image: "gcr.io/kubeflow-ci/test-worker:v20181017-bfeaaf5-dirty-4adcd0"
+    include_dirs:
+      - components/tensorflow-notebook-image/*
+  # The postsubmit run publishes the docker images to gcr.io/kubeflow-images-public
+  - app_dir: kubeflow/kubeflow/components/tensorflow-notebook-image/releaser
+    component: workflows
+    name: tf-notebook-release
+    job_types:
       - postsubmit
     params:
-      cluster: "kubeflow-testing"
-      gcpCredentialsSecretName: "gcp-credentials"
-      namespace: "kubeflow-test-infra"
-      nfsVolumeClaim: "nfs-external"
-      project: "kubeflow-releasing"
-      registry: "gcr.io/kubeflow-ci"
-      testing_image: "gcr.io/kubeflow-ci/test-worker:latest"
+      registry: "gcr.io/kubeflow-images-public"
+      step_image: "gcr.io/kubeflow-ci/test-worker:v20181017-bfeaaf5-dirty-4adcd0"
     include_dirs:
       - components/tensorflow-notebook-image/*

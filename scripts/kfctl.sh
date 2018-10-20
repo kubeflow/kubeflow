@@ -14,6 +14,8 @@ COMMAND=$1
 WHAT=$2
 
 ENV_FILE="env.sh"
+SKIP_INIT_PROJECT=false
+CLUSTER_VERSION="1.10"
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 source "${DIR}/util.sh"
@@ -27,6 +29,8 @@ createEnv() {
   # a file for consistency across runs.
   echo PLATFORM=${PLATFORM} >> ${ENV_FILE}
   DEFAULT_KUBEFLOW_REPO="$( cd "${DIR}/.." >/dev/null && pwd )"
+  # Remove trailing slash from the repo.
+  KUBEFLOW_REPO=${KUBEFLOW_REPO%/}
   echo KUBEFLOW_REPO=${KUBEFLOW_REPO:-"${DEFAULT_KUBEFLOW_REPO}"} >> ${ENV_FILE}
   echo KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"} >> ${ENV_FILE}
   echo KUBEFLOW_KS_DIR=${KUBEFLOW_KS_DIR:-"$(pwd)/ks_app"} >> ${ENV_FILE}
@@ -35,46 +39,47 @@ createEnv() {
   # Namespace where kubeflow is deployed
   echo K8S_NAMESPACE=${K8S_NAMESPACE:-"kubeflow"} >> ${ENV_FILE}
 
-  case "$PLATFORM" in 
+  case "$PLATFORM" in
     minikube)
-      echo KUBEFLOW_CLOUD=minikube >> ${ENV_FILE}
+      echo KUBEFLOW_PLATFORM=minikube >> ${ENV_FILE}
       echo MOUNT_LOCAL=${MOUNT_LOCAL} >> ${ENV_FILE}
       ;;
     ack)
-      echo KUBEFLOW_CLOUD=ack >> ${ENV_FILE}
+      echo KUBEFLOW_PLATFORM=ack >> ${ENV_FILE}
       echo KUBEFLOW_DOCKER_REGISTRY=registry.aliyuncs.com >> ${ENV_FILE}
       ;;
     gcp)
       PROJECT=${PROJECT:-$(gcloud config get-value project 2>/dev/null)}
-      echo KUBEFLOW_CLOUD=gke >> ${ENV_FILE}
+      echo KUBEFLOW_PLATFORM=gke >> ${ENV_FILE}
       echo PROJECT="${PROJECT}" >> ${ENV_FILE}
       if [ -z "${PROJECT}" ]; then
         echo PROJECT must be set either using environment variable PROJECT
         echo or by setting the default project in gcloud
         exit 1
-      fi    
-  
+      fi
+
       # Name of the deployment
       DEPLOYMENT_NAME=${DEPLOYMENT_NAME:-"kubeflow"}
       echo DEPLOYMENT_NAME="${DEPLOYMENT_NAME}" >> ${ENV_FILE}
-  
+
       # Kubeflow directories
       echo KUBEFLOW_DM_DIR=${KUBEFLOW_DM_DIR:-"$(pwd)/gcp_config"} >> ${ENV_FILE}
       echo KUBEFLOW_SECRETS_DIR=${KUBEFLOW_SECRETS_DIR:-"$(pwd)/secrets"} >> ${ENV_FILE}
       echo KUBEFLOW_K8S_MANIFESTS_DIR="$(pwd)/k8s_specs" >> ${ENV_FILE}
-  
+
       # Name of the K8s context to create.
       echo  KUBEFLOW_K8S_CONTEXT=${DEPLOYMENT_NAME} >> ${ENV_FILE}
-  
+
       # GCP Zone
       # The default should be a zone that supports Haswell.
       ZONE=${ZONE:-$(gcloud config get-value compute/zone 2>/dev/null)}
-      echo ZONE=${ZONE:-"us-east1-d"} >> ${ENV_FILE}
-  
+      ZONE=${ZONE:-"us-east1-d"}
+      echo ZONE=${ZONE} >> ${ENV_FILE}
+
       # Email for cert manager
       EMAIL=${EMAIL:-$(gcloud config get-value account 2>/dev/null)}
       echo EMAIL=${EMAIL} >> ${ENV_FILE}
-  
+
       # GCP Static IP Name
       echo KUBEFLOW_IP_NAME=${KUBEFLOW_IP_NAME:-"${DEPLOYMENT_NAME}-ip"} >> ${ENV_FILE}
       # Name of the endpoint
@@ -82,38 +87,63 @@ createEnv() {
       echo KUBEFLOW_ENDPOINT_NAME=${KUBEFLOW_ENDPOINT_NAME} >> ${ENV_FILE}
       # Complete hostname
       echo KUBEFLOW_HOSTNAME=${KUBEFLOW_HOSTNAME:-"${KUBEFLOW_ENDPOINT_NAME}.endpoints.${PROJECT}.cloud.goog"} >> ${ENV_FILE}
-  
+
       echo CONFIG_FILE=${CONFIG_FILE:-"cluster-kubeflow.yaml"} >> ${ENV_FILE}
-  
+
       if [ -z "${PROJECT_NUMBER}" ]; then
         PROJECT_NUMBER=$(gcloud projects describe ${PROJECT} --format='value(project_number)')
       fi
-  
+
       echo PROJECT_NUMBER=${PROJECT_NUMBER} >> ${ENV_FILE}
+
+      # "1.X": picks the highest valid patch+gke.N patch in the 1.X version
+      # https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters
+      echo "Setting cluster version to ${CLUSTER_VERSION}"
+      echo CLUSTER_VERSION=${CLUSTER_VERSION} >> ${ENV_FILE}
       ;;
     *)
-      echo KUBEFLOW_CLOUD=null >> ${ENV_FILE}
+      echo KUBEFLOW_PLATFORM=null >> ${ENV_FILE}
       ;;
   esac
+}
+
+createNamespace() {
+  set +e
+  O=`kubectl get namespace ${K8S_NAMESPACE} 2>&1`
+  RESULT=$?
+  set -e
+
+  if [ "${RESULT}" -eq 0 ]; then
+    echo "namespace ${K8S_NAMESPACE} already exists"
+  else
+    kubectl create namespace ${K8S_NAMESPACE}
+  fi
 }
 
 if [ "${COMMAND}" == "init" ]; then
 	DEPLOYMENT_NAME=${WHAT}
 
-	while [ "$1" != "" ]; do
+    while [[ $# -gt 0 ]]; do
     case $1 in
-    	--platform)                  shift
-                                     PLATFORM=$1
-                                     ;;
-        --project)                   shift
-                                     PROJECT=$1
-                                     ;;
-		--skipInitProject)           shift
-                                     SKIP_INIT_PROJECT=$1
-                                     ;;
-        --email)                     shift
-                                     EMAIL=$1
-                                     ;;
+        -h | --help)
+            usage
+            exit
+            ;;
+        --platform)
+            shift
+            PLATFORM=$1
+            ;;
+        --project)
+            shift
+            PROJECT=$1
+            ;;
+        --skipInitProject)
+            SKIP_INIT_PROJECT=true
+            ;;
+        --email)
+            shift
+            EMAIL=$1
+            ;;
       esac
       shift
 	done
@@ -173,24 +203,15 @@ check_install kubectl
 
 # Generate all required components
 customizeKsApp() {
-  ks param set ambassador cloud ${KUBEFLOW_CLOUD}
-  ks param set jupyterhub cloud ${KUBEFLOW_CLOUD}
+  ks param set ambassador platform ${KUBEFLOW_PLATFORM}
+  ks param set jupyterhub platform ${KUBEFLOW_PLATFORM}
 }
 
 ksApply () {
   pushd ${KUBEFLOW_KS_DIR}
 
   if [ "${PLATFORM}" == "minikube" ]; then
-    set +e
-    O=`kubectl get namespace ${K8S_NAMESPACE} 2>&1`
-    RESULT=$?
-    set -e
-
-    if [ "${RESULT}" -eq 0 ]; then
-      echo "namespace ${K8S_NAMESPACE} already exists"
-    else
-      kubectl create namespace ${K8S_NAMESPACE}
-    fi
+    createNamespace
   fi
 
   set +e
@@ -210,6 +231,7 @@ ksApply () {
   ks apply default -c centraldashboard
   ks apply default -c tf-job-operator
   ks apply default -c argo
+  ks apply default -c katib
   ks apply default -c spartakus
   popd
 
@@ -247,7 +269,7 @@ if [ "${COMMAND}" == "generate" ]; then
     if [ "${PLATFORM}" == "minikube" ]; then
       create_local_fs_mount_spec
       if ${MOUNT_LOCAL}; then
-        ks param set jupyterhub disks "local-notebooks" 
+        ks param set jupyterhub disks "local-notebooks"
         ks param set jupyterhub notebookUid `id -u`
         ks param set jupyterhub notebookGid `id -g`
         ks param set jupyterhub accessLocalFs true
@@ -265,11 +287,18 @@ if [ "${COMMAND}" == "apply" ]; then
   fi
 
   if [ "${WHAT}" == "k8s"  ] || [ "${WHAT}" == "all" ]; then
+    createNamespace
     ksApply
 
     if [ "${PLATFORM}" == "gcp" ]; then
     	gcpKsApply
     fi
+
+    # all components deployed
+    # deploy the application CR
+    pushd ${KUBEFLOW_KS_DIR}
+      ks apply default -c application
+    popd
   fi
 fi
 
@@ -288,9 +317,11 @@ if [ "${COMMAND}" == "delete" ]; then
   fi
   if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ] ; then
     if [ "${PLATFORM}" == "gcp" ]; then
-      pushd ${KUBEFLOW_DM_DIR}
-      ${DIR}/gke/delete_deployment.sh ${PROJECT} ${DEPLOYMENT_NAME} ${CONFIG_FILE}
-      popd
+      if [ -d "${KUBEFLOW_DM_DIR}" ]; then
+        pushd ${KUBEFLOW_DM_DIR}
+        ${DIR}/gke/delete_deployment.sh ${PROJECT} ${DEPLOYMENT_NAME} ${CONFIG_FILE}
+        popd
+      fi
     fi
     removeKsEnv
   fi

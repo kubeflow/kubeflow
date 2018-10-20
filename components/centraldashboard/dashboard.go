@@ -42,12 +42,12 @@ func main() {
 func GetClient() *kubernetes.Clientset {
 	config, err := rest.InClusterConfig()
 	if err != nil {
-		panic(err.Error())
+		fmt.Printf("Error loading incluster config: %v", err.Error())
 	}
 	// creates the clientset
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		panic(err.Error())
+		fmt.Printf("Error creating clientset from clusterconfig: %v", err.Error())
 	}
 
 	return clientset

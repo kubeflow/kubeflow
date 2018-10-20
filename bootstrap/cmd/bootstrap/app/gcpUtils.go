@@ -4,25 +4,28 @@ import (
 	"fmt"
 	"time"
 
-	"golang.org/x/net/context"
-	"google.golang.org/api/deploymentmanager/v2"
-	"golang.org/x/oauth2"
-	"github.com/ghodss/yaml"
-	log "github.com/sirupsen/logrus"
-	"google.golang.org/api/cloudresourcemanager/v1"
 	"io/ioutil"
 	"path"
+	"strings"
+
+	"github.com/ghodss/yaml"
+	"github.com/prometheus/client_golang/prometheus"
+	log "github.com/sirupsen/logrus"
+	"golang.org/x/net/context"
+	"golang.org/x/oauth2"
+	"google.golang.org/api/cloudresourcemanager/v1"
+	"google.golang.org/api/deploymentmanager/v2"
 )
 
 type Resource struct {
-	Name string `json:"name"`
-	Type string `json:"type"`
+	Name       string                 `json:"name"`
+	Type       string                 `json:"type"`
 	Properties map[string]interface{} `json:"properties"`
 }
 
 type DmConf struct {
-	Imports interface{} `json:"imports"`
-	Resources []Resource `json:"resources"`
+	Imports   interface{} `json:"imports"`
+	Resources []Resource  `json:"resources"`
 }
 
 type IamBinding struct {
@@ -37,16 +40,28 @@ type IamConf struct {
 type ApplyIamRequest struct {
 	Project string `json:"project"`
 	Cluster string `json:"cluster"`
-	Email string `json:"email"`
-	Token string `json:"token"`
-	Action string `json:"action`
+	Email   string `json:"email"`
+	Token   string `json:"token"`
+	Action  string `json:"action`
+}
+
+var (
+	deploymentsStartedCounter = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "deployments_started",
+		Help: "Number of deployments kicked off",
+	})
+)
+
+func init() {
+	// Initialize prometheus counters
+	prometheus.MustRegister(deploymentsStartedCounter)
 }
 
 // TODO: handle concurrent & repetitive deployment requests.
-func (s *ksServer)InsertDeployment(ctx context.Context, req CreateRequest) error {
+func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) error {
 	regPath := s.knownRegistries["kubeflow"].RegUri
 	var dmconf DmConf
-	err := LoadConfig(path.Join(regPath, "../components/gcp-click-to-deploy/src/configs/cluster-kubeflow.yaml"), &dmconf)
+	err := LoadConfig(path.Join(regPath, "../deployment/gke/deployment_manager_configs/cluster-kubeflow.yaml"), &dmconf)
 
 	if err == nil {
 		dmconf.Resources[0].Name = req.Name
@@ -54,13 +69,16 @@ func (s *ksServer)InsertDeployment(ctx context.Context, req CreateRequest) error
 		dmconf.Resources[0].Properties["clientId"] = req.ClientId
 		dmconf.Resources[0].Properties["clientSecret"] = req.ClientSecret
 		dmconf.Resources[0].Properties["ipName"] = req.IpName
-		dmconf.Resources[0].Properties["users"] = []string { "user:" + req.Email }
+		dmconf.Resources[0].Properties["isWebapp"] = true
+		// "1.X": picks the highest valid patch+gke.N patch in the 1.X version
+		// https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters
+		dmconf.Resources[0].Properties["cluster-version"] = "1.10"
 	}
 	confByte, err := yaml.Marshal(dmconf)
 	if err != nil {
 		return err
 	}
-	templateData, err := ioutil.ReadFile(path.Join(regPath, "../components/gcp-click-to-deploy/src/configs/cluster.jinja"))
+	templateData, err := ioutil.ReadFile(path.Join(regPath, "../deployment/gke/deployment_manager_configs/cluster.jinja"))
 	if err != nil {
 		return err
 	}
@@ -80,7 +98,7 @@ func (s *ksServer)InsertDeployment(ctx context.Context, req CreateRequest) error
 			Imports: []*deploymentmanager.ImportFile{
 				{
 					Content: string(templateData),
-					Name: "cluster.jinja",
+					Name:    "cluster.jinja",
 				},
 			},
 		},
@@ -89,10 +107,11 @@ func (s *ksServer)InsertDeployment(ctx context.Context, req CreateRequest) error
 	if err != nil {
 		return err
 	}
+	deploymentsStartedCounter.Inc()
 	return nil
 }
 
-func (s *ksServer)GetDeploymentStatus(ctx context.Context, req CreateRequest) (string, error) {
+func (s *ksServer) GetDeploymentStatus(ctx context.Context, req CreateRequest) (string, error) {
 	ts := oauth2.StaticTokenSource(&oauth2.Token{
 		AccessToken: req.Token,
 	})
@@ -107,9 +126,45 @@ func (s *ksServer)GetDeploymentStatus(ctx context.Context, req CreateRequest) (s
 	return dm.Operation.Status, nil
 }
 
+// Clear existing bindings for auto-generated service accounts of current deployment.
+// Those bindings could be leftover from previous actions.
+func GetClearServiceAccountpolicy(currentPolicy *cloudresourcemanager.Policy, req ApplyIamRequest) cloudresourcemanager.Policy {
+	serviceAccounts := map[string]bool{
+		fmt.Sprintf("serviceAccount:%v-admin@%v.iam.gserviceaccount.com", req.Cluster, req.Project): true,
+		fmt.Sprintf("serviceAccount:%v-user@%v.iam.gserviceaccount.com", req.Cluster, req.Project):  true,
+		fmt.Sprintf("serviceAccount:%v-vm@%v.iam.gserviceaccount.com", req.Cluster, req.Project):    true,
+	}
+	newPolicy := cloudresourcemanager.Policy{}
+	for _, binding := range currentPolicy.Bindings {
+		newBinding := cloudresourcemanager.Binding{
+			Role: binding.Role,
+		}
+		for _, member := range binding.Members {
+			// Skip bindings for service accounts of current deployment.
+			// We'll reset bindings for them in following steps.
+			if _, ok := serviceAccounts[member]; !ok {
+				newBinding.Members = append(newBinding.Members, member)
+			}
+		}
+		newPolicy.Bindings = append(newPolicy.Bindings, &newBinding)
+	}
+	return newPolicy
+}
+
+func PrepareAccount(account string) string {
+	if strings.Contains(account, "iam.gserviceaccount.com") {
+		return "serviceAccount:" + account
+	}
+	if strings.Contains(account, "google-kubeflow-support") {
+		return "group:" + account
+	} else {
+		return "user:" + account
+	}
+}
+
 func GetUpdatedPolicy(currentPolicy *cloudresourcemanager.Policy, iamConf *IamConf, req ApplyIamRequest) cloudresourcemanager.Policy {
 	// map from role to members.
-	policyMap := map[string]map[string]bool {}
+	policyMap := map[string]map[string]bool{}
 	for _, binding := range currentPolicy.Bindings {
 		policyMap[binding.Role] = make(map[string]bool)
 		for _, member := range binding.Members {
@@ -118,11 +173,11 @@ func GetUpdatedPolicy(currentPolicy *cloudresourcemanager.Policy, iamConf *IamCo
 	}
 
 	// Replace placeholder with actual identity.
-	saMapping := map[string]string {
-		"set-kubeflow-admin-service-account": fmt.Sprintf("serviceAccount:%v-admin@%v.iam.gserviceaccount.com", req.Cluster, req.Project),
-		"set-kubeflow-user-service-account": fmt.Sprintf("serviceAccount:%v-user@%v.iam.gserviceaccount.com", req.Cluster, req.Project),
-		"set-kubeflow-vm-service-account": fmt.Sprintf("serviceAccount:%v-vm@%v.iam.gserviceaccount.com", req.Cluster, req.Project),
-		"set-kubeflow-iap-account": fmt.Sprintf("user:%v", req.Email),
+	saMapping := map[string]string{
+		"set-kubeflow-admin-service-account": PrepareAccount(fmt.Sprintf("%v-admin@%v.iam.gserviceaccount.com", req.Cluster, req.Project)),
+		"set-kubeflow-user-service-account":  PrepareAccount(fmt.Sprintf("%v-user@%v.iam.gserviceaccount.com", req.Cluster, req.Project)),
+		"set-kubeflow-vm-service-account":    PrepareAccount(fmt.Sprintf("%v-vm@%v.iam.gserviceaccount.com", req.Cluster, req.Project)),
+		"set-kubeflow-iap-account":           PrepareAccount(req.Email),
 	}
 	for _, binding := range iamConf.IamBindings {
 		for _, member := range binding.Members {
@@ -157,10 +212,10 @@ func GetUpdatedPolicy(currentPolicy *cloudresourcemanager.Policy, iamConf *IamCo
 	return newPolicy
 }
 
-func (s *ksServer)ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) error {
+func (s *ksServer) ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) error {
 	// Get the iam change from config.
 	regPath := s.knownRegistries["kubeflow"].RegUri
-	templatePath := path.Join(regPath, "../components/gcp-click-to-deploy/src/configs/iam_bindings_template.yaml")
+	templatePath := path.Join(regPath, "../deployment/gke/deployment_manager_configs/iam_bindings_template.yaml")
 	var iamConf IamConf
 	err := LoadConfig(templatePath, &iamConf)
 	if err != nil {
@@ -181,14 +236,26 @@ func (s *ksServer)ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) error
 
 	retry := 0
 	for retry < 5 {
+		retry += 1
 		// Get current policy
 		saPolicy, err := resourceManager.Projects.GetIamPolicy(
 			req.Project,
-			&cloudresourcemanager.GetIamPolicyRequest{
+			&cloudresourcemanager.GetIamPolicyRequest{}).Do()
+		if err != nil {
+			log.Warningf("Cannot get current policy: %v", err)
+			time.Sleep(3 * time.Second)
+			continue
+		}
+
+		// Force update iam bindings of service accounts
+		clearedPolicy := GetClearServiceAccountpolicy(saPolicy, req)
+		_, err = resourceManager.Projects.SetIamPolicy(
+			req.Project,
+			&cloudresourcemanager.SetIamPolicyRequest{
+				Policy: &clearedPolicy,
 			}).Do()
 		if err != nil {
-			retry += 1
-			log.Warningf("Cannot get current policy: %v", err)
+			log.Warningf("Cannot set refresh policy: %v", err)
 			time.Sleep(3 * time.Second)
 			continue
 		}
@@ -201,8 +268,7 @@ func (s *ksServer)ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) error
 				Policy: &newPolicy,
 			}).Do()
 		if err != nil {
-			retry += 1
-			log.Warningf("Cannot set new ploicy: %v", err)
+			log.Warningf("Cannot set new policy: %v", err)
 			time.Sleep(3 * time.Second)
 			continue
 		}

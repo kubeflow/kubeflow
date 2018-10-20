@@ -19,10 +19,10 @@ IMAGES_FILE=${ROOT_DIR}/releasing/image_tags.yaml
 # we depend on the python code in that repo.
 export PYTHONPATH=${PYTHONPATH}:${ROOT_DIR}/../git_kubeflow-testing/py
 
-RELEASE=v0.2.0
+RELEASE=v0.3.0
 
-OLD_NOTEBOOK_RELEASE=v0.2.0
-NOTEBOOK_RELEASE=v0.2.1
+OLD_NOTEBOOK_RELEASE=v0.2.1
+NOTEBOOK_RELEASE=v0.3.0
 
 # Update the Jupyter Images
 sed -i "s/tensorflow-\([0-9\.]*\)-notebook-\(.*\):${OLD_NOTEBOOK_RELEASE}/tensorflow-\1-notebook-\2:${NOTEBOOK_RELEASE}/" \

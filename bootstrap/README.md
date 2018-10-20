@@ -77,7 +77,7 @@ ks apply default
 
     ```
     # On your local machine:
-    PODNAME=`kubectl get pods --namespace=<Namespace for bootstrap> --selector="app=tf-hub" --output=template --template="{{with index .items     0}}{{.metadata.name}}{{end}}"`
+    PODNAME=`kubectl get pods --namespace=<Namespace for bootstrap> --selector="app=jupyterhub" --output=template --template="{{with index .items     0}}{{.metadata.name}}{{end}}"`
     kubectl port-forward --namespace=<Namespace for bootstrap> $PODNAME 8000:8000
     ```
 

@@ -9,6 +9,9 @@
       value: v[1],
     },
 
+  workflowName:: function(version, device)
+    "build-" + std.strReplace(version, ".", "-") + "-" + device,
+
   // Function to turn comma separated list of prow environment variables into a dictionary.
   parseEnv:: function(v)
     local pieces = std.split(v, ",");
@@ -18,6 +21,26 @@
         std.split(v, ",")
       )
     else [],
+
+  // Function turn comma separated list of prow environment variables into a dictionary.
+
+  listToDict:: function(v)
+    {
+      [v[0]]: v[1],
+    },
+
+  parseEnvToDict: function(v)
+    local pieces = std.split(v, ",");
+    if v != "" && std.length(pieces) > 0 then
+      std.foldl(
+        function(a, b) a + b,
+        std.map(
+          function(i) $.listToDict(std.split(i, "=")),
+          std.split(v, ",")
+        ),
+        {}
+      )
+    else {},
 
   // Default parameters.
   // The defaults are suitable based on suitable values for our test cluster.
@@ -50,6 +73,7 @@
       local name = params.name;
 
       local prow_env = $.parseEnv(params.prow_env);
+      local prowDict = $.parseEnvToDict(params.prow_env);
       local bucket = params.bucket;
 
       local stepsNamespace = name;
@@ -75,6 +99,24 @@
 
       // Location where Dockerfiles and other sources are found.
       local notebookDir = srcRootDir + "/kubeflow/kubeflow/components/tensorflow-notebook-image/";
+
+      // Subdirectory containing the version config.
+      local supportedVersions = [
+        ["1.4.1", "cpu"],
+        ["1.4.1gpu", "gpu"],
+        ["1.5.1", "cpu"],
+        ["1.5.1gpu", "gpu"],
+        ["1.6.0", "cpu"],
+        ["1.6.0gpu", "gpu"],
+        ["1.7.0", "cpu"],
+        ["1.7.0gpu", "gpu"],
+        ["1.8.0", "cpu"],
+        ["1.8.0gpu", "gpu"],
+        ["1.9.0", "cpu"],
+        ["1.9.0gpu", "gpu"],
+        ["1.10.1", "cpu"],
+        ["1.10.1gpu", "gpu"],
+      ];
 
       // Build an Argo template to execute a particular command.
       // step_name: Name for the template
@@ -128,40 +170,48 @@
         },
         sidecars: sidecars,
       };  // buildTemplate
-      local buildImageTemplate(tf_version, workflow_name, device, is_latest=true) = {
-        local image = params.registry + "/tensorflow-" + tf_version + "-notebook-" + device,
-        local tag = params.versionTag,
-        local base_image =
-          if device == "cpu" then
-            "ubuntu:latest"
-          // device = gpu
-          else if std.startsWith(tf_version, "1.4.") then
-            "nvidia/cuda:8.0-cudnn6-devel-ubuntu16.04"
-          else
-            "nvidia/cuda:9.0-cudnn7-devel-ubuntu16.04",
-        local installTfma =
-          if tf_version < "1.6" then
-            "no"
-          else
-            "yes",
-        local tf_package =
-          "https://storage.googleapis.com/tensorflow/linux/" +
-          device +
-          "/tensorflow" +
-          (if device == "gpu" then "_gpu" else "") +
-          "-" +
-          tf_version +
-          "-cp36-cp36m-linux_x86_64.whl",
-        local tf_package_py_27 =
-          "https://storage.googleapis.com/tensorflow/linux/" +
-          device +
-          "/tensorflow" +
-          (if device == "gpu" then "_gpu" else "") +
-          "-" +
-          tf_version +
-          "-cp27-none-linux_x86_64.whl",
+
+      local buildImageTemplate(tf_version, device, is_latest=true) = {
+        local workflow_name = $.workflowName(tf_version, device),
+
+        local version_label = if std.endsWith(tf_version, "gpu") then
+          std.substr(tf_version, 0, std.length(tf_version) - 3)
+        else
+          tf_version,
+
+        local image = params.registry + "/tensorflow-" + version_label + "-notebook-" + device,
+
+        local jobType = if std.objectHas(prowDict, "JOB_TYPE") then
+          prowDict.JOB_TYPE
+        else "",
+
+        local tagElements = [
+          "v",
+          if std.length(params.versionTag) > 0 then
+            params.versiontag
+          else null,
+          if std.objectHas(prowDict, "PULL_BASE_SHA") then
+            "base-" + std.substr(prowDict.PULL_BASE_SHA, 0, 7)
+          else null,
+          if std.objectHas(prowDict, "PULL_PULL_SHA") then
+            "pull-" + std.substr(prowDict.PULL_PULL_SHA, 0, 7)
+          else null,
+
+          if std.objectHas(prowDict, "PULL_NUMBER") then
+            "pr-" + prowDict.PULL_NUMBER
+          else null,
+          if std.objectHas(prowDict, "BUILD_NUMBER") then
+            prowDict.BUILD_NUMBER
+          else null,
+        ],
+
+        local tag = std.join(
+          "-",
+          std.prune(tagElements)
+        ),
+
         result:: buildTemplate(
-          "build-" + workflow_name + "-" + device,
+          workflow_name,
           [
             // We need to explicitly specify bash because
             // build_image.sh is not in the container its a volume mounted file.
@@ -171,11 +221,7 @@
             + notebookDir + "Dockerfile" + " "
             + image + " "
             + tag + " "
-            + std.toString(is_latest) + " "
-            + base_image + " "
-            + tf_package + " "
-            + tf_package_py_27 + " "
-            + installTfma,
+            + notebookDir + "versions/" + tf_version + "/version-config.json" + " ",
           ],
           [
             {
@@ -250,133 +296,85 @@
           onExit: "exit-handler",
 
           templates: [
-            {
-              name: "e2e",
-              dag: {
-                tasks: [
-                  {
-                    name: "checkout",
-                    template: "checkout",
-                  },
-                  {
-                    name: "build-1-4-1-gpu",
-                    template: "build-1-4-1-gpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-4-1-cpu",
-                    template: "build-1-4-1-cpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-5-1-gpu",
-                    template: "build-1-5-1-gpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-5-1-cpu",
-                    template: "build-1-5-1-cpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-6-0-gpu",
-                    template: "build-1-6-0-gpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-6-0-cpu",
-                    template: "build-1-6-0-cpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-7-0-gpu",
-                    template: "build-1-7-0-gpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-7-0-cpu",
-                    template: "build-1-7-0-cpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-8-0-gpu",
-                    template: "build-1-8-0-gpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "build-1-8-0-cpu",
-                    template: "build-1-8-0-cpu",
-                    dependencies: ["checkout"],
-                  },
-                  {
-                    name: "create-pr-symlink",
-                    template: "create-pr-symlink",
-                    dependencies: ["checkout"],
-                  },
-                ],
-              },  //dag
-            },
-            buildImageTemplate("1.4.1", "1-4-1", "cpu"),
-            buildImageTemplate("1.4.1", "1-4-1", "gpu"),
-            buildImageTemplate("1.5.1", "1-5-1", "cpu"),
-            buildImageTemplate("1.5.1", "1-5-1", "gpu"),
-            buildImageTemplate("1.6.0", "1-6-0", "cpu"),
-            buildImageTemplate("1.6.0", "1-6-0", "gpu"),
-            buildImageTemplate("1.7.0", "1-7-0", "cpu"),
-            buildImageTemplate("1.7.0", "1-7-0", "gpu"),
-            buildImageTemplate("1.8.0", "1-8-0", "cpu"),
-            buildImageTemplate("1.8.0", "1-8-0", "gpu"),
-            {
-              name: "exit-handler",
-              steps: [
-                [{
-                  name: "copy-artifacts",
-                  template: "copy-artifacts",
-                }],
-              ],
-            },
-            {
-              name: "checkout",
-              container: {
-                command: [
-                  "/usr/local/bin/checkout.sh",
-                ],
-                args: [
-                  srcRootDir,
-                ],
-                env: prow_env + [{
-                  name: "EXTRA_REPOS",
-                  value: "kubeflow/testing@HEAD",
-                }],
-                image: params.step_image,
-                volumeMounts: [
-                  {
-                    name: dataVolume,
-                    mountPath: mountPath,
-                  },
-                ],
-              },
-            },  // checkout
-            buildTemplate("create-pr-symlink", [
-              "python",
-              "-m",
-              "kubeflow.testing.prow_artifacts",
-              "--artifacts_dir=" + outputDir,
-              "create_pr_symlink",
-              "--bucket=" + bucket,
-            ]),  // create-pr-symlink
-            buildTemplate(
-              "copy-artifacts",
-              [
-                "python",
-                "-m",
-                "kubeflow.testing.prow_artifacts",
-                "--artifacts_dir=" + outputDir,
-                "copy_artifacts",
-                "--bucket=" + bucket,
-              ]
-            ),  // copy-artifacts
-          ],  // templates
+                       {
+                         name: "e2e",
+                         dag: {
+                           tasks: [
+                                    {
+                                      name: "checkout",
+                                      template: "checkout",
+                                    },
+                                    {
+                                      name: "create-pr-symlink",
+                                      template: "create-pr-symlink",
+                                      dependencies: ["checkout"],
+                                    },
+                                  ] +
+                                  [
+                                    {
+                                      name: $.workflowName(version[0], version[1]),
+                                      template: $.workflowName(version[0], version[1]),
+                                      dependencies: ["checkout"],
+                                    }
+                                    for version in supportedVersions
+                                  ],
+                         },  //dag
+                       },
+                       {
+                         name: "exit-handler",
+                         steps: [
+                           [{
+                             name: "copy-artifacts",
+                             template: "copy-artifacts",
+                           }],
+                         ],
+                       },
+                       {
+                         name: "checkout",
+                         container: {
+                           command: [
+                             "/usr/local/bin/checkout.sh",
+                           ],
+                           args: [
+                             srcRootDir,
+                           ],
+                           env: prow_env + [{
+                             name: "EXTRA_REPOS",
+                             value: "kubeflow/testing@HEAD",
+                           }],
+                           image: params.step_image,
+                           volumeMounts: [
+                             {
+                               name: dataVolume,
+                               mountPath: mountPath,
+                             },
+                           ],
+                         },
+                       },  // checkout
+                       buildTemplate("create-pr-symlink", [
+                         "python",
+                         "-m",
+                         "kubeflow.testing.prow_artifacts",
+                         "--artifacts_dir=" + outputDir,
+                         "create_pr_symlink",
+                         "--bucket=" + bucket,
+                       ]),  // create-pr-symlink
+                       buildTemplate(
+                         "copy-artifacts",
+                         [
+                           "python",
+                           "-m",
+                           "kubeflow.testing.prow_artifacts",
+                           "--artifacts_dir=" + outputDir,
+                           "copy_artifacts",
+                           "--bucket=" + bucket,
+                         ]
+                       ),  // copy-artifacts
+                     ] +
+                     [
+                       buildImageTemplate(version[0], version[1])
+                       for version in supportedVersions
+                     ],  // templates
         },
       },  // e2e
   },  // parts

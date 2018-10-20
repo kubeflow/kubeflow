@@ -38,6 +38,7 @@ std.assertEqual(iap.new(
     envoyPort: 8080,
     ipName: "ipName",
     hostname: "hostname",
+    issuer: "issuer",
   }
 ).ingress, {
   apiVersion: "extensions/v1beta1",
@@ -49,6 +50,7 @@ std.assertEqual(iap.new(
       "kubernetes.io/tls-acme": "true",
       "ingress.kubernetes.io/ssl-redirect": "true",
       "kubernetes.io/ingress.global-static-ip-name": "ipName",
+      "certmanager.k8s.io/issuer": "issuer",
     },
   },
   spec: {
@@ -79,6 +81,7 @@ std.assertEqual(iap.new(
     envoyPort: 8080,
     ipName: "ipName",
     hostname: "null",
+    issuer: "issuer",
   }
 ).ingress, {
   apiVersion: "extensions/v1beta1",
@@ -90,6 +93,7 @@ std.assertEqual(iap.new(
       "kubernetes.io/tls-acme": "true",
       "ingress.kubernetes.io/ssl-redirect": "true",
       "kubernetes.io/ingress.global-static-ip-name": "ipName",
+      "certmanager.k8s.io/issuer": "issuer",
     },
   },
   spec: {

@@ -1,30 +1,69 @@
 {
-  all(params):: [
+  local k = import "k.libsonnet",
+  local util = import "kubeflow/core/util.libsonnet",
+  local deployment = k.apps.v1beta1.deployment,
 
-                  $.parts(params.namespace).configMap(params.tfDefaultImage),
-                  $.parts(params.namespace).serviceAccount,
-                  $.parts(params.namespace).operatorRole(params.deploymentScope, params.deploymentNamespace),
-                  $.parts(params.namespace).operatorRoleBinding(params.deploymentScope, params.deploymentNamespace),
-                  $.parts(params.namespace).uiRole,
-                  $.parts(params.namespace).uiRoleBinding,
-                  $.parts(params.namespace).uiService(params.tfJobUiServiceType),
-                  $.parts(params.namespace).uiServiceAccount,
-                  $.parts(params.namespace).ui(params.tfJobImage),
-                ] +
+  new(_env, _params):: {
+    local params = _env + _params,
 
-                if params.tfJobVersion == "v1alpha2" then
-                  [
-                    $.parts(params.namespace).crdv1alpha2,
-                    $.parts(params.namespace).tfJobDeployV1Alpha2(params.tfJobImage, params.deploymentScope, params.deploymentNamespace),
-                  ]
-                else
-                  [
-                    $.parts(params.namespace).crd,
-                    $.parts(params.namespace).tfJobDeploy(params.tfJobImage),
-                  ],
+    // tfJobCrd schema
+    local openAPIV3Schema = {
+      properties: {
+        spec: {
+          properties: {
+            tfReplicaSpecs: {
+              properties: {
+                // The validation works when the configuration contains
+                // `Worker`, `PS` or `Chief`. Otherwise it will not be validated.
+                Worker: {
+                  properties: {
+                    // We do not validate pod template because of
+                    // https://github.com/kubernetes/kubernetes/issues/54579
+                    replicas: {
+                      type: "integer",
+                      minimum: 1,
+                    },
+                  },
+                },
+                PS: {
+                  properties: {
+                    replicas: {
+                      type: "integer",
+                      minimum: 1,
+                    },
+                  },
+                },
+                Chief: {
+                  properties: {
+                    replicas: {
+                      type: "integer",
+                      minimum: 1,
+                      maximum: 1,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    local crd(inst) = {
+      local scope =
+        inst + if params.deploymentScope == "namespace" && params.deploymentNamespace != null then
+          { spec+: { scope: "Namespaced" } }
+        else
+          {},
+      local version =
+        scope + if params.tfJobVersion == "v1alpha2" then
+          { spec+: { version: "v1alpha2" } } +
+          { spec+: { validation: { openAPIV3Schema: openAPIV3Schema } } }
+        else
+          {},
+      return:: version,
+    }.return,
 
-  parts(namespace):: {
-    crd: {
+    local tfJobCrd = crd({
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
       metadata: {
@@ -39,74 +78,51 @@
           plural: "tfjobs",
         },
       },
-    },
+    }),
+    tfJobCrd:: tfJobCrd,
 
-    crdv1alpha2: {
-      apiVersion: "apiextensions.k8s.io/v1beta1",
-      kind: "CustomResourceDefinition",
-      metadata: {
-        name: "tfjobs.kubeflow.org",
-      },
-      spec: {
-        group: "kubeflow.org",
-        version: "v1alpha2",
-        names: {
-          kind: "TFJob",
-          singular: "tfjob",
-          plural: "tfjobs",
-        },
-        validation: {
-          openAPIV3Schema: {
-            properties: {
-              spec: {
-                properties: {
-                  tfReplicaSpecs: {
-                    properties: {
-                      // The validation works when the configuration contains
-                      // `Worker`, `PS` or `Chief`. Otherwise it will not be validated.
-                      Worker: {
-                        properties: {
-                          // We do not validate pod template because of
-                          // https://github.com/kubernetes/kubernetes/issues/54579
-                          replicas: {
-                            type: "integer",
-                            minimum: 1,
-                          },
-                        },
-                      },
-                      PS: {
-                        properties: {
-                          replicas: {
-                            type: "integer",
-                            minimum: 1,
-                          },
-                        },
-                      },
-                      Chief: {
-                        properties: {
-                          replicas: {
-                            type: "integer",
-                            minimum: 1,
-                            maximum: 1,
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
+    local tfJobContainer = {
+      command: [
+        "/opt/mlkube/tf-operator",
+        "--controller-config-file=/etc/config/controller_config_file.yaml",
+        "--alsologtostderr",
+        "-v=1",
+      ],
+      env: [
+        {
+          name: "MY_POD_NAMESPACE",
+          valueFrom: {
+            fieldRef: {
+              fieldPath: "metadata.namespace",
             },
           },
         },
-      },
+        {
+          name: "MY_POD_NAME",
+          valueFrom: {
+            fieldRef: {
+              fieldPath: "metadata.name",
+            },
+          },
+        },
+      ],
+      image: params.tfJobImage,
+      name: "tf-job-operator",
+      volumeMounts: [
+        {
+          mountPath: "/etc/config",
+          name: "config-volume",
+        },
+      ],
     },
+    tfJobContainer:: tfJobContainer,
 
-    tfJobDeploy(image): {
+    local tfJobDeployment = {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
         name: "tf-job-operator",
-        namespace: namespace,
+        namespace: params.namespace,
       },
       spec: {
         replicas: 1,
@@ -118,40 +134,7 @@
           },
           spec: {
             containers: [
-              {
-                command: [
-                  "/opt/mlkube/tf-operator",
-                  "--controller-config-file=/etc/config/controller_config_file.yaml",
-                  "--alsologtostderr",
-                  "-v=1",
-                ],
-                env: [
-                  {
-                    name: "MY_POD_NAMESPACE",
-                    valueFrom: {
-                      fieldRef: {
-                        fieldPath: "metadata.namespace",
-                      },
-                    },
-                  },
-                  {
-                    name: "MY_POD_NAME",
-                    valueFrom: {
-                      fieldRef: {
-                        fieldPath: "metadata.name",
-                      },
-                    },
-                  },
-                ],
-                image: image,
-                name: "tf-job-operator",
-                volumeMounts: [
-                  {
-                    mountPath: "/etc/config",
-                    name: "config-volume",
-                  },
-                ],
-              },
+              tfJobContainer,
             ],
             serviceAccountName: "tf-job-operator",
             volumes: [
@@ -165,106 +148,55 @@
           },
         },
       },
-    },  // tfJobDeploy
-
-    tfJobDeployV1Alpha2(image, deploymentScope, deploymentNamespace): {
-      apiVersion: "extensions/v1beta1",
-      kind: "Deployment",
-      metadata: {
-        name: "tf-job-operator-v1alpha2",
-        namespace: namespace,
-      },
-      spec: {
-        replicas: 1,
-        template: {
-          metadata: {
-            labels: {
-              name: "tf-job-operator",
-            },
-          },
-          spec: {
-            containers: [
-              {
-                command: std.prune([
-                  "/opt/kubeflow/tf-operator.v2",
-                  "--alsologtostderr",
-                  "-v=1",
-                  if deploymentScope == "namespace" then ("--namespace=" + deploymentNamespace),
-                ]),
-                env: std.prune([
-                  {
-                    name: "MY_POD_NAMESPACE",
-                    valueFrom: {
-                      fieldRef: {
-                        fieldPath: "metadata.namespace",
-                      },
-                    },
-                  },
-                  {
-                    name: "MY_POD_NAME",
-                    valueFrom: {
-                      fieldRef: {
-                        fieldPath: "metadata.name",
-                      },
-                    },
-                  },
-                  if deploymentScope == "namespace" then {
-                    name: "KUBEFLOW_NAMESPACE",
-                    valueFrom: {
-                      fieldRef: {
-                        fieldPath: "metadata.namespace",
-                      },
-                    },
-                  },
-                ]),
-                image: image,
-                name: "tf-job-operator",
-                volumeMounts: [
-                  {
-                    mountPath: "/etc/config",
-                    name: "config-volume",
-                  },
-                ],
-              },
-            ],
-            serviceAccountName: "tf-job-operator",
-            volumes: [
-              {
-                configMap: {
-                  name: "tf-job-operator-config",
+    } + if params.tfJobVersion == "v1alpha2" then
+      deployment.mixin.metadata.
+        withName("tf-job-operator-v1alpha2") +
+      deployment.mapContainers(
+        function(c) {
+          local container = deployment.mixin.spec.template.spec.containersType,
+          local env =
+            if params.deploymentScope == "namespace" && params.deploymentNamespace != null then [{
+              name: "KUBEFLOW_NAMESPACE",
+              valueFrom: {
+                fieldRef: {
+                  fieldPath: "metadata.namespace",
                 },
-                name: "config-volume",
               },
-            ],
-          },
-        },
-      },
-    },  // tfJobDeploy
+            }] else [],
+          local cmd = [
+            "/opt/kubeflow/tf-operator.v2",
+            "--alsologtostderr",
+            "-v=1",
+          ] + if params.deploymentScope == "namespace" &&
+                 params.deploymentNamespace != null then [
+            "--namespace=" + params.deploymentNamespace,
+          ] else [],
+          result:: c + container.withEnvMixin(env) + container.withCommand(cmd),
+        }.result,
+      )
+    else
+      {},
+    tfJobDeployment:: tfJobDeployment,
 
-    // Default value for
-    defaultControllerConfig(tfDefaultImage):: {
-                                                grpcServerFilePath: "/opt/mlkube/grpc_tensorflow_server/grpc_tensorflow_server.py",
-                                              }
-                                              + if tfDefaultImage != "" && tfDefaultImage != "null" then
-                                                {
-                                                  tfImage: tfDefaultImage,
-                                                }
-                                              else
-                                                {},
-
-    configMap(tfDefaultImage): {
+    local tfConfigMap = {
       apiVersion: "v1",
       data: {
-        "controller_config_file.yaml": std.manifestJson($.parts(namespace).defaultControllerConfig(tfDefaultImage)),
+        "controller_config_file.yaml": std.manifestJson({
+          grpcServerFilePath: "/opt/mlkube/grpc_tensorflow_server/grpc_tensorflow_server.py",
+        } + if params.tfDefaultImage != "" &&
+               params.tfDefaultImage != "null" then {
+          tfImage: params.tfDefaultImage,
+        } else {},),
       },
       kind: "ConfigMap",
       metadata: {
         name: "tf-job-operator-config",
-        namespace: namespace,
+        namespace: params.namespace,
       },
     },
+    tfConfigMap:: tfConfigMap,
 
-    serviceAccount: {
+    local tfServiceAccount = {
       apiVersion: "v1",
       kind: "ServiceAccount",
       metadata: {
@@ -272,130 +204,158 @@
           app: "tf-job-operator",
         },
         name: "tf-job-operator",
-        namespace: namespace,
+        namespace: params.namespace,
       },
     },
+    tfServiceAccount:: tfServiceAccount,
 
-    operatorRole(deploymentScope, deploymentNamespace): {
-      local roleType = if deploymentScope == "cluster" then "ClusterRole" else "Role",
-      apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: roleType,
-      metadata: {
-        labels: {
-          app: "tf-job-operator",
-        },
-        name: "tf-job-operator",
-        [if deploymentScope == "namespace" then "namespace"]: deploymentNamespace,
-      },
-      rules: [
-        {
-          apiGroups: [
-            "tensorflow.org",
-            "kubeflow.org",
-          ],
-          resources: [
-            "tfjobs",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-        {
-          apiGroups: [
-            "apiextensions.k8s.io",
-          ],
-          resources: [
-            "customresourcedefinitions",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-        {
-          apiGroups: [
-            "storage.k8s.io",
-          ],
-          resources: [
-            "storageclasses",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-        {
-          apiGroups: [
-            "batch",
-          ],
-          resources: [
-            "jobs",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-        {
-          apiGroups: [
-            "",
-          ],
-          resources: [
-            "configmaps",
-            "pods",
-            "services",
-            "endpoints",
-            "persistentvolumeclaims",
-            "events",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-        {
-          apiGroups: [
-            "apps",
-            "extensions",
-          ],
-          resources: [
-            "deployments",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
+    // set the right roleTypes
+    local roleType(deploymentScope) = {
+      return:: if deploymentScope == "namespace" && params.deploymentNamespace != null then [
+        k.rbac.v1beta1.role,
+        k.rbac.v1beta1.roleBinding,
+      ] else [
+        k.rbac.v1beta1.clusterRole,
+        k.rbac.v1beta1.clusterRoleBinding,
       ],
-    },  // operator-role
+    }.return,
+    local roles = roleType(params.deploymentScope),
+    local operatorRole = roles[0],
+    local operatorRoleBinding = roles[1],
 
-    operatorRoleBinding(deploymentScope, deploymentNamespace): {
-      local bindingType = if deploymentScope == "cluster" then "ClusterRoleBinding" else "RoleBinding",
-      local roleType = if deploymentScope == "cluster" then "ClusterRole" else "Role",
+    // consolidated rules shared between tfOperatorRole and tfUiRole
+    local rule = k.rbac.v1beta1.role.rulesType,
+    local rules = {
+      tfJobsRule:: rule.new() + rule.
+        withApiGroupsMixin([
+        "tensorflow.org",
+        "kubeflow.org",
+      ],).
+        withResourcesMixin([
+        "tfjobs",
+      ],).
+        withVerbsMixin([
+        "*",
+      ],),
+      tfCrdRule:: rule.new() + rule.
+        withApiGroupsMixin([
+        "apiextensions.k8s.io",
+      ],).
+        withResourcesMixin([
+        "customresourcedefinitions",
+      ],).
+        withVerbsMixin([
+        "*",
+      ],),
+      tfStorageRule:: rule.new() + rule.
+        withApiGroupsMixin([
+        "storage.k8s.io",
+      ],).
+        withResourcesMixin([
+        "storageclasses",
+      ],).
+        withVerbsMixin([
+        "*",
+      ],),
+      tfBatchRule:: rule.new() + rule.
+        withApiGroupsMixin([
+        "batch",
+      ],).
+        withResourcesMixin([
+        "jobs",
+      ],).
+        withVerbsMixin([
+        "*",
+      ],),
+      tfCoreRule:: rule.new() + rule.
+        withApiGroupsMixin([
+        "",
+      ],).
+        withResourcesMixin([
+        "configmaps",
+        "pods",
+        "services",
+        "endpoints",
+        "persistentvolumeclaims",
+        "events",
+      ],).
+        withVerbsMixin([
+        "*",
+      ],),
+      tfAppsRule:: rule.new() + rule.
+        withApiGroupsMixin([
+        "apps",
+        "extensions",
+      ],).
+        withResourcesMixin([
+        "deployments",
+      ],).
+        withVerbsMixin([
+        "*",
+      ],),
+    },
+    local role(inst) = {
+      local ns =
+        inst + if params.deploymentScope == "namespace" && params.deploymentNamespace != null then
+          operatorRole.mixin.metadata.withNamespace(params.deploymentNamespace)
+        else
+          {},
+      return:: ns,
+    }.return,
+    local tfOperatorRole = role(
+      {
+        apiVersion: "rbac.authorization.k8s.io/v1beta1",
+        kind: operatorRole.new().kind,
+        metadata: {
+          labels: {
+            app: "tf-job-operator",
+          },
+          name: "tf-job-operator",
+        },
+      } + k.rbac.v1beta1.role.withRulesMixin([
+        rules.tfJobsRule,
+        rules.tfCrdRule,
+        rules.tfStorageRule,
+        rules.tfBatchRule,
+        rules.tfCoreRule,
+        rules.tfAppsRule,
+      ],),
+    ),
+    tfOperatorRole:: tfOperatorRole,
+
+    local tfOperatorRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: bindingType,
+      kind: operatorRoleBinding.new().kind,
       metadata: {
         labels: {
           app: "tf-job-operator",
         },
         name: "tf-job-operator",
-        [if deploymentScope == "namespace" then "namespace"]: deploymentNamespace,
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
-        kind: roleType,
+        kind: tfOperatorRole.kind,
         name: "tf-job-operator",
       },
       subjects: [
         {
-          kind: "ServiceAccount",
-          name: "tf-job-operator",
-          namespace: namespace,
+          kind: tfServiceAccount.kind,
+          name: tfServiceAccount.metadata.name,
+          namespace: params.namespace,
         },
       ],
-    },  // operator-role binding
+    } + if params.deploymentScope == "namespace" && params.deploymentNamespace != null then
+      operatorRoleBinding.mixin.metadata.withNamespace(params.deploymentNamespace)
+    else
+      {},
+    tfOperatorRoleBinding:: tfOperatorRoleBinding,
 
-    uiService(serviceType):: {
+    local tfUiService = {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
         name: "tf-job-dashboard",
-        namespace: namespace,
+        namespace: params.namespace,
         annotations: {
           "getambassador.io/config":
             std.join("\n", [
@@ -405,7 +365,7 @@
               "name: tfjobs-ui-mapping",
               "prefix: /tfjobs/",
               "rewrite: /tfjobs/",
-              "service: tf-job-dashboard." + namespace,
+              "service: tf-job-dashboard." + params.namespace,
             ]),
         },  //annotations
       },
@@ -419,11 +379,12 @@
         selector: {
           name: "tf-job-dashboard",
         },
-        type: serviceType,
+        type: params.tfJobUiServiceType,
       },
-    },  // uiService
+    },
+    tfUiService:: tfUiService,
 
-    uiServiceAccount: {
+    local tfUiServiceAccount = {
       apiVersion: "v1",
       kind: "ServiceAccount",
       metadata: {
@@ -431,16 +392,40 @@
           app: "tf-job-dashboard",
         },
         name: "tf-job-dashboard",
-        namespace: namespace,
+        namespace: params.namespace,
       },
-    },  // uiServiceAccount
+    },
+    tfUiServiceAccount:: tfUiServiceAccount,
 
-    ui(image):: {
+    local tfUiContainer = {
+      command: [
+        "/opt/tensorflow_k8s/dashboard/backend",
+      ],
+      env: [
+        {
+          name: "KUBEFLOW_NAMESPACE",
+          valueFrom: {
+            fieldRef: {
+              fieldPath: "metadata.namespace",
+            },
+          },
+        },
+      ],
+      image: params.tfJobImage,
+      name: "tf-job-dashboard",
+      ports: [
+        {
+          containerPort: 8080,
+        },
+      ],
+    },
+
+    local tfUiDeployment = {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
         name: "tf-job-dashboard",
-        namespace: namespace,
+        namespace: params.namespace,
       },
       spec: {
         template: {
@@ -451,36 +436,16 @@
           },
           spec: {
             containers: [
-              {
-                command: [
-                  "/opt/tensorflow_k8s/dashboard/backend",
-                ],
-                env: [
-                  {
-                    name: "KUBEFLOW_NAMESPACE",
-                    valueFrom: {
-                      fieldRef: {
-                        fieldPath: "metadata.namespace",
-                      },
-                    },
-                  },
-                ],
-                image: image,
-                name: "tf-job-dashboard",
-                ports: [
-                  {
-                    containerPort: 8080,
-                  },
-                ],
-              },
+              tfUiContainer,
             ],
             serviceAccountName: "tf-job-dashboard",
           },
         },
       },
-    },  // ui
+    },
+    tfUiDeployment:: tfUiDeployment,
 
-    uiRole:: {
+    local tfUiRole = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRole",
       metadata: {
@@ -489,86 +454,20 @@
         },
         name: "tf-job-dashboard",
       },
-      rules: [
-        {
-          apiGroups: [
-            "tensorflow.org",
-            "kubeflow.org",
-          ],
-          resources: [
-            "tfjobs",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-        {
-          apiGroups: [
-            "apiextensions.k8s.io",
-          ],
-          resources: [
-            "customresourcedefinitions",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-        {
-          apiGroups: [
-            "storage.k8s.io",
-          ],
-          resources: [
-            "storageclasses",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-        {
-          apiGroups: [
-            "batch",
-          ],
-          resources: [
-            "jobs",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-        {
-          apiGroups: [
-            "",
-          ],
-          resources: [
-            "configmaps",
-            "pods",
-            "pods/log",
-            "services",
-            "endpoints",
-            "persistentvolumeclaims",
-            "events",
-            "namespaces",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-        {
-          apiGroups: [
-            "apps",
-            "extensions",
-          ],
-          resources: [
-            "deployments",
-          ],
-          verbs: [
-            "*",
-          ],
-        },
-      ],
-    },  // uiRole
+    } + k.rbac.v1beta1.role.withRulesMixin([
+      rules.tfJobsRule,
+      rules.tfCrdRule,
+      rules.tfStorageRule,
+      rules.tfBatchRule,
+      rules.tfCoreRule.withResourcesMixin([
+        "pods/log",
+        "namespaces",
+      ]),
+      rules.tfAppsRule,
+    ],),
+    tfUiRole:: tfUiRole,
 
-    uiRoleBinding:: {
+    local tfUiRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRoleBinding",
       metadata: {
@@ -579,16 +478,34 @@
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
-        kind: "ClusterRole",
-        name: "tf-job-dashboard",
+        kind: tfUiRole.kind,
+        name: tfUiRole.metadata.name,
       },
       subjects: [
         {
-          kind: "ServiceAccount",
-          name: "tf-job-dashboard",
-          namespace: namespace,
+          kind: tfUiServiceAccount.kind,
+          name: tfUiServiceAccount.metadata.name,
+          namespace: tfUiServiceAccount.metadata.namespace,
         },
       ],
-    },  // uiRoleBinding
+    },
+    tfUiRoleBinding:: tfUiRoleBinding,
+
+    parts:: self,
+    all:: [
+      self.tfJobCrd,
+      self.tfJobDeployment,
+      self.tfConfigMap,
+      self.tfServiceAccount,
+      self.tfOperatorRole,
+      self.tfOperatorRoleBinding,
+      self.tfUiService,
+      self.tfUiServiceAccount,
+      self.tfUiDeployment,
+      self.tfUiRole,
+      self.tfUiRoleBinding,
+    ],
+
+    list(obj=self.all):: util.list(obj),
   },
 }

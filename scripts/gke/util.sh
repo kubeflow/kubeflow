@@ -40,7 +40,7 @@ generateDMConfigs() {
   if [ ! -d "${KUBEFLOW_DM_DIR}" ]; then
     echo creating Deployment Manager configs in directory "${KUBEFLOW_DM_DIR}"
     mkdir -p "${KUBEFLOW_DM_DIR}"
-    cp -r "${KUBEFLOW_REPO}"/scripts/gke/deployment_manager_configs/cluster* "${KUBEFLOW_DM_DIR}"
+    cp -r "${KUBEFLOW_REPO}"/deployment/gke/deployment_manager_configs/cluster* "${KUBEFLOW_DM_DIR}"
 
     if [[ "$EMAIL" =~ .*iam\.gserviceaccount\.com ]]; then
       IAP_IAM_ENTRY="serviceAccount:${EMAIL}"
@@ -48,7 +48,7 @@ generateDMConfigs() {
       IAP_IAM_ENTRY="user:${EMAIL}"
     fi
 
-    cp "${KUBEFLOW_REPO}"/scripts/gke/deployment_manager_configs/iam_bindings_template.yaml "${KUBEFLOW_DM_DIR}"/iam_bindings.yaml
+    cp "${KUBEFLOW_REPO}"/deployment/gke/deployment_manager_configs/iam_bindings_template.yaml "${KUBEFLOW_DM_DIR}"/iam_bindings.yaml
 
     # Set the various service accounts in iam_bindings.yaml
     sed -i.bak "s/set-kubeflow-admin-service-account/serviceAccount:${DEPLOYMENT_NAME}-admin@${PROJECT}.iam.gserviceaccount.com/" "${KUBEFLOW_DM_DIR}"/iam_bindings.yaml
@@ -59,6 +59,7 @@ generateDMConfigs() {
 
     # Set values in DM config file
     sed -i.bak "s/zone: SET_THE_ZONE/zone: ${ZONE}/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
+    sed -i.bak "s/cluster-version: SET_CLUSTER_VERSION/cluster-version: \"${CLUSTER_VERSION}\"/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
     sed -i.bak "s/users:/users: [\"${IAP_IAM_ENTRY}\"]/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
     sed -i.bak "s/ipName: kubeflow-ip/ipName: ${KUBEFLOW_IP_NAME}/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
     rm "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}.bak"
@@ -114,7 +115,7 @@ updateDeployment() {
   cd ${KUBEFLOW_DM_DIR}
   # Check if it already exists
   set +e
-  O=`gcloud deployment-manager --project=${PROJECT} deployments describe ${DEPLOYMENT_NAME} 2>&1`
+  O=`gcloud deployment-manager --project=${PROJECT} deployments describe ${NAME} 2>&1`
   exists=$?
   set -e
 

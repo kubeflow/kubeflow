@@ -106,28 +106,31 @@ def main():
 
     service = core_api.read_namespaced_service(args.service_name, args.namespace)
     service_ip = service.spec.cluster_ip
-    model_url = "http://" + service_ip + ":8000/model/mnist:predict"
-
-    num_try = 1
-    result = None
-    while True:
-      try:
-        result = requests.post(model_url, json=instances)
-        assert(result.status_code == 200)
-      except Exception as e:
-        num_try += 1
-        if num_try > 10:
-          raise
-        logging.info('prediction failed: {}. Retrying...'.format(e))
-        time.sleep(5)
-      else:
-        break
-    logging.info('Got result: {}'.format(result.text))
-    if args.result_path:
-      with open(args.result_path) as f:
-        expected_result = json.loads(f.read())
-        logging.info('Expected result: {}'.format(expected_result))
-        assert(almost_equal(expected_result, json.loads(result.text)))
+    model_urls = [
+      "http://" + service_ip + ":8500/v1/models/mnist:predict",  # tf serving's http server
+    ]
+    for model_url in model_urls:
+      logging.info("Try predicting with endpoint {}".format(model_url))
+      num_try = 1
+      result = None
+      while True:
+        try:
+          result = requests.post(model_url, json=instances)
+          assert(result.status_code == 200)
+        except Exception as e:
+          num_try += 1
+          if num_try > 10:
+            raise
+          logging.info('prediction failed: {}. Retrying...'.format(e))
+          time.sleep(5)
+        else:
+          break
+      logging.info('Got result: {}'.format(result.text))
+      if args.result_path:
+        with open(args.result_path) as f:
+          expected_result = json.loads(f.read())
+          logging.info('Expected result: {}'.format(expected_result))
+          assert(almost_equal(expected_result, json.loads(result.text)))
   except Exception as e:
     t.failure = "Test failed; " + e.message
     raise

@@ -3,7 +3,7 @@
 // @description Chainer Operator.
 // @shortDescription Chainer Operator which manages ChainerJob resources.
 // @param name string Name to give to each of the components.
-// @optionalParam image string everpeace/chainer-operator:latest The image for the MPI Operator.
+// @optionalParam image string gcr.io/kubeflow-images-public/chainer-operator:v0.3.0 The image for the chainer operator.
 // @optionalParam createRbac string true If true (default), create ServiceAccount, ClusterRole and ClusterRoleBinding for the operator.  Otherwise, you have to create them manually.  Please see https://github.com/kubeflow/chainer-operator for required authorization for the operator.
 // @optionalParam serviceAccountName string null you can set your custom service account for running the operator.  The value is used only when 'createRbac' is false.
 // @optionalParam v number 2 log level of the operator which is passed with '-v' option to the operator.

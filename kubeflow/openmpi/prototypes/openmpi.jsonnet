@@ -5,7 +5,6 @@
 // @param name string Name to give to each of the components.
 // @param image string Docker image with openmpi.
 // @param secret string Name of secret containing ssh keys.
-// @optionalParam namespace string null Namespace to use for the components. It is automatically inherited from the environment if not set.
 // @optionalParam workers number 4 Number of workers.
 // @optionalParam init string null Command to bootstrap the containers. Defaults to init.sh.
 // @optionalParam exec string null Command to execute in master after bootstrap is done. It sleeps indefinitely if not set.
@@ -28,6 +27,8 @@
 // @optionalParam runAsUser string null uid of the first process of containers in master/worker pods. If not set, this will be default value of your cluster configuration.
 // @optionalParam runAsGroup string null Primary gid of the first process of containers in master/worker pods. If not set, this will be default value of your cluster configuration.
 // @optionalParam supplementalGroups string null Comma-delimited list of supplemental group ids to put the user of the first process of containers in master/worker pods.
+// @optionalParam volumes array [] 'volumes' to put master/workers pods.
+// @optionalParam volumeMounts array [] 'volumes' to put job containers in master/workers pods.
 
 local k = import "k.libsonnet";
 local openmpi = import "kubeflow/openmpi/all.libsonnet";

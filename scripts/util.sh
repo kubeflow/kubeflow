@@ -56,6 +56,7 @@ function createKsApp() {
   ks pkg install kubeflow/pytorch-job
   ks pkg install kubeflow/seldon
   ks pkg install kubeflow/tf-serving
+  ks pkg install kubeflow/application
 
   # Generate all required components
   ks generate pytorch-operator pytorch-operator
@@ -66,7 +67,7 @@ function createKsApp() {
   ks generate tf-job-operator tf-job-operator
 
   ks generate argo argo
-
+  ks generate katib katib
   # Enable collection of anonymous usage metrics
   # To disable metrics collection. Remove the spartakus component.
   # cd ks_app
@@ -89,6 +90,7 @@ function createKsApp() {
   echo "For more info: https://www.kubeflow.org/docs/guides/usage-reporting/"
   echo "****************************************************************"
   echo ""
+  ks generate application application
 }
 
 function removeKsEnv() {

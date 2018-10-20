@@ -3,9 +3,8 @@
 // @description A benchmark job on Kubeflow
 // @shortDescription A benchmark job on Kubeflow
 // @param name string Name to give to each of the components
-// @optionalParam namespace string null Namespace
 // @optionalParam serviceAccount string null The service account used to run the job
-// @optionalParam controllerImage string gcr.io/xyhuang-kubeflow/kubebench-controller:v20180913-1 Configurator image
+// @optionalParam controllerImage string gcr.io/kubeflow-images-public/kubebench/kubebench-controller:v0.3.0 Configurator image
 // @optionalParam githubTokenSecret string null Github token secret
 // @optionalParam githubTokenSecretKey string null Key of Github token secret
 // @optionalParam gcpCredentialsSecret string null GCP credentials secret
@@ -13,11 +12,11 @@
 // @optionalParam mainJobKsPrototype string kubebench-example-tfcnn The Ksonnet prototype of the job being benchmarked
 // @optionalParam mainJobKsPackage string kubebench-examples The Ksonnet package of the job being benchmarked
 // @optionalParam mainJobKsRegistry string github.com/kubeflow/kubebench/tree/master/kubebench The Ksonnet registry of the job being benchmarked
-// @optionalParam mainJobConfig string tf-cnn-dummy.yaml Path to the config of the benchmarked job
+// @optionalParam mainJobConfig string tf-cnn/tf-cnn-dummy.yaml Path to the config of the benchmarked job
 // @optionalParam experimentConfigPvc string kubebench-config-pvc Configuration PVC
 // @optionalParam experimentDataPvc string null Data PVC
 // @optionalParam experimentRecordPvc string kubebench-exp-pvc Experiment PVC
-// @optionalParam postJobImage string gcr.io/xyhuang-kubeflow/kubebench-example-tfcnn-postprocessor:v20180909-1 Image of post processor
+// @optionalParam postJobImage string gcr.io/kubeflow-images-public/kubebench/kubebench-example-tf-cnn-post-processor:3c75b50 Image of post processor
 // @optionalParam postJobArgs string null Arguments of post processor
 // @optionalParam reporterType string csv Type of reporter
 // @optionalParam csvReporterInput string result.json The input of CSV reporter
@@ -28,7 +27,7 @@ local kubebenchJob = import "kubeflow/kubebench/kubebench-job.libsonnet";
 local kubebenchRbac = import "kubeflow/kubebench/kubebench-rbac.libsonnet";
 
 local name = params.name;
-local namespace = if params.namespace == "null" then env.namespace else params.namespace;
+local namespace = env.namespace;
 local serviceAccount = params.serviceAccount;
 local controllerImage = params.controllerImage;
 local configPvc = params.experimentConfigPvc;

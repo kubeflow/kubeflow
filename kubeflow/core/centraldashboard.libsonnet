@@ -2,10 +2,7 @@
   local k = import "k.libsonnet",
   local util = import "kubeflow/core/util.libsonnet",
   new(_env, _params):: {
-    local params = _env + _params + {
-      namespace: if std.objectHas(_params, "namespace") && _params.namespace != "null" then
-        _params.namespace else _env.namespace,
-    },
+    local params = _env + _params,
 
     local centralDashboardDeployment = {
       apiVersion: "extensions/v1beta1",
@@ -96,9 +93,9 @@
     },  // service account
     centralDashboardServiceAccount:: centralDashboardServiceAccount,
 
-    local centralDashboardClusterRole = {
+    local centralDashboardRole = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "ClusterRole",
+      kind: "Role",
       metadata: {
         labels: {
           app: "centraldashboard",
@@ -130,12 +127,12 @@
           ],
         },
       ],
-    },  // operator-role
-    centralDashboardClusterRole:: centralDashboardClusterRole,
+    },  // role
+    centralDashboardRole:: centralDashboardRole,
 
-    local centralDashboardClusterRoleBinding = {
+    local centralDashboardRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "ClusterRoleBinding",
+      kind: "RoleBinding",
       metadata: {
         labels: {
           app: "centraldashboard",
@@ -145,7 +142,7 @@
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
-        kind: "ClusterRole",
+        kind: "Role",
         name: "centraldashboard",
       },
       subjects: [
@@ -156,13 +153,14 @@
         },
       ],
     },  // role binding
-    centralDashboardClusterRoleBinding:: centralDashboardClusterRoleBinding,
+    centralDashboardRoleBinding:: centralDashboardRoleBinding,
 
+    parts:: self,
     all:: [
       self.centralDashboardDeployment,
       self.centralDashboardService,
       self.centralDashboardServiceAccount,
-      self.centralDashboardClusterRole,
+      self.centralDashboardRole,
     ],
 
     list(obj=self.all):: util.list(obj),
