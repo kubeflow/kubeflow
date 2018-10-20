@@ -259,7 +259,6 @@
           app: "argo",
         },
         name: "argo",
-        namespace: params.namespace,
       },
       rules: [
         {
@@ -327,7 +326,6 @@
           app: "argo",
         },
         name: "argo",
-        namespace: params.namespace,
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
@@ -367,7 +365,6 @@
           app: "argo",
         },
         name: "argo-ui",
-        namespace: params.namespace,
       },
       rules: [
         {
@@ -417,7 +414,6 @@
           app: "argo-ui",
         },
         name: "argo-ui",
-        namespace: params.namespace,
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",

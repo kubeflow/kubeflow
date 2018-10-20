@@ -293,6 +293,12 @@ if [ "${COMMAND}" == "apply" ]; then
     if [ "${PLATFORM}" == "gcp" ]; then
     	gcpKsApply
     fi
+
+    # all components deployed
+    # deploy the application CR
+    pushd ${KUBEFLOW_KS_DIR}
+      ks apply default -c application
+    popd
   fi
 fi
 
