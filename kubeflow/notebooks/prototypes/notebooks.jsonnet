@@ -5,7 +5,7 @@
 // @param name string Name
 // @optionalParam image string gcr.io/kubeflow/jupyterhub-k8s:v20180531-3bb991b1 The image to use for the notebook
 // @optionalParam authenticator string null The authenticator to use
-// @optionalParam notebookPVCMount string /home/jovyan Mount path for PVC. Set empty to disable PVC
+// @optionalParam pvcMount string /home/jovyan Mount path for PVC. Set empty to disable PVC
 // @optionalParam registry string gcr.io The docker image registry for notebook
 // @optionalParam repoName string kubeflow-images-public The repository name for the notebook
 // @optionalParam disks string null Comma separated list of Google persistent disks to attach to notebook environments.

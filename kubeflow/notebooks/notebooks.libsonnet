@@ -28,7 +28,7 @@
     },
     crd:: crd,
 
-    local sync =
+    local syncNotebook =
       |||
         function(request) {
           local existingGroups =
@@ -242,7 +242,7 @@
         namespace: params.namespace,
       },
       data: {
-        "sync-notebook.jsonnet": sync,
+        "sync-notebook.jsonnet": syncNotebook,
         "util.libsonnet": importstr "kubeflow/core/util.libsonnet",
       },
     },
@@ -342,7 +342,7 @@
         hooks: {
           sync: {
             webhook: {
-              url: "http://notebooks." + params.namespace + "/sync",
+              url: "http://notebooks." + params.namespace + "/sync-notebook",
             },
           },
         },
