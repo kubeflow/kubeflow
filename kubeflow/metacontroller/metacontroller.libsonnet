@@ -1,7 +1,5 @@
 {
-  local k8s = import "k8s.libsonnet",
   local util = import "kubeflow/core/util.libsonnet",
-  local crd = k8s.apiextensions.v1beta1.customResourceDefinition,
 
   new(_env, _params):: {
     local params = _env + _params,
