@@ -57,6 +57,7 @@ function createKsApp() {
   ks pkg install kubeflow/seldon
   ks pkg install kubeflow/tf-serving
   ks pkg install kubeflow/application
+  ks pkg install kubeflow/notebooks
 
   # Generate all required components
   ks generate pytorch-operator pytorch-operator
@@ -65,6 +66,7 @@ function createKsApp() {
   ks generate jupyterhub jupyterhub
   ks generate centraldashboard centraldashboard
   ks generate tf-job-operator tf-job-operator
+  ks generate notebooks notebooks
 
   ks generate argo argo
   ks generate katib katib

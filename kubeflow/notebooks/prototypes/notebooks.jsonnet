@@ -1,7 +1,7 @@
 // @apiVersion 0.1
-// @name io.ksonnet.pkg.notebook-controller
-// @description notebook-controller Component
-// @shortDescription notebook-controller Component
+// @name io.ksonnet.pkg.notebooks
+// @description notebooks Component
+// @shortDescription notebooks Component
 // @param name string Name
 // @optionalParam image string gcr.io/kubeflow/jupyterhub-k8s:v20180531-3bb991b1 The image to use for the notebook
 // @optionalParam authenticator string null The authenticator to use
@@ -13,6 +13,6 @@
 // @optionalParam gid string -1 GroupID of the host user for minikube local fs mount
 // @optionalParam accessLocalFs string false Set true if mounting a local fs directory that needs to be accessed by the notebook in Minikube.
 
-local notebookController = import "kubeflow/notebook-controller/notebook-controller.libsonnet";
-local instance = notebookController.new(env, params);
+local notebooks = import "kubeflow/notebooks/notebooks.libsonnet";
+local instance = notebooks.new(env, params);
 instance.list(instance.all)
