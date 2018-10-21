@@ -15,7 +15,7 @@
       spec: {
         group: "kubeflow.org",
         version: "v1alpha1",
-        scope: "Namespaced",
+        scope: "Cluster",
         names: {
           plural: "notebooks",
           singular: "notebook",
@@ -54,6 +54,7 @@
               else
                 false,
           }.return,
+          local podTemplate = request.parent.spec.template,
           local foundChildren = std.filter(existingResource, 
             std.flattenArrays(std.map(existingResources, existingGroups))),
           local children = [
@@ -62,13 +63,23 @@
               kind: 'Service',
               metadata: {
                 annotations: {
-                  'getambassador.io/config': '---\napiVersion: ambassador/v0\nkind:  Mapping\nname: notebook-mapping\nprefix: /\nrewrite: /\nservice: notebook.kubeflow',
+                  'getambassador.io/config': 
+                    std.join("\n", [
+                      "---",
+                      "apiVersion: ambassador/v0",
+                      "kind:  Mapping",
+                      "name: notebook-mapping",
+                      "prefix: /user/",
+                      "rewrite: /user/",
+                      "timeout_ms: 300000",
+                      "service: notebook." + request.parent.metadata.namespace,
+                    ]),
                 },
                 labels: {
                   app: 'notebook',
                 },
-                name: 'noteboook',
-                namespace: 'kubeflow',
+                name: 'notebook',
+                namespace: request.parent.metadata.namespace,
               },
               spec: {
                 ports: [
@@ -84,24 +95,16 @@
                 sessionAffinity: 'None',
                 type: 'ClusterIP',
               },
-              status: {
-                loadBalancer: {},
-              },
             },
             {
               apiVersion: 'v1',
               kind: 'Pod',
               metadata: {
-                annotations: {
-                  'hub.jupyter.org/username': 'kam',
-                },
                 labels: {
-                  app: 'jupyterhub',
                   component: 'singleuser-server',
-                  heritage: 'jupyterhub',
                 },
-                name: 'jupyter-kam',
-                namespace: params.namespace,
+                name: 'notebook',
+                namespace: request.parent.metadata.namespace,
               },
               spec: {
                 containers: [

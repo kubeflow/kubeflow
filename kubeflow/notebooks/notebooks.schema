@@ -35,18 +35,12 @@
                   type: 'string',
                 },
                 labels: {
-                  additionalProperties: {
-                    type: 'string',
-                  },
                   type: 'object',
                 },
                 namespace: {
                   type: 'string',
                 },
                 annotations: {
-                  additionalProperties: {
-                    type: 'string',
-                  },
                   type: 'object',
                 },
               },
@@ -54,6 +48,7 @@
             spec: {
               required: [
                 'containers',
+                'ttlSecondsAfterFinished',
               ],
               properties: {
                 securityContext: {
@@ -78,11 +73,173 @@
                     },
                   },
                 },
+                lifecycle: {
+                  properties: {
+                    preStop: {
+                      properties: {
+                        httpGet: {
+                          required: [
+                            'port',
+                          ], 
+                          properties: {
+                            path: {
+                              type: 'string',
+                            }, 
+                            host: {
+                              type: 'string',
+                            }, 
+                            scheme: {
+                              type: 'string',
+                            }, 
+                            httpHeaders: {
+                              items: {
+                                required: [
+                                  'name', 
+                                  'value',
+                                ], 
+                                properties: {
+                                  name: {
+                                    type: 'string', 
+                                  }, 
+                                  value: {
+                                    type: 'string', 
+                                  },
+                                },
+                              }, 
+                              type: 'array',
+                            }, 
+                            port: {
+                              oneOf: [
+                                {
+                                  type: 'string',
+                                }, 
+                                {
+                                  type: 'integer',
+                                },
+                              ],
+                            },
+                          },
+                        }, 
+                        tcpSocket: {
+                          required: [
+                            'port',
+                          ], 
+                          properties: {
+                            host: {
+                              type: 'string',
+                            }, 
+                            port: {
+                              oneOf: [
+                                {
+                                  type: 'string'
+                                }, 
+                                {
+                                  type: 'integer',
+                                }
+                              ]
+                            }
+                          }
+                        }, 
+                        exec: {
+                          properties: {
+                            command: {
+                              items: {
+                                type: 'string',
+                              }, 
+                              type: 'array',
+                            },
+                          },
+                        },
+                      },
+                    }, 
+                    postStart: {
+                      properties: {
+                        httpGet: {
+                          required: [
+                            'port',
+                          ], 
+                          properties: {
+                            path: {
+                              type: 'string',
+                            }, 
+                            host: {
+                              type: 'string',
+                            }, 
+                            scheme: {
+                              type: 'string',
+                            }, 
+                            httpHeaders: {
+                              items: {
+                                required: [
+                                  'name', 
+                                  'value',
+                                ], 
+                                properties: {
+                                  name: {
+                                    type: 'string',
+                                  }, 
+                                  value: {
+                                    type: 'string',
+                                  },
+                                },
+                              }, 
+                              type: 'array',
+                            }, 
+                            port: {
+                              oneOf: [
+                                {
+                                  type: 'string',
+                                }, 
+                                {
+                                  type: 'integer',
+                                },
+                              ],
+                            },
+                          },
+                        }, 
+                        tcpSocket: {
+                          required: [
+                            'port',
+                          ], 
+                          properties: {
+                            host: {
+                              type: 'string',
+                            }, 
+                            port: {
+                              oneOf: [
+                                {
+                                  type: 'string',
+                                }, 
+                                {
+                                  type: 'integer'
+                                },
+                              ],
+                            },
+                          },
+                        }, 
+                        exec: {
+                          properties: {
+                            command: {
+                              items: {
+                                type: 'string',
+                              }, 
+                              type: 'array',
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                }, 
                 serviceAccountName: {
                   type: 'string',
                 },
                 serviceAccount: {
                   type: 'string',
+                },
+                ttlSecondsAfterFinished: {
+                  type: 'integer',
+                  format: 'int64',
                 },
                 activeDeadlineSeconds: {
                   type: 'integer',
@@ -93,9 +250,6 @@
                   format: 'int64',
                 },
                 volumes: {
-                  additionalProperties: {
-                    type: 'string',
-                  },
                   type: 'object',
                 },
                 imagePullSecrets: {
@@ -155,678 +309,99 @@
                         },
                         type: 'array',
                       },
-                      tty: {
+                      command: {
+                        items: {
+                          type: 'string',
+                        },
+                        type: 'array',
+                      },
+                      env: {
+                        type: 'object',
+                      },
+                      imagePullPolicy: {
+                        type: 'string',
+                      },
+                      securityContext: {
+                        properties: {
+                          readOnlyRootFilesystem: {
+                            type: 'boolean',
+                          },
+                          runAsUser: {
+                            type: 'integer',
+                            format: 'int64',
+                          },
+                          capabilities: {
+                            properties: {
+                              add: {
+                                items: {
+                                  type: 'string',
+                                },
+                                type: 'array',
+                              },
+                              drop: {
+                                items: {
+                                  type: 'string',
+                                },
+                                type: 'array',
+                              },
+                            },
+                          },
+                          runAsNonRoot: {
+                            type: 'boolean',
+                          },
+                          privileged: {
+                            type: 'boolean',
+                          }
+                        }
+                      },
+                      ports: {
+                        items: {
+                          properties: {
+                            hostIP: {
+                              type: 'string',
+                            },
+                            protocol: {
+                              type: 'string',
+                            },
+                            containerPort: {
+                              type: 'integer',
+                              format: 'int32',
+                            },
+                            name: {
+                              type: 'string',
+                            },
+                            hostPort: {
+                              type: 'integer',
+                              format: 'int32',
+                            }
+                          }
+                        },
+                        type: 'array',
+                      },
+                      resources: {
+                        properties: {
+                          requests: {
+                            type: 'object',
+                          },
+                          limits: {
+                            type: 'object',
+                          },
+                        },
+                      },
+                      stdinOnce: {
                         type: 'boolean',
                       },
-                      lifecycle: {
-                        properties: {
-                          preStop: {
-                            properties: {
-                              "httpGet": {
-                                "required": [
-                                  "port"
-                                ],
-                                "description": "HTTPGetAction describes an action based on HTTP Get requests.",
-                                "properties": {
-                                  "path": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ],
-                                    "description": "Path to access on the HTTP server."
-                                  },
-                                  "host": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ],
-                                    "description": "Host name to connect to, defaults to the pod IP. You probably want to set \"Host\" in httpHeaders instead."
-                                  },
-                                  "scheme": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ],
-                                    "description": "Scheme to use for connecting to the host. Defaults to HTTP."
-                                  },
-                                  "httpHeaders": {
-                                    "items": {
-                                      "required": [
-                                        "name",
-                                        "value"
-                                      ],
-                                      "description": "HTTPHeader describes a custom header to be used in HTTP probes",
-                                      "properties": {
-                                        "name": {
-                                          "type": "string",
-                                          "description": "The header field name"
-                                        },
-                                        "value": {
-                                          "type": "string",
-                                          "description": "The header field value"
-                                        }
-                                      }
-                                    },
-                                    "type": [
-                                      "array",
-                                      "null"
-                                    ],
-                                    "description": "Custom headers to set in the request. HTTP allows repeated headers."
-                                  },
-                                  "port": {
-                                    "oneOf": [
-                                      {
-                                        "type": [
-                                          "string",
-                                          "null"
-                                        ]
-                                      },
-                                      {
-                                        "type": "integer"
-                                      }
-                                    ]
-                                  }
-                                }
-                              },
-                              "tcpSocket": {
-                                "required": [
-                                  "port"
-                                ],
-                                "description": "TCPSocketAction describes an action based on opening a socket",
-                                "properties": {
-                                  "port": {
-                                    "oneOf": [
-                                      {
-                                        "type": [
-                                          "string",
-                                          "null"
-                                        ]
-                                      },
-                                      {
-                                        "type": "integer"
-                                      }
-                                    ]
-                                  }
-                                }
-                              },
-                              "exec": {
-                                "description": "ExecAction describes a \"run in container\" action.",
-                                "properties": {
-                                  "command": {
-                                    "items": {
-                                      "type": [
-                                        "string",
-                                        "null"
-                                      ]
-                                    },
-                                    "type": [
-                                      "array",
-                                      "null"
-                                    ],
-                                    "description": "Command is the command line to execute inside the container, the working directory for the command  is root ('/') in the container's filesystem. The command is simply exec'd, it is not run inside a shell, so traditional shell instructions ('|', etc) won't work. To use a shell, you need to explicitly call out to that shell. Exit status of 0 is treated as live/healthy and non-zero is unhealthy."
-                                  }
-                                }
-                              }
-                            }
-                          },
-                          "postStart": {
-                            "description": "Handler defines a specific action that should be taken",
-                            "properties": {
-                              "httpGet": {
-                                "required": [
-                                  "port"
-                                ],
-                                "description": "HTTPGetAction describes an action based on HTTP Get requests.",
-                                "properties": {
-                                  "path": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ],
-                                    "description": "Path to access on the HTTP server."
-                                  },
-                                  "host": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ],
-                                    "description": "Host name to connect to, defaults to the pod IP. You probably want to set \"Host\" in httpHeaders instead."
-                                  },
-                                  "scheme": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ],
-                                    "description": "Scheme to use for connecting to the host. Defaults to HTTP."
-                                  },
-                                  "httpHeaders": {
-                                    "items": {
-                                      "required": [
-                                        "name",
-                                        "value"
-                                      ],
-                                      "description": "HTTPHeader describes a custom header to be used in HTTP probes",
-                                      "properties": {
-                                        "name": {
-                                          "type": "string",
-                                          "description": "The header field name"
-                                        },
-                                        "value": {
-                                          "type": "string",
-                                          "description": "The header field value"
-                                        }
-                                      }
-                                    },
-                                    "type": [
-                                      "array",
-                                      "null"
-                                    ],
-                                    "description": "Custom headers to set in the request. HTTP allows repeated headers."
-                                  },
-                                  "port": {
-                                    "oneOf": [
-                                      {
-                                        "type": [
-                                          "string",
-                                          "null"
-                                        ]
-                                      },
-                                      {
-                                        "type": "integer"
-                                      }
-                                    ]
-                                  }
-                                }
-                              },
-                              "tcpSocket": {
-                                "required": [
-                                  "port"
-                                ],
-                                "description": "TCPSocketAction describes an action based on opening a socket",
-                                "properties": {
-                                  "port": {
-                                    "oneOf": [
-                                      {
-                                        "type": [
-                                          "string",
-                                          "null"
-                                        ]
-                                      },
-                                      {
-                                        "type": "integer"
-                                      }
-                                    ]
-                                  }
-                                }
-                              },
-                              "exec": {
-                                "description": "ExecAction describes a \"run in container\" action.",
-                                "properties": {
-                                  "command": {
-                                    "items": {
-                                      "type": [
-                                        "string",
-                                        "null"
-                                      ]
-                                    },
-                                    "type": [
-                                      "array",
-                                      "null"
-                                    ],
-                                    "description": "Command is the command line to execute inside the container, the working directory for the command  is root ('/') in the container's filesystem. The command is simply exec'd, it is not run inside a shell, so traditional shell instructions ('|', etc) won't work. To use a shell, you need to explicitly call out to that shell. Exit status of 0 is treated as live/healthy and non-zero is unhealthy."
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }
-                      },
-                      "command": {
-                        "items": {
-                          "type": [
-                            "string",
-                            "null"
-                          ]
-                        },
-                        "type": [
-                          "array",
-                          "null"
-                        ],
-                        "description": "Entrypoint array. Not executed within a shell. The docker image's ENTRYPOINT is used if this is not provided. Variable references $(VAR_NAME) are expanded using the container's environment. If a variable cannot be resolved, the reference in the input string will be unchanged. The $(VAR_NAME) syntax can be escaped with a double $$, ie: $$(VAR_NAME). Escaped references will never be expanded, regardless of whether the variable exists or not. Cannot be updated. More info: http://kubernetes.io/docs/user-guide/containers#containers-and-commands"
-                      },
-                      "env": {
-                        "items": {
-                          "required": [
-                            "name"
-                          ],
-                          "description": "EnvVar represents an environment variable present in a Container.",
-                          "properties": {
-                            "valueFrom": {
-                              "description": "EnvVarSource represents a source for the value of an EnvVar.",
-                              "properties": {
-                                "secretKeyRef": {
-                                  "required": [
-                                    "key"
-                                  ],
-                                  "description": "SecretKeySelector selects a key of a Secret.",
-                                  "properties": {
-                                    "name": {
-                                      "type": [
-                                        "string",
-                                        "null"
-                                      ],
-                                      "description": "Name of the referent. More info: http://kubernetes.io/docs/user-guide/identifiers#names"
-                                    },
-                                    "key": {
-                                      "type": "string",
-                                      "description": "The key of the secret to select from.  Must be a valid secret key."
-                                    }
-                                  }
-                                },
-                                "fieldRef": {
-                                  "required": [
-                                    "fieldPath"
-                                  ],
-                                  "description": "ObjectFieldSelector selects an APIVersioned field of an object.",
-                                  "properties": {
-                                    "fieldPath": {
-                                      "type": "string",
-                                      "description": "Path of the field to select in the specified API version."
-                                    },
-                                    "apiVersion": {
-                                      "type": [
-                                        "string",
-                                        "null"
-                                      ],
-                                      "description": "Version of the schema the FieldPath is written in terms of, defaults to \"v1\"."
-                                    }
-                                  }
-                                },
-                                "configMapKeyRef": {
-                                  "required": [
-                                    "key"
-                                  ],
-                                  "description": "Selects a key from a ConfigMap.",
-                                  "properties": {
-                                    "name": {
-                                      "type": [
-                                        "string",
-                                        "null"
-                                      ],
-                                      "description": "Name of the referent. More info: http://kubernetes.io/docs/user-guide/identifiers#names"
-                                    },
-                                    "key": {
-                                      "type": "string",
-                                      "description": "The key to select."
-                                    }
-                                  }
-                                },
-                                "resourceFieldRef": {
-                                  "required": [
-                                    "resource"
-                                  ],
-                                  "description": "ResourceFieldSelector represents container resources (cpu, memory) and their output format",
-                                  "properties": {
-                                    "containerName": {
-                                      "type": [
-                                        "string",
-                                        "null"
-                                      ],
-                                      "description": "Container name: required for volumes, optional for env vars"
-                                    },
-                                    "resource": {
-                                      "type": "string",
-                                      "description": "Required: resource to select"
-                                    },
-                                    "divisor": {
-                                      "type": [
-                                        "string",
-                                        "null"
-                                      ]
-                                    }
-                                  }
-                                }
-                              }
-                            },
-                            "name": {
-                              "type": "string",
-                              "description": "Name of the environment variable. Must be a C_IDENTIFIER."
-                            },
-                            "value": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
-                              "description": "Variable references $(VAR_NAME) are expanded using the previous defined environment variables in the container and any service environment variables. If a variable cannot be resolved, the reference in the input string will be unchanged. The $(VAR_NAME) syntax can be escaped with a double $$, ie: $$(VAR_NAME). Escaped references will never be expanded, regardless of whether the variable exists or not. Defaults to \"\"."
-                            }
-                          }
-                        },
-                        "type": [
-                          "array",
-                          "null"
-                        ],
-                        "description": "List of environment variables to set in the container. Cannot be updated."
-                      },
-                      "imagePullPolicy": {
-                        "type": [
-                          "string",
-                          "null"
-                        ],
-                        "description": "Image pull policy. One of Always, Never, IfNotPresent. Defaults to Always if :latest tag is specified, or IfNotPresent otherwise. Cannot be updated. More info: http://kubernetes.io/docs/user-guide/images#updating-images"
-                      },
-                      "readinessProbe": {
-                        "description": "Probe describes a health check to be performed against a container to determine whether it is alive or ready to receive traffic.",
-                        "properties": {
-                          "httpGet": {
-                            "required": [
-                              "port"
-                            ],
-                            "description": "HTTPGetAction describes an action based on HTTP Get requests.",
-                            "properties": {
-                              "path": {
-                                "type": [
-                                  "string",
-                                  "null"
-                                ],
-                                "description": "Path to access on the HTTP server."
-                              },
-                              "host": {
-                                "type": [
-                                  "string",
-                                  "null"
-                                ],
-                                "description": "Host name to connect to, defaults to the pod IP. You probably want to set \"Host\" in httpHeaders instead."
-                              },
-                              "scheme": {
-                                "type": [
-                                  "string",
-                                  "null"
-                                ],
-                                "description": "Scheme to use for connecting to the host. Defaults to HTTP."
-                              },
-                              "httpHeaders": {
-                                "items": {
-                                  "required": [
-                                    "name",
-                                    "value"
-                                  ],
-                                  "description": "HTTPHeader describes a custom header to be used in HTTP probes",
-                                  "properties": {
-                                    "name": {
-                                      "type": "string",
-                                      "description": "The header field name"
-                                    },
-                                    "value": {
-                                      "type": "string",
-                                      "description": "The header field value"
-                                    }
-                                  }
-                                },
-                                "type": [
-                                  "array",
-                                  "null"
-                                ],
-                                "description": "Custom headers to set in the request. HTTP allows repeated headers."
-                              },
-                              "port": {
-                                "oneOf": [
-                                  {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  {
-                                    "type": "integer"
-                                  }
-                                ]
-                              }
-                            }
-                          },
-                          "timeoutSeconds": {
-                            "type": "integer",
-                            "description": "Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1. More info: http://kubernetes.io/docs/user-guide/pod-states#container-probes",
-                            "format": "int32"
-                          },
-                          "exec": {
-                            "description": "ExecAction describes a \"run in container\" action.",
-                            "properties": {
-                              "command": {
-                                "items": {
-                                  "type": [
-                                    "string",
-                                    "null"
-                                  ]
-                                },
-                                "type": [
-                                  "array",
-                                  "null"
-                                ],
-                                "description": "Command is the command line to execute inside the container, the working directory for the command  is root ('/') in the container's filesystem. The command is simply exec'd, it is not run inside a shell, so traditional shell instructions ('|', etc) won't work. To use a shell, you need to explicitly call out to that shell. Exit status of 0 is treated as live/healthy and non-zero is unhealthy."
-                              }
-                            }
-                          },
-                          "initialDelaySeconds": {
-                            "type": "integer",
-                            "description": "Number of seconds after the container has started before liveness probes are initiated. More info: http://kubernetes.io/docs/user-guide/pod-states#container-probes",
-                            "format": "int32"
-                          },
-                          "tcpSocket": {
-                            "required": [
-                              "port"
-                            ],
-                            "description": "TCPSocketAction describes an action based on opening a socket",
-                            "properties": {
-                              "port": {
-                                "oneOf": [
-                                  {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  {
-                                    "type": "integer"
-                                  }
-                                ]
-                              }
-                            }
-                          },
-                          "periodSeconds": {
-                            "type": "integer",
-                            "description": "How often (in seconds) to perform the probe. Default to 10 seconds. Minimum value is 1.",
-                            "format": "int32"
-                          },
-                          "successThreshold": {
-                            "type": "integer",
-                            "description": "Minimum consecutive successes for the probe to be considered successful after having failed. Defaults to 1. Must be 1 for liveness. Minimum value is 1.",
-                            "format": "int32"
-                          },
-                          "failureThreshold": {
-                            "type": "integer",
-                            "description": "Minimum consecutive failures for the probe to be considered failed after having succeeded. Defaults to 3. Minimum value is 1.",
-                            "format": "int32"
-                          }
-                        }
-                      },
-                      "securityContext": {
-                        "description": "SecurityContext holds security configuration that will be applied to a container. Some fields are present in both SecurityContext and PodSecurityContext.  When both are set, the values in SecurityContext take precedence.",
-                        "properties": {
-                          "readOnlyRootFilesystem": {
-                            "type": "boolean",
-                            "description": "Whether this container has a read-only root filesystem. Default is false."
-                          },
-                          "runAsUser": {
-                            "type": "integer",
-                            "description": "The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified. May also be set in PodSecurityContext.  If set in both SecurityContext and PodSecurityContext, the value specified in SecurityContext takes precedence.",
-                            "format": "int64"
-                          },
-                          "capabilities": {
-                            "description": "Adds and removes POSIX capabilities from running containers.",
-                            "properties": {
-                              "add": {
-                                "items": {
-                                  "type": [
-                                    "string",
-                                    "null"
-                                  ]
-                                },
-                                "type": [
-                                  "array",
-                                  "null"
-                                ],
-                                "description": "Added capabilities"
-                              },
-                              "drop": {
-                                "items": {
-                                  "type": [
-                                    "string",
-                                    "null"
-                                  ]
-                                },
-                                "type": [
-                                  "array",
-                                  "null"
-                                ],
-                                "description": "Removed capabilities"
-                              }
-                            }
-                          },
-                          "runAsNonRoot": {
-                            "type": "boolean",
-                            "description": "Indicates that the container must run as a non-root user. If true, the Kubelet will validate the image at runtime to ensure that it does not run as UID 0 (root) and fail to start the container if it does. If unset or false, no such validation will be performed. May also be set in PodSecurityContext.  If set in both SecurityContext and PodSecurityContext, the value specified in SecurityContext takes precedence."
-                          },
-                          "seLinuxOptions": {
-                            "description": "SELinuxOptions are the labels to be applied to the container",
-                            "properties": {
-                              "role": {
-                                "type": [
-                                  "string",
-                                  "null"
-                                ],
-                                "description": "Role is a SELinux role label that applies to the container."
-                              },
-                              "type": {
-                                "type": [
-                                  "string",
-                                  "null"
-                                ],
-                                "description": "Type is a SELinux type label that applies to the container."
-                              },
-                              "user": {
-                                "type": [
-                                  "string",
-                                  "null"
-                                ],
-                                "description": "User is a SELinux user label that applies to the container."
-                              },
-                              "level": {
-                                "type": [
-                                  "string",
-                                  "null"
-                                ],
-                                "description": "Level is SELinux level label that applies to the container."
-                              }
-                            }
-                          },
-                          "privileged": {
-                            "type": "boolean",
-                            "description": "Run container in privileged mode. Processes in privileged containers are essentially equivalent to root on the host. Defaults to false."
-                          }
-                        }
-                      },
-                      "ports": {
-                        "items": {
-                          "required": [
-                            "containerPort"
-                          ],
-                          "description": "ContainerPort represents a network port in a single container.",
-                          "properties": {
-                            "hostIP": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
-                              "description": "What host IP to bind the external port to."
-                            },
-                            "protocol": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
-                              "description": "Protocol for port. Must be UDP or TCP. Defaults to \"TCP\"."
-                            },
-                            "containerPort": {
-                              "type": "integer",
-                              "description": "Number of port to expose on the pod's IP address. This must be a valid port number, 0 < x < 65536.",
-                              "format": "int32"
-                            },
-                            "name": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
-                              "description": "If specified, this must be an IANA_SVC_NAME and unique within the pod. Each named port in a pod must have a unique name. Name for the port that can be referred to by services."
-                            },
-                            "hostPort": {
-                              "type": "integer",
-                              "description": "Number of port to expose on the host. If specified, this must be a valid port number, 0 < x < 65536. If HostNetwork is specified, this must match ContainerPort. Most containers do not need this.",
-                              "format": "int32"
-                            }
-                          }
-                        },
-                        "type": [
-                          "array",
-                          "null"
-                        ],
-                        "description": "List of ports to expose from the container. Exposing a port here gives the system additional information about the network connections a container uses, but is primarily informational. Not specifying a port here DOES NOT prevent that port from being exposed. Any port which is listening on the default \"0.0.0.0\" address inside a container will be accessible from the network. Cannot be updated."
-                      },
-                      "resources": {
-                        "description": "ResourceRequirements describes the compute resource requirements.",
-                        "properties": {
-                          "requests": {
-                            "additionalProperties": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "type": "object",
-                          },
-                          "limits": {
-                            "additionalProperties": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "type": "object",
-                          }
-                        }
-                      },
-                      "stdinOnce": {
-                        "type": "boolean",
-                      }
-                    }
+                    },
                   },
-                  "type": "array",
+                  type: 'array',
                 },
-                "nodeName": {
-                  "type": [
-                    "string",
-                    "null"
-                  ],
-                }
-              }
+              },
             },
           },
         },
         selector: {
           properties: {
             matchLabels: {
-              additionalProperties: {
-                type: 'string',
-              },
               type: 'object',
             },
             matchExpressions: {
