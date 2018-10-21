@@ -213,11 +213,11 @@
           local desired =
             if std.type(foundChildren) != "array" || std.length(foundChildren) == 0 then
               if initialized == false then
-                [child]
+                children
               else
                 []
             else
-              [child],
+              children,
           children: desired,
           status: {
             phase: "Active",
@@ -225,6 +225,7 @@
               type: "Ready",
             }],
             created: true,
+            // debug
             found_children: std.length(foundChildren),
             desired: std.length(desired),
             request_parent: request.parent,
