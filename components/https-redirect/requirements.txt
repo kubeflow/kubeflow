@@ -1,0 +1,3 @@
+Flask==0.12.2
+gunicorn==19.7.1
+requests==2.18.4
