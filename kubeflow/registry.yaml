@@ -4,6 +4,12 @@ libraries:
   application:
     version: master
     path: application
+  metacontroller:
+    version: master
+    path: metacontroller
+  projects:
+    version: master
+    path: projects
   core:
     version: master
     path: core
