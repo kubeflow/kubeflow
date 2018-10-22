@@ -84,10 +84,10 @@
                   subset: std.split(versionWeight, ":")[0],
                 },
                 weight: std.parseInt(std.split(versionWeight, ":")[1]),
-              },
+              }
               for versionWeight in versionWeights
             ],
-          }
+          },
         ],
       },
     },

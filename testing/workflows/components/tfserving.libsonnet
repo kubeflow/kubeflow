@@ -84,13 +84,13 @@
       // Parameters to set on the modelServer component
       local deployParams = {
         name: "mnist-cpu",
-        modelName: "mnist-cpu",
+        modelName: "mnist",
         namespace: stepsNamespace,
         modelPath: "gs://kubeflow-examples-data/mnist",
       };
       local deployGpuParams = {
         name: "mnist-gpu",
-        modelName: "mnist-gpu",
+        modelName: "mnist",
         namespace: stepsNamespace,
         modelPath: "gs://kubeflow-examples-data/mnist",
         numGpus: 1,

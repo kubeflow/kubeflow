@@ -9,8 +9,8 @@
 // @optionalParam injectIstio string false Whether to inject istio sidecar; should be true or false.
 
 local k = import "k.libsonnet";
-local util = import "kubeflow/tf-serving/util.libsonnet";
 local tfservingService = import "kubeflow/tf-serving/tf-serving-service-template.libsonnet";
+local util = import "kubeflow/tf-serving/util.libsonnet";
 
 local base = tfservingService.new(env, params);
 util.list(

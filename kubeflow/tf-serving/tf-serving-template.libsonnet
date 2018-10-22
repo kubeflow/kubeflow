@@ -72,7 +72,7 @@
         labels: {
           app: modelName,
         },
-        name: modelName + "-" + versionName,
+        name: name,
         namespace: namespace,
       },
       spec: {
