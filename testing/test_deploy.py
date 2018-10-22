@@ -192,7 +192,7 @@ def deploy_model(args):
   if not cluster_ip:
     raise ValueError("inception service wasn't assigned a cluster ip.")
   util.wait_for_deployment(
-    api_client, namespace, args.deploy_name + "-v1", timeout_minutes=10)
+    api_client, namespace, args.deploy_name, timeout_minutes=10)
   logging.info("Verified TF serving started.")
 
 def test_successful_deployment(deployment_name):
