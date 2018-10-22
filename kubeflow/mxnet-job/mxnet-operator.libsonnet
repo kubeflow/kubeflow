@@ -9,7 +9,7 @@
   ],
 
   parts(params, env):: {
-    local namespace = if params.namespace != "null" then params.namespace else env.namespace,
+    local namespace = env.namespace,
     crd: {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",

@@ -2,7 +2,7 @@ local jupyterhub = import "kubeflow/core/jupyterhub.libsonnet";
 
 local params = {
   name: "jupyterhub",
-  cloud: "gke",
+  platform: "gke",
   serviceType: "ClusterIP",
   disks: "null",
   gcpSecretName: "user-gcp-sa",
@@ -99,7 +99,7 @@ std.assertEqual(
                   value: "/home/jovyan",
                 },
                 {
-                  name: "CLOUD_NAME",
+                  name: "PLATFORM_NAME",
                   value: "gke",
                 },
                 {

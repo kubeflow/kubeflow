@@ -2,10 +2,7 @@
   local k = import "k.libsonnet",
   local util = import "kubeflow/core/util.libsonnet",
   new(_env, _params):: {
-    local params = _env + _params {
-      namespace: if std.objectHas(_params, "namespace") && _params.namespace != "null" then
-        _params.namespace else _env.namespace,
-    },
+    local params = _env + _params,
 
     local ambassadorService = {
       apiVersion: "v1",
@@ -146,7 +143,7 @@
     ambassadorRoleBinding:: ambassadorRoleBinding,
 
     local ambassadorDeployment = {
-      local replicas = if params.cloud == "minikube" then 1 else 3,
+      local replicas = if params.platform == "minikube" then 1 else 3,
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -217,55 +214,7 @@
     },  // deploy
     ambassadorDeployment:: ambassadorDeployment,
 
-    // This service adds a rule to our reverse proxy for accessing the K8s dashboard.
-    local k8sDashboard = {
-      local isDashboardTls = if params.cloud == "acsengine" || params.cloud == "aks" then
-        "false"
-      else
-        "true",
-      // Due to https://github.com/ksonnet/ksonnet/issues/670, escaped characters in
-      // jsonnet files are not interpreted correctly by ksonnet, which causes runtime
-      // parsing failures. This is fixed in ksonnet 0.12.0, so we can merge this back
-      // to the jsonnet file when we take a dependency on ksonnet 0.12.0 or later.
-      local annotations = function(isDashboardTls) {
-        "getambassador.io/config":
-          std.join("\n", [
-            "---",
-            "apiVersion: ambassador/v0",
-            "kind:  Mapping",
-            "name: k8s-dashboard-ui-mapping",
-            "prefix: /k8s/ui/",
-            "rewrite: /",
-            "tls: " + isDashboardTls,
-            // We redirect to the K8s service created for the dashboard
-            // in namespace kube-system. We don't use the k8s-dashboard service
-            // because that isn't in the kube-system namespace and I don't think
-            // it can select pods in a different namespace.
-            "service: kubernetes-dashboard.kube-system",
-          ]),
-      },
-      apiVersion: "v1",
-      kind: "Service",
-      metadata: {
-        name: "k8s-dashboard",
-        namespace: params.namespace,
-        annotations: annotations(isDashboardTls),
-      },
-      spec: {
-        ports: [
-          {
-            port: 443,
-            targetPort: 8443,
-          },
-        ],
-        selector: {
-          "k8s-app": "kubernetes-dashboard",
-        },
-        type: "ClusterIP",
-      },
-    },  // k8sDashboard
-    k8sDashboard:: k8sDashboard,
-
+    parts:: self,
     all:: [
       self.ambassadorService,
       self.adminService,
@@ -273,7 +222,6 @@
       self.ambassadorServiceAccount,
       self.ambassadorRoleBinding,
       self.ambassadorDeployment,
-      self.k8sDashboard,
     ],
 
     list(obj=self.all):: util.list(obj),

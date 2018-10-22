@@ -3,11 +3,8 @@
   // see https://github.com/argoproj/argo/blob/master/cmd/argo/commands/install.go
   local k = import "k.libsonnet",
   local util = import "kubeflow/core/util.libsonnet",
-  new(_env, _params):: self + {
-    local params = _env + _params + {
-      namespace: if std.objectHas(_params, "namespace") && _params.namespace != "null" then
-        _params.namespace else _env.namespace,
-    },
+  new(_env, _params):: {
+    local params = _env + _params,
 
     // CRD's are not namespace scoped; see
     // https://kubernetes.io/docs/tasks/access-kubernetes-api/extend-api-custom-resource-definitions/
@@ -262,7 +259,6 @@
           app: "argo",
         },
         name: "argo",
-        namespace: params.namespace,
       },
       rules: [
         {
@@ -330,7 +326,6 @@
           app: "argo",
         },
         name: "argo",
-        namespace: params.namespace,
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
@@ -370,7 +365,6 @@
           app: "argo",
         },
         name: "argo-ui",
-        namespace: params.namespace,
       },
       rules: [
         {
@@ -420,7 +414,6 @@
           app: "argo-ui",
         },
         name: "argo-ui",
-        namespace: params.namespace,
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
@@ -437,6 +430,7 @@
     },  // role binding
     argUIClusterRoleBinding:: argUIClusterRoleBinding,
 
+    parts: self,
     all:: [
       self.workflowCRD,
       self.workflowController,

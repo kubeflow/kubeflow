@@ -41,16 +41,16 @@ createEnv() {
 
   case "$PLATFORM" in
     minikube)
-      echo KUBEFLOW_CLOUD=minikube >> ${ENV_FILE}
+      echo KUBEFLOW_PLATFORM=minikube >> ${ENV_FILE}
       echo MOUNT_LOCAL=${MOUNT_LOCAL} >> ${ENV_FILE}
       ;;
     ack)
-      echo KUBEFLOW_CLOUD=ack >> ${ENV_FILE}
+      echo KUBEFLOW_PLATFORM=ack >> ${ENV_FILE}
       echo KUBEFLOW_DOCKER_REGISTRY=registry.aliyuncs.com >> ${ENV_FILE}
       ;;
     gcp)
       PROJECT=${PROJECT:-$(gcloud config get-value project 2>/dev/null)}
-      echo KUBEFLOW_CLOUD=gke >> ${ENV_FILE}
+      echo KUBEFLOW_PLATFORM=gke >> ${ENV_FILE}
       echo PROJECT="${PROJECT}" >> ${ENV_FILE}
       if [ -z "${PROJECT}" ]; then
         echo PROJECT must be set either using environment variable PROJECT
@@ -73,7 +73,7 @@ createEnv() {
       # GCP Zone
       # The default should be a zone that supports Haswell.
       ZONE=${ZONE:-$(gcloud config get-value compute/zone 2>/dev/null)}
-      ZONE=${ZONE:-"us-east1-d"} 
+      ZONE=${ZONE:-"us-east1-d"}
       echo ZONE=${ZONE} >> ${ENV_FILE}
 
       # Email for cert manager
@@ -102,7 +102,7 @@ createEnv() {
       echo CLUSTER_VERSION=${CLUSTER_VERSION} >> ${ENV_FILE}
       ;;
     *)
-      echo KUBEFLOW_CLOUD=null >> ${ENV_FILE}
+      echo KUBEFLOW_PLATFORM=null >> ${ENV_FILE}
       ;;
   esac
 }
@@ -203,8 +203,8 @@ check_install kubectl
 
 # Generate all required components
 customizeKsApp() {
-  ks param set ambassador cloud ${KUBEFLOW_CLOUD}
-  ks param set jupyterhub cloud ${KUBEFLOW_CLOUD}
+  ks param set ambassador platform ${KUBEFLOW_PLATFORM}
+  ks param set jupyterhub platform ${KUBEFLOW_PLATFORM}
 }
 
 ksApply () {
@@ -230,9 +230,14 @@ ksApply () {
   ks apply default -c jupyterhub
   ks apply default -c centraldashboard
   ks apply default -c tf-job-operator
-  ks apply default -c argo
-  ks apply default -c katib
   ks apply default -c spartakus
+
+  # Reduce resource demands locally
+  if [ "${PLATFORM}" != "minikube" ]; then
+    ks apply default -c argo
+    ks apply default -c katib
+  fi
+
   popd
 
   set +x
@@ -293,6 +298,12 @@ if [ "${COMMAND}" == "apply" ]; then
     if [ "${PLATFORM}" == "gcp" ]; then
     	gcpKsApply
     fi
+
+    # all components deployed
+    # deploy the application CR
+    pushd ${KUBEFLOW_KS_DIR}
+      ks apply default -c application
+    popd
   fi
 fi
 

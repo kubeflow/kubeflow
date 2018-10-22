@@ -20,20 +20,20 @@ class KubeFormSpawner(KubeSpawner):
         <td style="width: 30%;"><label for='image'>Image</label></td>
         <td style="width: 70%;"><input value="" list="image" name="image" placeholder='repo/image:tag' style="width: 100%;">
         <datalist id="image">
-          <option value="{0}/{1}/tensorflow-1.4.1-notebook-cpu:v0.3.0">
-          <option value="{0}/{1}/tensorflow-1.4.1-notebook-gpu:v0.3.0">
-          <option value="{0}/{1}/tensorflow-1.5.1-notebook-cpu:v0.3.0">
-          <option value="{0}/{1}/tensorflow-1.5.1-notebook-gpu:v0.3.0">
-          <option value="{0}/{1}/tensorflow-1.6.0-notebook-cpu:v0.3.0">
-          <option value="{0}/{1}/tensorflow-1.6.0-notebook-gpu:v0.3.0">
-          <option value="{0}/{1}/tensorflow-1.7.0-notebook-cpu:v0.3.0">
-          <option value="{0}/{1}/tensorflow-1.7.0-notebook-gpu:v0.3.0">
-          <option value="{0}/{1}/tensorflow-1.8.0-notebook-cpu:v0.3.0">
-          <option value="{0}/{1}/tensorflow-1.8.0-notebook-gpu:v0.3.0">
-          <option value="{0}/{1}/tensorflow-1.9.0-notebook-cpu:v0.3.0">
-          <option value="{0}/{1}/tensorflow-1.9.0-notebook-gpu:v0.3.0">
-          <option value="{0}/{1}/tensorflow-1.10.1-notebook-cpu:v0.3.0">
-          <option value="{0}/{1}/tensorflow-1.10.1-notebook-gpu:v0.3.0">
+          <option value="{0}/{1}/tensorflow-1.4.1-notebook-cpu:v0.3.1">
+          <option value="{0}/{1}/tensorflow-1.4.1-notebook-gpu:v0.3.1">
+          <option value="{0}/{1}/tensorflow-1.5.1-notebook-cpu:v0.3.1">
+          <option value="{0}/{1}/tensorflow-1.5.1-notebook-gpu:v0.3.1">
+          <option value="{0}/{1}/tensorflow-1.6.0-notebook-cpu:v0.3.1">
+          <option value="{0}/{1}/tensorflow-1.6.0-notebook-gpu:v0.3.1">
+          <option value="{0}/{1}/tensorflow-1.7.0-notebook-cpu:v0.3.1">
+          <option value="{0}/{1}/tensorflow-1.7.0-notebook-gpu:v0.3.1">
+          <option value="{0}/{1}/tensorflow-1.8.0-notebook-cpu:v0.3.1">
+          <option value="{0}/{1}/tensorflow-1.8.0-notebook-gpu:v0.3.1">
+          <option value="{0}/{1}/tensorflow-1.9.0-notebook-cpu:v0.3.1">
+          <option value="{0}/{1}/tensorflow-1.9.0-notebook-gpu:v0.3.1">
+          <option value="{0}/{1}/tensorflow-1.10.1-notebook-cpu:v0.3.1">
+          <option value="{0}/{1}/tensorflow-1.10.1-notebook-gpu:v0.3.1">
         </datalist>
         </td>
     </tr>
@@ -82,7 +82,7 @@ class KubeFormSpawner(KubeSpawner):
         if cloud == 'ack':
             image = 'registry.aliyuncs.com/kubeflow-images-public/tensorflow-notebook-cpu:v0.2.1'
         else:
-            image = 'gcr.io/kubeflow-images-public/tensorflow-1.8.0-notebook-cpu:v0.3.0'
+            image = 'gcr.io/kubeflow-images-public/tensorflow-1.8.0-notebook-cpu:v0.3.1'
         if self.user_options.get('image'):
             image = self.user_options['image']
         return image
@@ -159,7 +159,7 @@ c.JupyterHub.cleanup_servers = False
 ###################################################
 # Spawner Options
 ###################################################
-cloud = os.environ.get('CLOUD_NAME')
+cloud = os.environ.get('PLATFORM_NAME')
 registry = os.environ.get('REGISTRY')
 repoName = os.environ.get('REPO_NAME')
 c.JupyterHub.spawner_class = KubeFormSpawner
