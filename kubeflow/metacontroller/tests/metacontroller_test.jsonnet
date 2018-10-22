@@ -28,7 +28,7 @@ std.assertEqual(
         ],
         singular: "compositecontroller",
       },
-      scope: "Namespaced",
+      scope: "Cluster",
       version: "v1alpha1",
     },
   }
@@ -74,7 +74,7 @@ std.assertEqual(
         ],
         singular: "decoratorcontroller",
       },
-      scope: "Namespaced",
+      scope: "Cluster",
       version: "v1alpha1",
     },
   }
