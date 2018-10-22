@@ -1,7 +1,5 @@
 {
-  local k8s = import "k8s.libsonnet",
   local util = import "kubeflow/core/util.libsonnet",
-  local crd = k8s.apiextensions.v1beta1.customResourceDefinition,
 
   new(_env, _params):: {
     local params = _env + _params,
@@ -15,7 +13,7 @@
       spec: {
         group: "metacontroller.k8s.io",
         version: "v1alpha1",
-        scope: "Namespaced",
+        scope: "Cluster",
         names: {
           plural: "compositecontrollers",
           singular: "compositecontroller",
@@ -38,7 +36,7 @@
       spec: {
         group: "metacontroller.k8s.io",
         version: "v1alpha1",
-        scope: "Namespaced",
+        scope: "Cluster",
         names: {
           plural: "decoratorcontrollers",
           singular: "decoratorcontroller",
