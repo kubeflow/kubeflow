@@ -3,7 +3,7 @@
 // @description Ambassador Component
 // @shortDescription Ambassador
 // @param name string Name
-// @optionalParam cloud string null Cloud
+// @optionalParam platform string none supported platforms {none|gke|minikube}
 // @optionalParam ambassadorServiceType string ClusterIP The service type for the API Gateway.
 // @optionalParam ambassadorImage string quay.io/datawire/ambassador:0.37.0 The image for the API Gateway.
 
