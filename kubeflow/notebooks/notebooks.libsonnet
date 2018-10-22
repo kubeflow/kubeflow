@@ -49,7 +49,8 @@
               std.objectHas(request, 'parent') &&
               std.objectHas(request.parent, 'spec') &&
               std.objectHas(request.parent.spec, 'namespace') &&
-              resource.metadata.name == request.parent.spec.namespace then
+              resource.metadata.namespace == request.parent.spec.namespace &&
+              resource.metadata.name == request.parent.spec.name then
                 true
               else
                 false,
@@ -324,7 +325,7 @@
       apiVersion: "metacontroller.k8s.io/v1alpha1",
       kind: "CompositeController",
       metadata: {
-        name: "notebooks",
+        name: "notebook-controller",
       },
       spec: {
         generateSelector: true,
