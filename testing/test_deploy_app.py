@@ -28,6 +28,8 @@ OAUTH_TOKEN_URI = 'https://www.googleapis.com/oauth2/v4/token'
 METHOD = 'GET'
 SERVICE_HEALTH = Gauge('deployment_service_status',
                               '0: normal; 1: deployment not successful; 2: service down')
+PROBER_HEALTH = Gauge('prober_health',
+                              '0: normal; 1: not working')
 
 def may_get_env_var(name):
   env_val = os.getenv(name)
@@ -394,12 +396,15 @@ def main(unparsed_args=None):
   if args.mode == "prober":
     start_http_server(8000)
     SERVICE_HEALTH.set(0)
+    PROBER_HEALTH.set(0)
     service_account_credentials = get_service_account_credentials("SERVICE_CLIENT_ID")
     while True:
       if not prober_clean_up_resource(args):
+        PROBER_HEALTH.set(1)
         logging.error("request cleanup failed, retry in %s seconds" % args.wait_sec)
         sleep(args.wait_sec)
         continue
+      PROBER_HEALTH.set(0)
       if make_prober_call(args, service_account_credentials):
         insert_ssl_cert(args)
         if check_deploy_status(args) == 200:
@@ -407,6 +412,7 @@ def main(unparsed_args=None):
         else:
           SERVICE_HEALTH.set(1)
       else:
+        SERVICE_HEALTH.set(2)
         logging.error("prober request failed, retry in %s seconds" % args.wait_sec)
         sleep(args.wait_sec)
 
