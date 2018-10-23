@@ -236,6 +236,7 @@
     local syncWorkspace =
       |||
         function(request) {
+          local params = %(params),
           local existingGroups =
             if std.type(request.children) == "object" then
               [ request.children[key] for key in std.objectFields(request.children) ]
@@ -261,21 +262,54 @@
           }.return,
           local foundChildren = std.filter(existingResource, 
             std.flattenArrays(std.map(existingResources, existingGroups))),
-          local child = {
-            apiVersion: "v1",
-            kind: "Namespace",
-            metadata: {
-              name: request.parent.spec.namespace,
-              labels: {
-                app: request.parent.spec.namespace,
+          local children = [
+            {
+              apiVersion: "v1",
+              kind: "Namespace",
+              metadata: {
+                name: request.parent.spec.namespace,
+                labels: {
+                  app: request.parent.spec.namespace,
+                },
+              },
+              status: {
+                phase: "Pending",
               },
             },
-            spec: {
+            {
+              apiVersion: 'metacontroller.k8s.io/v1alpha1',
+              kind: 'DecoratorController',
+              metadata: {
+                name: 'rbac-controller',
+                namespace: request.parent.spec.namespace,
+              },
+              spec: {
+                resources: [
+                  {
+                    apiVersion: 'v1',
+                    resource: 'serviceaccounts',
+                  },
+                ],
+                attachments: [
+                  {
+                    apiVersion: 'rbac.authorization.k8s.io/v1',
+                    resource: 'roles',
+                  },
+                  {
+                    apiVersion: 'rbac.authorization.k8s.io/v1',
+                    resource: 'rolebindings',
+                  },
+                ],
+                hooks: {
+                  sync: {
+                    webhook: {
+                      url: 'http://projects.' + params.namespace + '/sync-rbac',
+                    },
+                  },
+                },
+              },
             },
-            status: {
-              phase: "Pending",
-            },
-          },
+          ],
           local initialized = {
             return::
               if std.objectHas(request.parent, "status") &&
@@ -288,11 +322,11 @@
           local desired =
             if std.type(foundChildren) != "array" || std.length(foundChildren) == 0 then
               if initialized == false then
-                [child]
+                children
               else
                 []
             else
-              [child],
+              children,
           children: desired,
           status: {
             phase: "Active",
@@ -306,7 +340,321 @@
             request_children: request.children,
           },
         }
-      |||,
+      ||| %
+      {
+        params: std.manifestJsonEx(params, "  "),
+      },
+
+    local syncRbac =
+      |||
+        function(request) {
+          local params = %(params),
+          local desired =
+            if request.object.metadata.name == "default" then [
+            {
+              apiVersion: "rbac.authorization.k8s.io/v1",
+              kind: "Role",
+              metadata: {
+                name: "edit",
+                namespace: request.object.metadata.namespace,
+              },
+              rules: [
+                {
+                  apiGroups: [
+                    "metacontroller.k8s.io",
+                  ],
+                  resources: [
+                    "compositecontrollers",
+                    "decoratecontrollers",
+                  ],
+                  verbs: [
+                    "create",
+                    "delete",
+                    "get",
+                    "list",
+                    "patch",
+                    "update",
+                    "watch",
+                  ],
+                },
+                {
+                  apiGroups: [
+                    "kubeflow.org",
+                  ],
+                  resources: [
+                    "projects",
+                    "workspaces",
+                  ],
+                  verbs: [
+                    "get",
+                    "list",
+                    "watch",
+                    "create",
+                  ],
+                },
+                {
+                  apiGroups: [
+                    "app.k8s.io",
+                  ],
+                  resources: [
+                    "applications",
+                    "apps",
+                  ],
+                  verbs: [
+                    "create",
+                    "delete",
+                    "deletecollection",
+                    "get",
+                    "list",
+                    "patch",
+                    "update",
+                    "watch",
+                  ],
+                },
+                {
+                  apiGroups: [
+                    "",
+                  ],
+                  resources: [
+                    "pods",
+                    "pods/attach",
+                    "pods/exec",
+                    "pods/portforward",
+                    "pods/proxy",
+                  ],
+                  verbs: [
+                    "create",
+                    "delete",
+                    "deletecollection",
+                    "get",
+                    "list",
+                    "patch",
+                    "update",
+                    "watch",
+                  ],
+                },
+                {
+                  apiGroups: [
+                    "",
+                  ],
+                  resources: [
+                    "configmaps",
+                    "endpoints",
+                    "persistentvolumeclaims",
+                    "replicationcontrollers",
+                    "replicationcontrollers/scale",
+                    "secrets",
+                    "serviceaccounts",
+                    "services",
+                    "services/proxy",
+                  ],
+                  verbs: [
+                    "create",
+                    "delete",
+                    "deletecollection",
+                    "get",
+                    "list",
+                    "patch",
+                    "update",
+                    "watch",
+                  ],
+                },
+                {
+                  apiGroups: [
+                    "",
+                  ],
+                  resources: [
+                    "bindings",
+                    "events",
+                    "limitranges",
+                    "namespaces/status",
+                    "pods/log",
+                    "pods/status",
+                    "replicationcontrollers/status",
+                    "resourcequotas",
+                    "resourcequotas/status",
+                  ],
+                  verbs: [
+                    "get",
+                    "list",
+                    "watch",
+                  ],
+                },
+                {
+                  apiGroups: [
+                    "",
+                  ],
+                  resources: [
+                    "namespaces",
+                  ],
+                  verbs: [
+                    "get",
+                    "list",
+                    "watch",
+                  ],
+                },
+                {
+                  apiGroups: [
+                    "",
+                  ],
+                  resources: [
+                    "serviceaccounts",
+                  ],
+                  verbs: [
+                    "impersonate",
+                  ],
+                },
+                {
+                  apiGroups: [
+                    "apps",
+                  ],
+                  resources: [
+                    "daemonsets",
+                    "deployments",
+                    "deployments/rollback",
+                    "deployments/scale",
+                    "replicasets",
+                    "replicasets/scale",
+                    "statefulsets",
+                  ],
+                  verbs: [
+                    "create",
+                    "delete",
+                    "deletecollection",
+                    "get",
+                    "list",
+                    "patch",
+                    "update",
+                    "watch",
+                  ],
+                },
+                {
+                  apiGroups: [
+                    "autoscaling",
+                  ],
+                  resources: [
+                    "horizontalpodautoscalers",
+                  ],
+                  verbs: [
+                    "create",
+                    "delete",
+                    "deletecollection",
+                    "get",
+                    "list",
+                    "patch",
+                    "update",
+                    "watch",
+                  ],
+                },
+                {
+                  apiGroups: [
+                    "batch",
+                  ],
+                  resources: [
+                    "cronjobs",
+                    "jobs",
+                  ],
+                  verbs: [
+                    "create",
+                    "delete",
+                    "deletecollection",
+                    "get",
+                    "list",
+                    "patch",
+                    "update",
+                    "watch",
+                  ],
+                },
+                {
+                  apiGroups: [
+                    "extensions",
+                  ],
+                  resources: [
+                    "daemonsets",
+                    "deployments",
+                    "deployments/rollback",
+                    "deployments/scale",
+                    "ingresses",
+                    "networkpolicies",
+                    "replicasets",
+                    "replicasets/scale",
+                    "replicationcontrollers/scale",
+                  ],
+                  verbs: [
+                    "create",
+                    "delete",
+                    "deletecollection",
+                    "get",
+                    "list",
+                    "patch",
+                    "update",
+                    "watch",
+                  ],
+                },
+                {
+                  apiGroups: [
+                    "policy",
+                  ],
+                  resources: [
+                    "poddisruptionbudgets",
+                  ],
+                  verbs: [
+                    "create",
+                    "delete",
+                    "deletecollection",
+                    "get",
+                    "list",
+                    "patch",
+                    "update",
+                    "watch",
+                  ],
+                },
+                {
+                  apiGroups: [
+                    "networking.k8s.io",
+                  ],
+                  resources: [
+                    "networkpolicies",
+                  ],
+                  verbs: [
+                    "create",
+                    "delete",
+                    "deletecollection",
+                    "get",
+                    "list",
+                    "patch",
+                    "update",
+                    "watch",
+                  ],
+                },
+              ],
+            },
+            {
+              apiVersion: "rbac.authorization.k8s.io/v1",
+              kind: "RoleBinding",
+              metadata: {
+                name: request.object.spec.template.namespace,
+                namespace: request.object.spec.template.namespace,
+              },
+              roleRef: {
+                apiGroup: "rbac.authorization.k8s.io",
+                kind: "Role",
+                name: "edit",
+              },
+              subjects: [{
+                kind: "ServiceAccount",
+                name: request.object.spec.template.owner,
+                namespace: params.namespace,
+              },],
+            },
+          ] else [],
+        
+          attachments: desired,
+        }
+      ||| %
+      {
+        params: std.manifestJsonEx(params, "  "),
+      },
 
     local projectsConfigMap = {
       apiVersion: "v1",
@@ -318,6 +666,7 @@
       data: {
         "sync-project.jsonnet": syncProject,
         "sync-workspace.jsonnet": syncWorkspace,
+        "sync-rbac.jsonnet": syncRbac,
       },
     },
     projectsConfigMap:: projectsConfigMap,
@@ -426,6 +775,21 @@
           {
             apiVersion: 'v1',
             resource: 'namespaces',
+            updateStrategy: {
+              method: 'RollingInPlace',
+              statusChecks: {
+                conditions: [
+                  {
+                    type: 'phase',
+                    status: 'Active',
+                  },
+                ],
+              },
+            },
+          },
+          {
+            apiVersion: 'metacontroller.k8s.io/v1alpha1',
+            resource: 'decoratorcontrollers',
             updateStrategy: {
               method: 'RollingInPlace',
               statusChecks: {
