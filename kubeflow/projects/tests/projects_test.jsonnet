@@ -1,181 +1,403 @@
-local metacontroller = import "kubeflow/metacontroller/metacontroller.libsonnet";
+local projects = import "kubeflow/projects/projects.libsonnet";
 
 local params = {
-  name: "metacontroller",
+  name: "projects",
 };
 local env = {
   namespace: "kf-001",
 };
 
-local instance = metacontroller.new(env, params);
+local instance = projects.new(env, params);
 
 std.assertEqual(
-  instance.parts.compositeControllerCRD,
+  instance.parts.projectsCRD,
   {
     apiVersion: "apiextensions.k8s.io/v1beta1",
     kind: "CustomResourceDefinition",
     metadata: {
-      name: "compositecontrollers.metacontroller.k8s.io",
+      name: "projects.kubeflow.org",
     },
     spec: {
-      group: "metacontroller.k8s.io",
+      group: "kubeflow.org",
       names: {
-        kind: "CompositeController",
-        plural: "compositecontrollers",
+        kind: "Project",
+        plural: "projects",
         shortNames: [
-          "cc",
-          "cctl",
+          "prj",
         ],
-        singular: "compositecontroller",
-      },
-      scope: "Cluster",
-      version: "v1alpha1",
-    },
-  }
-) &&
-
-std.assertEqual(
-  instance.parts.controllerRevisionsCRD,
-  {
-    apiVersion: "apiextensions.k8s.io/v1beta1",
-    kind: "CustomResourceDefinition",
-    metadata: {
-      name: "controllerrevisions.metacontroller.k8s.io",
-    },
-    spec: {
-      group: "metacontroller.k8s.io",
-      names: {
-        kind: "ControllerRevision",
-        plural: "controllerrevisions",
-        singular: "controllerrevision",
+        singular: "project",
       },
       scope: "Namespaced",
+      validation: {
+        openAPIV3Schema: {
+          properties: {
+            apiVersion: {
+              type: "string",
+            },
+            kind: {
+              type: "string",
+            },
+            metadata: {
+              type: "object",
+            },
+            spec: {
+              properties: {
+                selector: {
+                  type: "object",
+                },
+                template: {
+                  properties: {
+                    metadata: {
+                      properties: {
+                        name: {
+                          type: "string",
+                        },
+                      },
+                      type: "object",
+                    },
+                    spec: {
+                      properties: {
+                        namespace: {
+                          type: "string",
+                        },
+                        owner: {
+                          type: "string",
+                        },
+                      },
+                      type: "object",
+                    },
+                  },
+                  type: "object",
+                },
+              },
+              type: "object",
+            },
+            status: {
+              properties: {
+                observedGeneration: {
+                  type: "int64",
+                },
+              },
+              type: "object",
+            },
+          },
+        },
+      },
       version: "v1alpha1",
     },
   }
 ) &&
 
 std.assertEqual(
-  instance.parts.decoratorControllerCRD,
+  instance.parts.workspacesCRD,
   {
     apiVersion: "apiextensions.k8s.io/v1beta1",
     kind: "CustomResourceDefinition",
     metadata: {
-      name: "decoratorcontrollers.metacontroller.k8s.io",
+      name: "workspaces.kubeflow.org",
     },
     spec: {
-      group: "metacontroller.k8s.io",
+      group: "kubeflow.org",
       names: {
-        kind: "DecoratorController",
-        plural: "decoratorcontrollers",
-        shortNames: [
-          "dec",
-          "decorators",
-        ],
-        singular: "decoratorcontroller",
+        kind: "Workspace",
+        plural: "workspaces",
+        singular: "workspace",
       },
-      scope: "Cluster",
+      scope: "Namespaced",
+      validation: {
+        openAPIV3Schema: {
+          properties: {
+            apiVersion: {
+              type: "string",
+            },
+            kind: {
+              type: "string",
+            },
+            metadata: {
+              type: "object",
+            },
+            spec: {
+              properties: {
+                namespace: {
+                  type: "string",
+                },
+                owner: {
+                  type: "string",
+                },
+                selector: {
+                  type: "object",
+                },
+              },
+              type: "object",
+            },
+            status: {
+              properties: {
+                observedGeneration: {
+                  type: "int64",
+                },
+              },
+              type: "object",
+            },
+          },
+        },
+      },
       version: "v1alpha1",
     },
   }
 ) &&
 
 std.assertEqual(
-  instance.parts.metaControllerServiceAccount,
+  instance.parts.permissionsCRD,
+  {
+    apiVersion: "apiextensions.k8s.io/v1beta1",
+    kind: "CustomResourceDefinition",
+    metadata: {
+      name: "permissions.kubeflow.org",
+    },
+    spec: {
+      group: "kubeflow.org",
+      names: {
+        kind: "Permission",
+        plural: "permissions",
+        singular: "permission",
+      },
+      scope: "Namespaced",
+      validation: {
+        openAPIV3Schema: {
+          properties: {
+            apiVersion: {
+              type: "string",
+            },
+            kind: {
+              type: "string",
+            },
+            metadata: {
+              type: "object",
+            },
+            spec: {
+              properties: {
+                owner: {
+                  type: "string",
+                },
+                selector: {
+                  type: "object",
+                },
+              },
+              type: "object",
+            },
+            status: {
+              properties: {
+                observedGeneration: {
+                  type: "int64",
+                },
+              },
+              type: "object",
+            },
+          },
+        },
+      },
+      version: "v1alpha1",
+    },
+  }
+) &&
+
+std.assertEqual(
+  instance.parts.projectsService,
   {
     apiVersion: "v1",
-    kind: "ServiceAccount",
+    kind: "Service",
     metadata: {
-      name: "meta-controller-service",
-      namespace: "kf-001",
-    },
-  }
-) &&
-
-std.assertEqual(
-  instance.parts.metaControllerClusterRoleBinding,
-  {
-    apiVersion: "rbac.authorization.k8s.io/v1",
-    kind: "ClusterRoleBinding",
-    metadata: {
-      name: "meta-controller-cluster-role-binding",
-    },
-    roleRef: {
-      apiGroup: "rbac.authorization.k8s.io",
-      kind: "ClusterRole",
-      name: "cluster-admin",
-    },
-    subjects: [
-      {
-        kind: "ServiceAccount",
-        name: "meta-controller-service",
-        namespace: "kf-001",
-      },
-    ],
-  }
-) &&
-
-std.assertEqual(
-  instance.parts.metaControllerStatefulSet,
-  {
-    apiVersion: "apps/v1beta2",
-    kind: "StatefulSet",
-    metadata: {
-      labels: {
-        app: "metacontroller",
-      },
-      name: "metacontroller",
+      name: "projects",
       namespace: "kf-001",
     },
     spec: {
-      replicas: 1,
+      ports: [
+        {
+          port: 80,
+          targetPort: 8080,
+        },
+      ],
+      selector: {
+        app: "projects",
+      },
+    },
+  }
+) &&
+
+std.assertEqual(
+  instance.parts.projectsConfigMap,
+  {
+    apiVersion: "v1",
+    data: {
+      "sync-permission.jsonnet": "function(request) {\n  local params = {\n  \"name\": \"projects\",\n  \"namespace\": \"kf-001\"\n},\n  local apiVersion = \"kubeflow.org/v1alpha1\",\n  local template = request.parent.spec.template,\n  local existingGroups =\n    if std.type(request.children) == \"object\" then\n      [ request.children[key] for key in std.objectFields(request.children) ]\n    else\n      [],\n  local existingResources(group) =\n    if std.type(group) == \"object\" then\n      [ group[key] for key in std.objectFields(group) ]\n    else\n      [],\n  local existingResource(resource) = {\n    return::\n      if std.type(resource) == \"object\" &&\n      std.objectHas(resource, 'metadata') &&\n      std.objectHas(resource.metadata, 'name') && \n      std.objectHas(request, 'parent') &&\n      std.objectHas(request.parent, 'spec') &&\n      std.objectHas(request.parent.spec, 'namespace') &&\n      resource.metadata.name == request.parent.spec.namespace then\n        true\n      else\n        false,\n  }.return,\n  //local foundChildren = std.filter(existingResource, \n  //  std.flattenArrays(std.map(existingResources, existingGroups))),\n  local foundChildren = std.flattenArrays(std.map(existingResources, existingGroups)),\n  local initialized = {\n    return::\n      if std.objectHas(request.parent, \"status\") &&\n         std.objectHas(request.parent.status, \"created\") &&\n         request.parent.status.created == true then\n        true\n      else\n        false,\n  }.return,\n  local children = [\n    {\n      apiVersion: \"rbac.authorization.k8s.io/v1\",\n      kind: \"Role\",\n      metadata: {\n        name: \"edit\",\n        namespace: request.parent.metadata.namespace,\n      },\n      rules: [\n        {\n          apiGroups: [\n            \"metacontroller.k8s.io\",\n          ],\n          resources: [\n            \"compositecontrollers\",\n            \"decoratecontrollers\",\n          ],\n          verbs: [\n            \"create\",\n            \"delete\",\n            \"get\",\n            \"list\",\n            \"patch\",\n            \"update\",\n            \"watch\",\n          ],\n        },\n        {\n          apiGroups: [\n            \"kubeflow.org\",\n          ],\n          resources: [\n            \"projects\",\n            \"workspaces\",\n            \"permissions\",\n          ],\n          verbs: [\n            \"get\",\n            \"list\",\n            \"watch\",\n            \"create\",\n          ],\n        },\n        {\n          apiGroups: [\n            \"app.k8s.io\",\n          ],\n          resources: [\n            \"applications\",\n            \"apps\",\n          ],\n          verbs: [\n            \"create\",\n            \"delete\",\n            \"deletecollection\",\n            \"get\",\n            \"list\",\n            \"patch\",\n            \"update\",\n            \"watch\",\n          ],\n        },\n        {\n          apiGroups: [\n            \"\",\n          ],\n          resources: [\n            \"pods\",\n            \"pods/attach\",\n            \"pods/exec\",\n            \"pods/portforward\",\n            \"pods/proxy\",\n          ],\n          verbs: [\n            \"create\",\n            \"delete\",\n            \"deletecollection\",\n            \"get\",\n            \"list\",\n            \"patch\",\n            \"update\",\n            \"watch\",\n          ],\n        },\n        {\n          apiGroups: [\n            \"\",\n          ],\n          resources: [\n            \"configmaps\",\n            \"endpoints\",\n            \"persistentvolumeclaims\",\n            \"replicationcontrollers\",\n            \"replicationcontrollers/scale\",\n            \"secrets\",\n            \"serviceaccounts\",\n            \"services\",\n            \"services/proxy\",\n          ],\n          verbs: [\n            \"create\",\n            \"delete\",\n            \"deletecollection\",\n            \"get\",\n            \"list\",\n            \"patch\",\n            \"update\",\n            \"watch\",\n          ],\n        },\n        {\n          apiGroups: [\n            \"\",\n          ],\n          resources: [\n            \"bindings\",\n            \"events\",\n            \"limitranges\",\n            \"namespaces/status\",\n            \"pods/log\",\n            \"pods/status\",\n            \"replicationcontrollers/status\",\n            \"resourcequotas\",\n            \"resourcequotas/status\",\n          ],\n          verbs: [\n            \"get\",\n            \"list\",\n            \"watch\",\n          ],\n        },\n        {\n          apiGroups: [\n            \"\",\n          ],\n          resources: [\n            \"namespaces\",\n          ],\n          verbs: [\n            \"get\",\n            \"list\",\n            \"watch\",\n          ],\n        },\n        {\n          apiGroups: [\n            \"\",\n          ],\n          resources: [\n            \"serviceaccounts\",\n          ],\n          verbs: [\n            \"impersonate\",\n          ],\n        },\n        {\n          apiGroups: [\n            \"apps\",\n          ],\n          resources: [\n            \"daemonsets\",\n            \"deployments\",\n            \"deployments/rollback\",\n            \"deployments/scale\",\n            \"replicasets\",\n            \"replicasets/scale\",\n            \"statefulsets\",\n          ],\n          verbs: [\n            \"create\",\n            \"delete\",\n            \"deletecollection\",\n            \"get\",\n            \"list\",\n            \"patch\",\n            \"update\",\n            \"watch\",\n          ],\n        },\n        {\n          apiGroups: [\n            \"autoscaling\",\n          ],\n          resources: [\n            \"horizontalpodautoscalers\",\n          ],\n          verbs: [\n            \"create\",\n            \"delete\",\n            \"deletecollection\",\n            \"get\",\n            \"list\",\n            \"patch\",\n            \"update\",\n            \"watch\",\n          ],\n        },\n        {\n          apiGroups: [\n            \"batch\",\n          ],\n          resources: [\n            \"cronjobs\",\n            \"jobs\",\n          ],\n          verbs: [\n            \"create\",\n            \"delete\",\n            \"deletecollection\",\n            \"get\",\n            \"list\",\n            \"patch\",\n            \"update\",\n            \"watch\",\n          ],\n        },\n        {\n          apiGroups: [\n            \"extensions\",\n          ],\n          resources: [\n            \"daemonsets\",\n            \"deployments\",\n            \"deployments/rollback\",\n            \"deployments/scale\",\n            \"ingresses\",\n            \"networkpolicies\",\n            \"replicasets\",\n            \"replicasets/scale\",\n            \"replicationcontrollers/scale\",\n          ],\n          verbs: [\n            \"create\",\n            \"delete\",\n            \"deletecollection\",\n            \"get\",\n            \"list\",\n            \"patch\",\n            \"update\",\n            \"watch\",\n          ],\n        },\n        {\n          apiGroups: [\n            \"policy\",\n          ],\n          resources: [\n            \"poddisruptionbudgets\",\n          ],\n          verbs: [\n            \"create\",\n            \"delete\",\n            \"deletecollection\",\n            \"get\",\n            \"list\",\n            \"patch\",\n            \"update\",\n            \"watch\",\n          ],\n        },\n        {\n          apiGroups: [\n            \"networking.k8s.io\",\n          ],\n          resources: [\n            \"networkpolicies\",\n          ],\n          verbs: [\n            \"create\",\n            \"delete\",\n            \"deletecollection\",\n            \"get\",\n            \"list\",\n            \"patch\",\n            \"update\",\n            \"watch\",\n          ],\n        },\n      ],\n    },\n    {\n      apiVersion: \"rbac.authorization.k8s.io/v1\",\n      kind: \"RoleBinding\",\n      metadata: {\n        name: request.parent.spec.owner,\n        namespace: request.parent.metadata.namespace,\n      },\n      roleRef: {\n        apiGroup: \"rbac.authorization.k8s.io\",\n        kind: \"Role\",\n        name: \"edit\",\n      },\n      subjects: [{\n        kind: \"ServiceAccount\",\n        name: request.parent.spec.owner,\n        namespace: params.namespace,\n      },],\n    },\n  ],\n  local desired =\n    if std.type(foundChildren) != \"array\" || std.length(foundChildren) == 0 then\n      if initialized == false then\n        children\n      else\n        //[]\n        children\n    else\n      children,\n  children: desired,\n  status: {\n    phase: \"Active\",\n    conditions: [{\n      type: \"Ready\"\n    },],\n    //debug\n    created: true,\n    initialized: initialized,\n    found_children: std.length(foundChildren),\n    desired: desired,\n    request_parent: request.parent,\n    request_children: request.children,\n  },\n}\n",
+      "sync-project.jsonnet": "function(request) {\n  local apiVersion = \"kubeflow.org/v1alpha1\",\n  local template = request.parent.spec.template,\n  local existingGroups =\n    if std.type(request.children) == \"object\" then\n      [ request.children[key] for key in std.objectFields(request.children) ]\n    else\n      [],\n  local existingResources(group) =\n    if std.type(group) == \"object\" then\n      [ group[key] for key in std.objectFields(group) ]\n    else\n      [],\n  local existingResource(resource) = {\n    return::\n      if std.type(resource) == \"object\" &&\n      std.objectHas(resource, 'metadata') &&\n      std.objectHas(resource.metadata, 'name') && \n      std.objectHas(request, 'parent') &&\n      std.objectHas(request.parent, 'spec') &&\n      std.objectHas(request.parent.spec, 'namespace') &&\n      resource.metadata.name == request.parent.spec.namespace then\n        true\n      else\n        false,\n  }.return,\n  //local foundChildren = std.filter(existingResource, \n  //  std.flattenArrays(std.map(existingResources, existingGroups))),\n  local foundChildren = std.flattenArrays(std.map(existingResources, existingGroups)),\n  local initialized = {\n    return::\n      if std.objectHas(request.parent, \"status\") &&\n         std.objectHas(request.parent.status, \"created\") &&\n         request.parent.status.created == true then\n        true\n      else\n        false,\n  }.return,\n  local child = {\n    apiVersion: apiVersion,\n    kind: \"Workspace\",\n    metadata: {\n      name: template.metadata.name,\n      namespace: request.parent.metadata.namespace,\n    },\n    spec: {\n      namespace: template.spec.namespace,\n      owner: template.spec.owner,\n    },\n  },\n  local desired =\n    if std.type(foundChildren) != \"array\" || std.length(foundChildren) == 0 then\n      if initialized == false then\n        [child]\n      else\n        [child]\n    else\n      [child],\n  children: desired,\n  status: {\n    phase: \"Active\",\n    conditions: [{\n      type: \"Ready\"\n    },],\n    //debug\n    created: true,\n    initialized: initialized,\n    found_children: std.length(foundChildren),\n    desired: desired,\n    request_parent: request.parent,\n    request_children: request.children,\n  },\n}\n",
+      "sync-workspace.jsonnet": "function(request) {\n  local params = {\n  \"name\": \"projects\",\n  \"namespace\": \"kf-001\"\n},\n  local existingGroups =\n    if std.type(request.children) == \"object\" then\n      [ request.children[key] for key in std.objectFields(request.children) ]\n    else\n      [],\n  local existingResources(group) =\n    if std.type(group) == \"object\" then\n      [ group[key] for key in std.objectFields(group) ]\n    else\n      [],\n  local existingResource(resource) = {\n    return::\n      if std.type(resource) == \"object\" &&\n      std.objectHas(resource, 'metadata') &&\n      std.objectHas(resource.metadata, 'name') && \n      std.objectHas(request, 'parent') &&\n      std.objectHas(request.parent, 'spec') &&\n      std.objectHas(request.parent.spec, 'namespace') &&\n      resource.metadata.name == request.parent.spec.namespace then\n        true\n      else\n        false,\n  }.return,\n  //local foundChildren = std.filter(existingResource, \n  //  std.flattenArrays(std.map(existingResources, existingGroups))),\n  local foundChildren = std.flattenArrays(std.map(existingResources, existingGroups)),\n  local children = [\n    {\n      apiVersion: \"v1\",\n      kind: \"Namespace\",\n      metadata: {\n        name: request.parent.spec.namespace,\n        labels: {\n          app: request.parent.spec.namespace,\n        },\n      },\n      status: {\n        phase: \"Pending\",\n      },\n    },\n    {\n      apiVersion: 'kubeflow.org/v1alpha1',\n      kind: 'Permission',\n      metadata: {\n        name: 'permission',\n        namespace: request.parent.spec.namespace,\n      },\n      spec: {\n        owner: request.parent.spec.owner,\n      },\n    },\n  ],\n  local initialized = {\n    return::\n      if std.objectHas(request.parent, \"status\") &&\n         std.objectHas(request.parent.status, \"created\") &&\n         request.parent.status.created == true then\n        true\n      else\n        false,\n  }.return,\n  local desired =\n    if std.type(foundChildren) != \"array\" || std.length(foundChildren) == 0 then\n      if initialized == false then\n        children\n      else\n        //[]\n        children\n    else\n      children,\n  children: desired,\n  status: {\n    phase: \"Active\",\n    conditions: [{\n      type: \"Ready\",\n    }],\n    //debug\n    created: true,\n    initialized: initialized,\n    found_children: std.length(foundChildren),\n    desired: desired,\n    request_parent: request.parent,\n    request_children: request.children,\n  },\n}\n",
+    },
+    kind: "ConfigMap",
+    metadata: {
+      name: "projects",
+      namespace: "kf-001",
+    },
+  }
+) &&
+
+std.assertEqual(
+  instance.parts.projectsDeployment,
+  {
+    apiVersion: "apps/v1",
+    kind: "Deployment",
+    metadata: {
+      name: "projects",
+      namespace: "kf-001",
+    },
+    spec: {
       selector: {
         matchLabels: {
-          app: "metacontroller",
+          app: "projects",
         },
       },
-      serviceName: "",
       template: {
         metadata: {
           labels: {
-            app: "metacontroller",
+            app: "projects",
           },
         },
         spec: {
           containers: [
             {
-              command: [
-                "/usr/bin/metacontroller",
-                "--logtostderr",
-                "-v=4",
-                "--discovery-interval=20s",
-              ],
-              image: "metacontroller/metacontroller:0.2.0",
+              image: "metacontroller/jsonnetd@sha256:25c25f217ad030a0f67e37078c33194785b494569b0c088d8df4f00da8fd15a0",
               imagePullPolicy: "Always",
-              name: "metacontroller",
-              ports: [
+              name: "hooks",
+              volumeMounts: [
                 {
-                  containerPort: 2345,
+                  mountPath: "/opt/projects/hooks",
+                  name: "hooks",
                 },
               ],
-              resources: {
-                limits: {
-                  cpu: "4",
-                  memory: "4Gi",
-                },
-                requests: {
-                  cpu: "500m",
-                  memory: "1Gi",
-                },
-              },
-              securityContext: {
-                allowPrivilegeEscalation: true,
-                privileged: true,
-              },
+              workingDir: "/opt/projects/hooks",
             },
           ],
-          serviceAccountName: "meta-controller-service",
+          volumes: [
+            {
+              configMap: {
+                name: "projects",
+              },
+              name: "hooks",
+            },
+          ],
         },
+      },
+    },
+  }
+) &&
+
+std.assertEqual(
+  instance.parts.projectsController,
+  {
+    apiVersion: "metacontroller.k8s.io/v1alpha1",
+    kind: "CompositeController",
+    metadata: {
+      name: "projects-controller",
+    },
+    spec: {
+      childResources: [
+        {
+          apiVersion: "kubeflow.org/v1alpha1",
+          resource: "workspaces",
+          updateStrategy: {
+            method: "InPlace",
+            statusChecks: {
+              conditions: [
+                {
+                  status: "Active",
+                  type: "phase",
+                },
+              ],
+            },
+          },
+        },
+      ],
+      generateSelector: true,
+      hooks: {
+        sync: {
+          webhook: {
+            url: "http://projects.kf-001/sync-project",
+          },
+        },
+      },
+      parentResource: {
+        apiVersion: "kubeflow.org/v1alpha1",
+        resource: "projects",
+      },
+    },
+  }
+) &&
+
+std.assertEqual(
+  instance.parts.workspacesController,
+  {
+    apiVersion: "metacontroller.k8s.io/v1alpha1",
+    kind: "CompositeController",
+    metadata: {
+      name: "workspaces-controller",
+    },
+    spec: {
+      childResources: [
+        {
+          apiVersion: "v1",
+          resource: "namespaces",
+        },
+        {
+          apiVersion: "kubeflow.org/v1alpha1",
+          resource: "permissions",
+        },
+      ],
+      generateSelector: true,
+      hooks: {
+        sync: {
+          webhook: {
+            url: "http://projects.kf-001/sync-workspace",
+          },
+        },
+      },
+      parentResource: {
+        apiVersion: "kubeflow.org/v1alpha1",
+        resource: "workspaces",
+      },
+    },
+  }
+) &&
+
+std.assertEqual(
+  instance.parts.permissionsController,
+  {
+    apiVersion: "metacontroller.k8s.io/v1alpha1",
+    kind: "CompositeController",
+    metadata: {
+      name: "permissions-controller",
+    },
+    spec: {
+      childResources: [
+        {
+          apiVersion: "rbac.authorization.k8s.io/v1",
+          resource: "roles",
+        },
+        {
+          apiVersion: "rbac.authorization.k8s.io/v1",
+          resource: "rolebindings",
+        },
+      ],
+      generateSelector: true,
+      hooks: {
+        sync: {
+          webhook: {
+            url: "http://projects.kf-001/sync-permission",
+          },
+        },
+      },
+      parentResource: {
+        apiVersion: "kubeflow.org/v1alpha1",
+        resource: "permissions",
       },
     },
   }

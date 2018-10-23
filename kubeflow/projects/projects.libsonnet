@@ -5,60 +5,60 @@
     local params = _env + _params,
 
     local projectsCRD = {
-      apiVersion: 'apiextensions.k8s.io/v1beta1',
-      kind: 'CustomResourceDefinition',
+      apiVersion: "apiextensions.k8s.io/v1beta1",
+      kind: "CustomResourceDefinition",
       metadata: {
-        name: 'projects.kubeflow.org',
+        name: "projects.kubeflow.org",
       },
       spec: {
-        group: 'kubeflow.org',
-        version: 'v1alpha1',
-        scope: 'Namespaced',
+        group: "kubeflow.org",
+        version: "v1alpha1",
+        scope: "Namespaced",
         names: {
-          plural: 'projects',
-          singular: 'project',
-          kind: 'Project',
+          plural: "projects",
+          singular: "project",
+          kind: "Project",
           shortNames: [
-            'prj',
+            "prj",
           ],
         },
         validation: {
           openAPIV3Schema: {
             properties: {
               apiVersion: {
-                type: 'string',
+                type: "string",
               },
               kind: {
-                type: 'string',
+                type: "string",
               },
               metadata: {
-                type: 'object',
+                type: "object",
               },
               spec: {
-                type: 'object',
+                type: "object",
                 properties: {
                   selector: {
-                    type: 'object',
+                    type: "object",
                   },
                   template: {
-                    type: 'object',
+                    type: "object",
                     properties: {
                       metadata: {
-                        type: 'object',
+                        type: "object",
                         properties: {
                           name: {
-                            type: 'string',
+                            type: "string",
                           },
                         },
                       },
                       spec: {
-                        type: 'object',
+                        type: "object",
                         properties: {
                           namespace: {
-                            type: 'string',
+                            type: "string",
                           },
                           owner: {
-                            type: 'string',
+                            type: "string",
                           },
                         },
                       },
@@ -69,10 +69,10 @@
               status: {
                 properties: {
                   observedGeneration: {
-                    type: 'int64',
+                    type: "int64",
                   },
                 },
-                type: 'object',
+                type: "object",
               },
             },
           },
@@ -82,53 +82,53 @@
     projectsCRD:: projectsCRD,
 
     local workspacesCRD = {
-      apiVersion: 'apiextensions.k8s.io/v1beta1',
-      kind: 'CustomResourceDefinition',
+      apiVersion: "apiextensions.k8s.io/v1beta1",
+      kind: "CustomResourceDefinition",
       metadata: {
-        name: 'workspaces.kubeflow.org',
+        name: "workspaces.kubeflow.org",
       },
       spec: {
-        group: 'kubeflow.org',
-        version: 'v1alpha1',
-        scope: 'Namespaced',
+        group: "kubeflow.org",
+        version: "v1alpha1",
+        scope: "Namespaced",
         names: {
-          plural: 'workspaces',
-          singular: 'workspace',
-          kind: 'Workspace',
+          plural: "workspaces",
+          singular: "workspace",
+          kind: "Workspace",
         },
         validation: {
           openAPIV3Schema: {
             properties: {
               apiVersion: {
-                type: 'string',
+                type: "string",
               },
               kind: {
-                type: 'string',
+                type: "string",
               },
               metadata: {
-                type: 'object',
+                type: "object",
               },
               spec: {
-                type: 'object',
+                type: "object",
                 properties: {
                   selector: {
-                    type: 'object',
+                    type: "object",
                   },
                   namespace: {
-                    type: 'string',
+                    type: "string",
                   },
                   owner: {
-                    type: 'string',
+                    type: "string",
                   },
                 },
               },
               status: {
                 properties: {
                   observedGeneration: {
-                    type: 'int64',
+                    type: "int64",
                   },
                 },
-                type: 'object',
+                type: "object",
               },
             },
           },
@@ -138,50 +138,50 @@
     workspacesCRD:: workspacesCRD,
 
     local permissionsCRD = {
-      apiVersion: 'apiextensions.k8s.io/v1beta1',
-      kind: 'CustomResourceDefinition',
+      apiVersion: "apiextensions.k8s.io/v1beta1",
+      kind: "CustomResourceDefinition",
       metadata: {
-        name: 'permissions.kubeflow.org',
+        name: "permissions.kubeflow.org",
       },
       spec: {
-        group: 'kubeflow.org',
-        version: 'v1alpha1',
-        scope: 'Namespaced',
+        group: "kubeflow.org",
+        version: "v1alpha1",
+        scope: "Namespaced",
         names: {
-          plural: 'permissions',
-          singular: 'permission',
-          kind: 'Permission',
+          plural: "permissions",
+          singular: "permission",
+          kind: "Permission",
         },
         validation: {
           openAPIV3Schema: {
             properties: {
               apiVersion: {
-                type: 'string',
+                type: "string",
               },
               kind: {
-                type: 'string',
+                type: "string",
               },
               metadata: {
-                type: 'object',
+                type: "object",
               },
               spec: {
-                type: 'object',
+                type: "object",
                 properties: {
                   selector: {
-                    type: 'object',
+                    type: "object",
                   },
                   owner: {
-                    type: 'string',
+                    type: "string",
                   },
                 },
               },
               status: {
                 properties: {
                   observedGeneration: {
-                    type: 'int64',
+                    type: "int64",
                   },
                 },
-                type: 'object',
+                type: "object",
               },
             },
           },
@@ -789,7 +789,7 @@
             containers: [
               {
                 name: "hooks",
-                #image: "metacontroller/jsonnetd:latest",
+                //image: "metacontroller/jsonnetd:latest",
                 image: "metacontroller/jsonnetd@sha256:25c25f217ad030a0f67e37078c33194785b494569b0c088d8df4f00da8fd15a0",
                 imagePullPolicy: "Always",
                 workingDir: "/opt/projects/hooks",
@@ -816,28 +816,28 @@
     projectsDeployment:: projectsDeployment,
 
     local projectsController = {
-      apiVersion: 'metacontroller.k8s.io/v1alpha1',
-      kind: 'CompositeController',
+      apiVersion: "metacontroller.k8s.io/v1alpha1",
+      kind: "CompositeController",
       metadata: {
-        name: 'projects-controller',
+        name: "projects-controller",
       },
       spec: {
         generateSelector: true,
         parentResource: {
-          apiVersion: 'kubeflow.org/v1alpha1',
-          resource: 'projects',
+          apiVersion: "kubeflow.org/v1alpha1",
+          resource: "projects",
         },
         childResources: [
           {
-            apiVersion: 'kubeflow.org/v1alpha1',
-            resource: 'workspaces',
+            apiVersion: "kubeflow.org/v1alpha1",
+            resource: "workspaces",
             updateStrategy: {
-              method: 'InPlace',
+              method: "InPlace",
               statusChecks: {
                 conditions: [
                   {
-                    type: 'phase',
-                    status: 'Active',
+                    type: "phase",
+                    status: "Active",
                   },
                 ],
               },
@@ -847,7 +847,7 @@
         hooks: {
           sync: {
             webhook: {
-              url: 'http://projects.' + params.namespace + '/sync-project',
+              url: "http://projects." + params.namespace + "/sync-project",
             },
           },
         },
@@ -856,21 +856,21 @@
     projectsController:: projectsController,
 
     local workspacesController = {
-      apiVersion: 'metacontroller.k8s.io/v1alpha1',
-      kind: 'CompositeController',
+      apiVersion: "metacontroller.k8s.io/v1alpha1",
+      kind: "CompositeController",
       metadata: {
-        name: 'workspaces-controller',
+        name: "workspaces-controller",
       },
       spec: {
         generateSelector: true,
         parentResource: {
-          apiVersion: 'kubeflow.org/v1alpha1',
-          resource: 'workspaces',
+          apiVersion: "kubeflow.org/v1alpha1",
+          resource: "workspaces",
         },
         childResources: [
           {
-            apiVersion: 'v1',
-            resource: 'namespaces',
+            apiVersion: "v1",
+            resource: "namespaces",
             //updateStrategy: {
             //  method: 'RollingInPlace',
             //  statusChecks: {
@@ -884,8 +884,8 @@
             //},
           },
           {
-            apiVersion: 'kubeflow.org/v1alpha1',
-            resource: 'permissions',
+            apiVersion: "kubeflow.org/v1alpha1",
+            resource: "permissions",
             //updateStrategy: {
             //  method: 'RollingInPlace',
             //  statusChecks: {
@@ -902,7 +902,7 @@
         hooks: {
           sync: {
             webhook: {
-              url: 'http://projects.' + params.namespace + '/sync-workspace',
+              url: "http://projects." + params.namespace + "/sync-workspace",
             },
           },
         },
@@ -911,31 +911,31 @@
     workspacesController:: workspacesController,
 
     local permissionsController = {
-      apiVersion: 'metacontroller.k8s.io/v1alpha1',
-      kind: 'CompositeController',
+      apiVersion: "metacontroller.k8s.io/v1alpha1",
+      kind: "CompositeController",
       metadata: {
-        name: 'permissions-controller',
+        name: "permissions-controller",
       },
       spec: {
         generateSelector: true,
         parentResource: {
-          apiVersion: 'kubeflow.org/v1alpha1',
-          resource: 'permissions',
+          apiVersion: "kubeflow.org/v1alpha1",
+          resource: "permissions",
         },
         childResources: [
           {
-            apiVersion: 'rbac.authorization.k8s.io/v1',
-            resource: 'roles',
+            apiVersion: "rbac.authorization.k8s.io/v1",
+            resource: "roles",
           },
           {
-            apiVersion: 'rbac.authorization.k8s.io/v1',
-            resource: 'rolebindings',
+            apiVersion: "rbac.authorization.k8s.io/v1",
+            resource: "rolebindings",
           },
         ],
         hooks: {
           sync: {
             webhook: {
-              url: 'http://projects.' + params.namespace + '/sync-permission',
+              url: "http://projects." + params.namespace + "/sync-permission",
             },
           },
         },
