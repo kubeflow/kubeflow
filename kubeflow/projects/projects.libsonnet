@@ -236,7 +236,7 @@
     local syncWorkspace =
       |||
         function(request) {
-          local params = %(params),
+          local params = %(params)s,
           local existingGroups =
             if std.type(request.children) == "object" then
               [ request.children[key] for key in std.objectFields(request.children) ]
@@ -348,7 +348,7 @@
     local syncRbac =
       |||
         function(request) {
-          local params = %(params),
+          local params = %(params)s,
           local desired =
             if request.object.metadata.name == "default" then [
             {
