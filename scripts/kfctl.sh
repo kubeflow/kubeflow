@@ -230,6 +230,7 @@ ksApply () {
   ks apply default -c jupyterhub
   ks apply default -c centraldashboard
   ks apply default -c tf-job-operator
+  ks apply default -c metacontroller
   ks apply default -c spartakus
 
   # Reduce resource demands locally

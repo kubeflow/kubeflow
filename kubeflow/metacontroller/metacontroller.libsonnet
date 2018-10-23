@@ -36,7 +36,7 @@
       spec: {
         group: "metacontroller.k8s.io",
         version: "v1alpha1",
-        scope: "Namespaced",
+        scope: "Cluster",
         names: {
           plural: "decoratorcontrollers",
           singular: "decoratorcontroller",
