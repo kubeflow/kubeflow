@@ -76,7 +76,7 @@ function createKsApp() {
   # ks component rm spartakus
   # Generate a random 30 bit number
   local usageId=$(((RANDOM<<15)|RANDOM))
-  ks generate spartakus spartakus --usageId=${usageId} --reportUsage=true
+  # ks generate spartakus spartakus --usageId=${usageId} --reportUsage=true
   echo ""
   echo "****************************************************************"
   echo "Notice anonymous usage reporting enabled using spartakus"

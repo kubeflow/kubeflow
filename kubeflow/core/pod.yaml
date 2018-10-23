@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: backend-updater
+  namespace: kubeflow
+  labels:
+      service: backend-updater
+spec:
+  containers:
+  - command:
+    - bash
+    - /var/envoy-config/update_backend.sh
+    env:
+    - name: NAMESPACE
+      value: kubeflow
+    - name: SERVICE
+      value: envoy
+    - name: GOOGLE_APPLICATION_CREDENTIALS
+      value: /var/run/secrets/sa/admin-gcp-sa.json
+    image: gcr.io/kubeflow-images-public/ingress-setup:latest
+    name: backend-updater
+    volumeMounts:
+    - mountPath: /var/envoy-config/
+      name: config-volume
+    - mountPath: /var/run/secrets/sa
+      name: sa-key
+      readOnly: true
+  restartPolicy: Never
+  serviceAccountName: envoy
+  volumes:
+  - configMap:
+      name: envoy-config
+    name: config-volume
+  - name: sa-key
+    secret:
+      secretName: admin-gcp-sa

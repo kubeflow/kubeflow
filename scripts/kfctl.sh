@@ -226,12 +226,13 @@ ksApply () {
   fi
 
   # Create all the core components
-  ks apply default -c ambassador
-  ks apply default -c jupyterhub
-  ks apply default -c centraldashboard
-  ks apply default -c tf-job-operator
-  ks apply default -c metacontroller
-  ks apply default -c spartakus
+  ks apply default \
+    -c ambassador \
+    -c jupyterhub \
+    -c centraldashboard \
+    -c tf-job-operator \
+    -c metacontroller \
+    -c spartakus
 
   # Reduce resource demands locally
   if [ "${PLATFORM}" != "minikube" ]; then
@@ -288,12 +289,12 @@ if [ "${COMMAND}" == "apply" ]; then
   if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ] ; then
   	if [ "${PLATFORM}" == "gcp" ]; then
     	updateDM
-    	createSecrets
     fi
   fi
 
   if [ "${WHAT}" == "k8s"  ] || [ "${WHAT}" == "all" ]; then
     createNamespace
+    createSecrets
     ksApply
 
     if [ "${PLATFORM}" == "gcp" ]; then
