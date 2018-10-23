@@ -137,6 +137,59 @@
     },
     workspacesCRD:: workspacesCRD,
 
+    local permissionsCRD = {
+      apiVersion: 'apiextensions.k8s.io/v1beta1',
+      kind: 'CustomResourceDefinition',
+      metadata: {
+        name: 'permissions.kubeflow.org',
+      },
+      spec: {
+        group: 'kubeflow.org',
+        version: 'v1alpha1',
+        scope: 'Namespaced',
+        names: {
+          plural: 'permissions',
+          singular: 'permission',
+          kind: 'Permission',
+        },
+        validation: {
+          openAPIV3Schema: {
+            properties: {
+              apiVersion: {
+                type: 'string',
+              },
+              kind: {
+                type: 'string',
+              },
+              metadata: {
+                type: 'object',
+              },
+              spec: {
+                type: 'object',
+                properties: {
+                  selector: {
+                    type: 'object',
+                  },
+                  owner: {
+                    type: 'string',
+                  },
+                },
+              },
+              status: {
+                properties: {
+                  observedGeneration: {
+                    type: 'int64',
+                  },
+                },
+                type: 'object',
+              },
+            },
+          },
+        },
+      },
+    },
+    permissionsCRD:: permissionsCRD,
+
     local projectsService = {
       apiVersion: "v1",
       kind: "Service",
@@ -186,8 +239,9 @@
               else
                 false,
           }.return,
-          local foundChildren = std.filter(existingResource, 
-            std.flattenArrays(std.map(existingResources, existingGroups))),
+          //local foundChildren = std.filter(existingResource, 
+          //  std.flattenArrays(std.map(existingResources, existingGroups))),
+          local foundChildren = std.flattenArrays(std.map(existingResources, existingGroups)),
           local initialized = {
             return::
               if std.objectHas(request.parent, "status") &&
@@ -223,10 +277,11 @@
             conditions: [{
               type: "Ready"
             },],
+            //debug
             created: true,
             initialized: initialized,
             found_children: std.length(foundChildren),
-            desired: std.length(desired),
+            desired: desired,
             request_parent: request.parent,
             request_children: request.children,
           },
@@ -260,8 +315,9 @@
               else
                 false,
           }.return,
-          local foundChildren = std.filter(existingResource, 
-            std.flattenArrays(std.map(existingResources, existingGroups))),
+          //local foundChildren = std.filter(existingResource, 
+          //  std.flattenArrays(std.map(existingResources, existingGroups))),
+          local foundChildren = std.flattenArrays(std.map(existingResources, existingGroups)),
           local children = [
             {
               apiVersion: "v1",
@@ -277,36 +333,14 @@
               },
             },
             {
-              apiVersion: 'metacontroller.k8s.io/v1alpha1',
-              kind: 'DecoratorController',
+              apiVersion: 'kubeflow.org/v1alpha1',
+              kind: 'Permission',
               metadata: {
-                name: 'rbac-controller',
+                name: 'permission',
                 namespace: request.parent.spec.namespace,
               },
               spec: {
-                resources: [
-                  {
-                    apiVersion: 'v1',
-                    resource: 'serviceaccounts',
-                  },
-                ],
-                attachments: [
-                  {
-                    apiVersion: 'rbac.authorization.k8s.io/v1',
-                    resource: 'roles',
-                  },
-                  {
-                    apiVersion: 'rbac.authorization.k8s.io/v1',
-                    resource: 'rolebindings',
-                  },
-                ],
-                hooks: {
-                  sync: {
-                    webhook: {
-                      url: 'http://projects.' + params.namespace + '/sync-rbac',
-                    },
-                  },
-                },
+                owner: request.parent.spec.owner,
               },
             },
           ],
@@ -324,7 +358,8 @@
               if initialized == false then
                 children
               else
-                []
+                //[]
+                children
             else
               children,
           children: desired,
@@ -333,9 +368,11 @@
             conditions: [{
               type: "Ready",
             }],
+            //debug
             created: true,
+            initialized: initialized,
             found_children: std.length(foundChildren),
-            desired: std.length(desired),
+            desired: desired,
             request_parent: request.parent,
             request_children: request.children,
           },
@@ -345,18 +382,54 @@
         params: std.manifestJsonEx(params, "  "),
       },
 
-    local syncRbac =
+    local syncPermission =
       |||
         function(request) {
           local params = %(params)s,
-          local desired =
-            if request.object.metadata.name == "default" then [
+          local apiVersion = "kubeflow.org/v1alpha1",
+          local template = request.parent.spec.template,
+          local existingGroups =
+            if std.type(request.children) == "object" then
+              [ request.children[key] for key in std.objectFields(request.children) ]
+            else
+              [],
+          local existingResources(group) =
+            if std.type(group) == "object" then
+              [ group[key] for key in std.objectFields(group) ]
+            else
+              [],
+          local existingResource(resource) = {
+            return::
+              if std.type(resource) == "object" &&
+              std.objectHas(resource, 'metadata') &&
+              std.objectHas(resource.metadata, 'name') && 
+              std.objectHas(request, 'parent') &&
+              std.objectHas(request.parent, 'spec') &&
+              std.objectHas(request.parent.spec, 'namespace') &&
+              resource.metadata.name == request.parent.spec.namespace then
+                true
+              else
+                false,
+          }.return,
+          //local foundChildren = std.filter(existingResource, 
+          //  std.flattenArrays(std.map(existingResources, existingGroups))),
+          local foundChildren = std.flattenArrays(std.map(existingResources, existingGroups)),
+          local initialized = {
+            return::
+              if std.objectHas(request.parent, "status") &&
+                 std.objectHas(request.parent.status, "created") &&
+                 request.parent.status.created == true then
+                true
+              else
+                false,
+          }.return,
+          local children = [
             {
               apiVersion: "rbac.authorization.k8s.io/v1",
               kind: "Role",
               metadata: {
                 name: "edit",
-                namespace: request.object.metadata.namespace,
+                namespace: request.parent.metadata.namespace,
               },
               rules: [
                 {
@@ -384,6 +457,7 @@
                   resources: [
                     "projects",
                     "workspaces",
+                    "permissions",
                   ],
                   verbs: [
                     "get",
@@ -633,8 +707,8 @@
               apiVersion: "rbac.authorization.k8s.io/v1",
               kind: "RoleBinding",
               metadata: {
-                name: request.object.spec.template.namespace,
-                namespace: request.object.spec.template.namespace,
+                name: request.parent.spec.owner,
+                namespace: request.parent.metadata.namespace,
               },
               roleRef: {
                 apiGroup: "rbac.authorization.k8s.io",
@@ -643,13 +717,34 @@
               },
               subjects: [{
                 kind: "ServiceAccount",
-                name: request.object.spec.template.owner,
+                name: request.parent.spec.owner,
                 namespace: params.namespace,
               },],
             },
-          ] else [],
-        
-          attachments: desired,
+          ],
+          local desired =
+            if std.type(foundChildren) != "array" || std.length(foundChildren) == 0 then
+              if initialized == false then
+                children
+              else
+                //[]
+                children
+            else
+              children,
+          children: desired,
+          status: {
+            phase: "Active",
+            conditions: [{
+              type: "Ready"
+            },],
+            //debug
+            created: true,
+            initialized: initialized,
+            found_children: std.length(foundChildren),
+            desired: desired,
+            request_parent: request.parent,
+            request_children: request.children,
+          },
         }
       ||| %
       {
@@ -666,7 +761,7 @@
       data: {
         "sync-project.jsonnet": syncProject,
         "sync-workspace.jsonnet": syncWorkspace,
-        "sync-rbac.jsonnet": syncRbac,
+        "sync-permission.jsonnet": syncPermission,
       },
     },
     projectsConfigMap:: projectsConfigMap,
@@ -694,7 +789,8 @@
             containers: [
               {
                 name: "hooks",
-                image: "metacontroller/jsonnetd:latest",
+                #image: "metacontroller/jsonnetd:latest",
+                image: "metacontroller/jsonnetd@sha256:25c25f217ad030a0f67e37078c33194785b494569b0c088d8df4f00da8fd15a0",
                 imagePullPolicy: "Always",
                 workingDir: "/opt/projects/hooks",
                 volumeMounts: [
@@ -775,32 +871,32 @@
           {
             apiVersion: 'v1',
             resource: 'namespaces',
-            updateStrategy: {
-              method: 'RollingInPlace',
-              statusChecks: {
-                conditions: [
-                  {
-                    type: 'phase',
-                    status: 'Active',
-                  },
-                ],
-              },
-            },
+            //updateStrategy: {
+            //  method: 'RollingInPlace',
+            //  statusChecks: {
+            //    conditions: [
+            //      {
+            //        type: 'phase',
+            //        status: 'Active',
+            //      },
+            //    ],
+            //  },
+            //},
           },
           {
-            apiVersion: 'metacontroller.k8s.io/v1alpha1',
-            resource: 'decoratorcontrollers',
-            updateStrategy: {
-              method: 'RollingInPlace',
-              statusChecks: {
-                conditions: [
-                  {
-                    type: 'phase',
-                    status: 'Active',
-                  },
-                ],
-              },
-            },
+            apiVersion: 'kubeflow.org/v1alpha1',
+            resource: 'permissions',
+            //updateStrategy: {
+            //  method: 'RollingInPlace',
+            //  statusChecks: {
+            //    conditions: [
+            //      {
+            //        type: 'phase',
+            //        status: 'Active',
+            //      },
+            //    ],
+            //  },
+            //},
           },
         ],
         hooks: {
@@ -814,15 +910,50 @@
     },
     workspacesController:: workspacesController,
 
+    local permissionsController = {
+      apiVersion: 'metacontroller.k8s.io/v1alpha1',
+      kind: 'CompositeController',
+      metadata: {
+        name: 'permissions-controller',
+      },
+      spec: {
+        generateSelector: true,
+        parentResource: {
+          apiVersion: 'kubeflow.org/v1alpha1',
+          resource: 'permissions',
+        },
+        childResources: [
+          {
+            apiVersion: 'rbac.authorization.k8s.io/v1',
+            resource: 'roles',
+          },
+          {
+            apiVersion: 'rbac.authorization.k8s.io/v1',
+            resource: 'rolebindings',
+          },
+        ],
+        hooks: {
+          sync: {
+            webhook: {
+              url: 'http://projects.' + params.namespace + '/sync-permission',
+            },
+          },
+        },
+      },
+    },
+    permissionsController:: permissionsController,
+
     parts:: self,
     local all = [
       self.projectsCRD,
       self.workspacesCRD,
+      self.permissionsCRD,
       self.projectsService,
       self.projectsConfigMap,
       self.projectsDeployment,
       self.projectsController,
       self.workspacesController,
+      self.permissionsController,
     ],
     all:: all,
 
