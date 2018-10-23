@@ -185,7 +185,8 @@ type ApplyRequest struct {
 	SAClientId string
 }
 
-var ( // metrics
+var (
+	// Counter metrics
 	deployReqCounter = prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "deploy_requests",
 		Help: "Number of requests for deployments",
@@ -197,6 +198,28 @@ var ( // metrics
 	kfDeploymentsDoneCounter = prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "kubeflow_deployments_done",
 		Help: "Number of successfully finished Kubeflow deployments",
+	})
+
+	// Gauge metrics
+	deployReqCounterRaw = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "deploy_requests_raw",
+		Help: "Number of requests for deployments",
+	})
+	clusterDeploymentsDoneRaw = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "cluster_deployments_done_raw",
+		Help: "Number of successfully finished GKE deployments",
+	})
+	kfDeploymentsDoneRaw = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "kubeflow_deployments_done_raw",
+		Help: "Number of successfully finished Kubeflow deployments",
+	})
+	InvalidRequestRaw = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "invalid_request_raw",
+		Help: "Number of invalid deploy request",
+	})
+	DeploymentFailureRaw = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "kubeflow_deployments_failure_raw",
+		Help: "Number of failed Kubeflow deployments",
 	})
 
 	// latencies
@@ -219,6 +242,11 @@ func init() {
 	prometheus.MustRegister(kfDeploymentsDoneCounter)
 	prometheus.MustRegister(clusterDeploymentLatencies)
 	prometheus.MustRegister(kfDeploymentLatencies)
+	prometheus.MustRegister(deployReqCounterRaw)
+	prometheus.MustRegister(clusterDeploymentsDoneRaw)
+	prometheus.MustRegister(kfDeploymentsDoneRaw)
+	prometheus.MustRegister(InvalidRequestRaw)
+	prometheus.MustRegister(DeploymentFailureRaw)
 }
 
 func setupNamespace(namespaces type_v1.NamespaceInterface, name_space string) error {
@@ -867,10 +895,12 @@ func finishDeployment(svc KsService, ctx context.Context, req CreateRequest) {
 		status, err = svc.GetDeploymentStatus(ctx, req)
 		if err != nil {
 			log.Errorf("Failed to get deployment status: %v", err)
+			DeploymentFailureRaw.Inc()
 			return
 		}
 		if status == "DONE" {
 			clusterDeploymentsDone.Inc()
+			clusterDeploymentsDoneRaw.Inc()
 			clusterDeploymentLatencies.Observe(timeSinceStart(ctx).Seconds())
 			log.Infof("Deployment is done")
 			break
@@ -881,6 +911,7 @@ func finishDeployment(svc KsService, ctx context.Context, req CreateRequest) {
 	}
 	if status != "DONE" {
 		log.Errorf("Deployment status is not done: %v", status)
+		DeploymentFailureRaw.Inc()
 		return
 	}
 
@@ -894,6 +925,7 @@ func finishDeployment(svc KsService, ctx context.Context, req CreateRequest) {
 	})
 	if err != nil {
 		log.Errorf("Failed to update IAM: %v", err)
+		DeploymentFailureRaw.Inc()
 		return
 	}
 
@@ -907,6 +939,7 @@ func finishDeployment(svc KsService, ctx context.Context, req CreateRequest) {
 	})
 	if err != nil {
 		log.Errorf("Failed to insert service account key: %v", err)
+		DeploymentFailureRaw.Inc()
 		return
 	}
 
@@ -914,6 +947,7 @@ func finishDeployment(svc KsService, ctx context.Context, req CreateRequest) {
 	err = svc.CreateApp(ctx, req)
 	if err != nil {
 		log.Errorf("Failed to create app: %v", err)
+		DeploymentFailureRaw.Inc()
 		return
 	}
 
@@ -935,10 +969,12 @@ func finishDeployment(svc KsService, ctx context.Context, req CreateRequest) {
 		})
 		if err != nil {
 			log.Errorf("Failed to apply app: %v", err)
+			DeploymentFailureRaw.Inc()
 			return
 		}
 	}
 	kfDeploymentsDoneCounter.Inc()
+	kfDeploymentsDoneRaw.Inc()
 	kfDeploymentLatencies.Observe(timeSinceStart(ctx).Seconds())
 }
 
@@ -947,18 +983,21 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 		req := request.(CreateRequest)
 		r := &basicServerResponse{}
 		deployReqCounter.Inc()
+		deployReqCounterRaw.Inc()
 		ctx = context.WithValue(ctx, START_TIME, time.Now())
 
 		dmServiceAccount := req.ProjectNumber + "@cloudservices.gserviceaccount.com"
 		err := svc.BindRole(ctx, req.Project, req.Token, dmServiceAccount)
 		if err != nil {
 			r.Err = err.Error()
+			DeploymentFailureRaw.Inc()
 			return r, err
 		}
 
 		err = svc.InsertDeployment(ctx, req)
 		if err != nil {
 			r.Err = err.Error()
+			DeploymentFailureRaw.Inc()
 			return r, err
 		}
 		go finishDeployment(svc, ctx, req)
@@ -1001,6 +1040,7 @@ func makeIamEndpoint(svc KsService) endpoint.Endpoint {
 func decodeCreateAppRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	var request CreateRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		InvalidRequestRaw.Inc()
 		return nil, err
 	}
 	return request, nil
