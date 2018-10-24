@@ -251,7 +251,7 @@
               else
                 false,
           }.return,
-          local child = {
+          local children = [{
             apiVersion: apiVersion,
             kind: "Workspace",
             metadata: {
@@ -266,11 +266,11 @@
           local desired =
             if std.type(foundChildren) != "array" || std.length(foundChildren) == 0 then
               if initialized == false then
-                [child]
+                children
               else
-                [child]
+                children
             else
-              [child],
+              children,
           children: desired,
           status: {
             phase: "Active",
