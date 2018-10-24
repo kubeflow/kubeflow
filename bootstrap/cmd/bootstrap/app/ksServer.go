@@ -187,20 +187,6 @@ type ApplyRequest struct {
 }
 
 var (
-	// Counter metrics
-	deployReqCounter = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "deploy_requests",
-		Help: "Number of requests for deployments",
-	})
-	clusterDeploymentsDone = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "cluster_deployments_done",
-		Help: "Number of successfully finished GKE deployments",
-	})
-	kfDeploymentsDoneCounter = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "kubeflow_deployments_done",
-		Help: "Number of successfully finished Kubeflow deployments",
-	})
-
 	// Gauge metrics
 	deployReqCounterRaw = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: "deploy_requests_raw",
@@ -238,9 +224,6 @@ var (
 
 func init() {
 	// Register prometheus counters
-	prometheus.MustRegister(deployReqCounter)
-	prometheus.MustRegister(clusterDeploymentsDone)
-	prometheus.MustRegister(kfDeploymentsDoneCounter)
 	prometheus.MustRegister(clusterDeploymentLatencies)
 	prometheus.MustRegister(kfDeploymentLatencies)
 	prometheus.MustRegister(deployReqCounterRaw)
@@ -903,7 +886,6 @@ func finishDeployment(svc KsService, req CreateRequest) {
 			return
 		}
 		if status == "DONE" {
-			clusterDeploymentsDone.Inc()
 			clusterDeploymentsDoneRaw.Inc()
 			clusterDeploymentLatencies.Observe(timeSinceStart(ctx).Seconds())
 			log.Infof("Deployment is done")
@@ -976,7 +958,6 @@ func finishDeployment(svc KsService, req CreateRequest) {
 			return
 		}
 	}
-	kfDeploymentsDoneCounter.Inc()
 	kfDeploymentsDoneRaw.Inc()
 	kfDeploymentLatencies.Observe(timeSinceStart(ctx).Seconds())
 }
@@ -985,7 +966,6 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(CreateRequest)
 		r := &basicServerResponse{}
-		deployReqCounter.Inc()
 		deployReqCounterRaw.Inc()
 
 		dmServiceAccount := req.ProjectNumber + "@cloudservices.gserviceaccount.com"
