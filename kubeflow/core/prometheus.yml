@@ -54,9 +54,9 @@ scrape_configs:
   - role: pod
 
   relabel_configs:
-  - source_labels: [__meta_kubernetes_namespace,__meta_kubernetes_service_annotation_prometheus_io_scrape]
+  - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
     action: keep
-    regex: kubeflow;true
+    regex: true
   - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
     action: replace
     target_label: __metrics_path__
@@ -84,9 +84,9 @@ scrape_configs:
   - role: endpoints
 
   relabel_configs:
-  - source_labels: [__meta_kubernetes_namespace,__meta_kubernetes_service_annotation_prometheus_io_scrape]
+  - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scrape]
     action: keep
-    regex: kubeflow;true
+    regex: true
   - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scheme]
     action: replace
     target_label: __scheme__
@@ -109,9 +109,9 @@ scrape_configs:
   - role: service
 
   relabel_configs:
-  - source_labels: [__meta_kubernetes_namespace,__meta_kubernetes_service_annotation_prometheus_io_scrape]
+  - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scrape]
     action: keep
-    regex: kubeflow;true
+    regex: true
   - action: labelmap
     regex: __meta_kubernetes_service_label_(.+)
   - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_path]
