@@ -230,8 +230,9 @@ def delete_gcloud_resource(args, keyword, filter='', dlt_params=[]):
     dlt_cmd = 'gcloud compute %s delete -q --project=%s %s' % (keyword, args.project, element)
     try:
       util_run(dlt_cmd.split(' ') + dlt_params)
-    except Exception:
+    except Exception as e:
       logging.warning('Cannot remove %s %s' % (keyword, element))
+      logging.warning(e)
 
 # clean up deployment / app config from previous test
 def prober_clean_up_resource(args):
@@ -272,7 +273,7 @@ def prober_clean_up_resource(args):
   # Delete backend-services
   delete_gcloud_resource(args, 'backend-services', dlt_params=['--global'])
   # Delete instance-groups
-  delete_gcloud_resource(args, 'instance-groups unmanaged', filter=' --filter=INSTANCES:0')
+  delete_gcloud_resource(args, 'instance-groups unmanaged', filter=' --filter=INSTANCES:0', dlt_params=['--zone=' + args.zone])
   # Delete ssl-certificates
   delete_gcloud_resource(args, 'ssl-certificates')
   # Delete health-checks
