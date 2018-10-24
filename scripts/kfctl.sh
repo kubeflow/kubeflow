@@ -226,18 +226,31 @@ ksApply () {
   fi
 
   # Create all the core components
-  ks apply default -c ambassador
-  ks apply default -c jupyterhub
-  ks apply default -c centraldashboard
-  ks apply default -c tf-job-operator
-  ks apply default -c metacontroller
-  ks apply default -c spartakus
+  COMPONENTS=""
+  COMPONENTS+="-c ambassador "
+  COMPONENTS+="-c jupyterhub "
+  COMPONENTS+="-c centraldashboard "
+  COMPONENTS+="-c tf-job-operator "
+  COMPONENTS+="-c metacontroller "
+  COMPONENTS+="-c spartakus "
+  COMPONENTS+="-c application "
 
-  # Reduce resource demands locally
+
+  # Do not install some components for minikube
   if [ "${PLATFORM}" != "minikube" ]; then
-    ks apply default -c argo
-    ks apply default -c katib
+    COMPONENTS+="-c argo "
+    COMPONENTS+="-c katib "
   fi
+  
+  # Install GCP specific components
+  if [ "${PLATFORM}" == "gcp" ]; then
+    COMPONENTS+="-c cloud-endpoints "
+    COMPONENTS+="-c cert-manager "
+    COMPONENTS+="-c iap-ingress "
+    COMPONENTS+="-c pytorch-operator "
+  fi
+
+  ks apply default ${COMPONENTS}
 
   popd
 
@@ -295,16 +308,6 @@ if [ "${COMMAND}" == "apply" ]; then
   if [ "${WHAT}" == "k8s"  ] || [ "${WHAT}" == "all" ]; then
     createNamespace
     ksApply
-
-    if [ "${PLATFORM}" == "gcp" ]; then
-    	gcpKsApply
-    fi
-
-    # all components deployed
-    # deploy the application CR
-    pushd ${KUBEFLOW_KS_DIR}
-      ks apply default -c application
-    popd
   fi
 fi
 

@@ -228,27 +228,3 @@ gcpGenerateKsApp() {
   ks param set jupyterhub jupyterHubAuthenticator iap
   popd
 }
-
-gcpKsApply() {
-  # Apply the components generated
-  pushd .
-  cd "${KUBEFLOW_KS_DIR}"
-
-  set +e
-  O=`ks env describe default 2>&1`
-  RESULT=$?
-  set -e
-
-  if [ "${RESULT}" -eq 0 ]; then
-    echo environment default already exists
-  else
-    ks env add default --namespace "${K8S_NAMESPACE}"
-  fi
-
-  ks apply default -c cloud-endpoints
-  ks apply default -c cert-manager
-  ks apply default -c iap-ingress
-  ks apply default -c pytorch-operator
-
-  popd
-}
