@@ -196,15 +196,15 @@ var (
 		Name: "kubeflow_deployments_done",
 		Help: "Number of successfully finished Kubeflow deployments",
 	})
-	InvalidRequest = prometheus.NewCounter(prometheus.CounterOpts{
+	invalidRequest = prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "invalid_requests",
 		Help: "Number of invalid deploy request",
 	})
-	DeploymentFailure = prometheus.NewCounter(prometheus.CounterOpts{
+	deploymentFailure = prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "deployments_failure",
 		Help: "Number of failed Kubeflow deployments",
 	})
-	ServiceHeartbeat = prometheus.NewCounter(prometheus.CounterOpts{
+	serviceHeartbeat = prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "service_heartbeat",
 		Help: "Heartbeat signal every 10 seconds indicating pods are alive.",
 	})
@@ -246,9 +246,9 @@ func init() {
 	prometheus.MustRegister(deployReqCounterRaw)
 	prometheus.MustRegister(clusterDeploymentsDoneRaw)
 	prometheus.MustRegister(kfDeploymentsDoneRaw)
-	prometheus.MustRegister(InvalidRequest)
-	prometheus.MustRegister(DeploymentFailure)
-	prometheus.MustRegister(ServiceHeartbeat)
+	prometheus.MustRegister(invalidRequest)
+	prometheus.MustRegister(deploymentFailure)
+	prometheus.MustRegister(serviceHeartbeat)
 }
 
 func setupNamespace(namespaces type_v1.NamespaceInterface, name_space string) error {
@@ -900,7 +900,7 @@ func finishDeployment(svc KsService, req CreateRequest) {
 		status, err = svc.GetDeploymentStatus(ctx, req)
 		if err != nil {
 			log.Errorf("Failed to get deployment status: %v", err)
-			DeploymentFailure.Inc()
+			deploymentFailure.Inc()
 			return
 		}
 		if status == "DONE" {
@@ -914,7 +914,7 @@ func finishDeployment(svc KsService, req CreateRequest) {
 	}
 	if status != "DONE" {
 		log.Errorf("Deployment status is not done: %v", status)
-		DeploymentFailure.Inc()
+		deploymentFailure.Inc()
 		return
 	}
 
@@ -928,7 +928,7 @@ func finishDeployment(svc KsService, req CreateRequest) {
 	})
 	if err != nil {
 		log.Errorf("Failed to update IAM: %v", err)
-		DeploymentFailure.Inc()
+		deploymentFailure.Inc()
 		return
 	}
 
@@ -942,7 +942,7 @@ func finishDeployment(svc KsService, req CreateRequest) {
 	})
 	if err != nil {
 		log.Errorf("Failed to insert service account key: %v", err)
-		DeploymentFailure.Inc()
+		deploymentFailure.Inc()
 		return
 	}
 
@@ -950,7 +950,7 @@ func finishDeployment(svc KsService, req CreateRequest) {
 	err = svc.CreateApp(ctx, req)
 	if err != nil {
 		log.Errorf("Failed to create app: %v", err)
-		DeploymentFailure.Inc()
+		deploymentFailure.Inc()
 		return
 	}
 
@@ -972,7 +972,7 @@ func finishDeployment(svc KsService, req CreateRequest) {
 		})
 		if err != nil {
 			log.Errorf("Failed to apply app: %v", err)
-			DeploymentFailure.Inc()
+			deploymentFailure.Inc()
 			return
 		}
 	}
@@ -985,7 +985,7 @@ func finishDeployment(svc KsService, req CreateRequest) {
 func countHeartbeat() {
 	for {
 		time.Sleep(10 * time.Second)
-		ServiceHeartbeat.Inc()
+		serviceHeartbeat.Inc()
 	}
 }
 
@@ -1000,14 +1000,14 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 		err := svc.BindRole(ctx, req.Project, req.Token, dmServiceAccount)
 		if err != nil {
 			r.Err = err.Error()
-			DeploymentFailure.Inc()
+			deploymentFailure.Inc()
 			return r, err
 		}
 
 		err = svc.InsertDeployment(ctx, req)
 		if err != nil {
 			r.Err = err.Error()
-			DeploymentFailure.Inc()
+			deploymentFailure.Inc()
 			return r, err
 		}
 		go finishDeployment(svc, req)
@@ -1050,7 +1050,7 @@ func makeIamEndpoint(svc KsService) endpoint.Endpoint {
 func decodeCreateAppRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	var request CreateRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		InvalidRequest.Inc()
+		invalidRequest.Inc()
 		return nil, err
 	}
 	return request, nil
