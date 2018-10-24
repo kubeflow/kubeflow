@@ -10,7 +10,7 @@ from time import sleep
 from google.auth.transport.requests import Request
 from googleapiclient import discovery
 from oauth2client.client import GoogleCredentials
-from prometheus_client import start_http_server, Gauge
+from prometheus_client import start_http_server, Gauge, Counter
 
 import requests
 import yaml
@@ -27,9 +27,11 @@ IAM_SCOPE = 'https://www.googleapis.com/auth/iam'
 OAUTH_TOKEN_URI = 'https://www.googleapis.com/oauth2/v4/token'
 METHOD = 'GET'
 SERVICE_HEALTH = Gauge('deployment_service_status',
-                              '0: normal; 1: deployment not successful; 2: service down')
+                       '0: normal; 1: deployment not successful; 2: service down')
 PROBER_HEALTH = Gauge('prober_health',
-                              '0: normal; 1: not working')
+                      '0: normal; 1: not working')
+SUCCESS_COUNT = Counter('deployment_success_count', 'accumulative count of successful deployment')
+FAILURE_COUNT = Counter('deployment_failure_count', 'accumulative count of failed deployment')
 
 def may_get_env_var(name):
   env_val = os.getenv(name)
@@ -111,9 +113,9 @@ def insert_ssl_cert(args):
   credentials = GoogleCredentials.get_application_default()
 
   service = discovery.build('deploymentmanager', 'v2', credentials=credentials)
-  retry_credit = 100
-  while retry_credit > 0:
-    retry_credit -= 1
+  # Wait up to 10 minutes till GKE cluster up and available.
+  end_time = datetime.datetime.now() + datetime.timedelta(minutes=10)
+  while datetime.datetime.now() < end_time:
     sleep(5)
     try:
       request = service.deployments().get(project=args.project, deployment=args.deployment)
@@ -131,6 +133,7 @@ def insert_ssl_cert(args):
   os.mkdir(SSL_DIR)
   logging.info("donwload ssl cert and insert to GKE cluster")
   try:
+    # TODO: switch to client lib
     util_run(("gsutil cp gs://%s/%s/* %s" % (SSL_BUCKET, args.mode, SSL_DIR)).split(' '))
   except Exception:
     logging.warning("ssl cert for %s doesn't exist in gcs" % args.mode)
@@ -147,11 +150,12 @@ def check_deploy_status(args):
   google_open_id_connect_token = get_google_open_id_connect_token(
     service_account_credentials)
   # Wait up to 30 minutes for IAP access test.
-  retry_credit = 180
+  num_req = 0
+  end_time = datetime.datetime.now() + datetime.timedelta(minutes=30)
   status_code = 0
-  while retry_credit > 0:
-    retry_credit -= 1
+  while datetime.datetime.now() < end_time:
     sleep(10)
+    num_req += 1
     try:
       resp = requests.request(
         METHOD, "https://%s.endpoints.%s.cloud.goog" % (args.deployment, args.project),
@@ -161,9 +165,9 @@ def check_deploy_status(args):
       if resp.status_code == 200:
         break
     except Exception:
-      logging.info("IAP not ready, exception caught, retry credit: %s" % retry_credit)
+      logging.info("IAP not ready, exception caught, request number: %s" % num_req)
       continue
-    logging.info("IAP not ready, retry credit: %s" % retry_credit)
+    logging.info("IAP not ready, request number: %s" % num_req)
 
   # Optionally upload ssl cert
   if status_code == 200 and os.listdir(SSL_DIR) == []:
@@ -172,6 +176,7 @@ def check_deploy_status(args):
       with open(os.path.join(SSL_DIR, sec + ".yaml"), 'w+') as sec_file:
         sec_file.write(sec_data)
         sec_file.close()
+    # TODO: switch to client lib
     util_run(("gsutil cp %s/* gs://%s/%s/" % (SSL_DIR, SSL_BUCKET, args.mode)).split(' '))
   return status_code
 
@@ -218,6 +223,7 @@ def get_google_open_id_connect_token(service_account_credentials):
   return token_response['id_token']
 
 def delete_gcloud_resource(args, keyword, filter='', dlt_params=[]):
+  # TODO: switch to client lib
   get_cmd = 'gcloud compute %s list --project=%s --format="value(name)"' % (keyword, args.project)
   elements = util_run(get_cmd + filter, shell=True)
   for element in elements.split('\n'):
@@ -247,8 +253,9 @@ def prober_clean_up_resource(args):
     response = request.execute()
   except Exception as e:
     logging.info("Deployment doesn't exist, continue")
-  # wait up to 500 seconds till delete finish.
-  for i in range(50):
+  # wait up to 10 minutes till delete finish.
+  end_time = datetime.datetime.now() + datetime.timedelta(minutes=10)
+  while datetime.datetime.now() < end_time:
     sleep(10)
     request = service.deployments().list(project=args.project)
     response = request.execute()
@@ -264,6 +271,10 @@ def prober_clean_up_resource(args):
   delete_gcloud_resource(args, 'backend-services', dlt_params=['--global'])
   # Delete instance-groups
   delete_gcloud_resource(args, 'instance-groups unmanaged', filter=' --filter=INSTANCES:0')
+  # Delete ssl-certificates
+  delete_gcloud_resource(args, 'ssl-certificates')
+  # Delete health-checks
+  delete_gcloud_resource(args, 'health-checks')
 
   return delete_done
 
@@ -351,16 +362,6 @@ def main(unparsed_args=None):
     default="deploy.kubeflow.cloud",
     type=str,
     help="target url which accept deployment request")
-  # parser.add_argument(
-  #   "--client_id",
-  #   default="",
-  #   type=str,
-  #   help="oauth client id")
-  # parser.add_argument(
-  #   "--client_secret",
-  #   default="",
-  #   type=str,
-  #   help="oauth client secret")
   parser.add_argument(
     "--wait_sec",
     default=60,
@@ -401,6 +402,7 @@ def main(unparsed_args=None):
     while True:
       if not prober_clean_up_resource(args):
         PROBER_HEALTH.set(1)
+        FAILURE_COUNT.inc()
         logging.error("request cleanup failed, retry in %s seconds" % args.wait_sec)
         sleep(args.wait_sec)
         continue
@@ -409,10 +411,13 @@ def main(unparsed_args=None):
         insert_ssl_cert(args)
         if check_deploy_status(args) == 200:
           SERVICE_HEALTH.set(0)
+          SUCCESS_COUNT.inc()
         else:
           SERVICE_HEALTH.set(1)
+          FAILURE_COUNT.inc()
       else:
         SERVICE_HEALTH.set(2)
+        FAILURE_COUNT.inc()
         logging.error("prober request failed, retry in %s seconds" % args.wait_sec)
         sleep(args.wait_sec)
 
