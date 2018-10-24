@@ -92,5 +92,27 @@
       },
     },
     virtualService:: virtualService,
+
+    local destinationRule = {
+      apiVersion: "networking.istio.io/v1alpha3",
+      kind: "DestinationRule",
+      metadata: {
+        name: name,
+        namespace: namespace,
+      },
+      spec: {
+        host: name,
+        subsets: [
+          {
+            name: std.split(versionWeight, ":")[0],
+            labels: {
+              version: std.split(versionWeight, ":")[0],
+            },
+          }
+          for versionWeight in versionWeights
+        ],
+      },
+    },
+    destinationRule:: destinationRule,
   },  // new
 }

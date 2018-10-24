@@ -16,5 +16,8 @@ local base = tfservingService.new(env, params);
 util.list(
   [
     base.tfService,
-  ] + if util.toBool(params.injectIstio) then [base.virtualService] else [],
+  ] + if util.toBool(params.injectIstio) then [
+    base.virtualService,
+    base.destinationRule,
+  ] else [],
 )
