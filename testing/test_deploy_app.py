@@ -265,6 +265,8 @@ def prober_clean_up_resource(args):
 
   # Delete target-http-proxies
   delete_gcloud_resource(args, 'target-http-proxies')
+  # Delete target-http-proxies
+  delete_gcloud_resource(args, 'target-https-proxies')
   # Delete url-maps
   delete_gcloud_resource(args, 'url-maps')
   # Delete backend-services
