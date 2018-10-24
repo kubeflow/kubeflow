@@ -33,6 +33,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	"strings"
 )
 
 // The name of the prototype for Jupyter.
@@ -441,7 +442,7 @@ func (s *ksServer) getRegistryUri(registry *RegistryConfig) (string, error) {
 			if err != nil {
 				return "", err
 			}
-			err = os.Rename(path.Join(registryPath, registry.Name+"-"+registry.Version), versionPath)
+			err = os.Rename(path.Join(registryPath, registry.Name+"-" + strings.Trim(registry.Version, "v")), versionPath)
 			if err != nil {
 				log.Errorf("Error occrued during os.Rename. Error: %v", err)
 				return "", err
@@ -887,11 +888,14 @@ func timeSinceStart(ctx context.Context) time.Duration {
 	return time.Since(startTime)
 }
 
-func finishDeployment(svc KsService, ctx context.Context, req CreateRequest) {
+func finishDeployment(svc KsService, req CreateRequest) {
 	retry := 0
 	status := ""
 	var err error
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, START_TIME, time.Now())
 	for retry < 40 {
+		time.Sleep(10 * time.Second)
 		status, err = svc.GetDeploymentStatus(ctx, req)
 		if err != nil {
 			log.Errorf("Failed to get deployment status: %v", err)
@@ -907,7 +911,6 @@ func finishDeployment(svc KsService, ctx context.Context, req CreateRequest) {
 		}
 		log.Infof("status: %v, waiting...", status)
 		retry += 1
-		time.Sleep(10 * time.Second)
 	}
 	if status != "DONE" {
 		log.Errorf("Deployment status is not done: %v", status)
@@ -984,7 +987,6 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 		r := &basicServerResponse{}
 		deployReqCounter.Inc()
 		deployReqCounterRaw.Inc()
-		ctx = context.WithValue(ctx, START_TIME, time.Now())
 
 		dmServiceAccount := req.ProjectNumber + "@cloudservices.gserviceaccount.com"
 		err := svc.BindRole(ctx, req.Project, req.Token, dmServiceAccount)
@@ -1000,7 +1002,7 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 			DeploymentFailureRaw.Inc()
 			return r, err
 		}
-		go finishDeployment(svc, ctx, req)
+		go finishDeployment(svc, req)
 		return r, nil
 	}
 }
