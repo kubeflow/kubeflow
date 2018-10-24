@@ -336,7 +336,7 @@ the correct Docker image. See sections below for component specific instructions
 
 1. Modify the script update_katib_ksonnet.sh 
 
-    * set REALEASE to the tag you want to use
+    * set RELEASE to the tag you want to use
 
 1. Run `update_katib_ksonnet.sh`
 
@@ -383,7 +383,7 @@ Ideally, this process will be automated to a greater extent in the future.
 ## Releasing a new version of the website
 
 With each stable release, we should also release a corresponding version of the Kubeflow [website](www.kubeflow.org). Each version of the website is generated from a separate [branch](https://github.com/kubeflow/website/branches)
-of the kubeflow/website repository. If documentation needs to be fixed, the changes should be commited to master and then cherry-picked to the proper release branch.
+of the kubeflow/website repository. If documentation needs to be fixed, the changes should be committed to master and then cherry-picked to the proper release branch.
 
 Releasing a new version on the website requires the following steps:
 

@@ -71,7 +71,7 @@ Then replace the directory `vendor/kubeflow` with a symbolic link to `${GIT_KUBE
 ln -sf ${GIT_KUBEFLOW}/kubeflow  ${APP_DIR}/vendor/kubeflow
 ```
 
-this way changes to your .libsonnet files will automaticaly be reflected in your components.
+this way changes to your .libsonnet files will automatically be reflected in your components.
 
 If you make changes to prototypes you need to regenerate the prototype. You can just delete the `.jsonnet`
 file in your app's component directory and then regenerate the component using `ks generate`.
