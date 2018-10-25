@@ -31,6 +31,8 @@
     local syncNotebook =
       |||
         function(request) {
+          local params = %(params)s,
+          local podTemplateSpec = request.parent.spec.template,
           local existingGroups =
             if std.type(request.children) == "object" then
               [ request.children[key] for key in std.objectFields(request.children) ]
@@ -55,7 +57,6 @@
               else
                 false,
           }.return,
-          local podTemplateSpec = request.parent.spec.template,
           local foundChildren = std.filter(existingResource, 
             std.flattenArrays(std.map(existingResources, existingGroups))),
           local children = [
@@ -141,7 +142,10 @@
             request_children: request.children,
           },
         }
-      |||,
+      ||| %
+      {
+        params: std.manifestJsonEx(params, "  "),
+      },
 
     local notebooksConfigMap = {
       apiVersion: "v1",
