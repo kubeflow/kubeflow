@@ -92,7 +92,7 @@ def setup_kubeflow_ks_app(dir, namespace, github_token, api_client):
     ], cwd=dir)
 
   # Set the default namespace.
-  util.run(["ks", "param", "set", "--env=default", "namespace", namespace],
+  util.run(["ks", "param", "set", "--env=default", "namespace", namespace_name],
     cwd=dir)
 
   app_dir = os.path.join(dir, app_name)
