@@ -2,10 +2,7 @@
   local k = import "k.libsonnet",
   local util = import "kubeflow/core/util.libsonnet",
   new(_env, _params):: {
-    local params = _env + _params {
-      namespace: if std.objectHas(_params, "namespace") && _params.namespace != "null" then
-        _params.namespace else _env.namespace,
-    },
+    local params = _env + _params,
 
     local kubeSpawnerConfig = {
       apiVersion: "v1",
@@ -147,8 +144,8 @@
                     value: params.notebookPVCMount,
                   },
                   {
-                    name: "CLOUD_NAME",
-                    value: params.cloud,
+                    name: "PLATFORM_NAME",
+                    value: params.platform,
                   },
                   {
                     name: "REGISTRY",
@@ -170,22 +167,22 @@
                     name: "KF_PVC_LIST",
                     value: params.disks,
                   },
-                  if params.cloud == "gke" then
+                  if params.platform == "gke" then
                     {
                       name: "GCP_SECRET_NAME",
                       value: params.gcpSecretName,
                     },
-                  if params.cloud == "minikube" && std.toString(params.notebookUid) != "-1" then
+                  if params.platform == "minikube" && std.toString(params.notebookUid) != "-1" then
                     {
                       name: "NOTEBOOK_UID",
                       value: std.toString(params.notebookUid),
                     },
-                  if params.cloud == "minikube" && std.toString(params.notebookGid) != "-1" then
+                  if params.platform == "minikube" && std.toString(params.notebookGid) != "-1" then
                     {
                       name: "NOTEBOOK_GID",
                       value: std.toString(params.notebookGid),
                     },
-                  if params.cloud == "minikube" then
+                  if params.platform == "minikube" then
                     {
                       name: "ACCESS_LOCAL_FS",
                       value: std.toString(params.accessLocalFs),

@@ -111,7 +111,7 @@ Here are some **guidelines (not requirements)** for creating the above scripts a
   
   * Scripts should create K8s clusters and supporting services as needed
 
-  * This is based on ancedetal evidence that most Kubeflow users to date
+  * This is based on anecdotal evidence that most Kubeflow users to date
     are creating infrastructure specific for Kubeflow rather than deploying on
     existing infrastructure.
 
@@ -121,7 +121,7 @@ Here are some **guidelines (not requirements)** for creating the above scripts a
 
 * Declarative approaches to managing infrastructure (e.g. Terraform) are preferred
 
-  * Kubeflow aims to adopt K8s patterns; manging infrastructure declaratively 
+  * Kubeflow aims to adopt K8s patterns; managing infrastructure declaratively 
     is one such pattern
 
   * Another Kubeflow principle is low bar high ceiling
@@ -145,7 +145,7 @@ Here are some **guidelines (not requirements)** for creating the above scripts a
 * To avoid hitting GitHub API limits and requiring users to create a GitHub token
   the recommended approach is
 
-  1. Fetch and unback an archive copy of the repository.
+  1. Fetch and unpack an archive copy of the repository.
 
   	 ```
   	 curl -L -O /tmp/source.tar.gz https://github.com/kubeflow/kubeflow/archive/v0.2.0.tar.gz

@@ -5,10 +5,7 @@
   // sets a local variable params which is _env + _params
   // All resources defined within self can then access param values as params.<name>
   new(_env, _params):: self {
-    local params = _env + _params {
-      namespace: if std.objectHas(_params, "namespace") && _params.namespace != "null" then
-        _params.namespace else _env.namespace,
-    },
+    local params = _env + _params,
 
     // Define the various resource manifests as local class variables
     // The resource variable should be descriptive of the resource value being exported,

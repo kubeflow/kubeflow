@@ -164,22 +164,26 @@ def deploy_model(args):
   api_client = create_k8s_client(args)
   app_dir = setup_kubeflow_ks_app(args, api_client)
 
-  component = "modelServer"
   logging.info("Deploying tf-serving.")
-  generate_command = ["ks", "generate", "tf-serving-gcp", component]
-
-  util.run(generate_command, cwd=app_dir)
-
   params = {}
   for pair in args.params.split(","):
     k, v = pair.split("=", 1)
     params[k] = v
-
   if "namespace" not in params:
     raise ValueError("namespace must be supplied via --params.")
   namespace = params["namespace"]
 
-  ks_deploy(app_dir, component, params, env=None, account=None)
+  # deployment component
+  deployComponent = "modelServer"
+  generate_command = ["ks", "generate", "tf-serving-deployment-gcp", deployComponent]
+  util.run(generate_command, cwd=app_dir)
+  ks_deploy(app_dir, deployComponent, params, env=None, account=None)
+
+  # service component
+  serviceComponent = "modelServer-service"
+  generate_command = ["ks", "generate", "tf-serving-service", serviceComponent]
+  util.run(generate_command, cwd=app_dir)
+  ks_deploy(app_dir, serviceComponent, params, env=None, account=None)
 
   core_api = k8s_client.CoreV1Api(api_client)
   deploy = core_api.read_namespaced_service(args.deploy_name, args.namespace)
@@ -241,8 +245,7 @@ def deploy_argo(args):
 
   component = "argo"
   logging.info("Deploying argo")
-  generate_command = ["ks", "generate", "argo", component,
-                        "--namespace", "default", "--name", "argo"]
+  generate_command = ["ks", "generate", "argo", component, "--name", "argo"]
   util.run(generate_command, cwd=app_dir)
 
   ks_deploy(app_dir, component, {}, env=None, account=None)

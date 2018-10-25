@@ -56,6 +56,8 @@ function createKsApp() {
   ks pkg install kubeflow/pytorch-job
   ks pkg install kubeflow/seldon
   ks pkg install kubeflow/tf-serving
+  ks pkg install kubeflow/metacontroller
+  ks pkg install kubeflow/application
 
   # Generate all required components
   ks generate pytorch-operator pytorch-operator
@@ -64,6 +66,7 @@ function createKsApp() {
   ks generate jupyterhub jupyterhub
   ks generate centraldashboard centraldashboard
   ks generate tf-job-operator tf-job-operator
+  ks generate metacontroller metacontroller
 
   ks generate argo argo
   ks generate katib katib
@@ -89,6 +92,7 @@ function createKsApp() {
   echo "For more info: https://www.kubeflow.org/docs/guides/usage-reporting/"
   echo "****************************************************************"
   echo ""
+  ks generate application application
 }
 
 function removeKsEnv() {

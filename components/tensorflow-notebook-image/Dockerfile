@@ -5,9 +5,11 @@ ARG BASE_IMAGE=ubuntu:latest
 
 FROM $BASE_IMAGE
 
-ARG INSTALL_TFMA=yes
 ARG TF_PACKAGE=https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.7.0-cp36-cp36m-linux_x86_64.whl
 ARG TF_PACKAGE_PY_27=https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.7.0-cp27-none-linux_x86_64.whl
+ARG TF_SERVING_VERSION=0.0.0
+ARG TFMA_VERSION
+ARG TFDV_VERSION
 
 USER root
 
@@ -20,6 +22,14 @@ ENV HOME /home/$NB_USER
 # to minimize the amount of content in $HOME
 ENV CONDA_DIR=/opt/conda
 ENV PATH $CONDA_DIR/bin:$PATH
+
+# Export args as environment variables.
+# This is solely to make them available to install.sh
+ENV TF_PACKAGE $TF_PACKAGE
+ENV TF_PACKAGE_27 $TF_PACKAGE_PY_27
+ENV TF_SERVING_VERSION $TF_PACKAGE_PY_27
+ENV TFMA_VERSION $TFMA_VERSION
+ENV TFDV_VERSION $TFDV_VERSION
 
 # Use bash instead of sh
 SHELL ["/bin/bash", "-c"]
@@ -109,42 +119,9 @@ COPY --chown=jovyan:users requirements.txt /tmp
 
 # Install python2 and ipython2 kernel for jupyter notebook
 # Install tf packages which only support py2
-RUN conda create -n py2 python=2 && \
-    source activate py2 && \
-    pip install --upgrade pip && \
-    pip --no-cache-dir install \
-    ipykernel \
-    # Tensorflow
-    ${TF_PACKAGE_PY_27} \
-    # Tensorflow packages which only supports python 2
-    tensorflow-transform \
-    tensorflow-serving-api \
-    # ipykernel for python 2 jupyter notebook kernel
-    && \
-    python -m ipykernel install && \
-    # tensorflow-model-analysis is only supported for TF 1.6 and above
-    if [[ $INSTALL_TFMA == "yes" ]]; then \
-      pip install --no-cache-dir tensorflow-model-analysis && \
-      pip install --no-cache-dir tensorflow-data-validation && \
-      # We use --system because if we don't the config is written to the home directory
-      # and the changes are lost when we mount a PV over them.
-      jupyter nbextension enable --py --system widgetsnbextension && \
-      jupyter nbextension install --py --system --symlink tensorflow_model_analysis && \
-      jupyter nbextension enable --py --system tensorflow_model_analysis ; \
-    fi \
-    && \
-    # Install jupyterlab-manager
-    conda install --quiet --yes \
-    # nodejs required for jupyterlab-manager
-    nodejs && \
-    jupyter labextension install @jupyter-widgets/jupyterlab-manager && \
-    # Install common packages from requirements.txt for both python2 and python3
-    pip --no-cache-dir install -r /tmp/requirements.txt && \
-    source activate py2 && \
-    pip --no-cache-dir install -r /tmp/requirements.txt && \
-    # Do chown in this layer for significant size savings
-    chown -R ${NB_USER}:users $HOME && \
-    chown -R ${NB_USER}:users $CONDA_DIR
+COPY --chown=jovyan:users install.sh /tmp/
+RUN chmod a+rx /tmp/install.sh && \
+    /tmp/install.sh
 
 # Add basic config
 COPY --chown=jovyan:users  jupyter_notebook_config.py /tmp

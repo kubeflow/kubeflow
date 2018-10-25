@@ -164,7 +164,11 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           <Input name="clientSecret" label="Web App Client Secret" spellCheck={false} value={this.state.clientSecret} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
-          <Input name="kfverison" label="Kubeflow Version" spellCheck={false} value={this.state.kfverison} onChange={this._handleChange.bind(this)} />
+          <Text>Kubeflow Version: </Text>
+          <select name="kfverison" style={{ display: 'flex', fontSize: '1.3em', margin: '5% 5%',}} spellCheck={false} value={this.state.kfverison} onChange={this._handleChange.bind(this)} >
+            <option value="default">default</option>
+            <option value="v0.3.1">v0.3.1</option>
+          </select>
         </Row>
         <div style={{ display: 'flex', padding: '20px 60px 40px' }}>
           <DeployBtn variant="contained" color="primary" onClick={this._createDeployment.bind(this)}>

@@ -2,12 +2,15 @@
   local k = import "k.libsonnet",
   local util = import "kubeflow/tf-serving/util.libsonnet",
   new(_env, _params):: {
-    local params = _env + _params {
-      namespace: if std.objectHas(_params, "namespace") && _params.namespace != "null" then
-        _params.namespace else _env.namespace,
-    },
+    local params = _env + _params,
     local namespace = params.namespace,
     local name = params.name,
+    local modelName =
+      if params.modelName == "null" then
+        params.name
+      else
+        params.modelName,
+    local versionName = params.versionName,
     local modelServerImage =
       if params.numGpus == "0" then
         params.defaultCpuImage
@@ -15,52 +18,7 @@
         params.defaultGpuImage,
 
     // Optional features.
-    // TODO(lunkai): Add Istio
     // TODO(lunkai): Add request logging
-
-    local tfService = {
-      apiVersion: "v1",
-      kind: "Service",
-      metadata: {
-        labels: {
-          app: name,
-        },
-        name: name,
-        namespace: namespace,
-        annotations: {
-          "getambassador.io/config":
-            std.join("\n", [
-              "---",
-              "apiVersion: ambassador/v0",
-              "kind:  Mapping",
-              "name: tfserving-predict-mapping-" + name,
-              "prefix: tfserving/models/" + name + "/",
-              "rewrite: /v1/models/" + name + ":predict",
-              "method: POST",
-              "service: " + name + "." + namespace + ":8500",
-            ]),
-        },  //annotations
-      },
-      spec: {
-        ports: [
-          {
-            name: "grpc-tf-serving",
-            port: 9000,
-            targetPort: 9000,
-          },
-          {
-            name: "http-tf-serving",
-            port: 8500,
-            targetPort: 8500,
-          },
-        ],
-        selector: {
-          app: name,
-        },
-        type: params.serviceType,
-      },
-    },  // tfService
-    tfService:: tfService,
 
     local modelServerContainer = {
       command: [
@@ -69,12 +27,12 @@
       args: [
         "--port=9000",
         "--rest_api_port=8500",
-        "--model_name=" + params.modelName,
+        "--model_name=" + modelName,
         "--model_base_path=" + params.modelBasePath,
       ],
       image: modelServerImage,
       imagePullPolicy: "IfNotPresent",
-      name: name,
+      name: modelName,
       ports: [
         {
           containerPort: 9000,
@@ -112,19 +70,20 @@
       kind: "Deployment",
       metadata: {
         labels: {
-          app: name,
+          app: modelName,
         },
         name: name,
         namespace: namespace,
-        annotations: {
-          "sidecar.istio.io/inject": params.injectIstio,
-        },
       },
       spec: {
         template: {
           metadata: {
             labels: {
-              app: name,
+              app: modelName,
+              version: versionName,
+            },
+            annotations: {
+              "sidecar.istio.io/inject": if util.toBool(params.injectIstio) then "true",
             },
           },
           spec: {

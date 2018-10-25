@@ -10,7 +10,7 @@
     },
     modelName: $.params.name,
     modelPath: null,
-    modelStorageType: "cloud",
+    modelStorageType: "storageType",
 
     version: "v1",
     firstVersion: true,
@@ -37,8 +37,8 @@
     // Whether or not to enable s3 parameters
     s3Enable:: false,
 
-    // Which cloud to use
-    cloud:: null,
+    // Which storageType to use
+    storageType:: null,
   },
 
   // Parametes specific to GCP.
@@ -95,7 +95,7 @@
               $.s3parts.tfService,
               $.s3parts.tfDeployment,
             ]
-          else if $.params.cloud == "gcp" then
+          else if $.params.storageType == "gcp" then
             [
               $.gcpParts.tfService,
               $.gcpParts.tfDeployment,

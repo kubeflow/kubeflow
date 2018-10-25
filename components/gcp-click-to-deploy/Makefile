@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-IMG = gcr.io/kubeflow-images-public/gcp-click-to-deploy
+PROJECT ?= kubeflow-images-public
+IMG = gcr.io/$(PROJECT)/gcp-click-to-deploy
 
 
 CHANGED_FILES := $(shell git diff-files)

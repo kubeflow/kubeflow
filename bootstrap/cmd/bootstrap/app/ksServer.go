@@ -33,6 +33,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	"strings"
 )
 
 // The name of the prototype for Jupyter.
@@ -40,6 +41,9 @@ const JUPYTER_PROTOTYPE = "jupyterhub"
 
 // root dir of local cached VERSIONED REGISTRIES
 const CACHED_REGISTRIES = "/opt/versioned_registries"
+
+// key used for storing start time of a request to deploy in the request contexts
+const START_TIME = "startTime"
 
 // KsService defines an interface for working with ksonnet.
 type KsService interface {
@@ -182,26 +186,69 @@ type ApplyRequest struct {
 	SAClientId string
 }
 
-var ( // counters
+var (
+	// Counter metrics
 	deployReqCounter = prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "deploy_requests",
 		Help: "Number of requests for deployments",
 	})
-	clusterDeploymentsDone = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "cluster_deployments_done",
-		Help: "Number of successfully finished GKE deployments",
-	})
 	kfDeploymentsDoneCounter = prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "kubeflow_deployments_done",
 		Help: "Number of successfully finished Kubeflow deployments",
+	})
+	invalidRequest = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "invalid_requests",
+		Help: "Number of invalid deploy request",
+	})
+	deploymentFailure = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "deployments_failure",
+		Help: "Number of failed Kubeflow deployments",
+	})
+	serviceHeartbeat = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "service_heartbeat",
+		Help: "Heartbeat signal every 10 seconds indicating pods are alive.",
+	})
+
+	// Gauge metrics
+	deployReqCounterRaw = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "deploy_requests_raw",
+		Help: "Number of requests for deployments",
+	})
+	clusterDeploymentsDoneRaw = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "cluster_deployments_done_raw",
+		Help: "Number of successfully finished GKE deployments",
+	})
+	kfDeploymentsDoneRaw = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "kubeflow_deployments_done_raw",
+		Help: "Number of successfully finished Kubeflow deployments",
+	})
+
+
+	// latencies
+	clusterDeploymentLatencies = prometheus.NewHistogram(prometheus.HistogramOpts{
+		Name:    "cluster_dep_duration_seconds",
+		Help:    "A histogram of the GKE cluster deployment request duration in seconds",
+		Buckets: prometheus.LinearBuckets(30, 30, 15),
+	})
+	kfDeploymentLatencies = prometheus.NewHistogram(prometheus.HistogramOpts{
+		Name:    "kubeflow_dep_duration_seconds",
+		Help:    "A histogram of the KF deployment request duration in seconds",
+		Buckets: prometheus.LinearBuckets(150, 30, 20),
 	})
 )
 
 func init() {
 	// Register prometheus counters
 	prometheus.MustRegister(deployReqCounter)
-	prometheus.MustRegister(clusterDeploymentsDone)
 	prometheus.MustRegister(kfDeploymentsDoneCounter)
+	prometheus.MustRegister(clusterDeploymentLatencies)
+	prometheus.MustRegister(kfDeploymentLatencies)
+	prometheus.MustRegister(deployReqCounterRaw)
+	prometheus.MustRegister(clusterDeploymentsDoneRaw)
+	prometheus.MustRegister(kfDeploymentsDoneRaw)
+	prometheus.MustRegister(invalidRequest)
+	prometheus.MustRegister(deploymentFailure)
+	prometheus.MustRegister(serviceHeartbeat)
 }
 
 func setupNamespace(namespaces type_v1.NamespaceInterface, name_space string) error {
@@ -396,7 +443,7 @@ func (s *ksServer) getRegistryUri(registry *RegistryConfig) (string, error) {
 			if err != nil {
 				return "", err
 			}
-			err = os.Rename(path.Join(registryPath, registry.Name+"-"+registry.Version), versionPath)
+			err = os.Rename(path.Join(registryPath, registry.Name+"-" + strings.Trim(registry.Version, "v")), versionPath)
 			if err != nil {
 				log.Errorf("Error occrued during os.Rename. Error: %v", err)
 				return "", err
@@ -834,28 +881,40 @@ func makeCreateAppEndpoint(svc KsService) endpoint.Endpoint {
 	}
 }
 
+func timeSinceStart(ctx context.Context) time.Duration {
+	startTime, ok := ctx.Value(START_TIME).(time.Time)
+	if !ok {
+		return time.Duration(0)
+	}
+	return time.Since(startTime)
+}
+
 func finishDeployment(svc KsService, req CreateRequest) {
 	retry := 0
 	status := ""
 	var err error
-	ctx := context.TODO()
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, START_TIME, time.Now())
 	for retry < 40 {
+		time.Sleep(10 * time.Second)
 		status, err = svc.GetDeploymentStatus(ctx, req)
 		if err != nil {
 			log.Errorf("Failed to get deployment status: %v", err)
+			deploymentFailure.Inc()
 			return
 		}
 		if status == "DONE" {
-			clusterDeploymentsDone.Inc()
+			clusterDeploymentsDoneRaw.Inc()
+			clusterDeploymentLatencies.Observe(timeSinceStart(ctx).Seconds())
 			log.Infof("Deployment is done")
 			break
 		}
 		log.Infof("status: %v, waiting...", status)
 		retry += 1
-		time.Sleep(10 * time.Second)
 	}
 	if status != "DONE" {
 		log.Errorf("Deployment status is not done: %v", status)
+		deploymentFailure.Inc()
 		return
 	}
 
@@ -869,6 +928,7 @@ func finishDeployment(svc KsService, req CreateRequest) {
 	})
 	if err != nil {
 		log.Errorf("Failed to update IAM: %v", err)
+		deploymentFailure.Inc()
 		return
 	}
 
@@ -882,6 +942,7 @@ func finishDeployment(svc KsService, req CreateRequest) {
 	})
 	if err != nil {
 		log.Errorf("Failed to insert service account key: %v", err)
+		deploymentFailure.Inc()
 		return
 	}
 
@@ -889,6 +950,7 @@ func finishDeployment(svc KsService, req CreateRequest) {
 	err = svc.CreateApp(ctx, req)
 	if err != nil {
 		log.Errorf("Failed to create app: %v", err)
+		deploymentFailure.Inc()
 		return
 	}
 
@@ -910,10 +972,21 @@ func finishDeployment(svc KsService, req CreateRequest) {
 		})
 		if err != nil {
 			log.Errorf("Failed to apply app: %v", err)
+			deploymentFailure.Inc()
 			return
 		}
 	}
 	kfDeploymentsDoneCounter.Inc()
+	kfDeploymentsDoneRaw.Inc()
+	kfDeploymentLatencies.Observe(timeSinceStart(ctx).Seconds())
+}
+
+// Add heartbeat every 10 seconds
+func countHeartbeat() {
+	for {
+		time.Sleep(10 * time.Second)
+		serviceHeartbeat.Inc()
+	}
 }
 
 func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
@@ -921,17 +994,20 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 		req := request.(CreateRequest)
 		r := &basicServerResponse{}
 		deployReqCounter.Inc()
+		deployReqCounterRaw.Inc()
 
 		dmServiceAccount := req.ProjectNumber + "@cloudservices.gserviceaccount.com"
 		err := svc.BindRole(ctx, req.Project, req.Token, dmServiceAccount)
 		if err != nil {
 			r.Err = err.Error()
+			deploymentFailure.Inc()
 			return r, err
 		}
 
 		err = svc.InsertDeployment(ctx, req)
 		if err != nil {
 			r.Err = err.Error()
+			deploymentFailure.Inc()
 			return r, err
 		}
 		go finishDeployment(svc, req)
@@ -974,6 +1050,7 @@ func makeIamEndpoint(svc KsService) endpoint.Endpoint {
 func decodeCreateAppRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	var request CreateRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		invalidRequest.Inc()
 		return nil, err
 	}
 	return request, nil
@@ -1088,5 +1165,6 @@ func (s *ksServer) StartHttp(port int) {
 	// add an http handler for prometheus metrics
 	http.Handle("/metrics", promhttp.Handler())
 
+	go countHeartbeat()
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), nil))
 }
