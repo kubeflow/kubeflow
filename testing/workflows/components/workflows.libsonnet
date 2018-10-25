@@ -64,7 +64,7 @@
     local tests = self,
 
     // The name for the workspace to run the steps in
-    stepsNamespace: "kubeflow",
+    stepsNamespace: "default",
     // mountPath is the directory where the volume to store the test data
     // should be mounted.
     mountPath: "/mnt/" + "test-data-volume",
