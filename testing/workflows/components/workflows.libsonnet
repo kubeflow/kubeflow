@@ -64,7 +64,7 @@
     local tests = self,
 
     // The name for the workspace to run the steps in
-    stepsNamespace: "default",
+    stepsNamespace: "kubeflow",
     // mountPath is the directory where the volume to store the test data
     // should be mounted.
     mountPath: "/mnt/" + "test-data-volume",
@@ -330,7 +330,7 @@
     // Reuse kfTests above to add the actual tests to that file.
     e2e(prow_env, bucket, platform="minikube"):
       // The name for the workspace to run the steps in
-      local stepsNamespace = "kubeflow";
+      local stepsNamespace = "default";
       // mountPath is the directory where the volume to store the test data
       // should be mounted.
       local mountPath = "/mnt/" + "test-data-volume";
