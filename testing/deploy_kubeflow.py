@@ -59,21 +59,18 @@ def deploy_kubeflow(test_case):
   util.run(
     [
       "ks", "generate", "tf-job-operator", "tf-job-operator",
-      "--namespace=" + namespace,
     ],
     cwd=app_dir)
 
   util.run(
     [
       "ks", "generate", "pytorch-operator", "pytorch-operator",
-      "--namespace=" + namespace
     ],
     cwd=app_dir)
 
   util.run(
     [
       "ks", "generate", "jupyterhub", "jupyterhub",
-      "--namespace=" + namespace
     ],
     cwd=app_dir)
 
