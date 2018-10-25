@@ -157,6 +157,10 @@
                     name: "IN_CLUSTER",
                     value: "true",
                   },
+                  {
+                    name: "BASE_HREF",
+                    value: "/argo/"
+                  },
                 ],
                 image: params.uiImage,
                 imagePullPolicy: "IfNotPresent",
@@ -202,7 +206,6 @@
               "kind:  Mapping",
               "name: argo-ui-mapping",
               "prefix: /argo/",
-              "rewrite: /argo/",
               "service: argo-ui." + params.namespace,
             ]),
         },  //annotations
