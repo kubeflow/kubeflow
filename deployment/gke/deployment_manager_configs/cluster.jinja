@@ -74,9 +74,14 @@ resources:
       name: {{ CLUSTER_NAME }}
       initialClusterVersion: "{{ properties['cluster-version'] }}"
       {% if properties['gkeApiVersion'] == 'v1beta1' %}
-      # We need 1.10.2 to support Stackdrivier GKE.
+      # We need 1.10.2 to support Stackdriver GKE.
       loggingService: logging.googleapis.com/kubernetes
       monitoringService: monitoring.googleapis.com/kubernetes
+      {% if properties['enable_tpu'] %}
+      enable_tpu: {{ properties['enable_tpu'] }}
+      ipAllocationPolicy:
+        useIpAliases: {{ properties['enable_tpu'] }}
+      {% endif %}
       podSecurityPolicyConfig:
         enabled: {{ properties['securityConfig']['podSecurityPolicy'] }}
       {% endif %}
