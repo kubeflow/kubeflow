@@ -1,5 +1,6 @@
 // Some useful routines.
 {
+  // TODO(https://github.com/kubeflow/kubeflow/issues/1826): Replace with std.asciiUpper once supported by required version of jsonnet
   // Convert a string to upper case.
   upper:: function(x) {
     local cp(c) = std.codepoint(c),

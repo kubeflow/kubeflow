@@ -41,6 +41,9 @@ const JUPYTER_PROTOTYPE = "jupyterhub"
 // root dir of local cached VERSIONED REGISTRIES
 const CACHED_REGISTRIES = "/opt/versioned_registries"
 
+// key used for storing start time of a request to deploy in the request contexts
+const START_TIME = "startTime"
+
 // KsService defines an interface for working with ksonnet.
 type KsService interface {
 	// CreateApp creates a ksonnet application.
@@ -182,7 +185,7 @@ type ApplyRequest struct {
 	SAClientId string
 }
 
-var ( // counters
+var ( // metrics
 	deployReqCounter = prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "deploy_requests",
 		Help: "Number of requests for deployments",
@@ -195,6 +198,18 @@ var ( // counters
 		Name: "kubeflow_deployments_done",
 		Help: "Number of successfully finished Kubeflow deployments",
 	})
+
+	// latencies
+	clusterDeploymentLatencies = prometheus.NewHistogram(prometheus.HistogramOpts{
+		Name:    "cluster_dep_duration_seconds",
+		Help:    "A histogram of the GKE cluster deployment request duration in seconds",
+		Buckets: prometheus.LinearBuckets(30, 30, 15),
+	})
+	kfDeploymentLatencies = prometheus.NewHistogram(prometheus.HistogramOpts{
+		Name:    "kubeflow_dep_duration_seconds",
+		Help:    "A histogram of the KF deployment request duration in seconds",
+		Buckets: prometheus.LinearBuckets(150, 30, 20),
+	})
 )
 
 func init() {
@@ -202,6 +217,8 @@ func init() {
 	prometheus.MustRegister(deployReqCounter)
 	prometheus.MustRegister(clusterDeploymentsDone)
 	prometheus.MustRegister(kfDeploymentsDoneCounter)
+	prometheus.MustRegister(clusterDeploymentLatencies)
+	prometheus.MustRegister(kfDeploymentLatencies)
 }
 
 func setupNamespace(namespaces type_v1.NamespaceInterface, name_space string) error {
@@ -834,11 +851,18 @@ func makeCreateAppEndpoint(svc KsService) endpoint.Endpoint {
 	}
 }
 
-func finishDeployment(svc KsService, req CreateRequest) {
+func timeSinceStart(ctx context.Context) time.Duration {
+	startTime, ok := ctx.Value(START_TIME).(time.Time)
+	if !ok {
+		return time.Duration(0)
+	}
+	return time.Since(startTime)
+}
+
+func finishDeployment(svc KsService, ctx context.Context, req CreateRequest) {
 	retry := 0
 	status := ""
 	var err error
-	ctx := context.TODO()
 	for retry < 40 {
 		status, err = svc.GetDeploymentStatus(ctx, req)
 		if err != nil {
@@ -847,6 +871,7 @@ func finishDeployment(svc KsService, req CreateRequest) {
 		}
 		if status == "DONE" {
 			clusterDeploymentsDone.Inc()
+			clusterDeploymentLatencies.Observe(timeSinceStart(ctx).Seconds())
 			log.Infof("Deployment is done")
 			break
 		}
@@ -914,6 +939,7 @@ func finishDeployment(svc KsService, req CreateRequest) {
 		}
 	}
 	kfDeploymentsDoneCounter.Inc()
+	kfDeploymentLatencies.Observe(timeSinceStart(ctx).Seconds())
 }
 
 func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
@@ -921,6 +947,7 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 		req := request.(CreateRequest)
 		r := &basicServerResponse{}
 		deployReqCounter.Inc()
+		ctx = context.WithValue(ctx, START_TIME, time.Now())
 
 		dmServiceAccount := req.ProjectNumber + "@cloudservices.gserviceaccount.com"
 		err := svc.BindRole(ctx, req.Project, req.Token, dmServiceAccount)
@@ -934,7 +961,7 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 			r.Err = err.Error()
 			return r, err
 		}
-		go finishDeployment(svc, req)
+		go finishDeployment(svc, ctx, req)
 		return r, nil
 	}
 }

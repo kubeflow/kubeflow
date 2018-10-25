@@ -18,7 +18,7 @@ local env = {
 local instance = notebooks.new(env, params);
 
 std.assertEqual(
-  instance.parts.crd,
+  instance.parts.notebooksCRD,
   {
     apiVersion: "apiextensions.k8s.io/v1beta1",
     kind: "CustomResourceDefinition",
@@ -42,7 +42,7 @@ std.assertEqual(
 ) &&
 
 std.assertEqual(
-  instance.parts.service,
+  instance.parts.notebooksService,
   {
     apiVersion: "v1",
     kind: "Service",
@@ -65,7 +65,7 @@ std.assertEqual(
 ) &&
 
 std.assertEqual(
-  instance.parts.configmap,
+  instance.parts.notebooksConfigMap,
   {
     apiVersion: "v1",
     data: {
@@ -81,7 +81,7 @@ std.assertEqual(
 ) &&
 
 std.assertEqual(
-  instance.parts.deployment,
+  instance.parts.notebooksDeployment,
   {
     apiVersion: "apps/v1beta1",
     kind: "Deployment",
@@ -131,7 +131,7 @@ std.assertEqual(
 ) &&
 
 std.assertEqual(
-  instance.parts.controller,
+  instance.parts.notebooksController,
   {
     apiVersion: "metacontroller.k8s.io/v1alpha1",
     kind: "CompositeController",

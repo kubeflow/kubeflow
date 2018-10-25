@@ -6,7 +6,7 @@
 
     local openApiV3Schema = import "notebooks.schema",
 
-    local crd = {
+    local notebooksCRD = {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
       metadata: {
@@ -26,7 +26,7 @@
         },
       },
     },
-    crd:: crd,
+    notebooksCRD:: notebooksCRD,
 
     local syncNotebook =
       |||
@@ -55,7 +55,7 @@
               else
                 false,
           }.return,
-          local podTemplate = request.parent.spec.template,
+          local podTemplateSpec = request.parent.spec.template,
           local foundChildren = std.filter(existingResource, 
             std.flattenArrays(std.map(existingResources, existingGroups))),
           local children = [
@@ -107,102 +107,7 @@
                 name: 'notebook',
                 namespace: request.parent.metadata.namespace,
               },
-              spec: {
-                containers: [
-                  {
-                    args: [
-                      'start-singleuser.sh',
-                      '--ip="0.0.0.0"',
-                      '--port=8888',
-                      '--allow-root',
-                    ],
-                    env: [
-                      {
-                        name: 'JUPYTERHUB_API_TOKEN',
-                        value: 'ce5d75d8b88243e280898baa677fec35',
-                      },
-                      {
-                        name: 'JPY_API_TOKEN',
-                        value: 'ce5d75d8b88243e280898baa677fec35',
-                      },
-                      {
-                        name: 'JUPYTERHUB_CLIENT_ID',
-                        value: 'jupyterhub-user-kam',
-                      },
-                      {
-                        name: 'JUPYTERHUB_HOST',
-                      },
-                      {
-                        name: 'JUPYTERHUB_OAUTH_CALLBACK_URL',
-                        value: '/user/kam/oauth_callback',
-                      },
-                      {
-                        name: 'JUPYTERHUB_USER',
-                        value: 'kam',
-                      },
-                      {
-                        name: 'JUPYTERHUB_API_URL',
-                        value: 'http://jupyterhub-0:8081/hub/api',
-                      },
-                      {
-                        name: 'JUPYTERHUB_BASE_URL',
-                        value: '/',
-                      },
-                      {
-                        name: 'JUPYTERHUB_SERVICE_PREFIX',
-                        value: '/user/kam/',
-                      },
-                      {
-                        name: 'MEM_GUARANTEE',
-                        value: '1Gi',
-                      },
-                      {
-                        name: 'CPU_GUARANTEE',
-                        value: '500m',
-                      },
-                    ],
-                    image: 'gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu:v0.3.0',
-                    imagePullPolicy: 'IfNotPresent',
-                    name: 'notebook',
-                    ports: [
-                      {
-                        containerPort: 8888,
-                        name: 'notebook-port',
-                        protocol: 'TCP',
-                      },
-                    ],
-                    resources: {
-                      requests: {
-                        cpu: '500m',
-                        memory: '1Gi',
-                      },
-                    },
-                    volumeMounts: [
-                      {
-                        mountPath: '/home/jovyan',
-                        name: 'volume-kam',
-                      },
-                    ],
-                    workingDir: '/home/jovyan',
-                  },
-                ],
-                restartPolicy: 'Always',
-                schedulerName: 'default-scheduler',
-                securityContext: {
-                  fsGroup: 100,
-                  runAsUser: 1000,
-                },
-                serviceAccount: 'jupyter-notebook',
-                serviceAccountName: 'jupyter-notebook',
-                volumes: [
-                  {
-                    name: 'volume-kam',
-                    persistentVolumeClaim: {
-                      claimName: 'claim-kam',
-                    },
-                  },
-                ],
-              },
+              spec: podTemplateSpec,
             },
           ],
           local initialized = {
@@ -238,7 +143,7 @@
         }
       |||,
 
-    local configmap = {
+    local notebooksConfigMap = {
       apiVersion: "v1",
       kind: "ConfigMap",
       metadata: {
@@ -250,9 +155,9 @@
         "util.libsonnet": importstr "kubeflow/core/util.libsonnet",
       },
     },
-    configmap:: configmap,
+    notebooksConfigMap:: notebooksConfigMap,
 
-    local service = {
+    local notebooksService = {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
@@ -271,7 +176,7 @@
         ],
       },
     },
-    service:: service,
+    notebooksService:: notebooksService,
 
     local deployment = {
       apiVersion: "apps/v1beta1",
@@ -319,9 +224,9 @@
         },
       },
     },
-    deployment:: deployment,
+    notebooksDeployment:: notebooksDeployment,
 
-    local controller = {
+    local noteBooksController = {
       apiVersion: "metacontroller.k8s.io/v1alpha1",
       kind: "CompositeController",
       metadata: {
@@ -352,15 +257,15 @@
         },
       },
     },
-    controller:: controller,
+    notebooksController:: notebooksController,
 
     parts:: self,
     all:: [
-      self.crd,
-      self.service,
-      self.configmap,
-      self.deployment,
-      self.controller,
+      self.notebooksCRD,
+      self.notebooksService,
+      self.notebooksConfigMap,
+      self.notebooksDeployment,
+      self.notebooksController,
     ],
 
     list(obj=self.all):: util.list(obj),
