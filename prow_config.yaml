@@ -49,7 +49,7 @@ workflows:
       - periodic
     params:
       platform: minikube
-    include_dirs:       
+    include_dirs:
       # Run on presubmit if any files used by minikube change
       - kubeflow/core/*
       - kubeflow/pytorch-job/*
