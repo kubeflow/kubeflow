@@ -91,11 +91,11 @@ def setup_kubeflow_ks_app(dir, namespace, github_token, api_client):
       app_name,
     ], cwd=dir)
 
+  app_dir = os.path.join(dir, app_name)
+
   # Set the default namespace.
   util.run(["ks", "param", "set", "--env=default", "namespace", namespace_name],
-    cwd=dir)
-
-  app_dir = os.path.join(dir, app_name)
+    cwd=app_dir)
 
   kubeflow_registry = "github.com/kubeflow/kubeflow/tree/master/kubeflow"
   util.run(
