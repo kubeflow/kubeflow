@@ -53,6 +53,7 @@ def prepare_request_data(args):
       param["value"] = args.deployment + "-ip"
     if param["name"] == "hostname":
       param["value"] = "%s.endpoints.%s.cloud.goog" % (args.deployment, args.project)
+  defaultApp['registries'][0]['version'] = args.kfverison
 
   access_token = util_run('gcloud auth application-default print-access-token'.split(' '), cwd=FILE_PATH)
 
@@ -378,6 +379,11 @@ def main(unparsed_args=None):
   parser.add_argument(
     "--sa_client_id",
     default="111670663612681935351",
+    type=str,
+    help="Service account client id")
+  parser.add_argument(
+    "--kfverison",
+    default="v0.3.1",
     type=str,
     help="Service account client id")
   parser.add_argument(
