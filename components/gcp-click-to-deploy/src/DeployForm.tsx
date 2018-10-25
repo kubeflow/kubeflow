@@ -113,7 +113,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       kfverison: 'default',
       project: '',
       showLogs: false,
-      zone: 'us-east1-d',
+      zone: 'us-central1-a',
     };
   }
 
@@ -155,17 +155,28 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           <Input name="deploymentName" label="Deployment name" spellCheck={false} value={this.state.deploymentName} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
-          <Input name="zone" label="Zone" spellCheck={false} value={this.state.zone} onChange={this._handleChange.bind(this)} />
-        </Row>
-        <Row>
           <Input name="clientId" label="Web App Client Id" spellCheck={false} value={this.state.clientId} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
           <Input name="clientSecret" label="Web App Client Secret" spellCheck={false} value={this.state.clientSecret} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
-          <Text>Kubeflow Version: </Text>
-          <select name="kfverison" style={{ display: 'flex', fontSize: '1.3em', margin: '5% 5%',}} spellCheck={false} value={this.state.kfverison} onChange={this._handleChange.bind(this)} >
+          <Text style={{ fontSize: '1.1em', margin: '2% 11%' }}>GKE Zone: </Text>
+          <select name="zone" style={{ display: 'flex', fontSize: '1.1em', margin: '2% 10.5%',}} spellCheck={false} value={this.state.zone} onChange={this._handleChange.bind(this)} >
+            <option value="us-central1-a">us-central1-a</option>
+            <option value="us-central1-c">us-central1-c</option>
+            <option value="us-east1-c">us-east1-c</option>
+            <option value="us-east1-d">us-east1-d</option>
+            <option value="us-west1-b">us-west1-b</option>
+            <option value="europe-west1-b">europe-west1-b</option>
+            <option value="europe-west1-d">europe-west1-d</option>
+            <option value="asia-east1-a">asia-east1-a</option>
+            <option value="asia-east1-b">asia-east1-b</option>
+          </select>
+        </Row>
+        <Row>
+          <Text style={{ fontSize: '1.1em', margin: '2% 11%' }}>Kubeflow Version:</Text>
+          <select name="kfverison" style={{ display: 'flex', fontSize: '1.1em', margin: '2% 1%',}} spellCheck={false} value={this.state.kfverison} onChange={this._handleChange.bind(this)} >
             <option value="default">default</option>
             <option value="v0.3.1">v0.3.1</option>
           </select>
