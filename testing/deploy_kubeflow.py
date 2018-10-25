@@ -47,7 +47,7 @@ def deploy_kubeflow(test_case):
   """Deploy Kubeflow."""
   args = parse_args()
   test_dir = test_case.test_suite.test_dir
-  namespace = args.namespace
+  namespace = "default"
   api_client = deploy_utils.create_k8s_client()
   app_dir = deploy_utils.setup_kubeflow_ks_app(test_dir, namespace, args.github_token, api_client)
 
