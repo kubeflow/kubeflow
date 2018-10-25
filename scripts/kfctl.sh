@@ -288,12 +288,12 @@ if [ "${COMMAND}" == "apply" ]; then
   if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ] ; then
   	if [ "${PLATFORM}" == "gcp" ]; then
     	updateDM
-    	createSecrets
     fi
   fi
 
   if [ "${WHAT}" == "k8s"  ] || [ "${WHAT}" == "all" ]; then
     createNamespace
+    createSecrets
     ksApply
 
     if [ "${PLATFORM}" == "gcp" ]; then
