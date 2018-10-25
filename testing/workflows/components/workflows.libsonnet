@@ -215,6 +215,8 @@
             // all E2E tests.
             "--params=name=smoke-tfjob-" + tests.platform + ",namespace=" + tests.stepsNamespace,
             "--artifacts_path=" + tests.artifactsDir,
+            // Skip GPU tests
+            "--skip_tests=test_simple_tfjob_gpu",
           ],
         },  // run tests
         dependencies: ["wait-for-kubeflow"],
@@ -667,6 +669,8 @@
               // all E2E tests.
               "--params=name=simple-tfjob-" + platform + ",namespace=" + stepsNamespace,
               "--artifacts_path=" + artifactsDir,
+              // Skip GPU tests
+              "--skip_tests=test_simple_tfjob_gpu",
             ]),  // run tests
             buildTemplate("pytorchjob-deploy", [
               "python",
