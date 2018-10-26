@@ -11,7 +11,7 @@ the Kubernetes team.
 
 ## Installing Hub
 
-1. Download and install hub from its [release page](https://github.com/github/hub/releases):
+Download and install hub from its [release page](https://github.com/github/hub/releases):
 ```
 HUB_VER=hub-linux-amd64-2.5.1
 wget https://github.com/github/hub/releases/download/v2.5.1/$HUB_VER.tgz
