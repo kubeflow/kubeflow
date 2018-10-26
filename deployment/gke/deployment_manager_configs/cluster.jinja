@@ -74,9 +74,14 @@ resources:
       name: {{ CLUSTER_NAME }}
       initialClusterVersion: "{{ properties['cluster-version'] }}"
       {% if properties['gkeApiVersion'] == 'v1beta1' %}
-      # We need 1.10.2 to support Stackdrivier GKE.
+      # We need 1.10.2 to support Stackdriver GKE.
       loggingService: logging.googleapis.com/kubernetes
       monitoringService: monitoring.googleapis.com/kubernetes
+      {% if properties['enable_tpu'] %}
+      enable_tpu: {{ properties['enable_tpu'] }}
+      ipAllocationPolicy:
+        useIpAliases: {{ properties['enable_tpu'] }}
+      {% endif %}
       podSecurityPolicyConfig:
         enabled: {{ properties['securityConfig']['podSecurityPolicy'] }}
       {% endif %}
@@ -111,7 +116,7 @@ resources:
           serviceAccount: {{ KF_VM_SA_NAME }}@{{ env['project'] }}.iam.gserviceaccount.com
           oauthScopes: {{ VM_OAUTH_SCOPES }}
           # Set min cpu platform to ensure AVX2 is supported.
-          minCpuPlatform: 'Intel Haswell'
+          minCpuPlatform: 'Intel Broadwell'
   metadata:
     dependsOn:
     - {{ KF_VM_SA_NAME }}
@@ -120,6 +125,7 @@ resources:
 # We do this so that if we want to make changes we can delete the existing resource and then recreate it.
 # Updating doesn't work so well because we are limited in what changes GKE's update method supports.
 
+{% if properties['gpu-pool-max-nodes'] > 0 %}
 - name: {{ GPU_POOL }}
   {% if properties['gkeApiVersion'] == 'v1beta1' %}
   type: gcp-types/container-v1beta1:projects.locations.clusters.nodePools
@@ -149,15 +155,16 @@ resources:
         serviceAccount: {{ KF_VM_SA_NAME }}@{{ env['project'] }}.iam.gserviceaccount.com
         oauthScopes: {{ VM_OAUTH_SCOPES }}
         # Set min cpu platform to ensure AVX2 is supported.
-        minCpuPlatform: 'Intel Haswell'
+        minCpuPlatform: 'Intel Broadwell'
         accelerators:
           - acceleratorCount: 1
-            acceleratorType: nvidia-tesla-k80
+            acceleratorType: {{ properties['gpu-type'] }}
 
   metadata:
     dependsOn:
     # We can only create 1 node pool at a time.
     - {{ CLUSTER_NAME }}
+{% endif %}
 
 {# Project defaults to the project of the deployment. #}
 - name: {{ properties['ipName']  }}

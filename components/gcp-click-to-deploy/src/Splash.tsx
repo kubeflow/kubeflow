@@ -94,9 +94,7 @@ export default class Spash extends React.Component<SplashProps, { busy: boolean,
             Sign in to deploy Kubeflow
           </div>
           <div>
-            Your credentials are needed to perform GCP actions and are stored
-            securely clientside in the web browser (never sent to Kubeflow
-            servers)
+            Your credentials are needed to perform GCP actions.
           </div>
 
           <div id={signInButtonId} style={styles.signInButton} data-theme="dark" hidden={this.state.signedIn} />

@@ -29,7 +29,7 @@ You should have kubeflow components deployed inside your k8s cluster. Generated 
 Exec into pod ```kubeflow-bootstrapper-0``` in namespace ```kubeflow-admin``` if you need to edit your ksonnet app.
 
 The default components are defined in [default.yaml](config/default.yaml), user can customize which components to deploy by
-pointing ```--config``` args in [bootstrapper.yaml](./bootstrapper.yaml) to their own config (eg. a configmap in k8s clsuter)
+pointing ```--config``` args in [bootstrapper.yaml](./bootstrapper.yaml) to their own config (eg. a configmap in k8s cluster)
 
 This bootstrapper example [config](config/gcp_prototype.yaml) can help explain how config customization works.
 
@@ -164,7 +164,7 @@ Some options for dealing with this
 - Downside of this is that it violates the K8s philosophy of managing infrastructure
   declaratively
 - It also means salient details about the deployment aren't stored in the configs
-  (ksonnet application) and versioned in source controle
+  (ksonnet application) and versioned in source control
 
 1. Wrap the resource creation/management in a CRD using kube-metacontroller
 

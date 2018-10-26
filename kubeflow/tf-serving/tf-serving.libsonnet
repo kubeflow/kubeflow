@@ -26,8 +26,8 @@
     // in which case the image used will still depend on whether GPUs are used or not.
     // Users can also override modelServerImage in which case the user supplied value will always be used
     // regardless of numGpus.
-    defaultCpuImage: "tensorflow/serving:1.8.0",
-    defaultGpuImage: "tensorflow/serving:1.10.0-gpu",
+    defaultCpuImage: "tensorflow/serving:1.11.1",
+    defaultGpuImage: "tensorflow/serving:1.11.1-gpu",
     modelServerImage: if $.params.numGpus == 0 then
       $.params.defaultCpuImage
     else

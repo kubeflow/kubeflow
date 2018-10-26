@@ -327,6 +327,36 @@ the correct Docker image. See sections below for component specific instructions
    * Typically this will be the release czar but you can also consult 
      [kubeflow-images-public.iam.policy.yaml](https://github.com/kubeflow/testing/blob/master/release-infra/kubeflow-images-public.iam.policy.yaml)
 
+### Centraldashboard
+
+1. Identify the docker image in [gcr.io/kubeflow-images-public/centraldashboard](https://gcr.io/kubeflow-images-public/centraldashboard)
+
+   * Docker images are pushed by kubeflow/centraldashboard postsubmit jobs, whenever files in kubeflow/kubeflow/components/centraldashboard/* are changed.
+   * You should pick an image corresponding to a green postsubmit at the desired
+     commit
+
+1. Update the entry for **gcr.io/kubeflow-images-public/centraldashboard** in [image_tags.yaml](https://github.com/kubeflow/kubeflow/blob/master/releasing/image_tags.yaml#L2)
+
+    * Add a version that specifies the sha of the image you want to use and the release
+      tag you want to add e.g. "vX.Y.Z"
+
+    ```
+
+    ```
+1. Run the following command to apply the new image tag
+
+   ```
+   releasing/run_apply_image_tags.sh .*centraldashboard.*:vX.Y.Z
+   ```
+
+   * The command needs to be run by someone with write permissions on 
+     gcr.io/kubeflow-images-public
+
+   * Typically this will be the release czar but you can also consult 
+     [kubeflow-images-public.iam.policy.yaml](https://github.com/kubeflow/testing/blob/master/release-infra/kubeflow-images-public.iam.policy.yaml)
+
+1. Update the [centraldashboard ksonnet prototype](https://github.com/kubeflow/kubeflow/blob/master/kubeflow/core/prototypes/centraldashboard.jsonnet#L6) with the new image tags. 
+
 
 ### Katib
 
@@ -336,7 +366,7 @@ the correct Docker image. See sections below for component specific instructions
 
 1. Modify the script update_katib_ksonnet.sh 
 
-    * set REALEASE to the tag you want to use
+    * set RELEASE to the tag you want to use
 
 1. Run `update_katib_ksonnet.sh`
 
@@ -383,7 +413,7 @@ Ideally, this process will be automated to a greater extent in the future.
 ## Releasing a new version of the website
 
 With each stable release, we should also release a corresponding version of the Kubeflow [website](www.kubeflow.org). Each version of the website is generated from a separate [branch](https://github.com/kubeflow/website/branches)
-of the kubeflow/website repository. If documentation needs to be fixed, the changes should be commited to master and then cherry-picked to the proper release branch.
+of the kubeflow/website repository. If documentation needs to be fixed, the changes should be committed to master and then cherry-picked to the proper release branch.
 
 Releasing a new version on the website requires the following steps:
 
