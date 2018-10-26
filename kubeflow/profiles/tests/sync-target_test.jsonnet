@@ -26,7 +26,7 @@ local request = {
   },
 };
 
-local syncTarget = import "kubeflow/profiles/sync-target.libsonnet";
+local syncTarget = import "kubeflow/profiles/sync-target.jsonnet";
 
 std.assertEqual(
   syncTarget(request),

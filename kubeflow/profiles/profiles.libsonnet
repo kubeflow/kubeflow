@@ -254,9 +254,9 @@
         namespace: params.namespace,
       },
       data: {
-        "sync-profile.jsonnet": importstr "sync-profile.libsonnet",
-        "sync-target.jsonnet": importstr "sync-target.libsonnet",
-        "sync-permission.jsonnet": importstr "sync-permission.libsonnet",
+        "sync-profile.jsonnet": importstr "sync-profile.jsonnet",
+        "sync-target.jsonnet": importstr "sync-target.jsonnet",
+        "sync-permission.jsonnet": importstr "sync-permission.jsonnet",
       },
     },
     profilesConfigMap:: profilesConfigMap,

@@ -32,7 +32,7 @@ local request = {
   },
 };
 
-local syncProfile = import "kubeflow/profiles/sync-profile.libsonnet";
+local syncProfile = import "kubeflow/profiles/sync-profile.jsonnet";
 
 std.assertEqual(
   syncProfile(request),

@@ -25,7 +25,7 @@ local request = {
   },
 };
 
-local syncPermission = import "kubeflow/profiles/sync-permission.libsonnet";
+local syncPermission = import "kubeflow/profiles/sync-permission.jsonnet";
 
 std.assertEqual(
   syncPermission(request),
