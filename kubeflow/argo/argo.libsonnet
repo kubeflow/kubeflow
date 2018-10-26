@@ -159,7 +159,7 @@
                   },
                   {
                     name: "BASE_HREF",
-                    value: "/argo/",
+                    value: "/argo/"
                   },
                 ],
                 image: params.uiImage,
