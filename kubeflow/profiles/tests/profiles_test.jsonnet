@@ -1,31 +1,31 @@
-local ensembles = import "kubeflow/ensembles/ensembles.libsonnet";
+local profiles = import "kubeflow/profiles/profiles.libsonnet";
 
 local params = {
-  name: "ensembles",
+  name: "profiles",
 };
 local env = {
   namespace: "kf-001",
 };
 
-local instance = ensembles.new(env, params);
+local instance = profiles.new(env, params);
 
 std.assertEqual(
-  instance.parts.ensemblesCRD,
+  instance.parts.profilesCRD,
   {
     apiVersion: "apiextensions.k8s.io/v1beta1",
     kind: "CustomResourceDefinition",
     metadata: {
-      name: "ensembles.kubeflow.org",
+      name: "profiles.kubeflow.org",
     },
     spec: {
       group: "kubeflow.org",
       names: {
-        kind: "Ensemble",
-        plural: "ensembles",
+        kind: "Profile",
+        plural: "profiles",
         shortNames: [
           "prj",
         ],
-        singular: "ensemble",
+        singular: "profile",
       },
       scope: "Namespaced",
       validation: {
@@ -89,19 +89,19 @@ std.assertEqual(
 ) &&
 
 std.assertEqual(
-  instance.parts.compositionsCRD,
+  instance.parts.targetsCRD,
   {
     apiVersion: "apiextensions.k8s.io/v1beta1",
     kind: "CustomResourceDefinition",
     metadata: {
-      name: "compositions.kubeflow.org",
+      name: "targets.kubeflow.org",
     },
     spec: {
       group: "kubeflow.org",
       names: {
-        kind: "Composition",
-        plural: "compositions",
-        singular: "composition",
+        kind: "Target",
+        plural: "targets",
+        singular: "target",
       },
       scope: "Namespaced",
       validation: {
@@ -202,12 +202,12 @@ std.assertEqual(
 ) &&
 
 std.assertEqual(
-  instance.parts.ensemblesService,
+  instance.parts.profilesService,
   {
     apiVersion: "v1",
     kind: "Service",
     metadata: {
-      name: "ensembles",
+      name: "profiles",
       namespace: "kf-001",
     },
     spec: {
@@ -218,14 +218,14 @@ std.assertEqual(
         },
       ],
       selector: {
-        app: "ensembles",
+        app: "profiles",
       },
     },
   }
 ) &&
 
 std.assertEqual(
-  instance.parts.ensemblesRole,
+  instance.parts.profilesRole,
   {
     apiVersion: "rbac.authorization.k8s.io/v1",
     kind: "Role",
@@ -239,8 +239,8 @@ std.assertEqual(
           "kubeflow.org",
         ],
         resources: [
-          "ensembles",
-          "compositions",
+          "profiles",
+          "targets",
         ],
         verbs: [
           "create",
@@ -251,7 +251,7 @@ std.assertEqual(
           "kubeflow.org",
         ],
         resources: [
-          "ensembles",
+          "profiles",
         ],
         verbs: [
           "get",
@@ -262,41 +262,41 @@ std.assertEqual(
 ) &&
 
 std.assertEqual(
-  instance.parts.ensemblesConfigMap,
+  instance.parts.profilesConfigMap,
   {
     apiVersion: "v1",
     data: {
       "sync-permission.jsonnet": importstr "../sync-permission.jsonnet",
-      "sync-ensemble.jsonnet": importstr "../sync-ensemble.jsonnet",
-      "sync-composition.jsonnet": importstr "../sync-composition.jsonnet",
+      "sync-profile.jsonnet": importstr "../sync-profile.jsonnet",
+      "sync-target.jsonnet": importstr "../sync-target.jsonnet",
     },
     kind: "ConfigMap",
     metadata: {
-      name: "ensembles",
+      name: "profiles",
       namespace: "kf-001",
     },
   }
 ) &&
 
 std.assertEqual(
-  instance.parts.ensemblesDeployment,
+  instance.parts.profilesDeployment,
   {
     apiVersion: "apps/v1",
     kind: "Deployment",
     metadata: {
-      name: "ensembles",
+      name: "profiles",
       namespace: "kf-001",
     },
     spec: {
       selector: {
         matchLabels: {
-          app: "ensembles",
+          app: "profiles",
         },
       },
       template: {
         metadata: {
           labels: {
-            app: "ensembles",
+            app: "profiles",
           },
         },
         spec: {
@@ -307,17 +307,17 @@ std.assertEqual(
               name: "hooks",
               volumeMounts: [
                 {
-                  mountPath: "/opt/ensembles/hooks",
+                  mountPath: "/opt/profiles/hooks",
                   name: "hooks",
                 },
               ],
-              workingDir: "/opt/ensembles/hooks",
+              workingDir: "/opt/profiles/hooks",
             },
           ],
           volumes: [
             {
               configMap: {
-                name: "ensembles",
+                name: "profiles",
               },
               name: "hooks",
             },
@@ -329,43 +329,43 @@ std.assertEqual(
 ) &&
 
 std.assertEqual(
-  instance.parts.ensemblesController,
+  instance.parts.profilesController,
   {
     apiVersion: "metacontroller.k8s.io/v1alpha1",
     kind: "CompositeController",
     metadata: {
-      name: "ensembles-controller",
+      name: "profiles-controller",
     },
     spec: {
       childResources: [
         {
           apiVersion: "kubeflow.org/v1alpha1",
-          resource: "compositions",
+          resource: "targets",
         },
       ],
       generateSelector: true,
       hooks: {
         sync: {
           webhook: {
-            url: "http://ensembles.kf-001/sync-ensemble",
+            url: "http://profiles.kf-001/sync-profile",
           },
         },
       },
       parentResource: {
         apiVersion: "kubeflow.org/v1alpha1",
-        resource: "ensembles",
+        resource: "profiles",
       },
     },
   }
 ) &&
 
 std.assertEqual(
-  instance.parts.compositionsController,
+  instance.parts.targetsController,
   {
     apiVersion: "metacontroller.k8s.io/v1alpha1",
     kind: "CompositeController",
     metadata: {
-      name: "compositions-controller",
+      name: "targets-controller",
     },
     spec: {
       childResources: [
@@ -382,13 +382,13 @@ std.assertEqual(
       hooks: {
         sync: {
           webhook: {
-            url: "http://ensembles.kf-001/sync-composition",
+            url: "http://profiles.kf-001/sync-target",
           },
         },
       },
       parentResource: {
         apiVersion: "kubeflow.org/v1alpha1",
-        resource: "compositions",
+        resource: "targets",
       },
     },
   }
@@ -417,7 +417,7 @@ std.assertEqual(
       hooks: {
         sync: {
           webhook: {
-            url: "http://ensembles.kf-001/sync-permission",
+            url: "http://profiles.kf-001/sync-permission",
           },
         },
       },

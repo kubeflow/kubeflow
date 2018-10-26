@@ -1,3 +1,6 @@
+// Controller for resource: profiles
+// Creates child resource
+// - Composition
 function(request) {
   local apiVersion = "kubeflow.org/v1alpha1",
   local template = request.parent.spec.template,

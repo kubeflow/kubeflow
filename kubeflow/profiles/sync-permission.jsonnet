@@ -1,3 +1,7 @@
+// Controller for resource: permissions
+// Creates 2 child resources
+// - Role
+// - RoleBinding
 function(request) {
   local apiVersion = "kubeflow.org/v1alpha1",
   local template = request.parent.spec.template,
@@ -33,8 +37,8 @@ function(request) {
             "kubeflow.org",
           ],
           resources: [
-            "ensembles",
-            "compositions",
+            "profiles",
+            "targets",
             "permissions",
           ],
           verbs: [

@@ -4,20 +4,20 @@
   new(_env, _params):: {
     local params = _env + _params,
 
-    local ensemblesCRD = {
+    local profilesCRD = {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
       metadata: {
-        name: "ensembles.kubeflow.org",
+        name: "profiles.kubeflow.org",
       },
       spec: {
         group: "kubeflow.org",
         version: "v1alpha1",
         scope: "Namespaced",
         names: {
-          plural: "ensembles",
-          singular: "ensemble",
-          kind: "Ensemble",
+          plural: "profiles",
+          singular: "profile",
+          kind: "Profile",
           shortNames: [
             "prj",
           ],
@@ -79,22 +79,22 @@
         },
       },
     },
-    ensemblesCRD:: ensemblesCRD,
+    profilesCRD:: profilesCRD,
 
-    local compositionsCRD = {
+    local targetsCRD = {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
       metadata: {
-        name: "compositions.kubeflow.org",
+        name: "targets.kubeflow.org",
       },
       spec: {
         group: "kubeflow.org",
         version: "v1alpha1",
         scope: "Namespaced",
         names: {
-          plural: "compositions",
-          singular: "composition",
-          kind: "Composition",
+          plural: "targets",
+          singular: "target",
+          kind: "Target",
         },
         validation: {
           openAPIV3Schema: {
@@ -135,7 +135,7 @@
         },
       },
     },
-    compositionsCRD:: compositionsCRD,
+    targetsCRD:: targetsCRD,
 
     local permissionsCRD = {
       apiVersion: "apiextensions.k8s.io/v1beta1",
@@ -190,16 +190,16 @@
     },
     permissionsCRD:: permissionsCRD,
 
-    local ensemblesService = {
+    local profilesService = {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
-        name: "ensembles",
+        name: "profiles",
         namespace: params.namespace,
       },
       spec: {
         selector: {
-          app: "ensembles",
+          app: "profiles",
         },
         ports: [
           {
@@ -209,9 +209,9 @@
         ],
       },
     },
-    ensemblesService:: ensemblesService,
+    profilesService:: profilesService,
 
-    local ensemblesRole = {
+    local profilesRole = {
       apiVersion: "rbac.authorization.k8s.io/v1",
       kind: "Role",
       metadata: {
@@ -224,8 +224,8 @@
             "kubeflow.org",
           ],
           resources: [
-            "ensembles",
-            "compositions",
+            "profiles",
+            "targets",
           ],
           verbs: [
             "create",
@@ -236,7 +236,7 @@
             "kubeflow.org",
           ],
           resources: [
-            "ensembles",
+            "profiles",
           ],
           verbs: [
             "get",
@@ -244,40 +244,40 @@
         },
       ],
     },
-    ensemblesRole:: ensemblesRole,
+    profilesRole:: profilesRole,
 
-    local ensemblesConfigMap = {
+    local profilesConfigMap = {
       apiVersion: "v1",
       kind: "ConfigMap",
       metadata: {
-        name: "ensembles",
+        name: "profiles",
         namespace: params.namespace,
       },
       data: {
-        "sync-ensemble.jsonnet": importstr "sync-ensemble.jsonnet",
-        "sync-composition.jsonnet": importstr "sync-composition.jsonnet",
+        "sync-profile.jsonnet": importstr "sync-profile.jsonnet",
+        "sync-target.jsonnet": importstr "sync-target.jsonnet",
         "sync-permission.jsonnet": importstr "sync-permission.jsonnet",
       },
     },
-    ensemblesConfigMap:: ensemblesConfigMap,
+    profilesConfigMap:: profilesConfigMap,
 
-    local ensemblesDeployment = {
+    local profilesDeployment = {
       apiVersion: "apps/v1",
       kind: "Deployment",
       metadata: {
-        name: "ensembles",
+        name: "profiles",
         namespace: params.namespace,
       },
       spec: {
         selector: {
           matchLabels: {
-            app: "ensembles",
+            app: "profiles",
           },
         },
         template: {
           metadata: {
             labels: {
-              app: "ensembles",
+              app: "profiles",
             },
           },
           spec: {
@@ -287,11 +287,11 @@
                 //freeze latest
                 image: "metacontroller/jsonnetd@sha256:25c25f217ad030a0f67e37078c33194785b494569b0c088d8df4f00da8fd15a0",
                 imagePullPolicy: "Always",
-                workingDir: "/opt/ensembles/hooks",
+                workingDir: "/opt/profiles/hooks",
                 volumeMounts: [
                   {
                     name: "hooks",
-                    mountPath: "/opt/ensembles/hooks",
+                    mountPath: "/opt/profiles/hooks",
                   },
                 ],
               },
@@ -300,7 +300,7 @@
               {
                 name: "hooks",
                 configMap: {
-                  name: "ensembles",
+                  name: "profiles",
                 },
               },
             ],
@@ -308,48 +308,48 @@
         },
       },
     },
-    ensemblesDeployment:: ensemblesDeployment,
+    profilesDeployment:: profilesDeployment,
 
-    local ensemblesController = {
+    local profilesController = {
       apiVersion: "metacontroller.k8s.io/v1alpha1",
       kind: "CompositeController",
       metadata: {
-        name: "ensembles-controller",
+        name: "profiles-controller",
       },
       spec: {
         generateSelector: true,
         parentResource: {
           apiVersion: "kubeflow.org/v1alpha1",
-          resource: "ensembles",
+          resource: "profiles",
         },
         childResources: [
           {
             apiVersion: "kubeflow.org/v1alpha1",
-            resource: "compositions",
+            resource: "targets",
           },
         ],
         hooks: {
           sync: {
             webhook: {
-              url: "http://ensembles." + params.namespace + "/sync-ensemble",
+              url: "http://profiles." + params.namespace + "/sync-profile",
             },
           },
         },
       },
     },
-    ensemblesController:: ensemblesController,
+    profilesController:: profilesController,
 
-    local compositionsController = {
+    local targetsController = {
       apiVersion: "metacontroller.k8s.io/v1alpha1",
       kind: "CompositeController",
       metadata: {
-        name: "compositions-controller",
+        name: "targets-controller",
       },
       spec: {
         generateSelector: true,
         parentResource: {
           apiVersion: "kubeflow.org/v1alpha1",
-          resource: "compositions",
+          resource: "targets",
         },
         childResources: [
           {
@@ -364,13 +364,13 @@
         hooks: {
           sync: {
             webhook: {
-              url: "http://ensembles." + params.namespace + "/sync-composition",
+              url: "http://profiles." + params.namespace + "/sync-target",
             },
           },
         },
       },
     },
-    compositionsController:: compositionsController,
+    targetsController:: targetsController,
 
     local permissionsController = {
       apiVersion: "metacontroller.k8s.io/v1alpha1",
@@ -397,7 +397,7 @@
         hooks: {
           sync: {
             webhook: {
-              url: "http://ensembles." + params.namespace + "/sync-permission",
+              url: "http://profiles." + params.namespace + "/sync-permission",
             },
           },
         },
@@ -407,15 +407,15 @@
 
     parts:: self,
     local all = [
-      self.ensemblesCRD,
-      self.compositionsCRD,
+      self.profilesCRD,
+      self.targetsCRD,
       self.permissionsCRD,
-      self.ensemblesService,
-      self.ensemblesRole,
-      self.ensemblesConfigMap,
-      self.ensemblesDeployment,
-      self.ensemblesController,
-      self.compositionsController,
+      self.profilesService,
+      self.profilesRole,
+      self.profilesConfigMap,
+      self.profilesDeployment,
+      self.profilesController,
+      self.targetsController,
       self.permissionsController,
     ],
     all:: all,

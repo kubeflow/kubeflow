@@ -1,8 +1,8 @@
 {
-   "name": "ensembles",
+   "name": "profiles",
    "apiVersion": "0.0.1",
    "kind": "ksonnet.io/parts",
-   "description": "Ensembles provide a way to build compositions.\n",
+   "description": "Profiles provide a way to build Targets.\n",
    "author": "kubeflow team <kubeflow-team@google.com>",
    "contributors": [
       {
@@ -23,16 +23,16 @@
    },
    "keywords": [
       "kubeflow",
-      "ensembles"
+      "profiles"
    ],
    "quickStart": {
-      "prototype": "io.ksonnet.pkg.ensembles",
-      "componentName": "ensembles",
+      "prototype": "io.ksonnet.pkg.profiles",
+      "componentName": "profiles",
       "flags": {
-         "name": "ensembles",
+         "name": "profiles",
          "namespace": "default"
       },
-      "comment": "Install ensembles"
+      "comment": "Install profiles"
    },
    "license": "Apache 2.0"
 }

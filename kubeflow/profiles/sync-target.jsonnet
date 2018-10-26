@@ -1,3 +1,7 @@
+// Controller for resource: targets
+// Creates 2 child resources
+// - Namespace
+// - Permission
 function(request) {
   local children = [
     {
