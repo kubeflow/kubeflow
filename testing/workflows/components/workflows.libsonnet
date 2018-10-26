@@ -208,15 +208,15 @@
           command: [
             "python",
             "-m",
-            "py.test_runner",
-            "test",
+            "py.simple_tfjob_tests",
             "--app_dir=" + tests.tfOperatorRoot + "/test/workflows",
             "--tfjob_version=v1alpha2",
-            "--component=simple_tfjob_v1alpha2",
             // Name is used for the test case name so it should be unique across
             // all E2E tests.
             "--params=name=smoke-tfjob-" + tests.platform + ",namespace=" + tests.stepsNamespace,
-            "--junit_path=" + tests.artifactsDir + "/junit_e2e-" + tests.platform + v1alpha2Suffix + ".xml",
+            "--artifacts_path=" + tests.artifactsDir,
+            // Skip GPU tests
+            "--skip_tests=test_simple_tfjob_gpu",
           ],
         },  // run tests
         dependencies: ["wait-for-kubeflow"],
@@ -659,18 +659,18 @@
             buildTemplate("tfjob-test" + v1alpha2Suffix, [
               "python",
               "-m",
-              "py.test_runner",
-              "test",
+              "py.simple_tfjob_tests",
               "--cluster=" + cluster,
               "--zone=" + zone,
               "--project=" + project,
               "--app_dir=" + tfOperatorRoot + "/test/workflows",
               "--tfjob_version=v1alpha2",
-              "--component=simple_tfjob_v1alpha2",
               // Name is used for the test case name so it should be unique across
               // all E2E tests.
               "--params=name=simple-tfjob-" + platform + ",namespace=" + stepsNamespace,
-              "--junit_path=" + artifactsDir + "/junit_e2e-" + platform + v1alpha2Suffix + ".xml",
+              "--artifacts_path=" + artifactsDir,
+              // Skip GPU tests
+              "--skip_tests=test_simple_tfjob_gpu",
             ]),  // run tests
             buildTemplate("pytorchjob-deploy", [
               "python",

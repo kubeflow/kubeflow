@@ -27,7 +27,7 @@ resources:
 - name: kubeflow
   type: cluster.jinja
   properties:
-    # You need to use a zone with Haswell because that's what TFServing requires.
+    # You need to use a zone with Broadwell because that's what TFServing requires.
     zone: SET_THE_ZONE
     # We need to set the initialCluserVersion to prevent auto upgrading
     cluster-version: SET_CLUSTER_VERSION
