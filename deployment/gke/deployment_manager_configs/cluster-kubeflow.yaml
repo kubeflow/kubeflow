@@ -27,7 +27,7 @@ resources:
 - name: kubeflow
   type: cluster.jinja
   properties:
-    # You need to use a zone with Haswell because that's what TFServing requires.
+    # You need to use a zone with Broadwell because that's what TFServing requires.
     zone: SET_THE_ZONE
     # We need to set the initialCluserVersion to prevent auto upgrading
     cluster-version: SET_CLUSTER_VERSION
@@ -46,9 +46,12 @@ resources:
     cpu-pool-enable-autoscaling: true
     cpu-pool-min-nodes: 0
     cpu-pool-max-nodes: 10
+    # GPUs are not enabled by default. To add GPUs
+    # set gpu-pool-max-nodes to a none-zero value.
     gpu-pool-enable-autoscaling: true
     gpu-pool-min-nodes: 0
-    gpu-pool-max-nodes: 10
+    gpu-pool-max-nodes: 0
+    gpu-type: nvidia-tesla-k80
     # Whether to enable TPUs
     enable_tpu: false
     securityConfig:
