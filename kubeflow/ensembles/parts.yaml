@@ -1,8 +1,8 @@
 {
-   "name": "projects",
+   "name": "ensembles",
    "apiVersion": "0.0.1",
    "kind": "ksonnet.io/parts",
-   "description": "Projects provides a project and workspace concept.\n",
+   "description": "Ensembles provide a way to build compositions.\n",
    "author": "kubeflow team <kubeflow-team@google.com>",
    "contributors": [
       {
@@ -23,16 +23,16 @@
    },
    "keywords": [
       "kubeflow",
-      "projects"
+      "ensembles"
    ],
    "quickStart": {
-      "prototype": "io.ksonnet.pkg.projects",
-      "componentName": "projects",
+      "prototype": "io.ksonnet.pkg.ensembles",
+      "componentName": "ensembles",
       "flags": {
-         "name": "projects",
+         "name": "ensembles",
          "namespace": "default"
       },
-      "comment": "Install projects"
+      "comment": "Install ensembles"
    },
    "license": "Apache 2.0"
 }

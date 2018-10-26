@@ -57,7 +57,7 @@ function createKsApp() {
   ks pkg install kubeflow/seldon
   ks pkg install kubeflow/tf-serving
   ks pkg install kubeflow/metacontroller
-  ks pkg install kubeflow/projects
+  ks pkg install kubeflow/ensembles
   ks pkg install kubeflow/application
 
   # Generate all required components
@@ -68,7 +68,7 @@ function createKsApp() {
   ks generate centraldashboard centraldashboard
   ks generate tf-job-operator tf-job-operator
   ks generate metacontroller metacontroller
-  ks generate projects projects
+  ks generate ensembles ensembles
 
   ks generate argo argo
   ks generate katib katib

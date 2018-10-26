@@ -20,21 +20,21 @@ printuserandnamespace()
 
 tmpfile=$(mktemp)
 user=$(printuserandnamespace | awk '{print $1}' | sed 's/^user=//' | tr -cd '[:print:]\n')
-workspace=$1
+composition=$1
 
 cat << USER_YAML > $tmpfile
 ---
 apiVersion: kubeflow.org/v1alpha1
-kind: Project
+kind: Ensemble
 metadata:
-  name: $workspace
+  name: $composition
   namespace: kubeflow
 spec:
   template:
     metadata:
-      name: $workspace
+      name: $composition
     spec:
-      namespace: $workspace
+      namespace: $composition
       owner: $user
 USER_YAML
 
