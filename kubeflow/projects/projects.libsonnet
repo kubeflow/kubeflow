@@ -216,41 +216,6 @@
         function(request) {
           local apiVersion = "kubeflow.org/v1alpha1",
           local template = request.parent.spec.template,
-          local existingGroups =
-            if std.type(request.children) == "object" then
-              [ request.children[key] for key in std.objectFields(request.children) ]
-            else
-              [],
-          local existingResources(group) =
-            if std.type(group) == "object" then
-              [ group[key] for key in std.objectFields(group) ]
-            else
-              [],
-          local existingResource(resource) = {
-            return::
-              if std.type(resource) == "object" &&
-              std.objectHas(resource, 'metadata') &&
-              std.objectHas(resource.metadata, 'name') && 
-              std.objectHas(request, 'parent') &&
-              std.objectHas(request.parent, 'spec') &&
-              std.objectHas(request.parent.spec, 'namespace') &&
-              resource.metadata.name == request.parent.spec.namespace then
-                true
-              else
-                false,
-          }.return,
-          //local foundChildren = std.filter(existingResource, 
-          //  std.flattenArrays(std.map(existingResources, existingGroups))),
-          local foundChildren = std.flattenArrays(std.map(existingResources, existingGroups)),
-          local initialized = {
-            return::
-              if std.objectHas(request.parent, "status") &&
-                 std.objectHas(request.parent.status, "created") &&
-                 request.parent.status.created == true then
-                true
-              else
-                false,
-          }.return,
           local children = [{
             apiVersion: apiVersion,
             kind: "Workspace",
@@ -262,26 +227,15 @@
               namespace: template.spec.namespace,
               owner: template.spec.owner,
             },
-          },
-          local desired =
-            if std.type(foundChildren) != "array" || std.length(foundChildren) == 0 then
-              if initialized == false then
-                children
-              else
-                children
-            else
-              children,
-          children: desired,
+          },],
+          children: children,
           status: {
             phase: "Active",
             conditions: [{
               type: "Ready"
             },],
-            //debug
             created: true,
-            initialized: initialized,
-            found_children: std.length(foundChildren),
-            desired: desired,
+            //debug
             request_parent: request.parent,
             request_children: request.children,
           },
@@ -292,32 +246,6 @@
       |||
         function(request) {
           local params = %(params)s,
-          local existingGroups =
-            if std.type(request.children) == "object" then
-              [ request.children[key] for key in std.objectFields(request.children) ]
-            else
-              [],
-          local existingResources(group) =
-            if std.type(group) == "object" then
-              [ group[key] for key in std.objectFields(group) ]
-            else
-              [],
-          local existingResource(resource) = {
-            return::
-              if std.type(resource) == "object" &&
-              std.objectHas(resource, 'metadata') &&
-              std.objectHas(resource.metadata, 'name') && 
-              std.objectHas(request, 'parent') &&
-              std.objectHas(request.parent, 'spec') &&
-              std.objectHas(request.parent.spec, 'namespace') &&
-              resource.metadata.name == request.parent.spec.namespace then
-                true
-              else
-                false,
-          }.return,
-          //local foundChildren = std.filter(existingResource, 
-          //  std.flattenArrays(std.map(existingResources, existingGroups))),
-          local foundChildren = std.flattenArrays(std.map(existingResources, existingGroups)),
           local children = [
             {
               apiVersion: "v1",
@@ -344,35 +272,14 @@
               },
             },
           ],
-          local initialized = {
-            return::
-              if std.objectHas(request.parent, "status") &&
-                 std.objectHas(request.parent.status, "created") &&
-                 request.parent.status.created == true then
-                true
-              else
-                false,
-          }.return,
-          local desired =
-            if std.type(foundChildren) != "array" || std.length(foundChildren) == 0 then
-              if initialized == false then
-                children
-              else
-                //[]
-                children
-            else
-              children,
-          children: desired,
+          children: children,
           status: {
             phase: "Active",
             conditions: [{
               type: "Ready",
             }],
-            //debug
             created: true,
-            initialized: initialized,
-            found_children: std.length(foundChildren),
-            desired: desired,
+            //debug
             request_parent: request.parent,
             request_children: request.children,
           },
@@ -388,41 +295,6 @@
           local params = %(params)s,
           local apiVersion = "kubeflow.org/v1alpha1",
           local template = request.parent.spec.template,
-          local existingGroups =
-            if std.type(request.children) == "object" then
-              [ request.children[key] for key in std.objectFields(request.children) ]
-            else
-              [],
-          local existingResources(group) =
-            if std.type(group) == "object" then
-              [ group[key] for key in std.objectFields(group) ]
-            else
-              [],
-          local existingResource(resource) = {
-            return::
-              if std.type(resource) == "object" &&
-              std.objectHas(resource, 'metadata') &&
-              std.objectHas(resource.metadata, 'name') && 
-              std.objectHas(request, 'parent') &&
-              std.objectHas(request.parent, 'spec') &&
-              std.objectHas(request.parent.spec, 'namespace') &&
-              resource.metadata.name == request.parent.spec.namespace then
-                true
-              else
-                false,
-          }.return,
-          //local foundChildren = std.filter(existingResource, 
-          //  std.flattenArrays(std.map(existingResources, existingGroups))),
-          local foundChildren = std.flattenArrays(std.map(existingResources, existingGroups)),
-          local initialized = {
-            return::
-              if std.objectHas(request.parent, "status") &&
-                 std.objectHas(request.parent.status, "created") &&
-                 request.parent.status.created == true then
-                true
-              else
-                false,
-          }.return,
           local children = [
             {
               apiVersion: "rbac.authorization.k8s.io/v1",
@@ -722,26 +594,14 @@
               },],
             },
           ],
-          local desired =
-            if std.type(foundChildren) != "array" || std.length(foundChildren) == 0 then
-              if initialized == false then
-                children
-              else
-                //[]
-                children
-            else
-              children,
-          children: desired,
+          children: children,
           status: {
             phase: "Active",
             conditions: [{
               type: "Ready"
             },],
-            //debug
             created: true,
-            initialized: initialized,
-            found_children: std.length(foundChildren),
-            desired: desired,
+            //debug
             request_parent: request.parent,
             request_children: request.children,
           },
@@ -750,6 +610,41 @@
       {
         params: std.manifestJsonEx(params, "  "),
       },
+
+    local projectsRole = {
+      apiVersion: "rbac.authorization.k8s.io/v1",
+      kind: "Role",
+      metadata: {
+        name: "view",
+        namespace: params.namespace,
+      },
+      rules: [
+        {
+          apiGroups: [
+            "kubeflow.org",
+          ],
+          resources: [
+            "projects",
+            "workspaces",
+          ],
+          verbs: [
+            "create",
+          ],
+        },
+        {
+          apiGroups: [
+            "kubeflow.org",
+          ],
+          resources: [
+            "projects",
+          ],
+          verbs: [
+            "get",
+          ],
+        },
+      ],
+    },
+    projectsRole:: projectsRole,
 
     local projectsConfigMap = {
       apiVersion: "v1",
@@ -789,7 +684,7 @@
             containers: [
               {
                 name: "hooks",
-                //image: "metacontroller/jsonnetd:latest",
+                //freeze latest
                 image: "metacontroller/jsonnetd@sha256:25c25f217ad030a0f67e37078c33194785b494569b0c088d8df4f00da8fd15a0",
                 imagePullPolicy: "Always",
                 workingDir: "/opt/projects/hooks",
@@ -831,17 +726,6 @@
           {
             apiVersion: "kubeflow.org/v1alpha1",
             resource: "workspaces",
-            updateStrategy: {
-              method: "InPlace",
-              statusChecks: {
-                conditions: [
-                  {
-                    type: "phase",
-                    status: "Active",
-                  },
-                ],
-              },
-            },
           },
         ],
         hooks: {
@@ -871,32 +755,10 @@
           {
             apiVersion: "v1",
             resource: "namespaces",
-            //updateStrategy: {
-            //  method: 'RollingInPlace',
-            //  statusChecks: {
-            //    conditions: [
-            //      {
-            //        type: 'phase',
-            //        status: 'Active',
-            //      },
-            //    ],
-            //  },
-            //},
           },
           {
             apiVersion: "kubeflow.org/v1alpha1",
             resource: "permissions",
-            //updateStrategy: {
-            //  method: 'RollingInPlace',
-            //  statusChecks: {
-            //    conditions: [
-            //      {
-            //        type: 'phase',
-            //        status: 'Active',
-            //      },
-            //    ],
-            //  },
-            //},
           },
         ],
         hooks: {
@@ -949,6 +811,7 @@
       self.workspacesCRD,
       self.permissionsCRD,
       self.projectsService,
+      self.projectsRole,
       self.projectsConfigMap,
       self.projectsDeployment,
       self.projectsController,
