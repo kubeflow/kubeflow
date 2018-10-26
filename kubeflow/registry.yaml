@@ -7,9 +7,9 @@ libraries:
   metacontroller:
     version: master
     path: metacontroller
-  projects:
+  ensembles:
     version: master
-    path: projects
+    path: ensembles
   core:
     version: master
     path: core
