@@ -2,6 +2,7 @@ local metacontroller = import "kubeflow/metacontroller/metacontroller.libsonnet"
 
 local params = {
   name: "metacontroller",
+  image: "metacontroller/metacontroller@sha256:f5af46268676e869b14dd54e37189ea3483ca27126f9f4425cf22ce7d7779a2d",
 };
 local env = {
   namespace: "kf-001",
@@ -150,7 +151,7 @@ std.assertEqual(
                 "-v=4",
                 "--discovery-interval=20s",
               ],
-              image: "metacontroller/metacontroller:0.2.0",
+              image: "metacontroller/metacontroller@sha256:f5af46268676e869b14dd54e37189ea3483ca27126f9f4425cf22ce7d7779a2d",
               imagePullPolicy: "Always",
               name: "metacontroller",
               ports: [

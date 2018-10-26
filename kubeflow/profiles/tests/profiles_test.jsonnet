@@ -2,6 +2,7 @@ local profiles = import "kubeflow/profiles/profiles.libsonnet";
 
 local params = {
   name: "profiles",
+  image: "metacontroller/jsonnetd@sha256:25c25f217ad030a0f67e37078c33194785b494569b0c088d8df4f00da8fd15a0",
 };
 local env = {
   namespace: "kf-001",
