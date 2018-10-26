@@ -35,7 +35,7 @@ local request = {
 local syncProfile = import "kubeflow/profiles/sync-profile.libsonnet";
 
 std.assertEqual(
-  syncTarget(request),
+  syncProfile(request),
   {
     children: [
       {
