@@ -1,12 +1,12 @@
 // Controller for resource: profiles
 // Creates child resource
-// - Composition
+// - Target
 function(request) {
   local apiVersion = "kubeflow.org/v1alpha1",
   local template = request.parent.spec.template,
   local children = [{
     apiVersion: apiVersion,
-    kind: "Composition",
+    kind: "Target",
     metadata: {
       name: template.metadata.name,
       namespace: request.parent.metadata.namespace,
