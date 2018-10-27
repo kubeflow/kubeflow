@@ -54,7 +54,19 @@ function(request) {
         name: 'notebook',
         namespace: template.metadata.namespace,
       },
-      spec: template.spec,
+      spec: {
+        containers: [
+          {
+            args: [
+              'start-singleuser.sh',
+              '--ip="0.0.0.0"',
+              '--port=8888',
+              '--allow-root',
+            ],
+            image: params.image,
+          },
+        ],
+      },
     },
   ],
   children: children,
