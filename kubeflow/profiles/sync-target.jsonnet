@@ -21,7 +21,7 @@ function(request) {
       apiVersion: "kubeflow.org/v1alpha1",
       kind: "Permission",
       metadata: {
-        name: "permission",
+        name: "default",
         namespace: request.parent.spec.namespace,
       },
       spec: {
@@ -37,7 +37,7 @@ function(request) {
     }],
     created: true,
     //debug
-    request_parent: request.parent,
-    request_children: request.children,
+    //request_parent: request.parent,
+    //request_children: request.children,
   },
 }

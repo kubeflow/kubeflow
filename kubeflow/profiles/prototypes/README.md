@@ -20,7 +20,7 @@ The Profiles ksonnet component provides a way for users and service accounts to 
 - Target
 - Permissions
 
-The Profile resource contains a template section where a namespace and owner are specified. An example is:
+The Profile resource contains a template section where a namespace and owner are specified. The Profile resource is created within the shared namespace. An example is:
 
 ```
 apiVersion: kubeflow.org/v1alpha1
@@ -37,7 +37,7 @@ spec:
       owner: alice
 ```
 
-The Target resource is created by the controller using the information in the Profile Resource. The target contains a template where the name of the namespace and the permissions are specified. An example is:
+The Target resource is created by the controller using the information in the Profile Resource. The Target resource is created within the shared namespace. The target contains a template where the name of the namespace and the permissions are specified. An example is:
 
 ```
 apiVersion: kubeflow.org/v1alpha1
@@ -59,7 +59,7 @@ spec:
   owner: alice
 ```
 
-The Permission resource contains the RBAC Role, RoleBinding that will be created for the user within the target namespace. An example is:
+The Permission resource contains the RBAC Role, RoleBinding that will be created for the user within the target namespace. The Permission resource is created within the target namespace. An example is:
 
 ```
 apiVersion: kubeflow.org/v1alpha1
@@ -67,8 +67,8 @@ kind: Permission
 metadata:
   labels:
     controller-uid: cc6cf46d-d9ea-11e8-9846-42010a8a00a5
-  name: permission
-  namespace: mnist
+  name: default
+  namespace: gan
   ownerReferences:
   - apiVersion: kubeflow.org/v1alpha1
     blockOwnerDeletion: true
