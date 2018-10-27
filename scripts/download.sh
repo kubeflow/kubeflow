@@ -12,11 +12,6 @@ fi
 
 KUBEFLOW_TAG=${KUBEFLOW_TAG:-master}
 
-if [ -d "${KUBEFLOW_REPO}" ]; then
-  echo Directory ${KUBEFLOW_REPO} already exists
-  exit 1
-fi
-
 # Create a local copy of the Kubeflow source repo
 TMPDIR=$(mktemp -d /tmp/tmp.kubeflow-repo-XXXX)
 curl -L -o ${TMPDIR}/kubeflow.tar.gz https://github.com/kubeflow/kubeflow/archive/${KUBEFLOW_TAG}.tar.gz
