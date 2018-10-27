@@ -34,10 +34,7 @@
         namespace: params.namespace,
       },
       data: {
-        "sync-notebook.jsonnet": (importstr "sync-notebook.jsonnet") %
-        {
-          params: std.manifestJsonEx(params, "  "),
-        },
+        "sync-notebook.jsonnet": (importstr "sync-notebook.jsonnet"),
       },
     },
     notebooksConfigMap:: notebooksConfigMap,

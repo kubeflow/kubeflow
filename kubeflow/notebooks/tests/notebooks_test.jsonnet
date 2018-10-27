@@ -11,6 +11,7 @@ local params = {
   notebookGid: "-1",
   accessLocalFs: "false",
 };
+
 local env = {
   namespace: "kf-100",
 };
@@ -69,10 +70,7 @@ std.assertEqual(
   {
     apiVersion: "v1",
     data: {
-      "sync-notebook.jsonnet": (importstr "../sync-notebook.jsonnet") %
-        {
-          params: std.manifestJsonEx(params, "  "),
-        },
+      "sync-notebook.jsonnet": (importstr "../sync-notebook.jsonnet"),
     },
     kind: "ConfigMap",
     metadata: {
