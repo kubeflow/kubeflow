@@ -49,7 +49,7 @@ std.assertEqual(
         apiVersion: "kubeflow.org/v1alpha1",
         kind: "Permission",
         metadata: {
-          name: "permission",
+          name: "default",
           namespace: "iris",
         },
         spec: {
@@ -65,22 +65,6 @@ std.assertEqual(
       ],
       created: true,
       phase: "Active",
-      request_children: {
-        "Namespace.v1": {},
-        "Permission.kubeflow.org/v1alpha1": {},
-      },
-      request_parent: {
-        apiVersion: "kubeflow.org/v1alpha1",
-        kind: "Target",
-        metadata: {
-          name: "kubeflow-chloe",
-          namespace: "kubeflow",
-        },
-        spec: {
-          namespace: "iris",
-          owner: "chloe",
-        },
-      },
     },
   }
 )

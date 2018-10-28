@@ -339,21 +339,6 @@ std.assertEqual(
       ],
       created: true,
       phase: "Active",
-      request_children: {
-        "Role.rbac.authorization.k8s.io/v1": {},
-        "RoleBindings.rbac.authorization.k8s.io/v1": {},
-      },
-      request_parent: {
-        apiVersion: "kubeflow.org/v1alpha1",
-        kind: "Permission",
-        metadata: {
-          name: "kubeflow-chloe",
-          namespace: "kubeflow",
-        },
-        spec: {
-          owner: "chloe",
-        },
-      },
     },
   }
 )

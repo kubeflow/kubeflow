@@ -59,28 +59,6 @@ std.assertEqual(
       ],
       created: true,
       phase: "Active",
-      request_children: {
-        "Target.kubeflow.org/v1alpha1": {},
-      },
-      request_parent: {
-        apiVersion: "kubeflow.org/v1alpha1",
-        kind: "Profile",
-        metadata: {
-          name: "iris-chloe",
-          namespace: "kubeflow",
-        },
-        spec: {
-          template: {
-            metadata: {
-              name: "iris",
-            },
-            spec: {
-              namespace: "iris",
-              owner: "chloe",
-            },
-          },
-        },
-      },
     },
   }
 )

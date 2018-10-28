@@ -311,8 +311,5 @@ function(request) {
       type: "Ready",
     }],
     created: true,
-    //debug
-    //request_parent: request.parent,
-    //request_children: request.children,
   },
 }
