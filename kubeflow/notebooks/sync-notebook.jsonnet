@@ -7,11 +7,11 @@ function(request) {
   local template = request.parent.spec.template,
   local children = [
     {
-      apiVersion: 'v1',
-      kind: 'Service',
+      apiVersion: "v1",
+      kind: "Service",
       metadata: {
         annotations: {
-          'getambassador.io/config': 
+          "getambassador.io/config":
             std.join("\n", [
               "---",
               "apiVersion: ambassador/v0",
@@ -24,44 +24,44 @@ function(request) {
             ]),
         },
         labels: {
-          app: 'notebook',
+          app: "notebook",
         },
-        name: 'notebook',
+        name: "notebook",
         namespace: template.metadata.namespace,
       },
       spec: {
         ports: [
           {
             port: 80,
-            protocol: 'TCP',
+            protocol: "TCP",
             targetPort: 8082,
           },
         ],
         selector: {
-          app: 'notebook',
+          app: "notebook",
         },
-        sessionAffinity: 'None',
-        type: 'ClusterIP',
+        sessionAffinity: "None",
+        type: "ClusterIP",
       },
     },
     {
-      apiVersion: 'v1',
-      kind: 'Pod',
+      apiVersion: "v1",
+      kind: "Pod",
       metadata: {
         labels: {
-          component: 'singleuser-server',
+          component: "singleuser-server",
         },
-        name: 'notebook',
+        name: "notebook",
         namespace: template.metadata.namespace,
       },
       spec: {
         containers: [
           {
             args: [
-              'start-singleuser.sh',
+              "start-singleuser.sh",
               '--ip="0.0.0.0"',
-              '--port=8888',
-              '--allow-root',
+              "--port=8888",
+              "--allow-root",
             ],
             image: params.image,
           },
