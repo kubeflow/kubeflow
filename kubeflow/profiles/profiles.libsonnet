@@ -173,6 +173,9 @@
                   owner: {
                     type: "string",
                   },
+                  serviceAccountNamespace: {
+                    type: "string",
+                  },
                 },
               },
               status: {

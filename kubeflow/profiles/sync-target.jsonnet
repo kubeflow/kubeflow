@@ -21,11 +21,12 @@ function(request) {
       apiVersion: "kubeflow.org/v1alpha1",
       kind: "Permission",
       metadata: {
-        name: "default",
+        name: request.parent.spec.owner,
         namespace: request.parent.spec.namespace,
       },
       spec: {
         owner: request.parent.spec.owner,
+        serviceAccountNamespace: request.parent.metadata.namespace,
       },
     },
   ],

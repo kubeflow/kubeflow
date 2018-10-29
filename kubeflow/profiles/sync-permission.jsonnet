@@ -40,12 +40,14 @@ function(request) {
             "profiles",
             "targets",
             "permissions",
+            "notebooks",
           ],
           verbs: [
+            "create",
+            "delete",
             "get",
             "list",
             "watch",
-            "create",
           ],
         },
         {
@@ -300,7 +302,7 @@ function(request) {
       subjects: [{
         kind: "ServiceAccount",
         name: request.parent.spec.owner,
-        namespace: request.parent.metadata.namespace,
+        namespace: request.parent.spec.serviceAccountNamespace,
       }],
     },
   ],
