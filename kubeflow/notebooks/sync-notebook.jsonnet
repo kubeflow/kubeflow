@@ -60,10 +60,32 @@ function(request) {
             args: [
               "start-singleuser.sh",
               '--ip="0.0.0.0"',
-              "--port=8888",
+              "--port=" + params.targetPort,
               "--allow-root",
             ],
-            image: params.image,
+            image: params.registry + "/" + params.repoName + "/" + params.image,
+            imagePullPolicy: "IfNotPresent",
+            name: "notebook",
+            ports: [
+              {
+                containerPort: params.targetPort,
+                name: "notebook-port",
+                protocol: "TCP",
+              },
+            ],
+            resources: {
+              requests: {
+                cpu: "500m",
+                memory: "1Gi",
+              },
+            },
+            volumeMounts: [
+              {
+                mountPath: params.notebookPVCMount,
+                name: "volume-kam",
+              },
+            ],
+            workingDir: params.notebookPVCMount,
           },
         ],
       },

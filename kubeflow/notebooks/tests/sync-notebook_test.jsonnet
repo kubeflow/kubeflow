@@ -1,6 +1,6 @@
 local params = {
   disks: "null",
-  image: "gcr.io/kubeflow/jupyterhub-k8s:v20180531-3bb991b1",
+  image: "tensorflow-1.10.1-notebook-cpu:v0.3.0",
   useJupyterLabAsDefault: true,
   notebookPVCMount: "/home/jovyan",
   registry: "gcr.io",
@@ -8,6 +8,10 @@ local params = {
   notebookUid: "-1",
   notebookGid: "-1",
   accessLocalFs: "false",
+  owner: "foo",
+  serviceType: "ClusterIP",
+  targetPort: "8888",
+  servicePort: "80",
 };
 
 local env = {
@@ -33,61 +37,18 @@ local notebook = {
           {
             args: [
               "start-singleuser.sh",
-              '--ip="0.0.0.0"',
-              "--port=8888",
+              "--ip='0.0.0.0'",
+              "--port=" + params.targetPort,
               "--allow-root",
             ],
             env: [
-              {
-                name: "JUPYTERHUB_API_TOKEN",
-                value: "ce5d75d8b88243e280898baa677fec35",
-              },
-              {
-                name: "JPY_API_TOKEN",
-                value: "ce5d75d8b88243e280898baa677fec35",
-              },
-              {
-                name: "JUPYTERHUB_CLIENT_ID",
-                value: "jupyterhub-user-kam",
-              },
-              {
-                name: "JUPYTERHUB_HOST",
-              },
-              {
-                name: "JUPYTERHUB_OAUTH_CALLBACK_URL",
-                value: "/user/kam/oauth_callback",
-              },
-              {
-                name: "JUPYTERHUB_USER",
-                value: "kam",
-              },
-              {
-                name: "JUPYTERHUB_API_URL",
-                value: "http://jupyterhub-0:8081/hub/api",
-              },
-              {
-                name: "JUPYTERHUB_BASE_URL",
-                value: "/",
-              },
-              {
-                name: "JUPYTERHUB_SERVICE_PREFIX",
-                value: "/user/kam/",
-              },
-              {
-                name: "MEM_GUARANTEE",
-                value: "1Gi",
-              },
-              {
-                name: "CPU_GUARANTEE",
-                value: "500m",
-              },
             ],
-            image: "gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu:v0.3.0",
+            image: params.registry + "/" + params.repoName + "/" + params.image,
             imagePullPolicy: "IfNotPresent",
             name: "notebook",
             ports: [
               {
-                containerPort: 8888,
+                containerPort: params.targetPort,
                 name: "notebook-port",
                 protocol: "TCP",
               },
@@ -100,11 +61,11 @@ local notebook = {
             },
             volumeMounts: [
               {
-                mountPath: "/home/jovyan",
+                mountPath: params.notebookPVCMount,
                 name: "volume-kam",
               },
             ],
-            workingDir: "/home/jovyan",
+            workingDir: params.notebookPVCMount,
           },
         ],
         restartPolicy: "Always",
@@ -189,7 +150,29 @@ std.assertEqual(
                 "--port=8888",
                 "--allow-root",
               ],
-              image: "gcr.io/kubeflow/jupyterhub-k8s:v20180531-3bb991b1",
+              image: "gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu:v0.3.0",
+              imagePullPolicy: "IfNotPresent",
+              name: "notebook",
+              ports: [
+                {
+                  containerPort: "8888",
+                  name: "notebook-port",
+                  protocol: "TCP",
+                },
+              ],
+              resources: {
+                requests: {
+                  cpu: "500m",
+                  memory: "1Gi",
+                },
+              },
+              volumeMounts: [
+                {
+                  mountPath: "/home/jovyan",
+                  name: "volume-kam",
+                },
+              ],
+              workingDir: "/home/jovyan",
             },
           ],
         },
