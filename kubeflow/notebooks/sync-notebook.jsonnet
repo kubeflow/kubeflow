@@ -3,7 +3,6 @@
 // - Service
 // - Pod
 function(request) {
-  local params = request.parent.metadata.annotations,
   local template = request.parent.spec.template,
   local children = [
     {
@@ -54,41 +53,7 @@ function(request) {
         name: "notebook",
         namespace: template.metadata.namespace,
       },
-      spec: {
-        containers: [
-          {
-            args: [
-              "start-singleuser.sh",
-              '--ip="0.0.0.0"',
-              "--port=" + params.targetPort,
-              "--allow-root",
-            ],
-            image: params.registry + "/" + params.repoName + "/" + params.image,
-            imagePullPolicy: "IfNotPresent",
-            name: "notebook",
-            ports: [
-              {
-                containerPort: params.targetPort,
-                name: "notebook-port",
-                protocol: "TCP",
-              },
-            ],
-            resources: {
-              requests: {
-                cpu: "500m",
-                memory: "1Gi",
-              },
-            },
-            volumeMounts: [
-              {
-                mountPath: params.notebookPVCMount,
-                name: "volume-kam",
-              },
-            ],
-            workingDir: params.notebookPVCMount,
-          },
-        ],
-      },
+      spec: template.spec,
     },
   ],
   children: children,
