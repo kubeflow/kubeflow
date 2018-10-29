@@ -250,7 +250,7 @@
                   format: 'int64',
                 },
                 volumes: {
-                  type: 'object',
+                  type: 'array',
                 },
                 imagePullSecrets: {
                   items: {
@@ -316,7 +316,7 @@
                         type: 'array',
                       },
                       env: {
-                        type: 'object',
+                        type: 'array',
                       },
                       imagePullPolicy: {
                         type: 'string',
@@ -439,10 +439,6 @@
         },
         conditions: {
           items: {
-            required: [
-              'type',
-              'status',
-            ],
             properties: {
               status: {
                 type: 'string',
