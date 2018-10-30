@@ -53,8 +53,8 @@ createEnv() {
       echo KUBEFLOW_PLATFORM=gke >> ${ENV_FILE}
       echo PROJECT="${PROJECT}" >> ${ENV_FILE}
       if [ -z "${PROJECT}" ]; then
-        echo PROJECT must be set either using environment variable PROJECT
-        echo or by setting the default project in gcloud
+        echo "PROJECT must be set either using environment variable PROJECT"
+        echo "or by setting the default project in gcloud config"
         exit 1
       fi
 
@@ -71,9 +71,12 @@ createEnv() {
       echo  KUBEFLOW_K8S_CONTEXT=${DEPLOYMENT_NAME} >> ${ENV_FILE}
 
       # GCP Zone
-      # The default should be a zone that supports Haswell.
       ZONE=${ZONE:-$(gcloud config get-value compute/zone 2>/dev/null)}
-      ZONE=${ZONE:-"us-east1-d"}
+      if [[ -z "$ZONE" ]]; then
+        echo "GCP Zone must be set either using environment variable ZONE"
+        echo "or by setting the default zone in gcloud config"
+        exit 1
+      fi
       echo ZONE=${ZONE} >> ${ENV_FILE}
 
       # Email for cert manager
@@ -157,19 +160,19 @@ if [ "${COMMAND}" == "init" ]; then
 	# TODO(jlewi): This doesn't work if user doesn't provide name we will end up
 	# interpreting parameters as the name. To fix this we need to check name doesn't start with --
 	if [ -z "${DEPLOYMENT_NAME}" ]; then
-  		echo "name must be provided"
-  		echo "usage: kfctl init <name>"
-  		exit 1
+      echo "name must be provided"
+      echo "usage: kfctl init <name>"
+      exit 1
 	fi
     if [ -d ${DEPLOYMENT_NAME} ]; then
-		echo Directory ${DEPLOYMENT_NAME} already exists
-		exit 1
+	  echo "Directory ${DEPLOYMENT_NAME} already exists"
+      exit 1
 	fi
 
 	if [ -z "${PLATFORM}" ]; then
-  		echo "--platform must be provided"
-  		echo "usage: kfctl init <PLATFORM>"
-  		exit 1
+  	  echo "--platform must be provided"
+      echo "usage: kfctl init <PLATFORM>"
+      exit 1
 	fi
 	source "${ENV_FILE}"
 
@@ -186,13 +189,13 @@ fi
 source ${ENV_FILE}
 
 if [ -z "${COMMAND}" ]; then
-  echo COMMAND must be provided
+  echo "COMMAND must be provided"
   usage
   exit 1
 fi
 
 if [ -z "${WHAT}" ]; then
-  echo WHAT must be provided
+  echo "WHAT must be provided"
   usage
   exit 1
 fi
@@ -220,7 +223,7 @@ ksApply () {
   set -e
 
   if [ "${RESULT}" -eq 0 ]; then
-  	echo environment default already exists
+    echo "environment default already exists"
   else
     ks env add default --namespace "${K8S_NAMESPACE}"
   fi
@@ -258,8 +261,8 @@ source "${ENV_FILE}"
 if [ "${COMMAND}" == "generate" ]; then
   if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ]; then
   	if [ "${PLATFORM}" == "gcp" ]; then
-    	generateDMConfigs
-    	downloadK8sManifests
+      generateDMConfigs
+      downloadK8sManifests
     fi
   fi
 
@@ -269,7 +272,7 @@ if [ "${COMMAND}" == "generate" ]; then
     customizeKsAppWithDockerImage
 
     if [ "${PLATFORM}" == "gcp" ]; then
-    	gcpGenerateKsApp
+      gcpGenerateKsApp
     fi
 
     if [ "${PLATFORM}" == "minikube" ]; then
@@ -287,8 +290,8 @@ fi
 if [ "${COMMAND}" == "apply" ]; then
   if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ] ; then
   	if [ "${PLATFORM}" == "gcp" ]; then
-    	updateDM
-    	createSecrets
+      updateDM
+      createSecrets
     fi
   fi
 
@@ -297,7 +300,7 @@ if [ "${COMMAND}" == "apply" ]; then
     ksApply
 
     if [ "${PLATFORM}" == "gcp" ]; then
-    	gcpKsApply
+      gcpKsApply
     fi
 
     # all components deployed
