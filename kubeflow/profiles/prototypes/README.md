@@ -27,11 +27,13 @@ Users __stan__ and __jackie__ are able to run notebooks, jobs, and other compone
 
 ![jobs and notebooks](./docs/jobsandnotebooks.png "jobs and notebooks")
 
-Users __stan__ and __jackie__ are defined as service accounts within the shared namespace. This is something the kubeflow admin does by creating service accounts and distributing the service account secret tokens to the data scientists so gthey can be added to each user's $HOME/.kube/config. 
+Users __stan__ and __jackie__ are defined as service accounts within the shared namespace. This is something the kubeflow admin does by creating service accounts and distributing the service account secret tokens to the data scientists so they can be added to each user's $HOME/.kube/config. 
 
 ![service accounts](./docs/serviceaccounts.png "service accounts")
 
 For each user, the kubeflow admin also creates a RoleBinding for that user in the shared namespace. The RoleBinding's roleRef is a constained Role that only allows the user to create and get Profile CRs.
+
+![rolebindings](./docs/rolebindings.png "rolebindings")
 
 - Profile
 - Target
