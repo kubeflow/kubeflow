@@ -56,9 +56,9 @@ type KsService interface {
 	CreateApp(context.Context, CreateRequest, *deploymentmanager.Deployment) error
 	// Apply ksonnet app to target GKE cluster
 	Apply(ctx context.Context, req ApplyRequest) error
-	InsertSaKeys(context.Context, InsertSaKeyRequest) error
+	ConfigCluster(context.Context, CreateRequest) error
 	BindRole(context.Context, string, string, string) error
-	InsertDeployment(context.Context, CreateRequest) error
+	InsertDeployment(context.Context, CreateRequest) (*deploymentmanager.Deployment, error)
 	GetDeploymentStatus(context.Context, CreateRequest) (string, error)
 	ApplyIamPolicy(context.Context, ApplyIamRequest) error
 }
@@ -979,16 +979,8 @@ func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmana
 		return
 	}
 
-	log.Infof("Inserting sa keys...")
-	err = svc.InsertSaKeys(ctx, InsertSaKeyRequest{
-		Cluster:   req.Cluster,
-		Namespace: req.Namespace,
-		Project:   req.Project,
-		Token:     req.Token,
-		Zone:      req.Zone,
-	})
-	if err != nil {
-		log.Errorf("Failed to insert service account key: %v", err)
+	log.Infof("Configuring cluster...")
+	if err = svc.ConfigCluster(ctx, req); err != nil {
 		deploymentFailure.Inc()
 		return
 	}
@@ -1071,18 +1063,6 @@ func makeHealthzEndpoint(svc KsService) endpoint.Endpoint {
 	}
 }
 
-func makeSaKeyEndpoint(svc KsService) endpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(InsertSaKeyRequest)
-		err := svc.InsertSaKeys(ctx, req)
-		r := &basicServerResponse{}
-		if err != nil {
-			r.Err = err.Error()
-		}
-		return r, nil
-	}
-}
-
 func makeIamEndpoint(svc KsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(ApplyIamRequest)
@@ -1158,18 +1138,6 @@ func (s *ksServer) StartHttp(port int) {
 		encodeResponse,
 	)
 
-	insertSaKeyHandler := httptransport.NewServer(
-		makeSaKeyEndpoint(s),
-		func(_ context.Context, r *http.Request) (interface{}, error) {
-			var request InsertSaKeyRequest
-			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-				return nil, err
-			}
-			return request, nil
-		},
-		encodeResponse,
-	)
-
 	applyIamHandler := httptransport.NewServer(
 		makeIamEndpoint(s),
 		func(_ context.Context, r *http.Request) (interface{}, error) {
@@ -1205,7 +1173,6 @@ func (s *ksServer) StartHttp(port int) {
 	http.Handle("/", optionsHandler(healthzHandler))
 	http.Handle("/kfctl/apps/apply", optionsHandler(applyAppHandler))
 	http.Handle("/kfctl/apps/create", optionsHandler(createAppHandler))
-	http.Handle("/kfctl/iam/insertSaKey", optionsHandler(insertSaKeyHandler))
 	http.Handle("/kfctl/iam/apply", optionsHandler(applyIamHandler))
 	http.Handle("/kfctl/initProject", optionsHandler(initProjectHandler))
 	http.Handle("/kfctl/e2eDeploy", optionsHandler(deployHandler))

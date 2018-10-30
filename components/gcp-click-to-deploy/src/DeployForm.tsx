@@ -279,6 +279,14 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         return;
       }
     }
+    const deploymentNameKey = 'deploymentName';
+    if (this.state[deploymentNameKey].length < 4 || this.state[deploymentNameKey].length > 20) {
+      this.setState({
+        dialogBody: 'Deployment name length need to between 4 and 20',
+        dialogTitle: 'Invalid field',
+      });
+      return;
+    }
 
     this.setState({
       showLogs: true,
@@ -460,7 +468,10 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
               'deployment failed with error:' + flattenDeploymentOperationError(r.operation!));
             clearInterval(monitorInterval);
           } else if (r.operation!.status! && r.operation!.status === 'DONE') {
-            this._appendLine('Deployment is done, your kubeflow app url should be ready within 15 minutes: https://'
+            const readyTime = new Date();
+            readyTime.setTime(readyTime.getTime() + (20 * 60 * 1000));
+            this._appendLine('Deployment is done, your kubeflow app url should be ready within 20 minutes (by '
+              + readyTime.toLocaleTimeString() + '): https://'
               + this.state.deploymentName + '.endpoints.' + this.state.project + '.cloud.goog');
             clearInterval(monitorInterval);
           } else {

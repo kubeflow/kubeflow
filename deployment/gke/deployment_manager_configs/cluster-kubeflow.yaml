@@ -79,9 +79,3 @@ resources:
     # This is the name of the GCP static ip address reserved for your domain.
     # Each Kubeflow deployment in your project should use one unique ipName among all configs.
     ipName: kubeflow-ip
-    # Some resources are for webapp only, not for kfctl.
-    # TODO: remove after move kfctl to commandline.
-    isWebapp: false
-    # For webapp only
-    clientId: clientId
-    clientSecret: clientSecret
