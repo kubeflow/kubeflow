@@ -37,7 +37,7 @@ For each user, the kubeflow admin also creates a RoleBinding for that user in th
 
 For __stan__ the RoleBinding looks like the following
 
-```
+```yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
