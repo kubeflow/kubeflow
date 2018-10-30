@@ -53,7 +53,7 @@ subjects:
   namespace: kubeflow
 ```
 
-The Role or privileges that __stan__ has in the kubeflow shared namespace are:
+The __view__ Role that __stan__ has (shown above) in the kubeflow shared namespace is:
 
 ```
 apiVersion: rbac.authorization.k8s.io/v1
