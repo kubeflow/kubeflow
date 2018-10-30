@@ -183,6 +183,9 @@ std.assertEqual(
                 selector: {
                   type: "object",
                 },
+                serviceAccountNamespace: {
+                  type: "string",
+                },
               },
               type: "object",
             },

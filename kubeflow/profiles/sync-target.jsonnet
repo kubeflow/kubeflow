@@ -13,9 +13,6 @@ function(request) {
           app: request.parent.spec.namespace,
         },
       },
-      status: {
-        phase: "Pending",
-      },
     },
     {
       apiVersion: "kubeflow.org/v1alpha1",
@@ -37,5 +34,6 @@ function(request) {
       type: "Ready",
     }],
     created: true,
+    request_children: request.children,
   },
 }

@@ -17,6 +17,7 @@ local request = {
     },
     spec: {
       owner: params.user,
+      serviceAccountNamespace: env.namespace,
     },
   },
   children: {
@@ -65,12 +66,14 @@ std.assertEqual(
               "profiles",
               "targets",
               "permissions",
+              "notebooks",
             ],
             verbs: [
+              "create",
+              "delete",
               "get",
               "list",
               "watch",
-              "create",
             ],
           },
           {
@@ -148,25 +151,11 @@ std.assertEqual(
               "bindings",
               "events",
               "limitranges",
-              "namespaces/status",
               "pods/log",
               "pods/status",
               "replicationcontrollers/status",
               "resourcequotas",
               "resourcequotas/status",
-            ],
-            verbs: [
-              "get",
-              "list",
-              "watch",
-            ],
-          },
-          {
-            apiGroups: [
-              "",
-            ],
-            resources: [
-              "namespaces",
             ],
             verbs: [
               "get",

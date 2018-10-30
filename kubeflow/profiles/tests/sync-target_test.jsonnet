@@ -41,19 +41,17 @@ std.assertEqual(
           },
           name: "iris",
         },
-        status: {
-          phase: "Pending",
-        },
       },
       {
         apiVersion: "kubeflow.org/v1alpha1",
         kind: "Permission",
         metadata: {
-          name: "default",
+          name: "chloe",
           namespace: "iris",
         },
         spec: {
           owner: "chloe",
+          serviceAccountNamespace: "kubeflow",
         },
       },
     ],
@@ -65,6 +63,10 @@ std.assertEqual(
       ],
       created: true,
       phase: "Active",
+      request_children: {
+        "Namespace.v1": {},
+        "Permission.kubeflow.org/v1alpha1": {},
+      },
     },
   }
 )

@@ -125,25 +125,11 @@ function(request) {
             "bindings",
             "events",
             "limitranges",
-            "namespaces/status",
             "pods/log",
             "pods/status",
             "replicationcontrollers/status",
             "resourcequotas",
             "resourcequotas/status",
-          ],
-          verbs: [
-            "get",
-            "list",
-            "watch",
-          ],
-        },
-        {
-          apiGroups: [
-            "",
-          ],
-          resources: [
-            "namespaces",
           ],
           verbs: [
             "get",
