@@ -5,16 +5,29 @@
 - Provide an easy way for data-scientists to create protected namespaces where 
 notebooks, jobs, and other components can be deployed into this namespace.
 
-- Use native kubernetes RBAC rules to isolate this namespace to a particular user or service account.
+- Use native kubernetes RBAC rules to isolate this namespace to a particular user's service account.
 
-- Separate infra components from user components where intra components reside in a shared namespace and 
+- Do not grant cluster wide privileges to a user when creating a protected namespace.
+
+- Only use namespaced scoped Roles and RoleBindings.
+
+- Separate infra components from user components where intra components reside in a shared/admin namespace and 
 user components reside in protected namespaces.
 
 - Enable a forward path to include proposed [Security Profiles](https://github.com/kubernetes/community/blob/a8cb2060dc621664c86b185c7426367994b181b5/keps/draft-20180418-security-profile.md) 	
 
 
 ## Design
-The Profiles ksonnet component provides a way for users and service accounts to run kubeflow components within isolated , protected namespaces. 3 CRDs are defined:
+
+Protected Namespaces allow a data scientist to use shared kubeflow components but within a namespace that is protected.
+
+![shared and protected namespaces](./docs/namespaces.png "shared and protected namespaces")
+
+Users __stan__ and __jackie__ are defined as service accounts within the shared namespace. This is something the kubeflow admin does by creating service accounts and distributing the service account secret tokens to the data scientists so gthey can be added to each user's $HOME/.kube/config. 
+
+![service accounts](./docs/serviceaccounts.png "service accounts")
+
+For each user, the kubeflow admin also creates a RoleBinding for that user in the shared namespace. The RoleBinding's roleRef is a constained Role that only allows the user to create and get Profile CRs.
 
 - Profile
 - Target
@@ -53,7 +66,6 @@ metadata:
     controller: true
     kind: Profile
     name: gan-alice
-    uid: c6de9e25-d9ea-11e8-9846-42010a8a00a5
 spec:
   namespace: gan
   owner: alice
@@ -75,23 +87,24 @@ metadata:
     controller: true
     kind: Target
     name: mnist
-    uid: cc6cf46d-d9ea-11e8-9846-42010a8a00a5
 spec:
   owner: alice
 ```
 
 Each resource has an associated controller that is implemented in jsonnet using metacontroller's CompositeController.
-These are:
+These controllers do the following:
 
-sync-profile.libsonnet
-sync-target.libsonnet
-sync-permission.libsonnet
+- profiles-controller 
+  - watches for __Profile__ Custom Resources
+  - creates Target
+- targets-controller
+  - watches for __Target__ Custom Resources
+  - creates Namespace, Permission
+- permissions-controller
+  - watches for __Permission__ Custom Resources
+  - creates Role, RoleBinding
 
-## Client Integration
 
-### kfctl
-
-### arena
 
 
 
