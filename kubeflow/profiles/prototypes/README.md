@@ -55,7 +55,7 @@ subjects:
 
 The __view__ Role that __stan__ has (shown above) in the kubeflow shared namespace is:
 
-```
+```yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -109,7 +109,7 @@ The controllers are namescoped and watch / create resources in different namespa
 
 The Profile resource contains a template section where a namespace and owner are specified. The Profile resource is created within the shared namespace. An example is:
 
-```
+```yaml
 apiVersion: kubeflow.org/v1alpha1
 kind: Profile
 metadata:
@@ -126,7 +126,7 @@ spec:
 
 The Target resource is created by the controller using the information in the Profile Resource. The Target resource is created within the shared namespace. The target contains a template where the name of the namespace and the permissions are specified. An example is:
 
-```
+```yaml
 apiVersion: kubeflow.org/v1alpha1
 kind: Target
 metadata:
@@ -147,7 +147,7 @@ spec:
 
 The Permission resource contains the RBAC Role, RoleBinding that will be created for the user within the target namespace. The Permission resource is created within the target namespace. An example is:
 
-```
+```yaml
 apiVersion: kubeflow.org/v1alpha1
 kind: Permission
 metadata:
