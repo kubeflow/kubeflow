@@ -1,7 +1,7 @@
 ## Goals
 
-- Provide an easy way for data-scientists to create protected namespaces where 
-notebooks, jobs, and other components can be deployed into this namespace.
+- Provide a self-serve environment for data-scientists to create one or more protected namespaces where 
+notebooks, jobs, and other components can be deployed and run in this namespace.
 
 - Use native kubernetes RBAC rules to isolate this namespace to a particular user's service account.
 
