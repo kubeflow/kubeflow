@@ -1,6 +1,4 @@
-## Overview
-
-### Goals
+## Goals
 
 - Provide an easy way for data-scientists to create protected namespaces where 
 notebooks, jobs, and other components can be deployed into this namespace.
