@@ -76,26 +76,36 @@ rules:
   - get
 ```
 
-Each resource has an associated controller that is implemented in jsonnet using metacontroller's CompositeController.
-These controllers do the following:
-
-- profiles-controller 
-  - watches for __Profile__ Custom Resources
-  - creates Target
-- targets-controller
-  - watches for __Target__ Custom Resources
-  - creates Namespace, Permission
-- permissions-controller
-  - watches for __Permission__ Custom Resources
-  - creates Role, RoleBinding
-
-
-
-
+This means that users have very few privileges within the shared namespace, limited to creating and getting a Profile CR. There are 2 other Custom Resource Definitions that are used to implement protected namespaces. All together there are 3 CRDs:
 
 - Profile
 - Target
 - Permissions
+
+Each custom resource has an associated controller. These controllers do the following:
+
+- profiles-controller 
+  - watches for __Profile__ Custom Resources in the kubeflow namespace
+  - creates a __Target__ Custom Resource
+- targets-controller
+  - watches for __Target__ Custom Resources in the kubeflow namespace
+  - creates a Namespace and Permission Resource
+- permissions-controller
+  - watches for __Permission__ Custom Resources in any protected namespace
+  - creates a Role and RoleBinding Resource
+
+
+The user flow is as follows:
+
+![userflow](./docs/userflow.png "userflow")
+
+
+The controllers are namescoped and watch / create resources in different namespaces shown below:
+
+![namespace groups](./docs/namespacegroups.png "namespace groups")
+
+
+### Data Structures
 
 The Profile resource contains a template section where a namespace and owner are specified. The Profile resource is created within the shared namespace. An example is:
 
