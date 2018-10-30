@@ -73,14 +73,33 @@
       },
       spec: {
         hosts: [
-          name,
+          "*",
+        ], 
+        gateways: [
+          "internal-gateway",
         ],
         http: [
           {
+            match: [
+              {
+                uri: {
+                  prefix: "/tfserving/models/" + modelName,
+                },
+                method: {
+                  exact: "POST",
+                },
+              },
+            ],
+            rewrite: {
+              uri: "/v1/models/" + modelName + ":predict",
+            },
             route: [
               {
                 destination: {
                   host: name,
+                  port: {
+                    number: 8500,
+                  },
                   subset: std.split(versionWeight, ":")[0],
                 },
                 weight: std.parseInt(std.split(versionWeight, ":")[1]),
