@@ -140,6 +140,10 @@ if [ "${COMMAND}" == "init" ]; then
             shift
             PROJECT=$1
             ;;
+        --zone)
+            shift
+            ZONE=$1
+            ;;
         --skipInitProject)
             SKIP_INIT_PROJECT=true
             ;;
