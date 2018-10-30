@@ -20,7 +20,7 @@ exit 1
 fi
 
 # Activate the service account
-for i in {1..10}
+for i in $(seq 1 10)
 do gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS} && break || sleep 10
 done
 
