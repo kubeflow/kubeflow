@@ -35,6 +35,64 @@ For each user, the kubeflow admin also creates a RoleBinding for that user in th
 
 ![rolebindings](./docs/rolebindings.png "rolebindings")
 
+For __stan__ the RoleBinding looks like the following
+
+```
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: stan
+  namespace: kubeflow
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: view
+subjects:
+- kind: ServiceAccount
+  name: stan
+  namespace: kubeflow
+```
+
+The Role or privileges that __stan__ has in the kubeflow shared namespace are:
+
+```
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: view
+  namespace: kubeflow
+rules:
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - profiles
+  verbs:
+  - create
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - profiles
+  verbs:
+  - get
+```
+
+Each resource has an associated controller that is implemented in jsonnet using metacontroller's CompositeController.
+These controllers do the following:
+
+- profiles-controller 
+  - watches for __Profile__ Custom Resources
+  - creates Target
+- targets-controller
+  - watches for __Target__ Custom Resources
+  - creates Namespace, Permission
+- permissions-controller
+  - watches for __Permission__ Custom Resources
+  - creates Role, RoleBinding
+
+
+
+
+
 - Profile
 - Target
 - Permissions
@@ -96,21 +154,4 @@ metadata:
 spec:
   owner: alice
 ```
-
-Each resource has an associated controller that is implemented in jsonnet using metacontroller's CompositeController.
-These controllers do the following:
-
-- profiles-controller 
-  - watches for __Profile__ Custom Resources
-  - creates Target
-- targets-controller
-  - watches for __Target__ Custom Resources
-  - creates Namespace, Permission
-- permissions-controller
-  - watches for __Permission__ Custom Resources
-  - creates Role, RoleBinding
-
-
-
-
 
