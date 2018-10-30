@@ -10,11 +10,10 @@ local params = {
   jupyterHubAuthenticator: "iap",
   useJupyterLabAsDefault: true,
   notebookPVCMount: "/home/jovyan",
-  registry: "gcr.io",
-  repoName: "kubeflow-images-public",
   notebookUid: "-1",
   notebookGid: "-1",
   accessLocalFs: "false",
+  ui: "default",
 };
 local env = {
   namespace: "foo",
@@ -27,7 +26,12 @@ std.assertEqual(
   {
     apiVersion: "v1",
     data: {
-      "jupyterhub_config.py": importstr "../kubeform_spawner.py",
+      "jupyterhub_config.py": importstr "kubeflow/core/jupyterhub_config.py",
+      "template.html": importstr "kubeflow/core/ui/default/template.html",
+      "script.js": importstr "kubeflow/core/ui/default/script.js",
+      "style.css": importstr "kubeflow/core/ui/default/style.css",
+      "spawner.py": importstr "kubeflow/core/ui/default/spawner.py",
+      "spawner_ui_config.yaml": importstr "kubeflow/core/ui/default/config.yaml",
     },
     kind: "ConfigMap",
     metadata: {
@@ -97,18 +101,6 @@ std.assertEqual(
                 {
                   name: "NOTEBOOK_PVC_MOUNT",
                   value: "/home/jovyan",
-                },
-                {
-                  name: "PLATFORM_NAME",
-                  value: "gke",
-                },
-                {
-                  name: "REGISTRY",
-                  value: "gcr.io",
-                },
-                {
-                  name: "REPO_NAME",
-                  value: "kubeflow-images-public",
                 },
                 {
                   name: "KF_AUTHENTICATOR",
