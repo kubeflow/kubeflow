@@ -58,7 +58,7 @@ func init() {
 }
 
 // TODO: handle concurrent & repetitive deployment requests.
-func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) error {
+func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) (*deploymentmanager.Deployment, error) {
 	regPath := s.knownRegistries["kubeflow"].RegUri
 	var dmconf DmConf
 	err := LoadConfig(path.Join(regPath, "../deployment/gke/deployment_manager_configs/cluster-kubeflow.yaml"), &dmconf)
@@ -76,18 +76,18 @@ func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) erro
 	}
 	confByte, err := yaml.Marshal(dmconf)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	templateData, err := ioutil.ReadFile(path.Join(regPath, "../deployment/gke/deployment_manager_configs/cluster.jinja"))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	ts := oauth2.StaticTokenSource(&oauth2.Token{
 		AccessToken: req.Token,
 	})
 	deploymentmanagerService, err := deploymentmanager.New(oauth2.NewClient(ctx, ts))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	rb := &deploymentmanager.Deployment{
 		Name: req.Name,
@@ -105,10 +105,10 @@ func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) erro
 	}
 	_, err = deploymentmanagerService.Deployments.Insert(req.Project, rb).Context(ctx).Do()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	deploymentsStartedCounter.Inc()
-	return nil
+	return rb, nil
 }
 
 func (s *ksServer) GetDeploymentStatus(ctx context.Context, req CreateRequest) (string, error) {

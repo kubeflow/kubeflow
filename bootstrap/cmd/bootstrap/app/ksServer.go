@@ -34,6 +34,8 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"strings"
+	"google.golang.org/api/deploymentmanager/v2"
+	"io/ioutil"
 )
 
 // The name of the prototype for Jupyter.
@@ -45,10 +47,13 @@ const CACHED_REGISTRIES = "/opt/versioned_registries"
 // key used for storing start time of a request to deploy in the request contexts
 const START_TIME = "startTime"
 
+const KUBEFLOW_REG_NAME = "kubeflow"
+const DM_FOLDER  = "deploymentmanager"
+
 // KsService defines an interface for working with ksonnet.
 type KsService interface {
 	// CreateApp creates a ksonnet application.
-	CreateApp(context.Context, CreateRequest) error
+	CreateApp(context.Context, CreateRequest, *deploymentmanager.Deployment) error
 	// Apply ksonnet app to target GKE cluster
 	Apply(ctx context.Context, req ApplyRequest) error
 	InsertSaKeys(context.Context, InsertSaKeyRequest) error
@@ -166,6 +171,9 @@ type ApplyRequest struct {
 	// Name of the app to apply
 	Name string
 
+	// kubeflow version
+	KfVersion string
+
 	// Environment is the environment to use.
 	Environment string
 
@@ -269,8 +277,18 @@ func setupNamespace(namespaces type_v1.NamespaceInterface, name_space string) er
 	return err
 }
 
+// Return version of specified registry, or empty string if not found
+func getRegistryVersion(request CreateRequest, regName string) string {
+	for _, registry := range request.AppConfig.Registries {
+		if registry.Name == regName {
+			return registry.Version
+		}
+	}
+	return ""
+}
+
 // CreateApp creates a ksonnet application based on the request.
-func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
+func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeploy *deploymentmanager.Deployment) error {
 	config, err := rest.InClusterConfig()
 	if request.Token != "" {
 		config, err = buildClusterConfig(ctx, request.Token, request.Project, request.Zone, request.Cluster)
@@ -294,7 +312,8 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 	if request.Name == "" {
 		return fmt.Errorf("Name must be a non empty string.")
 	}
-	a, err := s.GetApp(request.Project, request.Name, request.Token)
+	kfVersion := getRegistryVersion(request, KUBEFLOW_REG_NAME)
+	a, err := s.GetApp(request.Project, request.Name, kfVersion, request.Token)
 	envName := "default"
 	if err == nil {
 		log.Infof("App %v exists in project %v", request.Name, request.Project)
@@ -310,8 +329,11 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 	} else {
 		log.Infof("Creating app %v", request.Name)
 		log.Infof("Using K8s host %v", config.Host)
-
-		appDir := path.Join(s.appsDir, GetRepoName(request.Project), request.Name)
+		deployConfDir := path.Join(s.appsDir, GetRepoName(request.Project), kfVersion, request.Name)
+		if err = os.MkdirAll(deployConfDir, os.ModePerm); err != nil {
+			return fmt.Errorf("Cannot create deployConfDir: %v", err)
+		}
+		appDir := path.Join(deployConfDir, KUBEFLOW_REG_NAME)
 		_, err = s.fs.Stat(appDir)
 
 		if err != nil {
@@ -393,6 +415,9 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest) error {
 		s.autoConfigureApp(&a.App, &request.AppConfig, request.Namespace, config)
 	}
 
+	if dmDeploy != nil {
+		s.UpdateDmConfig(request.Project, request.Name, kfVersion, dmDeploy)
+	}
 	err = s.SaveAppToRepo(request.Project, request.Email)
 	if err != nil {
 		log.Errorf("There was a problem saving config to cloud repo; %v", err)
@@ -689,12 +714,12 @@ func (s *ksServer) CloneRepoToLocal(project string, token string) error {
 	return err
 }
 
-func (s *ksServer) GetApp(project string, appName string, token string) (*appInfo, error) {
+func (s *ksServer) GetApp(project string, appName string, kfVersion string, token string) (*appInfo, error) {
 	err := s.CloneRepoToLocal(project, token)
 	if err != nil {
 		return nil, err
 	}
-	appDir := path.Join(s.appsDir, GetRepoName(project), appName)
+	appDir := path.Join(s.appsDir, GetRepoName(project), kfVersion, appName, KUBEFLOW_REG_NAME)
 	_, err = s.fs.Stat(appDir)
 	if err != nil {
 		return nil, fmt.Errorf("App %s doesn't exist in Project %s", appName, project)
@@ -708,6 +733,27 @@ func (s *ksServer) GetApp(project string, appName string, token string) (*appInf
 	return &appInfo{
 		App: kfApp,
 	}, nil
+}
+
+// Save ks app config local changes to project source repo.
+// Not thread safe, be aware when call it.
+func (s *ksServer) UpdateDmConfig(project string, appName string, kfVersion string, dmDeploy *deploymentmanager.Deployment) error {
+	confDir := path.Join(s.appsDir, GetRepoName(project), kfVersion, appName, DM_FOLDER)
+	if err := os.RemoveAll(confDir); err != nil {
+		return err
+	}
+	if err := os.MkdirAll(confDir, os.ModePerm); err != nil {
+		return err
+	}
+	importConf := dmDeploy.Target.Imports[0]
+	if err := ioutil.WriteFile(path.Join(confDir, importConf.Name), []byte(importConf.Content), os.ModePerm); err != nil {
+		return err
+	}
+	if err := ioutil.WriteFile(path.Join(confDir, "cluster-kubeflow.yaml"), []byte(dmDeploy.Target.Config.Content),
+		os.ModePerm); err != nil {
+		return err
+	}
+	return nil
 }
 
 // Save ks app config local changes to project source repo.
@@ -736,7 +782,7 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 		}
 		s.projectLocks[req.Project].Lock()
 		defer s.projectLocks[req.Project].Unlock()
-		a, err := s.GetApp(req.Project, req.Name, req.Token)
+		a, err := s.GetApp(req.Project, req.Name, req.KfVersion, req.Token)
 		if err != nil {
 			return err
 		}
@@ -850,7 +896,7 @@ func makeApplyAppEndpoint(svc KsService) endpoint.Endpoint {
 func makeCreateAppEndpoint(svc KsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(CreateRequest)
-		err := svc.CreateApp(ctx, req)
+		err := svc.CreateApp(ctx, req, nil)
 
 		r := &basicServerResponse{}
 
@@ -864,6 +910,7 @@ func makeCreateAppEndpoint(svc KsService) endpoint.Endpoint {
 				}
 				err = svc.Apply(ctx, ApplyRequest{
 					Name:        req.Name,
+					KfVersion:   getRegistryVersion(req, KUBEFLOW_REG_NAME),
 					Environment: "default",
 					Components:  components,
 					Cluster:     req.Cluster,
@@ -889,7 +936,7 @@ func timeSinceStart(ctx context.Context) time.Duration {
 	return time.Since(startTime)
 }
 
-func finishDeployment(svc KsService, req CreateRequest) {
+func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmanager.Deployment) {
 	retry := 0
 	status := ""
 	var err error
@@ -947,7 +994,7 @@ func finishDeployment(svc KsService, req CreateRequest) {
 	}
 
 	log.Infof("Creating app...")
-	err = svc.CreateApp(ctx, req)
+	err = svc.CreateApp(ctx, req, dmDeploy)
 	if err != nil {
 		log.Errorf("Failed to create app: %v", err)
 		deploymentFailure.Inc()
@@ -961,6 +1008,7 @@ func finishDeployment(svc KsService, req CreateRequest) {
 		}
 		err = svc.Apply(ctx, ApplyRequest{
 			Name:        req.Name,
+			KfVersion:   getRegistryVersion(req, KUBEFLOW_REG_NAME),
 			Environment: "default",
 			Components:  components,
 			Cluster:     req.Cluster,
@@ -1004,13 +1052,13 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 			return r, err
 		}
 
-		err = svc.InsertDeployment(ctx, req)
+		DmDeployment, err := svc.InsertDeployment(ctx, req)
 		if err != nil {
 			r.Err = err.Error()
 			deploymentFailure.Inc()
 			return r, err
 		}
-		go finishDeployment(svc, req)
+		go finishDeployment(svc, req, DmDeployment)
 		return r, nil
 	}
 }
