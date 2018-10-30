@@ -23,6 +23,10 @@ Protected Namespaces allow a data scientist to use shared kubeflow components bu
 
 ![shared and protected namespaces](./docs/namespaces.png "shared and protected namespaces")
 
+Users __stan__ and __jackie__ are able to run notebooks, jobs, and other components within their own protected namespace. 
+
+![jobs and notebooks](./docs/jobsandnotebooks.png "jobs and notebooks")
+
 Users __stan__ and __jackie__ are defined as service accounts within the shared namespace. This is something the kubeflow admin does by creating service accounts and distributing the service account secret tokens to the data scientists so gthey can be added to each user's $HOME/.kube/config. 
 
 ![service accounts](./docs/serviceaccounts.png "service accounts")
