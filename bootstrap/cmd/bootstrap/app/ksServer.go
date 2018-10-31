@@ -694,6 +694,9 @@ func generateRandStr(length int) string {
 // Not thread-safe, make sure project lock is on.
 // Clone project repo to local disk, which contains all existing ks apps config in the project
 func (s *ksServer) CloneRepoToLocal(project string, token string) (string, error) {
+	// use a 20-char-random-string as folder name for each repo clone.
+	// this random directory only lives in same request, and will be deleted before request finish.
+	// this can strengthen data isolation among different requests.
 	folderName := generateRandStr(20)
 	repoDir := path.Join(s.appsDir, folderName)
 	if err := os.MkdirAll(repoDir, os.ModePerm); err != nil {
