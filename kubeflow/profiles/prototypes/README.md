@@ -26,15 +26,17 @@ Users __stan__ and __jackie__ are able to run notebooks, jobs, and other compone
 
 ![jobs and notebooks](./docs/jobsandnotebooks.png "jobs and notebooks")
 
-Users __stan__ and __jackie__ can are subjects within the shared namespace. A subject can be either a User (for GKE a user can be their IAM role) or a ServiceAccount. If they are ServiceAccounts, these may be created by the kubeflow admin within the kubeflow namespace and their secret tokens distributed to stan and jackie to be included in their $HOME/.kube/config files.
+Users __stan__ and __jackie__ are subjects within the shared namespace. A subject can be either a User (for GKE a user can be their IAM role where their name is their email address) or a ServiceAccount. If they are ServiceAccounts, these may be created by the kubeflow admin within the kubeflow namespace and the secret tokens for each ServiceAccount distributed to each user and appended to their $HOME/.kube/config files.
+
+- Service Account
 
 ![service accounts](./docs/serviceaccounts.png "service accounts")
 
-or 
+- User 
 
 ![iam users](./docs/iamusers.png "IAM users")
 
-For each user, the kubeflow admin creates a RoleBinding for that user in the shared namespace. The RoleBinding's roleRef is a constained Role that only allows the user to create and get Profile CRs. The subject is - as noted above - a ServiceAccount or User.
+Per user, the kubeflow admin creates a RoleBinding for that user in the shared namespace. The RoleBinding's roleRef is a constained Role that only allows the user to create and get Profile CRs. The subject is - as noted above - a ServiceAccount or User.
 
 ![rolebindings](./docs/rolebindings.png "rolebindings")
 
