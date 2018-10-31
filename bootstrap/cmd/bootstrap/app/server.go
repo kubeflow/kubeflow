@@ -269,7 +269,7 @@ func processFile(opt *options.ServerOption, ksServer *ksServer) error {
 		Namespace:     opt.NameSpace,
 		AutoConfigure: true,
 	}
-	if err := ksServer.CreateApp(ctx, request); err != nil {
+	if err := ksServer.CreateApp(ctx, request, nil); err != nil {
 		return err
 	}
 
