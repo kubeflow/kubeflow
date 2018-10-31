@@ -76,14 +76,14 @@
           "*",
         ], 
         gateways: [
-          "internal-gateway",
+          "kubeflow-gateway",
         ],
         http: [
           {
             match: [
               {
                 uri: {
-                  prefix: "/tfserving/models/" + modelName,
+                  prefix: "/istio/tfserving/models/" + modelName,
                 },
                 method: {
                   exact: "POST",
