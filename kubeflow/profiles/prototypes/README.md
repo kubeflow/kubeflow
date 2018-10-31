@@ -81,12 +81,12 @@ rules:
   - get
 ```
 
-This means that users have very few privileges within the shared namespace, limited to creating and getting a Profile CR. There is one additional Custom Resource Definition that is used to implement protected namespaces. EG
+This means that users have very few privileges within the shared namespace, limited to creating and getting a Profile CR. Besides the Profile CRD, there is one additional Custom Resource Definition used implement protected namespaces called a Permissions CRD. In total - the CRDs are:
 
 - Profile
 - Permissions
 
-Each custom resource has an associated controller. These controllers do the following:
+Both custom resources have an associated controllers which do the following:
 
 - profiles-controller 
   - watches for __Profile__ Custom Resources in the kubeflow namespace
@@ -99,7 +99,6 @@ Each custom resource has an associated controller. These controllers do the foll
 The user flow is as follows:
 
 ![userflow](./docs/userflow.png "userflow")
-
 
 The controllers are namescoped and watch / create resources in different namespaces shown below:
 
