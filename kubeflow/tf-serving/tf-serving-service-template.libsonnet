@@ -74,7 +74,7 @@
       spec: {
         hosts: [
           "*",
-        ], 
+        ],
         gateways: [
           "kubeflow-gateway",
         ],
