@@ -126,7 +126,7 @@ def setup_kubeflow_ks_app(args, api_client):
     ["ks", "registry", "add", "kubeflow", kubeflow_registry], cwd=app_dir)
 
   # Install required packages
-  packages = ["kubeflow/core", "kubeflow/tf-serving", "kubeflow/tf-job", "kubeflow/pytorch-job", "kubeflow/argo"]
+  packages = ["kubeflow/core", "kubeflow/tf-serving", "kubeflow/tf-job", "kubeflow/pytorch-job", "kubeflow/argo", "kubeflow/spark"]
 
   # Instead of installing packages we edit the app.yaml file directly
   #for p in packages:
@@ -279,6 +279,26 @@ def deploy_pytorchjob(args):
     params[k] = v
 
   ks_deploy(app_dir, component, params, env=None, account=None)
+
+def deploy_sparkjob(args):
+  """Deploy a Spark job using the spark operator."""
+  api_client = create_k8s_client(args)
+  app_dir = setup_kubeflow_ks_app(args, api_client)
+
+  component = "example-spark-job"
+  logging.info("Generating Spark job.")
+  generate_command = ["ks", "generate", "spark", component]
+
+  util.run(generate_command, cwd=app_dir)
+
+  params = {}
+  for pair in args.params.split(","):
+    k, v = pair.split("=", 1)
+    params[k] = v
+
+  logging.info("Deploying Spark job.")
+  ks_deploy(app_dir, component, params, env=None, account=None)
+
 
 def teardown(args):
   # Delete the namespace
@@ -641,6 +661,17 @@ def main():  # pylint: disable=too-many-locals,too-many-statements
     default="",
     type=str,
     help=("Comma separated list of parameters to set on the model."))
+
+  parser_spark_job = subparsers.add_parser(
+    "deploy_sparkjob", help="Deploy a spark job")
+
+  parser_spark_job.set_defaults(func=deploy_sparkjob)
+
+  parser_spark_job.add_argument(
+    "--params",
+    default="applicationResource='local:///opt/spark/examples/jars/spark-examples_2.11-2.3.1.jar',mainClass=org.apache.spark.examples.SparkPi",
+    type=str,
+    help=("Comma separated list of parameters to set for our Spark job"))
 
   parser_argo_job = subparsers.add_parser(
     "deploy_argo", help="Deploy argo")
