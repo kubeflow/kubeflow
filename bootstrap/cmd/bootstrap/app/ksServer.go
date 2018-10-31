@@ -40,17 +40,17 @@ import (
 )
 
 // The name of the prototype for Jupyter.
-const JUPYTER_PROTOTYPE = "jupyterhub"
+const JupyterPrototype = "jupyterhub"
 
 // root dir of local cached VERSIONED REGISTRIES
-const CACHED_REGISTRIES = "/opt/versioned_registries"
+const CachedRegistries = "/opt/versioned_registries"
 
 // key used for storing start time of a request to deploy in the request contexts
-const START_TIME = "startTime"
+const StartTime = "StartTime"
 
-const KUBEFLOW_REG_NAME = "kubeflow"
-const KUBEFLOW_FOLDER = "ks_app"
-const DM_FOLDER  = "gcp_config"
+const KubeflowRegName = "kubeflow"
+const KubeflowFolder = "ks_app"
+const DmFolder = "gcp_config"
 
 // KsService defines an interface for working with ksonnet.
 type KsService interface {
@@ -86,6 +86,28 @@ type ksServer struct {
 	// project-id -> project lock
 	projectLocks map[string]*sync.Mutex
 	serverMux    sync.Mutex
+}
+
+type MultiError struct {
+	Errors []error
+}
+
+func (m *MultiError) Collect(err error) {
+	if err != nil {
+		m.Errors = append(m.Errors, err)
+	}
+}
+
+func (m MultiError) ToError() error {
+	if len(m.Errors) == 0 {
+		return nil
+	}
+
+	errStrings := []string{}
+	for _, err := range m.Errors {
+		errStrings = append(errStrings, err.Error())
+	}
+	return fmt.Errorf(strings.Join(errStrings, "\n"))
 }
 
 // NewServer constructs a ksServer.
@@ -314,7 +336,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 	if request.Name == "" {
 		return fmt.Errorf("Name must be a non empty string.")
 	}
-	kfVersion := getRegistryVersion(request, KUBEFLOW_REG_NAME)
+	kfVersion := getRegistryVersion(request, KubeflowRegName)
 	a, repoDir, err := s.GetApp(request.Project, request.Name, kfVersion, request.Token)
 	defer os.RemoveAll(repoDir)
 	if repoDir == "" {
@@ -339,7 +361,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 		if err = os.MkdirAll(deployConfDir, os.ModePerm); err != nil {
 			return fmt.Errorf("Cannot create deployConfDir: %v", err)
 		}
-		appDir := path.Join(deployConfDir, KUBEFLOW_FOLDER)
+		appDir := path.Join(deployConfDir, KubeflowFolder)
 		_, err = s.fs.Stat(appDir)
 
 		if err != nil {
@@ -450,16 +472,16 @@ func (s *ksServer) getRegistryUri(registry *RegistryConfig) (string, error) {
 		log.Infof("No remote registry provided for registry %v; setting URI to local %v.", registry.Name, v.RegUri)
 		return v.RegUri, nil
 	} else {
-		versionPath := path.Join(CACHED_REGISTRIES, registry.Name, registry.Version)
+		versionPath := path.Join(CachedRegistries, registry.Name, registry.Version)
 
 		s.serverMux.Lock()
 		defer s.serverMux.Unlock()
 		_, err := s.fs.Stat(versionPath)
 
 		// If specific version doesn't exist locally, will download.
-		// The local cache path will be CACHED_REGISTRIES/registry_name/registry_version/
+		// The local cache path will be CachedRegistries/registry_name/registry_version/
 		if err != nil {
-			registryPath := path.Join(CACHED_REGISTRIES, registry.Name)
+			registryPath := path.Join(CachedRegistries, registry.Name)
 			_, err := s.fs.Stat(registryPath)
 			if err != nil {
 				os.Mkdir(registryPath, os.ModePerm)
@@ -657,7 +679,7 @@ func (s *ksServer) autoConfigureApp(kfApp *kApp.App, appConfig *AppConfig, names
 	// which components correspond to which prototypes? Would we have to parse
 	// the actual jsonnet files?
 	for _, component := range appConfig.Components {
-		if component.Prototype == JUPYTER_PROTOTYPE {
+		if component.Prototype == JupyterPrototype {
 			pvcMount := ""
 			if hasDefault {
 				pvcMount = "/home/jovyan"
@@ -735,7 +757,7 @@ func (s *ksServer) GetApp(project string, appName string, kfVersion string, toke
 	if err != nil {
 		return nil, "", err
 	}
-	appDir := path.Join(repoDir, GetRepoName(project), kfVersion, appName, KUBEFLOW_FOLDER)
+	appDir := path.Join(repoDir, GetRepoName(project), kfVersion, appName, KubeflowFolder)
 	_, err = s.fs.Stat(appDir)
 	if err != nil {
 		return nil, repoDir, fmt.Errorf("App %s doesn't exist in Project %s", appName, project)
@@ -754,7 +776,7 @@ func (s *ksServer) GetApp(project string, appName string, kfVersion string, toke
 // Save ks app config local changes to project source repo.
 // Not thread safe, be aware when call it.
 func (s *ksServer) UpdateDmConfig(repoDir string, project string, appName string, kfVersion string, dmDeploy *deploymentmanager.Deployment) error {
-	confDir := path.Join(repoDir, GetRepoName(project), kfVersion, appName, DM_FOLDER)
+	confDir := path.Join(repoDir, GetRepoName(project), kfVersion, appName, DmFolder)
 	if err := os.RemoveAll(confDir); err != nil {
 		return err
 	}
@@ -868,10 +890,8 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 			actions.OptionGcTag:          "gc-tag",
 			actions.OptionSkipGc:         true,
 		}
-		retry := 0
-		for retry < 3 {
+		for retry := 0; retry < 3; retry++ {
 			succeeded := true
-			retry += 1
 			for _, comp := range req.Components {
 				applyOptions[actions.OptionComponentNames] = []string{comp}
 				err = actions.RunApply(applyOptions)
@@ -927,7 +947,7 @@ func makeCreateAppEndpoint(svc KsService) endpoint.Endpoint {
 				}
 				err = svc.Apply(ctx, ApplyRequest{
 					Name:        req.Name,
-					KfVersion:   getRegistryVersion(req, KUBEFLOW_REG_NAME),
+					KfVersion:   getRegistryVersion(req, KubeflowRegName),
 					Environment: "default",
 					Components:  components,
 					Cluster:     req.Cluster,
@@ -946,7 +966,7 @@ func makeCreateAppEndpoint(svc KsService) endpoint.Endpoint {
 }
 
 func timeSinceStart(ctx context.Context) time.Duration {
-	startTime, ok := ctx.Value(START_TIME).(time.Time)
+	startTime, ok := ctx.Value(StartTime).(time.Time)
 	if !ok {
 		return time.Duration(0)
 	}
@@ -954,12 +974,11 @@ func timeSinceStart(ctx context.Context) time.Duration {
 }
 
 func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmanager.Deployment) {
-	retry := 0
 	status := ""
 	var err error
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, START_TIME, time.Now())
-	for retry < 60 {
+	ctx = context.WithValue(ctx, StartTime, time.Now())
+	for retry := 0; retry < 60; retry++ {
 		time.Sleep(10 * time.Second)
 		status, err = svc.GetDeploymentStatus(ctx, req)
 		if err != nil {
@@ -974,7 +993,6 @@ func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmana
 			break
 		}
 		log.Infof("status: %v, waiting...", status)
-		retry += 1
 	}
 	if status != "DONE" {
 		log.Errorf("Deployment status is not done: %v", status)
@@ -1017,7 +1035,7 @@ func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmana
 		}
 		err = svc.Apply(ctx, ApplyRequest{
 			Name:        req.Name,
-			KfVersion:   getRegistryVersion(req, KUBEFLOW_REG_NAME),
+			KfVersion:   getRegistryVersion(req, KubeflowRegName),
 			Environment: "default",
 			Components:  components,
 			Cluster:     req.Cluster,
@@ -1054,13 +1072,13 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 		deployReqCounterRaw.Inc()
 
 		dmServiceAccount := req.ProjectNumber + "@cloudservices.gserviceaccount.com"
-		retry := 0
-		for {
-			retry += 1
+		m := MultiError{}
+		for retry := 0; ; retry++ {
 			err := svc.BindRole(ctx, req.Project, req.Token, dmServiceAccount)
 			if err != nil {
+				m.Collect(err)
 				if retry >= 5 {
-					r.Err = err.Error()
+					r.Err = m.ToError().Error()
 					deploymentFailure.Inc()
 					return r, err
 				}

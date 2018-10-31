@@ -14,7 +14,7 @@ import (
 	"encoding/base64"
 )
 
-const OATHU_SECRET_NAME = "kubeflow-oauth"
+const OauthSecretName = "kubeflow-oauth"
 
 func (s *ksServer) ConfigCluster(ctx context.Context, req CreateRequest) error {
 	k8sConfig, err := buildClusterConfig(ctx, req.Token, req.Project, req.Zone, req.Cluster)
@@ -72,7 +72,7 @@ func InsertOauthCredentails(req *CreateRequest, k8sClientset *clientset.Clientse
 		&v1.Secret{
 			ObjectMeta: meta_v1.ObjectMeta{
 				Namespace: req.Namespace,
-				Name:      OATHU_SECRET_NAME,
+				Name:      OauthSecretName,
 			},
 			Data: secretData,
 		})
