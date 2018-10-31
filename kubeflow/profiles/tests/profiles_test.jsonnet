@@ -50,7 +50,7 @@ std.assertEqual(
                   properties: {
                     metadata: {
                       properties: {
-                        name: {
+                        namespace: {
                           type: "string",
                         },
                       },
@@ -58,74 +58,34 @@ std.assertEqual(
                     },
                     spec: {
                       properties: {
-                        namespace: {
-                          type: "string",
-                        },
                         owner: {
-                          type: "string",
+                          properties: {
+                            apiGroup: {
+                              type: "string",
+                            },
+                            kind: {
+                              enum: [
+                                "ServiceAccount",
+                                "User",
+                              ],
+                            },
+                            name: {
+                              type: "string",
+                            },
+                            namespace: {
+                              type: "string",
+                            },
+                          },
+                          required: [
+                            "kind",
+                            "name",
+                          ],
+                          type: "object",
                         },
                       },
                       type: "object",
                     },
                   },
-                  type: "object",
-                },
-              },
-              type: "object",
-            },
-            status: {
-              properties: {
-                observedGeneration: {
-                  type: "int64",
-                },
-              },
-              type: "object",
-            },
-          },
-        },
-      },
-      version: "v1alpha1",
-    },
-  }
-) &&
-
-std.assertEqual(
-  instance.parts.targetsCRD,
-  {
-    apiVersion: "apiextensions.k8s.io/v1beta1",
-    kind: "CustomResourceDefinition",
-    metadata: {
-      name: "targets.kubeflow.org",
-    },
-    spec: {
-      group: "kubeflow.org",
-      names: {
-        kind: "Target",
-        plural: "targets",
-        singular: "target",
-      },
-      scope: "Namespaced",
-      validation: {
-        openAPIV3Schema: {
-          properties: {
-            apiVersion: {
-              type: "string",
-            },
-            kind: {
-              type: "string",
-            },
-            metadata: {
-              type: "object",
-            },
-            spec: {
-              properties: {
-                namespace: {
-                  type: "string",
-                },
-                owner: {
-                  type: "string",
-                },
-                selector: {
                   type: "object",
                 },
               },
@@ -178,13 +138,31 @@ std.assertEqual(
             spec: {
               properties: {
                 owner: {
-                  type: "string",
+                  properties: {
+                    apiGroup: {
+                      type: "string",
+                    },
+                    kind: {
+                      enum: [
+                        "ServiceAccount",
+                        "User",
+                      ],
+                    },
+                    name: {
+                      type: "string",
+                    },
+                    namespace: {
+                      type: "string",
+                    },
+                  },
+                  required: [
+                    "kind",
+                    "name",
+                  ],
+                  type: "object",
                 },
                 selector: {
                   type: "object",
-                },
-                serviceAccountNamespace: {
-                  type: "string",
                 },
               },
               type: "object",
@@ -244,7 +222,6 @@ std.assertEqual(
         ],
         resources: [
           "profiles",
-          "targets",
         ],
         verbs: [
           "create",
@@ -272,7 +249,6 @@ std.assertEqual(
     data: {
       "sync-permission.jsonnet": importstr "../sync-permission.jsonnet",
       "sync-profile.jsonnet": importstr "../sync-profile.jsonnet",
-      "sync-target.jsonnet": importstr "../sync-target.jsonnet",
     },
     kind: "ConfigMap",
     metadata: {
@@ -343,8 +319,12 @@ std.assertEqual(
     spec: {
       childResources: [
         {
+          apiVersion: "v1",
+          resource: "namespaces",
+        },
+        {
           apiVersion: "kubeflow.org/v1alpha1",
-          resource: "targets",
+          resource: "permissions",
         },
       ],
       generateSelector: true,
@@ -358,41 +338,6 @@ std.assertEqual(
       parentResource: {
         apiVersion: "kubeflow.org/v1alpha1",
         resource: "profiles",
-      },
-    },
-  }
-) &&
-
-std.assertEqual(
-  instance.parts.targetsController,
-  {
-    apiVersion: "metacontroller.k8s.io/v1alpha1",
-    kind: "CompositeController",
-    metadata: {
-      name: "targets-controller",
-    },
-    spec: {
-      childResources: [
-        {
-          apiVersion: "v1",
-          resource: "namespaces",
-        },
-        {
-          apiVersion: "kubeflow.org/v1alpha1",
-          resource: "permissions",
-        },
-      ],
-      generateSelector: true,
-      hooks: {
-        sync: {
-          webhook: {
-            url: "http://profiles.kf-001/sync-target",
-          },
-        },
-      },
-      parentResource: {
-        apiVersion: "kubeflow.org/v1alpha1",
-        resource: "targets",
       },
     },
   }

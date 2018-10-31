@@ -1,6 +1,5 @@
 local params = {
   user: "chloe",
-  target: "iris",
 };
 
 local env = {
@@ -12,7 +11,7 @@ local request = {
     apiVersion: "kubeflow.org/v1alpha1",
     kind: "Permission",
     metadata: {
-      name: env.namespace + "-" + params.user,
+      name: "default",
       namespace: env.namespace,
     },
     spec: {
@@ -64,7 +63,6 @@ std.assertEqual(
             ],
             resources: [
               "profiles",
-              "targets",
               "permissions",
               "notebooks",
             ],
@@ -303,7 +301,7 @@ std.assertEqual(
         apiVersion: "rbac.authorization.k8s.io/v1",
         kind: "RoleBinding",
         metadata: {
-          name: "chloe",
+          name: "default",
           namespace: "kubeflow",
         },
         roleRef: {
@@ -312,11 +310,7 @@ std.assertEqual(
           name: "edit",
         },
         subjects: [
-          {
-            kind: "ServiceAccount",
-            name: "chloe",
-            namespace: "kubeflow",
-          },
+          "chloe",
         ],
       },
     ],

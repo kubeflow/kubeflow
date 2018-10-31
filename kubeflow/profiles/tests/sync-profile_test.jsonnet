@@ -1,6 +1,10 @@
 local params = {
-  user: "chloe",
-  target: "iris",
+  user: {
+    kind: "ServiceAccount",
+    name: "chloe",
+    namespace: "kubeflow",
+  },
+  protectedNamespace: "iris",
 };
 
 local env = {
@@ -12,23 +16,23 @@ local request = {
     apiVersion: "kubeflow.org/v1alpha1",
     kind: "Profile",
     metadata: {
-      name: params.target + "-" + params.user,
+      name: params.protectedNamespace,
       namespace: env.namespace,
     },
     spec: {
       template: {
         metadata: {
-          name: params.target,
+          namespace: params.protectedNamespace,
         },
         spec: {
-          namespace: params.target,
           owner: params.user,
         },
       },
     },
   },
   children: {
-    "Target.kubeflow.org/v1alpha1": {},
+    "Namespace.v1": {},
+    "Permission.kubeflow.org/v1alpha1": {},
   },
 };
 
@@ -39,15 +43,25 @@ std.assertEqual(
   {
     children: [
       {
-        apiVersion: "kubeflow.org/v1alpha1",
-        kind: "Target",
+        apiVersion: "v1",
+        kind: "Namespace",
         metadata: {
           name: "iris",
-          namespace: "kubeflow",
+        },
+      },
+      {
+        apiVersion: "kubeflow.org/v1alpha1",
+        kind: "Permission",
+        metadata: {
+          name: "default",
+          namespace: "iris",
         },
         spec: {
-          namespace: "iris",
-          owner: "chloe",
+          owner: {
+            kind: "ServiceAccount",
+            name: "chloe",
+            namespace: "kubeflow",
+          },
         },
       },
     ],

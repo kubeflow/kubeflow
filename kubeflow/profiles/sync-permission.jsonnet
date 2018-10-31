@@ -38,7 +38,6 @@ function(request) {
           ],
           resources: [
             "profiles",
-            "targets",
             "permissions",
             "notebooks",
           ],
@@ -277,7 +276,7 @@ function(request) {
       apiVersion: "rbac.authorization.k8s.io/v1",
       kind: "RoleBinding",
       metadata: {
-        name: request.parent.spec.owner,
+        name: "default",
         namespace: request.parent.metadata.namespace,
       },
       roleRef: {
@@ -285,11 +284,9 @@ function(request) {
         kind: "Role",
         name: "edit",
       },
-      subjects: [{
-        kind: "ServiceAccount",
-        name: request.parent.spec.owner,
-        namespace: request.parent.spec.serviceAccountNamespace,
-      }],
+      subjects: [
+        request.parent.spec.owner,
+      ],
     },
   ],
   children: children,

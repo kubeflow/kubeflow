@@ -46,7 +46,7 @@
                       metadata: {
                         type: "object",
                         properties: {
-                          name: {
+                          namespace: {
                             type: "string",
                           },
                         },
@@ -54,11 +54,29 @@
                       spec: {
                         type: "object",
                         properties: {
-                          namespace: {
-                            type: "string",
-                          },
                           owner: {
-                            type: "string",
+                            type: "object",
+                            required: [
+                              "kind",
+                              "name",
+                            ],
+                            properties: {
+                              apiGroup: {
+                                type: "string",
+                              },
+                              kind: {
+                                enum: [
+                                  "ServiceAccount",
+                                  "User",
+                                ],
+                              },
+                              namespace: {
+                                type: "string",
+                              },
+                              name: {
+                                type: "string",
+                              },
+                            },
                           },
                         },
                       },
@@ -80,62 +98,6 @@
       },
     },
     profilesCRD:: profilesCRD,
-
-    local targetsCRD = {
-      apiVersion: "apiextensions.k8s.io/v1beta1",
-      kind: "CustomResourceDefinition",
-      metadata: {
-        name: "targets.kubeflow.org",
-      },
-      spec: {
-        group: "kubeflow.org",
-        version: "v1alpha1",
-        scope: "Namespaced",
-        names: {
-          plural: "targets",
-          singular: "target",
-          kind: "Target",
-        },
-        validation: {
-          openAPIV3Schema: {
-            properties: {
-              apiVersion: {
-                type: "string",
-              },
-              kind: {
-                type: "string",
-              },
-              metadata: {
-                type: "object",
-              },
-              spec: {
-                type: "object",
-                properties: {
-                  selector: {
-                    type: "object",
-                  },
-                  namespace: {
-                    type: "string",
-                  },
-                  owner: {
-                    type: "string",
-                  },
-                },
-              },
-              status: {
-                properties: {
-                  observedGeneration: {
-                    type: "int64",
-                  },
-                },
-                type: "object",
-              },
-            },
-          },
-        },
-      },
-    },
-    targetsCRD:: targetsCRD,
 
     local permissionsCRD = {
       apiVersion: "apiextensions.k8s.io/v1beta1",
@@ -171,10 +133,28 @@
                     type: "object",
                   },
                   owner: {
-                    type: "string",
-                  },
-                  serviceAccountNamespace: {
-                    type: "string",
+                    type: "object",
+                    required: [
+                      "kind",
+                      "name",
+                    ],
+                    properties: {
+                      apiGroup: {
+                        type: "string",
+                      },
+                      kind: {
+                        enum: [
+                          "ServiceAccount",
+                          "User",
+                        ],
+                      },
+                      namespace: {
+                        type: "string",
+                      },
+                      name: {
+                        type: "string",
+                      },
+                    },
                   },
                 },
               },
@@ -228,7 +208,6 @@
           ],
           resources: [
             "profiles",
-            "targets",
           ],
           verbs: [
             "create",
@@ -258,7 +237,6 @@
       },
       data: {
         "sync-profile.jsonnet": importstr "sync-profile.jsonnet",
-        "sync-target.jsonnet": importstr "sync-target.jsonnet",
         "sync-permission.jsonnet": importstr "sync-permission.jsonnet",
       },
     },
@@ -327,8 +305,12 @@
         },
         childResources: [
           {
+            apiVersion: "v1",
+            resource: "namespaces",
+          },
+          {
             apiVersion: "kubeflow.org/v1alpha1",
-            resource: "targets",
+            resource: "permissions",
           },
         ],
         hooks: {
@@ -341,39 +323,6 @@
       },
     },
     profilesController:: profilesController,
-
-    local targetsController = {
-      apiVersion: "metacontroller.k8s.io/v1alpha1",
-      kind: "CompositeController",
-      metadata: {
-        name: "targets-controller",
-      },
-      spec: {
-        generateSelector: true,
-        parentResource: {
-          apiVersion: "kubeflow.org/v1alpha1",
-          resource: "targets",
-        },
-        childResources: [
-          {
-            apiVersion: "v1",
-            resource: "namespaces",
-          },
-          {
-            apiVersion: "kubeflow.org/v1alpha1",
-            resource: "permissions",
-          },
-        ],
-        hooks: {
-          sync: {
-            webhook: {
-              url: "http://profiles." + params.namespace + "/sync-target",
-            },
-          },
-        },
-      },
-    },
-    targetsController:: targetsController,
 
     local permissionsController = {
       apiVersion: "metacontroller.k8s.io/v1alpha1",
@@ -411,14 +360,12 @@
     parts:: self,
     local all = [
       self.profilesCRD,
-      self.targetsCRD,
       self.permissionsCRD,
       self.profilesService,
       self.profilesRole,
       self.profilesConfigMap,
       self.profilesDeployment,
       self.profilesController,
-      self.targetsController,
       self.permissionsController,
     ],
     all:: all,
