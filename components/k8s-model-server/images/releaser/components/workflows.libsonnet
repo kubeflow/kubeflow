@@ -247,11 +247,11 @@
           template: "test-tf-serving",
           dependencies: ["deploy-tf-serving"],
         },
-	{
-	  name: "deploy-spark-job",
-	  template: "deploy-spark-job",
-	  dependencies: ["setup"],
-	},
+        {
+          name: "deploy-spark-job",
+          template: "deploy-spark-job",
+          dependencies: ["setup"],
+        },
         {
           name: "deploy-tf-serving-gpu",
           template: "deploy-tf-serving-gpu",
@@ -283,12 +283,12 @@
       ];
       local deploy_spark_job_command = [
         "python",
-	"-m",
-	"testing.spark_deploy",
-	"--project=" + project,
-	"--namespace=" + stepsNamespace,
-	"--test_dir=" + testDir,
-	"--artifacts_dir=" + artifactsDir,
+        "-m",
+        "testing.spark_deploy",
+        "--project=" + project,
+        "--namespace=" + stepsNamespace,
+        "--test_dir=" + testDir,
+        "--artifacts_dir=" + artifactsDir,
       ];
       local deploy_tf_serving_command_base = [
         "python",
