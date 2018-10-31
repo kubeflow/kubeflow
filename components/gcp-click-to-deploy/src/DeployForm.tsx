@@ -315,12 +315,13 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
 
     let servicesToEnable: string[] = [];
     let enableAttempts = 0;
-    const retryTimeout = 3000;
+    const retryTimeout = 5000;
+    const email = await Gapi.getSignedInEmail();
     do {
       servicesToEnable = await this._getServicesToEnable(project)
         .catch(e => {
           this.setState({
-            dialogBody: 'Error trying to list enabled services: ' + e,
+            dialogBody: `${email}: Error trying to list enabled services: ` + e,
             dialogTitle: 'Deployment Error',
           });
           return [];
@@ -344,7 +345,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         this._appendLine('Enabling ' + s);
         await Gapi.servicemanagement.enable(project, s)
           .catch(e => this.setState({
-            dialogBody: 'Error trying to enable this required service: ' + s + '.\n' + e,
+            dialogBody: `${email}: Error trying to enable this required service: ` + s + '.\n' + e,
             dialogTitle: 'Deployment Error',
           }));
       }
@@ -354,9 +355,9 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       }
 
       enableAttempts++;
-    } while (servicesToEnable.length && enableAttempts < 5);
+    } while (servicesToEnable.length && enableAttempts < 50);
 
-    if (servicesToEnable.length && enableAttempts >= 5) {
+    if (servicesToEnable.length && enableAttempts >= 50) {
       this.setState({
         dialogBody: 'Tried too many times to enable these services: ' +
           servicesToEnable.join(', '),
@@ -388,7 +389,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       return;
     }
 
-    const email = await Gapi.getSignedInEmail();
     const createBody = JSON.stringify(
       {
         AppConfig: this._configSpec.defaultApp,
