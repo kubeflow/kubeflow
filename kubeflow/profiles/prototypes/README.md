@@ -40,7 +40,7 @@ Per user, the kubeflow admin creates a RoleBinding for that user in the shared n
 
 ![rolebindings](./docs/rolebindings.png "rolebindings")
 
-For __stan__ the RoleBinding may like the following
+For __stan__ the RoleBinding may look the following
 
 ```yaml
 apiVersion: rbac.authorization.k8s.io/v1
