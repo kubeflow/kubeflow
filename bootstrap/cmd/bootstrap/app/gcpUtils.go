@@ -67,7 +67,6 @@ func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) (*de
 		dmconf.Resources[0].Name = req.Name
 		dmconf.Resources[0].Properties["zone"] = req.Zone
 		dmconf.Resources[0].Properties["ipName"] = req.IpName
-		dmconf.Resources[0].Properties["gpu-pool-max-nodes"] = 10
 		// "1.X": picks the highest valid patch+gke.N patch in the 1.X version
 		// https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters
 		dmconf.Resources[0].Properties["cluster-version"] = "1.10"

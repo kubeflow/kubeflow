@@ -36,6 +36,7 @@ import (
 	"strings"
 	"google.golang.org/api/deploymentmanager/v2"
 	"io/ioutil"
+	"math/rand"
 )
 
 // The name of the prototype for Jupyter.
@@ -313,7 +314,11 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 		return fmt.Errorf("Name must be a non empty string.")
 	}
 	kfVersion := getRegistryVersion(request, KUBEFLOW_REG_NAME)
-	a, err := s.GetApp(request.Project, request.Name, kfVersion, request.Token)
+	a, repoDir, err := s.GetApp(request.Project, request.Name, kfVersion, request.Token)
+	defer os.RemoveAll(repoDir)
+	if repoDir == "" {
+		return fmt.Errorf("Cannot clone repo from cloud source repo")
+	}
 	envName := "default"
 	if err == nil {
 		log.Infof("App %v exists in project %v", request.Name, request.Project)
@@ -329,7 +334,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 	} else {
 		log.Infof("Creating app %v", request.Name)
 		log.Infof("Using K8s host %v", config.Host)
-		deployConfDir := path.Join(s.appsDir, GetRepoName(request.Project), kfVersion, request.Name)
+		deployConfDir := path.Join(s.appsDir, repoDir, GetRepoName(request.Project), kfVersion, request.Name)
 		if err = os.MkdirAll(deployConfDir, os.ModePerm); err != nil {
 			return fmt.Errorf("Cannot create deployConfDir: %v", err)
 		}
@@ -677,16 +682,20 @@ func GetRepoName(project string) string {
 	return fmt.Sprintf("%s-kubeflow-config", project)
 }
 
+func generateRandStr(length int) string {
+	chars := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = chars[rand.Intn(len(chars))]
+	}
+	return string(b)
+}
+
 // Not thread-safe, make sure project lock is on.
 // Clone project repo to local disk, which contains all existing ks apps config in the project
-func (s *ksServer) CloneRepoToLocal(project string, token string) error {
-	repoDir := path.Join(s.appsDir, GetRepoName(project))
-	_, err := s.fs.Stat(repoDir)
-
-	// delete existing local repo, pull from cloud
-	if err == nil {
-		os.RemoveAll(repoDir)
-	}
+func (s *ksServer) CloneRepoToLocal(project string, token string) (string, error) {
+	folderName := generateRandStr(20)
+	repoDir := path.Join(s.appsDir, folderName)
 	ts := oauth2.StaticTokenSource(&oauth2.Token{
 		AccessToken: token,
 	})
@@ -699,40 +708,40 @@ func (s *ksServer) CloneRepoToLocal(project string, token string) error {
 		}).Do()
 		if err != nil {
 			log.Errorf("Fail to create repo %v", err)
-			return err
+			return "", err
 		}
 	}
-	err = os.Chdir(s.appsDir)
+	err = os.Chdir(repoDir)
 	if err != nil {
-		return err
+		return "", err
 	}
 	cloneCmd := fmt.Sprintf("git clone https://%s:%s@source.developers.google.com/p/%s/r/%s",
 		"user1", token, project, GetRepoName(project))
 	cmd := exec.Command("sh", "-c", cloneCmd)
 	result, err := cmd.CombinedOutput()
 	log.Infof(string(result))
-	return err
+	return repoDir, err
 }
 
-func (s *ksServer) GetApp(project string, appName string, kfVersion string, token string) (*appInfo, error) {
-	err := s.CloneRepoToLocal(project, token)
+func (s *ksServer) GetApp(project string, appName string, kfVersion string, token string) (*appInfo, string, error) {
+	repoDir, err := s.CloneRepoToLocal(project, token)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
-	appDir := path.Join(s.appsDir, GetRepoName(project), kfVersion, appName, KUBEFLOW_REG_NAME)
+	appDir := path.Join(s.appsDir, repoDir, GetRepoName(project), kfVersion, appName, KUBEFLOW_REG_NAME)
 	_, err = s.fs.Stat(appDir)
 	if err != nil {
-		return nil, fmt.Errorf("App %s doesn't exist in Project %s", appName, project)
+		return nil, repoDir, fmt.Errorf("App %s doesn't exist in Project %s", appName, project)
 	}
 	kfApp, err := kApp.Load(s.fs, appDir, true)
 
 	if err != nil {
-		return nil, fmt.Errorf("There was a problem loading app %v. Error: %v", appName, err)
+		return nil, "", fmt.Errorf("There was a problem loading app %v. Error: %v", appName, err)
 	}
 
 	return &appInfo{
 		App: kfApp,
-	}, nil
+	}, repoDir, nil
 }
 
 // Save ks app config local changes to project source repo.
@@ -782,7 +791,8 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 		}
 		s.projectLocks[req.Project].Lock()
 		defer s.projectLocks[req.Project].Unlock()
-		a, err := s.GetApp(req.Project, req.Name, req.KfVersion, req.Token)
+		a, repoDir, err := s.GetApp(req.Project, req.Name, req.KfVersion, req.Token)
+		defer os.RemoveAll(repoDir)
 		if err != nil {
 			return err
 		}
@@ -1037,13 +1047,21 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 		deployReqCounterRaw.Inc()
 
 		dmServiceAccount := req.ProjectNumber + "@cloudservices.gserviceaccount.com"
-		err := svc.BindRole(ctx, req.Project, req.Token, dmServiceAccount)
-		if err != nil {
-			r.Err = err.Error()
-			deploymentFailure.Inc()
-			return r, err
+		retry := 0
+		for {
+			retry += 1
+			err := svc.BindRole(ctx, req.Project, req.Token, dmServiceAccount)
+			if err != nil {
+				if retry >= 5 {
+					r.Err = err.Error()
+					deploymentFailure.Inc()
+					return r, err
+				}
+				time.Sleep(5 * time.Second)
+				continue
+			}
+			break
 		}
-
 		DmDeployment, err := svc.InsertDeployment(ctx, req)
 		if err != nil {
 			r.Err = err.Error()
