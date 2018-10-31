@@ -48,8 +48,8 @@ const CACHED_REGISTRIES = "/opt/versioned_registries"
 // key used for storing start time of a request to deploy in the request contexts
 const START_TIME = "startTime"
 
-const KUBEFLOW_REG_NAME = "kubeflow"
-const DM_FOLDER  = "deploymentmanager"
+const KUBEFLOW_REG_NAME = "ks_app"
+const DM_FOLDER  = "gcp_config"
 
 // KsService defines an interface for working with ksonnet.
 type KsService interface {
@@ -334,7 +334,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 	} else {
 		log.Infof("Creating app %v", request.Name)
 		log.Infof("Using K8s host %v", config.Host)
-		deployConfDir := path.Join(s.appsDir, repoDir, GetRepoName(request.Project), kfVersion, request.Name)
+		deployConfDir := path.Join(repoDir, GetRepoName(request.Project), kfVersion, request.Name)
 		if err = os.MkdirAll(deployConfDir, os.ModePerm); err != nil {
 			return fmt.Errorf("Cannot create deployConfDir: %v", err)
 		}
@@ -423,7 +423,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 	if dmDeploy != nil {
 		s.UpdateDmConfig(request.Project, request.Name, kfVersion, dmDeploy)
 	}
-	err = s.SaveAppToRepo(request.Project, request.Email)
+	err = s.SaveAppToRepo(request.Project, request.Email, repoDir)
 	if err != nil {
 		log.Errorf("There was a problem saving config to cloud repo; %v", err)
 		return err
@@ -696,6 +696,9 @@ func generateRandStr(length int) string {
 func (s *ksServer) CloneRepoToLocal(project string, token string) (string, error) {
 	folderName := generateRandStr(20)
 	repoDir := path.Join(s.appsDir, folderName)
+	if err := os.MkdirAll(repoDir, os.ModePerm); err != nil {
+		return "", err
+	}
 	ts := oauth2.StaticTokenSource(&oauth2.Token{
 		AccessToken: token,
 	})
@@ -728,7 +731,7 @@ func (s *ksServer) GetApp(project string, appName string, kfVersion string, toke
 	if err != nil {
 		return nil, "", err
 	}
-	appDir := path.Join(s.appsDir, repoDir, GetRepoName(project), kfVersion, appName, KUBEFLOW_REG_NAME)
+	appDir := path.Join(repoDir, GetRepoName(project), kfVersion, appName, KUBEFLOW_REG_NAME)
 	_, err = s.fs.Stat(appDir)
 	if err != nil {
 		return nil, repoDir, fmt.Errorf("App %s doesn't exist in Project %s", appName, project)
@@ -767,9 +770,9 @@ func (s *ksServer) UpdateDmConfig(project string, appName string, kfVersion stri
 
 // Save ks app config local changes to project source repo.
 // Not thread safe, be aware when call it.
-func (s *ksServer) SaveAppToRepo(project string, email string) error {
-	repoDir := path.Join(s.appsDir, GetRepoName(project))
-	err := os.Chdir(repoDir)
+func (s *ksServer) SaveAppToRepo(project string, email string, repoDir string) error {
+	repoPath := path.Join(repoDir, GetRepoName(project))
+	err := os.Chdir(repoPath)
 	if err != nil {
 		return err
 	}
@@ -952,7 +955,7 @@ func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmana
 	var err error
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, START_TIME, time.Now())
-	for retry < 40 {
+	for retry < 60 {
 		time.Sleep(10 * time.Second)
 		status, err = svc.GetDeploymentStatus(ctx, req)
 		if err != nil {
