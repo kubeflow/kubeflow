@@ -25,15 +25,19 @@ Users __stan__ and __jackie__ are able to run notebooks, jobs, and other compone
 
 ![jobs and notebooks](./docs/jobsandnotebooks.png "jobs and notebooks")
 
-Users __stan__ and __jackie__ are defined as service accounts within the shared namespace. This is something the kubeflow admin does by creating service accounts and distributing the service account secret tokens to the data scientists so they can be added to each user's $HOME/.kube/config. 
+Users __stan__ and __jackie__ can are subjects within the shared namespace. A subject can be either a User (for GKE a user can be their IAM role) or a ServiceAccount. If they are ServiceAccounts, these may be created by the kubeflow admin within the kubeflow namespace and their secret tokens distributed to stan and jackie to be included in their $HOME/.kube/config files.
 
 ![service accounts](./docs/serviceaccounts.png "service accounts")
 
-For each user, the kubeflow admin also creates a RoleBinding for that user in the shared namespace. The RoleBinding's roleRef is a constained Role that only allows the user to create and get Profile CRs.
+or 
+
+![iam users](./docs/iamusers.png "IAM users")
+
+For each user, the kubeflow admin creates a RoleBinding for that user in the shared namespace. The RoleBinding's roleRef is a constained Role that only allows the user to create and get Profile CRs. The subject is - as noted above - a ServiceAccount or User.
 
 ![rolebindings](./docs/rolebindings.png "rolebindings")
 
-For __stan__ the RoleBinding looks like the following
+For __stan__ the RoleBinding may like the following
 
 ```yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -107,15 +111,17 @@ The Profile resource contains a template section where a namespace and owner are
 apiVersion: kubeflow.org/v1alpha1
 kind: Profile
 metadata:
-  name: gan-alice
+  name: gan
   namespace: kubeflow
 spec:
   template:
     metadata:
-      name: gan
-    spec:
       namespace: gan
-      owner: alice
+    spec:
+      owner: 
+        kind: User
+        apiGroup: rbac.authorization.k8s.io
+        name: alice@foo.com
 ```
 
 The Permission resource contains the RBAC Role, RoleBinding that will be created for the user within the protected namespace. The Permission resource is also created within the protected namespace. An example is:
@@ -133,8 +139,11 @@ metadata:
     blockOwnerDeletion: true
     controller: true
     kind: Profile
-    name: mnist
+    name: gan
 spec:
-  owner: alice
+  owner: 
+    kind: User
+    apiGroup: rbac.authorization.k8s.io
+    name: alice@foo.com
 ```
 
