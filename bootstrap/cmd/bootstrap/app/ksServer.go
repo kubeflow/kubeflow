@@ -48,7 +48,8 @@ const CACHED_REGISTRIES = "/opt/versioned_registries"
 // key used for storing start time of a request to deploy in the request contexts
 const START_TIME = "startTime"
 
-const KUBEFLOW_REG_NAME = "ks_app"
+const KUBEFLOW_REG_NAME = "kubeflow"
+const KUBEFLOW_FOLDER = "ks_app"
 const DM_FOLDER  = "gcp_config"
 
 // KsService defines an interface for working with ksonnet.
@@ -338,7 +339,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 		if err = os.MkdirAll(deployConfDir, os.ModePerm); err != nil {
 			return fmt.Errorf("Cannot create deployConfDir: %v", err)
 		}
-		appDir := path.Join(deployConfDir, KUBEFLOW_REG_NAME)
+		appDir := path.Join(deployConfDir, KUBEFLOW_FOLDER)
 		_, err = s.fs.Stat(appDir)
 
 		if err != nil {
@@ -421,7 +422,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 	}
 
 	if dmDeploy != nil {
-		s.UpdateDmConfig(request.Project, request.Name, kfVersion, dmDeploy)
+		s.UpdateDmConfig(repoDir, request.Project, request.Name, kfVersion, dmDeploy)
 	}
 	err = s.SaveAppToRepo(request.Project, request.Email, repoDir)
 	if err != nil {
@@ -734,7 +735,7 @@ func (s *ksServer) GetApp(project string, appName string, kfVersion string, toke
 	if err != nil {
 		return nil, "", err
 	}
-	appDir := path.Join(repoDir, GetRepoName(project), kfVersion, appName, KUBEFLOW_REG_NAME)
+	appDir := path.Join(repoDir, GetRepoName(project), kfVersion, appName, KUBEFLOW_FOLDER)
 	_, err = s.fs.Stat(appDir)
 	if err != nil {
 		return nil, repoDir, fmt.Errorf("App %s doesn't exist in Project %s", appName, project)
@@ -752,8 +753,8 @@ func (s *ksServer) GetApp(project string, appName string, kfVersion string, toke
 
 // Save ks app config local changes to project source repo.
 // Not thread safe, be aware when call it.
-func (s *ksServer) UpdateDmConfig(project string, appName string, kfVersion string, dmDeploy *deploymentmanager.Deployment) error {
-	confDir := path.Join(s.appsDir, GetRepoName(project), kfVersion, appName, DM_FOLDER)
+func (s *ksServer) UpdateDmConfig(repoDir string, project string, appName string, kfVersion string, dmDeploy *deploymentmanager.Deployment) error {
+	confDir := path.Join(repoDir, GetRepoName(project), kfVersion, appName, DM_FOLDER)
 	if err := os.RemoveAll(confDir); err != nil {
 		return err
 	}
