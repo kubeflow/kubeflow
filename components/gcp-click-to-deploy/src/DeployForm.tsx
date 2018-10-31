@@ -155,7 +155,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           <Input name="deploymentName" label="Deployment name" spellCheck={false} value={this.state.deploymentName} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
-          <Input name="clientId" label="Web App Client Id" spellCheck={false} value={this.state.clientId} onChange={this._handleChange.bind(this)} />
+          <Input name="clientId" label="Web App Client ID" spellCheck={false} value={this.state.clientId} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
           <Input name="clientSecret" label="Web App Client Secret" spellCheck={false} value={this.state.clientSecret} onChange={this._handleChange.bind(this)} />
