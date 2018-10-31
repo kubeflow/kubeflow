@@ -9,8 +9,9 @@ notebooks, jobs, and other components can be deployed and run in this namespace.
 
 - Only use namespaced scoped Roles and RoleBindings.
 
-- Separate infra components from user components where intra components reside in a shared/admin namespace and 
-user components reside in protected namespaces.
+- Separate infra components from user components where intra components reside in a shared/admin namespace and user components reside in protected namespaces.
+
+- Allow a user to be either a ServiceAccount in the shared/admin namespace or a User which can map to a GKE IAM role.
 
 - Enable a forward path to include proposed [Security Profiles](https://github.com/kubernetes/community/blob/a8cb2060dc621664c86b185c7426367994b181b5/keps/draft-20180418-security-profile.md) 	
 
