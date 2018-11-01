@@ -507,12 +507,16 @@ func (s *ksServer) getRegistryUri(registry *RegistryConfig) (string, error) {
 }
 
 func runCmd(rawcmd string) error {
-	cmd := exec.Command("sh", "-c", rawcmd)
-	err := cmd.Run()
-	if err != nil {
-		log.Errorf("Error occrued during execute cmd %v. Error: %v", rawcmd, err)
+	for retry := 0; ; retry++ {
+		cmd := exec.Command("sh", "-c", rawcmd)
+		if err := cmd.Run(); err == nil || retry > 5 {
+			if err != nil {
+				log.Errorf("Error occrued during execute cmd %v. Error: %v", rawcmd, err)
+			}
+			return err
+		}
+		time.Sleep(5 * time.Second)
 	}
-	return err
 }
 
 // appGenerate installs packages and creates components.
@@ -794,6 +798,7 @@ func (s *ksServer) UpdateDmConfig(repoDir string, project string, appName string
 	return nil
 }
 
+
 // Save ks app config local changes to project source repo.
 // Not thread safe, be aware when call it.
 func (s *ksServer) SaveAppToRepo(project string, email string, repoDir string) error {
@@ -802,9 +807,16 @@ func (s *ksServer) SaveAppToRepo(project string, email string, repoDir string) e
 	if err != nil {
 		return err
 	}
-
-	return runCmd(fmt.Sprintf("git config user.email '%s'; git config user.name 'auto-commit'; git add .; "+
-		"git commit -m 'auto commit from deployment'; git pull --rebase; git push origin master", email))
+	if err = runCmd(fmt.Sprintf("git config user.email '%s'; git config user.name 'auto-commit'", email)); err != nil {
+		return err
+	}
+	if err = runCmd("git add .; git commit -m 'auto commit from deployment'"); err != nil {
+		return err
+	}
+	if err = runCmd("git pull --rebase; git push origin master"); err != nil {
+		return err
+	}
+	return nil
 }
 
 // Apply runs apply on a ksonnet application.
