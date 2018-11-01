@@ -110,7 +110,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       deploymentName: 'kubeflow',
       dialogBody: '',
       dialogTitle: '',
-      kfverison: 'v0.3.1',
+      kfverison: 'v0.3.2',
       project: '',
       showLogs: false,
       zone: 'us-central1-a',
@@ -155,7 +155,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           <Input name="deploymentName" label="Deployment name" spellCheck={false} value={this.state.deploymentName} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
-          <Input name="clientId" label="Web App Client Id" spellCheck={false} value={this.state.clientId} onChange={this._handleChange.bind(this)} />
+          <Input name="clientId" label="Web App Client ID" spellCheck={false} value={this.state.clientId} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
           <Input name="clientSecret" label="Web App Client Secret" spellCheck={false} value={this.state.clientSecret} onChange={this._handleChange.bind(this)} />
@@ -177,7 +177,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         <Row>
           <Text style={{ fontSize: '1.1em', margin: '2% 11%' }}>Kubeflow Version:</Text>
           <select name="kfverison" style={{ display: 'flex', fontSize: '1.1em', margin: '2% 1%',}} spellCheck={false} value={this.state.kfverison} onChange={this._handleChange.bind(this)} >
-            <option value="v0.3.1">v0.3.1</option>
+            <option value="v0.3.2">v0.3.2</option>
           </select>
         </Row>
         <div style={{ display: 'flex', padding: '20px 60px 40px' }}>
@@ -279,6 +279,14 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         return;
       }
     }
+    const deploymentNameKey = 'deploymentName';
+    if (this.state[deploymentNameKey].length < 4 || this.state[deploymentNameKey].length > 20) {
+      this.setState({
+        dialogBody: 'Deployment name length need to between 4 and 20',
+        dialogTitle: 'Invalid field',
+      });
+      return;
+    }
 
     this.setState({
       showLogs: true,
@@ -307,12 +315,13 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
 
     let servicesToEnable: string[] = [];
     let enableAttempts = 0;
-    const retryTimeout = 3000;
+    const retryTimeout = 5000;
+    const email = await Gapi.getSignedInEmail();
     do {
       servicesToEnable = await this._getServicesToEnable(project)
         .catch(e => {
           this.setState({
-            dialogBody: 'Error trying to list enabled services: ' + e,
+            dialogBody: `${email}: Error trying to list enabled services: ` + e,
             dialogTitle: 'Deployment Error',
           });
           return [];
@@ -336,7 +345,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         this._appendLine('Enabling ' + s);
         await Gapi.servicemanagement.enable(project, s)
           .catch(e => this.setState({
-            dialogBody: 'Error trying to enable this required service: ' + s + '.\n' + e,
+            dialogBody: `${email}: Error trying to enable this required service: ` + s + '.\n' + e,
             dialogTitle: 'Deployment Error',
           }));
       }
@@ -346,9 +355,9 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       }
 
       enableAttempts++;
-    } while (servicesToEnable.length && enableAttempts < 5);
+    } while (servicesToEnable.length && enableAttempts < 50);
 
-    if (servicesToEnable.length && enableAttempts >= 5) {
+    if (servicesToEnable.length && enableAttempts >= 50) {
       this.setState({
         dialogBody: 'Tried too many times to enable these services: ' +
           servicesToEnable.join(', '),
@@ -380,7 +389,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       return;
     }
 
-    const email = await Gapi.getSignedInEmail();
     const createBody = JSON.stringify(
       {
         AppConfig: this._configSpec.defaultApp,
@@ -460,7 +468,10 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
               'deployment failed with error:' + flattenDeploymentOperationError(r.operation!));
             clearInterval(monitorInterval);
           } else if (r.operation!.status! && r.operation!.status === 'DONE') {
-            this._appendLine('Deployment is done, your kubeflow app url should be ready within 15 minutes: https://'
+            const readyTime = new Date();
+            readyTime.setTime(readyTime.getTime() + (20 * 60 * 1000));
+            this._appendLine('Deployment is done, your kubeflow app url should be ready within 20 minutes (by '
+              + readyTime.toLocaleTimeString() + '): https://'
               + this.state.deploymentName + '.endpoints.' + this.state.project + '.cloud.goog');
             clearInterval(monitorInterval);
           } else {
