@@ -10,6 +10,9 @@ libraries:
   metacontroller:
     version: master
     path: metacontroller
+  profiles:
+    version: master
+    path: profiles
   core:
     version: master
     path: core
