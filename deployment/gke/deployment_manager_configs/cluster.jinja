@@ -20,19 +20,6 @@ limitations under the License.
                           'https://www.googleapis.com/auth/monitoring',
                           'https://www.googleapis.com/auth/devstorage.read_only'] %}
 
-{# Setting only used in webapp #}
-{% if properties['isWebapp'] %}
-{# Type names are the names to give to deployment manager type providers
-   that will be created to represent Kubernetes objects.
-   There is type corresponding to each API endpoint.
-#}
-{% set TYPE_NAME = NAME_PREFIX + '-type' %}
-{% set NAMESPACE_COLLECTION = '/api/v1/namespaces' %}
-{% set COLLECTION_PREFIX = '/api/v1/namespaces/{namespace}/' %}
-{% set SECRETS_COLLECTION = COLLECTION_PREFIX + 'secrets' %}
-{% set K8S_ENDPOINTS = {'': 'api/v1'}  %}
-{% endif %}
-                          
 {# Names for service accounts.
    -admin is to be used for admin tasks
    -user is to be used by users for actual jobs.
@@ -74,9 +61,14 @@ resources:
       name: {{ CLUSTER_NAME }}
       initialClusterVersion: "{{ properties['cluster-version'] }}"
       {% if properties['gkeApiVersion'] == 'v1beta1' %}
-      # We need 1.10.2 to support Stackdrivier GKE.
+      # We need 1.10.2 to support Stackdriver GKE.
       loggingService: logging.googleapis.com/kubernetes
       monitoringService: monitoring.googleapis.com/kubernetes
+      {% if properties['enable_tpu'] %}
+      enable_tpu: {{ properties['enable_tpu'] }}
+      ipAllocationPolicy:
+        useIpAliases: {{ properties['enable_tpu'] }}
+      {% endif %}
       podSecurityPolicyConfig:
         enabled: {{ properties['securityConfig']['podSecurityPolicy'] }}
       {% endif %}
@@ -111,7 +103,7 @@ resources:
           serviceAccount: {{ KF_VM_SA_NAME }}@{{ env['project'] }}.iam.gserviceaccount.com
           oauthScopes: {{ VM_OAUTH_SCOPES }}
           # Set min cpu platform to ensure AVX2 is supported.
-          minCpuPlatform: 'Intel Haswell'
+          minCpuPlatform: 'Intel Broadwell'
   metadata:
     dependsOn:
     - {{ KF_VM_SA_NAME }}
@@ -120,6 +112,7 @@ resources:
 # We do this so that if we want to make changes we can delete the existing resource and then recreate it.
 # Updating doesn't work so well because we are limited in what changes GKE's update method supports.
 
+{% if properties['gpu-pool-max-nodes'] > 0 %}
 - name: {{ GPU_POOL }}
   {% if properties['gkeApiVersion'] == 'v1beta1' %}
   type: gcp-types/container-v1beta1:projects.locations.clusters.nodePools
@@ -149,89 +142,19 @@ resources:
         serviceAccount: {{ KF_VM_SA_NAME }}@{{ env['project'] }}.iam.gserviceaccount.com
         oauthScopes: {{ VM_OAUTH_SCOPES }}
         # Set min cpu platform to ensure AVX2 is supported.
-        minCpuPlatform: 'Intel Haswell'
+        minCpuPlatform: 'Intel Broadwell'
         accelerators:
           - acceleratorCount: 1
-            acceleratorType: nvidia-tesla-k80
+            acceleratorType: {{ properties['gpu-type'] }}
 
   metadata:
     dependsOn:
     # We can only create 1 node pool at a time.
     - {{ CLUSTER_NAME }}
+{% endif %}
 
 {# Project defaults to the project of the deployment. #}
 - name: {{ properties['ipName']  }}
   type: compute.v1.globalAddress
   properties:
     description: "Static IP for Kubeflow ingress."
-
-{# Setting only used in webapp #}
-{% if properties['isWebapp'] %}
-{#
-Define TypeProviders for different K8s endpoints.
-https://cloud.google.com/deployment-manager/docs/configuration/type-providers/process-adding-api
-This allows K8s resources to be created using Deployment manager.
-We use this to create the minimal resources needed to startup and deploy Kubeflow via the bootstrapper;
-e.g. creating namespaces, service accounts, stateful set to run the bootstrapper.
-#}
-{% for typeSuffix, endpoint in K8S_ENDPOINTS.iteritems() %}
-- name: {{ TYPE_NAME }}{{ typeSuffix }}
-  type: deploymentmanager.v2beta.typeProvider
-  properties:
-    options:
-      validationOptions:
-        # Kubernetes API accepts ints, in fields they annotate with string.
-        # This validation will show as warning rather than failure for
-        # Deployment Manager.
-        # https://github.com/kubernetes/kubernetes/issues/2971
-        schemaValidation: IGNORE_WITH_WARNINGS
-      # According to kubernetes spec, the path parameter 'name'
-      # should be the value inside the metadata field
-      # https://github.com/kubernetes/community/blob/master/contributors/devel/api-conventions.md
-      # This mapping specifies that
-      inputMappings:
-      - fieldName: name
-        location: PATH
-        methodMatch: ^(GET|DELETE|PUT)$
-        value: $.ifNull($.resource.properties.metadata.name, $.resource.name)
-      - fieldName: metadata.name
-        location: BODY
-        methodMatch: ^(PUT|POST)$
-        value: $.ifNull($.resource.properties.metadata.name, $.resource.name)
-      - fieldName: Authorization
-        location: HEADER
-        value: >
-          $.concat("Bearer ", $.googleOauth2AccessToken())
-    descriptorUrl: https://$(ref.{{ CLUSTER_NAME }}.endpoint)/swaggerapi/{{ endpoint }}
-
-{% endfor %}
-
-{#  Namespace for kubeflow. #}
-- name: kf-namespace
-  type: {{ env['project'] }}/$(ref.{{ TYPE_NAME }}.name):{{ NAMESPACE_COLLECTION }}
-  properties:
-    apiVersion: v1
-    kind: Namespace
-    timeout: 150s
-    metadata:
-      name: kubeflow
-    spec:
-
-{#  Create secrets for oauth. #}
-- name: kubeflow-oauth-key
-  type: {{ env['project'] }}/$(ref.{{ TYPE_NAME }}.name):{{ SECRETS_COLLECTION }}
-  properties:
-    apiVersion: v1
-    kind: Secret
-    timeout: 150s
-    namespace: kubeflow
-    metadata:
-      name: kubeflow-oauth
-    type: Opaque
-    data:
-      client_id: {{ properties["clientId"] }}
-      client_secret: {{ properties["clientSecret"] }}
-  metadata:
-    dependsOn:
-      - kf-namespace
-{% endif %}

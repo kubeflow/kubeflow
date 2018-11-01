@@ -20,7 +20,10 @@ exit 1
 fi
 
 # Activate the service account
-gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
+for i in $(seq 1 10)
+do gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS} && break || sleep 10
+done
+
 # Print out the config for debugging
 gcloud config list
 

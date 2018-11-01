@@ -58,7 +58,7 @@ func init() {
 }
 
 // TODO: handle concurrent & repetitive deployment requests.
-func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) error {
+func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) (*deploymentmanager.Deployment, error) {
 	regPath := s.knownRegistries["kubeflow"].RegUri
 	var dmconf DmConf
 	err := LoadConfig(path.Join(regPath, "../deployment/gke/deployment_manager_configs/cluster-kubeflow.yaml"), &dmconf)
@@ -66,28 +66,25 @@ func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) erro
 	if err == nil {
 		dmconf.Resources[0].Name = req.Name
 		dmconf.Resources[0].Properties["zone"] = req.Zone
-		dmconf.Resources[0].Properties["clientId"] = req.ClientId
-		dmconf.Resources[0].Properties["clientSecret"] = req.ClientSecret
 		dmconf.Resources[0].Properties["ipName"] = req.IpName
-		dmconf.Resources[0].Properties["isWebapp"] = true
 		// "1.X": picks the highest valid patch+gke.N patch in the 1.X version
 		// https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters
 		dmconf.Resources[0].Properties["cluster-version"] = "1.10"
 	}
 	confByte, err := yaml.Marshal(dmconf)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	templateData, err := ioutil.ReadFile(path.Join(regPath, "../deployment/gke/deployment_manager_configs/cluster.jinja"))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	ts := oauth2.StaticTokenSource(&oauth2.Token{
 		AccessToken: req.Token,
 	})
 	deploymentmanagerService, err := deploymentmanager.New(oauth2.NewClient(ctx, ts))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	rb := &deploymentmanager.Deployment{
 		Name: req.Name,
@@ -105,10 +102,10 @@ func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) erro
 	}
 	_, err = deploymentmanagerService.Deployments.Insert(req.Project, rb).Context(ctx).Do()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	deploymentsStartedCounter.Inc()
-	return nil
+	return rb, nil
 }
 
 func (s *ksServer) GetDeploymentStatus(ctx context.Context, req CreateRequest) (string, error) {
