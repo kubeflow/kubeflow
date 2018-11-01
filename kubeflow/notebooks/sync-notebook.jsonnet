@@ -16,9 +16,11 @@ function(request) {
               "apiVersion: ambassador/v0",
               "kind:  Mapping",
               "name: notebook-mapping",
-              "prefix: /user/",
-              "rewrite: /user/",
+              "prefix: /user/" + template.metadata.name + "/",
+              "rewrite: /",
               "timeout_ms: 300000",
+              "add_request_headers:",
+              "  token:" + request.parent.spec.token,
               "service: notebook." + template.metadata.namespace,
             ]),
         },
@@ -49,8 +51,9 @@ function(request) {
       metadata: {
         labels: {
           component: "singleuser-server",
+          app: "notebook",
         },
-        name: "notebook",
+        name: template.metadata.name,
         namespace: template.metadata.namespace,
       },
       spec: template.spec,
@@ -63,8 +66,5 @@ function(request) {
       type: "Ready",
     }],
     created: true,
-    //debug
-    //request_parent: request.parent,
-    //request_children: request.children,
   },
 }

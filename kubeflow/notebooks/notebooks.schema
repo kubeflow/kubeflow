@@ -49,6 +49,7 @@
               required: [
                 'containers',
                 'ttlSecondsAfterFinished',
+                'token',
               ],
               properties: {
                 securityContext: {
@@ -240,6 +241,9 @@
                 ttlSecondsAfterFinished: {
                   type: 'integer',
                   format: 'int64',
+                },
+                token: {
+                  type: 'string',
                 },
                 activeDeadlineSeconds: {
                   type: 'integer',
