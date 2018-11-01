@@ -902,7 +902,7 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 			actions.OptionGcTag:          "gc-tag",
 			actions.OptionSkipGc:         true,
 		}
-		for retry := 0; retry < 3; retry++ {
+		for retry := 0; retry < 6; retry++ {
 			succeeded := true
 			for _, comp := range req.Components {
 				applyOptions[actions.OptionComponentNames] = []string{comp}
@@ -918,7 +918,7 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 				log.Infof("All component apply succeeded")
 				return nil
 			} else {
-				time.Sleep(5 * time.Second)
+				time.Sleep(10 * time.Second)
 			}
 		}
 		log.Errorf("Components apply failed; Error: %v", err)
