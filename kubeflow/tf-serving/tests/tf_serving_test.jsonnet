@@ -8,7 +8,7 @@ local params = {
   injectIstio: false,
 };
 
-local istioParams = params + {
+local istioParams = params {
   injectIstio: true,
 };
 
