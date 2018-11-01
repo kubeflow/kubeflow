@@ -16,18 +16,17 @@ function(request) {
               "apiVersion: ambassador/v0",
               "kind:  Mapping",
               "name: notebook-mapping",
-              "prefix: /user/" + template.metadata.name + "/",
-              "rewrite: /",
+              "prefix: /" + template.metadata.name + "/",
               "timeout_ms: 300000",
               "add_request_headers:",
-              "  token:" + request.parent.spec.token,
-              "service: notebook." + template.metadata.namespace,
+              "  token:" + template.spec.token,
+              "service: " + template.metadata.name + "." + template.metadata.namespace,
             ]),
         },
         labels: {
           app: "notebook",
         },
-        name: "notebook",
+        name: template.metadata.name,
         namespace: template.metadata.namespace,
       },
       spec: {
@@ -35,7 +34,7 @@ function(request) {
           {
             port: 80,
             protocol: "TCP",
-            targetPort: 8082,
+            targetPort: 8888,
           },
         ],
         selector: {
