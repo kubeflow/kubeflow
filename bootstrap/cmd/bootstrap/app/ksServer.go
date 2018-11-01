@@ -510,10 +510,9 @@ func runCmd(rawcmd string) error {
 	for retry := 0; ; retry++ {
 		cmd := exec.Command("sh", "-c", rawcmd)
 		result, err := cmd.CombinedOutput()
-		log.Infof(string(result))
 		if err == nil || retry > 5 {
 			if err != nil {
-				log.Errorf("Error occrued during execute cmd %v. Error: %v", rawcmd, result)
+				return fmt.Errorf("Error occrued during execute cmd %v. Error: %v", rawcmd, string(result))
 			}
 			return err
 		}
@@ -753,7 +752,10 @@ func (s *ksServer) CloneRepoToLocal(project string, token string) (string, error
 	cloneCmd := fmt.Sprintf("git clone https://%s:%s@source.developers.google.com/p/%s/r/%s",
 		"user1", token, project, GetRepoName(project))
 
-	return repoDir, runCmd(cloneCmd)
+	if err := runCmd(cloneCmd); err != nil {
+		return "", fmt.Errorf("Failed to clone from source repo: %s", GetRepoName(project))
+	}
+	return repoDir, nil
 }
 
 func (s *ksServer) GetApp(project string, appName string, kfVersion string, token string) (*appInfo, string, error) {
