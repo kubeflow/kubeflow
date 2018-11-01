@@ -145,6 +145,18 @@ class KubeFormSpawner(KubeSpawner):
             )[:63]
         return rname
 
+    def _build_common_labels(self, extra_labels):
+        # By default, KubeSpawner will assign the 'app: jupyterhub' label to
+        # newly created Jupyter notebooks. This poses a problem for Kubeflow,
+        # which uses the 'app: jupyterhub' label to identify the JupyterHub
+        # server e.g., it sets 'app: jupyterhub' as a selector for jupyterhub-0
+        # and jupyterhub-lb services. Override the _build_common_labels()
+        # KubeSpawner method and remove the 'app: jupyterhub' label.
+        labels = {'app': 'jupyter-notebook',
+                  'heritage': 'jupyterhub'}
+        labels.update(extra_labels)
+        return labels
+
 
 ###################################################
 # JupyterHub Options
