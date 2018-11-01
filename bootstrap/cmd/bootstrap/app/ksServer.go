@@ -509,9 +509,11 @@ func (s *ksServer) getRegistryUri(registry *RegistryConfig) (string, error) {
 func runCmd(rawcmd string) error {
 	for retry := 0; ; retry++ {
 		cmd := exec.Command("sh", "-c", rawcmd)
-		if err := cmd.Run(); err == nil || retry > 5 {
+		result, err := cmd.CombinedOutput()
+		log.Infof(string(result))
+		if err == nil || retry > 5 {
 			if err != nil {
-				log.Errorf("Error occrued during execute cmd %v. Error: %v", rawcmd, err)
+				log.Errorf("Error occrued during execute cmd %v. Error: %v", rawcmd, result)
 			}
 			return err
 		}
@@ -750,10 +752,8 @@ func (s *ksServer) CloneRepoToLocal(project string, token string) (string, error
 	}
 	cloneCmd := fmt.Sprintf("git clone https://%s:%s@source.developers.google.com/p/%s/r/%s",
 		"user1", token, project, GetRepoName(project))
-	cmd := exec.Command("sh", "-c", cloneCmd)
-	result, err := cmd.CombinedOutput()
-	log.Infof(string(result))
-	return repoDir, err
+
+	return repoDir, runCmd(cloneCmd)
 }
 
 func (s *ksServer) GetApp(project string, appName string, kfVersion string, token string) (*appInfo, string, error) {
