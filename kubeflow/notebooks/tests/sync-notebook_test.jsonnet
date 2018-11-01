@@ -18,6 +18,8 @@ local env = {
   namespace: "kubeflow",
 };
 
+local syncNotebook = import "../sync-notebook.jsonnet";
+
 local notebook = {
   apiVersion: "kubeflow.org/v1alpha1",
   kind: "Notebook",
@@ -97,8 +99,6 @@ local request = {
   },
 };
 
-local syncNotebook = import "../sync-notebook.jsonnet";
-
 std.assertEqual(
   syncNotebook(request),
   {
@@ -146,10 +146,11 @@ std.assertEqual(
             {
               args: [
                 "start-singleuser.sh",
-                '--ip="0.0.0.0"',
+                "--ip='0.0.0.0'",
                 "--port=8888",
                 "--allow-root",
               ],
+              env: [],
               image: "gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu:v0.3.0",
               imagePullPolicy: "IfNotPresent",
               name: "notebook",
@@ -173,6 +174,22 @@ std.assertEqual(
                 },
               ],
               workingDir: "/home/jovyan",
+            },
+          ],
+          restartPolicy: "Always",
+          schedulerName: "default-scheduler",
+          securityContext: {
+            fsGroup: 100,
+            runAsUser: 1000,
+          },
+          serviceAccount: "jupyter-notebook",
+          serviceAccountName: "jupyter-notebook",
+          volumes: [
+            {
+              name: "volume-kam",
+              persistentVolumeClaim: {
+                claimName: "claim-kam",
+              },
             },
           ],
         },
