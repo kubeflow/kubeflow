@@ -133,5 +133,11 @@
       },
     },
     destinationRule:: destinationRule,
+    all:: util.list([
+      tfService,
+    ] + if util.toBool(params.injectIstio) then [
+      virtualService,
+      destinationRule,
+    ] else []),
   },  // new
 }
