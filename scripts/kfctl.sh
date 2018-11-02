@@ -137,13 +137,6 @@ createEnv() {
       # https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters
       echo "Setting cluster version to ${CLUSTER_VERSION}"
       echo CLUSTER_VERSION=${CLUSTER_VERSION} >> ${ENV_FILE}
-      # TODO(jlewi): How can we skip GCP project setup? Add a command line argument
-      # to skip it?
-      if [ ! ${SKIP_INIT_PROJECT} ]; then
-        source ${ENV_FILE}
-        gcpInitProject
-      fi
-
       ;;
     *)
       echo KUBEFLOW_PLATFORM=null >> ${ENV_FILE}
@@ -206,6 +199,13 @@ if [ "${COMMAND}" == "init" ]; then
   fi
   source "${ENV_FILE}"
 
+  # TODO(jlewi): How can we skip GCP project setup? Add a command line argument
+  # to skip it?
+  if [ "${PLATFORM}" == "gcp" ]; then
+    if [ ! ${SKIP_INIT_PROJECT} ]; then
+	  gcpInitProject
+	fi
+  fi
 fi
 
 source ${ENV_FILE}
