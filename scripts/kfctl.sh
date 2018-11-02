@@ -140,6 +140,7 @@ createEnv() {
       # TODO(jlewi): How can we skip GCP project setup? Add a command line argument
       # to skip it?
       if [ ! ${SKIP_INIT_PROJECT} ]; then
+        source ${ENV_FILE}
         gcpInitProject
       fi
 
