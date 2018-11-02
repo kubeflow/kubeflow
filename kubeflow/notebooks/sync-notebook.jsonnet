@@ -40,7 +40,6 @@ function(request) {
         selector: {
           app: "notebook",
         },
-        sessionAffinity: "None",
         type: "ClusterIP",
       },
     },

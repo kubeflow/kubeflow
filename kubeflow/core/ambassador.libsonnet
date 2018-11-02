@@ -171,10 +171,6 @@
                       },
                     },
                   },
-                  {
-                    name: "AMBASSADOR_SINGLE_NAMESPACE",
-                    value: "true",
-                  },
                 ],
                 image: params.ambassadorImage,
                 livenessProbe: {
