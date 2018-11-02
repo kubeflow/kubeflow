@@ -203,8 +203,8 @@ if [ "${COMMAND}" == "init" ]; then
   # to skip it?
   if [ "${PLATFORM}" == "gcp" ]; then
     if [ ! ${SKIP_INIT_PROJECT} ]; then
-	  gcpInitProject
-	fi
+      gcpInitProject
+    fi
   fi
 fi
 
