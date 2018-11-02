@@ -313,6 +313,26 @@ func getRegistryVersion(request CreateRequest, regName string) string {
 	return ""
 }
 
+func (s *CreateRequest) Validate() error {
+	missings := make([]string, 0)
+	if len(s.Name) == 0 {
+		missings = append(missings, "Deployment name")
+	}
+	if len(s.Project) == 0 {
+		missings = append(missings, "Project")
+	}
+	if len(s.ClientId) == 0 {
+		missings = append(missings, "Web App Client ID")
+	}
+	if len(s.ClientSecret) == 0 {
+		missings = append(missings, "Web App Client Secret")
+	}
+	if len(missings) == 0 {
+		return nil
+	}
+	return fmt.Errorf("missing input fields: %v", missings)
+}
+
 func (s *ksServer) GetProjectLock(project string) *sync.Mutex {
 	s.serverMux.Lock()
 	defer s.serverMux.Unlock()
@@ -1096,7 +1116,10 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 		r := &basicServerResponse{}
 		deployReqCounter.Inc()
 		deployReqCounterRaw.Inc()
-
+		if err := req.Validate(); err != nil {
+			r.Err = err.Error()
+			return r, err
+		}
 		dmServiceAccount := req.ProjectNumber + "@cloudservices.gserviceaccount.com"
 
 		bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(1 * time.Second), 5)
