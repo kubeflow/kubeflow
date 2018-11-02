@@ -12,9 +12,4 @@ local k = import "k.libsonnet";
 local tfservingService = import "kubeflow/tf-serving/tf-serving-service-template.libsonnet";
 local util = import "kubeflow/tf-serving/util.libsonnet";
 
-local base = tfservingService.new(env, params);
-util.list(
-  [
-    base.tfService,
-  ] + if util.toBool(params.injectIstio) then [base.virtualService] else [],
-)
+tfservingService.new(env, params).all

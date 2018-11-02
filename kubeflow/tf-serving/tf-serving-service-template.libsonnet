@@ -73,14 +73,33 @@
       },
       spec: {
         hosts: [
-          name,
+          "*",
+        ],
+        gateways: [
+          "kubeflow-gateway",
         ],
         http: [
           {
+            match: [
+              {
+                uri: {
+                  prefix: "/istio/tfserving/models/" + modelName,
+                },
+                method: {
+                  exact: "POST",
+                },
+              },
+            ],
+            rewrite: {
+              uri: "/v1/models/" + modelName + ":predict",
+            },
             route: [
               {
                 destination: {
                   host: name,
+                  port: {
+                    number: 8500,
+                  },
                   subset: std.split(versionWeight, ":")[0],
                 },
                 weight: std.parseInt(std.split(versionWeight, ":")[1]),
@@ -92,5 +111,33 @@
       },
     },
     virtualService:: virtualService,
+
+    local destinationRule = {
+      apiVersion: "networking.istio.io/v1alpha3",
+      kind: "DestinationRule",
+      metadata: {
+        name: name,
+        namespace: namespace,
+      },
+      spec: {
+        host: name,
+        subsets: [
+          {
+            name: std.split(versionWeight, ":")[0],
+            labels: {
+              version: std.split(versionWeight, ":")[0],
+            },
+          }
+          for versionWeight in versionWeights
+        ],
+      },
+    },
+    destinationRule:: destinationRule,
+    all:: util.list([
+      tfService,
+    ] + if util.toBool(params.injectIstio) then [
+      virtualService,
+      destinationRule,
+    ] else []),
   },  // new
 }
