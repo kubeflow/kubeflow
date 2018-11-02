@@ -12,6 +12,7 @@ local params = {
   serviceType: "ClusterIP",
   targetPort: "8888",
   servicePort: "80",
+  token: "aabbcc",
 };
 
 local env = {
@@ -35,6 +36,8 @@ local notebook = {
         namespace: "kf-200",
       },
       spec: {
+        ttlSecondsAfterFinished: 300,
+        token: params.token,
         containers: [
           {
             args: [
@@ -44,6 +47,14 @@ local notebook = {
               "--allow-root",
             ],
             env: [
+              {
+                name: "JUPYTER_TOKEN",
+                value: params.token,
+              },
+              {
+                name: "JUPYTER_ENABLE_LAB",
+                value: "true",
+              },
             ],
             image: params.registry + "/" + params.repoName + "/" + params.image,
             imagePullPolicy: "IfNotPresent",
@@ -108,7 +119,7 @@ std.assertEqual(
         kind: "Service",
         metadata: {
           annotations: {
-            "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind:  Mapping\nname: notebook-mapping\nprefix: /user/\nrewrite: /user/\ntimeout_ms: 300000\nservice: notebook.kf-200",
+            "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind:  Mapping\nname: notebook-mapping\nprefix: /notebook/\ntimeout_ms: 300000\nadd_request_headers:\n  token:aabbcc\nservice: notebook.kf-200",
           },
           labels: {
             app: "notebook",
@@ -121,13 +132,12 @@ std.assertEqual(
             {
               port: 80,
               protocol: "TCP",
-              targetPort: 8082,
+              targetPort: 8888,
             },
           ],
           selector: {
             app: "notebook",
           },
-          sessionAffinity: "None",
           type: "ClusterIP",
         },
       },
@@ -136,6 +146,7 @@ std.assertEqual(
         kind: "Pod",
         metadata: {
           labels: {
+            app: "notebook",
             component: "singleuser-server",
           },
           name: "notebook",
@@ -150,7 +161,16 @@ std.assertEqual(
                 "--port=8888",
                 "--allow-root",
               ],
-              env: [],
+              env: [
+                {
+                  name: "JUPYTER_TOKEN",
+                  value: "aabbcc",
+                },
+                {
+                  name: "JUPYTER_ENABLE_LAB",
+                  value: "true",
+                },
+              ],
               image: "gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu:v0.3.0",
               imagePullPolicy: "IfNotPresent",
               name: "notebook",
@@ -184,6 +204,8 @@ std.assertEqual(
           },
           serviceAccount: "jupyter-notebook",
           serviceAccountName: "jupyter-notebook",
+          token: "aabbcc",
+          ttlSecondsAfterFinished: 300,
           volumes: [
             {
               name: "volume-kam",
