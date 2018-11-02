@@ -837,15 +837,23 @@ func (s *ksServer) SaveAppToRepo(project string, email string, repoDir string) e
 		"git config user.name 'auto-commit'",
 		"git add .",
 		"git commit -m 'auto commit from deployment'",
-		"git pull --rebase",
-		"git push origin master",
 	}
 	for _, cmd := range cmds {
 		if err = runCmd(cmd); err != nil {
 			return err
 		}
 	}
-	return nil
+	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2 * time.Second), 10)
+	return backoff.Retry(func() error {
+		pushcmd := exec.Command("sh", "-c", "git push origin master")
+		result, err := pushcmd.CombinedOutput()
+		if err != nil {
+			pullcmd := exec.Command("sh", "-c", "git pull --rebase")
+			pullResult, _ := pullcmd.CombinedOutput()
+			return fmt.Errorf("Error occrued during git push. Error: %v; try rebase: %v", string(result), string(pullResult))
+		}
+		return nil
+	}, bo)
 }
 
 // Apply runs apply on a ksonnet application.
