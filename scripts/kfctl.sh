@@ -121,7 +121,7 @@ createNamespace() {
 }
 
 if [ "${COMMAND}" == "init" ]; then
-	DEPLOYMENT_NAME=${WHAT}
+  DEPLOYMENT_NAME=${WHAT}
 
     while [[ $# -gt 0 ]]; do
     case $1 in
@@ -146,43 +146,43 @@ if [ "${COMMAND}" == "init" ]; then
             ;;
       esac
       shift
-	done
+  done
 
-	mkdir -p ${DEPLOYMENT_NAME}
-	# Most commands expect to be executed from the app directory
-	cd ${DEPLOYMENT_NAME}
-	createEnv
-	source ${ENV_FILE}
-	# TODO(jlewi): Should we default to directory name?
-	# TODO(jlewi): This doesn't work if user doesn't provide name we will end up
-	# interpreting parameters as the name. To fix this we need to check name doesn't start with --
-	if [ -z "${DEPLOYMENT_NAME}" ]; then
-  		echo "name must be provided"
-  		echo "usage: kfctl init <name>"
-  		exit 1
-	fi
+  mkdir -p ${DEPLOYMENT_NAME}
+  # Most commands expect to be executed from the app directory
+  cd ${DEPLOYMENT_NAME}
+  createEnv
+  source ${ENV_FILE}
+  # TODO(jlewi): Should we default to directory name?
+  # TODO(jlewi): This doesn't work if user doesn't provide name we will end up
+  # interpreting parameters as the name. To fix this we need to check name doesn't start with --
+  if [ -z "${DEPLOYMENT_NAME}" ]; then
+      echo "name must be provided"
+      echo "usage: kfctl init <name>"
+      exit 1
+  fi
     if [ -d ${DEPLOYMENT_NAME} ]; then
-		echo Directory ${DEPLOYMENT_NAME} already exists
-		exit 1
-	fi
+    echo Directory ${DEPLOYMENT_NAME} already exists
+    exit 1
+  fi
 
-	if [ -z "${PLATFORM}" ]; then
-  		echo "--platform must be provided"
-  		echo "usage: kfctl init <PLATFORM>"
-  		exit 1
-	fi
-	source "${ENV_FILE}"
+  if [ -z "${PLATFORM}" ]; then
+      echo "--platform must be provided"
+      echo "usage: kfctl init <PLATFORM>"
+      exit 1
+  fi
+  source "${ENV_FILE}"
 
-	# TODO(jlewi): How can we skip GCP project setup? Add a command line argument
-	# to skip it?
-	if [ "${PLATFORM}" == "gcp" ]; then
-		if ${SKIP_INIT_PROJECT}; then
-			echo skipping project initialization
-		else
-			echo initializing project
-			gcpInitProject
-	  fi
-	fi
+  # TODO(jlewi): How can we skip GCP project setup? Add a command line argument
+  # to skip it?
+  if [ "${PLATFORM}" == "gcp" ]; then
+    if ${SKIP_INIT_PROJECT}; then
+      echo skipping project initialization
+    else
+      echo initializing project
+      gcpInitProject
+    fi
+  fi
 
 fi
 
@@ -223,7 +223,7 @@ ksApply () {
   set -e
 
   if [ "${RESULT}" -eq 0 ]; then
-  	echo environment default already exists
+    echo environment default already exists
   else
     ks env add default --namespace "${K8S_NAMESPACE}"
   fi
@@ -260,9 +260,9 @@ source "${ENV_FILE}"
 
 if [ "${COMMAND}" == "generate" ]; then
   if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ]; then
-  	if [ "${PLATFORM}" == "gcp" ]; then
-    	generateDMConfigs
-    	downloadK8sManifests
+    if [ "${PLATFORM}" == "gcp" ]; then
+      generateDMConfigs
+      downloadK8sManifests
     fi
   fi
 
@@ -272,7 +272,7 @@ if [ "${COMMAND}" == "generate" ]; then
     customizeKsAppWithDockerImage
 
     if [ "${PLATFORM}" == "gcp" ]; then
-    	gcpGenerateKsApp
+      gcpGenerateKsApp
     fi
 
     if [ "${PLATFORM}" == "minikube" ]; then
@@ -289,9 +289,9 @@ fi
 
 if [ "${COMMAND}" == "apply" ]; then
   if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ] ; then
-  	if [ "${PLATFORM}" == "gcp" ]; then
-    	updateDM
-    	createSecrets
+    if [ "${PLATFORM}" == "gcp" ]; then
+      updateDM
+      createSecrets
     fi
   fi
 
@@ -300,7 +300,7 @@ if [ "${COMMAND}" == "apply" ]; then
     ksApply
 
     if [ "${PLATFORM}" == "gcp" ]; then
-    	gcpKsApply
+      gcpKsApply
     fi
 
     # all components deployed
