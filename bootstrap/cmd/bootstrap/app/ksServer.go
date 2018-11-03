@@ -126,7 +126,7 @@ func NewServer(appsDir string, registries []RegistryConfig, gkeVersion string) (
 		appsDir:         appsDir,
 		projectLocks:    make(map[string]*sync.Mutex),
 		knownRegistries: make(map[string]RegistryConfig),
-		gkeVersion:		 gkeVersion,
+		gkeVersion:      gkeVersion,
 		fs:              afero.NewOsFs(),
 	}
 
