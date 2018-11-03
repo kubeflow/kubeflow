@@ -109,8 +109,9 @@ func (s *ksServer) InsertSaKey(ctx context.Context, request *CreateRequest, secr
 		Name: fmt.Sprintf("projects/%v/serviceAccounts/%v", request.Project, serviceAccount),
 	}
 
-	s.serverMux.Lock()
-	defer s.serverMux.Unlock()
+	projLock := s.GetProjectLock(request.Project)
+	projLock.Lock()
+	defer projLock.Unlock()
 
 	createdKey, err := c.CreateServiceAccountKey(ctx, &createServiceAccountKeyRequest)
 	if err != nil {

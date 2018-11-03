@@ -1,8 +1,8 @@
-hash: dab56b923bd4f334f4eae320e2d33da7cd19d6fc021cdb6395946a7c5988f192
-updated: 2018-10-15T11:50:53.594293329-07:00
+hash: 2955f59219154de4f7cf276123660111fd9007d374ebd8d6caefd37e060fa7e8
+updated: 2018-11-01T17:15:04.022604-07:00
 imports:
 - name: cloud.google.com/go
-  version: dfffe386c33fb24c34ee501e5723df5b97b98514
+  version: 1fd54cf41e6e0e178ffe3c52b0e2260281f603e3
   subpackages:
   - compute/metadata
   - container/apiv1
@@ -36,6 +36,8 @@ imports:
   version: b38d23b8782a487059e8fc8773e9a5b228a77cb6
 - name: github.com/BurntSushi/toml
   version: 3012a1dbe2e4bd1391d42b32f0577cb7bbc7f005
+- name: github.com/cenkalti/backoff
+  version: 2ea60e5f094469f9e65adb9cd103795b73ae743e
 - name: github.com/daaku/go.zipexe
   version: a5fe2436ffcb3236e175e5149162b41cd28bd27d
 - name: github.com/davecgh/go-spew
@@ -368,7 +370,7 @@ imports:
 - name: github.com/shurcooL/sanitized_anchor_name
   version: 10ef21a441db47d8b13ebcc5fd2310f636973c77
 - name: github.com/sirupsen/logrus
-  version: ad15b42461921f1fb3529b058c6786c6a45d5162
+  version: bcd833dfe83d3cebad139e4a29ed79cb2318bf95
 - name: github.com/spf13/afero
   version: b28a7effac979219c2a2ed6205a4d70e4b1bcd02
   subpackages:
@@ -492,7 +494,7 @@ imports:
   - googleapis/rpc/status
   - protobuf/field_mask
 - name: google.golang.org/grpc
-  version: 8dea3dc473e90c8179e519d91302d0597c0ca1d1
+  version: 2e463a05d100327ca47ac218281906921038fd95
   subpackages:
   - balancer
   - balancer/base
