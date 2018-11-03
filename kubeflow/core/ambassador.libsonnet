@@ -58,10 +58,9 @@
 
     local ambassadorRole = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "Role",
+      kind: "ClusterRole",
       metadata: {
         name: "ambassador",
-        namespace: params.namespace,
       },
       rules: [
         {
@@ -122,14 +121,13 @@
 
     local ambassadorRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "RoleBinding",
+      kind: "ClusterRoleBinding",
       metadata: {
         name: "ambassador",
-        namespace: params.namespace,
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
-        kind: "Role",
+        kind: "ClusterRole",
         name: "ambassador",
       },
       subjects: [

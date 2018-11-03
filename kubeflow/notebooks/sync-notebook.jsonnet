@@ -15,21 +15,20 @@ function(request) {
               "---",
               "apiVersion: ambassador/v0",
               "kind:  Mapping",
-              "name: notebook-mapping",
+              "name: notebook_mapping",
               "prefix: /" + template.metadata.name + "/",
+              "rewrite: /" + template.metadata.name + "/",
               "timeout_ms: 300000",
-              "add_request_headers:",
-              "  token:" + template.spec.token,
               "service: " + template.metadata.name + "." + template.metadata.namespace,
             ]),
-        },
-        labels: {
-          app: "notebook",
         },
         name: template.metadata.name,
         namespace: template.metadata.namespace,
       },
       spec: {
+        selector: {
+          app: "notebook",
+        },
         ports: [
           {
             port: 80,
@@ -37,23 +36,13 @@ function(request) {
             targetPort: 8888,
           },
         ],
-        selector: {
-          app: "notebook",
-        },
         type: "ClusterIP",
       },
     },
     {
       apiVersion: "v1",
       kind: "Pod",
-      metadata: {
-        labels: {
-          component: "singleuser-server",
-          app: "notebook",
-        },
-        name: template.metadata.name,
-        namespace: template.metadata.namespace,
-      },
+      metadata: template.metadata,
       spec: template.spec,
     },
   ],

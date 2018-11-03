@@ -12,6 +12,9 @@
 // @optionalParam uid string -1 UserId of the host user for minikube local fs mount
 // @optionalParam gid string -1 GroupID of the host user for minikube local fs mount
 // @optionalParam accessLocalFs string false Set true if mounting a local fs directory that needs to be accessed by the notebook in Minikube.
+// @optionalParam serviceType string ClusterIP type of service {LoadBalancer, ClusterIP, NodePort}
+// @optionalParam servicePort string 80 service port
+// @optionalParam targetPort string 8888 container port
 
 local notebooks = import "kubeflow/notebooks/notebooks.libsonnet";
 local instance = notebooks.new(env, params);

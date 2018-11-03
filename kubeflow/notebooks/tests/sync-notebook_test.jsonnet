@@ -12,7 +12,6 @@ local params = {
   serviceType: "ClusterIP",
   targetPort: "8888",
   servicePort: "80",
-  token: "aabbcc",
 };
 
 local env = {
@@ -37,7 +36,6 @@ local notebook = {
       },
       spec: {
         ttlSecondsAfterFinished: 300,
-        token: params.token,
         containers: [
           {
             args: [
@@ -47,10 +45,6 @@ local notebook = {
               "--allow-root",
             ],
             env: [
-              {
-                name: "JUPYTER_TOKEN",
-                value: params.token,
-              },
               {
                 name: "JUPYTER_ENABLE_LAB",
                 value: "true",
@@ -75,7 +69,7 @@ local notebook = {
             volumeMounts: [
               {
                 mountPath: params.notebookPVCMount,
-                name: "volume-kam",
+                name: "volume-training",
               },
             ],
             workingDir: params.notebookPVCMount,
@@ -91,9 +85,9 @@ local notebook = {
         serviceAccountName: "jupyter-notebook",
         volumes: [
           {
-            name: "volume-kam",
+            name: "volume-training",
             persistentVolumeClaim: {
-              claimName: "claim-kam",
+              claimName: "claim-training",
             },
           },
         ],
@@ -119,10 +113,7 @@ std.assertEqual(
         kind: "Service",
         metadata: {
           annotations: {
-            "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind:  Mapping\nname: notebook-mapping\nprefix: /notebook/\ntimeout_ms: 300000\nadd_request_headers:\n  token:aabbcc\nservice: notebook.kf-200",
-          },
-          labels: {
-            app: "notebook",
+            "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind:  Mapping\nname: notebook_mapping\nprefix: /notebook/\nrewrite: /notebook/\ntimeout_ms: 300000\nservice: notebook.kf-200",
           },
           name: "notebook",
           namespace: "kf-200",
@@ -145,10 +136,6 @@ std.assertEqual(
         apiVersion: "v1",
         kind: "Pod",
         metadata: {
-          labels: {
-            app: "notebook",
-            component: "singleuser-server",
-          },
           name: "notebook",
           namespace: "kf-200",
         },
@@ -162,10 +149,6 @@ std.assertEqual(
                 "--allow-root",
               ],
               env: [
-                {
-                  name: "JUPYTER_TOKEN",
-                  value: "aabbcc",
-                },
                 {
                   name: "JUPYTER_ENABLE_LAB",
                   value: "true",
@@ -190,7 +173,7 @@ std.assertEqual(
               volumeMounts: [
                 {
                   mountPath: "/home/jovyan",
-                  name: "volume-kam",
+                  name: "volume-training",
                 },
               ],
               workingDir: "/home/jovyan",
@@ -204,13 +187,12 @@ std.assertEqual(
           },
           serviceAccount: "jupyter-notebook",
           serviceAccountName: "jupyter-notebook",
-          token: "aabbcc",
           ttlSecondsAfterFinished: 300,
           volumes: [
             {
-              name: "volume-kam",
+              name: "volume-training",
               persistentVolumeClaim: {
-                claimName: "claim-kam",
+                claimName: "claim-training",
               },
             },
           ],
