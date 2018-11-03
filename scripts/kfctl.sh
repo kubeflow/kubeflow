@@ -180,7 +180,7 @@ if [ "${COMMAND}" == "init" ]; then
       echo skipping project initialization
     else
       echo initializing project
-	  	gcpInitProject
+      gcpInitProject
 	  fi
 	fi
 
