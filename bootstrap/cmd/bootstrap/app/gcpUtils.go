@@ -68,7 +68,9 @@ func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) (*de
 		dmconf.Resources[0].Properties["zone"] = req.Zone
 		dmconf.Resources[0].Properties["ipName"] = req.IpName
 		// https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters
-		dmconf.Resources[0].Properties["cluster-version"] = s.gkeVersion
+		if s.gkeVersionOverride != "" {
+			dmconf.Resources[0].Properties["cluster-version"] = s.gkeVersionOverride
+		}
 	}
 	confByte, err := yaml.Marshal(dmconf)
 	if err != nil {

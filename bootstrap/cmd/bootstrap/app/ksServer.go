@@ -85,7 +85,7 @@ type ksServer struct {
 
 	//GKE version to use, suggest format 1.X.Y, avoid using most recent version
 	// https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters
-	gkeVersion string
+	gkeVersionOverride string
 
 	fs afero.Fs
 
@@ -117,17 +117,17 @@ func (m MultiError) ToError() error {
 }
 
 // NewServer constructs a ksServer.
-func NewServer(appsDir string, registries []RegistryConfig, gkeVersion string) (*ksServer, error) {
+func NewServer(appsDir string, registries []RegistryConfig, gkeVersionOverride string) (*ksServer, error) {
 	if appsDir == "" {
 		return nil, fmt.Errorf("appsDir can't be empty")
 	}
 
 	s := &ksServer{
-		appsDir:         appsDir,
-		projectLocks:    make(map[string]*sync.Mutex),
-		knownRegistries: make(map[string]RegistryConfig),
-		gkeVersion:      gkeVersion,
-		fs:              afero.NewOsFs(),
+		appsDir:            appsDir,
+		projectLocks:       make(map[string]*sync.Mutex),
+		knownRegistries:    make(map[string]RegistryConfig),
+		gkeVersionOverride: gkeVersionOverride,
+		fs:                 afero.NewOsFs(),
 	}
 
 	for _, r := range registries {

@@ -59,7 +59,6 @@ generateDMConfigs() {
 
     # Set values in DM config file
     sed -i.bak "s/zone: SET_THE_ZONE/zone: ${ZONE}/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
-    sed -i.bak "s/cluster-version: SET_CLUSTER_VERSION/cluster-version: \"${CLUSTER_VERSION}\"/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
     sed -i.bak "s/users:/users: [\"${IAP_IAM_ENTRY}\"]/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
     sed -i.bak "s/ipName: kubeflow-ip/ipName: ${KUBEFLOW_IP_NAME}/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
     rm "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}.bak"
