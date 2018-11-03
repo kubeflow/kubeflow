@@ -29,7 +29,7 @@ type ServerOption struct {
 	AppDir               string
 	Config               string
 	Email                string
-	GkeVersion			 string
+	GkeVersion           string
 	NameSpace            string
 	RegistriesConfigFile string
 }
