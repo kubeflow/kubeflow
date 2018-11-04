@@ -101,7 +101,7 @@
             apiVersion: batch/v1beta1
             kind: CronJob
             metadata:
-              name: {{.WorkerId}}
+              name: {{.WorkerID}}
               namespace: {{.NameSpace}}  
             spec:
               schedule: "*/1 * * * *"
@@ -113,16 +113,16 @@
                     spec:
                       serviceAccountName: metrics-collector
                       containers:
-                      - name: {{.WorkerId}}
+                      - name: {{.WorkerID}}
                         image: katib/metrics-collector
                         args:
                         - "./metricscollector"
                         - "-s"
-                        - "{{.StudyId}}"
+                        - "{{.StudyID}}"
                         - "-t"
-                        - "{{.TrialId}}"
+                        - "{{.TrialID}}"
                         - "-w"
-                        - "{{.WorkerId}}"
+                        - "{{.WorkerID}}"
                         - "-n"
                         - "{{.NameSpace}}"
                       restartPolicy: Never
@@ -295,12 +295,12 @@
             namespace: %(ns)s
             kind: Job
             metadata:
-              name: {{.WorkerId}}
+              name: {{.WorkerID}}
             spec:
               template:
                 spec:
                   containers:
-                  - name: {{.WorkerId}}
+                  - name: {{.WorkerID}}
                     image: alpine
                   restartPolicy: Never
           ||| % { ns: namespace },
