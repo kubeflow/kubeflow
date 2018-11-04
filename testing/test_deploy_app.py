@@ -138,11 +138,18 @@ def insert_ssl_cert(args):
     util_run(("gsutil cp gs://%s/%s/* %s" % (SSL_BUCKET, args.mode, SSL_DIR)).split(' '))
   except Exception:
     logging.warning("ssl cert for %s doesn't exist in gcs" % args.mode)
-    return
-  util_run(("gcloud container clusters get-credentials %s --zone %s --project %s" %
-            (args.deployment, args.zone, args.project)).split(' '))
-  util_run(("kubectl create -f %s" % SSL_DIR).split(' '))
-
+    return True
+  for i in range(5):
+    try:
+      util_run(("gcloud container clusters get-credentials %s --zone %s --project %s" %
+                (args.deployment, args.zone, args.project)).split(' '))
+      util_run(("kubectl create -f %s" % SSL_DIR).split(' '))
+    except Exception as e:
+      logging.error(e)
+      sleep(5)
+      continue
+    return True
+  return False
 
 def check_deploy_status(args):
   logging.info("check deployment status")
@@ -368,7 +375,7 @@ def main(unparsed_args=None):
     help="target url which accept deployment request")
   parser.add_argument(
     "--wait_sec",
-    default=60,
+    default=120,
     type=int,
     help="oauth client secret")
   parser.add_argument(
@@ -409,15 +416,21 @@ def main(unparsed_args=None):
     PROBER_HEALTH.set(0)
     service_account_credentials = get_service_account_credentials("SERVICE_CLIENT_ID")
     while True:
+      sleep(args.wait_sec)
       if not prober_clean_up_resource(args):
         PROBER_HEALTH.set(1)
         FAILURE_COUNT.inc()
         logging.error("request cleanup failed, retry in %s seconds" % args.wait_sec)
-        sleep(args.wait_sec)
         continue
       PROBER_HEALTH.set(0)
       if make_prober_call(args, service_account_credentials):
-        insert_ssl_cert(args)
+        if insert_ssl_cert(args):
+          PROBER_HEALTH.set(0)
+        else:
+          PROBER_HEALTH.set(1)
+          FAILURE_COUNT.inc()
+          logging.error("request insert_ssl_cert failed, retry in %s seconds" % args.wait_sec)
+          continue
         if check_deploy_status(args) == 200:
           SERVICE_HEALTH.set(0)
           SUCCESS_COUNT.inc()
@@ -428,7 +441,6 @@ def main(unparsed_args=None):
         SERVICE_HEALTH.set(2)
         FAILURE_COUNT.inc()
         logging.error("prober request failed, retry in %s seconds" % args.wait_sec)
-        sleep(args.wait_sec)
 
 
 if __name__ == '__main__':
