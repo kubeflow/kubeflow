@@ -42,8 +42,9 @@ func (s *ksServer) BindRole(ctx context.Context, project string, token string, s
 
 	// Even with lock here, there's still very small chance that updating project iam policy will fail
 	// if other users are editing policy directly at the same time.
-	s.serverMux.Lock()
-	defer s.serverMux.Unlock()
+	projLock := s.GetProjectLock(project)
+	projLock.Lock()
+	defer projLock.Unlock()
 
 	saPolicy, err := resourcManger.Projects.GetIamPolicy(
 		project,

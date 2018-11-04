@@ -228,8 +228,9 @@ func (s *ksServer) ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) erro
 		log.Errorf("Cannot create resource manager client: %v", err)
 		return err
 	}
-	s.serverMux.Lock()
-	defer s.serverMux.Unlock()
+	projLock := s.GetProjectLock(req.Project)
+	projLock.Lock()
+	defer projLock.Unlock()
 
 	retry := 0
 	for retry < 5 {
