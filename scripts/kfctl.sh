@@ -15,7 +15,6 @@ WHAT=$2
 
 ENV_FILE="env.sh"
 SKIP_INIT_PROJECT=false
-CLUSTER_VERSION="1.10"
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 source "${DIR}/util.sh"
@@ -95,11 +94,6 @@ createEnv() {
       fi
 
       echo PROJECT_NUMBER=${PROJECT_NUMBER} >> ${ENV_FILE}
-
-      # "1.X": picks the highest valid patch+gke.N patch in the 1.X version
-      # https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters
-      echo "Setting cluster version to ${CLUSTER_VERSION}"
-      echo CLUSTER_VERSION=${CLUSTER_VERSION} >> ${ENV_FILE}
       ;;
     *)
       echo KUBEFLOW_PLATFORM=null >> ${ENV_FILE}

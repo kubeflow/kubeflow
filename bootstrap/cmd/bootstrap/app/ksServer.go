@@ -83,6 +83,10 @@ type ksServer struct {
 	// other information about the regisry.
 	knownRegistries map[string]RegistryConfig
 
+	//gkeVersionOverride allows overriding the GKE version specified in DM config. If not set the value in DM config is used.
+	// https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters
+	gkeVersionOverride string
+
 	fs afero.Fs
 
 	// project-id -> project lock
@@ -113,16 +117,17 @@ func (m MultiError) ToError() error {
 }
 
 // NewServer constructs a ksServer.
-func NewServer(appsDir string, registries []RegistryConfig) (*ksServer, error) {
+func NewServer(appsDir string, registries []RegistryConfig, gkeVersionOverride string) (*ksServer, error) {
 	if appsDir == "" {
 		return nil, fmt.Errorf("appsDir can't be empty")
 	}
 
 	s := &ksServer{
-		appsDir:         appsDir,
-		projectLocks:    make(map[string]*sync.Mutex),
-		knownRegistries: make(map[string]RegistryConfig),
-		fs:              afero.NewOsFs(),
+		appsDir:            appsDir,
+		projectLocks:       make(map[string]*sync.Mutex),
+		knownRegistries:    make(map[string]RegistryConfig),
+		gkeVersionOverride: gkeVersionOverride,
+		fs:                 afero.NewOsFs(),
 	}
 
 	for _, r := range registries {
@@ -218,6 +223,9 @@ type ApplyRequest struct {
 
 	// For test: GCP service account client id
 	SAClientId string
+
+	// pass *appInfo if ks app is already on disk.
+	AppInfo *appInfo
 }
 
 var (
@@ -365,7 +373,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 	a, repoDir, err := s.GetApp(request.Project, request.Name, kfVersion, request.Token)
 	defer os.RemoveAll(repoDir)
 	if repoDir == "" {
-		return fmt.Errorf("Cannot clone repo from cloud source repo")
+		return fmt.Errorf("Cannot load ks app from cloud source repo")
 	}
 	envName := "default"
 	if err == nil {
@@ -467,6 +475,30 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 	if request.AutoConfigure {
 		s.autoConfigureApp(&a.App, &request.AppConfig, request.Namespace, config)
 	}
+	log.Infof("Created and initialized app at %v", a.App.Root())
+	if request.Apply {
+		components := []string{}
+		for _, comp := range request.AppConfig.Components {
+			components = append(components, comp.Name)
+		}
+		err = s.Apply(ctx, ApplyRequest{
+			Name:        request.Name,
+			KfVersion:   getRegistryVersion(request, KubeflowRegName),
+			Environment: "default",
+			Components:  components,
+			Cluster:     request.Cluster,
+			Project:     request.Project,
+			Zone:        request.Zone,
+			Token:       request.Token,
+			Email:       request.Email,
+			SAClientId:  request.SAClientId,
+			AppInfo:     a,
+		})
+		if err != nil {
+			log.Errorf("Failed to apply app: %v", err)
+			return err
+		}
+	}
 
 	if dmDeploy != nil {
 		s.UpdateDmConfig(repoDir, request.Project, request.Name, kfVersion, dmDeploy)
@@ -476,7 +508,6 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 		log.Errorf("There was a problem saving config to cloud repo; %v", err)
 		return err
 	}
-	log.Infof("Created and initialized app at %v", a.App.Root())
 	return nil
 }
 
@@ -757,16 +788,21 @@ func (s *ksServer) CloneRepoToLocal(project string, token string) (string, error
 		AccessToken: token,
 	})
 	sourcerepoService, err := sourcerepo.New(oauth2.NewClient(context.Background(), ts))
-	_, err = sourcerepoService.Projects.Repos.Get(fmt.Sprintf("projects/%s/repos/%s", project, GetRepoName(project))).Do()
-	if err != nil {
-		// repo does't exist in target project, create one
-		_, err = sourcerepoService.Projects.Repos.Create(fmt.Sprintf("projects/%s", project), &sourcerepo.Repo{
-			Name: fmt.Sprintf("projects/%s/repos/%s", project, GetRepoName(project)),
-		}).Do()
+	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2 * time.Second), 10)
+	err = backoff.Retry(func() error {
+		_, err = sourcerepoService.Projects.Repos.Get(fmt.Sprintf("projects/%s/repos/%s", project, GetRepoName(project))).Do()
 		if err != nil {
-			log.Errorf("Fail to create repo %v", err)
-			return "", err
+			// repo does't exist in target project, create one
+			_, err = sourcerepoService.Projects.Repos.Create(fmt.Sprintf("projects/%s", project), &sourcerepo.Repo{
+				Name: fmt.Sprintf("projects/%s/repos/%s", project, GetRepoName(project)),
+			}).Do()
+			return fmt.Errorf("repo %v doesn't exist, made create repo request: %v", GetRepoName(project), err)
 		}
+		return nil
+	}, bo)
+	if err != nil {
+		log.Errorf("Fail to create repo: %v", GetRepoName(project))
+		return "", err
 	}
 	err = os.Chdir(repoDir)
 	if err != nil {
@@ -784,7 +820,7 @@ func (s *ksServer) CloneRepoToLocal(project string, token string) (string, error
 func (s *ksServer) GetApp(project string, appName string, kfVersion string, token string) (*appInfo, string, error) {
 	repoDir, err := s.CloneRepoToLocal(project, token)
 	if err != nil {
-		return nil, "", err
+		log.Errorf("Cannot clone repo from cloud source repo")
 	}
 	appDir := path.Join(repoDir, GetRepoName(project), kfVersion, appName, KubeflowFolder)
 	_, err = s.fs.Stat(appDir)
@@ -868,12 +904,14 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 		log.Errorf("Failed getting GKE cluster config: %v", err)
 		return err
 	}
-	s.projectLocks[req.Project].Lock()
-	defer s.projectLocks[req.Project].Unlock()
-	a, repoDir, err := s.GetApp(req.Project, req.Name, req.KfVersion, req.Token)
-	defer os.RemoveAll(repoDir)
-	if err != nil {
-		return err
+	targetApp := req.AppInfo
+	repoDir := ""
+	if targetApp == nil {
+		targetApp, repoDir, err = s.GetApp(req.Project, req.Name, req.KfVersion, req.Token)
+		defer os.RemoveAll(repoDir)
+		if err != nil {
+			return err
+		}
 	}
 
 	bindAccount := req.Email
@@ -928,7 +966,7 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 	}
 
 	applyOptions := map[string]interface{}{
-		actions.OptionApp: a.App,
+		actions.OptionApp: targetApp.App,
 		actions.OptionClientConfig: &client.Config{
 			Overrides: &clientcmd.ConfigOverrides{},
 			Config:    clientcmd.NewDefaultClientConfig(cfg, &clientcmd.ConfigOverrides{}),
@@ -1082,29 +1120,6 @@ func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmana
 		return
 	}
 
-	if req.Apply {
-		components := []string{}
-		for _, comp := range req.AppConfig.Components {
-			components = append(components, comp.Name)
-		}
-		err = svc.Apply(ctx, ApplyRequest{
-			Name:        req.Name,
-			KfVersion:   getRegistryVersion(req, KubeflowRegName),
-			Environment: "default",
-			Components:  components,
-			Cluster:     req.Cluster,
-			Project:     req.Project,
-			Zone:        req.Zone,
-			Token:       req.Token,
-			Email:       req.Email,
-			SAClientId:  req.SAClientId,
-		})
-		if err != nil {
-			log.Errorf("Failed to apply app: %v", err)
-			deploymentFailure.Inc()
-			return
-		}
-	}
 	kfDeploymentsDoneCounter.Inc()
 	kfDeploymentsDoneRaw.Inc()
 	kfDeploymentLatencies.Observe(timeSinceStart(ctx).Seconds())
