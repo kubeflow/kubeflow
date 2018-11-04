@@ -762,16 +762,21 @@ func (s *ksServer) CloneRepoToLocal(project string, token string) (string, error
 		AccessToken: token,
 	})
 	sourcerepoService, err := sourcerepo.New(oauth2.NewClient(context.Background(), ts))
-	_, err = sourcerepoService.Projects.Repos.Get(fmt.Sprintf("projects/%s/repos/%s", project, GetRepoName(project))).Do()
-	if err != nil {
-		// repo does't exist in target project, create one
-		_, err = sourcerepoService.Projects.Repos.Create(fmt.Sprintf("projects/%s", project), &sourcerepo.Repo{
-			Name: fmt.Sprintf("projects/%s/repos/%s", project, GetRepoName(project)),
-		}).Do()
+	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2 * time.Second), 10)
+	err = backoff.Retry(func() error {
+		_, err = sourcerepoService.Projects.Repos.Get(fmt.Sprintf("projects/%s/repos/%s", project, GetRepoName(project))).Do()
 		if err != nil {
-			log.Errorf("Fail to create repo %v", err)
-			return "", err
+			// repo does't exist in target project, create one
+			_, err = sourcerepoService.Projects.Repos.Create(fmt.Sprintf("projects/%s", project), &sourcerepo.Repo{
+				Name: fmt.Sprintf("projects/%s/repos/%s", project, GetRepoName(project)),
+			}).Do()
+			return fmt.Errorf("repo %v doesn't exist, made create repo request: %v", GetRepoName(project), err)
 		}
+		return nil
+	}, bo)
+	if err != nil {
+		log.Errorf("Fail to create repo: %v", GetRepoName(project))
+		return "", err
 	}
 	err = os.Chdir(repoDir)
 	if err != nil {
