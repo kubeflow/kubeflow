@@ -79,8 +79,8 @@ createEnv() {
           echo "or by setting a default project in gcloud config"
           exit 1
         fi
-        echo PROJECT="${PROJECT}" >> ${ENV_FILE}
       fi
+      echo PROJECT="${PROJECT}" >> ${ENV_FILE}
 
       # GCP Zone
       if [ -z "$ZONE" ]; then
@@ -90,8 +90,8 @@ createEnv() {
           echo "or by setting a default zone in gcloud config"
           exit 1
         fi
-        echo ZONE=${ZONE} >> ${ENV_FILE}
       fi
+      echo ZONE=${ZONE} >> ${ENV_FILE}
 
       # GCP Email for cert manager
       if [ -z "$EMAIL" ]; then
@@ -101,8 +101,8 @@ createEnv() {
           echo "or by setting a default account in gcloud config"
           exit 1
         fi
-        echo EMAIL=${EMAIL} >> ${ENV_FILE}
       fi
+      echo EMAIL=${EMAIL} >> ${ENV_FILE}
 
       # TODO: Do we need to make PROJECT_NUMBER also a flag like --project-number
       if [ -z "${PROJECT_NUMBER}" ]; then
