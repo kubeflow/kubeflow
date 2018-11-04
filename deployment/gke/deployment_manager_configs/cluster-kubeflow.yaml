@@ -29,8 +29,9 @@ resources:
   properties:
     # You need to use a zone with Broadwell because that's what TFServing requires.
     zone: SET_THE_ZONE
-    # We need to set the initialCluserVersion to prevent auto upgrading
-    cluster-version: SET_CLUSTER_VERSION
+    # "1.X": picks the highest valid patch+gke.N patch in the 1.X version
+    # https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters
+    cluster-version: "1.10"
     # Set this to v1beta1 to use beta features such as private clusterss
     # and the Kubernetes stackdriver agents.
     gkeApiVersion: v1
