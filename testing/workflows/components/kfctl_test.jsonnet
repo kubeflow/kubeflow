@@ -157,6 +157,8 @@ local dagTemplates = [
         "gcp",
         "--project",
         project,
+        "--zone",
+        "us-east1-d",
         // Temporary fix for https://github.com/kubeflow/kubeflow/issues/1562
         "--skipInitProject",
       ],
