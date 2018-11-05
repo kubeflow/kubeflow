@@ -115,6 +115,7 @@ class App extends React.Component<any, { signedIn: boolean }> {
                     <li> Follow these
                          <a href="https://www.kubeflow.org/docs/started/getting-started-gke/#create-oauth-client-credentials"
                             style={{ color: 'inherit', marginLeft: 5 }}
+                            target="_blank"
                          >
                          instructions</a> to create an OAuth client and
                          then enter as Web App Client ID and Secret</li>
@@ -134,7 +135,8 @@ class App extends React.Component<any, { signedIn: boolean }> {
                      </li>
                      <li> If you don't want to delegate a credential to the service please use our
                           <a href="https://www.kubeflow.org/docs/started/getting-started-gke/"
-                            style={{ color: 'inherit', marginLeft: 5 }}
+                             style={{ color: 'inherit', marginLeft: 5 }}
+                             target="_blank"
                           >CLI to deploy Kubeflow</a>
                      </li>
                      <li> <a style={{ color: 'inherit', marginLeft: 5 }} href="https://policies.google.com/terms">Terms</a>
