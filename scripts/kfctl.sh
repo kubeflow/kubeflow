@@ -68,7 +68,7 @@ createEnv() {
             ;;
         esac
         shift
-	  done
+      done
 
       echo KUBEFLOW_PLATFORM=gke >> ${ENV_FILE}
       # GCP Project
@@ -193,7 +193,7 @@ if [ "${COMMAND}" == "init" ]; then
   fi
 
   if [ -z "${PLATFORM}" ]; then
-	echo "--platform must be provided"
+    echo "--platform must be provided"
     echo "usage: kfctl init <PLATFORM>"
     exit 1
   fi
@@ -202,7 +202,10 @@ if [ "${COMMAND}" == "init" ]; then
   # TODO(jlewi): How can we skip GCP project setup? Add a command line argument
   # to skip it?
   if [ "${PLATFORM}" == "gcp" ]; then
-    if [ ! ${SKIP_INIT_PROJECT} ]; then
+    if ${SKIP_INIT_PROJECT}; then
+      echo "skipping project initialization"
+    else
+      echo initializing project
       gcpInitProject
     fi
   fi
@@ -282,7 +285,7 @@ source "${ENV_FILE}"
 
 if [ "${COMMAND}" == "generate" ]; then
   if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ]; then
-  	if [ "${PLATFORM}" == "gcp" ]; then
+    if [ "${PLATFORM}" == "gcp" ]; then
       generateDMConfigs
       downloadK8sManifests
     fi
@@ -311,7 +314,7 @@ fi
 
 if [ "${COMMAND}" == "apply" ]; then
   if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ] ; then
-  	if [ "${PLATFORM}" == "gcp" ]; then
+    if [ "${PLATFORM}" == "gcp" ]; then
       updateDM
       createSecrets
     fi
