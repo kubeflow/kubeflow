@@ -122,8 +122,8 @@
         "monitoring_config.txt": std.join("\n", [
           "prometheus_config: {",
           "  enable: true,",
-          "  path: \"/monitoring/prometheus/metrics\"",
-          "}"
+          '  path: "/monitoring/prometheus/metrics"',
+          "}",
         ]),
       },
     },  // tfservingConfig
