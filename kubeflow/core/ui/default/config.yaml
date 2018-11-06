@@ -21,5 +21,20 @@ spawnerFormDefaults:
     value: '1.0'
   memory:
     value: 1.0Gi
+  workspaceVolume:
+    value:
+      type:
+        value: New
+      name:
+        value: workspace
+      size:
+        value: '10'
+      mountPath:
+        readOnly: true
+        value: /home/jovyan
+      accessModes:
+        value: ReadWriteOnce
+  dataVolumes:
+    value: []
   extraResources:
     value: ''

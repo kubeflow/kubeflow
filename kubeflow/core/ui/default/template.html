@@ -7,15 +7,24 @@
 
 {% block javascript %}
   <script type="text/javascript">
+    var existingPVCs = {{ existing_pvcs|tojson }};
     var formDefaults = {{ form_defaults|tojson }};
     {% include "script.js" %}
   </script>
 {% endblock %}
 
 {% block header %}
-<div class="panel-info">
-  <div class="panel-heading">Fill out the form to customize your Jupyter Notebook.</div>
-</div>
+  <div class="panel-info">
+    <div class="panel-heading">Fill out the form to customize your Jupyter Notebook.</div>
+  </div>
+{% endblock %}
+
+{% block existing_pvcs %}
+  <datalist id="suggest_pvcs">
+    {% for pvc in existing_pvcs %}
+      <option value="{{ pvc.name }}">
+    {% endfor %}
+  </datalist>
 {% endblock %}
 
 {% block image %}
@@ -80,6 +89,94 @@
   </div>
   {% endblock %}
 
+  {% block workspaceVolume %}
+  <!-- Workspace Volume -->
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <i class="fas fa-laptop-code" style="padding: 0px 2px;"></i>
+      <label>Workspace Volume</label>
+    </div>
+    <div class="panel-body" id="workspace_volume">
+        <div class="col-sm-2"><label>Type</label></div>
+        <div class="col-sm-3" style="width: 22.5%"><label>Name</label></div>
+        <div class="col-sm-2" style="width: 12.5%"><label>Size (Gi)</label></div>
+        <div class="col-sm-3"><label>Mount Path</label></div>
+        <div class="col-sm-2" style="width: 14%"><label>Access Mode</label></div>
+        <div class="col-sm-*">
+        <div class="col-sm-2">
+          <select class="form-control" name="ws_type" id="ws_type">
+            <option selected>New</option>
+            <option>Existing</option>
+          </select>
+        </div>
+        <div class="col-sm-3" style="width: 22.5%">
+          <input class="form-control" name="ws_name" id="ws_name"
+                 placeholder='workspace' list="suggest_pvcs_disabled">
+          </input>
+        </div>
+        <div class="col-sm-2" style="width: 12.5%">
+          <input class="form-control" name="ws_size" id="ws_size" placeholder='10'
+                 type="number" step="0.5" min="0">
+          </input>
+        </div>
+        <div class="col-sm-3">
+          <input class="form-control" id="ws_mount_path" name="ws_mount_path" data-toggle="tooltip"
+                 title="Your Workspace is always mounted under /home/jovyan">
+          </input>
+        </div>
+        <div class="col-sm-2" style="width: 14%">
+          <select class="form-control" id="ws_access_modes" name="ws_access_modes">
+            <option value="ReadWriteOnce">RWO</option>
+            <option value="ReadWriteMany">RWX</option>
+            <option value="ReadOnlyMany">ROX</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <p class="text-muted" style="padding: 10px;">
+      Configure the Volume to be mounted as your personal Workspace.</br>
+      For example, to create an empty Workspace:
+      <span><code>New</code></span>
+      <span><code>workspace</code></span>,
+      <span><code>10</code></span>,
+      <span><code>/home/jovyan</code></span>,
+      <span><code>RWO</code></span>
+    </p>
+  </div>
+  {% endblock %}
+
+  {% block dataVolumes %}
+  <!-- Data Volumes -->
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <i class="far fa-hdd" style="padding: 0px 2px;"></i>
+      <label>Data Volumes</label>
+    </div>
+    <div class="panel-body">
+      <div class="col-sm-2"><label>Type</label></div>
+      <div class="col-sm-3" style="width: 22.5%"><label>Name</label></div>
+      <div class="col-sm-2" style="width: 12.5%"><label>Size (Gi)</label></div>
+      <div class="col-sm-3"><label>Mount Path</label> </div>
+      <div class="col-sm-2" style="width: 14%"><label>Access Mode</label></div>
+      <div class="col-sm-*" id="data_volumes"></div>
+      <div class="col-sm-2">
+        <button id="add_volume" class="btn btn-success btn-sm" type="button" onclick="addVolume();">
+          <i class="fas fa-plus"></i>
+        </button>
+      </div>
+    </div>
+    <p class="text-muted" style="padding: 10px;">
+      Configure the Volumes to be mounted as your Datasets.</br>
+      For example, to create an empty Data Volume:
+      <span><code>New</code></span>,
+      <span><code>volume-1</code></span>,
+      <span><code>5</code></span>,
+      <span><code>/data/volume-1</code></span>,
+      <span><code>RWO</code></span>
+    </p>
+  </div>
+  {% endblock %}
+
   {% block extra_resources %}
   <!-- Extra Resources -->
   <div class="panel panel-primary">
@@ -105,6 +202,7 @@
 {% block footer %}
 <div class="panel-warning">
   <div class="panel-heading">
-    In case your Jupyter Notebook does not start, make sure that the resource quotas you specified are available in the cluster.</div>
+    In case your Jupyter Notebook does not start, make sure that the resource quotas you specified are available in the cluster.
+  </div>
 </div>
 {% endblock %}
