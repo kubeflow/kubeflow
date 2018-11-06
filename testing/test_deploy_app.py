@@ -31,6 +31,8 @@ SERVICE_HEALTH = Gauge('deployment_service_status',
                        '0: normal; 1: deployment not successful; 2: service down')
 PROBER_HEALTH = Gauge('prober_health',
                       '0: normal; 1: not working')
+LOADTEST_HEALTH = Gauge('loadtest_health',
+                        '0: normal; 1: not working')
 SUCCESS_COUNT = Counter('deployment_success_count', 'accumulative count of successful deployment')
 FAILURE_COUNT = Counter('deployment_failure_count', 'accumulative count of failed deployment')
 
@@ -42,7 +44,7 @@ def may_get_env_var(name):
   else:
     raise Exception("%s not set" % name)
 
-def prepare_request_data(args):
+def prepare_request_data(args, deployment):
   logging.info("prepare deploy call data")
   with open(os.path.join(FILE_PATH, "../bootstrap/config/gcp_prototype.yaml"), 'r') as conf_input:
     defaultApp = yaml.load(conf_input)["app"]
@@ -51,9 +53,9 @@ def prepare_request_data(args):
     if param["name"] == "acmeEmail":
       param["value"] = args.email
     if param["name"] == "ipName":
-      param["value"] = args.deployment + "-ip"
+      param["value"] = deployment + "-ip"
     if param["name"] == "hostname":
-      param["value"] = "%s.endpoints.%s.cloud.goog" % (args.deployment, args.project)
+      param["value"] = "%s.endpoints.%s.cloud.goog" % (deployment, args.project)
   defaultApp['registries'][0]['version'] = args.kfverison
 
   access_token = util_run('gcloud auth application-default print-access-token'.split(' '), cwd=FILE_PATH)
@@ -67,10 +69,10 @@ def prepare_request_data(args):
     "AutoConfigure": True,
     "ClientId": base64.b64encode(client_id.encode()).decode("utf-8"),
     "ClientSecret": base64.b64encode(client_secret.encode()).decode("utf-8"),
-    "Cluster": args.deployment,
+    "Cluster": deployment,
     "Email": args.email,
-    "IpName": args.deployment + '-ip',
-    "Name": args.deployment,
+    "IpName": deployment + '-ip',
+    "Name": deployment,
     "Namespace": 'kubeflow',
     "Project": args.project,
     "ProjectNumber": args.project_number,
@@ -81,7 +83,7 @@ def prepare_request_data(args):
   }
 
 def make_e2e_call(args):
-  req_data = prepare_request_data(args)
+  req_data = prepare_request_data(args. args.deployment)
   resp = requests.post("http://kubeflow-controller.%s.svc.cluster.local:8080/kfctl/e2eDeploy" % args.namespace,
                        json=req_data)
   if resp.status_code != 200:
@@ -91,7 +93,7 @@ def make_e2e_call(args):
 # Make 1 deployment request to serive url, return if request call successful.
 def make_prober_call(args, service_account_credentials):
   logging.info("start new prober call")
-  req_data = prepare_request_data(args)
+  req_data = prepare_request_data(args, args.deployment)
   google_open_id_connect_token = get_google_open_id_connect_token(
     service_account_credentials)
   try:
@@ -110,7 +112,7 @@ def make_prober_call(args, service_account_credentials):
   return True
 
 # Insert ssl cert into GKE cluster
-def insert_ssl_cert(args):
+def insert_ssl_cert(args, deployment):
   logging.info("Wait till deployment is done and GKE cluster is up")
   credentials = GoogleCredentials.get_application_default()
 
@@ -120,7 +122,7 @@ def insert_ssl_cert(args):
   while datetime.datetime.now() < end_time:
     sleep(5)
     try:
-      request = service.deployments().get(project=args.project, deployment=args.deployment)
+      request = service.deployments().get(project=args.project, deployment=deployment)
       response = request.execute()
       if response['operation']['status'] != 'DONE':
         logging.info("Deployment running")
@@ -130,27 +132,28 @@ def insert_ssl_cert(args):
       continue
     break
 
-  if os.path.exists(SSL_DIR):
-    shutil.rmtree(SSL_DIR)
-  os.mkdir(SSL_DIR)
+  ssl_local_dir = os.path.join(SSL_DIR, deployment)
+  if os.path.exists(ssl_local_dir):
+    shutil.rmtree(ssl_local_dir)
+  os.mkdir(ssl_local_dir)
   logging.info("donwload ssl cert and insert to GKE cluster")
   try:
     # TODO: switch to client lib
-    util_run(("gsutil cp gs://%s/%s/* %s" % (SSL_BUCKET, args.mode, SSL_DIR)).split(' '))
+    util_run(("gsutil cp gs://%s/%s/* %s" % (SSL_BUCKET, args.mode, ssl_local_dir)).split(' '))
   except Exception:
     logging.warning("ssl cert for %s doesn't exist in gcs" % args.mode)
     return True
   try:
-    create_secret(args)
+    create_secret(args, deployment)
   except Exception as e:
     logging.error(e)
     return False
   return True
 
 @retry(wait_fixed=2000, stop_max_delay=15000)
-def create_secret(args):
+def create_secret(args, deployment):
   util_run(("gcloud container clusters get-credentials %s --zone %s --project %s" %
-            (args.deployment, args.zone, args.project)).split(' '))
+            (deployment, args.zone, args.project)).split(' '))
   util_run(("kubectl create -f %s" % SSL_DIR).split(' '))
 
 def check_deploy_status(args):
@@ -245,7 +248,7 @@ def delete_gcloud_resource(args, keyword, filter='', dlt_params=[]):
       logging.warning(e)
 
 # clean up deployment / app config from previous test
-def prober_clean_up_resource(args):
+def prober_clean_up_resource(args, deployments):
   logging.info("Clean up project resource (source repo, backend service and deployment)")
 
   # Delete source repo
@@ -259,18 +262,19 @@ def prober_clean_up_resource(args):
   credentials = GoogleCredentials.get_application_default()
   service = discovery.build('deploymentmanager', 'v2', credentials=credentials)
   delete_done = False
-  try:
-    request = service.deployments().delete(project=args.project, deployment=args.deployment)
-    response = request.execute()
-  except Exception as e:
-    logging.info("Deployment doesn't exist, continue")
+  for deployment in deployments:
+    try:
+      request = service.deployments().delete(project=args.project, deployment=deployment)
+      request.execute()
+    except Exception as e:
+      logging.info("Deployment doesn't exist, continue")
   # wait up to 10 minutes till delete finish.
   end_time = datetime.datetime.now() + datetime.timedelta(minutes=10)
   while datetime.datetime.now() < end_time:
     sleep(10)
     request = service.deployments().list(project=args.project)
     response = request.execute()
-    if ('deployments' not in response) or (args.deployment not in [d['name'] for d in response['deployments']]):
+    if ('deployments' not in response) or (len(set(deployments) & set(d['name'] for d in response['deployments'])) == 0):
       delete_done = True
       break
 
@@ -340,6 +344,39 @@ def util_run(command,
 
   return "\n".join(output)
 
+def run_load_test(args):
+  start_http_server(8000)
+  SERVICE_HEALTH.set(0)
+  LOADTEST_HEALTH.set(0)
+  service_account_credentials = get_service_account_credentials("SERVICE_CLIENT_ID")
+  while True:
+    sleep(args.wait_sec)
+    if not prober_clean_up_resource(args):
+      PROBER_HEALTH.set(1)
+      FAILURE_COUNT.inc()
+      logging.error("request cleanup failed, retry in %s seconds" % args.wait_sec)
+      continue
+    PROBER_HEALTH.set(0)
+    if make_prober_call(args, service_account_credentials):
+      if insert_ssl_cert(args):
+        PROBER_HEALTH.set(0)
+      else:
+        PROBER_HEALTH.set(1)
+        FAILURE_COUNT.inc()
+        logging.error("request insert_ssl_cert failed, retry in %s seconds" % args.wait_sec)
+        continue
+      if check_deploy_status(args) == 200:
+        SERVICE_HEALTH.set(0)
+        SUCCESS_COUNT.inc()
+      else:
+        SERVICE_HEALTH.set(1)
+        FAILURE_COUNT.inc()
+    else:
+      SERVICE_HEALTH.set(2)
+      FAILURE_COUNT.inc()
+      logging.error("prober request failed, retry in %s seconds" % args.wait_sec)
+
+
 # Clone repos to tmp folder and build docker images
 def main(unparsed_args=None):
   parser = argparse.ArgumentParser(
@@ -399,7 +436,7 @@ def main(unparsed_args=None):
     "--mode",
     default="e2e",
     type=str,
-    help="offer three test mode: e2e, prober, and load_test")
+    help="offer three test mode: e2e, prober, and loadtest")
 
   args = parser.parse_args(args=unparsed_args)
 
@@ -419,7 +456,7 @@ def main(unparsed_args=None):
     service_account_credentials = get_service_account_credentials("SERVICE_CLIENT_ID")
     while True:
       sleep(args.wait_sec)
-      if not prober_clean_up_resource(args):
+      if not prober_clean_up_resource(args, [args.deployment]):
         PROBER_HEALTH.set(1)
         FAILURE_COUNT.inc()
         logging.error("request cleanup failed, retry in %s seconds" % args.wait_sec)
@@ -443,6 +480,9 @@ def main(unparsed_args=None):
         SERVICE_HEALTH.set(2)
         FAILURE_COUNT.inc()
         logging.error("prober request failed, retry in %s seconds" % args.wait_sec)
+
+  if args.mode == "loadtest":
+    run_load_test(args)
 
 
 if __name__ == '__main__':
