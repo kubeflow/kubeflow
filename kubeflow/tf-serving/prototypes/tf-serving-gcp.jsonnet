@@ -13,6 +13,7 @@
 // @optionalParam httpProxyImage string gcr.io/kubeflow-images-public/tf-model-server-http-proxy:v20180723 Http proxy image
 // @optionalParam gcpCredentialSecretName string null If not empty, insert the secret credential
 // @optionalParam injectIstio string false Whether to inject istio sidecar; should be true or false.
+// @optionalParam enablePrometheus string true Whether to enable prometheus endpoint (requires TF 1.11)
 
 local k = import "k.libsonnet";
 local deployment = k.apps.v1beta1.deployment;
@@ -56,4 +57,5 @@ local tfDeployment = base.tfDeployment +
                      );
 util.list([
   tfDeployment,
+  base.tfservingConfig,
 ],)
