@@ -16,6 +16,9 @@ libraries:
   tf-serving:
     version: master
     path: tf-serving
+  openvino:
+    version: master
+    path: openvino
   argo:
     version: master
     path: argo
