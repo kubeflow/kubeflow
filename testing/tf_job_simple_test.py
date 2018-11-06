@@ -42,7 +42,7 @@ def parse_args():
     help="The kubeflow src directory")
   parser.add_argument(
     "--tf_job_version",
-    default="v1alpha1",
+    default="v1beta1",
     type=str,
     help="Which TFJob version to use")
   args, _ = parser.parse_known_args()
@@ -78,8 +78,8 @@ def create_app_and_job(args, namespace, name):
 
   if args.tf_job_version == "v1alpha2":
     prototype_name = "tf-job-simple"
-  elif args.tf_job_version == "v1alpha1":
-    prototype_name = "tf-job-simple-v1alpha1"
+  elif args.tf_job_version == "v1beta1":
+    prototype_name = "tf-job-simple-v1beta1"
   else:
     raise ValueError("Unrecognized value for tf_job_version: %s" %
                      args.tf_job_version)

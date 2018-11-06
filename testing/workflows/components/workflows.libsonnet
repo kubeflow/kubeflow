@@ -202,7 +202,7 @@
         dependencies: null,
       },  // wait-for-kubeflow
       {
-        local v1alpha2Suffix = "-v1a2",
+        local v1beta1Suffix = "-v1b1",
         template: tests.buildTemplate {
           name: "tfjob-test",
           command: [
@@ -210,7 +210,7 @@
             "-m",
             "py.simple_tfjob_tests",
             "--app_dir=" + tests.tfOperatorRoot + "/test/workflows",
-            "--tfjob_version=v1alpha2",
+            "--tfjob_version=v1beta1",
             // Name is used for the test case name so it should be unique across
             // all E2E tests.
             "--params=name=smoke-tfjob-" + tests.platform + ",namespace=" + tests.stepsNamespace,
@@ -287,7 +287,7 @@
             "-m",
             "testing.tf_job_simple_test",
             "--src_dir=" + tests.srcDir,
-            "--tf_job_version=v1alpha2",
+            "--tf_job_version=v1beta1",
             "--test_dir=" + tests.testDir,
             "--artifacts_dir=" + tests.artifactsDir,
           ],
@@ -348,7 +348,7 @@
       local bootstrapperImage = "gcr.io/kubeflow-ci/bootstrapper:" + name;
       // The last 4 digits of the name should be a unique id.
       local deploymentName = "e2e-" + std.substr(name, std.length(name) - 4, 4);
-      local v1alpha2Suffix = "-v1a2";
+      local v1beta1Suffix = "-v1b1";
 
       // The name of the NFS volume claim to use for test files.
       local nfsVolumeClaim = "nfs-external";
@@ -528,7 +528,7 @@
                     {},
                   {
                     name: "tfjob-test",
-                    template: "tfjob-test" + v1alpha2Suffix
+                    template: "tfjob-test" + v1beta1Suffix
                     ,
                     dependencies: [
                       "deploy-kubeflow",
@@ -654,9 +654,9 @@
               "-m",
               "testing.tf_job_simple_test",
               "--src_dir=" + srcDir,
-              "--tf_job_version=v1alpha2",
+              "--tf_job_version=v1beta1",
             ]),  // tfjob-simple-prototype-test
-            buildTemplate("tfjob-test" + v1alpha2Suffix, [
+            buildTemplate("tfjob-test" + v1beta1Suffix, [
               "python",
               "-m",
               "py.simple_tfjob_tests",
@@ -664,7 +664,7 @@
               "--zone=" + zone,
               "--project=" + project,
               "--app_dir=" + tfOperatorRoot + "/test/workflows",
-              "--tfjob_version=v1alpha2",
+              "--tfjob_version=v1beta1",
               // Name is used for the test case name so it should be unique across
               // all E2E tests.
               "--params=name=simple-tfjob-" + platform + ",namespace=" + stepsNamespace,
