@@ -445,6 +445,19 @@
                               ],
                             },
                           },
+                          // Routing with Istio
+                          {
+                            timeout_ms: 10000,
+                            prefix: "/istio",
+                            weighted_clusters: {
+                              clusters: [
+                                {
+                                  name: "cluster_istiogateway",
+                                  weight: 100.0,
+                                },
+                              ],
+                            },
+                          },
                           {
                             // Route remaining traffic to Ambassador which supports dynamically adding
                             // routes based on service annotations.
@@ -577,6 +590,18 @@
                   url: "tcp://tf-job-dashboard." + params.namespace + ":80",
                 },
 
+              ],
+            },
+            // Istio's gateway
+            {
+              name: "cluster_istiogateway",
+              connect_timeout_ms: 3000,
+              type: "strict_dns",
+              lb_type: "round_robin",
+              hosts: [
+                {
+                  url: "tcp://istio-ingressgateway.istio-system:80",
+                },
               ],
             },
             {

@@ -29,6 +29,7 @@ type ServerOption struct {
 	AppDir               string
 	Config               string
 	Email                string
+	GkeVersionOverride   string
 	NameSpace            string
 	RegistriesConfigFile string
 }
@@ -47,6 +48,7 @@ func (s *ServerOption) AddFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&s.JsonLogFormat, "json-log-format", true, "Set true to use json style log format. Set false to use plaintext style log format")
 	fs.IntVar(&s.Port, "port", 8080, "The port to use when running an http server.")
 	fs.StringVar(&s.AppDir, "app-dir", "/opt/bootstrap", "The directory for the ksonnet applications.")
+	fs.StringVar(&s.GkeVersionOverride, "gke-version-override", "", "Override GKE master version only when GKE latest breaks")
 	fs.StringVar(&s.NameSpace, "namespace", "kubeflow", "The namespace where all resources for kubeflow will be created")
 	fs.BoolVar(&s.Apply, "apply", false, "Whether or not to apply the configuration.")
 
