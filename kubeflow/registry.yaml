@@ -13,6 +13,9 @@ libraries:
   core:
     version: master
     path: core
+  jupyterhub:
+    version: master
+    path: jupyterhub
   tf-serving:
     version: master
     path: tf-serving

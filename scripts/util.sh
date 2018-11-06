@@ -51,6 +51,7 @@ function createKsApp() {
   ks pkg install kubeflow/argo
   ks pkg install kubeflow/core
   ks pkg install kubeflow/examples
+  ks pkg install kubeflow/jupyterhub
   ks pkg install kubeflow/katib
   ks pkg install kubeflow/mpi-job
   ks pkg install kubeflow/pytorch-job

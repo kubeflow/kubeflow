@@ -1,4 +1,4 @@
-local jupyterhub = import "kubeflow/core/jupyterhub.libsonnet";
+local jupyterhub = import "kubeflow/jupyterhub/jupyterhub.libsonnet";
 
 local params = {
   name: "jupyterhub",
