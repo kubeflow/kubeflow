@@ -13,6 +13,20 @@
       "spawner_ui_config.yaml": importstr "ui/default/config.yaml",
     },
 
+    local rokSpawnerData = {
+      // Base files that Rok UI extends or overrides
+      "default_template.html": importstr "ui/default/template.html",
+      "default_style.css": importstr "ui/default/style.css",
+      "default_spawner.py": importstr "ui/default/spawner.py",
+
+      // Rok UI files
+      "template.html": importstr "ui/rok/template.html",
+      "script.js": importstr "ui/rok/script.js",
+      "style.css": importstr "ui/rok/style.css",
+      "spawner.py": importstr "ui/rok/spawner.py",
+      "spawner_ui_config.yaml": importstr "ui/rok/config.yaml",
+    },
+
     local kubeSpawnerConfig = {
       apiVersion: "v1",
       kind: "ConfigMap",
@@ -24,7 +38,9 @@
       local config = {
         "jupyterhub_config.py": importstr "jupyterhub_config.py",
       },
-      data: config + if params.ui == "default" then defaultSpawnerData,
+      data: config +
+            if params.ui == "rok" then rokSpawnerData
+            else if params.ui == "default" then defaultSpawnerData,
     },
     kubeSpawnerConfig:: kubeSpawnerConfig,
 
@@ -219,6 +235,7 @@
           resources: [
             "pods",
             "persistentvolumeclaims",
+            "secrets",
           ],
           verbs: [
             "get",
@@ -226,6 +243,7 @@
             "list",
             "create",
             "delete",
+            "patch",
           ],
         },
         {

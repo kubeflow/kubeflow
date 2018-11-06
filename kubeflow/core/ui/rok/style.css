@@ -1,0 +1,15 @@
+.panel-default {
+  margin: 5px 0px;
+}
+
+.panel-default>.panel-heading {
+  padding-bottom: 4.5px;
+}
+
+input.invalid {
+  border-color: #dc3545!important;
+}
+
+input.valid {
+  border-color: #28A744!important;
+}

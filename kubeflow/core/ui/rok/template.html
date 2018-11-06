@@ -1,0 +1,157 @@
+{% extends "default_template.html" %}
+
+{% block css %}
+  {{ super() }}
+  <style type="text/css">
+    {% include "default_style.css" %}
+  </style>
+{% endblock %}
+
+{% block javascript %}
+  <script type="text/javascript">
+    var formDefaults = {{ form_defaults|tojson }};
+    {% include "script.js" %}
+  </script>
+{% endblock %}
+
+{% block existing_pvcs %}
+{% endblock %}
+
+{% block header %}
+  <!-- Rok Token -->
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <i class="fas fa-key" ></i>
+      <label>Rok Token</label>
+    </div>
+    <div class="panel-body" style="padding: 10px;">
+      <input class="form-control" id='rokToken' name='rokToken' type='password'
+             placeholder='Your Rok Token goes here'>
+      </input>
+    </div>
+    <p class="text-muted" style="padding: 10px;">
+      The token that will be used to authenticate you with Rok.
+    </p>
+  </div>
+
+  <div class="panel-info">
+    <div class="panel-heading">
+      Provide a Rok Lab URL to autofill the form and clone a whole Jupyter Lab environment.</br>
+      This will overwrite any existing Volume configuration.
+    </div>
+  </div>
+
+  <!-- Rok Lab URL -->
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <i class="fas fa-link"></i>
+      <label>Rok Jupyter Lab URL</label>
+    </div>
+    <div class="panel-body" style="padding: 10px;">
+      <div class="col-sm-*">
+        <input class="form-control col-sm-10" id='rokLabURL' style="width: 90%"
+               name='rokLabURL' placeholder='Your Rok Jupyter Lab URL goes here'>
+        </input>
+        <div class="col-sm-1" style="width: 10%;">
+          <button type="button" id="autofill" class="btn btn-primary">Autofill</button>
+        </div>
+        <div id="rok_lab_url_error_text" hidden class="col-sm-10" style="padding-left: 0px;">
+          <span class="help-block alert-danger" style="padding: 10px; width: 61%">
+            Could not retrieve Lab. Please retry with a valid Rok Jupyter Lab URL.
+          </span>
+        </div>
+        <div id="rok_lab_url_success_text" hidden class="col-sm-10" style="padding-left: 0px;">
+          <span class="help-block alert-success" style="padding: 10px; width: 50%">
+            Successfully retrieved details from Rok Jupyter Lab URL.
+          </span>
+        </div>
+      </div>
+    </div>
+    <p class="text-muted" style="padding: 10px;">
+      Load an existing Jupyter Lab by providing a valid Rok URL.
+    </p>
+  </div>
+  {{ super() }}
+{% endblock %}
+
+{% block workspaceVolume %}
+<div class="panel panel-primary">
+  <div class="panel-heading">
+    <i class="fas fa-laptop-code" style="padding: 0px 2px;"></i>
+    <label>Workspace Volume</label>
+  </div>
+  <div class="panel-body" id="workspace_volume">
+      <div class="col-sm-2" style="width: 15%"><label>Type</label></div>
+      <div class="col-sm-2" style="width: 27.5%"><label>Rok URL</label></div>
+      <div class="col-sm-3" style="width: 20%"><label>Name</label></div>
+      <div class="col-sm-2" style="width: 12.5%"><label>Size (Gi)</label></div>
+      <div class="col-sm-3" style="width: 20%"><label>Mount Path</label></div>
+      <div class="col-sm-*">
+      <div class="col-sm-2" style="width: 15%">
+        <select class="form-control" name="ws_type" id="ws_type">
+          <option>New</option>
+          <option>Existing</option>
+        </select>
+      </div>
+      <div class="col-sm-2" style="width: 27.5%">
+        <input class="form-control" name="ws_rok_url" id="ws_rok_url"
+               placeholder='Rok Volume URL'>
+        </input>
+      </div>
+      <div class="col-sm-3" style="width: 20%">
+        <input class="form-control" name="ws_name" id="ws_name"
+               placeholder='workspace'>
+        </input>
+      </div>
+      <div class="col-sm-2" style="width: 12.5%">
+        <input class="form-control" name="ws_size" id="ws_size" placeholder='10'
+               type="number" step="0.5" min="0">
+        </input>
+      </div>
+      <div class="col-sm-3" style="width: 20%">
+        <input class="form-control" id="ws_mount_path" name="ws_mount_path" data-toggle="tooltip"
+               title="Your Workspace is always mounted under /home/jovyan">
+        </input>
+      </div>
+    </div>
+  </div>
+  <p class="text-muted" style="padding: 10px;">
+    Configure the Volume to be mounted as your personal Workspace.</br>
+    For example, to create an empty Workspace:
+    <span><code>New</code></span>,
+    <span><code>workspace</code></span>,
+    <span><code>10</code></span>,
+    <span><code>/home/jovyan</code></span>
+  </p>
+</div>
+{% endblock %}
+
+{% block dataVolumes %}
+<div class="panel panel-primary">
+  <div class="panel-heading">
+    <i class="far fa-hdd" style="padding: 0px 2px;"></i>
+    <label>Data Volumes</label>
+  </div>
+  <div class="panel-body">
+    <div class="col-sm-2" style="width: 15%"><label>Type</label></div>
+    <div class="col-sm-2" style="width: 27.5%"><label>Rok URL</label></div>
+    <div class="col-sm-3" style="width: 20%"><label>Name</label></div>
+    <div class="col-sm-2" style="width: 12.5%"><label>Size (Gi)</label></div>
+    <div class="col-sm-3" style="width: 20%"><label>Mount Path</label></div>
+    <div class="col-sm-*" id="data_volumes"></div>
+    <div class="col-sm-2">
+      <button id="add_volume" class="btn btn-success btn-sm" type="button" onclick="addVolume();">
+        <i class="fas fa-plus"></i>
+      </button>
+    </div>
+  </div>
+  <p class="text-muted" style="padding: 10px;">
+    Configure the Volumes to be mounted as your Datasets.</br>
+    For example, to create an empty Data Volume:
+    <span><code>New</code></span>,
+    <span><code>volume-1</code></span>,
+    <span><code>5</code></span>,
+    <span><code>/data/volume-1</code></span>
+  </p>
+</div>
+{% endblock %}
