@@ -67,9 +67,10 @@ func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) (*de
 		dmconf.Resources[0].Name = req.Name
 		dmconf.Resources[0].Properties["zone"] = req.Zone
 		dmconf.Resources[0].Properties["ipName"] = req.IpName
-		// "1.X": picks the highest valid patch+gke.N patch in the 1.X version
 		// https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters
-		dmconf.Resources[0].Properties["cluster-version"] = "1.10"
+		if s.gkeVersionOverride != "" {
+			dmconf.Resources[0].Properties["cluster-version"] = s.gkeVersionOverride
+		}
 	}
 	confByte, err := yaml.Marshal(dmconf)
 	if err != nil {
@@ -228,8 +229,9 @@ func (s *ksServer) ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) erro
 		log.Errorf("Cannot create resource manager client: %v", err)
 		return err
 	}
-	s.serverMux.Lock()
-	defer s.serverMux.Unlock()
+	projLock := s.GetProjectLock(req.Project)
+	projLock.Lock()
+	defer projLock.Unlock()
 
 	retry := 0
 	for retry < 5 {
