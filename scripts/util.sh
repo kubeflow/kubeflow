@@ -61,18 +61,6 @@ function createKsApp() {
   ks pkg install kubeflow/profiles
   ks pkg install kubeflow/application
 
-  # Create modules - groupings of components
-  ks module create ui
-  ks module create services
-  ks module create notebooks
-
-  # Generate components into above modules
-  ks generate ambassador ambassador --ambassadorServiceType=LoadBalancer --platform=${KUBEFLOW_PLATFORM} --module services
-  ks generate centraldashboard centraldashboard --module ui
-  ks generate metacontroller metacontroller --module notebooks
-  ks generate profiles profiles --module notebooks
-  ks generate notebooks notebooks --module notebooks
-
   # Generate all required components
   ks generate pytorch-operator pytorch-operator
   ks generate ambassador ambassador
