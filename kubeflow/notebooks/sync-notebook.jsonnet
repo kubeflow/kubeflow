@@ -8,44 +8,44 @@ function(request) {
     containers: [
       {
         args: [
-          'start.sh',
-          'jupyter',
-          'lab',
+          "start.sh",
+          "jupyter",
+          "lab",
           "--LabApp.token=''",
           "--LabApp.allow_remote_access='True'",
           "--LabApp.allow_root='True'",
           "--LabApp.ip='*'",
-          "--LabApp.base_url='/'${name}",
-          '--port=8888',
-          '--no-browser',
+          "--LabApp.base_url='/'" + template.metadata.name,
+          "--port=8888",
+          "--no-browser",
         ],
         env: [
           {
-            name: 'JUPYTER_ENABLE_LAB',
-            value: 'true',
+            name: "JUPYTER_ENABLE_LAB",
+            value: "true",
           },
         ],
-        image: 'gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu:v0.3.0',
-        imagePullPolicy: 'IfNotPresent',
-        name: 'notebook',
+        image: "gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu:v0.3.0",
+        imagePullPolicy: "IfNotPresent",
+        name: "notebook",
         ports: [
           {
             containerPort: 8888,
-            name: 'notebook-port',
-            protocol: 'TCP',
+            name: "notebook-port",
+            protocol: "TCP",
           },
         ],
         resources: {
           requests: {
-            cpu: '500m',
-            memory: '1Gi',
+            cpu: "500m",
+            memory: "1Gi",
           },
         },
-        workingDir: '/home/jovyan',
+        workingDir: "/home/jovyan",
       },
     ],
     ttlSecondsAfterFinished: 300,
-    restartPolicy: 'Always',
+    restartPolicy: "Always",
   },
 
   local children = [
