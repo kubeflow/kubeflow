@@ -61,16 +61,27 @@ function createKsApp() {
   ks pkg install kubeflow/profiles
   ks pkg install kubeflow/application
 
+  # Create modules - groupings of components
+  ks module create ui
+  ks module create services
+  ks module create notebooks
+
+  # Generate components into above modules
+  ks generate ambassador ambassador --ambassadorServiceType=LoadBalancer --platform=${KUBEFLOW_PLATFORM} --module services
+  ks generate centraldashboard centraldashboard --module ui
+  ks generate metacontroller metacontroller --module notebooks
+  ks generate profiles profiles --module notebooks
+  ks generate notebooks notebooks --module notebooks
+
   # Generate all required components
   ks generate pytorch-operator pytorch-operator
-  # TODO(jlewi): Why are we overloading the ambassador images here?
   ks generate ambassador ambassador
   ks generate jupyterhub jupyterhub
-  ks generate centraldashboard centraldashboard
+  ks generate centraldashboard centraldashboard 
   ks generate tf-job-operator tf-job-operator
   ks generate metacontroller metacontroller
-  ks generate notebooks notebooks
   ks generate profiles profiles
+  ks generate notebooks notebooks 
 
   ks generate argo argo
   ks generate katib katib

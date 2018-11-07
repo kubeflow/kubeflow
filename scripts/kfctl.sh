@@ -231,8 +231,9 @@ check_install kubectl
 
 # Generate all required components
 customizeKsApp() {
-  ks param set ambassador platform ${KUBEFLOW_PLATFORM}
-  ks param set jupyterhub platform ${KUBEFLOW_PLATFORM}
+  ks env add default --namespace "${K8S_NAMESPACE}"
+  ks param set ambassador platform ${KUBEFLOW_PLATFORM} --env default
+  ks param set jupyterhub platform ${KUBEFLOW_PLATFORM} --env default
 }
 
 ksApply () {
