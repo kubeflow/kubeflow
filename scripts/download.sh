@@ -7,7 +7,7 @@ set -ex
 
 
 if [ ! -z "${KUBEFLOW_VERSION}" ]; then
-	KUBEFLOW_TAG=v${KUBEFLOW_VERSION}
+    KUBEFLOW_TAG=v${KUBEFLOW_VERSION}
 fi
 
 KUBEFLOW_TAG=${KUBEFLOW_TAG:-master}

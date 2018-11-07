@@ -15,7 +15,7 @@ ROOT_DIR="$( cd ${DIR}/.. && pwd )"
 
 IMAGES_FILE=${ROOT_DIR}/releasing/image_tags.yaml
 
-# Assume the testing repo is checkout in git_kubeflow_testing because 
+# Assume the testing repo is checkout in git_kubeflow_testing because
 # we depend on the python code in that repo.
 export PYTHONPATH=${PYTHONPATH}:${ROOT_DIR}/../git_kubeflow-testing/py
 
@@ -26,9 +26,9 @@ NOTEBOOK_RELEASE=v0.3.0
 
 # Update the Jupyter Images
 sed -i "s/tensorflow-\([0-9\.]*\)-notebook-\(.*\):${OLD_NOTEBOOK_RELEASE}/tensorflow-\1-notebook-\2:${NOTEBOOK_RELEASE}/" \
-	kubeflow/core/kubeform_spawner.py 
+    kubeflow/core/kubeform_spawner.py
 
 # Update the TFJob operator image
 python scripts/update_prototype.py \
-	--file=${ROOT_DIR}/kubeflow/core/prototypes/all.jsonnet \
-	--values=tfJobImage=gcr.io/kubeflow-images-public/tf_operator:${RELEASE}
+    --file=${ROOT_DIR}/kubeflow/core/prototypes/all.jsonnet \
+    --values=tfJobImage=gcr.io/kubeflow-images-public/tf_operator:${RELEASE}

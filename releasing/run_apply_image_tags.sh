@@ -12,5 +12,5 @@ export PYTHONPATH=${PYTHONPATH}:${ROOT_DIR}/../git_kubeflow-testing/py
 
 # Update the TFJob operator image
 python ${ROOT_DIR}/releasing/apply_image_tags.py \
-	--images_file=${ROOT_DIR}/releasing/image_tags.yaml \
-	--pattern=${PATTERN}
+    --images_file=${ROOT_DIR}/releasing/image_tags.yaml \
+    --pattern=${PATTERN}

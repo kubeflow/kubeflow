@@ -50,7 +50,7 @@ docker build --pull \
         --build-arg "TFMA_VERSION=${TFMA_VERSION}" \
         --build-arg "TFDV_VERSION=${TFDV_VERSION}" \
         -t "${IMAGE}:${TAG}" \
-	-f ${DOCKERFILE} ${CONTEXT_DIR}
+    -f ${DOCKERFILE} ${CONTEXT_DIR}
 
 gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
 gcloud docker -- push "${IMAGE}:${TAG}"

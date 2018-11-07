@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # A simple script to build the Docker images.
 # This is intended to be invoked as a step in Argo to build the docker image.
@@ -16,7 +16,7 @@ do sleep 3
 done
 
 docker build --pull -t ${IMAGE} \
-	-f ${DOCKERFILE} ${CONTEXT_DIR}
+    -f ${DOCKERFILE} ${CONTEXT_DIR}
 
 gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
 gcloud docker -- push ${IMAGE}

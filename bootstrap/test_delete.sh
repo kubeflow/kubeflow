@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Script to delete kubeflow-ci namespace; deployment and source repo in sandbox project.
 # This is intended to be invoked as a step in Argo.

@@ -16,4 +16,4 @@ KATIB_TAG=v0.1.2-alpha-34-gb46378c
 
 # Fetch shas for Jupyter images
 python ${ROOT_DIR}/releasing/add_image_shas.py --pattern=.*katib/.*:${KATIB_TAG} \
-	--images_file=${IMAGES_FILE}
+    --images_file=${IMAGES_FILE}
