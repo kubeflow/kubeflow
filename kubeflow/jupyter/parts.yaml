@@ -22,7 +22,7 @@
       "jupyter"
    ],
    "quickStart": {
-      "prototype": "io.ksonnet.pkg.kubeflow",
+      "prototype": "io.ksonnet.pkg.jupyter",
       "componentName": "jupyter",
       "flags": {
          "name": "jupyter",
