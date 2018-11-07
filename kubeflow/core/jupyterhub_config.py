@@ -1,3 +1,14 @@
+"""Configuration file for JupyterHub.
+
+Kubeflow uses this file as the configuration file for JupyterHub. It contains
+all glue code necessary to integrate JupyterHub with the remaining Kubeflow
+components.
+
+Note that this file is also responsible for importing the UI-specific Spawner
+class from <ui-dir>/spawner.py, and setting the `spawner_class` configuration
+option.
+"""
+
 import os
 from importlib.util import spec_from_file_location, module_from_spec
 from jhub_remote_user_authenticator.remote_user_auth import \
@@ -5,6 +16,7 @@ from jhub_remote_user_authenticator.remote_user_auth import \
 
 SERVICE_ACCOUNT_SECRET_MOUNT = '/var/run/secrets/sa'
 
+# Import the UI-specific Spawner
 spec = spec_from_file_location('spawner', '/etc/config/spawner.py')
 spawner = module_from_spec(spec)
 spec.loader.exec_module(spawner)
