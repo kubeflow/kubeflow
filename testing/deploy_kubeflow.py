@@ -102,7 +102,7 @@ def deploy_kubeflow(test_case):
   logging.info("Verifying TfJob controller started.")
   util.wait_for_deployment(api_client, namespace, tf_job_deployment_name)
 
-  # Verify that JupyterHub is actually deployed.
+  # Verify that Jupyter is actually deployed.
   jupyter_name = "jupyter"
   logging.info("Verifying TfHub started.")
   util.wait_for_statefulset(api_client, namespace, jupyter_name)

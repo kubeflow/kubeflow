@@ -182,7 +182,7 @@ ks apply prow -c nfs-jupyter
 ```
 
 * This creates the NFS share
-* We use JupyterHub as a convenient way to access the NFS share for manual inspection of the file contents.
+* We use Jupyter as a convenient way to access the NFS share for manual inspection of the file contents.
 
 #### Troubleshooting
 

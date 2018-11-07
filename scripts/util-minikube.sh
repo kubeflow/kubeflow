@@ -117,5 +117,5 @@ function setup_tunnels() {
   sleep 30 # Give services time to bind
   kubectl -n kubeflow port-forward svc/ambassador 8080:80 2>&1 >/dev/null &
   echo -e "Access Kubeflow dashboard at ${GREEN}http://localhost:8080/${NC}"
-  echo -e "Access JupyterHub at ${GREEN}http://localhost:8080/hub/${NC}"
+  echo -e "Access Jupyter at ${GREEN}http://localhost:8080/hub/${NC}"
 }

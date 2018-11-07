@@ -188,7 +188,7 @@
                       value: std.toString(params.accessLocalFs),
                     },
                 ]),
-              },  // jupyterHub container
+              },  // jupyter container
             ],
             serviceAccountName: "jupyter",
             volumes: [
