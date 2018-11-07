@@ -1,5 +1,5 @@
 {
-   "name": "tf-job-operator",
+   "name": "tf-training",
    "apiVersion": "0.0.1",
    "kind": "ksonnet.io/parts",
    "description": "TensorFlow job operator component of Kubeflow.\n",
@@ -29,7 +29,7 @@
          "namespace": "default",
          "disks": ""
       },
-      "comment": "TensorFlow job operator Kubeflow component."
+      "comment": "TensorFlow job operator component of Kubeflow."
    },
    "license": "Apache 2.0"
 }

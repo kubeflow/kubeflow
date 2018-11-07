@@ -13,9 +13,9 @@ libraries:
   core:
     version: master
     path: core
-  tf-job-operator:
+  tf-training:
     version: master
-    path: tf-job-operator
+    path: tf-training
   tf-serving:
     version: master
     path: tf-serving
