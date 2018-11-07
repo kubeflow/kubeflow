@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ALL_FILES=false
 
@@ -20,43 +20,43 @@ readarray -t remotes <<< "$raw"
 repo_name=''
 for r in "${remotes[@]}"
 do
-   url=`git remote get-url ${r}`
-   # Period is in brackets because its a special character.
-   if [[ ${url} =~ git@github[.]com:kubeflow/.* ]]; then
-      repo_name=${r}
-   fi
+  url=`git remote get-url ${r}`
+  # Period is in brackets because its a special character.
+  if [[ ${url} =~ git@github[.]com:kubeflow/.* ]]; then
+    repo_name=${r}
+  fi
 done
 
 echo using ${repo_name}
 if [ -z "$repo_name" ]; then
-    echo "Could not find remote repository pointing at git@github.com:kubeflow/kubeflow.git"
-    exit 1
+  echo "Could not find remote repository pointing at git@github.com:kubeflow/kubeflow.git"
+  exit 1
 fi
 
 
 while [ "$1" != "" ]; do
-    PARAM=`echo $1 | awk -F= '{print $1}'`
-    case $PARAM in
-        -h | --help)
-            usage
-            exit
-            ;;
-        --all)
-            ALL_FILES=true
-            ;;
-        *)
-            echo "ERROR: unknown parameter \"$PARAM\""
-            usage
-            exit 1
-            ;;
-    esac
-    shift
+  PARAM=`echo $1 | awk -F= '{print $1}'`
+  case $PARAM in
+      -h | --help)
+          usage
+          exit
+          ;;
+      --all)
+          ALL_FILES=true
+          ;;
+      *)
+          echo "ERROR: unknown parameter \"$PARAM\""
+          usage
+          exit 1
+          ;;
+  esac
+  shift
 done
 
 if $ALL_FILES; then
-    fmt_files=($(git ls-files -- '*.go'))
+  fmt_files=($(git ls-files -- '*.go'))
 else
-    fmt_files=($(git diff --name-only ${repo_name}/master -- '*.go'))
+  fmt_files=($(git diff --name-only ${repo_name}/master -- '*.go'))
 fi
 
 # 2 spaces vertical indentation
@@ -65,7 +65,7 @@ fi
 for f in "${fmt_files[@]}"
 do
   if [[ "${f}" =~ "/vendor/" ]]; then
-        continue
+     continue
   fi
   gofmt -w "$f"
   goimports -w "$f"

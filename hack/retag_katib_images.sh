@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # One off script to retag Katib images for 0.2
 set -ex

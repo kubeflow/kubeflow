@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # A script to automate updating the images to use in the ksonnet
 # components.
@@ -15,7 +15,7 @@ ROOT_DIR="$( cd ${DIR}/.. && pwd )"
 
 IMAGES_FILE=${ROOT_DIR}/releasing/image_tags.yaml
 
-# Assume the testing repo is checkout in git_kubeflow_testing because 
+# Assume the testing repo is checkout in git_kubeflow_testing because
 # we depend on the python code in that repo.
 export PYTHONPATH=${PYTHONPATH}:${ROOT_DIR}/../git_kubeflow-testing/py
 

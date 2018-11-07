@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Copyright 2018 The Kubeflow Authors.
 #
@@ -31,8 +31,8 @@ cd ${SCRIPT_ROOT}
 
 if [ "${GITHUB_TOKEN}" == "NO" ]
 then
-    echo "Environment variable GITHUB_TOKEN is not set."
-    exit 1
+  echo "Environment variable GITHUB_TOKEN is not set."
+  exit 1
 fi
 
 github_changelog_generator -t ${GITHUB_TOKEN} -u kubeflow -p kubeflow \

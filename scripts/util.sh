@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Util functions to be used by scripts in this directory
 
 function usage() {

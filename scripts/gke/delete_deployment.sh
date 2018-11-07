@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Teardown the GCP deployment for Kubeflow.
 # We explicitly don't delete GCFS because we don't want to destroy
 # data.
@@ -20,12 +20,11 @@ gcloud deployment-manager --project=${PROJECT} deployments delete \
 RESULT=$?
 
 if [ ${RESULT} -ne 0 ]; then
-    echo deleting the deployment did not work retry with abandon
-    gcloud deployment-manager --project=${PROJECT} deployments delete \
-    ${DEPLOYMENT_NAME} \
-    --quiet \
-    --delete-policy=abandon
-
+  echo deleting the deployment did not work retry with abandon
+  gcloud deployment-manager --project=${PROJECT} deployments delete \
+      ${DEPLOYMENT_NAME} \
+      --quiet \
+      --delete-policy=abandon
 fi
 
 # Ensure resources are deleted.
@@ -34,8 +33,8 @@ gcloud --project=${PROJECT} container clusters delete --zone=${ZONE} \
 
 # Delete IAM bindings
 python "${DIR}/iam_patch.py" --action=remove \
-  --project=${PROJECT} \
-  --iam_bindings_file="iam_bindings.yaml"
+    --project=${PROJECT} \
+    --iam_bindings_file="iam_bindings.yaml"
 
 # Delete service accounts and all role bindings for the service accounts
 declare -a accounts=("vm" "admin" "user")
@@ -54,13 +53,13 @@ deleteSa() {
   return
 
   gcloud --project=${PROJECT} iam service-accounts delete \
-    ${SA} \
-    --quiet
+      ${SA} \
+      --quiet
 }
 # now loop through the above array
 for suffix in "${accounts[@]}";
 do
-   # Delete all role bindings.
-   SA=${DEPLOYMENT_NAME}-${suffix}@${PROJECT}.iam.gserviceaccount.com
-   deleteSa ${SA}
+  # Delete all role bindings.
+  SA=${DEPLOYMENT_NAME}-${suffix}@${PROJECT}.iam.gserviceaccount.com
+  deleteSa ${SA}
 done

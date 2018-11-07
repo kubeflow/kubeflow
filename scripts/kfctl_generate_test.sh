@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # A simple and minimal test for kfctl.sh
 # TODO(jlewi): Should add this to our ci system

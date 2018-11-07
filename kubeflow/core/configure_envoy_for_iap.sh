@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # A script to modify envoy config to perform JWT validation
 # given the information for the service.
@@ -9,19 +9,20 @@
 
 PROJECT=$(curl -s -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/project/project-id)
 if [ -z ${PROJECT} ]; then
-echo Error unable to fetch PROJECT from compute metadata
-exit 1
+  echo Error unable to fetch PROJECT from compute metadata
+  exit 1
 fi
 
 PROJECT_NUM=$(curl -s -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/project/numeric-project-id)
 if [ -z ${PROJECT_NUM} ]; then
-echo Error unable to fetch PROJECT_NUM from compute metadata
-exit 1
+  echo Error unable to fetch PROJECT_NUM from compute metadata
+  exit 1
 fi
 
 # Activate the service account
 for i in $(seq 1 10)
-do gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS} && break || sleep 10
+do
+  gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS} && break || sleep 10
 done
 
 # Print out the config for debugging
@@ -29,9 +30,10 @@ gcloud config list
 
 NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[0].nodePort}')
 while [[ -z ${BACKEND_ID} ]];
-do BACKEND_ID=$(gcloud compute --project=${PROJECT} backend-services list --filter=name~k8s-be-${NODE_PORT}- --format='value(id)');
-echo "Waiting for backend id PROJECT=${PROJECT} NAMESPACE=${NAMESPACE} SERVICE=${SERVICE} filter=name~k8s-be-${NODE_PORT}-...";
-sleep 2;
+do
+  BACKEND_ID=$(gcloud compute --project=${PROJECT} backend-services list --filter=name~k8s-be-${NODE_PORT}- --format='value(id)');
+  echo "Waiting for backend id PROJECT=${PROJECT} NAMESPACE=${NAMESPACE} SERVICE=${SERVICE} filter=name~k8s-be-${NODE_PORT}-...";
+  sleep 2;
 done
 echo BACKEND_ID=${BACKEND_ID}
 

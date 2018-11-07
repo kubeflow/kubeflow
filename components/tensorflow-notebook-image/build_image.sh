@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # A simple script to build the Docker images.
 # This is intended to be invoked as a step in Argo to build the docker image.
@@ -43,13 +43,13 @@ do sleep 3
 done
 
 docker build --pull \
-        --build-arg "BASE_IMAGE=${BASE_IMAGE}" \
-        --build-arg "TF_PACKAGE=${TF_PACKAGE}" \
-        --build-arg "TF_PACKAGE_PY_27=${TF_PACKAGE_PY_27}" \
-        --build-arg "TF_SERVING_VERSION=${TF_SERVING_VERSION}" \
-        --build-arg "TFMA_VERSION=${TFMA_VERSION}" \
-        --build-arg "TFDV_VERSION=${TFDV_VERSION}" \
-        -t "${IMAGE}:${TAG}" \
+    --build-arg "BASE_IMAGE=${BASE_IMAGE}" \
+    --build-arg "TF_PACKAGE=${TF_PACKAGE}" \
+    --build-arg "TF_PACKAGE_PY_27=${TF_PACKAGE_PY_27}" \
+    --build-arg "TF_SERVING_VERSION=${TF_SERVING_VERSION}" \
+    --build-arg "TFMA_VERSION=${TFMA_VERSION}" \
+    --build-arg "TFDV_VERSION=${TFDV_VERSION}" \
+    -t "${IMAGE}:${TAG}" \
     -f ${DOCKERFILE} ${CONTEXT_DIR}
 
 gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Define functions to customize the Kubeflow app for GCP.
 #
@@ -22,17 +22,17 @@ EOF
 gcpInitProject() {
   # Enable GCloud APIs
   gcloud services enable deploymentmanager.googleapis.com \
-                         servicemanagement.googleapis.com \
-                         container.googleapis.com \
-                         cloudresourcemanager.googleapis.com \
-                         endpoints.googleapis.com \
-                         file.googleapis.com \
-                         iam.googleapis.com --project=${PROJECT}
+      servicemanagement.googleapis.com \
+      container.googleapis.com \
+      cloudresourcemanager.googleapis.com \
+      endpoints.googleapis.com \
+      file.googleapis.com \
+      iam.googleapis.com --project=${PROJECT}
 
   # Set IAM Admin Policy
   gcloud projects add-iam-policy-binding ${PROJECT} \
-     --member serviceAccount:${PROJECT_NUMBER}@cloudservices.gserviceaccount.com \
-     --role roles/resourcemanager.projectIamAdmin
+      --member serviceAccount:${PROJECT_NUMBER}@cloudservices.gserviceaccount.com \
+      --role roles/resourcemanager.projectIamAdmin
 }
 
 generateDMConfigs() {
@@ -96,13 +96,13 @@ downloadK8sManifests() {
   mkdir -p ${KUBEFLOW_K8S_MANIFESTS_DIR}
   # Install the GPU driver. It has no effect on non-GPU nodes.
   curl -o ${KUBEFLOW_K8S_MANIFESTS_DIR}/daemonset-preloaded.yaml \
-    https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/stable/nvidia-driver-installer/cos/daemonset-preloaded.yaml
+      https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/stable/nvidia-driver-installer/cos/daemonset-preloaded.yaml
 
   curl -o ${KUBEFLOW_K8S_MANIFESTS_DIR}/rbac-setup.yaml \
-  https://storage.googleapis.com/stackdriver-kubernetes/stable/rbac-setup.yaml
+      https://storage.googleapis.com/stackdriver-kubernetes/stable/rbac-setup.yaml
 
   curl -o ${KUBEFLOW_K8S_MANIFESTS_DIR}/agents.yaml \
-        https://storage.googleapis.com/stackdriver-kubernetes/stable/agents.yaml
+      https://storage.googleapis.com/stackdriver-kubernetes/stable/agents.yaml
 
 }
 
@@ -144,8 +144,8 @@ updateDM() {
   fi
 
   python "${KUBEFLOW_REPO}/scripts/gke/iam_patch.py" --action=add \
-    --project=${PROJECT} \
-    --iam_bindings_file="${KUBEFLOW_DM_DIR}/iam_bindings.yaml"
+      --project=${PROJECT} \
+      --iam_bindings_file="${KUBEFLOW_DM_DIR}/iam_bindings.yaml"
 
   # Set credentials for kubectl context
   gcloud --project=${PROJECT} container clusters get-credentials --zone=${ZONE} ${DEPLOYMENT_NAME}
@@ -156,9 +156,9 @@ updateDM() {
   CURRENT_USER=$(kubectl config get-contexts $CURRENT_CONTEXT | tail -1 | awk '{print $4}')
 
   kubectl config set-context ${KUBEFLOW_K8S_CONTEXT} \
-    --namespace ${K8S_NAMESPACE} \
-  --cluster $CURRENT_CLUSTER \
-  --user $CURRENT_USER
+      --namespace ${K8S_NAMESPACE} \
+      --cluster $CURRENT_CLUSTER \
+      --user $CURRENT_USER
 
   echo created context named: ${KUBEFLOW_K8S_CONTEXT}
   kubectl config use-context ${KUBEFLOW_K8S_CONTEXT}

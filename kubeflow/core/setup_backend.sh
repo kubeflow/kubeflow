@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # A simple shell script to configure the backend timeouts and health checks by using gcloud.
 [ -z ${NAMESPACE} ] && echo Error NAMESPACE must be set && exit 1
@@ -14,37 +14,39 @@ LOCK=$(jq -r ".metadata.annotations.backendlock" service.json)
 
 NOW=$(date -u +'%s')
 if [[ -z "${LOCK}" || "${LOCK}" == "null" ]]; then
-LOCK_T=$NOW
+  LOCK_T=$NOW
 else
-LOCK_T=$(echo "${LOCK}" | cut -d' ' -f2)
+  LOCK_T=$(echo "${LOCK}" | cut -d' ' -f2)
 fi
+
 LOCK_AGE=$(( $NOW - $LOCK_T ))
 LOCK_TTL=120
+
 if [[ -z "${LOCK}" || "${LOCK}" == "null" || "${LOCK_AGE}" -gt "${LOCK_TTL}" ]]; then
-jq -r ".metadata.annotations.backendlock=\"$(hostname -s) ${NOW}\"" service.json > service_lock.json
-kubectl apply -f service_lock.json 2>/dev/null
-if [[ $? -eq 0 ]]; then
-  echo "Acquired lock on service annotation to configure backend."
+  jq -r ".metadata.annotations.backendlock=\"$(hostname -s) ${NOW}\"" service.json > service_lock.json
+  kubectl apply -f service_lock.json 2>/dev/null
+  if [[ $? -eq 0 ]]; then
+    echo "Acquired lock on service annotation to configure backend."
+  else
+    echo "WARN: Failed to acquire lock on service annotation."
+    exit 1
+  fi
 else
-  echo "WARN: Failed to acquire lock on service annotation."
+  echo "WARN: Lock on service annotation already acquired by: $LOCK, age: $LOCK_AGE, TTL: $LOCK_TTL"
+  sleep 20
   exit 1
-fi
-else
-echo "WARN: Lock on service annotation already acquired by: $LOCK, age: $LOCK_AGE, TTL: $LOCK_TTL"
-sleep 20
-exit 1
 fi
 
 PROJECT=$(curl -s -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/project/project-id)
 if [ -z ${PROJECT} ]; then
-echo Error unable to fetch PROJECT from compute metadata
-exit 1
+  echo Error unable to fetch PROJECT from compute metadata
+  exit 1
 fi
 
 PROJECT_NUM=$(curl -s -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/project/numeric-project-id)
 if [ -z ${PROJECT_NUM} ]; then
-echo Error unable to fetch PROJECT_NUM from compute metadata
-exit 1
+  echo Error unable to fetch PROJECT_NUM from compute metadata
+  exit 1
 fi
 
 # Activate the service account
@@ -54,9 +56,10 @@ gcloud config list
 
 NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[0].nodePort}')
 while [[ -z ${BACKEND_ID} ]];
-do BACKEND_ID=$(gcloud compute --project=${PROJECT} backend-services list --filter=name~k8s-be-${NODE_PORT}- --format='value(id)');
-echo "Waiting for backend id PROJECT=${PROJECT} NAMESPACE=${NAMESPACE} SERVICE=${SERVICE} filter=name~k8s-be-${NODE_PORT}- ...";
-sleep 2;
+do
+  BACKEND_ID=$(gcloud compute --project=${PROJECT} backend-services list --filter=name~k8s-be-${NODE_PORT}- --format='value(id)');
+  echo "Waiting for backend id PROJECT=${PROJECT} NAMESPACE=${NAMESPACE} SERVICE=${SERVICE} filter=name~k8s-be-${NODE_PORT}- ...";
+  sleep 2;
 done
 echo BACKEND_ID=${BACKEND_ID}
 
@@ -64,9 +67,10 @@ NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.s
 BACKEND_SERVICE=$(gcloud --project=${PROJECT} compute backend-services list --filter=name~k8s-be-${NODE_PORT}- --uri)
 
 while [[ -z ${HEALTH_CHECK_URI} ]];
-do HEALTH_CHECK_URI=$(gcloud compute --project=${PROJECT} health-checks list --filter=name~k8s-be-${NODE_PORT}- --uri);
-echo "Waiting for the healthcheck resource PROJECT=${PROJECT} NODEPORT=${NODE_PORT} SERVICE=${SERVICE}...";
-sleep 2;
+do
+  HEALTH_CHECK_URI=$(gcloud compute --project=${PROJECT} health-checks list --filter=name~k8s-be-${NODE_PORT}- --uri);
+  echo "Waiting for the healthcheck resource PROJECT=${PROJECT} NODEPORT=${NODE_PORT} SERVICE=${SERVICE}...";
+  sleep 2;
 done
 
 # Since we create the envoy-ingress ingress object before creating the envoy

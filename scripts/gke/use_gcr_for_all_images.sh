@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # use_gcr_for_all_images.sh is a simple script which is intended to be run in a ksonnet
 # app directory. It sets the docker image params in all the components to use the images
 # from gcr.io registries instead of non-gcr.io registries. This is useful when deploying

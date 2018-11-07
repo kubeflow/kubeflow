@@ -41,9 +41,9 @@ declare -a roles=("dns.admin")
 # Add policy bindings
 for ROLE in "${roles[@]}"
 do
-   gcloud projects add-iam-policy-binding ${DNS_PROJECT} \
-     --member serviceAccount:${EMAIL} \
-     --role roles/${ROLE}
+  gcloud projects add-iam-policy-binding ${DNS_PROJECT} \
+      --member serviceAccount:${EMAIL} \
+      --role roles/${ROLE}
 done
 
 # Get a new service account key

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Download the registry and scripts.
 # This is the first step in setting up Kubeflow.
@@ -7,7 +7,7 @@ set -ex
 
 
 if [ ! -z "${KUBEFLOW_VERSION}" ]; then
-    KUBEFLOW_TAG=v${KUBEFLOW_VERSION}
+  KUBEFLOW_TAG=v${KUBEFLOW_VERSION}
 fi
 
 KUBEFLOW_TAG=${KUBEFLOW_TAG:-master}

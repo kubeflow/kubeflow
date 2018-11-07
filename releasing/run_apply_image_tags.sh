@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Wrapper script for running apply_image_tags.py
 set -ex
 

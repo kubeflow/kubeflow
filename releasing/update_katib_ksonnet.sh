@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -ex
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ROOT_DIR="$( cd ${DIR}/.. && pwd )"
 
-# Assume the testing repo is checkout in git_kubeflow_testing because 
+# Assume the testing repo is checkout in git_kubeflow_testing because
 # we depend on the python code in that repo.
 export PYTHONPATH=${PYTHONPATH}:${ROOT_DIR}/../git_kubeflow-testing/py
 

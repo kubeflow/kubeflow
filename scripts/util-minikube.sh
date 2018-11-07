@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Helper functions for minikube deployment of kubeflow
 # Linux or Mac OS X

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # This script cleans up ingress related compute engine resources like backend-services,
 # forwarding rules, health-checks, etc. from kubeflow-ci project which
 # do not belong to the kubeflow-testing cluster
