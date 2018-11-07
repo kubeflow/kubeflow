@@ -38,21 +38,7 @@ local notebook = {
         ttlSecondsAfterFinished: 300,
         containers: [
           {
-            args: [
-              "start-singleuser.sh",
-              "--ip='0.0.0.0'",
-              "--port=" + params.targetPort,
-              "--allow-root",
-            ],
-            env: [
-              {
-                name: "JUPYTER_ENABLE_LAB",
-                value: "true",
-              },
-            ],
             image: params.registry + "/" + params.repoName + "/" + params.image,
-            imagePullPolicy: "IfNotPresent",
-            name: "notebook",
             ports: [
               {
                 containerPort: params.targetPort,
@@ -75,8 +61,6 @@ local notebook = {
             workingDir: params.notebookPVCMount,
           },
         ],
-        restartPolicy: "Always",
-        schedulerName: "default-scheduler",
         securityContext: {
           fsGroup: 100,
           runAsUser: 1000,
@@ -143,10 +127,16 @@ std.assertEqual(
           containers: [
             {
               args: [
-                "start-singleuser.sh",
-                "--ip='0.0.0.0'",
+                "start.sh",
+                "jupyter",
+                "lab",
+                "--LabApp.token=''",
+                "--LabApp.allow_remote_access='True'",
+                "--LabApp.allow_root='True'",
+                "--LabApp.ip='*'",
+                "--LabApp.base_url='/'${name}",
                 "--port=8888",
-                "--allow-root",
+                "--no-browser",
               ],
               env: [
                 {
@@ -159,7 +149,7 @@ std.assertEqual(
               name: "notebook",
               ports: [
                 {
-                  containerPort: "8888",
+                  containerPort: 8888,
                   name: "notebook-port",
                   protocol: "TCP",
                 },
@@ -170,17 +160,10 @@ std.assertEqual(
                   memory: "1Gi",
                 },
               },
-              volumeMounts: [
-                {
-                  mountPath: "/home/jovyan",
-                  name: "volume-training",
-                },
-              ],
               workingDir: "/home/jovyan",
             },
           ],
           restartPolicy: "Always",
-          schedulerName: "default-scheduler",
           securityContext: {
             fsGroup: 100,
             runAsUser: 1000,
