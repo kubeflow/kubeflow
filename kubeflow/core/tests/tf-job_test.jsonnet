@@ -1,7 +1,7 @@
 local tfjob = import "../tf-job-operator.libsonnet";
 local paramsv1alpha2 = {
   name:: "tf-job-operator",
-  tfJobImage:: "gcr.io/kubeflow-images-public/tf_operator:kubeflow-tf-operator-postsubmit-v2-70cafb1-271-1911",
+  tfJobImage:: "gcr.io/kubeflow-images-public/tf_operator:kubeflow-tf-operator-postsubmit-v2-785f416-272-7f3c",
   tfDefaultImage:: "null",
   deploymentScope:: "cluster",
   deploymentNamespace:: "null",
@@ -9,7 +9,7 @@ local paramsv1alpha2 = {
 };
 local paramsv1beta1 = {
   name:: "tf-job-operator",
-  tfJobImage:: "gcr.io/kubeflow-images-public/tf_operator:kubeflow-tf-operator-postsubmit-v2-70cafb1-271-1911",
+  tfJobImage:: "gcr.io/kubeflow-images-public/tf_operator:kubeflow-tf-operator-postsubmit-v2-785f416-272-7f3c",
   tfDefaultImage:: "null",
   deploymentScope:: "cluster",
   deploymentNamespace:: "null",
@@ -107,24 +107,8 @@ std.assertEqual(
                 "-v=1",
               ],
               env: [
-                {
-                  name: "MY_POD_NAMESPACE",
-                  valueFrom: {
-                    fieldRef: {
-                      fieldPath: "metadata.namespace",
-                    },
-                  },
-                },
-                {
-                  name: "MY_POD_NAME",
-                  valueFrom: {
-                    fieldRef: {
-                      fieldPath: "metadata.name",
-                    },
-                  },
-                },
               ],
-              image: "gcr.io/kubeflow-images-public/tf_operator:kubeflow-tf-operator-postsubmit-v2-70cafb1-271-1911",
+              image: "gcr.io/kubeflow-images-public/tf_operator:kubeflow-tf-operator-postsubmit-v2-785f416-272-7f3c",
               name: "tf-job-operator",
               volumeMounts: [
                 {
@@ -181,7 +165,7 @@ std.assertEqual(
                   },
                 },
               ],
-              image: "gcr.io/kubeflow-images-public/tf_operator:kubeflow-tf-operator-postsubmit-v2-70cafb1-271-1911",
+              image: "gcr.io/kubeflow-images-public/tf_operator:kubeflow-tf-operator-postsubmit-v2-785f416-272-7f3c",
               name: "tf-job-dashboard",
               ports: [
                 {
@@ -375,24 +359,8 @@ std.assertEqual(
                 "-v=1",
               ],
               env: [
-                {
-                  name: "MY_POD_NAMESPACE",
-                  valueFrom: {
-                    fieldRef: {
-                      fieldPath: "metadata.namespace",
-                    },
-                  },
-                },
-                {
-                  name: "MY_POD_NAME",
-                  valueFrom: {
-                    fieldRef: {
-                      fieldPath: "metadata.name",
-                    },
-                  },
-                },
               ],
-              image: "gcr.io/kubeflow-images-public/tf_operator:kubeflow-tf-operator-postsubmit-v2-70cafb1-271-1911",
+              image: "gcr.io/kubeflow-images-public/tf_operator:kubeflow-tf-operator-postsubmit-v2-785f416-272-7f3c",
               name: "tf-job-operator",
               volumeMounts: [
                 {
@@ -449,7 +417,7 @@ std.assertEqual(
                   },
                 },
               ],
-              image: "gcr.io/kubeflow-images-public/tf_operator:kubeflow-tf-operator-postsubmit-v2-70cafb1-271-1911",
+              image: "gcr.io/kubeflow-images-public/tf_operator:kubeflow-tf-operator-postsubmit-v2-785f416-272-7f3c",
               name: "tf-job-dashboard",
               ports: [
                 {
