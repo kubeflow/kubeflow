@@ -107,6 +107,22 @@ std.assertEqual(
                 "-v=1",
               ],
               env: [
+                {
+                  name: "MY_POD_NAMESPACE",
+                  valueFrom: {
+                    fieldRef: {
+                      fieldPath: "metadata.namespace",
+                    },
+                  },
+                },
+                {
+                  name: "MY_POD_NAME",
+                  valueFrom: {
+                    fieldRef: {
+                      fieldPath: "metadata.name",
+                    },
+                  },
+                },
               ],
               image: "gcr.io/kubeflow-images-public/tf_operator:kubeflow-tf-operator-postsubmit-v2-785f416-272-7f3c",
               name: "tf-job-operator",
@@ -359,6 +375,22 @@ std.assertEqual(
                 "-v=1",
               ],
               env: [
+                {
+                  name: "MY_POD_NAMESPACE",
+                  valueFrom: {
+                    fieldRef: {
+                      fieldPath: "metadata.namespace",
+                    },
+                  },
+                },
+                {
+                  name: "MY_POD_NAME",
+                  valueFrom: {
+                    fieldRef: {
+                      fieldPath: "metadata.name",
+                    },
+                  },
+                },
               ],
               image: "gcr.io/kubeflow-images-public/tf_operator:kubeflow-tf-operator-postsubmit-v2-785f416-272-7f3c",
               name: "tf-job-operator",
