@@ -2,7 +2,7 @@
 // @name io.ksonnet.pkg.jupyter
 // @description jupyter Component
 // @shortDescription jupyter Component
-// @param name string Name
+// @param name string Name to give to each of the components
 // @optionalParam platform string none supported platforms {none|gke|minikube}
 // @optionalParam serviceType string ClusterIP The service type for Jupyter.
 // @optionalParam image string gcr.io/kubeflow/jupyterhub-k8s:v20180531-3bb991b1 The image to use for Jupyter.
