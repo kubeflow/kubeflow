@@ -113,7 +113,7 @@ std.assertEqual(
         kind: "Service",
         metadata: {
           annotations: {
-            "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind:  Mapping\nname: notebook_mapping\nprefix: /notebook/\nrewrite: /notebook/\ntimeout_ms: 300000\nservice: notebook.kf-200",
+            "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind:  Mapping\nname: notebook_mapping\nprefix: /notebook\nrewrite: /notebook\ntimeout_ms: 300000\nservice: notebook.kf-200",
           },
           name: "notebook",
           namespace: "kf-200",
