@@ -51,7 +51,7 @@ function createKsApp() {
   ks pkg install kubeflow/argo
   ks pkg install kubeflow/core
   ks pkg install kubeflow/examples
-  ks pkg install kubeflow/jupyterhub
+  ks pkg install kubeflow/jupyter
   ks pkg install kubeflow/katib
   ks pkg install kubeflow/mpi-job
   ks pkg install kubeflow/pytorch-job
@@ -65,7 +65,7 @@ function createKsApp() {
   ks generate pytorch-operator pytorch-operator
   # TODO(jlewi): Why are we overloading the ambassador images here?
   ks generate ambassador ambassador
-  ks generate jupyterhub jupyterhub
+  ks generate jupyter jupyter
   ks generate centraldashboard centraldashboard
   ks generate tf-job-operator tf-job-operator
   ks generate metacontroller metacontroller

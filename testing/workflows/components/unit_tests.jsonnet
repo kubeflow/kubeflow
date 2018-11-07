@@ -114,7 +114,7 @@ local dagTemplates = [
       "--artifacts_dir=" + artifactsDir,
       "--test_files_dirs=" + srcDir + "/kubeflow/application/tests" + "," +
       srcDir + "/kubeflow/core/tests" + "," +
-      srcDir + "/kubeflow/jupyterhub/tests" + "," +
+      srcDir + "/kubeflow/jupyter/tests" + "," +
       srcDir + "/kubeflow/examples/tests" + "," +
       srcDir + "/kubeflow/metacontroller/tests" + "," +
       srcDir + "/kubeflow/profiles/tests" + "," +

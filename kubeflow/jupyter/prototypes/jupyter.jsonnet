@@ -1,11 +1,11 @@
 // @apiVersion 0.1
-// @name io.ksonnet.pkg.jupyterhub
-// @description jupyterhub Component
-// @shortDescription jupyterhub Component
+// @name io.ksonnet.pkg.jupyter
+// @description jupyter Component
+// @shortDescription jupyter Component
 // @param name string Name
 // @optionalParam platform string none supported platforms {none|gke|minikube}
-// @optionalParam serviceType string ClusterIP The service type for Jupyterhub.
-// @optionalParam image string gcr.io/kubeflow/jupyterhub-k8s:v20180531-3bb991b1 The image to use for JupyterHub.
+// @optionalParam serviceType string ClusterIP The service type for Jupyter.
+// @optionalParam image string gcr.io/kubeflow/jupyterhub-k8s:v20180531-3bb991b1 The image to use for Jupyter.
 // @optionalParam jupyterHubAuthenticator string null The authenticator to use
 // @optionalParam useJupyterLabAsDefault string false Set JupterLab interface as the default
 // @optionalParam notebookPVCMount string /home/jovyan Mount path for PVC. Set empty to disable PVC
@@ -17,6 +17,6 @@
 // @optionalParam notebookGid string -1 GroupID of the host user for minikube local fs mount
 // @optionalParam accessLocalFs string false Set true if mounting a local fs directory that needs to be accessed by Jupyter Notebook in Minikube.
 
-local jupyterhub = import "kubeflow/jupyterhub/jupyterhub.libsonnet";
-local instance = jupyterhub.new(env, params);
+local jupyter = import "kubeflow/jupyter/jupyter.libsonnet";
+local instance = jupyter.new(env, params);
 instance.list(instance.all)

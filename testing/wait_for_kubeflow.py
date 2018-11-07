@@ -26,10 +26,10 @@ def deploy_kubeflow(_):
   logging.info("Verifying TfJob controller started.")
   util.wait_for_deployment(api_client, namespace, tf_job_deployment_name)
 
-  # Verify that JupyterHub is actually deployed.
-  jupyterhub_name = "jupyterhub"
+  # Verify that Jupyter is actually deployed.
+  jupyter_name = "jupyter"
   logging.info("Verifying TfHub started.")
-  util.wait_for_statefulset(api_client, namespace, jupyterhub_name)
+  util.wait_for_statefulset(api_client, namespace, jupyter_name)
 
   # Verify that PyTorch Operator actually deployed
   pytorch_operator_deployment_name = "pytorch-operator"
