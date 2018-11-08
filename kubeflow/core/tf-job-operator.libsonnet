@@ -56,8 +56,7 @@
           {},
       local version =
         scope + if params.tfJobVersion == "v1alpha2" then
-          { spec+: { version: "v1alpha2" } } +
-          { spec+: { validation: { openAPIV3Schema: openAPIV3Schema } } }
+          { spec+: { version: "v1alpha2" } }
         else
           {},
       return:: version,
@@ -71,41 +70,53 @@
       },
       spec: {
         group: "kubeflow.org",
-        version: "v1alpha1",
+        version: "v1beta1",
         names: {
           kind: "TFJob",
           singular: "tfjob",
           plural: "tfjobs",
         },
+        validation: { openAPIV3Schema: openAPIV3Schema },
       },
     }),
     tfJobCrd:: tfJobCrd,
 
     local tfJobContainer = {
       command: [
-        "/opt/mlkube/tf-operator",
-        "--controller-config-file=/etc/config/controller_config_file.yaml",
+        "/opt/kubeflow/tf-operator.v1beta1",
         "--alsologtostderr",
         "-v=1",
-      ],
-      env: [
-        {
-          name: "MY_POD_NAMESPACE",
+      ] + if params.deploymentScope == "namespace" &&
+             params.deploymentNamespace != null then [
+        "--namespace=" + params.deploymentNamespace,
+      ] else [],
+      env:
+        if params.deploymentScope == "namespace" && params.deploymentNamespace != null then [{
+          name: "KUBEFLOW_NAMESPACE",
           valueFrom: {
             fieldRef: {
               fieldPath: "metadata.namespace",
             },
           },
-        },
-        {
-          name: "MY_POD_NAME",
-          valueFrom: {
-            fieldRef: {
-              fieldPath: "metadata.name",
+        }] else [
+          {
+            name: "MY_POD_NAMESPACE",
+            valueFrom: {
+              fieldRef: {
+                fieldPath: "metadata.namespace",
+              },
             },
           },
-        },
-      ],
+          {
+            name: "MY_POD_NAME",
+            valueFrom: {
+              fieldRef: {
+                fieldPath: "metadata.name",
+              },
+            },
+          },
+        ],
+
       image: params.tfJobImage,
       name: "tf-job-operator",
       volumeMounts: [
@@ -121,7 +132,7 @@
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
-        name: "tf-job-operator",
+        name: "tf-job-operator-v1beta1",
         namespace: params.namespace,
       },
       spec: {
@@ -154,15 +165,6 @@
       deployment.mapContainers(
         function(c) {
           local container = deployment.mixin.spec.template.spec.containersType,
-          local env =
-            if params.deploymentScope == "namespace" && params.deploymentNamespace != null then [{
-              name: "KUBEFLOW_NAMESPACE",
-              valueFrom: {
-                fieldRef: {
-                  fieldPath: "metadata.namespace",
-                },
-              },
-            }] else [],
           local cmd = [
             "/opt/kubeflow/tf-operator.v2",
             "--alsologtostderr",
@@ -171,7 +173,7 @@
                  params.deploymentNamespace != null then [
             "--namespace=" + params.deploymentNamespace,
           ] else [],
-          result:: c + container.withEnvMixin(env) + container.withCommand(cmd),
+          result:: c + container.withCommand(cmd),
         }.result,
       )
     else
