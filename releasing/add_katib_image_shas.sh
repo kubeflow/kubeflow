@@ -3,8 +3,8 @@
 # Fetch Katib image shas from GCR and them to image_tags.yaml
 #
 set -ex
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-ROOT_DIR="$( cd ${DIR}/.. && pwd )"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd ${DIR}/.. && pwd)"
 
 IMAGES_FILE=${ROOT_DIR}/releasing/image_tags.yaml
 
@@ -16,4 +16,4 @@ KATIB_TAG=v0.1.2-alpha-34-gb46378c
 
 # Fetch shas for Jupyter images
 python ${ROOT_DIR}/releasing/add_image_shas.py --pattern=.*katib/.*:${KATIB_TAG} \
-    --images_file=${IMAGES_FILE}
+  --images_file=${IMAGES_FILE}

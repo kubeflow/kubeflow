@@ -16,41 +16,40 @@ TAG=$3
 #
 # TODO(jlewi): We should take in the json config file and then parse that.
 CONFIG_FILE=$4
-BASE_IMAGE=$(jq -r .BASE_IMAGE  ${CONFIG_FILE})
-TF_PACKAGE=$(jq -r .TF_PACKAGE  ${CONFIG_FILE})
+BASE_IMAGE=$(jq -r .BASE_IMAGE ${CONFIG_FILE})
+TF_PACKAGE=$(jq -r .TF_PACKAGE ${CONFIG_FILE})
 TF_PACKAGE_PY_27=$(jq -r .TF_PACKAGE_PY_27 ${CONFIG_FILE})
 TF_SERVING_VERSION=$(jq -r .TF_SERVING_VERSION ${CONFIG_FILE})
 TFMA_VERSION=$(jq -r .TFMA_VERSION ${CONFIG_FILE})
 TFDV_VERSION=$(jq -r .TFDV_VERSION ${CONFIG_FILE})
 
-
 # JQ returns null for non defined values.
 if [ ${BASE_IMAGE} == "null" ]; then
-   BASE_IMAGE=""
+  BASE_IMAGE=""
 fi
 
 if [ ${TFMA_VERSION} == "null" ]; then
-   TFMA_VERSION=""
+  TFMA_VERSION=""
 fi
 
 if [ ${TFDV_VERSION} == "null" ]; then
-   TFDV_VERSION=""
+  TFDV_VERSION=""
 fi
 
 # Wait for the Docker daemon to be available.
-until docker ps
-do sleep 3
+until docker ps; do
+  sleep 3
 done
 
 docker build --pull \
-    --build-arg "BASE_IMAGE=${BASE_IMAGE}" \
-    --build-arg "TF_PACKAGE=${TF_PACKAGE}" \
-    --build-arg "TF_PACKAGE_PY_27=${TF_PACKAGE_PY_27}" \
-    --build-arg "TF_SERVING_VERSION=${TF_SERVING_VERSION}" \
-    --build-arg "TFMA_VERSION=${TFMA_VERSION}" \
-    --build-arg "TFDV_VERSION=${TFDV_VERSION}" \
-    -t "${IMAGE}:${TAG}" \
-    -f ${DOCKERFILE} ${CONTEXT_DIR}
+  --build-arg "BASE_IMAGE=${BASE_IMAGE}" \
+  --build-arg "TF_PACKAGE=${TF_PACKAGE}" \
+  --build-arg "TF_PACKAGE_PY_27=${TF_PACKAGE_PY_27}" \
+  --build-arg "TF_SERVING_VERSION=${TF_SERVING_VERSION}" \
+  --build-arg "TFMA_VERSION=${TFMA_VERSION}" \
+  --build-arg "TFDV_VERSION=${TFDV_VERSION}" \
+  -t "${IMAGE}:${TAG}" \
+  -f ${DOCKERFILE} ${CONTEXT_DIR}
 
 gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
 gcloud docker -- push "${IMAGE}:${TAG}"

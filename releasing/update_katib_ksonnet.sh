@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -ex
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-ROOT_DIR="$( cd ${DIR}/.. && pwd )"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd ${DIR}/.. && pwd)"
 
 # Assume the testing repo is checkout in git_kubeflow_testing because
 # we depend on the python code in that repo.
@@ -17,5 +17,5 @@ VALUES="${VALUES},suggestionBayesianOptimizationImage=gcr.io/kubeflow-images-pub
 VALUES="${VALUES},vizierCoreImage=gcr.io/kubeflow-images-public/katib/vizier-core:${RELEASE}"
 # Update the TFJob operator image
 python ${ROOT_DIR}/scripts/update_prototype.py \
-    --file=${ROOT_DIR}/kubeflow/katib/prototypes/all.jsonnet \
-    --values=${VALUES}
+  --file=${ROOT_DIR}/kubeflow/katib/prototypes/all.jsonnet \
+  --values=${VALUES}

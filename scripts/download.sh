@@ -5,7 +5,6 @@
 # Downloads it to the current directory
 set -ex
 
-
 if [ ! -z "${KUBEFLOW_VERSION}" ]; then
   KUBEFLOW_TAG=v${KUBEFLOW_VERSION}
 fi
@@ -15,7 +14,7 @@ KUBEFLOW_TAG=${KUBEFLOW_TAG:-master}
 # Create a local copy of the Kubeflow source repo
 TMPDIR=$(mktemp -d /tmp/tmp.kubeflow-repo-XXXX)
 curl -L -o ${TMPDIR}/kubeflow.tar.gz https://github.com/kubeflow/kubeflow/archive/${KUBEFLOW_TAG}.tar.gz
-tar -xzvf ${TMPDIR}/kubeflow.tar.gz  -C ${TMPDIR}
+tar -xzvf ${TMPDIR}/kubeflow.tar.gz -C ${TMPDIR}
 # GitHub seems to strip out the v in the file name.
 KUBEFLOW_SOURCE=$(find ${TMPDIR} -maxdepth 1 -type d -name "kubeflow*")
 

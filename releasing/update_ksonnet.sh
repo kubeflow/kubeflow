@@ -10,8 +10,8 @@
 #
 # If image_tags.yaml looks good invoke apply_tags.py
 set -ex
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-ROOT_DIR="$( cd ${DIR}/.. && pwd )"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd ${DIR}/.. && pwd)"
 
 IMAGES_FILE=${ROOT_DIR}/releasing/image_tags.yaml
 
@@ -26,9 +26,9 @@ NOTEBOOK_RELEASE=v0.3.0
 
 # Update the Jupyter Images
 sed -i "s/tensorflow-\([0-9\.]*\)-notebook-\(.*\):${OLD_NOTEBOOK_RELEASE}/tensorflow-\1-notebook-\2:${NOTEBOOK_RELEASE}/" \
-    kubeflow/core/kubeform_spawner.py
+  kubeflow/core/kubeform_spawner.py
 
 # Update the TFJob operator image
 python scripts/update_prototype.py \
-    --file=${ROOT_DIR}/kubeflow/core/prototypes/all.jsonnet \
-    --values=tfJobImage=gcr.io/kubeflow-images-public/tf_operator:${RELEASE}
+  --file=${ROOT_DIR}/kubeflow/core/prototypes/all.jsonnet \
+  --values=tfJobImage=gcr.io/kubeflow-images-public/tf_operator:${RELEASE}

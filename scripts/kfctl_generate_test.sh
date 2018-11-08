@@ -4,7 +4,7 @@
 # TODO(jlewi): Should add this to our ci system
 set -ex
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TMPDIR=$(mktemp -d /tmp/tmp.kfctl-test-XXXX)
 cd ${TMPDIR}
 ${DIR}/kfctl.sh init kfapp --platform non

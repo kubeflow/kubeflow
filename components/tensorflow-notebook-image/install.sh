@@ -9,10 +9,10 @@ pip install --upgrade pip
 
 # TFX packages only supports python 2
 pip --no-cache-dir install \
-    ipykernel \
-    ${TF_PACKAGE_PY_27} \
-    tensorflow-transform \
-    tensorflow-serving-api===${TF_SERVING_VERSION}
+  ipykernel \
+  ${TF_PACKAGE_PY_27} \
+  tensorflow-transform \
+  tensorflow-serving-api===${TF_SERVING_VERSION}
 
 python -m ipykernel install
 

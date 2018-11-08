@@ -11,8 +11,7 @@ echo Working Directory=$(pwd)
 # TODO(jlewi): We should add retries on error.
 
 # Retry up to 3 times
-for i in `seq 1 3`;
-do
+for i in $(seq 1 3); do
   set +e
   "$@"
   result=$?

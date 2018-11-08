@@ -17,7 +17,7 @@ ENV_FILE="env.sh"
 SKIP_INIT_PROJECT=false
 CLUSTER_VERSION="1.10"
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null && pwd)"
 source "${DIR}/util.sh"
 source "${DIR}/gke/util.sh"
 source "${DIR}/util-minikube.sh"
@@ -28,7 +28,7 @@ createEnv() {
   # this ensures all relevant environment variables are persisted in
   # a file for consistency across runs.
   echo PLATFORM=${PLATFORM} >> ${ENV_FILE}
-  DEFAULT_KUBEFLOW_REPO="$( cd "${DIR}/.." >/dev/null && pwd )"
+  DEFAULT_KUBEFLOW_REPO="$(cd "${DIR}/.." > /dev/null && pwd)"
   # Remove trailing slash from the repo.
   KUBEFLOW_REPO=${KUBEFLOW_REPO%/}
   echo KUBEFLOW_REPO=${KUBEFLOW_REPO:-"${DEFAULT_KUBEFLOW_REPO}"} >> ${ENV_FILE}
@@ -119,7 +119,7 @@ createEnv() {
       echo KUBEFLOW_K8S_MANIFESTS_DIR="$(pwd)/k8s_specs" >> ${ENV_FILE}
 
       # Name of the K8s context to create.
-      echo  KUBEFLOW_K8S_CONTEXT=${DEPLOYMENT_NAME} >> ${ENV_FILE}
+      echo KUBEFLOW_K8S_CONTEXT=${DEPLOYMENT_NAME} >> ${ENV_FILE}
 
       # GCP Static IP Name
       echo KUBEFLOW_IP_NAME=${KUBEFLOW_IP_NAME:-"${DEPLOYMENT_NAME}-ip"} >> ${ENV_FILE}
@@ -146,7 +146,7 @@ createEnv() {
 
 createNamespace() {
   set +e
-  O=`kubectl get namespace ${K8S_NAMESPACE} 2>&1`
+  O=$(kubectl get namespace ${K8S_NAMESPACE} 2>&1)
   RESULT=$?
   set -e
 
@@ -235,7 +235,7 @@ customizeKsApp() {
   ks param set jupyterhub platform ${KUBEFLOW_PLATFORM}
 }
 
-ksApply () {
+ksApply() {
   pushd ${KUBEFLOW_KS_DIR}
 
   if [ "${PLATFORM}" == "minikube" ]; then
@@ -304,8 +304,8 @@ if [ "${COMMAND}" == "generate" ]; then
       create_local_fs_mount_spec
       if ${MOUNT_LOCAL}; then
         ks param set jupyterhub disks "local-notebooks"
-        ks param set jupyterhub notebookUid `id -u`
-        ks param set jupyterhub notebookGid `id -g`
+        ks param set jupyterhub notebookUid $(id -u)
+        ks param set jupyterhub notebookGid $(id -g)
         ks param set jupyterhub accessLocalFs true
       fi
     fi
@@ -313,14 +313,14 @@ if [ "${COMMAND}" == "generate" ]; then
 fi
 
 if [ "${COMMAND}" == "apply" ]; then
-  if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ] ; then
+  if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ]; then
     if [ "${PLATFORM}" == "gcp" ]; then
       updateDM
       createSecrets
     fi
   fi
 
-  if [ "${WHAT}" == "k8s"  ] || [ "${WHAT}" == "all" ]; then
+  if [ "${WHAT}" == "k8s" ] || [ "${WHAT}" == "all" ]; then
     createNamespace
     ksApply
 
@@ -331,13 +331,13 @@ if [ "${COMMAND}" == "apply" ]; then
     # all components deployed
     # deploy the application CR
     pushd ${KUBEFLOW_KS_DIR}
-      ks apply default -c application
+    ks apply default -c application
     popd
   fi
 fi
 
 if [ "${COMMAND}" == "delete" ]; then
-  if [ "${WHAT}" == "k8s"  ] || [ "${WHAT}" == "all" ]; then
+  if [ "${WHAT}" == "k8s" ] || [ "${WHAT}" == "all" ]; then
     # Delete kubeflow namespace - this deletes all the ingress objects
     # in the namespace which deletes the associated GCP resources
     set +e
@@ -349,7 +349,7 @@ if [ "${COMMAND}" == "delete" ]; then
     echo "namespace ${K8S_NAMESPACE} successfully deleted."
     set -e
   fi
-  if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ] ; then
+  if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ]; then
     if [ "${PLATFORM}" == "gcp" ]; then
       if [ -d "${KUBEFLOW_DM_DIR}" ]; then
         pushd ${KUBEFLOW_DM_DIR}

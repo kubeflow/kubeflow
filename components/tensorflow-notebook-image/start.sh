@@ -16,12 +16,12 @@
 set -e
 
 # Handle special flags if we're root
-if [ $(id -u) == 0 ] ; then
+if [ $(id -u) == 0 ]; then
   # Handle username change. Since this is cheap, do this unconditionally
   usermod -d /home/$NB_USER -l $NB_USER jovyan
 
   # Change UID of NB_USER to NB_UID if it does not match
-  if [ "$NB_UID" != $(id -u $NB_USER) ] ; then
+  if [ "$NB_UID" != $(id -u $NB_USER) ]; then
     echo "Set user UID to: $NB_UID"
     usermod -u $NB_UID $NB_USER
     for d in "$CONDA_DIR" "$JULIA_PKGDIR"; do
@@ -33,7 +33,7 @@ if [ $(id -u) == 0 ] ; then
   fi
 
   # Change GID of NB_USER to NB_GID if NB_GID is passed as a parameter
-  if [ "$NB_GID" ] ; then
+  if [ "$NB_GID" ]; then
     echo "Change GID to $NB_GID"
     groupmod -g $NB_GID -o $(id -g -n $NB_USER)
   fi
@@ -57,7 +57,7 @@ else
   if [[ "$GRANT_SUDO" == "1" || "$GRANT_SUDO" == 'yes' ]]; then
     echo 'Container must be run as root to grant sudo permissions'
   fi
-    # Exec the command
-    echo "Execute the command"
-    exec $*
+  # Exec the command
+  echo "Execute the command"
+  exec $*
 fi

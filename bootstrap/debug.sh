@@ -6,8 +6,7 @@
 # See the [developer_guide.md](./developer_guide.md) for additional details.
 #
 
-cleanup()
-{
+cleanup() {
   if [[ -n $portforwardcommand ]]; then
     echo killing $portforwardcommand
     pkill -f $portforwardcommand
@@ -15,16 +14,14 @@ cleanup()
 }
 trap cleanup EXIT
 
-portforward()
-{
+portforward() {
   local pod=$1 namespace=$2 from_port=$3 to_port=$4 cmd
   cmd='kubectl port-forward $pod ${from_port}:${to_port} --namespace=$namespace 2>&1>/dev/null &'
   portforwardcommand="${cmd% 2>&1>/dev/null &}"
   eval $cmd
 }
 
-waitforpod()
-{
+waitforpod() {
   local cmd="kubectl get pods --no-headers -oname --selector=app=kubeflow-bootstrapper --field-selector=status.phase=Running --namespace=kubeflow-admin | sed 's/^pod.*\///'" found=$(eval "$cmd")
   while [[ -z $found ]]; do
     sleep 1
@@ -33,8 +30,7 @@ waitforpod()
   echo $found
 }
 
-waitforever()
-{
+waitforever() {
   which gsleep >/dev/null
   if [[ $? == 1 ]]; then
     while true; do
