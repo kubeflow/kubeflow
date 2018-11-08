@@ -56,6 +56,7 @@ function createKsApp() {
   ks pkg install kubeflow/pytorch-job
   ks pkg install kubeflow/seldon
   ks pkg install kubeflow/tf-serving
+  ks pkg install kubeflow/tf-training
   ks pkg install kubeflow/metacontroller
   ks pkg install kubeflow/profiles
   ks pkg install kubeflow/application
