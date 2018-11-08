@@ -134,7 +134,7 @@ std.assertEqual(
                 "--LabApp.allow_remote_access='True'",
                 "--LabApp.allow_root='True'",
                 "--LabApp.ip='*'",
-                "--LabApp.base_url='/'${name}",
+                "--LabApp.base_url='/'notebook",
                 "--port=8888",
                 "--no-browser",
               ],
