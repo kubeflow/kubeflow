@@ -329,12 +329,6 @@ func (s *CreateRequest) Validate() error {
 	if len(s.Project) == 0 {
 		missings = append(missings, "Project")
 	}
-	if len(s.ClientId) == 0 {
-		missings = append(missings, "Web App Client ID")
-	}
-	if len(s.ClientSecret) == 0 {
-		missings = append(missings, "Web App Client Secret")
-	}
 	if len(missings) == 0 {
 		return nil
 	}

@@ -155,10 +155,10 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           <Input name="deploymentName" label="Deployment name" spellCheck={false} value={this.state.deploymentName} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
-          <Input name="clientId" label="Web App Client ID" spellCheck={false} value={this.state.clientId} onChange={this._handleChange.bind(this)} />
+          <Input name="clientId" label="IAP Oauth Client ID" spellCheck={false} value={this.state.clientId} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
-          <Input name="clientSecret" label="Web App Client Secret" spellCheck={false} value={this.state.clientSecret} onChange={this._handleChange.bind(this)} />
+          <Input name="clientSecret" label="IAP Oauth Client Secret" spellCheck={false} value={this.state.clientSecret} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
           <Text style={{ fontSize: '1.1em', margin: '2% 11%' }}>GKE Zone: </Text>
@@ -183,6 +183,14 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         <div style={{ display: 'flex', padding: '20px 60px 40px' }}>
           <DeployBtn variant="contained" color="primary" onClick={this._createDeployment.bind(this)}>
             Create Deployment
+          </DeployBtn>
+
+          <DeployBtn variant="contained" color="default" onClick={this._iapAddress.bind(this)}>
+            IAP Access
+          </DeployBtn>
+
+          <DeployBtn variant="contained" color="default" onClick={this._cloudShell.bind(this)}>
+            Cloud Shell
           </DeployBtn>
 
           <YamlBtn variant="outlined" color="default" onClick={this._showYaml.bind(this)}>
@@ -249,8 +257,9 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
 
     const state = this.state;
     const email = await Gapi.getSignedInEmail();
-
-    this._configSpec.defaultApp.parameters.forEach((p: any) => {
+    let iapIdx = 0;
+    for (let i = 0, len = this._configSpec.defaultApp.parameters.length; i < len; i ++){
+      const p = this._configSpec.defaultApp.parameters[i];
       if (p.name === 'ipName') {
         p.value = this.state.deploymentName + '-ip';
       }
@@ -262,10 +271,51 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       if (p.name === 'acmeEmail') {
         p.value = email;
       }
-    });
+
+      if (p.name === 'jupyterHubAuthenticator') {
+        iapIdx = i;
+      }
+    }
+    if (this.state.clientId === '' || this.state.clientSecret === '') {
+      this._configSpec.defaultApp.parameters.splice(iapIdx, 1);
+    }
     this._configSpec.defaultApp.registries[0].version = this.state.kfverison;
 
     return this._configSpec;
+  }
+
+  private async _cloudShell() {
+    const key = 'project';
+    if (this.state[key] === '') {
+      this.setState({
+        dialogBody: 'project id is missing',
+        dialogTitle: 'Missing field',
+      });
+      return;
+    }
+    window.open('https://console.cloud.google.com/home/dashboard?cloudshell=true&project=' + this.state.project, '_blank');
+    this.setState({
+      dialogBody: 'gcloud container clusters get-credentials ' + this.state.deploymentName
+        + ' --zone ' + this.state.zone + ' --project ' + this.state.project + '; ' +
+        'kubectl port-forward -n kubeflow $(kubectl get pods -n kubeflow --selector=service=ambassador -o jsonpath="{.items[0].metadata.name}") 8080:80',
+      dialogTitle: 'In Cloud Shell, run following command:',
+    });
+  }
+
+  private async _iapAddress() {
+    for (const prop of ['project', 'deploymentName']) {
+      if (this.state[prop] === '') {
+        this.setState({
+          dialogBody: 'Some required fields (project, deploymentName) are missing',
+          dialogTitle: 'Missing field',
+        });
+        return;
+      }
+    }
+    const win = window.open('https://' + this.state.deploymentName + '.endpoints.' + this.state.project + '.cloud.goog', '_blank');
+    if (win != null) {
+      win.focus();
+    }
   }
 
   // Create a  Kubeflow deployment.
@@ -470,9 +520,17 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           } else if (r.operation!.status! && r.operation!.status === 'DONE') {
             const readyTime = new Date();
             readyTime.setTime(readyTime.getTime() + (20 * 60 * 1000));
-            this._appendLine('Deployment is done, your kubeflow app url should be ready within 20 minutes (by '
-              + readyTime.toLocaleTimeString() + '): https://'
-              + this.state.deploymentName + '.endpoints.' + this.state.project + '.cloud.goog');
+            this._appendLine('Deployment is done');
+            if (this.state.clientId === '' || this.state.clientSecret === '') {
+              this._appendLine('(IAP skipped), cluster should be ready within 5 minutes. To connect to cluster, click cloud shell and run:');
+              this._appendLine('gcloud container clusters get-credentials ' + this.state.deploymentName
+                + ' --zone ' + this.state.zone + ' --project ' + this.state.project);
+              this._appendLine('kubectl port-forward -n kubeflow $(kubectl get pods -n kubeflow --selector=service=ambassador -o jsonpath="{.items[0].metadata.name}") 8080:80');
+            } else {
+              this._appendLine('your kubeflow app url should be ready within 20 minutes (by '
+                + readyTime.toLocaleTimeString() + '): https://'
+                + this.state.deploymentName + '.endpoints.' + this.state.project + '.cloud.goog');
+            }
             clearInterval(monitorInterval);
           } else {
             this._appendLine(`Status of ${deploymentName}: ` + r.operation!.status!);
