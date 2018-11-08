@@ -16,6 +16,9 @@ libraries:
   core:
     version: master
     path: core
+  tf-training:
+    version: master
+    path: tf-training
   tf-serving:
     version: master
     path: tf-serving

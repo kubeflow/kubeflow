@@ -120,6 +120,7 @@ local dagTemplates = [
       srcDir + "/kubeflow/profiles/tests" + "," +
       srcDir + "/kubeflow/tensorboard/tests" + "," +
       srcDir + "/kubeflow/notebooks/tests",
+      srcDir + "/kubeflow/tf-training/tests",
       "--jsonnet_path_dirs=" + srcDir + "," + srcRootDir + "/kubeflow/testing/workflows/lib/v1.7.0/",
     ]),  // jsonnet-test
 
