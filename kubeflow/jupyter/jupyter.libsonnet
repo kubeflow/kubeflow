@@ -4,6 +4,15 @@
   new(_env, _params):: {
     local params = _env + _params,
 
+    local defaultSpawnerData = {
+      // Default JH Spawner UI files
+      "template.html": importstr "ui/default/template.html",
+      "script.js": importstr "ui/default/script.js",
+      "style.css": importstr "ui/default/style.css",
+      "spawner.py": importstr "ui/default/spawner.py",
+      "spawner_ui_config.yaml": importstr "ui/default/config.yaml",
+    },
+
     local kubeSpawnerConfig = {
       apiVersion: "v1",
       kind: "ConfigMap",
@@ -11,9 +20,11 @@
         name: "jupyter-config",
         namespace: params.namespace,
       },
-      data: {
-        "jupyter_config.py": importstr "kubeform_spawner.py",
+      // JH config file
+      local config = {
+        "jupyter_config.py": importstr "jupyter_config.py",
       },
+      data: config + if params.ui == "default" then defaultSpawnerData,
     },
     kubeSpawnerConfig:: kubeSpawnerConfig,
 
@@ -142,18 +153,6 @@
                   {
                     name: "NOTEBOOK_PVC_MOUNT",
                     value: params.notebookPVCMount,
-                  },
-                  {
-                    name: "PLATFORM_NAME",
-                    value: params.platform,
-                  },
-                  {
-                    name: "REGISTRY",
-                    value: params.registry,
-                  },
-                  {
-                    name: "REPO_NAME",
-                    value: params.repoName,
                   },
                   {
                     name: "KF_AUTHENTICATOR",
