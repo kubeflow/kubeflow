@@ -3,7 +3,7 @@
 // - Service
 // - Pod
 function(request) {
-  local template = request.parent.spec.template,
+  local templateSpec = request.parent.spec.template.spec,
   local podTemplateSpec = {
     containers: [
       {
@@ -15,7 +15,7 @@ function(request) {
           "--LabApp.allow_remote_access='True'",
           "--LabApp.allow_root='True'",
           "--LabApp.ip='*'",
-          "--LabApp.base_url='/'" + template.metadata.name,
+          "--LabApp.base_url=/" + request.parent.metadata.namespace + '/' + request.parent.metadata.name,
           "--port=8888",
           "--no-browser",
         ],
@@ -44,8 +44,9 @@ function(request) {
         workingDir: "/home/jovyan",
       },
     ],
-    ttlSecondsAfterFinished: 300,
     restartPolicy: "Always",
+    serviceAccount:: {},
+    serviceAccountName:: {},
   },
 
   local children = [
@@ -59,19 +60,19 @@ function(request) {
               "---",
               "apiVersion: ambassador/v0",
               "kind:  Mapping",
-              "name: " + template.metadata.name + "_mapping",
-              "prefix: /" + template.metadata.name,
-              "rewrite: /" + template.metadata.name,
+              "name: " + request.parent.metadata.namespace + "_" + request.parent.metadata.name + "_mapping",
+              "prefix: /" + request.parent.metadata.namespace + "/" + request.parent.metadata.name,
+              "rewrite: /" + request.parent.metadata.namespace + "/" + request.parent.metadata.name,
               "timeout_ms: 300000",
-              "service: " + template.metadata.name + "." + template.metadata.namespace,
+              "service: " + request.parent.metadata.name + "." + request.parent.metadata.namespace,
             ]),
         },
-        name: template.metadata.name,
-        namespace: template.metadata.namespace,
+        name: request.parent.metadata.name,
+        namespace: request.parent.metadata.namespace,
       },
       spec: {
         selector: {
-          app: template.metadata.name,
+          app: request.parent.metadata.name,
         },
         ports: [
           {
@@ -86,8 +87,14 @@ function(request) {
     {
       apiVersion: "v1",
       kind: "Pod",
-      metadata: template.metadata,
-      spec: template.spec + podTemplateSpec,
+      metadata: {
+        name: request.parent.metadata.name,
+        namespace: request.parent.metadata.namespace,
+        labels: {
+          app: request.parent.metadata.name,
+        },
+      },
+      spec: templateSpec + podTemplateSpec,
     },
   ],
   children: children,

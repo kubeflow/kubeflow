@@ -30,10 +30,6 @@ local notebook = {
   },
   spec: {
     template: {
-      metadata: {
-        name: "notebook",
-        namespace: "kf-200",
-      },
       spec: {
         ttlSecondsAfterFinished: 300,
         containers: [
@@ -97,10 +93,10 @@ std.assertEqual(
         kind: "Service",
         metadata: {
           annotations: {
-            "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind:  Mapping\nname: notebook_mapping\nprefix: /notebook\nrewrite: /notebook\ntimeout_ms: 300000\nservice: notebook.kf-200",
+            "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind:  Mapping\nname: kubeflow_notebook_mapping\nprefix: /kubeflow/notebook\nrewrite: /kubeflow/notebook\ntimeout_ms: 300000\nservice: notebook.kubeflow",
           },
           name: "notebook",
-          namespace: "kf-200",
+          namespace: "kubeflow",
         },
         spec: {
           ports: [
@@ -120,8 +116,11 @@ std.assertEqual(
         apiVersion: "v1",
         kind: "Pod",
         metadata: {
+          labels: {
+            app: "notebook",
+          },
           name: "notebook",
-          namespace: "kf-200",
+          namespace: "kubeflow",
         },
         spec: {
           containers: [
@@ -134,7 +133,7 @@ std.assertEqual(
                 "--LabApp.allow_remote_access='True'",
                 "--LabApp.allow_root='True'",
                 "--LabApp.ip='*'",
-                "--LabApp.base_url='/'notebook",
+                "--LabApp.base_url=/kubeflow/notebook",
                 "--port=8888",
                 "--no-browser",
               ],
@@ -168,8 +167,6 @@ std.assertEqual(
             fsGroup: 100,
             runAsUser: 1000,
           },
-          serviceAccount: "jupyter-notebook",
-          serviceAccountName: "jupyter-notebook",
           ttlSecondsAfterFinished: 300,
           volumes: [
             {

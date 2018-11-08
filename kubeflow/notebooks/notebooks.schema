@@ -29,22 +29,6 @@
       properties: {
         template: {
           properties: {
-            metadata: {
-              properties: {
-                name: {
-                  type: 'string',
-                },
-                labels: {
-                  type: 'object',
-                },
-                namespace: {
-                  type: 'string',
-                },
-                annotations: {
-                  type: 'object',
-                },
-              },
-            },
             spec: {
               required: [
                 'containers',
