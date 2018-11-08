@@ -15,7 +15,7 @@ function(request) {
           "--LabApp.allow_remote_access='True'",
           "--LabApp.allow_root='True'",
           "--LabApp.ip='*'",
-          "--LabApp.base_url=/" + request.parent.metadata.namespace + '/' + request.parent.metadata.name,
+          "--LabApp.base_url=/" + request.parent.metadata.namespace + "/" + request.parent.metadata.name,
           "--port=8888",
           "--no-browser",
         ],
