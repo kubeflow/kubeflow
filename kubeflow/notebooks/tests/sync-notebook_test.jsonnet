@@ -1,5 +1,4 @@
 local params = {
-  disks: "null",
   image: "tensorflow-1.10.1-notebook-cpu:v0.3.0",
   useJupyterLabAsDefault: true,
   notebookPVCMount: "/home/jovyan",
@@ -7,8 +6,6 @@ local params = {
   repoName: "kubeflow-images-public",
   notebookUid: "-1",
   notebookGid: "-1",
-  accessLocalFs: "false",
-  owner: "foo",
   serviceType: "ClusterIP",
   targetPort: "8888",
   servicePort: "80",
@@ -24,7 +21,7 @@ local notebook = {
   apiVersion: "kubeflow.org/v1alpha1",
   kind: "Notebook",
   metadata: {
-    name: "notebook",
+    name: "training",
     namespace: env.namespace,
     annotations: env + params,
   },
@@ -58,11 +55,10 @@ local notebook = {
           },
         ],
         securityContext: {
-          fsGroup: 100,
-          runAsUser: 1000,
+          fsGroup: params.notebookGid,
+          runAsUser: params.notebookUid,
         },
-        serviceAccount: "jupyter-notebook",
-        serviceAccountName: "jupyter-notebook",
+        serviceAccountName: "notebooks",
         volumes: [
           {
             name: "volume-training",
@@ -93,9 +89,9 @@ std.assertEqual(
         kind: "Service",
         metadata: {
           annotations: {
-            "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind:  Mapping\nname: kubeflow_notebook_mapping\nprefix: /kubeflow/notebook\nrewrite: /kubeflow/notebook\ntimeout_ms: 300000\nservice: notebook.kubeflow",
+            "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind:  Mapping\nname: kubeflow_training_mapping\nprefix: /kubeflow/training\nrewrite: /kubeflow/training\ntimeout_ms: 300000\nservice: training.kubeflow",
           },
-          name: "notebook",
+          name: "training",
           namespace: "kubeflow",
         },
         spec: {
@@ -107,7 +103,7 @@ std.assertEqual(
             },
           ],
           selector: {
-            app: "notebook",
+            app: "training",
           },
           type: "ClusterIP",
         },
@@ -117,9 +113,9 @@ std.assertEqual(
         kind: "Pod",
         metadata: {
           labels: {
-            app: "notebook",
+            app: "training",
           },
-          name: "notebook",
+          name: "training",
           namespace: "kubeflow",
         },
         spec: {
@@ -133,7 +129,7 @@ std.assertEqual(
                 "--LabApp.allow_remote_access='True'",
                 "--LabApp.allow_root='True'",
                 "--LabApp.ip='*'",
-                "--LabApp.base_url=/kubeflow/notebook",
+                "--LabApp.base_url=/kubeflow/training/",
                 "--port=8888",
                 "--no-browser",
               ],
@@ -164,8 +160,8 @@ std.assertEqual(
           ],
           restartPolicy: "Always",
           securityContext: {
-            fsGroup: 100,
-            runAsUser: 1000,
+            fsGroup: "-1",
+            runAsUser: "-1",
           },
           ttlSecondsAfterFinished: 300,
           volumes: [
