@@ -19,12 +19,6 @@ The Notebooks component is an alternative to jupyterhub. The component defines a
 apiVersion: kubeflow.org/v1alpha1
 kind: Notebook
 metadata:
-  annotations:
-    accessLocalFs: 'false'
-    disks: 'null'
-    notebookGid: "-1"
-    notebookUid: "-1"
-    notebookPVCMount: "/home/jovyan"
   name: training
   namespace: resnet50
 spec:
@@ -44,7 +38,9 @@ spec:
         runAsUser: 1000
 ```
 
-The user submits a Notebook CR either through a UI or CLI (eg `kubectl apply -f notebook.yaml`) and the Notebook CR is handled by a notebook-controller. The controller will create a Service and Pod within the user's namespace. The Service uses ambassador to create a reverse proxy that will route subsequent browser requests to the Pod. An example Service is shown below:
+### User Interaction
+
+The user submits a Notebook CR either through a UI or CLI (eg `kubectl apply -f notebook.yaml`) and the Notebook CR is handled by the notebook-controller. The controller will create a Service and Pod within the user's namespace. The Service uses ambassador to create a reverse proxy that will route subsequent browser requests to the Pod. An example Service is shown below:
 
 ```yaml
 apiVersion: v1
@@ -86,5 +82,50 @@ Subsequent browser requests to `https://<api-server>/<namespace>/<notebook>` are
 
 ![Jupyter Notebook](./docs/jupyter_notebook.png "Jupyter Notebook")
 
-The notebook component uses the profiles component to lazily create a protected namespace for the user's first notebook. Subsequent notebooks are launched within this namespace. 
+The notebook component depends on the profiles component to provide a protected namespace for the user. This means that a Profile CR was posted to the kubernetes api-server prior to the Notebook CR post. In this case a Profile CR would of looked like:
+
+```yaml
+apiVersion: kubeflow.org/v1alpha1
+kind: Profile
+metadata:
+  name: resnet50
+  namespace: kubeflow
+spec:
+  template:
+    metadata:
+      namespace: resnet50
+    spec:
+      owner:
+        kind: ServiceAccount
+        name: dean
+        namespace: kubeflow
+```
+
+If the user were a GKE IAM user, the above Profile would look like:
+
+```yaml
+apiVersion: kubeflow.org/v1alpha1
+kind: Profile
+metadata:
+  name: resnet50
+  namespace: kubeflow
+spec:
+  template:
+    metadata:
+      namespace: resnet50
+    spec:
+      owner:
+        apiGroup: rbac.authorization.k8s.io
+        kind: User
+        name: fred@acme.com
+status:
+  conditions:
+  - type: Ready
+  created: true
+  phase: Active
+```
+
+In this case the user is Fred and is identified by GKE by his email `fred@acme.com`.
+
+
 
