@@ -13,7 +13,7 @@
 
 ## Design
 
-The Notebooks component is an alternative to jupyterhub. The component defines a Notebook CRD and provides a notebook-controller (based on metacontroller's [CompositeController](https://metacontroller.app/api/compositecontroller/)). The Notebook CRD schema is similar to a kubernetes [Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#creating-a-deployment) where it defines a [Pod Template](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#pod-template) that is used by the notebook-controller to create a Pod. An example Notebook CR is shown below:
+The Notebooks component is an alternative to jupyterhub. The component defines a Notebook CRD and provides a notebook-controller (based on metacontroller's [CompositeController](https://metacontroller.app/api/compositecontroller/)). The Notebook CRD schema is similar to a kubernetes [Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#creating-a-deployment) where it defines a [Pod Template](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#pod-template) that is used by the notebook-controller to create a Pod. An example Notebook yaml is shown below:
 
 ```yaml
 apiVersion: kubeflow.org/v1alpha1
@@ -40,7 +40,7 @@ spec:
 
 ### User Interaction
 
-The user submits a Notebook CR either through a UI or CLI (eg `kubectl apply -f notebook.yaml`) and the Notebook CR is handled by the notebook-controller. The controller will create a Service and Pod within the user's namespace. The Service uses ambassador to create a reverse proxy that will route subsequent browser requests to the Pod. An example Service is shown below:
+The user submits a Notebook yaml either through a UI or CLI (eg `kubectl apply -f notebook.yaml`) and the Notebook yaml is handled by the notebook-controller. The controller will create a Service and Pod within the user's namespace. The Service uses ambassador to create a reverse proxy that will route subsequent browser requests to the Pod. An example Service is shown below:
 
 ```yaml
 apiVersion: v1
@@ -82,7 +82,7 @@ Subsequent browser requests to `https://<api-server>/<namespace>/<notebook>` are
 
 ![Jupyter Notebook](./docs/jupyter_notebook.png "Jupyter Notebook")
 
-The notebook component depends on the profiles component to provide a protected namespace for the user. This means that a Profile CR was posted to the kubernetes api-server prior to the Notebook CR post. In this case a Profile CR would of looked like:
+The notebook component depends on the [profiles component](https://github.com/kubeflow/kubeflow/tree/master/kubeflow/profiles/prototypes) to provide a protected namespace for the user. This means that a Profile yaml was posted to the kubernetes api-server prior to posting the Notebook yaml. In this case a Profile yaml would look like:
 
 ```yaml
 apiVersion: kubeflow.org/v1alpha1
@@ -101,7 +101,7 @@ spec:
         namespace: kubeflow
 ```
 
-If the user were a GKE IAM user, the above Profile would look like:
+If the user were a GKE IAM user, the Profile yaml would look like:
 
 ```yaml
 apiVersion: kubeflow.org/v1alpha1
@@ -125,7 +125,7 @@ status:
   phase: Active
 ```
 
-In this case the user is Fred and is identified by GKE by his email `fred@acme.com`.
+In this case the user is Fred and is identified within GKE's IAM by his email `fred@acme.com`.
 
 
 
