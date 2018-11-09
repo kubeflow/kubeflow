@@ -1,7 +1,7 @@
-local jupyterhub = import "kubeflow/core/jupyterhub.libsonnet";
+local jupyter = import "kubeflow/jupyter/jupyter.libsonnet";
 
 local params = {
-  name: "jupyterhub",
+  name: "jupyter",
   platform: "gke",
   serviceType: "ClusterIP",
   disks: "null",
@@ -19,23 +19,23 @@ local env = {
   namespace: "foo",
 };
 
-local instance = jupyterhub.new(env, params);
+local instance = jupyter.new(env, params);
 
 std.assertEqual(
   instance.parts.kubeSpawnerConfig,
   {
     apiVersion: "v1",
     data: {
-      "jupyterhub_config.py": importstr "kubeflow/core/jupyterhub_config.py",
-      "template.html": importstr "kubeflow/core/ui/default/template.html",
-      "script.js": importstr "kubeflow/core/ui/default/script.js",
-      "style.css": importstr "kubeflow/core/ui/default/style.css",
-      "spawner.py": importstr "kubeflow/core/ui/default/spawner.py",
-      "spawner_ui_config.yaml": importstr "kubeflow/core/ui/default/config.yaml",
+      "jupyter_config.py": importstr "kubeflow/jupyter/jupyter_config.py",
+      "template.html": importstr "kubeflow/jupyter/ui/default/template.html",
+      "script.js": importstr "kubeflow/jupyter/ui/default/script.js",
+      "style.css": importstr "kubeflow/jupyter/ui/default/style.css",
+      "spawner.py": importstr "kubeflow/jupyter/ui/default/spawner.py",
+      "spawner_ui_config.yaml": importstr "kubeflow/jupyter/ui/default/config.yaml",
     },
     kind: "ConfigMap",
     metadata: {
-      name: "jupyterhub-config",
+      name: "jupyter-config",
       namespace: "foo",
     },
   }
@@ -51,9 +51,9 @@ std.assertEqual(
         "prometheus.io/scrape": "true",
       },
       labels: {
-        app: "jupyterhub",
+        app: "jupyter",
       },
-      name: "jupyterhub-0",
+      name: "jupyter-0",
       namespace: "foo",
     },
     spec: {
@@ -65,7 +65,7 @@ std.assertEqual(
         },
       ],
       selector: {
-        app: "jupyterhub",
+        app: "jupyter",
       },
     },
   }
@@ -77,7 +77,7 @@ std.assertEqual(
     apiVersion: "apps/v1beta1",
     kind: "StatefulSet",
     metadata: {
-      name: "jupyterhub",
+      name: "jupyter",
       namespace: "foo",
     },
     spec: {
@@ -86,7 +86,7 @@ std.assertEqual(
       template: {
         metadata: {
           labels: {
-            app: "jupyterhub",
+            app: "jupyter",
           },
         },
         spec: {
@@ -95,7 +95,7 @@ std.assertEqual(
               command: [
                 "jupyterhub",
                 "-f",
-                "/etc/config/jupyterhub_config.py",
+                "/etc/config/jupyter_config.py",
               ],
               env: [
                 {
@@ -120,7 +120,7 @@ std.assertEqual(
                 },
               ],
               image: "gcr.io/kubeflow/jupyterhub-k8s:v20180531-3bb991b1",
-              name: "jupyterhub",
+              name: "jupyter",
               ports: [
                 {
                   containerPort: 8000,
@@ -137,11 +137,11 @@ std.assertEqual(
               ],
             },
           ],
-          serviceAccountName: "jupyterhub",
+          serviceAccountName: "jupyter",
           volumes: [
             {
               configMap: {
-                name: "jupyterhub-config",
+                name: "jupyter-config",
               },
               name: "config-volume",
             },
@@ -267,12 +267,12 @@ std.assertEqual(
     kind: "Service",
     metadata: {
       annotations: {
-        "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind:  Mapping\nname: jupyterhub-lb-hub-mapping\nprefix: /hub/\nrewrite: /hub/\ntimeout_ms: 300000\nservice: jupyterhub-lb.foo\nuse_websocket: true\n---\napiVersion: ambassador/v0\nkind:  Mapping\nname: jupyterhub-lb-user-mapping\nprefix: /user/\nrewrite: /user/\ntimeout_ms: 300000\nservice: jupyterhub-lb.foo\nuse_websocket: true",
+        "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind:  Mapping\nname: jupyter-lb-hub-mapping\nprefix: /hub/\nrewrite: /hub/\ntimeout_ms: 300000\nservice: jupyter-lb.foo\nuse_websocket: true\n---\napiVersion: ambassador/v0\nkind:  Mapping\nname: jupyter-lb-user-mapping\nprefix: /user/\nrewrite: /user/\ntimeout_ms: 300000\nservice: jupyter-lb.foo\nuse_websocket: true",
       },
       labels: {
-        app: "jupyterhub-lb",
+        app: "jupyter-lb",
       },
-      name: "jupyterhub-lb",
+      name: "jupyter-lb",
       namespace: "foo",
     },
     spec: {
@@ -284,7 +284,7 @@ std.assertEqual(
         },
       ],
       selector: {
-        app: "jupyterhub",
+        app: "jupyter",
       },
       type: "ClusterIP",
     },
@@ -298,9 +298,9 @@ std.assertEqual(
     kind: "ServiceAccount",
     metadata: {
       labels: {
-        app: "jupyterhub",
+        app: "jupyter",
       },
-      name: "jupyterhub",
+      name: "jupyter",
       namespace: "foo",
     },
   }
@@ -335,7 +335,7 @@ std.assertEqual(
     subjects: [
       {
         kind: "ServiceAccount",
-        name: "jupyterhub",
+        name: "jupyter",
         namespace: "foo",
       },
     ],

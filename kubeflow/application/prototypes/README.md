@@ -8,7 +8,7 @@ Alternatively, the application component can produce an Application Kind based o
 of the generated components by setting a parameter
 
 ```bash
-ks param application components '["ambassador", "jupyterhub"]'
+ks param application components '["ambassador", "jupyter"]'
 ```
 
 for example.
@@ -111,20 +111,20 @@ INFO Applying configmaps kubeflow.tf-job-operator-config
 INFO Creating non-existent configmaps kubeflow.tf-job-operator-config
 INFO Applying roles kubeflow.centraldashboard
 INFO Creating non-existent roles kubeflow.centraldashboard
-INFO Applying configmaps kubeflow.jupyterhub-config
-INFO Creating non-existent configmaps kubeflow.jupyterhub-config
-INFO Applying services kubeflow.jupyterhub-0
-INFO Creating non-existent services kubeflow.jupyterhub-0
+INFO Applying configmaps kubeflow.jupyter-config
+INFO Creating non-existent configmaps kubeflow.jupyter-config
+INFO Applying services kubeflow.jupyter-0
+INFO Creating non-existent services kubeflow.jupyter-0
 INFO Applying applications kubeflow.application
 INFO Creating non-existent applications kubeflow.application
 INFO Applying roles kubeflow.jupyter-role
 INFO Creating non-existent roles kubeflow.jupyter-role
 INFO Applying roles kubeflow.jupyter-notebook-role
 INFO Creating non-existent roles kubeflow.jupyter-notebook-role
-INFO Applying services kubeflow.jupyterhub-lb
-INFO Creating non-existent services kubeflow.jupyterhub-lb
-INFO Applying serviceaccounts kubeflow.jupyterhub
-INFO Creating non-existent serviceaccounts kubeflow.jupyterhub
+INFO Applying services kubeflow.jupyter-lb
+INFO Creating non-existent services kubeflow.jupyter-lb
+INFO Applying serviceaccounts kubeflow.jupyter
+INFO Creating non-existent serviceaccounts kubeflow.jupyter
 INFO Applying serviceaccounts kubeflow.jupyter-notebook
 INFO Creating non-existent serviceaccounts kubeflow.jupyter-notebook
 INFO Applying rolebindings kubeflow.jupyter-role
@@ -189,8 +189,8 @@ INFO Applying deployments kubeflow.modeldb-backend
 INFO Creating non-existent deployments kubeflow.modeldb-backend
 INFO Applying deployments kubeflow.vizier-core
 INFO Creating non-existent deployments kubeflow.vizier-core
-INFO Applying statefulsets kubeflow.jupyterhub
-INFO Creating non-existent statefulsets kubeflow.jupyterhub
+INFO Applying statefulsets kubeflow.jupyter
+INFO Creating non-existent statefulsets kubeflow.jupyter
 INFO Applying deployments kubeflow.tf-job-operator-v1alpha2
 INFO Creating non-existent deployments kubeflow.tf-job-operator-v1alpha2
 INFO Applying deployments kubeflow.argo-ui
@@ -266,11 +266,11 @@ spec:
   - centraldashboard:
       group: rbac.authorization.k8s.io
       kind: Role
-  - jupyterhub-config:
+  - jupyter-config:
       kind: ConfigMap
-  - jupyterhub-0:
+  - jupyter-0:
       kind: Service
-  - jupyterhub:
+  - jupyter:
       group: apps
       kind: StatefulSet
   - jupyter-role:
@@ -279,9 +279,9 @@ spec:
   - jupyter-notebook-role:
       group: rbac.authorization.k8s.io
       kind: Role
-  - jupyterhub-lb:
+  - jupyter-lb:
       kind: Service
-  - jupyterhub:
+  - jupyter:
       kind: ServiceAccount
   - jupyter-notebook:
       kind: ServiceAccount
