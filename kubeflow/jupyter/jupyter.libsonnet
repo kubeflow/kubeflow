@@ -17,12 +17,12 @@
       apiVersion: "v1",
       kind: "ConfigMap",
       metadata: {
-        name: "jupyterhub-config",
+        name: "jupyter-config",
         namespace: params.namespace,
       },
       // JH config file
       local config = {
-        "jupyterhub_config.py": importstr "jupyterhub_config.py",
+        "jupyter_config.py": importstr "jupyter_config.py",
       },
       data: config + if params.ui == "default" then defaultSpawnerData,
     },
@@ -33,9 +33,9 @@
       kind: "Service",
       metadata: {
         labels: {
-          app: "jupyterhub",
+          app: "jupyter",
         },
-        name: "jupyterhub-0",
+        name: "jupyter-0",
         namespace: params.namespace,
         annotations: {
           "prometheus.io/scrape": "true",
@@ -52,7 +52,7 @@
           },
         ],
         selector: {
-          app: "jupyterhub",
+          app: "jupyter",
         },
       },
     },
@@ -63,9 +63,9 @@
       kind: "Service",
       metadata: {
         labels: {
-          app: "jupyterhub-lb",
+          app: "jupyter-lb",
         },
-        name: "jupyterhub-lb",
+        name: "jupyter-lb",
         namespace: params.namespace,
         annotations: {
           "getambassador.io/config":
@@ -73,20 +73,20 @@
               "---",
               "apiVersion: ambassador/v0",
               "kind:  Mapping",
-              "name: jupyterhub-lb-hub-mapping",
+              "name: jupyter-lb-hub-mapping",
               "prefix: /hub/",
               "rewrite: /hub/",
               "timeout_ms: 300000",
-              "service: jupyterhub-lb." + params.namespace,
+              "service: jupyter-lb." + params.namespace,
               "use_websocket: true",
               "---",
               "apiVersion: ambassador/v0",
               "kind:  Mapping",
-              "name: jupyterhub-lb-user-mapping",
+              "name: jupyter-lb-user-mapping",
               "prefix: /user/",
               "rewrite: /user/",
               "timeout_ms: 300000",
-              "service: jupyterhub-lb." + params.namespace,
+              "service: jupyter-lb." + params.namespace,
               "use_websocket: true",
             ]),
         },  //annotations
@@ -100,7 +100,7 @@
           },
         ],
         selector: {
-          app: "jupyterhub",
+          app: "jupyter",
         },
         type: params.serviceType,
       },
@@ -111,7 +111,7 @@
       apiVersion: "apps/v1beta1",
       kind: "StatefulSet",
       metadata: {
-        name: "jupyterhub",
+        name: "jupyter",
         namespace: params.namespace,
       },
       spec: {
@@ -120,7 +120,7 @@
         template: {
           metadata: {
             labels: {
-              app: "jupyterhub",
+              app: "jupyter",
             },
           },
           spec: {
@@ -129,10 +129,10 @@
                 command: [
                   "jupyterhub",
                   "-f",
-                  "/etc/config/jupyterhub_config.py",
+                  "/etc/config/jupyter_config.py",
                 ],
                 image: params.image,
-                name: "jupyterhub",
+                name: "jupyter",
                 volumeMounts: [
                   {
                     mountPath: "/etc/config",
@@ -187,13 +187,13 @@
                       value: std.toString(params.accessLocalFs),
                     },
                 ]),
-              },  // jupyterHub container
+              },  // jupyter container
             ],
-            serviceAccountName: "jupyterhub",
+            serviceAccountName: "jupyter",
             volumes: [
               {
                 configMap: {
-                  name: "jupyterhub-config",
+                  name: "jupyter-config",
                 },
                 name: "config-volume",
               },
@@ -314,9 +314,9 @@
       kind: "ServiceAccount",
       metadata: {
         labels: {
-          app: "jupyterhub",
+          app: "jupyter",
         },
-        name: "jupyterhub",
+        name: "jupyter",
         namespace: params.namespace,
       },
     },
@@ -347,7 +347,7 @@
       subjects: [
         {
           kind: "ServiceAccount",
-          name: "jupyterhub",
+          name: "jupyter",
           namespace: params.namespace,
         },
       ],

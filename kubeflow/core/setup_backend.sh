@@ -76,8 +76,8 @@ done
 # Manually update the healthcheck request path to /healthz
 gcloud --project=${PROJECT} compute health-checks update http ${HEALTH_CHECK_URI} --request-path=/healthz
 
-# Since JupyterHub uses websockets we want to increase the backend timeout
-echo Increasing backend timeout for JupyterHub
+# Since Jupyter uses websockets we want to increase the backend timeout
+echo Increasing backend timeout for Jupyter
 gcloud --project=${PROJECT} compute backend-services update --global ${BACKEND_SERVICE} --timeout=3600
 
 JWT_AUDIENCE="/projects/${PROJECT_NUM}/global/backendServices/${BACKEND_ID}"

@@ -8,4 +8,4 @@
 
 # core
 
-This ksonnet package contains kubeflow core prototypes such as jupyterhub, ambassador, spartakus, etc. You can install this using `ks pkg install kubeflow/core`. `ks prototype list` should list the available prototypes. `ks prototype describe <name>` should describe the prototype.
+This ksonnet package contains kubeflow core prototypes such as ambassador, spartakus, etc. You can install this using `ks pkg install kubeflow/core`. `ks prototype list` should list the available prototypes. `ks prototype describe <name>` should describe the prototype.
