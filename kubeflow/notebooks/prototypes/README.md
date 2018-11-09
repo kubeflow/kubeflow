@@ -2,9 +2,9 @@
 
 - provide a k8 native mechanism to spawning jupyter notebooks for users
 
-- spawn notebooks within RBAC protected namespaces for a user
+- spawn a notebook within a RBAC protected namespace for a user
 
-- use jupyter service account names within the spawning pod
+- set a serviceAccountName within the spawning pod similar to jupyter-notebook
 
 - use k8 native authentication for the user within the protected namespace
 
