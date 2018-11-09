@@ -460,6 +460,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
   }
 
   private _monitorDeployment(project: string, deploymentName: string) {
+    const dashboardUri = 'https://' + this.state.deploymentName + '.endpoints.' + this.state.project + 'cloud.goog/';
     const monitorInterval = setInterval(() => {
       Gapi.deploymentmanager.get(this.state.project, deploymentName)
         .then(r => {
@@ -471,14 +472,26 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             const readyTime = new Date();
             readyTime.setTime(readyTime.getTime() + (20 * 60 * 1000));
             this._appendLine('Deployment is done, your kubeflow app url should be ready within 20 minutes (by '
-              + readyTime.toLocaleTimeString() + '): https://'
-              + this.state.deploymentName + '.endpoints.' + this.state.project + '.cloud.goog');
+              + readyTime.toLocaleTimeString() + '): ' + dashboardUri);
             clearInterval(monitorInterval);
+            this._redirectToKFDashboard(dashboardUri);
           } else {
             this._appendLine(`Status of ${deploymentName}: ` + r.operation!.status!);
           }
         })
         .catch(err => this._appendLine('deployment failed with error:' + err));
+    }, 10000);
+  }
+
+  private _redirectToKFDashboard(dashboardUri: string) {
+    const monitorInterval = setInterval(() => {
+      var xmlHttp = new XMLHttpRequest();
+      xmlHttp.onreadystatechange = function() {
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+          window.location.href(dashboardUri);
+      }
+      xmlHttp.open("GET", theUrl, true); // true for asynchronous
+      xmlHttp.send(null);
     }, 10000);
   }
 
