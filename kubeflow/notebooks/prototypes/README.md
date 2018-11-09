@@ -82,7 +82,7 @@ spec:
   type: ClusterIP
 ```
 
-Subsequent browser requests to https://<api-server>/<namespace>/<notebook> are routed to the Service and Pod as shown below:
+Subsequent browser requests to `https://<api-server>/<namespace>/<notebook>` are routed to the Service and Pod as shown below:
 
 ![Jupyter Notebook](./docs/jupyter_notebook.png "Jupyter Notebook")
 
