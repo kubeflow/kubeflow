@@ -16,6 +16,9 @@ libraries:
   core:
     version: master
     path: core
+  jupyter:
+    version: master
+    path: jupyter
   tf-training:
     version: master
     path: tf-training

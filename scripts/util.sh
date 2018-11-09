@@ -51,6 +51,7 @@ function createKsApp() {
   ks pkg install kubeflow/argo
   ks pkg install kubeflow/core
   ks pkg install kubeflow/examples
+  ks pkg install kubeflow/jupyter
   ks pkg install kubeflow/katib
   ks pkg install kubeflow/mpi-job
   ks pkg install kubeflow/pytorch-job
@@ -65,8 +66,8 @@ function createKsApp() {
   # Generate all required components
   ks generate pytorch-operator pytorch-operator
   ks generate ambassador ambassador
-  ks generate jupyterhub jupyterhub
-  ks generate centraldashboard centraldashboard 
+  ks generate jupyter jupyter
+  ks generate centraldashboard centraldashboard
   ks generate tf-job-operator tf-job-operator
   ks generate metacontroller metacontroller
   ks generate profiles profiles

@@ -231,9 +231,8 @@ check_install kubectl
 
 # Generate all required components
 customizeKsApp() {
-  ks env add default --namespace "${K8S_NAMESPACE}"
-  ks param set ambassador platform ${KUBEFLOW_PLATFORM} --env default
-  ks param set jupyterhub platform ${KUBEFLOW_PLATFORM} --env default
+  ks param set ambassador platform ${KUBEFLOW_PLATFORM}
+  ks param set jupyter platform ${KUBEFLOW_PLATFORM}
 }
 
 ksApply () {
@@ -256,7 +255,7 @@ ksApply () {
 
   # Create all the core components
   ks apply default -c ambassador
-  ks apply default -c jupyterhub
+  ks apply default -c jupyter
   ks apply default -c centraldashboard
   ks apply default -c tf-job-operator
   ks apply default -c metacontroller
@@ -304,10 +303,10 @@ if [ "${COMMAND}" == "generate" ]; then
     if [ "${PLATFORM}" == "minikube" ]; then
       create_local_fs_mount_spec
       if ${MOUNT_LOCAL}; then
-        ks param set jupyterhub disks "local-notebooks"
-        ks param set jupyterhub notebookUid `id -u`
-        ks param set jupyterhub notebookGid `id -g`
-        ks param set jupyterhub accessLocalFs true
+        ks param set jupyter disks "local-notebooks"
+        ks param set jupyter notebookUid `id -u`
+        ks param set jupyter notebookGid `id -g`
+        ks param set jupyter accessLocalFs true
       fi
     fi
   fi
