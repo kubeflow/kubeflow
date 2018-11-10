@@ -171,7 +171,7 @@ infer_minikube_settings() {
   fi
 
   # Mount local dir
-  echo -n "If you'd like to access a local directory in JupyterHub, please enter the full path: "
+  echo -n "If you'd like to access a local directory in Jupyter, please enter the full path: "
   read l
   if [[ $l != "" ]]; then
     MINIKUBE_CMD=$MINIKUBE_CMD" --mount-string=$l:/mnt/local --mount"

@@ -6,7 +6,12 @@
                        $.parts(params, env).operatorRoleBinding(params.deploymentScope, params.deploymentNamespace),
                      ] +
 
-                     if params.pytorchJobVersion == "v1alpha2" then
+                     if params.pytorchJobVersion == "v1beta1" then
+                       [
+                         $.parts(params, env).crdV1beta1,
+                         $.parts(params, env).pytorchJobDeployV1beta1(params.pytorchJobImage, params.deploymentScope, params.deploymentNamespace),
+                       ]
+                     else if params.pytorchJobVersion == "v1alpha2" then
                        [
                          $.parts(params, env).crdV1alpha2,
                          $.parts(params, env).pytorchJobDeployV1alpha2(params.pytorchJobImage, params.deploymentScope, params.deploymentNamespace),
@@ -45,6 +50,54 @@
       spec: {
         group: "kubeflow.org",
         version: "v1alpha2",
+        names: {
+          kind: "PyTorchJob",
+          singular: "pytorchjob",
+          plural: "pytorchjobs",
+        },
+        validation: {
+          openAPIV3Schema: {
+            properties: {
+              spec: {
+                properties: {
+                  pytorchReplicaSpecs: {
+                    properties: {
+                      Worker: {
+                        properties: {
+                          replicas: {
+                            type: "integer",
+                            minimum: 1,
+                          },
+                        },
+                      },
+                      Master: {
+                        properties: {
+                          replicas: {
+                            type: "integer",
+                            minimum: 1,
+                            maximum: 1,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+
+    crdV1beta1: {
+      apiVersion: "apiextensions.k8s.io/v1beta1",
+      kind: "CustomResourceDefinition",
+      metadata: {
+        name: "pytorchjobs.kubeflow.org",
+      },
+      spec: {
+        group: "kubeflow.org",
+        version: "v1beta1",
         names: {
           kind: "PyTorchJob",
           singular: "pytorchjob",
@@ -224,6 +277,79 @@
       },
     },  // pytorchJobDeployV1alpha2
 
+    pytorchJobDeployV1beta1(image, deploymentScope, deploymentNamespace): {
+      apiVersion: "extensions/v1beta1",
+      kind: "Deployment",
+      metadata: {
+        name: "pytorch-operator",
+        namespace: namespace,
+      },
+      spec: {
+        replicas: 1,
+        template: {
+          metadata: {
+            labels: {
+              name: "pytorch-operator",
+            },
+          },
+          spec: {
+            containers: [
+              {
+                command: std.prune([
+                  "/pytorch-operator.v1beta1",
+                  "--alsologtostderr",
+                  "-v=1",
+                  if deploymentScope == "namespace" then ("--namespace=" + deploymentNamespace),
+                ]),
+                env: std.prune([
+                  {
+                    name: "MY_POD_NAMESPACE",
+                    valueFrom: {
+                      fieldRef: {
+                        fieldPath: "metadata.namespace",
+                      },
+                    },
+                  },
+                  {
+                    name: "MY_POD_NAME",
+                    valueFrom: {
+                      fieldRef: {
+                        fieldPath: "metadata.name",
+                      },
+                    },
+                  },
+                  if deploymentScope == "namespace" then {
+                    name: "KUBEFLOW_NAMESPACE",
+                    valueFrom: {
+                      fieldRef: {
+                        fieldPath: "metadata.namespace",
+                      },
+                    },
+                  },
+                ]),
+                image: image,
+                name: "pytorch-operator",
+                volumeMounts: [
+                  {
+                    mountPath: "/etc/config",
+                    name: "config-volume",
+                  },
+                ],
+              },
+            ],
+            serviceAccountName: "pytorch-operator",
+            volumes: [
+              {
+                configMap: {
+                  name: "pytorch-operator-config",
+                },
+                name: "config-volume",
+              },
+            ],
+          },
+        },
+      },
+    },  // pytorchJobDeployV1beta1
 
     // Default value for
     defaultControllerConfig(pytorchDefaultImage):: if pytorchDefaultImage != "" && pytorchDefaultImage != "null" then

@@ -34,7 +34,7 @@ is_kubeflow_ready() {
   until (("$amb_up" > 0 && "$tf_hub_up" > 0)); do
     sleep 30
     amb_up=$(kubectl -n ${K8S_NAMESPACE} get pods | grep Running | grep ambassador | wc -l)
-    tf_hub_up=$(kubectl -n ${K8S_NAMESPACE} get pods | grep Running | grep jupyterhub | wc -l)
+    tf_hub_up=$(kubectl -n ${K8S_NAMESPACE} get pods | grep Running | grep jupyter | wc -l)
     echo -n "."
     if (("$amb_up" > 0 && "$tf_hub_up" > 0)); then
       svc_ready=true
@@ -109,5 +109,5 @@ setup_tunnels() {
   sleep 30 # Give services time to bind
   kubectl -n kubeflow port-forward svc/ambassador 8080:80 2>&1 >/dev/null &
   echo -e "Access Kubeflow dashboard at ${GREEN}http://localhost:8080/${NC}"
-  echo -e "Access JupyterHub at ${GREEN}http://localhost:8080/hub/${NC}"
+  echo -e "Access Jupyter at ${GREEN}http://localhost:8080/hub/${NC}"
 }
