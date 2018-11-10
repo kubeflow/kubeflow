@@ -6,7 +6,7 @@
   local container = deployment.mixin.spec.template.spec.containersType,
 
   new(_env, _params):: {
-    local params = _env + _params {
+    local params = _params + _env {
       labels: {
         app: _params.name,
       },

@@ -1,7 +1,7 @@
 {
   local util = import "kubeflow/core/util.libsonnet",
   new(_env, _params):: {
-    local params = _env + _params,
+    local params = _params + _env,
 
     local certificateCRD = {
       apiVersion: "apiextensions.k8s.io/v1beta1",

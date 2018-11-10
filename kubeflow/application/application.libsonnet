@@ -5,7 +5,7 @@
   local crd = k8s.apiextensions.v1beta1.customResourceDefinition,
 
   new(_env, _params):: {
-    local params = _env + _params {
+    local params = _params + _env {
       labels: {
         app: _params.name,
       },

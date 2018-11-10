@@ -2,7 +2,7 @@
   local k = import "k.libsonnet",
   local util = import "kubeflow/tf-serving/util.libsonnet",
   new(_env, _params):: {
-    local params = _env + _params,
+    local params = _params + _env,
     local namespace = params.namespace,
     local name = params.name,
     local modelName =
