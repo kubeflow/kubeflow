@@ -19,6 +19,16 @@ if [ -z ${PROJECT_NUM} ]; then
   exit 1
 fi
 
+checkIAP() {
+  # created by init container.
+  . /var/shared/healthz.env
+
+  # If node port or backend id change, so does the JWT audience.
+  CURR_NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[0].nodePort}')
+  CURR_BACKEND_ID=$(gcloud compute --project=${PROJECT} backend-services list --filter=name~k8s-be-${CURR_NODE_PORT}- --format='value(id)')
+  [ "$BACKEND_ID" == "$CURR_BACKEND_ID" ]
+}
+
 # Activate the service account
 for i in $(seq 1 10); do
   gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS} && break || sleep 10
@@ -50,16 +60,6 @@ kubectl get configmap -n ${NAMESPACE} envoy-config -o jsonpath='{.data.envoy-con
 
 echo "Restarting envoy"
 curl -s ${ENVOY_ADMIN}/quitquitquit
-
-checkIAP() {
-  # created by init container.
-  . /var/shared/healthz.env
-
-  # If node port or backend id change, so does the JWT audience.
-  CURR_NODE_PORT=$(kubectl --namespace=${NAMESPACE} get svc ${SERVICE} -o jsonpath='{.spec.ports[0].nodePort}')
-  CURR_BACKEND_ID=$(gcloud compute --project=${PROJECT} backend-services list --filter=name~k8s-be-${CURR_NODE_PORT}- --format='value(id)')
-  [ "$BACKEND_ID" == "$CURR_BACKEND_ID" ]
-}
 
 # Verify IAP every 10 seconds.
 while true; do
