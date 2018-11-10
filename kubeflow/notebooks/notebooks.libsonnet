@@ -113,6 +113,7 @@
       kind: "CompositeController",
       metadata: {
         name: "notebook-controller",
+        annotations: params,
       },
       spec: {
         generateSelector: true,

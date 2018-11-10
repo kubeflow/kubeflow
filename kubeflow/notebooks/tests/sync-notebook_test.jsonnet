@@ -1,4 +1,7 @@
 local params = {
+  // TODO
+  // Most of these will go away since that can be set directly in Notebook.spec.template.spec
+  //
   image: "tensorflow-1.10.1-notebook-cpu:v0.3.0",
   useJupyterLabAsDefault: true,
   notebookPVCMount: "/home/jovyan",
@@ -22,8 +25,7 @@ local notebook = {
   kind: "Notebook",
   metadata: {
     name: "training",
-    namespace: env.namespace,
-    annotations: env + params,
+    namespace: "resnet50",
   },
   spec: {
     template: {
@@ -58,7 +60,7 @@ local notebook = {
           fsGroup: params.notebookGid,
           runAsUser: params.notebookUid,
         },
-        serviceAccountName: "notebooks",
+        serviceAccountName: "system:serviceaccount:" + env.namespace + ":notebooks",
         volumes: [
           {
             name: "volume-training",
@@ -73,6 +75,11 @@ local notebook = {
 };
 
 local request = {
+  controller: {
+    metadata: {
+      annotations: params + env,
+    },
+  },
   parent: notebook,
   children: {
     "Pod.v1": {},
@@ -89,10 +96,10 @@ std.assertEqual(
         kind: "Service",
         metadata: {
           annotations: {
-            "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind:  Mapping\nname: kubeflow_training_mapping\nprefix: /kubeflow/training\nrewrite: /kubeflow/training\ntimeout_ms: 300000\nservice: training.kubeflow",
+            "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind:  Mapping\nname: resnet50_training_mapping\nprefix: /resnet50/training\nrewrite: /resnet50/training\ntimeout_ms: 300000\nservice: training.resnet50",
           },
           name: "training",
-          namespace: "kubeflow",
+          namespace: "resnet50",
         },
         spec: {
           ports: [
@@ -116,9 +123,10 @@ std.assertEqual(
             app: "training",
           },
           name: "training",
-          namespace: "kubeflow",
+          namespace: "resnet50",
         },
         spec: {
+          automountServiceAccountToken: false,
           containers: [
             {
               args: [
@@ -129,7 +137,7 @@ std.assertEqual(
                 "--LabApp.allow_remote_access='True'",
                 "--LabApp.allow_root='True'",
                 "--LabApp.ip='*'",
-                "--LabApp.base_url=/kubeflow/training/",
+                "--LabApp.base_url=/resnet50/training/",
                 "--port=8888",
                 "--no-browser",
               ],

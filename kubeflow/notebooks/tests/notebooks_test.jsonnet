@@ -1,7 +1,9 @@
 local notebooks = import "kubeflow/notebooks/notebooks.libsonnet";
 
+// TODO
+// Most of these will go away since that can be set directly in Notebook.spec.template.spec
+//
 local params = {
-  disks: "null",
   image: "gcr.io/kubeflow/jupyterhub-k8s:v20180531-3bb991b1",
   useJupyterLabAsDefault: true,
   notebookPVCMount: "/home/jovyan",
@@ -136,6 +138,17 @@ std.assertEqual(
     apiVersion: "metacontroller.k8s.io/v1alpha1",
     kind: "CompositeController",
     metadata: {
+      annotations: {
+        accessLocalFs: "false",
+        image: "gcr.io/kubeflow/jupyterhub-k8s:v20180531-3bb991b1",
+        namespace: "kf-100",
+        notebookGid: "-1",
+        notebookPVCMount: "/home/jovyan",
+        notebookUid: "-1",
+        registry: "gcr.io",
+        repoName: "kubeflow-images-public",
+        useJupyterLabAsDefault: true,
+      },
       name: "notebook-controller",
     },
     spec: {

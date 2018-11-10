@@ -13,7 +13,7 @@
 
 ## Design
 
-The Notebooks component is an alternative to jupyterhub. The component defines a Notebook CRD and provides a notebook-controller (based on metacontroller's [CompositeController](https://metacontroller.app/api/compositecontroller/)). The Notebook CRD schema is similar to a kubernetes [Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#creating-a-deployment) where it defines a [Pod Template](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#pod-template) that is used by the notebook-controller to create a Pod. An example Notebook yaml is shown below:
+The Notebooks component is an alternative to jupyterhub. The component defines a Notebook CRD and provides a notebook-controller (based on metacontroller's [CompositeController](https://metacontroller.app/api/compositecontroller/)). The Notebook CRD schema is similar to a kubernetes [Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#creating-a-deployment) where it defines a [Pod Spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#podspec-v1-core) within its [template section](https://github.com/kubeflow/kubeflow/blob/111975f3886d058a112c7970dce209714ddcfb2e/kubeflow/notebooks/notebooks.schema#L32) that is used by the notebook-controller to create a Pod. An example Notebook yaml is shown below:
 
 ```yaml
 apiVersion: kubeflow.org/v1alpha1

@@ -3,6 +3,7 @@
 // - Service
 // - Pod
 function(request) {
+  local sharedNamespace = request.controller.metadata.annotations.namespace,
   local templateSpec = request.parent.spec.template.spec,
   local podTemplateSpec = {
     containers: [
@@ -46,7 +47,10 @@ function(request) {
     ],
     restartPolicy: "Always",
     serviceAccount:: {},
+    // TODO serviceAccount could be the user in the kubeflow namespace
+    // But should probably be the similar to jupyter.
     serviceAccountName:: {},
+    automountServiceAccountToken: false,
   },
 
   local children = [
