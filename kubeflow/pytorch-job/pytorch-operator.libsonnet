@@ -141,7 +141,7 @@
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
-        name: "pytorch-operator",
+        name: "pytorch-operator-v1alpha1",
         namespace: namespace,
       },
       spec: {
@@ -207,7 +207,7 @@
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
-        name: "pytorch-operator",
+        name: "pytorch-operator-v1alpha2",
         namespace: namespace,
       },
       spec: {
@@ -281,7 +281,7 @@
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
-        name: "pytorch-operator",
+        name: "pytorch-operator-v1beta1",
         namespace: namespace,
       },
       spec: {
