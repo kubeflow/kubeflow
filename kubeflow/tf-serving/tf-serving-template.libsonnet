@@ -116,7 +116,7 @@
       kind: "ConfigMap",
       metadata: {
         name: name + "-config",
-        namespace: params.namespace,
+        namespace: namespace,
       },
       data: {
         "monitoring_config.txt": std.join("\n", [
