@@ -224,7 +224,9 @@ if [ "${COMMAND}" == "init" ]; then
         fi
         ;;
     esac
-    shift
+    if [ ! "${PLATFORM}" == "gcp" ]; then
+      shift
+    fi
   done
   mkdir -p ${DEPLOYMENT_NAME}
   # Most commands expect to be executed from the app directory
