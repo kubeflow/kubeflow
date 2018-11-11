@@ -222,15 +222,14 @@ if [ "${COMMAND}" == "init" ]; then
             fi
           fi
         fi
-
-        mkdir -p ${DEPLOYMENT_NAME}
-        # Most commands expect to be executed from the app directory
-        cd ${DEPLOYMENT_NAME}
-        createEnv
         ;;
     esac
     shift
   done
+  mkdir -p ${DEPLOYMENT_NAME}
+  # Most commands expect to be executed from the app directory
+  cd ${DEPLOYMENT_NAME}
+  createEnv
 
   source ${ENV_FILE}
   # TODO(jlewi): Should we default to directory name?
