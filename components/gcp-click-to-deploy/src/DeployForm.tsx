@@ -485,12 +485,14 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
 
   private _redirectToKFDashboard(dashboardUri: string) {
     const monitorInterval = setInterval(() => {
-      var xmlHttp = new XMLHttpRequest();
-      xmlHttp.onreadystatechange = function() {
-        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-          window.location.href(dashboardUri);
-      }
-      xmlHttp.open("GET", theUrl, true); // true for asynchronous
+      const xmlHttp = new XMLHttpRequest();
+      xmlHttp.onreadystatechange = () => {
+        if (xmlHttp.readyState === 4 && xmlHttp.status === 200) {
+          window.location.href = dashboardUri;
+          clearInterval(monitorInterval);
+        }
+      };
+      xmlHttp.open('GET', dashboardUri, true); // true for asynchronous
       xmlHttp.send(null);
     }, 10000);
   }
