@@ -163,6 +163,7 @@ ksApply() {
 if [ "${COMMAND}" == "init" ]; then
   DEPLOYMENT_NAME=${WHAT}
 
+  # Parse all command line options
   while [[ $# -gt 0 ]]; do
     case $1 in
       -h | --help)
@@ -172,62 +173,57 @@ if [ "${COMMAND}" == "init" ]; then
       --platform)
         shift
         PLATFORM=$1
-        # Only attempt to parse remaining provided parameters if platform is gcp
-        if [ "${PLATFORM}" == "gcp" ]; then
-          while [[ $# -gt 0 ]]; do
-            case $1 in
-              --project)
-                shift
-                PROJECT=$1
-                ;;
-              --zone)
-                shift
-                ZONE=$1
-                ;;
-              --email)
-                shift
-                EMAIL=$1
-                ;;
-              --skipInitProject)
-                SKIP_INIT_PROJECT=true
-                ;;
-            esac
-            shift
-          done
-          # GCP Project
-          if [ -z "${PROJECT}" ]; then
-            PROJECT=$(gcloud config get-value project 2>/dev/null)
-            if [ -z "${PROJECT}" ]; then
-              echo "GCP project must be set either using --project <PROJECT>"
-              echo "or by setting a default project in gcloud config"
-              exit 1
-            fi
-          fi
-          # GCP Zone
-          if [ -z "$ZONE" ]; then
-            ZONE=$(gcloud config get-value compute/zone 2>/dev/null)
-            if [ -z "$ZONE" ]; then
-              echo "GCP zone must be set either using --zone <ZONE>"
-              echo "or by setting a default zone in gcloud config"
-              exit 1
-            fi
-          fi
-          # GCP Email for cert manager
-          if [ -z "$EMAIL" ]; then
-            EMAIL=$(gcloud config get-value account 2>/dev/null)
-            if [ -z "$EMAIL" ]; then
-              echo "GCP account must be set either using --email <EMAIL>"
-              echo "or by setting a default account in gcloud config"
-              exit 1
-            fi
-          fi
-        fi
+        ;;
+      --project)
+        shift
+        PROJECT=$1
+        ;;
+      --zone)
+        shift
+        ZONE=$1
+        ;;
+      --email)
+        shift
+        EMAIL=$1
+        ;;
+      --skipInitProject)
+        SKIP_INIT_PROJECT=true
         ;;
     esac
-    if [ ! "${PLATFORM}" == "gcp" ]; then
-      shift
-    fi
+    shift
   done
+
+  # Check for gcp specific parameters to be set before proceeding
+  if [ "${PLATFORM}" == "gcp" ]; then
+     # GCP Project
+    if [ -z "${PROJECT}" ]; then
+      PROJECT=$(gcloud config get-value project 2>/dev/null)
+      if [ -z "${PROJECT}" ]; then
+        echo "GCP project must be set either using --project <PROJECT>"
+        echo "or by setting a default project in gcloud config"
+        exit 1
+      fi
+    fi
+    # GCP Zone
+    if [ -z "$ZONE" ]; then
+      ZONE=$(gcloud config get-value compute/zone 2>/dev/null)
+      if [ -z "$ZONE" ]; then
+        echo "GCP zone must be set either using --zone <ZONE>"
+        echo "or by setting a default zone in gcloud config"
+        exit 1
+      fi
+    fi
+    # GCP Email for cert manager
+    if [ -z "$EMAIL" ]; then
+      EMAIL=$(gcloud config get-value account 2>/dev/null)
+      if [ -z "$EMAIL" ]; then
+        echo "GCP account must be set either using --email <EMAIL>"
+        echo "or by setting a default account in gcloud config"
+        exit 1
+      fi
+    fi
+  fi
+
   mkdir -p ${DEPLOYMENT_NAME}
   # Most commands expect to be executed from the app directory
   cd ${DEPLOYMENT_NAME}
