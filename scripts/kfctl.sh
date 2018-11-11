@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # This script provides commands to initialize and manage Kubeflow
 # deployments.
 #
@@ -17,7 +17,7 @@ ENV_FILE="env.sh"
 SKIP_INIT_PROJECT=false
 CLUSTER_VERSION="1.10"
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null && pwd)"
 source "${DIR}/util.sh"
 source "${DIR}/gke/util.sh"
 source "${DIR}/util-minikube.sh"
@@ -28,7 +28,7 @@ createEnv() {
   # this ensures all relevant environment variables are persisted in
   # a file for consistency across runs.
   echo PLATFORM=${PLATFORM} >> ${ENV_FILE}
-  DEFAULT_KUBEFLOW_REPO="$( cd "${DIR}/.." >/dev/null && pwd )"
+  DEFAULT_KUBEFLOW_REPO="$(cd "${DIR}/.." > /dev/null && pwd)"
   # Remove trailing slash from the repo.
   KUBEFLOW_REPO=${KUBEFLOW_REPO%/}
   echo KUBEFLOW_REPO=${KUBEFLOW_REPO:-"${DEFAULT_KUBEFLOW_REPO}"} >> ${ENV_FILE}
@@ -49,59 +49,9 @@ createEnv() {
       echo KUBEFLOW_DOCKER_REGISTRY=registry.aliyuncs.com >> ${ENV_FILE}
       ;;
     gcp)
-      while [[ $# -gt 0 ]]; do
-        case $1 in
-          --project)
-            shift
-            PROJECT=$1
-            ;;
-          --zone)
-            shift
-            ZONE=$1
-            ;;
-          --email)
-            shift
-            EMAIL=$1
-            ;;
-          --skipInitProject)
-            SKIP_INIT_PROJECT=true
-            ;;
-        esac
-        shift
-      done
-
       echo KUBEFLOW_PLATFORM=gke >> ${ENV_FILE}
-      # GCP Project
-      if [ -z "${PROJECT}" ]; then
-        PROJECT=$(gcloud config get-value project 2>/dev/null)
-        if [ -z "${PROJECT}" ]; then
-          echo "GCP project must be set either using --project <PROJECT>"
-          echo "or by setting a default project in gcloud config"
-          exit 1
-        fi
-      fi
       echo PROJECT="${PROJECT}" >> ${ENV_FILE}
-
-      # GCP Zone
-      if [ -z "$ZONE" ]; then
-        ZONE=$(gcloud config get-value compute/zone 2>/dev/null)
-        if [ -z "$ZONE" ]; then
-          echo "GCP zone must be set either using --zone <ZONE>"
-          echo "or by setting a default zone in gcloud config"
-          exit 1
-        fi
-      fi
       echo ZONE=${ZONE} >> ${ENV_FILE}
-
-      # GCP Email for cert manager
-      if [ -z "$EMAIL" ]; then
-        EMAIL=$(gcloud config get-value account 2>/dev/null)
-        if [ -z "$EMAIL" ]; then
-          echo "GCP account must be set either using --email <EMAIL>"
-          echo "or by setting a default account in gcloud config"
-          exit 1
-        fi
-      fi
       echo EMAIL=${EMAIL} >> ${ENV_FILE}
 
       # TODO: Do we need to make PROJECT_NUMBER also a flag like --project-number
@@ -119,7 +69,7 @@ createEnv() {
       echo KUBEFLOW_K8S_MANIFESTS_DIR="$(pwd)/k8s_specs" >> ${ENV_FILE}
 
       # Name of the K8s context to create.
-      echo  KUBEFLOW_K8S_CONTEXT=${DEPLOYMENT_NAME} >> ${ENV_FILE}
+      echo KUBEFLOW_K8S_CONTEXT=${DEPLOYMENT_NAME} >> ${ENV_FILE}
 
       # GCP Static IP Name
       echo KUBEFLOW_IP_NAME=${KUBEFLOW_IP_NAME:-"${DEPLOYMENT_NAME}-ip"} >> ${ENV_FILE}
@@ -146,7 +96,7 @@ createEnv() {
 
 createNamespace() {
   set +e
-  O=`kubectl get namespace ${K8S_NAMESPACE} 2>&1`
+  O=$(kubectl get namespace ${K8S_NAMESPACE} 2>&1)
   RESULT=$?
   set -e
 
@@ -156,6 +106,59 @@ createNamespace() {
     kubectl create namespace ${K8S_NAMESPACE}
   fi
 }
+
+# Generate all required components
+customizeKsApp() {
+  ks param set ambassador platform ${KUBEFLOW_PLATFORM}
+  ks param set jupyter platform ${KUBEFLOW_PLATFORM}
+}
+
+ksApply() {
+  pushd ${KUBEFLOW_KS_DIR}
+
+  if [ "${PLATFORM}" == "minikube" ]; then
+    createNamespace
+  fi
+
+  set +e
+  O=$(ks env describe default 2>&1)
+  RESULT=$?
+  set -e
+
+  if [ "${RESULT}" -eq 0 ]; then
+    echo "environment default already exists"
+  else
+    ks env add default --namespace "${K8S_NAMESPACE}"
+  fi
+
+  # Create all the core components
+  ks apply default -c ambassador
+  ks apply default -c jupyter
+  ks apply default -c centraldashboard
+  ks apply default -c tf-job-operator
+  ks apply default -c metacontroller
+  ks apply default -c spartakus
+
+  # Reduce resource demands locally
+  if [ "${PLATFORM}" != "minikube" ]; then
+    ks apply default -c argo
+    ks apply default -c katib
+  fi
+
+  popd
+
+  set +x
+  if [ "${PLATFORM}" == "minikube" ]; then
+    if is_kubeflow_ready; then
+      mount_local_fs
+      setup_tunnels
+    else
+      echo -e "${RED}Unable to get kubeflow ready${NC}"
+    fi
+  fi
+  set -x
+}
+
 
 if [ "${COMMAND}" == "init" ]; then
   DEPLOYMENT_NAME=${WHAT}
@@ -169,10 +172,61 @@ if [ "${COMMAND}" == "init" ]; then
       --platform)
         shift
         PLATFORM=$1
+        # Only attempt to parse remaining provided parameters if platform is gcp
+        if [ "${PLATFORM}" == "gcp" ]; then
+          while [[ $# -gt 0 ]]; do
+            case $1 in
+              --project)
+                shift
+                PROJECT=$1
+                ;;
+              --zone)
+                shift
+                ZONE=$1
+                ;;
+              --email)
+                shift
+                EMAIL=$1
+                ;;
+              --skipInitProject)
+                SKIP_INIT_PROJECT=true
+                ;;
+            esac
+            shift
+          done
+          # GCP Project
+          if [ -z "${PROJECT}" ]; then
+            PROJECT=$(gcloud config get-value project 2>/dev/null)
+            if [ -z "${PROJECT}" ]; then
+              echo "GCP project must be set either using --project <PROJECT>"
+              echo "or by setting a default project in gcloud config"
+              exit 1
+            fi
+          fi
+          # GCP Zone
+          if [ -z "$ZONE" ]; then
+            ZONE=$(gcloud config get-value compute/zone 2>/dev/null)
+            if [ -z "$ZONE" ]; then
+              echo "GCP zone must be set either using --zone <ZONE>"
+              echo "or by setting a default zone in gcloud config"
+              exit 1
+            fi
+          fi
+          # GCP Email for cert manager
+          if [ -z "$EMAIL" ]; then
+            EMAIL=$(gcloud config get-value account 2>/dev/null)
+            if [ -z "$EMAIL" ]; then
+              echo "GCP account must be set either using --email <EMAIL>"
+              echo "or by setting a default account in gcloud config"
+              exit 1
+            fi
+          fi
+        fi
+
         mkdir -p ${DEPLOYMENT_NAME}
         # Most commands expect to be executed from the app directory
         cd ${DEPLOYMENT_NAME}
-        createEnv $*
+        createEnv
         ;;
     esac
     shift
@@ -229,58 +283,6 @@ fi
 check_install ks
 check_install kubectl
 
-# Generate all required components
-customizeKsApp() {
-  ks param set ambassador platform ${KUBEFLOW_PLATFORM}
-  ks param set jupyter platform ${KUBEFLOW_PLATFORM}
-}
-
-ksApply () {
-  pushd ${KUBEFLOW_KS_DIR}
-
-  if [ "${PLATFORM}" == "minikube" ]; then
-    createNamespace
-  fi
-
-  set +e
-  O=$(ks env describe default 2>&1)
-  RESULT=$?
-  set -e
-
-  if [ "${RESULT}" -eq 0 ]; then
-    echo "environment default already exists"
-  else
-    ks env add default --namespace "${K8S_NAMESPACE}"
-  fi
-
-  # Create all the core components
-  ks apply default -c ambassador
-  ks apply default -c jupyter
-  ks apply default -c centraldashboard
-  ks apply default -c tf-job-operator
-  ks apply default -c metacontroller
-  ks apply default -c spartakus
-
-  # Reduce resource demands locally
-  if [ "${PLATFORM}" != "minikube" ]; then
-    ks apply default -c argo
-    ks apply default -c katib
-  fi
-
-  popd
-
-  set +x
-  if [ "${PLATFORM}" == "minikube" ]; then
-    if is_kubeflow_ready; then
-      mount_local_fs
-      setup_tunnels
-    else
-      echo -e "${RED}Unable to get kubeflow ready${NC}"
-    fi
-  fi
-  set -x
-}
-
 source "${ENV_FILE}"
 
 if [ "${COMMAND}" == "generate" ]; then
@@ -304,8 +306,8 @@ if [ "${COMMAND}" == "generate" ]; then
       create_local_fs_mount_spec
       if ${MOUNT_LOCAL}; then
         ks param set jupyter disks "local-notebooks"
-        ks param set jupyter notebookUid `id -u`
-        ks param set jupyter notebookGid `id -g`
+        ks param set jupyter notebookUid $(id -u)
+        ks param set jupyter notebookGid $(id -g)
         ks param set jupyter accessLocalFs true
       fi
     fi
@@ -313,14 +315,14 @@ if [ "${COMMAND}" == "generate" ]; then
 fi
 
 if [ "${COMMAND}" == "apply" ]; then
-  if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ] ; then
+  if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ]; then
     if [ "${PLATFORM}" == "gcp" ]; then
       updateDM
       createSecrets
     fi
   fi
 
-  if [ "${WHAT}" == "k8s"  ] || [ "${WHAT}" == "all" ]; then
+  if [ "${WHAT}" == "k8s" ] || [ "${WHAT}" == "all" ]; then
     createNamespace
     ksApply
 
@@ -331,13 +333,13 @@ if [ "${COMMAND}" == "apply" ]; then
     # all components deployed
     # deploy the application CR
     pushd ${KUBEFLOW_KS_DIR}
-      ks apply default -c application
+    ks apply default -c application
     popd
   fi
 fi
 
 if [ "${COMMAND}" == "delete" ]; then
-  if [ "${WHAT}" == "k8s"  ] || [ "${WHAT}" == "all" ]; then
+  if [ "${WHAT}" == "k8s" ] || [ "${WHAT}" == "all" ]; then
     # Delete kubeflow namespace - this deletes all the ingress objects
     # in the namespace which deletes the associated GCP resources
     set +e
@@ -349,7 +351,7 @@ if [ "${COMMAND}" == "delete" ]; then
     echo "namespace ${K8S_NAMESPACE} successfully deleted."
     set -e
   fi
-  if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ] ; then
+  if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ]; then
     if [ "${PLATFORM}" == "gcp" ]; then
       if [ -d "${KUBEFLOW_DM_DIR}" ]; then
         pushd ${KUBEFLOW_DM_DIR}
