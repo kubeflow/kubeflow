@@ -105,6 +105,7 @@ require (
 	golang.org/x/sys v0.0.0-20180909124046-d0be0721c37e
 	golang.org/x/text v0.3.0
 	golang.org/x/time v0.0.0-20161028155119-f51c12702a4d
+	golang.org/x/vgo v0.0.0-20180912184537-9d567625acf4 // indirect
 	google.golang.org/api v0.0.0-20180910000450-7ca32eb868bf
 	google.golang.org/appengine v1.1.0
 	google.golang.org/genproto v0.0.0-20180911211118-36d5787dc535
