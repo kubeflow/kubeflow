@@ -297,7 +297,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     this.setState({
       dialogBody: 'gcloud container clusters get-credentials ' + this.state.deploymentName
         + ' --zone ' + this.state.zone + ' --project ' + this.state.project + '; ' +
-        'kubectl port-forward -n kubeflow $(kubectl get pods -n kubeflow --selector=service=ambassador -o jsonpath="{.items[0].metadata.name}") 8080:80',
+        'kubectl port-forward -n kubeflow $(kubectl get pods -n kubeflow --selector=service=ambassador -o jsonpath="{.items[0].metadata.name}") 8081:80',
       dialogTitle: 'In Cloud Shell, run following command:',
     });
   }

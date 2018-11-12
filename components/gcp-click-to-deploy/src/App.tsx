@@ -141,8 +141,8 @@ class App extends React.Component<any, { signedIn: boolean }> {
                   <ul>
                     <ul>
                       <li>  Click Cloud Shell; run command in pop up window; kubeflow UI will be at
-                        <a href="http://localhost:8080/" style={{ color: 'inherit', marginLeft: 5 }} target="_blank"
-                        >localhost:8080</a>
+                        <a href="https://ssh.cloud.google.com/devshell/proxy?authuser=0&port=8081" style={{ color: 'inherit', marginLeft: 5 }} target="_blank"
+                        >here</a>
                       </li>
                     </ul>
                   </ul>
