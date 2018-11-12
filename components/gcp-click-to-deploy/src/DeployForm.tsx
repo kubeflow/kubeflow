@@ -484,17 +484,25 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
   }
 
   private _redirectToKFDashboard(dashboardUri: string) {
-    const monitorInterval = setInterval(() => {
-      const xmlHttp = new XMLHttpRequest();
-      xmlHttp.onreadystatechange = () => {
-        if (xmlHttp.readyState === 4 && xmlHttp.status === 200) {
-          window.location.href = dashboardUri;
-          clearInterval(monitorInterval);
+    const imgUri = dashboardUri + 'hub/logo';
+    const startTime = new Date().getTime() / 1000;
+		const img=document.createElement('img');
+		img.src = imgUri + '?rand='+Math.random();
+    img.id = 'ready_test';
+		img.onload= () => {window.location.href = dashboardUri; };
+		img.onerror= () => {
+      const timeSince = (new Date().getTime() / 1000) - startTime;
+      if (timeSince > 1500) {
+        this._appendLine('Could not redirect to Kubeflow Dashboard at: ' + dashboardUri);
+      } else {
+        const ready_test = document.getElementById('ready_test') as HTMLImageElement;
+        if (ready_test != null) {
+          ready_test.src = imgUri + '?rand=' + Math.random();
         }
-      };
-      xmlHttp.open('GET', dashboardUri, true); // true for asynchronous
-      xmlHttp.send(null);
-    }, 10000);
+      }
+    };
+		img.style.display='none';
+		document.body.appendChild(img);
   }
 
   private _handleChange(event: Event) {
