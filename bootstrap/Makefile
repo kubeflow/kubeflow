@@ -13,55 +13,21 @@
 # limitations under the License.
 #
 GCLOUD_PROJECT ?= kubeflow-images-public
-GOLANG_VERSION ?= 1.10.3
+GOLANG_VERSION ?= 1.11.2
+# To build without the cache set the environment variable
+# export DOCKER_BUILD_OPTS=--no-cache
 # set to GOLANG_GCFLAGS=-gcflags "all=-N -l" to debug
 GOLANG_GCFLAGS ?= ""
 IMG ?= gcr.io/$(GCLOUD_PROJECT)/bootstrapper
-
-BUILDER_IMG ?= gcr.io/$(GCLOUD_PROJECT)/bootstrapper-builder
-BUILDER_IMG_VERSION ?= $(shell head -1 glide.lock | cut -d ' ' -f 2)
-
 TAG ?= $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6)
 PORT ?= 2345
 
-
-CHANGED_FILES := $(shell git diff-files)
-
-ifeq ($(strip $(CHANGED_FILES)),)
-# Changed files is empty; not dirty
-# Don't include --dirty because it could be dirty if files outside the ones we care
-# about changed.
-GIT_VERSION := $(shell git describe --always)
-else
-GIT_VERSION := $(shell git describe --always)-dirty-$(shell git diff | shasum -a256 | cut -c -6)
-endif
-
-TAG := $(shell date +v%Y%m%d)-$(GIT_VERSION)
-
 all: build
-
-# To build without the cache set the environment variable
-# export DOCKER_BUILD_OPTS=--no-cache
 
 # To edit which registries to add to bootstrapper, edit config (eg. config/default.yaml)
 build:
-	python build.py --build_args=BUILDER_IMG=$(BUILDER_IMG),BUILDER_IMG_VERSION=$(BUILDER_IMG_VERSION) --image=$(IMG):$(TAG) --build_opts=$(DOCKER_BUILD_OPTS) --config=image_registries.yaml --target=build
+	docker build -t $(IMG):$(TAG) --build-arg registries=reg_tmp --target=build .
 	@echo Built $(IMG):$(TAG)
-
-
-build-builder:
-	docker build ${DOCKER_BUILD_OPTS} --build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
-           --build-arg GOLANG_GCFLAGS="$(GOLANG_GCFLAGS)" -t $(BUILDER_IMG):$(BUILDER_IMG_VERSION) \
-           --label=git-verions=$(GIT_VERSION) -f Dockerfile.Builder .
-	@echo Built $(BUILDER_IMG):$(BUILDER_IMG_VERSION)
-
-push-builder: build-builder
-	gcloud docker -- push $(BUILDER_IMG):$(BUILDER_IMG_VERSION)
-	@echo Pushed $(BUILDER_IMG):$(BUILDER_IMG_VERSION)
-
-push-builder-latest: push-builder
-	gcloud container images add-tag --quiet $(BUILDER_IMG):$(BUILDER_IMG_VERSION) $(BUILDER_IMG):latest --verbosity=info
-	@echo created $(BUILDER_IMG):latest
 
 # Build but don't attach the latest tag. This allows manual testing/inspection of the image
 # first.

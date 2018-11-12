@@ -1,16 +1,5 @@
-# bootstrapper-builder contains the tool chain we need to build the image.
-# This primarily means glide.
-ARG GOLANG_VERSION=1.10.3
-ARG BUILDER_IMG=gcr.io/kubeflow-images-public/bootstrapper-builder
-ARG BUILDER_IMG_VERSION=latest
-FROM ${BUILDER_IMG}:${BUILDER_IMG_VERSION} AS build_base_remote
-# Copy the src
-COPY ./ $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap/
-
-RUN go build ${GOLANG_GCFLAGS} -i -o /opt/kubeflow/bootstrapper \
-    ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/main.go
-
-FROM golang:${GOLANG_VERSION} AS build
+FROM golang:1.11.2 as build
+ARG registries
 
 # install vim 
 RUN apt-get update && apt-get install -y vim
@@ -32,11 +21,10 @@ RUN ln -sf /google-cloud-sdk/bin/gcloud /usr/local/bin/gcloud
 
 # Install kubectl
 # We don't install via gcloud because we want 1.10 which is newer than what's in gcloud.
-RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.10.0/bin/linux/amd64/kubectl && \
+RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.12.2/bin/linux/amd64/kubectl && \
     mv kubectl /usr/local/bin && \
     chmod a+x /usr/local/bin/kubectl
 
-ARG registries
 COPY $registries /opt/registries
 
 # bootstrap is using ksonnet 0.12.0
@@ -46,7 +34,21 @@ RUN wget -q https://github.com/ksonnet/ksonnet/releases/download/v0.12.0/ks_0.12
     cp ks_0.12.0_linux_amd64/ks /usr/local/bin && \
     rm -rf ks_0.12.0_linux_amd64
 
-COPY --from=build_base_remote /opt/kubeflow/bootstrapper /opt/kubeflow/
+RUN mkdir -p /opt/kubeflow
+
+ENV PATH /go/bin:/usr/local/go/bin:$PATH
+
+RUN mkdir -p $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap
+COPY . $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap
+WORKDIR $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap
+
+# Pull in dependencies. We don't check in vendor because that bloats
+# the size of kubeflow/kubeflow and we want to keep it small since
+# Users clone that repo to get our registry.
+ENV GO111MODULE=on
+RUN go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
+
+RUN cp $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap/bin/bootstrapper /opt/kubeflow
 COPY start.sh /opt/kubeflow/
 COPY dlv.sh /opt/kubeflow/
 COPY config/default.yaml /opt/kubeflow/
