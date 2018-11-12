@@ -487,11 +487,11 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     // relying on JupyterHub logo image to be available when the site is ready.
     const imgUri = dashboardUri + 'hub/logo';
     const startTime = new Date().getTime() / 1000;
-		const img=document.createElement('img');
-		img.src = imgUri + '?rand='+Math.random();
+    const img=document.createElement('img');
+    img.src = imgUri + '?rand='+Math.random();
     img.id = 'ready_test';
-		img.onload= () => {window.location.href = dashboardUri; };
-		img.onerror= () => {
+    img.onload= () => {window.location.href = dashboardUri; };
+    img.onerror= () => {
       const timeSince = (new Date().getTime() / 1000) - startTime;
       if (timeSince > 1500) {
         this._appendLine('Could not redirect to Kubeflow Dashboard at: ' + dashboardUri);
@@ -502,8 +502,8 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         }
       }
     };
-		img.style.display='none';
-		document.body.appendChild(img);
+    img.style.display='none';
+    document.body.appendChild(img);
   }
 
   private _handleChange(event: Event) {
