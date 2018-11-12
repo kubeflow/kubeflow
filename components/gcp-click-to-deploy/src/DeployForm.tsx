@@ -505,6 +505,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         const ready_test = document.getElementById('ready_test') as HTMLImageElement;
         if (ready_test != null) {
           ready_test.src = imgUri + '?rand=' + Math.random();
+          this._appendLine('Waiting for the IAP setup to get ready...');
         }
       }
     };
