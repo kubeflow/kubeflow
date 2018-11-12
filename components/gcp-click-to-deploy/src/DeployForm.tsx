@@ -484,6 +484,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
   }
 
   private _redirectToKFDashboard(dashboardUri: string) {
+    // relying on JupyterHub logo image to be available when the site is ready.
     const imgUri = dashboardUri + 'hub/logo';
     const startTime = new Date().getTime() / 1000;
 		const img=document.createElement('img');
