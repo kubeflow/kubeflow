@@ -293,13 +293,10 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       });
       return;
     }
-    window.open('https://console.cloud.google.com/home/dashboard?cloudshell=true&project=' + this.state.project, '_blank');
-    this.setState({
-      dialogBody: 'gcloud container clusters get-credentials ' + this.state.deploymentName
-        + ' --zone ' + this.state.zone + ' --project ' + this.state.project + '; ' +
-        'kubectl port-forward -n kubeflow $(kubectl get pods -n kubeflow --selector=service=ambassador -o jsonpath="{.items[0].metadata.name}") 8081:80',
-      dialogTitle: 'In Cloud Shell, run following command:',
-    });
+    const cloudShellConfPath = this.state.kfverison + '/' + this.state.deploymentName + '/kf_util';
+    const cloudShellUrl = 'https://cloud.google.com/console/cloudshell/open?shellonly=true&git_repo=https://source.developers.google.com/p/' +
+      this.state.project + '/r/' + this.state.project + '-kubeflow-config&working_dir=' + cloudShellConfPath + '&tutorial=conn.md';
+    window.open(cloudShellUrl, '_blank');
   }
 
   private async _iapAddress() {
@@ -521,12 +518,9 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           } else if (r.operation!.status! && r.operation!.status === 'DONE') {
             const readyTime = new Date();
             readyTime.setTime(readyTime.getTime() + (20 * 60 * 1000));
-            this._appendLine('Deployment is done');
+            this._appendLine('Deployment initialized, configuring environment');
             if (this.state.clientId === '' || this.state.clientSecret === '') {
-              this._appendLine('(IAP skipped), cluster should be ready within 5 minutes. To connect to cluster, click cloud shell and run:');
-              this._appendLine('gcloud container clusters get-credentials ' + this.state.deploymentName
-                + ' --zone ' + this.state.zone + ' --project ' + this.state.project);
-              this._appendLine('kubectl port-forward -n kubeflow $(kubectl get pods -n kubeflow --selector=service=ambassador -o jsonpath="{.items[0].metadata.name}") 8080:80');
+              this._appendLine('(IAP skipped), cluster should be ready within 5 minutes. To connect to cluster, click cloud shell and follow instruction');
             } else {
               this._appendLine('your kubeflow app url should be ready within 20 minutes (by '
                 + readyTime.toLocaleTimeString() + '): https://'

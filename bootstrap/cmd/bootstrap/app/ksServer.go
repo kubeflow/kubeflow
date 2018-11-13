@@ -38,6 +38,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"github.com/cenkalti/backoff"
+	"bytes"
 )
 
 // The name of the prototype for Jupyter.
@@ -45,6 +46,7 @@ const JupyterPrototype = "jupyterhub"
 
 // root dir of local cached VERSIONED REGISTRIES
 const CachedRegistries = "/opt/versioned_registries"
+const CloudShellTemplatePath = "/opt/registries/kubeflow/deployment/gke/cloud_shell_templates"
 
 // key used for storing start time of a request to deploy in the request contexts
 const StartTime = "StartTime"
@@ -52,6 +54,7 @@ const StartTime = "StartTime"
 const KubeflowRegName = "kubeflow"
 const KubeflowFolder = "ks_app"
 const DmFolder = "gcp_config"
+const CloudShellFolder = "kf_util"
 
 // KsService defines an interface for working with ksonnet.
 type KsService interface {
@@ -495,8 +498,9 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 	}
 
 	if dmDeploy != nil {
-		s.UpdateDmConfig(repoDir, request.Project, request.Name, kfVersion, dmDeploy)
+		UpdateDmConfig(repoDir, request.Project, request.Name, kfVersion, dmDeploy)
 	}
+	UpdateCloudShellConfig(repoDir, request.Project, request.Name, kfVersion, request.Zone)
 	err = s.SaveAppToRepo(request.Project, request.Email, repoDir)
 	if err != nil {
 		log.Errorf("There was a problem saving config to cloud repo; %v", err)
@@ -834,7 +838,7 @@ func (s *ksServer) GetApp(project string, appName string, kfVersion string, toke
 
 // Save ks app config local changes to project source repo.
 // Not thread safe, be aware when call it.
-func (s *ksServer) UpdateDmConfig(repoDir string, project string, appName string, kfVersion string, dmDeploy *deploymentmanager.Deployment) error {
+func UpdateDmConfig(repoDir string, project string, appName string, kfVersion string, dmDeploy *deploymentmanager.Deployment) error {
 	confDir := path.Join(repoDir, GetRepoName(project), kfVersion, appName, DmFolder)
 	if err := os.RemoveAll(confDir); err != nil {
 		return err
@@ -853,6 +857,29 @@ func (s *ksServer) UpdateDmConfig(repoDir string, project string, appName string
 	return nil
 }
 
+// Save cloud shell config to project source repo.
+func UpdateCloudShellConfig(repoDir string, project string, appName string, kfVersion string, zone string) error {
+	confDir := path.Join(repoDir, GetRepoName(project), kfVersion, appName, CloudShellFolder)
+	if err := os.RemoveAll(confDir); err != nil {
+		return err
+	}
+	if err := os.MkdirAll(confDir, os.ModePerm); err != nil {
+		return err
+	}
+	for _, filename := range([]string{"conn.sh", "conn.md"}) {
+		data, err := ioutil.ReadFile(path.Join(CloudShellTemplatePath, filename))
+		if err != nil {
+			return err
+		}
+		data = bytes.Replace(data, []byte("project_id_placeholder"), []byte(project), -1)
+		data = bytes.Replace(data, []byte("zone_placeholder"), []byte(zone), -1)
+		data = bytes.Replace(data, []byte("deploy_name_placeholder"), []byte(appName), -1)
+		if err := ioutil.WriteFile(path.Join(confDir, filename), data, os.ModePerm); err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 // Save ks app config local changes to project source repo.
 // Not thread safe, be aware when call it.
