@@ -8,6 +8,10 @@
 # cd myapp
 # kfctl.sh generate all
 # kfctl.sh apply all
+#
+# ksonnet modules are used so that additional components may be deployed 
+# core
+#
 set -xe
 
 COMMAND=$1
@@ -246,12 +250,6 @@ ksApply () {
   O=$(ks env describe default 2>&1)
   RESULT=$?
   set -e
-
-  if [ "${RESULT}" -eq 0 ]; then
-    echo "environment default already exists"
-  else
-    ks env add default --namespace "${K8S_NAMESPACE}"
-  fi
 
   # Create all the core components
   ks apply default -c ambassador

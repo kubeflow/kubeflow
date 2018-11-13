@@ -30,6 +30,79 @@ function check_variable() {
   fi
 }
 
+function getmodules() {
+  local moduleList=''
+  for i in $(ks env describe default | grep '^-' | awk '{print $2}'); do
+    moduleList="$moduleList --module $i "
+ done
+ echo "$moduleList"
+}
+
+function addmodulecommand() {
+  local module=$1 nestedModule modulePath moduleList index
+  shift
+  declare -a dependsOn modules packages
+
+  while [[ "$#" -gt "0" && $1 =~ ^- ]]; do
+    case "$1" in
+      -h|--help)
+        echo -e "$0 add \n"\
+        '  [-h|--help]\n'\
+        '  [-d|--dependsOn] component ...\n'\
+        '\n'
+        exit 1
+        ;;
+      -d|--dependsOn)
+        shift
+        while (( $# > 0 )); do
+          dependsOn+=($1)
+          shift
+        done
+        ;;
+    esac
+  done
+
+  moduleList="$(getmodules)"
+  echo ks module create $module
+  ks module create $module
+  moduleList="${moduleList} --module $module "
+
+  if (( ${#dependsOn[@]} > 0 )); then
+    for index in "${dependsOn[@]}"; do
+      if [[ $index != "${dependsOn[0]}" ]]; then
+        echo ks module create ${module}'.'$index
+        ks module create ${module}'.'$index
+        module=${module}'.'$index
+        modules+=($module)
+      fi
+      if [[ -d ${KUBEFLOW_REPO}/kubeflow/$index ]]; then
+        echo ks pkg install kubeflow/$index
+        ks pkg install kubeflow/$index
+      elif [[ -f $(echo ${KUBEFLOW_REPO}/kubeflow/*/${index}.libsonnet) ]]; then
+        package=$(dirname $(echo ${KUBEFLOW_REPO}/kubeflow/*/${index}.libsonnet))
+        package=$(basename $package)
+        if [ -z ${packages["${package}"]+_} ]; then
+          packages[$package]='true'
+          echo ks pkg install kubeflow/$package
+          ks pkg install kubeflow/$package
+        fi
+      fi
+      echo ks generate $index $index --module $module
+      ks generate $index $index --module $module
+    done
+  
+    for nestedModule in "${modules[@]}"; do
+      module=${nestedModule##*.}
+      moduleList="$moduleList --module $nestedModule "
+    done
+  fi
+
+  echo ks env targets default $moduleList
+  ks env targets default $moduleList
+
+  ks show default | tee default.yaml
+}
+
 function createKsApp() {
   # Create the ksonnet application.
   # All deployments should call this function to create a common ksonnet app.
@@ -43,44 +116,45 @@ function createKsApp() {
   # Remove the default environment; The cluster might not exist yet
   # So we might be pointing to the wrong  cluster.
   ks env rm default
+  ks env add default --namespace "${K8S_NAMESPACE}"
+  ks env current --set default
 
   # Add the local registry
   ks registry add kubeflow "${KUBEFLOW_REPO}/kubeflow"
 
   # Install all required packages
-  ks pkg install kubeflow/argo
-  ks pkg install kubeflow/core
-  ks pkg install kubeflow/examples
-  ks pkg install kubeflow/jupyter
-  ks pkg install kubeflow/katib
-  ks pkg install kubeflow/mpi-job
-  ks pkg install kubeflow/pytorch-job
-  ks pkg install kubeflow/seldon
-  ks pkg install kubeflow/tf-serving
-  ks pkg install kubeflow/tf-training
-  ks pkg install kubeflow/metacontroller
-  ks pkg install kubeflow/profiles
-  ks pkg install kubeflow/application
+  addmodulecommand workflows --dependsOn argo
+  addmodulecommand core --dependsOn ambassador centraldashboard
+  addmodulecommand training --dependsOn katib tf-training
+  addmodulecommand inference --dependsOn tf-serving seldon
+  addmodulecommand profiles --dependsOn profiles metacontroller
+  addmodulecommand notebooks --dependsOn jupyter 
+  
+  #ks pkg install kubeflow/core
+  #ks pkg install kubeflow/examples
+  #ks pkg install kubeflow/mpi-job
+  #ks pkg install kubeflow/pytorch-job
+  #ks pkg install kubeflow/application
 
   # Generate all required components
-  ks generate pytorch-operator pytorch-operator
-  # TODO(jlewi): Why are we overloading the ambassador images here?
-  ks generate ambassador ambassador
-  ks generate jupyter jupyter
-  ks generate centraldashboard centraldashboard
-  ks generate tf-job-operator tf-job-operator
-  ks generate metacontroller metacontroller
-  ks generate profiles profiles
+  #ks generate pytorch-operator pytorch-operator
+  #ks generate ambassador ambassador
+  #ks generate jupyter jupyter
+  #ks generate centraldashboard centraldashboard
+  #ks generate tf-job-operator tf-job-operator
+  #ks generate metacontroller metacontroller
+  #ks generate profiles profiles
 
-  ks generate argo argo
-  ks generate katib katib
+  #ks generate argo argo
+  #ks generate katib katib
+
   # Enable collection of anonymous usage metrics
   # To disable metrics collection. Remove the spartakus component.
   # cd ks_app
   # ks component rm spartakus
   # Generate a random 30 bit number
-  local usageId=$(((RANDOM<<15)|RANDOM))
-  ks generate spartakus spartakus --usageId=${usageId} --reportUsage=true
+  #local usageId=$(((RANDOM<<15)|RANDOM))
+  #ks generate spartakus spartakus --usageId=${usageId} --reportUsage=true
   echo ""
   echo "****************************************************************"
   echo "Notice anonymous usage reporting enabled using spartakus"
@@ -96,7 +170,7 @@ function createKsApp() {
   echo "For more info: https://www.kubeflow.org/docs/guides/usage-reporting/"
   echo "****************************************************************"
   echo ""
-  ks generate application application
+  #ks generate application application
 }
 
 function removeKsEnv() {
