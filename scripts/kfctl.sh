@@ -113,9 +113,7 @@ customizeKsApp() {
 ksApply() {
   pushd ${KUBEFLOW_KS_DIR}
 
-  if [ "${PLATFORM}" == "minikube" ]; then
-    createNamespace
-  fi
+  createNamespace
 
   set +e
   O=$(ks env describe default 2>&1)
@@ -321,7 +319,6 @@ main() {
     fi
 
     if [ "${WHAT}" == "k8s" ] || [ "${WHAT}" == "all" ]; then
-      createNamespace
       ksApply
 
       if [ "${PLATFORM}" == "gcp" ]; then
@@ -370,8 +367,8 @@ if [[ $# -lt 2 ]]; then
 fi
 
 COMMAND=$1
-shift
 WHAT=$2
+shift
 shift
 
 main $*
