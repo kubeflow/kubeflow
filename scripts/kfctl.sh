@@ -10,9 +10,6 @@
 # kfctl.sh apply all
 set -xe
 
-COMMAND=$1
-WHAT=$2
-
 ENV_FILE="env.sh"
 SKIP_INIT_PROJECT=false
 CLUSTER_VERSION="1.10"
@@ -115,6 +112,10 @@ customizeKsApp() {
 
 ksApply() {
   pushd ${KUBEFLOW_KS_DIR}
+
+  if [ "${PLATFORM}" == "minikube" ]; then
+    createNamespace
+  fi
 
   set +e
   O=$(ks env describe default 2>&1)
@@ -361,5 +362,16 @@ main() {
   fi
 }
 
+
+# If less than 2 command line options are provided exit early and print usage
+if [[ $# -lt 2 ]]; then
+  usage
+  exit 1
+fi
+
+COMMAND=$1
+shift
+WHAT=$2
+shift
 
 main $*
