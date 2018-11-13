@@ -168,22 +168,25 @@ def deploy_model(args):
   params = {}
   for pair in args.params.split(","):
     k, v = pair.split("=", 1)
-    params[k] = v
-  if "namespace" not in params:
-    raise ValueError("namespace must be supplied via --params.")
-  namespace = params["namespace"]
+    if k != "namespace":
+      params[k] = v
+    else:
+      namespace = v
+
+  if namespace == None:
+    raise ValueError("namespace must be supplied in args.")
 
   # deployment component
   deployComponent = "modelServer"
   generate_command = ["ks", "generate", "tf-serving-deployment-gcp", deployComponent]
   util.run(generate_command, cwd=app_dir)
-  ks_deploy(app_dir, deployComponent, params, env=None, account=None)
+  ks_deploy(app_dir, deployComponent, params, env=None, account=None, namespace=namespace)
 
   # service component
   serviceComponent = "modelServer-service"
   generate_command = ["ks", "generate", "tf-serving-service", serviceComponent]
   util.run(generate_command, cwd=app_dir)
-  ks_deploy(app_dir, serviceComponent, params, env=None, account=None)
+  ks_deploy(app_dir, serviceComponent, params, env=None, account=None, namespace=namespace)
 
   core_api = k8s_client.CoreV1Api(api_client)
   deploy = core_api.read_namespaced_service(args.deploy_name, args.namespace)
@@ -248,7 +251,7 @@ def deploy_argo(args):
   generate_command = ["ks", "generate", "argo", component, "--name", "argo"]
   util.run(generate_command, cwd=app_dir)
 
-  ks_deploy(app_dir, component, {}, env=None, account=None)
+  ks_deploy(app_dir, component, {}, env=None, account=None, namespace=None)
 
   # Create a hello world workflow
   util.run(["kubectl", "create", "-n", "default", "-f", "https://raw.githubusercontent.com/argoproj/argo/master/examples/hello-world.yaml"], cwd=app_dir)
@@ -281,7 +284,7 @@ def deploy_pytorchjob(args):
     k, v = pair.split("=", 1)
     params[k] = v
 
-  ks_deploy(app_dir, component, params, env=None, account=None)
+  ks_deploy(app_dir, component, params, env=None, account=None, namespace=None)
 
 def teardown(args):
   # Delete the namespace
@@ -327,7 +330,7 @@ def wrap_test(args):
 
 # TODO(jlewi): We should probably make this a reusable function since a
 # lot of test code code use it.
-def ks_deploy(app_dir, component, params, env=None, account=None):
+def ks_deploy(app_dir, component, params, env=None, account=None, namespace=None):
   """Deploy the specified ksonnet component.
   Args:
     app_dir: The ksonnet directory
@@ -337,6 +340,7 @@ def ks_deploy(app_dir, component, params, env=None, account=None):
     env: (Optional) The environment to use, if none is specified a new one
       is created.
     account: (Optional) The account to use.
+    namespace: (Optional) The namespace to use when adding the environment
   Raises:
     ValueError: If input arguments aren't valid.
   """
@@ -355,7 +359,10 @@ def ks_deploy(app_dir, component, params, env=None, account=None):
 
   logging.info("Using app directory: %s", app_dir)
 
-  util.run(["ks", "env", "add", env], cwd=app_dir)
+  if not namespace:
+    util.run(["ks", "env", "add", env], cwd=app_dir)
+  else:
+    util.run(["ks", "env", "add", env, "--namespace=" + namespace], cwd=app_dir)
 
   for k, v in params.iteritems():
     util.run(
