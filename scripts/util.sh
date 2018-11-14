@@ -7,6 +7,7 @@ function usage() {
     echo "init - initialize something"
     echo "apply  -- apply some config"
     echo "delete - delete some components"
+    echo "add <module> --dependsOn <component>+"
     echo
     echo "what is one of"
     echo "project - the GCP project"
@@ -39,7 +40,7 @@ function getmodules() {
 }
 
 function addmodulecommand() {
-  local module=$1 nestedModule modulePath moduleList index
+  local apply=false module=${1%/*} currentModules nestedModule modulePath moduleList index
   shift
   declare -a dependsOn modules packages
 
@@ -59,36 +60,37 @@ function addmodulecommand() {
           shift
         done
         ;;
+      -a|--apply)
+        shift
+        apply=true
+        ;;
     esac
   done
 
-  moduleList="$(getmodules)"
-  echo ks module create $module
+  currentModules="$(getmodules)"
   ks module create $module
   moduleList="${moduleList} --module $module "
 
   if (( ${#dependsOn[@]} > 0 )); then
     for index in "${dependsOn[@]}"; do
+      component=${index%/*}
       if [[ $index != "${dependsOn[0]}" ]]; then
-        echo ks module create ${module}'.'$index
-        ks module create ${module}'.'$index
-        module=${module}'.'$index
+        ks module create ${module}'.'$component
+        module=${module}'.'$component
         modules+=($module)
       fi
-      if [[ -d ${KUBEFLOW_REPO}/kubeflow/$index ]]; then
-        echo ks pkg install kubeflow/$index
-        ks pkg install kubeflow/$index
-      elif [[ -f $(echo ${KUBEFLOW_REPO}/kubeflow/*/${index}.libsonnet) ]]; then
-        package=$(dirname $(echo ${KUBEFLOW_REPO}/kubeflow/*/${index}.libsonnet))
+      if [[ -d ${KUBEFLOW_REPO}/kubeflow/$component ]]; then
+        ks pkg install kubeflow/$component
+      elif [[ -f $(echo ${KUBEFLOW_REPO}/kubeflow/*/${component}.libsonnet) ]]; then
+        package=$(dirname $(echo ${KUBEFLOW_REPO}/kubeflow/*/${component}.libsonnet))
         package=$(basename $package)
         if [ -z ${packages["${package}"]+_} ]; then
           packages[$package]='true'
-          echo ks pkg install kubeflow/$package
           ks pkg install kubeflow/$package
         fi
       fi
-      echo ks generate $index $index --module $module
-      ks generate $index $index --module $module
+      prototype=${index#*/}
+      ks generate $prototype $prototype --module $module
     done
   
     for nestedModule in "${modules[@]}"; do
@@ -97,10 +99,12 @@ function addmodulecommand() {
     done
   fi
 
-  echo ks env targets default $moduleList
   ks env targets default $moduleList
-
-  ks show default | tee default.yaml
+  if [[ $apply == true ]]; then
+    ks apply default
+  fi
+  moduleList="$currentModules $moduleList"
+  ks env targets default $moduleList
 }
 
 function createKsApp() {
@@ -116,6 +120,8 @@ function createKsApp() {
   # Remove the default environment; The cluster might not exist yet
   # So we might be pointing to the wrong  cluster.
   ks env rm default
+
+  # Add a new default environment with the namespace set
   ks env add default --namespace "${K8S_NAMESPACE}"
   ks env current --set default
 
@@ -123,13 +129,25 @@ function createKsApp() {
   ks registry add kubeflow "${KUBEFLOW_REPO}/kubeflow"
 
   # Install all required packages
-  addmodulecommand workflows --dependsOn argo
+  #if [ "${PLATFORM}" != "minikube" ]; then
+  #  addmodulecommand workflows --dependsOn argo
+  #fi
   addmodulecommand core --dependsOn ambassador centraldashboard
-  addmodulecommand training --dependsOn katib tf-training
-  addmodulecommand inference --dependsOn tf-serving seldon
-  addmodulecommand profiles --dependsOn profiles metacontroller
+  #if [ "${PLATFORM}" != "minikube" ]; then
+  #  addmodulecommand training --dependsOn katib tf-training/tf-job-operator
+  #else
+  #  addmodulecommand training --dependsOn tf-training/tf-job-operator
+  #fi
+  #addmodulecommand inference --dependsOn tf-serving seldon
+  #addmodulecommand profiles --dependsOn profiles metacontroller
   addmodulecommand notebooks --dependsOn jupyter 
   
+  ks param set core.ambassador platform ${KUBEFLOW_PLATFORM} --env default
+  ks param set core.ambassador ambassadorServiceType LoadBalancer --env default
+  ks param set notebooks.jupyter platform ${KUBEFLOW_PLATFORM} --env default
+
+  ks show default > default.yaml
+
   #ks pkg install kubeflow/core
   #ks pkg install kubeflow/examples
   #ks pkg install kubeflow/mpi-job
@@ -181,7 +199,7 @@ function removeKsEnv() {
   set -e
   if [ "${RESULT}" -eq 0 ]; then
     # Remove the default environment for the deleted cluster
-    ks env rm default
+    ks delete default
   else
     echo environment default is already removed
   fi

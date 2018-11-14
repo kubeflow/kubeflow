@@ -12,7 +12,7 @@
 # ksonnet modules are used so that additional components may be deployed 
 # core
 #
-set -xe
+#set -xe
 
 COMMAND=$1
 WHAT=$2
@@ -233,12 +233,6 @@ fi
 check_install ks
 check_install kubectl
 
-# Generate all required components
-customizeKsApp() {
-  ks param set ambassador platform ${KUBEFLOW_PLATFORM}
-  ks param set jupyter platform ${KUBEFLOW_PLATFORM}
-}
-
 ksApply () {
   pushd ${KUBEFLOW_KS_DIR}
 
@@ -246,24 +240,7 @@ ksApply () {
     createNamespace
   fi
 
-  set +e
-  O=$(ks env describe default 2>&1)
-  RESULT=$?
-  set -e
-
-  # Create all the core components
-  ks apply default -c ambassador
-  ks apply default -c jupyter
-  ks apply default -c centraldashboard
-  ks apply default -c tf-job-operator
-  ks apply default -c metacontroller
-  ks apply default -c spartakus
-
-  # Reduce resource demands locally
-  if [ "${PLATFORM}" != "minikube" ]; then
-    ks apply default -c argo
-    ks apply default -c katib
-  fi
+  kubectl apply --validate=false -f default.yaml
 
   popd
 
@@ -291,7 +268,6 @@ if [ "${COMMAND}" == "generate" ]; then
 
   if [ "${WHAT}" == "k8s" ] || [ "${WHAT}" == "all" ]; then
     createKsApp
-    customizeKsApp
     customizeKsAppWithDockerImage
 
     if [ "${PLATFORM}" == "gcp" ]; then
@@ -325,25 +301,20 @@ if [ "${COMMAND}" == "apply" ]; then
     if [ "${PLATFORM}" == "gcp" ]; then
       gcpKsApply
     fi
-
-    # all components deployed
-    # deploy the application CR
-    pushd ${KUBEFLOW_KS_DIR}
-      ks apply default -c application
-    popd
   fi
+fi
+
+if [ "${COMMAND}" == "add" ]; then
+  shift
+  pushd ${KUBEFLOW_KS_DIR}
+  addmodulecommand $@
 fi
 
 if [ "${COMMAND}" == "delete" ]; then
   if [ "${WHAT}" == "k8s"  ] || [ "${WHAT}" == "all" ]; then
-    # Delete kubeflow namespace - this deletes all the ingress objects
-    # in the namespace which deletes the associated GCP resources
     set +e
+    removeKsEnv
     kubectl delete ns/${K8S_NAMESPACE}
-    while kubectl get ns/${K8S_NAMESPACE}; do
-      echo "namespace ${K8S_NAMESPACE} not yet deleted. sleeping 10 seconds..."
-      sleep 10
-    done
     echo "namespace ${K8S_NAMESPACE} successfully deleted."
     set -e
   fi
@@ -355,6 +326,5 @@ if [ "${COMMAND}" == "delete" ]; then
         popd
       fi
     fi
-    removeKsEnv
   fi
 fi
