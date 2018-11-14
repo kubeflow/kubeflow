@@ -41,23 +41,11 @@ function getmodules() {
 
 function addmodule() {
   local apply=false module=${1%/*} currentModules nestedModule moduleList oneOrMorePrototypes prototype index
-  shift
   declare -a dependsOn modules prototypes packages
+  shift
 
   while [[ "$#" -gt "0" && $1 =~ ^- ]]; do
     case "$1" in
-      -h|--help)
-        echo -e "$0 add \n"\
-        '  [-h|--help]\n'\
-        '  [-d|--dependsOn] component[/prototype] component[/{proto1,proto2}] ...\n'\
-        '  [-a|--apply] component ...\n'\
-        '\n'
-        'Examples:\n'\
-        "addmodule core --dependsOn 'core/{ambassador,centraldashboard}'\n"\
-        'addmodule tf-training --dependsOn tf-training/tf-job-operator\n'\
-        'addmodule notebooks --dependsOn notebooks profiles metacontroller\n'
-        exit 1
-        ;;
       -d|--dependsOn)
         shift
         while (( $# > 0 )); do

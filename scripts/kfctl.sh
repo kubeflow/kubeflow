@@ -215,7 +215,7 @@ if [ "${COMMAND}" == "init" ]; then
   fi
 fi
 
-source ${ENV_FILE}
+[[ -d ${ENV_FILE} ]] && source ${ENV_FILE}
 
 if [ -z "${COMMAND}" ]; then
   echo "COMMAND must be provided"
@@ -256,7 +256,7 @@ ksApply () {
   set -x
 }
 
-source "${ENV_FILE}"
+[[ -d ${ENV_FILE} ]] && source "${ENV_FILE}"
 
 if [ "${COMMAND}" == "generate" ]; then
   if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ]; then
@@ -306,7 +306,46 @@ fi
 
 if [ "${COMMAND}" == "add" ]; then
   shift
-  pushd ${KUBEFLOW_KS_DIR}
+  while [[ "$#" -gt "0" && $1 =~ ^- ]]; do
+    case "$1" in
+      -h|--help)
+        echo -e 'kfctl.sh add [-h|--help] [-a|--apply] -d|--dependsOn component[/prototype] component[/{proto1,proto2}]  ...\n'\
+        '\n'\
+        'Examples:\n'\
+        "kfctl.sh add core --dependsOn 'core/{ambassador,centraldashboard}'\n"\
+        '  Does the following:\n'\
+        '  ks module create core\n'\
+        '  ks generate ambassador ambassador --module core\n'\
+        '  ks generate centraldashboard centraldashboard --module core\n'\
+        '  ks env targets default --module core\n'\
+        '  \n'\
+        'kfctl.sh add tf-training --dependsOn tf-training/tf-job-operator\n'\
+        '  Does the following:\n'\
+        '  ks module create tf-training\n'\
+        '  ks generate tf-job-operator tf-job-operator --module tf-training\n'\
+        '  ks env targets default --module tf-training\n'\
+        '  \n'\
+        'kfctl.sh add notebooks --dependsOn notebooks profiles metacontroller\n'\
+        '  Does the following:\n'\
+        '  ks module create notebooks\n'\
+        '  ks generate notebooks notebooks --module notebooks\n'\
+        '  ks module create notebooks.profiles\n'\
+        '  ks generate profiles profiles --module notebooks.profiles\n'\
+        '  ks module create notebooks.profiles.metacontroller\n'\
+        '  ks generate metacontroller metacontroller --module notebooks.profiles.metacontroller\n'\
+        '  ks env targets default --module notebooks --module notebooks.profiles --module notebooks.profiles.metacontroller\n'\
+        '  \n'\
+        'kfctl.sh add openvino --apply --dependsOn openvino\n'\
+        '  Does the following:\n'\
+        '  ks module create openvino\n'\
+        '  ks generate openvino openvino --module openvino\n'\
+        '  ks env targets default --module openvino\n'\
+        '  ks apply default\n'
+        exit 0
+        ;;
+    esac
+  done
+  [[ -d ${KUBEFLOW_KS_DIR} ]] && pushd ${KUBEFLOW_KS_DIR}
   addmodule $@
 fi
 
