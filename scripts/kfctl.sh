@@ -23,8 +23,45 @@
 # can be grouped within a ksonnet environment. By setting the environment targets
 # as one or more modules the environment becomes composable either before deployment
 # or after. See `kfctl.sh add --help`.
-# 
 #
+# Syntax:
+# A module is named along with it's dependencies by doing
+#   `kfctl.sh add <module-name> --dependsOn <component-name> [<component-name>] ...`
+# More than one component will result in nested modules. 
+#
+# Use case 1: deploying a component's prototype along with it's dependencies
+#   The notebooks component can use protected namespaces so new notebooks are deployed
+#   within this namespace. In this case the notebook component has dependencies on
+#   the profiles and metacontroller components. In this case you would do
+#
+#   `kfctl.sh add notebooks --dependsOn notebooks profiles metacontroller`
+#
+# Use case 2: deploying some prototypes of a component
+#   The kubeflow/core component contains a number of prototypes which are specific to GKE 
+#   like cloud-endpoints, iap-ingress. Other prototypes in core like ambassador and 
+#   centraldashboard should be always be deployed. In this case you can do
+#
+#   `kfctl.sh add core --dependsOn 'core/{ambassador,centraldashboard}'`
+#
+#   In this case we are creating a module called core and adding the ambassador and 
+#   centraldashboard prototypes from the core component.
+# 
+# Use case 3: deploying a prototype in a component after the initial deployment
+#   A common use case is to deploy new prototypes sometime after the initial deployment.
+#   In this case we would like to deploy the 'openvino' component separately.
+#   Here you would do
+#   
+#   `kfctl.sh add openvino --apply --dependsOn openvino`
+#   
+#   In this instance, the openvino's component prototype is added to the openvino module
+#   and just this modoule is deployed. After deployment, the module is added to the
+#   default environment. A subsequent 
+#   
+#   `kfctl.sh delete all`
+# 
+#   would also delete openvino's resources since it was composed with the original environment
+#   but deployed separately.
+#   
 #set -xe
 
 COMMAND=$1
