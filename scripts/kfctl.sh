@@ -277,10 +277,10 @@ if [ "${COMMAND}" == "generate" ]; then
     if [ "${PLATFORM}" == "minikube" ]; then
       create_local_fs_mount_spec
       if ${MOUNT_LOCAL}; then
-        ks param set jupyter disks "local-notebooks"
-        ks param set jupyter notebookUid `id -u`
-        ks param set jupyter notebookGid `id -g`
-        ks param set jupyter accessLocalFs true
+        ks param set jupyter.jupyter disks "local-notebooks" --env=default
+        ks param set jupyter.jupyter notebookUid `id -u` --env=default
+        ks param set jupyter.jupyter notebookGid `id -g` --env=default
+        ks param set jupyter.jupyter accessLocalFs true --env=default
       fi
     fi
   fi
@@ -307,7 +307,7 @@ fi
 if [ "${COMMAND}" == "add" ]; then
   shift
   pushd ${KUBEFLOW_KS_DIR}
-  addmodulecommand $@
+  addmodule $@
 fi
 
 if [ "${COMMAND}" == "delete" ]; then

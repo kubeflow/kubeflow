@@ -2,7 +2,7 @@
 #
 # Define functions to customize the Kubeflow app for GCP.
 #
-set -xe
+#set -xe
 
 gcpCreateSecretsDir() {
   # Create a directory to contain GCP secrets.
@@ -221,10 +221,13 @@ gcpGenerateKsApp() {
   pushd .
   cd "${KUBEFLOW_KS_DIR}"
 
-  ks generate cloud-endpoints cloud-endpoints
-  ks generate cert-manager cert-manager --acmeEmail=${EMAIL}
-  ks generate iap-ingress iap-ingress --ipName=${KUBEFLOW_IP_NAME} --hostname=${KUBEFLOW_HOSTNAME}
-  ks param set jupyter jupyterHubAuthenticator iap
+  addmodule core --dependsOn core/cloud-endpoints
+  addmodule core --dependsOn core/cert-manager
+  addmodule core --dependsOn core/iap-ingress 
+  ks param set core.cert-manager acmeEmail $EMAIL --env default
+  ks param set core.iap-ingress ipName ${KUBEFLOW_IP_NAME} --env=default
+  ks param set core.iap-ingress hostname ${KUBEFLOW_HOSTNAME} --env=default
+  ks param set jupyter.jupyter jupyterHubAuthenticator iap --env=default
   popd
 }
 
@@ -232,22 +235,6 @@ gcpKsApply() {
   # Apply the components generated
   pushd .
   cd "${KUBEFLOW_KS_DIR}"
-
-  set +e
-  O=`ks env describe default 2>&1`
-  RESULT=$?
-  set -e
-
-  if [ "${RESULT}" -eq 0 ]; then
-    echo environment default already exists
-  else
-    ks env add default --namespace "${K8S_NAMESPACE}"
-  fi
-
-  ks apply default -c cloud-endpoints
-  ks apply default -c cert-manager
-  ks apply default -c iap-ingress
-  ks apply default -c pytorch-operator
-
+  kubectl apply --validate=false -f default.yaml
   popd
 }

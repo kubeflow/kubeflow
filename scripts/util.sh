@@ -7,7 +7,7 @@ function usage() {
     echo "init - initialize something"
     echo "apply  -- apply some config"
     echo "delete - delete some components"
-    echo "add <module> --dependsOn <component>+"
+    echo "add [-h|--help] <module> [--apply] --dependsOn <component[/prototype]>+"
     echo
     echo "what is one of"
     echo "project - the GCP project"
@@ -39,18 +39,23 @@ function getmodules() {
  echo "$moduleList"
 }
 
-function addmodulecommand() {
-  local apply=false module=${1%/*} currentModules nestedModule modulePath moduleList index
+function addmodule() {
+  local apply=false module=${1%/*} currentModules nestedModule moduleList oneOrMorePrototypes prototype index
   shift
-  declare -a dependsOn modules packages
+  declare -a dependsOn modules prototypes packages
 
   while [[ "$#" -gt "0" && $1 =~ ^- ]]; do
     case "$1" in
       -h|--help)
         echo -e "$0 add \n"\
         '  [-h|--help]\n'\
-        '  [-d|--dependsOn] component ...\n'\
+        '  [-d|--dependsOn] component[/prototype] component[/{proto1,proto2}] ...\n'\
+        '  [-a|--apply] component ...\n'\
         '\n'
+        'Examples:\n'\
+        "addmodule core --dependsOn 'core/{ambassador,centraldashboard}'\n"\
+        'addmodule tf-training --dependsOn tf-training/tf-job-operator\n'\
+        'addmodule notebooks --dependsOn notebooks profiles metacontroller\n'
         exit 1
         ;;
       -d|--dependsOn)
@@ -89,8 +94,16 @@ function addmodulecommand() {
           ks pkg install kubeflow/$package
         fi
       fi
-      prototype=${index#*/}
-      ks generate $prototype $prototype --module $module
+      oneOrMorePrototypes=${index#*/}
+      if [[ $oneOrMorePrototypes =~ { ]]; then
+        oneOrMorePrototypes=${oneOrMorePrototypes:1:$((${#oneOrMorePrototypes}-2))}
+        IFS=',' read -r -a prototypes <<<"$oneOrMorePrototypes"
+      else 
+        prototypes=($oneOrMorePrototypes)
+      fi
+      for prototype in "${prototypes[@]}"; do
+        ks generate $prototype $prototype --module $module
+      done
     done
   
     for nestedModule in "${modules[@]}"; do
@@ -108,6 +121,7 @@ function addmodulecommand() {
 }
 
 function createKsApp() {
+  local usageId=$(((RANDOM<<15)|RANDOM))
   # Create the ksonnet application.
   # All deployments should call this function to create a common ksonnet app.
   # They can then customize it as necessary.
@@ -128,51 +142,23 @@ function createKsApp() {
   # Add the local registry
   ks registry add kubeflow "${KUBEFLOW_REPO}/kubeflow"
 
-  # Install all required packages
-  #if [ "${PLATFORM}" != "minikube" ]; then
-  #  addmodulecommand workflows --dependsOn argo
-  #fi
-  addmodulecommand core --dependsOn ambassador centraldashboard
-  #if [ "${PLATFORM}" != "minikube" ]; then
-  #  addmodulecommand training --dependsOn katib tf-training/tf-job-operator
-  #else
-  #  addmodulecommand training --dependsOn tf-training/tf-job-operator
-  #fi
-  #addmodulecommand inference --dependsOn tf-serving seldon
-  #addmodulecommand profiles --dependsOn profiles metacontroller
-  addmodulecommand notebooks --dependsOn jupyter 
-  
-  ks param set core.ambassador platform ${KUBEFLOW_PLATFORM} --env default
-  ks param set core.ambassador ambassadorServiceType LoadBalancer --env default
-  ks param set notebooks.jupyter platform ${KUBEFLOW_PLATFORM} --env default
-
-  ks show default > default.yaml
-
-  #ks pkg install kubeflow/core
-  #ks pkg install kubeflow/examples
-  #ks pkg install kubeflow/mpi-job
-  #ks pkg install kubeflow/pytorch-job
-  #ks pkg install kubeflow/application
-
-  # Generate all required components
-  #ks generate pytorch-operator pytorch-operator
-  #ks generate ambassador ambassador
-  #ks generate jupyter jupyter
-  #ks generate centraldashboard centraldashboard
-  #ks generate tf-job-operator tf-job-operator
-  #ks generate metacontroller metacontroller
-  #ks generate profiles profiles
-
-  #ks generate argo argo
-  #ks generate katib katib
+  # Build modules
+  if [ "${PLATFORM}" != "minikube" ]; then
+    addmodule argo --dependsOn argo
+    addmodule seldon --dependsOn seldon
+    addmodule katib --dependsOn katib
+  fi
+  addmodule core --dependsOn 'core/{ambassador,centraldashboard,spartakus}'
+  addmodule training --dependsOn tf-training/tf-job-operator
+  addmodule serving --dependsOn tf-serving
+  addmodule notebooks --dependsOn jupyter
+  addmodule pytorch --dependsOn 'pytorch-job/{pytorch-job,pytorch-operator}'
 
   # Enable collection of anonymous usage metrics
   # To disable metrics collection. Remove the spartakus component.
   # cd ks_app
   # ks component rm spartakus
   # Generate a random 30 bit number
-  #local usageId=$(((RANDOM<<15)|RANDOM))
-  #ks generate spartakus spartakus --usageId=${usageId} --reportUsage=true
   echo ""
   echo "****************************************************************"
   echo "Notice anonymous usage reporting enabled using spartakus"
@@ -188,7 +174,12 @@ function createKsApp() {
   echo "For more info: https://www.kubeflow.org/docs/guides/usage-reporting/"
   echo "****************************************************************"
   echo ""
-  #ks generate application application
+
+  ks param set core.ambassador platform ${KUBEFLOW_PLATFORM} --env default
+  ks param set core.spartakus usageId ${usageId} --env default
+  ks param set core.spartakus reportUsage true --env default
+  ks param set notebooks.jupyter platform ${KUBEFLOW_PLATFORM} --env default
+  ks show default > default.yaml
 }
 
 function removeKsEnv() {
