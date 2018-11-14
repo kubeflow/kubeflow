@@ -59,7 +59,6 @@ generateDMConfigs() {
 
     # Set values in DM config file
     sed -i.bak "s/zone: SET_THE_ZONE/zone: ${ZONE}/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
-    sed -i.bak "s/cluster-version: SET_CLUSTER_VERSION/cluster-version: \"${CLUSTER_VERSION}\"/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
     sed -i.bak "s/users:/users: [\"${IAP_IAM_ENTRY}\"]/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
     sed -i.bak "s/ipName: kubeflow-ip/ipName: ${KUBEFLOW_IP_NAME}/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
     rm "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}.bak"
@@ -225,7 +224,7 @@ gcpGenerateKsApp() {
   ks generate cloud-endpoints cloud-endpoints
   ks generate cert-manager cert-manager --acmeEmail=${EMAIL}
   ks generate iap-ingress iap-ingress --ipName=${KUBEFLOW_IP_NAME} --hostname=${KUBEFLOW_HOSTNAME}
-  ks param set jupyterhub jupyterHubAuthenticator iap
+  ks param set jupyter jupyterHubAuthenticator iap
   popd
 }
 

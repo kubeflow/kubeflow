@@ -269,7 +269,7 @@ func processFile(opt *options.ServerOption, ksServer *ksServer) error {
 		Namespace:     opt.NameSpace,
 		AutoConfigure: true,
 	}
-	if err := ksServer.CreateApp(ctx, request); err != nil {
+	if err := ksServer.CreateApp(ctx, request, nil); err != nil {
 		return err
 	}
 
@@ -311,7 +311,7 @@ func Run(opt *options.ServerOption) error {
 		log.Info("--registries-config-file not provided; not loading any registries")
 	}
 
-	ksServer, err := NewServer(opt.AppDir, regConfig.Registries)
+	ksServer, err := NewServer(opt.AppDir, regConfig.Registries, opt.GkeVersionOverride)
 
 	if err != nil {
 		return err

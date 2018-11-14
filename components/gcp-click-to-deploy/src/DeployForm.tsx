@@ -110,10 +110,10 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       deploymentName: 'kubeflow',
       dialogBody: '',
       dialogTitle: '',
-      kfverison: 'default',
+      kfverison: 'v0.3.2',
       project: '',
       showLogs: false,
-      zone: 'us-east1-d',
+      zone: 'us-central1-a',
     };
   }
 
@@ -155,16 +155,30 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           <Input name="deploymentName" label="Deployment name" spellCheck={false} value={this.state.deploymentName} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
-          <Input name="zone" label="Zone" spellCheck={false} value={this.state.zone} onChange={this._handleChange.bind(this)} />
-        </Row>
-        <Row>
-          <Input name="clientId" label="Web App Client Id" spellCheck={false} value={this.state.clientId} onChange={this._handleChange.bind(this)} />
+          <Input name="clientId" label="Web App Client ID" spellCheck={false} value={this.state.clientId} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
           <Input name="clientSecret" label="Web App Client Secret" spellCheck={false} value={this.state.clientSecret} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row>
-          <Input name="kfverison" label="Kubeflow Version" spellCheck={false} value={this.state.kfverison} onChange={this._handleChange.bind(this)} />
+          <Text style={{ fontSize: '1.1em', margin: '2% 11%' }}>GKE Zone: </Text>
+          <select name="zone" style={{ display: 'flex', fontSize: '1.1em', margin: '2% 10.5%',}} spellCheck={false} value={this.state.zone} onChange={this._handleChange.bind(this)} >
+            <option value="us-central1-a">us-central1-a</option>
+            <option value="us-central1-c">us-central1-c</option>
+            <option value="us-east1-c">us-east1-c</option>
+            <option value="us-east1-d">us-east1-d</option>
+            <option value="us-west1-b">us-west1-b</option>
+            <option value="europe-west1-b">europe-west1-b</option>
+            <option value="europe-west1-d">europe-west1-d</option>
+            <option value="asia-east1-a">asia-east1-a</option>
+            <option value="asia-east1-b">asia-east1-b</option>
+          </select>
+        </Row>
+        <Row>
+          <Text style={{ fontSize: '1.1em', margin: '2% 11%' }}>Kubeflow Version:</Text>
+          <select name="kfverison" style={{ display: 'flex', fontSize: '1.1em', margin: '2% 1%',}} spellCheck={false} value={this.state.kfverison} onChange={this._handleChange.bind(this)} >
+            <option value="v0.3.2">v0.3.2</option>
+          </select>
         </Row>
         <div style={{ display: 'flex', padding: '20px 60px 40px' }}>
           <DeployBtn variant="contained" color="primary" onClick={this._createDeployment.bind(this)}>
@@ -265,6 +279,14 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         return;
       }
     }
+    const deploymentNameKey = 'deploymentName';
+    if (this.state[deploymentNameKey].length < 4 || this.state[deploymentNameKey].length > 20) {
+      this.setState({
+        dialogBody: 'Deployment name length need to between 4 and 20',
+        dialogTitle: 'Invalid field',
+      });
+      return;
+    }
 
     this.setState({
       showLogs: true,
@@ -293,12 +315,13 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
 
     let servicesToEnable: string[] = [];
     let enableAttempts = 0;
-    const retryTimeout = 3000;
+    const retryTimeout = 5000;
+    const email = await Gapi.getSignedInEmail();
     do {
       servicesToEnable = await this._getServicesToEnable(project)
         .catch(e => {
           this.setState({
-            dialogBody: 'Error trying to list enabled services: ' + e,
+            dialogBody: `${email}: Error trying to list enabled services: ` + e,
             dialogTitle: 'Deployment Error',
           });
           return [];
@@ -322,7 +345,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         this._appendLine('Enabling ' + s);
         await Gapi.servicemanagement.enable(project, s)
           .catch(e => this.setState({
-            dialogBody: 'Error trying to enable this required service: ' + s + '.\n' + e,
+            dialogBody: `${email}: Error trying to enable this required service: ` + s + '.\n' + e,
             dialogTitle: 'Deployment Error',
           }));
       }
@@ -332,9 +355,9 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       }
 
       enableAttempts++;
-    } while (servicesToEnable.length && enableAttempts < 5);
+    } while (servicesToEnable.length && enableAttempts < 50);
 
-    if (servicesToEnable.length && enableAttempts >= 5) {
+    if (servicesToEnable.length && enableAttempts >= 50) {
       this.setState({
         dialogBody: 'Tried too many times to enable these services: ' +
           servicesToEnable.join(', '),
@@ -366,7 +389,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       return;
     }
 
-    const email = await Gapi.getSignedInEmail();
     const createBody = JSON.stringify(
       {
         AppConfig: this._configSpec.defaultApp,
@@ -438,6 +460,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
   }
 
   private _monitorDeployment(project: string, deploymentName: string) {
+    const dashboardUri = 'https://' + this.state.deploymentName + '.endpoints.' + this.state.project + 'cloud.goog/';
     const monitorInterval = setInterval(() => {
       Gapi.deploymentmanager.get(this.state.project, deploymentName)
         .then(r => {
@@ -446,15 +469,50 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
               'deployment failed with error:' + flattenDeploymentOperationError(r.operation!));
             clearInterval(monitorInterval);
           } else if (r.operation!.status! && r.operation!.status === 'DONE') {
-            this._appendLine('Deployment is done, your kubeflow app url should be ready within 15 minutes: https://'
-              + this.state.deploymentName + '.endpoints.' + this.state.project + '.cloud.goog');
+            const readyTime = new Date();
+            readyTime.setTime(readyTime.getTime() + (20 * 60 * 1000));
+            this._appendLine('Deployment is done, your kubeflow app url should be ready within 20 minutes (by '
+              + readyTime.toLocaleTimeString() + '): ' + dashboardUri);
             clearInterval(monitorInterval);
+            this._redirectToKFDashboard(dashboardUri);
           } else {
             this._appendLine(`Status of ${deploymentName}: ` + r.operation!.status!);
           }
         })
         .catch(err => this._appendLine('deployment failed with error:' + err));
     }, 10000);
+  }
+
+  private _redirectToKFDashboard(dashboardUri: string) {
+    // relying on JupyterHub logo image to be available when the site is ready.
+    // The dashboard URI is hosted at a domain different from the deployer
+    // app. Fetching a GET on the dashboard is blocked by the browser due
+    // to CORS. Therefore we use an img element as a hack which fetches
+    // an image served by the target site, the img load is a simple html
+    // request and not an AJAX request, thus bypassing the CORS in this
+    // case.
+    const imgUri = dashboardUri + 'hub/logo';
+    const startTime = new Date().getTime() / 1000;
+    const img = document.createElement('img');
+    img.src = imgUri + '?rand=' + Math.random();
+    img.id = 'ready_test';
+    img.onload = () => { window.location.href = dashboardUri; };
+    img.onerror = () => {
+      const timeSince = (new Date().getTime() / 1000) - startTime;
+      if (timeSince > 1500) {
+        this._appendLine('Could not redirect to Kubeflow Dashboard at: ' + dashboardUri);
+      } else {
+        const ready_test = document.getElementById('ready_test') as HTMLImageElement;
+        if (ready_test != null) {
+          setTimeout(() => {
+            ready_test.src = imgUri + '?rand=' + Math.random();
+            this._appendLine('Waiting for the IAP setup to get ready...');
+          }, 10000);
+        }
+      }
+    };
+    img.style.display = 'none';
+    document.body.appendChild(img);
   }
 
   private _handleChange(event: Event) {

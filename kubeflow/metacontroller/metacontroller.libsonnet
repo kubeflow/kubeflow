@@ -135,7 +135,7 @@
                   "-v=4",
                   "--discovery-interval=20s",
                 ],
-                image: "metacontroller/metacontroller:0.2.0",
+                image: params.image,
                 ports: [
                   {
                     containerPort: 2345,

@@ -39,7 +39,7 @@ go build -i -o ${GOPATH}/bin/bootstrapper ${GOPATH}/src/github.com/kubeflow/kube
 The bootstrapper image defaults to [gcr.io/kubeflow-images-public/bootstrapper](https://gcr.io/kubeflow-images-public/bootstrapper). 
 This image copies the go executable /opt/kubeflow/bootstrapper built in the "builder" image which defaults to 
 [gcr.io/kubeflow-images-public/bootstrapper-builder](https://gcr.io/kubeflow-images-public/bootstrapper-builder). 
-Both are configurable by overridding environment variables used in the Makefile. Below are various examples that 
+Both are configurable by overriding environment variables used in the Makefile. Below are various examples that 
 show how and where these images are built and pushed.
 
 1. Use a different gcloud project than kubeflow-images-public. 

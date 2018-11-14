@@ -51,6 +51,8 @@ workflows:
       platform: minikube
     include_dirs:
       # Run on presubmit if any files used by minikube change
+      - kubeflow/core/*
+      - kubeflow/pytorch-job/*
       - testing/deploy_kubeflow.py
       - testing/workflows/components/workflows.jsonnet
       - testing/workflows/components/workflows.libsonnet

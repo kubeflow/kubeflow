@@ -4,9 +4,21 @@ libraries:
   application:
     version: master
     path: application
+  metacontroller:
+    version: master
+    path: metacontroller
+  profiles:
+    version: master
+    path: profiles
   core:
     version: master
     path: core
+  jupyter:
+    version: master
+    path: jupyter
+  tf-training:
+    version: master
+    path: tf-training
   tf-serving:
     version: master
     path: tf-serving

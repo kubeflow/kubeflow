@@ -202,21 +202,21 @@
         dependencies: null,
       },  // wait-for-kubeflow
       {
-        local v1alpha2Suffix = "-v1a2",
+        local v1beta1Suffix = "-v1b1",
         template: tests.buildTemplate {
           name: "tfjob-test",
           command: [
             "python",
             "-m",
-            "py.test_runner",
-            "test",
+            "py.simple_tfjob_tests",
             "--app_dir=" + tests.tfOperatorRoot + "/test/workflows",
-            "--tfjob_version=v1alpha2",
-            "--component=simple_tfjob_v1alpha2",
+            "--tfjob_version=v1beta1",
             // Name is used for the test case name so it should be unique across
             // all E2E tests.
             "--params=name=smoke-tfjob-" + tests.platform + ",namespace=" + tests.stepsNamespace,
-            "--junit_path=" + tests.artifactsDir + "/junit_e2e-" + tests.platform + v1alpha2Suffix + ".xml",
+            "--artifacts_path=" + tests.artifactsDir,
+            // Skip GPU tests
+            "--skip_tests=test_simple_tfjob_gpu",
           ],
         },  // run tests
         dependencies: ["wait-for-kubeflow"],
@@ -287,7 +287,7 @@
             "-m",
             "testing.tf_job_simple_test",
             "--src_dir=" + tests.srcDir,
-            "--tf_job_version=v1alpha2",
+            "--tf_job_version=v1beta1",
             "--test_dir=" + tests.testDir,
             "--artifacts_dir=" + tests.artifactsDir,
           ],
@@ -348,7 +348,7 @@
       local bootstrapperImage = "gcr.io/kubeflow-ci/bootstrapper:" + name;
       // The last 4 digits of the name should be a unique id.
       local deploymentName = "e2e-" + std.substr(name, std.length(name) - 4, 4);
-      local v1alpha2Suffix = "-v1a2";
+      local v1beta1Suffix = "-v1b1";
 
       // The name of the NFS volume claim to use for test files.
       local nfsVolumeClaim = "nfs-external";
@@ -528,7 +528,7 @@
                     {},
                   {
                     name: "tfjob-test",
-                    template: "tfjob-test" + v1alpha2Suffix
+                    template: "tfjob-test" + v1beta1Suffix
                     ,
                     dependencies: [
                       "deploy-kubeflow",
@@ -654,23 +654,23 @@
               "-m",
               "testing.tf_job_simple_test",
               "--src_dir=" + srcDir,
-              "--tf_job_version=v1alpha2",
+              "--tf_job_version=v1beta1",
             ]),  // tfjob-simple-prototype-test
-            buildTemplate("tfjob-test" + v1alpha2Suffix, [
+            buildTemplate("tfjob-test" + v1beta1Suffix, [
               "python",
               "-m",
-              "py.test_runner",
-              "test",
+              "py.simple_tfjob_tests",
               "--cluster=" + cluster,
               "--zone=" + zone,
               "--project=" + project,
               "--app_dir=" + tfOperatorRoot + "/test/workflows",
-              "--tfjob_version=v1alpha2",
-              "--component=simple_tfjob_v1alpha2",
+              "--tfjob_version=v1beta1",
               // Name is used for the test case name so it should be unique across
               // all E2E tests.
               "--params=name=simple-tfjob-" + platform + ",namespace=" + stepsNamespace,
-              "--junit_path=" + artifactsDir + "/junit_e2e-" + platform + v1alpha2Suffix + ".xml",
+              "--artifacts_path=" + artifactsDir,
+              // Skip GPU tests
+              "--skip_tests=test_simple_tfjob_gpu",
             ]),  // run tests
             buildTemplate("pytorchjob-deploy", [
               "python",

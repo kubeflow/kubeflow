@@ -398,7 +398,7 @@
                           },
                           // Jupyter uses the prefixes /hub & /user
                           {
-                            // JupyterHub requires the prefix /hub
+                            // Jupyter requires the prefix /hub
                             // Use a 10 minute timeout because downloading
                             // images for jupyter notebook can take a while
                             timeout_ms: 600000,
@@ -408,14 +408,14 @@
                             weighted_clusters: {
                               clusters: [
                                 {
-                                  name: "cluster_jupyterhub",
+                                  name: "cluster_jupyter",
                                   weight: 100.0,
                                 },
                               ],
                             },
                           },
                           {
-                            // JupyterHub requires the prefix /user
+                            // Jupyter requires the prefix /user
                             // Use a 10 minute timeout because downloading
                             // images for jupyter notebook can take a while
                             timeout_ms: 600000,
@@ -425,7 +425,7 @@
                             weighted_clusters: {
                               clusters: [
                                 {
-                                  name: "cluster_jupyterhub",
+                                  name: "cluster_jupyter",
                                   weight: 100.0,
                                 },
                               ],
@@ -440,6 +440,19 @@
                               clusters: [
                                 {
                                   name: "cluster_tfjobs",
+                                  weight: 100.0,
+                                },
+                              ],
+                            },
+                          },
+                          // Routing with Istio
+                          {
+                            timeout_ms: 10000,
+                            prefix: "/istio",
+                            weighted_clusters: {
+                              clusters: [
+                                {
+                                  name: "cluster_istiogateway",
                                   weight: 100.0,
                                 },
                               ],
@@ -556,13 +569,13 @@
               ],
             },
             {
-              name: "cluster_jupyterhub",
+              name: "cluster_jupyter",
               connect_timeout_ms: 3000,
               type: "strict_dns",
               lb_type: "round_robin",
               hosts: [
                 {
-                  url: "tcp://jupyterhub-lb." + params.namespace + ":80",
+                  url: "tcp://jupyter-lb." + params.namespace + ":80",
                 },
 
               ],
@@ -577,6 +590,18 @@
                   url: "tcp://tf-job-dashboard." + params.namespace + ":80",
                 },
 
+              ],
+            },
+            // Istio's gateway
+            {
+              name: "cluster_istiogateway",
+              connect_timeout_ms: 3000,
+              type: "strict_dns",
+              lb_type: "round_robin",
+              hosts: [
+                {
+                  url: "tcp://istio-ingressgateway.istio-system:80",
+                },
               ],
             },
             {

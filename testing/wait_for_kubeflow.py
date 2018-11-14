@@ -22,14 +22,14 @@ def deploy_kubeflow(_):
 
   util.load_kube_config()
   # Verify that the TfJob operator is actually deployed.
-  tf_job_deployment_name = "tf-job-operator-v1alpha2"
+  tf_job_deployment_name = "tf-job-operator-v1beta1"
   logging.info("Verifying TfJob controller started.")
   util.wait_for_deployment(api_client, namespace, tf_job_deployment_name)
 
-  # Verify that JupyterHub is actually deployed.
-  jupyterhub_name = "jupyterhub"
+  # Verify that Jupyter is actually deployed.
+  jupyter_name = "jupyter"
   logging.info("Verifying TfHub started.")
-  util.wait_for_statefulset(api_client, namespace, jupyterhub_name)
+  util.wait_for_statefulset(api_client, namespace, jupyter_name)
 
   # Verify that PyTorch Operator actually deployed
   pytorch_operator_deployment_name = "pytorch-operator"

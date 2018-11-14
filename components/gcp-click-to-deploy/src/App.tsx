@@ -110,18 +110,18 @@ class App extends React.Component<any, { signedIn: boolean }> {
                 <br />
                 <div>
                   <ul>
-                    <li> Enter the name of the GCP project you want to use  </li>
+                    <li> Enter the Project ID of the GCP project you want to use  </li>
                     <li> Pick a name for your deployment </li>
-                    <li> Pick a zone where you want Kubeflow to be deployed </li>
-                    <li> Follow these 
+                    <li> Follow these
                          <a href="https://www.kubeflow.org/docs/started/getting-started-gke/#create-oauth-client-credentials"
                             style={{ color: 'inherit', marginLeft: 5 }}
+                            target="_blank"
                          >
                          instructions</a> to create an OAuth client and
-                         then enter the id and secret</li>
-                    <li> (Optional) Change the value of Kubeflow version 
-                         if you don't want to use the default version. </li>
-                    <li> Click deploy </li>
+                         then enter as Web App Client ID and Secret</li>
+                    <li> (Optional) Choose GKE zone where you want Kubeflow to be deployed </li>
+                    <li> (Optional) Choose Kubeflow version </li>
+                    <li> Click Create Deployment </li>
                   </ul>
                 </div>
                 <div>
@@ -135,7 +135,8 @@ class App extends React.Component<any, { signedIn: boolean }> {
                      </li>
                      <li> If you don't want to delegate a credential to the service please use our
                           <a href="https://www.kubeflow.org/docs/started/getting-started-gke/"
-                            style={{ color: 'inherit', marginLeft: 5 }}
+                             style={{ color: 'inherit', marginLeft: 5 }}
+                             target="_blank"
                           >CLI to deploy Kubeflow</a>
                      </li>
                      <li> <a style={{ color: 'inherit', marginLeft: 5 }} href="https://policies.google.com/terms">Terms</a>

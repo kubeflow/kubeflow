@@ -49,13 +49,64 @@ createEnv() {
       echo KUBEFLOW_DOCKER_REGISTRY=registry.aliyuncs.com >> ${ENV_FILE}
       ;;
     gcp)
-      PROJECT=${PROJECT:-$(gcloud config get-value project 2>/dev/null)}
+      while [[ $# -gt 0 ]]; do
+        case $1 in
+          --project)
+            shift
+            PROJECT=$1
+            ;;
+          --zone)
+            shift
+            ZONE=$1
+            ;;
+          --email)
+            shift
+            EMAIL=$1
+            ;;
+          --skipInitProject)
+            SKIP_INIT_PROJECT=true
+            ;;
+        esac
+        shift
+      done
+
       echo KUBEFLOW_PLATFORM=gke >> ${ENV_FILE}
-      echo PROJECT="${PROJECT}" >> ${ENV_FILE}
+      # GCP Project
       if [ -z "${PROJECT}" ]; then
-        echo PROJECT must be set either using environment variable PROJECT
-        echo or by setting the default project in gcloud
-        exit 1
+        PROJECT=$(gcloud config get-value project 2>/dev/null)
+        if [ -z "${PROJECT}" ]; then
+          echo "GCP project must be set either using --project <PROJECT>"
+          echo "or by setting a default project in gcloud config"
+          exit 1
+        fi
+      fi
+      echo PROJECT="${PROJECT}" >> ${ENV_FILE}
+
+      # GCP Zone
+      if [ -z "$ZONE" ]; then
+        ZONE=$(gcloud config get-value compute/zone 2>/dev/null)
+        if [ -z "$ZONE" ]; then
+          echo "GCP zone must be set either using --zone <ZONE>"
+          echo "or by setting a default zone in gcloud config"
+          exit 1
+        fi
+      fi
+      echo ZONE=${ZONE} >> ${ENV_FILE}
+
+      # GCP Email for cert manager
+      if [ -z "$EMAIL" ]; then
+        EMAIL=$(gcloud config get-value account 2>/dev/null)
+        if [ -z "$EMAIL" ]; then
+          echo "GCP account must be set either using --email <EMAIL>"
+          echo "or by setting a default account in gcloud config"
+          exit 1
+        fi
+      fi
+      echo EMAIL=${EMAIL} >> ${ENV_FILE}
+
+      # TODO: Do we need to make PROJECT_NUMBER also a flag like --project-number
+      if [ -z "${PROJECT_NUMBER}" ]; then
+        PROJECT_NUMBER=$(gcloud projects describe ${PROJECT} --format='value(project_number)')
       fi
 
       # Name of the deployment
@@ -70,16 +121,6 @@ createEnv() {
       # Name of the K8s context to create.
       echo  KUBEFLOW_K8S_CONTEXT=${DEPLOYMENT_NAME} >> ${ENV_FILE}
 
-      # GCP Zone
-      # The default should be a zone that supports Haswell.
-      ZONE=${ZONE:-$(gcloud config get-value compute/zone 2>/dev/null)}
-      ZONE=${ZONE:-"us-east1-d"}
-      echo ZONE=${ZONE} >> ${ENV_FILE}
-
-      # Email for cert manager
-      EMAIL=${EMAIL:-$(gcloud config get-value account 2>/dev/null)}
-      echo EMAIL=${EMAIL} >> ${ENV_FILE}
-
       # GCP Static IP Name
       echo KUBEFLOW_IP_NAME=${KUBEFLOW_IP_NAME:-"${DEPLOYMENT_NAME}-ip"} >> ${ENV_FILE}
       # Name of the endpoint
@@ -89,10 +130,6 @@ createEnv() {
       echo KUBEFLOW_HOSTNAME=${KUBEFLOW_HOSTNAME:-"${KUBEFLOW_ENDPOINT_NAME}.endpoints.${PROJECT}.cloud.goog"} >> ${ENV_FILE}
 
       echo CONFIG_FILE=${CONFIG_FILE:-"cluster-kubeflow.yaml"} >> ${ENV_FILE}
-
-      if [ -z "${PROJECT_NUMBER}" ]; then
-        PROJECT_NUMBER=$(gcloud projects describe ${PROJECT} --format='value(project_number)')
-      fi
 
       echo PROJECT_NUMBER=${PROJECT_NUMBER} >> ${ENV_FILE}
 
@@ -121,78 +158,69 @@ createNamespace() {
 }
 
 if [ "${COMMAND}" == "init" ]; then
-	DEPLOYMENT_NAME=${WHAT}
+  DEPLOYMENT_NAME=${WHAT}
 
-    while [[ $# -gt 0 ]]; do
+  while [[ $# -gt 0 ]]; do
     case $1 in
-        -h | --help)
-            usage
-            exit
-            ;;
-        --platform)
-            shift
-            PLATFORM=$1
-            ;;
-        --project)
-            shift
-            PROJECT=$1
-            ;;
-        --skipInitProject)
-            SKIP_INIT_PROJECT=true
-            ;;
-        --email)
-            shift
-            EMAIL=$1
-            ;;
-      esac
-      shift
-	done
+      -h | --help)
+        usage
+        exit
+        ;;
+      --platform)
+        shift
+        PLATFORM=$1
+        mkdir -p ${DEPLOYMENT_NAME}
+        # Most commands expect to be executed from the app directory
+        cd ${DEPLOYMENT_NAME}
+        createEnv $*
+        ;;
+    esac
+    shift
+  done
 
-	mkdir -p ${DEPLOYMENT_NAME}
-	# Most commands expect to be executed from the app directory
-	cd ${DEPLOYMENT_NAME}
-	createEnv
-	source ${ENV_FILE}
-	# TODO(jlewi): Should we default to directory name?
-	# TODO(jlewi): This doesn't work if user doesn't provide name we will end up
-	# interpreting parameters as the name. To fix this we need to check name doesn't start with --
-	if [ -z "${DEPLOYMENT_NAME}" ]; then
-  		echo "name must be provided"
-  		echo "usage: kfctl init <name>"
-  		exit 1
-	fi
-    if [ -d ${DEPLOYMENT_NAME} ]; then
-		echo Directory ${DEPLOYMENT_NAME} already exists
-		exit 1
-	fi
+  source ${ENV_FILE}
+  # TODO(jlewi): Should we default to directory name?
+  # TODO(jlewi): This doesn't work if user doesn't provide name we will end up
+  # interpreting parameters as the name. To fix this we need to check name doesn't start with --
+  if [ -z "${DEPLOYMENT_NAME}" ]; then
+    echo "name must be provided"
+    echo "usage: kfctl init <name>"
+    exit 1
+  fi
+  if [ -d ${DEPLOYMENT_NAME} ]; then
+    echo "Directory ${DEPLOYMENT_NAME} already exists"
+    exit 1
+  fi
 
-	if [ -z "${PLATFORM}" ]; then
-  		echo "--platform must be provided"
-  		echo "usage: kfctl init <PLATFORM>"
-  		exit 1
-	fi
-	source "${ENV_FILE}"
+  if [ -z "${PLATFORM}" ]; then
+    echo "--platform must be provided"
+    echo "usage: kfctl init <PLATFORM>"
+    exit 1
+  fi
+  source "${ENV_FILE}"
 
-	# TODO(jlewi): How can we skip GCP project setup? Add a command line argument
-	# to skip it?
-	if [ "${PLATFORM}" == "gcp" ]; then
-	  if [ ! ${SKIP_INIT_PROJECT} ]; then
-	  	gcpInitProject
-	  fi
-	fi
-
+  # TODO(jlewi): How can we skip GCP project setup? Add a command line argument
+  # to skip it?
+  if [ "${PLATFORM}" == "gcp" ]; then
+    if ${SKIP_INIT_PROJECT}; then
+      echo "skipping project initialization"
+    else
+      echo initializing project
+      gcpInitProject
+    fi
+  fi
 fi
 
 source ${ENV_FILE}
 
 if [ -z "${COMMAND}" ]; then
-  echo COMMAND must be provided
+  echo "COMMAND must be provided"
   usage
   exit 1
 fi
 
 if [ -z "${WHAT}" ]; then
-  echo WHAT must be provided
+  echo "WHAT must be provided"
   usage
   exit 1
 fi
@@ -204,7 +232,7 @@ check_install kubectl
 # Generate all required components
 customizeKsApp() {
   ks param set ambassador platform ${KUBEFLOW_PLATFORM}
-  ks param set jupyterhub platform ${KUBEFLOW_PLATFORM}
+  ks param set jupyter platform ${KUBEFLOW_PLATFORM}
 }
 
 ksApply () {
@@ -220,14 +248,14 @@ ksApply () {
   set -e
 
   if [ "${RESULT}" -eq 0 ]; then
-  	echo environment default already exists
+    echo "environment default already exists"
   else
     ks env add default --namespace "${K8S_NAMESPACE}"
   fi
 
   # Create all the core components
   ks apply default -c ambassador
-  ks apply default -c jupyterhub
+  ks apply default -c jupyter
   ks apply default -c centraldashboard
   ks apply default -c tf-job-operator
   ks apply default -c metacontroller
@@ -257,9 +285,9 @@ source "${ENV_FILE}"
 
 if [ "${COMMAND}" == "generate" ]; then
   if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ]; then
-  	if [ "${PLATFORM}" == "gcp" ]; then
-    	generateDMConfigs
-    	downloadK8sManifests
+    if [ "${PLATFORM}" == "gcp" ]; then
+      generateDMConfigs
+      downloadK8sManifests
     fi
   fi
 
@@ -269,16 +297,16 @@ if [ "${COMMAND}" == "generate" ]; then
     customizeKsAppWithDockerImage
 
     if [ "${PLATFORM}" == "gcp" ]; then
-    	gcpGenerateKsApp
+      gcpGenerateKsApp
     fi
 
     if [ "${PLATFORM}" == "minikube" ]; then
       create_local_fs_mount_spec
       if ${MOUNT_LOCAL}; then
-        ks param set jupyterhub disks "local-notebooks"
-        ks param set jupyterhub notebookUid `id -u`
-        ks param set jupyterhub notebookGid `id -g`
-        ks param set jupyterhub accessLocalFs true
+        ks param set jupyter disks "local-notebooks"
+        ks param set jupyter notebookUid `id -u`
+        ks param set jupyter notebookGid `id -g`
+        ks param set jupyter accessLocalFs true
       fi
     fi
   fi
@@ -286,9 +314,9 @@ fi
 
 if [ "${COMMAND}" == "apply" ]; then
   if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ] ; then
-  	if [ "${PLATFORM}" == "gcp" ]; then
-    	updateDM
-    	createSecrets
+    if [ "${PLATFORM}" == "gcp" ]; then
+      updateDM
+      createSecrets
     fi
   fi
 
@@ -297,7 +325,7 @@ if [ "${COMMAND}" == "apply" ]; then
     ksApply
 
     if [ "${PLATFORM}" == "gcp" ]; then
-    	gcpKsApply
+      gcpKsApply
     fi
 
     # all components deployed

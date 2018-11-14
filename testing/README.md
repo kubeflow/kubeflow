@@ -129,7 +129,7 @@ Make the service account a cluster admin
 kubectl create clusterrolebinding  ${SERVICE_ACCOUNT}-admin --clusterrole=cluster-admin  \
 		--user=${SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com
 ```
-* The service account is used to deploye Kubeflow which entails creating various roles; so it needs sufficient RBAC permission to do so.
+* The service account is used to deploy Kubeflow which entails creating various roles; so it needs sufficient RBAC permission to do so.
 
 ### Create a GitHub Token
 
@@ -182,7 +182,7 @@ ks apply prow -c nfs-jupyter
 ```
 
 * This creates the NFS share
-* We use JupyterHub as a convenient way to access the NFS share for manual inspection of the file contents.
+* We use Jupyter as a convenient way to access the NFS share for manual inspection of the file contents.
 
 #### Troubleshooting
 

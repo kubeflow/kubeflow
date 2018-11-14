@@ -1,4 +1,4 @@
-The temaplate json files are generated from seldon-core helm charts.
+The template json files are generated from seldon-core helm charts.
 
 The template_0.2.json is generated using:
 
