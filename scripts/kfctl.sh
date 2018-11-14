@@ -9,8 +9,21 @@
 # kfctl.sh generate all
 # kfctl.sh apply all
 #
-# ksonnet modules are used so that additional components may be deployed 
-# core
+# kfctl will assemble and deploy prototypes using ksonnet
+# Prototypes are grouped by component and are available
+# after installing their component
+#    `ks pkg install kubeflow/<component>`
+# Components can be grouped under modules by doing
+#    `ks module create <module-name>`
+#    `ks generate <prototype-name> <component-name> --module <module-name>`
+# One or more modules can be separately deployed by doing
+#    `ks env targets default --module <module-name> ...`
+#    `ks apply default`
+# ksonnet modules are used so that different combinations of prototypes 
+# can be grouped within a ksonnet environment. By setting the environment targets
+# as one or more modules the environment becomes composable either before deployment
+# or after. See `kfctl.sh add --help`.
+# 
 #
 #set -xe
 
