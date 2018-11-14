@@ -62,7 +62,7 @@
 #   would also delete openvino's resources since it was composed with the original environment
 #   but deployed separately.
 #   
-#set -xe
+set -xe
 
 COMMAND=$1
 WHAT=$2
@@ -251,7 +251,7 @@ if [ "${COMMAND}" == "init" ]; then
     echo "usage: kfctl init <PLATFORM>"
     exit 1
   fi
-  source "${ENV_FILE}"
+  source ${ENV_FILE}
 
   # TODO(jlewi): How can we skip GCP project setup? Add a command line argument
   # to skip it?
@@ -265,7 +265,7 @@ if [ "${COMMAND}" == "init" ]; then
   fi
 fi
 
-[[ -d ${ENV_FILE} ]] && source ${ENV_FILE}
+[[ -f ${ENV_FILE} ]] && source ${ENV_FILE}
 
 if [ -z "${COMMAND}" ]; then
   echo "COMMAND must be provided"
@@ -306,7 +306,7 @@ ksApply () {
   set -x
 }
 
-[[ -d ${ENV_FILE} ]] && source "${ENV_FILE}"
+[[ -f ${ENV_FILE} ]] && source ${ENV_FILE}
 
 if [ "${COMMAND}" == "generate" ]; then
   if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ]; then
