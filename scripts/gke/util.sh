@@ -2,7 +2,7 @@
 #
 # Define functions to customize the Kubeflow app for GCP.
 #
-#set -xe
+set -xe
 
 gcpCreateSecretsDir() {
   # Create a directory to contain GCP secrets.
