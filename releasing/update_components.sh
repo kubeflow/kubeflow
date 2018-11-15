@@ -43,12 +43,15 @@ elif [ "${COMPONENT}" == "pytorch-operator" ]; then
 
 elif [ "${COMPONENT}" == "katib" ]; then
   echo "Updating Katib..."
-  VALUES="modeldbFrontendImage=gcr.io/kubeflow-images-public/katib/katib-frontend:${TAG}"
   VALUES="${VALUES},suggestionRandomImage=gcr.io/kubeflow-images-public/katib/suggestion-random:${TAG}"
   VALUES="${VALUES},suggestionGridImage=gcr.io/kubeflow-images-public/katib/suggestion-grid:${TAG}"
   VALUES="${VALUES},suggestionHyperbandImage=gcr.io/kubeflow-images-public/katib/suggestion-hyperband:${TAG}"
   VALUES="${VALUES},suggestionBayesianOptimizationImage=gcr.io/kubeflow-images-public/katib/suggestion-bayesianoptimization:${TAG}"
   VALUES="${VALUES},vizierCoreImage=gcr.io/kubeflow-images-public/katib/vizier-core:${TAG}"
+  VALUES="${VALUES},vizierCoreRestImage=gcr.io/kubeflow-images-public/katib/vizier-core-rest:${TAG}"
+  VALUES="${VALUES},katibUIImage=gcr.io/kubeflow-images-public/katib/katib-ui:${TAG}"
+  VALUES="${VALUES},studyJobControllerImage=gcr.io/kubeflow-images-public/katib/studyjob-controller:${TAG}"
+  VALUES="${VALUES},metricsCollectorImage=gcr.io/kubeflow-images-public/katib/metrics-collector:${TAG}"
   python ${ROOT_DIR}/scripts/update_prototype.py \
 	--file=${ROOT_DIR}/kubeflow/katib/prototypes/all.jsonnet \
 	--values=${VALUES}
