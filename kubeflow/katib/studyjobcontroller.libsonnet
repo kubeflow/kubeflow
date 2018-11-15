@@ -125,7 +125,7 @@
                         - "-n"
                         - "{{.NameSpace}}"
                       restartPolicy: Never
-          ||| % { mcimage: metricsCollectorImage },
+          ||| % { mcimage: params.metricsCollectorImage },
         },
       },
     ],
