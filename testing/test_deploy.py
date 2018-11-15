@@ -227,13 +227,12 @@ def test_successful_deployment(deployment_name):
 
 def test_katib(args):
   test_successful_deployment('vizier-core')
+  test_successful_deployment('vizier-core-rest')
+  test_successful_deployment('katib-ui')
   test_successful_deployment('vizier-db')
   test_successful_deployment('vizier-suggestion-grid')
   test_successful_deployment('vizier-suggestion-random')
   test_successful_deployment('studyjob-controller')
-  test_successful_deployment('modeldb-backend')
-  test_successful_deployment('modeldb-db')
-  test_successful_deployment('modeldb-frontend')
 
 def deploy_argo(args):
   api_client = create_k8s_client(args)
