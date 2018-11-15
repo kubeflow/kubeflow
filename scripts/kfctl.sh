@@ -62,7 +62,7 @@
 #   would also delete openvino's resources since it was composed with the original environment
 #   but deployed separately.
 #   
-set -xe
+#set -xe
 
 COMMAND=$1
 WHAT=$2
@@ -401,11 +401,9 @@ fi
 
 if [ "${COMMAND}" == "delete" ]; then
   if [ "${WHAT}" == "k8s"  ] || [ "${WHAT}" == "all" ]; then
-    set +e
-    removeKsEnv
-    kubectl delete ns/${K8S_NAMESPACE}
-    echo "namespace ${K8S_NAMESPACE} successfully deleted."
-    set -e
+    #set +e
+    removeKsEnv && kubectl delete ns/${K8S_NAMESPACE} && echo "namespace ${K8S_NAMESPACE} successfully deleted."
+    #set -e
   fi
   if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ] ; then
     if [ "${PLATFORM}" == "gcp" ]; then

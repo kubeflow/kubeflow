@@ -172,16 +172,7 @@ function createKsApp() {
 
 function removeKsEnv() {
   pushd ${KUBEFLOW_KS_DIR}
-  set +e
-  O=$(ks env describe default 2>&1)
-  RESULT=$?
-  set -e
-  if [ "${RESULT}" -eq 0 ]; then
-    # Remove the default environment for the deleted cluster
-    ks delete default
-  else
-    echo environment default is already removed
-  fi
+  ks env describe default 2>&1 && ks delete default || echo "'default' environment doesn't exist"
   popd
 }
 
