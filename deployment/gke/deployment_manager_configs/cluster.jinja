@@ -85,6 +85,18 @@ resources:
           {{ properties['securityConfig']['masterAuthorizedNetworksConfigCidr'] }}
         {% endif %}
       {% endif %}
+      # Autoprovisioning is only supported in v1beta1.
+      {% if properties['gkeApiVersion'] == 'v1beta1' and properties['autoprovisioning-config']['enabled'] %}
+      autoscaling:
+        enableNodeAutoprovisioning: true
+        resourceLimits:
+        - resourceType: 'cpu'
+          maximum: {{ properties['autoprovisioning-config']['max-cpu'] }}
+        - resourceType: 'memory'
+          maximum: {{ properties['autoprovisioning-config']['max-memory'] }}
+        - resourceType: 'nvidia-tesla-k80'
+          maximum: {{ properties['autoprovisioning-config']['max-nvidia-tesla-k80'] }}
+      {% endif %}
       nodePools:
       - name: default-pool
         initialNodeCount: {{ properties['cpu-pool-initialNodeCount'] }}
