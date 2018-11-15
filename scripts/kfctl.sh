@@ -214,6 +214,14 @@ parseArgs() {
         echo "or by setting a default account in gcloud config"
         exit 1
       fi
+      # Use iam-policy value for EMAIL if case-sensitive
+      EM_LIST="$(gcloud projects get-iam-policy $PROJECT | grep -io $EMAIL)"
+      for em in $EM_LIST; do
+        if [ "$em" != "$EMAIL" ]; then
+          EMAIL=$em
+          break
+        fi
+      done
     fi
   fi
 }
