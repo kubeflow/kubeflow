@@ -10,9 +10,6 @@
 # kfctl.sh apply all
 set -xe
 
-COMMAND=$1
-WHAT=$2
-
 ENV_FILE="env.sh"
 SKIP_INIT_PROJECT=false
 CLUSTER_VERSION="1.10"
@@ -49,59 +46,9 @@ createEnv() {
       echo KUBEFLOW_DOCKER_REGISTRY=registry.aliyuncs.com >> ${ENV_FILE}
       ;;
     gcp)
-      while [[ $# -gt 0 ]]; do
-        case $1 in
-          --project)
-            shift
-            PROJECT=$1
-            ;;
-          --zone)
-            shift
-            ZONE=$1
-            ;;
-          --email)
-            shift
-            EMAIL=$1
-            ;;
-          --skipInitProject)
-            SKIP_INIT_PROJECT=true
-            ;;
-        esac
-        shift
-      done
-
       echo KUBEFLOW_PLATFORM=gke >> ${ENV_FILE}
-      # GCP Project
-      if [ -z "${PROJECT}" ]; then
-        PROJECT=$(gcloud config get-value project 2>/dev/null)
-        if [ -z "${PROJECT}" ]; then
-          echo "GCP project must be set either using --project <PROJECT>"
-          echo "or by setting a default project in gcloud config"
-          exit 1
-        fi
-      fi
       echo PROJECT="${PROJECT}" >> ${ENV_FILE}
-
-      # GCP Zone
-      if [ -z "$ZONE" ]; then
-        ZONE=$(gcloud config get-value compute/zone 2>/dev/null)
-        if [ -z "$ZONE" ]; then
-          echo "GCP zone must be set either using --zone <ZONE>"
-          echo "or by setting a default zone in gcloud config"
-          exit 1
-        fi
-      fi
       echo ZONE=${ZONE} >> ${ENV_FILE}
-
-      # GCP Email for cert manager
-      if [ -z "$EMAIL" ]; then
-        EMAIL=$(gcloud config get-value account 2>/dev/null)
-        if [ -z "$EMAIL" ]; then
-          echo "GCP account must be set either using --email <EMAIL>"
-          echo "or by setting a default account in gcloud config"
-          exit 1
-        fi
-      fi
       echo EMAIL=${EMAIL} >> ${ENV_FILE}
 
       # TODO: Do we need to make PROJECT_NUMBER also a flag like --project-number
@@ -157,78 +104,6 @@ createNamespace() {
   fi
 }
 
-if [ "${COMMAND}" == "init" ]; then
-  DEPLOYMENT_NAME=${WHAT}
-
-  while [[ $# -gt 0 ]]; do
-    case $1 in
-      -h | --help)
-        usage
-        exit
-        ;;
-      --platform)
-        shift
-        PLATFORM=$1
-        mkdir -p ${DEPLOYMENT_NAME}
-        # Most commands expect to be executed from the app directory
-        cd ${DEPLOYMENT_NAME}
-        createEnv $*
-        ;;
-    esac
-    shift
-  done
-
-  source ${ENV_FILE}
-  # TODO(jlewi): Should we default to directory name?
-  # TODO(jlewi): This doesn't work if user doesn't provide name we will end up
-  # interpreting parameters as the name. To fix this we need to check name doesn't start with --
-  if [ -z "${DEPLOYMENT_NAME}" ]; then
-    echo "name must be provided"
-    echo "usage: kfctl init <name>"
-    exit 1
-  fi
-  if [ -d ${DEPLOYMENT_NAME} ]; then
-    echo "Directory ${DEPLOYMENT_NAME} already exists"
-    exit 1
-  fi
-
-  if [ -z "${PLATFORM}" ]; then
-    echo "--platform must be provided"
-    echo "usage: kfctl init <PLATFORM>"
-    exit 1
-  fi
-  source "${ENV_FILE}"
-
-  # TODO(jlewi): How can we skip GCP project setup? Add a command line argument
-  # to skip it?
-  if [ "${PLATFORM}" == "gcp" ]; then
-    if ${SKIP_INIT_PROJECT}; then
-      echo "skipping project initialization"
-    else
-      echo initializing project
-      gcpInitProject
-    fi
-  fi
-fi
-
-source ${ENV_FILE}
-
-if [ -z "${COMMAND}" ]; then
-  echo "COMMAND must be provided"
-  usage
-  exit 1
-fi
-
-if [ -z "${WHAT}" ]; then
-  echo "WHAT must be provided"
-  usage
-  exit 1
-fi
-
-# TODO(ankushagarwal): verify ks version is higher than 0.11.0
-check_install ks
-check_install kubectl
-
 # Generate all required components
 customizeKsApp() {
   ks param set ambassador platform ${KUBEFLOW_PLATFORM}
@@ -238,9 +113,7 @@ customizeKsApp() {
 ksApply() {
   pushd ${KUBEFLOW_KS_DIR}
 
-  if [ "${PLATFORM}" == "minikube" ]; then
-    createNamespace
-  fi
+  createNamespace
 
   set +e
   O=$(ks env describe default 2>&1)
@@ -281,82 +154,221 @@ ksApply() {
   set -x
 }
 
-source "${ENV_FILE}"
 
-if [ "${COMMAND}" == "generate" ]; then
-  if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ]; then
-    if [ "${PLATFORM}" == "gcp" ]; then
-      generateDMConfigs
-      downloadK8sManifests
+parseArgs() {
+  # Parse all command line options
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+      -h | --help)
+        usage
+        exit
+        ;;
+      --platform)
+        shift
+        PLATFORM=$1
+        ;;
+      --project)
+        shift
+        PROJECT=$1
+        ;;
+      --zone)
+        shift
+        ZONE=$1
+        ;;
+      --email)
+        shift
+        EMAIL=$1
+        ;;
+      --skipInitProject)
+        SKIP_INIT_PROJECT=true
+        ;;
+    esac
+    shift
+  done
+
+  # Check for gcp specific parameters to be set before proceeding
+  if [ "${PLATFORM}" == "gcp" ]; then
+     # GCP Project
+    if [ -z "${PROJECT}" ]; then
+      PROJECT=$(gcloud config get-value project 2>/dev/null)
+      if [ -z "${PROJECT}" ]; then
+        echo "GCP project must be set either using --project <PROJECT>"
+        echo "or by setting a default project in gcloud config"
+        exit 1
+      fi
     fi
-  fi
-
-  if [ "${WHAT}" == "k8s" ] || [ "${WHAT}" == "all" ]; then
-    createKsApp
-    customizeKsApp
-    customizeKsAppWithDockerImage
-
-    if [ "${PLATFORM}" == "gcp" ]; then
-      gcpGenerateKsApp
+    # GCP Zone
+    if [ -z "$ZONE" ]; then
+      ZONE=$(gcloud config get-value compute/zone 2>/dev/null)
+      if [ -z "$ZONE" ]; then
+        echo "GCP zone must be set either using --zone <ZONE>"
+        echo "or by setting a default zone in gcloud config"
+        exit 1
+      fi
     fi
-
-    if [ "${PLATFORM}" == "minikube" ]; then
-      create_local_fs_mount_spec
-      if ${MOUNT_LOCAL}; then
-        ks param set jupyter disks "local-notebooks"
-        ks param set jupyter notebookUid $(id -u)
-        ks param set jupyter notebookGid $(id -g)
-        ks param set jupyter accessLocalFs true
+    # GCP Email for cert manager
+    if [ -z "$EMAIL" ]; then
+      EMAIL=$(gcloud config get-value account 2>/dev/null)
+      if [ -z "$EMAIL" ]; then
+        echo "GCP account must be set either using --email <EMAIL>"
+        echo "or by setting a default account in gcloud config"
+        exit 1
       fi
     fi
   fi
-fi
+}
 
-if [ "${COMMAND}" == "apply" ]; then
-  if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ]; then
-    if [ "${PLATFORM}" == "gcp" ]; then
-      updateDM
-      createSecrets
+main() {
+  if [ "${COMMAND}" == "init" ]; then
+    DEPLOYMENT_NAME=${WHAT}
+    parseArgs $*
+
+    mkdir -p ${DEPLOYMENT_NAME}
+    # Most commands expect to be executed from the app directory
+    cd ${DEPLOYMENT_NAME}
+    createEnv
+
+    source ${ENV_FILE}
+    # TODO(jlewi): Should we default to directory name?
+    # TODO(jlewi): This doesn't work if user doesn't provide name we will end up
+    # interpreting parameters as the name. To fix this we need to check name doesn't start with --
+    if [ -z "${DEPLOYMENT_NAME}" ]; then
+      echo "name must be provided"
+      echo "usage: kfctl init <name>"
+      exit 1
     fi
-  fi
-
-  if [ "${WHAT}" == "k8s" ] || [ "${WHAT}" == "all" ]; then
-    createNamespace
-    ksApply
-
-    if [ "${PLATFORM}" == "gcp" ]; then
-      gcpKsApply
+    if [ -d ${DEPLOYMENT_NAME} ]; then
+      echo "Directory ${DEPLOYMENT_NAME} already exists"
+      exit 1
     fi
 
-    # all components deployed
-    # deploy the application CR
-    pushd ${KUBEFLOW_KS_DIR}
-    ks apply default -c application
-    popd
-  fi
-fi
+    if [ -z "${PLATFORM}" ]; then
+      echo "--platform must be provided"
+      echo "usage: kfctl init <PLATFORM>"
+      exit 1
+    fi
+    source "${ENV_FILE}"
 
-if [ "${COMMAND}" == "delete" ]; then
-  if [ "${WHAT}" == "k8s" ] || [ "${WHAT}" == "all" ]; then
-    # Delete kubeflow namespace - this deletes all the ingress objects
-    # in the namespace which deletes the associated GCP resources
-    set +e
-    kubectl delete ns/${K8S_NAMESPACE}
-    while kubectl get ns/${K8S_NAMESPACE}; do
-      echo "namespace ${K8S_NAMESPACE} not yet deleted. sleeping 10 seconds..."
-      sleep 10
-    done
-    echo "namespace ${K8S_NAMESPACE} successfully deleted."
-    set -e
-  fi
-  if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ]; then
+    # TODO(jlewi): How can we skip GCP project setup? Add a command line argument
+    # to skip it?
     if [ "${PLATFORM}" == "gcp" ]; then
-      if [ -d "${KUBEFLOW_DM_DIR}" ]; then
-        pushd ${KUBEFLOW_DM_DIR}
-        ${DIR}/gke/delete_deployment.sh ${PROJECT} ${DEPLOYMENT_NAME} ${CONFIG_FILE}
-        popd
+      if ${SKIP_INIT_PROJECT}; then
+        echo "skipping project initialization"
+      else
+        echo initializing project
+        gcpInitProject
       fi
     fi
-    removeKsEnv
   fi
+
+  source ${ENV_FILE}
+
+  if [ -z "${COMMAND}" ]; then
+    echo "COMMAND must be provided"
+    usage
+    exit 1
+  fi
+
+  if [ -z "${WHAT}" ]; then
+    echo "WHAT must be provided"
+    usage
+    exit 1
+  fi
+
+  # TODO(ankushagarwal): verify ks version is higher than 0.11.0
+  check_install ks
+  check_install kubectl
+
+  source "${ENV_FILE}"
+
+  if [ "${COMMAND}" == "generate" ]; then
+    if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ]; then
+      if [ "${PLATFORM}" == "gcp" ]; then
+        generateDMConfigs
+        downloadK8sManifests
+      fi
+    fi
+
+    if [ "${WHAT}" == "k8s" ] || [ "${WHAT}" == "all" ]; then
+      createKsApp
+      customizeKsApp
+      customizeKsAppWithDockerImage
+
+      if [ "${PLATFORM}" == "gcp" ]; then
+        gcpGenerateKsApp
+      fi
+
+      if [ "${PLATFORM}" == "minikube" ]; then
+        create_local_fs_mount_spec
+        if ${MOUNT_LOCAL}; then
+          ks param set jupyter disks "local-notebooks"
+          ks param set jupyter notebookUid $(id -u)
+          ks param set jupyter notebookGid $(id -g)
+          ks param set jupyter accessLocalFs true
+        fi
+      fi
+    fi
+  fi
+
+  if [ "${COMMAND}" == "apply" ]; then
+    if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ]; then
+      if [ "${PLATFORM}" == "gcp" ]; then
+        updateDM
+        createSecrets
+      fi
+    fi
+
+    if [ "${WHAT}" == "k8s" ] || [ "${WHAT}" == "all" ]; then
+      ksApply
+
+      if [ "${PLATFORM}" == "gcp" ]; then
+        gcpKsApply
+      fi
+
+      # all components deployed
+      # deploy the application CR
+      pushd ${KUBEFLOW_KS_DIR}
+      ks apply default -c application
+      popd
+    fi
+  fi
+
+  if [ "${COMMAND}" == "delete" ]; then
+    if [ "${WHAT}" == "k8s" ] || [ "${WHAT}" == "all" ]; then
+      # Delete kubeflow namespace - this deletes all the ingress objects
+      # in the namespace which deletes the associated GCP resources
+      set +e
+      kubectl delete ns/${K8S_NAMESPACE}
+      while kubectl get ns/${K8S_NAMESPACE}; do
+        echo "namespace ${K8S_NAMESPACE} not yet deleted. sleeping 10 seconds..."
+        sleep 10
+      done
+      echo "namespace ${K8S_NAMESPACE} successfully deleted."
+      set -e
+    fi
+    if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ]; then
+      if [ "${PLATFORM}" == "gcp" ]; then
+        if [ -d "${KUBEFLOW_DM_DIR}" ]; then
+          pushd ${KUBEFLOW_DM_DIR}
+          ${DIR}/gke/delete_deployment.sh ${PROJECT} ${DEPLOYMENT_NAME} ${CONFIG_FILE}
+          popd
+        fi
+      fi
+      removeKsEnv
+    fi
+  fi
+}
+
+
+# If less than 2 command line options are provided exit early and print usage
+if [[ $# -lt 2 ]]; then
+  usage
+  exit 1
 fi
+
+COMMAND=$1
+WHAT=$2
+shift
+shift
+
+main $*
