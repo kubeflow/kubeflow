@@ -22,7 +22,7 @@ the results
 
 Example invocation
 
-python python -m testing.test_jsonnet --test_files_dirs=/kubeflow/core/tests,/kubeflow/iap/tests,/kubeflow/tensorboard/tests,/kubeflow/examples/tests,/kubeflow/metacontroller/tests,/kubeflow/profiles/tests --artifacts_dir=/tmp/artifacts
+python python -m testing.test_jsonnet --test_files_dirs=/kubeflow/core/tests,/kubeflow/jupyter/tests,/kubeflow/iap/tests,/kubeflow/tensorboard/tests,/kubeflow/examples/tests,/kubeflow/metacontroller/tests,/kubeflow/profiles/tests,/kubeflow/tf-training/tests --artifacts_dir=/tmp/artifacts
 
 """
 

@@ -13,6 +13,12 @@ libraries:
   core:
     version: master
     path: core
+  jupyter:
+    version: master
+    path: jupyter
+  tf-training:
+    version: master
+    path: tf-training
   tf-serving:
     version: master
     path: tf-serving

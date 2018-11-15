@@ -32,7 +32,7 @@ curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.25.0/minik
 chmod +x minikube 
 sudo mv minikube /usr/local/bin/
 
-# We need a large disk for JupyterHub.
+# We need a large disk for Jupyter.
 sudo minikube start --vm-driver=none --disk-size=40g
 
 # Change the permissions because we will copy these files.

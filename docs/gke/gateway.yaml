@@ -5,7 +5,7 @@ metadata:
   namespace: kubeflow
 spec:
   selector:
-    istio: ingressgatway
+    istio: ingressgateway
   servers:
   - port:
       number: 80
