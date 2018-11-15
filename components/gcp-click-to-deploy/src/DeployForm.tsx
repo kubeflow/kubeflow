@@ -460,6 +460,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
   }
 
   private _monitorDeployment(project: string, deploymentName: string) {
+    const dashboardUri = 'https://' + this.state.deploymentName + '.endpoints.' + this.state.project + 'cloud.goog/';
     const monitorInterval = setInterval(() => {
       Gapi.deploymentmanager.get(this.state.project, deploymentName)
         .then(r => {
@@ -471,15 +472,47 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             const readyTime = new Date();
             readyTime.setTime(readyTime.getTime() + (20 * 60 * 1000));
             this._appendLine('Deployment is done, your kubeflow app url should be ready within 20 minutes (by '
-              + readyTime.toLocaleTimeString() + '): https://'
-              + this.state.deploymentName + '.endpoints.' + this.state.project + '.cloud.goog');
+              + readyTime.toLocaleTimeString() + '): ' + dashboardUri);
             clearInterval(monitorInterval);
+            this._redirectToKFDashboard(dashboardUri);
           } else {
             this._appendLine(`Status of ${deploymentName}: ` + r.operation!.status!);
           }
         })
         .catch(err => this._appendLine('deployment failed with error:' + err));
     }, 10000);
+  }
+
+  private _redirectToKFDashboard(dashboardUri: string) {
+    // relying on JupyterHub logo image to be available when the site is ready.
+    // The dashboard URI is hosted at a domain different from the deployer
+    // app. Fetching a GET on the dashboard is blocked by the browser due
+    // to CORS. Therefore we use an img element as a hack which fetches
+    // an image served by the target site, the img load is a simple html
+    // request and not an AJAX request, thus bypassing the CORS in this
+    // case.
+    const imgUri = dashboardUri + 'hub/logo';
+    const startTime = new Date().getTime() / 1000;
+    const img = document.createElement('img');
+    img.src = imgUri + '?rand=' + Math.random();
+    img.id = 'ready_test';
+    img.onload = () => { window.location.href = dashboardUri; };
+    img.onerror = () => {
+      const timeSince = (new Date().getTime() / 1000) - startTime;
+      if (timeSince > 1500) {
+        this._appendLine('Could not redirect to Kubeflow Dashboard at: ' + dashboardUri);
+      } else {
+        const ready_test = document.getElementById('ready_test') as HTMLImageElement;
+        if (ready_test != null) {
+          setTimeout(() => {
+            ready_test.src = imgUri + '?rand=' + Math.random();
+            this._appendLine('Waiting for the IAP setup to get ready...');
+          }, 10000);
+        }
+      }
+    };
+    img.style.display = 'none';
+    document.body.appendChild(img);
   }
 
   private _handleChange(event: Event) {
