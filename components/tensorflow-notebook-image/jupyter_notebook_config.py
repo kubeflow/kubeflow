@@ -24,6 +24,7 @@ c = get_config()
 c.NotebookApp.ip = '*'
 c.NotebookApp.port = 8888
 c.NotebookApp.open_browser = False
+c.NotebookApp.allow_origin_pat = ".*-dot-devshell.appspot.com$"
 
 # Generate a self-signed certificate
 if 'GEN_CERT' in os.environ:
