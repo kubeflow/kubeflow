@@ -281,12 +281,13 @@
     ],
     workerConfigMap: [
       {
-        apiVersion: v1
-        kind: ConfigMap
-        metadata:
-          name: "worker-template"
-          namespace: namespace
-        data:
+        apiVersion: "v1",
+        kind: "ConfigMap",
+        metadata: {
+          name: "worker-template",
+          namespace: namespace,
+        },
+        data: {
           "defaultWorkerTemplate.yaml": |||
             apiVersion: batch/v1
             namespace: %(ns)s
@@ -301,7 +302,7 @@
                     image: alpine
                   restartPolicy: Never
           ||| % { ns: namespace },
-          "cpuWorkerTemplate.yaml" : |||
+          "cpuWorkerTemplate.yaml": |||
             apiVersion: batch/v1
             kind: Job
             metadata:
@@ -324,7 +325,7 @@
                     {{- end}}
                   restartPolicy: Never
           ||| % { ns: namespace },
-          "gpuWorkerTemplate.yaml" : |||
+          "gpuWorkerTemplate.yaml": |||
             apiVersion: batch/v1
             kind: Job
             metadata:

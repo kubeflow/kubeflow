@@ -8,6 +8,10 @@
     $.parts(params, namespace).clusterRole,
     $.parts(params, namespace).clusterRoleBinding,
     $.parts(params, namespace).serviceAccount,
+    $.parts(params, namespace).coreRestService,
+    $.parts(params, namespace).coreRestDeployment,
+    $.parts(params, namespace).uiService,
+    $.parts(params, namespace).uiDeployment,
   ],
 
   parts(params, namespace):: {
@@ -332,7 +336,7 @@
       },
     },  // uiService
 
-    uiDeployment: {
+    coreRestDeployment: {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -372,7 +376,7 @@
           },
         },
       },
-    },  // uiDeployment
+    },  // coreRestDeployment
 
 
     uiService: {
@@ -443,7 +447,5 @@
         },
       },
     },  // uiDeployment
-
-
   },  //parts
 }
