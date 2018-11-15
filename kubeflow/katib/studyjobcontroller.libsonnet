@@ -113,7 +113,7 @@
                       serviceAccountName: metrics-collector
                       containers:
                       - name: {{.WorkerID}}
-                        image: katib/metrics-collector
+                        image: %(mcimage)s
                         args:
                         - "./metricscollector"
                         - "-s"
@@ -125,7 +125,7 @@
                         - "-n"
                         - "{{.NameSpace}}"
                       restartPolicy: Never
-          |||,
+          ||| % { mcimage: metricsCollectorImage },
         },
       },
     ],
@@ -281,13 +281,12 @@
     ],
     workerConfigMap: [
       {
-        apiVersion: "v1",
-        kind: "ConfigMap",
-        metadata: {
-          name: "worker-template",
-          namespace: namespace,
-        },
-        data: {
+        apiVersion: v1
+        kind: ConfigMap
+        metadata:
+          name: "worker-template"
+          namespace: namespace
+        data:
           "defaultWorkerTemplate.yaml": |||
             apiVersion: batch/v1
             namespace: %(ns)s
@@ -300,6 +299,55 @@
                   containers:
                   - name: {{.WorkerID}}
                     image: alpine
+                  restartPolicy: Never
+          ||| % { ns: namespace },
+          "cpuWorkerTemplate.yaml" : |||
+            apiVersion: batch/v1
+            kind: Job
+            metadata:
+              name: {{.WorkerID}}
+              namespace: %(ns)s
+            spec:
+              template:
+                spec:
+                  containers:
+                  - name: {{.WorkerID}}
+                    image: katib/mxnet-mnist-example
+                    command:
+                    - "python"
+                    - "/mxnet/example/image-classification/train_mnist.py"
+                    - "--batch-size=64"
+                    {{- with .HyperParameters}}
+                    {{- range .}}
+                    - "{{.Name}}={{.Value}}"
+                    {{- end}}
+                    {{- end}}
+                  restartPolicy: Never
+          ||| % { ns: namespace },
+          "gpuWorkerTemplate.yaml" : |||
+            apiVersion: batch/v1
+            kind: Job
+            metadata:
+              name: {{.WorkerID}}
+              namespace: %(ns)s
+            spec:
+              template:
+                spec:
+                  containers:
+                  - name: {{.WorkerID}}
+                    image: katib/mxnet-mnist-example:gpu
+                    command:
+                    - "python"
+                    - "/mxnet/example/image-classification/train_mnist.py"
+                    - "--batch-size=64"
+                    {{- with .HyperParameters}}
+                    {{- range .}}
+                    - "{{.Name}}={{.Value}}"
+                    {{- end}}
+                    {{- end}}
+                    resources:
+                      limits:
+                        nvidia.com/gpu: 1
                   restartPolicy: Never
           ||| % { ns: namespace },
         },

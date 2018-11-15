@@ -305,5 +305,145 @@
       },
     },  // dbService
 
+    coreRestService: {
+      apiVersion: "v1",
+      kind: "Service",
+      metadata: {
+        labels: {
+          app: "vizier",
+          component: "core-rest",
+        },
+        name: "vizier-core-rest",
+        namespace: namespace,
+      },
+      spec: {
+        ports: [
+          {
+            name: "api",
+            port: 80,
+            protocol: "TCP",
+          },
+        ],
+        selector: {
+          app: "vizier",
+          component: "core-rest",
+        },
+        type: "ClusterIP",
+      },
+    },  // uiService
+
+    uiDeployment: {
+      apiVersion: "extensions/v1beta1",
+      kind: "Deployment",
+      metadata: {
+        labels: {
+          app: "vizier",
+          component: "core-rest",
+        },
+        name: "vizier-core-rest",
+        namespace: namespace,
+      },
+      spec: {
+        replicas: 1,
+        template: {
+          metadata: {
+            labels: {
+              app: "vizier",
+              component: "core-rest",
+            },
+            name: "vizier-core-rest",
+          },
+          spec: {
+            containers: [
+              {
+                args: [
+                  "./vizier-manager-rest",
+                ],
+                image: params.vizierCoreRestImage,
+                name: "vizier-core-rest",
+                ports: [
+                  {
+                    containerPort: 80,
+                    name: "api",
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      },
+    },  // uiDeployment
+
+
+    uiService: {
+      apiVersion: "v1",
+      kind: "Service",
+      metadata: {
+        labels: {
+          app: "vizier",
+          component: "ui",
+        },
+        name: "katib-ui",
+        namespace: namespace,
+      },
+      spec: {
+        ports: [
+          {
+            name: "ui",
+            port: 80,
+            protocol: "TCP",
+          },
+        ],
+        selector: {
+          app: "vizier",
+          component: "ui",
+        },
+        type: "ClusterIP",
+      },
+    },  // uiService
+
+    uiDeployment: {
+      apiVersion: "extensions/v1beta1",
+      kind: "Deployment",
+      metadata: {
+        labels: {
+          app: "vizier",
+          component: "ui",
+        },
+        name: "katib-ui",
+        namespace: namespace,
+      },
+      spec: {
+        replicas: 1,
+        template: {
+          metadata: {
+            labels: {
+              app: "vizier",
+              component: "ui",
+            },
+            name: "katib-ui",
+          },
+          spec: {
+            containers: [
+              {
+                args: [
+                  "./katib-ui",
+                ],
+                image: params.katibUIImage,
+                name: "katib-ui",
+                ports: [
+                  {
+                    containerPort: 80,
+                    name: "ui",
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      },
+    },  // uiDeployment
+
+
   },  //parts
 }
