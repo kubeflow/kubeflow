@@ -92,6 +92,10 @@ storage_class = None
 if os.environ.get('STORAGE_CLASS') != 'null':
     storage_class = os.environ.get('STORAGE_CLASS')
 
+rok_secret_name = ''
+if os.environ.get('ROK_SECRET_NAME') != 'null':
+    rok_secret_name = os.environ.get('ROK_SECRET_NAME')
+
 # Set both service_account and singleuser_service_account because
 # singleuser_service_account has been deprecated in a future release
 c.KubeSpawner.service_account = 'jupyter-notebook'
@@ -123,4 +127,5 @@ if gcp_secret_name:
 c.KubeSpawner.extra_spawner_config = {
     'gcp_secret_name': gcp_secret_name,
     'storage_class': storage_class,
+    'rok_secret_name': rok_secret_name,
 }

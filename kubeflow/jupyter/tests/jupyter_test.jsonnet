@@ -13,6 +13,7 @@ local params = {
   accessLocalFs: "false",
   ui: "default",
   storageClass: "null",
+  rokSecretName: "secret-rok-{username}",
 };
 local env = {
   namespace: "foo",
@@ -110,6 +111,10 @@ std.assertEqual(
                   value: "null",
                 },
                 {
+                  name: "ROK_SECRET_NAME",
+                  value: "secret-rok-{username}",
+                },
+                {
                   name: "GCP_SECRET_NAME",
                   value: "user-gcp-sa",
                 },
@@ -182,6 +187,7 @@ std.assertEqual(
         ],
         resources: [
           "events",
+          "secrets",
         ],
         verbs: [
           "get",
