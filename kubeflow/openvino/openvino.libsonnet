@@ -49,7 +49,7 @@
         "--model_name",
         "resnet",
         "--port",
-        params.targetPort,
+        std.toString(params.targetPort),
       ]).
         withPorts(container.portsType.new(params.targetPort)).
         withCommand(["/ie-serving-py/start_server.sh"]) +

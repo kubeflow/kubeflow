@@ -79,7 +79,7 @@ std.assertEqual(
                      "--model_name",
                      "resnet",
                      "--port",
-                     80
+                     "80"
                   ],
                   "command": [
                      "/ie-serving-py/start_server.sh"
