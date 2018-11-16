@@ -151,10 +151,6 @@
                 ],
                 env: std.prune([
                   {
-                    name: "NOTEBOOK_PVC_MOUNT",
-                    value: params.notebookPVCMount,
-                  },
-                  {
                     name: "KF_AUTHENTICATOR",
                     value: params.jupyterHubAuthenticator,
                   },
@@ -163,8 +159,8 @@
                     value: params.useJupyterLabAsDefault,
                   },
                   {
-                    name: "KF_PVC_LIST",
-                    value: params.disks,
+                    name: "STORAGE_CLASS",
+                    value: params.storageClass,
                   },
                   if params.platform == "gke" then
                     {
