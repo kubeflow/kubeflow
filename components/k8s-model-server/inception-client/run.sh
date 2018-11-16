@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Copyright 2018 The Kubeflow Authors All rights reserved.
 #
@@ -17,11 +17,11 @@
 SERVER=$1
 PORT=$2
 
-if [ -z $SERVER ] ; then
+if [ -z $SERVER ]; then
   SERVER=$INCEPTION_SERVICE_HOST
 fi
 
-if [ -z $PORT ] ; then
+if [ -z $PORT ]; then
   PORT=$INCEPTION_SERVICE_PORT
 fi
 
