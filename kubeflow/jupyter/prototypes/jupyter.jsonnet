@@ -14,6 +14,7 @@
 // @optionalParam accessLocalFs string false Set true if mounting a local fs directory that needs to be accessed by Jupyter Notebook in Minikube.
 // @optionalParam ui string default The JupyterHub Spawner User Interface
 // @optionalParam storageClass string null The storageClass to use for PVC management
+// @optionalParam rokSecretName string secret-rok-{username} The name of the secret containing user's credentials for Arrikto Rok
 
 local jupyter = import "kubeflow/jupyter/jupyter.libsonnet";
 local instance = jupyter.new(env, params);

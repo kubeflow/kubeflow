@@ -51,3 +51,8 @@ input[readonly] {
 select[readonly] {
   cursor: not-allowed;
 }
+
+.col-sm-3 {
+  padding-left: 10px;
+  padding-right: 10px;
+}

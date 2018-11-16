@@ -123,10 +123,10 @@
           </div>
           <div class="panel-body" id="workspace_volume">
               <div class="col-sm-2" style="width: 14%"><label>Type</label></div>
-              <div class="col-sm-3" style="width: 22%"><label>Name</label></div>
+              <div class="col-sm-3" style="width: 20%"><label>Name</label></div>
               <div class="col-sm-2" style="width: 12%"><label>Size (Gi)</label></div>
               <div class="col-sm-3" style="width: 29%"><label>Mount Path</label></div>
-              <div class="col-sm-2" style="width: 14%"><label>Access Mode</label></div>
+              <div class="col-sm-3" style="width: 19%"><label>Access Mode</label></div>
               <div class="col-sm-*">
               <div class="col-sm-2" style="width: 14%">
                 <select class="form-control" name="ws_type" id="ws_type">
@@ -134,7 +134,7 @@
                   <option>Existing</option>
                 </select>
               </div>
-              <div class="col-sm-3" style="width: 22%">
+              <div class="col-sm-3" style="width: 20%">
                 <input class="form-control" name="ws_name" id="ws_name"
                        list="suggest_pvcs_disabled" required>
                 </input>
@@ -147,11 +147,11 @@
               <div class="col-sm-3" style="width: 29%">
                 <input class="form-control" id="ws_mount_path" name="ws_mount_path" required></input>
               </div>
-              <div class="col-sm-2" style="width: 14%">
+              <div class="col-sm-3" style="width: 19%">
                 <select class="form-control" id="ws_access_modes" name="ws_access_modes" required>
-                  <option value="ReadWriteOnce">RWO</option>
-                  <option value="ReadWriteMany">RWX</option>
-                  <option value="ReadOnlyMany">ROX</option>
+                  <option value="ReadWriteOnce">ReadWriteOnce</option>
+                  <option value="ReadWriteMany">ReadWriteMany</option>
+                  <option value="ReadOnlyMany">ReadOnlyMany</option>
                 </select>
               </div>
             </div>
@@ -160,10 +160,10 @@
             Configure the Volume to be mounted as your personal Workspace.</br>
             For example, to create an empty Workspace:
             <span><code>New</code></span>
-            <span><code>workspace</code></span>,
+            <span><code>{{ username }}-workspace</code></span>,
             <span><code>10</code></span>,
             <span><code>/home/jovyan</code></span>,
-            <span><code>RWO</code></span>
+            <span><code>ReadWriteOnce</code></span>
           </p>
         </div>
       {% endblock %}
@@ -177,10 +177,10 @@
           </div>
           <div class="panel-body">
             <div class="col-sm-2" style="width: 14%"><label>Type</label></div>
-            <div class="col-sm-3" style="width: 22%"><label>Name</label></div>
+            <div class="col-sm-3" style="width: 20%"><label>Name</label></div>
             <div class="col-sm-2" style="width: 12%"><label>Size (Gi)</label></div>
             <div class="col-sm-3" style="width: 29%"><label>Mount Path</label> </div>
-            <div class="col-sm-2" style="width: 14%"><label>Access Mode</label></div>
+            <div class="col-sm-3" style="width: 19%"><label>Access Mode</label></div>
             <div class="col-sm-*" id="data_volumes"></div>
             <div class="col-sm-2">
               <button id="add_volume" class="btn btn-success btn-sm" type="button" onclick="addVolume();">
@@ -192,10 +192,10 @@
             Configure the Volumes to be mounted as your Datasets.</br>
             For example, to create an empty Data Volume:
             <span><code>New</code></span>,
-            <span><code>volume-1</code></span>,
+            <span><code>{{ username }}-volume-1</code></span>,
             <span><code>5</code></span>,
-            <span><code>/home/jovyan/volume-1</code></span>,
-            <span><code>RWO</code></span>
+            <span><code>/home/jovyan/{{ username }}-volume-1</code></span>,
+            <span><code>ReadWriteOnce</code></span>
           </p>
         </div>
       {% endblock %}

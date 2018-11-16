@@ -1,0 +1,194 @@
+{% extends "default_template.html" %}
+
+{% block css %}
+  {{ super() }}
+  <style type="text/css">
+    {% include "default_style.css" %}
+  </style>
+{% endblock %}
+
+{% block javascript %}
+  <script type="text/javascript">
+    var formDefaults = {{ form_defaults|tojson }};
+    var rok_token = {{ rok_token|tojson }};
+    var username = {{ username|tojson }};
+    var namespace = {{ namespace|tojson }};
+    {% include "script.js" %}
+  </script>
+{% endblock %}
+
+{% block existing_pvcs %}
+{% endblock %}
+
+{% block error_message %}
+  {{ super() }}
+  {% if rok_token|length == 0 %}
+    <div style="display: inline-block; text-align: left; padding: 10px;">
+      <h3>
+        The Secret <code>secret-rok-{{username}}</code> could not be found in the
+        Namespace <code>{{ namespace }}</code>
+      </h3>
+      <h4>Please follow the steps below to address this issue:</h4>
+      <p class="help-block">
+        1. Log in to Rok</br>
+        2. Go to Settings -> API access</br>
+        3. From the dropdown box choose "Kubernetes secret", and download your secret to
+        your computer as a local file, e.g., <code>secret-rok-{{username}}.yaml</code></br>
+        4. Create a new secret on Kubernetes: <code>kubectl -n {{ namespace }} create -f secret-rok-{{username}}.yaml</code></br>
+        5. Verify that your new secret has been created: <code>kubectl -n {{ namespace }} get secret secret-rok-{{username}}</code></br>
+        6. Refresh this page
+      </p>
+    </div>
+  {% endif %}
+{% endblock %}
+
+{% block header %}
+  {% if rok_token|length > 0 and form_defaults %}
+    <div class="panel-info">
+      <div class="panel-heading">
+        Provide a Rok Lab URL to autofill the form and clone a whole Jupyter Lab environment.</br>
+      </div>
+    </div>
+
+    <!-- Rok Lab URL -->
+    <div class="panel panel-primary">
+      <div class="panel-heading">
+        <i class="fas fa-link"></i>
+        <label>Rok Jupyter Lab URL</label>
+      </div>
+      <div class="panel-body" style="padding: 10px;">
+        <div class="col-sm-*">
+          <input type="url" class="form-control col-sm-10" id='rokLabURL' style="width: 90%"
+                 name='rokLabURL' placeholder='Your Rok Jupyter Lab URL goes here'>
+          </input>
+          <div class="col-sm-1" style="width: 10%;">
+            <button type="button" id="autofill" class="btn btn-primary">Autofill</button>
+          </div>
+          <div id="rok_lab_url_error_text" hidden class="col-sm-10" style="padding-left: 0px;">
+            <span class="help-block alert-danger" style="padding: 10px; display:inline-block;">
+              Could not retrieve Lab. Please retry with a valid Rok Jupyter Lab URL
+              <i class="fas fa-times" style="margin-left: 5px;"></i>
+            </span>
+          </div>
+          <div id="rok_lab_url_success_text" hidden class="col-sm-10" style="padding-left: 0px;">
+            <span class="help-block alert-success" style="padding: 10px; display:inline-block;">
+              Successfully retrieved details from Rok Jupyter Lab URL
+              <i class="fas fa-check" style="margin-left: 8px;"></i>
+            </span>
+          </div>
+        </div>
+      </div>
+      <p class="text-muted" style="padding: 10px;">
+        Load an existing Jupyter Lab by providing a valid Rok URL.
+      </p>
+    </div>
+    {{ super() }}
+  {% endif %}
+{% endblock %}
+
+{% block image %}
+  {% if rok_token|length > 0 and form_defaults is not none  %}
+    {{ super() }}
+  {% endif %}
+{% endblock %}
+
+{% block toggle_advanced_button %}
+  {% if rok_token|length > 0 and form_defaults is not none  %}
+    {{ super() }}
+  {% endif %}
+{% endblock %}
+
+{% block advanced_fields %}
+  {% if rok_token|length > 0 and form_defaults is not none  %}
+    {{ super() }}
+  {% endif %}
+{% endblock %}
+
+{% block workspaceVolume %}
+  {% if rok_token|length > 0 and form_defaults is not none  %}
+    <div class="panel panel-primary">
+      <div class="panel-heading">
+        <i class="fas fa-laptop-code" style="padding: 0px 2px;"></i>
+        <label>Workspace Volume</label>
+      </div>
+      <div class="panel-body" id="workspace_volume">
+          <div class="col-sm-2" style="width: 14%"><label>Type</label></div>
+          <div class="col-sm-2" style="width: 28%"><label>Rok URL</label></div>
+          <div class="col-sm-3" style="width: 19%"><label>Name</label></div>
+          <div class="col-sm-2" style="width: 10%"><label>Size (Gi)</label></div>
+          <div class="col-sm-3" style="width: 24%"><label>Mount Path</label></div>
+          <div class="col-sm-*">
+          <div class="col-sm-2" style="width: 14%">
+            <select class="form-control" name="ws_type" id="ws_type">
+              <option>New</option>
+              <option>Existing</option>
+            </select>
+          </div>
+          <div class="col-sm-2" style="width: 28%">
+            <input class="form-control" name="ws_rok_url" id="ws_rok_url"
+                   placeholder='Rok Volume URL'>
+            </input>
+          </div>
+          <div class="col-sm-3" style="width: 19%">
+            <input class="form-control" name="ws_name" id="ws_name"
+                   placeholder="{{username}}-workspace"></input>
+          </div>
+          <div class="col-sm-2" style="width: 10%">
+            <input class="form-control" name="ws_size" id="ws_size" placeholder='10'
+                   type="number" step="0.5" min="0">
+            </input>
+          </div>
+          <div class="col-sm-3" style="width: 24%">
+            <input class="form-control" id="ws_mount_path" name="ws_mount_path"></input>
+          </div>
+        </div>
+      </div>
+      <p class="text-muted" style="padding: 10px;">
+        Configure the Volume to be mounted as your personal Workspace.</br>
+        For example, to create an empty Workspace:
+        <span><code>New</code></span>,
+        <span><code>workspace</code></span>,
+        <span><code>10</code></span>,
+        <span><code>/home/jovyan</code></span>
+      </p>
+    </div>
+  {% endif %}
+{% endblock %}
+
+{% block dataVolumes %}
+  {% if rok_token|length > 0 and form_defaults is not none  %}
+    <div class="panel panel-primary">
+      <div class="panel-heading">
+        <i class="far fa-hdd" style="padding: 0px 2px;"></i>
+        <label>Data Volumes</label>
+      </div>
+      <div class="panel-body">
+        <div class="col-sm-2" style="width: 14%"><label>Type</label></div>
+        <div class="col-sm-2" style="width: 28%"><label>Rok URL</label></div>
+        <div class="col-sm-3" style="width: 19%"><label>Name</label></div>
+        <div class="col-sm-2" style="width: 10%"><label>Size (Gi)</label></div>
+        <div class="col-sm-3" style="width: 24%"><label>Mount Path</label></div>
+        <div class="col-sm-*" id="data_volumes"></div>
+        <div class="col-sm-2">
+          <button id="add_volume" class="btn btn-success btn-sm" type="button" onclick="addVolume();">
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>
+      </div>
+      <p class="text-muted" style="padding: 10px;">
+        Configure the Volumes to be mounted as your Datasets.</br>
+        For example, to create an empty Data Volume:
+        <span><code>New</code></span>,
+        <span><code>volume-1</code></span>,
+        <span><code>5</code></span>,
+        <span><code>/home/jovyan/volume-1</code></span>
+      </p>
+    </div>
+  {% endif %}
+{% endblock %}
+
+{% block footer %}
+  {% if rok_token|length > 0 and form_defaults is not none %}
+    {{ super() }}
+  {% endif %}
+{% endblock %}
