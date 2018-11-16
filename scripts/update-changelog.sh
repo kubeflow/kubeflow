@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Copyright 2018 The Kubeflow Authors.
 #
@@ -29,16 +29,15 @@ SCRIPT_ROOT=$(dirname ${BASH_SOURCE})/../..
 
 cd ${SCRIPT_ROOT}
 
-if [ "${GITHUB_TOKEN}" == "NO" ]
-then
-    echo "Environment variable GITHUB_TOKEN is not set."
-    exit 1
+if [ "${GITHUB_TOKEN}" == "NO" ]; then
+  echo "Environment variable GITHUB_TOKEN is not set."
+  exit 1
 fi
 
 github_changelog_generator -t ${GITHUB_TOKEN} -u kubeflow -p kubeflow \
-	--exclude-labels community/discussion,cmmunity/question,duplicate,question,invalid,wontfix \
-	--bug-labels kind/bug,problems/bug \
-	--enhancement-labels improvement/optimization,kind/enhancement,improvement/enhancement,addition/feature,kind/feature \
-	--enhancement-label "**Features and improvements:**"
+  --exclude-labels community/discussion,cmmunity/question,duplicate,question,invalid,wontfix \
+  --bug-labels kind/bug,problems/bug \
+  --enhancement-labels improvement/optimization,kind/enhancement,improvement/enhancement,addition/feature,kind/feature \
+  --enhancement-label "**Features and improvements:**"
 
 cd - > /dev/null

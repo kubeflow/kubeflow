@@ -154,7 +154,6 @@ ksApply() {
   set -x
 }
 
-
 parseArgs() {
   # Parse all command line options
   while [[ $# -gt 0 ]]; do
@@ -188,7 +187,7 @@ parseArgs() {
 
   # Check for gcp specific parameters to be set before proceeding
   if [ "${PLATFORM}" == "gcp" ]; then
-     # GCP Project
+    # GCP Project
     if [ -z "${PROJECT}" ]; then
       PROJECT=$(gcloud config get-value project 2>/dev/null)
       if [ -z "${PROJECT}" ]; then
