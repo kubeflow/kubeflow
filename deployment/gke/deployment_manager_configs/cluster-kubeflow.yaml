@@ -53,12 +53,15 @@ resources:
     gpu-pool-min-nodes: 0
     gpu-pool-max-nodes: 0
     gpu-type: nvidia-tesla-k80
-    # Autoprovisioning parameters (only supported in gkeApiVersion v1beta1)
+    # Autoprovisioning parameters (only supported in gkeApiVersion v1beta1).
+    # This is configured by the gkeApiVersion setting.
     autoprovisioning-config:
       enabled: true
       max-cpu: 20
       max-memory: 200
-      max-nvidia-tesla-k80: 8
+      max-accelerator:
+        - type: nvidia-tesla-k80
+          count: 8
     # Whether to enable TPUs
     enable_tpu: false
     securityConfig:

@@ -94,8 +94,10 @@ resources:
           maximum: {{ properties['autoprovisioning-config']['max-cpu'] }}
         - resourceType: 'memory'
           maximum: {{ properties['autoprovisioning-config']['max-memory'] }}
-        - resourceType: 'nvidia-tesla-k80'
-          maximum: {{ properties['autoprovisioning-config']['max-nvidia-tesla-k80'] }}
+          {% for accelerator in properties['autoprovisioning-config']['max-accelerator'] %}
+        - resourceType: {{ accelerator.type }}
+          maximum: {{ accelerator.count }}
+          {% endfor %}
       {% endif %}
       nodePools:
       - name: default-pool
