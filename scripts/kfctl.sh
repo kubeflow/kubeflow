@@ -16,6 +16,7 @@ WHAT=$2
 ENV_FILE="env.sh"
 SKIP_INIT_PROJECT=false
 CLUSTER_VERSION="1.10"
+GKE_API_VERSION="v1"
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 source "${DIR}/util.sh"
@@ -62,6 +63,10 @@ createEnv() {
           --email)
             shift
             EMAIL=$1
+            ;;
+          --gkeApiVersion)
+            shift
+            GKE_API_VERSION=$1
             ;;
           --skipInitProject)
             SKIP_INIT_PROJECT=true
@@ -137,6 +142,8 @@ createEnv() {
       # https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters
       echo "Setting cluster version to ${CLUSTER_VERSION}"
       echo CLUSTER_VERSION=${CLUSTER_VERSION} >> ${ENV_FILE}
+
+      echo GKE_API_VERSION=${GKE_API_VERSION} >> ${ENV_FILE}
       ;;
     *)
       echo KUBEFLOW_PLATFORM=null >> ${ENV_FILE}

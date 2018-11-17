@@ -34,7 +34,7 @@ resources:
     cluster-version: "1.11"
     # Set this to v1beta1 to use beta features such as private clusterss
     # and the Kubernetes stackdriver agents.
-    gkeApiVersion: v1
+    gkeApiVersion: SET_GKE_API_VERSION
     # An arbitrary string appending to name of nodepools
     # bump this if you want to modify the node pools.
     # This will cause existing node pools to be deleted and new ones to be created.

@@ -1,16 +1,6 @@
 # This file configures the workflows to trigger in our Prow jobs.
 # see kubeflow/testing/py/run_e2e_workflow.py
 workflows:
-  # deploy app test runs tests on gke.
-  - app_dir: kubeflow/kubeflow/testing/workflows
-    component: click_deploy_test
-    name: deployapp
-    job_types:
-    - periodic
-    include_dirs:
-    - bootstrap/*
-    - kubeflow/*
-    - testing/*
   # kfctl test runs tests on gke.
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: kfctl_test
@@ -26,92 +16,20 @@ workflows:
       - deployment/*
     params:
       platform: gke
-  # Run unittests
-  # TODO(jlewi): Need to add step to run go and python unittests
+      gkeApiVersion: v1
   - app_dir: kubeflow/kubeflow/testing/workflows
-    component: unit_tests
-    name: unittests    
-  # TODO(jlewi): We should be running the minikube workflow
-  # on presubmit when the minikube E2E test itself changes
-  # so we verify the test is working before submitting
-  # changes to it. But right now we can't match a regex or
-  # glob.
-  # see: https://github.com/kubeflow/testing/issues/187
-  # see: https://github.com/kubeflow/kubeflow/issues/1350
-  #   
-  # Run tests on minikube
-  - app_dir: kubeflow/kubeflow/testing/workflows
-    component: workflows
-    name: kubeflow-e2e-minikube
-    job_types:
-      - presubmit
-      - postsubmit
-      - periodic
-    params:
-      platform: minikube
-    include_dirs:
-      # Run on presubmit if any files used by minikube change
-      - kubeflow/core/*
-      - kubeflow/pytorch-job/*
-      - testing/deploy_kubeflow.py
-      - testing/workflows/components/workflows.jsonnet
-      - testing/workflows/components/workflows.libsonnet
-      - testing/install_minikube.sh
-  - app_dir: kubeflow/kubeflow/testing/workflows
-    component: tfserving
-    name: tf-serving
+    component: kfctl_test
+    name: kfctl-beta
     job_types:
       - presubmit
       - postsubmit
       - periodic
     include_dirs:
-      - kubeflow/tf-serving/*
-      - components/k8s-model-server/*
+      - scripts/*
+      - kubeflow/*
       - testing/*
+      - deployment/*
+    params:
+      platform: gke
+      gkeApiVersion: v1beta1
 
-  # Image Auto Release workflows.
-  # The workflows below are related to auto building our Docker images.
-  # We have separate pre/postsubmit jobs because we want to use different
-  # registries
-  - app_dir: kubeflow/kubeflow/releasing/releaser
-    component: centraldashboard
-    name: dashboard-release
-    job_types:
-      - presubmit
-    params:
-      registry: "gcr.io/kubeflow-ci"
-    include_dirs:
-      - components/centraldashboard/*
-      - releasing/releaser/components/centraldashboard.jsonnet
-  # The postsubmit run publishes the docker images to gcr.io/kubeflow-images-public
-  - app_dir: kubeflow/kubeflow/releasing/releaser
-    component: centraldashboard
-    name: dashboard-release
-    job_types:
-      - postsubmit
-    params:
-      registry: "gcr.io/kubeflow-images-public"
-    include_dirs:
-      - components/centraldashboard/*
-      - releasing/releaser/components/centraldashboard.jsonnet
-  - app_dir: kubeflow/kubeflow/components/tensorflow-notebook-image/releaser
-    component: workflows
-    name: tf-notebook-release
-    job_types:
-      - presubmit
-    params:
-      registry: "gcr.io/kubeflow-ci"
-      step_image: "gcr.io/kubeflow-ci/test-worker:v20181017-bfeaaf5-dirty-4adcd0"
-    include_dirs:
-      - components/tensorflow-notebook-image/*
-  # The postsubmit run publishes the docker images to gcr.io/kubeflow-images-public
-  - app_dir: kubeflow/kubeflow/components/tensorflow-notebook-image/releaser
-    component: workflows
-    name: tf-notebook-release
-    job_types:
-      - postsubmit
-    params:
-      registry: "gcr.io/kubeflow-images-public"
-      step_image: "gcr.io/kubeflow-ci/test-worker:v20181017-bfeaaf5-dirty-4adcd0"
-    include_dirs:
-      - components/tensorflow-notebook-image/*
