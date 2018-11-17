@@ -79,10 +79,15 @@ fi
 
 declare -r BRANCH="$1"
 shift 1
-declare -r PULLS=( "$@" )
+declare -r PULLS=("$@")
 
-function join { local IFS="$1"; shift; echo "$*"; }
-declare -r PULLDASH=$(join - "${PULLS[@]/#/#}") # Generates something like "#12345-#56789"
+join() {
+  local IFS="$1"
+  shift
+  echo "$*"
+}
+
+declare -r PULLDASH=$(join - "${PULLS[@]/#/#}")   # Generates something like "#12345-#56789"
 declare -r PULLSUBJ=$(join " " "${PULLS[@]/#/#}") # Generates something like "#12345 #56789"
 
 echo "+++ Updating remotes..."
@@ -102,7 +107,8 @@ echo "+++ Creating local branch ${NEWBRANCHUNIQ}"
 cleanbranch=""
 prtext=""
 gitamcleanup=false
-function return_to_kansas {
+
+return_to_kansas() {
   if [[ "${gitamcleanup}" == "true" ]]; then
     echo
     echo "+++ Aborting in-progress git am."
@@ -122,10 +128,12 @@ function return_to_kansas {
     fi
   fi
 }
+
 trap return_to_kansas EXIT
 
 SUBJECTS=()
-function make-a-pr() {
+
+make-a-pr() {
   local rel="$(basename "${BRANCH}")"
   echo
   echo "+++ Creating a pull request on GitHub at ${GITHUB_USER}:${NEWBRANCH}"
@@ -142,7 +150,7 @@ Cherry pick of ${PULLSUBJ} on ${rel}.
 ${numandtitle}
 EOF
 
-hub pull-request -F "${prtext}" -h "${GITHUB_USER}:${NEWBRANCH}" -b "${MAIN_REPO_ORG}:${rel}"
+  hub pull-request -F "${prtext}" -h "${GITHUB_USER}:${NEWBRANCH}" -b "${MAIN_REPO_ORG}:${rel}"
 }
 
 git checkout -b "${NEWBRANCHUNIQ}" "${BRANCH}"
@@ -159,8 +167,8 @@ for pull in "${PULLS[@]}"; do
   echo
   git am -3 "/tmp/${pull}.patch" || {
     conflicts=false
-    while unmerged=$(git status --porcelain | grep ^U) && [[ -n ${unmerged} ]] \
-      || [[ -e "${REBASEMAGIC}" ]]; do
+    while unmerged=$(git status --porcelain | grep ^U) && [[ -n ${unmerged} ]] ||
+      [[ -e "${REBASEMAGIC}" ]]; do
       conflicts=true # <-- We should have detected conflicts once
       echo
       echo "+++ Conflicts detected:"

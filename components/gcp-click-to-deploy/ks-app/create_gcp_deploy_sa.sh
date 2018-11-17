@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Creates a service account for running the GCP deploy app.
 # We need a service account to work with external DNS.
@@ -39,15 +39,14 @@ gcloud --project=${PROJECT} --quiet iam service-accounts create ${NAME}
 declare -a roles=("dns.admin")
 
 # Add policy bindings
-for ROLE in "${roles[@]}"
-do   
-   gcloud projects add-iam-policy-binding ${DNS_PROJECT} \
-     --member serviceAccount:${EMAIL} \
-     --role roles/${ROLE}
+for ROLE in "${roles[@]}"; do
+  gcloud projects add-iam-policy-binding ${DNS_PROJECT} \
+    --member serviceAccount:${EMAIL} \
+    --role roles/${ROLE}
 done
 
 # Get a new service account key
-SECRET_FILE=~/tmp/${EMAIL}.json 
+SECRET_FILE=~/tmp/${EMAIL}.json
 rm -f ~${SECRET_FILE}
 gcloud --project=${PROJECT} iam service-accounts keys create ${SECRET_FILE} --iam-account ${EMAIL}
 
