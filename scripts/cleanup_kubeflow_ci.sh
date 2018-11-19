@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # This script cleans up ingress related compute engine resources like backend-services,
 # forwarding rules, health-checks, etc. from kubeflow-ci project which
 # do not belong to the kubeflow-testing cluster
@@ -11,12 +11,12 @@ PROJECT="kubeflow-ci"
 # They use a common suffix for GCP resources
 KUBEFLOW_TESTING_ID=c3cb19bff97cde34
 
-function cleanup() {
-  gcloud compute ${1} list --project=${PROJECT} \
-  | grep -v ${KUBEFLOW_TESTING_ID} \
-  | awk '{print $1}' \
-  | tail -n +2 \
-  | xargs gcloud compute ${1} delete ${2} --quiet --project=${PROJECT}
+cleanup() {
+  gcloud compute ${1} list --project=${PROJECT} |
+    grep -v ${KUBEFLOW_TESTING_ID} |
+    awk '{print $1}' |
+    tail -n +2 |
+    xargs gcloud compute ${1} delete ${2} --quiet --project=${PROJECT}
 }
 
 cleanup forwarding-rules --global
