@@ -1,36 +1,35 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Util functions to be used by scripts in this directory
 
-function usage() {
-    echo "usage: kfctl <command> <what>"
-    echo "where command is one of"
-    echo "init - initialize something"
-    echo "apply  -- apply some config"
-    echo "delete - delete some components"
-    echo
-    echo "what is one of"
-    echo "project - the GCP project"
-    echo "platform - platform resources (e.g. GCP, minikube); basically non K8s resources"
-    echo "k8s - kubernetes resources"
-    echo "help - print this message"
+usage() {
+  echo "usage: kfctl <command> <what>"
+  echo "where command is one of"
+  echo "init - initialize something"
+  echo "apply  -- apply some config"
+  echo "delete - delete some components"
+  echo
+  echo "what is one of"
+  echo "project - the GCP project"
+  echo "platform - platform resources (e.g. GCP, minikube); basically non K8s resources"
+  echo "k8s - kubernetes resources"
+  echo "help - print this message"
 }
 
-
-function check_install() {
+check_install() {
   if ! which "${1}" &>/dev/null; then
     echo "You don't have ${1} installed. Please install ${1}."
     exit 1
   fi
 }
 
-function check_variable() {
+check_variable() {
   if [[ -z "${1}" ]]; then
     echo "'${2}' environment variable is not set. Please set it using export ${2}=value."
     exit 1
   fi
 }
 
-function createKsApp() {
+createKsApp() {
   # Create the ksonnet application.
   # All deployments should call this function to create a common ksonnet app.
   # They can then customize it as necessary.
@@ -51,12 +50,17 @@ function createKsApp() {
   ks pkg install kubeflow/argo
   ks pkg install kubeflow/core
   ks pkg install kubeflow/examples
+  ks pkg install kubeflow/jupyter
   ks pkg install kubeflow/katib
   ks pkg install kubeflow/mpi-job
   ks pkg install kubeflow/pytorch-job
   ks pkg install kubeflow/seldon
   ks pkg install kubeflow/tf-serving
+<<<<<<< HEAD
   ks pkg install kubeflow/openvino
+=======
+  ks pkg install kubeflow/tf-training
+>>>>>>> 41050ef854948600ef7f922f2a3c295b60b1f7c0
   ks pkg install kubeflow/metacontroller
   ks pkg install kubeflow/profiles
   ks pkg install kubeflow/application
@@ -65,8 +69,12 @@ function createKsApp() {
   ks generate pytorch-operator pytorch-operator
   # TODO(jlewi): Why are we overloading the ambassador images here?
   ks generate ambassador ambassador
+<<<<<<< HEAD
   ks generate jupyterhub jupyterhub
   ks generate openvino openvino
+=======
+  ks generate jupyter jupyter
+>>>>>>> 41050ef854948600ef7f922f2a3c295b60b1f7c0
   ks generate centraldashboard centraldashboard
   ks generate tf-job-operator tf-job-operator
   ks generate metacontroller metacontroller
@@ -79,7 +87,7 @@ function createKsApp() {
   # cd ks_app
   # ks component rm spartakus
   # Generate a random 30 bit number
-  local usageId=$(((RANDOM<<15)|RANDOM))
+  local usageId=$(((RANDOM << 15) | RANDOM))
   ks generate spartakus spartakus --usageId=${usageId} --reportUsage=true
   echo ""
   echo "****************************************************************"
@@ -99,7 +107,7 @@ function createKsApp() {
   ks generate application application
 }
 
-function removeKsEnv() {
+removeKsEnv() {
   pushd ${KUBEFLOW_KS_DIR}
   set +e
   O=$(ks env describe default 2>&1)
@@ -114,10 +122,10 @@ function removeKsEnv() {
   popd
 }
 
-function customizeKsAppWithDockerImage() {
-   # customize docker registry
-   if [[ ! -z "$KUBEFLOW_DOCKER_REGISTRY" ]]; then
-      find ${KUBEFLOW_KS_DIR} -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%gcr.io%$KUBEFLOW_DOCKER_REGISTRY%g"
-      find ${KUBEFLOW_KS_DIR} -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%quay.io%$KUBEFLOW_DOCKER_REGISTRY%g"
-   fi
+customizeKsAppWithDockerImage() {
+  # customize docker registry
+  if [[ ! -z "$KUBEFLOW_DOCKER_REGISTRY" ]]; then
+    find ${KUBEFLOW_KS_DIR} -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%gcr.io%$KUBEFLOW_DOCKER_REGISTRY%g"
+    find ${KUBEFLOW_KS_DIR} -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%quay.io%$KUBEFLOW_DOCKER_REGISTRY%g"
+  fi
 }

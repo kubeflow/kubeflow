@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Copyright 2017 The Kubeflow Authors All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,7 +46,7 @@ if [ ! -z "$JPY_HUB_API_URL" ]; then
   NOTEBOOK_ARGS="--hub-api-url=$JPY_HUB_API_URL $NOTEBOOK_ARGS"
 fi
 
-# check to see if a PV has been mounted 
+# check to see if a PV has been mounted
 . /usr/local/bin/pvc-check.sh
 
 # We delay enabling the Jupyter extension until runtime because

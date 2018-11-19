@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Define functions to customize the Kubeflow app for GCP.
 #
@@ -13,7 +13,7 @@ gcpCreateSecretsDir() {
   # 1. We put the secrets in a directory with a .gitignore file
   # 2. We will delete the secrets immediately.
   if [ ! -f ${KUBEFLOW_SECRETS_DIR}/.gitignore ]; then
-  cat > ${KUBEFLOW_SECRETS_DIR}/.gitignore << EOF
+    cat > ${KUBEFLOW_SECRETS_DIR}/.gitignore <<EOF
 **
 EOF
   fi
@@ -22,17 +22,17 @@ EOF
 gcpInitProject() {
   # Enable GCloud APIs
   gcloud services enable deploymentmanager.googleapis.com \
-                         servicemanagement.googleapis.com \
-                         container.googleapis.com \
-                         cloudresourcemanager.googleapis.com \
-                         endpoints.googleapis.com \
-                         file.googleapis.com \
-                         iam.googleapis.com --project=${PROJECT}
+    servicemanagement.googleapis.com \
+    container.googleapis.com \
+    cloudresourcemanager.googleapis.com \
+    endpoints.googleapis.com \
+    file.googleapis.com \
+    iam.googleapis.com --project=${PROJECT}
 
   # Set IAM Admin Policy
   gcloud projects add-iam-policy-binding ${PROJECT} \
-     --member serviceAccount:${PROJECT_NUMBER}@cloudservices.gserviceaccount.com \
-     --role roles/resourcemanager.projectIamAdmin
+    --member serviceAccount:${PROJECT_NUMBER}@cloudservices.gserviceaccount.com \
+    --role roles/resourcemanager.projectIamAdmin
 }
 
 generateDMConfigs() {
@@ -73,7 +73,7 @@ createGcpSecret() {
   local SECRET=$2
 
   set +e
-  O=`kubectl get secret --namespace=${K8S_NAMESPACE} ${SECRET} 2>&1`
+  O=$(kubectl get secret --namespace=${K8S_NAMESPACE} ${SECRET} 2>&1)
   local RESULT=$?
   set -e
 
@@ -99,10 +99,10 @@ downloadK8sManifests() {
     https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/stable/nvidia-driver-installer/cos/daemonset-preloaded.yaml
 
   curl -o ${KUBEFLOW_K8S_MANIFESTS_DIR}/rbac-setup.yaml \
-  https://storage.googleapis.com/stackdriver-kubernetes/stable/rbac-setup.yaml
+    https://storage.googleapis.com/stackdriver-kubernetes/stable/rbac-setup.yaml
 
   curl -o ${KUBEFLOW_K8S_MANIFESTS_DIR}/agents.yaml \
-        https://storage.googleapis.com/stackdriver-kubernetes/stable/agents.yaml
+    https://storage.googleapis.com/stackdriver-kubernetes/stable/agents.yaml
 
 }
 
@@ -114,7 +114,7 @@ updateDeployment() {
   cd ${KUBEFLOW_DM_DIR}
   # Check if it already exists
   set +e
-  O=`gcloud deployment-manager --project=${PROJECT} deployments describe ${NAME} 2>&1`
+  O=$(gcloud deployment-manager --project=${PROJECT} deployments describe ${NAME} 2>&1)
   exists=$?
   set -e
 
@@ -157,14 +157,14 @@ updateDM() {
 
   kubectl config set-context ${KUBEFLOW_K8S_CONTEXT} \
     --namespace ${K8S_NAMESPACE} \
-  --cluster $CURRENT_CLUSTER \
-  --user $CURRENT_USER
+    --cluster $CURRENT_CLUSTER \
+    --user $CURRENT_USER
 
   echo created context named: ${KUBEFLOW_K8S_CONTEXT}
   kubectl config use-context ${KUBEFLOW_K8S_CONTEXT}
   # Make yourself cluster admin
   set +e
-  O=`kubectl get clusterrolebinding default-admin 2>&1`
+  O=$(kubectl get clusterrolebinding default-admin 2>&1)
   RESULT=$?
   set -e
 
@@ -175,7 +175,7 @@ updateDM() {
   fi
 
   set +e
-  O=`kubectl get namespace ${K8S_NAMESPACE} 2>&1`
+  O=$(kubectl get namespace ${K8S_NAMESPACE} 2>&1)
   RESULT=$?
   set -e
 
@@ -206,7 +206,7 @@ createSecrets() {
   createGcpSecret ${USER_EMAIL} user-gcp-sa
 
   set +e
-  O=`kubectl get secret --namespace=${K8S_NAMESPACE} kubeflow-oauth 2>&1`
+  O=$(kubectl get secret --namespace=${K8S_NAMESPACE} kubeflow-oauth 2>&1)
   RESULT=$?
   set -e
 
@@ -224,7 +224,7 @@ gcpGenerateKsApp() {
   ks generate cloud-endpoints cloud-endpoints
   ks generate cert-manager cert-manager --acmeEmail=${EMAIL}
   ks generate iap-ingress iap-ingress --ipName=${KUBEFLOW_IP_NAME} --hostname=${KUBEFLOW_HOSTNAME}
-  ks param set jupyterhub jupyterHubAuthenticator iap
+  ks param set jupyter jupyterHubAuthenticator iap
   popd
 }
 
@@ -234,7 +234,7 @@ gcpKsApply() {
   cd "${KUBEFLOW_KS_DIR}"
 
   set +e
-  O=`ks env describe default 2>&1`
+  O=$(ks env describe default 2>&1)
   RESULT=$?
   set -e
 

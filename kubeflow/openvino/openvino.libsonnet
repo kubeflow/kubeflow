@@ -28,10 +28,9 @@
             "---",
             "apiVersion: ambassador/v0",
             "kind:  Mapping",
-            "name: ov-mapping-" + params.name + "-get",
-            "prefix: / " + params.name + "/",
+            "name: openvino-mapping",
+            "prefix: /" + params.name + "/",
             "rewrite: /",
-            "method: GET",
             "service: " + params.name + "." + params.namespace + ":" + params.servicePort,
           ]),
       }),
@@ -45,9 +44,9 @@
         "ie_serving",
         "model",
         "--model_path",
-        "/opt/ml/resnet",
+        params.pvcMount + "/" + params.modelName,
         "--model_name",
-        "resnet",
+        params.modelName,
         "--port",
         std.toString(params.targetPort),
       ]).
@@ -56,7 +55,7 @@
       container.withVolumeMountsMixin([
         {
           name: "nfs",
-          mountPath: params.nfsPVCMount,
+          mountPath: params.pvcMount,
         },
       ]) +
       container.mixin.resources.withLimitsMixin({
@@ -83,7 +82,7 @@
           [{
             name: "nfs",
             persistentVolumeClaim: {
-              claimName: params.nfsPVC,
+              claimName: params.pvc,
             },
           }]
         else [],

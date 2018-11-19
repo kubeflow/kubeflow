@@ -70,7 +70,7 @@ def deploy_kubeflow(test_case):
 
   util.run(
     [
-      "ks", "generate", "jupyterhub", "jupyterhub",
+      "ks", "generate", "jupyter", "jupyter",
     ],
     cwd=app_dir)
 
@@ -83,7 +83,7 @@ def deploy_kubeflow(test_case):
     "-c",
     "pytorch-operator",
     "-c",
-    "jupyterhub",
+    "jupyter",
   ]
 
   if args.as_gcloud_user:
@@ -98,14 +98,14 @@ def deploy_kubeflow(test_case):
   util.run(apply_command, cwd=app_dir)
 
   # Verify that the TfJob operator is actually deployed.
-  tf_job_deployment_name = "tf-job-operator-v1alpha2"
+  tf_job_deployment_name = "tf-job-operator-v1beta1"
   logging.info("Verifying TfJob controller started.")
   util.wait_for_deployment(api_client, namespace, tf_job_deployment_name)
 
-  # Verify that JupyterHub is actually deployed.
-  jupyterhub_name = "jupyterhub"
+  # Verify that Jupyter is actually deployed.
+  jupyter_name = "jupyter"
   logging.info("Verifying TfHub started.")
-  util.wait_for_statefulset(api_client, namespace, jupyterhub_name)
+  util.wait_for_statefulset(api_client, namespace, jupyter_name)
 
   # Verify that PyTorch Operator actually deployed
   pytorch_operator_deployment_name = "pytorch-operator"

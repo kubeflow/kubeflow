@@ -29,7 +29,9 @@
         "--rest_api_port=8500",
         "--model_name=" + modelName,
         "--model_base_path=" + params.modelBasePath,
-      ],
+      ] + if util.toBool(params.enablePrometheus) then [
+        "--monitoring_config_file=/var/config/monitoring_config.txt",
+      ] else [],
       image: modelServerImage,
       imagePullPolicy: "IfNotPresent",
       name: modelName,
@@ -54,7 +56,12 @@
           memory: "1Gi",
         },
       },
-      volumeMounts: [],
+      volumeMounts: [
+        {
+          mountPath: "/var/config/",
+          name: "config-volume",
+        },
+      ],
       // TCP liveness probe on gRPC port
       livenessProbe: {
         tcpSocket: {
@@ -90,11 +97,36 @@
             containers: [
               modelServerContainer,
             ],
-            volumes: [],
+            volumes: [
+              {
+                configMap: {
+                  name: name + "-config",
+                },
+                name: "config-volume",
+              },
+            ],
           },
         },
       },
     },  // tfDeployment
     tfDeployment:: tfDeployment,
+
+    local tfservingConfig = {
+      apiVersion: "v1",
+      kind: "ConfigMap",
+      metadata: {
+        name: name + "-config",
+        namespace: params.namespace,
+      },
+      data: {
+        "monitoring_config.txt": std.join("\n", [
+          "prometheus_config: {",
+          "  enable: true,",
+          '  path: "/monitoring/prometheus/metrics"',
+          "}",
+        ]),
+      },
+    },  // tfservingConfig
+    tfservingConfig:: tfservingConfig,
   },  // new
 }
