@@ -2,7 +2,7 @@
    "name": "jupyter",
    "apiVersion": "0.0.1",
    "kind": "ksonnet.io/parts",
-   "description": "Jupyter component of Kubeflow.\n",
+   "description": "Notebooks/Jupyter component of Kubeflow.\n",
    "author": "kubeflow team <kubeflow-team@google.com>",
    "contributors": [
       {
@@ -19,7 +19,8 @@
    },
    "keywords": [
       "kubeflow",
-      "jupyter"
+      "jupyter",
+      "notebooks"
    ],
    "quickStart": {
       "prototype": "io.ksonnet.pkg.jupyter",
