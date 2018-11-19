@@ -35,10 +35,8 @@ workflows:
       - postsubmit
       - periodic
     include_dirs:
-      - scripts/*
-      - kubeflow/*
-      - testing/*
-      - deployment/*
+      - scripts/gke/*
+      - deployment/gke/*
     params:
       platform: gke
       gkeApiVersion: v1beta1
