@@ -35,6 +35,7 @@ interface DeployFormState {
   kfverison: string;
   clientId: string;
   clientSecret: string;
+  iap: boolean;
 }
 
 const Text = glamorous.div({
@@ -52,6 +53,13 @@ const logsContainerStyle = (show: boolean) => {
     position: 'fixed',
     right: 0,
     transition: 'height 0.3s',
+  } as React.CSSProperties;
+};
+
+const IapElementStyle = (show: boolean) => {
+  return {
+    display: show ? 'inline' : 'none',
+    minHeight: 0,
   } as React.CSSProperties;
 };
 
@@ -110,6 +118,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       deploymentName: 'kubeflow',
       dialogBody: '',
       dialogTitle: '',
+      iap: true,
       kfverison: 'v0.3.2',
       project: '',
       showLogs: false,
@@ -154,13 +163,17 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         <Row>
           <Input name="deploymentName" label="Deployment name" spellCheck={false} value={this.state.deploymentName} onChange={this._handleChange.bind(this)} />
         </Row>
-        <Row>
-          <Input name="clientId" label="IAP Oauth Client ID" spellCheck={false} value={this.state.clientId} onChange={this._handleChange.bind(this)} />
+        <Row style={{ minHeight: 20}}>
+          <input style={{ fontSize: '1.1em', margin: '0% 1% 0% 11%' }} type="checkbox" onChange={this._handleCheck.bind(this)} />
+          <label style={{ minHeight: 20 }} >Skip IAP</label>
         </Row>
-        <Row>
-          <Input name="clientSecret" label="IAP Oauth Client Secret" spellCheck={false} value={this.state.clientSecret} onChange={this._handleChange.bind(this)} />
+        <Row style={{ minHeight: 0 }}>
+          <Input style={IapElementStyle(this.state.iap)} name="clientId" label="IAP Oauth Client ID" spellCheck={false} value={this.state.clientId} onChange={this._handleChange.bind(this)} />
         </Row>
-        <Row>
+        <Row style={{ minHeight: 0 }}>
+          <Input style={IapElementStyle(this.state.iap)} name="clientSecret" label="IAP Oauth Client Secret" spellCheck={false} value={this.state.clientSecret} onChange={this._handleChange.bind(this)} />
+        </Row>
+        <Row style={{ minHeight: 20}}>
           <Text style={{ fontSize: '1.1em', margin: '2% 11%' }}>GKE Zone: </Text>
           <select name="zone" style={{ display: 'flex', fontSize: '1.1em', margin: '2% 10.5%',}} spellCheck={false} value={this.state.zone} onChange={this._handleChange.bind(this)} >
             <option value="us-central1-a">us-central1-a</option>
@@ -174,7 +187,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             <option value="asia-east1-b">asia-east1-b</option>
           </select>
         </Row>
-        <Row>
+        <Row style={{ minHeight: 20}}>
           <Text style={{ fontSize: '1.1em', margin: '2% 11%' }}>Kubeflow Version:</Text>
           <select name="kfverison" style={{ display: 'flex', fontSize: '1.1em', margin: '2% 1%',}} spellCheck={false} value={this.state.kfverison} onChange={this._handleChange.bind(this)} >
             <option value="v0.3.2">v0.3.2</option>
@@ -185,11 +198,11 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             Create Deployment
           </DeployBtn>
 
-          <DeployBtn variant="contained" color="default" onClick={this._iapAddress.bind(this)}>
+          <DeployBtn style={IapElementStyle(this.state.iap)} variant="contained" color="default" onClick={this._iapAddress.bind(this)}>
             IAP Access
           </DeployBtn>
 
-          <DeployBtn variant="contained" color="default" onClick={this._cloudShell.bind(this)}>
+          <DeployBtn style={IapElementStyle(!this.state.iap)} variant="contained" color="default" onClick={this._cloudShell.bind(this)}>
             Cloud Shell
           </DeployBtn>
 
@@ -309,10 +322,11 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         return;
       }
     }
-    const win = window.open('https://' + this.state.deploymentName + '.endpoints.' + this.state.project + '.cloud.goog', '_blank');
-    if (win != null) {
-      win.focus();
-    }
+    this.setState({
+      showLogs: true,
+    });
+    const dashboardUri = 'https://' + this.state.deploymentName + '.endpoints.' + this.state.project + '.cloud.goog/';
+    this._redirectToKFDashboard(dashboardUri);
   }
 
   // Create a  Kubeflow deployment.
@@ -544,6 +558,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     // an image served by the target site, the img load is a simple html
     // request and not an AJAX request, thus bypassing the CORS in this
     // case.
+    this._appendLine('Validating if IAP is up and running...');
     const imgUri = dashboardUri + 'hub/logo';
     const startTime = new Date().getTime() / 1000;
     const img = document.createElement('img');
@@ -574,6 +589,12 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     this.setState({
       [target.name]: target.value
     } as any);
+  }
+
+  private _handleCheck(event: Event) {
+    this.setState({
+      ['iap']: !this.state.iap
+    });
   }
 
 }

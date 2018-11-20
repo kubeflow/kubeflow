@@ -132,11 +132,11 @@ class App extends React.Component<any, { signedIn: boolean }> {
                   </ul>
                   <ul>
                     <ul>
-                      <li>  Click IAP Access (might need to wait up to 20 minutes on network settings) </li>
+                      <li>  Click IAP Access (might need up to 20 minutes for domain and IAP to be setup) </li>
                     </ul>
                   </ul>
                   <ul>
-                    <li> If you leave IAP Oauth Client ID and Secret empty: </li>
+                    <li> If you checked Skip IAP for your deployment: </li>
                   </ul>
                   <ul>
                     <ul>
