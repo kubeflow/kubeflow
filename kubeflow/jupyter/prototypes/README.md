@@ -2,18 +2,14 @@
 
 - provide a k8 native mechanism to spawning jupyter notebooks for users
 
-- spawn a notebook within a RBAC protected namespace for a user
-
 - set a serviceAccountName within the spawning pod similar to jupyter-notebook
 
-- use k8 native authentication for the user within the protected namespace
-
-- allow similar params as kubeflow/core/prototypes/jupyterhub.jsonnet, including PVCs
+- allow similar params as kubeflow/core/prototypes/jupyterhub.jsonnet, including PVCs but use the kubernetes PodTemplateSpec
 
 
 ## Design
 
-The Notebooks component is an alternative to jupyterhub. The component defines a Notebook CRD and provides a notebook-controller (based on metacontroller's [CompositeController](https://metacontroller.app/api/compositecontroller/)). The Notebook CRD schema is similar to a kubernetes [Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#creating-a-deployment) where it defines a [Pod Spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#podspec-v1-core) within its [template section](https://github.com/kubeflow/kubeflow/blob/111975f3886d058a112c7970dce209714ddcfb2e/kubeflow/notebooks/notebooks.schema#L32) that is used by the notebook-controller to create a Pod. An example Notebook yaml is shown below:
+The Notebooks component is an alternative to jupyterhub. The component defines a Notebook CRD and provides a notebook-controller (based on metacontroller's [CompositeController](https://metacontroller.app/api/compositecontroller/)). The Notebook CRD schema is similar to a kubernetes [Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#creating-a-deployment) where it defines a [Pod Spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#podspec-v1-core) within its [template section](https://github.com/kubeflow/kubeflow/blob/111975f3886d058a112c7970dce209714ddcfb2e/kubeflow/notebooks/notebooks.schema#L32) that is used by the notebook-controller to create a Deployment. Launching a notebook is nothing more than submitting a Notebook yaml to the api-server using kubectl. An example Notebook yaml is shown below:
 
 ```yaml
 apiVersion: kubeflow.org/v1alpha1
@@ -40,7 +36,7 @@ spec:
 
 ### User Interaction
 
-The user submits a Notebook yaml either through a UI or CLI (eg `kubectl apply -f notebook.yaml`) and the Notebook yaml is handled by the notebook-controller. The controller will create a Service and Pod within the user's namespace. The Service uses ambassador to create a reverse proxy that will route subsequent browser requests to the Pod. An example Service is shown below:
+The user submits a Notebook yaml either through a UI or CLI (eg `kubectl apply -f notebook.yaml`) and the Notebook yaml is handled by the notebook-controller. The notebook-controller will create a Service and Deployment within the namespaceset in the Notebook yaml. Note: the namespace must exist. The Service uses ambassador to create a reverse proxy that will route subsequent browser requests to the Pod. An example Service is shown below:
 
 ```yaml
 apiVersion: v1
@@ -82,7 +78,7 @@ Subsequent browser requests to `https://<api-server>/<namespace>/<notebook>` are
 
 ![Jupyter Notebook](./docs/jupyter_notebook.png "Jupyter Notebook")
 
-The notebook component depends on the [profiles component](https://github.com/kubeflow/kubeflow/tree/master/kubeflow/profiles/prototypes) to provide a protected namespace for the user. This means that a Profile yaml was posted to the kubernetes api-server prior to posting the Notebook yaml. In this case a Profile yaml would look like:
+The notebook component can use the [profiles component](https://github.com/kubeflow/kubeflow/tree/master/kubeflow/profiles/prototypes) to provide a protected namespace for the user. It can also spawn the notebook within the kubeflow namespace. 
 
 ```yaml
 apiVersion: kubeflow.org/v1alpha1

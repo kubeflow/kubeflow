@@ -108,7 +108,7 @@ function(request) {
           },
           spec: {
             containers: [
-              templateSpec.containers[0] + podTemplateSpec.containers[0]
+              templateSpec.containers[0] + podTemplateSpec.containers[0],
             ],
           },
         },
