@@ -22,6 +22,16 @@ check_install() {
   fi
 }
 
+checkInstallPy() {
+  local PYPI=$1
+  local MOD=$2
+  if python -c "import pkgutil; exit(pkgutil.find_loader('${MOD}'))" &>/dev/null; then
+    echo "Failed to import python module ${MOD}."
+    echo "You don't have ${PYPI} installed. Please install ${PYPI}."
+    exit 1
+  fi
+}
+
 check_variable() {
   if [[ -z "${1}" ]]; then
     echo "'${2}' environment variable is not set. Please set it using export ${2}=value."
