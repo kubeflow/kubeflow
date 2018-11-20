@@ -13,6 +13,9 @@ libraries:
   pachyderm:
     version: master
     path: pachyderm
+  pipeline:
+    version: master
+    path: pipeline
   pytorch-job:
     version: master
     path: pytorch-job
