@@ -217,6 +217,7 @@ local dagTemplates = [
         "&&",
         "cd",
         "ks_app",
+        "&&",
         "ks",
         "param",
         "set",

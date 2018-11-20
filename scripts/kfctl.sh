@@ -366,9 +366,9 @@ main() {
           pushd ${KUBEFLOW_DM_DIR}
           ${DIR}/gke/delete_deployment.sh ${PROJECT} ${DEPLOYMENT_NAME} ${CONFIG_FILE}
           popd
+          removeKsEnv
         fi
       fi
-      removeKsEnv
     fi
   fi
 }

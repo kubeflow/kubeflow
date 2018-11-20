@@ -82,7 +82,7 @@ addmodule() {
         fi
       fi
       oneOrMorePrototypes=${index#*/}
-      if [[ $oneOrMorePrototypes =~ { ]]; then
+      if [[ "${oneOrMorePrototypes:0:1}" == "{" ]]; then
         oneOrMorePrototypes=${oneOrMorePrototypes:1:$((${#oneOrMorePrototypes}-2))}
         IFS=',' read -r -a prototypes <<<"$oneOrMorePrototypes"
       else 
