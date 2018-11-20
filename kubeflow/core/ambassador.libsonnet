@@ -2,7 +2,7 @@
   local k = import "k.libsonnet",
   local util = import "kubeflow/core/util.libsonnet",
   new(_env, _params):: {
-    local params = _env + _params,
+    local params = _params + _env,
 
     local ambassadorService = {
       apiVersion: "v1",
@@ -58,10 +58,9 @@
 
     local ambassadorRole = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "Role",
+      kind: "ClusterRole",
       metadata: {
         name: "ambassador",
-        namespace: params.namespace,
       },
       rules: [
         {
@@ -122,14 +121,13 @@
 
     local ambassadorRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "RoleBinding",
+      kind: "ClusterRoleBinding",
       metadata: {
         name: "ambassador",
-        namespace: params.namespace,
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
-        kind: "Role",
+        kind: "ClusterRole",
         name: "ambassador",
       },
       subjects: [
@@ -170,10 +168,6 @@
                         fieldPath: "metadata.namespace",
                       },
                     },
-                  },
-                  {
-                    name: "AMBASSADOR_SINGLE_NAMESPACE",
-                    value: "true",
                   },
                 ],
                 image: params.ambassadorImage,

@@ -73,13 +73,13 @@ createKsApp() {
 
   # Generate all required components
   ks generate pytorch-operator pytorch-operator
-  # TODO(jlewi): Why are we overloading the ambassador images here?
   ks generate ambassador ambassador
   ks generate jupyter jupyter
   ks generate centraldashboard centraldashboard
   ks generate tf-job-operator tf-job-operator
   ks generate metacontroller metacontroller
   ks generate profiles profiles
+  ks generate notebooks notebooks 
 
   ks generate argo argo
   ks generate katib katib
