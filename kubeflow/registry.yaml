@@ -4,6 +4,9 @@ libraries:
   application:
     version: master
     path: application
+  notebooks:
+    version: master
+    path: notebooks
   metacontroller:
     version: master
     path: metacontroller

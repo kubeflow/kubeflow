@@ -112,7 +112,8 @@ local dagTemplates = [
       "-m",
       "testing.test_jsonnet",
       "--artifacts_dir=" + artifactsDir,
-      "--test_files_dirs=" + srcDir + "/kubeflow/application/tests" + "," +
+      "--test_files_dirs=" +
+      srcDir + "/kubeflow/application/tests" + "," +
       srcDir + "/kubeflow/core/tests" + "," +
       srcDir + "/kubeflow/jupyter/tests" + "," +
       srcDir + "/kubeflow/examples/tests" + "," +

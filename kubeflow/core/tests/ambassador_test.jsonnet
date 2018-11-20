@@ -72,10 +72,9 @@ std.assertEqual(
   instance.parts.ambassadorRole,
   {
     apiVersion: "rbac.authorization.k8s.io/v1beta1",
-    kind: "Role",
+    kind: "ClusterRole",
     metadata: {
       name: "ambassador",
-      namespace: "kubeflow",
     },
     rules: [
       {
@@ -140,14 +139,13 @@ std.assertEqual(
   instance.parts.ambassadorRoleBinding,
   {
     apiVersion: "rbac.authorization.k8s.io/v1beta1",
-    kind: "RoleBinding",
+    kind: "ClusterRoleBinding",
     metadata: {
       name: "ambassador",
-      namespace: "kubeflow",
     },
     roleRef: {
       apiGroup: "rbac.authorization.k8s.io",
-      kind: "Role",
+      kind: "ClusterRole",
       name: "ambassador",
     },
     subjects: [
@@ -189,10 +187,6 @@ std.assertEqual(
                       fieldPath: "metadata.namespace",
                     },
                   },
-                },
-                {
-                  name: "AMBASSADOR_SINGLE_NAMESPACE",
-                  value: "true",
                 },
               ],
               image: "quay.io/datawire/ambassador:0.37.0",
