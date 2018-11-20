@@ -161,6 +161,8 @@ local dagTemplates = [
         "us-east1-d",
         // Temporary fix for https://github.com/kubeflow/kubeflow/issues/1562
         "--skipInitProject",
+        "--gkeApiVersion",
+        params.gkeApiVersion,
       ],
       working_dir=testDir,
     ),
