@@ -121,16 +121,16 @@
         },
       },
       status: {
-        loadBalancer: {}
+        loadBalancer: {},
       },
-    }, //service
+    },  //service
 
     deploy(image): {
       apiVersion: "apps/v1beta2",
       kind: "Deployment",
       metadata: {
-        "labels": {
-          "app": "ml-pipeline",
+        labels: {
+          app: "ml-pipeline",
         },
         name: "ml-pipeline",
         namespace: namespace,
@@ -152,14 +152,14 @@
               {
                 name: "ml-pipeline-api-server",
                 image: image,
-                imagePullPolicy: 'Always',
+                imagePullPolicy: "Always",
                 ports: [
-                    {
-                      containerPort: 8888,
-                    },
-                    {
-                      containerPort: 8887,
-                    },
+                  {
+                    containerPort: 8888,
+                  },
+                  {
+                    containerPort: 8887,
+                  },
                 ],
                 env: [
                   {
@@ -177,7 +177,7 @@
           },
         },
       },
-    }, // deploy
+    },  // deploy
 
     pipelineRunnerServiceAccount: {
       apiVersion: "v1",

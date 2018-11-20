@@ -20,14 +20,14 @@
     local reportUsage = params.reportUsage,
     local usage_id = params.usage_id,
     reporting:: if (reportUsage == true) || (reportUsage == "true") then
-                  spartakus.all(namespace,usage_id)
-                else [],
+      spartakus.all(namespace, usage_id)
+    else [],
     all:: minio.parts(namespace).all +
           mysql.parts(namespace).all +
-          pipeline_apiserver.all(namespace,apiImage) +
-          pipeline_scheduledworkflow.all(namespace,scheduledWorkflowImage) +
-          pipeline_persistenceagent.all(namespace,persistenceAgentImage) +
-          pipeline_ui.all(namespace,uiImage) +
+          pipeline_apiserver.all(namespace, apiImage) +
+          pipeline_scheduledworkflow.all(namespace, scheduledWorkflowImage) +
+          pipeline_persistenceagent.all(namespace, persistenceAgentImage) +
+          pipeline_ui.all(namespace, uiImage) +
           $.parts(_env, _params).reporting,
   },
 }

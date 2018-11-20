@@ -24,7 +24,7 @@
           },
         },
       },
-    }, //pvc
+    },  //pvc
 
     service: {
       apiVersion: "v1",
@@ -46,9 +46,9 @@
         },
       },
       status: {
-        loadBalancer: {}
+        loadBalancer: {},
       },
-    }, //service
+    },  //service
 
     deploy: {
       apiVersion: "apps/v1beta1",
@@ -59,7 +59,7 @@
       },
       spec: {
         strategy: {
-          type: "Recreate"
+          type: "Recreate",
         },
         template: {
           metadata: {
@@ -82,7 +82,7 @@
                 volumeMounts: [
                   {
                     name: "data",
-                    mountPath: "/data"
+                    mountPath: "/data",
                   },
                 ],
                 image: "minio/minio:RELEASE.2018-02-09T22-40-05Z",
@@ -110,7 +110,7 @@
           },
         },
       },
-    }, // deploy
+    },  // deploy
 
     // The motivation behind the minio secret creation is that argo workflows depend on this secret to
     // store the artifact in minio.
@@ -123,9 +123,9 @@
       },
       type: "Opaque",
       data: {
-        "accesskey": std.base64("minio"),
-        "secretkey": std.base64("minio123"),
+        accesskey: std.base64("minio"),
+        secretkey: std.base64("minio123"),
       },
-    }, // secret
+    },  // secret
   },  // parts
 }

@@ -1,6 +1,6 @@
 // @apiVersion 0.1
 // @name io.ksonnet.pkg.pipeline
-// @description a Kubeflow pipeline deployment. 
+// @description a Kubeflow pipeline deployment.
 // @shortDescription Kubeflow pipeline
 // @param name string Name to give to each of the components
 // @optionalParam apiImage string gcr.io/ml-pipeline/api-server:0.1.2 API docker image

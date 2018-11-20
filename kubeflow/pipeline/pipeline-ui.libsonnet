@@ -53,9 +53,9 @@
         },
       },
       status: {
-        loadBalancer: {}
+        loadBalancer: {},
       },
-    }, //serviceUi
+    },  //serviceUi
 
     tensorboardData: {
       apiVersion: "v1",
@@ -93,9 +93,9 @@
         },
       },
       status: {
-        loadBalancer: {}
+        loadBalancer: {},
       },
-    }, //tensorboardData
+    },  //tensorboardData
 
     roleBinding:: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
@@ -151,8 +151,8 @@
       apiVersion: "apps/v1beta2",
       kind: "Deployment",
       metadata: {
-        "labels": {
-          "app": "ml-pipeline-ui",
+        labels: {
+          app: "ml-pipeline-ui",
         },
         name: "ml-pipeline-ui",
         namespace: namespace,
@@ -184,6 +184,6 @@
           },
         },
       },
-    }, // deployUi
+    },  // deployUi
   },  // parts
 }

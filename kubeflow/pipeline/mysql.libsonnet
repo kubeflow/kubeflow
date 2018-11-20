@@ -23,7 +23,7 @@
           },
         },
       },
-    }, //pvc
+    },  //pvc
 
     service: {
       apiVersion: "v1",
@@ -43,9 +43,9 @@
         },
       },
       status: {
-        loadBalancer: {}
+        loadBalancer: {},
       },
-    }, //service
+    },  //service
 
     deploy: {
       apiVersion: "apps/v1beta2",
@@ -105,6 +105,6 @@
           },
         },
       },
-    }, //deploy
-  }, //parts
+    },  //deploy
+  },  //parts
 }

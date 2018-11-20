@@ -93,8 +93,8 @@
       apiVersion: "apps/v1beta2",
       kind: "Deployment",
       metadata: {
-        "labels": {
-          "app": "ml-pipeline-scheduledworkflow",
+        labels: {
+          app: "ml-pipeline-scheduledworkflow",
         },
         name: "ml-pipeline-scheduledworkflow",
         namespace: namespace,
@@ -116,7 +116,7 @@
               {
                 name: "ml-pipeline-scheduledworkflow",
                 image: image,
-                imagePullPolicy: 'Always',
+                imagePullPolicy: "Always",
                 env: [
                   {
                     name: "POD_NAMESPACE",
@@ -133,7 +133,7 @@
           },
         },
       },
-    }, // deploy
+    },  // deploy
     crd: {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",

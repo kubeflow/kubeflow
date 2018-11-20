@@ -84,8 +84,8 @@
       apiVersion: "apps/v1beta2",
       kind: "Deployment",
       metadata: {
-        "labels": {
-          "app": "ml-pipeline-persistenceagent",
+        labels: {
+          app: "ml-pipeline-persistenceagent",
         },
         name: "ml-pipeline-persistenceagent",
         namespace: namespace,
@@ -107,7 +107,7 @@
               {
                 name: "ml-pipeline-persistenceagent",
                 image: image,
-                imagePullPolicy: 'Always',
+                imagePullPolicy: "Always",
                 env: [
                   {
                     name: "POD_NAMESPACE",
@@ -124,6 +124,6 @@
           },
         },
       },
-    }, // deploy
+    },  // deploy
   },  // parts
 }
