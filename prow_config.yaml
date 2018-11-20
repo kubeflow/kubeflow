@@ -26,11 +26,25 @@ workflows:
       - deployment/*
     params:
       platform: gke
+      gkeApiVersion: v1
+  - app_dir: kubeflow/kubeflow/testing/workflows
+    component: kfctl_test
+    name: kfctl-beta
+    job_types:
+      - presubmit
+      - postsubmit
+      - periodic
+    include_dirs:
+      - scripts/gke/*
+      - deployment/gke/*
+    params:
+      platform: gke
+      gkeApiVersion: v1beta1
   # Run unittests
   # TODO(jlewi): Need to add step to run go and python unittests
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: unit_tests
-    name: unittests    
+    name: unittests
   # TODO(jlewi): We should be running the minikube workflow
   # on presubmit when the minikube E2E test itself changes
   # so we verify the test is working before submitting
@@ -38,7 +52,7 @@ workflows:
   # glob.
   # see: https://github.com/kubeflow/testing/issues/187
   # see: https://github.com/kubeflow/kubeflow/issues/1350
-  #   
+  #
   # Run tests on minikube
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: workflows
