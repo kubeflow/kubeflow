@@ -1,11 +1,11 @@
 {
-  all(namespace, ui_image):: [
+  all(namespace, uiImage):: [
     $.parts(namespace).serviceAccount,
     $.parts(namespace).serviceUi,
     $.parts(namespace).tensorboardData,
     $.parts(namespace).roleBinding,
     $.parts(namespace).role,
-    $.parts(namespace).deployUi(ui_image),
+    $.parts(namespace).deployUi(uiImage),
   ],
   parts(namespace):: {
     serviceAccount: {

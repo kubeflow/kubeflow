@@ -1,9 +1,9 @@
 {
-  all(namespace, scheduledworkflow_image):: [
+  all(namespace, scheduledWorkflowImage):: [
     $.parts(namespace).serviceAccount,
     $.parts(namespace).roleBinding,
     $.parts(namespace).role,
-    $.parts(namespace).deploy(scheduledworkflow_image),
+    $.parts(namespace).deploy(scheduledWorkflowImage),
     $.parts(namespace).crd,
   ],
 

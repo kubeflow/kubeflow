@@ -1,9 +1,9 @@
 {
-  all(namespace, persistenceagent_image):: [
+  all(namespace, persistenceAgentImage):: [
     $.parts(namespace).serviceAccount,
     $.parts(namespace).roleBinding,
     $.parts(namespace).role,
-    $.parts(namespace).deploy(persistenceagent_image),
+    $.parts(namespace).deploy(persistenceAgentImage),
   ],
 
   parts(namespace):: {

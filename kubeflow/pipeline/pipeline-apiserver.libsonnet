@@ -1,10 +1,10 @@
 {
-  all(namespace, api_image):: [
+  all(namespace, apiImage):: [
     $.parts(namespace).serviceAccount,
     $.parts(namespace).roleBinding,
     $.parts(namespace).role,
     $.parts(namespace).service,
-    $.parts(namespace).deploy(api_image),
+    $.parts(namespace).deploy(apiImage),
     $.parts(namespace).pipelineRunnerServiceAccount,
     $.parts(namespace).pipelineRunnerRole,
     $.parts(namespace).pipelineRunnerRoleBinding,
