@@ -460,7 +460,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
   }
 
   private _monitorDeployment(project: string, deploymentName: string) {
-    const dashboardUri = 'https://' + this.state.deploymentName + '.endpoints.' + this.state.project + 'cloud.goog/';
+    const dashboardUri = 'https://' + this.state.deploymentName + '.endpoints.' + this.state.project + '.cloud.goog/';
     const monitorInterval = setInterval(() => {
       Gapi.deploymentmanager.get(this.state.project, deploymentName)
         .then(r => {
@@ -507,7 +507,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           setTimeout(() => {
             ready_test.src = imgUri + '?rand=' + Math.random();
             this._appendLine('Waiting for the IAP setup to get ready...');
-          }, 10000);
+          }, 20000);
         }
       }
     };

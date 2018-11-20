@@ -1,37 +1,36 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Util functions to be used by scripts in this directory
 
-function usage() {
-    echo "usage: kfctl <command> <what>"
-    echo "where command is one of"
-    echo "init - initialize something"
-    echo "apply  -- apply some config"
-    echo "delete - delete some components"
-    echo "add [-h|--help] <module> [--apply] --dependsOn <component[/prototype]>+"
-    echo
-    echo "what is one of"
-    echo "project - the GCP project"
-    echo "platform - platform resources (e.g. GCP, minikube); basically non K8s resources"
-    echo "k8s - kubernetes resources"
-    echo "help - print this message"
+usage() {
+  echo "usage: kfctl <command> <what>"
+  echo "where command is one of"
+  echo "init - initialize something"
+  echo "add [-h|--help] <module> [--apply] --dependsOn <component[/prototype]>+"
+  echo "apply  -- apply some config"
+  echo "delete - delete some components"
+  echo
+  echo "what is one of"
+  echo "project - the GCP project"
+  echo "platform - platform resources (e.g. GCP, minikube); basically non K8s resources"
+  echo "k8s - kubernetes resources"
+  echo "help - print this message"
 }
 
-
-function check_install() {
+check_install() {
   if ! which "${1}" &>/dev/null; then
     echo "You don't have ${1} installed. Please install ${1}."
     exit 1
   fi
 }
 
-function check_variable() {
+check_variable() {
   if [[ -z "${1}" ]]; then
     echo "'${2}' environment variable is not set. Please set it using export ${2}=value."
     exit 1
   fi
 }
 
-function getmodules() {
+getmodules() {
   local moduleList=''
   for i in $(ks env describe default | grep '^-' | awk '{print $2}'); do
     moduleList="$moduleList --module $i "
@@ -39,7 +38,7 @@ function getmodules() {
  echo "$moduleList"
 }
 
-function addmodule() {
+addmodule() {
   local apply=false module=${1%/*} currentModules nestedModule moduleList oneOrMorePrototypes prototype index
   declare -a dependsOn modules prototypes packages
   shift
@@ -108,8 +107,8 @@ function addmodule() {
   ks env targets default $moduleList
 }
 
-function createKsApp() {
-  local usageId=$(((RANDOM<<15)|RANDOM))
+createKsApp() {
+  local usageId=$(((RANDOM << 15) | RANDOM))
   # Create the ksonnet application.
   # All deployments should call this function to create a common ksonnet app.
   # They can then customize it as necessary.
@@ -130,23 +129,25 @@ function createKsApp() {
   # Add the local registry
   ks registry add kubeflow "${KUBEFLOW_REPO}/kubeflow"
 
-  # Build modules
-  if [ "${PLATFORM}" != "minikube" ]; then
-    addmodule argo --dependsOn argo
-    addmodule seldon --dependsOn seldon
-    addmodule katib --dependsOn katib
-  fi
-  addmodule core --dependsOn 'core/{ambassador,centraldashboard,spartakus}'
-  addmodule training --dependsOn tf-training/tf-job-operator
-  addmodule serving --dependsOn tf-serving
-  addmodule notebooks --dependsOn jupyter
-  addmodule pytorch --dependsOn 'pytorch-job/{pytorch-job,pytorch-operator}'
-
+  # Generate all required components
   # Enable collection of anonymous usage metrics
   # To disable metrics collection. Remove the spartakus component.
   # cd ks_app
   # ks component rm spartakus
   # Generate a random 30 bit number
+  addmodule core --dependsOn 'core/{ambassador,centraldashboard,spartakus}'
+  addmodule jupyter --dependsOn jupyter
+  addmodule pytorch --dependsOn 'pytorch-job/{pytorch-job,pytorch-operator}'
+  addmodule training --dependsOn tf-training/tf-job-operator
+  addmodule serving --dependsOn tf-serving
+  addmodule profiles --dependsOn profiles metacontroller
+
+  if [ "${PLATFORM}" != "minikube" ]; then
+    addmodule argo --dependsOn argo
+    addmodule seldon --dependsOn seldon
+    addmodule katib --dependsOn katib
+  fi
+  addmodule application --dependsOn application
   echo ""
   echo "****************************************************************"
   echo "Notice anonymous usage reporting enabled using spartakus"
@@ -166,7 +167,7 @@ function createKsApp() {
   ks param set core.ambassador platform ${KUBEFLOW_PLATFORM} --env default
   ks param set core.spartakus usageId ${usageId} --env default
   ks param set core.spartakus reportUsage true --env default
-  ks param set notebooks.jupyter platform ${KUBEFLOW_PLATFORM} --env default
+  ks param set jupyter.jupyter platform ${KUBEFLOW_PLATFORM} --env default
   ks show default > default.yaml
 }
 
@@ -176,10 +177,10 @@ function removeKsEnv() {
   popd
 }
 
-function customizeKsAppWithDockerImage() {
-   # customize docker registry
-   if [[ ! -z "$KUBEFLOW_DOCKER_REGISTRY" ]]; then
-      find ${KUBEFLOW_KS_DIR} -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%gcr.io%$KUBEFLOW_DOCKER_REGISTRY%g"
-      find ${KUBEFLOW_KS_DIR} -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%quay.io%$KUBEFLOW_DOCKER_REGISTRY%g"
-   fi
+customizeKsAppWithDockerImage() {
+  # customize docker registry
+  if [[ ! -z "$KUBEFLOW_DOCKER_REGISTRY" ]]; then
+    find ${KUBEFLOW_KS_DIR} -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%gcr.io%$KUBEFLOW_DOCKER_REGISTRY%g"
+    find ${KUBEFLOW_KS_DIR} -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%quay.io%$KUBEFLOW_DOCKER_REGISTRY%g"
+  fi
 }

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Copyright 2018 The Kubeflow Authors All rights reserved.
 #
@@ -22,19 +22,18 @@ set -ex
 # Trigger a workflow
 if [ -f /src/${REPO_OWNER}/${REPO_NAME}/prow_config.yaml ]; then
   python -m kubeflow.testing.run_e2e_workflow \
-      --project=kubeflow-ci \
-      --zone=us-east1-d \
-      --cluster=kubeflow-testing \
-      --bucket=kubernetes-jenkins \
-      --config_file=/src/${REPO_OWNER}/${REPO_NAME}/prow_config.yaml \
-      --repos_dir=/src
+    --project=kubeflow-ci \
+    --zone=us-east1-d \
+    --cluster=kubeflow-testing \
+    --bucket=kubernetes-jenkins \
+    --config_file=/src/${REPO_OWNER}/${REPO_NAME}/prow_config.yaml \
+    --repos_dir=/src
 else
   python -m kubeflow.testing.run_e2e_workflow \
-      --project=kubeflow-ci \
-      --zone=us-east1-d \
-      --cluster=kubeflow-testing \
-      --bucket=kubernetes-jenkins \
-      --component=workflows \
-      --app_dir=/src/kubeflow/kubeflow/testing/workflows
+    --project=kubeflow-ci \
+    --zone=us-east1-d \
+    --cluster=kubeflow-testing \
+    --bucket=kubernetes-jenkins \
+    --component=workflows \
+    --app_dir=/src/kubeflow/kubeflow/testing/workflows
 fi
-

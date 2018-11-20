@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Script to delete kubeflow-ci namespace; deployment and source repo in sandbox project.
 # This is intended to be invoked as a step in Argo.
@@ -17,10 +17,10 @@ gcloud container clusters get-credentials ${CLUSTER} --zone ${ZONE} --project ku
 # delete test namespace
 kubectl delete namespace ${NAMESPACE}
 
-for i in 1 2 3 4 5
-do gcloud -q deployment-manager deployments delete ${DEPLOYMENT} --project=kubeflow-ci-deploy && break || sleep 30
+for i in 1 2 3 4 5; do
+  gcloud -q deployment-manager deployments delete ${DEPLOYMENT} --project=kubeflow-ci-deploy && break || sleep 30
 done
 
-for i in 1 2 3 4 5
-do gcloud -q source repos delete kubeflow-ci-deploy-kubeflow-config --project=kubeflow-ci-deploy && break || sleep 30
+for i in 1 2 3 4 5; do
+  gcloud -q source repos delete kubeflow-ci-deploy-kubeflow-config --project=kubeflow-ci-deploy && break || sleep 30
 done

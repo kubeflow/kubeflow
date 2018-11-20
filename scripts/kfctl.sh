@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # This script provides commands to initialize and manage Kubeflow
 # deployments.
 #
@@ -8,70 +8,13 @@
 # cd myapp
 # kfctl.sh generate all
 # kfctl.sh apply all
-#
-# kfctl will assemble and deploy prototypes using ksonnet
-# Prototypes are grouped by component and are available
-# after installing their component
-#    `ks pkg install kubeflow/<component>`
-# Components can be grouped under modules by doing
-#    `ks module create <module-name>`
-#    `ks generate <prototype-name> <component-name> --module <module-name>`
-# One or more modules can be separately deployed by doing
-#    `ks env targets default --module <module-name> ...`
-#    `ks apply default`
-# ksonnet modules are used so that different combinations of prototypes 
-# can be grouped within a ksonnet environment. By setting the environment targets
-# as one or more modules the environment becomes composable either before deployment
-# or after. See `kfctl.sh add --help`.
-#
-# Syntax:
-# A module is named along with it's dependencies by doing
-#   `kfctl.sh add <module-name> --dependsOn <component-name> [<component-name>] ...`
-# More than one component will result in nested modules. 
-#
-# Use case 1: deploying a component's prototype along with it's dependencies
-#   The notebooks component can use protected namespaces so new notebooks are deployed
-#   within this namespace. In this case the notebook component has dependencies on
-#   the profiles and metacontroller components. In this case you would do
-#
-#   `kfctl.sh add notebooks --dependsOn notebooks profiles metacontroller`
-#
-# Use case 2: deploying some prototypes of a component
-#   The kubeflow/core component contains a number of prototypes which are specific to GKE 
-#   like cloud-endpoints, iap-ingress. Other prototypes in core like ambassador and 
-#   centraldashboard should be always be deployed. In this case you can do
-#
-#   `kfctl.sh add core --dependsOn 'core/{ambassador,centraldashboard}'`
-#
-#   In this case we are creating a module called core and adding the ambassador and 
-#   centraldashboard prototypes from the core component.
-# 
-# Use case 3: deploying a prototype in a component after the initial deployment
-#   A common use case is to deploy new prototypes sometime after the initial deployment.
-#   In this case we would like to deploy the 'openvino' component separately.
-#   Here you would do
-#   
-#   `kfctl.sh add openvino --apply --dependsOn openvino`
-#   
-#   In this instance, the openvino's component prototype is added to the openvino module
-#   and just this modoule is deployed. After deployment, the module is added to the
-#   default environment. A subsequent 
-#   
-#   `kfctl.sh delete all`
-# 
-#   would also delete openvino's resources since it was composed with the original environment
-#   but deployed separately.
-#   
-#set -xe
-
-COMMAND=$1
-WHAT=$2
+set -xe
 
 ENV_FILE="env.sh"
 SKIP_INIT_PROJECT=false
 CLUSTER_VERSION="1.10"
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null && pwd)"
 source "${DIR}/util.sh"
 source "${DIR}/gke/util.sh"
 source "${DIR}/util-minikube.sh"
@@ -82,7 +25,7 @@ createEnv() {
   # this ensures all relevant environment variables are persisted in
   # a file for consistency across runs.
   echo PLATFORM=${PLATFORM} >> ${ENV_FILE}
-  DEFAULT_KUBEFLOW_REPO="$( cd "${DIR}/.." >/dev/null && pwd )"
+  DEFAULT_KUBEFLOW_REPO="$(cd "${DIR}/.." > /dev/null && pwd)"
   # Remove trailing slash from the repo.
   KUBEFLOW_REPO=${KUBEFLOW_REPO%/}
   echo KUBEFLOW_REPO=${KUBEFLOW_REPO:-"${DEFAULT_KUBEFLOW_REPO}"} >> ${ENV_FILE}
@@ -103,59 +46,9 @@ createEnv() {
       echo KUBEFLOW_DOCKER_REGISTRY=registry.aliyuncs.com >> ${ENV_FILE}
       ;;
     gcp)
-      while [[ $# -gt 0 ]]; do
-        case $1 in
-          --project)
-            shift
-            PROJECT=$1
-            ;;
-          --zone)
-            shift
-            ZONE=$1
-            ;;
-          --email)
-            shift
-            EMAIL=$1
-            ;;
-          --skipInitProject)
-            SKIP_INIT_PROJECT=true
-            ;;
-        esac
-        shift
-      done
-
       echo KUBEFLOW_PLATFORM=gke >> ${ENV_FILE}
-      # GCP Project
-      if [ -z "${PROJECT}" ]; then
-        PROJECT=$(gcloud config get-value project 2>/dev/null)
-        if [ -z "${PROJECT}" ]; then
-          echo "GCP project must be set either using --project <PROJECT>"
-          echo "or by setting a default project in gcloud config"
-          exit 1
-        fi
-      fi
       echo PROJECT="${PROJECT}" >> ${ENV_FILE}
-
-      # GCP Zone
-      if [ -z "$ZONE" ]; then
-        ZONE=$(gcloud config get-value compute/zone 2>/dev/null)
-        if [ -z "$ZONE" ]; then
-          echo "GCP zone must be set either using --zone <ZONE>"
-          echo "or by setting a default zone in gcloud config"
-          exit 1
-        fi
-      fi
       echo ZONE=${ZONE} >> ${ENV_FILE}
-
-      # GCP Email for cert manager
-      if [ -z "$EMAIL" ]; then
-        EMAIL=$(gcloud config get-value account 2>/dev/null)
-        if [ -z "$EMAIL" ]; then
-          echo "GCP account must be set either using --email <EMAIL>"
-          echo "or by setting a default account in gcloud config"
-          exit 1
-        fi
-      fi
       echo EMAIL=${EMAIL} >> ${ENV_FILE}
 
       # TODO: Do we need to make PROJECT_NUMBER also a flag like --project-number
@@ -173,7 +66,7 @@ createEnv() {
       echo KUBEFLOW_K8S_MANIFESTS_DIR="$(pwd)/k8s_specs" >> ${ENV_FILE}
 
       # Name of the K8s context to create.
-      echo  KUBEFLOW_K8S_CONTEXT=${DEPLOYMENT_NAME} >> ${ENV_FILE}
+      echo KUBEFLOW_K8S_CONTEXT=${DEPLOYMENT_NAME} >> ${ENV_FILE}
 
       # GCP Static IP Name
       echo KUBEFLOW_IP_NAME=${KUBEFLOW_IP_NAME:-"${DEPLOYMENT_NAME}-ip"} >> ${ENV_FILE}
@@ -200,7 +93,7 @@ createEnv() {
 
 createNamespace() {
   set +e
-  O=`kubectl get namespace ${K8S_NAMESPACE} 2>&1`
+  O=$(kubectl get namespace ${K8S_NAMESPACE} 2>&1)
   RESULT=$?
   set -e
 
@@ -211,84 +104,10 @@ createNamespace() {
   fi
 }
 
-if [ "${COMMAND}" == "init" ]; then
-  DEPLOYMENT_NAME=${WHAT}
-
-  while [[ $# -gt 0 ]]; do
-    case $1 in
-      -h | --help)
-        usage
-        exit
-        ;;
-      --platform)
-        shift
-        PLATFORM=$1
-        mkdir -p ${DEPLOYMENT_NAME}
-        # Most commands expect to be executed from the app directory
-        cd ${DEPLOYMENT_NAME}
-        createEnv $*
-        ;;
-    esac
-    shift
-  done
-
-  source ${ENV_FILE}
-  # TODO(jlewi): Should we default to directory name?
-  # TODO(jlewi): This doesn't work if user doesn't provide name we will end up
-  # interpreting parameters as the name. To fix this we need to check name doesn't start with --
-  if [ -z "${DEPLOYMENT_NAME}" ]; then
-    echo "name must be provided"
-    echo "usage: kfctl init <name>"
-    exit 1
-  fi
-  if [ -d ${DEPLOYMENT_NAME} ]; then
-    echo "Directory ${DEPLOYMENT_NAME} already exists"
-    exit 1
-  fi
-
-  if [ -z "${PLATFORM}" ]; then
-    echo "--platform must be provided"
-    echo "usage: kfctl init <PLATFORM>"
-    exit 1
-  fi
-  source ${ENV_FILE}
-
-  # TODO(jlewi): How can we skip GCP project setup? Add a command line argument
-  # to skip it?
-  if [ "${PLATFORM}" == "gcp" ]; then
-    if ${SKIP_INIT_PROJECT}; then
-      echo "skipping project initialization"
-    else
-      echo initializing project
-      gcpInitProject
-    fi
-  fi
-fi
-
-[[ -f ${ENV_FILE} ]] && source ${ENV_FILE}
-
-if [ -z "${COMMAND}" ]; then
-  echo "COMMAND must be provided"
-  usage
-  exit 1
-fi
-
-if [ -z "${WHAT}" ]; then
-  echo "WHAT must be provided"
-  usage
-  exit 1
-fi
-
-# TODO(ankushagarwal): verify ks version is higher than 0.11.0
-check_install ks
-check_install kubectl
-
-ksApply () {
+ksApply() {
   pushd ${KUBEFLOW_KS_DIR}
 
-  if [ "${PLATFORM}" == "minikube" ]; then
-    createNamespace
-  fi
+  createNamespace
 
   kubectl apply --validate=false -f default.yaml
 
@@ -306,112 +125,264 @@ ksApply () {
   set -x
 }
 
-[[ -f ${ENV_FILE} ]] && source ${ENV_FILE}
-
-if [ "${COMMAND}" == "generate" ]; then
-  if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ]; then
-    if [ "${PLATFORM}" == "gcp" ]; then
-      generateDMConfigs
-      downloadK8sManifests
-    fi
-  fi
-
-  if [ "${WHAT}" == "k8s" ] || [ "${WHAT}" == "all" ]; then
-    createKsApp
-    customizeKsAppWithDockerImage
-
-    if [ "${PLATFORM}" == "gcp" ]; then
-      gcpGenerateKsApp
-    fi
-
-    if [ "${PLATFORM}" == "minikube" ]; then
-      create_local_fs_mount_spec
-      if ${MOUNT_LOCAL}; then
-        ks param set jupyter.jupyter disks "local-notebooks" --env=default
-        ks param set jupyter.jupyter notebookUid `id -u` --env=default
-        ks param set jupyter.jupyter notebookGid `id -g` --env=default
-        ks param set jupyter.jupyter accessLocalFs true --env=default
-      fi
-    fi
-  fi
-fi
-
-if [ "${COMMAND}" == "apply" ]; then
-  if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ] ; then
-    if [ "${PLATFORM}" == "gcp" ]; then
-      updateDM
-      createSecrets
-    fi
-  fi
-
-  if [ "${WHAT}" == "k8s"  ] || [ "${WHAT}" == "all" ]; then
-    createNamespace
-    ksApply
-
-    if [ "${PLATFORM}" == "gcp" ]; then
-      gcpKsApply
-    fi
-  fi
-fi
-
-if [ "${COMMAND}" == "add" ]; then
-  shift
-  while [[ "$#" -gt "0" && $1 =~ ^- ]]; do
-    case "$1" in
-      -h|--help)
-        echo -e 'kfctl.sh add [-h|--help] [-a|--apply] -d|--dependsOn component[/prototype] component[/{proto1,proto2}]  ...\n'\
-        '\n'\
-        'Examples:\n'\
-        "kfctl.sh add core --dependsOn 'core/{ambassador,centraldashboard}'\n"\
-        '  Does the following:\n'\
-        '  ks module create core\n'\
-        '  ks generate ambassador ambassador --module core\n'\
-        '  ks generate centraldashboard centraldashboard --module core\n'\
-        '  ks env targets default --module core\n'\
-        '  \n'\
-        'kfctl.sh add tf-training --dependsOn tf-training/tf-job-operator\n'\
-        '  Does the following:\n'\
-        '  ks module create tf-training\n'\
-        '  ks generate tf-job-operator tf-job-operator --module tf-training\n'\
-        '  ks env targets default --module tf-training\n'\
-        '  \n'\
-        'kfctl.sh add notebooks --dependsOn notebooks profiles metacontroller\n'\
-        '  Does the following:\n'\
-        '  ks module create notebooks\n'\
-        '  ks generate notebooks notebooks --module notebooks\n'\
-        '  ks module create notebooks.profiles\n'\
-        '  ks generate profiles profiles --module notebooks.profiles\n'\
-        '  ks module create notebooks.profiles.metacontroller\n'\
-        '  ks generate metacontroller metacontroller --module notebooks.profiles.metacontroller\n'\
-        '  ks env targets default --module notebooks --module notebooks.profiles --module notebooks.profiles.metacontroller\n'\
-        '  \n'\
-        'kfctl.sh add openvino --apply --dependsOn openvino\n'\
-        '  Does the following:\n'\
-        '  ks module create openvino\n'\
-        '  ks generate openvino openvino --module openvino\n'\
-        '  ks env targets default --module openvino\n'\
-        '  ks apply default\n'
-        exit 0
+parseArgs() {
+  # Parse all command line options
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+      -h | --help)
+        usage
+        exit
+        ;;
+      --platform)
+        shift
+        PLATFORM=$1
+        ;;
+      --project)
+        shift
+        PROJECT=$1
+        ;;
+      --zone)
+        shift
+        ZONE=$1
+        ;;
+      --email)
+        shift
+        EMAIL=$1
+        ;;
+      --skipInitProject)
+        SKIP_INIT_PROJECT=true
         ;;
     esac
+    shift
   done
-  [[ -d ${KUBEFLOW_KS_DIR} ]] && pushd ${KUBEFLOW_KS_DIR}
-  addmodule $@
-fi
 
-if [ "${COMMAND}" == "delete" ]; then
-  if [ "${WHAT}" == "k8s"  ] || [ "${WHAT}" == "all" ]; then
-    #set +e
-    removeKsEnv && kubectl delete ns/${K8S_NAMESPACE} && echo "namespace ${K8S_NAMESPACE} successfully deleted."
-    #set -e
+  # Check for gcp specific parameters to be set before proceeding
+  if [ "${PLATFORM}" == "gcp" ]; then
+    # GCP Project
+    if [ -z "${PROJECT}" ]; then
+      PROJECT=$(gcloud config get-value project 2>/dev/null)
+      if [ -z "${PROJECT}" ]; then
+        echo "GCP project must be set either using --project <PROJECT>"
+        echo "or by setting a default project in gcloud config"
+        exit 1
+      fi
+    fi
+    # GCP Zone
+    if [ -z "$ZONE" ]; then
+      ZONE=$(gcloud config get-value compute/zone 2>/dev/null)
+      if [ -z "$ZONE" ]; then
+        echo "GCP zone must be set either using --zone <ZONE>"
+        echo "or by setting a default zone in gcloud config"
+        exit 1
+      fi
+    fi
+    # GCP Email for cert manager
+    if [ -z "$EMAIL" ]; then
+      EMAIL=$(gcloud config get-value account 2>/dev/null)
+      if [ -z "$EMAIL" ]; then
+        echo "GCP account must be set either using --email <EMAIL>"
+        echo "or by setting a default account in gcloud config"
+        exit 1
+      fi
+      # Use iam-policy value for EMAIL if case-sensitive
+      EM_LIST="$(gcloud projects get-iam-policy $PROJECT | grep -io $EMAIL)"
+      for em in $EM_LIST; do
+        if [ "$em" != "$EMAIL" ]; then
+          EMAIL=$em
+          break
+        fi
+      done
+    fi
   fi
-  if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ] ; then
+}
+
+main() {
+  if [ "${COMMAND}" == "init" ]; then
+    DEPLOYMENT_NAME=${WHAT}
+    parseArgs $*
+
+    mkdir -p ${DEPLOYMENT_NAME}
+    # Most commands expect to be executed from the app directory
+    cd ${DEPLOYMENT_NAME}
+    createEnv
+
+    source ${ENV_FILE}
+    # TODO(jlewi): Should we default to directory name?
+    # TODO(jlewi): This doesn't work if user doesn't provide name we will end up
+    # interpreting parameters as the name. To fix this we need to check name doesn't start with --
+    if [ -z "${DEPLOYMENT_NAME}" ]; then
+      echo "name must be provided"
+      echo "usage: kfctl init <name>"
+      exit 1
+    fi
+    if [ -d ${DEPLOYMENT_NAME} ]; then
+      echo "Directory ${DEPLOYMENT_NAME} already exists"
+      exit 1
+    fi
+
+    if [ -z "${PLATFORM}" ]; then
+      echo "--platform must be provided"
+      echo "usage: kfctl init <PLATFORM>"
+      exit 1
+    fi
+    source "${ENV_FILE}"
+
+    # TODO(jlewi): How can we skip GCP project setup? Add a command line argument
+    # to skip it?
     if [ "${PLATFORM}" == "gcp" ]; then
-      if [ -d "${KUBEFLOW_DM_DIR}" ]; then
-        pushd ${KUBEFLOW_DM_DIR}
-        ${DIR}/gke/delete_deployment.sh ${PROJECT} ${DEPLOYMENT_NAME} ${CONFIG_FILE}
-        popd
+      if ${SKIP_INIT_PROJECT}; then
+        echo "skipping project initialization"
+      else
+        echo initializing project
+        gcpInitProject
       fi
     fi
   fi
+
+  source ${ENV_FILE}
+
+  if [ -z "${COMMAND}" ]; then
+    echo "COMMAND must be provided"
+    usage
+    exit 1
+  fi
+
+  if [ -z "${WHAT}" ]; then
+    echo "WHAT must be provided"
+    usage
+    exit 1
+  fi
+
+  # TODO(ankushagarwal): verify ks version is higher than 0.11.0
+  check_install ks
+  check_install kubectl
+
+  source "${ENV_FILE}"
+
+  if [ "${COMMAND}" == "generate" ]; then
+    if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ]; then
+      if [ "${PLATFORM}" == "gcp" ]; then
+        generateDMConfigs
+        downloadK8sManifests
+      fi
+    fi
+
+    if [ "${WHAT}" == "k8s" ] || [ "${WHAT}" == "all" ]; then
+      createKsApp
+      customizeKsAppWithDockerImage
+
+      if [ "${PLATFORM}" == "gcp" ]; then
+        gcpGenerateKsApp
+      fi
+
+      if [ "${PLATFORM}" == "minikube" ]; then
+        create_local_fs_mount_spec
+        if ${MOUNT_LOCAL}; then
+          ks param set jupyter.jupyter disks "local-notebooks" --env default
+          ks param set jupyter.jupyter notebookUid $(id -u) --env default
+          ks param set jupyter.jupyter notebookGid $(id -g) --env default
+          ks param set jupyter.jupyter accessLocalFs true --env default
+        fi
+      fi
+    fi
+  fi
+
+  if [ "${COMMAND}" == "add" ]; then
+    shift
+    while [[ "$#" -gt "0" && $1 =~ ^- ]]; do
+      case "$1" in
+        -h|--help)
+          echo -e 'kfctl.sh add [-h|--help] [-a|--apply] '\
+          '-d|--dependsOn component[/prototype] component[/{proto1,proto2}]  ...\n'\
+          '\n'\
+          'Examples:\n'\
+          "kfctl.sh add core --dependsOn 'core/{ambassador,centraldashboard}'\n"\
+          '  Does the following:\n'\
+          '  ks module create core\n'\
+          '  ks generate ambassador ambassador --module core\n'\
+          '  ks generate centraldashboard centraldashboard --module core\n'\
+          '  ks env targets default --module core\n'\
+          '  \n'\
+          'kfctl.sh add tf-training --dependsOn tf-training/tf-job-operator\n'\
+          '  Does the following:\n'\
+          '  ks module create tf-training\n'\
+          '  ks generate tf-job-operator tf-job-operator --module tf-training\n'\
+          '  ks env targets default --module tf-training\n'\
+          '  \n'\
+          'kfctl.sh add notebooks --dependsOn notebooks profiles metacontroller\n'\
+          '  Does the following:\n'\
+          '  ks module create notebooks\n'\
+          '  ks generate notebooks notebooks --module notebooks\n'\
+          '  ks module create notebooks.profiles\n'\
+          '  ks generate profiles profiles --module notebooks.profiles\n'\
+          '  ks module create notebooks.profiles.metacontroller\n'\
+          '  ks generate metacontroller metacontroller --module notebooks.profiles.metacontroller\n'\
+          '  ks env targets default --module notebooks --module notebooks.profiles '\
+          '--module notebooks.profiles.metacontroller\n'\
+          '  \n'\
+          'kfctl.sh add openvino --apply --dependsOn openvino\n'\
+          '  Does the following:\n'\
+          '  ks module create openvino\n'\
+          '  ks generate openvino openvino --module openvino\n'\
+          '  ks env targets default --module openvino\n'\
+          '  ks apply default\n'
+          exit 0
+          ;;
+      esac
+    done
+    [[ -d ${KUBEFLOW_KS_DIR} ]] && pushd ${KUBEFLOW_KS_DIR}
+    addmodule $@
+  fi
+
+  if [ "${COMMAND}" == "apply" ]; then
+    if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ]; then
+      if [ "${PLATFORM}" == "gcp" ]; then
+        updateDM
+        createSecrets
+      fi
+    fi
+
+    if [ "${WHAT}" == "k8s" ] || [ "${WHAT}" == "all" ]; then
+      ksApply
+
+      if [ "${PLATFORM}" == "gcp" ]; then
+        gcpKsApply
+      fi
+
+    fi
+  fi
+
+  if [ "${COMMAND}" == "delete" ]; then
+    if [ "${WHAT}" == "k8s" ] || [ "${WHAT}" == "all" ]; then
+      # Delete kubeflow namespace - this deletes all the ingress objects
+      # in the namespace which deletes the associated GCP resources
+      set +e
+      removeKsEnv && kubectl delete ns/${K8S_NAMESPACE} && echo "namespace ${K8S_NAMESPACE} successfully deleted."
+      set -e
+    fi
+    if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ]; then
+      if [ "${PLATFORM}" == "gcp" ]; then
+        if [ -d "${KUBEFLOW_DM_DIR}" ]; then
+          pushd ${KUBEFLOW_DM_DIR}
+          ${DIR}/gke/delete_deployment.sh ${PROJECT} ${DEPLOYMENT_NAME} ${CONFIG_FILE}
+          popd
+        fi
+      fi
+      removeKsEnv
+    fi
+  fi
+}
+
+
+# If less than 2 command line options are provided exit early and print usage
+if [[ $# -lt 2 ]]; then
+  usage
+  exit 1
 fi
+
+COMMAND=$1
+WHAT=$2
+shift
+shift
+
+main $*

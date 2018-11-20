@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # A script to automate updating the images to use in the ksonnet
 # components.
@@ -10,12 +10,12 @@
 #
 # If image_tags.yaml looks good invoke apply_tags.py
 set -ex
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-ROOT_DIR="$( cd ${DIR}/.. && pwd )"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd ${DIR}/.. && pwd)"
 
 IMAGES_FILE=${ROOT_DIR}/releasing/image_tags.yaml
 
-# Assume the testing repo is checkout in git_kubeflow_testing because 
+# Assume the testing repo is checkout in git_kubeflow_testing because
 # we depend on the python code in that repo.
 export PYTHONPATH=${PYTHONPATH}:${ROOT_DIR}/../git_kubeflow-testing/py
 
@@ -26,8 +26,8 @@ RELEASE=v0.3.1
 
 # Fetch shas for Jupyter images
 python ${ROOT_DIR}/releasing/add_image_shas.py --pattern=.*tensorflow.*1.*notebook.*:${JUPYTER_TAG} \
-	--images_file=${IMAGES_FILE}
+  --images_file=${IMAGES_FILE}
 
 # Tag the Jupyter images we want with the desired relase tag.
 python ${ROOT_DIR}/releasing/add_image_tag.py --pattern=.*tensorflow.*1.*notebook.*:${JUPYTER_TAG} --tag=${RELEASE} \
-    --images_file=${IMAGES_FILE}
+  --images_file=${IMAGES_FILE}

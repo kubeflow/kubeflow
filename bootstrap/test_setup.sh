@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # A simple script to setup deployment service.
 # This is intended to be invoked as a step in Argo.
