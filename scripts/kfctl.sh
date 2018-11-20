@@ -286,7 +286,9 @@ main() {
   check_install ks
   check_install kubectl
 
-  source "${ENV_FILE}"
+  if [ "${PLATFORM}" == "gcp" ]; then
+    checkInstallPy pyyaml yaml
+  fi
 
   if [ "${COMMAND}" == "generate" ]; then
     if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ]; then
