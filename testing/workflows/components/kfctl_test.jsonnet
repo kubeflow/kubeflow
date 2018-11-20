@@ -220,9 +220,10 @@ local dagTemplates = [
         "ks",
         "param",
         "set",
-        "spartakus",
+        "core.spartakus",
         "reportUsage",
         "false",
+        "--env=default",
       ],
       working_dir=appDir
     ),
