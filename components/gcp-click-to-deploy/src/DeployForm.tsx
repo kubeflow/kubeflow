@@ -340,6 +340,17 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         return;
       }
     }
+    if (this.state.iap) {
+      for (const prop of ['clientId', 'clientSecret']) {
+        if (this.state[prop] === '') {
+          this.setState({
+            dialogBody: 'Some required fields (IAP Oauth Client ID, IAP Oauth Client Secret) are missing',
+            dialogTitle: 'Missing field',
+          });
+          return;
+        }
+      }
+    }
     const deploymentNameKey = 'deploymentName';
     if (this.state[deploymentNameKey].length < 4 || this.state[deploymentNameKey].length > 20) {
       this.setState({
