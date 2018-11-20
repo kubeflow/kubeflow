@@ -90,7 +90,7 @@ function(request) {
     },
     {
       apiVersion: "apps/v1beta1",
-      kind: "StatefulSet",
+      kind: "Deployment",
       metadata: {
         name: request.parent.metadata.name,
         namespace: request.parent.metadata.namespace,
@@ -100,7 +100,6 @@ function(request) {
       },
       spec: {
         replicas: 1,
-        serviceName: "",
         template: {
           metadata: {
             labels: {

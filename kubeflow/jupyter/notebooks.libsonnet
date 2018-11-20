@@ -127,8 +127,8 @@
             resource: "services",
           },
           {
-            apiVersion: "apps/v1beta1",
-            resource: "statefulsets",
+            apiVersion: "extensions/v1beta1",
+            resource: "deployments",
           },
         ],
         hooks: {
