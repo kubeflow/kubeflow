@@ -42,6 +42,10 @@ createEnv() {
       echo KUBEFLOW_PLATFORM=minikube >> ${ENV_FILE}
       echo MOUNT_LOCAL=${MOUNT_LOCAL} >> ${ENV_FILE}
       ;;
+    docker-for-desktop)
+      echo KUBEFLOW_PLATFORM=docker-for-desktop >> ${ENV_FILE}
+      echo MOUNT_LOCAL=${MOUNT_LOCAL} >> ${ENV_FILE}
+      ;;
     ack)
       echo KUBEFLOW_PLATFORM=ack >> ${ENV_FILE}
       echo KUBEFLOW_DOCKER_REGISTRY=registry.aliyuncs.com >> ${ENV_FILE}
@@ -138,7 +142,7 @@ ksApply() {
   ks apply default -c spartakus
 
   # Reduce resource demands locally
-  if [ "${PLATFORM}" != "minikube" ]; then
+  if [ "${PLATFORM}" != "minikube" ] && [ "${PLATFORM}" != "docker-for-desktop" ]; then
     ks apply default -c argo
     ks apply default -c katib
   fi
@@ -146,7 +150,7 @@ ksApply() {
   popd
 
   set +x
-  if [ "${PLATFORM}" == "minikube" ]; then
+  if [ "${PLATFORM}" == "minikube" ] || [ "${PLATFORM}" == "docker-for-desktop" ]; then
     if is_kubeflow_ready; then
       mount_local_fs
       setup_tunnels
@@ -314,7 +318,7 @@ main() {
         gcpGenerateKsApp
       fi
 
-      if [ "${PLATFORM}" == "minikube" ]; then
+      if [ "${PLATFORM}" == "minikube" ] || [ "${PLATFORM}" == "docker-for-desktop" ]; then
         create_local_fs_mount_spec
         if ${MOUNT_LOCAL}; then
           ks param set jupyter disks "local-notebooks"
