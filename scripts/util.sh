@@ -56,11 +56,8 @@ createKsApp() {
   ks pkg install kubeflow/pytorch-job
   ks pkg install kubeflow/seldon
   ks pkg install kubeflow/tf-serving
-<<<<<<< HEAD
   ks pkg install kubeflow/openvino
-=======
   ks pkg install kubeflow/tf-training
->>>>>>> 41050ef854948600ef7f922f2a3c295b60b1f7c0
   ks pkg install kubeflow/metacontroller
   ks pkg install kubeflow/profiles
   ks pkg install kubeflow/application
@@ -69,12 +66,8 @@ createKsApp() {
   ks generate pytorch-operator pytorch-operator
   # TODO(jlewi): Why are we overloading the ambassador images here?
   ks generate ambassador ambassador
-<<<<<<< HEAD
-  ks generate jupyterhub jupyterhub
   ks generate openvino openvino
-=======
   ks generate jupyter jupyter
->>>>>>> 41050ef854948600ef7f922f2a3c295b60b1f7c0
   ks generate centraldashboard centraldashboard
   ks generate tf-job-operator tf-job-operator
   ks generate metacontroller metacontroller
