@@ -58,8 +58,8 @@
       apiVersion: "apps/v1beta2",
       kind: "Deployment",
       metadata: {
-        "labels": {
-          "app": "pipeline-spartakus-volunteer",
+        labels: {
+          app: "pipeline-spartakus-volunteer",
         },
         name: "pipeline-spartakus-volunteer",
         namespace: namespace,
@@ -73,8 +73,8 @@
         replicas: 1,
         template: {
           metadata: {
-            "labels": {
-              "app": "pipeline-spartakus-volunteer",
+            labels: {
+              app: "pipeline-spartakus-volunteer",
             },
           },
           spec: {
@@ -94,6 +94,6 @@
           },
         },
       },
-    }, // deployVolunteer
+    },  // deployVolunteer
   },  // parts
 }
