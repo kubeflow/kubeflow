@@ -117,7 +117,7 @@ std.assertEqual(
       },
       {
         apiVersion: "apps/v1beta1",
-        kind: "StatefulSet",
+        kind: "Deployment",
         metadata: {
           labels: {
             app: "training",
@@ -127,7 +127,6 @@ std.assertEqual(
         },
         spec: {
           replicas: 1,
-          serviceName: "",
           template: {
             metadata: {
               labels: {

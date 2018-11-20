@@ -158,8 +158,8 @@ std.assertEqual(
           resource: "services",
         },
         {
-          apiVersion: "v1",
-          resource: "pods",
+          apiVersion: "extensions/v1beta1",
+          resource: "deployments",
         },
       ],
       generateSelector: true,
