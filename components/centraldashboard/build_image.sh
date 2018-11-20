@@ -9,6 +9,7 @@ set -ex
 DOCKERFILE=$1
 IMAGE=$2
 TAG=$3
+ARCH=${4:-amd64}
 CONTEXT_DIR=$(dirname "$DOCKERFILE")
 PROJECT="${GCP_PROJECT}"
 
@@ -24,5 +25,5 @@ cd $CONTEXT_DIR
 echo "GCP Project: "$PROJECT
 
 echo "Building centraldashboard using gcloud build"
-gcloud builds submit --tag=${IMAGE}:${TAG} --project=${PROJECT} .
+gcloud builds submit --tag=${IMAGE}-${ARCH}:${TAG} --project=${PROJECT} .
 echo "Finished building image"
