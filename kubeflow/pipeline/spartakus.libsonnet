@@ -1,9 +1,9 @@
 {
-  all(namespace, usage_id):: [
+  all(namespace, usageId):: [
     $.parts(namespace).serviceAccount,
     $.parts(namespace).clusterRole,
     $.parts(namespace).clusterRoleBinding,
-    $.parts(namespace).deployVolunteer(usage_id),
+    $.parts(namespace).deployVolunteer(usageId),
   ],
 
   parts(namespace):: {
@@ -54,7 +54,7 @@
         },
       ],
     },  // clusterRoleBinding
-    deployVolunteer(usage_id): {
+    deployVolunteer(usageId): {
       apiVersion: "apps/v1beta2",
       kind: "Deployment",
       metadata: {
@@ -85,7 +85,7 @@
                 imagePullPolicy: "IfNotPresent",
                 args: [
                   "volunteer",
-                  "--cluster-id=" + usage_id,
+                  "--cluster-id=" + usageId,
                   "--database=https://ml-pipeline-reporting.appspot.com/",
                 ],
               },

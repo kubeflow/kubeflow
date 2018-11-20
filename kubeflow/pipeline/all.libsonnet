@@ -18,9 +18,9 @@
     local uiImage = params.uiImage,
     local deploy_argo = params.deploy_argo,
     local reportUsage = params.reportUsage,
-    local usage_id = params.usage_id,
+    local usageId = params.usageId,
     reporting:: if (reportUsage == true) || (reportUsage == "true") then
-      spartakus.all(namespace, usage_id)
+      spartakus.all(namespace, usageId)
     else [],
     all:: minio.parts(namespace).all +
           mysql.parts(namespace).all +
