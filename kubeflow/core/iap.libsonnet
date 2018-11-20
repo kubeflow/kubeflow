@@ -251,6 +251,87 @@
     },  // deploy
     deploy:: deploy,
 
+    // Run the process to update the backend service
+    local backendUpdater = {
+      apiVersion: "apps/v1",
+      kind: "StatefulSet",
+      metadata: {
+        name: "backend-updater",
+        namespace: params.namespace,
+        labels: {
+          service: "backend-updater",
+        },
+      },
+      spec: {
+        selector: {
+          matchLabels: {
+            service: "backend-updater",
+          },
+        },
+        template: {
+          metadata: {
+            labels: {
+              service: "backend-updater",
+            },
+          },
+          spec: {
+            serviceAccountName: "envoy",
+            containers: [
+              {
+                name: "backend-updater",
+                image: params.ingressSetupImage,
+                command: [
+                  "bash",
+                  "/var/envoy-config/update_backend.sh",
+                ],
+                env: [
+                  {
+                    name: "NAMESPACE",
+                    value: params.namespace,
+                  },
+                  {
+                    name: "SERVICE",
+                    value: "envoy",
+                  },
+                  {
+                    name: "GOOGLE_APPLICATION_CREDENTIALS",
+                    value: "/var/run/secrets/sa/admin-gcp-sa.json",
+                  },
+                ],
+                volumeMounts: [
+                  {
+                    mountPath: "/var/envoy-config/",
+                    name: "config-volume",
+                  },
+                  {
+                    name: "sa-key",
+                    readOnly: true,
+                    mountPath: "/var/run/secrets/sa",
+                  },
+                ],
+              },
+            ],
+            volumes: [
+              {
+                configMap: {
+                  name: "envoy-config",
+                },
+                name: "config-volume",
+              },
+              {
+                name: "sa-key",
+                secret: {
+                  secretName: "admin-gcp-sa",
+                },
+              },
+            ],
+          },
+        },
+      },
+
+    },  // backendUpdater
+    backendUpdater:: backendUpdater,
+
     // Run the process to enable iap
     local iapEnabler = {
       apiVersion: "extensions/v1beta1",
@@ -631,6 +712,7 @@
       data: {
         "envoy-config.json": std.manifestJson(envoyConfig(params)),
         "setup_backend.sh": importstr "setup_backend.sh",
+        "update_backend.sh": importstr "update_backend.sh",
         "configure_envoy_for_iap.sh": importstr "configure_envoy_for_iap.sh",
       },
     },
@@ -910,6 +992,7 @@
       self.initClusterRole,
       self.deploy,
       self.iapEnabler,
+      self.backendUpdater,
       self.configMap,
       self.whoamiService,
       self.whoamiApp,
