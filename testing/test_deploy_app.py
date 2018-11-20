@@ -19,6 +19,7 @@ import google.auth.compute_engine.credentials
 import google.auth.iam
 import google.oauth2.credentials
 import google.oauth2.service_account
+from retrying import retry
 
 FILE_PATH = os.path.dirname(os.path.abspath(__file__))
 SSL_DIR = os.path.join(FILE_PATH, "sslcert")
@@ -139,17 +140,18 @@ def insert_ssl_cert(args):
   except Exception:
     logging.warning("ssl cert for %s doesn't exist in gcs" % args.mode)
     return True
-  for i in range(5):
-    try:
-      util_run(("gcloud container clusters get-credentials %s --zone %s --project %s" %
-                (args.deployment, args.zone, args.project)).split(' '))
-      util_run(("kubectl create -f %s" % SSL_DIR).split(' '))
-    except Exception as e:
-      logging.error(e)
-      sleep(5)
-      continue
-    return True
-  return False
+  try:
+    create_secret(args)
+  except Exception as e:
+    logging.error(e)
+    return False
+  return True
+
+@retry(wait_fixed=2000, stop_max_delay=15000)
+def create_secret(args):
+  util_run(("gcloud container clusters get-credentials %s --zone %s --project %s" %
+            (args.deployment, args.zone, args.project)).split(' '))
+  util_run(("kubectl create -f %s" % SSL_DIR).split(' '))
 
 def check_deploy_status(args):
   logging.info("check deployment status")
