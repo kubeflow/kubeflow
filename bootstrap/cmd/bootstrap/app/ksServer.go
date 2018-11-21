@@ -1164,17 +1164,7 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 			r.Err = err.Error()
 			return r, err
 		}
-		dmServiceAccount := req.ProjectNumber + "@cloudservices.gserviceaccount.com"
 
-		bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(1 * time.Second), 5)
-		err := backoff.Retry(func() error {
-			return svc.BindRole(ctx, req.Project, req.Token, dmServiceAccount)
-		}, bo)
-		if err != nil {
-			r.Err = err.Error()
-			deploymentFailure.Inc()
-			return r, err
-		}
 		DmDeployment, err := svc.InsertDeployment(ctx, req)
 		if err != nil {
 			r.Err = err.Error()

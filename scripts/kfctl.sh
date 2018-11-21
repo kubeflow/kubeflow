@@ -140,10 +140,11 @@ ksApply() {
   ks apply default -c tf-job-operator
   ks apply default -c metacontroller
   ks apply default -c spartakus
+  ks apply default -c argo
+  ks apply default -c pipeline
 
   # Reduce resource demands locally
   if [ "${PLATFORM}" != "minikube" ] && [ "${PLATFORM}" != "docker-for-desktop" ]; then
-    ks apply default -c argo
     ks apply default -c katib
   fi
 
