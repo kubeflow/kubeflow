@@ -22,6 +22,16 @@ check_install() {
   fi
 }
 
+checkInstallPy() {
+  local PYPI=$1
+  local MOD=$2
+  if python -c "import pkgutil; exit(pkgutil.find_loader('${MOD}'))" &>/dev/null; then
+    echo "Failed to import python module ${MOD}."
+    echo "You don't have ${PYPI} installed. Please install ${PYPI}."
+    exit 1
+  fi
+}
+
 check_variable() {
   if [[ -z "${1}" ]]; then
     echo "'${2}' environment variable is not set. Please set it using export ${2}=value."
@@ -64,7 +74,6 @@ createKsApp() {
 
   # Generate all required components
   ks generate pytorch-operator pytorch-operator
-  # TODO(jlewi): Why are we overloading the ambassador images here?
   ks generate ambassador ambassador
   ks generate openvino openvino
   ks generate jupyter jupyter
@@ -72,6 +81,7 @@ createKsApp() {
   ks generate tf-job-operator tf-job-operator
   ks generate metacontroller metacontroller
   ks generate profiles profiles
+  ks generate notebooks notebooks 
 
   ks generate argo argo
   ks generate katib katib
