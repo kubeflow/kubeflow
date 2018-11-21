@@ -49,6 +49,7 @@ function createKsApp() {
 
   # Install all required packages
   ks pkg install kubeflow/argo
+  ks pkg install kubeflow/pipeline
   ks pkg install kubeflow/core
   ks pkg install kubeflow/examples
   ks pkg install kubeflow/katib
@@ -64,8 +65,12 @@ function createKsApp() {
   ks generate jupyterhub jupyterhub
   ks generate centraldashboard centraldashboard
   ks generate tf-job-operator tf-job-operator
-
+  ks generate metacontroller metacontroller
+  ks generate profiles profiles
+  ks generate notebooks notebooks 
   ks generate argo argo
+  ks generate pipeline pipeline
+
   ks generate katib katib
   # Enable collection of anonymous usage metrics
   # To disable metrics collection. Remove the spartakus component.
