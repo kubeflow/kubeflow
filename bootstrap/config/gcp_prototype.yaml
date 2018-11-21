@@ -5,6 +5,10 @@ app:
   components:
     - name: jupyterhub
       prototype: jupyterhub
+    - name: pipeline
+      prototype: pipeline
+    - name: argo
+      prototype: argo
     - name: ambassador
       prototype: ambassador
     - name: centraldashboard
