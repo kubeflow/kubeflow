@@ -706,7 +706,7 @@ function autofillWorkspaceVolume(rok_member_url) {
     },
     success: function(data, textStatus, request) {
       setValue($('#ws_name'), getHeader(request, 'X-Object-Meta-workspace'));
-      setValue($('#ws_size'), Math.round(getHeader(request, 'Content-Length')/Math.pow(1024, 3)));
+      setValue($('#ws_size'), getHeader(request, 'Content-Length')/Math.pow(1024, 3));
       setValue($('#ws_mount_path'), getHeader(request, 'X-Object-Meta-mountpoint'));
     },
     error: function(XMLHttpRequest, e) {
@@ -725,7 +725,7 @@ function autofillDataVolume(rok_member_url, data_volume_id) {
     },
     success: function(data, textStatus, request) {
       setValue($('#vol_name' + data_volume_id), getHeader(request, 'X-Object-Meta-dataset'));
-      setValue($('#vol_size' + data_volume_id), Math.round(getHeader(request, 'Content-Length')/Math.pow(1024, 3)));
+      setValue($('#vol_size' + data_volume_id), getHeader(request, 'Content-Length')/Math.pow(1024, 3));
       setValue($('#vol_mount_path' + data_volume_id), getHeader(request, 'X-Object-Meta-mountpoint'));
     },
     error: function(XMLHttpRequest, e) {
