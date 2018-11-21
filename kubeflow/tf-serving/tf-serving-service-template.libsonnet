@@ -40,7 +40,11 @@
               "method: GET",
               "service: " + name + "." + namespace + ":8500",
             ]),
-        },  //annotations
+        } + if util.toBool(params.enablePrometheus) then {
+          "prometheus.io/scrape": "true",
+          "prometheus.io/path": "/monitoring/prometheus/metrics",
+          "prometheus.io/port": "8500",
+        } else {},  //annotations
       },
       spec: {
         ports: [

@@ -85,6 +85,20 @@ resources:
           {{ properties['securityConfig']['masterAuthorizedNetworksConfigCidr'] }}
         {% endif %}
       {% endif %}
+      # Autoprovisioning is only supported in v1beta1.
+      {% if properties['gkeApiVersion'] == 'v1beta1' and properties['autoprovisioning-config']['enabled'] %}
+      autoscaling:
+        enableNodeAutoprovisioning: true
+        resourceLimits:
+        - resourceType: 'cpu'
+          maximum: {{ properties['autoprovisioning-config']['max-cpu'] }}
+        - resourceType: 'memory'
+          maximum: {{ properties['autoprovisioning-config']['max-memory'] }}
+          {% for accelerator in properties['autoprovisioning-config']['max-accelerator'] %}
+        - resourceType: {{ accelerator.type }}
+          maximum: {{ accelerator.count }}
+          {% endfor %}
+      {% endif %}
       nodePools:
       - name: default-pool
         initialNodeCount: {{ properties['cpu-pool-initialNodeCount'] }}

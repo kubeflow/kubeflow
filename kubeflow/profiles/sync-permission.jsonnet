@@ -46,6 +46,8 @@ function(request) {
             "delete",
             "get",
             "list",
+            "patch",
+            "update",
             "watch",
           ],
         },

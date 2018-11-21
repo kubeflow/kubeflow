@@ -71,6 +71,8 @@ std.assertEqual(
               "delete",
               "get",
               "list",
+              "patch",
+              "update",
               "watch",
             ],
           },

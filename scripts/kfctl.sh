@@ -13,6 +13,7 @@ set -xe
 ENV_FILE="env.sh"
 SKIP_INIT_PROJECT=false
 CLUSTER_VERSION="1.10"
+GKE_API_VERSION="v1"
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null && pwd)"
 source "${DIR}/util.sh"
@@ -84,6 +85,8 @@ createEnv() {
       # https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters
       echo "Setting cluster version to ${CLUSTER_VERSION}"
       echo CLUSTER_VERSION=${CLUSTER_VERSION} >> ${ENV_FILE}
+
+      echo GKE_API_VERSION=${GKE_API_VERSION} >> ${ENV_FILE}
       ;;
     *)
       echo KUBEFLOW_PLATFORM=null >> ${ENV_FILE}
@@ -154,7 +157,6 @@ ksApply() {
   set -x
 }
 
-
 parseArgs() {
   # Parse all command line options
   while [[ $# -gt 0 ]]; do
@@ -179,6 +181,10 @@ parseArgs() {
         shift
         EMAIL=$1
         ;;
+      --gkeApiVersion)
+        shift
+        GKE_API_VERSION=$1
+        ;;       
       --skipInitProject)
         SKIP_INIT_PROJECT=true
         ;;
@@ -188,7 +194,7 @@ parseArgs() {
 
   # Check for gcp specific parameters to be set before proceeding
   if [ "${PLATFORM}" == "gcp" ]; then
-     # GCP Project
+    # GCP Project
     if [ -z "${PROJECT}" ]; then
       PROJECT=$(gcloud config get-value project 2>/dev/null)
       if [ -z "${PROJECT}" ]; then
@@ -214,6 +220,14 @@ parseArgs() {
         echo "or by setting a default account in gcloud config"
         exit 1
       fi
+      # Use iam-policy value for EMAIL if case-sensitive
+      EM_LIST="$(gcloud projects get-iam-policy $PROJECT | grep -io $EMAIL)"
+      for em in $EM_LIST; do
+        if [ "$em" != "$EMAIL" ]; then
+          EMAIL=$em
+          break
+        fi
+      done
     fi
   fi
 }
@@ -279,7 +293,9 @@ main() {
   check_install ks
   check_install kubectl
 
-  source "${ENV_FILE}"
+  if [ "${PLATFORM}" == "gcp" ]; then
+    checkInstallPy pyyaml yaml
+  fi
 
   if [ "${COMMAND}" == "generate" ]; then
     if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ]; then

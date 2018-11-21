@@ -329,6 +329,7 @@
       kind: "CompositeController",
       metadata: {
         name: "permissions-controller",
+        annotations: params,
       },
       spec: {
         generateSelector: true,
