@@ -36,6 +36,7 @@ LOADTEST_HEALTH = Gauge('loadtest_health',
                         '0: normal; 1: not working')
 SUCCESS_COUNT = Counter('deployment_success_count', 'accumulative count of successful deployment')
 FAILURE_COUNT = Counter('deployment_failure_count', 'accumulative count of failed deployment')
+LOADTEST_ZONE = ['us-central1-a', 'us-central1-c', 'us-east1-c', 'us-east1-d', 'us-west1-b']
 
 class requestThread(threading.Thread):
   def __init__(self, target_url, req_data, google_open_id_connect_token):
@@ -64,6 +65,11 @@ def may_get_env_var(name):
     return env_val
   else:
     raise Exception("%s not set" % name)
+
+def getZone(args, deployment):
+  if args.mode == "loadtest":
+    return LOADTEST_ZONE[int(deployment[-1]) % len(LOADTEST_ZONE)]
+  return args.zone
 
 def get_target_url(args):
   if args.mode == "loadtest":
@@ -107,7 +113,7 @@ def prepare_request_data(args, deployment):
     # service account client id of account: kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
     "SAClientId": args.sa_client_id,
     "Token": access_token,
-    "Zone": args.zone
+    "Zone": getZone(args, deployment)
   }
 
 def make_e2e_call(args):
@@ -195,17 +201,17 @@ def insert_ssl_cert(args, deployment):
     logging.warning("ssl cert for %s doesn't exist in gcs" % args.mode)
     return True
   try:
-    create_secret(args, deployment)
+    create_secret(args, deployment, ssl_local_dir)
   except Exception as e:
     logging.error(e)
     return False
   return True
 
 @retry(wait_fixed=2000, stop_max_delay=15000)
-def create_secret(args, deployment):
+def create_secret(args, deployment, ssl_local_dir):
   util_run(("gcloud container clusters get-credentials %s --zone %s --project %s" %
-            (deployment, args.zone, args.project)).split(' '))
-  util_run(("kubectl create -f %s" % SSL_DIR).split(' '))
+            (deployment, getZone(args, deployment), args.project)).split(' '))
+  util_run(("kubectl create -f %s" % ssl_local_dir).split(' '))
 
 # deployments: set(string) which contains all deployment names in current test round.
 def check_deploy_status(args, deployments):
@@ -243,7 +249,7 @@ def check_deploy_status(args, deployments):
           continue
         os.mkdir(ssl_local_dir)
         util_run(("gcloud container clusters get-credentials %s --zone %s --project %s" %
-                  (deployment, args.zone, args.project)).split(' '))
+                  (deployment, getZone(args, deployment), args.project)).split(' '))
         for sec in ["envoy-ingress-tls", "letsencrypt-prod-secret"]:
           sec_data = util_run(("kubectl get secret %s -n kubeflow -o yaml" % sec).split(' '))
           with open(os.path.join(ssl_local_dir, sec + ".yaml"), 'w+') as sec_file:
@@ -351,7 +357,8 @@ def prober_clean_up_resource(args, deployments):
   # Delete backend-services
   delete_gcloud_resource(args, 'backend-services', dlt_params=['--global'])
   # Delete instance-groups
-  delete_gcloud_resource(args, 'instance-groups unmanaged', filter=' --filter=INSTANCES:0', dlt_params=['--zone=' + args.zone])
+  for zone in LOADTEST_ZONE:
+    delete_gcloud_resource(args, 'instance-groups unmanaged', filter=' --filter=INSTANCES:0', dlt_params=['--zone=' + zone])
   # Delete ssl-certificates
   delete_gcloud_resource(args, 'ssl-certificates')
   # Delete health-checks
