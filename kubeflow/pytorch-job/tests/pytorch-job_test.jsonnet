@@ -224,6 +224,4 @@ local testSuite = suiteResult {
   testCases: testCasesWithResults,
 };
 
-// TODO(https://github.com/kubeflow/kubeflow/issues/1988): Output testSuite
-// rather than std.assertEqual
-std.assertEqual(testSuite.pass, true)
+testSuite.pass

@@ -29,6 +29,7 @@ python python -m testing.test_jsonnet --test_files_dirs=/kubeflow/application/te
 from __future__ import print_function
 
 import logging
+import json
 import os
 
 import argparse
@@ -57,7 +58,17 @@ def run(test_files_dirs, jsonnet_path_args, test_case):
         if should_test(full_path):
           logging.info("Testing: %s", test_file)
           try:
-            util.run(['jsonnet', 'eval', full_path] + jsonnet_path_args, cwd=os.path.dirname(full_path))
+            output = util.run(
+              ['jsonnet', 'eval', full_path] + jsonnet_path_args,
+              cwd=os.path.dirname(full_path))
+            parsed = json.loads(output)
+
+            test_passed = parsed.get("pass", false)
+
+            if not test_passed:
+              test_case.add_failure_info('{} test failed'.format(test_file))
+              logging.error('%s test failed. See Subprocess output for details.',
+                            test_file)
           except Exception as e:
             test_case.add_failure_info('{} test failed'.format(test_file))
             logging.error('%s test failed. See Subprocess output for details.', test_file)
