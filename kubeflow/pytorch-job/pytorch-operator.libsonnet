@@ -28,6 +28,7 @@
       },
       spec: {
         group: "kubeflow.org",
+        scope: "Namespaced",
         version: "v1alpha2",
         names: {
           kind: "PyTorchJob",
@@ -77,6 +78,7 @@
       spec: {
         group: "kubeflow.org",
         version: "v1beta1",
+        scope: "Namespaced",
         names: {
           kind: "PyTorchJob",
           singular: "pytorchjob",

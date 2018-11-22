@@ -49,13 +49,8 @@
       },
     },
     local crd(inst) = {
-      local scope =
-        inst + if params.deploymentScope == "namespace" && params.deploymentNamespace != null then
-          { spec+: { scope: "Namespaced" } }
-        else
-          {},
       local version =
-        scope + if params.tfJobVersion == "v1alpha2" then
+        inst + if params.tfJobVersion == "v1alpha2" then
           { spec+: { version: "v1alpha2" } }
         else
           {},
@@ -70,6 +65,7 @@
       },
       spec: {
         group: "kubeflow.org",
+        scope: "Namespaced",
         version: "v1beta1",
         names: {
           kind: "TFJob",
