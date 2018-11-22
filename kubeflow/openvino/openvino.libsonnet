@@ -29,7 +29,7 @@
             "apiVersion: ambassador/v0",
             "kind:  Mapping",
             "name: openvino-mapping",
-            "prefix: /" + params.name + "/",
+            "prefix: /openvino/",
             "rewrite: /",
             "service: " + params.name + "." + params.namespace + ":" + params.servicePort,
           ]),
