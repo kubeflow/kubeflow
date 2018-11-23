@@ -16,6 +16,7 @@
       },
       spec: {
         group: "kubeflow.org",
+        scope: "Namespaced",
         version: "v1alpha1",
         names: {
           kind: "StudyJob",
