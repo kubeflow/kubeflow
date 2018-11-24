@@ -61,7 +61,13 @@ def run(test_files_dirs, jsonnet_path_args, test_case):
             output = util.run(
               ['jsonnet', 'eval', full_path] + jsonnet_path_args,
               cwd=os.path.dirname(full_path))
-            parsed = json.loads(output)
+            try:
+              parsed = json.loads(output)
+            except AttributeError:
+              logging.error(
+                "Output of jsonnet eval could not be parsed as json; "
+                "output: %s", output)
+              parsed = {}
 
             test_passed = parsed.get("pass", false)
 
