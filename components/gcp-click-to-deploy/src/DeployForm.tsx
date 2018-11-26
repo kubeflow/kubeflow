@@ -191,6 +191,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           <Text style={{ fontSize: '1.1em', margin: '2% 11%' }}>Kubeflow Version:</Text>
           <select name="kfverison" style={{ display: 'flex', fontSize: '1.1em', margin: '2% 1%',}} spellCheck={false} value={this.state.kfverison} onChange={this._handleChange.bind(this)} >
             <option value="v0.3.2">v0.3.2</option>
+            <option selected value="v0.3.4-rc.1">v0.3.4-rc.1</option>
           </select>
         </Row>
         <div style={{ display: 'flex', padding: '20px 60px 40px' }}>
