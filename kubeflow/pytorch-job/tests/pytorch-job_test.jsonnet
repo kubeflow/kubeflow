@@ -224,4 +224,4 @@ local testSuite = suiteResult {
   testCases: testCasesWithResults,
 };
 
-testSuite.pass
+testSuite
