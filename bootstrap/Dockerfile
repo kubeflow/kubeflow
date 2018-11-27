@@ -20,7 +20,7 @@ RUN wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.ta
 RUN ln -sf /google-cloud-sdk/bin/gcloud /usr/local/bin/gcloud
 
 # Install kubectl
-# We don't install via gcloud because we want 1.10 which is newer than what's in gcloud.
+# We don't install via gcloud because we want 1.12.2 which is newer than what's in gcloud.
 RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.12.2/bin/linux/amd64/kubectl && \
     mv kubectl /usr/local/bin && \
     chmod a+x /usr/local/bin/kubectl
