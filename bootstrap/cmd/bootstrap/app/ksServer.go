@@ -399,7 +399,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 				actions.OptionFs:       s.fs,
 				actions.OptionName:     "app",
 				actions.OptionEnvName:  envName,
-				actions.OptionRootPath: appDir,
+				actions.OptionAppRoot:  appDir,
 				actions.OptionServer:   config.Host,
 				// TODO(jlewi): What is the proper version to use? It shouldn't be a version like v1.9.0-gke as that
 				// will create an error because ksonnet will be unable to fetch a swagger spec.
@@ -418,7 +418,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 			log.Infof("Directory %v exists", appDir)
 		}
 
-		kfApp, err := kApp.Load(s.fs, appDir, true)
+		kfApp, err := kApp.Load(s.fs, nil, appDir)
 
 		if err != nil {
 			log.Errorf("There was a problem loading app %v. Error: %v", request.Name, err)
@@ -605,8 +605,6 @@ func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *AppConfig) error {
 					if err != nil {
 						return fmt.Errorf("Package %v didn't exist in registry %v", pkgName, registry.RegUri)
 					}
-					full := fmt.Sprintf("%v/%v", registry.Name, pkgName)
-					log.Infof("Installing package %v", full)
 
 					if _, found := libs[pkgName]; found {
 						log.Infof("Package %v already exists", pkgName)
@@ -614,13 +612,13 @@ func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *AppConfig) error {
 					}
 					err := actions.RunPkgInstall(map[string]interface{}{
 						actions.OptionApp:     kfApp,
-						actions.OptionLibName: full,
-						actions.OptionName:    pkgName,
+						actions.OptionPkgName: pkgName,
+						actions.OptionName:    registry.Name,
 						actions.OptionForce:   false,
 					})
 
 					if err != nil {
-						return fmt.Errorf("There was a problem installing package %v; error %v", full, err)
+						return fmt.Errorf("There was a problem installing package %v; error %v", registry.Name, err)
 					}
 				}
 			}
@@ -638,7 +636,7 @@ func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *AppConfig) error {
 		}
 		err := actions.RunPkgInstall(map[string]interface{}{
 			actions.OptionApp:     kfApp,
-			actions.OptionLibName: full,
+			actions.OptionPkgName: full,
 			actions.OptionName:    pkg.Name,
 			actions.OptionForce:   false,
 		})
@@ -825,7 +823,7 @@ func (s *ksServer) GetApp(project string, appName string, kfVersion string, toke
 	if err != nil {
 		return nil, repoDir, fmt.Errorf("App %s doesn't exist in Project %s", appName, project)
 	}
-	kfApp, err := kApp.Load(s.fs, appDir, true)
+	kfApp, err := kApp.Load(s.fs, nil, appDir)
 
 	if err != nil {
 		return nil, "", fmt.Errorf("There was a problem loading app %v. Error: %v", appName, err)

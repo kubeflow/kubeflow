@@ -71,8 +71,8 @@ require (
 	github.com/konsorten/go-windows-terminal-sequences v1.0.1
 	github.com/kr/fs v0.1.0
 	github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515
-	github.com/ksonnet/ksonnet v0.12.0
-	github.com/ksonnet/ksonnet-lib v0.1.10
+	github.com/ksonnet/ksonnet v0.13.1
+	github.com/ksonnet/ksonnet-lib v0.1.12
 	github.com/mailru/easyjson v0.0.0-20170624190925-2f5df55504eb
 	github.com/mattn/go-colorable v0.0.0-20180310133214-efa589957cd0
 	github.com/mattn/go-isatty v0.0.0-20180830101745-3fb116b82035
