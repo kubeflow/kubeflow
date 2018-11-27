@@ -192,13 +192,15 @@ def insert_ssl_cert(args, deployment):
   ssl_local_dir = os.path.join(SSL_DIR, deployment)
   if os.path.exists(ssl_local_dir):
     shutil.rmtree(ssl_local_dir)
-  os.mkdir(ssl_local_dir)
+  os.makedirs(ssl_local_dir)
   logging.info("donwload ssl cert and insert to GKE cluster")
   try:
     # TODO: switch to client lib
     util_run(("gsutil cp gs://%s/* %s" % (get_gcs_path(args.mode, deployment), ssl_local_dir)).split(' '))
   except Exception:
     logging.warning("ssl cert for %s doesn't exist in gcs" % args.mode)
+    # clean up local dir
+    shutil.rmtree(ssl_local_dir)
     return True
   try:
     create_secret(args, deployment, ssl_local_dir)
@@ -224,9 +226,11 @@ def check_deploy_status(args, deployments):
   # Wait up to 30 minutes for IAP access test.
   num_req = 0
   end_time = datetime.datetime.now() + datetime.timedelta(minutes=30)
+  success_deploy = set()
   while datetime.datetime.now() < end_time and len(deployments) > 0:
     sleep(10)
     num_req += 1
+
     for deployment in deployments:
       try:
         resp = requests.request(
@@ -234,20 +238,22 @@ def check_deploy_status(args, deployments):
           headers={'Authorization': 'Bearer {}'.format(
             google_open_id_connect_token)})
         if resp.status_code == 200:
-          deployments.remove(deployment)
+          success_deploy.add(deployment)
         else:
           logging.info("%s: IAP not ready, request number: %s" % (deployment, num_req))
       except Exception:
         logging.info("%s: IAP not ready, exception caught, request number: %s" % (deployment, num_req))
+    for element in success_deploy:
+      deployments.remove(element)
 
   # Optionally upload ssl cert
   if len(deployments) == 0 and len(os.listdir(SSL_DIR)) < num_deployments:
-    for deployment in deployments:
+    for deployment in success_deploy:
       try:
         ssl_local_dir = os.path.join(SSL_DIR, deployment)
         if os.path.exists(ssl_local_dir):
           continue
-        os.mkdir(ssl_local_dir)
+        os.makedirs(ssl_local_dir)
         util_run(("gcloud container clusters get-credentials %s --zone %s --project %s" %
                   (deployment, getZone(args, deployment), args.project)).split(' '))
         for sec in ["envoy-ingress-tls", "letsencrypt-prod-secret"]:
