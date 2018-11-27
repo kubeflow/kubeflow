@@ -1,4 +1,5 @@
-FROM golang:1.11.2 as build
+ARG GOLANG_VERSION=1.11.2
+FROM golang:$GOLANG_VERSION as build
 ARG registries
 
 # install vim 
