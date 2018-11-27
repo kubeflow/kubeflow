@@ -15,6 +15,7 @@ import (
 	"golang.org/x/oauth2"
 	"google.golang.org/api/cloudresourcemanager/v1"
 	"google.golang.org/api/deploymentmanager/v2"
+	"github.com/cenkalti/backoff"
 )
 
 type Resource struct {
@@ -233,17 +234,19 @@ func (s *ksServer) ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) erro
 	projLock.Lock()
 	defer projLock.Unlock()
 
-	retry := 0
-	for retry < 5 {
-		retry += 1
+	exp := backoff.NewExponentialBackOff()
+	exp.InitialInterval = 2 * time.Second
+	exp.MaxInterval = 5 * time.Second
+	exp.MaxElapsedTime = time.Minute
+	exp.Reset()
+	err = backoff.Retry(func() error {
 		// Get current policy
 		saPolicy, err := resourceManager.Projects.GetIamPolicy(
 			req.Project,
 			&cloudresourcemanager.GetIamPolicyRequest{}).Do()
 		if err != nil {
 			log.Warningf("Cannot get current policy: %v", err)
-			time.Sleep(3 * time.Second)
-			continue
+			return fmt.Errorf("Cannot get current policy: %v", err)
 		}
 
 		// Force update iam bindings of service accounts
@@ -255,8 +258,7 @@ func (s *ksServer) ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) erro
 			}).Do()
 		if err != nil {
 			log.Warningf("Cannot set refresh policy: %v", err)
-			time.Sleep(3 * time.Second)
-			continue
+			return fmt.Errorf("Cannot set refresh policy: %v", err)
 		}
 
 		// Get the updated policy and apply it.
@@ -268,11 +270,10 @@ func (s *ksServer) ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) erro
 			}).Do()
 		if err != nil {
 			log.Warningf("Cannot set new policy: %v", err)
-			time.Sleep(3 * time.Second)
-			continue
+			return fmt.Errorf("Cannot set new policy: %v", err)
 		}
-		break
-	}
+		return nil
+	}, exp)
 	if err != nil {
 		return err
 	}
