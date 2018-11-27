@@ -26,6 +26,8 @@ all: build
 
 # To edit which registries to add to bootstrapper, edit config (eg. config/default.yaml)
 build:
+	mkdir -p reg_tmp/kubeflow
+	cp -r ../kubeflow reg_tmp/kubeflow
 	docker build -t $(IMG):$(TAG) --build-arg registries=reg_tmp --target=build .
 	@echo Built $(IMG):$(TAG)
 

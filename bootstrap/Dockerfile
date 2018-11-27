@@ -27,12 +27,12 @@ RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.12.2/
 
 COPY $registries /opt/registries
 
-# bootstrap is using ksonnet 0.12.0
-RUN wget -q https://github.com/ksonnet/ksonnet/releases/download/v0.12.0/ks_0.12.0_linux_amd64.tar.gz && \
-    tar xzf ks_0.12.0_linux_amd64.tar.gz -C . && \
-    rm ks_0.12.0_linux_amd64.tar.gz && \
-    cp ks_0.12.0_linux_amd64/ks /usr/local/bin && \
-    rm -rf ks_0.12.0_linux_amd64
+# bootstrap is using ksonnet 0.13.1
+RUN wget -q https://github.com/ksonnet/ksonnet/releases/download/v0.13.1/ks_0.13.1_linux_amd64.tar.gz && \
+    tar xzf ks_0.13.1_linux_amd64.tar.gz -C . && \
+    rm ks_0.13.1_linux_amd64.tar.gz && \
+    cp ks_0.13.1_linux_amd64/ks /usr/local/bin && \
+    rm -rf ks_0.13.1_linux_amd64
 
 RUN mkdir -p /opt/kubeflow
 
@@ -42,9 +42,7 @@ RUN mkdir -p $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap
 COPY . $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap
 WORKDIR $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap
 
-# Pull in dependencies. We don't check in vendor because that bloats
-# the size of kubeflow/kubeflow and we want to keep it small since
-# Users clone that repo to get our registry.
+# use go modules
 ENV GO111MODULE=on
 RUN go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 
