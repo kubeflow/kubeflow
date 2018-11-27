@@ -4,6 +4,9 @@ libraries:
   application:
     version: master
     path: application
+  notebooks:
+    version: master
+    path: notebooks
   metacontroller:
     version: master
     path: metacontroller
@@ -28,6 +31,9 @@ libraries:
   pachyderm:
     version: master
     path: pachyderm
+  pipeline:
+    version: master
+    path: pipeline
   pytorch-job:
     version: master
     path: pytorch-job

@@ -13,6 +13,10 @@ data:
       components:
       - name: jupyter
         prototype: jupyter
+      - name: pipeline
+        prototype: pipeline
+      - name: argo
+        prototype: argo
       - name: ambassador
         prototype: ambassador
       - name: centraldashboard

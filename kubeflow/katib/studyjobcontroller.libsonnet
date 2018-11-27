@@ -16,6 +16,7 @@
       },
       spec: {
         group: "kubeflow.org",
+        scope: "Namespaced",
         version: "v1alpha1",
         names: {
           kind: "StudyJob",
@@ -100,7 +101,7 @@
             apiVersion: batch/v1beta1
             kind: CronJob
             metadata:
-              name: {{.WorkerId}}
+              name: {{.WorkerID}}
               namespace: {{.NameSpace}}  
             spec:
               schedule: "*/1 * * * *"
@@ -112,20 +113,20 @@
                     spec:
                       serviceAccountName: metrics-collector
                       containers:
-                      - name: {{.WorkerId}}
-                        image: katib/metrics-collector
+                      - name: {{.WorkerID}}
+                        image: %(mcimage)s
                         args:
                         - "./metricscollector"
                         - "-s"
-                        - "{{.StudyId}}"
+                        - "{{.StudyID}}"
                         - "-t"
-                        - "{{.TrialId}}"
+                        - "{{.TrialID}}"
                         - "-w"
-                        - "{{.WorkerId}}"
+                        - "{{.WorkerID}}"
                         - "-n"
                         - "{{.NameSpace}}"
                       restartPolicy: Never
-          |||,
+          ||| % { mcimage: params.metricsCollectorImage },
         },
       },
     ],
@@ -293,13 +294,62 @@
             namespace: %(ns)s
             kind: Job
             metadata:
-              name: {{.WorkerId}}
+              name: {{.WorkerID}}
             spec:
               template:
                 spec:
                   containers:
-                  - name: {{.WorkerId}}
+                  - name: {{.WorkerID}}
                     image: alpine
+                  restartPolicy: Never
+          ||| % { ns: namespace },
+          "cpuWorkerTemplate.yaml": |||
+            apiVersion: batch/v1
+            kind: Job
+            metadata:
+              name: {{.WorkerID}}
+              namespace: %(ns)s
+            spec:
+              template:
+                spec:
+                  containers:
+                  - name: {{.WorkerID}}
+                    image: katib/mxnet-mnist-example
+                    command:
+                    - "python"
+                    - "/mxnet/example/image-classification/train_mnist.py"
+                    - "--batch-size=64"
+                    {{- with .HyperParameters}}
+                    {{- range .}}
+                    - "{{.Name}}={{.Value}}"
+                    {{- end}}
+                    {{- end}}
+                  restartPolicy: Never
+          ||| % { ns: namespace },
+          "gpuWorkerTemplate.yaml": |||
+            apiVersion: batch/v1
+            kind: Job
+            metadata:
+              name: {{.WorkerID}}
+              namespace: %(ns)s
+            spec:
+              template:
+                spec:
+                  containers:
+                  - name: {{.WorkerID}}
+                    image: katib/mxnet-mnist-example:gpu
+                    command:
+                    - "python"
+                    - "/mxnet/example/image-classification/train_mnist.py"
+                    - "--batch-size=64"
+                    {{- with .HyperParameters}}
+                    {{- range .}}
+                    - "{{.Name}}={{.Value}}"
+                    {{- end}}
+                    {{- end}}
+                    resources:
+                      limits:
+                        nvidia.com/gpu: 1
                   restartPolicy: Never
           ||| % { ns: namespace },
         },

@@ -32,6 +32,7 @@ std.assertEqual(
     },
     spec: {
       group: "kubeflow.org",
+      scope: "Namespaced",
       names: {
         kind: "TFJob",
         plural: "tfjobs",
@@ -300,6 +301,7 @@ std.assertEqual(
     },
     spec: {
       group: "kubeflow.org",
+      scope: "Namespaced",
       names: {
         kind: "TFJob",
         plural: "tfjobs",

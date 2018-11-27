@@ -65,7 +65,7 @@ cp ${OPENMPI_DIR}/assets/ssh_config ${HOME}/.ssh/config
 
 # when this runs by non-root user.
 # we have to create ephemeral hostkeys
-if run_by_non_root ; then
+if run_by_non_root; then
   mkdir -p ${HOME}/.sshd
   cp ${OPENMPI_DIR}/assets/sshd_config ${HOME}/.sshd/sshd_config
   SSHD_CONFIG=${HOME}/.sshd/sshd_config

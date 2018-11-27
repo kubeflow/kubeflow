@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -x
 set -e
@@ -11,7 +11,10 @@ set -e
 # After the certificate is obtained, patch the ingress with the tls spec to enable SSL on the GCLB.
 
 # Wait for certificate.
-(until kubectl -n ${NAMESPACE} get secret ${TLS_SECRET_NAME} 2>/dev/null; do echo "Waiting for certificate..." ; sleep 2; done)
+until kubectl -n ${NAMESPACE} get secret ${TLS_SECRET_NAME} 2>/dev/null; do
+  echo "Waiting for certificate..."
+  sleep 2
+done
 
 kubectl -n ${NAMESPACE} patch ingress ${INGRESS_NAME} --type='json' -p '[{"op": "add", "path": "/spec/tls", "value": [{"secretName": "'${TLS_SECRET_NAME}'", "hosts":["'${TLS_HOST_NAME}'"]}]}]'
 

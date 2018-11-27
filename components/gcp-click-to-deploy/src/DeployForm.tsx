@@ -35,6 +35,7 @@ interface DeployFormState {
   kfverison: string;
   clientId: string;
   clientSecret: string;
+  iap: boolean;
 }
 
 const Text = glamorous.div({
@@ -52,6 +53,13 @@ const logsContainerStyle = (show: boolean) => {
     position: 'fixed',
     right: 0,
     transition: 'height 0.3s',
+  } as React.CSSProperties;
+};
+
+const IapElementStyle = (show: boolean) => {
+  return {
+    display: show ? 'inline' : 'none',
+    minHeight: 0,
   } as React.CSSProperties;
 };
 
@@ -110,6 +118,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       deploymentName: 'kubeflow',
       dialogBody: '',
       dialogTitle: '',
+      iap: true,
       kfverison: 'v0.3.2',
       project: '',
       showLogs: false,
@@ -154,13 +163,17 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         <Row>
           <Input name="deploymentName" label="Deployment name" spellCheck={false} value={this.state.deploymentName} onChange={this._handleChange.bind(this)} />
         </Row>
-        <Row>
-          <Input name="clientId" label="Web App Client ID" spellCheck={false} value={this.state.clientId} onChange={this._handleChange.bind(this)} />
+        <Row style={{ minHeight: 20}}>
+          <input style={{ fontSize: '1.1em', margin: '0% 1% 0% 11%' }} type="checkbox" onChange={this._handleCheck.bind(this)} />
+          <label style={{ minHeight: 20 }} >Skip IAP</label>
         </Row>
-        <Row>
-          <Input name="clientSecret" label="Web App Client Secret" spellCheck={false} value={this.state.clientSecret} onChange={this._handleChange.bind(this)} />
+        <Row style={{ minHeight: 0 }}>
+          <Input style={IapElementStyle(this.state.iap)} name="clientId" label="IAP Oauth Client ID" spellCheck={false} value={this.state.clientId} onChange={this._handleChange.bind(this)} />
         </Row>
-        <Row>
+        <Row style={{ minHeight: 0 }}>
+          <Input style={IapElementStyle(this.state.iap)} name="clientSecret" label="IAP Oauth Client Secret" spellCheck={false} value={this.state.clientSecret} onChange={this._handleChange.bind(this)} />
+        </Row>
+        <Row style={{ minHeight: 20}}>
           <Text style={{ fontSize: '1.1em', margin: '2% 11%' }}>GKE Zone: </Text>
           <select name="zone" style={{ display: 'flex', fontSize: '1.1em', margin: '2% 10.5%',}} spellCheck={false} value={this.state.zone} onChange={this._handleChange.bind(this)} >
             <option value="us-central1-a">us-central1-a</option>
@@ -174,7 +187,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             <option value="asia-east1-b">asia-east1-b</option>
           </select>
         </Row>
-        <Row>
+        <Row style={{ minHeight: 20}}>
           <Text style={{ fontSize: '1.1em', margin: '2% 11%' }}>Kubeflow Version:</Text>
           <select name="kfverison" style={{ display: 'flex', fontSize: '1.1em', margin: '2% 1%',}} spellCheck={false} value={this.state.kfverison} onChange={this._handleChange.bind(this)} >
             <option value="v0.3.2">v0.3.2</option>
@@ -183,6 +196,14 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         <div style={{ display: 'flex', padding: '20px 60px 40px' }}>
           <DeployBtn variant="contained" color="primary" onClick={this._createDeployment.bind(this)}>
             Create Deployment
+          </DeployBtn>
+
+          <DeployBtn style={IapElementStyle(this.state.iap)} variant="contained" color="default" onClick={this._iapAddress.bind(this)}>
+            IAP Access
+          </DeployBtn>
+
+          <DeployBtn style={IapElementStyle(!this.state.iap)} variant="contained" color="default" onClick={this._cloudShell.bind(this)}>
+            Cloud Shell
           </DeployBtn>
 
           <YamlBtn variant="outlined" color="default" onClick={this._showYaml.bind(this)}>
@@ -249,8 +270,9 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
 
     const state = this.state;
     const email = await Gapi.getSignedInEmail();
-
-    this._configSpec.defaultApp.parameters.forEach((p: any) => {
+    let iapIdx = 0;
+    for (let i = 0, len = this._configSpec.defaultApp.parameters.length; i < len; i ++){
+      const p = this._configSpec.defaultApp.parameters[i];
       if (p.name === 'ipName') {
         p.value = this.state.deploymentName + '-ip';
       }
@@ -262,10 +284,49 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       if (p.name === 'acmeEmail') {
         p.value = email;
       }
-    });
+
+      if (p.name === 'jupyterHubAuthenticator') {
+        iapIdx = i;
+      }
+    }
+    if (this.state.clientId === '' || this.state.clientSecret === '') {
+      this._configSpec.defaultApp.parameters.splice(iapIdx, 1);
+    }
     this._configSpec.defaultApp.registries[0].version = this.state.kfverison;
 
     return this._configSpec;
+  }
+
+  private async _cloudShell() {
+    const key = 'project';
+    if (this.state[key] === '') {
+      this.setState({
+        dialogBody: 'project id is missing',
+        dialogTitle: 'Missing field',
+      });
+      return;
+    }
+    const cloudShellConfPath = this.state.kfverison + '/' + this.state.deploymentName + '/kf_util';
+    const cloudShellUrl = 'https://cloud.google.com/console/cloudshell/open?shellonly=true&git_repo=https://source.developers.google.com/p/' +
+      this.state.project + '/r/' + this.state.project + '-kubeflow-config&working_dir=' + cloudShellConfPath + '&tutorial=conn.md';
+    window.open(cloudShellUrl, '_blank');
+  }
+
+  private async _iapAddress() {
+    for (const prop of ['project', 'deploymentName']) {
+      if (this.state[prop] === '') {
+        this.setState({
+          dialogBody: 'Some required fields (project, deploymentName) are missing',
+          dialogTitle: 'Missing field',
+        });
+        return;
+      }
+    }
+    this.setState({
+      showLogs: true,
+    });
+    const dashboardUri = 'https://' + this.state.deploymentName + '.endpoints.' + this.state.project + '.cloud.goog/';
+    this._redirectToKFDashboard(dashboardUri);
   }
 
   // Create a  Kubeflow deployment.
@@ -277,6 +338,17 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           dialogTitle: 'Missing field',
         });
         return;
+      }
+    }
+    if (this.state.iap) {
+      for (const prop of ['clientId', 'clientSecret']) {
+        if (this.state[prop] === '') {
+          this.setState({
+            dialogBody: 'Some required fields (IAP Oauth Client ID, IAP Oauth Client Secret) are missing',
+            dialogTitle: 'Missing field',
+          });
+          return;
+        }
       }
     }
     const deploymentNameKey = 'deploymentName';
@@ -460,6 +532,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
   }
 
   private _monitorDeployment(project: string, deploymentName: string) {
+    const dashboardUri = 'https://' + this.state.deploymentName + '.endpoints.' + this.state.project + '.cloud.goog/';
     const monitorInterval = setInterval(() => {
       Gapi.deploymentmanager.get(this.state.project, deploymentName)
         .then(r => {
@@ -470,10 +543,16 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           } else if (r.operation!.status! && r.operation!.status === 'DONE') {
             const readyTime = new Date();
             readyTime.setTime(readyTime.getTime() + (20 * 60 * 1000));
-            this._appendLine('Deployment is done, your kubeflow app url should be ready within 20 minutes (by '
-              + readyTime.toLocaleTimeString() + '): https://'
-              + this.state.deploymentName + '.endpoints.' + this.state.project + '.cloud.goog');
+            this._appendLine('Deployment initialized, configuring environment');
+            if (this.state.clientId === '' || this.state.clientSecret === '') {
+              this._appendLine('(IAP skipped), cluster should be ready within 5 minutes. To connect to cluster, click cloud shell and follow instruction');
+            } else {
+              this._appendLine('your kubeflow app url should be ready within 20 minutes (by '
+                + readyTime.toLocaleTimeString() + '): https://'
+                + this.state.deploymentName + '.endpoints.' + this.state.project + '.cloud.goog');
+            }
             clearInterval(monitorInterval);
+            this._redirectToKFDashboard(dashboardUri);
           } else {
             this._appendLine(`Status of ${deploymentName}: ` + r.operation!.status!);
           }
@@ -482,12 +561,51 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     }, 10000);
   }
 
+  private _redirectToKFDashboard(dashboardUri: string) {
+    // relying on JupyterHub logo image to be available when the site is ready.
+    // The dashboard URI is hosted at a domain different from the deployer
+    // app. Fetching a GET on the dashboard is blocked by the browser due
+    // to CORS. Therefore we use an img element as a hack which fetches
+    // an image served by the target site, the img load is a simple html
+    // request and not an AJAX request, thus bypassing the CORS in this
+    // case.
+    this._appendLine('Validating if IAP is up and running...');
+    const imgUri = dashboardUri + 'hub/logo';
+    const startTime = new Date().getTime() / 1000;
+    const img = document.createElement('img');
+    img.src = imgUri + '?rand=' + Math.random();
+    img.id = 'ready_test';
+    img.onload = () => { window.location.href = dashboardUri; };
+    img.onerror = () => {
+      const timeSince = (new Date().getTime() / 1000) - startTime;
+      if (timeSince > 1500) {
+        this._appendLine('Could not redirect to Kubeflow Dashboard at: ' + dashboardUri);
+      } else {
+        const ready_test = document.getElementById('ready_test') as HTMLImageElement;
+        if (ready_test != null) {
+          setTimeout(() => {
+            ready_test.src = imgUri + '?rand=' + Math.random();
+            this._appendLine('Waiting for the IAP setup to get ready...');
+          }, 20000);
+        }
+      }
+    };
+    img.style.display = 'none';
+    document.body.appendChild(img);
+  }
+
   private _handleChange(event: Event) {
     const target = event.target as any;
     target.style.backgroundColor = !!target.value ? 'transparent' : '#fbecec';
     this.setState({
       [target.name]: target.value
     } as any);
+  }
+
+  private _handleCheck(event: Event) {
+    this.setState({
+      ['iap']: !this.state.iap
+    });
   }
 
 }
