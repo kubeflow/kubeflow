@@ -1,9 +1,9 @@
 # nvidia-inference-server
 
-> NVIDIA Inference Server is a REST and GRPC service for deep-learning
-inferencing of TensorRT, TensorFlow and Caffe2 models. The server is
-optimized deploy machine and deep learning algorithms on both GPUs and
-CPUs at scale.
+> NVIDIA TensorRT Inference Server (TRTIS) is a REST and GRPC service
+for deep-learning inferencing of TensorRT, TensorFlow and Caffe2
+models. The server is optimized to deploy deep-learning algorithms on
+both GPUs and CPUs at scale.
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -23,23 +23,20 @@ CPUs at scale.
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 These instructions detail how to set up a GKE cluster suitable for
-running the NVIDIA Inference server and how to use the
+running TRTIS and how to use the
 `io.ksonnet.pkg.nvidia-inference-server` prototype to generate
 Kubernetes YAML and deploy to that cluster.
 
-For more information on the NVIDIA Inference Server see the [NVIDIA
-Inference Server User
-Guide](https://docs.nvidia.com/deeplearning/sdk/inference-user-guide/index.html)
-and the [NVIDIA Inference Server
-Clients](https://github.com/NVIDIA/dl-inference-server) open-source
-repository.
+TRTIS is open-source software that also releases monthly as prebuild,
+production-ready containers. See the [GitHub
+repo](https://github.com/NVIDIA/tensorrt-inference-server) to learn
+more.
 
 ## Setup
 
-Currently the `io.ksonnet.pkg.nvidia-inference-server` prototype
-described here is only valid for the 18.08.1 version of the NVIDIA
-Inference Server. The prototype will be updated to support 18.09 and
-future containers when those come available.
+The `io.ksonnet.pkg.nvidia-inference-server` prototype described here
+is valid for the 18.11 and later versions of the TensorRT Inference
+Server.
 
 ### Google Cloud and Ksonnet
 
@@ -70,34 +67,37 @@ region and zone. You can see which regions have which GPUs by using
 
 ## Create Cluster
 
-Next create a cluster that the inference server will be deployed
-to. You need two node-pools within the cluster, one containing CPU
-node(s) and one containing GPU node(s). The cluster creation creates a
-default CPU pool which you should specify to have 2 nodes for this
-example. You must use the --cluster-version flag to select a recent
-version of Kubernetes as the default 1.9 version does not work
-correctly with the NVIDIA GPU Cloud registry.
+Next create a cluster that TRTIS will be deployed to. You need two
+node-pools within the cluster, one containing CPU node(s) and one
+containing GPU node(s). The cluster creation creates a default CPU
+pool which you should specify to have 2 nodes for this example. You
+must use the --cluster-version flag to select the 1.11.5-gke.5 or more
+recent version of Kubernetes to get CUDA 10 which is required by
+TRTIS.
 
 ```shell
-$ gcloud container clusters create myinferenceserver --num-nodes=2 --cluster-version=1.10.6-gke.2
+$ gcloud container clusters create myinferenceserver --enable-ip-alias --create-subnetwork name=mysubnet --num-nodes=2 --cluster-version=1.11.5-gke.5
 ```
 
-Set the cluster in your configuration so that it is used for following
-commands.
+Set the cluster in your configuration so that it is used for
+subsequent commands.
 
 ```shell
 $ gcloud config set container/cluster myinferenceserver
 ```
 
 Now add the GPU node-pool to the cluster. For this example you should
-specify a single node which has 8 CPUs and 1 V100 GPU:
+specify a single node which has 8 CPUs and 1 T4 GPU. You can choose a
+different GPU by changing the value specified with the --accelerator
+flag (use `gcloud compute accelerator-types list` to see which GPUs
+are available in the region you are using):
 
 ```shell
-$ gcloud container node-pools create gpu-pool --num-nodes=1 --machine-type=n1-standard-8 --accelerator type=nvidia-tesla-v100,count=1
+$ gcloud container node-pools create gpu-pool --num-nodes=1 --machine-type=n1-standard-8 --accelerator type=nvidia-tesla-t4,count=1
 ```
 
-Lastly, set credentials so that local kubectl is configured to control
-the cluster.
+Lastly, set credentials so that local kubectl command is configured to
+control the cluster.
 
 ```shell
 $ gcloud container clusters get-credentials myinferenceserver
@@ -112,22 +112,22 @@ formed from your zone, cluster and project. For example,
 
 ## Enable CUDA on the GPU Nodes
 
-You need to explicitly install CUDA driver onto the GPU nodes. There
-is a daemonset that can do this for you.
+You need to explicitly install the CUDA driver onto the GPU
+nodes. There is a daemonset that can do this for you.
 
 ```shell
 $ kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/stable/nvidia-driver-installer/cos/daemonset-preloaded.yaml
 ```
 
-## NVIDIA Inference Server Image
+## TensorRT Inference Server Image
 
-The docker image for the NVIDIA Inference Server is available on the
+The docker image for the TensorRT Inference Server is available on the
 [NVIDIA GPU Cloud](https://ngc.nvidia.com). Below you will add a
 Kubernetes secret to allow you to pull this image. As initialization
 you must first register at NVIDIA GPU Cloud and follow the directions
 to obtain your API key. You can confirm the key is correct by
 attempting to login to the registry and checking that you can pull the
-inference server image. See [Pull an Image from a Private
+TRTIS image. See [Pull an Image from a Private
 Registry](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry)
 for more information about using a private registry.
 
@@ -138,11 +138,11 @@ Password: <your-api-key>
 ```
 
 Now use the NVIDIA GPU Cloud API key from above to create a kubernetes
-secret called `ngc`. This secret allows Kubernetes to pull the
-inference server image from the NVIDIA GPU Cloud registry. Replace
-<api-key> with your API key and <ngc-email> with your NVIDIA GPU Cloud
-email. Make sure that for `docker-username` you specify the value
-exactly as shown, including the backslash.
+secret called `ngc`. This secret allows Kubernetes to pull the TRTIS
+image from the NVIDIA GPU Cloud registry. Replace <api-key> with your
+API key and <ngc-email> with your NVIDIA GPU Cloud email. Make sure
+that for `docker-username` you specify the value exactly as shown,
+including the backslash.
 
 ```shell
 $ kubectl create secret docker-registry ngc --docker-server=nvcr.io --docker-username=\$oauthtoken --docker-password=<api-key> --docker-email=<ngc-email>
@@ -150,45 +150,42 @@ $ kubectl create secret docker-registry ngc --docker-server=nvcr.io --docker-use
 
 ## Model Repository
 
-The inference server needs a repository of models that it will make
-available for inferencing. You can find an example repository in the
-[open-source repo](https://github.com/NVIDIA/dl-inference-server) and
-instructions on how to create your own model repository in the [NVIDIA
-Inference Server User
-Guide](https://docs.nvidia.com/deeplearning/sdk/inference-user-guide/index.html).
+TRTIS needs a repository of models that it will make available for
+inferencing. You can find an example repository in the [open-source
+repo](https://github.com/NVIDIA/tensorrt-inference-server) and
+instructions on how to create your own model repository in the User
+Guide referenced from the README.
 
 For this example you will place the model repository in a Google Cloud
 Storage bucket.
 
 ```shell
-$ gsutil mb gs://inference-server-model-store
+$ gsutil mb gs://trtis-kubeflow
 ```
 
-Following these
-[instructions](https://github.com/NVIDIA/dl-inference-server) download
-the example model repository to your system and copy it into the GCS
-bucket.
+Following the User Guide download the example model repository to your
+system and copy it into the GCS bucket.
 
 ```shell
-$ gsutil cp -r model_store gs://inference-server-model-store
+$ gsutil cp -r docs/examples/model_repository gs://trtis-kubeflow
 ```
 
 ## Kubernetes Generation and Deploy
 
 Next use ksonnet to generate Kubernetes configuration for the NVIDIA
 Inference Server deployment and service. The --image option points to
-the NVIDIA Inference Server container in the [NVIDIA GPU Cloud
+the TRTIS container in the [NVIDIA GPU Cloud
 Registry](https://ngc.nvidia.com). For the current implementation you
-must use the 18.08.1 container. The --modelRepositoryPath option
-points to our GCS bucket that contains the model repository that you
-set up earlier.
+must use the 18.11 or later container. The --modelRepositoryPath
+option points to our GCS bucket that contains the model repository
+that you set up earlier.
 
 ```shell
 $ ks init my-inference-server
 $ cd my-inference-server
 $ ks registry add kubeflow https://github.com/kubeflow/kubeflow/tree/master/kubeflow
 $ ks pkg install kubeflow/nvidia-inference-server
-$ ks generate nvidia-inference-server iscomp --name=inference-server --image=nvcr.io/nvidia/inferenceserver:18.08.1-py2 --modelRepositoryPath=gs://inference-server-model-store/tf_model_store
+$ ks generate nvidia-inference-server iscomp --name=inference-server --image=nvcr.io/nvidia/tensorrtserver:18.12-py3 --modelRepositoryPath=gs://trtis-kubeflow/model_repository
 ```
 
 Next deploy the service.
@@ -197,13 +194,12 @@ Next deploy the service.
 $ ks apply default -c iscomp
 ```
 
-## Using the Inference Server
+## Using the TensorRT Inference Server
 
-Now that the inference server is running you can send HTTP or GRPC
-requests to it to perform inferencing. By default the inferencing
-service is exposed with a LoadBalancer service type. Use the following
-to find the external IP for the inference service. In this case it is
-35.232.176.113.
+Now that TRTIS is running you can send HTTP or GRPC requests to it to
+perform inferencing. By default the inferencing service is exposed
+with a LoadBalancer service type. Use the following to find the
+external IP for TRTIS. In this case it is 35.232.176.113.
 
 ```shell
 $ kubectl get services
@@ -212,21 +208,20 @@ inference-se LoadBalancer   10.7.241.36   35.232.176.113   8000:31220/TCP,8001:3
 kubernetes   ClusterIP      10.7.240.1    <none>           443/TCP                                        1h
 ```
 
-The inference server exposes an HTTP endpoint on port 8000, and GRPC
-endpoint on port 8001 and a Prometheus metrics endpoint on port
-8002. You can use curl to get the status of the inference server from
-the HTTP endpoint.
+TRTIS exposes an HTTP endpoint on port 8000, and GRPC endpoint on port
+8001 and a Prometheus metrics endpoint on port 8002. You can use curl
+to get the status of the inference server from the HTTP endpoint.
 
 ```shell
 $ curl 35.232.176.113:8000/api/status
 ```
 
 Follow the
-[instructions](https://github.com/NVIDIA/dl-inference-server) to build
-the inference server example image and performance clients. You can
-then use these examples to send requests to the server. For example,
-for an image classification model use the image\_client example to
-perform classification of an image.
+[instructions](https://github.com/NVIDIA/tensorrt-inference-server) to
+build TRTIS example image and performance clients. You can then use
+these examples to send requests to the server. For example, for an
+image classification model use the image\_client example to perform
+classification of an image.
 
 ```shell
 $ image_client -u 35.232.176.113:8000 -m resnet50_netdef -c3 mug.jpg
