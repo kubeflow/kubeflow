@@ -6,6 +6,11 @@
 # See the [developer_guide.md](./developer_guide.md) for additional details.
 #
 
+usage() {
+  echo "usage: $0 <image> <tag> <port>"
+  exit 0
+}
+
 cleanup() {
   if [[ -n $portforwardcommand ]]; then
     echo killing $portforwardcommand
@@ -41,13 +46,28 @@ waitforever() {
   fi
 }
 
-if [[ $# < 3 ]]; then
-  echo "usage: $0 <image> <tag> <port>"
-  exit 1
-fi
-image=$1
-tag=$2
-port=$3
+GCLOUD_PROJECT=${GCLOUD_PROJECT:-kubeflow-public-images}
+image=gcr.io/$GCLOUD_PROJECT/bootstrapper
+tag=latest
+port=2345
+
+case "$#" in 
+  0)
+     ;;
+  1)
+     image=$1
+     ;;
+  2)
+     image=$1
+     tag=$2
+     ;;
+  3)
+     image=$1
+     tag=$2
+     port=$3
+     ;;
+esac
+
 namespace=kubeflow-admin
 cat <<EOF | kubectl create -f -
 # Namespace for bootstrapper
