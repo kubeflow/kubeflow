@@ -69,7 +69,19 @@ def run(test_files_dirs, jsonnet_path_args, test_case):
                 "output: %s", output)
               parsed = {}
 
-            test_passed = parsed.get("pass", false)
+            if not hasattr(parsed, "get"):
+              # Legacy style tests emit true rather than a json object.
+              # Parsing the string as json converts it to a bool so we
+              # just use parsed as test_passed
+              # Old style tests actually use std.assert so jsonnet eval
+              # will actually return an error in the case the test didn't
+              # pass.
+              logging.warn(
+                "jsonnet test is using old style and not emitting an object. "
+                "Result was: %s. Output will be treated as a boolean", output)
+              test_passed = parsed
+            else:
+              test_passed = parsed.get("pass", false)
 
             if not test_passed:
               test_case.add_failure_info('{} test failed'.format(test_file))
@@ -77,7 +89,8 @@ def run(test_files_dirs, jsonnet_path_args, test_case):
                             test_file)
           except Exception as e:
             test_case.add_failure_info('{} test failed'.format(test_file))
-            logging.error('%s test failed. See Subprocess output for details.', test_file)
+            logging.error('%s test failed with exception %s. '
+                          'See Subprocess output for details.', e, test_file)
 
 
 def parse_args():
