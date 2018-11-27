@@ -243,8 +243,7 @@ def check_deploy_status(args, deployments):
           logging.info("%s: IAP not ready, request number: %s" % (deployment, num_req))
       except Exception:
         logging.info("%s: IAP not ready, exception caught, request number: %s" % (deployment, num_req))
-    for element in success_deploy:
-      deployments.remove(element)
+    deployments.difference(success_deploy)
 
   # Optionally upload ssl cert
   if len(deployments) == 0 and len(os.listdir(SSL_DIR)) < num_deployments:
@@ -348,11 +347,14 @@ def prober_clean_up_resource(args, deployments):
   end_time = datetime.datetime.now() + datetime.timedelta(minutes=10)
   while datetime.datetime.now() < end_time:
     sleep(10)
-    request = service.deployments().list(project=args.project)
-    response = request.execute()
-    if ('deployments' not in response) or (len(deployments & set(d['name'] for d in response['deployments'])) == 0):
-      delete_done = True
-      break
+    try:
+      request = service.deployments().list(project=args.project)
+      response = request.execute()
+      if ('deployments' not in response) or (len(deployments & set(d['name'] for d in response['deployments'])) == 0):
+        delete_done = True
+        break
+    except Exception:
+      logging.info("Failed listing current deployments, retry in 10 seconds")
 
   # Delete target-http-proxies
   delete_gcloud_resource(args, 'target-http-proxies')
@@ -437,15 +439,7 @@ def run_load_test(args):
     LOADTEST_HEALTH.set(0)
     if make_loadtest_call(args, service_account_credentials, deployments):
       for deployment in deployments:
-        if insert_ssl_cert(args, deployment):
-          LOADTEST_HEALTH.set(0)
-        else:
-          LOADTEST_HEALTH.set(1)
-          FAILURE_COUNT.inc()
-          logging.error("request insert_ssl_cert failed for %s, retry in %s seconds" % (deployment, args.wait_sec))
-          break
-      if LOADTEST_HEALTH._value.get() != 0:
-        continue
+        insert_ssl_cert(args, deployment)
       if check_deploy_status(args, deployments):
         SERVICE_HEALTH.set(0)
         SUCCESS_COUNT.inc()
