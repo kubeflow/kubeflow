@@ -46,6 +46,10 @@ debug:
 	@echo debugging $(IMG):$(TAG) using port $(PORT)
 	@./debug.sh $(IMG) $(TAG) $(PORT)
 
+debug-latest:
+	@echo debugging $(IMG):latest using port $(PORT)
+	@./debug.sh $(IMG) latest $(PORT)
+
 cleanup:
 	@echo Removing kubeflow-admin namespace
 	@kubectl delete ns kubeflow-admin

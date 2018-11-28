@@ -1,0 +1,12 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: controller-manager
+  namespace: system
+spec:
+  template:
+    spec:
+      containers:
+      # Change the value of image field below to your controller image URL
+      - image: gcr.io/constant-cubist-173123/kubeflow-controller:v20181128-4e7f4ed-178-gb3ddda25-dirty-11b547
+        name: manager
