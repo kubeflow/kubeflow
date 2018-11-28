@@ -8,6 +8,7 @@ FROM $BASE_IMAGE
 ARG INSTALL_TFMA=yes
 ARG TF_PACKAGE=https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.7.0-cp36-cp36m-linux_x86_64.whl
 ARG TF_PACKAGE_PY_27=https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.7.0-cp27-none-linux_x86_64.whl
+ARG PIPELINE_SDK_PACKAGE=https://storage.googleapis.com/ml-pipeline/release/0.1.2/kfp.tar.gz
 
 USER root
 
@@ -20,6 +21,7 @@ ENV HOME /home/$NB_USER
 # to minimize the amount of content in $HOME
 ENV CONDA_DIR=/opt/conda
 ENV PATH $CONDA_DIR/bin:$PATH
+ENV PIPELINE_SDK_PACKAGE $PIPELINE_SDK_PACKAGE
 
 # Use bash instead of sh
 SHELL ["/bin/bash", "-c"]
@@ -101,6 +103,8 @@ RUN pip install --upgrade pip && \
     jupyter-console==6.0.0 \
     jupyterhub \
     jupyterlab \
+    # Kubeflow pipeline SDK
+    ${PIPELINE_SDK_PACKAGE} \
     # Cleanup
     && conda clean -tipsy
 
