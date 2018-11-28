@@ -445,7 +445,7 @@
 
     local tfUiRole = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "ClusterRole",
+      kind: operatorRole.new().kind,
       metadata: {
         labels: {
           app: "tf-job-dashboard",
@@ -467,7 +467,7 @@
 
     local tfUiRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "ClusterRoleBinding",
+      kind: operatorRoleBinding.new().kind,
       metadata: {
         labels: {
           app: "tf-job-dashboard",
