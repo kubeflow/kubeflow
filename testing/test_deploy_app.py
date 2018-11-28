@@ -34,6 +34,8 @@ PROBER_HEALTH = Gauge('prober_health',
                       '0: normal; 1: not working')
 LOADTEST_HEALTH = Gauge('loadtest_health',
                         '0: normal; 1: not working')
+LOADTEST_SUCCESS = Gauge('loadtest_success',
+                        'number of successful requests in current load test')
 SUCCESS_COUNT = Counter('deployment_success_count', 'accumulative count of successful deployment')
 FAILURE_COUNT = Counter('deployment_failure_count', 'accumulative count of failed deployment')
 LOADTEST_ZONE = ['us-central1-a', 'us-central1-c', 'us-east1-c', 'us-east1-d', 'us-west1-b']
@@ -265,7 +267,8 @@ def check_deploy_status(args, deployments):
       except Exception:
         logging.error("%s: failed uploading ssl cert" % deployment)
 
-  return len(deployments) == 0
+  # return number of successful deployments
+  return num_deployments - len(deployments)
 
 def get_service_account_credentials(client_id_key):
   # Figure out what environment we're running in and get some preliminary
@@ -424,11 +427,12 @@ def util_run(command,
   return "\n".join(output)
 
 def run_load_test(args):
+  num_concurrent_requests = 5
   start_http_server(8000)
-  SERVICE_HEALTH.set(0)
+  LOADTEST_SUCCESS.set(num_concurrent_requests)
   LOADTEST_HEALTH.set(0)
   service_account_credentials = get_service_account_credentials("SERVICE_CLIENT_ID")
-  deployments = set(['kubeflow' + str(i) for i in range(1, 10)])
+  deployments = set(['kubeflow' + str(i) for i in range(1, num_concurrent_requests + 1)])
   while True:
     sleep(args.wait_sec)
     if not prober_clean_up_resource(args, deployments):
@@ -440,17 +444,16 @@ def run_load_test(args):
     if make_loadtest_call(args, service_account_credentials, deployments):
       for deployment in deployments:
         insert_ssl_cert(args, deployment)
-      if check_deploy_status(args, deployments):
-        SERVICE_HEALTH.set(0)
+      num_success = check_deploy_status(args, deployments)
+      LOADTEST_SUCCESS.set(num_success)
+      if num_success == num_concurrent_requests:
         SUCCESS_COUNT.inc()
       else:
-        SERVICE_HEALTH.set(1)
         FAILURE_COUNT.inc()
     else:
-      SERVICE_HEALTH.set(2)
+      LOADTEST_SUCCESS.set(0)
       FAILURE_COUNT.inc()
       logging.error("prober request failed, retry in %s seconds" % args.wait_sec)
-
 
 # Clone repos to tmp folder and build docker images
 def main(unparsed_args=None):
