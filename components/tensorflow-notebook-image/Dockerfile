@@ -111,6 +111,8 @@ RUN pip install --upgrade pip && \
     jupyter-console==6.0.0 \
     jupyterhub \
     jupyterlab \
+    # Kubeflow pipeline SDK
+    https://storage.googleapis.com/ml-pipeline/release/0.1.2/kfp.tar.gz \
     # Cleanup
     && conda clean -tipsy
 
