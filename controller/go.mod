@@ -23,6 +23,8 @@ require (
 	github.com/inconshreveable/mousetrap v1.0.0
 	github.com/joho/godotenv v1.3.0
 	github.com/json-iterator/go v1.1.5
+	github.com/kubernetes-sigs/application v0.0.0-20181121085707-4329c2567511
+	github.com/kubernetes-sigs/kubebuilder v1.0.5 // indirect
 	github.com/markbates/inflect v1.0.4
 	github.com/mattbaird/jsonpatch v0.0.0-20171005235357-81af80346b1a
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd
@@ -59,6 +61,7 @@ require (
 	k8s.io/gengo v0.0.0-20181113154421-fd15ee9cc2f7
 	k8s.io/klog v0.1.0
 	k8s.io/kube-openapi v0.0.0-20181114233023-0317810137be
+	sigs.k8s.io/application v0.0.0-20181121085707-4329c2567511 // indirect
 	sigs.k8s.io/controller-runtime v0.1.7
 	sigs.k8s.io/controller-tools v0.1.6
 	sigs.k8s.io/testing_frameworks v0.0.0-20180709092217-5818a3a284a1

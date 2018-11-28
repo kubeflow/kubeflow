@@ -1,5 +1,9 @@
+#
+# Builds locally and docker
+#
 GCLOUD_PROJECT ?= kubeflow-images-public
 GOLANG_VERSION ?= 1.11.2
+GOPATH ?= $(HOME)/go
 # To build without the cache set the environment variable
 # export DOCKER_BUILD_OPTS=--no-cache
 # set to GOLANG_GCFLAGS=-gcflags "all=-N -l" to debug
@@ -31,7 +35,7 @@ deploy: manifests
 	kubectl apply -f config/crds
 	kustomize build config/default | kubectl apply -f -
 
-$(GO_PATH)/bin/controller-gen:
+$(GOPATH)/bin/controller-gen:
 	go get -u sigs.k8s.io/controller-tools/cmd/controller-gen
 
 # Generate manifests e.g. CRD, RBAC etc.
@@ -50,18 +54,21 @@ vet:
 generate:
 	go generate ./pkg/... ./cmd/...
 
-build: generate fmt vet
+build-local: generate fmt vet
+	GO111MODULE=on go build -gcflags 'all=-N -l' -o bin/manager cmd/manager/main.go
+
+build: build-local
 	docker build -t $(IMG):$(TAG) --build-arg GOLANG_VERSION=$(GOLANG_VERSION) --target=builder .
 	@echo "updating kustomize image patch file for manager resource"
-	sed -i'' -e 's@image: .*@image: '"${IMG}:${TAG}"'@' ./config/default/manager_image_patch.yaml
+	sed -i'' -e 's@image: .*@image: '"$(IMG):$(TAG)"'@' ./config/default/manager_image_patch.yaml
 
 push:
-        gcloud docker -- push $(IMG):$(TAG)
-        @echo Pushed $(IMG):$(TAG)
+	gcloud docker -- push $(IMG):$(TAG)
+	@echo Pushed $(IMG):$(TAG)
 
 push-latest: push
 	gcloud container images add-tag --quiet $(IMG):$(TAG) $(IMG):latest --verbosity=info
-	echo created $(IMG):latest
+	@echo created $(IMG):latest
 
 debug:
 	@echo debugging $(IMG):$(TAG) using port $(PORT)
