@@ -10,6 +10,7 @@ ARG TF_PACKAGE_PY_27=https://storage.googleapis.com/tensorflow/linux/cpu/tensorf
 ARG TF_SERVING_VERSION=0.0.0
 ARG TFMA_VERSION
 ARG TFDV_VERSION
+ARG PIPELINE_SDK_PACKAGE=https://storage.googleapis.com/ml-pipeline/release/0.1.2/kfp.tar.gz
 
 USER root
 
@@ -30,6 +31,7 @@ ENV TF_PACKAGE_27 $TF_PACKAGE_PY_27
 ENV TF_SERVING_VERSION $TF_PACKAGE_PY_27
 ENV TFMA_VERSION $TFMA_VERSION
 ENV TFDV_VERSION $TFDV_VERSION
+ENV PIPELINE_SDK_PACKAGE $PIPELINE_SDK_PACKAGE
 
 # Use bash instead of sh
 SHELL ["/bin/bash", "-c"]
@@ -111,6 +113,8 @@ RUN pip install --upgrade pip && \
     jupyter-console==6.0.0 \
     jupyterhub \
     jupyterlab \
+    # Kubeflow pipeline SDK
+    ${PIPELINE_SDK_PACKAGE} \
     # Cleanup
     && conda clean -tipsy
 
