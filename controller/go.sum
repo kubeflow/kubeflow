@@ -46,6 +46,8 @@ github.com/kubernetes-sigs/application v0.0.0-20181121085707-4329c2567511 h1:XdH
 github.com/kubernetes-sigs/application v0.0.0-20181121085707-4329c2567511/go.mod h1:KqAScqo78PXUrmoFOH8z6P4xQDBdzyJH1FMqrhgJJLE=
 github.com/kubernetes-sigs/kubebuilder v1.0.5 h1:g+1A+GXLIQepJ6blizMMO6Pn8XyKx+lrrbBTz+c1H9s=
 github.com/kubernetes-sigs/kubebuilder v1.0.5/go.mod h1:2i4kvfB3gkuZl1x+GtlrzNjOppLawK68DB1h/W6lbFg=
+github.com/kubernetes/code-generator v0.0.0-20181116211957-405721ab9678 h1:Kw1rfWdbM1PHwDmOwC/369rgk1qvkJo6Vx1azQhY0u8=
+github.com/kubernetes/code-generator v0.0.0-20181116211957-405721ab9678/go.mod h1:GXXF2gdS/LDGLo7HilXGuIQfo5nLQDhB4eUn/2UMPnk=
 github.com/markbates/inflect v1.0.4 h1:5fh1gzTFhfae06u3hzHYO9xe3l3v3nW5Pwt3naLTP5g=
 github.com/markbates/inflect v1.0.4/go.mod h1:1fR9+pO2KHEO9ZRtto13gDwwZaAKstQzferVeWqbgNs=
 github.com/mattbaird/jsonpatch v0.0.0-20171005235357-81af80346b1a h1:+J2gw7Bw77w/fbK7wnNJJDKmw1IbWft2Ul5BzrG1Qm8=

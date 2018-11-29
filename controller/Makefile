@@ -38,8 +38,11 @@ deploy: manifests
 $(GOPATH)/bin/controller-gen:
 	go get -u sigs.k8s.io/controller-tools/cmd/controller-gen
 
+$(GOPATH)/bin/client-gen:
+	go get -u k8s.io/code-generator/cmd/client-gen@v0.0.0-20181116211957-405721ab9678
+
 # Generate manifests e.g. CRD, RBAC etc.
-manifests: $(GO_PATH)/bin/controller-gen
+manifests: $(GOPATH)/bin/controller-gen $(GOPATH)/bin/client-gen
 	controller-gen all
 
 # Run go fmt against code

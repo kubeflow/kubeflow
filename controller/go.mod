@@ -25,6 +25,7 @@ require (
 	github.com/json-iterator/go v1.1.5
 	github.com/kubernetes-sigs/application v0.0.0-20181121085707-4329c2567511
 	github.com/kubernetes-sigs/kubebuilder v1.0.5 // indirect
+	github.com/kubernetes/code-generator v0.0.0-20181116211957-405721ab9678 // indirect
 	github.com/markbates/inflect v1.0.4
 	github.com/mattbaird/jsonpatch v0.0.0-20171005235357-81af80346b1a
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd
