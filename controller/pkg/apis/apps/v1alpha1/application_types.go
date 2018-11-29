@@ -38,8 +38,8 @@ type RegistryConfig struct {
 
 type KsParameter struct {
 	Module string `json:"module,omitempty"`
-	Name      string `json:"name,omitempty"`
-	Value     string `json:"value,omitempty"`
+	Name   string `json:"name,omitempty"`
+	Value  string `json:"value,omitempty"`
 }
 
 type KsComponent struct {

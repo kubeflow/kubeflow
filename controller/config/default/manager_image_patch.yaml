@@ -8,5 +8,5 @@ spec:
     spec:
       containers:
       # Change the value of image field below to your controller image URL
-      - image: gcr.io/constant-cubist-173123/kubeflow-controller:v20181129-4e7f4ed-188-gf71be3b6-dirty-39134f
+      - image: gcr.io/constant-cubist-173123/kubeflow-controller:v20181129-4e7f4ed-190-g2892f629-dirty-7dcfc5
         name: manager

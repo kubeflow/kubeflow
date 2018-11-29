@@ -18,15 +18,16 @@ package application
 
 import (
 	"context"
-	"log"
-	"reflect"
-
+	"fmt"
 	appsv1alpha1 "github.com/kubeflow/kubeflow/controller/pkg/apis/apps/v1alpha1"
 	sigsApp "github.com/kubernetes-sigs/application/pkg/apis/app/v1beta1"
+	"github.com/spf13/afero"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"log"
+	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -72,12 +73,62 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	return nil
 }
 
+type ksServer struct {
+	// appsDir is the directory where apps should be stored.
+	appsDir string
+	// knownRegistries is a list of known registries
+	// This can be used to map the name of a registry to info about the registry.
+	// This allows apps to specify a registry by name without having to know any
+	// other information about the regisry.
+	knownRegistries map[string]appsv1alpha1.RegistryConfig
+
+	//gkeVersionOverride allows overriding the GKE version specified in DM config. If not set the value in DM config is used.
+	// https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters
+	gkeVersionOverride string
+
+	fs afero.Fs
+}
+
+func NewksServer(appsDir string, registries []appsv1alpha1.RegistryConfig, gkeVersionOverride string) (*ksServer, error) {
+	if appsDir == "" {
+		return nil, fmt.Errorf("appsDir can't be empty")
+	}
+
+	s := &ksServer{
+		appsDir:            appsDir,
+		knownRegistries:    make(map[string]appsv1alpha1.RegistryConfig),
+		gkeVersionOverride: gkeVersionOverride,
+		fs:                 afero.NewOsFs(),
+	}
+
+	for _, r := range registries {
+		s.knownRegistries[r.Name] = r
+		if r.RegUri == "" {
+			return nil, fmt.Errorf("Known registry %v missing URI", r.Name)
+		}
+	}
+
+	info, err := s.fs.Stat(appsDir)
+
+	// TODO(jlewi): Should we create the directory if it doesn't exist?
+	if err != nil {
+		return nil, err
+	}
+
+	if !info.IsDir() {
+		return nil, fmt.Errorf("appsDir %v is not a directory", appsDir)
+	}
+
+	return s, nil
+}
+
 var _ reconcile.Reconciler = &ReconcileApplication{}
 
 // ReconcileApplication reconciles a Application object
 type ReconcileApplication struct {
 	client.Client
 	scheme *runtime.Scheme
+	server *ksServer
 }
 
 // Automatically generate RBAC rules to allow the Controller to read and write sigsApp.Applications
