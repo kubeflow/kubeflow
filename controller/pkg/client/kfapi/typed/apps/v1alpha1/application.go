@@ -22,7 +22,7 @@ import (
 	"time"
 
 	v1alpha1 "github.com/kubeflow/kubeflow/controller/pkg/apis/apps/v1alpha1"
-	scheme "github.com/kubeflow/kubeflow/controller/pkg/client/kfctl/scheme"
+	scheme "github.com/kubeflow/kubeflow/controller/pkg/client/kfapi/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"

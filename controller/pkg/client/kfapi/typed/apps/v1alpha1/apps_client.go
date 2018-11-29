@@ -20,7 +20,7 @@ package v1alpha1
 
 import (
 	v1alpha1 "github.com/kubeflow/kubeflow/controller/pkg/apis/apps/v1alpha1"
-	"github.com/kubeflow/kubeflow/controller/pkg/client/kfctl/scheme"
+	"github.com/kubeflow/kubeflow/controller/pkg/client/kfapi/scheme"
 	serializer "k8s.io/apimachinery/pkg/runtime/serializer"
 	rest "k8s.io/client-go/rest"
 )

@@ -21,38 +21,53 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type Registry struct {
+// RegistryConfig is used for two purposes:
+// 1. used during image build, to configure registries that should be baked into the bootstrapper docker image.
+//  (See: https://github.com/kubeflow/kubeflow/blob/master/bootstrap/image_registries.yaml)
+// 2. used during app create rpc call, specifies a registry to be added to an app.
+//      required info for registry: Name, Repo, Version, Path
+//  Additionally if any of required fields is blank we will try to map with one of
+//  the registries baked into the Docker image using the name.
+type RegistryConfig struct {
 	Name    string `json:"name,omitempty"`
 	Repo    string `json:"repo,omitempty"`
 	Version string `json:"version,omitempty"`
 	Path    string `json:"path,omitempty"`
+	RegUri  string `json:"reguri,omitempty"`
 }
 
-type Parameter struct {
+type KsParameter struct {
 	Component string `json:"component,omitempty"`
 	Name      string `json:"name,omitempty"`
 	Value     string `json:"value,omitempty"`
 }
 
-type Component struct {
+type KsComponent struct {
 	Name      string `json:"name"`
 	Prototype string `json:"prototype"`
 }
 
-type Module struct {
-	Components []Component `json:"components,omitempty"`
-	Module     *Module     `json:"module,omitempty"`
+type KsModule struct {
+	Components []KsComponent `json:"components,omitempty"`
+	Module     *KsModule     `json:"module,omitempty"`
 }
 
-type AppDef struct {
-	Modules    []Module    `json:"modules,omitempty"`
-	Parameters []Parameter `json:"parameters,omitempty"`
-	Registries []Registry  `json:"registries,omitempty"`
+type KsPackage struct {
+	Name string
+	// Registry should be the name of the registry containing the package.
+	Registry string
+}
+
+type AppConfig struct {
+	Registries []RegistryConfig `json:"registries,omitempty"`
+	Packages   []KsPackage      `json:"packages,omitempty"`
+	Modules    []KsModule       `json:"modules,omitempty"`
+	Parameters []KsParameter    `json:"parameters,omitempty"`
 }
 
 // ApplicationSpec defines the desired state of Application
 type ApplicationSpec struct {
-	DefaultApp AppDef `json:"defaultApp,omitempty"`
+	DefaultApp AppConfig `json:"defaultApp,omitempty"`
 }
 
 // ApplicationStatus defines the observed state of Application
