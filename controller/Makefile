@@ -16,15 +16,15 @@ all: build
 
 # Run tests
 test: generate fmt vet manifests
-	go test ./pkg/... ./cmd/... -coverprofile cover.out
+	GO111MODULE=on go test ./pkg/... ./cmd/... -coverprofile cover.out
 
 # Build manager binary
 manager: generate fmt vet
-	go build -a -o bin/manager github.com/kubeflow/kubeflow/controller/cmd/manager
+	GO111MODULE=on go build -a -o bin/manager github.com/kubeflow/kubeflow/controller/cmd/manager
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 run: generate fmt vet
-	go run ./cmd/manager/main.go
+	GO111MODULE=on go run ./cmd/manager/main.go
 
 # Install CRDs into a cluster
 install: manifests
@@ -36,10 +36,10 @@ deploy: manifests
 	kustomize build config/default | kubectl apply -f -
 
 $(GOPATH)/bin/controller-gen:
-	go get -u sigs.k8s.io/controller-tools/cmd/controller-gen@v0.1.6
+	GO111MODULE=on go get -u sigs.k8s.io/controller-tools/cmd/controller-gen@v0.1.6
 
 $(GOPATH)/bin/client-gen:
-	go get -u k8s.io/code-generator/cmd/client-gen@v0.0.0-20181116211957-405721ab9678
+	GO111MODULE=on go get -u k8s.io/code-generator/cmd/client-gen@v0.0.0-20181116211957-405721ab9678
 
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: $(GOPATH)/bin/controller-gen $(GOPATH)/bin/client-gen
@@ -63,13 +63,12 @@ build-local: generate fmt vet
 build: build-local
 	docker build -t $(IMG):$(TAG) --build-arg GOLANG_VERSION=$(GOLANG_VERSION) --target=builder .
 	@echo "updating kustomize image patch file for manager resource"
-	sed -i'' -e 's@image: .*@image: '"$(IMG):$(TAG)"'@' ./config/default/manager_image_patch.yaml
 
 push:
 	gcloud docker -- push $(IMG):$(TAG)
 	@echo Pushed $(IMG):$(TAG)
 
-push-latest: push
+push-latest:
 	gcloud container images add-tag --quiet $(IMG):$(TAG) $(IMG):latest --verbosity=info
 	@echo created $(IMG):latest
 
