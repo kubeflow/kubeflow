@@ -20,7 +20,7 @@ test: generate fmt vet manifests
 
 # Build manager binary
 manager: generate fmt vet
-	go build -o bin/manager github.com/kubeflow/kubeflow/controller/cmd/manager
+	go build -a -o bin/manager github.com/kubeflow/kubeflow/controller/cmd/manager
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 run: generate fmt vet
@@ -36,7 +36,7 @@ deploy: manifests
 	kustomize build config/default | kubectl apply -f -
 
 $(GOPATH)/bin/controller-gen:
-	go get -u sigs.k8s.io/controller-tools/cmd/controller-gen
+	go get -u sigs.k8s.io/controller-tools/cmd/controller-gen@v0.1.6
 
 $(GOPATH)/bin/client-gen:
 	go get -u k8s.io/code-generator/cmd/client-gen@v0.0.0-20181116211957-405721ab9678

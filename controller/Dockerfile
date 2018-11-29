@@ -10,7 +10,7 @@ COPY pkg/    pkg/
 COPY cmd/    cmd/
 
 ENV GO111MODULE=on
-RUN go build -gcflags 'all=-N -l' -o bin/manager cmd/manager/main.go
+RUN go build -gcflags 'all=-N -l' -a -o bin/manager cmd/manager/main.go
 
 # Copy the controller-manager into a thin image
 FROM ubuntu:latest
