@@ -59,9 +59,45 @@ func init() {
 	prometheus.MustRegister(deploymentsStartedCounter)
 }
 
+func (s *ksServer) GenerateAppConfig(configPath string, req *CreateRequest) error {
+	var appConfigFile AppConfigFile
+	if err := LoadConfig(path.Join(configPath, req.KfVersion + ".yaml"), &appConfigFile); err != nil {
+		return err
+	}
+	appConfig := appConfigFile.App
+	authParamIdx := -1
+	for idx, param := range appConfig.Parameters {
+		if param.Name == "ipName" {
+			appConfig.Parameters[idx].Value = req.Name + "-ip";
+		}
+		if param.Name == "hostname" {
+			appConfig.Parameters[idx].Value = req.Name + ".endpoints." + req.Project + ".cloud.goog";
+		}
+		if param.Name == "acmeEmail" {
+			appConfig.Parameters[idx].Value = req.Email;
+		}
+		if param.Name == "jupyterHubAuthenticator" {
+			authParamIdx = idx;
+		}
+	}
+	if authParamIdx >= 0 && (req.ClientId == "" || req.ClientSecret == "") {
+		appConfig.Parameters = append(appConfig.Parameters[:authParamIdx], appConfig.Parameters[authParamIdx+1:]...)
+	}
+	for idx, reg := range appConfig.Registries {
+		if reg.Name == "kubeflow" {
+			appConfig.Registries[idx].Version = req.KfVersion
+		}
+	}
+	req.AppConfig = appConfig
+	return nil
+}
+
 // TODO: handle concurrent & repetitive deployment requests.
-func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest, dmSpec DmSpec) (*deploymentmanager.Deployment, error) {
+func (s *ksServer) InsertDeployment(ctx context.Context, req *CreateRequest, dmSpec DmSpec) (*deploymentmanager.Deployment, error) {
 	regPath := s.knownRegistries["kubeflow"].RegUri
+	if err := s.GenerateAppConfig(path.Join(regPath, "../bootstrap/config"), req); err != nil {
+		return nil, err
+	}
 	var dmconf DmConf
 	err := LoadConfig(path.Join(regPath, dmSpec.ConfigFile), &dmconf)
 

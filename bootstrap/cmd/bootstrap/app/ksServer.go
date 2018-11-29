@@ -91,7 +91,7 @@ type KsService interface {
 	ConfigCluster(context.Context, CreateRequest) error
 	BindRole(context.Context, string, string, string) error
 	InstallIstio(ctx context.Context, req CreateRequest) error
-	InsertDeployment(context.Context, CreateRequest, DmSpec) (*deploymentmanager.Deployment, error)
+	InsertDeployment(context.Context, *CreateRequest, DmSpec) (*deploymentmanager.Deployment, error)
 	GetDeploymentStatus(context.Context, CreateRequest, string) (string, string, error)
 	ApplyIamPolicy(context.Context, ApplyIamRequest) error
 	GetProjectLock(string) *sync.Mutex
@@ -195,6 +195,8 @@ type StorageOption struct {
 type CreateRequest struct {
 	// Name for the app.
 	Name string
+	// kubeflow release version
+	KfVersion string
 	// AppConfig is the config for the app.
 	AppConfig kstypes.AppConfig
 
@@ -1291,7 +1293,7 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 
 		if req.StorageOption.CreatePipelinePersistentStorage {
 			var err error
-			storageDmDeployment, err = svc.InsertDeployment(ctx, req, StorageDmSpec)
+			storageDmDeployment, err = svc.InsertDeployment(ctx, &req, StorageDmSpec)
 			if err != nil {
 				r.Err = err.Error()
 				return r, err
@@ -1310,7 +1312,7 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 					Value:     req.Name + StorageDmSpec.DmNameSuffix + PipelineNfsDiskSuffix})
 		}
 
-		clusterDmDeployment, err := svc.InsertDeployment(ctx, req, ClusterDmSpec)
+		clusterDmDeployment, err := svc.InsertDeployment(ctx, &req, ClusterDmSpec)
 		if err != nil {
 			r.Err = err.Error()
 			return r, err
