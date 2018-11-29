@@ -2,7 +2,7 @@
   local k = import "k.libsonnet",
   local util = import "kubeflow/core/util.libsonnet",
   new(_env, _params):: {
-    local params = _env + _params {
+    local params = _params + _env {
       cloudEndpointsImage: "gcr.io/cloud-solutions-group/cloud-endpoints-controller:0.1.1",
       metacontrollerImage: "gcr.io/enisoc-kubernetes/metacontroller@sha256:18561c63e1c5380ac5bbaabefa933e484bdb499f10b61071506f9a0070bc65f6",
     },

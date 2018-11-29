@@ -2,7 +2,7 @@
   local k = import "k.libsonnet",
   local util = import "kubeflow/core/util.libsonnet",
   new(_env, _params):: {
-    local params = _env + _params {
+    local params = _params + _env {
       disableJwtChecking: util.toBool(_params.disableJwtChecking),
       hostname: if std.objectHas(_params, "hostname") then _params.hostname else "null",
       envoyPort: 8080,
