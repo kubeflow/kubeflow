@@ -8,7 +8,7 @@
 # cd myapp
 # kfctl.sh generate all
 # kfctl.sh apply all
-set -xe
+#set -xe
 
 ENV_FILE="env.sh"
 SKIP_INIT_PROJECT=false

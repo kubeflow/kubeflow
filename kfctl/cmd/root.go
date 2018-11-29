@@ -15,29 +15,25 @@
 package cmd
 
 import (
+	"flag"
 	"fmt"
-	"os"
-
-	homedir "github.com/mitchellh/go-homedir"
+	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"k8s.io/client-go/kubernetes"
+	"os"
+	"path/filepath"
 )
 
 var cfgFile string
+var kubeconfig *string
+var kfclient *kubernetes.Clientset
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "kfctl",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	//	Run: func(cmd *cobra.Command, args []string) { },
+	Short: "kubeflow admin tool",
+	Long:  `kubeflow admin tool`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -74,6 +70,7 @@ func initConfig() {
 			fmt.Println(err)
 			os.Exit(1)
 		}
+		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
 
 		// Search config in home directory with name ".kfctl" (without extension).
 		viper.AddConfigPath(home)

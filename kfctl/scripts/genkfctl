@@ -8,5 +8,6 @@ cobra add completion
 cobra add delete
 cobra add generate
 cobra add get
+cobra add init
 cobra add remove
 cobra add version
