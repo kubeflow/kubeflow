@@ -24,9 +24,16 @@ kubectl create -f bootstrapper.yaml
 ```
 
 The contents of bootstrapper.yaml will deploy a pod that runs the golang server.
-The server will listen for HTTP PUT’s that define a kubeflow application. The server can also read from a configmap that is mounted locally. In both cases a json definition is used that the golang server accepts and builds a ksonnet application. This json definition is mapped to the AppConfig golang struct:
+The server will listen for HTTP PUT’s that define a kubeflow application. The server can also read from a configmap that is mounted locally. In both cases a json definition is used that the golang server accepts and uses to build a ksonnet application using the ksonnet API. This json definition is reified into the AppConfig golang struct:
 
 ```go
+type AppConfig struct {
+  Registries []RegistryConfig `json:"registries,omitempty"`
+  Packages   []KsPackage      `json:"packages,omitempty"`
+  Components []KsComponent    `json:"components,omitempty"`
+  Parameters []KsParameter    `json:"parameters,omitempty"`
+}
+
 type RegistryConfig struct {
   Name    string `json:"name,omitempty"`
   Repo    string `json:"repo,omitempty"`
@@ -51,16 +58,9 @@ type KsPackage struct {
   // Registry should be the name of the registry containing the package.
   Registry string
 }
-
-type AppConfig struct {
-  Registries []RegistryConfig `json:"registries,omitempty"`
-  Packages   []KsPackage      `json:"packages,omitempty"`
-  Components []KsComponent    `json:"components,omitempty"`
-  Parameters []KsParameter    `json:"parameters,omitempty"`
-}
 ```
 
-An example of a configmap that has an instance of AppConfig is shown below within the defaultApp definition
+An example of a ConfigMap that has an embedded yaml of AppConfig is shown below:
 
 ```yaml
 apiVersion: v1
@@ -126,7 +126,8 @@ metadata:
   namespace: default
 ```
 
-As noted, the embedded yaml above is used by the golang server to generate a ksonnet application and deploy it. A ksonnet application definition is shown below:
+As noted, the embedded yaml is used by the golang server to generate a ksonnet application and optionally deploy it. 
+The resulting ksonnet application definition is shown below:
 
 ```yaml
 apiVersion: 0.3.0
@@ -202,14 +203,13 @@ registries:
 version: 0.0.1
 ```
 
-Currently as part of all kubeflow deployments an Application CR is generated and deployed along with the other manifests. An example Application CR is shown below:
+Currently as part of all kubeflow ksonnet deployments an Application CR (applications.app.k8s.io/v1beta1) is generated and deployed along with the other manifests. An example Application CR is shown below:
 
 ```yaml
 apiVersion: app.k8s.io/v1beta1
 kind: Application
 metadata:
   annotations:
-    ksonnet.io/managed: '{"pristine":"H4sIAAAAAAAA/7xZQa+jNhC+92f4HNJd9VK92zZ7bKVqn7SXVQ+DmSR+GNuyh6TZp/z3ygQC5plAAumNwDefP38zNuPwzsCI72id0Iq9MDBmnf/u1kL/evicIsFntmK5UBl7YV+MkYIDeeSKFUiQAQF7eWcSUpTOX4ExF5YOsuIsU7QKCStqBQV+gOVOK4Xkn3NdGK1QUQ90XrFoqL/pDHD/xI+0lfrowc4g96qufI69/HhnUKTgHGTa+of17F7RHgRHdj6vuogEskKocZxH7Kwu/fRtCnwNJe21FT8rjbWnrZcbWTpC+03LKFM41hfOdalouSH/ECoTaneLEP8lVL4oXMvwFY3UpwIbKUdtc2+1W4PdaWP1mx+wQwJGtDwfBZWOdPENnS4tx6+4FUpc0twlT7hWZLWUeLc+ryopxYywWM4jwvzlVuwKMJ2gTXXvLzAt61hqa8isOprFERbGkA8fRPdMflT3LJpAOkdFFmQGbp9qsNm9JRCLj9XCOC7w6pasCbNt3XorzYmudTdcdA3u09AEakC4aE3HmVcCwm0pX5FCSuvFzNWvNGGqdb4Mm0wnTPNGevqqJsIf1B4U7FKGBKQH8VNURWJxyJge5J41Uodmg6bHAH/7TsMRKvquZVngRoIoIvAHhPTn8MgutAjV9BwE5dRBJhYdTUjZFXePXTmQSG+837rPH0iDK3c7dN6jxILKdDEyjyh+3rg7KwZ37GH0vDH3J4M2BXXHwEHIvNFTOKEToLQhUdQlOl3IUPQ9mhyV2elNp27dNOBrbXdLNYMFkhXcJdy3W5zmt9tRwhuLc0EBwfZQ815pE8LCSCAcfqc3Tg80xo+4MUB5w49FRQSOjDBPPZfgFCurc6EThO1Ybu0Ptu3vRvdChdwSWzyIC8NTB8yQawuk7f82RU/ePRu5evMZXWBBFL+UR9UHJWldIIutOYgX10jr2zRnz9njruxDG3cM0CvoABKfVX+xXDvOuCXxUmmn1KygTRtd0Rqrt0Lic6wyaAvh6shn8Nfih1+heHz4tBIh72Wxi5iWxCZi6SS2Pi/NfPJb0j7RBqvdafQk2w8Y2U5i8DlvyOX4gq2opn1a33RL9qSuzoAlyEs3u8OYTxR2CV2+W31Kg0sOWpaK8P5ugrZPSw9tE9/pXBdB85f73QpDmrG11MOPWBhBz6mExeiCeqhZR/+wG8fF5v7w/4i34meYtwBf694/K5ahQZWh4sK/dH5Udxy3wlxOgoyt2B5B0n6zR55fbgi11RdsjqejtlkdKYXK68sChCIQCm19Qx/ba4ftQaoA4vs/ux+Rxj8Ync8rRicTfPJZscP1S9an9W/sfP7lPwAAAP//AQAA//+PKjeg4BoAAA=="}'
   clusterName: ""
   creationTimestamp: 2018-11-21T16:33:55Z
   generation: 1
