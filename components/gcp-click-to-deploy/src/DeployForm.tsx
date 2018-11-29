@@ -520,6 +520,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       'endpoints.googleapis.com',
       'iam.googleapis.com',
       'sourcerepo.googleapis.com',
+      'ml.googleapis.com',
     ]);
 
     for (const k of Array.from(servicesToEnable.keys())) {
