@@ -117,6 +117,7 @@ local dagTemplates = [
       srcDir + "/kubeflow/core/tests" + "," +
       srcDir + "/kubeflow/jupyter/tests" + "," +
       srcDir + "/kubeflow/examples/tests" + "," +
+      srcDir + "/kubeflow/openvino/tests" + "," +
       srcDir + "/kubeflow/metacontroller/tests" + "," +
       srcDir + "/kubeflow/profiles/tests" + "," +
       srcDir + "/kubeflow/tensorboard/tests" + "," +

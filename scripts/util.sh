@@ -67,6 +67,7 @@ createKsApp() {
   ks pkg install kubeflow/pytorch-job
   ks pkg install kubeflow/seldon
   ks pkg install kubeflow/tf-serving
+  ks pkg install kubeflow/openvino
   ks pkg install kubeflow/tf-training
   ks pkg install kubeflow/metacontroller
   ks pkg install kubeflow/profiles
@@ -75,6 +76,7 @@ createKsApp() {
   # Generate all required components
   ks generate pytorch-operator pytorch-operator
   ks generate ambassador ambassador
+  ks generate openvino openvino
   ks generate jupyter jupyter
   ks generate centraldashboard centraldashboard
   ks generate tf-job-operator tf-job-operator
