@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+KFCTL=github.com/kubeflow/kubeflow/kfctl
+cobra init $KFCTL
+cd $GOPATH/src/$KFCTL
+cobra add add
+cobra add apply
+cobra add completion
+cobra add delete
+cobra add generate
+cobra add get
+cobra add remove
+cobra add version
