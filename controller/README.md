@@ -14,13 +14,7 @@
 - Seldon use case where seldon was deployed as a new component after the initial deployment
 - Coach RL use case (TBD)
 
-
-## Changes
-
-- Define an Application kind for kubeflow using existing types from bootstrapper
-- Migrate bootstrapper to this controller
-
-### Current definition and flow
+## Current Design
 
 A Kubeflow Application is created by the bootstrapper. 
 The bootstrapper is a golang server that is deployed by running 
@@ -509,11 +503,14 @@ spec:
   version: "0.3"
 ```
 
-### Proposed changes
+## Proposed Design
 
-1. Refactor the golang bootstrap server into a kubeflow controller that accepts a kubeflow Application CR (applications.apps.kubeflow.org).
-1. The kubeflow controller will generate a ksonnet application as it currently does in bootstrap. The ksonnet application will include an Application CR (applications.app.k8s.io) and an application controller (metacontroller) that contains the manifests. The Application CR (applications.app.k8s.io) will be watched by the application controller and it will deploy all the components in-cluster (This work has already been done in a prior PR but was not merged).
-1. The applications.apps.kubeflow.org CR will be owned by the kubeflow-controller. All resources will be owned by the application-controller. Deleting the kubeflow application instance will cascade to deleting all deployed resources.
+1. Define an Application kind (applications.apps.kubeflow.org) for kubeflow using existing types from bootstrapper
+1. Migrate bootstrapper to a kubeflow-controller that receives this Application Kind
+1. The kubeflow controller will generate a ksonnet application using the Application CR submitted by the client, as it currently does in bootstrap. The generated ksonnet application will just be an Application CR (applications.app.k8s.io) and a CompositeController (application-controller) that contains the components referenced in the ApplicationCR. The CompositeController will deploy all the components in-cluster (This work has already been done in a prior PR but was not merged).
+1. The Application (applications.apps.kubeflow.org) CR will be owned by the kubeflow-controller. 
+1. The Application (applications.app.k8s.io) and all components listed in the CR will be owned by the application-controller. 
+1. Deleting the Application CR (applications.apps.kubeflowe.org) will result in a cascaded deleted and delete the Application CR (applications.app.k8s.io) and all resources which are owned by the application-controller. The flow is shown below.
 
 ![kfctl_interactions](./docs/kfctl_interactions.png "kfctl interactions")
 
