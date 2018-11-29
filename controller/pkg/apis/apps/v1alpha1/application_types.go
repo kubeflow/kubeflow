@@ -37,7 +37,7 @@ type RegistryConfig struct {
 }
 
 type KsParameter struct {
-	Component string `json:"component,omitempty"`
+	Module string `json:"module,omitempty"`
 	Name      string `json:"name,omitempty"`
 	Value     string `json:"value,omitempty"`
 }
@@ -67,7 +67,7 @@ type AppConfig struct {
 
 // ApplicationSpec defines the desired state of Application
 type ApplicationSpec struct {
-	DefaultApp AppConfig `json:"defaultApp,omitempty"`
+	App AppConfig `json:"app,omitempty"`
 }
 
 // ApplicationStatus defines the observed state of Application

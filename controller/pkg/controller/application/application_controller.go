@@ -97,7 +97,7 @@ func (r *ReconcileApplication) Reconcile(request reconcile.Request) (reconcile.R
 		return reconcile.Result{}, err
 	}
 
-	// Define a sigsApp.Application object
+	// Define a Application (applications.app.k8s.io/v1beta1) object
 	sigsapp := &sigsApp.Application{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      instance.Name + "-application",
@@ -118,7 +118,7 @@ func (r *ReconcileApplication) Reconcile(request reconcile.Request) (reconcile.R
 	found := &sigsApp.Application{}
 	err = r.Get(context.TODO(), types.NamespacedName{Name: sigsapp.Name, Namespace: sigsapp.Namespace}, found)
 	if err != nil && errors.IsNotFound(err) {
-		log.Printf("Creating sigsApp.Application %s/%s\n", sigsapp.Namespace, sigsapp.Name)
+		log.Printf("Creating app.k8s.io/Application %s/%s\n", sigsapp.Namespace, sigsapp.Name)
 		err = r.Create(context.TODO(), sigsapp)
 		if err != nil {
 			return reconcile.Result{}, err
