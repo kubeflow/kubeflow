@@ -4,7 +4,7 @@
   local k = import "k.libsonnet",
   local util = import "kubeflow/core/util.libsonnet",
   new(_env, _params):: {
-    local params = _env + _params,
+    local params = _params + _env,
 
     // CRD's are not namespace scoped; see
     // https://kubernetes.io/docs/tasks/access-kubernetes-api/extend-api-custom-resource-definitions/

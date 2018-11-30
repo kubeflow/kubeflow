@@ -4,7 +4,7 @@
   local deployment = k.apps.v1beta1.deployment,
 
   new(_env, _params):: {
-    local params = _env + _params,
+    local params = _params + _env,
 
     // tfJobCrd schema
     local openAPIV3Schema = {

@@ -6,44 +6,58 @@
   local container = deployment.mixin.spec.template.spec.containersType,
 
   new(_env, _params):: {
-    local params = _params + _env {
+    local params = _env + _params {
       labels: {
-        app: _params.name,
+        role: _params.name,
       },
+      imageURL: _params.registry + "/" + _params.repoPath + "/" + _params.image,
     },
     params:: params,
 
-    local tbService =
+    local ovService =
       service.new(
         name=params.name,
         selector=params.labels,
-        ports=service.mixin.spec.portsType.newNamed("tb", params.servicePort, params.targetPort),
+        ports=service.mixin.spec.portsType.newNamed("ov", params.servicePort, params.targetPort),
       ).withType(params.serviceType) +
       service.mixin.metadata.
         withNamespace(params.namespace).
-        withLabelsMixin(params.labels).
         withAnnotationsMixin({
         "getambassador.io/config":
           std.join("\n", [
             "---",
             "apiVersion: ambassador/v0",
             "kind:  Mapping",
-            "name: tb-mapping-" + params.name + "-get",
-            "prefix: /tensorboard/ " + params.name + "/",
+            "name: openvino-mapping",
+            "prefix: /openvino/",
             "rewrite: /",
-            "method: GET",
             "service: " + params.name + "." + params.namespace + ":" + params.servicePort,
           ]),
       }),
-    tbService:: tbService,
+    ovService:: ovService,
 
-    local tbContainer =
+    local ovContainer =
       container.new(
-        params.name, params.defaultTbImage
+        params.name, params.imageURL
       ).withImagePullPolicy("IfNotPresent").
-        withArgs(["--logdir=" + params.logDir, "--port=" + params.targetPort]).
+        withArgs([
+        "ie_serving",
+        "model",
+        "--model_path",
+        params.pvcMount + "/" + params.modelName,
+        "--model_name",
+        params.modelName,
+        "--port",
+        std.toString(params.targetPort),
+      ]).
         withPorts(container.portsType.new(params.targetPort)).
-        withCommand(["/usr/local/bin/tensorboard"]) +
+        withCommand(["/ie-serving-py/start_server.sh"]) +
+      container.withVolumeMountsMixin([
+        {
+          name: "nfs",
+          mountPath: params.pvcMount,
+        },
+      ]) +
       container.mixin.resources.withLimitsMixin({
         memory: "4Gi",
         cpu: "4",
@@ -52,22 +66,33 @@
         cpu: "1",
       }),
 
-    local tbDeployment =
+    local ovDeployment =
       deployment.new(
         name=params.name,
-        replicas=1,
-        containers=tbContainer,
+        replicas=params.replicas,
+        containers=ovContainer,
         podLabels=params.labels,
       ) +
       deployment.mixin.metadata.
         withNamespace(params.namespace).
-        withLabelsMixin(params.labels),
-    tbDeployment:: tbDeployment,
+        withLabelsMixin(params.labels) +
+      deployment.mixin.spec.template.spec.
+        withVolumesMixin(
+        if params.modelStorageType == "nfs" then
+          [{
+            name: "nfs",
+            persistentVolumeClaim: {
+              claimName: params.pvc,
+            },
+          }]
+        else [],
+      ),
+    ovDeployment:: ovDeployment,
 
     parts:: self,
     all:: [
-      self.tbService,
-      self.tbDeployment,
+      self.ovService,
+      self.ovDeployment,
     ],
 
     list(obj=self.all):: util.list(obj),
