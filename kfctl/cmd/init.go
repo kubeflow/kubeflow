@@ -16,6 +16,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/kubeflow/kubeflow/controller/pkg/client/kfapi"
 
 	"github.com/spf13/cobra"
 )
@@ -27,6 +28,12 @@ var initCmd = &cobra.Command{
 	Long:  `Create a yaml template that can then be used to generate a kubeflow application`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("init called")
+		kfclient, err := kfapi.NewForConfig(KfConfig)
+		if err != nil {
+			panic(err.Error())
+		}
+		kfclient.RESTClient().Get()
+
 	},
 }
 

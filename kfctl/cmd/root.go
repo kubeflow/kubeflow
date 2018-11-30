@@ -17,23 +17,26 @@ package cmd
 import (
 	"flag"
 	"fmt"
+	"github.com/kubeflow/kubeflow/controller/pkg/client/kfapi"
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 	"os"
 	"path/filepath"
 )
 
 var cfgFile string
 var kubeconfig *string
-var kfclient *kubernetes.Clientset
+var KfClient *kfapi.Clientset
+var KfConfig *rest.Config
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "kfctl",
-	Short: "kubeflow admin tool",
-	Long:  `kubeflow admin tool`,
+	Short: "kubeflow client tool",
+	Long:  `kubeflow client tool`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -56,6 +59,7 @@ func init() {
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -71,6 +75,14 @@ func initConfig() {
 			os.Exit(1)
 		}
 		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
+
+		KfConfig, err = clientcmd.BuildConfigFromFlags("", *kubeconfig)
+		if err != nil {
+			panic(err.Error())
+		}
+		if err != nil {
+			panic(err.Error())
+		}
 
 		// Search config in home directory with name ".kfctl" (without extension).
 		viper.AddConfigPath(home)
