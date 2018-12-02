@@ -166,6 +166,10 @@ class KubeFormSpawner(spawner.KubeFormSpawner):
     @gen.coroutine
     def _prepare_volumes(self):
         """Create PVC manifests and attach as volumes to the Notebook."""
+        # Reset Volumes and VolumeMounts to initial KubeSpawner values
+        self.volumes = list(self.initial_volumes)
+        self.volume_mounts = list(self.initial_volume_mounts)
+
         # Set PVC labels
         labels = self._expand_all(self.user_storage_extra_labels)
         labels = self._build_common_labels(labels)
@@ -262,7 +266,10 @@ class KubeFormSpawner(spawner.KubeFormSpawner):
                 body=delete_options
             )
         except ApiException as e:
-            if e.status != 404:
+            if e.status == 404:
+                # The PVC does not exist
+                return del_status
+            else:
                 self.log.warning('Could not delete PVC %s' % pvc_name)
                 raise
 
@@ -275,9 +282,8 @@ class KubeFormSpawner(spawner.KubeFormSpawner):
                 )
             except ApiException as e:
                 if e.status == 404:
+                    self.log.info('PVC %s was successfully deleted', pvc_name)
                     break
-
-        self.log.info('PVC %s was successfully deleted', pvc_name)
 
         return del_status
 

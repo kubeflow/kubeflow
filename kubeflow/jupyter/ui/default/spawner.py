@@ -15,6 +15,10 @@ SERVICE_ACCOUNT_SECRET_MOUNT = '/var/run/secrets/sa'
 
 class KubeFormSpawner(KubeSpawner):
     """Implement a custom Spawner to spawn pods in a Kubernetes Cluster."""
+    def __init__(self, *args, **kwargs):
+        super(KubeFormSpawner, self).__init__(*args, **kwargs)
+        self.initial_volumes = list(self.volumes)
+        self.initial_volume_mounts = list(self.volume_mounts)
 
     @property
     def spawner_ui_config(self):
@@ -314,6 +318,10 @@ class KubeFormSpawner(KubeSpawner):
     @gen.coroutine
     def _prepare_volumes(self):
         """Create PVC manifests and attach as volumes to the Notebook."""
+        # Reset Volumes and VolumeMounts to initial KubeSpawner values
+        self.volumes = list(self.initial_volumes)
+        self.volume_mounts = list(self.initial_volume_mounts)
+
         # Workspace and Data Volumes are managed as PVCs
         persistent_volumes = [self.workspace_volume] + self.data_volumes
 
