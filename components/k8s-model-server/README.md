@@ -39,7 +39,7 @@ create and manage a new Project on GCP. There is a [free tier](https://cloud.goo
 use to try it out.
 
 ## Build a Model Server Docker Image
-The [docker file](docker/Dockerfile) builds a docker image containing default the TensorFlow model server tuned for
+The [docker file](images/Dockerfile) builds a docker image containing default the TensorFlow model server tuned for
 amd64 architecture. You can modify this file to support the architecture of your choice.
 
 ### Set the User (Optional)
@@ -54,7 +54,7 @@ will be used in the Kubernetes Deployment's PodSecurityContext so that the conta
 (This is considered to be a best practice).
 
 ### Build the Image
-A [Makefile](docker/Makefile) is included that will build the image and push it to private hosting inside your project.
+A [Makefile](images/Makefile) is included that will build the image and push it to private hosting inside your project.
 
 Download and install the [Google Cloud SDK](https://cloud.google.com/sdk/downloads) (Software Development Kit).
 
