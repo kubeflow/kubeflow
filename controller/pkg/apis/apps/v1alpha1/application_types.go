@@ -48,8 +48,8 @@ type KsComponent struct {
 }
 
 type KsModule struct {
-	Components []KsComponent `json:"components,omitempty"`
-	Module     *KsModule     `json:"module,omitempty"`
+	Components []*KsComponent `json:"components,omitempty"`
+	Module     []*KsModule    `json:"module,omitempty"`
 }
 
 type KsPackage struct {

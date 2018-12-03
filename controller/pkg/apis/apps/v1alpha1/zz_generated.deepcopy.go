@@ -201,13 +201,25 @@ func (in *KsModule) DeepCopyInto(out *KsModule) {
 	*out = *in
 	if in.Components != nil {
 		in, out := &in.Components, &out.Components
-		*out = make([]KsComponent, len(*in))
-		copy(*out, *in)
+		*out = make([]*KsComponent, len(*in))
+		for i := range *in {
+			if (*in)[i] != nil {
+				in, out := &(*in)[i], &(*out)[i]
+				*out = new(KsComponent)
+				**out = **in
+			}
+		}
 	}
 	if in.Module != nil {
 		in, out := &in.Module, &out.Module
-		*out = new(KsModule)
-		(*in).DeepCopyInto(*out)
+		*out = make([]*KsModule, len(*in))
+		for i := range *in {
+			if (*in)[i] != nil {
+				in, out := &(*in)[i], &(*out)[i]
+				*out = new(KsModule)
+				(*in).DeepCopyInto(*out)
+			}
+		}
 	}
 	return
 }
