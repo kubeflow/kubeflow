@@ -13,7 +13,7 @@
     local versionName = params.versionName,
     local numGpus =
       if std.type(params.numGpus) == "string" then
-        std.parsInt(params.numGpus)
+        std.parseInt(params.numGpus)
       else
         params.numGpus,
     local modelServerImage =
