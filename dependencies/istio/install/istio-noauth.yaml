@@ -615,7 +615,7 @@ data:
         [[ if (isset .ObjectMeta.Annotations "traffic.sidecar.istio.io/includeOutboundIPRanges") -]]
         - "[[ index .ObjectMeta.Annotations "traffic.sidecar.istio.io/includeOutboundIPRanges"  ]]"
         [[ else -]]
-        - "10.32.0.0/14\,10.35.240.0/20"
+        - "*"
         [[ end -]]
         - "-x"
         [[ if (isset .ObjectMeta.Annotations "traffic.sidecar.istio.io/excludeOutboundIPRanges") -]]
