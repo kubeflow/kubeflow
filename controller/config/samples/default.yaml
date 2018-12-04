@@ -1,10 +1,7 @@
 apiVersion: apps.kubeflow.org/v1alpha1
 kind: Application
 metadata:
-  labels:
-    controller-tools.k8s.io: "1.0"
-  name: application-sample
-  name: kubeflow
+  name: application
 spec:
   app:
     env: default
@@ -21,17 +18,17 @@ spec:
             prototype: centraldashboard
           - name: spartakus
             prototype: spartakus
-      parameters:
-        - component: ambassador
-          name: ambassadorServiceType
-          value: LoadBalancer
-      packages:
-        - name: core
-        - registry: kubeflow
-      registries:
-        - name: kubeflow
-          repo: https://github.com/kubeflow/kubeflow.git
-          version: master
-          # relative path to registry from git repo.
-          path: kubeflow
-          RegUri: /opt/registries/kubeflow/kubeflow
+    parameters:
+      - component: ambassador
+        name: ambassadorServiceType
+        value: LoadBalancer
+    packages:
+      - name: core
+      - registry: kubeflow
+    registries:
+      - name: kubeflow
+        repo: https://github.com/kubeflow/kubeflow.git
+        version: master
+        # relative path to registry from git repo.
+        path: kubeflow
+        RegUri: /opt/registries/kubeflow/kubeflow

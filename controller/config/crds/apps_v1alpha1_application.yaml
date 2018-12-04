@@ -21,8 +21,92 @@ spec:
         metadata:
           type: object
         spec:
+          properties:
+            app:
+              properties:
+                env:
+                  type: string
+                modules:
+                  items:
+                    properties:
+                      components:
+                        items:
+                          properties:
+                            name:
+                              type: string
+                            prototype:
+                              type: string
+                          required:
+                          - name
+                          - prototype
+                          type: object
+                        type: array
+                      modules:
+                        items:
+                          type: object
+                        type: array
+                      name:
+                        type: string
+                    required:
+                    - name
+                    type: object
+                  type: array
+                packages:
+                  items:
+                    type: object
+                  type: array
+                parameters:
+                  items:
+                    properties:
+                      component:
+                        type: string
+                      name:
+                        type: string
+                      value:
+                        type: string
+                    type: object
+                  type: array
+                registries:
+                  items:
+                    properties:
+                      name:
+                        type: string
+                      path:
+                        type: string
+                      reguri:
+                        type: string
+                      repo:
+                        type: string
+                      version:
+                        type: string
+                    type: object
+                  type: array
+              type: object
           type: object
         status:
+          properties:
+            conditions:
+              items:
+                properties:
+                  lastTransitionTime:
+                    format: date-time
+                    type: string
+                  lastUpdateTime:
+                    format: date-time
+                    type: string
+                  message:
+                    type: string
+                  reason:
+                    type: string
+                  status:
+                    type: string
+                  type:
+                    type: string
+                required:
+                - type
+                - status
+                type: object
+              type: array
           type: object
   version: v1alpha1
 status:

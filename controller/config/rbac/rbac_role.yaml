@@ -5,9 +5,9 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
-  - apps
+  - app.k8.io
   resources:
-  - deployments
+  - applications
   verbs:
   - get
   - list
