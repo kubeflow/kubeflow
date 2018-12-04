@@ -59,7 +59,7 @@ local rbac1 = [
 
 local rbac3 = [
   core.parts(name, namespace, seldonVersion).rbacClusterRole(),
-  core.parts(name, namespace, seldonVersion).rbacClusterRoleBinding(),  
+  core.parts(name, namespace, seldonVersion).rbacClusterRoleBinding(),
 ];
 
 local rbac = if std.startsWith(seldonVersion, "0.1") then rbac1 else rbac2;
