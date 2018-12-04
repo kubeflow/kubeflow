@@ -210,8 +210,8 @@ func (in *KsModule) DeepCopyInto(out *KsModule) {
 			}
 		}
 	}
-	if in.Module != nil {
-		in, out := &in.Module, &out.Module
+	if in.Modules != nil {
+		in, out := &in.Modules, &out.Modules
 		*out = make([]*KsModule, len(*in))
 		for i := range *in {
 			if (*in)[i] != nil {

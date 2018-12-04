@@ -9,10 +9,13 @@ GOPATH ?= $(HOME)/go
 # set to GOLANG_GCFLAGS=-gcflags "all=-N -l" to debug
 GOLANG_GCFLAGS ?= ""
 IMG ?= gcr.io/$(GCLOUD_PROJECT)/kubeflow-controller
-TAG ?= $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6)
+TAG ?= $(eval TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6))$(TAG)
 PORT ?= 2345
 
 all: build
+
+auth:
+	gcloud auth configure-docker
 
 # Run tests
 test: generate fmt vet manifests
@@ -64,21 +67,25 @@ build: build-local
 	docker build -t $(IMG):$(TAG) --build-arg GOLANG_VERSION=$(GOLANG_VERSION) --target=builder .
 	@echo "updating kustomize image patch file for manager resource"
 
-push:
-	gcloud docker -- push $(IMG):$(TAG)
+push: build
+	docker push $(IMG):$(TAG)
 	@echo Pushed $(IMG):$(TAG)
 
-push-latest:
+push-latest: push
 	gcloud container images add-tag --quiet $(IMG):$(TAG) $(IMG):latest --verbosity=info
 	@echo created $(IMG):latest
 
 debug:
 	@echo debugging $(IMG):$(TAG) using port $(PORT)
-	@./debug.sh $(IMG) $(TAG) $(PORT)
+	@hack/debug.sh $(IMG) $(TAG) $(PORT)
 
 debug-latest:
 	@echo debugging $(IMG):latest using port $(PORT)
-	@./debug.sh $(IMG) latest $(PORT)
+	@hack/debug.sh $(IMG) latest $(PORT)
+
+purge:
+	@echo cleaning up docker images
+	@hack/dockerpurge.sh 
 
 cleanup:
 	@echo Removing kubeflow-admin namespace

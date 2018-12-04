@@ -37,9 +37,10 @@ type RegistryConfig struct {
 }
 
 type KsParameter struct {
-	Module string `json:"module,omitempty"`
-	Name   string `json:"name,omitempty"`
-	Value  string `json:"value,omitempty"`
+	// nested components are referenced as "a.b.c" where "a" or "b" may be a module name
+	Component string `json:"component,omitempty"`
+	Name      string `json:"name,omitempty"`
+	Value     string `json:"value,omitempty"`
 }
 
 type KsComponent struct {
@@ -48,8 +49,9 @@ type KsComponent struct {
 }
 
 type KsModule struct {
+	Name       string         `json:"name"`
 	Components []*KsComponent `json:"components,omitempty"`
-	Module     []*KsModule    `json:"module,omitempty"`
+	Modules    []*KsModule    `json:"modules,omitempty"`
 }
 
 type KsPackage struct {
@@ -59,6 +61,7 @@ type KsPackage struct {
 }
 
 type AppConfig struct {
+	Env        string           `json:"env,omitempty"`
 	Registries []RegistryConfig `json:"registries,omitempty"`
 	Packages   []KsPackage      `json:"packages,omitempty"`
 	Modules    []KsModule       `json:"modules,omitempty"`
