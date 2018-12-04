@@ -27,6 +27,7 @@ gcpInitProject() {
     cloudresourcemanager.googleapis.com \
     endpoints.googleapis.com \
     file.googleapis.com \
+    ml.googleapis.com \
     iam.googleapis.com --project=${PROJECT}
 
   # Set IAM Admin Policy
