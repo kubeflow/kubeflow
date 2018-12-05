@@ -84,7 +84,7 @@
                       "--output_result_prefix=" + base.params.outputResultPrefix,
                       "--output_error_prefix=" + base.params.outputErrorPrefix,
                       "--batch_size=" + base.params.batchSize,
-                    ] + if base.params.runDataflow == "true" && base.params.numGpus == 0  then [
+                    ] + if base.params.runDataflow == "true" && base.params.numGpus == 0 then [
                       "--runner=DataflowRunner",
                       "--max_num_workers=" + base.params.maxNumWorkers,
                       "--project=" + base.params.projectName,
@@ -146,12 +146,11 @@
     },
     tfBatchPredict:: tfBatchPredict,
 
-	parts:: self,
-
-	all:: [
-	  self.tfBatchPredict.parts.bpJob,
-	],
+    parts:: self,
+    all:: [
+      self.tfBatchPredict.parts.bpJob,
+    ],
 
     list(obj=self.all):: util.list(obj),
- },
+  },
 }

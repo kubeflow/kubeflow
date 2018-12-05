@@ -21,7 +21,6 @@
 // Do NOT delete the any space between "string" and "if".
 // @optionalParam tempLocation string   if the job is launched in Dataflow on GCP
 
-
 local k = import "k.libsonnet";
 local tfbatchpredict = import "kubeflow/tf-batch-predict/tf-batch-predict.libsonnet";
 local instance = tfbatchpredict.new(env, params);
