@@ -131,14 +131,14 @@ def setup_kubeflow_ks_app(args, api_client):
   # Instead of installing packages we edit the app.yaml file directly
   #for p in packages:
   # util.run(["ks", "pkg", "install", p], cwd=app_dir)
-  app_file = os.path.join(app_dir,"app.yaml")
+  app_file = os.path.join(app_dir, "app.yaml")
   with open(app_file) as f:
     app_yaml = yaml.load(f)
 
   libraries = {}
   for pkg in packages:
     pkg = pkg.split("/")[1]
-    libraries[pkg] = {'gitVersion':{'commitSha': 'fake', 'refSpec': 'fake'}, 'name': pkg, 'registry': "kubeflow"}
+    libraries[pkg] = {'gitVersion': {'commitSha': 'fake', 'refSpec': 'fake'}, 'name': pkg, 'registry': "kubeflow"}
   app_yaml['libraries'] = libraries
 
   with open(app_file, "w") as f:
@@ -446,7 +446,7 @@ def deploy_minikube(args):
       raise
     content = json.loads(e.content)
     if content.get("error", {}).get("code") == requests.codes.CONFLICT:
-      # We don't want to keep going so we reraise the error after logging
+      # We don't want to keep going so we raise the error after logging
       # a helpful error message.
       logging.error("Either the VM or the disk %s already exists in zone "
                     "%s in project %s ",
