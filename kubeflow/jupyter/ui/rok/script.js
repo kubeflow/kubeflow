@@ -6,9 +6,54 @@ $(function() {
     $('#advanced_fields').toggle();
   });
 
+  // Enable Autofill button if a Lab URL is provided
+  $('#rokLabURL').on('change keyup paste', function() {
+      if (this.value.length > 0) {
+        $('#autofill').removeAttr('disabled data-toggle data-placement title');
+      } else {
+        // Hide success/error texts
+        $('#rok_lab_url_success_text').attr('hidden', true);
+        $('#rok_lab_url_error_text').attr('hidden', true);
+
+        // Restore rokLabURL input field style
+        $('#rokLabURL').removeClass('valid invalid');
+
+        // Set tooltip
+        $('#autofill').attr({
+          'disabled': true,
+          'data-toggle': 'tooltip',
+          'data-placement': 'top',
+          'title': 'Please provide a Rok Jupyter Lab URL to enable autofill'
+        });
+      }
+  }).keydown(function(e) {
+    // Do not submit form if Enter is pressed
+    if (e.which == 10 || e.which == 13) {
+      e.stopPropagation();
+      // If Enter is pressed, autofill the form
+      $('#autofill').trigger('click');
+    }
+  })
+  .keypress(function(e) {
+    if (e.which == 10 || e.which == 13) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  });
+
+  // Autofill the Spawner form using metadata from a Rok Jupyter Lab URL
+  $('#autofill').click(function() {
+    formCleanup();
+    // Show advanced options to show autocompletion
+    setTimeout(function() {
+      autofillForm();
+      $('#advanced_fields').show();
+    }, 250);
+  });
+
   // Resize Spawner form to take up more page width
   $('.row.col-sm-offset-2.col-sm-8').attr({
-    'class': 'row col-sm-offset-1 col-sm-10',
+    'class': 'col-sm-*',
     'style': 'padding: 15px;'
   });
 
@@ -16,11 +61,11 @@ $(function() {
   $('.fa.fa-sign-out').attr('class', 'fas fa-sign-out-alt');
 
   // Update Spawn button text upon form submission
-  if (formDefaults) {
+  if (rok_token.length > 0 && formDefaults) {
     $('#spawn_form').one('submit', function() {
       $(this).find('input[type="submit"]')
-      .attr('disabled', true)
-      .val('Spawning...');
+        .attr('disabled', true)
+        .val('Spawning...');
     });
   } else {
     $("h1:contains('Spawner Options')" ).remove();
@@ -33,7 +78,7 @@ $(function() {
   // Fill the form with values defined in the YAML config file
   setDefaultFormValues();
 
-  // Set tooltip to readOnly form fields
+  // Set tooltip to admin-disabled form fields
   setTooltipsOnImmutable();
 });
 
@@ -43,6 +88,20 @@ function setDefaultFormValues() {
   // If config.yaml is empty, no need to initialize anything
   if (!formDefaults) {
     return;
+  }
+
+  if ('rokLabURL' in formDefaults) {
+    // Set default Rok Lab URL, if specified
+    if ('value' in formDefaults.rokLabURL) {
+      $('#rokLabURL').val(formDefaults.rokLabURL.value).trigger('change');
+    }
+    // Make Rok  Lab URL field readonly, if specified
+    if ('readOnly' in formDefaults.rokLabURL) {
+      $('#rokLabURL').attr({
+        'readonly': formDefaults.rokLabURL.readOnly,
+        'immutable': formDefaults.rokLabURL.readOnly
+      });
+    }
   }
 
   if ('image' in formDefaults) {
@@ -103,6 +162,12 @@ function setDefaultFormValues() {
   }
 
   $('#ws_name').attr('placeholder', username + '-workspace');
+  $('#ws_rok_url').attr({
+    'readonly': true,
+    'data-toggle': 'tooltip',
+    'data-placement': 'top',
+    'title': 'You can only enter a Rok URL when mounting an existing Rok Volume'
+  });
   $('#ws_mount_path').attr('placeholder', '/home/jovyan');
 
   if ('workspaceVolume' in formDefaults) {
@@ -133,6 +198,18 @@ function setDefaultFormValues() {
         }
         $('#ws_type').trigger('change');
 
+        if ('rokURL' in defaultWorkspace) {
+          $('#ws_rok_url').val('');
+          // Set the Workspace Rok URL, if specified
+          if ('value' in defaultWorkspace.rokURL) {
+            $('#ws_rok_url').val(defaultWorkspace.rokURL.value).trigger('change');
+          }
+          // Make the Workspace Rok URL readonly, if specified
+          if ('readOnly' in defaultWorkspace.rokURL) {
+            $('#ws_rok_url').attr('readonly', defaultWorkspace.rokURL.readOnly || defaultWorkspaceReadOnly);
+          }
+        }
+
         if ('name' in defaultWorkspace) {
           $('#ws_name').val('');
           // Set the Workspace Volume Name, if specified
@@ -150,7 +227,7 @@ function setDefaultFormValues() {
 
         if ('size' in defaultWorkspace) {
           $('#ws_size').val('');
-          // Set the Workspace Volume Size, if specified
+           // Set the Workspace Volume Size, if specified
           if ('value' in defaultWorkspace.size) {
             $('#ws_size').val(defaultWorkspace.size.value);
           }
@@ -177,26 +254,6 @@ function setDefaultFormValues() {
             });
           }
         }
-
-        if ('accessModes' in defaultWorkspace) {
-          $('#ws_access_modes').val('');
-          // Set the Workspace Volume Access Modes, if specified
-          if ('value' in defaultWorkspace.accessModes) {
-            $('#ws_access_modes').val(defaultWorkspace.accessModes.value);
-          }
-          // Make the Workspace Volume Access Modes readonly, if specified
-          if ('readOnly' in defaultWorkspace.accessModes) {
-            $('#ws_access_modes').attr({
-              'readonly': defaultWorkspace.accessModes.readOnly || defaultWorkspaceReadOnly,
-              'immutable': defaultWorkspace.accessModes.readOnly || defaultWorkspaceReadOnly
-            });
-            if ($('#ws_access_modes').attr('readonly')) {
-              $('#ws_access_modes').on('mousedown', function(e) {
-                e.preventDefault(); this.blur();  window.focus();
-              });
-            }
-          }
-        }
       }
     }
   }
@@ -219,6 +276,7 @@ function setDefaultFormValues() {
         if ('value' in defaultDataVolumes[i]) {
           vol = defaultDataVolumes[i].value;
         }
+        console.log(vol);
 
         if ('type' in vol) {
           $('#vol_type' + counter).val('');
@@ -235,6 +293,19 @@ function setDefaultFormValues() {
                 e.preventDefault(); this.blur(); window.focus();
               });
             }
+          }
+        }
+
+        if ('rokURL' in vol) {
+          $('#vol_rok_url' + counter).val('');
+          if ('value' in vol.rokURL) {
+            $('#vol_rok_url' + counter).val(vol.rokURL.value).trigger('change');
+          }
+          if ('readOnly' in vol.rokURL) {
+            $('#vol_rok_url' + counter).attr({
+              'readonly': vol.rokURL.readOnly,
+              'immutable': vol.name.readOnly
+            });
           }
         }
 
@@ -277,24 +348,6 @@ function setDefaultFormValues() {
           }
         }
 
-        if ('accessModes' in vol) {
-          $('#vol_access_modes' + counter).val('');
-          if ('value' in vol.accessModes) {
-            $('#vol_access_modes' + counter).val(vol.accessModes.value);
-          }
-          if ('readOnly' in vol.accessModes) {
-            $('#vol_access_modes' + counter).attr({
-              'readonly': vol.accessModes.readOnly,
-              'immutable': vol.accessModes.readOnly
-            });
-            if ($('#vol_access_modes').attr('readonly')) {
-              $('#vol_access_modes').on('mousedown', function(e) {
-                e.preventDefault(); this.blur(); window.focus();
-              });
-            }
-          }
-        }
-
         // Disable Delete button, if specified
         if ('readOnly' in defaultDataVolumes[i]) {
           $('#vol_delete_button' + counter).attr({
@@ -322,78 +375,43 @@ function setDefaultFormValues() {
 }
 
 // Register jQuery event listeners for the Workspace Volume
-function  setWorkspaceEventListeners() {
+function setWorkspaceEventListeners() {
   var workspaceType = $('#ws_type');
+  var workspaceRokURL = $('#ws_rok_url');
   var workspaceName = $('#ws_name');
   var workspaceSize = $('#ws_size');
-  var workspaceAccessModes = $('#ws_access_modes');
   var workspaceMountPath = $('#ws_mount_path');
 
   // Disable/Enable Workspace size option based on its Type
   workspaceType.on('change', function() {
     // Set attributes for the Volume fields
     if (this.value == 'Existing') {
-      setAttributes(workspaceName, {'list': 'suggest_pvcs'});
+      unsetAttributes(workspaceRokURL, 'readonly data-toggle data-placement title');
       setAttributes(workspaceSize, {
         'readonly': true,
         'data-toggle': 'tooltip', 'data-placement': 'top',
-        'title': 'Size is autofilled when mounting existing Volumes'
+        'title': 'Size is autofilled when mounting an existing Rok Volume'
       });
-      setAttributes(workspaceAccessModes, {
-        'readonly': true,
-        'data-toggle': 'tooltip', 'data-placement': 'top',
-        'title': 'Access Mode is autofilled when mounting existing Volumes'
-      });
-      $('#ws_access_modes option').not(':selected').attr('disabled', 'disabled')
     } else if (this.value == 'New') {
-      setAttributes(workspaceName, {'list': 'suggest_pvcs_disabled'});
+      setAttributes(workspaceRokURL, {
+        'readonly': true,
+        'data-toggle': 'tooltip',
+        'data-placement': 'top',
+        'title': 'You can only enter a Rok URL when mounting an existing Rok Volume'
+      });
       unsetAttributes(workspaceSize, 'readonly data-toggle data-placement title');
-      unsetAttributes(workspaceAccessModes, 'readonly data-toggle data-placement title');
     }
 
     // Set values for non-readonly Volume fields
-    setValue(workspaceName, '');
+    setValue(workspaceName, workspaceName.attr('placeholder'));
+    setValue(workspaceRokURL, '');
     setValue(workspaceSize, workspaceSize.attr('placeholder'));
-    setValue(workspaceMountPath, '');
-    setValue(workspaceAccessModes, workspaceAccessModes.find('option:first').val());
+    setValue(workspaceMountPath, workspaceMountPath.attr('placeholder'));
   });
 
-  workspaceName.on('focusout', function() {
-    for (var i = 0; i < existingPVCs.length; i++) {
-      if (existingPVCs[i].name == this.value) {
-        // Volume already exists - autocomplete its Size and Access Mode
-        setValue(workspaceType, 'Existing');
-        setAttributes(workspaceName, {'list': 'suggest_pvcs'});
-        setAttributes(workspaceSize, {
-          'readonly': true,
-          'data-toggle': 'tooltip', 'data-placement': 'top',
-          'title': 'Size is autofilled when mounting existing Volumes'
-        });
-        setValue(workspaceSize, existingPVCs[i].size);
-        setAttributes(workspaceAccessModes, {
-          'readonly': true,
-          'data-toggle': 'tooltip', 'data-placement': 'top',
-          'title': 'Access Mode is autofilled when mounting existing Volumes'
-        });
-        setValue(workspaceAccessModes, existingPVCs[i].access_modes);
-        break;
-      }
-    }
-
+  workspaceRokURL.on('change paste', function() {
     if (this.value.length > 0) {
-      setValue(workspaceMountPath, '/home/jovyan/' + this.value);
-    } else {
-      setValue(workspaceMountPath, '' + this.value);
-    }
-
-    if (i == existingPVCs.length) {
-      // Volume does not exist - set its Type to 'New'
-      setValue(workspaceType, 'New');
-      setAttributes(workspaceName, {'list': 'suggest_pvcs_disabled'});
-      unsetAttributes(workspaceSize, 'readonly data-toggle data-placement title');
-      setValue(workspaceSize, '');
-      unsetAttributes(workspaceAccessModes, 'readonly data-toggle data-placement title');
-      setValue(workspaceAccessModes, workspaceAccessModes.find('option:first').val());
+      autofillWorkspaceVolume(this.value);
     }
   });
 
@@ -404,7 +422,7 @@ function  setWorkspaceEventListeners() {
 // Counter and options for Dataset Volumes
 var counter = 0;
 var options = [
-  'vol_type', 'vol_name', 'vol_size', 'vol_mount_path', 'vol_access_modes'
+  'vol_type', 'vol_rok_url', 'vol_name', 'vol_size', 'vol_mount_path'
 ];
 
 // Dynamically adds a UI element for configuring a volume
@@ -435,6 +453,15 @@ function addVolume() {
     required: true
   });
 
+  // Input for volume Rok URL
+  var volumeRokURL = $('<input>').attr({
+    class: 'form-control',
+    id: 'vol_rok_url' + counter,
+    name: 'vol_rok_url' + counter,
+    placeholder: 'Rok Volume URL',
+    required: true
+  });
+
   // Input for volume size
   var volumeSize = $('<input>').attr({
     class: 'form-control',
@@ -458,19 +485,6 @@ function addVolume() {
     required: true
   });
 
-  // Selection for volume access mode
-  var volumeAccessModes = $('<select>').attr({
-      class: 'form-control',
-      id: 'vol_access_modes' + counter,
-      name: 'vol_access_modes' + counter,
-      required: true
-  });
-
-  volumeAccessModes
-    .append($('<option/>').attr({value: 'ReadWriteOnce'}).text('ReadWriteOnce'))
-    .append($('<option/>').attr({value: 'ReadWriteMany'}).text('ReadWriteMany'))
-    .append($('<option/>').attr({value: 'ReadOnlyMany'}).text('ReadOnlyMany'));
-
   // Delete button for volume removal
   var deleteButton = $('<button/>').attr({
     class: 'btn btn-danger btn-sm',
@@ -485,81 +499,59 @@ function addVolume() {
   volumeType.on('change', function() {
     if (this.value == 'Existing') {
       // Set attributes for the Volume fields
-      setAttributes(volumeName, {'list': 'suggest_pvcs'});
+      unsetAttributes(volumeRokURL, 'readonly data-toggle data-placement title');
       setAttributes(volumeSize, {
         'readonly': true,
         'data-toggle': 'tooltip', 'data-placement': 'top',
-        'title': 'Size is autofilled when mounting existing Volumes'
+        'title': 'Size is autofilled when mounting an existing Rok Volume'
       });
-      setAttributes(volumeAccessModes, {
-        'readonly': true,
-        'data-toggle': 'tooltip', 'data-placement': 'top',
-        'title': 'Access Mode is autofilled when mounting existing Volumes'
-      });
-      $('#vol_access_modes option').not(':selected').attr('disabled', 'disabled')
     } else if (this.value == 'New') {
-      setAttributes(volumeName, {'list': 'suggest_pvcs_disabled'});
+      setAttributes(volumeRokURL, {
+        'readonly': true,
+        'data-toggle': 'tooltip',
+        'data-placement': 'top',
+        'title': 'You can only enter a Rok URL when mounting an existing Rok Volume'
+      });
       unsetAttributes(volumeSize, 'readonly data-toggle data-placement title');
-      unsetAttributes(volumeAccessModes, 'readonly data-toggle data-placement title');
     }
 
     // Set values for non-readonly Volume fields
-    setValue(volumeName, '');
+    setValue(volumeName, volumeName.attr('placeholder'));
+    setValue(volumeRokURL, '');
     setValue(volumeSize, volumeSize.attr('placeholder'));
-    setValue(volumeMountPath, '');
-    setValue(volumeAccessModes, volumeAccessModes.find('option:first').val());
+    setValue(volumeMountPath, volumeMountPath.attr('placeholder'));
+  });
+
+  volumeRokURL.on('change paste', function() {
+    if (this.value.length > 0) {
+      var dataVolumeId = $(this).attr('id').match(/\d/g).join("");
+      autofillDataVolume(this.value, dataVolumeId);
+    }
   });
 
   volumeName.on('focusout', function() {
-    for (var i = 0; i < existingPVCs.length; i++) {
-      if (existingPVCs[i].name == this.value) {
-        // Volume already exists - autocomplete its Size and Access Mode
-        setValue(volumeType, 'Existing');
-        setAttributes(volumeName, {'list': 'suggest_pvcs'});
-        setAttributes(volumeSize, {
-          'readonly': true,
-          'data-toggle': 'tooltip', 'data-placement': 'top',
-          'title': 'Size is autofilled when mounting existing Volumes'
-        });
-        setValue(volumeSize, existingPVCs[i].size)
-        setAttributes(volumeAccessModes, {
-          'readonly': true,
-          'data-toggle': 'tooltip', 'data-placement': 'top',
-          'title': 'Access Mode is autofilled when cloning existing Volumes'
-        });
-        setValue(volumeAccessModes, existingPVCs[i].access_modes)
-        break;
-      }
-    }
-
     if (this.value.length > 0) {
       setValue(volumeMountPath, '/home/jovyan/' + this.value);
     } else {
       setValue(volumeMountPath, '' + this.value);
     }
-
-    if (i == existingPVCs.length) {
-      // Volume does not exist - set its Type to 'New'
-      setValue(volumeType, 'New');
-      setAttributes(volumeName, {'list': 'suggest_pvcs_disabled'});
-      unsetAttributes(volumeSize, 'readonly data-toggle data-placement title');
-      unsetAttributes(volumeAccessModes, 'readonly data-toggle data-placement title');
-      setValue(volumeAccessModes, volumeAccessModes.find('option:first').val());
-    }
   });
+
+  // Set the Type of the new Volume to 'New'
+  volumeType.val('New').trigger('change');
 
   // Create and append new volume
   $('<div/>', {'class': 'form-group volume' + counter})
     .append($('<div/>', {class: 'col-sm-2 form-group', style: 'width: 14%'}).append(volumeType))
-    .append($('<div/>', {class: 'col-sm-3 form-group', style: 'width: 20%'}).append(volumeName))
-    .append($('<div/>', {class: 'col-sm-2 form-group', style: 'width: 12%'}).append(volumeSize))
-    .append($('<div/>', {class: 'col-sm-3 form-group', style: 'width: 29%'}).append(volumeMountPath))
-    .append($('<div/>', {class: 'col-sm-3 form-group', style: 'width: 19%'}).append(volumeAccessModes))
+    .append($('<div/>', {class: 'col-sm-2 form-group', style: 'width: 28%'}).append(volumeRokURL))
+    .append($('<div/>', {class: 'col-sm-3 form-group', style: 'width: 19%'}).append(volumeName))
+    .append($('<div/>', {class: 'col-sm-2 form-group', style: 'width: 10%'}).append(volumeSize))
+    .append($('<div/>', {class: 'col-sm-3 form-group', style: 'width: 24%'}).append(volumeMountPath))
     .append($('<div/>', {class: 'col-sm-1 form-group', style: 'width: 5%; padding: 2px'}).append(deleteButton))
     .hide().fadeIn('fast').appendTo($('#data_volumes'));
 
-  // Trigger focusout event to check Volume Name
-  volumeName.trigger('focusout');
+    // Trigger focusout event to check Volume Name
+    volumeName.trigger('focusout');
 }
 
 // Dynamically remove a previously added UI element for configuring a volume
@@ -628,4 +620,143 @@ function unsetAttributes(element, attributes) {
   if (!element.attr('immutable')) {
     element.removeAttr(attributes);
   }
+}
+
+// Autofill the form based on the lab URL
+function autofillForm() {
+  var rok_lab_url = $('#rokLabURL').val();
+  var base_url = rok_lab_url.substring(0, rok_lab_url.lastIndexOf('/') + 1);
+
+  // Fetch Rok Jupyter Lab Metadata to autofill the form
+  $.ajax({
+    url: rok_lab_url,
+    type: 'HEAD',
+    headers: {
+      'X-Auth-Token': rok_token
+    },
+    success: function(data, textStatus, request) {
+      if (!getHeader(request,'X-Object-Meta-image')) {
+        // This is not a valid Rok Jupyter Lab URL
+        markInvalid();
+      } else {
+        // This is a valid Rok Jupyter Lab url
+        markValid();
+
+        // Autofill Image, CPU, Memory and Extra Resources from Rok Jupyter Lab Metadata
+        setValue($('#image'), getHeader(request, 'X-Object-Meta-image') || '');
+        setValue($('#cpu'), getHeader(request, 'X-Object-Meta-cpu') || '');
+        setValue($('#memory'), getHeader(request, 'X-Object-Meta-memory') || '');
+        setValue($('#extraResources'), getHeader(request, 'X-Object-Meta-extraResources') || '{}');
+
+        // Autofill Workspace Volume
+        var workspace_version = getHeader(request, 'X-Object-Group-Member-0-Version');
+        var workspace_url = getHeader(request, 'X-Object-Group-Member-0-Object') + '?version=' + workspace_version;
+        setValue($('#ws_type'), 'Existing');
+        $('#ws_type').trigger('change');
+        setValue($('#ws_rok_url'), base_url + workspace_url);
+        $('#ws_rok_url').trigger('change');
+
+        // Autofill Data Volumes
+        for(i = 1; i < getHeader(request, 'X-Object-Group-Member-Count'); i++) {
+          addVolume();
+          var dataset_version = getHeader(request, 'X-Object-Group-Member-' + i + '-Version');
+          var dataset_url = base_url + getHeader(request, 'X-Object-Group-Member-' + i + '-Object') + '?version=' + dataset_version;
+          setValue($('#vol_type' + counter), 'Existing');
+          $('#vol_type' + counter).trigger('change');
+          setValue($('#vol_rok_url' + counter), dataset_url);
+          $('#vol_rok_url' + counter).trigger('change');
+        }
+      }
+    },
+    error: function(XMLHttpRequest, e) {
+      markInvalid();
+      console.log('Failed to retrieve Rok Jupyter Lab Metadata:', e);
+    }
+  });
+}
+
+// Autofill the Workspace Volume fields with metadata from the Rok Volume URL
+function autofillWorkspaceVolume(rok_member_url) {
+  $.ajax({
+    url: rok_member_url,
+    type: 'HEAD',
+    headers: {
+      'X-Auth-Token': rok_token
+    },
+    success: function(data, textStatus, request) {
+      setValue($('#ws_name'), getHeader(request, 'X-Object-Meta-workspace'));
+      setValue($('#ws_size'), Math.round(getHeader(request, 'Content-Length')/Math.pow(1024, 3)));
+      setValue($('#ws_mount_path'), getHeader(request, 'X-Object-Meta-mountpoint'));
+    },
+    error: function(XMLHttpRequest, e) {
+      console.log('Failed to retrieve Rok Jupyter Workspace Metadata:', e);
+    }
+  });
+}
+
+// Autofill the Data Volume fields with metadata from the Rok Volume URL
+function autofillDataVolume(rok_member_url, data_volume_id) {
+  $.ajax({
+    url: rok_member_url,
+    type: 'HEAD',
+    headers: {
+      'X-Auth-Token': rok_token
+    },
+    success: function(data, textStatus, request) {
+      setValue($('#vol_name' + data_volume_id), getHeader(request, 'X-Object-Meta-dataset'));
+      setValue($('#vol_size' + data_volume_id), Math.round(getHeader(request, 'Content-Length')/Math.pow(1024, 3)));
+      setValue($('#vol_mount_path' + data_volume_id), getHeader(request, 'X-Object-Meta-mountpoint'));
+    },
+    error: function(XMLHttpRequest, e) {
+      console.log('Failed to retrieve Rok Jupyter Volume Metadata:', e);
+    }
+  });
+}
+
+// Wrapper function to get decoded HTTP header from a Response Object
+function getHeader(request, header) {
+  if (request.getResponseHeader(header)) {
+    return decodeURIComponent(request.getResponseHeader(header));
+  }
+  return null;
+}
+
+// Helper function to mark Rok Lab URL input as invalid
+function markInvalid() {
+  $('#rokLabURL').addClass('invalid')
+  $('#rok_lab_url_error_text').removeAttr('hidden');
+}
+
+// Helper function to mark Rok Lab URL input as valid
+function markValid() {
+  $('#rokLabURL').addClass('valid')
+  $('#rok_lab_url_success_text').removeAttr('hidden');
+}
+
+// Heler function to clean Spawner form
+function formCleanup() {
+
+  // Empty Notebook fields
+  setValue($('#image'), '');
+  setValue($('#cpu'), '');
+  setValue($('#memory'), '');
+  setValue($('#extraResources'), '');
+
+  // Empty Workspace Volume fields
+  setValue($('#ws_type'), 'New');
+  $('#ws_type').trigger('change');
+  setValue($('#ws_size'), '');
+  setValue($('#ws_name'), '');
+
+  // Remove all Data Volumes
+  for (var i=counter; i>0; i--) {
+    removeVolume(i);
+  }
+
+  // Hide success/error texts
+  $('#rok_lab_url_success_text').attr('hidden', true);
+  $('#rok_lab_url_error_text').attr('hidden', true);
+
+  // Restore rokLabURL input field style
+  $('#rokLabURL').removeClass('valid invalid');
 }
