@@ -255,6 +255,7 @@
           resources: [
             "pods",
             "pods/exec",
+            "pods/log",
             "services",
           ],
           verbs: [
