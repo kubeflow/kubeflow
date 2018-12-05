@@ -35,7 +35,7 @@ def wait_for_operation(client,
     op: The final operation.
 
   Raises:
-    TimeoutError: if we timeout waiting for the operation to complete.
+    TimeoutError: Waiting for operation to complete timeout.
   """
   endtime = datetime.datetime.now() + timeout
   while True:
@@ -70,7 +70,7 @@ def wait_for_vm(project, zone, vm, timeout=datetime.timedelta(minutes=5),
     polling_interval: A datetime.timedelta to represent the amount of time to
       wait between requests polling for the operation status.
   Raises:
-    TimeoutError: if we timeout waiting for the operation to complete.
+    TimeoutError: Waiting for operation to complete timeout.
   """
   endtime = datetime.datetime.now() + timeout
   while True:
