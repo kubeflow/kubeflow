@@ -56,6 +56,14 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
   zip \
   && apt-get clean && \
   rm -rf /var/lib/apt/lists/*
+  
+ENV DOCKER_CREDENTIAL_GCR_VERSION=1.4.3
+RUN curl -LO https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/v${DOCKER_CREDENTIAL_GCR_VERSION}/docker-credential-gcr_linux_amd64-${DOCKER_CREDENTIAL_GCR_VERSION}.tar.gz && \
+    tar -zxvf docker-credential-gcr_linux_amd64-${DOCKER_CREDENTIAL_GCR_VERSION}.tar.gz && \
+    mv docker-credential-gcr /usr/local/bin/docker-credential-gcr && \
+    rm docker-credential-gcr_linux_amd64-${DOCKER_CREDENTIAL_GCR_VERSION}.tar.gz && \
+    chmod +x /usr/local/bin/docker-credential-gcr && \
+    docker-credential-gcr configure-docker
 
 RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
     locale-gen
@@ -113,6 +121,7 @@ RUN pip install --upgrade pip && \
     jupyter-console==6.0.0 \
     jupyterhub \
     jupyterlab \
+    git+https://github.com/kubeflow/fairing@8087c0b4e4ae5007b7a21177047e8b8412be382e \
     # Kubeflow pipeline SDK
     ${PIPELINE_SDK_PACKAGE} \
     # Cleanup
