@@ -1,0 +1,50 @@
+# Configuration file for Arrikto Rok JupyterHub Spawner UI
+# Each key corresponds to JupyterHub Rok Spawner UI option
+
+# The structure of this file is very similar with the one of the default
+# Spawner UI configuration, available at:
+#
+# kubeflow/jupyter/ui/default/config.yaml
+
+spawnerFormDefaults:
+  rokLabURL:
+    # The URL of a Jupyter Lab, already snapshotted in Rok
+    value: ''
+  image:
+    value: gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu:v0.3.1
+    options:
+      - gcr.io/kubeflow-images-public/tensorflow-1.4.1-notebook-cpu:v0.3.1
+      - gcr.io/kubeflow-images-public/tensorflow-1.4.1-notebook-gpu:v0.3.1
+      - gcr.io/kubeflow-images-public/tensorflow-1.5.1-notebook-cpu:v0.3.1
+      - gcr.io/kubeflow-images-public/tensorflow-1.5.1-notebook-gpu:v0.3.1
+      - gcr.io/kubeflow-images-public/tensorflow-1.6.0-notebook-cpu:v0.3.1
+      - gcr.io/kubeflow-images-public/tensorflow-1.6.0-notebook-gpu:v0.3.1
+      - gcr.io/kubeflow-images-public/tensorflow-1.7.0-notebook-cpu:v0.3.1
+      - gcr.io/kubeflow-images-public/tensorflow-1.7.0-notebook-gpu:v0.3.1
+      - gcr.io/kubeflow-images-public/tensorflow-1.8.0-notebook-cpu:v0.3.1
+      - gcr.io/kubeflow-images-public/tensorflow-1.8.0-notebook-gpu:v0.3.1
+      - gcr.io/kubeflow-images-public/tensorflow-1.9.0-notebook-cpu:v0.3.1
+      - gcr.io/kubeflow-images-public/tensorflow-1.9.0-notebook-gpu:v0.3.1
+      - gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu:v0.3.1
+      - gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-gpu:v0.3.1
+  cpu:
+    value: '1.0'
+  memory:
+    value: 1.0Gi
+  workspaceVolume:
+    value:
+      type:
+        value: New
+      rokURL:
+        value: ''
+      name:
+        value: {username}{servername}-workspace
+      size:
+        value: '10'
+      mountPath:
+        readOnly: true
+        value: /home/jovyan
+  dataVolumes:
+    value: []
+  extraResources:
+    value: "{{}}"
