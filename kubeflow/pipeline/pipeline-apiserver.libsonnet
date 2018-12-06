@@ -27,7 +27,7 @@
         labels: {
           app: "ml-pipeline",
         },
-        name: "ml-pipeline",
+kubeflow/pipeline/pipeline-apiserver.libsonnet        name: "ml-pipeline",
         namespace: namespace,
       },
       roleRef: {
