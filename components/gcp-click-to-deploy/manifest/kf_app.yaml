@@ -11,8 +11,8 @@ data:
     appAddress: https://deploy.kubeflow.dev
     defaultApp:
       components:
-      - name: jupyter
-        prototype: jupyter
+      - name: jupyterhub 
+        prototype: jupyterhub
       - name: pipeline
         prototype: pipeline
       - name: argo

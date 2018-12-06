@@ -238,11 +238,6 @@ ksApply () {
   ks apply default -c argo
   ks apply default -c pipeline
 
-  # Reduce resource demands locally
-  if [ "${PLATFORM}" != "minikube" ]; then    
-    ks apply default -c katib
-  fi
-
   popd
 
   set +x
