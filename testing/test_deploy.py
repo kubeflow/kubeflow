@@ -446,7 +446,7 @@ def deploy_minikube(args):
       raise
     content = json.loads(e.content)
     if content.get("error", {}).get("code") == requests.codes.CONFLICT:
-      # We don't want to keep going so we raise the error after logging
+      # We don't want to keep going so we reraise the error after logging
       # a helpful error message.
       logging.error("Either the VM or the disk %s already exists in zone "
                     "%s in project %s ",
