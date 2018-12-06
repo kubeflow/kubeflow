@@ -19,3 +19,40 @@ body {
   background-color: #F37524;
   border-color: #E34F21;
 }
+
+.btn-success {
+  color: #fff;
+  background-color: #28a745;
+  border-color: #28a745;
+}
+
+.btn-success:hover {
+  color: #fff;
+  background-color: #218838;
+  border-color: #1e7e34;
+}
+
+.btn-success:active:focus {
+  color: #fff;
+  background-color: #28a745;
+  border-color: #28a745;
+}
+
+.btn-success:focus {
+  color: #fff;
+  background-color: #28a745;
+  border-color: #28a745;
+}
+
+input[readonly] {
+  cursor: not-allowed;
+}
+
+select[readonly] {
+  cursor: not-allowed;
+}
+
+.col-sm-3 {
+  padding-left: 10px;
+  padding-right: 10px;
+}
