@@ -75,12 +75,14 @@ func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) (*de
 	}
 	confByte, err := yaml.Marshal(dmconf)
 	if err != nil {
-		deployReqCounter.WithLabelValues("INTERNAL_ERROR").Inc()
+		deployReqCounter.WithLabelValues("INTERNAL").Inc()
+		deploymentFailure.Inc()
 		return nil, err
 	}
 	templateData, err := ioutil.ReadFile(path.Join(regPath, "../deployment/gke/deployment_manager_configs/cluster.jinja"))
 	if err != nil {
-		deployReqCounter.WithLabelValues("INTERNAL_ERROR").Inc()
+		deployReqCounter.WithLabelValues("INTERNAL").Inc()
+		deploymentFailure.Inc()
 		return nil, err
 	}
 	ts := oauth2.StaticTokenSource(&oauth2.Token{
@@ -88,7 +90,8 @@ func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) (*de
 	})
 	deploymentmanagerService, err := deploymentmanager.New(oauth2.NewClient(ctx, ts))
 	if err != nil {
-		deployReqCounter.WithLabelValues("INTERNAL_ERROR").Inc()
+		deployReqCounter.WithLabelValues("INTERNAL").Inc()
+		deploymentFailure.Inc()
 		return nil, err
 	}
 	rb := &deploymentmanager.Deployment{
@@ -107,8 +110,8 @@ func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) (*de
 	}
 	_, err = deploymentmanagerService.Deployments.Insert(req.Project, rb).Context(ctx).Do()
 	if err != nil {
-		// View deployment insert failure as INVALID_INPUT.
-		deployReqCounter.WithLabelValues("INVALID_INPUT").Inc()
+		// View deployment insert failure as INVALID_ARGUMENT.
+		deployReqCounter.WithLabelValues("INVALID_ARGUMENT").Inc()
 		return nil, err
 	}
 	deploymentsStartedCounter.Inc()

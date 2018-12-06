@@ -234,7 +234,7 @@ type ApplyRequest struct {
 var (
 	// Counter metrics
 	// num of requests counter vec
-	// status field has values: {"OK", "UNKNOWN", "INTERNAL_ERROR", "ALL", "INVALID_INPUT", "USER_ONLY"}
+	// status field has values: {"OK", "UNKNOWN", "INTERNAL", "INVALID_ARGUMENT"}
 	deployReqCounter = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "deploy_requests",
@@ -242,6 +242,10 @@ var (
 		},
 		[]string{"status"},
 	)
+	deploymentFailure = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "deployments_failure",
+		Help: "Number of failed Kubeflow deployments",
+	})
 	serviceHeartbeat = prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "service_heartbeat",
 		Help: "Heartbeat signal every 10 seconds indicating pods are alive.",
@@ -278,6 +282,7 @@ func init() {
 	prometheus.MustRegister(kfDeploymentLatencies)
 	prometheus.MustRegister(deployReqCounterRaw)
 	prometheus.MustRegister(kfDeploymentsDoneRaw)
+	prometheus.MustRegister(deploymentFailure)
 	prometheus.MustRegister(serviceHeartbeat)
 }
 
@@ -1081,7 +1086,8 @@ func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmana
 		status, err = svc.GetDeploymentStatus(ctx, req)
 		if err != nil {
 			log.Errorf("Failed to get deployment status: %v", err)
-			deployReqCounter.WithLabelValues("INTERNAL_ERROR").Inc()
+			deployReqCounter.WithLabelValues("INTERNAL").Inc()
+			deploymentFailure.Inc()
 			return
 		}
 		if status == "DONE" {
@@ -1093,7 +1099,8 @@ func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmana
 	}
 	if status != "DONE" {
 		log.Errorf("Deployment status is not done: %v", status)
-		deployReqCounter.WithLabelValues("INTERNAL_ERROR").Inc()
+		deployReqCounter.WithLabelValues("INTERNAL").Inc()
+		deploymentFailure.Inc()
 		return
 	}
 
@@ -1107,13 +1114,15 @@ func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmana
 	})
 	if err != nil {
 		log.Errorf("Failed to update IAM: %v", err)
-		deployReqCounter.WithLabelValues("INTERNAL_ERROR").Inc()
+		deployReqCounter.WithLabelValues("INTERNAL").Inc()
+		deploymentFailure.Inc()
 		return
 	}
 
 	log.Infof("Configuring cluster...")
 	if err = svc.ConfigCluster(ctx, req); err != nil {
-		deployReqCounter.WithLabelValues("INTERNAL_ERROR").Inc()
+		deployReqCounter.WithLabelValues("INTERNAL").Inc()
+		deploymentFailure.Inc()
 		return
 	}
 
@@ -1121,7 +1130,8 @@ func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmana
 	err = svc.CreateApp(ctx, req, dmDeploy)
 	if err != nil {
 		log.Errorf("Failed to create app: %v", err)
-		deployReqCounter.WithLabelValues("INTERNAL_ERROR").Inc()
+		deployReqCounter.WithLabelValues("INTERNAL").Inc()
+		deploymentFailure.Inc()
 		return
 	}
 
@@ -1144,13 +1154,12 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(CreateRequest)
 		r := &basicServerResponse{}
-		deployReqCounter.WithLabelValues("ALL").Inc()
 		if req.Project != "kubeflow-prober-deploy" {
-			deployReqCounter.WithLabelValues("USER_ONLY").Inc()
 			deployReqCounterRaw.Inc()
 		}
 		if err := req.Validate(); err != nil {
 			r.Err = err.Error()
+			deployReqCounter.WithLabelValues("INVALID_ARGUMENT").Inc()
 			return r, err
 		}
 
@@ -1187,7 +1196,7 @@ func makeIamEndpoint(svc KsService) endpoint.Endpoint {
 func decodeCreateAppRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	var request CreateRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		deployReqCounter.WithLabelValues("INVALID_INPUT").Inc()
+		deployReqCounter.WithLabelValues("INVALID_ARGUMENT").Inc()
 		return nil, err
 	}
 	return request, nil
