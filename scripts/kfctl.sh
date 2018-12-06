@@ -321,6 +321,7 @@ main() {
 
       if [ "${PLATFORM}" == "minikube" ] || [ "${PLATFORM}" == "docker-for-desktop" ]; then
         create_local_fs_mount_spec
+        ks param set ambassador replicas 1
         if ${MOUNT_LOCAL}; then
           ks param set jupyter disks "local-notebooks"
           ks param set jupyter notebookUid $(id -u)

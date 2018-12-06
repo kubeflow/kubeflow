@@ -141,7 +141,6 @@
     ambassadorRoleBinding:: ambassadorRoleBinding,
 
     local ambassadorDeployment = {
-      local replicas = if params.platform == "minikube" then 1 else 3,
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -149,7 +148,7 @@
         namespace: params.namespace,
       },
       spec: {
-        replicas: replicas,
+        replicas: params.replicas,
         template: {
           metadata: {
             labels: {
