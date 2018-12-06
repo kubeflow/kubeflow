@@ -142,6 +142,7 @@ ksApply() {
   ks apply default -c spartakus
   ks apply default -c argo
   ks apply default -c pipeline
+  ks apply default -c modeldb
 
   # Reduce resource demands locally
   if [ "${PLATFORM}" != "minikube" ] && [ "${PLATFORM}" != "docker-for-desktop" ]; then

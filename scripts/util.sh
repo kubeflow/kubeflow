@@ -72,6 +72,7 @@ createKsApp() {
   ks pkg install kubeflow/metacontroller
   ks pkg install kubeflow/profiles
   ks pkg install kubeflow/application
+  ks pkg install kubeflow/modeldb
 
   # Generate all required components
   ks generate pytorch-operator pytorch-operator
@@ -87,6 +88,7 @@ createKsApp() {
   ks generate pipeline pipeline
 
   ks generate katib katib
+  ks generate modeldb modeldb
   # Enable collection of anonymous usage metrics
   # To disable metrics collection. Remove the spartakus component.
   # cd ks_app
