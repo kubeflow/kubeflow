@@ -93,20 +93,20 @@ std.startsWith(
 
 std.assertEqual(
   deploymentInstance.tfDeployment.spec.template.spec.containers[0].resources.limits,
-  {"cpu": "4", "memory": "4Gi"}
+  { cpu: "4", memory: "4Gi" }
 ) &&
 
 std.assertEqual(
   gpuInstance.tfDeployment.spec.template.spec.containers[0].resources.limits,
-  {"cpu": "4", "memory": "4Gi", "nvidia.com/gpu": 1}
+  { cpu: "4", memory: "4Gi", "nvidia.com/gpu": 1 }
 ) &&
 
 std.assertEqual(
   gpuString0Instance.tfDeployment.spec.template.spec.containers[0].resources.limits,
-  {"cpu": "4", "memory": "4Gi"}
+  { cpu: "4", memory: "4Gi" }
 ) &&
 
 std.assertEqual(
   gpuString1Instance.tfDeployment.spec.template.spec.containers[0].resources.limits,
-  {"cpu": "4", "memory": "4Gi", "nvidia.com/gpu": 1}
+  { cpu: "4", memory: "4Gi", "nvidia.com/gpu": 1 }
 )
