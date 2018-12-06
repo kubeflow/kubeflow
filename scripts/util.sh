@@ -65,6 +65,7 @@ function createKsApp() {
   ks generate jupyterhub jupyterhub
   ks generate centraldashboard centraldashboard
   ks generate tf-job-operator tf-job-operator
+
   ks generate argo argo
   ks generate pipeline pipeline
 
