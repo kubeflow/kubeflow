@@ -110,156 +110,80 @@ std.assertEqual(
 ) &&
 
 std.assertEqual(
-  instance_dataflow.all[0],
+  instance_dataflow.all[0].spec.template.spec.containers[0],
   {
-    apiVersion: "batch/v1",
-    kind: "Job",
-    metadata: {
-      labels: {
-        app: "myname",
+    args: [
+      "--model_dir=gs://mymodel_bucket/object-detection-coco/image_string_model/saved_model",
+      "--input_file_patterns=gs://mymodel_bucket/object-detection-coco/data/object-detection-images.tfrecord",
+      "--input_file_format=tfrecord",
+      "--output_result_prefix=gs://myoutput_bucket/tmp/re",
+      "--output_error_prefix=gs://myoutput_bucket/tmp/er",
+      "--batch_size=2",
+      "--runner=DataflowRunner",
+      "--max_num_workers=10",
+      "--project=myproject",
+      "--job_name=myjob",
+      "--temp_location=gs://myoutput_bucket/tmp/er/tmp",
+      "--staging_location=gs://myoutput_bucket/tmp/er/stg",
+      "--job_name=myjob",
+      "--extra_package=/opt/kubeflow-batch-predict.zip",
+      "--worker_machine_type=n1-highmem-2",
+    ],
+    env: [
+      {
+        name: "GOOGLE_APPLICATION_CREDENTIALS",
+        value: "/secret/gcp-credentials/key.json",
       },
-      name: "myname-v1",
-    },
-    spec: {
-      template: {
-        backoffLimit: 1,
-        metadata: {
-          labels: {
-            app: "myname",
-          },
-        },
-        spec: {
-          activeDeadlineSeconds: 3000,
-          containers: [
-            {
-              args: [
-                "--model_dir=gs://mymodel_bucket/object-detection-coco/image_string_model/saved_model",
-                "--input_file_patterns=gs://mymodel_bucket/object-detection-coco/data/object-detection-images.tfrecord",
-                "--input_file_format=tfrecord",
-                "--output_result_prefix=gs://myoutput_bucket/tmp/re",
-                "--output_error_prefix=gs://myoutput_bucket/tmp/er",
-                "--batch_size=2",
-                "--runner=DataflowRunner",
-                "--max_num_workers=10",
-                "--project=myproject",
-                "--job_name=myjob",
-                "--temp_location=gs://myoutput_bucket/tmp/er/tmp",
-                "--staging_location=gs://myoutput_bucket/tmp/er/stg",
-                "--job_name=myjob",
-                "--extra_package=/opt/kubeflow-batch-predict.zip",
-                "--worker_machine_type=n1-highmem-2",
-              ],
-              env: [
-                {
-                  name: "GOOGLE_APPLICATION_CREDENTIALS",
-                  value: "/secret/gcp-credentials/key.json",
-                },
-              ],
-              image: "gcr.io/kubeflow-examples/batch-predict:tf18",
-              imagePullPolicy: "IfNotPresent",
-              name: "myname",
-              resources: {
-                limits: {
+    ],
+    image: "gcr.io/kubeflow-examples/batch-predict:tf18",
+    imagePullPolicy: "IfNotPresent",
+    name: "myname",
+    resources: {
+      limits: {
 
-                },
-              },
-              volumeMounts: [
-                {
-                  mountPath: "/secret/gcp-credentials",
-                  name: "gcp-credentials",
-                  readOnly: true,
-                },
-              ],
-            },
-          ],
-          restartPolicy: "Never",
-          securityContext: {
-            fsGroup: 1000,
-            runAsUser: 1000,
-          },
-          volumes: [
-            {
-              name: "gcp-credentials",
-              secret: {
-                secretName: "user-gcp-sa",
-              },
-            },
-          ],
-        },
       },
     },
+    volumeMounts: [
+      {
+        mountPath: "/secret/gcp-credentials",
+        name: "gcp-credentials",
+        readOnly: true,
+      },
+    ],
   }
 ) &&
 
 std.assertEqual(
-  instance_cpu.all[0],
+  instance_cpu.all[0].spec.template.spec.containers[0],
   {
-    apiVersion: "batch/v1",
-    kind: "Job",
-    metadata: {
-      labels: {
-        app: "myname",
+    args: [
+      "--model_dir=gs://mymodel_bucket/object-detection-coco/image_string_model/saved_model",
+      "--input_file_patterns=gs://mymodel_bucket/object-detection-coco/data/object-detection-images.tfrecord",
+      "--input_file_format=tfrecord",
+      "--output_result_prefix=gs://myoutput_bucket/tmp/re",
+      "--output_error_prefix=gs://myoutput_bucket/tmp/er",
+      "--batch_size=2",
+    ],
+    env: [
+      {
+        name: "GOOGLE_APPLICATION_CREDENTIALS",
+        value: "/secret/gcp-credentials/key.json",
       },
-      name: "myname-v1",
-    },
-    spec: {
-      template: {
-        backoffLimit: 1,
-        metadata: {
-          labels: {
-            app: "myname",
-          },
-        },
-        spec: {
-          activeDeadlineSeconds: 3000,
-          containers: [
-            {
-              args: [
-                "--model_dir=gs://mymodel_bucket/object-detection-coco/image_string_model/saved_model",
-                "--input_file_patterns=gs://mymodel_bucket/object-detection-coco/data/object-detection-images.tfrecord",
-                "--input_file_format=tfrecord",
-                "--output_result_prefix=gs://myoutput_bucket/tmp/re",
-                "--output_error_prefix=gs://myoutput_bucket/tmp/er",
-                "--batch_size=2",
-              ],
-              env: [
-                {
-                  name: "GOOGLE_APPLICATION_CREDENTIALS",
-                  value: "/secret/gcp-credentials/key.json",
-                },
-              ],
-              image: "gcr.io/kubeflow-examples/batch-predict:tf18",
-              imagePullPolicy: "IfNotPresent",
-              name: "myname",
-              resources: {
-                limits: {
+    ],
+    image: "gcr.io/kubeflow-examples/batch-predict:tf18",
+    imagePullPolicy: "IfNotPresent",
+    name: "myname",
+    resources: {
+      limits: {
 
-                },
-              },
-              volumeMounts: [
-                {
-                  mountPath: "/secret/gcp-credentials",
-                  name: "gcp-credentials",
-                  readOnly: true,
-                },
-              ],
-            },
-          ],
-          restartPolicy: "Never",
-          securityContext: {
-            fsGroup: 1000,
-            runAsUser: 1000,
-          },
-          volumes: [
-            {
-              name: "gcp-credentials",
-              secret: {
-                secretName: "user-gcp-sa",
-              },
-            },
-          ],
-        },
       },
     },
-  }
+    volumeMounts: [
+      {
+        mountPath: "/secret/gcp-credentials",
+        name: "gcp-credentials",
+        readOnly: true,
+      },
+    ],
+  },
 )

@@ -3,15 +3,15 @@
 // @description TensorFlow batch-predict
 // @shortDescription A TensorFlow batch-predict job
 // @param name string Name to give to each of the components
-// @optionalParam numGpus number 0 number of GPUs to use
-// @param modelPath string 0 Path to the model directory
+// @param modelPath string Path to the model directory
 // @param inputFilePatterns string Input file patterns
 // @param outputResultPrefix string Output result file prefix
 // @param outputErrorPrefix string Output error file prefix
 // @param batchSize number Batch size
 // @param inputFileFormat string Input file format
-// @optionalParam gcpCredentialSecretName string user-gcp-sa name if used in GCP
 
+// @optionalParam numGpus number 0 number of GPUs to use
+// @optionalParam gcpCredentialSecretName string user-gcp-sa name if used in GCP
 // Following params are needed only if runDataflow flag is set to be true
 // @optionalParam runDataflow string false Whether run the job via launching Datflow job on GCP
 // @optionalParam projectName string The GCP project name under which the job is launched
