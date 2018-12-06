@@ -53,7 +53,7 @@
         limits: {
           cpu: "4",
           memory: "4Gi",
-        } + if params.numGpus != "0" then {
+        } + if numGpus != 0 then {
           "nvidia.com/gpu": params.numGpus,
         } else {},
         requests: {

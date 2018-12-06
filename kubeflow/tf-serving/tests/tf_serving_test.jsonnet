@@ -49,4 +49,9 @@ std.assertEqual(
 std.startsWith(
   deploymentInstance.tfDeployment.spec.template.spec.containers[0].args[4],
   "--monitoring_config_file"
+) &&
+
+std.assertEqual(
+  deploymentInstance.tfDeployment.spec.template.spec.containers[0].resources,
+  "--monitoring_config_file"
 )
