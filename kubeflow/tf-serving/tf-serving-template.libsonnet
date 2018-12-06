@@ -54,7 +54,7 @@
           cpu: "4",
           memory: "4Gi",
         } + if numGpus != 0 then {
-          "nvidia.com/gpu": params.numGpus,
+          "nvidia.com/gpu": numGpus,
         } else {},
         requests: {
           cpu: "1",
