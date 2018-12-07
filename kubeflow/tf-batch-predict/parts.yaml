@@ -1,6 +1,6 @@
 {
    "name": "tf-batch-predict",
-   "apiVersion": "0.1",
+   "apiVersion": "0.0.1",
    "kind": "ksonnet.io/parts",
    "description": "Batch Predict performs inferences in batch mode.\n",
    "author": "kubeflow team <kubeflow-team@google.com>",

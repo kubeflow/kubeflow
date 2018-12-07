@@ -66,11 +66,11 @@
             labels: base.params.labels,
           },
           spec: {
+            backoffLimit: 1,
             template: {
               metadata: {
                 labels: base.params.labels,
               },
-              backoffLimit: 1,
               spec: {
                 containers: [
                   {
