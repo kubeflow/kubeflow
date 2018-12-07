@@ -233,18 +233,15 @@ type ApplyRequest struct {
 
 var (
 	// Counter metrics
-	deployReqCounter = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "deploy_requests",
-		Help: "Number of requests for deployments",
-	})
-	kfDeploymentsDoneCounter = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "kubeflow_deployments_done",
-		Help: "Number of successfully finished Kubeflow deployments",
-	})
-	invalidRequest = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "invalid_requests",
-		Help: "Number of invalid deploy request",
-	})
+	// num of requests counter vec
+	// status field has values: {"OK", "UNKNOWN", "INTERNAL", "INVALID_ARGUMENT"}
+	deployReqCounter = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "deploy_requests",
+			Help: "Number of requests for deployments",
+		},
+		[]string{"status"},
+	)
 	deploymentFailure = prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "deployments_failure",
 		Help: "Number of failed Kubeflow deployments",
@@ -258,10 +255,6 @@ var (
 	deployReqCounterRaw = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: "deploy_requests_raw",
 		Help: "Number of requests for deployments",
-	})
-	clusterDeploymentsDoneRaw = prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "cluster_deployments_done_raw",
-		Help: "Number of successfully finished GKE deployments",
 	})
 	kfDeploymentsDoneRaw = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: "kubeflow_deployments_done_raw",
@@ -285,13 +278,10 @@ var (
 func init() {
 	// Register prometheus counters
 	prometheus.MustRegister(deployReqCounter)
-	prometheus.MustRegister(kfDeploymentsDoneCounter)
 	prometheus.MustRegister(clusterDeploymentLatencies)
 	prometheus.MustRegister(kfDeploymentLatencies)
 	prometheus.MustRegister(deployReqCounterRaw)
-	prometheus.MustRegister(clusterDeploymentsDoneRaw)
 	prometheus.MustRegister(kfDeploymentsDoneRaw)
-	prometheus.MustRegister(invalidRequest)
 	prometheus.MustRegister(deploymentFailure)
 	prometheus.MustRegister(serviceHeartbeat)
 }
@@ -1096,11 +1086,11 @@ func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmana
 		status, err = svc.GetDeploymentStatus(ctx, req)
 		if err != nil {
 			log.Errorf("Failed to get deployment status: %v", err)
+			deployReqCounter.WithLabelValues("INTERNAL").Inc()
 			deploymentFailure.Inc()
 			return
 		}
 		if status == "DONE" {
-			clusterDeploymentsDoneRaw.Inc()
 			clusterDeploymentLatencies.Observe(timeSinceStart(ctx).Seconds())
 			log.Infof("Deployment is done")
 			break
@@ -1109,6 +1099,7 @@ func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmana
 	}
 	if status != "DONE" {
 		log.Errorf("Deployment status is not done: %v", status)
+		deployReqCounter.WithLabelValues("INTERNAL").Inc()
 		deploymentFailure.Inc()
 		return
 	}
@@ -1123,12 +1114,14 @@ func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmana
 	})
 	if err != nil {
 		log.Errorf("Failed to update IAM: %v", err)
+		deployReqCounter.WithLabelValues("INTERNAL").Inc()
 		deploymentFailure.Inc()
 		return
 	}
 
 	log.Infof("Configuring cluster...")
 	if err = svc.ConfigCluster(ctx, req); err != nil {
+		deployReqCounter.WithLabelValues("INTERNAL").Inc()
 		deploymentFailure.Inc()
 		return
 	}
@@ -1137,12 +1130,15 @@ func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmana
 	err = svc.CreateApp(ctx, req, dmDeploy)
 	if err != nil {
 		log.Errorf("Failed to create app: %v", err)
+		deployReqCounter.WithLabelValues("INTERNAL").Inc()
 		deploymentFailure.Inc()
 		return
 	}
 
-	kfDeploymentsDoneCounter.Inc()
-	kfDeploymentsDoneRaw.Inc()
+	deployReqCounter.WithLabelValues("OK").Inc()
+	if req.Project != "kubeflow-prober-deploy" {
+		kfDeploymentsDoneRaw.Inc()
+	}
 	kfDeploymentLatencies.Observe(timeSinceStart(ctx).Seconds())
 }
 
@@ -1158,17 +1154,18 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(CreateRequest)
 		r := &basicServerResponse{}
-		deployReqCounter.Inc()
-		deployReqCounterRaw.Inc()
+		if req.Project != "kubeflow-prober-deploy" {
+			deployReqCounterRaw.Inc()
+		}
 		if err := req.Validate(); err != nil {
 			r.Err = err.Error()
+			deployReqCounter.WithLabelValues("INVALID_ARGUMENT").Inc()
 			return r, err
 		}
 
 		DmDeployment, err := svc.InsertDeployment(ctx, req)
 		if err != nil {
 			r.Err = err.Error()
-			deploymentFailure.Inc()
 			return r, err
 		}
 		go finishDeployment(svc, req, DmDeployment)
@@ -1199,7 +1196,7 @@ func makeIamEndpoint(svc KsService) endpoint.Endpoint {
 func decodeCreateAppRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	var request CreateRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		invalidRequest.Inc()
+		deployReqCounter.WithLabelValues("INVALID_ARGUMENT").Inc()
 		return nil, err
 	}
 	return request, nil

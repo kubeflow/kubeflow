@@ -3,7 +3,7 @@
 // @description centraldashboard Component
 // @shortDescription centraldashboard
 // @param name string Name
-// @optionalParam image string gcr.io/kubeflow-images-public/centraldashboard:v0.3.0 Image for the central dashboard
+// @optionalParam image string gcr.io/kubeflow-images-public/centraldashboard:v0.3.4 Image for the central dashboard
 
 local centraldashboard = import "kubeflow/core/centraldashboard.libsonnet";
 local instance = centraldashboard.new(env, params);
