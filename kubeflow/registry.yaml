@@ -16,6 +16,9 @@ libraries:
   core:
     version: master
     path: core
+  jobs:
+    version: master
+    path: jobs
   jupyter:
     version: master
     path: jupyter

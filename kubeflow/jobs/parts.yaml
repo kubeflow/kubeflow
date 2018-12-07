@@ -1,0 +1,34 @@
+{
+   "name": "jobs",
+   "apiVersion": "0.0.1",
+   "kind": "ksonnet.io/parts",
+   "description": "Prototypes for kind Job.\n",
+   "author": "kubeflow team <kubeflow-team@google.com>",
+   "contributors": [
+      {
+         "name": "Kam Kasravi",
+         "email": "kamkasravi@gmail.com"
+      }
+   ],
+   "repository": {
+      "type": "git",
+      "url": "https://github.com/kubeflow/kubeflow"
+   },
+   "bugs": {
+      "url": "https://github.com/kubeflow/kubeflow/issues"
+   },
+   "keywords": [
+      "kubeflow",
+      "jobs",
+   ],
+   "quickStart": {
+      "prototype": "io.ksonnet.pkg.jobs",
+      "componentName": "jobs",
+      "flags": {
+         "name": "jobs",
+         "namespace": "",
+      },
+      "comment": "Deploy Job"
+   },
+   "license": "Apache 2.0"
+}
