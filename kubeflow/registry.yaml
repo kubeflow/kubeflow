@@ -71,5 +71,5 @@ libraries:
     version: master
     path: kubebench
   tf-batch-predict:
-    version: yxshi-tfbatch
+    version: tf-batch-predict
     path: tf-batch-predict
