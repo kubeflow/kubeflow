@@ -10,6 +10,7 @@
 // @optionalParam modeldbBackendPvcSize string 20Gi Size of SQLite PVC.
 
 local k = import "k.libsonnet";
+local namespace = env.namespace;
 
 local modeldb = import "kubeflow/modeldb/modeldb.libsonnet";
-std.prune(k.core.v1.list.new(modeldb.all(params, env)))
+std.prune(k.core.v1.list.new(modeldb.all(params, namespace)))
