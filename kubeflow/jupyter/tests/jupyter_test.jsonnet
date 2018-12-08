@@ -4,16 +4,16 @@ local params = {
   name: "jupyter",
   platform: "gke",
   serviceType: "ClusterIP",
-  disks: "null",
   gcpSecretName: "user-gcp-sa",
   image: "gcr.io/kubeflow/jupyterhub-k8s:v20180531-3bb991b1",
   jupyterHubAuthenticator: "iap",
-  useJupyterLabAsDefault: true,
-  notebookPVCMount: "/home/jovyan",
+  useJupyterLabAsDefault: false,
   notebookUid: "-1",
   notebookGid: "-1",
   accessLocalFs: "false",
   ui: "default",
+  storageClass: "null",
+  rokSecretName: "secret-rok-{username}",
 };
 local env = {
   namespace: "foo",
@@ -99,20 +99,20 @@ std.assertEqual(
               ],
               env: [
                 {
-                  name: "NOTEBOOK_PVC_MOUNT",
-                  value: "/home/jovyan",
-                },
-                {
                   name: "KF_AUTHENTICATOR",
                   value: "iap",
                 },
                 {
                   name: "DEFAULT_JUPYTERLAB",
-                  value: true,
+                  value: false,
                 },
                 {
-                  name: "KF_PVC_LIST",
+                  name: "STORAGE_CLASS",
                   value: "null",
+                },
+                {
+                  name: "ROK_SECRET_NAME",
+                  value: "secret-rok-{username}",
                 },
                 {
                   name: "GCP_SECRET_NAME",
@@ -187,6 +187,7 @@ std.assertEqual(
         ],
         resources: [
           "events",
+          "secrets",
         ],
         verbs: [
           "get",
@@ -214,6 +215,7 @@ std.assertEqual(
         ],
         resources: [
           "pods",
+          "pods/log",
           "services",
         ],
         verbs: [
