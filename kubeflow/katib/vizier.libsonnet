@@ -389,6 +389,18 @@
         },
         name: "katib-ui",
         namespace: namespace,
+        annotations: {
+          "getambassador.io/config":
+            std.join("\n", [
+              "---",
+              "apiVersion: ambassador/v0",
+              "kind:  Mapping",
+              "name: katib-ui-mapping",
+              "prefix: /katib/",
+              "rewrite: /katib/",
+              "service: katib-ui." + namespace,
+            ]),
+        },  //annotations
       },
       spec: {
         ports: [
