@@ -19,13 +19,19 @@ GOLANG_VERSION ?= 1.11.2
 # set to GOLANG_GCFLAGS=-gcflags "all=-N -l" to debug
 GOLANG_GCFLAGS ?= ""
 IMG ?= gcr.io/$(GCLOUD_PROJECT)/bootstrapper
-TAG ?= $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6)
+TAG ?= $(eval TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6))$(TAG)
 PORT ?= 2345
 
 all: build
 
+auth:
+	gcloud auth configure-docker
+
+build-local: generate fmt vet
+	GO111MODULE=on go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
+
 # To edit which registries to add to bootstrapper, edit config (eg. config/default.yaml)
-build:
+build: build-local
 	rm -rf reg_tmp
 	mkdir -p reg_tmp/kubeflow
 	cp -r ../kubeflow reg_tmp/kubeflow
@@ -35,7 +41,7 @@ build:
 # Build but don't attach the latest tag. This allows manual testing/inspection of the image
 # first.
 push: build
-	gcloud docker -- push $(IMG):$(TAG)
+	docker push $(IMG):$(TAG)
 	@echo Pushed $(IMG):$(TAG)
 
 push-latest: push
