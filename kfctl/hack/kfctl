@@ -1,0 +1,998 @@
+#!/usr/bin/env bash
+# This script provides commands to initialize and manage Kubeflow
+# deployments.
+#
+# Basic usage
+#
+# kfctl.sh init myapp --platform generatic
+# cd myapp
+# kfctl.sh generate all
+# kfctl.sh apply all
+# set -xe
+
+ENV_FILE="env.sh"
+SKIP_INIT_PROJECT=false
+CLUSTER_VERSION="1.10"
+SILENT=${SILENT:-'2>/dev/null'}
+
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null && pwd)"
+
+pushd () {
+    command pushd "$@" > /dev/null
+}
+
+popd () {
+    command popd "$@" > /dev/null
+}
+
+# util.sh
+usage() {
+  echo 'kfctl controls kubeflow applications'
+  echo 
+  echo 'Find more information at: https://kubeflow.org'
+  echo 
+  echo 'VERB NOUN --ADJECTIVE'
+  echo 
+  echo 'Commands:'
+  echo '  add          Add a registry|pkg|module|component to the kubeflow application.'
+  echo '  apply        Deploy a generated kubeflow application.'
+  echo '  completion   Output shell completion code for the specified shell (bash or zsh).'
+  echo '  del|delete   Delete a kubeflow application.'
+  echo '  gen|generate Generate a kubeflow application using <name>.yaml.'
+  echo "  get          Get a kubeflow application's yaml definition."
+  echo '  init         Create a kubeflow application skeleton of the form <name>.yaml.'
+  echo '  ls|list      List kubeflow (application|pkg|module|component|packages)s.'
+  echo "  rm|remove    Remove one or more (pkg|module|component)'s in a kubeflow application."
+  echo '  set          Apply one or more parameters to a component within a module in a kubeflow application.'
+  echo '  show         Fetch all manifests in a kubeflow (application|module|component).'
+  echo '  val|validate Validate all manifests in a kubeflow (application|module|component).'
+  echo '  version      Print version information for this kubeflow application.'
+  echo
+  echo 'Use "kfctl <command> --help" for more information about a given command.'
+  echo 'Use "kfctl options" for a list of global command-line options (applies to all commands).'
+  echo 'Use "kfctl quickstart" for a brief tutorial on creating a basic kubeflow application.'
+  exit 0
+}
+
+check_install() {
+  if ! which "${1}" &>/dev/null; then
+    echo "You don't have ${1} installed. Please install ${1}."
+    exit 1
+  fi
+}
+
+check_variable() {
+  if [[ -z "${1}" ]]; then
+    echo "'${2}' environment variable is not set. Please set it using export ${2}=value."
+    exit 1
+  fi
+}
+
+lsmodules() {
+  local output=$(ks module list)
+  IFS=' ' read -r -a modules <<<$(echo $output)
+  for module in "${modules[@]:3}"; do
+    echo $module
+  done
+}
+
+lspkgs() {
+  local output=$(ks pkg list | grep -v incubator | awk '{print $2}' | sort -u)
+  IFS=' ' read -r -a packages <<<$(echo $output)
+  for package in "${packages[@]:2}"; do
+    echo $package
+  done
+}
+
+join_by() { 
+  local IFS="$1"
+  shift 
+  echo "$*"
+}
+
+addmodule() {
+  local apply=false args='' cmd currentModules='' index module=${1%/*} moduleList='' nestedModule oneOrMorePrototypes 
+  local dryrun=false prototype prototype_name component_name component_args
+  local argument i package
+  declare -a arguments using usingArgs modules prototypes 
+  declare -A packages
+
+  shift
+  arguments=($@)
+#echo 'add module='$module' arguments='${arguments[@]}
+
+  for i in "${!arguments[@]}"; do 
+#printf "%s\t%s\n" "$i" "${arguments[$i]}"
+    argument=${arguments[$i]}
+    if [[ $argument =~ ^- ]]; then
+      case "$argument" in
+        -h|--help)
+            echo -e 'kfctl.sh add [-h|--help] <pkg <name>|module [-a|--apply] '\
+            'using package[/prototype] package[/[proto1 --arg1=value,proto2]]\n'\
+            '\n'\
+            'Examples:\n'\
+            "kfctl add module core using 'core/[ambassador,centraldashboard,spartakus]'\n"\
+            "kfctl.sh add module notebook --apply using core/[ambassador --ambassadorServiceType=LoadBalancer,centraldashboard]' jupyter\n"\
+            'kfctl.sh add module tf-training --dry-run using tf-training/tf-job-operator\n'\
+            'kfctl.sh add module notebooks --dry-run using notebooks profiles metacontroller\n'\
+            'kfctl.sh add module openvino --apply using openvino\n'
+            exit 0
+            ;;
+        -a|--apply)
+          apply=true
+          ;;
+        --dry-run)
+          dryrun=true
+          ;;
+        -*)
+          echo "unknown argument $argument"
+          exit 1
+          ;;
+      esac
+    else 
+      if [[ $argument == "using" ]]; then
+        usingArgs=$(join_by ' ' ${arguments[@]:$((i+1))})
+        break
+      fi
+    fi
+  done
+
+  while (( ${#usingArgs} > 0 )); do
+    if [[ $usingArgs =~ [_A-Za-z0-9\-]*/ ]]; then
+      prototype="${usingArgs%/*}"
+      oneOrMorePrototypes=${usingArgs#*/}
+      if [[ ${oneOrMorePrototypes:0:1} == '[' ]]; then
+        oneOrMorePrototypes="${oneOrMorePrototypes#*\[}"
+        oneOrMorePrototypes="${oneOrMorePrototypes%\]*}"
+        IFS=',' read -r -a prototypes <<<$oneOrMorePrototypes
+        if [[ ${usingArgs#*\]} =~ ' ' ]]; then
+          usingArgs=${usingArgs#*\] *}
+        else 
+          usingArgs=${usingArgs#*\]*}
+        fi
+      else
+        prototypes=($oneOrMorePrototypes)
+        usingArgs=${usingArgs#*${oneOrMorePrototypes}}
+      fi
+      packages["$prototype"]=$(join_by , "${prototypes[@]}")
+    else
+      prototype="${usingArgs%% *\]}"
+      prototypes=($prototype)
+      if [[ ${usingArgs#*${prototype}} =~ ' ' ]]; then
+        usingArgs=${usingArgs#*${prototype} }
+      else
+        usingArgs=${usingArgs#*${prototype}}
+      fi
+      packages["$prototype"]=$(join_by , "${prototypes[@]}")
+    fi
+  done
+
+  installedModules="$(lsmodules)"
+  for installedModule in $(echo $installedModules); do
+    currentModules+='--module '$installedModule' '
+  done
+    
+  
+echo "currentModules=$currentModules"
+  cmd="ks module create $module $SILENT"
+  $dryrun && echo $cmd || eval $cmd 
+  moduleList+='--module '$module' ' 
+
+  for package in "${!packages[@]}"; do 
+    list=${packages[$package]}
+    IFS=',' read -r -a prototypes <<<$list
+    cmd="ks pkg install kubeflow/$package $SILENT"
+    eval $cmd 
+    for prototype in "${prototypes[@]}"; do
+      if [[ "$prototype" =~ ' ' ]]; then
+        prototype_name=${prototype%% *}
+        component_name=$prototype_name
+        component_args=${prototype#* }
+      else
+        prototype_name=$prototype
+        component_name=$prototype_name
+        component_args=''
+      fi
+      cmd="ks generate $component_name $prototype_name --module $module $component_args $SILENT"
+#echo "$cmd"
+      $dryrun && echo $cmd || eval $cmd 
+    done
+  done
+
+#  for nestedModule in "${modules[@]}"; do
+#    module=${nestedModule##*.}
+#    moduleList="$moduleList --module $nestedModule "
+#  done
+
+  if [[ $apply == true ]]; then
+    cmd="ks env targets default $moduleList $SILENT"
+    $dryrun && echo $cmd || eval $cmd 
+    cmd="ks apply default $SILENT"
+    $dryrun && echo $cmd || eval $cmd
+  fi
+  moduleList+=$currentModules
+echo "moduleList=$moduleList"
+  cmd="ks env targets default $moduleList $SILENT"
+  $dryrun && echo $cmd || eval $cmd 
+}
+
+createKsApp() {
+  local usageId=$(((RANDOM << 15) | RANDOM)) cmd
+  # Create the ksonnet application.
+  # All deployments should call this function to create a common ksonnet app.
+  # They can then customize it as necessary.
+  pushd .
+  # Create the ksonnet app
+  cd $(dirname "${KUBEFLOW_KS_DIR}")
+  cmd="ks init $(basename "${KUBEFLOW_KS_DIR}") $SILENT"
+  eval $cmd
+  cd "${KUBEFLOW_KS_DIR}"
+
+  # Remove the default environment; The cluster might not exist yet
+  # So we might be pointing to the wrong  cluster.
+  cmd="ks env rm default $SILENT"
+  eval $cmd
+
+  # Add a new default environment with the namespace set
+  cmd="ks env add default --namespace $K8S_NAMESPACE $SILENT"
+  eval $cmd
+  cmd="ks env current --set default $SILENT"
+  eval $cmd
+
+  # Add the local registry
+  cmd="ks registry add kubeflow ${KUBEFLOW_REPO}/kubeflow $SILENT"
+  eval $cmd
+
+  # Generate all required components
+  # Enable collection of anonymous usage metrics
+  # To disable metrics collection. Remove the spartakus component.
+  # cd ks_app
+  # ks component rm spartakus
+  # Generate a random 30 bit number
+  # addmodule core using 'core/[ambassador --platform='${KUBEFLOW_PLATFORM}',centraldashboard,spartakus --usageId='${usageId}' --reportUsage=true]'
+  #addmodule jupyter using jupyter
+  #addmodule pytorch using 'pytorch-job/{pytorch-job,pytorch-operator}'
+  #addmodule training using tf-training/tf-job-operator
+  #addmodule serving using tf-serving
+  #addmodule profiles using profiles metacontroller
+
+  #if [ "${PLATFORM}" != "minikube" ]; then
+  #  addmodule argo using argo
+  #  addmodule seldon using seldon
+  #  addmodule katib using katib
+  #fi
+  # addmodule application using application
+  # echo ""
+  # echo "****************************************************************"
+  # echo "Notice anonymous usage reporting enabled using spartakus"
+  # echo "To disable it"
+  # echo "If you have already deployed it run the following commands:"
+  # echo "  cd $(pwd)"
+  # echo "  ks delete default -c spartakus"
+  # echo "  kubectl -n ${K8S_NAMESPACE} delete deploy -l app=spartakus"
+  # echo " "
+  # echo "Then run the following command to remove it from your ksonnet app"
+  # echo "  ks component rm spartakus"
+  # echo ""
+  # echo "For more info: https://www.kubeflow.org/docs/guides/usage-reporting/"
+  # echo "****************************************************************"
+  # echo ""
+
+  #ks param set core.ambassador platform ${KUBEFLOW_PLATFORM} --env default
+  #ks param set core.spartakus usageId ${usageId} --env default
+  #ks param set core.spartakus reportUsage true --env default
+  #ks param set jupyter.jupyter platform ${KUBEFLOW_PLATFORM} --env default
+  ks show default > default.yaml
+}
+
+removeKsEnv() {
+  pushd ${KUBEFLOW_KS_DIR}
+  ks env describe default 2>&1 >/dev/null && ks delete default 2>/dev/null || echo "'default' environment doesn't exist"
+  popd
+}
+
+customizeKsAppWithDockerImage() {
+  # customize docker registry
+  if [[ ! -z "$KUBEFLOW_DOCKER_REGISTRY" ]]; then
+    find ${KUBEFLOW_KS_DIR} -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%gcr.io%$KUBEFLOW_DOCKER_REGISTRY%g"
+    find ${KUBEFLOW_KS_DIR} -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%quay.io%$KUBEFLOW_DOCKER_REGISTRY%g"
+  fi
+}
+# scripts/gke/util.sh 
+gcpCreateSecretsDir() {
+  # Create a directory to contain GCP secrets.
+  mkdir -p ${KUBEFLOW_SECRETS_DIR}
+
+  # We want to prevent secrets from being checked into source control.
+  # We have two different checks.
+  # 1. We put the secrets in a directory with a .gitignore file
+  # 2. We will delete the secrets immediately.
+  if [ ! -f ${KUBEFLOW_SECRETS_DIR}/.gitignore ]; then
+    cat > ${KUBEFLOW_SECRETS_DIR}/.gitignore <<EOF
+**
+EOF
+  fi
+}
+
+gcpInitProject() {
+  # Enable GCloud APIs
+  gcloud services enable deploymentmanager.googleapis.com \
+    servicemanagement.googleapis.com \
+    container.googleapis.com \
+    cloudresourcemanager.googleapis.com \
+    endpoints.googleapis.com \
+    file.googleapis.com \
+    iam.googleapis.com --project=${PROJECT}
+
+  # Set IAM Admin Policy
+  gcloud projects add-iam-policy-binding ${PROJECT} \
+    --member serviceAccount:${PROJECT_NUMBER}@cloudservices.gserviceaccount.com \
+    --role roles/resourcemanager.projectIamAdmin
+}
+
+generateDMConfigs() {
+  # Create the DM configs if they don't exist.
+  if [ ! -d "${KUBEFLOW_DM_DIR}" ]; then
+    echo creating Deployment Manager configs in directory "${KUBEFLOW_DM_DIR}"
+    mkdir -p "${KUBEFLOW_DM_DIR}"
+    cp -r "${KUBEFLOW_REPO}"/deployment/gke/deployment_manager_configs/cluster* "${KUBEFLOW_DM_DIR}"
+
+    if [[ "$EMAIL" =~ .*iam\.gserviceaccount\.com ]]; then
+      IAP_IAM_ENTRY="serviceAccount:${EMAIL}"
+    else
+      IAP_IAM_ENTRY="user:${EMAIL}"
+    fi
+
+    cp "${KUBEFLOW_REPO}"/deployment/gke/deployment_manager_configs/iam_bindings_template.yaml "${KUBEFLOW_DM_DIR}"/iam_bindings.yaml
+
+    # Set the various service accounts in iam_bindings.yaml
+    sed -i.bak "s/set-kubeflow-admin-service-account/serviceAccount:${DEPLOYMENT_NAME}-admin@${PROJECT}.iam.gserviceaccount.com/" "${KUBEFLOW_DM_DIR}"/iam_bindings.yaml
+    sed -i.bak "s/set-kubeflow-user-service-account/serviceAccount:${DEPLOYMENT_NAME}-user@${PROJECT}.iam.gserviceaccount.com/" "${KUBEFLOW_DM_DIR}"/iam_bindings.yaml
+    sed -i.bak "s/set-kubeflow-vm-service-account/serviceAccount:${DEPLOYMENT_NAME}-vm@${PROJECT}.iam.gserviceaccount.com/" "${KUBEFLOW_DM_DIR}"/iam_bindings.yaml
+    sed -i.bak "s/set-kubeflow-iap-account/${IAP_IAM_ENTRY}/" "${KUBEFLOW_DM_DIR}"/iam_bindings.yaml
+    rm "${KUBEFLOW_DM_DIR}/iam_bindings.yaml.bak"
+
+    # Set values in DM config file
+    sed -i.bak "s/zone: SET_THE_ZONE/zone: ${ZONE}/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
+    sed -i.bak "s/users:/users: [\"${IAP_IAM_ENTRY}\"]/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
+    sed -i.bak "s/ipName: kubeflow-ip/ipName: ${KUBEFLOW_IP_NAME}/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
+    rm "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}.bak"
+  else
+    echo Deployment Manager configs already exist in directory "${KUBEFLOW_DM_DIR}"
+  fi
+}
+
+createGcpSecret() {
+  # Get a private key for a GCP service account and store it as a K8s secret.
+  local EMAIL=$1
+  local SECRET=$2
+
+  O=$(kubectl get secret --namespace=${K8S_NAMESPACE} ${SECRET} 2>&1)
+  local RESULT=$?
+
+  if [ "${RESULT}" -eq 0 ]; then
+    echo secret ${SECRET} already exists
+    return
+  fi
+
+  local FILE=${KUBEFLOW_SECRETS_DIR}/${EMAIL}.json
+  gcloud --project=${PROJECT} iam service-accounts keys create ${FILE} --iam-account ${EMAIL}
+
+  kubectl create secret generic --namespace=${K8S_NAMESPACE} ${SECRET} --from-file=${SECRET}.json=${FILE}
+
+  # Delete the local copy of the secret to reduce the risk of compromise.
+  rm ${FILE}
+}
+
+downloadK8sManifests() {
+  # Download K8s manifests for resources to deploy on the cluster.
+  mkdir -p ${KUBEFLOW_K8S_MANIFESTS_DIR}
+  # Install the GPU driver. It has no effect on non-GPU nodes.
+  curl -o ${KUBEFLOW_K8S_MANIFESTS_DIR}/daemonset-preloaded.yaml \
+    https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/stable/nvidia-driver-installer/cos/daemonset-preloaded.yaml
+
+  curl -o ${KUBEFLOW_K8S_MANIFESTS_DIR}/rbac-setup.yaml \
+    https://storage.googleapis.com/stackdriver-kubernetes/stable/rbac-setup.yaml
+
+  curl -o ${KUBEFLOW_K8S_MANIFESTS_DIR}/agents.yaml \
+    https://storage.googleapis.com/stackdriver-kubernetes/stable/agents.yaml
+
+}
+
+updateDeployment() {
+  # Update or create a GCP deployment.
+  local NAME=$1
+  local CONFIG_FILE=$2
+  pushd .
+  cd ${KUBEFLOW_DM_DIR}
+  # Check if it already exists
+  O=$(gcloud deployment-manager --project=${PROJECT} deployments describe ${NAME} 2>&1)
+  exists=$?
+
+  if [ ${exists} -eq 0 ]; then
+    echo ${DEPLOYMENT_NAME} exists
+    gcloud deployment-manager --project=${PROJECT} deployments update ${NAME} --config=${CONFIG_FILE}
+  else
+    # Run Deployment Manager
+    gcloud deployment-manager --project=${PROJECT} deployments create ${NAME} --config=${CONFIG_FILE}
+  fi
+
+  popd
+}
+
+updateDM() {
+  # TODO(jlewi): We should create deployments for all .yaml files in
+  # the gcp_config directory.
+  updateDeployment ${DEPLOYMENT_NAME} ${CONFIG_FILE}
+
+  # Network needs to be created before GCFS.
+  if [ -f ${KUBEFLOW_DM_DIR}/network.yaml ]; then
+    updateDeployment ${DEPLOYMENT_NAME}-network network.yaml
+  fi
+
+  if [ -f ${KUBEFLOW_DM_DIR}/gcfs.yaml ]; then
+    updateDeployment ${DEPLOYMENT_NAME}-gcfs gcfs.yaml
+  fi
+
+  python "${KUBEFLOW_REPO}/scripts/gke/iam_patch.py" --action=add \
+    --project=${PROJECT} \
+    --iam_bindings_file="${KUBEFLOW_DM_DIR}/iam_bindings.yaml"
+
+  # Set credentials for kubectl context
+  gcloud --project=${PROJECT} container clusters get-credentials --zone=${ZONE} ${DEPLOYMENT_NAME}
+
+  # Create a conveniently named context
+  CURRENT_CONTEXT=$(kubectl config current-context)
+  CURRENT_CLUSTER=$(kubectl config get-contexts $CURRENT_CONTEXT | tail -1 | awk '{print $3}')
+  CURRENT_USER=$(kubectl config get-contexts $CURRENT_CONTEXT | tail -1 | awk '{print $4}')
+
+  kubectl config set-context ${KUBEFLOW_K8S_CONTEXT} \
+    --namespace ${K8S_NAMESPACE} \
+    --cluster $CURRENT_CLUSTER \
+    --user $CURRENT_USER
+
+  echo created context named: ${KUBEFLOW_K8S_CONTEXT}
+  kubectl config use-context ${KUBEFLOW_K8S_CONTEXT}
+  # Make yourself cluster admin
+  O=$(kubectl get clusterrolebinding default-admin 2>&1)
+  RESULT=$?
+
+  if [ "${RESULT}" -eq 0 ]; then
+    echo clusterrolebinding default-admin already exists
+  else
+    kubectl create clusterrolebinding default-admin --clusterrole=cluster-admin --user=${EMAIL}
+  fi
+
+  O=$(kubectl get namespace ${K8S_NAMESPACE} 2>&1)
+  RESULT=$?
+
+  if [ "${RESULT}" -eq 0 ]; then
+    echo namespace ${K8S_NAMESPACE} already exists
+  else
+    kubectl create namespace ${K8S_NAMESPACE}
+  fi
+
+  # Install the GPU driver. It has no effect on non-GPU nodes.
+  kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/daemonset-preloaded.yaml
+
+  # Install Stackdriver Kubernetes agents.
+  kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/rbac-setup.yaml --as=admin --as-group=system:masters
+  kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/agents.yaml
+}
+
+createSecrets() {
+  # Whether to setup the project. Set to false to skip setting up the project.
+  local ADMIN_EMAIL=${DEPLOYMENT_NAME}-admin@${PROJECT}.iam.gserviceaccount.com
+  local USER_EMAIL=${DEPLOYMENT_NAME}-user@${PROJECT}.iam.gserviceaccount.com
+
+  check_variable "${CLIENT_ID}" "CLIENT_ID"
+  check_variable "${CLIENT_SECRET}" "CLIENT_SECRET"
+
+  # We want the secret name to be the same by default for all clusters so that users don't have to set it manually.
+  createGcpSecret ${ADMIN_EMAIL} admin-gcp-sa
+  createGcpSecret ${USER_EMAIL} user-gcp-sa
+
+  O=$(kubectl get secret --namespace=${K8S_NAMESPACE} kubeflow-oauth 2>&1)
+  RESULT=$?
+
+  if [ "${RESULT}" -eq 0 ]; then
+    echo Secret kubeflow-oauth already exists
+  else
+    kubectl create secret generic --namespace=${K8S_NAMESPACE} kubeflow-oauth --from-literal=client_id=${CLIENT_ID} --from-literal=client_secret=${CLIENT_SECRET}
+  fi
+}
+
+gcpGenerateKsApp() {
+  pushd .
+  cd "${KUBEFLOW_KS_DIR}"
+
+  ks generate cloud-endpoints cloud-endpoints
+  ks generate cert-manager cert-manager --acmeEmail=${EMAIL}
+  ks generate iap-ingress iap-ingress --ipName=${KUBEFLOW_IP_NAME} --hostname=${KUBEFLOW_HOSTNAME}
+  ks param set jupyter jupyterHubAuthenticator iap
+  popd
+}
+
+gcpKsApply() {
+  # Apply the components generated
+  pushd .
+  cd "${KUBEFLOW_KS_DIR}"
+
+  addmodule core using core/[cloud-endpoints,cert-manager,iap-ingress]
+  echo ks show default > default.yaml
+  ks show default > default.yaml
+  kubectl apply --validate=false -f default.yaml
+  popd
+}
+# scripts/util.minikube.sh
+# Helper functions for minikube deployment of kubeflow
+# Linux or Mac OS X
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+NC='\033[0m'
+
+MOUNT_LOCAL=${MOUNT_LOCAL:-"false"}
+
+is_kubeflow_ready() {
+  echo -en "${YELLOW}Getting kubeflow namespace ready...${NC}"
+  local ns_ready=false
+  for i in {1..5}; do
+    kube_ns=$(kubectl get namespaces | grep ${K8S_NAMESPACE} | wc -l)
+    if [ $kube_ns = 1 ]; then
+      ns_ready=true
+      echo -e "${GREEN}[OK]${NC}"
+      break
+    fi
+    sleep 30
+  done
+
+  if [[ $ns_ready == false ]]; then
+    return 1
+  fi
+
+  svc_ready=false
+  amb_up=0
+  tf_hub_up=0
+  echo -en "${YELLOW}Bringing kubeflow services up."
+  until (("$amb_up" > 0 && "$tf_hub_up" > 0)); do
+    sleep 30
+    amb_up=$(kubectl -n ${K8S_NAMESPACE} get pods | grep Running | grep ambassador | wc -l)
+    tf_hub_up=$(kubectl -n ${K8S_NAMESPACE} get pods | grep Running | grep jupyter | wc -l)
+    echo -n "."
+    if (("$amb_up" > 0 && "$tf_hub_up" > 0)); then
+      svc_ready=true
+      echo -e "${GREEN}[OK]${NC}"
+      break
+    fi
+  done
+
+  if [ $svc_ready = false ]; then
+    return 1
+  fi
+}
+
+create_local_fs_mount_spec() {
+  if $MOUNT_LOCAL; then
+    # Create a persistent volume
+    cat <<EOF > ${KUBEFLOW_KS_DIR}/pv.yaml
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: local-volume
+  labels:
+    type: local
+spec:
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: local-storage
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  local:
+    path: "/mnt/local"
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - minikube
+EOF
+
+    # Create a PVC attached to the volume
+    cat <<EOF > ${KUBEFLOW_KS_DIR}/pv-claim.yaml
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: local-notebooks
+spec:
+  storageClassName: local-storage
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  volumeName: local-volume
+EOF
+  fi
+}
+
+# if user requested a local fs path to be mounted, make it accessible via
+# Jupyter Notebooks
+mount_local_fs() {
+  if $MOUNT_LOCAL; then
+    kubectl create -f ${KUBEFLOW_KS_DIR}/pv.yaml
+    kubectl create -n ${K8S_NAMESPACE} -f ${KUBEFLOW_KS_DIR}/pv-claim.yaml
+  fi
+}
+
+# Setup various network tunnels
+setup_tunnels() {
+  sleep 30 # Give services time to bind
+  kubectl -n kubeflow port-forward svc/ambassador 8080:80 2>&1 >/dev/null &
+  echo -e "Access Kubeflow dashboard at ${GREEN}http://localhost:8080/${NC}"
+  echo -e "Access Jupyter at ${GREEN}http://localhost:8080/hub/${NC}"
+}
+
+createEnv() {
+  # Check if there is a file env.sh
+  # If there is source it otherwise create it.
+  # this ensures all relevant environment variables are persisted in
+  # a file for consistency across runs.
+  echo PLATFORM=${PLATFORM} >> ${ENV_FILE}
+  DEFAULT_KUBEFLOW_REPO="${GOPATH}/src/github.com/kubeflow/kubeflow"
+  # Remove trailing slash from the repo.
+  KUBEFLOW_REPO=${KUBEFLOW_REPO%/}
+  echo KUBEFLOW_REPO=${KUBEFLOW_REPO:-"${DEFAULT_KUBEFLOW_REPO}"} >> ${ENV_FILE}
+  echo KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"} >> ${ENV_FILE}
+  echo KUBEFLOW_KS_DIR=${KUBEFLOW_KS_DIR:-"$(pwd)/ks_app"} >> ${ENV_FILE}
+  echo KUBEFLOW_DOCKER_REGISTRY=${KUBEFLOW_DOCKER_REGISTRY:-""} >> ${ENV_FILE}
+
+  # Namespace where kubeflow is deployed
+  echo K8S_NAMESPACE=${K8S_NAMESPACE:-"kubeflow"} >> ${ENV_FILE}
+
+  case "$PLATFORM" in
+    minikube)
+      echo KUBEFLOW_PLATFORM=minikube >> ${ENV_FILE}
+      echo MOUNT_LOCAL=${MOUNT_LOCAL} >> ${ENV_FILE}
+      ;;
+    ack)
+      echo KUBEFLOW_PLATFORM=ack >> ${ENV_FILE}
+      echo KUBEFLOW_DOCKER_REGISTRY=registry.aliyuncs.com >> ${ENV_FILE}
+      ;;
+    gcp)
+      echo KUBEFLOW_PLATFORM=gke >> ${ENV_FILE}
+      echo PROJECT="${PROJECT}" >> ${ENV_FILE}
+      echo ZONE=${ZONE} >> ${ENV_FILE}
+      echo EMAIL=${EMAIL} >> ${ENV_FILE}
+
+      # TODO: Do we need to make PROJECT_NUMBER also a flag like --project-number
+      if [ -z "${PROJECT_NUMBER}" ]; then
+        PROJECT_NUMBER=$(gcloud projects describe ${PROJECT} --format='value(project_number)')
+      fi
+
+      # Name of the deployment
+      DEPLOYMENT_NAME=${DEPLOYMENT_NAME:-"kubeflow"}
+      echo DEPLOYMENT_NAME="${DEPLOYMENT_NAME}" >> ${ENV_FILE}
+
+      # Kubeflow directories
+      echo KUBEFLOW_DM_DIR=${KUBEFLOW_DM_DIR:-"$(pwd)/gcp_config"} >> ${ENV_FILE}
+      echo KUBEFLOW_SECRETS_DIR=${KUBEFLOW_SECRETS_DIR:-"$(pwd)/secrets"} >> ${ENV_FILE}
+      echo KUBEFLOW_K8S_MANIFESTS_DIR="$(pwd)/k8s_specs" >> ${ENV_FILE}
+
+      # Name of the K8s context to create.
+      echo KUBEFLOW_K8S_CONTEXT=${DEPLOYMENT_NAME} >> ${ENV_FILE}
+
+      # GCP Static IP Name
+      echo KUBEFLOW_IP_NAME=${KUBEFLOW_IP_NAME:-"${DEPLOYMENT_NAME}-ip"} >> ${ENV_FILE}
+      # Name of the endpoint
+      KUBEFLOW_ENDPOINT_NAME=${KUBEFLOW_ENDPOINT_NAME:-"${DEPLOYMENT_NAME}"}
+      echo KUBEFLOW_ENDPOINT_NAME=${KUBEFLOW_ENDPOINT_NAME} >> ${ENV_FILE}
+      # Complete hostname
+      echo KUBEFLOW_HOSTNAME=${KUBEFLOW_HOSTNAME:-"${KUBEFLOW_ENDPOINT_NAME}.endpoints.${PROJECT}.cloud.goog"} >> ${ENV_FILE}
+
+      echo CONFIG_FILE=${CONFIG_FILE:-"cluster-kubeflow.yaml"} >> ${ENV_FILE}
+
+      echo PROJECT_NUMBER=${PROJECT_NUMBER} >> ${ENV_FILE}
+
+      # "1.X": picks the highest valid patch+gke.N patch in the 1.X version
+      # https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters
+      echo "Setting cluster version to ${CLUSTER_VERSION}"
+      echo CLUSTER_VERSION=${CLUSTER_VERSION} >> ${ENV_FILE}
+      ;;
+    *)
+      echo KUBEFLOW_PLATFORM=null >> ${ENV_FILE}
+      ;;
+  esac
+}
+
+createNamespace() {
+  kubectl get namespace $K8S_NAMESPACE 2>&1 >/dev/null || kubectl create namespace $K8S_NAMESPACE
+}
+
+ksApply() {
+  pushd ${KUBEFLOW_KS_DIR}
+  createNamespace
+  ks show default > default.yaml
+  kubectl apply --validate=false -f default.yaml
+  popd
+
+  if [ "${PLATFORM}" == "minikube" ]; then
+    if is_kubeflow_ready; then
+      mount_local_fs
+      setup_tunnels
+    else
+      echo -e "${RED}Unable to get kubeflow ready${NC}"
+    fi
+  fi
+}
+
+parseArgs() {
+  # Parse all command line options
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+      -h | --help)
+        usage
+        exit
+        ;;
+      --platform)
+        shift
+        PLATFORM=$1
+        ;;
+      --project)
+        shift
+        PROJECT=$1
+        ;;
+      --zone)
+        shift
+        ZONE=$1
+        ;;
+      --email)
+        shift
+        EMAIL=$1
+        ;;
+      --skipInitProject)
+        SKIP_INIT_PROJECT=true
+        ;;
+    esac
+    shift
+  done
+
+  # Check for gcp specific parameters to be set before proceeding
+  if [ "${PLATFORM}" == "gcp" ]; then
+    # GCP Project
+    if [ -z "${PROJECT}" ]; then
+      PROJECT=$(gcloud config get-value project 2>/dev/null)
+      if [ -z "${PROJECT}" ]; then
+        echo "GCP project must be set either using --project <PROJECT>"
+        echo "or by setting a default project in gcloud config"
+        exit 1
+      fi
+    fi
+    # GCP Zone
+    if [ -z "$ZONE" ]; then
+      ZONE=$(gcloud config get-value compute/zone 2>/dev/null)
+      if [ -z "$ZONE" ]; then
+        echo "GCP zone must be set either using --zone <ZONE>"
+        echo "or by setting a default zone in gcloud config"
+        exit 1
+      fi
+    fi
+    # GCP Email for cert manager
+    if [ -z "$EMAIL" ]; then
+      EMAIL=$(gcloud config get-value account 2>/dev/null)
+      if [ -z "$EMAIL" ]; then
+        echo "GCP account must be set either using --email <EMAIL>"
+        echo "or by setting a default account in gcloud config"
+        exit 1
+      fi
+      # Use iam-policy value for EMAIL if case-sensitive
+      EM_LIST="$(gcloud projects get-iam-policy $PROJECT | grep -io $EMAIL)"
+      for em in $EM_LIST; do
+        if [ "$em" != "$EMAIL" ]; then
+          EMAIL=$em
+          break
+        fi
+      done
+    fi
+  fi
+}
+
+commands() {
+  if [[ $# == 0 ]]; then
+    usage
+    exit 1
+  fi
+  case "$1" in 
+    add)
+#echo "command=add"
+      shift
+      source ${ENV_FILE}
+      [[ -d ${KUBEFLOW_KS_DIR} ]] && pushd ${KUBEFLOW_KS_DIR}
+      case "$1" in
+        module)
+          shift
+          addmodule $@
+          echo ks show default > default.yaml
+          ks show default > default.yaml
+          ;;
+        pkg)
+          shift
+          cmd="ks pkg install kubeflow/$1 $SILENT"
+          eval $cmd
+          ;;
+        *)
+          echo "unknown add subcommand $1"
+          exit 1
+          ;;
+      esac
+      ;;
+    apply)
+      shift
+      WHAT=$1
+      shift
+#echo "command=apply what="$WHAT
+      source ${ENV_FILE}
+      [[ -d ${KUBEFLOW_KS_DIR} ]] && pushd ${KUBEFLOW_KS_DIR}
+      if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ]; then
+        if [ "${PLATFORM}" == "gcp" ]; then
+          updateDM
+          createSecrets
+        fi
+      fi
+      if [ "${WHAT}" == "k8s" ] || [ "${WHAT}" == "all" ]; then
+        ksApply
+        if [ "${PLATFORM}" == "gcp" ]; then
+          gcpKsApply
+        fi
+      fi
+      ;;
+    delete)
+      shift
+      WHAT=$1
+      shift
+#echo "command=delete what="$WHAT
+      source ${ENV_FILE}
+      [[ -d ${KUBEFLOW_KS_DIR} ]] && pushd ${KUBEFLOW_KS_DIR}
+      if [ "${WHAT}" == "k8s" ] || [ "${WHAT}" == "all" ]; then
+        # Delete kubeflow namespace - this deletes all the ingress objects
+        # in the namespace which deletes the associated GCP resources
+        removeKsEnv && kubectl delete ns/${K8S_NAMESPACE}
+      fi
+      if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ]; then
+        if [ "${PLATFORM}" == "gcp" ]; then
+          if [ -d "${KUBEFLOW_DM_DIR}" ]; then
+              pushd ${KUBEFLOW_DM_DIR}
+            ${DIR}/gke/delete_deployment.sh ${PROJECT} ${DEPLOYMENT_NAME} ${CONFIG_FILE}
+            popd
+            removeKsEnv
+          fi
+        fi
+      fi
+      ;;
+    generate)
+      shift
+      WHAT=$1
+      shift
+#echo "command=generate what="$WHAT
+      source ${ENV_FILE}
+      [[ -d ${KUBEFLOW_KS_DIR} ]] && pushd ${KUBEFLOW_KS_DIR}
+      if [ "${WHAT}" == "platform" ] || [ "${WHAT}" == "all" ]; then
+        if [ "${PLATFORM}" == "gcp" ]; then
+          generateDMConfigs
+          downloadK8sManifests
+        fi
+      fi
+
+      if [ "${WHAT}" == "k8s" ] || [ "${WHAT}" == "all" ]; then
+        createKsApp
+        customizeKsAppWithDockerImage
+
+        if [ "${PLATFORM}" == "gcp" ]; then
+          gcpGenerateKsApp
+        fi
+
+        if [ "${PLATFORM}" == "minikube" ]; then
+          create_local_fs_mount_spec
+          if ${MOUNT_LOCAL}; then
+            ks param set jupyter.jupyter disks "local-notebooks" --env default
+            ks param set jupyter.jupyter notebookUid $(id -u) --env default
+            ks param set jupyter.jupyter notebookGid $(id -g) --env default
+            ks param set jupyter.jupyter accessLocalFs true --env default
+          fi
+        fi
+      fi
+      ;;
+    ls|list)
+#TODO ks param list application --module application
+#echo "command="$1
+      shift
+      source ${ENV_FILE}
+      [[ -d ${KUBEFLOW_KS_DIR} ]] && pushd ${KUBEFLOW_KS_DIR}
+      case "$1" in
+        modules)
+          shift
+          lsmodules $@
+          ;;
+        pkgs|packages)
+          shift
+          lspkgs $@
+          ;;
+        *)
+          echo "unknown get subcommand $1"
+          exit 1
+          ;;
+      esac
+      ;;
+    init)
+      shift
+      WHAT=$1
+      shift
+#echo "command=init what="$WHAT
+      DEPLOYMENT_NAME=${WHAT}
+      parseArgs $*
+
+      mkdir -p ${DEPLOYMENT_NAME}
+      # Most commands expect to be executed from the app directory
+      cd ${DEPLOYMENT_NAME}
+      createEnv
+
+      source ${ENV_FILE}
+      # TODO(jlewi): Should we default to directory name?
+      # TODO(jlewi): This doesn't work if user doesn't provide name we will end up
+      # interpreting parameters as the name. To fix this we need to check name doesn't start with --
+      if [ -z "${DEPLOYMENT_NAME}" ]; then
+        echo "name must be provided"
+        echo "usage: kfctl init <name>"
+        exit 1
+      fi
+      if [ -d ${DEPLOYMENT_NAME} ]; then
+        echo "Directory ${DEPLOYMENT_NAME} already exists"
+        exit 1
+      fi
+
+      if [ -z "${PLATFORM}" ]; then
+        echo "--platform must be provided"
+        echo "usage: kfctl init <PLATFORM>"
+        exit 1
+      fi
+      source "${ENV_FILE}"
+
+      # TODO(jlewi): How can we skip GCP project setup? Add a command line argument
+      # to skip it?
+      if [ "${PLATFORM}" == "gcp" ]; then
+        if ${SKIP_INIT_PROJECT}; then
+          echo "skipping project initialization"
+        else
+          echo initializing project
+          gcpInitProject
+        fi
+      fi
+      ;;
+  esac
+}
+
+while :
+do
+  case "$1" in
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    --)
+      shift
+      break
+      ;;
+    -*)
+      echo "Error: Unknown option: $1" >&2
+      exit 1
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+commands $*

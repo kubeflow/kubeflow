@@ -1,24 +1,32 @@
 module github.com/kubeflow/kubeflow/kfctl
 
 require (
-	github.com/gobuffalo/buffalo-plugins v1.8.1 // indirect
-	github.com/gobuffalo/envy v1.6.10 // indirect
-	github.com/gobuffalo/genny v0.0.0-20181128191930-77e34f71ba2a // indirect
+	cloud.google.com/go v0.34.0 // indirect
+	github.com/gobuffalo/buffalo-plugins v1.8.3 // indirect
+	github.com/gobuffalo/genny v0.0.0-20181207193730-587570ab2cf7 // indirect
 	github.com/google/uuid v1.1.0 // indirect
-	github.com/kubeflow/kubeflow/controller v0.0.0-20181129215238-a5a7e53d5375
+	github.com/kubeflow/kubeflow/controller v0.0.0-20181203081345-97cc4346b221
+	github.com/kubernetes-sigs/application v0.0.0-20181207220954-17a395166949 // indirect
+	github.com/kubernetes/code-generator v0.0.0-20181206115026-3a2206dd6a78 // indirect
 	github.com/mitchellh/go-homedir v1.0.0
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/pborman/uuid v1.2.0 // indirect
 	github.com/spf13/cobra v0.0.3
-	github.com/spf13/viper v1.2.1
-	golang.org/x/net v0.0.0-20181129055619-fae4c4e3ad76 // indirect
-	golang.org/x/oauth2 v0.0.0-20181128211412-28207608b838 // indirect
-	golang.org/x/sys v0.0.0-20181128092732-4ed8d59d0b35 // indirect
-	golang.org/x/tools v0.0.0-20181129221141-e015b91f2629 // indirect
-	gopkg.in/yaml.v2 v2.2.2 // indirect
-	k8s.io/api v0.0.0-20181121071145-b7bd5f2d334c // indirect
-	k8s.io/apiextensions-apiserver v0.0.0-20181129112646-894efe3a380b // indirect
-	k8s.io/apimachinery v0.0.0-20181126191516-4a9a8137c0a1 // indirect
-	k8s.io/client-go v9.0.0+incompatible
+	github.com/spf13/viper v1.3.1
+	github.com/ugorji/go/codec v0.0.0-20181209151446-772ced7fd4c2 // indirect
+	golang.org/x/net v0.0.0-20181207154023-610586996380 // indirect
+	golang.org/x/oauth2 v0.0.0-20181203162652-d668ce993890 // indirect
+	golang.org/x/sys v0.0.0-20181208175041-ad97f365e150 // indirect
+	golang.org/x/tools v0.0.0-20181207222222-4c874b978acb // indirect
+	gopkg.in/resty.v1 v1.10.3
+	k8s.io/api v0.0.0-20181130031204-d04500c8c3dd // indirect
+	k8s.io/apiextensions-apiserver v0.0.0-20181206111255-bb0a52a3f19d // indirect
+	k8s.io/apimachinery v0.0.0-20181207080347-f1a02064268b // indirect
+	k8s.io/client-go v10.0.0+incompatible
+	k8s.io/code-generator v0.0.0-20181206115026-3a2206dd6a78 // indirect
+	sigs.k8s.io/application v0.0.0-20181207220954-17a395166949 // indirect
+	sigs.k8s.io/controller-runtime v0.1.8 // indirect
+	sigs.k8s.io/controller-tools v0.1.7 // indirect
+	sigs.k8s.io/testing_frameworks v0.1.0 // indirect
 	sigs.k8s.io/yaml v1.1.0 // indirect
 )

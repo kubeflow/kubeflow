@@ -18,15 +18,21 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	resty "gopkg.in/resty.v1"
 )
 
 // listCmd represents the list command
 var moduleCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List a kubeflow (application|pkg|module|component|parameter)s.",
-	Long: `List a kubeflow (application|pkg|module|component|parameter)s.`,
+	Long:  `List a kubeflow (application|pkg|module|component|parameter)s.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("module called")
+		resp, err := resty.R().
+			SetHeader("Accept", "application/json").
+			SetAuthToken("BC594900518B4F7EAC75BD37F019E08FBC594900518B4F7EAC75BD37F019E08F").
+			Get("/show_product")
+		fmt.Printf("\nError: %v", err)
+		fmt.Printf("\nResponse Status Code: %v", resp.StatusCode())
 	},
 }
 

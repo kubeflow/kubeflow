@@ -24,7 +24,7 @@ import (
 var removeCmd = &cobra.Command{
 	Use:   "remove",
 	Short: "Remove one or more (pkg|module|component)'s in a kubeflow application.",
-	Long: `Remove one or more (pkg|module|component)'s in a kubeflow application.`,
+	Long:  `Remove one or more (pkg|module|component)'s in a kubeflow application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("remove called")
 	},

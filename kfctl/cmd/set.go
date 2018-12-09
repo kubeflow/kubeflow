@@ -24,7 +24,7 @@ import (
 var setCmd = &cobra.Command{
 	Use:   "set",
 	Short: "Apply one or more parameters to a component within a module in a kubeflow application.",
-	Long: `Apply one or more parameters to a component within a module in a kubeflow application.`,
+	Long:  `Apply one or more parameters to a component within a module in a kubeflow application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("set called")
 	},

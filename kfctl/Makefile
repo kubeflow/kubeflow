@@ -21,8 +21,8 @@ create:
 fmt:
 	go fmt ./...
 
-version:
-	@echo $(TAG)
+update-version:
+	@sed -i 's/Println("\(.*\)"))/Println("'$(TAG)'")/g' cmd/version.go
 
 vet:
 	go vet ./...
@@ -30,6 +30,5 @@ vet:
 update:
 	hack/goget -p 2016 github.com/kubeflow/kubeflow/controller/pkg/client/kfapi
 
-build: fmt vet update
-	git ls-remote -q upstream 'pull/2016/head'|awk '{print $1}'
+build: fmt vet update update-version
 	GO111MODULE=on go build -gcflags 'all=-N -l' -a -o bin/kfctl main.go

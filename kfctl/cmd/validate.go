@@ -24,7 +24,7 @@ import (
 var validateCmd = &cobra.Command{
 	Use:   "validate",
 	Short: "Validate all manifests in a kubeflow (application|module|component).",
-	Long: `Validate all manifests in a kubeflow (application|module|component).`,
+	Long:  `Validate all manifests in a kubeflow (application|module|component).`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("validate called")
 	},

@@ -24,7 +24,7 @@ import (
 var addCmd = &cobra.Command{
 	Use:   "add",
 	Short: "Add a registry|pkg|module|component to the kubeflow application.",
-	Long: `Add a registry|pkg|module|component to the kubeflow application.`,
+	Long:  `Add a registry|pkg|module|component to the kubeflow application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("add called")
 	},

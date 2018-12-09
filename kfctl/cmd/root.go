@@ -17,7 +17,6 @@ package cmd
 import (
 	"flag"
 	"fmt"
-	"github.com/kubeflow/kubeflow/controller/pkg/client/kfapi"
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -29,7 +28,6 @@ import (
 
 var cfgFile string
 var kubeconfig *string
-var KfClient *kfapi.Clientset
 var KfConfig *rest.Config
 
 // rootCmd represents the base command when called without any subcommands

@@ -23,16 +23,9 @@ import (
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "v20181206-4e7f4ed-188-gb208e8ae-e3b0c4",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("version called")
-	},
+	Short: "Prints the version of kfctl.",
+	Long:  `Prints the version of kfctl.`,
+	Run:   versionfunc,
 }
 
 func init() {
@@ -47,4 +40,8 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// versionCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func versionfunc(cmd *cobra.Command, args []string) {
+	fmt.Println("v20181207-4e7f4ed-198-gaeea303e-dirty-03e65e")
 }

@@ -24,7 +24,7 @@ import (
 var showCmd = &cobra.Command{
 	Use:   "show",
 	Short: "Fetch all manifests in a kubeflow (application|module|component).",
-	Long: `Fetch all manifests in a kubeflow (application|module|component).`,
+	Long:  `Fetch all manifests in a kubeflow (application|module|component).`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("show called")
 	},

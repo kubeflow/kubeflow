@@ -24,7 +24,7 @@ import (
 var getCmd = &cobra.Command{
 	Use:   "get",
 	Short: "Get a kubeflow application's yaml definition.",
-	Long: `Get a kubeflow application's yaml definition.`,
+	Long:  `Get a kubeflow application's yaml definition.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("get called")
 	},

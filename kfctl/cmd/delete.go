@@ -24,7 +24,7 @@ import (
 var deleteCmd = &cobra.Command{
 	Use:   "delete",
 	Short: "Delete a kubeflow application.",
-	Long: `Delete a kubeflow application.`,
+	Long:  `Delete a kubeflow application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("delete called")
 	},

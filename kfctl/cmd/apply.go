@@ -24,7 +24,7 @@ import (
 var applyCmd = &cobra.Command{
 	Use:   "apply",
 	Short: "Deploy a generated kubeflow application.",
-	Long: `Deploy a generated kubeflow application.`,
+	Long:  `Deploy a generated kubeflow application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("apply called")
 

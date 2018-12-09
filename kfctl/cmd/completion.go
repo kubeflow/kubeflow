@@ -24,7 +24,7 @@ import (
 var completionCmd = &cobra.Command{
 	Use:   "completion",
 	Short: "Output shell completion code for the specified shell (bash or zsh).",
-	Long: `Output shell completion code for the specified shell (bash or zsh).`,
+	Long:  `Output shell completion code for the specified shell (bash or zsh).`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("completion called")
 	},
