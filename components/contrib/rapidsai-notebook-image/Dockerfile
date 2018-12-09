@@ -76,8 +76,11 @@ ADD --chown=jovyan:users \
 
 RUN chmod a+rx /usr/local/bin/*
 
-# prime the ldconfig cache for GKE
-RUN  ldconfig -n /usr/local/nvidia/lib64 && ldconfig
+# HACK: GKE late-binding of NVIDIA driver mount
+# seems to leave us with a stale cache for the CUDA libs;
+# cudf librmm.so can't find libcuda* from LD_LIBRARY_PATH
+RUN chown -R ${NB_USER}:users /etc
+RUN sed -i '/JUPYTERHUB_API_TOKEN/i\ldconfig' /usr/local/bin/start-notebook.sh
 
 # Configure container startup
 EXPOSE 8888
