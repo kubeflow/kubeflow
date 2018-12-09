@@ -2,7 +2,7 @@
 KFCTL=github.com/kubeflow/kubeflow/kfctl
 cobra init $KFCTL
 cd $GOPATH/src/$KFCTL
-cobra add add
+cobra add application
 cobra add apply
 cobra add completion
 cobra add delete

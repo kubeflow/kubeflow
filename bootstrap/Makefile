@@ -27,7 +27,15 @@ all: build
 auth:
 	gcloud auth configure-docker
 
-build-local: generate fmt vet
+# Run go fmt against code
+fmt:
+	go fmt ./cmd/...
+
+# Run go vet against code
+vet:
+	go vet ./cmd/...
+
+build-local: fmt vet
 	GO111MODULE=on go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 
 # To edit which registries to add to bootstrapper, edit config (eg. config/default.yaml)
@@ -48,6 +56,13 @@ push-latest: push
 	gcloud container images add-tag --quiet $(IMG):$(TAG) $(IMG):latest --verbosity=info
 	echo created $(IMG):latest
 
+run-local:
+	KUBERNETES_SERVICE_HOST=https://35.233.240.120 KUBERNETES_SERVICE_PORT=80 bin/bootstrapper --app-dir=$$HOME/apps --registries-config-file=$$PWD/local_registries.yaml --config=$$PWD/config/default.yaml --in-cluster=false
+
+run-local-docker:
+	docker run -d -it --name bootstrapper \
+	  --mount type=bind,source=$$HOME/kf_app,target=/home/kubeflow \
+	  --entrypoint /bin/bash $(IMG):$(TAG)
 debug:
 	@echo debugging $(IMG):$(TAG) using port $(PORT)
 	@./debug.sh $(IMG) $(TAG) $(PORT)

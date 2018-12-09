@@ -70,4 +70,4 @@ ENV GROUP_ID 1000
 ENV GROUP kubeflow
 
 WORKDIR /opt/kubeflow
-CMD ["/opt/kubeflow/start.sh"]
+CMD ["/opt/kubeflow/bootstrapper","--namespace=kubeflow","--apply"]

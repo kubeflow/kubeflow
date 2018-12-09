@@ -23,7 +23,7 @@ import (
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "A brief description of your command",
+	Short: "v20181206-4e7f4ed-188-gb208e8ae-e3b0c4",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 

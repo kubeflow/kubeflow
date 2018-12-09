@@ -35,7 +35,7 @@ var KfConfig *rest.Config
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "kfctl",
-	Short: "kubeflow client tool",
+	Short: "A client tool to create kubeflow applications",
 	Long:  `kubeflow client tool`,
 }
 

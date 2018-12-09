@@ -13,6 +13,8 @@ import (
 	"os/exec"
 	"time"
 
+	"bytes"
+	"github.com/cenkalti/backoff"
 	"github.com/go-kit/kit/endpoint"
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/ksonnet/ksonnet/pkg/actions"
@@ -24,7 +26,9 @@ import (
 	"github.com/spf13/afero"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
+	"google.golang.org/api/deploymentmanager/v2"
 	"google.golang.org/api/sourcerepo/v1"
+	"io/ioutil"
 	core_v1 "k8s.io/api/core/v1"
 	"k8s.io/api/rbac/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -33,12 +37,8 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-	"strings"
-	"google.golang.org/api/deploymentmanager/v2"
-	"io/ioutil"
 	"math/rand"
-	"github.com/cenkalti/backoff"
-	"bytes"
+	"strings"
 )
 
 // The name of the prototype for Jupyter.
@@ -261,7 +261,6 @@ var (
 		Help: "Number of successfully finished Kubeflow deployments",
 	})
 
-
 	// latencies
 	clusterDeploymentLatencies = prometheus.NewHistogram(prometheus.HistogramOpts{
 		Name:    "cluster_dep_duration_seconds",
@@ -386,11 +385,11 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 
 		if err != nil {
 			options := map[string]interface{}{
-				actions.OptionFs:       s.fs,
-				actions.OptionName:     "app",
-				actions.OptionEnvName:  envName,
-				actions.OptionAppRoot:  appDir,
-				actions.OptionServer:   config.Host,
+				actions.OptionFs:      s.fs,
+				actions.OptionName:    "app",
+				actions.OptionEnvName: envName,
+				actions.OptionAppRoot: appDir,
+				actions.OptionServer:  config.Host,
 				// TODO(jlewi): What is the proper version to use? It shouldn't be a version like v1.9.0-gke as that
 				// will create an error because ksonnet will be unable to fetch a swagger spec.
 				actions.OptionSpecFlag:              "version:v1.10.6",
@@ -540,7 +539,7 @@ func (s *ksServer) getRegistryUri(registry *RegistryConfig) (string, error) {
 			if err != nil {
 				return "", err
 			}
-			err = os.Rename(path.Join(registryPath, registry.Name+"-" + strings.Trim(registry.Version, "v")), versionPath)
+			err = os.Rename(path.Join(registryPath, registry.Name+"-"+strings.Trim(registry.Version, "v")), versionPath)
 			if err != nil {
 				log.Errorf("Error occrued during os.Rename. Error: %v", err)
 				return "", err
@@ -551,7 +550,7 @@ func (s *ksServer) getRegistryUri(registry *RegistryConfig) (string, error) {
 }
 
 func runCmd(rawcmd string) error {
-	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2 * time.Second), 10)
+	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2*time.Second), 10)
 	return backoff.Retry(func() error {
 		cmd := exec.Command("sh", "-c", rawcmd)
 		result, err := cmd.CombinedOutput()
@@ -774,7 +773,7 @@ func (s *ksServer) CloneRepoToLocal(project string, token string) (string, error
 		AccessToken: token,
 	})
 	sourcerepoService, err := sourcerepo.New(oauth2.NewClient(context.Background(), ts))
-	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2 * time.Second), 10)
+	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2*time.Second), 10)
 	err = backoff.Retry(func() error {
 		_, err = sourcerepoService.Projects.Repos.Get(fmt.Sprintf("projects/%s/repos/%s", project, GetRepoName(project))).Do()
 		if err != nil {
@@ -854,7 +853,7 @@ func UpdateCloudShellConfig(repoDir string, project string, appName string, kfVe
 	if err := os.MkdirAll(confDir, os.ModePerm); err != nil {
 		return err
 	}
-	for _, filename := range([]string{"conn.sh", "conn.md"}) {
+	for _, filename := range []string{"conn.sh", "conn.md"} {
 		data, err := ioutil.ReadFile(path.Join(CloudShellTemplatePath, filename))
 		if err != nil {
 			return err
@@ -888,7 +887,7 @@ func (s *ksServer) SaveAppToRepo(project string, email string, repoDir string) e
 			return err
 		}
 	}
-	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2 * time.Second), 10)
+	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2*time.Second), 10)
 	return backoff.Retry(func() error {
 		pushcmd := exec.Command("sh", "-c", "git push origin master")
 		result, err := pushcmd.CombinedOutput()
@@ -987,7 +986,7 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 		actions.OptionGcTag:          "gc-tag",
 		actions.OptionSkipGc:         true,
 	}
-	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(5 * time.Second), 6)
+	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(5*time.Second), 6)
 	doneApply := make(map[string]bool)
 	err = backoff.Retry(func() error {
 		for _, comp := range req.Components {
@@ -1006,7 +1005,7 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 		if len(doneApply) == len(req.Components) {
 			return nil
 		}
-		return fmt.Errorf("%v failed components in last try", len(req.Components) - len(doneApply))
+		return fmt.Errorf("%v failed components in last try", len(req.Components)-len(doneApply))
 	}, bo)
 	if err != nil {
 		log.Errorf("Components apply failed; Error: %v", err)

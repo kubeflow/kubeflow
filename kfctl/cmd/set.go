@@ -20,26 +20,26 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// generateCmd represents the generate command
-var generateCmd = &cobra.Command{
-	Use:   "generate",
-	Short: "Generate a kubeflow application using <name>.yaml.",
-	Long: `Generate a kubeflow application using <name>.yaml.`,
+// setCmd represents the set command
+var setCmd = &cobra.Command{
+	Use:   "set",
+	Short: "Apply one or more parameters to a component within a module in a kubeflow application.",
+	Long: `Apply one or more parameters to a component within a module in a kubeflow application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("generate called")
+		fmt.Println("set called")
 	},
 }
 
 func init() {
-	appCmd.AddCommand(generateCmd)
+	rootCmd.AddCommand(setCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// generateCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// setCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// generateCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// setCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

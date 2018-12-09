@@ -1,6 +1,7 @@
 #
 # kfctl client
 #
+TAG ?= $(eval TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6))$(TAG)
 
 all: build
 
@@ -19,6 +20,9 @@ create:
 
 fmt:
 	go fmt ./...
+
+version:
+	@echo $(TAG)
 
 vet:
 	go vet ./...
