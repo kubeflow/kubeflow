@@ -31,7 +31,6 @@
         ports: [
           {
             name: "api",
-            nodePort: 30678,
             port: 6789,
             protocol: "TCP",
           },
