@@ -47,8 +47,8 @@ local tfDeployment = base.tfDeployment +
                                    valueFrom: { secretKeyRef: { name: params.s3SecretName, key: params.s3SecretSecretaccesskeyKeyName } },
                                  },
                                  { name: "AWS_REGION", value: params.s3AwsRegion },
-                                 { name: "S3_USE_HTTPS", value: params.s3UseHttps },
-                                 { name: "S3_VERIFY_SSL", value: params.s3VerifySsl },
+                                 { name: "S3_USE_HTTPS", value: std.toString(params.s3UseHttps) },
+                                 { name: "S3_VERIFY_SSL", value: std.toString(params.s3VerifySsl) },
                                  { name: "S3_ENDPOINT", value: params.s3Endpoint },
                                ]
                              ) else [],
