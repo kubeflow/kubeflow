@@ -102,7 +102,7 @@ def setup_kubeflow_ks_app(dir, namespace, github_token, api_client):
     ["ks", "registry", "add", "kubeflow", kubeflow_registry], cwd=app_dir)
 
   # Install required packages
-  packages = ["kubeflow/core", "kubeflow/jupyter", "kubeflow/tf-serving", "kubeflow/tf-job", "kubeflow/tf-training", "kubeflow/pytorch-job", "kubeflow/argo"]
+  packages = ["kubeflow/core", "kubeflow/gcp", "kubeflow/jupyter", "kubeflow/tf-serving", "kubeflow/tf-job", "kubeflow/tf-training", "kubeflow/pytorch-job", "kubeflow/argo"]
 
   # Instead of installing packages we edit the app.yaml file directly
   #for p in packages:

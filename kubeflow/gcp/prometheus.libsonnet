@@ -1,6 +1,5 @@
 {
   local k = import "k.libsonnet",
-  local util = import "kubeflow/core/util.libsonnet",
   new(_env, _params):: {
     local params = _params + _env,
 
@@ -217,6 +216,6 @@
       self.deployment,
     ],
 
-    list(obj=self.all):: util.list(obj),
+    list(obj=self.all):: k.core.v1.list.new(obj,),
   },
 }
