@@ -24,8 +24,8 @@ import (
 // initCmd represents the init command
 var initCmd = &cobra.Command{
 	Use:   "init",
-	Short: "Create a kubeflow application skeleton of the form <name>.yaml.",
-	Long:  `Create a kubeflow application skeleton of the form <name>.yaml.`,
+	Short: "Initialize a kubeflow application.",
+	Long:  `Initialize a kubeflow application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("init called")
 		kfclient, err := kfapi.NewForConfig(KfConfig)

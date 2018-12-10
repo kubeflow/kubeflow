@@ -3,6 +3,7 @@ module github.com/kubeflow/kubeflow/kfctl
 require (
 	cloud.google.com/go v0.34.0 // indirect
 	github.com/gobuffalo/buffalo-plugins v1.8.3 // indirect
+	github.com/gobuffalo/flect v0.0.0-20181210151238-24a2b68e0316 // indirect
 	github.com/gobuffalo/genny v0.0.0-20181207193730-587570ab2cf7 // indirect
 	github.com/google/uuid v1.1.0 // indirect
 	github.com/kubeflow/kubeflow/controller v0.0.0-20181203081345-97cc4346b221
@@ -16,8 +17,8 @@ require (
 	github.com/ugorji/go/codec v0.0.0-20181209151446-772ced7fd4c2 // indirect
 	golang.org/x/net v0.0.0-20181207154023-610586996380 // indirect
 	golang.org/x/oauth2 v0.0.0-20181203162652-d668ce993890 // indirect
-	golang.org/x/sys v0.0.0-20181208175041-ad97f365e150 // indirect
-	golang.org/x/tools v0.0.0-20181207222222-4c874b978acb // indirect
+	golang.org/x/sys v0.0.0-20181210030007-2a47403f2ae5 // indirect
+	golang.org/x/tools v0.0.0-20181210202511-1d424dbce8dd // indirect
 	gopkg.in/resty.v1 v1.10.3
 	k8s.io/api v0.0.0-20181130031204-d04500c8c3dd // indirect
 	k8s.io/apiextensions-apiserver v0.0.0-20181206111255-bb0a52a3f19d // indirect

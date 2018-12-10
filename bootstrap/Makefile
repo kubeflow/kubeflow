@@ -63,7 +63,7 @@ run-local-docker:
 	docker run -d -it --name bootstrapper \
 	  --mount type=bind,source=$$HOME/kf_app,target=/home/kubeflow \
 	  --entrypoint /bin/bash $(IMG):$(TAG)
-debug:
+debug: push
 	@echo debugging $(IMG):$(TAG) using port $(PORT)
 	@./debug.sh $(IMG) $(TAG) $(PORT)
 
