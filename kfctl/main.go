@@ -14,8 +14,16 @@
 
 package main
 
-import "github.com/kubeflow/kubeflow/kfctl/cmd"
+import (
+	"fmt"
+	"github.com/kubeflow/kubeflow/kfctl/cmd"
+	"time"
+)
 
 func main() {
+	time.Sleep(10 * time.Second)
+
+	fmt.Printf("Calling cmd.Execute")
+
 	cmd.Execute()
 }

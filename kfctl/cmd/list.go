@@ -29,8 +29,8 @@ var moduleCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		resp, err := resty.R().
 			SetHeader("Accept", "application/json").
-			SetAuthToken("BC594900518B4F7EAC75BD37F019E08FBC594900518B4F7EAC75BD37F019E08F").
-			Get("/show_product")
+			SetAuthToken("").
+			Get("/list")
 		fmt.Printf("\nError: %v", err)
 		fmt.Printf("\nResponse Status Code: %v", resp.StatusCode())
 	},

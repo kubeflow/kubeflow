@@ -24,7 +24,7 @@ import (
 var generateCmd = &cobra.Command{
 	Use:   "generate",
 	Short: "Generate a kubeflow application using <name>.yaml.",
-	Long: `Generate a kubeflow application using <name>.yaml.`,
+	Long:  `Generate a kubeflow application using <name>.yaml.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("generate called")
 	},
