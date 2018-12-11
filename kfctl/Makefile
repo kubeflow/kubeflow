@@ -31,10 +31,10 @@ update-version:
 vet:
 	go vet ./...
 
-#update:
-#	hack/goget -p 2016 github.com/kubeflow/kubeflow/controller/pkg/client/kfapi
+update:
+	hack/goget -b bootstrap-refactor github.com/kkasravi/kubeflow/bootstrap/cmd
 
-build: fmt vet update-version
+build: fmt vet update update-version
 	GO111MODULE=on go build -gcflags 'all=-N -l' -a -o bin/kfctl main.go
 
 debug: build
