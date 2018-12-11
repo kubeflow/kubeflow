@@ -137,7 +137,7 @@ function setDefaultFormValues() {
             $('#ws_type').val(defaultWorkspace.type.value);
           }
           // Make the Workspace Volume Type readonly, if specified
-          if ('readOnly' in defaultWorkspace.type) {
+          if ('readOnly' in defaultWorkspace.type || 'readOnly' in formDefaults.workspaceVolume) {
             $('#ws_type').attr({
               'readonly': defaultWorkspace.type.readOnly || defaultWorkspaceReadOnly,
               'immutable': defaultWorkspace.type.readOnly || defaultWorkspaceReadOnly
@@ -158,7 +158,7 @@ function setDefaultFormValues() {
             $('#ws_name').val(defaultWorkspace.name.value).trigger('focusout');
           }
           // Make the Workspace Volume Name readonly, if specified
-          if ('readOnly' in defaultWorkspace.name) {
+          if ('readOnly' in defaultWorkspace.name || 'readOnly' in formDefaults.workspaceVolume) {
             $('#ws_name').attr({
               'readonly': defaultWorkspace.name.readOnly || defaultWorkspaceReadOnly,
               'immutable': defaultWorkspace.name.readOnly || defaultWorkspaceReadOnly
@@ -173,7 +173,7 @@ function setDefaultFormValues() {
             $('#ws_size').val(defaultWorkspace.size.value);
           }
           // Make the Workspace Volume Size readonly, if specified
-          if ('readOnly' in defaultWorkspace.size) {
+          if ('readOnly' in defaultWorkspace.size || 'readOnly' in formDefaults.workspaceVolume) {
             $('#ws_size').attr({
               'readonly': defaultWorkspace.size.readOnly || defaultWorkspaceReadOnly,
               'immutable': defaultWorkspace.size.readOnly || defaultWorkspaceReadOnly
@@ -188,7 +188,7 @@ function setDefaultFormValues() {
             $('#ws_mount_path').val(defaultWorkspace.mountPath.value);
           }
           // Make the Workspace Volume MountPath readonly, if specified
-          if ('readOnly' in defaultWorkspace.mountPath) {
+          if ('readOnly' in defaultWorkspace.mountPath || 'readOnly' in formDefaults.workspaceVolume) {
             $('#ws_mount_path').attr({
               'readonly': defaultWorkspace.mountPath.readOnly || defaultWorkspaceReadOnly,
               'immutable': defaultWorkspace.mountPath.readOnly || defaultWorkspaceReadOnly
@@ -203,7 +203,7 @@ function setDefaultFormValues() {
             $('#ws_access_modes').val(defaultWorkspace.accessModes.value);
           }
           // Make the Workspace Volume Access Modes readonly, if specified
-          if ('readOnly' in defaultWorkspace.accessModes) {
+          if ('readOnly' in defaultWorkspace.accessModes || 'readOnly' in formDefaults.workspaceVolume) {
             $('#ws_access_modes').attr({
               'readonly': defaultWorkspace.accessModes.readOnly || defaultWorkspaceReadOnly,
               'immutable': defaultWorkspace.accessModes.readOnly || defaultWorkspaceReadOnly
@@ -220,9 +220,13 @@ function setDefaultFormValues() {
   }
 
   if ('dataVolumes' in formDefaults) {
+      var dataVolumesReadOnly = formDefaults.dataVolumes.readOnly
       // Disable Add Volume button, if specified
       if ('readOnly' in formDefaults.dataVolumes) {
-        $('#add_volume').attr('readonly', formDefaults.dataVolumes.readOnly);
+        $('#add_volume').attr({
+          'disabled': dataVolumesReadOnly,
+          'immutable': dataVolumesReadOnly
+        });
       }
 
       // Set default Data Volumes - Disable if specified
@@ -243,13 +247,13 @@ function setDefaultFormValues() {
           if ('value' in vol.type) {
             $('#vol_type' + counter).val(vol.type.value).trigger('change');
           }
-          if ('readOnly' in vol.type) {
+          if ('readOnly' in vol.type || 'readOnly' in formDefaults.dataVolumes) {
             $('#vol_type' + counter).attr({
-              'readonly': vol.type.readOnly,
-              'immutable': vol.type.readOnly
+              'readonly': vol.type.readOnly || dataVolumesReadOnly,
+              'immutable': vol.type.readOnly || dataVolumesReadOnly
             });
-            if ($('#vol_type').attr('readonly')) {
-              $('#vol_type').on('mousedown', function(e) {
+            if ($('#vol_type' + counter).attr('readonly')) {
+              $('#vol_type' + counter).on('mousedown', function(e) {
                 e.preventDefault(); this.blur(); window.focus();
               });
             }
@@ -261,10 +265,10 @@ function setDefaultFormValues() {
           if ('value' in vol.name) {
             $('#vol_name' + counter).val(vol.name.value).trigger('focusout');
           }
-          if ('readOnly' in vol.name) {
+          if ('readOnly' in vol.name || 'readOnly' in formDefaults.dataVolumes) {
             $('#vol_name' + counter).attr({
-              'readonly': vol.name.readOnly,
-              'immutable': vol.name.readOnly
+              'readonly': vol.name.readOnly || dataVolumesReadOnly,
+              'immutable': vol.name.readOnly || dataVolumesReadOnly
             });
           }
         }
@@ -274,10 +278,10 @@ function setDefaultFormValues() {
           if ('value' in vol.size) {
             $('#vol_size' + counter).val(vol.size.value);
           }
-          if ('readOnly' in vol.size) {
+          if ('readOnly' in vol.size || 'readOnly' in formDefaults.dataVolumes) {
             $('#vol_size' + counter).attr({
-              'readonly': vol.size.readOnly,
-              'immutable': vol.size.readOnly
+              'readonly': vol.size.readOnly || dataVolumesReadOnly,
+              'immutable': vol.size.readOnly || dataVolumesReadOnly
             });
           }
         }
@@ -287,10 +291,10 @@ function setDefaultFormValues() {
           if ('value' in vol.mountPath) {
             $('#vol_mount_path' + counter).val(vol.mountPath.value);
           }
-          if ('readOnly' in vol.mountPath) {
+          if ('readOnly' in vol.mountPath || 'readOnly' in formDefaults.dataVolumes) {
             $('#vol_mount_path' + counter).attr({
-              'readonly': vol.mountPath.readOnly,
-              'immutable': vol.mountPath.readOnly
+              'readonly': vol.mountPath.readOnly || dataVolumesReadOnly,
+              'immutable': vol.mountPath.readOnly || dataVolumesReadOnly
             });
           }
         }
@@ -300,13 +304,13 @@ function setDefaultFormValues() {
           if ('value' in vol.accessModes) {
             $('#vol_access_modes' + counter).val(vol.accessModes.value);
           }
-          if ('readOnly' in vol.accessModes) {
+          if ('readOnly' in vol.accessModes || 'readOnly' in formDefaults.dataVolumes) {
             $('#vol_access_modes' + counter).attr({
-              'readonly': vol.accessModes.readOnly,
-              'immutable': vol.accessModes.readOnly
+              'readonly': vol.accessModes.readOnly || dataVolumesReadOnly,
+              'immutable': vol.accessModes.readOnly || dataVolumesReadOnly
             });
-            if ($('#vol_access_modes').attr('readonly')) {
-              $('#vol_access_modes').on('mousedown', function(e) {
+            if ($('#vol_access_modes' + counter).attr('readonly')) {
+              $('#vol_access_modes' + counter).on('mousedown', function(e) {
                 e.preventDefault(); this.blur(); window.focus();
               });
             }
@@ -314,10 +318,10 @@ function setDefaultFormValues() {
         }
 
         // Disable Delete button, if specified
-        if ('readOnly' in defaultDataVolumes[i]) {
+        if ('readOnly' in formDefaults.dataVolumes) {
           $('#vol_delete_button' + counter).attr({
-            'readonly': defaultDataVolumes[i].readOnly,
-            'immutable': defaultDataVolumes[i].readOnly
+            'disabled': formDefaults.dataVolumes.readOnly,
+            'immutable': formDefaults.dataVolumes.readOnly
           });
         }
       }
