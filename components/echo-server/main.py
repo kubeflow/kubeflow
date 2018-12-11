@@ -26,7 +26,6 @@ from flask import Flask, jsonify, request
 from flask_cors import cross_origin
 from six.moves import http_client
 
-
 app = Flask(__name__)
 
 
@@ -44,10 +43,12 @@ def echo():
     message = request.get_json().get('message', '')
     return jsonify({'message': message})
 
+
 @app.route('/')
 @app.route('/headers')
 def headers():
     return jsonify({'headers': request.headers.to_list()})
+
 
 def auth_info():
     """Retrieves the authenication information from Google Cloud Endpoints."""

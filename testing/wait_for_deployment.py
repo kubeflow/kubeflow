@@ -16,9 +16,11 @@
 
 """Wait for kubeflow deployment.
 
-Right now, it only checks for the presence of tfjobs and pytorchjobs crd. More things can be added incrementally.
+Right now, it only checks for the presence of tfjobs and pytorchjobs crd. More
+  things can be added incrementally.
 
-python -m testing.wait_for_deployment --cluster=kubeflow-testing --project=kubeflow-ci --zone=us-east1-d --timeout=3
+python -m testing.wait_for_deployment --cluster=kubeflow-testing \
+  --project=kubeflow-ci --zone=us-east1-d --timeout=3
 
 
 TODO(jlewi): Waiting for the CRD's to be created probably isn't that useful.
@@ -32,47 +34,51 @@ from __future__ import print_function
 import argparse
 import datetime
 import logging
-import os
 import subprocess
 import time
-
 from kubeflow.testing import test_helper, util
 
 
 def parse_args():
-  parser = argparse.ArgumentParser()
-  parser.add_argument(
-    "--timeout",
-    default=5,
-    type=int,
-    help="Timeout in minutes")
-  args, _ = parser.parse_known_args()
-  return args
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--timeout",
+        default=5,
+        type=int,
+        help="Timeout in minutes")
+    args, _ = parser.parse_known_args()
+    return args
+
 
 def wait_for_resource(resource, end_time):
-  while True:
-    if datetime.datetime.now() > end_time:
-      raise RuntimeError("Timed out waiting for " + resource)
-    try:
-      if 'error' not in util.run(["kubectl", "get", resource]).lower():
-        logging.info("Found " + resource)
-        break
-    except subprocess.CalledProcessError as e:
-      logging.info("Could not find {}. Sleeping for 10 seconds..".format(resource))
-      time.sleep(10)
+    while True:
+        if datetime.datetime.now() > end_time:
+            raise RuntimeError("Timed out waiting for " + resource)
+        try:
+            if 'error' not in util.run(["kubectl", "get", resource]).lower():
+                logging.info("Found " + resource)
+                break
+        except subprocess.CalledProcessError as e:  # noqa: F841
+            logging.info(
+                "Could not find {}. Sleeping for 10 seconds..".format(resource)
+            )
+            time.sleep(10)
 
-def test_wait_for_deployment(test_case): # pylint: disable=redefined-outer-name
-  args = parse_args()
-  util.maybe_activate_service_account()
-  util.load_kube_config()
-  end_time =  datetime.datetime.now() + datetime.timedelta(0, args.timeout*60)
-  wait_for_resource("crd/tfjobs.kubeflow.org", end_time)
-  wait_for_resource("crd/pytorchjobs.kubeflow.org", end_time)
-  logging.info("Found all resources successfully")
+
+def test_wait_for_deployment(test_case):  # noqa: E501 - pylint: disable=redefined-outer-name
+    args = parse_args()
+    util.maybe_activate_service_account()
+    util.load_kube_config()
+    end_time = datetime.datetime.now() + datetime.timedelta(0,
+                                                            args.timeout * 60)
+    wait_for_resource("crd/tfjobs.kubeflow.org", end_time)
+    wait_for_resource("crd/pytorchjobs.kubeflow.org", end_time)
+    logging.info("Found all resources successfully")
+
 
 if __name__ == "__main__":
-  test_case = test_helper.TestCase(
-    name="test_wait_for_deployment", test_func=test_wait_for_deployment)
-  test_suite = test_helper.init(
-    name="", test_cases=[test_case])
-  test_suite.run()
+    test_case = test_helper.TestCase(
+        name="test_wait_for_deployment", test_func=test_wait_for_deployment)
+    test_suite = test_helper.init(
+        name="", test_cases=[test_case])
+    test_suite.run()

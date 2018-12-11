@@ -14,13 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from jupyter_core.paths import jupyter_data_dir
-import subprocess
-import os
 import errno
+import os
 import stat
+import subprocess
+from jupyter_core.paths import jupyter_data_dir
 
-c = get_config()
+c = get_config()  # noqa: E501
 c.NotebookApp.ip = '*'
 c.NotebookApp.port = 8888
 c.NotebookApp.open_browser = False
@@ -42,7 +42,7 @@ if 'GEN_CERT' in os.environ:
                            '-newkey', 'rsa:2048',
                            '-days', '365',
                            '-nodes', '-x509',
-                           '-subj', '/C=XX/ST=XX/L=XX/O=generated/CN=generated',
+                           '-subj', '/C=XX/ST=XX/L=XX/O=generated/CN=generated',  # noqa: E501
                            '-keyout', pem_file,
                            '-out', pem_file])
     # Restrict access to the file

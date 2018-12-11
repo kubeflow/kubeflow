@@ -1,3 +1,5 @@
+# flake8: noqa
+
 """Configuration file for JupyterHub.
 
 Kubeflow uses this file as the configuration file for JupyterHub. It contains
@@ -70,6 +72,7 @@ if access_local_fs == 'true':
             }
         }
         return pod
+
     c.KubeSpawner.modify_pod_hook = modify_pod_hook
 
 ###################################################
@@ -113,10 +116,10 @@ if os.environ.get('DEFAULT_JUPYTERLAB').lower() == 'true':
 gcp_secret_name = os.environ.get('GCP_SECRET_NAME')
 if gcp_secret_name:
     volumes.append({
-      'name': gcp_secret_name,
-      'secret': {
-        'secretName': gcp_secret_name,
-      }
+        'name': gcp_secret_name,
+        'secret': {
+            'secretName': gcp_secret_name,
+        }
     })
     volume_mounts.append({
         'name': gcp_secret_name,

@@ -1,8 +1,8 @@
 import os
-from pathlib import Path
-
 from kubernetes import client, config
 from kubernetes.config.config_exception import ConfigException
+from pathlib import Path
+
 from util import log, api_retry, long_poll, s3_copy
 
 SIG_DIR = '.openmpi-controller'
@@ -15,13 +15,15 @@ NVIDIA_VERSION_PATH = '/proc/driver/nvidia/version'
 
 class Controller:
     """
-    Controller is a sidecar container that extends the "main" container (openmpi-job).
-    It communicates with the main container using a shared volume mounted at the working directory.
-    It communicates with the master pod using kubernetes API.
+    Controller is a sidecar container that extends the "main" container
+    (openmpi-job). It communicates with the main container using a shared
+    volume mounted at the working directory. It communicates with the master
+    pod using kubernetes API.
     """
 
     def __init__(self, namespace, master, num_gpus, timeout_secs,
-                 download_data_from, download_data_to, upload_data_from, upload_data_to):
+                 download_data_from, download_data_to, upload_data_from,
+                 upload_data_to):
         self.namespace = namespace
         self.master = master
         self.num_gpus = num_gpus
@@ -58,7 +60,8 @@ class Controller:
         self._upload_data()
 
     def _validate_args(self):
-        if (self.download_data_from and self.download_data_to) or (self.upload_data_from and self.upload_data_to):
+        if (self.download_data_from and self.download_data_to) or (
+                self.upload_data_from and self.upload_data_to):
             if not os.environ.get('AWS_ACCESS_KEY_ID'):
                 raise ValueError('AWS_ACCESS_KEY_ID not set')
 
@@ -67,7 +70,8 @@ class Controller:
 
     def _wait_nvidia_driver_present(self):
         log('waiting for nvidia driver to be installed')
-        long_poll(self._poll_nvidia_driver_version, timeout_secs=self.timeout_secs)
+        long_poll(self._poll_nvidia_driver_version,
+                  timeout_secs=self.timeout_secs)
 
     def _wait_master_terminated(self):
         log('waiting for master to terminate')
@@ -75,7 +79,7 @@ class Controller:
 
     def _poll_nvidia_driver_version(self):
         # Driver installer is expected to be installed externally.
-        # See https://cloud.google.com/kubernetes-engine/docs/concepts/gpus#installing_drivers for GCP instructions.
+        # See https://cloud.google.com/kubernetes-engine/docs/concepts/gpus#installing_drivers for GCP instructions.  # noqa: E501
         version_path = Path(NVIDIA_VERSION_PATH)
         if not version_path.exists():
             log(f'nvidia driver not found')
@@ -99,11 +103,11 @@ class Controller:
     def _download_data(self):
         if self.download_data_from and self.download_data_to:
             Path(self.download_data_to).mkdir(exist_ok=True)
-            log(f'downloading data from {self.download_data_from} to {self.download_data_to}')
+            log(f'downloading data from {self.download_data_from} to {self.download_data_to}')  # noqa: E501
             s3_copy(self.download_data_from, self.download_data_to)
 
     def _upload_data(self):
         if self.upload_data_from and self.upload_data_to:
             if Path(self.upload_data_from).exists():
-                log(f'uploading data from {self.upload_data_from} to {self.upload_data_to}')
+                log(f'uploading data from {self.upload_data_from} to {self.upload_data_to}')  # noqa: E501
                 s3_copy(self.upload_data_from, self.upload_data_to)

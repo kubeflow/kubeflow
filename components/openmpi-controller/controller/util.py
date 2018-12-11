@@ -1,7 +1,6 @@
-from subprocess import Popen, PIPE
-
 from kubernetes.client.rest import ApiException
 from retrying import retry
+from subprocess import Popen, PIPE
 
 RETRY_MAX_ATTEMPTS = 5
 RETRY_BACKOFF_MS = 1000
@@ -32,7 +31,8 @@ def long_poll(poll_fn, timeout_secs=None):
 
 
 def exec_command(command):
-    process = Popen(command, stdin=None, stdout=PIPE, stderr=PIPE, shell=True, close_fds=True)
+    process = Popen(command, stdin=None, stdout=PIPE, stderr=PIPE, shell=True,
+                    close_fds=True)
     stdout, stderr = process.communicate()
     return process.returncode, stdout, stderr
 
@@ -41,6 +41,7 @@ def exec_command(command):
        wait_exponential_multiplier=RETRY_BACKOFF_MS,
        retry_on_exception=lambda e: isinstance(e, S3Exception))
 def s3_copy(copy_from, copy_to):
-    exit_code, stdout, stderr = exec_command(f'aws s3 cp --recursive "{copy_from}" "{copy_to}"')
+    exit_code, stdout, stderr = exec_command(
+        f'aws s3 cp --recursive "{copy_from}" "{copy_to}"')
     if exit_code != 0:
-        raise S3Exception(f's3 copy failed with exit code {exit_code}:\nstdout:{stdout}\nstderr:{stderr}')
+        raise S3Exception(f's3 copy failed with exit code {exit_code}:\nstdout:{stdout}\nstderr:{stderr}')  # noqa: E501

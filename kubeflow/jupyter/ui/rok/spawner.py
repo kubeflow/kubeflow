@@ -1,9 +1,9 @@
 import base64
-from tornado import gen
-from jinja2 import FileSystemLoader, Environment
-from kubernetes.client.rest import ApiException
-from kubernetes.client.models import V1DeleteOptions
 from importlib.util import spec_from_file_location, module_from_spec
+from jinja2 import FileSystemLoader, Environment
+from kubernetes.client.models import V1DeleteOptions
+from kubernetes.client.rest import ApiException
+from tornado import gen
 
 # Import the default KubeFormSpawner as a Python module
 # Our custom spawner extends the default one, but shares the same class name
@@ -79,27 +79,27 @@ class KubeFormSpawner(spawner.KubeFormSpawner):
 
                 # Get the default values from the YAML configuration files
                 if ('type' in default_ws_volume and
-                   'value' in default_ws_volume['type']):
-                        ws_volume['type'] = default_ws_volume['type']['value']
+                        'value' in default_ws_volume['type']):
+                    ws_volume['type'] = default_ws_volume['type']['value']
 
                 if ('rokURL' in default_ws_volume and
-                   'value' in default_ws_volume['rokURL']):
-                        ws_volume['rokURL'] = (
-                            default_ws_volume['rokURL']['value'])
+                        'value' in default_ws_volume['rokURL']):
+                    ws_volume['rokURL'] = (
+                        default_ws_volume['rokURL']['value'])
 
                 if ('name' in default_ws_volume and
-                   'value' in default_ws_volume['name']):
-                        ws_volume['name'] = default_ws_volume['name']['value']
+                        'value' in default_ws_volume['name']):
+                    ws_volume['name'] = default_ws_volume['name']['value']
 
                 if ('size' in default_ws_volume and
-                   'value' in default_ws_volume['size']):
-                        ws_volume['size'] = (
-                            '%sGi' % default_ws_volume['size']['value'])
+                        'value' in default_ws_volume['size']):
+                    ws_volume['size'] = (
+                        '%sGi' % default_ws_volume['size']['value'])
 
                 if ('mountPath' in default_ws_volume and
-                   'value' in default_ws_volume['mountPath']):
-                        ws_volume['mountPath'] = (
-                            default_ws_volume['mountPath']['value'])
+                        'value' in default_ws_volume['mountPath']):
+                    ws_volume['mountPath'] = (
+                        default_ws_volume['mountPath']['value'])
 
         # Get the Workspace Volume values from the form, if user specified them
         if 'ws_type' in formdata and formdata['ws_type'][0]:

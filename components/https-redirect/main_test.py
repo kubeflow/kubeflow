@@ -13,51 +13,56 @@
 # limitations under the License.
 
 import unittest
+
 import main
 
+
 class TestRedirect(unittest.TestCase):
-  def test_non_empty_path(self):
-    main.app.testing = True
-    client = main.app.test_client()
+    def test_non_empty_path(self):
+        main.app.testing = True
+        client = main.app.test_client()
 
-    endpoint = '/hello/world'
-    r = client.get(
-          endpoint,
+        endpoint = '/hello/world'
+        r = client.get(
+            endpoint,
             headers={
-              'Content-Type': 'application/json'
+                'Content-Type': 'application/json'
             })
 
-    self.assertEqual(302, r.status_code)
-    self.assertEqual(r.data,
-                     '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">\n<title>Redirecting...</title>\n<h1>Redirecting...</h1>\n<p>You should be redirected automatically to target URL: <a href="https://localhost/hello/world">https://localhost/hello/world</a>.  If not click the link.')
+        self.assertEqual(302, r.status_code)
+        self.assertEqual(r.data,
+                         '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">\n<title>Redirecting...</title>\n<h1>Redirecting...</h1>\n<p>You should be redirected automatically to target URL: <a href="https://localhost/hello/world">https://localhost/hello/world</a>.  If not click the link.'  # noqa: E501
+                         )
 
-  def test_empty_path(self):
-    main.app.testing = True
-    client = main.app.test_client()
+    def test_empty_path(self):
+        main.app.testing = True
+        client = main.app.test_client()
 
-    endpoint = '/'
-    r = client.get(
-          endpoint,
+        endpoint = '/'
+        r = client.get(
+            endpoint,
             headers={
-              'Content-Type': 'application/json'
+                'Content-Type': 'application/json'
             })
 
-    self.assertEqual(200, r.status_code)
-    self.assertEqual(r.data,
-                     '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">\n<title>Redirecting...</title>\n<h1>Redirecting...</h1>\n<p>You should be redirected automatically to target URL: <a href="https://localhost/">https://localhost/</a>.  If not click the link.')
+        self.assertEqual(200, r.status_code)
+        self.assertEqual(r.data,
+                         '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">\n<title>Redirecting...</title>\n<h1>Redirecting...</h1>\n<p>You should be redirected automatically to target URL: <a href="https://localhost/">https://localhost/</a>.  If not click the link.'  # noqa: E501
+                         )
 
-  def test_health_check(self):
-    main.app.testing = True
-    client = main.app.test_client()
+    def test_health_check(self):
+        main.app.testing = True
+        client = main.app.test_client()
 
-    endpoint = '/healthz'
-    r = client.get(
-          endpoint,
+        endpoint = '/healthz'
+        r = client.get(
+            endpoint,
             headers={
-              'Content-Type': 'application/json'
+                'Content-Type': 'application/json'
             })
 
-    self.assertEqual(200, r.status_code)
+        self.assertEqual(200, r.status_code)
+
 
 if __name__ == "__main__":
-  unittest.main()
+    unittest.main()

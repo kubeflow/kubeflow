@@ -17,20 +17,20 @@
 from __future__ import print_function
 
 import argparse
-import glob
-import json
-import mmap
+import copy
 import os
 import re
 import sys
-import copy
 
 parser = argparse.ArgumentParser()
-parser.add_argument("filenames", help="list of files to check, all files if unspecified", nargs='*')
+parser.add_argument("filenames",
+                    help="list of files to check, all files if unspecified",
+                    nargs='*')
 args = parser.parse_args()
 
 rootdir = os.path.dirname(__file__) + "/../../"
 rootdir = os.path.abspath(rootdir)
+
 
 def get_refs():
     ref_file = open(os.path.join(rootdir, "build/boilerplate/boilerplate.txt"))
@@ -52,10 +52,11 @@ def get_refs():
             refs[extension][i] = p + refs[extension][i]
     return refs
 
+
 def file_passes(filename, refs, regexs):
     try:
         f = open(filename, 'r')
-    except:
+    except:  # noqa: E722
         return False
 
     data = f.read()
@@ -101,10 +102,15 @@ def file_passes(filename, refs, regexs):
 
     return True
 
+
 def file_extension(filename):
     return os.path.splitext(filename)[1].split(".")[-1].lower()
 
-skipped_dirs = ['Godeps', 'vendor', 'third_party', '_gopath', '_output', '.git']
+
+skipped_dirs = ['Godeps', 'vendor', 'third_party', '_gopath', '_output',
+                '.git']
+
+
 def normalize_files(files):
     newfiles = []
     for pathname in files:
@@ -115,6 +121,7 @@ def normalize_files(files):
         if not os.path.isabs(pathname):
             newfiles[i] = os.path.join(rootdir, pathname)
     return newfiles
+
 
 def get_files(extensions):
     files = []
@@ -142,17 +149,21 @@ def get_files(extensions):
             outfiles.append(pathname)
     return outfiles
 
+
 def get_regexs():
     regexs = {}
-    # Search for "YEAR" which exists in the boilerplate, but shouldn't in the real thing
-    regexs["year"] = re.compile( 'YEAR' )
+    # Search for "YEAR" which exists in the boilerplate, but shouldn't in the
+    # real thing
+    regexs["year"] = re.compile('YEAR')
     # dates can be 2014, 2015 or 2016, company holder names can be anything
-    regexs["date"] = re.compile( '(2014|2015|2016|2017|2018|2019|2020)' )
+    regexs["date"] = re.compile('(2014|2015|2016|2017|2018|2019|2020)')
     # strip // +build \n\n build constraints
-    regexs["go_build_constraints"] = re.compile(r"^(// \+build.*\n)+\n", re.MULTILINE)
+    regexs["go_build_constraints"] = re.compile(r"^(// \+build.*\n)+\n",
+                                                re.MULTILINE)
     # strip #!.* from shell scripts
     regexs["shebang"] = re.compile(r"^(#!.*\n)\n*", re.MULTILINE)
     return regexs
+
 
 def main():
     regexs = get_regexs()
@@ -163,5 +174,6 @@ def main():
         if not file_passes(filename, refs, regexs):
             print(filename, file=sys.stdout)
 
+
 if __name__ == "__main__":
-  sys.exit(main())
+    sys.exit(main())

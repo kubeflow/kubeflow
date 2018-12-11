@@ -1,14 +1,13 @@
-import json
-import yaml
-import string
 import escapism
-from tornado import gen
-from traitlets import Dict
+import json
+import string
+import yaml
 from jinja2 import FileSystemLoader, Environment
-
+from kubernetes.client.rest import ApiException
 from kubespawner.objects import make_pvc
 from kubespawner.spawner import KubeSpawner
-from kubernetes.client.rest import ApiException
+from tornado import gen
+from traitlets import Dict
 
 SERVICE_ACCOUNT_SECRET_MOUNT = '/var/run/secrets/sa'
 
@@ -106,27 +105,27 @@ class KubeFormSpawner(KubeSpawner):
 
                 # Get the default values from the YAML configuration files
                 if ('type' in default_ws_volume and
-                   'value' in default_ws_volume['type']):
-                        ws_volume['type'] = default_ws_volume['type']['value']
+                        'value' in default_ws_volume['type']):
+                    ws_volume['type'] = default_ws_volume['type']['value']
 
                 if ('name' in default_ws_volume and
-                   'value' in default_ws_volume['name']):
-                        ws_volume['name'] = default_ws_volume['name']['value']
+                        'value' in default_ws_volume['name']):
+                    ws_volume['name'] = default_ws_volume['name']['value']
 
                 if ('size' in default_ws_volume and
-                   'value' in default_ws_volume['size']):
-                        ws_volume['size'] = (
+                        'value' in default_ws_volume['size']):
+                    ws_volume['size'] = (
                             '%sGi' % default_ws_volume['size']['value'])
 
                 if ('mountPath' in default_ws_volume and
-                   'value' in default_ws_volume['mountPath']):
-                        ws_volume['mountPath'] = (
-                            default_ws_volume['mountPath']['value'])
+                        'value' in default_ws_volume['mountPath']):
+                    ws_volume['mountPath'] = (
+                        default_ws_volume['mountPath']['value'])
 
                 if ('accessModes' in default_ws_volume and
-                   'value' in default_ws_volume['accessModes']):
-                        ws_volume['accessModes'] = (
-                            default_ws_volume['accessModes']['value'])
+                        'value' in default_ws_volume['accessModes']):
+                    ws_volume['accessModes'] = (
+                        default_ws_volume['accessModes']['value'])
 
         # Get the Workspace Volume values from the form, if user specified them
         if 'ws_type' in formdata and formdata['ws_type'][0]:
