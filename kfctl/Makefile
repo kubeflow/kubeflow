@@ -32,7 +32,7 @@ vet:
 	go vet ./...
 
 update:
-	hack/goget -b bootstrap-refactor github.com/kkasravi/kubeflow/bootstrap/cmd
+	hack/goget -p 2016 github.com/kubeflow/kubeflow/bootstrap
 
 build: fmt vet update update-version
 	GO111MODULE=on go build -gcflags 'all=-N -l' -a -o bin/kfctl main.go
