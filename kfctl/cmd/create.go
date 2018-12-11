@@ -16,39 +16,44 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app"
 	"gopkg.in/resty.v1"
+
+	"github.com/spf13/cobra"
 )
 
-// initCmd represents the init command
-var initCmd = &cobra.Command{
-	Use:   "init",
-	Short: "Initialize a kubeflow application as a local <name>.yaml.",
-	Long:  `Initialize a kubeflow application as a local <name>.yaml.`,
+var appFile string
+
+// createCmd represents the create command
+var createCmd = &cobra.Command{
+	Use:   "create",
+	Short: "Send the yaml created from init to the backend server",
+	Long: `Send the yaml created from init to the backend server`,
 	Run: func(cmd *cobra.Command, args []string) {
-		var request app.InitProjectRequest
+		var request app.CreateRequest
 
 		resp, err := resty.R().
 			SetHeader("Accept", "application/json").
 			SetAuthToken(token).
 			SetBody(&request).
-			Get(url + "/initProject")
+			Get(url + "/create")
 		fmt.Printf("\nError: %v", err)
 		fmt.Printf("\nResponse Status Code: %v", resp.StatusCode())
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(initCmd)
+	rootCmd.AddCommand(createCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// initCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// createCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// initCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// createCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	createCmd.Flags().StringVar(&appFile, "file", "f", "", "Name of yaml file")
+
 }
