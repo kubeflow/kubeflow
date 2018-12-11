@@ -72,6 +72,9 @@ $(function() {
     $('#spawn_form').find('input[type="submit"]').remove();
   }
 
+  // Configure Image input elements
+  setImageType();
+
   // Dynamically change Workspace form fields behavior
   setWorkspaceEventListeners();
 
@@ -81,6 +84,22 @@ $(function() {
   // Set tooltip to admin-disabled form fields
   setTooltipsOnImmutable();
 });
+
+// Dynamically update Image input field, based on radio button selection
+function setImageType() {
+  imageType = $('#imageType').find('input:checked').val();
+  if (imageType == 'standard') {
+    $('select[for=standardImages]')
+      .attr({'id': 'image', 'name': 'image'}).css({'display': ''});
+    $('input[for=customImage]')
+      .attr({'id': '', 'name': ''}).removeAttr('required').css({'display': 'none'});
+  } else {
+    $('input[for=customImage]')
+      .attr({'id': 'image', 'name': 'image'}).css({'display': ''});
+    $('select[for=standardImages]')
+      .attr({'id': '', 'name': ''}).removeAttr('required').css({'display': 'none'});
+  }
+}
 
 // Set default values to form fields
 function setDefaultFormValues() {
@@ -119,15 +138,14 @@ function setDefaultFormValues() {
 
     // Make Container Image field readonly, if specified
     if ('readOnly' in formDefaults.image) {
-      $('#image').attr({
-        'readonly': formDefaults.image.readOnly,
-        'immutable': formDefaults.image.readOnly
+      $('#option_standard').prop({
+          'disabled': formDefaults.image.readOnly,
+          'immutable': formDefaults.image.readOnly
       });
-      if ($('#image').attr('readonly')) {
-        $('#image').on('mousedown', function(e) {
-          e.preventDefault(); this.blur(); window.focus();
-        });
-      }
+      $('#option_custom').prop({
+          'disabled': formDefaults.image.readOnly,
+          'immutable': formDefaults.image.readOnly
+      });
     }
   }
 
