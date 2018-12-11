@@ -10,7 +10,7 @@ TOKEN ?= $(shell cat $$HOME/.kube/config |grep '^    token:' |awk -F: '{print $$
 all: build
 
 create:
-	go get -u github.com/spf13/cobra/cobra
+	go get github.com/spf13/cobra/cobra
 	cobra init github.com/kubeflow/kubeflow/kfctl
 	cobra add add
 	cobra add apply
@@ -21,6 +21,12 @@ create:
 	cobra add init
 	cobra add remove
 	cobra add version
+
+init:
+	rm go.*
+	go mod init
+	go get k8s.io/kubernetes@v1.10.2
+	go get go.opencensus.io@v0.15.0
 
 fmt:
 	go fmt ./...
@@ -34,7 +40,7 @@ vet:
 update:
 	hack/goget -p 2016 github.com/kubeflow/kubeflow/bootstrap
 
-build: fmt vet update update-version
+build: update update-version fmt vet
 	GO111MODULE=on go build -gcflags 'all=-N -l' -a -o bin/kfctl main.go
 
 debug: build

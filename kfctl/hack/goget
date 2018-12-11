@@ -14,7 +14,7 @@ gogetcommand() {
           shift
           path=$1
           sha=$(git ls-remote -q upstream 'pull/'$pullid'/head' | awk '{print $1}')
-          go get -u ${path}@$sha
+          go get ${path}@$sha
           ;;
         -b | --branch)
           shift
@@ -22,7 +22,7 @@ gogetcommand() {
           shift
           path=$1
           sha=$(git ls-remote -q origin 'refs/heads/'$branch | awk '{print $1}')
-          go get -u ${path}@$sha
+          go get ${path}@$sha
           ;;
         *) 
           echo "incorrect arguments $@"
