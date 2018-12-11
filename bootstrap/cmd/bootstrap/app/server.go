@@ -83,9 +83,9 @@ type RegistryConfig struct {
 
 type AppConfig struct {
 	Registries []RegistryConfig `json:"registries,omitempty"`
-	Packages   []KsPackage `json:"packages,omitempty"`
-	Components []KsComponent `json:"components,omitempty"`
-	Parameters []KsParameter `json:"parameters,omitempty"`
+	Packages   []KsPackage      `json:"packages,omitempty"`
+	Components []KsComponent    `json:"components,omitempty"`
+	Parameters []KsParameter    `json:"parameters,omitempty"`
 }
 
 // RegistriesConfigFile corresponds to a YAML file specifying information
