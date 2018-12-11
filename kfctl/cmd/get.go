@@ -29,8 +29,8 @@ var getCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		resp, err := resty.R().
 			SetHeader("Accept", "application/json").
-			SetAuthToken("").
-			Get("")
+			SetAuthToken(token).
+			Get(url)
 		fmt.Printf("\nError: %v", err)
 		fmt.Printf("\nResponse Status Code: %v", resp.StatusCode())
 	},

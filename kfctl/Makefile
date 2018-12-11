@@ -5,6 +5,7 @@ IMG = bin/kfctl
 TAG ?= $(eval TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6))$(TAG)
 PORT = 8080
 CMD ?= get
+TOKEN ?= $(shell cat $$HOME/.kube/config |grep '^    token:' |awk -F: '{print $$2}'|tr -d '[:space:]')
 
 all: build
 
@@ -38,4 +39,4 @@ build: fmt vet update-version
 
 debug: build
 	@echo debugging $(IMG):$(TAG) using port $(PORT)
-	@./debug.sh $(IMG) $(PORT) $(CMD)
+	@./debug.sh $(IMG) $(PORT) $(CMD) "$(TOKEN)"

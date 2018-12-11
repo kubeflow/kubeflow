@@ -27,6 +27,8 @@ import (
 )
 
 var cfgFile string
+var token string
+var url string
 var kubeconfig *string
 var KfConfig *rest.Config
 
@@ -53,6 +55,10 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.kfctl.yaml)")
+
+	rootCmd.PersistentFlags().StringVar(&url, "url", "", "url where bootstrapper is running")
+
+	rootCmd.PersistentFlags().StringVar(&token, "token", "", "token used in auth header")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
