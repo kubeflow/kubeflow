@@ -119,7 +119,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       dialogBody: '',
       dialogTitle: '',
       iap: true,
-      kfverison: 'v0.3.2',
+      kfverison: 'v0.3.4',
       project: '',
       showLogs: false,
       zone: 'us-central1-a',
@@ -190,7 +190,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         <Row style={{ minHeight: 20}}>
           <Text style={{ fontSize: '1.1em', margin: '2% 11%' }}>Kubeflow Version:</Text>
           <select name="kfverison" style={{ display: 'flex', fontSize: '1.1em', margin: '2% 1%',}} spellCheck={false} value={this.state.kfverison} onChange={this._handleChange.bind(this)} >
-            <option value="v0.3.2">v0.3.2</option>
+            <option value="v0.3.4">v0.3.4</option>
           </select>
         </Row>
         <div style={{ display: 'flex', padding: '20px 60px 40px' }}>

@@ -74,9 +74,8 @@ def setup_kubeflow_ks_app(dir, namespace, github_token, api_client):
         os.environ["GITHUB_TOKEN"] = github_token
 
     if not os.getenv("GITHUB_TOKEN"):
-        logging.warning(
-            "GITHUB_TOKEN not set; you will probably hit Github API "
-            "limits.")
+        logging.warning("GITHUB_TOKEN not set; you will probably hit Github"
+                        "API limits.")
     # Initialize a ksonnet app.
     app_name = "kubeflow-test-" + uuid.uuid4().hex[0:4]
     util.run(
@@ -97,9 +96,10 @@ def setup_kubeflow_ks_app(dir, namespace, github_token, api_client):
         ["ks", "registry", "add", "kubeflow", kubeflow_registry], cwd=app_dir)
 
     # Install required packages
-    packages = ["kubeflow/core", "kubeflow/jupyter", "kubeflow/tf-serving",
-                "kubeflow/tf-job", "kubeflow/tf-training",
-                "kubeflow/pytorch-job", "kubeflow/argo"]
+    packages = ["kubeflow/core", "kubeflow/gcp", "kubeflow/jupyter",
+                "kubeflow/tf-serving", "kubeflow/tf-job",
+                "kubeflow/tf-training", "kubeflow/pytorch-job", "kubeflow/argo"
+                ]
 
     # Instead of installing packages we edit the app.yaml file directly
     # for p in packages:
@@ -111,10 +111,9 @@ def setup_kubeflow_ks_app(dir, namespace, github_token, api_client):
     libraries = {}
     for pkg in packages:
         pkg = pkg.split("/")[1]
-        libraries[pkg] = {
-            'gitVersion': {'commitSha': 'fake', 'refSpec': 'fake'},
-            'name': pkg,
-            'registry': "kubeflow"}
+        libraries[pkg] = {'gitVersion': {'commitSha': 'fake',
+                                         'refSpec': 'fake'},
+                          'name': pkg, 'registry': "kubeflow"}
     app_yaml['libraries'] = libraries
 
     with open(app_file, "w") as f:

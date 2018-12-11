@@ -1,13 +1,13 @@
 {
-   "name": "tf-batch-predict",
+   "name": "gcp",
    "apiVersion": "0.0.1",
    "kind": "ksonnet.io/parts",
-   "description": "Batch Predict performs inferences in batch mode.\n",
+   "description": "Core components of Kubeflow.\n",
    "author": "kubeflow team <kubeflow-team@google.com>",
    "contributors": [
       {
-         "name": "Yixin Shi",
-         "email": "yxshi@google.com"
+         "name": "Jeremy Lewi",
+         "email": "jlewi@google.com"
       }
    ],
    "repository": {
@@ -19,17 +19,17 @@
    },
    "keywords": [
       "kubeflow",
-      "tensorflow",
-      "batch predict",
+      "tensorflow"
    ],
    "quickStart": {
-      "prototype": "io.ksonnet.pkg.tf-batch-predict",
-      "componentName": "tf-batch-predict",
+      "prototype": "io.ksonnet.pkg.kubeflow",
+      "componentName": "gcp",
       "flags": {
-         "name": "tf-batch-predict",
-         "namespace": "default"
+         "name": "gcp",
+         "namespace": "default",
+         "disks": ""
       },
-      "comment": "Run TF batch predict"
+      "comment": "GCP specific Kubeflow components."
    },
    "license": "Apache 2.0"
 }
