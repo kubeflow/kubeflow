@@ -1,8 +1,8 @@
 """
 This script adds or moves a tag in image_tags.yaml
 
-This script doesn't actually update the images. For that you need to
-call apply_image_tags using image_tags.yaml
+This script doesn't actually update the images. For that you need to call
+apply_image_tags using image_tags.yaml
 
 The script looks for images matching a regex and will add a tag to that Image.
 If that tag is already on an existing version of the image it is removed.
@@ -11,8 +11,8 @@ Example:
 python add_image_tag.py --pattern=.*tensorflow.*1.*notebook.*:v20180619.* \
   --tag=v0.2.0
 
-This would add the tag v0.2.0 to images matching the pattern and remove it
-from any existing images.
+This would add the tag v0.2.0 to images matching the pattern and remove it from
+any existing images.
 """
 
 import argparse

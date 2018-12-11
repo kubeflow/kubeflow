@@ -13,14 +13,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Test deploying Kubeflow.
+"""
+Test deploying Kubeflow.
 
 Requirements:
   This project assumes the py directory in github.com/kubeflow/tf-operator
   corresponds to a top level Python package on the Python path.
 
-  TODO(jlewi): Come up with a better story for how we reuse the py package
-  in kubeflow/tf-operator. We should probably turn that into a legit Python pip
+  TODO(jlewi): Come up with a better story for how we reuse the py package in
+  kubeflow/tf-operator. We should probably turn that into a legit Python pip
   package that is built and released as part of the kubeflow/tf-operator
   project.
 """
@@ -49,7 +50,8 @@ from testing import vm_util
 
 
 def _setup_test(api_client, run_label):
-    """Create the namespace for the test.
+    """
+    Create the namespace for the test.
 
     Returns:
       test_dir: The local test directory.
@@ -79,8 +81,8 @@ def _setup_test(api_client, run_label):
 
 
 def create_k8s_client(_):
-    # We need to load the kube config so that we can have credentials to
-    # talk to the APIServer.
+    # We need to load the kube config so that we can have credentials to talk
+    # to the APIServer.
     util.load_kube_config(persist_config=False)
 
     # Create an API client object to talk to the K8s master.
@@ -131,9 +133,9 @@ def setup_kubeflow_ks_app(args, api_client):
     packages = ["kubeflow/core", "kubeflow/tf-serving", "kubeflow/tf-job",
                 "kubeflow/pytorch-job", "kubeflow/argo"]
 
-    # Instead of installing packages we edit the app.yaml file directly
-    # for p in packages:
-    # util.run(["ks", "pkg", "install", p], cwd=app_dir)
+    # Instead of installing packages we edit the app.yaml file directly for p
+    # in packages:
+    #   util.run(["ks", "pkg", "install", p], cwd=app_dir)
     app_file = os.path.join(app_dir, "app.yaml")
     with open(app_file) as f:
         app_yaml = yaml.load(f)
@@ -150,8 +152,8 @@ def setup_kubeflow_ks_app(args, api_client):
     with open(app_file, "w") as f:
         yaml.dump(app_yaml, f)
 
-    # Create vendor directory with a symlink to the src
-    # so that we use the code at the desired commit.
+    # Create vendor directory with a symlink to the src so that we use the code
+    # at the desired commit.
     target_dir = os.path.join(app_dir, "vendor", "kubeflow")
 
     REPO_ORG = "kubeflow"
@@ -211,8 +213,8 @@ def deploy_model(args):
 
 def test_successful_deployment(deployment_name):
     """ Tests if deployment_name is successfully running using kubectl """
-    # TODO use the python kubernetes library to get deployment status
-    # This is using kubectl right now
+    # TODO: use the python kubernetes library to get deployment status This is
+    # using kubectl right now
     retries = 20
     i = 0
     while True:
@@ -336,8 +338,8 @@ def wrap_test(args):
     finally:
         # Test grid has problems with underscores in the name.
         # https://github.com/kubeflow/kubeflow/issues/631
-        # TestGrid currently uses the regex junit_(^_)*.xml so we only
-        # want one underscore after junit.
+        # TestGrid currently uses the regex junit_(^_)*.xml so we only want one
+        # underscore after junit.
         junit_name = test_name.replace("_", "-")
         junit_path = os.path.join(args.artifacts_dir,
                                   "junit_kubeflow-deploy-{0}.xml".format(
@@ -346,18 +348,20 @@ def wrap_test(args):
         test_util.create_junit_xml_file([test_case], junit_path)
 
 
-# TODO(jlewi): We should probably make this a reusable function since a
-# lot of test code code use it.
+# TODO(jlewi): We should probably make this a reusable function since a lot of
+# test code code use it.
 def ks_deploy(app_dir, component, params, env=None, account=None,
               namespace=None):
-    """Deploy the specified ksonnet component.
+    """
+    Deploy the specified ksonnet component.
+
     Args:
       app_dir: The ksonnet directory
       component: Name of the component to deployed
       params: A dictionary of parameters to set; can be empty but should not be
         None.
-      env: (Optional) The environment to use, if none is specified a new one
-        is created.
+      env: (Optional) The environment to use, if none is specified a new one is
+        created.
       account: (Optional) The account to use.
       namespace: (Optional) The namespace to use when adding the environment
     Raises:
@@ -396,7 +400,8 @@ def ks_deploy(app_dir, component, params, env=None, account=None,
 
 
 def modify_minikube_config(config_path, certs_dir):
-    """Modify the kube config file used with minikube.
+    """
+    Modify the kube config file used with minikube.
 
     This function changes the location of the certificates to certs_dir.
 
@@ -559,8 +564,8 @@ def teardown_minikube(args):
         logging.error(message)
         raise ValueError(message)
 
-    # Ensure the disk is deleted. The disk should be auto-deleted with
-    # the VM but just in case we issue a delete request anyway.
+    # Ensure the disk is deleted. The disk should be auto-deleted with the VM
+    # but just in case we issue a delete request anyway.
     disks = gce.disks()
     request = disks.delete(
         project=args.project, zone=args.zone, disk=args.vm_name)
@@ -627,8 +632,8 @@ def main():  # pylint: disable=too-many-locals,too-many-statements
         "--as_gcloud_user",
         dest="as_gcloud_user",
         action="store_true",
-        help=("Impersonate the user corresponding to the gcloud "
-              "command with kubectl and ks."))
+        help=("Impersonate the user corresponding to the gcloud command with"
+              "kubectl and ks."))
     parser.add_argument(
         "--no-as_gcloud_user", dest="as_gcloud_user", action="store_false")
     parser.set_defaults(as_gcloud_user=False)
@@ -749,8 +754,8 @@ def main():  # pylint: disable=too-many-locals,too-many-statements
 
     file_handler = logging.FileHandler(test_log)
     root_logger.addHandler(file_handler)
-    # We need to explicitly set the formatter because it will not pick up
-    # the BasicConfig.
+    # We need to explicitly set the formatter because it will not pick up the
+    # BasicConfig.
     formatter = logging.Formatter(
         fmt=("%(levelname)s|%(asctime)s"
              "|%(pathname)s|%(lineno)d| %(message)s"),

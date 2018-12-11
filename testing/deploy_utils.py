@@ -17,8 +17,8 @@ def get_gcp_identity():
 
 
 def create_k8s_client():
-    # We need to load the kube config so that we can have credentials to
-    # talk to the APIServer.
+    # We need to load the kube config so that we can have credentials to talk
+    # to the APIServer.
     util.load_kube_config(persist_config=False)
 
     # Create an API client object to talk to the K8s master.
@@ -28,7 +28,8 @@ def create_k8s_client():
 
 
 def _setup_test(api_client, run_label):
-    """Create the namespace for the test.
+    """
+    Create the namespace for the test.
 
     Returns:
       test_dir: The local test directory.
@@ -101,9 +102,9 @@ def setup_kubeflow_ks_app(dir, namespace, github_token, api_client):
                 "kubeflow/tf-training", "kubeflow/pytorch-job", "kubeflow/argo"
                 ]
 
-    # Instead of installing packages we edit the app.yaml file directly
-    # for p in packages:
-    # util.run(["ks", "pkg", "install", p], cwd=app_dir)
+    # Instead of installing packages we edit the app.yaml file directly for p
+    # in packages:
+    #   util.run(["ks", "pkg", "install", p], cwd=app_dir)
     app_file = os.path.join(app_dir, "app.yaml")
     with open(app_file) as f:
         app_yaml = yaml.load(f)
@@ -119,8 +120,8 @@ def setup_kubeflow_ks_app(dir, namespace, github_token, api_client):
     with open(app_file, "w") as f:
         yaml.dump(app_yaml, f)
 
-    # Create vendor directory with a symlink to the src
-    # so that we use the code at the desired commit.
+    # Create vendor directory with a symlink to the src so that we use the code
+    # at the desired commit.
     target_dir = os.path.join(app_dir, "vendor", "kubeflow")
 
     REPO_ORG = "kubeflow"
@@ -147,7 +148,8 @@ def wait_for_operation(client,
                        timeout=datetime.timedelta(hours=1),
                        polling_interval=datetime.timedelta(seconds=5),
                        status_callback=log_operation_status):
-    """Wait for the specified operation to complete.
+    """
+    Wait for the specified operation to complete.
 
     Args:
       client: Client for the API that owns the operation.

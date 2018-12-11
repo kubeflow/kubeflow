@@ -20,7 +20,8 @@ def wait_for_operation(client,
                        op_id,
                        timeout=datetime.timedelta(hours=1),
                        polling_interval=datetime.timedelta(seconds=5)):
-    """Wait for the specified operation to complete.
+    """
+    Wait for the specified operation to complete.
 
     Args:
       client: Client for the API that owns the operation.

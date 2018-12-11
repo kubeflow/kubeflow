@@ -12,8 +12,8 @@ def parse_args():
         "--cluster",
         default=None,
         type=str,
-        help=("The name of the cluster. If not set assumes the "
-              "script is running in a cluster and uses that cluster."))
+        help=("The name of the cluster. If not set assumes the script is "
+              "running in a cluster and uses that cluster."))
     parser.add_argument(
         "--zone", default="us-east1-d", type=str,
         help="The zone for the cluster.")
@@ -42,8 +42,8 @@ def get_gke_credentials(test_case):
     # We want to modify the KUBECONFIG file to remove the gcloud commands
     # for any users that are authenticating using service accounts.
     # This will allow the script to be truly headless and not require gcloud.
-    # More importantly, kubectl will properly attach auth.info scope so
-    # that RBAC rules can be applied to the email and not the id.
+    # More importantly, kubectl will properly attach auth.info scope so that
+    # RBAC rules can be applied to the email and not the id.
     # See https://github.com/kubernetes/kubernetes/pull/58141
     #
     # TODO(jlewi): We might want to check GOOGLE_APPLICATION_CREDENTIALS

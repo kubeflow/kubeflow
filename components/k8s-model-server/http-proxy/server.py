@@ -88,7 +88,7 @@ def prepare_classify_requests(instances, model_name, model_version):
     return request
 
 
-#### START code took from https://github.com/grpc/grpc/wiki/Integration-with-tornado-(python)  # noqa: E501
+# START code took from https://github.com/grpc/grpc/wiki/Integration-with-tornado-(python)  # noqa: E501
 
 def _fwrap(f, gf):
     try:
@@ -116,7 +116,7 @@ def fwrap(gf, ioloop=None):
     return f
 
 
-##### END code took from https://github.com/grpc/grpc/wiki/Integration-with-tornado-(python)  # noqa: E501
+# END code took from https://github.com/grpc/grpc/wiki/Integration-with-tornado-(python)  # noqa: E501
 
 def decode_b64_if_needed(data):
     if isinstance(data, list):
@@ -148,8 +148,8 @@ def get_signature_map(model_server_stub, model_name):
             request, MODEL_SERVER_METADATA_TIMEOUT_SEC)
     except grpc.RpcError as rpc_error:
         logging.exception(
-            "GetModelMetadata call to model server failed with code "
-            "%s and message %s", rpc_error.code(),
+            "GetModelMetadata call to model server failed with code %s and "
+            "message %s", rpc_error.code(),
             rpc_error.details())
         return None
 
@@ -165,8 +165,8 @@ def get_signature_map(model_server_stub, model_name):
         for tensor in signature_def_map[signature_name].inputs.itervalues():
             if not tensor.dtype:
                 logging.warn(
-                    "Signature %s has incomplete dtypes, removing from "
-                    "usable signatures", signature_name)
+                    "Signature %s has incomplete dtypes, removing from usable "
+                    "signatures", signature_name)
                 invalid_signatures.append(signature_name)
                 break
     for signature_name in invalid_signatures:
@@ -176,7 +176,8 @@ def get_signature_map(model_server_stub, model_name):
 
 
 def get_signature(signature_map, signature_name=None):
-    """Gets tensorflow signature for the given signature_name.
+    """
+    Gets tensorflow signature for the given signature_name.
 
     Args:
       signature_name: string The signature name to use to choose the signature

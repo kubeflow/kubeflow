@@ -1,5 +1,6 @@
-"""The script uses a regex to identify images in GCR and add
-entries for them to image_tags.yaml
+"""
+The script uses a regex to identify images in GCR and add entries for them to
+image_tags.yaml
 """
 
 import argparse

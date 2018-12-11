@@ -14,10 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""A launcher suitable for invoking tf_cnn_benchmarks using TfJob.
+"""
+A launcher suitable for invoking tf_cnn_benchmarks using TfJob.
 
-All the launcher does is turn TF_CONFIG environment variable
-into extra arguments to append to the command line.
+All the launcher does is turn TF_CONFIG environment variable into extra
+arguments to append to the command line.
 """
 import json
 import logging
@@ -85,8 +86,7 @@ if __name__ == "__main__":
 
     run_and_stream(command)
     logging.info("Finished: %s", " ".join(command))
-    # We don't want to terminate because TfJob will
-    # just restart the job.
+    # We don't want to terminate because TfJob will just restart the job.
     while True:
         logging.info("Command ran successfully sleep for ever.")
         time.sleep(600)

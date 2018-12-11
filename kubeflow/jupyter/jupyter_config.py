@@ -1,6 +1,7 @@
 # flake8: noqa
 
-"""Configuration file for JupyterHub.
+"""
+Configuration file for JupyterHub.
 
 Kubeflow uses this file as the configuration file for JupyterHub. It contains
 all glue code necessary to integrate JupyterHub with the remaining Kubeflow
@@ -28,8 +29,8 @@ spec.loader.exec_module(spawner)
 ###################################################
 c.JupyterHub.ip = '0.0.0.0'
 c.JupyterHub.hub_ip = '0.0.0.0'
-# Don't try to cleanup servers on exit - since in general for k8s, we want
-# the hub to be able to restart without losing user containers
+# Don't try to cleanup servers on exit - since in general for k8s, we want the
+# hub to be able to restart without losing user containers
 c.JupyterHub.cleanup_servers = False
 ###################################################
 
@@ -79,8 +80,8 @@ if access_local_fs == 'true':
 # Persistent volume options
 ###################################################
 
-# Set user_storage_pvc_ensure to False to prevent KubeSpawner from handling PVCs
-# We natively handle PVCs via KubeFormSpawner and its dedicated methods
+# Set user_storage_pvc_ensure to False to prevent KubeSpawner from handling
+# PVCs. We natively handle PVCs via KubeFormSpawner and its dedicated methods
 
 # NOTE: user_storage_pvc_ensure has been deprecated in a future release
 c.KubeSpawner.storage_pvc_ensure = False

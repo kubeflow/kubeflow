@@ -26,8 +26,8 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
         "--pattern",
         default="",
         type=str,
-        help=("Regex pattern e.g. .*tensorflow.*notebook.*:v20180619.* "
-              "to select the images to apply."))
+        help=("Regex pattern e.g. .*tensorflow.*notebook.*:v20180619.* to"
+              "select the images to apply."))
     args = parser.parse_args()
 
     if not os.path.exists(args.images_file):

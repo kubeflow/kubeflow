@@ -14,7 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Wait for kubeflow deployment.
+"""
+Wait for kubeflow deployment.
 
 Right now, it only checks for the presence of tfjobs and pytorchjobs crd. More
   things can be added incrementally.

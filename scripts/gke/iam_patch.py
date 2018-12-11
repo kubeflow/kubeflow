@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 #
-# A python script which manages IAM binding patches declaratively
-# IAM policy patch can be defined in a separate file declaratively and it can
-# either be added or removed from a projects iam policy
+# A python script which manages IAM binding patches declaratively IAM policy
+# patch can be defined in a separate file declaratively and it can either be
+# added or removed from a projects iam policy
 #
 # Usage
 #   python iam_patch.py --action=add --project=agwliamtest \
@@ -88,8 +88,8 @@ def apply_iam_bindings_patch(current_policy, bindings_patch, action):
 
 def patch_iam_policy(args):
     """
-    Fetches the current IAM policy, patches it with the bindings supplied
-    in --iam_bindings_file and updates the new iam policy
+    Fetches the current IAM policy, patches it with the bindings supplied in
+    --iam_bindings_file and updates the new iam policy
     """
     current_policy = get_current_iam_policy(args.project)
     logging.info("Current IAM Policy")

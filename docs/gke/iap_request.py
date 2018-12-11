@@ -45,11 +45,11 @@ def get_service_account_token(client_id):
         # account key, we use the IAM signBlob API to sign instead.
         # In order for this to work:
         #
-        # 1. Your VM needs the https://www.googleapis.com/auth/iam scope.
-        #    You can specify this specific scope when creating a VM
-        #    through the API or gcloud. When using Cloud Console,
-        #    you'll need to specify the "full access to all Cloud APIs"
-        #    scope. A VM's scopes can only be specified at creation time.
+        # 1. Your VM needs the https://www.googleapis.com/auth/iam scope. You
+        #    can specify this specific scope when creating a VM through the API
+        #    or gcloud. When using Cloud Console, you'll need to specify the
+        #    "full access to all Cloud APIs" scope. A VM's scopes can only be
+        #    specified at creation time.
         #
         # 2. The VM's default service account needs the "Service Account Actor"
         #    role. This can be found under the "Project" category in Cloud
@@ -60,38 +60,39 @@ def get_service_account_token(client_id):
         # A Signer object can sign a JWT using the service account's key.
         signer = bootstrap_credentials.signer
 
-    # Construct OAuth 2.0 service account credentials using the signer
-    # and email acquired from the bootstrap credentials.
+    # Construct OAuth 2.0 service account credentials using the signer and
+    # email acquired from the bootstrap credentials.
     service_account_credentials = google.oauth2.service_account.Credentials(
         signer, signer_email, token_uri=OAUTH_TOKEN_URI, additional_claims={
             'target_audience': client_id
         })
 
-    # service_account_credentials gives us a JWT signed by the service
-    # account. Next, we use that to obtain an OpenID Connect token,
-    # which is a JWT signed by Google.
+    # service_account_credentials gives us a JWT signed by the service account.
+    # Next, we use that to obtain an OpenID Connect token,which is a JWT signed
+    # by Google.
     return get_google_open_id_connect_token(service_account_credentials)
 
 
 def get_google_open_id_connect_token(service_account_credentials):
-    """Get an OpenID Connect token issued by Google for the service account.
+    """
+    Get an OpenID Connect token issued by Google for the service account.
 
     This function:
       1. Generates a JWT signed with the service account's private key
          containing a special "target_audience" claim.
 
-      2. Sends it to the OAUTH_TOKEN_URI endpoint. Because the JWT in #1
-         has a target_audience claim, that endpoint will respond with
-         an OpenID Connect token for the service account -- in other words,
-         a JWT signed by *Google*. The aud claim in this JWT will be
-         set to the value from the target_audience claim in #1.
+      2. Sends it to the OAUTH_TOKEN_URI endpoint. Because the JWT in #1 has a
+         target_audience claim, that endpoint will respond with an OpenID
+         Connect token for the service account -- in other words, a JWT signed
+         by *Google*. The aud claim in this JWT will be set to the value from
+         the target_audience claim in #1.
 
     For more information, see
     https://developers.google.com/identity/protocols/OAuth2ServiceAccount .
     The HTTP/REST example on that page describes the JWT structure and
     demonstrates how to call the token endpoint. (The example on that page
-    shows how to get an OAuth2 access token; this code is using a
-    modified version of it to get an OpenID Connect token.)
+    shows how to get an OAuth2 access token; this code is using a modified
+    version of it to get an OpenID Connect token.)
     """
 
     service_account_jwt = (

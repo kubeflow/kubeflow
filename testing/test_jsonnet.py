@@ -14,15 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Run jsonnet tests
+"""
+Run jsonnet tests
 
-This test goes through all jsonnet files specified by the
-test_files_dirs directory and runs jsonnet eval <filename> and reports
-the results
+This test goes through all jsonnet files specified by the test_files_dirs
+directory and runs jsonnet eval <filename> and reports the results
 
-Example invocation
-
-python -m testing.test_jsonnet \
+Example invocation:
+  python -m testing.test_jsonnet \
     --test_files_dirs=/kubeflow/application/tests,/kubeflow/core/tests,/kubeflow/jupyter/tests,/kubeflow/iap/tests,/kubeflow/gcp/tests,/kubeflow/tensorboard/tests,/kubeflow/examples/tests,/kubeflow/metacontroller/tests,/kubeflow/profiles/tests,/kubeflow/tf-training/tests --artifacts_dir=/tmp/artifacts  # noqa: E501
 
 """
@@ -36,9 +35,8 @@ import os
 from kubeflow.testing import test_helper, util
 
 
-# We should test all files which end in .jsonnet or .libsonnet
-# except ksonnet prototype definitions - they require additional
-# dependencies
+# We should test all files which end in .jsonnet or .libsonnet except ksonnet
+# prototype definitions - they require additional dependencies
 def should_test(f):
     _, ext = os.path.splitext(f)
     if ext != '.jsonnet' and ext != '.libsonnet':

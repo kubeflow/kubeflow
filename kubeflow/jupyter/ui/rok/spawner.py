@@ -5,8 +5,8 @@ from kubernetes.client.models import V1DeleteOptions
 from kubernetes.client.rest import ApiException
 from tornado import gen
 
-# Import the default KubeFormSpawner as a Python module
-# Our custom spawner extends the default one, but shares the same class name
+# Import the default KubeFormSpawner as a Python module. Our custom spawner
+# extends the default one, but shares the same class name
 spec = spec_from_file_location('spawner', '/etc/config/default_spawner.py')
 spawner = module_from_spec(spec)
 spec.loader.exec_module(spawner)

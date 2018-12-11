@@ -1,6 +1,7 @@
-"""Script to build images.
+"""
+Script to build images.
 
-For example,
+For example:
 python build_image.py --tf_version=1.6 --platform=gpu tf_serving
 """
 import argparse
@@ -15,7 +16,8 @@ from itertools import chain
 
 def run(command, cwd=None, env=None,
         polling_interval=datetime.timedelta(seconds=1)):
-    """Run a subprocess.
+    """
+    Run a subprocess.
     Copied from kubeflow/test so it's easier to run locally.
     TODO(lunkai): refactor to dedup.
     Any subprocess output is emitted through the logging modules.

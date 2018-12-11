@@ -342,8 +342,8 @@ def get_service_account_credentials(client_id_key):
         # A Signer object can sign a JWT using the service account's key.
         signer = credentials.signer
 
-    # Construct OAuth 2.0 service account credentials using the signer
-    # and email acquired from the bootstrap credentials.
+    # Construct OAuth 2.0 service account credentials using the signer and
+    # email acquired from the bootstrap credentials.
     return google.oauth2.service_account.Credentials(
         signer, signer_email, token_uri=OAUTH_TOKEN_URI, additional_claims={
             'target_audience': may_get_env_var(client_id_key)
@@ -445,7 +445,8 @@ def util_run(command,
              env=None,
              shell=False,
              polling_interval=datetime.timedelta(seconds=1)):
-    """Run a subprocess.
+    """
+    Run a subprocess.
 
     Any subprocess output is emitted through the logging modules.
 

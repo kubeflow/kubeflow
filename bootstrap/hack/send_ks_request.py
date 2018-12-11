@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-"""A script for manual testing and experimenting with the ks server.
+"""
+A script for manual testing and experimenting with the ks server.
 
-
-TODO(jlewi): Should we use this as the basis for doing
-E2E integration testing? We can run the server in a subprocess.
-Send requests to it and then run various checks on the results.
+TODO(jlewi): Should we use this as the basis for doing E2E integration testing?
+We can run the server in a subprocess. Send requests to it and then run various
+checks on the results.
 """
 import argparse
 import datetime

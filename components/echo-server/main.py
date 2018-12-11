@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Google Cloud Endpoints sample application.
+"""
+Google Cloud Endpoints sample application.
 
 Demonstrates how to create a simple echo API as well as how to deal with
 various authentication methods.

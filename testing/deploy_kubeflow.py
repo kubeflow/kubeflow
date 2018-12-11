@@ -1,4 +1,5 @@
-"""Deploy Kubeflow and wait for it to be deployed.
+"""
+Deploy Kubeflow and wait for it to be deployed.
 
 TODO(jlewi): This script is outdated. Its no longer used for GKE.
 It is still used by minikube. For minikube we should be using kfctl.sh
@@ -9,8 +10,8 @@ from kubeflow.testing import test_helper
 from kubeflow.testing import util  # pylint: disable=no-name-in-module
 
 # TODO(jlewi): We should be using absolute imports always.
-# So it should be from testing import deploy_utils because testing
-# is the top level python package.
+# So it should be from testing import deploy_utils because testing is the top
+# level python package.
 from . import deploy_utils
 
 
@@ -53,8 +54,8 @@ def deploy_kubeflow(test_case):
                                                  args.github_token, api_client)
 
     # ks generate tf-job-operator tf-job-operator
-    # TODO(jlewi): We don't need to generate a core component if we are
-    # just deploying TFServing. Might be better to refactor this code.
+    # TODO(jlewi): We don't need to generate a core component if we are just
+    # deploying TFServing. Might be better to refactor this code.
     # Deploy Kubeflow
     util.run(
         [

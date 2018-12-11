@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""A simple flask app to redirect all requests to https.
-"""
+"""A simple flask app to redirect all requests to https."""
 
 import logging
 

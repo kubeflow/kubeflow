@@ -105,9 +105,8 @@ if __name__ == "__main__":
         "--batch_size=32",
         "--model=resnet50",
         "--variable_update=parameter_server",
-        # tf_cnn_benchmarks uses print for logging and if we
-        # don't set flush_stdout the buffer isn't outputted
-        # until the program ends..
+        # tf_cnn_benchmarks uses print for logging and if we don't set
+        # flush_stdout the buffer isn't outputted until the program ends..
         "--flush_stdout=true",
     ]
 
