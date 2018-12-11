@@ -43,7 +43,7 @@ elif [ "${COMPONENT}" == "pytorch-operator" ]; then
 
 elif [ "${COMPONENT}" == "katib" ]; then
   echo "Updating Katib..."
-  VALUES="${VALUES},suggestionRandomImage=gcr.io/kubeflow-images-public/katib/suggestion-random:${TAG}"
+  VALUES="suggestionRandomImage=gcr.io/kubeflow-images-public/katib/suggestion-random:${TAG}"
   VALUES="${VALUES},suggestionGridImage=gcr.io/kubeflow-images-public/katib/suggestion-grid:${TAG}"
   VALUES="${VALUES},suggestionHyperbandImage=gcr.io/kubeflow-images-public/katib/suggestion-hyperband:${TAG}"
   VALUES="${VALUES},suggestionBayesianOptimizationImage=gcr.io/kubeflow-images-public/katib/suggestion-bayesianoptimization:${TAG}"
