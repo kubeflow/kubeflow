@@ -36,6 +36,6 @@ update:
 build: fmt vet update update-version
 	GO111MODULE=on go build -gcflags 'all=-N -l' -a -o bin/kfctl main.go
 
-debug:
+debug: build
 	@echo debugging $(IMG):$(TAG) using port $(PORT)
 	@./debug.sh $(IMG) $(PORT) $(CMD)
