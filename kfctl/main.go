@@ -15,17 +15,9 @@
 package main
 
 import (
-	"fmt"
 	"github.com/kubeflow/kubeflow/kfctl/cmd"
-	"time"
 )
 
 func main() {
-	fmt.Printf("20 seconds to attach to this process")
-
-	time.Sleep(20 * time.Second)
-
-	fmt.Printf("Calling cmd.Execute")
-
 	cmd.Execute()
 }

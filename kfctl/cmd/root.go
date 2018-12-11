@@ -24,11 +24,13 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 var cfgFile string
 var token string
 var url string
+var debug bool
 var kubeconfig *string
 var KfConfig *rest.Config
 
@@ -42,6 +44,10 @@ var rootCmd = &cobra.Command{
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
+	if debug == true {
+		fmt.Printf("20 seconds to attach to this process")
+		time.Sleep(20 * time.Second)
+	}
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -54,15 +60,13 @@ func init() {
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.kfctl.yaml)")
+	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/.kfctl.yaml)")
 
-	rootCmd.PersistentFlags().StringVar(&url, "url", "", "url where bootstrapper is running")
+	rootCmd.PersistentFlags().StringVarP(&url, "url", "u", "", "url where bootstrapper is running")
 
-	rootCmd.PersistentFlags().StringVar(&token, "token", "", "token used in auth header")
+	rootCmd.PersistentFlags().StringVarP(&token, "token", "t", "", "token used in auth header")
 
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "debug will pause 20sec")
 
 }
 
