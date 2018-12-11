@@ -1,6 +1,5 @@
 ARG GOLANG_VERSION=1.11.2
 FROM golang:$GOLANG_VERSION as bootstrap_build
-ARG registries
 
 # install vim 
 RUN apt-get update && apt-get install -y vim
@@ -35,8 +34,6 @@ RUN wget -q https://github.com/ksonnet/ksonnet/releases/download/v0.13.1/ks_0.13
 
 RUN mkdir -p /opt/kubeflow
 RUN mkdir -p $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap
-COPY $registries /opt/registries
-COPY . $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap
 WORKDIR $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap
 
 ENV PATH /go/bin:/usr/local/go/bin:$PATH
@@ -48,6 +45,10 @@ COPY go.sum .
 RUN go mod download
 
 FROM bootstrap_build as bootstrap
+ARG registries
+
+COPY $registries /opt/registries
+COPY . $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap
 
 RUN go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 RUN cp $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap/bin/bootstrapper /opt/kubeflow
