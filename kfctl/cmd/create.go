@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app"
 	"gopkg.in/resty.v1"
+	"io/ioutil"
 
 	"github.com/spf13/cobra"
 )
@@ -31,6 +32,10 @@ var createCmd = &cobra.Command{
 	Long:  `Send the yaml created from init to the backend server`,
 	Run: func(cmd *cobra.Command, args []string) {
 		var request app.CreateRequest
+		data, err := ioutil.ReadFile(appFile)
+		if err != nil {
+			fmt.Printf("\nError: %v", err)
+		}
 
 		resp, err := resty.R().
 			SetHeader("Accept", "application/json").

@@ -158,33 +158,33 @@ func NewServer(appsDir string, registries []RegistryConfig, gkeVersionOverride s
 // CreateRequest represents a request to create a ksonnet application.
 type CreateRequest struct {
 	// Name for the app.
-	Name string
+	Name string `json:"name,omitempty"`
 	// AppConfig is the config for the app.
-	AppConfig AppConfig
+	AppConfig AppConfig `json:"appConfig,omitempty"`
 
 	// Namespace for the app.
-	Namespace string
+	Namespace string `json:"nameaspace,omitempty"`
 
 	// Whether to try to autoconfigure the app.
-	AutoConfigure bool
+	AutoConfigure bool `json:"autoConfigure,omitempty"`
 
 	// target GKE cLuster info
-	Cluster       string
-	Project       string
-	ProjectNumber string
-	Zone          string
+	Cluster       string `json:"cluster,omitempty"`
+	Project       string `json:"project,omitempty"`
+	ProjectNumber string `json:"projectNumber,omitempty"`
+	Zone          string `json:"zone,omitempty"`
 
 	// Access token, need to access target cluster in order for AutoConfigure
-	Token string
-	Apply bool
-	Email string
+	Token string `json:"token,omitempty"`
+	Apply bool   `json:"apply,omitempty"`
+	Email string `json:"email,omitempty"`
 	// temporary
-	ClientId     string
-	ClientSecret string
-	IpName       string
+	ClientId     string `json:"clientId,omitempty"`
+	ClientSecret string `json:"clientSecret,omitempty"`
+	IpName       string `json:"ipName,omitempty"`
 
 	// For test: GCP service account client id
-	SAClientId string
+	SAClientId string `json:"saClientId,omitempty"`
 }
 
 // basicServerResponse is general response contains nil if handler raise no error, otherwise an error message.

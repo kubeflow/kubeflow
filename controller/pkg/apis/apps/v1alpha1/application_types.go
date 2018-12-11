@@ -55,9 +55,9 @@ type KsModule struct {
 }
 
 type KsPackage struct {
-	Name string
+	Name string `json:"name,omitempty"`
 	// Registry should be the name of the registry containing the package.
-	Registry string
+	Registry string `json:"registry,omitempty"`
 }
 
 type AppConfig struct {
