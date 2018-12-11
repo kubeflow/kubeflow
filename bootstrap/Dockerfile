@@ -1,5 +1,5 @@
 ARG GOLANG_VERSION=1.11.2
-FROM golang:$GOLANG_VERSION as build
+FROM golang:$GOLANG_VERSION as bootstrap_build
 ARG registries
 
 # install vim 
@@ -26,8 +26,6 @@ RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.12.2/
     mv kubectl /usr/local/bin && \
     chmod a+x /usr/local/bin/kubectl
 
-COPY $registries /opt/registries
-
 # bootstrap is using ksonnet 0.13.1
 RUN wget -q https://github.com/ksonnet/ksonnet/releases/download/v0.13.1/ks_0.13.1_linux_amd64.tar.gz && \
     tar xzf ks_0.13.1_linux_amd64.tar.gz -C . && \
@@ -36,17 +34,22 @@ RUN wget -q https://github.com/ksonnet/ksonnet/releases/download/v0.13.1/ks_0.13
     rm -rf ks_0.13.1_linux_amd64
 
 RUN mkdir -p /opt/kubeflow
-
-ENV PATH /go/bin:/usr/local/go/bin:$PATH
-
 RUN mkdir -p $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap
+COPY $registries /opt/registries
 COPY . $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap
 WORKDIR $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap
 
+ENV PATH /go/bin:/usr/local/go/bin:$PATH
 # use go modules
 ENV GO111MODULE=on
-RUN go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 
+COPY go.mod .
+COPY go.sum .
+RUN go mod download
+
+FROM bootstrap_build as bootstrap
+
+RUN go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 RUN cp $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap/bin/bootstrapper /opt/kubeflow
 COPY start.sh /opt/kubeflow/
 COPY dlv.sh /opt/kubeflow/

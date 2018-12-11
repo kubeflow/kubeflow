@@ -4,7 +4,7 @@
 IMG = bin/kfctl
 TAG ?= $(eval TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6))$(TAG)
 PORT = 8080
-CMD ?= init
+CMD ?= get
 
 all: build
 
@@ -30,10 +30,10 @@ update-version:
 vet:
 	go vet ./...
 
-update:
-	hack/goget -p 2016 github.com/kubeflow/kubeflow/controller/pkg/client/kfapi
+#update:
+#	hack/goget -p 2016 github.com/kubeflow/kubeflow/controller/pkg/client/kfapi
 
-build: fmt vet update update-version
+build: fmt vet update-version
 	GO111MODULE=on go build -gcflags 'all=-N -l' -a -o bin/kfctl main.go
 
 debug: build

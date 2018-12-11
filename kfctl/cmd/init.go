@@ -16,9 +16,8 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/kubeflow/kubeflow/controller/pkg/client/kfapi"
-
 	"github.com/spf13/cobra"
+	"gopkg.in/resty.v1"
 )
 
 // initCmd represents the init command
@@ -27,13 +26,12 @@ var initCmd = &cobra.Command{
 	Short: "Initialize a kubeflow application.",
 	Long:  `Initialize a kubeflow application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("init called")
-		kfclient, err := kfapi.NewForConfig(KfConfig)
-		if err != nil {
-			panic(err.Error())
-		}
-		kfclient.RESTClient().Get()
-
+		resp, err := resty.R().
+			SetHeader("Accept", "application/json").
+			SetAuthToken("").
+			Get("/initProject")
+		fmt.Printf("\nError: %v", err)
+		fmt.Printf("\nResponse Status Code: %v", resp.StatusCode())
 	},
 }
 

@@ -43,7 +43,7 @@ build: build-local
 	rm -rf reg_tmp
 	mkdir -p reg_tmp/kubeflow
 	cp -r ../kubeflow reg_tmp/kubeflow
-	docker build -t $(IMG):$(TAG) --build-arg GOLANG_VERSION=$(GOLANG_VERSION) --build-arg registries=reg_tmp --target=build .
+	docker build -t $(IMG):$(TAG) --build-arg GOLANG_VERSION=$(GOLANG_VERSION) --build-arg registries=reg_tmp --target=bootstrap .
 	@echo Built $(IMG):$(TAG)
 
 # Build but don't attach the latest tag. This allows manual testing/inspection of the image
@@ -63,11 +63,12 @@ run-local-docker:
 	docker run -d -it --name bootstrapper \
 	  --mount type=bind,source=$$HOME/kf_app,target=/home/kubeflow \
 	  --entrypoint /bin/bash $(IMG):$(TAG)
-debug: push
+
+debug: push cleanup
 	@echo debugging $(IMG):$(TAG) using port $(PORT)
 	@./debug.sh $(IMG) $(TAG) $(PORT)
 
-debug-latest:
+debug-latest: debug
 	@echo debugging $(IMG):latest using port $(PORT)
 	@./debug.sh $(IMG) latest $(PORT)
 

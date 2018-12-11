@@ -16,6 +16,7 @@ package cmd
 
 import (
 	"fmt"
+	"gopkg.in/resty.v1"
 
 	"github.com/spf13/cobra"
 )
@@ -26,7 +27,12 @@ var getCmd = &cobra.Command{
 	Short: "Get a kubeflow application's yaml definition.",
 	Long:  `Get a kubeflow application's yaml definition.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("get called")
+		resp, err := resty.R().
+			SetHeader("Accept", "application/json").
+			SetAuthToken("").
+			Get("")
+		fmt.Printf("\nError: %v", err)
+		fmt.Printf("\nResponse Status Code: %v", resp.StatusCode())
 	},
 }
 
