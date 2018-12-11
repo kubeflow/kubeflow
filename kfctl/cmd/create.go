@@ -16,6 +16,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/ghodss/yaml"
 	"github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app"
 	"gopkg.in/resty.v1"
 	"io/ioutil"
@@ -31,8 +32,13 @@ var createCmd = &cobra.Command{
 	Short: "Send the yaml created from init to the backend server",
 	Long:  `Send the yaml created from init to the backend server`,
 	Run: func(cmd *cobra.Command, args []string) {
-		var request app.CreateRequest
+		var createRequest app.CreateRequest
 		data, err := ioutil.ReadFile(appFile)
+		if err != nil {
+			fmt.Printf("\nError: %v", err)
+		}
+
+		err = yaml.Unmarshal([]byte(data), &createRequest)
 		if err != nil {
 			fmt.Printf("\nError: %v", err)
 		}
@@ -40,10 +46,11 @@ var createCmd = &cobra.Command{
 		resp, err := resty.R().
 			SetHeader("Accept", "application/json").
 			SetAuthToken(token).
-			SetBody(&request).
+			SetBody(&createRequest).
 			Get(url + "/create")
 		fmt.Printf("\nError: %v", err)
 		fmt.Printf("\nResponse Status Code: %v", resp.StatusCode())
+		fmt.Printf("\nResponse Status Code: %v", resp.Body())
 	},
 }
 

@@ -37,13 +37,14 @@ waitforpod() {
 
 image=$1
 port=$2
-command=$3
-token=$4
+token=$3
+command=$4
+args="$5"
 namespace=kubeflow-admin
 echo "Waiting for pod's status == Running ..."
 pod=$(waitforpod)
 echo "Pod $pod is running. Setting up port-forward"
 portforward $pod $namespace $port $port
 echo "Type Ctrl^C to end to interrupt"
-$image --url="http://localhost:${port}/" --token="$token" $command
+$image --url="http://localhost:${port}/" --token="$token" $command $args
 
