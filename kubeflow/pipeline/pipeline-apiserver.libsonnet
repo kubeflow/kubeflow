@@ -180,7 +180,7 @@
       },
     },  // deploy
 
-	  loadSampleJob(image): {
+    loadSampleJob(image): {
       apiVersion: "batch/v1",
       kind: "Job",
       metadata: {
@@ -199,7 +199,7 @@
                 command: ["apiserver"],
                 args: [
                   "--config=/config",
-                  "--sampleconfig=/config/sample_config.json"
+                  "--sampleconfig=/config/sample_config.json",
                 ],
                 env: [
                   {
@@ -216,9 +216,9 @@
             serviceAccountName: "ml-pipeline",
           },
         },
-        backoffLimit: 0
+        backoffLimit: 0,
       },
-    }, // loadSampleJob
+    },  // loadSampleJob
 
     pipelineRunnerServiceAccount: {
       apiVersion: "v1",
