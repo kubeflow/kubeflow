@@ -16,8 +16,8 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app"
+	"github.com/spf13/cobra"
 	"gopkg.in/resty.v1"
 )
 

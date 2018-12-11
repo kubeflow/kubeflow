@@ -2,6 +2,7 @@ module github.com/kubeflow/kubeflow/kfctl
 
 require (
 	cloud.google.com/go v0.34.0 // indirect
+	contrib.go.opencensus.io/exporter/ocagent v0.4.0 // indirect
 	contrib.go.opencensus.io/exporter/stackdriver v0.8.0 // indirect
 	git.apache.org/thrift.git v0.0.0-20181211084444-2b7365c54f82 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78 // indirect
@@ -50,7 +51,7 @@ require (
 	github.com/imdario/mergo v0.3.6 // indirect
 	github.com/json-iterator/go v1.1.5 // indirect
 	github.com/kardianos/osext v0.0.0-20170510131534-ae77be60afb1 // indirect
-	github.com/kubeflow/kubeflow/bootstrap v0.0.0-20181211181609-81500457dfeb // indirect
+	github.com/kubeflow/kubeflow/bootstrap v0.0.0-20181211181609-81500457dfeb
 	github.com/kubernetes-sigs/application v0.0.0-20181207220954-17a395166949 // indirect
 	github.com/kubernetes/code-generator v0.0.0-20181206115026-3a2206dd6a78 // indirect
 	github.com/mattn/go-colorable v0.0.9 // indirect
@@ -72,7 +73,6 @@ require (
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/viper v1.3.1
 	github.com/ugorji/go/codec v0.0.0-20181209151446-772ced7fd4c2 // indirect
-	go.opencensus.io v0.18.0 // indirect
 	golang.org/x/net v0.0.0-20181207154023-610586996380 // indirect
 	golang.org/x/oauth2 v0.0.0-20181203162652-d668ce993890 // indirect
 	golang.org/x/sys v0.0.0-20181211161752-7da8ea5c8182 // indirect
@@ -90,6 +90,7 @@ require (
 	k8s.io/apiextensions-apiserver v0.0.0-20181206111255-bb0a52a3f19d // indirect
 	k8s.io/apimachinery v0.0.0-20181211025822-57dc7e687b54 // indirect
 	k8s.io/apiserver v0.0.0-20181211031017-bbe3b7124d2b // indirect
+	k8s.io/cli-runtime v0.0.0-20181121073402-2f0d1d0a58f2 // indirect
 	k8s.io/client-go v10.0.0+incompatible
 	k8s.io/code-generator v0.0.0-20181206115026-3a2206dd6a78 // indirect
 	k8s.io/helm v2.12.0+incompatible // indirect

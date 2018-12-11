@@ -28,7 +28,7 @@ var appFile string
 var createCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Send the yaml created from init to the backend server",
-	Long: `Send the yaml created from init to the backend server`,
+	Long:  `Send the yaml created from init to the backend server`,
 	Run: func(cmd *cobra.Command, args []string) {
 		var request app.CreateRequest
 
