@@ -66,6 +66,7 @@ type KsService interface {
 	BindRole(context.Context, string, string, string) error
 	InsertDeployment(context.Context, CreateRequest) (*deploymentmanager.Deployment, error)
 	GetDeploymentStatus(context.Context, CreateRequest) (string, error)
+	ListPackages(context.Context, KsRegistry) (*ListPackages, error)
 	ApplyIamPolicy(context.Context, ApplyIamRequest) error
 	GetProjectLock(string) *sync.Mutex
 }
@@ -900,6 +901,10 @@ func (s *ksServer) SaveAppToRepo(project string, email string, repoDir string) e
 	}, bo)
 }
 
+func (s *ksServer) ListPackages(ctx context.Context, req KsRegistry) (*ListPackages, error) {
+	return nil, nil
+}
+
 // Apply runs apply on a ksonnet application.
 func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 	token := req.Token
@@ -1065,6 +1070,15 @@ func makeCreateAppEndpoint(svc KsService) endpoint.Endpoint {
 	}
 }
 
+// List ksonnet pkgs
+func makeListPkgEndpoint(svc KsService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(KsRegistry)
+		packages, err := svc.ListPackages(ctx, req)
+		return packages, err
+	}
+}
+
 func timeSinceStart(ctx context.Context) time.Duration {
 	startTime, ok := ctx.Value(StartTime).(time.Time)
 	if !ok {
@@ -1199,6 +1213,15 @@ func decodeCreateAppRequest(_ context.Context, r *http.Request) (interface{}, er
 	return request, nil
 }
 
+func decodeListPkgRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	var request KsRegistry
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		deployReqCounter.WithLabelValues("INVALID_ARGUMENT").Inc()
+		return nil, err
+	}
+	return request, nil
+}
+
 // The same encoder can be used for all RPC responses.
 func encodeResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
 	return json.NewEncoder(w).Encode(response)
@@ -1245,6 +1268,12 @@ func (s *ksServer) StartHttp(port int) {
 		encodeResponse,
 	)
 
+	listPkgHandler := httptransport.NewServer(
+		makeListPkgEndpoint(s),
+		decodeListPkgRequest,
+		encodeResponse,
+	)
+
 	healthzHandler := httptransport.NewServer(
 		makeHealthzEndpoint(s),
 		func(_ context.Context, r *http.Request) (interface{}, error) {
@@ -1288,6 +1317,7 @@ func (s *ksServer) StartHttp(port int) {
 	http.Handle("/", optionsHandler(healthzHandler))
 	http.Handle("/kfctl/apps/apply", optionsHandler(applyAppHandler))
 	http.Handle("/kfctl/apps/create", optionsHandler(createAppHandler))
+	http.Handle("/kfctl/apps/pkg/list", optionsHandler(listPkgHandler))
 	http.Handle("/kfctl/iam/apply", optionsHandler(applyIamHandler))
 	http.Handle("/kfctl/initProject", optionsHandler(initProjectHandler))
 	http.Handle("/kfctl/e2eDeploy", optionsHandler(deployHandler))
