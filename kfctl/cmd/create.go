@@ -16,9 +16,9 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/ghodss/yaml"
 	"github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app"
 	"gopkg.in/resty.v1"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 
 	"github.com/spf13/cobra"
