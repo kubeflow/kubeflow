@@ -16,9 +16,9 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/ghodss/yaml"
 	"github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app"
 	"gopkg.in/resty.v1"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 
 	"github.com/spf13/cobra"
@@ -46,15 +46,18 @@ var createCmd = &cobra.Command{
 		if err != nil {
 			fmt.Printf("\nError: %v", err)
 		}
+		var json []byte
+		json, err = yaml.YAMLToJSON([]byte(data))
+		body := string(json)
 
 		resp, err := resty.R().
 			SetHeader("Accept", "application/json").
 			SetAuthToken(token).
-			SetBody(&createRequest).
-			Get(url + "/create")
+			SetBody(body).
+			Post(url + "/kfctl/apps/create")
 		fmt.Printf("\nError: %v", err)
 		fmt.Printf("\nResponse Status Code: %v", resp.StatusCode())
-		fmt.Printf("\nResponse Status Code: %v", resp.Body())
+		fmt.Printf("\nResponse Body: %s\n", resp.Body())
 	},
 }
 

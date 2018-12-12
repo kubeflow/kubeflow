@@ -22,7 +22,7 @@ trap cleanup EXIT
 portforward() {
   local pod=$1 namespace=$2 from_port=$3 to_port=$4 cmd
   kubectl port-forward $pod ${from_port}:${to_port} --namespace=$namespace 2>&1>/dev/null &
-  pid=$$
+  pid=$!
   echo 'pid='$pid
 }
 

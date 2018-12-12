@@ -1,5 +1,5 @@
 name: kf-test
-appConfig:
+appconfig:
   registries:
   - name: kubeflow
     repo: https://github.com/kubeflow/kubeflow.git
