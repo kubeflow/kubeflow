@@ -163,7 +163,7 @@ type CreateRequest struct {
 	AppConfig AppConfig `json:"appConfig,omitempty"`
 
 	// Namespace for the app.
-	Namespace string `json:"nameaspace,omitempty"`
+	Namespace string `json:"namespace,omitempty"`
 
 	// Whether to try to autoconfigure the app.
 	AutoConfigure bool `json:"autoConfigure,omitempty"`

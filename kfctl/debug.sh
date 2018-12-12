@@ -24,6 +24,7 @@ portforward() {
   cmd='kubectl port-forward $pod ${from_port}:${to_port} --namespace=$namespace 2>&1>/dev/null &'
   eval $cmd
   pid=$$
+  echo 'pid='$pid
 }
 
 waitforpod() {
@@ -46,7 +47,7 @@ echo "Waiting for pod's status == Running ..."
 pod=$(waitforpod)
 echo "Pod $pod is running. Setting up port-forward"
 portforward $pod $namespace $port $port
+echo $image --url="http://localhost:$port" --token="$token" $command $args
+$image --url="http://localhost:$port" --token="$token" $command $args
 echo "Type Ctrl^C to end to interrupt"
-echo $image --debug --url="http://localhost:${port}/" --token="$token" $command $args
-$image --debug --url="http://localhost:${port}/" --token="$token" $command $args
 

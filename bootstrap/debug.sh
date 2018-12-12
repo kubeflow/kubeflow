@@ -24,6 +24,7 @@ portforward() {
   cmd='kubectl port-forward $pod ${from_port}:${to_port} --namespace=$namespace 2>&1>/dev/null &'
   eval $cmd
   pid=$$
+  echo 'pid='$pid
 }
 
 waitforpod() {

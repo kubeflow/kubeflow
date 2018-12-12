@@ -1,26 +1,26 @@
 name: kf-test
 appConfig:
   registries:
-    - name: kubeflow
-      repo: https://github.com/kubeflow/kubeflow.git
-      version: master
-      path: kubeflow
-      RegUri: /opt/registries/kubeflow/kubeflow
+  - name: kubeflow
+    repo: https://github.com/kubeflow/kubeflow.git
+    version: master
+    path: kubeflow
+    RegUri: /opt/registries/kubeflow/kubeflow
   packages:
-    - name: core
-      registry: kubeflow
-    - name: application
-      registry: kubeflow
+  - name: core
+    registry: kubeflow
+  - name: application
+    registry: kubeflow
   components:
-    - name: ambassador
-      prototype: ambassador
-    - name: centraldashboard
-      prototype: centraldashboard
-    - name: application
-      prototype: application
+  - name: ambassador
+    prototype: ambassador
+  - name: centraldashboard
+    prototype: centraldashboard
+  - name: application
+    prototype: application
   parameters:
-    - component: ambassador
-      name: ambassadorServiceType
-      value: LoadBalancer
+  - component: ambassador
+    name: ambassadorServiceType
+    value: LoadBalancer
   namespace: kubeflow
   autoConfigure: false
