@@ -105,7 +105,7 @@
               namespace: {{.NameSpace}}  
             spec:
               schedule: "*/1 * * * *"
-              successfulJobsHistoryLimit: 1
+              successfulJobsHistoryLimit: 0
               failedJobsHistoryLimit: 1
               jobTemplate:
                 spec:
@@ -183,6 +183,30 @@
             ],
             resources: [
               "studyjobs",
+            ],
+            verbs: [
+              "*",
+            ],
+          },
+          {
+            apiGroups: [
+              "kubeflow.org",
+            ],
+            resources: [
+              "tfjobs",
+            ],
+            verbs: [
+              "*",
+            ],
+          },
+          {
+            apiGroups: [
+              "",
+            ],
+            resources: [
+              "pods",
+              "pods/log",
+              "pods/status",
             ],
             verbs: [
               "*",
