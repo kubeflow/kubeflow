@@ -1,4 +1,4 @@
-FROM nvcr.io/nvidia/rapidsai/rapidsai:latest
+FROM nvcr.io/nvidia/rapidsai/rapidsai:cuda9.2_ubuntu16.04
 
 USER root
 
@@ -11,7 +11,9 @@ ENV HOME /home/$NB_USER
 # to minimize the amount of content in $HOME
 ENV CONDA_DIR=/conda
 ENV PATH $CONDA_DIR/bin:$PATH
-ENV PATH $CONDA_DIR/envs/gdf/bin:$PATH
+ENV PATH $CONDA_DIR/envs/rapids/bin:$PATH
+# anticipate a default GKE nvidia mount
+ENV PATH /usr/local/nvidia/bin:$PATH
 
 # Use bash instead of sh
 SHELL ["/bin/bash", "-c"]
@@ -43,9 +45,9 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
     apt-get update && \
     apt-get install -y google-cloud-sdk kubectl && \
     # Install to the existing RapidsAI conda env
-    source activate gdf && \
+    source activate rapids && \
     pip install --upgrade pip && \
-    pip --no-cache-dir install jupyterhub
+    pip --no-cache-dir install jupyterhub matplotlib
 
 # Install Tini - used as entrypoint for container
 RUN cd /tmp && \
@@ -73,6 +75,12 @@ ADD --chown=jovyan:users \
     /usr/local/bin/
 
 RUN chmod a+rx /usr/local/bin/*
+
+# HACK: GKE late-binding of NVIDIA driver mount
+# seems to leave us with a stale cache for the CUDA libs;
+# cudf librmm.so can't find libcuda* from LD_LIBRARY_PATH
+RUN chown -R ${NB_USER}:users /etc
+RUN sed -i '/JUPYTERHUB_API_TOKEN/i\ldconfig' /usr/local/bin/start-notebook.sh
 
 # Configure container startup
 EXPOSE 8888

@@ -22,13 +22,14 @@ the results
 
 Example invocation
 
-python python -m testing.test_jsonnet --test_files_dirs=/kubeflow/application/tests,/kubeflow/core/tests,/kubeflow/jupyter/tests,/kubeflow/iap/tests,/kubeflow/tensorboard/tests,/kubeflow/examples/tests,/kubeflow/metacontroller/tests,/kubeflow/profiles/tests,/kubeflow/tf-training/tests --artifacts_dir=/tmp/artifacts
+python python -m testing.test_jsonnet --test_files_dirs=/kubeflow/application/tests,/kubeflow/core/tests,/kubeflow/jupyter/tests,/kubeflow/iap/tests,/kubeflow/gcp/tests,/kubeflow/tensorboard/tests,/kubeflow/examples/tests,/kubeflow/metacontroller/tests,/kubeflow/profiles/tests,/kubeflow/tf-training/tests --artifacts_dir=/tmp/artifacts
 
 """
 
 from __future__ import print_function
 
 import logging
+import json
 import os
 
 import argparse
@@ -57,10 +58,39 @@ def run(test_files_dirs, jsonnet_path_args, test_case):
         if should_test(full_path):
           logging.info("Testing: %s", test_file)
           try:
-            util.run(['jsonnet', 'eval', full_path] + jsonnet_path_args, cwd=os.path.dirname(full_path))
+            output = util.run(
+              ['jsonnet', 'eval', full_path] + jsonnet_path_args,
+              cwd=os.path.dirname(full_path))
+            try:
+              parsed = json.loads(output)
+            except AttributeError:
+              logging.error(
+                "Output of jsonnet eval could not be parsed as json; "
+                "output: %s", output)
+              parsed = {}
+
+            if not hasattr(parsed, "get"):
+              # Legacy style tests emit true rather than a json object.
+              # Parsing the string as json converts it to a bool so we
+              # just use parsed as test_passed
+              # Old style tests actually use std.assert so jsonnet eval
+              # will actually return an error in the case the test didn't
+              # pass.
+              logging.warn(
+                "jsonnet test is using old style and not emitting an object. "
+                "Result was: %s. Output will be treated as a boolean", output)
+              test_passed = parsed
+            else:
+              test_passed = parsed.get("pass", false)
+
+            if not test_passed:
+              test_case.add_failure_info('{} test failed'.format(test_file))
+              logging.error('%s test failed. See Subprocess output for details.',
+                            test_file)
           except Exception as e:
             test_case.add_failure_info('{} test failed'.format(test_file))
-            logging.error('%s test failed. See Subprocess output for details.', test_file)
+            logging.error('%s test failed with exception %s. '
+                          'See Subprocess output for details.', e, test_file)
 
 
 def parse_args():
