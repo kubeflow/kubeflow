@@ -12,18 +12,18 @@ usage() {
 }
 
 cleanup() {
-  if [[ -n $portforwardcommand ]]; then
-    echo killing $portforwardcommand
-    pkill -f $portforwardcommand
+  if [[ -n $pid ]]; then
+    echo killing $pid
+    kill -9 $pid
   fi
 }
 trap cleanup EXIT
 
 portforward() {
   local pod=$1 namespace=$2 from_port=$3 to_port=$4 cmd
-  cmd='kubectl port-forward $pod ${from_port}:${to_port} --namespace=$namespace 2>&1>/dev/null &'
-  portforwardcommand="${cmd% 2>&1>/dev/null &}"
-  eval $cmd
+  kubectl port-forward $pod ${from_port}:${to_port} --namespace=$namespace 2>&1>/dev/null &
+  pid=$!
+  echo 'pid='$pid
 }
 
 waitforpod() {
@@ -47,6 +47,7 @@ waitforever() {
 }
 
 GCLOUD_PROJECT=${GCLOUD_PROJECT:-kubeflow-public-images}
+pid=''
 image=gcr.io/$GCLOUD_PROJECT/bootstrapper
 tag=latest
 port=2345

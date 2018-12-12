@@ -42,7 +42,7 @@ update:
 	hack/goget -p 2016 github.com/kubeflow/kubeflow/bootstrap
 
 build: update update-version fmt vet
-	GO111MODULE=on go build -gcflags 'all=-N -l' -a -o bin/kfctl main.go
+	GO111MODULE=on go build -gcflags 'all=-N -l' -o bin/kfctl main.go
 
 debug: build
 	@echo debugging $(IMG):$(TAG) using port $(PORT)

@@ -60,6 +60,10 @@ type KsPackage struct {
 	Registry string `json:"registry,omitempty"`
 }
 
+type ListPackages struct {
+	Packages []KsPackage
+}
+
 type KsParameter struct {
 	Component string `json:"component,omitempty"`
 	Name      string `json:"name,omitempty"`

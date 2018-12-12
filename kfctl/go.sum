@@ -165,6 +165,12 @@ github.com/kubeflow/kubeflow/bootstrap v0.0.0-20181211213511-38a1520d8f2f h1:lT9
 github.com/kubeflow/kubeflow/bootstrap v0.0.0-20181211213511-38a1520d8f2f/go.mod h1:d5h76LskBWXWT8p76gJOuXoj/xMmxCVTGlxxxOOC4K8=
 github.com/kubeflow/kubeflow/bootstrap v0.0.0-20181211224616-574bfa7b8246 h1:0Da0/FrMK0ah2ek6ArVGynhQlMwYfLcaGPgsCcS3bz8=
 github.com/kubeflow/kubeflow/bootstrap v0.0.0-20181211224616-574bfa7b8246/go.mod h1:d5h76LskBWXWT8p76gJOuXoj/xMmxCVTGlxxxOOC4K8=
+github.com/kubeflow/kubeflow/bootstrap v0.0.0-20181212030749-87bcdb7211d1 h1:DnrRIqsw2FgJLRiBciBisFYmjRv9yMFmZv7UAiKK94o=
+github.com/kubeflow/kubeflow/bootstrap v0.0.0-20181212030749-87bcdb7211d1/go.mod h1:d5h76LskBWXWT8p76gJOuXoj/xMmxCVTGlxxxOOC4K8=
+github.com/kubeflow/kubeflow/bootstrap v0.0.0-20181212035318-2377f23648b1 h1:zDoT4PL/0ElOhnnCQ2VLW663PXalTa55B6w2GQFNEEY=
+github.com/kubeflow/kubeflow/bootstrap v0.0.0-20181212035318-2377f23648b1/go.mod h1:d5h76LskBWXWT8p76gJOuXoj/xMmxCVTGlxxxOOC4K8=
+github.com/kubeflow/kubeflow/bootstrap v0.0.0-20181212062330-ae01f7c7024e h1:dJ4Q3C7da6qU8z3ykLYrxHEgTIXdqI6LZTWAzF/xjGU=
+github.com/kubeflow/kubeflow/bootstrap v0.0.0-20181212062330-ae01f7c7024e/go.mod h1:d5h76LskBWXWT8p76gJOuXoj/xMmxCVTGlxxxOOC4K8=
 github.com/magiconair/properties v1.8.0 h1:LLgXmsheXeRoUOBOjtwPQCWIYqM/LU1ayDtDePerRcY=
 github.com/magiconair/properties v1.8.0/go.mod h1:PppfXfuXeibc/6YijjN8zIbojt8czPbwD3XqdrwzmxQ=
 github.com/mailru/easyjson v0.0.0-20170624190925-2f5df55504eb h1:D5TlrOFWiDz5VIdPnkPwyIRIgStzH3wBBS7v1O1cfSY=
