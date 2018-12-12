@@ -32,6 +32,10 @@ var createCmd = &cobra.Command{
 	Short: "Send the yaml created from init to the backend server",
 	Long:  `Send the yaml created from init to the backend server`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if appFile == "" {
+			fmt.Print("file required")
+
+		}
 		var createRequest app.CreateRequest
 		data, err := ioutil.ReadFile(appFile)
 		if err != nil {
@@ -66,6 +70,6 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// createCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	createCmd.Flags().StringVar(&appFile, "file", "f", "Name of yaml file")
+	createCmd.Flags().StringVarP(&appFile, "file", "f", "", "Name of yaml file")
 
 }

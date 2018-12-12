@@ -46,5 +46,6 @@ pod=$(waitforpod)
 echo "Pod $pod is running. Setting up port-forward"
 portforward $pod $namespace $port $port
 echo "Type Ctrl^C to end to interrupt"
+echo $image --debug --url="http://localhost:${port}/" --token="$token" $command $args
 $image --debug --url="http://localhost:${port}/" --token="$token" $command $args
 

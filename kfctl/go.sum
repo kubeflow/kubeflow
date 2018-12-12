@@ -163,6 +163,8 @@ github.com/kubeflow/kubeflow/bootstrap v0.0.0-20181211211221-0a60f1d47fb3 h1:4Kn
 github.com/kubeflow/kubeflow/bootstrap v0.0.0-20181211211221-0a60f1d47fb3/go.mod h1:d5h76LskBWXWT8p76gJOuXoj/xMmxCVTGlxxxOOC4K8=
 github.com/kubeflow/kubeflow/bootstrap v0.0.0-20181211213511-38a1520d8f2f h1:lT9w0EOZV22Fxlcg/LUaJTXRIedDM4rasSACJ1tAv0g=
 github.com/kubeflow/kubeflow/bootstrap v0.0.0-20181211213511-38a1520d8f2f/go.mod h1:d5h76LskBWXWT8p76gJOuXoj/xMmxCVTGlxxxOOC4K8=
+github.com/kubeflow/kubeflow/bootstrap v0.0.0-20181211224616-574bfa7b8246 h1:0Da0/FrMK0ah2ek6ArVGynhQlMwYfLcaGPgsCcS3bz8=
+github.com/kubeflow/kubeflow/bootstrap v0.0.0-20181211224616-574bfa7b8246/go.mod h1:d5h76LskBWXWT8p76gJOuXoj/xMmxCVTGlxxxOOC4K8=
 github.com/magiconair/properties v1.8.0 h1:LLgXmsheXeRoUOBOjtwPQCWIYqM/LU1ayDtDePerRcY=
 github.com/magiconair/properties v1.8.0/go.mod h1:PppfXfuXeibc/6YijjN8zIbojt8czPbwD3XqdrwzmxQ=
 github.com/mailru/easyjson v0.0.0-20170624190925-2f5df55504eb h1:D5TlrOFWiDz5VIdPnkPwyIRIgStzH3wBBS7v1O1cfSY=
