@@ -160,7 +160,7 @@ type CreateRequest struct {
 	// Name for the app.
 	Name string `json:"name,omitempty"`
 	// AppConfig is the config for the app.
-	AppConfig AppConfig `json:"appConfig,omitempty"`
+	AppConfig AppConfig `json:"appconfig,omitempty"`
 
 	// Namespace for the app.
 	Namespace string `json:"namespace,omitempty"`
