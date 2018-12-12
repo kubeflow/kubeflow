@@ -48,8 +48,8 @@ std.assertEqual(
       name: "myname-v1",
     },
     spec: {
+      backoffLimit: 1,
       template: {
-        backoffLimit: 1,
         metadata: {
           labels: {
             app: "myname",
