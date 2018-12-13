@@ -2,7 +2,7 @@ module github.com/kubeflow/kubeflow/kfctl
 
 require (
 	github.com/ghodss/yaml v1.0.0
-	github.com/kubeflow/kubeflow/bootstrap v0.0.0-20181212232750-0057d06b8b22
+	github.com/kubeflow/kubeflow/bootstrap v0.0.0-20181213024836-3df80d06f0b2
 	github.com/mitchellh/go-homedir v1.0.0
 	github.com/spf13/cobra v0.0.0-20180228053838-6644d46b81fa
 	github.com/spf13/viper v1.3.1
