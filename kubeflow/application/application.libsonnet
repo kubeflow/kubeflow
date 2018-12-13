@@ -1,5 +1,5 @@
 {
-  // Implements [Kubernetes Application API draft-20180115](https://github.com/kow3ns/community/blob/8cb87419883197032f4e5cce8d5518c9c5792f6c/keps/sig-apps/0003-kubernetes-application-api.md)
+  // Implements [Kubernetes Application API 
   local k8s = import "k8s.libsonnet",
   local util = import "kubeflow/core/util.libsonnet",
   local crd = k8s.apiextensions.v1beta1.customResourceDefinition,
@@ -12,7 +12,6 @@
       emitCRD: util.toBool(_params.emitCRD),
     },
 
-    // see [API](https://github.com/kow3ns/community/blob/8cb87419883197032f4e5cce8d5518c9c5792f6c/keps/sig-apps/0003-kubernetes-application-api.md#api)
     local openApiV3Schema = {
       properties: {
         apiVersion: {
