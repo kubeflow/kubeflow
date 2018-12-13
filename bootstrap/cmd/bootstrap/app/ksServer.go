@@ -58,6 +58,8 @@ const CloudShellFolder = "kf_util"
 
 // KsService defines an interface for working with ksonnet.
 type KsService interface {
+	// AddModule adds a new ksModule
+	AddModule(context.Context, KsModule) error
 	// CreateApp creates a ksonnet application.
 	CreateApp(context.Context, CreateRequest, *deploymentmanager.Deployment) error
 	// Apply ksonnet app to target GKE cluster
@@ -901,6 +903,10 @@ func (s *ksServer) SaveAppToRepo(project string, email string, repoDir string) e
 	}, bo)
 }
 
+func (s *ksServer) AddModule(ctx context.Context, req KsModule) error {
+	return nil
+}
+
 func (s *ksServer) ListPackages(ctx context.Context, req KsRegistry) (*ListPackages, error) {
 	return nil, nil
 }
@@ -1070,6 +1076,15 @@ func makeCreateAppEndpoint(svc KsService) endpoint.Endpoint {
 	}
 }
 
+// add module
+func makeAddModuleEndpoint(svc KsService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(KsModule)
+		err := svc.AddModule(ctx, req)
+		return nil, err
+	}
+}
+
 // List ksonnet pkgs
 func makeListPkgEndpoint(svc KsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
@@ -1204,6 +1219,15 @@ func makeIamEndpoint(svc KsService) endpoint.Endpoint {
 	}
 }
 
+func decodeAddModuleRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	var request KsModule
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		deployReqCounter.WithLabelValues("INVALID_ARGUMENT").Inc()
+		return nil, err
+	}
+	return request, nil
+}
+
 func decodeCreateAppRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	var request CreateRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -1248,6 +1272,12 @@ func (s *ksServer) StartHttp(port int) {
 		log.Fatal("port must be > 0.")
 	}
 	// ctx := context.Background()
+
+	addModuleHandler := httptransport.NewServer(
+		makeAddModuleEndpoint(s),
+		decodeAddModuleRequest,
+		encodeResponse,
+	)
 
 	applyAppHandler := httptransport.NewServer(
 		makeApplyAppEndpoint(s),
@@ -1315,6 +1345,7 @@ func (s *ksServer) StartHttp(port int) {
 	// TODO: add deployment manager config generate / deploy handler here. So we'll have user's DM configs stored in
 	// k8s storage / github, instead of gone with browser tabs.
 	http.Handle("/", optionsHandler(healthzHandler))
+	http.Handle("/kfctl/apps/module/add", optionsHandler(addModuleHandler))
 	http.Handle("/kfctl/apps/apply", optionsHandler(applyAppHandler))
 	http.Handle("/kfctl/apps/create", optionsHandler(createAppHandler))
 	http.Handle("/kfctl/apps/pkg/list", optionsHandler(listPkgHandler))
