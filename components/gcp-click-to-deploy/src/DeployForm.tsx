@@ -168,10 +168,10 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           <label style={{ minHeight: 20 }} >Skip IAP</label>
         </Row>
         <Row style={{ minHeight: 0 }}>
-          <Input style={IapElementStyle(this.state.iap)} name="clientId" label="IAP Oauth Client ID" spellCheck={false} value={this.state.clientId} onChange={this._handleChange.bind(this)} />
+          <Input style={IapElementStyle(this.state.iap)} name="clientId" label="IAP Oauth Client ID" fullWidth={true} spellCheck={false} value={this.state.clientId} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row style={{ minHeight: 0 }}>
-          <Input style={IapElementStyle(this.state.iap)} name="clientSecret" label="IAP Oauth Client Secret" spellCheck={false} value={this.state.clientSecret} onChange={this._handleChange.bind(this)} />
+          <Input style={IapElementStyle(this.state.iap)} name="clientSecret" label="IAP Oauth Client Secret" fullWidth={true} spellCheck={false} value={this.state.clientSecret} onChange={this._handleChange.bind(this)} />
         </Row>
         <Row style={{ minHeight: 20}}>
           <Text style={{ fontSize: '1.1em', margin: '2% 11%' }}>GKE Zone: </Text>
