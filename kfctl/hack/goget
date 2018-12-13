@@ -13,7 +13,7 @@ gogetcommand() {
           pullid=$1
           shift
           path=$1
-          sha=$(git ls-remote -q upstream 'pull/'$pullid'/head' | awk '{print $1}')
+          sha=$(git ls-remote -q upstream refs/pull/${pullid}/head | awk '{print $1}')
           go get ${path}@$sha
           ;;
         -b | --branch)

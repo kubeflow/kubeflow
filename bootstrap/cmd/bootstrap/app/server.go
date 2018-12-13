@@ -54,6 +54,12 @@ type KsComponent struct {
 	Prototype string `json:"prototype"`
 }
 
+type KsModule struct {
+	Name       string         `json:"name"`
+	Components []*KsComponent `json:"components,omitempty"`
+	Modules    []*KsModule    `json:"modules,omitempty"`
+}
+
 type KsPackage struct {
 	Name string `json:"name,omitempty"`
 	// Registry should be the name of the registry containing the package.
