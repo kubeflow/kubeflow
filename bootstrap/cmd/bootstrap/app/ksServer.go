@@ -13,8 +13,6 @@ import (
 	"os/exec"
 	"time"
 
-	"bytes"
-	"github.com/cenkalti/backoff"
 	"github.com/go-kit/kit/endpoint"
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/ksonnet/ksonnet/pkg/actions"
@@ -26,9 +24,7 @@ import (
 	"github.com/spf13/afero"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
-	"google.golang.org/api/deploymentmanager/v2"
 	"google.golang.org/api/sourcerepo/v1"
-	"io/ioutil"
 	core_v1 "k8s.io/api/core/v1"
 	"k8s.io/api/rbac/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -37,8 +33,12 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-	"math/rand"
 	"strings"
+	"google.golang.org/api/deploymentmanager/v2"
+	"io/ioutil"
+	"math/rand"
+	"github.com/cenkalti/backoff"
+	"bytes"
 )
 
 // The name of the prototype for Jupyter.
@@ -66,14 +66,8 @@ type KsService interface {
 	BindRole(context.Context, string, string, string) error
 	InsertDeployment(context.Context, CreateRequest) (*deploymentmanager.Deployment, error)
 	GetDeploymentStatus(context.Context, CreateRequest) (string, error)
-	ListPackages(context.Context, KsRegistry) (*ListPackages, error)
 	ApplyIamPolicy(context.Context, ApplyIamRequest) error
 	GetProjectLock(string) *sync.Mutex
-
-	// kfctl client
-	// AddModule adds a new ksModule
-	AddModule(context.Context, KsModule) error
-	CreateApplication(context.Context, Application) error
 }
 
 // appInfo keeps track of information about apps.
@@ -164,33 +158,33 @@ func NewServer(appsDir string, registries []RegistryConfig, gkeVersionOverride s
 // CreateRequest represents a request to create a ksonnet application.
 type CreateRequest struct {
 	// Name for the app.
-	Name string `json:"name,omitempty"`
+	Name string
 	// AppConfig is the config for the app.
-	AppConfig AppConfig `json:"appconfig,omitempty"`
+	AppConfig AppConfig
 
 	// Namespace for the app.
-	Namespace string `json:"namespace,omitempty"`
+	Namespace string
 
 	// Whether to try to autoconfigure the app.
-	AutoConfigure bool `json:"autoConfigure,omitempty"`
+	AutoConfigure bool
 
 	// target GKE cLuster info
-	Cluster       string `json:"cluster,omitempty"`
-	Project       string `json:"project,omitempty"`
-	ProjectNumber string `json:"projectNumber,omitempty"`
-	Zone          string `json:"zone,omitempty"`
+	Cluster       string
+	Project       string
+	ProjectNumber string
+	Zone          string
 
 	// Access token, need to access target cluster in order for AutoConfigure
-	Token string `json:"token,omitempty"`
-	Apply bool   `json:"apply,omitempty"`
-	Email string `json:"email,omitempty"`
+	Token string
+	Apply bool
+	Email string
 	// temporary
-	ClientId     string `json:"clientId,omitempty"`
-	ClientSecret string `json:"clientSecret,omitempty"`
-	IpName       string `json:"ipName,omitempty"`
+	ClientId     string
+	ClientSecret string
+	IpName       string
 
 	// For test: GCP service account client id
-	SAClientId string `json:"saClientId,omitempty"`
+	SAClientId string
 }
 
 // basicServerResponse is general response contains nil if handler raise no error, otherwise an error message.
@@ -266,6 +260,7 @@ var (
 		Name: "kubeflow_deployments_done_raw",
 		Help: "Number of successfully finished Kubeflow deployments",
 	})
+
 
 	// latencies
 	clusterDeploymentLatencies = prometheus.NewHistogram(prometheus.HistogramOpts{
@@ -391,11 +386,11 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 
 		if err != nil {
 			options := map[string]interface{}{
-				actions.OptionFs:      s.fs,
-				actions.OptionName:    "app",
-				actions.OptionEnvName: envName,
-				actions.OptionAppRoot: appDir,
-				actions.OptionServer:  config.Host,
+				actions.OptionFs:       s.fs,
+				actions.OptionName:     "app",
+				actions.OptionEnvName:  envName,
+				actions.OptionRootPath: appDir,
+				actions.OptionServer:   config.Host,
 				// TODO(jlewi): What is the proper version to use? It shouldn't be a version like v1.9.0-gke as that
 				// will create an error because ksonnet will be unable to fetch a swagger spec.
 				actions.OptionSpecFlag:              "version:v1.10.6",
@@ -413,7 +408,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 			log.Infof("Directory %v exists", appDir)
 		}
 
-		kfApp, err := kApp.Load(s.fs, nil, appDir)
+		kfApp, err := kApp.Load(s.fs, appDir, true)
 
 		if err != nil {
 			log.Errorf("There was a problem loading app %v. Error: %v", request.Name, err)
@@ -545,7 +540,7 @@ func (s *ksServer) getRegistryUri(registry *RegistryConfig) (string, error) {
 			if err != nil {
 				return "", err
 			}
-			err = os.Rename(path.Join(registryPath, registry.Name+"-"+strings.Trim(registry.Version, "v")), versionPath)
+			err = os.Rename(path.Join(registryPath, registry.Name+"-" + strings.Trim(registry.Version, "v")), versionPath)
 			if err != nil {
 				log.Errorf("Error occrued during os.Rename. Error: %v", err)
 				return "", err
@@ -556,7 +551,7 @@ func (s *ksServer) getRegistryUri(registry *RegistryConfig) (string, error) {
 }
 
 func runCmd(rawcmd string) error {
-	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2*time.Second), 10)
+	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2 * time.Second), 10)
 	return backoff.Retry(func() error {
 		cmd := exec.Command("sh", "-c", rawcmd)
 		result, err := cmd.CombinedOutput()
@@ -565,11 +560,6 @@ func runCmd(rawcmd string) error {
 		}
 		return err
 	}, bo)
-}
-
-// CreateApp creates a ksonnet application based on the request.
-func (s *ksServer) CreateApplication(ctx context.Context, request Application) error {
-	return nil
 }
 
 // appGenerate installs packages and creates components.
@@ -605,6 +595,8 @@ func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *AppConfig) error {
 					if err != nil {
 						return fmt.Errorf("Package %v didn't exist in registry %v", pkgName, registry.RegUri)
 					}
+					full := fmt.Sprintf("%v/%v", registry.Name, pkgName)
+					log.Infof("Installing package %v", full)
 
 					if _, found := libs[pkgName]; found {
 						log.Infof("Package %v already exists", pkgName)
@@ -612,13 +604,13 @@ func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *AppConfig) error {
 					}
 					err := actions.RunPkgInstall(map[string]interface{}{
 						actions.OptionApp:     kfApp,
-						actions.OptionPkgName: pkgName,
-						actions.OptionName:    registry.Name,
+						actions.OptionLibName: full,
+						actions.OptionName:    pkgName,
 						actions.OptionForce:   false,
 					})
 
 					if err != nil {
-						return fmt.Errorf("There was a problem installing package %v; error %v", registry.Name, err)
+						return fmt.Errorf("There was a problem installing package %v; error %v", full, err)
 					}
 				}
 			}
@@ -636,7 +628,7 @@ func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *AppConfig) error {
 		}
 		err := actions.RunPkgInstall(map[string]interface{}{
 			actions.OptionApp:     kfApp,
-			actions.OptionPkgName: full,
+			actions.OptionLibName: full,
 			actions.OptionName:    pkg.Name,
 			actions.OptionForce:   false,
 		})
@@ -784,7 +776,7 @@ func (s *ksServer) CloneRepoToLocal(project string, token string) (string, error
 		AccessToken: token,
 	})
 	sourcerepoService, err := sourcerepo.New(oauth2.NewClient(context.Background(), ts))
-	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2*time.Second), 10)
+	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2 * time.Second), 10)
 	err = backoff.Retry(func() error {
 		_, err = sourcerepoService.Projects.Repos.Get(fmt.Sprintf("projects/%s/repos/%s", project, GetRepoName(project))).Do()
 		if err != nil {
@@ -823,7 +815,7 @@ func (s *ksServer) GetApp(project string, appName string, kfVersion string, toke
 	if err != nil {
 		return nil, repoDir, fmt.Errorf("App %s doesn't exist in Project %s", appName, project)
 	}
-	kfApp, err := kApp.Load(s.fs, nil, appDir)
+	kfApp, err := kApp.Load(s.fs, appDir, true)
 
 	if err != nil {
 		return nil, "", fmt.Errorf("There was a problem loading app %v. Error: %v", appName, err)
@@ -864,7 +856,7 @@ func UpdateCloudShellConfig(repoDir string, project string, appName string, kfVe
 	if err := os.MkdirAll(confDir, os.ModePerm); err != nil {
 		return err
 	}
-	for _, filename := range []string{"conn.sh", "conn.md"} {
+	for _, filename := range([]string{"conn.sh", "conn.md"}) {
 		data, err := ioutil.ReadFile(path.Join(CloudShellTemplatePath, filename))
 		if err != nil {
 			return err
@@ -898,7 +890,7 @@ func (s *ksServer) SaveAppToRepo(project string, email string, repoDir string) e
 			return err
 		}
 	}
-	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2*time.Second), 10)
+	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2 * time.Second), 10)
 	return backoff.Retry(func() error {
 		pushcmd := exec.Command("sh", "-c", "git push origin master")
 		result, err := pushcmd.CombinedOutput()
@@ -909,14 +901,6 @@ func (s *ksServer) SaveAppToRepo(project string, email string, repoDir string) e
 		}
 		return nil
 	}, bo)
-}
-
-func (s *ksServer) AddModule(ctx context.Context, req KsModule) error {
-	return nil
-}
-
-func (s *ksServer) ListPackages(ctx context.Context, req KsRegistry) (*ListPackages, error) {
-	return nil, nil
 }
 
 // Apply runs apply on a ksonnet application.
@@ -1005,7 +989,7 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 		actions.OptionGcTag:          "gc-tag",
 		actions.OptionSkipGc:         true,
 	}
-	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(5*time.Second), 6)
+	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(5 * time.Second), 6)
 	doneApply := make(map[string]bool)
 	err = backoff.Retry(func() error {
 		for _, comp := range req.Components {
@@ -1024,7 +1008,7 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 		if len(doneApply) == len(req.Components) {
 			return nil
 		}
-		return fmt.Errorf("%v failed components in last try", len(req.Components)-len(doneApply))
+		return fmt.Errorf("%v failed components in last try", len(req.Components) - len(doneApply))
 	}, bo)
 	if err != nil {
 		log.Errorf("Components apply failed; Error: %v", err)
@@ -1081,40 +1065,6 @@ func makeCreateAppEndpoint(svc KsService) endpoint.Endpoint {
 			}
 		}
 		return r, nil
-	}
-}
-
-// Create ksonnet app, and optionally apply it to target GKE cluster
-func makeCreateApplicationEndpoint(svc KsService) endpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(Application)
-		err := svc.CreateApplication(ctx, req)
-
-		r := &basicServerResponse{}
-
-		if err != nil {
-			r.Err = err.Error()
-		} else {
-		}
-		return r, nil
-	}
-}
-
-// add module
-func makeAddModuleEndpoint(svc KsService) endpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(KsModule)
-		err := svc.AddModule(ctx, req)
-		return nil, err
-	}
-}
-
-// List ksonnet pkgs
-func makeListPkgEndpoint(svc KsService) endpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(KsRegistry)
-		packages, err := svc.ListPackages(ctx, req)
-		return packages, err
 	}
 }
 
@@ -1243,35 +1193,8 @@ func makeIamEndpoint(svc KsService) endpoint.Endpoint {
 	}
 }
 
-func decodeAddModuleRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	var request KsModule
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		deployReqCounter.WithLabelValues("INVALID_ARGUMENT").Inc()
-		return nil, err
-	}
-	return request, nil
-}
-
 func decodeCreateAppRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	var request CreateRequest
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		deployReqCounter.WithLabelValues("INVALID_ARGUMENT").Inc()
-		return nil, err
-	}
-	return request, nil
-}
-
-func decodeCreateApplicationRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	var request Application
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		deployReqCounter.WithLabelValues("INVALID_ARGUMENT").Inc()
-		return nil, err
-	}
-	return request, nil
-}
-
-func decodeListPkgRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	var request KsRegistry
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		deployReqCounter.WithLabelValues("INVALID_ARGUMENT").Inc()
 		return nil, err
@@ -1306,12 +1229,6 @@ func (s *ksServer) StartHttp(port int) {
 	}
 	// ctx := context.Background()
 
-	addModuleHandler := httptransport.NewServer(
-		makeAddModuleEndpoint(s),
-		decodeAddModuleRequest,
-		encodeResponse,
-	)
-
 	applyAppHandler := httptransport.NewServer(
 		makeApplyAppEndpoint(s),
 		func(_ context.Context, r *http.Request) (interface{}, error) {
@@ -1328,18 +1245,6 @@ func (s *ksServer) StartHttp(port int) {
 	createAppHandler := httptransport.NewServer(
 		makeCreateAppEndpoint(s),
 		decodeCreateAppRequest,
-		encodeResponse,
-	)
-
-	createApplicationHandler := httptransport.NewServer(
-		makeCreateApplicationEndpoint(s),
-		decodeCreateApplicationRequest,
-		encodeResponse,
-	)
-
-	listPkgHandler := httptransport.NewServer(
-		makeListPkgEndpoint(s),
-		decodeListPkgRequest,
 		encodeResponse,
 	)
 
@@ -1389,10 +1294,6 @@ func (s *ksServer) StartHttp(port int) {
 	http.Handle("/kfctl/iam/apply", optionsHandler(applyIamHandler))
 	http.Handle("/kfctl/initProject", optionsHandler(initProjectHandler))
 	http.Handle("/kfctl/e2eDeploy", optionsHandler(deployHandler))
-	// kfctl client API
-	http.Handle("/kfctl/client/create", optionsHandler(createApplicationHandler))
-	http.Handle("/kfctl/client/module/add", optionsHandler(addModuleHandler))
-	http.Handle("/kfctl/client/pkg/list", optionsHandler(listPkgHandler))
 
 	// add an http handler for prometheus metrics
 	http.Handle("/metrics", promhttp.Handler())
