@@ -43,5 +43,5 @@ func init() {
 }
 
 func versionfunc(cmd *cobra.Command, args []string) {
-	fmt.Println("v20181207-4e7f4ed-198-gaeea303e-dirty-03e65e")
+	fmt.Println("v0.0.0")
 }
