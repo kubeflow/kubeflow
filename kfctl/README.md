@@ -46,7 +46,8 @@ The user modifies `<name>.yaml` to set the address of the bootstrapper service a
 additional components and/or parameters. The `<name>.yaml` will use a similar field structure as what 
 the UI uses in [kf_app.yaml](https://github.com/kubeflow/kubeflow/blob/master/components/gcp-click-to-deploy/manifest/kf_app.yaml). This type will have a golang definition that is a kubernetes kind within the group `app.kubeflow.org`. 
 
-```golang
+```go
+
 type Application struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty" 
@@ -95,7 +96,7 @@ kind: Application
 metadata:
   name: myapp
   namespace: kubeflow
-appaddress: # address of bootstrapper service
+appaddress: # REPLACE WITH ADDRESS OF BOOTSTRAPPER SERVICE
 defaultapp:
   components:
   - name: ambassador
