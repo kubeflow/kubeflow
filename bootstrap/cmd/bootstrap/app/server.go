@@ -106,9 +106,11 @@ type DefaultApp struct {
 }
 
 type Application struct {
-	metav1.TypeMeta `json:",inline"`
-	AppAddress      string     `json:"appaddress,omitempty"`
-	DefaultApp      DefaultApp `json:"defaultapp:omitempty"`
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
+
+	AppAddress string     `json:"appaddress,omitempty"`
+	DefaultApp DefaultApp `json:"defaultapp:omitempty"`
 }
 
 // RegistriesConfigFile corresponds to a YAML file specifying information

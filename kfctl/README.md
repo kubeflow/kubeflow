@@ -1,80 +1,110 @@
-# kfctl client
+# kfctl golang client
 
-## Types
+## Overview
 
-### Application
+The kfctl golang client will provide a CLI similar to kfctl.sh but will 
+address the following deficits in the current tool
+
+1. No longer require a local install of ks (ksonnet)
+2. No longer require knowledge of the ks CLI 
+3. Move subcommand execution to bootstrapper (similar to the UI gcp-click-to-deploy)
+
+## Usage
+
+### Requirements
+
+The initial version of kfctl will seek parity with kfctl.sh by implementing the following subcommands:
+- init            Initialize a kubeflow application.
+- generate        Generate the k8 manifests of the kubeflow application.
+- apply           Submit the k8 manifests to the api-server
+- delete          Delete the kubeflow application
+
+### Differences with kfctl.sh
+
+The init subcommand will create a `<name>.yaml` file that can be used as input to generate.
+The user is expected to modify this file to add additional components and/or parameters.
+The `<name>.yaml` will use a similar field structure as what the UI uses in [kf_app.yaml](https://github.com/kubeflow/kubeflow/blob/master/components/gcp-click-to-deploy/manifest/kf_app.yaml) but will 
+formalize this type within golang and kubernetes as a specific kind called Application 
+
 ```golang
 type Application struct {
-	metav1.TypeMeta `json:",inline"`
-	AppAddress string `json:"appaddress,omitempty"`
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
+
+	AppAddress string     `json:"appaddress,omitempty"`
 	DefaultApp DefaultApp `json:"defaultapp:omitempty"`
+}
+
+type DefaultApp struct {
+	Components []KsComponent `json:"components,omitempty"`
+	Parameters []KsParameter `json:"parameters,omitempty"`
+	Registries []KsRegistry  `json:"registries,omitempty"`
+}
+
+type KsComponent struct {
+	Name      string `json:"name"`
+	Prototype string `json:"prototype"`
+}
+
+type KsParameter struct {
+	Component string `json:"component,omitempty"`
+	Name      string `json:"name,omitempty"`
+	Value     string `json:"value:omitempty"`
+}
+
+type KsRegistry struct {
+	ApiVersion string
+	Kind       string
+	Libraries  map[string]LibrarySpec
 }
 ```
 
-### yaml file
+## Use cases
+
+### Initialize a kubeflow application
+
+```sh
+kfctl init myapp 
+```
+
+The generated `myapp.yaml` will contain the following:
+
 ```yaml
 apiVersion: app.kubeflow.org/v1alpha1
 kind: Application
 metadata:
   name: myapp
   namespace: kubeflow
-appAddress: https://35.203.163.54
-app:
-  env:
-    name: default
-    targets:
-    - core
-    - jupyter
-  modules:
-  - name: core
-    components:
-    - name: ambassador
-      prototype: ambassador
-    - name: centraldashboard
-      prototype: centraldashboard
+appaddress: # address of bootstrapper service
+defaultapp:
+  components:
+  - name: ambassador
+    prototype: ambassador
+  - name: centraldashboard
+    prototype: centraldashboard
   - name: jupyter
-    components:
-    - name: jupyter
-      prototype: jupyter
+    prototype: jupyter
   parameters:
-  - module: core
-    - component: ambassador
-      name: ambassadorServiceType
-      value: LoadBalancer
+  - component: ambassador
+    name: ambassadorServiceType
+    value: LoadBalancer
   registries:
   - name: kubeflow
+    repo: https://github.com/kubeflow/kubeflow
     version: github.com/kubeflow/kubeflow@v0.3.4
     path: kubeflow
 ```
 
-## usage
-```
-Usage:
-  kfctl [command]
+The user will then edit this file and provide the URL of the bootstrapper
 
-Available Commands:
-  add         Add a registry|pkg|module|component to the kubeflow application.
-  apply       Deploy a generated kubeflow application.
-  completion  Output shell completion code for the specified shell (bash or zsh).
-  create      Send the yaml created from init to the backend server
-  delete      Delete a kubeflow application.
-  generate    Generate a kubeflow application using <name>.yaml.
-  get         Get a kubeflow application's yaml definition.
-  help        Help about any command
-  init        Create a yaml file template that can be used to create a kubeflow application
-  list        List a kubeflow (application|pkg|module|component|parameter)s.
-  remove      Remove one or more (pkg|module|component)'s in a kubeflow application.
-  set         Apply one or more parameters to a component within a module in a kubeflow application.
-  show        Fetch all manifests in a kubeflow (application|module|component).
-  validate    Validate all manifests in a kubeflow (application|module|component).
-  version     Prints the version of kfctl.
+### Generate a kubeflow application
 
-Flags:
-  -c, --config string   config file (default is $HOME/.kfctl.yaml)
-  -h, --help            help for kfctl
-  -t, --token string    token used in auth header
-  -u, --url string      url where bootstrapper is running
-
-Use "kfctl [command] --help" for more information about a command.
+```sh
+kfctl generate -f myapp.yaml all
 ```
 
+### Deploy a kubeflow application
+
+```sh
+kfctl apply --name myapp all
+```
