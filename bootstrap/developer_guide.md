@@ -56,7 +56,8 @@ export GCLOUD_PROJECT=mygcloudproject
 make push
 ```
 
-#### `make debug` depends on `make push` and `make cleanup`
+#### `make debug` 
+Depends on `make push` and `make cleanup`
 1. deploys a Namespace, PersistentVolumeClaim and StatefulSet using $(IMG), $(TAG), $(PORT)
 2. waits for pod kubeflow-bootstrapper-0 to be in phase 'Running'
 3. runs "kubectl port-forward ..." in the background, opening port 2345 to the pod's container
@@ -68,14 +69,13 @@ The StatefulSet will create a pod and start the following process in the pod's k
 ```sh
 /opt/kubeflow/dlv.sh
 ```
-
 This script runs
 
 ```sh
-dlv --listen=:2345 --headless=true --api-version=2 exec /opt/kubeflow/bootstrapper -- --in-cluster --namespace=kubeflow --config=/opt/kubeflow/default.yaml --app-dir=/opt/bootstrap/default --registries-config-file=/opt/kubeflow/image_registries.yaml
+dlv --listen=:2345 --headless=true --api-version=2 exec /opt/kubeflow/bootstrapper -- --in-cluster --namespace=kubeflow
 ```
 
-[dlv](https://github.com/derekparker/delve) is a golang debugger that works with Intellij's IDE [Goland](https://www.jetbrains.com/go/)
+[dlv](https://github.com/derekparker/delve) is a golang debugger that works with JetBrain's [Goland](https://www.jetbrains.com/go/)
 
 In order to connect to the remote bootstrapper process, in goland add a "Go Remote" debug configuration like below
 ![bootstrapper](./bootstrapper.png)
