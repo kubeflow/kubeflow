@@ -7,21 +7,36 @@ address the following deficits in the current tool
 
 1. No longer require a local install of ks (ksonnet)
 2. No longer require knowledge of the ks CLI 
-3. Move subcommand execution to bootstrapper (similar to the UI gcp-click-to-deploy)
+3. Move execution of subcommands to bootstrapper (similar to the UI gcp-click-to-deploy)
 
 ## Usage
 
-### Requirements
-
 The initial version of kfctl will seek parity with kfctl.sh by implementing the following subcommands:
-- init            Initialize a kubeflow application.
-- generate        Generate the k8 manifests of the kubeflow application.
-- apply           Submit the k8 manifests to the api-server
-- delete          Delete the kubeflow application
+- `init`            Initialize a kubeflow application.
+- `generate`        Generate the k8 manifests of the kubeflow application.
+- `apply`           Submit the k8 manifests to the api-server
+- `delete`          Delete the kubeflow application
+
+kfctl.sh basic usage is as follows:
+
+```sh
+kfctl.sh init myapp --platform generatic
+cd myapp
+kfctl.sh generate all
+kfctl.sh apply all
+```
+
+kfctl (golang) basic usage is as follows:
+
+```sh
+kfctl init myapp 
+kfctl generate -f myapp.yaml all
+kfctl apply -n myapp all
+```
 
 ### Differences with kfctl.sh
 
-The init subcommand will create a `<name>.yaml` file that can be used as input to generate.
+The `init` subcommand will create a `<name>.yaml` file that can be used as input to generate.
 The user is expected to modify this file to add additional components and/or parameters.
 The `<name>.yaml` will use a similar field structure as what the UI uses in [kf_app.yaml](https://github.com/kubeflow/kubeflow/blob/master/components/gcp-click-to-deploy/manifest/kf_app.yaml) but will 
 formalize this type within golang and kubernetes as a specific kind called Application 
