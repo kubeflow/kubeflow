@@ -30,13 +30,13 @@ kfctl.sh generate all
 kfctl.sh apply all
 ```
 
-kfctl (golang) basic usage is similar:
+kfctl (golang) usage is similar:
 
 ```sh
 kfctl init myapp 
 # edit myapp.yaml to set the appAddress and optionally add components and/or parameters
-kfctl generate -f myapp.yaml all
-kfctl apply -n myapp all
+kfctl generate --file myapp.yaml all
+kfctl apply --name myapp all
 ```
 
 ### Differences with kfctl.sh
