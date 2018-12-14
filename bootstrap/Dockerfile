@@ -1,16 +1,5 @@
-# bootstrapper-builder contains the tool chain we need to build the image.
-# This primarily means glide.
-ARG GOLANG_VERSION=1.10.3
-ARG BUILDER_IMG=gcr.io/kubeflow-images-public/bootstrapper-builder
-ARG BUILDER_IMG_VERSION=latest
-FROM ${BUILDER_IMG}:${BUILDER_IMG_VERSION} AS build_base_remote
-# Copy the src
-COPY ./ $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap/
-
-RUN go build ${GOLANG_GCFLAGS} -i -o /opt/kubeflow/bootstrapper \
-    ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/main.go
-
-FROM golang:${GOLANG_VERSION} AS build
+ARG GOLANG_VERSION=1.11.2
+FROM golang:$GOLANG_VERSION as bootstrap_build
 
 # install vim 
 RUN apt-get update && apt-get install -y vim
@@ -31,22 +20,38 @@ RUN wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.ta
 RUN ln -sf /google-cloud-sdk/bin/gcloud /usr/local/bin/gcloud
 
 # Install kubectl
-# We don't install via gcloud because we want 1.10 which is newer than what's in gcloud.
-RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.10.0/bin/linux/amd64/kubectl && \
+# We don't install via gcloud because we want 1.12.2 which is newer than what's in gcloud.
+RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.12.2/bin/linux/amd64/kubectl && \
     mv kubectl /usr/local/bin && \
     chmod a+x /usr/local/bin/kubectl
 
+# bootstrap is using ksonnet 0.13.1
+RUN wget -q https://github.com/ksonnet/ksonnet/releases/download/v0.13.1/ks_0.13.1_linux_amd64.tar.gz && \
+    tar xzf ks_0.13.1_linux_amd64.tar.gz -C . && \
+    rm ks_0.13.1_linux_amd64.tar.gz && \
+    cp ks_0.13.1_linux_amd64/ks /usr/local/bin && \
+    rm -rf ks_0.13.1_linux_amd64
+
+RUN mkdir -p /opt/kubeflow
+RUN mkdir -p $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap
+WORKDIR $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap
+
+ENV PATH /go/bin:/usr/local/go/bin:$PATH
+# use go modules
+ENV GO111MODULE=on
+
+COPY go.mod .
+COPY go.sum .
+RUN go mod download
+
+FROM bootstrap_build as bootstrap
 ARG registries
+
 COPY $registries /opt/registries
+COPY . $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap
 
-# bootstrap is using ksonnet 0.12.0
-RUN wget -q https://github.com/ksonnet/ksonnet/releases/download/v0.12.0/ks_0.12.0_linux_amd64.tar.gz && \
-    tar xzf ks_0.12.0_linux_amd64.tar.gz -C . && \
-    rm ks_0.12.0_linux_amd64.tar.gz && \
-    cp ks_0.12.0_linux_amd64/ks /usr/local/bin && \
-    rm -rf ks_0.12.0_linux_amd64
-
-COPY --from=build_base_remote /opt/kubeflow/bootstrapper /opt/kubeflow/
+RUN go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
+RUN cp $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap/bin/bootstrapper /opt/kubeflow
 COPY start.sh /opt/kubeflow/
 COPY dlv.sh /opt/kubeflow/
 COPY config/default.yaml /opt/kubeflow/
@@ -69,4 +74,4 @@ ENV GROUP_ID 1000
 ENV GROUP kubeflow
 
 WORKDIR /opt/kubeflow
-CMD ["/opt/kubeflow/start.sh"]
+CMD ["/opt/kubeflow/bootstrapper","--namespace=kubeflow","--apply"]
