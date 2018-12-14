@@ -29,7 +29,6 @@ import (
 	"github.com/kubeflow/kubeflow/bootstrap/version"
 	log "github.com/sirupsen/logrus"
 	"k8s.io/api/storage/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sVersion "k8s.io/apimachinery/pkg/version"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -51,30 +50,20 @@ const GcloudPath = "gcloud"
 const RegistriesRoot = "/opt/registries"
 
 type KsComponent struct {
-	Name      string `json:"name"`
-	Prototype string `json:"prototype"`
-}
-
-type KsModule struct {
-	Name       string         `json:"name"`
-	Components []*KsComponent `json:"components,omitempty"`
-	Modules    []*KsModule    `json:"modules,omitempty"`
+	Name      string
+	Prototype string
 }
 
 type KsPackage struct {
-	Name string `json:"name,omitempty"`
+	Name string
 	// Registry should be the name of the registry containing the package.
-	Registry string `json:"registry,omitempty"`
-}
-
-type ListPackages struct {
-	Packages []KsPackage
+	Registry string
 }
 
 type KsParameter struct {
-	Component string `json:"component,omitempty"`
-	Name      string `json:"name,omitempty"`
-	Value     string `json:"value:omitempty"`
+	Component string
+	Name      string
+	Value     string
 }
 
 // RegistryConfig is used for two purposes:
@@ -85,30 +74,18 @@ type KsParameter struct {
 //  Additionally if any of required fields is blank we will try to map with one of
 //  the registries baked into the Docker image using the name.
 type RegistryConfig struct {
-	Name    string `json:"name,omitempty"`
-	Repo    string `json:"repo,omitempty"`
-	Version string `json:"version,omitempty"`
-	Path    string `json:"path,omitempty"`
-	RegUri  string `json:"reguri,omitempty"`
+	Name    string
+	Repo    string
+	Version string
+	Path    string
+	RegUri  string
 }
 
 type AppConfig struct {
-	Registries []RegistryConfig `json:"registries,omitempty"`
-	Packages   []KsPackage      `json:"packages,omitempty"`
-	Components []KsComponent    `json:"components,omitempty"`
-	Parameters []KsParameter    `json:"parameters,omitempty"`
-}
-
-type DefaultApp struct {
-	Components []KsComponent `json:"components,omitempty"`
-	Parameters []KsParameter `json:"parameters,omitempty"`
-	Registries []KsRegistry  `json:"registries,omitempty"`
-}
-
-type Application struct {
-	metav1.TypeMeta `json:",inline"`
-	AppAddress      string     `json:"appaddress,omitempty"`
-	DefaultApp      DefaultApp `json:"defaultapp:omitempty"`
+	Registries []RegistryConfig
+	Packages   []KsPackage
+	Components []KsComponent
+	Parameters []KsParameter
 }
 
 // RegistriesConfigFile corresponds to a YAML file specifying information
