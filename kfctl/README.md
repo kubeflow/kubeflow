@@ -7,7 +7,11 @@ address the following deficits in the current tool
 
 1. No longer require a local install of ks (ksonnet)
 2. No longer require knowledge of the ks CLI 
-3. Move execution of subcommands to bootstrapper (similar to the UI gcp-click-to-deploy)
+3. No longer save a ksonnet application to the client's filesystem
+4. Work in a similar way as the kubeflow UI gcp-click-to-deploy
+  - Execution of subcommands are done on bootstrapper.
+  - A local <kf_app>.yaml defines a kubeflow application. 
+  - This yaml file is submitted to the bootstrapper.
 
 ## Usage
 
