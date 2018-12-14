@@ -41,15 +41,15 @@ kfctl apply -n myapp all
 
 ### Differences with kfctl.sh
 
-The `init` subcommand will create a `<name>.yaml` file that can be used as input to generate.
-The user is expected to modify this file to add additional components and/or parameters.
-The `<name>.yaml` will use a similar field structure as what the UI uses in [kf_app.yaml](https://github.com/kubeflow/kubeflow/blob/master/components/gcp-click-to-deploy/manifest/kf_app.yaml) but will 
-formalize this type within golang and kubernetes as a specific kind called Application 
+The `init` subcommand will create a `<name>.yaml` file that is used as input to the `generate` subcommand.
+The user modifies `<name>.yaml` to set the address of the bootstrapper service and optionally add 
+additional components and/or parameters. The `<name>.yaml` will use a similar field structure as what 
+the UI uses in [kf_app.yaml](https://github.com/kubeflow/kubeflow/blob/master/components/gcp-click-to-deploy/manifest/kf_app.yaml). This type will have a golang definition that is a kubernetes kind within the group `app.kubeflow.org`. 
 
 ```golang
 type Application struct {
 	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
+	metav1.ObjectMeta `json:"metadata,omitempty" 
 
 	AppAddress string     `json:"appaddress,omitempty"`
 	DefaultApp DefaultApp `json:"defaultapp:omitempty"`
