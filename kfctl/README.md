@@ -21,7 +21,7 @@ The initial version of kfctl will seek parity with kfctl.sh by implementing the 
 - `apply`           Submit the k8 manifests to the api-server
 - `delete`          Delete the kubeflow application
 
-The existing basic usage of kfctl.sh is as follows:
+The current usage of `kfctl.sh` is as follows:
 
 ```sh
 kfctl.sh init myapp --platform generatic
