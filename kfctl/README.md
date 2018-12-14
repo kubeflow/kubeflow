@@ -129,3 +129,8 @@ kfctl generate -f myapp.yaml all
 ```sh
 kfctl apply --name myapp all
 ```
+
+
+## kfctl, bootstrapper operations
+
+TBD
