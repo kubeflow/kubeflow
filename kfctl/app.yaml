@@ -1,26 +1,27 @@
-name: kf-test
-appconfig:
+appAddress: https://35.203.163.54
+app:
+  env:
+    name: default
+    targets:
+    - core
+    - jupyter
+  modules:
+  - name: core
+    components:
+    - name: ambassador
+      prototype: ambassador
+    - name: centraldashboard
+      prototype: centraldashboard
+  - name: jupyter
+    components:
+    - name: jupyter
+      prototype: jupyter
+  parameters:
+  - module: core
+    - component: ambassador
+      name: ambassadorServiceType
+      value: LoadBalancer
   registries:
   - name: kubeflow
-    repo: https://github.com/kubeflow/kubeflow.git
-    version: master
+    version: github.com/kubeflow/kubeflow@v0.3.4
     path: kubeflow
-    reguri: /opt/registries/kubeflow/kubeflow
-  packages:
-  - name: core
-    registry: kubeflow
-  - name: application
-    registry: kubeflow
-  components:
-  - name: ambassador
-    prototype: ambassador
-  - name: centraldashboard
-    prototype: centraldashboard
-  - name: application
-    prototype: application
-  parameters:
-  - component: ambassador
-    name: ambassadorServiceType
-    value: LoadBalancer
-namespace: kubeflow
-autoConfigure: false

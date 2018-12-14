@@ -33,6 +33,36 @@ var url string
 var debug bool
 var kubeconfig *string
 var KfConfig *rest.Config
+var appFile string
+var appName string
+var appYamlTemplate = []byte(
+	`appAddress: https://35.203.163.54\n
+app:\n
+  env:\n
+    name: default\n
+    targets:\n
+    - core\n
+    - jupyter\n
+  modules:\n
+  - name: core\n
+    components:\n
+    - name: ambassador\n
+      prototype: ambassador\n
+    - name: centraldashboard\n
+      prototype: centraldashboard\n
+  - name: jupyter\n
+    components:\n
+    - name: jupyter\n
+      prototype: jupyter\n
+  parameters:\n
+  - module: core\n
+    - component: ambassador\n
+      name: ambassadorServiceType\n
+      value: LoadBalancer\n
+  registries:\n
+  - name: kubeflow\n
+    version: github.com/kubeflow/kubeflow@v0.3.4\n
+    path: kubeflow\n`)
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
