@@ -11,9 +11,9 @@ ln -sf ${GIT_KUBEFLOW} ${GOPATH}/src/github.com/kubeflow/kubeflow
 
 * GIT_KUBEFLOW should be the location where you checked out https://github.com/kubeflow/kubeflow
 
-### prerequisites
+### Prerequisites
 
-Upgrade golang to 1.11.2
+golang to 1.11.2
 
 ```sh
 $ ☞  go version
