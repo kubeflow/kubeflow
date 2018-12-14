@@ -7,11 +7,11 @@ address the following deficits in the current tool
 
 1. No longer require a local install of ks (ksonnet)
 2. No longer require knowledge of the ks CLI 
-3. No longer save a ksonnet application to the client's filesystem
-4. Work in a similar way as the kubeflow UI gcp-click-to-deploy
-  - Execution of subcommands are done on bootstrapper.
-  - A local <kf_app>.yaml defines a kubeflow application. 
-  - This yaml file is submitted to the bootstrapper.
+3. No longer save a ksonnet application to the user's filesystem
+4. Work in a similar way as the kubeflow UI [gcp-click-to-deploy](https://github.com/kubeflow/kubeflow/tree/master/components/gcp-click-to-deploy):
+  - Execution of subcommands `init`, `generate`, `apply` and `delete` are done by the bootstrapper.
+  - A local `<kf_app>.yaml` defines a kubeflow application. 
+  - This yaml file is submitted to the bootstrapper which will then generate the ksonnet application.
 
 ## Usage
 
@@ -21,7 +21,7 @@ The initial version of kfctl will seek parity with kfctl.sh by implementing the 
 - `apply`           Submit the k8 manifests to the api-server
 - `delete`          Delete the kubeflow application
 
-kfctl.sh basic usage is as follows:
+The existing basic usage of kfctl.sh is as follows:
 
 ```sh
 kfctl.sh init myapp --platform generatic
@@ -30,10 +30,11 @@ kfctl.sh generate all
 kfctl.sh apply all
 ```
 
-kfctl (golang) basic usage is as follows:
+kfctl (golang) basic usage is similar:
 
 ```sh
 kfctl init myapp 
+# edit myapp.yaml to set the appAddress and optionally add components and/or parameters
 kfctl generate -f myapp.yaml all
 kfctl apply -n myapp all
 ```
