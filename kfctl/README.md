@@ -87,7 +87,7 @@ type KsRegistry struct {
 kfctl init myapp 
 ```
 
-The generated `myapp.yaml` will contain the following:
+The contents of the generated `myapp.yaml` are below:
 
 ```yaml
 apiVersion: app.kubeflow.org/v1alpha1
