@@ -27,11 +27,16 @@ spawnerFormDefaults:
       - gcr.io/kubeflow-images-public/tensorflow-1.9.0-notebook-gpu:v0.3.1
       - gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu:v0.3.1
       - gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-gpu:v0.3.1
+    # By default, custom container Images are allowed
+    # Uncomment the following line to only enable standard container Images
+    #readOnly: true
   cpu:
     value: '1.0'
   memory:
     value: 1.0Gi
   workspaceVolume:
+    # Each Workspace Volume is declared with the following attributes:
+    # Type, RokURL, Name, Size and MountPath
     value:
       type:
         value: New
@@ -46,5 +51,24 @@ spawnerFormDefaults:
         value: /home/jovyan
   dataVolumes:
     value: []
+    # Each Data Volume is declared with the following attributes:
+    # Type, RokURL, Name, Size and MountPath
+    #
+    # For example, a list with a single Data Volume
+    #value:
+    #  - value:
+    #      type:
+    #        value: New
+    #      rokURL:
+    #        value: ''
+    #      name:
+    #        value: {username}{servername}-vol-1
+    #      size:
+    #        value: '10'
+    #      mountPath:
+    #        value: /home/jovyan/{username}{servername}-vol-1
+    #
+    # Uncomment the following line to make the Data Volumes list readonly
+    #readOnly: true
   extraResources:
     value: "{{}}"
