@@ -16,6 +16,7 @@ package main
 
 import (
 	"flag"
+
 	"github.com/onrik/logrus/filename"
 	log "github.com/sirupsen/logrus"
 
