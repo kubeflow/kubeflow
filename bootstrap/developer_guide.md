@@ -26,10 +26,12 @@ On mac osx you can run
 brew upgrade golang
 ```
 
-golang-1.11.2 creates go.mod, go.sum files which include dependencies.
-To install new dependencies use `go get <dependency>`. It also no longer creates a vendor directory.
+golang-1.11.2 uses go.mod, go.sum files which include dependencies.
+To install a new dependency use `go get <dependency>`. 
+golang-1.11.2 no longer creates a vendor directory.
+You should add the environment variable `GO111MODULE=on` to your shell init file
 
-### Important Makefile targets
+### Makefile targets
 
 ```
 build             debug             push              
@@ -40,14 +42,14 @@ cleanup
 #### `make build-local`
 Creates bin/bootstrapper with full debug information
 
-#### `make build` depends on `make build-local`
-Creates a docker image gcr.io/$(GCLOUD_PROJECT)/bootstrapper:$(TAG)
+#### `make build` 
+Depends on `make build-local`. Creates a docker image gcr.io/$(GCLOUD_PROJECT)/bootstrapper:$(TAG)
 
-#### `make push` depends on `make build`
-Pushes the docker image gcr.io/$(GCLOUD_PROJECT)/bootstrapper:$(TAG)
+#### `make push` 
+Depends on `make build`. Pushes the docker image gcr.io/$(GCLOUD_PROJECT)/bootstrapper:$(TAG)
 
-#### `make push-latest` depends on `make push`
-Tags the docker image gcr.io/$(GCLOUD_PROJECT)/bootstrapper:$(TAG) with latest
+#### `make push-latest` 
+Depends on `make push`. Tags the docker image gcr.io/$(GCLOUD_PROJECT)/bootstrapper:$(TAG) with latest.
 Note: To use a different gcloud project than kubeflow-images-public. 
 ```sh
 export GCLOUD_PROJECT=mygcloudproject 
