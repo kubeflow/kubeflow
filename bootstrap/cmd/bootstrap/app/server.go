@@ -29,6 +29,7 @@ import (
 	"github.com/kubeflow/kubeflow/bootstrap/version"
 	log "github.com/sirupsen/logrus"
 	"k8s.io/api/storage/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sVersion "k8s.io/apimachinery/pkg/version"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -96,6 +97,18 @@ type AppConfig struct {
 	Packages   []KsPackage      `json:"packages,omitempty"`
 	Components []KsComponent    `json:"components,omitempty"`
 	Parameters []KsParameter    `json:"parameters,omitempty"`
+}
+
+type DefaultApp struct {
+	Components []KsComponent `json:"components,omitempty"`
+	Parameters []KsParameter `json:"parameters,omitempty"`
+	Registries []KsRegistry  `json:"registries,omitempty"`
+}
+
+type Application struct {
+	metav1.TypeMeta `json:",inline"`
+	AppAddress      string     `json:"appaddress,omitempty"`
+	DefaultApp      DefaultApp `json:"defaultapp:omitempty"`
 }
 
 // RegistriesConfigFile corresponds to a YAML file specifying information
