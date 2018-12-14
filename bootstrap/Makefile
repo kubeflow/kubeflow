@@ -73,5 +73,4 @@ debug-latest: debug
 	@./debug.sh $(IMG) latest $(PORT)
 
 cleanup:
-	@echo Removing kubeflow-admin namespace
-	@kubectl delete ns kubeflow-admin
+	@./cleanup.sh kubeflow-admin
