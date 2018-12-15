@@ -1,18 +1,30 @@
-# issue list
+# issues to be opened
 
 
 ## Refactor bootstrap subdirectories to match best practices for kubernetes tooling
 
+Tooling includes 
+
+```
+client-gen
+conversion-gen
+deepcopy-gen
+defaulter-gen
+informer-gen
+lister-gen
+openapi-gen
+```
+
 - source tree should look like
 
-    ```
+```
 Dockerfile	PROJECT		bin		config		go.mod		hack
 Makefile	README.md	cmd		docs		go.sum		pkg
-    ```
+```
 
-    where subdirs are
+where subdirs are
 
-    ```
+```
 bootstrap/cmd
 bootstrap/cmd/bootstrap/app
 bootstrap/cmd/bootstrap/app/options
@@ -33,10 +45,22 @@ bootstrap/pkg/client/kfapi/scheme
 bootstrap/pkg/client/kfapi/typed
 bootstrap/pkg/client/kfapi/typed/app
 bootstrap/pkg/client/kfapi/typed/app/v1alpha1
-    ```
+```
 
 ## kfctl should use the generated client under bootstrap/pkg/client/kfapi
 
-## kfctl, bootstrap migration to modules
+## Add bootstrap REST entry points for kfctl generate, apply
 
-## bootstrap integration with a kubeflow controller
+There may be a way to do this so the client generation tool picks up the entry point from swagger
+
+## kfctl, bootstrap, gcp-click-to-deploy migration to modules
+
+Provide a document describing the advantages of modules
+
+## bootstrap integration with a kubeflow controller that manages changes to applications.app.kubeflow.org
+
+## bootstrap kfctl migration to use kubeless
+
+## conformance to k8 KEPs
+- [portable service definitions](https://github.com/kubernetes/enhancements/blob/master/keps/sig-apps/0032-portable-service-definitions.md)
+
