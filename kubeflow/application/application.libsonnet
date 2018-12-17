@@ -12,100 +12,6 @@
       emitCRD: util.toBool(_params.emitCRD),
     },
 
-    local openApiV3Schema = {
-      properties: {
-        apiVersion: {
-          type: "string",
-        },
-        kind: {
-          type: "string",
-        },
-        metadata: {
-          type: "object",
-        },
-        spec: {
-          type: "object",
-          properties: {
-            type: {
-              type: "string",
-            },
-            components: {
-              type: "array",
-              items: {
-                type: "object",
-              },
-            },
-            dependencies: {
-              type: "array",
-              items: {
-                type: "string",
-              },
-            },
-            selector: {
-              type: "object",
-            },
-            healthCheck: {
-              type: "string",
-            },
-            version: {
-              type: "string",
-            },
-            description: {
-              type: "string",
-            },
-            maintainers: {
-              type: "array",
-              items: {
-                type: "string",
-              },
-            },
-            owners: {
-              type: "array",
-              items: {
-                type: "string",
-              },
-            },
-            keywords: {
-              type: "array",
-              items: {
-                type: "string",
-              },
-            },
-            links: {
-              type: "array",
-              items: {
-                type: "object",
-              },
-            },
-            info: {
-              type: "array",
-              items: {
-                type: "object",
-              },
-            },
-          },
-        },
-        status: {
-          properties: {
-            observedGeneration: {
-              type: "string",
-              format: "int64",
-            },
-            installed: {
-              items: {
-                type: "string",
-              },
-              type: "array",
-            },
-            ready: {
-              type: "string",
-            },
-          },
-          type: "object",
-        },
-      },
-    },
-
     local applicationCRD = {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
@@ -125,7 +31,7 @@
           kind: "Application",
         },
         validation: {
-          openAPIV3Schema: openApiV3Schema,
+          openAPIV3Schema: (import "application.schema"),
         },
       },
     },
@@ -143,22 +49,25 @@
         namespace: params.namespace,
       },
       spec: {
-        type: params.type,
-        components+: std.map(byComponent, tuples),
-        dependencies: [],
         selector: {
           matchLabels: {
             "app.kubernetes.io/name": params.name,
           },
         },
-        healthCheck: "",
-        version: params.version,
-        description: "",
-        maintainers: [],
-        owners: [],
-        keywords: [],
-        links: [],
+        componentKinds+: std.map(byComponent, tuples),
+        descriptor: {
+          type: params.type,
+          version: params.version,
+          description: "",
+          icons: [],
+          maintainers: [],
+          owners: [],
+          keywords: [],
+          links: [],
+          notes: "",
+        },
         info: [],
+        assemblyPhase: "Succeeded",
       },
     },
     application:: application,
@@ -245,13 +154,163 @@
           params.components,
     }.return,
 
-    local tuples = std.flattenArrays(std.map(perComponent, getComponents)),
+    local groupByName(resources) = {
+      [resource.name]+: resource
+      for resource in resources
+    },
+
+    local groupByResource(tuples) = {
+      local getKey(wrapper) = {
+        local tuple = wrapper.tuple,
+        local resource = tuple[2],
+        return::
+          resource.kind + "." + resource.apiVersion,
+      }.return,
+      local getValue(wrapper) = {
+        local tuple = wrapper.tuple,
+        return::
+          { [tuple[0].name]+: tuple[2] },
+      }.return,
+      return:: util.foldl(getKey, getValue, tuples),
+    }.return,
+
+    local tuples = std.flattenArrays(std.map(perComponent, getComponents)) + 
+      [ generateComponentTuples(self.applicationController) ],
     local components = std.map(byResource, tuples),
+    local resources = groupByResource(tuples),
+
+    local applicationConfigMap = {
+      apiVersion: "v1",
+      kind: "ConfigMap",
+      metadata: {
+        name: "application-controller-hooks",
+        namespace: params.namespace,
+      },
+      data: {
+        "sync-application.jsonnet": importstr "sync-application.jsonnet",
+        "util.libsonnet": importstr "kubeflow/core/util.libsonnet",
+      },
+    },
+    applicationConfigMap:: applicationConfigMap,
+
+    local applicationDeployment = {
+      apiVersion: "apps/v1beta1",
+      kind: "Deployment",
+      metadata: {
+        name: "application-controller",
+        namespace: params.namespace,
+      },
+      spec: {
+        selector: {
+          matchLabels: {
+            app: "application-controller",
+          },
+        },
+        template: {
+          metadata: {
+            labels: {
+              app: "application-controller",
+            },
+          },
+          spec: {
+            containers: [
+              {
+                name: "hooks",
+                image: "metacontroller/jsonnetd:0.1",
+                imagePullPolicy: "Always",
+                workingDir: "/opt/isolation/operator/hooks",
+                volumeMounts: [
+                  {
+                    name: "hooks",
+                    mountPath: "/opt/isolation/operator/hooks",
+                  },
+                ],
+              },
+            ],
+            volumes: [
+              {
+                name: "hooks",
+                configMap: {
+                  name: "application-controller-hooks",
+                },
+              },
+            ],
+          },
+        },
+      },
+    },
+    applicationDeployment:: applicationDeployment,
+
+    local applicationService = {
+      apiVersion: "v1",
+      kind: "Service",
+      metadata: {
+        name: "application-controller",
+        namespace: params.namespace,
+      },
+      spec: {
+        selector: {
+          app: "application-controller",
+        },
+        ports: [
+          {
+            port: 80,
+            targetPort: 8080,
+          },
+        ],
+      },
+    },
+    applicationService:: applicationService,
+
+    local forChildResources(wrapper) = {
+      local tuple = wrapper.tuple,
+      local resource = tuple[2],
+      local childResource = {
+        apiVersion: resource.apiVersion,
+        resource: util.lower(resource.kind) + "s",
+      },
+      return:: childResource,
+    }.return,
+
+    local applicationController = {
+      apiVersion: "metacontroller.k8s.io/v1alpha1",
+      kind: "CompositeController",
+      metadata: {
+        name: "application-controller",
+        annotations: {
+          resources: resources,
+          components: components,
+        },
+      },
+      spec: {
+        generateSelector: true,
+        parentResource: {
+          apiVersion: "app.k8s.io/v1beta1",
+          resource: "applications",
+        },
+        local getKey(resource) = resource.resource + "." + resource.apiVersion,
+        local getValue(resource) = resource,
+        local childResources = std.map(forChildResources, tuples),
+        local childResourcesMap = util.foldl(getKey, getValue, childResources),
+        childResources: [childResourcesMap[key] for key in std.objectFields(childResourcesMap)],
+        hooks: {
+          sync: {
+            webhook: {
+              url: "http://application-controller." + params.namespace + "/sync-application",
+            },
+          },
+        },
+      },
+    },
+    applicationController:: applicationController,
 
     parts:: self,
     all:: [
       if params.emitCRD then
         self.applicationCRD,
+      self.applicationConfigMap,
+      self.applicationDeployment,
+      self.applicationService,
       self.application,
     ],
 
