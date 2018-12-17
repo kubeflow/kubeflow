@@ -76,8 +76,9 @@ resources:
       ipAllocationPolicy:
         createSubnetwork: true
         useIpAliases: true
-      masterIpv4CidrBlock: {{ properties['securityConfig']['masterIpv4CidrBlock'] }}
-      privateCluster: true
+      privateClusterConfig:
+        masterIpv4CidrBlock: {{ properties['securityConfig']['masterIpv4CidrBlock'] }}
+        enablePrivateNodes: true
       masterAuthorizedNetworksConfig:
         enabled: {{ properties['securityConfig']['masterAuthorizedNetworksConfigEnabled'] }}
         {% if properties['securityConfig']['masterAuthorizedNetworksConfigEnabled'] %}
