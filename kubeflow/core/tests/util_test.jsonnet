@@ -1,9 +1,5 @@
 local util = import "../util.libsonnet";
 
-std.assertEqual(util.upper("True"), "TRUE") &&
-std.assertEqual(util.upper("TrUe"), "TRUE") &&
-std.assertEqual(util.upper("true"), "TRUE") &&
-std.assertEqual(util.upper("TRUE"), "TRUE") &&
 std.assertEqual(util.lower("aTruez"), "atruez") &&
 std.assertEqual(util.lower("ATrUez"), "atruez") &&
 std.assertEqual(util.lower("atruez"), "atruez") &&
@@ -25,8 +21,6 @@ std.assertEqual(util.toArray("ca, or,fl, mo"), ["ca", "or", "fl", "mo"]) &&
 std.assertEqual(std.length(util.toArray(2)), 0) &&
 std.assertEqual(std.length(util.toArray("hello world")), 1) &&
 std.assertEqual(std.length(util.toArray([1, 2, 3, 4])), 0) &&
-std.assertEqual(util.isUpper(std.substr("Hi", 0, 1)), true) &&
-std.assertEqual(util.isUpper(std.substr("lo", 0, 1)), false) &&
 std.assertEqual(util.sort(["Craydad", "CCall", "crayon"]), ["CCall", "Craydad", "crayon"]) &&
 std.assertEqual(
   {
