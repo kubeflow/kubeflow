@@ -2,7 +2,7 @@ local profiles = import "kubeflow/profiles/profiles.libsonnet";
 
 local params = {
   name: "profiles",
-  image: "metacontroller/jsonnetd@latest",
+  image: "metacontroller/jsonnetd@sha256:25c25f217ad030a0f67e37078c33194785b494569b0c088d8df4f00da8fd15a0",
 };
 local env = {
   namespace: "kf-001",
@@ -282,7 +282,7 @@ std.assertEqual(
         spec: {
           containers: [
             {
-              image: "metacontroller/jsonnetd@latest",
+              image: "metacontroller/jsonnetd@sha256:25c25f217ad030a0f67e37078c33194785b494569b0c088d8df4f00da8fd15a0",
               imagePullPolicy: "Always",
               name: "hooks",
               volumeMounts: [
@@ -350,7 +350,7 @@ std.assertEqual(
     kind: "CompositeController",
     metadata: {
       annotations: {
-        image: "metacontroller/jsonnetd@latest",
+        image: "metacontroller/jsonnetd@sha256:25c25f217ad030a0f67e37078c33194785b494569b0c088d8df4f00da8fd15a0",
         name: "profiles",
         namespace: "kf-001",
       },
