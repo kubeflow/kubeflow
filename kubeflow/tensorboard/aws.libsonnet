@@ -37,10 +37,6 @@
               value: params.s3AwsRegion,
             },
             {
-              name: "S3_REGION",
-              value: params.s3AwsRegion,
-            },
-            {
               name: "S3_USE_HTTPS",
               value: params.s3UseHttps,
             },
