@@ -47,7 +47,7 @@ CLUSTER=kubeflow-testing
 NAMESPACE=kubeflow-test-infra
 ```
 
-After starting `kubectl proxy` on `127.0.0.1:8001`, you can connect to the argo UI via the local proxy at
+After starting `kubectl proxy` on `127.0.0.1:8001`, you can connect to the Argo UI via the local proxy at
 
 ```
 http://127.0.0.1:8001/api/v1/proxy/namespaces/kubeflow-test-infra/services/argo-ui:80/
@@ -169,7 +169,7 @@ ks pkg install kubeflow/core
 Then change the server ip in `test-infra/environments/prow/spec.json` to
 point to your cluster.
 
-You can deploy argo as follows (you don't need to use argo's CLI)
+You can deploy Argo as follows (you don't need to use Argo's CLI)
 
 ```
 ks apply prow -c argo
