@@ -1,7 +1,7 @@
 {
   // Implements [Kubernetes Application API draft-20180115](https://github.com/kow3ns/community/blob/8cb87419883197032f4e5cce8d5518c9c5792f6c/keps/sig-apps/0003-kubernetes-application-api.md)
   local k8s = import "k8s.libsonnet",
-  local util = import "kubeflow/core/util.libsonnet",
+  local util = import "kubeflow/common/util.libsonnet",
   local crd = k8s.apiextensions.v1beta1.customResourceDefinition,
 
   new(_env, _params):: {

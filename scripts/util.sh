@@ -59,7 +59,7 @@ createKsApp() {
   # Install all required packages
   ks pkg install kubeflow/argo
   ks pkg install kubeflow/pipeline
-  ks pkg install kubeflow/core
+  ks pkg install kubeflow/common
   ks pkg install kubeflow/examples
   ks pkg install kubeflow/jupyter
   ks pkg install kubeflow/katib

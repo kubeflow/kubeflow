@@ -133,7 +133,7 @@ ksApply() {
     ks env add default --namespace "${K8S_NAMESPACE}"
   fi
 
-  # Create all the core components
+  # Create all the components
   ks apply default -c ambassador
   ks apply default -c jupyter
   ks apply default -c centraldashboard

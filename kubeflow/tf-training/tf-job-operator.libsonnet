@@ -1,6 +1,6 @@
 {
   local k = import "k.libsonnet",
-  local util = import "kubeflow/core/util.libsonnet",
+  local util = import "kubeflow/common/util.libsonnet",
   local deployment = k.apps.v1beta1.deployment,
 
   new(_env, _params):: {
