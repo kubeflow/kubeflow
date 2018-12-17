@@ -95,13 +95,24 @@
 
     local perComponent(name) = {
       local list = std.extVar("__ksonnet/components"),
+      local listNameIsObject(list, name) = {
+        return::
+          if std.objectHas(list[name], "items") &&
+            std.type(list[name].items) == "array" then
+              std.map(generateComponentTuples, list[name].items)
+      }.return,
+      local listNameIsArray(name) = {
+        return::
+          if std.type(list[name]) == "array" then
+            std.map(
+      }.return,
       return::
-        if std.type(list) == "object" &&
-           std.objectHas(list, name) &&
-           std.type(list[name]) == "object" &&
-           std.objectHas(list[name], "items") &&
-           std.type(list[name].items) == "array" then
-          std.map(generateComponentTuples, list[name].items)
+        if std.type(list) == "object" && std.objectHas(list, name) then
+          if std.type(list[name]) == "object"  then
+            listNameIsObject(list, name),
+          else if std.type(list[name]) == "array"  then
+            listNameIsArray(list, name),
+          
         else
           [],
     }.return,
