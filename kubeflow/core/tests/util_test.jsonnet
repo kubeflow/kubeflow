@@ -1,9 +1,5 @@
 local util = import "../util.libsonnet";
 
-std.assertEqual(util.upper("True"), "TRUE") &&
-std.assertEqual(util.upper("TrUe"), "TRUE") &&
-std.assertEqual(util.upper("true"), "TRUE") &&
-std.assertEqual(util.upper("TRUE"), "TRUE") &&
 std.assertEqual(util.toBool(false), false) &&
 std.assertEqual(util.toBool(true), true) &&
 std.assertEqual(util.toBool("true"), true) &&
