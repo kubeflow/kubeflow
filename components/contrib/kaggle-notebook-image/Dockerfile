@@ -20,7 +20,8 @@ ENV PATH $CONDA_DIR/bin:$PATH
 SHELL ["/bin/bash", "-c"]
 
 # add https support 
-RUN apt-get update && apt-get install -yq --no-install-recommends apt-transport-https
+RUN apt-get update && apt-get install -yq --no-install-recommends \
+    apt-transport-https locales lsb-release wget
 
 RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
     locale-gen
@@ -41,9 +42,8 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
     curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
     apt-get update && \
     apt-get install -y google-cloud-sdk kubectl && \
-    # pin to 0.8.1 due to conflicts with tornado>=5.x and pyzmq>=17.x
     # we just really need jupyterhub-singleuser for our KF scripts
-    pip install jupyterhub==0.8.1 \
+    pip install jupyterhub \
     # Kaggle image doesn't include their own API package (yet)
     kaggle
 
