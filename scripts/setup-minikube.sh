@@ -42,12 +42,12 @@ install_ks_kubectl_minikube() {
   KS_VERSION=$(ks version | grep 'ksonnet version' | awk '{print $3}')
   if [[ $KS_VERSION != "0.11.0" ]]; then
     echo -e "${YELLOW}Installing ksonnet...${NC}"
-    if [[ ${HOST_PLATFORM} == $OSX ]]; then
+    if [[ ${PLATFORM} == $OSX ]]; then
       curl -OL https://github.com/ksonnet/ksonnet/releases/download/v0.11.0/ks_0.11.0_darwin_amd64.tar.gz
       tar zxf ks_0.11.0_darwin_amd64.tar.gz
       export PATH=$PATH:$(pwd)/ks_0.11.0_darwin_amd64
 
-    elif [[ ${HOST_PLATFORM} == $LINUX ]]; then
+    elif [[ ${PLATFORM} == $LINUX ]]; then
       curl -OL https://github.com/ksonnet/ksonnet/releases/download/v0.11.0/ks_0.11.0_linux_amd64.tar.gz
       tar zxf ks_0.11.0_linux_amd64.tar.gz
       export PATH=$PATH:$(pwd)/ks_0.11.0_linux_amd64
