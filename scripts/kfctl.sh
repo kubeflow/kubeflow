@@ -242,12 +242,6 @@ main() {
     DEPLOYMENT_NAME=${WHAT}
     parseArgs $*
 
-    mkdir -p ${DEPLOYMENT_NAME}
-    # Most commands expect to be executed from the app directory
-    cd ${DEPLOYMENT_NAME}
-    createEnv
-
-    source ${ENV_FILE}
     # TODO(jlewi): Should we default to directory name?
     # TODO(jlewi): This doesn't work if user doesn't provide name we will end up
     # interpreting parameters as the name. To fix this we need to check name doesn't start with --
@@ -261,6 +255,22 @@ main() {
       exit 1
     fi
 
+    # Check that DEPLOYMENT_NAME is not a path e.g. /a/b/c
+    BASE_DEPLOYMENT_NAME=$(basename ${DEPLOYMENT_NAME})
+
+    if [ "${BASE_DEPLOYMENT_NAME}" != "${DEPLOYMENT_NAME}" ]; then
+      echo "usage: kfctl init <name>"
+      echo "<name> should be the name for the deployment; not a path"
+      exit 1
+    fi
+
+    mkdir -p ${DEPLOYMENT_NAME}
+    # Most commands expect to be executed from the app directory
+    cd ${DEPLOYMENT_NAME}
+    createEnv
+
+    source ${ENV_FILE}
+    
     if [ -z "${PLATFORM}" ]; then
       echo "--platform must be provided"
       echo "usage: kfctl init <PLATFORM>"

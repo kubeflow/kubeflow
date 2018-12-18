@@ -38,7 +38,7 @@ elif [ "${COMPONENT}" == "pytorch-operator" ]; then
   echo "Updating PyTorch operator..."
   python scripts/update_prototype.py \
     --file=${ROOT_DIR}/kubeflow/pytorch-job/prototypes/pytorch-operator.jsonnet \
-    --values=pytorchJobImage=gcr.io/kubeflow-images-public/pytorch_operator:${TAG}
+    --values=pytorchJobImage=gcr.io/kubeflow-images-public/pytorch-operator:${TAG}
   echo "Done."
 
 elif [ "${COMPONENT}" == "katib" ]; then
@@ -67,7 +67,7 @@ elif [ "${COMPONENT}" == "centraldashboard" ]; then
 elif [ "${COMPONENT}" == "jupyter-notebooks" ]; then
   echo "Updating Jupyter notebooks..."
   sed -i "s/tensorflow-\([0-9\.]*\)-notebook-\(.*\):v[0-9\.]*/tensorflow-\1-notebook-\2:${TAG}/" \
-    kubeflow/core/ui/default/config.yaml
+    kubeflow/jupyter/ui/default/config.yaml
   echo "Done."
 
 else
