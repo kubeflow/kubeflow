@@ -70,6 +70,9 @@ libraries:
   kubebench:
     version: master
     path: kubebench
-  tf-batch-predict:
+  modeldb:
     version: master
-    path: tf-batch-predict
+    path: modeldb
+  tf-batch-predict:
+     version: master
+     path: tf-batch-predict
