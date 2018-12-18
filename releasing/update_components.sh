@@ -38,7 +38,7 @@ elif [ "${COMPONENT}" == "pytorch-operator" ]; then
   echo "Updating PyTorch operator..."
   python scripts/update_prototype.py \
     --file=${ROOT_DIR}/kubeflow/pytorch-job/prototypes/pytorch-operator.jsonnet \
-    --values=pytorchJobImage=gcr.io/kubeflow-images-public/pytorch_operator:${TAG}
+    --values=pytorchJobImage=gcr.io/kubeflow-images-public/pytorch-operator:${TAG}
   echo "Done."
 
 elif [ "${COMPONENT}" == "katib" ]; then
