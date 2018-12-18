@@ -173,6 +173,7 @@
       },
       spec: {
         generateSelector: true,
+        resyncPeriodSeconds: 2
         parentResource: {
           apiVersion: "ctl.isla.solutions/v1",
           resource: "cloudendpoints",
