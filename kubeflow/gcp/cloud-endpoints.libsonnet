@@ -3,7 +3,6 @@
   new(_env, _params):: {
     local params = _params + _env {
       cloudEndpointsImage: "gcr.io/cloud-solutions-group/cloud-endpoints-controller:0.2.1",
-      metacontrollerImage: "metacontroller/metacontroller:v0.3.0",
     },
 
     local endpointsCRD = {
