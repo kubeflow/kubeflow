@@ -2,7 +2,7 @@
 
 Authors:
 
-- lunkai@google.com
+- Lunkai(lunkai@google.com)
 
 Status:
 
