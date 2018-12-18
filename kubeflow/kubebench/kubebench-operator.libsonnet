@@ -94,38 +94,40 @@
         },
         {
           apiGroups: [
-            "extensions",
-          ],
-          resources: [
-            "thirdpartyresources",
-          ],
-          verbs: [
-            "create",
-            "update",
-            "get",
-            "list",
-          ],
-        },
-        {
-          apiGroups: [
             "",
           ],
           resources: [
+            "configmaps",
+            "pods",
+            "pods/exec",
+            "services",
+            "endpoints",
+            "persistentvolumeclaims",
+            "events",
             "secrets",
           ],
           verbs: [
-            "create",
-            "update",
-            "get",
-            "list",
+            "*",
           ],
         },
         {
           apiGroups: [
-            "*",
+            "kubeflow.org",
           ],
           resources: [
+            "tfjobs",
+            "pytorchjobs",
+          ],
+          verbs: [
             "*",
+          ],
+        },
+        {
+          apiGroups: [
+            "argoproj.io",
+          ],
+          resources: [
+            "workflows",
           ],
           verbs: [
             "*",
