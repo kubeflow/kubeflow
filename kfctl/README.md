@@ -2,16 +2,12 @@
 
 ## Overview
 
-The kfctl golang client will provide a CLI similar to kfctl.sh but will 
-address the following deficits in the current tool
+The kfctl golang client will provide the same CLI as kfctl.sh but will 
+be implemented in golang. The port to golang is because:
 
-1. No longer require a local install of ks (ksonnet)
-2. No longer require knowledge of the ks CLI 
-3. No longer save a ksonnet application to the user's filesystem
-4. Work in a similar way as the kubeflow UI [gcp-click-to-deploy](https://github.com/kubeflow/kubeflow/tree/master/components/gcp-click-to-deploy):
-  - Execution of subcommands `init`, `generate`, `apply` and `delete` are done by the bootstrapper.
-  - A local `<kf_app>.yaml` defines a kubeflow application. 
-  - This yaml file is submitted to the bootstrapper which will then generate the ksonnet application.
+1. The UI (gcp-click-to-deploy) and kfctl should share the same ksonnet code when creating a kubeflow application.
+2. This common code will serve as a base for later efforts like migrating to ksonnet modules.
+3. New subcommands should be done in golang rather than bash so they can also be used by the UI.
 
 ## Usage
 
@@ -30,24 +26,19 @@ kfctl.sh generate all
 kfctl.sh apply all
 ```
 
-kfctl (golang) usage is similar:
+kfctl (golang) usage is identical:
 
 ```sh
 kfctl init myapp 
-# edit myapp.yaml to set the appAddress and optionally add components and/or parameters
-kfctl generate --file myapp.yaml all
-kfctl apply --name myapp all
+cd myapp
+kfctl generate all
+kfctl apply all
 ```
 
-### Differences with kfctl.sh
 
-The `init` subcommand will create a `<name>.yaml` file that is used as input to the `generate` subcommand.
-The user modifies `<name>.yaml` to set the address of the bootstrapper service and optionally add 
-additional components and/or parameters. The `<name>.yaml` will use a similar field structure as what 
-the UI uses in [kf_app.yaml](https://github.com/kubeflow/kubeflow/blob/master/components/gcp-click-to-deploy/manifest/kf_app.yaml). This type will have a golang definition that is a kubernetes kind within the group `app.kubeflow.org`. 
+## Golang Types
 
 ```
-
 type Application struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty" 
@@ -88,45 +79,12 @@ type KsRegistry struct {
 kfctl init myapp 
 ```
 
-The contents of the generated `myapp.yaml` are below:
-
-```yaml
-apiVersion: app.kubeflow.org/v1alpha1
-kind: Application
-metadata:
-  name: myapp
-  namespace: kubeflow
-appaddress: # REPLACE WITH ADDRESS OF BOOTSTRAPPER SERVICE
-defaultapp:
-  components:
-  - name: ambassador
-    prototype: ambassador
-  - name: centraldashboard
-    prototype: centraldashboard
-  - name: jupyter
-    prototype: jupyter
-  parameters:
-  - component: ambassador
-    name: ambassadorServiceType
-    value: LoadBalancer
-  registries:
-  - name: kubeflow
-    repo: https://github.com/kubeflow/kubeflow
-    version: github.com/kubeflow/kubeflow@v0.3.4
-    path: kubeflow
-```
-
-The user will edit this file and add the URL of the bootstrapper to appaddress.
-
 ### Generate a kubeflow application
 
 ```sh
 kfctl generate -f myapp.yaml all
 ```
 
-#### kfctl, bootstrapper interactions
-
-TBD
 
 ### Deploy a kubeflow application
 
@@ -134,7 +92,4 @@ TBD
 kfctl apply --name myapp all
 ```
 
-#### kfctl, bootstrapper interactions
-
-TDB
 
