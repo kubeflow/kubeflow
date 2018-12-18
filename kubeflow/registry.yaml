@@ -73,3 +73,6 @@ libraries:
   modeldb:
     version: master
     path: modeldb
+  tf-batch-predict:
+     version: master
+     path: tf-batch-predict

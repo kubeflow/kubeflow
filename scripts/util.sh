@@ -88,7 +88,6 @@ createKsApp() {
   ks generate pipeline pipeline
 
   ks generate katib katib
-  ks generate modeldb modeldb
   # Enable collection of anonymous usage metrics
   # To disable metrics collection. Remove the spartakus component.
   # cd ks_app
