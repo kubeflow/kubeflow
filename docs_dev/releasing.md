@@ -283,7 +283,7 @@ the correct Docker image. See sections below for component specific instructions
         images and apply a tag to them
       * You can use suitable regexes to get a group of images (e.g. all the 
         notebook) images.
-   * There should be an entry for ever image you want to use referenced by the sha of the image
+   * There should be an entry for every image you want to use referenced by the sha of the image
    * If there was a previous release using an earlier image, remove the tag v${RELEASE}
      from that entry   
    * Run run_apply_image_tags.sh

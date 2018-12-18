@@ -215,6 +215,7 @@ std.assertEqual(
         ],
         resources: [
           "pods",
+          "pods/log",
           "services",
         ],
         verbs: [
