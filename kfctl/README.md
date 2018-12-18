@@ -26,7 +26,7 @@ kfctl.sh generate all
 kfctl.sh apply all
 ```
 
-This will be implemented by the golang version.
+This will be implemented by the golang version (ie: remove .sh).
 
 ## Requirements
 
