@@ -135,7 +135,7 @@
     },
     clusterRole:: clusterRole,
 
-    //Kubebench operator cluster role binding 
+    //Kubebench operator cluster role binding
     local clusterRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "ClusterRoleBinding",
@@ -147,19 +147,18 @@
         kind: "ClusterRole",
         name: params.name,
       },
-      subjects: 
-      [
-        {
-          kind: "ServiceAccount",
-          name: "default",
-          namespace: params.namespace,
-        },
-      ],
+      subjects:
+        [
+          {
+            kind: "ServiceAccount",
+            name: "default",
+            namespace: params.namespace,
+          },
+        ],
     },
     clusterRoleBinding:: clusterRoleBinding,
 
 
-    
     all:: [
       self.kubebenchCRD,
       self.deployment,
