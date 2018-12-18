@@ -123,7 +123,7 @@ Calls KsService.CreateApp(Context, CreateRequest, Deployment) //not relevant to 
 ## Proposed Design
 
 ### 1. Move the common interface and types required for the library to a pkg directory under bootstrap 
-       This will allow the library to be easily built and used by kfctl.
+       This will allow the library to be easily built and used by kfctl. See the MOVE annotations in the Appendix.
 
 ### 2. Create a KfApi object in the library that wraps ksonnet calls
     - Load
@@ -198,7 +198,7 @@ type CreateRequest struct {
 	SAClientId string `json:"saClientId,omitempty"`
 }
 
-//EXPORT
+//MOVE to subdir under pkg
 type AppConfig struct {
 	Registries []RegistryConfig `json:"registries,omitempty"`
 	Packages   []KsPackage      `json:"packages,omitempty"`
@@ -206,7 +206,7 @@ type AppConfig struct {
 	Parameters []KsParameter    `json:"parameters,omitempty"`
 }
 
-//EXPORT
+//MOVE to subdir under pkg
 type RegistryConfig struct {
 	Name    string `json:"name,omitempty"`
 	Repo    string `json:"repo,omitempty"`
@@ -215,20 +215,20 @@ type RegistryConfig struct {
 	RegUri  string `json:"reguri,omitempty"`
 }
 
-//EXPORT
+//MOVE to subdir under pkg
 type KsComponent struct {
 	Name      string `json:"name"`
 	Prototype string `json:"prototype"`
 }
 
-//EXPORT
+//MOVE to subdir under pkg
 type KsParameter struct {
 	Component string `json:"component,omitempty"`
 	Name      string `json:"name,omitempty"`
 	Value     string `json:"value:omitempty"`
 }
 
-//EXPORT
+//MOVE to subdir under pkg
 type KsRegistry struct {
 	ApiVersion string
 	Kind       string
@@ -265,7 +265,7 @@ type ApplyRequest struct {
 	AppInfo *appInfo
 }
 
-//EXPORT
+//MOVE to subdir under pkg
 type appInfo struct {
         // kApp.App is the ksonnet interface
 	App kApp.App
