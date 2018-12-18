@@ -67,7 +67,7 @@ elif [ "${COMPONENT}" == "centraldashboard" ]; then
 elif [ "${COMPONENT}" == "jupyter-notebooks" ]; then
   echo "Updating Jupyter notebooks..."
   sed -i "s/tensorflow-\([0-9\.]*\)-notebook-\(.*\):v[0-9\.]*/tensorflow-\1-notebook-\2:${TAG}/" \
-    kubeflow/core/ui/default/config.yaml
+    kubeflow/jupyter/ui/default/config.yaml
   echo "Done."
 
 else
