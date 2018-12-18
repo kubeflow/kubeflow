@@ -6,42 +6,28 @@
       metacontrollerImage: "metacontroller/metacontroller:v0.3.0",
     },
 
-    local metaClusterRole = {
-      local clusterRole = k.rbac.v1.clusterRole,
-      local instance =
-        clusterRole.new() +
-        clusterRole.mixin.metadata.mixinInstance({
-          name: "kube-metacontroller",
-        },) +
-        clusterRole.withRules([{
-          apiGroups: ["*"],
-          resources: ["*"],
-          verbs: ["*"],
-        }],),
-      instance:: instance,
-    }.instance,
-    metaClusterRole:: metaClusterRole,
-
-    local metaClusterRoleBinding = {
-      apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "ClusterRoleBinding",
+    local endpointsCRD = {
+      apiVersion: "apiextensions.k8s.io/v1beta1",
+      kind: "CustomResourceDefinition",
       metadata: {
-        name: "kube-metacontroller",
+        name: "cloudendpoints.ctl.isla.solutions",
       },
-      subjects: [
-        {
-          kind: "ServiceAccount",
-          name: "kube-metacontroller",
-          namespace: params.namespace,
+      spec: {
+        group: "ctl.isla.solutions",
+        version: "v1",
+        scope: "Namespaced",
+        names: {
+          plural: "cloudendpoints",
+          singular: "cloudendpoint",
+          kind: "CloudEndpoint",
+          shortNames: [
+            "cloudep",
+            "ce",
+          ],
         },
-      ],
-      roleRef: {
-        kind: "ClusterRole",
-        name: "kube-metacontroller",
-        apiGroup: "rbac.authorization.k8s.io",
       },
-    },
-    metaClusterRoleBinding:: metaClusterRoleBinding,
+    },  // endpointsCRD
+    endpointsCRD:: endpointsCRD,
 
     local endpointsClusterRole = {
       kind: "ClusterRole",
@@ -52,7 +38,7 @@
       rules: [
         {
           apiGroups: [""],
-          resources: ["services"],
+          resources: ["services", "configmaps"],
           verbs: ["get", "list"],
         },
         {
@@ -84,124 +70,6 @@
       },
     },
     endpointsClusterRoleBinding:: endpointsClusterRoleBinding,
-
-    local metaInitializersCRD = {
-      apiVersion: "apiextensions.k8s.io/v1beta1",
-      kind: "CustomResourceDefinition",
-      metadata: {
-        name: "initializercontrollers.metacontroller.k8s.io",
-      },
-      spec: {
-        group: "metacontroller.k8s.io",
-        version: "v1alpha1",
-        scope: "Cluster",
-        names: {
-          plural: "initializercontrollers",
-          singular: "initializercontroller",
-          kind: "InitializerController",
-          shortNames: [
-            "ic",
-            "ictl",
-          ],
-        },
-      },
-    },
-    metaInitializersCRD:: metaInitializersCRD,
-
-    local metaLambdaCRD = {
-      apiVersion: "apiextensions.k8s.io/v1beta1",
-      kind: "CustomResourceDefinition",
-      metadata: {
-        name: "lambdacontrollers.metacontroller.k8s.io",
-      },
-      spec: {
-        group: "metacontroller.k8s.io",
-        version: "v1alpha1",
-        scope: "Cluster",
-        names: {
-          plural: "lambdacontrollers",
-          singular: "lambdacontroller",
-          kind: "LambdaController",
-          shortNames: [
-            "lc",
-            "lctl",
-          ],
-        },
-      },
-    },  // metaLambdaCRD
-    metaLambdaCRD:: metaLambdaCRD,
-
-    local endpointsCRD = {
-      apiVersion: "apiextensions.k8s.io/v1beta1",
-      kind: "CustomResourceDefinition",
-      metadata: {
-        name: "cloudendpoints.ctl.isla.solutions",
-      },
-      spec: {
-        group: "ctl.isla.solutions",
-        version: "v1",
-        scope: "Namespaced",
-        names: {
-          plural: "cloudendpoints",
-          singular: "cloudendpoint",
-          kind: "CloudEndpoint",
-          shortNames: [
-            "cloudep",
-            "ce",
-          ],
-        },
-      },
-    },  // endpointsCRD
-    endpointsCRD:: endpointsCRD,
-
-    local metaServiceAccount = {
-      apiVersion: "v1",
-      kind: "ServiceAccount",
-      metadata: {
-        name: "kube-metacontroller",
-        namespace: params.namespace,
-      },
-    },  // metaServiceAccount
-    metaServiceAccount:: metaServiceAccount,
-
-    local metaDeployment = {
-      apiVersion: "apps/v1beta1",
-      kind: "Deployment",
-      metadata: {
-        name: "kube-metacontroller",
-        namespace: params.namespace,
-        labels: {
-          app: "kube-metacontroller",
-        },
-      },
-      spec: {
-        replicas: 1,
-        template: {
-          metadata: {
-            labels: {
-              app: "kube-metacontroller",
-            },
-          },
-          spec: {
-            serviceAccountName: "kube-metacontroller",
-            containers: [
-              {
-                name: "kube-metacontroller",
-                image: params.metacontrollerImage,
-                command: [
-                  "/usr/bin/metacontroller",
-                ],
-                args: [
-                  "--logtostderr",
-                ],
-                imagePullPolicy: "Always",
-              },
-            ],
-          },
-        },
-      },
-    },  // metaDeployment
-    metaDeployment:: metaDeployment,
 
     local endpointsService = {
       apiVersion: "v1",
@@ -298,13 +166,14 @@
     },  // endpointsDeploy
     endpointsDeploy:: endpointsDeploy,
 
-    local endpointsLambdaController = {
+    local endpointsCompositeController = {
       apiVersion: "metacontroller.k8s.io/v1alpha1",
-      kind: "LambdaController",
+      kind: "CompositeController",
       metadata: {
         name: "cloud-endpoints-controller",
       },
       spec: {
+        generateSelector: true,
         parentResource: {
           apiVersion: "ctl.isla.solutions/v1",
           resource: "cloudendpoints",
@@ -319,45 +188,26 @@
         },
         hooks: {
           sync: {
-            path: "/sync",
+            webhook: {
+              url: "http://cloud-endpoints-controller." + params.namespace + "/sync"
+            },
           },
         },
-        generateSelector: true,
       },
-    },  // endpointsLambdaController
-    endpointsLambdaController:: endpointsLambdaController,
-
-    local CRDs = [
-      self.metaInitializersCRD,
-      self.metaLambdaCRD,
-      self.endpointsCRD,
-    ],
-
-    local RBACs = [
-      self.metaClusterRole,
-      self.metaClusterRoleBinding,
-      self.endpointsClusterRole,
-      self.endpointsClusterRoleBinding,
-    ],
-
-    local Services = [
-      self.metaServiceAccount,
-      self.endpointsService,
-      self.endpointsServiceAccount,
-    ],
-
-    local Deployments = [
-      self.metaDeployment,
-      self.endpointsDeploy,
-      self.endpointsLambdaController,
-    ],
+    },  // endpointsCompositeController
+    endpointsCompositeController:: endpointsCompositeController,
 
     parts:: self,
-    all::
-      CRDs +
-      RBACs +
-      Services +
-      Deployments,
+    local all = [
+      self.endpointsCRD,
+      self.endpointsClusterRole,
+      self.endpointsClusterRoleBinding,
+      self.endpointsService,
+      self.endpointsServiceAccount,
+      self.endpointsDeploy,
+      self.endpointsCompositeController,
+    ],
+    all:: all,
 
     list(obj=self.all):: k.core.v1.list.new(obj,),
   },
