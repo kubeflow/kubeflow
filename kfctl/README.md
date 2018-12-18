@@ -68,11 +68,11 @@ this anonymous function.
 
 ### Analysis
 
-Methods from KsServer that are relevant to kfctl are:
-- KsServer.CreateApp
-- KsServer.GetApp
-- KsServer.appGenerate
-- KsServer.createComponent
+Methods from ksServer that are relevant to kfctl are:
+- ksServer.CreateApp
+- ksServer.GetApp
+- ksServer.appGenerate
+- ksServer.createComponent
 
 Within these methods there are direct calls to ksonnet 
 - Load
@@ -156,7 +156,7 @@ type KsService interface {
 	GetDeploymentStatus(context.Context, CreateRequest) (string, error)
 	ApplyIamPolicy(context.Context, ApplyIamRequest) error
 	GetProjectLock(string) *sync.Mutex
-// Additional Methods used by KsServer 
+// Additional Methods used by ksServer 
         GetApp(project string, appName string, kfVersion string, token string) (*appInfo, string, error)
         CloneRepoToLocal(project string, token string) (string, error)
         SaveAppToRepo(project string, email string, repoDir string) error
