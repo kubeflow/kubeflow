@@ -12,8 +12,12 @@ set -xe
 
 ENV_FILE="env.sh"
 SKIP_INIT_PROJECT=false
-CLUSTER_VERSION="1.10"
-GKE_API_VERSION="v1"
+
+# To enable GKE beta features we need to use the v1beta1 API.
+# https://cloud.google.com/kubernetes-engine/docs/reference/api-organization#beta
+# We currently use this by default so we can enable the new stackdriver
+# logging agents.
+GKE_API_VERSION="v1beta1"
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null && pwd)"
 source "${DIR}/util.sh"
@@ -84,11 +88,6 @@ createEnv() {
       echo CONFIG_FILE=${CONFIG_FILE:-"cluster-kubeflow.yaml"} >> ${ENV_FILE}
 
       echo PROJECT_NUMBER=${PROJECT_NUMBER} >> ${ENV_FILE}
-
-      # "1.X": picks the highest valid patch+gke.N patch in the 1.X version
-      # https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters
-      echo "Setting cluster version to ${CLUSTER_VERSION}"
-      echo CLUSTER_VERSION=${CLUSTER_VERSION} >> ${ENV_FILE}
 
       echo GKE_API_VERSION=${GKE_API_VERSION} >> ${ENV_FILE}
       ;;
