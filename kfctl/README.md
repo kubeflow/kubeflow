@@ -7,7 +7,7 @@ be implemented in golang. The port to golang is because:
 
 1. The UI (gcp-click-to-deploy) and kfctl should share the same ksonnet code when creating a kubeflow application.
 2. This common code will serve as a base for later efforts like migrating to ksonnet modules.
-3. New subcommands should be done in golang rather than bash so they can also be used by the UI.
+3. New kfctl subcommands should be done in golang rather than bash so they can also be easily called by the UI.
 
 ## Usage
 
