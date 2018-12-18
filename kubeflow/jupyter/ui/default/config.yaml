@@ -21,23 +21,23 @@ spawnerFormDefaults:
   image:
     # The container Image for user's Notebook
     # Note that this value needs to be present in the options list below
-    value: gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu:v0.3.1
+    value: gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu:v0.4.0
     # The list of available container Images
     options:
-      - gcr.io/kubeflow-images-public/tensorflow-1.4.1-notebook-cpu:v0.3.1
-      - gcr.io/kubeflow-images-public/tensorflow-1.4.1-notebook-gpu:v0.3.1
-      - gcr.io/kubeflow-images-public/tensorflow-1.5.1-notebook-cpu:v0.3.1
-      - gcr.io/kubeflow-images-public/tensorflow-1.5.1-notebook-gpu:v0.3.1
-      - gcr.io/kubeflow-images-public/tensorflow-1.6.0-notebook-cpu:v0.3.1
-      - gcr.io/kubeflow-images-public/tensorflow-1.6.0-notebook-gpu:v0.3.1
-      - gcr.io/kubeflow-images-public/tensorflow-1.7.0-notebook-cpu:v0.3.1
-      - gcr.io/kubeflow-images-public/tensorflow-1.7.0-notebook-gpu:v0.3.1
-      - gcr.io/kubeflow-images-public/tensorflow-1.8.0-notebook-cpu:v0.3.1
-      - gcr.io/kubeflow-images-public/tensorflow-1.8.0-notebook-gpu:v0.3.1
-      - gcr.io/kubeflow-images-public/tensorflow-1.9.0-notebook-cpu:v0.3.1
-      - gcr.io/kubeflow-images-public/tensorflow-1.9.0-notebook-gpu:v0.3.1
-      - gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu:v0.3.1
-      - gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-gpu:v0.3.1
+      - gcr.io/kubeflow-images-public/tensorflow-1.4.1-notebook-cpu:v0.4.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.4.1-notebook-gpu:v0.4.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.5.1-notebook-cpu:v0.4.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.5.1-notebook-gpu:v0.4.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.6.0-notebook-cpu:v0.4.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.6.0-notebook-gpu:v0.4.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.7.0-notebook-cpu:v0.4.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.7.0-notebook-gpu:v0.4.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.8.0-notebook-cpu:v0.4.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.8.0-notebook-gpu:v0.4.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.9.0-notebook-cpu:v0.4.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.9.0-notebook-gpu:v0.4.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu:v0.4.0
+      - gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-gpu:v0.4.0
   cpu:
     # CPU for user's Notebook
     value: '1.0'
