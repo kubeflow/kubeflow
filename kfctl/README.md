@@ -84,9 +84,11 @@ Within these methods there are direct calls to ksonnet
 - RunParamSet
 - RunApply
 
-The primary type of interest to kfctl is AppConfig (see below).
+The primary type of interest to kfctl is AppConfig (see appendix).
+
 The createAppHandler call sequence is below (only relevant calls are shown):
 
+createAppHandler
 ```
 Calls KsService.CreateApp(Context, CreateRequest, Deployment) //not relevant to kfctl
   Calls KsService.GetProjectLock //not relevant to kfctl
@@ -115,14 +117,15 @@ Calls KsService.CreateApp(Context, CreateRequest, Deployment) //not relevant to 
   Calls KsService.Apply //RELEVANT
 ```
 
-Note: Where there is a RELEVENT comment indicates where we need to insert a shared Interface that kfctl can use.
-Note: kApp refers to the ksonnet interface.
+- Note: Where there is a RELEVENT comment indicates where we need to insert a shared Interface that kfctl can use.
+- Note: kApp refers to the ksonnet interface.
 
 ## Proposed Design
 
-### 1. Move the common interface and types to a pkg directory under bootstrap so that can be easily built and used by kfctl.
+### 1. Move the common interface and types required for the library to a pkg directory under bootstrap 
+       This will allow the library to be easily built and used by kfctl.
 
-### 2. Create a KfApi object under pkg that wraps ksonnet calls
+### 2. Create a KfApi object in the library that wraps ksonnet calls
     - Load
     - RunEnvSet
     - RunInit
@@ -136,7 +139,10 @@ Note: kApp refers to the ksonnet interface.
 
 ## Appendix
 
-### Interfaces and Types
+### Existing Interfaces and Types
+
+
+- Note: EXPORT means this type will be moved under pkg into the common library
 
 ```
 type KsService interface {
@@ -192,6 +198,7 @@ type CreateRequest struct {
 	SAClientId string `json:"saClientId,omitempty"`
 }
 
+//EXPORT
 type AppConfig struct {
 	Registries []RegistryConfig `json:"registries,omitempty"`
 	Packages   []KsPackage      `json:"packages,omitempty"`
@@ -199,6 +206,7 @@ type AppConfig struct {
 	Parameters []KsParameter    `json:"parameters,omitempty"`
 }
 
+//EXPORT
 type RegistryConfig struct {
 	Name    string `json:"name,omitempty"`
 	Repo    string `json:"repo,omitempty"`
@@ -207,17 +215,20 @@ type RegistryConfig struct {
 	RegUri  string `json:"reguri,omitempty"`
 }
 
+//EXPORT
 type KsComponent struct {
 	Name      string `json:"name"`
 	Prototype string `json:"prototype"`
 }
 
+//EXPORT
 type KsParameter struct {
 	Component string `json:"component,omitempty"`
 	Name      string `json:"name,omitempty"`
 	Value     string `json:"value:omitempty"`
 }
 
+//EXPORT
 type KsRegistry struct {
 	ApiVersion string
 	Kind       string
@@ -254,12 +265,13 @@ type ApplyRequest struct {
 	AppInfo *appInfo
 }
 
+//EXPORT
 type appInfo struct {
         // kApp.App is the ksonnet interface
 	App kApp.App
 }
 
-// App is a ksonnet application.
+// App is a ksonnet application in the ksonnet library.
 type App interface {
 	// AddEnvironment adds an environment.
 	AddEnvironment(spec *EnvironmentConfig, k8sSpecFlag string, isOverride bool) error
