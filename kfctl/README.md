@@ -60,11 +60,11 @@ by the UI. These functions are invoked from REST entrypoints bound in [ksServer.
 
 These functions mostly call a [KsService Interface](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/cmd/bootstrap/app/ksServer.go#L60) to build a ksonnet application.
 The KsService Interface as is cannot be leveraged by kfctl since it includes specific GCP/IAM parameters
-The interface is implemented by [KsServer](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/cmd/bootstrap/app/ksServer.go#L80) which also binds additional methods like [appGenerate](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/cmd/bootstrap/app/ksServer.go#L566) 
+The interface is implemented by [ksServer](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/cmd/bootstrap/app/ksServer.go#L80) which also binds additional methods like [appGenerate](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/cmd/bootstrap/app/ksServer.go#L566) 
 that are relevant to kfctl but cannot be easily separated. It turns out the primary flow
-of interest is createAppHandler. This function ends up making all the ksonnet calls required by kfctl.
+of interest is createAppHandler. This calls an [anonymous function](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/cmd/bootstrap/app/ksServer.go#L1038) that ends up making all the ksonnet calls required by kfctl.
 The other entrypoints are either not relevent to kfctl or implement part of what is done in 
-createAppHandler.
+this anonymous function.
 
 ### Analysis
 
