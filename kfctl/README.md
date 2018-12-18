@@ -7,7 +7,7 @@ be implemented in golang. The port to golang is because:
 
 1. The UI (gcp-click-to-deploy) and kfctl should share the same ksonnet code when creating a kubeflow application.
 2. This common code will serve as a base for later efforts like migrating to ksonnet modules.
-3. New subcommands should be done in golang rather than bash so they can also be used by the UI.
+3. New kfctl subcommands should be done in golang rather than bash so they can also be easily called by the UI.
 
 ## Usage
 
@@ -17,7 +17,7 @@ The initial version of kfctl will seek parity with kfctl.sh by implementing the 
 - `apply`           Submit the k8 manifests to the api-server
 - `delete`          Delete the kubeflow application
 
-Current usage of `kfctl.sh` is as follows:
+Typical usage of `kfctl.sh` is as follows:
 
 ```sh
 kfctl.sh init myapp --platform generatic
@@ -26,7 +26,7 @@ kfctl.sh generate all
 kfctl.sh apply all
 ```
 
-This will be implemented by the golang version.
+This will be implemented by the golang version (ie: remove .sh).
 
 ## Requirements
 
@@ -36,9 +36,9 @@ This will be implemented by the golang version.
 
 ### 3. Do not change existing REST entrypoints or the KsService interface in ksServer.go.
 
-### 4. Isolate the common interface and types so that they can be easily used by kfctl.
+### 4. Isolate the common interface and types in the library so that they can be easily used by kfctl.
 
-### 5. Avoid including extraneous dependencies.
+### 5. Avoid including extraneous dependencies in the library.
 
 
 ## Current Design
@@ -46,7 +46,7 @@ This will be implemented by the golang version.
 ### UI REST Entry Points
 
 Current golang functions to build a ksonnet application are in ksServer.go and are called 
-by the UI. These functions are invoked from REST entrypoints bound in ksServer.go and are shown below:
+by the UI. These functions are invoked from REST entrypoints bound in [ksServer.go](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/cmd/bootstrap/app/ksServer.go#L1291) and are shown below:
 
 ```
 	http.Handle("/", optionsHandler(healthzHandler))
@@ -58,13 +58,13 @@ by the UI. These functions are invoked from REST entrypoints bound in ksServer.g
 	http.Handle("/kfctl/e2eDeploy", optionsHandler(deployHandler))
 ```
 
-These functions mostly call a KsService Interface to build a ksonnet application.
+These functions mostly call a [KsService Interface](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/cmd/bootstrap/app/ksServer.go#L60) to build a ksonnet application.
 The KsService Interface as is cannot be leveraged by kfctl since it includes specific GCP/IAM parameters
-The interface is implemented by KsServer which also binds additional methods like appGenerate 
+The interface is implemented by [ksServer](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/cmd/bootstrap/app/ksServer.go#L80) which also binds additional methods like [appGenerate](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/cmd/bootstrap/app/ksServer.go#L566) 
 that are relevant to kfctl but cannot be easily separated. It turns out the primary flow
-of interest is createAppHandler. This function ends up making all the ksonnet calls required by kfctl.
+of interest is createAppHandler. This calls an [anonymous function](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/cmd/bootstrap/app/ksServer.go#L1038) that ends up making all the ksonnet calls required by kfctl.
 The other entrypoints are either not relevent to kfctl or implement part of what is done in 
-createAppHandler.
+this anonymous function.
 
 ### Analysis
 
@@ -84,9 +84,11 @@ Within these methods there are direct calls to ksonnet
 - RunParamSet
 - RunApply
 
-The primary type of interest to kfctl is AppConfig (see below).
+The primary type of interest to kfctl is AppConfig (see appendix).
+
 The createAppHandler call sequence is below (only relevant calls are shown):
 
+createAppHandler
 ```
 Calls KsService.CreateApp(Context, CreateRequest, Deployment) //not relevant to kfctl
   Calls KsService.GetProjectLock //not relevant to kfctl
@@ -115,14 +117,15 @@ Calls KsService.CreateApp(Context, CreateRequest, Deployment) //not relevant to 
   Calls KsService.Apply //RELEVANT
 ```
 
-Note: Where there is a RELEVENT comment indicates where we need to insert a shared Interface that kfctl can use.
-Note: kApp refers to the ksonnet interface.
+- Note: Where there is a RELEVENT comment indicates where we need to insert a shared Interface that kfctl can use.
+- Note: kApp refers to the ksonnet interface.
 
 ## Proposed Design
 
-### 1. Move the common interface and types to a pkg directory under bootstrap so that can be easily built and used by kfctl.
+### 1. Move the common interface and types required for the library to a pkg directory under bootstrap 
+       This will allow the library to be easily built and used by kfctl. See the MOVE annotations in the Appendix.
 
-### 2. Create a KfApi object under pkg that wraps ksonnet calls
+### 2. Create a KfApi object in the library that wraps ksonnet calls
     - Load
     - RunEnvSet
     - RunInit
@@ -136,7 +139,10 @@ Note: kApp refers to the ksonnet interface.
 
 ## Appendix
 
-### Interfaces and Types
+### Existing Interfaces and Types
+
+
+- Note: MOVE annotations will also result in a KfApi object being created that uses these types
 
 ```
 type KsService interface {
@@ -192,6 +198,7 @@ type CreateRequest struct {
 	SAClientId string `json:"saClientId,omitempty"`
 }
 
+//MOVE to subdir under pkg
 type AppConfig struct {
 	Registries []RegistryConfig `json:"registries,omitempty"`
 	Packages   []KsPackage      `json:"packages,omitempty"`
@@ -199,6 +206,7 @@ type AppConfig struct {
 	Parameters []KsParameter    `json:"parameters,omitempty"`
 }
 
+//MOVE to subdir under pkg
 type RegistryConfig struct {
 	Name    string `json:"name,omitempty"`
 	Repo    string `json:"repo,omitempty"`
@@ -207,17 +215,20 @@ type RegistryConfig struct {
 	RegUri  string `json:"reguri,omitempty"`
 }
 
+//MOVE to subdir under pkg
 type KsComponent struct {
 	Name      string `json:"name"`
 	Prototype string `json:"prototype"`
 }
 
+//MOVE to subdir under pkg
 type KsParameter struct {
 	Component string `json:"component,omitempty"`
 	Name      string `json:"name,omitempty"`
 	Value     string `json:"value:omitempty"`
 }
 
+//MOVE to subdir under pkg
 type KsRegistry struct {
 	ApiVersion string
 	Kind       string
@@ -254,12 +265,13 @@ type ApplyRequest struct {
 	AppInfo *appInfo
 }
 
+//MOVE to subdir under pkg
 type appInfo struct {
         // kApp.App is the ksonnet interface
 	App kApp.App
 }
 
-// App is a ksonnet application.
+// App is a ksonnet application in the ksonnet library.
 type App interface {
 	// AddEnvironment adds an environment.
 	AddEnvironment(spec *EnvironmentConfig, k8sSpecFlag string, isOverride bool) error
