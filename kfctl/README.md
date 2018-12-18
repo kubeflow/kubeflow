@@ -36,9 +36,9 @@ This will be implemented by the golang version.
 
 ### 3. Do not change existing REST entrypoints or the KsService interface in ksServer.go.
 
-### 4. Isolate the common interface and types so that they can be easily used by kfctl.
+### 4. Isolate the common interface and types in the library so that they can be easily used by kfctl.
 
-### 5. Avoid including extraneous dependencies.
+### 5. Avoid including extraneous dependencies in the library.
 
 
 ## Current Design
