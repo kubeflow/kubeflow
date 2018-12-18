@@ -142,7 +142,7 @@ Calls KsService.CreateApp(Context, CreateRequest, Deployment) //not relevant to 
 ### Existing Interfaces and Types
 
 
-- Note: EXPORT means this type will be moved under pkg into the common library
+- Note: MOVE annotations will also result in a KfApi object being created that uses these types
 
 ```
 type KsService interface {
