@@ -7,7 +7,7 @@
 
 local k = import "k.libsonnet";
 
-local kubebenchOperator = import "kubebench/kubebench-operator/kubebench-operator.libsonnet";
+local kubebenchOperator = import "kubeflow/kubebench/kubebench-operator.libsonnet";
 
 local kubebenchOperatorInstance = kubebenchOperator.new(env, params);
 kubebenchOperatorInstance.list(kubebenchOperatorInstance.all)
