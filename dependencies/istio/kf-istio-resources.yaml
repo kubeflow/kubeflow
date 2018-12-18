@@ -1,0 +1,109 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: kubeflow-gateway
+  namespace: kubeflow
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: grafana-vs
+  namespace: kubeflow
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - "kubeflow-gateway"
+  http:
+  - match:
+    - uri:
+        prefix: "/istio/grafana/"
+      method:
+        exact: "GET"
+    rewrite:
+      uri: "/"
+    route:
+    - destination:
+        host: "grafana.istio-system.svc.cluster.local"
+        port:
+          number: 3000
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: google-api-entry
+  namespace: kubeflow
+spec:
+  hosts:
+  - www.googleapis.com
+  ports:
+  - number: 443
+    name: https
+    protocol: HTTPS
+  resolution: DNS
+  location: MESH_EXTERNAL
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: google-api-vs
+  namespace: kubeflow
+spec:
+  hosts:
+  - www.googleapis.com
+  tls:
+  - match:
+    - port: 443
+      sni_hosts:
+      - www.googleapis.com
+    route:
+    - destination:
+        host: www.googleapis.com
+        port:
+          number: 443
+      weight: 100
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: google-storage-api-entry
+  namespace: kubeflow
+spec:
+  hosts:
+  - storage.googleapis.com
+  ports:
+  - number: 443
+    name: https
+    protocol: HTTPS
+  resolution: DNS
+  location: MESH_EXTERNAL
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: google-storage-api-vs
+  namespace: kubeflow
+spec:
+  hosts:
+  - storage.googleapis.com
+  tls:
+  - match:
+    - port: 443
+      sni_hosts:
+      - storage.googleapis.com
+    route:
+    - destination:
+        host: storage.googleapis.com
+        port:
+          number: 443
+      weight: 100

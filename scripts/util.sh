@@ -46,7 +46,7 @@ createKsApp() {
   pushd .
   # Create the ksonnet app
   cd $(dirname "${KUBEFLOW_KS_DIR}")
-  ks init $(basename "${KUBEFLOW_KS_DIR}")
+  eval ks init $(basename "${KUBEFLOW_KS_DIR}") --skip-default-registries ${KS_INIT_EXTRA_ARGS}
   cd "${KUBEFLOW_KS_DIR}"
 
   # Remove the default environment; The cluster might not exist yet

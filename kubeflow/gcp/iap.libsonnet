@@ -1004,6 +1004,6 @@
       self.cloudEndpoint,
     ],
 
-    list(obj=self.all):: util.list(obj),
+    list(obj=self.all):: k.core.v1.list.new(obj,),
   },
 }
