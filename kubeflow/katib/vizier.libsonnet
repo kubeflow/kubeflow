@@ -4,6 +4,7 @@
     $.parts(params, namespace).coreDeployment,
     $.parts(params, namespace).dbService,
     $.parts(params, namespace).dbPVC,
+    $.parts(params, namespace).dbPV,
     $.parts(params, namespace).dbDeployment,
     $.parts(params, namespace).dbSecret,
     $.parts(params, namespace).clusterRole,
@@ -69,36 +70,36 @@
             name: "vizier-core",
           },
           spec: {
-            serviceAccountName: 'vizier-core',
+            serviceAccountName: "vizier-core",
             containers: [
               {
-                name: 'vizier-core',
+                name: "vizier-core",
                 image: params.vizierCoreImage,
                 env: [
                   {
-                    name: 'MYSQL_ROOT_PASSWORD',
+                    name: "MYSQL_ROOT_PASSWORD",
                     valueFrom: {
                       secretKeyRef: {
-                        name: 'vizier-db-secrets',
-                        key: 'MYSQL_ROOT_PASSWORD',
+                        name: "vizier-db-secrets",
+                        key: "MYSQL_ROOT_PASSWORD",
                       },
                     },
                   },
                 ],
                 command: [
-                  './vizier-manager',
+                  "./vizier-manager",
                 ],
                 ports: [
                   {
-                    name: 'api',
+                    name: "api",
                     containerPort: 6789,
                   },
                 ],
                 readinessProbe: {
                   exec: {
                     command: [
-                      '/bin/grpc_health_probe',
-                      '-addr=:6789',
+                      "/bin/grpc_health_probe",
+                      "-addr=:6789",
                     ],
                   },
                   initialDelaySeconds: 5,
@@ -106,8 +107,8 @@
                 livenessProbe: {
                   exec: {
                     command: [
-                      '/bin/grpc_health_probe',
-                      '-addr=:6789',
+                      "/bin/grpc_health_probe",
+                      "-addr=:6789",
                     ],
                   },
                   initialDelaySeconds: 10,
@@ -220,10 +221,9 @@
       kind: "PersistentVolumeClaim",
       metadata: {
         labels: {
-          app: "vizier",
-          component: "db",
+          app: "katib",
         },
-        name: "vizier-db",
+        name: "katib-mysql",
         namespace: namespace,
       },
       spec: {
@@ -235,8 +235,37 @@
             storage: "10Gi",
           },
         },
+        selector: {
+          matchLabels: {
+            app: "katib",
+            type: "local",
+          },
+        },
       },
     },  // dbPVC
+
+    dbPV: {
+      apiVersion: "v1",
+      kind: "PersistentVolume",
+      metadata: {
+        name: "katib-mysql",
+        labels: {
+          type: "local",
+          app: "katib",
+        },
+      },
+      spec: {
+        capacity: {
+          storage: "10Gi",
+        },
+        accessModes: [
+          "ReadWriteOnce",
+        ],
+        hostPath: {
+          path: "/data/katib",
+        },
+      },
+    }, // dbPV
 
     dbDeployment: {
       apiVersion: "extensions/v1beta1",
@@ -262,38 +291,38 @@
           spec: {
             containers: [
               {
-                name: 'vizier-db',
+                name: "vizier-db",
                 image: params.vizierDbImage,
                 env: [
                   {
-                    name: 'MYSQL_ROOT_PASSWORD',
+                    name: "MYSQL_ROOT_PASSWORD",
                     valueFrom: {
                       secretKeyRef: {
-                        name: 'vizier-db-secrets',
-                        key: 'MYSQL_ROOT_PASSWORD',
+                        name: "vizier-db-secrets",
+                        key: "MYSQL_ROOT_PASSWORD",
                       },
                     },
                   },
                   {
-                    name: 'MYSQL_ALLOW_EMPTY_PASSWORD',
-                    value: 'true',
+                    name: "MYSQL_ALLOW_EMPTY_PASSWORD",
+                    value: "true",
                   },
                   {
-                    name: 'MYSQL_DATABASE',
-                    value: 'vizier',
+                    name: "MYSQL_DATABASE",
+                    value: "vizier",
                   },
                 ],
                 ports: [
                   {
-                    name: 'dbapi',
+                    name: "dbapi",
                     containerPort: 3306,
                   },
                 ],
                 readinessProbe: {
                   exec: {
                     command: [
-                      '/bin/bash',
-                      '-c',
+                      "/bin/bash",
+                      "-c",
                       "mysql -D $$MYSQL_DATABASE -p$$MYSQL_ROOT_PASSWORD -e 'SELECT 1'",
                     ],
                   },
@@ -303,17 +332,17 @@
                 },
                 volumeMounts: [
                   {
-                    name: 'vizier-db',
-                    mountPath: '/var/lib/mysql',
+                    name: "katib-mysql",
+                    mountPath: "/var/lib/mysql",
                   },
                 ],
               },
             ],
             volumes: [
               {
-                name: "vizier-db",
+                name: "katib-mysql",
                 persistentVolumeClaim: {
-                  claimName: "vizier-db",
+                  claimName: "katib-mysql",
                 },
               },
             ],
@@ -350,15 +379,15 @@
     },  // dbService
 
     dbSecret: {
-      apiVersion: 'v1',
-      kind: 'Secret',
-      type: 'Opaque',
+      apiVersion: "v1",
+      kind: "Secret",
+      type: "Opaque",
       metadata: {
-        name: 'vizier-db-secrets',
+        name: "vizier-db-secrets",
         namespace: namespace,
       },
       data: {
-        MYSQL_ROOT_PASSWORD: 'dGVzdA==',
+        MYSQL_ROOT_PASSWORD: "dGVzdA==",
       },
     },  // dbSecret
 
@@ -514,62 +543,62 @@
     },  // uiDeployment
 
     uiClusterRole: {
-      apiVersion: 'rbac.authorization.k8s.io/v1',
-      kind: 'ClusterRole',
+      apiVersion: "rbac.authorization.k8s.io/v1",
+      kind: "ClusterRole",
       metadata: {
-        name: 'katib-ui',
+        name: "katib-ui",
       },
       rules: [
         {
           apiGroups: [
-            '',
+            "",
           ],
           resources: [
-            'configmaps',
+            "configmaps",
           ],
           verbs: [
-            '*',
+            "*",
           ],
         },
         {
           apiGroups: [
-            'kubeflow.org',
+            "kubeflow.org",
           ],
           resources: [
-            'studyjobs',
+            "studyjobs",
           ],
           verbs: [
-            '*',
+            "*",
           ],
         },
       ],
     }, // uiClusterRole
 
     uiClusterRoleBinding: {
-      apiVersion: 'rbac.authorization.k8s.io/v1',
-      kind: 'ClusterRoleBinding',
+      apiVersion: "rbac.authorization.k8s.io/v1",
+      kind: "ClusterRoleBinding",
       metadata: {
-        name: 'katib-ui',
+        name: "katib-ui",
       },
       roleRef: {
-        apiGroup: 'rbac.authorization.k8s.io',
-        kind: 'ClusterRole',
-        name: 'katib-ui',
+        apiGroup: "rbac.authorization.k8s.io",
+        kind: "ClusterRole",
+        name: "katib-ui",
       },
       subjects: [
         {
-          kind: 'ServiceAccount',
-          name: 'katib-ui',
+          kind: "ServiceAccount",
+          name: "katib-ui",
           namespace: namespace,
         },
       ],
     }, // uiClusterRoleBinding
 
     uiServiceAccount: {
-      apiVersion: 'v1',
-      kind: 'ServiceAccount',
+      apiVersion: "v1",
+      kind: "ServiceAccount",
       metadata: {
-        name: 'katib-ui',
+        name: "katib-ui",
         namespace: namespace,
       },
     }, // uiServiceAccount
