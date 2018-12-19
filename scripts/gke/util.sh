@@ -28,7 +28,8 @@ gcpInitProject() {
     endpoints.googleapis.com \
     file.googleapis.com \
     ml.googleapis.com \
-    iam.googleapis.com --project=${PROJECT}
+    iam.googleapis.com \
+    sqladmin.googleapis.com --project=${PROJECT}
 }
 
 generateDMConfigs() {
