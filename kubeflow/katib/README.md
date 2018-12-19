@@ -1,11 +1,10 @@
 # Katib Quickstart
 
-For running Katib you have to install tf-job-operator and pytorch-operator package.
+For running Katib you have to install tf-job operator and pytorch operator package.
 
 In your Ksonnet app root, run the following
 
 ```
-export VERSION=master
 export KF_ENV=default
 ks registry add kubeflow github.com/kubeflow/kubeflow/tree/master/kubeflow
 ```
@@ -13,7 +12,7 @@ ks registry add kubeflow github.com/kubeflow/kubeflow/tree/master/kubeflow
 For installing pytorch operator, run the following
 
 ```
-ks pkg install kubeflow/pytorch-job${VERSION}
+ks pkg install kubeflow/pytorch-job
 ks generate pytorch-operator pytorch-operator
 ks apply ${KF_ENV} -c pytorch-operator
 ```
@@ -23,7 +22,7 @@ ks apply ${KF_ENV} -c pytorch-operator
 For installing tf-job operator, run the following
 
 ```
-ks pkg install kubeflow/tf-training${VERSION}
+ks pkg install kubeflow/tf-training
 ks generate tf-job-operator tf-job-operator
 ks apply ${KF_ENV} -c tf-job-operator
 ```
@@ -33,7 +32,7 @@ ks apply ${KF_ENV} -c tf-job-operator
 Finally, you can install Katib
 
 ```
-ks pkg install kubeflow/katib${VERSION}
+ks pkg install kubeflow/katib
 ks generate katib katib
 ks apply ${KF_ENV} -c katib
 ```
