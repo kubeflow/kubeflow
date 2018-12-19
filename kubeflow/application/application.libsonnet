@@ -10,6 +10,7 @@
         app: _params.name,
       },
       emitCRD: util.toBool(_params.emitCRD),
+      emitController: util.toBool(_params.emitController),
     },
 
     local applicationCRD = {
@@ -54,7 +55,12 @@
             "app.kubernetes.io/name": params.name,
           },
         },
-        componentKinds+: std.map(byComponent, tuples),
+        local getKey(resource) = resource.key,
+        local getValue(resource) = resource.groupkind,
+        local componentKindResources = std.map(forComponentKinds, tuples),
+        local componentKindMap = util.foldl(getKey, getValue, componentKindResources),
+        componentKinds+: [componentKindMap[key] for key in std.objectFields(componentKindMap)],
+        //componentKinds+: std.map(byComponent, tuples),
         descriptor: {
           type: params.type,
           version: params.version,
@@ -95,24 +101,13 @@
 
     local perComponent(name) = {
       local list = std.extVar("__ksonnet/components"),
-      local listNameIsObject(list, name) = {
-        return::
-          if std.objectHas(list[name], "items") &&
-            std.type(list[name].items) == "array" then
-              std.map(generateComponentTuples, list[name].items)
-      }.return,
-      local listNameIsArray(name) = {
-        return::
-          if std.type(list[name]) == "array" then
-            std.map(
-      }.return,
       return::
-        if std.type(list) == "object" && std.objectHas(list, name) then
-          if std.type(list[name]) == "object"  then
-            listNameIsObject(list, name),
-          else if std.type(list[name]) == "array"  then
-            listNameIsArray(list, name),
-          
+        if std.type(list) == "object" &&
+           std.objectHas(list, name) &&
+           std.type(list[name]) == "object" &&
+           std.objectHas(list[name], "items") &&
+           std.type(list[name].items) == "array" then
+          std.map(generateComponentTuples, list[name].items)
         else
           [],
     }.return,
@@ -185,8 +180,7 @@
       return:: util.foldl(getKey, getValue, tuples),
     }.return,
 
-    local tuples = std.flattenArrays(std.map(perComponent, getComponents)) + 
-      [ generateComponentTuples(self.applicationController) ],
+    local tuples = std.flattenArrays(std.map(perComponent, getComponents)),
     local components = std.map(byResource, tuples),
     local resources = groupByResource(tuples),
 
@@ -283,6 +277,19 @@
       return:: childResource,
     }.return,
 
+    local forComponentKinds(wrapper) = {
+      local tuple = wrapper.tuple,
+      local resource = tuple[2],
+      local componentKind = {
+        key: util.lower(resource.kind) + "s." + resource.apiVersion,
+        groupkind: {
+          group: resource.apiVersion,
+          kind: resource.kind,
+        },
+      },
+      return:: componentKind,
+    }.return,
+
     local applicationController = {
       apiVersion: "metacontroller.k8s.io/v1alpha1",
       kind: "CompositeController",
@@ -319,11 +326,15 @@
     all:: [
       if params.emitCRD then
         self.applicationCRD,
-      self.applicationConfigMap,
-      self.applicationDeployment,
-      self.applicationService,
       self.application,
-    ],
+    ] + std.flattenArrays([
+      if params.emitController then 
+        [ self.applicationConfigMap,
+        self.applicationDeployment,
+        self.applicationService,
+        self.applicationController ]
+      else [],
+    ]),
 
     list(obj=self.all):: util.list(obj),
   },
