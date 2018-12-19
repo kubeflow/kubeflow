@@ -9,7 +9,7 @@ import glamorous from 'glamorous';
 import * as jsYaml from 'js-yaml';
 import * as React from 'react';
 import * as request from 'request';
-import * as rp from 'request-promise';
+
 import Gapi from './Gapi';
 import { flattenDeploymentOperationError, log, wait } from './Utils';
 
@@ -37,18 +37,6 @@ interface DeployFormState {
   clientId: string;
   clientSecret: string;
   iap: boolean;
-}
-
-interface ManagedService {
-  producerProjectId?: string;
-  serviceName?: string;
-}
-interface ListServicesResponse {
-  nextPageToken?: string;
-  services?: ManagedService[];
-}
-interface EnableServiceRequest {
-  consumerId?: string;
 }
 
 const Text = glamorous.div({
@@ -423,11 +411,19 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     this._appendLine('Proceeding with project number: ' + projectNumber);
 
     const deploymentName = this.state.deploymentName;
-    const accountId = deploymentName + '-owner';
+    const accountId =  'kubeflow-deploy-admin';
     const saEmail = accountId + '@' + project +'.iam.gserviceaccount.com';
-    const saExists = await Gapi.iam.serviceAccountExist(project, saEmail);
-    if (!saExists) {
-      await Gapi.iam.createServiceAccount(project, accountId);
+    let saUniqueId = await Gapi.iam.getServiceAccountId(project, saEmail);
+    if (saUniqueId === null) {
+      saUniqueId = await Gapi.iam.createServiceAccount(project, accountId)
+        .catch(e => {
+          this.setState({
+            dialogTitle: 'Failed creating Service Account in target project, please verify if have permission',
+          });
+        });
+    }
+    if (this.state.dialogTitle) {
+      return;
     }
 
     const currProjPolicy = await Gapi.cloudresourcemanager.getIamPolicy(project);
@@ -436,7 +432,12 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       'members': ['serviceAccount:' + saEmail],
       'role': 'roles/owner'
     });
-    await Gapi.cloudresourcemanager.setIamPolicy(project, currProjPolicy);
+    await Gapi.cloudresourcemanager.setIamPolicy(project, currProjPolicy)
+      .catch(e => {
+        this.setState({
+          dialogTitle: 'Failed setting IAM policy, please verify if have permission',
+        });
+      });
 
     const currSAPolicy = await Gapi.iam.getServiceAccountIAM(project, saEmail);
     if (!(bindingKey in currSAPolicy)) {
@@ -446,15 +447,35 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       'members': ['user:' + email],
       'role': 'roles/iam.serviceAccountTokenCreator'
     });
-    await Gapi.iam.setServiceAccountIAM(project, saEmail, currSAPolicy);
+    await Gapi.iam.setServiceAccountIAM(project, saEmail, currSAPolicy)
+      .catch(e => {
+        this.setState({
+          dialogTitle: 'Failed setting service account policy, please verify if have permission',
+        });
+      });
+    if (this.state.dialogTitle) {
+      return;
+    }
 
-    const token = await Gapi.iam.getServiceAccountToken(project, saEmail);
+    let token = null;
+    for (let retries = 10; retries > 0; retries -= 1) {
+      token = await Gapi.iam.getServiceAccountToken(project, saEmail)
+        .catch(e => this._appendLine('Pending on new service account policy sync up'));
+      if (token !== undefined) {
+        break;
+      }
+      await wait(5000);
+    }
+    if (token === undefined) {
+      this._appendLine('Failed creating service account token, please verify if have permission');
+      return;
+    }
 
     let servicesToEnable: string[] = [];
     let enableAttempts = 0;
     const retryTimeout = 5000;
     do {
-      servicesToEnable = await this._getServicesToEnable(project, token)
+      servicesToEnable = await Gapi.sautil.getServicesToEnable(project, token, enableAttempts)
         .catch(e => {
           this.setState({
             dialogBody: `${email}: Error trying to list enabled services: ` + e,
@@ -479,11 +500,8 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
 
       for (const s of servicesToEnable) {
         this._appendLine('Enabling ' + s);
-        await this._enableServices(project, token, s)
-          .catch(e => this.setState({
-            dialogBody: `${email}: Error trying to enable this required service: ` + s + '.\n' + e,
-            dialogTitle: 'Deployment Error',
-          }));
+        await Gapi.sautil.enableServices(project, token, s)
+          .catch(e => this._appendLine('Pending on new service account token sync up'));
       }
 
       if (this.state.dialogTitle) {
@@ -525,6 +543,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         Namespace: 'kubeflow',
         Project: project,
         ProjectNumber: projectNumber,
+        SAClientId: saUniqueId,
         Token: token,
         Zone: this.state.zone,
       }
@@ -555,65 +574,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         }
       }
     );
-  }
-
-  /**
-   * Returns a list of services that are needed but not enabled for the given project.
-   */
-  private async _getServicesToEnable(project: string, token: string) {
-    // const enabledServices = await Gapi.servicemanagement.list(project);
-    const consumerId = encodeURIComponent(`project:${project}`);
-    const enabledServices = await rp(
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'content-type': 'application/json'
-        },
-        method: 'GET',
-        uri: `https://servicemanagement.googleapis.com/v1/services?pageSize=100&consumerId=${consumerId}`,
-      }
-    ).then(
-      response =>
-        JSON.parse(response) as ListServicesResponse,
-      badResult => {
-        throw new Error('Errors listing services: ' + JSON.parse(badResult));
-      });
-
-    const servicesToEnable = new Set([
-      'deploymentmanager.googleapis.com',
-      'container.googleapis.com',
-      'endpoints.googleapis.com',
-      'sourcerepo.googleapis.com',
-      'ml.googleapis.com',
-    ]);
-
-    for (const k of Array.from(servicesToEnable.keys())) {
-      if (enabledServices!.services!.find(s => s.serviceName === k)) {
-        servicesToEnable.delete(k);
-      }
-    }
-
-    return Array.from(servicesToEnable);
-  }
-
-  private async _enableServices(project: string, token: string, serviceName: string) {
-    const consumerId = `project:${project}`;
-    return rp(
-      {
-        body: {
-          consumerId
-        },
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'content-type': 'application/json'
-        },
-        method: 'POST',
-        uri: `https://servicemanagement.googleapis.com/v1/services/${serviceName}:enable`,
-      }
-    ).then(response => JSON.parse(response) as EnableServiceRequest,
-      badResult => {
-        throw new Error('Errors enabling service: ' + JSON.parse(badResult));
-      });
   }
 
   private _monitorDeployment(project: string, deploymentName: string) {

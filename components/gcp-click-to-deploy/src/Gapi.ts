@@ -1,7 +1,88 @@
+import * as rp from 'request-promise';
 import { flattenDeploymentOperationError } from './Utils';
 
+interface ManagedService {
+  producerProjectId?: string;
+  serviceName?: string;
+}
+interface ListServicesResponse {
+  services?: ManagedService[];
+}
+interface EnableServiceRequest {
+  consumerId?: string;
+}
 
 export default class Gapi {
+
+  public static sautil = class {
+
+    /**
+     * Returns a list of services that are needed but not enabled for the given project.
+     */
+    public static async getServicesToEnable(project: string, token: string, enableAttempts: number) {
+      const consumerId = encodeURIComponent(`project:${project}`);
+      const enabledServices = await rp(
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'content-type': 'application/json'
+          },
+          method: 'GET',
+          uri: `https://servicemanagement.googleapis.com/v1/services?pageSize=100&consumerId=${consumerId}`,
+        }
+      ).then(
+        response =>
+          JSON.parse(response) as ListServicesResponse,
+        badResult => {
+          if (enableAttempts > 10) {
+            throw new Error('Errors listing services: ' + badResult);
+          } else {
+            return [] as ListServicesResponse;
+          }
+        });
+
+      const servicesToEnable = new Set([
+        'deploymentmanager.googleapis.com',
+        'container.googleapis.com',
+        'cloudresourcemanager.googleapis.com',
+        'endpoints.googleapis.com',
+        'iam.googleapis.com',
+        'sourcerepo.googleapis.com',
+        'ml.googleapis.com',
+        'file.googleapis.com',
+        'sqladmin.googleapis.com',
+      ]);
+
+      if (enabledServices.services !== undefined) {
+        for (const k of Array.from(servicesToEnable.keys())) {
+          if (enabledServices!.services!.find(s => s.serviceName === k)) {
+            servicesToEnable.delete(k);
+          }
+        }
+      }
+
+      return Array.from(servicesToEnable);
+    }
+
+    public static async enableServices(project: string, token: string, serviceName: string) {
+      return rp(
+        {
+          body: JSON.stringify({ consumerId: `project:${project}` }),
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'content-type': 'application/json'
+          },
+          method: 'POST',
+          uri: `https://servicemanagement.googleapis.com/v1/services/${serviceName}:enable`,
+        }
+      ).then(response =>
+          JSON.parse(response) as EnableServiceRequest,
+        badResult => {
+          throw new Error('Errors enabling service: ' + badResult);
+        });
+    }
+
+  };
 
   public static deploymentmanager = class {
 
@@ -41,6 +122,7 @@ export default class Gapi {
     public static async getProjectNumber(projectId: string) {
       await Gapi.load();
       return gapi.client.request({
+        headers: {'X-Goog-User-Project': projectId},
         path: `https://cloudresourcemanager.googleapis.com/v1/projects/${projectId}`
       }).then(response => (response.result as any).projectNumber as number,
         badResult => {
@@ -51,6 +133,7 @@ export default class Gapi {
     public static async getIamPolicy(projectId: string) {
       await Gapi.load();
       return gapi.client.request({
+        headers: {'X-Goog-User-Project': projectId},
         method: 'POST',
         path: `https://cloudresourcemanager.googleapis.com/v1/projects/${projectId}:getIamPolicy`
       }).then(response => response.result,
@@ -62,9 +145,8 @@ export default class Gapi {
     public static async setIamPolicy(projectId: string, policy: object) {
       await Gapi.load();
       return gapi.client.request({
-        body: {
-          'policy': policy
-        },
+        body: { 'policy': policy },
+        headers: {'X-Goog-User-Project': projectId},
         method: 'POST',
         path: `https://cloudresourcemanager.googleapis.com/v1/projects/${projectId}:setIamPolicy`
       }).then(response => (response.result as any).bindings,
@@ -77,12 +159,13 @@ export default class Gapi {
 
   public static iam = class {
 
-    public static async serviceAccountExist(projectId: string, saEmail: string) {
+    public static async getServiceAccountId(projectId: string, saEmail: string) {
       await Gapi.load();
       return gapi.client.request({
+        headers: {'X-Goog-User-Project': projectId},
         path: `https://iam.googleapis.com/v1/projects/${projectId}/serviceAccounts/${saEmail}`
-      }).then(response => true,
-        badResult => false);
+      }).then(response => (response.result as any).uniqueId,
+        badResult => null);
     }
 
     public static async createServiceAccount(projectId: string, accountId: string) {
@@ -94,9 +177,10 @@ export default class Gapi {
             'displayName': 'kubeflow service account'
           }
         },
+        headers: {'X-Goog-User-Project': projectId},
         method: 'POST',
         path: `https://iam.googleapis.com/v1/projects/${projectId}/serviceAccounts`
-      }).then(response => (response.result as any).email,
+      }).then(response => (response.result as any).uniqueId,
         badResult => {
           throw new Error('Error trying to create service account: ' + JSON.stringify(badResult));
         });
@@ -105,6 +189,7 @@ export default class Gapi {
     public static async getServiceAccountIAM(projectId: string, saEmail: string) {
       await Gapi.load();
       return gapi.client.request({
+        headers: {'X-Goog-User-Project': projectId},
         method: 'POST',
         path: `https://iam.googleapis.com/v1/projects/${projectId}/serviceAccounts/${saEmail}:getIamPolicy`
       }).then(response => response.result,
@@ -116,9 +201,8 @@ export default class Gapi {
     public static async setServiceAccountIAM(projectId: string, saEmail: string, policy: object) {
       await Gapi.load();
       return gapi.client.request({
-        body: {
-          'policy': policy
-        },
+        body: { 'policy': policy },
+        headers: {'X-Goog-User-Project': projectId},
         method: 'POST',
         path: `https://iam.googleapis.com/v1/projects/${projectId}/serviceAccounts/${saEmail}:setIamPolicy`
       }).then(response => (response.result as any).bindings,
@@ -128,6 +212,7 @@ export default class Gapi {
     }
 
     public static async getServiceAccountToken(projectId: string, saEmail: string) {
+
       await Gapi.load();
       return gapi.client.request({
         body: {
@@ -137,9 +222,11 @@ export default class Gapi {
             'https://www.googleapis.com/auth/cloud-platform'
           ]
         },
+        headers: {'X-Goog-User-Project': projectId},
         method: 'POST',
         path: `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${saEmail}:generateAccessToken`
-      }).then(response => (response.result as any).accessToken,
+      }).then(response =>
+          (response.result as any).accessToken,
         badResult => {
           throw new Error('Error trying to generate service account token: ' + JSON.stringify(badResult));
         });
