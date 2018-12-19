@@ -1,3 +1,5 @@
+__DEPRECATION NOTICE: `openmpi` ksonnet package is now deprecated, which will be removed on `0.5.0` release. We strongly recommend to use [`MPIJob`](https://www.kubeflow.org/docs/guides/components/mpi/) because `MPIJob` is more fault tolerant and simple.__
+
 # Open MPI
 
 Prototypes for running Open MPI jobs with Kubernetes.
