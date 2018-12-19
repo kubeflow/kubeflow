@@ -38,5 +38,15 @@ ks generate katib katib
 ks apply ${KF_ENV} -c katib
 ```
 
+## Cleanups
+
+Delete installed components
+
+```
+ks delete ${KF_ENV} -c katib
+ks delete ${KF_ENV} -c pytorch-operator
+ks delete ${KF_ENV} -c tf-job-operator
+```
+
 Please refer to the official docs for
 [Hyperparameter Tuning at kubeflow.org](https://www.kubeflow.org/docs/guides/components/hyperparameter/).
