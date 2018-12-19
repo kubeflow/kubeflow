@@ -189,7 +189,7 @@
         hooks: {
           sync: {
             webhook: {
-              url: "http://cloud-endpoints-controller." + params.namespace + "/sync"
+              url: "http://cloud-endpoints-controller." + params.namespace + "/sync",
             },
           },
         },

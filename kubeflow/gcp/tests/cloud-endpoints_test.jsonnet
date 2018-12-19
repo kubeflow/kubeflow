@@ -51,7 +51,7 @@ std.assertEqual(
         ],
         resources: [
           "services",
-          "configmaps"
+          "configmaps",
         ],
         verbs: [
           "get",
