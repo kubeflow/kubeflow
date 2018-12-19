@@ -8,14 +8,6 @@ In your Ksonnet app root, run the following
 export KF_ENV=default
 ks registry add kubeflow github.com/kubeflow/kubeflow/tree/master/kubeflow
 ```
-## Pytorch-operator
-For installing pytorch operator, run the following
-
-```
-ks pkg install kubeflow/pytorch-job
-ks generate pytorch-operator pytorch-operator
-ks apply ${KF_ENV} -c pytorch-operator
-```
 
 ## TF-job operator
 
@@ -23,8 +15,18 @@ For installing tf-job operator, run the following
 
 ```
 ks pkg install kubeflow/tf-training
+ks pkg install kubeflow/core
 ks generate tf-job-operator tf-job-operator
 ks apply ${KF_ENV} -c tf-job-operator
+```
+
+## Pytorch-operator
+For installing pytorch operator, run the following
+
+```
+ks pkg install kubeflow/pytorch-job
+ks generate pytorch-operator pytorch-operator
+ks apply ${KF_ENV} -c pytorch-operator
 ```
 
 ## Katib
