@@ -265,7 +265,7 @@
           path: "/data/katib",
         },
       },
-    }, // dbPV
+    },  // dbPV
 
     dbDeployment: {
       apiVersion: "extensions/v1beta1",
@@ -573,7 +573,7 @@
           ],
         },
       ],
-    }, // uiClusterRole
+    },  // uiClusterRole
 
     uiClusterRoleBinding: {
       apiVersion: "rbac.authorization.k8s.io/v1",
@@ -593,7 +593,7 @@
           namespace: namespace,
         },
       ],
-    }, // uiClusterRoleBinding
+    },  // uiClusterRoleBinding
 
     uiServiceAccount: {
       apiVersion: "v1",
@@ -602,6 +602,6 @@
         name: "katib-ui",
         namespace: namespace,
       },
-    }, // uiServiceAccount
+    },  // uiServiceAccount
   },  //parts
 }
