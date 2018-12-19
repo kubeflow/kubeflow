@@ -216,6 +216,7 @@ std.assertEqual(
         },
       },
       generateSelector: true,
+      resyncPeriodSeconds: 2,
       hooks: {
         sync: {
           webhook: {
