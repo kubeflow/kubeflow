@@ -522,6 +522,7 @@
             name: "katib-ui",
           },
           spec: {
+            serviceAccountName: "katib-ui",
             containers: [
               {
                 command: [

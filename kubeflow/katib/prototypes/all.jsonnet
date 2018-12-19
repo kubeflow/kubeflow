@@ -7,12 +7,12 @@
 // @optionalParam suggestionGridImage string gcr.io/kubeflow-images-public/katib/suggestion-grid:v0.1.2-alpha-98-g07e0fd2 The image for grid suggestion.
 // @optionalParam suggestionHyperbandImage string gcr.io/kubeflow-images-public/katib/suggestion-hyperband:v0.1.2-alpha-98-g07e0fd2 The image for grid suggestion.
 // @optionalParam suggestionBayesianOptimizationImage string gcr.io/kubeflow-images-public/katib/suggestion-bayesianoptimization:v0.1.2-alpha-98-g07e0fd2 The image for grid suggestion.
-// @optionalParam vizierCoreImage string gcr.io/kubeflow-images-public/katib/vizier-core:v0.1.2-alpha-98-g07e0fd2 The image for vizier core.
-// @optionalParam vizierCoreRestImage string gcr.io/kubeflow-images-public/katib/vizier-core-rest:v0.1.2-alpha-98-g07e0fd2 The image for vizier core rest.
-// @optionalParam katibUIImage string gcr.io/kubeflow-images-public/katib/katib-ui:v0.1.2-alpha-98-g07e0fd2 The image for katib ui.
+// @optionalParam vizierCoreImage string gcr.io/kubeflow-images-public/katib/vizier-core:v0.1.2-alpha-100-gbca0b58 The image for vizier core.
+// @optionalParam vizierCoreRestImage string gcr.io/kubeflow-images-public/katib/vizier-core-rest:v0.1.2-alpha-100-gbca0b58 The image for vizier core rest.
+// @optionalParam katibUIImage string gcr.io/kubeflow-images-public/katib/katib-ui:v0.1.2-alpha-100-gbca0b58 The image for katib ui.
 // @optionalParam vizierDbImage string mysql:8.0.3 The image for vizier db.
-// @optionalParam studyJobControllerImage string gcr.io/kubeflow-images-public/katib/studyjob-controller:v0.1.2-alpha-98-g07e0fd2 The image for studyjob-controller.
-// @optionalParam metricsCollectorImage string gcr.io/kubeflow-images-public/katib/metrics-collector:v0.1.2-alpha-98-g07e0fd2 The image for metrics-collector.
+// @optionalParam studyJobControllerImage string gcr.io/kubeflow-images-public/katib/studyjob-controller:v0.1.2-alpha-100-gbca0b58 The image for studyjob-controller.
+// @optionalParam metricsCollectorImage string gcr.io/kubeflow-images-public/katib/metrics-collector:v0.1.2-alpha-100-gbca0b58 The image for metrics-collector.
 
 local k = import "k.libsonnet";
 
