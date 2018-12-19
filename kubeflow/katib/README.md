@@ -30,7 +30,7 @@ ks apply ${KF_ENV} -c tf-job-operator
 
 ## Katib
 
-Finally, you can install katib
+Finally, you can install Katib
 
 ```
 ks pkg install kubeflow/katib${VERSION}
