@@ -28,12 +28,8 @@ gcpInitProject() {
     endpoints.googleapis.com \
     file.googleapis.com \
     ml.googleapis.com \
-    iam.googleapis.com --project=${PROJECT}
-
-  # Set IAM Admin Policy
-  gcloud projects add-iam-policy-binding ${PROJECT} \
-    --member serviceAccount:${PROJECT_NUMBER}@cloudservices.gserviceaccount.com \
-    --role roles/resourcemanager.projectIamAdmin
+    iam.googleapis.com \
+    sqladmin.googleapis.com --project=${PROJECT}
 }
 
 generateDMConfigs() {
@@ -223,6 +219,10 @@ gcpGenerateKsApp() {
   pushd .
   cd "${KUBEFLOW_KS_DIR}"
 
+  # Install the gcp package 
+  ks pkg install kubeflow/gcp
+
+  # Generate all required components
   ks generate cloud-endpoints cloud-endpoints
   ks generate cert-manager cert-manager --acmeEmail=${EMAIL}
   ks generate iap-ingress iap-ingress --ipName=${KUBEFLOW_IP_NAME} --hostname=${KUBEFLOW_HOSTNAME}

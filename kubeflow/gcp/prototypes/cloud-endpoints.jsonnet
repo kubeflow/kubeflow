@@ -6,6 +6,6 @@
 // @optionalParam secretName string admin-gcp-sa Name of secret containing the json service account key.
 // @optionalParam secretKey string admin-gcp-sa.json Name of the key in the secret containing the JSON service account key.
 
-local cloudEndpoints = import "kubeflow/core/cloud-endpoints.libsonnet";
+local cloudEndpoints = import "kubeflow/gcp/cloud-endpoints.libsonnet";
 local instance = cloudEndpoints.new(env, params);
 instance.list(instance.all)

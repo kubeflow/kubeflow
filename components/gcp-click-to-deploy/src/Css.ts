@@ -1,4 +1,4 @@
-import { createMuiTheme } from '@material-ui/core';
+import createMuiTheme from '@material-ui/core/styles/createMuiTheme';
 
 export const CommonCss = {
   accent: '#3b78e7',
