@@ -16,7 +16,7 @@ usage() {
 }
 
 check_install() {
-  if ! which "${1}" &>/dev/null; then
+  if ! which "${1}" &>/dev/null && ! type -a ks &>/dev/null ; then
     echo "You don't have ${1} installed. Please install ${1}."
     exit 1
   fi
@@ -46,7 +46,7 @@ createKsApp() {
   pushd .
   # Create the ksonnet app
   cd $(dirname "${KUBEFLOW_KS_DIR}")
-  ks init $(basename "${KUBEFLOW_KS_DIR}")
+  eval ks init $(basename "${KUBEFLOW_KS_DIR}") --skip-default-registries ${KS_INIT_EXTRA_ARGS}
   cd "${KUBEFLOW_KS_DIR}"
 
   # Remove the default environment; The cluster might not exist yet
@@ -72,6 +72,7 @@ createKsApp() {
   ks pkg install kubeflow/metacontroller
   ks pkg install kubeflow/profiles
   ks pkg install kubeflow/application
+  ks pkg install kubeflow/modeldb
 
   # Generate all required components
   ks generate pytorch-operator pytorch-operator
