@@ -54,10 +54,11 @@
     return::
       if a == b then
         0
-      else if a < b then
-        -1
-      else
-        1,
+      else 
+        if a < b then
+          -1
+        else
+          1,
   }.return) {
     local l = std.length(arr),
     local f = {
@@ -86,15 +87,17 @@
     local aux(a, b, i, j, acc) =
       if i >= std.length(a) then
         acc
-      else if j >= std.length(b) then
-        aux(a, b, i + 1, j, acc + [a[i]]) tailstrict
-      else
-        if compare(a[i], b[j]) == 0 then
-          aux(a, b, i + 1, j + 1, acc) tailstrict
-        else if compare(a[i], b[j]) == -1 then
+      else 
+        if j >= std.length(b) then
           aux(a, b, i + 1, j, acc + [a[i]]) tailstrict
         else
-          aux(a, b, i, j + 1, acc) tailstrict,
+          if compare(a[i], b[j]) == 0 then
+            aux(a, b, i + 1, j + 1, acc) tailstrict
+          else 
+            if compare(a[i], b[j]) == -1 then
+              aux(a, b, i + 1, j, acc + [a[i]]) tailstrict
+            else
+              aux(a, b, i, j + 1, acc) tailstrict,
     return:: aux(a, b, 0, 0, []) tailstrict,
   }.return,
 

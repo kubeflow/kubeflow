@@ -277,7 +277,10 @@
       local resource = tuple[2],
       local childResource = {
         apiVersion: resource.apiVersion,
-        resource: util.lower(resource.kind) + "s",
+        resource: std.asciiLower(resource.kind) + "s",
+        updateStrategy: {
+          method: "InPlace",
+        },
       },
       return:: childResource,
     }.return,
@@ -286,7 +289,7 @@
       local tuple = wrapper.tuple,
       local resource = tuple[2],
       local componentKind = {
-        key: util.lower(resource.kind) + "s." + resource.apiVersion,
+        key: std.asciiLower(resource.kind) + "s." + resource.apiVersion,
         groupkind: {
           group: resource.apiVersion,
           kind: resource.kind,
@@ -303,6 +306,7 @@
       },
       spec: {
         generateSelector: true,
+        resyncPeriodSeconds: 10,
         parentResource: {
           apiVersion: "app.k8s.io/v1beta1",
           resource: "applications",

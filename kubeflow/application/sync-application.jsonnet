@@ -1,32 +1,40 @@
 function(request) {
   local util = import "util.libsonnet",
   local resources = %(resources)s,
-  local components = %(components)s,
-  local filteredComponents = std.filter(validateResource, components),
+  local children = %(components)s,
+  local comparator(a, b) = {
+    return::
+      if a.metadata.name == b.metadata.name then
+        0
+      else 
+        if a.metadata.name < b.metadata.name then
+          -1
+        else
+          1,
+  }.return,
   local validateResource(resource) = {
     return::
       if std.type(resource) == "object" &&
       std.objectHas(resource, 'kind') &&
       std.objectHas(resource, 'apiVersion') &&
       std.objectHas(resource, 'metadata') &&
-      std.objectHas(resource.metadata, 'name') &&
-      std.objectHas(resource.metadata, 'namespace') &&
-      resource.metadata.namespace == request.parent.metadata.namespace then
+      std.objectHas(resource.metadata, 'name') then
         true
       else
         false
   }.return,
-  local existingGroups(obj) =
+  local validatedChildren = util.sort(std.filter(validateResource, children), comparator),
+  local extractGroups(obj) =
     if std.type(obj) == "object" then
       [ obj[key] for key in std.objectFields(obj) ]
     else
       [],
-  local existingResources(group) =
+  local extractResources(group) =
     if std.type(group) == "object" then
       [ group[key] for key in std.objectFields(group) ]
     else
       [],
-  local continuation(resources) = {
+  local curryResources(resources) = {
     local existingResource(resource) = {
       local resourceExists(kindAndResource, name) = {
         return::
@@ -44,69 +52,54 @@ function(request) {
     }.return,
     return:: existingResource,
   }.return,
-  local foundChildren = 
-    std.filter(continuation(resources), 
-      std.flattenArrays(std.map(existingResources, existingGroups(request.children)))),
-  local comparator(a, b) = {
-    return::
-      if a.metadata.name == b.metadata.name then
-        0
-      else if a.metadata.name < b.metadata.name then
-        -1
-      else
-        1,
-  }.return,
+  local requestedChildren = 
+    std.flattenArrays(std.map(extractResources, extractGroups(request.children))),
+  local installedChildren = 
+    util.sort(std.filter(curryResources(resources), requestedChildren), comparator),
   local missingChildren = {
     return::
-      if std.type(filteredComponents) == "array" &&
-      std.type(foundChildren) == "array" then
-        util.setDiff(util.sort(filteredComponents, comparator), 
-          util.sort(foundChildren, comparator), comparator)
+      if std.type(validatedChildren) == "array" &&
+        std.type(installedChildren) == "array" then
+        util.setDiff(validatedChildren, installedChildren, comparator)
       else
         [],
   }.return,
   local initialized = {
     return::
       if std.objectHas(request.parent, "status") &&
-         std.objectHas(request.parent.status, "created") &&
-         request.parent.status.created == true then
+        std.objectHas(request.parent.status, "created") &&
+        request.parent.status.created == true then
         true
       else
         false,
   }.return,
-  local desired =
-    if std.length(foundChildren) == 0 then
-      if initialized == false then
-        components
-      else
-        []
-    else
-      foundChildren,
+  local desired = validatedChildren,
   local assemblyPhase = {
     return::
-      if std.length(foundChildren) == std.length(filteredComponents) then
+      if std.length(installedChildren) == std.length(validatedChildren) then
         "Succeeded"
       else
         "Pending",
   }.return,
   local info(resource) = {
     return::
-     util.lower(resource.kind) + "s" + "/" + resource.metadata.name,
+     util.lower(resource.kind) + "s." + resource.apiVersion + "/" + resource.metadata.name,
   }.return,
   children: desired,
   status: {
-    observedGeneration: '1',
     assemblyPhase: assemblyPhase,
     ready: "True",
     created: true,
-    installed: std.map(info, foundChildren),
-    missing: std.map(info, missingChildren),
+    validated: util.sort(std.map(info, validatedChildren)),
+    requested: util.sort(std.map(info, requestedChildren)),
+    installed: util.sort(std.map(info, installedChildren)),
+    missing: util.sort(std.map(info, missingChildren)),
     counts: {
-      components_length: std.length(components),
-      filtered_components_length: std.length(filteredComponents),
-      request_children_length: std.length(request.children),
-      found_children_length: std.length(foundChildren),
-      missing_children_length: std.length(missingChildren),
+      children: std.length(children),
+      validated_children: std.length(validatedChildren),
+      requested_children: std.length(requestedChildren),
+      installed_children: std.length(installedChildren),
+      missing_children: std.length(missingChildren),
     },
   },
 }
