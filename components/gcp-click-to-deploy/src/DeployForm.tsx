@@ -152,11 +152,11 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
 
         <div style={styles.row}>
           <TextField label="Project" spellCheck={false} style={styles.input} variant="filled"
-            value={this.state.project} onChange={this._handleChange('project')} />
+            required={true} value={this.state.project} onChange={this._handleChange('project')} />
         </div>
         <div style={styles.row}>
           <TextField label="Deployment name" spellCheck={false} style={styles.input} variant="filled"
-            value={this.state.deploymentName} onChange={this._handleChange('deploymentName')} />
+           required={true} value={this.state.deploymentName} onChange={this._handleChange('deploymentName')} />
         </div>
         <div style={styles.row}>
           <FormControlLabel label="Skip IAP" control={
@@ -168,11 +168,11 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         <Collapse in={this.state.iap}>
           <div style={styles.row}>
             <TextField label="IAP OAuth client ID" spellCheck={false} style={styles.input} variant="filled"
-              value={this.state.clientId} onChange={this._handleChange('clientId')} />
+             required={true} value={this.state.clientId} onChange={this._handleChange('clientId')} />
           </div>
           <div style={styles.row}>
             <TextField label="IAP OAuth client secret" spellCheck={false} style={styles.input} variant="filled"
-              value={this.state.clientSecret} onChange={this._handleChange('clientSecret')} />
+             required={true} value={this.state.clientSecret} onChange={this._handleChange('clientSecret')} />
           </div>
         </Collapse>
 
