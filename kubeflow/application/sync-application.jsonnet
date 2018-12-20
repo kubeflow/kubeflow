@@ -34,7 +34,7 @@ function(request) {
       [ group[key] for key in std.objectFields(group) ]
     else
       [],
-  local curryResources(resources) = {
+  local curryResources(resources, existing) = {
     local existingResource(resource) = {
       local resourceExists(kindAndResource, name) = {
         return::
@@ -50,20 +50,21 @@ function(request) {
         else
           false,
     }.return,
-    return:: existingResource,
+    local missingResource(resource) = {
+      return:: !existingResource(resource),
+    }.return,
+    return:: 
+      if existing == true then
+        existingResource
+      else 
+        missingResource,
   }.return,
   local requestedChildren = 
     std.flattenArrays(std.map(extractResources, extractGroups(request.children))),
   local installedChildren = 
-    util.sort(std.filter(curryResources(resources), requestedChildren), comparator),
-  local missingChildren = {
-    return::
-      if std.type(validatedChildren) == "array" &&
-        std.type(installedChildren) == "array" then
-        util.setDiff(validatedChildren, installedChildren, comparator)
-      else
-        [],
-  }.return,
+    util.sort(std.filter(curryResources(resources, true), requestedChildren), comparator),
+  local missingChildren =
+    util.sort(std.filter(curryResources(resources, false), requestedChildren), comparator),
   local initialized = {
     return::
       if std.objectHas(request.parent, "status") &&
