@@ -1,11 +1,14 @@
 import Button from '@material-ui/core/Button';
+import Checkbox from '@material-ui/core/Checkbox';
+import Collapse from '@material-ui/core/Collapse';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
-import glamorous from 'glamorous';
 import * as jsYaml from 'js-yaml';
 import * as React from 'react';
 import * as request from 'request';
@@ -33,17 +36,11 @@ interface DeployFormState {
   project: string;
   showLogs: boolean;
   zone: string;
-  kfverison: string;
+  kfversion: string;
   clientId: string;
   clientSecret: string;
   iap: boolean;
 }
-
-const Text = glamorous.div({
-  color: '#555',
-  fontSize: 20,
-  margin: '30px 60px',
-});
 
 const logsContainerStyle = (show: boolean) => {
   return {
@@ -57,48 +54,46 @@ const logsContainerStyle = (show: boolean) => {
   } as React.CSSProperties;
 };
 
-const logsToggle: React.CSSProperties = {
-  color: '#fff',
-  fontWeight: 'bold',
-  left: 20,
-  position: 'absolute',
-  top: -40,
+const styles: { [key: string]: React.CSSProperties } = {
+  btn: {
+    marginRight: 20,
+    width: 180,
+  },
+  input: {
+    width: '100%',
+  },
+  logsArea: {
+    backgroundColor: '#333',
+    border: 0,
+    boxSizing: 'border-box',
+    color: '#bbb',
+    fontFamily: 'Source Code Pro',
+    fontSize: 15,
+    height: '100%',
+    padding: 20,
+    width: '100%',
+  },
+  logsToggle: {
+    color: '#fff',
+    fontWeight: 'bold',
+    left: 20,
+    position: 'absolute',
+    top: -40,
+  },
+  row: {
+    display: 'flex',
+    minHeight: 56,
+    padding: '5px 50px',
+  },
+  text: {
+    color: '#555',
+    fontSize: 20,
+    margin: '30px 60px',
+  },
+  yamlBtn: {
+    width: 125,
+  },
 };
-
-const LogsArea = glamorous.textarea({
-  backgroundColor: '#333',
-  border: 0,
-  boxSizing: 'border-box',
-  color: '#bbb',
-  fontFamily: 'Source Code Pro',
-  fontSize: 15,
-  height: '100%',
-  padding: 20,
-  width: '100%',
-});
-
-const Row = glamorous.div({
-  display: 'flex',
-  marginBottom: 12,
-  minHeight: 56,
-});
-
-const Input = glamorous(TextField)({
-  backgroundColor: '#f7f7f7',
-  borderRadius: 4,
-  color: '#666',
-  margin: '0px 60px !important',
-  width: '100%',
-});
-
-const DeployBtn = glamorous(Button)({
-  marginRight: '20px !important',
-  width: 180,
-});
-
-const YamlBtn = glamorous(Button)({
-  width: 125,
-});
 
 export default class DeployForm extends React.Component<any, DeployFormState> {
 
@@ -113,7 +108,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       dialogBody: '',
       dialogTitle: '',
       iap: true,
-      kfverison: 'v0.3.4',
+      kfversion: 'v0.3.4',
       project: '',
       showLogs: false,
       zone: 'us-central1-a',
@@ -147,75 +142,84 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
   }
 
   public render() {
+    const zoneList = ['us-central1-a', 'us-central1-c', 'us-east1-c', 'us-east1-d', 'us-west1-b',
+      'europe-west1-b', 'europe-west1-d', 'asia-east1-a', 'asia-east1-b'];
+    const versionList = ['v0.3.4'];
+
     return (
       <div>
-        <Text>Create a Kubeflow deployment</Text>
+        <div style={styles.text}>Create a Kubeflow deployment</div>
 
-        <Row>
-          <Input name="project" label="Project" spellCheck={false} value={this.state.project} onChange={this._handleChange.bind(this)} />
-        </Row>
-        <Row>
-          <Input name="deploymentName" label="Deployment name" spellCheck={false} value={this.state.deploymentName} onChange={this._handleChange.bind(this)} />
-        </Row>
-        <Row style={{ minHeight: 20 }}>
-          <input style={{ fontSize: '1.1em', margin: '0% 1% 0% 11%' }} type="checkbox" onChange={this._handleCheck.bind(this)} />
-          <label style={{ minHeight: 20 }} >Skip IAP</label>
-        </Row>
-        {this.state.iap && (<React.Fragment>
-          <Row style={{ minHeight: 0 }}>
-            <Input name="clientId" label="IAP Oauth Client ID" spellCheck={false} value={this.state.clientId} onChange={this._handleChange.bind(this)} />
-          </Row>
-          <Row style={{ minHeight: 0 }}>
-            <Input name="clientSecret" label="IAP Oauth Client Secret" spellCheck={false} value={this.state.clientSecret} onChange={this._handleChange.bind(this)} />
-          </Row>
-        </React.Fragment>)}
-        <Row style={{ minHeight: 20 }}>
-          <Text style={{ fontSize: '1.1em', margin: '2% 11%' }}>GKE Zone: </Text>
-          <select name="zone" style={{ display: 'flex', fontSize: '1.1em', margin: '2% 10.5%', }} spellCheck={false} value={this.state.zone} onChange={this._handleChange.bind(this)} >
-            <option value="us-central1-a">us-central1-a</option>
-            <option value="us-central1-c">us-central1-c</option>
-            <option value="us-east1-c">us-east1-c</option>
-            <option value="us-east1-d">us-east1-d</option>
-            <option value="us-west1-b">us-west1-b</option>
-            <option value="europe-west1-b">europe-west1-b</option>
-            <option value="europe-west1-d">europe-west1-d</option>
-            <option value="asia-east1-a">asia-east1-a</option>
-            <option value="asia-east1-b">asia-east1-b</option>
-          </select>
-        </Row>
-        <Row style={{ minHeight: 20 }}>
-          <Text style={{ fontSize: '1.1em', margin: '2% 11%' }}>Kubeflow Version:</Text>
-          <select name="kfverison" style={{ display: 'flex', fontSize: '1.1em', margin: '2% 1%', }} spellCheck={false} value={this.state.kfverison} onChange={this._handleChange.bind(this)} >
-            <option value="v0.3.4">v0.3.4</option>
-          </select>
-        </Row>
+        <div style={styles.row}>
+          <TextField label="Project" spellCheck={false} style={styles.input} variant="filled"
+            value={this.state.project} onChange={this._handleChange('project')} />
+        </div>
+        <div style={styles.row}>
+          <TextField label="Deployment name" spellCheck={false} style={styles.input} variant="filled"
+            value={this.state.deploymentName} onChange={this._handleChange('deploymentName')} />
+        </div>
+        <div style={styles.row}>
+          <FormControlLabel label="Skip IAP" control={
+            <Checkbox checked={!this.state.iap} color="primary"
+              onChange={() => this.setState({ iap: !this.state.iap })} />
+          } />
+        </div>
+
+        <Collapse in={this.state.iap}>
+          <div style={styles.row}>
+            <TextField label="IAP OAuth client ID" spellCheck={false} style={styles.input} variant="filled"
+              value={this.state.clientId} onChange={this._handleChange('clientId')} />
+          </div>
+          <div style={styles.row}>
+            <TextField label="IAP OAuth client secret" spellCheck={false} style={styles.input} variant="filled"
+              value={this.state.clientSecret} onChange={this._handleChange('clientSecret')} />
+          </div>
+        </Collapse>
+
+        <div style={styles.row}>
+          <TextField select={true} label="GKE zone:" required={true} style={styles.input} variant="filled"
+            value={this.state.zone} onChange={this._handleChange('zone')}>
+            {zoneList.map((zone, i) => (
+              <MenuItem key={i} value={zone}>{zone}</MenuItem>
+            ))}
+          </TextField>
+        </div>
+
+        <div style={styles.row}>
+          <TextField select={true} label="Kubeflow version:" required={true} style={styles.input} variant="filled"
+            value={this.state.kfversion} onChange={this._handleChange('kfversion')}>
+            {versionList.map((version, i) => (
+              <MenuItem key={i} value={version}>{version}</MenuItem>
+            ))}
+          </TextField>
+        </div>
+
         <div style={{ display: 'flex', padding: '20px 60px 40px' }}>
-          <DeployBtn variant="contained" color="primary" onClick={this._createDeployment.bind(this)}>
+          <Button style={styles.btn} variant="contained" color="primary" onClick={this._createDeployment.bind(this)}>
             Create Deployment
-          </DeployBtn>
+          </Button>
 
           {this.state.iap && (
-            <DeployBtn variant="contained" color="default" onClick={this._iapAddress.bind(this)}>
+            <Button style={styles.btn} variant="contained" color="default" onClick={this._iapAddress.bind(this)}>
               IAP Access
-          </DeployBtn>
+            </Button>
           )}
-
           {!this.state.iap && (
-            <DeployBtn variant="contained" color="default" onClick={this._cloudShell.bind(this)}>
+            <Button style={styles.btn} variant="contained" color="default" onClick={this._cloudShell.bind(this)}>
               Cloud Shell
-          </DeployBtn>
+            </Button>
           )}
 
-          <YamlBtn variant="outlined" color="default" onClick={this._showYaml.bind(this)}>
+          <Button style={styles.yamlBtn} variant="outlined" color="default" onClick={this._showYaml.bind(this)}>
             View YAML
-          </YamlBtn>
+          </Button>
         </div>
 
         <div style={logsContainerStyle(this.state.showLogs)} >
-          <Button style={logsToggle} onClick={this._toggleLogs.bind(this)} >
+          <Button style={styles.logsToggle} onClick={this._toggleLogs.bind(this)} >
             {this.state.showLogs ? 'Hide ' : 'Show '} Logs
           </Button>
-          <LogsArea id="logs" readOnly={true} />
+          <textarea style={styles.logsArea} id="logs" readOnly={true} />
         </div>
 
         <Dialog open={!!this.state.dialogTitle || !!this.state.dialogBody} keepMounted={true}
@@ -292,7 +296,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     if (this.state.clientId === '' || this.state.clientSecret === '') {
       this._configSpec.defaultApp.parameters.splice(iapIdx, 1);
     }
-    this._configSpec.defaultApp.registries[0].version = this.state.kfverison;
+    this._configSpec.defaultApp.registries[0].version = this.state.kfversion;
 
     return this._configSpec;
   }
@@ -306,7 +310,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       });
       return;
     }
-    const cloudShellConfPath = this.state.kfverison + '/' + this.state.deploymentName + '/kf_util';
+    const cloudShellConfPath = this.state.kfversion + '/' + this.state.deploymentName + '/kf_util';
     const cloudShellUrl = 'https://cloud.google.com/console/cloudshell/open?shellonly=true&git_repo=https://source.developers.google.com/p/' +
       this.state.project + '/r/' + this.state.project + '-kubeflow-config&working_dir=' + cloudShellConfPath + '&tutorial=conn.md';
     window.open(cloudShellUrl, '_blank');
@@ -638,18 +642,9 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     document.body.appendChild(img);
   }
 
-  private _handleChange(event: Event) {
-    const target = event.target as any;
-    target.style.backgroundColor = !!target.value ? 'transparent' : '#fbecec';
+  private _handleChange = (name: string) => (event: React.ChangeEvent) => {
     this.setState({
-      [target.name]: target.value
+      [name]: (event.target as HTMLInputElement).value,
     } as any);
   }
-
-  private _handleCheck(event: Event) {
-    this.setState({
-      ['iap']: !this.state.iap
-    });
-  }
-
 }
