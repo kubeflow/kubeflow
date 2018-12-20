@@ -60,7 +60,6 @@
         local componentKindResources = std.map(forComponentKinds, tuples),
         local componentKindMap = util.foldl(getKey, getValue, componentKindResources),
         componentKinds+: [componentKindMap[key] for key in std.objectFields(componentKindMap)],
-        //componentKinds+: std.map(byComponent, tuples),
         descriptor: {
           type: params.type,
           version: params.version,

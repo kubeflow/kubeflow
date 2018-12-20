@@ -1,79 +1,59 @@
 ## Overview
 
 The application component creates an Application Kind based on the 
-components ksonnet has generated. If using kfctl this would be all components 
-or the result of executing `kfctl generate all`.
+components ksonnet has generated. If using kfctl this would be the result 
+of executing `kfctl generate all` or the following components:
 
-Alternatively, the application component can produce an Application Kind based on a subset 
-of the generated components by setting a parameter
-
-```bash
-ks param application components '["ambassador", "jupyter"]'
+```
+"ambassador","jupyter","centraldashboard","tf-job-operator","spartakus","argo","pipeline"
 ```
 
-for example.
+Alternatively, the application component can produce an Application Kind based on a subset 
+of the generated components by setting the components parameter.
+
+```bash
+ks param set application components '["ambassador","jupyter"]'
+```
+
+for example:
 
 ## Sample script
 
 ```bash
-  rm -rf kf_app
-  kfctl.sh init kf_app --platform none
-  pushd kf_app
-  kfctl.sh generate all
-  kfctl.sh apply all
+kfctl.sh init kf_app --platform none
+pushd kf_app
+kfctl.sh generate all
+kfctl.sh apply all
 ```
 
-## Expected output
+## Options (emitCRD=true, emitController=false)
 
-### both the ApplicationCRD and the Application will be emitted with the other components
+- emitCRD (=true)
+If the Application CRD has already been emitted then set this to false
 
-```bash
-INFO Applying customresourcedefinitions workflows.argoproj.io
-INFO Creating non-existent customresourcedefinitions workflows.argoproj.io
-INFO Applying clusterroles argo
-INFO Creating non-existent clusterroles argo
-INFO Applying clusterrolebindings argo
-INFO Creating non-existent clusterrolebindings argo
-INFO Applying clusterroles argo-ui
-INFO Creating non-existent clusterroles argo-ui
-INFO Applying clusterrolebindings argo-ui
-INFO Creating non-existent clusterrolebindings argo-ui
-INFO Applying clusterroles vizier-core
-INFO Creating non-existent clusterroles vizier-core
-INFO Applying clusterrolebindings vizier-core
-INFO Creating non-existent clusterrolebindings vizier-core
-INFO Applying customresourcedefinitions studyjobs.kubeflow.org
-INFO Creating non-existent customresourcedefinitions studyjobs.kubeflow.org
-INFO Applying clusterroles metrics-collector
-INFO Creating non-existent clusterroles metrics-collector
-INFO Applying clusterrolebindings metrics-collector
-INFO Creating non-existent clusterrolebindings metrics-collector
-INFO Applying clusterroles studyjob-controller
-INFO Creating non-existent clusterroles studyjob-controller
-INFO Applying clusterrolebindings studyjob-controller
-INFO Creating non-existent clusterrolebindings studyjob-controller
-INFO Applying clusterroles pytorch-operator
-INFO Creating non-existent clusterroles pytorch-operator
-INFO Applying clusterrolebindings pytorch-operator
-INFO Creating non-existent clusterrolebindings pytorch-operator
-INFO Applying customresourcedefinitions pytorchjobs.kubeflow.org
-INFO Creating non-existent customresourcedefinitions pytorchjobs.kubeflow.org
-INFO Applying clusterroles spartakus
-INFO Creating non-existent clusterroles spartakus
-INFO Applying clusterrolebindings spartakus
-INFO Creating non-existent clusterrolebindings spartakus
-INFO Applying customresourcedefinitions tfjobs.kubeflow.org
-INFO Creating non-existent customresourcedefinitions tfjobs.kubeflow.org
-INFO Applying clusterroles tf-job-operator
-INFO Creating non-existent clusterroles tf-job-operator
-INFO Applying clusterrolebindings tf-job-operator
-INFO Creating non-existent clusterrolebindings tf-job-operator
-INFO Applying clusterroles tf-job-dashboard
-INFO Creating non-existent clusterroles tf-job-dashboard
-INFO Applying clusterrolebindings tf-job-dashboard
-INFO Creating non-existent clusterrolebindings tf-job-dashboard
-INFO Applying customresourcedefinitions applications.app.k8s.io
-INFO Creating non-existent customresourcedefinitions applications.app.k8s.io
+```
+ks param set application emitCRD false
+```
+
+- emitController (=false)
+
+If this flag is true then the components normally emitted by directly to the api-server will be emitted 
+by the application-controller. In this case you would run
+
+```
+kfctl.sh init kf_app --platform none
+pushd kf_app
+kfctl.sh generate all
+
+# NOTE: uncomment below to set components to those the application-controller should deploy
+# the default is '["ambassador","jupyter","centraldashboard","tf-job-operator","spartakus","argo","pipeline"]'
+#ks param set application components '["ambassador","pytorch",...]'
+
+# NOTE: uncomment to set the name of the Application to something other than application
+#ks param set application name <NAME>
+
+ks param set application emitController true
+ks apply default -c metacontroller -c application
 ```
 
 ### all namespace scoped resources are created
