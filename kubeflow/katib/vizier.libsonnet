@@ -4,7 +4,6 @@
     $.parts(params, namespace).coreDeployment,
     $.parts(params, namespace).dbService,
     $.parts(params, namespace).dbPVC,
-    $.parts(params, namespace).dbPV,
     $.parts(params, namespace).dbDeployment,
     $.parts(params, namespace).dbSecret,
     $.parts(params, namespace).clusterRole,
@@ -235,37 +234,8 @@
             storage: "10Gi",
           },
         },
-        selector: {
-          matchLabels: {
-            app: "katib",
-            type: "local",
-          },
-        },
       },
     },  // dbPVC
-
-    dbPV: {
-      apiVersion: "v1",
-      kind: "PersistentVolume",
-      metadata: {
-        name: "katib-mysql",
-        labels: {
-          type: "local",
-          app: "katib",
-        },
-      },
-      spec: {
-        capacity: {
-          storage: "10Gi",
-        },
-        accessModes: [
-          "ReadWriteOnce",
-        ],
-        hostPath: {
-          path: "/data/katib",
-        },
-      },
-    },  // dbPV
 
     dbDeployment: {
       apiVersion: "extensions/v1beta1",
