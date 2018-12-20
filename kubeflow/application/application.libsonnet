@@ -180,9 +180,16 @@
       return:: util.foldl(getKey, getValue, tuples),
     }.return,
 
-    local tuples = std.flattenArrays(std.map(perComponent, getComponents)),
+    local tuples = std.flattenArrays(std.map(perComponent, getComponents)) +
+      [ generateComponentTuples(self.applicationController) ],
     local components = std.map(byResource, tuples),
     local resources = groupByResource(tuples),
+
+    local syncApplicationRaw = importstr "sync-application.jsonnet",
+    local syncApplication = syncApplicationRaw % {
+      components: std.manifestJsonEx(components, "  "),
+      resources: std.manifestJsonEx(resources, "  "),
+    },
 
     local applicationConfigMap = {
       apiVersion: "v1",
@@ -192,7 +199,7 @@
         namespace: params.namespace,
       },
       data: {
-        "sync-application.jsonnet": importstr "sync-application.jsonnet",
+        "sync-application.jsonnet": syncApplication,
         "util.libsonnet": importstr "kubeflow/core/util.libsonnet",
       },
     },
@@ -295,10 +302,6 @@
       kind: "CompositeController",
       metadata: {
         name: "application-controller",
-        annotations: {
-          resources: resources,
-          components: components,
-        },
       },
       spec: {
         generateSelector: true,
@@ -326,13 +329,13 @@
     all:: [
       if params.emitCRD then
         self.applicationCRD,
-      self.application,
     ] + std.flattenArrays([
       if params.emitController then 
         [ self.applicationConfigMap,
         self.applicationDeployment,
         self.applicationService,
-        self.applicationController ]
+        self.applicationController,
+        self.application ]
       else [],
     ]),
 
