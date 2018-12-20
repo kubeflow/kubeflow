@@ -273,6 +273,31 @@
                   name: "studyjob-controller",
                   image: params.studyJobControllerImage,
                   imagePullPolicy: "Always",
+                  volumeMounts: [
+                    {
+                      name: "worker-template",
+                      mountPath: "/worker-template",
+                    },
+                    {
+                      name: "metricscollector-template",
+                      mountPath: "/metricscollector-template",
+                    },
+                  ],
+                },
+              ],
+              volumes: [
+                {
+                  name: "worker-template",
+                  configMap: {
+                    name: "worker-template",
+                  },
+                },
+                {
+                  name: "metricscollector-template",
+                  configMap: {
+                    name: "metricscollector-template",
+                  },
+
                 },
               ],
             },

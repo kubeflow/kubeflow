@@ -230,6 +230,7 @@
         accessModes: [
           "ReadWriteOnce",
         ],
+        storageClassName: "",
         resources: {
           requests: {
             storage: "10Gi",
