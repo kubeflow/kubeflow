@@ -180,8 +180,7 @@
       return:: util.foldl(getKey, getValue, tuples),
     }.return,
 
-    local tuples = std.flattenArrays(std.map(perComponent, getComponents)) +
-      [ generateComponentTuples(self.applicationController) ],
+    local tuples = std.flattenArrays(std.map(perComponent, getComponents)),
     local components = std.map(byResource, tuples),
     local resources = groupByResource(tuples),
 
@@ -326,18 +325,20 @@
     applicationController:: applicationController,
 
     parts:: self,
-    all:: [
-      if params.emitCRD then
-        self.applicationCRD,
-    ] + std.flattenArrays([
-      if params.emitController then 
-        [ self.applicationConfigMap,
-        self.applicationDeployment,
-        self.applicationService,
-        self.applicationController,
-        self.application ]
-      else [],
-    ]),
+    all:: std.flattenArrays(
+      [
+        if params.emitCRD then [ 
+          self.applicationCRD
+        ] else [],
+        if params.emitController then [ 
+          self.applicationConfigMap,
+          self.applicationDeployment,
+          self.applicationService,
+          self.applicationController,
+        ] else [],
+        [ self.application ],
+      ],
+    ),
 
     list(obj=self.all):: util.list(obj),
   },
