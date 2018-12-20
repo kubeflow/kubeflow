@@ -89,7 +89,7 @@ function(request) {
       else
         "Pending",
   }.return,
-  local installedName(resource) = {
+  local info(resource) = {
     return::
      util.lower(resource.kind) + "s" + "/" + resource.metadata.name,
   }.return,
@@ -97,15 +97,16 @@ function(request) {
   status: {
     observedGeneration: '1',
     assemblyPhase: assemblyPhase,
-    installed: std.map(installedName, foundChildren),
     ready: "True",
     created: true,
-    //debug
-    request_children_length: std.length(request.children),
-    found_children_length: std.length(foundChildren),
-    components_length: std.length(components),
-    filtered_components_length: std.length(filteredComponents),
-    missing_children_length: std.length(missingChildren),
-    missing_children: missingChildren,
+    installed: std.map(info, foundChildren),
+    missing: std.map(info, missingChildren),
+    counts: {
+      components_length: std.length(components),
+      filtered_components_length: std.length(filteredComponents),
+      request_children_length: std.length(request.children),
+      found_children_length: std.length(foundChildren),
+      missing_children_length: std.length(missingChildren),
+    },
   },
 }

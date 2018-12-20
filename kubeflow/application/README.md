@@ -1,11 +1,11 @@
 ## Overview
 
-The application component creates an Application Kind based on the 
-components ksonnet has generated. If using kfctl this would be the result 
-of executing `kfctl generate all` or the following components:
+The application component creates an Application Kind based on 
+components ksonnet has generated. The application component defaults
+to the following components:
 
 ```
-"ambassador","jupyter","centraldashboard","tf-job-operator","spartakus","argo","pipeline"
+"ambassador", "jupyter", "centraldashboard", "tf-job-operator", "spartakus", "argo", "pipeline"
 ```
 
 Alternatively, the application component can produce an Application Kind based on a subset 
@@ -45,15 +45,16 @@ kfctl.sh init kf_app --platform none
 pushd kf_app
 kfctl.sh generate all
 
+pushd ks_app
 # NOTE: uncomment below to set components to those the application-controller should deploy
 # the default is '["ambassador","jupyter","centraldashboard","tf-job-operator","spartakus","argo","pipeline"]'
 #ks param set application components '["ambassador","pytorch",...]'
-
 # NOTE: uncomment to set the name of the Application to something other than application
 #ks param set application name <NAME>
 
 ks param set application emitController true
-ks apply default -c metacontroller -c application
+ks show default -c metacontroller -c application > default.yaml
+kubectl apply --validate=false -f default.yaml
 ```
 
 ### all namespace scoped resources are created
