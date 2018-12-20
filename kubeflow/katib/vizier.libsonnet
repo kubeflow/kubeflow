@@ -300,6 +300,10 @@
                   periodSeconds: 2,
                   timeoutSeconds: 1,
                 },
+                args: [
+                  "--datadir",
+                  "/var/lib/mysql/datadir",
+                ],
                 volumeMounts: [
                   {
                     name: "katib-mysql",
