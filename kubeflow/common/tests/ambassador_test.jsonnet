@@ -1,4 +1,4 @@
-local ambassador = import "kubeflow/core/ambassador.libsonnet";
+local ambassador = import "kubeflow/common/ambassador.libsonnet";
 
 local params = {
   name: "ambassador",

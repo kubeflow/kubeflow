@@ -4,7 +4,7 @@
 
 - set a serviceAccountName within the spawning pod similar to jupyter-notebook
 
-- allow similar params as kubeflow/core/prototypes/jupyterhub.jsonnet, including PVCs but use the kubernetes PodTemplateSpec
+- allow similar params as kubeflow/common/prototypes/jupyterhub.jsonnet, including PVCs but use the kubernetes PodTemplateSpec
 
 
 ## Design
