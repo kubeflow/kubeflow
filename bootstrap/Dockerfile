@@ -70,7 +70,7 @@ RUN chmod a+rx /opt/kubeflow/bootstrapper
 #
 FROM golang:alpine as bootstrap
 
-RUN apk add --no-cache libc6-compat
+RUN apk update && apk add --no-cache libc6-compat socat
 ENV GOPATH /go
 ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
 RUN mkdir -p /go/bin
@@ -88,6 +88,9 @@ RUN mkdir -p /opt/bootstrap
 RUN mkdir -p /opt/versioned_registries
 RUN chmod a+rx /opt/kubeflow/bootstrapper
 RUN chmod a+rx $GOPATH/bin/dlv
+
+EXPOSE 8080
+EXPOSE 2345
 
 # Set default values for USER, USER_ID, GROUP_ID
 # The startup script will create the user and su to that user.

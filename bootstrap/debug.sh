@@ -112,7 +112,8 @@ spec:
       - name: kubeflow-bootstrapper
         image: ${image}:${tag}
         workingDir: /opt/bootstrap
-        command: ["/opt/kubeflow/dlv.sh"]
+        #command: ["/opt/kubeflow/dlv.sh"]
+        command: ["/bin/sh", "-c", "trap : TERM INT; sleep 10000 & wait"]
         ports:
         - containerPort: $port
         securityContext:
