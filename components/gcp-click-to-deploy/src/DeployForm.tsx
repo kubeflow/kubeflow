@@ -446,7 +446,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     }
     if (returnPloicy === undefined) {
       this.setState({
-        dialogTitle: 'Failed setting IAM policy, please verify if have permission',
+        dialogTitle: 'Failed to set IAM policy, please make sure you have enough permissions.',
       });
       return;
     }
@@ -462,7 +462,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     await Gapi.iam.setServiceAccountIAM(project, saEmail, currSAPolicy)
       .catch(e => {
         this.setState({
-          dialogTitle: 'Failed setting service account policy, please verify if have permission',
+          dialogTitle: 'Failed to set service account policy, please make sure you have enough permissions.',
         });
       });
     if (this.state.dialogTitle) {
@@ -480,7 +480,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     }
     if (token === undefined) {
       this.setState({
-        dialogTitle: 'Failed creating service account token, please verify if have permission',
+        dialogTitle: 'Failed to create service account token, please make sure you have enough permissions.',
       });
       return;
     }
