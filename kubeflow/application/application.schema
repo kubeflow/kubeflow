@@ -1,278 +1,278 @@
 {
   properties: {
     apiVersion: {
-      type: 'string',
+      type: "string",
     },
     kind: {
-      type: 'string',
+      type: "string",
     },
     metadata: {
-      type: 'object',
+      type: "object",
     },
     spec: {
       properties: {
         assemblyPhase: {
-          type: 'string',
+          type: "string",
         },
         componentKinds: {
           items: {
-            type: 'object',
+            type: "object",
           },
-          type: 'array',
+          type: "array",
         },
         descriptor: {
           properties: {
             description: {
-              type: 'string',
+              type: "string",
             },
             icons: {
               items: {
                 properties: {
                   size: {
-                    type: 'string',
+                    type: "string",
                   },
                   src: {
-                    type: 'string',
+                    type: "string",
                   },
                   type: {
-                    type: 'string',
+                    type: "string",
                   },
                 },
                 required: [
-                  'src',
+                  "src",
                 ],
-                type: 'object',
+                type: "object",
               },
-              type: 'array',
+              type: "array",
             },
             keywords: {
               items: {
-                type: 'string',
+                type: "string",
               },
-              type: 'array',
+              type: "array",
             },
             links: {
               items: {
                 properties: {
                   description: {
-                    type: 'string',
+                    type: "string",
                   },
                   url: {
-                    type: 'string',
+                    type: "string",
                   },
                 },
-                type: 'object',
+                type: "object",
               },
-              type: 'array',
+              type: "array",
             },
             maintainers: {
               items: {
                 properties: {
                   email: {
-                    type: 'string',
+                    type: "string",
                   },
                   name: {
-                    type: 'string',
+                    type: "string",
                   },
                   url: {
-                    type: 'string',
+                    type: "string",
                   },
                 },
-                type: 'object',
+                type: "object",
               },
-              type: 'array',
+              type: "array",
             },
             notes: {
-              type: 'string',
+              type: "string",
             },
             owners: {
               items: {
                 properties: {
                   email: {
-                    type: 'string',
+                    type: "string",
                   },
                   name: {
-                    type: 'string',
+                    type: "string",
                   },
                   url: {
-                    type: 'string',
+                    type: "string",
                   },
                 },
-                type: 'object',
+                type: "object",
               },
-              type: 'array',
+              type: "array",
             },
             type: {
-              type: 'string',
+              type: "string",
             },
             version: {
-              type: 'string',
+              type: "string",
             },
           },
-          type: 'object',
+          type: "object",
         },
         info: {
           items: {
             properties: {
               name: {
-                type: 'string',
+                type: "string",
               },
               type: {
-                type: 'string',
+                type: "string",
               },
               value: {
-                type: 'string',
+                type: "string",
               },
               valueFrom: {
                 properties: {
                   configMapKeyRef: {
                     properties: {
                       apiVersion: {
-                        type: 'string',
+                        type: "string",
                       },
                       fieldPath: {
-                        type: 'string',
+                        type: "string",
                       },
                       key: {
-                        type: 'string',
+                        type: "string",
                       },
                       kind: {
-                        type: 'string',
+                        type: "string",
                       },
                       name: {
-                        type: 'string',
+                        type: "string",
                       },
                       namespace: {
-                        type: 'string',
+                        type: "string",
                       },
                       resourceVersion: {
-                        type: 'string',
+                        type: "string",
                       },
                       uid: {
-                        type: 'string',
+                        type: "string",
                       },
                     },
-                    type: 'object',
+                    type: "object",
                   },
                   ingressRef: {
                     properties: {
                       apiVersion: {
-                        type: 'string',
+                        type: "string",
                       },
                       fieldPath: {
-                        type: 'string',
+                        type: "string",
                       },
                       host: {
-                        type: 'string',
+                        type: "string",
                       },
                       kind: {
-                        type: 'string',
+                        type: "string",
                       },
                       name: {
-                        type: 'string',
+                        type: "string",
                       },
                       namespace: {
-                        type: 'string',
+                        type: "string",
                       },
                       path: {
-                        type: 'string',
+                        type: "string",
                       },
                       resourceVersion: {
-                        type: 'string',
+                        type: "string",
                       },
                       uid: {
-                        type: 'string',
+                        type: "string",
                       },
                     },
-                    type: 'object',
+                    type: "object",
                   },
                   secretKeyRef: {
                     properties: {
                       apiVersion: {
-                        type: 'string',
+                        type: "string",
                       },
                       fieldPath: {
-                        type: 'string',
+                        type: "string",
                       },
                       key: {
-                        type: 'string',
+                        type: "string",
                       },
                       kind: {
-                        type: 'string',
+                        type: "string",
                       },
                       name: {
-                        type: 'string',
+                        type: "string",
                       },
                       namespace: {
-                        type: 'string',
+                        type: "string",
                       },
                       resourceVersion: {
-                        type: 'string',
+                        type: "string",
                       },
                       uid: {
-                        type: 'string',
+                        type: "string",
                       },
                     },
-                    type: 'object',
+                    type: "object",
                   },
                   serviceRef: {
                     properties: {
                       apiVersion: {
-                        type: 'string',
+                        type: "string",
                       },
                       fieldPath: {
-                        type: 'string',
+                        type: "string",
                       },
                       kind: {
-                        type: 'string',
+                        type: "string",
                       },
                       name: {
-                        type: 'string',
+                        type: "string",
                       },
                       namespace: {
-                        type: 'string',
+                        type: "string",
                       },
                       path: {
-                        type: 'string',
+                        type: "string",
                       },
                       port: {
-                        format: 'int32',
-                        type: 'integer',
+                        format: "int32",
+                        type: "integer",
                       },
                       resourceVersion: {
-                        type: 'string',
+                        type: "string",
                       },
                       uid: {
-                        type: 'string',
+                        type: "string",
                       },
                     },
-                    type: 'object',
+                    type: "object",
                   },
                   type: {
-                    type: 'string',
+                    type: "string",
                   },
                 },
-                type: 'object',
+                type: "object",
               },
             },
-            type: 'object',
+            type: "object",
           },
-          type: 'array',
+          type: "array",
         },
         selector: {
-          type: 'object',
+          type: "object",
         },
       },
-      type: 'object',
+      type: "object",
     },
     status: {
       properties: {
         observedGeneration: {
-          format: 'int64',
-          type: 'integer',
+          format: "int64",
+          type: "integer",
         },
       },
-      type: 'object',
+      type: "object",
     },
   },
 }

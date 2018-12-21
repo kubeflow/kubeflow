@@ -12,4 +12,3 @@
 local application = import "kubeflow/application/application.libsonnet";
 local instance = application.new(env, params);
 instance.list(instance.all)
-

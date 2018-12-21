@@ -1,5 +1,5 @@
 {
-  // Implements Kubernetes Application API 
+  // Implements Kubernetes Application API
   local k8s = import "k8s.libsonnet",
   local util = import "kubeflow/core/util.libsonnet",
   local crd = k8s.apiextensions.v1beta1.customResourceDefinition,
@@ -180,9 +180,9 @@
     local clusterScope(resource) = {
       return::
         if (std.objectHas(resource, "metadata") &&
-          !std.objectHas(resource.metadata, "namespace")) then
+            !std.objectHas(resource.metadata, "namespace")) then
           true
-        else 
+        else
           false,
     }.return,
     local namespacedScope(resource) = {
@@ -342,16 +342,16 @@
     all:: std.flattenArrays(
       [
         clusterResources,
-        if params.emitCRD then [ 
-          self.applicationCRD
+        if params.emitCRD then [
+          self.applicationCRD,
         ] else [],
-        if params.emitController then [ 
+        if params.emitController then [
           self.applicationConfigMap,
           self.applicationDeployment,
           self.applicationService,
           self.applicationController,
         ] else [],
-        [ self.application ],
+        [self.application],
       ],
     ),
 

@@ -44,80 +44,265 @@ std.assertEqual(
             },
             spec: {
               properties: {
-                components: {
+                assemblyPhase: {
+                  type: "string",
+                },
+                componentKinds: {
                   items: {
                     type: "object",
                   },
                   type: "array",
                 },
-                dependencies: {
-                  items: {
-                    type: "string",
+                descriptor: {
+                  properties: {
+                    description: {
+                      type: "string",
+                    },
+                    icons: {
+                      items: {
+                        properties: {
+                          size: {
+                            type: "string",
+                          },
+                          src: {
+                            type: "string",
+                          },
+                          type: {
+                            type: "string",
+                          },
+                        },
+                        required: [
+                          "src",
+                        ],
+                        type: "object",
+                      },
+                      type: "array",
+                    },
+                    keywords: {
+                      items: {
+                        type: "string",
+                      },
+                      type: "array",
+                    },
+                    links: {
+                      items: {
+                        properties: {
+                          description: {
+                            type: "string",
+                          },
+                          url: {
+                            type: "string",
+                          },
+                        },
+                        type: "object",
+                      },
+                      type: "array",
+                    },
+                    maintainers: {
+                      items: {
+                        properties: {
+                          email: {
+                            type: "string",
+                          },
+                          name: {
+                            type: "string",
+                          },
+                          url: {
+                            type: "string",
+                          },
+                        },
+                        type: "object",
+                      },
+                      type: "array",
+                    },
+                    notes: {
+                      type: "string",
+                    },
+                    owners: {
+                      items: {
+                        properties: {
+                          email: {
+                            type: "string",
+                          },
+                          name: {
+                            type: "string",
+                          },
+                          url: {
+                            type: "string",
+                          },
+                        },
+                        type: "object",
+                      },
+                      type: "array",
+                    },
+                    type: {
+                      type: "string",
+                    },
+                    version: {
+                      type: "string",
+                    },
                   },
-                  type: "array",
-                },
-                description: {
-                  type: "string",
-                },
-                healthCheck: {
-                  type: "string",
+                  type: "object",
                 },
                 info: {
                   items: {
+                    properties: {
+                      name: {
+                        type: "string",
+                      },
+                      type: {
+                        type: "string",
+                      },
+                      value: {
+                        type: "string",
+                      },
+                      valueFrom: {
+                        properties: {
+                          configMapKeyRef: {
+                            properties: {
+                              apiVersion: {
+                                type: "string",
+                              },
+                              fieldPath: {
+                                type: "string",
+                              },
+                              key: {
+                                type: "string",
+                              },
+                              kind: {
+                                type: "string",
+                              },
+                              name: {
+                                type: "string",
+                              },
+                              namespace: {
+                                type: "string",
+                              },
+                              resourceVersion: {
+                                type: "string",
+                              },
+                              uid: {
+                                type: "string",
+                              },
+                            },
+                            type: "object",
+                          },
+                          ingressRef: {
+                            properties: {
+                              apiVersion: {
+                                type: "string",
+                              },
+                              fieldPath: {
+                                type: "string",
+                              },
+                              host: {
+                                type: "string",
+                              },
+                              kind: {
+                                type: "string",
+                              },
+                              name: {
+                                type: "string",
+                              },
+                              namespace: {
+                                type: "string",
+                              },
+                              path: {
+                                type: "string",
+                              },
+                              resourceVersion: {
+                                type: "string",
+                              },
+                              uid: {
+                                type: "string",
+                              },
+                            },
+                            type: "object",
+                          },
+                          secretKeyRef: {
+                            properties: {
+                              apiVersion: {
+                                type: "string",
+                              },
+                              fieldPath: {
+                                type: "string",
+                              },
+                              key: {
+                                type: "string",
+                              },
+                              kind: {
+                                type: "string",
+                              },
+                              name: {
+                                type: "string",
+                              },
+                              namespace: {
+                                type: "string",
+                              },
+                              resourceVersion: {
+                                type: "string",
+                              },
+                              uid: {
+                                type: "string",
+                              },
+                            },
+                            type: "object",
+                          },
+                          serviceRef: {
+                            properties: {
+                              apiVersion: {
+                                type: "string",
+                              },
+                              fieldPath: {
+                                type: "string",
+                              },
+                              kind: {
+                                type: "string",
+                              },
+                              name: {
+                                type: "string",
+                              },
+                              namespace: {
+                                type: "string",
+                              },
+                              path: {
+                                type: "string",
+                              },
+                              port: {
+                                format: "int32",
+                                type: "integer",
+                              },
+                              resourceVersion: {
+                                type: "string",
+                              },
+                              uid: {
+                                type: "string",
+                              },
+                            },
+                            type: "object",
+                          },
+                          type: {
+                            type: "string",
+                          },
+                        },
+                        type: "object",
+                      },
+                    },
                     type: "object",
-                  },
-                  type: "array",
-                },
-                keywords: {
-                  items: {
-                    type: "string",
-                  },
-                  type: "array",
-                },
-                links: {
-                  items: {
-                    type: "object",
-                  },
-                  type: "array",
-                },
-                maintainers: {
-                  items: {
-                    type: "string",
-                  },
-                  type: "array",
-                },
-                owners: {
-                  items: {
-                    type: "string",
                   },
                   type: "array",
                 },
                 selector: {
                   type: "object",
                 },
-                type: {
-                  type: "string",
-                },
-                version: {
-                  type: "string",
-                },
               },
               type: "object",
             },
             status: {
               properties: {
-                installed: {
-                  items: {
-                    type: "string",
-                  },
-                  type: "array",
-                },
                 observedGeneration: {
                   format: "int64",
-                  type: "string",
-                },
-                ready: {
-                  type: "string",
+                  type: "integer",
                 },
               },
               type: "object",
@@ -129,13 +314,3 @@ std.assertEqual(
     },
   }
 )
-
-// TBD - may need to add --ext-code-file <var>=<file> for __ksonnet/components
-/*
-std.assertEqual(
-  instance.application,
-)
-*/
-
-
-
