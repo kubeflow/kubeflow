@@ -1,8 +1,8 @@
 {
-   "name": "core",
+   "name": "common",
    "apiVersion": "0.0.1",
    "kind": "ksonnet.io/parts",
-   "description": "Core components of Kubeflow.\n",
+   "description": "Common components of Kubeflow.\n",
    "author": "kubeflow team <kubeflow-team@google.com>",
    "contributors": [
       {
@@ -23,13 +23,13 @@
    ],
    "quickStart": {
       "prototype": "io.ksonnet.pkg.kubeflow",
-      "componentName": "core",
+      "componentName": "common",
       "flags": {
-         "name": "core",
+         "name": "common",
          "namespace": "default",
          "disks": ""
       },
-      "comment": "Core Kubeflow components."
+      "comment": "Common Kubeflow components."
    },
    "license": "Apache 2.0"
 }
