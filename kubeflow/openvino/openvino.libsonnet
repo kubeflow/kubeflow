@@ -1,6 +1,6 @@
 {
   local k = import "k.libsonnet",
-  local util = import "kubeflow/core/util.libsonnet",
+  local util = import "kubeflow/common/util.libsonnet",
   local service = k.core.v1.service,
   local deployment = k.apps.v1beta1.deployment,
   local container = deployment.mixin.spec.template.spec.containersType,
