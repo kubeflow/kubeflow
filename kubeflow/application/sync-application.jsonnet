@@ -1,7 +1,19 @@
 function(request) {
   local util = import "util.libsonnet",
-  local resources = %(resources)s,
-  local children = %(components)s,
+  local children = %(resources)s,
+  local groupedResources = %(groupedResources)s,
+  local groupByResource(resources) = {
+    local getKey(resource) = {
+      return::
+        //resource.kind + "." + resource.apiVersion,
+        resource.kind,
+    }.return,
+    local getValue(resource) = {
+      return::
+        { [resource.metadata.name]+: resource },
+    }.return,
+    return:: util.foldl(getKey, getValue, resources),
+  }.return,
   local comparator(a, b) = {
     return::
       if a.metadata.name == b.metadata.name then
@@ -21,7 +33,7 @@ function(request) {
       std.objectHas(resource.metadata, 'name') then
         true
       else
-        false
+        false,
   }.return,
   local validatedChildren = util.sort(std.filter(validateResource, children), comparator),
   local extractGroups(obj) =
@@ -34,47 +46,40 @@ function(request) {
       [ group[key] for key in std.objectFields(group) ]
     else
       [],
-  local curryResources(resources, existing) = {
+  local curryResources(resources, exists) = {
     local existingResource(resource) = {
-      local resourceExists(kindAndResource, name) = {
+      local resourceExists(kind, name) = {
         return::
-          if std.objectHas(resources, kindAndResource) &&
-          std.objectHas(resources[kindAndResource], name) then
+          if std.objectHas(resources, kind) &&
+          std.objectHas(resources[kind], name) then
             true
           else
             false,
       }.return,
       return::
         if validateResource(resource) then 
-          resourceExists(resource.kind + "." + resource.apiVersion, resource.metadata.name)
+          resourceExists(resource.kind, resource.metadata.name)
         else
           false,
     }.return,
     local missingResource(resource) = {
-      return:: !existingResource(resource),
+      return::
+        existingResource(resource) == false,
     }.return,
     return:: 
-      if existing == true then
+      if exists == true then
         existingResource
-      else 
-        missingResource,
+      else
+        missingResource
   }.return,
   local requestedChildren = 
     std.flattenArrays(std.map(extractResources, extractGroups(request.children))),
+  local groupedRequestedChildren = groupByResource(requestedChildren),
   local installedChildren = 
-    util.sort(std.filter(curryResources(resources, true), requestedChildren), comparator),
+    util.sort(std.filter(curryResources(groupedResources, true), requestedChildren), comparator),
   local missingChildren =
-    util.sort(std.filter(curryResources(resources, false), requestedChildren), comparator),
-  local initialized = {
-    return::
-      if std.objectHas(request.parent, "status") &&
-        std.objectHas(request.parent.status, "created") &&
-        request.parent.status.created == true then
-        true
-      else
-        false,
-  }.return,
-  local desired = validatedChildren,
+    util.sort(std.filter(curryResources(groupedRequestedChildren, false), validatedChildren), comparator),
+  local desired = requestedChildren + missingChildren,
   local assemblyPhase = {
     return::
       if std.length(installedChildren) == std.length(validatedChildren) then

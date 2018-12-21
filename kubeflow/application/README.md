@@ -1,11 +1,81 @@
 ## Overview
 
 The application component creates an Application Kind based on 
-components ksonnet has generated. The application component defaults
+components ksonnet has generated or the user has specified using 
+an application component parameter. The application component defaults
 to the following components:
 
 ```
 "ambassador", "jupyter", "centraldashboard", "tf-job-operator", "spartakus", "argo", "pipeline"
+```
+
+These components are listed within the Application Kind 
+
+```
+apiVersion: app.k8s.io/v1beta1
+kind: Application
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"app.k8s.io/v1beta1","kind":"Application","metadata":{"annotations":{},"labels":{"app":"kubeflow","app.kubernetes.io/name":"kubeflow","ksonnet.io/component":"application"},"name":"kubeflow","namespace":"kubeflow"},"spec":{"assemblyPhase":"Succeeded","componentKinds":[{"group":"rbac.authorization.k8s.io/v1beta1","kind":"ClusterRoleBinding"},{"group":"rbac.authorization.k8s.io/v1beta1","kind":"ClusterRole"},{"group":"v1","kind":"ConfigMap"},{"group":"apiextensions.k8s.io/v1beta1","kind":"CustomResourceDefinition"},{"group":"apps/v1beta1","kind":"Deployment"},{"group":"apps/v1beta2","kind":"Deployment"},{"group":"extensions/v1beta1","kind":"Deployment"},{"group":"batch/v1","kind":"Job"},{"group":"v1","kind":"PersistentVolumeClaim"},{"group":"rbac.authorization.k8s.io/v1beta1","kind":"RoleBinding"},{"group":"rbac.authorization.k8s.io/v1beta1","kind":"Role"},{"group":"v1","kind":"Secret"},{"group":"v1","kind":"ServiceAccount"},{"group":"v1","kind":"Service"},{"group":"apps/v1beta1","kind":"StatefulSet"}],"descriptor":{"description":"","icons":[],"keywords":[],"links":[],"maintainers":[],"notes":"","owners":[],"type":"kubeflow","version":"0.4"},"info":[],"selector":{"matchLabels":{"app.kubernetes.io/name":"kubeflow"}}}}
+  creationTimestamp: 2018-12-20T21:40:53Z
+  generation: 1
+  labels:
+    app: kubeflow
+    app.kubernetes.io/name: kubeflow
+    ksonnet.io/component: application
+  name: kubeflow
+  namespace: kubeflow
+  resourceVersion: "2889700"
+  selfLink: /apis/app.k8s.io/v1beta1/namespaces/kubeflow/applications/kubeflow
+  uid: ed56d218-049f-11e9-88a0-42010a8a01a3
+spec:
+  assemblyPhase: Succeeded
+  componentKinds:
+  - group: rbac.authorization.k8s.io/v1beta1
+    kind: ClusterRoleBinding
+  - group: rbac.authorization.k8s.io/v1beta1
+    kind: ClusterRole
+  - group: v1
+    kind: ConfigMap
+  - group: apiextensions.k8s.io/v1beta1
+    kind: CustomResourceDefinition
+  - group: apps/v1beta1
+    kind: Deployment
+  - group: apps/v1beta2
+    kind: Deployment
+  - group: extensions/v1beta1
+    kind: Deployment
+  - group: batch/v1
+    kind: Job
+  - group: v1
+    kind: PersistentVolumeClaim
+  - group: rbac.authorization.k8s.io/v1beta1
+    kind: RoleBinding
+  - group: rbac.authorization.k8s.io/v1beta1
+    kind: Role
+  - group: v1
+    kind: Secret
+  - group: v1
+    kind: ServiceAccount
+  - group: v1
+    kind: Service
+  - group: apps/v1beta1
+    kind: StatefulSet
+  descriptor:
+    description: ""
+    icons: []
+    keywords: []
+    links: []
+    maintainers: []
+    notes: ""
+    owners: []
+    type: kubeflow
+    version: "0.4"
+  info: []
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kubeflow
 ```
 
 Alternatively, the application component can produce an Application Kind based on a subset 
@@ -55,327 +125,5 @@ pushd ks_app
 ks param set application emitController true
 ks show default -c metacontroller -c application > default.yaml
 kubectl apply --validate=false -f default.yaml
-```
-
-### all namespace scoped resources are created
-
-```bash
-INFO Applying services kubeflow.modeldb-db
-INFO Creating non-existent services kubeflow.modeldb-db
-INFO Applying services kubeflow.ambassador-admin
-INFO Creating non-existent services kubeflow.ambassador-admin
-INFO Applying roles kubeflow.ambassador
-INFO Creating non-existent roles kubeflow.ambassador
-INFO Applying serviceaccounts kubeflow.ambassador
-INFO Creating non-existent serviceaccounts kubeflow.ambassador
-INFO Applying rolebindings kubeflow.ambassador
-INFO Creating non-existent rolebindings kubeflow.ambassador
-INFO Applying serviceaccounts kubeflow.tf-job-dashboard
-INFO Creating non-existent serviceaccounts kubeflow.tf-job-dashboard
-INFO Applying services kubeflow.tf-job-dashboard
-INFO Creating non-existent services kubeflow.tf-job-dashboard
-INFO Applying services kubeflow.ambassador
-INFO Creating non-existent services kubeflow.ambassador
-INFO Applying services kubeflow.argo-ui
-INFO Creating non-existent services kubeflow.argo-ui
-INFO Applying configmaps kubeflow.workflow-controller-configmap
-INFO Creating non-existent configmaps kubeflow.workflow-controller-configmap
-INFO Applying serviceaccounts kubeflow.argo
-INFO Creating non-existent serviceaccounts kubeflow.argo
-INFO Applying serviceaccounts kubeflow.argo-ui
-INFO Creating non-existent serviceaccounts kubeflow.argo-ui
-INFO Applying serviceaccounts kubeflow.tf-job-operator
-INFO Creating non-existent serviceaccounts kubeflow.tf-job-operator
-INFO Applying services kubeflow.centraldashboard
-INFO Creating non-existent services kubeflow.centraldashboard
-INFO Applying configmaps kubeflow.tf-job-operator-config
-INFO Creating non-existent configmaps kubeflow.tf-job-operator-config
-INFO Applying roles kubeflow.centraldashboard
-INFO Creating non-existent roles kubeflow.centraldashboard
-INFO Applying configmaps kubeflow.jupyter-config
-INFO Creating non-existent configmaps kubeflow.jupyter-config
-INFO Applying services kubeflow.jupyter-0
-INFO Creating non-existent services kubeflow.jupyter-0
-INFO Applying applications kubeflow.application
-INFO Creating non-existent applications kubeflow.application
-INFO Applying roles kubeflow.jupyter-role
-INFO Creating non-existent roles kubeflow.jupyter-role
-INFO Applying roles kubeflow.jupyter-notebook-role
-INFO Creating non-existent roles kubeflow.jupyter-notebook-role
-INFO Applying services kubeflow.jupyter-lb
-INFO Creating non-existent services kubeflow.jupyter-lb
-INFO Applying serviceaccounts kubeflow.jupyter
-INFO Creating non-existent serviceaccounts kubeflow.jupyter
-INFO Applying serviceaccounts kubeflow.jupyter-notebook
-INFO Creating non-existent serviceaccounts kubeflow.jupyter-notebook
-INFO Applying rolebindings kubeflow.jupyter-role
-INFO Creating non-existent rolebindings kubeflow.jupyter-role
-INFO Applying rolebindings kubeflow.jupyter-notebook-role
-INFO Creating non-existent rolebindings kubeflow.jupyter-notebook-role
-INFO Applying services kubeflow.vizier-core
-INFO Creating non-existent services kubeflow.vizier-core
-INFO Applying serviceaccounts kubeflow.spartakus
-INFO Creating non-existent serviceaccounts kubeflow.spartakus
-INFO Applying services kubeflow.vizier-db
-INFO Creating non-existent services kubeflow.vizier-db
-INFO Applying persistentvolumeclaims kubeflow.vizier-db
-INFO Creating non-existent persistentvolumeclaims kubeflow.vizier-db
-INFO Applying serviceaccounts kubeflow.pytorch-operator
-INFO Creating non-existent serviceaccounts kubeflow.pytorch-operator
-INFO Applying serviceaccounts kubeflow.vizier-core
-INFO Creating non-existent serviceaccounts kubeflow.vizier-core
-INFO Applying services kubeflow.vizier-suggestion-random
-INFO Creating non-existent services kubeflow.vizier-suggestion-random
-INFO Applying configmaps kubeflow.pytorch-operator-config
-INFO Creating non-existent configmaps kubeflow.pytorch-operator-config
-INFO Applying services kubeflow.vizier-suggestion-grid
-INFO Creating non-existent services kubeflow.vizier-suggestion-grid
-INFO Applying configmaps kubeflow.worker-template
-INFO Creating non-existent configmaps kubeflow.worker-template
-INFO Applying services kubeflow.vizier-suggestion-hyperband
-INFO Creating non-existent services kubeflow.vizier-suggestion-hyperband
-INFO Applying configmaps kubeflow.metricscollector-template
-INFO Creating non-existent configmaps kubeflow.metricscollector-template
-INFO Applying services kubeflow.vizier-suggestion-bayesianoptimization
-INFO Creating non-existent services kubeflow.vizier-suggestion-bayesianoptimization
-INFO Applying serviceaccounts kubeflow.metrics-collector
-INFO Creating non-existent serviceaccounts kubeflow.metrics-collector
-INFO Applying services kubeflow.modeldb-backend
-INFO Creating non-existent services kubeflow.modeldb-backend
-INFO Applying services kubeflow.modeldb-frontend
-INFO Creating non-existent services kubeflow.modeldb-frontend
-INFO Applying serviceaccounts kubeflow.centraldashboard
-INFO Creating non-existent serviceaccounts kubeflow.centraldashboard
-INFO Applying serviceaccounts kubeflow.studyjob-controller
-INFO Creating non-existent serviceaccounts kubeflow.studyjob-controller
-INFO Applying deployments kubeflow.pytorch-operator
-INFO Creating non-existent deployments kubeflow.pytorch-operator
-INFO Applying deployments kubeflow.modeldb-frontend
-INFO Creating non-existent deployments kubeflow.modeldb-frontend
-INFO Applying deployments kubeflow.vizier-suggestion-bayesianoptimization
-INFO Creating non-existent deployments kubeflow.vizier-suggestion-bayesianoptimization
-INFO Applying deployments kubeflow.vizier-suggestion-hyperband
-INFO Creating non-existent deployments kubeflow.vizier-suggestion-hyperband
-INFO Applying deployments kubeflow.spartakus-volunteer
-INFO Creating non-existent deployments kubeflow.spartakus-volunteer
-INFO Applying deployments kubeflow.studyjob-controller
-INFO Creating non-existent deployments kubeflow.studyjob-controller
-INFO Applying deployments kubeflow.vizier-suggestion-grid
-INFO Creating non-existent deployments kubeflow.vizier-suggestion-grid
-INFO Applying deployments kubeflow.vizier-suggestion-random
-INFO Creating non-existent deployments kubeflow.vizier-suggestion-random
-INFO Applying deployments kubeflow.vizier-db
-INFO Creating non-existent deployments kubeflow.vizier-db
-INFO Applying deployments kubeflow.modeldb-backend
-INFO Creating non-existent deployments kubeflow.modeldb-backend
-INFO Applying deployments kubeflow.vizier-core
-INFO Creating non-existent deployments kubeflow.vizier-core
-INFO Applying statefulsets kubeflow.jupyter
-INFO Creating non-existent statefulsets kubeflow.jupyter
-INFO Applying deployments kubeflow.tf-job-operator-v1alpha2
-INFO Creating non-existent deployments kubeflow.tf-job-operator-v1alpha2
-INFO Applying deployments kubeflow.argo-ui
-INFO Creating non-existent deployments kubeflow.argo-ui
-INFO Applying deployments kubeflow.centraldashboard
-INFO Creating non-existent deployments kubeflow.centraldashboard
-INFO Applying deployments kubeflow.workflow-controller
-INFO Creating non-existent deployments kubeflow.workflow-controller
-INFO Applying deployments kubeflow.ambassador
-INFO Creating non-existent deployments kubeflow.ambassador
-INFO Applying deployments kubeflow.tf-job-dashboard
-INFO Creating non-existent deployments kubeflow.tf-job-dashboard
-INFO Applying deployments kubeflow.modeldb-db
-INFO Creating non-existent deployments kubeflow.modeldb-db
-```
-
-## Expected Application yaml
-
-```yaml
-apiVersion: app.k8s.io/v1beta1
-kind: Application
-metadata:
-  clusterName: ""
-  creationTimestamp: 2018-10-18T05:29:48Z
-  generation: 1
-  labels:
-    app: application
-    app.kubernetes.io/name: application
-    ksonnet.io/component: application
-  name: application
-  namespace: kubeflow
-  resourceVersion: "3974222"
-  selfLink: /apis/app.k8s.io/v1beta1/namespaces/kubeflow/applications/application
-  uid: d468b6aa-d296-11e8-83f2-42010a8a0020
-spec:
-  components:
-  - ambassador:
-      kind: Service
-  - ambassador-admin:
-      kind: Service
-  - ambassador:
-      group: rbac.authorization.k8s.io
-      kind: Role
-  - ambassador:
-      kind: ServiceAccount
-  - ambassador:
-      group: rbac.authorization.k8s.io
-      kind: RoleBinding
-  - ambassador:
-      group: extensions
-      kind: Deployment
-  - workflow-controller:
-      group: extensions
-      kind: Deployment
-  - argo-ui:
-      group: extensions
-      kind: Deployment
-  - argo-ui:
-      kind: Service
-  - workflow-controller-configmap:
-      kind: ConfigMap
-  - argo:
-      kind: ServiceAccount
-  - argo-ui:
-      kind: ServiceAccount
-  - centraldashboard:
-      group: extensions
-      kind: Deployment
-  - centraldashboard:
-      kind: Service
-  - centraldashboard:
-      kind: ServiceAccount
-  - centraldashboard:
-      group: rbac.authorization.k8s.io
-      kind: Role
-  - jupyter-config:
-      kind: ConfigMap
-  - jupyter-0:
-      kind: Service
-  - jupyter:
-      group: apps
-      kind: StatefulSet
-  - jupyter-role:
-      group: rbac.authorization.k8s.io
-      kind: Role
-  - jupyter-notebook-role:
-      group: rbac.authorization.k8s.io
-      kind: Role
-  - jupyter-lb:
-      kind: Service
-  - jupyter:
-      kind: ServiceAccount
-  - jupyter-notebook:
-      kind: ServiceAccount
-  - jupyter-role:
-      group: rbac.authorization.k8s.io
-      kind: RoleBinding
-  - jupyter-notebook-role:
-      group: rbac.authorization.k8s.io
-      kind: RoleBinding
-  - vizier-core:
-      kind: Service
-  - vizier-core:
-      group: extensions
-      kind: Deployment
-  - vizier-db:
-      kind: Service
-  - vizier-db:
-      kind: PersistentVolumeClaim
-  - vizier-db:
-      group: extensions
-      kind: Deployment
-  - vizier-core:
-      kind: ServiceAccount
-  - vizier-suggestion-random:
-      kind: Service
-  - vizier-suggestion-random:
-      group: extensions
-      kind: Deployment
-  - vizier-suggestion-grid:
-      kind: Service
-  - vizier-suggestion-grid:
-      group: extensions
-      kind: Deployment
-  - vizier-suggestion-hyperband:
-      kind: Service
-  - vizier-suggestion-hyperband:
-      group: extensions
-      kind: Deployment
-  - vizier-suggestion-bayesianoptimization:
-      kind: Service
-  - vizier-suggestion-bayesianoptimization:
-      group: extensions
-      kind: Deployment
-  - modeldb-backend:
-      kind: Service
-  - modeldb-backend:
-      group: extensions
-      kind: Deployment
-  - modeldb-db:
-      kind: Service
-  - modeldb-db:
-      group: extensions
-      kind: Deployment
-  - modeldb-frontend:
-      kind: Service
-  - modeldb-frontend:
-      group: extensions
-      kind: Deployment
-  - metrics-collector:
-      kind: ServiceAccount
-  - metricscollector-template:
-      kind: ConfigMap
-  - studyjob-controller:
-      kind: ServiceAccount
-  - studyjob-controller:
-      group: extensions
-      kind: Deployment
-  - worker-template:
-      kind: ConfigMap
-  - pytorch-operator-config:
-      kind: ConfigMap
-  - pytorch-operator:
-      kind: ServiceAccount
-  - pytorch-operator:
-      group: extensions
-      kind: Deployment
-  - spartakus:
-      kind: ServiceAccount
-  - spartakus-volunteer:
-      group: extensions
-      kind: Deployment
-  - tf-job-operator-v1alpha2:
-      group: extensions
-      kind: Deployment
-  - tf-job-operator-config:
-      kind: ConfigMap
-  - tf-job-operator:
-      kind: ServiceAccount
-  - tf-job-operator:
-      group: rbac.authorization.k8s.io
-      kind: Role
-  - tf-job-operator:
-      group: rbac.authorization.k8s.io
-      kind: RoleBinding
-  - tf-job-dashboard:
-      kind: Service
-  - tf-job-dashboard:
-      kind: ServiceAccount
-  - tf-job-dashboard:
-      group: extensions
-      kind: Deployment
-  dependencies: []
-  description: ""
-  healthCheck: ""
-  info: []
-  keywords: []
-  links: []
-  maintainers: []
-  owners: []
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: application
-  type: kubeflow
-  version: "0.3"
 ```
 

@@ -1,5 +1,5 @@
 {
-  // Implements [Kubernetes Application API 
+  // Implements Kubernetes Application API 
   local k8s = import "k8s.libsonnet",
   local util = import "kubeflow/core/util.libsonnet",
   local crd = k8s.apiextensions.v1beta1.customResourceDefinition,
@@ -164,29 +164,40 @@
       for resource in resources
     },
 
-    local groupByResource(tuples) = {
-      local getKey(wrapper) = {
-        local tuple = wrapper.tuple,
-        local resource = tuple[2],
+    local groupByResource(resources) = {
+      local getKey(resource) = {
         return::
-          resource.kind + "." + resource.apiVersion,
+          //resource.kind + "." + resource.apiVersion,
+          resource.kind,
       }.return,
-      local getValue(wrapper) = {
-        local tuple = wrapper.tuple,
+      local getValue(resource) = {
         return::
-          { [tuple[0].name]+: tuple[2] },
+          { [resource.metadata.name]+: resource },
       }.return,
-      return:: util.foldl(getKey, getValue, tuples),
+      return:: util.foldl(getKey, getValue, resources),
     }.return,
 
+    local clusterScope(resource) = {
+      return::
+        if (std.objectHas(resource, "metadata") &&
+          !std.objectHas(resource.metadata, "namespace")) then
+          true
+        else 
+          false,
+    }.return,
+    local namespacedScope(resource) = {
+      return:: clusterScope(resource) == false,
+    }.return,
     local tuples = std.flattenArrays(std.map(perComponent, getComponents)),
-    local components = std.map(byResource, tuples),
-    local resources = groupByResource(tuples),
+    local resources = std.map(byResource, tuples),
+    local namespacedResources = std.filter(namespacedScope, resources),
+    local clusterResources = std.filter(clusterScope, resources),
+    local groupedNamespacedResources = groupByResource(namespacedResources),
 
     local syncApplicationRaw = importstr "sync-application.jsonnet",
     local syncApplication = syncApplicationRaw % {
-      components: std.manifestJsonEx(components, "  "),
-      resources: std.manifestJsonEx(resources, "  "),
+      resources: std.manifestJsonEx(namespacedResources, "  "),
+      groupedResources: std.manifestJsonEx(groupedNamespacedResources, "  "),
     },
 
     local applicationConfigMap = {
@@ -330,6 +341,7 @@
     parts:: self,
     all:: std.flattenArrays(
       [
+        clusterResources,
         if params.emitCRD then [ 
           self.applicationCRD
         ] else [],
