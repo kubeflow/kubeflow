@@ -108,7 +108,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       dialogBody: '',
       dialogTitle: '',
       iap: true,
-      kfversion: 'v0.3.4',
+      kfversion: 'v0.3.5',
       project: '',
       showLogs: false,
       zone: 'us-central1-a',
@@ -144,7 +144,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
   public render() {
     const zoneList = ['us-central1-a', 'us-central1-c', 'us-east1-c', 'us-east1-d', 'us-west1-b',
       'europe-west1-b', 'europe-west1-d', 'asia-east1-a', 'asia-east1-b'];
-    const versionList = ['v0.3.4'];
+    const versionList = ['v0.3.5'];
 
     return (
       <div>
@@ -435,12 +435,21 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       'members': ['serviceAccount:' + saEmail],
       'role': 'roles/owner'
     });
-    await Gapi.cloudresourcemanager.setIamPolicy(project, currProjPolicy)
-      .catch(e => {
-        this.setState({
-          dialogTitle: 'Failed setting IAM policy, please verify if have permission',
-        });
+    let returnPloicy = null;
+    for (let retries = 5; retries > 0; retries -= 1) {
+      returnPloicy = await Gapi.cloudresourcemanager.setIamPolicy(project, currProjPolicy)
+        .catch(e => this._appendLine('Pending on project environment sync up'));
+      if (returnPloicy !== undefined) {
+        break;
+      }
+      await wait(10000);
+    }
+    if (returnPloicy === undefined) {
+      this.setState({
+        dialogTitle: 'Failed to set IAM policy, please make sure you have enough permissions.',
       });
+      return;
+    }
 
     const currSAPolicy = await Gapi.iam.getServiceAccountIAM(project, saEmail);
     if (!(bindingKey in currSAPolicy)) {
@@ -453,7 +462,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     await Gapi.iam.setServiceAccountIAM(project, saEmail, currSAPolicy)
       .catch(e => {
         this.setState({
-          dialogTitle: 'Failed setting service account policy, please verify if have permission',
+          dialogTitle: 'Failed to set service account policy, please make sure you have enough permissions.',
         });
       });
     if (this.state.dialogTitle) {
@@ -461,16 +470,18 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     }
 
     let token = null;
-    for (let retries = 10; retries > 0; retries -= 1) {
+    for (let retries = 20; retries > 0; retries -= 1) {
       token = await Gapi.iam.getServiceAccountToken(project, saEmail)
         .catch(e => this._appendLine('Pending on new service account policy sync up'));
       if (token !== undefined) {
         break;
       }
-      await wait(5000);
+      await wait(10000);
     }
     if (token === undefined) {
-      this._appendLine('Failed creating service account token, please verify if have permission');
+      this.setState({
+        dialogTitle: 'Failed to create service account token, please make sure you have enough permissions.',
+      });
       return;
     }
 
