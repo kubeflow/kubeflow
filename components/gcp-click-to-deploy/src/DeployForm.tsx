@@ -9,6 +9,7 @@ import glamorous from 'glamorous';
 import * as jsYaml from 'js-yaml';
 import * as React from 'react';
 import * as request from 'request';
+
 import Gapi from './Gapi';
 import { flattenDeploymentOperationError, log, wait } from './Utils';
 
@@ -53,13 +54,6 @@ const logsContainerStyle = (show: boolean) => {
     position: 'fixed',
     right: 0,
     transition: 'height 0.3s',
-  } as React.CSSProperties;
-};
-
-const IapElementStyle = (show: boolean) => {
-  return {
-    display: show ? 'inline' : 'none',
-    minHeight: 0,
   } as React.CSSProperties;
 };
 
@@ -163,19 +157,21 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         <Row>
           <Input name="deploymentName" label="Deployment name" spellCheck={false} value={this.state.deploymentName} onChange={this._handleChange.bind(this)} />
         </Row>
-        <Row style={{ minHeight: 20}}>
+        <Row style={{ minHeight: 20 }}>
           <input style={{ fontSize: '1.1em', margin: '0% 1% 0% 11%' }} type="checkbox" onChange={this._handleCheck.bind(this)} />
           <label style={{ minHeight: 20 }} >Skip IAP</label>
         </Row>
-        <Row style={{ minHeight: 0 }}>
-          <Input style={IapElementStyle(this.state.iap)} name="clientId" label="IAP Oauth Client ID" spellCheck={false} value={this.state.clientId} onChange={this._handleChange.bind(this)} />
-        </Row>
-        <Row style={{ minHeight: 0 }}>
-          <Input style={IapElementStyle(this.state.iap)} name="clientSecret" label="IAP Oauth Client Secret" spellCheck={false} value={this.state.clientSecret} onChange={this._handleChange.bind(this)} />
-        </Row>
-        <Row style={{ minHeight: 20}}>
+        {this.state.iap && (<React.Fragment>
+          <Row style={{ minHeight: 0 }}>
+            <Input name="clientId" label="IAP Oauth Client ID" spellCheck={false} value={this.state.clientId} onChange={this._handleChange.bind(this)} />
+          </Row>
+          <Row style={{ minHeight: 0 }}>
+            <Input name="clientSecret" label="IAP Oauth Client Secret" spellCheck={false} value={this.state.clientSecret} onChange={this._handleChange.bind(this)} />
+          </Row>
+        </React.Fragment>)}
+        <Row style={{ minHeight: 20 }}>
           <Text style={{ fontSize: '1.1em', margin: '2% 11%' }}>GKE Zone: </Text>
-          <select name="zone" style={{ display: 'flex', fontSize: '1.1em', margin: '2% 10.5%',}} spellCheck={false} value={this.state.zone} onChange={this._handleChange.bind(this)} >
+          <select name="zone" style={{ display: 'flex', fontSize: '1.1em', margin: '2% 10.5%', }} spellCheck={false} value={this.state.zone} onChange={this._handleChange.bind(this)} >
             <option value="us-central1-a">us-central1-a</option>
             <option value="us-central1-c">us-central1-c</option>
             <option value="us-east1-c">us-east1-c</option>
@@ -187,9 +183,9 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             <option value="asia-east1-b">asia-east1-b</option>
           </select>
         </Row>
-        <Row style={{ minHeight: 20}}>
+        <Row style={{ minHeight: 20 }}>
           <Text style={{ fontSize: '1.1em', margin: '2% 11%' }}>Kubeflow Version:</Text>
-          <select name="kfverison" style={{ display: 'flex', fontSize: '1.1em', margin: '2% 1%',}} spellCheck={false} value={this.state.kfverison} onChange={this._handleChange.bind(this)} >
+          <select name="kfverison" style={{ display: 'flex', fontSize: '1.1em', margin: '2% 1%', }} spellCheck={false} value={this.state.kfverison} onChange={this._handleChange.bind(this)} >
             <option value="v0.3.4">v0.3.4</option>
           </select>
         </Row>
@@ -198,13 +194,17 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             Create Deployment
           </DeployBtn>
 
-          <DeployBtn style={IapElementStyle(this.state.iap)} variant="contained" color="default" onClick={this._iapAddress.bind(this)}>
-            IAP Access
+          {this.state.iap && (
+            <DeployBtn variant="contained" color="default" onClick={this._iapAddress.bind(this)}>
+              IAP Access
           </DeployBtn>
+          )}
 
-          <DeployBtn style={IapElementStyle(!this.state.iap)} variant="contained" color="default" onClick={this._cloudShell.bind(this)}>
-            Cloud Shell
+          {!this.state.iap && (
+            <DeployBtn variant="contained" color="default" onClick={this._cloudShell.bind(this)}>
+              Cloud Shell
           </DeployBtn>
+          )}
 
           <YamlBtn variant="outlined" color="default" onClick={this._showYaml.bind(this)}>
             View YAML
@@ -271,7 +271,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     const state = this.state;
     const email = await Gapi.getSignedInEmail();
     let iapIdx = 0;
-    for (let i = 0, len = this._configSpec.defaultApp.parameters.length; i < len; i ++){
+    for (let i = 0, len = this._configSpec.defaultApp.parameters.length; i < len; i++) {
       const p = this._configSpec.defaultApp.parameters[i];
       if (p.name === 'ipName') {
         p.value = this.state.deploymentName + '-ip';
@@ -380,17 +380,101 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       (error, response, body) => {
         if (error) {
           this._appendLine('Could not reach backend server, exiting');
+          this.setState({
+            dialogTitle: 'Could not reach backend server, exiting',
+          });
           return;
         }
       }
     );
+    if (this.state.dialogTitle) {
+      return;
+    }
+
+    const email = await Gapi.getSignedInEmail();
+
+    // Create service account in target project, and use this sa's tmp token for all following actions.
+    const projectNumber = await Gapi.cloudresourcemanager.getProjectNumber(project)
+      .catch(e => {
+        this.setState({
+          dialogBody: 'Error trying to get the project number: ' + e,
+          dialogTitle: 'Deployment Error',
+        });
+        return undefined;
+      });
+
+    if (this.state.dialogTitle) {
+      return;
+    }
+
+    this._appendLine('Proceeding with project number: ' + projectNumber);
+
+    const deploymentName = this.state.deploymentName;
+    const accountId =  'kubeflow-deploy-admin';
+    const saEmail = accountId + '@' + project +'.iam.gserviceaccount.com';
+    let saUniqueId = await Gapi.iam.getServiceAccountId(project, saEmail);
+    if (saUniqueId === null) {
+      saUniqueId = await Gapi.iam.createServiceAccount(project, accountId)
+        .catch(e => {
+          this.setState({
+            dialogTitle: 'Failed creating Service Account in target project, please verify if have permission',
+          });
+        });
+    }
+    if (this.state.dialogTitle) {
+      return;
+    }
+
+    const currProjPolicy = await Gapi.cloudresourcemanager.getIamPolicy(project);
+    const bindingKey = 'bindings';
+    currProjPolicy[bindingKey].push({
+      'members': ['serviceAccount:' + saEmail],
+      'role': 'roles/owner'
+    });
+    await Gapi.cloudresourcemanager.setIamPolicy(project, currProjPolicy)
+      .catch(e => {
+        this.setState({
+          dialogTitle: 'Failed setting IAM policy, please verify if have permission',
+        });
+      });
+
+    const currSAPolicy = await Gapi.iam.getServiceAccountIAM(project, saEmail);
+    if (!(bindingKey in currSAPolicy)) {
+      currSAPolicy[bindingKey] = [];
+    }
+    currSAPolicy[bindingKey].push({
+      'members': ['user:' + email],
+      'role': 'roles/iam.serviceAccountTokenCreator'
+    });
+    await Gapi.iam.setServiceAccountIAM(project, saEmail, currSAPolicy)
+      .catch(e => {
+        this.setState({
+          dialogTitle: 'Failed setting service account policy, please verify if have permission',
+        });
+      });
+    if (this.state.dialogTitle) {
+      return;
+    }
+
+    let token = null;
+    for (let retries = 10; retries > 0; retries -= 1) {
+      token = await Gapi.iam.getServiceAccountToken(project, saEmail)
+        .catch(e => this._appendLine('Pending on new service account policy sync up'));
+      if (token !== undefined) {
+        break;
+      }
+      await wait(5000);
+    }
+    if (token === undefined) {
+      this._appendLine('Failed creating service account token, please verify if have permission');
+      return;
+    }
 
     let servicesToEnable: string[] = [];
     let enableAttempts = 0;
     const retryTimeout = 5000;
-    const email = await Gapi.getSignedInEmail();
     do {
-      servicesToEnable = await this._getServicesToEnable(project)
+      servicesToEnable = await Gapi.sautil.getServicesToEnable(project, token, enableAttempts)
         .catch(e => {
           this.setState({
             dialogBody: `${email}: Error trying to list enabled services: ` + e,
@@ -415,11 +499,8 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
 
       for (const s of servicesToEnable) {
         this._appendLine('Enabling ' + s);
-        await Gapi.servicemanagement.enable(project, s)
-          .catch(e => this.setState({
-            dialogBody: `${email}: Error trying to enable this required service: ` + s + '.\n' + e,
-            dialogTitle: 'Deployment Error',
-          }));
+        await Gapi.sautil.enableServices(project, token, s)
+          .catch(e => this._appendLine('Pending on new service account token sync up'));
       }
 
       if (this.state.dialogTitle) {
@@ -438,23 +519,9 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       return;
     }
 
-    const projectNumber = await Gapi.cloudresourcemanager.getProjectNumber(project)
-      .catch(e => {
-        this.setState({
-          dialogBody: 'Error trying to get the project number: ' + e,
-          dialogTitle: 'Deployment Error',
-        });
-        return undefined;
-      });
-
     if (this.state.dialogTitle) {
       return;
     }
-
-    this._appendLine('Proceeding with project number: ' + projectNumber);
-    const token = await Gapi.getToken();
-
-    const deploymentName = this.state.deploymentName;
 
     const resource = await this._getYaml();
     if (!resource) {
@@ -475,6 +542,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         Namespace: 'kubeflow',
         Project: project,
         ProjectNumber: projectNumber,
+        SAClientId: saUniqueId,
         Token: token,
         Zone: this.state.zone,
       }
@@ -505,31 +573,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         }
       }
     );
-  }
-
-  /**
-   * Returns a list of services that are needed but not enabled for the given project.
-   */
-  private async _getServicesToEnable(project: string) {
-    const enabledServices = await Gapi.servicemanagement.list(project);
-
-    const servicesToEnable = new Set([
-      'deploymentmanager.googleapis.com',
-      'container.googleapis.com',
-      'cloudresourcemanager.googleapis.com',
-      'endpoints.googleapis.com',
-      'iam.googleapis.com',
-      'sourcerepo.googleapis.com',
-      'ml.googleapis.com',
-    ]);
-
-    for (const k of Array.from(servicesToEnable.keys())) {
-      if (enabledServices!.services!.find(s => s.serviceName === k)) {
-        servicesToEnable.delete(k);
-      }
-    }
-
-    return Array.from(servicesToEnable);
   }
 
   private _monitorDeployment(project: string, deploymentName: string) {

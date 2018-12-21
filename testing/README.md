@@ -163,7 +163,7 @@ The ksonnet app `test-infra` contains ksonnet configs to deploy the test infrast
 First, install the kubeflow package
 
 ```
-ks pkg install kubeflow/core
+ks pkg install kubeflow/common
 ```
 
 Then change the server ip in `test-infra/environments/prow/spec.json` to

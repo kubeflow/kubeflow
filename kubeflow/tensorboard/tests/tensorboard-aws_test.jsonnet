@@ -107,10 +107,6 @@ std.assertEqual(
                   value: "us-west1-a",
                 },
                 {
-                  name: "S3_REGION",
-                  value: "us-west1-a",
-                },
-                {
                   name: "S3_USE_HTTPS",
                   value: "true",
                 },

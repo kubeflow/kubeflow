@@ -55,7 +55,18 @@
         <label>Image</label>
       </div>
       <div class="panel-body" style="padding: 10px;">
-        <select id="image" class="form-control" name="image" placeholder='repo/image:tag'/ required></select>
+        <div id='imageType' style="padding-bottom: 5px;">
+          <label class="radio-inline">
+            <input id="option_standard" type="radio" name="imageType" onclick="setImageType()"
+                   value="standard" checked>Standard
+          </label>
+          <label class="radio-inline">
+            <input id="option_custom" type="radio" name="imageType" onclick="setImageType()"
+                   value="custom">Custom
+          </label>
+        </div>
+        <select class="form-control" for="standardImages" required></select>
+        <input class="form-control" for="customImage" placeholder="repo/image:tag" required>
       </div>
       <p class="text-muted" style="padding: 10px;">
         A starter Docker image for JupyterHub with a baseline deployment and typical ML packages.
