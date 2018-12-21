@@ -1,10 +1,13 @@
+#
+# bootstrap_base
+#
 ARG GOLANG_VERSION=1.11.2
-FROM golang:$GOLANG_VERSION as bootstrap_build
+FROM golang:$GOLANG_VERSION as bootstrap_base
 
 # install vim 
 RUN apt-get update && apt-get install -y vim
 
-# install dlv debugger
+# install debugger
 RUN go get -u github.com/derekparker/delve/cmd/dlv
 
 # We need gcloud to get gke credentials.
@@ -44,7 +47,10 @@ COPY go.mod .
 COPY go.sum .
 RUN go mod download
 
-FROM bootstrap_build as bootstrap
+#
+# bootstrap_build
+#
+FROM bootstrap_base as bootstrap_build
 ARG registries
 
 COPY $registries /opt/registries
@@ -52,15 +58,32 @@ COPY . $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap
 
 RUN go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 RUN cp $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap/bin/bootstrapper /opt/kubeflow
-COPY start.sh /opt/kubeflow/
 COPY dlv.sh /opt/kubeflow/
 COPY config/default.yaml /opt/kubeflow/
 COPY image_registries.yaml /opt/kubeflow/
 RUN mkdir -p /opt/bootstrap
 RUN mkdir -p /opt/versioned_registries
-
 RUN chmod a+rx /opt/kubeflow/bootstrapper
-RUN chmod a+rx /opt/kubeflow/start.sh
+
+#
+# bootstrap
+#
+FROM golang:alpine as bootstrap
+
+ENV PATH /go/bin:/usr/local/go/bin:$PATH
+RUN mkdir -p /opt/kubeflow
+WORKDIR /opt/kubeflow
+
+COPY --from=bootstrap_build $GOPATH/bin/dlv $GOPATH/bin/dlv
+COPY --from=bootstrap_build /opt/registries /opt/
+COPY --from=bootstrap_build /opt/registries /opt/
+COPY --from=bootstrap_build /opt/kubeflow/bootstrapper /opt/kubeflow/
+COPY --from=bootstrap_build /opt/kubeflow/dlv.sh /opt/kubeflow/
+COPY --from=bootstrap_build /opt/kubeflow/default.yaml /opt/kubeflow/
+COPY --from=bootstrap_build /opt/kubeflow/image_registries.yaml /opt/kubeflow/
+RUN mkdir -p /opt/bootstrap
+RUN mkdir -p /opt/versioned_registries
+RUN chmod a+rx /opt/kubeflow/bootstrapper
 
 # Set default values for USER, USER_ID, GROUP_ID
 # The startup script will create the user and su to that user.
@@ -73,5 +96,4 @@ ENV USER_ID 1000
 ENV GROUP_ID 1000
 ENV GROUP kubeflow
 
-WORKDIR /opt/kubeflow
 CMD ["/opt/kubeflow/bootstrapper","--in-cluster","--namespace=kubeflow","--apply"]
