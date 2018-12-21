@@ -149,8 +149,9 @@ class App extends React.Component<any, { signedIn: boolean }> {
                   Notice:
                   <ul>
 
-                    <li> When you click deploy a short lived OAuth token granting access to your GCP resources will be sent to the
-                         Kubeflow deploy service
+                    <li> When you click deploy, a service account will be created in target project. The service account will issue a
+                      short lived access token which will be sent to Kubeflow deploy service, granting access to necessary GCP resources
+                      in target project.
                      </li>
                     <li> The Kubeflow deploy service uses this to create Kubeflow GCP resources on your behalf
                      </li>
