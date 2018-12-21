@@ -3,26 +3,6 @@
   local k = import "k.libsonnet",
   local util = self,
 
-  // Is the character upper case?
-  isUpper:: function(c) {
-    local cp = std.codepoint,
-    local value = if cp(c) >= 65 && cp(c) < 91 then
-      true
-    else
-      false,
-    result:: value,
-  }.result,
-
-  // TODO(https://github.com/kubeflow/kubeflow/issues/1826): Replace with std.asciiUpper once supported by required version of jsonnet
-  // Convert a string to upper case.
-  upper:: function(x) {
-    local cp(c) = std.codepoint(c),
-    local upperLetter(c) = if cp(c) >= 97 && cp(c) < 123 then
-      std.char(cp(c) - 32)
-    else c,
-    result:: std.join("", std.map(upperLetter, std.stringChars(x))),
-  }.result,
-
   // Convert a string to lower case.
   lower:: function(x) {
     local cp(c) = std.codepoint(c),
@@ -39,7 +19,7 @@
       if std.type(x) == "boolean" then
         x
       else if std.type(x) == "string" then
-        $.upper(x) == "TRUE"
+        std.asciiUpper(x) == "TRUE"
       else if std.type(x) == "number" then
         x != 0
       else
