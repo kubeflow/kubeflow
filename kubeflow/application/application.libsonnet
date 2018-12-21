@@ -209,7 +209,7 @@
       },
       data: {
         "sync-application.jsonnet": syncApplication,
-        "util.libsonnet": importstr "kubeflow/core/util.libsonnet",
+        "util.libsonnet": importstr "kubeflow/common/util.libsonnet",
       },
     },
     applicationConfigMap:: applicationConfigMap,
