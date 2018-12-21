@@ -40,7 +40,7 @@ npm start
 
 ## Deployment
 
-We have a dev instance running at [https://deploy.kubeflow.dev](https://deploy.kubeflow.dev)
+We have a dev instance running at [https://deploy-staging.kubeflow.cloud](https://deploy-staging.kubeflow.cloud)
 
 
 ```

@@ -85,6 +85,20 @@ c.KubeSpawner.user_storage_pvc_ensure = False
 
 volumes = []
 volume_mounts = []
+
+gcp_secret_name = os.environ.get('GCP_SECRET_NAME')
+if gcp_secret_name:
+    volumes.append({
+      'name': gcp_secret_name,
+      'secret': {
+        'secretName': gcp_secret_name,
+      }
+    })
+    volume_mounts.append({
+        'name': gcp_secret_name,
+        'mountPath': SERVICE_ACCOUNT_SECRET_MOUNT
+    })
+
 c.KubeSpawner.volumes = volumes
 c.KubeSpawner.volume_mounts = volume_mounts
 
@@ -109,19 +123,6 @@ else:
 
 if os.environ.get('DEFAULT_JUPYTERLAB').lower() == 'true':
     c.KubeSpawner.default_url = '/lab'
-
-gcp_secret_name = os.environ.get('GCP_SECRET_NAME')
-if gcp_secret_name:
-    volumes.append({
-      'name': gcp_secret_name,
-      'secret': {
-        'secretName': gcp_secret_name,
-      }
-    })
-    volume_mounts.append({
-        'name': gcp_secret_name,
-        'mountPath': SERVICE_ACCOUNT_SECRET_MOUNT
-    })
 
 # Set extra spawner configuration variables
 c.KubeSpawner.extra_spawner_config = {
