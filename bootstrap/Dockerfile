@@ -70,7 +70,10 @@ RUN chmod a+rx /opt/kubeflow/bootstrapper
 #
 FROM golang:alpine as bootstrap
 
-ENV PATH /go/bin:/usr/local/go/bin:$PATH
+RUN apk add --no-cache libc6-compat
+ENV GOPATH /go
+ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
+RUN mkdir -p /go/bin
 RUN mkdir -p /opt/kubeflow
 WORKDIR /opt/kubeflow
 
@@ -84,6 +87,7 @@ COPY --from=bootstrap_build /opt/kubeflow/image_registries.yaml /opt/kubeflow/
 RUN mkdir -p /opt/bootstrap
 RUN mkdir -p /opt/versioned_registries
 RUN chmod a+rx /opt/kubeflow/bootstrapper
+RUN chmod a+rx $GOPATH/bin/dlv
 
 # Set default values for USER, USER_ID, GROUP_ID
 # The startup script will create the user and su to that user.
