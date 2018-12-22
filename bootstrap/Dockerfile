@@ -4,11 +4,7 @@
 ARG GOLANG_VERSION=1.11.2
 FROM golang:$GOLANG_VERSION as bootstrap_base
 
-# install vim 
-RUN apt-get update && apt-get install -y vim
-
-# install debugger
-RUN go get -u github.com/derekparker/delve/cmd/dlv
+RUN apt-get update
 
 # We need gcloud to get gke credentials.
 RUN wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.tar.gz && \
@@ -21,19 +17,6 @@ RUN wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.ta
     --usage-reporting=false
 
 RUN ln -sf /google-cloud-sdk/bin/gcloud /usr/local/bin/gcloud
-
-# Install kubectl
-# We don't install via gcloud because we want 1.12.2 which is newer than what's in gcloud.
-RUN  curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.12.2/bin/linux/amd64/kubectl && \
-    mv kubectl /usr/local/bin && \
-    chmod a+x /usr/local/bin/kubectl
-
-# bootstrap is using ksonnet 0.13.1
-RUN wget -q https://github.com/ksonnet/ksonnet/releases/download/v0.13.1/ks_0.13.1_linux_amd64.tar.gz && \
-    tar xzf ks_0.13.1_linux_amd64.tar.gz -C . && \
-    rm ks_0.13.1_linux_amd64.tar.gz && \
-    cp ks_0.13.1_linux_amd64/ks /usr/local/bin && \
-    rm -rf ks_0.13.1_linux_amd64
 
 RUN mkdir -p /opt/kubeflow
 RUN mkdir -p $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap
