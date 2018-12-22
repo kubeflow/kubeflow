@@ -5,7 +5,6 @@ function(request) {
   local groupByResource(resources) = {
     local getKey(resource) = {
       return::
-        //resource.kind + "." + resource.apiVersion,
         resource.kind,
     }.return,
     local getValue(resource) = {
