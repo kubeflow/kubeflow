@@ -38,9 +38,11 @@ And then do
 npm start
 ```
 
+A running local [backend service](../../bootstrap/cmd/bootstrap/main.go) is needed for complete deploy.
+
 ## Deployment
 
-We have a dev instance running at [https://deploy.kubeflow.dev](https://deploy.kubeflow.dev)
+We have a dev instance running at [https://deploy-staging.kubeflow.cloud](https://deploy-staging.kubeflow.cloud)
 
 
 ```

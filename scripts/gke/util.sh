@@ -28,12 +28,8 @@ gcpInitProject() {
     endpoints.googleapis.com \
     file.googleapis.com \
     ml.googleapis.com \
-    iam.googleapis.com --project=${PROJECT}
-
-  # Set IAM Admin Policy
-  gcloud projects add-iam-policy-binding ${PROJECT} \
-    --member serviceAccount:${PROJECT_NUMBER}@cloudservices.gserviceaccount.com \
-    --role roles/resourcemanager.projectIamAdmin
+    iam.googleapis.com \
+    sqladmin.googleapis.com --project=${PROJECT}
 }
 
 generateDMConfigs() {

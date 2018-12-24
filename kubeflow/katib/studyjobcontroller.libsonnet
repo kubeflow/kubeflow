@@ -123,6 +123,8 @@
                         - "{{.TrialID}}"
                         - "-w"
                         - "{{.WorkerID}}"
+                        - "-k"
+                        - "{{.WorkerKind}}"
                         - "-n"
                         - "{{.NameSpace}}"
                       restartPolicy: Never
@@ -147,10 +149,7 @@
               "serviceaccounts",
             ],
             verbs: [
-              "create",
-              "update",
-              "list",
-              "watch",
+              "*",
             ],
           },
           {
@@ -194,6 +193,7 @@
             ],
             resources: [
               "tfjobs",
+              "pytorchjobs",
             ],
             verbs: [
               "*",
@@ -273,30 +273,6 @@
                   name: "studyjob-controller",
                   image: params.studyJobControllerImage,
                   imagePullPolicy: "Always",
-                  volumeMounts: [
-                    {
-                      name: "worker-template",
-                      mountPath: "/worker-template",
-                    },
-                    {
-                      name: "metricscollector-template",
-                      mountPath: "/metricscollector-template",
-                    },
-                  ],
-                },
-              ],
-              volumes: [
-                {
-                  name: "worker-template",
-                  configMap: {
-                    name: "worker-template",
-                  },
-                },
-                {
-                  name: "metricscollector-template",
-                  configMap: {
-                    name: "metricscollector-template",
-                  },
                 },
               ],
             },

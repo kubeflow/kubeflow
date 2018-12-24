@@ -12,8 +12,12 @@
 
 ENV_FILE="env.sh"
 SKIP_INIT_PROJECT=false
-CLUSTER_VERSION="1.10"
-GKE_API_VERSION="v1"
+
+# To enable GKE beta features we need to use the v1beta1 API.
+# https://cloud.google.com/kubernetes-engine/docs/reference/api-organization#beta
+# We currently use this by default so we can enable the new stackdriver
+# logging agents.
+GKE_API_VERSION="v1beta1"
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null && pwd)"
 source "${DIR}/util.sh"
@@ -85,11 +89,6 @@ createEnv() {
 
       echo PROJECT_NUMBER=${PROJECT_NUMBER} >> ${ENV_FILE}
 
-      # "1.X": picks the highest valid patch+gke.N patch in the 1.X version
-      # https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters
-      echo "Setting cluster version to ${CLUSTER_VERSION}"
-      echo CLUSTER_VERSION=${CLUSTER_VERSION} >> ${ENV_FILE}
-
       echo GKE_API_VERSION=${GKE_API_VERSION} >> ${ENV_FILE}
       ;;
     *)
@@ -133,7 +132,7 @@ ksApply() {
     ks env add default --namespace "${K8S_NAMESPACE}"
   fi
 
-  # Create all the core components
+  # Create all the components
   ks apply default -c ambassador
   ks apply default -c jupyter
   ks apply default -c centraldashboard
@@ -242,12 +241,6 @@ main() {
     DEPLOYMENT_NAME=${WHAT}
     parseArgs $*
 
-    mkdir -p ${DEPLOYMENT_NAME}
-    # Most commands expect to be executed from the app directory
-    cd ${DEPLOYMENT_NAME}
-    createEnv
-
-    source ${ENV_FILE}
     # TODO(jlewi): Should we default to directory name?
     # TODO(jlewi): This doesn't work if user doesn't provide name we will end up
     # interpreting parameters as the name. To fix this we need to check name doesn't start with --
@@ -261,6 +254,22 @@ main() {
       exit 1
     fi
 
+    # Check that DEPLOYMENT_NAME is not a path e.g. /a/b/c
+    BASE_DEPLOYMENT_NAME=$(basename ${DEPLOYMENT_NAME})
+
+    if [ "${BASE_DEPLOYMENT_NAME}" != "${DEPLOYMENT_NAME}" ]; then
+      echo "usage: kfctl init <name>"
+      echo "<name> should be the name for the deployment; not a path"
+      exit 1
+    fi
+
+    mkdir -p ${DEPLOYMENT_NAME}
+    # Most commands expect to be executed from the app directory
+    cd ${DEPLOYMENT_NAME}
+    createEnv
+
+    source ${ENV_FILE}
+    
     if [ -z "${PLATFORM}" ]; then
       echo "--platform must be provided"
       echo "usage: kfctl init <PLATFORM>"
