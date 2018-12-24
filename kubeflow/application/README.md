@@ -99,7 +99,7 @@ ks param set application emitCRD false
 If this flag is true then the components normally deployed directly to the api-server will be emitted 
 by the application-controller in-cluster. 
 
-## Example Script (Deploying components '["ambassador","argo","jupyter","centraldashboard","pipeline"]')
+## Example Script (Deploying components '["ambassador","jupyter","centraldashboard","tensorboard","tf-training"]')
 
 ```
 #!/usr/bin/env bash
