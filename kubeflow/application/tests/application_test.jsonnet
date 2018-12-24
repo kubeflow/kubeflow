@@ -2,8 +2,9 @@ local application = import "kubeflow/application/application.libsonnet";
 
 local params = {
   name: "application",
-  components: [],
-  emitCRD: false,
+  components: '["ambassador","centraldashboard"]',
+  emitCRD: true,
+  emitController: true,
 };
 local env = {
   namespace:: "test-kf-001",
@@ -11,6 +12,7 @@ local env = {
 
 local instance = application.new(env, params);
 
+/*
 std.assertEqual(
   instance.applicationCRD,
   {
@@ -313,4 +315,94 @@ std.assertEqual(
       version: "v1beta1",
     },
   }
+) &&
+
+/*
+std.assertEqual(
+  instance.applicationConfigMap,
+) &&
+*/
+
+std.assertEqual(
+  instance.applicationDeployment,
+  {
+    apiVersion: "apps/v1beta1",
+    kind: "Deployment",
+    metadata: {
+      name: "application-controller",
+      namespace: "test-kf-001",
+    },
+    spec: {
+      selector: {
+        matchLabels: {
+          app: "application-controller",
+        },
+      },
+      template: {
+        metadata: {
+          labels: {
+            app: "application-controller",
+          },
+        },
+        spec: {
+          containers: [
+            {
+              image: "metacontroller/jsonnetd:0.1",
+              imagePullPolicy: "Always",
+              name: "hooks",
+              volumeMounts: [
+                {
+                  mountPath: "/opt/isolation/operator/hooks",
+                  name: "hooks",
+                },
+              ],
+              workingDir: "/opt/isolation/operator/hooks",
+            },
+          ],
+          volumes: [
+            {
+              configMap: {
+                name: "application-controller-hooks",
+              },
+              name: "hooks",
+            },
+          ],
+        },
+      },
+    },
+  }
+) &&
+
+std.assertEqual(
+  instance.applicationService,
+  {
+    apiVersion: "v1",
+    kind: "Service",
+    metadata: {
+      name: "application-controller",
+      namespace: "test-kf-001",
+    },
+    spec: {
+      ports: [
+        {
+          port: 80,
+          targetPort: 8080,
+        },
+      ],
+      selector: {
+        app: "application-controller",
+      },
+    },
+  }
 )
+
+/*
+std.assertEqual(
+  instance.applicationController,
+) &&
+
+std.assertEqual(
+  instance.application,
+)
+*/
+

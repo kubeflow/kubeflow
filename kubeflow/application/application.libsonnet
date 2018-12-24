@@ -194,8 +194,8 @@
     local clusterResources = std.filter(clusterScope, resources),
     local groupedNamespacedResources = groupByResource(namespacedResources),
 
-    local syncApplicationRaw = importstr "sync-application.jsonnet",
-    local syncApplication = syncApplicationRaw % {
+    local syncApplicationTemplate = importstr "sync-application.template",
+    local syncApplication = syncApplicationTemplate % {
       resources: std.manifestJsonEx(namespacedResources, "  "),
       groupedResources: std.manifestJsonEx(groupedNamespacedResources, "  "),
     },
