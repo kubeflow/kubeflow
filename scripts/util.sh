@@ -16,7 +16,7 @@ usage() {
 }
 
 check_install() {
-  if ! which "${1}" &>/dev/null; then
+  if ! which "${1}" &>/dev/null && ! type -a "${1}" &>/dev/null ; then
     echo "You don't have ${1} installed. Please install ${1}."
     exit 1
   fi
@@ -59,7 +59,7 @@ createKsApp() {
   # Install all required packages
   ks pkg install kubeflow/argo
   ks pkg install kubeflow/pipeline
-  ks pkg install kubeflow/core
+  ks pkg install kubeflow/common
   ks pkg install kubeflow/examples
   ks pkg install kubeflow/jupyter
   ks pkg install kubeflow/katib

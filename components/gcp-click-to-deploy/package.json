@@ -3,16 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@material-ui/core": "^1.3.1",
-    "@types/request": "^2.47.1",
+    "@material-ui/core": "^3.1.0",
+    "ajv": "^6.6.1",
+    "ajv-keywords": "^3.2.0",
     "glamor": "^2.20.40",
     "glamorous": "^4.13.1",
     "js-yaml": "^3.12.0",
-    "react": "^16.4.0",
-    "react-dom": "^16.4.0",
+    "react": "^16.5.2",
+    "react-dom": "^16.5.2",
     "react-router-dom": "^4.3.1",
-    "react-scripts-ts": "2.16.0",
-    "request": "^2.88.0"
+    "react-scripts-ts": "3.1.0",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.2"
   },
   "scripts": {
     "start": "react-scripts-ts start",
@@ -21,15 +23,18 @@
     "eject": "react-scripts-ts eject"
   },
   "devDependencies": {
-    "@types/gapi": "0.0.35",
-    "@types/gapi.auth2": "0.0.47",
+    "@types/ajv": "^1.0.0",
+    "@types/gapi": "0.0.36",
+    "@types/gapi.auth2": "0.0.48",
     "@types/gapi.client.deploymentmanager": "^2.0.0",
     "@types/jest": "^23.0.0",
     "@types/js-yaml": "^3.11.1",
     "@types/node": "^10.3.2",
-    "@types/react": "^16.3.17",
+    "@types/react": "^16.7.17",
     "@types/react-dom": "^16.0.6",
     "@types/react-router-dom": "^4.2.7",
-    "typescript": "^2.9.1"
+    "@types/request": "^2.47.1",
+    "@types/request-promise": "^4.1.42",
+    "typescript": "^3.2.2"
   }
 }

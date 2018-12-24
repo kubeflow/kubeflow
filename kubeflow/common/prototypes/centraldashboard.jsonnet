@@ -5,6 +5,6 @@
 // @param name string Name
 // @optionalParam image string gcr.io/kubeflow-images-public/centraldashboard:v0.4.0 Image for the central dashboard
 
-local centraldashboard = import "kubeflow/core/centraldashboard.libsonnet";
+local centraldashboard = import "kubeflow/common/centraldashboard.libsonnet";
 local instance = centraldashboard.new(env, params);
 instance.list(instance.all)
