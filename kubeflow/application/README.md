@@ -122,7 +122,7 @@ kubectl create ns kubeflow
 ks env add default --namespace kubeflow
 ks param set application name kubeflow
 ks param set application emitController true
-ks param set application components '["ambassador","argo","jupyter","centraldashboard","pipeline"]'
+ks param set application components '["ambassador","jupyter","centraldashboard","tensorboard","tf-training"]'
 ks show default -c metacontroller -c application > default.yaml
 kubectl apply --validate=false -f default.yaml
 ```
