@@ -54,7 +54,7 @@
     return::
       if a == b then
         0
-      else 
+      else
         if a < b then
           -1
         else
@@ -87,13 +87,13 @@
     local aux(a, b, i, j, acc) =
       if i >= std.length(a) then
         acc
-      else 
+      else
         if j >= std.length(b) then
           aux(a, b, i + 1, j, acc + [a[i]]) tailstrict
         else
           if compare(a[i], b[j]) == 0 then
             aux(a, b, i + 1, j + 1, acc) tailstrict
-          else 
+          else
             if compare(a[i], b[j]) == -1 then
               aux(a, b, i + 1, j, acc + [a[i]]) tailstrict
             else
