@@ -126,3 +126,12 @@ ks param set application components '["ambassador","jupyter","centraldashboard",
 ks show default -c metacontroller -c application > default.yaml
 kubectl apply --validate=false -f default.yaml
 ```
+
+## Kubeflow in the GCP Marketplace
+
+The above script will result in an application that can be viewed in the GCP Marketplace
+(GKE console -> Kubernetes Engine -> Applications)
+
+The application would look like the visual below
+
+![GCP Kubeflow Application](./docs/kubeflow_application.png "GCP Kubeflow Application")
