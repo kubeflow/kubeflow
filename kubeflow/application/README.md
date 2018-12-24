@@ -79,21 +79,10 @@ spec:
 ```
 
 Alternatively, the application component can produce an Application Kind based on a subset 
-of the generated components by setting the components parameter.
+of the generated components by setting the components parameter. For example
 
 ```bash
 ks param set application components '["ambassador","jupyter"]'
-```
-
-for example:
-
-## Sample script
-
-```bash
-kfctl.sh init kf_app --platform none
-pushd kf_app
-kfctl.sh generate all
-kfctl.sh apply all
 ```
 
 ## Options (emitCRD=true, emitController=false)
@@ -107,23 +96,33 @@ ks param set application emitCRD false
 
 - emitController (=false)
 
-If this flag is true then the components normally emitted by directly to the api-server will be emitted 
-by the application-controller. In this case you would run
+If this flag is true then the components normally deployed directly to the api-server will be emitted 
+by the application-controller in-cluster. 
+
+## Example Script (Deploying components '["ambassador","argo","jupyter","centraldashboard","pipeline"]')
 
 ```
-kfctl.sh init kf_app --platform none
-pushd kf_app
-kfctl.sh generate all
+#!/usr/bin/env bash
+KUBEFLOW_DIR=$HOME/go/src/github.com/kubeflow/kubeflow
 
-pushd ks_app
-# NOTE: uncomment below to set components to those the application-controller should deploy
-# the default is '["ambassador","jupyter","centraldashboard","tf-job-operator","spartakus","argo","pipeline"]'
-#ks param set application components '["ambassador","pytorch",...]'
-# NOTE: uncomment to set the name of the Application to something other than application
-#ks param set application name <NAME>
+cd $HOME
+if [[ -d kf_app ]]; then
+  rm -rf kf_app
+fi
+kubectl get ns -oname | grep kubeflow 2>&1>/dev/null
+if (( $? == 0 )); then
+  kubectl delete ns kubeflow
+fi
 
+$KUBEFLOW_DIR/scripts/kfctl.sh init kf_app --platform none
+cd $HOME/kf_app
+$KUBEFLOW_DIR/scripts/kfctl.sh generate all
+cd $HOME/kf_app/ks_app
+kubectl create ns kubeflow
+ks env add default --namespace kubeflow
+ks param set application name kubeflow
 ks param set application emitController true
+ks param set application components '["ambassador","argo","jupyter","centraldashboard","pipeline"]'
 ks show default -c metacontroller -c application > default.yaml
 kubectl apply --validate=false -f default.yaml
 ```
-
