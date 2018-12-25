@@ -52,7 +52,8 @@ We have heard from our users and based on the feedback we are continuing to impr
 Continue to improve development experience for Data Scientists and ML Practitioners using Kubeflow.
 
 
-*   Enhance notebooks driven interface for developing ML workflows and pipelines.
+*   Notebooks driven interface for developing ML workflows and pipelines.
+    * [Slide deck](http://bit.ly/cuj_train_deploy_notebook) illustrating Build/Train/Deploy from Notebook critical user journey
 	* [Jupyter related issues](https://github.com/issues?utf8=%E2%9C%93&q=is%3Aopen+org%3Akubeflow+label%3Aarea%2Fjupyter)
 	* [Fairing project](https://github.com/kubeflow/fairing)
 *   Minimize the need for switching contexts out of the notebook / development environment for launching / tracking jobs.
