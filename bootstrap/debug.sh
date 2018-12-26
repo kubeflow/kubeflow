@@ -6,19 +6,24 @@
 # See the [developer_guide.md](./developer_guide.md) for additional details.
 #
 
+usage() {
+  echo "usage: $0 <image> <tag> <port>"
+  exit 0
+}
+
 cleanup() {
-  if [[ -n $portforwardcommand ]]; then
-    echo killing $portforwardcommand
-    pkill -f $portforwardcommand
+  if [[ -n $pid ]]; then
+    echo killing $pid
+    kill -9 $pid
   fi
 }
 trap cleanup EXIT
 
 portforward() {
   local pod=$1 namespace=$2 from_port=$3 to_port=$4 cmd
-  cmd='kubectl port-forward $pod ${from_port}:${to_port} --namespace=$namespace 2>&1>/dev/null &'
-  portforwardcommand="${cmd% 2>&1>/dev/null &}"
-  eval $cmd
+  kubectl port-forward $pod ${from_port}:${to_port} --namespace=$namespace 2>&1>/dev/null &
+  pid=$!
+  echo 'pid='$pid
 }
 
 waitforpod() {
@@ -41,13 +46,29 @@ waitforever() {
   fi
 }
 
-if [[ $# < 3 ]]; then
-  echo "usage: $0 <image> <tag> <port>"
-  exit 1
-fi
-image=$1
-tag=$2
-port=$3
+GCLOUD_PROJECT=${GCLOUD_PROJECT:-kubeflow-public-images}
+pid=''
+image=gcr.io/$GCLOUD_PROJECT/bootstrapper
+tag=latest
+port=2345
+
+case "$#" in 
+  0)
+     ;;
+  1)
+     image=$1
+     ;;
+  2)
+     image=$1
+     tag=$2
+     ;;
+  3)
+     image=$1
+     tag=$2
+     port=$3
+     ;;
+esac
+
 namespace=kubeflow-admin
 cat <<EOF | kubectl create -f -
 # Namespace for bootstrapper
@@ -92,6 +113,7 @@ spec:
         image: ${image}:${tag}
         workingDir: /opt/bootstrap
         command: ["/opt/kubeflow/dlv.sh"]
+        #command: ["/bin/sh", "-c", "trap : TERM INT; sleep 10000 & wait"]
         ports:
         - containerPort: $port
         securityContext:

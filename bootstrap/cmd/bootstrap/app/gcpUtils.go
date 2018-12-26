@@ -8,6 +8,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/cenkalti/backoff"
 	"github.com/ghodss/yaml"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
@@ -15,7 +16,6 @@ import (
 	"golang.org/x/oauth2"
 	"google.golang.org/api/cloudresourcemanager/v1"
 	"google.golang.org/api/deploymentmanager/v2"
-	"github.com/cenkalti/backoff"
 )
 
 type Resource struct {
@@ -30,7 +30,7 @@ type DmConf struct {
 }
 
 type IamBinding struct {
-	Members []string `type:"members`
+	Members []string `type:"members"`
 	Roles   []string `type:"roles"`
 }
 
@@ -43,7 +43,7 @@ type ApplyIamRequest struct {
 	Cluster string `json:"cluster"`
 	Email   string `json:"email"`
 	Token   string `json:"token"`
-	Action  string `json:"action`
+	Action  string `json:"action"`
 }
 
 var (

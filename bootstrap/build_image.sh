@@ -3,26 +3,27 @@
 # A simple script to build the Docker images.
 # This is intended to be invoked as a step in Argo to build the docker image.
 #
-# build_image.sh ${DOCKERFILE} ${IMAGE} ${TAG} (optional | ${TEST_REGISTRY})
+# build_image.sh ${DOCKERFILE} ${IMAGE} ${TAG} 
 set -ex
 
-DOCKERFILE=$1
+GCLOUD_PROJECT=${GCLOUD_PROJECT:-kubeflow-images-public}
+DOCKERFILE=${1:-Dockefile}
 CONTEXT_DIR=$(dirname "$DOCKERFILE")
-IMAGE=$2
-TAG=$3
-
-BUILDER_IMG=gcr.io/kubeflow-images-public/bootstrapper-builder
-BUILDER_IMG_VERSION=$(head -1 ${CONTEXT_DIR}/glide.lock | cut -d ' ' -f 2)
+IMAGE=${2:-gcr.io/$GCLOUD_PROJECT/bootstrapper}
+TAG=${3:-$(date +v%Y%m%d)-$(git describe --tags --always --dirty)-$(git diff | shasum -a256 | cut -c -6)}
 
 # Wait for the Docker daemon to be available.
 until docker ps; do
   sleep 3
 done
 
-# pull builder image from GCR or build it from local if required one doesn't exist.
-docker pull ${BUILDER_IMG}:${BUILDER_IMG_VERSION} || docker build -t ${BUILDER_IMG}:${BUILDER_IMG_VERSION} -f ${CONTEXT_DIR}/Dockerfile.Builder ${CONTEXT_DIR}
+GO111MODULE=on go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 
-python ${CONTEXT_DIR}/build.py --build_args=BUILDER_IMG=${BUILDER_IMG},BUILDER_IMG_VERSION=${BUILDER_IMG_VERSION} --image=${IMAGE}:${TAG} --test_registry=${4-}
+rm -rf reg_tmp
+mkdir -p reg_tmp/kubeflow
+cp -r ../kubeflow reg_tmp/kubeflow
+docker build -t ${IMAGE}:$TAG --build-arg registries=reg_tmp --target=build .
 
 gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
 gcloud docker -- push "${IMAGE}:${TAG}"
+
