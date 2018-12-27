@@ -129,6 +129,15 @@ spec:
   template:
     metadata:
       namespace: gan
+      quota:
+        name: compute-quota
+        requests:
+          cpu: "1"
+          memory: "1Gi"
+          gpu: "1"
+        limits:
+          cpu: "2"
+          memory: "2Gi"
     spec:
       owner: 
         kind: User
