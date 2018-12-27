@@ -265,7 +265,7 @@ If you aren't already working on a release branch (of the form `v${MAJOR}.${MINO
 ### Enable Periodic tests on the release branch
 
 Once the release branch is cut we need to enable periodic tests on the release branch and setup a
-testgrid dashboard
+[testgrid dashboard](https://k8s-testgrid.appspot.com/sig-big-data)
 
 1. Modify [kubernetes/test-infra/blob/master/config/jobs/kubeflow/kubeflow-periodics.yaml](https://github.com/kubernetes/test-infra/blob/master/config/jobs/kubeflow/kubeflow-periodics.yaml) to define a new periodic
    prow job.
