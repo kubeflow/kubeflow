@@ -260,6 +260,18 @@ If you aren't already working on a release branch (of the form `v${MAJOR}.${MINO
 2.  they allow sophisticated users to track the development of a release (by using the release branch as a `ksonnet` registry), and
 4.  they simplify backporting critical bugfixes to a patchlevel release particular release stream (e.g., producing a `v0.1.1` from `v0.1-branch`), when appropriate.
 
+### Enable Periodic tests on the release branch
+
+Once the release branch is cut we need to enable periodic tests on the release branch and setup a
+testgrid dashboard
+
+1. Modify [kubernetes/test-infra/blob/master/config/jobs/kubeflow/kubeflow-periodics.yaml](https://github.com/kubernetes/test-infra/blob/master/config/jobs/kubeflow/kubeflow-periodics.yaml) to define a new periodic
+   prow job.
+1. Modify [kubernetes/test-infra/blob/master/testgrid/config.yaml](https://github.com/kubernetes/test-infra/blob/master/testgrid/config.yaml)
+
+   * Copy the entries for the most recent release branch and change it to the new release branch
+1. Submit a PR with the above changes.
+
 ## Updating ksonnet prototypes with docker image
 
 Here is the general process for how we update our Docker prototypes to point to
