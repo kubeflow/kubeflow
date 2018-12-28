@@ -224,8 +224,17 @@ parseArgs() {
         echo "or by setting a default account in gcloud config"
         exit 1
       fi
-      # Use iam-policy value for EMAIL if case-sensitive
+      
+      # See kubeflow/kubeflow#1936
+      # gcloud may not get the case correct for the email.
+      # The iam-policy respects the case so we check the IAM policy for the email
+      # and if found we use that value.
+      # This is an imperfect check because  users might be granted access through
+      # a group and will not be explicitly in the IAM policy.
+      # So we don't fail on error
+      set +e
       EM_LIST="$(gcloud projects get-iam-policy $PROJECT | grep -io $EMAIL)"
+      set -e
       for em in $EM_LIST; do
         if [ "$em" != "$EMAIL" ]; then
           EMAIL=$em
