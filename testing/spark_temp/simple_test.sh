@@ -24,6 +24,9 @@ ks generate spark-operator spark-operator --name=spark-operator
 # Not to self KS doesn't give any error when the component doesn't exist
 ks apply gke -c spark-operator --verbose
 
+# Hack to wait 5 seconds for the operator to show up
+sleep 5
+
 ks generate spark-job spark-pi --name=spark-operator --applicationResource="local:///opt/spark/examples/jars/spark-examples_2.11-2.3.1.jar" --mainClass=org.apache.spark.examples.SparkPi
 
 ks generate spark-job spark-wc --name=spark-operator --applicationResource="local:///opt/spark/examples/jars/spark-examples_2.11-2.3.1.jar" --mainClass=org.apache.spark.examples.DFSReadWriteTest --jobArguments="/opt/spark/README.md,gs://boo-stuff/temp_out_abc"
