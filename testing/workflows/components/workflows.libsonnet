@@ -279,6 +279,25 @@
         dependencies: ["wait-for-kubeflow"],
       },  // pytorchjob - deploy,
       {
+        template: tests.buildTemplate {
+          name: "spark-deploy",
+          command: [
+            "python",
+            "-m",
+            "testing.test_deploy",
+            "--project=kubeflow-ci",
+            "--github_token=$(GITHUB_TOKEN)",
+            "--namespace=" + tests.stepsNamespace,
+            "--test_dir=" + tests.testDir,
+            "--artifacts_dir=" + tests.artifactsDir,
+            "--deploy_name=spark-job",
+            "deploy_sparkjob",
+	    "--params=applicationResource='local:///opt/spark/examples/jars/spark-examples_2.11-2.3.1.jar',mainClass=org.apache.spark.examples.SparkPi",
+          ],
+        },
+        dependencies: ["wait-for-kubeflow"],
+      },  // sparkjob - deploy,
+      {
 
         template: tests.buildTemplate {
           name: "tfjob-simple-prototype-test",
