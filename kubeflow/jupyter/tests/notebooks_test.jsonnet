@@ -73,6 +73,7 @@ std.assertEqual(
     apiVersion: "v1",
     data: {
       "sync-notebook.jsonnet": (importstr "../sync-notebook.jsonnet"),
+      "util.libsonnet": (importstr "kubeflow/jupyter/util.libsonnet"),
     },
     kind: "ConfigMap",
     metadata: {
