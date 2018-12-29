@@ -1,4 +1,6 @@
 // Some useful routines.
+// Duplicating kubeflow/common/util.libsonnet for unit tests to work.
+// For lambda metacontroller it's available via ConfigMap.
 {
   local k = import "k.libsonnet",
   local util = self,
