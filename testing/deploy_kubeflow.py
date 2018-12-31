@@ -74,13 +74,6 @@ def deploy_kubeflow(test_case):
     ],
     cwd=app_dir)
 
-
-  util.run(
-    [
-      "ks", "pkg", "install", "kubeflow/spark",
-    ],
-    cwd=app_dir)
-
   util.run(
     [
       "ks", "generate", "spark-operator", "spark-operator",
