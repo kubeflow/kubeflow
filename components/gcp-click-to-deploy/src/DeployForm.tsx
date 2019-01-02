@@ -618,9 +618,9 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
               this._appendLine('your kubeflow app url should be ready within 20 minutes (by '
                 + readyTime.toLocaleTimeString() + '): https://'
                 + this.state.deploymentName + '.endpoints.' + this.state.project + '.cloud.goog');
-              clearInterval(monitorInterval);
               this._redirectToKFDashboard(dashboardUri);
             }
+            clearInterval(monitorInterval);
           } else {
             this._appendLine(`Status of ${deploymentName}: ` + r.operation!.status!);
           }
