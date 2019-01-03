@@ -244,9 +244,18 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     });
   }
 
+  private _currentTime() {
+    const d = new Date();
+    let timeStr = '';
+    timeStr += d.getFullYear() + '-' + ('0' + d.getMonth()).slice(-2) + '-' + ('0' + d.getDate()).slice(-2) + ' ';
+    timeStr += ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2) + ':' + ('0' + d.getSeconds()).slice(-2) + '.' + ('00' + d.getMilliseconds()).slice(-3);
+    timeStr += ': ';
+    return timeStr;
+  }
+
   private _appendLine(newLine: any) {
     const logsEl = document.querySelector('#logs') as HTMLInputElement;
-    logsEl.value += (!!logsEl.value ? '\n' : '') + newLine;
+    logsEl.value += (!!logsEl.value ? '\n' : '') + this._currentTime() + newLine;
     logsEl.scrollTop = logsEl.scrollHeight;
   }
 
@@ -550,9 +559,9 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
               this._appendLine('your kubeflow app url should be ready within 20 minutes (by '
                 + readyTime.toLocaleTimeString() + '): https://'
                 + this.state.deploymentName + '.endpoints.' + this.state.project + '.cloud.goog');
+              this._redirectToKFDashboard(dashboardUri);
             }
             clearInterval(monitorInterval);
-            this._redirectToKFDashboard(dashboardUri);
           } else {
             this._appendLine(`Status of ${deploymentName}: ` + r.operation!.status!);
           }
