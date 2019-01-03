@@ -97,6 +97,9 @@ def setup_kubeflow_ks_app(dir, namespace, github_token, api_client):
   util.run(["ks", "env", "set", "default", "--namespace=" + namespace_name],
     cwd=app_dir)
 
+  # IDK what the env looks like lets just dump everything
+  util.run(["find ./"])
+
   kubeflow_registry = (
     os.getenv("REPO_DIR") or
     os.getenv("SRC_DIR") + "/" + os.getenv("REPO_OWNER") + "/" + os.getenv("REPO_NAME"))
