@@ -258,6 +258,14 @@ main() {
       echo "usage: kfctl init <name>"
       exit 1
     fi
+    if [ ${#DEPLOYMENT_NAME} -gt 25 ]; then
+      echo "Name ${DEPLOYMENT_NAME} should not be longer than 25 characters" 
+      exit 1
+    fi
+    if [[ ${DEPLOYMENT_NAME} == *.*  ]]; then
+      echo "Name should not contain '.'"
+      exit 1
+    fi
     if [ -d ${DEPLOYMENT_NAME} ]; then
       echo "Directory ${DEPLOYMENT_NAME} already exists"
       exit 1
