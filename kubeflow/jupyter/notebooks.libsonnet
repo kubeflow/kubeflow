@@ -35,6 +35,7 @@
       },
       data: {
         "sync-notebook.jsonnet": (importstr "sync-notebook.jsonnet"),
+        "util.libsonnet": (importstr "kubeflow/jupyter/util.libsonnet"),
       },
     },
     notebooksConfigMap:: notebooksConfigMap,
