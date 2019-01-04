@@ -1,5 +1,5 @@
 {
-  local util = import "kubeflow/core/util.libsonnet",
+  local util = import "kubeflow/common/util.libsonnet",
 
   new(_env, _params):: {
     local params = _env + _params,
@@ -35,6 +35,7 @@
       },
       data: {
         "sync-notebook.jsonnet": (importstr "sync-notebook.jsonnet"),
+        "util.libsonnet": (importstr "kubeflow/jupyter/util.libsonnet"),
       },
     },
     notebooksConfigMap:: notebooksConfigMap,

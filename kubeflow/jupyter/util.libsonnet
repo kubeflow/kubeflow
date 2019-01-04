@@ -1,4 +1,6 @@
 // Some useful routines.
+// Duplicating kubeflow/common/util.libsonnet for unit tests to work.
+// For lambda metacontroller it's available via ConfigMap.
 {
   local k = import "k.libsonnet",
   local util = self,
@@ -96,6 +98,80 @@
         else
           aux(a, b, i, j + 1, acc) tailstrict,
     return:: aux(a, b, 0, 0, []) tailstrict,
+  }.return,
+
+  groupByResource(resources):: {
+    local getKey(resource) = {
+      return::
+        resource.kind,
+    }.return,
+    local getValue(resource) = {
+      return::
+        { [resource.metadata.name]+: resource },
+    }.return,
+    return:: util.foldl(getKey, getValue, resources),
+  }.return,
+
+  comparator(a, b):: {
+    return::
+      if a.metadata.name == b.metadata.name then
+        0
+      else
+        if a.metadata.name < b.metadata.name then
+          -1
+        else
+          1,
+  }.return,
+
+  validateResource(resource):: {
+    return::
+      if std.type(resource) == "object" &&
+         std.objectHas(resource, "kind") &&
+         std.objectHas(resource, "apiVersion") &&
+         std.objectHas(resource, "metadata") &&
+         std.objectHas(resource.metadata, "name") then
+        true
+      else
+        false,
+  }.return,
+
+  extractGroups(obj)::
+    if std.type(obj) == "object" then
+      [obj[key] for key in std.objectFields(obj)]
+    else
+      [],
+
+  extractResources(group)::
+    if std.type(group) == "object" then
+      [group[key] for key in std.objectFields(group)]
+    else
+      [],
+
+  curryResources(resources, exists):: {
+    local existingResource(resource) = {
+      local resourceExists(kind, name) = {
+        return::
+          if std.objectHas(resources, kind) &&
+             std.objectHas(resources[kind], name) then
+            true
+          else
+            false,
+      }.return,
+      return::
+        if util.validateResource(resource) then
+          resourceExists(resource.kind, resource.metadata.name)
+        else
+          false,
+    }.return,
+    local missingResource(resource) = {
+      return::
+        existingResource(resource) == false,
+    }.return,
+    return::
+      if exists == true then
+        existingResource
+      else
+        missingResource,
   }.return,
 
   // Produce a list of manifests. obj must be an array

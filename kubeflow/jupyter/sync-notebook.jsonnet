@@ -3,6 +3,7 @@
 // - Service
 // - Pod
 function(request) {
+  local util = import "util.libsonnet",
   local sharedNamespace = request.controller.metadata.annotations.namespace,
   local templateSpec = request.parent.spec.template.spec,
   local podTemplateSpec = {
@@ -115,7 +116,12 @@ function(request) {
       },
     },
   ],
-  children: children,
+  local validatedChildren = util.sort(std.filter(util.validateResource, children), util.comparator),
+  local requestedChildren = std.flattenArrays(std.map(util.extractResources, util.extractGroups(request.children))),
+  local groupedRequestedChildren = util.groupByResource(requestedChildren),
+  local missingChildren = util.sort(std.filter(util.curryResources(groupedRequestedChildren, false), validatedChildren), util.comparator),
+  local desired = requestedChildren + missingChildren,
+  children: desired,
   status: {
     phase: "Active",
     conditions: [{
