@@ -19,6 +19,9 @@ SKIP_INIT_PROJECT=false
 # logging agents.
 GKE_API_VERSION="v1beta1"
 
+# Default GCP zone to deploy Kubeflow cluster if not specified
+GCP_DEFAULT_ZONE="us-east1-d"
+
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null && pwd)"
 source "${DIR}/util.sh"
 source "${DIR}/gke/util.sh"
@@ -211,9 +214,10 @@ parseArgs() {
     if [ -z "$ZONE" ]; then
       ZONE=$(gcloud config get-value compute/zone 2>/dev/null)
       if [ -z "$ZONE" ]; then
-        echo "GCP zone must be set either using --zone <ZONE>"
-        echo "or by setting a default zone in gcloud config"
-        exit 1
+        echo "Set default zone to ${GCP_DEFAULT_ZONE}"
+        echo "You can override this by setting a default zone in gcloud config"
+        echo "or using --zone <ZONE>"
+        ZONE=${GCP_DEFAULT_ZONE}
       fi
     fi
     # GCP Email for cert manager
