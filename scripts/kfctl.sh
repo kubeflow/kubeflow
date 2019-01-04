@@ -211,9 +211,8 @@ parseArgs() {
     if [ -z "$ZONE" ]; then
       ZONE=$(gcloud config get-value compute/zone 2>/dev/null)
       if [ -z "$ZONE" ]; then
-        echo "GCP zone must be set either using --zone <ZONE>"
-        echo "or by setting a default zone in gcloud config"
-        exit 1
+        # Set default zone to us-east1-d if not specified
+        ZONE="us-east1-d"
       fi
     fi
     # GCP Email for cert manager
