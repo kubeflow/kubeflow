@@ -5,6 +5,7 @@
   params:: {
     name: null,
     numGpus: 0,
+    replicas: 1,
     labels: {
       app: $.params.name,
     },
@@ -214,6 +215,7 @@
       },
       spec: {
         template: {
+          replicas: $.params.replicas,
           metadata: $.parts.tfServingMetadata,
           spec: {
             containers: [
