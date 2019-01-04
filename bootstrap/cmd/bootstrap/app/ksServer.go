@@ -252,6 +252,15 @@ var (
 		Help: "Heartbeat signal every 10 seconds indicating pods are alive.",
 	})
 
+	deployReqCounterUser = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "deploy_requests_user",
+		Help: "Number of user requests for deployments",
+	})
+	kfDeploymentsDoneUser = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "kubeflow_deployments_done_user",
+		Help: "Number of successfully finished Kubeflow user deployments",
+	})
+
 	// Gauge metrics
 	deployReqCounterRaw = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: "deploy_requests_raw",
@@ -280,6 +289,8 @@ func init() {
 	prometheus.MustRegister(deployReqCounter)
 	prometheus.MustRegister(clusterDeploymentLatencies)
 	prometheus.MustRegister(kfDeploymentLatencies)
+	prometheus.MustRegister(deployReqCounterUser)
+	prometheus.MustRegister(kfDeploymentsDoneUser)
 	prometheus.MustRegister(deployReqCounterRaw)
 	prometheus.MustRegister(kfDeploymentsDoneRaw)
 	prometheus.MustRegister(deploymentFailure)
@@ -1145,6 +1156,7 @@ func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmana
 	deployReqCounter.WithLabelValues("OK").Inc()
 	if req.Project != "kubeflow-prober-deploy" {
 		kfDeploymentsDoneRaw.Inc()
+		kfDeploymentsDoneUser.Inc()
 	}
 	kfDeploymentLatencies.Observe(timeSinceStart(ctx).Seconds())
 }
@@ -1163,6 +1175,7 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 		r := &basicServerResponse{}
 		if req.Project != "kubeflow-prober-deploy" {
 			deployReqCounterRaw.Inc()
+			deployReqCounterUser.Inc()
 		}
 		if err := req.Validate(); err != nil {
 			r.Err = err.Error()
