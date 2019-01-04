@@ -98,7 +98,11 @@ def setup_kubeflow_ks_app(dir, namespace, github_token, api_client):
     cwd=app_dir)
 
   # IDK what the env looks like lets just dump everything
-  util.run(["find ./"])
+  print(os.environ)
+  util.run(["find", "./"])
+  util.run(["pwd"])
+  util.run(["find", "/"])
+
 
   kubeflow_registry = (
     os.getenv("REPO_DIR") or
