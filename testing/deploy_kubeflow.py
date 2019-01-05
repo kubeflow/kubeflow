@@ -45,6 +45,7 @@ def parse_args():
 
 def deploy_kubeflow(test_case):
   """Deploy Kubeflow."""
+  print("Deploying kubeflow.")
   args = parse_args()
   test_dir = test_case.test_suite.test_dir
   namespace = args.namespace
@@ -56,6 +57,7 @@ def deploy_kubeflow(test_case):
   # TODO(jlewi): We don't need to generate a core component if we are
   # just deploying TFServing. Might be better to refactor this code.
   # Deploy Kubeflow
+  print("Generate operators.")
   util.run(
     [
       "ks", "generate", "tf-job-operator", "tf-job-operator",
@@ -79,6 +81,7 @@ def deploy_kubeflow(test_case):
       "ks", "generate", "spark-operator", "spark-operator",
     ],
     cwd=app_dir)
+  print("Applying operators.")
 
   apply_command = [
     "ks",
