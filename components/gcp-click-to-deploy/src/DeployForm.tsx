@@ -194,6 +194,10 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           </TextField>
         </div>
 
+        <Collapse in={!this.state.iap}>
+          <div style={styles.row}>Kubeflow UI Access: after Deployment is done, click "Cloud Shell" and click "port forwarding" in new page.</div>
+        </Collapse>
+
         <div style={{ display: 'flex', padding: '20px 60px 40px' }}>
           <Button style={styles.btn} variant="contained" color="primary" onClick={this._createDeployment.bind(this)}>
             Create Deployment
@@ -319,9 +323,8 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       });
       return;
     }
-    const cloudShellConfPath = this.state.kfversion + '/' + this.state.deploymentName + '/kf_util';
-    const cloudShellUrl = 'https://cloud.google.com/console/cloudshell/open?shellonly=true&git_repo=https://source.developers.google.com/p/' +
-      this.state.project + '/r/' + this.state.project + '-kubeflow-config&working_dir=' + cloudShellConfPath + '&tutorial=conn.md';
+    const cloudShellUrl = 'https://console.cloud.google.com/kubernetes/service/' +  this.state.zone + '/' +
+      this.state.deploymentName + '/kubeflow/ambassador?project=' + this.state.project + '&tab=overview';
     window.open(cloudShellUrl, '_blank');
   }
 
