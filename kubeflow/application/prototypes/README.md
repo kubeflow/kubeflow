@@ -1,3 +1,16 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Overview](#overview)
+- [Sample script](#sample-script)
+- [Expected output](#expected-output)
+  - [both the ApplicationCRD and the Application will be emitted with the other components](#both-the-applicationcrd-and-the-application-will-be-emitted-with-the-other-components)
+  - [all namespace scoped resources are created](#all-namespace-scoped-resources-are-created)
+- [Expected Application yaml](#expected-application-yaml)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## Overview
 
 The application component creates an Application Kind based on the 

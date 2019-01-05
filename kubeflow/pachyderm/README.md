@@ -1,5 +1,19 @@
 # Pachyderm
 
+> Pachyderm lets you deploy and manage multi-stage, language-agnostic data pipelines while maintaining complete reproducibility and provenance.
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Quickstart](#quickstart)
+  - [Using GCP](#using-gcp)
+  - [Local mode](#local-mode)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## Quickstart
+
 To deploy pachyderm
 
 ```shell
@@ -27,7 +41,7 @@ but this ksonnet package currently only supports
 1. local
 1. GCP
 
-## Using GCP
+### Using GCP
 
 You can use Google Cloud Storage to store the actual data versioned
 by Pachyderm. This is recommended because
@@ -65,7 +79,7 @@ ks param set ${COMPONENT_NAME} backend gcp
 ks apply ${ENVIRONMENT} -c ${COMPONENT_NAME}
 ```
 
-## Local mode
+### Local mode
 
 Local mode should **only** be used 
 	
