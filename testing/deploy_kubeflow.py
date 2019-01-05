@@ -130,6 +130,7 @@ def deploy_kubeflow(test_case):
 
 
 def main():
+  print("Calling deploy kubeflow")
   test_case = test_helper.TestCase(
     name='deploy_kubeflow', test_func=deploy_kubeflow)
   test_suite = test_helper.init(
