@@ -104,9 +104,15 @@ def setup_kubeflow_ks_app(dir, namespace, github_token, api_client):
   util.run(["find", "/"])
 
 
-  kubeflow_registry = (
-    os.getenv("REPO_DIR") or
-    os.getenv("SRC_DIR") + "/" + os.getenv("REPO_OWNER") + "/" + os.getenv("REPO_NAME"))
+  #kubeflow_registry = (
+  #  os.getenv("REPO_DIR") or
+  #  os.getenv("SRC_DIR") + "/" + os.getenv("REPO_OWNER") + "/" + os.getenv("REPO_NAME"))
+  REPO_ORG = "kubeflow"
+  REPO_NAME = "kubeflow"
+  REGISTRY_PATH = "kubeflow"
+  kubeflow_registry = os.path.join(
+    dir, "src", REPO_ORG, REPO_NAME,
+    REGISTRY_PATH)
   util.run(
     ["ks", "registry", "add", "kubeflow", kubeflow_registry], cwd=app_dir)
 
