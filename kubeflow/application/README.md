@@ -127,7 +127,7 @@ ks show default -c metacontroller -c application > default.yaml
 kubectl apply --validate=false -f default.yaml
 ```
 
-## Kubeflow in the GCP Marketplace
+## Kubeflow in the GKE monitoring dashboard  (Console -> Kubernetes Engine -> Applications)
 
 The above script will result in an application that can be viewed in the GCP Marketplace
 (GKE console -> Kubernetes Engine -> Applications)
