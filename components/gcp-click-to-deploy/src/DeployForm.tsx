@@ -195,7 +195,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         </div>
 
         <Collapse in={!this.state.iap}>
-          <div style={styles.row}>Kubeflow UI Access: after Deployment done, click "Cloud Shell" and click "port forwarding" in new page.</div>
+          <div style={styles.row}>Kubeflow UI Access: after Deployment is done, click "Cloud Shell" and click "port forwarding" in new page.</div>
         </Collapse>
 
         <div style={{ display: 'flex', padding: '20px 60px 40px' }}>
