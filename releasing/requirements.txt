@@ -1,0 +1,3 @@
+pyyaml
+docker
+requests[security]
