@@ -78,7 +78,7 @@ def deploy_kubeflow(test_case):
 
   util.run(
     [
-      "ks", "generate", "spark-operator", "spark-operator",
+      "ks", "generate", "spark-operator", "spark-operator", "--name=spark-operator",
     ],
     cwd=app_dir)
   print("Applying operators.")
