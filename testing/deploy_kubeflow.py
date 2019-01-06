@@ -124,6 +124,7 @@ def deploy_kubeflow(test_case):
   util.wait_for_deployment(api_client, namespace, pytorch_operator_deployment_name)
 
   # Verify that the Spark Operator actually deployed
+  util.run(["kubectl", "get", "all"])
   spark_operator_deployment_name = "spark-operator-sparkoperator"
   logging.info("Verifying Spark controller started.")
   util.wait_for_deployment(api_client, namespace, spark_operator_deployment_name)
