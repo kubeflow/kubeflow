@@ -1,9 +1,26 @@
 # nvidia-inference-server
 
-NVIDIA Inference Server is a REST and GRPC service for deep-learning
+> NVIDIA Inference Server is a REST and GRPC service for deep-learning
 inferencing of TensorRT, TensorFlow and Caffe2 models. The server is
 optimized deploy machine and deep learning algorithms on both GPUs and
 CPUs at scale.
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Setup](#setup)
+  - [Google Cloud and Ksonnet](#google-cloud-and-ksonnet)
+- [Create Cluster](#create-cluster)
+- [Google Cloud Console](#google-cloud-console)
+- [Enable CUDA on the GPU Nodes](#enable-cuda-on-the-gpu-nodes)
+- [NVIDIA Inference Server Image](#nvidia-inference-server-image)
+- [Model Repository](#model-repository)
+- [Kubernetes Generation and Deploy](#kubernetes-generation-and-deploy)
+- [Using the Inference Server](#using-the-inference-server)
+- [Cleanup](#cleanup)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 These instructions detail how to set up a GKE cluster suitable for
 running the NVIDIA Inference server and how to use the
