@@ -215,8 +215,8 @@ local dagTemplates = [
         kfCtlPath,
         "generate",
         "k8s",
-	// Generate spark operator
-	"&&",
+        // Generate spark operator
+        "&&",
         kfCtlPath,
         "generate",
         "spark-operator",
@@ -243,8 +243,8 @@ local dagTemplates = [
         kfCtlPath,
         "apply",
         "k8s",
-	// Apply the spark operator too
-	"&&",
+        // Apply the spark operator too
+        "&&",
         kfCtlPath,
         "apply",
         "spark-operator",
