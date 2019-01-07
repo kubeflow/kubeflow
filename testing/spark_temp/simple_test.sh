@@ -20,7 +20,7 @@ ks param set --env gke kubeflow-common \
    tfAmbassadorServiceType "LoadBalancer"
 # I forgot to generate and that's why it was rough
 # ks generate core kubeflow-core --name=kubeflow-core --cloud=gke
-ks generate spark-operator spark-operator --name=spark-operator
+ks generate spark-operator spark-operator --name=spark-operator --namespace=kubeflow
 # Not to self KS doesn't give any error when the component doesn't exist
 ks apply gke -c spark-operator --verbose
 
