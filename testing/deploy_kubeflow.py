@@ -58,11 +58,6 @@ def deploy_kubeflow(test_case):
   # just deploying TFServing. Might be better to refactor this code.
   # Deploy Kubeflow
   print("Generate operators.")
-  util.run(
-    [
-      "ks", "generate", "common", "common",
-    ],
-    cwd=app_dir)
 
   util.run(
     [
