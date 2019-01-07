@@ -140,6 +140,7 @@ ksApply() {
   ks apply default -c jupyter
   ks apply default -c centraldashboard
   ks apply default -c tf-job-operator
+  ks apply default -c pytorch-operator
   ks apply default -c metacontroller
   ks apply default -c spartakus
   ks apply default -c argo
