@@ -107,9 +107,10 @@ def deploy_kubeflow(test_case):
     apply_command.append("--as=" + account)
   util.run(apply_command, cwd=app_dir)
   # Deploy pytorch and spark in verbose so I can compare them
-  util.run(["ks", "apply", "default", "-c", "spark-operator", "--verbose"
+  util.run(["ks", "apply", "default", "-c", "spark-operator",
             "-c",
             "pytorch-operator",
+             "--verbose",
   ], cwd=app_dir)
   util.run(["kubectl", "get", "all"])
 
