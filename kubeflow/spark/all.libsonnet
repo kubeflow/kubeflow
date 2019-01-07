@@ -4,8 +4,8 @@
   // provide a userful function such as serving a TensorFlow or PyTorch model.
   all(params, name, env):: [
     $.parts(params, name, env).operatorServiceAccount,
-    $.parts(params, name, env).operatorClusterRole,
-    $.parts(params, name, env).operatorClusterRoleBinding,
+    $.parts(params, name, env).operatorClusterRole(params.deploymentScope),
+    $.parts(params, name, env).operatorClusterRoleBinding(params.deploymentScope),
     $.parts(params, name, env).deployment,
   ],
 
@@ -97,11 +97,16 @@
         namespace: namespace,
       },
     },
-    operatorClusterRole:: {
-      kind: "ClusterRole",
+    operatorClusterRole(deploymentScope):: {
+      local roleType = if deploymentScope == "cluster" then "ClusterRole" else "Role",
+      kind: roleType,
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       metadata: {
+	labels: {
+	  app: "spark-operator"
+	},
         name: name + "-sparkoperator",
+        [if deploymentScope == "namespace" then "namespace"]: namespace,
       },
       rules: [
         {
@@ -195,11 +200,14 @@
         },
       ],
     },
-    operatorClusterRoleBinding:: {
+    operatorClusterRoleBinding(deploymentScope):: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "ClusterRoleBinding",
+      local bindingType = if deploymentScope == "cluster" then "ClusterRoleBinding" else "RoleBinding",
+      local roleType = if deploymentScope == "cluster" then "ClusterRole" else "Role",
+      kind: bindingType,
       metadata: {
         name: name + "-sparkoperator",
+        [if deploymentScope == "namespace" then "namespace"]: namespace,
       },
       subjects: [
         {
@@ -209,7 +217,7 @@
         },
       ],
       roleRef: {
-        kind: "ClusterRole",
+        kind: roleType,
         name: name + "-sparkoperator",
         apiGroup: "rbac.authorization.k8s.io",
       },
@@ -246,6 +254,7 @@
             labels: {
               "app.kubernetes.io/name": name + "-sparkoperator",
               "app.kubernetes.io/version": sparkVersion,
+	      name: name + "-sparkoperator", 
             },
             initializers: {
               pending: [
