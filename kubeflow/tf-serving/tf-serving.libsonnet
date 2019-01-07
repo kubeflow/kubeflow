@@ -115,7 +115,8 @@
           if $.util.toBool($.params.deployHorizontalPodAutoscaler) then
             [
               $.parts.tfHorizontalPodAutoscaler,
-            ],
+            ]
+          else [],
   }.all,
 
   parts:: {
