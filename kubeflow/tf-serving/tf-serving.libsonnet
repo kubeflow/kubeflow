@@ -25,7 +25,7 @@
     deployHorizontalPodAutoscaler: false,
     minReplicas: 2,
     maxReplicas: 8,
-
+    targetAverageUtilization: 60,
 
     serviceType: "ClusterIP",
 
@@ -266,7 +266,7 @@
             type: "Resource",
             resource: {
               name: "cpu",
-              targetAverageUtilization: 60,
+              targetAverageUtilization: $.params.targetAverageUtilization,
             },
           },
         ],
