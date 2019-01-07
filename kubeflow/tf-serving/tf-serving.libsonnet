@@ -87,6 +87,9 @@
             // Default routing rule for the first version of model.
             if $.util.toBool($.params.deployIstio) && $.util.toBool($.params.firstVersion) then
               $.parts.defaultRouteRule,
+            // Configuration for HorizontalPodAutoscaler
+            if $.util.toBool($.params.deployHorizontalPodAutoscaler) then
+              $.parts.tfHorizontalPodAutoscaler,
           ] +
           // TODO(jlewi): It would be better to structure s3 as a mixin.
           // As an example it would be great to allow S3 and GCS parameters
@@ -111,12 +114,7 @@
             [
               $.parts.tfService,
               $.parts.tfDeployment,
-            ] +
-          if $.util.toBool($.params.deployHorizontalPodAutoscaler) then
-            [
-              $.parts.tfHorizontalPodAutoscaler,
-            ]
-          else [],
+            ],
   }.all,
 
   parts:: {
@@ -277,7 +275,7 @@
           name: $.params.name + "-" + $.params.version,
         },
       },
-    }, // tfHorizontalPodAutoscaler
+    },  // tfHorizontalPodAutoscaler
 
     tfService: {
       apiVersion: "v1",
