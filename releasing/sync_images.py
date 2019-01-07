@@ -3,11 +3,9 @@
 """This script synchronizes Docker image in image_tags.yaml to your own registry. 
 
 Example:
-python sync_images.py --pattern=.*tensorflow.*1.*notebook.*:v20180619.* \
-  --tag=v0.2.0
+python sync_images.py --registry registry.aliyuncs.com
 
-This would add the tag v0.2.0 to images matching the pattern and remove it
-from any existing images.
+This would sync up the docker images for kubeflow releasing to your own docker registry.
 """
 
 import sys
