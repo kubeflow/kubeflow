@@ -6,6 +6,7 @@
     name: null,
     numGpus: 0,
     replicas: 1,
+
     labels: {
       app: $.params.name,
     },
@@ -20,6 +21,11 @@
 
     deployHttpProxy: false,
     httpProxyImage: "gcr.io/kubeflow-images-public/tf-model-server-http-proxy:v20180606-9dfda4f2",
+
+    deployHorizontalPodAutoscaler: false,
+    minReplicas: 2,
+    maxReplicas: 8,
+
 
     serviceType: "ClusterIP",
 
@@ -105,6 +111,10 @@
             [
               $.parts.tfService,
               $.parts.tfDeployment,
+            ] +
+          if $.util.toBool($.params.deployHorizontalPodAutoscaler) then
+            [
+              $.parts.tfHorizontalPodAutoscaler,
             ],
   }.all,
 
@@ -215,7 +225,11 @@
       },
       spec: {
         template: {
-          replicas: $.params.replicas,
+          // the number of replicas should be between minReplicas and maxReplicas.
+          replicas: if $.util.toBool($.params.deployHorizontalPodAutoscaler) then
+            std.max($.params.minReplicas, $.params.replicas)
+          else
+            $.params.replicas,
           metadata: $.parts.tfServingMetadata,
           spec: {
             containers: [
@@ -235,6 +249,34 @@
         },
       },
     },  // tfDeployment
+
+    tfHorizontalPodAutoscaler: {
+      apiVersion: "autoscaling/v2beta1",
+      kind: "HorizontalPodAutoscaler",
+      metadata: {
+        name: $.params.name + "-hpa",
+        namespace: $.params.namespace,
+        labels: $.params.labels,
+      },
+      spec: {
+        minReplicas: $.params.minReplicas,
+        maxReplicas: $.params.maxReplicas,
+        metrics: [
+          {
+            type: "Resource",
+            resource: {
+              name: "cpu",
+              targetAverageUtilization: 60,
+            },
+          },
+        ],
+        scaleTargetRef: {
+          apiVersion: "extensions/v1beta1",
+          kind: "Deployment",
+          name: $.params.name + "-" + $.params.version,
+        },
+      },
+    }, // tfHorizontalPodAutoscaler
 
     tfService: {
       apiVersion: "v1",
