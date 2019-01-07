@@ -67,7 +67,7 @@ def deploy_kubeflow(test_case):
 
   util.run(
     [
-      "ks", "generate", "pytorch-operator", "pytorch-operator",
+      "ks", "generate", "pytorch-operator", "pytorch-operator", "--verbose",
     ],
     cwd=app_dir)
 
@@ -79,7 +79,7 @@ def deploy_kubeflow(test_case):
 
   util.run(
     [
-      "ks", "generate", "spark-operator", "spark-operator", "--name=spark-operator",
+      "ks", "generate", "spark-operator", "spark-operator", "--name=spark-operator", "--verbose",
     ],
     cwd=app_dir)
   print("Applying operators.")
@@ -134,7 +134,7 @@ def deploy_kubeflow(test_case):
   util.run(["kubectl", "get", "all"])
   from kubernetes import client as k8s_client
   print(k8s_client.CoreV1Api(api_client).list_service_for_all_namespaces())
-  logging.info("Verifying Spark controller started.")
+  logging.info("Verifying Spark controller started in namespace:" + namespace)
   util.wait_for_deployment(api_client, namespace, spark_operator_deployment_name)
 
 
