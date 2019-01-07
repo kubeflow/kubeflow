@@ -67,7 +67,7 @@ def deploy_kubeflow(test_case):
 
   util.run(
     [
-      "ks", "generate", "pytorch-operator", "pytorch-operator", "--verbose",
+      "ks", "generate", "pytorch-operator", "pytorch-operator",
     ],
     cwd=app_dir)
 
@@ -79,7 +79,7 @@ def deploy_kubeflow(test_case):
 
   util.run(
     [
-      "ks", "generate", "spark-operator", "spark-operator", "--name=spark-operator", "--verbose",
+      "ks", "generate", "spark-operator", "spark-operator", "--name=spark-operator",
     ],
     cwd=app_dir)
   print("Applying operators.")
