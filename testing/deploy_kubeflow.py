@@ -93,8 +93,6 @@ def deploy_kubeflow(test_case):
     "-c",
     "tf-job-operator",
     "-c",
-    "pytorch-operator",
-    "-c",
     "jupyter",
   ]
 
@@ -108,7 +106,11 @@ def deploy_kubeflow(test_case):
     # and not the GCP service account which has more privileges.
     apply_command.append("--as=" + account)
   util.run(apply_command, cwd=app_dir)
-  util.run(["ks", "apply", "default", "-c", "spark-operator", "--verbose"], cwd=app_dir)
+  # Deploy pytorch and spark in verbose so I can compare them
+  util.run(["ks", "apply", "default", "-c", "spark-operator", "--verbose"
+            "-c",
+            "pytorch-operator",
+  ], cwd=app_dir)
   util.run(["kubectl", "get", "all"])
 
   # Verify that the TfJob operator is actually deployed.
