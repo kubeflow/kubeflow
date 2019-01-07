@@ -131,6 +131,7 @@ def deploy_kubeflow(test_case):
   # Verify that the Spark Operator actually deployed
   spark_operator_deployment_name = "spark-operator-sparkoperator"
   util.run(["kubectl", "get", "all"])
+  from kubernetes import client as k8s_client
   print(k8s_client.CoreV1Api(api_client).list_service_for_all_namespaces())
   logging.info("Verifying Spark controller started.")
   util.wait_for_deployment(api_client, namespace, spark_operator_deployment_name)
