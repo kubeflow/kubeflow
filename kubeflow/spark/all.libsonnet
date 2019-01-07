@@ -102,9 +102,9 @@
       kind: roleType,
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       metadata: {
-	labels: {
-	  app: "spark-operator"
-	},
+        labels: {
+          app: "spark-operator",
+        },
         name: name + "-sparkoperator",
         [if deploymentScope == "namespace" then "namespace"]: namespace,
       },
@@ -254,7 +254,7 @@
             labels: {
               "app.kubernetes.io/name": name + "-sparkoperator",
               "app.kubernetes.io/version": sparkVersion,
-	      name: name + "-sparkoperator", 
+              name: name + "-sparkoperator",
             },
             initializers: {
               pending: [
