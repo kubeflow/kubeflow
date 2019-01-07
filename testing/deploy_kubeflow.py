@@ -60,6 +60,12 @@ def deploy_kubeflow(test_case):
   print("Generate operators.")
   util.run(
     [
+      "ks", "generate", "common", "common",
+    ],
+    cwd=app_dir)
+
+  util.run(
+    [
       "ks", "generate", "tf-job-operator", "tf-job-operator",
     ],
     cwd=app_dir)
@@ -88,13 +94,16 @@ def deploy_kubeflow(test_case):
     "apply",
     "default",
     "-c",
+    "common",
+    "-c",
+    "spark-operator",
+    "-c",
     "tf-job-operator",
     "-c",
     "pytorch-operator",
     "-c",
     "jupyter",
-    "-c",
-    "spark-operator",
+    "--verbose",
   ]
 
   if args.as_gcloud_user:
@@ -107,6 +116,7 @@ def deploy_kubeflow(test_case):
     # and not the GCP service account which has more privileges.
     apply_command.append("--as=" + account)
   util.run(apply_command, cwd=app_dir)
+  util.run(["kubectl", "get", "all"])
 
   # Verify that the TfJob operator is actually deployed.
   tf_job_deployment_name = "tf-job-operator-v1beta1"
@@ -124,8 +134,9 @@ def deploy_kubeflow(test_case):
   util.wait_for_deployment(api_client, namespace, pytorch_operator_deployment_name)
 
   # Verify that the Spark Operator actually deployed
-  util.run(["kubectl", "get", "all"])
   spark_operator_deployment_name = "spark-operator-sparkoperator"
+  util.run(["kubectl", "get", "all"])
+  print(k8s_client.CoreV1Api(api_client).list_service_for_all_namespaces())
   logging.info("Verifying Spark controller started.")
   util.wait_for_deployment(api_client, namespace, spark_operator_deployment_name)
 

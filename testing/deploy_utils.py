@@ -112,6 +112,7 @@ def setup_kubeflow_ks_app(dir, namespace, github_token, api_client):
   packages = ["kubeflow/common", "kubeflow/gcp", "kubeflow/jupyter", "kubeflow/tf-serving", "kubeflow/tf-job", "kubeflow/tf-training", "kubeflow/pytorch-job", "kubeflow/argo", "kubeflow/spark"]
 
   # Instead of installing packages we edit the app.yaml file directly
+  # ^ Why?
   #for p in packages:
   # util.run(["ks", "pkg", "install", p], cwd=app_dir)
   app_file = os.path.join(app_dir,"app.yaml")
