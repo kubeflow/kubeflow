@@ -1,32 +1,26 @@
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
-
-- [tf-serving](#tf-serving)
-  - [Quickstart](#quickstart)
-  - [Using the library](#using-the-library)
-    - [io.ksonnet.pkg.tf-serving](#ioksonnetpkgtf-serving)
-      - [Example](#example)
-      - [Parameters](#parameters)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
 # tf-serving
 
 > TensorFlow serving is a server for TensorFlow models.
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-* [Quickstart](#quickstart)
-* [Using Prototypes](#using-prototypes)
-  * [io.ksonnet.pkg.tf-serving](#io.ksonnet.pkg.tf-serving)
+- [Quickstart](#quickstart)
+- [Using the library](#using-the-library)
+  - [io.ksonnet.pkg.tf-serving](#ioksonnetpkgtf-serving)
+    - [Example](#example)
+    - [Parameters](#parameters)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Quickstart
 
 *The following commands use the `io.ksonnet.pkg.tf-serving` prototype to generate Kubernetes YAML for tf-serving, and then deploys it to your Kubernetes cluster.*
 
-First, create a cluster and install the ksonnet CLI (see root-level [README.md](rootReadme)).
+First, create a cluster and install the ksonnet CLI (see root-level [README.md](../../README.md)).
 
-If you haven't yet created a [ksonnet application](linkToSomewhere), do so using `ks init <app-name>`.
+If you haven't yet created a [ksonnet application](https://ksonnet.io/docs/tutorial#1-initialize-your-app), do so using `ks init <app-name>`.
 
 Finally, in the ksonnet application directory, run the following:
 
@@ -68,6 +62,3 @@ The available options to pass prototype are:
 
 * `--name=<name>`: Name to give to each of the components [string]
 * `--model_path=<model_path>`: Path to the model. This can be a GCS path. [string]
-
-
-[rootReadme]: https://github.com/ksonnet/mixins
