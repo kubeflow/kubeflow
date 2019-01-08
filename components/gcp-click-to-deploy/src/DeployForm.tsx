@@ -287,7 +287,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
 
     const state = this.state;
     const email = await Gapi.getSignedInEmail();
-    let iapIdx = 0;
     for (let i = 0, len = this._configSpec.defaultApp.parameters.length; i < len; i++) {
       const p = this._configSpec.defaultApp.parameters[i];
       if (p.name === 'ipName') {
@@ -303,11 +302,10 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       }
 
       if (p.name === 'jupyterHubAuthenticator') {
-        iapIdx = i;
+        if (this.state.clientId === '' || this.state.clientSecret === '') {
+          p.value = 'null';
+        }
       }
-    }
-    if (this.state.clientId === '' || this.state.clientSecret === '') {
-      this._configSpec.defaultApp.parameters.splice(iapIdx, 1);
     }
     this._configSpec.defaultApp.registries[0].version = this.state.kfversion;
 
