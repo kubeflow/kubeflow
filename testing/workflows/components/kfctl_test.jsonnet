@@ -215,11 +215,6 @@ local dagTemplates = [
         kfCtlPath,
         "generate",
         "k8s",
-        // Generate spark operator
-        "&&",
-        kfCtlPath,
-        "generate",
-        "spark-operator",
         // Disable spartakus metrics so CI clusters won't be counted.
         "&&",
         "cd",
@@ -243,11 +238,6 @@ local dagTemplates = [
         kfCtlPath,
         "apply",
         "k8s",
-        // Apply the spark operator too
-        "&&",
-        kfCtlPath,
-        "apply",
-        "spark-operator",
       ],
       working_dir=appDir
     ),
