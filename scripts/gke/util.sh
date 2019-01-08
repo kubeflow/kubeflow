@@ -249,7 +249,6 @@ gcpKsApply() {
   ks apply default -c cloud-endpoints
   ks apply default -c cert-manager
   ks apply default -c iap-ingress
-  ks apply default -c pytorch-operator
 
   popd
 }
