@@ -40,6 +40,7 @@ createEnv() {
   echo KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"} >> ${ENV_FILE}
   echo KUBEFLOW_KS_DIR=${KUBEFLOW_KS_DIR:-"$(pwd)/ks_app"} >> ${ENV_FILE}
   echo KUBEFLOW_DOCKER_REGISTRY=${KUBEFLOW_DOCKER_REGISTRY:-""} >> ${ENV_FILE}
+  echo DOCKER_REGISTRY_KATIB_NAMESPACE=${DOCKER_REGISTRY_KATIB_NAMESPACE:-""} >> ${ENV_FILE}
 
   # Namespace where kubeflow is deployed
   echo K8S_NAMESPACE=${K8S_NAMESPACE:-"kubeflow"} >> ${ENV_FILE}
@@ -56,6 +57,7 @@ createEnv() {
     ack)
       echo KUBEFLOW_PLATFORM=ack >> ${ENV_FILE}
       echo KUBEFLOW_DOCKER_REGISTRY=registry.aliyuncs.com >> ${ENV_FILE}
+      echo DOCKER_REGISTRY_KATIB_NAMESPACE=katib >> ${ENV_FILE}
       ;;
     gcp)
       echo KUBEFLOW_PLATFORM=gke >> ${ENV_FILE}

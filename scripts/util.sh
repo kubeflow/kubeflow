@@ -134,4 +134,8 @@ customizeKsAppWithDockerImage() {
     find ${KUBEFLOW_KS_DIR} -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%gcr.io%$KUBEFLOW_DOCKER_REGISTRY%g"
     find ${KUBEFLOW_KS_DIR} -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%quay.io%$KUBEFLOW_DOCKER_REGISTRY%g"
   fi
+
+  if [[ ! -z "$DOCKER_REGISTRY_KATIB_NAMESPACE" ]]; then
+    find ${KUBEFLOW_KS_DIR} -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%kubeflow-images-public/katib%$DOCKER_REGISTRY_KATIB_NAMESPACE%g"
+  fi
 }
