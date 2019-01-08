@@ -5,6 +5,8 @@
   params:: {
     name: null,
     numGpus: 0,
+    replicas: 1,
+
     labels: {
       app: $.params.name,
     },
@@ -19,6 +21,11 @@
 
     deployHttpProxy: false,
     httpProxyImage: "gcr.io/kubeflow-images-public/tf-model-server-http-proxy:v20180606-9dfda4f2",
+
+    deployHorizontalPodAutoscaler: false,
+    minReplicas: 2,
+    maxReplicas: 8,
+    targetAverageUtilization: 60,
 
     serviceType: "ClusterIP",
 
@@ -80,6 +87,9 @@
             // Default routing rule for the first version of model.
             if $.util.toBool($.params.deployIstio) && $.util.toBool($.params.firstVersion) then
               $.parts.defaultRouteRule,
+            // Configuration for HorizontalPodAutoscaler
+            if $.util.toBool($.params.deployHorizontalPodAutoscaler) then
+              $.parts.tfHorizontalPodAutoscaler,
           ] +
           // TODO(jlewi): It would be better to structure s3 as a mixin.
           // As an example it would be great to allow S3 and GCS parameters
@@ -214,6 +224,11 @@
       },
       spec: {
         template: {
+          // the number of replicas should be between minReplicas and maxReplicas.
+          replicas: if $.util.toBool($.params.deployHorizontalPodAutoscaler) then
+            std.max($.params.minReplicas, $.params.replicas)
+          else
+            $.params.replicas,
           metadata: $.parts.tfServingMetadata,
           spec: {
             containers: [
@@ -233,6 +248,34 @@
         },
       },
     },  // tfDeployment
+
+    tfHorizontalPodAutoscaler: {
+      apiVersion: "autoscaling/v2beta1",
+      kind: "HorizontalPodAutoscaler",
+      metadata: {
+        name: $.params.name + "-hpa",
+        namespace: $.params.namespace,
+        labels: $.params.labels,
+      },
+      spec: {
+        minReplicas: $.params.minReplicas,
+        maxReplicas: $.params.maxReplicas,
+        metrics: [
+          {
+            type: "Resource",
+            resource: {
+              name: "cpu",
+              targetAverageUtilization: $.params.targetAverageUtilization,
+            },
+          },
+        ],
+        scaleTargetRef: {
+          apiVersion: "extensions/v1beta1",
+          kind: "Deployment",
+          name: $.params.name + "-" + $.params.version,
+        },
+      },
+    },  // tfHorizontalPodAutoscaler
 
     tfService: {
       apiVersion: "v1",

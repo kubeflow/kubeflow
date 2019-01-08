@@ -13,6 +13,8 @@ import (
 	"os/exec"
 	"time"
 
+	"bytes"
+	"github.com/cenkalti/backoff"
 	"github.com/go-kit/kit/endpoint"
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/ksonnet/ksonnet/pkg/actions"
@@ -24,7 +26,9 @@ import (
 	"github.com/spf13/afero"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
+	"google.golang.org/api/deploymentmanager/v2"
 	"google.golang.org/api/sourcerepo/v1"
+	"io/ioutil"
 	core_v1 "k8s.io/api/core/v1"
 	"k8s.io/api/rbac/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -33,12 +37,8 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-	"strings"
-	"google.golang.org/api/deploymentmanager/v2"
-	"io/ioutil"
 	"math/rand"
-	"github.com/cenkalti/backoff"
-	"bytes"
+	"strings"
 )
 
 // The name of the prototype for Jupyter.
@@ -65,7 +65,7 @@ type KsService interface {
 	ConfigCluster(context.Context, CreateRequest) error
 	BindRole(context.Context, string, string, string) error
 	InsertDeployment(context.Context, CreateRequest) (*deploymentmanager.Deployment, error)
-	GetDeploymentStatus(context.Context, CreateRequest) (string, error)
+	GetDeploymentStatus(context.Context, CreateRequest) (string, string, error)
 	ApplyIamPolicy(context.Context, ApplyIamRequest) error
 	GetProjectLock(string) *sync.Mutex
 }
@@ -242,13 +242,23 @@ var (
 		},
 		[]string{"status"},
 	)
-	deploymentFailure = prometheus.NewCounter(prometheus.CounterOpts{
+	deploymentFailure = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "deployments_failure",
 		Help: "Number of failed Kubeflow deployments",
-	})
+	}, []string{"status"})
+
 	serviceHeartbeat = prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "service_heartbeat",
 		Help: "Heartbeat signal every 10 seconds indicating pods are alive.",
+	})
+
+	deployReqCounterUser = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "deploy_requests_user",
+		Help: "Number of user requests for deployments",
+	})
+	kfDeploymentsDoneUser = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "kubeflow_deployments_done_user",
+		Help: "Number of successfully finished Kubeflow user deployments",
 	})
 
 	// Gauge metrics
@@ -260,7 +270,6 @@ var (
 		Name: "kubeflow_deployments_done_raw",
 		Help: "Number of successfully finished Kubeflow deployments",
 	})
-
 
 	// latencies
 	clusterDeploymentLatencies = prometheus.NewHistogram(prometheus.HistogramOpts{
@@ -280,6 +289,8 @@ func init() {
 	prometheus.MustRegister(deployReqCounter)
 	prometheus.MustRegister(clusterDeploymentLatencies)
 	prometheus.MustRegister(kfDeploymentLatencies)
+	prometheus.MustRegister(deployReqCounterUser)
+	prometheus.MustRegister(kfDeploymentsDoneUser)
 	prometheus.MustRegister(deployReqCounterRaw)
 	prometheus.MustRegister(kfDeploymentsDoneRaw)
 	prometheus.MustRegister(deploymentFailure)
@@ -386,11 +397,11 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 
 		if err != nil {
 			options := map[string]interface{}{
-				actions.OptionFs:       s.fs,
-				actions.OptionName:     "app",
-				actions.OptionEnvName:  envName,
-				actions.OptionRootPath: appDir,
-				actions.OptionServer:   config.Host,
+				actions.OptionFs:      s.fs,
+				actions.OptionName:    "app",
+				actions.OptionEnvName: envName,
+				actions.OptionAppRoot: appDir,
+				actions.OptionServer:  config.Host,
 				// TODO(jlewi): What is the proper version to use? It shouldn't be a version like v1.9.0-gke as that
 				// will create an error because ksonnet will be unable to fetch a swagger spec.
 				actions.OptionSpecFlag:              "version:v1.10.6",
@@ -408,7 +419,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 			log.Infof("Directory %v exists", appDir)
 		}
 
-		kfApp, err := kApp.Load(s.fs, appDir, true)
+		kfApp, err := kApp.Load(s.fs, nil, appDir)
 
 		if err != nil {
 			log.Errorf("There was a problem loading app %v. Error: %v", request.Name, err)
@@ -540,7 +551,7 @@ func (s *ksServer) getRegistryUri(registry *RegistryConfig) (string, error) {
 			if err != nil {
 				return "", err
 			}
-			err = os.Rename(path.Join(registryPath, registry.Name+"-" + strings.Trim(registry.Version, "v")), versionPath)
+			err = os.Rename(path.Join(registryPath, registry.Name+"-"+strings.Trim(registry.Version, "v")), versionPath)
 			if err != nil {
 				log.Errorf("Error occrued during os.Rename. Error: %v", err)
 				return "", err
@@ -551,7 +562,7 @@ func (s *ksServer) getRegistryUri(registry *RegistryConfig) (string, error) {
 }
 
 func runCmd(rawcmd string) error {
-	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2 * time.Second), 10)
+	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2*time.Second), 10)
 	return backoff.Retry(func() error {
 		cmd := exec.Command("sh", "-c", rawcmd)
 		result, err := cmd.CombinedOutput()
@@ -604,7 +615,7 @@ func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *AppConfig) error {
 					}
 					err := actions.RunPkgInstall(map[string]interface{}{
 						actions.OptionApp:     kfApp,
-						actions.OptionLibName: full,
+						actions.OptionPkgName: full,
 						actions.OptionName:    pkgName,
 						actions.OptionForce:   false,
 					})
@@ -628,7 +639,7 @@ func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *AppConfig) error {
 		}
 		err := actions.RunPkgInstall(map[string]interface{}{
 			actions.OptionApp:     kfApp,
-			actions.OptionLibName: full,
+			actions.OptionPkgName: full,
 			actions.OptionName:    pkg.Name,
 			actions.OptionForce:   false,
 		})
@@ -776,7 +787,7 @@ func (s *ksServer) CloneRepoToLocal(project string, token string) (string, error
 		AccessToken: token,
 	})
 	sourcerepoService, err := sourcerepo.New(oauth2.NewClient(context.Background(), ts))
-	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2 * time.Second), 10)
+	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2*time.Second), 10)
 	err = backoff.Retry(func() error {
 		_, err = sourcerepoService.Projects.Repos.Get(fmt.Sprintf("projects/%s/repos/%s", project, GetRepoName(project))).Do()
 		if err != nil {
@@ -815,7 +826,7 @@ func (s *ksServer) GetApp(project string, appName string, kfVersion string, toke
 	if err != nil {
 		return nil, repoDir, fmt.Errorf("App %s doesn't exist in Project %s", appName, project)
 	}
-	kfApp, err := kApp.Load(s.fs, appDir, true)
+	kfApp, err := kApp.Load(s.fs, nil, appDir)
 
 	if err != nil {
 		return nil, "", fmt.Errorf("There was a problem loading app %v. Error: %v", appName, err)
@@ -856,7 +867,7 @@ func UpdateCloudShellConfig(repoDir string, project string, appName string, kfVe
 	if err := os.MkdirAll(confDir, os.ModePerm); err != nil {
 		return err
 	}
-	for _, filename := range([]string{"conn.sh", "conn.md"}) {
+	for _, filename := range []string{"conn.sh", "conn.md"} {
 		data, err := ioutil.ReadFile(path.Join(CloudShellTemplatePath, filename))
 		if err != nil {
 			return err
@@ -890,7 +901,7 @@ func (s *ksServer) SaveAppToRepo(project string, email string, repoDir string) e
 			return err
 		}
 	}
-	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2 * time.Second), 10)
+	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2*time.Second), 10)
 	return backoff.Retry(func() error {
 		pushcmd := exec.Command("sh", "-c", "git push origin master")
 		result, err := pushcmd.CombinedOutput()
@@ -989,7 +1000,7 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 		actions.OptionGcTag:          "gc-tag",
 		actions.OptionSkipGc:         true,
 	}
-	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(5 * time.Second), 6)
+	bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(5*time.Second), 6)
 	doneApply := make(map[string]bool)
 	err = backoff.Retry(func() error {
 		for _, comp := range req.Components {
@@ -1008,7 +1019,7 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 		if len(doneApply) == len(req.Components) {
 			return nil
 		}
-		return fmt.Errorf("%v failed components in last try", len(req.Components) - len(doneApply))
+		return fmt.Errorf("%v failed components in last try", len(req.Components)-len(doneApply))
 	}, bo)
 	if err != nil {
 		log.Errorf("Components apply failed; Error: %v", err)
@@ -1083,14 +1094,21 @@ func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmana
 	ctx = context.WithValue(ctx, StartTime, time.Now())
 	for retry := 0; retry < 60; retry++ {
 		time.Sleep(10 * time.Second)
-		status, err = svc.GetDeploymentStatus(ctx, req)
+		status, errMsg, err := svc.GetDeploymentStatus(ctx, req)
 		if err != nil {
 			log.Errorf("Failed to get deployment status: %v", err)
 			deployReqCounter.WithLabelValues("INTERNAL").Inc()
-			deploymentFailure.Inc()
+			deploymentFailure.WithLabelValues("INTERNAL").Inc()
 			return
 		}
 		if status == "DONE" {
+			if errMsg != "" {
+				log.Errorf("Deployment manager returned error message: %v", errMsg)
+				// Mark status "INVALID_ARGUMENT" as most deployment manager failures are caused by insufficient quota or permission.
+				// Error messages are available from UI, and should be resolvable by retries.
+				deployReqCounter.WithLabelValues("INVALID_ARGUMENT").Inc()
+				return
+			}
 			clusterDeploymentLatencies.Observe(timeSinceStart(ctx).Seconds())
 			log.Infof("Deployment is done")
 			break
@@ -1100,7 +1118,7 @@ func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmana
 	if status != "DONE" {
 		log.Errorf("Deployment status is not done: %v", status)
 		deployReqCounter.WithLabelValues("INTERNAL").Inc()
-		deploymentFailure.Inc()
+		deploymentFailure.WithLabelValues("INTERNAL").Inc()
 		return
 	}
 
@@ -1115,14 +1133,14 @@ func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmana
 	if err != nil {
 		log.Errorf("Failed to update IAM: %v", err)
 		deployReqCounter.WithLabelValues("INTERNAL").Inc()
-		deploymentFailure.Inc()
+		deploymentFailure.WithLabelValues("INTERNAL").Inc()
 		return
 	}
 
 	log.Infof("Configuring cluster...")
 	if err = svc.ConfigCluster(ctx, req); err != nil {
 		deployReqCounter.WithLabelValues("INTERNAL").Inc()
-		deploymentFailure.Inc()
+		deploymentFailure.WithLabelValues("INTERNAL").Inc()
 		return
 	}
 
@@ -1131,13 +1149,14 @@ func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmana
 	if err != nil {
 		log.Errorf("Failed to create app: %v", err)
 		deployReqCounter.WithLabelValues("INTERNAL").Inc()
-		deploymentFailure.Inc()
+		deploymentFailure.WithLabelValues("INTERNAL").Inc()
 		return
 	}
 
 	deployReqCounter.WithLabelValues("OK").Inc()
 	if req.Project != "kubeflow-prober-deploy" {
 		kfDeploymentsDoneRaw.Inc()
+		kfDeploymentsDoneUser.Inc()
 	}
 	kfDeploymentLatencies.Observe(timeSinceStart(ctx).Seconds())
 }
@@ -1156,6 +1175,7 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 		r := &basicServerResponse{}
 		if req.Project != "kubeflow-prober-deploy" {
 			deployReqCounterRaw.Inc()
+			deployReqCounterUser.Inc()
 		}
 		if err := req.Validate(); err != nil {
 			r.Err = err.Error()

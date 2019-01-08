@@ -1,12 +1,12 @@
 {
-  parts(namespace):: {
-    all:: [
-      $.parts(namespace).pvc,
-      $.parts(namespace).service,
-      $.parts(namespace).deploy,
-      $.parts(namespace).secret,
-    ],
+  all(namespace, minioImage):: [
+    $.parts(namespace).pvc,
+    $.parts(namespace).service,
+    $.parts(namespace).deploy(minioImage),
+    $.parts(namespace).secret,
+  ],
 
+  parts(namespace):: {
     pvc: {
       apiVersion: "v1",
       kind: "PersistentVolumeClaim",
@@ -50,7 +50,7 @@
       },
     },  //service
 
-    deploy: {
+    deploy(image): {
       apiVersion: "apps/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -85,7 +85,7 @@
                     mountPath: "/data",
                   },
                 ],
-                image: "minio/minio:RELEASE.2018-02-09T22-40-05Z",
+                image: image,
                 args: [
                   "server",
                   "/data",

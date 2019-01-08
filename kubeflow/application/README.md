@@ -1,23 +1,21 @@
 ## Overview
 
-The application component creates an Application Kind based on 
-components ksonnet has generated or the user has specified using 
-an application component parameter. The application component defaults
-to the following components:
+The ksonnet application component creates an Application Custom Resource based on 
+ksonnet components generated under `<APP_DIR>/ks_app/components/`. The ksonnet 
+application component defaults to the following components:
 
 ```
 "ambassador", "jupyter", "centraldashboard", "tf-job-operator", "spartakus", "argo", "pipeline"
 ```
 
-These components are listed within the Application Kind 
+These components are listed within the Application Custom Resource created by 
+the ksonnet application component. An example is shown below:
 
 ```
 apiVersion: app.k8s.io/v1beta1
 kind: Application
 metadata:
   annotations:
-    kubectl.kubernetes.io/last-applied-configuration: |
-      {"apiVersion":"app.k8s.io/v1beta1","kind":"Application","metadata":{"annotations":{},"labels":{"app":"kubeflow","app.kubernetes.io/name":"kubeflow","ksonnet.io/component":"application"},"name":"kubeflow","namespace":"kubeflow"},"spec":{"assemblyPhase":"Succeeded","componentKinds":[{"group":"rbac.authorization.k8s.io/v1beta1","kind":"ClusterRoleBinding"},{"group":"rbac.authorization.k8s.io/v1beta1","kind":"ClusterRole"},{"group":"v1","kind":"ConfigMap"},{"group":"apiextensions.k8s.io/v1beta1","kind":"CustomResourceDefinition"},{"group":"apps/v1beta1","kind":"Deployment"},{"group":"apps/v1beta2","kind":"Deployment"},{"group":"extensions/v1beta1","kind":"Deployment"},{"group":"batch/v1","kind":"Job"},{"group":"v1","kind":"PersistentVolumeClaim"},{"group":"rbac.authorization.k8s.io/v1beta1","kind":"RoleBinding"},{"group":"rbac.authorization.k8s.io/v1beta1","kind":"Role"},{"group":"v1","kind":"Secret"},{"group":"v1","kind":"ServiceAccount"},{"group":"v1","kind":"Service"},{"group":"apps/v1beta1","kind":"StatefulSet"}],"descriptor":{"description":"","icons":[],"keywords":[],"links":[],"maintainers":[],"notes":"","owners":[],"type":"kubeflow","version":"0.4"},"info":[],"selector":{"matchLabels":{"app.kubernetes.io/name":"kubeflow"}}}}
   creationTimestamp: 2018-12-20T21:40:53Z
   generation: 1
   labels:
@@ -78,8 +76,8 @@ spec:
       app.kubernetes.io/name: kubeflow
 ```
 
-Alternatively, the application component can produce an Application Kind based on a subset 
-of the generated components by setting the components parameter. For example
+Alternatively, the ksonnet application component can produce an Application Custom Resource 
+based on a subset of the generated components by setting a parameter. For example:
 
 ```bash
 ks param set application components '["ambassador","jupyter"]'

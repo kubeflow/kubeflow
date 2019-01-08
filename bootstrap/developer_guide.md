@@ -11,59 +11,53 @@ ln -sf ${GIT_KUBEFLOW} ${GOPATH}/src/github.com/kubeflow/kubeflow
 
 * GIT_KUBEFLOW should be the location where you checked out https://github.com/kubeflow/kubeflow
 
-Resolve dependencies (if you don't have glide install, check how to do it [here](https://github.com/Masterminds/glide/blob/master/README.md#install))
+### Prerequisites
 
-Install dependencies, `-v` will ignore subpackage vendor
-
-```sh
-glide install -v
-```
-
-	* We decided not to check in vendor because it adds 150M + to the repository size.
-	* We want to keep the repository small so checking it out to get our ksonnet registry is fast.
-
-Build it
+golang to 1.11.2
 
 ```sh
-go install github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap
+$ ☞  go version
+go version go1.11.2 darwin/amd64
 ```
 
-or
+On mac osx you can run 
 
 ```sh
-go build -i -o ${GOPATH}/bin/bootstrapper ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/main.go
+brew upgrade golang
 ```
 
-## Building and pushing the bootstrapper-builder and bootstrapper images.  
+golang-1.11.2 uses go.mod, go.sum files which include dependencies.
+To install a new dependency use `go get <dependency>`. 
+golang-1.11.2 no longer creates a vendor directory.
+You should add the environment variable `GO111MODULE=on` to your shell init file
 
-The bootstrapper image defaults to [gcr.io/kubeflow-images-public/bootstrapper](https://gcr.io/kubeflow-images-public/bootstrapper). 
-This image copies the go executable /opt/kubeflow/bootstrapper built in the "builder" image which defaults to 
-[gcr.io/kubeflow-images-public/bootstrapper-builder](https://gcr.io/kubeflow-images-public/bootstrapper-builder). 
-Both are configurable by overriding environment variables used in the Makefile. Below are various examples that 
-show how and where these images are built and pushed.
+### Makefile targets
 
-1. Use a different gcloud project than kubeflow-images-public. 
+```
+build             debug             push              
+build-local       debug-latest      push-latest       
+cleanup           
+```
+
+#### `make build-local`
+Creates bin/bootstrapper with full debug information
+
+#### `make build` 
+Depends on `make build-local`. Creates a docker image gcr.io/$(GCLOUD_PROJECT)/bootstrapper:$(TAG)
+
+#### `make push` 
+Depends on `make build`. Pushes the docker image gcr.io/$(GCLOUD_PROJECT)/bootstrapper:$(TAG)
+
+#### `make push-latest` 
+Depends on `make push`. Tags the docker image gcr.io/$(GCLOUD_PROJECT)/bootstrapper:$(TAG) with latest.
+Note: To use a different gcloud project than kubeflow-images-public. 
 ```sh
 export GCLOUD_PROJECT=mygcloudproject 
-make push-builder && make push
+make push
 ```
 
-2. Build with debug symbols included in the bootstrapper executable 
-```sh
-export GOLANG_GCFLAGS='-gcflags "all=-N -l"'
-make push-builder && make push
-```
-
-3. Build the bootstrapper image based on a bootstrapper-builder version and push 
-```sh
-BUILDER_IMG_VERSION=v20180804-5778003 make push-latest
-```
-
-4. Deploy and Debug bootstrapper using your image and version
-```sh
-IMG=gcr.io/foo/bootstrapper TAG=latest make -e debug
-```
-The make debug target runs debug.sh which does the following
+#### `make debug` 
+Depends on `make push` and `make cleanup`
 1. deploys a Namespace, PersistentVolumeClaim and StatefulSet using $(IMG), $(TAG), $(PORT)
 2. waits for pod kubeflow-bootstrapper-0 to be in phase 'Running'
 3. runs "kubectl port-forward ..." in the background, opening port 2345 to the pod's container
@@ -75,14 +69,13 @@ The StatefulSet will create a pod and start the following process in the pod's k
 ```sh
 /opt/kubeflow/dlv.sh
 ```
-
 This script runs
 
 ```sh
-dlv --listen=:2345 --headless=true --api-version=2 exec /opt/kubeflow/bootstrapper -- --in-cluster --namespace=kubeflow --config=/opt/kubeflow/default.yaml --app-dir=/opt/bootstrap/default --registries-config-file=/opt/kubeflow/image_registries.yaml
+dlv --listen=:2345 --headless=true --api-version=2 exec /opt/kubeflow/bootstrapper -- --in-cluster --namespace=kubeflow
 ```
 
-[dlv](https://github.com/derekparker/delve) is a golang debugger that works with Intellij's IDE [Goland](https://www.jetbrains.com/go/)
+[dlv](https://github.com/derekparker/delve) is a golang debugger that works with JetBrain's [Goland](https://www.jetbrains.com/go/)
 
 In order to connect to the remote bootstrapper process, in goland add a "Go Remote" debug configuration like below
 ![bootstrapper](./bootstrapper.png)

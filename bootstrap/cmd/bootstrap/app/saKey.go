@@ -2,6 +2,7 @@ package app
 
 import (
 	iamadmin "cloud.google.com/go/iam/admin/apiv1"
+	"encoding/base64"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
@@ -11,7 +12,6 @@ import (
 	"k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
-	"encoding/base64"
 )
 
 const OauthSecretName = "kubeflow-oauth"

@@ -108,7 +108,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       dialogBody: '',
       dialogTitle: '',
       iap: true,
-      kfversion: 'v0.3.4',
+      kfversion: 'v0.3.5',
       project: '',
       showLogs: false,
       zone: 'us-central1-a',
@@ -144,7 +144,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
   public render() {
     const zoneList = ['us-central1-a', 'us-central1-c', 'us-east1-c', 'us-east1-d', 'us-west1-b',
       'europe-west1-b', 'europe-west1-d', 'asia-east1-a', 'asia-east1-b'];
-    const versionList = ['v0.3.4'];
+    const versionList = ['v0.3.5', 'v0.4.0'];
 
     return (
       <div>
@@ -193,6 +193,10 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
             ))}
           </TextField>
         </div>
+
+        <Collapse in={!this.state.iap}>
+          <div style={styles.row}>Kubeflow UI Access: after Deployment is done, click "Cloud Shell" and click "port forwarding" in new page.</div>
+        </Collapse>
 
         <div style={{ display: 'flex', padding: '20px 60px 40px' }}>
           <Button style={styles.btn} variant="contained" color="primary" onClick={this._createDeployment.bind(this)}>
@@ -249,9 +253,18 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     });
   }
 
+  private _currentTime() {
+    const d = new Date();
+    let timeStr = '';
+    timeStr += d.getFullYear() + '-' + ('0' + d.getMonth()).slice(-2) + '-' + ('0' + d.getDate()).slice(-2) + ' ';
+    timeStr += ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2) + ':' + ('0' + d.getSeconds()).slice(-2) + '.' + ('00' + d.getMilliseconds()).slice(-3);
+    timeStr += ': ';
+    return timeStr;
+  }
+
   private _appendLine(newLine: any) {
     const logsEl = document.querySelector('#logs') as HTMLInputElement;
-    logsEl.value += (!!logsEl.value ? '\n' : '') + newLine;
+    logsEl.value += (!!logsEl.value ? '\n' : '') + this._currentTime() + newLine;
     logsEl.scrollTop = logsEl.scrollHeight;
   }
 
@@ -274,7 +287,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
 
     const state = this.state;
     const email = await Gapi.getSignedInEmail();
-    let iapIdx = 0;
     for (let i = 0, len = this._configSpec.defaultApp.parameters.length; i < len; i++) {
       const p = this._configSpec.defaultApp.parameters[i];
       if (p.name === 'ipName') {
@@ -290,11 +302,10 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       }
 
       if (p.name === 'jupyterHubAuthenticator') {
-        iapIdx = i;
+        if (this.state.clientId === '' || this.state.clientSecret === '') {
+          p.value = 'null';
+        }
       }
-    }
-    if (this.state.clientId === '' || this.state.clientSecret === '') {
-      this._configSpec.defaultApp.parameters.splice(iapIdx, 1);
     }
     this._configSpec.defaultApp.registries[0].version = this.state.kfversion;
 
@@ -310,9 +321,8 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       });
       return;
     }
-    const cloudShellConfPath = this.state.kfversion + '/' + this.state.deploymentName + '/kf_util';
-    const cloudShellUrl = 'https://cloud.google.com/console/cloudshell/open?shellonly=true&git_repo=https://source.developers.google.com/p/' +
-      this.state.project + '/r/' + this.state.project + '-kubeflow-config&working_dir=' + cloudShellConfPath + '&tutorial=conn.md';
+    const cloudShellUrl = 'https://console.cloud.google.com/kubernetes/service/' +  this.state.zone + '/' +
+      this.state.deploymentName + '/kubeflow/ambassador?project=' + this.state.project + '&tab=overview';
     window.open(cloudShellUrl, '_blank');
   }
 
@@ -435,12 +445,21 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       'members': ['serviceAccount:' + saEmail],
       'role': 'roles/owner'
     });
-    await Gapi.cloudresourcemanager.setIamPolicy(project, currProjPolicy)
-      .catch(e => {
-        this.setState({
-          dialogTitle: 'Failed setting IAM policy, please verify if have permission',
-        });
+    let returnPloicy = null;
+    for (let retries = 5; retries > 0; retries -= 1) {
+      returnPloicy = await Gapi.cloudresourcemanager.setIamPolicy(project, currProjPolicy)
+        .catch(e => this._appendLine('Pending on project environment sync up'));
+      if (returnPloicy !== undefined) {
+        break;
+      }
+      await wait(10000);
+    }
+    if (returnPloicy === undefined) {
+      this.setState({
+        dialogTitle: 'Failed to set IAM policy, please make sure you have enough permissions.',
       });
+      return;
+    }
 
     const currSAPolicy = await Gapi.iam.getServiceAccountIAM(project, saEmail);
     if (!(bindingKey in currSAPolicy)) {
@@ -453,7 +472,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     await Gapi.iam.setServiceAccountIAM(project, saEmail, currSAPolicy)
       .catch(e => {
         this.setState({
-          dialogTitle: 'Failed setting service account policy, please verify if have permission',
+          dialogTitle: 'Failed to set service account policy, please make sure you have enough permissions.',
         });
       });
     if (this.state.dialogTitle) {
@@ -461,16 +480,18 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     }
 
     let token = null;
-    for (let retries = 10; retries > 0; retries -= 1) {
+    for (let retries = 20; retries > 0; retries -= 1) {
       token = await Gapi.iam.getServiceAccountToken(project, saEmail)
         .catch(e => this._appendLine('Pending on new service account policy sync up'));
       if (token !== undefined) {
         break;
       }
-      await wait(5000);
+      await wait(10000);
     }
     if (token === undefined) {
-      this._appendLine('Failed creating service account token, please verify if have permission');
+      this.setState({
+        dialogTitle: 'Failed to create service account token, please make sure you have enough permissions.',
+      });
       return;
     }
 
@@ -598,9 +619,9 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
               this._appendLine('your kubeflow app url should be ready within 20 minutes (by '
                 + readyTime.toLocaleTimeString() + '): https://'
                 + this.state.deploymentName + '.endpoints.' + this.state.project + '.cloud.goog');
+              this._redirectToKFDashboard(dashboardUri);
             }
             clearInterval(monitorInterval);
-            this._redirectToKFDashboard(dashboardUri);
           } else {
             this._appendLine(`Status of ${deploymentName}: ` + r.operation!.status!);
           }
