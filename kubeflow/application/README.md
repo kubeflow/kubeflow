@@ -16,17 +16,19 @@ apiVersion: app.k8s.io/v1beta1
 kind: Application
 metadata:
   annotations:
-  creationTimestamp: 2018-12-20T21:40:53Z
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"app.k8s.io/v1beta1","kind":"Application","metadata":{"annotations":{},"labels":{"app.kubernetes.io/name":"kubeflow","app.kubernetes.io/version":"0.4","ksonnet.io/component":"application"},"name":"kubeflow","namespace":"kubeflow"},"spec":{"assemblyPhase":"Succeeded","componentKinds":[{"group":"rbac.authorization.k8s.io/v1beta1","kind":"ClusterRoleBinding"},{"group":"rbac.authorization.k8s.io/v1beta1","kind":"ClusterRole"},{"group":"v1","kind":"ConfigMap"},{"group":"apiextensions.k8s.io/v1beta1","kind":"CustomResourceDefinition"},{"group":"apps/v1beta1","kind":"Deployment"},{"group":"extensions/v1beta1","kind":"Deployment"},{"group":"rbac.authorization.k8s.io/v1beta1","kind":"Role"},{"group":"v1","kind":"ServiceAccount"},{"group":"v1","kind":"Service"}],"descriptor":{"description":"","icons":[],"keywords":[],"links":[],"maintainers":[],"notes":"","owners":[],"type":"kubeflow","version":"0.4"},"info":[],"selector":{"matchLabels":{"app.kubernetes.io/name":"kubeflow"}}}}
+  creationTimestamp: 2019-01-08T17:22:36Z
   generation: 1
   labels:
-    app: kubeflow
     app.kubernetes.io/name: kubeflow
+    app.kubernetes.io/version: "0.4"
     ksonnet.io/component: application
   name: kubeflow
   namespace: kubeflow
-  resourceVersion: "2889700"
+  resourceVersion: "5643791"
   selfLink: /apis/app.k8s.io/v1beta1/namespaces/kubeflow/applications/kubeflow
-  uid: ed56d218-049f-11e9-88a0-42010a8a01a3
+  uid: fdc16b4e-1369-11e9-90ff-42010a8a0097
 spec:
   assemblyPhase: Succeeded
   componentKinds:
@@ -40,26 +42,14 @@ spec:
     kind: CustomResourceDefinition
   - group: apps/v1beta1
     kind: Deployment
-  - group: apps/v1beta2
-    kind: Deployment
   - group: extensions/v1beta1
     kind: Deployment
-  - group: batch/v1
-    kind: Job
-  - group: v1
-    kind: PersistentVolumeClaim
-  - group: rbac.authorization.k8s.io/v1beta1
-    kind: RoleBinding
   - group: rbac.authorization.k8s.io/v1beta1
     kind: Role
-  - group: v1
-    kind: Secret
   - group: v1
     kind: ServiceAccount
   - group: v1
     kind: Service
-  - group: apps/v1beta1
-    kind: StatefulSet
   descriptor:
     description: ""
     icons: []
@@ -74,6 +64,18 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: kubeflow
+status:
+  assemblyPhase: Pending
+  counts:
+    children: 16
+    installed_children: 21
+    missing_children: 0
+    requested_children: 21
+    validated_children: 16
+  created: true
+  debug: null
+  observedGeneration: 1
+  ready: "True"
 ```
 
 Alternatively, the ksonnet application component can produce an Application Custom Resource 
@@ -86,7 +88,7 @@ ks param set application components '["ambassador","jupyter"]'
 ## Options (emitCRD=true, emitController=false)
 
 - emitCRD (=true)
-If the Application CRD has already been emitted then set this to false
+If the Application CRD has already been emitted (eg `kubectl get crds applications.app.k8s.io`) then set this to false
 
 ```
 ks param set application emitCRD false
@@ -97,7 +99,7 @@ ks param set application emitCRD false
 If this flag is true then the components normally deployed directly to the api-server will be emitted 
 by the application-controller in-cluster. 
 
-## Example Script (Deploying components '["ambassador","jupyter","centraldashboard","tensorboard","tf-training"]')
+## Example Script (Deploying components '["ambassador","centraldashboard","tf-job-operator","tensorboard"]')
 
 ```
 #!/usr/bin/env bash
@@ -116,11 +118,14 @@ $KUBEFLOW_DIR/scripts/kfctl.sh init kf_app --platform none
 cd $HOME/kf_app
 $KUBEFLOW_DIR/scripts/kfctl.sh generate all
 cd $HOME/kf_app/ks_app
+ks pkg install kubeflow/tensorboard
+ks generate tensorboard tensorboard
 kubectl create ns kubeflow
 ks env add default --namespace kubeflow
 ks param set application name kubeflow
 ks param set application emitController true
-ks param set application components '["ambassador","jupyter","centraldashboard","tensorboard","tf-training"]'
+ks param set application components '["ambassador","centraldashboard","tf-job-operator","tensorboard"]'
+ks param set application debug true
 ks show default -c metacontroller -c application > default.yaml
 kubectl apply --validate=false -f default.yaml
 ```

@@ -44,8 +44,8 @@
       metadata: {
         name: params.name,
         labels: {
-          app: params.name,
           "app.kubernetes.io/name": params.name,
+          "app.kubernetes.io/version": params.version,
         },
         namespace: params.namespace,
       },
@@ -121,9 +121,6 @@
           },
           labels+: {
             "app.kubernetes.io/name": params.name,
-            "app.kubernetes.io/component": resource.metadata.name,
-            app: params.name,
-            component: resource.metadata.name,
           },
         },
       },
@@ -198,6 +195,7 @@
     local syncApplication = syncApplicationTemplate % {
       resources: std.manifestJsonEx(namespacedResources, "  "),
       groupedResources: std.manifestJsonEx(groupedNamespacedResources, "  "),
+      debug: params.debug,
     },
 
     local applicationConfigMap = {

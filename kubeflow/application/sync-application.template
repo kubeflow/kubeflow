@@ -1,5 +1,6 @@
 function(request) {
   local util = import "util.libsonnet",
+  local debug = util.toBool(%(debug)s),
   local children = %(resources)s,
   local groupedResources = %(groupedResources)s,
   local groupByResource(resources) = {
@@ -90,15 +91,20 @@ function(request) {
     return::
       util.lower(resource.kind) + "s." + resource.apiVersion + "/" + resource.metadata.name,
   }.return,
+  local emitDebug = {
+    return::
+      if debug == true then {
+        validated: util.sort(std.map(info, validatedChildren)),
+        requested: util.sort(std.map(info, requestedChildren)),
+        installed: util.sort(std.map(info, installedChildren)),
+        missing: util.sort(std.map(info, missingChildren)),
+      },
+  }.return,
   children: desired,
   status: {
     assemblyPhase: assemblyPhase,
     ready: "True",
     created: true,
-    validated: util.sort(std.map(info, validatedChildren)),
-    requested: util.sort(std.map(info, requestedChildren)),
-    installed: util.sort(std.map(info, installedChildren)),
-    missing: util.sort(std.map(info, missingChildren)),
     counts: {
       children: std.length(children),
       validated_children: std.length(validatedChildren),
@@ -106,5 +112,6 @@ function(request) {
       installed_children: std.length(installedChildren),
       missing_children: std.length(missingChildren),
     },
+    debug: emitDebug,
   },
 }
