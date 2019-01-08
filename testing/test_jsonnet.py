@@ -81,7 +81,7 @@ def run(test_files_dirs, jsonnet_path_args, test_case):
                 "Result was: %s. Output will be treated as a boolean", output)
               test_passed = parsed
             else:
-              test_passed = parsed.get("pass", false)
+              test_passed = parsed.get("pass", False)
 
             if not test_passed:
               test_case.add_failure_info('{} test failed'.format(test_file))
