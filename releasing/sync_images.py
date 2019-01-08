@@ -74,20 +74,20 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
         logging.info("Pulling %s", source)
         rc = subprocess.call(["docker","pull",source])
         if rc != 0:
-            logging.info("Failed to Pull %s", source)
-            continue
+          logging.info("Failed to Pull %s", source)
+          continue
         logging.info("Tagging the image %s to %s", source,
                    dest)
         rc = subprocess.call(["docker","tag",source, dest])
         if rc != 0:
-            logging.info("Failed to tag the image %s to %s", source,
+          logging.info("Failed to tag the image %s to %s", source,
                    dest)
-            continue
+          continue
         logging.info("Push %s", dest)
         rc = subprocess.call(["docker","push",dest])
         if rc != 0:
-            logging.info("Failed to push the image %s", dest)
-            continue
+          logging.info("Failed to push the image %s", dest)
+          continue
   logging.info("Done.")
 
 
