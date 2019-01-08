@@ -32,7 +32,7 @@
       apiVersion: "v1",
       kind: "ServiceAccount",
       metadata: {
-        name: name ,
+        name: name,
         namespace: namespace,
       },
     },
@@ -79,7 +79,7 @@
       subjects: [
         {
           kind: "ServiceAccount",
-          name: name ,
+          name: name,
           namespace: namespace,
         },
       ],
