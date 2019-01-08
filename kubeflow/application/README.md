@@ -104,6 +104,7 @@ by the application-controller in-cluster.
 ```
 #!/usr/bin/env bash
 KUBEFLOW_DIR=$HOME/go/src/github.com/kubeflow/kubeflow
+NAME=${1:-kubeflow}
 
 cd $HOME
 if [[ -d kf_app ]]; then
@@ -122,7 +123,7 @@ ks pkg install kubeflow/tensorboard
 ks generate tensorboard tensorboard
 kubectl create ns kubeflow
 ks env add default --namespace kubeflow
-ks param set application name kubeflow
+ks param set application name $NAME
 ks param set application emitController true
 ks param set application components '["ambassador","centraldashboard","tf-job-operator","tensorboard"]'
 ks param set application debug true
