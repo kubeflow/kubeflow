@@ -32,7 +32,7 @@
       apiVersion: "v1",
       kind: "ServiceAccount",
       metadata: {
-        name: name + "-spark",
+        name: name ,
         namespace: namespace,
       },
     },
@@ -42,7 +42,7 @@
       kind: "Role",
       metadata: {
         namespace: namespace,
-        name: name + "-spark-role",
+        name: name,
       },
       rules: [
         {
@@ -73,19 +73,19 @@
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       kind: "RoleBinding",
       metadata: {
-        name: name + "-spark-role-binding",
+        name: name,
         namespace: namespace,
       },
       subjects: [
         {
           kind: "ServiceAccount",
-          name: name + "-spark",
+          name: name ,
           namespace: namespace,
         },
       ],
       roleRef: {
         kind: "Role",
-        name: name + "-spark-role",
+        name: name,
         apiGroup: "rbac.authorization.k8s.io",
       },
     },
@@ -93,7 +93,7 @@
       apiVersion: "v1",
       kind: "ServiceAccount",
       metadata: {
-        name: name + "-sparkoperator",
+        name: name,
         namespace: namespace,
       },
     },
@@ -105,7 +105,7 @@
         labels: {
           app: "spark-operator",
         },
-        name: name + "-sparkoperator",
+        name: name,
         [if deploymentScope == "namespace" then "namespace"]: namespace,
       },
       rules: [
@@ -206,19 +206,19 @@
       local roleType = if deploymentScope == "cluster" then "ClusterRole" else "Role",
       kind: bindingType,
       metadata: {
-        name: name + "-sparkoperator",
+        name: name,
         [if deploymentScope == "namespace" then "namespace"]: namespace,
       },
       subjects: [
         {
           kind: "ServiceAccount",
-          name: name + "-sparkoperator",
+          name: name,
           namespace: namespace,
         },
       ],
       roleRef: {
         kind: roleType,
-        name: name + "-sparkoperator",
+        name: name,
         apiGroup: "rbac.authorization.k8s.io",
       },
     },
@@ -226,10 +226,10 @@
       apiVersion: "apps/v1beta1",
       kind: "Deployment",
       metadata: {
-        name: name + "-sparkoperator",
+        name: name,
         namespace: namespace,
         labels: {
-          "app.kubernetes.io/name": name + "-sparkoperator",
+          "app.kubernetes.io/name": name,
           "app.kubernetes.io/version": sparkVersion,
         },
       },
@@ -237,7 +237,7 @@
         replicas: 1,
         selector: {
           matchLabels: {
-            "app.kubernetes.io/name": name + "-sparkoperator",
+            "app.kubernetes.io/name": name,
             "app.kubernetes.io/version": sparkVersion,
           },
         },
@@ -252,9 +252,9 @@
               "prometheus.io/path": "/metrics",
             },
             labels: {
-              "app.kubernetes.io/name": name + "-sparkoperator",
+              "app.kubernetes.io/name": name,
               "app.kubernetes.io/version": sparkVersion,
-              name: name + "-sparkoperator",
+              name: name,
             },
             initializers: {
               pending: [
@@ -263,10 +263,10 @@
             },
           },
           spec: {
-            serviceAccountName: name + "-sparkoperator",
+            serviceAccountName: name,
             containers: [
               {
-                name: name + "-sparkoperator",
+                name: name,
                 image: params.image,
                 imagePullPolicy: "Always",
                 command: [
@@ -319,7 +319,7 @@
           labels: {
             version: sparkVersion,
           },
-          serviceAccount: params.name + "-spark",
+          serviceAccount: params.name,
           volumeMounts: [
             {
               name: "test-volume",
