@@ -130,7 +130,7 @@ def deploy_kubeflow(test_case):
   util.wait_for_deployment(api_client, namespace, pytorch_operator_deployment_name)
 
   # Verify that the Spark Operator actually deployed
-  spark_operator_deployment_name = "spark-operator-sparkoperator"
+  spark_operator_deployment_name = "spark-operator"
   util.run(["kubectl", "get", "all"])
   from kubernetes import client as k8s_client
   print(k8s_client.CoreV1Api(api_client).list_service_for_all_namespaces())
