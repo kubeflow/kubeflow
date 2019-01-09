@@ -33,8 +33,8 @@
     // in which case the image used will still depend on whether GPUs are used or not.
     // Users can also override modelServerImage in which case the user supplied value will always be used
     // regardless of numGpus.
-    defaultCpuImage: "tensorflow/serving:1.11.1",
-    defaultGpuImage: "tensorflow/serving:1.11.1-gpu",
+    defaultCpuImage: "tensorflow/serving:1.12.0",
+    defaultGpuImage: "tensorflow/serving:1.12.0-gpu",
     modelServerImage: if $.params.numGpus == 0 then
       $.params.defaultCpuImage
     else
@@ -129,12 +129,16 @@
       ],
       args: [
         "--port=9000",
+	"--rest_api_port=8000",
         "--model_name=" + $.params.modelName,
         "--model_base_path=" + $.params.modelPath,
       ],
       ports: [
         {
           containerPort: 9000,
+        },
+        {
+          containerPort: 8000,
         },
       ],
       // TODO(jlewi): We should add readiness and liveness probes. I think the blocker is that
@@ -291,7 +295,7 @@
               "apiVersion: ambassador/v0",
               "kind:  Mapping",
               "name: tfserving-mapping-" + $.params.name + "-get",
-              "prefix: /models/" + $.params.name + "/",
+              "prefix: /v1/models/" + $.params.name + "/",
               "rewrite: /",
               "method: GET",
               "service: " + $.params.name + "." + $.params.namespace + ":8000",
@@ -299,7 +303,7 @@
               "apiVersion: ambassador/v0",
               "kind:  Mapping",
               "name: tfserving-mapping-" + $.params.name + "-post",
-              "prefix: /models/" + $.params.name + "/",
+              "prefix: /v1/models/" + $.params.name + "/",
               "rewrite: /model/" + $.params.name + ":predict",
               "method: POST",
               "service: " + $.params.name + "." + $.params.namespace + ":8000",
