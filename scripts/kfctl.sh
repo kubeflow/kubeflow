@@ -81,6 +81,7 @@ createEnv() {
     ack)
       export KUBEFLOW_PLATFORM=ack
       export KUBEFLOW_DOCKER_REGISTRY=registry.aliyuncs.com
+      export DOCKER_REGISTRY_KATIB_NAMESPACE=katib
       ;;
     gcp)
       export KUBEFLOW_PLATFORM=gke

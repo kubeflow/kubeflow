@@ -41,7 +41,7 @@ COPY . $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap
 
 RUN go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 RUN cp $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap/bin/bootstrapper /opt/kubeflow
-COPY dlv.sh /opt/kubeflow/
+
 COPY config/default.yaml /opt/kubeflow/
 COPY image_registries.yaml /opt/kubeflow/
 RUN mkdir -p /opt/bootstrap
@@ -60,20 +60,18 @@ RUN mkdir -p /go/bin
 RUN mkdir -p /opt/kubeflow
 WORKDIR /opt/kubeflow
 
-COPY --from=bootstrap_build $GOPATH/bin/dlv $GOPATH/bin/dlv
-COPY --from=bootstrap_build /opt/registries /opt/
-COPY --from=bootstrap_build /opt/registries /opt/
+
+COPY --from=bootstrap_build /opt/registries /opt/registries
 COPY --from=bootstrap_build /opt/kubeflow/bootstrapper /opt/kubeflow/
-COPY --from=bootstrap_build /opt/kubeflow/dlv.sh /opt/kubeflow/
+
 COPY --from=bootstrap_build /opt/kubeflow/default.yaml /opt/kubeflow/
 COPY --from=bootstrap_build /opt/kubeflow/image_registries.yaml /opt/kubeflow/
 RUN mkdir -p /opt/bootstrap
 RUN mkdir -p /opt/versioned_registries
 RUN chmod a+rx /opt/kubeflow/bootstrapper
-RUN chmod a+rx $GOPATH/bin/dlv
 
 EXPOSE 8080
-EXPOSE 2345
+
 
 # Set default values for USER, USER_ID, GROUP_ID
 # The startup script will create the user and su to that user.
