@@ -61,8 +61,7 @@ RUN mkdir -p /opt/kubeflow
 WORKDIR /opt/kubeflow
 
 
-COPY --from=bootstrap_build /opt/registries /opt/
-COPY --from=bootstrap_build /opt/registries /opt/
+COPY --from=bootstrap_build /opt/registries /opt/registries
 COPY --from=bootstrap_build /opt/kubeflow/bootstrapper /opt/kubeflow/
 
 COPY --from=bootstrap_build /opt/kubeflow/default.yaml /opt/kubeflow/
