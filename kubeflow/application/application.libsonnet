@@ -55,7 +55,7 @@
         },
         local getKey(resource) = resource.key,
         local getValue(resource) = resource.groupkind,
-        local componentKindResources = std.map(forComponentKinds, tuples),
+        local componentKindResources = std.filterMap(namespacedScope, forComponentKinds, tuples),
         local componentKindMap = util.foldl(getKey, getValue, componentKindResources),
         componentKinds+: [componentKindMap[key] for key in std.objectFields(componentKindMap)],
         descriptor: {
