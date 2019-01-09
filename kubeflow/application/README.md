@@ -2,10 +2,10 @@
 
 The ksonnet application component creates an Application Custom Resource based on 
 ksonnet components generated under `<APP_DIR>/ks_app/components/`. The ksonnet 
-application component defaults to the following components which are deployed by kfctl.sh:
+application component defaults to the following components which are deployed by kfctl.sh when --platform=none:
 
 ```
-"ambassador", "jupyter", "centraldashboard", "tf-job-operator", "pytorch-operator", "spartakus", "argo", "pipeline"
+"ambassador", "jupyter", "centraldashboard", "tf-job-operator", "pytorch-operator", "spartakus", "argo", "pipeline","katib"
 ```
 
 These components are listed within the deployed Application Custom Resource created by 

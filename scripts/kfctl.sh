@@ -29,6 +29,7 @@ source "${DIR}/util-minikube.sh"
 INPUT=''
 FORMAT=''
 export KUBEFLOW_COMPONENTS=${DEFAULT_KUBEFLOW_COMPONENTS:-'"ambassador","jupyter","centraldashboard","tf-job-operator","pytorch-operator","spartakus","argo","pipeline"'}
+export KUBEFLOW_EXTENDEDINFO=false
 
 writeEnv() {
   echo -e $INPUT | envsubst $FORMAT > ${ENV_FILE}
@@ -45,7 +46,7 @@ createEnv() {
   KUBEFLOW_REPO=${KUBEFLOW_REPO%/}
 
   INPUT+='PLATFORM=$PLATFORM\nKUBEFLOW_REPO=$KUBEFLOW_REPO\nKUBEFLOW_VERSION=$KUBEFLOW_VERSION\n'
-  INPUT+="KUBEFLOW_COMPONENTS='$KUBEFLOW_COMPONENTS'\n"
+  INPUT+="KUBEFLOW_COMPONENTS='$KUBEFLOW_COMPONENTS'\nKUBEFLOW_EXTENDEDINFO=$KUBEFLOW_EXTENDEDINFO\n"
   INPUT+='KUBEFLOW_KS_DIR=$KUBEFLOW_KS_DIR\nKUBEFLOW_DOCKER_REGISTRY=$KUBEFLOW_DOCKER_REGISTRY\n'
   INPUT+='DOCKER_REGISTRY_KATIB_NAMESPACE=$DOCKER_REGISTRY_KATIB_NAMESPACE\nK8S_NAMESPACE=$K8S_NAMESPACE\n'
   INPUT+='KUBEFLOW_PLATFORM=$KUBEFLOW_PLATFORM\nMOUNT_LOCAL=$MOUNT_LOCAL\nPROJECT=$PROJECT\n'
@@ -59,7 +60,7 @@ createEnv() {
   FORMAT+='$KUBEFLOW_COMPONENTS$DOCKER_REGISTRY_KATIB_NAMESPACE$K8S_NAMESPACE$KUBEFLOW_PLATFORM$MOUNT_LOCAL$PROJECT'
   FORMAT+='$ZONE$EMAIL$PROJECT_NUMBER$DEPLOYMENT_NAME$KUBEFLOW_DM_DIR$KUBEFLOW_SECRETS_DIR'
   FORMAT+='$KUBEFLOW_K8S_MANIFESTS_DIR$KUBEFLOW_K8S_CONTEXT$KUBEFLOW_IP_NAME$KUBEFLOW_ENDPOINT_NAME'
-  FORMAT+='$KUBEFLOW_HOSTNAME$CONFIG_FILE$GKE_API_VERSION'
+  FORMAT+='$KUBEFLOW_HOSTNAME$CONFIG_FILE$GKE_API_VERSION$KUBEFLOW_EXTENDEDINFO'
 
   export KUBEFLOW_REPO=${KUBEFLOW_REPO:-"${DEFAULT_KUBEFLOW_REPO}"}
   export KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"}
@@ -308,7 +309,6 @@ main() {
     # Most commands expect to be executed from the app directory
     cd ${DEPLOYMENT_NAME}
     createEnv
-exit 0
 
     source ${ENV_FILE}
     
@@ -402,7 +402,9 @@ exit 0
       # deploy the application CR
       pushd ${KUBEFLOW_KS_DIR}
       ks param set application name $DEPLOYMENT_NAME
-      ks param set application extendedInfo true
+      if [[ $KUBEFLOW_EXTENDEDINFO == "true" ]]; then
+        ks param set application extendedInfo true
+      fi
       ks param set application components '['$KUBEFLOW_COMPONENTS']'
       ks show default -c metacontroller -c application > default.yaml
       kubectl apply --validate=false -f default.yaml
