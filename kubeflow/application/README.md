@@ -9,7 +9,9 @@ application component defaults to the following components which are deployed by
 ```
 
 These components are listed within the deployed Application Custom Resource created by 
-the ksonnet application component. An example is shown below:
+the ksonnet application component under componentKinds. 
+For example running: `kubectl get applications.app.k8s.io kubeflow -oyaml` will return the `kubeflow` application
+which has a componentKinds section as shown below:
 
 ```
 apiVersion: app.k8s.io/v1beta1
@@ -74,15 +76,16 @@ spec:
 
 Alternatively, the ksonnet application component will deploy an Application 
 based on a subset of the generated components by exporting the env variable DEFAULT_KUBEFLOW_COMPONENTS. 
-This is shown below in the Example.
+This is shown in the Example below.
 
 ## Options 
 
 - extendedInfo (=false)
-Emits informational arrays in the status section of the Application CR. Enabled using the env var KUBEFLOW_EXTENDEDINFO
-Below is an example script which enables this information
+Emits informational arrays in the status section of the Application Custom Resource. 
+This is enabled using the env var KUBEFLOW_EXTENDEDINFO=true
+Below is an example script which enables extended information in the Application Custom Resource.
 
-```
+```bash
 #!/usr/bin/env bash
 KUBEFLOW_DIR=/Users/kdkasrav/go/src/github.com/kubeflow/kubeflow
 NAME=${1:-kubeflow}
@@ -100,7 +103,10 @@ $KUBEFLOW_DIR/scripts/kfctl.sh apply all
 
 ## Example (Deploying a subset of components '["ambassador","centraldashboard","tf-job-operator","tensorboard"]')
 
-```
+This script below will deploy a subset of components by exporting DEFAULT_KUBEFLOW_COMPONENTS. It also 
+enables extended info returned in the status section of the Application Custom Resource.
+
+```bash
 #!/usr/bin/env bash
 KUBEFLOW_DIR=$HOME/go/src/github.com/kubeflow/kubeflow
 NAME=${1:-kubeflow}
@@ -135,7 +141,7 @@ metadata:
   annotations:
     kubectl.kubernetes.io/last-applied-configuration: |
       {"apiVersion":"app.k8s.io/v1beta1","kind":"Application","metadata":{"annotations":{},"labels":{"app.kubernetes.io/name":"kubeflow","app.kubernetes.io/version":"0.4","ksonnet.io/component":"application"},"name":"kubeflow","namespace":"kubeflow"},"spec":{"assemblyPhase":"Succeeded","componentKinds":[{"group":"v1","kind":"ConfigMap"},{"group":"apps/v1beta1","kind":"Deployment"},{"group":"extensions/v1beta1","kind":"Deployment"},{"group":"rbac.authorization.k8s.io/v1beta1","kind":"Role"},{"group":"v1","kind":"ServiceAccount"},{"group":"v1","kind":"Service"}],"descriptor":{"description":"","icons":[],"keywords":[],"links":[],"maintainers":[],"notes":"","owners":[],"type":"kubeflow","version":"0.4"},"info":[],"selector":{"matchLabels":{"app.kubernetes.io/name":"kubeflow"}}}}
-  creationTimestamp: 2019-01-09T21:25:05Z
+  creationTimestamp: 2019-01-09T22:04:13Z
   generation: 1
   labels:
     app.kubernetes.io/name: kubeflow
@@ -143,9 +149,9 @@ metadata:
     ksonnet.io/component: application
   name: kubeflow
   namespace: kubeflow
-  resourceVersion: "5969794"
+  resourceVersion: "5995823"
   selfLink: /apis/app.k8s.io/v1beta1/namespaces/kubeflow/applications/kubeflow
-  uid: 080a9717-1455-11e9-a24e-42010a8a0044
+  uid: 7fe42f25-145a-11e9-a24e-42010a8a0044
 spec:
   assemblyPhase: Succeeded
   componentKinds:
@@ -183,7 +189,69 @@ status:
     found_children: 21
     missing_children: 0
   created: true
-  info: null
+  info:
+    created:
+    - configmaps.v1/tf-job-operator-config
+    - deployments.apps/v1beta1/ambassador
+    - deployments.apps/v1beta1/centraldashboard
+    - deployments.apps/v1beta1/tensorboard
+    - deployments.apps/v1beta1/tf-job-dashboard
+    - deployments.apps/v1beta1/tf-job-operator-v1beta1
+    - deployments.extensions/v1beta1/ambassador
+    - deployments.extensions/v1beta1/centraldashboard
+    - deployments.extensions/v1beta1/tensorboard
+    - deployments.extensions/v1beta1/tf-job-dashboard
+    - deployments.extensions/v1beta1/tf-job-operator-v1beta1
+    - roles.rbac.authorization.k8s.io/v1beta1/centraldashboard
+    - serviceaccounts.v1/ambassador
+    - serviceaccounts.v1/centraldashboard
+    - serviceaccounts.v1/tf-job-dashboard
+    - serviceaccounts.v1/tf-job-operator
+    - services.v1/ambassador
+    - services.v1/ambassador-admin
+    - services.v1/centraldashboard
+    - services.v1/tensorboard
+    - services.v1/tf-job-dashboard
+    expected:
+    - configmaps.v1/tf-job-operator-config
+    - deployments.apps/v1beta1/tensorboard
+    - deployments.extensions/v1beta1/ambassador
+    - deployments.extensions/v1beta1/centraldashboard
+    - deployments.extensions/v1beta1/tf-job-dashboard
+    - deployments.extensions/v1beta1/tf-job-operator-v1beta1
+    - roles.rbac.authorization.k8s.io/v1beta1/centraldashboard
+    - serviceaccounts.v1/ambassador
+    - serviceaccounts.v1/centraldashboard
+    - serviceaccounts.v1/tf-job-dashboard
+    - serviceaccounts.v1/tf-job-operator
+    - services.v1/ambassador
+    - services.v1/ambassador-admin
+    - services.v1/centraldashboard
+    - services.v1/tensorboard
+    - services.v1/tf-job-dashboard
+    found:
+    - configmaps.v1/tf-job-operator-config
+    - deployments.apps/v1beta1/ambassador
+    - deployments.apps/v1beta1/centraldashboard
+    - deployments.apps/v1beta1/tensorboard
+    - deployments.apps/v1beta1/tf-job-dashboard
+    - deployments.apps/v1beta1/tf-job-operator-v1beta1
+    - deployments.extensions/v1beta1/ambassador
+    - deployments.extensions/v1beta1/centraldashboard
+    - deployments.extensions/v1beta1/tensorboard
+    - deployments.extensions/v1beta1/tf-job-dashboard
+    - deployments.extensions/v1beta1/tf-job-operator-v1beta1
+    - roles.rbac.authorization.k8s.io/v1beta1/centraldashboard
+    - serviceaccounts.v1/ambassador
+    - serviceaccounts.v1/centraldashboard
+    - serviceaccounts.v1/tf-job-dashboard
+    - serviceaccounts.v1/tf-job-operator
+    - services.v1/ambassador
+    - services.v1/ambassador-admin
+    - services.v1/centraldashboard
+    - services.v1/tensorboard
+    - services.v1/tf-job-dashboard
+    missing: []
   observedGeneration: 1
   ready: "True"
 ```
@@ -193,6 +261,6 @@ status:
 The above script will result in an application that can be viewed in the GCP Marketplace
 (GKE console -> Kubernetes Engine -> Applications)
 
-The application would look like the visual below
+The application will look like below
 
 ![GCP Kubeflow Application](./docs/kubeflow_application.png "GCP Kubeflow Application")
