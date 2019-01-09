@@ -22,7 +22,7 @@ the results
 
 Example invocation
 
-python python -m testing.test_jsonnet --test_files_dirs=/kubeflow/application/tests,/kubeflow/common/tests,/kubeflow/jupyter/tests,/kubeflow/iap/tests,/kubeflow/gcp/tests,/kubeflow/tensorboard/tests,/kubeflow/examples/tests,/kubeflow/metacontroller/tests,/kubeflow/profiles/tests,/kubeflow/tf-training/tests --artifacts_dir=/tmp/artifacts
+python -m testing.test_jsonnet --test_files_dirs=/kubeflow/application/tests,/kubeflow/common/tests,/kubeflow/jupyter/tests,/kubeflow/iap/tests,/kubeflow/gcp/tests,/kubeflow/tensorboard/tests,/kubeflow/examples/tests,/kubeflow/metacontroller/tests,/kubeflow/profiles/tests,/kubeflow/tf-training/tests --artifacts_dir=/tmp/artifacts
 
 """
 
@@ -39,13 +39,13 @@ from kubeflow.testing import test_helper, util
 # We should test all files which end in .jsonnet or .libsonnet
 # except ksonnet prototype definitions - they require additional
 # dependencies
-def should_test(f):
-  _, ext = os.path.splitext(f)
-  if ext != '.jsonnet' and ext != '.libsonnet':
+def should_test(file_path):
+  _, ext = os.path.splitext(file_path)
+  if ext not in ('.jsonnet', '.libsonnet'):
     return False
-  parts = f.split('/')
+  parts = file_path.split('/')
   if len(parts) < 2:
-    raise ValueError('Invalid file : {}'.format(f))
+    raise ValueError('Invalid file : {}'.format(file_path))
   return parts[-2] != 'prototypes'
 
 
@@ -109,7 +109,7 @@ def parse_args():
   return args
 
 
-def test_jsonnet(test_case): # pylint: disable=redefined-outer-name
+def test_jsonnet(test_case):  # pylint: disable=redefined-outer-name
   args = parse_args()
 
   if not args.test_files_dirs:
