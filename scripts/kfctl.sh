@@ -402,6 +402,7 @@ exit 0
       pushd ${KUBEFLOW_KS_DIR}
       ks param set application name $DEPLOYMENT_NAME
       ks param set application extendedInfo true
+      ks param set application components '['$KUBEFLOW_COMPONENTS']'
       ks show default -c metacontroller -c application > default.yaml
       kubectl apply --validate=false -f default.yaml
       popd
