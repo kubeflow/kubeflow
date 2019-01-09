@@ -39,7 +39,7 @@ FLAKE8_OPTS = """--count --select=E901,E999,F821,F822,F823 --show-source
                  --statistics""".split()
 
 
-# We should olny test files which end in '.py' or have no suffix
+# Test only files which end in '.py' or have no suffix
 
 def should_test(file_path):
   _, ext = os.path.splitext(file_path.lower())
