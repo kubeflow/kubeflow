@@ -246,9 +246,11 @@ gcpKsApply() {
     ks env add default --namespace "${K8S_NAMESPACE}"
   fi
 
-  export KUBEFLOW_COMPONENTS+=',"cloud-endpoints","cert-manager","iap-ingress"'
-  writeEnv
-  ks param set application components '['$KUBEFLOW_COMPONENTS']'
+  if [[ -z $DEFAULT_KUBEFLOW_COMPONENTS ]]; then
+    export KUBEFLOW_COMPONENTS+=',"cloud-endpoints","cert-manager","iap-ingress"'
+    writeEnv
+    ks param set application components '['$KUBEFLOW_COMPONENTS']'
+  fi
 
   popd
 }
