@@ -106,7 +106,7 @@
               {
                 name: "ml-pipeline-persistenceagent",
                 image: image,
-                imagePullPolicy: "Always",
+                imagePullPolicy: "IfNotPresent",
                 env: [
                   {
                     name: "POD_NAMESPACE",

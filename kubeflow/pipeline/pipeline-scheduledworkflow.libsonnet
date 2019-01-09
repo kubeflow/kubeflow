@@ -116,7 +116,7 @@
               {
                 name: "ml-pipeline-scheduledworkflow",
                 image: image,
-                imagePullPolicy: "Always",
+                imagePullPolicy: "IfNotPresent",
                 env: [
                   {
                     name: "POD_NAMESPACE",
