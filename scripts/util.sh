@@ -133,6 +133,7 @@ customizeKsAppWithDockerImage() {
   if [[ ! -z "$KUBEFLOW_DOCKER_REGISTRY" ]]; then
     find ${KUBEFLOW_KS_DIR} -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%gcr.io%$KUBEFLOW_DOCKER_REGISTRY%g"
     find ${KUBEFLOW_KS_DIR} -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%quay.io%$KUBEFLOW_DOCKER_REGISTRY%g"
+    find ${KUBEFLOW_KS_DIR} -name config.yaml | xargs sed -i -e "s%gcr.io%$KUBEFLOW_DOCKER_REGISTRY%g"
   fi
 
   # The katib images like gcr.io/kubeflow-images-public/katib/tfevent-metrics-collector:v0.4.0 uses sub namespace kubeflow-images-public/katib in 
