@@ -135,21 +135,14 @@ ksApply() {
     ks env add default --namespace "${K8S_NAMESPACE}"
   fi
 
-  # Create all the components
-  ks apply default -c ambassador
-  ks apply default -c jupyter
-  ks apply default -c centraldashboard
-  ks apply default -c tf-job-operator
-  ks apply default -c pytorch-operator
-  ks apply default -c metacontroller
-  ks apply default -c spartakus
-  ks apply default -c argo
-  ks apply default -c pipeline
-
   # Reduce resource demands locally
   if [ "${PLATFORM}" != "minikube" ] && [ "${PLATFORM}" != "docker-for-desktop" ]; then
-    ks apply default -c katib
+    ks param set application components '["ambassador","jupyter","centraldashboard","tf-job-operator","pytorch-operator","spartakus","argo","pipeline","katib"]'
   fi
+
+  # Create all the components and deploy
+  ks show default -c metacontroller -c application > default.yaml
+  kubectl apply --validate=false -f default.yaml
 
   popd
 

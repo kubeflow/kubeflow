@@ -2,13 +2,13 @@
 
 The ksonnet application component creates an Application Custom Resource based on 
 ksonnet components generated under `<APP_DIR>/ks_app/components/`. The ksonnet 
-application component defaults to the following components:
+application component defaults to the following components which are deployed by kfctl.sh:
 
 ```
-"ambassador", "jupyter", "centraldashboard", "tf-job-operator", "spartakus", "argo", "pipeline"
+"ambassador", "jupyter", "centraldashboard", "tf-job-operator", "pytorch-operator", "spartakus", "argo", "pipeline"
 ```
 
-These components are listed within the Application Custom Resource created by 
+These components are listed within the deployed Application Custom Resource created by 
 the ksonnet application component. An example is shown below:
 
 ```
@@ -18,7 +18,7 @@ metadata:
   annotations:
     kubectl.kubernetes.io/last-applied-configuration: |
       {"apiVersion":"app.k8s.io/v1beta1","kind":"Application","metadata":{"annotations":{},"labels":{"app.kubernetes.io/name":"kubeflow","app.kubernetes.io/version":"0.4","ksonnet.io/component":"application"},"name":"kubeflow","namespace":"kubeflow"},"spec":{"assemblyPhase":"Succeeded","componentKinds":[{"group":"rbac.authorization.k8s.io/v1beta1","kind":"ClusterRoleBinding"},{"group":"rbac.authorization.k8s.io/v1beta1","kind":"ClusterRole"},{"group":"v1","kind":"ConfigMap"},{"group":"apiextensions.k8s.io/v1beta1","kind":"CustomResourceDefinition"},{"group":"apps/v1beta1","kind":"Deployment"},{"group":"extensions/v1beta1","kind":"Deployment"},{"group":"rbac.authorization.k8s.io/v1beta1","kind":"Role"},{"group":"v1","kind":"ServiceAccount"},{"group":"v1","kind":"Service"}],"descriptor":{"description":"","icons":[],"keywords":[],"links":[],"maintainers":[],"notes":"","owners":[],"type":"kubeflow","version":"0.4"},"info":[],"selector":{"matchLabels":{"app.kubernetes.io/name":"kubeflow"}}}}
-  creationTimestamp: 2019-01-08T17:22:36Z
+  creationTimestamp: 2019-01-09T14:21:15Z
   generation: 1
   labels:
     app.kubernetes.io/name: kubeflow
@@ -26,9 +26,9 @@ metadata:
     ksonnet.io/component: application
   name: kubeflow
   namespace: kubeflow
-  resourceVersion: "5643791"
+  resourceVersion: "5865845"
   selfLink: /apis/app.k8s.io/v1beta1/namespaces/kubeflow/applications/kubeflow
-  uid: fdc16b4e-1369-11e9-90ff-42010a8a0097
+  uid: d2d5e997-1419-11e9-a24e-42010a8a0044
 spec:
   assemblyPhase: Succeeded
   componentKinds:
@@ -65,39 +65,33 @@ spec:
     matchLabels:
       app.kubernetes.io/name: kubeflow
 status:
-  assemblyPhase: Pending
+  assemblyPhase: Succeeded
   counts:
-    children: 16
-    installed_children: 21
+    created_children: 21
+    expected_children: 16
+    found_children: 21
     missing_children: 0
-    requested_children: 21
-    validated_children: 16
   created: true
-  debug: null
+  info: null
   observedGeneration: 1
   ready: "True"
 ```
 
-Alternatively, the ksonnet application component can produce an Application Custom Resource 
-based on a subset of the generated components by setting a parameter. For example:
+Alternatively, the ksonnet application component can deploy an Application 
+based on a subset of the generated components by setting the component parameter. For example:
 
 ```bash
 ks param set application components '["ambassador","jupyter"]'
 ```
 
-## Options (emitCRD=true, emitController=false)
+## Options 
 
-- emitCRD (=true)
-If the Application CRD has already been emitted (eg `kubectl get crds applications.app.k8s.io`) then set this to false
+- extendedInfo (=false)
+Emits informational arrays in the status section of the Application CR
 
 ```
-ks param set application emitCRD false
+ks param set application extendedInfo true
 ```
-
-- emitController (=false)
-
-If this flag is true then the components normally deployed directly to the api-server will be emitted 
-by the application-controller in-cluster. 
 
 ## Example Script (Deploying components '["ambassador","centraldashboard","tf-job-operator","tensorboard"]')
 
@@ -124,9 +118,7 @@ ks generate tensorboard tensorboard
 kubectl create ns kubeflow
 ks env add default --namespace kubeflow
 ks param set application name $NAME
-ks param set application emitController true
 ks param set application components '["ambassador","centraldashboard","tf-job-operator","tensorboard"]'
-ks param set application debug true
 ks show default -c metacontroller -c application > default.yaml
 kubectl apply --validate=false -f default.yaml
 ```

@@ -1,88 +1,24 @@
+//
+// This function will track expected children with created children (request.children) 
+// and report status information
+//
 function(request) {
   local util = import "util.libsonnet",
-  local debug = util.toBool(%(debug)s),
+  local extendedInfo = util.toBool(%(extendedInfo)s),
   local children = %(resources)s,
   local groupedResources = %(groupedResources)s,
-  local groupByResource(resources) = {
-    local getKey(resource) = {
-      return::
-        resource.kind,
-    }.return,
-    local getValue(resource) = {
-      return::
-        { [resource.metadata.name]+: resource },
-    }.return,
-    return:: util.foldl(getKey, getValue, resources),
-  }.return,
-  local comparator(a, b) = {
-    return::
-      if a.metadata.name == b.metadata.name then
-        0
-      else
-        if a.metadata.name < b.metadata.name then
-          -1
-        else
-          1,
-  }.return,
-  local validateResource(resource) = {
-    return::
-      if std.type(resource) == "object" &&
-         std.objectHas(resource, "kind") &&
-         std.objectHas(resource, "apiVersion") &&
-         std.objectHas(resource, "metadata") &&
-         std.objectHas(resource.metadata, "name") then
-        true
-      else
-        false,
-  }.return,
-  local validatedChildren = util.sort(std.filter(validateResource, children), comparator),
-  local extractGroups(obj) =
-    if std.type(obj) == "object" then
-      [obj[key] for key in std.objectFields(obj)]
-    else
-      [],
-  local extractResources(group) =
-    if std.type(group) == "object" then
-      [group[key] for key in std.objectFields(group)]
-    else
-      [],
-  local curryResources(resources, exists) = {
-    local existingResource(resource) = {
-      local resourceExists(kind, name) = {
-        return::
-          if std.objectHas(resources, kind) &&
-             std.objectHas(resources[kind], name) then
-            true
-          else
-            false,
-      }.return,
-      return::
-        if validateResource(resource) then
-          resourceExists(resource.kind, resource.metadata.name)
-        else
-          false,
-    }.return,
-    local missingResource(resource) = {
-      return::
-        existingResource(resource) == false,
-    }.return,
-    return::
-      if exists == true then
-        existingResource
-      else
-        missingResource,
-  }.return,
-  local requestedChildren =
-    std.flattenArrays(std.map(extractResources, extractGroups(request.children))),
-  local groupedRequestedChildren = groupByResource(requestedChildren),
-  local installedChildren =
-    util.sort(std.filter(curryResources(groupedResources, true), requestedChildren), comparator),
+  local expectedChildren = util.sort(std.filter(util.validateResource, children), util.comparator),
+  local createdChildren =
+    std.flattenArrays(std.map(util.extractResources, util.extractGroups(request.children))),
+  local groupedCreatedChildren = util.groupByResource(createdChildren),
+  local foundChildren =
+    util.sort(std.filterMap(util.curryResources(groupedResources, true), 
+      util.getApiVersionKindAndMetadata, createdChildren), util.comparator),
   local missingChildren =
-    util.sort(std.filter(curryResources(groupedRequestedChildren, false), validatedChildren), comparator),
-  local desired = requestedChildren + missingChildren,
+    util.sort(std.filter(util.curryResources(groupedCreatedChildren, false), expectedChildren), util.comparator),
   local assemblyPhase = {
     return::
-      if std.length(installedChildren) == std.length(validatedChildren) then
+      if std.length(foundChildren) >= std.length(expectedChildren) then
         "Succeeded"
       else
         "Pending",
@@ -91,27 +27,26 @@ function(request) {
     return::
       util.lower(resource.kind) + "s." + resource.apiVersion + "/" + resource.metadata.name,
   }.return,
-  local emitDebug = {
+  local emitExtendedInfo = {
     return::
-      if debug == true then {
-        validated: util.sort(std.map(info, validatedChildren)),
-        requested: util.sort(std.map(info, requestedChildren)),
-        installed: util.sort(std.map(info, installedChildren)),
+      if extendedInfo == true then {
+        expected: util.sort(std.map(info, expectedChildren)),
+        created: util.sort(std.map(info, createdChildren)),
+        found: util.sort(std.map(info, foundChildren)),
         missing: util.sort(std.map(info, missingChildren)),
       },
   }.return,
-  children: desired,
+  children: foundChildren,
   status: {
     assemblyPhase: assemblyPhase,
     ready: "True",
     created: true,
     counts: {
-      children: std.length(children),
-      validated_children: std.length(validatedChildren),
-      requested_children: std.length(requestedChildren),
-      installed_children: std.length(installedChildren),
+      created_children: std.length(createdChildren),
+      expected_children: std.length(expectedChildren),
+      found_children: std.length(foundChildren),
       missing_children: std.length(missingChildren),
     },
-    debug: emitDebug,
+    info: emitExtendedInfo,
   },
 }

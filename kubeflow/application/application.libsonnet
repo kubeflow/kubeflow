@@ -9,8 +9,6 @@
       labels: {
         app: _params.name,
       },
-      emitCRD: util.toBool(_params.emitCRD),
-      emitController: util.toBool(_params.emitController),
     },
 
     local applicationCRD = {
@@ -116,9 +114,6 @@
       local resource = tuple[2],
       return:: resource {
         metadata+: {
-          annotations+: {
-            "kubernetes.io/application": params.name,
-          },
           labels+: {
             "app.kubernetes.io/name": params.name,
           },
@@ -164,7 +159,6 @@
     local groupByResource(resources) = {
       local getKey(resource) = {
         return::
-          //resource.kind + "." + resource.apiVersion,
           resource.kind,
       }.return,
       local getValue(resource) = {
@@ -174,7 +168,9 @@
       return:: util.foldl(getKey, getValue, resources),
     }.return,
 
-    local clusterScope(resource) = {
+    local clusterScope(wrapper) = {
+      local tuple = wrapper.tuple,
+      local resource = tuple[2],
       return::
         if (std.objectHas(resource, "metadata") &&
             !std.objectHas(resource.metadata, "namespace")) then
@@ -182,20 +178,23 @@
         else
           false,
     }.return,
-    local namespacedScope(resource) = {
-      return:: clusterScope(resource) == false,
+
+    local namespacedScope(wrapper) = {
+      return:: clusterScope(wrapper) == false,
     }.return,
+
     local tuples = std.flattenArrays(std.map(perComponent, getComponents)),
-    local resources = std.map(byResource, tuples),
-    local namespacedResources = std.filter(namespacedScope, resources),
-    local clusterResources = std.filter(clusterScope, resources),
-    local groupedNamespacedResources = groupByResource(namespacedResources),
+    local clusterResources = std.filterMap(clusterScope, byResource, tuples),
+    local namespacedResources = std.filterMap(namespacedScope, byResource, tuples),
+
+    local simplifiedResources = std.map(util.getApiVersionKindAndMetadata, namespacedResources),
+    local groupedSimplifiedResources = groupByResource(simplifiedResources),
 
     local syncApplicationTemplate = importstr "sync-application.template",
     local syncApplication = syncApplicationTemplate % {
-      resources: std.manifestJsonEx(namespacedResources, "  "),
-      groupedResources: std.manifestJsonEx(groupedNamespacedResources, "  "),
-      debug: params.debug,
+      resources: std.manifestJsonEx(simplifiedResources, "  "),
+      groupedResources: std.manifestJsonEx(groupedSimplifiedResources, "  "),
+      extendedInfo: params.extendedInfo,
     },
 
     local applicationConfigMap = {
@@ -314,7 +313,6 @@
         name: "application-controller",
       },
       spec: {
-        generateSelector: true,
         resyncPeriodSeconds: 10,
         parentResource: {
           apiVersion: "app.k8s.io/v1beta1",
@@ -322,7 +320,7 @@
         },
         local getKey(resource) = resource.resource + "." + resource.apiVersion,
         local getValue(resource) = resource,
-        local childResources = std.map(forChildResources, tuples),
+        local childResources = std.filterMap(namespacedScope, forChildResources, tuples),
         local childResourcesMap = util.foldl(getKey, getValue, childResources),
         childResources: [childResourcesMap[key] for key in std.objectFields(childResourcesMap)],
         hooks: {
@@ -340,16 +338,15 @@
     all:: std.flattenArrays(
       [
         clusterResources,
-        if params.emitCRD then [
+        namespacedResources,
+        [
           self.applicationCRD,
-        ] else [],
-        if params.emitController then [
           self.applicationConfigMap,
           self.applicationDeployment,
           self.applicationService,
           self.applicationController,
-        ] else [],
-        [self.application],
+          self.application,
+        ],
       ],
     ),
 

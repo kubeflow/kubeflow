@@ -101,6 +101,18 @@
     return:: aux(a, b, 0, 0, []) tailstrict,
   }.return,
 
+  getApiVersionKindAndMetadata(resource):: {
+    return:: {
+      apiVersion: resource.apiVersion,
+      kind: resource.kind,
+      metadata: {
+        name: resource.metadata.name,
+        namespace: resource.metadata.namespace,
+        labels: resource.metadata.labels,
+      },
+    },
+  }.return,
+
   groupByResource(resources):: {
     local getKey(resource) = {
       return::
