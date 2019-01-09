@@ -109,7 +109,7 @@ def parse_args():
   return args
 
 
-def test_jsonnet(test_case): # pylint: disable=redefined-outer-name
+def test_jsonnet(test_case):  # pylint: disable=redefined-outer-name
   args = parse_args()
 
   if not args.test_files_dirs:
