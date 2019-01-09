@@ -400,7 +400,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 				actions.OptionFs:      s.fs,
 				actions.OptionName:    "app",
 				actions.OptionEnvName: envName,
-				actions.OptionAppRoot: appDir,
+				actions.OptionNewRoot: appDir,
 				actions.OptionServer:  config.Host,
 				// TODO(jlewi): What is the proper version to use? It shouldn't be a version like v1.9.0-gke as that
 				// will create an error because ksonnet will be unable to fetch a swagger spec.
@@ -1089,12 +1089,13 @@ func timeSinceStart(ctx context.Context) time.Duration {
 
 func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmanager.Deployment) {
 	status := ""
+	errMsg := ""
 	var err error
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, StartTime, time.Now())
 	for retry := 0; retry < 60; retry++ {
 		time.Sleep(10 * time.Second)
-		status, errMsg, err := svc.GetDeploymentStatus(ctx, req)
+		status, errMsg, err = svc.GetDeploymentStatus(ctx, req)
 		if err != nil {
 			log.Errorf("Failed to get deployment status: %v", err)
 			deployReqCounter.WithLabelValues("INTERNAL").Inc()
