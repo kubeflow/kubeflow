@@ -283,7 +283,7 @@
           name: "deploy-spark-operator",
           command: [
             "cd",
-            appDir,
+            testDir,
             "&&",
             "cd",
             "ks_app",
