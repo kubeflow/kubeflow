@@ -280,6 +280,30 @@
       },  // pytorchjob - deploy,
       {
         template: tests.buildTemplate {
+          name: "deploy-spark-operator",
+          command: [
+            "ks",
+            "generate",
+            "spark-operator",
+            "spark-operator",
+            "--namespace=" + tests.stepsNamespace,
+            "--name=spark-operator",
+	    "&&",
+	    "ks",
+	    "apply",
+	    "gke",
+	    "-c",
+	    "spark-operator",
+	    "--verbose",
+	    // hack todo remove
+	    "&&",
+	    "sleep 30",
+          ],
+        },
+        dependencies: ["wait-for-kubeflow"],
+      },  // sparkjob - deploy,
+      {
+        template: tests.buildTemplate {
           name: "spark-deploy",
           command: [
             "python",
@@ -295,7 +319,7 @@
             "--params=image=num_workers=1",
           ],
         },
-        dependencies: ["wait-for-kubeflow"],
+        dependencies: ["deploy-spark-operator"],
       },  // sparkjob - deploy,
       {
 
