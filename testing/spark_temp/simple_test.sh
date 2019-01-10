@@ -36,3 +36,5 @@ ks apply gke -c spark-pi -c spark-wc
 
 #popd
 #popd
+
+# add garbage TODO remove me
