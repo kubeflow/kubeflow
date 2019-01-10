@@ -1,7 +1,7 @@
 local application = import "kubeflow/application/application.libsonnet";
 
 local params = {
-  name: "application",
+  name: "kubeflow",
   components: '["ambassador","centraldashboard"]',
   emitCRD: true,
   emitController: true,
@@ -329,19 +329,19 @@ std.assertEqual(
     apiVersion: "apps/v1beta1",
     kind: "Deployment",
     metadata: {
-      name: "application-controller",
+      name: "kubeflow-application-controller",
       namespace: "test-kf-001",
     },
     spec: {
       selector: {
         matchLabels: {
-          app: "application-controller",
+          app: "kubeflow-application-controller",
         },
       },
       template: {
         metadata: {
           labels: {
-            app: "application-controller",
+            app: "kubeflow-application-controller",
           },
         },
         spec: {
@@ -362,7 +362,7 @@ std.assertEqual(
           volumes: [
             {
               configMap: {
-                name: "application-controller-hooks",
+                name: "kubeflow-application-controller-hooks",
               },
               name: "hooks",
             },
@@ -379,7 +379,7 @@ std.assertEqual(
     apiVersion: "v1",
     kind: "Service",
     metadata: {
-      name: "application-controller",
+      name: "kubeflow-application-controller",
       namespace: "test-kf-001",
     },
     spec: {
@@ -390,7 +390,7 @@ std.assertEqual(
         },
       ],
       selector: {
-        app: "application-controller",
+        app: "kubeflow-application-controller",
       },
     },
   }
