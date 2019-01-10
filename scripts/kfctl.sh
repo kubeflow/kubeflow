@@ -31,6 +31,15 @@ FORMAT=''
 export KUBEFLOW_COMPONENTS=${DEFAULT_KUBEFLOW_COMPONENTS:-'"ambassador","jupyter","centraldashboard","tf-job-operator","pytorch-operator","spartakus","argo","pipeline"'}
 export KUBEFLOW_EXTENDEDINFO=${KUBEFLOW_EXTENDEDINFO:-false}
 
+if ! which envsubst > /dev/null 2>&1; then
+  envsubst() {
+    while read line; do
+      line=$( echo $line | sed 's/"/\\"/g' )
+      eval echo $line
+    done
+  }
+fi
+
 writeEnv() {
   echo -e $INPUT | envsubst $FORMAT > ${ENV_FILE}
 }
