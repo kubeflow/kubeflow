@@ -303,7 +303,7 @@
 	    "&&",
 	    "sleep 30",
           ],
-          working_dir=appDir + "/ks_app"
+          working_dir=appDir + "/ks_app",
         },
         dependencies: ["wait-for-kubeflow"],
       },  // sparkjob - deploy,
@@ -323,7 +323,7 @@
             "deploy_sparkjob",
             "--params=image=num_workers=1",
           ],
-          working_dir=appDir + "/ks_app"
+          working_dir=appDir + "/ks_app",
         },
         dependencies: ["deploy-spark-operator"],
       },  // sparkjob - deploy,
