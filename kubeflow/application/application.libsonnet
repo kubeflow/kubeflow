@@ -221,7 +221,7 @@
       apiVersion: "v1",
       kind: "ConfigMap",
       metadata: {
-        name: "application-controller-hooks",
+        name: params.name + "-application-controller-hooks",
         namespace: params.namespace,
       },
       data: {
@@ -235,19 +235,19 @@
       apiVersion: "apps/v1beta1",
       kind: "Deployment",
       metadata: {
-        name: "application-controller",
+        name: params.name + "-application-controller",
         namespace: params.namespace,
       },
       spec: {
         selector: {
           matchLabels: {
-            app: "application-controller",
+            app: params.name + "-application-controller",
           },
         },
         template: {
           metadata: {
             labels: {
-              app: "application-controller",
+              app: params.name + "-application-controller",
             },
           },
           spec: {
@@ -269,7 +269,7 @@
               {
                 name: "hooks",
                 configMap: {
-                  name: "application-controller-hooks",
+                  name: params.name + "-application-controller-hooks",
                 },
               },
             ],
@@ -283,12 +283,12 @@
       apiVersion: "v1",
       kind: "Service",
       metadata: {
-        name: "application-controller",
+        name: params.name + "-application-controller",
         namespace: params.namespace,
       },
       spec: {
         selector: {
-          app: "application-controller",
+          app: params.name + "-application-controller",
         },
         ports: [
           {
@@ -330,7 +330,7 @@
       apiVersion: "metacontroller.k8s.io/v1alpha1",
       kind: "CompositeController",
       metadata: {
-        name: "application-controller",
+        name: params.name + "-application-controller",
       },
       spec: {
         resyncPeriodSeconds: 10,
@@ -346,7 +346,7 @@
         hooks: {
           sync: {
             webhook: {
-              url: "http://application-controller." + params.namespace + "/sync-application",
+              url: "http://" + params.name + "-application-controller." + params.namespace + "/sync-application",
             },
           },
         },
