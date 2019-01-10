@@ -134,7 +134,6 @@ local dagTemplates = [
       "-m",
       "kubeflow.testing.test_jsonnet_formatting",
       "--project=" + project,
-      "--artifacts_dir=" + artifactsDir,
       "--src_dir=" + srcDir,
       "--exclude_dirs=" + srcDir + "/bootstrap/vendor/," + srcDir + "/releasing/releaser/lib," + srcDir + "/releasing/releaser/vendor",
     ]),  // test-jsonnet-formatting
