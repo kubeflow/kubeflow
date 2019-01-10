@@ -45,7 +45,6 @@ def parse_args():
 
 def deploy_kubeflow(test_case):
   """Deploy Kubeflow."""
-  print("Deploying kubeflow.")
   args = parse_args()
   test_dir = test_case.test_suite.test_dir
   namespace = args.namespace
@@ -57,8 +56,6 @@ def deploy_kubeflow(test_case):
   # TODO(jlewi): We don't need to generate a core component if we are
   # just deploying TFServing. Might be better to refactor this code.
   # Deploy Kubeflow
-  print("Generate operators.")
-
   util.run(
     [
       "ks", "generate", "tf-job-operator", "tf-job-operator",
@@ -77,21 +74,14 @@ def deploy_kubeflow(test_case):
     ],
     cwd=app_dir)
 
-  util.run(
-    [
-      "ks", "generate", "spark-operator", "spark-operator", "--name=spark-operator",
-    ],
-    cwd=app_dir)
-  print("Applying operators.")
-
   apply_command = [
     "ks",
     "apply",
     "default",
     "-c",
-    "common",
-    "-c",
     "tf-job-operator",
+    "-c",
+    "pytorch-operator",
     "-c",
     "jupyter",
   ]
@@ -106,13 +96,6 @@ def deploy_kubeflow(test_case):
     # and not the GCP service account which has more privileges.
     apply_command.append("--as=" + account)
   util.run(apply_command, cwd=app_dir)
-  # Deploy pytorch and spark in verbose so I can compare them
-  util.run(["ks", "apply", "default", "-c", "spark-operator",
-            "-c",
-            "pytorch-operator",
-             "--verbose",
-  ], cwd=app_dir)
-  util.run(["kubectl", "get", "all"])
 
   # Verify that the TfJob operator is actually deployed.
   tf_job_deployment_name = "tf-job-operator-v1beta1"
@@ -128,14 +111,6 @@ def deploy_kubeflow(test_case):
   pytorch_operator_deployment_name = "pytorch-operator"
   logging.info("Verifying PyTorchJob controller started.")
   util.wait_for_deployment(api_client, namespace, pytorch_operator_deployment_name)
-
-  # Verify that the Spark Operator actually deployed
-  spark_operator_deployment_name = "spark-operator"
-  util.run(["kubectl", "get", "all"])
-  from kubernetes import client as k8s_client
-  print(k8s_client.CoreV1Api(api_client).list_service_for_all_namespaces())
-  logging.info("Verifying Spark controller started in namespace:" + namespace)
-  util.wait_for_deployment(api_client, namespace, spark_operator_deployment_name)
 
 
 def main():
