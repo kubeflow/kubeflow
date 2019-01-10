@@ -282,6 +282,10 @@
         template: tests.buildTemplate {
           name: "deploy-spark-operator",
           command: [
+	    "pwd",
+	    "&&",
+	    "find ./",
+	    "&&",
             "ks",
             "generate",
             "spark-operator",
