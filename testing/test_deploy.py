@@ -292,7 +292,7 @@ def deploy_sparkjob(args):
 
   component = "example-spark-job"
   logging.info("Generating Spark job.")
-  generate_command = ["ks", "generate", "spark", component]
+  generate_command = ["ks", "generate", "spark-job", component]
 
   util.run(generate_command, cwd=app_dir)
 
