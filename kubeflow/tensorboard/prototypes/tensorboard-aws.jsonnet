@@ -15,7 +15,6 @@
 // @optionalParam s3AwsRegion string us-west-1 S3 region
 // @optionalParam s3UseHttps string true Whether or not to use https
 // @optionalParam s3VerifySsl string true Whether or not to verify https certificates for S3 connections
-// @optionalParam s3Endpoint string http://s3.us-west-1.amazonaws.com URL for your s3-compatible endpoint
 // @optionalParam efsEnabled string false Wether or not to use EFS
 // @optionalParam efsPvcName string null Name of the Persistent Volume Claim used for EFS
 // @optionalParam efsVolumeName string null Name of the Volume to mount to the pod
