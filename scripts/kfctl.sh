@@ -19,6 +19,9 @@ SKIP_INIT_PROJECT=false
 # logging agents.
 GKE_API_VERSION="v1beta1"
 
+# Default GCP zone to deploy Kubeflow cluster if not specified
+GCP_DEFAULT_ZONE="us-east1-d"
+
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null && pwd)"
 source "${DIR}/util.sh"
 source "${DIR}/gke/util.sh"
@@ -37,6 +40,7 @@ createEnv() {
   echo KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"} >> ${ENV_FILE}
   echo KUBEFLOW_KS_DIR=${KUBEFLOW_KS_DIR:-"$(pwd)/ks_app"} >> ${ENV_FILE}
   echo KUBEFLOW_DOCKER_REGISTRY=${KUBEFLOW_DOCKER_REGISTRY:-""} >> ${ENV_FILE}
+  echo DOCKER_REGISTRY_KATIB_NAMESPACE=${DOCKER_REGISTRY_KATIB_NAMESPACE:-""} >> ${ENV_FILE}
 
   # Namespace where kubeflow is deployed
   echo K8S_NAMESPACE=${K8S_NAMESPACE:-"kubeflow"} >> ${ENV_FILE}
@@ -53,6 +57,7 @@ createEnv() {
     ack)
       echo KUBEFLOW_PLATFORM=ack >> ${ENV_FILE}
       echo KUBEFLOW_DOCKER_REGISTRY=registry.aliyuncs.com >> ${ENV_FILE}
+      echo DOCKER_REGISTRY_KATIB_NAMESPACE=katib >> ${ENV_FILE}
       ;;
     gcp)
       echo KUBEFLOW_PLATFORM=gke >> ${ENV_FILE}
@@ -137,6 +142,7 @@ ksApply() {
   ks apply default -c jupyter
   ks apply default -c centraldashboard
   ks apply default -c tf-job-operator
+  ks apply default -c pytorch-operator
   ks apply default -c metacontroller
   ks apply default -c spartakus
   ks apply default -c argo
@@ -211,9 +217,10 @@ parseArgs() {
     if [ -z "$ZONE" ]; then
       ZONE=$(gcloud config get-value compute/zone 2>/dev/null)
       if [ -z "$ZONE" ]; then
-        echo "GCP zone must be set either using --zone <ZONE>"
-        echo "or by setting a default zone in gcloud config"
-        exit 1
+        echo "Set default zone to ${GCP_DEFAULT_ZONE}"
+        echo "You can override this by setting a default zone in gcloud config"
+        echo "or using --zone <ZONE>"
+        ZONE=${GCP_DEFAULT_ZONE}
       fi
     fi
     # GCP Email for cert manager
@@ -224,8 +231,17 @@ parseArgs() {
         echo "or by setting a default account in gcloud config"
         exit 1
       fi
-      # Use iam-policy value for EMAIL if case-sensitive
+      
+      # See kubeflow/kubeflow#1936
+      # gcloud may not get the case correct for the email.
+      # The iam-policy respects the case so we check the IAM policy for the email
+      # and if found we use that value.
+      # This is an imperfect check because  users might be granted access through
+      # a group and will not be explicitly in the IAM policy.
+      # So we don't fail on error
+      set +e
       EM_LIST="$(gcloud projects get-iam-policy $PROJECT | grep -io $EMAIL)"
+      set -e
       for em in $EM_LIST; do
         if [ "$em" != "$EMAIL" ]; then
           EMAIL=$em
@@ -247,6 +263,14 @@ main() {
     if [ -z "${DEPLOYMENT_NAME}" ]; then
       echo "name must be provided"
       echo "usage: kfctl init <name>"
+      exit 1
+    fi
+    if [ ${#DEPLOYMENT_NAME} -gt 25 ]; then
+      echo "Name ${DEPLOYMENT_NAME} should not be longer than 25 characters" 
+      exit 1
+    fi
+    if [[ ${DEPLOYMENT_NAME} == *.*  ]]; then
+      echo "Name should not contain '.'"
       exit 1
     fi
     if [ -d ${DEPLOYMENT_NAME} ]; then
@@ -330,6 +354,7 @@ main() {
 
       if [ "${PLATFORM}" == "minikube" ] || [ "${PLATFORM}" == "docker-for-desktop" ]; then
         create_local_fs_mount_spec
+        ks param set ambassador replicas 1
         if ${MOUNT_LOCAL}; then
           ks param set jupyter disks "local-notebooks"
           ks param set jupyter notebookUid $(id -u)

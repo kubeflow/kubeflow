@@ -65,8 +65,7 @@ type KsService interface {
 	ConfigCluster(context.Context, CreateRequest) error
 	BindRole(context.Context, string, string, string) error
 	InsertDeployment(context.Context, CreateRequest) (*deploymentmanager.Deployment, error)
-	GetDeploymentStatus(context.Context, CreateRequest) (string, error)
-	ListPackages(context.Context, KsRegistry) (*ListPackages, error)
+	GetDeploymentStatus(context.Context, CreateRequest) (string, string, error)
 	ApplyIamPolicy(context.Context, ApplyIamRequest) error
 	GetProjectLock(string) *sync.Mutex
 
@@ -248,13 +247,23 @@ var (
 		},
 		[]string{"status"},
 	)
-	deploymentFailure = prometheus.NewCounter(prometheus.CounterOpts{
+	deploymentFailure = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "deployments_failure",
 		Help: "Number of failed Kubeflow deployments",
-	})
+	}, []string{"status"})
+
 	serviceHeartbeat = prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "service_heartbeat",
 		Help: "Heartbeat signal every 10 seconds indicating pods are alive.",
+	})
+
+	deployReqCounterUser = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "deploy_requests_user",
+		Help: "Number of user requests for deployments",
+	})
+	kfDeploymentsDoneUser = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "kubeflow_deployments_done_user",
+		Help: "Number of successfully finished Kubeflow user deployments",
 	})
 
 	// Gauge metrics
@@ -285,6 +294,8 @@ func init() {
 	prometheus.MustRegister(deployReqCounter)
 	prometheus.MustRegister(clusterDeploymentLatencies)
 	prometheus.MustRegister(kfDeploymentLatencies)
+	prometheus.MustRegister(deployReqCounterUser)
+	prometheus.MustRegister(kfDeploymentsDoneUser)
 	prometheus.MustRegister(deployReqCounterRaw)
 	prometheus.MustRegister(kfDeploymentsDoneRaw)
 	prometheus.MustRegister(deploymentFailure)
@@ -1128,19 +1139,27 @@ func timeSinceStart(ctx context.Context) time.Duration {
 
 func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmanager.Deployment) {
 	status := ""
+	errMsg := ""
 	var err error
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, StartTime, time.Now())
 	for retry := 0; retry < 60; retry++ {
 		time.Sleep(10 * time.Second)
-		status, err = svc.GetDeploymentStatus(ctx, req)
+		status, errMsg, err = svc.GetDeploymentStatus(ctx, req)
 		if err != nil {
 			log.Errorf("Failed to get deployment status: %v", err)
 			deployReqCounter.WithLabelValues("INTERNAL").Inc()
-			deploymentFailure.Inc()
+			deploymentFailure.WithLabelValues("INTERNAL").Inc()
 			return
 		}
 		if status == "DONE" {
+			if errMsg != "" {
+				log.Errorf("Deployment manager returned error message: %v", errMsg)
+				// Mark status "INVALID_ARGUMENT" as most deployment manager failures are caused by insufficient quota or permission.
+				// Error messages are available from UI, and should be resolvable by retries.
+				deployReqCounter.WithLabelValues("INVALID_ARGUMENT").Inc()
+				return
+			}
 			clusterDeploymentLatencies.Observe(timeSinceStart(ctx).Seconds())
 			log.Infof("Deployment is done")
 			break
@@ -1150,7 +1169,7 @@ func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmana
 	if status != "DONE" {
 		log.Errorf("Deployment status is not done: %v", status)
 		deployReqCounter.WithLabelValues("INTERNAL").Inc()
-		deploymentFailure.Inc()
+		deploymentFailure.WithLabelValues("INTERNAL").Inc()
 		return
 	}
 
@@ -1165,14 +1184,14 @@ func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmana
 	if err != nil {
 		log.Errorf("Failed to update IAM: %v", err)
 		deployReqCounter.WithLabelValues("INTERNAL").Inc()
-		deploymentFailure.Inc()
+		deploymentFailure.WithLabelValues("INTERNAL").Inc()
 		return
 	}
 
 	log.Infof("Configuring cluster...")
 	if err = svc.ConfigCluster(ctx, req); err != nil {
 		deployReqCounter.WithLabelValues("INTERNAL").Inc()
-		deploymentFailure.Inc()
+		deploymentFailure.WithLabelValues("INTERNAL").Inc()
 		return
 	}
 
@@ -1181,13 +1200,14 @@ func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmana
 	if err != nil {
 		log.Errorf("Failed to create app: %v", err)
 		deployReqCounter.WithLabelValues("INTERNAL").Inc()
-		deploymentFailure.Inc()
+		deploymentFailure.WithLabelValues("INTERNAL").Inc()
 		return
 	}
 
 	deployReqCounter.WithLabelValues("OK").Inc()
 	if req.Project != "kubeflow-prober-deploy" {
 		kfDeploymentsDoneRaw.Inc()
+		kfDeploymentsDoneUser.Inc()
 	}
 	kfDeploymentLatencies.Observe(timeSinceStart(ctx).Seconds())
 }
@@ -1206,6 +1226,7 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 		r := &basicServerResponse{}
 		if req.Project != "kubeflow-prober-deploy" {
 			deployReqCounterRaw.Inc()
+			deployReqCounterUser.Inc()
 		}
 		if err := req.Validate(); err != nil {
 			r.Err = err.Error()

@@ -11,6 +11,7 @@
 // @optionalParam operatorJavaOpts string null cluster manager java opts
 // @optionalParam grpcMaxMessageSize string 4194304 Max gRPC message size
 // @optionalParam seldonVersion string 0.2.3 Seldon version
+// @optionalParam withClusterRole string false Whether to add cluster roles
 
 local k = import "k.libsonnet";
 local core = import "kubeflow/seldon/core.libsonnet";
@@ -22,6 +23,7 @@ local namespace = env.namespace;
 local withRbac = import "param://withRbac";
 local withApife = import "param://withApife";
 local withAmbassador = import "param://withAmbassador";
+local withClusterRole = import "param://withClusterRole";
 
 // APIFE
 local apifeImage = "seldonio/apife:" + seldonVersion;
@@ -46,15 +48,18 @@ local apife = [
 
 local rbac2 = [
   core.parts(name, namespace, seldonVersion).rbacServiceAccount(),
-  core.parts(name, namespace, seldonVersion).rbacClusterRole(),
   core.parts(name, namespace, seldonVersion).rbacRole(),
   core.parts(name, namespace, seldonVersion).rbacRoleBinding(),
-  core.parts(name, namespace, seldonVersion).rbacClusterRoleBinding(),
 ];
 
 local rbac1 = [
   core.parts(name, namespace, seldonVersion).rbacServiceAccount(),
   core.parts(name, namespace, seldonVersion).rbacRoleBinding(),
+];
+
+local rbac3 = [
+  core.parts(name, namespace, seldonVersion).rbacClusterRole(),
+  core.parts(name, namespace, seldonVersion).rbacClusterRoleBinding(),
 ];
 
 local rbac = if std.startsWith(seldonVersion, "0.1") then rbac1 else rbac2;
@@ -82,5 +87,6 @@ local l1 = if withRbac == "true" then rbac + coreComponents else coreComponents;
 local l2 = if withApife == "true" then l1 + apife else l1;
 local l3 = if withAmbassador == "true" && withRbac == "true" then l2 + ambassadorRbac else l2;
 local l4 = if withAmbassador == "true" then l3 + ambassador else l3;
+local l5 = if withClusterRole == "true" then l4 + rbac3 else l4;
 
-l4
+l5

@@ -5,6 +5,24 @@ standard designed by a group of researchers from academia and industry to
 function on a wide variety of parallel computing architectures. It can be used
 to run allreduce-style distributed training.
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Quickstart](#quickstart)
+- [Using the library](#using-the-library)
+  - [io.ksonnet.pkg.mpi-operator](#ioksonnetpkgmpi-operator)
+    - [Example](#example)
+    - [Parameters](#parameters)
+  - [io.ksonnet.pkg.mpi-job-simple](#ioksonnetpkgmpi-job-simple)
+    - [Example](#example-1)
+    - [Parameters](#parameters-1)
+  - [io.ksonnet.pkg.mpi-job-custom](#ioksonnetpkgmpi-job-custom)
+    - [Example](#example-2)
+    - [Parameters](#parameters-2)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## Quickstart
 
 *The following commands use the `io.ksonnet.pkg.mpi-job-simple` prototype to

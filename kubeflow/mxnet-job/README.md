@@ -1,4 +1,17 @@
-# MXNet Training
+# MXNet-job
+
+> Prototypes for running MXNet jobs.
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Installing MXNet Operator](#installing-mxnet-operator)
+- [Verify that MXNet support is included in your Kubeflow deployment](#verify-that-mxnet-support-is-included-in-your-kubeflow-deployment)
+- [Creating a MXNet Job](#creating-a-mxnet-job)
+- [Monitoring a MXNet Job](#monitoring-a-mxnet-job)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Installing MXNet Operator
 

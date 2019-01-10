@@ -5,6 +5,7 @@ local params = {
   platform: "gke",
   ambassadorServiceType: "ClusterIP",
   ambassadorImage: "quay.io/datawire/ambassador:0.37.0",
+  replicas: 3,
 };
 local env = {
   namespace: "kubeflow",

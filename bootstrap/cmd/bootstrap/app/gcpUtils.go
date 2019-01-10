@@ -76,13 +76,13 @@ func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) (*de
 	confByte, err := yaml.Marshal(dmconf)
 	if err != nil {
 		deployReqCounter.WithLabelValues("INTERNAL").Inc()
-		deploymentFailure.Inc()
+		deploymentFailure.WithLabelValues("INTERNAL").Inc()
 		return nil, err
 	}
 	templateData, err := ioutil.ReadFile(path.Join(regPath, "../deployment/gke/deployment_manager_configs/cluster.jinja"))
 	if err != nil {
 		deployReqCounter.WithLabelValues("INTERNAL").Inc()
-		deploymentFailure.Inc()
+		deploymentFailure.WithLabelValues("INTERNAL").Inc()
 		return nil, err
 	}
 	ts := oauth2.StaticTokenSource(&oauth2.Token{
@@ -91,7 +91,7 @@ func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) (*de
 	deploymentmanagerService, err := deploymentmanager.New(oauth2.NewClient(ctx, ts))
 	if err != nil {
 		deployReqCounter.WithLabelValues("INTERNAL").Inc()
-		deploymentFailure.Inc()
+		deploymentFailure.WithLabelValues("INTERNAL").Inc()
 		return nil, err
 	}
 	rb := &deploymentmanager.Deployment{
@@ -118,19 +118,24 @@ func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) (*de
 	return rb, nil
 }
 
-func (s *ksServer) GetDeploymentStatus(ctx context.Context, req CreateRequest) (string, error) {
+func (s *ksServer) GetDeploymentStatus(ctx context.Context, req CreateRequest) (string, string, error) {
 	ts := oauth2.StaticTokenSource(&oauth2.Token{
 		AccessToken: req.Token,
 	})
 	deploymentmanagerService, err := deploymentmanager.New(oauth2.NewClient(ctx, ts))
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	dm, err := deploymentmanagerService.Deployments.Get(req.Project, req.Name).Context(ctx).Do()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
-	return dm.Operation.Status, nil
+	if dm.Operation.Status == "DONE" {
+		if dm.Operation.Error != nil && len(dm.Operation.Error.Errors) > 0 {
+			return dm.Operation.Status, dm.Operation.Error.Errors[0].Message, nil
+		}
+	}
+	return dm.Operation.Status, "", nil
 }
 
 // Clear existing bindings for auto-generated service accounts of current deployment.
