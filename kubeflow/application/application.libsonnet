@@ -112,13 +112,33 @@
     local byResource(wrapper) = {
       local tuple = wrapper.tuple,
       local resource = tuple[2],
-      return:: resource {
+      local label = {
         metadata+: {
           labels+: {
             "app.kubernetes.io/name": params.name,
           },
         },
       },
+      local childlabel(resource) = {
+        return::
+          if std.type(resource) == "object" &&
+            std.objectHas(resource, "spec") &&
+            std.type(resource.spec) == "object" &&
+            std.objectHas(resource.spec, "template") &&
+            std.type(resource.spec.template) == "object" &&
+            std.objectHas(resource.spec.template, "metadata") then {
+            spec+: {
+              template+: {
+                metadata+: {
+                  labels+: {
+                    "app.kubernetes.io/name": params.name,
+                  },
+                },
+              },
+            }
+          } else {},
+      }.return,
+      return:: resource + label + childlabel(resource),
     }.return,
 
     local byComponent(wrapper) = {

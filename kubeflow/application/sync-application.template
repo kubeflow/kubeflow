@@ -11,11 +11,9 @@ function(request) {
   local createdChildren =
     std.flattenArrays(std.map(util.extractResources, util.extractGroups(request.children))),
   local groupedCreatedChildren = util.groupByResource(createdChildren),
-  local foundChildren =
-    util.sort(std.filterMap(util.curryResources(groupedResources, true), 
-      util.getApiVersionKindAndMetadata, createdChildren), util.comparator),
-  local missingChildren =
-    util.sort(std.filter(util.curryResources(groupedCreatedChildren, false), expectedChildren), util.comparator),
+  local foundChildren = std.filterMap(util.curryResources(groupedResources, true),
+      util.getApiVersionKindAndMetadata, createdChildren),
+  local missingChildren = std.filter(util.curryResources(groupedCreatedChildren, false), expectedChildren),
   local assemblyPhase = {
     return::
       if std.length(foundChildren) >= std.length(expectedChildren) then
@@ -30,10 +28,10 @@ function(request) {
   local emitExtendedInfo = {
     return::
       if extendedInfo == true then {
-        expected: util.sort(std.map(info, expectedChildren)),
-        created: util.sort(std.map(info, createdChildren)),
-        found: util.sort(std.map(info, foundChildren)),
-        missing: util.sort(std.map(info, missingChildren)),
+        expected: std.sort(std.map(info, expectedChildren)),
+        created: std.sort(std.map(info, createdChildren)),
+        found: std.sort(std.map(info, foundChildren)),
+        missing: std.sort(std.map(info, missingChildren)),
       },
   }.return,
   children: foundChildren,
