@@ -329,19 +329,19 @@ std.assertEqual(
     apiVersion: "apps/v1beta1",
     kind: "Deployment",
     metadata: {
-      name: "kubeflow-application-controller",
+      name: "kubeflow-controller",
       namespace: "test-kf-001",
     },
     spec: {
       selector: {
         matchLabels: {
-          app: "kubeflow-application-controller",
+          app: "kubeflow-controller",
         },
       },
       template: {
         metadata: {
           labels: {
-            app: "kubeflow-application-controller",
+            app: "kubeflow-controller",
           },
         },
         spec: {
@@ -362,7 +362,7 @@ std.assertEqual(
           volumes: [
             {
               configMap: {
-                name: "kubeflow-application-controller-hooks",
+                name: "kubeflow-controller-hooks",
               },
               name: "hooks",
             },
@@ -379,7 +379,7 @@ std.assertEqual(
     apiVersion: "v1",
     kind: "Service",
     metadata: {
-      name: "kubeflow-application-controller",
+      name: "kubeflow-controller",
       namespace: "test-kf-001",
     },
     spec: {
@@ -390,7 +390,7 @@ std.assertEqual(
         },
       ],
       selector: {
-        app: "kubeflow-application-controller",
+        app: "kubeflow-controller",
       },
     },
   }
