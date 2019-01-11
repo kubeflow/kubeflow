@@ -292,14 +292,18 @@ def deploy_sparkjob(args):
 
   component = "example-spark-job"
   logging.info("Generating Spark job.")
-  generate_command = ["ks", "generate", "spark-job", component]
-
-  util.run(generate_command, cwd=app_dir)
 
   params = {}
+  params_list = []
   for pair in args.params.split(","):
     k, v = pair.split("=", 1)
     params[k] = v
+    params_list.append(params_star + "--" + k + "=" + v)
+
+  generate_command = ["ks", "generate", "spark-job", component]
+  generate_command.extends(params_list)
+
+  util.run(generate_command, cwd=app_dir)
 
   logging.info("Deploying Spark job.")
   ks_deploy(app_dir, component, params, env=None, account=None)
