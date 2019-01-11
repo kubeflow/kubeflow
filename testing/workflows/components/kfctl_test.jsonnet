@@ -239,6 +239,9 @@ local dagTemplates = [
         "&&",
         "find ./",
         "&&",
+	"cd",
+	"ks_app",
+	"&&",
         // Generate the operator
         "ks",
         "generate",
