@@ -333,7 +333,7 @@
         name: params.name + "-controller",
       },
       spec: {
-        resyncPeriodSeconds: 10,
+        resyncPeriodSeconds: 30,
         parentResource: {
           apiVersion: "app.k8s.io/v1beta1",
           resource: "applications",
