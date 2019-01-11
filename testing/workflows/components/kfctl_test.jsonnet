@@ -234,7 +234,12 @@ local dagTemplates = [
     template: buildTemplate(
       "deploy-spark-operator",
       [
-	// Get to the directory
+	// Install the operator
+	"ks",
+	"pkg",
+	"install",
+	"kubeflow/spark",
+	"&&",
         // Generate the operator
         "ks",
         "generate",
