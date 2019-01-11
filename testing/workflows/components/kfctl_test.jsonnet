@@ -236,7 +236,7 @@ local dagTemplates = [
       [
 	"cd",
 	"ks_app",
-	//"&&", - YOLO
+	"&&"
         // Generate the operator
         "ks",
         "generate",
