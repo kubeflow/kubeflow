@@ -234,14 +234,9 @@ local dagTemplates = [
     template: buildTemplate(
       "deploy-spark-operator",
       [
-        // Hack so there is debug info if it goes sideways
-        "pwd",
-        "&&",
-        "find ./",
-        "&&",
 	"cd",
 	"ks_app",
-	"&&",
+	//"&&", - YOLO
         // Generate the operator
         "ks",
         "generate",
