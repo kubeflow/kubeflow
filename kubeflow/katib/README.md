@@ -11,6 +11,7 @@
   - [Pytorch-operator](#pytorch-operator)
   - [Katib](#katib)
   - [Cleanups](#cleanups)
+- [Deploying Katib not in GKE](#deploying-katib-not-in-gke)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
