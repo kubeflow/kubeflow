@@ -1,6 +1,6 @@
 # Istio manifest for Kubeflow
 
-The manifest is taken from OSS Istio release 1.0.2.
+The manifest is taken from OSS Istio pre-release 1.1-20190111-09-15.
 
 We need custom configuration as discussed in the
 [issue](https://github.com/kubeflow/kubeflow/issues/1909#issuecomment-438409215).

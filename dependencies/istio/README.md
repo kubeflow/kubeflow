@@ -1,6 +1,6 @@
 # Manifest for Istio in Kubeflow
 
-- `install` dir contains
+- `install` dir contains the manifest to install Istio
 - kf-istio-resources.yaml has
   - Gateway for routing
   - VirtualService for Grafana
