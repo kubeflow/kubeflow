@@ -298,7 +298,7 @@ def deploy_sparkjob(args):
   for pair in args.params.split(","):
     k, v = pair.split("=", 1)
     params[k] = v
-    params_list.append(params_star + "--" + k + "=" + v)
+    params_list.append("--" + k + "=" + v)
 
   generate_command = ["ks", "generate", "spark-job", component]
   generate_command.extends(params_list)
@@ -682,7 +682,7 @@ def main():  # pylint: disable=too-many-locals,too-many-statements
 
   parser_spark_job.add_argument(
     "--params",
-    default="applicationResource='local:///opt/spark/examples/jars/spark-examples_2.11-2.3.1.jar',mainClass=org.apache.spark.examples.SparkPi",
+    default="applicationResource='local:///opt/spark/examples/jars/spark-examples_2.11-2.3.1.jar',mainClass=org.apache.spark.examples.SparkPi,namespace=kubeflow",
     type=str,
     help=("Comma separated list of parameters to set for our Spark job"))
 
