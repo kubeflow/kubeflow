@@ -264,6 +264,7 @@ local dagTemplates = [
     template: buildTemplate(
       "apply-spark-operator",
       [
+	runPath,
         // Apply the operator
         "ks",
         "apply",
