@@ -26,21 +26,20 @@ ENV PATH /go/bin:/usr/local/go/bin:$PATH
 # use go modules
 ENV GO111MODULE=on
 
-COPY go.mod .
-COPY go.sum .
+COPY . .
 RUN go mod download
+RUN go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 
 #
-# bootstrap_build
+# bootstrap
 #
-FROM bootstrap_base as bootstrap_build
+FROM golang:$GOLANG_VERSION as bootstrap
 ARG registries
 
 COPY $registries /opt/registries
-COPY . $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap
 
-RUN go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
-RUN cp $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap/bin/bootstrapper /opt/kubeflow
+RUN mkdir -p /opt/kubeflow
+COPY --from=bootstrap_base $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap/bin/bootstrapper /opt/kubeflow/
 
 COPY config/default.yaml /opt/kubeflow/
 COPY image_registries.yaml /opt/kubeflow/
@@ -48,27 +47,9 @@ RUN mkdir -p /opt/bootstrap
 RUN mkdir -p /opt/versioned_registries
 RUN chmod a+rx /opt/kubeflow/bootstrapper
 
-#
-# bootstrap
-#
-FROM golang:alpine as bootstrap
-
-RUN apk update && apk add --no-cache libc6-compat socat
-ENV GOPATH /go
 ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
-RUN mkdir -p /go/bin
 RUN mkdir -p /opt/kubeflow
 WORKDIR /opt/kubeflow
-
-
-COPY --from=bootstrap_build /opt/registries /opt/registries
-COPY --from=bootstrap_build /opt/kubeflow/bootstrapper /opt/kubeflow/
-
-COPY --from=bootstrap_build /opt/kubeflow/default.yaml /opt/kubeflow/
-COPY --from=bootstrap_build /opt/kubeflow/image_registries.yaml /opt/kubeflow/
-RUN mkdir -p /opt/bootstrap
-RUN mkdir -p /opt/versioned_registries
-RUN chmod a+rx /opt/kubeflow/bootstrapper
 
 EXPOSE 8080
 
