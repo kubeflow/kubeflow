@@ -129,7 +129,7 @@
       ],
       args: [
         "--port=9000",
-	"--rest_api_port=8000",
+        "--rest_api_port=8000",
         "--model_name=" + $.params.modelName,
         "--model_base_path=" + $.params.modelPath,
       ],
