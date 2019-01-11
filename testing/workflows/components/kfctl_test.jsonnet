@@ -267,7 +267,7 @@ local dagTemplates = [
         // Apply the operator
         "ks",
         "apply",
-        "gke",
+        "default",
         "-c",
         "spark-operator",
         "--verbose",
