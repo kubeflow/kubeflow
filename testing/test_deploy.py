@@ -682,7 +682,7 @@ def main():  # pylint: disable=too-many-locals,too-many-statements
 
   parser_spark_job.add_argument(
     "--params",
-    default="applicationResource='local:///opt/spark/examples/jars/spark-examples_2.11-2.3.1.jar',mainClass=org.apache.spark.examples.SparkPi,namespace=kubeflow",
+    default="",
     type=str,
     help=("Comma separated list of parameters to set for our Spark job"))
 

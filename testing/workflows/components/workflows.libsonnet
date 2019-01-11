@@ -292,7 +292,7 @@
             "--artifacts_dir=" + tests.artifactsDir,
             "--deploy_name=spark-job",
             "deploy_sparkjob",
-            "--params=image=num_workers=1",
+            "--params=applicationResource='local:///opt/spark/examples/jars/spark-examples_2.11-2.3.1.jar',mainClass=org.apache.spark.examples.SparkPi,namespace=kubeflow",
           ],
         },
         dependencies: ["wait-for-kubeflow"],
