@@ -253,7 +253,7 @@ local dagTemplates = [
         "generate",
         "spark-operator",
         "spark-operator",
-        "--namespace=" + namespace,
+        "--namespace=" + stepsNamespace,
         "--name=spark-operator",
       ],
       working_dir=appDir + "/ks_app"
@@ -262,9 +262,24 @@ local dagTemplates = [
   },  // generate-spark-operator
   {
     template: buildTemplate(
+      "debug-cluster",
+      [
+        // Debug cause namespace is not what I thought
+        runPath,
+        "kubectl",
+        "get",
+        "all",
+        "--all-namespaces",
+      ],
+      working_dir=appDir + "/ks_app"
+    ),
+    dependencies: ["install-spark-operator"],
+  },  // debug-cluster
+  {
+    template: buildTemplate(
       "apply-spark-operator",
       [
-	runPath,
+        runPath,
         // Apply the operator
         "ks",
         "apply",
@@ -275,7 +290,7 @@ local dagTemplates = [
       ],
       working_dir=appDir + "/ks_app"
     ),
-    dependencies: ["generate-spark-operator"],
+    dependencies: ["generate-spark-operator", "debug-cluster"],
   },  //apply-spark-operator
   {
     template: buildTemplate(
