@@ -32,6 +32,12 @@ function(request) {
         created: std.sort(std.map(info, createdChildren)),
         found: std.sort(std.map(info, foundChildren)),
         missing: std.sort(std.map(info, missingChildren)),
+        counts: {
+          created_children: std.length(createdChildren),
+          expected_children: std.length(expectedChildren),
+          found_children: std.length(foundChildren),
+          missing_children: std.length(missingChildren),
+        },
       },
   }.return,
   children: foundChildren,
@@ -39,12 +45,6 @@ function(request) {
     assemblyPhase: assemblyPhase,
     ready: "True",
     created: true,
-    counts: {
-      created_children: std.length(createdChildren),
-      expected_children: std.length(expectedChildren),
-      found_children: std.length(foundChildren),
-      missing_children: std.length(missingChildren),
-    },
     info: emitExtendedInfo,
   },
 }

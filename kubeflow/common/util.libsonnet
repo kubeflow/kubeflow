@@ -50,7 +50,7 @@
     return:: aux(objs, 0, {},),
   }.return,
 
-  compare(a, b):: {
+  sort:: function(arr, compare=function(a, b) {
     return::
       if a == b then
         0
@@ -59,9 +59,7 @@
           -1
         else
           1,
-  }.return,
-
-  sort:: function(arr, compare=util.compare) {
+  }.return) {
     local _sort(arr, compare) = {
       local l = std.length(arr),
       local f = {
@@ -109,15 +107,25 @@
   }.return,
 
   getApiVersionKindAndMetadata(resource):: {
-    return:: {
-      apiVersion: resource.apiVersion,
-      kind: resource.kind,
-      metadata: {
-        name: resource.metadata.name,
-        namespace: resource.metadata.namespace,
-        labels: resource.metadata.labels,
+    return:: 
+      if std.objectHas(resource.metadata, "resourceVersion") then {
+        apiVersion: resource.apiVersion,
+        kind: resource.kind,
+        metadata: {
+          labels: resource.metadata.labels,
+          name: resource.metadata.name,
+          namespace: resource.metadata.namespace,
+          resourceVersion: resource.metadata.resourceVersion,
+        }
+      } else {
+        apiVersion: resource.apiVersion,
+        kind: resource.kind,
+        metadata: {
+          labels: resource.metadata.labels,
+          name: resource.metadata.name,
+          namespace: resource.metadata.namespace,
+        },
       },
-    },
   }.return,
 
   groupByResource(resources):: {

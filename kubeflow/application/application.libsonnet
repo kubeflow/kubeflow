@@ -119,7 +119,7 @@
           },
         },
       },
-      local childlabel(resource) = {
+      local childLabel(resource) = {
         return::
           if std.type(resource) == "object" &&
             std.objectHas(resource, "spec") &&
@@ -138,7 +138,7 @@
             }
           } else {},
       }.return,
-      return:: resource + label + childlabel(resource),
+      return:: resource + label + childLabel(resource),
     }.return,
 
     local byComponent(wrapper) = {
@@ -254,7 +254,7 @@
             containers: [
               {
                 name: "hooks",
-                image: "metacontroller/jsonnetd:0.1",
+                image: "metacontroller/jsonnetd@sha256:25c25f217ad030a0f67e37078c33194785b494569b0c088d8df4f00da8fd15a0",
                 imagePullPolicy: "Always",
                 workingDir: "/opt/isolation/operator/hooks",
                 volumeMounts: [
@@ -300,11 +300,25 @@
     },
     applicationService:: applicationService,
 
+    local getApiVersion(resource) = {
+      local kindMapping = {
+        Deployment: "apps/v1",
+        Batch: "batch/v1",
+        Role: "rbac.authorization.k8s.io/v1",
+        RoleBinding: "rbac.authorization.k8s.io/v1",
+      },
+      return::
+        if std.objectHas(kindMapping, resource.kind) then
+          kindMapping[resource.kind]
+        else
+          resource.apiVersion,
+    }.return,
+
     local forChildResources(wrapper) = {
       local tuple = wrapper.tuple,
       local resource = tuple[2],
       local childResource = {
-        apiVersion: resource.apiVersion,
+        apiVersion: getApiVersion(resource),
         resource: std.asciiLower(resource.kind) + "s",
         updateStrategy: {
           method: "InPlace",
@@ -317,9 +331,9 @@
       local tuple = wrapper.tuple,
       local resource = tuple[2],
       local componentKind = {
-        key: std.asciiLower(resource.kind) + "s." + resource.apiVersion,
+        key: std.asciiLower(resource.kind) + "s." + getApiVersion(resource),
         groupkind: {
-          group: resource.apiVersion,
+          group: getApiVersion(resource),
           kind: resource.kind,
         },
       },
@@ -333,7 +347,7 @@
         name: params.name + "-controller",
       },
       spec: {
-        resyncPeriodSeconds: 30,
+        resyncPeriodSeconds: 10,
         parentResource: {
           apiVersion: "app.k8s.io/v1beta1",
           resource: "applications",
