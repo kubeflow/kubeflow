@@ -234,15 +234,11 @@ local dagTemplates = [
     template: buildTemplate(
       "deploy-spark-operator",
       [
-	// Cargo culting
+	// Get to the directory
 	runPath,
-        kfCtlPath,
-        "generate",
-        "k8s",
-	// Do some stuff
-        "&&",
-	"cd",
+	"pushd",
 	"ks_app",
+	"&&",
         // Generate the operator
         "ks",
         "generate",
