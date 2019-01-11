@@ -253,7 +253,7 @@ local dagTemplates = [
       ],
       working_dir=appDir + "/ks_app"
     ),
-    dependencies: ["kfctl-apply-gcp"],
+    dependencies: ["kfctl-generate-k8s"],
   },  // sparkjob - deploy
   {
     template: buildTemplate(
