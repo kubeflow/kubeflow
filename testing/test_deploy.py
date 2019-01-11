@@ -301,7 +301,7 @@ def deploy_sparkjob(args):
     params_list.append("--" + k + "=" + v)
 
   generate_command = ["ks", "generate", "spark-job", component]
-  generate_command.extends(params_list)
+  generate_command.extend(params_list)
 
   util.run(generate_command, cwd=app_dir)
 
