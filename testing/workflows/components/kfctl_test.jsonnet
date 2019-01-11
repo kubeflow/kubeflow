@@ -232,14 +232,22 @@ local dagTemplates = [
   },
   {
     template: buildTemplate(
-      "deploy-spark-operator",
+      "install-spark-operator",
       [
-	// Install the operator
-	"ks",
-	"pkg",
-	"install",
-	"kubeflow/spark",
-	"&&",
+        // Install the operator
+        "ks",
+        "pkg",
+        "install",
+        "kubeflow/spark",
+      ],
+      working_dir=appDir + "/ks_app"
+    ),
+    dependencies: ["kfctl-generate-k8s"],
+  },  // install-spark-operator
+  {
+    template: buildTemplate(
+      "generate-spark-operator",
+      [
         // Generate the operator
         "ks",
         "generate",
@@ -247,7 +255,15 @@ local dagTemplates = [
         "spark-operator",
         "--namespace=" + namespace,
         "--name=spark-operator",
-        "&&",
+      ],
+      working_dir=appDir + "/ks_app"
+    ),
+    dependencies: ["install-spark-operator"],
+  },  // generate-spark-operator
+  {
+    template: buildTemplate(
+      "apply-spark-operator",
+      [
         // Apply the operator
         "ks",
         "apply",
@@ -258,8 +274,8 @@ local dagTemplates = [
       ],
       working_dir=appDir + "/ks_app"
     ),
-    dependencies: ["kfctl-generate-k8s"],
-  },  // sparkjob - deploy
+    dependencies: ["generate-spark-operator"],
+  },  //apply-spark-operator
   {
     template: buildTemplate(
       "kfctl-apply-k8s",
@@ -276,7 +292,7 @@ local dagTemplates = [
   // Run the nested tests.
   {
     template: componentTests.argoDagTemplate,
-    dependencies: ["deploy-spark-operator", "kfctl-apply-k8s"],
+    dependencies: ["apply-spark-operator", "kfctl-apply-k8s"],
   },
 ];
 
