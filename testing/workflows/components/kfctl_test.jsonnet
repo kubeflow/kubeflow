@@ -232,6 +232,35 @@ local dagTemplates = [
   },
   {
     template: buildTemplate(
+      "deploy-spark-operator",
+      [
+        // Hack so there is debug info if it goes sideways
+        "pwd",
+        "&&",
+        "find ./",
+        "&&",
+        // Generate the operator
+        "ks",
+        "generate",
+        "spark-operator",
+        "spark-operator",
+        "--namespace=" + namespace,
+        "--name=spark-operator",
+        "&&",
+        // Apply the operator
+        "ks",
+        "apply",
+        "gke",
+        "-c",
+        "spark-operator",
+        "--verbose",
+      ],
+      working_dir=appDir
+    ),
+    dependencies: ["kfctl-apply-k8s"],
+  },  // sparkjob - deploy
+  {
+    template: buildTemplate(
       "kfctl-apply-k8s",
       [
         runPath,
@@ -246,7 +275,7 @@ local dagTemplates = [
   // Run the nested tests.
   {
     template: componentTests.argoDagTemplate,
-    dependencies: ["kfctl-apply-k8s"],
+    dependencies: ["deploy-spark-operator", "kfctl-apply-k8s"],
   },
 ];
 
