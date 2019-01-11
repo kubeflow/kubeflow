@@ -11,6 +11,7 @@
   - [Pytorch-operator](#pytorch-operator)
   - [Katib](#katib)
   - [Cleanups](#cleanups)
+  - [Deploying Katib not in GKE](#deploy-katib-not-in-GKE)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -63,6 +64,40 @@ Delete installed components
 ks delete ${KF_ENV} -c katib
 ks delete ${KF_ENV} -c pytorch-operator
 ks delete ${KF_ENV} -c tf-job-operator
+```
+## Deploying Katib not in GKE
+
+If you want to use Katib not in GKE and you don't have StorageClass for dynamic volume provisioning at your cluster, you have to create persistent volume to bound your persistent volume claim.
+
+This is yaml file for persistent volume:
+
+```yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: katib-mysql
+  labels:
+    type: local
+    app: katib
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /data/katib
+```
+
+Create this pv after deploying Katib package
+
+```
+kubectl create -f pv.yaml
+```
+
+Delete this pv after cleanup Katib components
+
+```
+kubectl delete -f pv.yaml
 ```
 
 Please refer to the official docs for
