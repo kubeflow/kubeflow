@@ -235,10 +235,6 @@ local dagTemplates = [
       "deploy-spark-operator",
       [
 	// Get to the directory
-	runPath,
-	"pushd",
-	"ks_app",
-	"&&",
         // Generate the operator
         "ks",
         "generate",
@@ -246,16 +242,16 @@ local dagTemplates = [
         "spark-operator",
         "--namespace=" + namespace,
         "--name=spark-operator",
-        "&&",
+        //"&&",
         // Apply the operator
-        "ks",
-        "apply",
-        "gke",
-        "-c",
-        "spark-operator",
-        "--verbose",
+        //"ks",
+        //"apply",
+        //"gke",
+        //"-c",
+        //"spark-operator",
+        //"--verbose",
       ],
-      working_dir=appDir
+      working_dir=appDir + "/ks_app"
     ),
     dependencies: ["kfctl-apply-gcp"],
   },  // sparkjob - deploy
