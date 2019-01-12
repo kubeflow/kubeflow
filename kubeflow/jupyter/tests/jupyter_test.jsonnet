@@ -26,11 +26,11 @@ std.assertEqual(
   {
     apiVersion: "v1",
     data: {
-      "jupyter_config.py": importstr "kubeflow/jupyter/jupyter_config.py",
+      "jupyter_config.py": std.strReplace(importstr "kubeflow/jupyter/jupyter_config.py", "\\\n", ""),
       "template.html": importstr "kubeflow/jupyter/ui/default/template.html",
       "script.js": importstr "kubeflow/jupyter/ui/default/script.js",
       "style.css": importstr "kubeflow/jupyter/ui/default/style.css",
-      "spawner.py": importstr "kubeflow/jupyter/ui/default/spawner.py",
+      "spawner.py": std.strReplace(importstr "kubeflow/jupyter/ui/default/spawner.py", "\\\n", ""),
       "spawner_ui_config.yaml": importstr "kubeflow/jupyter/ui/default/config.yaml",
     },
     kind: "ConfigMap",

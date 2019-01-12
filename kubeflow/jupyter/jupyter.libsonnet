@@ -9,7 +9,7 @@
       "template.html": importstr "ui/default/template.html",
       "script.js": importstr "ui/default/script.js",
       "style.css": importstr "ui/default/style.css",
-      "spawner.py": importstr "ui/default/spawner.py",
+      "spawner.py": std.strReplace(importstr "ui/default/spawner.py", "\\\n", ""),
       "spawner_ui_config.yaml": importstr "ui/default/config.yaml",
     },
 
@@ -23,7 +23,7 @@
       "template.html": importstr "ui/rok/template.html",
       "script.js": importstr "ui/rok/script.js",
       "style.css": importstr "ui/rok/style.css",
-      "spawner.py": importstr "ui/rok/spawner.py",
+      "spawner.py": std.strReplace(importstr "ui/rok/spawner.py", "\\\n", ""),
       "spawner_ui_config.yaml": importstr "ui/rok/config.yaml",
     },
 
@@ -36,7 +36,7 @@
       },
       // JH config file
       local config = {
-        "jupyter_config.py": importstr "jupyter_config.py",
+        "jupyter_config.py": std.strReplace(importstr "jupyter_config.py", "\\\n", ""),
       },
       data: config +
             if params.ui == "rok" then rokSpawnerData
