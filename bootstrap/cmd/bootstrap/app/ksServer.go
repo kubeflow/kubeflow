@@ -703,7 +703,7 @@ func (s *ksServer) createComponent(kfApp kApp.App, args []string) error {
 
 // autoConfigureApp attempts to automatically optimize the Kubeflow application
 // based on the cluster setup.
-func (s *ksServer) autoConfigureApp(kfApp *kApp.App, appConfig *AppConfig, namespace string, config *rest.Config) error {
+func (s *ksServer) autoConfigureApp(kfApi v1alpha1.KfApi, namespace string, config *rest.Config) error {
 
 	kubeClient, err := clientset.NewForConfig(rest.AddUserAgent(config, "kubeflow-bootstrapper"))
 	if err != nil {
@@ -733,7 +733,7 @@ func (s *ksServer) autoConfigureApp(kfApp *kApp.App, appConfig *AppConfig, names
 	// Could we avoid this dependency by looking at an existing app and seeing
 	// which components correspond to which prototypes? Would we have to parse
 	// the actual jsonnet files?
-	for _, component := range appConfig.Components {
+	for _, component := range kfApi.Components {
 		if component.Prototype == JupyterPrototype {
 			pvcMount := ""
 			if hasDefault {
@@ -813,7 +813,7 @@ func (s *ksServer) CloneRepoToLocal(project string, token string) (string, error
 	return repoDir, nil
 }
 
-func (s *ksServer) GetApp(project string, appName string, kfVersion string, token string) (api *v1alpha1.KfApi, string, error) {
+func (s *ksServer) GetApp(project string, appName string, kfVersion string, token string) (*v1alpha1.KfApi, string, error) {
 	repoDir, err := s.CloneRepoToLocal(project, token)
 	if err != nil {
 		log.Errorf("Cannot clone repo from cloud source repo")

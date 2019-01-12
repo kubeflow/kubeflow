@@ -19,6 +19,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/cenkalti/backoff"
 	"github.com/ksonnet/ksonnet/pkg/actions"
@@ -27,6 +28,7 @@ import (
 	"github.com/ksonnet/ksonnet/pkg/app"
 	"github.com/spf13/afero"
 	log "github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/require"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/kubernetes/pkg/kubectl/cmd/config"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
@@ -36,6 +38,7 @@ import (
 type KfApi interface {
 	Libraries() (map[string]*v1alpha1.KsLibrary, error)
 	Registries() (map[string]*v1alpha1.KsRegistry, error)
+	Components() (map[string]*v1alpha1.KsComponent, error)
 	Root() string
 	Apply(components []string) error
 	Init(m map[string]interface{}) error
@@ -108,6 +111,26 @@ func (kfApi *kfApi) Registries() (map[string]*v1alpha1.KsRegistry, error) {
 	}
 
 	return registries, nil
+}
+
+func (kfApi *kfApi) Components() (map[string]*v1alpha1.KsComponent, error) {
+	moduleName := "/"
+
+	in := map[string]interface{}{
+		actions.OptionApp: kfApi.kApp,
+		actions.OptionModule: moduleName,
+		actions.OptionOutput: tc.output,
+	}
+
+	a, err := actions.NewComponentList(in)
+	if err != nil {
+		return nil, fmt.Errorf("There was a problem getting the Components %v. Error: %v", kfApi.appName, err)
+	}
+	var buf bytes.Buffer
+	a.out = &buf
+
+	err = a.Run()
+
 }
 
 func (kfApi *kfApi) Root() string {
