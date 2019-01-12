@@ -68,6 +68,7 @@ createKsApp() {
   ks pkg install kubeflow/seldon
   ks pkg install kubeflow/tf-serving
   ks pkg install kubeflow/openvino
+  ks pkg install kubeflow/tensorboard
   ks pkg install kubeflow/tf-training
   ks pkg install kubeflow/metacontroller
   ks pkg install kubeflow/profiles
@@ -81,6 +82,7 @@ createKsApp() {
   ks generate jupyter jupyter
   ks generate centraldashboard centraldashboard
   ks generate tf-job-operator tf-job-operator
+  ks generate tensorboard tensorboard
   ks generate metacontroller metacontroller
   ks generate profiles profiles
   ks generate notebooks notebooks 

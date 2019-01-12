@@ -374,7 +374,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 	if err == nil {
 		log.Infof("App %v exists in project %v", request.Name, request.Project)
 		options := map[string]interface{}{
-			actions.OptionApp:     a.App,
+			actions.OptionAppRoot: a.App.Root(),
 			actions.OptionEnvName: envName,
 			actions.OptionServer:  config.Host,
 		}
@@ -434,9 +434,9 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 		request.AppConfig.Registries[idx].RegUri = RegUri
 		log.Infof("App %v add registry %v URI %v", request.Name, registry.Name, registry.RegUri)
 		options := map[string]interface{}{
-			actions.OptionApp:  a.App,
-			actions.OptionName: registry.Name,
-			actions.OptionURI:  request.AppConfig.Registries[idx].RegUri,
+			actions.OptionAppRoot: a.App.Root(),
+			actions.OptionName:    registry.Name,
+			actions.OptionURI:     request.AppConfig.Registries[idx].RegUri,
 			// Version doesn't actually appear to be used by the add function.
 			actions.OptionVersion: "",
 			// Looks like override allows us to override existing registries; we shouldn't
@@ -606,14 +606,14 @@ func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *AppConfig) error {
 						return fmt.Errorf("Package %v didn't exist in registry %v", pkgName, registry.RegUri)
 					}
 
-					if _, found := libs[pkgName]; found {
+					if _, found := libs[full]; found {
 						log.Infof("Package %v already exists", pkgName)
 						continue
 					}
 					err := actions.RunPkgInstall(map[string]interface{}{
-						actions.OptionApp:     kfApp,
-						actions.OptionPkgName: pkgName,
-						actions.OptionName:    registry.Name,
+						actions.OptionAppRoot: kfApp.Root(),
+						actions.OptionPkgName: full,
+						actions.OptionName:    pkgName,
 						actions.OptionForce:   false,
 					})
 
@@ -630,12 +630,12 @@ func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *AppConfig) error {
 		full := fmt.Sprintf("%v/%v", pkg.Registry, pkg.Name)
 		log.Infof("Installing package %v", full)
 
-		if _, found := libs[pkg.Name]; found {
+		if _, found := libs[full]; found {
 			log.Infof("Package %v already exists", pkg.Name)
 			continue
 		}
 		err := actions.RunPkgInstall(map[string]interface{}{
-			actions.OptionApp:     kfApp,
+			actions.OptionAppRoot: kfApp.Root(),
 			actions.OptionPkgName: full,
 			actions.OptionName:    pkg.Name,
 			actions.OptionForce:   false,
@@ -669,10 +669,10 @@ func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *AppConfig) error {
 	// Apply Params
 	for _, p := range appConfig.Parameters {
 		err = actions.RunParamSet(map[string]interface{}{
-			actions.OptionApp:   kfApp,
-			actions.OptionName:  p.Component,
-			actions.OptionPath:  p.Name,
-			actions.OptionValue: p.Value,
+			actions.OptionAppRoot: kfApp.Root(),
+			actions.OptionName:    p.Component,
+			actions.OptionPath:    p.Name,
+			actions.OptionValue:   p.Value,
 		})
 		if err != nil {
 			return fmt.Errorf("Error when setting Parameters %v for Component %v: %v", p.Name, p.Component, err)
@@ -689,7 +689,7 @@ func (s *ksServer) createComponent(kfApp kApp.App, args []string) error {
 	if exists, _ := afero.Exists(s.fs, componentPath); !exists {
 		log.Infof("Creating Component: %v ...", componentName)
 		err := actions.RunPrototypeUse(map[string]interface{}{
-			actions.OptionApp:       kfApp,
+			actions.OptionAppRoot:   kfApp.Root(),
 			actions.OptionArguments: args,
 		})
 		if err != nil {
@@ -741,10 +741,10 @@ func (s *ksServer) autoConfigureApp(kfApi v1alpha1.KfApi, namespace string, conf
 			}
 
 			err = actions.RunParamSet(map[string]interface{}{
-				actions.OptionApp:   *kfApp,
-				actions.OptionName:  component.Name,
-				actions.OptionPath:  "jupyterNotebookPVCMount",
-				actions.OptionValue: pvcMount,
+				actions.OptionAppRoot: (*kfApp).Root(),
+				actions.OptionName:    component.Name,
+				actions.OptionPath:    "jupyterNotebookPVCMount",
+				actions.OptionValue:   pvcMount,
 			})
 
 			if err != nil {
@@ -993,7 +993,7 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 	}
 
 	applyOptions := map[string]interface{}{
-		actions.OptionApp: targetApp.App,
+		actions.OptionAppRoot: targetApp.App.Root(),
 		actions.OptionClientConfig: &client.Config{
 			Overrides: &clientcmd.ConfigOverrides{},
 			Config:    clientcmd.NewDefaultClientConfig(cfg, &clientcmd.ConfigOverrides{}),
