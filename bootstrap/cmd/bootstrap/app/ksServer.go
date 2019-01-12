@@ -3,6 +3,8 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/ksonnet/ksonnet/pkg/actions"
+	"github.com/ksonnet/ksonnet/pkg/client"
 	"net/http"
 	"path"
 	"sync"
@@ -17,11 +19,10 @@ import (
 	"github.com/cenkalti/backoff"
 	"github.com/go-kit/kit/endpoint"
 	httptransport "github.com/go-kit/kit/transport/http"
-	"github.com/ksonnet/ksonnet/pkg/actions"
-	kApp "github.com/ksonnet/ksonnet/pkg/app"
-	"github.com/ksonnet/ksonnet/pkg/client"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"golang.org/x/net/context"
@@ -56,7 +57,7 @@ const KubeflowFolder = "ks_app"
 const DmFolder = "gcp_config"
 const CloudShellFolder = "kf_util"
 
-// KsService defines an interface for working with ksonnet.
+// KsService defines an interface for working with KfApi.
 type KsService interface {
 	// CreateApp creates a ksonnet application.
 	CreateApp(context.Context, CreateRequest, *deploymentmanager.Deployment) error
@@ -75,13 +76,6 @@ type KsService interface {
 	CreateApplication(context.Context, Application) error
 }
 
-// appInfo keeps track of information about apps.
-type appInfo struct {
-	App kApp.App
-}
-
-// ksServer provides a server to wrap ksonnet.
-// This allows ksonnet applications to be managed remotely.
 type ksServer struct {
 	// appsDir is the directory where apps should be stored.
 	appsDir string
@@ -95,6 +89,7 @@ type ksServer struct {
 	// https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters
 	gkeVersionOverride string
 
+	kfApi v1alpha1.KfApi
 	fs afero.Fs
 
 	// project-id -> project lock
@@ -231,9 +226,6 @@ type ApplyRequest struct {
 
 	// For test: GCP service account client id
 	SAClientId string
-
-	// pass *appInfo if ks app is already on disk.
-	AppInfo *appInfo
 }
 
 var (
@@ -429,9 +421,6 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 		if err != nil {
 			log.Errorf("There was a problem loading app %v. Error: %v", request.Name, err)
 			return err
-		}
-		a = &appInfo{
-			App: kfApp,
 		}
 	}
 
@@ -824,7 +813,7 @@ func (s *ksServer) CloneRepoToLocal(project string, token string) (string, error
 	return repoDir, nil
 }
 
-func (s *ksServer) GetApp(project string, appName string, kfVersion string, token string) (*appInfo, string, error) {
+func (s *ksServer) GetApp(project string, appName string, kfVersion string, token string) (api *v1alpha1.KfApi, string, error) {
 	repoDir, err := s.CloneRepoToLocal(project, token)
 	if err != nil {
 		log.Errorf("Cannot clone repo from cloud source repo")
