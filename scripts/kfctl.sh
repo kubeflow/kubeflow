@@ -26,80 +26,147 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null && pwd)"
 source "${DIR}/util.sh"
 source "${DIR}/gke/util.sh"
 source "${DIR}/util-minikube.sh"
+INPUT=()
+FORMAT=()
+export KUBEFLOW_COMPONENTS=${DEFAULT_KUBEFLOW_COMPONENTS:-'"ambassador","jupyter","centraldashboard","tf-job-operator","pytorch-operator","spartakus","argo","pipeline"'}
+export KUBEFLOW_EXTENDEDINFO=${KUBEFLOW_EXTENDEDINFO:-false}
+
+# envsubst alternative if envsubst is not installed
+if ! which envsubst > /dev/null 2>&1; then
+  envsubst() {
+    while read line; do
+      line=$( echo $line | sed 's/"/\\"/g' )
+      eval echo $line
+    done
+  }
+fi
+
+writeEnv() {
+  IFS=''
+  echo -e "${INPUT[*]}" | envsubst "${FORMAT[*]}" > ${ENV_FILE}
+}
 
 createEnv() {
   # Check if there is a file env.sh
   # If there is source it otherwise create it.
   # this ensures all relevant environment variables are persisted in
   # a file for consistency across runs.
-  echo PLATFORM=${PLATFORM} >> ${ENV_FILE}
+
   DEFAULT_KUBEFLOW_REPO="$(cd "${DIR}/.." > /dev/null && pwd)"
   # Remove trailing slash from the repo.
   KUBEFLOW_REPO=${KUBEFLOW_REPO%/}
-  echo KUBEFLOW_REPO=${KUBEFLOW_REPO:-"${DEFAULT_KUBEFLOW_REPO}"} >> ${ENV_FILE}
-  echo KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"} >> ${ENV_FILE}
-  echo KUBEFLOW_KS_DIR=${KUBEFLOW_KS_DIR:-"$(pwd)/ks_app"} >> ${ENV_FILE}
-  echo KUBEFLOW_DOCKER_REGISTRY=${KUBEFLOW_DOCKER_REGISTRY:-""} >> ${ENV_FILE}
-  echo DOCKER_REGISTRY_KATIB_NAMESPACE=${DOCKER_REGISTRY_KATIB_NAMESPACE:-""} >> ${ENV_FILE}
 
+  # builds a set of inputs to be used with envsubst for env.sh 
+  # writeEnv updates env.sh when any env var changes
+  # eg: envsubst < input.tmpl > env.sh
+  INPUT+=('PLATFORM=$PLATFORM\n'
+          'KUBEFLOW_REPO=$KUBEFLOW_REPO\n'
+          'KUBEFLOW_VERSION=$KUBEFLOW_VERSION\n'
+          "KUBEFLOW_COMPONENTS='$KUBEFLOW_COMPONENTS'\n"
+          'KUBEFLOW_EXTENDEDINFO=$KUBEFLOW_EXTENDEDINFO\n'
+          'KUBEFLOW_KS_DIR=$KUBEFLOW_KS_DIR\n'
+          'KUBEFLOW_DOCKER_REGISTRY=$KUBEFLOW_DOCKER_REGISTRY\n'
+          'DOCKER_REGISTRY_KATIB_NAMESPACE=$DOCKER_REGISTRY_KATIB_NAMESPACE\n'
+          'K8S_NAMESPACE=$K8S_NAMESPACE\n'
+          'KUBEFLOW_PLATFORM=$KUBEFLOW_PLATFORM\n'
+          'MOUNT_LOCAL=$MOUNT_LOCAL\n'
+          'DEPLOYMENT_NAME=$DEPLOYMENT_NAME\n')
+  FORMAT+=('$PLATFORM$KUBEFLOW_REPO'
+           '$KUBEFLOW_VERSION'
+           '$KUBEFLOW_KS_DIR'
+           '$KUBEFLOW_DOCKER_REGISTRY'
+           '$KUBEFLOW_COMPONENTS'
+           '$DOCKER_REGISTRY_KATIB_NAMESPACE'
+           '$K8S_NAMESPACE'
+           '$KUBEFLOW_PLATFORM$MOUNT_LOCAL'
+           '$DEPLOYMENT_NAME'
+           '$KUBEFLOW_EXTENDEDINFO')
+
+  export KUBEFLOW_REPO=${KUBEFLOW_REPO:-"${DEFAULT_KUBEFLOW_REPO}"}
+  export KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"}
+  export KUBEFLOW_KS_DIR=${KUBEFLOW_KS_DIR:-"$(pwd)/ks_app"}
+  export KUBEFLOW_DOCKER_REGISTRY=${KUBEFLOW_DOCKER_REGISTRY:-""}
+  export DOCKER_REGISTRY_KATIB_NAMESPACE=${DOCKER_REGISTRY_KATIB_NAMESPACE:-""}
   # Namespace where kubeflow is deployed
-  echo K8S_NAMESPACE=${K8S_NAMESPACE:-"kubeflow"} >> ${ENV_FILE}
+  export K8S_NAMESPACE=${K8S_NAMESPACE:-"kubeflow"}
 
   case "$PLATFORM" in
     minikube)
-      echo KUBEFLOW_PLATFORM=minikube >> ${ENV_FILE}
-      echo MOUNT_LOCAL=${MOUNT_LOCAL} >> ${ENV_FILE}
+      export KUBEFLOW_PLATFORM=minikube 
+      export MOUNT_LOCAL=${MOUNT_LOCAL:-""}
       ;;
     docker-for-desktop)
-      echo KUBEFLOW_PLATFORM=docker-for-desktop >> ${ENV_FILE}
-      echo MOUNT_LOCAL=${MOUNT_LOCAL} >> ${ENV_FILE}
+      export KUBEFLOW_PLATFORM=docker-for-desktop
+      export MOUNT_LOCAL=${MOUNT_LOCAL:-""}
       ;;
     ack)
-      echo KUBEFLOW_PLATFORM=ack >> ${ENV_FILE}
-      echo KUBEFLOW_DOCKER_REGISTRY=registry.aliyuncs.com >> ${ENV_FILE}
-      echo DOCKER_REGISTRY_KATIB_NAMESPACE=katib >> ${ENV_FILE}
+      export KUBEFLOW_PLATFORM=ack
+      export KUBEFLOW_DOCKER_REGISTRY=registry.aliyuncs.com
+      export DOCKER_REGISTRY_KATIB_NAMESPACE=katib
       ;;
     gcp)
-      echo KUBEFLOW_PLATFORM=gke >> ${ENV_FILE}
-      echo PROJECT="${PROJECT}" >> ${ENV_FILE}
-      echo ZONE=${ZONE} >> ${ENV_FILE}
-      echo EMAIL=${EMAIL} >> ${ENV_FILE}
+      INPUT+=('PROJECT=$PROJECT\n'
+              'ZONE=$ZONE\n'
+              'EMAIL=$EMAIL\n'
+              'PROJECT_NUMBER=$PROJECT_NUMBER\n'
+              'KUBEFLOW_DM_DIR=$KUBEFLOW_DM_DIR\n'
+              'KUBEFLOW_SECRETS_DIR=$KUBEFLOW_SECRETS_DIR\n'
+              'KUBEFLOW_K8S_MANIFESTS_DIR=$KUBEFLOW_K8S_MANIFESTS_DIR\n'
+              'KUBEFLOW_K8S_CONTEXT=$KUBEFLOW_K8S_CONTEXT\n'
+              'KUBEFLOW_IP_NAME=$KUBEFLOW_IP_NAME\n'
+              'KUBEFLOW_ENDPOINT_NAME=$KUBEFLOW_ENDPOINT_NAME\n'
+              'KUBEFLOW_HOSTNAME=$KUBEFLOW_HOSTNAME\n'
+              'CONFIG_FILE=$CONFIG_FILE\n'
+              'GKE_API_VERSION=$GKE_API_VERSION\n')
+      FORMAT+=('$PROJECT'
+               '$ZONE'
+               '$EMAIL'
+               '$PROJECT_NUMBER'
+               '$KUBEFLOW_DM_DIR'
+               '$KUBEFLOW_SECRETS_DIR'
+               '$KUBEFLOW_K8S_MANIFESTS_DIR'
+               '$KUBEFLOW_K8S_CONTEXT'
+               '$KUBEFLOW_IP_NAME'
+               '$KUBEFLOW_ENDPOINT_NAME'
+               '$KUBEFLOW_HOSTNAME'
+               '$CONFIG_FILE$GKE_API_VERSION')
+
+      export KUBEFLOW_PLATFORM=gke
+      export PROJECT="${PROJECT}" 
+      export ZONE=${ZONE}
+      export EMAIL=${EMAIL}
 
       # TODO: Do we need to make PROJECT_NUMBER also a flag like --project-number
       if [ -z "${PROJECT_NUMBER}" ]; then
-        PROJECT_NUMBER=$(gcloud projects describe ${PROJECT} --format='value(project_number)')
+        export PROJECT_NUMBER=$(gcloud projects describe ${PROJECT} --format='value(project_number)')
       fi
 
       # Name of the deployment
-      DEPLOYMENT_NAME=${DEPLOYMENT_NAME:-"kubeflow"}
-      echo DEPLOYMENT_NAME="${DEPLOYMENT_NAME}" >> ${ENV_FILE}
+      export DEPLOYMENT_NAME=${DEPLOYMENT_NAME:-"kubeflow"}
 
       # Kubeflow directories
-      echo KUBEFLOW_DM_DIR=${KUBEFLOW_DM_DIR:-"$(pwd)/gcp_config"} >> ${ENV_FILE}
-      echo KUBEFLOW_SECRETS_DIR=${KUBEFLOW_SECRETS_DIR:-"$(pwd)/secrets"} >> ${ENV_FILE}
-      echo KUBEFLOW_K8S_MANIFESTS_DIR="$(pwd)/k8s_specs" >> ${ENV_FILE}
+      export KUBEFLOW_DM_DIR=${KUBEFLOW_DM_DIR:-"$(pwd)/gcp_config"} 
+      export KUBEFLOW_SECRETS_DIR=${KUBEFLOW_SECRETS_DIR:-"$(pwd)/secrets"}
+      export KUBEFLOW_K8S_MANIFESTS_DIR="$(pwd)/k8s_specs"
 
       # Name of the K8s context to create.
-      echo KUBEFLOW_K8S_CONTEXT=${DEPLOYMENT_NAME} >> ${ENV_FILE}
+      export KUBEFLOW_K8S_CONTEXT=${DEPLOYMENT_NAME}
 
       # GCP Static IP Name
-      echo KUBEFLOW_IP_NAME=${KUBEFLOW_IP_NAME:-"${DEPLOYMENT_NAME}-ip"} >> ${ENV_FILE}
+      export KUBEFLOW_IP_NAME=${KUBEFLOW_IP_NAME:-"${DEPLOYMENT_NAME}-ip"}
+      
       # Name of the endpoint
-      KUBEFLOW_ENDPOINT_NAME=${KUBEFLOW_ENDPOINT_NAME:-"${DEPLOYMENT_NAME}"}
-      echo KUBEFLOW_ENDPOINT_NAME=${KUBEFLOW_ENDPOINT_NAME} >> ${ENV_FILE}
+      export KUBEFLOW_ENDPOINT_NAME=${KUBEFLOW_ENDPOINT_NAME:-"${DEPLOYMENT_NAME}"}
       # Complete hostname
-      echo KUBEFLOW_HOSTNAME=${KUBEFLOW_HOSTNAME:-"${KUBEFLOW_ENDPOINT_NAME}.endpoints.${PROJECT}.cloud.goog"} >> ${ENV_FILE}
-
-      echo CONFIG_FILE=${CONFIG_FILE:-"cluster-kubeflow.yaml"} >> ${ENV_FILE}
-
-      echo PROJECT_NUMBER=${PROJECT_NUMBER} >> ${ENV_FILE}
-
-      echo GKE_API_VERSION=${GKE_API_VERSION} >> ${ENV_FILE}
+      export KUBEFLOW_HOSTNAME=${KUBEFLOW_HOSTNAME:-"${KUBEFLOW_ENDPOINT_NAME}.endpoints.${PROJECT}.cloud.goog"}
+      export CONFIG_FILE=${CONFIG_FILE:-"cluster-kubeflow.yaml"}
       ;;
     *)
-      echo KUBEFLOW_PLATFORM=null >> ${ENV_FILE}
+      export PLATFORM=null
+      export KUBEFLOW_PLATFORM=null
       ;;
   esac
+  writeEnv
 }
 
 createNamespace() {
@@ -137,20 +204,13 @@ ksApply() {
     ks env add default --namespace "${K8S_NAMESPACE}"
   fi
 
-  # Create all the components
-  ks apply default -c ambassador
-  ks apply default -c jupyter
-  ks apply default -c centraldashboard
-  ks apply default -c tf-job-operator
-  ks apply default -c pytorch-operator
-  ks apply default -c metacontroller
-  ks apply default -c spartakus
-  ks apply default -c argo
-  ks apply default -c pipeline
-
   # Reduce resource demands locally
   if [ "${PLATFORM}" != "minikube" ] && [ "${PLATFORM}" != "docker-for-desktop" ]; then
-    ks apply default -c katib
+    if [[ -z $DEFAULT_KUBEFLOW_COMPONENTS ]]; then
+      export KUBEFLOW_COMPONENTS+=',"katib"'
+      writeEnv
+      ks param set application components '['$KUBEFLOW_COMPONENTS']'
+    fi
   fi
 
   popd
@@ -215,12 +275,12 @@ parseArgs() {
     fi
     # GCP Zone
     if [ -z "$ZONE" ]; then
-      ZONE=$(gcloud config get-value compute/zone 2>/dev/null)
+      export ZONE=$(gcloud config get-value compute/zone 2>/dev/null)
       if [ -z "$ZONE" ]; then
         echo "Set default zone to ${GCP_DEFAULT_ZONE}"
         echo "You can override this by setting a default zone in gcloud config"
         echo "or using --zone <ZONE>"
-        ZONE=${GCP_DEFAULT_ZONE}
+        export ZONE=${GCP_DEFAULT_ZONE}
       fi
     fi
     # GCP Email for cert manager
@@ -254,7 +314,7 @@ parseArgs() {
 
 main() {
   if [ "${COMMAND}" == "init" ]; then
-    DEPLOYMENT_NAME=${WHAT}
+    export DEPLOYMENT_NAME=${WHAT}
     parseArgs $*
 
     # TODO(jlewi): Should we default to directory name?
@@ -275,6 +335,10 @@ main() {
     fi
     if [ -d ${DEPLOYMENT_NAME} ]; then
       echo "Directory ${DEPLOYMENT_NAME} already exists"
+      exit 1
+    fi
+    if [[ ${DEPLOYMENT_NAME} =~ _  ]]; then
+      echo "Name should not contain '_'"
       exit 1
     fi
 
@@ -383,7 +447,13 @@ main() {
       # all components deployed
       # deploy the application CR
       pushd ${KUBEFLOW_KS_DIR}
-      ks apply default -c application
+      ks param set application name $DEPLOYMENT_NAME
+      if [[ $KUBEFLOW_EXTENDEDINFO == true ]]; then
+        ks param set application extendedInfo true
+      fi
+      ks param set application components '['$KUBEFLOW_COMPONENTS']'
+      ks show default -c metacontroller -c application > default.yaml
+      kubectl apply --validate=false -f default.yaml
       popd
     fi
   fi

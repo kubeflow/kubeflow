@@ -48,7 +48,6 @@
           app: "ml-pipeline-persistenceagent",
         },
         name: "ml-pipeline-persistenceagent",
-        namespace: namespace,
       },
       rules: [
         {
