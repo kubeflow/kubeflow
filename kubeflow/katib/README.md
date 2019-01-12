@@ -58,7 +58,7 @@ ks apply ${KF_ENV} -c katib
 
 If you want to use Katib not in GKE and you don't have StorageClass for dynamic volume provisioning at your cluster, you have to create persistent volume to bound your persistent volume claim.
 
-This is yaml file for persistent volume:
+This is yaml file for persistent volume
 
 ```yaml
 apiVersion: v1
@@ -80,7 +80,7 @@ spec:
 Create this pv after deploying Katib package
 
 ```
-kubectl create -f pv.yaml
+kubectl create -f katib-mysql-pv.yaml
 ```
 
 ### Cleanups
@@ -96,7 +96,7 @@ ks delete ${KF_ENV} -c tf-job-operator
 If you create pv for Katib delete it
 
 ```
-kubectl delete -f pv.yaml
+kubectl delete -f katib-mysql-pv.yaml
 ```
 
 Please refer to the official docs for
