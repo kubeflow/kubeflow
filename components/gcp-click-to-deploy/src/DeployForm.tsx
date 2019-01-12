@@ -188,9 +188,14 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         <div style={styles.row}>
           <TextField select={true} label="Kubeflow version:" required={true} style={styles.input} variant="filled"
             value={this.state.kfversion} onChange={this._handleChange('kfversion')}>
-            {versionList.map((version, i) => (
-              <MenuItem key={i} value={version}>{version}</MenuItem>
-            ))}
+            { process.env.REACT_APP_VERSIONS ?
+              process.env.REACT_APP_VERSIONS.split(',').map((version, i) => (
+                <MenuItem key={i} value={version}>{version}</MenuItem>
+              )) :
+              versionList.map((version, i) => (
+                <MenuItem key={i} value={version}>{version}</MenuItem>
+              ))
+            }
           </TextField>
         </div>
 
