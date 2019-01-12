@@ -5,19 +5,19 @@
 local pyjob = import "../pytorch-operator.libsonnet";
 local paramsv1alpha2 = {
   image: "pyControllerImage",
-  deploymentScope:: "cluster",
-  deploymentNamespace:: "null",
+  deploymentScope: "cluster",
+  deploymentNamespace: "null",
   pyjobVersion: "v1alpha2",
 };
 local paramsv1beta1 = {
   image: "pyControllerImage",
-  deploymentScope:: "cluster",
-  deploymentNamespace:: "null",
+  deploymentScope: "cluster",
+  deploymentNamespace: "null",
   pyjobVersion: "v1beta1",
 };
 
 local env = {
-  namespace:: "test-kf-001",
+  namespace: "test-kf-001",
 };
 
 local pyjobCrdV1alpha2 = pyjob.parts(paramsv1alpha2, env).crdV1alpha2;
