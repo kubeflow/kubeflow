@@ -18,7 +18,9 @@ vendor/
 flymd.*
 
 # vim .swp files
+*~
 *.swp
+*.swo
 
 # Files created by Gogland IDE
 .idea/
