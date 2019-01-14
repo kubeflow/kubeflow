@@ -82,6 +82,8 @@ createEnv() {
            '$DEPLOYMENT_NAME'
            '$KUBEFLOW_EXTENDEDINFO')
 
+  export PLATFORM=${PLATFORM:-""}
+  export GKE_API_VERSION=${GKE_API_VERSION:-""}
   export KUBEFLOW_REPO=${KUBEFLOW_REPO:-"${DEFAULT_KUBEFLOW_REPO}"}
   export KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"}
   export KUBEFLOW_KS_DIR=${KUBEFLOW_KS_DIR:-"$(pwd)/ks_app"}
@@ -320,7 +322,6 @@ main() {
     # TODO(jlewi): Should we default to directory name?
     # TODO(jlewi): This doesn't work if user doesn't provide name we will end up
     # interpreting parameters as the name. To fix this we need to check name doesn't start with --
-    export PLATFORM=${PLATFORM:-""}
     if [ -z "${DEPLOYMENT_NAME}" ]; then
       echo "name must be provided"
       echo "usage: kfctl init <name>"
