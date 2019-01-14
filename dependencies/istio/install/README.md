@@ -1,6 +1,7 @@
 # Istio manifest for Kubeflow
 
-The manifest is taken from OSS Istio pre-release 1.1-20190111-09-15.
+The manifest is taken from OSS Istio pre-release
+[1.1-20190111-09-15](https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/release-1.1-20190111-09-15/).
 
 We need custom configuration as discussed in the
 [issue](https://github.com/kubeflow/kubeflow/issues/1909#issuecomment-438409215).
