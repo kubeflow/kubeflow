@@ -10,6 +10,15 @@ libraries:
   profiles:
     version: master
     path: profiles
+  common:
+    version: master
+    path: common
+  tensorboard:
+    version: master
+    path: tensorboard
+  examples:
+    version: master
+    path: examples
   jupyter:
     version: master
     path: jupyter
