@@ -16,7 +16,7 @@
 
 ## Quickstart
 
-For running Katib you have to install tfjob operator and pytorch operator package.
+For running Katib, you have to install tfjob operator and pytorch operator package.
 
 In your Ksonnet app root, run the following
 
@@ -80,7 +80,7 @@ spec:
 Create this pv after deploying Katib package
 
 ```
-kubectl create -f katib-mysql-pv.yaml
+kubectl create -f https://raw.githubusercontent.com/kubeflow/katib/master/manifests/pv/pv.yaml
 ```
 
 ### Cleanups
@@ -93,10 +93,10 @@ ks delete ${KF_ENV} -c pytorch-operator
 ks delete ${KF_ENV} -c tf-job-operator
 ```
 
-If you create pv for Katib delete it
+If you create pv for Katib, delete it
 
 ```
-kubectl delete -f katib-mysql-pv.yaml
+kubectl delete -f https://raw.githubusercontent.com/kubeflow/katib/master/manifests/pv/pv.yaml
 ```
 
 Please refer to the official docs for
