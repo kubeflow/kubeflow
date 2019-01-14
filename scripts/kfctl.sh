@@ -320,6 +320,7 @@ main() {
     # TODO(jlewi): Should we default to directory name?
     # TODO(jlewi): This doesn't work if user doesn't provide name we will end up
     # interpreting parameters as the name. To fix this we need to check name doesn't start with --
+    export PLATFORM=${PLATFORM:-""}
     if [ -z "${DEPLOYMENT_NAME}" ]; then
       echo "name must be provided"
       echo "usage: kfctl init <name>"
