@@ -1,14 +1,12 @@
-# {{ if or .Values.global.crds (semverCompare ">=2.10.0-0" .Capabilities.TillerVersion.SemVer) }}
-# these CRDs only make sense when pilot is enabled
-# {{- if .Values.pilot.enabled }}
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   name: virtualservices.networking.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: istio-pilot
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: networking.istio.io
   names:
@@ -26,10 +24,11 @@ apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   name: destinationrules.networking.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: istio-pilot
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: networking.istio.io
   names:
@@ -47,10 +46,11 @@ apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   name: serviceentries.networking.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: istio-pilot
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: networking.istio.io
   names:
@@ -68,11 +68,11 @@ apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   name: gateways.networking.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
-    "helm.sh/hook-weight": "-5"
   labels:
     app: istio-pilot
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: networking.istio.io
   names:
@@ -88,11 +88,33 @@ spec:
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
-  name: envoyfilters.networking.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
+  name: sidecars.networking.istio.io
   labels:
     app: istio-pilot
+    chart: istio
+    heritage: Tiller
+    release: istio
+spec:
+  group: networking.istio.io
+  names:
+    kind: Sidecar
+    plural: sidecars
+    singular: sidecar
+    categories:
+    - istio-io
+    - networking-istio-io
+  scope: Namespaced
+  version: v1alpha3 
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: envoyfilters.networking.istio.io
+  labels:
+    app: istio-pilot
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: networking.istio.io
   names:
@@ -105,16 +127,36 @@ spec:
   scope: Namespaced
   version: v1alpha3
 ---
-# {{- end }}
-
-# these CRDs only make sense when security is enabled
-# {{- if .Values.security.enabled }}
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
-  annotations:
-    "helm.sh/hook": crd-install
+  name: clusterrbacconfigs.rbac.istio.io
+  labels:
+    app: istio-pilot
+    istio: rbac
+    heritage: Tiller
+    release: istio
+spec:
+  group: rbac.istio.io
+  names:
+    kind: ClusterRbacConfig
+    plural: clusterrbacconfigs
+    singular: clusterrbacconfig
+    categories:
+    - istio-io
+    - rbac-istio-io
+  scope: Cluster
+  version: v1alpha1
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
   name: policies.authentication.istio.io
+  labels:
+    app: istio-citadel
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: authentication.istio.io
   names:
@@ -130,9 +172,12 @@ spec:
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
-  annotations:
-    "helm.sh/hook": crd-install
   name: meshpolicies.authentication.istio.io
+  labels:
+    app: istio-citadel
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: authentication.istio.io
   names:
@@ -146,15 +191,15 @@ spec:
   scope: Cluster
   version: v1alpha1
 ---
-# {{- end }}
-
-# {{- if .Values.mixer.enabled }}
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
-  annotations:
-    "helm.sh/hook": crd-install
   name: httpapispecbindings.config.istio.io
+  labels:
+    app: istio-mixer
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -170,9 +215,12 @@ spec:
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
-  annotations:
-    "helm.sh/hook": crd-install
   name: httpapispecs.config.istio.io
+  labels:
+    app: istio-mixer
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -188,9 +236,12 @@ spec:
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
-  annotations:
-    "helm.sh/hook": crd-install
   name: quotaspecbindings.config.istio.io
+  labels:
+    app: istio-mixer
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -206,9 +257,12 @@ spec:
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
-  annotations:
-    "helm.sh/hook": crd-install
   name: quotaspecs.config.istio.io
+  labels:
+    app: istio-mixer
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -221,18 +275,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
-# Mixer CRDs
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: rules.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: istio.io.mixer
     istio: core
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -245,17 +298,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: attributemanifests.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: istio.io.mixer
     istio: core
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -268,17 +321,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: bypasses.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: bypass
     istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -291,17 +344,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: circonuses.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: circonus
     istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -314,17 +367,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: deniers.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: denier
     istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -337,17 +390,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: fluentds.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: fluentd
     istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -360,17 +413,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: kubernetesenvs.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: kubernetesenv
     istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -383,17 +436,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: listcheckers.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: listchecker
     istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -406,17 +459,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: memquotas.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: memquota
     istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -429,17 +482,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: noops.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: noop
     istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -452,17 +505,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: opas.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: opa
     istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -475,17 +528,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: prometheuses.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: prometheus
     istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -498,17 +551,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: rbacs.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: rbac
     istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -521,16 +574,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: redisquotas.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
+    app: mixer
     package: redisquota
     istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -540,17 +594,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: servicecontrols.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: servicecontrol
     istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -562,19 +616,18 @@ spec:
     - policy-istio-io
   scope: Namespaced
   version: v1alpha2
-
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: signalfxs.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: signalfx
     istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -587,17 +640,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: solarwindses.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: solarwinds
     istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -610,17 +663,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: stackdrivers.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: stackdriver
     istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -633,17 +686,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: statsds.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: statsd
     istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -656,17 +709,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: stdios.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: stdio
     istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -679,17 +732,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: apikeys.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: apikey
     istio: mixer-instance
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -702,17 +755,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: authorizations.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: authorization
     istio: mixer-instance
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -725,17 +778,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: checknothings.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: checknothing
     istio: mixer-instance
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -748,17 +801,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: kuberneteses.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: adapter.template.kubernetes
     istio: mixer-instance
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -771,17 +824,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: listentries.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: listentry
     istio: mixer-instance
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -794,17 +847,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: logentries.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: logentry
     istio: mixer-instance
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -817,17 +870,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: edges.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: edge
     istio: mixer-instance
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -840,17 +893,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: metrics.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: metric
     istio: mixer-instance
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -863,17 +916,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: quotas.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: quota
     istio: mixer-instance
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -886,17 +939,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: reportnothings.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: reportnothing
     istio: mixer-instance
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -909,17 +962,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: servicecontrolreports.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: servicecontrolreport
     istio: mixer-instance
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -932,17 +985,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: tracespans.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: tracespan
     istio: mixer-instance
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -955,17 +1008,17 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: rbacconfigs.rbac.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: istio.io.mixer
     istio: rbac
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: rbac.istio.io
   names:
@@ -978,17 +1031,17 @@ spec:
   scope: Namespaced
   version: v1alpha1
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: serviceroles.rbac.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: istio.io.mixer
     istio: rbac
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: rbac.istio.io
   names:
@@ -1001,17 +1054,17 @@ spec:
   scope: Namespaced
   version: v1alpha1
 ---
-
 kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: servicerolebindings.rbac.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: istio.io.mixer
     istio: rbac
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: rbac.istio.io
   names:
@@ -1028,12 +1081,13 @@ kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: adapters.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: adapter
     istio: mixer-adapter
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -1050,12 +1104,13 @@ kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: instances.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: instance
     istio: mixer-instance
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -1072,12 +1127,13 @@ kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: templates.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: template
     istio: mixer-template
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -1094,12 +1150,13 @@ kind: CustomResourceDefinition
 apiVersion: apiextensions.k8s.io/v1beta1
 metadata:
   name: handlers.config.istio.io
-  annotations:
-    "helm.sh/hook": crd-install
   labels:
     app: mixer
     package: handler
     istio: mixer-handler
+    chart: istio
+    heritage: Tiller
+    release: istio
 spec:
   group: config.istio.io
   names:
@@ -1112,5 +1169,102 @@ spec:
   scope: Namespaced
   version: v1alpha2
 ---
-# {{- end }}
-# {{ end }}
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: cloudwatches.config.istio.io
+  labels:
+    app: mixer
+    package: cloudwatch
+    istio: mixer-adapter
+spec:
+  group: config.istio.io
+  names:
+    kind: cloudwatch
+    plural: cloudwatches
+    singular: cloudwatch
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+kind: CustomResourceDefinition
+apiVersion: apiextensions.k8s.io/v1beta1
+metadata:
+  name: dogstatsds.config.istio.io
+  labels:
+    app: mixer
+    package: dogstatsd
+    istio: mixer-adapter
+spec:
+  group: config.istio.io
+  names:
+    kind: dogstatsd
+    plural: dogstatsds
+    singular: dogstatsd
+    categories:
+    - istio-io
+    - policy-istio-io
+  scope: Namespaced
+  version: v1alpha2
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: clusterissuers.certmanager.k8s.io
+  annotations:
+    "helm.sh/hook": crd-install
+  labels:
+    app: certmanager
+    chart: certmanager
+    heritage: Tiller
+    release: istio
+spec:
+  group: certmanager.k8s.io
+  version: v1alpha1
+  names:
+    kind: ClusterIssuer
+    plural: clusterissuers
+  scope: Cluster
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: issuers.certmanager.k8s.io
+  annotations:
+    "helm.sh/hook": crd-install
+  labels:
+    app: certmanager
+    chart: certmanager
+    heritage: Tiller
+    release: istio
+spec:
+  group: certmanager.k8s.io
+  version: v1alpha1
+  names:
+    kind: Issuer
+    plural: issuers
+  scope: Namespaced
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: certificates.certmanager.k8s.io
+  annotations:
+    "helm.sh/hook": crd-install
+  labels:
+    app: certmanager
+    chart: certmanager
+    heritage: Tiller
+    release: istio
+spec:
+  group: certmanager.k8s.io
+  version: v1alpha1
+  scope: Namespaced
+  names:
+    kind: Certificate
+    plural: certificates
+    shortNames:
+      - cert
+      - certs
