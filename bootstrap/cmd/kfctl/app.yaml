@@ -1,0 +1,27 @@
+appAddress: https://35.203.163.54
+app:
+  env:
+    name: default
+    targets:
+    - core
+    - jupyter
+  modules:
+  - name: core
+    components:
+    - name: ambassador
+      prototype: ambassador
+    - name: centraldashboard
+      prototype: centraldashboard
+  - name: jupyter
+    components:
+    - name: jupyter
+      prototype: jupyter
+  parameters:
+  - module: core
+    - component: ambassador
+      name: ambassadorServiceType
+      value: LoadBalancer
+  registries:
+  - name: kubeflow
+    version: github.com/kubeflow/kubeflow@v0.3.4
+    path: kubeflow
