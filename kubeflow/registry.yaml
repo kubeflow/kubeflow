@@ -13,6 +13,9 @@ libraries:
   common:
     version: master
     path: common
+  gcp:
+    version: master
+    path: gcp
   tensorboard:
     version: master
     path: tensorboard
