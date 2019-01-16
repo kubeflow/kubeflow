@@ -118,6 +118,8 @@ github.com/go-logfmt/logfmt v0.3.0 h1:8HUsc87TaSWLKwrnumgC8/YconD2fJQsRJAsWaPg2i
 github.com/go-logfmt/logfmt v0.3.0/go.mod h1:Qt1PoO58o5twSAckw1HlFXLmHsOX5/0LbT9GBnD5lWE=
 github.com/go-logfmt/logfmt v0.4.0 h1:MP4Eh7ZCb31lleYCFuwm0oe4/YGak+5l1vA2NOE80nA=
 github.com/go-logfmt/logfmt v0.4.0/go.mod h1:3RMwSq7FuexP4Kalkev3ejPJsZTpXXBr9+V4qmtdjCk=
+github.com/go-logr/logr v0.1.0/go.mod h1:ixOQHD9gLJUVQQ2ZOR7zLEifBX6tGkNJF4QyIY7sIas=
+github.com/go-logr/zapr v0.1.0/go.mod h1:tabnROwaDl0UNxkVeFRbY8bwB37GwRv0P8lg6aAiEnk=
 github.com/go-openapi/analysis v0.0.0-20160815203709-b44dc874b601 h1:0puMfPt1Uwv6yAyiIm/kkCdxRFURsaHGLuqyBmNTaHU=
 github.com/go-openapi/analysis v0.0.0-20160815203709-b44dc874b601/go.mod h1:k70tL6pCuVxPJOHXQ+wIac1FUrvNkHolPie/cLEU6hI=
 github.com/go-openapi/analysis v0.0.0-20180825180245-b006789cd277/go.mod h1:k70tL6pCuVxPJOHXQ+wIac1FUrvNkHolPie/cLEU6hI=
@@ -223,6 +225,7 @@ github.com/hashicorp/golang-lru v0.5.0/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ
 github.com/hashicorp/hcl v1.0.0/go.mod h1:E5yfLk+7swimpb2L/Alb/PJmXilQ/rhwaUYs4T20WEQ=
 github.com/howeyc/gopass v0.0.0-20170109162249-bf9dde6d0d2c h1:kQWxfPIHVLbgLzphqk3QUflDy9QdksZR4ygR807bpy0=
 github.com/howeyc/gopass v0.0.0-20170109162249-bf9dde6d0d2c/go.mod h1:lADxMC39cJJqL93Duh1xhAs4I2Zs8mKS89XWXFGp9cs=
+github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
 github.com/huandu/xstrings v0.0.0-20180906151751-8bbcf2f9ccb5 h1:JpFoh6mXPEoUpIgH3hg22MgQg+qwMU1eGdnWUII9csA=
 github.com/huandu/xstrings v0.0.0-20180906151751-8bbcf2f9ccb5/go.mod h1:DvyZB1rfVYsBIigL8HwpZgxHwXozlTgGqn63UyNX5k4=
 github.com/huandu/xstrings v1.2.0 h1:yPeWdRnmynF7p+lLYz0H2tthW9lqhMJrQV/U7yy4wX0=
@@ -286,6 +289,9 @@ github.com/onrik/logrus v0.0.0-20180801161715-ca0a758702be h1:iTlQZJpiFmWDq1ZJDi
 github.com/onrik/logrus v0.0.0-20180801161715-ca0a758702be/go.mod h1:qfe9NeZVAJfIxviw3cYkZo3kvBtLoPRJriAO8zl7qTk=
 github.com/onrik/logrus v0.0.0-20181009124311-c9849815bc7c h1:nzLY8VSbMnY29mjrTj8BjiC4VM3tTCfYhJjr27ZVLn4=
 github.com/onrik/logrus v0.0.0-20181009124311-c9849815bc7c/go.mod h1:qfe9NeZVAJfIxviw3cYkZo3kvBtLoPRJriAO8zl7qTk=
+github.com/onsi/ginkgo v1.6.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
+github.com/onsi/ginkgo v1.7.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
+github.com/onsi/gomega v1.4.3/go.mod h1:ex+gbHU/CVuBBDIJjb2X0qEXbFg53c61hWP/1CpauHY=
 github.com/opencontainers/go-digest v0.0.0-20170106003457-a6d0ee40d420 h1:Yu3681ykYHDfLoI6XVjL4JWmkE+3TX9yfIWwRCh1kFM=
 github.com/opencontainers/go-digest v0.0.0-20170106003457-a6d0ee40d420/go.mod h1:cMLVZDEM3+U2I4VmLI6N8jQYUd2OVphdqWwCJHrFt2s=
 github.com/opencontainers/image-spec v0.0.0-20170604055404-372ad780f634 h1:BNgUWy7fCNMkfpyG05/9wWeDnIY4hqs9UpqkGIjAb68=
@@ -351,6 +357,9 @@ go.opencensus.io v0.15.0/go.mod h1:UffZAU+4sDEINUGP/B7UfBBkq4fqLu9zXAX7ke6CHW0=
 go.opencensus.io v0.17.0/go.mod h1:mp1VrMQxhlqqDpKvH4UcQUa4YwlzNmymAjPrDdfxNpI=
 go.opencensus.io v0.18.0 h1:Mk5rgZcggtbvtAun5aJzAtjKKN/t0R3jJPlWILlv938=
 go.opencensus.io v0.18.0/go.mod h1:vKdFvxhtzZ9onBp9VKHK8z/sRpBMnKAsufL7wlDrCOA=
+go.uber.org/atomic v1.3.2/go.mod h1:gD2HeocX3+yG+ygLZcrzQJaqmWj9AIm7n08wl/qW/PE=
+go.uber.org/multierr v1.1.0/go.mod h1:wR5kodmAFQ0UK8QlbwjlSNy0Z68gJhDJUG5sjR94q/0=
+go.uber.org/zap v1.9.1/go.mod h1:vwi/ZaCAaUcBkycHslxD9B2zi4UTXhF60s6SWpuDF0Q=
 golang.org/x/crypto v0.0.0-20180904163835-0709b304e793 h1:u+LnwYTOOW7Ukr/fppxEb1Nwz0AtPflrblfvUudpo+I=
 golang.org/x/crypto v0.0.0-20180904163835-0709b304e793/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
 golang.org/x/crypto v0.0.0-20181203042331-505ab145d0a9/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
@@ -404,6 +413,7 @@ google.golang.org/grpc v1.15.0/go.mod h1:0JHn/cJsOMiMfNA9+DeHDlAU7KAAB5GDlYFpa9M
 google.golang.org/grpc v1.16.0 h1:dz5IJGuC2BB7qXR5AyHNwAUBhZscK2xVez7mznh72sY=
 google.golang.org/grpc v1.16.0/go.mod h1:0JHn/cJsOMiMfNA9+DeHDlAU7KAAB5GDlYFpa9MZMio=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
+gopkg.in/fsnotify.v1 v1.4.7/go.mod h1:Tz8NjZHkW78fSQdbUxIjBTcgA1z1m8ZHf0WmKUhAMys=
 gopkg.in/inf.v0 v0.9.0 h1:3zYtXIO92bvsdS3ggAdA8Gb4Azj0YU+TVY1uGYNFA8o=
 gopkg.in/inf.v0 v0.9.0/go.mod h1:cWUDdTG/fYaXco+Dcufb5Vnc6Gp2YChqWtbxRZE0mXw=
 gopkg.in/inf.v0 v0.9.1 h1:73M5CoZyi3ZLMOyDlQh031Cx6N9NDJ2Vvfl76EDAgDc=
@@ -412,6 +422,7 @@ gopkg.in/square/go-jose.v2 v2.1.3 h1:/FoFBTvlJN6MTTVCe9plTOG+YydzkjvDGxiSPzIyoDM
 gopkg.in/square/go-jose.v2 v2.1.3/go.mod h1:M9dMgbHiYLoDGQrXy7OpJDJWiKiU//h+vD76mk0e1AI=
 gopkg.in/square/go-jose.v2 v2.1.9 h1:YCFbL5T2gbmC2sMG12s1x2PAlTK5TZNte3hjZEIcCAg=
 gopkg.in/square/go-jose.v2 v2.1.9/go.mod h1:M9dMgbHiYLoDGQrXy7OpJDJWiKiU//h+vD76mk0e1AI=
+gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7/go.mod h1:dt/ZhP58zS4L8KSrWDmTeBkI65Dw0HsyUHuEVlX15mw=
 gopkg.in/yaml.v2 v2.0.0-20170721113624-670d4cfef054 h1:ROF+R/wHHruzF40n5DfPv2jwm7rCJwvs8fz+RTZWjLE=
 gopkg.in/yaml.v2 v2.0.0-20170721113624-670d4cfef054/go.mod h1:JAlM8MvJe8wmxCU4Bli9HhUf9+ttbYbLASfIpnQbh74=
 gopkg.in/yaml.v2 v2.2.1 h1:mUhvW9EsL+naU5Q3cakzfE91YhliOondGd6ZrsDBHQE=
@@ -422,6 +433,7 @@ k8s.io/api v0.0.0-20180308224125-73d903622b73 h1:5Z+PFfTIOXwKmOhQtZ0WBykbpGBBOuv
 k8s.io/api v0.0.0-20180308224125-73d903622b73/go.mod h1:iuAfoD4hCxJ8Onx9kaTIt30j7jUFS00AXQi6QMi99vA=
 k8s.io/api v0.0.0-20181121071145-b7bd5f2d334c h1:aSW17ws1n3Y/gxcAggEFSs+UJlzpE3+stTPLQSiVEno=
 k8s.io/api v0.0.0-20181121071145-b7bd5f2d334c/go.mod h1:iuAfoD4hCxJ8Onx9kaTIt30j7jUFS00AXQi6QMi99vA=
+k8s.io/api v0.0.0-20181221193117-173ce66c1e39/go.mod h1:iuAfoD4hCxJ8Onx9kaTIt30j7jUFS00AXQi6QMi99vA=
 k8s.io/apiextensions-apiserver v0.0.0-20180908152229-2c1d23e4c7d6 h1:j0cpLeZLbX4ZWtc7cs1g+LJQzatwx5JrMpLqArVkk/8=
 k8s.io/apiextensions-apiserver v0.0.0-20180908152229-2c1d23e4c7d6/go.mod h1:IxkesAMoaCRoLrPJdZNZUQp9NfZnzqaVzLhb2VEQzXE=
 k8s.io/apiextensions-apiserver v0.0.0-20181121072900-e8a638592964 h1:xXmxmtvxdq31qsBaNCZtQ28d9pu01EWUbXDQmMmCM6Q=
@@ -430,6 +442,8 @@ k8s.io/apimachinery v0.0.0-20180228050457-302974c03f7e h1:CsgbEA8905OlpVLNKWD4Ga
 k8s.io/apimachinery v0.0.0-20180228050457-302974c03f7e/go.mod h1:ccL7Eh7zubPUSh9A3USN90/OzHNSVN6zxzde07TDCL0=
 k8s.io/apimachinery v0.0.0-20181126191516-4a9a8137c0a1 h1:u/v3rSGNjiTxclqUNHYgSrCIotyczPebwV1FPXtdKRQ=
 k8s.io/apimachinery v0.0.0-20181126191516-4a9a8137c0a1/go.mod h1:ccL7Eh7zubPUSh9A3USN90/OzHNSVN6zxzde07TDCL0=
+k8s.io/apimachinery v0.0.0-20190111195121-fa6ddc151d63 h1:mX3s14gU5g9gQna4m6hUhnGhjDlNR/pSDqsg6QF+ltM=
+k8s.io/apimachinery v0.0.0-20190111195121-fa6ddc151d63/go.mod h1:ccL7Eh7zubPUSh9A3USN90/OzHNSVN6zxzde07TDCL0=
 k8s.io/apiserver v0.0.0-20180426121757-0841753fc26e h1:Kx5WFa3bGbM4WoxVI4q+yQ21RVnq+nG5DDF+GMGLNqY=
 k8s.io/apiserver v0.0.0-20180426121757-0841753fc26e/go.mod h1:6bqaTSOSJavUIXUtfaR9Os9JtTCm8ZqH2SUl2S60C4w=
 k8s.io/apiserver v0.0.0-20181121231732-e3c8fa95bba5 h1:l055lCDDjCXSb3HIk0E0IJaorhEUpvkOgSqXlyBwtKI=
@@ -440,6 +454,7 @@ k8s.io/client-go v7.0.0+incompatible h1:kiH+Y6hn+pc78QS/mtBfMJAMIIaWevHi++JvOGEE
 k8s.io/client-go v7.0.0+incompatible/go.mod h1:7vJpHMYJwNQCWgzmNV+VYUl1zCObLyodBc8nIyt8L5s=
 k8s.io/client-go v9.0.0+incompatible h1:2kqW3X2xQ9SbFvWZjGEHBLlWc1LG9JIJNXWkuqwdZ3A=
 k8s.io/client-go v9.0.0+incompatible/go.mod h1:7vJpHMYJwNQCWgzmNV+VYUl1zCObLyodBc8nIyt8L5s=
+k8s.io/client-go v10.0.0+incompatible/go.mod h1:7vJpHMYJwNQCWgzmNV+VYUl1zCObLyodBc8nIyt8L5s=
 k8s.io/helm v0.0.0-20180910190057-b4b693c31684 h1:KK9zOh2Hrb+bzQqHQmbIkRB5oF4SwgPmqQHJ7vt3Flc=
 k8s.io/helm v0.0.0-20180910190057-b4b693c31684/go.mod h1:LZzlS4LQBHfciFOurYBFkCMTaZ0D1l+p0teMg7TSULI=
 k8s.io/helm v2.11.0+incompatible h1:MsUJ70F6ViBBmcy4IgCAgvRSteMO2qpPCb3mAZ9Y850=
@@ -458,6 +473,8 @@ k8s.io/utils v0.0.0-20171122000934-aedf551cdb8b h1:yYdRs/7M4OsJDkTfxQnktt/tvrqau
 k8s.io/utils v0.0.0-20171122000934-aedf551cdb8b/go.mod h1:8k8uAuAQ0rXslZKaEWd0c3oVhZz7sSzSiPnVZayjIX0=
 k8s.io/utils v0.0.0-20181115163542-0d26856f57b3 h1:S3/Kq185JnolOEemhmDXXd23l2t4bX5hPQPQPADlF1E=
 k8s.io/utils v0.0.0-20181115163542-0d26856f57b3/go.mod h1:8k8uAuAQ0rXslZKaEWd0c3oVhZz7sSzSiPnVZayjIX0=
+sigs.k8s.io/controller-runtime v0.1.9/go.mod h1:HFAYoOh6XMV+jKF1UjFwrknPbowfyHEHHRdJMf2jMX8=
+sigs.k8s.io/testing_frameworks v0.1.1/go.mod h1:VVBKrHmJ6Ekkfz284YKhQePcdycOzNH9qL6ht1zEr/U=
 sigs.k8s.io/yaml v1.1.0 h1:4A07+ZFc2wgJwo8YNlQpr1rVlgUDlxXHhPJciaPY5gs=
 sigs.k8s.io/yaml v1.1.0/go.mod h1:UJmg0vDUVViEyp3mgSv9WPwZCDxu4rQW1olrI1uml+o=
 vbom.ml/util v0.0.0-20160121211510-db5cfe13f5cc h1:MksmcCZQWAQJCTA5T0jgI/0sJ51AVm4Z41MrmfczEoc=

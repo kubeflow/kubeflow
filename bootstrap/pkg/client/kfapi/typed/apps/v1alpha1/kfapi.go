@@ -26,8 +26,8 @@ import (
 	"github.com/ksonnet/ksonnet/pkg/client"
 	"github.com/ksonnet/ksonnet/pkg/component"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
-	"github.com/spf13/afero"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/afero"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"path/filepath"
@@ -61,7 +61,7 @@ type kfApi struct {
 	// other information about the regisry.
 	knownRegistries map[string]v1alpha1.RegistryConfig
 
-	fs afero.Fs
+	fs   afero.Fs
 	kApp app.App
 }
 
@@ -74,13 +74,13 @@ func NewKfApi(appName string, appsDir string) (KfApi, error) {
 	return &kfApi{
 		appName: appName,
 		appsDir: appsDir,
-		fs: afero.NewOsFs(),
-		kApp: kApp,
+		fs:      afero.NewOsFs(),
+		kApp:    kApp,
 	}, nil
 }
 
 func (kfApi *kfApi) Libraries() (map[string]*v1alpha1.KsLibrary, error) {
-	libs, error :=  kfApi.kApp.Libraries()
+	libs, error := kfApi.kApp.Libraries()
 	if error != nil {
 		return nil, fmt.Errorf("There was a problem getting the libraries %v. Error: %v", kfApi.appName, error)
 	}
@@ -88,9 +88,9 @@ func (kfApi *kfApi) Libraries() (map[string]*v1alpha1.KsLibrary, error) {
 	libraries := make(map[string]*v1alpha1.KsLibrary)
 	for k, v := range libs {
 		libraries[k] = &v1alpha1.KsLibrary{
-			Name: v.Name,
+			Name:     v.Name,
 			Registry: v.Registry,
-			Version: v.Version,
+			Version:  v.Version,
 		}
 	}
 	return libraries, nil
@@ -195,7 +195,7 @@ func (kfApi *kfApi) Components() (map[string]*v1alpha1.KsComponent, error) {
 	for _, comp := range components {
 		name := comp.Name(false)
 		comps[name] = &v1alpha1.KsComponent{
-			Name: name,
+			Name:      name,
 			Prototype: name,
 		}
 	}
@@ -205,13 +205,13 @@ func (kfApi *kfApi) Components() (map[string]*v1alpha1.KsComponent, error) {
 
 func (kfApi *kfApi) Init(name string, envName string, k8sSpecFlag string, serverURI string, namespace string) error {
 	options := map[string]interface{}{
-		actions.OptionFs:      kfApi.fs,
-		actions.OptionName:    name,
-		actions.OptionEnvName: envName,
-		actions.OptionAppRoot: kfApi.appsDir,
-		actions.OptionServer:  serverURI,
-		actions.OptionSpecFlag:  k8sSpecFlag,
-		actions.OptionNamespace: namespace,
+		actions.OptionFs:                    kfApi.fs,
+		actions.OptionName:                  name,
+		actions.OptionEnvName:               envName,
+		actions.OptionAppRoot:               kfApi.appsDir,
+		actions.OptionServer:                serverURI,
+		actions.OptionSpecFlag:              k8sSpecFlag,
+		actions.OptionNamespace:             namespace,
 		actions.OptionSkipDefaultRegistries: true,
 	}
 
@@ -286,10 +286,3 @@ func (kfApi *kfApi) RegistryAdd(name string, reguri string) error {
 	}
 	return nil
 }
-
-
-
-
-
-
-

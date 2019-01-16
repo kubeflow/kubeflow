@@ -109,8 +109,6 @@ const (
 	KfVersion        = "version"
 )
 
-
-
 // ApplicationStatus defines the observed state of Application
 type ApplicationStatus struct {
 	Conditions []ApplicationCondition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,6,rep,name=conditions"`

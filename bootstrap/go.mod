@@ -34,6 +34,8 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-kit/kit v0.7.0
 	github.com/go-logfmt/logfmt v0.3.0
+	github.com/go-logr/logr v0.1.0 // indirect
+	github.com/go-logr/zapr v0.1.0 // indirect
 	github.com/go-openapi/analysis v0.0.0-20160815203709-b44dc874b601
 	github.com/go-openapi/errors v0.0.0-20160704190347-d24ebc2075ba
 	github.com/go-openapi/jsonpointer v0.0.0-20160704185906-46af16f9f7b1
@@ -79,7 +81,11 @@ require (
 	github.com/matttproud/golang_protobuf_extensions v1.0.1
 	github.com/mitchellh/go-homedir v1.0.0 // indirect
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7
+	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
+	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/onrik/logrus v0.0.0-20180801161715-ca0a758702be
+	github.com/onsi/ginkgo v1.7.0 // indirect
+	github.com/onsi/gomega v1.4.3
 	github.com/opencontainers/go-digest v0.0.0-20170106003457-a6d0ee40d420
 	github.com/opencontainers/image-spec v0.0.0-20170604055404-372ad780f634
 	github.com/pborman/uuid v0.0.0-20150603214016-ca53cad383ca
@@ -101,6 +107,9 @@ require (
 	github.com/spf13/viper v1.3.1 // indirect
 	github.com/stretchr/testify v1.2.2
 	go.opencensus.io v0.15.0
+	go.uber.org/atomic v1.3.2 // indirect
+	go.uber.org/multierr v1.1.0 // indirect
+	go.uber.org/zap v1.9.1 // indirect
 	golang.org/x/crypto v0.0.0-20181203042331-505ab145d0a9
 	golang.org/x/net v0.0.0-20180906233101-161cd47e91fd
 	golang.org/x/oauth2 v0.0.0-20180821212333-d2e6202438be
@@ -115,14 +124,18 @@ require (
 	gopkg.in/inf.v0 v0.9.0
 	gopkg.in/square/go-jose.v2 v2.1.3
 	gopkg.in/yaml.v2 v2.2.2
-	k8s.io/api v0.0.0-20180308224125-73d903622b73
+	k8s.io/api v0.0.0-20181221193117-173ce66c1e39
 	k8s.io/apiextensions-apiserver v0.0.0-20180908152229-2c1d23e4c7d6
-	k8s.io/apimachinery v0.0.0-20180228050457-302974c03f7e
+	k8s.io/apimachinery v0.0.0-20190111195121-fa6ddc151d63
 	k8s.io/apiserver v0.0.0-20180426121757-0841753fc26e
-	k8s.io/client-go v7.0.0+incompatible
+	k8s.io/client-go v10.0.0+incompatible
 	k8s.io/helm v0.0.0-20180910190057-b4b693c31684
+	k8s.io/klog v0.1.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20180216212618-50ae88d24ede
 	k8s.io/kubernetes v1.10.2
 	k8s.io/utils v0.0.0-20171122000934-aedf551cdb8b
+	sigs.k8s.io/controller-runtime v0.1.9
+	sigs.k8s.io/testing_frameworks v0.1.1 // indirect
+	sigs.k8s.io/yaml v1.1.0 // indirect
 	vbom.ml/util v0.0.0-20160121211510-db5cfe13f5cc
 )

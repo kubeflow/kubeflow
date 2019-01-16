@@ -29,14 +29,15 @@ auth:
 
 # Run go fmt against code
 fmt:
-	go fmt ./cmd/...
+	go fmt ./pkg/... ./cmd/...
 
 # Run go vet against code
 vet:
-	go vet ./cmd/...
+	go vet ./pkg/... ./cmd/...
 
 build-local: fmt vet
 	GO111MODULE=on go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
+	GO111MODULE=on go build -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
 
 # To edit which registries to add to bootstrapper, edit config (eg. config/default.yaml)
 build: build-local

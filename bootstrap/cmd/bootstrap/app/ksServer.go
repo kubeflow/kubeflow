@@ -17,9 +17,9 @@ import (
 	"github.com/cenkalti/backoff"
 	"github.com/go-kit/kit/endpoint"
 	httptransport "github.com/go-kit/kit/transport/http"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
@@ -87,7 +87,7 @@ type ksServer struct {
 	gkeVersionOverride string
 
 	kfApi v1alpha1.KfApi
-	fs afero.Fs
+	fs    afero.Fs
 
 	// project-id -> project lock
 	projectLocks map[string]*sync.Mutex
@@ -416,7 +416,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 		}
 	}
 
-	err = s.appGenerate( &request.AppConfig)
+	err = s.appGenerate(&request.AppConfig)
 	if err != nil {
 		return fmt.Errorf("There was a problem generating app: %v", err)
 	}
