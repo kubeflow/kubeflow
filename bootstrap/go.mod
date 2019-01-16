@@ -77,6 +77,7 @@ require (
 	github.com/mattn/go-colorable v0.0.0-20180310133214-efa589957cd0
 	github.com/mattn/go-isatty v0.0.0-20180830101745-3fb116b82035
 	github.com/matttproud/golang_protobuf_extensions v1.0.1
+	github.com/mitchellh/go-homedir v1.0.0 // indirect
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7
 	github.com/onrik/logrus v0.0.0-20180801161715-ca0a758702be
 	github.com/opencontainers/go-digest v0.0.0-20170106003457-a6d0ee40d420
@@ -94,15 +95,16 @@ require (
 	github.com/shazow/go-diff v0.0.0-20160112020656-b6b7b6733b8c
 	github.com/shurcooL/sanitized_anchor_name v0.0.0-20151028001915-10ef21a441db
 	github.com/sirupsen/logrus v1.2.0
-	github.com/spf13/afero v0.0.0-20160816080757-b28a7effac97
+	github.com/spf13/afero v1.1.2
 	github.com/spf13/cobra v0.0.0-20180228053838-6644d46b81fa
 	github.com/spf13/pflag v1.0.3
+	github.com/spf13/viper v1.3.1 // indirect
 	github.com/stretchr/testify v1.2.2
 	go.opencensus.io v0.15.0
-	golang.org/x/crypto v0.0.0-20180904163835-0709b304e793
+	golang.org/x/crypto v0.0.0-20181203042331-505ab145d0a9
 	golang.org/x/net v0.0.0-20180906233101-161cd47e91fd
 	golang.org/x/oauth2 v0.0.0-20180821212333-d2e6202438be
-	golang.org/x/sys v0.0.0-20180909124046-d0be0721c37e
+	golang.org/x/sys v0.0.0-20181205085412-a5c9d58dba9a
 	golang.org/x/text v0.3.0
 	golang.org/x/time v0.0.0-20161028155119-f51c12702a4d
 	golang.org/x/vgo v0.0.0-20180912184537-9d567625acf4 // indirect
@@ -112,7 +114,7 @@ require (
 	google.golang.org/grpc v1.16.0
 	gopkg.in/inf.v0 v0.9.0
 	gopkg.in/square/go-jose.v2 v2.1.3
-	gopkg.in/yaml.v2 v2.0.0-20170721113624-670d4cfef054
+	gopkg.in/yaml.v2 v2.2.2
 	k8s.io/api v0.0.0-20180308224125-73d903622b73
 	k8s.io/apiextensions-apiserver v0.0.0-20180908152229-2c1d23e4c7d6
 	k8s.io/apimachinery v0.0.0-20180228050457-302974c03f7e

@@ -27,6 +27,12 @@ var addCmd = &cobra.Command{
 	Long:  `Add a registry|pkg|module|component to the kubeflow application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("add called")
+		subcommand := args[0]
+		switch subcommand {
+		case "registry":
+			fmt.Println("add called")
+
+		}
 	},
 }
 
