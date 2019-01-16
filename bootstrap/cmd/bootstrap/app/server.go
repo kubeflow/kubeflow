@@ -36,13 +36,14 @@ import (
 	"context"
 )
 
+const k8SpecsFlag = "version:v1.10.6"
+
 // DefaultStorageAnnotation is the Name of the default annotation used to indicate
 // whether a storage class is the default.
 const DefaultStorageAnnotation = "storageclass.beta.kubernetes.io/is-default-class"
 
 // Assume gcloud is on the path.
 const GcloudPath = "gcloud"
-
 
 // Load yaml config
 func LoadConfig(path string, o interface{}) error {
@@ -80,13 +81,12 @@ func modifyGcloudCommand(config *clientcmdapi.Config) error {
 	return nil
 }
 
-
 // gGetClusterConfig obtain the config from the Kube configuration used by kubeconfig.
 func getClusterConfig(inCluster bool) (*rest.Config, error) {
 	if inCluster {
 		return rest.InClusterConfig()
 	}
-	configFile := kftypes.GetKubeConfigFile()
+	configFile := kftypes.GetKubeConfigFile(k8SpecsFlag)
 
 	if len(configFile) > 0 {
 

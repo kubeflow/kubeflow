@@ -17,9 +17,10 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	log "github.com/sirupsen/logrus"
+	"k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apimachinery/registered"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 	"os/user"
 	"path"
@@ -29,7 +30,11 @@ import (
 const RecommendedConfigPathEnvVar = "KUBECONFIG"
 
 // GetKubeConfigFile tries to find a kubeconfig file.
-func GetKubeConfigFile() string {
+func GetKubeConfigFile(k8sSpecFlag string) string {
+	_, regErr := registered.NewAPIRegistrationManager(k8sSpecFlag)
+	if regErr != nil {
+		log.Infof("no registration manager for %v.", k8sSpecFlag)
+	}
 	configFile := ""
 
 	usr, err := user.Current()

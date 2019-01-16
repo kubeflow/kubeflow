@@ -27,6 +27,9 @@ all: build
 auth:
 	gcloud auth configure-docker
 
+client-gen:
+	go get k8s.io/code-generator/cmd/client-gen@4d5dc3fc6a8dd917e4cc88b8a0d940ded92aee60
+
 # Run go fmt against code
 fmt:
 	go fmt ./pkg/... ./cmd/...
@@ -35,7 +38,7 @@ fmt:
 vet:
 	go vet ./pkg/... ./cmd/...
 
-build-local: fmt vet
+build-local: client-gen fmt vet
 	GO111MODULE=on go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 	GO111MODULE=on go build -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
 

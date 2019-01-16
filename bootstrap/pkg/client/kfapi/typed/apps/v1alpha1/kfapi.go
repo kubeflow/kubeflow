@@ -28,6 +28,7 @@ import (
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
+	"k8s.io/apimachinery/pkg/apimachinery/registered"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"path/filepath"
@@ -49,8 +50,6 @@ type KfApi interface {
 	PrototypeUse(m map[string]interface{}) error
 	RegistryAdd(name string, reguri string) error
 }
-
-
 
 // ksServer provides a server to wrap ksonnet.
 // This allows ksonnet applications to be managed remotely.
@@ -75,15 +74,13 @@ func NewKfApi(appName string, appsDir string, knownRegistries map[string]v1alpha
 		return nil, fmt.Errorf("There was a problem loading app %v. Error: %v", appName, err)
 	}
 	return &kfApi{
-		appName: appName,
-		appsDir: appsDir,
-		fs:      afero.NewOsFs(),
+		appName:         appName,
+		appsDir:         appsDir,
+		fs:              afero.NewOsFs(),
 		knownRegistries: knownRegistries,
-		kApp:    kApp,
+		kApp:            kApp,
 	}, nil
 }
-
-
 
 func (kfApi *kfApi) Libraries() (map[string]*v1alpha1.KsLibrary, error) {
 	libs, error := kfApi.kApp.Libraries()
@@ -214,6 +211,11 @@ func (kfApi *kfApi) Components() (map[string]*v1alpha1.KsComponent, error) {
 }
 
 func (kfApi *kfApi) Init(name string, envName string, k8sSpecFlag string, serverURI string, namespace string) error {
+	_, regErr := registered.NewAPIRegistrationManager(k8sSpecFlag)
+	if regErr != nil {
+		log.Infof("no registration manager for %v.", k8sSpecFlag)
+	}
+
 	options := map[string]interface{}{
 		actions.OptionFs:                    kfApi.fs,
 		actions.OptionName:                  name,
