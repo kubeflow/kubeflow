@@ -37,6 +37,7 @@ github.com/coreos/etcd v3.3.11+incompatible/go.mod h1:uF7uidLiAD3TWHmW31ZFd/JWoc
 github.com/coreos/go-etcd v2.0.0+incompatible/go.mod h1:Jez6KQU2B/sWsbdaef3ED8NzMklzPG4d5KIOhIy30Tk=
 github.com/coreos/go-semver v0.2.0/go.mod h1:nnelYz7RCh+5ahJtPPxZlU+153eP4D4r3EedlOD2RNk=
 github.com/coreos/go-systemd v0.0.0-20181031085051-9002847aa142/go.mod h1:F5haX7vjVVG0kc13fIWeqUViNPyEJxv/OmvnBo0Yme4=
+github.com/coreos/prometheus-operator v0.27.0 h1:qMI9Soo7LbH/6pFWm6rnyjV2KvDWHQROa5+jNqOUZHU=
 github.com/cyphar/filepath-securejoin v0.2.2 h1:jCwT2GTP+PY5nBz3c/YL5PAIbusElVrPujOBSCj8xRg=
 github.com/cyphar/filepath-securejoin v0.2.2/go.mod h1:FpkQEhXnPnOthhzymB7CGsFk2G9VLXONKD9G7QGMM+4=
 github.com/daaku/go.zipexe v0.0.0-20150329023125-a5fe2436ffcb/go.mod h1:U0vRfAucUOohvdCxt5MWLF+TePIL0xbCkbKIiV8TQCE=
@@ -109,6 +110,8 @@ github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515/go.mod h1:+0opPa2QZZtGFB
 github.com/ksonnet/ksonnet v0.13.1/go.mod h1:T8FwyGOX8fMoDyp845QmYDnk8R7AF35pImyfWJ9fj7M=
 github.com/ksonnet/ksonnet-lib v0.1.12/go.mod h1:2p66Npe1xOUtQGlGzD5aJ3UHEBjG1b6o3nbC1rVNvz4=
 github.com/kubeflow/kubeflow v0.4.1 h1:zrmzxaiA6MT+0PZ0caUTres2GS2W6Pyn+JVS0w/tgwQ=
+github.com/kubeless/kubeless v1.0.1 h1:FBwBVUO2qlFGL3ftdl5D/OW2MFC3QRPYnDFgwy8Xsfc=
+github.com/kubeless/kubeless v1.0.1/go.mod h1:eBSqNpFBgiemDH1gmDcIndBDbGgoZJobww4ZaFK9N1k=
 github.com/kubernetes/client-go v5.0.0+incompatible h1:qZIrofoLnJHKOW4nkxKRDsXO9WK+YUdF9Pr1KwbJc/Y=
 github.com/kubernetes/client-go v5.0.0+incompatible/go.mod h1:kszVi2i+FeqECZHhjpkV5h5zM0GnURfJv897YzgoAQ8=
 github.com/kubernetes/client-go v6.0.0+incompatible h1:SwoXgvkzu9X4zhj1JekPxu2nUTzJsQ9lotEQZ+ClnFs=
@@ -251,9 +254,9 @@ k8s.io/helm v2.12.2+incompatible/go.mod h1:LZzlS4LQBHfciFOurYBFkCMTaZ0D1l+p0teMg
 k8s.io/klog v0.1.0/go.mod h1:Gq+BEi5rUBO/HRz0bTSXDUcqjScdoY3a9IHpCEIOOfk=
 k8s.io/kube-openapi v0.0.0-20190115222348-ced9eb3070a5 h1:leiGEauB5/1TE6nQQ9flpPDz6oEEvPLVuj4B4J40dfA=
 k8s.io/kube-openapi v0.0.0-20190115222348-ced9eb3070a5/go.mod h1:BXM9ceUBTj2QnfH2MK1odQs778ajze1RxcmP6S8RVVc=
-k8s.io/kubernetes v1.10.2+incompatible h1:3nd+qMzpyyV10df/z0oHFVNSENK0V8F1F5uCn7SDmMc=
 k8s.io/kubernetes v1.10.2+incompatible/go.mod h1:ocZa8+6APFNC2tX1DZASIbocyYT5jHzqFVsY5aoB7Jk=
 k8s.io/kubernetes v1.10.2/go.mod h1:ocZa8+6APFNC2tX1DZASIbocyYT5jHzqFVsY5aoB7Jk=
+k8s.io/kubernetes v1.10.2+incompatible h1:3nd+qMzpyyV10df/z0oHFVNSENK0V8F1F5uCn7SDmMc=
 k8s.io/utils v0.0.0-20181221173059-8a16e7dd8fb6/go.mod h1:8k8uAuAQ0rXslZKaEWd0c3oVhZz7sSzSiPnVZayjIX0=
 sigs.k8s.io/controller-runtime v0.1.1 h1:CTtDLl99X1mAWrnasPxEEIdEsAMu9CeTDawAZtvVFCU=
 sigs.k8s.io/controller-runtime v0.1.1/go.mod h1:HFAYoOh6XMV+jKF1UjFwrknPbowfyHEHHRdJMf2jMX8=

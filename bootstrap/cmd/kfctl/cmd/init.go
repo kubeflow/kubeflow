@@ -16,7 +16,14 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
+
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
+	log "github.com/sirupsen/logrus"
+
 	"os"
 )
 
@@ -26,20 +33,31 @@ var initCmd = &cobra.Command{
 	Short: "Create a kubeflow application template as <name>.yaml.",
 	Long:  `Create a kubeflow application template as <name>.yaml.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		fs := afero.NewOsFs()
+
 		if appName == "" {
 			fmt.Print("name required")
 			return
 		}
-		file, err := os.Create(appName + ".yaml")
-		if err != nil {
-			panic(err)
+		_, err := fs.Stat(appName)
+		if err == nil {
+			log.Errorf("Failed getting GKE cluster config: %v", err)
+			return
 		}
-		defer file.Close()
-		_, err = file.Write(appYamlTemplate)
+		err = os.Mkdir(appName, os.ModePerm)
 		if err != nil {
-			panic(err)
+
 		}
-		file.Sync()
+		config := utils.GetKubeConfigFile("")
+		var appConfigFile kftypes.ApplicationSpec
+		if err := utils.LoadConfig(config, &appConfigFile); err != nil {
+			return
+		}
+
+		_, err = v1alpha1.NewKfApi(appName, appName, appConfigFile.App.Registries)
+		if err != nil {
+
+		}
 	},
 }
 

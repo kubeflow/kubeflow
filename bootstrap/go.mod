@@ -53,12 +53,13 @@ require (
 	github.com/hashicorp/golang-lru v0.5.0 // indirect
 	github.com/howeyc/gopass v0.0.0-20170109162249-bf9dde6d0d2c // indirect
 	github.com/huandu/xstrings v1.2.0 // indirect
-	github.com/imdario/mergo v0.3.6 // indirect
+	github.com/imdario/mergo v0.3.6
 	github.com/jonboulle/clockwork v0.1.0 // indirect
 	github.com/json-iterator/go v1.1.5 // indirect
 	github.com/juju/ratelimit v1.0.1 // indirect
 	github.com/ksonnet/ksonnet v0.13.1
 	github.com/ksonnet/ksonnet-lib v0.1.12 // indirect
+	github.com/kubeless/kubeless v1.0.1
 	github.com/mattn/go-colorable v0.0.9 // indirect
 	github.com/mattn/go-isatty v0.0.4 // indirect
 	github.com/mitchellh/go-homedir v1.0.0
@@ -90,7 +91,7 @@ require (
 	gopkg.in/resty.v1 v1.11.0
 	gopkg.in/square/go-jose.v2 v2.2.2 // indirect
 	k8s.io/api v0.0.0-20180308224125-73d903622b73
-	k8s.io/apiextensions-apiserver v0.0.0-20190116054503-cf30b7cf64c2 // indirect
+	k8s.io/apiextensions-apiserver v0.0.0-20190116054503-cf30b7cf64c2
 	k8s.io/apimachinery v0.0.0-20190111195121-fa6ddc151d63
 	k8s.io/apiserver v0.0.0-20190116053355-a39732bdd925 // indirect
 	k8s.io/client-go v10.0.0+incompatible

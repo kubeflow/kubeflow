@@ -15,8 +15,6 @@
 package app
 
 import (
-	"errors"
-	"io/ioutil"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"net"
@@ -24,9 +22,10 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/ghodss/yaml"
 	"github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app/options"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
+
 	"github.com/kubeflow/kubeflow/bootstrap/version"
 	log "github.com/sirupsen/logrus"
 	"k8s.io/api/storage/v1"
@@ -45,20 +44,6 @@ const DefaultStorageAnnotation = "storageclass.beta.kubernetes.io/is-default-cla
 // Assume gcloud is on the path.
 const GcloudPath = "gcloud"
 
-// Load yaml config
-func LoadConfig(path string, o interface{}) error {
-	if path == "" {
-		return errors.New("empty path")
-	}
-	data, err := ioutil.ReadFile(path)
-	if err != nil {
-		return err
-	}
-	if err = yaml.Unmarshal(data, o); err != nil {
-		return err
-	}
-	return nil
-}
 
 // ModifyGcloudCommand modifies the cmd-path in the kubeconfig file.
 //
@@ -86,7 +71,7 @@ func getClusterConfig(inCluster bool) (*rest.Config, error) {
 	if inCluster {
 		return rest.InClusterConfig()
 	}
-	configFile := kftypes.GetKubeConfigFile(k8SpecsFlag)
+	configFile := utils.GetKubeConfigFile(k8SpecsFlag)
 
 	if len(configFile) > 0 {
 
@@ -171,7 +156,7 @@ func processFile(opt *options.ServerOption, ksServer *ksServer) error {
 	appName := "kubeflow"
 
 	var appConfigFile kftypes.ApplicationSpec
-	if err := LoadConfig(opt.Config, &appConfigFile); err != nil {
+	if err := utils.LoadConfig(opt.Config, &appConfigFile); err != nil {
 		return err
 	}
 

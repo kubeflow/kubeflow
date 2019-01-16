@@ -17,39 +17,9 @@ limitations under the License.
 package v1alpha1
 
 import (
-	log "github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/apimachinery/registered"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"os"
-	"os/user"
-	"path"
 )
-
-// RecommendedConfigPathEnvVar is a environment variable for path configuration
-const RecommendedConfigPathEnvVar = "KUBECONFIG"
-
-// GetKubeConfigFile tries to find a kubeconfig file.
-func GetKubeConfigFile(k8sSpecFlag string) string {
-	_, regErr := registered.NewAPIRegistrationManager(k8sSpecFlag)
-	if regErr != nil {
-		log.Infof("no registration manager for %v.", k8sSpecFlag)
-	}
-	configFile := ""
-
-	usr, err := user.Current()
-	if err != nil {
-		log.Warningf("Could not get current user; error %v", err)
-	} else {
-		configFile = path.Join(usr.HomeDir, ".kube", "config")
-	}
-
-	if len(os.Getenv(RecommendedConfigPathEnvVar)) > 0 {
-		configFile = os.Getenv(RecommendedConfigPathEnvVar)
-	}
-
-	return configFile
-}
 
 // RegistryConfig is used for two purposes:
 // 1. used during image build, to configure registries that should be baked into the bootstrapper docker image.
@@ -144,12 +114,6 @@ type ApplicationStatus struct {
 }
 
 type ApplicationConditionType string
-
-const (
-	ApplicationAvailable   ApplicationConditionType = "Available"
-	ApplicationProgressing ApplicationConditionType = "Progressing"
-	ApplicationFailure     ApplicationConditionType = "Failed"
-)
 
 type ApplicationCondition struct {
 	// Type of deployment condition.
