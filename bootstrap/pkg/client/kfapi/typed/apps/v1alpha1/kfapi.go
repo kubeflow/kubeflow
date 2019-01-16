@@ -37,6 +37,7 @@ import (
 type KfApi interface {
 	Libraries() (map[string]*v1alpha1.KsLibrary, error)
 	Registries() (map[string]*v1alpha1.Registry, error)
+	RegistryConfigs() (map[string]v1alpha1.RegistryConfig, error)
 	Components() (map[string]*v1alpha1.KsComponent, error)
 	Root() string
 	Apply(components []string, cfg clientcmdapi.Config) error
@@ -48,6 +49,8 @@ type KfApi interface {
 	PrototypeUse(m map[string]interface{}) error
 	RegistryAdd(name string, reguri string) error
 }
+
+
 
 // ksServer provides a server to wrap ksonnet.
 // This allows ksonnet applications to be managed remotely.
@@ -65,7 +68,7 @@ type kfApi struct {
 	kApp app.App
 }
 
-func NewKfApi(appName string, appsDir string) (KfApi, error) {
+func NewKfApi(appName string, appsDir string, knownRegistries map[string]v1alpha1.RegistryConfig) (KfApi, error) {
 	fs := afero.NewOsFs()
 	kApp, err := app.Load(fs, nil, appsDir)
 	if err != nil {
@@ -75,9 +78,12 @@ func NewKfApi(appName string, appsDir string) (KfApi, error) {
 		appName: appName,
 		appsDir: appsDir,
 		fs:      afero.NewOsFs(),
+		knownRegistries: knownRegistries,
 		kApp:    kApp,
 	}, nil
 }
+
+
 
 func (kfApi *kfApi) Libraries() (map[string]*v1alpha1.KsLibrary, error) {
 	libs, error := kfApi.kApp.Libraries()
@@ -112,6 +118,10 @@ func (kfApi *kfApi) Registries() (map[string]*v1alpha1.Registry, error) {
 	}
 
 	return registries, nil
+}
+
+func (kfApi *kfApi) RegistryConfigs() (map[string]v1alpha1.RegistryConfig, error) {
+	return kfApi.knownRegistries, nil
 }
 
 func (kfApi *kfApi) Root() string {

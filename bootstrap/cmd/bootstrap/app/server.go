@@ -17,28 +17,24 @@ package app
 import (
 	"errors"
 	"io/ioutil"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 	"net"
 	"os"
-	"os/user"
-	"path"
 	"regexp"
 	"strconv"
 
 	"github.com/ghodss/yaml"
 	"github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app/options"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/version"
 	log "github.com/sirupsen/logrus"
 	"k8s.io/api/storage/v1"
 	k8sVersion "k8s.io/apimachinery/pkg/version"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
 	"context"
 )
-
-// RecommendedConfigPathEnvVar is a environment variable for path configuration
-const RecommendedConfigPathEnvVar = "KUBECONFIG"
 
 // DefaultStorageAnnotation is the Name of the default annotation used to indicate
 // whether a storage class is the default.
@@ -46,9 +42,6 @@ const DefaultStorageAnnotation = "storageclass.beta.kubernetes.io/is-default-cla
 
 // Assume gcloud is on the path.
 const GcloudPath = "gcloud"
-
-const RegistriesRoot = "/opt/registries"
-
 
 
 // Load yaml config
@@ -87,30 +80,13 @@ func modifyGcloudCommand(config *clientcmdapi.Config) error {
 	return nil
 }
 
-// getKubeConfigFile tries to find a kubeconfig file.
-func getKubeConfigFile() string {
-	configFile := ""
-
-	usr, err := user.Current()
-	if err != nil {
-		log.Warningf("Could not get current user; error %v", err)
-	} else {
-		configFile = path.Join(usr.HomeDir, ".kube", "config")
-	}
-
-	if len(os.Getenv(RecommendedConfigPathEnvVar)) > 0 {
-		configFile = os.Getenv(RecommendedConfigPathEnvVar)
-	}
-
-	return configFile
-}
 
 // gGetClusterConfig obtain the config from the Kube configuration used by kubeconfig.
 func getClusterConfig(inCluster bool) (*rest.Config, error) {
 	if inCluster {
 		return rest.InClusterConfig()
 	}
-	configFile := getKubeConfigFile()
+	configFile := kftypes.GetKubeConfigFile()
 
 	if len(configFile) > 0 {
 
@@ -194,7 +170,7 @@ func processFile(opt *options.ServerOption, ksServer *ksServer) error {
 
 	appName := "kubeflow"
 
-	var appConfigFile AppConfigFile
+	var appConfigFile kftypes.ApplicationSpec
 	if err := LoadConfig(opt.Config, &appConfigFile); err != nil {
 		return err
 	}
@@ -236,7 +212,7 @@ func Run(opt *options.ServerOption) error {
 	}
 
 	// Load information about the default registries.
-	var regConfig RegistriesConfigFile
+	var regConfig kftypes.RegistriesConfigFile
 
 	if opt.RegistriesConfigFile != "" {
 		log.Infof("Loading registry info in file %v", opt.RegistriesConfigFile)

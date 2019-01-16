@@ -19,7 +19,32 @@ package v1alpha1
 import (
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	log "github.com/sirupsen/logrus"
+	"os"
+	"os/user"
+	"path"
 )
+
+// RecommendedConfigPathEnvVar is a environment variable for path configuration
+const RecommendedConfigPathEnvVar = "KUBECONFIG"
+
+// GetKubeConfigFile tries to find a kubeconfig file.
+func GetKubeConfigFile() string {
+	configFile := ""
+
+	usr, err := user.Current()
+	if err != nil {
+		log.Warningf("Could not get current user; error %v", err)
+	} else {
+		configFile = path.Join(usr.HomeDir, ".kube", "config")
+	}
+
+	if len(os.Getenv(RecommendedConfigPathEnvVar)) > 0 {
+		configFile = os.Getenv(RecommendedConfigPathEnvVar)
+	}
+
+	return configFile
+}
 
 // RegistryConfig is used for two purposes:
 // 1. used during image build, to configure registries that should be baked into the bootstrapper docker image.
@@ -107,27 +132,6 @@ type AppConfig struct {
 type ApplicationSpec struct {
 	App AppConfig `json:"app,omitempty"`
 }
-
-const (
-	KfApp            = "app"
-	KfArguments      = "arguments"
-	KfClientConfig   = "client-config"
-	KfComponentNames = "component-names"
-	KfCreate         = "create"
-	KfDryRun         = "dry-run"
-	KfEnvName        = "env-name"
-	KfForce          = "force"
-	KfGcTag          = "gc-tag"
-	KfName           = "name"
-	KfOverride       = "override"
-	KfPath           = "path"
-	KfPkgName        = "pkg-name"
-	KfSkipGc         = "skip-gc"
-	KfServer         = "server"
-	KfURI            = "URI"
-	KfValue          = "value"
-	KfVersion        = "version"
-)
 
 // ApplicationStatus defines the observed state of Application
 type ApplicationStatus struct {

@@ -395,18 +395,13 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 	}
 
 	// Add the registries to the app.
-	regs, regErr := kfApi.Registries()
-	if regErr != nil {
-		log.Errorf("There was a problem getting registries Error: %v", err)
-		return err
-	}
-	for idx, registry := range regs {
+	for idx, registry := range request.AppConfig.Registries {
 		RegUri, err := s.getRegistryUri(&registry)
 		if err != nil {
 			log.Errorf("There was a problem getRegistryUri for registry %v. Error: %v", registry.Name, err)
 			return err
 		}
-		regs[idx].RegUri = RegUri
+		request.AppConfig.Registries[idx].RegUri = RegUri
 		log.Infof("App %v add registry %v URI %v", request.Name, registry.Name, registry.RegUri)
 		registries, err := kfApi.Registries()
 		if err != nil {
@@ -764,7 +759,7 @@ func (s *ksServer) GetApp(project string, appName string, kfVersion string, toke
 	if err != nil {
 		return nil, repoDir, fmt.Errorf("App %s doesn't exist in Project %s", appName, project)
 	}
-	kfApi, err := v1alpha1.NewKfApi(appName, appDir)
+	kfApi, err := v1alpha1.NewKfApi(appName, appDir, s.knownRegistries)
 	if err != nil {
 		return nil, repoDir, fmt.Errorf("There was a problem creating KfApi %v. Error: %v", appName, err)
 	}
