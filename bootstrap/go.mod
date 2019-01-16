@@ -38,6 +38,7 @@ require (
 	github.com/go-openapi/validate v0.18.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gogo/protobuf v1.2.0 // indirect
+	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/groupcache v0.0.0-20181024230925-c65c006176ff // indirect
 	github.com/google/btree v0.0.0-20180813153112-4030bb1f1f0c // indirect
 	github.com/google/go-github v17.0.0+incompatible // indirect
@@ -93,7 +94,7 @@ require (
 	k8s.io/apimachinery v0.0.0-20190111195121-fa6ddc151d63
 	k8s.io/apiserver v0.0.0-20190116053355-a39732bdd925 // indirect
 	k8s.io/client-go v10.0.0+incompatible
-	k8s.io/code-generator v0.0.0-20181203112156-4d5dc3fc6a8d // indirect
+	k8s.io/code-generator v0.0.0-20180216214301-e637dd838fa7 // indirect
 	k8s.io/gengo v0.0.0-20190116091435-f8a0810f38af // indirect
 	k8s.io/helm v2.12.2+incompatible // indirect
 	k8s.io/klog v0.1.0 // indirect

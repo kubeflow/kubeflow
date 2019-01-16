@@ -28,7 +28,8 @@ auth:
 	gcloud auth configure-docker
 
 client-gen:
-	go get k8s.io/code-generator/cmd/client-gen@4d5dc3fc6a8dd917e4cc88b8a0d940ded92aee60
+	go get k8s.io/code-generator/cmd/client-gen@e637dd838fa7e0c44dabb67a897ce28c57903e5a && \
+	client-gen --fake-clientset=false --input apps/v1alpha1 --input-base github.com/kubeflow/kubeflow/bootstrap/pkg/apis --input-dirs github.com/kubeflow/kubeflow/bootstrap/pkg/apis --clientset-path github.com/kubeflow/kubeflow/bootstrap/pkg/client --clientset-name kfapi
 
 # Run go fmt against code
 fmt:
