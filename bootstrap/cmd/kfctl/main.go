@@ -15,7 +15,7 @@
 package main
 
 import (
-	"github.com/kubeflow/kubeflow/kfctl/cmd"
+	"github.com/kubeflow/kubeflow/bootstrap/cmd/kfctl/cmd"
 )
 
 func main() {

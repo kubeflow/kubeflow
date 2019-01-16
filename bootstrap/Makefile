@@ -27,16 +27,21 @@ all: build
 auth:
 	gcloud auth configure-docker
 
+client-gen:
+	go get k8s.io/code-generator/cmd/client-gen@e637dd838fa7e0c44dabb67a897ce28c57903e5a && \
+	client-gen --fake-clientset=false --input apps/v1alpha1 --input-base github.com/kubeflow/kubeflow/bootstrap/pkg/apis --input-dirs github.com/kubeflow/kubeflow/bootstrap/pkg/apis --clientset-path github.com/kubeflow/kubeflow/bootstrap/pkg/client --clientset-name kfapi
+
 # Run go fmt against code
 fmt:
-	go fmt ./cmd/...
+	go fmt ./pkg/... ./cmd/...
 
 # Run go vet against code
 vet:
-	go vet ./cmd/...
+	go vet ./pkg/... ./cmd/...
 
-build-local: fmt vet
+build-local: client-gen fmt vet
 	GO111MODULE=on go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
+	GO111MODULE=on go build -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
 
 # To edit which registries to add to bootstrapper, edit config (eg. config/default.yaml)
 build: build-local

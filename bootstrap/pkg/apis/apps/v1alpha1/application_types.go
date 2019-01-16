@@ -17,9 +17,39 @@ limitations under the License.
 package v1alpha1
 
 import (
+	log "github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apimachinery/registered"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"os"
+	"os/user"
+	"path"
 )
+
+// RecommendedConfigPathEnvVar is a environment variable for path configuration
+const RecommendedConfigPathEnvVar = "KUBECONFIG"
+
+// GetKubeConfigFile tries to find a kubeconfig file.
+func GetKubeConfigFile(k8sSpecFlag string) string {
+	_, regErr := registered.NewAPIRegistrationManager(k8sSpecFlag)
+	if regErr != nil {
+		log.Infof("no registration manager for %v.", k8sSpecFlag)
+	}
+	configFile := ""
+
+	usr, err := user.Current()
+	if err != nil {
+		log.Warningf("Could not get current user; error %v", err)
+	} else {
+		configFile = path.Join(usr.HomeDir, ".kube", "config")
+	}
+
+	if len(os.Getenv(RecommendedConfigPathEnvVar)) > 0 {
+		configFile = os.Getenv(RecommendedConfigPathEnvVar)
+	}
+
+	return configFile
+}
 
 // RegistryConfig is used for two purposes:
 // 1. used during image build, to configure registries that should be baked into the bootstrapper docker image.
@@ -66,7 +96,7 @@ type KsPackage struct {
 	Registry string `json:"registry,omitempty"`
 }
 
-type KsRegistry struct {
+type Registry struct {
 	// Name is the user defined name of a registry.
 	Name string `json:"-"`
 	// Protocol is the registry protocol for this registry. Currently supported
@@ -74,6 +104,26 @@ type KsRegistry struct {
 	Protocol string `json:"protocol"`
 	// URI is the location of the registry.
 	URI string `json:"uri"`
+}
+
+type LibrarySpec struct {
+	Version string
+	Path    string
+}
+
+// KsRegistry corresponds to ksonnet.io/registry
+// which is the registry.yaml file found in every registry.
+type KsRegistry struct {
+	ApiVersion string
+	Kind       string
+	Libraries  map[string]LibrarySpec
+}
+
+// RegistriesConfigFile corresponds to a YAML file specifying information
+// about known registries.
+type RegistriesConfigFile struct {
+	// Registries provides information about known registries.
+	Registries []RegistryConfig
 }
 
 type AppConfig struct {
@@ -87,29 +137,6 @@ type AppConfig struct {
 type ApplicationSpec struct {
 	App AppConfig `json:"app,omitempty"`
 }
-
-const (
-	KfApp            = "app"
-	KfArguments      = "arguments"
-	KfClientConfig   = "client-config"
-	KfComponentNames = "component-names"
-	KfCreate         = "create"
-	KfDryRun         = "dry-run"
-	KfEnvName        = "env-name"
-	KfForce          = "force"
-	KfGcTag          = "gc-tag"
-	KfName           = "name"
-	KfOverride       = "override"
-	KfPath           = "path"
-	KfPkgName        = "pkg-name"
-	KfSkipGc         = "skip-gc"
-	KfServer         = "server"
-	KfURI            = "URI"
-	KfValue          = "value"
-	KfVersion        = "version"
-)
-
-
 
 // ApplicationStatus defines the observed state of Application
 type ApplicationStatus struct {

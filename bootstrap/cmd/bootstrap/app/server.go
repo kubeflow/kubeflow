@@ -17,29 +17,26 @@ package app
 import (
 	"errors"
 	"io/ioutil"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 	"net"
 	"os"
-	"os/user"
-	"path"
 	"regexp"
 	"strconv"
 
 	"github.com/ghodss/yaml"
 	"github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app/options"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/version"
 	log "github.com/sirupsen/logrus"
 	"k8s.io/api/storage/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sVersion "k8s.io/apimachinery/pkg/version"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
 	"context"
 )
 
-// RecommendedConfigPathEnvVar is a environment variable for path configuration
-const RecommendedConfigPathEnvVar = "KUBECONFIG"
+const k8SpecsFlag = "version:v1.10.6"
 
 // DefaultStorageAnnotation is the Name of the default annotation used to indicate
 // whether a storage class is the default.
@@ -47,98 +44,6 @@ const DefaultStorageAnnotation = "storageclass.beta.kubernetes.io/is-default-cla
 
 // Assume gcloud is on the path.
 const GcloudPath = "gcloud"
-
-const RegistriesRoot = "/opt/registries"
-
-type KsComponent struct {
-	Name      string `json:"name"`
-	Prototype string `json:"prototype"`
-}
-
-type KsModule struct {
-	Name       string         `json:"name"`
-	Components []*KsComponent `json:"components,omitempty"`
-	Modules    []*KsModule    `json:"modules,omitempty"`
-}
-
-type KsPackage struct {
-	Name string `json:"name,omitempty"`
-	// Registry should be the name of the registry containing the package.
-	Registry string `json:"registry,omitempty"`
-}
-
-type ListPackages struct {
-	Packages []KsPackage
-}
-
-type KsParameter struct {
-	Component string `json:"component,omitempty"`
-	Name      string `json:"name,omitempty"`
-	Value     string `json:"value:omitempty"`
-}
-
-// RegistryConfig is used for two purposes:
-// 1. used during image build, to configure registries that should be baked into the bootstrapper docker image.
-//  (See: https://github.com/kubeflow/kubeflow/blob/master/bootstrap/image_registries.yaml)
-// 2. used during app create rpc call, specifies a registry to be added to an app.
-//	required info for registry: Name, Repo, Version, Path
-//  Additionally if any of required fields is blank we will try to map with one of
-//  the registries baked into the Docker image using the name.
-type RegistryConfig struct {
-	Name    string `json:"name,omitempty"`
-	Repo    string `json:"repo,omitempty"`
-	Version string `json:"version,omitempty"`
-	Path    string `json:"path,omitempty"`
-	RegUri  string `json:"reguri,omitempty"`
-}
-
-type AppConfig struct {
-	Registries []RegistryConfig `json:"registries,omitempty"`
-	Packages   []KsPackage      `json:"packages,omitempty"`
-	Components []KsComponent    `json:"components,omitempty"`
-	Parameters []KsParameter    `json:"parameters,omitempty"`
-}
-
-type DefaultApp struct {
-	Components []KsComponent `json:"components,omitempty"`
-	Parameters []KsParameter `json:"parameters,omitempty"`
-	Registries []KsRegistry  `json:"registries,omitempty"`
-}
-
-type Application struct {
-	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
-
-	AppAddress string     `json:"appaddress,omitempty"`
-	DefaultApp DefaultApp `json:"defaultapp:omitempty"`
-}
-
-// RegistriesConfigFile corresponds to a YAML file specifying information
-// about known registries.
-type RegistriesConfigFile struct {
-	// Registries provides information about known registries.
-	Registries []RegistryConfig
-}
-
-// AppConfigFile corresponds to a YAML file specifying information
-// about the app to create.
-type AppConfigFile struct {
-	// App describes a ksonnet application.
-	App AppConfig
-}
-
-type LibrarySpec struct {
-	Version string
-	Path    string
-}
-
-// KsRegistry corresponds to ksonnet.io/registry
-// which is the registry.yaml file found in every registry.
-type KsRegistry struct {
-	ApiVersion string
-	Kind       string
-	Libraries  map[string]LibrarySpec
-}
 
 // Load yaml config
 func LoadConfig(path string, o interface{}) error {
@@ -176,30 +81,12 @@ func modifyGcloudCommand(config *clientcmdapi.Config) error {
 	return nil
 }
 
-// getKubeConfigFile tries to find a kubeconfig file.
-func getKubeConfigFile() string {
-	configFile := ""
-
-	usr, err := user.Current()
-	if err != nil {
-		log.Warningf("Could not get current user; error %v", err)
-	} else {
-		configFile = path.Join(usr.HomeDir, ".kube", "config")
-	}
-
-	if len(os.Getenv(RecommendedConfigPathEnvVar)) > 0 {
-		configFile = os.Getenv(RecommendedConfigPathEnvVar)
-	}
-
-	return configFile
-}
-
 // gGetClusterConfig obtain the config from the Kube configuration used by kubeconfig.
 func getClusterConfig(inCluster bool) (*rest.Config, error) {
 	if inCluster {
 		return rest.InClusterConfig()
 	}
-	configFile := getKubeConfigFile()
+	configFile := kftypes.GetKubeConfigFile(k8SpecsFlag)
 
 	if len(configFile) > 0 {
 
@@ -283,7 +170,7 @@ func processFile(opt *options.ServerOption, ksServer *ksServer) error {
 
 	appName := "kubeflow"
 
-	var appConfigFile AppConfigFile
+	var appConfigFile kftypes.ApplicationSpec
 	if err := LoadConfig(opt.Config, &appConfigFile); err != nil {
 		return err
 	}
@@ -325,7 +212,7 @@ func Run(opt *options.ServerOption) error {
 	}
 
 	// Load information about the default registries.
-	var regConfig RegistriesConfigFile
+	var regConfig kftypes.RegistriesConfigFile
 
 	if opt.RegistriesConfigFile != "" {
 		log.Infof("Loading registry info in file %v", opt.RegistriesConfigFile)

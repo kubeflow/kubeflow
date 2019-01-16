@@ -24,7 +24,6 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"os"
 	"path/filepath"
-	"time"
 )
 
 var cfgFile string
@@ -74,9 +73,6 @@ var rootCmd = &cobra.Command{
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	fmt.Printf("20 seconds to attach to this process")
-	time.Sleep(20 * time.Second)
-
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
