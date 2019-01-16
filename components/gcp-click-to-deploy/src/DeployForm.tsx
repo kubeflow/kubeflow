@@ -144,7 +144,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
   public render() {
     const zoneList = ['us-central1-a', 'us-central1-c', 'us-east1-c', 'us-east1-d', 'us-west1-b',
       'europe-west1-b', 'europe-west1-d', 'asia-east1-a', 'asia-east1-b'];
-    const versionList = ['v0.3.5', 'v0.4.0'];
+    const versionList = ['v0.3.5'];
 
     return (
       <div>
@@ -188,9 +188,14 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         <div style={styles.row}>
           <TextField select={true} label="Kubeflow version:" required={true} style={styles.input} variant="filled"
             value={this.state.kfversion} onChange={this._handleChange('kfversion')}>
-            {versionList.map((version, i) => (
-              <MenuItem key={i} value={version}>{version}</MenuItem>
-            ))}
+            { process.env.REACT_APP_VERSIONS ?
+              process.env.REACT_APP_VERSIONS.split(',').map((version, i) => (
+                <MenuItem key={i} value={version}>{version}</MenuItem>
+              )) :
+              versionList.map((version, i) => (
+                <MenuItem key={i} value={version}>{version}</MenuItem>
+              ))
+            }
           </TextField>
         </div>
 
@@ -305,6 +310,33 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         if (this.state.clientId === '' || this.state.clientSecret === '') {
           p.value = 'null';
         }
+      }
+    }
+    // Customize config for v0.3 compatibility
+    // TODO: remove after https://github.com/kubeflow/kubeflow/pull/2019 merged
+    if (this.state.kfversion.startsWith('v0.3')) {
+      let metacontrollerIdx = -1;
+      for (let i = 0, len = this._configSpec.defaultApp.components.length; i < len; i++) {
+        const component = this._configSpec.defaultApp.components[i];
+        if (component.name === 'jupyter') {
+          component.name = 'jupyterhub';
+          component.prototype = 'jupyterhub';
+        }
+        if (component.name === 'metacontroller') {
+          metacontrollerIdx = i;
+        }
+      }
+      for (let i = 0, len = this._configSpec.defaultApp.parameters.length; i < len; i++) {
+        const p = this._configSpec.defaultApp.parameters[i];
+        if (p.component === 'jupyter') {
+          p.component = 'jupyterhub';
+        }
+        if (p.name === 'platform') {
+          p.name = 'cloud';
+        }
+      }
+      if (metacontrollerIdx !== -1) {
+        this._configSpec.defaultApp.components.splice(metacontrollerIdx, 1);
       }
     }
     this._configSpec.defaultApp.registries[0].version = this.state.kfversion;

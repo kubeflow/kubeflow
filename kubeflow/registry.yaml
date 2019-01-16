@@ -4,18 +4,24 @@ libraries:
   application:
     version: master
     path: application
-  notebooks:
-    version: master
-    path: notebooks
   metacontroller:
     version: master
     path: metacontroller
   profiles:
     version: master
     path: profiles
-  core:
+  common:
     version: master
-    path: core
+    path: common
+  gcp:
+    version: master
+    path: gcp
+  tensorboard:
+    version: master
+    path: tensorboard
+  examples:
+    version: master
+    path: examples
   jupyter:
     version: master
     path: jupyter
