@@ -36,7 +36,7 @@ import (
 
 type KfApi interface {
 	Libraries() (map[string]*v1alpha1.KsLibrary, error)
-	Registries() (map[string]*v1alpha1.KsRegistry, error)
+	Registries() (map[string]*v1alpha1.Registry, error)
 	Components() (map[string]*v1alpha1.KsComponent, error)
 	Root() string
 	Apply(components []string, cfg clientcmdapi.Config) error
@@ -82,7 +82,7 @@ func NewKfApi(appName string, appsDir string) (KfApi, error) {
 func (kfApi *kfApi) Libraries() (map[string]*v1alpha1.KsLibrary, error) {
 	libs, error := kfApi.kApp.Libraries()
 	if error != nil {
-		return nil, fmt.Errorf("There was a problem getting the libraries %v. Error: %v", kfApi.appName, error)
+		return nil, fmt.Errorf("there was a problem getting the libraries %v. Error: %v", kfApi.appName, error)
 	}
 
 	libraries := make(map[string]*v1alpha1.KsLibrary)
@@ -96,15 +96,15 @@ func (kfApi *kfApi) Libraries() (map[string]*v1alpha1.KsLibrary, error) {
 	return libraries, nil
 }
 
-func (kfApi *kfApi) Registries() (map[string]*v1alpha1.KsRegistry, error) {
+func (kfApi *kfApi) Registries() (map[string]*v1alpha1.Registry, error) {
 	regs, err := kfApi.kApp.Registries()
 	if err != nil {
 		return nil, fmt.Errorf("There was a problem getting the Registries %v. Error: %v", kfApi.appName, err)
 	}
 
-	registries := make(map[string]*v1alpha1.KsRegistry)
+	registries := make(map[string]*v1alpha1.Registry)
 	for k, v := range regs {
-		registries[k] = &v1alpha1.KsRegistry{
+		registries[k] = &v1alpha1.Registry{
 			Name:     v.Name,
 			Protocol: v.Protocol,
 			URI:      v.URI,
@@ -188,7 +188,7 @@ func (kfApi *kfApi) Components() (map[string]*v1alpha1.KsComponent, error) {
 	topModule := component.NewModule(kfApi.kApp, moduleName)
 	components, error := topModule.Components()
 	if error != nil {
-		return nil, fmt.Errorf("There was a problem getting the Components %v. Error: %v", kfApi.appName, error)
+		return nil, fmt.Errorf("there was a problem getting the Components %v. Error: %v", kfApi.appName, error)
 	}
 
 	comps := make(map[string]*v1alpha1.KsComponent)
@@ -217,7 +217,7 @@ func (kfApi *kfApi) Init(name string, envName string, k8sSpecFlag string, server
 
 	err := actions.RunInit(options)
 	if err != nil {
-		return fmt.Errorf("There was a problem initializing the app: %v", err)
+		return fmt.Errorf("there was a problem initializing the app: %v", err)
 	}
 	log.Infof("Successfully initialized the app %v.", name)
 

@@ -17,6 +17,7 @@ import (
 	"github.com/cenkalti/backoff"
 	"github.com/go-kit/kit/endpoint"
 	httptransport "github.com/go-kit/kit/transport/http"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -69,8 +70,8 @@ type KsService interface {
 
 	// kfctl client
 	// AddModule adds a new ksModule
-	AddModule(context.Context, KsModule) error
-	CreateApplication(context.Context, Application) error
+	AddModule(context.Context, kftypes.KsModule) error
+	CreateApplication(context.Context, kftypes.Application) error
 }
 
 type ksServer struct {
@@ -80,7 +81,7 @@ type ksServer struct {
 	// This can be used to map the name of a registry to info about the registry.
 	// This allows apps to specify a registry by name without having to know any
 	// other information about the regisry.
-	knownRegistries map[string]RegistryConfig
+	knownRegistries map[string]kftypes.RegistryConfig
 
 	//gkeVersionOverride allows overriding the GKE version specified in DM config. If not set the value in DM config is used.
 	// https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters
@@ -117,7 +118,7 @@ func (m MultiError) ToError() error {
 }
 
 // NewServer constructs a ksServer.
-func NewServer(appsDir string, registries []RegistryConfig, gkeVersionOverride string) (*ksServer, error) {
+func NewServer(appsDir string, registries []kftypes.RegistryConfig, gkeVersionOverride string) (*ksServer, error) {
 	if appsDir == "" {
 		return nil, fmt.Errorf("appsDir can't be empty")
 	}
@@ -125,7 +126,7 @@ func NewServer(appsDir string, registries []RegistryConfig, gkeVersionOverride s
 	s := &ksServer{
 		appsDir:            appsDir,
 		projectLocks:       make(map[string]*sync.Mutex),
-		knownRegistries:    make(map[string]RegistryConfig),
+		knownRegistries:    make(map[string]kftypes.RegistryConfig),
 		gkeVersionOverride: gkeVersionOverride,
 		fs:                 afero.NewOsFs(),
 	}
@@ -157,7 +158,7 @@ type CreateRequest struct {
 	// Name for the app.
 	Name string `json:"name,omitempty"`
 	// AppConfig is the config for the app.
-	AppConfig AppConfig `json:"appconfig,omitempty"`
+	AppConfig kftypes.AppConfig `json:"appconfig,omitempty"`
 
 	// Namespace for the app.
 	Namespace string `json:"namespace,omitempty"`
@@ -394,13 +395,18 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 	}
 
 	// Add the registries to the app.
-	for idx, registry := range request.AppConfig.Registries {
+	regs, regErr := kfApi.Registries()
+	if regErr != nil {
+		log.Errorf("There was a problem getting registries Error: %v", err)
+		return err
+	}
+	for idx, registry := range regs {
 		RegUri, err := s.getRegistryUri(&registry)
 		if err != nil {
 			log.Errorf("There was a problem getRegistryUri for registry %v. Error: %v", registry.Name, err)
 			return err
 		}
-		request.AppConfig.Registries[idx].RegUri = RegUri
+		regs[idx].RegUri = RegUri
 		log.Infof("App %v add registry %v URI %v", request.Name, registry.Name, registry.RegUri)
 		registries, err := kfApi.Registries()
 		if err != nil {
@@ -461,7 +467,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 
 // fetch remote registry to local disk, or use baked-in registry if version not specified in user request.
 // Then return registry's RegUri.
-func (s *ksServer) getRegistryUri(registry *RegistryConfig) (string, error) {
+func (s *ksServer) getRegistryUri(registry *kftypes.RegistryConfig) (string, error) {
 	if registry.Name == "" ||
 		registry.Path == "" ||
 		registry.Repo == "" ||
@@ -523,12 +529,12 @@ func runCmd(rawcmd string) error {
 }
 
 // CreateApp creates a ksonnet application based on the request.
-func (s *ksServer) CreateApplication(ctx context.Context, request Application) error {
+func (s *ksServer) CreateApplication(ctx context.Context, request kftypes.Application) error {
 	return nil
 }
 
 // appGenerate installs packages and creates components.
-func (s *ksServer) appGenerate(appConfig *AppConfig) error {
+func (s *ksServer) appGenerate(appConfig *kftypes.AppConfig) error {
 	libs, err := s.kfApi.Libraries()
 
 	if err != nil {
@@ -553,7 +559,7 @@ func (s *ksServer) appGenerate(appConfig *AppConfig) error {
 		_, err = s.fs.Stat(regFile)
 		if err == nil {
 			log.Infof("processing registry file %v ", regFile)
-			var ksRegistry KsRegistry
+			var ksRegistry kftypes.KsRegistry
 			if LoadConfig(regFile, &ksRegistry) == nil {
 				for pkgName, _ := range ksRegistry.Libraries {
 					_, err = s.fs.Stat(path.Join(registry.RegUri, pkgName))
@@ -843,7 +849,7 @@ func (s *ksServer) SaveAppToRepo(project string, email string, repoDir string) e
 	}, bo)
 }
 
-func (s *ksServer) AddModule(ctx context.Context, req KsModule) error {
+func (s *ksServer) AddModule(ctx context.Context, req kftypes.KsModule) error {
 	return nil
 }
 
@@ -978,7 +984,7 @@ func makeCreateAppEndpoint(svc KsService) endpoint.Endpoint {
 // Create ksonnet app, and optionally apply it to target GKE cluster
 func makeCreateApplicationEndpoint(svc KsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(Application)
+		req := request.(kftypes.Application)
 		err := svc.CreateApplication(ctx, req)
 
 		r := &basicServerResponse{}
@@ -994,7 +1000,7 @@ func makeCreateApplicationEndpoint(svc KsService) endpoint.Endpoint {
 // add module
 func makeAddModuleEndpoint(svc KsService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(KsModule)
+		req := request.(kftypes.KsModule)
 		err := svc.AddModule(ctx, req)
 		return nil, err
 	}
@@ -1136,7 +1142,7 @@ func makeIamEndpoint(svc KsService) endpoint.Endpoint {
 }
 
 func decodeAddModuleRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	var request KsModule
+	var request kftypes.KsModule
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		deployReqCounter.WithLabelValues("INVALID_ARGUMENT").Inc()
 		return nil, err
@@ -1154,7 +1160,7 @@ func decodeCreateAppRequest(_ context.Context, r *http.Request) (interface{}, er
 }
 
 func decodeCreateApplicationRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	var request Application
+	var request kftypes.Application
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		deployReqCounter.WithLabelValues("INVALID_ARGUMENT").Inc()
 		return nil, err
@@ -1163,7 +1169,7 @@ func decodeCreateApplicationRequest(_ context.Context, r *http.Request) (interfa
 }
 
 func decodeListPkgRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	var request KsRegistry
+	var request kftypes.KsRegistry
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		deployReqCounter.WithLabelValues("INVALID_ARGUMENT").Inc()
 		return nil, err

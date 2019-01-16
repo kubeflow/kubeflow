@@ -66,7 +66,7 @@ type KsPackage struct {
 	Registry string `json:"registry,omitempty"`
 }
 
-type KsRegistry struct {
+type Registry struct {
 	// Name is the user defined name of a registry.
 	Name string `json:"-"`
 	// Protocol is the registry protocol for this registry. Currently supported
@@ -74,6 +74,26 @@ type KsRegistry struct {
 	Protocol string `json:"protocol"`
 	// URI is the location of the registry.
 	URI string `json:"uri"`
+}
+
+type LibrarySpec struct {
+	Version string
+	Path    string
+}
+
+// KsRegistry corresponds to ksonnet.io/registry
+// which is the registry.yaml file found in every registry.
+type KsRegistry struct {
+	ApiVersion string
+	Kind       string
+	Libraries  map[string]LibrarySpec
+}
+
+// RegistriesConfigFile corresponds to a YAML file specifying information
+// about known registries.
+type RegistriesConfigFile struct {
+	// Registries provides information about known registries.
+	Registries []RegistryConfig
 }
 
 type AppConfig struct {
