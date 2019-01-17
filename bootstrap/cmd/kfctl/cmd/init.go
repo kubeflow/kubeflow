@@ -58,9 +58,14 @@ var initCmd = &cobra.Command{
 		for _, registry := range appConfigFile.App.Registries {
 			registries[registry.Name] = registry
 		}
-		_, err = v1alpha1.NewKfApi(appName, appName, registries)
-		if err != nil {
-			log.Errorf("couldn't create a new KfApi: %v", err)
+		kfApi, newErr := v1alpha1.NewKfApi(appName, appName, registries)
+		if newErr != nil {
+			log.Errorf("couldn't create a new KfApi: %v", newErr)
+			return
+		}
+		initErr := kfApi.Init(appName, "default", "", "", "")
+		if initErr != nil {
+			log.Errorf("couldn't initialize KfApi: %v", initErr)
 			return
 		}
 	},

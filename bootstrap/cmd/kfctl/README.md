@@ -2,8 +2,8 @@
 
 ## Overview
 
-The kfctl golang client will provide the same CLI as kfctl.sh but will 
-be implemented in golang. The port to golang is because:
+The kfctl golang client will provides the same CLI as kfctl.sh but is 
+implemented in golang. The port to golang is because:
 
 1. The UI (gcp-click-to-deploy) and kfctl should share the same ksonnet code when creating a kubeflow application.
 2. This common code will serve as a base for later efforts like migrating to ksonnet modules.
@@ -26,7 +26,7 @@ kfctl.sh generate all
 kfctl.sh apply all
 ```
 
-This will be implemented by the golang version (ie: remove .sh).
+This is now implemented by the golang version
 
 ## Requirements
 
