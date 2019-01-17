@@ -34,19 +34,19 @@ import (
 )
 
 type KfApi interface {
-	Libraries() (map[string]*v1alpha1.KsLibrary, error)
-	Registries() (map[string]*v1alpha1.Registry, error)
-	RegistryConfigs() (map[string]v1alpha1.RegistryConfig, error)
-	Components() (map[string]*v1alpha1.KsComponent, error)
-	Root() string
 	Apply(components []string, cfg clientcmdapi.Config) error
 	ComponentAdd(component string, args []string) error
+	Components() (map[string]*v1alpha1.KsComponent, error)
 	EnvSet(env string, host string) error
 	Init(name string, envName string, k8sSpecFlag string, serverURI string, namespace string) error
+	Libraries() (map[string]*v1alpha1.KsLibrary, error)
 	ParamSet(component string, name string, value string) error
 	PkgInstall(full string, pkgName string) error
 	PrototypeUse(m map[string]interface{}) error
+	Registries() (map[string]*v1alpha1.Registry, error)
 	RegistryAdd(name string, reguri string) error
+	RegistryConfigs() (map[string]v1alpha1.RegistryConfig, error)
+	Root() string
 }
 
 // ksServer provides a server to wrap ksonnet.

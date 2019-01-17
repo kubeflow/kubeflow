@@ -48,9 +48,8 @@ var initCmd = &cobra.Command{
 			log.Errorf("cannot create directory %v", appName)
 			return
 		}
-		config := utils.GetKubeConfigFile("")
 		var appConfigFile kftypes.ApplicationSpec
-		if err := utils.LoadConfig(config, &appConfigFile); err != nil {
+		if err := utils.LoadConfigData(appYamlTemplate, &appConfigFile); err != nil {
 			log.Errorf("couldn't load appConfigfile: %v", err)
 			return
 		}

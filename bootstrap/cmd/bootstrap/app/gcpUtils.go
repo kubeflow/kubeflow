@@ -68,7 +68,7 @@ func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) (*de
 	}
 	regPath := regs["kubeflow"].RegUri
 	var dmconf DmConf
-	err = utils.LoadConfig(path.Join(regPath, "../deployment/gke/deployment_manager_configs/cluster-kubeflow.yaml"), &dmconf)
+	err = utils.LoadConfigFile(path.Join(regPath, "../deployment/gke/deployment_manager_configs/cluster-kubeflow.yaml"), &dmconf)
 
 	if err == nil {
 		dmconf.Resources[0].Name = req.Name
@@ -239,7 +239,7 @@ func (s *ksServer) ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) erro
 	// Get the iam change from config.
 	templatePath := path.Join(regPath, "../deployment/gke/deployment_manager_configs/iam_bindings_template.yaml")
 	var iamConf IamConf
-	err = utils.LoadConfig(templatePath, &iamConf)
+	err = utils.LoadConfigFile(templatePath, &iamConf)
 	if err != nil {
 		log.Errorf("Failed to load iam config: %v", err)
 		return err

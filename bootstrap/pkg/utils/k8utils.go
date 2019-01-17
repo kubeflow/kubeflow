@@ -101,7 +101,7 @@ func GetClientOutOfCluster() kubernetes.Interface {
 }
 
 // Load yaml config
-func LoadConfig(path string, o interface{}) error {
+func LoadConfigFile(path string, o interface{}) error {
 	if path == "" {
 		return errors.New("empty path")
 	}
@@ -110,6 +110,14 @@ func LoadConfig(path string, o interface{}) error {
 		return err
 	}
 	if err = yaml.Unmarshal(data, o); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Load yaml config
+func LoadConfigData(data []byte, o interface{}) error {
+	if err := yaml.Unmarshal(data, o); err != nil {
 		return err
 	}
 	return nil

@@ -34,13 +34,13 @@ var kubeconfig *string
 var KfConfig *rest.Config
 var platform string
 var appFile string
-var appYamlTemplate = []byte(
-	`appAddress: https://35.203.163.54\n
+var appYamlTemplate = []byte(`
+appAddress: https://35.203.163.54\n
 app:\n
   env:\n
     name: default\n
     targets:\n
-    - core\n
+    - common\n
     - jupyter\n
   modules:\n
   - name: core\n
@@ -61,7 +61,8 @@ app:\n
   registries:\n
   - name: kubeflow\n
     version: github.com/kubeflow/kubeflow@v0.3.4\n
-    path: kubeflow\n`)
+    path: kubeflow\n
+`)
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{

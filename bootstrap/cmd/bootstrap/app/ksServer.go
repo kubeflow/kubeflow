@@ -563,7 +563,7 @@ func (s *ksServer) appGenerate(appConfig *kftypes.AppConfig) error {
 		if err == nil {
 			log.Infof("processing registry file %v ", regFile)
 			var ksRegistry kftypes.KsRegistry
-			if utils.LoadConfig(regFile, &ksRegistry) == nil {
+			if utils.LoadConfigFile(regFile, &ksRegistry) == nil {
 				for pkgName, _ := range ksRegistry.Libraries {
 					_, err = s.fs.Stat(path.Join(registry.RegUri, pkgName))
 					if err != nil {

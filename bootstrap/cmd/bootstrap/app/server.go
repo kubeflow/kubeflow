@@ -155,7 +155,7 @@ func processFile(opt *options.ServerOption, ksServer *ksServer) error {
 	appName := "kubeflow"
 
 	var appConfigFile kftypes.ApplicationSpec
-	if err := utils.LoadConfig(opt.Config, &appConfigFile); err != nil {
+	if err := utils.LoadConfigFile(opt.Config, &appConfigFile); err != nil {
 		return err
 	}
 
@@ -200,7 +200,7 @@ func Run(opt *options.ServerOption) error {
 
 	if opt.RegistriesConfigFile != "" {
 		log.Infof("Loading registry info in file %v", opt.RegistriesConfigFile)
-		if err := utils.LoadConfig(opt.RegistriesConfigFile, &regConfig); err != nil {
+		if err := utils.LoadConfigFile(opt.RegistriesConfigFile, &regConfig); err != nil {
 			return err
 		}
 	} else {

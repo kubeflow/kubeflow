@@ -2,31 +2,12 @@
 
 ## Overview
 
-The kfctl golang client will provides the same CLI as kfctl.sh but is 
-implemented in golang. The port to golang is because:
+The kfctl golang client provides the same CLI as kfctl.sh but is implemented in golang. 
+The move to golang is because:
 
 1. The UI (gcp-click-to-deploy) and kfctl should share the same ksonnet code when creating a kubeflow application.
 2. This common code will serve as a base for later efforts like migrating to ksonnet modules.
 3. New kfctl subcommands should be done in golang rather than bash so they can also be easily called by the UI.
-
-## Usage
-
-The initial version of kfctl will seek parity with kfctl.sh by implementing the following subcommands:
-- `init`            Initialize a kubeflow application.
-- `generate`        Generate the k8 manifests of the kubeflow application.
-- `apply`           Submit the k8 manifests to the api-server
-- `delete`          Delete the kubeflow application
-
-Typical usage of `kfctl.sh` is as follows:
-
-```sh
-kfctl.sh init myapp --platform generatic
-cd myapp
-kfctl.sh generate all
-kfctl.sh apply all
-```
-
-This is now implemented by the golang version
 
 ## Requirements
 
@@ -40,8 +21,56 @@ This is now implemented by the golang version
 
 ### 5. Avoid including extraneous dependencies in the library.
 
+## API
+
+The KfApi golang Interface used by both gcp-click-to-deploy and kfctl is shown below:
+
+```golang
+type KfApi interface {
+	Apply(components []string, cfg clientcmdapi.Config) error
+	ComponentAdd(component string, args []string) error
+	Components() (map[string]*v1alpha1.KsComponent, error)
+	EnvSet(env string, host string) error
+	Init(name string, envName string, k8sSpecFlag string, serverURI string, namespace string) error
+	Libraries() (map[string]*v1alpha1.KsLibrary, error)
+	ParamSet(component string, name string, value string) error
+	PkgInstall(full string, pkgName string) error
+	PrototypeUse(m map[string]interface{}) error
+	Registries() (map[string]*v1alpha1.Registry, error)
+	RegistryAdd(name string, reguri string) error
+	RegistryConfigs() (map[string]v1alpha1.RegistryConfig, error)
+	Root() string
+}
+```
+
+## Usage
+
+The initial version of kfctl will provide equivalent functionality as kfctl.sh by implementing 
+the following subcommands:
+
+- `init`            Initialize a kubeflow application.
+- `generate`        Generate the k8 manifests of the kubeflow application.
+- `apply`           Submit the k8 manifests to the api-server
+- `delete`          Delete the kubeflow application
+
+Typical usage of `kfctl.sh` is:
+
+```sh
+kfctl.sh init myapp --platform generatic
+cd myapp
+kfctl.sh generate all
+kfctl.sh apply all
+```
 
 ## Current Design
+
+### init subcommand
+
+The init subcommand calls 
+
+- NewKfApi(appName string, appsDir string, knownRegistries map[string]v1alpha1.RegistryConfig) 
+  - returns (KfApi, error)
+  
 
 ### UI REST Entry Points
 
