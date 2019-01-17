@@ -71,25 +71,25 @@ type KfApi interface {
 }
 ```
 
-### Related Types in github/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1
+### Related Types in github/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1/application_types.go
 
-AppConfig
-Application
-ApplicationCondition
-ApplicationConditionType
-ApplicationList
-ApplicationSpec
-ApplicationStatus
-KsComponent
-KsLibrary
-KsModule
-KsPackage
-KsParameter
-KsRegistry
-LibrarySpec
-RegistriesConfigFile
-Registry
-RegistryConfig
+- AppConfig
+- Application
+- ApplicationCondition
+- ApplicationConditionType
+- ApplicationList
+- ApplicationSpec
+- ApplicationStatus
+- KsComponent
+- KsLibrary
+- KsModule
+- KsPackage
+- KsParameter
+- KsRegistry
+- LibrarySpec
+- RegistriesConfigFile
+- Registry
+- RegistryConfig
 
 ## Usage
 
