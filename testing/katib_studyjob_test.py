@@ -85,7 +85,7 @@ def create_app_and_job(args, namespace, name):
   util.run(["ks", "apply", "default", "-c", "katib-studyjob-test"])
 
 # TODO: This should be moved into a common CRD library in kubeflow/testing.
-@retrying.retry(wait_fixed=10000, stop_max_attempt_number=20)
+@retry(wait_fixed=10000, stop_max_attempt_number=20)
 def log_status(study_job):
   """A callback to use with wait_for_job."""
   all_conditions = study_job.get("status", {}).get("conditions", [])

@@ -710,7 +710,7 @@
               "deploy_pytorchjob",
               "--params=image=pytorch/pytorch:v0.2,num_workers=1",
             ]),  // pytorchjob-deploy
-            buildTemplate("katib-studyjob-test", [
+            buildTemplate("katib-studyjob-test" + v1alpha1Suffix, [
               "python",
               "-m",
               "testing.katib_studyjob_test",
