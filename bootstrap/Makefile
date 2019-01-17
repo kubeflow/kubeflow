@@ -28,8 +28,10 @@ auth:
 	gcloud auth configure-docker
 
 client-gen:
-	go get k8s.io/code-generator/cmd/client-gen@e637dd838fa7e0c44dabb67a897ce28c57903e5a && \
-	client-gen --fake-clientset=false --input apps/v1alpha1 --input-base github.com/kubeflow/kubeflow/bootstrap/pkg/apis --input-dirs github.com/kubeflow/kubeflow/bootstrap/pkg/apis --clientset-path github.com/kubeflow/kubeflow/bootstrap/pkg/client --clientset-name kfapi
+	@rm -f $(shell find pkg/client/kfapi/ -name '*.go' -exec grep -lr 'DO NOT EDIT' {} \;)
+	go get k8s.io/code-generator/cmd/client-gen@kubernetes-1.10.12
+	mkdir -p ${GOPATH}/src/k8s.io/code-generator/hack && touch ${GOPATH}/src/k8s.io/code-generator/hack/boilerplate.go.txt
+	${GOPATH}/bin/client-gen --fake-clientset=false --input apps/v1alpha1 --input-base github.com/kubeflow/kubeflow/bootstrap/pkg/apis --input-dirs github.com/kubeflow/kubeflow/bootstrap/pkg/apis --clientset-path github.com/kubeflow/kubeflow/bootstrap/pkg/client --clientset-name kfapi
 
 # Run go fmt against code
 fmt:
