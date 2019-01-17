@@ -34,6 +34,7 @@ NAMESPACE = "default"
 STUDY_JOB_GROUP = "kubeflow.org"
 STUDY_JOB_PLURAL = "studyjobs"
 STUDY_JOB_KIND = "StudyJob"
+TIMEOUT = 120
 
 # TODO: TimeoutError is a built in exception in python3 so we can
 # delete this when we go to Python3.
