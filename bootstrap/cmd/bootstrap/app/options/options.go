@@ -26,6 +26,7 @@ type ServerOption struct {
 	InCluster            bool
 	KeepAlive            bool
 	Port                 int
+	AppName              string
 	AppDir               string
 	Config               string
 	Email                string

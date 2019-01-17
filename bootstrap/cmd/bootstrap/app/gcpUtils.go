@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
 	"time"
 
 	"io/ioutil"
@@ -60,9 +61,14 @@ func init() {
 
 // TODO: handle concurrent & repetitive deployment requests.
 func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) (*deploymentmanager.Deployment, error) {
-	regPath := s.knownRegistries["kubeflow"].RegUri
+	regs, err := s.kfApi.RegistryConfigs()
+	if err != nil {
+		return nil, fmt.Errorf("can't get RegistryConfigs %v", err)
+
+	}
+	regPath := regs["kubeflow"].RegUri
 	var dmconf DmConf
-	err := LoadConfig(path.Join(regPath, "../deployment/gke/deployment_manager_configs/cluster-kubeflow.yaml"), &dmconf)
+	err = utils.LoadConfig(path.Join(regPath, "../deployment/gke/deployment_manager_configs/cluster-kubeflow.yaml"), &dmconf)
 
 	if err == nil {
 		dmconf.Resources[0].Name = req.Name
@@ -225,11 +231,15 @@ func GetUpdatedPolicy(currentPolicy *cloudresourcemanager.Policy, iamConf *IamCo
 }
 
 func (s *ksServer) ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) error {
+	regs, err := s.kfApi.RegistryConfigs()
+	if err != nil {
+		return fmt.Errorf("can't get RegistryConfigs %v", err)
+	}
+	regPath := regs["kubeflow"].RegUri
 	// Get the iam change from config.
-	regPath := s.knownRegistries["kubeflow"].RegUri
 	templatePath := path.Join(regPath, "../deployment/gke/deployment_manager_configs/iam_bindings_template.yaml")
 	var iamConf IamConf
-	err := LoadConfig(templatePath, &iamConf)
+	err = utils.LoadConfig(templatePath, &iamConf)
 	if err != nil {
 		log.Errorf("Failed to load iam config: %v", err)
 		return err

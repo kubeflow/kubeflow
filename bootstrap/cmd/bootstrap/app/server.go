@@ -44,7 +44,6 @@ const DefaultStorageAnnotation = "storageclass.beta.kubernetes.io/is-default-cla
 // Assume gcloud is on the path.
 const GcloudPath = "gcloud"
 
-
 // ModifyGcloudCommand modifies the cmd-path in the kubeconfig file.
 //
 // We do this because we want to be able to mount the kubeconfig file into the container.
@@ -201,14 +200,14 @@ func Run(opt *options.ServerOption) error {
 
 	if opt.RegistriesConfigFile != "" {
 		log.Infof("Loading registry info in file %v", opt.RegistriesConfigFile)
-		if err := LoadConfig(opt.RegistriesConfigFile, &regConfig); err != nil {
+		if err := utils.LoadConfig(opt.RegistriesConfigFile, &regConfig); err != nil {
 			return err
 		}
 	} else {
 		log.Info("--registries-config-file not provided; not loading any registries")
 	}
 
-	ksServer, err := NewServer(opt.AppDir, regConfig.Registries, opt.GkeVersionOverride)
+	ksServer, err := NewServer(opt.AppName, opt.AppDir, regConfig.Registries, opt.GkeVersionOverride)
 
 	if err != nil {
 		return err

@@ -15,10 +15,9 @@ package utils
 
 import (
 	"errors"
+	"github.com/ghodss/yaml"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
-	"github.com/ghodss/yaml"
-
 
 	"k8s.io/apimachinery/pkg/apimachinery/registered"
 	"os"

@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
 	"net/http"
 	"path"
 	"sync"
@@ -76,12 +77,7 @@ type KsService interface {
 
 type ksServer struct {
 	// appsDir is the directory where apps should be stored.
-	appsDir string
-	// knownRegistries is a list of known registries
-	// This can be used to map the name of a registry to info about the registry.
-	// This allows apps to specify a registry by name without having to know any
-	// other information about the regisry.
-	knownRegistries map[string]kftypes.RegistryConfig
+	appDir string
 
 	//gkeVersionOverride allows overriding the GKE version specified in DM config. If not set the value in DM config is used.
 	// https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters
@@ -118,28 +114,36 @@ func (m MultiError) ToError() error {
 }
 
 // NewServer constructs a ksServer.
-func NewServer(appsDir string, registries []kftypes.RegistryConfig, gkeVersionOverride string) (*ksServer, error) {
-	if appsDir == "" {
+func NewServer(appName string, appDir string, registries []kftypes.RegistryConfig, gkeVersionOverride string) (*ksServer, error) {
+	if appDir == "" {
 		return nil, fmt.Errorf("appsDir can't be empty")
 	}
 
 	s := &ksServer{
-		appsDir:            appsDir,
+		appDir:             appDir,
 		projectLocks:       make(map[string]*sync.Mutex),
-		knownRegistries:    make(map[string]kftypes.RegistryConfig),
 		gkeVersionOverride: gkeVersionOverride,
 		fs:                 afero.NewOsFs(),
 	}
 
+	knownRegistries := make(map[string]kftypes.RegistryConfig)
+
 	for _, r := range registries {
-		s.knownRegistries[r.Name] = r
+		knownRegistries[r.Name] = r
 		if r.RegUri == "" {
 			return nil, fmt.Errorf("Known registry %v missing URI", r.Name)
 		}
 	}
 
-	log.Infof("appsDir is %v", appsDir)
-	info, err := s.fs.Stat(appsDir)
+	kfApi, err := v1alpha1.NewKfApi(appName, appDir, knownRegistries)
+	if err != nil {
+		return nil, fmt.Errorf("There was a problem creating KfApi %v. Error: %v", appName, err)
+	}
+
+	s.kfApi = kfApi
+
+	log.Infof("appsDir is %v", appDir)
+	info, err := s.fs.Stat(appDir)
 
 	// TODO(jlewi): Should we create the directory if it doesn't exist?
 	if err != nil {
@@ -147,7 +151,7 @@ func NewServer(appsDir string, registries []kftypes.RegistryConfig, gkeVersionOv
 	}
 
 	if !info.IsDir() {
-		return nil, fmt.Errorf("appsDir %v is not a directory", appsDir)
+		return nil, fmt.Errorf("appsDir %v is not a directory", appDir)
 	}
 
 	return s, nil
@@ -469,7 +473,11 @@ func (s *ksServer) getRegistryUri(registry *kftypes.RegistryConfig) (string, err
 		registry.Version == "" ||
 		registry.Version == "default" {
 
-		v, ok := s.knownRegistries[registry.Name]
+		registries, err := s.kfApi.RegistryConfigs()
+		if err != nil {
+			return "", err
+		}
+		v, ok := registries[registry.Name]
 		if !ok {
 			return "", fmt.Errorf("Create request uses registry %v but some "+
 				"required fields are not specified and this is not a known registry.", registry.Name)
@@ -555,7 +563,7 @@ func (s *ksServer) appGenerate(appConfig *kftypes.AppConfig) error {
 		if err == nil {
 			log.Infof("processing registry file %v ", regFile)
 			var ksRegistry kftypes.KsRegistry
-			if LoadConfig(regFile, &ksRegistry) == nil {
+			if utils.LoadConfig(regFile, &ksRegistry) == nil {
 				for pkgName, _ := range ksRegistry.Libraries {
 					_, err = s.fs.Stat(path.Join(registry.RegUri, pkgName))
 					if err != nil {
@@ -711,7 +719,7 @@ func (s *ksServer) CloneRepoToLocal(project string, token string) (string, error
 	// this random directory only lives in same request, and will be deleted before request finish.
 	// this can strengthen data isolation among different requests.
 	folderName := generateRandStr(20)
-	repoDir := path.Join(s.appsDir, folderName)
+	repoDir := path.Join(s.appDir, folderName)
 	if err := os.MkdirAll(repoDir, os.ModePerm); err != nil {
 		return "", err
 	}
@@ -759,7 +767,11 @@ func (s *ksServer) GetApp(project string, appName string, kfVersion string, toke
 	if err != nil {
 		return nil, repoDir, fmt.Errorf("App %s doesn't exist in Project %s", appName, project)
 	}
-	kfApi, err := v1alpha1.NewKfApi(appName, appDir, s.knownRegistries)
+	registries, err := s.kfApi.RegistryConfigs()
+	if err != nil {
+		return nil, "", err
+	}
+	kfApi, err := v1alpha1.NewKfApi(appName, appDir, registries)
 	if err != nil {
 		return nil, repoDir, fmt.Errorf("There was a problem creating KfApi %v. Error: %v", appName, err)
 	}

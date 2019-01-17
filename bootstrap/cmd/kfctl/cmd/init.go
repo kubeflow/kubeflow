@@ -16,13 +16,13 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1"
 
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
-	log "github.com/sirupsen/logrus"
 
 	"os"
 )
@@ -51,12 +51,17 @@ var initCmd = &cobra.Command{
 		config := utils.GetKubeConfigFile("")
 		var appConfigFile kftypes.ApplicationSpec
 		if err := utils.LoadConfig(config, &appConfigFile); err != nil {
+			log.Errorf("couldn't load appConfigfile: %v", err)
 			return
 		}
-
-		_, err = v1alpha1.NewKfApi(appName, appName, appConfigFile.App.Registries)
+		registries := make(map[string]kftypes.RegistryConfig)
+		for _, registry := range appConfigFile.App.Registries {
+			registries[registry.Name] = registry
+		}
+		_, err = v1alpha1.NewKfApi(appName, appName, registries)
 		if err != nil {
-
+			log.Errorf("couldn't create a new KfApi: %v", err)
+			return
 		}
 	},
 }
