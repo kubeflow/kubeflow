@@ -113,9 +113,7 @@ kfctl.sh apply all
 ### Kfctl subcommands
 
 - #### init subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/init.go)
-
-The init subcommand calls the following
-
+       The init subcommand calls the following
   - NewKfApi(appName string, appsDir string, knownRegistries map[string]v1alpha1.RegistryConfig) (KfApi, error)
   - KfApi.Init(name string, envName string, k8sSpecFlag string, serverURI string, namespace string) error
   - KfApi.RegistryAdd(name string, reguri string) error
