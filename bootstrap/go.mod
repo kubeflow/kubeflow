@@ -59,7 +59,7 @@ require (
 	github.com/juju/ratelimit v1.0.1 // indirect
 	github.com/ksonnet/ksonnet v0.13.1
 	github.com/ksonnet/ksonnet-lib v0.1.12 // indirect
-	github.com/kubeless/kubeless v1.0.1
+	github.com/kubernetes/code-generator v0.0.0-20181206115026-3a2206dd6a78 // indirect
 	github.com/mattn/go-colorable v0.0.9 // indirect
 	github.com/mattn/go-isatty v0.0.4 // indirect
 	github.com/mitchellh/go-homedir v1.0.0
@@ -95,7 +95,7 @@ require (
 	k8s.io/apimachinery v0.0.0-20190111195121-fa6ddc151d63
 	k8s.io/apiserver v0.0.0-20190116053355-a39732bdd925 // indirect
 	k8s.io/client-go v10.0.0+incompatible
-	k8s.io/code-generator v0.0.0-20180216214301-e637dd838fa7 // indirect
+	k8s.io/code-generator v0.0.0-20180601180426-9de8e796a74d // indirect
 	k8s.io/gengo v0.0.0-20190116091435-f8a0810f38af // indirect
 	k8s.io/helm v2.12.2+incompatible // indirect
 	k8s.io/klog v0.1.0 // indirect
@@ -116,5 +116,6 @@ replace (
 	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20180228050457-302974c03f7e
 	k8s.io/apiserver => k8s.io/apiserver v0.0.0-20180426121757-0841753fc26e // indirect
 	k8s.io/client-go => github.com/kubernetes/client-go v6.0.0+incompatible
+	k8s.io/code-generator/cmd/client-gen => k8s.io/code-generator/cmd/client-gen v0.0.0-20180228050103-7ead8f38b01c
 	k8s.io/kubernetes => k8s.io/kubernetes v1.10.2+incompatible
 )

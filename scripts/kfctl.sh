@@ -82,6 +82,8 @@ createEnv() {
            '$DEPLOYMENT_NAME'
            '$KUBEFLOW_EXTENDEDINFO')
 
+  export PLATFORM=${PLATFORM:-""}
+  export GKE_API_VERSION=${GKE_API_VERSION:-""}
   export KUBEFLOW_REPO=${KUBEFLOW_REPO:-"${DEFAULT_KUBEFLOW_REPO}"}
   export KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-"master"}
   export KUBEFLOW_KS_DIR=${KUBEFLOW_KS_DIR:-"$(pwd)/ks_app"}
