@@ -116,15 +116,15 @@ kfctl.sh apply all
 
 The init subcommand calls the following
 
-- NewKfApi(appName string, appsDir string, knownRegistries map[string]v1alpha1.RegistryConfig) (KfApi, error)
-- KfApi.Init(name string, envName string, k8sSpecFlag string, serverURI string, namespace string) error
-- KfApi.RegistryAdd(name string, reguri string) error
+    - NewKfApi(appName string, appsDir string, knownRegistries map[string]v1alpha1.RegistryConfig) (KfApi, error)
+    - KfApi.Init(name string, envName string, k8sSpecFlag string, serverURI string, namespace string) error
+    - KfApi.RegistryAdd(name string, reguri string) error
 
-- #### generate subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/apply.go)
+- #### generate subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/generate.go)
 
 - #### apply subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/apply.go)
 
-- #### delete subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/apply.go)
+- #### delete subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/delete.go)
   
 
 --- 
