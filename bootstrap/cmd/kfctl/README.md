@@ -1,5 +1,13 @@
 # kfctl golang client
 
+TL;DR
+- remaining work
+  - add viper for kfctl config (env.sh equivalent)
+  - test kfapi integrated calls in gcp-click-to-deploy
+  - generate, delete, apply subcommands need to call the same method in KfApi
+  - provide brew packaging
+  - provide completion for bash/zsh
+
 ## Overview
 
 The kfctl golang client provides the same CLI as kfctl.sh but is implemented in golang. 
