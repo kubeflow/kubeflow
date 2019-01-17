@@ -104,22 +104,17 @@ def create_app_and_job(args, namespace, name):
   util.run(["ks", "generate", prototype_name, name])
   util.run(["ks", "apply", "default", "-c", "katib-studyjob-test"])
 
-# TODO: This should be moved into a common CRD library in kubeflow/testing.
 @retry(wait_fixed=10000, stop_max_attempt_number=20)
 def log_status(study_job):
   """A callback to use with wait_for_job."""
-  all_conditions = study_job.get("status", {}).get("conditions", [])
-  conditions = [] if all_conditions is None else [
-    c.get("type", "") for c in all_conditions
-  ]
-  logging.info("Job %s in namespace %s; uid=%s; conditions=%s",
+  condition = study_job.get("status", {}).get("condition")
+  logging.info("Job %s in namespace %s; uid=%s; condition=%s",
                study_job.get("metadata", {}).get("name"),
                study_job.get("metadata", {}).get("namespace"),
-               study_job.get("metadata", {}).get("uid"), conditions)
+               study_job.get("metadata", {}).get("uid"), condition)
 
 # This is a modification of
 # https://github.com/kubeflow/tf-operator/blob/master/py/tf_job_client.py#L119.
-# TODO: This should be moved into a common CRD library in kubeflow/testing.
 # pylint: disable=too-many-arguments
 def wait_for_condition(client,
                        namespace,
@@ -166,12 +161,9 @@ def wait_for_condition(client,
         status_callback(results)
 
       # If we poll the CRD quick enough status won't have been set yet.
-      conditions = results.get("status", {}).get("conditions", [])
-      # Conditions might have a value of None in status.
-      conditions = conditions or []
-      for c in conditions:
-        if c.get("type", "") in expected_condition:
-          return results
+      condition = results.get("status", {}).get("condition")
+      if condition in expected_condition:
+        return results
 
     if datetime.datetime.now() + polling_interval > end_time:
       raise JobTimeoutError(
