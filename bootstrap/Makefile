@@ -21,6 +21,7 @@ GOLANG_GCFLAGS ?= ""
 IMG ?= gcr.io/$(GCLOUD_PROJECT)/bootstrapper
 TAG ?= $(eval TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6))$(TAG)
 PORT ?= 2345
+export GO111MODULE=on
 
 all: build
 
@@ -49,8 +50,8 @@ vet:
 	go vet ./pkg/... ./cmd/...
 
 build-local: client-gen fmt vet
-	GO111MODULE=on go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
-	GO111MODULE=on go build -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
+	go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
+	go build -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
 
 # To edit which registries to add to bootstrapper, edit config (eg. config/default.yaml)
 build: build-local
