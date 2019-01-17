@@ -24,7 +24,7 @@ The move to golang is because:
 
 ## API and Packaging
 
-Relevant Directory structure:
+New directories (cmd/kfctl, pkg):
 
 ```bash
   bootstrap
@@ -91,7 +91,7 @@ type KfApi interface {
 - Registry
 - RegistryConfig
 
-## Usage
+### Usage
 
 The initial version of kfctl will provide equivalent functionality as kfctl.sh by implementing 
 the following subcommands:
@@ -110,7 +110,7 @@ kfctl.sh generate all
 kfctl.sh apply all
 ```
 
-## Kfctl subcommands
+### Kfctl subcommands
 
 ### init subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/init.go)
 
@@ -121,7 +121,12 @@ The init subcommand calls the following
 - KfApi.RegistryAdd(name string, reguri string) error
   
 
-### UI REST Entry Points
+--- 
+
+## gcp-click-to-deploy
+
+
+### UI REST Entry Points (no changes)
 
 Current golang functions to build a ksonnet application are in ksServer.go and are called 
 by the UI. These functions are invoked from REST entrypoints bound in [ksServer.go](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/cmd/bootstrap/app/ksServer.go#L1291) and are shown below:
@@ -144,15 +149,13 @@ of interest is createAppHandler. This calls an [anonymous function](https://gith
 The other entrypoints are either not relevent to kfctl or implement part of what is done in 
 this anonymous function.
 
-### Analysis
-
-Methods from ksServer that are relevant to kfctl are:
+Methods from ksServer.go that need are relevant to KfApi
 - ksServer.CreateApp
 - ksServer.GetApp
 - ksServer.appGenerate
 - ksServer.createComponent
 
-Within these methods there are direct calls to ksonnet 
+Within the above methods there are direct calls to ksonnet 
 - Load
 - RunEnvSet
 - RunInit
@@ -162,242 +165,5 @@ Within these methods there are direct calls to ksonnet
 - RunParamSet
 - RunApply
 
-The primary type of interest to kfctl is AppConfig (see appendix).
+This have been replaced with method in KfApi.
 
-The createAppHandler call sequence is below (only relevant calls are shown):
-
-createAppHandler
-```
-Calls KsService.CreateApp(Context, CreateRequest, Deployment) //not relevant to kfctl
-  Calls KsService.GetProjectLock //not relevant to kfctl
-  Calls KsService.GetApp //not relevant to kfctl
-    Calls kApp.Load //RELEVENT
-    Returns appInfo, repoDir //RELEVENT
-  If ksonnet application exists 
-    Calls kApp.RunEnvSet //`ks env set` RELEVANT
-  Else
-    Calls kApp.RunInit //`ks init <app>` RELEVANT
-  Calls kApp.Load //RELEVANT
-
-  //RELEVANT
-  for CreateRequest.AppConfig.Registries //AppConfig is RELEVANT
-    Calls kApp.RunRegistryAdd //`ks registry add` RELEVANT
-
-  Calls KsService.appGenerate(kApp, AppConfig)  //RELEVANT
-    Calls kApp.Libraries //RELEVANT
-    for AppConfig.Registries
-      Calls kApp.RunPkgInstall //RELEVANT
-    for AppConfig.Packages
-      Calls kApp.RunPkgInstall //RELEVANT
-    for AppConfig.Components //RELEVANT
-      Calls KsService.createComponent //RELEVANT
-
-  Calls KsService.Apply //RELEVANT
-```
-
-- Note: Where there is a RELEVENT comment indicates where we need to insert a shared Interface that kfctl can use.
-- Note: kApp refers to the ksonnet interface.
-
-## Proposed Design
-
-### 1. Move the common interface and types required for the library to a pkg directory under bootstrap 
-       This will allow the library to be easily built and used by kfctl. See the MOVE annotations in the Appendix.
-
-### 2. Create a KfApi object in the library that wraps ksonnet calls
-    - Load
-    - RunEnvSet
-    - RunInit
-    - RunRegistryAdd
-    - RunPkgInstall
-    - RunPrototypeUse
-    - RunParamSet
-    - RunApply
-
-### 3. Call KfApi from kfctl, ksServer.go
-
-## Appendix
-
-### Existing Interfaces and Types
-
-
-- Note: MOVE annotations will also result in a KfApi object being created that uses these types
-
-```
-type KsService interface {
-	// CreateApp creates a ksonnet application.
-	CreateApp(context Context, request CreateRequest, deployment *deploymentmanager.Deployment) error
-	// Apply ksonnet app to target GKE cluster
-	Apply(context Context, request ApplyRequest) error
-	ConfigCluster(Context, CreateRequest) error
-	BindRole(context context.Context, project string, token string, iamaccount string) error
-	InsertDeployment(context.Context, CreateRequest) (*deploymentmanager.Deployment, error)
-	GetDeploymentStatus(context.Context, CreateRequest) (string, error)
-	ApplyIamPolicy(context.Context, ApplyIamRequest) error
-	GetProjectLock(string) *sync.Mutex
-// Additional Methods used by ksServer 
-        GetApp(project string, appName string, kfVersion string, token string) (*appInfo, string, error)
-        CloneRepoToLocal(project string, token string) (string, error)
-        SaveAppToRepo(project string, email string, repoDir string) error
-        // non-exportable
-        appGenerate(kfApp kApp.App, appConfig *AppConfig)
-        autoConfigureApp
-        createComponent
-        getRegistryUri
-}
-
-type CreateRequest struct {
-	// Name for the app.
-	Name string `json:"name,omitempty"`
-	// AppConfig is the config for the app.
-	AppConfig AppConfig `json:"appconfig,omitempty"`
-
-	// Namespace for the app.
-	Namespace string `json:"namespace,omitempty"`
-
-	// Whether to try to autoconfigure the app.
-	AutoConfigure bool `json:"autoConfigure,omitempty"`
-
-	// target GKE cLuster info
-	Cluster       string `json:"cluster,omitempty"`
-	Project       string `json:"project,omitempty"`
-	ProjectNumber string `json:"projectNumber,omitempty"`
-	Zone          string `json:"zone,omitempty"`
-
-	// Access token, need to access target cluster in order for AutoConfigure
-	Token string `json:"token,omitempty"`
-	Apply bool   `json:"apply,omitempty"`
-	Email string `json:"email,omitempty"`
-	// temporary
-	ClientId     string `json:"clientId,omitempty"`
-	ClientSecret string `json:"clientSecret,omitempty"`
-	IpName       string `json:"ipName,omitempty"`
-
-	// For test: GCP service account client id
-	SAClientId string `json:"saClientId,omitempty"`
-}
-
-//MOVE to subdir under pkg
-type AppConfig struct {
-	Registries []RegistryConfig `json:"registries,omitempty"`
-	Packages   []KsPackage      `json:"packages,omitempty"`
-	Components []KsComponent    `json:"components,omitempty"`
-	Parameters []KsParameter    `json:"parameters,omitempty"`
-}
-
-//MOVE to subdir under pkg
-type RegistryConfig struct {
-	Name    string `json:"name,omitempty"`
-	Repo    string `json:"repo,omitempty"`
-	Version string `json:"version,omitempty"`
-	Path    string `json:"path,omitempty"`
-	RegUri  string `json:"reguri,omitempty"`
-}
-
-//MOVE to subdir under pkg
-type KsComponent struct {
-	Name      string `json:"name"`
-	Prototype string `json:"prototype"`
-}
-
-//MOVE to subdir under pkg
-type KsParameter struct {
-	Component string `json:"component,omitempty"`
-	Name      string `json:"name,omitempty"`
-	Value     string `json:"value:omitempty"`
-}
-
-//MOVE to subdir under pkg
-type KsRegistry struct {
-	ApiVersion string
-	Kind       string
-	Libraries  map[string]LibrarySpec
-}
-
-type ApplyRequest struct {
-	// Name of the app to apply
-	Name string
-
-	// kubeflow version
-	KfVersion string
-
-	// Environment is the environment to use.
-	Environment string
-
-	// Components is a list of the names of the components to apply.
-	Components []string
-
-	// target GKE cLuster info
-	Cluster string
-	Project string
-	Zone    string
-
-	// Token is an authorization token to use to authorize to the K8s API Server.
-	// Leave blank to use the pods service account.
-	Token string
-	Email string
-
-	// For test: GCP service account client id
-	SAClientId string
-
-	// pass *appInfo if ks app is already on disk.
-	AppInfo *appInfo
-}
-
-//MOVE to subdir under pkg
-type appInfo struct {
-        // kApp.App is the ksonnet interface
-	App kApp.App
-}
-
-// App is a ksonnet application in the ksonnet library.
-type App interface {
-	// AddEnvironment adds an environment.
-	AddEnvironment(spec *EnvironmentConfig, k8sSpecFlag string, isOverride bool) error
-	// AddRegistry adds a registry.
-	AddRegistry(spec *RegistryConfig, isOverride bool) error
-	// CurrentEnvironment returns the current environment name or an empty string.
-	CurrentEnvironment() string
-	// Environment finds an environment by name.
-	Environment(name string) (*EnvironmentConfig, error)
-	// Environments returns all environments.
-	Environments() (EnvironmentConfigs, error)
-	// EnvironmentParams returns params for an environment.
-	EnvironmentParams(name string) (string, error)
-	// Fs is the app's afero Fs.
-	Fs() afero.Fs
-	// HTTPClient is the app's http client
-	HTTPClient() *http.Client
-	// IsEnvOverride returns whether the specified environment has overriding configuration
-	IsEnvOverride(name string) bool
-	// IsRegistryOverride returns whether the specified registry has overriding configuration
-	IsRegistryOverride(name string) bool
-	// LibPath returns the path of the lib for an environment.
-	LibPath(envName string) (string, error)
-	// Libraries returns all environments.
-	Libraries() (LibraryConfigs, error)
-	// Registries returns all registries.
-	Registries() (RegistryConfigs, error)
-	// RemoveEnvironment removes an environment from the main configuration or an override.
-	RemoveEnvironment(name string, override bool) error
-	// RenameEnvironment renames an environment in the main configuration or an override.
-	RenameEnvironment(from, to string, override bool) error
-	// Root returns the root path of the application.
-	Root() string
-	// SetCurrentEnvironment sets the current environment.
-	SetCurrentEnvironment(name string) error
-	// UpdateTargets sets the targets for an environment.
-	UpdateTargets(envName string, targets []string, isOverride bool) error
-	// UpdateLib adds, updates or removes a library reference.
-	// env is optional - if provided the reference is scoped under the environment,
-	// otherwise it is globally scoped.
-	// If spec if nil, the library reference will be removed.
-	// Returns the previous reference for the named library, if one existed.
-	UpdateLib(name string, env string, spec *LibraryConfig) (*LibraryConfig, error)
-	// UpdateRegistry updates a registry.
-	UpdateRegistry(spec *RegistryConfig) error
-	// Upgrade upgrades an application (app.yaml) to the current version.
-	Upgrade(bool) error
-	// VendorPath returns the root of the vendor path.
-	VendorPath() string
-}
-```
