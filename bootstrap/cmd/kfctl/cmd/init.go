@@ -15,7 +15,6 @@
 package cmd
 
 import (
-	"fmt"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1"
 
@@ -34,19 +33,20 @@ var initCmd = &cobra.Command{
 	Long:  `Create a kubeflow application template as <name>.yaml.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fs := afero.NewOsFs()
-
-		if appName == "" {
-			fmt.Print("name required")
+		if len(args) == 0 {
+			log.Errorf("appName required")
 			return
 		}
+		appName := args[0]
 		_, err := fs.Stat(appName)
 		if err == nil {
-			log.Errorf("Failed getting GKE cluster config: %v", err)
+			log.Errorf("cannot create app in existing directory %v", appName)
 			return
 		}
 		err = os.Mkdir(appName, os.ModePerm)
 		if err != nil {
-
+			log.Errorf("cannot create directory %v", appName)
+			return
 		}
 		config := utils.GetKubeConfigFile("")
 		var appConfigFile kftypes.ApplicationSpec
@@ -68,5 +68,5 @@ var initCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(initCmd)
-	createCmd.Flags().StringVarP(&appName, "name", "n", "app", "Name of yaml file")
+	createCmd.Flags().StringVarP(&platform, "platform", "p", "none", "Platform")
 }

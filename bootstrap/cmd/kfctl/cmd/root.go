@@ -32,8 +32,8 @@ var url string
 var debug bool
 var kubeconfig *string
 var KfConfig *rest.Config
+var platform string
 var appFile string
-var appName string
 var appYamlTemplate = []byte(
 	`appAddress: https://35.203.163.54\n
 app:\n
