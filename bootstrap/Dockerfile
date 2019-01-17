@@ -2,7 +2,7 @@
 # bootstrap_base
 #
 ARG GOLANG_VERSION=1.11.2
-FROM golang:$GOLANG_VERSION as bootstrap_base
+FROM golang:${GOLANG_VERSION} as bootstrap_base
 
 RUN apt-get update
 
@@ -19,10 +19,10 @@ RUN wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.ta
 RUN ln -sf /google-cloud-sdk/bin/gcloud /usr/local/bin/gcloud
 
 RUN mkdir -p /opt/kubeflow
-RUN mkdir -p $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap
-WORKDIR $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap
+RUN mkdir -p ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap
+WORKDIR ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap
 
-ENV PATH /go/bin:/usr/local/go/bin:$PATH
+ENV PATH /go/bin:/usr/local/go/bin:${PATH}
 # use go modules
 ENV GO111MODULE=on
 
@@ -34,13 +34,13 @@ RUN go build -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
 #
 # bootstrap
 #
-FROM golang:$GOLANG_VERSION as bootstrap
+FROM golang:${GOLANG_VERSION} as bootstrap
 ARG registries
 
 COPY $registries /opt/registries
 
 RUN mkdir -p /opt/kubeflow
-COPY --from=bootstrap_base $GOPATH/src/github.com/kubeflow/kubeflow/bootstrap/bin/bootstrapper /opt/kubeflow/
+COPY --from=bootstrap_base ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap/bin/bootstrapper /opt/kubeflow/
 
 COPY config/default.yaml /opt/kubeflow/
 COPY image_registries.yaml /opt/kubeflow/
@@ -48,7 +48,7 @@ RUN mkdir -p /opt/bootstrap
 RUN mkdir -p /opt/versioned_registries
 RUN chmod a+rx /opt/kubeflow/bootstrapper
 
-ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
+ENV PATH ${GOPATH}/bin:/usr/local/go/bin:${PATH}
 RUN mkdir -p /opt/kubeflow
 WORKDIR /opt/kubeflow
 
