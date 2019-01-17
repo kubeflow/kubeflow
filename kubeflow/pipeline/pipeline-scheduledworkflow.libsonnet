@@ -152,7 +152,7 @@
           singular: "scheduledworkflow",
         },
         scope: "Namespaced",
-        version: "v1alpha1",
+        version: "v1beta1",
       },
     },  // crd
   },  // parts
