@@ -7,21 +7,49 @@ The move to golang is because:
 
 1. The UI (gcp-click-to-deploy) and kfctl should share the same ksonnet code when creating a kubeflow application.
 2. This common code will serve as a base for later efforts like migrating to ksonnet modules.
-3. New kfctl subcommands should be done in golang rather than bash so they can also be easily called by the UI.
+3. New kfctl subcommands should be done in golang rather than bash so they can also be easily called by the UI as well.
 
 ## Requirements
 
-### 1. Create a common library for the UI and kfctl 
+### 1. Create a common API for the UI and kfctl (KfApi)
 
-### 2. Do not include GCP/IAM related types or functions within the common library.
+### 2. Do not include GCP/IAM related types or functions in KfApi.
 
 ### 3. Do not change existing REST entrypoints or the KsService interface in ksServer.go.
 
-### 4. Isolate the common interface and types in the library so that they can be easily used by kfctl.
+### 4. Package the KfApi interface and related types so that they can easily be used by kfctl.
 
-### 5. Avoid including extraneous dependencies in the library.
+### 5. Isolate all ksonnet operations within the KfApi package.
 
-## API
+
+## API and Packaging
+
+Relevant Directory structure:
+
+```bash
+  bootstrap
+  bootstrap/cmd
+  bootstrap/cmd/bootstrap
+  bootstrap/cmd/bootstrap/app
+  bootstrap/cmd/bootstrap/app/options
+* bootstrap/cmd/kfctl
+* bootstrap/cmd/kfctl/cmd
+* bootstrap/pkg
+* bootstrap/pkg/apis
+* bootstrap/pkg/apis/apps
+* bootstrap/pkg/apis/apps/v1alpha1
+* bootstrap/pkg/utils
+* bootstrap/pkg/client
+* bootstrap/pkg/client/kfapi
+* bootstrap/pkg/client/kfapi/scheme
+* bootstrap/pkg/client/kfapi/typed
+* bootstrap/pkg/client/kfapi/typed/apps
+* bootstrap/pkg/client/kfapi/typed/apps/v1alpha1
+
+(*) new
+```
+
+### KfApi Interface
 
 The KfApi golang Interface used by both gcp-click-to-deploy and kfctl is shown below:
 
@@ -43,6 +71,26 @@ type KfApi interface {
 }
 ```
 
+### Related Types in github/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1
+
+AppConfig
+Application
+ApplicationCondition
+ApplicationConditionType
+ApplicationList
+ApplicationSpec
+ApplicationStatus
+KsComponent
+KsLibrary
+KsModule
+KsPackage
+KsParameter
+KsRegistry
+LibrarySpec
+RegistriesConfigFile
+Registry
+RegistryConfig
+
 ## Usage
 
 The initial version of kfctl will provide equivalent functionality as kfctl.sh by implementing 
@@ -62,14 +110,15 @@ kfctl.sh generate all
 kfctl.sh apply all
 ```
 
-## Current Design
+## Current Subcommands
 
 ### init subcommand
 
-The init subcommand calls 
+The init subcommand calls the following
 
-- NewKfApi(appName string, appsDir string, knownRegistries map[string]v1alpha1.RegistryConfig) 
-  - returns (KfApi, error)
+- NewKfApi(appName string, appsDir string, knownRegistries map[string]v1alpha1.RegistryConfig) (KfApi, error)
+- KfApi.Init(name string, envName string, k8sSpecFlag string, serverURI string, namespace string) error
+- KfApi.RegistryAdd(name string, reguri string) error
   
 
 ### UI REST Entry Points
