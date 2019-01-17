@@ -1,6 +1,6 @@
 // @apiVersion 0.1
-// @name io.ksonnet.pkg.katib-test-v1alpha1
-// @description katib-test
+// @name io.ksonnet.pkg.katib-studyjob-test-v1alpha1
+// @description katib-studyjob-test
 // @shortDescription A Katib StudyJob using random suggestion
 // @param name string Name for the job.
 
@@ -32,7 +32,7 @@ local studyjob = {
         feasible: {
           min: "0.01",
           max: "0.03",
-        },   
+        },
       },
       // Add params here
     ],
@@ -43,7 +43,7 @@ local studyjob = {
           kind: Job
           metadata:
             name: {{.WorkerID}}
-            namespace: %(ns)s 
+            namespace: %(ns)s
           spec:
             template:
               spec:
