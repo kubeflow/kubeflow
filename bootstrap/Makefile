@@ -30,8 +30,15 @@ auth:
 client-gen:
 	@rm -f $(shell find pkg/client/kfapi/ -name '*.go' -exec grep -lr 'DO NOT EDIT' {} \;)
 	go get k8s.io/code-generator/cmd/client-gen@kubernetes-1.10.12
-	mkdir -p ${GOPATH}/src/k8s.io/code-generator/hack && touch ${GOPATH}/src/k8s.io/code-generator/hack/boilerplate.go.txt
-	${GOPATH}/bin/client-gen --fake-clientset=false --input apps/v1alpha1 --input-base github.com/kubeflow/kubeflow/bootstrap/pkg/apis --input-dirs github.com/kubeflow/kubeflow/bootstrap/pkg/apis --clientset-path github.com/kubeflow/kubeflow/bootstrap/pkg/client --clientset-name kfapi
+	mkdir -p ${GOPATH}/src/k8s.io/code-generator/hack && \
+		cp hack/boilerplate.go.txt ${GOPATH}/src/k8s.io/code-generator/hack/boilerplate.go.txt
+	${GOPATH}/bin/client-gen \
+		--fake-clientset=false \
+		--input apps/v1alpha1 \
+		--input-base github.com/kubeflow/kubeflow/bootstrap/pkg/apis \
+		--input-dirs github.com/kubeflow/kubeflow/bootstrap/pkg/apis \
+		--clientset-path github.com/kubeflow/kubeflow/bootstrap/pkg/client \
+		--clientset-name kfapi
 
 # Run go fmt against code
 fmt:
@@ -51,7 +58,10 @@ build: build-local
 	mkdir -p reg_tmp/kubeflow
 	cp -r ../kubeflow reg_tmp/kubeflow
 	cp -r ../deployment reg_tmp/kubeflow
-	docker build -t $(IMG):$(TAG) --build-arg GOLANG_VERSION=$(GOLANG_VERSION) --build-arg registries=reg_tmp --target=bootstrap .
+	docker build \
+		--build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
+		--build-arg registries=reg_tmp \
+		--target=bootstrap -t $(IMG):$(TAG) .
 	@echo Built $(IMG):$(TAG)
 
 # Build but don't attach the latest tag. This allows manual testing/inspection of the image
@@ -65,11 +75,16 @@ push-latest: push
 	echo created $(IMG):latest
 
 run-local:
-	KUBERNETES_SERVICE_HOST=https://35.233.240.120 KUBERNETES_SERVICE_PORT=80 bin/bootstrapper --app-dir=$$HOME/apps --registries-config-file=$$PWD/local_registries.yaml --config=$$PWD/config/default.yaml --in-cluster=false
+	KUBERNETES_SERVICE_HOST=https://35.233.240.120 KUBERNETES_SERVICE_PORT=80 \
+		bin/bootstrapper \
+		--app-dir=${HOME}/apps \
+		--registries-config-file=${PWD}/local_registries.yaml \
+		--config=${PWD}/config/default.yaml \
+		--in-cluster=false
 
 run-local-docker:
 	docker run -d -it --name bootstrapper \
-	  --mount type=bind,source=$$HOME/kf_app,target=/home/kubeflow \
+	  --mount type=bind,source=${HOME}/kf_app,target=/home/kubeflow \
 	  --entrypoint /bin/bash $(IMG):$(TAG)
 
 debug: push cleanup
