@@ -49,7 +49,7 @@ Relevant Directory structure:
 (*) new
 ```
 
-### KfApi Interface
+### KfApi Interface (github/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1/kfapi.go)
 
 The KfApi golang Interface used by both gcp-click-to-deploy and kfctl is shown below:
 
