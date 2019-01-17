@@ -18,10 +18,13 @@
 """
 
 import argparse
+import datetime
 import logging
+import multiprocessing
 import os
 import re
 import subprocess
+import time
 
 from kubernetes import client as k8s_client
 from kubeflow.testing import test_helper, util
@@ -31,6 +34,22 @@ NAMESPACE = "default"
 STUDY_JOB_GROUP = "kubeflow.org"
 STUDY_JOB_PLURAL = "studyjobs"
 STUDY_JOB_KIND = "StudyJob"
+
+# TODO: TimeoutError is a built in exception in python3 so we can
+# delete this when we go to Python3.
+class TimeoutError(Exception):  # pylint: disable=redefined-builtin
+  """An error indicating an operation timed out."""
+
+
+class JobTimeoutError(TimeoutError):
+  """An error indicating the job timed out.
+  The job spec/status can be found in .job.
+  """
+
+  def __init__(self, message, job):
+    super(JobTimeoutError, self).__init__(message)
+    self.job = job
+
 
 def parse_args():
   parser = argparse.ArgumentParser()
@@ -154,7 +173,7 @@ def wait_for_condition(client,
           return results
 
     if datetime.datetime.now() + polling_interval > end_time:
-      raise util.JobTimeoutError(
+      raise JobTimeoutError(
         "Timeout waiting for job {0} in namespace {1} to enter one of the "
         "conditions {2}.".format(name, namespace, conditions), results)
 
