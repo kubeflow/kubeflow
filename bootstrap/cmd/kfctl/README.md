@@ -110,9 +110,9 @@ kfctl.sh generate all
 kfctl.sh apply all
 ```
 
-## Current Subcommands
+## Kfctl subcommands
 
-### init subcommand
+### init subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/init.go)
 
 The init subcommand calls the following
 
