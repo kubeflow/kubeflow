@@ -28,7 +28,7 @@ def deploy_kubeflow(_):
   util.wait_for_statefulset(api_client, namespace, jupyter_name)
 
   # Verify that core components are actually deployed.
-  deployment_names = ["tf-job-operator-v1beta1", "pytorch-operator", "studyjob-controller", "vizier-core"]
+  deployment_names = ["tf-job-operator-v1beta1", "pytorch-operator", "studyjob-controller"]
   for deployment_name in deployment_names:
     logging.info("Verifying that %s started...", deployment_name)
     util.wait_for_deployment(api_client, namespace, deployment_name)

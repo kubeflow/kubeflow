@@ -68,6 +68,7 @@ def test_wait_for_deployment(test_case): # pylint: disable=redefined-outer-name
   end_time =  datetime.datetime.now() + datetime.timedelta(0, args.timeout*60)
   wait_for_resource("crd/tfjobs.kubeflow.org", end_time)
   wait_for_resource("crd/pytorchjobs.kubeflow.org", end_time)
+  wait_for_resource("crd/studyjobs.kubeflow.org", end_time)
   logging.info("Found all resources successfully")
 
 if __name__ == "__main__":
