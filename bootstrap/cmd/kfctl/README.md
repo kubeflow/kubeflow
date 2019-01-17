@@ -119,10 +119,13 @@ kfctl.sh apply all
   - KfApi.RegistryAdd(name string, reguri string) error
 
 - #### generate subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/generate.go)
+  TBD
 
 - #### apply subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/apply.go)
+  TBD
 
 - #### delete subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/delete.go)
+  TBD
   
 
 --- 
