@@ -21,7 +21,6 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"k8s.io/client-go/rest"
 	"os"
 	"text/template"
 )
@@ -29,9 +28,6 @@ import (
 var cfgFile string
 var token string
 var url string
-var debug bool
-var kubeconfig *string
-var KfConfig *rest.Config
 var platform string
 var appFile string
 var kfctlConfig = viper.New()
@@ -96,16 +92,16 @@ func initConfig() {
 		if err != nil {
 			panic(err.Error())
 		}
-		dir, err := fs.Stat(home+"/.kfctl")
+		dir, err := fs.Stat(home + "/.kfctl")
 		if err != nil {
-			tmpl, tmplErr := template.New("config").Parse(appYamlTemplate)
+			tmpl, tmplErr := template.New("defaultConfig").Parse(appYamlTemplate)
 			if tmplErr != nil {
 				panic(err)
 			}
 			type Repository struct {
-				Name string
+				Name    string
 				Version string
-				Path string
+				Path    string
 			}
 			type TemplateData struct {
 				ApiServer string
@@ -114,20 +110,23 @@ func initConfig() {
 			templateData := TemplateData{
 				ApiServer: "foo",
 				Repository: Repository{
-					Name:"bar",
-					Version:"0.4",
-					Path:"kubeflow",
+					Name:    "bar",
+					Version: "0.4",
+					Path:    "kubeflow",
 				},
 			}
 			var buf bytes.Buffer
-			tmpl.Execute(&buf, templateData)
+			execErr := tmpl.Execute(&buf, templateData)
+			if execErr != nil {
+				panic(execErr.Error())
+			}
 			errDefaultConfig := kfctlConfig.ReadConfig(bytes.NewBuffer(buf.Bytes()))
 			if errDefaultConfig != nil {
 				panic(errDefaultConfig.Error())
 			}
 		} else {
 			if dir.IsDir() {
-				_, configErr := fs.Stat(home+"/.kfctl/config")
+				_, configErr := fs.Stat(home + "/.kfctl/config")
 				if configErr == nil {
 					kfctlConfig.SetConfigName("config")
 					kfctlConfig.SetConfigType("yaml")

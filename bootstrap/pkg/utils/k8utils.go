@@ -114,4 +114,3 @@ func LoadConfigFile(path string, o interface{}) error {
 	}
 	return nil
 }
-

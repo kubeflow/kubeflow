@@ -71,11 +71,11 @@ type kfApi struct {
 	kApp            app.App
 }
 
-func NewKfApiWithRegistries(appName string, appsDir string, knownRegistries map[string]v1alpha1.RegistryConfig) (KfApi, error){
+func NewKfApiWithRegistries(appName string, appsDir string, knownRegistries map[string]v1alpha1.RegistryConfig) (KfApi, error) {
 	return NewKfApi(appName, appsDir, knownRegistries, nil, nil)
 }
 
-func NewKfApiWithConfig(appName string, appsDir string, init *viper.Viper) (KfApi, error){
+func NewKfApiWithConfig(appName string, appsDir string, init *viper.Viper) (KfApi, error) {
 	return NewKfApi(appName, appsDir, nil, init, nil)
 }
 
