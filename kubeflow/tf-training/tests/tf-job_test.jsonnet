@@ -1,22 +1,22 @@
 local tfjob = import "../tf-job-operator.libsonnet";
 local paramsv1alpha2 = {
-  name:: "tf-job-operator",
-  tfJobImage:: "gcr.io/kubeflow-images-public/tf_operator:kubeflow-tf-operator-postsubmit-v2-785f416-272-7f3c",
-  tfDefaultImage:: "null",
-  deploymentScope:: "cluster",
-  deploymentNamespace:: "null",
+  name: "tf-job-operator",
+  tfJobImage: "gcr.io/kubeflow-images-public/tf_operator:kubeflow-tf-operator-postsubmit-v2-785f416-272-7f3c",
+  tfDefaultImage: "null",
+  deploymentScope: "cluster",
+  deploymentNamespace: "null",
   tfJobVersion: "v1alpha2",
 };
 local paramsv1beta1 = {
-  name:: "tf-job-operator",
-  tfJobImage:: "gcr.io/kubeflow-images-public/tf_operator:kubeflow-tf-operator-postsubmit-v2-785f416-272-7f3c",
-  tfDefaultImage:: "null",
-  deploymentScope:: "cluster",
-  deploymentNamespace:: "null",
+  name: "tf-job-operator",
+  tfJobImage: "gcr.io/kubeflow-images-public/tf_operator:kubeflow-tf-operator-postsubmit-v2-785f416-272-7f3c",
+  tfDefaultImage: "null",
+  deploymentScope: "cluster",
+  deploymentNamespace: "null",
   tfJobVersion: "v1beta1",
 };
 local env = {
-  namespace:: "test-kf-001",
+  namespace: "test-kf-001",
 };
 
 local tfjobv1alpha2 = tfjob.new(env, paramsv1alpha2);
