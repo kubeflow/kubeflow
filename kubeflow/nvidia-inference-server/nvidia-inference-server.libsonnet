@@ -29,7 +29,7 @@
       image: $.params.image,
       imagePullPolicy: "IfNotPresent",
       command: [
-        "inference_server",
+        "trtserver",
       ],
       args: [
         "--model-store=" + $.params.modelRepositoryPath,
