@@ -62,8 +62,7 @@ RUN curl -LO https://github.com/GoogleCloudPlatform/docker-credential-gcr/releas
     tar -zxvf docker-credential-gcr_linux_amd64-${DOCKER_CREDENTIAL_GCR_VERSION}.tar.gz && \
     mv docker-credential-gcr /usr/local/bin/docker-credential-gcr && \
     rm docker-credential-gcr_linux_amd64-${DOCKER_CREDENTIAL_GCR_VERSION}.tar.gz && \
-    chmod +x /usr/local/bin/docker-credential-gcr && \
-    docker-credential-gcr configure-docker
+    chmod +x /usr/local/bin/docker-credential-gcr
 
 RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
     locale-gen
@@ -121,7 +120,8 @@ RUN pip install --upgrade pip && \
     jupyter-console==6.0.0 \
     jupyterhub \
     jupyterlab \
-    git+https://github.com/kubeflow/fairing@8087c0b4e4ae5007b7a21177047e8b8412be382e \
+    xgboost \
+    git+https://github.com/kubeflow/fairing@f82e75e78874f16ceaee756445100bb7fef96b58 \
     # Kubeflow pipeline SDK
     ${PIPELINE_SDK_PACKAGE} \
     # Cleanup
@@ -146,6 +146,8 @@ RUN rm -fr $(ls -A $HOME)
 # Copy over init scripts
 COPY --chown=jovyan:users start-singleuser.sh start-notebook.sh start.sh pvc-check.sh /usr/local/bin/
 RUN chmod a+rx /usr/local/bin/*
+
+RUN docker-credential-gcr configure-docker && chown jovyan:users $HOME/.docker/config.json
 
 # Configure container startup
 EXPOSE 8888
