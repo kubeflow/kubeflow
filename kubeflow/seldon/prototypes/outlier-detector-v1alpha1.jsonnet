@@ -9,6 +9,8 @@
 // @optionalParam endpoint string REST The endpoint type: REST or GRPC
 // @optionalParam pvcName string null Name of PVC
 // @optionalParam imagePullSecret string null name of image pull secret
+// @optionalParam oauthKey string null OAuth key
+// @optionalParam oauthSecret string null OAuth secret
 
 local k = import "k.libsonnet";
 
@@ -46,6 +48,8 @@ local seldonDeployment = {
       project_name: params.name,
     },
     name: params.name,
+    oauth_key: if params.oauthKey != "null" then params.oauthKey else "",
+    oauth_secret: if params.oauthKey != "null" then params.oauthSecret else "",    
     predictors: [
       {
         annotations: {
