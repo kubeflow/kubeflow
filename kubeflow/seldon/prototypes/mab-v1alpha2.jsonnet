@@ -11,6 +11,8 @@
 // @optionalParam endpointB string REST The endpoint type for modelB: REST or GRPC
 // @optionalParam pvcName string null Name of PVC
 // @optionalParam imagePullSecret string null name of image pull secret
+// @optionalParam oauthKey string null OAuth key
+// @optionalParam oauthSecret string null OAuth secret
 
 local k = import "k.libsonnet";
 
@@ -49,6 +51,8 @@ local seldonDeployment =
         deployment_version: "v1",
       },
       name: params.name,
+      oauth_key: if params.oauthKey != "null" then params.oauthKey else "",
+      oauth_secret: if params.oauthKey != "null" then params.oauthSecret else "",    
       predictors: [
         {
           componentSpecs: [
