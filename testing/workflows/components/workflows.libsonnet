@@ -295,6 +295,21 @@
 
         dependencies: ["wait-for-kubeflow"],
       },  // tfjob-simple-prototype-test
+      {
+
+        template: tests.buildTemplate {
+          name: "katib-studyjob-test",
+          command: [
+            "python",
+            "-m",
+            "testing.katib_studyjob_test",
+            "--src_dir=" + tests.srcDir,
+            "--studyjob_version=v1alpha1",
+          ],
+        },
+
+        dependencies: ["wait-for-kubeflow"],
+      },  // katib-studyjob-test
     ],
 
     // An Argo template for the dag.
@@ -348,6 +363,7 @@
       local bootstrapperImage = "gcr.io/kubeflow-ci/bootstrapper:" + name;
       // The last 4 digits of the name should be a unique id.
       local deploymentName = "e2e-" + std.substr(name, std.length(name) - 4, 4);
+      local v1alpha1Suffix = "-v1alpha1";
       local v1beta1Suffix = "-v1b1";
 
       // The name of the NFS volume claim to use for test files.
@@ -541,6 +557,13 @@
                       "deploy-kubeflow",
                     ],
                   },
+                  {
+                    name: "katib-studyjob-test",
+                    template: "katib-studyjob-test" + v1alpha1Suffix,
+                    dependencies: [
+                      "deploy-kubeflow",
+                    ],
+                  },
                 ]),  // tasks
               },  // dag
             },  // e2e template
@@ -671,7 +694,7 @@
               "--artifacts_path=" + artifactsDir,
               // Skip GPU tests
               "--skip_tests=test_simple_tfjob_gpu",
-            ]),  // run tests
+            ]),  // tfjob-test
             buildTemplate("pytorchjob-deploy", [
               "python",
               "-m",
@@ -685,6 +708,13 @@
               "deploy_pytorchjob",
               "--params=image=pytorch/pytorch:v0.2,num_workers=1",
             ]),  // pytorchjob-deploy
+            buildTemplate("katib-studyjob-test" + v1alpha1Suffix, [
+              "python",
+              "-m",
+              "testing.katib_studyjob_test",
+              "--src_dir=" + srcDir,
+              "--studyjob_version=v1alpha1",
+            ]),  // katib-studyjob-test
             buildTemplate("test-argo-deploy", [
               "python",
               "-m",
