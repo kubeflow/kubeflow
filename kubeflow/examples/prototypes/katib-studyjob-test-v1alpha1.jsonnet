@@ -8,7 +8,6 @@ local k = import "k.libsonnet";
 
 local name = params.name;
 local namespace = env.namespace;
-local image = "gcr.io/kubeflow-examples/ames-housing:96e7c2a7ae67";
 
 local studyjob = {
   apiVersion: "kubeflow.org/v1alpha1",
@@ -57,7 +56,7 @@ local studyjob = {
           kind: Job
           metadata:
             name: {{.WorkerID}}
-            namespace: %(ns)s
+            namespace: {{.NameSpace}}
           spec:
             template:
               spec:
@@ -74,7 +73,7 @@ local studyjob = {
                   {{- end}}
                   {{- end}}
                 restartPolicy: Never
-        ||| % { ns: namespace },
+        |||,
       },
     },
     suggestionSpec: {

@@ -112,8 +112,7 @@ def create_app_and_job(args, namespace, name):
 @retry(wait_fixed=10000, stop_max_attempt_number=20)
 def log_status(study_job):
   """A callback to use with wait_for_job."""
-  #TODO(ricliu): Fix the typo in katib API.
-  condition = study_job.get("status", {}).get("conditon")
+  condition = study_job.get("status", {}).get("condition")
   logging.info("Job %s in namespace %s; uid=%s; condition=%s",
                study_job.get("metadata", {}).get("name"),
                study_job.get("metadata", {}).get("namespace"),
@@ -166,8 +165,7 @@ def wait_for_condition(client,
       if status_callback:
         status_callback(results)
 
-      # TODO(ricliu): Fix the typo in katib API.
-      condition = results.get("status", {}).get("conditon")
+      condition = results.get("status", {}).get("condition")
       if condition in expected_condition:
         return results
 

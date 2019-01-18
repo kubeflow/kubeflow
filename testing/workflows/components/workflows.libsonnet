@@ -305,13 +305,11 @@
             "testing.katib_studyjob_test",
             "--src_dir=" + tests.srcDir,
             "--studyjob_version=v1alpha1",
-            "--test_dir=" + tests.testDir,
-            "--artifacts_dir=" + tests.artifactsDir,
           ],
         },
 
         dependencies: ["wait-for-kubeflow"],
-      },  // tfjob-simple-prototype-test
+      },  // katib-studyjob-test
     ],
 
     // An Argo template for the dag.
