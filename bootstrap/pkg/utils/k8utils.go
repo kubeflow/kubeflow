@@ -17,6 +17,7 @@ import (
 	"errors"
 	"github.com/ghodss/yaml"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"io/ioutil"
 
 	"k8s.io/apimachinery/pkg/apimachinery/registered"
@@ -117,6 +118,7 @@ func LoadConfigFile(path string, o interface{}) error {
 
 // Load yaml config
 func LoadConfigData(data []byte, o interface{}) error {
+	viper.SetConfigName("env")
 	if err := yaml.Unmarshal(data, o); err != nil {
 		return err
 	}

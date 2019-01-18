@@ -26,6 +26,7 @@ import (
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 	"k8s.io/apimachinery/pkg/apimachinery/registered"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
@@ -49,6 +50,11 @@ type KfApi interface {
 	Root() string
 }
 
+type kfConfig struct {
+	init *viper.Viper
+	env  *viper.Viper
+}
+
 // ksServer provides a server to wrap ksonnet.
 // This allows ksonnet applications to be managed remotely.
 type kfApi struct {
@@ -60,9 +66,9 @@ type kfApi struct {
 	// This allows apps to specify a registry by name without having to know any
 	// other information about the regisry.
 	knownRegistries map[string]v1alpha1.RegistryConfig
-
-	fs   afero.Fs
-	kApp app.App
+	configs         kfConfig
+	fs              afero.Fs
+	kApp            app.App
 }
 
 func NewKfApi(appName string, appsDir string, knownRegistries map[string]v1alpha1.RegistryConfig) (KfApi, error) {
@@ -76,7 +82,11 @@ func NewKfApi(appName string, appsDir string, knownRegistries map[string]v1alpha
 		appsDir:         appsDir,
 		fs:              afero.NewOsFs(),
 		knownRegistries: knownRegistries,
-		kApp:            kApp,
+		configs: kfConfig{
+			init: viper.New(),
+			env:  viper.New(),
+		},
+		kApp: kApp,
 	}, nil
 }
 
