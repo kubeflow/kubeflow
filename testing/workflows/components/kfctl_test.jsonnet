@@ -391,11 +391,11 @@ local workflow = {
         workflow: params.name,
         workflow_template: workflow_template,
     },
-  },
-  // Have argo garbage collect old workflows otherwise we overload the API server.
-  ttlSecondsAfterFinished: 7 * 24 * 60 * 60,
+  },  
   spec: {
     entrypoint: "e2e",
+    // Have argo garbage collect old workflows otherwise we overload the API server.
+    ttlSecondsAfterFinished: 7 * 24 * 60 * 60,
     volumes: [
       {
         name: "github-token",
