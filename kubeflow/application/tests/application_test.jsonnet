@@ -7,7 +7,7 @@ local params = {
   emitController: true,
 };
 local env = {
-  namespace:: "test-kf-001",
+  namespace: "test-kf-001",
 };
 
 local instance = application.new(env, params);

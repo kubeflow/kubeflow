@@ -16,7 +16,7 @@ local params = {
 };
 
 local env = {
-  namespace:: "test-kf-001",
+  namespace: "test-kf-001",
 };
 local instance_gpu = tf_batch_predict.new(env, params);
 
