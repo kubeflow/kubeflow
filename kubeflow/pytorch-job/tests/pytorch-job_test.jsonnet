@@ -2,6 +2,7 @@
 // You can run the test as follows
 // jsonnet eval ./kubeflow/pytorch-job/tests/pytorch-job_test.jsonnet --jpath ./kubeflow --jpath ./testing/workflows/lib/v1.7.0/
 
+local testSuite = import "kubeflow/common/testsuite.libsonnet";
 local pyjob = import "../pytorch-operator.libsonnet";
 local paramsv1alpha2 = {
   image: "pyControllerImage",
@@ -202,26 +203,4 @@ local testCases = [
   },
 ];
 
-local testEqual(x) = x {
-  pass: x.actual == x.expected,
-};
-
-// For each test case determine whether expected matches equals
-local testCasesWithResults = std.map(
-  testEqual,
-  testCases,
-);
-
-// Compute test suite.
-local foldResults(left, right) = {
-  pass: left.pass && right.pass,
-};
-
-local initResult = { pass: true };
-local suiteResult = std.foldl(foldResults, testCasesWithResults, initResult);
-
-local testSuite = suiteResult {
-  testCases: testCasesWithResults,
-};
-
-testSuite
+testSuite.run(testCases)
