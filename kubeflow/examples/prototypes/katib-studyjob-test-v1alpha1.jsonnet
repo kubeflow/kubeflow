@@ -34,7 +34,21 @@ local studyjob = {
           max: "0.03",
         },
       },
-      // Add params here
+      {
+        name: "--num-layers",
+        parametertype: "int",
+        feasible: {
+          min: "2",
+          max: "5",
+        },
+      },
+      {
+        name: "--optimizer",
+        parametertype: "categorical",
+        feasible: {
+          list: ["sgd", "adam", "ftrl"],
+        },
+      },
     ],
     workerSpec: {
       goTemplate: {

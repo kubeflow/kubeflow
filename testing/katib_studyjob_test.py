@@ -15,6 +15,11 @@
 # limitations under the License.
 
 """
+Launch a simple katib studyjob and verify that it runs.
+TODO(ricliu): This code shares a lot in common with the e2etest for tf-operator.
+Consider merging the common code into a CRD library. There are only some minor
+differences - for example TFJob Status has a list of job conditions, whereas Katib
+Studyjob status only shows the most recent condition.
 """
 
 import argparse
@@ -107,6 +112,7 @@ def create_app_and_job(args, namespace, name):
 @retry(wait_fixed=10000, stop_max_attempt_number=20)
 def log_status(study_job):
   """A callback to use with wait_for_job."""
+  #TODO(ricliu): Fix the typo in katib API.
   condition = study_job.get("status", {}).get("conditon")
   logging.info("Job %s in namespace %s; uid=%s; condition=%s",
                study_job.get("metadata", {}).get("name"),
@@ -160,7 +166,7 @@ def wait_for_condition(client,
       if status_callback:
         status_callback(results)
 
-      # If we poll the CRD quick enough status won't have been set yet.
+      # TODO(ricliu): Fix the typo in katib API.
       condition = results.get("status", {}).get("conditon")
       if condition in expected_condition:
         return results
