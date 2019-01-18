@@ -15,10 +15,10 @@
 package cmd
 
 import (
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1"
+	"github.com/mitchellh/go-homedir"
+	"regexp"
 
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
@@ -37,27 +37,29 @@ var initCmd = &cobra.Command{
 			log.Errorf("appName required")
 			return
 		}
-		appName := args[0]
-		_, err := fs.Stat(appName)
+		path := args[0]
+		re := regexp.MustCompile(`^~`)
+		if re.MatchString(path) {
+			home, err := homedir.Dir()
+			if err != nil {
+				log.Errorf("can't find home directory")
+				return
+			}
+			path = re.ReplaceAllString(path, home)
+		}
+		_, err := fs.Stat(path)
 		if err == nil {
-			log.Errorf("cannot create app in existing directory %v", appName)
+			log.Errorf("cannot create app in existing directory %v", path)
 			return
 		}
-		err = os.Mkdir(appName, os.ModePerm)
+		err = os.Mkdir(path, os.ModePerm)
 		if err != nil {
-			log.Errorf("cannot create directory %v", appName)
+			log.Errorf("cannot create directory %v", path)
 			return
 		}
-		var appConfigFile kftypes.ApplicationSpec
-		if err := utils.LoadConfigData(appYamlTemplate, &appConfigFile); err != nil {
-			log.Errorf("couldn't load appConfigfile: %v", err)
-			return
-		}
-		registries := make(map[string]kftypes.RegistryConfig)
-		for _, registry := range appConfigFile.App.Registries {
-			registries[registry.Name] = registry
-		}
-		kfApi, newErr := v1alpha1.NewKfApi(appName, appName, registries)
+		appName := regexp.MustCompile(`^.*/`).FindString(path)
+		appDir := regexp.MustCompile(`/*$`).FindString(path)
+		kfApi, newErr := v1alpha1.NewKfApiWithConfig(appName, appDir, kfctlConfig)
 		if newErr != nil {
 			log.Errorf("couldn't create a new KfApi: %v", newErr)
 			return

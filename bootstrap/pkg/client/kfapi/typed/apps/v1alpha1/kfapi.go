@@ -71,23 +71,43 @@ type kfApi struct {
 	kApp            app.App
 }
 
-func NewKfApi(appName string, appsDir string, knownRegistries map[string]v1alpha1.RegistryConfig) (KfApi, error) {
+func NewKfApiWithRegistries(appName string, appsDir string, knownRegistries map[string]v1alpha1.RegistryConfig) (KfApi, error){
+	return NewKfApi(appName, appsDir, knownRegistries, nil, nil)
+}
+
+func NewKfApiWithConfig(appName string, appsDir string, init *viper.Viper) (KfApi, error){
+	return NewKfApi(appName, appsDir, nil, init, nil)
+}
+
+func NewKfApi(appName string, appsDir string, knownRegistries map[string]v1alpha1.RegistryConfig,
+	init *viper.Viper, env *viper.Viper) (KfApi, error) {
+
 	fs := afero.NewOsFs()
 	kApp, err := app.Load(fs, nil, appsDir)
 	if err != nil {
 		return nil, fmt.Errorf("There was a problem loading app %v. Error: %v", appName, err)
 	}
-	return &kfApi{
+	kfapi := &kfApi{
 		appName:         appName,
 		appsDir:         appsDir,
 		fs:              afero.NewOsFs(),
-		knownRegistries: knownRegistries,
+		knownRegistries: make(map[string]v1alpha1.RegistryConfig),
 		configs: kfConfig{
 			init: viper.New(),
 			env:  viper.New(),
 		},
 		kApp: kApp,
-	}, nil
+	}
+	if knownRegistries != nil {
+		kfapi.knownRegistries = knownRegistries
+	}
+	if init != nil {
+		kfapi.configs.init = init
+	}
+	if env != nil {
+		kfapi.configs.env = env
+	}
+	return kfapi, nil
 }
 
 func (kfApi *kfApi) Libraries() (map[string]*v1alpha1.KsLibrary, error) {
