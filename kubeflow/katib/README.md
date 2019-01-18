@@ -7,8 +7,8 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Quickstart](#quickstart)
-  - [TF-job operator](#tf-job-operator)
-  - [Pytorch-operator](#pytorch-operator)
+  - [TF operator](#tf-operator)
+  - [Pytorch operator](#pytorch-operator)
   - [Katib](#katib)
   - [Cleanups](#cleanups)
 
@@ -16,7 +16,7 @@
 
 ## Quickstart
 
-For running Katib, you have to install tfjob operator and pytorch operator package.
+For running Katib, you have to install tf operator and pytorch operator package.
 
 In your Ksonnet app root, run the following
 
@@ -26,9 +26,9 @@ ks env set ${KF_ENV} --namespace=kubeflow
 ks registry add kubeflow github.com/kubeflow/kubeflow/tree/master/kubeflow
 ```
 
-### TFjob operator
+### TF operator
 
-For installing tfjob operator, run the following
+For installing tf operator, run the following
 
 ```
 ks pkg install kubeflow/tf-training
@@ -56,7 +56,7 @@ ks generate katib katib
 ks apply ${KF_ENV} -c katib
 ```
 
-If you want to use Katib not in GKE and you don't have StorageClass for dynamic volume provisioning at your cluster, you have to create persistent volume to bound your persistent volume claim.
+If you want to use Katib not in GKE and you don't have StorageClass for dynamic volume provisioning at your cluster, you have to create persistent volume to bound your persistent volume claim. For additional information about persistent volume, visit Kubernetes [documentation](https://kubernetes.io/docs/concepts/storage/persistent-volumes/).
 
 This is yaml file for persistent volume
 
