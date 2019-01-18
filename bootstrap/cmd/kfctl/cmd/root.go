@@ -36,33 +36,21 @@ var platform string
 var appFile string
 var kfctlConfig = viper.New()
 var appYamlTemplate = string(`
+apiVersion: {{.Version}}\n
+kind: KfConfig\n
 appAddress: {{.ApiServer}}\n
 app:\n
   env:\n
     name: default\n
     targets:\n
-    - common\n
-    - jupyter\n
-  modules:\n
-  - name: core\n
-    components:\n
-    - name: ambassador\n
-      prototype: ambassador\n
-    - name: centraldashboard\n
-      prototype: centraldashboard\n
-  - name: jupyter\n
-    components:\n
-    - name: jupyter\n
-      prototype: jupyter\n
+    - metacontroller\n
+    - application\n
+  components:\n
   parameters:\n
-  - module: core\n
-    - component: ambassador\n
-      name: ambassadorServiceType\n
-      value: LoadBalancer\n
   registries:\n
-  - name: {{.Name}}\n
-    version: {{.Version}}\n
-    path: {{.Path}}\n
+  - name: {{.Registry.Name}}\n
+    version: {{.Registry.Version}}\n
+    path: {{.Registry.Path}}\n
 `)
 
 // rootCmd represents the base command when called without any subcommands
@@ -152,7 +140,6 @@ func initConfig() {
 			}
 		}
 	}
-
 	kfctlConfig.AutomaticEnv() // read in environment variables that match
 
 }

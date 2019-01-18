@@ -35,11 +35,6 @@ The move to golang is because:
 New directories (cmd/kfctl, pkg):
 
 ```bash
-  bootstrap
-  bootstrap/cmd
-  bootstrap/cmd/bootstrap
-  bootstrap/cmd/bootstrap/app
-  bootstrap/cmd/bootstrap/app/options
 * bootstrap/cmd/kfctl
 * bootstrap/cmd/kfctl/cmd
 * bootstrap/pkg
@@ -53,8 +48,6 @@ New directories (cmd/kfctl, pkg):
 * bootstrap/pkg/client/kfapi/typed
 * bootstrap/pkg/client/kfapi/typed/apps
 * bootstrap/pkg/client/kfapi/typed/apps/v1alpha1
-
-(*) new
 ```
 
 ### KfApi Interface (github/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1/kfapi.go)
@@ -118,11 +111,39 @@ kfctl.sh generate all
 kfctl.sh apply all
 ```
 
-### Kfctl subcommands
+### Config file config.yaml
+
+**IN_FLUX**
+
+Kfctl will create or read from an existing config file ./config.yaml. 
+Alternatively kfctl can use the command line option 
+`--config file` or `-c <file`. 
+
+When creating the config file, kfctl will use the following template
+
+```
+apiVersion: {{.Version}}\n
+kind: KfConfig\n
+appAddress: {{.ApiServer}}\n
+app:\n
+  env:\n
+    name: default\n
+    targets:\n
+    - metacontroller\n
+    - application\n
+  components:\n
+  parameters:\n
+  registries:\n
+  - name: {{.Registry.Name}}\n
+    version: {{.Registry.Version}}\n
+    path: {{.Registry.Path}}\n
+```
+
+### Subcommands
 
 - #### init subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/init.go)
   The init subcommand calls the following
-  - NewKfApi(appName string, appsDir string, knownRegistries map[string]v1alpha1.RegistryConfig) (KfApi, error)
+  - NewKfApiWithConfig(appName string, appsDir string, kfctlConfig *viper.Viper) (KfApi, error)
   - KfApi.Init(name string, envName string, k8sSpecFlag string, serverURI string, namespace string) error
   - KfApi.RegistryAdd(name string, reguri string) error
 
