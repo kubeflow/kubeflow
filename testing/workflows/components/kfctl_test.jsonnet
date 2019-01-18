@@ -150,6 +150,18 @@ local componentTests = util.kfTests {
   platform: "gke",
   testDir: testDir,
   kubeConfig: kubeConfig,
+  buildTemplate+: {
+    argoTemplate+: {
+      container+: {
+        metadata+: {
+          labels: prowDict + {
+            workflow: params.name,
+            workflow_template: workflow_template,
+          },
+        },
+      },
+    },
+  },
 };
 
 // Create a list of dictionary.c
