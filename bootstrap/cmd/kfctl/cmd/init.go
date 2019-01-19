@@ -15,9 +15,12 @@
 package cmd
 
 import (
+	"bytes"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1"
 	"github.com/mitchellh/go-homedir"
+	"github.com/spf13/viper"
 	"regexp"
+	"text/template"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
@@ -25,6 +28,61 @@ import (
 
 	"os"
 )
+
+var platform string
+
+var appTemplate = string(`
+apiVersion: {{.Version}}\n
+kind: KfConfig\n
+appAddress: {{.ApiServer}}\n
+app:\n
+  env:\n
+    name: default\n
+    targets:\n
+    - metacontroller\n
+    - application\n
+  components:\n
+  parameters:\n
+  registries:\n
+  - name: {{.Registry.Name}}\n
+    version: {{.Registry.Version}}\n
+    path: {{.Registry.Path}}\n
+`)
+
+func createConfig(cfg *viper.Viper, path string) error {
+	tmpl, tmplErr := template.New("defaultConfig").Parse(appTemplate)
+	if tmplErr != nil {
+		return tmplErr
+	}
+	type Repository struct {
+		Name    string
+		Version string
+		Path    string
+	}
+	type TemplateData struct {
+		ApiServer string
+		Repository
+	}
+	templateData := TemplateData{
+		ApiServer: "foo",
+		Repository: Repository{
+			Name:    "bar",
+			Version: "0.4",
+			Path:    "kubeflow",
+		},
+	}
+	var buf bytes.Buffer
+	execErr := tmpl.Execute(&buf, templateData)
+	if execErr != nil {
+		return execErr
+	}
+	errDefaultConfig := kfctlConfig.ReadConfig(bytes.NewBuffer(buf.Bytes()))
+	if errDefaultConfig != nil {
+		return errDefaultConfig
+	}
+	kfctlConfig.AutomaticEnv() // read in environment variables that match
+	return nil
+}
 
 // initCmd represents the init command
 var initCmd = &cobra.Command{
@@ -52,16 +110,26 @@ var initCmd = &cobra.Command{
 			log.Errorf("cannot create app in existing directory %v", path)
 			return
 		}
+		appName := regexp.MustCompile(`^.*/`).FindString(path)
+		parentDir := regexp.MustCompile(`/*$`).FindString(path)
+		_, noParentErr := fs.Stat(parentDir)
+		if noParentErr != nil {
+			log.Errorf("parent directory does not exist %v", parentDir)
+			return
+		}
 		err = os.Mkdir(path, os.ModePerm)
 		if err != nil {
 			log.Errorf("cannot create directory %v", path)
 			return
 		}
-		appName := regexp.MustCompile(`^.*/`).FindString(path)
-		appDir := regexp.MustCompile(`/*$`).FindString(path)
-		kfApi, newErr := v1alpha1.NewKfApiWithConfig(appName, appDir, kfctlConfig)
-		if newErr != nil {
-			log.Errorf("couldn't create a new KfApi: %v", newErr)
+		createConfigErr := createConfig(kfctlConfig, path)
+		if createConfigErr != nil {
+			log.Errorf("cannot create config in %v", path)
+			return
+		}
+		kfApi, kfApiErr := v1alpha1.NewKfApiWithConfig(appName, path, kfctlConfig)
+		if kfApiErr != nil {
+			log.Errorf("couldn't create KfApi: %v", kfApiErr)
 			return
 		}
 		initErr := kfApi.Init(appName, "default", "", "", "")
@@ -74,5 +142,9 @@ var initCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(initCmd)
-	createCmd.Flags().StringVarP(&platform, "platform", "p", "none", "Platform")
+	initCmd.Flags().StringVarP(&platform, "platform", "p", "", "gcp | minikube | microsk8s")
+	err := kfctlConfig.BindPFlag("platform", initCmd.Flags().Lookup("platform"))
+	if err != nil {
+		panic(err.Error())
+	}
 }

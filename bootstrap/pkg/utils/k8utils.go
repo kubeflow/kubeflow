@@ -15,11 +15,12 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 	"github.com/ghodss/yaml"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"io/ioutil"
 
-	"k8s.io/apimachinery/pkg/apimachinery/registered"
 	"os"
 	"os/user"
 	"path"
@@ -64,25 +65,38 @@ func BuildOutOfClusterConfig() (*rest.Config, error) {
 const RecommendedConfigPathEnvVar = "KUBECONFIG"
 
 // GetKubeConfigFile tries to find a kubeconfig file.
-func GetKubeConfigFile(k8sSpecFlag string) string {
-	_, regErr := registered.NewAPIRegistrationManager(k8sSpecFlag)
-	if regErr != nil {
-		log.Infof("no registration manager for %v.", k8sSpecFlag)
-	}
+func GetKubeConfigFile() string {
 	configFile := ""
-
 	usr, err := user.Current()
 	if err != nil {
 		log.Warningf("Could not get current user; error %v", err)
 	} else {
 		configFile = path.Join(usr.HomeDir, ".kube", "config")
 	}
-
 	if len(os.Getenv(RecommendedConfigPathEnvVar)) > 0 {
 		configFile = os.Getenv(RecommendedConfigPathEnvVar)
 	}
-
 	return configFile
+}
+
+func GetApiServer() (string, error) {
+	kubeconfig := viper.New()
+	path := GetKubeConfigFile()
+	kubeconfig.SetConfigType("yaml")
+	kubeconfig.SetConfigFile(path)
+	configErr := kubeconfig.ReadInConfig()
+	if configErr != nil {
+		return "", fmt.Errorf("could not read in %v. Error: %v", path, configErr)
+	}
+	currentContext := kubeconfig.GetString("current-context")
+	log.Infof("current-context is %v", currentContext)
+
+	clusters := kubeconfig.GetStringMap("clusters")
+	for cluster := range clusters {
+		log.Infof("cluster is %v", cluster)
+
+	}
+	return "", nil
 }
 
 // GetClientOutOfCluster returns a k8s clientset to the request from outside of cluster

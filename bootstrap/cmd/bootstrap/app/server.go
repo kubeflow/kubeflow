@@ -70,7 +70,7 @@ func getClusterConfig(inCluster bool) (*rest.Config, error) {
 	if inCluster {
 		return rest.InClusterConfig()
 	}
-	configFile := utils.GetKubeConfigFile(k8SpecsFlag)
+	configFile := utils.GetKubeConfigFile()
 
 	if len(configFile) > 0 {
 
