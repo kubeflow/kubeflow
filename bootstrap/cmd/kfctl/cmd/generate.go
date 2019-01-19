@@ -27,6 +27,19 @@ var generateCmd = &cobra.Command{
 	Long:  `Generate a kubeflow application using <name>.yaml.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("generate called")
+		/*
+			kfApi, kfApiErr := v1alpha1.NewKfApiWithConfig(appName, path, kfctlConfig)
+			if kfApiErr != nil {
+				log.Errorf("couldn't create KfApi: %v", kfApiErr)
+				return
+			}
+			initErr := kfApi.Init(appName, "default", "", "", "")
+			if initErr != nil {
+				log.Errorf("couldn't initialize KfApi: %v", initErr)
+				return
+			}
+
+		*/
 	},
 }
 
