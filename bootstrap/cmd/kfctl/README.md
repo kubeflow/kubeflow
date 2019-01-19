@@ -2,11 +2,11 @@
 
 TL;DR
 - remaining work
-  - add viper for kfctl config (env.sh equivalent)
+  - add viper for kfctl config
   - test kfapi integrated calls in gcp-click-to-deploy
-  - generate, delete, apply subcommands need to call the same method in KfApi
-  - provide brew packaging
-  - provide completion for bash/zsh
+  - generate, delete, apply subcommands need to call the same methods in KfApi
+  - brew packaging
+  - completion for bash/zsh
 
 ## Overview
 
@@ -111,32 +111,104 @@ kfctl.sh generate all
 kfctl.sh apply all
 ```
 
-### Config file config.yaml
+### Config files
 
-**IN_FLUX**
-
-Kfctl will create or read from an existing config file ./config.yaml. 
-Alternatively kfctl can use the command line option 
-`--config file` or `-c <file`. 
-
-When creating the config file, kfctl will use the following template
+The configuration file that kfctl.sh used was env.sh and relied on 
+a set of environment variables. Because kfctl will live in /usr/local/bin
+and not necessarily expect the kubeflow repo to be on disk, kfctl 
+will also create a default.yaml file in the same directory as env.sh that 
+is similar to the bootstrap/config/ yaml files. This golang struct is in 
+application_types.go and is shown below:
 
 ```
-apiVersion: {{.Version}}\n
-kind: KfConfig\n
-appAddress: {{.ApiServer}}\n
-app:\n
-  env:\n
-    name: default\n
-    targets:\n
-    - metacontroller\n
-    - application\n
-  components:\n
-  parameters:\n
-  registries:\n
-  - name: {{.Registry.Name}}\n
-    version: {{.Registry.Version}}\n
-    path: {{.Registry.Path}}\n
+type AppConfig struct {
+	Registries []RegistryConfig `json:"registries,omitempty"`
+	Packages   []KsPackage      `json:"packages,omitempty"`
+	Components []KsComponent    `json:"components,omitempty"`
+	Parameters []KsParameter    `json:"parameters,omitempty"`
+}
+
+type ApplicationSpec struct {
+	App AppConfig `json:"app,omitempty"`
+}
+
+type ApplicationStatus struct {
+	Conditions []ApplicationCondition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,6,rep,name=conditions"`
+}
+
+type Application struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	Spec   ApplicationSpec   `json:"spec,omitempty"`
+	Status ApplicationStatus `json:"status,omitempty"`
+}
+```
+
+```
+apiVersion: {{.apiVersion}}
+kind: {{.kind}}
+app:
+  registries:
+{{range $registry := .Registries }}  
+    - name: {{$registry.Name}}
+      repo: {{$registry.Repo}}
+      version: {{$registry.Version}}
+      path: {{$registry.Path}}
+      RegUri: {{$registry.RegUri}}
+{{end}}
+  packages:
+{{range $package := .Packages }}  
+    - name: {{$package.Name}}
+      registry: {{$package.Registry}}
+{{end}}
+  components:
+{{range $component := .Components }}  
+    - name: {{$component.Name}}
+      prototype: {{$component.Prototype}}
+{{end}}
+  parameters:
+{{range $parameter := .Parameters }}  
+    - component: {{$parameter.Component}}
+      name: {{$parameter.Name}}
+      value: {{$parameter.Value}}
+{{end}}
+```
+
+#### env.sh
+
+The default.yaml file will reflect changes in environment variables in env.sh in the same way as kfctl.sh,
+for example DEFAULT_KUBEFLOW_COMPONENTS is an env override and will used to update the components in default.yaml.
+
+The set of environment variables that kfctl will create is the same as kfctl.sh
+
+```
+PLATFORM
+KUBEFLOW_REPO
+KUBEFLOW_VERSION
+KUBEFLOW_COMPONENTS
+KUBEFLOW_EXTENDEDINFO
+KUBEFLOW_KS_DIR
+KUBEFLOW_DOCKER_REGISTRY
+DOCKER_REGISTRY_KATIB_NAMESPACE
+K8S_NAMESPACE
+KUBEFLOW_PLATFORM
+MOUNT_LOCAL
+DEPLOYMENT_NAME
+# platform
+PROJECT
+ZONE
+EMAIL
+PROJECT_NUMBER
+KUBEFLOW_DM_DIR
+KUBEFLOW_SECRETS_DIR
+KUBEFLOW_K8S_MANIFESTS_DIR
+KUBEFLOW_K8S_CONTEXT
+KUBEFLOW_IP_NAME
+KUBEFLOW_ENDPOINT_NAME
+KUBEFLOW_HOSTNAME
+CONFIG_FILE
+GKE_API_VERSION
 ```
 
 ### Subcommands

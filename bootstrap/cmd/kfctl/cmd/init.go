@@ -16,7 +16,12 @@ package cmd
 
 import (
 	"bytes"
+	"path/filepath"
+
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 	"regexp"
@@ -31,56 +36,95 @@ import (
 
 var platform string
 
-var appTemplate = string(`
-apiVersion: {{.Version}}\n
-kind: KfConfig\n
-appAddress: {{.ApiServer}}\n
-app:\n
-  env:\n
-    name: default\n
-    targets:\n
-    - metacontroller\n
-    - application\n
-  components:\n
-  parameters:\n
-  registries:\n
-  - name: {{.Registry.Name}}\n
-    version: {{.Registry.Version}}\n
-    path: {{.Registry.Path}}\n
+var ApplicationTemplate = string(`
+apiVersion: {{.apiVersion}}
+kind: {{.kind}}
+app:
+  registries:
+{{range $registry := .Registries }}
+    - name: {{$registry.Name}}
+      repo: {{$registry.Repo}}
+      version: {{$registry.Version}}
+      path: {{$registry.Path}}
+      RegUri: {{$registry.RegUri}}
+{{end}}
+  packages:
+{{range $package := .Packages }}
+    - name: {{$package.Name}}
+      registry: {{$package.Registry}}
+{{end}}
+  components:
+{{range $component := .Components }}
+    - name: {{$component.Name}}
+      prototype: {{$component.Prototype}}
+{{end}}
+  parameters:
+{{range $parameter := .Parameters }}
+    - component: {{$parameter.Component}}
+      name: {{$parameter.Name}}
+      value: {{$parameter.Value}}
+{{end}}
 `)
 
 func createConfig(cfg *viper.Viper, path string) error {
-	tmpl, tmplErr := template.New("defaultConfig").Parse(appTemplate)
+	tmpl, tmplErr := template.New("default").Parse(ApplicationTemplate)
 	if tmplErr != nil {
 		return tmplErr
 	}
-	type Repository struct {
-		Name    string
-		Version string
-		Path    string
-	}
-	type TemplateData struct {
-		ApiServer string
-		Repository
-	}
-	templateData := TemplateData{
-		ApiServer: "foo",
-		Repository: Repository{
-			Name:    "bar",
-			Version: "0.4",
-			Path:    "kubeflow",
+	application := kftypes.Application{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Application",
+			APIVersion: "apps.kubeflow.org/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "default",
+		},
+		Spec: kftypes.ApplicationSpec{
+			App: kftypes.AppConfig{
+				Registries: []kftypes.RegistryConfig{
+					{
+						Name:    "kubeflow",
+						Repo:    "https://github.com/kubeflow/kubeflow.git",
+						Version: "0.4",
+						Path:    "kubeflow",
+						RegUri:  path,
+					},
+				},
+				Packages: []kftypes.KsPackage{
+					//TODO for a list of packages we need to use `kfctl add <registry|pkg|module|component>`
+					// (do we need an env var similar to DEFAULT_KUBEFLOW_COMPONENTS)?
+				},
+				Components: []kftypes.KsComponent{
+					//TODO list of components from DEFAULT_KUBEFLOW_COMPONENTS or
+					//     if that's not defined then depending on the platform option
+					//     platform=none
+					//       ["ambassador","jupyter","centraldashboard","tf-job-operator","pytorch-operator",
+					//        "spartakus","argo","pipeline"]
+					//     platform=gcp
+					//       ["ambassador","jupyter","centraldashboard","tf-job-operator","pytorch-operator",
+					//        "spartakus","argo","pipeline","cloud-endpoints","cert-manager","iap-ingress"]
+					//     platform=minikube|docker-for-desktop
+					//       ["ambassador","jupyter","centraldashboard","tf-job-operator","pytorch-operator",
+					//        "spartakus","argo","pipeline","katib"]
+				},
+				Parameters: []kftypes.KsParameter{
+					//TODO for a component's parameter list we need to use `kfctl set <component> <name> <value>`
+				},
+			},
 		},
 	}
 	var buf bytes.Buffer
-	execErr := tmpl.Execute(&buf, templateData)
+	execErr := tmpl.Execute(&buf, application)
 	if execErr != nil {
 		return execErr
 	}
-	errDefaultConfig := kfctlConfig.ReadConfig(bytes.NewBuffer(buf.Bytes()))
+	errDefaultConfig := cfg.ReadConfig(bytes.NewBuffer(buf.Bytes()))
 	if errDefaultConfig != nil {
 		return errDefaultConfig
 	}
-	kfctlConfig.AutomaticEnv() // read in environment variables that match
+	cfg.AutomaticEnv() //TODO need to update application based on DEFAULT_KUBEFLOW_COMPONENTS
+	defaultConfig := filepath.Join("default.yaml", path)
+	cfg.WriteConfigAs(defaultConfig)
 	return nil
 }
 

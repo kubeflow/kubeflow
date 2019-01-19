@@ -56,9 +56,7 @@ func initConfig() {
 	kfctlConfig.SetConfigType("yaml")
 	kfctlConfig.AddConfigPath(".")
 	fileErr := kfctlConfig.ReadInConfig()
-	if fileErr != nil {
-		panic(fileErr.Error())
-	} else {
+	if fileErr == nil {
 		fmt.Println("Using config file:", kfctlConfig.ConfigFileUsed())
 	}
 }
