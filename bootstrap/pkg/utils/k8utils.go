@@ -114,11 +114,3 @@ func LoadConfigFile(path string, o interface{}) error {
 	}
 	return nil
 }
-
-// Load yaml config
-func LoadConfigData(data []byte, o interface{}) error {
-	if err := yaml.Unmarshal(data, o); err != nil {
-		return err
-	}
-	return nil
-}

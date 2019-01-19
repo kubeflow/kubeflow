@@ -135,7 +135,7 @@ func NewServer(appName string, appDir string, registries []kftypes.RegistryConfi
 		}
 	}
 
-	kfApi, err := v1alpha1.NewKfApi(appName, appDir, knownRegistries)
+	kfApi, err := v1alpha1.NewKfApiWithRegistries(appName, appDir, knownRegistries)
 	if err != nil {
 		return nil, fmt.Errorf("There was a problem creating KfApi %v. Error: %v", appName, err)
 	}
@@ -771,7 +771,7 @@ func (s *ksServer) GetApp(project string, appName string, kfVersion string, toke
 	if err != nil {
 		return nil, "", err
 	}
-	kfApi, err := v1alpha1.NewKfApi(appName, appDir, registries)
+	kfApi, err := v1alpha1.NewKfApiWithRegistries(appName, appDir, registries)
 	if err != nil {
 		return nil, repoDir, fmt.Errorf("There was a problem creating KfApi %v. Error: %v", appName, err)
 	}

@@ -15,53 +15,38 @@
 package cmd
 
 import (
-	"flag"
+	"bytes"
 	"fmt"
 	"github.com/mitchellh/go-homedir"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 	"os"
-	"path/filepath"
+	"text/template"
 )
 
 var cfgFile string
 var token string
 var url string
-var debug bool
-var kubeconfig *string
-var KfConfig *rest.Config
 var platform string
 var appFile string
-var appYamlTemplate = []byte(`
-appAddress: https://35.203.163.54\n
+var kfctlConfig = viper.New()
+var appYamlTemplate = string(`
+apiVersion: {{.Version}}\n
+kind: KfConfig\n
+appAddress: {{.ApiServer}}\n
 app:\n
   env:\n
     name: default\n
     targets:\n
-    - common\n
-    - jupyter\n
-  modules:\n
-  - name: core\n
-    components:\n
-    - name: ambassador\n
-      prototype: ambassador\n
-    - name: centraldashboard\n
-      prototype: centraldashboard\n
-  - name: jupyter\n
-    components:\n
-    - name: jupyter\n
-      prototype: jupyter\n
+    - metacontroller\n
+    - application\n
+  components:\n
   parameters:\n
-  - module: core\n
-    - component: ambassador\n
-      name: ambassadorServiceType\n
-      value: LoadBalancer\n
   registries:\n
-  - name: kubeflow\n
-    version: github.com/kubeflow/kubeflow@v0.3.4\n
-    path: kubeflow\n
+  - name: {{.Registry.Name}}\n
+    version: {{.Registry.Version}}\n
+    path: {{.Registry.Path}}\n
 `)
 
 // rootCmd represents the base command when called without any subcommands
@@ -81,46 +66,79 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig)
-
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/.kfctl.yaml)")
-
-	rootCmd.PersistentFlags().StringVarP(&url, "url", "u", "", "url where bootstrapper is running")
-
+	err := kfctlConfig.BindPFlag("config", rootCmd.PersistentFlags().Lookup("config"))
+	if err != nil {
+		panic(err.Error())
+	}
 	rootCmd.PersistentFlags().StringVarP(&token, "token", "t", "", "token used in auth header")
+	err = kfctlConfig.BindPFlag("token", rootCmd.PersistentFlags().Lookup("token"))
+	if err != nil {
+		panic(err.Error())
+	}
+
+	cobra.OnInitialize(initConfig)
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
 	if cfgFile != "" {
 		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
+		kfctlConfig.SetConfigFile(cfgFile)
+		fmt.Println("Using config file:", kfctlConfig.ConfigFileUsed())
 	} else {
-		// Find home directory.
+		fs := afero.NewOsFs()
 		home, err := homedir.Dir()
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
-
-		KfConfig, err = clientcmd.BuildConfigFromFlags("", *kubeconfig)
-		if err != nil {
 			panic(err.Error())
 		}
+		dir, err := fs.Stat(home + "/.kfctl")
 		if err != nil {
-			panic(err.Error())
+			tmpl, tmplErr := template.New("defaultConfig").Parse(appYamlTemplate)
+			if tmplErr != nil {
+				panic(err)
+			}
+			type Repository struct {
+				Name    string
+				Version string
+				Path    string
+			}
+			type TemplateData struct {
+				ApiServer string
+				Repository
+			}
+			templateData := TemplateData{
+				ApiServer: "foo",
+				Repository: Repository{
+					Name:    "bar",
+					Version: "0.4",
+					Path:    "kubeflow",
+				},
+			}
+			var buf bytes.Buffer
+			execErr := tmpl.Execute(&buf, templateData)
+			if execErr != nil {
+				panic(execErr.Error())
+			}
+			errDefaultConfig := kfctlConfig.ReadConfig(bytes.NewBuffer(buf.Bytes()))
+			if errDefaultConfig != nil {
+				panic(errDefaultConfig.Error())
+			}
+		} else {
+			if dir.IsDir() {
+				_, configErr := fs.Stat(home + "/.kfctl/config")
+				if configErr == nil {
+					kfctlConfig.SetConfigName("config")
+					kfctlConfig.SetConfigType("yaml")
+					kfctlConfig.AddConfigPath(dir.Name())
+					fileErr := kfctlConfig.ReadInConfig()
+					if fileErr != nil {
+						panic(fileErr.Error())
+					}
+				}
+			}
 		}
-
-		// Search config in home directory with name ".kfctl" (without extension).
-		viper.AddConfigPath(home)
-		viper.SetConfigName(".kfctl")
 	}
+	kfctlConfig.AutomaticEnv() // read in environment variables that match
 
-	viper.AutomaticEnv() // read in environment variables that match
-
-	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
-	}
 }

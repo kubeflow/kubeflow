@@ -26,6 +26,7 @@ import (
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 	"k8s.io/apimachinery/pkg/apimachinery/registered"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
@@ -49,6 +50,11 @@ type KfApi interface {
 	Root() string
 }
 
+type kfConfig struct {
+	init *viper.Viper
+	env  *viper.Viper
+}
+
 // ksServer provides a server to wrap ksonnet.
 // This allows ksonnet applications to be managed remotely.
 type kfApi struct {
@@ -60,24 +66,48 @@ type kfApi struct {
 	// This allows apps to specify a registry by name without having to know any
 	// other information about the regisry.
 	knownRegistries map[string]v1alpha1.RegistryConfig
-
-	fs   afero.Fs
-	kApp app.App
+	configs         kfConfig
+	fs              afero.Fs
+	kApp            app.App
 }
 
-func NewKfApi(appName string, appsDir string, knownRegistries map[string]v1alpha1.RegistryConfig) (KfApi, error) {
+func NewKfApiWithRegistries(appName string, appsDir string, knownRegistries map[string]v1alpha1.RegistryConfig) (KfApi, error) {
+	return NewKfApi(appName, appsDir, knownRegistries, nil, nil)
+}
+
+func NewKfApiWithConfig(appName string, appsDir string, init *viper.Viper) (KfApi, error) {
+	return NewKfApi(appName, appsDir, nil, init, nil)
+}
+
+func NewKfApi(appName string, appsDir string, knownRegistries map[string]v1alpha1.RegistryConfig,
+	init *viper.Viper, env *viper.Viper) (KfApi, error) {
+
 	fs := afero.NewOsFs()
 	kApp, err := app.Load(fs, nil, appsDir)
 	if err != nil {
 		return nil, fmt.Errorf("There was a problem loading app %v. Error: %v", appName, err)
 	}
-	return &kfApi{
+	kfapi := &kfApi{
 		appName:         appName,
 		appsDir:         appsDir,
 		fs:              afero.NewOsFs(),
-		knownRegistries: knownRegistries,
-		kApp:            kApp,
-	}, nil
+		knownRegistries: make(map[string]v1alpha1.RegistryConfig),
+		configs: kfConfig{
+			init: viper.New(),
+			env:  viper.New(),
+		},
+		kApp: kApp,
+	}
+	if knownRegistries != nil {
+		kfapi.knownRegistries = knownRegistries
+	}
+	if init != nil {
+		kfapi.configs.init = init
+	}
+	if env != nil {
+		kfapi.configs.env = env
+	}
+	return kfapi, nil
 }
 
 func (kfApi *kfApi) Libraries() (map[string]*v1alpha1.KsLibrary, error) {
