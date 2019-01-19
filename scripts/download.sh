@@ -12,7 +12,7 @@ fi
 KUBEFLOW_TAG=${KUBEFLOW_TAG:-master}
 
 # Create a local copy of the Kubeflow source repo
-TMPDIR=$(mktemp -d /tmp/tmp.kubeflow-repo-XXXX)
+TMPDIR=$(mktemp -d /tmp/tmp.kubeflow-repo-XXXXXX)
 curl -L -o ${TMPDIR}/kubeflow.tar.gz https://github.com/kubeflow/kubeflow/archive/${KUBEFLOW_TAG}.tar.gz
 tar -xzvf ${TMPDIR}/kubeflow.tar.gz -C ${TMPDIR}
 # GitHub seems to strip out the v in the file name.
