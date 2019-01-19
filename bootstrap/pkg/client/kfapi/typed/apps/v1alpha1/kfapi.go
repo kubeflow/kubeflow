@@ -39,7 +39,7 @@ type KfApi interface {
 	ComponentAdd(component string, args []string) error
 	Components() (map[string]*v1alpha1.KsComponent, error)
 	EnvSet(env string, host string) error
-	Init(name string, envName string, k8sSpecFlag string, serverURI string, namespace string) error
+	Init(envName string, k8sSpecFlag string, serverURI string, namespace string) error
 	Libraries() (map[string]*v1alpha1.KsLibrary, error)
 	ParamSet(component string, name string, value string) error
 	PkgInstall(full string, pkgName string) error
@@ -59,8 +59,8 @@ type kfConfig struct {
 // This allows ksonnet applications to be managed remotely.
 type kfApi struct {
 	appName string
-	// appsDir is the directory where apps should be stored.
-	appsDir string
+	// appDir is the directory where apps should be stored.
+	appDir string
 	// knownRegistries is a list of known registries
 	// This can be used to map the name of a registry to info about the registry.
 	// This allows apps to specify a registry by name without having to know any
@@ -75,8 +75,14 @@ func NewKfApiWithRegistries(appName string, appsDir string, knownRegistries map[
 	return NewKfApi(appName, appsDir, knownRegistries, nil, nil)
 }
 
-func NewKfApiWithConfig(appName string, appsDir string, init *viper.Viper) (KfApi, error) {
-	return NewKfApi(appName, appsDir, nil, init, nil)
+func NewKfApiWithConfig(cfg *viper.Viper, env *viper.Viper) (KfApi, error) {
+	cfgfile := cfg.ConfigFileUsed()
+	if cfgfile == "" {
+		return nil, fmt.Errorf("config file does not exist")
+	}
+	appDir := filepath.Dir(cfgfile)
+	appName := filepath.Base(cfgfile)
+	return NewKfApi(appName, appDir, nil, cfg, env)
 }
 
 func NewKfApi(appName string, appsDir string, knownRegistries map[string]v1alpha1.RegistryConfig,
@@ -89,7 +95,7 @@ func NewKfApi(appName string, appsDir string, knownRegistries map[string]v1alpha
 	}
 	kfapi := &kfApi{
 		appName:         appName,
-		appsDir:         appsDir,
+		appDir:          appsDir,
 		fs:              afero.NewOsFs(),
 		knownRegistries: make(map[string]v1alpha1.RegistryConfig),
 		configs: kfConfig{
@@ -238,7 +244,7 @@ func (kfApi *kfApi) Components() (map[string]*v1alpha1.KsComponent, error) {
 	return comps, nil
 }
 
-func (kfApi *kfApi) Init(name string, envName string, k8sSpecFlag string, serverURI string, namespace string) error {
+func (kfApi *kfApi) Init(envName string, k8sSpecFlag string, serverURI string, namespace string) error {
 	_, regErr := registered.NewAPIRegistrationManager(k8sSpecFlag)
 	if regErr != nil {
 		log.Infof("no registration manager for %v.", k8sSpecFlag)
@@ -246,9 +252,9 @@ func (kfApi *kfApi) Init(name string, envName string, k8sSpecFlag string, server
 
 	options := map[string]interface{}{
 		actions.OptionFs:                    kfApi.fs,
-		actions.OptionName:                  name,
+		actions.OptionName:                  kfApi.appName,
 		actions.OptionEnvName:               envName,
-		actions.OptionAppRoot:               kfApi.appsDir,
+		actions.OptionAppRoot:               kfApi.appDir,
 		actions.OptionServer:                serverURI,
 		actions.OptionSpecFlag:              k8sSpecFlag,
 		actions.OptionNamespace:             namespace,

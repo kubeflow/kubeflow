@@ -386,7 +386,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 		_, err = s.fs.Stat(appDir)
 
 		if err != nil {
-			initErr := kfApi.Init(request.Name, envName, k8SpecsFlag, config.Host, request.Namespace)
+			initErr := kfApi.Init(envName, k8SpecsFlag, config.Host, request.Namespace)
 			if initErr != nil {
 				return fmt.Errorf("Cannot initialize the app: %v", request.Name)
 

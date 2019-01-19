@@ -16,7 +16,8 @@ package cmd
 
 import (
 	"fmt"
-
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -27,32 +28,20 @@ var generateCmd = &cobra.Command{
 	Long:  `Generate a kubeflow application using <name>.yaml.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("generate called")
-		/*
-			kfApi, kfApiErr := v1alpha1.NewKfApiWithConfig(appName, path, kfctlConfig)
-			if kfApiErr != nil {
-				log.Errorf("couldn't create KfApi: %v", kfApiErr)
-				return
-			}
-			initErr := kfApi.Init(appName, "default", "", "", "")
-			if initErr != nil {
-				log.Errorf("couldn't initialize KfApi: %v", initErr)
-				return
-			}
+		kfApi, kfApiErr := v1alpha1.NewKfApiWithConfig(kfctlConfig, kfctlEnv)
+		if kfApiErr != nil {
+			log.Errorf("couldn't create KfApi: %v", kfApiErr)
+			return
+		}
+		initErr := kfApi.Init("default", "", "", "")
+		if initErr != nil {
+			log.Errorf("couldn't initialize KfApi: %v", initErr)
+			return
+		}
 
-		*/
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(generateCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// generateCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// generateCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

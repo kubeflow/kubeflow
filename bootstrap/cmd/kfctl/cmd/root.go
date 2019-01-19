@@ -23,6 +23,7 @@ import (
 
 var token string
 var kfctlConfig = viper.New()
+var kfctlEnv = viper.New()
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -52,11 +53,19 @@ func init() {
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	kfctlConfig.SetConfigName("config")
+	kfctlConfig.SetConfigName("default")
 	kfctlConfig.SetConfigType("yaml")
 	kfctlConfig.AddConfigPath(".")
-	fileErr := kfctlConfig.ReadInConfig()
-	if fileErr == nil {
+	kfctlConfigErr := kfctlConfig.ReadInConfig()
+	if kfctlConfigErr == nil {
 		fmt.Println("Using config file:", kfctlConfig.ConfigFileUsed())
+	}
+
+	kfctlEnv.SetConfigName("env")
+	kfctlEnv.SetConfigType("toml")
+	kfctlEnv.AddConfigPath(".")
+	kfctlEnvErr := kfctlEnv.ReadInConfig()
+	if kfctlEnvErr == nil {
+		fmt.Println("Using env file:", kfctlEnv.ConfigFileUsed())
 	}
 }

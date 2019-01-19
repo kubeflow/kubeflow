@@ -111,7 +111,7 @@ kfctl.sh generate all
 kfctl.sh apply all
 ```
 
-### Config files (default.yaml, env.sh)
+### Config files (default.yaml, env.toml)
 
 The configuration file that kfctl.sh used was env.sh and persisted 
 a set of environment variables. Because kfctl will live in /usr/local/bin
@@ -176,40 +176,48 @@ app:
 {{end}}
 ```
 
-#### env.sh
+#### env.sh => env.toml
 
-The default.yaml file will reflect changes in environment variables in env.sh in the same way as kfctl.sh,
-for example DEFAULT_KUBEFLOW_COMPONENTS is an env override and will used to update the components in default.yaml.
+The env.sh file will move to a [toml](https://github.com/toml-lang/toml) file - env.toml.
+The default.yaml file will reflect changes in environment variables in env.toml.
+For example DEFAULT_KUBEFLOW_COMPONENTS is an env override and will used to update the components in default.yaml.
 
-The set of environment variables that kfctl will create is the same as kfctl.sh
+The set of environment variables that kfctl will is similar as kfctl.sh
+
+env.toml
 
 ```
-PLATFORM
-KUBEFLOW_REPO
-KUBEFLOW_VERSION
-KUBEFLOW_COMPONENTS
-KUBEFLOW_EXTENDEDINFO
-KUBEFLOW_KS_DIR
-KUBEFLOW_DOCKER_REGISTRY
-DOCKER_REGISTRY_KATIB_NAMESPACE
-K8S_NAMESPACE
-KUBEFLOW_PLATFORM
-MOUNT_LOCAL
-DEPLOYMENT_NAME
-# platform
-PROJECT
-ZONE
-EMAIL
-PROJECT_NUMBER
-KUBEFLOW_DM_DIR
-KUBEFLOW_SECRETS_DIR
-KUBEFLOW_K8S_MANIFESTS_DIR
-KUBEFLOW_K8S_CONTEXT
-KUBEFLOW_IP_NAME
-KUBEFLOW_ENDPOINT_NAME
-KUBEFLOW_HOSTNAME
-CONFIG_FILE
-GKE_API_VERSION
+[default]
+PLATFORM = "null"
+KUBEFLOW_REPO = "$GOPATH/src/github.com/kubeflow/kubeflow"
+KUBEFLOW_VERSION = "master"
+KUBEFLOW_COMPONENTS = [ "ambassador","jupyter","centraldashboard","tf-job-operator","pytorch-operator","spartakus","argo","pipeline" ]
+KUBEFLOW_EXTENDEDINFO = "false"
+KUBEFLOW_KS_DIR = "$HOME/kf_app/ks_app"
+KUBEFLOW_DOCKER_REGISTRY =
+DOCKER_REGISTRY_KATIB_NAMESPACE =
+K8S_NAMESPACE = "kubeflow"
+KUBEFLOW_PLATFORM = "null"
+MOUNT_LOCAL =
+DEPLOYMENT_NAME = "kubeflow"
+[gcp]
+PROJECT =
+ZONE =
+EMAIL =
+PROJECT_NUMBER =
+KUBEFLOW_DM_DIR =
+KUBEFLOW_SECRETS_DIR =
+KUBEFLOW_K8S_MANIFESTS_DIR =
+KUBEFLOW_K8S_CONTEXT =
+KUBEFLOW_IP_NAME =
+KUBEFLOW_ENDPOINT_NAME =
+KUBEFLOW_HOSTNAME =
+CONFIG_FILE =
+GKE_API_VERSION =
+[minikube]
+KUBEFLOW_COMPONENTS = [ "ambassador","jupyter","centraldashboard","tf-job-operator","pytorch-operator","spartakus","argo","pipeline","katib" ]
+[docker-for-desktop]
+KUBEFLOW_COMPONENTS = [ "ambassador","jupyter","centraldashboard","tf-job-operator","pytorch-operator","spartakus","argo","pipeline","katib" ]
 ```
 
 ### Subcommands
