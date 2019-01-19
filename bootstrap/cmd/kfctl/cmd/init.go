@@ -66,7 +66,7 @@ app:
 {{end}}
 `)
 
-func createConfig(cfg *viper.Viper, path string) error {
+func createConfigFiles(cfg *viper.Viper, path string) error {
 	tmpl, tmplErr := template.New("default").Parse(ApplicationTemplate)
 	if tmplErr != nil {
 		return tmplErr
@@ -125,6 +125,7 @@ func createConfig(cfg *viper.Viper, path string) error {
 	cfg.AutomaticEnv() //TODO need to update application based on DEFAULT_KUBEFLOW_COMPONENTS
 	defaultConfig := filepath.Join("default.yaml", path)
 	cfg.WriteConfigAs(defaultConfig)
+	//TODO need to write out env.sh
 	return nil
 }
 
@@ -166,7 +167,7 @@ var initCmd = &cobra.Command{
 			log.Errorf("cannot create directory %v", path)
 			return
 		}
-		createConfigErr := createConfig(kfctlConfig, path)
+		createConfigErr := createConfigFiles(kfctlConfig, path)
 		if createConfigErr != nil {
 			log.Errorf("cannot create config in %v", path)
 			return

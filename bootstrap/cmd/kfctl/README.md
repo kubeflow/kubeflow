@@ -111,14 +111,15 @@ kfctl.sh generate all
 kfctl.sh apply all
 ```
 
-### Config files
+### Config files (default.yaml, env.sh)
 
-The configuration file that kfctl.sh used was env.sh and relied on 
+The configuration file that kfctl.sh used was env.sh and persisted 
 a set of environment variables. Because kfctl will live in /usr/local/bin
-and not necessarily expect the kubeflow repo to be on disk, kfctl 
-will also create a default.yaml file in the same directory as env.sh that 
-is similar to the bootstrap/config/ yaml files. This golang struct is in 
-application_types.go and is shown below:
+and not necessarily expect the kubeflow repo to be on disk, it will 
+also create a default.yaml file in the same directory as env.sh that 
+is similar to the bootstrap/config/ yaml files. The yaml files 
+under bootstrap/config are now defined as a golang type in
+application_types.go and this type (Application) is shown below:
 
 ```
 type AppConfig struct {
