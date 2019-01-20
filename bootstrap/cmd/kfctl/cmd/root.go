@@ -57,7 +57,9 @@ func initConfig() {
 	kfctlConfig.SetConfigType("yaml")
 	kfctlConfig.AddConfigPath(".")
 	kfctlConfigErr := kfctlConfig.ReadInConfig()
-	if kfctlConfigErr == nil {
+	if kfctlConfigErr != nil {
+		panic(kfctlConfigErr.Error())
+	} else {
 		fmt.Println("Using config file:", kfctlConfig.ConfigFileUsed())
 	}
 
@@ -65,7 +67,9 @@ func initConfig() {
 	kfctlEnv.SetConfigType("toml")
 	kfctlEnv.AddConfigPath(".")
 	kfctlEnvErr := kfctlEnv.ReadInConfig()
-	if kfctlEnvErr == nil {
+	if kfctlEnvErr != nil {
+		panic(kfctlConfigErr.Error())
+	} else {
 		fmt.Println("Using env file:", kfctlEnv.ConfigFileUsed())
 	}
 }
