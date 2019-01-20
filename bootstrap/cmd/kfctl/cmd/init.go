@@ -140,7 +140,7 @@ var initCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		appDir := path.Join(appName, dir)
+		appDir := path.Join(dir, appName)
 		err = os.Mkdir(appDir, os.ModePerm)
 		if err != nil {
 			log.Errorf("cannot create directory %v", appDir)
