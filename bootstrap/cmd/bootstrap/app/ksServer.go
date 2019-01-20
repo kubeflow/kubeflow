@@ -574,7 +574,7 @@ func (s *ksServer) appGenerate(appConfig *kftypes.AppConfig) error {
 						continue
 					}
 					pkg := kftypes.KsPackage{
-						Name: full,
+						Name:     full,
 						Registry: registry.Name,
 					}
 					err := s.kfApi.PkgInstall(pkg)
@@ -636,7 +636,7 @@ func (s *ksServer) createComponent(args []string) error {
 	componentName := args[1]
 	componentPath := filepath.Join(s.kfApi.Root(), "components", componentName+".jsonnet")
 	ksComponent := kftypes.KsComponent{
-		Name: componentName,
+		Name:      componentName,
 		Prototype: componentName,
 	}
 	if exists, _ := afero.Exists(s.fs, componentPath); !exists {

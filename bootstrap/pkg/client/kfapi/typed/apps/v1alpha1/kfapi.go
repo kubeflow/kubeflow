@@ -25,9 +25,9 @@ import (
 	"github.com/ksonnet/ksonnet/pkg/component"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
 	log "github.com/sirupsen/logrus"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"path"
@@ -103,7 +103,7 @@ func NewKfApi(appName string, appDir string, knownRegistries map[string]*v1alpha
 	kfapi := &kfApi{
 		appName:         appName,
 		appDir:          appDir,
-		ksName: "ks_app",
+		ksName:          "ks_app",
 		fs:              fs,
 		knownRegistries: knownRegistries,
 		configs: kfConfig{
@@ -119,10 +119,8 @@ func NewKfApi(appName string, appDir string, knownRegistries map[string]*v1alpha
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "default",
 			},
-			Spec: v1alpha1.ApplicationSpec{
-			},
+			Spec: v1alpha1.ApplicationSpec{},
 		},
-
 	}
 	if kfapi.configs.init != nil {
 		kfapi.knownRegistries = make(map[string]*v1alpha1.RegistryConfig)
@@ -151,7 +149,7 @@ func NewKfApi(appName string, appDir string, knownRegistries map[string]*v1alpha
 			kfapi.application.Spec.App.Components = make([]v1alpha1.KsComponent, len(components))
 			for _, comp := range components {
 				ksComponent := v1alpha1.KsComponent{
-					Name: comp,
+					Name:      comp,
 					Prototype: comp,
 				}
 				kfapi.application.Spec.App.Components = append(kfapi.application.Spec.App.Components, ksComponent)
@@ -359,11 +357,11 @@ func (kfApi *kfApi) RegistryAdd(registry *v1alpha1.RegistryConfig) error {
 	log.Infof("App %v add registry %v URI %v", kfApi.appName, registry.Name, registry.RegUri)
 	root := kfApi.KsRoot()
 	options := map[string]interface{}{
-		actions.OptionAppRoot: root,
-		actions.OptionName:    registry.Name,
-		actions.OptionURI:     registry.RegUri,
-		actions.OptionPath:	   registry.Path,
-		actions.OptionVersion: registry.Version,
+		actions.OptionAppRoot:  root,
+		actions.OptionName:     registry.Name,
+		actions.OptionURI:      registry.RegUri,
+		actions.OptionPath:     registry.Path,
+		actions.OptionVersion:  registry.Version,
 		actions.OptionOverride: false,
 	}
 	err := actions.RunRegistryAdd(options)

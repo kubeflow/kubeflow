@@ -93,14 +93,14 @@ type KsRegistry struct {
 // about known registries.
 type RegistriesConfigFile struct {
 	// Registries provides information about known registries.
-	Registries []RegistryConfig
+	Registries []*RegistryConfig
 }
 
 type AppConfig struct {
 	Registries []*RegistryConfig `json:"registries,omitempty"`
-	Packages   []KsPackage      `json:"packages,omitempty"`
-	Components []KsComponent    `json:"components,omitempty"`
-	Parameters []KsParameter    `json:"parameters,omitempty"`
+	Packages   []KsPackage       `json:"packages,omitempty"`
+	Components []KsComponent     `json:"components,omitempty"`
+	Parameters []KsParameter     `json:"parameters,omitempty"`
 }
 
 // ApplicationSpec defines the desired state of Application
