@@ -265,7 +265,7 @@ func (kfApi *kfApi) Init(envName string, k8sSpecFlag string, serverURI string, n
 	if err != nil {
 		return fmt.Errorf("there was a problem initializing the app: %v", err)
 	}
-	log.Infof("Successfully initialized the app %v.", name)
+	log.Infof("Successfully initialized the app %v.", kfApi.appName)
 
 	return nil
 }
