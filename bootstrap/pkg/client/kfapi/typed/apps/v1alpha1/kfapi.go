@@ -27,7 +27,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
-	"k8s.io/apimachinery/pkg/apimachinery/registered"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"path/filepath"
@@ -96,22 +95,27 @@ func NewKfApi(appName string, appsDir string, knownRegistries map[string]v1alpha
 	kfapi := &kfApi{
 		appName:         appName,
 		appDir:          appsDir,
-		fs:              afero.NewOsFs(),
-		knownRegistries: make(map[string]v1alpha1.RegistryConfig),
+		fs:              fs,
+		knownRegistries: knownRegistries,
 		configs: kfConfig{
-			init: viper.New(),
-			env:  viper.New(),
+			init: init,
+			env:  env,
 		},
 		kApp: kApp,
 	}
-	if knownRegistries != nil {
-		kfapi.knownRegistries = knownRegistries
-	}
-	if init != nil {
-		kfapi.configs.init = init
-	}
-	if env != nil {
-		kfapi.configs.env = env
+	if kfapi.configs.init != nil {
+		kfapi.knownRegistries = make(map[string]v1alpha1.RegistryConfig)
+		registries := make([]v1alpha1.RegistryConfig,5)
+		appConfig := kfapi.configs.init.Sub("app")
+		registriesErr := appConfig.UnmarshalKey("registries", &registries)
+		if registriesErr != nil {
+			return nil, fmt.Errorf("couldn't unmarshall yaml. Error: %v", registriesErr)
+		}
+		for _, registry := range registries {
+			if registry.Name != "" {
+				kfapi.knownRegistries[registry.Name] = registry
+			}
+		}
 	}
 	return kfapi, nil
 }
@@ -245,11 +249,6 @@ func (kfApi *kfApi) Components() (map[string]*v1alpha1.KsComponent, error) {
 }
 
 func (kfApi *kfApi) Init(envName string, k8sSpecFlag string, serverURI string, namespace string) error {
-	_, regErr := registered.NewAPIRegistrationManager(k8sSpecFlag)
-	if regErr != nil {
-		log.Infof("no registration manager for %v.", k8sSpecFlag)
-	}
-
 	options := map[string]interface{}{
 		actions.OptionFs:                    kfApi.fs,
 		actions.OptionName:                  kfApi.appName,
@@ -260,7 +259,6 @@ func (kfApi *kfApi) Init(envName string, k8sSpecFlag string, serverURI string, n
 		actions.OptionNamespace:             namespace,
 		actions.OptionSkipDefaultRegistries: true,
 	}
-
 	err := actions.RunInit(options)
 	if err != nil {
 		return fmt.Errorf("there was a problem initializing the app: %v", err)
