@@ -123,7 +123,7 @@ application_types.go and this type (Application) is shown below:
 
 ```
 type AppConfig struct {
-	Registries []RegistryConfig `json:"registries,omitempty"`
+	Registries []*RegistryConfig `json:"registries,omitempty"`
 	Packages   []KsPackage      `json:"packages,omitempty"`
 	Components []KsComponent    `json:"components,omitempty"`
 	Parameters []KsParameter    `json:"parameters,omitempty"`
@@ -188,32 +188,32 @@ env.toml
 
 ```
 [default]
-PLATFORM = "null"
+PLATFORM = ""
 KUBEFLOW_REPO = "$GOPATH/src/github.com/kubeflow/kubeflow"
 KUBEFLOW_VERSION = "master"
 KUBEFLOW_COMPONENTS = [ "ambassador","jupyter","centraldashboard","tf-job-operator","pytorch-operator","spartakus","argo","pipeline" ]
 KUBEFLOW_EXTENDEDINFO = "false"
 KUBEFLOW_KS_DIR = "$HOME/kf_app/ks_app"
-KUBEFLOW_DOCKER_REGISTRY =
-DOCKER_REGISTRY_KATIB_NAMESPACE =
+KUBEFLOW_DOCKER_REGISTRY = ""
+DOCKER_REGISTRY_KATIB_NAMESPACE = ""
 K8S_NAMESPACE = "kubeflow"
-KUBEFLOW_PLATFORM = "null"
-MOUNT_LOCAL =
+KUBEFLOW_PLATFORM = ""
+MOUNT_LOCAL = ""
 DEPLOYMENT_NAME = "kubeflow"
 [gcp]
-PROJECT =
-ZONE =
-EMAIL =
-PROJECT_NUMBER =
-KUBEFLOW_DM_DIR =
-KUBEFLOW_SECRETS_DIR =
-KUBEFLOW_K8S_MANIFESTS_DIR =
-KUBEFLOW_K8S_CONTEXT =
-KUBEFLOW_IP_NAME =
-KUBEFLOW_ENDPOINT_NAME =
-KUBEFLOW_HOSTNAME =
-CONFIG_FILE =
-GKE_API_VERSION =
+PROJECT = ""
+ZONE = ""
+EMAIL = ""
+PROJECT_NUMBER = ""
+KUBEFLOW_DM_DIR = ""
+KUBEFLOW_SECRETS_DIR = ""
+KUBEFLOW_K8S_MANIFESTS_DIR = ""
+KUBEFLOW_K8S_CONTEXT = ""
+KUBEFLOW_IP_NAME = ""
+KUBEFLOW_ENDPOINT_NAME = ""
+KUBEFLOW_HOSTNAME = ""
+CONFIG_FILE = ""
+GKE_API_VERSION = ""
 [minikube]
 KUBEFLOW_COMPONENTS = [ "ambassador","jupyter","centraldashboard","tf-job-operator","pytorch-operator","spartakus","argo","pipeline","katib" ]
 [docker-for-desktop]
@@ -222,17 +222,31 @@ KUBEFLOW_COMPONENTS = [ "ambassador","jupyter","centraldashboard","tf-job-operat
 
 ### Subcommands
 
+- #### root subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/root.go)
+  The root subcommand does the following:
+  - if {default.yaml, env.toml} exists in the current directory then 
+    - instantiates kfctlConfig, kfctlEnv Viper instances 
+
 - #### init subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/init.go)
-  The init subcommand calls the following
-  - NewKfApiWithConfig(appName string, appsDir string, kfctlConfig *viper.Viper) (KfApi, error)
-  - KfApi.Init(name string, envName string, k8sSpecFlag string, serverURI string, namespace string) error
-  - KfApi.RegistryAdd(name string, reguri string) error
+  The init subcommand does the following:
+  - Creates the app directory
+  - Creates {default.yaml, env.toml} within the app directory
 
 - #### generate subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/generate.go)
-  TBD
+  The generate subcommand does the following:
+  - Calls NewKfApiWithConfig(appName string, appsDir string, init *viper.Viper, env *viper.Viper) (KfApi, error)
+  - Calls KfApi.Init(envName string, k8sSpecFlag string, serverURI string, namespace string) error
+  - Calls KfApi.RegistryAdd(reg *RegistryConfig) error
+  - Calls KfApi.PkgInstall(pkg KsPackage) error
+  - Calls KfApi.ComponentAdd(cmp KsComponent) error
 
 - #### apply subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/apply.go)
-  TBD
+  The apply subcommand does the following:
+  - Creates a namespace
+  - Calls KfApi.EnvSet(name string, host string)
+  - Calls KfApi.ParamSet("application", "name", ${DEPLOYMENT_NAME})
+  - Calls KfApi.ParamSet("application", "extendedInfo", ${KUBEFLOW_EXTENDEDINFO})
+  - Calls KfApi.Show(...)
 
 - #### delete subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/delete.go)
   TBD

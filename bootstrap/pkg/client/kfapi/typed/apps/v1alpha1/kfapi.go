@@ -288,7 +288,6 @@ func (kfApi *kfApi) Components() (map[string]*v1alpha1.KsComponent, error) {
 	if err != nil {
 		return nil, fmt.Errorf("there was a problem getting the Components %v. Error: %v", kfApi.appName, err)
 	}
-
 	comps := make(map[string]*v1alpha1.KsComponent)
 	for _, comp := range components {
 		name := comp.Name(false)
@@ -297,7 +296,6 @@ func (kfApi *kfApi) Components() (map[string]*v1alpha1.KsComponent, error) {
 			Prototype: name,
 		}
 	}
-
 	return comps, nil
 }
 
