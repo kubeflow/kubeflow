@@ -54,6 +54,13 @@ var generateCmd = &cobra.Command{
 				return
 			}
 		}
+		for _, component := range kfApi.Application().Spec.App.Components {
+			componentAddErr := kfApi.ComponentAdd(component, []string{})
+			if componentAddErr != nil {
+				log.Errorf("couldn't add registry %v. Error: %v", component.Name, componentAddErr)
+				return
+			}
+		}
 	},
 }
 

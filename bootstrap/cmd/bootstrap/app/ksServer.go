@@ -114,7 +114,7 @@ func (m MultiError) ToError() error {
 }
 
 // NewServer constructs a ksServer.
-func NewServer(appName string, appDir string, registries []kftypes.RegistryConfig, gkeVersionOverride string) (*ksServer, error) {
+func NewServer(appName string, appDir string, registries []*kftypes.RegistryConfig, gkeVersionOverride string) (*ksServer, error) {
 	if appDir == "" {
 		return nil, fmt.Errorf("appsDir can't be empty")
 	}
@@ -126,7 +126,7 @@ func NewServer(appName string, appDir string, registries []kftypes.RegistryConfi
 		fs:                 afero.NewOsFs(),
 	}
 
-	knownRegistries := make(map[string]kftypes.RegistryConfig)
+	knownRegistries := make(map[string]*kftypes.RegistryConfig)
 
 	for _, r := range registries {
 		knownRegistries[r.Name] = r
@@ -371,9 +371,9 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 	envName := "default"
 	if err == nil {
 		log.Infof("App %v exists in project %v", request.Name, request.Project)
-		kfApi.EnvSet(envName, config.Host)
-		if err != nil {
-			return fmt.Errorf("There was a problem setting app env: %v", err)
+		envErr := kfApi.EnvSet(envName, config.Host)
+		if envErr != nil {
+			return fmt.Errorf("There was a problem setting app env: %v", envErr)
 		}
 	} else {
 		log.Infof("Creating app %v", request.Name)
@@ -400,7 +400,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 
 	// Add the registries to the app.
 	for idx, registry := range request.AppConfig.Registries {
-		RegUri, err := s.getRegistryUri(&registry)
+		RegUri, err := s.getRegistryUri(registry)
 		if err != nil {
 			log.Errorf("There was a problem getRegistryUri for registry %v. Error: %v", registry.Name, err)
 			return err
@@ -414,7 +414,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 		if _, found := registries[registry.Name]; found {
 			log.Infof("App already has registry %v", registry.Name)
 		} else {
-			err = kfApi.RegistryAdd(registry.Name, RegUri)
+			err = kfApi.RegistryAdd(registry)
 			if err != nil {
 				return fmt.Errorf("There was a problem adding registry %v: %v", registry.Name, err)
 			}
@@ -473,10 +473,7 @@ func (s *ksServer) getRegistryUri(registry *kftypes.RegistryConfig) (string, err
 		registry.Version == "" ||
 		registry.Version == "default" {
 
-		registries, err := s.kfApi.RegistryConfigs()
-		if err != nil {
-			return "", err
-		}
+		registries := s.kfApi.RegistryConfigs()
 		v, ok := registries[registry.Name]
 		if !ok {
 			return "", fmt.Errorf("Create request uses registry %v but some "+
@@ -576,7 +573,11 @@ func (s *ksServer) appGenerate(appConfig *kftypes.AppConfig) error {
 						log.Infof("Package %v already exists", pkgName)
 						continue
 					}
-					err := s.kfApi.PkgInstall(full, pkgName)
+					pkg := kftypes.KsPackage{
+						Name: full,
+						Registry: registry.Name,
+					}
+					err := s.kfApi.PkgInstall(pkg)
 					if err != nil {
 						return fmt.Errorf("There was a problem installing package %v; error %v", registry.Name, err)
 					}
@@ -594,7 +595,7 @@ func (s *ksServer) appGenerate(appConfig *kftypes.AppConfig) error {
 			log.Infof("Package %v already exists", pkg.Name)
 			continue
 		}
-		err := s.kfApi.PkgInstall(full, pkg.Name)
+		err := s.kfApi.PkgInstall(pkg)
 		if err != nil {
 			return fmt.Errorf("There was a problem installing package %v; error %v", full, err)
 		}
@@ -634,10 +635,13 @@ func (s *ksServer) appGenerate(appConfig *kftypes.AppConfig) error {
 func (s *ksServer) createComponent(args []string) error {
 	componentName := args[1]
 	componentPath := filepath.Join(s.kfApi.Root(), "components", componentName+".jsonnet")
-
+	ksComponent := kftypes.KsComponent{
+		Name: componentName,
+		Prototype: componentName,
+	}
 	if exists, _ := afero.Exists(s.fs, componentPath); !exists {
 		log.Infof("Creating Component: %v ...", componentName)
-		err := s.kfApi.ComponentAdd(componentName, args[2:])
+		err := s.kfApi.ComponentAdd(ksComponent, args[2:])
 		if err != nil {
 			return fmt.Errorf("There was a problem creating component %v: %v", componentName, err)
 		}
@@ -767,13 +771,10 @@ func (s *ksServer) GetApp(project string, appName string, kfVersion string, toke
 	if err != nil {
 		return nil, repoDir, fmt.Errorf("App %s doesn't exist in Project %s", appName, project)
 	}
-	registries, err := s.kfApi.RegistryConfigs()
-	if err != nil {
-		return nil, "", err
-	}
+	registries := s.kfApi.RegistryConfigs()
 	kfApi, err := v1alpha1.NewKfApiWithRegistries(appName, appDir, registries)
 	if err != nil {
-		return nil, repoDir, fmt.Errorf("There was a problem creating KfApi %v. Error: %v", appName, err)
+		return nil, repoDir, fmt.Errorf("there was a problem creating KfApi %v. Error: %v", appName, err)
 	}
 
 	return kfApi, repoDir, nil

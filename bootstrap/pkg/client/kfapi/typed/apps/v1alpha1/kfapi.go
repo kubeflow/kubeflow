@@ -32,13 +32,14 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"path"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
 type KfApi interface {
 	Application() *v1alpha1.Application
 	Apply(components []string, cfg clientcmdapi.Config) error
-	ComponentAdd(component string, args []string) error
+	ComponentAdd(ksComponent v1alpha1.KsComponent, args []string) error
 	Components() (map[string]*v1alpha1.KsComponent, error)
 	EnvSet(env string, host string) error
 	Init(envName string, k8sSpecFlag string, serverURI string, namespace string) error
@@ -97,7 +98,7 @@ func NewKfApi(appName string, appDir string, knownRegistries map[string]*v1alpha
 	fs := afero.NewOsFs()
 	kApp, err := app.Load(fs, nil, appDir)
 	if err != nil {
-		return nil, fmt.Errorf("There was a problem loading app %v. Error: %v", appName, err)
+		return nil, fmt.Errorf("there was a problem loading app %v. Error: %v", appName, err)
 	}
 	kfapi := &kfApi{
 		appName:         appName,
@@ -144,14 +145,26 @@ func NewKfApi(appName string, appDir string, knownRegistries map[string]*v1alpha
 				kfapi.knownRegistries[registry.Name] = registry
 			}
 		}
+		componentsEnvVar := kfapi.configs.env.GetString("KUBEFLOW_COMPONENTS")
+		if componentsEnvVar != "" {
+			components := strings.Split(componentsEnvVar, ",")
+			kfapi.application.Spec.App.Components = make([]v1alpha1.KsComponent, len(components))
+			for _, comp := range components {
+				ksComponent := v1alpha1.KsComponent{
+					Name: comp,
+					Prototype: comp,
+				}
+				kfapi.application.Spec.App.Components = append(kfapi.application.Spec.App.Components, ksComponent)
+			}
+		}
 	}
 	return kfapi, nil
 }
 
 func (kfApi *kfApi) Libraries() (map[string]*v1alpha1.KsLibrary, error) {
-	libs, error := kfApi.kApp.Libraries()
-	if error != nil {
-		return nil, fmt.Errorf("there was a problem getting the libraries %v. Error: %v", kfApi.appName, error)
+	libs, err := kfApi.kApp.Libraries()
+	if err != nil {
+		return nil, fmt.Errorf("there was a problem getting the libraries %v. Error: %v", kfApi.appName, err)
 	}
 
 	libraries := make(map[string]*v1alpha1.KsLibrary)
@@ -244,21 +257,25 @@ func (kfApi *kfApi) Apply(components []string, cfg clientcmdapi.Config) error {
 
 }
 
-func (kfApi *kfApi) ComponentAdd(component string, args []string) error {
-	componentName := component
-	componentPath := filepath.Join(kfApi.KsRoot(), "components", componentName+".jsonnet")
-
+func (kfApi *kfApi) ComponentAdd(component v1alpha1.KsComponent, args []string) error {
+	componentPath := filepath.Join(kfApi.KsRoot(), "components", component.Name+".jsonnet")
+	componentArgs := make([]string, 0)
+	componentArgs = append(componentArgs, component.Prototype)
+	componentArgs = append(componentArgs, component.Name)
+	if args != nil && len(args) > 0 {
+		componentArgs = append(componentArgs, args[0:]...)
+	}
 	if exists, _ := afero.Exists(kfApi.fs, componentPath); !exists {
-		log.Infof("Creating Component: %v ...", componentName)
+		log.Infof("Creating Component: %v ...", component.Name)
 		err := actions.RunPrototypeUse(map[string]interface{}{
 			actions.OptionAppRoot:   kfApi.KsRoot(),
-			actions.OptionArguments: args,
+			actions.OptionArguments: componentArgs,
 		})
 		if err != nil {
-			return fmt.Errorf("There was a problem creating component %v: %v", componentName, err)
+			return fmt.Errorf("there was a problem adding component %v: %v", component.Name, err)
 		}
 	} else {
-		log.Infof("Component %v already exists", componentName)
+		log.Infof("Component %v already exists", component.Name)
 	}
 	return nil
 }
@@ -351,11 +368,9 @@ func (kfApi *kfApi) RegistryAdd(registry *v1alpha1.RegistryConfig) error {
 		actions.OptionVersion: registry.Version,
 		actions.OptionOverride: false,
 	}
-
 	err := actions.RunRegistryAdd(options)
 	if err != nil {
 		return fmt.Errorf("there was a problem adding registry %v: %v", registry.Name, err)
 	}
-
 	return nil
 }
