@@ -97,7 +97,7 @@ type RegistriesConfigFile struct {
 }
 
 type AppConfig struct {
-	Registries []RegistryConfig `json:"registries,omitempty"`
+	Registries []*RegistryConfig `json:"registries,omitempty"`
 	Packages   []KsPackage      `json:"packages,omitempty"`
 	Components []KsComponent    `json:"components,omitempty"`
 	Parameters []KsParameter    `json:"parameters,omitempty"`

@@ -1,96 +1,82 @@
 apiVersion: apps.kubeflow.org/v1alpha1
 kind: Application
-app:
-  registries:
-    - name: kubeflow
-      repo: https://github.com/kubeflow/kubeflow
-      version: 0.4
-      path: kubeflow
-  packages:
-    - name: argo
-      registry: kubeflow
-    - name: pipeline
-      registry: kubeflow
-    - name: common
-      registry: kubeflow
-    - name: examples
-      registry: kubeflow
-    - name: jupyter
-      registry: kubeflow
-    - name: katib
-      registry: kubeflow
-    - name: mpi-job
-      registry: kubeflow
-    - name: pytorch-job
-      registry: kubeflow
-    - name: seldon
-      registry: kubeflow
-    - name: tf-serving
-      registry: kubeflow
-    - name: openvino
-      registry: kubeflow
-    - name: tensorboard
-      registry: kubeflow
-    - name: tf-training
-      registry: kubeflow
-    - name: metacontroller
-      registry: kubeflow
-    - name: profiles
-      registry: kubeflow
-    - name: application
-      registry: kubeflow
-    - name: modeldb
-      registry: kubeflow
-  components:
-  ks generate pytorch-operator pytorch-operator
-  ks generate ambassador ambassador
-  ks generate openvino openvino
-  ks generate jupyter jupyter
-  ks generate centraldashboard centraldashboard
-  ks generate tf-job-operator tf-job-operator
-  ks generate tensorboard tensorboard
-  ks generate metacontroller metacontroller
-  ks generate profiles profiles
-  ks generate notebooks notebooks
-  ks generate argo argo
-  ks generate pipeline pipeline
-  ks generate katib katib
-  ks generate spartakus spartakus --usageId=${usageId} --reportUsage=true
-  ks generate application
-    - name: pytorch-operator
-      prototype: pytorch-operator
-    - name: ambassador
-      prototype: ambassador
-    - name: openvino
-      prototype: openvino
-    - name: jupyter
-      prototype: jupyter
-    - name: centraldashboard
-      prototype: centraldashboard
-    - name: tf-job-operator
-      prototype: tf-job-operator
-    - name: tensorboard
-      prototype: tensorboard
-    - name: metacontroller
-      prototype: metacontroller
-    - name: profiles
-      prototype: profiles
-    - name: notebooks
-      prototype: notebooks
-    - name: argo
-      prototype: argo
-    - name: pipeline
-      prototype: pipeline
-    - name: katib
-      prototype: katib
-    - name: spartakus
-      prototype: spartakus
-    - name: application
-      prototype: application
-  parameters:
-    - component: spartakus
-      name: usageId
-      value: 35105785
-    - component: spartakus
-      name: reportUsage
-      value: true
+spec:
+  app:
+    registries:
+      - name: kubeflow
+        repo: https://github.com/kubeflow/kubeflow
+        version: 0.4
+        path: kubeflow
+    packages:
+      - name: argo
+        registry: kubeflow
+      - name: pipeline
+        registry: kubeflow
+      - name: common
+        registry: kubeflow
+      - name: examples
+        registry: kubeflow
+      - name: jupyter
+        registry: kubeflow
+      - name: katib
+        registry: kubeflow
+      - name: mpi-job
+        registry: kubeflow
+      - name: pytorch-job
+        registry: kubeflow
+      - name: seldon
+        registry: kubeflow
+      - name: tf-serving
+        registry: kubeflow
+      - name: openvino
+        registry: kubeflow
+      - name: tensorboard
+        registry: kubeflow
+      - name: tf-training
+        registry: kubeflow
+      - name: metacontroller
+        registry: kubeflow
+      - name: profiles
+        registry: kubeflow
+      - name: application
+        registry: kubeflow
+      - name: modeldb
+        registry: kubeflow
+    components:
+      - name: pytorch-operator
+        prototype: pytorch-operator
+      - name: ambassador
+        prototype: ambassador
+      - name: openvino
+        prototype: openvino
+      - name: jupyter
+        prototype: jupyter
+      - name: centraldashboard
+        prototype: centraldashboard
+      - name: tf-job-operator
+        prototype: tf-job-operator
+      - name: tensorboard
+        prototype: tensorboard
+      - name: metacontroller
+        prototype: metacontroller
+      - name: profiles
+        prototype: profiles
+      - name: notebooks
+        prototype: notebooks
+      - name: argo
+        prototype: argo
+      - name: pipeline
+        prototype: pipeline
+      - name: katib
+        prototype: katib
+      - name: spartakus
+        prototype: spartakus
+      - name: application
+        prototype: application
+    parameters:
+      - component: spartakus
+        name: usageId
+        value: 35105785
+      - component: spartakus
+        name: reportUsage
+        value: true

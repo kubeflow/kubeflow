@@ -28,7 +28,7 @@ func (in *AppConfig) DeepCopyInto(out *AppConfig) {
 	*out = *in
 	if in.Registries != nil {
 		in, out := &in.Registries, &out.Registries
-		*out = make([]RegistryConfig, len(*in))
+		*out = make([]*RegistryConfig, len(*in))
 		copy(*out, *in)
 	}
 	if in.Packages != nil {

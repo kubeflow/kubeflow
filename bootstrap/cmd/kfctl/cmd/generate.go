@@ -33,12 +33,27 @@ var generateCmd = &cobra.Command{
 			log.Errorf("couldn't create KfApi: %v", kfApiErr)
 			return
 		}
-		initErr := kfApi.Init("default", "", "", "")
+		namespace := kfctlEnv.GetString("K8S_NAMESPACE")
+		//TODO these defaults should be defined elsewhere
+		initErr := kfApi.Init("default", "version:v1.10.2", "", namespace)
 		if initErr != nil {
 			log.Errorf("couldn't initialize KfApi: %v", initErr)
 			return
 		}
-
+		for _, registry := range kfApi.Application().Spec.App.Registries {
+			registryAddErr := kfApi.RegistryAdd(registry)
+			if registryAddErr != nil {
+				log.Errorf("couldn't add registry %v. Error: %v", registry.Name, registryAddErr)
+				return
+			}
+		}
+		for _, pkg := range kfApi.Application().Spec.App.Packages {
+			packageAddErr := kfApi.PkgInstall(pkg)
+			if packageAddErr != nil {
+				log.Errorf("couldn't add registry %v. Error: %v", pkg.Name, packageAddErr)
+				return
+			}
+		}
 	},
 }
 
