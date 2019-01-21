@@ -272,13 +272,13 @@ that are relevant to `kfctl` but cannot be easily separated. It turns out the pr
 of interest is `createAppHandler`. This calls an [anonymous function](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/cmd/bootstrap/app/ksServer.go#L1038) that ends up making all the `ksonnet` calls required by `kfctl`.
 The other entrypoints are either not relevent to `kfctl` or implement part of what is done in this anonymous function.
 
-Methods needed from `ksServer.go` that are relevant to `KfApi`
+Methods needed from `ksServer.go` that are relevant to `KfApi`:
 - `ksServer.CreateApp`
 - `ksServer.GetApp`
 - `ksServer.appGenerate`
 - `ksServer.createComponent`
 
-Within the above methods there are direct calls to `ksonnet`
+Within the above methods there are direct calls to `ksonnet`:
 - `Load`
 - `RunEnvSet`
 - `RunInit`
@@ -288,5 +288,5 @@ Within the above methods there are direct calls to `ksonnet`
 - `RunParamSet`
 - `RunApply`
 
-This have been replaced with method in KfApi.
+This have been replaced with method in `KfApi`.
 
