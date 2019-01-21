@@ -3,9 +3,7 @@
 TL;DR
 
 ## Remaining work
-  - Add `viper` for `kfctl config`
   - Test `kfapi` integrated calls in `gcp-click-to-deploy`
-  - `generate`, `delete` and `apply` subcommands need to call the same methods in `KfApi`
   - `brew` packaging
   - Command completion for `bash/zsh`
 
