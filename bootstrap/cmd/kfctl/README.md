@@ -261,7 +261,6 @@ http.Handle("/", optionsHandler(healthzHandler))
 http.Handle("/kfctl/apps/apply", optionsHandler(applyAppHandler))
 http.Handle("/kfctl/apps/create", optionsHandler(createAppHandler))
 http.Handle("/kfctl/iam/apply", optionsHandler(applyIamHandler))
-
 http.Handle("/kfctl/initProject", optionsHandler(initProjectHandler))
 http.Handle("/kfctl/e2eDeploy", optionsHandler(deployHandler))
 ```
