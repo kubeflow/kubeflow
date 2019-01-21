@@ -16,9 +16,12 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/kfapi"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
+	"regexp"
 )
 
 var token string
@@ -30,6 +33,24 @@ var rootCmd = &cobra.Command{
 	Use:   "kfctl",
 	Short: "A client tool to create kubeflow applications",
 	Long:  `kubeflow client tool`,
+}
+
+func ServerVersion() (host string, version string, err error) {
+	restApi, err := v1alpha1.BuildOutOfClusterConfig()
+	if err != nil {
+		return "", "", fmt.Errorf("couldn't build out-of-cluster config. Error: %v", err)
+	}
+	clnt, clntErr := kfapi.NewForConfig(restApi)
+	if clntErr != nil {
+		return "", "", fmt.Errorf("couldn't get clientset. Error: %v", err)
+	}
+	serverVersion, serverVersionErr := clnt.ServerVersion()
+	if serverVersionErr != nil {
+		return "", "", fmt.Errorf("couldn't get server version info. Error: %v", serverVersionErr)
+	}
+	re := regexp.MustCompile("^v[0-9]+.[0-9]+.[0-9]+")
+	version = re.FindString(serverVersion.String())
+	return restApi.Host, "version:" + version, nil
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

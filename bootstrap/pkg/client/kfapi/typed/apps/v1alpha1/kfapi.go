@@ -28,8 +28,11 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -42,7 +45,7 @@ type KfApi interface {
 	ComponentAdd(ksComponent v1alpha1.KsComponent, args []string) error
 	Components() (map[string]*v1alpha1.KsComponent, error)
 	EnvSet(env string, host string) error
-	Init(envName string, k8sSpecFlag string, serverURI string, namespace string) error
+	Init(envName string, k8sSpecFlag string, host string, namespace string) error
 	Libraries() (map[string]*v1alpha1.KsLibrary, error)
 	ParamSet(component string, name string, value string) error
 	PkgInstall(pkg v1alpha1.KsPackage) error
@@ -51,7 +54,6 @@ type KfApi interface {
 	RegistryAdd(registry *v1alpha1.RegistryConfig) error
 	RegistryConfigs() map[string]*v1alpha1.RegistryConfig
 	Root() string
-	KsRoot() string
 }
 
 type kfConfig struct {
@@ -78,6 +80,45 @@ type kfApi struct {
 	application     v1alpha1.Application
 }
 
+// BuildOutOfClusterConfig returns k8s config
+func BuildOutOfClusterConfig() (*rest.Config, error) {
+	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
+	kubeconfigEnv := os.Getenv("KUBECONFIG")
+	if kubeconfigEnv == "" {
+		home := os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
+		if home == "" {
+			for _, h := range []string{"HOME", "USERPROFILE"} {
+				if home = os.Getenv(h); home != "" {
+					break
+				}
+			}
+		}
+		kubeconfigPath := filepath.Join(home, ".kube", "config")
+		loadingRules.ExplicitPath = kubeconfigPath
+	}
+	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		loadingRules, &clientcmd.ConfigOverrides{}).ClientConfig()
+	if err != nil {
+		return nil, err
+	}
+	return config, nil
+}
+
+// GetClientOutOfCluster returns a k8s clientset to the request from outside of cluster
+func GetClientOutOfCluster() (kubernetes.Interface, error) {
+	config, err := BuildOutOfClusterConfig()
+	if err != nil {
+		log.Fatalf("Can not get kubernetes config: %v", err)
+	}
+
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		log.Fatalf("Can not get kubernetes client: %v", err)
+	}
+
+	return clientset, nil
+}
+
 func NewKfApiWithRegistries(appName string, appsDir string, knownRegistries map[string]*v1alpha1.RegistryConfig) (KfApi, error) {
 	return NewKfApi(appName, appsDir, knownRegistries, nil, nil)
 }
@@ -94,13 +135,12 @@ func NewKfApiWithConfig(cfg *viper.Viper, env *viper.Viper) (KfApi, error) {
 
 func NewKfApi(appName string, appDir string, knownRegistries map[string]*v1alpha1.RegistryConfig,
 	init *viper.Viper, env *viper.Viper) (KfApi, error) {
-
 	fs := afero.NewOsFs()
 	kApp, err := app.Load(fs, nil, appDir)
 	if err != nil {
 		return nil, fmt.Errorf("there was a problem loading app %v. Error: %v", appName, err)
 	}
-	kfapi := &kfApi{
+	api := &kfApi{
 		appName:         appName,
 		appDir:          appDir,
 		ksName:          "ks_app",
@@ -122,13 +162,13 @@ func NewKfApi(appName string, appDir string, knownRegistries map[string]*v1alpha
 			Spec: v1alpha1.ApplicationSpec{},
 		},
 	}
-	if kfapi.configs.init != nil {
-		kfapi.knownRegistries = make(map[string]*v1alpha1.RegistryConfig)
-		applicationSpecErr := kfapi.configs.init.Sub("spec").Unmarshal(&kfapi.application.Spec)
+	if api.configs.init != nil {
+		api.knownRegistries = make(map[string]*v1alpha1.RegistryConfig)
+		applicationSpecErr := api.configs.init.Sub("spec").Unmarshal(&api.application.Spec)
 		if applicationSpecErr != nil {
 			return nil, fmt.Errorf("couldn't unmarshall yaml. Error: %v", applicationSpecErr)
 		}
-		for _, registry := range kfapi.application.Spec.App.Registries {
+		for _, registry := range api.application.Spec.App.Registries {
 			if registry.Name != "" {
 				if registry.Name == "kubeflow" {
 					kubeflowRepo := env.GetString("KUBEFLOW_REPO")
@@ -140,23 +180,23 @@ func NewKfApi(appName string, appDir string, knownRegistries map[string]*v1alpha
 						registry.Version = kubeflowVersion
 					}
 				}
-				kfapi.knownRegistries[registry.Name] = registry
+				api.knownRegistries[registry.Name] = registry
 			}
 		}
-		componentsEnvVar := kfapi.configs.env.GetString("KUBEFLOW_COMPONENTS")
+		componentsEnvVar := api.configs.env.GetString("KUBEFLOW_COMPONENTS")
 		if componentsEnvVar != "" {
 			components := strings.Split(componentsEnvVar, ",")
-			kfapi.application.Spec.App.Components = make([]v1alpha1.KsComponent, len(components))
+			api.application.Spec.App.Components = make([]v1alpha1.KsComponent, len(components))
 			for _, comp := range components {
 				ksComponent := v1alpha1.KsComponent{
 					Name:      comp,
 					Prototype: comp,
 				}
-				kfapi.application.Spec.App.Components = append(kfapi.application.Spec.App.Components, ksComponent)
+				api.application.Spec.App.Components = append(api.application.Spec.App.Components, ksComponent)
 			}
 		}
 	}
-	return kfapi, nil
+	return api, nil
 }
 
 func (kfApi *kfApi) Libraries() (map[string]*v1alpha1.KsLibrary, error) {
@@ -199,11 +239,6 @@ func (kfApi *kfApi) RegistryConfigs() map[string]*v1alpha1.RegistryConfig {
 
 func (kfApi *kfApi) Root() string {
 	return kfApi.appDir
-}
-
-func (kfApi *kfApi) KsRoot() string {
-	root := path.Join(kfApi.appDir, kfApi.ksName)
-	return root
 }
 
 func (kfApi *kfApi) Application() *v1alpha1.Application {
@@ -297,14 +332,14 @@ func (kfApi *kfApi) Components() (map[string]*v1alpha1.KsComponent, error) {
 	return comps, nil
 }
 
-func (kfApi *kfApi) Init(envName string, k8sSpecFlag string, serverURI string, namespace string) error {
+func (kfApi *kfApi) Init(envName string, k8sSpecFlag string, host string, namespace string) error {
 	newRoot := path.Join(kfApi.appDir, kfApi.ksName)
 	options := map[string]interface{}{
 		actions.OptionFs:                    kfApi.fs,
 		actions.OptionName:                  kfApi.ksName,
 		actions.OptionEnvName:               envName,
 		actions.OptionNewRoot:               newRoot,
-		actions.OptionServer:                serverURI,
+		actions.OptionServer:                host,
 		actions.OptionSpecFlag:              k8sSpecFlag,
 		actions.OptionNamespace:             namespace,
 		actions.OptionSkipDefaultRegistries: true,
@@ -319,7 +354,21 @@ func (kfApi *kfApi) Init(envName string, k8sSpecFlag string, serverURI string, n
 }
 
 func (kfApi *kfApi) EnvSet(env string, host string) error {
+	options := map[string]interface{}{
+		actions.OptionAppRoot: kfApi.KsRoot(),
+		actions.OptionEnvName: env,
+		actions.OptionServer:  host,
+	}
+	err := actions.RunEnvSet(options)
+	if err != nil {
+		return fmt.Errorf("There was a problem setting ksonnet env: %v", err)
+	}
 	return nil
+}
+
+func (kfApi *kfApi) KsRoot() string {
+	root := path.Join(kfApi.appDir, kfApi.ksName)
+	return root
 }
 
 func (kfApi *kfApi) ParamSet(component string, name string, value string) error {

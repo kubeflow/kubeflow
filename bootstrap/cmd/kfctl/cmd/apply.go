@@ -16,8 +16,11 @@ package cmd
 
 import (
 	"fmt"
-
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // applyCmd represents the apply command
@@ -27,20 +30,39 @@ var applyCmd = &cobra.Command{
 	Long:  `Deploy a generated kubeflow application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("apply called")
+		cli, cliErr := v1alpha1.GetClientOutOfCluster()
+		if cliErr != nil {
+			log.Errorf("couldn't create client Error: %v", cliErr)
+			return
+		}
+		kfApi, kfApiErr := v1alpha1.NewKfApiWithConfig(kfctlConfig, kfctlEnv)
+		if kfApiErr != nil {
+			log.Errorf("couldn't create KfApi: %v", kfApiErr)
+			return
+		}
+		host, _, err := ServerVersion()
+		if err != nil {
+			log.Errorf("couldn't get server version: %v", err)
+			return
+		}
+		namespace := kfctlEnv.GetString("K8S_NAMESPACE")
+		nsSpec := &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespace}}
+		_, nsErr := cli.CoreV1().Namespaces().Create(nsSpec)
+		if nsErr != nil {
+			log.Errorf("couldn't create namespace %v Error: %v", namespace, nsErr)
+			return
+		}
+		envSetErr := kfApi.EnvSet("default", host)
+		if envSetErr != nil {
+			log.Errorf("couldn't create ksonnet env default Error: %v", envSetErr)
+			return
+		}
+
+		//rest := client.RESTClient()
 
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(applyCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// applyCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// applyCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

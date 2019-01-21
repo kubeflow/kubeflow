@@ -33,9 +33,13 @@ var generateCmd = &cobra.Command{
 			log.Errorf("couldn't create KfApi: %v", kfApiErr)
 			return
 		}
+		host, k8sSpec, err := ServerVersion()
+		if err != nil {
+			log.Errorf("couldn't get server version: %v", err)
+			return
+		}
 		namespace := kfctlEnv.GetString("K8S_NAMESPACE")
-		//TODO these defaults should be defined elsewhere
-		initErr := kfApi.Init("default", "version:v1.10.2", "", namespace)
+		initErr := kfApi.Init("default", k8sSpec, host, namespace)
 		if initErr != nil {
 			log.Errorf("couldn't initialize KfApi: %v", initErr)
 			return
