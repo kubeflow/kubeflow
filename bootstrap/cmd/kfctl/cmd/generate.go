@@ -15,7 +15,6 @@
 package cmd
 
 import (
-	"fmt"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -27,7 +26,7 @@ var generateCmd = &cobra.Command{
 	Short: "Generate a kubeflow application using <name>.yaml.",
 	Long:  `Generate a kubeflow application using <name>.yaml.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("generate called")
+		log.SetLevel(log.WarnLevel)
 		kfApi, kfApiErr := v1alpha1.NewKfApiWithConfig(kfctlConfig, kfctlEnv)
 		if kfApiErr != nil {
 			log.Errorf("couldn't create KfApi: %v", kfApiErr)

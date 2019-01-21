@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/cenkalti/backoff"
 	"github.com/ksonnet/ksonnet/pkg/actions"
@@ -27,6 +28,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
+	"io"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -37,6 +39,12 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+)
+
+const (
+	KsName           = "ks_app"
+	KsEnvName        = "default"
+	DefaultNamespace = "kubeflow"
 )
 
 type KfApi interface {
@@ -54,6 +62,7 @@ type KfApi interface {
 	RegistryAdd(registry *v1alpha1.RegistryConfig) error
 	RegistryConfigs() map[string]*v1alpha1.RegistryConfig
 	Root() string
+	Show(components []string) error
 }
 
 type kfConfig struct {
@@ -69,6 +78,8 @@ type kfApi struct {
 	appDir string
 	// ksonnet root name
 	ksName string
+	// ksonnet env name
+	ksEnvName string
 	// knownRegistries is a list of known registries
 	// This can be used to map the name of a registry to info about the registry.
 	// This allows apps to specify a registry by name without having to know any
@@ -119,6 +130,36 @@ func GetClientOutOfCluster() (kubernetes.Interface, error) {
 	return clientset, nil
 }
 
+// capture replaces os.Stdout with a writer that buffers any data written
+// to os.Stdout. Call the returned function to cleanup and get the data
+// as a string.
+func capture() func() (string, error) {
+	r, w, err := os.Pipe()
+	if err != nil {
+		panic(err)
+	}
+
+	done := make(chan error, 1)
+
+	save := os.Stdout
+	os.Stdout = w
+
+	var buf strings.Builder
+
+	go func() {
+		_, err := io.Copy(&buf, r)
+		_ = r.Close()
+		done <- err
+	}()
+
+	return func() (string, error) {
+		os.Stdout = save
+		_ = w.Close()
+		err := <-done
+		return buf.String(), err
+	}
+}
+
 func NewKfApiWithRegistries(appName string, appsDir string, knownRegistries map[string]*v1alpha1.RegistryConfig) (KfApi, error) {
 	return NewKfApi(appName, appsDir, knownRegistries, nil, nil)
 }
@@ -136,14 +177,16 @@ func NewKfApiWithConfig(cfg *viper.Viper, env *viper.Viper) (KfApi, error) {
 func NewKfApi(appName string, appDir string, knownRegistries map[string]*v1alpha1.RegistryConfig,
 	init *viper.Viper, env *viper.Viper) (KfApi, error) {
 	fs := afero.NewOsFs()
-	kApp, err := app.Load(fs, nil, appDir)
-	if err != nil {
-		return nil, fmt.Errorf("there was a problem loading app %v. Error: %v", appName, err)
+	ksDir := path.Join(appDir, KsName)
+	kApp, kAppErr := app.Load(fs, nil, ksDir)
+	if kAppErr != nil {
+		return nil, fmt.Errorf("there was a problem loading app %v. Error: %v", appName, kAppErr)
 	}
 	api := &kfApi{
 		appName:         appName,
 		appDir:          appDir,
-		ksName:          "ks_app",
+		ksName:          KsName,
+		ksEnvName:       KsEnvName,
 		fs:              fs,
 		knownRegistries: knownRegistries,
 		configs: kfConfig{
@@ -157,7 +200,7 @@ func NewKfApi(appName string, appDir string, knownRegistries map[string]*v1alpha
 				APIVersion: "apps.kubeflow.org/v1alpha1",
 			},
 			ObjectMeta: metav1.ObjectMeta{
-				Name: "default",
+				Name: appName,
 			},
 			Spec: v1alpha1.ApplicationSpec{},
 		},
@@ -334,10 +377,11 @@ func (kfApi *kfApi) Components() (map[string]*v1alpha1.KsComponent, error) {
 
 func (kfApi *kfApi) Init(envName string, k8sSpecFlag string, host string, namespace string) error {
 	newRoot := path.Join(kfApi.appDir, kfApi.ksName)
+	kfApi.ksEnvName = envName
 	options := map[string]interface{}{
 		actions.OptionFs:                    kfApi.fs,
 		actions.OptionName:                  kfApi.ksName,
-		actions.OptionEnvName:               envName,
+		actions.OptionEnvName:               kfApi.ksEnvName,
 		actions.OptionNewRoot:               newRoot,
 		actions.OptionServer:                host,
 		actions.OptionSpecFlag:              k8sSpecFlag,
@@ -353,13 +397,13 @@ func (kfApi *kfApi) Init(envName string, k8sSpecFlag string, host string, namesp
 	return nil
 }
 
-func (kfApi *kfApi) EnvSet(env string, host string) error {
-	options := map[string]interface{}{
+func (kfApi *kfApi) EnvSet(envName string, host string) error {
+	kfApi.ksEnvName = envName
+	err := actions.RunEnvSet(map[string]interface{}{
 		actions.OptionAppRoot: kfApi.KsRoot(),
-		actions.OptionEnvName: env,
+		actions.OptionEnvName: kfApi.ksEnvName,
 		actions.OptionServer:  host,
-	}
-	err := actions.RunEnvSet(options)
+	})
 	if err != nil {
 		return fmt.Errorf("There was a problem setting ksonnet env: %v", err)
 	}
@@ -417,5 +461,39 @@ func (kfApi *kfApi) RegistryAdd(registry *v1alpha1.RegistryConfig) error {
 	if err != nil {
 		return fmt.Errorf("there was a problem adding registry %v: %v", registry.Name, err)
 	}
+	return nil
+}
+
+func (kfApi *kfApi) Show(components []string) error {
+	done := capture()
+	err := actions.RunShow(map[string]interface{}{
+		actions.OptionApp:            kfApi.kApp,
+		actions.OptionComponentNames: components,
+		actions.OptionEnvName:        kfApi.ksEnvName,
+		actions.OptionFormat:         "yaml",
+	})
+	if err != nil {
+		return fmt.Errorf("there was a problem showing components %v: %v", components, err)
+	}
+	capturedOutput, capturedOutputErr := done()
+	if capturedOutputErr != nil {
+		return fmt.Errorf("there was a problem capturing the output: %v", capturedOutput)
+	}
+	outputFileName := filepath.Join(kfApi.KsRoot(), kfApi.ksEnvName+".yaml")
+	outputFile, outputFileErr := os.Create(outputFileName)
+	if outputFileErr != nil {
+		return fmt.Errorf("there was a problem creating output file %v: %v", outputFileName, outputFileErr)
+	}
+	defer outputFile.Close()
+	writer := bufio.NewWriter(outputFile)
+	_, writerErr := writer.WriteString(capturedOutput)
+	if writerErr != nil {
+		return fmt.Errorf("there was a problem writing to %v: %v", outputFileName, writerErr)
+	}
+	flushErr := writer.Flush()
+	if flushErr != nil {
+		return fmt.Errorf("there was a problem flushing file %v: %v", outputFileName, flushErr)
+	}
+
 	return nil
 }
