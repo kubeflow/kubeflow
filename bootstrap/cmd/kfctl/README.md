@@ -257,13 +257,13 @@ Current golang functions to build a `ksonnet` application are in `ksServer.go` a
 by the UI. These functions are invoked from `REST` entrypoints bound in [ksServer.go](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/cmd/bootstrap/app/ksServer.go#L1291) and are shown below:
 
 ```golang
-	http.Handle("/", optionsHandler(healthzHandler))
-	http.Handle("/kfctl/apps/apply", optionsHandler(applyAppHandler))
-	http.Handle("/kfctl/apps/create", optionsHandler(createAppHandler))
-	http.Handle("/kfctl/iam/apply", optionsHandler(applyIamHandler))
-        
-	http.Handle("/kfctl/initProject", optionsHandler(initProjectHandler))
-	http.Handle("/kfctl/e2eDeploy", optionsHandler(deployHandler))
+http.Handle("/", optionsHandler(healthzHandler))
+http.Handle("/kfctl/apps/apply", optionsHandler(applyAppHandler))
+http.Handle("/kfctl/apps/create", optionsHandler(createAppHandler))
+http.Handle("/kfctl/iam/apply", optionsHandler(applyIamHandler))
+
+http.Handle("/kfctl/initProject", optionsHandler(initProjectHandler))
+http.Handle("/kfctl/e2eDeploy", optionsHandler(deployHandler))
 ```
 
 These functions mostly call a [KsService Interface](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/cmd/bootstrap/app/ksServer.go#L60) to build a `ksonnet` application.
