@@ -24,42 +24,11 @@ import (
 	"os"
 	"os/user"
 	"path"
-	"path/filepath"
-
-	"github.com/sirupsen/logrus"
-
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 
 	// Auth plugins
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 )
-
-// BuildOutOfClusterConfig returns k8s config
-func BuildOutOfClusterConfig() (*rest.Config, error) {
-	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
-	kubeconfigEnv := os.Getenv("KUBECONFIG")
-	if kubeconfigEnv == "" {
-		home := os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
-		if home == "" {
-			for _, h := range []string{"HOME", "USERPROFILE"} {
-				if home = os.Getenv(h); home != "" {
-					break
-				}
-			}
-		}
-		kubeconfigPath := filepath.Join(home, ".kube", "config")
-		loadingRules.ExplicitPath = kubeconfigPath
-	}
-	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
-		loadingRules, &clientcmd.ConfigOverrides{}).ClientConfig()
-	if err != nil {
-		return nil, err
-	}
-	return config, nil
-}
 
 // RecommendedConfigPathEnvVar is a environment variable for path configuration
 const RecommendedConfigPathEnvVar = "KUBECONFIG"
@@ -97,21 +66,6 @@ func GetApiServer() (string, error) {
 
 	}
 	return "", nil
-}
-
-// GetClientOutOfCluster returns a k8s clientset to the request from outside of cluster
-func GetClientOutOfCluster() kubernetes.Interface {
-	config, err := BuildOutOfClusterConfig()
-	if err != nil {
-		logrus.Fatalf("Can not get kubernetes config: %v", err)
-	}
-
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		logrus.Fatalf("Can not get kubernetes client: %v", err)
-	}
-
-	return clientset
 }
 
 // Load yaml config
