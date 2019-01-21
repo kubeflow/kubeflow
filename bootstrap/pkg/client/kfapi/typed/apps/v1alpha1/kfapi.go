@@ -105,7 +105,7 @@ func NewKfApi(appName string, appsDir string, knownRegistries map[string]v1alpha
 	}
 	if kfapi.configs.init != nil {
 		kfapi.knownRegistries = make(map[string]v1alpha1.RegistryConfig)
-		registries := make([]v1alpha1.RegistryConfig,5)
+		registries := make([]v1alpha1.RegistryConfig, 5)
 		appConfig := kfapi.configs.init.Sub("app")
 		registriesErr := appConfig.UnmarshalKey("registries", &registries)
 		if registriesErr != nil {
