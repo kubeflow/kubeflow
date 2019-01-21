@@ -31,7 +31,7 @@ var applyCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("apply called")
 		cli, cliErr := v1alpha1.GetClientOutOfCluster()
-		if cliErr == nil {
+		if cliErr != nil {
 			log.Errorf("couldn't create client Error: %v", cliErr)
 			return
 		}

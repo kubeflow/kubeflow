@@ -354,6 +354,15 @@ func (kfApi *kfApi) Init(envName string, k8sSpecFlag string, host string, namesp
 }
 
 func (kfApi *kfApi) EnvSet(env string, host string) error {
+	options := map[string]interface{}{
+		actions.OptionAppRoot: kfApi.KsRoot(),
+		actions.OptionEnvName: env,
+		actions.OptionServer:  host,
+	}
+	err := actions.RunEnvSet(options)
+	if err != nil {
+		return fmt.Errorf("There was a problem setting ksonnet env: %v", err)
+	}
 	return nil
 }
 

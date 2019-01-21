@@ -21,6 +21,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
+	"regexp"
 )
 
 var token string
@@ -47,7 +48,9 @@ func ServerVersion() (host string, version string, err error) {
 	if serverVersionErr != nil {
 		return "", "", fmt.Errorf("couldn't get server version info. Error: %v", serverVersionErr)
 	}
-	return restApi.Host, "version:" + serverVersion.String(), nil
+	re := regexp.MustCompile("^v[0-9]+.[0-9]+.[0-9]+")
+	version = re.FindString(serverVersion.String())
+	return restApi.Host, "version:" + version, nil
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
