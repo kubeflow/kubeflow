@@ -77,7 +77,7 @@ func createConfigFiles(cfg *viper.Viper, path string) error {
 		},
 		Spec: kftypes.ApplicationSpec{
 			App: kftypes.AppConfig{
-				Registries: []kftypes.RegistryConfig{
+				Registries: []*kftypes.RegistryConfig{
 					{
 						Name:    "kubeflow",
 						Repo:    "https://github.com/kubeflow/kubeflow.git",

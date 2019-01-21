@@ -27,26 +27,31 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	"path"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
 type KfApi interface {
+	Application() *v1alpha1.Application
 	Apply(components []string, cfg clientcmdapi.Config) error
-	ComponentAdd(component string, args []string) error
+	ComponentAdd(ksComponent v1alpha1.KsComponent, args []string) error
 	Components() (map[string]*v1alpha1.KsComponent, error)
 	EnvSet(env string, host string) error
 	Init(envName string, k8sSpecFlag string, serverURI string, namespace string) error
 	Libraries() (map[string]*v1alpha1.KsLibrary, error)
 	ParamSet(component string, name string, value string) error
-	PkgInstall(full string, pkgName string) error
+	PkgInstall(pkg v1alpha1.KsPackage) error
 	PrototypeUse(m map[string]interface{}) error
 	Registries() (map[string]*v1alpha1.Registry, error)
-	RegistryAdd(name string, reguri string) error
-	RegistryConfigs() (map[string]v1alpha1.RegistryConfig, error)
+	RegistryAdd(registry *v1alpha1.RegistryConfig) error
+	RegistryConfigs() map[string]*v1alpha1.RegistryConfig
 	Root() string
+	KsRoot() string
 }
 
 type kfConfig struct {
@@ -60,17 +65,20 @@ type kfApi struct {
 	appName string
 	// appDir is the directory where apps should be stored.
 	appDir string
+	// ksonnet root name
+	ksName string
 	// knownRegistries is a list of known registries
 	// This can be used to map the name of a registry to info about the registry.
 	// This allows apps to specify a registry by name without having to know any
 	// other information about the regisry.
-	knownRegistries map[string]v1alpha1.RegistryConfig
+	knownRegistries map[string]*v1alpha1.RegistryConfig
 	configs         kfConfig
 	fs              afero.Fs
 	kApp            app.App
+	application     v1alpha1.Application
 }
 
-func NewKfApiWithRegistries(appName string, appsDir string, knownRegistries map[string]v1alpha1.RegistryConfig) (KfApi, error) {
+func NewKfApiWithRegistries(appName string, appsDir string, knownRegistries map[string]*v1alpha1.RegistryConfig) (KfApi, error) {
 	return NewKfApi(appName, appsDir, knownRegistries, nil, nil)
 }
 
@@ -80,21 +88,22 @@ func NewKfApiWithConfig(cfg *viper.Viper, env *viper.Viper) (KfApi, error) {
 		return nil, fmt.Errorf("config file does not exist")
 	}
 	appDir := filepath.Dir(cfgfile)
-	appName := filepath.Base(cfgfile)
+	appName := filepath.Base(appDir)
 	return NewKfApi(appName, appDir, nil, cfg, env)
 }
 
-func NewKfApi(appName string, appsDir string, knownRegistries map[string]v1alpha1.RegistryConfig,
+func NewKfApi(appName string, appDir string, knownRegistries map[string]*v1alpha1.RegistryConfig,
 	init *viper.Viper, env *viper.Viper) (KfApi, error) {
 
 	fs := afero.NewOsFs()
-	kApp, err := app.Load(fs, nil, appsDir)
+	kApp, err := app.Load(fs, nil, appDir)
 	if err != nil {
-		return nil, fmt.Errorf("There was a problem loading app %v. Error: %v", appName, err)
+		return nil, fmt.Errorf("there was a problem loading app %v. Error: %v", appName, err)
 	}
 	kfapi := &kfApi{
 		appName:         appName,
-		appDir:          appsDir,
+		appDir:          appDir,
+		ksName:          "ks_app",
 		fs:              fs,
 		knownRegistries: knownRegistries,
 		configs: kfConfig{
@@ -102,18 +111,48 @@ func NewKfApi(appName string, appsDir string, knownRegistries map[string]v1alpha
 			env:  env,
 		},
 		kApp: kApp,
+		application: v1alpha1.Application{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "Application",
+				APIVersion: "apps.kubeflow.org/v1alpha1",
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "default",
+			},
+			Spec: v1alpha1.ApplicationSpec{},
+		},
 	}
 	if kfapi.configs.init != nil {
-		kfapi.knownRegistries = make(map[string]v1alpha1.RegistryConfig)
-		registries := make([]v1alpha1.RegistryConfig, 5)
-		appConfig := kfapi.configs.init.Sub("app")
-		registriesErr := appConfig.UnmarshalKey("registries", &registries)
-		if registriesErr != nil {
-			return nil, fmt.Errorf("couldn't unmarshall yaml. Error: %v", registriesErr)
+		kfapi.knownRegistries = make(map[string]*v1alpha1.RegistryConfig)
+		applicationSpecErr := kfapi.configs.init.Sub("spec").Unmarshal(&kfapi.application.Spec)
+		if applicationSpecErr != nil {
+			return nil, fmt.Errorf("couldn't unmarshall yaml. Error: %v", applicationSpecErr)
 		}
-		for _, registry := range registries {
+		for _, registry := range kfapi.application.Spec.App.Registries {
 			if registry.Name != "" {
+				if registry.Name == "kubeflow" {
+					kubeflowRepo := env.GetString("KUBEFLOW_REPO")
+					if kubeflowRepo != "" {
+						registry.RegUri = path.Join(kubeflowRepo, "kubeflow")
+					}
+					kubeflowVersion := env.GetString("KUBEFLOW_VERSION")
+					if kubeflowVersion != "" {
+						registry.Version = kubeflowVersion
+					}
+				}
 				kfapi.knownRegistries[registry.Name] = registry
+			}
+		}
+		componentsEnvVar := kfapi.configs.env.GetString("KUBEFLOW_COMPONENTS")
+		if componentsEnvVar != "" {
+			components := strings.Split(componentsEnvVar, ",")
+			kfapi.application.Spec.App.Components = make([]v1alpha1.KsComponent, len(components))
+			for _, comp := range components {
+				ksComponent := v1alpha1.KsComponent{
+					Name:      comp,
+					Prototype: comp,
+				}
+				kfapi.application.Spec.App.Components = append(kfapi.application.Spec.App.Components, ksComponent)
 			}
 		}
 	}
@@ -121,9 +160,9 @@ func NewKfApi(appName string, appsDir string, knownRegistries map[string]v1alpha
 }
 
 func (kfApi *kfApi) Libraries() (map[string]*v1alpha1.KsLibrary, error) {
-	libs, error := kfApi.kApp.Libraries()
-	if error != nil {
-		return nil, fmt.Errorf("there was a problem getting the libraries %v. Error: %v", kfApi.appName, error)
+	libs, err := kfApi.kApp.Libraries()
+	if err != nil {
+		return nil, fmt.Errorf("there was a problem getting the libraries %v. Error: %v", kfApi.appName, err)
 	}
 
 	libraries := make(map[string]*v1alpha1.KsLibrary)
@@ -142,7 +181,6 @@ func (kfApi *kfApi) Registries() (map[string]*v1alpha1.Registry, error) {
 	if err != nil {
 		return nil, fmt.Errorf("There was a problem getting the Registries %v. Error: %v", kfApi.appName, err)
 	}
-
 	registries := make(map[string]*v1alpha1.Registry)
 	for k, v := range regs {
 		registries[k] = &v1alpha1.Registry{
@@ -155,12 +193,21 @@ func (kfApi *kfApi) Registries() (map[string]*v1alpha1.Registry, error) {
 	return registries, nil
 }
 
-func (kfApi *kfApi) RegistryConfigs() (map[string]v1alpha1.RegistryConfig, error) {
-	return kfApi.knownRegistries, nil
+func (kfApi *kfApi) RegistryConfigs() map[string]*v1alpha1.RegistryConfig {
+	return kfApi.knownRegistries
 }
 
 func (kfApi *kfApi) Root() string {
-	return kfApi.kApp.Root()
+	return kfApi.appDir
+}
+
+func (kfApi *kfApi) KsRoot() string {
+	root := path.Join(kfApi.appDir, kfApi.ksName)
+	return root
+}
+
+func (kfApi *kfApi) Application() *v1alpha1.Application {
+	return &kfApi.application
 }
 
 func (kfApi *kfApi) Apply(components []string, cfg clientcmdapi.Config) error {
@@ -208,21 +255,25 @@ func (kfApi *kfApi) Apply(components []string, cfg clientcmdapi.Config) error {
 
 }
 
-func (kfApi *kfApi) ComponentAdd(component string, args []string) error {
-	componentName := component
-	componentPath := filepath.Join(kfApi.Root(), "components", componentName+".jsonnet")
-
+func (kfApi *kfApi) ComponentAdd(component v1alpha1.KsComponent, args []string) error {
+	componentPath := filepath.Join(kfApi.KsRoot(), "components", component.Name+".jsonnet")
+	componentArgs := make([]string, 0)
+	componentArgs = append(componentArgs, component.Prototype)
+	componentArgs = append(componentArgs, component.Name)
+	if args != nil && len(args) > 0 {
+		componentArgs = append(componentArgs, args[0:]...)
+	}
 	if exists, _ := afero.Exists(kfApi.fs, componentPath); !exists {
-		log.Infof("Creating Component: %v ...", componentName)
+		log.Infof("Creating Component: %v ...", component.Name)
 		err := actions.RunPrototypeUse(map[string]interface{}{
-			actions.OptionAppRoot:   kfApi.Root(),
-			actions.OptionArguments: args,
+			actions.OptionAppRoot:   kfApi.KsRoot(),
+			actions.OptionArguments: componentArgs,
 		})
 		if err != nil {
-			return fmt.Errorf("There was a problem creating component %v: %v", componentName, err)
+			return fmt.Errorf("there was a problem adding component %v: %v", component.Name, err)
 		}
 	} else {
-		log.Infof("Component %v already exists", componentName)
+		log.Infof("Component %v already exists", component.Name)
 	}
 	return nil
 }
@@ -231,11 +282,10 @@ func (kfApi *kfApi) Components() (map[string]*v1alpha1.KsComponent, error) {
 	moduleName := "/"
 
 	topModule := component.NewModule(kfApi.kApp, moduleName)
-	components, error := topModule.Components()
-	if error != nil {
-		return nil, fmt.Errorf("there was a problem getting the Components %v. Error: %v", kfApi.appName, error)
+	components, err := topModule.Components()
+	if err != nil {
+		return nil, fmt.Errorf("there was a problem getting the Components %v. Error: %v", kfApi.appName, err)
 	}
-
 	comps := make(map[string]*v1alpha1.KsComponent)
 	for _, comp := range components {
 		name := comp.Name(false)
@@ -244,16 +294,16 @@ func (kfApi *kfApi) Components() (map[string]*v1alpha1.KsComponent, error) {
 			Prototype: name,
 		}
 	}
-
 	return comps, nil
 }
 
 func (kfApi *kfApi) Init(envName string, k8sSpecFlag string, serverURI string, namespace string) error {
+	newRoot := path.Join(kfApi.appDir, kfApi.ksName)
 	options := map[string]interface{}{
 		actions.OptionFs:                    kfApi.fs,
-		actions.OptionName:                  kfApi.appName,
+		actions.OptionName:                  kfApi.ksName,
 		actions.OptionEnvName:               envName,
-		actions.OptionAppRoot:               kfApi.appDir,
+		actions.OptionNewRoot:               newRoot,
 		actions.OptionServer:                serverURI,
 		actions.OptionSpecFlag:              k8sSpecFlag,
 		actions.OptionNamespace:             namespace,
@@ -274,7 +324,7 @@ func (kfApi *kfApi) EnvSet(env string, host string) error {
 
 func (kfApi *kfApi) ParamSet(component string, name string, value string) error {
 	err := actions.RunParamSet(map[string]interface{}{
-		actions.OptionAppRoot: kfApi.Root(),
+		actions.OptionAppRoot: kfApi.KsRoot(),
 		actions.OptionName:    component,
 		actions.OptionPath:    name,
 		actions.OptionValue:   value,
@@ -285,15 +335,16 @@ func (kfApi *kfApi) ParamSet(component string, name string, value string) error 
 	return nil
 }
 
-func (kfApi *kfApi) PkgInstall(full string, pkgName string) error {
+func (kfApi *kfApi) PkgInstall(pkg v1alpha1.KsPackage) error {
+	root := kfApi.KsRoot()
 	err := actions.RunPkgInstall(map[string]interface{}{
-		actions.OptionAppRoot: kfApi.Root(),
-		actions.OptionPkgName: full,
-		actions.OptionName:    pkgName,
+		actions.OptionAppRoot: root,
+		actions.OptionPkgName: pkg.Registry + "/" + pkg.Name,
+		actions.OptionName:    pkg.Name,
 		actions.OptionForce:   false,
 	})
 	if err != nil {
-		return fmt.Errorf("There was a problem installing package %v: %v", pkgName, err)
+		return fmt.Errorf("there was a problem installing package %v: %v", pkg.Name, err)
 	}
 	return nil
 }
@@ -302,31 +353,20 @@ func (kfApi *kfApi) PrototypeUse(m map[string]interface{}) error {
 	return nil
 }
 
-func (kfApi *kfApi) RegistryAdd(name string, reguri string) error {
-	log.Infof("App %v add registry %v URI %v", kfApi.appName, name, reguri)
+func (kfApi *kfApi) RegistryAdd(registry *v1alpha1.RegistryConfig) error {
+	log.Infof("App %v add registry %v URI %v", kfApi.appName, registry.Name, registry.RegUri)
+	root := kfApi.KsRoot()
 	options := map[string]interface{}{
-		actions.OptionAppRoot: kfApi.Root(),
-		actions.OptionName:    name,
-		actions.OptionURI:     reguri,
-		// Version doesn't actually appear to be used by the add function.
-		actions.OptionVersion: "",
-		// Looks like override allows us to override existing registries; we shouldn't
-		// need to do that.
+		actions.OptionAppRoot:  root,
+		actions.OptionName:     registry.Name,
+		actions.OptionURI:      registry.RegUri,
+		actions.OptionPath:     registry.Path,
+		actions.OptionVersion:  registry.Version,
 		actions.OptionOverride: false,
 	}
-
-	registries, err := kfApi.Registries()
+	err := actions.RunRegistryAdd(options)
 	if err != nil {
-		log.Errorf("There was a problem listing registries; %v", err)
-	}
-
-	if _, found := registries[name]; found {
-		log.Infof("App already has registry %v", name)
-	} else {
-		err = actions.RunRegistryAdd(options)
-		if err != nil {
-			return fmt.Errorf("There was a problem adding registry %v: %v", name, err)
-		}
+		return fmt.Errorf("there was a problem adding registry %v: %v", registry.Name, err)
 	}
 	return nil
 }
