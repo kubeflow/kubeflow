@@ -10,7 +10,7 @@ TL;DR
 ## Overview
 
 The new `kfctl` client provides the same CLI as `kfctl.sh` but it is implemented in golang.
-The move to golang implementation is because:
+The move to golang is based on:
 
 - The UI (`gcp-click-to-deploy`) and `kfctl` should share the same `ksonnet` code when creating a `kubeflow` application.
 - This common code will serve as a base for later efforts like migrating to `ksonnet` modules.
@@ -26,7 +26,7 @@ The move to golang implementation is because:
 
  - Package `KfApi` interface and related types for ease of use by `kfctl`
 
- - Isolate all `ksonnet` operations within `KfApi` package
+ - Isolate all `ksonnet` operations in kfctl and gcp-click-to-deploy to call within the `pkg/client/kfapi` package
 
 
 ## API and Packaging
