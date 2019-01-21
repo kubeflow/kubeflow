@@ -80,8 +80,6 @@ func initConfig() {
 	kfctlConfigErr := kfctlConfig.ReadInConfig()
 	if kfctlConfigErr != nil {
 		panic(kfctlConfigErr.Error())
-	} else {
-		fmt.Println("Using config file:", kfctlConfig.ConfigFileUsed())
 	}
 
 	kfctlEnv.SetConfigName("env")
@@ -90,7 +88,5 @@ func initConfig() {
 	kfctlEnvErr := kfctlEnv.ReadInConfig()
 	if kfctlEnvErr != nil {
 		panic(kfctlConfigErr.Error())
-	} else {
-		fmt.Println("Using env file:", kfctlEnv.ConfigFileUsed())
 	}
 }

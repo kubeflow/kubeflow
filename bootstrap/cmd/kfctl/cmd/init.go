@@ -33,32 +33,33 @@ import (
 var platform string
 
 var ApplicationTemplate = string(`
-apiVersion: {{.apiVersion}}
-kind: {{.kind}}
-app:
-  registries:
-{{range $registry := .Registries }}
-    - name: {{$registry.Name}}
-      repo: {{$registry.Repo}}
-      version: {{$registry.Version}}
-      path: {{$registry.Path}}
-      RegUri: {{$registry.RegUri}}
+apiVersion: {{.APIVersion}}
+kind: {{.Kind}}
+spec:
+  app:
+    registries:
+{{range $registry := .Spec.App.Registries }}
+      - name: {{$registry.Name}}
+        repo: {{$registry.Repo}}
+        version: {{$registry.Version}}
+        path: {{$registry.Path}}
+        RegUri: {{$registry.RegUri}}
 {{end}}
-  packages:
-{{range $package := .Packages }}
-    - name: {{$package.Name}}
-      registry: {{$package.Registry}}
+    packages:
+{{range $package := .Spec.App.Packages }}
+      - name: {{$package.Name}}
+        registry: {{$package.Registry}}
 {{end}}
-  components:
-{{range $component := .Components }}
-    - name: {{$component.Name}}
-      prototype: {{$component.Prototype}}
+    components:
+{{range $component := .Spec.App.Components }}
+      - name: {{$component.Name}}
+        prototype: {{$component.Prototype}}
 {{end}}
-  parameters:
-{{range $parameter := .Parameters }}
-    - component: {{$parameter.Component}}
-      name: {{$parameter.Name}}
-      value: {{$parameter.Value}}
+    parameters:
+{{range $parameter := .Spec.App.Parameters }}
+      - component: {{$parameter.Component}}
+        name: {{$parameter.Name}}
+        value: {{$parameter.Value}}
 {{end}}
 `)
 

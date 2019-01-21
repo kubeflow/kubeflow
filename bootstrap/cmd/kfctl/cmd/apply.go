@@ -15,7 +15,6 @@
 package cmd
 
 import (
-	"fmt"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -29,12 +28,7 @@ var applyCmd = &cobra.Command{
 	Short: "Deploy a generated kubeflow application.",
 	Long:  `Deploy a generated kubeflow application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("apply called")
-		cli, cliErr := v1alpha1.GetClientOutOfCluster()
-		if cliErr != nil {
-			log.Errorf("couldn't create client Error: %v", cliErr)
-			return
-		}
+		log.SetLevel(log.WarnLevel)
 		kfApi, kfApiErr := v1alpha1.NewKfApiWithConfig(kfctlConfig, kfctlEnv)
 		if kfApiErr != nil {
 			log.Errorf("couldn't create KfApi: %v", kfApiErr)
@@ -45,21 +39,41 @@ var applyCmd = &cobra.Command{
 			log.Errorf("couldn't get server version: %v", err)
 			return
 		}
-		namespace := kfctlEnv.GetString("K8S_NAMESPACE")
-		nsSpec := &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespace}}
-		_, nsErr := cli.CoreV1().Namespaces().Create(nsSpec)
-		if nsErr != nil {
-			log.Errorf("couldn't create namespace %v Error: %v", namespace, nsErr)
+		cli, cliErr := v1alpha1.GetClientOutOfCluster()
+		if cliErr != nil {
+			log.Errorf("couldn't create client Error: %v", cliErr)
 			return
 		}
-		envSetErr := kfApi.EnvSet("default", host)
+		envSetErr := kfApi.EnvSet(v1alpha1.KsEnvName, host)
 		if envSetErr != nil {
-			log.Errorf("couldn't create ksonnet env default Error: %v", envSetErr)
+			log.Errorf("couldn't create ksonnet env %v Error: %v", v1alpha1.KsEnvName, envSetErr)
 			return
 		}
-
-		//rest := client.RESTClient()
-
+		//ks param set application name ${DEPLOYMENT_NAME}
+		name := kfApi.Application().Name
+		paramSetErr := kfApi.ParamSet("application", "name", name)
+		if paramSetErr != nil {
+			log.Errorf("couldn't set application component's name to %v Error: %v", name, paramSetErr)
+			return
+		}
+		showErr := kfApi.Show([]string{"metacontroller", "application"})
+		if showErr != nil {
+			log.Errorf("couldn't call ksonnet show Error: %v", showErr)
+			return
+		}
+		namespace := kfctlEnv.GetString("K8S_NAMESPACE")
+		if namespace == "" {
+			namespace = v1alpha1.DefaultNamespace
+		}
+		_, nsMissingErr := cli.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
+		if nsMissingErr != nil {
+			nsSpec := &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespace}}
+			_, nsErr := cli.CoreV1().Namespaces().Create(nsSpec)
+			if nsErr != nil {
+				log.Errorf("couldn't create namespace %v Error: %v", namespace, nsErr)
+				return
+			}
+		}
 	},
 }
 
