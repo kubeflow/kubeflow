@@ -35,20 +35,20 @@ The move to golang implementation is because:
 
 New directories (`cmd/kfctl, pkg`):
 
-```
-* bootstrap/cmd/kfctl
-* bootstrap/cmd/kfctl/cmd
-* bootstrap/pkg
-* bootstrap/pkg/apis
-* bootstrap/pkg/apis/apps
-* bootstrap/pkg/apis/apps/v1alpha1
-* bootstrap/pkg/utils
-* bootstrap/pkg/client
-* bootstrap/pkg/client/kfapi
-* bootstrap/pkg/client/kfapi/scheme
-* bootstrap/pkg/client/kfapi/typed
-* bootstrap/pkg/client/kfapi/typed/apps
-* bootstrap/pkg/client/kfapi/typed/apps/v1alpha1
+```sh
+bootstrap/cmd/kfctl
+bootstrap/cmd/kfctl/cmd
+bootstrap/pkg
+bootstrap/pkg/apis
+bootstrap/pkg/apis/apps
+bootstrap/pkg/apis/apps/v1alpha1
+bootstrap/pkg/utils
+bootstrap/pkg/client
+bootstrap/pkg/client/kfapi
+bootstrap/pkg/client/kfapi/scheme
+bootstrap/pkg/client/kfapi/typed
+bootstrap/pkg/client/kfapi/typed/apps
+bootstrap/pkg/client/kfapi/typed/apps/v1alpha1
 ```
 
 ### KfApi Interface (github/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1/kfapi.go)
@@ -122,7 +122,7 @@ is similar to the `bootstrap/config/` YAML files. The YAML files
 under `bootstrap/config` are now defined as a golang type in
 `application_types.go` and this type (Application) is shown below:
 
-```
+```golang
 type AppConfig struct {
 	Registries []*RegistryConfig `json:"registries,omitempty"`
 	Packages   []KsPackage      `json:"packages,omitempty"`
@@ -147,7 +147,7 @@ type Application struct {
 }
 ```
 
-```
+```golang
 apiVersion: {{.apiVersion}}
 kind: {{.kind}}
 app:
@@ -256,7 +256,7 @@ KUBEFLOW_COMPONENTS = [ "ambassador","jupyter","centraldashboard","tf-job-operat
 Current golang functions to build a `ksonnet` application are in `ksServer.go` and are called
 by the UI. These functions are invoked from `REST` entrypoints bound in [ksServer.go](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/cmd/bootstrap/app/ksServer.go#L1291) and are shown below:
 
-```
+```golang
 	http.Handle("/", optionsHandler(healthzHandler))
 	http.Handle("/kfctl/apps/apply", optionsHandler(applyAppHandler))
 	http.Handle("/kfctl/apps/create", optionsHandler(createAppHandler))
