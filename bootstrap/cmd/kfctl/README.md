@@ -147,7 +147,7 @@ type Application struct {
 }
 ```
 
-```golang
+```yaml
 apiVersion: {{.apiVersion}}
 kind: {{.kind}}
 app:
@@ -187,7 +187,7 @@ The set of environment variables that `kfctl` will use is similar as `kfctl.sh`.
 
 `env.toml`
 
-```
+```conf
 [default]
 PLATFORM = ""
 KUBEFLOW_REPO = "$GOPATH/src/github.com/kubeflow/kubeflow"
