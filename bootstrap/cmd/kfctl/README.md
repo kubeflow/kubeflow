@@ -55,41 +55,23 @@ The `KfApi` golang Interface used by both `gcp-click-to-deploy` and `kfctl` is s
 
 ```golang
 type KfApi interface {
+	Application() *v1alpha1.Application
 	Apply(components []string, cfg clientcmdapi.Config) error
-	ComponentAdd(component string, args []string) error
+	ComponentAdd(ksComponent v1alpha1.KsComponent, args []string) error
 	Components() (map[string]*v1alpha1.KsComponent, error)
 	EnvSet(env string, host string) error
-	Init(name string, envName string, k8sSpecFlag string, serverURI string, namespace string) error
+	Init(envName string, k8sSpecFlag string, host string, namespace string) error
 	Libraries() (map[string]*v1alpha1.KsLibrary, error)
 	ParamSet(component string, name string, value string) error
-	PkgInstall(full string, pkgName string) error
+	PkgInstall(pkg v1alpha1.KsPackage) error
 	PrototypeUse(m map[string]interface{}) error
 	Registries() (map[string]*v1alpha1.Registry, error)
-	RegistryAdd(name string, reguri string) error
-	RegistryConfigs() (map[string]v1alpha1.RegistryConfig, error)
+	RegistryAdd(registry *v1alpha1.RegistryConfig) error
+	RegistryConfigs() map[string]*v1alpha1.RegistryConfig
 	Root() string
+	Show(components []string) error
 }
 ```
-
-### Related Types in github/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1/application_types.go
-
-- `AppConfig`
-- `Application`
-- `ApplicationCondition`
-- `ApplicationConditionType`
-- `ApplicationList`
-- `ApplicationSpec`
-- `ApplicationStatus`
-- `KsComponent`
-- `KsLibrary`
-- `KsModule`
-- `KsPackage`
-- `KsParameter`
-- `KsRegistry`
-- `LibrarySpec`
-- `RegistriesConfigFile`
-- `Registry`
-- `RegistryConfig`
 
 ## Usage
 
@@ -116,26 +98,10 @@ The configuration file that `kfctl.sh` used was `env.sh` and persisted
 a set of environment variables. Because `kfctl` will live in `/usr/local/bin`
 and not necessarily expect the kubeflow repo to be on disk, it will 
 also create a `default.yaml` file in the same directory as `env.sh` that
-is similar to the `bootstrap/config/` YAML files. The YAML files
-under `bootstrap/config` are now defined as a golang type in
-`application_types.go` and this type (Application) is shown below:
+is similar to the `bootstrap/config/` YAML files. The default.yaml file 
+will be reified into to the golang type Application shown below.
 
 ```golang
-type AppConfig struct {
-	Registries []*RegistryConfig `json:"registries,omitempty"`
-	Packages   []KsPackage      `json:"packages,omitempty"`
-	Components []KsComponent    `json:"components,omitempty"`
-	Parameters []KsParameter    `json:"parameters,omitempty"`
-}
-
-type ApplicationSpec struct {
-	App AppConfig `json:"app,omitempty"`
-}
-
-type ApplicationStatus struct {
-	Conditions []ApplicationCondition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,6,rep,name=conditions"`
-}
-
 type Application struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -143,35 +109,73 @@ type Application struct {
 	Spec   ApplicationSpec   `json:"spec,omitempty"`
 	Status ApplicationStatus `json:"status,omitempty"`
 }
+
+type ApplicationSpec struct {
+	App AppConfig `json:"app,omitempty"`
+}
+
+type AppConfig struct {
+	Registries []*RegistryConfig `json:"registries,omitempty"`
+	Packages   []KsPackage       `json:"packages,omitempty"`
+	Components []KsComponent     `json:"components,omitempty"`
+	Parameters []KsParameter     `json:"parameters,omitempty"`
+}
+
+type RegistriesConfigFile struct {
+	// Registries provides information about known registries.
+	Registries []*RegistryConfig
+}
+
+type KsPackage struct {
+	Name string `json:"name,omitempty"`
+	// Registry should be the name of the registry containing the package.
+	Registry string `json:"registry,omitempty"`
+}
+
+type KsComponent struct {
+	Name      string `json:"name,omitempty"`
+	Prototype string `json:"prototype,omitempty"`
+}
+
+type KsParameter struct {
+	// nested components are referenced as "a.b.c" where "a" or "b" may be a module name
+	Component string `json:"component,omitempty"`
+	Name      string `json:"name,omitempty"`
+	Value     string `json:"value,omitempty"`
+}
 ```
 
+Generating the default.yaml file will leverage golang's template language.
+Give an instance of Application, the YAML generation template is shown below:
+
 ```yaml
-apiVersion: {{.apiVersion}}
-kind: {{.kind}}
-app:
-  registries:
-{{range $registry := .Registries }}  
-    - name: {{$registry.Name}}
-      repo: {{$registry.Repo}}
-      version: {{$registry.Version}}
-      path: {{$registry.Path}}
-      RegUri: {{$registry.RegUri}}
+apiVersion: {{.APIVersion}}
+kind: {{.Kind}}
+spec:
+  app:
+    registries:
+{{range $registry := .Spec.App.Registries }}
+      - name: {{$registry.Name}}
+        repo: {{$registry.Repo}}
+        version: {{$registry.Version}}
+        path: {{$registry.Path}}
+        RegUri: {{$registry.RegUri}}
 {{end}}
-  packages:
-{{range $package := .Packages }}  
-    - name: {{$package.Name}}
-      registry: {{$package.Registry}}
+    packages:
+{{range $package := .Spec.App.Packages }}
+      - name: {{$package.Name}}
+        registry: {{$package.Registry}}
 {{end}}
-  components:
-{{range $component := .Components }}  
-    - name: {{$component.Name}}
-      prototype: {{$component.Prototype}}
+    components:
+{{range $component := .Spec.App.Components }}
+      - name: {{$component.Name}}
+        prototype: {{$component.Prototype}}
 {{end}}
-  parameters:
-{{range $parameter := .Parameters }}  
-    - component: {{$parameter.Component}}
-      name: {{$parameter.Name}}
-      value: {{$parameter.Value}}
+    parameters:
+{{range $parameter := .Spec.App.Parameters }}
+      - component: {{$parameter.Component}}
+        name: {{$parameter.Name}}
+        value: {{$parameter.Value}}
 {{end}}
 ```
 
