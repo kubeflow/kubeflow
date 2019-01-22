@@ -47,6 +47,10 @@ const (
 	DefaultNamespace = "kubeflow"
 )
 
+//
+// KfApi is used by commands under bootstrap/cmd/{bootstrap,kfctl}. KfApi provides a common
+// API simplified layer to ksonnet
+//
 type KfApi interface {
 	Application() *v1alpha1.Application
 	Apply(components []string, cfg *clientcmdapi.Config) error
@@ -70,8 +74,7 @@ type kfConfig struct {
 	env  *viper.Viper
 }
 
-// ksServer provides a server to wrap ksonnet.
-// This allows ksonnet applications to be managed remotely.
+// kfApi implements the KfApi Interface
 type kfApi struct {
 	appName string
 	// appDir is the directory where apps should be stored.
