@@ -49,7 +49,7 @@ const (
 
 type KfApi interface {
 	Application() *v1alpha1.Application
-	Apply(components []string, cfg clientcmdapi.Config) error
+	Apply(components []string, cfg *clientcmdapi.Config) error
 	ComponentAdd(ksComponent v1alpha1.KsComponent, args []string) error
 	Components() (map[string]*v1alpha1.KsComponent, error)
 	EnvSet(env string, host string) error
@@ -91,9 +91,7 @@ type kfApi struct {
 	application     v1alpha1.Application
 }
 
-// BuildOutOfClusterConfig returns k8s config
-func BuildOutOfClusterConfig() (*rest.Config, error) {
-	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
+func KubeConfigPath() string {
 	kubeconfigEnv := os.Getenv("KUBECONFIG")
 	if kubeconfigEnv == "" {
 		home := os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
@@ -105,12 +103,29 @@ func BuildOutOfClusterConfig() (*rest.Config, error) {
 			}
 		}
 		kubeconfigPath := filepath.Join(home, ".kube", "config")
-		loadingRules.ExplicitPath = kubeconfigPath
+		return kubeconfigPath
 	}
+	return kubeconfigEnv
+}
+
+// BuildOutOfClusterConfig returns k8s config
+func BuildOutOfClusterConfig() (*rest.Config, error) {
+	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
+	loadingRules.ExplicitPath = KubeConfigPath()
 	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
 		loadingRules, &clientcmd.ConfigOverrides{}).ClientConfig()
 	if err != nil {
 		return nil, err
+	}
+	return config, nil
+}
+
+func GetClientConfig() (*clientcmdapi.Config, error) {
+	kubeconfig := KubeConfigPath()
+	config, configErr := clientcmd.LoadFromFile(kubeconfig)
+	if configErr != nil {
+		return nil, fmt.Errorf("could not load config Error: %v", configErr)
+
 	}
 	return config, nil
 }
@@ -288,13 +303,12 @@ func (kfApi *kfApi) Application() *v1alpha1.Application {
 	return &kfApi.application
 }
 
-func (kfApi *kfApi) Apply(components []string, cfg clientcmdapi.Config) error {
-
+func (kfApi *kfApi) Apply(components []string, cfg *clientcmdapi.Config) error {
 	applyOptions := map[string]interface{}{
 		actions.OptionApp: kfApi.kApp,
 		actions.OptionClientConfig: &client.Config{
 			Overrides: &clientcmd.ConfigOverrides{},
-			Config:    clientcmd.NewDefaultClientConfig(cfg, &clientcmd.ConfigOverrides{}),
+			Config:    clientcmd.NewDefaultClientConfig(*cfg, &clientcmd.ConfigOverrides{}),
 		},
 		actions.OptionComponentNames: components,
 		actions.OptionCreate:         true,

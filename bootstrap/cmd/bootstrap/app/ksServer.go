@@ -930,7 +930,7 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 		},
 	}
 
-	err = kfApi.Apply(req.Components, cfg)
+	err = kfApi.Apply(req.Components, &cfg)
 	if err != nil {
 		log.Errorf("Apply Failed: %v", err)
 		return err
