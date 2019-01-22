@@ -56,11 +56,13 @@ var applyCmd = &cobra.Command{
 			log.Errorf("couldn't set application component's name to %v Error: %v", name, paramSetErr)
 			return
 		}
-		showErr := kfApi.Show([]string{"metacontroller", "application"})
-		if showErr != nil {
-			log.Errorf("couldn't call ksonnet show Error: %v", showErr)
-			return
-		}
+		/*
+			showErr := kfApi.Show([]string{"metacontroller", "application"})
+			if showErr != nil {
+				log.Errorf("couldn't call ksonnet show Error: %v", showErr)
+				return
+			}
+		*/
 		namespace := kfctlEnv.GetString("K8S_NAMESPACE")
 		if namespace == "" {
 			namespace = v1alpha1.DefaultNamespace
@@ -73,6 +75,21 @@ var applyCmd = &cobra.Command{
 				log.Errorf("couldn't create namespace %v Error: %v", namespace, nsErr)
 				return
 			}
+		}
+		clientConfig, clientConfigErr := v1alpha1.GetClientConfig()
+		if clientConfigErr != nil {
+			log.Errorf("couldn't load client config Error: %v", clientConfigErr)
+			return
+		}
+		applyErr := kfApi.Apply([]string{"metacontroller"}, clientConfig)
+		if applyErr != nil {
+			log.Errorf("couldn't apply metacontroller Error: %v", applyErr)
+			return
+		}
+		applyErr = kfApi.Apply([]string{"application"}, clientConfig)
+		if applyErr != nil {
+			log.Errorf("couldn't apply application Error: %v", applyErr)
+			return
 		}
 	},
 }
