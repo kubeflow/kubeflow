@@ -2,6 +2,7 @@ local params = std.extVar("__ksonnet/params").components.kfctl_test;
 
 local k = import "k.libsonnet";
 local util = import "workflows.libsonnet";
+local newUtil = import "util.libsonnet";
 
 // TODO(jlewi): Can we get namespace from the environment rather than
 // params?
@@ -56,6 +57,28 @@ local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
 
 local project = "kubeflow-ci";
 
+// Workflow template is the name of the workflow template; typically the name of the ks component.
+// This is used as a label to make it easy to identify all Argo workflows created from a given
+// template.
+local workflow_template = "kctl_test";
+
+// Create a dictionary of the different prow variables so we can refer to them in the workflow.
+//
+// Important: We want to initialize all variables we reference to some value. If we don't
+// and we reference a variable which doesn't get set then we get very hard to debug failure messages.
+// In particular, we've seen problems where if we add a new environment and evaluate one component eg. "workflows"
+// and another component e.g "code_search.jsonnet" doesn't have a default value for BUILD_ID then ksonnet
+// fails because BUILD_ID is undefined.
+local prowDict = {
+  BUILD_ID: "notset",
+  BUILD_NUMBER: "notset",
+  REPO_OWNER: "notset",
+  REPO_NAME: "notset",
+  JOB_NAME: "notset",
+  JOB_TYPE: "notset",
+  PULL_NUMBER: "notset",  
+ } + newUtil.listOfDictToMap(prowEnv);
+
 // Build an Argo template to execute a particular command.
 // step_name: Name for the template
 // command: List to pass as the container command.
@@ -70,6 +93,13 @@ local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=
     workingDir: working_dir,
     // TODO(jlewi): Change to IfNotPresent.
     imagePullPolicy: "Always",
+    metadata: {
+      labels: prowDict + {
+        workflow: params.name,
+        workflow_template: workflow_template,
+        "step_name": step_name,
+      },
+    },
     env: [
       {
         // Add the source directories to the python path.
@@ -120,6 +150,18 @@ local componentTests = util.kfTests {
   platform: "gke",
   testDir: testDir,
   kubeConfig: kubeConfig,
+  buildTemplate+: {
+    argoTemplate+: {
+      container+: {
+        metadata+: {
+          labels: prowDict + {
+            workflow: params.name,
+            workflow_template: workflow_template,
+          },
+        },
+      },
+    },
+  },
 };
 
 // Create a list of dictionary.c
@@ -345,16 +387,15 @@ local workflow = {
   metadata: {
     name: name,
     namespace: namespace,
-    labels: {
-      org: "kubeflow",
-      repo: "kubeflow",
-      workflow: "e2e",
-      // TODO(jlewi): Add labels for PR number and commit. Need to write a function
-      // to convert list of environment variables to labels.
+    labels: prowDict + {
+        workflow: params.name,
+        workflow_template: workflow_template,
     },
-  },
+  },  
   spec: {
     entrypoint: "e2e",
+    // Have argo garbage collect old workflows otherwise we overload the API server.
+    ttlSecondsAfterFinished: 7 * 24 * 60 * 60,
     volumes: [
       {
         name: "github-token",
