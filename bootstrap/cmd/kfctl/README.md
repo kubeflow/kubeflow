@@ -68,13 +68,16 @@ type KfApi interface {
 
 ## Usage
 
-The initial version of `kfctl` will provide equivalent functionality as `kfctl.sh` by implementing
-the following subcommands:
+The initial version of `kfctl` provides equivalent functionality as `kfctl.sh` plus several additional subcommands. 
 
-- `init`            Initialize a kubeflow application.
-- `generate`        Generate the k8 manifests of the kubeflow application.
-- `apply`           Submit the k8 manifests to the api-server
-- `delete`          Delete the kubeflow application
+- `init <name>`                    Initialize a kubeflow application.
+- `generate`                       Generate the k8 manifests of the kubeflow application.
+- `add <registry|pkg|component>`   Add a registry, package or component to the existing kubeflow app.*
+- `set <component> <name> <value>` Set a parameter on an existing component.*
+- `apply`                          Submit the k8 manifests to the k8 api-server
+- `delete`                         Delete the kubeflow application
+
+* new
 
 Typical usage of `kfctl.sh` is:
 
