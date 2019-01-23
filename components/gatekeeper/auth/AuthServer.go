@@ -85,7 +85,7 @@ func (s *authServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(http.StatusText(http.StatusOK)))
 		return
 	}
-	log.Infof("Unauthorized, redirect")
+	log.Infof("Unauthorized, redirect to %v", "https://" + path.Join(r.Host, LoginPagePath))
 
 	// redirect to login page
 	s.redirectToLogin(w, r)
@@ -136,7 +136,7 @@ func (s *authServer) authCookie(r *http.Request) bool {
 
 // redirect to login page when unauthorized
 func (s *authServer) redirectToLogin(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, path.Join(r.Host, LoginPagePath), http.StatusProxyAuthRequired)
+	http.Redirect(w, r, "https://" + path.Join(r.Host, LoginPagePath), http.StatusTemporaryRedirect)
 }
 
 func generateCookieValue() string {
