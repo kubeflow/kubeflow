@@ -41,6 +41,7 @@ var setCmd = &cobra.Command{
 			log.Errorf("couldn't create KfApi: %v", kfApiErr)
 			return
 		}
+		log.Infof("setting %v %v on %v", name, value, component)
 		parameterSetErr := kfApi.ParamSet(component, name, value)
 		if parameterSetErr != nil {
 			log.Errorf("couldn't set %v for component %v. Error: %v", name, component, parameterSetErr)
