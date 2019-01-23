@@ -132,8 +132,9 @@ var initCmd = &cobra.Command{
 	Short: "Create a kubeflow application template as <name>.yaml.",
 	Long:  `Create a kubeflow application template as <name>.yaml.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		log.SetLevel(log.WarnLevel)
 		if len(args) == 0 {
-			log.Errorf("appName required")
+			log.Errorf("Application name is required")
 			return
 		}
 		appName := args[0]
