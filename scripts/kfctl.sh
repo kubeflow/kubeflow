@@ -67,7 +67,7 @@ createEnv() {
 
       # TODO: Do we need to make PROJECT_NUMBER also a flag like --project-number
       if [[ -z "${PROJECT_NUMBER}" ]]; then
-        export PROJECT_NUMBER=$(gcloud projects describe ${PROJECT} --format='value(project_number)')
+        PROJECT_NUMBER=$(gcloud projects describe ${PROJECT} --format='value(project_number)')
       fi
 
       # Name of the deployment
