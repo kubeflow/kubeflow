@@ -43,9 +43,13 @@ const LoginPagePath = "kflogin"
 const LoginPageHeader = "x-from-login"
 
 func NewAuthServer(opt *options.ServerOption) *authServer {
+	data, err := base64.StdEncoding.DecodeString(opt.Pwhash)
+	if err != nil {
+		log.Fatal("error:", err)
+	}
 	server := &authServer{
 		username: opt.Username,
-		pwhash: opt.Pwhash,
+		pwhash: string(data),
 		cookies: make(map[string]time.Time),
 	}
 	return server
@@ -53,19 +57,27 @@ func NewAuthServer(opt *options.ServerOption) *authServer {
 
 // Default auth check service
 func (s *authServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-
+	log.Infof("Path check, url: %v, path: %v", r.URL, r.URL.Path)
 	// login page open to everyone; all other path requires auth with Password or cookie
-	if r.URL.Path == LoginPagePath || s.authCookie(r) == true {
+	if strings.HasPrefix(r.URL.Path, "/" + LoginPagePath) || s.authCookie(r) == true {
+		// Handle request from login page
+		if r.Header.Get(LoginPageHeader) != "" {
+			w.WriteHeader(http.StatusResetContent)
+			w.Write([]byte(http.StatusText(http.StatusResetContent)))
+			return
+		}
 		// Allow browser request
+		log.Infof("Allow browser request")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(http.StatusText(http.StatusOK)))
 		return
 	}
 
 	if s.authpwd(r) == true {
+		log.Infof("P/W passed")
 		// Handle request from login page
 		if r.Header.Get(LoginPageHeader) != "" {
-			s.setCookieAndRedirect(w, r)
+			s.setCookieAndReset(w, r)
 			return
 		}
 		// Allow requst from API call
@@ -73,6 +85,7 @@ func (s *authServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(http.StatusText(http.StatusOK)))
 		return
 	}
+	log.Infof("Unauthorized, redirect")
 
 	// redirect to login page
 	s.redirectToLogin(w, r)
@@ -80,10 +93,6 @@ func (s *authServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // auth with basic pw
 func (s *authServer) authpwd(r *http.Request) bool {
-	if s.username == "" || s.pwhash == "" {
-		return false
-	}
-
 	auth := r.Header.Get("Authorization")
 	if !strings.HasPrefix(strings.ToLower(auth), "basic ") {
 		return false
@@ -99,7 +108,8 @@ func (s *authServer) authpwd(r *http.Request) bool {
 	if len(namepw) != 2 {
 		return false
 	}
-	if namepw[0] == s.username && bcrypt.CompareHashAndPassword([]byte(s.pwhash), []byte(namepw[1])) == nil {
+	err = bcrypt.CompareHashAndPassword([]byte(s.pwhash), []byte(namepw[1]))
+	if namepw[0] == s.username && err == nil {
 
 		return true
 	}
@@ -111,13 +121,13 @@ func (s *authServer) authCookie(r *http.Request) bool {
 	if cookie, err := r.Cookie(CookieName); err == nil {
 		if val, ok := s.cookies[cookie.Value]; ok {
 			if time.Now().Before(val) {
-				log.Info("cookie auth: passed!")
+				log.Info("cookie auth: passed! %v", cookie.Value)
 				return true
 			}
 			log.Info("cookie auth: cookie value expired!")
 			return false
 		}
-		log.Info("cookie auth: cookie value not found!")
+		log.Info("cookie auth: cookie value not found! %v", cookie.Value)
 		return false
 	}
 	log.Info("cookie auth: cookie does't exist in request!")
@@ -146,19 +156,22 @@ func (s *authServer) addNewCookieValue(cookieVal string) {
 	s.cookies[cookieVal] = time.Now().Add(12 * time.Hour)
 }
 
-// Set auth cookie and redirect to kubeflow central dashboard
-func (s *authServer) setCookieAndRedirect(w http.ResponseWriter, r *http.Request) {
+// Set auth cookie and reset, UI will redirect to kubeflow central dashboard
+func (s *authServer) setCookieAndReset(w http.ResponseWriter, r *http.Request) {
 	cookieVal := generateCookieValue()
 	s.addNewCookieValue(cookieVal)
 	cookie := http.Cookie{
 		Name: CookieName,
 		Value: cookieVal,
 		Expires: time.Now().Add(12 * time.Hour),
+		Path: "/",
 		// prevent cross-origin information leakage.
 		SameSite: http.SameSiteStrictMode,
 	}
+	log.Info("set Cookie And Redirect!")
 	http.SetCookie(w, &cookie)
-	http.Redirect(w, r, r.Host, http.StatusSeeOther)
+	w.WriteHeader(http.StatusResetContent)
+	w.Write([]byte(http.StatusText(http.StatusResetContent)))
 }
 
 func (s *authServer) Start(port int) {
