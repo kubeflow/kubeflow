@@ -13,13 +13,6 @@ environments:
     k8sVersion: v1.7.0
     path: prow
 kind: ksonnet.io/app
-libraries:
-  core:
-    gitVersion:
-      commitSha: 5c35580d76092788b089cb447be3f3097cffe60b
-      refSpec: master
-    name: core
-    registry: kubeflow
 name: test-infra
 registries:
   incubator:

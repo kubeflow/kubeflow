@@ -1,12 +1,5 @@
 # kfctl golang client
 
-TL;DR
-
-## Remaining work
-  - Test `kfapi` integrated calls in `gcp-click-to-deploy`
-  - `brew` packaging
-  - Command completion for `bash/zsh`
-
 ## Overview
 
 The new `kfctl` client provides the same CLI as `kfctl.sh` but it is implemented in golang.
@@ -152,6 +145,9 @@ Give an instance of Application, the YAML generation template is shown below:
 ```yaml
 apiVersion: {{.APIVersion}}
 kind: {{.Kind}}
+metadata: 
+  name: {{.ObjectMeta.Name}}
+  namespace: {{.ObjectMeta.Namespace}}
 spec:
   app:
     registries:
@@ -183,17 +179,18 @@ spec:
 ## Subcommands
 
 #### root subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/root.go)
-- if `app.yaml` exists in the current directory then instantiate `kfctlConfig` Viper instance
+- Set the kfctlConfig Viper instance's 	config name and type to 'app' and 'yaml' resp.
 
 #### init subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/init.go)
 - Upon successful creation of the app directory, creates `app.yaml` within the app directory
 
 #### generate subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/generate.go)
-- Calls `NewKfApiWithConfig(appName string, appsDir string, init *viper.Viper, env *viper.Viper) (KfApi, error)`
-- Calls `KfApi.Init(envName string, k8sSpecFlag string, serverURI string, namespace string) error`
-- Calls `KfApi.RegistryAdd(reg *RegistryConfig) error`
-- Calls `KfApi.PkgInstall(pkg KsPackage) error`
-- Calls `KfApi.ComponentAdd(cmp KsComponent) error`
+- Using app.yaml
+  - Calls `NewKfApiWithConfig(appName string, appsDir string, init *viper.Viper, env *viper.Viper) (KfApi, error)`
+  - Calls `KfApi.Init(envName string, k8sSpecFlag string, serverURI string, namespace string) error`
+  - Calls `KfApi.RegistryAdd(reg *RegistryConfig) error`
+  - Calls `KfApi.PkgInstall(pkg KsPackage) error`
+  - Calls `KfApi.ComponentAdd(cmp KsComponent) error`
 
 #### apply subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/apply.go)
 - Creates a `namespace`
@@ -204,7 +201,6 @@ spec:
 
 #### delete subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/delete.go)
   TBD
-
 
 ---
 
@@ -248,5 +244,9 @@ Within the above methods there are direct calls to `ksonnet`:
 - `RunParamSet`
 - `RunApply`
 
-This have been replaced with method in `KfApi`.
+This has been replaced with methods in `KfApi`.
 
+## Remaining work
+  - Test `kfapi` integrated calls in `gcp-click-to-deploy`
+  - `brew` packaging
+  - Command completion for `bash/zsh`
