@@ -31,7 +31,7 @@ var applyCmd = &cobra.Command{
 	Short: "Deploy a generated kubeflow application.",
 	Long:  `Deploy a generated kubeflow application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		log.SetLevel(log.WarnLevel)
+		log.SetLevel(log.InfoLevel)
 		kfApi, kfApiErr := v1alpha1.NewKfApiWithConfig(kfctlConfig)
 		if kfApiErr != nil {
 			log.Errorf("couldn't create KfApi: %v", kfApiErr)
@@ -59,13 +59,6 @@ var applyCmd = &cobra.Command{
 			log.Errorf("couldn't set application component's name to %v Error: %v", name, paramSetErr)
 			return
 		}
-		/*
-			showErr := kfApi.Show([]string{"metacontroller", "application"})
-			if showErr != nil {
-				log.Errorf("couldn't call ksonnet show Error: %v", showErr)
-				return
-			}
-		*/
 		namespace := os.Getenv("K8S_NAMESPACE")
 		if namespace == "" {
 			namespace = kftypes.DefaultNamespace

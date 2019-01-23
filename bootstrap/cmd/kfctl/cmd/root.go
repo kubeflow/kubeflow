@@ -66,13 +66,8 @@ func init() {
 	cobra.OnInitialize(initConfig)
 }
 
-// initConfig reads in config file and ENV variables if set.
+// initConfig creates a Viper config file and set's it's name and type
 func initConfig() {
 	kfctlConfig.SetConfigName("app")
 	kfctlConfig.SetConfigType("yaml")
-	kfctlConfig.AddConfigPath(".")
-	kfctlConfigErr := kfctlConfig.ReadInConfig()
-	if kfctlConfigErr != nil {
-		panic(kfctlConfigErr.Error())
-	}
 }

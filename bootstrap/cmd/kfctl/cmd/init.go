@@ -17,10 +17,12 @@ package cmd
 import (
 	"bytes"
 	"fmt"
+	"github.com/spf13/afero"
 	"math/rand"
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -68,8 +70,8 @@ spec:
 {{end}}
 `)
 
-func createConfigFiles(cfg *viper.Viper, appName string, appDir string) error {
-	tmpl, tmplErr := template.New("app").Parse(ApplicationTemplate)
+func createConfigFile(cfg *viper.Viper, appName string, appDir string) error {
+	tmpl, tmplErr := template.New(kftypes.KfConfigFile).Parse(ApplicationTemplate)
 	if tmplErr != nil {
 		return tmplErr
 	}
@@ -77,6 +79,16 @@ func createConfigFiles(cfg *viper.Viper, appName string, appDir string) error {
 	if namespace == "" {
 		namespace = kftypes.DefaultNamespace
 	}
+	kubeflowRepo := os.Getenv("DEFAULT_KUBEFLOW_REPO")
+	if kubeflowRepo == "" {
+		kubeflowRepo = kftypes.DefaultKfRepo
+	}
+	re := regexp.MustCompile(`(^\$GOPATH)(.*$)`)
+	goPathVar := os.Getenv("GOPATH")
+	if goPathVar != "" {
+		kubeflowRepo = re.ReplaceAllString(kubeflowRepo, goPathVar+`$2`)
+	}
+	log.Infof("kubeflowRepo %v", kubeflowRepo)
 	application := kftypes.Application{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Application",
@@ -94,7 +106,7 @@ func createConfigFiles(cfg *viper.Viper, appName string, appDir string) error {
 						Repo:    "https://github.com/kubeflow/kubeflow.git",
 						Version: "0.4",
 						Path:    "kubeflow",
-						RegUri:  appDir,
+						RegUri:  kubeflowRepo,
 					},
 				},
 				Packages: []kftypes.KsPackage{
@@ -267,8 +279,9 @@ var initCmd = &cobra.Command{
 	Short: "Create a kubeflow application template as <name>.yaml.",
 	Long:  `Create a kubeflow application template as <name>.yaml.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		log.SetLevel(log.InfoLevel)
 		if len(args) == 0 {
-			log.Errorf("appName required")
+			log.Error("appName required")
 			return
 		}
 		appName := args[0]
@@ -277,12 +290,20 @@ var initCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 		appDir := path.Join(dir, appName)
+		log.Infof("appDir %v", appDir)
 		err = os.Mkdir(appDir, os.ModePerm)
 		if err != nil {
 			log.Errorf("cannot create directory %v", appDir)
 			return
 		}
-		createConfigErr := createConfigFiles(kfctlConfig, appName, appDir)
+		fs := afero.NewOsFs()
+		cfgFilePath := filepath.Join(appDir, kftypes.KfConfigFile)
+		_, appDirErr := fs.Stat(cfgFilePath)
+		if appDirErr == nil {
+			log.Errorf("config file %v already exists in %v", kftypes.KfConfigFile, appDir)
+			return
+		}
+		createConfigErr := createConfigFile(kfctlConfig, appName, appDir)
 		if createConfigErr != nil {
 			log.Errorf("cannot create config file app.yaml in %v", appDir)
 			return
@@ -291,6 +312,6 @@ var initCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(initCmd)
 	initCmd.Flags().StringVarP(&platform, "platform", "p", "", "gcp | minikube | docker-for-desktop | ack")
+	rootCmd.AddCommand(initCmd)
 }

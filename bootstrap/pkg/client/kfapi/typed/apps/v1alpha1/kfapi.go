@@ -172,12 +172,21 @@ func NewKfApiWithRegistries(appName string, appsDir string, knownRegistries map[
 }
 
 func NewKfApiWithConfig(cfg *viper.Viper) (KfApi, error) {
+	appDir, err := os.Getwd()
+	if err != nil {
+		return nil, fmt.Errorf("could not get current directory %v", err)
+	}
+	appName := filepath.Base(appDir)
+	log.Infof("appName %v appDir %v", appName, appDir)
+	cfg.AddConfigPath(appDir)
+	cfgErr := cfg.ReadInConfig()
+	if cfgErr != nil {
+		return nil, fmt.Errorf("could not read config file %v Error %v", kftypes.KfConfigFile, cfgErr)
+	}
 	cfgfile := cfg.ConfigFileUsed()
 	if cfgfile == "" {
 		return nil, fmt.Errorf("config file does not exist")
 	}
-	appDir := filepath.Dir(cfgfile)
-	appName := filepath.Base(appDir)
 	return NewKfApi(appName, appDir, nil, cfg)
 }
 

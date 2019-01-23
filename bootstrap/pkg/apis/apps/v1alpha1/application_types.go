@@ -25,6 +25,7 @@ const (
 	KsName           = "ks_app"
 	KsEnvName        = "default"
 	DefaultNamespace = "kubeflow"
+	DefaultKfRepo    = "$GOPATH/src/github.com/kubeflow/kubeflow/kubeflow"
 	KfConfigFile     = "app.yaml"
 )
 

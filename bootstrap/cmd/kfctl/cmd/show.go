@@ -27,6 +27,13 @@ var showCmd = &cobra.Command{
 	Long:  `Fetch all manifests in a kubeflow (application|module|component).`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("show called")
+		/*
+			showErr := kfApi.Show([]string{"metacontroller", "application"})
+			if showErr != nil {
+				log.Errorf("couldn't call ksonnet show Error: %v", showErr)
+				return
+			}
+		*/
 	},
 }
 
