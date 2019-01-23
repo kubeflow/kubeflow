@@ -285,6 +285,11 @@ var initCmd = &cobra.Command{
 			return
 		}
 		appName := args[0]
+		//TODO must be checked eg `kfctl init kf_app` results in
+		// metadata.name: Invalid value:
+		// "kf_app-controller": a DNS-1123 subdomain must consist of lower case alphanumeric characters, '-' or '.',
+		// and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is
+		// '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')
 		dir, err := os.Getwd()
 		if err != nil {
 			log.Fatal(err)
