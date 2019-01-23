@@ -21,10 +21,10 @@ const (
 )
 
 // CreateResourceFromFile creates resources from a file, just like `kubectl create -f filename`
-// We use some library in an old way (e.g. the RestMapper is in discovery instead of restmapper)
-// because one dependency (ksonnet) is using the old libraray version.
+// We use some libraries in an old way (e.g. the RestMapper is in discovery instead of restmapper)
+// because ksonnet (one of our dependency) is using the old library version.
 func CreateResourceFromFile(config *rest.Config, filename string) error {
-	// Restmapper to determine the resource type.
+	// Create a restmapper to determine the resource type.
 	discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
 	if err != nil {
 		return err
@@ -32,7 +32,6 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 	cacheClient := ksUtil.NewMemcachedDiscoveryClient(discoveryClient)
 	mapper := discovery.NewDeferredDiscoveryRESTMapper(cacheClient, dynamic.VersionInterfaces)
 
-	// Read the file, split by "---"
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return err
