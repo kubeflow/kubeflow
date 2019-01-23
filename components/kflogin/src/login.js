@@ -64,7 +64,7 @@ class Login extends Component {
   handleClick(){
     try {
       const hostname = window.location.hostname;
-      axios.post("https://" + hostname + "/kfloginapi", {"req-num": "1"}, {
+      axios.post("https://" + hostname + "/apikflogin", {"req-num": "1"}, {
         auth: {
           username: this.state.username,
           password: this.state.password
