@@ -15,31 +15,40 @@
 package cmd
 
 import (
-	"fmt"
+	kfapi "github.com/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/spf13/cobra"
 )
 
-// setCmd represents the set command
+// setCmd sets a parameter of a component.
+// EG: kfctl set ambassador ambassadorServiceType LoadBalancer
 var setCmd = &cobra.Command{
 	Use:   "set",
-	Short: "Apply one or more parameters to a component within a module in a kubeflow application.",
-	Long:  `Apply one or more parameters to a component within a module in a kubeflow application.`,
+	Short: "Apply one or more parameters to a component within a kubeflow application.",
+	Long:  `Apply one or more parameters to a component within a kubeflow application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("set called")
+		log.SetLevel(log.InfoLevel)
+		if len(args) != 3 {
+			log.Errorf("args {Component Name Value} required")
+			return
+		}
+		component := args[0]
+		name := args[1]
+		value := args[2]
+		kfApi, kfApiErr := kfapi.NewKfApiWithConfig(kfctlConfig)
+		if kfApiErr != nil {
+			log.Errorf("couldn't create KfApi: %v", kfApiErr)
+			return
+		}
+		parameterSetErr := kfApi.ParamSet(component, name, value)
+		if parameterSetErr != nil {
+			log.Errorf("couldn't set %v for component %v. Error: %v", name, component, parameterSetErr)
+			return
+		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(setCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// setCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// setCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

@@ -15,7 +15,7 @@
 package cmd
 
 import (
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1"
+	kfapi "github.com/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"os"
@@ -28,7 +28,7 @@ var generateCmd = &cobra.Command{
 	Long:  `Generate a kubeflow application using <name>.yaml.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.InfoLevel)
-		kfApi, kfApiErr := v1alpha1.NewKfApiWithConfig(kfctlConfig)
+		kfApi, kfApiErr := kfapi.NewKfApiWithConfig(kfctlConfig)
 		if kfApiErr != nil {
 			log.Errorf("couldn't create KfApi: %v", kfApiErr)
 			return
@@ -54,14 +54,22 @@ var generateCmd = &cobra.Command{
 		for _, pkg := range kfApi.Application().Spec.App.Packages {
 			packageAddErr := kfApi.PkgInstall(pkg)
 			if packageAddErr != nil {
-				log.Errorf("couldn't add registry %v. Error: %v", pkg.Name, packageAddErr)
+				log.Errorf("couldn't add package %v. Error: %v", pkg.Name, packageAddErr)
 				return
 			}
 		}
 		for _, component := range kfApi.Application().Spec.App.Components {
 			componentAddErr := kfApi.ComponentAdd(component, []string{})
 			if componentAddErr != nil {
-				log.Errorf("couldn't add registry %v. Error: %v", component.Name, componentAddErr)
+				log.Errorf("couldn't add component %v. Error: %v", component.Name, componentAddErr)
+				return
+			}
+		}
+		for _, parameter := range kfApi.Application().Spec.App.Parameters {
+			parameterSetErr := kfApi.ParamSet(parameter.Component, parameter.Name, parameter.Value)
+			if parameterSetErr != nil {
+				log.Errorf("couldn't set %v for component %v. Error: %v",
+					parameter.Name, parameter.Component, parameterSetErr)
 				return
 			}
 		}
