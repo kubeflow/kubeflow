@@ -18,6 +18,7 @@ import (
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"os"
 )
 
 // generateCmd represents the generate command
@@ -27,7 +28,7 @@ var generateCmd = &cobra.Command{
 	Long:  `Generate a kubeflow application using <name>.yaml.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.WarnLevel)
-		kfApi, kfApiErr := v1alpha1.NewKfApiWithConfig(kfctlConfig, kfctlEnv)
+		kfApi, kfApiErr := v1alpha1.NewKfApiWithConfig(kfctlConfig)
 		if kfApiErr != nil {
 			log.Errorf("couldn't create KfApi: %v", kfApiErr)
 			return
@@ -37,7 +38,7 @@ var generateCmd = &cobra.Command{
 			log.Errorf("couldn't get server version: %v", err)
 			return
 		}
-		namespace := kfctlEnv.GetString("K8S_NAMESPACE")
+		namespace := os.Getenv("K8S_NAMESPACE")
 		initErr := kfApi.Init("default", k8sSpec, host, namespace)
 		if initErr != nil {
 			log.Errorf("couldn't initialize KfApi: %v", initErr)

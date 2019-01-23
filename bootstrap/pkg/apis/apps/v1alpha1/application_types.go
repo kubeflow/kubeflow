@@ -21,6 +21,13 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	KsName           = "ks_app"
+	KsEnvName        = "default"
+	DefaultNamespace = "kubeflow"
+	KfConfigFile     = "app.yaml"
+)
+
 // RegistryConfig is used for two purposes:
 // 1. used during image build, to configure registries that should be baked into the bootstrapper docker image.
 //  (See: https://github.com/kubeflow/kubeflow/blob/master/bootstrap/image_registries.yaml)

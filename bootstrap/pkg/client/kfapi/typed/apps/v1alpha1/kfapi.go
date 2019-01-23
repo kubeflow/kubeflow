@@ -24,7 +24,7 @@ import (
 	"github.com/ksonnet/ksonnet/pkg/app"
 	"github.com/ksonnet/ksonnet/pkg/client"
 	"github.com/ksonnet/ksonnet/pkg/component"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -41,37 +41,26 @@ import (
 	"time"
 )
 
-const (
-	KsName           = "ks_app"
-	KsEnvName        = "default"
-	DefaultNamespace = "kubeflow"
-)
-
 //
 // KfApi is used by commands under bootstrap/cmd/{bootstrap,kfctl}. KfApi provides a common
 // API simplified layer to ksonnet
 //
 type KfApi interface {
-	Application() *v1alpha1.Application
+	Application() *kftypes.Application
 	Apply(components []string, cfg *clientcmdapi.Config) error
-	ComponentAdd(ksComponent v1alpha1.KsComponent, args []string) error
-	Components() (map[string]*v1alpha1.KsComponent, error)
+	ComponentAdd(ksComponent kftypes.KsComponent, args []string) error
+	Components() (map[string]*kftypes.KsComponent, error)
 	EnvSet(env string, host string) error
 	Init(envName string, k8sSpecFlag string, host string, namespace string) error
-	Libraries() (map[string]*v1alpha1.KsLibrary, error)
+	Libraries() (map[string]*kftypes.KsLibrary, error)
 	ParamSet(component string, name string, value string) error
-	PkgInstall(pkg v1alpha1.KsPackage) error
+	PkgInstall(pkg kftypes.KsPackage) error
 	PrototypeUse(m map[string]interface{}) error
-	Registries() (map[string]*v1alpha1.Registry, error)
-	RegistryAdd(registry *v1alpha1.RegistryConfig) error
-	RegistryConfigs() map[string]*v1alpha1.RegistryConfig
+	Registries() (map[string]*kftypes.Registry, error)
+	RegistryAdd(registry *kftypes.RegistryConfig) error
+	RegistryConfigs() map[string]*kftypes.RegistryConfig
 	Root() string
 	Show(components []string) error
-}
-
-type kfConfig struct {
-	init *viper.Viper
-	env  *viper.Viper
 }
 
 // kfApi implements the KfApi Interface
@@ -87,11 +76,11 @@ type kfApi struct {
 	// This can be used to map the name of a registry to info about the registry.
 	// This allows apps to specify a registry by name without having to know any
 	// other information about the regisry.
-	knownRegistries map[string]*v1alpha1.RegistryConfig
-	configs         kfConfig
+	knownRegistries map[string]*kftypes.RegistryConfig
+	cfgFile         *viper.Viper
 	fs              afero.Fs
 	kApp            app.App
-	application     v1alpha1.Application
+	application     kftypes.Application
 }
 
 func KubeConfigPath() string {
@@ -178,24 +167,24 @@ func capture() func() (string, error) {
 	}
 }
 
-func NewKfApiWithRegistries(appName string, appsDir string, knownRegistries map[string]*v1alpha1.RegistryConfig) (KfApi, error) {
-	return NewKfApi(appName, appsDir, knownRegistries, nil, nil)
+func NewKfApiWithRegistries(appName string, appsDir string, knownRegistries map[string]*kftypes.RegistryConfig) (KfApi, error) {
+	return NewKfApi(appName, appsDir, knownRegistries, nil)
 }
 
-func NewKfApiWithConfig(cfg *viper.Viper, env *viper.Viper) (KfApi, error) {
+func NewKfApiWithConfig(cfg *viper.Viper) (KfApi, error) {
 	cfgfile := cfg.ConfigFileUsed()
 	if cfgfile == "" {
 		return nil, fmt.Errorf("config file does not exist")
 	}
 	appDir := filepath.Dir(cfgfile)
 	appName := filepath.Base(appDir)
-	return NewKfApi(appName, appDir, nil, cfg, env)
+	return NewKfApi(appName, appDir, nil, cfg)
 }
 
-func NewKfApi(appName string, appDir string, knownRegistries map[string]*v1alpha1.RegistryConfig,
-	init *viper.Viper, env *viper.Viper) (KfApi, error) {
+func NewKfApi(appName string, appDir string, knownRegistries map[string]*kftypes.RegistryConfig,
+	cfgFile *viper.Viper) (KfApi, error) {
 	fs := afero.NewOsFs()
-	ksDir := path.Join(appDir, KsName)
+	ksDir := path.Join(appDir, kftypes.KsName)
 	kApp, kAppErr := app.Load(fs, nil, ksDir)
 	if kAppErr != nil {
 		return nil, fmt.Errorf("there was a problem loading app %v. Error: %v", appName, kAppErr)
@@ -203,16 +192,13 @@ func NewKfApi(appName string, appDir string, knownRegistries map[string]*v1alpha
 	api := &kfApi{
 		appName:         appName,
 		appDir:          appDir,
-		ksName:          KsName,
-		ksEnvName:       KsEnvName,
+		ksName:          kftypes.KsName,
+		ksEnvName:       kftypes.KsEnvName,
 		fs:              fs,
 		knownRegistries: knownRegistries,
-		configs: kfConfig{
-			init: init,
-			env:  env,
-		},
-		kApp: kApp,
-		application: v1alpha1.Application{
+		cfgFile:         cfgFile,
+		kApp:            kApp,
+		application: kftypes.Application{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "Application",
 				APIVersion: "apps.kubeflow.org/v1alpha1",
@@ -220,23 +206,23 @@ func NewKfApi(appName string, appDir string, knownRegistries map[string]*v1alpha
 			ObjectMeta: metav1.ObjectMeta{
 				Name: appName,
 			},
-			Spec: v1alpha1.ApplicationSpec{},
+			Spec: kftypes.ApplicationSpec{},
 		},
 	}
-	if api.configs.init != nil {
-		api.knownRegistries = make(map[string]*v1alpha1.RegistryConfig)
-		applicationSpecErr := api.configs.init.Sub("spec").Unmarshal(&api.application.Spec)
+	if api.cfgFile != nil {
+		api.knownRegistries = make(map[string]*kftypes.RegistryConfig)
+		applicationSpecErr := api.cfgFile.Sub("spec").Unmarshal(&api.application.Spec)
 		if applicationSpecErr != nil {
 			return nil, fmt.Errorf("couldn't unmarshall yaml. Error: %v", applicationSpecErr)
 		}
 		for _, registry := range api.application.Spec.App.Registries {
 			if registry.Name != "" {
 				if registry.Name == "kubeflow" {
-					kubeflowRepo := env.GetString("KUBEFLOW_REPO")
+					kubeflowRepo := os.Getenv("KUBEFLOW_REPO")
 					if kubeflowRepo != "" {
 						registry.RegUri = path.Join(kubeflowRepo, "kubeflow")
 					}
-					kubeflowVersion := env.GetString("KUBEFLOW_VERSION")
+					kubeflowVersion := os.Getenv("KUBEFLOW_VERSION")
 					if kubeflowVersion != "" {
 						registry.Version = kubeflowVersion
 					}
@@ -244,12 +230,12 @@ func NewKfApi(appName string, appDir string, knownRegistries map[string]*v1alpha
 				api.knownRegistries[registry.Name] = registry
 			}
 		}
-		componentsEnvVar := api.configs.env.GetString("KUBEFLOW_COMPONENTS")
+		componentsEnvVar := os.Getenv("KUBEFLOW_COMPONENTS")
 		if componentsEnvVar != "" {
 			components := strings.Split(componentsEnvVar, ",")
-			api.application.Spec.App.Components = make([]v1alpha1.KsComponent, len(components))
+			api.application.Spec.App.Components = make([]kftypes.KsComponent, len(components))
 			for _, comp := range components {
-				ksComponent := v1alpha1.KsComponent{
+				ksComponent := kftypes.KsComponent{
 					Name:      comp,
 					Prototype: comp,
 				}
@@ -260,15 +246,15 @@ func NewKfApi(appName string, appDir string, knownRegistries map[string]*v1alpha
 	return api, nil
 }
 
-func (kfApi *kfApi) Libraries() (map[string]*v1alpha1.KsLibrary, error) {
+func (kfApi *kfApi) Libraries() (map[string]*kftypes.KsLibrary, error) {
 	libs, err := kfApi.kApp.Libraries()
 	if err != nil {
 		return nil, fmt.Errorf("there was a problem getting the libraries %v. Error: %v", kfApi.appName, err)
 	}
 
-	libraries := make(map[string]*v1alpha1.KsLibrary)
+	libraries := make(map[string]*kftypes.KsLibrary)
 	for k, v := range libs {
-		libraries[k] = &v1alpha1.KsLibrary{
+		libraries[k] = &kftypes.KsLibrary{
 			Name:     v.Name,
 			Registry: v.Registry,
 			Version:  v.Version,
@@ -277,14 +263,14 @@ func (kfApi *kfApi) Libraries() (map[string]*v1alpha1.KsLibrary, error) {
 	return libraries, nil
 }
 
-func (kfApi *kfApi) Registries() (map[string]*v1alpha1.Registry, error) {
+func (kfApi *kfApi) Registries() (map[string]*kftypes.Registry, error) {
 	regs, err := kfApi.kApp.Registries()
 	if err != nil {
 		return nil, fmt.Errorf("There was a problem getting the Registries %v. Error: %v", kfApi.appName, err)
 	}
-	registries := make(map[string]*v1alpha1.Registry)
+	registries := make(map[string]*kftypes.Registry)
 	for k, v := range regs {
-		registries[k] = &v1alpha1.Registry{
+		registries[k] = &kftypes.Registry{
 			Name:     v.Name,
 			Protocol: v.Protocol,
 			URI:      v.URI,
@@ -294,7 +280,7 @@ func (kfApi *kfApi) Registries() (map[string]*v1alpha1.Registry, error) {
 	return registries, nil
 }
 
-func (kfApi *kfApi) RegistryConfigs() map[string]*v1alpha1.RegistryConfig {
+func (kfApi *kfApi) RegistryConfigs() map[string]*kftypes.RegistryConfig {
 	return kfApi.knownRegistries
 }
 
@@ -302,7 +288,7 @@ func (kfApi *kfApi) Root() string {
 	return kfApi.appDir
 }
 
-func (kfApi *kfApi) Application() *v1alpha1.Application {
+func (kfApi *kfApi) Application() *kftypes.Application {
 	return &kfApi.application
 }
 
@@ -350,7 +336,7 @@ func (kfApi *kfApi) Apply(components []string, cfg *clientcmdapi.Config) error {
 
 }
 
-func (kfApi *kfApi) ComponentAdd(component v1alpha1.KsComponent, args []string) error {
+func (kfApi *kfApi) ComponentAdd(component kftypes.KsComponent, args []string) error {
 	componentPath := filepath.Join(kfApi.KsRoot(), "components", component.Name+".jsonnet")
 	componentArgs := make([]string, 0)
 	componentArgs = append(componentArgs, component.Prototype)
@@ -373,7 +359,7 @@ func (kfApi *kfApi) ComponentAdd(component v1alpha1.KsComponent, args []string) 
 	return nil
 }
 
-func (kfApi *kfApi) Components() (map[string]*v1alpha1.KsComponent, error) {
+func (kfApi *kfApi) Components() (map[string]*kftypes.KsComponent, error) {
 	moduleName := "/"
 
 	topModule := component.NewModule(kfApi.kApp, moduleName)
@@ -381,10 +367,10 @@ func (kfApi *kfApi) Components() (map[string]*v1alpha1.KsComponent, error) {
 	if err != nil {
 		return nil, fmt.Errorf("there was a problem getting the Components %v. Error: %v", kfApi.appName, err)
 	}
-	comps := make(map[string]*v1alpha1.KsComponent)
+	comps := make(map[string]*kftypes.KsComponent)
 	for _, comp := range components {
 		name := comp.Name(false)
-		comps[name] = &v1alpha1.KsComponent{
+		comps[name] = &kftypes.KsComponent{
 			Name:      name,
 			Prototype: name,
 		}
@@ -445,7 +431,7 @@ func (kfApi *kfApi) ParamSet(component string, name string, value string) error 
 	return nil
 }
 
-func (kfApi *kfApi) PkgInstall(pkg v1alpha1.KsPackage) error {
+func (kfApi *kfApi) PkgInstall(pkg kftypes.KsPackage) error {
 	root := kfApi.KsRoot()
 	err := actions.RunPkgInstall(map[string]interface{}{
 		actions.OptionAppRoot: root,
@@ -463,7 +449,7 @@ func (kfApi *kfApi) PrototypeUse(m map[string]interface{}) error {
 	return nil
 }
 
-func (kfApi *kfApi) RegistryAdd(registry *v1alpha1.RegistryConfig) error {
+func (kfApi *kfApi) RegistryAdd(registry *kftypes.RegistryConfig) error {
 	log.Infof("App %v add registry %v URI %v", kfApi.appName, registry.Name, registry.RegUri)
 	root := kfApi.KsRoot()
 	options := map[string]interface{}{

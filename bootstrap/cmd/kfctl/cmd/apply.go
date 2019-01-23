@@ -15,7 +15,10 @@
 package cmd
 
 import (
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1"
+	"os"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"k8s.io/api/core/v1"
@@ -29,7 +32,7 @@ var applyCmd = &cobra.Command{
 	Long:  `Deploy a generated kubeflow application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.WarnLevel)
-		kfApi, kfApiErr := v1alpha1.NewKfApiWithConfig(kfctlConfig, kfctlEnv)
+		kfApi, kfApiErr := v1alpha1.NewKfApiWithConfig(kfctlConfig)
 		if kfApiErr != nil {
 			log.Errorf("couldn't create KfApi: %v", kfApiErr)
 			return
@@ -44,9 +47,9 @@ var applyCmd = &cobra.Command{
 			log.Errorf("couldn't create client Error: %v", cliErr)
 			return
 		}
-		envSetErr := kfApi.EnvSet(v1alpha1.KsEnvName, host)
+		envSetErr := kfApi.EnvSet(kftypes.KsEnvName, host)
 		if envSetErr != nil {
-			log.Errorf("couldn't create ksonnet env %v Error: %v", v1alpha1.KsEnvName, envSetErr)
+			log.Errorf("couldn't create ksonnet env %v Error: %v", kftypes.KsEnvName, envSetErr)
 			return
 		}
 		//ks param set application name ${DEPLOYMENT_NAME}
@@ -63,9 +66,9 @@ var applyCmd = &cobra.Command{
 				return
 			}
 		*/
-		namespace := kfctlEnv.GetString("K8S_NAMESPACE")
+		namespace := os.Getenv("K8S_NAMESPACE")
 		if namespace == "" {
-			namespace = v1alpha1.DefaultNamespace
+			namespace = kftypes.DefaultNamespace
 		}
 		_, nsMissingErr := cli.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
 		if nsMissingErr != nil {

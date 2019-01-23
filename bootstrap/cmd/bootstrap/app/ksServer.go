@@ -131,13 +131,13 @@ func NewServer(appName string, appDir string, registries []*kftypes.RegistryConf
 	for _, r := range registries {
 		knownRegistries[r.Name] = r
 		if r.RegUri == "" {
-			return nil, fmt.Errorf("Known registry %v missing URI", r.Name)
+			return nil, fmt.Errorf("known registry %v missing URI", r.Name)
 		}
 	}
 
 	kfApi, err := v1alpha1.NewKfApiWithRegistries(appName, appDir, knownRegistries)
 	if err != nil {
-		return nil, fmt.Errorf("There was a problem creating KfApi %v. Error: %v", appName, err)
+		return nil, fmt.Errorf("there was a problem creating KfApi %v. Error: %v", appName, err)
 	}
 
 	s.kfApi = kfApi

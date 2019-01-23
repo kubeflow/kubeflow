@@ -16,6 +16,8 @@ package cmd
 
 import (
 	"bytes"
+	"fmt"
+	"math/rand"
 	"os"
 	"path"
 	"path/filepath"
@@ -35,6 +37,9 @@ var platform string
 var ApplicationTemplate = string(`
 apiVersion: {{.APIVersion}}
 kind: {{.Kind}}
+metadata: 
+  name: {{.ObjectMeta.Name}}
+  namespace: {{.ObjectMeta.Namespace}}
 spec:
   app:
     registries:
@@ -63,10 +68,14 @@ spec:
 {{end}}
 `)
 
-func createConfigFiles(cfg *viper.Viper, path string) error {
-	tmpl, tmplErr := template.New("default").Parse(ApplicationTemplate)
+func createConfigFiles(cfg *viper.Viper, appName string, appDir string) error {
+	tmpl, tmplErr := template.New("app").Parse(ApplicationTemplate)
 	if tmplErr != nil {
 		return tmplErr
+	}
+	namespace := os.Getenv("K8S_NAMESPACE")
+	if namespace == "" {
+		namespace = kftypes.DefaultNamespace
 	}
 	application := kftypes.Application{
 		TypeMeta: metav1.TypeMeta{
@@ -74,7 +83,8 @@ func createConfigFiles(cfg *viper.Viper, path string) error {
 			APIVersion: "apps.kubeflow.org/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "default",
+			Name:      appName,
+			Namespace: namespace,
 		},
 		Spec: kftypes.ApplicationSpec{
 			App: kftypes.AppConfig{
@@ -84,28 +94,152 @@ func createConfigFiles(cfg *viper.Viper, path string) error {
 						Repo:    "https://github.com/kubeflow/kubeflow.git",
 						Version: "0.4",
 						Path:    "kubeflow",
-						RegUri:  path,
+						RegUri:  appDir,
 					},
 				},
 				Packages: []kftypes.KsPackage{
-					//TODO for a list of packages we need to use `kfctl add <registry|pkg|module|component>`
-					// (do we need an env var similar to DEFAULT_KUBEFLOW_COMPONENTS)?
+					{
+						Name:     "argo",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "pipeline",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "common",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "examples",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "jupyter",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "katib",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "mpi-job",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "pytorch-job",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "seldon",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "tf-serving",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "openvino",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "tensorboard",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "tf-training",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "metacontroller",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "profiles",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "application",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "modeldb",
+						Registry: "kubeflow",
+					},
 				},
 				Components: []kftypes.KsComponent{
-					//TODO list of components from DEFAULT_KUBEFLOW_COMPONENTS or
-					//     if that's not defined then depending on the platform option
-					//     platform=none
-					//       ["ambassador","jupyter","centraldashboard","tf-job-operator","pytorch-operator",
-					//        "spartakus","argo","pipeline"]
-					//     platform=gcp
-					//       ["ambassador","jupyter","centraldashboard","tf-job-operator","pytorch-operator",
-					//        "spartakus","argo","pipeline","cloud-endpoints","cert-manager","iap-ingress"]
-					//     platform=minikube|docker-for-desktop
-					//       ["ambassador","jupyter","centraldashboard","tf-job-operator","pytorch-operator",
-					//        "spartakus","argo","pipeline","katib"]
+					{
+						Name:      "pytorch-operator",
+						Prototype: "pytorch-operator",
+					},
+					{
+						Name:      "ambassador",
+						Prototype: "ambassador",
+					},
+					{
+						Name:      "openvino",
+						Prototype: "openvino",
+					},
+					{
+						Name:      "jupyter",
+						Prototype: "jupyter",
+					},
+					{
+						Name:      "centraldashboard",
+						Prototype: "centraldashboard",
+					},
+					{
+						Name:      "tf-job-operator",
+						Prototype: "tf-job-operator",
+					},
+					{
+						Name:      "tensorboard",
+						Prototype: "tensorboard",
+					},
+					{
+						Name:      "metacontroller",
+						Prototype: "metacontroller",
+					},
+					{
+						Name:      "profiles",
+						Prototype: "profiles",
+					},
+					{
+						Name:      "notebooks",
+						Prototype: "notebooks",
+					},
+					{
+						Name:      "argo",
+						Prototype: "argo",
+					},
+					{
+						Name:      "pipeline",
+						Prototype: "pipeline",
+					},
+					{
+						Name:      "katib",
+						Prototype: "katib",
+					},
+					{
+						Name:      "spartakus",
+						Prototype: "spartakus",
+					},
+					{
+						Name:      "application",
+						Prototype: "application",
+					},
 				},
 				Parameters: []kftypes.KsParameter{
-					//TODO for a component's parameter list we need to use `kfctl set <component> <name> <value>`
+					{
+						Component: "spartakus",
+						Name:      "usageId",
+						Value:     fmt.Sprintf("%08d", 10000000+rand.Intn(90000000)),
+					},
+					{
+						Component: "spartakus",
+						Name:      "reportUsage",
+						Value:     "true",
+					},
 				},
 			},
 		},
@@ -119,10 +253,11 @@ func createConfigFiles(cfg *viper.Viper, path string) error {
 	if errDefaultConfig != nil {
 		return errDefaultConfig
 	}
-	cfg.AutomaticEnv() //TODO need to update application based on DEFAULT_KUBEFLOW_COMPONENTS
-	defaultConfig := filepath.Join("default.yaml", path)
-	cfg.WriteConfigAs(defaultConfig)
-	//TODO need to write out env.sh
+	cfgFile := filepath.Join(appDir, kftypes.KfConfigFile)
+	cfgFileErr := cfg.WriteConfigAs(cfgFile)
+	if cfgFileErr != nil {
+		return cfgFileErr
+	}
 	return nil
 }
 
@@ -147,9 +282,9 @@ var initCmd = &cobra.Command{
 			log.Errorf("cannot create directory %v", appDir)
 			return
 		}
-		createConfigErr := createConfigFiles(kfctlConfig, appDir)
+		createConfigErr := createConfigFiles(kfctlConfig, appName, appDir)
 		if createConfigErr != nil {
-			log.Errorf("cannot create config files in %v", appDir)
+			log.Errorf("cannot create config file app.yaml in %v", appDir)
 			return
 		}
 	},
@@ -158,8 +293,4 @@ var initCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(initCmd)
 	initCmd.Flags().StringVarP(&platform, "platform", "p", "", "gcp | minikube | docker-for-desktop | ack")
-	err := kfctlConfig.BindPFlag("platform", initCmd.Flags().Lookup("platform"))
-	if err != nil {
-		panic(err.Error())
-	}
 }

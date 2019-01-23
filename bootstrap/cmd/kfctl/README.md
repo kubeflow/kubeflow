@@ -92,14 +92,15 @@ kfctl.sh generate all
 kfctl.sh apply all
 ```
 
-## Config files (default.yaml, env.toml)
+## Config files (app.yaml)
 
-The configuration file that `kfctl.sh` used was `env.sh` and persisted
+The configuration file that `kfctl.sh` used to create was `env.sh` and persisted
 a set of environment variables. Because `kfctl` will live in `/usr/local/bin`
 and not necessarily expect the kubeflow repo to be on disk, it will 
-also create a `default.yaml` file in the same directory as `env.sh` that
-is similar to the `bootstrap/config/` YAML files. The default.yaml file 
+create an `app.yaml` file in same directory as where `env.sh` used
+to be created. The env.sh file will no longer exist.  The app.yaml file 
 will be reified into to the golang type Application shown below.
+An example of the app.yaml is under kubeflow/bootstrap/cmd/kfctl/config/samples.
 
 ```golang
 type Application struct {
@@ -145,7 +146,7 @@ type KsParameter struct {
 }
 ```
 
-Generating the default.yaml file will leverage golang's template language.
+Generating the app.yaml file will leverage golang's template language.
 Give an instance of Application, the YAML generation template is shown below:
 
 ```yaml
@@ -179,56 +180,13 @@ spec:
 {{end}}
 ```
 
-### env.sh => env.toml
-
-The `env.sh` file will move to a [toml](https://github.com/toml-lang/toml) file - `env.toml`.
-The `default.yaml` file will reflect changes in environment variables in `env.toml`.
-For example `DEFAULT_KUBEFLOW_COMPONENTS` is an env override and will used to update the components in `default.yaml`.
-
-The set of environment variables that `kfctl` will use is similar as `kfctl.sh`.
-
-`env.toml`
-
-```conf
-[default]
-PLATFORM = ""
-KUBEFLOW_REPO = "$GOPATH/src/github.com/kubeflow/kubeflow"
-KUBEFLOW_VERSION = "master"
-KUBEFLOW_COMPONENTS = [ "ambassador","jupyter","centraldashboard","tf-job-operator","pytorch-operator","spartakus","argo","pipeline" ]
-KUBEFLOW_EXTENDEDINFO = "false"
-KUBEFLOW_KS_DIR = "$HOME/kf_app/ks_app"
-KUBEFLOW_DOCKER_REGISTRY = ""
-DOCKER_REGISTRY_KATIB_NAMESPACE = ""
-K8S_NAMESPACE = "kubeflow"
-KUBEFLOW_PLATFORM = ""
-MOUNT_LOCAL = ""
-DEPLOYMENT_NAME = "kubeflow"
-[gcp]
-PROJECT = ""
-ZONE = ""
-EMAIL = ""
-PROJECT_NUMBER = ""
-KUBEFLOW_DM_DIR = ""
-KUBEFLOW_SECRETS_DIR = ""
-KUBEFLOW_K8S_MANIFESTS_DIR = ""
-KUBEFLOW_K8S_CONTEXT = ""
-KUBEFLOW_IP_NAME = ""
-KUBEFLOW_ENDPOINT_NAME = ""
-KUBEFLOW_HOSTNAME = ""
-CONFIG_FILE = ""
-GKE_API_VERSION = ""
-[minikube]
-KUBEFLOW_COMPONENTS = [ "ambassador","jupyter","centraldashboard","tf-job-operator","pytorch-operator","spartakus","argo","pipeline","katib" ]
-[docker-for-desktop]
-KUBEFLOW_COMPONENTS = [ "ambassador","jupyter","centraldashboard","tf-job-operator","pytorch-operator","spartakus","argo","pipeline","katib" ]
-```
-
 ## Subcommands
 
 #### root subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/root.go)
-- if `default.yaml` and `env.toml` exist in the current directory then instantiates `kfctlConfig` and `kfctlEnv` Viper instances
+- if `app.yaml` exists in the current directory then instantiate `kfctlConfig` Viper instance
+
 #### init subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/init.go)
-- Upon successful creation of the app directory, creates `default.yaml` and `env.toml` within the app directory
+- Upon successful creation of the app directory, creates `app.yaml` within the app directory
 
 #### generate subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/generate.go)
 - Calls `NewKfApiWithConfig(appName string, appsDir string, init *viper.Viper, env *viper.Viper) (KfApi, error)`

@@ -1,0 +1,86 @@
+apiversion: apps.kubeflow.org/v1alpha1
+kind: Application
+metadata:
+  name: kf_app
+  namespace: kubeflow
+spec:
+  app:
+    components:
+    - name: pytorch-operator
+      prototype: pytorch-operator
+    - name: ambassador
+      prototype: ambassador
+    - name: openvino
+      prototype: openvino
+    - name: jupyter
+      prototype: jupyter
+    - name: centraldashboard
+      prototype: centraldashboard
+    - name: tf-job-operator
+      prototype: tf-job-operator
+    - name: tensorboard
+      prototype: tensorboard
+    - name: metacontroller
+      prototype: metacontroller
+    - name: profiles
+      prototype: profiles
+    - name: notebooks
+      prototype: notebooks
+    - name: argo
+      prototype: argo
+    - name: pipeline
+      prototype: pipeline
+    - name: katib
+      prototype: katib
+    - name: spartakus
+      prototype: spartakus
+    - name: application
+      prototype: application
+    packages:
+    - name: argo
+      registry: kubeflow
+    - name: pipeline
+      registry: kubeflow
+    - name: common
+      registry: kubeflow
+    - name: examples
+      registry: kubeflow
+    - name: jupyter
+      registry: kubeflow
+    - name: katib
+      registry: kubeflow
+    - name: mpi-job
+      registry: kubeflow
+    - name: pytorch-job
+      registry: kubeflow
+    - name: seldon
+      registry: kubeflow
+    - name: tf-serving
+      registry: kubeflow
+    - name: openvino
+      registry: kubeflow
+    - name: tensorboard
+      registry: kubeflow
+    - name: tf-training
+      registry: kubeflow
+    - name: metacontroller
+      registry: kubeflow
+    - name: profiles
+      registry: kubeflow
+    - name: application
+      registry: kubeflow
+    - name: modeldb
+      registry: kubeflow
+    parameters:
+    - component: spartakus
+      name: usageId
+      value: 68989927
+    - component: spartakus
+      name: reportUsage
+      value: true
+    registries:
+    - RegUri: /Users/kdkasrav/go/src/github.com/kubeflow/kubeflow/bootstrap/kf_app
+      name: kubeflow
+      path: kubeflow
+      repo: https://github.com/kubeflow/kubeflow.git
+      version: 0.4

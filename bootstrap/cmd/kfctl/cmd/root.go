@@ -26,7 +26,6 @@ import (
 
 var token string
 var kfctlConfig = viper.New()
-var kfctlEnv = viper.New()
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -64,29 +63,16 @@ func Execute() {
 
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&token, "token", "t", "", "token used in auth header")
-	err := kfctlConfig.BindPFlag("token", rootCmd.PersistentFlags().Lookup("token"))
-	if err != nil {
-		panic(err.Error())
-	}
-
 	cobra.OnInitialize(initConfig)
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	kfctlConfig.SetConfigName("default")
+	kfctlConfig.SetConfigName("app")
 	kfctlConfig.SetConfigType("yaml")
 	kfctlConfig.AddConfigPath(".")
 	kfctlConfigErr := kfctlConfig.ReadInConfig()
 	if kfctlConfigErr != nil {
-		panic(kfctlConfigErr.Error())
-	}
-
-	kfctlEnv.SetConfigName("env")
-	kfctlEnv.SetConfigType("toml")
-	kfctlEnv.AddConfigPath(".")
-	kfctlEnvErr := kfctlEnv.ReadInConfig()
-	if kfctlEnvErr != nil {
 		panic(kfctlConfigErr.Error())
 	}
 }
