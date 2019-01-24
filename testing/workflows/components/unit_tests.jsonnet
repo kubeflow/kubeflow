@@ -125,6 +125,7 @@ local dagTemplates = [
       srcDir + "/kubeflow/argo/tests" + "," +
       srcDir + "/kubeflow/tf-training/tests",
       "--jsonnet_path_dirs=" + srcDir + "," + srcRootDir + "/kubeflow/testing/workflows/lib/v1.7.0/",
+      "--exclude_dirs=" + srcDir + "/kubeflow/jupyter/tests/test_app",
     ]),  // jsonnet-test
 
     dependencies: ["checkout"],
