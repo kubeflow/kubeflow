@@ -17,8 +17,9 @@ package options
 import "flag"
 
 type ServerOption struct {
-	Username string
-	Pwhash   string
+	Username   string
+	Pwhash     string
+	AllowHttp  bool
 	// Email for password reset?
 	// Email                string
 }
@@ -31,4 +32,5 @@ func NewServerOption() *ServerOption {
 func (s *ServerOption) AddFlags(fs *flag.FlagSet) {
 	fs.StringVar(&s.Username, "username", "", "Username for login")
 	fs.StringVar(&s.Pwhash, "pwhash", "", "Bcrypt hash of password for login.")
+	fs.BoolVar(&s.AllowHttp, "allowhttp", false, "Whether or not allow http traffic. Http for test only")
 }

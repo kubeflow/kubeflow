@@ -36,6 +36,7 @@ type authServer struct {
 	// authorized cookies and their expire time (12 hour by default)
 	cookies 	map[string]time.Time
 	serverMux   sync.Mutex
+	allowHttp	bool
 }
 
 const CookieName = "KUBEFLOW-AUTH-KEY"
@@ -51,16 +52,24 @@ func NewAuthServer(opt *options.ServerOption) *authServer {
 		username: opt.Username,
 		pwhash: string(data),
 		cookies: make(map[string]time.Time),
+		allowHttp: opt.AllowHttp,
 	}
 	return server
 }
 
 // Default auth check service
 func (s *authServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if (!s.allowHttp) && r.Header.Get("X-Forwarded-Proto") != "https" {
+		log.Infof("Redirect http traffic.")
+		// redirect to login page
+		s.redirectToLogin(w, r)
+		return
+	}
 	log.Infof("Path check, url: %v, path: %v", r.URL, r.URL.Path)
 	// login page open to everyone; all other path requires auth with Password or cookie
 	if strings.HasPrefix(r.URL.Path, "/" + LoginPagePath) || s.authCookie(r) == true {
-		// Handle request from login page
+		// Handle user's re-login
+		// They already have auth cookie in browser, so "StatusResetContent" bring them to kubeflow central dashboard.
 		if r.Header.Get(LoginPageHeader) != "" {
 			w.WriteHeader(http.StatusResetContent)
 			w.Write([]byte(http.StatusText(http.StatusResetContent)))
@@ -85,8 +94,14 @@ func (s *authServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(http.StatusText(http.StatusOK)))
 		return
 	}
-	log.Infof("Unauthorized, redirect to %v", "https://" + path.Join(r.Host, LoginPagePath))
+	// If unauthorized request comes from login page, we skip redirect, just indicate username / password wrong.
+	if r.Header.Get(LoginPageHeader) != "" {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(http.StatusText(http.StatusUnauthorized)))
+		return
+	}
 
+	log.Infof("Unauthorized, redirect to %v", "https://" + path.Join(r.Host, LoginPagePath))
 	// redirect to login page
 	s.redirectToLogin(w, r)
 }
