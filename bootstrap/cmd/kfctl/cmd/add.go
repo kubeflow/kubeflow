@@ -15,9 +15,9 @@
 package cmd
 
 import (
-	log "github.com/sirupsen/logrus"
-	kfapi "github.com/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
+	kfapi "github.com/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/spf13/cobra"
 )
@@ -44,20 +44,20 @@ var addCmd = &cobra.Command{
 			log.Infof("registry")
 			//TODO get these using Flags and Viper binding
 			if len(args) != 6 {
-				log.Errorf("add registry --name= --repo= --version= --path= --reguri=")
+				log.Errorf("add registry --name=<NAME> --repo=<REPO> --version=<VERSION> --path=<PATH> --regUri=<REGISTRY_URI>")
 				return
 			}
 			name := args[1]
 			repo := args[2]
 			version := args[3]
 			path := args[4]
-			reguri := args[5]
+			regUri := args[5]
 			registry := &kftypes.RegistryConfig{
 				name,
 				repo,
 				version,
 				path,
-				reguri,
+				regUri,
 			}
 			registryAddErr := kfApi.RegistryAdd(registry)
 			if registryAddErr != nil {
@@ -74,7 +74,7 @@ var addCmd = &cobra.Command{
 			name := args[1]
 			registry := args[2]
 			pkg := kftypes.KsPackage{
-				Name: name,
+				Name:     name,
 				Registry: registry,
 			}
 			pkgErr := kfApi.PkgInstall(pkg)
@@ -92,7 +92,7 @@ var addCmd = &cobra.Command{
 			name := args[1]
 			prototype := args[2]
 			component := kftypes.KsComponent{
-				Name: name,
+				Name:      name,
 				Prototype: prototype,
 			}
 			componentErr := kfApi.ComponentAdd(component, []string{})
