@@ -33,6 +33,16 @@ properties:
     description: Initial number of nodes desired in the cluster.
     default: 4
 
+  gcePd:
+    type: object
+    properties:
+      pipelineDbSizeGb:
+        type: integer
+        default: 20
+      pipelineNfsSizeGb:
+        type: integer
+        default: 200
+
   cloudsql:
     type: object
     default:

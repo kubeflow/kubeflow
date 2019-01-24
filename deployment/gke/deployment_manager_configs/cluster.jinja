@@ -175,6 +175,18 @@ resources:
   properties:
     description: "Static IP for Kubeflow ingress."
 
+- name: {{ env['deployment'] }}-pipeline-db
+  type: compute.v1.disk
+  properties:
+    sizeGb: {{ properties[gcePd]["pipelineDbSizeGb"] }}
+    zone: {{ properties['zone'] }}
+
+- name: {{ env['deployment'] }}-pipeline-nfs
+  type: compute.v1.disk
+  properties:
+    sizeGb: {{ properties[gcePd]["pipelineNfsSizeGb"] }}
+    zone: {{ properties['zone'] }}
+
 {% if properties['enable_cloudsql'] %}
 - name: {{ SQL_INSTANCE_NAME }}
   type: sqladmin.v1beta4.instance
