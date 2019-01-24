@@ -196,12 +196,12 @@ createSecrets() {
   local ADMIN_EMAIL=${DEPLOYMENT_NAME}-admin@${PROJECT}.iam.gserviceaccount.com
   local USER_EMAIL=${DEPLOYMENT_NAME}-user@${PROJECT}.iam.gserviceaccount.com
 
-  check_variable "${CLIENT_ID}" "CLIENT_ID"
-  check_variable "${CLIENT_SECRET}" "CLIENT_SECRET"
-
   # We want the secret name to be the same by default for all clusters so that users don't have to set it manually.
   createGcpSecret ${ADMIN_EMAIL} admin-gcp-sa
   createGcpSecret ${USER_EMAIL} user-gcp-sa
+
+  check_variable "${CLIENT_ID}" "CLIENT_ID"
+  check_variable "${CLIENT_SECRET}" "CLIENT_SECRET"
 
   set +e
   O=$(kubectl get secret --namespace=${K8S_NAMESPACE} kubeflow-oauth 2>&1)
