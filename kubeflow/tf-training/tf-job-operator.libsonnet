@@ -162,7 +162,7 @@
         function(c) {
           local container = deployment.mixin.spec.template.spec.containersType,
           local cmd = [
-            "/opt/kubeflow/tf-operator.v2",
+            "/opt/kubeflow/tf-operator.v1beta1",
             "--alsologtostderr",
             "-v=1",
           ] + if params.deploymentScope == "namespace" &&

@@ -103,7 +103,7 @@ std.assertEqual(
           containers: [
             {
               command: [
-                "/opt/kubeflow/tf-operator.v2",
+                "/opt/kubeflow/tf-operator.v1beta1",
                 "--alsologtostderr",
                 "-v=1",
               ],
