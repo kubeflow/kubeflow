@@ -4,9 +4,9 @@ metadata:
   creationTimestamp: null
   labels:
     controller-tools.k8s.io: "1.0"
-  name: notebooks.notebook.kubeflow.org
+  name: notebook.kubeflow.org
 spec:
-  group: notebook.kubeflow.org
+  group: kubeflow.org
   names:
     kind: Notebook
     plural: notebooks
@@ -27,6 +27,14 @@ spec:
         metadata:
           type: object
         spec:
+          properties:
+            template:
+              description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+                Important: Run "make" to regenerate code after modifying this file'
+              properties:
+                spec:
+                  type: object
+              type: object
           type: object
         status:
           type: object

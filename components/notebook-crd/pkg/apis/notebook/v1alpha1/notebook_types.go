@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -27,6 +28,11 @@ import (
 type NotebookSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	Template NotebookTemplateSpec `json:"template,omitempty"`
+}
+
+type NotebookTemplateSpec struct {
+	Spec corev1.PodSpec `json:"spec,omitempty"`
 }
 
 // NotebookStatus defines the observed state of Notebook

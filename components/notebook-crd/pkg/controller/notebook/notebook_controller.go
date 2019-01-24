@@ -27,6 +27,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -94,9 +95,11 @@ type ReconcileNotebook struct {
 // and what is in the Notebook.Spec
 // TODO(user): Modify this Reconcile function to implement your Controller logic.  The scaffolding writes
 // a Deployment as an example
-// Automatically generate RBAC rules to allow the Controller to read and write Deployments
-// +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=apps,resources=deployments/status,verbs=get;update;patch
+// Automatically generate RBAC rules to allow the Controller to read and write StatefulSet
+// +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=apps,resources=statefulsets/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=core,resources=services/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=kubeflow.org,resources=notebooks,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=kubeflow.org,resources=notebooks/status,verbs=get;update;patch
 func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Result, error) {
@@ -112,58 +115,132 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 		// Error reading the object - requeue the request.
 		return reconcile.Result{}, err
 	}
+	if err = r.ReconcileStatefulSet(instance); err != nil {
+		return reconcile.Result{}, err
+	}
+	if err = r.ReconcileService(instance); err != nil {
+		return reconcile.Result{}, err
+	}
+	return reconcile.Result{}, nil
+}
 
-	// TODO(user): Change this to be the object type created by your controller
-	// Define the desired Deployment object
-	deploy := &appsv1.Deployment{
+// ReconcileStatefulSet reconciles the StatefulSet object for the notebook.
+func (r *ReconcileNotebook) ReconcileStatefulSet(instance *v1alpha1.Notebook) error {
+	// Define the desired StatefulSet object
+	ss := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      instance.Name + "-deployment",
+			Name:      instance.Name,
 			Namespace: instance.Namespace,
 		},
-		Spec: appsv1.DeploymentSpec{
+		Spec: appsv1.StatefulSetSpec{
 			Selector: &metav1.LabelSelector{
-				MatchLabels: map[string]string{"deployment": instance.Name + "-deployment"},
+				MatchLabels: map[string]string{"statefulset": instance.Name},
 			},
 			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{"deployment": instance.Name + "-deployment"}},
-				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{
-						{
-							Name:  "nginx",
-							Image: "nginx",
-						},
-					},
+				ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{"statefulset": instance.Name}},
+				Spec:       instance.Spec.Template.Spec,
+			},
+		},
+	}
+	container := ss.Spec.Template.Spec.Containers[0]
+	container.Args = []string{
+		"start.sh",
+		"jupyter",
+		"lab",
+		"--LabApp.token=''",
+		"--LabApp.allow_remote_access='True'",
+		"--LabApp.allow_root='True'",
+		"--LabApp.ip='*'",
+		"--LabApp.base_url=/" + instance.ObjectMeta.Namespace + "/" + instance.ObjectMeta.Name + "/",
+		"--port=8888",
+		"--no-browser",
+	}
+	container.Env = append(container.Env, corev1.EnvVar{
+		Name:  "JUPYTER_ENABLE_LAB",
+		Value: "TRUE",
+	})
+	container.WorkingDir = "/home/jovyan"
+	container.Ports = []corev1.ContainerPort{
+		corev1.ContainerPort{
+			ContainerPort: 8888,
+			Name:          "notebook-port",
+			Protocol:      "TCP",
+		},
+	}
+	if err := controllerutil.SetControllerReference(instance, ss, r.scheme); err != nil {
+		return err
+	}
+
+	// Check if the StatefulSet already exists
+	found := &appsv1.StatefulSet{}
+	err := r.Get(context.TODO(), types.NamespacedName{Name: ss.ObjectMeta.Name, Namespace: ss.ObjectMeta.Namespace}, found)
+	if err != nil && errors.IsNotFound(err) {
+		log.Info("Creating StatefulSet", "namespace", ss.ObjectMeta.Namespace, "name", ss.ObjectMeta.Name)
+		err = r.Create(context.TODO(), ss)
+		if err != nil {
+			return err
+		}
+	} else if err != nil {
+		return err
+	}
+
+	// Update the found object and write the result back if there are any changes
+	if !reflect.DeepEqual(ss.Spec, found.Spec) {
+		found.Spec = ss.Spec
+		log.Info("Updating StatefulSet", "namespace", ss.Namespace, "name", ss.Name)
+		err = r.Update(context.TODO(), found)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// ReconcileService reconciles the Service object for the notebook.
+func (r *ReconcileNotebook) ReconcileService(instance *v1alpha1.Notebook) error {
+	// Define the desired Service object
+	svc := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      instance.Name,
+			Namespace: instance.Namespace,
+		},
+		Spec: corev1.ServiceSpec{
+			Type:     "ClusterIP",
+			Selector: map[string]string{"statefulset": instance.Name},
+			Ports: []corev1.ServicePort{
+				corev1.ServicePort{
+					Port:       80,
+					TargetPort: intstr.FromInt(8888),
+					Protocol:   "TCP",
 				},
 			},
 		},
 	}
-	if err := controllerutil.SetControllerReference(instance, deploy, r.scheme); err != nil {
-		return reconcile.Result{}, err
+	if err := controllerutil.SetControllerReference(instance, svc, r.scheme); err != nil {
+		return err
 	}
 
-	// TODO(user): Change this for the object type created by your controller
-	// Check if the Deployment already exists
-	found := &appsv1.Deployment{}
-	err = r.Get(context.TODO(), types.NamespacedName{Name: deploy.Name, Namespace: deploy.Namespace}, found)
+	// Check if the Service already exists
+	found := &corev1.Service{}
+	err := r.Get(context.TODO(), types.NamespacedName{Name: svc.Name, Namespace: svc.Namespace}, found)
 	if err != nil && errors.IsNotFound(err) {
-		log.Info("Creating Deployment", "namespace", deploy.Namespace, "name", deploy.Name)
-		err = r.Create(context.TODO(), deploy)
+		log.Info("Creating Service", "namespace", svc.Namespace, "name", svc.Name)
+		err = r.Create(context.TODO(), svc)
 		if err != nil {
-			return reconcile.Result{}, err
+			return err
 		}
 	} else if err != nil {
-		return reconcile.Result{}, err
+		return err
 	}
 
-	// TODO(user): Change this for the object type created by your controller
 	// Update the found object and write the result back if there are any changes
-	if !reflect.DeepEqual(deploy.Spec, found.Spec) {
-		found.Spec = deploy.Spec
-		log.Info("Updating Deployment", "namespace", deploy.Namespace, "name", deploy.Name)
+	if !reflect.DeepEqual(svc.Spec, found.Spec) {
+		found.Spec = svc.Spec
+		log.Info("Updating Service", "namespace", svc.Namespace, "name", svc.Name)
 		err = r.Update(context.TODO(), found)
 		if err != nil {
-			return reconcile.Result{}, err
+			return err
 		}
 	}
-	return reconcile.Result{}, nil
+	return nil
 }
