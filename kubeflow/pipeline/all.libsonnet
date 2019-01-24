@@ -2,6 +2,7 @@
   parts(_env, _params):: {
     local params = _env + _params,
 
+    local nfs = import "kubeflow/pipeline/nfs.libsonnet",
     local minio = import "kubeflow/pipeline/minio.libsonnet",
     local mysql = import "kubeflow/pipeline/mysql.libsonnet",
     local pipeline_apiserver = import "kubeflow/pipeline/pipeline-apiserver.libsonnet",
@@ -15,10 +16,12 @@
     local scheduledWorkflowImage = params.scheduledWorkflowImage,
     local persistenceAgentImage = params.persistenceAgentImage,
     local uiImage = params.uiImage,
+    local nfsImage = params.nfsImage,
     local mysqlImage = params.mysqlImage,
     local minioImage = params.minioImage,
     all:: minio.all(namespace, minioImage) +
           mysql.all(namespace, mysqlImage) +
+          nfs.all(namespace, nfsImage) +
           pipeline_apiserver.all(namespace, apiImage) +
           pipeline_scheduledworkflow.all(namespace, scheduledWorkflowImage) +
           pipeline_persistenceagent.all(namespace, persistenceAgentImage) +

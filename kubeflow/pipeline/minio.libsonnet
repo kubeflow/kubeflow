@@ -1,31 +1,11 @@
 {
   all(namespace, minioImage):: [
-    $.parts(namespace).pvc,
     $.parts(namespace).service,
     $.parts(namespace).deploy(minioImage),
     $.parts(namespace).secret,
   ],
 
   parts(namespace):: {
-    pvc: {
-      apiVersion: "v1",
-      kind: "PersistentVolumeClaim",
-      metadata: {
-        name: "minio-pv-claim",
-        namespace: namespace,
-      },
-      spec: {
-        accessModes: [
-          "ReadWriteOnce",
-        ],
-        resources: {
-          requests: {
-            storage: "10Gi",
-          },
-        },
-      },
-    },  //pvc
-
     service: {
       apiVersion: "v1",
       kind: "Service",
@@ -72,7 +52,7 @@
               {
                 name: "data",
                 persistentVolumeClaim: {
-                  claimName: "minio-pv-claim",
+                  claimName: "nfs-pvc",
                 },
               },
             ],
@@ -83,6 +63,7 @@
                   {
                     name: "data",
                     mountPath: "/data",
+                    subPath: "minio",
                   },
                 ],
                 image: image,
