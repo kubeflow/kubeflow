@@ -1,6 +1,7 @@
 
 # Image URL to use all building/pushing image targets
-IMG ?= controller:latest
+IMG ?= gcr.io/kubeflow-images-public/notebook-controller
+TAG ?= $(eval TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6))$(TAG)
 
 all: test manager
 
@@ -50,3 +51,11 @@ docker-build: test
 # Push the docker image
 docker-push:
 	docker push ${IMG}
+
+build-gcr: test
+	docker build -t $(IMG):$(TAG) .
+	@echo Built $(IMG):$(TAG)
+
+push-gcr: build-gcr
+	docker push $(IMG):$(TAG)
+	@echo Pushed $(IMG):$(TAG)
