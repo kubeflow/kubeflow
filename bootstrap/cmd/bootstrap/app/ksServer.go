@@ -20,8 +20,11 @@ import (
 	"github.com/ksonnet/ksonnet/pkg/actions"
 	kApp "github.com/ksonnet/ksonnet/pkg/app"
 	"github.com/ksonnet/ksonnet/pkg/client"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
+	kfutils "github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"golang.org/x/net/context"
@@ -84,7 +87,7 @@ type ksServer struct {
 	// This can be used to map the name of a registry to info about the registry.
 	// This allows apps to specify a registry by name without having to know any
 	// other information about the regisry.
-	knownRegistries map[string]RegistryConfig
+	knownRegistries map[string]*kftypes.RegistryConfig
 
 	//gkeVersionOverride allows overriding the GKE version specified in DM config. If not set the value in DM config is used.
 	// https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters
@@ -120,7 +123,7 @@ func (m MultiError) ToError() error {
 }
 
 // NewServer constructs a ksServer.
-func NewServer(appsDir string, registries []RegistryConfig, gkeVersionOverride string) (*ksServer, error) {
+func NewServer(appsDir string, registries []*kftypes.RegistryConfig, gkeVersionOverride string) (*ksServer, error) {
 	if appsDir == "" {
 		return nil, fmt.Errorf("appsDir can't be empty")
 	}
@@ -128,7 +131,7 @@ func NewServer(appsDir string, registries []RegistryConfig, gkeVersionOverride s
 	s := &ksServer{
 		appsDir:            appsDir,
 		projectLocks:       make(map[string]*sync.Mutex),
-		knownRegistries:    make(map[string]RegistryConfig),
+		knownRegistries:    make(map[string]*kftypes.RegistryConfig),
 		gkeVersionOverride: gkeVersionOverride,
 		fs:                 afero.NewOsFs(),
 	}
@@ -160,7 +163,7 @@ type CreateRequest struct {
 	// Name for the app.
 	Name string
 	// AppConfig is the config for the app.
-	AppConfig AppConfig
+	AppConfig kftypes.AppConfig
 
 	// Namespace for the app.
 	Namespace string
@@ -432,7 +435,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 
 	// Add the registries to the app.
 	for idx, registry := range request.AppConfig.Registries {
-		RegUri, err := s.getRegistryUri(&registry)
+		RegUri, err := s.getRegistryUri(registry)
 		if err != nil {
 			log.Errorf("There was a problem getRegistryUri for registry %v. Error: %v", registry.Name, err)
 			return err
@@ -512,7 +515,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 
 // fetch remote registry to local disk, or use baked-in registry if version not specified in user request.
 // Then return registry's RegUri.
-func (s *ksServer) getRegistryUri(registry *RegistryConfig) (string, error) {
+func (s *ksServer) getRegistryUri(registry *kftypes.RegistryConfig) (string, error) {
 	if registry.Name == "" ||
 		registry.Path == "" ||
 		registry.Repo == "" ||
@@ -574,7 +577,7 @@ func runCmd(rawcmd string) error {
 }
 
 // appGenerate installs packages and creates components.
-func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *AppConfig) error {
+func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *kftypes.AppConfig) error {
 	libs, err := kfApp.Libraries()
 
 	if err != nil {
@@ -599,8 +602,8 @@ func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *AppConfig) error {
 		_, err = s.fs.Stat(regFile)
 		if err == nil {
 			log.Infof("processing registry file %v ", regFile)
-			var ksRegistry KsRegistry
-			if LoadConfig(regFile, &ksRegistry) == nil {
+			var ksRegistry kftypes.KsRegistry
+			if kfutils.LoadConfigFile(regFile, &ksRegistry) == nil {
 				for pkgName, _ := range ksRegistry.Libraries {
 					_, err = s.fs.Stat(path.Join(registry.RegUri, pkgName))
 					if err != nil {
@@ -706,7 +709,7 @@ func (s *ksServer) createComponent(kfApp kApp.App, args []string) error {
 
 // autoConfigureApp attempts to automatically optimize the Kubeflow application
 // based on the cluster setup.
-func (s *ksServer) autoConfigureApp(kfApp *kApp.App, appConfig *AppConfig, namespace string, config *rest.Config) error {
+func (s *ksServer) autoConfigureApp(kfApp *kApp.App, appConfig *kftypes.AppConfig, namespace string, config *rest.Config) error {
 
 	kubeClient, err := clientset.NewForConfig(rest.AddUserAgent(config, "kubeflow-bootstrapper"))
 	if err != nil {
