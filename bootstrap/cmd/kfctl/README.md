@@ -14,7 +14,7 @@ The new `kfctl` client replaces `kfctl.sh` and is implemented in golang.
 
  - Do not change existing `REST` entrypoints or the `KsService` interface in `ksServer.go` at this time
 
- - Package `KfApp` interface and related types for ease of use by kfctl and gcp-click-to-deploy
+ - Package `KfApp` interface and related types for ease of use by kfctl and (later) gcp-click-to-deploy
 
 ## API and Packaging
 
