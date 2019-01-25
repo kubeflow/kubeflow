@@ -9,7 +9,7 @@ The new `kfctl` client replaces `kfctl.sh` and is implemented in golang.
  - Create a common API for the UI (gcp-click-to-deploy) and `kfctl` (`KfApp`)
 
  - Separate different implementations of the KfApp Interface
-   - bootstrap/pkg/client/ksApp for `kfctl init --platform none
+   - bootstrap/pkg/client/ksApp for `kfctl init --platform none`
    - bootstrap/pkg/client/gcpApp for `kfctl init --platform gcp`
 
  - Do not change existing `REST` entrypoints or the `KsService` interface in `ksServer.go` at this time
@@ -56,6 +56,13 @@ type KfApp interface {
 	Generate() error
 	Init() error
 }
+```
+
+Implementations of the interface are in 
+
+```sh
+bootstrap/pkg/client/ksapp/ksapp.go
+bootstrap/pkg/client/gcpapp/gcpapp.go
 ```
 
 ## Usage
