@@ -25,6 +25,7 @@ import (
 	"regexp"
 
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
+	flag "github.com/spf13/pflag"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/spf13/viper"
@@ -43,6 +44,7 @@ metadata:
   name: {{.ObjectMeta.Name}}
   namespace: {{.ObjectMeta.Namespace}}
 spec:
+  platform: {{.Spec.Platform}}
   app:
     registries:
 {{range $registry := .Spec.App.Registries }}
@@ -317,6 +319,8 @@ var initCmd = &cobra.Command{
 }
 
 func init() {
-	initCmd.Flags().StringVarP(&platform, "platform", "p", "", "gcp | minikube | docker-for-desktop | ack")
 	rootCmd.AddCommand(initCmd)
+	flag.StringP("Spec.Platform", "p", "none",
+		"one of 'gcp|minikube|docker-for-desktop|ack'")
+	kfctlConfig.BindPFlag("Spec.Platform", flag.Lookup("Spec.Platform"))
 }

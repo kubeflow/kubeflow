@@ -111,7 +111,8 @@ type AppConfig struct {
 
 // KsAppSpec defines the desired state of KsApp
 type KsAppSpec struct {
-	App AppConfig `json:"app,omitempty"`
+	Platform string    `json:"platform,omitempty"`
+	App      AppConfig `json:"app,omitempty"`
 }
 
 // KsAppStatus defines the observed state of KsApp

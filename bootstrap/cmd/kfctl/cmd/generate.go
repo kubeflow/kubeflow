@@ -23,8 +23,8 @@ import (
 // generateCmd represents the generate command
 var generateCmd = &cobra.Command{
 	Use:   "generate",
-	Short: "Generate a kubeflow application using <name>.yaml.",
-	Long:  `Generate a kubeflow application using <name>.yaml.`,
+	Short: "Generate a kubeflow application and generate an app.yaml.",
+	Long:  `Generate a kubeflow application and generate an app.yaml.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.InfoLevel)
 		kfApi, kfApiErr := kfapi.NewKfAppWithConfig(kfctlConfig)

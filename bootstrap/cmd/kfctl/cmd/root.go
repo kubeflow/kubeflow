@@ -41,7 +41,6 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVarP(&token, "token", "t", "", "token used in auth header")
 	cobra.OnInitialize(initConfig)
 }
 

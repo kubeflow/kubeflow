@@ -80,15 +80,15 @@ The app.yaml file will include fields that are used either for
 kfctl or gcp-click-to-deploy.
 
 ```golang
-type Application struct {
+type KsApp struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   ApplicationSpec   `json:"spec,omitempty"`
-	Status ApplicationStatus `json:"status,omitempty"`
+	Spec   KsAppSpec   `json:"spec,omitempty"`
+	Status KsAppStatus `json:"status,omitempty"`
 }
 
-type ApplicationSpec struct {
+type KsAppSpec struct {
 	App AppConfig `json:"app,omitempty"`
 }
 
@@ -124,7 +124,7 @@ type KsParameter struct {
 ```
 
 Generating the app.yaml file will leverage golang's template language.
-Give an instance of Application, the YAML generation template is shown below:
+Give an instance of KsApp, the YAML generation template is shown below:
 
 ```yaml
 apiVersion: {{.APIVersion}}
@@ -133,11 +133,30 @@ metadata:
   name: {{.ObjectMeta.Name}}
   namespace: {{.ObjectMeta.Namespace}}
 spec:
-  repo: {{.Repo}}
-  components: 
-{{range $component := .Spec.Components }}
-    - name: {{$component.Name}}
-      prototype: {{$component.Prototype}}
+  app:
+    registries:
+{{range $registry := .Spec.App.Registries }}
+      - name: {{$registry.Name}}
+        repo: {{$registry.Repo}}
+        version: {{$registry.Version}}
+        path: {{$registry.Path}}
+        RegUri: {{$registry.RegUri}}
+{{end}}
+    packages:
+{{range $package := .Spec.App.Packages }}
+      - name: {{$package.Name}}
+        registry: {{$package.Registry}}
+{{end}}
+    components:
+{{range $component := .Spec.App.Components }}
+      - name: {{$component.Name}}
+        prototype: {{$component.Prototype}}
+{{end}}
+    parameters:
+{{range $parameter := .Spec.App.Parameters }}
+      - component: {{$parameter.Component}}
+        name: {{$parameter.Name}}
+        value: {{$parameter.Value}}
 {{end}}
 ```
 
