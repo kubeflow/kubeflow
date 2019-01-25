@@ -36,7 +36,7 @@ import (
 
 var platform string
 
-var ApplicationTemplate = string(`
+var KsAppTemplate = string(`
 apiVersion: {{.APIVersion}}
 kind: {{.Kind}}
 metadata: 
@@ -71,7 +71,7 @@ spec:
 `)
 
 func createConfigFile(cfg *viper.Viper, appName string, appDir string) error {
-	tmpl, tmplErr := template.New(kftypes.KfConfigFile).Parse(ApplicationTemplate)
+	tmpl, tmplErr := template.New(kftypes.KfConfigFile).Parse(KsAppTemplate)
 	if tmplErr != nil {
 		return tmplErr
 	}
@@ -89,16 +89,16 @@ func createConfigFile(cfg *viper.Viper, appName string, appDir string) error {
 		kubeflowRepo = re.ReplaceAllString(kubeflowRepo, goPathVar+`$2`)
 	}
 	log.Infof("kubeflowRepo %v", kubeflowRepo)
-	application := kftypes.Application{
+	application := kftypes.KsApp{
 		TypeMeta: metav1.TypeMeta{
-			Kind:       "Application",
+			Kind:       "KsApp",
 			APIVersion: "apps.kubeflow.org/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      appName,
 			Namespace: namespace,
 		},
-		Spec: kftypes.ApplicationSpec{
+		Spec: kftypes.KsAppSpec{
 			App: kftypes.AppConfig{
 				Registries: []*kftypes.RegistryConfig{
 					{
@@ -281,7 +281,7 @@ var initCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.InfoLevel)
 		if len(args) == 0 {
-			log.Errorf("Application name is required")
+			log.Errorf("KsApp name is required")
 			return
 		}
 		appName := args[0]

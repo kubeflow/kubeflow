@@ -109,21 +109,21 @@ type AppConfig struct {
 	Parameters []KsParameter     `json:"parameters,omitempty"`
 }
 
-// ApplicationSpec defines the desired state of Application
-type ApplicationSpec struct {
+// KsAppSpec defines the desired state of KsApp
+type KsAppSpec struct {
 	App AppConfig `json:"app,omitempty"`
 }
 
-// ApplicationStatus defines the observed state of Application
-type ApplicationStatus struct {
-	Conditions []ApplicationCondition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,6,rep,name=conditions"`
+// KsAppStatus defines the observed state of KsApp
+type KsAppStatus struct {
+	Conditions []KsAppCondition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,6,rep,name=conditions"`
 }
 
-type ApplicationConditionType string
+type KsAppConditionType string
 
-type ApplicationCondition struct {
+type KsAppCondition struct {
 	// Type of deployment condition.
-	Type ApplicationConditionType `json:"type" protobuf:"bytes,1,opt,name=type,casttype=ApplicationConditionType"`
+	Type KsAppConditionType `json:"type" protobuf:"bytes,1,opt,name=type,casttype=KsAppConditionType"`
 	// Status of the condition, one of True, False, Unknown.
 	Status v1.ConditionStatus `json:"status" protobuf:"bytes,2,opt,name=status,casttype=k8s.io/api/core/v1.ConditionStatus"`
 	// The last time this condition was updated.
@@ -139,25 +139,36 @@ type ApplicationCondition struct {
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// Application is the Schema for the applications API
+// KsApp is the Schema for the applications API
 // +k8s:openapi-gen=true
-type Application struct {
+type KsApp struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   ApplicationSpec   `json:"spec,omitempty"`
-	Status ApplicationStatus `json:"status,omitempty"`
+	Spec   KsAppSpec   `json:"spec,omitempty"`
+	Status KsAppStatus `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// ApplicationList contains a list of Application
-type ApplicationList struct {
+// KsAppList contains a list of KsApp
+type KsAppList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Application `json:"items"`
+	Items           []KsApp `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&Application{}, &ApplicationList{})
+	SchemeBuilder.Register(&KsApp{}, &KsAppList{})
+}
+
+//
+// KfApp is used by commands under bootstrap/cmd/{bootstrap,kfctl}. KfApp provides a common
+// API simplified layer to ksonnet
+//
+type KfApp interface {
+	Apply() error
+	Delete() error
+	Generate() error
+	Init(envName string, k8sSpecFlag string, host string, namespace string) error
 }

@@ -25,7 +25,6 @@ ENV GO111MODULE=on
 COPY . .
 RUN go mod download
 RUN go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
-RUN go build -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
 
 #
 # bootstrap

@@ -25,7 +25,7 @@ import (
 
 type AppsV1alpha1Interface interface {
 	RESTClient() rest.Interface
-	ApplicationsGetter
+	KsAppsGetter
 }
 
 // AppsV1alpha1Client is used to interact with features provided by the apps.kubeflow.org group.
@@ -33,8 +33,8 @@ type AppsV1alpha1Client struct {
 	restClient rest.Interface
 }
 
-func (c *AppsV1alpha1Client) Applications(namespace string) ApplicationInterface {
-	return newApplications(c, namespace)
+func (c *AppsV1alpha1Client) KsApps(namespace string) KsAppInterface {
+	return newKsApps(c, namespace)
 }
 
 // NewForConfig creates a new AppsV1alpha1Client for the given config.

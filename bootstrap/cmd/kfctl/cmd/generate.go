@@ -18,7 +18,6 @@ import (
 	kfapi "github.com/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 // generateCmd represents the generate command
@@ -30,48 +29,13 @@ var generateCmd = &cobra.Command{
 		log.SetLevel(log.InfoLevel)
 		kfApi, kfApiErr := kfapi.NewKfApiWithConfig(kfctlConfig)
 		if kfApiErr != nil {
-			log.Errorf("couldn't create KfApi: %v", kfApiErr)
+			log.Errorf("couldn't create KfApp: %v", kfApiErr)
 			return
 		}
-		host, k8sSpec, err := ServerVersion()
-		if err != nil {
-			log.Errorf("couldn't get server version: %v", err)
+		generateErr := kfApi.Generate()
+		if generateErr != nil {
+			log.Errorf("couldn't generate KfApp: %v", generateErr)
 			return
-		}
-		namespace := os.Getenv("K8S_NAMESPACE")
-		initErr := kfApi.Init("default", k8sSpec, host, namespace)
-		if initErr != nil {
-			log.Errorf("couldn't initialize KfApi: %v", initErr)
-			return
-		}
-		for _, registry := range kfApi.Application().Spec.App.Registries {
-			registryAddErr := kfApi.RegistryAdd(registry)
-			if registryAddErr != nil {
-				log.Errorf("couldn't add registry %v. Error: %v", registry.Name, registryAddErr)
-				return
-			}
-		}
-		for _, pkg := range kfApi.Application().Spec.App.Packages {
-			packageAddErr := kfApi.PkgInstall(pkg)
-			if packageAddErr != nil {
-				log.Errorf("couldn't add package %v. Error: %v", pkg.Name, packageAddErr)
-				return
-			}
-		}
-		for _, component := range kfApi.Application().Spec.App.Components {
-			componentAddErr := kfApi.ComponentAdd(component, []string{})
-			if componentAddErr != nil {
-				log.Errorf("couldn't add component %v. Error: %v", component.Name, componentAddErr)
-				return
-			}
-		}
-		for _, parameter := range kfApi.Application().Spec.App.Parameters {
-			parameterSetErr := kfApi.ParamSet(parameter.Component, parameter.Name, parameter.Value)
-			if parameterSetErr != nil {
-				log.Errorf("couldn't set %v for component %v. Error: %v",
-					parameter.Name, parameter.Component, parameterSetErr)
-				return
-			}
 		}
 	},
 }

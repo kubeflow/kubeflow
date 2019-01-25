@@ -2,22 +2,19 @@
 
 ## Overview
 
-The new `kfctl` client provides the same CLI as `kfctl.sh` but it is implemented in golang.
-The move to golang is based on:
-
-- The UI (`gcp-click-to-deploy`) and `kfctl` should share the same `ksonnet` code when creating a `kubeflow` application.
-- This common code will serve as a base for later efforts like migrating to `ksonnet` modules.
-- New `kfctl` subcommands should be done in `golang` rather than `bash` so they can also be easily called by the UI as well.
+The new `kfctl` client replaces `kfctl.sh` and is implemented in golang.
 
 ## Requirements
 
- - Create a common API for the UI and `kfctl` (`KfApi`)
+ - Create a common API for the UI (gcp-click-to-deploy) and `kfctl` (`KfApp`)
 
- - Do not include `GCP/IAM` related types or functions in `KfApi`
+ - All different implementations of the KfApp Interface
+   - ksApp for kfctl
+   - gcpApp for gcp-click-to-deploy (subsequent issue/PR)
 
- - Do not change existing `REST` entrypoints or the `KsService` interface in `ksServer.go`
+ - Do not change existing `REST` entrypoints or the `KsService` interface in `ksServer.go` at this time
 
- - Package `KfApi` interface and related types for ease of use by `kfctl`
+ - Package `KfApp` interface and related types for ease of use by kfctl and gcp-click-to-deploy
 
  - Isolate all `ksonnet` operations in kfctl and gcp-click-to-deploy to call within the `pkg/client/kfapi` package
 
@@ -42,61 +39,45 @@ bootstrap/pkg/client/kfapi/typed/apps
 bootstrap/pkg/client/kfapi/typed/apps/v1alpha1
 ```
 
-### KfApi Interface (github/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1/kfapi.go)
+### KfApp Interface (github/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1/kfapi.go)
 
-The `KfApi` golang Interface used by both `gcp-click-to-deploy` and `kfctl` is shown below:
+The `KfApp` golang Interface used by both `gcp-click-to-deploy` and `kfctl` is shown below:
 
 ```golang
-type KfApi interface {
-	Application() *v1alpha1.Application
-	Apply(components []string, cfg clientcmdapi.Config) error
-	ComponentAdd(ksComponent v1alpha1.KsComponent, args []string) error
-	Components() (map[string]*v1alpha1.KsComponent, error)
-	EnvSet(env string, host string) error
-	Init(envName string, k8sSpecFlag string, host string, namespace string) error
-	Libraries() (map[string]*v1alpha1.KsLibrary, error)
-	ParamSet(component string, name string, value string) error
-	PkgInstall(pkg v1alpha1.KsPackage) error
-	PrototypeUse(m map[string]interface{}) error
-	Registries() (map[string]*v1alpha1.Registry, error)
-	RegistryAdd(registry *v1alpha1.RegistryConfig) error
-	RegistryConfigs() map[string]*v1alpha1.RegistryConfig
-	Root() string
-	Show(components []string) error
+type KfApp interface {
+	Apply() error
+	Delete() error
+	Generate() error
+	Init(envName string, k8sSpecFlag string, namespace string) error
 }
 ```
 
 ## Usage
 
-The initial version of `kfctl` provides equivalent functionality as `kfctl.sh` plus several additional subcommands. 
+`kfctl` has the following usage
 
-- `init <name>`                    Initialize a kubeflow application.
-- `generate`                       Generate the k8 manifests of the kubeflow application.
-- `add <registry|pkg|component>`   Add a registry, package or component to the existing kubeflow app.*
-- `set <component> <name> <value>` Set a parameter on an existing component.*
-- `apply`                          Submit the k8 manifests to the k8 api-server
-- `delete`                         Delete the kubeflow application
+- `init <[path/]name> --platform=<gcp|microk8s|minikube` Initialize a kubeflow application.
+- `generate [--all|--component=<component> ...`          Generate one or more components or all components.
+- `apply`                                                Deploy generated components to the api-server.
+- `delete`                                               Delete the kubeflow application
 
-* new
-
-Typical usage of `kfctl.sh` is:
+Typical use-case
 
 ```sh
-kfctl.sh init myapp --platform generatic
+kfctl init <[path/]name> --platform none
 cd myapp
-kfctl.sh generate all
-kfctl.sh apply all
+kfctl generate --all
+kfctl apply 
 ```
 
-## Config files (app.yaml)
+## Config file (app.yaml)
 
-The configuration file that `kfctl.sh` used to create was `env.sh` and persisted
-a set of environment variables. Because `kfctl` will live in `/usr/local/bin`
-and not necessarily expect the kubeflow repo to be on disk, it will 
-create an `app.yaml` file in same directory as where `env.sh` used
-to be created. The env.sh file will no longer exist.  The app.yaml file 
-will be reified into to the golang type Application shown below.
-An example of the app.yaml is under kubeflow/bootstrap/cmd/kfctl/config/samples.
+`kfctl` will be install in `/usr/local/bin`
+and not necessarily expect the kubeflow repo to be on disk. 
+It will create an `app.yaml` file in current directory if <name> is 
+not a path or in the parent directory if <name> is a path.
+The app.yaml file will include fields that are used either for 
+kfctl or gcp-click-to-deploy.
 
 ```golang
 type Application struct {
@@ -152,104 +133,36 @@ metadata:
   name: {{.ObjectMeta.Name}}
   namespace: {{.ObjectMeta.Namespace}}
 spec:
-  app:
-    registries:
-{{range $registry := .Spec.App.Registries }}
-      - name: {{$registry.Name}}
-        repo: {{$registry.Repo}}
-        version: {{$registry.Version}}
-        path: {{$registry.Path}}
-        RegUri: {{$registry.RegUri}}
-{{end}}
-    packages:
-{{range $package := .Spec.App.Packages }}
-      - name: {{$package.Name}}
-        registry: {{$package.Registry}}
-{{end}}
-    components:
-{{range $component := .Spec.App.Components }}
-      - name: {{$component.Name}}
-        prototype: {{$component.Prototype}}
-{{end}}
-    parameters:
-{{range $parameter := .Spec.App.Parameters }}
-      - component: {{$parameter.Component}}
-        name: {{$parameter.Name}}
-        value: {{$parameter.Value}}
+  repo: {{.Repo}}
+  components: 
+{{range $component := .Spec.Components }}
+    - name: {{$component.Name}}
+      prototype: {{$component.Prototype}}
 {{end}}
 ```
 
 ## Subcommands
 
 #### root subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/root.go)
-- Set the kfctlConfig Viper instance's 	config name and type to 'app' and 'yaml' resp.
+- Set the kfctlConfig Viper instance's config name and type to 'app' and 'yaml' resp.
 
 #### init subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/init.go)
 - Upon successful creation of the app directory, creates `app.yaml` within the app directory
 
 #### generate subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/generate.go)
 - Using app.yaml
-  - Calls `NewKfApiWithConfig(appName string, appsDir string, init *viper.Viper, env *viper.Viper) (KfApi, error)`
-  - Calls `KfApi.Init(envName string, k8sSpecFlag string, serverURI string, namespace string) error`
-  - Calls `KfApi.RegistryAdd(reg *RegistryConfig) error`
-  - Calls `KfApi.PkgInstall(pkg KsPackage) error`
-  - Calls `KfApi.ComponentAdd(cmp KsComponent) error`
+  - generates a ksonnet application with components specified in app.yaml
 
 #### apply subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/apply.go)
 - Creates a `namespace`
-- Calls `KfApi.EnvSet(name string, host string)`
-- Calls `KfApi.ParamSet("application", "name", ${DEPLOYMENT_NAME})`
-- Calls `KfApi.ParamSet("application", "extendedInfo", ${KUBEFLOW_EXTENDEDINFO})`
-- Calls KfApi.Show(...)
+- Apply's the ksonnet application by deploying it to the api-server
 
 #### delete subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/delete.go)
   TBD
 
 ---
 
-## gcp-click-to-deploy
+## gcp-click-to-deploy (no changes)
 
+Ksonnet types have been moved to `github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1`
 
-### UI REST Entry Points (no changes)
-
-Current golang functions to build a `ksonnet` application are in `ksServer.go` and are called
-by the UI. These functions are invoked from `REST` entrypoints bound in [ksServer.go](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/cmd/bootstrap/app/ksServer.go#L1291) and are shown below:
-
-```golang
-http.Handle("/", optionsHandler(healthzHandler))
-http.Handle("/kfctl/apps/apply", optionsHandler(applyAppHandler))
-http.Handle("/kfctl/apps/create", optionsHandler(createAppHandler))
-http.Handle("/kfctl/iam/apply", optionsHandler(applyIamHandler))
-http.Handle("/kfctl/initProject", optionsHandler(initProjectHandler))
-http.Handle("/kfctl/e2eDeploy", optionsHandler(deployHandler))
-```
-
-These functions mostly call a [KsService Interface](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/cmd/bootstrap/app/ksServer.go#L60) to build a `ksonnet` application.
-The `KsService` Interface as is cannot be leveraged by `kfctl` since it includes specific `GCP/IAM` parameters.
-The interface is implemented by [ksServer](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/cmd/bootstrap/app/ksServer.go#L80) which also binds additional methods like [appGenerate](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/cmd/bootstrap/app/ksServer.go#L566) 
-that are relevant to `kfctl` but cannot be easily separated. It turns out the primary flow
-of interest is `createAppHandler`. This calls an [anonymous function](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/cmd/bootstrap/app/ksServer.go#L1038) that ends up making all the `ksonnet` calls required by `kfctl`.
-The other entrypoints are either not relevent to `kfctl` or implement part of what is done in this anonymous function.
-
-Methods needed from `ksServer.go` that are relevant to `KfApi`:
-- `ksServer.CreateApp`
-- `ksServer.GetApp`
-- `ksServer.appGenerate`
-- `ksServer.createComponent`
-
-Within the above methods there are direct calls to `ksonnet`:
-- `Load`
-- `RunEnvSet`
-- `RunInit`
-- `RunRegistryAdd`
-- `RunPkgInstall`
-- `RunPrototypeUse`
-- `RunParamSet`
-- `RunApply`
-
-This has been replaced with methods in `KfApi`.
-
-## Remaining work
-  - Test `kfapi` integrated calls in `gcp-click-to-deploy`
-  - `brew` packaging
-  - Command completion for `bash/zsh`

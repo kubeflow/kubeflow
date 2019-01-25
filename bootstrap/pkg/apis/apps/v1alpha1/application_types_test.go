@@ -28,7 +28,7 @@ func TestStorageApplication(t *testing.T) {
 		Name:      "foo",
 		Namespace: "default",
 	}
-	created := &Application{
+	created := &KsApp{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "foo",
 			Namespace: "default",
@@ -36,7 +36,7 @@ func TestStorageApplication(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
 	// Test Create
-	fetched := &Application{}
+	fetched := &KsApp{}
 	g.Expect(c.Create(context.TODO(), created)).NotTo(gomega.HaveOccurred())
 
 	g.Expect(c.Get(context.TODO(), key, fetched)).NotTo(gomega.HaveOccurred())

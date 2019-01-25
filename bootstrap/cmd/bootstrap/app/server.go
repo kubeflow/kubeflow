@@ -15,27 +15,32 @@
 package app
 
 import (
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
+	"errors"
+	"io/ioutil"
 	"net"
 	"os"
+	"os/user"
+	"path"
 	"regexp"
 	"strconv"
 
+	"github.com/ghodss/yaml"
 	"github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app/options"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
 
 	"github.com/kubeflow/kubeflow/bootstrap/version"
 	log "github.com/sirupsen/logrus"
 	"k8s.io/api/storage/v1"
 	k8sVersion "k8s.io/apimachinery/pkg/version"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
 	"context"
 )
 
-const k8SpecsFlag = "version:v1.10.6"
+// RecommendedConfigPathEnvVar is a environment variable for path configuration
+const RecommendedConfigPathEnvVar = "KUBECONFIG"
 
 // DefaultStorageAnnotation is the Name of the default annotation used to indicate
 // whether a storage class is the default.
@@ -43,6 +48,35 @@ const DefaultStorageAnnotation = "storageclass.beta.kubernetes.io/is-default-cla
 
 // Assume gcloud is on the path.
 const GcloudPath = "gcloud"
+
+const RegistriesRoot = "/opt/registries"
+
+// AppConfigFile corresponds to a YAML file specifying information
+// about the app to create.
+type AppConfigFile struct {
+	// App describes a ksonnet application.
+	App kftypes.AppConfig
+}
+
+type LibrarySpec struct {
+	Version string
+	Path    string
+}
+
+// Load yaml config
+func LoadConfig(path string, o interface{}) error {
+	if path == "" {
+		return errors.New("empty path")
+	}
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	if err = yaml.Unmarshal(data, o); err != nil {
+		return err
+	}
+	return nil
+}
 
 // ModifyGcloudCommand modifies the cmd-path in the kubeconfig file.
 //
@@ -65,12 +99,30 @@ func modifyGcloudCommand(config *clientcmdapi.Config) error {
 	return nil
 }
 
+// getKubeConfigFile tries to find a kubeconfig file.
+func getKubeConfigFile() string {
+	configFile := ""
+
+	usr, err := user.Current()
+	if err != nil {
+		log.Warningf("Could not get current user; error %v", err)
+	} else {
+		configFile = path.Join(usr.HomeDir, ".kube", "config")
+	}
+
+	if len(os.Getenv(RecommendedConfigPathEnvVar)) > 0 {
+		configFile = os.Getenv(RecommendedConfigPathEnvVar)
+	}
+
+	return configFile
+}
+
 // gGetClusterConfig obtain the config from the Kube configuration used by kubeconfig.
 func getClusterConfig(inCluster bool) (*rest.Config, error) {
 	if inCluster {
 		return rest.InClusterConfig()
 	}
-	configFile := utils.GetKubeConfigFile()
+	configFile := getKubeConfigFile()
 
 	if len(configFile) > 0 {
 
@@ -154,8 +206,8 @@ func processFile(opt *options.ServerOption, ksServer *ksServer) error {
 
 	appName := "kubeflow"
 
-	var appConfigFile kftypes.ApplicationSpec
-	if err := utils.LoadConfigFile(opt.Config, &appConfigFile); err != nil {
+	var appConfigFile AppConfigFile
+	if err := LoadConfig(opt.Config, &appConfigFile); err != nil {
 		return err
 	}
 
@@ -200,14 +252,14 @@ func Run(opt *options.ServerOption) error {
 
 	if opt.RegistriesConfigFile != "" {
 		log.Infof("Loading registry info in file %v", opt.RegistriesConfigFile)
-		if err := utils.LoadConfigFile(opt.RegistriesConfigFile, &regConfig); err != nil {
+		if err := LoadConfig(opt.RegistriesConfigFile, &regConfig); err != nil {
 			return err
 		}
 	} else {
 		log.Info("--registries-config-file not provided; not loading any registries")
 	}
 
-	ksServer, err := NewServer(opt.AppName, opt.AppDir, regConfig.Registries, opt.GkeVersionOverride)
+	ksServer, err := NewServer(opt.AppDir, regConfig.Registries, opt.GkeVersionOverride)
 
 	if err != nil {
 		return err

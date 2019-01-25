@@ -49,13 +49,13 @@ fmt:
 vet:
 	go vet ./pkg/... ./cmd/...
 
-build-local-bootstrap: client-gen fmt vet
+build-bootstrap: client-gen fmt vet
 	go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 
-build-local-kfctl: client-gen fmt vet
+build-kfctl: client-gen fmt vet
 	go build -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
 
-build-local: build-local-bootstrap build-local-kfctl
+build-local: build-bootstrap build-kfctl
 
 # To edit which registries to add to bootstrapper, edit config (eg. config/default.yaml)
 build: build-local
@@ -79,30 +79,11 @@ push-latest: push
 	gcloud container images add-tag --quiet $(IMG):$(TAG) $(IMG):latest --verbosity=info
 	echo created $(IMG):latest
 
-install: build-local-kfctl
+install: build-kfctl
 	@echo copying bin/kfctl to /usr/local/bin
 	@cp bin/kfctl /usr/local/bin
-
-run-local:
-	KUBERNETES_SERVICE_HOST=https://35.233.240.120 KUBERNETES_SERVICE_PORT=80 \
-		bin/bootstrapper \
-		--app-dir=${HOME}/apps \
-		--registries-config-file=${PWD}/local_registries.yaml \
-		--config=${PWD}/config/default.yaml \
-		--in-cluster=false
 
 run-local-docker:
 	docker run -d -it --name bootstrapper \
 	  --mount type=bind,source=${HOME}/kf_app,target=/home/kubeflow \
 	  --entrypoint /bin/bash $(IMG):$(TAG)
-
-debug: push cleanup
-	@echo debugging $(IMG):$(TAG) using port $(PORT)
-	@./debug.sh $(IMG) $(TAG) $(PORT)
-
-debug-latest: debug
-	@echo debugging $(IMG):latest using port $(PORT)
-	@./debug.sh $(IMG) latest $(PORT)
-
-cleanup:
-	@./cleanup.sh kubeflow-admin
