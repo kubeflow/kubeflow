@@ -50,6 +50,8 @@
 
       },
       spec: {
+        // replicas here should always be 1:
+        // we store auth cookies in memory and we don't support share them among pods.
         replicas: 1,
         strategy: {
           type: "RollingUpdate",
