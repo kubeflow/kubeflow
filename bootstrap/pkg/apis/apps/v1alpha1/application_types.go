@@ -171,5 +171,5 @@ type KfApp interface {
 	Apply() error
 	Delete() error
 	Generate() error
-	Init(appName string) error
+	Init() error
 }

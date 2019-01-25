@@ -53,9 +53,12 @@ func NewKfAppWithNameAndConfig(appName string, cfgFile *viper.Viper) (kftypes.Kf
 			if expandedErr != nil {
 				return nil, fmt.Errorf("could not expand home directory %v", homeErr)
 			}
-			appDir = expanded
+			appName = path.Base(appName)
+			appDir = path.Join(expanded, appName)
+		} else {
+			appName = path.Base(appName)
+			appDir = path.Join(appDir, appName)
 		}
-		appName = path.Base(appName)
 	}
 	fs := afero.NewOsFs()
 	platform := cfgFile.GetString("Spec.Platform")

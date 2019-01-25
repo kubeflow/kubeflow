@@ -548,31 +548,25 @@ func (ksApp *KsApp) Generate() error {
 	return nil
 }
 
-func (ksApp *KsApp) Init(appName string) error {
+func (ksApp *KsApp) Init() error {
 	//TODO must be checked eg `kfctl init kf_app` results in
 	// metadata.name: Invalid value:
 	// "kf_app-controller": a DNS-1123 subdomain must consist of lower case alphanumeric characters, '-' or '.',
 	// and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is
 	// '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')
-	dir, err := os.Getwd()
+	err := os.Mkdir(ksApp.AppDir, os.ModePerm)
 	if err != nil {
-		log.Fatal(err)
-	}
-	AppDir := path.Join(dir, appName)
-	log.Infof("AppDir %v", AppDir)
-	err = os.Mkdir(AppDir, os.ModePerm)
-	if err != nil {
-		return fmt.Errorf("cannot create directory %v", AppDir)
+		return fmt.Errorf("cannot create directory %v", ksApp.AppDir)
 	}
 	fs := afero.NewOsFs()
-	CfgFilePath := filepath.Join(AppDir, kftypes.KfConfigFile)
-	_, AppDirErr := fs.Stat(CfgFilePath)
-	if AppDirErr == nil {
-		return fmt.Errorf("config file %v already exists in %v", kftypes.KfConfigFile, AppDir)
+	CfgFilePath := filepath.Join(ksApp.AppDir, kftypes.KfConfigFile)
+	_, appDirErr := fs.Stat(CfgFilePath)
+	if appDirErr == nil {
+		return fmt.Errorf("config file %v already exists in %v", kftypes.KfConfigFile, ksApp.AppDir)
 	}
-	createConfigErr := writeConfigFile(ksApp.CfgFile, appName, AppDir)
+	createConfigErr := writeConfigFile(ksApp.CfgFile, ksApp.AppName, ksApp.AppDir)
 	if createConfigErr != nil {
-		return fmt.Errorf("cannot create config file app.yaml in %v", AppDir)
+		return fmt.Errorf("cannot create config file app.yaml in %v", ksApp.AppDir)
 	}
 	return nil
 }

@@ -48,17 +48,17 @@ import (
 
 // GcpApp implements the KfApp Interface
 type GcpApp struct {
-	appName string
+	AppName string
 	// appDir is the directory where apps should be stored.
-	appDir string
+	AppDir string
 	// ksonnet root name
-	ksName string
+	KsName string
 	// ksonnet env name
-	ksEnvName string
-	cfgFile   *viper.Viper
-	fs        afero.Fs
-	kApp      app.App
-	gcpApp    kftypes.KsApp
+	KsEnvName string
+	CfgFile   *viper.Viper
+	Fs        afero.Fs
+	KApp      app.App
+	GcpApp    kftypes.KsApp
 }
 
 var GcpAppTemplate = string(`
@@ -199,21 +199,21 @@ func capture() func() (string, error) {
 	}
 }
 
-func NewKfAppWithNameAndConfig(appName string, cfgFile *viper.Viper) (kftypes.KfApp, error) {
+func NewKfAppWithNameAndConfig(appName string, CfgFile *viper.Viper) (kftypes.KfApp, error) {
 	appDir, err := os.Getwd()
 	if err != nil {
 		return nil, fmt.Errorf("could not get current directory %v", err)
 	}
 	fs := afero.NewOsFs()
 	api := &GcpApp{
-		appName:   appName,
-		appDir:    appDir,
-		ksName:    kftypes.KsName,
-		ksEnvName: kftypes.KsEnvName,
-		fs:        fs,
-		cfgFile:   cfgFile,
-		kApp:      nil,
-		gcpApp: kftypes.KsApp{
+		AppName:   appName,
+		AppDir:    appDir,
+		KsName:    kftypes.KsName,
+		KsEnvName: kftypes.KsEnvName,
+		Fs:        fs,
+		CfgFile:   CfgFile,
+		KApp:      nil,
+		GcpApp: kftypes.KsApp{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "KsApp",
 				APIVersion: "apps.kubeflow.org/v1alpha1",
@@ -246,7 +246,7 @@ func NewKfAppWithConfig(cfg *viper.Viper) (kftypes.KfApp, error) {
 	return NewKfApp(appName, appDir, cfg)
 }
 
-func NewKfApp(appName string, appDir string, cfgFile *viper.Viper) (kftypes.KfApp, error) {
+func NewKfApp(appName string, appDir string, CfgFile *viper.Viper) (kftypes.KfApp, error) {
 	fs := afero.NewOsFs()
 	ksDir := path.Join(appDir, kftypes.KsName)
 	kApp, kAppErr := app.Load(fs, nil, ksDir)
@@ -254,14 +254,14 @@ func NewKfApp(appName string, appDir string, cfgFile *viper.Viper) (kftypes.KfAp
 		return nil, fmt.Errorf("there was a problem loading app %v. Error: %v", appName, kAppErr)
 	}
 	api := &GcpApp{
-		appName:   appName,
-		appDir:    appDir,
-		ksName:    kftypes.KsName,
-		ksEnvName: kftypes.KsEnvName,
-		fs:        fs,
-		cfgFile:   cfgFile,
-		kApp:      kApp,
-		gcpApp: kftypes.KsApp{
+		AppName:   appName,
+		AppDir:    appDir,
+		KsName:    kftypes.KsName,
+		KsEnvName: kftypes.KsEnvName,
+		Fs:        fs,
+		CfgFile:   CfgFile,
+		KApp:      kApp,
+		GcpApp: kftypes.KsApp{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "KsApp",
 				APIVersion: "apps.kubeflow.org/v1alpha1",
@@ -272,12 +272,12 @@ func NewKfApp(appName string, appDir string, cfgFile *viper.Viper) (kftypes.KfAp
 			Spec: kftypes.KsAppSpec{},
 		},
 	}
-	if api.cfgFile != nil {
-		applicationSpecErr := api.cfgFile.Sub("spec").Unmarshal(&api.gcpApp.Spec)
+	if api.CfgFile != nil {
+		applicationSpecErr := api.CfgFile.Sub("spec").Unmarshal(&api.GcpApp.Spec)
 		if applicationSpecErr != nil {
 			return nil, fmt.Errorf("couldn't unmarshall yaml. Error: %v", applicationSpecErr)
 		}
-		for _, registry := range api.gcpApp.Spec.App.Registries {
+		for _, registry := range api.GcpApp.Spec.App.Registries {
 			if registry.Name != "" {
 				if registry.Name == "kubeflow" {
 					kubeflowRepo := os.Getenv("KUBEFLOW_REPO")
@@ -294,13 +294,13 @@ func NewKfApp(appName string, appDir string, cfgFile *viper.Viper) (kftypes.KfAp
 		componentsEnvVar := os.Getenv("KUBEFLOW_COMPONENTS")
 		if componentsEnvVar != "" {
 			components := strings.Split(componentsEnvVar, ",")
-			api.gcpApp.Spec.App.Components = make([]kftypes.KsComponent, len(components))
+			api.GcpApp.Spec.App.Components = make([]kftypes.KsComponent, len(components))
 			for _, comp := range components {
 				ksComponent := kftypes.KsComponent{
 					Name:      comp,
 					Prototype: comp,
 				}
-				api.gcpApp.Spec.App.Components = append(api.gcpApp.Spec.App.Components, ksComponent)
+				api.GcpApp.Spec.App.Components = append(api.GcpApp.Spec.App.Components, ksComponent)
 			}
 		}
 	}
@@ -505,16 +505,12 @@ func writeConfigFile(cfg *viper.Viper, appName string, appDir string) error {
 	if errDefaultConfig != nil {
 		return errDefaultConfig
 	}
-	cfgFile := filepath.Join(appDir, kftypes.KfConfigFile)
-	cfgFileErr := cfg.WriteConfigAs(cfgFile)
-	if cfgFileErr != nil {
-		return cfgFileErr
+	CfgFile := filepath.Join(appDir, kftypes.KfConfigFile)
+	CfgFileErr := cfg.WriteConfigAs(CfgFile)
+	if CfgFileErr != nil {
+		return CfgFileErr
 	}
 	return nil
-}
-
-func (gcpApp *GcpApp) KsApp() *kftypes.KsApp {
-	return &gcpApp.gcpApp
 }
 
 func (gcpApp *GcpApp) Apply() error {
@@ -531,7 +527,7 @@ func (gcpApp *GcpApp) Apply() error {
 		return fmt.Errorf("couldn't create ksonnet env %v Error: %v", kftypes.KsEnvName, envSetErr)
 	}
 	//ks param set application name ${DEPLOYMENT_NAME}
-	name := gcpApp.KsApp().Name
+	name := gcpApp.GcpApp.Name
 	paramSetErr := gcpApp.ParamSet("application", "name", name)
 	if paramSetErr != nil {
 		return fmt.Errorf("couldn't set application component's name to %v Error: %v", name, paramSetErr)
@@ -567,7 +563,7 @@ func (gcpApp *GcpApp) Apply() error {
 
 func (gcpApp *GcpApp) ApplyComponent(components []string, cfg *clientcmdapi.Config) error {
 	applyOptions := map[string]interface{}{
-		actions.OptionApp: gcpApp.kApp,
+		actions.OptionApp: gcpApp.KApp,
 		actions.OptionClientConfig: &client.Config{
 			Overrides: &clientcmd.ConfigOverrides{},
 			Config:    clientcmd.NewDefaultClientConfig(*cfg, &clientcmd.ConfigOverrides{}),
@@ -617,7 +613,7 @@ func (gcpApp *GcpApp) ComponentAdd(component kftypes.KsComponent, args []string)
 	if args != nil && len(args) > 0 {
 		componentArgs = append(componentArgs, args[0:]...)
 	}
-	if exists, _ := afero.Exists(gcpApp.fs, componentPath); !exists {
+	if exists, _ := afero.Exists(gcpApp.Fs, componentPath); !exists {
 		log.Infof("Creating Component: %v ...", component.Name)
 		err := actions.RunPrototypeUse(map[string]interface{}{
 			actions.OptionAppRoot:   gcpApp.KsRoot(),
@@ -635,10 +631,10 @@ func (gcpApp *GcpApp) ComponentAdd(component kftypes.KsComponent, args []string)
 func (gcpApp *GcpApp) Components() (map[string]*kftypes.KsComponent, error) {
 	moduleName := "/"
 
-	topModule := component.NewModule(gcpApp.kApp, moduleName)
+	topModule := component.NewModule(gcpApp.KApp, moduleName)
 	components, err := topModule.Components()
 	if err != nil {
-		return nil, fmt.Errorf("there was a problem getting the Components %v. Error: %v", gcpApp.appName, err)
+		return nil, fmt.Errorf("there was a problem getting the Components %v. Error: %v", gcpApp.AppName, err)
 	}
 	comps := make(map[string]*kftypes.KsComponent)
 	for _, comp := range components {
@@ -661,33 +657,33 @@ func (gcpApp *GcpApp) Generate() error {
 		return fmt.Errorf("couldn't get server version: %v", err)
 	}
 	namespace := os.Getenv("K8S_NAMESPACE")
-	writeConfigErr := writeConfigFile(gcpApp.cfgFile, gcpApp.appName, gcpApp.appDir)
+	writeConfigErr := writeConfigFile(gcpApp.CfgFile, gcpApp.AppName, gcpApp.AppDir)
 	if writeConfigErr != nil {
-		return fmt.Errorf("couldn't write config file app.yaml in %v Error %v", gcpApp.appDir, writeConfigErr)
+		return fmt.Errorf("couldn't write config file app.yaml in %v Error %v", gcpApp.AppDir, writeConfigErr)
 	}
 	initErr := gcpApp.InitKs("default", k8sSpec, host, namespace)
 	if initErr != nil {
 		return fmt.Errorf("couldn't initialize KfApi: %v", initErr)
 	}
-	for _, registry := range gcpApp.KsApp().Spec.App.Registries {
+	for _, registry := range gcpApp.GcpApp.Spec.App.Registries {
 		registryAddErr := gcpApp.RegistryAdd(registry)
 		if registryAddErr != nil {
 			return fmt.Errorf("couldn't add registry %v. Error: %v", registry.Name, registryAddErr)
 		}
 	}
-	for _, pkg := range gcpApp.KsApp().Spec.App.Packages {
+	for _, pkg := range gcpApp.GcpApp.Spec.App.Packages {
 		packageAddErr := gcpApp.PkgInstall(pkg)
 		if packageAddErr != nil {
 			return fmt.Errorf("couldn't add package %v. Error: %v", pkg.Name, packageAddErr)
 		}
 	}
-	for _, comp := range gcpApp.KsApp().Spec.App.Components {
+	for _, comp := range gcpApp.GcpApp.Spec.App.Components {
 		componentAddErr := gcpApp.ComponentAdd(comp, []string{})
 		if componentAddErr != nil {
 			return fmt.Errorf("couldn't add comp %v. Error: %v", comp.Name, componentAddErr)
 		}
 	}
-	for _, parameter := range gcpApp.KsApp().Spec.App.Parameters {
+	for _, parameter := range gcpApp.GcpApp.Spec.App.Parameters {
 		parameterSetErr := gcpApp.ParamSet(parameter.Component, parameter.Name, parameter.Value)
 		if parameterSetErr != nil {
 			return fmt.Errorf("couldn't set %v for comp %v. Error: %v",
@@ -697,7 +693,7 @@ func (gcpApp *GcpApp) Generate() error {
 	return nil
 }
 
-func (gcpApp *GcpApp) Init(appName string) error {
+func (gcpApp *GcpApp) Init() error {
 	//TODO must be checked eg `kfctl init kf_app` results in
 	// metadata.name: Invalid value:
 	// "kf_app-controller": a DNS-1123 subdomain must consist of lower case alphanumeric characters, '-' or '.',
@@ -707,19 +703,19 @@ func (gcpApp *GcpApp) Init(appName string) error {
 	if err != nil {
 		log.Fatal(err)
 	}
-	appDir := path.Join(dir, appName)
+	appDir := path.Join(dir, gcpApp.AppName)
 	log.Infof("appDir %v", appDir)
 	err = os.Mkdir(appDir, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("cannot create directory %v", appDir)
 	}
 	fs := afero.NewOsFs()
-	cfgFilePath := filepath.Join(appDir, kftypes.KfConfigFile)
-	_, appDirErr := fs.Stat(cfgFilePath)
+	CfgFilePath := filepath.Join(appDir, kftypes.KfConfigFile)
+	_, appDirErr := fs.Stat(CfgFilePath)
 	if appDirErr == nil {
 		return fmt.Errorf("config file %v already exists in %v", kftypes.KfConfigFile, appDir)
 	}
-	createConfigErr := writeConfigFile(gcpApp.cfgFile, appName, appDir)
+	createConfigErr := writeConfigFile(gcpApp.CfgFile, gcpApp.AppName, appDir)
 	if createConfigErr != nil {
 		return fmt.Errorf("cannot create config file app.yaml in %v", appDir)
 	}
@@ -727,12 +723,12 @@ func (gcpApp *GcpApp) Init(appName string) error {
 }
 
 func (gcpApp *GcpApp) InitKs(envName string, k8sSpecFlag string, host string, namespace string) error {
-	newRoot := path.Join(gcpApp.appDir, gcpApp.ksName)
-	gcpApp.ksEnvName = envName
+	newRoot := path.Join(gcpApp.AppDir, gcpApp.KsName)
+	gcpApp.KsEnvName = envName
 	options := map[string]interface{}{
-		actions.OptionFs:                    gcpApp.fs,
-		actions.OptionName:                  gcpApp.ksName,
-		actions.OptionEnvName:               gcpApp.ksEnvName,
+		actions.OptionFs:                    gcpApp.Fs,
+		actions.OptionName:                  gcpApp.KsName,
+		actions.OptionEnvName:               gcpApp.KsEnvName,
 		actions.OptionNewRoot:               newRoot,
 		actions.OptionServer:                host,
 		actions.OptionSpecFlag:              k8sSpecFlag,
@@ -743,16 +739,16 @@ func (gcpApp *GcpApp) InitKs(envName string, k8sSpecFlag string, host string, na
 	if err != nil {
 		return fmt.Errorf("there was a problem initializing the app: %v", err)
 	}
-	log.Infof("Successfully initialized the app %v.", gcpApp.appName)
+	log.Infof("Successfully initialized the app %v.", gcpApp.AppName)
 
 	return nil
 }
 
 func (gcpApp *GcpApp) EnvSet(envName string, host string) error {
-	gcpApp.ksEnvName = envName
+	gcpApp.KsEnvName = envName
 	err := actions.RunEnvSet(map[string]interface{}{
 		actions.OptionAppRoot: gcpApp.KsRoot(),
-		actions.OptionEnvName: gcpApp.ksEnvName,
+		actions.OptionEnvName: gcpApp.KsEnvName,
 		actions.OptionServer:  host,
 	})
 	if err != nil {
@@ -762,14 +758,14 @@ func (gcpApp *GcpApp) EnvSet(envName string, host string) error {
 }
 
 func (gcpApp *GcpApp) KsRoot() string {
-	root := path.Join(gcpApp.appDir, gcpApp.ksName)
+	root := path.Join(gcpApp.AppDir, gcpApp.KsName)
 	return root
 }
 
 func (gcpApp *GcpApp) Libraries() (map[string]*kftypes.KsLibrary, error) {
-	libs, err := gcpApp.kApp.Libraries()
+	libs, err := gcpApp.KApp.Libraries()
 	if err != nil {
-		return nil, fmt.Errorf("there was a problem getting the libraries %v. Error: %v", gcpApp.appName, err)
+		return nil, fmt.Errorf("there was a problem getting the libraries %v. Error: %v", gcpApp.AppName, err)
 	}
 
 	libraries := make(map[string]*kftypes.KsLibrary)
@@ -784,9 +780,9 @@ func (gcpApp *GcpApp) Libraries() (map[string]*kftypes.KsLibrary, error) {
 }
 
 func (gcpApp *GcpApp) Registries() (map[string]*kftypes.Registry, error) {
-	regs, err := gcpApp.kApp.Registries()
+	regs, err := gcpApp.KApp.Registries()
 	if err != nil {
-		return nil, fmt.Errorf("There was a problem getting the Registries %v. Error: %v", gcpApp.appName, err)
+		return nil, fmt.Errorf("There was a problem getting the Registries %v. Error: %v", gcpApp.AppName, err)
 	}
 	registries := make(map[string]*kftypes.Registry)
 	for k, v := range regs {
@@ -801,7 +797,7 @@ func (gcpApp *GcpApp) Registries() (map[string]*kftypes.Registry, error) {
 }
 
 func (gcpApp *GcpApp) Root() string {
-	return gcpApp.appDir
+	return gcpApp.AppDir
 }
 
 func (gcpApp *GcpApp) ParamSet(component string, name string, value string) error {
@@ -836,7 +832,7 @@ func (gcpApp *GcpApp) PrototypeUse(m map[string]interface{}) error {
 }
 
 func (gcpApp *GcpApp) RegistryAdd(registry *kftypes.RegistryConfig) error {
-	log.Infof("App %v add registry %v URI %v", gcpApp.appName, registry.Name, registry.RegUri)
+	log.Infof("App %v add registry %v URI %v", gcpApp.AppName, registry.Name, registry.RegUri)
 	root := gcpApp.KsRoot()
 	options := map[string]interface{}{
 		actions.OptionAppRoot:  root,
@@ -856,9 +852,9 @@ func (gcpApp *GcpApp) RegistryAdd(registry *kftypes.RegistryConfig) error {
 func (gcpApp *GcpApp) Show(components []string) error {
 	done := capture()
 	err := actions.RunShow(map[string]interface{}{
-		actions.OptionApp:            gcpApp.kApp,
+		actions.OptionApp:            gcpApp.KApp,
 		actions.OptionComponentNames: components,
-		actions.OptionEnvName:        gcpApp.ksEnvName,
+		actions.OptionEnvName:        gcpApp.KsEnvName,
 		actions.OptionFormat:         "yaml",
 	})
 	if err != nil {
@@ -868,7 +864,7 @@ func (gcpApp *GcpApp) Show(components []string) error {
 	if capturedOutputErr != nil {
 		return fmt.Errorf("there was a problem capturing the output: %v", capturedOutput)
 	}
-	outputFileName := filepath.Join(gcpApp.KsRoot(), gcpApp.ksEnvName+".yaml")
+	outputFileName := filepath.Join(gcpApp.KsRoot(), gcpApp.KsEnvName+".yaml")
 	outputFile, outputFileErr := os.Create(outputFileName)
 	if outputFileErr != nil {
 		return fmt.Errorf("there was a problem creating output file %v: %v", outputFileName, outputFileErr)
