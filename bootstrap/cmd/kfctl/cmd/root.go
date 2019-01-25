@@ -17,20 +17,135 @@ package cmd
 import (
 	"fmt"
 	"github.com/ksonnet/ksonnet/pkg/app"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksapp"
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"os"
-	"strings"
-
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksapp"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"math/rand"
+	"os"
 	"path"
 	"path/filepath"
 )
+
+var kfapp = ksapp.KsApp{
+	AppName:   "",
+	AppDir:    "",
+	KsName:    kftypes.KsName,
+	KsEnvName: kftypes.KsEnvName,
+	Fs:        nil,
+	CfgFile:   nil,
+	KApp:      nil,
+	KsApp: kftypes.KsApp{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "KsApp",
+			APIVersion: "apps.kubeflow.org/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "",
+		},
+		Spec: kftypes.KsAppSpec{
+			Platform:   "none",
+			Components: []string{"all"},
+			App: kftypes.AppConfig{
+				Registries: []*kftypes.RegistryConfig{
+					{
+						Name:    "kubeflow",
+						Repo:    "https://github.com/kubeflow/kubeflow.git",
+						Version: "0.4",
+						Path:    "kubeflow",
+					},
+				},
+				Packages: []kftypes.KsPackage{
+					{
+						Name:     "argo",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "pipeline",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "common",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "examples",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "jupyter",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "katib",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "mpi-job",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "pytorch-job",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "seldon",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "tf-serving",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "openvino",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "tensorboard",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "tf-training",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "metacontroller",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "profiles",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "application",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "modeldb",
+						Registry: "kubeflow",
+					},
+				},
+				Components: []kftypes.KsComponent{},
+				Parameters: []kftypes.KsParameter{
+					{
+						Component: "spartakus",
+						Name:      "usageId",
+						Value:     fmt.Sprintf("%08d", 10000000+rand.Intn(90000000)),
+					},
+					{
+						Component: "spartakus",
+						Name:      "reportUsage",
+						Value:     "true",
+					},
+				},
+			},
+		},
+	},
+}
 
 var kfctlConfig = viper.New()
 
@@ -63,28 +178,14 @@ func NewKfAppWithNameAndConfig(appName string, cfgFile *viper.Viper) (kftypes.Kf
 	fs := afero.NewOsFs()
 	platform := cfgFile.GetString("Spec.Platform")
 	if platform == "none" {
-		kfapp := &ksapp.KsApp{
-			AppName:   appName,
-			AppDir:    appDir,
-			KsName:    kftypes.KsName,
-			KsEnvName: kftypes.KsEnvName,
-			Fs:        fs,
-			CfgFile:   cfgFile,
-			KApp:      nil,
-			KsApp: kftypes.KsApp{
-				TypeMeta: metav1.TypeMeta{
-					Kind:       "KsApp",
-					APIVersion: "apps.kubeflow.org/v1alpha1",
-				},
-				ObjectMeta: metav1.ObjectMeta{
-					Name: appName,
-				},
-				Spec: kftypes.KsAppSpec{
-					Platform: platform,
-				},
-			},
-		}
-		return kfapp, nil
+		_kfapp := &kfapp
+		_kfapp.AppName = appName
+		_kfapp.AppDir = appDir
+		_kfapp.Fs = fs
+		_kfapp.CfgFile = cfgFile
+		_kfapp.KsApp.Spec.Platform = platform
+		_kfapp.KsApp.Name = appName
+		return _kfapp, nil
 	}
 	return nil, fmt.Errorf("unknown platform %v", platform)
 }
@@ -111,9 +212,9 @@ func NewKfAppWithConfig(cfg *viper.Viper) (kftypes.KfApp, error) {
 func NewKfApp(appName string, appDir string, cfgFile *viper.Viper) (kftypes.KfApp, error) {
 	fs := afero.NewOsFs()
 	ksDir := path.Join(appDir, kftypes.KsName)
-	KApp, KAppErr := app.Load(fs, nil, ksDir)
-	if KAppErr != nil {
-		return nil, fmt.Errorf("there was a problem loading app %v. Error: %v", appName, KAppErr)
+	kApp, kAppErr := app.Load(fs, nil, ksDir)
+	if kAppErr != nil {
+		return nil, fmt.Errorf("there was a problem loading app %v. Error: %v", appName, kAppErr)
 	}
 	spec := kftypes.KsAppSpec{}
 	if cfgFile != nil {
@@ -121,54 +222,17 @@ func NewKfApp(appName string, appDir string, cfgFile *viper.Viper) (kftypes.KfAp
 		if applicationSpecErr != nil {
 			return nil, fmt.Errorf("couldn't unmarshall yaml. Error: %v", applicationSpecErr)
 		}
-		for _, registry := range spec.App.Registries {
-			if registry.Name != "" {
-				if registry.Name == "kubeflow" {
-					kubeflowRepo := os.Getenv("KUBEFLOW_REPO")
-					if kubeflowRepo != "" {
-						registry.RegUri = path.Join(kubeflowRepo, "kubeflow")
-					}
-					kubeflowVersion := os.Getenv("KUBEFLOW_VERSION")
-					if kubeflowVersion != "" {
-						registry.Version = kubeflowVersion
-					}
-				}
-			}
-		}
-		componentsEnvVar := os.Getenv("KUBEFLOW_COMPONENTS")
-		if componentsEnvVar != "" {
-			components := strings.Split(componentsEnvVar, ",")
-			spec.App.Components = make([]kftypes.KsComponent, len(components))
-			for _, comp := range components {
-				ksComponent := kftypes.KsComponent{
-					Name:      comp,
-					Prototype: comp,
-				}
-				spec.App.Components = append(spec.App.Components, ksComponent)
-			}
-		}
 	}
 	if spec.Platform == "none" {
-		kfapp := &ksapp.KsApp{
-			AppName:   appName,
-			AppDir:    appDir,
-			KsName:    kftypes.KsName,
-			KsEnvName: kftypes.KsEnvName,
-			Fs:        fs,
-			CfgFile:   cfgFile,
-			KApp:      KApp,
-			KsApp: kftypes.KsApp{
-				TypeMeta: metav1.TypeMeta{
-					Kind:       "KsApp",
-					APIVersion: "apps.kubeflow.org/v1alpha1",
-				},
-				ObjectMeta: metav1.ObjectMeta{
-					Name: appName,
-				},
-				Spec: spec,
-			},
-		}
-		return kfapp, nil
+		_kfapp := &kfapp
+		_kfapp.AppName = appName
+		_kfapp.AppDir = appDir
+		_kfapp.Fs = fs
+		_kfapp.KApp = kApp
+		_kfapp.CfgFile = cfgFile
+		_kfapp.KsApp.Spec = spec
+		_kfapp.KsApp.Name = appName
+		return _kfapp, nil
 	}
 
 	return nil, fmt.Errorf("unknown platform %v", spec.Platform)

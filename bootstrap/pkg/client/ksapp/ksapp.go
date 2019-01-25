@@ -36,7 +36,6 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-	"math/rand"
 	"os"
 	"path"
 	"path/filepath"
@@ -65,10 +64,11 @@ var KsAppTemplate = string(`
 apiVersion: {{.APIVersion}}
 kind: {{.Kind}}
 metadata: 
-  name: {{.ObjectMeta.Name}}
-  namespace: {{.ObjectMeta.Namespace}}
+  name: {{.Name}}
+  namespace: {{.Namespace}}
 spec:
   platform: {{.Spec.Platform}}
+  repo: {{.Spec.Repo}}
   components: {{.Spec.Components}}
   app:
     registries:
@@ -199,145 +199,22 @@ func capture() func() (string, error) {
 	}
 }
 
-func writeConfigFile(cfg *viper.Viper, appName string, AppDir string) error {
+func (ksApp *KsApp) writeConfigFile() error {
 	tmpl, tmplErr := template.New(kftypes.KfConfigFile).Parse(KsAppTemplate)
 	if tmplErr != nil {
 		return tmplErr
 	}
-	namespace := os.Getenv("K8S_NAMESPACE")
-	if namespace == "" {
-		namespace = kftypes.DefaultNamespace
-	}
-	kubeflowRepo := os.Getenv("DEFAULT_KUBEFLOW_REPO")
-	if kubeflowRepo == "" {
-		kubeflowRepo = kftypes.DefaultKfRepo
-	}
-	re := regexp.MustCompile(`(^\$GOPATH)(.*$)`)
-	goPathVar := os.Getenv("GOPATH")
-	if goPathVar != "" {
-		kubeflowRepo = re.ReplaceAllString(kubeflowRepo, goPathVar+`$2`)
-	}
-	log.Infof("kubeflowRepo %v", kubeflowRepo)
-	ksApp := kftypes.KsApp{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "KsApp",
-			APIVersion: "apps.kubeflow.org/v1alpha1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      appName,
-			Namespace: namespace,
-		},
-		Spec: kftypes.KsAppSpec{
-			Platform:   "none",
-			Components: []string{"all"},
-			App: kftypes.AppConfig{
-				Registries: []*kftypes.RegistryConfig{
-					{
-						Name:    "kubeflow",
-						Repo:    "https://github.com/kubeflow/kubeflow.git",
-						Version: "0.4",
-						Path:    "kubeflow",
-						RegUri:  kubeflowRepo,
-					},
-				},
-				Packages: []kftypes.KsPackage{
-					{
-						Name:     "argo",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "pipeline",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "common",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "examples",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "jupyter",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "katib",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "mpi-job",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "pytorch-job",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "seldon",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "tf-serving",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "openvino",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "tensorboard",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "tf-training",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "metacontroller",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "profiles",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "application",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "modeldb",
-						Registry: "kubeflow",
-					},
-				},
-				Components: []kftypes.KsComponent{},
-				Parameters: []kftypes.KsParameter{
-					{
-						Component: "spartakus",
-						Name:      "usageId",
-						Value:     fmt.Sprintf("%08d", 10000000+rand.Intn(90000000)),
-					},
-					{
-						Component: "spartakus",
-						Name:      "reportUsage",
-						Value:     "true",
-					},
-				},
-			},
-		},
-	}
-
 	var buf bytes.Buffer
-	execErr := tmpl.Execute(&buf, ksApp)
+	execErr := tmpl.Execute(&buf, ksApp.KsApp)
 	if execErr != nil {
 		return execErr
 	}
-	errDefaultConfig := cfg.ReadConfig(bytes.NewBuffer(buf.Bytes()))
+	errDefaultConfig := ksApp.CfgFile.ReadConfig(bytes.NewBuffer(buf.Bytes()))
 	if errDefaultConfig != nil {
 		return errDefaultConfig
 	}
-	CfgFile := filepath.Join(AppDir, kftypes.KfConfigFile)
-	CfgFileErr := cfg.WriteConfigAs(CfgFile)
+	CfgFile := filepath.Join(ksApp.AppDir, kftypes.KfConfigFile)
+	CfgFileErr := ksApp.CfgFile.WriteConfigAs(CfgFile)
 	if CfgFileErr != nil {
 		return CfgFileErr
 	}
@@ -363,10 +240,11 @@ func (ksApp *KsApp) Apply() error {
 	if paramSetErr != nil {
 		return fmt.Errorf("couldn't set application component's name to %v Error: %v", name, paramSetErr)
 	}
-	namespace := os.Getenv("K8S_NAMESPACE")
+	namespace := ksApp.KsApp.Namespace
 	if namespace == "" {
 		namespace = kftypes.DefaultNamespace
 	}
+	log.Infof("namespace: %v", namespace)
 	_, nsMissingErr := cli.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
 	if nsMissingErr != nil {
 		nsSpec := &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespace}}
@@ -487,8 +365,9 @@ func (ksApp *KsApp) Generate() error {
 	if err != nil {
 		return fmt.Errorf("couldn't get server version: %v", err)
 	}
-	namespace := os.Getenv("K8S_NAMESPACE")
-	writeConfigErr := writeConfigFile(ksApp.CfgFile, ksApp.AppName, ksApp.AppDir)
+	namespace := ksApp.CfgFile.GetString("Namespace")
+	ksApp.KsApp.Namespace = namespace
+	writeConfigErr := ksApp.writeConfigFile()
 	if writeConfigErr != nil {
 		return fmt.Errorf("couldn't write config file app.yaml in %v Error %v", ksApp.AppDir, writeConfigErr)
 	}
@@ -564,7 +443,23 @@ func (ksApp *KsApp) Init() error {
 	if appDirErr == nil {
 		return fmt.Errorf("config file %v already exists in %v", kftypes.KfConfigFile, ksApp.AppDir)
 	}
-	createConfigErr := writeConfigFile(ksApp.CfgFile, ksApp.AppName, ksApp.AppDir)
+	kubeflowRepo := ksApp.CfgFile.GetString("Spec.Repo")
+	if kubeflowRepo == "" {
+		kubeflowRepo = kftypes.DefaultKfRepo
+	}
+	re := regexp.MustCompile(`(^\$GOPATH)(.*$)`)
+	goPathVar := os.Getenv("GOPATH")
+	if goPathVar != "" {
+		kubeflowRepo = re.ReplaceAllString(kubeflowRepo, goPathVar+`$2`)
+	}
+	log.Infof("kubeflowRepo %v", kubeflowRepo)
+	ksApp.KsApp.Spec.Repo = kubeflowRepo
+	for _, registry := range ksApp.KsApp.Spec.App.Registries {
+		if registry.Name == "kubeflow" {
+			registry.RegUri = ksApp.KsApp.Spec.Repo
+		}
+	}
+	createConfigErr := ksApp.writeConfigFile()
 	if createConfigErr != nil {
 		return fmt.Errorf("cannot create config file app.yaml in %v", ksApp.AppDir)
 	}

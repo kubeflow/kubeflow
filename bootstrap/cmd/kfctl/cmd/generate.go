@@ -15,6 +15,7 @@
 package cmd
 
 import (
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
@@ -42,8 +43,12 @@ var generateCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(generateCmd)
-	flag.StringSliceP("Spec.Components", "c", []string{"all"},
+
+	flag.StringSliceP("Spec.Components", "c", kftypes.DefaultComponents,
 		"provide a comma delimited list of components")
 	kfctlConfig.BindPFlag("Spec.Components", flag.Lookup("Spec.Components"))
 
+	flag.StringP("Namespace", "n", kftypes.DefaultNamespace,
+		"namespace where kubeflow will be deployed")
+	kfctlConfig.BindPFlag("Namespace", flag.Lookup("Namespace"))
 }
