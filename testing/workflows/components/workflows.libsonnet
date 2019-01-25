@@ -105,11 +105,13 @@
       command:: "",
       env_vars:: [],
       side_cars: [],
+      workingDir: null,
 
       activeDeadlineSeconds: 1800,  // Set 30 minute timeout for each template
 
       local template = self,
 
+      pythonPath: tests.kubeflowPy + ":" + tests.kubeflowTestingPy,
       // Actual template for Argo
       argoTemplate: {
         name: template.name,
@@ -118,11 +120,12 @@
           name: template.name,
           image: tests.image,
           imagePullPolicy: "Always",
+          workingDir: template.workingDir,
           env: [
             {
               // Add the source directories to the python path.
               name: "PYTHONPATH",
-              value: tests.kubeflowPy + ":" + tests.kubeflowTestingPy + ":" + tests.tfOperatorPy,
+              value: template.pythonPath,
             },
             {
               name: "GOOGLE_APPLICATION_CREDENTIALS",
@@ -205,6 +208,7 @@
         local v1beta1Suffix = "-v1b1",
         template: tests.buildTemplate {
           name: "tfjob-test",
+          pythonPath: tests.kubeflowPy + ":" + tests.kubeflowTestingPy + ":" + tests.tfOperatorPy,
           command: [
             "python",
             "-m",
@@ -275,6 +279,7 @@
             "deploy_pytorchjob",
             "--params=image=pytorch/pytorch:v0.2,num_workers=1",
           ],
+          pythonPath: tests.kubeflowPy + ":" + tests.kubeflowTestingPy + ":" + tests.tfOperatorPy,
         },
         dependencies: ["wait-for-kubeflow"],
       },  // pytorchjob - deploy,
@@ -291,12 +296,12 @@
             "--test_dir=" + tests.testDir,
             "--artifacts_dir=" + tests.artifactsDir,
           ],
+          pythonPath: tests.kubeflowPy + ":" + tests.kubeflowTestingPy + ":" + tests.tfOperatorPy,
         },
 
         dependencies: ["wait-for-kubeflow"],
       },  // tfjob-simple-prototype-test
       {
-
         template: tests.buildTemplate {
           name: "katib-studyjob-test",
           command: [
@@ -307,9 +312,26 @@
             "--studyjob_version=v1alpha1",
           ],
         },
-
         dependencies: ["wait-for-kubeflow"],
       },  // katib-studyjob-test
+      {
+        template: tests.buildTemplate {
+          name: "notebooks-test",          
+          command: [        
+            "pytest",
+            "jupyter_test.py",
+            // I think -s mean stdout/stderr will print out to aid in debugging.
+            // Failures still appear to be captured and stored in the junit file.
+            "-s",
+            // Test timeout in seconds.
+            "--namespace=" + tests.stepsNamespace,
+            "--timeout=500",
+            "--junitxml=" + tests.artifactsDir + "/junit_jupyter-test.xml",            
+          ],
+          workingDir: tests.srcDir + "/kubeflow/jupyter/tests",
+        },
+        dependencies: ["wait-for-kubeflow"],
+      },  // notebooks-test
     ],
 
     // An Argo template for the dag.

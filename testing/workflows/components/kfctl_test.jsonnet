@@ -43,7 +43,7 @@ local appName = "kfctl-" + std.substr(name, std.length(name) - 4, 4);
 // we execute kfctl commands from
 local appDir = testDir + "/" + appName;
 
-local image = "gcr.io/kubeflow-ci/test-worker:latest";
+local image = "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4";
 local testing_image = "gcr.io/kubeflow-ci/kubeflow-testing";
 
 // The name of the NFS volume claim to use for test files.
@@ -150,6 +150,7 @@ local componentTests = util.kfTests {
   platform: "gke",
   testDir: testDir,
   kubeConfig: kubeConfig,
+  image: image,
   buildTemplate+: {
     argoTemplate+: {
       container+: {
@@ -172,7 +173,8 @@ local dagTemplates = [
                             ["/usr/local/bin/checkout.sh", srcRootDir],
                             env_vars=[{
                               name: "EXTRA_REPOS",
-                              value: "kubeflow/tf-operator@HEAD;kubeflow/testing@HEAD",
+                              // TODO(jlewi): Change kubeflow/testing@HEAD once #289 is submitted.
+                              value: "kubeflow/tf-operator@HEAD;kubeflow/testing@HEAD:289",
                             }]),
     dependencies: null,
   },  // checkout
