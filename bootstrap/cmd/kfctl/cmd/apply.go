@@ -15,7 +15,6 @@
 package cmd
 
 import (
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -27,14 +26,14 @@ var applyCmd = &cobra.Command{
 	Long:  `Deploy a generated kubeflow application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.InfoLevel)
-		kfApi, kfApiErr := v1alpha1.NewKfAppWithConfig(kfctlConfig)
-		if kfApiErr != nil {
-			log.Errorf("couldn't create KfApp: %v", kfApiErr)
+		kfApp, kfAppErr := NewKfAppWithConfig(kfctlConfig)
+		if kfAppErr != nil {
+			log.Errorf("couldn't create KfApp: %v", kfAppErr)
 			return
 		}
-		applyErr := kfApi.Apply()
+		applyErr := kfApp.Apply()
 		if applyErr != nil {
-			log.Errorf("couldn't generate KfApp: %v", applyErr)
+			log.Errorf("couldn't apply KfApp: %v", applyErr)
 			return
 		}
 	},
