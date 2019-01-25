@@ -18,6 +18,7 @@ package v1alpha1
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"github.com/cenkalti/backoff"
 	"github.com/ksonnet/ksonnet/pkg/actions"
@@ -35,11 +36,13 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	"math/rand"
 	"os"
 	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
+	"text/template"
 	"time"
 )
 
@@ -52,16 +55,47 @@ type ksApp struct {
 	ksName string
 	// ksonnet env name
 	ksEnvName string
-	// knownRegistries is a list of known registries
-	// This can be used to map the name of a registry to info about the registry.
-	// This allows apps to specify a registry by name without having to know any
-	// other information about	 the regisry.
-	knownRegistries map[string]*kftypes.RegistryConfig
-	cfgFile         *viper.Viper
-	fs              afero.Fs
-	kApp            app.App
-	ksApp           kftypes.KsApp
+	cfgFile   *viper.Viper
+	fs        afero.Fs
+	kApp      app.App
+	ksApp     kftypes.KsApp
 }
+
+var KsAppTemplate = string(`
+apiVersion: {{.APIVersion}}
+kind: {{.Kind}}
+metadata: 
+  name: {{.ObjectMeta.Name}}
+  namespace: {{.ObjectMeta.Namespace}}
+spec:
+  platform: {{.Spec.Platform}}
+  components: {{.Spec.Components}}
+  app:
+    registries:
+{{range $registry := .Spec.App.Registries }}
+      - name: {{$registry.Name}}
+        repo: {{$registry.Repo}}
+        version: {{$registry.Version}}
+        path: {{$registry.Path}}
+        RegUri: {{$registry.RegUri}}
+{{end}}
+    packages:
+{{range $package := .Spec.App.Packages }}
+      - name: {{$package.Name}}
+        registry: {{$package.Registry}}
+{{end}}
+    components:
+{{range $component := .Spec.App.Components }}
+      - name: {{$component.Name}}
+        prototype: {{$component.Prototype}}
+{{end}}
+    parameters:
+{{range $parameter := .Spec.App.Parameters }}
+      - component: {{$parameter.Component}}
+        name: {{$parameter.Name}}
+        value: {{$parameter.Value}}
+{{end}}
+`)
 
 func KubeConfigPath() string {
 	kubeconfigEnv := os.Getenv("KUBECONFIG")
@@ -165,6 +199,34 @@ func capture() func() (string, error) {
 	}
 }
 
+func NewKfAppWithNameAndConfig(appName string, cfgFile *viper.Viper) (kftypes.KfApp, error) {
+	appDir, err := os.Getwd()
+	if err != nil {
+		return nil, fmt.Errorf("could not get current directory %v", err)
+	}
+	fs := afero.NewOsFs()
+	api := &ksApp{
+		appName:   appName,
+		appDir:    appDir,
+		ksName:    kftypes.KsName,
+		ksEnvName: kftypes.KsEnvName,
+		fs:        fs,
+		cfgFile:   cfgFile,
+		kApp:      nil,
+		ksApp: kftypes.KsApp{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "KsApp",
+				APIVersion: "apps.kubeflow.org/v1alpha1",
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name: appName,
+			},
+			Spec: kftypes.KsAppSpec{},
+		},
+	}
+	return api, nil
+}
+
 func NewKfAppWithConfig(cfg *viper.Viper) (kftypes.KfApp, error) {
 	appDir, err := os.Getwd()
 	if err != nil {
@@ -181,11 +243,10 @@ func NewKfAppWithConfig(cfg *viper.Viper) (kftypes.KfApp, error) {
 	if cfgfile == "" {
 		return nil, fmt.Errorf("config file does not exist")
 	}
-	return NewKfApp(appName, appDir, nil, cfg)
+	return NewKfApp(appName, appDir, cfg)
 }
 
-func NewKfApp(appName string, appDir string, knownRegistries map[string]*kftypes.RegistryConfig,
-	cfgFile *viper.Viper) (kftypes.KfApp, error) {
+func NewKfApp(appName string, appDir string, cfgFile *viper.Viper) (kftypes.KfApp, error) {
 	fs := afero.NewOsFs()
 	ksDir := path.Join(appDir, kftypes.KsName)
 	kApp, kAppErr := app.Load(fs, nil, ksDir)
@@ -193,14 +254,13 @@ func NewKfApp(appName string, appDir string, knownRegistries map[string]*kftypes
 		return nil, fmt.Errorf("there was a problem loading app %v. Error: %v", appName, kAppErr)
 	}
 	api := &ksApp{
-		appName:         appName,
-		appDir:          appDir,
-		ksName:          kftypes.KsName,
-		ksEnvName:       kftypes.KsEnvName,
-		fs:              fs,
-		knownRegistries: knownRegistries,
-		cfgFile:         cfgFile,
-		kApp:            kApp,
+		appName:   appName,
+		appDir:    appDir,
+		ksName:    kftypes.KsName,
+		ksEnvName: kftypes.KsEnvName,
+		fs:        fs,
+		cfgFile:   cfgFile,
+		kApp:      kApp,
 		ksApp: kftypes.KsApp{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "KsApp",
@@ -213,7 +273,6 @@ func NewKfApp(appName string, appDir string, knownRegistries map[string]*kftypes
 		},
 	}
 	if api.cfgFile != nil {
-		api.knownRegistries = make(map[string]*kftypes.RegistryConfig)
 		applicationSpecErr := api.cfgFile.Sub("spec").Unmarshal(&api.ksApp.Spec)
 		if applicationSpecErr != nil {
 			return nil, fmt.Errorf("couldn't unmarshall yaml. Error: %v", applicationSpecErr)
@@ -230,7 +289,6 @@ func NewKfApp(appName string, appDir string, knownRegistries map[string]*kftypes
 						registry.Version = kubeflowVersion
 					}
 				}
-				api.knownRegistries[registry.Name] = registry
 			}
 		}
 		componentsEnvVar := os.Getenv("KUBEFLOW_COMPONENTS")
@@ -247,6 +305,212 @@ func NewKfApp(appName string, appDir string, knownRegistries map[string]*kftypes
 		}
 	}
 	return api, nil
+}
+
+func writeConfigFile(cfg *viper.Viper, appName string, appDir string) error {
+	tmpl, tmplErr := template.New(kftypes.KfConfigFile).Parse(KsAppTemplate)
+	if tmplErr != nil {
+		return tmplErr
+	}
+	namespace := os.Getenv("K8S_NAMESPACE")
+	if namespace == "" {
+		namespace = kftypes.DefaultNamespace
+	}
+	kubeflowRepo := os.Getenv("DEFAULT_KUBEFLOW_REPO")
+	if kubeflowRepo == "" {
+		kubeflowRepo = kftypes.DefaultKfRepo
+	}
+	re := regexp.MustCompile(`(^\$GOPATH)(.*$)`)
+	goPathVar := os.Getenv("GOPATH")
+	if goPathVar != "" {
+		kubeflowRepo = re.ReplaceAllString(kubeflowRepo, goPathVar+`$2`)
+	}
+	log.Infof("kubeflowRepo %v", kubeflowRepo)
+	ksApp := kftypes.KsApp{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "KsApp",
+			APIVersion: "apps.kubeflow.org/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      appName,
+			Namespace: namespace,
+		},
+		Spec: kftypes.KsAppSpec{
+			Platform:   "none",
+			Components: []string{"all"},
+			App: kftypes.AppConfig{
+				Registries: []*kftypes.RegistryConfig{
+					{
+						Name:    "kubeflow",
+						Repo:    "https://github.com/kubeflow/kubeflow.git",
+						Version: "0.4",
+						Path:    "kubeflow",
+						RegUri:  kubeflowRepo,
+					},
+				},
+				Packages: []kftypes.KsPackage{
+					{
+						Name:     "argo",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "pipeline",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "common",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "examples",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "jupyter",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "katib",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "mpi-job",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "pytorch-job",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "seldon",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "tf-serving",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "openvino",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "tensorboard",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "tf-training",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "metacontroller",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "profiles",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "application",
+						Registry: "kubeflow",
+					},
+					{
+						Name:     "modeldb",
+						Registry: "kubeflow",
+					},
+				},
+				Components: []kftypes.KsComponent{
+					{
+						Name:      "pytorch-operator",
+						Prototype: "pytorch-operator",
+					},
+					{
+						Name:      "ambassador",
+						Prototype: "ambassador",
+					},
+					{
+						Name:      "openvino",
+						Prototype: "openvino",
+					},
+					{
+						Name:      "jupyter",
+						Prototype: "jupyter",
+					},
+					{
+						Name:      "centraldashboard",
+						Prototype: "centraldashboard",
+					},
+					{
+						Name:      "tf-job-operator",
+						Prototype: "tf-job-operator",
+					},
+					{
+						Name:      "tensorboard",
+						Prototype: "tensorboard",
+					},
+					{
+						Name:      "metacontroller",
+						Prototype: "metacontroller",
+					},
+					{
+						Name:      "profiles",
+						Prototype: "profiles",
+					},
+					{
+						Name:      "notebooks",
+						Prototype: "notebooks",
+					},
+					{
+						Name:      "argo",
+						Prototype: "argo",
+					},
+					{
+						Name:      "pipeline",
+						Prototype: "pipeline",
+					},
+					{
+						Name:      "katib",
+						Prototype: "katib",
+					},
+					{
+						Name:      "spartakus",
+						Prototype: "spartakus",
+					},
+					{
+						Name:      "application",
+						Prototype: "application",
+					},
+				},
+				Parameters: []kftypes.KsParameter{
+					{
+						Component: "spartakus",
+						Name:      "usageId",
+						Value:     fmt.Sprintf("%08d", 10000000+rand.Intn(90000000)),
+					},
+					{
+						Component: "spartakus",
+						Name:      "reportUsage",
+						Value:     "true",
+					},
+				},
+			},
+		},
+	}
+
+	var buf bytes.Buffer
+	execErr := tmpl.Execute(&buf, ksApp)
+	if execErr != nil {
+		return execErr
+	}
+	errDefaultConfig := cfg.ReadConfig(bytes.NewBuffer(buf.Bytes()))
+	if errDefaultConfig != nil {
+		return errDefaultConfig
+	}
+	cfgFile := filepath.Join(appDir, kftypes.KfConfigFile)
+	cfgFileErr := cfg.WriteConfigAs(cfgFile)
+	if cfgFileErr != nil {
+		return cfgFileErr
+	}
+	return nil
 }
 
 func (ksApp *ksApp) KsApp() *kftypes.KsApp {
@@ -397,7 +661,11 @@ func (ksApp *ksApp) Generate() error {
 		return fmt.Errorf("couldn't get server version: %v", err)
 	}
 	namespace := os.Getenv("K8S_NAMESPACE")
-	initErr := ksApp.Init("default", k8sSpec, host, namespace)
+	writeConfigErr := writeConfigFile(ksApp.cfgFile, ksApp.appName, ksApp.appDir)
+	if writeConfigErr != nil {
+		return fmt.Errorf("couldn't write config file app.yaml in %v Error %v", ksApp.appDir, writeConfigErr)
+	}
+	initErr := ksApp.InitKs("default", k8sSpec, host, namespace)
 	if initErr != nil {
 		return fmt.Errorf("couldn't initialize KfApi: %v", initErr)
 	}
@@ -429,7 +697,36 @@ func (ksApp *ksApp) Generate() error {
 	return nil
 }
 
-func (ksApp *ksApp) Init(envName string, k8sSpecFlag string, host string, namespace string) error {
+func (ksApp *ksApp) Init(appName string) error {
+	//TODO must be checked eg `kfctl init kf_app` results in
+	// metadata.name: Invalid value:
+	// "kf_app-controller": a DNS-1123 subdomain must consist of lower case alphanumeric characters, '-' or '.',
+	// and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is
+	// '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+	appDir := path.Join(dir, appName)
+	log.Infof("appDir %v", appDir)
+	err = os.Mkdir(appDir, os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("cannot create directory %v", appDir)
+	}
+	fs := afero.NewOsFs()
+	cfgFilePath := filepath.Join(appDir, kftypes.KfConfigFile)
+	_, appDirErr := fs.Stat(cfgFilePath)
+	if appDirErr == nil {
+		return fmt.Errorf("config file %v already exists in %v", kftypes.KfConfigFile, appDir)
+	}
+	createConfigErr := writeConfigFile(ksApp.cfgFile, appName, appDir)
+	if createConfigErr != nil {
+		return fmt.Errorf("cannot create config file app.yaml in %v", appDir)
+	}
+	return nil
+}
+
+func (ksApp *ksApp) InitKs(envName string, k8sSpecFlag string, host string, namespace string) error {
 	newRoot := path.Join(ksApp.appDir, ksApp.ksName)
 	ksApp.ksEnvName = envName
 	options := map[string]interface{}{
@@ -501,10 +798,6 @@ func (ksApp *ksApp) Registries() (map[string]*kftypes.Registry, error) {
 	}
 
 	return registries, nil
-}
-
-func (ksApp *ksApp) RegistryConfigs() map[string]*kftypes.RegistryConfig {
-	return ksApp.knownRegistries
 }
 
 func (ksApp *ksApp) Root() string {

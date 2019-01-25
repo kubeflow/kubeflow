@@ -18,6 +18,7 @@ import (
 	kfapi "github.com/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	flag "github.com/spf13/pflag"
 )
 
 // generateCmd represents the generate command
@@ -42,4 +43,8 @@ var generateCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(generateCmd)
+	flag.StringSliceP("Spec.Components", "c", []string{"all"},
+		"provide a comma delimited list of components")
+	kfctlConfig.BindPFlag("Spec.Components", flag.Lookup("Spec.Components"))
+
 }

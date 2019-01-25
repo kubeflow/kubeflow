@@ -21,7 +21,6 @@ import (
 	"os"
 )
 
-var token string
 var kfctlConfig = viper.New()
 
 // rootCmd represents the base command when called without any subcommands

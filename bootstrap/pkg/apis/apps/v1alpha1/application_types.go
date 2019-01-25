@@ -111,8 +111,9 @@ type AppConfig struct {
 
 // KsAppSpec defines the desired state of KsApp
 type KsAppSpec struct {
-	Platform string    `json:"platform,omitempty"`
-	App      AppConfig `json:"app,omitempty"`
+	Platform   string    `json:"platform,omitempty"`
+	Components []string  `json:"components,omitempty"`
+	App        AppConfig `json:"app,omitempty"`
 }
 
 // KsAppStatus defines the observed state of KsApp
@@ -171,5 +172,5 @@ type KfApp interface {
 	Apply() error
 	Delete() error
 	Generate() error
-	Init(envName string, k8sSpecFlag string, host string, namespace string) error
+	Init(appName string) error
 }
