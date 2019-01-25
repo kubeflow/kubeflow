@@ -27,7 +27,7 @@ var applyCmd = &cobra.Command{
 	Long:  `Deploy a generated kubeflow application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.InfoLevel)
-		kfApi, kfApiErr := v1alpha1.NewKfApiWithConfig(kfctlConfig)
+		kfApi, kfApiErr := v1alpha1.NewKfAppWithConfig(kfctlConfig)
 		if kfApiErr != nil {
 			log.Errorf("couldn't create KfApp: %v", kfApiErr)
 			return

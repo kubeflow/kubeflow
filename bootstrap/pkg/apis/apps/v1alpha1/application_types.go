@@ -164,7 +164,7 @@ func init() {
 
 //
 // KfApp is used by commands under bootstrap/cmd/{bootstrap,kfctl}. KfApp provides a common
-// API simplified layer to ksonnet
+// API for different implementations like KsApp, GcpApp, etc.
 //
 type KfApp interface {
 	Apply() error

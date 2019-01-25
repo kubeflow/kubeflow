@@ -14,7 +14,6 @@
 
 // Generate deepcopy for apis
 //go:generate deepcopy-gen -O zz_generated.deepcopy -i ./... -h ../../hack/boilerplate.go.txt
-//go:generate client-gen --fake-clientset=false --input apps/v1alpha1 --input-base github.com/kubeflow/kubeflow/bootstrap/pkg/apis --input-dirs github.com/kubeflow/kubeflow/bootstrap/pkg/apis --clientset-path github.com/kubeflow/kubeflow/bootstrap/pkg/client --clientset-name kfapi
 
 // Package apis contains Kubernetes API groups.
 package apis

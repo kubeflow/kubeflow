@@ -28,19 +28,6 @@ all: build
 auth:
 	gcloud auth configure-docker
 
-client-gen:
-	@rm -f $(shell find pkg/client/kfapi/ -name '*.go' -exec grep -lr 'DO NOT EDIT' {} \;)
-	go get k8s.io/code-generator/cmd/client-gen@kubernetes-1.10.12
-	mkdir -p ${GOPATH}/src/k8s.io/code-generator/hack && \
-		cp hack/boilerplate.go.txt ${GOPATH}/src/k8s.io/code-generator/hack/boilerplate.go.txt
-	${GOPATH}/bin/client-gen \
-		--fake-clientset=false \
-		--input apps/v1alpha1 \
-		--input-base github.com/kubeflow/kubeflow/bootstrap/pkg/apis \
-		--input-dirs github.com/kubeflow/kubeflow/bootstrap/pkg/apis \
-		--clientset-path github.com/kubeflow/kubeflow/bootstrap/pkg/client \
-		--clientset-name kfapi
-
 # Run go fmt against code
 fmt:
 	go fmt ./pkg/... ./cmd/...
@@ -49,10 +36,10 @@ fmt:
 vet:
 	go vet ./pkg/... ./cmd/...
 
-build-bootstrap: client-gen fmt vet
+build-bootstrap: fmt vet
 	go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 
-build-kfctl: client-gen fmt vet
+build-kfctl: fmt vet
 	go build -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
 
 build-local: build-bootstrap build-kfctl
