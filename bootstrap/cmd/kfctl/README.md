@@ -64,7 +64,7 @@ bootstrap/pkg/client/gcpapp/gcpapp.go
 `kfctl` has the following usage
 
 - `init <[path/]name> --platform <gcp|microk8s|minikube|none>` Initialize a kubeflow application.
-- `generate [--all|--component <component> ...`                Generate one or more components or all components.
+- `generate [--all|--component <all|c1,c2,c3,c4>`              Generate one or more components or all components.
 - `apply`                                                      Deploy generated components to the api-server.
 - `delete`                                                     Delete the kubeflow application
 
