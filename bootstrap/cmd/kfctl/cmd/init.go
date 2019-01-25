@@ -15,7 +15,6 @@
 package cmd
 
 import (
-	kfapi "github.com/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1"
 	flag "github.com/spf13/pflag"
 
 	log "github.com/sirupsen/logrus"
@@ -34,12 +33,12 @@ var initCmd = &cobra.Command{
 			return
 		}
 		appName := args[0]
-		kfApi, kfApiErr := kfapi.NewKfAppWithNameAndConfig(appName, kfctlConfig)
-		if kfApiErr != nil {
-			log.Errorf("couldn't create KfApp: %v", kfApiErr)
+		kfApp, kfAppErr := NewKfAppWithNameAndConfig(appName, kfctlConfig)
+		if kfAppErr != nil {
+			log.Errorf("couldn't create KfApp: %v", kfAppErr)
 			return
 		}
-		initErr := kfApi.Init(appName)
+		initErr := kfApp.Init()
 		if initErr != nil {
 			log.Errorf("couldn't generate KfApp: %v", initErr)
 			return
