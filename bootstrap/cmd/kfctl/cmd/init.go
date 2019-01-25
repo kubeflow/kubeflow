@@ -17,6 +17,7 @@ package cmd
 import (
 	flag "github.com/spf13/pflag"
 
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -48,7 +49,13 @@ var initCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(initCmd)
-	flag.StringP("Spec.Platform", "p", "none",
+
+	flag.StringP("Spec.Platform", "p", kftypes.DefaultPlatform,
 		"one of 'gcp|minikube|docker-for-desktop|ack'")
 	kfctlConfig.BindPFlag("Spec.Platform", flag.Lookup("Spec.Platform"))
+
+	flag.StringP("Spec.Repo", "r", kftypes.DefaultKfRepo,
+		"local github kubeflow repo ")
+	kfctlConfig.BindPFlag("Spec.Repo", flag.Lookup("Spec.Repo"))
+
 }

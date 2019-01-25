@@ -23,9 +23,12 @@ const (
 	KsName           = "ks_app"
 	KsEnvName        = "default"
 	DefaultNamespace = "kubeflow"
+	DefaultPlatform  = "none"
 	DefaultKfRepo    = "$GOPATH/src/github.com/kubeflow/kubeflow/kubeflow"
 	KfConfigFile     = "app.yaml"
 )
+
+var DefaultComponents = []string{"all"}
 
 // RegistryConfig is used for two purposes:
 // 1. used during image build, to configure registries that should be baked into the bootstrapper docker image.
@@ -112,6 +115,7 @@ type AppConfig struct {
 // KsAppSpec defines the desired state of KsApp
 type KsAppSpec struct {
 	Platform   string    `json:"platform,omitempty"`
+	Repo       string    `json:"repo,omitempty"`
 	Components []string  `json:"components,omitempty"`
 	App        AppConfig `json:"app,omitempty"`
 }
