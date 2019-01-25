@@ -8,13 +8,12 @@ RUN apt-get update -y && \
 # We copy just the requirements.txt first to leverage Docker cache
 COPY ./requirements.txt /app/requirements.txt
 
-WORKDIR /app
+RUN pip3 install -r /app/requirements.txt
 
-RUN pip3 install -r requirements.txt
+COPY default /app/default
+COPY rok /app/rok
 
-COPY run.py /app
-COPY kubeflow /app/kubeflow
+WORKDIR /app/default
 
 ENTRYPOINT ["python3"]
-
 CMD ["run.py"]
