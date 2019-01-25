@@ -1,41 +1,11 @@
 apiversion: apps.kubeflow.org/v1alpha1
-kind: Application
+kind: KsApp
 metadata:
-  name: kf_app
+  name: kf-app
   namespace: kubeflow
+namespace: kubeflow
 spec:
   app:
-    components:
-    - name: pytorch-operator
-      prototype: pytorch-operator
-    - name: ambassador
-      prototype: ambassador
-    - name: openvino
-      prototype: openvino
-    - name: jupyter
-      prototype: jupyter
-    - name: centraldashboard
-      prototype: centraldashboard
-    - name: tf-job-operator
-      prototype: tf-job-operator
-    - name: tensorboard
-      prototype: tensorboard
-    - name: metacontroller
-      prototype: metacontroller
-    - name: profiles
-      prototype: profiles
-    - name: notebooks
-      prototype: notebooks
-    - name: argo
-      prototype: argo
-    - name: pipeline
-      prototype: pipeline
-    - name: katib
-      prototype: katib
-    - name: spartakus
-      prototype: spartakus
-    - name: application
-      prototype: application
     packages:
     - name: argo
       registry: kubeflow
@@ -74,13 +44,18 @@ spec:
     parameters:
     - component: spartakus
       name: usageId
-      value: 68989927
+      value: 43606238
     - component: spartakus
       name: reportUsage
-      value: true
+      value: 1
     registries:
-    - RegUri: /Users/kdkasrav/go/src/github.com/kubeflow/kubeflow/bootstrap/kf_app
+    - RegUri: /Users/fred/go/src/github.com/kubeflow/kubeflow/kubeflow
       name: kubeflow
       path: kubeflow
       repo: https://github.com/kubeflow/kubeflow.git
-      version: 0.4
+      version: v0.4.1
+  components:
+  - all
+  platform: none
+  repo: /Users/fred/go/src/github.com/kubeflow/kubeflow/kubeflow
+  version: v0.4.1
