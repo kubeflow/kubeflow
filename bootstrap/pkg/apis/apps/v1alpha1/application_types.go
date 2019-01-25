@@ -24,8 +24,10 @@ const (
 	KsEnvName        = "default"
 	DefaultNamespace = "kubeflow"
 	DefaultPlatform  = "none"
-	DefaultKfRepo    = "$GOPATH/src/github.com/kubeflow/kubeflow/kubeflow"
-	KfConfigFile     = "app.yaml"
+	// TODO: find the latest tag dynamically
+	DefaultVersion = "v0.4.1"
+	DefaultKfRepo  = "$GOPATH/src/github.com/kubeflow/kubeflow/kubeflow"
+	KfConfigFile   = "app.yaml"
 )
 
 var DefaultComponents = []string{"all"}
@@ -115,6 +117,7 @@ type AppConfig struct {
 // KsAppSpec defines the desired state of KsApp
 type KsAppSpec struct {
 	Platform   string    `json:"platform,omitempty"`
+	Version    string    `json:"version,omitempty"`
 	Repo       string    `json:"repo,omitempty"`
 	Components []string  `json:"components,omitempty"`
 	App        AppConfig `json:"app,omitempty"`

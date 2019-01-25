@@ -63,12 +63,13 @@ type KsApp struct {
 var KsAppTemplate = string(`
 apiVersion: {{.APIVersion}}
 kind: {{.Kind}}
-metadata: 
+metadata:
   name: {{.Name}}
   namespace: {{.Namespace}}
 spec:
   platform: {{.Spec.Platform}}
   repo: {{.Spec.Repo}}
+  version: {{.Spec.Version}}
   components: {{.Spec.Components}}
   app:
     registries:
@@ -453,12 +454,19 @@ func (ksApp *KsApp) Init() error {
 		kubeflowRepo = re.ReplaceAllString(kubeflowRepo, goPathVar+`$2`)
 	}
 	log.Infof("kubeflowRepo %v", kubeflowRepo)
+	kubeflowVersion := ksApp.CfgFile.GetString("Spec.Version")
+	if kubeflowVersion == "" {
+		kubeflowVersion = kftypes.DefaultVersion
+	}
+	ksApp.KsApp.Spec.Version = kubeflowVersion
 	ksApp.KsApp.Spec.Repo = kubeflowRepo
 	for _, registry := range ksApp.KsApp.Spec.App.Registries {
 		if registry.Name == "kubeflow" {
 			registry.RegUri = ksApp.KsApp.Spec.Repo
+			registry.Version = ksApp.KsApp.Spec.Version
 		}
 	}
+
 	createConfigErr := ksApp.writeConfigFile()
 	if createConfigErr != nil {
 		return fmt.Errorf("cannot create config file app.yaml in %v", ksApp.AppDir)

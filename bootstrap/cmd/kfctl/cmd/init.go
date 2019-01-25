@@ -53,7 +53,9 @@ func init() {
 	flag.StringP("Spec.Platform", "p", kftypes.DefaultPlatform,
 		"one of 'gcp|minikube|docker-for-desktop|ack'")
 	kfctlConfig.BindPFlag("Spec.Platform", flag.Lookup("Spec.Platform"))
-
+	flag.StringP("Spec.Version", "v", kftypes.DefaultVersion,
+		"desired version Kubeflow or latest tag if not provided by user ")
+	kfctlConfig.BindPFlag("Spec.Version", flag.Lookup("Spec.Version"))
 	flag.StringP("Spec.Repo", "r", kftypes.DefaultKfRepo,
 		"local github kubeflow repo ")
 	kfctlConfig.BindPFlag("Spec.Repo", flag.Lookup("Spec.Repo"))

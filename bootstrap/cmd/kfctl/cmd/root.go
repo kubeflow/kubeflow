@@ -49,14 +49,14 @@ var kfapp = ksapp.KsApp{
 		},
 		Spec: kftypes.KsAppSpec{
 			Platform:   "none",
+			Version:    "",
 			Components: []string{"all"},
 			App: kftypes.AppConfig{
 				Registries: []*kftypes.RegistryConfig{
 					{
-						Name:    "kubeflow",
-						Repo:    "https://github.com/kubeflow/kubeflow.git",
-						Version: "0.4",
-						Path:    "kubeflow",
+						Name: "kubeflow",
+						Repo: "https://github.com/kubeflow/kubeflow.git",
+						Path: "kubeflow",
 					},
 				},
 				Packages: []kftypes.KsPackage{
