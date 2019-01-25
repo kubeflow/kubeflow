@@ -35,19 +35,7 @@ bootstrap/pkg/client/gcpapp
 
 ### KfApp Interface (github/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1/kfapi.go)
 
-The `KfApp` golang Interface used by both 
-
-```sh
-kfctl init <[path/]name> --platform gcp
-```
-
-and
-
-```sh
-kfctl init <[path/]name> --platform none
-```
-
-is:
+The `KfApp` golang Interface 
 
 ```golang
 type KfApp interface {
@@ -56,6 +44,12 @@ type KfApp interface {
 	Generate() error
 	Init() error
 }
+```
+
+is used by
+
+```sh
+kfctl init <[path/]name> --platform <gcp|microk8s|minikube|none>
 ```
 
 Implementations of the interface are in 
