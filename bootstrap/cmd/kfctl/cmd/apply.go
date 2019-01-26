@@ -17,7 +17,10 @@ package cmd
 import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
+
+var applyCfg = viper.New()
 
 // applyCmd represents the apply command
 var applyCmd = &cobra.Command{
@@ -26,7 +29,7 @@ var applyCmd = &cobra.Command{
 	Long:  `Deploy a generated kubeflow application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.InfoLevel)
-		kfApp, kfAppErr := NewKfAppWithConfig(kfctlConfig)
+		kfApp, kfAppErr := NewKfAppWithConfig(applyCfg)
 		if kfAppErr != nil {
 			log.Errorf("couldn't create KfApp: %v", kfAppErr)
 			return
@@ -41,4 +44,7 @@ var applyCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(applyCmd)
+
+	applyCfg.SetConfigName("app")
+	applyCfg.SetConfigType("yaml")
 }

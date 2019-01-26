@@ -24,130 +24,11 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"math/rand"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 	"path"
 	"path/filepath"
 )
-
-var kfapp = ksapp.KsApp{
-	AppName:   "",
-	AppDir:    "",
-	KsName:    kftypes.KsName,
-	KsEnvName: kftypes.KsEnvName,
-	Fs:        nil,
-	CfgFile:   nil,
-	KApp:      nil,
-	KsApp: kftypes.KsApp{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "KsApp",
-			APIVersion: "apps.kubeflow.org/v1alpha1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "",
-		},
-		Spec: kftypes.KsAppSpec{
-			Platform:   "none",
-			Version:    "",
-			Components: []string{"all"},
-			App: kftypes.AppConfig{
-				Registries: []*kftypes.RegistryConfig{
-					{
-						Name: "kubeflow",
-						Repo: "https://github.com/kubeflow/kubeflow.git",
-						Path: "kubeflow",
-					},
-				},
-				Packages: []kftypes.KsPackage{
-					{
-						Name:     "argo",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "pipeline",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "common",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "examples",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "jupyter",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "katib",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "mpi-job",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "pytorch-job",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "seldon",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "tf-serving",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "openvino",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "tensorboard",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "tf-training",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "metacontroller",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "profiles",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "application",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "modeldb",
-						Registry: "kubeflow",
-					},
-				},
-				Components: []kftypes.KsComponent{},
-				Parameters: []kftypes.KsParameter{
-					{
-						Component: "spartakus",
-						Name:      "usageId",
-						Value:     fmt.Sprintf("%08d", 10000000+rand.Intn(90000000)),
-					},
-					{
-						Component: "spartakus",
-						Name:      "reportUsage",
-						Value:     "true",
-					},
-				},
-			},
-		},
-	},
-}
-
-var kfctlConfig = viper.New()
 
 func NewKfAppWithNameAndConfig(appName string, cfgFile *viper.Viper) (kftypes.KfApp, error) {
 	//appName can be a path
@@ -176,9 +57,9 @@ func NewKfAppWithNameAndConfig(appName string, cfgFile *viper.Viper) (kftypes.Kf
 		}
 	}
 	fs := afero.NewOsFs()
-	platform := cfgFile.GetString("Spec.Platform")
+	platform := cfgFile.GetString("platform")
 	if platform == "none" {
-		_kfapp := &kfapp
+		_kfapp := &ksapp.Kfapp
 		_kfapp.AppName = appName
 		_kfapp.AppDir = appDir
 		_kfapp.Fs = fs
@@ -218,23 +99,29 @@ func NewKfApp(appName string, appDir string, cfgFile *viper.Viper) (kftypes.KfAp
 	}
 	spec := kftypes.KsAppSpec{}
 	if cfgFile != nil {
+		metadata := v1.ObjectMeta{}
+		metadataErr := cfgFile.Sub("metadata").Unmarshal(&metadata)
+		if metadataErr != nil {
+			return nil, fmt.Errorf("couldn't unmarshall yaml. Error: %v", metadataErr)
+		}
 		applicationSpecErr := cfgFile.Sub("spec").Unmarshal(&spec)
 		if applicationSpecErr != nil {
 			return nil, fmt.Errorf("couldn't unmarshall yaml. Error: %v", applicationSpecErr)
 		}
+		if spec.Platform == "none" {
+			_kfapp := &ksapp.Kfapp
+			_kfapp.AppName = appName
+			_kfapp.AppDir = appDir
+			_kfapp.Fs = fs
+			_kfapp.KApp = kApp
+			_kfapp.CfgFile = cfgFile
+			_kfapp.KsApp.ObjectMeta.Name = metadata.Name
+			_kfapp.KsApp.ObjectMeta.Namespace = metadata.Namespace
+			_kfapp.KsApp.Spec = spec
+			_kfapp.KsApp.Name = appName
+			return _kfapp, nil
+		}
 	}
-	if spec.Platform == "none" {
-		_kfapp := &kfapp
-		_kfapp.AppName = appName
-		_kfapp.AppDir = appDir
-		_kfapp.Fs = fs
-		_kfapp.KApp = kApp
-		_kfapp.CfgFile = cfgFile
-		_kfapp.KsApp.Spec = spec
-		_kfapp.KsApp.Name = appName
-		return _kfapp, nil
-	}
-
 	return nil, fmt.Errorf("unknown platform %v", spec.Platform)
 }
 
@@ -260,6 +147,4 @@ func init() {
 
 // initConfig creates a Viper config file and set's it's name and type
 func initConfig() {
-	kfctlConfig.SetConfigName("app")
-	kfctlConfig.SetConfigType("yaml")
 }

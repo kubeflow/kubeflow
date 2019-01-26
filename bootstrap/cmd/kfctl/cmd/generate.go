@@ -18,8 +18,10 @@ import (
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	flag "github.com/spf13/pflag"
+	"github.com/spf13/viper"
 )
+
+var generateCfg = viper.New()
 
 // generateCmd represents the generate command
 var generateCmd = &cobra.Command{
@@ -28,7 +30,7 @@ var generateCmd = &cobra.Command{
 	Long:  `Generate a kubeflow application and generate an app.yaml.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.InfoLevel)
-		kfApp, kfAppErr := NewKfAppWithConfig(kfctlConfig)
+		kfApp, kfAppErr := NewKfAppWithConfig(generateCfg)
 		if kfAppErr != nil {
 			log.Errorf("couldn't create KfApp: %v", kfAppErr)
 			return
@@ -44,11 +46,18 @@ var generateCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(generateCmd)
 
-	flag.StringSliceP("Spec.Components", "c", kftypes.DefaultComponents,
-		"provide a comma delimited list of components")
-	kfctlConfig.BindPFlag("Spec.Components", flag.Lookup("Spec.Components"))
+	generateCfg.SetConfigName("app")
+	generateCfg.SetConfigType("yaml")
 
-	flag.StringP("Namespace", "n", kftypes.DefaultNamespace,
+	generateCmd.Flags().StringSliceP("packages", "p", kftypes.DefaultPackages,
+		"provide a comma delimited list of package names")
+	generateCfg.BindPFlag("packages", generateCmd.Flags().Lookup("packages"))
+
+	generateCmd.Flags().StringSliceP("components", "c", kftypes.DefaultComponents,
+		"provide a comma delimited list of component names")
+	generateCfg.BindPFlag("components", generateCmd.Flags().Lookup("components"))
+
+	generateCmd.Flags().StringP("namespace", "n", kftypes.DefaultNamespace,
 		"namespace where kubeflow will be deployed")
-	kfctlConfig.BindPFlag("Namespace", flag.Lookup("Namespace"))
+	generateCfg.BindPFlag("namespace", generateCmd.Flags().Lookup("namespace"))
 }

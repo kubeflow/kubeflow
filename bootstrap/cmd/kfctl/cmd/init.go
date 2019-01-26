@@ -15,12 +15,14 @@
 package cmd
 
 import (
-	flag "github.com/spf13/pflag"
+	"github.com/spf13/viper"
 
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
+
+var initCfg = viper.New()
 
 // initCmd represents the init command
 var initCmd = &cobra.Command{
@@ -34,7 +36,7 @@ var initCmd = &cobra.Command{
 			return
 		}
 		appName := args[0]
-		kfApp, kfAppErr := NewKfAppWithNameAndConfig(appName, kfctlConfig)
+		kfApp, kfAppErr := NewKfAppWithNameAndConfig(appName, initCfg)
 		if kfAppErr != nil {
 			log.Errorf("couldn't create KfApp: %v", kfAppErr)
 			return
@@ -50,14 +52,16 @@ var initCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(initCmd)
 
-	flag.StringP("Spec.Platform", "p", kftypes.DefaultPlatform,
-		"one of 'gcp|minikube|docker-for-desktop|ack'")
-	kfctlConfig.BindPFlag("Spec.Platform", flag.Lookup("Spec.Platform"))
-	flag.StringP("Spec.Version", "v", kftypes.DefaultVersion,
-		"desired version Kubeflow or latest tag if not provided by user ")
-	kfctlConfig.BindPFlag("Spec.Version", flag.Lookup("Spec.Version"))
-	flag.StringP("Spec.Repo", "r", kftypes.DefaultKfRepo,
-		"local github kubeflow repo ")
-	kfctlConfig.BindPFlag("Spec.Repo", flag.Lookup("Spec.Repo"))
+	initCfg.SetConfigName("app")
+	initCfg.SetConfigType("yaml")
 
+	initCmd.Flags().StringP("platform", "p", kftypes.DefaultPlatform,
+		"one of 'gcp|minikube|docker-for-desktop|ack'")
+	initCfg.BindPFlag("platform", initCmd.Flags().Lookup("platform"))
+	initCmd.Flags().StringP("version", "v", kftypes.DefaultVersion,
+		"desired version Kubeflow or latest tag if not provided by user ")
+	initCfg.BindPFlag("version", initCmd.Flags().Lookup("version"))
+	initCmd.Flags().StringP("repo", "r", kftypes.DefaultKfRepo,
+		"local github kubeflow repo ")
+	initCfg.BindPFlag("repo", initCmd.Flags().Lookup("repo"))
 }

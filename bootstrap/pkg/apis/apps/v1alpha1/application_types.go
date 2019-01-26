@@ -31,6 +31,7 @@ const (
 )
 
 var DefaultComponents = []string{"all"}
+var DefaultPackages = []string{"all"}
 
 // RegistryConfig is used for two purposes:
 // 1. used during image build, to configure registries that should be baked into the bootstrapper docker image.
@@ -120,6 +121,7 @@ type KsAppSpec struct {
 	Version    string    `json:"version,omitempty"`
 	Repo       string    `json:"repo,omitempty"`
 	Components []string  `json:"components,omitempty"`
+	Packages   []string  `json:"packages,omitempty"`
 	App        AppConfig `json:"app,omitempty"`
 }
 
