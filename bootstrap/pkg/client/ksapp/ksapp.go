@@ -519,8 +519,8 @@ func (ksApp *KsApp) Init() error {
 		return fmt.Errorf("cannot create directory %v", ksApp.AppDir)
 	}
 	fs := afero.NewOsFs()
-	CfgFilePath := filepath.Join(ksApp.AppDir, kftypes.KfConfigFile)
-	_, appDirErr := fs.Stat(CfgFilePath)
+	cfgFilePath := filepath.Join(ksApp.AppDir, kftypes.KfConfigFile)
+	_, appDirErr := fs.Stat(cfgFilePath)
 	if appDirErr == nil {
 		return fmt.Errorf("config file %v already exists in %v", kftypes.KfConfigFile, ksApp.AppDir)
 	}
