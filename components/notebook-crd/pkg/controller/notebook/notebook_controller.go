@@ -205,8 +205,9 @@ func (r *ReconcileNotebook) ReconcileService(instance *v1alpha1.Notebook) error 
 			Namespace: instance.Namespace,
 		},
 		Spec: corev1.ServiceSpec{
-			Type:     "ClusterIP",
-			Selector: map[string]string{"statefulset": instance.Name},
+			ClusterIP: "None",
+			Type:      "ClusterIP",
+			Selector:  map[string]string{"statefulset": instance.Name},
 			Ports: []corev1.ServicePort{
 				corev1.ServicePort{
 					Port:       80,
