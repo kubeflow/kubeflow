@@ -40,6 +40,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"strings"
 	"text/template"
@@ -61,52 +62,60 @@ type KsApp struct {
 	KsApp     kftypes.KsApp
 }
 
-var Kfapp = KsApp{
-	AppName:   "",
-	AppDir:    "",
-	KsName:    kftypes.KsName,
-	KsEnvName: kftypes.KsEnvName,
-	Fs:        nil,
-	CfgFile:   nil,
-	KApp:      nil,
-	KsApp: kftypes.KsApp{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "KsApp",
-			APIVersion: "apps.kubeflow.org/v1alpha1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "",
-		},
-		Spec: kftypes.KsAppSpec{
-			Platform:   "none",
-			Version:    "",
-			Components: []string{"all"},
-			Packages:   []string{"all"},
-			App: kftypes.AppConfig{
-				Registries: []*kftypes.RegistryConfig{
-					{
-						Name: "kubeflow",
-						Repo: "https://github.com/kubeflow/kubeflow.git",
-						Path: "kubeflow",
+func GetKfApp(options map[string]interface{}) kftypes.KfApp {
+	_kfapp := &KsApp{
+		AppName:   "",
+		AppDir:    "",
+		KsName:    kftypes.KsName,
+		KsEnvName: kftypes.KsEnvName,
+		Fs:        nil,
+		CfgFile:   nil,
+		KApp:      nil,
+		KsApp: kftypes.KsApp{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "KfApp",
+				APIVersion: "apps.kubeflow.org/v1alpha1",
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "",
+			},
+			Spec: kftypes.KsAppSpec{
+				Platform:   "aws",
+				Version:    "",
+				Components: []string{"all"},
+				Packages:   []string{"all"},
+				App: kftypes.AppConfig{
+					Registries: []*kftypes.RegistryConfig{
+						{
+							Name: "kubeflow",
+							Repo: "https://github.com/kubeflow/kubeflow.git",
+							Path: "kubeflow",
+						},
 					},
-				},
-				Packages:   []kftypes.KsPackage{},
-				Components: []kftypes.KsComponent{},
-				Parameters: []kftypes.KsParameter{
-					{
-						Component: "spartakus",
-						Name:      "usageId",
-						Value:     fmt.Sprintf("%08d", 10000000+rand.Intn(90000000)),
-					},
-					{
-						Component: "spartakus",
-						Name:      "reportUsage",
-						Value:     "true",
+					Packages:   []kftypes.KsPackage{},
+					Components: []kftypes.KsComponent{},
+					Parameters: []kftypes.KsParameter{
+						{
+							Component: "spartakus",
+							Name:      "usageId",
+							Value:     fmt.Sprintf("%08d", 10000000+rand.Intn(90000000)),
+						},
+						{
+							Component: "spartakus",
+							Name:      "reportUsage",
+							Value:     "true",
+						},
 					},
 				},
 			},
 		},
-	},
+	}
+	_kfapp.KsApp.Name = options["AppName"].(string)
+	for k, v := range options {
+		x := reflect.ValueOf(_kfapp).Elem().FieldByName(k)
+		x.Set(reflect.ValueOf(v))
+	}
+	return _kfapp
 }
 
 var KsAppTemplate = string(`

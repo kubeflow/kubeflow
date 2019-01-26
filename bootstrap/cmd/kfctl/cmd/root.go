@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/ksonnet/ksonnet/pkg/app"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/gcpapp"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksapp"
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
@@ -28,7 +29,34 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"plugin"
+	"strings"
 )
+
+func LoadPlatform(platform string, options map[string]interface{}) (kftypes.KfApp, error) {
+	switch platform {
+	case "none":
+		_kfapp := ksapp.GetKfApp(options).(*ksapp.KsApp)
+		return _kfapp, nil
+	case "gcp":
+		_gcpapp := gcpapp.GetKfApp(options).(*gcpapp.GcpApp)
+		return _gcpapp, nil
+	default:
+		plugindir := os.Getenv("PLUGINS_ENVIRONMENT")
+		pluginpath := filepath.Join(plugindir, platform+".so")
+		p, err := plugin.Open(pluginpath)
+		if err != nil {
+			panic(err)
+		}
+		symName := "Get" + strings.ToUpper(platform[0:1]) + platform[1:] + "App"
+		log.Infof("symbol %v", symName)
+		f, err := p.Lookup(symName)
+		if err != nil {
+			panic(err)
+		}
+		return f.(func(map[string]interface{}) kftypes.KfApp)(options), nil
+	}
+}
 
 func NewKfAppWithNameAndConfig(appName string, cfgFile *viper.Viper) (kftypes.KfApp, error) {
 	//appName can be a path
@@ -58,17 +86,17 @@ func NewKfAppWithNameAndConfig(appName string, cfgFile *viper.Viper) (kftypes.Kf
 	}
 	fs := afero.NewOsFs()
 	platform := cfgFile.GetString("platform")
-	if platform == "none" {
-		_kfapp := &ksapp.Kfapp
-		_kfapp.AppName = appName
-		_kfapp.AppDir = appDir
-		_kfapp.Fs = fs
-		_kfapp.CfgFile = cfgFile
-		_kfapp.KsApp.Spec.Platform = platform
-		_kfapp.KsApp.Name = appName
-		return _kfapp, nil
+	options := map[string]interface{}{
+		"AppName": appName,
+		"AppDir":  appDir,
+		"CfgFile": cfgFile,
+		"Fs":      fs,
 	}
-	return nil, fmt.Errorf("unknown platform %v", platform)
+	app, appErr := LoadPlatform(platform, options)
+	if appErr != nil {
+		return nil, fmt.Errorf("unable to load platform %v Error: %v", platform, appErr)
+	}
+	return app, nil
 }
 
 func NewKfAppWithConfig(cfg *viper.Viper) (kftypes.KfApp, error) {
@@ -108,19 +136,19 @@ func NewKfApp(appName string, appDir string, cfgFile *viper.Viper) (kftypes.KfAp
 		if applicationSpecErr != nil {
 			return nil, fmt.Errorf("couldn't unmarshall yaml. Error: %v", applicationSpecErr)
 		}
-		if spec.Platform == "none" {
-			_kfapp := &ksapp.Kfapp
-			_kfapp.AppName = appName
-			_kfapp.AppDir = appDir
-			_kfapp.Fs = fs
-			_kfapp.KApp = kApp
-			_kfapp.CfgFile = cfgFile
-			_kfapp.KsApp.ObjectMeta.Name = metadata.Name
-			_kfapp.KsApp.ObjectMeta.Namespace = metadata.Namespace
-			_kfapp.KsApp.Spec = spec
-			_kfapp.KsApp.Name = appName
-			return _kfapp, nil
+		platform := cfgFile.GetString("platform")
+		options := map[string]interface{}{
+			"AppName": appName,
+			"AppDir":  appDir,
+			"CfgFile": cfgFile,
+			"Fs":      fs,
+			"KApp":    kApp,
 		}
+		app, appErr := LoadPlatform(platform, options)
+		if appErr != nil {
+			return nil, fmt.Errorf("unable to load platform %v Error: %v", platform, appErr)
+		}
+		return app, nil
 	}
 	return nil, fmt.Errorf("unknown platform %v", spec.Platform)
 }

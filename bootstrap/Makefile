@@ -40,7 +40,10 @@ build-bootstrap: fmt vet
 	go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 
 build-kfctl: fmt vet
-	go build -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
+	go build -i -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
+
+build-aws-plugin: fmt vet
+	go build -i -gcflags 'all=-N -l' -o bin/aws.so -buildmode=plugin cmd/plugins/aws.go
 
 build-local: build-bootstrap build-kfctl
 
