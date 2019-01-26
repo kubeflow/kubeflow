@@ -49,8 +49,12 @@ func init() {
 	generateCfg.SetConfigName("app")
 	generateCfg.SetConfigType("yaml")
 
+	generateCmd.Flags().StringSliceP("packages", "p", kftypes.DefaultPackages,
+		"provide a comma delimited list of package names")
+	generateCfg.BindPFlag("packages", generateCmd.Flags().Lookup("packages"))
+
 	generateCmd.Flags().StringSliceP("components", "c", kftypes.DefaultComponents,
-		"provide a comma delimited list of components")
+		"provide a comma delimited list of component names")
 	generateCfg.BindPFlag("components", generateCmd.Flags().Lookup("components"))
 
 	generateCmd.Flags().StringP("namespace", "n", kftypes.DefaultNamespace,

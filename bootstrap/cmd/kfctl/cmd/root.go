@@ -24,6 +24,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 	"path"
 	"path/filepath"
@@ -98,23 +99,29 @@ func NewKfApp(appName string, appDir string, cfgFile *viper.Viper) (kftypes.KfAp
 	}
 	spec := kftypes.KsAppSpec{}
 	if cfgFile != nil {
+		metadata := v1.ObjectMeta{}
+		metadataErr := cfgFile.Sub("metadata").Unmarshal(&metadata)
+		if metadataErr != nil {
+			return nil, fmt.Errorf("couldn't unmarshall yaml. Error: %v", metadataErr)
+		}
 		applicationSpecErr := cfgFile.Sub("spec").Unmarshal(&spec)
 		if applicationSpecErr != nil {
 			return nil, fmt.Errorf("couldn't unmarshall yaml. Error: %v", applicationSpecErr)
 		}
+		if spec.Platform == "none" {
+			_kfapp := &ksapp.Kfapp
+			_kfapp.AppName = appName
+			_kfapp.AppDir = appDir
+			_kfapp.Fs = fs
+			_kfapp.KApp = kApp
+			_kfapp.CfgFile = cfgFile
+			_kfapp.KsApp.ObjectMeta.Name = metadata.Name
+			_kfapp.KsApp.ObjectMeta.Namespace = metadata.Namespace
+			_kfapp.KsApp.Spec = spec
+			_kfapp.KsApp.Name = appName
+			return _kfapp, nil
+		}
 	}
-	if spec.Platform == "none" {
-		_kfapp := &ksapp.Kfapp
-		_kfapp.AppName = appName
-		_kfapp.AppDir = appDir
-		_kfapp.Fs = fs
-		_kfapp.KApp = kApp
-		_kfapp.CfgFile = cfgFile
-		_kfapp.KsApp.Spec = spec
-		_kfapp.KsApp.Name = appName
-		return _kfapp, nil
-	}
-
 	return nil, fmt.Errorf("unknown platform %v", spec.Platform)
 }
 

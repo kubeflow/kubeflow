@@ -81,6 +81,7 @@ var Kfapp = KsApp{
 			Platform:   "none",
 			Version:    "",
 			Components: []string{"all"},
+			Packages:   []string{"all"},
 			App: kftypes.AppConfig{
 				Registries: []*kftypes.RegistryConfig{
 					{
@@ -89,76 +90,7 @@ var Kfapp = KsApp{
 						Path: "kubeflow",
 					},
 				},
-				Packages: []kftypes.KsPackage{
-					{
-						Name:     "argo",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "pipeline",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "common",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "examples",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "jupyter",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "katib",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "mpi-job",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "pytorch-job",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "seldon",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "tf-serving",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "openvino",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "tensorboard",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "tf-training",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "metacontroller",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "profiles",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "application",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "modeldb",
-						Registry: "kubeflow",
-					},
-				},
+				Packages:   []kftypes.KsPackage{},
 				Components: []kftypes.KsComponent{},
 				Parameters: []kftypes.KsParameter{
 					{
@@ -187,6 +119,7 @@ spec:
   platform: {{.Spec.Platform}}
   repo: {{.Spec.Repo}}
   version: {{.Spec.Version}}
+  packages: {{.Spec.Packages}}
   components: {{.Spec.Components}}
   app:
     registries:
@@ -327,14 +260,17 @@ func (ksApp *KsApp) writeConfigFile() error {
 	if execErr != nil {
 		return execErr
 	}
-	errDefaultConfig := ksApp.CfgFile.ReadConfig(bytes.NewBuffer(buf.Bytes()))
-	if errDefaultConfig != nil {
-		return errDefaultConfig
+	cfgFile := viper.New()
+	cfgFile.SetConfigName("app")
+	cfgFile.SetConfigType("yaml")
+	cfgFileErr := cfgFile.ReadConfig(bytes.NewBuffer(buf.Bytes()))
+	if cfgFileErr != nil {
+		return cfgFileErr
 	}
-	CfgFile := filepath.Join(ksApp.AppDir, kftypes.KfConfigFile)
-	CfgFileErr := ksApp.CfgFile.WriteConfigAs(CfgFile)
-	if CfgFileErr != nil {
-		return CfgFileErr
+	cfgFilePath := filepath.Join(ksApp.AppDir, kftypes.KfConfigFile)
+	cfgFilePathErr := cfgFile.WriteConfigAs(cfgFilePath)
+	if cfgFilePathErr != nil {
+		return cfgFilePathErr
 	}
 	return nil
 }
@@ -358,10 +294,7 @@ func (ksApp *KsApp) Apply() error {
 	if paramSetErr != nil {
 		return fmt.Errorf("couldn't set application component's name to %v Error: %v", name, paramSetErr)
 	}
-	namespace := ksApp.KsApp.Namespace
-	if namespace == "" {
-		namespace = kftypes.DefaultNamespace
-	}
+	namespace := ksApp.KsApp.ObjectMeta.Namespace
 	log.Infof("namespace: %v", namespace)
 	_, nsMissingErr := cli.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
 	if nsMissingErr != nil {
@@ -485,6 +418,10 @@ func (ksApp *KsApp) Generate() error {
 	}
 	namespace := ksApp.CfgFile.GetString("namespace")
 	ksApp.KsApp.Namespace = namespace
+	components := ksApp.CfgFile.GetStringSlice("components")
+	ksApp.KsApp.Spec.Components = components
+	packages := ksApp.CfgFile.GetStringSlice("packages")
+	ksApp.KsApp.Spec.Packages = packages
 	writeConfigErr := ksApp.writeConfigFile()
 	if writeConfigErr != nil {
 		return fmt.Errorf("couldn't write config file app.yaml in %v Error %v", ksApp.AppDir, writeConfigErr)
@@ -499,10 +436,36 @@ func (ksApp *KsApp) Generate() error {
 			return fmt.Errorf("couldn't add registry %v. Error: %v", registry.Name, registryAddErr)
 		}
 	}
-	for _, pkg := range ksApp.KsApp.Spec.App.Packages {
-		packageAddErr := ksApp.PkgInstall(pkg)
-		if packageAddErr != nil {
-			return fmt.Errorf("couldn't add package %v. Error: %v", pkg.Name, packageAddErr)
+	packageArray := ksApp.KsApp.Spec.Packages
+	if len(packageArray) == 1 && packageArray[0] == "all" {
+		packageArray = []string{
+			"application",
+			"argo",
+			"common",
+			"examples",
+			"jupyter",
+			"katib",
+			"metacontroller",
+			"modeldb",
+			"mpi-job",
+			"openvino",
+			"pipeline",
+			"profiles",
+			"pytorch-job",
+			"seldon",
+			"tensorboard",
+			"tf-serving",
+			"tf-training",
+		}
+		for _, pkgName := range packageArray {
+			pkg := kftypes.KsPackage{
+				Name:     pkgName,
+				Registry: "kubeflow",
+			}
+			packageAddErr := ksApp.PkgInstall(pkg)
+			if packageAddErr != nil {
+				return fmt.Errorf("couldn't add package %v. Error: %v", pkg.Name, packageAddErr)
+			}
 		}
 	}
 	componentArray := ksApp.KsApp.Spec.Components
@@ -524,15 +487,15 @@ func (ksApp *KsApp) Generate() error {
 			"tensorboard",
 			"tf-job-operator",
 		}
-	}
-	for _, compName := range componentArray {
-		comp := kftypes.KsComponent{
-			Name:      compName,
-			Prototype: compName,
-		}
-		componentAddErr := ksApp.ComponentAdd(comp, []string{})
-		if componentAddErr != nil {
-			return fmt.Errorf("couldn't add comp %v. Error: %v", comp.Name, componentAddErr)
+		for _, compName := range componentArray {
+			comp := kftypes.KsComponent{
+				Name:      compName,
+				Prototype: compName,
+			}
+			componentAddErr := ksApp.ComponentAdd(comp, []string{})
+			if componentAddErr != nil {
+				return fmt.Errorf("couldn't add comp %v. Error: %v", comp.Name, componentAddErr)
+			}
 		}
 	}
 	for _, parameter := range ksApp.KsApp.Spec.App.Parameters {
