@@ -17,16 +17,6 @@ import (
 	"text/template"
 )
 
-/*
-import "fmt"
-
-var V int
-
-func F() {
-  fmt.Printf("Hello, number %d\n", V)
-}
-*/
-
 // AwsApp implements the KfApp Interface
 type AwsApp struct {
 	AppName string
@@ -43,7 +33,7 @@ type AwsApp struct {
 }
 
 func GetAwsApp(options map[string]interface{}) kftypes.KfApp {
-	log.Infof("in GwtAwsApp!")
+	log.Infof("in GetAwsApp!")
 	_awsapp := &AwsApp{
 		AppName:   "",
 		AppDir:    "",
@@ -185,8 +175,8 @@ func (awsApp *AwsApp) Init() error {
 		return fmt.Errorf("cannot create directory %v", awsApp.AppDir)
 	}
 	fs := afero.NewOsFs()
-	CfgFilePath := filepath.Join(awsApp.AppDir, kftypes.KfConfigFile)
-	_, appDirErr := fs.Stat(CfgFilePath)
+	cfgFilePath := filepath.Join(awsApp.AppDir, kftypes.KfConfigFile)
+	_, appDirErr := fs.Stat(cfgFilePath)
 	if appDirErr == nil {
 		return fmt.Errorf("config file %v already exists in %v", kftypes.KfConfigFile, awsApp.AppDir)
 	}
