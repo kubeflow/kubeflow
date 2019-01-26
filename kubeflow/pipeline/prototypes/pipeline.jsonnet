@@ -10,6 +10,10 @@
 // @optionalParam mysqlImage string mysql:5.6 mysql image
 // @optionalParam minioImage string minio/minio:RELEASE.2018-02-09T22-40-05Z minio image
 // @optionalParam nfsImage string k8s.gcr.io/volume-nfs:0.8 nfs image
+// @optionalParam mysqlPvName string null user provided PV name to host mysql DB
+// @optionalParam nfsPvName string null user provided PV name to host NFS
+// @optionalParam mysqlPd string null GCE PD name to host mysql DB
+// @optionalParam nfsPd string null GCE PD name to host NFS
 
 local k = import "k.libsonnet";
 local all = import "kubeflow/pipeline/all.libsonnet";
