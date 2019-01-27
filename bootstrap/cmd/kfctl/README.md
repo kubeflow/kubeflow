@@ -26,7 +26,7 @@ bootstrap/cmd/kfctl/cmd
 bootstrap/pkg
 bootstrap/pkg/apis
 bootstrap/pkg/apis/apps
-bootstrap/pkg/apis/apps/v1alpha1
+bootstrap/pkg/apis/apps/ksapp/v1alpha1
 bootstrap/pkg/utils
 bootstrap/pkg/client
 bootstrap/pkg/client/ksapp
@@ -64,16 +64,16 @@ bootstrap/pkg/client/gcpapp/gcpapp.go
 `kfctl` has the following usage
 
 - `init <[path/]name> --platform <gcp|microk8s|minikube|none>` Initialize a kubeflow application.
-- `generate [--all|--component <all|c1,c2,c3,c4>`              Generate one or more components or all components.
+- `generate [--component <all|c1,c2,c3,c4>`              Generate one or more components or all components.
 - `apply`                                                      Deploy generated components to the api-server.
 - `delete`                                                     Delete the kubeflow application
 
 Typical use-case
 
 ```sh
-kfctl init <[path/]name> --platform none
-cd myapp
-kfctl generate --all
+kfctl init ~/myapp --platform none
+cd ~/myapp
+kfctl generate 
 kfctl apply 
 ```
 
@@ -85,6 +85,62 @@ It will create an `app.yaml` file in current directory if <name> is
 not a path or in a new directory created under the parent directory 
 if <name> is a path. The app.yaml file will include fields that are used for 
 different platforms that kfctl will generate and deploy.
+
+
+## Plugins
+
+`kfctl` can be extended to new platforms dynamically. An example is 
+under bootstrap/cmd/plugins/aws.go. In this case running
+
+```
+kfctl init ~/aws-app --platform aws
+```
+
+will result in kfctl loading aws.so and calling its methods that 
+implement the KfApp Interface.
+
+### Building a plugin
+
+```
+make build-aws-plugin
+```
+
+### Testing a plugin
+
+```
+make test-aws-plugin
+```
+
+## Debugging
+
+In order to debug in goland, the plugin code must be disabled. 
+This requires commenting out some lines in bootstrap/cmd/kfctl/cmd/root.go
+so that the plugin package is not imported. See https://github.com/golang/go/issues/23733.
+Change root.go to look like below and goland debug should work.
+
+```golang
+	default:
+/*
+		plugindir := os.Getenv("PLUGINS_ENVIRONMENT")
+		pluginpath := filepath.Join(plugindir, platform+".so")
+		p, err := plugin.Open(pluginpath)
+		if err != nil {
+			return nil, fmt.Errorf("could not load plugin %v for platform %v Error %v", pluginpath, platform, err)
+		}
+		symName := "Get" + strings.ToUpper(platform[0:1]) + platform[1:] + "App"
+		symbol, symbolErr := p.Lookup(symName)
+		if symbolErr != nil {
+			return nil, fmt.Errorf("could not find symbol %v for platform %v Error %v", symName, platform, symbolErr)
+		}
+		return symbol.(func(map[string]interface{}) kftypes.KfApp)(options), nil
+*/
+		return nil, fmt.Errorf("unknown platform %v", platform)
+	}
+```
+
+## Different KfApp SubTypes
+
+### ksonnet related types (under pkg/apis/apps/ksapp/v1alpha1)
 
 ```golang
 type KsApp struct {

@@ -17,7 +17,8 @@ package cmd
 import (
 	"fmt"
 	"github.com/ksonnet/ksonnet/pkg/app"
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
+	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksapp/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/gcpapp"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksapp"
 	"github.com/mitchellh/go-homedir"
@@ -36,25 +37,27 @@ import (
 func LoadPlatform(platform string, options map[string]interface{}) (kftypes.KfApp, error) {
 	switch platform {
 	case "none":
-		_kfapp := ksapp.GetKfApp(options).(*ksapp.KsApp)
+		_kfapp := ksapp.GetKfApp(options)
 		return _kfapp, nil
 	case "gcp":
-		_gcpapp := gcpapp.GetKfApp(options).(*gcpapp.GcpApp)
+		_gcpapp := gcpapp.GetKfApp(options)
 		return _gcpapp, nil
 	default:
+
 		plugindir := os.Getenv("PLUGINS_ENVIRONMENT")
 		pluginpath := filepath.Join(plugindir, platform+".so")
 		p, err := plugin.Open(pluginpath)
 		if err != nil {
-			panic(err)
+			return nil, fmt.Errorf("could not load plugin %v for platform %v Error %v", pluginpath, platform, err)
 		}
 		symName := "Get" + strings.ToUpper(platform[0:1]) + platform[1:] + "App"
-		log.Infof("symbol %v", symName)
-		f, err := p.Lookup(symName)
-		if err != nil {
-			panic(err)
+		symbol, symbolErr := p.Lookup(symName)
+		if symbolErr != nil {
+			return nil, fmt.Errorf("could not find symbol %v for platform %v Error %v", symName, platform, symbolErr)
 		}
-		return f.(func(map[string]interface{}) kftypes.KfApp)(options), nil
+		return symbol.(func(map[string]interface{}) kftypes.KfApp)(options), nil
+
+		//return nil, fmt.Errorf("unknown platform %v", platform)
 	}
 }
 
@@ -120,12 +123,12 @@ func NewKfAppWithConfig(cfg *viper.Viper) (kftypes.KfApp, error) {
 
 func NewKfApp(appName string, appDir string, cfgFile *viper.Viper) (kftypes.KfApp, error) {
 	fs := afero.NewOsFs()
-	ksDir := path.Join(appDir, kftypes.KsName)
+	ksDir := path.Join(appDir, kstypes.KsName)
 	kApp, kAppErr := app.Load(fs, nil, ksDir)
 	if kAppErr != nil {
 		return nil, fmt.Errorf("there was a problem loading app %v. Error: %v", appName, kAppErr)
 	}
-	spec := kftypes.KsAppSpec{}
+	spec := kstypes.KsAppSpec{}
 	if cfgFile != nil {
 		metadata := v1.ObjectMeta{}
 		metadataErr := cfgFile.Sub("metadata").Unmarshal(&metadata)

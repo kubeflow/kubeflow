@@ -15,7 +15,8 @@
 package cmd
 
 import (
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
+	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksapp/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -49,11 +50,11 @@ func init() {
 	generateCfg.SetConfigName("app")
 	generateCfg.SetConfigType("yaml")
 
-	generateCmd.Flags().StringSliceP("packages", "p", kftypes.DefaultPackages,
+	generateCmd.Flags().StringSliceP("packages", "p", kstypes.DefaultPackages,
 		"provide a comma delimited list of package names")
 	generateCfg.BindPFlag("packages", generateCmd.Flags().Lookup("packages"))
 
-	generateCmd.Flags().StringSliceP("components", "c", kftypes.DefaultComponents,
+	generateCmd.Flags().StringSliceP("components", "c", kstypes.DefaultComponents,
 		"provide a comma delimited list of component names")
 	generateCfg.BindPFlag("components", generateCmd.Flags().Lookup("components"))
 

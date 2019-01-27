@@ -17,7 +17,7 @@ package cmd
 import (
 	"github.com/spf13/viper"
 
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )

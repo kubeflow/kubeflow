@@ -111,6 +111,7 @@ github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxv
 github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515/go.mod h1:+0opPa2QZZtGFBFZlji/RkVcI2GknAs/DXo4wKdlNEc=
 github.com/ksonnet/ksonnet v0.13.1/go.mod h1:T8FwyGOX8fMoDyp845QmYDnk8R7AF35pImyfWJ9fj7M=
 github.com/ksonnet/ksonnet-lib v0.1.12/go.mod h1:2p66Npe1xOUtQGlGzD5aJ3UHEBjG1b6o3nbC1rVNvz4=
+github.com/kubeflow/kubeflow v0.4.1 h1:zrmzxaiA6MT+0PZ0caUTres2GS2W6Pyn+JVS0w/tgwQ=
 github.com/kubernetes/client-go v6.0.0+incompatible/go.mod h1:kszVi2i+FeqECZHhjpkV5h5zM0GnURfJv897YzgoAQ8=
 github.com/kubernetes/code-generator v0.0.0-20181206115026-3a2206dd6a78/go.mod h1:GXXF2gdS/LDGLo7HilXGuIQfo5nLQDhB4eUn/2UMPnk=
 github.com/magiconair/properties v1.8.0/go.mod h1:PppfXfuXeibc/6YijjN8zIbojt8czPbwD3XqdrwzmxQ=

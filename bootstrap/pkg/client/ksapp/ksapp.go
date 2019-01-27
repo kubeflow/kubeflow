@@ -25,7 +25,8 @@ import (
 	"github.com/ksonnet/ksonnet/pkg/app"
 	"github.com/ksonnet/ksonnet/pkg/client"
 	"github.com/ksonnet/ksonnet/pkg/component"
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
+	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksapp/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -59,19 +60,19 @@ type KsApp struct {
 	CfgFile   *viper.Viper
 	Fs        afero.Fs
 	KApp      app.App
-	KsApp     kftypes.KsApp
+	KsApp     kstypes.KsApp
 }
 
 func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	_kfapp := &KsApp{
 		AppName:   "",
 		AppDir:    "",
-		KsName:    kftypes.KsName,
-		KsEnvName: kftypes.KsEnvName,
+		KsName:    kstypes.KsName,
+		KsEnvName: kstypes.KsEnvName,
 		Fs:        nil,
 		CfgFile:   nil,
 		KApp:      nil,
-		KsApp: kftypes.KsApp{
+		KsApp: kstypes.KsApp{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "KfApp",
 				APIVersion: "apps.kubeflow.org/v1alpha1",
@@ -79,22 +80,22 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "",
 			},
-			Spec: kftypes.KsAppSpec{
+			Spec: kstypes.KsAppSpec{
 				Platform:   "aws",
 				Version:    "",
 				Components: []string{"all"},
 				Packages:   []string{"all"},
-				App: kftypes.AppConfig{
-					Registries: []*kftypes.RegistryConfig{
+				App: kstypes.AppConfig{
+					Registries: []*kstypes.RegistryConfig{
 						{
 							Name: "kubeflow",
 							Repo: "https://github.com/kubeflow/kubeflow.git",
 							Path: "kubeflow",
 						},
 					},
-					Packages:   []kftypes.KsPackage{},
-					Components: []kftypes.KsComponent{},
-					Parameters: []kftypes.KsParameter{
+					Packages:   []kstypes.KsPackage{},
+					Components: []kstypes.KsComponent{},
+					Parameters: []kstypes.KsParameter{
 						{
 							Component: "spartakus",
 							Name:      "usageId",
@@ -293,9 +294,9 @@ func (ksApp *KsApp) Apply() error {
 	if cliErr != nil {
 		return fmt.Errorf("couldn't create client Error: %v", cliErr)
 	}
-	envSetErr := ksApp.EnvSet(kftypes.KsEnvName, host)
+	envSetErr := ksApp.EnvSet(kstypes.KsEnvName, host)
 	if envSetErr != nil {
-		return fmt.Errorf("couldn't create ksonnet env %v Error: %v", kftypes.KsEnvName, envSetErr)
+		return fmt.Errorf("couldn't create ksonnet env %v Error: %v", kstypes.KsEnvName, envSetErr)
 	}
 	//ks param set application name ${DEPLOYMENT_NAME}
 	name := ksApp.KsApp.Name
@@ -374,7 +375,7 @@ func (ksApp *KsApp) ApplyComponent(components []string, cfg *clientcmdapi.Config
 
 }
 
-func (ksApp *KsApp) ComponentAdd(component kftypes.KsComponent, args []string) error {
+func (ksApp *KsApp) ComponentAdd(component kstypes.KsComponent, args []string) error {
 	componentPath := filepath.Join(ksApp.KsRoot(), "components", component.Name+".jsonnet")
 	componentArgs := make([]string, 0)
 	componentArgs = append(componentArgs, component.Prototype)
@@ -397,7 +398,7 @@ func (ksApp *KsApp) ComponentAdd(component kftypes.KsComponent, args []string) e
 	return nil
 }
 
-func (ksApp *KsApp) Components() (map[string]*kftypes.KsComponent, error) {
+func (ksApp *KsApp) Components() (map[string]*kstypes.KsComponent, error) {
 	moduleName := "/"
 
 	topModule := component.NewModule(ksApp.KApp, moduleName)
@@ -405,10 +406,10 @@ func (ksApp *KsApp) Components() (map[string]*kftypes.KsComponent, error) {
 	if err != nil {
 		return nil, fmt.Errorf("there was a problem getting the Components %v. Error: %v", ksApp.AppName, err)
 	}
-	comps := make(map[string]*kftypes.KsComponent)
+	comps := make(map[string]*kstypes.KsComponent)
 	for _, comp := range components {
 		name := comp.Name(false)
-		comps[name] = &kftypes.KsComponent{
+		comps[name] = &kstypes.KsComponent{
 			Name:      name,
 			Prototype: name,
 		}
@@ -467,7 +468,7 @@ func (ksApp *KsApp) Generate() error {
 			"tf-training",
 		}
 		for _, pkgName := range packageArray {
-			pkg := kftypes.KsPackage{
+			pkg := kstypes.KsPackage{
 				Name:     pkgName,
 				Registry: "kubeflow",
 			}
@@ -497,7 +498,7 @@ func (ksApp *KsApp) Generate() error {
 			"tf-job-operator",
 		}
 		for _, compName := range componentArray {
-			comp := kftypes.KsComponent{
+			comp := kstypes.KsComponent{
 				Name:      compName,
 				Prototype: compName,
 			}
@@ -595,15 +596,15 @@ func (ksApp *KsApp) KsRoot() string {
 	return root
 }
 
-func (ksApp *KsApp) Libraries() (map[string]*kftypes.KsLibrary, error) {
+func (ksApp *KsApp) Libraries() (map[string]*kstypes.KsLibrary, error) {
 	libs, err := ksApp.KApp.Libraries()
 	if err != nil {
 		return nil, fmt.Errorf("there was a problem getting the libraries %v. Error: %v", ksApp.AppName, err)
 	}
 
-	libraries := make(map[string]*kftypes.KsLibrary)
+	libraries := make(map[string]*kstypes.KsLibrary)
 	for k, v := range libs {
-		libraries[k] = &kftypes.KsLibrary{
+		libraries[k] = &kstypes.KsLibrary{
 			Name:     v.Name,
 			Registry: v.Registry,
 			Version:  v.Version,
@@ -612,14 +613,14 @@ func (ksApp *KsApp) Libraries() (map[string]*kftypes.KsLibrary, error) {
 	return libraries, nil
 }
 
-func (ksApp *KsApp) Registries() (map[string]*kftypes.Registry, error) {
+func (ksApp *KsApp) Registries() (map[string]*kstypes.Registry, error) {
 	regs, err := ksApp.KApp.Registries()
 	if err != nil {
 		return nil, fmt.Errorf("There was a problem getting the Registries %v. Error: %v", ksApp.AppName, err)
 	}
-	registries := make(map[string]*kftypes.Registry)
+	registries := make(map[string]*kstypes.Registry)
 	for k, v := range regs {
-		registries[k] = &kftypes.Registry{
+		registries[k] = &kstypes.Registry{
 			Name:     v.Name,
 			Protocol: v.Protocol,
 			URI:      v.URI,
@@ -646,7 +647,7 @@ func (ksApp *KsApp) ParamSet(component string, name string, value string) error 
 	return nil
 }
 
-func (ksApp *KsApp) PkgInstall(pkg kftypes.KsPackage) error {
+func (ksApp *KsApp) PkgInstall(pkg kstypes.KsPackage) error {
 	root := ksApp.KsRoot()
 	err := actions.RunPkgInstall(map[string]interface{}{
 		actions.OptionAppRoot: root,
@@ -664,7 +665,7 @@ func (ksApp *KsApp) PrototypeUse(m map[string]interface{}) error {
 	return nil
 }
 
-func (ksApp *KsApp) RegistryAdd(registry *kftypes.RegistryConfig) error {
+func (ksApp *KsApp) RegistryAdd(registry *kstypes.RegistryConfig) error {
 	log.Infof("App %v add registry %v URI %v", ksApp.AppName, registry.Name, registry.RegUri)
 	root := ksApp.KsRoot()
 	options := map[string]interface{}{

@@ -20,14 +20,8 @@ import (
 )
 
 const (
-	KsName           = "ks_app"
-	KsEnvName        = "default"
-	DefaultNamespace = "kubeflow"
-	DefaultPlatform  = "none"
-	// TODO: find the latest tag dynamically
-	DefaultVersion = "v0.4.1"
-	DefaultKfRepo  = "$GOPATH/src/github.com/kubeflow/kubeflow/kubeflow"
-	KfConfigFile   = "app.yaml"
+	KsName    = "ks_app"
+	KsEnvName = "default"
 )
 
 var DefaultComponents = []string{"all"}
@@ -170,15 +164,4 @@ type KsAppList struct {
 
 func init() {
 	SchemeBuilder.Register(&KsApp{}, &KsAppList{})
-}
-
-//
-// KfApp is used by commands under bootstrap/cmd/{bootstrap,kfctl}. KfApp provides a common
-// API for different implementations like KsApp, GcpApp, etc.
-//
-type KfApp interface {
-	Apply() error
-	Delete() error
-	Generate() error
-	Init() error
 }

@@ -4,7 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/ksonnet/ksonnet/pkg/app"
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
+	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksapp/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -29,7 +30,7 @@ type AwsApp struct {
 	CfgFile   *viper.Viper
 	Fs        afero.Fs
 	KApp      app.App
-	AwsApp    kftypes.KsApp
+	AwsApp    kstypes.KsApp
 }
 
 func GetAwsApp(options map[string]interface{}) kftypes.KfApp {
@@ -37,12 +38,12 @@ func GetAwsApp(options map[string]interface{}) kftypes.KfApp {
 	_awsapp := &AwsApp{
 		AppName:   "",
 		AppDir:    "",
-		KsName:    kftypes.KsName,
-		KsEnvName: kftypes.KsEnvName,
+		KsName:    kstypes.KsName,
+		KsEnvName: kstypes.KsEnvName,
 		Fs:        nil,
 		CfgFile:   nil,
 		KApp:      nil,
-		AwsApp: kftypes.KsApp{
+		AwsApp: kstypes.KsApp{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "AwsApp",
 				APIVersion: "apps.kubeflow.org/v1alpha1",
@@ -50,22 +51,22 @@ func GetAwsApp(options map[string]interface{}) kftypes.KfApp {
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "",
 			},
-			Spec: kftypes.KsAppSpec{
+			Spec: kstypes.KsAppSpec{
 				Platform:   "aws",
 				Version:    "",
 				Components: []string{"all"},
 				Packages:   []string{"all"},
-				App: kftypes.AppConfig{
-					Registries: []*kftypes.RegistryConfig{
+				App: kstypes.AppConfig{
+					Registries: []*kstypes.RegistryConfig{
 						{
 							Name: "kubeflow",
 							Repo: "https://github.com/kubeflow/kubeflow.git",
 							Path: "kubeflow",
 						},
 					},
-					Packages:   []kftypes.KsPackage{},
-					Components: []kftypes.KsComponent{},
-					Parameters: []kftypes.KsParameter{
+					Packages:   []kstypes.KsPackage{},
+					Components: []kstypes.KsComponent{},
+					Parameters: []kstypes.KsParameter{
 						{
 							Component: "spartakus",
 							Name:      "usageId",

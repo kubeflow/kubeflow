@@ -12,25 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package apps contains apps API versions
-package apps
-
-const (
-	DefaultNamespace = "kubeflow"
-	DefaultPlatform  = "none"
-	// TODO: find the latest tag dynamically
-	DefaultVersion = "v0.4.1"
-	DefaultKfRepo  = "$GOPATH/src/github.com/kubeflow/kubeflow/kubeflow"
-	KfConfigFile   = "app.yaml"
-)
-
-//
-// KfApp is used by commands under bootstrap/cmd/{bootstrap,kfctl}. KfApp provides a common
-// API for different implementations like KsApp, GcpApp, etc.
-//
-type KfApp interface {
-	Apply() error
-	Delete() error
-	Generate() error
-	Init() error
-}
+// Package ksapps contains ksonnet related types
+package ksapp
