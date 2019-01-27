@@ -53,9 +53,8 @@ type KsApp struct {
 	// ksonnet env name
 	KsEnvName string
 	CfgFile   *viper.Viper
-	Fs        afero.Fs
 	KApp      app.App
-	KsApp     kstypes.KsApp
+	KsApp     *kstypes.KsApp
 }
 
 func GetKfApp(options map[string]interface{}) kftypes.KfApp {
@@ -64,10 +63,9 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 		AppDir:    "",
 		KsName:    kstypes.KsName,
 		KsEnvName: kstypes.KsEnvName,
-		Fs:        afero.NewOsFs(),
 		CfgFile:   nil,
 		KApp:      nil,
-		KsApp: kstypes.KsApp{
+		KsApp: &kstypes.KsApp{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "KsApp",
 				APIVersion: "ksapp.apps.kubeflow.org/v1alpha1",
@@ -78,6 +76,7 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 			Spec: kstypes.KsAppSpec{
 				Platform:   "none",
 				Version:    "",
+				Repo:       "",
 				Components: []string{"all"},
 				Packages:   []string{"all"},
 				App: kstypes.AppConfig{
@@ -276,7 +275,7 @@ func (ksApp *KsApp) ComponentAdd(component kstypes.KsComponent, args []string) e
 	if args != nil && len(args) > 0 {
 		componentArgs = append(componentArgs, args[0:]...)
 	}
-	if exists, _ := afero.Exists(ksApp.Fs, componentPath); !exists {
+	if exists, _ := afero.Exists(afero.NewOsFs(), componentPath); !exists {
 		log.Infof("Creating Component: %v ...", component.Name)
 		err := actions.RunPrototypeUse(map[string]interface{}{
 			actions.OptionAppRoot:   ksApp.KsRoot(),
@@ -293,7 +292,6 @@ func (ksApp *KsApp) ComponentAdd(component kstypes.KsComponent, args []string) e
 
 func (ksApp *KsApp) Components() (map[string]*kstypes.KsComponent, error) {
 	moduleName := "/"
-
 	topModule := component.NewModule(ksApp.KApp, moduleName)
 	components, err := topModule.Components()
 	if err != nil {
@@ -422,9 +420,8 @@ func (ksApp *KsApp) Init() error {
 	if err != nil {
 		return fmt.Errorf("cannot create directory %v", ksApp.AppDir)
 	}
-	fs := afero.NewOsFs()
 	CfgFilePath := filepath.Join(ksApp.AppDir, kftypes.KfConfigFile)
-	_, appDirErr := fs.Stat(CfgFilePath)
+	_, appDirErr := afero.NewOsFs().Stat(CfgFilePath)
 	if appDirErr == nil {
 		return fmt.Errorf("config file %v already exists in %v", kftypes.KfConfigFile, ksApp.AppDir)
 	}
@@ -454,7 +451,7 @@ func (ksApp *KsApp) InitKs(envName string, k8sSpecFlag string, host string, name
 	newRoot := path.Join(ksApp.AppDir, ksApp.KsName)
 	ksApp.KsEnvName = envName
 	options := map[string]interface{}{
-		actions.OptionFs:                    ksApp.Fs,
+		actions.OptionFs:                    afero.NewOsFs(),
 		actions.OptionName:                  ksApp.KsName,
 		actions.OptionEnvName:               ksApp.KsEnvName,
 		actions.OptionNewRoot:               newRoot,

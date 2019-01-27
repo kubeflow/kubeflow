@@ -45,6 +45,7 @@ func LoadPlatform(platform string, options map[string]interface{}) (kftypes.KfAp
 		// To enable goland debugger:
 		// Comment out this section and comment in the line
 		//   return nil, fmt.Errorf("unknown platform %v", platform
+
 		plugindir := os.Getenv("PLUGINS_ENVIRONMENT")
 		pluginpath := filepath.Join(plugindir, platform+"app.so")
 		p, err := plugin.Open(pluginpath)
@@ -123,22 +124,23 @@ func LoadKfApp(cfgFile *viper.Viper) (kftypes.KfApp, error) {
 	if kAppErr != nil {
 		return nil, fmt.Errorf("there was a problem loading app %v. Error: %v", appName, kAppErr)
 	}
-	spec := kstypes.KsAppSpec{}
 	metadata := v1.ObjectMeta{}
 	metadataErr := cfgFile.Sub("metadata").Unmarshal(&metadata)
 	if metadataErr != nil {
 		return nil, fmt.Errorf("couldn't unmarshall yaml. Error: %v", metadataErr)
 	}
-	applicationSpecErr := cfgFile.Sub("spec").Unmarshal(&spec)
-	if applicationSpecErr != nil {
-		return nil, fmt.Errorf("couldn't unmarshall yaml. Error: %v", applicationSpecErr)
+	ksApp := kstypes.KsApp{}
+	ksAppErr := cfgFile.Unmarshal(&ksApp)
+	if ksAppErr != nil {
+		return nil, fmt.Errorf("couldn't unmarshall yaml. Error: %v", ksAppErr)
 	}
-	platform := cfgFile.GetString("platform")
+	platform := ksApp.Spec.Platform
 	options := map[string]interface{}{
 		"AppName": appName,
 		"AppDir":  appDir,
 		"CfgFile": cfgFile,
 		"KApp":    kApp,
+		"KsApp":   &ksApp,
 	}
 	app, appErr := LoadPlatform(platform, options)
 	if appErr != nil {
