@@ -8,9 +8,13 @@ The new `kfctl` client replaces `kfctl.sh` and is implemented in golang.
 
  - Create a common API for the UI (gcp-click-to-deploy) and `kfctl` (`KfApp`)
 
- - Separate different implementations of the KfApp Interface
-   - bootstrap/pkg/client/ksapp for `kfctl init --platform none`
-   - bootstrap/pkg/client/gcpapp for `kfctl init --platform gcp`
+ - Separate different platform implementations of the KfApp Interface
+   - ksonnet
+     - `kfctl init --platform none`
+     - implementation: bootstrap/pkg/client/ksapp
+   - gcp
+     - `kfctl init --platform gcp`
+     - implementation: bootstrap/pkg/client/gcpapp 
 
  - Allow new platforms to be added to kfctl without rebuilding or reshipping kfctl (see Plugins below).
 
