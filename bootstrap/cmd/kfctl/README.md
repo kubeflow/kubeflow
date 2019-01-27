@@ -300,5 +300,5 @@ TBD
 
 ## gcp-click-to-deploy (no changes)
 
-Ksonnet types have been moved to `github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1`
+Ksonnet types have been moved to `github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksapp/v1alpha1`
 
