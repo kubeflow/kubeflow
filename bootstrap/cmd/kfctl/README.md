@@ -105,10 +105,12 @@ implement the KfApp Interface.
 make build-foo-plugin
 ```
 
-### Testing a plugin
+### Testing 
+
+#### Testing init for all platforms including the `foo` platform plugin
 
 ```
-make test-foo-plugin
+make test-known-platforms-init
 ```
 
 ## Debugging

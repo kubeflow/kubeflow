@@ -17,7 +17,6 @@ limitations under the License.
 package ksapp
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"github.com/cenkalti/backoff"
@@ -30,11 +29,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
-	"io"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"math/rand"
@@ -43,7 +39,6 @@ import (
 	"path/filepath"
 	"reflect"
 	"regexp"
-	"strings"
 	"text/template"
 	"time"
 )
@@ -74,7 +69,7 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 		KApp:      nil,
 		KsApp: kstypes.KsApp{
 			TypeMeta: metav1.TypeMeta{
-				Kind:       "KfApp",
+				Kind:       "KsApp",
 				APIVersion: "ksapp.apps.kubeflow.org/v1alpha1",
 			},
 			ObjectMeta: metav1.ObjectMeta{
@@ -158,108 +153,6 @@ spec:
 {{end}}
 `)
 
-func KubeConfigPath() string {
-	kubeconfigEnv := os.Getenv("KUBECONFIG")
-	if kubeconfigEnv == "" {
-		home := os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
-		if home == "" {
-			for _, h := range []string{"HOME", "USERPROFILE"} {
-				if home = os.Getenv(h); home != "" {
-					break
-				}
-			}
-		}
-		kubeconfigPath := filepath.Join(home, ".kube", "config")
-		return kubeconfigPath
-	}
-	return kubeconfigEnv
-}
-
-// BuildOutOfClusterConfig returns k8s config
-func BuildOutOfClusterConfig() (*rest.Config, error) {
-	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
-	loadingRules.ExplicitPath = KubeConfigPath()
-	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
-		loadingRules, &clientcmd.ConfigOverrides{}).ClientConfig()
-	if err != nil {
-		return nil, err
-	}
-	return config, nil
-}
-
-func ServerVersion() (host string, version string, err error) {
-	restApi, err := BuildOutOfClusterConfig()
-	if err != nil {
-		return "", "", fmt.Errorf("couldn't build out-of-cluster config. Error: %v", err)
-	}
-	clnt, clntErr := kubernetes.NewForConfig(restApi)
-	if clntErr != nil {
-		return "", "", fmt.Errorf("couldn't get clientset. Error: %v", err)
-	}
-	serverVersion, serverVersionErr := clnt.ServerVersion()
-	if serverVersionErr != nil {
-		return "", "", fmt.Errorf("couldn't get server version info. Error: %v", serverVersionErr)
-	}
-	re := regexp.MustCompile("^v[0-9]+.[0-9]+.[0-9]+")
-	version = re.FindString(serverVersion.String())
-	return restApi.Host, "version:" + version, nil
-}
-
-func GetClientConfig() (*clientcmdapi.Config, error) {
-	kubeconfig := KubeConfigPath()
-	config, configErr := clientcmd.LoadFromFile(kubeconfig)
-	if configErr != nil {
-		return nil, fmt.Errorf("could not load config Error: %v", configErr)
-
-	}
-	return config, nil
-}
-
-// GetClientOutOfCluster returns a k8s clientset to the request from outside of cluster
-func GetClientOutOfCluster() (kubernetes.Interface, error) {
-	config, err := BuildOutOfClusterConfig()
-	if err != nil {
-		log.Fatalf("Can not get kubernetes config: %v", err)
-	}
-
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		log.Fatalf("Can not get kubernetes client: %v", err)
-	}
-
-	return clientset, nil
-}
-
-// capture replaces os.Stdout with a writer that buffers any data written
-// to os.Stdout. Call the returned function to cleanup and get the data
-// as a string.
-func capture() func() (string, error) {
-	r, w, err := os.Pipe()
-	if err != nil {
-		panic(err)
-	}
-
-	done := make(chan error, 1)
-
-	save := os.Stdout
-	os.Stdout = w
-
-	var buf strings.Builder
-
-	go func() {
-		_, err := io.Copy(&buf, r)
-		_ = r.Close()
-		done <- err
-	}()
-
-	return func() (string, error) {
-		os.Stdout = save
-		_ = w.Close()
-		err := <-done
-		return buf.String(), err
-	}
-}
-
 func (ksApp *KsApp) writeConfigFile() error {
 	tmpl, tmplErr := template.New(kftypes.KfConfigFile).Parse(KsAppTemplate)
 	if tmplErr != nil {
@@ -286,11 +179,11 @@ func (ksApp *KsApp) writeConfigFile() error {
 }
 
 func (ksApp *KsApp) Apply() error {
-	host, _, err := ServerVersion()
+	host, _, err := kftypes.ServerVersion()
 	if err != nil {
 		return fmt.Errorf("couldn't get server version: %v", err)
 	}
-	cli, cliErr := GetClientOutOfCluster()
+	cli, cliErr := kftypes.GetClientOutOfCluster()
 	if cliErr != nil {
 		return fmt.Errorf("couldn't create client Error: %v", cliErr)
 	}
@@ -314,7 +207,7 @@ func (ksApp *KsApp) Apply() error {
 			return fmt.Errorf("couldn't create namespace %v Error: %v", namespace, nsErr)
 		}
 	}
-	clientConfig, clientConfigErr := GetClientConfig()
+	clientConfig, clientConfigErr := kftypes.GetClientConfig()
 	if clientConfigErr != nil {
 		return fmt.Errorf("couldn't load client config Error: %v", clientConfigErr)
 	}
@@ -422,7 +315,7 @@ func (ksApp *KsApp) Delete() error {
 }
 
 func (ksApp *KsApp) Generate() error {
-	host, k8sSpec, err := ServerVersion()
+	host, k8sSpec, err := kftypes.ServerVersion()
 	if err != nil {
 		return fmt.Errorf("couldn't get server version: %v", err)
 	}
@@ -524,6 +417,7 @@ func (ksApp *KsApp) Init() error {
 	// "kf_app-controller": a DNS-1123 subdomain must consist of lower case alphanumeric characters, '-' or '.',
 	// and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is
 	// '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')
+	log.Infof("KsApp.Init AppName %v AppDir %v", ksApp.AppName, ksApp.AppDir)
 	err := os.Mkdir(ksApp.AppDir, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("cannot create directory %v", ksApp.AppDir)
@@ -680,39 +574,5 @@ func (ksApp *KsApp) RegistryAdd(registry *kstypes.RegistryConfig) error {
 	if err != nil {
 		return fmt.Errorf("there was a problem adding registry %v: %v", registry.Name, err)
 	}
-	return nil
-}
-
-func (ksApp *KsApp) Show(components []string) error {
-	done := capture()
-	err := actions.RunShow(map[string]interface{}{
-		actions.OptionApp:            ksApp.KApp,
-		actions.OptionComponentNames: components,
-		actions.OptionEnvName:        ksApp.KsEnvName,
-		actions.OptionFormat:         "yaml",
-	})
-	if err != nil {
-		return fmt.Errorf("there was a problem showing components %v: %v", components, err)
-	}
-	capturedOutput, capturedOutputErr := done()
-	if capturedOutputErr != nil {
-		return fmt.Errorf("there was a problem capturing the output: %v", capturedOutput)
-	}
-	outputFileName := filepath.Join(ksApp.KsRoot(), ksApp.KsEnvName+".yaml")
-	outputFile, outputFileErr := os.Create(outputFileName)
-	if outputFileErr != nil {
-		return fmt.Errorf("there was a problem creating output file %v: %v", outputFileName, outputFileErr)
-	}
-	defer outputFile.Close()
-	writer := bufio.NewWriter(outputFile)
-	_, writerErr := writer.WriteString(capturedOutput)
-	if writerErr != nil {
-		return fmt.Errorf("there was a problem writing to %v: %v", outputFileName, writerErr)
-	}
-	flushErr := writer.Flush()
-	if flushErr != nil {
-		return fmt.Errorf("there was a problem flushing file %v: %v", outputFileName, flushErr)
-	}
-
 	return nil
 }

@@ -34,7 +34,6 @@ type FooApp struct {
 }
 
 func GetFooApp(options map[string]interface{}) kftypes.KfApp {
-	log.Infof("in GetFooApp!")
 	_fooapp := &FooApp{
 		AppName:   "",
 		AppDir:    "",
@@ -45,8 +44,8 @@ func GetFooApp(options map[string]interface{}) kftypes.KfApp {
 		KApp:      nil,
 		FooApp: kstypes.KsApp{
 			TypeMeta: metav1.TypeMeta{
-				Kind:       "FooApp",
-				APIVersion: "apps.kubeflow.org/v1alpha1",
+				Kind:       "KsApp",
+				APIVersion: "ksapp.apps.kubeflow.org/v1alpha1",
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "",
@@ -155,22 +154,22 @@ func (fooApp *FooApp) writeConfigFile() error {
 }
 
 func (fooApp *FooApp) Apply() error {
-	log.Infof("in FooApp.Apply!")
+	log.Infof("FooApp.Apply")
 	return nil
 }
 
 func (fooApp *FooApp) Delete() error {
-	log.Infof("in FooApp.Delete!")
+	log.Infof("FooApp.Delete")
 	return nil
 }
 
 func (fooApp *FooApp) Generate() error {
-	log.Infof("in FooApp.Generate!")
+	log.Infof("FooApp.Generate")
 	return nil
 }
 
 func (fooApp *FooApp) Init() error {
-	log.Infof("in FooApp.Init!")
+	log.Infof("FooApp.Init AppName %v AppDir %v", fooApp.AppName, fooApp.AppDir)
 	err := os.Mkdir(fooApp.AppDir, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("cannot create directory %v", fooApp.AppDir)

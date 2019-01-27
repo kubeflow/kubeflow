@@ -78,6 +78,15 @@ run-local-docker:
 	  --mount type=bind,source=${HOME}/kf_app,target=/home/kubeflow \
 	  --entrypoint /bin/bash $(IMG):$(TAG)
 
+test-known-platforms-init: install build-foo-plugin
+	@rm -rf $(HOME)/kf-app && \
+	kfctl init $(HOME)/kf-app --platform none && \
+	rm -rf $(HOME)/gcp-app && \
+	kfctl init $(HOME)/gcp-app --platform gcp && \
+	rm -rf $(HOME)/foo-app && \
+	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl init $(HOME)/foo-app --platform foo && \
+	echo SUCCESS
+
 test-foo-plugin:
 	rm -rf $(HOME)/foo-app
 	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl init $(HOME)/foo-app --platform foo

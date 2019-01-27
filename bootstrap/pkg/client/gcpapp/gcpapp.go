@@ -17,12 +17,10 @@ limitations under the License.
 package gcpapp
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"github.com/cenkalti/backoff"
 	"github.com/ksonnet/ksonnet/pkg/actions"
-	"github.com/ksonnet/ksonnet/pkg/app"
 	"github.com/ksonnet/ksonnet/pkg/client"
 	"github.com/ksonnet/ksonnet/pkg/component"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
@@ -31,11 +29,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
-	"io"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"math/rand"
@@ -44,7 +39,6 @@ import (
 	"path/filepath"
 	"reflect"
 	"regexp"
-	"strings"
 	"text/template"
 	"time"
 )
@@ -52,12 +46,13 @@ import (
 // GcpApp implements KfApp Interface
 // It includes the KsApp along with additional Gcp types
 type GcpApp struct {
-	ksApp ksapp.KsApp
+	ksApp *ksapp.KsApp
+	//TODO add additional types required for gcp platform
 }
 
 func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	_gcpapp := &GcpApp{
-		ksApp: ksapp.KsApp{
+		ksApp: &ksapp.KsApp{
 			AppName:   "",
 			AppDir:    "",
 			KsName:    kstypes.KsName,
@@ -107,7 +102,7 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	}
 	_gcpapp.ksApp.KsApp.Name = options["AppName"].(string)
 	for k, v := range options {
-		x := reflect.ValueOf(_gcpapp).Elem().FieldByName(k)
+		x := reflect.ValueOf(_gcpapp.ksApp).Elem().FieldByName(k)
 		x.Set(reflect.ValueOf(v))
 	}
 	return _gcpapp
@@ -149,432 +144,37 @@ spec:
 {{end}}
 `)
 
-func KubeConfigPath() string {
-	kubeconfigEnv := os.Getenv("KUBECONFIG")
-	if kubeconfigEnv == "" {
-		home := os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
-		if home == "" {
-			for _, h := range []string{"HOME", "USERPROFILE"} {
-				if home = os.Getenv(h); home != "" {
-					break
-				}
-			}
-		}
-		kubeconfigPath := filepath.Join(home, ".kube", "config")
-		return kubeconfigPath
-	}
-	return kubeconfigEnv
-}
-
-// BuildOutOfClusterConfig returns k8s config
-func BuildOutOfClusterConfig() (*rest.Config, error) {
-	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
-	loadingRules.ExplicitPath = KubeConfigPath()
-	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
-		loadingRules, &clientcmd.ConfigOverrides{}).ClientConfig()
-	if err != nil {
-		return nil, err
-	}
-	return config, nil
-}
-
-func ServerVersion() (host string, version string, err error) {
-	restApi, err := BuildOutOfClusterConfig()
-	if err != nil {
-		return "", "", fmt.Errorf("couldn't build out-of-cluster config. Error: %v", err)
-	}
-	clnt, clntErr := kubernetes.NewForConfig(restApi)
-	if clntErr != nil {
-		return "", "", fmt.Errorf("couldn't get clientset. Error: %v", err)
-	}
-	serverVersion, serverVersionErr := clnt.ServerVersion()
-	if serverVersionErr != nil {
-		return "", "", fmt.Errorf("couldn't get server version info. Error: %v", serverVersionErr)
-	}
-	re := regexp.MustCompile("^v[0-9]+.[0-9]+.[0-9]+")
-	version = re.FindString(serverVersion.String())
-	return restApi.Host, "version:" + version, nil
-}
-
-func GetClientConfig() (*clientcmdapi.Config, error) {
-	kubeconfig := KubeConfigPath()
-	config, configErr := clientcmd.LoadFromFile(kubeconfig)
-	if configErr != nil {
-		return nil, fmt.Errorf("could not load config Error: %v", configErr)
-
-	}
-	return config, nil
-}
-
-// GetClientOutOfCluster returns a k8s clientset to the request from outside of cluster
-func GetClientOutOfCluster() (kubernetes.Interface, error) {
-	config, err := BuildOutOfClusterConfig()
-	if err != nil {
-		log.Fatalf("Can not get kubernetes config: %v", err)
-	}
-
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		log.Fatalf("Can not get kubernetes client: %v", err)
-	}
-
-	return clientset, nil
-}
-
-// capture replaces os.Stdout with a writer that buffers any data written
-// to os.Stdout. Call the returned function to cleanup and get the data
-// as a string.
-func capture() func() (string, error) {
-	r, w, err := os.Pipe()
-	if err != nil {
-		panic(err)
-	}
-
-	done := make(chan error, 1)
-
-	save := os.Stdout
-	os.Stdout = w
-
-	var buf strings.Builder
-
-	go func() {
-		_, err := io.Copy(&buf, r)
-		_ = r.Close()
-		done <- err
-	}()
-
-	return func() (string, error) {
-		os.Stdout = save
-		_ = w.Close()
-		err := <-done
-		return buf.String(), err
-	}
-}
-
-func NewKfAppWithNameAndConfig(appName string, CfgFile *viper.Viper) (kftypes.KfApp, error) {
-	appDir, err := os.Getwd()
-	if err != nil {
-		return nil, fmt.Errorf("could not get current directory %v", err)
-	}
-	fs := afero.NewOsFs()
-	api := &GcpApp{
-		ksApp: ksapp.KsApp{
-			AppName:   appName,
-			AppDir:    appDir,
-			KsName:    kstypes.KsName,
-			KsEnvName: kstypes.KsEnvName,
-			Fs:        fs,
-			CfgFile:   CfgFile,
-			KApp:      nil,
-			KsApp: kstypes.KsApp{
-				TypeMeta: metav1.TypeMeta{
-					Kind:       "KsApp",
-					APIVersion: "apps.kubeflow.org/v1alpha1",
-				},
-				ObjectMeta: metav1.ObjectMeta{
-					Name: appName,
-				},
-				Spec: kstypes.KsAppSpec{},
-			},
-		},
-	}
-	return api, nil
-}
-
-func NewKfAppWithConfig(cfg *viper.Viper) (kftypes.KfApp, error) {
-	appDir, err := os.Getwd()
-	if err != nil {
-		return nil, fmt.Errorf("could not get current directory %v", err)
-	}
-	appName := filepath.Base(appDir)
-	log.Infof("appName %v appDir %v", appName, appDir)
-	cfg.AddConfigPath(appDir)
-	cfgErr := cfg.ReadInConfig()
-	if cfgErr != nil {
-		return nil, fmt.Errorf("could not read config file %v Error %v", kftypes.KfConfigFile, cfgErr)
-	}
-	cfgfile := cfg.ConfigFileUsed()
-	if cfgfile == "" {
-		return nil, fmt.Errorf("config file does not exist")
-	}
-	return NewKfApp(appName, appDir, cfg)
-}
-
-func NewKfApp(appName string, appDir string, CfgFile *viper.Viper) (kftypes.KfApp, error) {
-	fs := afero.NewOsFs()
-	ksDir := path.Join(appDir, kstypes.KsName)
-	kApp, kAppErr := app.Load(fs, nil, ksDir)
-	if kAppErr != nil {
-		return nil, fmt.Errorf("there was a problem loading app %v. Error: %v", appName, kAppErr)
-	}
-	api := &GcpApp{
-		ksApp: ksapp.KsApp{
-			AppName:   appName,
-			AppDir:    appDir,
-			KsName:    kstypes.KsName,
-			KsEnvName: kstypes.KsEnvName,
-			Fs:        fs,
-			CfgFile:   CfgFile,
-			KApp:      kApp,
-			KsApp: kstypes.KsApp{
-				TypeMeta: metav1.TypeMeta{
-					Kind:       "KsApp",
-					APIVersion: "apps.kubeflow.org/v1alpha1",
-				},
-				ObjectMeta: metav1.ObjectMeta{
-					Name: appName,
-				},
-				Spec: kstypes.KsAppSpec{},
-			},
-		},
-	}
-	if api.ksApp.CfgFile != nil {
-		applicationSpecErr := api.ksApp.CfgFile.Sub("spec").Unmarshal(&api.ksApp.KsApp.Spec)
-		if applicationSpecErr != nil {
-			return nil, fmt.Errorf("couldn't unmarshall yaml. Error: %v", applicationSpecErr)
-		}
-		for _, registry := range api.ksApp.KsApp.Spec.App.Registries {
-			if registry.Name != "" {
-				if registry.Name == "kubeflow" {
-					kubeflowRepo := os.Getenv("KUBEFLOW_REPO")
-					if kubeflowRepo != "" {
-						registry.RegUri = path.Join(kubeflowRepo, "kubeflow")
-					}
-					kubeflowVersion := os.Getenv("KUBEFLOW_VERSION")
-					if kubeflowVersion != "" {
-						registry.Version = kubeflowVersion
-					}
-				}
-			}
-		}
-		componentsEnvVar := os.Getenv("KUBEFLOW_COMPONENTS")
-		if componentsEnvVar != "" {
-			components := strings.Split(componentsEnvVar, ",")
-			api.ksApp.KsApp.Spec.App.Components = make([]kstypes.KsComponent, len(components))
-			for _, comp := range components {
-				ksComponent := kstypes.KsComponent{
-					Name:      comp,
-					Prototype: comp,
-				}
-				api.ksApp.KsApp.Spec.App.Components = append(api.ksApp.KsApp.Spec.App.Components, ksComponent)
-			}
-		}
-	}
-	return api, nil
-}
-
-func writeConfigFile(cfg *viper.Viper, appName string, appDir string) error {
+func (gcpApp *GcpApp) writeConfigFile() error {
 	tmpl, tmplErr := template.New(kftypes.KfConfigFile).Parse(GcpAppTemplate)
 	if tmplErr != nil {
 		return tmplErr
 	}
-	namespace := os.Getenv("K8S_NAMESPACE")
-	if namespace == "" {
-		namespace = kftypes.DefaultNamespace
-	}
-	kubeflowRepo := os.Getenv("DEFAULT_KUBEFLOW_REPO")
-	if kubeflowRepo == "" {
-		kubeflowRepo = kftypes.DefaultKfRepo
-	}
-	re := regexp.MustCompile(`(^\$GOPATH)(.*$)`)
-	goPathVar := os.Getenv("GOPATH")
-	if goPathVar != "" {
-		kubeflowRepo = re.ReplaceAllString(kubeflowRepo, goPathVar+`$2`)
-	}
-	log.Infof("kubeflowRepo %v", kubeflowRepo)
-	gcpApp := kstypes.KsApp{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "KsApp",
-			APIVersion: "apps.kubeflow.org/v1alpha1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      appName,
-			Namespace: namespace,
-		},
-		Spec: kstypes.KsAppSpec{
-			Platform:   "none",
-			Components: []string{"all"},
-			App: kstypes.AppConfig{
-				Registries: []*kstypes.RegistryConfig{
-					{
-						Name:    "kubeflow",
-						Repo:    "https://github.com/kubeflow/kubeflow.git",
-						Version: "0.4",
-						Path:    "kubeflow",
-						RegUri:  kubeflowRepo,
-					},
-				},
-				Packages: []kstypes.KsPackage{
-					{
-						Name:     "argo",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "pipeline",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "common",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "examples",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "jupyter",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "katib",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "mpi-job",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "pytorch-job",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "seldon",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "tf-serving",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "openvino",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "tensorboard",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "tf-training",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "metacontroller",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "profiles",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "application",
-						Registry: "kubeflow",
-					},
-					{
-						Name:     "modeldb",
-						Registry: "kubeflow",
-					},
-				},
-				Components: []kstypes.KsComponent{
-					{
-						Name:      "pytorch-operator",
-						Prototype: "pytorch-operator",
-					},
-					{
-						Name:      "ambassador",
-						Prototype: "ambassador",
-					},
-					{
-						Name:      "openvino",
-						Prototype: "openvino",
-					},
-					{
-						Name:      "jupyter",
-						Prototype: "jupyter",
-					},
-					{
-						Name:      "centraldashboard",
-						Prototype: "centraldashboard",
-					},
-					{
-						Name:      "tf-job-operator",
-						Prototype: "tf-job-operator",
-					},
-					{
-						Name:      "tensorboard",
-						Prototype: "tensorboard",
-					},
-					{
-						Name:      "metacontroller",
-						Prototype: "metacontroller",
-					},
-					{
-						Name:      "profiles",
-						Prototype: "profiles",
-					},
-					{
-						Name:      "notebooks",
-						Prototype: "notebooks",
-					},
-					{
-						Name:      "argo",
-						Prototype: "argo",
-					},
-					{
-						Name:      "pipeline",
-						Prototype: "pipeline",
-					},
-					{
-						Name:      "katib",
-						Prototype: "katib",
-					},
-					{
-						Name:      "spartakus",
-						Prototype: "spartakus",
-					},
-					{
-						Name:      "application",
-						Prototype: "application",
-					},
-				},
-				Parameters: []kstypes.KsParameter{
-					{
-						Component: "spartakus",
-						Name:      "usageId",
-						Value:     fmt.Sprintf("%08d", 10000000+rand.Intn(90000000)),
-					},
-					{
-						Component: "spartakus",
-						Name:      "reportUsage",
-						Value:     "true",
-					},
-				},
-			},
-		},
-	}
-
 	var buf bytes.Buffer
-	execErr := tmpl.Execute(&buf, gcpApp)
+	execErr := tmpl.Execute(&buf, gcpApp.ksApp.KsApp)
 	if execErr != nil {
 		return execErr
 	}
-	errDefaultConfig := cfg.ReadConfig(bytes.NewBuffer(buf.Bytes()))
-	if errDefaultConfig != nil {
-		return errDefaultConfig
+	cfgFile := viper.New()
+	cfgFile.SetConfigName("app")
+	cfgFile.SetConfigType("yaml")
+	cfgFileErr := cfgFile.ReadConfig(bytes.NewBuffer(buf.Bytes()))
+	if cfgFileErr != nil {
+		return cfgFileErr
 	}
-	CfgFile := filepath.Join(appDir, kftypes.KfConfigFile)
-	CfgFileErr := cfg.WriteConfigAs(CfgFile)
-	if CfgFileErr != nil {
-		return CfgFileErr
+	cfgFilePath := filepath.Join(gcpApp.ksApp.AppDir, kftypes.KfConfigFile)
+	cfgFilePathErr := cfgFile.WriteConfigAs(cfgFilePath)
+	if cfgFilePathErr != nil {
+		return cfgFilePathErr
 	}
 	return nil
 }
 
 func (gcpApp *GcpApp) Apply() error {
-	host, _, err := ServerVersion()
+	host, _, err := kftypes.ServerVersion()
 	if err != nil {
 		return fmt.Errorf("couldn't get server version: %v", err)
 	}
-	cli, cliErr := GetClientOutOfCluster()
+	cli, cliErr := kftypes.GetClientOutOfCluster()
 	if cliErr != nil {
 		return fmt.Errorf("couldn't create client Error: %v", cliErr)
 	}
@@ -600,7 +200,7 @@ func (gcpApp *GcpApp) Apply() error {
 			return fmt.Errorf("couldn't create namespace %v Error: %v", namespace, nsErr)
 		}
 	}
-	clientConfig, clientConfigErr := GetClientConfig()
+	clientConfig, clientConfigErr := kftypes.GetClientConfig()
 	if clientConfigErr != nil {
 		return fmt.Errorf("couldn't load client config Error: %v", clientConfigErr)
 	}
@@ -708,12 +308,12 @@ func (gcpApp *GcpApp) Delete() error {
 }
 
 func (gcpApp *GcpApp) Generate() error {
-	host, k8sSpec, err := ServerVersion()
+	host, k8sSpec, err := kftypes.ServerVersion()
 	if err != nil {
 		return fmt.Errorf("couldn't get server version: %v", err)
 	}
 	namespace := os.Getenv("K8S_NAMESPACE")
-	writeConfigErr := writeConfigFile(gcpApp.ksApp.CfgFile, gcpApp.ksApp.AppName, gcpApp.ksApp.AppDir)
+	writeConfigErr := gcpApp.writeConfigFile()
 	if writeConfigErr != nil {
 		return fmt.Errorf("couldn't write config file app.yaml in %v Error %v", gcpApp.ksApp.AppDir, writeConfigErr)
 	}
@@ -755,25 +355,35 @@ func (gcpApp *GcpApp) Init() error {
 	// "kf_app-controller": a DNS-1123 subdomain must consist of lower case alphanumeric characters, '-' or '.',
 	// and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is
 	// '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')
-	dir, err := os.Getwd()
+	log.Infof("GcpApp.Init AppName %v AppDir %v", gcpApp.ksApp.AppName, gcpApp.ksApp.AppDir)
+	err := os.Mkdir(gcpApp.ksApp.AppDir, os.ModePerm)
 	if err != nil {
-		log.Fatal(err)
-	}
-	appDir := path.Join(dir, gcpApp.ksApp.KsApp.Name)
-	log.Infof("appDir %v", appDir)
-	err = os.Mkdir(appDir, os.ModePerm)
-	if err != nil {
-		return fmt.Errorf("cannot create directory %v", appDir)
+		return fmt.Errorf("cannot create directory %v", gcpApp.ksApp.AppDir)
 	}
 	fs := afero.NewOsFs()
-	CfgFilePath := filepath.Join(appDir, kftypes.KfConfigFile)
+	CfgFilePath := filepath.Join(gcpApp.ksApp.AppDir, kftypes.KfConfigFile)
 	_, appDirErr := fs.Stat(CfgFilePath)
 	if appDirErr == nil {
-		return fmt.Errorf("config file %v already exists in %v", kftypes.KfConfigFile, appDir)
+		return fmt.Errorf("config file %v already exists in %v", kftypes.KfConfigFile, gcpApp.ksApp.AppDir)
 	}
-	createConfigErr := writeConfigFile(gcpApp.ksApp.CfgFile, gcpApp.ksApp.AppName, appDir)
+	kubeflowRepo := gcpApp.ksApp.CfgFile.GetString("repo")
+	re := regexp.MustCompile(`(^\$GOPATH)(.*$)`)
+	goPathVar := os.Getenv("GOPATH")
+	if goPathVar != "" {
+		kubeflowRepo = re.ReplaceAllString(kubeflowRepo, goPathVar+`$2`)
+	}
+	gcpApp.ksApp.KsApp.Spec.Repo = kubeflowRepo
+	kubeflowVersion := gcpApp.ksApp.CfgFile.GetString("version")
+	gcpApp.ksApp.KsApp.Spec.Version = kubeflowVersion
+	for _, registry := range gcpApp.ksApp.KsApp.Spec.App.Registries {
+		if registry.Name == "kubeflow" {
+			registry.RegUri = gcpApp.ksApp.KsApp.Spec.Repo
+			registry.Version = gcpApp.ksApp.KsApp.Spec.Version
+		}
+	}
+	createConfigErr := gcpApp.writeConfigFile()
 	if createConfigErr != nil {
-		return fmt.Errorf("cannot create config file app.yaml in %v", appDir)
+		return fmt.Errorf("cannot create config file app.yaml in %v", gcpApp.ksApp.AppDir)
 	}
 	return nil
 }
@@ -902,39 +512,5 @@ func (gcpApp *GcpApp) RegistryAdd(registry *kstypes.RegistryConfig) error {
 	if err != nil {
 		return fmt.Errorf("there was a problem adding registry %v: %v", registry.Name, err)
 	}
-	return nil
-}
-
-func (gcpApp *GcpApp) Show(components []string) error {
-	done := capture()
-	err := actions.RunShow(map[string]interface{}{
-		actions.OptionApp:            gcpApp.ksApp.KApp,
-		actions.OptionComponentNames: components,
-		actions.OptionEnvName:        gcpApp.ksApp.KsEnvName,
-		actions.OptionFormat:         "yaml",
-	})
-	if err != nil {
-		return fmt.Errorf("there was a problem showing components %v: %v", components, err)
-	}
-	capturedOutput, capturedOutputErr := done()
-	if capturedOutputErr != nil {
-		return fmt.Errorf("there was a problem capturing the output: %v", capturedOutput)
-	}
-	outputFileName := filepath.Join(gcpApp.KsRoot(), gcpApp.ksApp.KsEnvName+".yaml")
-	outputFile, outputFileErr := os.Create(outputFileName)
-	if outputFileErr != nil {
-		return fmt.Errorf("there was a problem creating output file %v: %v", outputFileName, outputFileErr)
-	}
-	defer outputFile.Close()
-	writer := bufio.NewWriter(outputFile)
-	_, writerErr := writer.WriteString(capturedOutput)
-	if writerErr != nil {
-		return fmt.Errorf("there was a problem writing to %v: %v", outputFileName, writerErr)
-	}
-	flushErr := writer.Flush()
-	if flushErr != nil {
-		return fmt.Errorf("there was a problem flushing file %v: %v", outputFileName, flushErr)
-	}
-
 	return nil
 }
