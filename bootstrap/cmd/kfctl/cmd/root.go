@@ -43,7 +43,9 @@ func LoadPlatform(platform string, options map[string]interface{}) (kftypes.KfAp
 		_gcpapp := gcpapp.GetKfApp(options)
 		return _gcpapp, nil
 	default:
-
+		// To enable goland debugger:
+		// Comment out this section and comment in the line
+		//   return nil, fmt.Errorf("unknown platform %v", platform
 		plugindir := os.Getenv("PLUGINS_ENVIRONMENT")
 		pluginpath := filepath.Join(plugindir, platform+".so")
 		p, err := plugin.Open(pluginpath)

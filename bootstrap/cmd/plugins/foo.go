@@ -18,8 +18,8 @@ import (
 	"text/template"
 )
 
-// AwsApp implements the KfApp Interface
-type AwsApp struct {
+// FooApp implements the KfApp Interface
+type FooApp struct {
 	AppName string
 	// AppDir is the directory where apps should be stored.
 	AppDir string
@@ -30,12 +30,12 @@ type AwsApp struct {
 	CfgFile   *viper.Viper
 	Fs        afero.Fs
 	KApp      app.App
-	AwsApp    kstypes.KsApp
+	FooApp    kstypes.KsApp
 }
 
-func GetAwsApp(options map[string]interface{}) kftypes.KfApp {
-	log.Infof("in GetAwsApp!")
-	_awsapp := &AwsApp{
+func GetFooApp(options map[string]interface{}) kftypes.KfApp {
+	log.Infof("in GetFooApp!")
+	_fooapp := &FooApp{
 		AppName:   "",
 		AppDir:    "",
 		KsName:    kstypes.KsName,
@@ -43,16 +43,16 @@ func GetAwsApp(options map[string]interface{}) kftypes.KfApp {
 		Fs:        nil,
 		CfgFile:   nil,
 		KApp:      nil,
-		AwsApp: kstypes.KsApp{
+		FooApp: kstypes.KsApp{
 			TypeMeta: metav1.TypeMeta{
-				Kind:       "AwsApp",
+				Kind:       "FooApp",
 				APIVersion: "apps.kubeflow.org/v1alpha1",
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "",
 			},
 			Spec: kstypes.KsAppSpec{
-				Platform:   "aws",
+				Platform:   "foo",
 				Version:    "",
 				Components: []string{"all"},
 				Packages:   []string{"all"},
@@ -82,15 +82,15 @@ func GetAwsApp(options map[string]interface{}) kftypes.KfApp {
 			},
 		},
 	}
-	_awsapp.AwsApp.Name = options["AppName"].(string)
+	_fooapp.FooApp.Name = options["AppName"].(string)
 	for k, v := range options {
-		x := reflect.ValueOf(_awsapp).Elem().FieldByName(k)
+		x := reflect.ValueOf(_fooapp).Elem().FieldByName(k)
 		x.Set(reflect.ValueOf(v))
 	}
-	return _awsapp
+	return _fooapp
 }
 
-var AwsAppTemplate = string(`
+var FooAppTemplate = string(`
 apiVersion: {{.APIVersion}}
 kind: {{.Kind}}
 metadata:
@@ -129,13 +129,13 @@ spec:
 {{end}}
 `)
 
-func (awsApp *AwsApp) writeConfigFile() error {
-	tmpl, tmplErr := template.New(kftypes.KfConfigFile).Parse(AwsAppTemplate)
+func (fooApp *FooApp) writeConfigFile() error {
+	tmpl, tmplErr := template.New(kftypes.KfConfigFile).Parse(FooAppTemplate)
 	if tmplErr != nil {
 		return tmplErr
 	}
 	var buf bytes.Buffer
-	execErr := tmpl.Execute(&buf, awsApp.AwsApp)
+	execErr := tmpl.Execute(&buf, fooApp.FooApp)
 	if execErr != nil {
 		return execErr
 	}
@@ -146,7 +146,7 @@ func (awsApp *AwsApp) writeConfigFile() error {
 	if cfgFileErr != nil {
 		return cfgFileErr
 	}
-	cfgFilePath := filepath.Join(awsApp.AppDir, kftypes.KfConfigFile)
+	cfgFilePath := filepath.Join(fooApp.AppDir, kftypes.KfConfigFile)
 	cfgFilePathErr := cfgFile.WriteConfigAs(cfgFilePath)
 	if cfgFilePathErr != nil {
 		return cfgFilePathErr
@@ -154,51 +154,51 @@ func (awsApp *AwsApp) writeConfigFile() error {
 	return nil
 }
 
-func (awsApp *AwsApp) Apply() error {
-	log.Infof("in AwsApp.Apply!")
+func (fooApp *FooApp) Apply() error {
+	log.Infof("in FooApp.Apply!")
 	return nil
 }
 
-func (awsApp *AwsApp) Delete() error {
-	log.Infof("in AwsApp.Delete!")
+func (fooApp *FooApp) Delete() error {
+	log.Infof("in FooApp.Delete!")
 	return nil
 }
 
-func (awsApp *AwsApp) Generate() error {
-	log.Infof("in AwsApp.Generate!")
+func (fooApp *FooApp) Generate() error {
+	log.Infof("in FooApp.Generate!")
 	return nil
 }
 
-func (awsApp *AwsApp) Init() error {
-	log.Infof("in AwsApp.Init!")
-	err := os.Mkdir(awsApp.AppDir, os.ModePerm)
+func (fooApp *FooApp) Init() error {
+	log.Infof("in FooApp.Init!")
+	err := os.Mkdir(fooApp.AppDir, os.ModePerm)
 	if err != nil {
-		return fmt.Errorf("cannot create directory %v", awsApp.AppDir)
+		return fmt.Errorf("cannot create directory %v", fooApp.AppDir)
 	}
 	fs := afero.NewOsFs()
-	cfgFilePath := filepath.Join(awsApp.AppDir, kftypes.KfConfigFile)
+	cfgFilePath := filepath.Join(fooApp.AppDir, kftypes.KfConfigFile)
 	_, appDirErr := fs.Stat(cfgFilePath)
 	if appDirErr == nil {
-		return fmt.Errorf("config file %v already exists in %v", kftypes.KfConfigFile, awsApp.AppDir)
+		return fmt.Errorf("config file %v already exists in %v", kftypes.KfConfigFile, fooApp.AppDir)
 	}
-	kubeflowRepo := awsApp.CfgFile.GetString("repo")
+	kubeflowRepo := fooApp.CfgFile.GetString("repo")
 	re := regexp.MustCompile(`(^\$GOPATH)(.*$)`)
 	goPathVar := os.Getenv("GOPATH")
 	if goPathVar != "" {
 		kubeflowRepo = re.ReplaceAllString(kubeflowRepo, goPathVar+`$2`)
 	}
-	awsApp.AwsApp.Spec.Repo = kubeflowRepo
-	kubeflowVersion := awsApp.CfgFile.GetString("version")
-	awsApp.AwsApp.Spec.Version = kubeflowVersion
-	for _, registry := range awsApp.AwsApp.Spec.App.Registries {
+	fooApp.FooApp.Spec.Repo = kubeflowRepo
+	kubeflowVersion := fooApp.CfgFile.GetString("version")
+	fooApp.FooApp.Spec.Version = kubeflowVersion
+	for _, registry := range fooApp.FooApp.Spec.App.Registries {
 		if registry.Name == "kubeflow" {
-			registry.RegUri = awsApp.AwsApp.Spec.Repo
-			registry.Version = awsApp.AwsApp.Spec.Version
+			registry.RegUri = fooApp.FooApp.Spec.Repo
+			registry.Version = fooApp.FooApp.Spec.Version
 		}
 	}
-	createConfigErr := awsApp.writeConfigFile()
+	createConfigErr := fooApp.writeConfigFile()
 	if createConfigErr != nil {
-		return fmt.Errorf("cannot create config file app.yaml in %v", awsApp.AppDir)
+		return fmt.Errorf("cannot create config file app.yaml in %v", fooApp.AppDir)
 	}
 	return nil
 }

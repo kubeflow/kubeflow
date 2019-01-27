@@ -81,7 +81,7 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 				Name: "",
 			},
 			Spec: kstypes.KsAppSpec{
-				Platform:   "aws",
+				Platform:   "none",
 				Version:    "",
 				Components: []string{"all"},
 				Packages:   []string{"all"},

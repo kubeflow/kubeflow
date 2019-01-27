@@ -42,8 +42,8 @@ build-bootstrap: fmt vet
 build-kfctl: fmt vet
 	$(GO) build -i -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
 
-build-aws-plugin: fmt vet
-	$(GO) build -i -gcflags 'all=-N -l' -o bin/aws.so -buildmode=plugin cmd/plugins/aws.go
+build-foo-plugin: fmt vet
+	$(GO) build -i -gcflags 'all=-N -l' -o bin/foo.so -buildmode=plugin cmd/plugins/foo.go
 
 build-local: build-bootstrap build-kfctl
 
@@ -78,6 +78,6 @@ run-local-docker:
 	  --mount type=bind,source=${HOME}/kf_app,target=/home/kubeflow \
 	  --entrypoint /bin/bash $(IMG):$(TAG)
 
-test-aws-plugin:
-	rm -rf $(HOME)/aws-app
-	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl init $(HOME)/aws-app --platform aws
+test-foo-plugin:
+	rm -rf $(HOME)/foo-app
+	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl init $(HOME)/foo-app --platform foo

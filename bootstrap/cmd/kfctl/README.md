@@ -90,25 +90,25 @@ different platforms that kfctl will generate and deploy.
 ## Plugins
 
 `kfctl` can be extended to new platforms dynamically. An example is 
-under bootstrap/cmd/plugins/aws.go. In this case running
+under bootstrap/cmd/plugins/foo.go. In this case running
 
 ```
-kfctl init ~/aws-app --platform aws
+kfctl init ~/foo-app --platform foo
 ```
 
-will result in kfctl loading aws.so and calling its methods that 
+will result in kfctl loading foo.so and calling its methods that 
 implement the KfApp Interface.
 
 ### Building a plugin
 
 ```
-make build-aws-plugin
+make build-foo-plugin
 ```
 
 ### Testing a plugin
 
 ```
-make test-aws-plugin
+make test-foo-plugin
 ```
 
 ## Debugging
