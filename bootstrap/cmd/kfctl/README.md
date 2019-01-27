@@ -93,7 +93,7 @@ kfctl apply
 
 ## Subcommands
 
-#### init subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/init.go)
+#### _init_ (kubeflow/bootstrap/cmd/kfctl/cmd/init.go)
 
 - Upon successful creation of the app directory, creates `app.yaml` within the app directory
 
@@ -111,7 +111,7 @@ Flags:
   -v, --version string    desired version Kubeflow or latest tag if not provided by user  (default "v0.4.1")
 ```
 
-#### generate subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/generate.go)
+#### _generate_ (kubeflow/bootstrap/cmd/kfctl/cmd/generate.go)
 
 - Using app.yaml
   - generates a platform specific application with specifics specified in app.yaml
@@ -130,7 +130,7 @@ Flags:
   -p, --packages strings     provide a comma delimited list of package names (default [all])
 ```
 
-#### apply subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/apply.go)
+#### _apply_ (kubeflow/bootstrap/cmd/kfctl/cmd/apply.go)
 
 - Creates a `namespace`
 - Applys the ksonnet application by deploying it to the api-server
@@ -146,7 +146,7 @@ Flags:
   -h, --help   help for apply
 ```
 
-#### delete subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/delete.go)
+#### _delete_ (kubeflow/bootstrap/cmd/kfctl/cmd/delete.go)
   TBD
 
 --- 
