@@ -127,7 +127,7 @@ See https://github.com/golang/go/issues/23733.
 This is expected to be resolved with golang 1.12.
 You'll need to comment out a section in bootstrap/cmd/kfctl/cmd/root.go 
 so that the plugin package is not imported. 
-Change root.go to look like below and goland debug should work.
+Change root.go (~#45) to look like below and goland debug should work.
 
 ```golang
 	default:
