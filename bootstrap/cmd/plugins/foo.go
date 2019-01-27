@@ -39,7 +39,7 @@ func GetFooApp(options map[string]interface{}) kftypes.KfApp {
 		AppDir:    "",
 		KsName:    kstypes.KsName,
 		KsEnvName: kstypes.KsEnvName,
-		Fs:        nil,
+		Fs:        afero.NewOsFs(),
 		CfgFile:   nil,
 		KApp:      nil,
 		FooApp: kstypes.KsApp{

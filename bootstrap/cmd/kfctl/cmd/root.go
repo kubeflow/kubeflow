@@ -63,7 +63,7 @@ func LoadPlatform(platform string, options map[string]interface{}) (kftypes.KfAp
 	}
 }
 
-func NewKfAppWithNameAndConfig(appName string, cfgFile *viper.Viper) (kftypes.KfApp, error) {
+func NewKfApp(appName string, cfgFile *viper.Viper) (kftypes.KfApp, error) {
 	//appName can be a path
 	appDir := path.Dir(appName)
 	if appDir == "" {
@@ -89,13 +89,11 @@ func NewKfAppWithNameAndConfig(appName string, cfgFile *viper.Viper) (kftypes.Kf
 			appDir = path.Join(appDir, appName)
 		}
 	}
-	fs := afero.NewOsFs()
 	platform := cfgFile.GetString("platform")
 	options := map[string]interface{}{
 		"AppName": appName,
 		"AppDir":  appDir,
 		"CfgFile": cfgFile,
-		"Fs":      fs,
 	}
 	app, appErr := LoadPlatform(platform, options)
 	if appErr != nil {
@@ -104,26 +102,22 @@ func NewKfAppWithNameAndConfig(appName string, cfgFile *viper.Viper) (kftypes.Kf
 	return app, nil
 }
 
-func NewKfAppWithConfig(cfg *viper.Viper) (kftypes.KfApp, error) {
+func LoadKfApp(cfgFile *viper.Viper) (kftypes.KfApp, error) {
 	appDir, err := os.Getwd()
 	if err != nil {
 		return nil, fmt.Errorf("could not get current directory %v", err)
 	}
 	appName := filepath.Base(appDir)
 	log.Infof("AppName %v AppDir %v", appName, appDir)
-	cfg.AddConfigPath(appDir)
-	cfgErr := cfg.ReadInConfig()
+	cfgFile.AddConfigPath(appDir)
+	cfgErr := cfgFile.ReadInConfig()
 	if cfgErr != nil {
 		return nil, fmt.Errorf("could not read config file %v Error %v", kftypes.KfConfigFile, cfgErr)
 	}
-	cfgfile := cfg.ConfigFileUsed()
+	cfgfile := cfgFile.ConfigFileUsed()
 	if cfgfile == "" {
 		return nil, fmt.Errorf("config file does not exist")
 	}
-	return NewKfApp(appName, appDir, cfg)
-}
-
-func NewKfApp(appName string, appDir string, cfgFile *viper.Viper) (kftypes.KfApp, error) {
 	fs := afero.NewOsFs()
 	ksDir := path.Join(appDir, kstypes.KsName)
 	kApp, kAppErr := app.Load(fs, nil, ksDir)
@@ -131,31 +125,27 @@ func NewKfApp(appName string, appDir string, cfgFile *viper.Viper) (kftypes.KfAp
 		return nil, fmt.Errorf("there was a problem loading app %v. Error: %v", appName, kAppErr)
 	}
 	spec := kstypes.KsAppSpec{}
-	if cfgFile != nil {
-		metadata := v1.ObjectMeta{}
-		metadataErr := cfgFile.Sub("metadata").Unmarshal(&metadata)
-		if metadataErr != nil {
-			return nil, fmt.Errorf("couldn't unmarshall yaml. Error: %v", metadataErr)
-		}
-		applicationSpecErr := cfgFile.Sub("spec").Unmarshal(&spec)
-		if applicationSpecErr != nil {
-			return nil, fmt.Errorf("couldn't unmarshall yaml. Error: %v", applicationSpecErr)
-		}
-		platform := cfgFile.GetString("platform")
-		options := map[string]interface{}{
-			"AppName": appName,
-			"AppDir":  appDir,
-			"CfgFile": cfgFile,
-			"Fs":      fs,
-			"KApp":    kApp,
-		}
-		app, appErr := LoadPlatform(platform, options)
-		if appErr != nil {
-			return nil, fmt.Errorf("unable to load platform %v Error: %v", platform, appErr)
-		}
-		return app, nil
+	metadata := v1.ObjectMeta{}
+	metadataErr := cfgFile.Sub("metadata").Unmarshal(&metadata)
+	if metadataErr != nil {
+		return nil, fmt.Errorf("couldn't unmarshall yaml. Error: %v", metadataErr)
 	}
-	return nil, fmt.Errorf("unknown platform %v", spec.Platform)
+	applicationSpecErr := cfgFile.Sub("spec").Unmarshal(&spec)
+	if applicationSpecErr != nil {
+		return nil, fmt.Errorf("couldn't unmarshall yaml. Error: %v", applicationSpecErr)
+	}
+	platform := cfgFile.GetString("platform")
+	options := map[string]interface{}{
+		"AppName": appName,
+		"AppDir":  appDir,
+		"CfgFile": cfgFile,
+		"KApp":    kApp,
+	}
+	app, appErr := LoadPlatform(platform, options)
+	if appErr != nil {
+		return nil, fmt.Errorf("unable to load platform %v Error: %v", platform, appErr)
+	}
+	return app, nil
 }
 
 // rootCmd represents the base command when called without any subcommands

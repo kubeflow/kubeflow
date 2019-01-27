@@ -31,7 +31,7 @@ var generateCmd = &cobra.Command{
 	Long:  `Generate a kubeflow application and generate an app.yaml.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.InfoLevel)
-		kfApp, kfAppErr := NewKfAppWithConfig(generateCfg)
+		kfApp, kfAppErr := LoadKfApp(generateCfg)
 		if kfAppErr != nil {
 			log.Errorf("couldn't create KfApp: %v", kfAppErr)
 			return
