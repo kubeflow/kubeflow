@@ -31,9 +31,10 @@ bootstrap/pkg/utils
 bootstrap/pkg/client
 bootstrap/pkg/client/ksapp
 bootstrap/pkg/client/gcpapp
+bootstrap/plugins
 ```
 
-### KfApp Interface (github/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1/kfapi.go)
+### KfApp Interface (github/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/group.go)
 
 The `KfApp` golang Interface 
 
@@ -86,7 +87,6 @@ not a path or in a new directory created under the parent directory
 if <name> is a path. The app.yaml file will include fields that are used for 
 different platforms that kfctl will generate and deploy.
 
-
 ## Plugins
 
 `kfctl` can be extended to new platforms dynamically. An example is 
@@ -116,8 +116,10 @@ make test-known-platforms-init
 ## Debugging
 
 In order to debug in goland, the plugin code must be disabled. 
-This requires commenting out some lines in bootstrap/cmd/kfctl/cmd/root.go
-so that the plugin package is not imported. See https://github.com/golang/go/issues/23733.
+See https://github.com/golang/go/issues/23733. 
+This is expected to be resolved with golang 1.12.
+You'll need to comment out a section in bootstrap/cmd/kfctl/cmd/root.go 
+so that the plugin package is not imported. 
 Change root.go to look like below and goland debug should work.
 
 ```golang
@@ -228,6 +230,10 @@ spec:
         value: {{$parameter.Value}}
 {{end}}
 ```
+
+### gcp related types 
+
+TBD
 
 ## Subcommands
 
