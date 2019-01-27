@@ -40,7 +40,9 @@ bootstrap/pkg/client/gcpapp
 bootstrap/plugins
 ```
 
-### KfApp Interface (github/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/group.go)
+### KfApp Interface 
+
+Definition: github/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/group.go
 
 The `KfApp` golang Interface 
 
@@ -152,15 +154,16 @@ Flags:
 ## Extending kfctl
 
 `kfctl` can be extended to work with new platforms without requiring recompilation. 
-An example is under bootstrap/cmd/plugins/foo.go. A particular platform `vendor` 
-would provide a shared library that kfctl would load and execute. This 
-shared library would implement the KfApp Interface. In this case running
+An example is under bootstrap/cmd/plugins/foo.go. A particular platform 
+would provide a shared library under the env var `PLUGINS_ENVIRONMENT` 
+that kfctl would load and execute. This shared library would implement 
+the [KfApp Interface](#kfapp-interface). In this case running
 
 ```
 kfctl init ~/foo-app --platform foo
 ```
 
-will result in kfctl loading foo.so and calling its methods that 
+will result in kfctl loading $PLUGINS_ENVIRONMENT/foo.so and calling its methods that 
 implement the KfApp Interface.
 
 ### Building the sample plugin
