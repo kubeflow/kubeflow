@@ -49,12 +49,6 @@ type KfApp interface {
 }
 ```
 
-is used by
-
-```sh
-kfctl init <[path/]name> --platform <gcp|microk8s|minikube|none>
-```
-
 kfctl includes 2 platforms that implement the KfApp interface.
 
 - platform: ksonnet (bootstrap/pkg/client/ksapp/ksapp.go)
@@ -62,12 +56,25 @@ kfctl includes 2 platforms that implement the KfApp interface.
 
 ## Usage
 
-`kfctl` has the following usage
+```man
+kubeflow client tool
 
-- `init <[path/]name> --platform <gcp|microk8s|minikube|none>` Initialize a kubeflow application.
-- `generate [--component <all|c1,c2,c3,c4>`              Generate one or more components or all components.
-- `apply`                                                      Deploy generated components to the api-server.
-- `delete`                                                     Delete the kubeflow application
+Usage:
+  kfctl [command]
+
+Available Commands:
+  apply       Deploy a generated kubeflow application.
+  delete      Delete a kubeflow application.
+  generate    Generate a kubeflow application and generate an app.yaml.
+  help        Help about any command
+  init        Create a kubeflow application template as <name>.yaml.
+  version     Prints the version of kfctl.
+
+Flags:
+  -h, --help   help for kfctl
+
+Use "kfctl [command] --help" for more information about a command.
+```
 
 Typical use-case
 
