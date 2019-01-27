@@ -43,7 +43,7 @@ build-kfctl: fmt vet
 	$(GO) build -i -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
 
 build-foo-plugin: fmt vet
-	$(GO) build -i -gcflags 'all=-N -l' -o bin/foo.so -buildmode=plugin cmd/plugins/foo.go
+	$(GO) build -i -gcflags 'all=-N -l' -o bin/fooapp.so -buildmode=plugin cmd/plugins/fooapp.go
 
 build-local: build-bootstrap build-kfctl
 
