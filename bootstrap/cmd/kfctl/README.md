@@ -9,8 +9,10 @@ The new `kfctl` client replaces `kfctl.sh` and is implemented in golang.
  - Create a common API for the UI (gcp-click-to-deploy) and `kfctl` (`KfApp`)
 
  - Separate different implementations of the KfApp Interface
-   - bootstrap/pkg/client/ksApp for `kfctl init --platform none`
-   - bootstrap/pkg/client/gcpApp for `kfctl init --platform gcp`
+   - bootstrap/pkg/client/ksapp for `kfctl init --platform none`
+   - bootstrap/pkg/client/gcpapp for `kfctl init --platform gcp`
+
+ - Allow new platforms to be added to kfctl without rebuilding or reshipping kfctl (see Plugins below).
 
  - Do not change existing `REST` entrypoints or the `KsService` interface in `ksServer.go` at this time
 
@@ -53,12 +55,10 @@ is used by
 kfctl init <[path/]name> --platform <gcp|microk8s|minikube|none>
 ```
 
-Implementations of the interface are in 
+kfctl includes 2 platforms that implement the KfApp interface.
 
-```sh
-bootstrap/pkg/client/ksapp/ksapp.go
-bootstrap/pkg/client/gcpapp/gcpapp.go
-```
+- platform: ksonnet (bootstrap/pkg/client/ksapp/ksapp.go)
+- platform: gcp     (bootstrap/pkg/client/gcpapp/gcpapp.go)
 
 ## Usage
 
