@@ -197,7 +197,7 @@ type KsParameter struct {
 }
 ```
 
-Generating the app.yaml file will leverage golang's template language.
+Generating the app.yaml file leverages golang's template language.
 For example, given an instance of KsApp, the YAML generation template is shown below:
 
 ```yaml
@@ -210,6 +210,7 @@ spec:
   platform: {{.Spec.Platform}}
   repo: {{.Spec.Repo}}
   version: {{.Spec.Version}}
+  packages: {{.Spec.Packages}}
   components: {{.Spec.Components}}
   app:
     registries:
