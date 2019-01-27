@@ -43,7 +43,7 @@ var initCmd = &cobra.Command{
 		}
 		initErr := kfApp.Init()
 		if initErr != nil {
-			log.Errorf("couldn't generate KfApp: %v", initErr)
+			log.Errorf("KfApp initialization failed: %v", initErr)
 			return
 		}
 	},

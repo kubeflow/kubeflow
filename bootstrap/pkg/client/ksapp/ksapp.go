@@ -516,7 +516,7 @@ func (ksApp *KsApp) Init() error {
 	// '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')
 	err := os.Mkdir(ksApp.AppDir, os.ModePerm)
 	if err != nil {
-		return fmt.Errorf("cannot create directory %v", ksApp.AppDir)
+		return fmt.Errorf("couldn't create directory %v, most likely it already exists", ksApp.AppDir)
 	}
 	fs := afero.NewOsFs()
 	cfgFilePath := filepath.Join(ksApp.AppDir, kfTypes.KfConfigFile)
