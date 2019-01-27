@@ -16,7 +16,7 @@ The new `kfctl` client replaces `kfctl.sh` and is implemented in golang.
      - `kfctl init --platform gcp`
      - implementation: bootstrap/pkg/client/gcpapp 
 
- - Allow new platforms to be added to kfctl without rebuilding or reshipping kfctl (see `Extending kfctl` below).
+ - Allow new platforms to be added to kfctl without rebuilding or reshipping kfctl (see [Extending kfctl](#extending-kfctl) below).
 
  - Do not change existing `REST` entrypoints or the `KsService` interface in `ksServer.go` at this time
 
