@@ -17,7 +17,7 @@ package cmd
 import (
 	"github.com/spf13/viper"
 
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -36,7 +36,7 @@ var initCmd = &cobra.Command{
 			return
 		}
 		appName := args[0]
-		kfApp, kfAppErr := NewKfAppWithNameAndConfig(appName, initCfg)
+		kfApp, kfAppErr := NewKfApp(appName, initCfg)
 		if kfAppErr != nil {
 			log.Errorf("couldn't create KfApp: %v", kfAppErr)
 			return

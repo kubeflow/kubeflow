@@ -15,7 +15,8 @@
 package cmd
 
 import (
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
+	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksapp/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -30,7 +31,7 @@ var generateCmd = &cobra.Command{
 	Long:  `Generate a kubeflow application and generate an app.yaml.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.InfoLevel)
-		kfApp, kfAppErr := NewKfAppWithConfig(generateCfg)
+		kfApp, kfAppErr := LoadKfApp(generateCfg)
 		if kfAppErr != nil {
 			log.Errorf("couldn't create KfApp: %v", kfAppErr)
 			return
@@ -49,11 +50,11 @@ func init() {
 	generateCfg.SetConfigName("app")
 	generateCfg.SetConfigType("yaml")
 
-	generateCmd.Flags().StringSliceP("packages", "p", kftypes.DefaultPackages,
+	generateCmd.Flags().StringSliceP("packages", "p", kstypes.DefaultPackages,
 		"provide a comma delimited list of package names")
 	generateCfg.BindPFlag("packages", generateCmd.Flags().Lookup("packages"))
 
-	generateCmd.Flags().StringSliceP("components", "c", kftypes.DefaultComponents,
+	generateCmd.Flags().StringSliceP("components", "c", kstypes.DefaultComponents,
 		"provide a comma delimited list of component names")
 	generateCfg.BindPFlag("components", generateCmd.Flags().Lookup("components"))
 

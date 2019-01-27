@@ -13,15 +13,15 @@
 # limitations under the License.
 #
 GCLOUD_PROJECT ?= kubeflow-images-public
-GOLANG_VERSION ?= 1.11.2
+GOLANG_VERSION ?= 1.11.5
+GOPATH ?= $(HOME)/go
 # To build without the cache set the environment variable
 # export DOCKER_BUILD_OPTS=--no-cache
-# set to GOLANG_GCFLAGS=-gcflags "all=-N -l" to debug
-GOLANG_GCFLAGS ?= ""
 IMG ?= gcr.io/$(GCLOUD_PROJECT)/bootstrapper
 TAG ?= $(shell git describe --tags --always --dirty)
 PORT ?= 2345
 export GO111MODULE=on
+export GO=go
 
 all: build
 
@@ -30,17 +30,20 @@ auth:
 
 # Run go fmt against code
 fmt:
-	go fmt ./pkg/... ./cmd/...
+	$(GO) fmt ./pkg/... ./cmd/...
 
 # Run go vet against code
 vet:
-	go vet ./pkg/... ./cmd/...
+	$(GO) vet ./pkg/... ./cmd/...
 
 build-bootstrap: fmt vet
-	go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
+	$(GO) build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 
 build-kfctl: fmt vet
-	go build -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
+	$(GO) build -i -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
+
+build-foo-plugin: fmt vet
+	$(GO) build -i -gcflags 'all=-N -l' -o bin/fooapp.so -buildmode=plugin cmd/plugins/fooapp.go
 
 build-local: build-bootstrap build-kfctl
 
@@ -74,3 +77,25 @@ run-local-docker:
 	docker run -d -it --name bootstrapper \
 	  --mount type=bind,source=${HOME}/kf_app,target=/home/kubeflow \
 	  --entrypoint /bin/bash $(IMG):$(TAG)
+
+test-known-platforms-init: install build-foo-plugin
+	@rm -rf $(HOME)/ks-app && \
+	kfctl init $(HOME)/ks-app --platform none && \
+	rm -rf $(HOME)/gcp-app && \
+	kfctl init $(HOME)/gcp-app --platform gcp && \
+	rm -rf $(HOME)/foo-app && \
+	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl init $(HOME)/foo-app --platform foo && \
+	echo SUCCESS
+
+test-known-platforms-generate: test-known-platforms-init
+	@cd ~/ks-app && \
+	kfctl generate && \
+	cd ~/gcp-app && \
+	kfctl generate && \
+	cd ~/foo-app && \
+	kfctl generate && \
+	echo SUCCESS
+
+test-foo-plugin:
+	rm -rf $(HOME)/foo-app
+	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl init $(HOME)/foo-app --platform foo

@@ -26,7 +26,7 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app/options"
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/v1alpha1"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksapp/v1alpha1"
 
 	"github.com/kubeflow/kubeflow/bootstrap/version"
 	log "github.com/sirupsen/logrus"
