@@ -87,19 +87,58 @@ kfctl apply
 
 ## Subcommands
 
-#### root subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/root.go)
-- Set the kfctlConfig Viper instance's config name and type to 'app' and 'yaml' resp.
-
 #### init subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/init.go)
+
 - Upon successful creation of the app directory, creates `app.yaml` within the app directory
 
+```
+kfctl init -h
+Create a kubeflow application template as <name>.yaml.
+
+Usage:
+  kfctl init [flags]
+
+Flags:
+  -h, --help              help for init
+  -p, --platform string   one of 'gcp|minikube|docker-for-desktop|ack' (default "none")
+  -r, --repo string       local github kubeflow repo  (default "$GOPATH/src/github.com/kubeflow/kubeflow/kubeflow")
+  -v, --version string    desired version Kubeflow or latest tag if not provided by user  (default "v0.4.1")
+```
+
 #### generate subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/generate.go)
+
 - Using app.yaml
-  - generates a ksonnet application with components specified in app.yaml
+  - generates a platform specific application with specifics specified in app.yaml
+
+```
+kfctl generate -h
+Generate a kubeflow application and generate an app.yaml.
+
+Usage:
+  kfctl generate [flags]
+
+Flags:
+  -c, --components strings   provide a comma delimited list of component names (default [all])
+  -h, --help                 help for generate
+  -n, --namespace string     namespace where kubeflow will be deployed (default "kubeflow")
+  -p, --packages strings     provide a comma delimited list of package names (default [all])
+```
 
 #### apply subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/apply.go)
+
 - Creates a `namespace`
-- Apply's the ksonnet application by deploying it to the api-server
+- Applys the ksonnet application by deploying it to the api-server
+
+```
+kfctl apply -h
+Deploy a generated kubeflow application.
+
+Usage:
+  kfctl apply [flags]
+
+Flags:
+  -h, --help   help for apply
+```
 
 #### delete subcommand (kubeflow/bootstrap/cmd/kfctl/cmd/delete.go)
   TBD
