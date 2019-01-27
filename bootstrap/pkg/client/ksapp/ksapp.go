@@ -75,7 +75,7 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 		KsApp: kstypes.KsApp{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "KfApp",
-				APIVersion: "apps.kubeflow.org/v1alpha1",
+				APIVersion: "ksapp.apps.kubeflow.org/v1alpha1",
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "",
