@@ -61,10 +61,18 @@ type KfApp interface {
 }
 ```
 
-kfctl includes 2 platforms that implement the KfApp interface.
+kfctl includes 5 platforms that implement the KfApp interface.
 
-- platform: ksonnet (bootstrap/pkg/client/ksapp/ksapp.go)
-- platform: gcp     (bootstrap/pkg/client/gcpapp/gcpapp.go)
+- platform: **none** 
+  - bootstrap/pkg/client/ksapp/ksapp.go
+- platform: **minikube** 
+  - bootstrap/pkg/client/ksapp/ksapp.go
+- platform: **docker-for-desktop** 
+  - bootstrap/pkg/client/ksapp/ksapp.go
+- platform: **ack** 
+  - bootstrap/pkg/client/ksapp/ksapp.go
+- platform: **gcp**
+  - bootstrap/pkg/client/gcpapp/gcpapp.go
 
 ## Usage
 
