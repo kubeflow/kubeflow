@@ -65,6 +65,6 @@ func init() {
 		"local github kubeflow repo ")
 	initCfg.BindPFlag("repo", initCmd.Flags().Lookup("repo"))
 	initCmd.Flags().String("project", "",
-		"gcp project")
+		"name of the gcp project if --platform gcp")
 	initCfg.BindPFlag("project", initCmd.Flags().Lookup("project"))
 }
