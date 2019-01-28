@@ -332,7 +332,7 @@
           instances: params.numExecutors,
           memory: params.executorMemory,
           labels: {
-            version: "2.3.1",
+            version: params.sparkVersion,
           },
           volumeMounts: [
             {
