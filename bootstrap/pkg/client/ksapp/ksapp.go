@@ -425,10 +425,10 @@ func (ksApp *KsApp) Init() error {
 	log.Infof("KsApp.Init AppName %v AppDir %v", ksApp.AppName, ksApp.AppDir)
 	err := os.Mkdir(ksApp.AppDir, os.ModePerm)
 	if err != nil {
-		return fmt.Errorf("cannot create directory %v", ksApp.AppDir)
+		return fmt.Errorf("couldn't create directory %v, most likely it already exists", ksApp.AppDir)
 	}
-	CfgFilePath := filepath.Join(ksApp.AppDir, kftypes.KfConfigFile)
-	_, appDirErr := afero.NewOsFs().Stat(CfgFilePath)
+	cfgFilePath := filepath.Join(ksApp.AppDir, kftypes.KfConfigFile)
+	_, appDirErr := afero.NewOsFs().Stat(cfgFilePath)
 	if appDirErr == nil {
 		return fmt.Errorf("config file %v already exists in %v", kftypes.KfConfigFile, ksApp.AppDir)
 	}

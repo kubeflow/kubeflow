@@ -18,7 +18,7 @@ GOPATH ?= $(HOME)/go
 # To build without the cache set the environment variable
 # export DOCKER_BUILD_OPTS=--no-cache
 IMG ?= gcr.io/$(GCLOUD_PROJECT)/bootstrapper
-TAG ?= $(eval TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6))$(TAG)
+TAG ?= $(shell git describe --tags --always --dirty)
 PORT ?= 2345
 export GO111MODULE=on
 export GO=go
