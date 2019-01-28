@@ -1,60 +1,11 @@
 {
   all(namespace, nfsImage):: [
-    // Instead of creating a PV, use default storage class instead.
-    // $.parts(namespace).nfsServerPv,
-    $.parts(namespace).nfsServerPvc,
     $.parts(namespace).nfsServerDeployment(nfsImage),
     $.parts(namespace).nfsServerService,
     $.parts(namespace).nfsPv,
     $.parts(namespace).nfsPvc,
   ],
   parts(namespace):: {
-    nfsServerPv: {
-      apiVersion: "v1",
-      kind: "PersistentVolume",
-      metadata: {
-        name: "nfs-server-pv",
-        namespace: namespace,
-        labels: {
-          app: "nfs-server-pv",
-        },
-      },
-      spec: {
-        capacity: {
-          storage: "200Gi",
-        },
-        accessModes: [
-          "ReadWriteOnce",
-        ],
-        gcePersistentDisk: {
-          pdName: "mypd",
-          fsType: "ext4",
-        },
-      },
-    }, // nfsServerPv
-
-    nfsServerPvc: {
-      apiVersion: "v1",
-      kind: "PersistentVolumeClaim",
-      metadata: {
-        name: "nfs-server-pvc",
-        namespace: namespace,
-        labels: {
-          app: "nfs-server-pvc",
-        },
-      },
-      spec: {
-        accessModes: [
-          "ReadWriteOnce",
-        ],
-        resources: {
-          requests: {
-            storage: "20Gi",
-          },
-        },
-      },
-    }, //nfsServerPvc
-
     nfsServerDeployment(image): {
       apiVersion: "apps/v1beta2",
       kind: "Deployment",
@@ -185,6 +136,6 @@
           },
         },
       },
-    },
-  }, //nfsPvc
+    }, //nfsPvc
+  },
 }
