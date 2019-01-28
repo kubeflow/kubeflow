@@ -25,8 +25,8 @@ import (
 )
 
 const (
-	GCP_CONFIG    = "gcp_config"
-	K8S_SPECS = "k8s_specs"
+	GCP_CONFIG = "gcp_config"
+	K8S_SPECS  = "k8s_specs"
 )
 
 // GcpApp implements KfApp Interface

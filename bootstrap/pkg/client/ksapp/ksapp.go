@@ -122,7 +122,7 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 }
 
 func (ksApp *KsApp) writeConfigFile() error {
-	 KsAppTemplate := string(`
+	KsAppTemplate := string(`
 apiVersion: {{.APIVersion}}
 kind: {{.Kind}}
 metadata:
