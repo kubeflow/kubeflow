@@ -65,6 +65,7 @@ type KsService interface {
 	Apply(ctx context.Context, req ApplyRequest) error
 	ConfigCluster(context.Context, CreateRequest) error
 	BindRole(context.Context, string, string, string) error
+	InstallIstio(ctx context.Context, req CreateRequest) error
 	InsertDeployment(context.Context, CreateRequest) (*deploymentmanager.Deployment, error)
 	GetDeploymentStatus(context.Context, CreateRequest) (string, string, error)
 	ApplyIamPolicy(context.Context, ApplyIamRequest) error
@@ -351,7 +352,7 @@ func (s *ksServer) GetProjectLock(project string) *sync.Mutex {
 }
 
 // InstallIstio installs istio into the cluster.
-func (s *ksServer) InstallIstio(ctx context.Context, request CreateRequest) error {
+func (s *ksServer) InstallIstio(ctx context.Context, req CreateRequest) error {
 	regPath := s.knownRegistries["kubeflow"].RegUri
 
 	token := req.Token
@@ -536,7 +537,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 		UpdateDmConfig(repoDir, request.Project, request.Name, kfVersion, dmDeploy)
 	}
 	UpdateCloudShellConfig(repoDir, request.Project, request.Name, kfVersion, request.Zone)
-	UpdateIstioManifest(repoDir, request.Project, request.Name, kfVersion)
+	UpdateIstioManifest(repoDir, request.Project, request.Name, kfVersion, s.knownRegistries["kubeflow"].RegUri)
 	err = s.SaveAppToRepo(request.Project, request.Email, repoDir)
 	if err != nil {
 		log.Errorf("There was a problem saving config to cloud repo; %v", err)
@@ -903,7 +904,7 @@ func UpdateIstioManifest(repoDir string, project string, appName string, kfVersi
 	if err := os.MkdirAll(istioDir, os.ModePerm); err != nil {
 		return err
 	}
-	err = copyFile(path.Join(regPath, "../dependencies/istio/install/crds.yaml"), path.Join(istioDir, "crd.yaml"))
+	err := copyFile(path.Join(regPath, "../dependencies/istio/install/crds.yaml"), path.Join(istioDir, "crd.yaml"))
 	if err != nil {
 		return err
 	}

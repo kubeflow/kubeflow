@@ -17,6 +17,6 @@ func copyFile(src, dst string) error {
 		return err
 	}
 	defer destination.Close()
-	_, err := io.Copy(destination, source)
+	_, err = io.Copy(destination, source)
 	return err
 }
