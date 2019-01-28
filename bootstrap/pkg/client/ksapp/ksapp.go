@@ -54,7 +54,7 @@ type KsApp struct {
 	KsEnvName string
 	CfgFile   *viper.Viper
 	KApp      app.App
-	KsApp     kftypes.KsApp
+	KsApp     *kstypes.KsApp
 }
 
 func GetKfApp(options map[string]interface{}) kftypes.KfApp {
@@ -389,7 +389,7 @@ func (ksApp *KsApp) Generate() error {
 			"tf-job-operator",
 		}
 		for _, compName := range componentArray {
-			comp := kftypes.KsComponent{
+			comp := kstypes.KsComponent{
 				Name:      compName,
 				Prototype: compName,
 			}
@@ -538,7 +538,7 @@ func (ksApp *KsApp) ParamSet(component string, name string, value string) error 
 	return nil
 }
 
-func (ksApp *KsApp) PkgInstall(pkg kftypes.KsPackage) error {
+func (ksApp *KsApp) PkgInstall(pkg kstypes.KsPackage) error {
 	root := ksApp.KsRoot()
 	err := actions.RunPkgInstall(map[string]interface{}{
 		actions.OptionAppRoot: root,
@@ -556,7 +556,7 @@ func (ksApp *KsApp) PrototypeUse(m map[string]interface{}) error {
 	return nil
 }
 
-func (ksApp *KsApp) RegistryAdd(registry *kftypes.RegistryConfig) error {
+func (ksApp *KsApp) RegistryAdd(registry *kstypes.RegistryConfig) error {
 	log.Infof("App %v add registry %v URI %v", ksApp.AppName, registry.Name, registry.RegUri)
 	root := ksApp.KsRoot()
 	options := map[string]interface{}{
