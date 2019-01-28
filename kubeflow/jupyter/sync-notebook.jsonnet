@@ -47,6 +47,9 @@ function(request) {
       },
     ],
     restartPolicy: "Always",
+    securityContext: {
+      fsGroup: 100
+    },
     serviceAccount:: {},
     // TODO serviceAccount could be the user in the kubeflow namespace
     // But should probably be the similar to jupyter.
