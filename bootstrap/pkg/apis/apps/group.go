@@ -38,6 +38,14 @@ const (
 	KfConfigFile   = "app.yaml"
 )
 
+type ResourceEnum string
+
+const (
+	ALL      ResourceEnum = "all"
+	E8S      ResourceEnum = "e8s"
+	PLATFORM ResourceEnum = "platform"
+)
+
 //
 // KfApp is used by commands under bootstrap/cmd/{bootstrap,kfctl}. KfApp provides a common
 // API for different implementations like KsApp, GcpApp, etc.
@@ -45,7 +53,7 @@ const (
 type KfApp interface {
 	Apply() error
 	Delete() error
-	Generate() error
+	Generate(ResourceEnum) error
 	Init() error
 }
 

@@ -26,7 +26,6 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 	"path"
 	"path/filepath"
@@ -118,21 +117,23 @@ func LoadKfApp(cfgFile *viper.Viper) (kftypes.KfApp, error) {
 	if cfgfile == "" {
 		return nil, fmt.Errorf("config file does not exist")
 	}
+	log.Infof("reading from %v", cfgfile)
 	fs := afero.NewOsFs()
 	ksDir := path.Join(appDir, kstypes.KsName)
 	kApp, kAppErr := app.Load(fs, nil, ksDir)
 	if kAppErr != nil {
 		return nil, fmt.Errorf("there was a problem loading app %v. Error: %v", appName, kAppErr)
 	}
-	metadata := v1.ObjectMeta{}
-	metadataErr := cfgFile.Sub("metadata").Unmarshal(&metadata)
-	if metadataErr != nil {
-		return nil, fmt.Errorf("couldn't unmarshall yaml. Error: %v", metadataErr)
-	}
 	ksApp := kstypes.KsApp{}
-	ksAppErr := cfgFile.Unmarshal(&ksApp)
-	if ksAppErr != nil {
-		return nil, fmt.Errorf("couldn't unmarshall yaml. Error: %v", ksAppErr)
+	ksApp.TypeMeta.APIVersion = cfgFile.GetString("apiVersion")
+	ksApp.TypeMeta.Kind = cfgFile.GetString("kind")
+	metadataErr := cfgFile.Sub("metadata").Unmarshal(&ksApp.ObjectMeta)
+	if metadataErr != nil {
+		return nil, fmt.Errorf("couldn't unmarshall KsApp metadata. Error: %v", metadataErr)
+	}
+	specErr := cfgFile.Sub("spec").Unmarshal(&ksApp.Spec)
+	if specErr != nil {
+		return nil, fmt.Errorf("couldn't unmarshall KsApp spec. Error: %v", specErr)
 	}
 	platform := ksApp.Spec.Platform
 	options := map[string]interface{}{

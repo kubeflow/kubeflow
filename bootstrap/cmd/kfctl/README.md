@@ -10,10 +10,10 @@ The new `kfctl` client replaces `kfctl.sh` and is implemented in golang.
 
  - Separate different platform implementations of the KfApp Interface
    - ksonnet
-     - `kfctl init --platform none`
+     - `kfctl init <[path/]name> --platform none`
      - implementation: bootstrap/pkg/client/ksapp
    - gcp
-     - `kfctl init --platform gcp`
+     - `kfctl init <[path/]name> --platform gcp`
      - implementation: bootstrap/pkg/client/gcpapp 
 
  - Allow new platforms to be added to kfctl without rebuilding or reshipping kfctl (see [Extending kfctl](#extending-kfctl) below).
@@ -47,18 +47,32 @@ Definition: github/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/group
 The `KfApp` golang Interface 
 
 ```golang
+type ResourceEnum string
+const (
+	ALL      ResourceEnum = "all"
+	E8S      ResourceEnum = "e8s"
+	PLATFORM ResourceEnum = "platform"
+)
 type KfApp interface {
 	Apply() error
 	Delete() error
-	Generate() error
+	Generate(ResourceEnum) error
 	Init() error
 }
 ```
 
-kfctl includes 2 platforms that implement the KfApp interface.
+kfctl includes platforms that implement the KfApp interface.
 
-- platform: ksonnet (bootstrap/pkg/client/ksapp/ksapp.go)
-- platform: gcp     (bootstrap/pkg/client/gcpapp/gcpapp.go)
+- platform: **none** 
+  - bootstrap/pkg/client/ksapp/ksapp.go
+- platform: **minikube** 
+  - bootstrap/pkg/client/ksapp/ksapp.go
+- platform: **docker-for-desktop** 
+  - bootstrap/pkg/client/ksapp/ksapp.go
+- platform: **ack** 
+  - bootstrap/pkg/client/ksapp/ksapp.go
+- platform: **gcp**
+  - bootstrap/pkg/client/gcpapp/gcpapp.go
 
 ## Usage
 
@@ -71,9 +85,9 @@ Usage:
 Available Commands:
   apply       Deploy a generated kubeflow application.
   delete      Delete a kubeflow application.
-  generate    Generate a kubeflow application and generate an app.yaml.
+  generate    Generate a kubeflow application where resources is one of 'platform | k8s | all'.
   help        Help about any command
-  init        Create a kubeflow application template as <name>.yaml.
+  init        Create a kubeflow application under <[path/]name>
   version     Prints the version of kfctl.
 
 Flags:
@@ -82,10 +96,10 @@ Flags:
 Use "kfctl [command] --help" for more information about a command.
 ```
 
-Typical use-case
+Typical use-case, non-platform specific. 
 
 ```sh
-kfctl init ~/myapp --platform none
+kfctl init ~/myapp 
 cd ~/myapp
 kfctl generate 
 kfctl apply 
@@ -95,33 +109,39 @@ kfctl apply
 
 #### _init_ (kubeflow/bootstrap/cmd/kfctl/cmd/init.go)
 
-- Upon successful creation of the app directory, creates `app.yaml` within the app directory
-
 ```
 kfctl init -h
-Create a kubeflow application template as <name>.yaml.
+Create a kubeflow application under <[path/]name>. The <[path/]name> argument can either be a full path
+or a name where the kubeflow application will be initialized in $PWD/name if <name> is not a path or in the parent
+directory is name is a path.
 
 Usage:
-  kfctl init [flags]
+  kfctl init <[path/]name> [flags]
 
 Flags:
   -h, --help              help for init
   -p, --platform string   one of 'gcp|minikube|docker-for-desktop|ack' (default "none")
+      --project string    name of the gcp project if --platform gcp
   -r, --repo string       local github kubeflow repo  (default "$GOPATH/src/github.com/kubeflow/kubeflow/kubeflow")
   -v, --version string    desired version Kubeflow or latest tag if not provided by user  (default "v0.4.1")
 ```
 
 #### _generate_ (kubeflow/bootstrap/cmd/kfctl/cmd/generate.go)
 
-- Using app.yaml
+- Using app.yaml created by init
   - generates a platform specific application with specifics specified in app.yaml
 
 ```
-kfctl generate -h
-Generate a kubeflow application and generate an app.yaml.
+Generate a kubeflow application where resources is one of 'platform | k8s | all'.
+
+  platform: non kubernetes resources (eg --platform gcp)
+  k8s: kubernetes resources
+  all: both platform and k8s
+
+The default is 'all' for any selected platform.
 
 Usage:
-  kfctl generate [flags]
+  kfctl generate [resources] [flags]
 
 Flags:
   -c, --components strings   provide a comma delimited list of component names (default [all])
@@ -154,16 +174,23 @@ Flags:
 ## Extending kfctl
 
 `kfctl` can be extended to work with new platforms without requiring recompilation. 
-An example is under bootstrap/cmd/plugins/foo.go. A particular platform 
-would provide a shared library under the env var `PLUGINS_ENVIRONMENT` 
-that kfctl would load and execute. This shared library would implement 
-the [KfApp Interface](#kfapp-interface). In this case running
+An example is under bootstrap/cmd/plugins/fooapp.go. A particular platform 
+provides a shared library (.so) under the env var `PLUGINS_ENVIRONMENT` 
+that kfctl would load and execute. The shared library needs to define 
+
+```
+func GetKfApp(options map[string]interface{}) kftypes.KfApp 
+```
+
+where the return type implements the [KfApp Interface](#kfapp-interface). 
+
+In this sample, running
 
 ```
 kfctl init ~/foo-app --platform foo
 ```
 
-will result in kfctl loading $PLUGINS_ENVIRONMENT/foo.so and calling its methods that 
+will result in kfctl loading $PLUGINS_ENVIRONMENT/fooapp.so and calling its methods that 
 implement the KfApp Interface.
 
 ### Building the sample plugin
@@ -178,6 +205,12 @@ make build-foo-plugin
 
 ```
 make test-known-platforms-init
+```
+
+### Testing generate for all platforms including the `foo` platform plugin
+
+```
+make test-known-platforms-generate
 ```
 
 ## Debugging

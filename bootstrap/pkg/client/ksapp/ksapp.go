@@ -110,15 +110,24 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 		x := reflect.ValueOf(_kfapp).Elem().FieldByName(k)
 		x.Set(reflect.ValueOf(v))
 	}
+	if options["KsApp"] == nil {
+		platform := _kfapp.CfgFile.GetString("platform")
+		_kfapp.KsApp.Spec.Platform = platform
+	} else {
+		value := options["KsApp"]
+		ksApp := value.(*kstypes.KsApp)
+		_kfapp.KsApp = ksApp
+	}
 	return _kfapp
 }
 
-var KsAppTemplate = string(`
+func (ksApp *KsApp) writeConfigFile() error {
+	KsAppTemplate := string(`
 apiVersion: {{.APIVersion}}
 kind: {{.Kind}}
 metadata:
-  name: {{.Name}}
-  namespace: {{.Namespace}}
+  name: {{.ObjectMeta.Name}}
+  namespace: {{.ObjectMeta.Namespace}}
 spec:
   platform: {{.Spec.Platform}}
   repo: {{.Spec.Repo}}
@@ -151,8 +160,6 @@ spec:
         value: {{$parameter.Value}}
 {{end}}
 `)
-
-func (ksApp *KsApp) writeConfigFile() error {
 	tmpl, tmplErr := template.New(kftypes.KfConfigFile).Parse(KsAppTemplate)
 	if tmplErr != nil {
 		return tmplErr
@@ -312,7 +319,7 @@ func (ksApp *KsApp) Delete() error {
 	return nil
 }
 
-func (ksApp *KsApp) Generate() error {
+func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum) error {
 	host, k8sSpec, err := kftypes.ServerVersion()
 	if err != nil {
 		return fmt.Errorf("couldn't get server version: %v", err)
