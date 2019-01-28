@@ -176,8 +176,15 @@ Flags:
 `kfctl` can be extended to work with new platforms without requiring recompilation. 
 An example is under bootstrap/cmd/plugins/fooapp.go. A particular platform 
 provides a shared library (.so) under the env var `PLUGINS_ENVIRONMENT` 
-that kfctl would load and execute. This shared library would implement 
-the [KfApp Interface](#kfapp-interface). In this case running
+that kfctl would load and execute. The shared library needs to define 
+
+```
+func GetKfApp(options map[string]interface{}) kftypes.KfApp 
+```
+
+where the return type implements the [KfApp Interface](#kfapp-interface). 
+
+In this sample, running
 
 ```
 kfctl init ~/foo-app --platform foo
