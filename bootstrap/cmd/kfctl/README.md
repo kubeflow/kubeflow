@@ -61,7 +61,7 @@ type KfApp interface {
 }
 ```
 
-kfctl includes 5 platforms that implement the KfApp interface.
+kfctl includes platforms that implement the KfApp interface.
 
 - platform: **none** 
   - bootstrap/pkg/client/ksapp/ksapp.go
