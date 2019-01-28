@@ -108,8 +108,13 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	_kfapp.KsApp.Name = options["AppName"].(string)
 	for k, v := range options {
 		x := reflect.ValueOf(_kfapp).Elem().FieldByName(k)
-		x.Set(reflect.ValueOf(v))
+		xtype := reflect.Zero(reflect.TypeOf(v))
+		if x != xtype {
+			x.Set(reflect.ValueOf(v))
+		}
 	}
+	platform := _kfapp.CfgFile.GetString("platform")
+	_kfapp.KsApp.Spec.Platform = platform
 	return _kfapp
 }
 

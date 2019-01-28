@@ -36,8 +36,14 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	}
 	for k, v := range options {
 		x := reflect.ValueOf(_gcpapp.ksApp).Elem().FieldByName(k)
-		x.Set(reflect.ValueOf(v))
+		xtype := reflect.Zero(reflect.TypeOf(v))
+		if x != xtype {
+			x.Set(reflect.ValueOf(v))
+		}
 	}
+	ksApp := _gcpapp.ksApp.(*ksapp.KsApp)
+	platform := ksApp.CfgFile.GetString("platform")
+	ksApp.KsApp.Spec.Platform = platform
 	return _gcpapp
 }
 
