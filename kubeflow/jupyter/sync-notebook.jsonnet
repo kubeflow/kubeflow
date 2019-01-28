@@ -27,7 +27,7 @@ function(request) {
             value: "true",
           },
         ],
-        image: "gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu:v0.3.0",
+        image: "gcr.io/kubeflow-images-public/tensorflow-1.12.0-notebook-cpu:v0.4.0",
         imagePullPolicy: "IfNotPresent",
         name: "notebook",
         ports: [
@@ -46,6 +46,7 @@ function(request) {
         workingDir: "/home/jovyan",
       },
     ],
+    volumes: [],
     restartPolicy: "Always",
     securityContext: {
       fsGroup: 100
