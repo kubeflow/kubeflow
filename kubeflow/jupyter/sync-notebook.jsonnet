@@ -74,6 +74,7 @@ function(request) {
               "rewrite: /" + request.parent.metadata.namespace + "/" + request.parent.metadata.name,
               "timeout_ms: 300000",
               "service: " + request.parent.metadata.name + "." + request.parent.metadata.namespace,
+              "use_websocket: true"
             ]),
         },
         name: request.parent.metadata.name,
