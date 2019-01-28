@@ -53,6 +53,7 @@ function(request) {
     serviceAccountName:: {},
     automountServiceAccountToken: false,
   },
+  local containers = [std.mergePatch(podTemplateSpec.containers[0], templateSpec.containers[0])],
 
   local children = [
     {
@@ -107,11 +108,8 @@ function(request) {
               app: request.parent.metadata.name,
             },
           },
-          spec: {
-            containers: [
-              templateSpec.containers[0] + podTemplateSpec.containers[0],
-            ],
-          },
+          spec:
+            std.mergePatch(podTemplateSpec, templateSpec { containers: containers }),
         },
       },
     },
