@@ -328,8 +328,8 @@
           ],
         },
         executor: {
-          cores: 1,
-          instances: 1,
+          cores: params.executorCores,
+          instances: params.numExecutors,
           memory: params.executorMemory,
           labels: {
             version: "2.3.1",

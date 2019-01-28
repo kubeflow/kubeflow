@@ -9,6 +9,7 @@
 // @optionalParam driverCores number 2 number of cores for driver
 // @optionalParam driverMemory string 2g Memory for the driver
 // @optionalParam executorMemory string 2g Memory per executor
+// @optionalParam executorCores number 1 Cores per executor
 // @optionalParam numExecutors number 3 Number of executors
 // @optionalParam sparkVersion string 2.3.1 Version of Spark
 // @optionalParam image string gcr.io/spark-operator/spark:v2.3.1 Image to use
