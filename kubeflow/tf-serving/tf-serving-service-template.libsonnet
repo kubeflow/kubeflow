@@ -50,12 +50,12 @@
         ports: [
           {
             name: "grpc-tf-serving",
-            port: 9000,
+            port: params.portGRPC,
             targetPort: 9000,
           },
           {
             name: "http-tf-serving",
-            port: 8500,
+            port: params.portHTTP,
             targetPort: 8500,
           },
         ],

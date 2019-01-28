@@ -8,6 +8,8 @@
 // @optionalParam trafficRule string v1:100 The traffic rule, in the format of version:percentage,version:percentage,..
 // @optionalParam injectIstio string false Whether to inject istio sidecar; should be true or false.
 // @optionalParam enablePrometheus string true Whether to enable prometheus endpoint (requires TF 1.11)
+// @optionalParam portHTTP string 8500 Port to use for tf-serving HTTP
+// @optionalParam portGRPC string 9000 Port to use for tf-serving GRPC
 
 local k = import "k.libsonnet";
 local tfservingService = import "kubeflow/tf-serving/tf-serving-service-template.libsonnet";
