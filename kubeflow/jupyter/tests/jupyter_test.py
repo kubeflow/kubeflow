@@ -48,6 +48,11 @@ def is_retryable_result(r):
        stop_max_delay=5*60*1000,
        retry_on_result=is_retryable_result)
 def send_request(*args, **kwargs):
+  """Send a request to the Jupyter server.
+
+  Sends a request to verify we can fetch the main page for the Jupyter
+  notebook.
+  """
   # We don't use util.run because that ends up including the access token
   # in the logs
   token = subprocess.check_output(["gcloud", "auth", "print-access-token"])
@@ -77,16 +82,15 @@ def send_request(*args, **kwargs):
 def test_jupyter(env, namespace):
   app_credentials = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
   if app_credentials:
-    print("Activate service account")
+    logging.info("Activate service account")
     util.run(["gcloud", "auth", "activate-service-account",
               "--key-file=" + app_credentials])
 
-  print("--master set; using kubeconfig")
   # util.load_kube_config appears to hang on python3
   kube_config.load_kube_config()
   api_client = k8s_client.ApiClient()
   host = api_client.configuration.host
-  print("host={0}".format(host))
+  logging.info("Kubernetes master: %s", host)
   master = host.rsplit("/", 1)[-1]
 
   this_dir = os.path.dirname(__file__)
@@ -128,6 +132,4 @@ if __name__ == "__main__":
                       datefmt='%Y-%m-%dT%H:%M:%S',
                       )
   logging.getLogger().setLevel(logging.INFO)
-  # DO not submit next line is just a hack to avoid swallowing exceptions.
-  test_jupyter("jlewi", "jlewi")
   pytest.main()
