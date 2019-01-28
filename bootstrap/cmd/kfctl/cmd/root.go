@@ -129,8 +129,8 @@ func LoadKfApp(cfgFile *viper.Viper) (kftypes.KfApp, error) {
 	if metadataErr != nil {
 		return nil, fmt.Errorf("couldn't unmarshall yaml. Error: %v", metadataErr)
 	}
-	ksApp := kstypes.KsApp{}
-	ksAppErr := cfgFile.Unmarshal(&ksApp)
+	ksApp := &kstypes.KsApp{}
+	ksAppErr := cfgFile.Unmarshal(ksApp)
 	if ksAppErr != nil {
 		return nil, fmt.Errorf("couldn't unmarshall yaml. Error: %v", ksAppErr)
 	}
@@ -140,7 +140,7 @@ func LoadKfApp(cfgFile *viper.Viper) (kftypes.KfApp, error) {
 		"AppDir":  appDir,
 		"CfgFile": cfgFile,
 		"KApp":    kApp,
-		"KsApp":   &ksApp,
+		"KsApp":   ksApp,
 	}
 	app, appErr := LoadPlatform(platform, options)
 	if appErr != nil {

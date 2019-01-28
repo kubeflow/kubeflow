@@ -91,9 +91,9 @@ test-known-platforms-generate: test-known-platforms-init
 	@cd ~/ks-app && \
 	kfctl generate && \
 	cd ~/gcp-app && \
-	kfctl generate && \
+	kfctl generate all && \
 	cd ~/foo-app && \
-	kfctl generate && \
+	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate && \
 	echo SUCCESS
 
 test-foo-plugin:
