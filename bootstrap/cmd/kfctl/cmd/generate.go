@@ -36,7 +36,20 @@ var generateCmd = &cobra.Command{
 			log.Errorf("couldn't create KfApp: %v", kfAppErr)
 			return
 		}
-		generateErr := kfApp.Generate()
+		resources := kftypes.ALL
+		if len(args) == 1 {
+			switch resources {
+			case kftypes.ALL:
+			case kftypes.E8S:
+				resources = kftypes.E8S
+			case "platform":
+				resources = kftypes.PLATFORM
+			default:
+				log.Errorf("unknown resource %v", resources)
+				return
+			}
+		}
+		generateErr := kfApp.Generate(resources)
 		if generateErr != nil {
 			log.Errorf("couldn't generate KfApp: %v", generateErr)
 			return

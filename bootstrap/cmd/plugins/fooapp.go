@@ -42,8 +42,8 @@ func (fooApp *FooApp) Delete() error {
 	return nil
 }
 
-func (fooApp *FooApp) Generate() error {
-	ksGenerateErr := fooApp.ksApp.Generate()
+func (fooApp *FooApp) Generate(resources kftypes.ResourceEnum) error {
+	ksGenerateErr := fooApp.ksApp.Generate(resources)
 	if ksGenerateErr != nil {
 		return fmt.Errorf("foo generate failed for ksapp: %v", ksGenerateErr)
 	}

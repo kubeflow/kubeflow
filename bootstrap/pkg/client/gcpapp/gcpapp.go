@@ -58,8 +58,8 @@ func (gcpApp *GcpApp) Delete() error {
 	return nil
 }
 
-func (gcpApp *GcpApp) Generate() error {
-	ksGenerateErr := gcpApp.ksApp.Generate()
+func (gcpApp *GcpApp) Generate(resources kftypes.ResourceEnum) error {
+	ksGenerateErr := gcpApp.ksApp.Generate(resources)
 	if ksGenerateErr != nil {
 		return fmt.Errorf("gcp generate failed for ksapp: %v", ksGenerateErr)
 	}

@@ -312,7 +312,7 @@ func (ksApp *KsApp) Delete() error {
 	return nil
 }
 
-func (ksApp *KsApp) Generate() error {
+func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum) error {
 	host, k8sSpec, err := kftypes.ServerVersion()
 	if err != nil {
 		return fmt.Errorf("couldn't get server version: %v", err)
