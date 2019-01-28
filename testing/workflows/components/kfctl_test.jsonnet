@@ -77,7 +77,7 @@ local prowDict = {
   JOB_NAME: "notset",
   JOB_TYPE: "notset",
   PULL_NUMBER: "notset",
- } + newUtil.listOfDictToMap(prowEnv);
+} + newUtil.listOfDictToMap(prowEnv);
 
 // Build an Argo template to execute a particular command.
 // step_name: Name for the template
@@ -94,10 +94,10 @@ local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=
     // TODO(jlewi): Change to IfNotPresent.
     imagePullPolicy: "Always",
     metadata: {
-      labels: prowDict + {
+      labels: prowDict {
         workflow: params.name,
         workflow_template: workflow_template,
-        "step_name": step_name,
+        step_name: step_name,
       },
     },
     env: [
@@ -155,7 +155,7 @@ local componentTests = util.kfTests {
     argoTemplate+: {
       container+: {
         metadata+: {
-          labels: prowDict + {
+          labels: prowDict {
             workflow: params.name,
             workflow_template: workflow_template,
           },
@@ -457,9 +457,9 @@ local workflow = {
   metadata: {
     name: name,
     namespace: namespace,
-    labels: prowDict + {
-        workflow: params.name,
-        workflow_template: workflow_template,
+    labels: prowDict {
+      workflow: params.name,
+      workflow_template: workflow_template,
     },
   },
   spec: {
