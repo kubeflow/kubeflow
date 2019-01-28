@@ -285,7 +285,6 @@ def deploy_pytorchjob(args):
 
   ks_deploy(app_dir, component, params, env=None, account=None, namespace=None)
 
-
 def teardown(args):
   # Delete the namespace
   logging.info("Deleting namespace %s", args.namespace)
