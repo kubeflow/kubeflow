@@ -108,22 +108,26 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	_kfapp.KsApp.Name = options["AppName"].(string)
 	for k, v := range options {
 		x := reflect.ValueOf(_kfapp).Elem().FieldByName(k)
-		xtype := reflect.Zero(reflect.TypeOf(v))
-		if x != xtype {
-			x.Set(reflect.ValueOf(v))
-		}
+		x.Set(reflect.ValueOf(v))
 	}
-	platform := _kfapp.CfgFile.GetString("platform")
-	_kfapp.KsApp.Spec.Platform = platform
+	if options["KsApp"] == nil {
+		platform := _kfapp.CfgFile.GetString("platform")
+		_kfapp.KsApp.Spec.Platform = platform
+	} else {
+		value := options["KsApp"]
+		ksApp := value.(*kstypes.KsApp)
+		_kfapp.KsApp = ksApp
+	}
 	return _kfapp
 }
 
-var KsAppTemplate = string(`
+func (ksApp *KsApp) writeConfigFile() error {
+	 KsAppTemplate := string(`
 apiVersion: {{.APIVersion}}
 kind: {{.Kind}}
 metadata:
-  name: {{.Name}}
-  namespace: {{.Namespace}}
+  name: {{.ObjectMeta.Name}}
+  namespace: {{.ObjectMeta.Namespace}}
 spec:
   platform: {{.Spec.Platform}}
   repo: {{.Spec.Repo}}
@@ -156,8 +160,6 @@ spec:
         value: {{$parameter.Value}}
 {{end}}
 `)
-
-func (ksApp *KsApp) writeConfigFile() error {
 	tmpl, tmplErr := template.New(kftypes.KfConfigFile).Parse(KsAppTemplate)
 	if tmplErr != nil {
 		return tmplErr

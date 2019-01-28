@@ -20,7 +20,13 @@ import (
 	"fmt"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksapp"
-	"reflect"
+	"os"
+	"path"
+)
+
+const (
+	GCP_CONFIG    = "gcp_config"
+	K8S_SPECS = "k8s_specs"
 )
 
 // GcpApp implements KfApp Interface
@@ -34,13 +40,6 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	_gcpapp := &GcpApp{
 		ksApp: ksapp.GetKfApp(options),
 	}
-	for k, v := range options {
-		x := reflect.ValueOf(_gcpapp.ksApp).Elem().FieldByName(k)
-		x.Set(reflect.ValueOf(v))
-	}
-	ksApp := _gcpapp.ksApp.(*ksapp.KsApp)
-	platform := ksApp.CfgFile.GetString("platform")
-	ksApp.KsApp.Spec.Platform = platform
 	return _gcpapp
 }
 
@@ -65,6 +64,20 @@ func (gcpApp *GcpApp) Generate(resources kftypes.ResourceEnum) error {
 	ksGenerateErr := gcpApp.ksApp.Generate(resources)
 	if ksGenerateErr != nil {
 		return fmt.Errorf("gcp generate failed for ksapp: %v", ksGenerateErr)
+	}
+	appDir, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("could not get current directory %v", err)
+	}
+	gcpConfigDir := path.Join(appDir, GCP_CONFIG)
+	gcpConfigDirErr := os.Mkdir(gcpConfigDir, os.ModePerm)
+	if gcpConfigDirErr != nil {
+		return fmt.Errorf("cannot create directory %v", gcpConfigDirErr)
+	}
+	k8sSpecsDir := path.Join(appDir, K8S_SPECS)
+	k8sSpecsDirErr := os.Mkdir(k8sSpecsDir, os.ModePerm)
+	if k8sSpecsDirErr != nil {
+		return fmt.Errorf("cannot create directory %v", k8sSpecsDirErr)
 	}
 	return nil
 }

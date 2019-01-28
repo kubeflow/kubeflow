@@ -26,11 +26,9 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 	"path"
 	"path/filepath"
-	"plugin"
 )
 
 func LoadPlatform(platform string, options map[string]interface{}) (kftypes.KfApp, error) {
@@ -45,7 +43,7 @@ func LoadPlatform(platform string, options map[string]interface{}) (kftypes.KfAp
 		// To enable goland debugger:
 		// Comment out this section and comment in the line
 		//   return nil, fmt.Errorf("unknown platform %v", platform
-
+/*
 		plugindir := os.Getenv("PLUGINS_ENVIRONMENT")
 		pluginpath := filepath.Join(plugindir, platform+"app.so")
 		p, err := plugin.Open(pluginpath)
@@ -58,8 +56,8 @@ func LoadPlatform(platform string, options map[string]interface{}) (kftypes.KfAp
 			return nil, fmt.Errorf("could not find symbol %v for platform %v Error %v", symName, platform, symbolErr)
 		}
 		return symbol.(func(map[string]interface{}) kftypes.KfApp)(options), nil
-
-		//return nil, fmt.Errorf("unknown platform %v", platform)
+*/
+		return nil, fmt.Errorf("unknown platform %v", platform)
 	}
 }
 
@@ -118,21 +116,65 @@ func LoadKfApp(cfgFile *viper.Viper) (kftypes.KfApp, error) {
 	if cfgfile == "" {
 		return nil, fmt.Errorf("config file does not exist")
 	}
+	log.Infof("reading from %v", cfgfile)
 	fs := afero.NewOsFs()
 	ksDir := path.Join(appDir, kstypes.KsName)
 	kApp, kAppErr := app.Load(fs, nil, ksDir)
 	if kAppErr != nil {
 		return nil, fmt.Errorf("there was a problem loading app %v. Error: %v", appName, kAppErr)
 	}
-	metadata := v1.ObjectMeta{}
-	metadataErr := cfgFile.Sub("metadata").Unmarshal(&metadata)
-	if metadataErr != nil {
-		return nil, fmt.Errorf("couldn't unmarshall yaml. Error: %v", metadataErr)
+	/*
+	ksApp := kstypes.KsApp{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion:"",
+			Kind:"",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:"",
+			Namespace:"",
+		},
+		Spec: kstypes.KsAppSpec{
+			Platform:   "none",
+			Version:    "",
+			Repo:       "",
+			Components: []string{"all"},
+			Packages:   []string{"all"},
+			App: kstypes.AppConfig{
+				Registries: []*kstypes.RegistryConfig{
+					{
+						Name: "kubeflow",
+						Repo: "https://github.com/kubeflow/kubeflow.git",
+						Path: "kubeflow",
+					},
+				},
+				Packages:   []kstypes.KsPackage{},
+				Components: []kstypes.KsComponent{},
+				Parameters: []kstypes.KsParameter{
+					{
+						Component: "spartakus",
+						Name:      "usageId",
+						Value:     fmt.Sprintf("%08d", 10000000+rand.Intn(90000000)),
+					},
+					{
+						Component: "spartakus",
+						Name:      "reportUsage",
+						Value:     "true",
+					},
+				},
+			},
+		},
 	}
-	ksApp := &kstypes.KsApp{}
-	ksAppErr := cfgFile.Unmarshal(ksApp)
-	if ksAppErr != nil {
-		return nil, fmt.Errorf("couldn't unmarshall yaml. Error: %v", ksAppErr)
+	*/
+	ksApp := kstypes.KsApp{}
+	ksApp.TypeMeta.APIVersion = cfgFile.GetString("apiVersion")
+	ksApp.TypeMeta.Kind = cfgFile.GetString("kind")
+	metadataErr := cfgFile.Sub("metadata").Unmarshal(&ksApp.ObjectMeta)
+	if metadataErr != nil {
+		return nil, fmt.Errorf("couldn't unmarshall KsApp metadata. Error: %v", metadataErr)
+	}
+	specErr := cfgFile.Sub("spec").Unmarshal(&ksApp.Spec)
+	if specErr != nil {
+		return nil, fmt.Errorf("couldn't unmarshall KsApp spec. Error: %v", specErr)
 	}
 	platform := ksApp.Spec.Platform
 	options := map[string]interface{}{
@@ -140,7 +182,7 @@ func LoadKfApp(cfgFile *viper.Viper) (kftypes.KfApp, error) {
 		"AppDir":  appDir,
 		"CfgFile": cfgFile,
 		"KApp":    kApp,
-		"KsApp":   ksApp,
+		"KsApp":   &ksApp,
 	}
 	app, appErr := LoadPlatform(platform, options)
 	if appErr != nil {
