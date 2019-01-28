@@ -26,9 +26,15 @@ var generateCfg = viper.New()
 
 // generateCmd represents the generate command
 var generateCmd = &cobra.Command{
-	Use:   "generate",
-	Short: "Generate a kubeflow application and generate an app.yaml.",
-	Long:  `Generate a kubeflow application and generate an app.yaml.`,
+	Use:   "generate [resources]",
+	Short: "Generate a kubeflow application where resources is one of 'platform | k8s | all'.",
+	Long: `Generate a kubeflow application where resources is one of 'platform | k8s | all'.
+
+  platform: non kubernetes resources (eg --platform gcp)
+  k8s: kubernetes resources
+  all: both platform and k8s
+
+The default is 'all' for any selected platform.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.InfoLevel)
 		kfApp, kfAppErr := LoadKfApp(generateCfg)

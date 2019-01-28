@@ -26,9 +26,11 @@ var initCfg = viper.New()
 
 // initCmd represents the init command
 var initCmd = &cobra.Command{
-	Use:   "init",
-	Short: "Create a kubeflow application template as <name>.yaml.",
-	Long:  `Create a kubeflow application template as <name>.yaml.`,
+	Use:   "init <[path/]name>",
+	Short: "Create a kubeflow application under <[path/]name>",
+	Long: `Create a kubeflow application under <[path/]name>. The <[path/]name> argument can either be a full path 
+or a name where the kubeflow application will be initialized in $PWD/name if <name> is not a path or in the parent 
+directory is name is a path.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.InfoLevel)
 		if len(args) == 0 {
