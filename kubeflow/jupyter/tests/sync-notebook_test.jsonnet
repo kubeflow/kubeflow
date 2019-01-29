@@ -3,7 +3,7 @@ local params = {
   // TODO
   // Most of these will go away since that can be set directly in Notebook.spec.template.spec
   //
-  image: "tensorflow-1.10.1-notebook-cpu:v0.3.0",
+  image: "tensorflow-1.12.0-notebook-cpu:v0.4.0",
   useJupyterLabAsDefault: true,
   notebookPVCMount: "/home/jovyan",
   registry: "gcr.io",
@@ -11,7 +11,7 @@ local params = {
   notebookUid: "-1",
   notebookGid: "-1",
   serviceType: "ClusterIP",
-  targetPort: "8888",
+  targetPort: 8888,
   servicePort: "80",
 };
 
@@ -98,7 +98,7 @@ local testCases = [
           kind: "Service",
           metadata: {
             annotations: {
-              "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind:  Mapping\nname: resnet50_training_mapping\nprefix: /resnet50/training\nrewrite: /resnet50/training\ntimeout_ms: 300000\nservice: training.resnet50",
+              "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind:  Mapping\nname: resnet50_training_mapping\nprefix: /resnet50/training\nrewrite: /resnet50/training\ntimeout_ms: 300000\nservice: training.resnet50\nuse_websocket: true",
             },
             name: "training",
             namespace: "resnet50",
@@ -143,8 +143,8 @@ local testCases = [
                       "jupyter",
                       "lab",
                       "--LabApp.token=''",
-                      "--LabApp.allow_remote_access='True'",
-                      "--LabApp.allow_root='True'",
+                      "--LabApp.allow_remote_access=True",
+                      "--LabApp.allow_root=True",
                       "--LabApp.ip='*'",
                       "--LabApp.base_url=/resnet50/training/",
                       "--port=8888",
@@ -156,7 +156,7 @@ local testCases = [
                         value: "true",
                       },
                     ],
-                    image: "gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu:v0.3.0",
+                    image: "gcr.io/kubeflow-images-public/tensorflow-1.12.0-notebook-cpu:v0.4.0",
                     imagePullPolicy: "IfNotPresent",
                     name: "notebook",
                     ports: [
@@ -179,6 +179,22 @@ local testCases = [
                       },
                     ],
                     workingDir: "/home/jovyan",
+                  },
+                ],
+                automountServiceAccountToken: false,
+                restartPolicy: "Always",
+                securityContext: {
+                  fsGroup: params.notebookGid,
+                  runAsUser: params.notebookUid
+                },
+                ttlSecondsAfterFinished: 300,
+                serviceAccountName: "system:serviceaccount:" + env.namespace + ":notebooks",
+                volumes: [
+                  {
+                    name: "volume-training",
+                    persistentVolumeClaim: {
+                      claimName: "claim-training",
+                    },
                   },
                 ],
               },
