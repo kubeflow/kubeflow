@@ -19,7 +19,7 @@
       kind: "ServiceAccount",
       metadata: {
         name: "envoy",
-        namespace: params.namespace,
+        namespace: params.istioNamespace,
       },
     },  // initServiceAccount
     initServiceAccount:: initServiceAccount,
@@ -50,7 +50,6 @@
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       metadata: {
         name: "envoy",
-        namespace: params.namespace,
       },
       rules: [
         {
@@ -73,7 +72,7 @@
       kind: "StatefulSet",
       metadata: {
         name: "backend-updater",
-        namespace: params.namespace,
+        namespace: params.istioNamespace,
         labels: {
           service: "backend-updater",
         },
@@ -144,7 +143,6 @@
           },
         },
       },
-
     },  // backendUpdater
     backendUpdater:: backendUpdater,
 
@@ -154,7 +152,7 @@
       kind: "Deployment",
       metadata: {
         name: "iap-enabler",
-        namespace: params.namespace,
+        namespace: params.istioNamespace,
       },
       spec: {
         replicas: 1,
@@ -182,10 +180,6 @@
                   {
                     name: "SERVICE",
                     value: "envoy",
-                  },
-                  {
-                    name: "ENVOY_ADMIN",
-                    value: "http://localhost:" + params.envoyAdminPort,
                   },
                   {
                     name: "GOOGLE_APPLICATION_CREDENTIALS",
@@ -231,11 +225,12 @@
       kind: "ConfigMap",
       metadata: {
         name: "envoy-config",
-        namespace: params.namespace,
+        namespace: params.istioNamespace,
       },
       data: {
         "setup_backend.sh": importstr "setup_backend.sh",
         "update_backend.sh": importstr "update_backend.sh",
+        "jwt-policy-template.yaml": importstr "jwt-policy-template.yaml",
       },
     },
     configMap:: configMap,
@@ -320,7 +315,7 @@
       kind: "BackendConfig",
       metadata: {
         name: "envoy-iap",
-        namespace: params.namespace,
+        namespace: params.istioNamespace,
       },
       spec: {
         iap: {
@@ -411,7 +406,7 @@
       kind: "Ingress",
       metadata: {
         name: "envoy-ingress",
-        namespace: params.namespace,
+        namespace: params.istioNamespace,
         annotations: {
           "kubernetes.io/tls-acme": "true",
           "ingress.kubernetes.io/ssl-redirect": "true",
@@ -430,13 +425,21 @@
                     // Due to https://github.com/kubernetes/contrib/blob/master/ingress/controllers/gce/examples/health_checks/README.md#limitations
                     // Keep port the servicePort the same as the port we are targeting on the backend so that servicePort will be the same as targetPort for the purpose of
                     // health checking.
-                    serviceName: "envoy",
-                    servicePort: params.envoyPort,
+                    serviceName: "istio-ingressgateway",
+                    servicePort: 80,
                   },
                   path: "/*",
                 },
               ],
             },
+          },
+        ],
+        tls: [
+          {
+            secretName: params.secretName,
+            hosts: [
+              params.hostname,
+            ],
           },
         ],
       },
@@ -449,7 +452,7 @@
         kind: "Certificate",
         metadata: {
           name: params.secretName,
-          namespace: params.namespace,
+          namespace: params.istioNamespace,
         },
 
         spec: {
@@ -508,22 +511,20 @@
 
     parts:: self,
     all:: [
-      self.service,
       self.initServiceAccount,
       self.initClusterRoleBinding,
       self.initClusterRole,
-      self.deploy,
       self.iapEnabler,
       self.backendUpdater,
       self.configMap,
       self.whoamiService,
       self.whoamiApp,
       self.backendConfig,
-      self.ingressBootstrapConfigMap,
-      self.ingressBootstrapJob,
+      //self.ingressBootstrapConfigMap,
+      //self.ingressBootstrapJob,
       self.ingress,
       self.certificate,
-      self.cloudEndpoint,
+      //self.cloudEndpoint,
     ],
 
     list(obj=self.all):: k.core.v1.list.new(obj,),

@@ -1,5 +1,5 @@
 {
-   "name": "gcp",
+   "name": "gcp-istio",
    "apiVersion": "0.0.1",
    "kind": "ksonnet.io/parts",
    "description": "Core components of Kubeflow.\n",
@@ -8,6 +8,10 @@
       {
          "name": "Jeremy Lewi",
          "email": "jlewi@google.com"
+      },
+      {
+         "name": "Lun-Kai Hsu",
+         "email": "lunkai@google.com"
       }
    ],
    "repository": {

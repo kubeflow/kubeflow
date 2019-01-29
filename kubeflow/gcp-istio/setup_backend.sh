@@ -37,10 +37,10 @@ echo "JWT_AUDIENCE=${JWT_AUDIENCE}" > /var/shared/healthz.env
 echo "NODE_PORT=${NODE_PORT}" >> /var/shared/healthz.env
 echo "BACKEND_ID=${BACKEND_ID}" >> /var/shared/healthz.env
 
-# TODO(https://github.com/kubeflow/kubeflow/issues/942): We should publish the modified envoy
-# config as a config map and use that in the envoy sidecars.
-kubectl get configmap -n ${NAMESPACE} envoy-config -o jsonpath='{.data.envoy-config\.json}' |
-  sed -e "s|{{JWT_AUDIENCE}}|${JWT_AUDIENCE}|g" > /var/shared/envoy-config.json
+# Apply the jwt validation policy
+cat /var/shared/jwt-policy-template.yaml | sed -e "s|{{JWT_AUDIENCE}}|${JWT_AUDIENCE}|g"
+  > /var/shared/jwt-policy.yaml
+kubectl apply -f /var/shared/jwt-policy.yaml
 
 echo "Clearing lock on service annotation"
 kubectl patch svc "${SERVICE}" -p "{\"metadata\": { \"annotations\": {\"backendlock\": \"\" }}}"
