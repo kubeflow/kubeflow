@@ -6,6 +6,7 @@
 // @param acmeEmail string The Lets Encrypt account email address
 // @optionalParam acmeUrl string https://acme-v02.api.letsencrypt.org/directory The ACME server URL, set to https://acme-staging-v02.api.letsencrypt.org/directory for staging API.
 // @optionalParam certManagerImage string quay.io/jetstack/cert-manager-controller:v0.4.0 certManagerImage
+// @optionalParam istioNamespace string istio-system The namespace where Istio is installed
 
 local certManager = import "kubeflow/gcp-istio/cert-manager.libsonnet";
 local instance = certManager.new(env, params);

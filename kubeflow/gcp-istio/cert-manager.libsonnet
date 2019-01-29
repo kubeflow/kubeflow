@@ -63,7 +63,7 @@
       kind: "ServiceAccount",
       metadata: {
         name: "cert-manager",
-        namespace: params.namespace,
+        namespace: params.istioNamespace,
       },
     },
     serviceAccount:: serviceAccount,
@@ -108,7 +108,7 @@
       subjects: [
         {
           name: "cert-manager",
-          namespace: params.namespace,
+          namespace: params.istioNamespace,
           kind: "ServiceAccount",
         },
       ],
@@ -120,7 +120,7 @@
       kind: "Deployment",
       metadata: {
         name: "cert-manager",
-        namespace: params.namespace,
+        namespace: params.istioNamespace,
         labels: {
           app: "cert-manager",
         },
@@ -141,8 +141,8 @@
                 image: params.certManagerImage,
                 imagePullPolicy: "IfNotPresent",
                 args: [
-                  "--cluster-resource-namespace=" + params.namespace,
-                  "--leader-election-namespace=" + params.namespace,
+                  "--cluster-resource-namespace=" + params.istioNamespace,
+                  "--leader-election-namespace=" + params.istioNamespace,
                 ],
               },
             ],
@@ -157,7 +157,7 @@
       kind: "Issuer",
       metadata: {
         name: "letsencrypt-prod",
-        namespace: params.namespace,
+        namespace: params.istioNamespace,
       },
       spec: {
         acme: {
