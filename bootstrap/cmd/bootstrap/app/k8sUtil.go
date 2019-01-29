@@ -8,6 +8,7 @@ import (
 
 	"github.com/ghodss/yaml"
 	ksUtil "github.com/ksonnet/ksonnet/utils"
+	log "github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/discovery"
@@ -23,6 +24,7 @@ const (
 // CreateResourceFromFile creates resources from a file, just like `kubectl create -f filename`
 // We use some libraries in an old way (e.g. the RestMapper is in discovery instead of restmapper)
 // because ksonnet (one of our dependency) is using the old library version.
+// TODO: it can't handle "kind: list" yet.
 func CreateResourceFromFile(config *rest.Config, filename string) error {
 	// Create a restmapper to determine the resource type.
 	discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
@@ -42,7 +44,12 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 		if err = yaml.Unmarshal(object, &o); err != nil {
 			return err
 		}
-		apiVersion := strings.Split(o["apiVersion"].(string), "/")
+		a := o["apiVersion"]
+		if a == nil {
+			log.Warnf("Unknown resource: %v", object)
+			continue
+		}
+		apiVersion := strings.Split(a.(string), "/")
 		var group, version string
 		if len(apiVersion) == 1 {
 			// core v1, no group. e.g. namespace
@@ -80,6 +87,9 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 
 		// build the request
 		metadata := o["metadata"].(map[string]interface{})
+		name := metadata["name"].(string)
+		log.Infof("creating %v\n", name)
+
 		var namespace string
 		if metadata["namespace"] != nil {
 			namespace = metadata["namespace"].(string)

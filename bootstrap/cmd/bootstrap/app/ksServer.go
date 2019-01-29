@@ -97,6 +97,9 @@ type ksServer struct {
 	// project-id -> project lock
 	projectLocks map[string]*sync.Mutex
 	serverMux    sync.Mutex
+
+	// Whether to install istio.
+	installIstio bool
 }
 
 type MultiError struct {
@@ -122,7 +125,7 @@ func (m MultiError) ToError() error {
 }
 
 // NewServer constructs a ksServer.
-func NewServer(appsDir string, registries []RegistryConfig, gkeVersionOverride string) (*ksServer, error) {
+func NewServer(appsDir string, registries []RegistryConfig, gkeVersionOverride string, installIstio bool) (*ksServer, error) {
 	if appsDir == "" {
 		return nil, fmt.Errorf("appsDir can't be empty")
 	}
@@ -133,6 +136,7 @@ func NewServer(appsDir string, registries []RegistryConfig, gkeVersionOverride s
 		knownRegistries:    make(map[string]RegistryConfig),
 		gkeVersionOverride: gkeVersionOverride,
 		fs:                 afero.NewOsFs(),
+		installIstio:       installIstio,
 	}
 
 	for _, r := range registries {
@@ -353,6 +357,10 @@ func (s *ksServer) GetProjectLock(project string) *sync.Mutex {
 
 // InstallIstio installs istio into the cluster.
 func (s *ksServer) InstallIstio(ctx context.Context, req CreateRequest) error {
+	if !s.installIstio {
+		return nil
+	}
+	log.Infof("Installing Istio...")
 	regPath := s.knownRegistries["kubeflow"].RegUri
 
 	token := req.Token
@@ -537,7 +545,9 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 		UpdateDmConfig(repoDir, request.Project, request.Name, kfVersion, dmDeploy)
 	}
 	UpdateCloudShellConfig(repoDir, request.Project, request.Name, kfVersion, request.Zone)
-	UpdateIstioManifest(repoDir, request.Project, request.Name, kfVersion, s.knownRegistries["kubeflow"].RegUri)
+	if s.installIstio {
+		UpdateIstioManifest(repoDir, request.Project, request.Name, kfVersion, s.knownRegistries["kubeflow"].RegUri)
+	}
 	err = s.SaveAppToRepo(request.Project, request.Email, repoDir)
 	if err != nil {
 		log.Errorf("There was a problem saving config to cloud repo; %v", err)
@@ -1206,7 +1216,6 @@ func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmana
 		return
 	}
 
-	log.Infof("Installing Istio...")
 	if err = svc.InstallIstio(ctx, req); err != nil {
 		log.Errorf("Failed to install istio: %v", err)
 		deployReqCounter.WithLabelValues("INTERNAL").Inc()
