@@ -14,6 +14,10 @@ import (
 	"time"
 
 	"bytes"
+	"io/ioutil"
+	"math/rand"
+	"strings"
+
 	"github.com/cenkalti/backoff"
 	"github.com/go-kit/kit/endpoint"
 	httptransport "github.com/go-kit/kit/transport/http"
@@ -28,17 +32,13 @@ import (
 	"golang.org/x/oauth2"
 	"google.golang.org/api/deploymentmanager/v2"
 	"google.golang.org/api/sourcerepo/v1"
-	"io/ioutil"
 	core_v1 "k8s.io/api/core/v1"
-	"k8s.io/api/rbac/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
 	type_v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-	"math/rand"
-	"strings"
 )
 
 // The name of the prototype for Jupyter.
@@ -1006,34 +1006,6 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 			return err
 		}
 	}
-
-	bindAccount := req.Email
-	if req.SAClientId != "" {
-		bindAccount = req.SAClientId
-	}
-
-	roleBinding := v1.ClusterRoleBinding{
-		TypeMeta: meta_v1.TypeMeta{
-			APIVersion: "rbac.authorization.k8s.io/v1beta1",
-			Kind:       "ClusterRoleBinding",
-		},
-		ObjectMeta: meta_v1.ObjectMeta{
-			Name: "default-admin",
-		},
-		RoleRef: v1.RoleRef{
-			APIGroup: "rbac.authorization.k8s.io",
-			Kind:     "ClusterRole",
-			Name:     "cluster-admin",
-		},
-		Subjects: []v1.Subject{
-			{
-				Kind: v1.UserKind,
-				Name: bindAccount,
-			},
-		},
-	}
-
-	createK8sRoleBing(config, &roleBinding)
 
 	cfg := clientcmdapi.Config{
 		Kind:       "Config",
