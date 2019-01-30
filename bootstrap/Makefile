@@ -53,6 +53,7 @@ build: build-local
 	mkdir -p reg_tmp/kubeflow
 	cp -r ../kubeflow reg_tmp/kubeflow
 	cp -r ../deployment reg_tmp/kubeflow
+	cp -r ../dependencies reg_tmp/kubeflow
 	docker build \
 		--build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
 		--build-arg registries=reg_tmp \
