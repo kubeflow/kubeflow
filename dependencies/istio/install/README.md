@@ -12,6 +12,8 @@ Specifically, the things we changed are:
    According to this [table](https://github.com/istio/istio/issues/6476#issuecomment-399219937),
    `policy=disabled` and `namespace label=enabled` is what we want.
 1. The service type of `istio-ingressgateway` is changed from `LoadBalancer` to `NodePort`.
+1. Add annotation to service `istio-ingressgateway`: `beta.cloud.google.com/backend-config: XXX`.
+   This is to [enable IAP](https://cloud.google.com/iap/docs/enabling-kubernetes-howto#kubernetes-configure).
 
 *TODO*: To allow egress, we need to know cluster specific IP ranges. Also, Istio's recommended way is to use
 serviceEntry. We will figure out this part later.
