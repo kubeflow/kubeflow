@@ -5,7 +5,8 @@
 // @param name string Name for the component
 // @optionalParam secretName string admin-gcp-sa Name of secret containing the json service account key.
 // @optionalParam secretKey string admin-gcp-sa.json Name of the key in the secret containing the JSON service account key.
+// @optionalParam istioNamespace string istio-system The namespace where Istio is installed
 
-local cloudEndpoints = import "kubeflow/gcp/cloud-endpoints.libsonnet";
+local cloudEndpoints = import "kubeflow/gcp-istio/cloud-endpoints.libsonnet";
 local instance = cloudEndpoints.new(env, params);
 instance.list(instance.all)

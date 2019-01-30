@@ -34,7 +34,7 @@
         {
           kind: "ServiceAccount",
           name: "envoy",
-          namespace: params.namespace,
+          namespace: params.istioNamespace,
         },
       ],
       roleRef: {
@@ -102,11 +102,11 @@
                 env: [
                   {
                     name: "NAMESPACE",
-                    value: params.namespace,
+                    value: params.istioNamespace,
                   },
                   {
                     name: "SERVICE",
-                    value: "envoy",
+                    value: "istio-ingressgateway",
                   },
                   {
                     name: "GOOGLE_APPLICATION_CREDENTIALS",
@@ -175,11 +175,11 @@
                 env: [
                   {
                     name: "NAMESPACE",
-                    value: params.namespace,
+                    value: params.istioNamespace,
                   },
                   {
                     name: "SERVICE",
-                    value: "envoy",
+                    value: "istio-ingressgateway",
                   },
                   {
                     name: "GOOGLE_APPLICATION_CREDENTIALS",
@@ -496,13 +496,13 @@
         kind: "CloudEndpoint",
         metadata: {
           name: endpointParams.name,
-          namespace: params.namespace,
+          namespace: params.istioNamespace,
         },
         spec: {
           project: endpointParams.project,
           targetIngress: {
             name: "envoy-ingress",
-            namespace: params.namespace,
+            namespace: params.istioNamespace,
           },
         },
       }  // cloudEndpoint
@@ -524,7 +524,7 @@
       //self.ingressBootstrapJob,
       self.ingress,
       self.certificate,
-      //self.cloudEndpoint,
+      self.cloudEndpoint,
     ],
 
     list(obj=self.all):: k.core.v1.list.new(obj,),

@@ -59,7 +59,7 @@
         {
           kind: "ServiceAccount",
           name: "cloud-endpoints-controller",
-          namespace: params.namespace,
+          namespace: params.istioNamespace,
         },
       ],
       roleRef: {
@@ -75,7 +75,7 @@
       kind: "Service",
       metadata: {
         name: "cloud-endpoints-controller",
-        namespace: params.namespace,
+        namespace: params.istioNamespace,
       },
       spec: {
         type: "ClusterIP",
@@ -97,7 +97,7 @@
       kind: "ServiceAccount",
       metadata: {
         name: "cloud-endpoints-controller",
-        namespace: params.namespace,
+        namespace: params.istioNamespace,
       },
     },  // endpointsServiceAccount
     endpointsServiceAccount:: endpointsServiceAccount,
@@ -107,7 +107,7 @@
       kind: "Deployment",
       metadata: {
         name: "cloud-endpoints-controller",
-        namespace: params.namespace,
+        namespace: params.istioNamespace,
       },
       spec: {
         replicas: 1,
@@ -182,14 +182,14 @@
         clientConfig: {
           service: {
             name: "cloud-endpoints-controller",
-            namespace: params.namespace,
+            namespace: params.istioNamespace,
             caBundle: "...",
           },
         },
         hooks: {
           sync: {
             webhook: {
-              url: "http://cloud-endpoints-controller." + params.namespace + "/sync",
+              url: "http://cloud-endpoints-controller." + params.istioNamespace + "/sync",
             },
           },
         },
