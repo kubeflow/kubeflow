@@ -144,7 +144,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
   public render() {
     const zoneList = ['us-central1-a', 'us-central1-c', 'us-east1-c', 'us-east1-d', 'us-west1-b',
       'europe-west1-b', 'europe-west1-d', 'asia-east1-a', 'asia-east1-b'];
-    const versionList = ['v0.3.5','c7ac5b884dcc6b7ce42a7ab12f7fda889165492a'];
+    const versionList = ['v0.3.5'];
 
     return (
       <div>

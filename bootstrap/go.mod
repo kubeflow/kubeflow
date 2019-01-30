@@ -13,7 +13,6 @@ require (
 	github.com/PuerkitoBio/purell v1.0.0
 	github.com/PuerkitoBio/urlesc v0.0.0-20160726150825-5bd2802263f2
 	github.com/aokoli/goutils v1.0.1
-	github.com/argoproj/argo v2.2.1+incompatible
 	github.com/asaskevich/govalidator v0.0.0-20160715170612-593d64559f76
 	github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973
 	github.com/blang/semver v3.5.0+incompatible

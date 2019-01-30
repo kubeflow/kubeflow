@@ -7,4 +7,4 @@ registries:
     version: master
     # relative path to registry from git repo.
     path: kubeflow
-    RegUri: /Users/yangpa/go/src/github.com/kubeflow/kubeflow/kubeflow
+    RegUri: /opt/registries/kubeflow/kubeflow

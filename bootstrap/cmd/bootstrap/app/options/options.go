@@ -40,14 +40,14 @@ func NewServerOption() *ServerOption {
 	return &s
 }
 
-const RegistriesDefaultConfig = "/Users/yangpa/go/src/github.com/kubeflow/kubeflow/bootstrap/image_registries.yaml"
+const RegistriesDefaultConfig = "/opt/kubeflow/kubeflow/bootstrap/image_registries.yaml"
 
 // AddFlags adds flags for a specific Server to the specified FlagSet
 func (s *ServerOption) AddFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&s.PrintVersion, "version", false, "Show version and quit")
 	fs.BoolVar(&s.JsonLogFormat, "json-log-format", true, "Set true to use json style log format. Set false to use plaintext style log format")
 	fs.IntVar(&s.Port, "port", 8080, "The port to use when running an http server.")
-	fs.StringVar(&s.AppDir, "app-dir", "/Users/yangpa/tmp/kubeflow_deployment", "The directory for the ksonnet applications.")
+	fs.StringVar(&s.AppDir, "app-dir", "/opt/bootstrap", "The directory for the ksonnet applications.")
 	fs.StringVar(&s.GkeVersionOverride, "gke-version-override", "", "Override GKE master version only when GKE latest breaks")
 	fs.StringVar(&s.NameSpace, "namespace", "kubeflow", "The namespace where all resources for kubeflow will be created")
 	fs.BoolVar(&s.Apply, "apply", false, "Whether or not to apply the configuration.")
