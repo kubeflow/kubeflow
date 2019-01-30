@@ -24,8 +24,49 @@ const (
 	KsEnvName = "default"
 )
 
-var DefaultComponents = []string{"all"}
-var DefaultPackages = []string{"all"}
+var DefaultRegistry = &RegistryConfig{
+	Name: "kubeflow",
+	Repo: "https://github.com/kubeflow/kubeflow.git",
+	Path: "kubeflow",
+}
+
+var DefaultPackages = []string{
+	"application",
+	"argo",
+	"common",
+	"examples",
+	"jupyter",
+	"katib",
+	"metacontroller",
+	"modeldb",
+	"mpi-job",
+	"openvino",
+	"pipeline",
+	"profiles",
+	"pytorch-job",
+	"seldon",
+	"tensorboard",
+	"tf-serving",
+	"tf-training",
+}
+var DefaultComponents = []string{
+	"ambassador",
+	"application",
+	"argo",
+	"centraldashboard",
+	"jupyter",
+	"katib",
+	"metacontroller",
+	"notebooks",
+	"openvino",
+	"pipeline",
+	"profiles",
+	"pytorch-operator",
+	"spartakus",
+	"tensorboard",
+	"tf-job-operator",
+}
+var DefaultParameters = map[string][]NameValue{}
 
 // RegistryConfig is used for two purposes:
 // 1. used during image build, to configure registries that should be baked into the bootstrapper docker image.
@@ -109,14 +150,19 @@ type AppConfig struct {
 	Parameters []KsParameter     `json:"parameters,omitempty"`
 }
 
+type NameValue struct {
+	Name  string `json:"name,omitempty" yaml:"name,omitempty"`
+	Value string `json:"value,omitempty" yaml:"value,omitempty"`
+}
+
 // KsAppSpec defines the desired state of KsApp
 type KsAppSpec struct {
-	Platform   string    `json:"platform,omitempty"`
-	Version    string    `json:"version,omitempty"`
-	Repo       string    `json:"repo,omitempty"`
-	Components []string  `json:"components,omitempty"`
-	Packages   []string  `json:"packages,omitempty"`
-	App        AppConfig `json:"app,omitempty"`
+	Platform   string                 `json:"platform,omitempty" yaml:"platform,omitempty"`
+	Version    string                 `json:"version,omitempty" yaml:"version,omitempty"`
+	Repo       string                 `json:"repo,omitempty" yaml:"repo,omitempty"`
+	Components []string               `json:"components,omitempty" yaml:"components,omitempty"`
+	Packages   []string               `json:"packages,omitempty" yaml:"packages,omitempty"`
+	Parameters map[string][]NameValue `json:"parameters,omitempty" yaml:"parameters,omitempty"`
 }
 
 // KsAppStatus defines the observed state of KsApp
@@ -146,11 +192,11 @@ type KsAppCondition struct {
 // KsApp is the Schema for the applications API
 // +k8s:openapi-gen=true
 type KsApp struct {
-	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
+	metav1.TypeMeta   `json:",inline" yaml:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty" yaml:"metadata,omitempty"`
 
-	Spec   KsAppSpec   `json:"spec,omitempty"`
-	Status KsAppStatus `json:"status,omitempty"`
+	Spec   KsAppSpec   `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Status KsAppStatus `json:"status,omitempty" yaml:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

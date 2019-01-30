@@ -71,13 +71,41 @@ func init() {
 
 	generateCmd.Flags().StringSliceP("packages", "p", kstypes.DefaultPackages,
 		"provide a comma delimited list of package names")
-	generateCfg.BindPFlag("packages", generateCmd.Flags().Lookup("packages"))
+	bindErr := generateCfg.BindPFlag("packages", generateCmd.Flags().Lookup("packages"))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --packages: %v", bindErr)
+		return
+	}
 
 	generateCmd.Flags().StringSliceP("components", "c", kstypes.DefaultComponents,
 		"provide a comma delimited list of component names")
-	generateCfg.BindPFlag("components", generateCmd.Flags().Lookup("components"))
+	bindErr = generateCfg.BindPFlag("components", generateCmd.Flags().Lookup("components"))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --components: %v", bindErr)
+		return
+	}
 
 	generateCmd.Flags().StringP("namespace", "n", kftypes.DefaultNamespace,
 		"namespace where kubeflow will be deployed")
-	generateCfg.BindPFlag("namespace", generateCmd.Flags().Lookup("namespace"))
+	bindErr = generateCfg.BindPFlag("namespace", generateCmd.Flags().Lookup("namespace"))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --namespace: %v", bindErr)
+		return
+	}
+
+	generateCmd.Flags().String("email", "",
+		"email if '--platform gcp'")
+	bindErr = generateCfg.BindPFlag("email", generateCmd.Flags().Lookup("email"))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --email: %v", bindErr)
+		return
+	}
+
+	generateCmd.Flags().String("ipName", "",
+		"ipName if '--platform gcp'")
+	bindErr = generateCfg.BindPFlag("ipName", generateCmd.Flags().Lookup("ipName"))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --ipName: %v", bindErr)
+		return
+	}
 }

@@ -36,13 +36,17 @@ fmt:
 vet:
 	$(GO) vet ./pkg/... ./cmd/...
 
-build-bootstrap: fmt vet
+generate:
+	$(GO) generate ./pkg/... ./cmd/...
+
+
+build-bootstrap: generate fmt vet
 	$(GO) build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 
-build-kfctl: fmt vet
+build-kfctl: generate fmt vet
 	$(GO) build -i -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
 
-build-foo-plugin: fmt vet
+build-foo-plugin: generate fmt vet
 	$(GO) build -i -gcflags 'all=-N -l' -o bin/fooapp.so -buildmode=plugin cmd/plugins/fooapp.go
 
 build-local: build-bootstrap build-kfctl
@@ -78,6 +82,7 @@ run-local-docker:
 	  --mount type=bind,source=${HOME}/kf_app,target=/home/kubeflow \
 	  --entrypoint /bin/bash $(IMG):$(TAG)
 
+# init ~/myapp --platform none
 test-known-platforms-init: install build-foo-plugin
 	@rm -rf $(HOME)/ks-app && \
 	kfctl init $(HOME)/ks-app --platform none && \
@@ -87,11 +92,12 @@ test-known-platforms-init: install build-foo-plugin
 	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl init $(HOME)/foo-app --platform foo && \
 	echo SUCCESS
 
+# generate all --email john@foo.com --ipName 35.233.240.120
 test-known-platforms-generate: test-known-platforms-init
 	@cd ~/ks-app && \
 	kfctl generate && \
 	cd ~/gcp-app && \
-	kfctl generate all && \
+	kfctl generate all --email john@foo.com --ipName 35.233.240.120 && \
 	cd ~/foo-app && \
 	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate && \
 	echo SUCCESS

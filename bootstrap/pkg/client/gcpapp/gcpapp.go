@@ -19,6 +19,7 @@ package gcpapp
 import (
 	"fmt"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
+	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksapp/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksapp"
 	"io"
 	"os"
@@ -82,7 +83,45 @@ func (gcpApp *GcpApp) copyFile(source string, dest string) error {
 	return nil
 }
 
-func (gcpApp *GcpApp) generateGcpConfigFiles() error {
+func (gcpApp *GcpApp) generateKsApp() error {
+	// ksonnet
+	ksApp := gcpApp.ksApp.(*ksapp.KsApp)
+	email := ksApp.CfgFile.GetString("email")
+	if email == "" {
+		return fmt.Errorf("email parameter required for cert-manager")
+	}
+	ipName := ksApp.CfgFile.GetString("ipName")
+	if ipName == "" {
+		return fmt.Errorf("ipName parameter required for iap-ingress")
+	}
+	packages := append(kstypes.DefaultPackages, []string{"gcp"}...)
+	ksApp.CfgFile.Set("packages", packages)
+	components := append(kstypes.DefaultComponents, []string{"cloud-endpoints", "cert-manager", "iap-ingress"}...)
+	ksApp.CfgFile.Set("components", components)
+	certManagerParameter := map[string][]string{
+		"cert-manager": []string{
+			"acmeEmail",
+			email,
+		},
+	}
+	iapIngressParameter := map[string][]string{
+		"iap-ingress": []string{
+			"ipName",
+			ipName,
+		},
+	}
+	parameters := make(map[string][]string)
+	parameters["cert-manager"] = certManagerParameter["cert-manager"]
+	parameters["iap-ingress"] = iapIngressParameter["iap-ingress"]
+	ksApp.CfgFile.Set("parameters", parameters)
+	ksGenerateErr := gcpApp.ksApp.Generate(kftypes.ALL)
+	if ksGenerateErr != nil {
+		return fmt.Errorf("gcp generate failed for ksapp: %v", ksGenerateErr)
+	}
+	return nil
+}
+
+func (gcpApp *GcpApp) generateDMConfigs() error {
 	appDir, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("could not get current directory %v", err)
@@ -116,7 +155,7 @@ func (gcpApp *GcpApp) generateGcpConfigFiles() error {
 	return nil
 }
 
-func (gcpApp *GcpApp) generateK8sSpecs() error {
+func (gcpApp *GcpApp) downloadK8sManifests() error {
 	appDir, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("could not get current directory %v", err)
@@ -130,17 +169,30 @@ func (gcpApp *GcpApp) generateK8sSpecs() error {
 }
 
 func (gcpApp *GcpApp) Generate(resources kftypes.ResourceEnum) error {
-	ksGenerateErr := gcpApp.ksApp.Generate(resources)
-	if ksGenerateErr != nil {
-		return fmt.Errorf("gcp generate failed for ksapp: %v", ksGenerateErr)
-	}
-	gcpConfigFilesErr := gcpApp.generateGcpConfigFiles()
-	if gcpConfigFilesErr != nil {
-		return fmt.Errorf("could not generate files under %v Error: %v", GCP_CONFIG, gcpConfigFilesErr)
-	}
-	generateK8sSpecsErr := gcpApp.generateK8sSpecs()
-	if generateK8sSpecsErr != nil {
-		return fmt.Errorf("could not generate files under %v Error: %v", K8S_SPECS, generateK8sSpecsErr)
+	switch resources {
+	case kftypes.ALL:
+		// k8s
+		generateK8sSpecsErr := gcpApp.downloadK8sManifests()
+		if generateK8sSpecsErr != nil {
+			return fmt.Errorf("could not generate files under %v Error: %v", K8S_SPECS, generateK8sSpecsErr)
+		}
+		fallthrough
+	case kftypes.PLATFORM:
+		// platform
+		gcpConfigFilesErr := gcpApp.generateDMConfigs()
+		if gcpConfigFilesErr != nil {
+			return fmt.Errorf("could not generate deployment manager configs under %v Error: %v", GCP_CONFIG, gcpConfigFilesErr)
+		}
+		// ksonnet
+		ksErr := gcpApp.generateKsApp()
+		if ksErr != nil {
+			return fmt.Errorf("could not generate kssonnet under %v Error: %v", kstypes.KsName, ksErr)
+		}
+	case kftypes.E8S:
+		generateK8sSpecsErr := gcpApp.downloadK8sManifests()
+		if generateK8sSpecsErr != nil {
+			return fmt.Errorf("could not generate files under %v Error: %v", K8S_SPECS, generateK8sSpecsErr)
+		}
 	}
 	return nil
 }

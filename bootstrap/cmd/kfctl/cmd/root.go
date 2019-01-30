@@ -26,6 +26,8 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -42,7 +44,7 @@ func LoadPlatform(platform string, options map[string]interface{}) (kftypes.KfAp
 		return _gcpapp, nil
 	default:
 		// To enable goland debugger:
-		// Comment out this section and comment in the line
+		// Comment out  this section and comment in the line
 		//   return nil, fmt.Errorf("unknown platform %v", platform
 
 		plugindir := os.Getenv("PLUGINS_ENVIRONMENT")
@@ -125,15 +127,13 @@ func LoadKfApp(cfgFile *viper.Viper) (kftypes.KfApp, error) {
 		return nil, fmt.Errorf("there was a problem loading app %v. Error: %v", appName, kAppErr)
 	}
 	ksApp := kstypes.KsApp{}
-	ksApp.TypeMeta.APIVersion = cfgFile.GetString("apiVersion")
-	ksApp.TypeMeta.Kind = cfgFile.GetString("kind")
-	metadataErr := cfgFile.Sub("metadata").Unmarshal(&ksApp.ObjectMeta)
-	if metadataErr != nil {
-		return nil, fmt.Errorf("couldn't unmarshall KsApp metadata. Error: %v", metadataErr)
+	dat, datErr := ioutil.ReadFile(cfgfile)
+	if datErr != nil {
+		return nil, fmt.Errorf("couldn't read %v. Error: %v", cfgfile, datErr)
 	}
-	specErr := cfgFile.Sub("spec").Unmarshal(&ksApp.Spec)
+	specErr := yaml.Unmarshal(dat, &ksApp)
 	if specErr != nil {
-		return nil, fmt.Errorf("couldn't unmarshall KsApp spec. Error: %v", specErr)
+		return nil, fmt.Errorf("couldn't unmarshall KsApp. Error: %v", specErr)
 	}
 	platform := ksApp.Spec.Platform
 	options := map[string]interface{}{
