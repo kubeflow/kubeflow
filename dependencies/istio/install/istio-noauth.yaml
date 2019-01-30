@@ -11958,8 +11958,6 @@ data:
 }
 '
 ---
-
----
 # Source: istio/charts/grafana/templates/configmap.yaml
 apiVersion: v1
 kind: ConfigMap
@@ -12736,9 +12734,6 @@ metadata:
     heritage: Tiller
     release: istio
 ---
-
-
----
 # Source: istio/charts/grafana/templates/create-custom-resources-job.yaml
 apiVersion: v1
 kind: ServiceAccount
@@ -13235,8 +13230,6 @@ rules:
   resources: ["virtualservices", "destinationrules", "gateways"]
   verbs: ["get", "watch", "list", "update"]
 ---
-
----
 # Source: istio/charts/kiali/templates/clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -13520,8 +13513,6 @@ subjects:
   name: istio-ingressgateway-service-account
   namespace: istio-system
 ---
-
----
 # Source: istio/charts/kiali/templates/clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -13673,8 +13664,6 @@ subjects:
 - kind: ServiceAccount
   name: istio-ingressgateway-service-account
 ---
-
----
 # Source: istio/charts/galley/templates/service.yaml
 apiVersion: v1
 kind: Service
@@ -13737,6 +13726,7 @@ metadata:
   name: istio-ingressgateway
   namespace: istio-system
   annotations:
+    beta.cloud.google.com/backend-config: '{"ports": {"http2":"iap-backendconfig"}}'
   labels:
     chart: gateways
     heritage: Tiller
@@ -15005,8 +14995,6 @@ spec:
         - name: uds-socket
           mountPath: /sock
 
---- 
-
 ---
 # Source: istio/charts/pilot/templates/deployment.yaml
 apiVersion: extensions/v1beta1
@@ -15707,8 +15695,6 @@ spec:
         name: cpu
         targetAverageUtilization: 80
 ---
-
----
 # Source: istio/charts/mixer/templates/autoscale.yaml
 
 apiVersion: autoscaling/v2beta1
@@ -15757,8 +15743,6 @@ spec:
         name: cpu
         targetAverageUtilization: 80
 ---
-
----
 # Source: istio/charts/pilot/templates/autoscale.yaml
 
 apiVersion: autoscaling/v2beta1
@@ -15783,151 +15767,130 @@ spec:
     resource:
       name: cpu
       targetAverageUtilization: 80
----
 
 ---
 # Source: istio/charts/tracing/templates/service-jaeger.yaml
 
-
 apiVersion: v1
-kind: List
+kind: Service
 metadata:
-  name: jaeger-services
+  name: jaeger-query
   namespace: istio-system
+  annotations:
   labels:
     app: jaeger
+    jaeger-infra: jaeger-service
     chart: tracing
     heritage: Tiller
     release: istio
-items:
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: jaeger-query
-    namespace: istio-system
-    annotations:
-    labels:
-      app: jaeger
-      jaeger-infra: jaeger-service
-      chart: tracing
-      heritage: Tiller
-      release: istio
-  spec:
-    ports:
-      - name: query-http
-        port: 16686
-        protocol: TCP
-        targetPort: 16686
-    selector:
-      app: jaeger
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: jaeger-collector
-    namespace: istio-system
-    labels:
-      app: jaeger
-      jaeger-infra: collector-service
-      chart: tracing
-      heritage: Tiller
-      release: istio
-  spec:
-    ports:
-    - name: jaeger-collector-tchannel
-      port: 14267
+spec:
+  ports:
+    - name: query-http
+      port: 16686
       protocol: TCP
-      targetPort: 14267
-    - name: jaeger-collector-http
-      port: 14268
-      targetPort: 14268
-      protocol: TCP
-    selector:
-      app: jaeger
-    type: ClusterIP
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: jaeger-agent
-    namespace: istio-system
-    labels:
-      app: jaeger
-      jaeger-infra: agent-service
-      chart: tracing
-      heritage: Tiller
-      release: istio
-  spec:
-    ports:
-    - name: agent-zipkin-thrift
-      port: 5775
-      protocol: UDP
-      targetPort: 5775
-    - name: agent-compact
-      port: 6831
-      protocol: UDP
-      targetPort: 6831
-    - name: agent-binary
-      port: 6832
-      protocol: UDP
-      targetPort: 6832
-    clusterIP: None
-    selector:
-      app: jaeger
+      targetPort: 16686
+  selector:
+    app: jaeger
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-collector
+  namespace: istio-system
+  labels:
+    app: jaeger
+    jaeger-infra: collector-service
+    chart: tracing
+    heritage: Tiller
+    release: istio
+spec:
+  ports:
+  - name: jaeger-collector-tchannel
+    port: 14267
+    protocol: TCP
+    targetPort: 14267
+  - name: jaeger-collector-http
+    port: 14268
+    targetPort: 14268
+    protocol: TCP
+  selector:
+    app: jaeger
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-agent
+  namespace: istio-system
+  labels:
+    app: jaeger
+    jaeger-infra: agent-service
+    chart: tracing
+    heritage: Tiller
+    release: istio
+spec:
+  ports:
+  - name: agent-zipkin-thrift
+    port: 5775
+    protocol: UDP
+    targetPort: 5775
+  - name: agent-compact
+    port: 6831
+    protocol: UDP
+    targetPort: 6831
+  - name: agent-binary
+    port: 6832
+    protocol: UDP
+    targetPort: 6832
+  clusterIP: None
+  selector:
+    app: jaeger
 
 
 
 ---
 # Source: istio/charts/tracing/templates/service.yaml
 apiVersion: v1
-kind: List
+kind: Service
 metadata:
-  name: tracing-services
+  name: zipkin
   namespace: istio-system
   labels:
     app: jaeger
     chart: tracing
     heritage: Tiller
     release: istio
-items:
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: zipkin
-    namespace: istio-system
-    labels:
-      app: jaeger
-      chart: tracing
-      heritage: Tiller
-      release: istio
-  spec:
-    type: ClusterIP
-    ports:
-      - port: 9411
-        targetPort: 9411
-        protocol: TCP
-        name: http
-    selector:
-      app: jaeger
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: tracing
-    namespace: istio-system
-    annotations:
-    labels:
-      app: jaeger
-      chart: tracing
-      heritage: Tiller
-      release: istio
-  spec:
-    ports:
-      - name: http-query
-        port: 80
-        protocol: TCP
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9411
+      targetPort: 9411
+      protocol: TCP
+      name: http
+  selector:
+    app: jaeger
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tracing
+  namespace: istio-system
+  annotations:
+  labels:
+    app: jaeger
+    chart: tracing
+    heritage: Tiller
+    release: istio
+spec:
+  ports:
+    - name: http-query
+      port: 80
+      protocol: TCP
 
-        targetPort: 16686
+      targetPort: 16686
 
-    selector:
-      app: jaeger
+  selector:
+    app: jaeger
 
 ---
 # Source: istio/charts/sidecarInjectorWebhook/templates/mutatingwebhook.yaml
@@ -16099,105 +16062,6 @@ spec:
       app: pilot
       release: istio
       istio: pilot
-
----
-# Source: istio/charts/galley/templates/validatingwebhookconfiguration.yaml.tpl
-
-
----
-# Source: istio/charts/gateways/templates/preconfigured.yaml
-
-
----
-# Source: istio/charts/grafana/templates/gateway.yaml
-
-
----
-# Source: istio/charts/grafana/templates/grafana-ports-mtls.yaml
-
-
----
-# Source: istio/charts/grafana/templates/ingress.yaml
-
----
-# Source: istio/charts/grafana/templates/pvc.yaml
-
-
----
-# Source: istio/charts/grafana/templates/tests/test-grafana-connection.yaml
-
-
----
-# Source: istio/charts/kiali/templates/gateway.yaml
-
-
----
-# Source: istio/charts/kiali/templates/ingress.yaml
-
----
-# Source: istio/charts/kiali/templates/tests/test-kiali-connection.yaml
-
-
----
-# Source: istio/charts/pilot/templates/meshexpansion.yaml
-
-
-
----
-# Source: istio/charts/prometheus/templates/gateway.yaml
-
-
----
-# Source: istio/charts/prometheus/templates/ingress.yaml
-
----
-# Source: istio/charts/prometheus/templates/tests/test-prometheus-connection.yaml
-
-
----
-# Source: istio/charts/security/templates/enable-mesh-mtls.yaml
-
-
----
-# Source: istio/charts/security/templates/enable-mesh-permissive.yaml
-
-
----
-# Source: istio/charts/security/templates/meshexpansion.yaml
-
-
----
-# Source: istio/charts/security/templates/tests/test-citadel-connection.yaml
-
-
----
-# Source: istio/charts/servicegraph/templates/ingress.yaml
-
----
-# Source: istio/charts/servicegraph/templates/tests/test-servicegraph-connection.yaml
-
-
----
-# Source: istio/charts/tracing/templates/deployment-zipkin.yaml
-
-
----
-# Source: istio/charts/tracing/templates/gateway.yaml
-
-
----
-# Source: istio/charts/tracing/templates/ingress-jaeger.yaml
-
----
-# Source: istio/charts/tracing/templates/ingress.yaml
-
----
-# Source: istio/charts/tracing/templates/tests/test-tracing-connection.yaml
-
-
----
-# Source: istio/templates/install-custom-resources.sh.tpl
-
 
 ---
 # Source: istio/charts/mixer/templates/config.yaml

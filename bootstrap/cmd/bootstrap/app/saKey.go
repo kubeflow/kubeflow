@@ -10,6 +10,7 @@ import (
 	"google.golang.org/api/option"
 	"google.golang.org/genproto/googleapis/iam/admin/v1"
 	"k8s.io/api/core/v1"
+	rbac_v1 "k8s.io/api/rbac/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
 )
@@ -40,7 +41,33 @@ func (s *ksServer) ConfigCluster(ctx context.Context, req CreateRequest) error {
 		log.Errorf("Failed to insert service account key: %v", err)
 		return err
 	}
-	return nil
+	log.Infof("Creating cluster admin role binding...")
+	bindAccount := req.Email
+	if req.SAClientId != "" {
+		bindAccount = req.SAClientId
+	}
+	roleBinding := rbac_v1.ClusterRoleBinding{
+		TypeMeta: meta_v1.TypeMeta{
+			APIVersion: "rbac.authorization.k8s.io/v1beta1",
+			Kind:       "ClusterRoleBinding",
+		},
+		ObjectMeta: meta_v1.ObjectMeta{
+			Name: "default-admin",
+		},
+		RoleRef: rbac_v1.RoleRef{
+			APIGroup: "rbac.authorization.k8s.io",
+			Kind:     "ClusterRole",
+			Name:     "cluster-admin",
+		},
+		Subjects: []rbac_v1.Subject{
+			{
+				Kind: rbac_v1.UserKind,
+				Name: bindAccount,
+			},
+		},
+	}
+	err = createK8sRoleBing(k8sConfig, &roleBinding)
+	return err
 }
 
 func CreateNamespace(req *CreateRequest, k8sClientset *clientset.Clientset) error {
