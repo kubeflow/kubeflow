@@ -173,8 +173,7 @@ local dagTemplates = [
                             ["/usr/local/bin/checkout.sh", srcRootDir],
                             env_vars=[{
                               name: "EXTRA_REPOS",
-                              // TODO(jlewi): Change kubeflow/testing@HEAD once #289 is submitted.
-                              value: "kubeflow/tf-operator@HEAD;kubeflow/testing@HEAD:289",
+                              value: "kubeflow/tf-operator@HEAD;kubeflow/testing",
                             }]),
     dependencies: null,
   },  // checkout
