@@ -40,11 +40,6 @@ import (
 
 var log = logf.Log.WithName("controller")
 
-/**
-* USER ACTION REQUIRED: This is a scaffold file intended for the user to modify with their own Controller
-* business logic.  Delete these comments after modifying this file.*
- */
-
 // Add creates a new Notebook Controller and adds it to the Manager with default RBAC. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
@@ -70,8 +65,6 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// TODO(user): Modify this to be the types you create
-	// Uncomment watch a Deployment created by Notebook - change this for objects you create
 	err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &v1alpha1.Notebook{},
@@ -93,8 +86,6 @@ type ReconcileNotebook struct {
 
 // Reconcile reads that state of the cluster for a Notebook object and makes changes based on the state read
 // and what is in the Notebook.Spec
-// TODO(user): Modify this Reconcile function to implement your Controller logic.  The scaffolding writes
-// a Deployment as an example
 // Automatically generate RBAC rules to allow the Controller to read and write StatefulSet
 // +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=apps,resources=statefulsets/status,verbs=get;update;patch
@@ -143,23 +134,27 @@ func (r *ReconcileNotebook) ReconcileStatefulSet(instance *v1alpha1.Notebook) er
 		},
 	}
 	container := ss.Spec.Template.Spec.Containers[0]
-	container.Args = []string{
-		"start.sh",
-		"jupyter",
-		"lab",
-		"--LabApp.token=''",
-		"--LabApp.allow_remote_access='True'",
-		"--LabApp.allow_root='True'",
-		"--LabApp.ip='*'",
-		"--LabApp.base_url=/" + instance.ObjectMeta.Namespace + "/" + instance.ObjectMeta.Name + "/",
-		"--port=8888",
-		"--no-browser",
+	if len(container.Args) == 0 {
+		container.Args = []string{
+			"start.sh",
+			"jupyter",
+			"lab",
+			"--LabApp.token=''",
+			"--LabApp.allow_remote_access='True'",
+			"--LabApp.allow_root='True'",
+			"--LabApp.ip='*'",
+			"--LabApp.base_url=/" + instance.ObjectMeta.Namespace + "/" + instance.ObjectMeta.Name + "/",
+			"--port=8888",
+			"--no-browser",
+		}
 	}
 	container.Env = append(container.Env, corev1.EnvVar{
 		Name:  "JUPYTER_ENABLE_LAB",
 		Value: "TRUE",
 	})
-	container.WorkingDir = "/home/jovyan"
+	if container.WorkiingDir == "" {
+		container.WorkingDir = "/home/jovyan"
+	}
 	container.Ports = []corev1.ContainerPort{
 		corev1.ContainerPort{
 			ContainerPort: 8888,
