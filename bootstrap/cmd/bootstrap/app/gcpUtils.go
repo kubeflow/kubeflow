@@ -16,6 +16,8 @@ import (
 	"golang.org/x/oauth2"
 	"google.golang.org/api/cloudresourcemanager/v1"
 	"google.golang.org/api/deploymentmanager/v2"
+	compute "google.golang.org/api/compute/v1"
+	"github.com/argoproj/argo/errors"
 )
 
 type Resource struct {
@@ -38,12 +40,29 @@ type IamConf struct {
 	IamBindings []IamBinding `json:"bindings"`
 }
 
+type Disk struct {
+	NameSuffix string `json:"nameSuffix"`
+	DiskType   string `json:"diskType"`
+	SizeGb     int64  `json:"sizeGb"`
+}
+
+type GcePdConf struct {
+	Disks []Disk `json:"disks"`
+}
+
 type ApplyIamRequest struct {
 	Project string `json:"project"`
 	Cluster string `json:"cluster"`
 	Email   string `json:"email"`
 	Token   string `json:"token"`
 	Action  string `json:"action"`
+}
+
+type CreateGcePdRequest struct {
+	Project        string `json:"project"`
+	Zone           string `json:"zone"`
+	DeploymentName string `json:"deploymentName"`
+	Token          string `json:"token"`
 }
 
 var (
@@ -222,6 +241,69 @@ func GetUpdatedPolicy(currentPolicy *cloudresourcemanager.Policy, iamConf *IamCo
 		newPolicy.Bindings = append(newPolicy.Bindings, &binding)
 	}
 	return newPolicy
+}
+
+func (s *ksServer) CreateGcePd(ctx context.Context, req CreateGcePdRequest) error {
+	// Get the GCE PD config.
+	regPath := s.knownRegistries["kubeflow"].RegUri
+	templatePath := path.Join(regPath, "../deployment/gke/deployment_manager_configs/gce_pd_template.yaml")
+	var gcePdConf GcePdConf
+	err := LoadConfig(templatePath, &gcePdConf)
+	if err != nil {
+		log.Errorf("Failed to load GCE PD config: %v", err)
+		return err
+	}
+
+	ts := oauth2.StaticTokenSource(&oauth2.Token{
+		AccessToken: req.Token,
+	})
+
+	computeService, err := compute.New(oauth2.NewClient(ctx, ts))
+	if err != nil {
+		log.Errorf("Cannot create GCP compute service client: %v", err)
+		return err
+	}
+
+	// todo is project lock needed?
+	projLock := s.GetProjectLock(req.Project)
+	projLock.Lock()
+	defer projLock.Unlock()
+
+	var diskNames []string
+	for _, disk := range gcePdConf.Disks {
+		diskName := fmt.Sprintf("%s-%s", req.DeploymentName, disk.NameSuffix)
+		_, err := computeService.Disks.Insert(req.Project, req.Zone, &compute.Disk{
+			SizeGb: disk.SizeGb,
+			Type:   fmt.Sprintf("projects/%s/zones/%s/diskTypes/%s", req.Project, req.Zone, disk.DiskType),
+			Name:   diskName,
+		}).Context(ctx).Do()
+		if err != nil {
+			return err
+		}
+		diskNames = append(diskNames, diskName)
+	}
+
+	exp := backoff.NewExponentialBackOff()
+	exp.InitialInterval = 2 * time.Second
+	exp.MaxInterval = 5 * time.Second
+	exp.MaxElapsedTime = time.Minute
+	exp.Reset()
+	err = backoff.Retry(func() error {
+		for _, diskName := range diskNames {
+			resp, err := computeService.Disks.Get(req.Project, req.Zone, diskName).Context(ctx).Do()
+			if err != nil {
+				return err
+			}
+			if resp.Status != "READY" {
+				return errors.New("GCE PD %s not ready", diskName)
+			}
+		}
+		return nil
+	}, exp)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *ksServer) ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) error {

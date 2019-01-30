@@ -45,8 +45,8 @@ import (
 const JupyterPrototype = "jupyterhub"
 
 // root dir of local cached VERSIONED REGISTRIES
-const CachedRegistries = "/opt/versioned_registries"
-const CloudShellTemplatePath = "/opt/registries/kubeflow/deployment/gke/cloud_shell_templates"
+const CachedRegistries = "/Users/yangpa/tmp/kubeflow_deployment/versioned_registries"
+const CloudShellTemplatePath = "/Users/yangpa/go/src/github.com/kubeflow/kubeflow/deployment/gke/cloud_shell_templates"
 
 // key used for storing start time of a request to deploy in the request contexts
 const StartTime = "StartTime"
@@ -68,6 +68,7 @@ type KsService interface {
 	GetDeploymentStatus(context.Context, CreateRequest) (string, string, error)
 	ApplyIamPolicy(context.Context, ApplyIamRequest) error
 	GetProjectLock(string) *sync.Mutex
+	CreateGcePd(context.Context, CreateGcePdRequest) error
 }
 
 // appInfo keeps track of information about apps.
@@ -185,6 +186,9 @@ type CreateRequest struct {
 
 	// For test: GCP service account client id
 	SAClientId string
+	// create pd
+	// existing pd
+
 }
 
 // basicServerResponse is general response contains nil if handler raise no error, otherwise an error message.
@@ -514,15 +518,15 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 // Then return registry's RegUri.
 func (s *ksServer) getRegistryUri(registry *RegistryConfig) (string, error) {
 	if registry.Name == "" ||
-		registry.Path == "" ||
-		registry.Repo == "" ||
-		registry.Version == "" ||
-		registry.Version == "default" {
+			registry.Path == "" ||
+			registry.Repo == "" ||
+			registry.Version == "" ||
+			registry.Version == "default" {
 
 		v, ok := s.knownRegistries[registry.Name]
 		if !ok {
 			return "", fmt.Errorf("Create request uses registry %v but some "+
-				"required fields are not specified and this is not a known registry.", registry.Name)
+					"required fields are not specified and this is not a known registry.", registry.Name)
 		}
 		log.Infof("No remote registry provided for registry %v; setting URI to local %v.", registry.Name, v.RegUri)
 		return v.RegUri, nil
@@ -1184,6 +1188,16 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 			return r, err
 		}
 
+		err := svc.CreateGcePd(ctx, CreateGcePdRequest{
+			Project:        req.Project,
+			Zone:           req.Zone,
+			Token:          req.Token,
+			DeploymentName: req.Name,
+		})
+		if err != nil {
+			r.Err = err.Error()
+			return r, err
+		}
 		DmDeployment, err := svc.InsertDeployment(ctx, req)
 		if err != nil {
 			r.Err = err.Error()
