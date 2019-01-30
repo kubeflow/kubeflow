@@ -40,7 +40,7 @@ func NewServerOption() *ServerOption {
 	return &s
 }
 
-const RegistriesDefaultConfig = "/opt/kubeflow/kubeflow/bootstrap/image_registries.yaml"
+const RegistriesDefaultConfig = "/opt/kubeflow/image_registries.yaml"
 
 // AddFlags adds flags for a specific Server to the specified FlagSet
 func (s *ServerOption) AddFlags(fs *flag.FlagSet) {

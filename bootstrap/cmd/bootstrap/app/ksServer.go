@@ -46,7 +46,7 @@ const JupyterPrototype = "jupyterhub"
 
 // root dir of local cached VERSIONED REGISTRIES
 const CachedRegistries = "/opt/versioned_registries"
-const CloudShellTemplatePath = "/opt/registries/kubeflow/kubeflow/deployment/gke/cloud_shell_templates"
+const CloudShellTemplatePath = "/opt/registries/kubeflow/deployment/gke/cloud_shell_templates"
 
 // key used for storing start time of a request to deploy in the request contexts
 const StartTime = "StartTime"
@@ -58,7 +58,7 @@ const CloudShellFolder = "kf_util"
 
 type DmSpec struct {
 	// path to the deployment manager configuration file
-	ConfigFile   string
+	ConfigFile string
 	// path to the deployment manager template file
 	TemplateFile string
 	// the suffix to append to the deployment name
@@ -207,8 +207,9 @@ type CreateRequest struct {
 
 	// For test: GCP service account client id
 	SAClientId string
-	// create pd
-	// existing pd
+
+	// Whether to create persistent storage for storing all Kubeflow artifacts or not.
+	CreatePersistentStorage bool
 }
 
 // basicServerResponse is general response contains nil if handler raise no error, otherwise an error message.
@@ -1208,11 +1209,14 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 			return r, err
 		}
 
-		_, err := svc.InsertDeployment(ctx, req, StorageDmSpec)
-		if err != nil {
-			r.Err = err.Error()
-			return r, err
+		if req.CreatePersistentStorage {
+			_, err := svc.InsertDeployment(ctx, req, StorageDmSpec)
+			if err != nil {
+				r.Err = err.Error()
+				return r, err
+			}
 		}
+
 		clusterDmDeployment, err := svc.InsertDeployment(ctx, req, ClusterDmSpec)
 		if err != nil {
 			r.Err = err.Error()
