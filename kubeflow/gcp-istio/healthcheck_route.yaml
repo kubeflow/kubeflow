@@ -1,7 +1,7 @@
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
-  name: health-check
+  name: default-routes
   namespace: kubeflow
 spec:
   hosts:
@@ -25,6 +25,14 @@ spec:
         port:
           number: 80
         host: whoami-app.kubeflow.svc.cluster.local
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        port:
+          number: 80
+        host: ambassador.kubeflow.svc.cluster.local
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: Gateway
