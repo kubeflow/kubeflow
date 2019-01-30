@@ -56,6 +56,27 @@ const KubeflowFolder = "ks_app"
 const DmFolder = "gcp_config"
 const CloudShellFolder = "kf_util"
 
+type DmSpec struct {
+	// path to the deployment manager configuration file
+	ConfigFile   string
+	// path to the deployment manager template file
+	TemplateFile string
+	// the suffix to append to the deployment name
+	DmNameSuffix string
+}
+
+var ClusterDmSpec = DmSpec{
+	ConfigFile:   "../deployment/gke/deployment_manager_configs/cluster-kubeflow.yaml",
+	TemplateFile: "../deployment/gke/deployment_manager_configs/cluster.jinja",
+	DmNameSuffix: "",
+}
+
+var StorageDmSpec = DmSpec{
+	ConfigFile:   "../deployment/gke/deployment_manager_configs/storage-kubeflow.yaml",
+	TemplateFile: "../deployment/gke/deployment_manager_configs/storage.jinja",
+	DmNameSuffix: "-storage",
+}
+
 // KsService defines an interface for working with ksonnet.
 type KsService interface {
 	// CreateApp creates a ksonnet application.
@@ -64,7 +85,7 @@ type KsService interface {
 	Apply(ctx context.Context, req ApplyRequest) error
 	ConfigCluster(context.Context, CreateRequest) error
 	BindRole(context.Context, string, string, string) error
-	InsertDeployment(context.Context, CreateRequest) (*deploymentmanager.Deployment, error)
+	InsertDeployment(context.Context, CreateRequest, DmSpec) (*deploymentmanager.Deployment, error)
 	GetDeploymentStatus(context.Context, CreateRequest) (string, string, error)
 	ApplyIamPolicy(context.Context, ApplyIamRequest) error
 	GetProjectLock(string) *sync.Mutex
@@ -188,7 +209,6 @@ type CreateRequest struct {
 	SAClientId string
 	// create pd
 	// existing pd
-
 }
 
 // basicServerResponse is general response contains nil if handler raise no error, otherwise an error message.
@@ -1188,22 +1208,17 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 			return r, err
 		}
 
-		err := svc.CreateGcePd(ctx, CreateGcePdRequest{
-			Project:        req.Project,
-			Zone:           req.Zone,
-			Token:          req.Token,
-			DeploymentName: req.Name,
-		})
+		_, err := svc.InsertDeployment(ctx, req, StorageDmSpec)
 		if err != nil {
 			r.Err = err.Error()
 			return r, err
 		}
-		DmDeployment, err := svc.InsertDeployment(ctx, req)
+		clusterDmDeployment, err := svc.InsertDeployment(ctx, req, ClusterDmSpec)
 		if err != nil {
 			r.Err = err.Error()
 			return r, err
 		}
-		go finishDeployment(svc, req, DmDeployment)
+		go finishDeployment(svc, req, clusterDmDeployment)
 		return r, nil
 	}
 }

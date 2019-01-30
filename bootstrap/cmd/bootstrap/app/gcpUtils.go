@@ -16,8 +16,9 @@ import (
 	"golang.org/x/oauth2"
 	"google.golang.org/api/cloudresourcemanager/v1"
 	"google.golang.org/api/deploymentmanager/v2"
-	compute "google.golang.org/api/compute/v1"
+	"google.golang.org/api/compute/v1"
 	"github.com/argoproj/argo/errors"
+	"path/filepath"
 )
 
 type Resource struct {
@@ -78,10 +79,10 @@ func init() {
 }
 
 // TODO: handle concurrent & repetitive deployment requests.
-func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) (*deploymentmanager.Deployment, error) {
+func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest, dmSpec DmSpec) (*deploymentmanager.Deployment, error) {
 	regPath := s.knownRegistries["kubeflow"].RegUri
 	var dmconf DmConf
-	err := LoadConfig(path.Join(regPath, "../deployment/gke/deployment_manager_configs/cluster-kubeflow.yaml"), &dmconf)
+	err := LoadConfig(path.Join(regPath, dmSpec.ConfigFile), &dmconf)
 
 	if err == nil {
 		dmconf.Resources[0].Name = req.Name
@@ -98,7 +99,7 @@ func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) (*de
 		deploymentFailure.WithLabelValues("INTERNAL").Inc()
 		return nil, err
 	}
-	templateData, err := ioutil.ReadFile(path.Join(regPath, "../deployment/gke/deployment_manager_configs/cluster.jinja"))
+	templateData, err := ioutil.ReadFile(path.Join(regPath, dmSpec.TemplateFile))
 	if err != nil {
 		deployReqCounter.WithLabelValues("INTERNAL").Inc()
 		deploymentFailure.WithLabelValues("INTERNAL").Inc()
@@ -114,7 +115,7 @@ func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) (*de
 		return nil, err
 	}
 	rb := &deploymentmanager.Deployment{
-		Name: req.Name,
+		Name: req.Name + dmSpec.DmNameSuffix,
 		Target: &deploymentmanager.TargetConfiguration{
 			Config: &deploymentmanager.ConfigFile{
 				Content: string(confByte),
@@ -122,7 +123,7 @@ func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) (*de
 			Imports: []*deploymentmanager.ImportFile{
 				{
 					Content: string(templateData),
-					Name:    "cluster.jinja",
+					Name:    filepath.Base(dmSpec.TemplateFile),
 				},
 			},
 		},
