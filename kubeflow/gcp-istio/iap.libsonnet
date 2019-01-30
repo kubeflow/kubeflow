@@ -62,6 +62,16 @@
           resources: ["ingresses"],
           verbs: ["get", "list", "update", "patch"],
         },
+        {
+          apiGroups: ["authentication.istio.io"],
+          resources: ["policies"],
+          verbs: ["*"],
+        },
+        {
+          apiGroups: ["networking.istio.io"],
+          resources: ["gateways", "virtualservices"],
+          verbs: ["*"],
+        },
       ],
     },  // initClusterRoleBinding
     initClusterRole:: initClusterRole,

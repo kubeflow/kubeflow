@@ -38,8 +38,8 @@ echo "NODE_PORT=${NODE_PORT}" >> /var/shared/healthz.env
 echo "BACKEND_ID=${BACKEND_ID}" >> /var/shared/healthz.env
 
 # Apply the jwt validation policy
-cat /var/shared/jwt-policy-template.yaml | sed -e "s|{{JWT_AUDIENCE}}|${JWT_AUDIENCE}|g"
-  > /var/shared/jwt-policy.yaml
+cat /var/envoy-config/jwt-policy-template.yaml | sed -e "s|{{JWT_AUDIENCE}}|${JWT_AUDIENCE}|g" > /var/shared/jwt-policy.yaml
+
 kubectl apply -f /var/shared/jwt-policy.yaml
 
 echo "Clearing lock on service annotation"
