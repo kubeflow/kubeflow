@@ -4,9 +4,9 @@ metadata:
   creationTimestamp: null
   labels:
     controller-tools.k8s.io: "1.0"
-  name: notebook.kubeflow.org
+  name: notebooks.notebook.kubeflow.org
 spec:
-  group: kubeflow.org
+  group: notebook.kubeflow.org
   names:
     kind: Notebook
     plural: notebooks
