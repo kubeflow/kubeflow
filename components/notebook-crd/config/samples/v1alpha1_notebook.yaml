@@ -6,4 +6,13 @@ metadata:
   name: notebook-sample
 spec:
   # Add fields here
-  foo: bar
+  template:
+    spec:
+      containers:
+      - image: "gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu:v0.3.0"
+        name: "notebook"
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+        workingDir: "/home/jovyan"
