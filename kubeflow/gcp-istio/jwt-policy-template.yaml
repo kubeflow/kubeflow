@@ -19,4 +19,5 @@ spec:
       trigger_rules:
       - excluded_paths: 
         - exact: /healthz
+        - prefix: /.well-known/acme-challenge
   principalBinding: USE_ORIGIN

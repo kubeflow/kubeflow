@@ -345,7 +345,7 @@
       kind: "ConfigMap",
       metadata: {
         name: "ingress-bootstrap-config",
-        namespace: params.namespace,
+        namespace: params.istioNamespace,
       },
       data: {
         "ingress_bootstrap.sh": importstr "ingress_bootstrap.sh",
@@ -358,7 +358,7 @@
       kind: "Job",
       metadata: {
         name: "ingress-bootstrap",
-        namespace: params.namespace,
+        namespace: params.istioNamespace,
       },
       spec: {
         template: {
@@ -373,7 +373,7 @@
                 env: [
                   {
                     name: "NAMESPACE",
-                    value: params.namespace,
+                    value: params.istioNamespace,
                   },
                   {
                     name: "TLS_SECRET_NAME",
@@ -443,14 +443,6 @@
                 },
               ],
             },
-          },
-        ],
-        tls: [
-          {
-            secretName: params.secretName,
-            hosts: [
-              params.hostname,
-            ],
           },
         ],
       },
@@ -531,8 +523,8 @@
       self.whoamiService,
       self.whoamiApp,
       self.backendConfig,
-      //self.ingressBootstrapConfigMap,
-      //self.ingressBootstrapJob,
+      self.ingressBootstrapConfigMap,
+      self.ingressBootstrapJob,
       self.ingress,
       self.certificate,
       self.cloudEndpoint,
