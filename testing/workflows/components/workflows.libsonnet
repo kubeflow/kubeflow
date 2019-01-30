@@ -78,7 +78,7 @@
     srcRootDir: self.testDir + "/src",
     // The directory containing the kubeflow/kubeflow repo
     srcDir: self.srcRootDir + "/kubeflow/kubeflow",
-    image: "gcr.io/kubeflow-ci/test-worker:latest",
+    image: "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4",
 
     // value of KUBECONFIG environment variable. This should be  a full path.
     kubeConfig: self.testDir + "/.kube/kubeconfig",
@@ -381,7 +381,7 @@
       // The directory containing the kubeflow/kubeflow repo
       local srcDir = srcRootDir + "/kubeflow/kubeflow";
       local bootstrapDir = srcDir + "/bootstrap";
-      local image = "gcr.io/kubeflow-ci/test-worker:latest";
+      local image = "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4";
       local bootstrapperImage = "gcr.io/kubeflow-ci/bootstrapper:" + name;
       // The last 4 digits of the name should be a unique id.
       local deploymentName = "e2e-" + std.substr(name, std.length(name) - 4, 4);

@@ -32,7 +32,7 @@ local bootstrapDir = srcDir + "/bootstrap";
 
 local kubeConfig = testDir + "/click_deploy_test/.kube/kubeconfig";
 
-local image = "gcr.io/kubeflow-ci/test-worker:latest";
+local image = "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4";
 local bootstrapImage = "gcr.io/kubeflow-ci/bootstrapper";
 
 // The name of the NFS volume claim to use for test files.
