@@ -18,5 +18,5 @@ spec:
       - x-goog-iap-jwt-assertion
       trigger_rules:
       - excluded_paths: 
-        - exact: /
+        - exact: /healthz
   principalBinding: USE_ORIGIN

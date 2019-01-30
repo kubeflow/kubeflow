@@ -241,6 +241,7 @@
         "setup_backend.sh": importstr "setup_backend.sh",
         "update_backend.sh": importstr "update_backend.sh",
         "jwt-policy-template.yaml": importstr "jwt-policy-template.yaml",
+        "healthcheck_route.yaml": importstr "healthcheck_route.yaml",
       },
     },
     configMap:: configMap,
