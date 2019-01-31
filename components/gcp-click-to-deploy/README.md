@@ -31,7 +31,7 @@ npm install
 ```
 
 Before starting the server, make a config file `user_config/app-config.yaml` under `src/` with the content from
-[here](https://github.com/kubeflow/kubeflow/blob/master/components/gcp-click-to-deploy/kf_app.yaml#L10).
+[here](https://github.com/kubeflow/kubeflow/blob/master/components/gcp-click-to-deploy/app-config.yaml#L10).
 And then do
 
 ```

@@ -172,7 +172,7 @@ def wait_for_condition(client,
     if datetime.datetime.now() + polling_interval > end_time:
       raise JobTimeoutError(
         "Timeout waiting for job {0} in namespace {1} to enter one of the "
-        "conditions {2}.".format(name, namespace, conditions), results)
+        "conditions {2}.".format(name, namespace, expected_condition), results)
 
     time.sleep(polling_interval.seconds)
 

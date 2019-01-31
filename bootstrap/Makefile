@@ -63,10 +63,8 @@ build: build-local
 	mkdir -p reg_tmp/kubeflow
 	cp -r ../kubeflow reg_tmp/kubeflow
 	cp -r ../deployment reg_tmp/kubeflow
-	docker build \
-		--build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
-		--build-arg registries=reg_tmp \
-		--target=bootstrap -t $(IMG):$(TAG) .
+	cp -r ../dependencies reg_tmp/kubeflow
+	docker build -t $(IMG):$(TAG) --build-arg GOLANG_VERSION=$(GOLANG_VERSION) --build-arg registries=reg_tmp --target=bootstrap .
 	@echo Built $(IMG):$(TAG)
 
 # Build but don't attach the latest tag. This allows manual testing/inspection of the image
