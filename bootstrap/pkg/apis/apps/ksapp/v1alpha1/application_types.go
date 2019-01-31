@@ -15,14 +15,26 @@
 package v1alpha1
 
 import (
+	"fmt"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"math/rand"
+	"strings"
 )
 
 const (
 	KsName    = "ks_app"
 	KsEnvName = "default"
 )
+
+func QuoteItems(items []string) []string {
+	withQuotes := []string{}
+	for _, item := range items {
+		withQuote := "\"" + item + "\""
+		withQuotes = append(withQuotes, withQuote)
+	}
+	return withQuotes
+}
 
 var DefaultRegistry = &RegistryConfig{
 	Name: "kubeflow",
@@ -66,7 +78,24 @@ var DefaultComponents = []string{
 	"tensorboard",
 	"tf-job-operator",
 }
-var DefaultParameters = map[string][]NameValue{}
+var DefaultParameters = map[string][]NameValue{
+	"spartakus": {
+		NameValue{
+			Name:  "usageId",
+			Value: fmt.Sprintf("%08d", 10000000+rand.Intn(90000000)),
+		},
+		NameValue{
+			Name:  "reportUsage",
+			Value: "true",
+		},
+	},
+	"application": {
+		NameValue{
+			Name:  "components",
+			Value: "[" + strings.Join(QuoteItems(DefaultComponents), ",") + "]",
+		},
+	},
+}
 
 // RegistryConfig is used for two purposes:
 // 1. used during image build, to configure registries that should be baked into the bootstrapper docker image.

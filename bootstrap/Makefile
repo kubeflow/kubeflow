@@ -84,6 +84,8 @@ run-local-docker:
 test-known-platforms-init: install build-foo-plugin
 	@rm -rf $(HOME)/ks-app && \
 	kfctl init $(HOME)/ks-app --platform none && \
+	rm -rf $(HOME)/minikube-app && \
+	kfctl init $(HOME)/minikube-app --platform minikube && \
 	rm -rf $(HOME)/foo-app && \
 	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl init $(HOME)/foo-app --platform foo && \
 	echo SUCCESS
@@ -92,6 +94,8 @@ test-known-platforms-init: install build-foo-plugin
 test-known-platforms-generate: test-known-platforms-init
 	@cd ~/ks-app && \
 	kfctl generate && \
+	cd ~/minikube-app && \
+	kfctl generate all --mount-local true && \
 	cd ~/foo-app && \
 	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate && \
 	echo SUCCESS
