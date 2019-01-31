@@ -235,9 +235,9 @@ Change root.go (~#45) to look like below and goland debug should work.
 	}
 ```
 
-## Different KfApp SubTypes
+## KfApp Types used in app.yaml
 
-### ksonnet related types (under pkg/apis/apps/ksapp/v1alpha1)
+### ksonnet related types (originally under bootstrap/cmd/bootstrap, moved to pkg/apis/apps/ksapp/v1alpha1)
 
 ```golang
 type KsApp struct {
@@ -248,81 +248,45 @@ type KsApp struct {
 	Status KsAppStatus `json:"status,omitempty"`
 }
 
+type NameValue struct {
+	Name  string `json:"name,omitempty"`
+	Value string `json:"value,omitempty"`
+}
+
+// KsAppSpec defines the desired state of KsApp
 type KsAppSpec struct {
-	App AppConfig `json:"app,omitempty"`
-}
-
-type AppConfig struct {
-	Registries []*RegistryConfig `json:"registries,omitempty"`
-	Packages   []KsPackage       `json:"packages,omitempty"`
-	Components []KsComponent     `json:"components,omitempty"`
-	Parameters []KsParameter     `json:"parameters,omitempty"`
-}
-
-type RegistriesConfigFile struct {
-	// Registries provides information about known registries.
-	Registries []*RegistryConfig
-}
-
-type KsPackage struct {
-	Name string `json:"name,omitempty"`
-	// Registry should be the name of the registry containing the package.
-	Registry string `json:"registry,omitempty"`
-}
-
-type KsComponent struct {
-	Name      string `json:"name,omitempty"`
-	Prototype string `json:"prototype,omitempty"`
-}
-
-type KsParameter struct {
-	// nested components are referenced as "a.b.c" where "a" or "b" may be a module name
-	Component string `json:"component,omitempty"`
-	Name      string `json:"name,omitempty"`
-	Value     string `json:"value,omitempty"`
+	Platform   string                 `json:"platform,omitempty"`
+	Version    string                 `json:"version,omitempty"`
+	Repo       string                 `json:"repo,omitempty"`
+	Components []string               `json:"components,omitempty"`
+	Packages   []string               `json:"packages,omitempty"`
+	Parameters map[string][]NameValue `json:"parameters,omitempty"`
 }
 ```
 
-Generating the app.yaml file leverages golang's template language.
-For example, given an instance of KsApp, the YAML generation template is shown below:
+#### app.yaml example
 
-```yaml
-apiVersion: {{.APIVersion}}
-kind: {{.Kind}}
+```
+apiVersion: ksapp.apps.kubeflow.org/v1alpha1
+kind: KsApp
 metadata:
-  name: {{.Name}}
-  namespace: {{.Namespace}}
+  creationTimestamp: null
+  name: ks-app
 spec:
-  platform: {{.Spec.Platform}}
-  repo: {{.Spec.Repo}}
-  version: {{.Spec.Version}}
-  packages: {{.Spec.Packages}}
-  components: {{.Spec.Components}}
-  app:
-    registries:
-{{range $registry := .Spec.App.Registries }}
-      - name: {{$registry.Name}}
-        repo: {{$registry.Repo}}
-        version: {{$registry.Version}}
-        path: {{$registry.Path}}
-        RegUri: {{$registry.RegUri}}
-{{end}}
-    packages:
-{{range $package := .Spec.App.Packages }}
-      - name: {{$package.Name}}
-        registry: {{$package.Registry}}
-{{end}}
-    components:
-{{range $component := .Spec.App.Components }}
-      - name: {{$component.Name}}
-        prototype: {{$component.Prototype}}
-{{end}}
-    parameters:
-{{range $parameter := .Spec.App.Parameters }}
-      - component: {{$parameter.Component}}
-        name: {{$parameter.Name}}
-        value: {{$parameter.Value}}
-{{end}}
+  components:
+  - all
+  packages:
+  - all
+  parameters:
+    spartakus:
+    - name: usageId
+      value: "84730688"
+    - name: reportUsage
+      value: "true"
+  platform: none
+  repo: /Users/kdkasrav/go/src/github.com/kubeflow/kubeflow/kubeflow
+  version: v0.4.1
+status: {}
 ```
 
 ## gcp-click-to-deploy (no changes)
