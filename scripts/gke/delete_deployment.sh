@@ -7,58 +7,96 @@
 
 set -x
 
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)"
+# Don't fail on error because some commands will fail if the resources were already deleted.
 
-PROJECT=$1
-DEPLOYMENT_NAME=$2
-CONFIG_FILE=$3
+set -x 
 
-gcloud deployment-manager --project=${PROJECT} deployments delete \
-  ${DEPLOYMENT_NAME} \
-  --quiet
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+
+parseArgs() {
+  # Parse all command line options
+  while [[ $# -gt 0 ]]; do
+    # Parameters should be of the form
+    # --{name}=${value}
+    echo parsing "$1"
+    if [[ $1 =~ ^--(.*)=(.*)$ ]]; then
+      name=${BASH_REMATCH[1]}
+      value=${BASH_REMATCH[2]}
+
+      eval ${name}="${value}"
+    elif [[ $1 =~ ^--(.*)$ ]]; then
+    name=${BASH_REMATCH[1]}
+    value=true
+    eval ${name}="${value}"
+    else
+      echo "Argument $1 did not match the pattern --{name}={value} or --{name}"
+    fi
+    shift
+  done
+}
+
+
+usage() {
+  echo "Usage: delete_deployment --project=PROJECT --deployment=DEPLOYMENT_NAME --zone=ZONE"
+}
+
+main() {
+
+ cd "${DIR}"
+
+  # List of required parameters
+  names=(project deployment zone)
+
+  missingParam=false
+  for i in ${names[@]}; do
+    if [ -z ${!i} ]; then
+      echo "--${i} not set"
+      missingParam=true   
+    fi  
+  done
+
+  if ${missingParam}; then
+    usage
+    exit 1
+  fi
+  
+gcloud deployment-manager --project=${project} deployments delete ${deployment} \
+--quiet
 
 RESULT=$?
 
 if [ ${RESULT} -ne 0 ]; then
   echo deleting the deployment did not work retry with abandon
-  gcloud deployment-manager --project=${PROJECT} deployments delete \
-    ${DEPLOYMENT_NAME} \
-    --quiet \
-    --delete-policy=abandon
+  gcloud deployment-manager --project=${project} deployments delete \
+  ${deployment} \
+  --quiet \
+  --delete-policy=abandon
+
 fi
 
 # Ensure resources are deleted.
-gcloud --project=${PROJECT} container clusters delete --zone=${ZONE} \
-  ${DEPLOYMENT_NAME} --quiet
 
-# Delete IAM bindings
-python "${DIR}/iam_patch.py" --action=remove \
-  --project=${PROJECT} \
-  --iam_bindings_file="iam_bindings.yaml"
+gcloud --project=${project} container clusters delete --zone=${zone} \
+  ${deployment} --quiet
 
 # Delete service accounts and all role bindings for the service accounts
 declare -a accounts=("vm" "admin" "user")
 
-deleteSa() {
-  local SA=$1
-
-  O=$(gcloud --project=${PROJECT} iam service-accounts describe ${SA} 2>&1)
-  local RESULT=$?
-
-  if [ "${RESULT}" -ne 0 ]; then
-    echo Service account ${SA} "doesn't" exist or you do not have permission to access service accounts.
-    return
-  fi
-
-  return
-
-  gcloud --project=${PROJECT} iam service-accounts delete \
-    ${SA} \
-    --quiet
-}
 # now loop through the above array
-for suffix in "${accounts[@]}"; do
-  # Delete all role bindings.
-  SA=${DEPLOYMENT_NAME}-${suffix}@${PROJECT}.iam.gserviceaccount.com
-  deleteSa ${SA}
+for suffix in "${accounts[@]}";
+do   
+   # Delete all role bindings.
+   SA=${deployment}-${suffix}@${project}.iam.gserviceaccount.com
+   python delete_role_bindings.py --project=${project} --service_account=${SA}
+   gcloud --project=${project} iam service-accounts delete \
+  ${SA} \
+  --quiet   
 done
+
+# Exit with status zero.
+exit 0
+# TODO(jlewi): Should we cleanup ingress , loadbalancer, etc...?
+}
+
+parseArgs $*
+main
