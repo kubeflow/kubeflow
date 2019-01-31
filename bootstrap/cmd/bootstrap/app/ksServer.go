@@ -91,7 +91,6 @@ type KsService interface {
 	GetDeploymentStatus(context.Context, CreateRequest, string) (string, string, error)
 	ApplyIamPolicy(context.Context, ApplyIamRequest) error
 	GetProjectLock(string) *sync.Mutex
-	CreateGcePd(context.Context, CreateGcePdRequest) error
 }
 
 // appInfo keeps track of information about apps.

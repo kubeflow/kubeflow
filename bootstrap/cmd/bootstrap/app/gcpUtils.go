@@ -47,13 +47,6 @@ type ApplyIamRequest struct {
 	Action  string `json:"action"`
 }
 
-type CreateGcePdRequest struct {
-	Project        string `json:"project"`
-	Zone           string `json:"zone"`
-	DeploymentName string `json:"deploymentName"`
-	Token          string `json:"token"`
-}
-
 var (
 	deploymentsStartedCounter = prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "deployments_started",
