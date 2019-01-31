@@ -315,7 +315,7 @@
                     name: "USE_ISTIO",
                     value: "true",
                   },
-                ],
+                ] else [],
                 volumeMounts: [
                   {
                     mountPath: "/var/envoy-config/",
@@ -398,7 +398,7 @@
                     name: "USE_ISTIO",
                     value: "true",
                   },
-                ],
+                ] else [],
                 volumeMounts: [
                   {
                     mountPath: "/var/envoy-config/",
