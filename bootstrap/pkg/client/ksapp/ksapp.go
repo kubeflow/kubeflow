@@ -19,6 +19,7 @@ package ksapp
 import (
 	"fmt"
 	"github.com/cenkalti/backoff"
+	"github.com/ghodss/yaml"
 	"github.com/ksonnet/ksonnet/pkg/actions"
 	"github.com/ksonnet/ksonnet/pkg/app"
 	"github.com/ksonnet/ksonnet/pkg/client"
@@ -28,7 +29,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -275,11 +275,11 @@ func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum) error {
 		if ksApp.KsApp.Spec.Parameters == nil {
 			ksApp.KsApp.Spec.Parameters = make(map[string][]kstypes.NameValue)
 		}
-		for component, parms := range parameters {
-			len := len(parms) / 2
-			nv := make([]kstypes.NameValue, len)
-			ksApp.KsApp.Spec.Parameters[component] = nv
-			for i := 0; i < len; i += 2 {
+		for comp, parms := range parameters {
+			plen := len(parms) / 2
+			nv := make([]kstypes.NameValue, plen)
+			ksApp.KsApp.Spec.Parameters[comp] = nv
+			for i := 0; i < plen; i += 2 {
 				name := parms[i]
 				value := parms[i+1]
 				nv[i] = kstypes.NameValue{

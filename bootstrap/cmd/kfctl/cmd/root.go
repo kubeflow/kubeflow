@@ -16,6 +16,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/ghodss/yaml"
 	"github.com/ksonnet/ksonnet/pkg/app"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksapp/v1alpha1"
@@ -26,7 +27,6 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"path"
@@ -96,11 +96,11 @@ func NewKfApp(appName string, cfgFile *viper.Viper) (kftypes.KfApp, error) {
 		"AppDir":  appDir,
 		"CfgFile": cfgFile,
 	}
-	app, appErr := LoadPlatform(platform, options)
-	if appErr != nil {
-		return nil, fmt.Errorf("unable to load platform %v Error: %v", platform, appErr)
+	pApp, pAppErr := LoadPlatform(platform, options)
+	if pAppErr != nil {
+		return nil, fmt.Errorf("unable to load platform %v Error: %v", platform, pAppErr)
 	}
-	return app, nil
+	return pApp, nil
 }
 
 func LoadKfApp(cfgFile *viper.Viper) (kftypes.KfApp, error) {
@@ -143,11 +143,11 @@ func LoadKfApp(cfgFile *viper.Viper) (kftypes.KfApp, error) {
 		"KApp":    kApp,
 		"KsApp":   &ksApp,
 	}
-	app, appErr := LoadPlatform(platform, options)
-	if appErr != nil {
-		return nil, fmt.Errorf("unable to load platform %v Error: %v", platform, appErr)
+	pApp, pAppErr := LoadPlatform(platform, options)
+	if pAppErr != nil {
+		return nil, fmt.Errorf("unable to load platform %v Error: %v", platform, pAppErr)
 	}
-	return app, nil
+	return pApp, nil
 }
 
 // rootCmd represents the base command when called without any subcommands

@@ -151,18 +151,18 @@ type AppConfig struct {
 }
 
 type NameValue struct {
-	Name  string `json:"name,omitempty" yaml:"name,omitempty"`
-	Value string `json:"value,omitempty" yaml:"value,omitempty"`
+	Name  string `json:"name,omitempty"`
+	Value string `json:"value,omitempty"`
 }
 
 // KsAppSpec defines the desired state of KsApp
 type KsAppSpec struct {
-	Platform   string                 `json:"platform,omitempty" yaml:"platform,omitempty"`
-	Version    string                 `json:"version,omitempty" yaml:"version,omitempty"`
-	Repo       string                 `json:"repo,omitempty" yaml:"repo,omitempty"`
-	Components []string               `json:"components,omitempty" yaml:"components,omitempty"`
-	Packages   []string               `json:"packages,omitempty" yaml:"packages,omitempty"`
-	Parameters map[string][]NameValue `json:"parameters,omitempty" yaml:"parameters,omitempty"`
+	Platform   string                 `json:"platform,omitempty"`
+	Version    string                 `json:"version,omitempty"`
+	Repo       string                 `json:"repo,omitempty"`
+	Components []string               `json:"components,omitempty"`
+	Packages   []string               `json:"packages,omitempty"`
+	Parameters map[string][]NameValue `json:"parameters,omitempty"`
 }
 
 // KsAppStatus defines the observed state of KsApp
@@ -192,11 +192,11 @@ type KsAppCondition struct {
 // KsApp is the Schema for the applications API
 // +k8s:openapi-gen=true
 type KsApp struct {
-	metav1.TypeMeta   `json:",inline" yaml:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty" yaml:"metadata,omitempty"`
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   KsAppSpec   `json:"spec,omitempty" yaml:"spec,omitempty"`
-	Status KsAppStatus `json:"status,omitempty" yaml:"status,omitempty"`
+	Spec   KsAppSpec   `json:"spec,omitempty"`
+	Status KsAppStatus `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
