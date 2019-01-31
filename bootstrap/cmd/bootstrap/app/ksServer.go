@@ -57,6 +57,13 @@ const DmFolder = "gcp_config"
 const CloudShellFolder = "kf_util"
 const IstioFolder = "istio"
 
+type StorageUsage string
+
+const (
+	PipelineDB  StorageUsage = "pipeline-db"
+	PipelineNFS StorageUsage = "pipeline-nfs"
+)
+
 type DmSpec struct {
 	// path to the deployment manager configuration file
 	ConfigFile string
@@ -182,6 +189,18 @@ func NewServer(appsDir string, registries []RegistryConfig, gkeVersionOverride s
 	return s, nil
 }
 
+type StorageOption struct {
+	// Whether to create persistent storage for storing all Kubeflow Pipeline artifacts or not.
+	CreatePipelinePersistentStorage bool
+
+	// User can pass in existing PDs for pipeline, which were from deployment in the past.
+	// If only one of Pipeline PD is set, it will throw an error and fail the deployment.
+	// If both are set, verify CreatePipelinePersistentStorage is false
+	// If non is set, the PD will be created subject to CreatePipelinePersistentStorage flag.
+	PipelineDbPd  string
+	PipelineNfsPd string
+}
+
 // CreateRequest represents a request to create a ksonnet application.
 type CreateRequest struct {
 	// Name for the app.
@@ -213,8 +232,7 @@ type CreateRequest struct {
 	// For test: GCP service account client id
 	SAClientId string
 
-	// Whether to create persistent storage for storing all Kubeflow artifacts or not.
-	CreatePersistentStorage bool
+	StorageOption StorageOption
 }
 
 // basicServerResponse is general response contains nil if handler raise no error, otherwise an error message.
@@ -366,6 +384,19 @@ func (s *CreateRequest) Validate() error {
 	if len(missings) == 0 {
 		return nil
 	}
+	if (s.StorageOption.PipelineDbPd == "") != (s.StorageOption.PipelineNfsPd == "") {
+		return fmt.Errorf("provide both PipelineDbPd and PipelineNfsPd, or leave both empty. "+
+				"PipelineDbPd: %v, PipelineNfsPd: %v",
+			s.StorageOption.PipelineDbPd, s.StorageOption.PipelineNfsPd)
+	}
+	if (s.StorageOption.PipelineDbPd != "") &&
+			(s.StorageOption.PipelineNfsPd != "") &&
+			s.StorageOption.CreatePipelinePersistentStorage == true {
+		return fmt.Errorf("specify Pipeline PD name or set CreatePipelinePersistentStorage " +
+			"to true, not both. PipelineDbPd: %v, PipelineNfsPd: %v, CreatePipelinePersistentStorage: %v",
+			s.StorageOption.PipelineDbPd, s.StorageOption.PipelineNfsPd, s.StorageOption.CreatePipelinePersistentStorage)
+	}
+
 	return fmt.Errorf("missing input fields: %v", missings)
 }
 
@@ -1279,7 +1310,8 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 		}
 
 		var storageDmDeployment *deploymentmanager.Deployment
-		if req.CreatePersistentStorage {
+
+		if req.StorageOption.CreatePipelinePersistentStorage {
 			var err error
 			storageDmDeployment, err = svc.InsertDeployment(ctx, req, StorageDmSpec)
 			if err != nil {
