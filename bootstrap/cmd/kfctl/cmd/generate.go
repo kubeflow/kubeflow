@@ -15,67 +15,97 @@
 package cmd
 
 import (
-	kfapi "github.com/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
+	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksapp/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"os"
+	"github.com/spf13/viper"
 )
+
+var generateCfg = viper.New()
 
 // generateCmd represents the generate command
 var generateCmd = &cobra.Command{
-	Use:   "generate",
-	Short: "Generate a kubeflow application using <name>.yaml.",
-	Long:  `Generate a kubeflow application using <name>.yaml.`,
+	Use:   "generate [resources]",
+	Short: "Generate a kubeflow application where resources is one of 'platform | k8s | all'.",
+	Long: `Generate a kubeflow application where resources is one of 'platform | k8s | all'.
+
+  platform: non kubernetes resources (eg --platform gcp)
+  k8s: kubernetes resources
+  all: both platform and k8s
+
+The default is 'all' for any selected platform.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.InfoLevel)
-		kfApi, kfApiErr := kfapi.NewKfApiWithConfig(kfctlConfig)
-		if kfApiErr != nil {
-			log.Errorf("couldn't create KfApi: %v", kfApiErr)
+		kfApp, kfAppErr := LoadKfApp(generateCfg)
+		if kfAppErr != nil {
+			log.Errorf("couldn't create KfApp: %v", kfAppErr)
 			return
 		}
-		host, k8sSpec, err := ServerVersion()
-		if err != nil {
-			log.Errorf("couldn't get server version: %v", err)
+		resources := kftypes.ALL
+		if len(args) == 1 {
+			switch resources {
+			case kftypes.ALL:
+			case kftypes.E8S:
+				resources = kftypes.E8S
+			case "platform":
+				resources = kftypes.PLATFORM
+			default:
+				log.Errorf("unknown resource %v", resources)
+				return
+			}
+		}
+		generateErr := kfApp.Generate(resources)
+		if generateErr != nil {
+			log.Errorf("couldn't generate KfApp: %v", generateErr)
 			return
-		}
-		namespace := os.Getenv("K8S_NAMESPACE")
-		initErr := kfApi.Init("default", k8sSpec, host, namespace)
-		if initErr != nil {
-			log.Errorf("couldn't initialize KfApi: %v", initErr)
-			return
-		}
-		for _, registry := range kfApi.Application().Spec.App.Registries {
-			registryAddErr := kfApi.RegistryAdd(registry)
-			if registryAddErr != nil {
-				log.Errorf("couldn't add registry %v. Error: %v", registry.Name, registryAddErr)
-				return
-			}
-		}
-		for _, pkg := range kfApi.Application().Spec.App.Packages {
-			packageAddErr := kfApi.PkgInstall(pkg)
-			if packageAddErr != nil {
-				log.Errorf("couldn't add package %v. Error: %v", pkg.Name, packageAddErr)
-				return
-			}
-		}
-		for _, component := range kfApi.Application().Spec.App.Components {
-			componentAddErr := kfApi.ComponentAdd(component, []string{})
-			if componentAddErr != nil {
-				log.Errorf("couldn't add component %v. Error: %v", component.Name, componentAddErr)
-				return
-			}
-		}
-		for _, parameter := range kfApi.Application().Spec.App.Parameters {
-			parameterSetErr := kfApi.ParamSet(parameter.Component, parameter.Name, parameter.Value)
-			if parameterSetErr != nil {
-				log.Errorf("couldn't set %v for component %v. Error: %v",
-					parameter.Name, parameter.Component, parameterSetErr)
-				return
-			}
 		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(generateCmd)
+
+	generateCfg.SetConfigName("app")
+	generateCfg.SetConfigType("yaml")
+
+	generateCmd.Flags().StringSliceP("packages", "p", kstypes.DefaultPackages,
+		"provide a comma delimited list of package names")
+	bindErr := generateCfg.BindPFlag("packages", generateCmd.Flags().Lookup("packages"))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --packages: %v", bindErr)
+		return
+	}
+
+	generateCmd.Flags().StringSliceP("components", "c", kstypes.DefaultComponents,
+		"provide a comma delimited list of component names")
+	bindErr = generateCfg.BindPFlag("components", generateCmd.Flags().Lookup("components"))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --components: %v", bindErr)
+		return
+	}
+
+	generateCmd.Flags().StringP("namespace", "n", kftypes.DefaultNamespace,
+		"namespace where kubeflow will be deployed")
+	bindErr = generateCfg.BindPFlag("namespace", generateCmd.Flags().Lookup("namespace"))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --namespace: %v", bindErr)
+		return
+	}
+
+	generateCmd.Flags().String("email", "",
+		"email if '--platform gcp'")
+	bindErr = generateCfg.BindPFlag("email", generateCmd.Flags().Lookup("email"))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --email: %v", bindErr)
+		return
+	}
+
+	generateCmd.Flags().String("ipName", "",
+		"ipName if '--platform gcp'")
+	bindErr = generateCfg.BindPFlag("ipName", generateCmd.Flags().Lookup("ipName"))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --ipName: %v", bindErr)
+		return
+	}
 }

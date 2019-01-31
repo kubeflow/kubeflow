@@ -20,12 +20,53 @@ import (
 )
 
 const (
-	KsName           = "ks_app"
-	KsEnvName        = "default"
-	DefaultNamespace = "kubeflow"
-	DefaultKfRepo    = "$GOPATH/src/github.com/kubeflow/kubeflow/kubeflow"
-	KfConfigFile     = "app.yaml"
+	KsName    = "ks_app"
+	KsEnvName = "default"
 )
+
+var DefaultRegistry = &RegistryConfig{
+	Name: "kubeflow",
+	Repo: "https://github.com/kubeflow/kubeflow.git",
+	Path: "kubeflow",
+}
+
+var DefaultPackages = []string{
+	"application",
+	"argo",
+	"common",
+	"examples",
+	"jupyter",
+	"katib",
+	"metacontroller",
+	"modeldb",
+	"mpi-job",
+	"openvino",
+	"pipeline",
+	"profiles",
+	"pytorch-job",
+	"seldon",
+	"tensorboard",
+	"tf-serving",
+	"tf-training",
+}
+var DefaultComponents = []string{
+	"ambassador",
+	"application",
+	"argo",
+	"centraldashboard",
+	"jupyter",
+	"katib",
+	"metacontroller",
+	"notebooks",
+	"openvino",
+	"pipeline",
+	"profiles",
+	"pytorch-operator",
+	"spartakus",
+	"tensorboard",
+	"tf-job-operator",
+}
+var DefaultParameters = map[string][]NameValue{}
 
 // RegistryConfig is used for two purposes:
 // 1. used during image build, to configure registries that should be baked into the bootstrapper docker image.
@@ -109,21 +150,31 @@ type AppConfig struct {
 	Parameters []KsParameter     `json:"parameters,omitempty"`
 }
 
-// ApplicationSpec defines the desired state of Application
-type ApplicationSpec struct {
-	App AppConfig `json:"app,omitempty"`
+type NameValue struct {
+	Name  string `json:"name,omitempty"`
+	Value string `json:"value,omitempty"`
 }
 
-// ApplicationStatus defines the observed state of Application
-type ApplicationStatus struct {
-	Conditions []ApplicationCondition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,6,rep,name=conditions"`
+// KsAppSpec defines the desired state of KsApp
+type KsAppSpec struct {
+	Platform   string                 `json:"platform,omitempty"`
+	Version    string                 `json:"version,omitempty"`
+	Repo       string                 `json:"repo,omitempty"`
+	Components []string               `json:"components,omitempty"`
+	Packages   []string               `json:"packages,omitempty"`
+	Parameters map[string][]NameValue `json:"parameters,omitempty"`
 }
 
-type ApplicationConditionType string
+// KsAppStatus defines the observed state of KsApp
+type KsAppStatus struct {
+	Conditions []KsAppCondition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,6,rep,name=conditions"`
+}
 
-type ApplicationCondition struct {
+type KsAppConditionType string
+
+type KsAppCondition struct {
 	// Type of deployment condition.
-	Type ApplicationConditionType `json:"type" protobuf:"bytes,1,opt,name=type,casttype=ApplicationConditionType"`
+	Type KsAppConditionType `json:"type" protobuf:"bytes,1,opt,name=type,casttype=KsAppConditionType"`
 	// Status of the condition, one of True, False, Unknown.
 	Status v1.ConditionStatus `json:"status" protobuf:"bytes,2,opt,name=status,casttype=k8s.io/api/core/v1.ConditionStatus"`
 	// The last time this condition was updated.
@@ -136,28 +187,27 @@ type ApplicationCondition struct {
 	Message string `json:"message,omitempty" protobuf:"bytes,5,opt,name=message"`
 }
 
-// +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// Application is the Schema for the applications API
+// KsApp is the Schema for the applications API
 // +k8s:openapi-gen=true
-type Application struct {
+type KsApp struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   ApplicationSpec   `json:"spec,omitempty"`
-	Status ApplicationStatus `json:"status,omitempty"`
+	Spec   KsAppSpec   `json:"spec,omitempty"`
+	Status KsAppStatus `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// ApplicationList contains a list of Application
-type ApplicationList struct {
+// KsAppList contains a list of KsApp
+type KsAppList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Application `json:"items"`
+	Items           []KsApp `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&Application{}, &ApplicationList{})
+	SchemeBuilder.Register(&KsApp{}, &KsAppList{})
 }

@@ -2,7 +2,6 @@ package app
 
 import (
 	"fmt"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
 	"time"
 
 	"io/ioutil"
@@ -61,10 +60,9 @@ func init() {
 
 // TODO: handle concurrent & repetitive deployment requests.
 func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) (*deploymentmanager.Deployment, error) {
-	regs := s.kfApi.RegistryConfigs()
-	regPath := regs["kubeflow"].RegUri
+	regPath := s.knownRegistries["kubeflow"].RegUri
 	var dmconf DmConf
-	err := utils.LoadConfigFile(path.Join(regPath, "../deployment/gke/deployment_manager_configs/cluster-kubeflow.yaml"), &dmconf)
+	err := LoadConfig(path.Join(regPath, "../deployment/gke/deployment_manager_configs/cluster-kubeflow.yaml"), &dmconf)
 
 	if err == nil {
 		dmconf.Resources[0].Name = req.Name
@@ -227,12 +225,11 @@ func GetUpdatedPolicy(currentPolicy *cloudresourcemanager.Policy, iamConf *IamCo
 }
 
 func (s *ksServer) ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) error {
-	regs := s.kfApi.RegistryConfigs()
-	regPath := regs["kubeflow"].RegUri
 	// Get the iam change from config.
+	regPath := s.knownRegistries["kubeflow"].RegUri
 	templatePath := path.Join(regPath, "../deployment/gke/deployment_manager_configs/iam_bindings_template.yaml")
 	var iamConf IamConf
-	err := utils.LoadConfigFile(templatePath, &iamConf)
+	err := LoadConfig(templatePath, &iamConf)
 	if err != nil {
 		log.Errorf("Failed to load iam config: %v", err)
 		return err

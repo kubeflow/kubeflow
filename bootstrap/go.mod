@@ -80,6 +80,7 @@ require (
 	github.com/sirupsen/logrus v1.3.0
 	github.com/spf13/afero v1.2.0
 	github.com/spf13/cobra v0.0.3
+	github.com/spf13/pflag v1.0.3
 	github.com/spf13/viper v1.3.1
 	golang.org/x/net v0.0.0-20190110200230-915654e7eabc
 	golang.org/x/oauth2 v0.0.0-20190115181402-5dab4167f31c
@@ -90,6 +91,7 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/resty.v1 v1.11.0
 	gopkg.in/square/go-jose.v2 v2.2.2 // indirect
+	gopkg.in/yaml.v2 v2.2.2
 	k8s.io/api v0.0.0-20180308224125-73d903622b73
 	k8s.io/apiextensions-apiserver v0.0.0-20190116054503-cf30b7cf64c2
 	k8s.io/apimachinery v0.0.0-20190111195121-fa6ddc151d63
@@ -97,10 +99,10 @@ require (
 	k8s.io/client-go v10.0.0+incompatible
 	k8s.io/code-generator v0.0.0-20180601180426-9de8e796a74d // indirect
 	k8s.io/gengo v0.0.0-20190116091435-f8a0810f38af // indirect
-	k8s.io/helm v2.12.2+incompatible // indirect
+	k8s.io/helm v2.12.3+incompatible // indirect
 	k8s.io/klog v0.1.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20190115222348-ced9eb3070a5 // indirect
-	k8s.io/kubernetes v1.13.2 // indirect
+	k8s.io/kubernetes v1.10.2 // indirect
 	k8s.io/utils v0.0.0-20181221173059-8a16e7dd8fb6 // indirect
 	sigs.k8s.io/controller-runtime v0.1.1
 	sigs.k8s.io/testing_frameworks v0.1.1 // indirect
@@ -110,6 +112,7 @@ require (
 
 replace (
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v9.1.0+incompatible
+	github.com/mitchellh/go-homedir => github.com/mitchellh/go-homedir v1.0.0
 	github.com/russross/blackfriday => github.com/russross/blackfriday v1.5.2-0.20180428102519-11635eb403ff // indirect
 	k8s.io/api => k8s.io/api v0.0.0-20180308224125-73d903622b73
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20180426153726-e8ab413e0ae1

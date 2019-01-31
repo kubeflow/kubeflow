@@ -13,49 +13,43 @@
 # limitations under the License.
 #
 GCLOUD_PROJECT ?= kubeflow-images-public
-GOLANG_VERSION ?= 1.11.2
+GOLANG_VERSION ?= 1.11.5
+GOPATH ?= $(HOME)/go
 # To build without the cache set the environment variable
 # export DOCKER_BUILD_OPTS=--no-cache
-# set to GOLANG_GCFLAGS=-gcflags "all=-N -l" to debug
-GOLANG_GCFLAGS ?= ""
 IMG ?= gcr.io/$(GCLOUD_PROJECT)/bootstrapper
-TAG ?= $(eval TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6))$(TAG)
+TAG ?= $(shell git describe --tags --always --dirty)
 PORT ?= 2345
 export GO111MODULE=on
+export GO=go
 
 all: build
 
 auth:
 	gcloud auth configure-docker
 
-client-gen:
-	@rm -f $(shell find pkg/client/kfapi/ -name '*.go' -exec grep -lr 'DO NOT EDIT' {} \;)
-	go get k8s.io/code-generator/cmd/client-gen@kubernetes-1.10.12
-	mkdir -p ${GOPATH}/src/k8s.io/code-generator/hack && \
-		cp hack/boilerplate.go.txt ${GOPATH}/src/k8s.io/code-generator/hack/boilerplate.go.txt
-	${GOPATH}/bin/client-gen \
-		--fake-clientset=false \
-		--input apps/v1alpha1 \
-		--input-base github.com/kubeflow/kubeflow/bootstrap/pkg/apis \
-		--input-dirs github.com/kubeflow/kubeflow/bootstrap/pkg/apis \
-		--clientset-path github.com/kubeflow/kubeflow/bootstrap/pkg/client \
-		--clientset-name kfapi
-
 # Run go fmt against code
 fmt:
-	go fmt ./pkg/... ./cmd/...
+	$(GO) fmt ./pkg/... ./cmd/...
 
 # Run go vet against code
 vet:
-	go vet ./pkg/... ./cmd/...
+	$(GO) vet ./pkg/... ./cmd/...
 
-build-local-bootstrap: client-gen fmt vet
-	go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
+generate:
+	$(GO) generate ./pkg/... ./cmd/...
 
-build-local-kfctl: client-gen fmt vet
-	go build -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
 
-build-local: build-local-bootstrap build-local-kfctl
+build-bootstrap: generate fmt vet
+	$(GO) build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
+
+build-kfctl: generate fmt vet
+	$(GO) build -i -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
+
+build-foo-plugin: generate fmt vet
+	$(GO) build -i -gcflags 'all=-N -l' -o bin/fooapp.so -buildmode=plugin cmd/plugins/fooapp.go
+
+build-local: build-bootstrap build-kfctl
 
 # To edit which registries to add to bootstrapper, edit config (eg. config/default.yaml)
 build: build-local
@@ -63,6 +57,7 @@ build: build-local
 	mkdir -p reg_tmp/kubeflow
 	cp -r ../kubeflow reg_tmp/kubeflow
 	cp -r ../deployment reg_tmp/kubeflow
+	cp -r ../dependencies reg_tmp/kubeflow
 	docker build \
 		--build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
 		--build-arg registries=reg_tmp \
@@ -79,30 +74,31 @@ push-latest: push
 	gcloud container images add-tag --quiet $(IMG):$(TAG) $(IMG):latest --verbosity=info
 	echo created $(IMG):latest
 
-install: build-local-kfctl
+install: build-kfctl
 	@echo copying bin/kfctl to /usr/local/bin
 	@cp bin/kfctl /usr/local/bin
-
-run-local:
-	KUBERNETES_SERVICE_HOST=https://35.233.240.120 KUBERNETES_SERVICE_PORT=80 \
-		bin/bootstrapper \
-		--app-dir=${HOME}/apps \
-		--registries-config-file=${PWD}/local_registries.yaml \
-		--config=${PWD}/config/default.yaml \
-		--in-cluster=false
 
 run-local-docker:
 	docker run -d -it --name bootstrapper \
 	  --mount type=bind,source=${HOME}/kf_app,target=/home/kubeflow \
 	  --entrypoint /bin/bash $(IMG):$(TAG)
 
-debug: push cleanup
-	@echo debugging $(IMG):$(TAG) using port $(PORT)
-	@./debug.sh $(IMG) $(TAG) $(PORT)
+# init ~/myapp --platform none
+test-known-platforms-init: install build-foo-plugin
+	@rm -rf $(HOME)/ks-app && \
+	kfctl init $(HOME)/ks-app --platform none && \
+	rm -rf $(HOME)/foo-app && \
+	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl init $(HOME)/foo-app --platform foo && \
+	echo SUCCESS
 
-debug-latest: debug
-	@echo debugging $(IMG):latest using port $(PORT)
-	@./debug.sh $(IMG) latest $(PORT)
+# generate all --email john@foo.com --ipName 35.233.240.120
+test-known-platforms-generate: test-known-platforms-init
+	@cd ~/ks-app && \
+	kfctl generate && \
+	cd ~/foo-app && \
+	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate && \
+	echo SUCCESS
 
-cleanup:
-	@./cleanup.sh kubeflow-admin
+test-foo-plugin:
+	rm -rf $(HOME)/foo-app
+	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl init $(HOME)/foo-app --platform foo

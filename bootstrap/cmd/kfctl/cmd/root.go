@@ -16,40 +16,145 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/kfapi"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/v1alpha1"
+	"github.com/ghodss/yaml"
+	"github.com/ksonnet/ksonnet/pkg/app"
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
+	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksapp/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/gcpapp"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksapp"
+	"github.com/mitchellh/go-homedir"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"io/ioutil"
 	"os"
-	"regexp"
+	"path"
+	"path/filepath"
+	"plugin"
 )
 
-var token string
-var kfctlConfig = viper.New()
+func LoadPlatform(platform string, options map[string]interface{}) (kftypes.KfApp, error) {
+	switch platform {
+	case "none":
+		_kfapp := ksapp.GetKfApp(options)
+		return _kfapp, nil
+	case "gcp":
+		_gcpapp := gcpapp.GetKfApp(options)
+		return _gcpapp, nil
+	default:
+		// To enable goland debugger:
+		// Comment out  this section and comment in the line
+		//   return nil, fmt.Errorf("unknown platform %v", platform
+
+		plugindir := os.Getenv("PLUGINS_ENVIRONMENT")
+		pluginpath := filepath.Join(plugindir, platform+"app.so")
+		p, err := plugin.Open(pluginpath)
+		if err != nil {
+			return nil, fmt.Errorf("could not load plugin %v for platform %v Error %v", pluginpath, platform, err)
+		}
+		symName := "GetKfApp"
+		symbol, symbolErr := p.Lookup(symName)
+		if symbolErr != nil {
+			return nil, fmt.Errorf("could not find symbol %v for platform %v Error %v", symName, platform, symbolErr)
+		}
+		return symbol.(func(map[string]interface{}) kftypes.KfApp)(options), nil
+
+		//return nil, fmt.Errorf("unknown platform %v", platform)
+	}
+}
+
+func NewKfApp(appName string, cfgFile *viper.Viper) (kftypes.KfApp, error) {
+	//appName can be a path
+	appDir := path.Dir(appName)
+	if appDir == "" {
+		cwd, err := os.Getwd()
+		if err != nil {
+			return nil, fmt.Errorf("could not get current directory %v", err)
+		}
+		appDir = cwd
+	} else {
+		if appDir == "~" {
+			home, homeErr := homedir.Dir()
+			if homeErr != nil {
+				return nil, fmt.Errorf("could not get home directory %v", homeErr)
+			}
+			expanded, expandedErr := homedir.Expand(home)
+			if expandedErr != nil {
+				return nil, fmt.Errorf("could not expand home directory %v", homeErr)
+			}
+			appName = path.Base(appName)
+			appDir = path.Join(expanded, appName)
+		} else {
+			appName = path.Base(appName)
+			appDir = path.Join(appDir, appName)
+		}
+	}
+	platform := cfgFile.GetString("platform")
+	options := map[string]interface{}{
+		"AppName": appName,
+		"AppDir":  appDir,
+		"CfgFile": cfgFile,
+	}
+	pApp, pAppErr := LoadPlatform(platform, options)
+	if pAppErr != nil {
+		return nil, fmt.Errorf("unable to load platform %v Error: %v", platform, pAppErr)
+	}
+	return pApp, nil
+}
+
+func LoadKfApp(cfgFile *viper.Viper) (kftypes.KfApp, error) {
+	appDir, err := os.Getwd()
+	if err != nil {
+		return nil, fmt.Errorf("could not get current directory %v", err)
+	}
+	appName := filepath.Base(appDir)
+	log.Infof("AppName %v AppDir %v", appName, appDir)
+	cfgFile.AddConfigPath(appDir)
+	cfgErr := cfgFile.ReadInConfig()
+	if cfgErr != nil {
+		return nil, fmt.Errorf("could not read config file %v Error %v", kftypes.KfConfigFile, cfgErr)
+	}
+	cfgfile := cfgFile.ConfigFileUsed()
+	if cfgfile == "" {
+		return nil, fmt.Errorf("config file does not exist")
+	}
+	log.Infof("reading from %v", cfgfile)
+	fs := afero.NewOsFs()
+	ksDir := path.Join(appDir, kstypes.KsName)
+	kApp, kAppErr := app.Load(fs, nil, ksDir)
+	if kAppErr != nil {
+		return nil, fmt.Errorf("there was a problem loading app %v. Error: %v", appName, kAppErr)
+	}
+	ksApp := kstypes.KsApp{}
+	dat, datErr := ioutil.ReadFile(cfgfile)
+	if datErr != nil {
+		return nil, fmt.Errorf("couldn't read %v. Error: %v", cfgfile, datErr)
+	}
+	specErr := yaml.Unmarshal(dat, &ksApp)
+	if specErr != nil {
+		return nil, fmt.Errorf("couldn't unmarshall KsApp. Error: %v", specErr)
+	}
+	platform := ksApp.Spec.Platform
+	options := map[string]interface{}{
+		"AppName": appName,
+		"AppDir":  appDir,
+		"CfgFile": cfgFile,
+		"KApp":    kApp,
+		"KsApp":   &ksApp,
+	}
+	pApp, pAppErr := LoadPlatform(platform, options)
+	if pAppErr != nil {
+		return nil, fmt.Errorf("unable to load platform %v Error: %v", platform, pAppErr)
+	}
+	return pApp, nil
+}
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "kfctl",
 	Short: "A client tool to create kubeflow applications",
 	Long:  `kubeflow client tool`,
-}
-
-func ServerVersion() (host string, version string, err error) {
-	restApi, err := v1alpha1.BuildOutOfClusterConfig()
-	if err != nil {
-		return "", "", fmt.Errorf("couldn't build out-of-cluster config. Error: %v", err)
-	}
-	clnt, clntErr := kfapi.NewForConfig(restApi)
-	if clntErr != nil {
-		return "", "", fmt.Errorf("couldn't get clientset. Error: %v", err)
-	}
-	serverVersion, serverVersionErr := clnt.ServerVersion()
-	if serverVersionErr != nil {
-		return "", "", fmt.Errorf("couldn't get server version info. Error: %v", serverVersionErr)
-	}
-	re := regexp.MustCompile("^v[0-9]+.[0-9]+.[0-9]+")
-	version = re.FindString(serverVersion.String())
-	return restApi.Host, "version:" + version, nil
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -62,12 +167,9 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVarP(&token, "token", "t", "", "token used in auth header")
 	cobra.OnInitialize(initConfig)
 }
 
 // initConfig creates a Viper config file and set's it's name and type
 func initConfig() {
-	kfctlConfig.SetConfigName("app")
-	kfctlConfig.SetConfigType("yaml")
 }
