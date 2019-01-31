@@ -2,6 +2,7 @@
 # Image URL to use all building/pushing image targets
 IMG ?= gcr.io/kubeflow-images-public/notebook-controller
 TAG ?= $(eval TAG := $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6))$(TAG)
+GOLANG_VERSION ?= 1.11.2
 
 all: test manager
 
@@ -44,7 +45,7 @@ generate:
 
 # Build the docker image
 docker-build: test
-	docker build . -t ${IMG}
+	docker build . -t ${IMG} --build-arg GOLANG_VERSION=$(GOLANG_VERSION)
 	@echo "updating kustomize image patch file for manager resource"
 	sed -i'' -e 's@image: .*@image: '"${IMG}"'@' ./config/default/manager_image_patch.yaml
 

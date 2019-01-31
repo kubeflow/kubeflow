@@ -1,5 +1,6 @@
 # Build the manager binary
-FROM golang:1.11.2 as builder
+ARG GOLANG_VERSION=1.11.2
+FROM golang:${GOLANG_VERSION} as builder
 
 # Copy in the go src
 WORKDIR /go/src/github.com/kubeflow/kubeflow/components/notebook-crd
