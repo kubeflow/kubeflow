@@ -356,7 +356,7 @@ func (ksApp *KsApp) Init() error {
 and must start and end with an alphanumeric character`, ksApp.AppName)
 	}
 	log.Infof("KsApp.Init AppName %v AppDir %v", ksApp.AppName, ksApp.AppDir)
-	err := os.Mkdir(ksApp.AppDir, os.ModePerm)
+	err := os.MkdirAll(ksApp.AppDir, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("couldn't create directory %v, most likely it already exists", ksApp.AppDir)
 	}
