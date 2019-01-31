@@ -88,7 +88,7 @@ type KsService interface {
 	BindRole(context.Context, string, string, string) error
 	InstallIstio(ctx context.Context, req CreateRequest) error
 	InsertDeployment(context.Context, CreateRequest, DmSpec) (*deploymentmanager.Deployment, error)
-	GetDeploymentStatus(context.Context, CreateRequest) (string, string, error)
+	GetDeploymentStatus(context.Context, CreateRequest, string) (string, string, error)
 	ApplyIamPolicy(context.Context, ApplyIamRequest) error
 	GetProjectLock(string) *sync.Mutex
 	CreateGcePd(context.Context, CreateGcePdRequest) error
@@ -1155,20 +1155,21 @@ func timeSinceStart(ctx context.Context) time.Duration {
 	return time.Since(startTime)
 }
 
-func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmanager.Deployment) {
+func checkDeploymentFinished(svc KsService, req CreateRequest, deployName string) error {
 	status := ""
 	errMsg := ""
 	var err error
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, StartTime, time.Now())
+
 	for retry := 0; retry < 60; retry++ {
 		time.Sleep(10 * time.Second)
-		status, errMsg, err = svc.GetDeploymentStatus(ctx, req)
+		status, errMsg, err = svc.GetDeploymentStatus(ctx, req, deployName)
 		if err != nil {
 			log.Errorf("Failed to get deployment status: %v", err)
 			deployReqCounter.WithLabelValues("INTERNAL").Inc()
 			deploymentFailure.WithLabelValues("INTERNAL").Inc()
-			return
+			return err
 		}
 		if status == "DONE" {
 			if errMsg != "" {
@@ -1176,7 +1177,7 @@ func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmana
 				// Mark status "INVALID_ARGUMENT" as most deployment manager failures are caused by insufficient quota or permission.
 				// Error messages are available from UI, and should be resolvable by retries.
 				deployReqCounter.WithLabelValues("INVALID_ARGUMENT").Inc()
-				return
+				return err
 			}
 			clusterDeploymentLatencies.Observe(timeSinceStart(ctx).Seconds())
 			log.Infof("Deployment is done")
@@ -1188,7 +1189,26 @@ func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmana
 		log.Errorf("Deployment status is not done: %v", status)
 		deployReqCounter.WithLabelValues("INTERNAL").Inc()
 		deploymentFailure.WithLabelValues("INTERNAL").Inc()
+		return err
+	}
+	return nil
+}
+
+func finishDeployment(svc KsService, req CreateRequest,
+		clusterDmDeploy *deploymentmanager.Deployment, storageDmDeploy *deploymentmanager.Deployment) {
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, StartTime, time.Now())
+
+	err := checkDeploymentFinished(svc, req, clusterDmDeploy.Name)
+	if err != nil {
 		return
+	}
+
+	if storageDmDeploy != nil {
+		err = checkDeploymentFinished(svc, req, storageDmDeploy.Name)
+		if err != nil {
+			return
+		}
 	}
 
 	log.Info("Patching IAM bindings...")
@@ -1221,7 +1241,7 @@ func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmana
 	}
 
 	log.Infof("Creating app...")
-	err = svc.CreateApp(ctx, req, dmDeploy)
+	err = svc.CreateApp(ctx, req, clusterDmDeploy)
 	if err != nil {
 		log.Errorf("Failed to create app: %v", err)
 		deployReqCounter.WithLabelValues("INTERNAL").Inc()
@@ -1259,8 +1279,9 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 			return r, err
 		}
 
+		var storageDmDeployment *deploymentmanager.Deployment
 		if req.CreatePersistentStorage {
-			_, err := svc.InsertDeployment(ctx, req, StorageDmSpec)
+			storageDmDeployment, err := svc.InsertDeployment(ctx, req, StorageDmSpec)
 			if err != nil {
 				r.Err = err.Error()
 				return r, err
@@ -1272,7 +1293,7 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 			r.Err = err.Error()
 			return r, err
 		}
-		go finishDeployment(svc, req, clusterDmDeployment)
+		go finishDeployment(svc, req, clusterDmDeployment, storageDmDeployment)
 		return r, nil
 	}
 }

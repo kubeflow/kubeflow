@@ -126,7 +126,7 @@ func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest, dmSp
 	return rb, nil
 }
 
-func (s *ksServer) GetDeploymentStatus(ctx context.Context, req CreateRequest) (string, string, error) {
+func (s *ksServer) GetDeploymentStatus(ctx context.Context, req CreateRequest, deployName string) (string, string, error) {
 	ts := oauth2.StaticTokenSource(&oauth2.Token{
 		AccessToken: req.Token,
 	})
@@ -134,7 +134,7 @@ func (s *ksServer) GetDeploymentStatus(ctx context.Context, req CreateRequest) (
 	if err != nil {
 		return "", "", err
 	}
-	dm, err := deploymentmanagerService.Deployments.Get(req.Project, req.Name).Context(ctx).Do()
+	dm, err := deploymentmanagerService.Deployments.Get(req.Project, deployName).Context(ctx).Do()
 	if err != nil {
 		return "", "", err
 	}
