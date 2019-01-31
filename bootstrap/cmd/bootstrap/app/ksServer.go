@@ -1280,7 +1280,8 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 
 		var storageDmDeployment *deploymentmanager.Deployment
 		if req.CreatePersistentStorage {
-			storageDmDeployment, err := svc.InsertDeployment(ctx, req, StorageDmSpec)
+			var err error
+			storageDmDeployment, err = svc.InsertDeployment(ctx, req, StorageDmSpec)
 			if err != nil {
 				r.Err = err.Error()
 				return r, err
