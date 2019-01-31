@@ -1188,11 +1188,8 @@ func checkDeploymentFinished(svc KsService, req CreateRequest, deployName string
 				// Mark status "INVALID_ARGUMENT" as most deployment manager failures are caused by insufficient quota or permission.
 				// Error messages are available from UI, and should be resolvable by retries.
 				deployReqCounter.WithLabelValues("INVALID_ARGUMENT").Inc()
-				return err
+				return fmt.Errorf(errMsg)
 			}
-			clusterDeploymentLatencies.Observe(timeSinceStart(ctx).Seconds())
-			log.Infof("Deployment is done")
-			break
 		}
 		log.Infof("status: %v, waiting...", status)
 	}
@@ -1221,6 +1218,8 @@ func finishDeployment(svc KsService, req CreateRequest,
 			return
 		}
 	}
+	clusterDeploymentLatencies.Observe(timeSinceStart(ctx).Seconds())
+	log.Infof("Deployment is done")
 
 	log.Info("Patching IAM bindings...")
 	err = svc.ApplyIamPolicy(ctx, ApplyIamRequest{
