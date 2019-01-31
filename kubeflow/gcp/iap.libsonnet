@@ -1027,7 +1027,7 @@
       self.ingress,
       self.certificate,
       self.cloudEndpoint,
-    ] + if !params.useIstio [
+    ] + if !params.useIstio then [
       self.service,
       self.deploy,
     ],
