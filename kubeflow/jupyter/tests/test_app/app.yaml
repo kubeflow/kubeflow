@@ -1,0 +1,17 @@
+apiVersion: 0.3.0
+environments:
+  default:
+    destination:
+      namespace: kubeflow
+      server: https://35.196.210.94
+    k8sVersion: v1.11.5
+    path: default
+  jlewi:
+    destination:
+      namespace: jlewi
+      server: https://35.237.22.119
+    k8sVersion: v1.11.6
+    path: jlewi
+kind: ksonnet.io/app
+name: test_app
+version: 0.0.1
