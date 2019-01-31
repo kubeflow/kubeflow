@@ -10,7 +10,7 @@
       envoyStatsPort: 8025,
       useIstio: util.toBool(_params.useIstio),
     },
-    local namespace = if params.useIstio then params.IstioNamespace else params.namespace,
+    local namespace = if params.useIstio then params.istioNamespace else params.namespace,
 
     // Test if the given hostname is in the form of: "NAME.endpoints.PROJECT.cloud.goog"
     local isCloudEndpoint(str) = {
@@ -1030,7 +1030,7 @@
     ] + if !params.useIstio then [
       self.service,
       self.deploy,
-    ],
+    ] else [],
 
     list(obj=self.all):: k.core.v1.list.new(obj,),
   },
