@@ -108,4 +108,12 @@ func init() {
 		log.Errorf("couldn't set flag --ipName: %v", bindErr)
 		return
 	}
+
+	generateCmd.Flags().String("mount-local", "false",
+		"mount-local if '--platform minikube || --platform docker-for-desktop'")
+	bindErr = generateCfg.BindPFlag("mount-local", generateCmd.Flags().Lookup("mount-local"))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --mount-local: %v", bindErr)
+		return
+	}
 }

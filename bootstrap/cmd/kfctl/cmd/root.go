@@ -22,6 +22,7 @@ import (
 	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksapp/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/gcpapp"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksapp"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/minikube"
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
@@ -39,6 +40,9 @@ func LoadPlatform(platform string, options map[string]interface{}) (kftypes.KfAp
 	case "none":
 		_kfapp := ksapp.GetKfApp(options)
 		return _kfapp, nil
+	case "minikube":
+		_minikubeapp := minikube.GetKfApp(options)
+		return _minikubeapp, nil
 	case "gcp":
 		_gcpapp := gcpapp.GetKfApp(options)
 		return _gcpapp, nil

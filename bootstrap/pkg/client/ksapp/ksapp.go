@@ -34,7 +34,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-	"math/rand"
 	"os"
 	"path"
 	"path/filepath"
@@ -78,18 +77,15 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 				Platform:   "none",
 				Version:    "",
 				Repo:       "",
-				Packages:   []string{"all"},
-				Components: []string{"all"},
-				Parameters: map[string][]kstypes.NameValue{
-					"spartakus": {
-						kstypes.NameValue{
-							Name:  "usageId",
-							Value: fmt.Sprintf("%08d", 10000000+rand.Intn(90000000)),
-						},
-						kstypes.NameValue{
-							Name:  "reportUsage",
-							Value: "true",
-						},
+				Packages:   []string{},
+				Components: []string{},
+				Parameters: map[string][]kstypes.NameValue{},
+			},
+			Status: kstypes.KsAppStatus{
+				Conditions: []kstypes.KsAppCondition{
+					{
+						Type:   "Pending",
+						Status: "Unknown",
 					},
 				},
 			},
@@ -270,22 +266,23 @@ func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum) error {
 	ksApp.KsApp.Spec.Packages = packages
 	components := ksApp.CfgFile.GetStringSlice("components")
 	ksApp.KsApp.Spec.Components = components
+	ksApp.KsApp.Spec.Parameters = kstypes.DefaultParameters
 	parameters := ksApp.CfgFile.GetStringMapStringSlice("parameters")
 	if len(parameters) > 0 {
-		if ksApp.KsApp.Spec.Parameters == nil {
-			ksApp.KsApp.Spec.Parameters = make(map[string][]kstypes.NameValue)
-		}
 		for comp, parms := range parameters {
-			plen := len(parms) / 2
-			nv := make([]kstypes.NameValue, plen)
+			plen := len(parms)
+			nvlen := plen / 2
+			nv := make([]kstypes.NameValue, nvlen)
 			ksApp.KsApp.Spec.Parameters[comp] = nv
+			j := 0
 			for i := 0; i < plen; i += 2 {
 				name := parms[i]
 				value := parms[i+1]
-				nv[i] = kstypes.NameValue{
+				nv[j] = kstypes.NameValue{
 					Name:  name,
 					Value: value,
 				}
+				j++
 			}
 		}
 	}
@@ -332,13 +329,16 @@ func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum) error {
 		parameters := parameterMap[compName]
 		if parameters != nil {
 			for _, parameter := range parameters {
-				arg := "--" + parameter.Name + "=" + parameter.Value
-				parameterArgs = append(parameterArgs, arg)
+				//arg := "--" + parameter.Name + "=" + parameter.Value
+				name := "--" + parameter.Name
+				parameterArgs = append(parameterArgs, name)
+				value := parameter.Value
+				parameterArgs = append(parameterArgs, value)
 			}
 		}
 		componentArgs := []string{}
 		if len(parameterArgs) > 0 {
-			componentArgs = []string{strings.Join(parameterArgs, " ")}
+			componentArgs = parameterArgs
 		}
 		componentAddErr := ksApp.componentAdd(comp, componentArgs)
 		if componentAddErr != nil {

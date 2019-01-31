@@ -25,6 +25,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 )
 
 const (
@@ -96,23 +97,21 @@ func (gcpApp *GcpApp) generateKsApp() error {
 	}
 	packages := append(kstypes.DefaultPackages, []string{"gcp"}...)
 	ksApp.CfgFile.Set("packages", packages)
-	components := append(kstypes.DefaultComponents, []string{"cloud-endpoints", "cert-manager", "iap-ingress"}...)
-	ksApp.CfgFile.Set("components", components)
-	certManagerParameter := map[string][]string{
-		"cert-manager": []string{
-			"acmeEmail",
-			email,
-		},
-	}
-	iapIngressParameter := map[string][]string{
-		"iap-ingress": []string{
-			"ipName",
-			ipName,
-		},
-	}
+	comps := append(kstypes.DefaultComponents, []string{"cloud-endpoints", "cert-manager", "iap-ingress"}...)
+	ksApp.CfgFile.Set("components", comps)
 	parameters := make(map[string][]string)
-	parameters["cert-manager"] = certManagerParameter["cert-manager"]
-	parameters["iap-ingress"] = iapIngressParameter["iap-ingress"]
+	parameters["cert-manager"] = []string{
+		"acmeEmail",
+		email,
+	}
+	parameters["iap-ingress"] = []string{
+		"ipName",
+		ipName,
+	}
+	parameters["application"] = []string{
+		"components",
+		"[" + strings.Join(kstypes.QuoteItems(comps), ",") + "]",
+	}
 	ksApp.CfgFile.Set("parameters", parameters)
 	ksGenerateErr := gcpApp.ksApp.Generate(kftypes.ALL)
 	if ksGenerateErr != nil {
