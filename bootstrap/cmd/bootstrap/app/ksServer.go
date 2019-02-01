@@ -113,7 +113,7 @@ type ksServer struct {
 	// other information about the regisry.
 	knownRegistries map[string]*kstypes.RegistryConfig
 
-	//gkeVersionOverride allows overriding the GKE version specified in DM config. If not set the value in DM config is used.
+	// gkeVersionOverride allows overriding the GKE version specified in DM config. If not set the value in DM config is used.
 	// https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters
 	gkeVersionOverride string
 
@@ -1298,13 +1298,13 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 			}
 			req.AppConfig.Parameters = append(
 				req.AppConfig.Parameters,
-				KsParameter{
+				kstypes.KsParameter{
 					Component: "pipeline",
 					Name:      "mysqlPd",
 					Value:     req.Name + StorageDmSpec.DmNameSuffix + PipelineDbDiskSuffix})
 			req.AppConfig.Parameters = append(
 				req.AppConfig.Parameters,
-				KsParameter{
+				kstypes.KsParameter{
 					Component: "pipeline",
 					Name:      "nfsPd",
 					Value:     req.Name + StorageDmSpec.DmNameSuffix + PipelineNfsDiskSuffix})
