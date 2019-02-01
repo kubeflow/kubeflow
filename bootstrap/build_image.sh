@@ -3,7 +3,7 @@
 # A simple script to build the Docker images.
 # This is intended to be invoked as a step in Argo to build the docker image.
 #
-# build_image.sh ${DOCKERFILE} ${IMAGE} ${TAG}
+# build_image.sh ${DOCKERFILE} ${IMAGE} ${TAG} 
 set -ex
 
 GCLOUD_PROJECT=${GCLOUD_PROJECT:-kubeflow-images-public}
