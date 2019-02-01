@@ -12,23 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-info:
-  title: GKE cluster
-  author: Google, Inc.
-  description: |
-    Creates a GKE cluster and associated type for use in DM. The type can be
-    used in other DM configurations in the following manner:
+imports:
+- path: storage.jinja
 
-    "type: <cluster-type>:/api/v1/namespaces/{namespace}/services"
-
-required:
-- zone
-
-properties:
-  zone:
-    type: string
-    description: Zone in which the cluster should run.
-  initialNodeCount:
-    type: integer
-    description: Initial number of nodes desired in the cluster.
-    default: 4
+resources:
+- name: kubeflow
+  type: storage.jinja
+  properties:
+    zone: SET_THE_ZONE
+    disks:
+     - sizeGb: 20
+       diskType: pd-standard
+       name: pipeline-db
+     - sizeGb: 200
+       diskType: pd-standard
+       name: pipeline-nfs
+    enable_cloudsql: false
+    database:
+      name: mlpipeline
+    dbUser:
+      user: root
