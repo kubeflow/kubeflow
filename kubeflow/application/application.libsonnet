@@ -159,7 +159,7 @@
           false,
       local exclude(name) = {
         return::
-          if name == params.name then
+          if name == "application" || name == "metacontroller" then
             false
           else
             true,

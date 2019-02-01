@@ -36,7 +36,7 @@ func QuoteItems(items []string) []string {
 }
 
 func RemoveItem(defaults []string, name string) []string {
-	pkgs := defaults[:0]
+	pkgs := []string{}
 	for _, pkg := range defaults {
 		if pkg != name {
 			pkgs = append(pkgs, pkg)
@@ -46,7 +46,8 @@ func RemoveItem(defaults []string, name string) []string {
 }
 
 func RemoveItems(defaults []string, names ...string) []string {
-	pkgs := defaults[:0]
+	pkgs := make([]string, len(defaults))
+	copy(pkgs, defaults)
 	for _, name := range names {
 		pkgs = RemoveItem(pkgs, name)
 	}

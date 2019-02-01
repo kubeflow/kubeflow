@@ -31,7 +31,7 @@ var applyCmd = &cobra.Command{
 		log.SetLevel(log.InfoLevel)
 		kfApp, kfAppErr := LoadKfApp(applyCfg)
 		if kfAppErr != nil {
-			log.Errorf("couldn't create KfApp: %v", kfAppErr)
+			log.Errorf("couldn't load KfApp: %v", kfAppErr)
 			return
 		}
 		applyErr := kfApp.Apply()

@@ -15,10 +15,12 @@
 package cmd
 
 import (
-	"fmt"
-
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
+
+var deleteCfg = viper.New()
 
 // deleteCmd represents the delete command
 var deleteCmd = &cobra.Command{
@@ -26,20 +28,23 @@ var deleteCmd = &cobra.Command{
 	Short: "Delete a kubeflow application.",
 	Long:  `Delete a kubeflow application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("delete called")
+		log.SetLevel(log.InfoLevel)
+		kfApp, kfAppErr := LoadKfApp(deleteCfg)
+		if kfAppErr != nil {
+			log.Errorf("couldn't load KfApp: %v", kfAppErr)
+			return
+		}
+		deleteErr := kfApp.Delete()
+		if deleteErr != nil {
+			log.Errorf("couldn't delete KfApp: %v", deleteErr)
+			return
+		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(deleteCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// deleteCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// deleteCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	deleteCfg.SetConfigName("app")
+	deleteCfg.SetConfigType("yaml")
 }
