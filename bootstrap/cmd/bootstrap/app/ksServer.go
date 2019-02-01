@@ -58,6 +58,9 @@ const DmFolder = "gcp_config"
 const CloudShellFolder = "kf_util"
 const IstioFolder = "istio"
 
+const PipelineDbDiskSuffix = "-pipeline-db"
+const PipelineNfsDiskSuffix = "-pipeline-nfs"
+
 type DmSpec struct {
 	// path to the deployment manager configuration file
 	ConfigFile string
@@ -183,6 +186,11 @@ func NewServer(appsDir string, registries []*kstypes.RegistryConfig, gkeVersionO
 	return s, nil
 }
 
+type StorageOption struct {
+	// Whether to create persistent storage for storing all Kubeflow Pipeline artifacts or not.
+	CreatePipelinePersistentStorage bool
+}
+
 // CreateRequest represents a request to create a ksonnet application.
 type CreateRequest struct {
 	// Name for the app.
@@ -214,8 +222,7 @@ type CreateRequest struct {
 	// For test: GCP service account client id
 	SAClientId string
 
-	// Whether to create persistent storage for storing all Kubeflow artifacts or not.
-	CreatePersistentStorage bool
+	StorageOption StorageOption
 }
 
 // basicServerResponse is general response contains nil if handler raise no error, otherwise an error message.
@@ -1281,13 +1288,26 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 		}
 
 		var storageDmDeployment *deploymentmanager.Deployment
-		if req.CreatePersistentStorage {
+
+		if req.StorageOption.CreatePipelinePersistentStorage {
 			var err error
 			storageDmDeployment, err = svc.InsertDeployment(ctx, req, StorageDmSpec)
 			if err != nil {
 				r.Err = err.Error()
 				return r, err
 			}
+			req.AppConfig.Parameters = append(
+				req.AppConfig.Parameters,
+				KsParameter{
+					Component: "pipeline",
+					Name:      "mysqlPd",
+					Value:     req.Name + StorageDmSpec.DmNameSuffix + PipelineDbDiskSuffix})
+			req.AppConfig.Parameters = append(
+				req.AppConfig.Parameters,
+				KsParameter{
+					Component: "pipeline",
+					Name:      "nfsPd",
+					Value:     req.Name + StorageDmSpec.DmNameSuffix + PipelineNfsDiskSuffix})
 		}
 
 		clusterDmDeployment, err := svc.InsertDeployment(ctx, req, ClusterDmSpec)
