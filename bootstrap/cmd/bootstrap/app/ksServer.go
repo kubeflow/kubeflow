@@ -57,11 +57,9 @@ const DmFolder = "gcp_config"
 const CloudShellFolder = "kf_util"
 const IstioFolder = "istio"
 
-type StorageUsage string
-
 const (
-	PipelineDB  StorageUsage = "pipeline-db"
-	PipelineNFS StorageUsage = "pipeline-nfs"
+	PipelineDB  string = "pipeline-db"
+	PipelineNFS string = "pipeline-nfs"
 )
 
 type DmSpec struct {
@@ -1298,6 +1296,18 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 				r.Err = err.Error()
 				return r, err
 			}
+			req.AppConfig.Parameters = append(
+				req.AppConfig.Parameters,
+				KsParameter{
+					Component: "pipeline",
+					Name:      "mysqlPd",
+					Value:     req.Name + StorageDmSpec.DmNameSuffix + PipelineDB})
+			req.AppConfig.Parameters = append(
+				req.AppConfig.Parameters,
+				KsParameter{
+					Component: "pipeline",
+					Name:      "nfsPd",
+					Value:     req.Name + StorageDmSpec.DmNameSuffix + PipelineNFS})
 		}
 
 		clusterDmDeployment, err := svc.InsertDeployment(ctx, req, ClusterDmSpec)
