@@ -26,8 +26,7 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app/options"
-	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksapp/v1alpha1"
-
+	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksapp/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/version"
 	log "github.com/sirupsen/logrus"
 	"k8s.io/api/storage/v1"
@@ -55,7 +54,7 @@ const RegistriesRoot = "/opt/registries"
 // about the app to create.
 type AppConfigFile struct {
 	// App describes a ksonnet application.
-	App kftypes.AppConfig
+	App kstypes.AppConfig
 }
 
 type LibrarySpec struct {
@@ -248,7 +247,7 @@ func Run(opt *options.ServerOption) error {
 	}
 
 	// Load information about the default registries.
-	var regConfig kftypes.RegistriesConfigFile
+	var regConfig kstypes.RegistriesConfigFile
 
 	if opt.RegistriesConfigFile != "" {
 		log.Infof("Loading registry info in file %v", opt.RegistriesConfigFile)
