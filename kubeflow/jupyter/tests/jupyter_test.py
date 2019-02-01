@@ -37,8 +37,8 @@ PLURAL = "notebooks"
 KIND = "Notebook"
 VERSION = "v1alpha1"
 def is_retryable_result(r):
-  if r.status_code == requests.codes.NOT_FOUND:
-    message = "Request to {0} returned 404".format(r.url)
+  if r.status_code in [requests.codes.NOT_FOUND, requests.codes.UNAVAILABLE]:
+    message = "Request to {0} returned {1}".format(r.url, r.status_code)
     logging.error(message)
     return True
 
@@ -75,7 +75,11 @@ def send_request(*args, **kwargs):
   # to create a proper test. Jupyter returns a 404 because the page is
   # using javascript. If we use selenium we can properly fetch the page.
   pattern = re.compile(".*Jupyter Notebook.*")
-  if r.status_code == requests.codes.NOT_FOUND and pattern.findall(r.content):
+
+  content = r.content
+  if six.PY3 and hasattr(content, "decode"):
+    content = content.decode()
+  if r.status_code == requests.codes.NOT_FOUND and pattern.findall(content):
     r.status_code = 200
   return r
 
