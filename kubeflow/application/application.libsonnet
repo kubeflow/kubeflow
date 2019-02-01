@@ -192,7 +192,8 @@
       local tuple = wrapper.tuple,
       local resource = tuple[2],
       return::
-        if (std.objectHas(resource, "metadata") &&
+        if (std.type(resource) == "object" &&
+            std.objectHas(resource, "metadata") &&
             !std.objectHas(resource.metadata, "namespace")) then
           true
         else

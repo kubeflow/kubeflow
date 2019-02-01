@@ -87,6 +87,8 @@ run-local-docker:
 test-known-platforms-init: install build-foo-plugin
 	@rm -rf $(HOME)/ks-app && \
 	kfctl init $(HOME)/ks-app --platform none && \
+	rm -rf $(HOME)/minikube-app && \
+	kfctl init $(HOME)/minikube-app --platform minikube && \
 	rm -rf $(HOME)/gcp-app && \
 	kfctl init $(HOME)/gcp-app --platform gcp && \
 	rm -rf $(HOME)/foo-app && \
@@ -97,6 +99,8 @@ test-known-platforms-init: install build-foo-plugin
 test-known-platforms-generate: test-known-platforms-init
 	@cd ~/ks-app && \
 	kfctl generate && \
+	cd ~/minikube-app && \
+	kfctl generate all --mount-local true && \
 	cd ~/gcp-app && \
 	kfctl generate all --email john@foo.com --ipName 35.233.240.120 && \
 	cd ~/foo-app && \
