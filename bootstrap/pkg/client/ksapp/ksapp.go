@@ -329,7 +329,6 @@ func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum) error {
 		parameters := parameterMap[compName]
 		if parameters != nil {
 			for _, parameter := range parameters {
-				//arg := "--" + parameter.Name + "=" + parameter.Value
 				name := "--" + parameter.Name
 				parameterArgs = append(parameterArgs, name)
 				value := parameter.Value

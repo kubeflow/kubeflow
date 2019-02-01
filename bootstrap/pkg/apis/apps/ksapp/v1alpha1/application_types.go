@@ -19,7 +19,6 @@ import (
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"math/rand"
-	"strings"
 )
 
 const (
@@ -34,6 +33,24 @@ func QuoteItems(items []string) []string {
 		withQuotes = append(withQuotes, withQuote)
 	}
 	return withQuotes
+}
+
+func RemoveItem(defaults []string, name string) []string {
+	pkgs := defaults[:0]
+	for _, pkg := range defaults {
+		if pkg != name {
+			pkgs = append(pkgs, pkg)
+		}
+	}
+	return pkgs
+}
+
+func RemoveItems(defaults []string, names ...string) []string {
+	pkgs := defaults[:0]
+	for _, name := range names {
+		pkgs = RemoveItem(pkgs, name)
+	}
+	return pkgs
 }
 
 var DefaultRegistry = &RegistryConfig{
@@ -78,6 +95,7 @@ var DefaultComponents = []string{
 	"tensorboard",
 	"tf-job-operator",
 }
+
 var DefaultParameters = map[string][]NameValue{
 	"spartakus": {
 		NameValue{
@@ -87,12 +105,6 @@ var DefaultParameters = map[string][]NameValue{
 		NameValue{
 			Name:  "reportUsage",
 			Value: "true",
-		},
-	},
-	"application": {
-		NameValue{
-			Name:  "components",
-			Value: "[" + strings.Join(QuoteItems(DefaultComponents), ",") + "]",
 		},
 	},
 }
