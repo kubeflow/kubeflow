@@ -5,7 +5,10 @@ local testCases = [
   {
     actual: iap.new(
       { namespace: "namespace" },
-      { envoyPort: 8080 }
+      {
+        envoyPort: 8080,
+        useIstio: "false",
+      }
     ).service,
     expected: {
 
@@ -44,6 +47,7 @@ local testCases = [
         ipName: "ipName",
         hostname: "hostname",
         issuer: "issuer",
+        useIstio: "false",
       }
     ).ingress,
     expected: {
@@ -89,6 +93,7 @@ local testCases = [
         ipName: "ipName",
         hostname: "null",
         issuer: "issuer",
+        useIstio: "false",
       }
     ).ingress,
     expected: {
@@ -133,6 +138,7 @@ local testCases = [
         hostname: "hostname",
         issuer: "issuer",
         privateGKECluster: "false",
+        useIstio: "false",
       }
     ).certificate,
     expected: {
@@ -146,7 +152,7 @@ local testCases = [
         secretName: "secretName",
         issuerRef: {
           name: "issuer",
-          kind: "Issuer",
+          kind: "ClusterIssuer",
         },
         commonName: "hostname",
         dnsNames: [
@@ -173,6 +179,7 @@ local testCases = [
         namespace: "namespace",
       },
       {
+        useIstio: "false",
       }
     ).whoamiApp,
     expected: {
@@ -230,6 +237,7 @@ local testCases = [
         namespace: "namespace",
       },
       {
+        useIstio: "false",
       }
     ).whoamiService,
     expected: {
