@@ -86,7 +86,7 @@ type KsService interface {
 	ConfigCluster(context.Context, CreateRequest) error
 	BindRole(context.Context, string, string, string) error
 	InsertDeployment(context.Context, CreateRequest, DmSpec) (*deploymentmanager.Deployment, error)
-	GetDeploymentStatus(context.Context, CreateRequest) (string, error)
+	GetDeploymentStatus(context.Context, CreateRequest, string) (string, string, error)
 	ApplyIamPolicy(context.Context, ApplyIamRequest) error
 	GetProjectLock(string) *sync.Mutex
 }
