@@ -24,8 +24,8 @@ defaultApp:
     prototype: argo
   - name: katib
     prototype: katib
-  - name: ml-pipeline
-    prototype: ml-pipeline
+  - name: pipeline
+    prototype: pipeline
   parameters:
   - component: cloud-endpoints
     name: secretName
