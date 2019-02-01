@@ -373,7 +373,6 @@ func (s *CreateRequest) Validate() error {
 	if len(missings) == 0 {
 		return nil
 	}
-
 	return fmt.Errorf("missing input fields: %v", missings)
 }
 
