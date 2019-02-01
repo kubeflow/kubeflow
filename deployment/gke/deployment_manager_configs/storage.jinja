@@ -11,12 +11,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 #}
 
-{% macro diskName(diskObj) -%}{{ env["deployment"]}}-{{ diskObj["name"] }}{%- endmacro %}
+{% macro diskName(diskObj) -%}{{ env["deployment"]}}-{{ diskObj["usage"] }}{%- endmacro %}
 
 {% set NAME_PREFIX = env['deployment'] %}
 {% set SQL_INSTANCE_NAME =  env['deployment'] + '-mysql' %}
 
 resources:
+{% if properties['createPipelinePersistentStorage'] %}
 {% for diskObj in properties["disks"] %}
 - name: {{ diskName(diskObj) }}
   type: compute.v1.disk
@@ -25,6 +26,7 @@ resources:
     sizeGb: {{ diskObj["sizeGb"] }}
     type: https://www.googleapis.com/compute/v1/projects/{{ env["project"] }}/zones/{{ properties["zone"] }}/diskTypes/{{ diskObj["diskType"] }}
 {% endfor %}
+{% endif %}
 
 {% if properties['enable_cloudsql'] %}
 - name: {{ SQL_INSTANCE_NAME }}
