@@ -153,7 +153,7 @@ Flags:
   -h, --help   help for apply
 ```
 
-#### _delete_ (kubeflow/bootstrap/cmd/kfctl/cmd/delete.go)
+### **delete** (kubeflow/bootstrap/cmd/kfctl/cmd/delete.go)
   TBD
 
 --- 
