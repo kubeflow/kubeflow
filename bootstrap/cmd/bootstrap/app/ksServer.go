@@ -57,10 +57,8 @@ const DmFolder = "gcp_config"
 const CloudShellFolder = "kf_util"
 const IstioFolder = "istio"
 
-const (
-	PipelineDB  string = "pipeline-db"
-	PipelineNFS string = "pipeline-nfs"
-)
+const PipelineDbDiskSuffix = "-pipeline-db"
+const PipelineNfsDiskSuffix = "-pipeline-nfs"
 
 type DmSpec struct {
 	// path to the deployment manager configuration file
@@ -1301,13 +1299,13 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 				KsParameter{
 					Component: "pipeline",
 					Name:      "mysqlPd",
-					Value:     req.Name + StorageDmSpec.DmNameSuffix + PipelineDB})
+					Value:     req.Name + StorageDmSpec.DmNameSuffix + PipelineDbDiskSuffix})
 			req.AppConfig.Parameters = append(
 				req.AppConfig.Parameters,
 				KsParameter{
 					Component: "pipeline",
 					Name:      "nfsPd",
-					Value:     req.Name + StorageDmSpec.DmNameSuffix + PipelineNFS})
+					Value:     req.Name + StorageDmSpec.DmNameSuffix + PipelineNfsDiskSuffix})
 		}
 
 		clusterDmDeployment, err := svc.InsertDeployment(ctx, req, ClusterDmSpec)
