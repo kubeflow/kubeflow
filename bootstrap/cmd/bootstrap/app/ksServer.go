@@ -585,15 +585,15 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 // Then return registry's RegUri.
 func (s *ksServer) getRegistryUri(registry *kstypes.RegistryConfig) (string, error) {
 	if registry.Name == "" ||
-			registry.Path == "" ||
-			registry.Repo == "" ||
-			registry.Version == "" ||
-			registry.Version == "default" {
+		registry.Path == "" ||
+		registry.Repo == "" ||
+		registry.Version == "" ||
+		registry.Version == "default" {
 
 		v, ok := s.knownRegistries[registry.Name]
 		if !ok {
 			return "", fmt.Errorf("Create request uses registry %v but some "+
-					"required fields are not specified and this is not a known registry.", registry.Name)
+				"required fields are not specified and this is not a known registry.", registry.Name)
 		}
 		log.Infof("No remote registry provided for registry %v; setting URI to local %v.", registry.Name, v.RegUri)
 		return v.RegUri, nil
@@ -1192,7 +1192,7 @@ func checkDeploymentFinished(svc KsService, req CreateRequest, deployName string
 }
 
 func finishDeployment(svc KsService, req CreateRequest,
-		clusterDmDeploy *deploymentmanager.Deployment, storageDmDeploy *deploymentmanager.Deployment) {
+	clusterDmDeploy *deploymentmanager.Deployment, storageDmDeploy *deploymentmanager.Deployment) {
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, StartTime, time.Now())
 
