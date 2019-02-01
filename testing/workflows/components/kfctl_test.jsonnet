@@ -173,7 +173,7 @@ local dagTemplates = [
                             ["/usr/local/bin/checkout.sh", srcRootDir],
                             env_vars=[{
                               name: "EXTRA_REPOS",
-                              value: "kubeflow/tf-operator@HEAD;kubeflow/testing",
+                              value: "kubeflow/tf-operator@HEAD;kubeflow/testing@HEAD",
                             }]),
     dependencies: null,
   },  // checkout
