@@ -12,6 +12,8 @@
 // @optionalParam disableJwtChecking string false Disable JWT checking.
 // @optionalParam oauthSecretName string kubeflow-oauth The name of the secret containing the OAuth client_id and client_secret.
 // @optionalParam privateGKECluster string false Is the k8s cluster a private GKE cluster
+// @optionalParam useIstio string false The namespace where Istio is installed
+// @optionalParam istioNamespace string istio-system The namespace where Istio is installed
 
 local iap = import "kubeflow/gcp/iap.libsonnet";
 local instance = iap.new(env, params);
