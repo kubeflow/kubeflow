@@ -22,7 +22,6 @@ import (
 	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksapp/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksapp"
 	"os/user"
-	"strings"
 )
 
 // MinikubeApp implements KfApp Interface
@@ -67,10 +66,6 @@ func (minikubeApp *MinikubeApp) generateKsApp() error {
 	comps := kstypes.RemoveItem(kstypes.DefaultComponents, "katib")
 	ksApp.CfgFile.Set("components", comps)
 	parameters := make(map[string][]string)
-	parameters["application"] = []string{
-		"components",
-		"[" + strings.Join(kstypes.QuoteItems(comps), ",") + "]",
-	}
 	usr, err := user.Current()
 	if err != nil {
 		return fmt.Errorf("Could not get current user; error %v", err)
