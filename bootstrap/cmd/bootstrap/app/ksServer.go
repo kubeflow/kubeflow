@@ -1172,13 +1172,15 @@ func checkDeploymentFinished(svc KsService, req CreateRequest, deployName string
 			return err
 		}
 		if status == "DONE" {
-			if errMsg != "" {
-				log.Errorf("Deployment manager returned error message: %v", errMsg)
-				// Mark status "INVALID_ARGUMENT" as most deployment manager failures are caused by insufficient quota or permission.
-				// Error messages are available from UI, and should be resolvable by retries.
-				deployReqCounter.WithLabelValues("INVALID_ARGUMENT").Inc()
-				return fmt.Errorf(errMsg)
+			if errMsg == "" {
+				// Deploy successfully
+				break
 			}
+			log.Errorf("Deployment manager returned error message: %v", errMsg)
+			// Mark status "INVALID_ARGUMENT" as most deployment manager failures are caused by insufficient quota or permission.
+			// Error messages are available from UI, and should be resolvable by retries.
+			deployReqCounter.WithLabelValues("INVALID_ARGUMENT").Inc()
+			return fmt.Errorf(errMsg)
 		}
 		log.Infof("status: %v, waiting...", status)
 	}
