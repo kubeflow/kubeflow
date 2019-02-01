@@ -153,15 +153,13 @@ func (ksApp *KsApp) Apply() error {
 	if clientConfigErr != nil {
 		return fmt.Errorf("couldn't load client config Error: %v", clientConfigErr)
 	}
-	components := []string{"metacontroller"}
-	applyErr := ksApp.applyComponent(components, clientConfig)
+	applyErr := ksApp.applyComponent([]string{"metacontroller"}, clientConfig)
 	if applyErr != nil {
-		return fmt.Errorf("couldn't apply metacontroller Error: %v", applyErr)
+		return fmt.Errorf("couldn't create metacontroller component Error: %v", applyErr)
 	}
-	components = []string{"application"}
-	applyErr = ksApp.applyComponent(components, clientConfig)
+	applyErr = ksApp.applyComponent([]string{"application"}, clientConfig)
 	if applyErr != nil {
-		return fmt.Errorf("couldn't apply application Error: %v", applyErr)
+		return fmt.Errorf("couldn't create application component Error: %v", applyErr)
 	}
 	return nil
 }
@@ -176,7 +174,7 @@ func (ksApp *KsApp) applyComponent(components []string, cfg *clientcmdapi.Config
 		actions.OptionComponentNames: components,
 		actions.OptionCreate:         true,
 		actions.OptionDryRun:         false,
-		actions.OptionEnvName:        "default",
+		actions.OptionEnvName:        kstypes.KsEnvName,
 		actions.OptionGcTag:          "gc-tag",
 		actions.OptionSkipGc:         true,
 	}
@@ -252,6 +250,13 @@ func (ksApp *KsApp) components() (map[string]*kstypes.KsComponent, error) {
 }
 
 func (ksApp *KsApp) Delete() error {
+	err := actions.RunDelete(map[string]interface{}{
+		actions.OptionComponentNames: ksApp.KsApp.Spec.Components,
+		actions.OptionGracePeriod:    int64(5),
+	})
+	if err != nil {
+		return fmt.Errorf("there was a problem deleting %v: %v", ksApp.KsApp.Spec.Components, err)
+	}
 	return nil
 }
 
@@ -338,6 +343,13 @@ func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum) error {
 		componentArgs := []string{}
 		if len(parameterArgs) > 0 {
 			componentArgs = parameterArgs
+		}
+		if compName == "application" {
+			componentArgs = append(componentArgs, "--components")
+			prunedArray := kstypes.RemoveItems(componentArray, "application", "metacontroller")
+			quotedArray := kstypes.QuoteItems(prunedArray)
+			arrayString := "[" + strings.Join(quotedArray, ",") + "]"
+			componentArgs = append(componentArgs, arrayString)
 		}
 		componentAddErr := ksApp.componentAdd(comp, componentArgs)
 		if componentAddErr != nil {
