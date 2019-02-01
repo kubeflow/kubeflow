@@ -250,12 +250,49 @@ func (ksApp *KsApp) components() (map[string]*kstypes.KsComponent, error) {
 }
 
 func (ksApp *KsApp) Delete() error {
+	//TODO not deleting the following
+	//clusterrolebinding.rbac.authorization.k8s.io "meta-controller-cluster-role-binding" deleted
+	//customresourcedefinition.apiextensions.k8s.io "compositecontrollers.metacontroller.k8s.io" deleted
+	//customresourcedefinition.apiextensions.k8s.io "controllerrevisions.metacontroller.k8s.io" deleted
+	//customresourcedefinition.apiextensions.k8s.io "decoratorcontrollers.metacontroller.k8s.io" deleted
+	host, _, serverErr := kftypes.ServerVersion()
+	if serverErr != nil {
+		return fmt.Errorf("couldn't get server version: %v", serverErr)
+	}
+	cli, cliErr := kftypes.GetClientOutOfCluster()
+	if cliErr != nil {
+		return fmt.Errorf("couldn't create client Error: %v", cliErr)
+	}
+	envSetErr := ksApp.envSet(kstypes.KsEnvName, host)
+	if envSetErr != nil {
+		return fmt.Errorf("couldn't create ksonnet env %v Error: %v", kstypes.KsEnvName, envSetErr)
+	}
+	clientConfig, clientConfigErr := kftypes.GetClientConfig()
+	if clientConfigErr != nil {
+		return fmt.Errorf("couldn't load client config Error: %v", clientConfigErr)
+	}
+	components := []string{"application", "metacontroller"}
 	err := actions.RunDelete(map[string]interface{}{
-		actions.OptionComponentNames: ksApp.KsApp.Spec.Components,
+		actions.OptionApp: ksApp.KApp,
+		actions.OptionClientConfig: &client.Config{
+			Overrides: &clientcmd.ConfigOverrides{},
+			Config:    clientcmd.NewDefaultClientConfig(*clientConfig, &clientcmd.ConfigOverrides{}),
+		},
+		actions.OptionEnvName:        ksApp.KsEnvName,
+		actions.OptionComponentNames: components,
 		actions.OptionGracePeriod:    int64(5),
 	})
 	if err != nil {
-		return fmt.Errorf("there was a problem deleting %v: %v", ksApp.KsApp.Spec.Components, err)
+		log.Errorf("there was a problem deleting %v: %v", components, err)
+	}
+	namespace := ksApp.KsApp.ObjectMeta.Namespace
+	log.Infof("deleting namespace: %v", namespace)
+	ns, nsMissingErr := cli.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
+	if nsMissingErr == nil {
+		nsErr := cli.CoreV1().Namespaces().Delete(ns.Name, metav1.NewDeleteOptions(int64(5)))
+		if nsErr != nil {
+			return fmt.Errorf("couldn't delete namespace %v Error: %v", namespace, nsErr)
+		}
 	}
 	return nil
 }
