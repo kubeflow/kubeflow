@@ -6,18 +6,15 @@ The new `kfctl` client replaces `kfctl.sh` and is implemented in golang.
 
 ## Requirements
 
- - Create a common API for the UI (gcp-click-to-deploy) and `kfctl` (`KfApp`)
+ - Create a common API for the UI (gcp-click-to-deploy) and `kfctl` (`KfApp`).
 
- - Separate different platform implementations of the KfApp Interface
-   - ksonnet
-     - `kfctl init <[path/]name> --platform none`
-     - implementation: bootstrap/pkg/client/ksapp
+ - Separate different platform implementations of the [KfApp Interface](#kfapp-interface).
 
  - Allow new platforms to be added to kfctl without rebuilding or reshipping kfctl (see [Extending kfctl](#extending-kfctl) below).
 
- - Do not change existing `REST` entrypoints or the `KsService` interface in `ksServer.go` at this time
+ - Do not change existing `REST` entrypoints or the `KsService` interface in `ksServer.go` at this time.
 
- - Package `KfApp` interface and related types for ease of use by kfctl and (later) gcp-click-to-deploy
+ - Package `KfApp` interface and related types for ease of use by kfctl and (later) gcp-click-to-deploy.
 
 ## API and Packaging
 
@@ -33,6 +30,7 @@ bootstrap/pkg/apis/apps/ksapp/v1alpha1
 bootstrap/pkg/utils
 bootstrap/pkg/client
 bootstrap/pkg/client/ksapp
+bootstrap/pkg/client/minikube
 bootstrap/plugins
 ```
 
@@ -57,16 +55,16 @@ type KfApp interface {
 }
 ```
 
-kfctl includes platforms that implement the KfApp interface.
+kfctl includes platforms that implement the KfApp interface. (gcp will be added in the next phase)
 
 - platform: **none** 
   - bootstrap/pkg/client/ksapp/ksapp.go
 - platform: **minikube** 
-  - bootstrap/pkg/client/ksapp/ksapp.go
-- platform: **docker-for-desktop** 
-  - bootstrap/pkg/client/ksapp/ksapp.go
-- platform: **ack** 
-  - bootstrap/pkg/client/ksapp/ksapp.go
+  - bootstrap/pkg/client/minikube/minikube.go
+- platform: **docker-for-desktop** (in progress)
+  - bootstrap/pkg/client/dockerfordesktop/dockerfordesktop.go
+- platform: **ack** (in progress)
+  - bootstrap/pkg/client/ack/ack.go
 
 ## Usage
 
@@ -101,10 +99,9 @@ kfctl apply
 
 ## Subcommands
 
-#### _init_ (kubeflow/bootstrap/cmd/kfctl/cmd/init.go)
+### **init** (kubeflow/bootstrap/cmd/kfctl/cmd/init.go)
 
 ```
-kfctl init -h
 Create a kubeflow application under <[path/]name>. The <[path/]name> argument can either be a full path
 or a name where the kubeflow application will be initialized in $PWD/name if <name> is not a path or in the parent
 directory is name is a path.
@@ -114,20 +111,18 @@ Usage:
 
 Flags:
   -h, --help              help for init
-  -p, --platform string   one of 'minikube|docker-for-desktop|ack' (default "none")
+  -p, --platform string   one of 'gcp|minikube|docker-for-desktop|ack' (default "none")
+      --project string    name of the gcp project if --platform gcp
   -r, --repo string       local github kubeflow repo  (default "$GOPATH/src/github.com/kubeflow/kubeflow/kubeflow")
   -v, --version string    desired version Kubeflow or latest tag if not provided by user  (default "v0.4.1")
 ```
 
-#### _generate_ (kubeflow/bootstrap/cmd/kfctl/cmd/generate.go)
-
-- Using app.yaml created by init
-  - generates a platform specific application with specifics specified in app.yaml
+### **generate** (kubeflow/bootstrap/cmd/kfctl/cmd/generate.go)
 
 ```
 Generate a kubeflow application where resources is one of 'platform | k8s | all'.
 
-  platform: non kubernetes resources 
+  platform: non kubernetes resources (eg --platform gcp)
   k8s: kubernetes resources
   all: both platform and k8s
 
@@ -137,19 +132,18 @@ Usage:
   kfctl generate [resources] [flags]
 
 Flags:
-  -c, --components strings   provide a comma delimited list of component names (default [all])
+  -c, --components strings   provide a comma delimited list of component names (default [ambassador,application,argo,centraldashboard,jupyter,katib,metacontroller,notebooks,openvino,pipeline,profiles,pytorch-operator,spartakus,tensorboard,tf-job-operator])
+      --email string         email if '--platform gcp'
   -h, --help                 help for generate
+      --ipName string        ipName if '--platform gcp'
+      --mount-local string   mount-local if '--platform minikube || --platform docker-for-desktop' (default "false")
   -n, --namespace string     namespace where kubeflow will be deployed (default "kubeflow")
-  -p, --packages strings     provide a comma delimited list of package names (default [all])
+  -p, --packages strings     provide a comma delimited list of package names (default [application,argo,common,examples,jupyter,katib,metacontroller,modeldb,mpi-job,openvino,pipeline,profiles,pytorch-job,seldon,tensorboard,tf-serving,tf-training])
 ```
 
-#### _apply_ (kubeflow/bootstrap/cmd/kfctl/cmd/apply.go)
-
-- Creates a `namespace`
-- Applys the ksonnet application by deploying it to the api-server
+### **apply** (kubeflow/bootstrap/cmd/kfctl/cmd/apply.go)
 
 ```
-kfctl apply -h
 Deploy a generated kubeflow application.
 
 Usage:
