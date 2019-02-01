@@ -58,23 +58,13 @@ func (minikubeApp *MinikubeApp) Delete() error {
 	return nil
 }
 
-func (minikube *MinikubeApp) remove(defaults []string, name string) []string {
-	pkgs := defaults[:0]
-	for _, pkg := range defaults {
-		if pkg != name {
-			pkgs = append(pkgs, pkg)
-		}
-	}
-	return pkgs
-}
-
 func (minikubeApp *MinikubeApp) generateKsApp() error {
 	ksApp := minikubeApp.ksApp.(*ksapp.KsApp)
 	mountLocal := ksApp.CfgFile.GetString("mount-local")
 	// remove Katib package and component
-	pkgs := minikubeApp.remove(kstypes.DefaultPackages, "katib")
+	pkgs := kstypes.RemoveItem(kstypes.DefaultPackages, "katib")
 	ksApp.CfgFile.Set("packages", pkgs)
-	comps := minikubeApp.remove(kstypes.DefaultComponents, "katib")
+	comps := kstypes.RemoveItem(kstypes.DefaultComponents, "katib")
 	ksApp.CfgFile.Set("components", comps)
 	parameters := make(map[string][]string)
 	parameters["application"] = []string{

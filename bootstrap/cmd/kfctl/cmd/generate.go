@@ -39,7 +39,7 @@ The default is 'all' for any selected platform.`,
 		log.SetLevel(log.InfoLevel)
 		kfApp, kfAppErr := LoadKfApp(generateCfg)
 		if kfAppErr != nil {
-			log.Errorf("couldn't create KfApp: %v", kfAppErr)
+			log.Errorf("couldn't load KfApp: %v", kfAppErr)
 			return
 		}
 		resources := kftypes.ALL
