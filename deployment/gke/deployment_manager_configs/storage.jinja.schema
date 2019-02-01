@@ -29,11 +29,8 @@ properties:
     items:
       type: object
       required:
-      - name
+      - usage
       properties:
-        name:
-          type: string
-          description: Suffix for this disk
         sizeGb:
           type: integer
           default: 200
@@ -43,6 +40,12 @@ properties:
           enum:
           - pd-standard
           - pd-ssd
+        usage:
+          type: string
+          description: what is the disk used for
+          enum:
+          - pipeline-db
+          - pipeline-nfs
 
   cloudsql:
     type: object
