@@ -26,7 +26,7 @@ We are working diligently to get Kubeflow to its first major version release 1.0
 *   Scale and load testing.
 *   Integration with hyperparameter tuning with Katib.
 	* [Katib Issues](https://github.com/issues?utf8=%E2%9C%93&q=org%3Akubeflow+label%3Aarea%2Fkatib+)
-*   A new [dashboard experience](bit.ly/kf-landing-page-cuj)
+*   A new [dashboard experience](http://bit.ly/kf-landing-page-cuj)
     *   [Tracker Issue](https://github.com/kubeflow/kubeflow/issues/2359)
 
 ## Enterprise Readiness
