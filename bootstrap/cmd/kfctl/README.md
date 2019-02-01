@@ -154,7 +154,16 @@ Flags:
 ```
 
 ### **delete** (kubeflow/bootstrap/cmd/kfctl/cmd/delete.go)
-  TBD
+
+```
+Delete a kubeflow application.
+
+Usage:
+  kfctl delete [flags]
+
+Flags:
+  -h, --help   help for delete
+```
 
 --- 
 
