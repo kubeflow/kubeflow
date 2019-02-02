@@ -42,7 +42,7 @@ type ResourceEnum string
 
 const (
 	ALL      ResourceEnum = "all"
-	E8S      ResourceEnum = "e8s"
+	K8S      ResourceEnum = "k8s"
 	PLATFORM ResourceEnum = "platform"
 )
 
@@ -51,8 +51,8 @@ const (
 // API for different implementations like KsApp, GcpApp, etc.
 //
 type KfApp interface {
-	Apply() error
-	Delete() error
+	Apply(ResourceEnum) error
+	Delete(ResourceEnum) error
 	Generate(ResourceEnum) error
 	Init() error
 }

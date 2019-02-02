@@ -44,8 +44,8 @@ func (minikubeApp *MinikubeApp) writeConfigFile() error {
 	return nil
 }
 
-func (minikubeApp *MinikubeApp) Apply() error {
-	ksApplyErr := minikubeApp.ksApp.Apply()
+func (minikubeApp *MinikubeApp) Apply(resources kftypes.ResourceEnum) error {
+	ksApplyErr := minikubeApp.ksApp.Apply(resources)
 	if ksApplyErr != nil {
 		return fmt.Errorf("minikube apply failed for ksapp: %v", ksApplyErr)
 	}
@@ -54,7 +54,7 @@ func (minikubeApp *MinikubeApp) Apply() error {
 	return nil
 }
 
-func (minikubeApp *MinikubeApp) Delete() error {
+func (minikubeApp *MinikubeApp) Delete(resources kftypes.ResourceEnum) error {
 	return nil
 }
 
@@ -110,7 +110,7 @@ func (minikubeApp *MinikubeApp) Generate(resources kftypes.ResourceEnum) error {
 		if ksErr != nil {
 			return fmt.Errorf("could not generate kssonnet under %v Error: %v", kstypes.KsName, ksErr)
 		}
-	case kftypes.E8S:
+	case kftypes.K8S:
 	}
 	return nil
 }

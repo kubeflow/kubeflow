@@ -120,7 +120,7 @@ func (ksApp *KsApp) writeConfigFile() error {
 	return nil
 }
 
-func (ksApp *KsApp) Apply() error {
+func (ksApp *KsApp) Apply(resources kftypes.ResourceEnum) error {
 	host, _, err := kftypes.ServerVersion()
 	if err != nil {
 		return fmt.Errorf("couldn't get server version: %v", err)
@@ -249,7 +249,7 @@ func (ksApp *KsApp) components() (map[string]*kstypes.KsComponent, error) {
 	return comps, nil
 }
 
-func (ksApp *KsApp) Delete() error {
+func (ksApp *KsApp) Delete(resources kftypes.ResourceEnum) error {
 	//TODO not deleting the following
 	//clusterrolebinding.rbac.authorization.k8s.io "meta-controller-cluster-role-binding" deleted
 	//customresourcedefinition.apiextensions.k8s.io "compositecontrollers.metacontroller.k8s.io" deleted

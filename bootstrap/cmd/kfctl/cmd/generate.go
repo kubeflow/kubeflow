@@ -46,8 +46,8 @@ The default is 'all' for any selected platform.`,
 		if len(args) == 1 {
 			switch resources {
 			case kftypes.ALL:
-			case kftypes.E8S:
-				resources = kftypes.E8S
+			case kftypes.K8S:
+				resources = kftypes.K8S
 			case "platform":
 				resources = kftypes.PLATFORM
 			default:
