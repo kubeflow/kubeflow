@@ -283,13 +283,13 @@ func (ksApp *KsApp) Delete(resources kftypes.ResourceEnum) error {
 		actions.OptionGracePeriod:    int64(5),
 	})
 	if err != nil {
-		log.Errorf("there was a problem deleting %v: %v", components, err)
+		log.Infof("there was a problem deleting %v: %v", components, err)
 	}
 	namespace := ksApp.KsApp.ObjectMeta.Namespace
 	log.Infof("deleting namespace: %v", namespace)
 	ns, nsMissingErr := cli.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
 	if nsMissingErr == nil {
-		nsErr := cli.CoreV1().Namespaces().Delete(ns.Name, metav1.NewDeleteOptions(int64(5)))
+		nsErr := cli.CoreV1().Namespaces().Delete(ns.Name, metav1.NewDeleteOptions(int64(20)))
 		if nsErr != nil {
 			return fmt.Errorf("couldn't delete namespace %v Error: %v", namespace, nsErr)
 		}
@@ -302,12 +302,18 @@ func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum) error {
 	if err != nil {
 		return fmt.Errorf("couldn't get server version: %v", err)
 	}
-	namespace := ksApp.CfgFile.GetString("namespace")
-	ksApp.KsApp.Namespace = namespace
-	packages := ksApp.CfgFile.GetStringSlice("packages")
-	ksApp.KsApp.Spec.Packages = packages
-	components := ksApp.CfgFile.GetStringSlice("components")
-	ksApp.KsApp.Spec.Components = components
+	pkgs := ksApp.CfgFile.GetStringSlice("packages")
+	if pkgs == nil {
+		pkgs = kstypes.DefaultPackages
+		ksApp.CfgFile.Set("packages", pkgs)
+	}
+	ksApp.KsApp.Spec.Packages = pkgs
+	comps := ksApp.CfgFile.GetStringSlice("components")
+	if comps == nil {
+		comps = kstypes.DefaultComponents
+		ksApp.CfgFile.Set("components", comps)
+	}
+	ksApp.KsApp.Spec.Components = comps
 	ksApp.KsApp.Spec.Parameters = kstypes.DefaultParameters
 	parameters := ksApp.CfgFile.GetStringMapStringSlice("parameters")
 	if len(parameters) > 0 {
@@ -332,7 +338,7 @@ func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum) error {
 	if writeConfigErr != nil {
 		return fmt.Errorf("couldn't write config file app.yaml in %v Error %v", ksApp.AppDir, writeConfigErr)
 	}
-	initErr := ksApp.initKs("default", k8sSpec, host, namespace)
+	initErr := ksApp.initKs("default", k8sSpec, host, ksApp.KsApp.Namespace)
 	if initErr != nil {
 		return fmt.Errorf("couldn't initialize KfApi: %v", initErr)
 	}
@@ -344,9 +350,6 @@ func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum) error {
 		return fmt.Errorf("couldn't add registry %v. Error: %v", ksRegistry.Name, registryAddErr)
 	}
 	packageArray := ksApp.KsApp.Spec.Packages
-	if len(packageArray) == 1 && packageArray[0] == "all" {
-		packageArray = kstypes.DefaultPackages
-	}
 	for _, pkgName := range packageArray {
 		pkg := kstypes.KsPackage{
 			Name:     pkgName,
@@ -358,9 +361,6 @@ func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum) error {
 		}
 	}
 	componentArray := ksApp.KsApp.Spec.Components
-	if len(componentArray) == 1 && componentArray[0] == "all" {
-		componentArray = kstypes.DefaultComponents
-	}
 	for _, compName := range componentArray {
 		comp := kstypes.KsComponent{
 			Name:      compName,
@@ -377,18 +377,14 @@ func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum) error {
 				parameterArgs = append(parameterArgs, value)
 			}
 		}
-		componentArgs := []string{}
-		if len(parameterArgs) > 0 {
-			componentArgs = parameterArgs
-		}
 		if compName == "application" {
-			componentArgs = append(componentArgs, "--components")
+			parameterArgs = append(parameterArgs, "--components")
 			prunedArray := kstypes.RemoveItems(componentArray, "application", "metacontroller")
 			quotedArray := kstypes.QuoteItems(prunedArray)
 			arrayString := "[" + strings.Join(quotedArray, ",") + "]"
-			componentArgs = append(componentArgs, arrayString)
+			parameterArgs = append(parameterArgs, arrayString)
 		}
-		componentAddErr := ksApp.componentAdd(comp, componentArgs)
+		componentAddErr := ksApp.componentAdd(comp, parameterArgs)
 		if componentAddErr != nil {
 			return fmt.Errorf("couldn't add comp %v. Error: %v", comp.Name, componentAddErr)
 		}
@@ -413,6 +409,8 @@ and must start and end with an alphanumeric character`, ksApp.AppName)
 	if appDirErr == nil {
 		return fmt.Errorf("config file %v already exists in %v", kftypes.KfConfigFile, ksApp.AppDir)
 	}
+	namespace := ksApp.CfgFile.GetString("namespace")
+	ksApp.KsApp.Namespace = namespace
 	kubeflowRepo := ksApp.CfgFile.GetString("repo")
 	re = regexp.MustCompile(`(^\$GOPATH)(.*$)`)
 	goPathVar := os.Getenv("GOPATH")

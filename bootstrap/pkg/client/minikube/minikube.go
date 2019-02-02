@@ -55,6 +55,10 @@ func (minikubeApp *MinikubeApp) Apply(resources kftypes.ResourceEnum) error {
 }
 
 func (minikubeApp *MinikubeApp) Delete(resources kftypes.ResourceEnum) error {
+	ksDeleteErr := minikubeApp.ksApp.Delete(resources)
+	if ksDeleteErr != nil {
+		return fmt.Errorf("minikube delete failed for ksapp: %v", ksDeleteErr)
+	}
 	return nil
 }
 
@@ -90,6 +94,8 @@ func (minikubeApp *MinikubeApp) generateKsApp() error {
 		gid,
 	}
 	parameters["ambassador"] = []string{
+		"platform",
+		ksApp.KsApp.Spec.Platform,
 		"replicas",
 		"1",
 	}

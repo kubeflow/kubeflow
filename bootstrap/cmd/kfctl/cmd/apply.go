@@ -30,6 +30,12 @@ var applyCmd = &cobra.Command{
 	Long:  `Deploy a generated kubeflow application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.InfoLevel)
+		log.Info("deploying kubeflow application")
+		if applyCfg.GetBool("verbose") == true {
+			log.SetLevel(log.InfoLevel)
+		} else {
+			log.SetLevel(log.WarnLevel)
+		}
 		kfApp, kfAppErr := LoadKfApp(applyCfg)
 		if kfAppErr != nil {
 			log.Errorf("couldn't load KfApp: %v", kfAppErr)
@@ -61,4 +67,13 @@ func init() {
 
 	applyCfg.SetConfigName("app")
 	applyCfg.SetConfigType("yaml")
+
+	// verbose output
+	applyCmd.Flags().BoolP("verbose", "V", false,
+		"verbose output default is false")
+	bindErr := applyCfg.BindPFlag("verbose", applyCmd.Flags().Lookup("verbose"))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --verbose: %v", bindErr)
+		return
+	}
 }

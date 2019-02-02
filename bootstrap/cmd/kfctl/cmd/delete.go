@@ -30,6 +30,12 @@ var deleteCmd = &cobra.Command{
 	Long:  `Delete a kubeflow application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.InfoLevel)
+		log.Info("generating kubeflow application")
+		if deleteCfg.GetBool("verbose") == true {
+			log.SetLevel(log.InfoLevel)
+		} else {
+			log.SetLevel(log.WarnLevel)
+		}
 		kfApp, kfAppErr := LoadKfApp(deleteCfg)
 		if kfAppErr != nil {
 			log.Errorf("couldn't load KfApp: %v", kfAppErr)
@@ -61,4 +67,13 @@ func init() {
 
 	deleteCfg.SetConfigName("app")
 	deleteCfg.SetConfigType("yaml")
+
+	// verbose output
+	deleteCmd.Flags().BoolP("verbose", "V", false,
+		"verbose output default is false")
+	bindErr := deleteCfg.BindPFlag("verbose", deleteCmd.Flags().Lookup("verbose"))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --verbose: %v", bindErr)
+		return
+	}
 }
