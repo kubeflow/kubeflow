@@ -15,6 +15,7 @@
 package cmd
 
 import (
+	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -34,7 +35,20 @@ var deleteCmd = &cobra.Command{
 			log.Errorf("couldn't load KfApp: %v", kfAppErr)
 			return
 		}
-		deleteErr := kfApp.Delete()
+		resources := kftypes.ALL
+		if len(args) == 1 {
+			switch resources {
+			case kftypes.ALL:
+			case kftypes.K8S:
+				resources = kftypes.K8S
+			case "platform":
+				resources = kftypes.PLATFORM
+			default:
+				log.Errorf("unknown resource %v", resources)
+				return
+			}
+		}
+		deleteErr := kfApp.Delete(resources)
 		if deleteErr != nil {
 			log.Errorf("couldn't delete KfApp: %v", deleteErr)
 			return

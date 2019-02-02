@@ -52,15 +52,15 @@ func (gcpApp *GcpApp) writeConfigFile() error {
 	return nil
 }
 
-func (gcpApp *GcpApp) Apply() error {
-	ksApplyErr := gcpApp.ksApp.Apply()
+func (gcpApp *GcpApp) Apply(resources kftypes.ResourceEnum) error {
+	ksApplyErr := gcpApp.ksApp.Apply(resources)
 	if ksApplyErr != nil {
 		return fmt.Errorf("gcp apply failed for ksapp: %v", ksApplyErr)
 	}
 	return nil
 }
 
-func (gcpApp *GcpApp) Delete() error {
+func (gcpApp *GcpApp) Delete(resources kftypes.ResourceEnum) error {
 	return nil
 }
 
@@ -70,7 +70,6 @@ func (gcpApp *GcpApp) copyFile(source string, dest string) error {
 		return fmt.Errorf("cannot create directory %v", err)
 	}
 	defer from.Close()
-
 	to, err := os.OpenFile(dest, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
 		return fmt.Errorf("cannot create dest file %v  Error %v", dest, err)
@@ -187,7 +186,7 @@ func (gcpApp *GcpApp) Generate(resources kftypes.ResourceEnum) error {
 		if ksErr != nil {
 			return fmt.Errorf("could not generate kssonnet under %v Error: %v", kstypes.KsName, ksErr)
 		}
-	case kftypes.E8S:
+	case kftypes.K8S:
 		generateK8sSpecsErr := gcpApp.downloadK8sManifests()
 		if generateK8sSpecsErr != nil {
 			return fmt.Errorf("could not generate files under %v Error: %v", K8S_SPECS, generateK8sSpecsErr)

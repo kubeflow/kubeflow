@@ -32,6 +32,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"plugin"
 )
 
 func LoadPlatform(platform string, options map[string]interface{}) (kftypes.KfApp, error) {
@@ -49,21 +50,21 @@ func LoadPlatform(platform string, options map[string]interface{}) (kftypes.KfAp
 		// To enable goland debugger:
 		// Comment out  this section and comment in the line
 		//   return nil, fmt.Errorf("unknown platform %v", platform
-		/*
-			plugindir := os.Getenv("PLUGINS_ENVIRONMENT")
-			pluginpath := filepath.Join(plugindir, platform+"app.so")
-			p, err := plugin.Open(pluginpath)
-			if err != nil {
-				return nil, fmt.Errorf("could not load plugin %v for platform %v Error %v", pluginpath, platform, err)
-			}
-			symName := "GetKfApp"
-			symbol, symbolErr := p.Lookup(symName)
-			if symbolErr != nil {
-				return nil, fmt.Errorf("could not find symbol %v for platform %v Error %v", symName, platform, symbolErr)
-			}
-			return symbol.(func(map[string]interface{}) kftypes.KfApp)(options), nil
-		*/
-		return nil, fmt.Errorf("unknown platform %v", platform)
+
+		plugindir := os.Getenv("PLUGINS_ENVIRONMENT")
+		pluginpath := filepath.Join(plugindir, platform+"app.so")
+		p, err := plugin.Open(pluginpath)
+		if err != nil {
+			return nil, fmt.Errorf("could not load plugin %v for platform %v Error %v", pluginpath, platform, err)
+		}
+		symName := "GetKfApp"
+		symbol, symbolErr := p.Lookup(symName)
+		if symbolErr != nil {
+			return nil, fmt.Errorf("could not find symbol %v for platform %v Error %v", symName, platform, symbolErr)
+		}
+		return symbol.(func(map[string]interface{}) kftypes.KfApp)(options), nil
+
+		//return nil, fmt.Errorf("unknown platform %v", platform)
 	}
 }
 
