@@ -7,6 +7,7 @@
                 @apply --layout-vertical;
                 --accent-color: #007dfc;
                 --primary-background-color: #003c75;
+                --sidebar-default-color: #ffffff4f;
             }
             .flex {flex: 1}
             .bottom {
@@ -29,12 +30,12 @@
                 overflow: auto;
                 transition: background .25s;
                 font-family: Google Sans;
-                color: #6280a2;
+                color: var(--sidebar-default-color);
             }
-            #MainDrawer .menu-item+.divider {width: 80%;margin: 1em auto;border-bottom: 2px solid #274d7c}
+            #MainDrawer .menu-item+.divider {width: 80%;margin: 1em auto;border-bottom: 2px solid var(--sidebar-default-color)}
             #MainDrawer .menu-item:hover {background: #ffffff1b}
             #MainDrawer .menu-item.iron-selected {background: #ffffff3b;color: white;font-weight: 100}
-            #MainDrawer .footer {padding: 1.25rem;font-size: .9em;color: #6280a2;line-height: 1.5em}
+            #MainDrawer .footer {padding: 1.25rem;font-size: .9em;color: var(--sidebar-default-color);line-height: 1.5em}
             #MainDrawer .footer > .build {font-size: .9em;font-style: italic}
             #NamespaceSelector {position: absolute;left: 1em;top: 50%;transform: translateY(-50%)}
             app-toolbar {display: flex;justify-content: center}
