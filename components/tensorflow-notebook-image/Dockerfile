@@ -92,7 +92,7 @@ RUN cd /tmp && \
     chmod +x /usr/local/bin/tini
 
 # Install conda as jovyan user and check the md5 sum provided on the download site
-ENV MINICONDA_VERSION 4.4.10
+ENV MINICONDA_VERSION 4.5.12
 RUN cd /tmp && \
     mkdir -p $CONDA_DIR && \
     wget --quiet https://repo.continuum.io/miniconda/Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh && \
@@ -111,7 +111,7 @@ RUN cd /tmp && \
 # The image size can grow significantly.
 
 # Install base python3 packages
-RUN pip install --upgrade pip && \
+RUN pip install --upgrade pip==19.0.1 && \
     pip --no-cache-dir install \
     # Tensorflow
     ${TF_PACKAGE} \

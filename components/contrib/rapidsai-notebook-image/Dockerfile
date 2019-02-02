@@ -46,7 +46,7 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
     apt-get install -y google-cloud-sdk kubectl && \
     # Install to the existing RapidsAI conda env
     source activate rapids && \
-    pip install --upgrade pip && \
+    pip install --upgrade pip==19.0.1 && \
     pip --no-cache-dir install jupyterhub matplotlib
 
 # Install Tini - used as entrypoint for container
