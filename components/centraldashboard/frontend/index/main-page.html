@@ -2,49 +2,51 @@
     <template>
         <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
         <style>
+            *, :host, :host * {box-sizing: border-box}
             :host {
                 @apply --layout-vertical;
                 --accent-color: #007dfc;
                 --primary-background-color: #003c75;
             }
             .flex {flex: 1}
+            .bottom {
+                margin-top: auto;
+                @apply --layout-horizontal;
+            }
             #MainDrawer {
                 color: white;
                 background: var(--primary-background-color);
                 --app-drawer-content-container: {
                     background: transparent;
+                    @apply --layout-vertical;
                 }
             }
             #MainDrawer .menu-item {
                 width: 80%;
+                cursor: pointer;
                 margin: .5em auto;
                 border-radius: 50px;
                 overflow: auto;
                 transition: background .25s;
                 font-family: Google Sans;
+                color: #6280a2;
             }
+            #MainDrawer .menu-item+.divider {width: 80%;margin: 1em auto;border-bottom: 2px solid #274d7c}
             #MainDrawer .menu-item:hover {background: #ffffff1b}
-            #MainDrawer .menu-item.iron-selected {background: #ffffff3b}
-            #NamespaceSelector {
-                position: absolute;
-                left: 1em;
-                top: 50%;
-                transform: translateY(-50%);
-            }
-            app-toolbar {
-                display: flex;
-                justify-content: center;
-            }
+            #MainDrawer .menu-item.iron-selected {background: #ffffff3b;color: white;font-weight: 100}
+            #MainDrawer .footer {padding: 1.25rem;font-size: .9em;color: #6280a2;line-height: 1.5em}
+            #MainDrawer .footer > .build {font-size: .9em;font-style: italic}
+            #NamespaceSelector {position: absolute;left: 1em;top: 50%;transform: translateY(-50%)}
+            app-toolbar {display: flex;justify-content: center}
             paper-tabs {
                 --paper-tabs-selection-bar-color: var(--accent-color);
                 --paper-tab-ink: var(--accent-color);
                 --paper-tabs-selection-bar: {
-                    border-radius: 28%;
+                    border-radius: 50px 50px 0 0;
+                    border-width: 3px;
                 }
             }
-            paper-tab.iron-selected {
-                color: var(--accent-color);
-            }
+            paper-tab.iron-selected {color: var(--accent-color)}
             app-header-layout {@apply --layout-vertical}
             #Menu {position: absolute;right: 10px;top: 50%;transform: translateY(-50%)}
             #PageFrame {
@@ -57,7 +59,7 @@
                 display: flex;
                 align-items: center;
                 margin: 0 0 1em;
-                padding: 1em;
+                padding: 2em;
             }
             #Logo > img {
                 width: 3em;
@@ -105,13 +107,21 @@
                 <iron-selector id='SidebarSelector' selected='{{sidebarItemIndex}}'>
                     <template is="dom-repeat" items="[[links]]">
                         <paper-item on-click="openLink" class='menu-item'>[[item.text]]</paper-item>
+                        <template is="dom-if" if="[[item.hasDivider]]">
+                            <aside class='divider'></aside>
+                        </template>
                     </template>
                 </iron-selector>
+                <aside class="flex"></aside>
+                <footer class="footer">
+                    <section class='privacy'>Privacy</section>
+                    <section class='build'>build version v1.0</section>
+                </footer>
             </app-drawer>
             <app-header-layout fullbleed>
                 <app-header slot="header" fixed>
                     <app-toolbar>
-                        <paper-tabs selected="{{primaryViewIndex}}" hides hidden$='[[!isZero(homeOrIframeViewIndex)]]'>
+                        <paper-tabs class="bottom" selected="{{primaryViewIndex}}" hides hidden$='[[!isZero(homeOrIframeViewIndex)]]'>
                             <paper-tab>Dashboard</paper-tab>
                             <paper-tab>Activity</paper-tab>
                         </paper-tabs>
@@ -145,7 +155,7 @@
             static get is() {return "main-page"}
             static get properties() {return {
                 links: {type: Array, value: [
-                    {text: 'Home', defaultPage: true},
+                    {text: 'Home', defaultPage: true, hasDivider: true},
                     {link: 'https://www.kubeflow.org/docs/about/kubeflow/', text: 'Kubeflow docs'},
                     {link: '/hub/', text: 'JupyterHub'},
                     {link: '/tfjobs/ui/', text: 'TFJob Dashboard'},

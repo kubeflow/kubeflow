@@ -9,6 +9,7 @@ html, body {
   bottom: 0;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
 }
 
 body > * {flex: 1}
