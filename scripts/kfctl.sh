@@ -12,6 +12,7 @@ set -xe
 
 ENV_FILE="env.sh"
 SKIP_INIT_PROJECT=false
+CREATE_PIPELINE_PERSISTENT_STORAGE=true
 
 # To enable GKE beta features we need to use the v1beta1 API.
 # https://cloud.google.com/kubernetes-engine/docs/reference/api-organization#beta
@@ -91,6 +92,7 @@ createEnv() {
   export DOCKER_REGISTRY_KATIB_NAMESPACE=${DOCKER_REGISTRY_KATIB_NAMESPACE:-""}
   # Namespace where kubeflow is deployed
   export K8S_NAMESPACE=${K8S_NAMESPACE:-"kubeflow"}
+  export CREATE_PIPELINE_PERSISTENT_STORAGE=${CREATE_PIPELINE_PERSISTENT_STORAGE:-"true"}
 
   case "$PLATFORM" in
     minikube)
@@ -119,7 +121,8 @@ createEnv() {
               'KUBEFLOW_ENDPOINT_NAME=$KUBEFLOW_ENDPOINT_NAME\n'
               'KUBEFLOW_HOSTNAME=$KUBEFLOW_HOSTNAME\n'
               'CONFIG_FILE=$CONFIG_FILE\n'
-              'GKE_API_VERSION=$GKE_API_VERSION\n')
+              'GKE_API_VERSION=$GKE_API_VERSION\n'
+              'CREATE_PIPELINE_PERSISTENT_STORAGE=$CREATE_PIPELINE_PERSISTENT_STORAGE\n')
       FORMAT+=('$PROJECT'
                '$ZONE'
                '$EMAIL'
@@ -131,7 +134,8 @@ createEnv() {
                '$KUBEFLOW_IP_NAME'
                '$KUBEFLOW_ENDPOINT_NAME'
                '$KUBEFLOW_HOSTNAME'
-               '$CONFIG_FILE$GKE_API_VERSION')
+               '$CONFIG_FILE$GKE_API_VERSION'
+               '$CREATE_PIPELINE_PERSISTENT_STORAGE')
 
       export KUBEFLOW_PLATFORM=gke
       export PROJECT="${PROJECT}" 
@@ -259,6 +263,9 @@ parseArgs() {
         ;;       
       --skipInitProject)
         SKIP_INIT_PROJECT=true
+        ;;
+      --skipCreatePipelinePersistentStorage)
+        CREATE_PIPELINE_PERSISTENT_STORAGE=false
         ;;
     esac
     shift

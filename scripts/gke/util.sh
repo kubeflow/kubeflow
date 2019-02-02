@@ -64,7 +64,7 @@ generateDMConfigs() {
 
     # Set values in storage DM config file
     sed -i.bak "s/zone: SET_THE_ZONE/zone: ${ZONE}/" "${KUBEFLOW_DM_DIR}/storage-kubeflow.yaml"
-    sed -i.bak "s/createPipelinePersistentStorage: SET_CREAT_PIPELINE_PERSISTENT_STORAGE/createPipelinePersistentStorage: true/" "${KUBEFLOW_DM_DIR}/storage-kubeflow.yaml"
+    sed -i.bak "s/createPipelinePersistentStorage: SET_CREATE_PIPELINE_PERSISTENT_STORAGE/createPipelinePersistentStorage: ${CREATE_PIPELINE_PERSISTENT_STORAGE}/" "${KUBEFLOW_DM_DIR}/storage-kubeflow.yaml"
     rm "${KUBEFLOW_DM_DIR}/storage-kubeflow.yaml.bak"
   else
     echo Deployment Manager configs already exist in directory "${KUBEFLOW_DM_DIR}"
