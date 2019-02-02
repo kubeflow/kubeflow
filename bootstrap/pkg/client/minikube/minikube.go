@@ -22,6 +22,7 @@ import (
 	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksapp/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksapp"
 	"os/user"
+	"strings"
 )
 
 // MinikubeApp implements KfApp Interface
@@ -43,8 +44,8 @@ func (minikubeApp *MinikubeApp) writeConfigFile() error {
 	return nil
 }
 
-func (minikubeApp *MinikubeApp) Apply() error {
-	ksApplyErr := minikubeApp.ksApp.Apply()
+func (minikubeApp *MinikubeApp) Apply(resources kftypes.ResourceEnum) error {
+	ksApplyErr := minikubeApp.ksApp.Apply(resources)
 	if ksApplyErr != nil {
 		return fmt.Errorf("minikube apply failed for ksapp: %v", ksApplyErr)
 	}
@@ -53,7 +54,7 @@ func (minikubeApp *MinikubeApp) Apply() error {
 	return nil
 }
 
-func (minikubeApp *MinikubeApp) Delete() error {
+func (minikubeApp *MinikubeApp) Delete(resources kftypes.ResourceEnum) error {
 	return nil
 }
 
@@ -66,6 +67,10 @@ func (minikubeApp *MinikubeApp) generateKsApp() error {
 	comps := kstypes.RemoveItem(kstypes.DefaultComponents, "katib")
 	ksApp.CfgFile.Set("components", comps)
 	parameters := make(map[string][]string)
+	parameters["application"] = []string{
+		"components",
+		"[" + strings.Join(kstypes.QuoteItems(comps), ",") + "]",
+	}
 	usr, err := user.Current()
 	if err != nil {
 		return fmt.Errorf("Could not get current user; error %v", err)
@@ -105,7 +110,7 @@ func (minikubeApp *MinikubeApp) Generate(resources kftypes.ResourceEnum) error {
 		if ksErr != nil {
 			return fmt.Errorf("could not generate kssonnet under %v Error: %v", kstypes.KsName, ksErr)
 		}
-	case kftypes.E8S:
+	case kftypes.K8S:
 	}
 	return nil
 }

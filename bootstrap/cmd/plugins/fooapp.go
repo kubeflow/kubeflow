@@ -33,15 +33,15 @@ func (fooApp *FooApp) writeConfigFile() error {
 	return nil
 }
 
-func (fooApp *FooApp) Apply() error {
-	ksApplyErr := fooApp.ksApp.Apply()
+func (fooApp *FooApp) Apply(resources kftypes.ResourceEnum) error {
+	ksApplyErr := fooApp.ksApp.Apply(resources)
 	if ksApplyErr != nil {
 		return fmt.Errorf("foo apply failed for ksapp: %v", ksApplyErr)
 	}
 	return nil
 }
 
-func (fooApp *FooApp) Delete() error {
+func (fooApp *FooApp) Delete(resources kftypes.ResourceEnum) error {
 	return nil
 }
 
