@@ -497,7 +497,6 @@ main() {
         if [[ -d "${KUBEFLOW_DM_DIR}" ]]; then
           pushd ${KUBEFLOW_DM_DIR}
           ${DIR}/gke/delete_deployment.sh --project=${PROJECT} --deployment=${DEPLOYMENT_NAME} --zone=${ZONE}
-          ${DIR}/gke/delete_deployment.sh --project=${PROJECT} --deployment="${DEPLOYMENT_NAME}-storage" --zone=${ZONE}
           popd
         fi
       fi
