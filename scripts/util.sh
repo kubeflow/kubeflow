@@ -85,7 +85,7 @@ createKsApp() {
   ks generate tensorboard tensorboard
   ks generate metacontroller metacontroller
   ks generate profiles profiles
-  ks generate notebooks notebooks 
+  ks generate notebooks notebooks
   ks generate argo argo
   ks generate pipeline pipeline
 
@@ -138,7 +138,7 @@ customizeKsAppWithDockerImage() {
     find ${KUBEFLOW_KS_DIR} -name config.yaml | xargs sed -i -e "s%gcr.io%$KUBEFLOW_DOCKER_REGISTRY%g"
   fi
 
-  # The katib images like gcr.io/kubeflow-images-public/katib/tfevent-metrics-collector:v0.4.0 uses sub namespace kubeflow-images-public/katib in 
+  # The katib images like gcr.io/kubeflow-images-public/katib/tfevent-metrics-collector:v0.4.0 uses sub namespace kubeflow-images-public/katib in
   # gcr.io repo, but it's not supported by other docker image repo. We need to consider how to support it in other docker repos.
   if [[ ! -z "$DOCKER_REGISTRY_KATIB_NAMESPACE" ]]; then
     find ${KUBEFLOW_KS_DIR} -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%kubeflow-images-public/katib%$DOCKER_REGISTRY_KATIB_NAMESPACE%g"

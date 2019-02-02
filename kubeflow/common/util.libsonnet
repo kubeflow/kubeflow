@@ -65,8 +65,8 @@
       local f = {
         local pivot = arr[0],
         local rest = std.makeArray(l - 1, function(i) arr[i + 1]),
-        local lessorequal(x) = compare(x, pivot) <= 0, 
-        local greater(x) = compare(x, pivot) > 0, 
+        local lessorequal(x) = compare(x, pivot) <= 0,
+        local greater(x) = compare(x, pivot) > 0,
         local left = _sort(std.filter(lessorequal, rest), compare) tailstrict,
         local right = _sort(std.filter(greater, rest), compare) tailstrict,
         return:: left + [pivot] + right,
@@ -107,7 +107,7 @@
   }.return,
 
   getApiVersionKindAndMetadata(resource):: {
-    return:: 
+    return::
       if std.objectHas(resource.metadata, "resourceVersion") then {
         apiVersion: resource.apiVersion,
         kind: resource.kind,

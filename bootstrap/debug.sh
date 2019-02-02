@@ -52,7 +52,7 @@ image=gcr.io/$GCLOUD_PROJECT/bootstrapper
 tag=latest
 port=2345
 
-case "$#" in 
+case "$#" in
   0)
      ;;
   1)

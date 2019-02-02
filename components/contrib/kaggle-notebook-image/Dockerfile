@@ -19,7 +19,7 @@ ENV PATH $CONDA_DIR/bin:$PATH
 # Use bash instead of sh
 SHELL ["/bin/bash", "-c"]
 
-# add https support 
+# add https support
 RUN apt-get update && apt-get install -yq --no-install-recommends apt-transport-https
 
 RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
@@ -64,7 +64,7 @@ ADD --chown=jovyan:users $GITHUB_REF/jupyter_notebook_config.py /tmp
 WORKDIR $HOME
 RUN rm -fr $(ls -A $HOME)
 
-# Get init scripts from kubeflow 
+# Get init scripts from kubeflow
 ADD --chown=jovyan:users \
     $GITHUB_REF/start-singleuser.sh \
     $GITHUB_REF/start-notebook.sh \

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-"""This script synchronizes Docker image in image_tags.yaml to your own registry. 
+"""This script synchronizes Docker image in image_tags.yaml to your own registry.
 
 Example:
 python sync_images.py --registry registry.aliyuncs.com

@@ -133,7 +133,7 @@ def build_tf_notebook(args):
   run(command, cwd=context_dir)
 
   if args.push_gcr:
-    run(["gcloud", "auth", "activate-service-account", "--key-file", os.environ['GOOGLE_APPLICATION_CREDENTIALS']])    
+    run(["gcloud", "auth", "activate-service-account", "--key-file", os.environ['GOOGLE_APPLICATION_CREDENTIALS']])
     run(["gcloud", "docker", "--", "push", image_name])
 
 def main():

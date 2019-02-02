@@ -114,11 +114,11 @@ local getEnvNotRedis(x) = x.name != "SELDON_CLUSTER_MANAGER_REDIS_HOST";
           { name: "SPRING_OPTS", value: springOpts },
           { name: "ENGINE_CONTAINER_IMAGE_AND_VERSION", value: engineImage },
           { name: "ENGINE_CONTAINER_IMAGE_PULL_POLICY", value: "IfNotPresent" },
-          { name: "ENGINE_CONTAINER_SERVICE_ACCOUNT_NAME", value: engineServiceAccount },	  
+          { name: "ENGINE_CONTAINER_SERVICE_ACCOUNT_NAME", value: engineServiceAccount },
           { name: "SELDON_CLUSTER_MANAGER_REDIS_HOST", value: name + "-redis" },
           { name: "SELDON_CLUSTER_MANAGER_POD_NAMESPACE", valueFrom: { fieldRef: { apiVersion: "v1", fieldPath: "metadata.namespace" } } },
 	  { name: "SELDON_CLUSTER_MANAGER_SINGLE_NAMESPACE", value: singleNamespace },
-	  { name: "ENGINE_CONTAINER_USER", value: engineUser },	  
+	  { name: "ENGINE_CONTAINER_USER", value: engineUser },
         ];
 
         local c = op.spec.template.spec.containers[0] +

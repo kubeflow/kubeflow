@@ -17,7 +17,7 @@
 
 ## Why?
 
-TF serving only supports gRPC, which means you need to have a client to be able to query it. 
+TF serving only supports gRPC, which means you need to have a client to be able to query it.
 
 This component provides web server that proxy http rest api to Tensorflow/Serving grpc.
 
@@ -59,10 +59,10 @@ or
 - **Response**:
 
 ```javascript
-{"predictions": 
+{"predictions":
 	[
-	 {"tf_model_output": "pred_value1"}, 
-	 {"tf_model_output": "pred_value2"}, 
+	 {"tf_model_output": "pred_value1"},
+	 {"tf_model_output": "pred_value2"},
 	]
 }
 
@@ -99,7 +99,7 @@ or
 - **Response**:
 
 ```javascript
-{"result": 
+{"result":
 	{"classifications": [
 				{"classes": [{"score": 0.0, "label": "0"}, {"score": 1.0, "label": "1"}]},
 				{"classes": [{"score": 0.0, "label": "0"}, {"score": 1.0, "label": "1"}]},
