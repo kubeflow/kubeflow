@@ -56,7 +56,7 @@ createEnv() {
   # Remove trailing slash from the repo.
   KUBEFLOW_REPO=${KUBEFLOW_REPO%/}
 
-  # builds a set of inputs to be used with envsubst for env.sh 
+  # builds a set of inputs to be used with envsubst for env.sh
   # writeEnv updates env.sh when any env var changes
   # eg: envsubst < input.tmpl > env.sh
   INPUT+=('PLATFORM=$PLATFORM\n'
@@ -94,7 +94,7 @@ createEnv() {
 
   case "$PLATFORM" in
     minikube)
-      export KUBEFLOW_PLATFORM=minikube 
+      export KUBEFLOW_PLATFORM=minikube
       export MOUNT_LOCAL=${MOUNT_LOCAL:-""}
       ;;
     docker-for-desktop)
@@ -134,7 +134,7 @@ createEnv() {
                '$CONFIG_FILE$GKE_API_VERSION')
 
       export KUBEFLOW_PLATFORM=gke
-      export PROJECT="${PROJECT}" 
+      export PROJECT="${PROJECT}"
       export ZONE=${ZONE}
       export EMAIL=${EMAIL}
 
@@ -147,7 +147,7 @@ createEnv() {
       export DEPLOYMENT_NAME=${DEPLOYMENT_NAME:-"kubeflow"}
 
       # Kubeflow directories
-      export KUBEFLOW_DM_DIR=${KUBEFLOW_DM_DIR:-"$(pwd)/gcp_config"} 
+      export KUBEFLOW_DM_DIR=${KUBEFLOW_DM_DIR:-"$(pwd)/gcp_config"}
       export KUBEFLOW_SECRETS_DIR=${KUBEFLOW_SECRETS_DIR:-"$(pwd)/secrets"}
       export KUBEFLOW_K8S_MANIFESTS_DIR="$(pwd)/k8s_specs"
 
@@ -156,7 +156,7 @@ createEnv() {
 
       # GCP Static IP Name
       export KUBEFLOW_IP_NAME=${KUBEFLOW_IP_NAME:-"${DEPLOYMENT_NAME}-ip"}
-      
+
       # Name of the endpoint
       export KUBEFLOW_ENDPOINT_NAME=${KUBEFLOW_ENDPOINT_NAME:-"${DEPLOYMENT_NAME}"}
       # Complete hostname
@@ -256,7 +256,7 @@ parseArgs() {
       --gkeApiVersion)
         shift
         GKE_API_VERSION=$1
-        ;;       
+        ;;
       --skipInitProject)
         SKIP_INIT_PROJECT=true
         ;;
@@ -293,7 +293,7 @@ parseArgs() {
         echo "or by setting a default account in gcloud config"
         exit 1
       fi
-      
+
       # See kubeflow/kubeflow#1936
       # gcloud may not get the case correct for the email.
       # The iam-policy respects the case so we check the IAM policy for the email
@@ -328,7 +328,7 @@ main() {
       exit 1
     fi
     if [[ ${#DEPLOYMENT_NAME} -gt 25 ]]; then
-      echo "Name ${DEPLOYMENT_NAME} should not be longer than 25 characters" 
+      echo "Name ${DEPLOYMENT_NAME} should not be longer than 25 characters"
       exit 1
     fi
     if [[ ${DEPLOYMENT_NAME} == *.*  ]]; then
@@ -359,7 +359,7 @@ main() {
     createEnv
 
     source ${ENV_FILE}
-    
+
     if [[ -z "${PLATFORM}" ]]; then
       echo "--platform must be provided"
       echo "usage: kfctl init <PLATFORM>"
@@ -393,9 +393,8 @@ main() {
     exit 1
   fi
 
-  # TODO(ankushagarwal): verify ks version is higher than 0.11.0
-  check_install ks
-  check_install kubectl
+  # verify client dependencies like ks and kubectl are installed and have right versions
+  check_installed_deps
 
   if [[ "${PLATFORM}" == "gcp" ]]; then
     checkInstallPy pyyaml yaml
