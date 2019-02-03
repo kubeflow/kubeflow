@@ -17,7 +17,7 @@ limitations under the License.
 package apis
 
 import (
-	"github.com/kubeflow/kubeflow/components/notebook-crd/pkg/apis/notebook/v1alpha1"
+	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/apis/notebook/v1alpha1"
 )
 
 func init() {

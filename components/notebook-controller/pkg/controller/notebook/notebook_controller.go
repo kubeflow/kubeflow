@@ -20,7 +20,7 @@ import (
 	"context"
 	"reflect"
 
-	v1alpha1 "github.com/kubeflow/kubeflow/components/notebook-crd/pkg/apis/notebook/v1alpha1"
+	v1alpha1 "github.com/kubeflow/kubeflow/components/notebook-controller/pkg/apis/notebook/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -152,7 +152,7 @@ func (r *ReconcileNotebook) ReconcileStatefulSet(instance *v1alpha1.Notebook) er
 		Name:  "JUPYTER_ENABLE_LAB",
 		Value: "TRUE",
 	})
-	if container.WorkiingDir == "" {
+	if container.WorkingDir == "" {
 		container.WorkingDir = "/home/jovyan"
 	}
 	container.Ports = []corev1.ContainerPort{

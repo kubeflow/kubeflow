@@ -1,4 +1,4 @@
-module github.com/kubeflow/kubeflow/components/notebook-crd
+module github.com/kubeflow/kubeflow/components/notebook-controller
 
 require (
 	cloud.google.com/go v0.35.1

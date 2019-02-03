@@ -20,9 +20,9 @@ import (
 	"flag"
 	"os"
 
-	"github.com/kubeflow/kubeflow/components/notebook-crd/pkg/apis"
-	"github.com/kubeflow/kubeflow/components/notebook-crd/pkg/controller"
-	"github.com/kubeflow/kubeflow/components/notebook-crd/pkg/webhook"
+	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/apis"
+	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/controller"
+	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/webhook"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"

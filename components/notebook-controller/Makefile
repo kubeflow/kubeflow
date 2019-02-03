@@ -12,7 +12,7 @@ test: generate fmt vet manifests
 
 # Build manager binary
 manager: generate fmt vet
-	go build -o bin/manager github.com/kubeflow/kubeflow/components/notebook-crd/cmd/manager
+	go build -o bin/manager github.com/kubeflow/kubeflow/components/notebook-controller/cmd/manager
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 run: generate fmt vet

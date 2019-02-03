@@ -17,7 +17,7 @@ limitations under the License.
 package controller
 
 import (
-	"github.com/kubeflow/kubeflow/components/notebook-crd/pkg/controller/notebook"
+	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/controller/notebook"
 )
 
 func init() {
