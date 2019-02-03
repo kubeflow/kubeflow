@@ -25,7 +25,7 @@ var applyCfg = viper.New()
 
 // applyCmd represents the apply command
 var applyCmd = &cobra.Command{
-	Use:   "apply",
+	Use:   "apply [all(=default)|k8s|platform]",
 	Short: "Deploy a generated kubeflow application.",
 	Long:  `Deploy a generated kubeflow application.`,
 	Run: func(cmd *cobra.Command, args []string) {

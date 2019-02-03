@@ -25,7 +25,7 @@ var deleteCfg = viper.New()
 
 // deleteCmd represents the delete command
 var deleteCmd = &cobra.Command{
-	Use:   "delete",
+	Use:   "delete [all(=default)|k8s|platform]",
 	Short: "Delete a kubeflow application.",
 	Long:  `Delete a kubeflow application.`,
 	Run: func(cmd *cobra.Command, args []string) {

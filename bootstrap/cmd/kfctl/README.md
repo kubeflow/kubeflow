@@ -48,8 +48,8 @@ const (
 	PLATFORM ResourceEnum = "platform"
 )
 type KfApp interface {
-	Apply() error
-	Delete() error
+	Apply(ResourceEnum) error
+	Delete(ResourceEnum) error
 	Generate(ResourceEnum) error
 	Init() error
 }
@@ -110,11 +110,13 @@ Usage:
   kfctl init <[path/]name> [flags]
 
 Flags:
-  -h, --help              help for init
-  -p, --platform string   one of 'gcp|minikube|docker-for-desktop|ack' (default "none")
-      --project string    name of the gcp project if --platform gcp
-  -r, --repo string       local github kubeflow repo  (default "$GOPATH/src/github.com/kubeflow/kubeflow/kubeflow")
-  -v, --version string    desired version Kubeflow or latest tag if not provided by user  (default "v0.4.1")
+  -h, --help               help for init
+  -n, --namespace string   namespace where kubeflow will be deployed (default "kubeflow")
+  -p, --platform string    one of 'gcp|minikube|docker-for-desktop|ack' (default "none")
+      --project string     name of the gcp project if --platform gcp
+  -r, --repo string        local github kubeflow repo  (default "$GOPATH/src/github.com/kubeflow/kubeflow/kubeflow")
+  -V, --verbose            verbose output default is false
+  -v, --version string     desired version Kubeflow or latest tag if not provided by user  (default "v0.4.1")
 ```
 
 ### **generate** (kubeflow/bootstrap/cmd/kfctl/cmd/generate.go)
@@ -129,16 +131,14 @@ Generate a kubeflow application where resources is one of 'platform | k8s | all'
 The default is 'all' for any selected platform.
 
 Usage:
-  kfctl generate [resources] [flags]
+  kfctl generate [all(=default)|k8s|platform] [flags]
 
 Flags:
-  -c, --components strings   provide a comma delimited list of component names (default [ambassador,application,argo,centraldashboard,jupyter,katib,metacontroller,notebooks,openvino,pipeline,profiles,pytorch-operator,spartakus,tensorboard,tf-job-operator])
       --email string         email if '--platform gcp'
   -h, --help                 help for generate
       --ipName string        ipName if '--platform gcp'
       --mount-local string   mount-local if '--platform minikube || --platform docker-for-desktop' (default "false")
-  -n, --namespace string     namespace where kubeflow will be deployed (default "kubeflow")
-  -p, --packages strings     provide a comma delimited list of package names (default [application,argo,common,examples,jupyter,katib,metacontroller,modeldb,mpi-job,openvino,pipeline,profiles,pytorch-job,seldon,tensorboard,tf-serving,tf-training])
+  -V, --verbose              verbose output default is false
 ```
 
 ### **apply** (kubeflow/bootstrap/cmd/kfctl/cmd/apply.go)
@@ -147,10 +147,11 @@ Flags:
 Deploy a generated kubeflow application.
 
 Usage:
-  kfctl apply [flags]
+  kfctl apply [all(=default)|k8s|platform] [flags]
 
 Flags:
-  -h, --help   help for apply
+  -h, --help      help for apply
+  -V, --verbose   verbose output default is false
 ```
 
 ### **delete** (kubeflow/bootstrap/cmd/kfctl/cmd/delete.go)
@@ -159,10 +160,11 @@ Flags:
 Delete a kubeflow application.
 
 Usage:
-  kfctl delete [flags]
+  kfctl delete [all(=default)|k8s|platform] [flags]
 
 Flags:
-  -h, --help   help for delete
+  -h, --help      help for delete
+  -V, --verbose   verbose output default is false
 ```
 
 --- 
