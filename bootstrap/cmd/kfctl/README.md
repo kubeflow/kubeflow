@@ -44,7 +44,7 @@ The `KfApp` golang Interface
 type ResourceEnum string
 const (
 	ALL      ResourceEnum = "all"
-	E8S      ResourceEnum = "e8s"
+	K8S      ResourceEnum = "k8s"
 	PLATFORM ResourceEnum = "platform"
 )
 type KfApp interface {
