@@ -28,7 +28,7 @@ source "${DIR}/gke/util.sh"
 source "${DIR}/util-minikube.sh"
 INPUT=()
 FORMAT=()
-export KUBEFLOW_COMPONENTS=${DEFAULT_KUBEFLOW_COMPONENTS:-'"ambassador","jupyter","centraldashboard","tf-job-operator","pytorch-operator","spartakus","argo","pipeline"'}
+export KUBEFLOW_COMPONENTS=${DEFAULT_KUBEFLOW_COMPONENTS:-'"ambassador","jupyter","notebooks","centraldashboard","tf-job-operator","pytorch-operator","spartakus","argo","pipeline"'}
 export KUBEFLOW_EXTENDEDINFO=${KUBEFLOW_EXTENDEDINFO:-false}
 
 # envsubst alternative if envsubst is not installed
@@ -496,7 +496,7 @@ main() {
       if [[ "${PLATFORM}" == "gcp" ]]; then
         if [[ -d "${KUBEFLOW_DM_DIR}" ]]; then
           pushd ${KUBEFLOW_DM_DIR}
-          ${DIR}/gke/delete_deployment.sh ${PROJECT} ${DEPLOYMENT_NAME} ${CONFIG_FILE}
+          ${DIR}/gke/delete_deployment.sh --project=${PROJECT} --deployment=${DEPLOYMENT_NAME} --zone=${ZONE}
           popd
         fi
       fi
