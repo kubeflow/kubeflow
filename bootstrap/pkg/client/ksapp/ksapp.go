@@ -54,6 +54,8 @@ type KsApp struct {
 	KsEnvName string
 	CfgFile   *viper.Viper
 	KApp      app.App
+	// kstypes.KsApp holds 'additional information found in k8 objects'
+	// this information is disk specific and either shouldn't or can't be within a k8 kind
 	KsApp     *kstypes.KsApp
 }
 
