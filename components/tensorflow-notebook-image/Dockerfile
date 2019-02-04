@@ -10,7 +10,7 @@ ARG TF_PACKAGE_PY_27=https://storage.googleapis.com/tensorflow/linux/cpu/tensorf
 ARG TF_SERVING_VERSION=0.0.0
 ARG TFMA_VERSION
 ARG TFDV_VERSION
-ARG PIPELINE_SDK_PACKAGE=https://storage.googleapis.com/ml-pipeline/release/0.1.7/kfp.tar.gz
+ARG PIPELINE_SDK_PACKAGE=https://storage.googleapis.com/ml-pipeline/release/0.1.8/kfp.tar.gz
 
 USER root
 
