@@ -10,6 +10,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import * as jsYaml from 'js-yaml';
+import queryString from 'query-string';
 import * as React from 'react';
 import * as request from 'request';
 
@@ -98,6 +99,8 @@ const styles: { [key: string]: React.CSSProperties } = {
 export default class DeployForm extends React.Component<any, DeployFormState> {
 
   private _configSpec: any;
+  private _versions: string[] = ['v0.3.5'];
+
 
   constructor(props: any) {
     super(props);
@@ -121,6 +124,13 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     // be able to click submit until the fetches have succeeded. How can we do
     // that?
 
+    const values = queryString.parse(this.props.location.search);
+    if (values.version) {
+      this._versions = this._versions.concat(values.version);
+      this.setState({
+        kfversion: this._versions[this._versions.length - 1],
+      });
+    }
     fetch(appConfigPath, { mode: 'no-cors' })
       .then((response) => {
         log('Got response');
@@ -144,7 +154,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
   public render() {
     const zoneList = ['us-central1-a', 'us-central1-c', 'us-east1-c', 'us-east1-d', 'us-west1-b',
       'europe-west1-b', 'europe-west1-d', 'asia-east1-a', 'asia-east1-b'];
-    const versionList = ['v0.3.5'];
 
     return (
       <div>
@@ -192,7 +201,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
               process.env.REACT_APP_VERSIONS.split(',').map((version, i) => (
                 <MenuItem key={i} value={version}>{version}</MenuItem>
               )) :
-              versionList.map((version, i) => (
+                this._versions.map((version, i) => (
                 <MenuItem key={i} value={version}>{version}</MenuItem>
               ))
             }
