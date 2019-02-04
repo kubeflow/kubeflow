@@ -92,7 +92,10 @@ RUN cd /tmp && \
     chmod +x /usr/local/bin/tini
 
 # Install conda as jovyan user and check the md5 sum provided on the download site
-ENV MINICONDA_VERSION 4.5.12
+# After Miniconda v4.5.4 the default Python version is no longer 3.6, but TensorFlow
+# still doesn't support Python 3.7. If we still like to upgrade Miniconda we need
+# to add the line "conda install python==3.6" to RUN command below
+ENV MINICONDA_VERSION 4.5.4
 RUN cd /tmp && \
     mkdir -p $CONDA_DIR && \
     wget --quiet https://repo.continuum.io/miniconda/Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh && \
