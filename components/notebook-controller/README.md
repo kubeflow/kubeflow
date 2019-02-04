@@ -33,3 +33,10 @@ All other fields will be filled in with default value if not specified.
 This part is WIP as we are still developing.
 
 Under the hood, the controller creates a StatefulSet to run the notebook instance, and a Service for it.
+
+### TODO
+- e2e test (we have one testing the jsonnet-metacontroller one, we should make it run on this one)
+- `status` field should reflect the error if there is any. See [#2269](https://github.com/kubeflow/kubeflow/issues/2269).
+- Istio integration (controller will generate istio resources to secure each user's notebook)
+- CRD [validation](https://github.com/kubeflow/kubeflow/blob/master/kubeflow/jupyter/notebooks.schema)
+- `ttlSecondsAfterFinished`: This is in the original jsonnet controller spec, but not being used yet. I think we want to cleanup the notebook after idle?
