@@ -1,0 +1,35 @@
+# Notebook Controller
+
+The controller allows users to create a custom resource "Notebook" (jupyter notebook).
+We originally wrote the controller using jsonnet and metacontroller, but are migrating to golang and
+Kubebuilder here. See [discussion](https://github.com/kubeflow/kubeflow/issues/2269).
+
+## Spec
+
+The user needs to specify the PodSpec for the jupyter notebook.
+For example:
+
+```
+apiVersion: kubeflow.org/v1alpha1
+kind: Notebook
+metadata:
+  name: my-notebook
+  namespace: test
+spec:
+  template:
+    spec:  # Your PodSpec here
+      containers:
+      - image: gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu:v0.3.0
+        name: notebook
+      ...
+```
+
+The only required field is `containers[0].image`.
+
+All other fields will be filled in with default value if not specified.
+
+## Implementation detail
+
+This part is WIP as we are still developing.
+
+Under the hood, the controller creates a StatefulSet to run the notebook instance, and a Service for it.
