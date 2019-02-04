@@ -51,10 +51,11 @@ const (
 // API for different implementations like KsApp, GcpApp, etc.
 //
 type KfApp interface {
-	Apply(ResourceEnum) error
-	Delete(ResourceEnum) error
-	Generate(ResourceEnum) error
-	Init() error
+	Apply(ResourceEnum, map[string]interface{}) error
+	Delete(ResourceEnum, map[string]interface{}) error
+	Generate(ResourceEnum, map[string]interface{}) error
+	Init(map[string]interface{}) error
+	Schema() interface{}
 }
 
 func KubeConfigPath() string {

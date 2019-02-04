@@ -44,12 +44,26 @@ directory is name is a path.`,
 			return
 		}
 		appName := args[0]
-		kfApp, kfAppErr := NewKfApp(appName, initCfg)
+		platform := initCfg.GetString("platform")
+		namespace := initCfg.GetString("namespace")
+		version := initCfg.GetString("version")
+		repo := initCfg.GetString("repo")
+		project := initCfg.GetString("project")
+
+		options := map[string]interface{}{
+			"Platform":  platform,
+			"Namespace": namespace,
+			"Version":   version,
+			"AppName":   appName,
+			"Repo":      repo,
+			"Project":   project,
+		}
+		kfApp, kfAppErr := NewKfApp(options)
 		if kfAppErr != nil {
 			log.Errorf("couldn't create KfApp: %v", kfAppErr)
 			return
 		}
-		initErr := kfApp.Init()
+		initErr := kfApp.Init(options)
 		if initErr != nil {
 			log.Errorf("KfApp initialization failed: %v", initErr)
 			return

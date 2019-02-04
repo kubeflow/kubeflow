@@ -36,7 +36,8 @@ var applyCmd = &cobra.Command{
 		} else {
 			log.SetLevel(log.WarnLevel)
 		}
-		kfApp, kfAppErr := LoadKfApp(applyCfg)
+		options := map[string]interface{}{}
+		kfApp, kfAppErr := LoadKfApp(options)
 		if kfAppErr != nil {
 			log.Errorf("couldn't load KfApp: %v", kfAppErr)
 			return
@@ -54,7 +55,7 @@ var applyCmd = &cobra.Command{
 				return
 			}
 		}
-		applyErr := kfApp.Apply(resources)
+		applyErr := kfApp.Apply(resources, options)
 		if applyErr != nil {
 			log.Errorf("couldn't apply KfApp: %v", applyErr)
 			return

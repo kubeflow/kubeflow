@@ -42,7 +42,15 @@ The default is 'all' for any selected platform.`,
 		} else {
 			log.SetLevel(log.WarnLevel)
 		}
-		kfApp, kfAppErr := LoadKfApp(generateCfg)
+		email := generateCfg.GetString("email")
+		ipName := generateCfg.GetString("ipName")
+		mountLocal := generateCfg.GetBool("mount-local")
+		options := map[string]interface{}{
+			"Email":      email,
+			"IpName":     ipName,
+			"MountLocal": mountLocal,
+		}
+		kfApp, kfAppErr := LoadKfApp(options)
 		if kfAppErr != nil {
 			log.Errorf("couldn't load KfApp: %v", kfAppErr)
 			return
@@ -60,7 +68,7 @@ The default is 'all' for any selected platform.`,
 				return
 			}
 		}
-		generateErr := kfApp.Generate(resources)
+		generateErr := kfApp.Generate(resources, options)
 		if generateErr != nil {
 			log.Errorf("couldn't generate KfApp: %v", generateErr)
 			return
@@ -93,7 +101,7 @@ func init() {
 	}
 
 	// platforms minikube, docker-for-desktop
-	generateCmd.Flags().String("mount-local", "false",
+	generateCmd.Flags().Bool("mount-local", false,
 		"mount-local if '--platform minikube || --platform docker-for-desktop'")
 	bindErr = generateCfg.BindPFlag("mount-local", generateCmd.Flags().Lookup("mount-local"))
 	if bindErr != nil {

@@ -36,7 +36,8 @@ var deleteCmd = &cobra.Command{
 		} else {
 			log.SetLevel(log.WarnLevel)
 		}
-		kfApp, kfAppErr := LoadKfApp(deleteCfg)
+		options := map[string]interface{}{}
+		kfApp, kfAppErr := LoadKfApp(options)
 		if kfAppErr != nil {
 			log.Errorf("couldn't load KfApp: %v", kfAppErr)
 			return
@@ -54,7 +55,7 @@ var deleteCmd = &cobra.Command{
 				return
 			}
 		}
-		deleteErr := kfApp.Delete(resources)
+		deleteErr := kfApp.Delete(resources, options)
 		if deleteErr != nil {
 			log.Errorf("couldn't delete KfApp: %v", deleteErr)
 			return
