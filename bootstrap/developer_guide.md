@@ -20,49 +20,49 @@ $ ☞  go version
 go version go1.11.2 darwin/amd64
 ```
 
-On mac osx you can run 
+On mac osx you can run
 
 ```sh
 brew upgrade golang
 ```
 
 golang-1.11.2 uses go.mod, go.sum files which include dependencies.
-To install a new dependency use `go get <dependency>`. 
+To install a new dependency use `go get <dependency>`.
 golang-1.11.2 no longer creates a vendor directory.
 You should add the environment variable `GO111MODULE=on` to your shell init file
 
 ### Makefile targets
 
 ```
-build             debug             push              
-build-local       debug-latest      push-latest       
-cleanup           
+build             debug             push
+build-local       debug-latest      push-latest
+cleanup
 ```
 
 #### `make build-local`
 Creates bin/bootstrapper with full debug information
 
-#### `make build` 
+#### `make build`
 Depends on `make build-local`. Creates a docker image gcr.io/$(GCLOUD_PROJECT)/bootstrapper:$(TAG)
 
-#### `make push` 
+#### `make push`
 Depends on `make build`. Pushes the docker image gcr.io/$(GCLOUD_PROJECT)/bootstrapper:$(TAG)
 
-#### `make push-latest` 
+#### `make push-latest`
 Depends on `make push`. Tags the docker image gcr.io/$(GCLOUD_PROJECT)/bootstrapper:$(TAG) with latest.
-Note: To use a different gcloud project than kubeflow-images-public. 
+Note: To use a different gcloud project than kubeflow-images-public.
 ```sh
-export GCLOUD_PROJECT=mygcloudproject 
+export GCLOUD_PROJECT=mygcloudproject
 make push
 ```
 
-#### `make debug` 
+#### `make debug`
 Depends on `make push` and `make cleanup`
 1. deploys a Namespace, PersistentVolumeClaim and StatefulSet using $(IMG), $(TAG), $(PORT)
 2. waits for pod kubeflow-bootstrapper-0 to be in phase 'Running'
 3. runs "kubectl port-forward ..." in the background, opening port 2345 to the pod's container
 4. wait - cleanup (kill port-forward command) on Ctrl-C
-5. when the script exits (Ctrl-C) it will kill "kubectl port-forward ..." 
+5. when the script exits (Ctrl-C) it will kill "kubectl port-forward ..."
 6. in order to clean up all resources deployed in step 1 run `make cleanup`
 
 The StatefulSet will create a pod and start the following process in the pod's kubeflow-bootstrapper-0 container

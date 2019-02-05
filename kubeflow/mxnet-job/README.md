@@ -52,7 +52,7 @@ You create a job by defining a MXJob and then creating it with.
 
 
 ```
-kubectl create -f examples/mx_job_dist.yaml 
+kubectl create -f examples/mx_job_dist.yaml
 ```
 
 
@@ -63,7 +63,7 @@ To get the status of your job
 
 ```bash
 kubectl get -o yaml mxjobs $JOB
-```   
+```
 
 Here is sample output for an example job
 

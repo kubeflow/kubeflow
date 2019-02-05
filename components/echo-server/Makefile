@@ -19,7 +19,7 @@ IMG = gcr.io/kubeflow-images-staging/echo-server
 PUBLIC = gcr.io/kubeflow-images-public/echo-server
 DIR := ${CURDIR}
 
-# List any changed  files. 
+# List any changed  files.
 CHANGED_FILES := $(shell git diff-files --relative=components/echo-server)
 
 ifeq ($(strip $(CHANGED_FILES)),)
@@ -43,9 +43,9 @@ build:
 # Build but don't attach the latest tag. This allows manual testing/inspection of the image
 # first.
 push: build
-	gcloud docker -- push $(IMG):$(TAG)	
+	gcloud docker -- push $(IMG):$(TAG)
 	@echo Pushed $(IMG) with  :$(TAG) tags
-	
+
 push-latest: push
 	gcloud container images add-tag --quiet $(IMG):$(TAG) $(IMG):latest --verbosity=info
 	echo created $(IMG):latest

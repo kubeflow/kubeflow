@@ -10,7 +10,7 @@
 
 ## Goals
 
-- Provide a self-serve environment for data-scientists to create one or more protected namespaces where 
+- Provide a self-serve environment for data-scientists to create one or more protected namespaces where
 notebooks, jobs, and other components can be deployed and run in this namespace.
 
 - Use native kubernetes RBAC rules to isolate this namespace to a particular user's service account.
@@ -23,7 +23,7 @@ notebooks, jobs, and other components can be deployed and run in this namespace.
 
 - Allow a user to be either a ServiceAccount in the shared/admin namespace or a User which can map to a GKE IAM role.
 
-- Enable a forward path to include proposed [Security Profiles](https://github.com/kubernetes/community/blob/a8cb2060dc621664c86b185c7426367994b181b5/keps/draft-20180418-security-profile.md) 	
+- Enable a forward path to include proposed [Security Profiles](https://github.com/kubernetes/community/blob/a8cb2060dc621664c86b185c7426367994b181b5/keps/draft-20180418-security-profile.md)
 
 
 ## Design
@@ -32,7 +32,7 @@ Protected Namespaces allow a data scientist to use shared kubeflow components bu
 
 ![shared and protected namespaces](./docs/namespaces.png "shared and protected namespaces")
 
-Users __stan__ and __jackie__ are able to run notebooks, jobs, and other components within their own protected namespace. 
+Users __stan__ and __jackie__ are able to run notebooks, jobs, and other components within their own protected namespace.
 
 ![jobs and notebooks](./docs/jobsandnotebooks.png "jobs and notebooks")
 
@@ -42,7 +42,7 @@ Users __stan__ and __jackie__ are subjects within the shared namespace. A subjec
 
 ![service accounts](./docs/serviceaccounts.png "service accounts")
 
-- User 
+- User
 
 ![iam users](./docs/iamusers.png "IAM users")
 
@@ -98,7 +98,7 @@ This means that users have very few privileges within the shared namespace, limi
 
 Both custom resources have an associated controllers which do the following:
 
-- profiles-controller 
+- profiles-controller
   - watches for __Profile__ Custom Resources in the kubeflow namespace
   - creates a Namespace and Permission Resource
 - permissions-controller
@@ -139,7 +139,7 @@ spec:
           cpu: "2"
           memory: "2Gi"
     spec:
-      owner: 
+      owner:
         kind: User
         apiGroup: rbac.authorization.k8s.io
         name: alice@foo.com
@@ -162,7 +162,7 @@ metadata:
     kind: Profile
     name: gan
 spec:
-  owner: 
+  owner:
     kind: User
     apiGroup: rbac.authorization.k8s.io
     name: alice@foo.com
