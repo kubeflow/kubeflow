@@ -52,7 +52,7 @@ local seldonDeployment =
       },
       name: params.name,
       oauth_key: if params.oauthKey != "null" then params.oauthKey else "",
-      oauth_secret: if params.oauthKey != "null" then params.oauthSecret else "",    
+      oauth_secret: if params.oauthKey != "null" then params.oauthSecret else "",
       predictors: [
         {
           componentSpecs: [

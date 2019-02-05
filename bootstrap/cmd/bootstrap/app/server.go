@@ -26,6 +26,7 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/kubeflow/kubeflow/bootstrap/cmd/bootstrap/app/options"
+	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksapp/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/version"
 	log "github.com/sirupsen/logrus"
 	"k8s.io/api/storage/v1"
@@ -49,70 +50,16 @@ const GcloudPath = "gcloud"
 
 const RegistriesRoot = "/opt/registries"
 
-type KsComponent struct {
-	Name      string
-	Prototype string
-}
-
-type KsPackage struct {
-	Name string
-	// Registry should be the name of the registry containing the package.
-	Registry string
-}
-
-type KsParameter struct {
-	Component string
-	Name      string
-	Value     string
-}
-
-// RegistryConfig is used for two purposes:
-// 1. used during image build, to configure registries that should be baked into the bootstrapper docker image.
-//  (See: https://github.com/kubeflow/kubeflow/blob/master/bootstrap/image_registries.yaml)
-// 2. used during app create rpc call, specifies a registry to be added to an app.
-//	required info for registry: Name, Repo, Version, Path
-//  Additionally if any of required fields is blank we will try to map with one of
-//  the registries baked into the Docker image using the name.
-type RegistryConfig struct {
-	Name    string
-	Repo    string
-	Version string
-	Path    string
-	RegUri  string
-}
-
-type AppConfig struct {
-	Registries []RegistryConfig
-	Packages   []KsPackage
-	Components []KsComponent
-	Parameters []KsParameter
-}
-
-// RegistriesConfigFile corresponds to a YAML file specifying information
-// about known registries.
-type RegistriesConfigFile struct {
-	// Registries provides information about known registries.
-	Registries []RegistryConfig
-}
-
 // AppConfigFile corresponds to a YAML file specifying information
 // about the app to create.
 type AppConfigFile struct {
 	// App describes a ksonnet application.
-	App AppConfig
+	App kstypes.AppConfig
 }
 
 type LibrarySpec struct {
 	Version string
 	Path    string
-}
-
-// KsRegistry corresponds to ksonnet.io/registry
-// which is the registry.yaml file found in every registry.
-type KsRegistry struct {
-	ApiVersion string
-	Kind       string
-	Libraries  map[string]LibrarySpec
 }
 
 // Load yaml config
@@ -300,7 +247,7 @@ func Run(opt *options.ServerOption) error {
 	}
 
 	// Load information about the default registries.
-	var regConfig RegistriesConfigFile
+	var regConfig kstypes.RegistriesConfigFile
 
 	if opt.RegistriesConfigFile != "" {
 		log.Infof("Loading registry info in file %v", opt.RegistriesConfigFile)

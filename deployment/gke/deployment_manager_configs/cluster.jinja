@@ -16,7 +16,7 @@ limitations under the License.
 {% set CLUSTER_NAME = NAME_PREFIX %}
 {% set CPU_POOL = NAME_PREFIX + '-cpu-pool-' + properties['pool-version'] %}
 {% set GPU_POOL = NAME_PREFIX + '-gpu-pool-' + properties['pool-version'] %}
-{% set VM_OAUTH_SCOPES = ['https://www.googleapis.com/auth/logging.write', 
+{% set VM_OAUTH_SCOPES = ['https://www.googleapis.com/auth/logging.write',
                           'https://www.googleapis.com/auth/monitoring',
                           'https://www.googleapis.com/auth/devstorage.read_only'] %}
 
