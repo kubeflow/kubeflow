@@ -17,14 +17,14 @@ until docker ps; do
   sleep 3
 done
 
-# GO111MODULE=on go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
+GO111MODULE=on go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 
-# rm -rf reg_tmp
-# mkdir -p reg_tmp/kubeflow
-# cp -r ../kubeflow reg_tmp/kubeflow
-# docker build -t ${IMAGE}:$TAG --build-arg registries=reg_tmp --target=build .
-go version
-make build IMG=${IMAGE} TAG=${TAG}
+rm -rf reg_tmp
+mkdir -p reg_tmp/kubeflow
+cp -r ../kubeflow reg_tmp/kubeflow
+cp -r ../deployment reg_tmp/kubeflow
+cp -r ../dependencies reg_tmp/kubeflow
+docker build -t ${IMAGE}:$TAG --build-arg registries=reg_tmp --target=bootstrap .
 
 gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
 gcloud docker -- push "${IMAGE}:${TAG}"
