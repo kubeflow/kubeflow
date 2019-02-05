@@ -9,9 +9,10 @@ params {
     },
     kfctl_test+: {
       namespace: 'kubeflow-test-infra',
-      name: 'jlewi-kfctl-test-2303-0118-112335',
-      prow_env: 'JOB_NAME=kfctl-test,JOB_TYPE=presubmit,REPO_NAME=kubeflow,REPO_OWNER=kubeflow,BUILD_NUMBER=0118-112335,PULL_NUMBER=2303',
+      name: 'jlewi-kfctl-test-2333-0128-053655',
+      prow_env: 'JOB_NAME=kfctl-test,JOB_TYPE=presubmit,REPO_NAME=kubeflow,REPO_OWNER=kubeflow,BUILD_NUMBER=0128-053655,PULL_NUMBER=2333',
       deleteCluster: true,
+      deleteKubeflow: false,
     },
     unit_tests+: {
       namespace: 'kubeflow-test-infra',

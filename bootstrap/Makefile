@@ -95,7 +95,7 @@ test-known-platforms-generate: test-known-platforms-init
 	@cd ~/ks-app && \
 	kfctl generate all -V && \
 	cd ~/minikube-app && \
-	kfctl generate all -V --mount-local true && \
+	kfctl generate all -V --mount-local && \
 	cd ~/foo-app && \
 	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V && \
 	echo SUCCESS

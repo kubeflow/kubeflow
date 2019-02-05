@@ -19,10 +19,10 @@ spec:
         - --source=service
         - --source=ingress
         # will make ExternalDNS see only the hosted zones matching provided domain, omit to process all available hosted zones
-        - --domain-filter=kubeflow.dev 
+        - --domain-filter=kubeflow.dev
         - --provider=google
         # Use this to specify a project different from the one external-dns is running inside
-        - --google-project=kubeflow-dns 
+        - --google-project=kubeflow-dns
         - --policy=upsert-only # would prevent ExternalDNS from deleting any records, omit to enable full synchronization
         - --registry=txt
         - --txt-owner-id=jlewi@google.com

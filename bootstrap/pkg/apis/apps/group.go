@@ -44,6 +44,24 @@ const (
 	ALL      ResourceEnum = "all"
 	K8S      ResourceEnum = "k8s"
 	PLATFORM ResourceEnum = "platform"
+	NONE     ResourceEnum = "none"
+)
+
+type CliOption string
+
+const (
+	EMAIL       CliOption = "email"
+	IPNAME      CliOption = "ipName"
+	MOUNT_LOCAL CliOption = "mount-local"
+	VERBOSE     CliOption = "verbose"
+	NAMESPACE   CliOption = "namespace"
+	VERSION     CliOption = "version"
+	REPO        CliOption = "repo"
+	PROJECT     CliOption = "project"
+	APPNAME     CliOption = "appname"
+	APPDIR      CliOption = "appDir"
+	KAPP        CliOption = "KApp"
+	KSAPP       CliOption = "KsApp"
 )
 
 //

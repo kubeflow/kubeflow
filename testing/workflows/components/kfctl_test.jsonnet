@@ -43,7 +43,7 @@ local appName = "kfctl-" + std.substr(name, std.length(name) - 4, 4);
 // we execute kfctl commands from
 local appDir = testDir + "/" + appName;
 
-local image = "gcr.io/kubeflow-ci/test-worker:latest";
+local image = "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4";
 local testing_image = "gcr.io/kubeflow-ci/kubeflow-testing";
 
 // The name of the NFS volume claim to use for test files.
@@ -76,7 +76,7 @@ local prowDict = {
   REPO_NAME: "notset",
   JOB_NAME: "notset",
   JOB_TYPE: "notset",
-  PULL_NUMBER: "notset",  
+  PULL_NUMBER: "notset",
  } + newUtil.listOfDictToMap(prowEnv);
 
 // Build an Argo template to execute a particular command.
@@ -150,6 +150,7 @@ local componentTests = util.kfTests {
   platform: "gke",
   testDir: testDir,
   kubeConfig: kubeConfig,
+  image: image,
   buildTemplate+: {
     argoTemplate+: {
       container+: {
@@ -391,7 +392,7 @@ local workflow = {
         workflow: params.name,
         workflow_template: workflow_template,
     },
-  },  
+  },
   spec: {
     entrypoint: "e2e",
     // Have argo garbage collect old workflows otherwise we overload the API server.

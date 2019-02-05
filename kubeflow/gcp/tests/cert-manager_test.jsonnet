@@ -198,10 +198,9 @@ local testCases = [
     actual: instance.parts.issuerLEProd,
     expected: {
       apiVersion: "certmanager.k8s.io/v1alpha1",
-      kind: "Issuer",
+      kind: "ClusterIssuer",
       metadata: {
         name: "letsencrypt-prod",
-        namespace: "kf-001",
       },
       spec: {
         acme: {

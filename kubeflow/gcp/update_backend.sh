@@ -34,6 +34,11 @@ done
 # Manually update the healthcheck request path to /healthz
 gcloud --project=${PROJECT} compute health-checks update http ${HEALTH_CHECK_URI} --request-path=/healthz
 
+if [[ ${USE_ISTIO} ]]; then
+  # Create the route so healthcheck can pass
+  kubectl apply -f /var/envoy-config/healthcheck_route.yaml
+fi
+
 # Since JupyterHub uses websockets we want to increase the backend timeout
 echo Increasing backend timeout for JupyterHub
 gcloud --project=${PROJECT} compute backend-services update --global ${BACKEND_SERVICE} --timeout=3600

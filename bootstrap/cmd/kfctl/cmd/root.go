@@ -35,8 +35,27 @@ import (
 	"strings"
 )
 
-func LoadPlatform(options map[string]interface{}) (kftypes.KfApp, error) {
-	platform := options["Platform"].(string)
+func processResourceArg(args []string) (kftypes.ResourceEnum, error) {
+	if len(args) > 1 {
+		return kftypes.NONE, fmt.Errorf("unknown extra args %v", args[1:])
+	}
+	resources := kftypes.ALL
+	if len(args) == 1 {
+		switch kftypes.ResourceEnum(args[0]) {
+		case kftypes.ALL:
+		case kftypes.K8S:
+			resources = kftypes.K8S
+		case kftypes.PLATFORM:
+			resources = kftypes.PLATFORM
+		default:
+			return kftypes.NONE, fmt.Errorf("unknown argument %v", args[0])
+		}
+	}
+	return resources, nil
+}
+
+func loadPlatform(options map[string]interface{}) (kftypes.KfApp, error) {
+	platform := options[string(kftypes.PLATFORM)].(string)
 	switch platform {
 	case "none":
 		_kfapp := ksapp.GetKfApp(options)
@@ -66,9 +85,9 @@ func LoadPlatform(options map[string]interface{}) (kftypes.KfApp, error) {
 	}
 }
 
-func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
+func newKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	//appName can be a path
-	appName := options["AppName"].(string)
+	appName := options[string(kftypes.APPNAME)].(string)
 	appDir := path.Dir(appName)
 	if appDir == "" {
 		cwd, err := os.Getwd()
@@ -99,17 +118,17 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 		return nil, fmt.Errorf(`invalid name %v must consist of lower case alphanumeric characters, '-' or '.',
 and must start and end with an alphanumeric character`, appName)
 	}
-	options["AppName"] = appName
-	options["AppDir"] = appDir
-	platform := options["Platform"].(string)
-	pApp, pAppErr := LoadPlatform(options)
+	options[string(kftypes.APPNAME)] = appName
+	options[string(kftypes.APPDIR)] = appDir
+	platform := options[string(kftypes.PLATFORM)].(string)
+	pApp, pAppErr := loadPlatform(options)
 	if pAppErr != nil {
 		return nil, fmt.Errorf("unable to load platform %v Error: %v", platform, pAppErr)
 	}
 	return pApp, nil
 }
 
-func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
+func loadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	appDir, err := os.Getwd()
 	if err != nil {
 		return nil, fmt.Errorf("could not get current directory %v", err)
@@ -133,12 +152,12 @@ func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	if specErr != nil {
 		return nil, fmt.Errorf("couldn't unmarshall KsApp. Error: %v", specErr)
 	}
-	options["Platform"] = ksApp.Spec.Platform
-	options["Appname"] = appName
-	options["AppDir"] = appDir
-	options["KApp"] = kApp
-	options["KsApp"] = ksApp
-	pApp, pAppErr := LoadPlatform(options)
+	options[string(kftypes.PLATFORM)] = ksApp.Spec.Platform
+	options[string(kftypes.APPNAME)] = appName
+	options[string(kftypes.APPDIR)] = appDir
+	options[string(kftypes.KAPP)] = kApp
+	options[string(kftypes.KSAPP)] = ksApp
+	pApp, pAppErr := loadPlatform(options)
 	if pAppErr != nil {
 		return nil, fmt.Errorf("unable to load platform %v Error: %v", ksApp.Spec.Platform, pAppErr)
 	}

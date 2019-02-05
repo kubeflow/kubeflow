@@ -31,31 +31,23 @@ var deleteCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.InfoLevel)
 		log.Info("generating kubeflow application")
-		if deleteCfg.GetBool("verbose") == true {
+		if deleteCfg.GetBool(string(kftypes.VERBOSE)) == true {
 			log.SetLevel(log.InfoLevel)
 		} else {
 			log.SetLevel(log.WarnLevel)
 		}
+		resource, resourceErr := processResourceArg(args)
+		if resourceErr != nil {
+			log.Errorf("invalid resource: %v", resourceErr)
+			return
+		}
 		options := map[string]interface{}{}
-		kfApp, kfAppErr := LoadKfApp(options)
+		kfApp, kfAppErr := loadKfApp(options)
 		if kfAppErr != nil {
 			log.Errorf("couldn't load KfApp: %v", kfAppErr)
 			return
 		}
-		resources := kftypes.ALL
-		if len(args) == 1 {
-			switch resources {
-			case kftypes.ALL:
-			case kftypes.K8S:
-				resources = kftypes.K8S
-			case "platform":
-				resources = kftypes.PLATFORM
-			default:
-				log.Errorf("unknown resource %v", resources)
-				return
-			}
-		}
-		deleteErr := kfApp.Delete(resources, options)
+		deleteErr := kfApp.Delete(resource, options)
 		if deleteErr != nil {
 			log.Errorf("couldn't delete KfApp: %v", deleteErr)
 			return
@@ -70,11 +62,11 @@ func init() {
 	deleteCfg.SetConfigType("yaml")
 
 	// verbose output
-	deleteCmd.Flags().BoolP("verbose", "V", false,
-		"verbose output default is false")
-	bindErr := deleteCfg.BindPFlag("verbose", deleteCmd.Flags().Lookup("verbose"))
+	deleteCmd.Flags().BoolP(string(kftypes.VERBOSE), "V", false,
+		string(kftypes.VERBOSE)+" output default is false")
+	bindErr := deleteCfg.BindPFlag(string(kftypes.VERBOSE), deleteCmd.Flags().Lookup(string(kftypes.VERBOSE)))
 	if bindErr != nil {
-		log.Errorf("couldn't set flag --verbose: %v", bindErr)
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.VERBOSE), bindErr)
 		return
 	}
 }

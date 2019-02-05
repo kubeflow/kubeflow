@@ -102,7 +102,7 @@
             kind: CronJob
             metadata:
               name: {{.WorkerID}}
-              namespace: {{.NameSpace}}  
+              namespace: {{.NameSpace}}
             spec:
               schedule: "*/1 * * * *"
               successfulJobsHistoryLimit: 0

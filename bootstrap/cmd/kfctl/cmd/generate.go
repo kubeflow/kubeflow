@@ -37,38 +37,30 @@ The default is 'all' for any selected platform.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.InfoLevel)
 		log.Info("generating kubeflow application")
-		if generateCfg.GetBool("verbose") == true {
+		if generateCfg.GetBool(string(kftypes.VERBOSE)) == true {
 			log.SetLevel(log.InfoLevel)
 		} else {
 			log.SetLevel(log.WarnLevel)
 		}
-		email := generateCfg.GetString("email")
-		ipName := generateCfg.GetString("ipName")
+		resource, resourceErr := processResourceArg(args)
+		if resourceErr != nil {
+			log.Errorf("invalid resource: %v", resourceErr)
+			return
+		}
+		email := generateCfg.GetString(string(kftypes.EMAIL))
+		ipName := generateCfg.GetString(string(kftypes.IPNAME))
 		mountLocal := generateCfg.GetBool("mount-local")
 		options := map[string]interface{}{
-			"Email":      email,
-			"IpName":     ipName,
-			"MountLocal": mountLocal,
+			string(kftypes.EMAIL):       email,
+			string(kftypes.IPNAME):      ipName,
+			string(kftypes.MOUNT_LOCAL): mountLocal,
 		}
-		kfApp, kfAppErr := LoadKfApp(options)
+		kfApp, kfAppErr := loadKfApp(options)
 		if kfAppErr != nil {
 			log.Errorf("couldn't load KfApp: %v", kfAppErr)
 			return
 		}
-		resources := kftypes.ALL
-		if len(args) == 1 {
-			switch resources {
-			case kftypes.ALL:
-			case kftypes.K8S:
-				resources = kftypes.K8S
-			case "platform":
-				resources = kftypes.PLATFORM
-			default:
-				log.Errorf("unknown resource %v", resources)
-				return
-			}
-		}
-		generateErr := kfApp.Generate(resources, options)
+		generateErr := kfApp.Generate(resource, options)
 		if generateErr != nil {
 			log.Errorf("couldn't generate KfApp: %v", generateErr)
 			return
@@ -83,38 +75,38 @@ func init() {
 	generateCfg.SetConfigType("yaml")
 
 	// platform gcp
-	generateCmd.Flags().String("email", "",
-		"email if '--platform gcp'")
-	bindErr := generateCfg.BindPFlag("email", generateCmd.Flags().Lookup("email"))
+	generateCmd.Flags().String(string(kftypes.EMAIL), "",
+		string(kftypes.EMAIL)+" if '--platform gcp'")
+	bindErr := generateCfg.BindPFlag(string(kftypes.EMAIL), generateCmd.Flags().Lookup(string(kftypes.EMAIL)))
 	if bindErr != nil {
-		log.Errorf("couldn't set flag --email: %v", bindErr)
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.EMAIL), bindErr)
 		return
 	}
 
 	// platform gcp
-	generateCmd.Flags().String("ipName", "",
-		"ipName if '--platform gcp'")
-	bindErr = generateCfg.BindPFlag("ipName", generateCmd.Flags().Lookup("ipName"))
+	generateCmd.Flags().String(string(kftypes.IPNAME), "",
+		string(kftypes.IPNAME)+" if '--platform gcp'")
+	bindErr = generateCfg.BindPFlag(string(kftypes.IPNAME), generateCmd.Flags().Lookup(string(kftypes.IPNAME)))
 	if bindErr != nil {
-		log.Errorf("couldn't set flag --ipName: %v", bindErr)
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.IPNAME), bindErr)
 		return
 	}
 
 	// platforms minikube, docker-for-desktop
-	generateCmd.Flags().Bool("mount-local", false,
-		"mount-local if '--platform minikube || --platform docker-for-desktop'")
-	bindErr = generateCfg.BindPFlag("mount-local", generateCmd.Flags().Lookup("mount-local"))
+	generateCmd.Flags().Bool(string(kftypes.MOUNT_LOCAL), false,
+		string(kftypes.MOUNT_LOCAL)+" if '--platform minikube || --platform docker-for-desktop'")
+	bindErr = generateCfg.BindPFlag(string(kftypes.MOUNT_LOCAL), generateCmd.Flags().Lookup(string(kftypes.MOUNT_LOCAL)))
 	if bindErr != nil {
-		log.Errorf("couldn't set flag --mount-local: %v", bindErr)
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.MOUNT_LOCAL), bindErr)
 		return
 	}
 
 	// verbose output
-	generateCmd.Flags().BoolP("verbose", "V", false,
-		"verbose output default is false")
-	bindErr = generateCfg.BindPFlag("verbose", generateCmd.Flags().Lookup("verbose"))
+	generateCmd.Flags().BoolP(string(kftypes.VERBOSE), "V", false,
+		string(kftypes.VERBOSE)+" output default is false")
+	bindErr = generateCfg.BindPFlag(string(kftypes.VERBOSE), generateCmd.Flags().Lookup(string(kftypes.VERBOSE)))
 	if bindErr != nil {
-		log.Errorf("couldn't set flag --verbose: %v", bindErr)
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.VERBOSE), bindErr)
 		return
 	}
 }

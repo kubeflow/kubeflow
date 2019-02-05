@@ -58,6 +58,30 @@ const DmFolder = "gcp_config"
 const CloudShellFolder = "kf_util"
 const IstioFolder = "istio"
 
+const PipelineDbDiskSuffix = "-pipeline-db"
+const PipelineNfsDiskSuffix = "-pipeline-nfs"
+
+type DmSpec struct {
+	// path to the deployment manager configuration file
+	ConfigFile string
+	// path to the deployment manager template file
+	TemplateFile string
+	// the suffix to append to the deployment name
+	DmNameSuffix string
+}
+
+var ClusterDmSpec = DmSpec{
+	ConfigFile:   "../deployment/gke/deployment_manager_configs/cluster-kubeflow.yaml",
+	TemplateFile: "../deployment/gke/deployment_manager_configs/cluster.jinja",
+	DmNameSuffix: "",
+}
+
+var StorageDmSpec = DmSpec{
+	ConfigFile:   "../deployment/gke/deployment_manager_configs/storage-kubeflow.yaml",
+	TemplateFile: "../deployment/gke/deployment_manager_configs/storage.jinja",
+	DmNameSuffix: "-storage",
+}
+
 // KsService defines an interface for working with ksonnet.
 type KsService interface {
 	// CreateApp creates a ksonnet application.
@@ -67,8 +91,8 @@ type KsService interface {
 	ConfigCluster(context.Context, CreateRequest) error
 	BindRole(context.Context, string, string, string) error
 	InstallIstio(ctx context.Context, req CreateRequest) error
-	InsertDeployment(context.Context, CreateRequest) (*deploymentmanager.Deployment, error)
-	GetDeploymentStatus(context.Context, CreateRequest) (string, string, error)
+	InsertDeployment(context.Context, CreateRequest, DmSpec) (*deploymentmanager.Deployment, error)
+	GetDeploymentStatus(context.Context, CreateRequest, string) (string, string, error)
 	ApplyIamPolicy(context.Context, ApplyIamRequest) error
 	GetProjectLock(string) *sync.Mutex
 }
@@ -162,6 +186,11 @@ func NewServer(appsDir string, registries []*kstypes.RegistryConfig, gkeVersionO
 	return s, nil
 }
 
+type StorageOption struct {
+	// Whether to create persistent storage for storing all Kubeflow Pipeline artifacts or not.
+	CreatePipelinePersistentStorage bool
+}
+
 // CreateRequest represents a request to create a ksonnet application.
 type CreateRequest struct {
 	// Name for the app.
@@ -192,6 +221,8 @@ type CreateRequest struct {
 
 	// For test: GCP service account client id
 	SAClientId string
+
+	StorageOption StorageOption
 }
 
 // basicServerResponse is general response contains nil if handler raise no error, otherwise an error message.
@@ -1131,32 +1162,32 @@ func timeSinceStart(ctx context.Context) time.Duration {
 	return time.Since(startTime)
 }
 
-func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmanager.Deployment) {
+func checkDeploymentFinished(svc KsService, req CreateRequest, deployName string) error {
 	status := ""
 	errMsg := ""
 	var err error
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, StartTime, time.Now())
+
 	for retry := 0; retry < 60; retry++ {
 		time.Sleep(10 * time.Second)
-		status, errMsg, err = svc.GetDeploymentStatus(ctx, req)
+		status, errMsg, err = svc.GetDeploymentStatus(ctx, req, deployName)
 		if err != nil {
 			log.Errorf("Failed to get deployment status: %v", err)
 			deployReqCounter.WithLabelValues("INTERNAL").Inc()
 			deploymentFailure.WithLabelValues("INTERNAL").Inc()
-			return
+			return err
 		}
 		if status == "DONE" {
-			if errMsg != "" {
-				log.Errorf("Deployment manager returned error message: %v", errMsg)
-				// Mark status "INVALID_ARGUMENT" as most deployment manager failures are caused by insufficient quota or permission.
-				// Error messages are available from UI, and should be resolvable by retries.
-				deployReqCounter.WithLabelValues("INVALID_ARGUMENT").Inc()
-				return
+			if errMsg == "" {
+				// Deploy successfully
+				break
 			}
-			clusterDeploymentLatencies.Observe(timeSinceStart(ctx).Seconds())
-			log.Infof("Deployment is done")
-			break
+			log.Errorf("Deployment manager returned error message: %v", errMsg)
+			// Mark status "INVALID_ARGUMENT" as most deployment manager failures are caused by insufficient quota or permission.
+			// Error messages are available from UI, and should be resolvable by retries.
+			deployReqCounter.WithLabelValues("INVALID_ARGUMENT").Inc()
+			return fmt.Errorf(errMsg)
 		}
 		log.Infof("status: %v, waiting...", status)
 	}
@@ -1164,8 +1195,29 @@ func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmana
 		log.Errorf("Deployment status is not done: %v", status)
 		deployReqCounter.WithLabelValues("INTERNAL").Inc()
 		deploymentFailure.WithLabelValues("INTERNAL").Inc()
+		return err
+	}
+	return nil
+}
+
+func finishDeployment(svc KsService, req CreateRequest,
+	clusterDmDeploy *deploymentmanager.Deployment, storageDmDeploy *deploymentmanager.Deployment) {
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, StartTime, time.Now())
+
+	err := checkDeploymentFinished(svc, req, clusterDmDeploy.Name)
+	if err != nil {
 		return
 	}
+
+	if storageDmDeploy != nil {
+		err = checkDeploymentFinished(svc, req, storageDmDeploy.Name)
+		if err != nil {
+			return
+		}
+	}
+	clusterDeploymentLatencies.Observe(timeSinceStart(ctx).Seconds())
+	log.Infof("Deployment is done")
 
 	log.Info("Patching IAM bindings...")
 	err = svc.ApplyIamPolicy(ctx, ApplyIamRequest{
@@ -1197,7 +1249,7 @@ func finishDeployment(svc KsService, req CreateRequest, dmDeploy *deploymentmana
 	}
 
 	log.Infof("Creating app...")
-	err = svc.CreateApp(ctx, req, dmDeploy)
+	err = svc.CreateApp(ctx, req, clusterDmDeploy)
 	if err != nil {
 		log.Errorf("Failed to create app: %v", err)
 		deployReqCounter.WithLabelValues("INTERNAL").Inc()
@@ -1235,12 +1287,35 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 			return r, err
 		}
 
-		DmDeployment, err := svc.InsertDeployment(ctx, req)
+		var storageDmDeployment *deploymentmanager.Deployment
+
+		if req.StorageOption.CreatePipelinePersistentStorage {
+			var err error
+			storageDmDeployment, err = svc.InsertDeployment(ctx, req, StorageDmSpec)
+			if err != nil {
+				r.Err = err.Error()
+				return r, err
+			}
+			req.AppConfig.Parameters = append(
+				req.AppConfig.Parameters,
+				kstypes.KsParameter{
+					Component: "pipeline",
+					Name:      "mysqlPd",
+					Value:     req.Name + StorageDmSpec.DmNameSuffix + PipelineDbDiskSuffix})
+			req.AppConfig.Parameters = append(
+				req.AppConfig.Parameters,
+				kstypes.KsParameter{
+					Component: "pipeline",
+					Name:      "nfsPd",
+					Value:     req.Name + StorageDmSpec.DmNameSuffix + PipelineNfsDiskSuffix})
+		}
+
+		clusterDmDeployment, err := svc.InsertDeployment(ctx, req, ClusterDmSpec)
 		if err != nil {
 			r.Err = err.Error()
 			return r, err
 		}
-		go finishDeployment(svc, req, DmDeployment)
+		go finishDeployment(svc, req, clusterDmDeployment, storageDmDeployment)
 		return r, nil
 	}
 }

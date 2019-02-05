@@ -9,7 +9,7 @@ namespace=$1
 kubectl get ns|grep kubeflow-admin 1>/dev/null
 if [[ $? == "0" ]]; then
   can_i=$(kubectl auth can-i delete namespace)
-  case "$can_i" in 
+  case "$can_i" in
     yes)
       echo Removing kubeflow-admin namespace
       kubectl delete ns kubeflow-admin

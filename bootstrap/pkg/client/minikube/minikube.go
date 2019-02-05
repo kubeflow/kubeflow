@@ -66,8 +66,8 @@ func (minikubeApp *MinikubeApp) Delete(resources kftypes.ResourceEnum, options m
 func (minikubeApp *MinikubeApp) generateKsApp(options map[string]interface{}) error {
 	ksApp := minikubeApp.ksApp.(*ksapp.KsApp)
 	mountLocal := false
-	if options["MountLocal"] != nil {
-		mountLocal = options["MountLocal"].(bool)
+	if options[string(kftypes.MOUNT_LOCAL)] != nil {
+		mountLocal = options[string(kftypes.MOUNT_LOCAL)].(bool)
 	}
 	// remove Katib package and component
 	pkgs := kstypes.RemoveItem(kstypes.DefaultPackages, "katib")
@@ -89,7 +89,7 @@ func (minikubeApp *MinikubeApp) generateKsApp(options map[string]interface{}) er
 	gid := usr.Gid
 	parameters["jupyter"] = []kstypes.NameValue{
 		{
-			Name:  "platform",
+			Name:  string(kftypes.PLATFORM),
 			Value: ksApp.KsApp.Spec.Platform,
 		},
 		{
@@ -111,7 +111,7 @@ func (minikubeApp *MinikubeApp) generateKsApp(options map[string]interface{}) er
 	}
 	parameters["ambassador"] = []kstypes.NameValue{
 		{
-			Name:  "platform",
+			Name:  string(kftypes.PLATFORM),
 			Value: ksApp.KsApp.Spec.Platform,
 		},
 		{
