@@ -119,7 +119,7 @@ def prepare_request_data(args, deployment):
   }
 
 def make_e2e_call(args):
-  req_data = prepare_request_data(args. args.deployment)
+  req_data = prepare_request_data(args, args.deployment)
   resp = requests.post("http://kubeflow-controller.%s.svc.cluster.local:8080/kfctl/e2eDeploy" % args.namespace,
                        json=req_data)
   if resp.status_code != 200:
