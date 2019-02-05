@@ -23,7 +23,8 @@ done
 # mkdir -p reg_tmp/kubeflow
 # cp -r ../kubeflow reg_tmp/kubeflow
 # docker build -t ${IMAGE}:$TAG --build-arg registries=reg_tmp --target=build .
-make build IMG=${IMG} TAG=${TAG}
+go version
+make build IMG=${IMAGE} TAG=${TAG}
 
 gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
 gcloud docker -- push "${IMAGE}:${TAG}"
