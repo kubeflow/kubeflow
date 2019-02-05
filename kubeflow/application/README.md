@@ -1,6 +1,6 @@
 ## Overview
 
-The ksonnet application component creates an Application Custom Resource (CR) based on 
+The ksonnet application component creates an Application Custom Resource (CR) based on
 ksonnet components generated under `<APP_DIR>/ks_app/components/`. The Application CR
 will include the following components when you do not set a platform option.
 
@@ -81,7 +81,7 @@ status:
 
 Note: kfctl.sh can deploy a configurable set of the generated components by exporting the env variable DEFAULT_KUBEFLOW_COMPONENTS. This is shown under Example
 
-## Options 
+## Options
 
 - extendedInfo (=false)
 Emits informational arrays in the status section of the Application CR.
@@ -106,7 +106,7 @@ $KUBEFLOW_DIR/scripts/kfctl.sh generate all && \
 $KUBEFLOW_DIR/scripts/kfctl.sh apply all
 ```
 
-Then run 
+Then run
 
 ```bash
 DEFAULT_KUBEFLOW_COMPONENTS='"ambassador","centraldashboard","tf-job-operator","jupyter"' ./kf

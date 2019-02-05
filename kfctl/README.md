@@ -2,7 +2,7 @@
 
 ## Overview
 
-The kfctl golang client will provide the same CLI as kfctl.sh but will 
+The kfctl golang client will provide the same CLI as kfctl.sh but will
 be implemented in golang. The port to golang is because:
 
 1. The UI (gcp-click-to-deploy) and kfctl should share the same ksonnet code when creating a kubeflow application.
@@ -30,7 +30,7 @@ This will be implemented by the golang version (ie: remove .sh).
 
 ## Requirements
 
-### 1. Create a common library for the UI and kfctl 
+### 1. Create a common library for the UI and kfctl
 
 ### 2. Do not include GCP/IAM related types or functions within the common library.
 
@@ -45,7 +45,7 @@ This will be implemented by the golang version (ie: remove .sh).
 
 ### UI REST Entry Points
 
-Current golang functions to build a ksonnet application are in ksServer.go and are called 
+Current golang functions to build a ksonnet application are in ksServer.go and are called
 by the UI. These functions are invoked from REST entrypoints bound in [ksServer.go](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/cmd/bootstrap/app/ksServer.go#L1291) and are shown below:
 
 ```
@@ -53,17 +53,17 @@ by the UI. These functions are invoked from REST entrypoints bound in [ksServer.
 	http.Handle("/kfctl/apps/apply", optionsHandler(applyAppHandler))
 	http.Handle("/kfctl/apps/create", optionsHandler(createAppHandler))
 	http.Handle("/kfctl/iam/apply", optionsHandler(applyIamHandler))
-        
+
 	http.Handle("/kfctl/initProject", optionsHandler(initProjectHandler))
 	http.Handle("/kfctl/e2eDeploy", optionsHandler(deployHandler))
 ```
 
 These functions mostly call a [KsService Interface](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/cmd/bootstrap/app/ksServer.go#L60) to build a ksonnet application.
 The KsService Interface as is cannot be leveraged by kfctl since it includes specific GCP/IAM parameters
-The interface is implemented by [ksServer](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/cmd/bootstrap/app/ksServer.go#L80) which also binds additional methods like [appGenerate](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/cmd/bootstrap/app/ksServer.go#L566) 
+The interface is implemented by [ksServer](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/cmd/bootstrap/app/ksServer.go#L80) which also binds additional methods like [appGenerate](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/cmd/bootstrap/app/ksServer.go#L566)
 that are relevant to kfctl but cannot be easily separated. It turns out the primary flow
 of interest is createAppHandler. This calls an [anonymous function](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/cmd/bootstrap/app/ksServer.go#L1038) that ends up making all the ksonnet calls required by kfctl.
-The other entrypoints are either not relevent to kfctl or implement part of what is done in 
+The other entrypoints are either not relevent to kfctl or implement part of what is done in
 this anonymous function.
 
 ### Analysis
@@ -74,7 +74,7 @@ Methods from ksServer that are relevant to kfctl are:
 - ksServer.appGenerate
 - ksServer.createComponent
 
-Within these methods there are direct calls to ksonnet 
+Within these methods there are direct calls to ksonnet
 - Load
 - RunEnvSet
 - RunInit
@@ -95,7 +95,7 @@ Calls KsService.CreateApp(Context, CreateRequest, Deployment) //not relevant to 
   Calls KsService.GetApp //not relevant to kfctl
     Calls kApp.Load //RELEVENT
     Returns appInfo, repoDir //RELEVENT
-  If ksonnet application exists 
+  If ksonnet application exists
     Calls kApp.RunEnvSet //`ks env set` RELEVANT
   Else
     Calls kApp.RunInit //`ks init <app>` RELEVANT
@@ -122,7 +122,7 @@ Calls KsService.CreateApp(Context, CreateRequest, Deployment) //not relevant to 
 
 ## Proposed Design
 
-### 1. Move the common interface and types required for the library to a pkg directory under bootstrap 
+### 1. Move the common interface and types required for the library to a pkg directory under bootstrap
        This will allow the library to be easily built and used by kfctl. See the MOVE annotations in the Appendix.
 
 ### 2. Create a KfApi object in the library that wraps ksonnet calls
@@ -156,7 +156,7 @@ type KsService interface {
 	GetDeploymentStatus(context.Context, CreateRequest) (string, error)
 	ApplyIamPolicy(context.Context, ApplyIamRequest) error
 	GetProjectLock(string) *sync.Mutex
-// Additional Methods used by ksServer 
+// Additional Methods used by ksServer
         GetApp(project string, appName string, kfVersion string, token string) (*appInfo, string, error)
         CloneRepoToLocal(project string, token string) (string, error)
         SaveAppToRepo(project string, email string, repoDir string) error

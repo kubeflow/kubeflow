@@ -1,5 +1,5 @@
 //
-// This function will track expected children with created children (request.children) 
+// This function will track expected children with created children (request.children)
 // and report status information
 //
 function(request) {
