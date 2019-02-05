@@ -10,7 +10,6 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import * as jsYaml from 'js-yaml';
-import queryString from 'query-string';
 import * as React from 'react';
 import * as request from 'request';
 
@@ -100,7 +99,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
 
   private _configSpec: any;
   private _versions: string[] = ['v0.3.5'];
-
+  private _query_string_version: string | null;
 
   constructor(props: any) {
     super(props);
@@ -124,11 +123,11 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     // be able to click submit until the fetches have succeeded. How can we do
     // that?
 
-    const values = queryString.parse(this.props.location.search);
-    if (values.version) {
-      this._versions = this._versions.concat(values.version);
+    const params = new URLSearchParams(this.props.location.search);
+    if (params.get('version')) {
+      this._query_string_version = params.get('version');
       this.setState({
-        kfversion: this._versions[this._versions.length - 1],
+        kfversion: String(this._query_string_version),
       });
     }
     fetch(appConfigPath, { mode: 'no-cors' })
@@ -197,6 +196,9 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         <div style={styles.row}>
           <TextField select={true} label="Kubeflow version:" required={true} style={styles.input} variant="filled"
             value={this.state.kfversion} onChange={this._handleChange('kfversion')}>
+            if(this._query_string_version) {
+              (<MenuItem value={String(this._query_string_version)}>{this._query_string_version}</MenuItem>)
+            }
             { process.env.REACT_APP_VERSIONS ?
               process.env.REACT_APP_VERSIONS.split(',').map((version, i) => (
                 <MenuItem key={i} value={version}>{version}</MenuItem>

@@ -4,7 +4,6 @@
   "private": true,
   "dependencies": {
     "@material-ui/core": "^3.1.0",
-    "@types/query-string": "^6.2.0",
     "ajv": "^6.6.1",
     "ajv-keywords": "^3.2.0",
     "glamor": "^2.20.40",
