@@ -64,7 +64,7 @@ generateDMConfigs() {
 
     # Set values in storage DM config file
     sed -i.bak "s/zone: SET_THE_ZONE/zone: ${ZONE}/" "${KUBEFLOW_DM_DIR}/storage-kubeflow.yaml"
-    sed -i.bak "s/createPipelinePersistentStorage: SET_CREATE_PIPELINE_PERSISTENT_STORAGE/createPipelinePersistentStorage: ${CREATE_PIPELINE_PERSISTENT_STORAGE}/" "${KUBEFLOW_DM_DIR}/storage-kubeflow.yaml"
+    sed -i.bak "s/createPipelinePersistentStorage: SET_CREATE_PIPELINE_PERSISTENT_STORAGE/createPipelinePersistentStorage: true/" "${KUBEFLOW_DM_DIR}/storage-kubeflow.yaml"
     rm "${KUBEFLOW_DM_DIR}/storage-kubeflow.yaml.bak"
   else
     echo Deployment Manager configs already exist in directory "${KUBEFLOW_DM_DIR}"
@@ -234,10 +234,8 @@ gcpGenerateKsApp() {
   ks generate cert-manager cert-manager --acmeEmail=${EMAIL}
   ks generate iap-ingress iap-ingress --ipName=${KUBEFLOW_IP_NAME} --hostname=${KUBEFLOW_HOSTNAME}
   ks param set jupyter jupyterHubAuthenticator iap
-  if ${CREATE_PIPELINE_PERSISTENT_STORAGE}; then
-    ks param set pipeline mysqlPd "${DEPLOYMENT_NAME}-storage-pipeline-db"
-    ks param set pipeline nfsPd "${DEPLOYMENT_NAME}-storage-pipeline-nfs"
-  fi
+  ks param set pipeline mysqlPd "${DEPLOYMENT_NAME}-storage-pipeline-db"
+  ks param set pipeline nfsPd "${DEPLOYMENT_NAME}-storage-pipeline-nfs"
   popd
 }
 
