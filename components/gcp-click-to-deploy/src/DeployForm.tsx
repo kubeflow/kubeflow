@@ -196,7 +196,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         <div style={styles.row}>
           <TextField select={true} label="Kubeflow version:" required={true} style={styles.input} variant="filled"
             value={this.state.kfversion} onChange={this._handleChange('kfversion')}>
-            if(this._query_string_version) {
+            {this._query_string_version &&
               (<MenuItem value={String(this._query_string_version)}>{this._query_string_version}</MenuItem>)
             }
             { process.env.REACT_APP_VERSIONS ?
