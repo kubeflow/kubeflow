@@ -472,12 +472,12 @@ def main(unparsed_args=None):
     help="Email used during e2e test")
   parser.add_argument(
     "--project",
-    default="kubeflow-ci-deploy",
+    default="kubeflow-ci-deployment",
     type=str,
     help="e2e test project id")
   parser.add_argument(
     "--project_number",
-    default="453914067825",
+    default="29647740582",
     type=str,
     help="e2e test project number")
   parser.add_argument(
