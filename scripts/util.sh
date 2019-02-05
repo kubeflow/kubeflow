@@ -15,9 +15,32 @@ usage() {
   echo "help - print this message"
 }
 
-check_install() {
-  if ! which "${1}" &>/dev/null; then
-    echo "You don't have ${1} installed. Please install ${1}."
+check_installed_deps() {
+  declare -a kf_deps=("ks" "kubectl")
+
+  for kf_dep in "${kf_app[@]}"; do
+    if ! which "${kf_dep}" &>/dev/null && ! type -a "${kf_dep}" &>/dev/null ; then
+      echo "You don't have ${kf_dep} installed. Please install ${kf_dep}."
+      exit 1
+    fi
+  done
+
+  # check minimum ks versions
+  kf_dep="ks"
+  min_ks_ver="0.11.0"
+  ks_ver=$(${kf_dep} version | cut -d' ' -f3 | head -1)
+  if [ ${ks_ver} \< ${min_ks_ver} ]; then
+    echo "Please install ${kf_dep} version ${min_ks_ver} or newer"
+    exit 1
+  fi
+}
+
+checkInstallPy() {
+  local PYPI=$1
+  local MOD=$2
+  if python -c "import pkgutil; exit(pkgutil.find_loader('${MOD}'))" &>/dev/null; then
+    echo "Failed to import python module ${MOD}."
+    echo "You don't have ${PYPI} installed. Please install ${PYPI}."
     exit 1
   fi
 }
@@ -36,7 +59,7 @@ createKsApp() {
   pushd .
   # Create the ksonnet app
   cd $(dirname "${KUBEFLOW_KS_DIR}")
-  ks init $(basename "${KUBEFLOW_KS_DIR}")
+  eval ks init $(basename "${KUBEFLOW_KS_DIR}") --skip-default-registries ${KS_INIT_EXTRA_ARGS}
   cd "${KUBEFLOW_KS_DIR}"
 
   # Remove the default environment; The cluster might not exist yet
@@ -48,7 +71,8 @@ createKsApp() {
 
   # Install all required packages
   ks pkg install kubeflow/argo
-  ks pkg install kubeflow/core
+  ks pkg install kubeflow/pipeline
+  ks pkg install kubeflow/common
   ks pkg install kubeflow/examples
   ks pkg install kubeflow/jupyter
   ks pkg install kubeflow/katib
@@ -56,22 +80,28 @@ createKsApp() {
   ks pkg install kubeflow/pytorch-job
   ks pkg install kubeflow/seldon
   ks pkg install kubeflow/tf-serving
+  ks pkg install kubeflow/openvino
+  ks pkg install kubeflow/tensorboard
   ks pkg install kubeflow/tf-training
   ks pkg install kubeflow/metacontroller
   ks pkg install kubeflow/profiles
   ks pkg install kubeflow/application
+  ks pkg install kubeflow/modeldb
 
   # Generate all required components
   ks generate pytorch-operator pytorch-operator
-  # TODO(jlewi): Why are we overloading the ambassador images here?
   ks generate ambassador ambassador
+  ks generate openvino openvino
   ks generate jupyter jupyter
   ks generate centraldashboard centraldashboard
   ks generate tf-job-operator tf-job-operator
+  ks generate tensorboard tensorboard
   ks generate metacontroller metacontroller
   ks generate profiles profiles
-
+  ks generate notebooks notebooks
   ks generate argo argo
+  ks generate pipeline pipeline
+
   ks generate katib katib
   # Enable collection of anonymous usage metrics
   # To disable metrics collection. Remove the spartakus component.
@@ -118,5 +148,12 @@ customizeKsAppWithDockerImage() {
   if [[ ! -z "$KUBEFLOW_DOCKER_REGISTRY" ]]; then
     find ${KUBEFLOW_KS_DIR} -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%gcr.io%$KUBEFLOW_DOCKER_REGISTRY%g"
     find ${KUBEFLOW_KS_DIR} -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%quay.io%$KUBEFLOW_DOCKER_REGISTRY%g"
+    find ${KUBEFLOW_KS_DIR} -name config.yaml | xargs sed -i -e "s%gcr.io%$KUBEFLOW_DOCKER_REGISTRY%g"
+  fi
+
+  # The katib images like gcr.io/kubeflow-images-public/katib/tfevent-metrics-collector:v0.4.0 uses sub namespace kubeflow-images-public/katib in
+  # gcr.io repo, but it's not supported by other docker image repo. We need to consider how to support it in other docker repos.
+  if [[ ! -z "$DOCKER_REGISTRY_KATIB_NAMESPACE" ]]; then
+    find ${KUBEFLOW_KS_DIR} -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%kubeflow-images-public/katib%$DOCKER_REGISTRY_KATIB_NAMESPACE%g"
   fi
 }

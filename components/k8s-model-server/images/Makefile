@@ -50,7 +50,7 @@ push: build_gcr build_dockerhub push_gcr push_dockerhub
 
 build_gpu_gcr:
 	$(call build-gpu,$(GCR_PROJECT))
-	
+
 build_gpu_dockerhub:
 	$(call build-gpu,$(DOCKERHUB_PROJECT))
 
@@ -67,17 +67,17 @@ help:
 	@echo ''
 	@echo 'Targets:'
 	@echo '    build                  build kubeflow/model-server image for both gcr and dockerhub'
-	@echo '    build_gcr              build gcr.io/kubeflow/model-server image' 
-	@echo '    build_dockerhub        build hub.docker.com/r/kubeflow/model-server image' 
+	@echo '    build_gcr              build gcr.io/kubeflow/model-server image'
+	@echo '    build_dockerhub        build hub.docker.com/r/kubeflow/model-server image'
 	@echo '    build_gpu              build kubeflow/model-server-gpu image for both gcr and dockerhub'
-	@echo '    build_gpu_gcr          build gcr.io/kubeflow/model-server-gpu image' 
-	@echo '    build_gpu_dockerhub    build hub.docker.com/r/kubeflow/model-server image' 
+	@echo '    build_gpu_gcr          build gcr.io/kubeflow/model-server-gpu image'
+	@echo '    build_gpu_dockerhub    build hub.docker.com/r/kubeflow/model-server image'
 	@echo '    push                   push kubeflow/model-server image to both gcr.io and hub.docker.com'
-	@echo '    push_gcr               push gcr.io/kubeflow/model-server image' 
-	@echo '    push_dockerhub         push hub.docker.com/r/kubeflow/model-server image' 
+	@echo '    push_gcr               push gcr.io/kubeflow/model-server image'
+	@echo '    push_dockerhub         push hub.docker.com/r/kubeflow/model-server image'
 	@echo '    push_gpu               push kubeflow/model-server-gpu image to both gcr and dockerhub'
-	@echo '    push_gpu_gcr           push gcr.io/kubeflow/model-server-gpu image' 
-	@echo '    push_gpu_dockerhub     push hub.docker.com/r/kubeflow/model-server-gpu image' 
+	@echo '    push_gpu_gcr           push gcr.io/kubeflow/model-server-gpu image'
+	@echo '    push_gpu_dockerhub     push hub.docker.com/r/kubeflow/model-server-gpu image'
 	@echo '    help                   print help doc'
 
 .PHONY: all build build_dockerhub build_gcr push push_dockerhub push_gcr build_gpu build_gpu_gcr build_gpu_dockerhub push_gpu push_gpu_gcr push_gpu_dockerhub help

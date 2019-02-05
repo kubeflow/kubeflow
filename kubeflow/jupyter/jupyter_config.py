@@ -47,8 +47,6 @@ c.KubeSpawner.http_timeout = 60 * 5
 c.KubeSpawner.singleuser_uid = 1000
 c.KubeSpawner.singleuser_fs_gid = 100
 c.KubeSpawner.singleuser_working_dir = '/home/jovyan'
-volumes = []
-volume_mounts = []
 
 # Allow environment vars to override uid and gid.
 # This allows local host path mounts to be read/writable
@@ -77,62 +75,16 @@ if access_local_fs == 'true':
 ###################################################
 # Persistent volume options
 ###################################################
-# Using persistent storage requires a default storage class.
-# TODO(jlewi): Verify this works on minikube.
-# see https://github.com/kubeflow/kubeflow/pull/22#issuecomment-350500944
-pvc_mount = os.environ.get('NOTEBOOK_PVC_MOUNT')
-if pvc_mount and pvc_mount != 'null':
-    c.KubeSpawner.user_storage_pvc_ensure = True
-    c.KubeSpawner.storage_pvc_ensure = True
-    # How much disk space do we want?
-    c.KubeSpawner.user_storage_capacity = '10Gi'
-    c.KubeSpawner.storage_capacity = '10Gi'
-    c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
-    volumes.append(
-        {
-            'name': 'volume-{username}{servername}',
-            'persistentVolumeClaim': {
-                'claimName': 'claim-{username}{servername}'
-            }
-        }
-    )
-    volume_mounts.append(
-        {
-            'mountPath': pvc_mount,
-            'name': 'volume-{username}{servername}'
-        }
-    )
 
-c.KubeSpawner.volumes = volumes
-c.KubeSpawner.volume_mounts = volume_mounts
-# Set both service_account and singleuser_service_account because
-# singleuser_service_account has been deprecated in a future release
-c.KubeSpawner.service_account = 'jupyter-notebook'
-c.KubeSpawner.singleuser_service_account = 'jupyter-notebook'
-# Authenticator
-if os.environ.get('KF_AUTHENTICATOR') == 'iap':
-    c.JupyterHub.authenticator_class = RemoteUserAuthenticator
-    c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'
-else:
-    c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'
+# Set user_storage_pvc_ensure to False to prevent KubeSpawner from handling PVCs
+# We natively handle PVCs via KubeFormSpawner and its dedicated methods
 
-if os.environ.get('DEFAULT_JUPYTERLAB').lower() == 'true':
-    c.KubeSpawner.default_url = '/lab'
+# NOTE: user_storage_pvc_ensure has been deprecated in a future release
+c.KubeSpawner.storage_pvc_ensure = False
+c.KubeSpawner.user_storage_pvc_ensure = False
 
-# PVCs
-pvcs = os.environ.get('KF_PVC_LIST')
-if pvcs and pvcs != 'null':
-    for pvc in pvcs.split(','):
-        volumes.append({
-            'name': pvc,
-            'persistentVolumeClaim': {
-                'claimName': pvc
-            }
-        })
-        volume_mounts.append({
-            'name': pvc,
-            'mountPath': '/mnt/' + pvc
-        })
+volumes = []
+volume_mounts = []
 
 gcp_secret_name = os.environ.get('GCP_SECRET_NAME')
 if gcp_secret_name:
@@ -147,7 +99,34 @@ if gcp_secret_name:
         'mountPath': SERVICE_ACCOUNT_SECRET_MOUNT
     })
 
+c.KubeSpawner.volumes = volumes
+c.KubeSpawner.volume_mounts = volume_mounts
+
+storage_class = None
+if os.environ.get('STORAGE_CLASS') != 'null':
+    storage_class = os.environ.get('STORAGE_CLASS')
+
+rok_secret_name = ''
+if os.environ.get('ROK_SECRET_NAME') != 'null':
+    rok_secret_name = os.environ.get('ROK_SECRET_NAME')
+
+# Set both service_account and singleuser_service_account because
+# singleuser_service_account has been deprecated in a future release
+c.KubeSpawner.service_account = 'jupyter-notebook'
+c.KubeSpawner.singleuser_service_account = 'jupyter-notebook'
+# Authenticator
+if os.environ.get('KF_AUTHENTICATOR') == 'iap':
+    c.JupyterHub.authenticator_class = RemoteUserAuthenticator
+    c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'
+else:
+    c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'
+
+if os.environ.get('DEFAULT_JUPYTERLAB').lower() == 'true':
+    c.KubeSpawner.default_url = '/lab'
+
 # Set extra spawner configuration variables
 c.KubeSpawner.extra_spawner_config = {
-    'gcp_secret_name': gcp_secret_name
+    'gcp_secret_name': gcp_secret_name,
+    'storage_class': storage_class,
+    'rok_secret_name': rok_secret_name,
 }

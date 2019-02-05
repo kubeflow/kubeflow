@@ -16,7 +16,7 @@ limitations under the License.
 {% set CLUSTER_NAME = NAME_PREFIX %}
 {% set CPU_POOL = NAME_PREFIX + '-cpu-pool-' + properties['pool-version'] %}
 {% set GPU_POOL = NAME_PREFIX + '-gpu-pool-' + properties['pool-version'] %}
-{% set VM_OAUTH_SCOPES = ['https://www.googleapis.com/auth/logging.write', 
+{% set VM_OAUTH_SCOPES = ['https://www.googleapis.com/auth/logging.write',
                           'https://www.googleapis.com/auth/monitoring',
                           'https://www.googleapis.com/auth/devstorage.read_only'] %}
 
@@ -76,14 +76,29 @@ resources:
       ipAllocationPolicy:
         createSubnetwork: true
         useIpAliases: true
-      masterIpv4CidrBlock: {{ properties['securityConfig']['masterIpv4CidrBlock'] }}
-      privateCluster: true
+      privateClusterConfig:
+        masterIpv4CidrBlock: {{ properties['securityConfig']['masterIpv4CidrBlock'] }}
+        enablePrivateNodes: true
       masterAuthorizedNetworksConfig:
         enabled: {{ properties['securityConfig']['masterAuthorizedNetworksConfigEnabled'] }}
         {% if properties['securityConfig']['masterAuthorizedNetworksConfigEnabled'] %}
         cidrBlocks:
           {{ properties['securityConfig']['masterAuthorizedNetworksConfigCidr'] }}
         {% endif %}
+      {% endif %}
+      # Autoprovisioning is only supported in v1beta1.
+      {% if properties['gkeApiVersion'] == 'v1beta1' and properties['autoprovisioning-config']['enabled'] %}
+      autoscaling:
+        enableNodeAutoprovisioning: true
+        resourceLimits:
+        - resourceType: 'cpu'
+          maximum: {{ properties['autoprovisioning-config']['max-cpu'] }}
+        - resourceType: 'memory'
+          maximum: {{ properties['autoprovisioning-config']['max-memory'] }}
+          {% for accelerator in properties['autoprovisioning-config']['max-accelerator'] %}
+        - resourceType: {{ accelerator.type }}
+          maximum: {{ accelerator.count }}
+          {% endfor %}
       {% endif %}
       nodePools:
       - name: default-pool

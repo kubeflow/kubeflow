@@ -1,12 +1,24 @@
 # chainer-job
 
-Prototypes for running Chainer jobs.
+> Prototypes for running Chainer jobs.
 
-* [Quickstart](#quickstart)
-* [Using Prototypes](#using-prototypes)
-  * [io.ksonnet.pkg.chainer-operator](#io.ksonnet.pkg.chainer-operator)
-  * [io.ksonnet.pkg.chainer-job-simple](#io.ksonnet.pkg.chainer-job-simple)
-  * [io.ksonnet.pkg.chainer-job](#io.ksonnet.pkg.chainer-job)
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Quickstart](#quickstart)
+- [Using the library](#using-the-library)
+  - [io.ksonnet.pkg.chainer-operator](#ioksonnetpkgchainer-operator)
+    - [Example](#example)
+    - [Parameters](#parameters)
+  - [io.ksonnet.pkg.chainer-job-simple](#ioksonnetpkgchainer-job-simple)
+    - [Example](#example-1)
+    - [Parameters](#parameters-1)
+  - [io.ksonnet.pkg.chainer-job](#ioksonnetpkgchainer-job)
+    - [Example](#example-2)
+    - [Parameters](#parameters-2)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Quickstart
 

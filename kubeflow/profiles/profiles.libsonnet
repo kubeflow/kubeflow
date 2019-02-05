@@ -1,8 +1,8 @@
 {
-  local util = import "kubeflow/core/util.libsonnet",
+  local util = import "kubeflow/common/util.libsonnet",
 
   new(_env, _params):: {
-    local params = _env + _params,
+    local params = _params + _env,
 
     local profilesCRD = {
       apiVersion: "apiextensions.k8s.io/v1beta1",
@@ -48,6 +48,42 @@
                         properties: {
                           namespace: {
                             type: "string",
+                          },
+                          quota: {
+                            type: "object",
+                            properties: {
+                              name: {
+                                type: "string",
+                              },
+                              requests: {
+                                type: "object",
+                                properties: {
+                                  cpu: {
+                                    type: "string",
+                                  },
+                                  memory: {
+                                    type: "string",
+                                  },
+                                  gpu: {
+                                    type: "string",
+                                  },
+                                },
+                              },
+                              limits: {
+                                type: "object",
+                                properties: {
+                                  cpu: {
+                                    type: "string",
+                                  },
+                                  memory: {
+                                    type: "string",
+                                  },
+                                  gpu: {
+                                    type: "string",
+                                  },
+                                },
+                              },
+                            },
                           },
                         },
                       },
@@ -309,6 +345,10 @@
             resource: "namespaces",
           },
           {
+            apiVersion: "v1",
+            resource: "resourcequotas",
+          },
+          {
             apiVersion: "kubeflow.org/v1alpha1",
             resource: "permissions",
           },
@@ -329,6 +369,7 @@
       kind: "CompositeController",
       metadata: {
         name: "permissions-controller",
+        annotations: params,
       },
       spec: {
         generateSelector: true,

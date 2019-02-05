@@ -16,6 +16,7 @@
       },
       spec: {
         group: "kubeflow.org",
+        scope: "Namespaced",
         version: "v1alpha1",
         names: {
           kind: "StudyJob",
@@ -101,10 +102,10 @@
             kind: CronJob
             metadata:
               name: {{.WorkerID}}
-              namespace: {{.NameSpace}}  
+              namespace: {{.NameSpace}}
             spec:
               schedule: "*/1 * * * *"
-              successfulJobsHistoryLimit: 1
+              successfulJobsHistoryLimit: 0
               failedJobsHistoryLimit: 1
               jobTemplate:
                 spec:
@@ -122,8 +123,12 @@
                         - "{{.TrialID}}"
                         - "-w"
                         - "{{.WorkerID}}"
+                        - "-k"
+                        - "{{.WorkerKind}}"
                         - "-n"
                         - "{{.NameSpace}}"
+                        - "-m"
+                        - "{{.ManagerSerivce}}"
                       restartPolicy: Never
           ||| % { mcimage: params.metricsCollectorImage },
         },
@@ -146,10 +151,7 @@
               "serviceaccounts",
             ],
             verbs: [
-              "create",
-              "update",
-              "list",
-              "watch",
+              "*",
             ],
           },
           {
@@ -182,6 +184,31 @@
             ],
             resources: [
               "studyjobs",
+            ],
+            verbs: [
+              "*",
+            ],
+          },
+          {
+            apiGroups: [
+              "kubeflow.org",
+            ],
+            resources: [
+              "tfjobs",
+              "pytorchjobs",
+            ],
+            verbs: [
+              "*",
+            ],
+          },
+          {
+            apiGroups: [
+              "",
+            ],
+            resources: [
+              "pods",
+              "pods/log",
+              "pods/status",
             ],
             verbs: [
               "*",
@@ -248,30 +275,16 @@
                   name: "studyjob-controller",
                   image: params.studyJobControllerImage,
                   imagePullPolicy: "Always",
-                  volumeMounts: [
+                  env: [
                     {
-                      name: "worker-template",
-                      mountPath: "/worker-template",
-                    },
-                    {
-                      name: "metricscollector-template",
-                      mountPath: "/metricscollector-template",
+                      name: "VIZIER_CORE_NAMESPACE",
+                      valueFrom: {
+                        fieldRef: {
+                          fieldPath: "metadata.namespace",
+                        },
+                      },
                     },
                   ],
-                },
-              ],
-              volumes: [
-                {
-                  name: "worker-template",
-                  configMap: {
-                    name: "worker-template",
-                  },
-                },
-                {
-                  name: "metricscollector-template",
-                  configMap: {
-                    name: "metricscollector-template",
-                  },
                 },
               ],
             },

@@ -1,0 +1,51 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: default-routes
+  namespace: kubeflow
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - kubeflow-gateway
+  http:
+  - match:
+    - uri:
+        exact: /healthz
+    route:
+    - destination:
+        port:
+          number: 80
+        host: whoami-app.kubeflow.svc.cluster.local
+  - match:
+    - uri:
+        exact: /whoami
+    route:
+    - destination:
+        port:
+          number: 80
+        host: whoami-app.kubeflow.svc.cluster.local
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        port:
+          number: 80
+        host: ambassador.kubeflow.svc.cluster.local
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: kubeflow-gateway
+  namespace: kubeflow
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"

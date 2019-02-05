@@ -10,9 +10,18 @@ libraries:
   profiles:
     version: master
     path: profiles
-  core:
+  common:
     version: master
-    path: core
+    path: common
+  gcp:
+    version: master
+    path: gcp
+  tensorboard:
+    version: master
+    path: tensorboard
+  examples:
+    version: master
+    path: examples
   jupyter:
     version: master
     path: jupyter
@@ -22,12 +31,18 @@ libraries:
   tf-serving:
     version: master
     path: tf-serving
+  openvino:
+    version: master
+    path: openvino
   argo:
     version: master
     path: argo
   pachyderm:
     version: master
     path: pachyderm
+  pipeline:
+    version: master
+    path: pipeline
   pytorch-job:
     version: master
     path: pytorch-job
@@ -61,3 +76,9 @@ libraries:
   kubebench:
     version: master
     path: kubebench
+  modeldb:
+    version: master
+    path: modeldb
+  tf-batch-predict:
+     version: master
+     path: tf-batch-predict

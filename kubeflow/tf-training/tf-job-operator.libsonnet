@@ -1,10 +1,10 @@
 {
   local k = import "k.libsonnet",
-  local util = import "kubeflow/core/util.libsonnet",
+  local util = import "kubeflow/common/util.libsonnet",
   local deployment = k.apps.v1beta1.deployment,
 
   new(_env, _params):: {
-    local params = _env + _params,
+    local params = _params + _env,
 
     // tfJobCrd schema
     local openAPIV3Schema = {
@@ -49,13 +49,8 @@
       },
     },
     local crd(inst) = {
-      local scope =
-        inst + if params.deploymentScope == "namespace" && params.deploymentNamespace != null then
-          { spec+: { scope: "Namespaced" } }
-        else
-          {},
       local version =
-        scope + if params.tfJobVersion == "v1alpha2" then
+        inst + if params.tfJobVersion == "v1alpha2" then
           { spec+: { version: "v1alpha2" } }
         else
           {},
@@ -70,6 +65,7 @@
       },
       spec: {
         group: "kubeflow.org",
+        scope: "Namespaced",
         version: "v1beta1",
         names: {
           kind: "TFJob",
@@ -449,7 +445,7 @@
 
     local tfUiRole = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "ClusterRole",
+      kind: operatorRole.new().kind,
       metadata: {
         labels: {
           app: "tf-job-dashboard",
@@ -471,7 +467,7 @@
 
     local tfUiRoleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "ClusterRoleBinding",
+      kind: operatorRoleBinding.new().kind,
       metadata: {
         labels: {
           app: "tf-job-dashboard",
