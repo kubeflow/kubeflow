@@ -2,7 +2,7 @@
   local k = import "k.libsonnet",
   local util = import "kubeflow/tf-serving/util.libsonnet",
   new(_env, _params):: {
-    local params = _env + _params,
+    local params = _params + _env,
     local namespace = params.namespace,
     local name = params.name,
     local modelName =
@@ -11,8 +11,13 @@
       else
         params.modelName,
     local versionName = params.versionName,
+    local numGpus =
+      if std.type(params.numGpus) == "string" then
+        std.parseInt(params.numGpus)
+      else
+        params.numGpus,
     local modelServerImage =
-      if params.numGpus == "0" then
+      if numGpus == 0 then
         params.defaultCpuImage
       else
         params.defaultGpuImage,
@@ -48,8 +53,8 @@
         limits: {
           cpu: "4",
           memory: "4Gi",
-        } + if params.numGpus != "0" then {
-          "nvidia.com/gpu": params.numGpus,
+        } + if numGpus != 0 then {
+          "nvidia.com/gpu": numGpus,
         } else {},
         requests: {
           cpu: "1",
@@ -116,7 +121,7 @@
       kind: "ConfigMap",
       metadata: {
         name: name + "-config",
-        namespace: params.namespace,
+        namespace: namespace,
       },
       data: {
         "monitoring_config.txt": std.join("\n", [

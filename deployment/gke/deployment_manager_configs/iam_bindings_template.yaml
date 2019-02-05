@@ -26,6 +26,9 @@ bindings:
   - roles/storage.admin
   - roles/bigquery.admin
   - roles/dataflow.admin
+  - roles/ml.admin
+  - roles/dataproc.editor
+  - roles/cloudsql.admin
 - members:
   - set-kubeflow-vm-service-account
   roles:

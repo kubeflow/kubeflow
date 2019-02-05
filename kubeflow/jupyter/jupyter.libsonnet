@@ -1,16 +1,30 @@
 {
   local k = import "k.libsonnet",
-  local util = import "kubeflow/core/util.libsonnet",
+  local util = import "kubeflow/common/util.libsonnet",
   new(_env, _params):: {
-    local params = _env + _params,
+    local params = _params + _env,
 
     local defaultSpawnerData = {
       // Default JH Spawner UI files
       "template.html": importstr "ui/default/template.html",
       "script.js": importstr "ui/default/script.js",
       "style.css": importstr "ui/default/style.css",
-      "spawner.py": importstr "ui/default/spawner.py",
+      "spawner.py": std.strReplace(importstr "ui/default/spawner.py", "\\\n", ""),
       "spawner_ui_config.yaml": importstr "ui/default/config.yaml",
+    },
+
+    local rokSpawnerData = {
+      // Base files that Rok UI extends or overrides
+      "default_template.html": importstr "ui/default/template.html",
+      "default_style.css": importstr "ui/default/style.css",
+      "default_spawner.py": importstr "ui/default/spawner.py",
+
+      // Rok UI files
+      "template.html": importstr "ui/rok/template.html",
+      "script.js": importstr "ui/rok/script.js",
+      "style.css": importstr "ui/rok/style.css",
+      "spawner.py": std.strReplace(importstr "ui/rok/spawner.py", "\\\n", ""),
+      "spawner_ui_config.yaml": importstr "ui/rok/config.yaml",
     },
 
     local kubeSpawnerConfig = {
@@ -22,9 +36,11 @@
       },
       // JH config file
       local config = {
-        "jupyter_config.py": importstr "jupyter_config.py",
+        "jupyter_config.py": std.strReplace(importstr "jupyter_config.py", "\\\n", ""),
       },
-      data: config + if params.ui == "default" then defaultSpawnerData,
+      data: config +
+            if params.ui == "rok" then rokSpawnerData
+            else if params.ui == "default" then defaultSpawnerData,
     },
     kubeSpawnerConfig:: kubeSpawnerConfig,
 
@@ -151,10 +167,6 @@
                 ],
                 env: std.prune([
                   {
-                    name: "NOTEBOOK_PVC_MOUNT",
-                    value: params.notebookPVCMount,
-                  },
-                  {
                     name: "KF_AUTHENTICATOR",
                     value: params.jupyterHubAuthenticator,
                   },
@@ -163,8 +175,12 @@
                     value: params.useJupyterLabAsDefault,
                   },
                   {
-                    name: "KF_PVC_LIST",
-                    value: params.disks,
+                    name: "STORAGE_CLASS",
+                    value: params.storageClass,
+                  },
+                  {
+                    name: "ROK_SECRET_NAME",
+                    value: params.rokSecretName,
                   },
                   if params.platform == "gke" then
                     {
@@ -238,6 +254,7 @@
           ],
           resources: [
             "events",
+            "secrets",
           ],
           verbs: [
             "get",
@@ -263,6 +280,7 @@
           ],
           resources: [
             "pods",
+            "pods/log",
             "services",
           ],
           verbs: [

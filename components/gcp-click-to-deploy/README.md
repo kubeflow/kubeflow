@@ -31,16 +31,18 @@ npm install
 ```
 
 Before starting the server, make a config file `user_config/app-config.yaml` under `src/` with the content from
-[here](https://github.com/kubeflow/kubeflow/blob/master/components/gcp-click-to-deploy/kf_app.yaml#L10).
+[here](https://github.com/kubeflow/kubeflow/blob/master/components/gcp-click-to-deploy/app-config.yaml#L10).
 And then do
 
 ```
 npm start
 ```
 
+A running local [backend service](../../bootstrap/cmd/bootstrap/main.go) is needed for complete deploy.
+
 ## Deployment
 
-We have a dev instance running at [https://deploy.kubeflow.dev](https://deploy.kubeflow.dev)
+We have a dev instance running at [https://deploy-staging.kubeflow.cloud](https://deploy-staging.kubeflow.cloud)
 
 
 ```

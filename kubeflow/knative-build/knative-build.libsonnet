@@ -1,8 +1,8 @@
 {
   local k = import "k.libsonnet",
-  local util = import "kubeflow/core/util.libsonnet",
+  local util = import "kubeflow/common/util.libsonnet",
   new(_env, _params):: {
-    local params = _env + _params,
+    local params = _params + _env,
 
     local knativeBuildLoggingConfigMap = {
       apiVersion: "v1",

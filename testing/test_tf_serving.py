@@ -24,6 +24,8 @@ import numbers
 import os
 import time
 
+from six.moves import xrange
+
 from grpc.beta import implementations
 from kubernetes import client as k8s_client
 import requests

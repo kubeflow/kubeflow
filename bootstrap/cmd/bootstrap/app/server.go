@@ -311,7 +311,7 @@ func Run(opt *options.ServerOption) error {
 		log.Info("--registries-config-file not provided; not loading any registries")
 	}
 
-	ksServer, err := NewServer(opt.AppDir, regConfig.Registries, opt.GkeVersionOverride)
+	ksServer, err := NewServer(opt.AppDir, regConfig.Registries, opt.GkeVersionOverride, opt.InstallIstio)
 
 	if err != nil {
 		return err

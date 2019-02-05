@@ -3,20 +3,22 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Image Auto Release](#image-auto-release)
-  - [Create Release Workflow](#create-release-workflow)
-  - [Update Release Config](#update-release-config)
-
+  - [Creating a release workflow using automation ksonnet package](#creating-a-release-workflow-using-automation-ksonnet-package)
 - [Release Kubeflow](#release-kubeflow)
   - [Authenticate to GCP](#authenticate-to-gcp)
   - [Update TFJob](#update-tfjob)
+  - [Update PyTorchJob](#update-pytorchjob)
   - [Build TF Serving Images](#build-tf-serving-images)
   - [Build the Jupyter Images](#build-the-jupyter-images)
   - [Create a release branch (if necessary)](#create-a-release-branch-if-necessary)
+    - [Enable Periodic tests on the release branch](#enable-periodic-tests-on-the-release-branch)
+  - [Updating ksonnet prototypes with docker image](#updating-ksonnet-prototypes-with-docker-image)
     - [Release branching policy](#release-branching-policy)
   - [Updating the release branch and tagging a release](#updating-the-release-branch-and-tagging-a-release)
     - [Tagging a release candidate](#tagging-a-release-candidate)
     - [Release votes and releases](#release-votes-and-releases)
   - [Updating the ksonnet configs for master](#updating-the-ksonnet-configs-for-master)
+  - [Releasing a new version of the website](#releasing-a-new-version-of-the-website)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -260,6 +262,18 @@ If you aren't already working on a release branch (of the form `v${MAJOR}.${MINO
 2.  they allow sophisticated users to track the development of a release (by using the release branch as a `ksonnet` registry), and
 4.  they simplify backporting critical bugfixes to a patchlevel release particular release stream (e.g., producing a `v0.1.1` from `v0.1-branch`), when appropriate.
 
+### Enable Periodic tests on the release branch
+
+Once the release branch is cut we need to enable periodic tests on the release branch and setup a
+[testgrid dashboard](https://k8s-testgrid.appspot.com/sig-big-data)
+
+1. Modify [kubernetes/test-infra/blob/master/config/jobs/kubeflow/kubeflow-periodics.yaml](https://github.com/kubernetes/test-infra/blob/master/config/jobs/kubeflow/kubeflow-periodics.yaml) to define a new periodic
+   prow job.
+1. Modify [kubernetes/test-infra/blob/master/testgrid/config.yaml](https://github.com/kubernetes/test-infra/blob/master/testgrid/config.yaml)
+
+   * Copy the entries for the most recent release branch and change it to the new release branch
+1. Submit a PR with the above changes.
+
 ## Updating ksonnet prototypes with docker image
 
 Here is the general process for how we update our Docker prototypes to point to
@@ -283,7 +297,7 @@ the correct Docker image. See sections below for component specific instructions
         images and apply a tag to them
       * You can use suitable regexes to get a group of images (e.g. all the 
         notebook) images.
-   * There should be an entry for ever image you want to use referenced by the sha of the image
+   * There should be an entry for every image you want to use referenced by the sha of the image
    * If there was a previous release using an earlier image, remove the tag v${RELEASE}
      from that entry   
    * Run run_apply_image_tags.sh

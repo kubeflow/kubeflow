@@ -9,7 +9,7 @@ local params = {
   defaultTbImage: "tensorflow/tensorflow:1.9.0",
 };
 local env = {
-  namespace:: "test-kf-001",
+  namespace: "test-kf-001",
 };
 
 local instance = tensorboard.new(env, params);

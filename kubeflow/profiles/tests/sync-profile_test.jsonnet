@@ -11,7 +11,19 @@ local params = {
       apiGroup: "rbac.authorization.k8s.io",
     },
   },
+  quota: {
+    requests: {
+      cpu: "1",
+      memory: "1Gi",
+      gpu: "1",
+    },
+    limits: {
+      cpu: "2",
+      memory: "2Gi",
+    },
+  },
   protectedNamespace: "iris",
+  protectedNamespaceQuota: "default",
 };
 
 local env = {
@@ -19,6 +31,11 @@ local env = {
 };
 
 local syncProfile = import "kubeflow/profiles/sync-profile.jsonnet";
+local requestsCpu = "requests.cpu";
+local requestsMemory = "requests.memory";
+local requestsGpu = "requests.nvidia.com/gpu";
+local limitsCpu = "limits.cpu";
+local limitsMemory = "limits.memory";
 
 local request1 = {
   parent: {
@@ -32,6 +49,11 @@ local request1 = {
       template: {
         metadata: {
           namespace: params.protectedNamespace,
+          quota: {
+            name: params.protectedNamespaceQuota,
+            requests: params.quota.requests,
+            limits: params.quota.limits,
+          },
         },
         spec: {
           owner: params.users.stan,
@@ -57,6 +79,11 @@ local request2 = {
       template: {
         metadata: {
           namespace: params.protectedNamespace,
+          quota: {
+            name: params.protectedNamespaceQuota,
+            requests: params.quota.requests,
+            limits: params.quota.limits,
+          },
         },
         spec: {
           owner: params.users.jackie,
@@ -79,6 +106,23 @@ std.assertEqual(
         kind: "Namespace",
         metadata: {
           name: "iris",
+        },
+      },
+      {
+        apiVersion: "v1",
+        kind: "ResourceQuota",
+        metadata: {
+          name: "default",
+          namespace: "iris",
+        },
+        spec: {
+          hard: {
+            [requestsCpu]: "1",
+            [requestsMemory]: "1Gi",
+            [requestsGpu]: "1",
+            [limitsCpu]: "2",
+            [limitsMemory]: "2Gi",
+          },
         },
       },
       {
@@ -118,6 +162,23 @@ std.assertEqual(
         kind: "Namespace",
         metadata: {
           name: "iris",
+        },
+      },
+      {
+        apiVersion: "v1",
+        kind: "ResourceQuota",
+        metadata: {
+          name: "default",
+          namespace: "iris",
+        },
+        spec: {
+          hard: {
+            [requestsCpu]: "1",
+            [requestsMemory]: "1Gi",
+            [requestsGpu]: "1",
+            [limitsCpu]: "2",
+            [limitsMemory]: "2Gi",
+          },
         },
       },
       {

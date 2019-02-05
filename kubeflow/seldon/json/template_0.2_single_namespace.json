@@ -1,0 +1,630 @@
+{
+    "kind": "List",
+    "apiVersion": "v1",
+    "metadata": {},
+    "items": [
+        {
+            "apiVersion": "v1",
+            "kind": "ServiceAccount",
+            "metadata": {
+                "name": "seldon",
+                "namespace": "seldon"
+            }
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "Role",
+            "metadata": {
+                "name": "seldon-local",
+                "namespace": "seldon"
+            },
+            "rules": [
+                {
+                    "apiGroups": [
+                        "*"
+                    ],
+                    "resources": [
+                        "deployments",
+                        "services"
+                    ],
+                    "verbs": [
+                        "*"
+                    ]
+                },
+                {
+                    "apiGroups": [
+                        "machinelearning.seldon.io"
+                    ],
+                    "resources": [
+                        "*"
+                    ],
+                    "verbs": [
+                        "*"
+                    ]
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "RoleBinding",
+            "metadata": {
+                "name": "seldon",
+                "namespace": "seldon"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "Role",
+                "name": "seldon-local"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "seldon",
+                    "namespace": "seldon"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "Role",
+            "metadata": {
+                "name": "ambassador"
+            },
+            "rules": [
+                {
+                    "apiGroups": [
+                        ""
+                    ],
+                    "resources": [
+                        "services"
+                    ],
+                    "verbs": [
+                        "get",
+                        "list",
+                        "watch"
+                    ]
+                },
+                {
+                    "apiGroups": [
+                        ""
+                    ],
+                    "resources": [
+                        "configmaps"
+                    ],
+                    "verbs": [
+                        "create",
+                        "update",
+                        "patch",
+                        "get",
+                        "list",
+                        "watch"
+                    ]
+                },
+                {
+                    "apiGroups": [
+                        ""
+                    ],
+                    "resources": [
+                        "secrets"
+                    ],
+                    "verbs": [
+                        "get",
+                        "list",
+                        "watch"
+                    ]
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "RoleBinding",
+            "metadata": {
+                "name": "ambassador"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "Role",
+                "name": "ambassador"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "seldon",
+                    "namespace": "seldon"
+                }
+            ]
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Service",
+            "metadata": {
+                "labels": {
+                    "service": "ambassador"
+                },
+                "name": "RELEASE-NAME-ambassador",
+                "annotations": {
+                    "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: Module\nname: ambassador\nconfig:\n  service_port: 8080\n"
+                }
+            },
+            "spec": {
+                "selector": {
+                    "service": "ambassador"
+                },
+                "ports": [
+                    {
+                        "name": "http",
+                        "protocol": "TCP",
+                        "port": 80,
+                        "targetPort": 8080
+                    },
+                    {
+                        "name": "https",
+                        "protocol": "TCP",
+                        "port": 443,
+                        "targetPort": 8443
+                    }
+                ],
+                "type": "NodePort"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Service",
+            "metadata": {
+                "labels": {
+                    "service": "ambassador-admin"
+                },
+                "name": "RELEASE-NAME-ambassador-admin"
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "name": "ambassador-admin",
+                        "port": 8877,
+                        "targetPort": 8877
+                    }
+                ],
+                "selector": {
+                    "service": "ambassador"
+                },
+                "type": "NodePort"
+            }
+        },
+        {
+            "apiVersion": "extensions/v1beta1",
+            "kind": "Deployment",
+            "metadata": {
+                "name": "RELEASE-NAME-ambassador"
+            },
+            "spec": {
+                "replicas": 1,
+                "template": {
+                    "metadata": {
+                        "annotations": {
+                            "sidecar.istio.io/inject": "false"
+                        },
+                        "labels": {
+                            "service": "ambassador"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "image": "quay.io/datawire/ambassador:0.40.0",
+                                "name": "ambassador",
+                                "env": [
+                                    {
+                                        "name": "AMBASSADOR_SINGLE_NAMESPACE",
+                                        "value": "true"
+                                    },
+                                    {
+                                        "name": "AMBASSADOR_NAMESPACE",
+                                        "valueFrom": {
+                                            "fieldRef": {
+                                                "fieldPath": "metadata.namespace"
+                                            }
+                                        }
+                                    }
+                                ],
+                                "resources": {
+                                    "limits": {
+                                        "cpu": 1,
+                                        "memory": "400Mi"
+                                    },
+                                    "requests": {
+                                        "cpu": "200m",
+                                        "memory": "128Mi"
+                                    }
+                                },
+                                "ports": [
+                                    {
+                                        "name": "http",
+                                        "containerPort": 8080
+                                    },
+                                    {
+                                        "name": "https",
+                                        "containerPort": 8443
+                                    },
+                                    {
+                                        "name": "admin",
+                                        "containerPort": 8877
+                                    }
+                                ],
+                                "livenessProbe": {
+                                    "httpGet": {
+                                        "path": "/ambassador/v0/check_alive",
+                                        "port": "admin"
+                                    },
+                                    "initialDelaySeconds": 30,
+                                    "periodSeconds": 3
+                                },
+                                "readinessProbe": {
+                                    "httpGet": {
+                                        "path": "/ambassador/v0/check_ready",
+                                        "port": "admin"
+                                    },
+                                    "initialDelaySeconds": 30,
+                                    "periodSeconds": 3
+                                }
+                            }
+                        ],
+                        "restartPolicy": "Always",
+                        "serviceAccountName": "seldon",
+                        "securityContext": {
+                            "runAsUser": 8888
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "apps/v1beta1",
+            "kind": "Deployment",
+            "metadata": {
+                "labels": {
+                    "app.kubernetes.io/name": "RELEASE-NAME",
+                    "app.kubernetes.io/component": "seldon-core-apiserver",
+                    "app": "seldon-apiserver-container-app",
+                    "chart": "seldon-core-0.2.6-SNAPSHOT",
+                    "release": "RELEASE-NAME",
+                    "heritage": "Tiller",
+                    "component": "seldon-core"
+                },
+                "name": "RELEASE-NAME-seldon-apiserver",
+                "namespace": "seldon"
+            },
+            "spec": {
+                "replicas": 1,
+                "selector": {
+                    "matchLabels": {
+                        "app.kubernetes.io/name": "RELEASE-NAME",
+                        "app.kubernetes.io/component": "seldon-core-apiserver",
+                        "app": "seldon-apiserver-container-app",
+                        "chart": "seldon-core-0.2.6-SNAPSHOT",
+                        "release": "RELEASE-NAME",
+                        "heritage": "Tiller",
+                        "component": "seldon-core"
+                    }
+                },
+                "template": {
+                    "metadata": {
+                        "annotations": {
+                            "prometheus.io/path": "/prometheus",
+                            "prometheus.io/port": "8080",
+                            "prometheus.io/scrape": "true"
+                        },
+                        "labels": {
+                            "app.kubernetes.io/name": "RELEASE-NAME",
+                            "app.kubernetes.io/component": "seldon-core-apiserver",
+                            "app": "seldon-apiserver-container-app",
+                            "chart": "seldon-core-0.2.6-SNAPSHOT",
+                            "release": "RELEASE-NAME",
+                            "heritage": "Tiller",
+                            "component": "seldon-core"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "env": [
+                                    {
+                                        "name": "SELDON_ENGINE_KAFKA_SERVER",
+                                        "value": "kafka:9092"
+                                    },
+                                    {
+                                        "name": "SELDON_CLUSTER_MANAGER_REDIS_HOST",
+                                        "value": "RELEASE-NAME-redis"
+                                    },
+                                    {
+                                        "name": "SELDON_SINGLE_NAMESPACE",
+                                        "value": "true"
+                                    },
+                                    {
+                                        "name": "SELDON_CLUSTER_MANAGER_POD_NAMESPACE",
+                                        "valueFrom": {
+                                            "fieldRef": {
+                                                "apiVersion": "v1",
+                                                "fieldPath": "metadata.namespace"
+                                            }
+                                        }
+                                    }
+                                ],
+                                "image": "seldonio/apife:0.2.6-SNAPSHOT",
+                                "imagePullPolicy": "IfNotPresent",
+                                "name": "seldon-apiserver-container",
+                                "volumeMounts": [
+                                    {
+                                        "name": "podinfo",
+                                        "mountPath": "/etc/podinfo",
+                                        "readOnly": false
+                                    }
+                                ],
+                                "securityContext": {
+                                    "runAsUser": 8888
+                                },
+                                "ports": [
+                                    {
+                                        "containerPort": 8080,
+                                        "protocol": "TCP"
+                                    },
+                                    {
+                                        "containerPort": 5000,
+                                        "protocol": "TCP"
+                                    }
+                                ]
+                            }
+                        ],
+                        "dnsPolicy": "ClusterFirst",
+                        "serviceAccountName": "seldon",
+                        "terminationGracePeriodSeconds": 30,
+                        "volumes": [
+                            {
+                                "name": "podinfo",
+                                "downwardAPI": {
+                                    "items": [
+                                        {
+                                            "path": "annotations",
+                                            "fieldRef": {
+                                                "fieldPath": "metadata.annotations"
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Service",
+            "metadata": {
+                "creationTimestamp": null,
+                "labels": {
+                    "app.kubernetes.io/name": "RELEASE-NAME",
+                    "app.kubernetes.io/component": "seldon-core-apiserver",
+                    "app": "seldon-apiserver-container-app"
+                },
+                "name": "RELEASE-NAME-seldon-apiserver"
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "name": "http",
+                        "port": 8080,
+                        "protocol": "TCP",
+                        "targetPort": 8080
+                    },
+                    {
+                        "name": "grpc",
+                        "port": 5000,
+                        "protocol": "TCP",
+                        "targetPort": 5000
+                    }
+                ],
+                "selector": {
+                    "app": "seldon-apiserver-container-app"
+                },
+                "sessionAffinity": "None",
+                "type": "NodePort"
+            },
+            "status": {
+                "loadBalancer": {}
+            }
+        },
+        {
+            "apiVersion": "extensions/v1beta1",
+            "kind": "Deployment",
+            "metadata": {
+                "labels": {
+                    "app.kubernetes.io/name": "RELEASE-NAME",
+                    "app.kubernetes.io/component": "seldon-core-operator",
+                    "app": "seldon-cluster-manager-server",
+                    "chart": "seldon-core-0.2.6-SNAPSHOT",
+                    "release": "RELEASE-NAME",
+                    "heritage": "Tiller",
+                    "component": "seldon-core"
+                },
+                "name": "RELEASE-NAME-seldon-cluster-manager",
+                "namespace": "seldon"
+            },
+            "spec": {
+                "replicas": 1,
+                "selector": {
+                    "matchLabels": {
+                        "app.kubernetes.io/name": "RELEASE-NAME",
+                        "app.kubernetes.io/component": "seldon-core-operator",
+                        "app": "seldon-cluster-manager-server",
+                        "chart": "seldon-core-0.2.6-SNAPSHOT",
+                        "release": "RELEASE-NAME",
+                        "heritage": "Tiller",
+                        "component": "seldon-core"
+                    }
+                },
+                "template": {
+                    "metadata": {
+                        "labels": {
+                            "app.kubernetes.io/name": "RELEASE-NAME",
+                            "app.kubernetes.io/component": "seldon-core-operator",
+                            "app": "seldon-cluster-manager-server",
+                            "chart": "seldon-core-0.2.6-SNAPSHOT",
+                            "release": "RELEASE-NAME",
+                            "heritage": "Tiller",
+                            "component": "seldon-core"
+                        }
+                    },
+                    "spec": {
+                        "serviceAccountName": "seldon",
+                        "containers": [
+                            {
+                                "env": [
+                                    {
+                                        "name": "JAVA_OPTS",
+                                        "value": null
+                                    },
+                                    {
+                                        "name": "SPRING_OPTS",
+                                        "value": null
+                                    },
+                                    {
+                                        "name": "SELDON_CLUSTER_MANAGER_REDIS_HOST",
+                                        "value": "RELEASE-NAME-redis"
+                                    },
+                                    {
+                                        "name": "ENGINE_CONTAINER_IMAGE_AND_VERSION",
+                                        "value": "seldonio/engine:0.2.6-SNAPSHOT"
+                                    },
+                                    {
+                                        "name": "ENGINE_CONTAINER_IMAGE_PULL_POLICY",
+                                        "value": "IfNotPresent"
+                                    },
+                                    {
+                                        "name": "ENGINE_CONTAINER_SERVICE_ACCOUNT_NAME",
+                                        "value": "default"
+                                    },
+                                    {
+                                        "name": "SELDON_CLUSTER_MANAGER_SINGLE_NAMESPACE",
+                                        "value": "true"
+                                    },
+                                    {
+                                        "name": "ENGINE_CONTAINER_USER",
+                                        "value": "8888"
+                                    },
+                                    {
+                                        "name": "SELDON_CLUSTER_MANAGER_POD_NAMESPACE",
+                                        "valueFrom": {
+                                            "fieldRef": {
+                                                "apiVersion": "v1",
+                                                "fieldPath": "metadata.namespace"
+                                            }
+                                        }
+                                    }
+                                ],
+                                "image": "seldonio/cluster-manager:0.2.6-SNAPSHOT",
+                                "imagePullPolicy": "IfNotPresent",
+                                "name": "seldon-cluster-manager-container",
+                                "securityContext": {
+                                    "runAsUser": 8888
+                                },
+                                "ports": [
+                                    {
+                                        "containerPort": 8080,
+                                        "protocol": "TCP"
+                                    }
+                                ]
+                            }
+                        ],
+                        "terminationGracePeriodSeconds": 1
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "extensions/v1beta1",
+            "kind": "Deployment",
+            "metadata": {
+                "labels": {
+                    "app.kubernetes.io/name": "RELEASE-NAME",
+                    "app.kubernetes.io/component": "seldon-core-redis",
+                    "app": "RELEASE-NAME-redis-app",
+                    "chart": "seldon-core-0.2.6-SNAPSHOT",
+                    "release": "RELEASE-NAME",
+                    "heritage": "Tiller",
+                    "component": "seldon-core"
+                },
+                "name": "RELEASE-NAME-redis",
+                "namespace": "seldon"
+            },
+            "spec": {
+                "replicas": 1,
+                "selector": {
+                    "matchLabels": {
+                        "app.kubernetes.io/name": "RELEASE-NAME",
+                        "app.kubernetes.io/component": "seldon-core-redis",
+                        "app": "RELEASE-NAME-redis-app",
+                        "chart": "seldon-core-0.2.6-SNAPSHOT",
+                        "release": "RELEASE-NAME",
+                        "heritage": "Tiller",
+                        "component": "seldon-core"
+                    }
+                },
+                "template": {
+                    "metadata": {
+                        "labels": {
+                            "app.kubernetes.io/name": "RELEASE-NAME",
+                            "app.kubernetes.io/component": "seldon-core-redis",
+                            "app": "RELEASE-NAME-redis-app",
+                            "chart": "seldon-core-0.2.6-SNAPSHOT",
+                            "release": "RELEASE-NAME",
+                            "heritage": "Tiller",
+                            "component": "seldon-core"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "image": "redis:4.0.1",
+                                "name": "redis-container",
+                                "ports": [
+                                    {
+                                        "containerPort": 6379,
+                                        "protocol": "TCP"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Service",
+            "metadata": {
+                "labels": {
+                    "app.kubernetes.io/name": "RELEASE-NAME",
+                    "app.kubernetes.io/component": "seldon-core-redis"
+                },
+                "name": "RELEASE-NAME-redis"
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "port": 6379,
+                        "protocol": "TCP",
+                        "targetPort": 6379
+                    }
+                ],
+                "selector": {
+                    "app": "RELEASE-NAME-redis-app"
+                },
+                "sessionAffinity": "None",
+                "type": "ClusterIP"
+            },
+            "status": {
+                "loadBalancer": {}
+            }
+        }
+    ]
+}

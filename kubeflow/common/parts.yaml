@@ -1,0 +1,35 @@
+{
+   "name": "common",
+   "apiVersion": "0.0.1",
+   "kind": "ksonnet.io/parts",
+   "description": "Common components of Kubeflow.\n",
+   "author": "kubeflow team <kubeflow-team@google.com>",
+   "contributors": [
+      {
+         "name": "Jeremy Lewi",
+         "email": "jlewi@google.com"
+      }
+   ],
+   "repository": {
+      "type": "git",
+      "url": "https://github.com/kubeflow/kubeflow"
+   },
+   "bugs": {
+      "url": "https://github.com/kubeflow/kubeflow/issues"
+   },
+   "keywords": [
+      "kubeflow",
+      "tensorflow"
+   ],
+   "quickStart": {
+      "prototype": "io.ksonnet.pkg.kubeflow",
+      "componentName": "common",
+      "flags": {
+         "name": "common",
+         "namespace": "default",
+         "disks": ""
+      },
+      "comment": "Common Kubeflow components."
+   },
+   "license": "Apache 2.0"
+}

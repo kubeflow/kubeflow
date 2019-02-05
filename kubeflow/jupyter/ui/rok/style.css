@@ -1,0 +1,7 @@
+input.invalid {
+  border-color: #dc3545!important;
+}
+
+input.valid {
+  border-color: #28A744!important;
+}

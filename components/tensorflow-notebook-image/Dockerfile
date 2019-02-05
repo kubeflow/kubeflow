@@ -10,6 +10,7 @@ ARG TF_PACKAGE_PY_27=https://storage.googleapis.com/tensorflow/linux/cpu/tensorf
 ARG TF_SERVING_VERSION=0.0.0
 ARG TFMA_VERSION
 ARG TFDV_VERSION
+ARG PIPELINE_SDK_PACKAGE=https://storage.googleapis.com/ml-pipeline/release/0.1.8/kfp.tar.gz
 
 USER root
 
@@ -30,6 +31,7 @@ ENV TF_PACKAGE_27 $TF_PACKAGE_PY_27
 ENV TF_SERVING_VERSION $TF_PACKAGE_PY_27
 ENV TFMA_VERSION $TFMA_VERSION
 ENV TFDV_VERSION $TFDV_VERSION
+ENV PIPELINE_SDK_PACKAGE $PIPELINE_SDK_PACKAGE
 
 # Use bash instead of sh
 SHELL ["/bin/bash", "-c"]
@@ -54,6 +56,13 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
   zip \
   && apt-get clean && \
   rm -rf /var/lib/apt/lists/*
+  
+ENV DOCKER_CREDENTIAL_GCR_VERSION=1.4.3
+RUN curl -LO https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/v${DOCKER_CREDENTIAL_GCR_VERSION}/docker-credential-gcr_linux_amd64-${DOCKER_CREDENTIAL_GCR_VERSION}.tar.gz && \
+    tar -zxvf docker-credential-gcr_linux_amd64-${DOCKER_CREDENTIAL_GCR_VERSION}.tar.gz && \
+    mv docker-credential-gcr /usr/local/bin/docker-credential-gcr && \
+    rm docker-credential-gcr_linux_amd64-${DOCKER_CREDENTIAL_GCR_VERSION}.tar.gz && \
+    chmod +x /usr/local/bin/docker-credential-gcr
 
 RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
     locale-gen
@@ -111,6 +120,10 @@ RUN pip install --upgrade pip && \
     jupyter-console==6.0.0 \
     jupyterhub \
     jupyterlab \
+    xgboost \
+    git+https://github.com/kubeflow/fairing@f82e75e78874f16ceaee756445100bb7fef96b58 \
+    # Kubeflow pipeline SDK
+    ${PIPELINE_SDK_PACKAGE} \
     # Cleanup
     && conda clean -tipsy
 
@@ -133,6 +146,8 @@ RUN rm -fr $(ls -A $HOME)
 # Copy over init scripts
 COPY --chown=jovyan:users start-singleuser.sh start-notebook.sh start.sh pvc-check.sh /usr/local/bin/
 RUN chmod a+rx /usr/local/bin/*
+
+RUN docker-credential-gcr configure-docker && chown jovyan:users $HOME/.docker/config.json
 
 # Configure container startup
 EXPOSE 8888

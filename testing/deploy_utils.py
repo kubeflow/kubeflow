@@ -47,9 +47,9 @@ def _setup_test(api_client, run_label):
   namespace.api_version = "v1"
   namespace.kind = "Namespace"
   namespace.metadata = k8s_client.V1ObjectMeta(
-    name=run_label, labels={
-      "app": "kubeflow-e2e-test",
-    })
+      name=run_label, labels={
+        "app": "kubeflow-e2e-test",
+      })
 
   try:
     logging.info("Creating namespace %s", namespace.metadata.name)
@@ -85,24 +85,24 @@ def setup_kubeflow_ks_app(dir, namespace, github_token, api_client):
   # Initialize a ksonnet app.
   app_name = "kubeflow-test-" + uuid.uuid4().hex[0:4]
   util.run(
-    [
-      "ks",
-      "init",
-      app_name,
-    ], cwd=dir)
+      [
+        "ks",
+        "init",
+        app_name,
+      ], cwd=dir)
 
   app_dir = os.path.join(dir, app_name)
 
   # Set the default namespace.
   util.run(["ks", "env", "set", "default", "--namespace=" + namespace_name],
-    cwd=app_dir)
+           cwd=app_dir)
 
   kubeflow_registry = "github.com/kubeflow/kubeflow/tree/master/kubeflow"
   util.run(
-    ["ks", "registry", "add", "kubeflow", kubeflow_registry], cwd=app_dir)
+      ["ks", "registry", "add", "kubeflow", kubeflow_registry], cwd=app_dir)
 
   # Install required packages
-  packages = ["kubeflow/core", "kubeflow/jupyter", "kubeflow/tf-serving", "kubeflow/tf-job", "kubeflow/tf-training", "kubeflow/pytorch-job", "kubeflow/argo"]
+  packages = ["kubeflow/common", "kubeflow/gcp", "kubeflow/jupyter", "kubeflow/tf-serving", "kubeflow/tf-job", "kubeflow/tf-training", "kubeflow/pytorch-job", "kubeflow/argo", "kubeflow/katib"]
 
   # Instead of installing packages we edit the app.yaml file directly
   #for p in packages:
@@ -139,13 +139,13 @@ def log_operation_status(operation):
   name = operation.get("name", "")
   status = operation.get("status", "")
   logging.info("Operation %s status %s", name, status)
-  
+
 def wait_for_operation(client,
-                       project,
-                       op_id,
-                       timeout=datetime.timedelta(hours=1),
-                       polling_interval=datetime.timedelta(seconds=5),
-                       status_callback=log_operation_status):
+    project,
+    op_id,
+    timeout=datetime.timedelta(hours=1),
+    polling_interval=datetime.timedelta(seconds=5),
+    status_callback=log_operation_status):
   """Wait for the specified operation to complete.
 
   Args:
@@ -167,7 +167,7 @@ def wait_for_operation(client,
   while True:
     try:
       op = client.operations().get(
-        project=project, operation=op_id).execute()
+          project=project, operation=op_id).execute()
 
       if status_callback:
         status_callback(op)
@@ -180,7 +180,7 @@ def wait_for_operation(client,
       logging.error("Ignoring error %s", e)
     if datetime.datetime.now() > endtime:
       raise TimeoutError(
-        "Timed out waiting for op: {0} to complete.".format(op_id))
+          "Timed out waiting for op: {0} to complete.".format(op_id))
     time.sleep(polling_interval.total_seconds())
 
   # Linter complains if we don't have a return here even though its unreachable.

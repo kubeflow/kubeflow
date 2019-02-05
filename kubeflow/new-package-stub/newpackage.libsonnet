@@ -1,11 +1,11 @@
 {
   local k = import "k.libsonnet",
-  local util = import "kubeflow/core/util.libsonnet",
+  local util = import "kubeflow/common/util.libsonnet",
   // The section below is required. The new(_env, _params) hidden method
   // sets a local variable params which is _env + _params
   // All resources defined within self can then access param values as params.<name>
   new(_env, _params):: self {
-    local params = _env + _params,
+    local params = _params + _env,
 
     // Define the various resource manifests as local class variables
     // The resource variable should be descriptive of the resource value being exported,
