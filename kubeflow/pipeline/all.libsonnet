@@ -30,7 +30,7 @@
           pipeline_apiserver.all(namespace, apiImage) +
           pipeline_scheduledworkflow.all(namespace, scheduledWorkflowImage) +
           pipeline_persistenceagent.all(namespace, persistenceAgentImage) +
-          pipeline_ui.all(namespace, uiImage) + 
+          pipeline_ui.all(namespace, uiImage) +
           storage.all(namespace, mysqlPvName, nfsPvName, mysqlPd, nfsPd),
   },
 }
