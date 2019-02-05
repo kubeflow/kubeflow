@@ -119,6 +119,8 @@ def prepare_request_data(args, deployment):
   }
 
 def make_e2e_call(args):
+  if not clean_up_resource(args, set([args.deployment])):
+    raise RuntimeError("Failed to cleanup resource")
   req_data = prepare_request_data(args, args.deployment)
   resp = requests.post("http://kubeflow-controller.%s.svc.cluster.local:8080/kfctl/e2eDeploy" % args.namespace,
                        json=req_data)
@@ -324,9 +326,15 @@ def delete_gcloud_resource(args, keyword, filter='', dlt_params=[]):
       logging.warning('Cannot remove %s %s' % (keyword, element))
       logging.warning(e)
 
-# clean up deployment / app config from previous test
-# deployments: set(string) which contains all deployment names in current test round.
-def prober_clean_up_resource(args, deployments):
+def clean_up_resource(args, deployments):
+  """Clean up deployment / app config from previous test
+
+  Args:
+    args: The args from ArgParse.
+    deployments set(string): which contains all deployment names in current test round.
+  Returns:
+    bool: True if cleanup is done
+  """
   logging.info("Clean up project resource (source repo, backend service and deployment)")
 
   # Delete source repo
@@ -435,7 +443,7 @@ def run_load_test(args):
   deployments = set(['kubeflow' + str(i) for i in range(1, num_concurrent_requests + 1)])
   while True:
     sleep(args.wait_sec)
-    if not prober_clean_up_resource(args, deployments):
+    if not clean_up_resource(args, deployments):
       LOADTEST_HEALTH.set(1)
       FAILURE_COUNT.inc()
       logging.error("request cleanup failed, retry in %s seconds" % args.wait_sec)
@@ -529,7 +537,7 @@ def main(unparsed_args=None):
     service_account_credentials = get_service_account_credentials("SERVICE_CLIENT_ID")
     while True:
       sleep(args.wait_sec)
-      if not prober_clean_up_resource(args, set([args.deployment])):
+      if not clean_up_resource(args, set([args.deployment])):
         PROBER_HEALTH.set(1)
         FAILURE_COUNT.inc()
         logging.error("request cleanup failed, retry in %s seconds" % args.wait_sec)
