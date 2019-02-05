@@ -37,6 +37,7 @@ interface DeployFormState {
   showLogs: boolean;
   zone: string;
   kfversion: string;
+  kfversionList: string[];
   clientId: string;
   clientSecret: string;
   iap: boolean;
@@ -98,8 +99,6 @@ const styles: { [key: string]: React.CSSProperties } = {
 export default class DeployForm extends React.Component<any, DeployFormState> {
 
   private _configSpec: any;
-  private _versions: string[] = ['v0.3.5'];
-  private _query_string_version: string | null;
 
   constructor(props: any) {
     super(props);
@@ -111,6 +110,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       dialogTitle: '',
       iap: true,
       kfversion: 'v0.3.5',
+      kfversionList: ['v0.3.5'],
       project: '',
       showLogs: false,
       zone: 'us-central1-a',
@@ -124,12 +124,20 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     // that?
 
     const params = new URLSearchParams(this.props.location.search);
-    if (params.get('version')) {
-      this._query_string_version = params.get('version');
-      this.setState({
-        kfversion: String(this._query_string_version),
-      });
+    let kfversionList = this.state.kfversionList;
+    let kfversion = this.state.kfversion;
+    if (process.env.REACT_APP_VERSIONS){
+      kfversionList = process.env.REACT_APP_VERSIONS.split(',');
+      kfversion = kfversionList[0];
     }
+    if (params.get('version')) {
+      kfversion = String(params.get('version'));
+      kfversionList.push(kfversion);
+    }
+    this.setState({
+      kfversion,
+      kfversionList,
+    });
     fetch(appConfigPath, { mode: 'no-cors' })
       .then((response) => {
         log('Got response');
@@ -196,14 +204,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         <div style={styles.row}>
           <TextField select={true} label="Kubeflow version:" required={true} style={styles.input} variant="filled"
             value={this.state.kfversion} onChange={this._handleChange('kfversion')}>
-            {this._query_string_version &&
-              (<MenuItem value={String(this._query_string_version)}>{this._query_string_version}</MenuItem>)
-            }
-            { process.env.REACT_APP_VERSIONS ?
-              process.env.REACT_APP_VERSIONS.split(',').map((version, i) => (
-                <MenuItem key={i} value={version}>{version}</MenuItem>
-              )) :
-                this._versions.map((version, i) => (
+            { this.state.kfversionList.map((version, i) => (
                 <MenuItem key={i} value={version}>{version}</MenuItem>
               ))
             }
