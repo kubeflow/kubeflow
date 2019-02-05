@@ -134,20 +134,6 @@ func (r *ReconcileNotebook) ReconcileStatefulSet(instance *v1alpha1.Notebook) er
 		},
 	}
 	container := ss.Spec.Template.Spec.Containers[0]
-	if len(container.Args) == 0 {
-		container.Args = []string{
-			"start.sh",
-			"jupyter",
-			"lab",
-			"--LabApp.token=''",
-			"--LabApp.allow_remote_access='True'",
-			"--LabApp.allow_root='True'",
-			"--LabApp.ip='*'",
-			"--LabApp.base_url=/" + instance.ObjectMeta.Namespace + "/" + instance.ObjectMeta.Name + "/",
-			"--port=8888",
-			"--no-browser",
-		}
-	}
 	container.Env = append(container.Env, corev1.EnvVar{
 		Name:  "JUPYTER_ENABLE_LAB",
 		Value: "TRUE",

@@ -20,11 +20,16 @@ spec:
     spec:  # Your PodSpec here
       containers:
       - image: gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu:v0.3.0
+        args: ["start.sh", "lab", "--LabApp.token=''", "--LabApp.allow_remote_access='True'",
+               "--LabApp.allow_root='True'", "--LabApp.ip='*'",
+               "--LabApp.base_url=/test/my-notebook/",
+               "--port=8888", "--no-browser"]
         name: notebook
       ...
 ```
 
-The only required field is `containers[0].image`.
+The required fields are `containers[0].image` and (`containers[0].command` and/or `containers[0].args`).
+That is, the user should specify what and how to run.
 
 All other fields will be filled in with default value if not specified.
 
