@@ -1,29 +1,9 @@
 {
   all(namespace, mysqlImage):: [
-    $.parts(namespace).pvc,
     $.parts(namespace).service,
     $.parts(namespace).deploy(mysqlImage),
   ],
   parts(namespace):: {
-    pvc: {
-      apiVersion: "v1",
-      kind: "PersistentVolumeClaim",
-      metadata: {
-        name: "mysql-pv-claim",
-        namespace: namespace,
-      },
-      spec: {
-        accessModes: [
-          "ReadWriteOnce",
-        ],
-        resources: {
-          requests: {
-            storage: "10Gi",
-          },
-        },
-      },
-    },  //pvc
-
     service: {
       apiVersion: "v1",
       kind: "Service",

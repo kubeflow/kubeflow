@@ -14,7 +14,6 @@ limitations under the License.
 
 {% set NAME_PREFIX = env['deployment'] %}
 {% set CLUSTER_NAME = NAME_PREFIX %}
-{% set SQL_INSTANCE_NAME =  env['deployment'] + '-mysql' %}
 {% set CPU_POOL = NAME_PREFIX + '-cpu-pool-' + properties['pool-version'] %}
 {% set GPU_POOL = NAME_PREFIX + '-gpu-pool-' + properties['pool-version'] %}
 {% set VM_OAUTH_SCOPES = ['https://www.googleapis.com/auth/logging.write', 
@@ -174,49 +173,3 @@ resources:
   type: compute.v1.globalAddress
   properties:
     description: "Static IP for Kubeflow ingress."
-
-{% if properties['enable_cloudsql'] %}
-- name: {{ SQL_INSTANCE_NAME }}
-  type: sqladmin.v1beta4.instance
-  properties:
-    backendType: SECOND_GEN
-    instanceType: CLOUD_SQL_INSTANCE
-    databaseVersion: {{ properties['cloudsql']['databaseVersion'] }}
-    region: {{ properties['cloudsql']['region'] }}
-    settings:
-      tier: {{ properties['cloudsql']['tier'] }}
-      dataDiskSizeGb: {{ properties['cloudsql']['dataDiskSizeGb'] }}
-      dataDiskType: {{ properties['cloudsql']['dataDiskType'] }}
-      storageAutoResize: true
-      replicationType: SYNCHRONOUS
-      locationPreference:
-        zone: {{ properties['cloudsql']['zone'] }}
-      {% if properties['databaseFlags'] %}
-      databaseFlags: {{ properties['databaseFlags'] }}
-      {% endif %}
-      activationPolicy: ALWAYS
-      backupConfiguration:
-        enabled: true
-        binaryLogEnabled: true
-        startTime: {{ properties['cloudsql']['backupStartTime'] }}
-      ipConfiguration:
-        privateNetwork: projects/{{ env['project'] }}/global/networks/default
-        authorizedNetworks: {{ properties['cloudsql']['authorizedNetworks'] }}
-
-- name: {{ SQL_INSTANCE_NAME }}-db
-  type: sqladmin.v1beta4.database
-  properties:
-    name: {{ properties['database']['name'] }}
-    instance: $(ref.{{ SQL_INSTANCE_NAME }}.name)
-    charset: {{ properties['database']['charset'] }}
-
-- name: {{ SQL_INSTANCE_NAME }}-db-root
-  type: sqladmin.v1beta4.user
-  properties:
-    name: {{ properties['dbUser']['name'] }}
-    host:  "{{ properties['dbUser']['host'] }}"
-    instance: $(ref.{{ SQL_INSTANCE_NAME }}.name)
-  metadata:
-    dependsOn:
-      - {{ SQL_INSTANCE_NAME }}-db
-{% endif %}

@@ -1,10 +1,19 @@
 # Credentials Pod Presets
 
-This package contains Kubernetes [PodPresets](https://kubernetes.io/docs/concepts/workloads/pods/podpreset/) for injecting credentials into Pods.
+> This package contains Kubernetes [PodPresets](https://kubernetes.io/docs/concepts/workloads/pods/podpreset/) for injecting credentials into Pods.
 
 > Note: Pod Presets are namespace-scoped. A separate Pod Preset needs to be created for every namespace that needs credentials injected into pods.
 
-# Google Cloud Service Account Credentials
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Google Cloud Service Account Credentials](#google-cloud-service-account-credentials)
+  - [Testing the pod preset](#testing-the-pod-preset)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## Google Cloud Service Account Credentials
 
 This is useful for injecting GCP Service Account Credentials into pods by using labels. Currently PodPresets is in alpha on GCP, so make sure that you are creating a GKE cluster with alpha features [enabled](https://cloud.google.com/kubernetes-engine/docs/concepts/alpha-clusters).
 
@@ -57,7 +66,7 @@ KS_ENV=default
 ks apply ${KS_ENV} -c ${COMPONENT_NAME}
 ```
 
-## Testing the pod preset
+### Testing the pod preset
 
 Any pod which has the label `inject_gcp_service_account: ${SERVICE_ACCOUNT}` and created in the `${NAMESPACE}` will be injected with the `${SERVICE_ACCOUNT}` credentials.
 

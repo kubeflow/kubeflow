@@ -89,9 +89,3 @@ resources:
     # This is the name of the GCP static ip address reserved for your domain.
     # Each Kubeflow deployment in your project should use one unique ipName among all configs.
     ipName: kubeflow-ip
-    # TODO(IronPan): Enable cloud sql when Kubeflow Pipelines integrate with cloud sql
-    enable_cloudsql: false
-    database:
-      name: mlpipeline
-    dbUser:
-      user: root

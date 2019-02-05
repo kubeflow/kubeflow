@@ -25,6 +25,7 @@ type ServerOption struct {
 	JsonLogFormat        bool
 	InCluster            bool
 	KeepAlive            bool
+	InstallIstio         bool
 	Port                 int
 	AppDir               string
 	Config               string
@@ -62,4 +63,6 @@ func (s *ServerOption) AddFlags(fs *flag.FlagSet) {
 	// TODO(jlewi): We should probably change the default to the empty string because running as a server
 	// will be far more common then doing a one off batch job based on a config file.
 	fs.StringVar(&s.Config, "config", "", "Path to a YAML file describing an app to create on startup.")
+	// Whether to install istio. Remove after we always install it.
+	fs.BoolVar(&s.InstallIstio, "install-istio", false, "Whether to install istio.")
 }

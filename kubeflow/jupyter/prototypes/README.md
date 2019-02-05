@@ -1,3 +1,13 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Goals](#goals)
+- [Design](#design)
+  - [User Interaction](#user-interaction)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## Goals
 
 - provide a k8 native mechanism to spawning jupyter notebooks for users

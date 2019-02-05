@@ -152,7 +152,7 @@
               {
                 name: "ml-pipeline-api-server",
                 image: image,
-                imagePullPolicy: "Always",
+                imagePullPolicy: "IfNotPresent",
                 ports: [
                   {
                     containerPort: 8888,
@@ -198,7 +198,6 @@
           app: "pipeline-runner",
         },
         name: "pipeline-runner",
-        namespace: namespace,
       },
       rules: [
         {
@@ -309,7 +308,6 @@
           app: "pipeline-runner",
         },
         name: "pipeline-runner",
-        namespace: namespace,
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
