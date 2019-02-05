@@ -312,10 +312,6 @@ func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum, options map[string]
 	if parameters == nil || len(parameters) == 0 {
 		ksApp.KsApp.Spec.Parameters = kstypes.DefaultParameters
 	}
-	writeConfigErr := ksApp.writeConfigFile()
-	if writeConfigErr != nil {
-		return fmt.Errorf("couldn't write config file app.yaml in %v Error %v", ksApp.AppDir, writeConfigErr)
-	}
 	initErr := ksApp.initKs("default", k8sSpec, host, ksApp.KsApp.Namespace)
 	if initErr != nil {
 		return fmt.Errorf("couldn't initialize KfApi: %v", initErr)
