@@ -30,7 +30,7 @@ var deleteCmd = &cobra.Command{
 	Long:  `Delete a kubeflow application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.InfoLevel)
-		log.Info("generating kubeflow application")
+		log.Info("deleting kubeflow application")
 		if deleteCfg.GetBool(string(kftypes.VERBOSE)) == true {
 			log.SetLevel(log.InfoLevel)
 		} else {
