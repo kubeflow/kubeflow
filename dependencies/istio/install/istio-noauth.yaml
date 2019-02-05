@@ -18,7 +18,7 @@ metadata:
     release: istio
     istio: galley
 data:
-  validatingwebhookconfiguration.yaml: |-    
+  validatingwebhookconfiguration.yaml: |-
     apiVersion: admissionregistration.k8s.io/v1beta1
     kind: ValidatingWebhookConfiguration
     metadata:
@@ -144,7 +144,7 @@ metadata:
     release: istio
     istio: grafana
 data:
-  custom-resources.yaml: |-    
+  custom-resources.yaml: |-
     apiVersion: authentication.istio.io/v1alpha1
     kind: Policy
     metadata:
@@ -160,18 +160,18 @@ data:
       - name: grafana
         ports:
         - number: 3000
-  run.sh: |-    
+  run.sh: |-
     #!/bin/sh
-    
+
     set -x
-    
+
     if [ "$#" -ne "1" ]; then
         echo "first argument should be path to custom resource yaml"
         exit 1
     fi
-    
+
     pathToResourceYAML=${1}
-    
+
     kubectl get validatingwebhookconfiguration istio-galley 2>/dev/null
     if [ "$?" -eq 0 ]; then
         echo "istio-galley validatingwebhookconfiguration found - waiting for istio-galley deployment to be ready"
@@ -191,7 +191,7 @@ data:
     fi
     sleep 5
     kubectl apply -f ${pathToResourceYAML}
-    
+
 
 ---
 # Source: istio/charts/grafana/templates/configmap-dashboards.yaml
@@ -11983,7 +11983,7 @@ data:
       orgId: 1
       type: prometheus
       url: http://prometheus:9090
-    
+
   dashboardproviders.yaml: |
     apiVersion: 1
     providers:
@@ -11994,7 +11994,7 @@ data:
         path: /var/lib/grafana/dashboards/istio
       orgId: 1
       type: file
-    
+
 ---
 # Source: istio/charts/kiali/templates/configmap.yaml
 apiVersion: v1
@@ -12014,9 +12014,9 @@ data:
       port: 20001
     external_services:
       jaeger:
-        url: 
+        url:
       grafana:
-        url: 
+        url:
 
 ---
 # Source: istio/charts/prometheus/templates/configmap.yaml
@@ -12335,7 +12335,7 @@ metadata:
     release: istio
     istio: citadel
 data:
-  custom-resources.yaml: |-    
+  custom-resources.yaml: |-
     # Authentication policy to enable permissive mode for all services (that have sidecar) in the mesh.
     apiVersion: "authentication.istio.io/v1alpha1"
     kind: "MeshPolicy"
@@ -12350,18 +12350,18 @@ data:
       peers:
       - mtls:
           mode: PERMISSIVE
-  run.sh: |-    
+  run.sh: |-
     #!/bin/sh
-    
+
     set -x
-    
+
     if [ "$#" -ne "1" ]; then
         echo "first argument should be path to custom resource yaml"
         exit 1
     fi
-    
+
     pathToResourceYAML=${1}
-    
+
     kubectl get validatingwebhookconfiguration istio-galley 2>/dev/null
     if [ "$?" -eq 0 ]; then
         echo "istio-galley validatingwebhookconfiguration found - waiting for istio-galley deployment to be ready"
@@ -12381,7 +12381,7 @@ data:
     fi
     sleep 5
     kubectl apply -f ${pathToResourceYAML}
-    
+
 
 ---
 # Source: istio/templates/configmap.yaml
@@ -12430,26 +12430,26 @@ data:
     ingressService: istio-ingressgateway
 
     # Unix Domain Socket through which envoy communicates with NodeAgent SDS to get
-    # key/cert for mTLS. Use secret-mount files instead of SDS if set to empty. 
-    sdsUdsPath: 
+    # key/cert for mTLS. Use secret-mount files instead of SDS if set to empty.
+    sdsUdsPath:
 
-    # This flag is used by secret discovery service(SDS). 
-    # If set to true(prerequisite: https://kubernetes.io/docs/concepts/storage/volumes/#projected), Istio will inject volumes mount 
-    # for k8s service account JWT, so that K8s API server mounts k8s service account JWT to envoy container, which 
+    # This flag is used by secret discovery service(SDS).
+    # If set to true(prerequisite: https://kubernetes.io/docs/concepts/storage/volumes/#projected), Istio will inject volumes mount
+    # for k8s service account JWT, so that K8s API server mounts k8s service account JWT to envoy container, which
     # will be used to generate key/cert eventually. This isn't supported for non-k8s case.
     enableSdsTokenMount: false
 
-    # This flag is used by secret discovery service(SDS). 
-    # If set to true, envoy will fetch normal k8s service account JWT from '/var/run/secrets/kubernetes.io/serviceaccount/token' 
-    # (https://kubernetes.io/docs/tasks/access-application-cluster/access-cluster/#accessing-the-api-from-a-pod) 
-    # and pass to sds server, which will be used to request key/cert eventually. 
+    # This flag is used by secret discovery service(SDS).
+    # If set to true, envoy will fetch normal k8s service account JWT from '/var/run/secrets/kubernetes.io/serviceaccount/token'
+    # (https://kubernetes.io/docs/tasks/access-application-cluster/access-cluster/#accessing-the-api-from-a-pod)
+    # and pass to sds server, which will be used to request key/cert eventually.
     # this flag is ignored if enableSdsTokenMount is set.
     # This isn't supported for non-k8s case.
     sdsUseK8sSaJwt: false
 
     # The trust domain corresponds to the trust root of a system.
     # Refer to https://github.com/spiffe/spiffe/blob/master/standards/SPIFFE-ID.md#21-trust-domain
-    trustDomain: 
+    trustDomain:
 
     #
     defaultConfig:
@@ -12503,7 +12503,7 @@ data:
       #
       # Address where istio Pilot service is running
       discoveryAddress: istio-pilot.istio-system:15010
-  
+
   # Configuration file for the mesh networks to be used by the Split Horizon EDS.
   meshNetworks: |-
     networks: {}
@@ -12652,7 +12652,7 @@ data:
             - NET_ADMIN
           runAsGroup: 1337
           [[ else -]]
-          
+
           runAsUser: 1337
           [[- end ]]
         resources:
@@ -12663,7 +12663,7 @@ data:
         [[ else -]]
           requests:
             cpu: 10m
-          
+
         [[ end -]]
         volumeMounts:
         - mountPath: /etc/istio/proxy
@@ -12973,7 +12973,7 @@ spec:
                 kubectl delete secret $name -n $ns;
               done
       restartPolicy: OnFailure
-      affinity:      
+      affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -13100,7 +13100,7 @@ spec:
           configMap:
             name: istio-security-custom-resources
       restartPolicy: OnFailure
-      affinity:      
+      affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -13797,7 +13797,7 @@ spec:
       name: http
   selector:
     app: grafana
-  
+
 ---
 # Source: istio/charts/kiali/templates/service.yaml
 apiVersion: v1
@@ -13967,7 +13967,7 @@ spec:
       name: http
   selector:
     app: servicegraph
-  
+
 ---
 # Source: istio/charts/sidecarInjectorWebhook/templates/service.yaml
 apiVersion: v1
@@ -14012,7 +14012,7 @@ spec:
         app: galley
         chart: galley
         heritage: Tiller
-        release: istio      
+        release: istio
         istio: galley
       annotations:
         sidecar.istio.io/inject: "false"
@@ -14069,7 +14069,7 @@ spec:
           resources:
             requests:
               cpu: 10m
-            
+
       volumes:
       - name: certs
         secret:
@@ -14080,7 +14080,7 @@ spec:
       - name: mesh-config
         configMap:
           name: istio
-      affinity:      
+      affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -14179,7 +14179,7 @@ spec:
           resources:
             requests:
               cpu: 10m
-            
+
           env:
           - name: POD_NAME
             valueFrom:
@@ -14230,7 +14230,7 @@ spec:
         secret:
           secretName: "istio-egressgateway-ca-certs"
           optional: true
-      affinity:      
+      affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -14331,7 +14331,7 @@ spec:
           resources:
             requests:
               cpu: 10m
-            
+
           env:
           - name: POD_NAME
             valueFrom:
@@ -14382,7 +14382,7 @@ spec:
         secret:
           secretName: "istio-ingressgateway-ca-certs"
           optional: true
-      affinity:      
+      affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -14469,7 +14469,7 @@ spec:
           resources:
             requests:
               cpu: 10m
-            
+
           volumeMounts:
           - name: data
             mountPath: /data/grafana
@@ -14507,7 +14507,7 @@ spec:
           - name: config
             mountPath: "/etc/grafana/provisioning/dashboards/dashboardproviders.yaml"
             subPath: dashboardproviders.yaml
-      affinity:      
+      affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -14632,12 +14632,12 @@ spec:
         resources:
           requests:
             cpu: 10m
-          
+
       volumes:
       - name: kiali-configuration
         configMap:
           name: kiali
-      affinity:      
+      affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -14723,7 +14723,7 @@ spec:
           optional: true
       - name: uds-socket
         emptyDir: {}
-      affinity:      
+      affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -14777,7 +14777,7 @@ spec:
         resources:
           requests:
             cpu: 10m
-          
+
         volumeMounts:
         - name: istio-certs
           mountPath: /etc/certs
@@ -14826,7 +14826,7 @@ spec:
         resources:
           requests:
             cpu: 10m
-          
+
         volumeMounts:
         - name: istio-certs
           mountPath: /etc/certs
@@ -14884,7 +14884,7 @@ spec:
           optional: true
       - name: uds-socket
         emptyDir: {}
-      affinity:      
+      affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -14938,7 +14938,7 @@ spec:
         resources:
           requests:
             cpu: 10m
-          
+
         volumeMounts:
         - name: istio-certs
           mountPath: /etc/certs
@@ -14987,7 +14987,7 @@ spec:
         resources:
           requests:
             cpu: 10m
-          
+
         volumeMounts:
         - name: istio-certs
           mountPath: /etc/certs
@@ -15071,7 +15071,7 @@ spec:
             requests:
               cpu: 500m
               memory: 2048Mi
-            
+
           volumeMounts:
           - name: config-volume
             mountPath: /etc/istio/config
@@ -15113,7 +15113,7 @@ spec:
           resources:
             requests:
               cpu: 10m
-            
+
           volumeMounts:
           - name: istio-certs
             mountPath: /etc/certs
@@ -15126,7 +15126,7 @@ spec:
         secret:
           secretName: istio.istio-pilot-service-account
           optional: true
-      affinity:      
+      affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -15211,7 +15211,7 @@ spec:
           resources:
             requests:
               cpu: 10m
-            
+
           volumeMounts:
           - name: config-volume
             mountPath: /etc/prometheus
@@ -15226,7 +15226,7 @@ spec:
           defaultMode: 420
           optional: true
           secretName: istio.default
-      affinity:      
+      affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -15308,8 +15308,8 @@ spec:
           resources:
             requests:
               cpu: 10m
-            
-      affinity:      
+
+      affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -15387,8 +15387,8 @@ spec:
           resources:
             requests:
               cpu: 10m
-            
-      affinity:      
+
+      affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -15497,7 +15497,7 @@ spec:
           resources:
             requests:
               cpu: 10m
-            
+
       volumes:
       - name: config-volume
         configMap:
@@ -15511,7 +15511,7 @@ spec:
           items:
           - key: config
             path: config
-      affinity:      
+      affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -15609,8 +15609,8 @@ spec:
           resources:
             requests:
               cpu: 10m
-            
-      affinity:      
+
+      affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -16436,7 +16436,7 @@ spec:
     destination_service_name: destination.service.name | "unknown"
     destination_service_namespace: destination.service.namespace | "unknown"
     request_protocol: api.protocol | context.protocol | "unknown"
-    response_code: response.code | 200   
+    response_code: response.code | 200
     permissive_response_code: rbac.permissive.response_code | "none"
     permissive_response_policyid: rbac.permissive.effective_policy_id | "none"
     connection_security_policy: conditional((context.reporter.kind | "inbound") == "outbound", "unknown", conditional(connection.mtls | false, "mutual_tls", "none"))
@@ -16471,7 +16471,7 @@ spec:
     destination_service_namespace: destination.service.namespace | "unknown"
     request_protocol: api.protocol | context.protocol | "unknown"
     response_code: response.code | 200
-    permissive_response_code: rbac.permissive.response_code | "none" 
+    permissive_response_code: rbac.permissive.response_code | "none"
     permissive_response_policyid: rbac.permissive.effective_policy_id | "none"
     connection_security_policy: conditional((context.reporter.kind | "inbound") == "outbound", "unknown", conditional(connection.mtls | false, "mutual_tls", "none"))
   monitored_resource_type: '"UNSPECIFIED"'
@@ -16505,7 +16505,7 @@ spec:
     destination_service_namespace: destination.service.namespace | "unknown"
     request_protocol: api.protocol | context.protocol | "unknown"
     response_code: response.code | 200
-    permissive_response_code: rbac.permissive.response_code | "none" 
+    permissive_response_code: rbac.permissive.response_code | "none"
     permissive_response_policyid: rbac.permissive.effective_policy_id | "none"
     connection_security_policy: conditional((context.reporter.kind | "inbound") == "outbound", "unknown", conditional(connection.mtls | false, "mutual_tls", "none"))
   monitored_resource_type: '"UNSPECIFIED"'
@@ -16539,7 +16539,7 @@ spec:
     destination_service_namespace: destination.service.namespace | "unknown"
     request_protocol: api.protocol | context.protocol | "unknown"
     response_code: response.code | 200
-    permissive_response_code: rbac.permissive.response_code | "none" 
+    permissive_response_code: rbac.permissive.response_code | "none"
     permissive_response_policyid: rbac.permissive.effective_policy_id | "none"
     connection_security_policy: conditional((context.reporter.kind | "inbound") == "outbound", "unknown", conditional(connection.mtls | false, "mutual_tls", "none"))
   monitored_resource_type: '"UNSPECIFIED"'

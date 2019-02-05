@@ -22,13 +22,13 @@ ks generate pachyderm pachyderm
 ks apply ${ENV} -c pachyderm
 ```
 
-Once you've deployed pachyderm, follow pachyderm's 
+Once you've deployed pachyderm, follow pachyderm's
 [user_guide](http://pachyderm.readthedocs.io/en/latest/getting_started/getting_started.html).
 You will need to install Pachyderm's CLI (pachctl) and run `pachctl -n ${NAMESPACE} port-forward &`
 in order to interact with Pachyderm.
 
-In order to use Pachyderm you will need to choose which backend you want to use by 
-doing 
+In order to use Pachyderm you will need to choose which backend you want to use by
+doing
 
 ```
 ks param set ${COMPONENT_NAME} backend ${BACKEND}
@@ -81,8 +81,8 @@ ks apply ${ENVIRONMENT} -c ${COMPONENT_NAME}
 
 ### Local mode
 
-Local mode should **only** be used 
-	
+Local mode should **only** be used
+
 	* for development and testing since data is not resilient to various failures
 	* single node clusters (e.g. minikube)
 
@@ -91,7 +91,7 @@ Local mode should **only** be used
 
 This means if something happens to the data node could be lost.
 
-Furthermore, in the event a pod is restarted it could be reassigned to a different node which 
+Furthermore, in the event a pod is restarted it could be reassigned to a different node which
 doesn't have the data.
 
 
