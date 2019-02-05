@@ -97,9 +97,9 @@ def _fwrap(f, gf):
 def fwrap(gf, ioloop=None):
   '''
   Wraps a GRPC result in a future that can be yielded by tornado
-      
+
     Usage::
-      
+
       @coroutine
       def my_fn(param):
         result = yield fwrap(stub.function_name.future(param, timeout))
@@ -213,7 +213,7 @@ class MetadataHandler(tornado.web.RequestHandler):
 
 class PredictHandler(tornado.web.RequestHandler):
   """
-  Predict Handler proxy predict method, the input of tf savedModel is expected to be a 
+  Predict Handler proxy predict method, the input of tf savedModel is expected to be a
   `Map<strinbg, tf.Tensor>` protobuf. Defined here https://github.com/tensorflow/serving/blob/master/tensorflow_serving/apis/prediction_service.proto#L23
   """
   @gen.coroutine
@@ -241,7 +241,7 @@ class PredictHandler(tornado.web.RequestHandler):
 
     if version_name is not None:
       request.model_spec.version = version_name
-    
+
     inputs_type_map = signature.inputs
     for input_column in input_columns:
       values = [instance[input_column] for instance in instances]

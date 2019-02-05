@@ -18,7 +18,7 @@ __DEPRECATION NOTICE: `openmpi` ksonnet package is now deprecated, which will be
 
 1. Create a Kubernetes cluster and install the ksonnet CLI (see root-level [README](https://github.com/kubeflow/kubeflow/blob/master/README.md)).
 
-1. Build and push your docker image containing [Open MPI](https://www.open-mpi.org/). 
+1. Build and push your docker image containing [Open MPI](https://www.open-mpi.org/).
 
 1. Run the following commands to generate and deploy the openmpi component.
 
@@ -58,9 +58,9 @@ IMAGE=YOUR_IMAGE_HERE
 WORKERS=4
 GPU=0
 EXEC="mpiexec -n ${WORKERS} --hostfile /kubeflow/openmpi/assets/hostfile --allow-run-as-root --display-map --tag-output --timestamp-output sh -c 'echo hello world'"
-ks generate openmpi ${COMPONENT} --image ${IMAGE} --secret ${SECRET} --workers ${WORKERS} --gpu ${GPU} --exec "${EXEC}" 
+ks generate openmpi ${COMPONENT} --image ${IMAGE} --secret ${SECRET} --workers ${WORKERS} --gpu ${GPU} --exec "${EXEC}"
 
-# Deploy to your cluster. 
+# Deploy to your cluster.
 ks apply default
 
 # Inspect the pod status.
@@ -75,7 +75,7 @@ ks delete default
 It is recommended to set up a auto-scaling node pool to host your GPUs so that GPU nodes can be provisioned and released
 based on the demands of the workloads. To account for longer time to provision the GPU nodes, you may need to increase
 `--initTimeout`. If you have more than one node pool with different types of GPUs, specify `--nodeSelector` to assign
-the workloads to the correct pool. You may also set cpu and memory limit to further restrict the resource limits of your workloads.   
+the workloads to the correct pool. You may also set cpu and memory limit to further restrict the resource limits of your workloads.
 ```
 ks prototype describe openmpi
   --gpu=<gpu>                               Number of GPUs per worker. [default: 0, type: number]

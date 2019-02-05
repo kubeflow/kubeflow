@@ -15,9 +15,22 @@ usage() {
   echo "help - print this message"
 }
 
-check_install() {
-  if ! which "${1}" &>/dev/null && ! type -a "${1}" &>/dev/null ; then
-    echo "You don't have ${1} installed. Please install ${1}."
+check_installed_deps() {
+  declare -a kf_deps=("ks" "kubectl")
+
+  for kf_dep in "${kf_app[@]}"; do
+    if ! which "${kf_dep}" &>/dev/null && ! type -a "${kf_dep}" &>/dev/null ; then
+      echo "You don't have ${kf_dep} installed. Please install ${kf_dep}."
+      exit 1
+    fi
+  done
+
+  # check minimum ks versions
+  kf_dep="ks"
+  min_ks_ver="0.11.0"
+  ks_ver=$(${kf_dep} version | cut -d' ' -f3 | head -1)
+  if [ ${ks_ver} \< ${min_ks_ver} ]; then
+    echo "Please install ${kf_dep} version ${min_ks_ver} or newer"
     exit 1
   fi
 }
@@ -85,7 +98,7 @@ createKsApp() {
   ks generate tensorboard tensorboard
   ks generate metacontroller metacontroller
   ks generate profiles profiles
-  ks generate notebooks notebooks 
+  ks generate notebooks notebooks
   ks generate argo argo
   ks generate pipeline pipeline
 
@@ -138,7 +151,7 @@ customizeKsAppWithDockerImage() {
     find ${KUBEFLOW_KS_DIR} -name config.yaml | xargs sed -i -e "s%gcr.io%$KUBEFLOW_DOCKER_REGISTRY%g"
   fi
 
-  # The katib images like gcr.io/kubeflow-images-public/katib/tfevent-metrics-collector:v0.4.0 uses sub namespace kubeflow-images-public/katib in 
+  # The katib images like gcr.io/kubeflow-images-public/katib/tfevent-metrics-collector:v0.4.0 uses sub namespace kubeflow-images-public/katib in
   # gcr.io repo, but it's not supported by other docker image repo. We need to consider how to support it in other docker repos.
   if [[ ! -z "$DOCKER_REGISTRY_KATIB_NAMESPACE" ]]; then
     find ${KUBEFLOW_KS_DIR} -name "*.libsonnet" -o -name "*.jsonnet" | xargs sed -i -e "s%kubeflow-images-public/katib%$DOCKER_REGISTRY_KATIB_NAMESPACE%g"
