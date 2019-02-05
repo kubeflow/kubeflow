@@ -83,21 +83,21 @@ run-local-docker:
 # init ~/myapp --platform none
 test-known-platforms-init: install build-foo-plugin
 	@rm -rf $(HOME)/ks-app && \
-	kfctl init $(HOME)/ks-app --platform none && \
+	kfctl init $(HOME)/ks-app -V --platform none && \
 	rm -rf $(HOME)/minikube-app && \
-	kfctl init $(HOME)/minikube-app --platform minikube && \
+	kfctl init $(HOME)/minikube-app -V --platform minikube && \
 	rm -rf $(HOME)/foo-app && \
-	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl init $(HOME)/foo-app --platform foo && \
+	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl init $(HOME)/foo-app -V --platform foo && \
 	echo SUCCESS
 
 # generate all --email john@foo.com --ipName 35.233.240.120
 test-known-platforms-generate: test-known-platforms-init
 	@cd ~/ks-app && \
-	kfctl generate && \
+	kfctl generate all -V && \
 	cd ~/minikube-app && \
-	kfctl generate all --mount-local true && \
+	kfctl generate all -V --mount-local true && \
 	cd ~/foo-app && \
-	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate && \
+	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V && \
 	echo SUCCESS
 
 test-foo-plugin:

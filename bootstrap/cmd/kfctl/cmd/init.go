@@ -33,17 +33,37 @@ or a name where the kubeflow application will be initialized in $PWD/name if <na
 directory is name is a path.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.InfoLevel)
+		log.Info("initializing kubeflow application")
+		if initCfg.GetBool("verbose") == true {
+			log.SetLevel(log.InfoLevel)
+		} else {
+			log.SetLevel(log.WarnLevel)
+		}
 		if len(args) == 0 {
 			log.Errorf("KsApp name is required")
 			return
 		}
 		appName := args[0]
-		kfApp, kfAppErr := NewKfApp(appName, initCfg)
+		platform := initCfg.GetString("platform")
+		namespace := initCfg.GetString("namespace")
+		version := initCfg.GetString("version")
+		repo := initCfg.GetString("repo")
+		project := initCfg.GetString("project")
+
+		options := map[string]interface{}{
+			"Platform":  platform,
+			"Namespace": namespace,
+			"Version":   version,
+			"AppName":   appName,
+			"Repo":      repo,
+			"Project":   project,
+		}
+		kfApp, kfAppErr := NewKfApp(options)
 		if kfAppErr != nil {
 			log.Errorf("couldn't create KfApp: %v", kfAppErr)
 			return
 		}
-		initErr := kfApp.Init()
+		initErr := kfApp.Init(options)
 		if initErr != nil {
 			log.Errorf("KfApp initialization failed: %v", initErr)
 			return
@@ -59,14 +79,51 @@ func init() {
 
 	initCmd.Flags().StringP("platform", "p", kftypes.DefaultPlatform,
 		"one of 'gcp|minikube|docker-for-desktop|ack'")
-	initCfg.BindPFlag("platform", initCmd.Flags().Lookup("platform"))
+	bindErr := initCfg.BindPFlag("platform", initCmd.Flags().Lookup("platform"))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --platform: %v", bindErr)
+		return
+	}
+
+	initCmd.Flags().StringP("namespace", "n", kftypes.DefaultNamespace,
+		"namespace where kubeflow will be deployed")
+	bindErr = initCfg.BindPFlag("namespace", initCmd.Flags().Lookup("namespace"))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --namespace: %v", bindErr)
+		return
+	}
+
 	initCmd.Flags().StringP("version", "v", kftypes.DefaultVersion,
 		"desired version Kubeflow or latest tag if not provided by user ")
-	initCfg.BindPFlag("version", initCmd.Flags().Lookup("version"))
+	bindErr = initCfg.BindPFlag("version", initCmd.Flags().Lookup("version"))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --version: %v", bindErr)
+		return
+	}
+
 	initCmd.Flags().StringP("repo", "r", kftypes.DefaultKfRepo,
 		"local github kubeflow repo ")
-	initCfg.BindPFlag("repo", initCmd.Flags().Lookup("repo"))
+	bindErr = initCfg.BindPFlag("repo", initCmd.Flags().Lookup("repo"))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --repo: %v", bindErr)
+		return
+	}
+
+	// platform gcp
 	initCmd.Flags().String("project", "",
 		"name of the gcp project if --platform gcp")
-	initCfg.BindPFlag("project", initCmd.Flags().Lookup("project"))
+	bindErr = initCfg.BindPFlag("project", initCmd.Flags().Lookup("project"))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --project: %v", bindErr)
+		return
+	}
+
+	// verbose output
+	initCmd.Flags().BoolP("verbose", "V", false,
+		"verbose output default is false")
+	bindErr = initCfg.BindPFlag("verbose", initCmd.Flags().Lookup("verbose"))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --verbose: %v", bindErr)
+		return
+	}
 }

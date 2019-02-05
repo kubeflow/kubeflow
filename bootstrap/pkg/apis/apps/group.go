@@ -48,13 +48,13 @@ const (
 
 //
 // KfApp is used by commands under bootstrap/cmd/{bootstrap,kfctl}. KfApp provides a common
-// API for different implementations like KsApp, GcpApp, etc.
+// API for different implementations like KsApp, GcpApp, MinikubeApp, etc.
 //
 type KfApp interface {
-	Apply(ResourceEnum) error
-	Delete(ResourceEnum) error
-	Generate(ResourceEnum) error
-	Init() error
+	Apply(resources ResourceEnum, options map[string]interface{}) error
+	Delete(resources ResourceEnum, options map[string]interface{}) error
+	Generate(resources ResourceEnum, options map[string]interface{}) error
+	Init(options map[string]interface{}) error
 }
 
 func KubeConfigPath() string {

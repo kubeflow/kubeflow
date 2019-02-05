@@ -25,12 +25,19 @@ var deleteCfg = viper.New()
 
 // deleteCmd represents the delete command
 var deleteCmd = &cobra.Command{
-	Use:   "delete",
+	Use:   "delete [all(=default)|k8s|platform]",
 	Short: "Delete a kubeflow application.",
 	Long:  `Delete a kubeflow application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.InfoLevel)
-		kfApp, kfAppErr := LoadKfApp(deleteCfg)
+		log.Info("generating kubeflow application")
+		if deleteCfg.GetBool("verbose") == true {
+			log.SetLevel(log.InfoLevel)
+		} else {
+			log.SetLevel(log.WarnLevel)
+		}
+		options := map[string]interface{}{}
+		kfApp, kfAppErr := LoadKfApp(options)
 		if kfAppErr != nil {
 			log.Errorf("couldn't load KfApp: %v", kfAppErr)
 			return
@@ -48,7 +55,7 @@ var deleteCmd = &cobra.Command{
 				return
 			}
 		}
-		deleteErr := kfApp.Delete(resources)
+		deleteErr := kfApp.Delete(resources, options)
 		if deleteErr != nil {
 			log.Errorf("couldn't delete KfApp: %v", deleteErr)
 			return
@@ -61,4 +68,13 @@ func init() {
 
 	deleteCfg.SetConfigName("app")
 	deleteCfg.SetConfigType("yaml")
+
+	// verbose output
+	deleteCmd.Flags().BoolP("verbose", "V", false,
+		"verbose output default is false")
+	bindErr := deleteCfg.BindPFlag("verbose", deleteCmd.Flags().Lookup("verbose"))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --verbose: %v", bindErr)
+		return
+	}
 }

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksapp"
-	"reflect"
 )
 
 // FooApp implements KfApp Interface
@@ -18,43 +17,40 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	_fooapp := &FooApp{
 		ksApp: ksapp.GetKfApp(options),
 	}
-	for k, v := range options {
-		x := reflect.ValueOf(_fooapp.ksApp).Elem().FieldByName(k)
-		x.Set(reflect.ValueOf(v))
-	}
-	ksApp := _fooapp.ksApp.(*ksapp.KsApp)
-	platform := ksApp.CfgFile.GetString("platform")
-	ksApp.KsApp.Spec.Platform = platform
 	return _fooapp
 }
 
 func (fooApp *FooApp) writeConfigFile() error {
-	//TODO write files under foo_config, k8s_specs
+	//TODO write files under AppDir
 	return nil
 }
 
-func (fooApp *FooApp) Apply(resources kftypes.ResourceEnum) error {
-	ksApplyErr := fooApp.ksApp.Apply(resources)
+func (fooApp *FooApp) Apply(resources kftypes.ResourceEnum, options map[string]interface{}) error {
+	ksApplyErr := fooApp.ksApp.Apply(resources, options)
 	if ksApplyErr != nil {
 		return fmt.Errorf("foo apply failed for ksapp: %v", ksApplyErr)
 	}
 	return nil
 }
 
-func (fooApp *FooApp) Delete(resources kftypes.ResourceEnum) error {
+func (fooApp *FooApp) Delete(resources kftypes.ResourceEnum, options map[string]interface{}) error {
+	ksDeleteErr := fooApp.ksApp.Delete(resources, options)
+	if ksDeleteErr != nil {
+		return fmt.Errorf("foo delete failed for ksapp: %v", ksDeleteErr)
+	}
 	return nil
 }
 
-func (fooApp *FooApp) Generate(resources kftypes.ResourceEnum) error {
-	ksGenerateErr := fooApp.ksApp.Generate(resources)
+func (fooApp *FooApp) Generate(resources kftypes.ResourceEnum, options map[string]interface{}) error {
+	ksGenerateErr := fooApp.ksApp.Generate(resources, options)
 	if ksGenerateErr != nil {
 		return fmt.Errorf("foo generate failed for ksapp: %v", ksGenerateErr)
 	}
 	return nil
 }
 
-func (fooApp *FooApp) Init() error {
-	ksInitErr := fooApp.ksApp.Init()
+func (fooApp *FooApp) Init(options map[string]interface{}) error {
+	ksInitErr := fooApp.ksApp.Init(options)
 	if ksInitErr != nil {
 		return fmt.Errorf("foo init failed for ksapp: %v", ksInitErr)
 	}

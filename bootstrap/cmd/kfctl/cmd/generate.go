@@ -16,7 +16,6 @@ package cmd
 
 import (
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksapp/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -26,7 +25,7 @@ var generateCfg = viper.New()
 
 // generateCmd represents the generate command
 var generateCmd = &cobra.Command{
-	Use:   "generate [resources]",
+	Use:   "generate [all(=default)|k8s|platform]",
 	Short: "Generate a kubeflow application where resources is one of 'platform | k8s | all'.",
 	Long: `Generate a kubeflow application where resources is one of 'platform | k8s | all'.
 
@@ -37,7 +36,21 @@ var generateCmd = &cobra.Command{
 The default is 'all' for any selected platform.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.InfoLevel)
-		kfApp, kfAppErr := LoadKfApp(generateCfg)
+		log.Info("generating kubeflow application")
+		if generateCfg.GetBool("verbose") == true {
+			log.SetLevel(log.InfoLevel)
+		} else {
+			log.SetLevel(log.WarnLevel)
+		}
+		email := generateCfg.GetString("email")
+		ipName := generateCfg.GetString("ipName")
+		mountLocal := generateCfg.GetBool("mount-local")
+		options := map[string]interface{}{
+			"Email":      email,
+			"IpName":     ipName,
+			"MountLocal": mountLocal,
+		}
+		kfApp, kfAppErr := LoadKfApp(options)
 		if kfAppErr != nil {
 			log.Errorf("couldn't load KfApp: %v", kfAppErr)
 			return
@@ -55,7 +68,7 @@ The default is 'all' for any selected platform.`,
 				return
 			}
 		}
-		generateErr := kfApp.Generate(resources)
+		generateErr := kfApp.Generate(resources, options)
 		if generateErr != nil {
 			log.Errorf("couldn't generate KfApp: %v", generateErr)
 			return
@@ -69,38 +82,16 @@ func init() {
 	generateCfg.SetConfigName("app")
 	generateCfg.SetConfigType("yaml")
 
-	generateCmd.Flags().StringSliceP("packages", "p", kstypes.DefaultPackages,
-		"provide a comma delimited list of package names")
-	bindErr := generateCfg.BindPFlag("packages", generateCmd.Flags().Lookup("packages"))
-	if bindErr != nil {
-		log.Errorf("couldn't set flag --packages: %v", bindErr)
-		return
-	}
-
-	generateCmd.Flags().StringSliceP("components", "c", kstypes.DefaultComponents,
-		"provide a comma delimited list of component names")
-	bindErr = generateCfg.BindPFlag("components", generateCmd.Flags().Lookup("components"))
-	if bindErr != nil {
-		log.Errorf("couldn't set flag --components: %v", bindErr)
-		return
-	}
-
-	generateCmd.Flags().StringP("namespace", "n", kftypes.DefaultNamespace,
-		"namespace where kubeflow will be deployed")
-	bindErr = generateCfg.BindPFlag("namespace", generateCmd.Flags().Lookup("namespace"))
-	if bindErr != nil {
-		log.Errorf("couldn't set flag --namespace: %v", bindErr)
-		return
-	}
-
+	// platform gcp
 	generateCmd.Flags().String("email", "",
 		"email if '--platform gcp'")
-	bindErr = generateCfg.BindPFlag("email", generateCmd.Flags().Lookup("email"))
+	bindErr := generateCfg.BindPFlag("email", generateCmd.Flags().Lookup("email"))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --email: %v", bindErr)
 		return
 	}
 
+	// platform gcp
 	generateCmd.Flags().String("ipName", "",
 		"ipName if '--platform gcp'")
 	bindErr = generateCfg.BindPFlag("ipName", generateCmd.Flags().Lookup("ipName"))
@@ -109,11 +100,21 @@ func init() {
 		return
 	}
 
-	generateCmd.Flags().String("mount-local", "false",
+	// platforms minikube, docker-for-desktop
+	generateCmd.Flags().Bool("mount-local", false,
 		"mount-local if '--platform minikube || --platform docker-for-desktop'")
 	bindErr = generateCfg.BindPFlag("mount-local", generateCmd.Flags().Lookup("mount-local"))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --mount-local: %v", bindErr)
+		return
+	}
+
+	// verbose output
+	generateCmd.Flags().BoolP("verbose", "V", false,
+		"verbose output default is false")
+	bindErr = generateCfg.BindPFlag("verbose", generateCmd.Flags().Lookup("verbose"))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --verbose: %v", bindErr)
 		return
 	}
 }

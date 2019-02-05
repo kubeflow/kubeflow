@@ -25,12 +25,19 @@ var applyCfg = viper.New()
 
 // applyCmd represents the apply command
 var applyCmd = &cobra.Command{
-	Use:   "apply",
+	Use:   "apply [all(=default)|k8s|platform]",
 	Short: "Deploy a generated kubeflow application.",
 	Long:  `Deploy a generated kubeflow application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.InfoLevel)
-		kfApp, kfAppErr := LoadKfApp(applyCfg)
+		log.Info("deploying kubeflow application")
+		if applyCfg.GetBool("verbose") == true {
+			log.SetLevel(log.InfoLevel)
+		} else {
+			log.SetLevel(log.WarnLevel)
+		}
+		options := map[string]interface{}{}
+		kfApp, kfAppErr := LoadKfApp(options)
 		if kfAppErr != nil {
 			log.Errorf("couldn't load KfApp: %v", kfAppErr)
 			return
@@ -48,7 +55,7 @@ var applyCmd = &cobra.Command{
 				return
 			}
 		}
-		applyErr := kfApp.Apply(resources)
+		applyErr := kfApp.Apply(resources, options)
 		if applyErr != nil {
 			log.Errorf("couldn't apply KfApp: %v", applyErr)
 			return
@@ -61,4 +68,13 @@ func init() {
 
 	applyCfg.SetConfigName("app")
 	applyCfg.SetConfigType("yaml")
+
+	// verbose output
+	applyCmd.Flags().BoolP("verbose", "V", false,
+		"verbose output default is false")
+	bindErr := applyCfg.BindPFlag("verbose", applyCmd.Flags().Lookup("verbose"))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --verbose: %v", bindErr)
+		return
+	}
 }

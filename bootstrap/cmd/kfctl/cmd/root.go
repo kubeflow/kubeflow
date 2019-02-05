@@ -26,15 +26,17 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
 	"plugin"
+	"regexp"
+	"strings"
 )
 
-func LoadPlatform(platform string, options map[string]interface{}) (kftypes.KfApp, error) {
+func LoadPlatform(options map[string]interface{}) (kftypes.KfApp, error) {
+	platform := options["Platform"].(string)
 	switch platform {
 	case "none":
 		_kfapp := ksapp.GetKfApp(options)
@@ -64,8 +66,9 @@ func LoadPlatform(platform string, options map[string]interface{}) (kftypes.KfAp
 	}
 }
 
-func NewKfApp(appName string, cfgFile *viper.Viper) (kftypes.KfApp, error) {
+func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	//appName can be a path
+	appName := options["AppName"].(string)
 	appDir := path.Dir(appName)
 	if appDir == "" {
 		cwd, err := os.Getwd()
@@ -90,35 +93,30 @@ func NewKfApp(appName string, cfgFile *viper.Viper) (kftypes.KfApp, error) {
 			appDir = path.Join(appDir, appName)
 		}
 	}
-	platform := cfgFile.GetString("platform")
-	options := map[string]interface{}{
-		"AppName": appName,
-		"AppDir":  appDir,
-		"CfgFile": cfgFile,
+	re := regexp.MustCompile(`[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$`)
+	validName := re.FindString(appName)
+	if strings.Compare(validName, appName) != 0 {
+		return nil, fmt.Errorf(`invalid name %v must consist of lower case alphanumeric characters, '-' or '.',
+and must start and end with an alphanumeric character`, appName)
 	}
-	pApp, pAppErr := LoadPlatform(platform, options)
+	options["AppName"] = appName
+	options["AppDir"] = appDir
+	platform := options["Platform"].(string)
+	pApp, pAppErr := LoadPlatform(options)
 	if pAppErr != nil {
 		return nil, fmt.Errorf("unable to load platform %v Error: %v", platform, pAppErr)
 	}
 	return pApp, nil
 }
 
-func LoadKfApp(cfgFile *viper.Viper) (kftypes.KfApp, error) {
+func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	appDir, err := os.Getwd()
 	if err != nil {
 		return nil, fmt.Errorf("could not get current directory %v", err)
 	}
 	appName := filepath.Base(appDir)
 	log.Infof("AppName %v AppDir %v", appName, appDir)
-	cfgFile.AddConfigPath(appDir)
-	cfgErr := cfgFile.ReadInConfig()
-	if cfgErr != nil {
-		return nil, fmt.Errorf("could not read config file %v Error %v", kftypes.KfConfigFile, cfgErr)
-	}
-	cfgfile := cfgFile.ConfigFileUsed()
-	if cfgfile == "" {
-		return nil, fmt.Errorf("config file does not exist")
-	}
+	cfgfile := filepath.Join(appDir, kftypes.KfConfigFile)
 	log.Infof("reading from %v", cfgfile)
 	fs := afero.NewOsFs()
 	ksDir := path.Join(appDir, kstypes.KsName)
@@ -126,26 +124,23 @@ func LoadKfApp(cfgFile *viper.Viper) (kftypes.KfApp, error) {
 	if kAppErr != nil {
 		return nil, fmt.Errorf("there was a problem loading app %v. Error: %v", appName, kAppErr)
 	}
-	ksApp := kstypes.KsApp{}
+	ksApp := &kstypes.KsApp{}
 	dat, datErr := ioutil.ReadFile(cfgfile)
 	if datErr != nil {
 		return nil, fmt.Errorf("couldn't read %v. Error: %v", cfgfile, datErr)
 	}
-	specErr := yaml.Unmarshal(dat, &ksApp)
+	specErr := yaml.Unmarshal(dat, ksApp)
 	if specErr != nil {
 		return nil, fmt.Errorf("couldn't unmarshall KsApp. Error: %v", specErr)
 	}
-	platform := ksApp.Spec.Platform
-	options := map[string]interface{}{
-		"AppName": appName,
-		"AppDir":  appDir,
-		"CfgFile": cfgFile,
-		"KApp":    kApp,
-		"KsApp":   &ksApp,
-	}
-	pApp, pAppErr := LoadPlatform(platform, options)
+	options["Platform"] = ksApp.Spec.Platform
+	options["Appname"] = appName
+	options["AppDir"] = appDir
+	options["KApp"] = kApp
+	options["KsApp"] = ksApp
+	pApp, pAppErr := LoadPlatform(options)
 	if pAppErr != nil {
-		return nil, fmt.Errorf("unable to load platform %v Error: %v", platform, pAppErr)
+		return nil, fmt.Errorf("unable to load platform %v Error: %v", ksApp.Spec.Platform, pAppErr)
 	}
 	return pApp, nil
 }

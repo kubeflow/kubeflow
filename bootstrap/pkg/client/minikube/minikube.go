@@ -22,6 +22,7 @@ import (
 	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksapp/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksapp"
 	"os/user"
+	"strconv"
 	"strings"
 )
 
@@ -44,8 +45,8 @@ func (minikubeApp *MinikubeApp) writeConfigFile() error {
 	return nil
 }
 
-func (minikubeApp *MinikubeApp) Apply(resources kftypes.ResourceEnum) error {
-	ksApplyErr := minikubeApp.ksApp.Apply(resources)
+func (minikubeApp *MinikubeApp) Apply(resources kftypes.ResourceEnum, options map[string]interface{}) error {
+	ksApplyErr := minikubeApp.ksApp.Apply(resources, options)
 	if ksApplyErr != nil {
 		return fmt.Errorf("minikube apply failed for ksapp: %v", ksApplyErr)
 	}
@@ -54,22 +55,31 @@ func (minikubeApp *MinikubeApp) Apply(resources kftypes.ResourceEnum) error {
 	return nil
 }
 
-func (minikubeApp *MinikubeApp) Delete(resources kftypes.ResourceEnum) error {
+func (minikubeApp *MinikubeApp) Delete(resources kftypes.ResourceEnum, options map[string]interface{}) error {
+	ksDeleteErr := minikubeApp.ksApp.Delete(resources, options)
+	if ksDeleteErr != nil {
+		return fmt.Errorf("minikube delete failed for ksapp: %v", ksDeleteErr)
+	}
 	return nil
 }
 
-func (minikubeApp *MinikubeApp) generateKsApp() error {
+func (minikubeApp *MinikubeApp) generateKsApp(options map[string]interface{}) error {
 	ksApp := minikubeApp.ksApp.(*ksapp.KsApp)
-	mountLocal := ksApp.CfgFile.GetString("mount-local")
+	mountLocal := false
+	if options["MountLocal"] != nil {
+		mountLocal = options["MountLocal"].(bool)
+	}
 	// remove Katib package and component
 	pkgs := kstypes.RemoveItem(kstypes.DefaultPackages, "katib")
-	ksApp.CfgFile.Set("packages", pkgs)
+	ksApp.KsApp.Spec.Packages = pkgs
 	comps := kstypes.RemoveItem(kstypes.DefaultComponents, "katib")
-	ksApp.CfgFile.Set("components", comps)
-	parameters := make(map[string][]string)
-	parameters["application"] = []string{
-		"components",
-		"[" + strings.Join(kstypes.QuoteItems(comps), ",") + "]",
+	ksApp.KsApp.Spec.Components = comps
+	parameters := make(map[string][]kstypes.NameValue)
+	parameters["application"] = []kstypes.NameValue{
+		{
+			Name:  "components",
+			Value: "[" + strings.Join(kstypes.QuoteItems(comps), ",") + "]",
+		},
 	}
 	usr, err := user.Current()
 	if err != nil {
@@ -77,36 +87,52 @@ func (minikubeApp *MinikubeApp) generateKsApp() error {
 	}
 	uid := usr.Uid
 	gid := usr.Gid
-	parameters["jupyter"] = []string{
-		"platform",
-		ksApp.KsApp.Spec.Platform,
-		"accessLocalFs",
-		mountLocal,
-		"disks",
-		"local-notebooks",
-		"notebookUid",
-		uid,
-		"notebookGid",
-		gid,
+	parameters["jupyter"] = []kstypes.NameValue{
+		{
+			Name:  "platform",
+			Value: ksApp.KsApp.Spec.Platform,
+		},
+		{
+			Name:  "accessLocalFs",
+			Value: strconv.FormatBool(mountLocal),
+		},
+		{
+			Name:  "disks",
+			Value: "local-notebooks",
+		},
+		{
+			Name:  "notebookUid",
+			Value: uid,
+		},
+		{
+			Name:  "notebookGid",
+			Value: gid,
+		},
 	}
-	parameters["ambassador"] = []string{
-		"replicas",
-		"1",
+	parameters["ambassador"] = []kstypes.NameValue{
+		{
+			Name:  "platform",
+			Value: ksApp.KsApp.Spec.Platform,
+		},
+		{
+			Name:  "replicas",
+			Value: "1",
+		},
 	}
-	ksApp.CfgFile.Set("parameters", parameters)
-	ksGenerateErr := minikubeApp.ksApp.Generate(kftypes.ALL)
+	ksApp.KsApp.Spec.Parameters = parameters
+	ksGenerateErr := minikubeApp.ksApp.Generate(kftypes.ALL, options)
 	if ksGenerateErr != nil {
 		return fmt.Errorf("minikube generate failed for ksapp: %v", ksGenerateErr)
 	}
 	return nil
 }
 
-func (minikubeApp *MinikubeApp) Generate(resources kftypes.ResourceEnum) error {
+func (minikubeApp *MinikubeApp) Generate(resources kftypes.ResourceEnum, options map[string]interface{}) error {
 	switch resources {
 	case kftypes.ALL:
 		fallthrough
 	case kftypes.PLATFORM:
-		ksErr := minikubeApp.generateKsApp()
+		ksErr := minikubeApp.generateKsApp(options)
 		if ksErr != nil {
 			return fmt.Errorf("could not generate kssonnet under %v Error: %v", kstypes.KsName, ksErr)
 		}
@@ -115,8 +141,8 @@ func (minikubeApp *MinikubeApp) Generate(resources kftypes.ResourceEnum) error {
 	return nil
 }
 
-func (minikubeApp *MinikubeApp) Init() error {
-	ksInitErr := minikubeApp.ksApp.Init()
+func (minikubeApp *MinikubeApp) Init(options map[string]interface{}) error {
+	ksInitErr := minikubeApp.ksApp.Init(options)
 	if ksInitErr != nil {
 		return fmt.Errorf("minikube init failed for ksapp: %v", ksInitErr)
 	}
