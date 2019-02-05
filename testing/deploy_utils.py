@@ -139,7 +139,7 @@ def log_operation_status(operation):
   name = operation.get("name", "")
   status = operation.get("status", "")
   logging.info("Operation %s status %s", name, status)
-  
+
 def wait_for_operation(client,
                        project,
                        op_id,

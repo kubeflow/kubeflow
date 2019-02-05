@@ -316,8 +316,8 @@
       },  // katib-studyjob-test
       {
         template: tests.buildTemplate {
-          name: "notebooks-test",          
-          command: [        
+          name: "notebooks-test",
+          command: [
             "pytest",
             "jupyter_test.py",
             // I think -s mean stdout/stderr will print out to aid in debugging.
@@ -326,7 +326,7 @@
             // Test timeout in seconds.
             "--namespace=" + tests.stepsNamespace,
             "--timeout=500",
-            "--junitxml=" + tests.artifactsDir + "/junit_jupyter-test.xml",            
+            "--junitxml=" + tests.artifactsDir + "/junit_jupyter-test.xml",
           ],
           workingDir: tests.srcDir + "/kubeflow/jupyter/tests",
         },

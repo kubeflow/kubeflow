@@ -219,7 +219,7 @@ gcpGenerateKsApp() {
   pushd .
   cd "${KUBEFLOW_KS_DIR}"
 
-  # Install the gcp package 
+  # Install the gcp package
   ks pkg install kubeflow/gcp
 
   # Generate all required components

@@ -5,7 +5,7 @@ set -ex
 conda create -n py2 python=2
 
 source activate py2
-pip install --upgrade pip
+pip install --upgrade pip==19.0.1
 
 # TFX packages only supports python 2
 pip --no-cache-dir install \

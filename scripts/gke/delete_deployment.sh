@@ -9,7 +9,7 @@ set -x
 
 # Don't fail on error because some commands will fail if the resources were already deleted.
 
-set -x 
+set -x
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 
@@ -51,15 +51,15 @@ main() {
   for i in ${names[@]}; do
     if [ -z ${!i} ]; then
       echo "--${i} not set"
-      missingParam=true   
-    fi  
+      missingParam=true
+    fi
   done
 
   if ${missingParam}; then
     usage
     exit 1
   fi
-  
+
 gcloud deployment-manager --project=${project} deployments delete ${deployment} \
 --quiet
 
@@ -84,13 +84,13 @@ declare -a accounts=("vm" "admin" "user")
 
 # now loop through the above array
 for suffix in "${accounts[@]}";
-do   
+do
    # Delete all role bindings.
    SA=${deployment}-${suffix}@${project}.iam.gserviceaccount.com
    python delete_role_bindings.py --project=${project} --service_account=${SA}
    gcloud --project=${project} iam service-accounts delete \
   ${SA} \
-  --quiet   
+  --quiet
 done
 
 # Exit with status zero.

@@ -24,6 +24,7 @@ import (
 	"github.com/ksonnet/ksonnet/pkg/actions"
 	kApp "github.com/ksonnet/ksonnet/pkg/app"
 	"github.com/ksonnet/ksonnet/pkg/client"
+	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksapp/v1alpha1"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
@@ -110,7 +111,7 @@ type ksServer struct {
 	// This can be used to map the name of a registry to info about the registry.
 	// This allows apps to specify a registry by name without having to know any
 	// other information about the regisry.
-	knownRegistries map[string]RegistryConfig
+	knownRegistries map[string]*kstypes.RegistryConfig
 
 	//gkeVersionOverride allows overriding the GKE version specified in DM config. If not set the value in DM config is used.
 	// https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters
@@ -149,7 +150,7 @@ func (m MultiError) ToError() error {
 }
 
 // NewServer constructs a ksServer.
-func NewServer(appsDir string, registries []RegistryConfig, gkeVersionOverride string, installIstio bool) (*ksServer, error) {
+func NewServer(appsDir string, registries []*kstypes.RegistryConfig, gkeVersionOverride string, installIstio bool) (*ksServer, error) {
 	if appsDir == "" {
 		return nil, fmt.Errorf("appsDir can't be empty")
 	}
@@ -157,7 +158,7 @@ func NewServer(appsDir string, registries []RegistryConfig, gkeVersionOverride s
 	s := &ksServer{
 		appsDir:            appsDir,
 		projectLocks:       make(map[string]*sync.Mutex),
-		knownRegistries:    make(map[string]RegistryConfig),
+		knownRegistries:    make(map[string]*kstypes.RegistryConfig),
 		gkeVersionOverride: gkeVersionOverride,
 		fs:                 afero.NewOsFs(),
 		installIstio:       installIstio,
@@ -195,7 +196,7 @@ type CreateRequest struct {
 	// Name for the app.
 	Name string
 	// AppConfig is the config for the app.
-	AppConfig AppConfig
+	AppConfig kstypes.AppConfig
 
 	// Namespace for the app.
 	Namespace string
@@ -506,7 +507,7 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 
 	// Add the registries to the app.
 	for idx, registry := range request.AppConfig.Registries {
-		RegUri, err := s.getRegistryUri(&registry)
+		RegUri, err := s.getRegistryUri(registry)
 		if err != nil {
 			log.Errorf("There was a problem getRegistryUri for registry %v. Error: %v", registry.Name, err)
 			return err
@@ -589,17 +590,17 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 
 // fetch remote registry to local disk, or use baked-in registry if version not specified in user request.
 // Then return registry's RegUri.
-func (s *ksServer) getRegistryUri(registry *RegistryConfig) (string, error) {
+func (s *ksServer) getRegistryUri(registry *kstypes.RegistryConfig) (string, error) {
 	if registry.Name == "" ||
-			registry.Path == "" ||
-			registry.Repo == "" ||
-			registry.Version == "" ||
-			registry.Version == "default" {
+		registry.Path == "" ||
+		registry.Repo == "" ||
+		registry.Version == "" ||
+		registry.Version == "default" {
 
 		v, ok := s.knownRegistries[registry.Name]
 		if !ok {
 			return "", fmt.Errorf("Create request uses registry %v but some "+
-					"required fields are not specified and this is not a known registry.", registry.Name)
+				"required fields are not specified and this is not a known registry.", registry.Name)
 		}
 		log.Infof("No remote registry provided for registry %v; setting URI to local %v.", registry.Name, v.RegUri)
 		return v.RegUri, nil
@@ -651,7 +652,7 @@ func runCmd(rawcmd string) error {
 }
 
 // appGenerate installs packages and creates components.
-func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *AppConfig) error {
+func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *kstypes.AppConfig) error {
 	libs, err := kfApp.Libraries()
 
 	if err != nil {
@@ -676,7 +677,7 @@ func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *AppConfig) error {
 		_, err = s.fs.Stat(regFile)
 		if err == nil {
 			log.Infof("processing registry file %v ", regFile)
-			var ksRegistry KsRegistry
+			var ksRegistry kstypes.KsRegistry
 			if LoadConfig(regFile, &ksRegistry) == nil {
 				for pkgName, _ := range ksRegistry.Libraries {
 					_, err = s.fs.Stat(path.Join(registry.RegUri, pkgName))
@@ -783,7 +784,7 @@ func (s *ksServer) createComponent(kfApp kApp.App, args []string) error {
 
 // autoConfigureApp attempts to automatically optimize the Kubeflow application
 // based on the cluster setup.
-func (s *ksServer) autoConfigureApp(kfApp *kApp.App, appConfig *AppConfig, namespace string, config *rest.Config) error {
+func (s *ksServer) autoConfigureApp(kfApp *kApp.App, appConfig *kstypes.AppConfig, namespace string, config *rest.Config) error {
 
 	kubeClient, err := clientset.NewForConfig(rest.AddUserAgent(config, "kubeflow-bootstrapper"))
 	if err != nil {
@@ -1200,7 +1201,7 @@ func checkDeploymentFinished(svc KsService, req CreateRequest, deployName string
 }
 
 func finishDeployment(svc KsService, req CreateRequest,
-		clusterDmDeploy *deploymentmanager.Deployment, storageDmDeploy *deploymentmanager.Deployment) {
+	clusterDmDeploy *deploymentmanager.Deployment, storageDmDeploy *deploymentmanager.Deployment) {
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, StartTime, time.Now())
 
@@ -1297,13 +1298,13 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 			}
 			req.AppConfig.Parameters = append(
 				req.AppConfig.Parameters,
-				KsParameter{
+				kstypes.KsParameter{
 					Component: "pipeline",
 					Name:      "mysqlPd",
 					Value:     req.Name + StorageDmSpec.DmNameSuffix + PipelineDbDiskSuffix})
 			req.AppConfig.Parameters = append(
 				req.AppConfig.Parameters,
-				KsParameter{
+				kstypes.KsParameter{
 					Component: "pipeline",
 					Name:      "nfsPd",
 					Value:     req.Name + StorageDmSpec.DmNameSuffix + PipelineNfsDiskSuffix})

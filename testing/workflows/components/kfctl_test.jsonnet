@@ -76,7 +76,7 @@ local prowDict = {
   REPO_NAME: "notset",
   JOB_NAME: "notset",
   JOB_TYPE: "notset",
-  PULL_NUMBER: "notset",  
+  PULL_NUMBER: "notset",
  } + newUtil.listOfDictToMap(prowEnv);
 
 // Build an Argo template to execute a particular command.
@@ -392,7 +392,7 @@ local workflow = {
         workflow: params.name,
         workflow_template: workflow_template,
     },
-  },  
+  },
   spec: {
     entrypoint: "e2e",
     // Have argo garbage collect old workflows otherwise we overload the API server.
