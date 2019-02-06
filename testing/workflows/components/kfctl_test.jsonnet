@@ -331,7 +331,7 @@ local deleteStorageStep = if deleteKubeflow then
       ],
       working_dir=appDir
     ),
-    dependencies: null,
+    dependencies: ["kfctl-delete"],
   }]
 else [];
 
