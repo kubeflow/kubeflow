@@ -9,6 +9,7 @@
     local pipeline_apiserver = import "kubeflow/pipeline/pipeline-apiserver.libsonnet",
     local pipeline_scheduledworkflow = import "kubeflow/pipeline/pipeline-scheduledworkflow.libsonnet",
     local pipeline_persistenceagent = import "kubeflow/pipeline/pipeline-persistenceagent.libsonnet",
+    local pipeline_viewercrd = import "kubeflow/pipeline/pipeline-viewercrd.libsonnet",
     local pipeline_ui = import "kubeflow/pipeline/pipeline-ui.libsonnet",
 
     local name = params.name,
@@ -30,6 +31,7 @@
           pipeline_apiserver.all(namespace, apiImage) +
           pipeline_scheduledworkflow.all(namespace, scheduledWorkflowImage) +
           pipeline_persistenceagent.all(namespace, persistenceAgentImage) +
+          pipeline_viewercrd.all(namespace, viewerCrdControllerImage) +
           pipeline_ui.all(namespace, uiImage) +
           storage.all(namespace, mysqlPvName, nfsPvName, mysqlPd, nfsPd),
   },
