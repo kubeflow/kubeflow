@@ -475,21 +475,26 @@ main() {
       MASTER=`expr match "${KUBE_INFO}" '[^\.0-9]*\([\.0-9]\+\)'`
       echo MASTER=${MASTER}
 
-       if [[ "${MASTER}" != "${KS_MASTER}" ]]; then
+      if [[ "${MASTER}" != "${KS_MASTER}" ]]; then
         echo "The current kubectl context doesn't match the ks environment"
         echo "Please configure the context to match ks environment ${KS_ENV}"
         exit -1
       else
         echo "kubectl context matches ks environment ${KS_ENV}"
       fi
-      set +e
-      kubectl delete ns/${K8S_NAMESPACE}
-      while kubectl get ns/${K8S_NAMESPACE}; do
-        echo "namespace ${K8S_NAMESPACE} not yet deleted. sleeping 10 seconds..."
-        sleep 10
-      done
-      echo "namespace ${K8S_NAMESPACE} successfully deleted."
-      set -e
+      # Skip deleting namespace if platform is GCP
+      # Since the cluster will be deleted
+      # https://github.com/kubeflow/kubeflow/issues/2408
+      if [[ "${WHAT}" == "all" ]] && [[ "${PLATFORM}" != "gcp" ]]; then
+        set +e
+        kubectl delete ns/${K8S_NAMESPACE}
+        while kubectl get ns/${K8S_NAMESPACE}; do
+          echo "namespace ${K8S_NAMESPACE} not yet deleted. sleeping 10 seconds..."
+          sleep 10
+        done
+        echo "namespace ${K8S_NAMESPACE} successfully deleted."
+        set -e
+      fi
     fi
     if [[ "${WHAT}" == "platform" ]] || [[ "${WHAT}" == "all" ]]; then
       if [[ "${PLATFORM}" == "gcp" ]]; then
