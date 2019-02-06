@@ -325,7 +325,7 @@ local deleteStorageStep = if deleteKubeflow then
         "deployment-manager",
         "--project=" + project,
         "deployments",
-        "delete"
+        "delete",
         appName+"-storage",
       ],
       working_dir=appDir
@@ -335,7 +335,7 @@ local deleteStorageStep = if deleteKubeflow then
 else [];
 
 local exitTemplates =
-  deleteStep +
+  deleteStep + deleteStorageStep +
   [
     {
       template: buildTemplate("copy-artifacts", [
@@ -348,8 +348,7 @@ local exitTemplates =
       ]),  // copy-artifacts,
 
       dependencies: if deleteKubeflow then
-        ["kfctl-delete"]
-        ["kfctl-delete-storage"]
+        ["kfctl-delete"] + ["kfctl-delete-storage"]
       else null,
     },
     {
