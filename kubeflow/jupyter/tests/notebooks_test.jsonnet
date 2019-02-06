@@ -12,7 +12,7 @@ local params = {
   repoName: "kubeflow-images-public",
   notebookUid: "-1",
   notebookGid: "-1",
-  accessLocalFs: "false",
+  accessLocalFs: "true",
 };
 
 local env = {
@@ -133,48 +133,49 @@ local testCases = [
   },
   {
     actual: instance.parts.notebooksController,
-    expected: {
-      apiVersion: "metacontroller.k8s.io/v1alpha1",
-      kind: "CompositeController",
-      metadata: {
-        annotations: {
-          accessLocalFs: "false",
-          image: "gcr.io/kubeflow/jupyterhub-k8s:v20180531-3bb991b1",
-          namespace: "kf-100",
-          notebookGid: "-1",
-          notebookPVCMount: "/home/jovyan",
-          notebookUid: "-1",
-          registry: "gcr.io",
-          repoName: "kubeflow-images-public",
-          useJupyterLabAsDefault: true,
+    expected:
+      {
+        apiVersion: "metacontroller.k8s.io/v1alpha1",
+        kind: "CompositeController",
+        metadata: {
+          annotations: {
+            accessLocalFs: "true",
+            image: "gcr.io/kubeflow/jupyterhub-k8s:v20180531-3bb991b1",
+            namespace: "kf-100",
+            notebookGid: "-1",
+            notebookPVCMount: "/home/jovyan",
+            notebookUid: "-1",
+            registry: "gcr.io",
+            repoName: "kubeflow-images-public",
+            useJupyterLabAsDefault: true,
+          },
+          name: "notebook-controller",
         },
-        name: "notebook-controller",
-      },
-      spec: {
-        childResources: [
-          {
-            apiVersion: "v1",
-            resource: "services",
-          },
-          {
-            apiVersion: "extensions/v1beta1",
-            resource: "deployments",
-          },
-        ],
-        generateSelector: true,
-        hooks: {
-          sync: {
-            webhook: {
-              url: "http://notebooks.kf-100/sync-notebook",
+        spec: {
+          childResources: [
+            {
+              apiVersion: "v1",
+              resource: "services",
+            },
+            {
+              apiVersion: "extensions/v1beta1",
+              resource: "deployments",
+            },
+          ],
+          generateSelector: true,
+          hooks: {
+            sync: {
+              webhook: {
+                url: "http://notebooks.kf-100/sync-notebook",
+              },
             },
           },
-        },
-        parentResource: {
-          apiVersion: "kubeflow.org/v1alpha1",
-          resource: "notebooks",
+          parentResource: {
+            apiVersion: "kubeflow.org/v1alpha1",
+            resource: "notebooks",
+          },
         },
       },
-    },
   },
 ];
 
