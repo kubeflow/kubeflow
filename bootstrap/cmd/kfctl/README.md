@@ -4,6 +4,8 @@
 
 The new `kfctl` client replaces `kfctl.sh` and is implemented in golang.
 
+Note: Additional issues have been opened so this README.md will have additional updates.
+
 ## Requirements
 
  - Create a common API for the UI (gcp-click-to-deploy) and `kfctl` (`KfApp`).
