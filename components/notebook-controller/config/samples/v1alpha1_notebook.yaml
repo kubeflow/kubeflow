@@ -1,0 +1,18 @@
+apiVersion: kubeflow.org/v1alpha1
+kind: Notebook
+metadata:
+  labels:
+    controller-tools.k8s.io: "1.0"
+  name: notebook-sample
+spec:
+  # Add fields here
+  template:
+    spec:
+      containers:
+      - image: "gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu:v0.3.0"
+        name: "notebook"
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+        workingDir: "/home/jovyan"
