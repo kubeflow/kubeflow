@@ -327,6 +327,7 @@ local deleteStorageStep = if deleteKubeflow then
         "deployments",
         "delete",
         appName+"-storage",
+        "--quiet",
       ],
       working_dir=appDir
     ),
