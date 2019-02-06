@@ -23,9 +23,9 @@ local testDir = mountPath + "/" + name;
 local outputDir = testDir + "/output";
 local artifactsDir = outputDir + "/artifacts";
 // Source directory where all repos should be checked out
-local srcRootDir = testDir + "/src";
+local srcRootDir = testDir + "/src/github.com";
 // The directory containing the kubeflow/kubeflow repo
-local srcDir = srcRootDir + "/github.com/kubeflow/kubeflow";
+local srcDir = srcRootDir + "/kubeflow/kubeflow";
 
 local runPath = srcDir + "/testing/workflows/run.sh";
 local bootstrapDir = srcDir + "/bootstrap";
@@ -42,7 +42,7 @@ local dataVolume = "kubeflow-test-volume";
 local kubeflowPy = srcDir;
 // The directory within the kubeflow_testing submodule containing
 // py scripts to use.
-local kubeflowTestingPy = srcRootDir + "/github.com/kubeflow/testing/py";
+local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
 
 local project = "kubeflow-ci";
 
@@ -139,7 +139,7 @@ local componentTests = util.kfTests {
 local dagTemplates = [
   {
     template: buildTemplate("checkout",
-                            ["/usr/local/bin/checkout.sh", srcRootDir+ "/github.com"],
+                            ["/usr/local/bin/checkout.sh", srcRootDir],
                             env_vars=[{
                               name: "EXTRA_REPOS",
                               value: "kubeflow/tf-operator@HEAD;kubeflow/testing@HEAD",
