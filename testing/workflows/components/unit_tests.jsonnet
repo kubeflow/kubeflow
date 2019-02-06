@@ -112,16 +112,8 @@ local dagTemplates = [
       "-m",
       "testing.test_flake8",
       "--test_files_dirs=" +
-      srcDir + "/kubeflow/application/tests" + "," +
-      srcDir + "/kubeflow/common/tests" + "," +
-      srcDir + "/kubeflow/jupyter/tests" + "," +
-      srcDir + "/kubeflow/iap/tests," + "," +
-      srcDir + "/kubeflow/gcp/tests" + "," +
-      srcDir + "/kubeflow/tensorboard/tests" + "," +
-      srcDir + "/kubeflow/examples/tests" + "," +
-      srcDir + "/kubeflow/metacontroller/tests" + "," +
-      srcDir + "/kubeflow/profiles/tests" + "," +
-      srcDir + "/kubeflow/tf-training/tests",
+      srcDir + "/kubeflow" + "," +
+      srcDir + "/testing",
     ]),  // flake8-test
     
     dependencies: ["checkout"],
