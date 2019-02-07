@@ -13,11 +13,11 @@ ln -sf ${GIT_KUBEFLOW} ${GOPATH}/src/github.com/kubeflow/kubeflow
 
 ### Prerequisites
 
-golang to 1.11.2
+golang to 1.11.5
 
 ```sh
 $ ☞  go version
-go version go1.11.2 darwin/amd64
+go version go1.11.5 darwin/amd64
 ```
 
 On mac osx you can run
@@ -26,9 +26,9 @@ On mac osx you can run
 brew upgrade golang
 ```
 
-golang-1.11.2 uses go.mod, go.sum files which include dependencies.
+golang-1.11.5 uses go.mod, go.sum files which include dependencies.
 To install a new dependency use `go get <dependency>`.
-golang-1.11.2 no longer creates a vendor directory.
+golang-1.11.5 no longer creates a vendor directory.
 You should add the environment variable `GO111MODULE=on` to your shell init file
 
 ### Makefile targets
