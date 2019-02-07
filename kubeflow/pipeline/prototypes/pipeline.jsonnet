@@ -11,8 +11,10 @@
 // @optionalParam minioImage string minio/minio:RELEASE.2018-02-09T22-40-05Z minio image
 // @optionalParam nfsImage string k8s.gcr.io/volume-nfs:0.8 nfs image
 // @optionalParam mysqlPvName string null user provided PV name to host mysql DB
+// @optionalParam minioPvName string null user provided PV name to host minio
 // @optionalParam nfsPvName string null user provided PV name to host NFS
 // @optionalParam mysqlPd string null GCE PD name to host mysql DB
+// @optionalParam minioPd string null GCE PD name to host minio
 // @optionalParam nfsPd string null GCE PD name to host NFS
 
 local k = import "k.libsonnet";

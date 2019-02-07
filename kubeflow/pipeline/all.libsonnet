@@ -21,16 +21,21 @@
     local mysqlImage = params.mysqlImage,
     local minioImage = params.minioImage,
     local mysqlPvName = params.mysqlPvName,
+    local minioPvName = params.minioPvName,
     local nfsPvName = params.nfsPvName,
     local mysqlPd = params.mysqlPd,
+    local minioPd = params.minioPd,
     local nfsPd = params.nfsPd,
-    all:: minio.all(namespace, minioImage) +
+    nfs:: if (minioPvName == "null") && (minioPd== "null") then
+             nfs.all(namespace, nfsImage)
+           else [],
+    all:: minio.all(namespace, minioImage, minioPd, minioPvName) +
           mysql.all(namespace, mysqlImage) +
-          nfs.all(namespace, nfsImage) +
           pipeline_apiserver.all(namespace, apiImage) +
           pipeline_scheduledworkflow.all(namespace, scheduledWorkflowImage) +
           pipeline_persistenceagent.all(namespace, persistenceAgentImage) +
           pipeline_ui.all(namespace, uiImage) +
-          storage.all(namespace, mysqlPvName, nfsPvName, mysqlPd, nfsPd),
+          storage.all(namespace, mysqlPvName, minioPvName, nfsPvName, mysqlPd, minioPd, nfsPd) +
+          $.parts(_env, _params).nfs,
   },
 }
