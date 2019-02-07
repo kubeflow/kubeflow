@@ -17,6 +17,7 @@
     local apiImage = params.apiImage,
     local scheduledWorkflowImage = params.scheduledWorkflowImage,
     local persistenceAgentImage = params.persistenceAgentImage,
+    local viewerCrdControllerImage = params.viewerCrdControllerImage,
     local uiImage = params.uiImage,
     local nfsImage = params.nfsImage,
     local mysqlImage = params.mysqlImage,
