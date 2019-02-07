@@ -148,7 +148,13 @@
       },
       spec: {
         group: "kubeflow.org",
-        version: "v1beta1",
+        versions: [
+          {
+            name: "v1beta1",
+            storage: true,
+            served: true,
+          },
+        ],
         scope: "Namespaced",
         names: {
           kind: "Viewer",
