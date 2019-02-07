@@ -28,10 +28,7 @@ func main() {
 	clientset := GetClient()
 	isKatibDeployed := SearchKatibPods(clientset)
 
-	indexServer := http.FileServer(http.Dir("frontend/layout/"))
-	if isKatibDeployed {
-		indexServer = http.FileServer(http.Dir("frontend/index/"))
-	}
+	indexServer = http.FileServer(http.Dir("frontend/"))
 
 	http.Handle("/", indexServer)
 	log.Println("Listening on", ":"+port)
