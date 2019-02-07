@@ -20,8 +20,9 @@ GOPATH ?= $(HOME)/go
 IMG ?= gcr.io/$(GCLOUD_PROJECT)/bootstrapper
 TAG ?= $(shell git describe --tags --always --dirty)
 PORT ?= 2345
-export GO111MODULE=on
-export GO=go
+PLUGINS_ENVIRONMENT ?= $(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin
+export GO111MODULE = on
+export GO = go
 
 all: build
 
@@ -51,6 +52,9 @@ build-foo-plugin: generate fmt vet
 
 build-minikube-plugin: generate fmt vet
 	$(GO) build -i -gcflags 'all=-N -l' -o bin/minikube.so -buildmode=plugin cmd/plugins/minikube/minikube.go
+
+build-ksonnet-plugin: generate fmt vet
+	$(GO) build -i -gcflags 'all=-N -l' -o bin/ksonnet.so -buildmode=plugin cmd/plugins/ksonnet/ksonnet.go
 
 build-local: build-bootstrap build-kfctl
 
@@ -83,22 +87,37 @@ run-local-docker:
 	  --mount type=bind,source=${HOME}/kf_app,target=/home/kubeflow \
 	  --entrypoint /bin/bash $(IMG):$(TAG)
 
-# init ~/myapp --platform none
-test-known-platforms-init: install build-foo-plugin build-minikube-plugin
-	@rm -rf $(HOME)/ksonnet && \
-	kfctl init $(HOME)/ksonnet -V --platform none --version master && \
+# init ~/myapp --platform ksonnet
+test-known-platforms-init: install build-ksonnet-plugin build-minikube-plugin build-foo-plugin
+	@rm -rf $(HOME)/foo && \
+	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/foo -V --platform foo --version master && \
+	rm -rf $(HOME)/ksonnet && \
+	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/ksonnet -V --platform ksonnet --version master && \
 	rm -rf $(HOME)/minikube && \
-	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl init $(HOME)/minikube -V --platform minikube --version master && \
-	rm -rf $(HOME)/foo && \
-	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl init $(HOME)/foo -V --platform foo --version master && \
+	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/minikube -V --platform minikube --version master && \
 	echo SUCCESS
 
 # generate all --email john@foo.com --ipName 35.233.240.120
 test-known-platforms-generate: test-known-platforms-init
 	@cd ~/ksonnet && \
-	kfctl generate all -V && \
+	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V && \
 	cd ~/minikube && \
 	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V --mount-local && \
 	cd ~/foo && \
 	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V && \
 	echo SUCCESS
+
+
+# debug and nodebug are for kfctl and enable debugging in goland 
+# by disabling plugins. This is a golang compiler bug which will be fixed in 1.12.
+debug:
+	@ex pkg/apis/apps/group.go <hack/debug
+	@ex pkg/client/foo/foo.go <hack/debug
+	@ex pkg/client/minikube/minikube.go <hack/debug
+	@ex cmd/kfctl/cmd/root.go <hack/debug || echo DEBUG ENABLED
+
+nodebug:
+	@ex pkg/apis/apps/group.go <hack/nodebug
+	@ex pkg/client/foo/foo.go <hack/nodebug
+	@ex pkg/client/minikube/minikube.go <hack/nodebug
+	@ex cmd/kfctl/cmd/root.go <hack/nodebug || echo DEBUG DISABLED

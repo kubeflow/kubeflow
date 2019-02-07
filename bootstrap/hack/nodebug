@@ -1,0 +1,6 @@
+1,$s/\/\* NO_DEBUG/\/\/ NO_DEBUG/
+1,$s/\/* NO_DEBUG \*\//\/\/ NO_DEBUG \/\//
+1,$s/\/\/ DEBUG/\/* DEBUG/
+1,$s/\/\/ -DEBUG \/\//-DEBUG \*\//
+w
+q
