@@ -492,9 +492,9 @@ main() {
         sleep 10
       done
       if kubectl get ns/${K8S_NAMESPACE}; then
-        echo "namespace ${K8S_NAMESPACE} successfully deleted."
-      else
         echo "namespace ${K8S_NAMESPACE} failed to delete."
+      else
+        echo "namespace ${K8S_NAMESPACE} successfully deleted."
       fi
       set -e
     fi
