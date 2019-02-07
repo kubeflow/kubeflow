@@ -244,7 +244,7 @@ local exitTemplates =
         "--bucket=" + bucket,
       ]),  // copy-artifacts,
 
-      dependencies: ["deploy-delete"],
+      dependencies: null,
     },
     {
       template:
