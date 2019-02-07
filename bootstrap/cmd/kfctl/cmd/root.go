@@ -21,7 +21,6 @@ import (
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksonnet"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/minikube"
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
@@ -60,9 +59,6 @@ func loadPlatform(options map[string]interface{}) (kftypes.KfApp, error) {
 	case "none":
 		_kfapp := ksonnet.GetKfApp(options)
 		return _kfapp, nil
-	case "minikube":
-		_minikubeapp := minikube.GetKfApp(options)
-		return _minikubeapp, nil
 	default:
 		// To enable goland debugger:
 		// Comment out  this section and comment in the line
