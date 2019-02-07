@@ -49,6 +49,42 @@
                           namespace: {
                             type: "string",
                           },
+                          quota: {
+                            type: "object",
+                            properties: {
+                              name: {
+                                type: "string",
+                              },
+                              requests: {
+                                type: "object",
+                                properties: {
+                                  cpu: {
+                                    type: "string",
+                                  },
+                                  memory: {
+                                    type: "string",
+                                  },
+                                  gpu: {
+                                    type: "string",
+                                  },
+                                },
+                              },
+                              limits: {
+                                type: "object",
+                                properties: {
+                                  cpu: {
+                                    type: "string",
+                                  },
+                                  memory: {
+                                    type: "string",
+                                  },
+                                  gpu: {
+                                    type: "string",
+                                  },
+                                },
+                              },
+                            },
+                          },
                         },
                       },
                       spec: {
@@ -307,6 +343,10 @@
           {
             apiVersion: "v1",
             resource: "namespaces",
+          },
+          {
+            apiVersion: "v1",
+            resource: "resourcequotas",
           },
           {
             apiVersion: "kubeflow.org/v1alpha1",

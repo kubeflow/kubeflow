@@ -74,6 +74,12 @@ def deploy_kubeflow(test_case):
     ],
     cwd=app_dir)
 
+  util.run(
+    [
+      "ks", "generate", "katib", "katib",
+    ],
+    cwd=app_dir)
+
   apply_command = [
     "ks",
     "apply",
@@ -84,6 +90,8 @@ def deploy_kubeflow(test_case):
     "pytorch-operator",
     "-c",
     "jupyter",
+    "-c",
+    "katib",
   ]
 
   if args.as_gcloud_user:
@@ -97,21 +105,16 @@ def deploy_kubeflow(test_case):
     apply_command.append("--as=" + account)
   util.run(apply_command, cwd=app_dir)
 
-  # Verify that the TfJob operator is actually deployed.
-  tf_job_deployment_name = "tf-job-operator-v1beta1"
-  logging.info("Verifying TfJob controller started.")
-  util.wait_for_deployment(api_client, namespace, tf_job_deployment_name)
-
   # Verify that Jupyter is actually deployed.
   jupyter_name = "jupyter"
   logging.info("Verifying TfHub started.")
   util.wait_for_statefulset(api_client, namespace, jupyter_name)
 
-  # Verify that PyTorch Operator actually deployed
-  pytorch_operator_deployment_name = "pytorch-operator"
-  logging.info("Verifying PyTorchJob controller started.")
-  util.wait_for_deployment(api_client, namespace, pytorch_operator_deployment_name)
-
+  # Verify that core components are actually deployed.
+  deployment_names = ["tf-job-operator-v1beta1", "pytorch-operator", "studyjob-controller"]
+  for deployment_name in deployment_names:
+    logging.info("Verifying that %s started...", deployment_name)
+    util.wait_for_deployment(api_client, namespace, deployment_name)
 
 def main():
   test_case = test_helper.TestCase(

@@ -127,6 +127,8 @@
                         - "{{.WorkerKind}}"
                         - "-n"
                         - "{{.NameSpace}}"
+                        - "-m"
+                        - "{{.ManagerSerivce}}"
                       restartPolicy: Never
           ||| % { mcimage: params.metricsCollectorImage },
         },
@@ -273,6 +275,16 @@
                   name: "studyjob-controller",
                   image: params.studyJobControllerImage,
                   imagePullPolicy: "Always",
+                  env: [
+                    {
+                      name: "VIZIER_CORE_NAMESPACE",
+                      valueFrom: {
+                        fieldRef: {
+                          fieldPath: "metadata.namespace",
+                        },
+                      },
+                    },
+                  ],
                 },
               ],
             },

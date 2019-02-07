@@ -1,28 +1,22 @@
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
-
-- [Argo](#argo)
-  - [Quickstart](#quickstart)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
 # Argo
 
 > Prototypes for deploying Argo and running Argo Workflows
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-* [Quickstart](#quickstart)
-* [Using Prototypes](#using-prototypes)
-  * [io.ksonnet.pkg.argo](#io.ksonnet.pkg.argo)
+- [Quickstart](#quickstart)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Quickstart
 
 *The following commands use the `io.ksonnet.pkg.argo` prototype to deploy the Argo Workflow operator on your Kubernetes cluster*
 
-First, create a cluster and install the ksonnet CLI (see root-level [README.md](rootReadme)).
+First, create a cluster and install the ksonnet CLI (see root-level [README.md](../../README.md)).
 
-If you haven't yet created a [ksonnet application](linkToSomewhere), do so using `ks init <app-name>`.
+If you haven't yet created a [ksonnet application](https://ksonnet.io/docs/tutorial#1-initialize-your-app), do so using `ks init <app-name>`.
 
 Finally, in the ksonnet application directory, run the following:
 
@@ -39,5 +33,3 @@ $ ks prototype use io.ksonnet.pkg.argo argo \
 # Apply to server.
 $ ks apply default -c argo
 ```
-
-[rootReadme]: https://github.com/ksonnet/mixins
