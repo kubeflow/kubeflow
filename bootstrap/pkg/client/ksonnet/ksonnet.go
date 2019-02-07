@@ -90,7 +90,7 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 		if goPathVar != "" {
 			kubeflowRepo = re.ReplaceAllString(kubeflowRepo, goPathVar+`$2`)
 		}
-		_kfapp.KsApp.Spec.Repo = kubeflowRepo
+		_kfapp.KsApp.Spec.Repo = path.Join(kubeflowRepo, "kubeflow")
 	}
 	if options[string(kftypes.VERSION)] != nil {
 		kubeflowVersion := options[string(kftypes.VERSION)].(string)

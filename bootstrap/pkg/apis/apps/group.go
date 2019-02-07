@@ -34,7 +34,7 @@ const (
 	DefaultPlatform  = "none"
 	// TODO: find the latest tag dynamically
 	DefaultVersion  = "v0.4.1"
-	DefaultDevRepo  = "$GOPATH/src/github.com/kubeflow/kubeflow/kubeflow"
+	DefaultDevRepo  = "$GOPATH/src/github.com/kubeflow/kubeflow"
 	DefaultGitRepo  = "https://github.com/kubeflow/kubeflow/tarball"
 	KfConfigFile    = "app.yaml"
 	DefaultCacheDir = ".cache"
