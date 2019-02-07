@@ -8,6 +8,7 @@
                 --accent-color: #007dfc;
                 --primary-background-color: #003c75;
                 --sidebar-default-color: #ffffff4f;
+                --border-color: #f4f4f6;
             }
             .flex {flex: 1}
             .bottom {
@@ -82,12 +83,22 @@
             }
             #Dashboard > paper-card.thin {grid-column: 3}
             #Dashboard > .Getting-Started paper-icon-item:not(:last-of-type) {
-                border-bottom: 1px solid #f4f4f6;
+                border-bottom: 1px solid var(--border-color);
             }
             #Dashboard > .Getting-Started paper-icon-item iron-icon {
                 color: var(--accent-color)
             }
             #Dashboard > .Quick-Links {grid-column: 3}
+            #Dashboard > .Quick-Links .link {
+                width: 80%;
+                margin: .5em auto;
+                border: 1px solid #eeeeef;
+                padding: .5em 1em;
+                border-radius: 5px;
+                @apply --layout-horizontal;
+            }
+            #Dashboard > .Quick-Links .link.more-coming {opacity: .4;font-style: italic;pointer-events: none}
+            #Dashboard > .Quick-Links .link .button {color: var(--accent-color);background: rgba(0, 125, 252, 0.25);border-radius: 50%}
             #Dashboard:after {content: '';grid-column: 1 span 3}
             #Activity {@apply --layout-vertical;@apply --layout-center-center}
             #Activity:before, #Activity:after {font-size: 3em;opacity: .3;font-family: Google Sans}
@@ -115,7 +126,7 @@
                 <aside class="flex"></aside>
                 <footer class="footer">
                     <section class='privacy'>Privacy</section>
-                    <section class='build'>build version v1.0</section>
+                    <section class='build'>build version v[[buildVersion]]</section>
                 </footer>
             </app-drawer>
             <app-header-layout fullbleed>
@@ -147,11 +158,15 @@
                             </paper-card>
                             <paper-card heading="Quick Links" class="Quick-Links">
                                 <template is="dom-repeat" items="[[quickLinks]]">
-                                    <paper-icon-item>
+                                    <article class="link">
                                         <paper-item-body>[[item.text]]</paper-item-body>
-                                        <paper-icon-button icon='left-arrow' alt='[[item.text]]'></paper-icon-button>
-                                    </paper-icon-item>
+                                        <paper-icon-button class="button" icon='arrow-forward' alt='[[item.text]]', on-click='openQuickLink'></paper-icon-button>
+                                    </article>
                                 </template>
+                                <article class="link more-coming">
+                                    <paper-item-body>More coming soon</paper-item-body>
+                                    <paper-icon-button class="button" icon='arrow-forward' diabled></paper-icon-button>
+                                </article>
                             </paper-card>
                         </article>
                         <article id='Activity'></article>
@@ -180,11 +195,20 @@
                     {text: 'Compare run output', icon: 'donut-large'},
                     {text: 'Share solution on AI Hub', icon: 'donut-large'},
                 ]},
+                quickLinks: {type: Array, value: [
+                    {text: 'Open docs', link: 'https://www.kubeflow.org/docs/started/getting-started/'},
+                    {text: 'Open Github', link: 'https://github.com/kubeflow/kubeflow'},
+                ]},
                 sidebarItemIndex: {type: Number, value: 0},
                 primaryViewIndex: {type: Number, value: 0},
                 homeOrIframeViewIndex: {type: Number, value: 0},
                 url: {type: String, value: ""},
+                buildVersion: {type: String, value: "1.0"},
             }}
+            openQuickLink(e) {
+                const {link} = e.model.item
+                ;(a => {a.href = link;a.target='_blank';a.click()})(document.createElement('a'))
+            }
             openLink(e) {
                 const {link, defaultPage} = e.model.item
                 this.homeOrIframeViewIndex = defaultPage?0:1
