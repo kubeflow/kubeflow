@@ -491,7 +491,11 @@ main() {
         ((c++)) && ((c==10)) && break
         sleep 10
       done
-      echo "namespace ${K8S_NAMESPACE} successfully deleted."
+      if kubectl get ns/${K8S_NAMESPACE}; then
+        echo "namespace ${K8S_NAMESPACE} successfully deleted."
+      else
+        echo "namespace ${K8S_NAMESPACE} failed to delete."
+      fi
       set -e
     fi
     if [[ "${WHAT}" == "platform" ]] || [[ "${WHAT}" == "all" ]]; then
