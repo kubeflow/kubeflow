@@ -258,7 +258,7 @@ local exitTemplates =
           "-rf",
           testDir,
         ]),  // test-dir-delete
-      dependencies: ["copy-artifacts"],
+      dependencies: ["copy-artifacts", "deploy-delete"],
     },
   ];
 
