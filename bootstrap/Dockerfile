@@ -1,8 +1,8 @@
 #
 # bootstrap_base
 #
-ARG GOLANG_VERSION=1.11.2
-FROM golang:${GOLANG_VERSION} as bootstrap_base
+ARG GOLANG_VERSION=1.11.5
+FROM golang:$GOLANG_VERSION as bootstrap_base
 
 RUN apt-get update
 

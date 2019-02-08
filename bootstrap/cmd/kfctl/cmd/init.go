@@ -40,7 +40,7 @@ directory is name is a path.`,
 			log.SetLevel(log.WarnLevel)
 		}
 		if len(args) == 0 {
-			log.Errorf("KsApp name is required")
+			log.Errorf("name is required")
 			return
 		}
 		appName := args[0]

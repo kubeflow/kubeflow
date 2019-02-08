@@ -28,10 +28,10 @@ bootstrap/cmd/kfctl/cmd
 bootstrap/pkg
 bootstrap/pkg/apis
 bootstrap/pkg/apis/apps
-bootstrap/pkg/apis/apps/ksapp/v1alpha1
+bootstrap/pkg/apis/apps/ksonnet/v1alpha1
 bootstrap/pkg/utils
 bootstrap/pkg/client
-bootstrap/pkg/client/ksapp
+bootstrap/pkg/client/ksonnet
 bootstrap/pkg/client/minikube
 bootstrap/plugins
 ```
@@ -51,7 +51,7 @@ const (
 )
 //
 // KfApp is used by commands under bootstrap/cmd/{bootstrap,kfctl}. KfApp provides a common
-// API for different implementations like KsApp, GcpApp, MinikubeApp, etc.
+// API for different implementations like Ksonnet, GcpApp, MinikubeApp, etc.
 //
 type KfApp interface {
 	Apply(resources ResourceEnum, options map[string]interface{}) error
@@ -64,7 +64,7 @@ type KfApp interface {
 kfctl includes platforms that implement the KfApp interface. (gcp will be added in the next phase)
 
 - platform: **none**
-  - bootstrap/pkg/client/ksapp/ksapp.go
+  - bootstrap/pkg/client/ksonnet/ksonnet.go
 - platform: **minikube**
   - bootstrap/pkg/client/minikube/minikube.go
 - platform: **docker-for-desktop** (in progress)
@@ -248,15 +248,15 @@ Change root.go (~#45) to look like below and goland debug should work.
 
 ## KfApp Types used in app.yaml
 
-### ksonnet related types (originally under bootstrap/cmd/bootstrap, moved to pkg/apis/apps/ksapp/v1alpha1)
+### ksonnet related types (originally under bootstrap/cmd/bootstrap, moved to pkg/apis/apps/ksonnet/v1alpha1)
 
 ```golang
-type KsApp struct {
+type Ksonnet struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   KsAppSpec   `json:"spec,omitempty"`
-	Status KsAppStatus `json:"status,omitempty"`
+	Spec   KsonnetSpec `json:"spec,omitempty"`
+	Status KsonnetStatus `json:"status,omitempty"`
 }
 
 type NameValue struct {
@@ -264,8 +264,8 @@ type NameValue struct {
 	Value string `json:"value,omitempty"`
 }
 
-// KsAppSpec defines the desired state of KsApp
-type KsAppSpec struct {
+// KsonnetSpec defines the desired state of Ksonnet
+type KsonnetSpec struct {
 	Platform   string                 `json:"platform,omitempty"`
 	Version    string                 `json:"version,omitempty"`
 	Repo       string                 `json:"repo,omitempty"`
@@ -278,8 +278,8 @@ type KsAppSpec struct {
 #### app.yaml example for --platform none
 
 ```
-apiVersion: ksapp.apps.kubeflow.org/v1alpha1
-kind: KsApp
+apiVersion: ksonnet.apps.kubeflow.org/v1alpha1
+kind: Ksonnet
 metadata:
   creationTimestamp: null
   name: ks-app
@@ -293,5 +293,5 @@ status: {}
 
 ## gcp-click-to-deploy (no changes)
 
-Ksonnet types have been moved to `github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksapp/v1alpha1`
+Ksonnet types have been moved to `github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1`
 
