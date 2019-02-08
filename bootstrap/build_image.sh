@@ -17,6 +17,8 @@ until docker ps; do
   sleep 3
 done
 
+go version
+
 GO111MODULE=on go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 
 rm -rf reg_tmp
