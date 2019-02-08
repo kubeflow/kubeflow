@@ -222,28 +222,16 @@ make test-known-platforms-generate
 In order to debug in goland, the plugin code must be disabled. 
 See https://github.com/golang/go/issues/23733. 
 This is expected to be resolved with golang 1.12.
-You'll need to comment out a section in bootstrap/cmd/kfctl/cmd/root.go 
-so that the plugin package is not imported. 
-Change root.go (~#45) to look like below and goland debug should work.
+To enable debug run
 
-```golang
-	default:
-/*
-		plugindir := os.Getenv("PLUGINS_ENVIRONMENT")
-		pluginpath := filepath.Join(plugindir, platform+".so")
-		p, err := plugin.Open(pluginpath)
-		if err != nil {
-			return nil, fmt.Errorf("could not load plugin %v for platform %v Error %v", pluginpath, platform, err)
-		}
-		symName := "Get" + strings.ToUpper(platform[0:1]) + platform[1:] + "App"
-		symbol, symbolErr := p.Lookup(symName)
-		if symbolErr != nil {
-			return nil, fmt.Errorf("could not find symbol %v for platform %v Error %v", symName, platform, symbolErr)
-		}
-		return symbol.(func(map[string]interface{}) kftypes.KfApp)(options), nil
-*/
-		return nil, fmt.Errorf("unknown platform %v", platform)
-	}
+```
+make debug
+```
+
+To go back to where plugins are loaded (this should be the default) run
+
+```
+make nodebug
 ```
 
 ## KfApp Types used in app.yaml
