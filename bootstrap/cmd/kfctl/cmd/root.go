@@ -19,8 +19,8 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/ksonnet/ksonnet/pkg/app"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksapp/v1alpha1"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksapp"
+	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksonnet"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/minikube"
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
@@ -58,7 +58,7 @@ func loadPlatform(options map[string]interface{}) (kftypes.KfApp, error) {
 	platform := options[string(kftypes.PLATFORM)].(string)
 	switch platform {
 	case "none":
-		_kfapp := ksapp.GetKfApp(options)
+		_kfapp := ksonnet.GetKfApp(options)
 		return _kfapp, nil
 	case "minikube":
 		_minikubeapp := minikube.GetKfApp(options)
@@ -69,7 +69,7 @@ func loadPlatform(options map[string]interface{}) (kftypes.KfApp, error) {
 		//   return nil, fmt.Errorf("unknown platform %v", platform
 
 		plugindir := os.Getenv("PLUGINS_ENVIRONMENT")
-		pluginpath := filepath.Join(plugindir, platform+"app.so")
+		pluginpath := filepath.Join(plugindir, platform+".so")
 		p, err := plugin.Open(pluginpath)
 		if err != nil {
 			return nil, fmt.Errorf("could not load plugin %v for platform %v Error %v", pluginpath, platform, err)
@@ -143,14 +143,14 @@ func loadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	if kAppErr != nil {
 		return nil, fmt.Errorf("there was a problem loading app %v. Error: %v", appName, kAppErr)
 	}
-	ksApp := &kstypes.KsApp{}
+	ksApp := &kstypes.Ksonnet{}
 	dat, datErr := ioutil.ReadFile(cfgfile)
 	if datErr != nil {
 		return nil, fmt.Errorf("couldn't read %v. Error: %v", cfgfile, datErr)
 	}
 	specErr := yaml.Unmarshal(dat, ksApp)
 	if specErr != nil {
-		return nil, fmt.Errorf("couldn't unmarshall KsApp. Error: %v", specErr)
+		return nil, fmt.Errorf("couldn't unmarshall Ksonnet. Error: %v", specErr)
 	}
 	options[string(kftypes.PLATFORM)] = ksApp.Spec.Platform
 	options[string(kftypes.APPNAME)] = appName

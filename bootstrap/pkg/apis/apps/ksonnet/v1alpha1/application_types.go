@@ -197,8 +197,8 @@ type NameValue struct {
 	Value string `json:"value,omitempty"`
 }
 
-// KsAppSpec defines the desired state of KsApp
-type KsAppSpec struct {
+// KsonnetSpec defines the desired state of Ksonnet
+type KsonnetSpec struct {
 	Platform   string                 `json:"platform,omitempty"`
 	Version    string                 `json:"version,omitempty"`
 	Repo       string                 `json:"repo,omitempty"`
@@ -207,16 +207,16 @@ type KsAppSpec struct {
 	Parameters map[string][]NameValue `json:"parameters,omitempty"`
 }
 
-// KsAppStatus defines the observed state of KsApp
-type KsAppStatus struct {
-	Conditions []KsAppCondition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,6,rep,name=conditions"`
+// KsonnetStatus defines the observed state of Ksonnet
+type KsonnetStatus struct {
+	Conditions []KsonnetCondition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,6,rep,name=conditions"`
 }
 
-type KsAppConditionType string
+type KsonnetConditionType string
 
-type KsAppCondition struct {
+type KsonnetCondition struct {
 	// Type of deployment condition.
-	Type KsAppConditionType `json:"type" protobuf:"bytes,1,opt,name=type,casttype=KsAppConditionType"`
+	Type KsonnetConditionType `json:"type" protobuf:"bytes,1,opt,name=type,casttype=KsonnetConditionType"`
 	// Status of the condition, one of True, False, Unknown.
 	Status v1.ConditionStatus `json:"status" protobuf:"bytes,2,opt,name=status,casttype=k8s.io/api/core/v1.ConditionStatus"`
 	// The last time this condition was updated.
@@ -231,25 +231,25 @@ type KsAppCondition struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// KsApp is the Schema for the applications API
+// Ksonnet is the Schema for the applications API
 // +k8s:openapi-gen=true
-type KsApp struct {
+type Ksonnet struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   KsAppSpec   `json:"spec,omitempty"`
-	Status KsAppStatus `json:"status,omitempty"`
+	Spec   KsonnetSpec   `json:"spec,omitempty"`
+	Status KsonnetStatus `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// KsAppList contains a list of KsApp
+// KsAppList contains a list of Ksonnet
 type KsAppList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []KsApp `json:"items"`
+	Items           []Ksonnet `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&KsApp{}, &KsAppList{})
+	SchemeBuilder.Register(&Ksonnet{}, &KsAppList{})
 }
