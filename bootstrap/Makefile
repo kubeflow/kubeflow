@@ -113,7 +113,6 @@ test-known-platforms-generate: test-known-platforms-init
 	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V && \
 	echo SUCCESS
 
-
 # debug and nodebug are for kfctl and enable debugging in goland 
 # by disabling plugins. This is a golang compiler bug which will be fixed in 1.12.
 debug:
