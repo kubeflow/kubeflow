@@ -232,21 +232,22 @@ def check_deploy_status(args, deployments):
     service_account_credentials)
   # Wait up to 30 minutes for IAP access test.
   num_req = 0
-  end_time = datetime.datetime.now() + datetime.timedelta(minutes=30)
+  end_time = datetime.datetime.now() + datetime.timedelta(minutes=args.iap_wait_min)
   success_deploy = set()
   while datetime.datetime.now() < end_time and len(deployments) > 0:
     sleep(10)
     num_req += 1
 
     for deployment in deployments:
+      url = "https://%s.endpoints.%s.cloud.goog" % (deployment, args.project)
+      logging.info("Trying url: %s", url)
       try:
         resp = requests.request(
-          METHOD, "https://%s.endpoints.%s.cloud.goog" % (deployment, args.project),
-          headers={'Authorization': 'Bearer {}'.format(
+          METHOD, url, headers={'Authorization': 'Bearer {}'.format(
             google_open_id_connect_token)})
         if resp.status_code == 200:
           success_deploy.add(deployment)
-          logging.info("IAP is ready for %s!", deployment)
+          logging.info("IAP is ready for %s!", url)
         else:
           logging.info("%s: IAP not ready, request number: %s" % (deployment, num_req))
       except Exception:
@@ -535,6 +536,11 @@ def main(unparsed_args=None):
     default=120,
     type=int,
     help="oauth client secret")
+  parser.add_argument(
+    "iap_wait_min",
+    default=30,
+    type=int,
+    help="minutes to wait for IAP")
   parser.add_argument(
     "--zone",
     default="us-east1-d",
