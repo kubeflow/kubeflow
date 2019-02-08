@@ -291,6 +291,14 @@ func (ksApp *KsApp) Delete(resources kftypes.ResourceEnum, options map[string]in
 			return fmt.Errorf("couldn't delete namespace %v Error: %v", namespace, nsErr)
 		}
 	}
+	name := "meta-controller-cluster-role-binding"
+	crb, crbErr := cli.RbacV1().ClusterRoleBindings().Get(name, metav1.GetOptions{})
+	if crbErr == nil {
+		crbDeleteErr := cli.RbacV1().ClusterRoleBindings().Delete(crb.Name, metav1.NewDeleteOptions(int64(5)))
+		if crbDeleteErr != nil {
+			return fmt.Errorf("couldn't delete clusterrolebinding %v Error: %v", name, crbDeleteErr)
+		}
+	}
 	return nil
 }
 
