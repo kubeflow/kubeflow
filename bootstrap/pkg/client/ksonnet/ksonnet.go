@@ -277,7 +277,7 @@ func (ksApp *KsApp) Delete(resources kftypes.ResourceEnum, options map[string]in
 		},
 		actions.OptionEnvName:        ksApp.KsEnvName,
 		actions.OptionComponentNames: components,
-		actions.OptionGracePeriod:    int64(5),
+		actions.OptionGracePeriod:    int64(10),
 	})
 	if err != nil {
 		log.Infof("there was a problem deleting %v: %v", components, err)
@@ -286,7 +286,7 @@ func (ksApp *KsApp) Delete(resources kftypes.ResourceEnum, options map[string]in
 	log.Infof("deleting namespace: %v", namespace)
 	ns, nsMissingErr := cli.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
 	if nsMissingErr == nil {
-		nsErr := cli.CoreV1().Namespaces().Delete(ns.Name, metav1.NewDeleteOptions(int64(20)))
+		nsErr := cli.CoreV1().Namespaces().Delete(ns.Name, metav1.NewDeleteOptions(int64(100)))
 		if nsErr != nil {
 			return fmt.Errorf("couldn't delete namespace %v Error: %v", namespace, nsErr)
 		}
@@ -295,6 +295,8 @@ func (ksApp *KsApp) Delete(resources kftypes.ResourceEnum, options map[string]in
 }
 
 func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum, options map[string]interface{}) error {
+	log.Infof("Ksonnet.Generate Name %v AppDir %v Platform %v", ksApp.KsApp.Name,
+		ksApp.AppDir, ksApp.KsApp.Spec.Platform)
 	host, k8sSpec, err := kftypes.ServerVersion()
 	if err != nil {
 		return fmt.Errorf("couldn't get server version: %v", err)
@@ -366,7 +368,9 @@ func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum, options map[string]
 }
 
 func (ksApp *KsApp) Init(options map[string]interface{}) error {
-	log.Infof("Ksonnet.Init Name %v AppDir %v", ksApp.KsApp.Name, ksApp.AppDir)
+	ksApp.KsApp.Spec.Platform = options[string(kftypes.PLATFORM)].(string)
+	log.Infof("Ksonnet.Init Name %v AppDir %v Platform %v", ksApp.KsApp.Name,
+		ksApp.AppDir, ksApp.KsApp.Spec.Platform)
 	err := os.Mkdir(ksApp.AppDir, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("couldn't create directory %v, most likely it already exists", ksApp.AppDir)
@@ -398,7 +402,6 @@ func (ksApp *KsApp) Init(options map[string]interface{}) error {
 		return fmt.Errorf("couldn't rename %v to %v Error %v", extractedPath, newPath, renameErr)
 	}
 	ksApp.KsApp.Spec.Repo = path.Join(newPath, "kubeflow")
-
 	createConfigErr := ksApp.writeConfigFile()
 	if createConfigErr != nil {
 		return fmt.Errorf("cannot create config file app.yaml in %v", ksApp.AppDir)

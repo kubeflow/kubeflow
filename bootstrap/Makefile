@@ -53,6 +53,9 @@ build-foo-plugin: generate fmt vet
 build-minikube-plugin: generate fmt vet
 	$(GO) build -i -gcflags 'all=-N -l' -o bin/minikube.so -buildmode=plugin cmd/plugins/minikube/minikube.go
 
+build-dockerfordesktop-plugin: generate fmt vet
+	$(GO) build -i -gcflags 'all=-N -l' -o bin/dockerfordesktop.so -buildmode=plugin cmd/plugins/dockerfordesktop/dockerfordesktop.go
+
 build-ksonnet-plugin: generate fmt vet
 	$(GO) build -i -gcflags 'all=-N -l' -o bin/ksonnet.so -buildmode=plugin cmd/plugins/ksonnet/ksonnet.go
 
@@ -87,14 +90,15 @@ run-local-docker:
 	  --mount type=bind,source=${HOME}/kf_app,target=/home/kubeflow \
 	  --entrypoint /bin/bash $(IMG):$(TAG)
 
-# init ~/myapp --platform ksonnet
-test-known-platforms-init: install build-ksonnet-plugin build-minikube-plugin build-foo-plugin
+test-known-platforms-init: install build-ksonnet-plugin build-minikube-plugin build-dockerfordesktop-plugin build-foo-plugin
 	@rm -rf $(HOME)/foo && \
 	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/foo -V --platform foo --version master && \
 	rm -rf $(HOME)/ksonnet && \
 	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/ksonnet -V --platform ksonnet --version master && \
 	rm -rf $(HOME)/minikube && \
 	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/minikube -V --platform minikube --version master && \
+	rm -rf $(HOME)/docker-for-desktop && \
+	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/docker-for-desktop -V --platform docker-for-desktop --version master && \
 	echo SUCCESS
 
 # generate all --email john@foo.com --ipName 35.233.240.120
@@ -102,6 +106,8 @@ test-known-platforms-generate: test-known-platforms-init
 	@cd ~/ksonnet && \
 	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V && \
 	cd ~/minikube && \
+	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V --mount-local && \
+	cd ~/docker-for-desktop && \
 	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V --mount-local && \
 	cd ~/foo && \
 	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V && \
@@ -114,10 +120,12 @@ debug:
 	@ex pkg/apis/apps/group.go <hack/debug
 	@ex pkg/client/foo/foo.go <hack/debug
 	@ex pkg/client/minikube/minikube.go <hack/debug
+	@ex pkg/client/dockerfordesktop/dockerfordesktop.go <hack/debug
 	@ex cmd/kfctl/cmd/root.go <hack/debug || echo DEBUG ENABLED
 
 nodebug:
 	@ex pkg/apis/apps/group.go <hack/nodebug
 	@ex pkg/client/foo/foo.go <hack/nodebug
 	@ex pkg/client/minikube/minikube.go <hack/nodebug
+	@ex pkg/client/dockerfordesktop/dockerfordesktop.go <hack/nodebug
 	@ex cmd/kfctl/cmd/root.go <hack/nodebug || echo DEBUG DISABLED

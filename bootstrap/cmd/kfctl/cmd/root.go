@@ -24,6 +24,7 @@ import (
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/foo"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksonnet"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/minikube"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/dockerfordesktop"
 	-DEBUG */
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
@@ -47,6 +48,8 @@ func LoadPlatform(options map[string]interface{}) (kftypes.KfApp, error) {
 			return foo.GetKfApp(options), nil
 		case "minikube":
 			return minikube.GetKfApp(options), nil
+	    case "docker-for-desktop":
+			return dockerfordesktop.GetKfApp(options), nil
 	-DEBUG */
 	default:
 		return kftypes.LoadPlatform(options)

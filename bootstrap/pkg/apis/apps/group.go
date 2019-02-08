@@ -85,7 +85,8 @@ func LoadPlatform(options map[string]interface{}) (KfApp, error) {
 	// NO_DEBUG
 	platform := options[string(PLATFORM)].(string)
 	plugindir := os.Getenv("PLUGINS_ENVIRONMENT")
-	pluginpath := filepath.Join(plugindir, platform+".so")
+	// remove '-'s
+	pluginpath := filepath.Join(plugindir, strings.Replace(platform, "-", "", -1)+".so")
 	p, err := plugin.Open(pluginpath)
 	if err != nil {
 		return nil, fmt.Errorf("could not load plugin %v for platform %v Error %v", pluginpath, platform, err)
@@ -99,7 +100,7 @@ func LoadPlatform(options map[string]interface{}) (KfApp, error) {
 	// NO_DEBUG //
 	/* DEBUG
 		return nil, fmt.Errorf("could not load platform")
-	    -DEBUG */
+	-DEBUG */
 }
 
 func KubeConfigPath() string {
