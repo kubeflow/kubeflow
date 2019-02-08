@@ -37,6 +37,7 @@ interface DeployFormState {
   showLogs: boolean;
   zone: string;
   kfversion: string;
+  kfversionList: string[];
   clientId: string;
   clientSecret: string;
   iap: boolean;
@@ -109,6 +110,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       dialogTitle: '',
       iap: true,
       kfversion: 'v0.3.5',
+      kfversionList: ['v0.3.5'],
       project: '',
       showLogs: false,
       zone: 'us-central1-a',
@@ -121,6 +123,21 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     // be able to click submit until the fetches have succeeded. How can we do
     // that?
 
+    const params = new URLSearchParams(this.props.location.search);
+    let kfversionList = this.state.kfversionList;
+    let kfversion = this.state.kfversion;
+    if (process.env.REACT_APP_VERSIONS){
+      kfversionList = process.env.REACT_APP_VERSIONS.split(',');
+      kfversion = kfversionList[0];
+    }
+    if (params.get('version')) {
+      kfversion = String(params.get('version'));
+      kfversionList.push(kfversion);
+    }
+    this.setState({
+      kfversion,
+      kfversionList,
+    });
     fetch(appConfigPath, { mode: 'no-cors' })
       .then((response) => {
         log('Got response');
@@ -144,7 +161,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
   public render() {
     const zoneList = ['us-central1-a', 'us-central1-c', 'us-east1-c', 'us-east1-d', 'us-west1-b',
       'europe-west1-b', 'europe-west1-d', 'asia-east1-a', 'asia-east1-b'];
-    const versionList = ['v0.3.5'];
 
     return (
       <div>
@@ -188,11 +204,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         <div style={styles.row}>
           <TextField select={true} label="Kubeflow version:" required={true} style={styles.input} variant="filled"
             value={this.state.kfversion} onChange={this._handleChange('kfversion')}>
-            { process.env.REACT_APP_VERSIONS ?
-              process.env.REACT_APP_VERSIONS.split(',').map((version, i) => (
-                <MenuItem key={i} value={version}>{version}</MenuItem>
-              )) :
-              versionList.map((version, i) => (
+            { this.state.kfversionList.map((version, i) => (
                 <MenuItem key={i} value={version}>{version}</MenuItem>
               ))
             }

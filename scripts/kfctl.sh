@@ -475,7 +475,7 @@ main() {
       MASTER=`expr match "${KUBE_INFO}" '[^\.0-9]*\([\.0-9]\+\)'`
       echo MASTER=${MASTER}
 
-       if [[ "${MASTER}" != "${KS_MASTER}" ]]; then
+      if [[ "${MASTER}" != "${KS_MASTER}" ]]; then
         echo "The current kubectl context doesn't match the ks environment"
         echo "Please configure the context to match ks environment ${KS_ENV}"
         exit -1
@@ -486,9 +486,16 @@ main() {
       kubectl delete ns/${K8S_NAMESPACE}
       while kubectl get ns/${K8S_NAMESPACE}; do
         echo "namespace ${K8S_NAMESPACE} not yet deleted. sleeping 10 seconds..."
+        # wait for 100s at most
+        # https://github.com/kubeflow/kubeflow/issues/2408
+        ((c++)) && ((c==10)) && break
         sleep 10
       done
-      echo "namespace ${K8S_NAMESPACE} successfully deleted."
+      if kubectl get ns/${K8S_NAMESPACE}; then
+        echo "namespace ${K8S_NAMESPACE} failed to delete."
+      else
+        echo "namespace ${K8S_NAMESPACE} successfully deleted."
+      fi
       set -e
     fi
     if [[ "${WHAT}" == "platform" ]] || [[ "${WHAT}" == "all" ]]; then
