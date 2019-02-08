@@ -23,7 +23,7 @@ local testDir = mountPath + "/" + name;
 local outputDir = testDir + "/output";
 local artifactsDir = outputDir + "/artifacts";
 // Source directory where all repos should be checked out
-local srcRootDir = testDir + "/src";
+local srcRootDir = testDir + "/src/github.com";
 // The directory containing the kubeflow/kubeflow repo
 local srcDir = srcRootDir + "/kubeflow/kubeflow";
 
@@ -69,6 +69,10 @@ local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=
       {
         name: "GOOGLE_APPLICATION_CREDENTIALS",
         value: "/secret/gcp-credentials/key.json",
+      },
+      {
+        name: "GOPATH",
+        value: testDir,
       },
       {
         name: "CLIENT_ID",
@@ -163,7 +167,7 @@ local dagTemplates = [
         bootstrapImage,
         name,
       ],
-      working_dir=testDir,
+      working_dir=bootstrapDir,
       env_vars=[
         {
           name: "DOCKER_HOST",
@@ -240,7 +244,7 @@ local exitTemplates =
         "--bucket=" + bucket,
       ]),  // copy-artifacts,
 
-      dependencies: ["deploy-delete"],
+      dependencies: null,
     },
     {
       template:
@@ -254,7 +258,7 @@ local exitTemplates =
           "-rf",
           testDir,
         ]),  // test-dir-delete
-      dependencies: ["copy-artifacts"],
+      dependencies: ["copy-artifacts", "deploy-delete"],
     },
   ];
 
