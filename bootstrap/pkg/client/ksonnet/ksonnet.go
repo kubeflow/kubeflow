@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"github.com/cenkalti/backoff"
 	"github.com/ghodss/yaml"
+	gogetter "github.com/hashicorp/go-getter"
 	"github.com/ksonnet/ksonnet/pkg/actions"
 	"github.com/ksonnet/ksonnet/pkg/app"
 	"github.com/ksonnet/ksonnet/pkg/client"
@@ -89,7 +90,7 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 		if goPathVar != "" {
 			kubeflowRepo = re.ReplaceAllString(kubeflowRepo, goPathVar+`$2`)
 		}
-		_kfapp.KsApp.Spec.Repo = kubeflowRepo
+		_kfapp.KsApp.Spec.Repo = path.Join(kubeflowRepo, "kubeflow")
 	}
 	if options[string(kftypes.VERSION)] != nil {
 		kubeflowVersion := options[string(kftypes.VERSION)].(string)
@@ -375,6 +376,28 @@ func (ksApp *KsApp) Init(options map[string]interface{}) error {
 	if appDirErr == nil {
 		return fmt.Errorf("config file %v already exists in %v", kftypes.KfConfigFile, ksApp.AppDir)
 	}
+	cacheDir := path.Join(ksApp.AppDir, kftypes.DefaultCacheDir)
+	cacheDirErr := os.Mkdir(cacheDir, os.ModePerm)
+	if cacheDirErr != nil {
+		return fmt.Errorf("couldn't create directory %v Error %v", cacheDir, cacheDirErr)
+	}
+	tarballUrl := kftypes.DefaultGitRepo + "/" + ksApp.KsApp.Spec.Version + "?archive=tar.gz"
+	tarballUrlErr := gogetter.GetAny(cacheDir, tarballUrl)
+	if tarballUrlErr != nil {
+		return fmt.Errorf("couldn't download kubeflow repo %v Error %v", tarballUrl, tarballUrlErr)
+	}
+	files, filesErr := ioutil.ReadDir(cacheDir)
+	if filesErr != nil {
+		return fmt.Errorf("couldn't read %v Error %v", cacheDir, filesErr)
+	}
+	subdir := files[0].Name()
+	extractedPath := filepath.Join(cacheDir, subdir)
+	newPath := filepath.Join(cacheDir, ksApp.KsApp.Spec.Version)
+	renameErr := os.Rename(extractedPath, newPath)
+	if renameErr != nil {
+		return fmt.Errorf("couldn't rename %v to %v Error %v", extractedPath, newPath, renameErr)
+	}
+	ksApp.KsApp.Spec.Repo = path.Join(newPath, "kubeflow")
 	createConfigErr := ksApp.writeConfigFile()
 	if createConfigErr != nil {
 		return fmt.Errorf("cannot create config file app.yaml in %v", ksApp.AppDir)
