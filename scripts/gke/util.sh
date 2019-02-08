@@ -38,6 +38,7 @@ generateDMConfigs() {
     echo creating Deployment Manager configs in directory "${KUBEFLOW_DM_DIR}"
     mkdir -p "${KUBEFLOW_DM_DIR}"
     cp -r "${KUBEFLOW_REPO}"/deployment/gke/deployment_manager_configs/cluster* "${KUBEFLOW_DM_DIR}"
+    cp -r "${KUBEFLOW_REPO}"/deployment/gke/deployment_manager_configs/storage* "${KUBEFLOW_DM_DIR}"
 
     if [[ "$EMAIL" =~ .*iam\.gserviceaccount\.com ]]; then
       IAP_IAM_ENTRY="serviceAccount:${EMAIL}"
@@ -60,6 +61,11 @@ generateDMConfigs() {
     sed -i.bak "s/users:/users: [\"${IAP_IAM_ENTRY}\"]/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
     sed -i.bak "s/ipName: kubeflow-ip/ipName: ${KUBEFLOW_IP_NAME}/" "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}"
     rm "${KUBEFLOW_DM_DIR}/${CONFIG_FILE}.bak"
+
+    # Set values in storage DM config file
+    sed -i.bak "s/zone: SET_THE_ZONE/zone: ${ZONE}/" "${KUBEFLOW_DM_DIR}/storage-kubeflow.yaml"
+    sed -i.bak "s/createPipelinePersistentStorage: SET_CREATE_PIPELINE_PERSISTENT_STORAGE/createPipelinePersistentStorage: true/" "${KUBEFLOW_DM_DIR}/storage-kubeflow.yaml"
+    rm "${KUBEFLOW_DM_DIR}/storage-kubeflow.yaml.bak"
   else
     echo Deployment Manager configs already exist in directory "${KUBEFLOW_DM_DIR}"
   fi
@@ -130,6 +136,7 @@ updateDeployment() {
 updateDM() {
   # TODO(jlewi): We should create deployments for all .yaml files in
   # the gcp_config directory.
+  updateDeployment ${DEPLOYMENT_NAME}-storage storage-kubeflow.yaml
   updateDeployment ${DEPLOYMENT_NAME} ${CONFIG_FILE}
 
   # Network needs to be created before GCFS.
@@ -227,6 +234,8 @@ gcpGenerateKsApp() {
   ks generate cert-manager cert-manager --acmeEmail=${EMAIL}
   ks generate iap-ingress iap-ingress --ipName=${KUBEFLOW_IP_NAME} --hostname=${KUBEFLOW_HOSTNAME}
   ks param set jupyter jupyterHubAuthenticator iap
+  ks param set pipeline mysqlPd "${DEPLOYMENT_NAME}-storage-pipeline-db"
+  ks param set pipeline nfsPd "${DEPLOYMENT_NAME}-storage-pipeline-nfs"
   popd
 }
 
