@@ -58,7 +58,6 @@ const (
 	EMAIL       CliOption = "email"
 	IPNAME      CliOption = "ipName"
 	MOUNT_LOCAL CliOption = "mount-local"
-	DEBUG       CliOption = "debug"
 	VERBOSE     CliOption = "verbose"
 	NAMESPACE   CliOption = "namespace"
 	VERSION     CliOption = "version"
