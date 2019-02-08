@@ -878,7 +878,7 @@ func (s *ksServer) CloneRepoToLocal(project string, token string) (string, error
 		return nil
 	}, bo)
 	if err != nil {
-		log.Errorf("Fail to create repo: %v", GetRepoName(project))
+		log.Errorf("Fail to create repo: %v. Error: %v", GetRepoName(project), err)
 		return "", err
 	}
 	err = os.Chdir(repoDir)
