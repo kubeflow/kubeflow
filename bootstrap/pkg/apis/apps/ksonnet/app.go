@@ -12,11 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package v1alpha1 contains API Schema definitions for the ksapp v1alpha1 API group
-// +k8s:openapi-gen=true
-// +k8s:deepcopy-gen=package,register
-// +k8s:conversion-gen=github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksapp
-// +k8s:defaulter-gen=TypeMeta
-// +groupName=ksapp.apps.kubeflow.org
-
-package v1alpha1
+// Package ksonnet contains ksonnet related types
+package ksonnet

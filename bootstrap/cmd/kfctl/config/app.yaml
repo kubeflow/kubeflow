@@ -1,5 +1,5 @@
 apiversion: apps.kubeflow.org/v1alpha1
-kind: KsApp
+kind: Ksonnet
 metadata:
   name: kf-app
   namespace: kubeflow
