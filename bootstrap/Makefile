@@ -83,11 +83,11 @@ run-local-docker:
 # init ~/myapp --platform none
 test-known-platforms-init: install build-foo-plugin
 	@rm -rf $(HOME)/ksonnet && \
-	kfctl init $(HOME)/ksonnet -V --platform none && \
+	kfctl init $(HOME)/ksonnet -V --platform none --version master && \
 	rm -rf $(HOME)/minikube && \
-	kfctl init $(HOME)/minikube -V --platform minikube && \
+	kfctl init $(HOME)/minikube -V --platform minikube --version master && \
 	rm -rf $(HOME)/foo && \
-	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl init $(HOME)/foo -V --platform foo && \
+	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl init $(HOME)/foo -V --platform foo --version master && \
 	echo SUCCESS
 
 # generate all --email john@foo.com --ipName 35.233.240.120

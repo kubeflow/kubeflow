@@ -101,7 +101,7 @@ func init() {
 		return
 	}
 
-	initCmd.Flags().StringP(string(kftypes.REPO), "r", kftypes.DefaultKfRepo,
+	initCmd.Flags().StringP(string(kftypes.REPO), "r", "",
 		"local github kubeflow "+string(kftypes.REPO))
 	bindErr = initCfg.BindPFlag(string(kftypes.REPO), initCmd.Flags().Lookup(string(kftypes.REPO)))
 	if bindErr != nil {
