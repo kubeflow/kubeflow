@@ -252,7 +252,7 @@ def check_deploy_status(args, deployments):
           logging.info("%s: IAP not ready, request number: %s" % (deployment, num_req))
       except Exception:
         logging.info("%s: IAP not ready, exception caught, request number: %s" % (deployment, num_req))
-    deployments.difference(success_deploy)
+    deployments = deployments.difference(success_deploy)
 
   # Optionally upload ssl cert
   if len(deployments) == 0 and len(os.listdir(SSL_DIR)) < num_deployments:
