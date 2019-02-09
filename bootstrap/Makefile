@@ -103,7 +103,7 @@ test-known-platforms-init: install build-ksonnet-plugin build-minikube-plugin bu
 	rm -rf $(HOME)/dockerfordesktop && \
 	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/dockerfordesktop -V --platform docker-for-desktop --version master && \
 	rm -rf $(HOME)/gcp && \
-	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/gcp -V --platform gcp --version master && \
+	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/gcp -V --platform gcp --version master --project constant-cubist-173123 && \
 	echo SUCCESS
 
 test-known-platforms-generate: test-known-platforms-init
@@ -116,7 +116,7 @@ test-known-platforms-generate: test-known-platforms-init
 	cd ~/dockerfordesktop && \
 	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V --mount-local && \
 	cd ~/gcp && \
-	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V --email jsmith@foo.com --ipName 35.233.240.120 --zone us-west1-a --project constant-cubist-173123 && \
+	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V --email jsmith@foo.com --ipName 35.233.240.120 --zone us-west1-a && \
 	echo SUCCESS
 
 # debug and nodebug are for kfctl and enable debugging in goland 
