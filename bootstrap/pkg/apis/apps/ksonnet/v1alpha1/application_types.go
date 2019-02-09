@@ -199,6 +199,7 @@ type NameValue struct {
 
 // KsonnetSpec defines the desired state of Ksonnet
 type KsonnetSpec struct {
+	AppDir     string                 `json:"appdir,omitempty"`
 	Platform   string                 `json:"platform,omitempty"`
 	Version    string                 `json:"version,omitempty"`
 	Repo       string                 `json:"repo,omitempty"`

@@ -56,6 +56,9 @@ build-minikube-plugin: generate fmt vet
 build-dockerfordesktop-plugin: generate fmt vet
 	$(GO) build -i -gcflags 'all=-N -l' -o bin/dockerfordesktop.so -buildmode=plugin cmd/plugins/dockerfordesktop/dockerfordesktop.go
 
+build-gcp-plugin: generate fmt vet
+	$(GO) build -i -gcflags 'all=-N -l' -o bin/gcp.so -buildmode=plugin cmd/plugins/gcp/gcp.go
+
 build-ksonnet-plugin: generate fmt vet
 	$(GO) build -i -gcflags 'all=-N -l' -o bin/ksonnet.so -buildmode=plugin cmd/plugins/ksonnet/ksonnet.go
 
@@ -90,27 +93,30 @@ run-local-docker:
 	  --mount type=bind,source=${HOME}/kf_app,target=/home/kubeflow \
 	  --entrypoint /bin/bash $(IMG):$(TAG)
 
-test-known-platforms-init: install build-ksonnet-plugin build-minikube-plugin build-dockerfordesktop-plugin build-foo-plugin
+test-known-platforms-init: install build-ksonnet-plugin build-minikube-plugin build-dockerfordesktop-plugin build-foo-plugin build-gcp-plugin
 	@rm -rf $(HOME)/foo && \
 	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/foo -V --platform foo --version master && \
 	rm -rf $(HOME)/ksonnet && \
 	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/ksonnet -V --platform ksonnet --version master && \
 	rm -rf $(HOME)/minikube && \
 	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/minikube -V --platform minikube --version master && \
-	rm -rf $(HOME)/docker-for-desktop && \
-	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/docker-for-desktop -V --platform docker-for-desktop --version master && \
+	rm -rf $(HOME)/dockerfordesktop && \
+	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/dockerfordesktop -V --platform docker-for-desktop --version master && \
+	rm -rf $(HOME)/gcp && \
+	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/gcp -V --platform gcp --version master && \
 	echo SUCCESS
 
-# generate all --email john@foo.com --ipName 35.233.240.120
 test-known-platforms-generate: test-known-platforms-init
-	@cd ~/ksonnet && \
+	@cd ~/foo && \
+	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V && \
+	cd ~/ksonnet && \
 	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V && \
 	cd ~/minikube && \
 	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V --mount-local && \
-	cd ~/docker-for-desktop && \
+	cd ~/dockerfordesktop && \
 	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V --mount-local && \
-	cd ~/foo && \
-	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V && \
+	cd ~/gcp && \
+	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V --email jsmith@foo.com --ipName 35.233.240.120 --zone us-west1-a --project constant-cubist-173123 && \
 	echo SUCCESS
 
 # debug and nodebug are for kfctl and enable debugging in goland 
@@ -120,6 +126,7 @@ debug:
 	@ex pkg/client/foo/foo.go <hack/debug
 	@ex pkg/client/minikube/minikube.go <hack/debug
 	@ex pkg/client/dockerfordesktop/dockerfordesktop.go <hack/debug
+	@ex pkg/client/gcp/gcp.go <hack/debug
 	@ex cmd/kfctl/cmd/root.go <hack/debug || echo DEBUG ENABLED
 
 nodebug:
@@ -127,4 +134,5 @@ nodebug:
 	@ex pkg/client/foo/foo.go <hack/nodebug
 	@ex pkg/client/minikube/minikube.go <hack/nodebug
 	@ex pkg/client/dockerfordesktop/dockerfordesktop.go <hack/nodebug
+	@ex pkg/client/gcp/gcp.go <hack/nodebug
 	@ex cmd/kfctl/cmd/root.go <hack/nodebug || echo DEBUG DISABLED

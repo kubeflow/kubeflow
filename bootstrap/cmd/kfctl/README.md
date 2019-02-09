@@ -20,20 +20,24 @@ Note: Additional issues have been opened so this README.md will have additional 
 
 ## API and Packaging
 
-New directories (`cmd/kfctl, pkg`):
+New directories
 
 ```sh
-bootstrap/cmd/kfctl
-bootstrap/cmd/kfctl/cmd
-bootstrap/pkg
-bootstrap/pkg/apis
-bootstrap/pkg/apis/apps
-bootstrap/pkg/apis/apps/ksonnet/v1alpha1
-bootstrap/pkg/utils
-bootstrap/pkg/client
-bootstrap/pkg/client/ksonnet
-bootstrap/pkg/client/minikube
-bootstrap/plugins
+cmd/plugins/minikube
+cmd/plugins/gcp
+cmd/plugins/foo
+cmd/plugins/dockerfordesktop
+cmd/plugins/ksonnet
+cmd/kfctl/cmd
+cmd/kfctl/config
+pkg/apis/apps/ksonnet
+pkg/apis/apps/ksonnet/v1alpha1
+pkg/utils
+pkg/client/minikube
+pkg/client/gcp
+pkg/client/foo
+pkg/client/dockerfordesktop
+pkg/client/ksonnet
 ```
 
 ### KfApp Interface 
@@ -44,14 +48,17 @@ The `KfApp` golang Interface
 
 ```golang
 type ResourceEnum string
+
 const (
 	ALL      ResourceEnum = "all"
 	K8S      ResourceEnum = "k8s"
 	PLATFORM ResourceEnum = "platform"
+	NONE     ResourceEnum = "none"
 )
+
 //
 // KfApp is used by commands under bootstrap/cmd/{bootstrap,kfctl}. KfApp provides a common
-// API for different implementations like Ksonnet, GcpApp, MinikubeApp, etc.
+// API for different implementations like ksonnet, gcp, minikube, docker-for-desktop, etc.
 //
 type KfApp interface {
 	Apply(resources ResourceEnum, options map[string]interface{}) error
@@ -61,14 +68,17 @@ type KfApp interface {
 }
 ```
 
-kfctl includes platforms that implement the KfApp interface. (gcp will be added in the next phase)
+kfctl will dynamically load platforms that implement the KfApp interface. 
+These include:
 
-- platform: **none** 
+- platform: **ksonnet** 
   - bootstrap/pkg/client/ksonnet/ksonnet.go
 - platform: **minikube** 
   - bootstrap/pkg/client/minikube/minikube.go
-- platform: **docker-for-desktop** (in progress)
+- platform: **docker-for-desktop** 
   - bootstrap/pkg/client/dockerfordesktop/dockerfordesktop.go
+- platform: **gcp** 
+  - bootstrap/pkg/client/gcp/gcp.go
 - platform: **ack** (in progress)
   - bootstrap/pkg/client/ack/ack.go
 
@@ -105,7 +115,9 @@ kfctl apply
 
 ## Subcommands
 
-### **init** (kubeflow/bootstrap/cmd/kfctl/cmd/init.go)
+### **init** 
+
+(kubeflow/bootstrap/cmd/kfctl/cmd/init.go)
 
 ```
 Create a kubeflow application under <[path/]name>. The <[path/]name> argument can either be a full path
@@ -125,7 +137,9 @@ Flags:
   -v, --version string     desired version Kubeflow or latest tag if not provided by user  (default "v0.4.1")
 ```
 
-### **generate** (kubeflow/bootstrap/cmd/kfctl/cmd/generate.go)
+### **generate**
+
+(kubeflow/bootstrap/cmd/kfctl/cmd/generate.go)
 
 ```
 Generate a kubeflow application where resources is one of 'platform | k8s | all'.
@@ -147,7 +161,9 @@ Flags:
   -V, --verbose         verbose output default is false
 ```
 
-### **apply** (kubeflow/bootstrap/cmd/kfctl/cmd/apply.go)
+### **apply** 
+
+(kubeflow/bootstrap/cmd/kfctl/cmd/apply.go)
 
 ```
 Deploy a generated kubeflow application.
@@ -160,7 +176,9 @@ Flags:
   -V, --verbose   verbose output default is false
 ```
 
-### **delete** (kubeflow/bootstrap/cmd/kfctl/cmd/delete.go)
+### **delete** 
+
+(kubeflow/bootstrap/cmd/kfctl/cmd/delete.go)
 
 ```
 Delete a kubeflow application.
@@ -177,10 +195,10 @@ Flags:
 
 ## Extending kfctl
 
-`kfctl` can be extended to work with new platforms without requiring recompilation. 
-An example is under bootstrap/cmd/plugins/fooapp.go. A particular platform 
-provides a shared library (.so) under the env var `PLUGINS_ENVIRONMENT` 
-that kfctl would load and execute. The shared library needs to define 
+`kfctl` can be extended to new platforms without requiring recompilation. 
+Current platforms (ksonnet, gcp, minikube, docker-for-desktop) are loaded this way.
+Each platform provides a shared library (.so) under the env var `PLUGINS_ENVIRONMENT` 
+that kfctl loads and executes. The shared library needs to define 
 
 ```
 func GetKfApp(options map[string]interface{}) kftypes.KfApp 
@@ -188,30 +206,15 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp
 
 where the return type implements the [KfApp Interface](#kfapp-interface). 
 
-In this sample, running
-
-```
-kfctl init ~/foo-app --platform foo
-```
-
-will result in kfctl loading $PLUGINS_ENVIRONMENT/fooapp.so and calling its methods that 
-implement the KfApp Interface.
-
-### Building the sample plugin
-
-```
-make build-foo-plugin
-```
-
 ## Testing 
 
-### Testing init for all platforms including the `foo` platform plugin
+### Testing init for all platforms 
 
 ```
 make test-known-platforms-init
 ```
 
-### Testing generate for all platforms including the `foo` platform plugin
+### Testing generate for all platforms 
 
 ```
 make test-known-platforms-generate
@@ -220,15 +223,14 @@ make test-known-platforms-generate
 ## Debugging
 
 In order to debug in goland, the plugin code must be disabled. 
-See https://github.com/golang/go/issues/23733. 
-This is expected to be resolved with golang 1.12.
+See https://github.com/golang/go/issues/23733. This is expected to be resolved with golang 1.12.
 To enable debug run
 
 ```
 make debug
 ```
 
-To go back to where plugins are loaded (this should be the default) run
+To go back to where plugins are loaded (this should be the default when checking in) run
 
 ```
 make nodebug

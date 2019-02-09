@@ -46,7 +46,7 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	options[string(kftypes.PLATFORM)] = "ksonnet"
 	ksonnet, ksonnetErr := kftypes.LoadPlatform(options)
 	if ksonnetErr != nil {
-		log.Errorf("loadplatform failed for ksonnet: %v", ksonnetErr)
+		log.Errorf("load platform failed for ksonnet: %v", ksonnetErr)
 		return nil
 	}
 	options[string(kftypes.PLATFORM)] = "minikube"
@@ -75,7 +75,7 @@ func (minikube *Minikube) Delete(resources kftypes.ResourceEnum, options map[str
 	return nil
 }
 
-func (minikube *Minikube) generateKsApp(options map[string]interface{}) error {
+func (minikube *Minikube) generateKsonnet(options map[string]interface{}) error {
 	platform := options[string(kftypes.PLATFORM)].(string)
 	mountLocal := false
 	if options[string(kftypes.MOUNT_LOCAL)] != nil {
@@ -140,7 +140,7 @@ func (minikube *Minikube) Generate(resources kftypes.ResourceEnum, options map[s
 	case kftypes.ALL:
 		fallthrough
 	case kftypes.K8S:
-		ksErr := minikube.generateKsApp(options)
+		ksErr := minikube.generateKsonnet(options)
 		if ksErr != nil {
 			return fmt.Errorf("could not generate kssonnet under %v Error: %v", kstypes.KsName, ksErr)
 		}

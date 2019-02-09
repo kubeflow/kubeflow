@@ -21,10 +21,11 @@ import (
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
 	/* DEBUG
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/dockerfordesktop"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/foo"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/gcp"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksonnet"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/minikube"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/dockerfordesktop"
 	-DEBUG */
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
@@ -42,14 +43,16 @@ func LoadPlatform(options map[string]interface{}) (kftypes.KfApp, error) {
 	platform := options[string(kftypes.PLATFORM)].(string)
 	switch platform {
 	/* DEBUG
-		case "ksonnet":
-			return ksonnet.GetKfApp(options), nil
-		case "foo":
-			return foo.GetKfApp(options), nil
-		case "minikube":
-			return minikube.GetKfApp(options), nil
-	    case "docker-for-desktop":
-			return dockerfordesktop.GetKfApp(options), nil
+	case "ksonnet":
+		return ksonnet.GetKfApp(options), nil
+	case "foo":
+		return foo.GetKfApp(options), nil
+	case "minikube":
+		return minikube.GetKfApp(options), nil
+	case "docker-for-desktop":
+		return dockerfordesktop.GetKfApp(options), nil
+	case "gcp":
+		return gcp.GetKfApp(options), nil
 	-DEBUG */
 	default:
 		return kftypes.LoadPlatform(options)
@@ -133,23 +136,26 @@ func loadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	if kAppErr != nil {
 		return nil, fmt.Errorf("there was a problem loading app %v. Error: %v", appName, kAppErr)
 	}
-	ksApp := &kstypes.Ksonnet{}
-	dat, datErr := ioutil.ReadFile(cfgfile)
-	if datErr != nil {
-		return nil, fmt.Errorf("couldn't read %v. Error: %v", cfgfile, datErr)
+	buf, bufErr := ioutil.ReadFile(cfgfile)
+	if bufErr != nil {
+		return nil, fmt.Errorf("couldn't read %v. Error: %v", cfgfile, bufErr)
 	}
-	specErr := yaml.Unmarshal(dat, ksApp)
-	if specErr != nil {
-		return nil, fmt.Errorf("couldn't unmarshall Ksonnet. Error: %v", specErr)
-	}
-	options[string(kftypes.PLATFORM)] = ksApp.Spec.Platform
+	var v interface{}
+	yaml.Unmarshal(buf, &v)
+	data := v.(map[string]interface{})
+	metadata := data["metadata"].(map[string]interface{})
+	spec := data["spec"].(map[string]interface{})
+	platform := spec["platform"].(string)
+	appName = metadata["name"].(string)
+	appDir = spec["appdir"].(string)
+	options[string(kftypes.PLATFORM)] = platform
 	options[string(kftypes.APPNAME)] = appName
 	options[string(kftypes.APPDIR)] = appDir
 	options[string(kftypes.KAPP)] = kApp
-	options[string(kftypes.KSAPP)] = ksApp
+	options[string(kftypes.DATA)] = buf
 	pApp, pAppErr := LoadPlatform(options)
 	if pAppErr != nil {
-		return nil, fmt.Errorf("unable to load platform %v Error: %v", ksApp.Spec.Platform, pAppErr)
+		return nil, fmt.Errorf("unable to load platform %v Error: %v", platform, pAppErr)
 	}
 	return pApp, nil
 }
