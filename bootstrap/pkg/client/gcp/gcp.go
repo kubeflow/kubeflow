@@ -172,21 +172,33 @@ func (gcp *Gcp) copyFile(source string, dest string) error {
 }
 
 func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
-	email := options[string(kftypes.EMAIL)].(string)
-	if email == "" {
-		return fmt.Errorf("email parameter required for cert-manager")
+	email := gcp.GcpApp.Spec.Email
+	if options[string(kftypes.EMAIL)] != nil {
+		email = options[string(kftypes.EMAIL)].(string)
+		if email == "" {
+			return fmt.Errorf("email parameter required for cert-manager")
+		}
 	}
-	ipName := options[string(kftypes.IPNAME)].(string)
-	if ipName == "" {
-		return fmt.Errorf("ipName parameter required for iap-ingress")
+	ipName := gcp.GcpApp.Spec.IpName
+	if options[string(kftypes.IPNAME)] != nil {
+		ipName := options[string(kftypes.IPNAME)].(string)
+		if ipName == "" {
+			return fmt.Errorf("ipName parameter required for iap-ingress")
+		}
 	}
-	project := options[string(kftypes.PROJECT)].(string)
-	if project == "" {
-		return fmt.Errorf("project parameter required for iam_bindings")
+	project := gcp.GcpApp.Spec.Project
+	if options[string(kftypes.PROJECT)] != nil {
+		project = options[string(kftypes.PROJECT)].(string)
+		if project == "" {
+			return fmt.Errorf("project parameter required for iam_bindings")
+		}
 	}
-	zone := options[string(kftypes.ZONE)].(string)
-	if zone == "" {
-		return fmt.Errorf("zone parameter required for iam_bindings")
+	zone := gcp.GcpApp.Spec.Zone
+	if options[string(kftypes.ZONE)] != nil {
+		zone = options[string(kftypes.ZONE)].(string)
+		if zone == "" {
+			return fmt.Errorf("zone parameter required for iam_bindings")
+		}
 	}
 	kstypes.DefaultPackages = append(kstypes.DefaultPackages, []string{"gcp"}...)
 	kstypes.DefaultComponents = append(kstypes.DefaultComponents, []string{"cloud-endpoints", "cert-manager", "iap-ingress"}...)
