@@ -1045,7 +1045,7 @@ func (s *ksServer) Apply(ctx context.Context, req ApplyRequest) error {
 		Clusters: map[string]*clientcmdapi.Cluster{
 			"activeCluster": {
 				CertificateAuthorityData: config.TLSClientConfig.CAData,
-				Server: config.Host,
+				Server:                   config.Host,
 			},
 		},
 		Contexts: map[string]*clientcmdapi.Context{

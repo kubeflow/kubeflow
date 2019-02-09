@@ -49,10 +49,12 @@ The default is 'all' for any selected platform.`,
 		}
 		email := generateCfg.GetString(string(kftypes.EMAIL))
 		ipName := generateCfg.GetString(string(kftypes.IPNAME))
-		mountLocal := generateCfg.GetBool("mount-local")
+		zone := generateCfg.GetString(string(kftypes.ZONE))
+		mountLocal := generateCfg.GetBool(string(kftypes.MOUNT_LOCAL))
 		options := map[string]interface{}{
 			string(kftypes.EMAIL):       email,
 			string(kftypes.IPNAME):      ipName,
+			string(kftypes.ZONE):        zone,
 			string(kftypes.MOUNT_LOCAL): mountLocal,
 		}
 		kfApp, kfAppErr := loadKfApp(options)
@@ -80,6 +82,15 @@ func init() {
 	bindErr := generateCfg.BindPFlag(string(kftypes.EMAIL), generateCmd.Flags().Lookup(string(kftypes.EMAIL)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.EMAIL), bindErr)
+		return
+	}
+
+	// platform gcp
+	generateCmd.Flags().String(string(kftypes.ZONE), "us-east1-d",
+		string(kftypes.ZONE)+" if '--platform gcp'")
+	bindErr = generateCfg.BindPFlag(string(kftypes.ZONE), generateCmd.Flags().Lookup(string(kftypes.ZONE)))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.ZONE), bindErr)
 		return
 	}
 

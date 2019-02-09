@@ -37,7 +37,6 @@ const (
 	DefaultPlatform  = "none"
 	// TODO: find the latest tag dynamically
 	DefaultVersion  = "v0.4.1"
-	DefaultDevRepo  = "$GOPATH/src/github.com/kubeflow/kubeflow"
 	DefaultGitRepo  = "https://github.com/kubeflow/kubeflow/tarball"
 	KfConfigFile    = "app.yaml"
 	DefaultCacheDir = ".cache"
@@ -66,12 +65,13 @@ const (
 	APPNAME     CliOption = "appname"
 	APPDIR      CliOption = "appDir"
 	KAPP        CliOption = "KApp"
-	KSAPP       CliOption = "KsApp"
+	DATA        CliOption = "Data"
+	ZONE        CliOption = "zone"
 )
 
 //
 // KfApp is used by commands under bootstrap/cmd/{bootstrap,kfctl}. KfApp provides a common
-// API for different implementations like KsApp, GcpApp, MinikubeApp, etc.
+// API for different implementations like ksonnet, gcp, minikube, docker-for-desktop, etc.
 //
 type KfApp interface {
 	Apply(resources ResourceEnum, options map[string]interface{}) error
@@ -98,7 +98,7 @@ func LoadPlatform(options map[string]interface{}) (KfApp, error) {
 	return symbol.(func(map[string]interface{}) KfApp)(options), nil
 	// NO_DEBUG //
 	/* DEBUG
-		return nil, fmt.Errorf("could not load platform")
+	return nil, fmt.Errorf("could not load platform")
 	-DEBUG */
 }
 
