@@ -20,7 +20,7 @@ type Foo struct {
 
 func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	/* DEBUG
-		ksonnet := ksonnet.GetKfApp(options)
+	ksonnet := ksonnet.GetKfApp(options)
 	-DEBUG */
 	// NO_DEBUG
 	options[string(kftypes.PLATFORM)] = "ksonnet"

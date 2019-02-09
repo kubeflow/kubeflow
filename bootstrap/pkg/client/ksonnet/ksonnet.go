@@ -44,8 +44,6 @@ import (
 
 // Ksonnet implements the KfApp Interface
 type KsApp struct {
-	// AppDir is the directory where apps should be stored.
-	AppDir string
 	// ksonnet root name
 	KsName string
 	// ksonnet env name
@@ -74,7 +72,7 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 		_kfapp.KsApp.Name = options[string(kftypes.APPNAME)].(string)
 	}
 	if options[string(kftypes.APPDIR)] != nil {
-		_kfapp.AppDir = options[string(kftypes.APPDIR)].(string)
+		_kfapp.KsApp.Spec.AppDir = options[string(kftypes.APPDIR)].(string)
 	}
 	if options[string(kftypes.KAPP)] != nil {
 		_kfapp.KApp = options[string(kftypes.KAPP)].(app.App)
@@ -96,10 +94,12 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 		kubeflowVersion := options[string(kftypes.VERSION)].(string)
 		_kfapp.KsApp.Spec.Version = kubeflowVersion
 	}
-	if options[string(kftypes.KSAPP)] != nil {
-		value := options[string(kftypes.KSAPP)]
-		ksApp := value.(*kstypes.Ksonnet)
-		_kfapp.KsApp = ksApp
+	if options[string(kftypes.DATA)] != nil {
+		dat := options[string(kftypes.DATA)].([]byte)
+		specErr := yaml.Unmarshal(dat, _kfapp.KsApp)
+		if specErr != nil {
+			log.Errorf("couldn't unmarshal Ksonnet. Error: %v", specErr)
+		}
 	}
 	return _kfapp
 }
@@ -109,7 +109,7 @@ func (ksApp *KsApp) writeConfigFile() error {
 	if bufErr != nil {
 		return bufErr
 	}
-	cfgFilePath := filepath.Join(ksApp.AppDir, kftypes.KfConfigFile)
+	cfgFilePath := filepath.Join(ksApp.KsApp.Spec.AppDir, kftypes.KfConfigFile)
 	cfgFilePathErr := ioutil.WriteFile(cfgFilePath, buf, 0644)
 	if cfgFilePathErr != nil {
 		return cfgFilePathErr
@@ -304,7 +304,7 @@ func (ksApp *KsApp) Delete(resources kftypes.ResourceEnum, options map[string]in
 
 func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum, options map[string]interface{}) error {
 	log.Infof("Ksonnet.Generate Name %v AppDir %v Platform %v", ksApp.KsApp.Name,
-		ksApp.AppDir, ksApp.KsApp.Spec.Platform)
+		ksApp.KsApp.Spec.AppDir, ksApp.KsApp.Spec.Platform)
 	host, k8sSpec, err := kftypes.ServerVersion()
 	if err != nil {
 		return fmt.Errorf("couldn't get server version: %v", err)
@@ -378,17 +378,17 @@ func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum, options map[string]
 func (ksApp *KsApp) Init(options map[string]interface{}) error {
 	ksApp.KsApp.Spec.Platform = options[string(kftypes.PLATFORM)].(string)
 	log.Infof("Ksonnet.Init Name %v AppDir %v Platform %v", ksApp.KsApp.Name,
-		ksApp.AppDir, ksApp.KsApp.Spec.Platform)
-	err := os.Mkdir(ksApp.AppDir, os.ModePerm)
+		ksApp.KsApp.Spec.AppDir, ksApp.KsApp.Spec.Platform)
+	err := os.Mkdir(ksApp.KsApp.Spec.AppDir, os.ModePerm)
 	if err != nil {
-		return fmt.Errorf("couldn't create directory %v, most likely it already exists", ksApp.AppDir)
+		return fmt.Errorf("couldn't create directory %v, most likely it already exists", ksApp.KsApp.Spec.AppDir)
 	}
-	cfgFilePath := filepath.Join(ksApp.AppDir, kftypes.KfConfigFile)
+	cfgFilePath := filepath.Join(ksApp.KsApp.Spec.AppDir, kftypes.KfConfigFile)
 	_, appDirErr := afero.NewOsFs().Stat(cfgFilePath)
 	if appDirErr == nil {
-		return fmt.Errorf("config file %v already exists in %v", kftypes.KfConfigFile, ksApp.AppDir)
+		return fmt.Errorf("config file %v already exists in %v", kftypes.KfConfigFile, ksApp.KsApp.Spec.AppDir)
 	}
-	cacheDir := path.Join(ksApp.AppDir, kftypes.DefaultCacheDir)
+	cacheDir := path.Join(ksApp.KsApp.Spec.AppDir, kftypes.DefaultCacheDir)
 	cacheDirErr := os.Mkdir(cacheDir, os.ModePerm)
 	if cacheDirErr != nil {
 		return fmt.Errorf("couldn't create directory %v Error %v", cacheDir, cacheDirErr)
@@ -412,13 +412,13 @@ func (ksApp *KsApp) Init(options map[string]interface{}) error {
 	ksApp.KsApp.Spec.Repo = path.Join(newPath, "kubeflow")
 	createConfigErr := ksApp.writeConfigFile()
 	if createConfigErr != nil {
-		return fmt.Errorf("cannot create config file app.yaml in %v", ksApp.AppDir)
+		return fmt.Errorf("cannot create config file app.yaml in %v", ksApp.KsApp.Spec.AppDir)
 	}
 	return nil
 }
 
 func (ksApp *KsApp) initKs(envName string, k8sSpecFlag string, host string, namespace string) error {
-	newRoot := path.Join(ksApp.AppDir, ksApp.KsName)
+	newRoot := path.Join(ksApp.KsApp.Spec.AppDir, ksApp.KsName)
 	ksApp.KsEnvName = envName
 	options := map[string]interface{}{
 		actions.OptionFs:                    afero.NewOsFs(),
@@ -453,7 +453,7 @@ func (ksApp *KsApp) envSet(envName string, host string) error {
 }
 
 func (ksApp *KsApp) ksRoot() string {
-	root := path.Join(ksApp.AppDir, ksApp.KsName)
+	root := path.Join(ksApp.KsApp.Spec.AppDir, ksApp.KsName)
 	return root
 }
 
@@ -489,10 +489,6 @@ func (ksApp *KsApp) registries() (map[string]*kstypes.Registry, error) {
 	}
 
 	return registries, nil
-}
-
-func (ksApp *KsApp) root() string {
-	return ksApp.AppDir
 }
 
 func (ksApp *KsApp) paramSet(component string, name string, value string) error {
