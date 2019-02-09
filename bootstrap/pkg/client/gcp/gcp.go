@@ -116,6 +116,10 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 		ipName := options[string(kftypes.IPNAME)].(string)
 		_gcp.GcpApp.Spec.IpName = ipName
 	}
+	if options[string(kftypes.PROJECT)] != nil {
+		project := options[string(kftypes.PROJECT)].(string)
+		_gcp.GcpApp.Spec.Project = project
+	}
 	return _gcp
 }
 
