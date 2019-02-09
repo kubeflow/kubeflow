@@ -244,7 +244,7 @@ def check_deploy_status(args, deployments):
       try:
         resp = requests.request(
           METHOD, url, headers={'Authorization': 'Bearer {}'.format(
-            google_open_id_connect_token)})
+            google_open_id_connect_token)}, verify=False)
         if resp.status_code == 200:
           success_deploy.add(deployment)
           logging.info("IAP is ready for %s!", url)
