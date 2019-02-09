@@ -80,6 +80,10 @@ type KfApp interface {
 	Init(options map[string]interface{}) error
 }
 
+type FullKfApp struct {
+	Children map[string]KfApp
+}
+
 func LoadPlatform(options map[string]interface{}) (KfApp, error) {
 	// NO_DEBUG
 	platform := options[string(PLATFORM)].(string)
