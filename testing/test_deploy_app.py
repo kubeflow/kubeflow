@@ -537,7 +537,7 @@ def main(unparsed_args=None):
     type=int,
     help="oauth client secret")
   parser.add_argument(
-    "iap_wait_min",
+    "--iap_wait_min",
     default=30,
     type=int,
     help="minutes to wait for IAP")
