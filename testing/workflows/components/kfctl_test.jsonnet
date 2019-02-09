@@ -305,20 +305,6 @@ local dagTemplates = [
   },  // generate-spark-operator
   {
     template: buildTemplate(
-      "debug-env-list",
-      [
-        runPath,
-        // Apply the operator
-        "ks",
-        "env",
-        "list",
-      ],
-      working_dir=appDir + "/ks_app"
-    ),
-    dependencies: ["generate-spark-operator"],
-  },  //dump the env list
-  {
-    template: buildTemplate(
       "apply-spark-operator",
       [
         runPath,
@@ -350,7 +336,7 @@ local dagTemplates = [
   // Run the nested tests.
   {
     template: componentTests.argoDagTemplate,
-    dependencies: ["apply-spark-operator", "kfctl-apply-k8s", "debug-env-list"],
+    dependencies: ["apply-spark-operator", "kfctl-apply-k8s"],
   },
 ];
 
