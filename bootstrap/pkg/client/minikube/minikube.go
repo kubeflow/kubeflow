@@ -34,17 +34,17 @@ import (
 // Minikube implements KfApp Interface
 // It includes the Ksonnet along with functionality needed for minikube
 type Minikube struct {
-	Ksonnet kftypes.KfApp
+	kftypes.FullKfApp
 	//TODO add additional types required for minikube platform
 }
 
 func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	/* DEBUG
-	ksonnet := ksonnet.GetKfApp(options)
+	_ksonnet := ksonnet.GetKfApp(options)
 	-DEBUG */
 	// NO_DEBUG
 	options[string(kftypes.PLATFORM)] = "ksonnet"
-	ksonnet, ksonnetErr := kftypes.LoadPlatform(options)
+	_ksonnet, ksonnetErr := kftypes.LoadPlatform(options)
 	if ksonnetErr != nil {
 		log.Errorf("load platform failed for ksonnet: %v", ksonnetErr)
 		return nil
@@ -52,15 +52,23 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	options[string(kftypes.PLATFORM)] = "minikube"
 	// NO_DEBUG //
 	_minikubeapp := &Minikube{
-		Ksonnet: ksonnet,
+		FullKfApp: kftypes.FullKfApp{
+			Children: make(map[string]kftypes.KfApp),
+		},
 	}
+	_minikubeapp.Children["ksonnet"] = _ksonnet
 	return _minikubeapp
 }
 
 func (minikube *Minikube) Apply(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	ksApplyErr := minikube.Ksonnet.Apply(resources, options)
-	if ksApplyErr != nil {
-		return fmt.Errorf("minikube apply failed for ksonnet: %v", ksApplyErr)
+	ks := minikube.Children["ksonnet"]
+	if ks != nil {
+		ksApplyErr := ks.Apply(resources, options)
+		if ksApplyErr != nil {
+			return fmt.Errorf("minikube apply failed for ksonnet: %v", ksApplyErr)
+		}
+	} else {
+		return fmt.Errorf("ksonnet not in Children")
 	}
 	//mount_local_fs
 	//setup_tunnels
@@ -68,9 +76,14 @@ func (minikube *Minikube) Apply(resources kftypes.ResourceEnum, options map[stri
 }
 
 func (minikube *Minikube) Delete(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	ksDeleteErr := minikube.Ksonnet.Delete(resources, options)
-	if ksDeleteErr != nil {
-		return fmt.Errorf("minikube delete failed for ksonnet: %v", ksDeleteErr)
+	ks := minikube.Children["ksonnet"]
+	if ks != nil {
+		ksDeleteErr := ks.Delete(resources, options)
+		if ksDeleteErr != nil {
+			return fmt.Errorf("minikube delete failed for ksonnet: %v", ksDeleteErr)
+		}
+	} else {
+		return fmt.Errorf("ksonnet not in Children")
 	}
 	return nil
 }
@@ -128,9 +141,14 @@ func (minikube *Minikube) generateKsonnet(options map[string]interface{}) error 
 			Value: "1",
 		},
 	}
-	ksGenerateErr := minikube.Ksonnet.Generate(kftypes.ALL, options)
-	if ksGenerateErr != nil {
-		return fmt.Errorf("minikube generate failed for ksonnet: %v", ksGenerateErr)
+	ks := minikube.Children["ksonnet"]
+	if ks != nil {
+		ksGenerateErr := ks.Generate(kftypes.ALL, options)
+		if ksGenerateErr != nil {
+			return fmt.Errorf("minikube generate failed for ksonnet: %v", ksGenerateErr)
+		}
+	} else {
+		return fmt.Errorf("ksonnet not in Children")
 	}
 	return nil
 }
@@ -150,9 +168,14 @@ func (minikube *Minikube) Generate(resources kftypes.ResourceEnum, options map[s
 }
 
 func (minikube *Minikube) Init(options map[string]interface{}) error {
-	ksInitErr := minikube.Ksonnet.Init(options)
-	if ksInitErr != nil {
-		return fmt.Errorf("minikube init failed for ksonnet: %v", ksInitErr)
+	ks := minikube.Children["ksonnet"]
+	if ks != nil {
+		ksInitErr := ks.Init(options)
+		if ksInitErr != nil {
+			return fmt.Errorf("minikube init failed for ksonnet: %v", ksInitErr)
+		}
+	} else {
+		return fmt.Errorf("ksonnet not in Children")
 	}
 	return nil
 }
