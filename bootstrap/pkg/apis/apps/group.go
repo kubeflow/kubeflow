@@ -32,6 +32,8 @@ import (
 	"strings"
 )
 
+
+
 const (
 	DefaultNamespace = "kubeflow"
 	DefaultPlatform  = "none"
@@ -56,6 +58,7 @@ type CliOption string
 const (
 	EMAIL       CliOption = "email"
 	IPNAME      CliOption = "ipName"
+	HOSTNAME    CliOption = "hostname"
 	MOUNT_LOCAL CliOption = "mount-local"
 	VERBOSE     CliOption = "verbose"
 	NAMESPACE   CliOption = "namespace"
@@ -70,8 +73,9 @@ const (
 )
 
 //
-// KfApp is used by commands under bootstrap/cmd/{bootstrap,kfctl}. KfApp provides a common
-// API for different implementations like ksonnet, gcp, minikube, docker-for-desktop, etc.
+// KfApp provides a common
+// API for platforms like ksonnet, gcp, minikube, docker-for-desktop, etc.
+// They all implementation the API below
 //
 type KfApp interface {
 	Apply(resources ResourceEnum, options map[string]interface{}) error
@@ -80,8 +84,18 @@ type KfApp interface {
 	Init(options map[string]interface{}) error
 }
 
+type Platform string
+
+const (
+	DOCKER_FOR_DESKTOP Platform = "docker-for-desktop"
+	GCP Platform = "gcp"
+	KSONNET Platform = "ksonnet"
+	MINIKUBE Platform = "minikube"
+)
+
+
 type FullKfApp struct {
-	Children map[string]KfApp
+	Children map[Platform]KfApp
 }
 
 func LoadPlatform(options map[string]interface{}) (KfApp, error) {

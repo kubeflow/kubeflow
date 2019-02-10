@@ -23,71 +23,71 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	_ksonnet := ksonnet.GetKfApp(options)
 	-DEBUG */
 	// NO_DEBUG
-	options[string(kftypes.PLATFORM)] = "ksonnet"
+	options[string(kftypes.PLATFORM)] = string(kftypes.KSONNET)
 	_ksonnet, ksonnetErr := kftypes.LoadPlatform(options)
 	if ksonnetErr != nil {
-		log.Errorf("loadplatform failed for ksonnet: %v", ksonnetErr)
+		log.Errorf("loadplatform failed for %v: %v", string(kftypes.KSONNET), ksonnetErr)
 		return nil
 	}
 	options[string(kftypes.PLATFORM)] = "foo"
 	// NO_DEBUG //
 	_foo := &Foo{
 		FullKfApp: kftypes.FullKfApp{
-			Children: make(map[string]kftypes.KfApp),
+			Children: make(map[kftypes.Platform]kftypes.KfApp),
 		},
 	}
-	_foo.Children["ksonnet"] = _ksonnet
+	_foo.Children[kftypes.KSONNET] = _ksonnet
 	return _foo
 }
 
 func (foo *Foo) Apply(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	ks := foo.Children["ksonnet"]
+	ks := foo.Children[kftypes.KSONNET]
 	if ks != nil {
 		ksonnetlyErr := ks.Apply(resources, options)
 		if ksonnetlyErr != nil {
 			return fmt.Errorf("foo apply failed for ksonnet: %v", ksonnetlyErr)
 		}
 	} else {
-		return fmt.Errorf("ksonnet not in Children")
+		return fmt.Errorf("%v not in Children", string(kftypes.KSONNET))
 	}
 	return nil
 }
 
 func (foo *Foo) Delete(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	ks := foo.Children["ksonnet"]
+	ks := foo.Children[kftypes.KSONNET]
 	if ks != nil {
 		ksDeleteErr := ks.Delete(resources, options)
 		if ksDeleteErr != nil {
-			return fmt.Errorf("foo delete failed for ksonnet: %v", ksDeleteErr)
+			return fmt.Errorf("foo delete failed for %v: %v", string(kftypes.KSONNET), ksDeleteErr)
 		}
 	} else {
-		return fmt.Errorf("ksonnet not in Children")
+		return fmt.Errorf("%v not in Children", string(kftypes.KSONNET))
 	}
 	return nil
 }
 
 func (foo *Foo) Generate(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	ks := foo.Children["ksonnet"]
+	ks := foo.Children[kftypes.KSONNET]
 	if ks != nil {
 		ksGenerateErr := ks.Generate(resources, options)
 		if ksGenerateErr != nil {
-			return fmt.Errorf("foo generate failed for ksonnet: %v", ksGenerateErr)
+			return fmt.Errorf("foo generate failed for %v: %v", string(kftypes.KSONNET), ksGenerateErr)
 		}
 	} else {
-		return fmt.Errorf("ksonnet not in Children")
+		return fmt.Errorf("%v not in Children", string(kftypes.KSONNET))
 	}
 	return nil
 }
 
 func (foo *Foo) Init(options map[string]interface{}) error {
-	ks := foo.Children["ksonnet"]
+	ks := foo.Children[kftypes.KSONNET]
 	if ks != nil {
 		ksInitErr := ks.Init(options)
 		if ksInitErr != nil {
-			return fmt.Errorf("foo init failed for ksonnet: %v", ksInitErr)
+			return fmt.Errorf("foo init failed for %v: %v", string(kftypes.KSONNET), ksInitErr)
 		}
 	} else {
-		return fmt.Errorf("ksonnet not in Children")
+		return fmt.Errorf("%v not in Children", string(kftypes.KSONNET))
 	}
 	return nil
 }

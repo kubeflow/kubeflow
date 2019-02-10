@@ -26,6 +26,7 @@ type GcpSpec struct {
 	Project             string `json:"project,omitempty"`
 	Email               string `json:"email,omitempty"`
 	IpName              string `json:"ipName,omitempty"`
+	Hostname            string `json:"hostname,omitempty"`
 	Zone                string `json:"zone,omitempty"`
 }
 
