@@ -1,20 +1,18 @@
+# Kubeflow Ksonnet Registry
+
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-- [Kubeflow Ksonnet Registry](#kubeflow-ksonnet-registry)
-  - [Overview](#overview)
-  - [Usage](#usage)
-  - [Library-specific Documentation](#library-specific-documentation)
+- [Overview](#overview)
+- [Usage](#usage)
+- [Library-specific Documentation](#library-specific-documentation)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
-# Kubeflow Ksonnet Registry
 
 ## Overview
 
 This directory contains the Kubeflow ksonnet [registry][2]. If you are unfamiliar with ksonnet, we recommend browsing [the official site][1] to gain more context.
-
 
 ## Usage
 

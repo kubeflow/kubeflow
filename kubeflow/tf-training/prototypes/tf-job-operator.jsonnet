@@ -4,7 +4,7 @@
 // @shortDescription A TensorFlow job operator.
 // @param name string Name to give to each of the components
 // @optionalParam cloud string null String identifying the cloud to customize the deployment for.
-// @optionalParam tfJobImage string gcr.io/kubeflow-images-public/tf_operator:kubeflow-tf-operator-postsubmit-v2-785f416-272-7f3c The image for the TfJob controller.
+// @optionalParam tfJobImage string gcr.io/kubeflow-images-public/tf_operator:v0.4.0 The image for the TfJob controller.
 // @optionalParam tfDefaultImage string null The default image to use for TensorFlow.
 // @optionalParam tfJobUiServiceType string ClusterIP The service type for the UI.
 // @optionalParam tfJobVersion string v1beta1 which version of the TFJob operator to use

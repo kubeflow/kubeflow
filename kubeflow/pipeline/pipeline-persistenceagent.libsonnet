@@ -48,7 +48,6 @@
           app: "ml-pipeline-persistenceagent",
         },
         name: "ml-pipeline-persistenceagent",
-        namespace: namespace,
       },
       rules: [
         {
@@ -107,7 +106,7 @@
               {
                 name: "ml-pipeline-persistenceagent",
                 image: image,
-                imagePullPolicy: "Always",
+                imagePullPolicy: "IfNotPresent",
                 env: [
                   {
                     name: "POD_NAMESPACE",

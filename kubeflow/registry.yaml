@@ -4,18 +4,24 @@ libraries:
   application:
     version: master
     path: application
-  notebooks:
-    version: master
-    path: notebooks
   metacontroller:
     version: master
     path: metacontroller
   profiles:
     version: master
     path: profiles
-  core:
+  common:
     version: master
-    path: core
+    path: common
+  gcp:
+    version: master
+    path: gcp
+  tensorboard:
+    version: master
+    path: tensorboard
+  examples:
+    version: master
+    path: examples
   jupyter:
     version: master
     path: jupyter
@@ -70,6 +76,9 @@ libraries:
   kubebench:
     version: master
     path: kubebench
-  tf-batch-predict:
+  modeldb:
     version: master
-    path: tf-batch-predict
+    path: modeldb
+  tf-batch-predict:
+     version: master
+     path: tf-batch-predict

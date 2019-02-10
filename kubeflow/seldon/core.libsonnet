@@ -11,7 +11,8 @@ local roleMixin = k.rbac.v1beta1.role.mixin;
 local serviceAccount = k.core.v1.serviceAccount;
 
 local crdDefn = import "crd.libsonnet";
-local seldonTemplate2 = import "json/template_0.2.json";
+local seldonTemplate2_single_namespace = import "json/template_0.2_single_namespace.json";
+local seldonTemplate2_cluster_wide = import "json/template_0.2_cluster_wide.json";
 local seldonTemplate1 = import "json/template_0.1.json";
 
 local getOperatorDeployment(x) = std.endsWith(x.metadata.name, "seldon-cluster-manager");
@@ -20,20 +21,30 @@ local getApifeService(x) = std.endsWith(x.metadata.name, "seldon-apiserver") && 
 local getRedisDeployment(x) = std.endsWith(x.metadata.name, "redis") && x.kind == "Deployment";
 local getRedisService(x) = std.endsWith(x.metadata.name, "redis") && x.kind == "Service";
 local getServiceAccount(x) = x.kind == "ServiceAccount";
-local getClusterRole(x) = x.kind == "ClusterRole";
-local getClusterRoleBinding(x) = x.kind == "ClusterRoleBinding";
-local getRoleBinding(x) = x.kind == "RoleBinding" && x.roleRef.name == "seldon-local";
-local getAmbassadorRoleBinding(x) = x.kind == "RoleBinding" && x.roleRef.name == "ambassador";
+
+local getClusterRole(x) = x.metadata.name == "seldon-wide" && x.kind == "ClusterRole";
+local getClusterRoleBinding(x) = x.kind == "ClusterRoleBinding" && x.roleRef.name == "seldon-wide";
+
+local getCRDClusterRole(x) = x.metadata.name == "seldon-crd-seldon" && x.kind == "ClusterRole";
+local getCRDClusterRoleBinding(x) = x.kind == "ClusterRoleBinding" && x.roleRef.name == "seldon-crd-seldon";
+
 local getSeldonRole(x) = x.metadata.name == "seldon-local" && x.kind == "Role";
+local getRoleBinding(x) = x.kind == "RoleBinding" && x.roleRef.name == "seldon-local";
+
 local getAmbassadorRole(x) = x.metadata.name == "ambassador" && x.kind == "Role";
+local getAmbassadorRoleBinding(x) = x.kind == "RoleBinding" && x.roleRef.name == "ambassador";
+local getAmbassadorClusterRole(x) = x.metadata.name == "ambassador" && x.kind == "ClusterRole";
+local getAmbassadorClusterRoleBinding(x) = x.kind == "ClusterRoleBinding" && x.roleRef.name == "ambassador";
+
 local getAmbassadorDeployment(x) = std.endsWith(x.metadata.name, "ambassador") && x.kind == "Deployment";
 local getAmbassadorService(x) = std.endsWith(x.metadata.name, "ambassador") && x.kind == "Service";
+
 local getEnvNotRedis(x) = x.name != "SELDON_CLUSTER_MANAGER_REDIS_HOST";
 
 {
-  parts(name, namespace, seldonVersion)::
+  parts(name, namespace, seldonVersion, singleNamespace)::
 
-    local seldonTemplate = if std.startsWith(seldonVersion, "0.1") then seldonTemplate1 else seldonTemplate2;
+    local seldonTemplate = if std.startsWith(seldonVersion, "0.1") then seldonTemplate1 else if singleNamespace == "true" then seldonTemplate2_single_namespace else seldonTemplate2_cluster_wide;
 
     {
       apife(apifeImage, withRbac, grpcMaxMessageSize)::
@@ -42,6 +53,7 @@ local getEnvNotRedis(x) = x.name != "SELDON_CLUSTER_MANAGER_REDIS_HOST";
 
         local env = [
           { name: "SELDON_CLUSTER_MANAGER_REDIS_HOST", value: name + "-redis" },
+	  { name: "SELDON_SINGLE_NAMESPACE", value: singleNamespace },
         ];
 
         local env2 = std.filter(getEnvNotRedis, baseApife.spec.template.spec.containers[0].env);
@@ -93,7 +105,7 @@ local getEnvNotRedis(x) = x.name != "SELDON_CLUSTER_MANAGER_REDIS_HOST";
         service.metadata.withLabelsMixin(labels) +
         service.spec.withType(serviceType),
 
-      deploymentOperator(engineImage, clusterManagerImage, springOpts, javaOpts, withRbac):
+      deploymentOperator(engineImage, clusterManagerImage, springOpts, javaOpts, withRbac, engineServiceAccount, engineUser):
 
         local op = std.filter(getOperatorDeployment, seldonTemplate.items)[0];
 
@@ -102,8 +114,11 @@ local getEnvNotRedis(x) = x.name != "SELDON_CLUSTER_MANAGER_REDIS_HOST";
           { name: "SPRING_OPTS", value: springOpts },
           { name: "ENGINE_CONTAINER_IMAGE_AND_VERSION", value: engineImage },
           { name: "ENGINE_CONTAINER_IMAGE_PULL_POLICY", value: "IfNotPresent" },
+          { name: "ENGINE_CONTAINER_SERVICE_ACCOUNT_NAME", value: engineServiceAccount },
           { name: "SELDON_CLUSTER_MANAGER_REDIS_HOST", value: name + "-redis" },
           { name: "SELDON_CLUSTER_MANAGER_POD_NAMESPACE", valueFrom: { fieldRef: { apiVersion: "v1", fieldPath: "metadata.namespace" } } },
+	  { name: "SELDON_CLUSTER_MANAGER_SINGLE_NAMESPACE", value: singleNamespace },
+	  { name: "ENGINE_CONTAINER_USER", value: engineUser },
         ];
 
         local c = op.spec.template.spec.containers[0] +
@@ -176,6 +191,12 @@ local getEnvNotRedis(x) = x.name != "SELDON_CLUSTER_MANAGER_REDIS_HOST";
         serviceAccountMixin.metadata.withNamespace(namespace),
 
 
+      rbacCRDClusterRole():
+
+        local clusterRole = std.filter(getCRDClusterRole, seldonTemplate.items)[0];
+
+        clusterRole,
+
       rbacClusterRole():
 
         local clusterRole = std.filter(getClusterRole, seldonTemplate.items)[0];
@@ -197,6 +218,23 @@ local getEnvNotRedis(x) = x.name != "SELDON_CLUSTER_MANAGER_REDIS_HOST";
         role +
         roleMixin.metadata.withNamespace(namespace),
 
+      rbacAmbassadorClusterRole():
+
+        local clusterRole = std.filter(getAmbassadorClusterRole, seldonTemplate.items)[0];
+
+	clusterRole,
+
+
+      rbacCRDClusterRoleBinding():
+
+        local rbacClusterRoleBinding = std.filter(getCRDClusterRoleBinding, seldonTemplate.items)[0];
+
+        local subject = rbacClusterRoleBinding.subjects[0]
+                        { namespace: namespace };
+
+        rbacClusterRoleBinding +
+        clusterRoleBindingMixin.metadata.withNamespace(namespace) +
+        clusterRoleBinding.withSubjects([subject]),
 
       rbacClusterRoleBinding():
 
@@ -230,6 +268,17 @@ local getEnvNotRedis(x) = x.name != "SELDON_CLUSTER_MANAGER_REDIS_HOST";
         rbacRoleBinding +
         roleBindingMixin.metadata.withNamespace(namespace) +
         roleBinding.withSubjects([subject]),
+
+      rbacAmbassadorClusterRoleBinding():
+
+        local rbacClusterRoleBinding = std.filter(getAmbassadorClusterRoleBinding, seldonTemplate.items)[0];
+
+        local subject = rbacClusterRoleBinding.subjects[0]
+                        { namespace: namespace };
+
+        rbacClusterRoleBinding +
+        clusterRoleBindingMixin.metadata.withNamespace(namespace) +
+        clusterRoleBinding.withSubjects([subject]),
 
       ambassadorDeployment():
 

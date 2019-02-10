@@ -1,4 +1,4 @@
-import { MuiThemeProvider } from '@material-ui/core';
+import MuiThemeProvider from '@material-ui/core/styles/MuiThemeProvider';
 import * as React from 'react';
 import { Redirect, Route, Switch } from 'react-router-dom';
 import { CommonCss, theme } from './Css';
@@ -113,10 +113,10 @@ class App extends React.Component<any, { signedIn: boolean }> {
                     <li> Pick a name for your deployment </li>
                     <li> (Optional / Recommended) Follow these
                          <a href="https://www.kubeflow.org/docs/started/getting-started-gke/#create-oauth-client-credentials"
-                            style={{ color: 'inherit', marginLeft: 5 }}
-                            target="_blank"
-                         >
-                         instructions</a> to create an OAuth client and
+                        style={{ color: 'inherit', marginLeft: 5 }}
+                        target="_blank"
+                      >
+                        instructions</a> to create an OAuth client and
                          then enter as IAP Oauth Client ID and Secret</li>
                     <li> (Optional) Choose GKE zone where you want Kubeflow to be deployed </li>
                     <li> (Optional) Choose Kubeflow version </li>
@@ -149,23 +149,24 @@ class App extends React.Component<any, { signedIn: boolean }> {
                   Notice:
                   <ul>
 
-                     <li> When you click deploy a short lived OAuth token granting access to your GCP resources will be sent to the
-                          Kubeflow deploy service
+                    <li> When you click deploy, a service account will be created in target project. The service account will issue a
+                      short lived access token which will be sent to Kubeflow deploy service, granting access to necessary GCP resources
+                      in target project.
                      </li>
-                     <li> The Kubeflow deploy service uses this to create Kubeflow GCP resources on your behalf
+                    <li> The Kubeflow deploy service uses this to create Kubeflow GCP resources on your behalf
                      </li>
-                     <li> If you don't want to delegate a credential to the service please use our
+                    <li> If you don't want to delegate a credential to the service please use our
                           <a href="https://www.kubeflow.org/docs/started/getting-started-gke/"
-                             style={{ color: 'inherit', marginLeft: 5 }}
-                             target="_blank"
-                          >CLI to deploy Kubeflow</a>
-                     </li>
-                     <li> <a style={{ color: 'inherit', marginLeft: 5 }} href="https://policies.google.com/terms">Terms</a>
-                     </li>
-                     <li><a style={{ color: 'inherit', marginLeft: 5 }} href="https://policies.google.com/privacy">Privacy</a>
-                     </li>
+                        style={{ color: 'inherit', marginLeft: 5 }}
+                        target="_blank"
+                      >CLI to deploy Kubeflow</a>
+                    </li>
+                    <li> <a style={{ color: 'inherit', marginLeft: 5 }} href="https://policies.google.com/terms">Terms</a>
+                    </li>
+                    <li><a style={{ color: 'inherit', marginLeft: 5 }} href="https://policies.google.com/privacy">Privacy</a>
+                    </li>
                   </ul>
-                </div>                
+                </div>
               </div>
               <div style={styles.rightPane}>
                 <Switch>

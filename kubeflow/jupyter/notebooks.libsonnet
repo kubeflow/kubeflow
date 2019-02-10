@@ -1,5 +1,5 @@
 {
-  local util = import "kubeflow/core/util.libsonnet",
+  local util = import "kubeflow/common/util.libsonnet",
 
   new(_env, _params):: {
     local params = _env + _params,
@@ -35,6 +35,7 @@
       },
       data: {
         "sync-notebook.jsonnet": (importstr "sync-notebook.jsonnet"),
+        "util.libsonnet": (importstr "kubeflow/jupyter/util.libsonnet"),
       },
     },
     notebooksConfigMap:: notebooksConfigMap,
@@ -83,7 +84,7 @@
             containers: [
               {
                 name: "hooks",
-                image: "metacontroller/jsonnetd:latest",
+                image: "metacontroller/jsonnetd@sha256:25c25f217ad030a0f67e37078c33194785b494569b0c088d8df4f00da8fd15a0",
                 imagePullPolicy: "Always",
                 workingDir: "/opt/notebooks/hooks",
                 volumeMounts: [

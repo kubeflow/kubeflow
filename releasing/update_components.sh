@@ -38,12 +38,12 @@ elif [ "${COMPONENT}" == "pytorch-operator" ]; then
   echo "Updating PyTorch operator..."
   python scripts/update_prototype.py \
     --file=${ROOT_DIR}/kubeflow/pytorch-job/prototypes/pytorch-operator.jsonnet \
-    --values=pytorchJobImage=gcr.io/kubeflow-images-public/pytorch_operator:${TAG}
+    --values=pytorchJobImage=gcr.io/kubeflow-images-public/pytorch-operator:${TAG}
   echo "Done."
 
 elif [ "${COMPONENT}" == "katib" ]; then
   echo "Updating Katib..."
-  VALUES="${VALUES},suggestionRandomImage=gcr.io/kubeflow-images-public/katib/suggestion-random:${TAG}"
+  VALUES="suggestionRandomImage=gcr.io/kubeflow-images-public/katib/suggestion-random:${TAG}"
   VALUES="${VALUES},suggestionGridImage=gcr.io/kubeflow-images-public/katib/suggestion-grid:${TAG}"
   VALUES="${VALUES},suggestionHyperbandImage=gcr.io/kubeflow-images-public/katib/suggestion-hyperband:${TAG}"
   VALUES="${VALUES},suggestionBayesianOptimizationImage=gcr.io/kubeflow-images-public/katib/suggestion-bayesianoptimization:${TAG}"
@@ -67,7 +67,17 @@ elif [ "${COMPONENT}" == "centraldashboard" ]; then
 elif [ "${COMPONENT}" == "jupyter-notebooks" ]; then
   echo "Updating Jupyter notebooks..."
   sed -i "s/tensorflow-\([0-9\.]*\)-notebook-\(.*\):v[0-9\.]*/tensorflow-\1-notebook-\2:${TAG}/" \
-    kubeflow/core/ui/default/config.yaml
+    kubeflow/jupyter/ui/default/config.yaml
+  echo "Done."
+
+elif [ "${COMPONENT}" == "kubebench" ]; then
+  echo "Updating KubeBench..."
+  python scripts/update_prototype.py \
+    --file=${ROOT_DIR}/kubeflow/kubebench/prototypes/kubebench-job.jsonnet \
+    --values=controllerImage=gcr.io/kubeflow-images-public/kubebench/kubebench-controller:${TAG}
+  python scripts/update_prototype.py \
+    --file=${ROOT_DIR}/kubeflow/kubebench/prototypes/kubebench-operator.jsonnet \
+    --values=image=gcr.io/kubeflow-images-public/kubebench/kubebench-operator:${TAG}
   echo "Done."
 
 else

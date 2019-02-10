@@ -1,7 +1,4 @@
-# flake8: noqa
-
-"""
-Configuration file for JupyterHub.
+"""Configuration file for JupyterHub.
 
 Kubeflow uses this file as the configuration file for JupyterHub. It contains
 all glue code necessary to integrate JupyterHub with the remaining Kubeflow
@@ -29,8 +26,8 @@ spec.loader.exec_module(spawner)
 ###################################################
 c.JupyterHub.ip = '0.0.0.0'
 c.JupyterHub.hub_ip = '0.0.0.0'
-# Don't try to cleanup servers on exit - since in general for k8s, we want the
-# hub to be able to restart without losing user containers
+# Don't try to cleanup servers on exit - since in general for k8s, we want
+# the hub to be able to restart without losing user containers
 c.JupyterHub.cleanup_servers = False
 ###################################################
 
@@ -73,15 +70,14 @@ if access_local_fs == 'true':
             }
         }
         return pod
-
     c.KubeSpawner.modify_pod_hook = modify_pod_hook
 
 ###################################################
 # Persistent volume options
 ###################################################
 
-# Set user_storage_pvc_ensure to False to prevent KubeSpawner from handling
-# PVCs. We natively handle PVCs via KubeFormSpawner and its dedicated methods
+# Set user_storage_pvc_ensure to False to prevent KubeSpawner from handling PVCs
+# We natively handle PVCs via KubeFormSpawner and its dedicated methods
 
 # NOTE: user_storage_pvc_ensure has been deprecated in a future release
 c.KubeSpawner.storage_pvc_ensure = False
@@ -89,6 +85,20 @@ c.KubeSpawner.user_storage_pvc_ensure = False
 
 volumes = []
 volume_mounts = []
+
+gcp_secret_name = os.environ.get('GCP_SECRET_NAME')
+if gcp_secret_name:
+    volumes.append({
+      'name': gcp_secret_name,
+      'secret': {
+        'secretName': gcp_secret_name,
+      }
+    })
+    volume_mounts.append({
+        'name': gcp_secret_name,
+        'mountPath': SERVICE_ACCOUNT_SECRET_MOUNT
+    })
+
 c.KubeSpawner.volumes = volumes
 c.KubeSpawner.volume_mounts = volume_mounts
 
@@ -113,19 +123,6 @@ else:
 
 if os.environ.get('DEFAULT_JUPYTERLAB').lower() == 'true':
     c.KubeSpawner.default_url = '/lab'
-
-gcp_secret_name = os.environ.get('GCP_SECRET_NAME')
-if gcp_secret_name:
-    volumes.append({
-        'name': gcp_secret_name,
-        'secret': {
-            'secretName': gcp_secret_name,
-        }
-    })
-    volume_mounts.append({
-        'name': gcp_secret_name,
-        'mountPath': SERVICE_ACCOUNT_SECRET_MOUNT
-    })
 
 # Set extra spawner configuration variables
 c.KubeSpawner.extra_spawner_config = {

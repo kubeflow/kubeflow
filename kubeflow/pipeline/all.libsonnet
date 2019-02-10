@@ -2,6 +2,8 @@
   parts(_env, _params):: {
     local params = _env + _params,
 
+    local storage = import "kubeflow/pipeline/storage.libsonnet",
+    local nfs = import "kubeflow/pipeline/nfs.libsonnet",
     local minio = import "kubeflow/pipeline/minio.libsonnet",
     local mysql = import "kubeflow/pipeline/mysql.libsonnet",
     local pipeline_apiserver = import "kubeflow/pipeline/pipeline-apiserver.libsonnet",
@@ -15,11 +17,25 @@
     local scheduledWorkflowImage = params.scheduledWorkflowImage,
     local persistenceAgentImage = params.persistenceAgentImage,
     local uiImage = params.uiImage,
-    all:: minio.parts(namespace).all +
-          mysql.parts(namespace).all +
+    local nfsImage = params.nfsImage,
+    local mysqlImage = params.mysqlImage,
+    local minioImage = params.minioImage,
+    local mysqlPvName = params.mysqlPvName,
+    local minioPvName = params.minioPvName,
+    local nfsPvName = params.nfsPvName,
+    local mysqlPd = params.mysqlPd,
+    local minioPd = params.minioPd,
+    local nfsPd = params.nfsPd,
+    nfs:: if (minioPvName == "null") && (minioPd== "null") then
+             nfs.all(namespace, nfsImage)
+           else [],
+    all:: minio.all(namespace, minioImage, minioPd, minioPvName) +
+          mysql.all(namespace, mysqlImage) +
           pipeline_apiserver.all(namespace, apiImage) +
           pipeline_scheduledworkflow.all(namespace, scheduledWorkflowImage) +
           pipeline_persistenceagent.all(namespace, persistenceAgentImage) +
-          pipeline_ui.all(namespace, uiImage),
+          pipeline_ui.all(namespace, uiImage) +
+          storage.all(namespace, mysqlPvName, minioPvName, nfsPvName, mysqlPd, minioPd, nfsPd) +
+          $.parts(_env, _params).nfs,
   },
 }

@@ -1,31 +1,11 @@
 {
+  all(namespace, minioImage, minioPd, minioPvName):: [
+    $.parts(namespace).service,
+    $.parts(namespace).deploy(minioImage, minioPd, minioPvName),
+    $.parts(namespace).secret,
+  ],
+
   parts(namespace):: {
-    all:: [
-      $.parts(namespace).pvc,
-      $.parts(namespace).service,
-      $.parts(namespace).deploy,
-      $.parts(namespace).secret,
-    ],
-
-    pvc: {
-      apiVersion: "v1",
-      kind: "PersistentVolumeClaim",
-      metadata: {
-        name: "minio-pv-claim",
-        namespace: namespace,
-      },
-      spec: {
-        accessModes: [
-          "ReadWriteOnce",
-        ],
-        resources: {
-          requests: {
-            storage: "10Gi",
-          },
-        },
-      },
-    },  //pvc
-
     service: {
       apiVersion: "v1",
       kind: "Service",
@@ -50,7 +30,7 @@
       },
     },  //service
 
-    deploy: {
+    deploy(image, minioPd, minioPvName): {
       apiVersion: "apps/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -72,7 +52,7 @@
               {
                 name: "data",
                 persistentVolumeClaim: {
-                  claimName: "minio-pv-claim",
+                  claimName: if (minioPvName != "null") || (minioPd != "null") then "minio-pvc" else "nfs-pvc",
                 },
               },
             ],
@@ -83,9 +63,10 @@
                   {
                     name: "data",
                     mountPath: "/data",
+                    subPath: "minio",
                   },
                 ],
-                image: "minio/minio:RELEASE.2018-02-09T22-40-05Z",
+                image: image,
                 args: [
                   "server",
                   "/data",

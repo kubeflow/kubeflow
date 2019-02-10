@@ -1,12 +1,12 @@
 import base64
-from importlib.util import spec_from_file_location, module_from_spec
-from jinja2 import FileSystemLoader, Environment
-from kubernetes.client.models import V1DeleteOptions
-from kubernetes.client.rest import ApiException
 from tornado import gen
+from jinja2 import FileSystemLoader, Environment
+from kubernetes.client.rest import ApiException
+from kubernetes.client.models import V1DeleteOptions
+from importlib.util import spec_from_file_location, module_from_spec
 
-# Import the default KubeFormSpawner as a Python module. Our custom spawner
-# extends the default one, but shares the same class name
+# Import the default KubeFormSpawner as a Python module
+# Our custom spawner extends the default one, but shares the same class name
 spec = spec_from_file_location('spawner', '/etc/config/default_spawner.py')
 spawner = module_from_spec(spec)
 spec.loader.exec_module(spawner)
@@ -51,121 +51,186 @@ class KubeFormSpawner(spawner.KubeFormSpawner):
             form_defaults = self.spawner_ui_config['spawnerFormDefaults']
 
         # Manage Image
+        image_readonly = False
         if self._default_config_contains('image'):
             options['image'] = form_defaults['image']['value']
-        if 'image' in formdata and formdata['image'][0]:
-            options['image'] = formdata['image'][0].strip()
+            image_readonly = form_defaults['image'].get('readOnly', False)
+        if ('image' in formdata and formdata['image'][0]):
+            image_from_form = formdata['image'][0].strip()
+            if image_readonly:
+                # Provided image must be standard
+                if image_from_form in form_defaults['image']['options']:
+                    options['image'] = image_from_form
+            else:
+                # Provided image can be standard or custom
+                options['image'] = image_from_form
 
         # Manage CPU
+        cpu_readonly = False
         if self._default_config_contains('cpu'):
             options['cpu'] = form_defaults['cpu']['value']
-        if 'cpu' in formdata and formdata['cpu'][0]:
+            cpu_readonly = form_defaults['cpu'].get('readOnly', False)
+        if (not cpu_readonly and 'cpu' in formdata and formdata['cpu'][0]):
             options['cpu'] = formdata['cpu'][0].strip()
 
         # Manage Memory
+        memory_readonly = False
         if self._default_config_contains('memory'):
             options['memory'] = form_defaults['memory']['value']
-        if 'memory' in formdata and formdata['memory'][0]:
-            options['memory'] = formdata['memory'][0].strip()
+            memory_readonly = form_defaults['memory'].get('readOnly', False)
+        if (not memory_readonly and 'memory' in formdata and
+           formdata['memory'][0]):
+                options['memory'] = formdata['memory'][0].strip()
 
         # Manage Workspace Volume
         options['workspaceVolume'] = {}
         ws_volume = {}
 
+        ws_volume_readonly = False
         if self._default_config_contains('workspaceVolume'):
+            ws_volume_readonly = \
+                form_defaults['workspaceVolume'].get('readOnly', False)
+
             # The Workspace Volume is specified in `config.yaml`
-            if 'value' in form_defaults['workspaceVolume']:
-                default_ws_volume = form_defaults['workspaceVolume']['value']
+            default_ws_volume = form_defaults['workspaceVolume']['value']
 
-                # Get the default values from the YAML configuration files
-                if ('type' in default_ws_volume and
-                        'value' in default_ws_volume['type']):
+            # Get and set the default values from the YAML configuration file,
+            # if present and not marked as readonly
+            ws_type_readonly = False
+            if ('type' in default_ws_volume and
+               'value' in default_ws_volume['type']):
                     ws_volume['type'] = default_ws_volume['type']['value']
+                    ws_type_readonly = \
+                        default_ws_volume['type'].get('readOnly', False)
 
-                if ('rokURL' in default_ws_volume and
-                        'value' in default_ws_volume['rokURL']):
-                    ws_volume['rokURL'] = (
-                        default_ws_volume['rokURL']['value'])
+            ws_rok_url_readonly = False
+            if ('rokURL' in default_ws_volume and
+               'value' in default_ws_volume['rokURL']):
+                    ws_volume['rokURL'] = \
+                        default_ws_volume['rokURL']['value']
+                    ws_rok_url_readonly = \
+                        default_ws_volume['rokURL'].get('readOnly', False)
 
-                if ('name' in default_ws_volume and
-                        'value' in default_ws_volume['name']):
+            ws_name_readonly = False
+            if ('name' in default_ws_volume and
+               'value' in default_ws_volume['name']):
                     ws_volume['name'] = default_ws_volume['name']['value']
+                    ws_name_readonly = \
+                        default_ws_volume['name'].get('readOnly', False)
 
-                if ('size' in default_ws_volume and
-                        'value' in default_ws_volume['size']):
-                    ws_volume['size'] = (
-                        '%sGi' % default_ws_volume['size']['value'])
+            ws_size_readonly = False
+            if ('size' in default_ws_volume and
+               'value' in default_ws_volume['size']):
+                    ws_volume['size'] = \
+                        '%sGi' % default_ws_volume['size']['value']
+                    ws_size_readonly = \
+                        default_ws_volume['size'].get('readOnly', False)
 
-                if ('mountPath' in default_ws_volume and
-                        'value' in default_ws_volume['mountPath']):
-                    ws_volume['mountPath'] = (
-                        default_ws_volume['mountPath']['value'])
+            ws_mount_path_readonly = False
+            if ('mountPath' in default_ws_volume and
+               'value' in default_ws_volume['mountPath']):
+                    ws_volume['mountPath'] = \
+                        default_ws_volume['mountPath']['value']
+                    ws_mount_path_readonly = \
+                        default_ws_volume['mountPath'].get('readOnly', False)
 
-        # Get the Workspace Volume values from the form, if user specified them
-        if 'ws_type' in formdata and formdata['ws_type'][0]:
-            ws_volume['type'] = formdata['ws_type'][0].strip()
+        # Get and set the Workspace Volume values from the form, if present
+        # and not marked as readonly
+        if not ws_volume_readonly:
+            if (not ws_type_readonly and 'ws_type' in formdata and
+               formdata['ws_type'][0]):
+                    ws_volume['type'] = formdata['ws_type'][0].strip()
 
-        if 'ws_rok_url' in formdata and formdata['ws_rok_url'][0]:
-            ws_volume['rokURL'] = formdata['ws_rok_url'][0].strip()
+            if (not ws_rok_url_readonly and 'ws_rok_url' in formdata
+               and formdata['ws_rok_url'][0]):
+                    ws_volume['rokURL'] = \
+                        formdata['ws_rok_url'][0].strip()
 
-        if 'ws_name' in formdata and formdata['ws_name'][0]:
-            ws_volume['name'] = formdata['ws_name'][0].strip()
+            if (not ws_name_readonly and 'ws_name' in formdata and
+               formdata['ws_name'][0]):
+                    ws_volume['name'] = formdata['ws_name'][0].strip()
 
-        if 'ws_size' in formdata and formdata['ws_size'][0]:
-            ws_volume['size'] = '%sGi' % formdata['ws_size'][0].strip()
+            if (not ws_size_readonly and 'ws_size' in formdata and
+               formdata['ws_size'][0]):
+                    ws_volume['size'] = '%sGi' % formdata['ws_size'][0].strip()
 
-        if 'ws_mount_path' in formdata and formdata['ws_mount_path'][0]:
-            ws_volume['mountPath'] = formdata['ws_mount_path'][0].strip()
+            if (not ws_mount_path_readonly and 'ws_mount_path' in formdata and
+               formdata['ws_mount_path'][0]):
+                    ws_volume['mountPath'] = \
+                        formdata['ws_mount_path'][0].strip()
 
         options['workspaceVolume'] = ws_volume
 
         # Manage Data Volumes
         options['dataVolumes'] = []
+        data_volumes_readonly = False
+        if self._default_config_contains('dataVolumes'):
+            data_volumes_readonly = \
+                form_defaults['dataVolumes'].get('readOnly', False)
 
-        data_volumes_cnt = 0
-        # Deduce the total number of Data Volumes
-        for k, v in formdata.items():
-            if k.startswith('vol_type'):
-                data_volumes_cnt += 1
+        if data_volumes_readonly:
+            # Set Data Volumes as specified in the Spawner configuration file
+            for volume in form_defaults['dataVolumes']['value']:
+                data_volume = {}
+                for f in ['type', 'rokURL', 'name', 'size', 'mountPath']:
+                    data_volume[f] = volume['value'][f]['value']
+                data_volume['size'] += 'Gi'
+                options['dataVolumes'].append(data_volume)
+        else:
+            # Deduce the total number of Data Volumes
+            data_volumes_cnt = 0
+            for k, v in formdata.items():
+                if k.startswith('vol_type'):
+                    data_volumes_cnt += 1
 
-        for i in range(1, data_volumes_cnt + 1):
-            data_volume = {}
+            # Set Data Volumes as specified in the Spawner form
+            for i in range(1, data_volumes_cnt + 1):
+                data_volume = {}
 
-            # Get all Data Volume fields from the form
-            id = 'vol_type' + str(i)
-            if id in formdata and formdata[id][0]:
-                data_volume['type'] = formdata[id][0].strip()
+                # Get all Data Volume fields from the form
+                id = 'vol_type' + str(i)
+                if id in formdata and formdata[id][0]:
+                    data_volume['type'] = formdata[id][0].strip()
 
-            id = 'vol_name' + str(i)
-            if id in formdata and formdata[id][0]:
-                data_volume['name'] = formdata[id][0].strip()
+                id = 'vol_name' + str(i)
+                if id in formdata and formdata[id][0]:
+                    data_volume['name'] = formdata[id][0].strip()
 
-            id = 'vol_rok_url' + str(i)
-            if id in formdata and formdata[id][0]:
-                data_volume['rokURL'] = formdata[id][0].strip()
+                id = 'vol_rok_url' + str(i)
+                if id in formdata and formdata[id][0]:
+                    data_volume['rokURL'] = formdata[id][0].strip()
 
-            id = 'vol_size' + str(i)
-            if id in formdata and formdata[id][0]:
-                data_volume['size'] = '%sGi' % formdata[id][0].strip()
+                id = 'vol_size' + str(i)
+                if id in formdata and formdata[id][0]:
+                    data_volume['size'] = '%sGi' % formdata[id][0].strip()
 
-            id = 'vol_mount_path' + str(i)
-            if id in formdata and formdata[id][0]:
-                data_volume['mountPath'] = formdata[id][0].strip()
+                id = 'vol_mount_path' + str(i)
+                if id in formdata and formdata[id][0]:
+                    data_volume['mountPath'] = formdata[id][0].strip()
 
-            options['dataVolumes'].append(data_volume)
+                options['dataVolumes'].append(data_volume)
 
         # Manage Extra Resources
+        extra_resources_readonly = False
         if self._default_config_contains('extraResources'):
             options['extraResources'] = (
                 form_defaults['extraResources']['value'])
-        if 'extraResources' in formdata and formdata['extraResources'][0]:
-            options['extraResources'] = formdata['extraResources'][0].strip()
+            extra_resources_readonly = \
+                form_defaults['extraResources'].get('readOnly', False)
+        if (not extra_resources_readonly and 'extraResources' in formdata and
+           formdata['extraResources'][0]):
+                options['extraResources'] = \
+                    formdata['extraResources'][0].strip()
 
         return options
 
     @gen.coroutine
     def _prepare_volumes(self):
         """Create PVC manifests and attach as volumes to the Notebook."""
+        # Reset Volumes and VolumeMounts to initial KubeSpawner values
+        self.volumes = list(self.initial_volumes)
+        self.volume_mounts = list(self.initial_volume_mounts)
+
         # Set PVC labels
         labels = self._expand_all(self.user_storage_extra_labels)
         labels = self._build_common_labels(labels)
@@ -262,7 +327,10 @@ class KubeFormSpawner(spawner.KubeFormSpawner):
                 body=delete_options
             )
         except ApiException as e:
-            if e.status != 404:
+            if e.status == 404:
+                # The PVC does not exist
+                return del_status
+            else:
                 self.log.warning('Could not delete PVC %s' % pvc_name)
                 raise
 
@@ -275,9 +343,8 @@ class KubeFormSpawner(spawner.KubeFormSpawner):
                 )
             except ApiException as e:
                 if e.status == 404:
+                    self.log.info('PVC %s was successfully deleted', pvc_name)
                     break
-
-        self.log.info('PVC %s was successfully deleted', pvc_name)
 
         return del_status
 

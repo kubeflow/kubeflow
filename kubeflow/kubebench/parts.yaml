@@ -1,5 +1,5 @@
 {
-   "name": "kubebench-job",
+   "name": "kubebench",
    "apiVersion": "0.0.1",
    "kind": "ksonnet.io/parts",
    "description": "Kubebench is a benchmark tool for Kubeflow jobs.\n",
@@ -8,6 +8,14 @@
       {
          "name": "Xinyuan Huang",
          "email": "xinyuahu@cisco.com"
+      },
+      {
+         "name": "Andrey Velichkevich",
+         "email": "andrey.velichkevich@gmail.com"
+      },
+      {
+         "name": "Kirill Prosvirov",
+         "email": "prosvirov.k@gmail.com"
       }
    ],
    "repository": {
@@ -21,14 +29,5 @@
       "kubeflow",
       "benchmark"
    ],
-   "quickStart": {
-      "prototype": "io.ksonnet.pkg.kubebench-job",
-      "componentName": "kubebench-job",
-      "flags": {
-         "name": "kubebench-job",
-         "namespace": "default"
-      },
-      "comment": "Run Kubebench Job"
-   },
    "license": "Apache 2.0"
 }
