@@ -49,11 +49,13 @@ The default is 'all' for any selected platform.`,
 		}
 		email := generateCfg.GetString(string(kftypes.EMAIL))
 		ipName := generateCfg.GetString(string(kftypes.IPNAME))
+		hostName := generateCfg.GetString(string(kftypes.HOSTNAME))
 		zone := generateCfg.GetString(string(kftypes.ZONE))
 		mountLocal := generateCfg.GetBool(string(kftypes.MOUNT_LOCAL))
 		options := map[string]interface{}{
 			string(kftypes.EMAIL):       email,
 			string(kftypes.IPNAME):      ipName,
+			string(kftypes.HOSTNAME):    hostName,
 			string(kftypes.ZONE):        zone,
 			string(kftypes.MOUNT_LOCAL): mountLocal,
 		}
@@ -100,6 +102,15 @@ func init() {
 	bindErr = generateCfg.BindPFlag(string(kftypes.IPNAME), generateCmd.Flags().Lookup(string(kftypes.IPNAME)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.IPNAME), bindErr)
+		return
+	}
+
+	// platform gcp
+	generateCmd.Flags().String(string(kftypes.HOSTNAME), "",
+		string(kftypes.HOSTNAME)+" if '--platform gcp'")
+	bindErr = generateCfg.BindPFlag(string(kftypes.HOSTNAME), generateCmd.Flags().Lookup(string(kftypes.HOSTNAME)))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.HOSTNAME), bindErr)
 		return
 	}
 
