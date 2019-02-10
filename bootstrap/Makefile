@@ -116,7 +116,7 @@ test-known-platforms-generate: test-known-platforms-init
 	cd ~/dockerfordesktop && \
 	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V --mount-local && \
 	cd ~/gcp && \
-	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V --email jsmith@foo.com --ipName 35.233.240.120 --zone us-west1-a && \
+	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V --email jsmith@foo.com --ipName gcp-ip --zone us-west1-a && \
 	echo SUCCESS
 
 # debug and nodebug are for kfctl and enable debugging in goland 
