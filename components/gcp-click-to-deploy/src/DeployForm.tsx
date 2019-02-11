@@ -14,7 +14,7 @@ import * as React from 'react';
 import * as request from 'request';
 
 import Gapi from './Gapi';
-import { flattenDeploymentOperationError, log, wait } from './Utils';
+import { encryptPassword, flattenDeploymentOperationError, log, wait } from './Utils';
 
 // TODO(jlewi): Can we fetch these directly from GitHub so we always get the latest value?
 // When I tried using fetch API to do that I ran into errors that I interpreted as chrome blocking
@@ -40,6 +40,9 @@ interface DeployFormState {
   kfversionList: string[];
   clientId: string;
   clientSecret: string;
+  username: string;
+  password: string;
+  password2: string;
   iap: boolean;
 }
 
@@ -110,9 +113,12 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       dialogTitle: '',
       iap: true,
       kfversion: 'v0.3.5',
-      kfversionList: ['v0.3.5'],
+      kfversionList: ['v0.3.5', 'v0.4.1'],
+      password: '',
+      password2: '',
       project: '',
       showLogs: false,
+      username: '',
       zone: 'us-central1-a',
     };
   }
@@ -189,6 +195,21 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           <div style={styles.row}>
             <TextField label="IAP OAuth client secret" spellCheck={false} style={styles.input} variant="filled"
              required={true} value={this.state.clientSecret} onChange={this._handleChange('clientSecret')} />
+          </div>
+        </Collapse>
+
+        <Collapse in={!this.state.iap}>
+          <div style={styles.row}>
+            <TextField label="Kubeflow cluster Username" spellCheck={false} style={styles.input} variant="filled"
+             required={true} value={this.state.username} onChange={this._handleChange('username')} />
+          </div>
+          <div style={styles.row}>
+            <TextField label="Kubeflow cluster Password" spellCheck={false} style={styles.input} variant="filled" type="password"
+             required={true} value={this.state.password} onChange={this._handleChange('password')} />
+          </div>
+          <div style={styles.row}>
+            <TextField label="Confirm Password" spellCheck={false} style={styles.input} variant="filled" type="password"
+             required={true} value={this.state.password2} onChange={this._handleChange('password2')} />
           </div>
         </Collapse>
 
@@ -318,11 +339,44 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         p.value = email;
       }
 
-      if (p.name === 'jupyterHubAuthenticator') {
-        if (this.state.clientId === '' || this.state.clientSecret === '') {
+    }
+    if (!this.state.iap) {
+      for (let i = 0, len = this._configSpec.defaultApp.components.length; i < len; i++) {
+        const p = this._configSpec.defaultApp.components[i];
+        if (p.name === 'iap-ingress') {
+          p.name = 'basic-auth-ingress';
+          p.prototype = 'basic-auth-ingress';
+        }
+      }
+      this._configSpec.defaultApp.components.push({
+        name: 'basic-auth',
+        prototype: 'basic-auth',
+      });
+      for (let i = 0, len = this._configSpec.defaultApp.parameters.length; i < len; i++) {
+        const p = this._configSpec.defaultApp.parameters[i];
+        if (p.component === 'iap-ingress') {
+          p.component = 'basic-auth-ingress';
+        }
+        if (p.name === 'jupyterHubAuthenticator') {
           p.value = 'null';
         }
       }
+      const passwordhash = btoa(encryptPassword(state.password));
+      this._configSpec.defaultApp.parameters.push({
+        component: 'ambassador',
+        name: 'ambassadorServiceType',
+        value: 'NodePort'
+      });
+      this._configSpec.defaultApp.parameters.push({
+        component: 'basic-auth',
+        name: 'username',
+        value: state.username
+      });
+      this._configSpec.defaultApp.parameters.push({
+        component: 'basic-auth',
+        name: 'pwhash',
+        value: passwordhash
+      });
     }
     // Customize config for v0.3 compatibility
     // TODO: remove after https://github.com/kubeflow/kubeflow/pull/2019 merged

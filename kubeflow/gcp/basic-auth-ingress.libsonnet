@@ -343,6 +343,7 @@
       self.initServiceAccount,
       self.initClusterRoleBinding,
       self.initClusterRole,
+      self.backendUpdater,
       self.configMap,
       self.ingressBootstrapConfigMap,
       self.ingressBootstrapJob,
