@@ -296,7 +296,6 @@ local dagTemplates = [
         "generate",
         "spark-operator",
         "spark-operator",
-        "--namespace=" + stepsNamespace,
         "--name=spark-operator",
       ],
       working_dir=appDir + "/ks_app"

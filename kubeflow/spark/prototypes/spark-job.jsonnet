@@ -2,7 +2,6 @@
 // @name io.ksonnet.pkg.spark-job
 // @param name string Name for the component
 // @param applicationResource string jar or pyfile reference for spark-submit
-// @optionalParam namespace string default namespace to run in
 // @optionalParam jobName string defaultjob Name for the job
 // @optionalParam mainClass string null JVM Class name of driver entry point
 // @optionalParam type string Scala Type of applicaiton (e.g. Scala, Python)
