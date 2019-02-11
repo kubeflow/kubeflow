@@ -4,8 +4,8 @@
   // provide a userful function such as serving a TensorFlow or PyTorch model.
   all(params, name, env):: [
     $.parts(params, name, env).operatorServiceAccount,
-    $.parts(params, name, env).operatorClusterRole(params.deploymentScope),
-    $.parts(params, name, env).operatorClusterRoleBinding(params.deploymentScope),
+    $.parts(params, name, env).operatorClusterRole(),
+    $.parts(params, name, env).operatorClusterRoleBinding(),
     $.parts(params, name, env).deployment,
   ],
 
@@ -97,8 +97,8 @@
         namespace: namespace,
       },
     },
-    operatorClusterRole(deploymentScope):: {
-      local roleType = if deploymentScope == "cluster" then "ClusterRole" else "Role",
+    operatorClusterRole():: {
+      local roleType = "ClusterRole",
       kind: roleType,
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
       metadata: {
@@ -106,7 +106,6 @@
           app: "spark-operator",
         },
         name: name,
-        [if deploymentScope == "namespace" then "namespace"]: namespace,
       },
       rules: [
         {
@@ -200,14 +199,13 @@
         },
       ],
     },
-    operatorClusterRoleBinding(deploymentScope):: {
+    operatorClusterRoleBinding():: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      local bindingType = if deploymentScope == "cluster" then "ClusterRoleBinding" else "RoleBinding",
-      local roleType = if deploymentScope == "cluster" then "ClusterRole" else "Role",
+      local bindingType = "ClusterRoleBinding",
+      local roleType = "ClusterRole",
       kind: bindingType,
       metadata: {
         name: name,
-        [if deploymentScope == "namespace" then "namespace"]: namespace,
       },
       subjects: [
         {

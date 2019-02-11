@@ -2,7 +2,7 @@
    "name": "spark",
    "apiVersion": "0.0.1",
    "kind": "ksonnet.io/parts",
-   "description": "Holden's awesome Spark Job prototype\n",
+   "description": "Holden's awesome Spark Job prototype based on https://github.com/GoogleCloudPlatform/spark-on-k8s-operator\n",
    "author": "kubeflow-team <kubeflow-discuss@googlegroups.com>",
    "contributors": [
      {
