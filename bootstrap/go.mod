@@ -1,7 +1,6 @@
 module github.com/kubeflow/kubeflow/bootstrap
 
 require (
-	bitbucket.org/ww/goautoneg v0.0.0-20120707110453-75cd24fc2f2c // indirect
 	cloud.google.com/go v0.34.0
 	contrib.go.opencensus.io/exporter/ocagent v0.4.2 // indirect
 	github.com/Azure/go-autorest v9.1.0+incompatible // indirect

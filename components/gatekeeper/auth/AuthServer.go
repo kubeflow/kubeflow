@@ -42,6 +42,7 @@ type authServer struct {
 const CookieName = "KUBEFLOW-AUTH-KEY"
 const LoginPagePath = "kflogin"
 const LoginPageHeader = "x-from-login"
+const WhoAmIPath = "whoami"
 
 func NewAuthServer(opt *options.ServerOption) *authServer {
 	data, err := base64.StdEncoding.DecodeString(opt.Pwhash)
@@ -59,6 +60,13 @@ func NewAuthServer(opt *options.ServerOption) *authServer {
 
 // Default auth check service
 func (s *authServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if strings.HasPrefix(r.URL.Path, "/" + WhoAmIPath) {
+		// Used for health check
+		log.Infof("Allow health check")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(http.StatusText(http.StatusOK)))
+		return
+	}
 	if (!s.allowHttp) && r.Header.Get("X-Forwarded-Proto") != "https" {
 		log.Infof("Redirect http traffic.")
 		// redirect to login page
