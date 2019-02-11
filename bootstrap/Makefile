@@ -47,7 +47,7 @@ build-kfctl: generate fmt vet
 	$(GO) build -i -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
 
 build-foo-plugin: generate fmt vet
-	$(GO) build -i -gcflags 'all=-N -l' -o bin/fooapp.so -buildmode=plugin cmd/plugins/fooapp.go
+	$(GO) build -i -gcflags 'all=-N -l' -o bin/foo.so -buildmode=plugin cmd/plugins/foo.go
 
 build-local: build-bootstrap build-kfctl
 
@@ -58,7 +58,11 @@ build: build-local
 	cp -r ../kubeflow reg_tmp/kubeflow
 	cp -r ../deployment reg_tmp/kubeflow
 	cp -r ../dependencies reg_tmp/kubeflow
-	docker build -t $(IMG):$(TAG) --build-arg GOLANG_VERSION=$(GOLANG_VERSION) --build-arg registries=reg_tmp --target=bootstrap .
+	docker build \
+		--build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
+		--build-arg registries=reg_tmp \
+		--target=bootstrap \
+		--tag $(IMG):$(TAG) .
 	@echo Built $(IMG):$(TAG)
 
 # Build but don't attach the latest tag. This allows manual testing/inspection of the image
@@ -82,24 +86,24 @@ run-local-docker:
 
 # init ~/myapp --platform none
 test-known-platforms-init: install build-foo-plugin
-	@rm -rf $(HOME)/ks-app && \
-	kfctl init $(HOME)/ks-app -V --platform none && \
-	rm -rf $(HOME)/minikube-app && \
-	kfctl init $(HOME)/minikube-app -V --platform minikube && \
-	rm -rf $(HOME)/foo-app && \
-	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl init $(HOME)/foo-app -V --platform foo && \
+	@rm -rf $(HOME)/ksonnet && \
+	kfctl init $(HOME)/ksonnet -V --platform none --version master && \
+	rm -rf $(HOME)/minikube && \
+	kfctl init $(HOME)/minikube -V --platform minikube --version master && \
+	rm -rf $(HOME)/foo && \
+	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl init $(HOME)/foo -V --platform foo --version master && \
 	echo SUCCESS
 
 # generate all --email john@foo.com --ipName 35.233.240.120
 test-known-platforms-generate: test-known-platforms-init
-	@cd ~/ks-app && \
+	@cd ~/ksonnet && \
 	kfctl generate all -V && \
-	cd ~/minikube-app && \
+	cd ~/minikube && \
 	kfctl generate all -V --mount-local && \
-	cd ~/foo-app && \
+	cd ~/foo && \
 	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V && \
 	echo SUCCESS
 
 test-foo-plugin:
-	rm -rf $(HOME)/foo-app
-	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl init $(HOME)/foo-app --platform foo
+	rm -rf $(HOME)/foo
+	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl init $(HOME)/foo --platform foo

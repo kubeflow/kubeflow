@@ -15,7 +15,7 @@
 package apis
 
 import (
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksapp/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
 )
 
 func init() {

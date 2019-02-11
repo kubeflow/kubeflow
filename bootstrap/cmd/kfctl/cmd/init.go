@@ -28,8 +28,8 @@ var initCfg = viper.New()
 var initCmd = &cobra.Command{
 	Use:   "init <[path/]name>",
 	Short: "Create a kubeflow application under <[path/]name>",
-	Long: `Create a kubeflow application under <[path/]name>. The <[path/]name> argument can either be a full path 
-or a name where the kubeflow application will be initialized in $PWD/name if <name> is not a path or in the parent 
+	Long: `Create a kubeflow application under <[path/]name>. The <[path/]name> argument can either be a full path
+or a name where the kubeflow application will be initialized in $PWD/name if <name> is not a path or in the parent
 directory is name is a path.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.InfoLevel)
@@ -40,7 +40,7 @@ directory is name is a path.`,
 			log.SetLevel(log.WarnLevel)
 		}
 		if len(args) == 0 {
-			log.Errorf("KsApp name is required")
+			log.Errorf("name is required")
 			return
 		}
 		appName := args[0]
@@ -101,7 +101,7 @@ func init() {
 		return
 	}
 
-	initCmd.Flags().StringP(string(kftypes.REPO), "r", kftypes.DefaultKfRepo,
+	initCmd.Flags().StringP(string(kftypes.REPO), "r", "",
 		"local github kubeflow "+string(kftypes.REPO))
 	bindErr = initCfg.BindPFlag(string(kftypes.REPO), initCmd.Flags().Lookup(string(kftypes.REPO)))
 	if bindErr != nil {

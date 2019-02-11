@@ -23,17 +23,23 @@
     local mysqlImage = params.mysqlImage,
     local minioImage = params.minioImage,
     local mysqlPvName = params.mysqlPvName,
+    local minioPvName = params.minioPvName,
     local nfsPvName = params.nfsPvName,
     local mysqlPd = params.mysqlPd,
+    local minioPd = params.minioPd,
     local nfsPd = params.nfsPd,
-    all:: minio.all(namespace, minioImage) +
+    nfs:: if (nfsPvName != "null") || (nfsPd != "null") then
+             nfs.all(namespace, nfsImage)
+           else [],
+    local minioPvcName = if (nfsPvName != "null") || (nfsPd != "null") then "nfs-pvc" else "minio-pvc",
+    all:: minio.all(namespace, minioImage, minioPvcName) +
           mysql.all(namespace, mysqlImage) +
-          nfs.all(namespace, nfsImage) +
           pipeline_apiserver.all(namespace, apiImage) +
           pipeline_scheduledworkflow.all(namespace, scheduledWorkflowImage) +
           pipeline_persistenceagent.all(namespace, persistenceAgentImage) +
           pipeline_viewercrd.all(namespace, viewerCrdControllerImage) +
           pipeline_ui.all(namespace, uiImage) +
-          storage.all(namespace, mysqlPvName, nfsPvName, mysqlPd, nfsPd),
+          storage.all(namespace, mysqlPvName, minioPvName, nfsPvName, mysqlPd, minioPd, nfsPd) +
+          $.parts(_env, _params).nfs,
   },
 }
