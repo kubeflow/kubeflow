@@ -59,6 +59,7 @@
     // name and platform should be given unique values.
     name: "somename",
     platform: "gke",
+    workflow_name: "",
 
     // In order to refer to objects between the current and outer-most object, we use a variable to create a name for that level:
     local tests = self,
@@ -106,7 +107,6 @@
       env_vars:: [],
       side_cars: [],
       workingDir: null,
-      workflow_name: "",
 
       activeDeadlineSeconds: 1800,  // Set 30 minute timeout for each template
 
