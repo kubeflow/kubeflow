@@ -319,9 +319,9 @@ def wrap_test(args):
     # https://github.com/kubeflow/kubeflow/issues/631
     # TestGrid currently uses the regex junit_(^_)*.xml so we only
     # want one underscore after junit.
-    junit_name = test_name.replace("_", "-")
+    junit_name = test_case.name.replace("_", "-")
     junit_path = os.path.join(args.artifacts_dir,
-                              "junit_kubeflow-deploy-{0}.xml".format(
+                              "junit_{0}.xml".format(
                               junit_name))
     logging.info("Writing test results to %s", junit_path)
     test_util.create_junit_xml_file([test_case], junit_path)
