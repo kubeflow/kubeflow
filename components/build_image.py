@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 """Script to build images.
 
 For example,
@@ -14,13 +15,16 @@ import time
 import yaml
 
 
-def run(command, cwd=None, env=None, polling_interval=datetime.timedelta(seconds=1)):
+def run(command,
+        cwd=None,
+        env=None,
+        polling_interval=datetime.timedelta(seconds=1)):
   """Run a subprocess.
-  Copied from kubeflow/test so it's easier to run locally.
-  TODO(lunkai): refactor to dedup.
-  Any subprocess output is emitted through the logging modules.
-  Returns:
-    output: A string containing the output.
+    Copied from kubeflow/test so it's easier to run locally.
+    TODO(lunkai): refactor to dedup.
+    Any subprocess output is emitted through the logging modules.
+    Returns:
+      output: A string containing the output.
   """
   logging.info("Running: %s \ncwd=%s", " ".join(command), cwd)
 
@@ -53,11 +57,12 @@ def run(command, cwd=None, env=None, polling_interval=datetime.timedelta(seconds
     logging.info(line.strip())
 
   if process.returncode != 0:
-    raise subprocess.CalledProcessError(process.returncode,
-                                        "cmd: {0} exited with code {1}".format(
-                                        " ".join(command), process.returncode), "\n".join(output))
+    raise subprocess.CalledProcessError(
+      process.returncode, "cmd: {0} exited with code {1}".format(
+        " ".join(command), process.returncode), "\n".join(output))
 
   return "\n".join(output)
+
 
 def wait_for_docker_daemon(timeout=60):
   """Waiting for docker daemon to be ready. This is needed in DinD scenario."""
@@ -75,23 +80,27 @@ def wait_for_docker_daemon(timeout=60):
   # TODO(lunkai): use TimeoutError when we use py3.
   raise RuntimeError
 
+
 def get_build_args(config):
   """
-  Make the list of params for docker build from config.
+    Make the list of params for docker build from config.
 
-  For example, if the config is {"a": 1, "b": 2}
-  This should return
-  ["--build-arg", "a=1", "--build-arg", "b=2"]
+    For example, if the config is {"a": 1, "b": 2}
+    This should return
+    ["--build-arg", "a=1", "--build-arg", "b=2"]
   """
   config_list = [key + "=" + val for key, val in config.items()]
   return list(chain.from_iterable([["--build-arg", x] for x in config_list]))
 
+
 def get_config(context_dir, version):
   """Returns a dict of configuration from the version-config file."""
-  config_file = os.path.join(context_dir, "versions", version, "version-config.json")
+  config_file = os.path.join(context_dir, "versions", version,
+                             "version-config.json")
   with open(config_file) as f:
     config = yaml.load(f)
   return config
+
 
 def build_tf_serving(args):
   wait_for_docker_daemon()
@@ -101,18 +110,21 @@ def build_tf_serving(args):
 
   config = get_config(context_dir, version)
   build_args = get_build_args(config)
-  image_name = "{}/tensorflow-serving-{}:{}".format(args.registry, version, args.tag)
+  image_name = "{}/tensorflow-serving-{}:{}".format(args.registry, version,
+                                                    args.tag)
 
-  command = list(chain(
-      ["docker", "build", "--pull"],
-      build_args,
-      ["-t", image_name, "-f", "Dockerfile.{}".format(args.platform), "."]
-  ))
+  command = list(
+    chain(["docker", "build", "--pull"], build_args,
+          ["-t", image_name, "-f", "Dockerfile.{}".format(args.platform), "."]))
   run(command, cwd=context_dir)
 
   if args.push_gcr:
-    run(["gcloud", "auth", "activate-service-account", "--key-file", os.environ['GOOGLE_APPLICATION_CREDENTIALS']])
+    run([
+      "gcloud", "auth", "activate-service-account", "--key-file",
+      os.environ['GOOGLE_APPLICATION_CREDENTIALS']
+    ])
     run(["gcloud", "docker", "--", "push", image_name])
+
 
 def build_tf_notebook(args):
   wait_for_docker_daemon()
@@ -123,18 +135,20 @@ def build_tf_notebook(args):
   config = get_config(context_dir, version)
   build_args = get_build_args(config)
   image_name = "{}/tensorflow-{}-notebook-{}:{}".format(
-      args.registry, args.tf_version, args.platform, args.tag)
+    args.registry, args.tf_version, args.platform, args.tag)
 
-  command = list(chain(
-      ["docker", "build", "--pull"],
-      build_args,
-      ["-t", image_name, "-f", "Dockerfile", "."]
-  ))
+  command = list(
+    chain(["docker", "build", "--pull"], build_args,
+          ["-t", image_name, "-f", "Dockerfile", "."]))
   run(command, cwd=context_dir)
 
   if args.push_gcr:
-    run(["gcloud", "auth", "activate-service-account", "--key-file", os.environ['GOOGLE_APPLICATION_CREDENTIALS']])
+    run([
+      "gcloud", "auth", "activate-service-account", "--key-file",
+      os.environ['GOOGLE_APPLICATION_CREDENTIALS']
+    ])
     run(["gcloud", "docker", "--", "push", image_name])
+
 
 def main():
   parser = argparse.ArgumentParser()
@@ -143,29 +157,15 @@ def main():
   parser.add_argument(
     "--registry",
     default="gcr.io/kubeflow-images-public",
-    help="The registry of the image"
-  )
-  parser.add_argument(
-    "--tag",
-    default="latest",
-    help="The image tag"
-  )
-  parser.add_argument(
-    "--tf_version",
-    default="1.6",
-    help="Tensorflow version"
-  )
-  parser.add_argument(
-    "--platform",
-    default="cpu",
-    help="cpu or gpu"
-  )
+    help="The registry of the image")
+  parser.add_argument("--tag", default="latest", help="The image tag")
+  parser.add_argument("--tf_version", default="1.6", help="Tensorflow version")
+  parser.add_argument("--platform", default="cpu", help="cpu or gpu")
   parser.add_argument(
     "--push_gcr",
     action='store_true',
     default=False,
-    help="Whether to push the image after building."
-  )
+    help="Whether to push the image after building.")
 
   parser_tf_serving = subparsers.add_parser("tf_serving")
   parser_tf_serving.set_defaults(func=build_tf_serving)
@@ -176,11 +176,13 @@ def main():
   args = parser.parse_args()
   args.func(args)
 
+
 if __name__ == "__main__":
   logging.basicConfig(
     level=logging.INFO,
     format=('%(levelname)s|%(asctime)s'
             '|%(pathname)s|%(lineno)d| %(message)s'),
-    datefmt='%Y-%m-%dT%H:%M:%S',)
+    datefmt='%Y-%m-%dT%H:%M:%S',
+  )
   logging.getLogger().setLevel(logging.INFO)
   main()

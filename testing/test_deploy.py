@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-
+# -*- coding: utf-8 -*-
+#
 # Copyright 2018 The Kubeflow Authors All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,8 +52,8 @@ from testing import vm_util
 def _setup_test(api_client, run_label):
   """Create the namespace for the test.
 
-  Returns:
-    test_dir: The local test directory.
+    Returns:
+      test_dir: The local test directory.
   """
 
   api = k8s_client.CoreV1Api(api_client)
@@ -112,24 +113,26 @@ def setup_kubeflow_ks_app(args, api_client):
                     "limits.")
   # Initialize a ksonnet app.
   app_name = "kubeflow-test-" + uuid.uuid4().hex[0:4]
-  util.run(
-    [
-      "ks",
-      "init",
-      app_name,
-    ], cwd=args.test_dir)
+  util.run([
+    "ks",
+    "init",
+    app_name,
+  ], cwd=args.test_dir)
 
   app_dir = os.path.join(args.test_dir, app_name)
 
   kubeflow_registry = "github.com/kubeflow/kubeflow/tree/master/kubeflow"
-  util.run(
-    ["ks", "registry", "add", "kubeflow", kubeflow_registry], cwd=app_dir)
+  util.run(["ks", "registry", "add", "kubeflow", kubeflow_registry],
+           cwd=app_dir)
 
   # Install required packages
-  packages = ["kubeflow/common", "kubeflow/tf-serving", "kubeflow/tf-job", "kubeflow/pytorch-job", "kubeflow/argo"]
+  packages = [
+    "kubeflow/common", "kubeflow/tf-serving", "kubeflow/tf-job",
+    "kubeflow/pytorch-job", "kubeflow/argo"
+  ]
 
   # Instead of installing packages we edit the app.yaml file directly
-  #for p in packages:
+  # for p in packages:
   # util.run(["ks", "pkg", "install", p], cwd=app_dir)
   app_file = os.path.join(app_dir, "app.yaml")
   with open(app_file) as f:
@@ -138,7 +141,14 @@ def setup_kubeflow_ks_app(args, api_client):
   libraries = {}
   for pkg in packages:
     pkg = pkg.split("/")[1]
-    libraries[pkg] = {'gitVersion': {'commitSha': 'fake', 'refSpec': 'fake'}, 'name': pkg, 'registry': "kubeflow"}
+    libraries[pkg] = {
+      'gitVersion': {
+        'commitSha': 'fake',
+        'refSpec': 'fake'
+      },
+      'name': pkg,
+      'registry': "kubeflow"
+    }
   app_yaml['libraries'] = libraries
 
   with open(app_file, "w") as f:
@@ -173,20 +183,34 @@ def deploy_model(args):
     else:
       namespace = v
 
-  if namespace == None:
+  if namespace is None:
     raise ValueError("namespace must be supplied in args.")
 
   # deployment component
   deployComponent = "modelServer"
-  generate_command = ["ks", "generate", "tf-serving-deployment-gcp", deployComponent]
+  generate_command = [
+    "ks", "generate", "tf-serving-deployment-gcp", deployComponent
+  ]
   util.run(generate_command, cwd=app_dir)
-  ks_deploy(app_dir, deployComponent, params, env=None, account=None, namespace=namespace)
+  ks_deploy(
+    app_dir,
+    deployComponent,
+    params,
+    env=None,
+    account=None,
+    namespace=namespace)
 
   # service component
   serviceComponent = "modelServer-service"
   generate_command = ["ks", "generate", "tf-serving-service", serviceComponent]
   util.run(generate_command, cwd=app_dir)
-  ks_deploy(app_dir, serviceComponent, params, env=None, account=None, namespace=namespace)
+  ks_deploy(
+    app_dir,
+    serviceComponent,
+    params,
+    env=None,
+    account=None,
+    namespace=namespace)
 
   core_api = k8s_client.CoreV1Api(api_client)
   deploy = core_api.read_namespaced_service(args.deploy_name, args.namespace)
@@ -197,6 +221,7 @@ def deploy_model(args):
   util.wait_for_deployment(
     api_client, namespace, args.deploy_name, timeout_minutes=10)
   logging.info("Verified TF serving started.")
+
 
 def test_successful_deployment(deployment_name):
   """ Tests if deployment_name is successfully running using kubectl """
@@ -241,6 +266,7 @@ def test_katib(args):
   test_successful_deployment('vizier-suggestion-random')
   test_successful_deployment('studyjob-controller')
 
+
 def deploy_argo(args):
   api_client = create_k8s_client(args)
   app_dir = setup_kubeflow_ks_app(args, api_client)
@@ -253,7 +279,11 @@ def deploy_argo(args):
   ks_deploy(app_dir, component, {}, env=None, account=None, namespace=None)
 
   # Create a hello world workflow
-  util.run(["kubectl", "create", "-n", "default", "-f", "https://raw.githubusercontent.com/argoproj/argo/master/examples/hello-world.yaml"], cwd=app_dir)
+  util.run([
+    "kubectl", "create", "-n", "default", "-f",
+    "https://raw.githubusercontent.com/argoproj/argo/master/examples/hello-world.yaml"
+  ],
+           cwd=app_dir)
 
   # Wait for 200 seconds to check if the hello-world pod was created
   retries = 20
@@ -261,11 +291,15 @@ def deploy_argo(args):
   while True:
     if i == retries:
       raise Exception('Failed to run argo workflow')
-    output = util.run(["kubectl", "get", "pods", "-n", "default", "-lworkflows.argoproj.io/workflow"])
+    output = util.run([
+      "kubectl", "get", "pods", "-n", "default",
+      "-lworkflows.argoproj.io/workflow"
+    ])
     if "hello-world-" in output:
       return True
     time.sleep(10)
     i += 1
+
 
 def deploy_pytorchjob(args):
   """Deploy Pytorchjob using the pytorch-job component"""
@@ -285,6 +319,7 @@ def deploy_pytorchjob(args):
 
   ks_deploy(app_dir, component, params, env=None, account=None, namespace=None)
 
+
 def teardown(args):
   # Delete the namespace
   logging.info("Deleting namespace %s", args.namespace)
@@ -302,8 +337,7 @@ def determine_test_name(args):
 # TODO(jlewi): We should probably make this a generic function in
 # kubeflow.testing.`
 def wrap_test(args):
-  """Run the tests given by args.func and output artifacts as necessary.
-  """
+  """Run the tests given by args.func and output artifacts as necessary."""
   test_name = determine_test_name(args)
   test_case = test_util.TestCase()
   test_case.class_name = "KubeFlow"
@@ -320,28 +354,32 @@ def wrap_test(args):
     # TestGrid currently uses the regex junit_(^_)*.xml so we only
     # want one underscore after junit.
     junit_name = test_name.replace("_", "-")
-    junit_path = os.path.join(args.artifacts_dir,
-                              "junit_kubeflow-deploy-{0}.xml".format(
-                              junit_name))
+    junit_path = os.path.join(
+      args.artifacts_dir, "junit_kubeflow-deploy-{0}.xml".format(junit_name))
     logging.info("Writing test results to %s", junit_path)
     test_util.create_junit_xml_file([test_case], junit_path)
 
 
 # TODO(jlewi): We should probably make this a reusable function since a
 # lot of test code code use it.
-def ks_deploy(app_dir, component, params, env=None, account=None, namespace=None):
+def ks_deploy(app_dir,
+              component,
+              params,
+              env=None,
+              account=None,
+              namespace=None):
   """Deploy the specified ksonnet component.
-  Args:
-    app_dir: The ksonnet directory
-    component: Name of the component to deployed
-    params: A dictionary of parameters to set; can be empty but should not be
-      None.
-    env: (Optional) The environment to use, if none is specified a new one
-      is created.
-    account: (Optional) The account to use.
-    namespace: (Optional) The namespace to use when adding the environment
-  Raises:
-    ValueError: If input arguments aren't valid.
+    Args:
+      app_dir: The ksonnet directory
+      component: Name of the component to deployed
+      params: A dictionary of parameters to set; can be empty but should not be
+        None.
+      env: (Optional) The environment to use, if none is specified a new one
+        is created.
+      account: (Optional) The account to use.
+      namespace: (Optional) The namespace to use when adding the environment
+    Raises:
+      ValueError: If input arguments aren't valid.
   """
   if not component:
     raise ValueError("component can't be None.")
@@ -364,8 +402,8 @@ def ks_deploy(app_dir, component, params, env=None, account=None, namespace=None
     util.run(["ks", "env", "add", env, "--namespace=" + namespace], cwd=app_dir)
 
   for k, v in params.iteritems():
-    util.run(
-      ["ks", "param", "set", "--env=" + env, component, k, v], cwd=app_dir)
+    util.run(["ks", "param", "set", "--env=" + env, component, k, v],
+             cwd=app_dir)
 
   apply_command = ["ks", "apply", env, "-c", component]
   if account:
@@ -376,11 +414,11 @@ def ks_deploy(app_dir, component, params, env=None, account=None, namespace=None
 def modify_minikube_config(config_path, certs_dir):
   """Modify the kube config file used with minikube.
 
-  This function changes the location of the certificates to certs_dir.
+    This function changes the location of the certificates to certs_dir.
 
-  Args:
-    config_path: The path of the Kubernetes config file.
-    certs_dir: The directory where the certs to use with minikube are stored.
+    Args:
+      config_path: The path of the Kubernetes config file.
+      certs_dir: The directory where the certs to use with minikube are stored.
   """
   with open(config_path, "r") as hf:
     config = yaml.load(hf)
@@ -404,7 +442,8 @@ def deploy_minikube(args):
   """Create a VM and setup minikube."""
 
   credentials = GoogleCredentials.get_application_default()
-  gce = discovery.build("compute", "v1", credentials=credentials, cache_discovery=False)
+  gce = discovery.build(
+    "compute", "v1", credentials=credentials, cache_discovery=False)
   instances = gce.instances()
   body = {
     "name":
@@ -417,10 +456,8 @@ def deploy_minikube(args):
         "initializeParams": {
           "sourceImage":
           "projects/ubuntu-os-cloud/global/images/family/ubuntu-1604-lts",
-          "diskSizeGb":
-          100,
-          "autoDelete":
-          True,
+          "diskSizeGb": 100,
+          "autoDelete": True,
         },
       },
     ],
@@ -448,9 +485,9 @@ def deploy_minikube(args):
     if content.get("error", {}).get("code") == requests.codes.CONFLICT:
       # We don't want to keep going so we reraise the error after logging
       # a helpful error message.
-      logging.error("Either the VM or the disk %s already exists in zone "
-                    "%s in project %s ",
-                      args.vm_name, args.zone, args.project)
+      logging.error(
+        "Either the VM or the disk %s already exists in zone "
+        "%s in project %s ", args.vm_name, args.zone, args.project)
       raise
     else:
       raise
@@ -545,10 +582,9 @@ def teardown_minikube(args):
     content = json.loads(e.content)
     if content.get("error", {}).get("code") == requests.codes.NOT_FOUND:
       logging.info("Disk %s in zone %s in project %s already deleted.",
-                      args.vm_name, args.zone, args.project)
+                   args.vm_name, args.zone, args.project)
     else:
       raise
-
 
   if response:
     logging.info("Waiting for disk to be deleted.")
@@ -565,6 +601,7 @@ def teardown_minikube(args):
         final_op.get("error"))
       logging.error(message)
       raise ValueError(message)
+
 
 def get_gcp_identity():
   identity = util.run_and_output(["gcloud", "config", "get-value", "account"])
@@ -651,13 +688,11 @@ def main():  # pylint: disable=too-many-locals,too-many-statements
     type=str,
     help=("Comma separated list of parameters to set on the model."))
 
-  parser_argo_job = subparsers.add_parser(
-    "deploy_argo", help="Deploy argo")
+  parser_argo_job = subparsers.add_parser("deploy_argo", help="Deploy argo")
 
   parser_argo_job.set_defaults(func=deploy_argo)
 
-  parser_katib_test = subparsers.add_parser(
-    "test_katib", help="Test Katib")
+  parser_katib_test = subparsers.add_parser("test_katib", help="Test Katib")
 
   parser_katib_test.set_defaults(func=test_katib)
 
@@ -689,7 +724,8 @@ def main():  # pylint: disable=too-many-locals,too-many-statements
     logging.info("--test_dir not set; using a temporary directory.")
 
     now = datetime.datetime.now()
-    label = "test_deploy-" + now.strftime("%m%d-%H%M-") + uuid.uuid4().hex[0:4]
+    label = "test_deploy-" + \
+        now.strftime("%m%d-%H%M-") + uuid.uuid4().hex[0:4]
 
     # Create a temporary directory for this test run
     args.test_dir = os.path.join(tempfile.gettempdir(), label)
@@ -734,6 +770,7 @@ if __name__ == "__main__":
     level=logging.INFO,
     format=('%(levelname)s|%(asctime)s'
             '|%(pathname)s|%(lineno)d| %(message)s'),
-    datefmt='%Y-%m-%dT%H:%M:%S',)
+    datefmt='%Y-%m-%dT%H:%M:%S',
+  )
   logging.getLogger().setLevel(logging.INFO)
   main()

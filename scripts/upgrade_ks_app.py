@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import argparse
 import logging
 import os.path
@@ -15,6 +16,7 @@ CURRENT_RELEASE = "github.com/kubeflow/kubeflow/tree/v0.2.0-rc.1/kubeflow"
 # The default name for the registry.
 DEFAULT_REGISTRY_NAME = "kubeflow"
 
+
 def main():
   logging.basicConfig(
     level=logging.INFO,
@@ -25,15 +27,18 @@ def main():
 
   parser = argparse.ArgumentParser()
   parser.add_argument(
-      "--app_dir", default=os.getcwd(), type=str,
-      help="The directory of the ksonnet app.")
+    "--app_dir",
+    default=os.getcwd(),
+    type=str,
+    help="The directory of the ksonnet app.")
   parser.add_argument(
-      "--registry", default=CURRENT_RELEASE, type=str,
-      help=("The Kubeflow registry to use. This can be a GitHub link like "
-            "{0} that points at a specific version of the registry. "
-            "To specify the name of the registry in your ksonnet app "
-            "you can use the from <name>=<registry URL>").format(
-            CURRENT_RELEASE))
+    "--registry",
+    default=CURRENT_RELEASE,
+    type=str,
+    help=("The Kubeflow registry to use. This can be a GitHub link like "
+          "{0} that points at a specific version of the registry. "
+          "To specify the name of the registry in your ksonnet app "
+          "you can use the from <name>=<registry URL>").format(CURRENT_RELEASE))
 
   args = parser.parse_args()
 
@@ -80,7 +85,6 @@ def main():
       continue
     shutil.rmtree(target)
 
-
   # Remove the registry from app.yaml
   if registry_name in app["registries"]:
     del app["registries"][registry_name]
@@ -99,6 +103,7 @@ def main():
     package = "{0}/{1}".format(registry_name, name)
     logging.info("Installing package %s", package)
     subprocess.call(['ks', 'pkg', 'install', package])
+
 
 if __name__ == "__main__":
   main()

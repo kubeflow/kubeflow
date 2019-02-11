@@ -1,4 +1,6 @@
-"""Test jupyter custom resource.
+# -*- coding: utf-8 -*-
+"""
+Test jupyter custom resource.
 
 This file tests that we can create notebooks using the Jupyter custom resource.
 
@@ -36,6 +38,8 @@ GROUP = "kubeflow.org"
 PLURAL = "notebooks"
 KIND = "Notebook"
 VERSION = "v1alpha1"
+
+
 def is_retryable_result(r):
   if r.status_code in [requests.codes.NOT_FOUND, requests.codes.UNAVAILABLE]:
     message = "Request to {0} returned {1}".format(r.url, r.status_code)
@@ -44,14 +48,17 @@ def is_retryable_result(r):
 
   return False
 
-@retry(wait_exponential_multiplier=1000, wait_exponential_max=10000,
-       stop_max_delay=5*60*1000,
-       retry_on_result=is_retryable_result)
+
+@retry(
+  wait_exponential_multiplier=1000,
+  wait_exponential_max=10000,
+  stop_max_delay=5 * 60 * 1000,
+  retry_on_result=is_retryable_result)
 def send_request(*args, **kwargs):
   """Send a request to the Jupyter server.
 
-  Sends a request to verify we can fetch the main page for the Jupyter
-  notebook.
+    Sends a request to verify we can fetch the main page for the Jupyter
+    notebook.
   """
   # We don't use util.run because that ends up including the access token
   # in the logs
@@ -83,12 +90,15 @@ def send_request(*args, **kwargs):
     r.status_code = 200
   return r
 
+
 def test_jupyter(env, namespace):
   app_credentials = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
   if app_credentials:
     logging.info("Activate service account")
-    util.run(["gcloud", "auth", "activate-service-account",
-              "--key-file=" + app_credentials])
+    util.run([
+      "gcloud", "auth", "activate-service-account",
+      "--key-file=" + app_credentials
+    ])
 
   # util.load_kube_config appears to hang on python3
   kube_config.load_kube_config()
@@ -107,7 +117,6 @@ def test_jupyter(env, namespace):
   component = "jupyter"
   params = ""
   ks_util.setup_ks_app(app_dir, env, namespace, component, params)
-
 
   util.run([ks_cmd, "apply", env, "-c", component], cwd=app_dir)
   conditions = ["Ready"]
@@ -129,11 +138,13 @@ def test_jupyter(env, namespace):
     logging.error(msg)
     raise RuntimeError(msg)
 
+
 if __name__ == "__main__":
-  logging.basicConfig(level=logging.INFO,
-                      format=('%(levelname)s|%(asctime)s'
-                              '|%(pathname)s|%(lineno)d| %(message)s'),
-                      datefmt='%Y-%m-%dT%H:%M:%S',
-                      )
+  logging.basicConfig(
+    level=logging.INFO,
+    format=('%(levelname)s|%(asctime)s'
+            '|%(pathname)s|%(lineno)d| %(message)s'),
+    datefmt='%Y-%m-%dT%H:%M:%S',
+  )
   logging.getLogger().setLevel(logging.INFO)
   pytest.main()

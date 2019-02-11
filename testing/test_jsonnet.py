@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-
+# -*- coding: utf-8 -*-
+#
 # Copyright 2018 The Kubeflow Authors All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +14,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Run jsonnet tests
 
 This test goes through all jsonnet files specified by the
@@ -39,6 +39,7 @@ import argparse
 
 from kubeflow.testing import test_helper, util
 
+
 # We should test all files which end in .jsonnet or .libsonnet
 # except ksonnet prototype definitions - they require additional
 # dependencies
@@ -51,11 +52,13 @@ def should_test(file_path):
     raise ValueError('Invalid file : {}'.format(file_path))
   return parts[-2] != 'prototypes'
 
+
 def is_excluded(file_name, exclude_dirs):
   for exclude_dir in exclude_dirs:
     if file_name.startswith(exclude_dir):
       return True
   return False
+
 
 def run(test_files_dirs, jsonnet_path_args, exclude_dirs, test_case):
   # Go through each jsonnet file in test_files_dirs and run jsonnet eval
@@ -97,12 +100,13 @@ def run(test_files_dirs, jsonnet_path_args, exclude_dirs, test_case):
 
             if not test_passed:
               test_case.add_failure_info('{} test failed'.format(test_file))
-              logging.error('%s test failed. See Subprocess output for details.',
-                            test_file)
+              logging.error(
+                '%s test failed. See Subprocess output for details.', test_file)
           except Exception as e:
             test_case.add_failure_info('{} test failed'.format(test_file))
-            logging.error('%s test failed with exception %s. '
-                          'See Subprocess output for details.', e, test_file)
+            logging.error(
+              '%s test failed with exception %s. '
+              'See Subprocess output for details.', e, test_file)
 
 
 def parse_args():
@@ -116,7 +120,8 @@ def parse_args():
     "--jsonnet_path_dirs",
     default="",
     type=str,
-    help="Comma separated directories used by jsonnet to find additional libraries")
+    help=
+    "Comma separated directories used by jsonnet to find additional libraries")
 
   parser.add_argument(
     "--exclude_dirs",
@@ -150,8 +155,7 @@ def test_jsonnet(test_case):  # pylint: disable=redefined-outer-name
 
 
 if __name__ == "__main__":
-  test_case = test_helper.TestCase(
-    name='test_jsonnet', test_func=test_jsonnet)
+  test_case = test_helper.TestCase(name='test_jsonnet', test_func=test_jsonnet)
   test_suite = test_helper.init(
     name='jsonnet_test_suite', test_cases=[test_case])
   test_suite.run()

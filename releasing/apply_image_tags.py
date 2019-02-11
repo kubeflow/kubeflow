@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Apply the image tags as defined in image_tags.yaml"""
 
 import argparse
@@ -8,11 +9,11 @@ import yaml
 
 from kubeflow.testing import util
 
+
 def main(unparsed_args=None):  # pylint: disable=too-many-locals
-  logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
+  logging.getLogger().setLevel(logging.INFO)  # pylint: disable=too-many-locals
   # create the top-level parser
-  parser = argparse.ArgumentParser(
-    description="Apply tags to file")
+  parser = argparse.ArgumentParser(description="Apply tags to file")
 
   parser.add_argument(
     "--images_file",
@@ -48,16 +49,18 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
           continue
         source = name + "@" + v["digest"]
         dest = name + ":" + tag
-        util.run(["gcloud", "container", "images", "add-tag", "--quiet",
-                  source, dest])
+        util.run(
+          ["gcloud", "container", "images", "add-tag", "--quiet", source, dest])
 
   logging.info("Done.")
 
+
 if __name__ == "__main__":
-  logging.basicConfig(level=logging.INFO,
-                      format=('%(levelname)s|%(asctime)s'
-                              '|%(pathname)s|%(lineno)d| %(message)s'),
-                      datefmt='%Y-%m-%dT%H:%M:%S',
-                      )
+  logging.basicConfig(
+    level=logging.INFO,
+    format=('%(levelname)s|%(asctime)s'
+            '|%(pathname)s|%(lineno)d| %(message)s'),
+    datefmt='%Y-%m-%dT%H:%M:%S',
+  )
   logging.getLogger().setLevel(logging.INFO)
   main()

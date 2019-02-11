@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Wait for Kubeflow to be deployed."""
 import argparse
 import logging
@@ -6,6 +7,7 @@ from testing import deploy_utils
 from kubeflow.testing import test_helper
 from kubeflow.testing import util  # pylint: disable=no-name-in-module
 
+
 def parse_args():
   parser = argparse.ArgumentParser()
   parser.add_argument(
@@ -13,6 +15,7 @@ def parse_args():
 
   args, _ = parser.parse_known_args()
   return args
+
 
 def deploy_kubeflow(_):
   """Deploy Kubeflow."""
@@ -28,17 +31,20 @@ def deploy_kubeflow(_):
   util.wait_for_statefulset(api_client, namespace, jupyter_name)
 
   # Verify that core components are actually deployed.
-  deployment_names = ["tf-job-operator-v1beta1", "pytorch-operator", "studyjob-controller"]
+  deployment_names = [
+    "tf-job-operator-v1beta1", "pytorch-operator", "studyjob-controller"
+  ]
   for deployment_name in deployment_names:
     logging.info("Verifying that %s started...", deployment_name)
     util.wait_for_deployment(api_client, namespace, deployment_name)
 
+
 def main():
   test_case = test_helper.TestCase(
     name='deploy_kubeflow', test_func=deploy_kubeflow)
-  test_suite = test_helper.init(
-    name='deploy_kubeflow', test_cases=[test_case])
+  test_suite = test_helper.init(name='deploy_kubeflow', test_cases=[test_case])
   test_suite.run()
+
 
 if __name__ == "__main__":
   main()

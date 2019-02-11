@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """This script synchronizes Docker image in image_tags.yaml to your own registry.
 
@@ -19,19 +19,22 @@ import logging
 import argparse
 import subprocess
 
+
 def normalize_repo(repo):
   repo_names = repo.split('/', 3)
   if len(repo_names) == 1:
-      repo_names = ['docker.io', 'library', repo_names[0]]
+    repo_names = ['docker.io', 'library', repo_names[0]]
   if len(repo_names) == 2:
-      repo_names = ['docker.io', repo_names[0], repo_names[1]]
+    repo_names = ['docker.io', repo_names[0], repo_names[1]]
   if len(repo_names) == 4:
-      # gcr.io/kubeflow-images-public/katib/tfevent-metrics-collector:v0.4.0 -> gcr.io/katib/tfevent-metrics-collector:v0.4.0
-      repo_names = [repo_names[0], repo_names[2], repo_names[3]]
+    # gcr.io/kubeflow-images-public/katib/tfevent-metrics-collector:v0.4.0
+    # -> gcr.io/katib/tfevent-metrics-collector:v0.4.0
+    repo_names = [repo_names[0], repo_names[2], repo_names[3]]
   return repo_names
 
+
 def main(unparsed_args=None):  # pylint: disable=too-many-locals
-  logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
+  logging.getLogger().setLevel(logging.INFO)  # pylint: disable=too-many-locals
   # create the top-level parser
   parser = argparse.ArgumentParser(
     description="sync up the kubeflow docker images to your own registry")
@@ -69,22 +72,19 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
         newName = repo_names[2]
         new_repo_name = registry + '/' + namespace + '/' + newName
         dest = new_repo_name + ":" + tag
-        logging.info("Sync up the image %s to %s", source,
-                   dest)
+        logging.info("Sync up the image %s to %s", source, dest)
         logging.info("Pulling %s", source)
-        rc = subprocess.call(["docker","pull",source])
+        rc = subprocess.call(["docker", "pull", source])
         if rc != 0:
           logging.info("Failed to Pull %s", source)
           continue
-        logging.info("Tagging the image %s to %s", source,
-                   dest)
-        rc = subprocess.call(["docker","tag",source, dest])
+        logging.info("Tagging the image %s to %s", source, dest)
+        rc = subprocess.call(["docker", "tag", source, dest])
         if rc != 0:
-          logging.info("Failed to tag the image %s to %s", source,
-                   dest)
+          logging.info("Failed to tag the image %s to %s", source, dest)
           continue
         logging.info("Push %s", dest)
-        rc = subprocess.call(["docker","push",dest])
+        rc = subprocess.call(["docker", "push", dest])
         if rc != 0:
           logging.info("Failed to push the image %s", dest)
           continue
@@ -92,10 +92,11 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
 
 
 if __name__ == "__main__":
-  logging.basicConfig(level=logging.INFO,
-                      format=('%(levelname)s|%(asctime)s'
-                              '|%(pathname)s|%(lineno)d| %(message)s'),
-                      datefmt='%Y-%m-%dT%H:%M:%S',
-                      )
+  logging.basicConfig(
+    level=logging.INFO,
+    format=('%(levelname)s|%(asctime)s'
+            '|%(pathname)s|%(lineno)d| %(message)s'),
+    datefmt='%Y-%m-%dT%H:%M:%S',
+  )
   logging.getLogger().setLevel(logging.INFO)
   main()

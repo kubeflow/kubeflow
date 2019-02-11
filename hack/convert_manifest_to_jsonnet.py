@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-
+# -*- coding: utf-8 -*-
+#
 # Copyright 2018 The Kubeflow Authors All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,27 +21,27 @@ import json
 import yaml
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Convert manifest.")
-    parser.add_argument(
-        "--manifest",
-        type=str,
-        required=True,
-    )
+  parser = argparse.ArgumentParser(description="Convert manifest.")
+  parser.add_argument(
+    "--manifest",
+    type=str,
+    required=True,
+  )
 
-    args = parser.parse_args()
+  args = parser.parse_args()
 
-    with open(args.manifest) as hf:
-        manifest = hf.read()
+  with open(args.manifest) as hf:
+    manifest = hf.read()
 
-    components = manifest.split("---")
+  components = manifest.split("---")
 
-    index = 0
-    for c in components:
-        t = c.strip()
-        if not t:
-            continue
+  index = 0
+  for c in components:
+    t = c.strip()
+    if not t:
+      continue
 
-        d = yaml.load(t)
-        j = json.dumps(d, indent=2, sort_keys=True)
-        print("component_{0}:: {1}, \n".format(index, j))
-        index += 1
+    d = yaml.load(t)
+    j = json.dumps(d, indent=2, sort_keys=True)
+    print("component_{0}:: {1}, \n".format(index, j))
+    index += 1

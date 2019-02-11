@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """The script uses a regex to identify images in GCR and add
 entries for them to image_tags.yaml
 """
@@ -10,11 +11,11 @@ import yaml
 
 from kubeflow.testing import util
 
+
 def main(unparsed_args=None):  # pylint: disable=too-many-locals
-  logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
+  logging.getLogger().setLevel(logging.INFO)  # pylint: disable=too-many-locals
   # create the top-level parser
-  parser = argparse.ArgumentParser(
-    description="Get Images by regex")
+  parser = argparse.ArgumentParser(description="Get Images by regex")
 
   parser.add_argument(
     "--pattern",
@@ -46,10 +47,10 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
     for v in image["versions"]:
       existing_images[image["name"]][v["digest"]] = v
 
-  list_images_cmd = ["gcloud",
-                     "--project=kubeflow-images-public",
-                     "container", "images", "list",
-                     "--format=json"]
+  list_images_cmd = [
+    "gcloud", "--project=kubeflow-images-public", "container", "images", "list",
+    "--format=json"
+  ]
   # By default gcloud uses gcr.io/[project] as the repository.
   # However for images like katib, we may need to specify the
   # repository as gcr.io/[project]/katib.
@@ -73,10 +74,10 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
   # For each image ist all tags and find the matching ones
   images_to_add = {}
   for image in matching:
-    raw_tags = util.run(["gcloud",
-                           "--project=kubeflow-images-public",
-                           "container", "images", "list-tags", image["name"],
-                           "--format=json"])
+    raw_tags = util.run([
+      "gcloud", "--project=kubeflow-images-public", "container", "images",
+      "list-tags", image["name"], "--format=json"
+    ])
 
     tags = json.loads(raw_tags)
 
@@ -90,7 +91,7 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
 
   # Merge in any missing versions
   for name, versions in images_to_add.iteritems():
-    if not name in existing_images:
+    if name not in existing_images:
       existing_images[name] = {}
 
     for v in versions.itervalues():
@@ -104,8 +105,7 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
   output = {}
   output["images"] = []
 
-  names = existing_images.keys()
-  names.sort()
+  names = sorted(existing_images.keys())
   for name in names:
     versions = existing_images[name]
     new_image = {}
@@ -120,11 +120,13 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
     hf.write(yaml.safe_dump(output, default_flow_style=False))
   logging.info("Done.")
 
+
 if __name__ == "__main__":
-  logging.basicConfig(level=logging.INFO,
-                      format=('%(levelname)s|%(asctime)s'
-                              '|%(pathname)s|%(lineno)d| %(message)s'),
-                      datefmt='%Y-%m-%dT%H:%M:%S',
-                      )
+  logging.basicConfig(
+    level=logging.INFO,
+    format=('%(levelname)s|%(asctime)s'
+            '|%(pathname)s|%(lineno)d| %(message)s'),
+    datefmt='%Y-%m-%dT%H:%M:%S',
+  )
   logging.getLogger().setLevel(logging.INFO)
   main()

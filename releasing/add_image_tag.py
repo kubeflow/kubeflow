@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """This script adds or moves a tag in image_tags.yaml
 
 This script doesn't actually update the images. For that you need to
@@ -21,11 +22,11 @@ import yaml
 
 from kubeflow.testing import util
 
+
 def main(unparsed_args=None):  # pylint: disable=too-many-locals
-  logging.getLogger().setLevel(logging.INFO) # pylint: disable=too-many-locals
+  logging.getLogger().setLevel(logging.INFO)  # pylint: disable=too-many-locals
   # create the top-level parser
-  parser = argparse.ArgumentParser(
-    description="Apply tags to file")
+  parser = argparse.ArgumentParser(description="Apply tags to file")
 
   parser.add_argument(
     "--images_file",
@@ -40,12 +41,7 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
     help=("Regex pattern e.g. .*tensorflow.*notebook.*:v20180619.* "
           "to select the images to apply."))
 
-  parser.add_argument(
-    "--tag",
-    default="",
-    type=str,
-    help="The tag to apply")
-
+  parser.add_argument("--tag", default="", type=str, help="The tag to apply")
 
   args = parser.parse_args()
 
@@ -91,24 +87,25 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
                    image["versions"][e]["digest"])
 
     if len(new_index) > 1:
-      raise ValueError("Image {0} had {1} images match {2}".format(name, len(
-        new_index, args.pattern)))
+      raise ValueError("Image {0} had {1} images match {2}".format(
+        name, len(new_index, args.pattern)))
 
     if new_index:
       v = image["versions"][new_index[0]]
-      logging.info("Image %s adding tag from sha %s", name,
-                       v["digest"])
+      logging.info("Image %s adding tag from sha %s", name, v["digest"])
       v["tags"].append(args.tag)
 
   with open(args.images_file, "w") as hf:
     hf.write(yaml.safe_dump(config, default_flow_style=False))
   logging.info("Done.")
 
+
 if __name__ == "__main__":
-  logging.basicConfig(level=logging.INFO,
-                      format=('%(levelname)s|%(asctime)s'
-                              '|%(pathname)s|%(lineno)d| %(message)s'),
-                      datefmt='%Y-%m-%dT%H:%M:%S',
-                      )
+  logging.basicConfig(
+    level=logging.INFO,
+    format=('%(levelname)s|%(asctime)s'
+            '|%(pathname)s|%(lineno)d| %(message)s'),
+    datefmt='%Y-%m-%dT%H:%M:%S',
+  )
   logging.getLogger().setLevel(logging.INFO)
   main()
