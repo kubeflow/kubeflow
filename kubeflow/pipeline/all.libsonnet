@@ -26,10 +26,11 @@
     local mysqlPd = params.mysqlPd,
     local minioPd = params.minioPd,
     local nfsPd = params.nfsPd,
-    nfs:: if (minioPvName == "null") && (minioPd== "null") then
+    nfs:: if (nfsPvName != "null") || (nfsPd != "null") then
              nfs.all(namespace, nfsImage)
            else [],
-    all:: minio.all(namespace, minioImage, minioPd, minioPvName) +
+    local minioPvcName = if (nfsPvName != "null") || (nfsPd != "null") then "nfs-pvc" else "minio-pvc",
+    all:: minio.all(namespace, minioImage, minioPvcName) +
           mysql.all(namespace, mysqlImage) +
           pipeline_apiserver.all(namespace, apiImage) +
           pipeline_scheduledworkflow.all(namespace, scheduledWorkflowImage) +
