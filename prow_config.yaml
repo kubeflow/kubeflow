@@ -11,6 +11,19 @@ workflows:
     - bootstrap/*
     - kubeflow/*
     - testing/*
+  workflows:
+  # deploy app test runs tests on gke.
+  - app_dir: kubeflow/kubeflow/testing/workflows
+    component: click_deploy_test
+    name: deployapp-istio
+    job_types:
+    - periodic
+    include_dirs:
+    - bootstrap/*
+    - kubeflow/*
+    - testing/*
+    params:
+      installIstio: true
   # kfctl test runs tests on gke.
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: kfctl_test

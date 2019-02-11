@@ -33,8 +33,9 @@
       bucket: "kubeflow-ci_temp",
       name: "somefakename",
       namespace: "kubeflow-test-infra",
-      prow_env: "",
+      prow_env: "REPO_NAME=kubeflow,REPO_OWNER=kubeflow",
       gkeApiVersion: "v1",
+      installIstio: false,
     },
     unit_tests: {
       bucket: "kubeflow-ci_temp",
