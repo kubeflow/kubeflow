@@ -383,24 +383,25 @@ main() {
     if [[ "${WHAT}" == "k8s" ]] || [[ "${WHAT}" == "all" ]]; then
       # Delete kubeflow namespace - this deletes all the ingress objects
       # in the namespace which deletes the associated GCP resources
+      if [[ "$OSTYPE" != "darwin"* ]]; then
+          # Fetch master information and strip away color markers
+          KUBE_INFO=$(kubectl cluster-info | sed 's/\x1B\[[0-9;]\+[A-Za-z]//g')
+          pushd ${KUBEFLOW_KS_DIR}
+          KS_ENV=default
+          KS_ENV_INFO=$(ks env describe ${KS_ENV})
+          popd
+          KS_MASTER=`expr match "${KS_ENV_INFO}" '.*server[^\.0-9]*\([\.0-9]\+\)'`
+          echo KS_MASTER=${KS_MASTER}
+          MASTER=`expr match "${KUBE_INFO}" '[^\.0-9]*\([\.0-9]\+\)'`
+          echo MASTER=${MASTER}
 
-      # Fetch master information and strip away color markers
-      KUBE_INFO=$(kubectl cluster-info | sed 's/\x1B\[[0-9;]\+[A-Za-z]//g')
-      pushd ${KUBEFLOW_KS_DIR}
-      KS_ENV=default
-      KS_ENV_INFO=$(ks env describe ${KS_ENV})
-      popd
-      KS_MASTER=`expr match "${KS_ENV_INFO}" '.*server[^\.0-9]*\([\.0-9]\+\)'`
-      echo KS_MASTER=${KS_MASTER}
-      MASTER=`expr match "${KUBE_INFO}" '[^\.0-9]*\([\.0-9]\+\)'`
-      echo MASTER=${MASTER}
-
-       if [[ "${MASTER}" != "${KS_MASTER}" ]]; then
-        echo "The current kubectl context doesn't match the ks environment"
-        echo "Please configure the context to match ks environment ${KS_ENV}"
-        exit -1
-      else
-        echo "kubectl context matches ks environment ${KS_ENV}"
+           if [[ "${MASTER}" != "${KS_MASTER}" ]]; then
+            echo "The current kubectl context doesn't match the ks environment"
+            echo "Please configure the context to match ks environment ${KS_ENV}"
+            exit -1
+          else
+            echo "kubectl context matches ks environment ${KS_ENV}"
+          fi
       fi
       set +e
       kubectl delete ns/${K8S_NAMESPACE}
