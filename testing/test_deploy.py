@@ -307,7 +307,7 @@ def wrap_test(args):
   test_name = determine_test_name(args)
   test_case = test_util.TestCase()
   test_case.class_name = "KubeFlow"
-  test_case.name = "deploy-kubeflow-" + test_name
+  test_case.name = args.workflow_name + "-" + test_name
   try:
 
     def run():
@@ -621,6 +621,9 @@ def main():  # pylint: disable=too-many-locals,too-many-statements
 
   parser.add_argument(
     "--deploy_name", default="", type=str, help="The name of the deployment.")
+
+  parser.add_argument(
+    "--workflow_name", default="", type=str, help="The name of the workflow.")
 
   subparsers = parser.add_subparsers()
 

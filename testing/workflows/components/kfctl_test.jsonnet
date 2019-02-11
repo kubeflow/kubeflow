@@ -152,6 +152,7 @@ local componentTests = util.kfTests {
   kubeConfig: kubeConfig,
   image: image,
   buildTemplate+: {
+    workflow_name: name,
     argoTemplate+: {
       container+: {
         metadata+: {

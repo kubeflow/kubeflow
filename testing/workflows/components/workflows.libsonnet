@@ -106,6 +106,7 @@
       env_vars:: [],
       side_cars: [],
       workingDir: null,
+      workflow_name: "",
 
       activeDeadlineSeconds: 1800,  // Set 30 minute timeout for each template
 
@@ -239,6 +240,7 @@
             "--test_dir=" + tests.testDir,
             "--artifacts_dir=" + tests.artifactsDir,
             "--deploy_name=test-argo-deploy",
+            "--workflow_name=" + workflow_name,
             "deploy_argo",
           ],
         },
@@ -258,6 +260,7 @@
             "--test_dir=" + tests.testDir,
             "--artifacts_dir=" + tests.artifactsDir,
             "--deploy_name=test-katib",
+            "--workflow_name=" + workflow_name,
             "test_katib",
           ],
         },
@@ -276,6 +279,7 @@
             "--test_dir=" + tests.testDir,
             "--artifacts_dir=" + tests.artifactsDir,
             "--deploy_name=pytorch-job",
+            "--workflow_name=" + workflow_name,
             "deploy_pytorchjob",
             "--params=image=pytorch/pytorch:v0.2,num_workers=1",
           ],
@@ -652,6 +656,7 @@
               "--namespace=" + stepsNamespace,
               "--test_dir=" + testDir,
               "--artifacts_dir=" + artifactsDir,
+              "--workflow_name=" + name,
               "deploy_minikube",
               "--vm_name=" + vmName,
               "--zone=" + zone,
@@ -664,6 +669,7 @@
               "--namespace=" + stepsNamespace,
               "--test_dir=" + testDir,
               "--artifacts_dir=" + artifactsDir,
+              "--workflow_name=" + name,
               "teardown_minikube",
               "--vm_name=" + vmName,
               "--zone=" + zone,
@@ -727,6 +733,7 @@
               "--test_dir=" + testDir,
               "--artifacts_dir=" + artifactsDir,
               "--deploy_name=pytorch-job",
+              "--workflow_name=" + name,
               "deploy_pytorchjob",
               "--params=image=pytorch/pytorch:v0.2,num_workers=1",
             ]),  // pytorchjob-deploy
@@ -747,6 +754,7 @@
               "--test_dir=" + testDir,
               "--artifacts_dir=" + artifactsDir,
               "--deploy_name=test-argo-deploy",
+              "--workflow_name=" + name,
               "deploy_argo",
             ]),  // test-argo-deploy
           ],  // templates

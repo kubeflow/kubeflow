@@ -482,7 +482,7 @@ def wrap_test(args):
   test_name = "bootstrapper"
   test_case = test_util.TestCase()
   test_case.class_name = "KubeFlow"
-  test_case.name = test_name
+  test_case.name = args.workflow_name + "-" + test_name
   try:
 
     def run():
@@ -570,6 +570,8 @@ def main(unparsed_args=None):
     help="Directory to use for artifacts that should be preserved after "
          "the test runs. Defaults to test_dir if not set."
   )
+  parser.add_argument(
+    "--workflow_name", default="deployapp", type=str, help="The name of the workflow.")
 
   args = parser.parse_args(args=unparsed_args)
 
