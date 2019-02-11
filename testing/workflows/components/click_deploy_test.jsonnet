@@ -52,7 +52,7 @@ local project = "kubeflow-ci";
 // We use separate kubeConfig files for separate clusters
 local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=[]) = {
   name: step_name,
-  activeDeadlineSeconds: 1800,  // Set 30 minute timeout for each template
+  activeDeadlineSeconds: 2100,  // Set 35 minute timeout for each template. Waiting for IAP might take 30min.
   workingDir: working_dir,
   container: {
     command: command,
@@ -210,6 +210,8 @@ local dagTemplates = [
         "-m",
         "testing.test_deploy_app",
         "--namespace=" + name,
+        "--artifacts_dir=" + outputDir,
+        "--iap_wait_min=15",
       ],
       working_dir=testDir
     ),
@@ -244,7 +246,7 @@ local exitTemplates =
         "--bucket=" + bucket,
       ]),  // copy-artifacts,
 
-      dependencies: ["deploy-delete"],
+      dependencies: null,
     },
     {
       template:
@@ -258,7 +260,7 @@ local exitTemplates =
           "-rf",
           testDir,
         ]),  // test-dir-delete
-      dependencies: ["copy-artifacts"],
+      dependencies: ["copy-artifacts", "deploy-delete"],
     },
   ];
 
