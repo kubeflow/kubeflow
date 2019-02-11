@@ -210,7 +210,7 @@ local dagTemplates = [
         "-m",
         "testing.test_deploy_app",
         "--namespace=" + name,
-        "--artifacts_dir=" + outputDir,
+        "--artifacts_dir=" + artifactsDir,
         "--iap_wait_min=15",
       ],
       working_dir=testDir
