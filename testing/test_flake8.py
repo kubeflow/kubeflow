@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-
+# -*- coding: utf-8 -*-
+#
 # Copyright 2018 The Kubeflow Authors All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +14,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Run flake8 tests
 
 This test goes through all Python files in the specified
@@ -38,8 +38,8 @@ from kubeflow.testing import test_helper, util
 FLAKE8_OPTS = """--count --select=E901,E999,F821,F822,F823 --show-source
                  --statistics""".split()
 
-
 # Test only files which end in '.py' or have no suffix
+
 
 def should_test(file_path):
   _, ext = os.path.splitext(file_path.lower())
@@ -70,7 +70,8 @@ def run(test_files_dirs, flake8_path_args, test_case):
               # Parsing the string as json converts it to a bool so we
               # just use parsed as test_passed
               # Old style tests actually use std.assert so flake8 will
-              # actually return an error in the case the test did not pass.
+              # actually return an error in the case the test did
+              # not pass.
               logging.warn(
                 "flake8 is using old style and not emitting an object. "
                 "Result was: %s. Output will be treated as a boolean", output)
@@ -81,8 +82,8 @@ def run(test_files_dirs, flake8_path_args, test_case):
             if not test_passed:
               msg = '{} test failed'.format(test_file)
               test_case.add_failure_info(msg)
-              logging.error('{}. See Subprocess output for details.'.format(
-                msg))
+              logging.error(
+                '{}. See Subprocess output for details.'.format(msg))
           except Exception as e:
             msg = '{} test failed'.format(test_file)
             test_case.add_failure_info(msg)
@@ -109,8 +110,7 @@ def test_flake8(test_case):  # pylint: disable=redefined-outer-name
 
 
 if __name__ == "__main__":
-  test_case = test_helper.TestCase(
-    name='test_flake8', test_func=test_flake8)
+  test_case = test_helper.TestCase(name='test_flake8', test_func=test_flake8)
   test_suite = test_helper.init(
     name='flake8_test_suite', test_cases=[test_case])
   test_suite.run()
