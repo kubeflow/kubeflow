@@ -28,16 +28,15 @@ import (
 	-DEBUG */
 	gcptypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/gcp/v1alpha1"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/net/context"
+	"golang.org/x/oauth2/google"
+	"google.golang.org/api/deploymentmanager/v2"
 	"io"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
-	"golang.org/x/net/context"
-	"golang.org/x/oauth2/google"
-	"google.golang.org/api/deploymentmanager/v2"
-
 )
 
 const (
@@ -172,7 +171,7 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 	if err != nil {
 		return gcp.createDeployment()
 	}
-	if resp.Name == gcp.GcpApp.Name  {
+	if resp.Name == gcp.GcpApp.Name {
 		filePath := filepath.Join(gcpConfigDir, yamlfile)
 		buf, bufErr := ioutil.ReadFile(filePath)
 		if bufErr != nil {
@@ -192,7 +191,7 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 }
 
 func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	err := gcp.updateDeployment(gcp.GcpApp.Name + "-storage", "storage-kubeflow.yaml")
+	err := gcp.updateDeployment(gcp.GcpApp.Name+"-storage", "storage-kubeflow.yaml")
 	if err != nil {
 		return fmt.Errorf("could not update %v", "storage-kubeflow.yaml")
 	}
@@ -200,13 +199,13 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 	if err != nil {
 		return fmt.Errorf("could not update %v", CONFIG_FILE)
 	}
-	err = gcp.updateDeployment(gcp.GcpApp.Name + "-network", "network.yaml")
+	err = gcp.updateDeployment(gcp.GcpApp.Name+"-network", "network.yaml")
 	if err != nil {
 		return fmt.Errorf("could not update %v", "network.yaml")
 	}
-	err = gcp.updateDeployment(gcp.GcpApp.Name + "-gcfs", "gcfs.yaml")
+	err = gcp.updateDeployment(gcp.GcpApp.Name+"-gcfs", "gcfs.yaml")
 	if err != nil {
-		return fmt.Errorf("could not update %v",  "gcfs.yaml")
+		return fmt.Errorf("could not update %v", "gcfs.yaml")
 	}
 	return nil
 }
@@ -320,15 +319,41 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 	}
 	if kstypes.DefaultParameters["jupyter"] != nil {
 		namevalues := kstypes.DefaultParameters["jupyter"]
-		namevalues = append(namevalues, kstypes.NameValue{
-			Name: "jupyterHubAuthenticator",
-			Value: "iap",
-		})
+		namevalues = append(namevalues,
+			kstypes.NameValue{
+				Name:  "jupyterHubAuthenticator",
+				Value: "iap",
+			},
+			kstypes.NameValue{
+				Name:  string(kftypes.PLATFORM),
+				Value: gcp.GcpApp.Spec.Platform,
+			},
+		)
 	} else {
 		kstypes.DefaultParameters["jupyter"] = []kstypes.NameValue{
 			{
-				Name: "jupyterHubAuthenticator",
+				Name:  "jupyterHubAuthenticator",
 				Value: "iap",
+			},
+			{
+				Name:  string(kftypes.PLATFORM),
+				Value: gcp.GcpApp.Spec.Platform,
+			},
+		}
+	}
+	if kstypes.DefaultParameters["ambassador"] != nil {
+		namevalues := kstypes.DefaultParameters["ambassador"]
+		namevalues = append(namevalues,
+			kstypes.NameValue{
+				Name:  string(kftypes.PLATFORM),
+				Value: gcp.GcpApp.Spec.Platform,
+			},
+		)
+	} else {
+		kstypes.DefaultParameters["ambassador"] = []kstypes.NameValue{
+			{
+				Name:  string(kftypes.PLATFORM),
+				Value: gcp.GcpApp.Spec.Platform,
 			},
 		}
 	}
@@ -340,7 +365,7 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 				Value: gcp.GcpApp.Name + "-storage-pipeline-db",
 			},
 			kstypes.NameValue{
-				Name: "nfsPd",
+				Name:  "nfsPd",
 				Value: gcp.GcpApp.Name + "-storage-pipeline-nfs",
 			},
 		)
@@ -448,10 +473,7 @@ func (gcp *Gcp) generateDMConfigs(options map[string]interface{}) error {
 }
 
 func (gcp *Gcp) downloadK8sManifests() error {
-	appDir, err := os.Getwd()
-	if err != nil {
-		return fmt.Errorf("could not get current directory %v", err)
-	}
+	appDir := gcp.GcpApp.Spec.AppDir
 	k8sSpecsDir := path.Join(appDir, K8S_SPECS)
 	k8sSpecsDirErr := os.Mkdir(k8sSpecsDir, os.ModePerm)
 	if k8sSpecsDirErr != nil {
@@ -466,10 +488,7 @@ func (gcp *Gcp) createGcpSecret(email string, secretName string) error {
 }
 
 func (gcp *Gcp) createSecrets() error {
-	appDir, err := os.Getwd()
-	if err != nil {
-		return fmt.Errorf("could not get current directory %v", err)
-	}
+	appDir := gcp.GcpApp.Spec.AppDir
 	secretsDir := path.Join(appDir, SECRETS)
 	secretsDirErr := os.Mkdir(secretsDir, os.ModePerm)
 	if secretsDirErr != nil {

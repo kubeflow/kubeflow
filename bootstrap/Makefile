@@ -116,23 +116,23 @@ test-known-platforms-generate: test-known-platforms-init
 	cd ~/dockerfordesktop && \
 	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V --mount-local && \
 	cd ~/gcp && \
-	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V --email jsmith@foo.com --ipName gcp-ip --zone us-west1-a && \
+	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V --email jsmith@foo.com --ipName gcp-ip --hostname gcp.endpoints.$(GCLOUD_PROJECT).cloud.goog --zone us-west1-a && \
 	echo SUCCESS
 
 # debug and nodebug are for kfctl and enable debugging in goland 
 # by disabling plugins. This is a golang compiler bug which will be fixed in 1.12.
 debug:
-	@ex pkg/apis/apps/group.go <hack/debug
-	@ex pkg/client/foo/foo.go <hack/debug
-	@ex pkg/client/minikube/minikube.go <hack/debug
-	@ex pkg/client/dockerfordesktop/dockerfordesktop.go <hack/debug
-	@ex pkg/client/gcp/gcp.go <hack/debug
-	@ex cmd/kfctl/cmd/root.go <hack/debug || echo DEBUG ENABLED
+	ex pkg/apis/apps/group.go <hack/debug
+	ex pkg/client/foo/foo.go <hack/debug
+	ex pkg/client/minikube/minikube.go <hack/debug
+	ex pkg/client/dockerfordesktop/dockerfordesktop.go <hack/debug
+	ex pkg/client/gcp/gcp.go <hack/debug
+	ex cmd/kfctl/cmd/root.go <hack/debug || echo DEBUG ENABLED
 
 nodebug:
-	@ex pkg/apis/apps/group.go <hack/nodebug
-	@ex pkg/client/foo/foo.go <hack/nodebug
-	@ex pkg/client/minikube/minikube.go <hack/nodebug
-	@ex pkg/client/dockerfordesktop/dockerfordesktop.go <hack/nodebug
-	@ex pkg/client/gcp/gcp.go <hack/nodebug
-	@ex cmd/kfctl/cmd/root.go <hack/nodebug || echo DEBUG DISABLED
+	ex pkg/apis/apps/group.go <hack/nodebug
+	ex pkg/client/foo/foo.go <hack/nodebug
+	ex pkg/client/minikube/minikube.go <hack/nodebug
+	ex pkg/client/dockerfordesktop/dockerfordesktop.go <hack/nodebug
+	ex pkg/client/gcp/gcp.go <hack/nodebug
+	ex cmd/kfctl/cmd/root.go <hack/nodebug || echo DEBUG DISABLED
