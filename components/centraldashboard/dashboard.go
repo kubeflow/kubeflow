@@ -24,7 +24,7 @@ var (
 // SearchKatib will return a boolean true if Katib is deployed.
 
 func main() {
-	clientset := GetClient()
+	// clientset := GetClient()
 	// isKatibDeployed := SearchKatibPods(clientset)
 
 	indexServer := http.FileServer(http.Dir("frontend/"))
