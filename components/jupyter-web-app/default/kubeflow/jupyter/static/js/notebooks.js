@@ -1,4 +1,33 @@
 $(document).ready(function(){
+  // Update the Notebooks when a Namespace is selected
+  $("#ns-select").on("change", function() {
+    var ns = this.value;
+    updateNotebooksInNamespace(ns);
+
+    // Change the function for the CREATE NOTEBOOK button
+    $("#create-nb-btn").click(_ => createNotebook(ns))
+  });
+
+  // Search Bar
+  $('#search-nb').bind("enterKey",function(e){
+    var ns = this.value;
+    updateNotebooksInNamespace(ns);
+
+    // Change the function for the CREATE NOTEBOOK button
+    $("#create-nb-btn").click(_ => createNotebook(ns))
+
+    // In case user sees only default ns and we go to a ns with search bar
+    // then the change listener won't be triggered
+    $("#ns-select").val("")
+
+  });
+
+  $('#search-nb').keyup(function(e){
+      if(e.keyCode == 13) {
+        $(this).trigger("enterKey");
+      }
+  });
+
   // Get Notebooks for the ServiceAccount's Namespace
   var ns = new URL(window.location.href).searchParams.get("namespace")
   if (ns) {
@@ -10,35 +39,34 @@ $(document).ready(function(){
 
 function deleteNotebook(ns, nb) {
   $.getJSON(prefix + "/delete-notebook", { namespace:ns, notebook:nb}, function(data, status) {
-    var innerHTML = $("#error-msgs").html()
+    var innerHTML = ''
     if(data.success == true) {
       updateNotebooksInNamespace(ns)
-      innerHTML  = '';
     }
     else {
-      innerHTML  = '<div class="alert alert-warning">';
-      innerHTML += '<span class="close" '
-      innerHTML += 'onclick="this.parentElement.style.display=\'none\';">&times;</span>';
-      innerHTML += '<strong>Warning! </strong>' + data.log + ' </div>';
+      innerHTML = `
+      <div class="alert alert-warning">
+        <span class="close" onclick="this.parentElement.style.display='none'">&times;</span>
+        <strong>Warning!</strong><span class='warning-log'></span>
+      </div>`
     }
-    $("#error-msgs").html(innerHTML);
+    const $e = $("#error-msgs").html(innerHTML)
+    $('.warning-log', $e).text(data.log)
   });
 };
 
 function connectNotebook(ns, nb) {
-  window.open("/" + ns + "/" + nb, "_blank");
+  window.open(`/${ns}/${nb}`, "_blank");
 };
 
 function createNotebook(ns) {
   // Redirect to Add Notebook URL
-  window.location.href = prefix + "/add-notebook?namespace="+ns
+  window.location.href = `${prefix}/add-notebook?namespace=${ns}`
 };
 
 function updateNotebooksInNamespace(ns) {
   // Put the add Notebook button
   $('#nb-table-body').html("");
-  var row = $("<tr>");
-  // var row = ""
 
   // Get the Notebooks for selected Namespace
   $.getJSON(prefix + "/list-notebooks", { namespace:ns }, function(data, status) {
@@ -101,11 +129,14 @@ function updateNotebooksInNamespace(ns) {
       }
     }
     else{
-      var innerHTML = ''
-      innerHTML  = '<div class="alert alert-warning alert-dismissible">';
-      innerHTML += '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>';
-      innerHTML += '<strong>Warning! </strong>' + data.log + ' </div>';
-      $("#error-msgs").html(innerHTML);
+      innerHTML = `
+      <div class="alert alert-warning">
+        <span class="close" onclick="this.parentElement.style.display='none'">&times;</span>
+        <strong>Warning!</strong><span class='warning-log'></span>
+      </div>`
+
+      const $e = $("#error-msgs").html(innerHTML)
+      $('.warning-log', $e).text(data.log)
     }
 
     // Load the dynamic components of mdl
@@ -115,35 +146,6 @@ function updateNotebooksInNamespace(ns) {
   });
 }
 
-// Search Bar
-$('#search-nb').bind("enterKey",function(e){
-  var ns = this.value;
-  updateNotebooksInNamespace(ns);
-
-  // Change the function for the CREATE NOTEBOOK button
-  $("#create-nb-btn").attr("onclick", "createNotebook('" + ns + "')")
-
-  // In case user sees only default ns and we go to a ns with search bar
-  // then the change listener won't be triggered
-  $("#ns-select").val("")
-
-});
-
-$('#search-nb').keyup(function(e){
-    if(e.keyCode == 13) {
-      $(this).trigger("enterKey");
-    }
-});
-
 function searchOut() {
   $("#ns-select").text("")
 }
-
-// Update the Notebooks when a Namespace is selected
-$("#ns-select").on("change", function() {
-  var ns = this.value;
-  updateNotebooksInNamespace(ns);
-
-  // Change the function for the CREATE NOTEBOOK button
-  $("#create-nb-btn").attr("onclick", "createNotebook('" + ns + "')")
-});

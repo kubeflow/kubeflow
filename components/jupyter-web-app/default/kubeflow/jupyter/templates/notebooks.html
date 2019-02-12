@@ -1,6 +1,11 @@
 {% extends "layout.html" %}
-{% block content %}
+{% block javascript %}
+  {{ super() }}
+  <script src="{{ prefix + url_for('static', filename='js/notebooks.js') }}">
+  </script>
+{% endblock %}
 
+{% block content %}
 <!-- Namespaces Control Buttons -->
 <table class="ns" align="center">
   <tr>
@@ -71,6 +76,4 @@
     </div>
   </div>
 </div>
-
-<script src="{{ prefix + url_for('static', filename='js/notebooks.js') }}"></script>
 {% endblock content %}
