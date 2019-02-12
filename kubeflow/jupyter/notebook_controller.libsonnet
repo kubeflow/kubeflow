@@ -14,6 +14,9 @@
         group: "kubeflow.org",
         version: "v1alpha1",
         scope: "Namespaced",
+        subresources: {
+          status: {},
+        },
         names: {
           plural: "notebooks",
           singular: "notebook",

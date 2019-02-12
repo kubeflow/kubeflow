@@ -6,6 +6,7 @@ import logging
 import os
 import shutil
 import subprocess
+import tempfile
 import threading
 from time import sleep
 from google.auth.transport.requests import Request
@@ -21,6 +22,8 @@ import google.auth.iam
 import google.oauth2.credentials
 import google.oauth2.service_account
 from retrying import retry
+
+from kubeflow.testing import test_util
 
 FILE_PATH = os.path.dirname(os.path.abspath(__file__))
 SSL_DIR = os.path.join(FILE_PATH, "sslcert")
@@ -229,25 +232,27 @@ def check_deploy_status(args, deployments):
     service_account_credentials)
   # Wait up to 30 minutes for IAP access test.
   num_req = 0
-  end_time = datetime.datetime.now() + datetime.timedelta(minutes=30)
+  end_time = datetime.datetime.now() + datetime.timedelta(minutes=args.iap_wait_min)
   success_deploy = set()
   while datetime.datetime.now() < end_time and len(deployments) > 0:
     sleep(10)
     num_req += 1
 
     for deployment in deployments:
+      url = "https://%s.endpoints.%s.cloud.goog" % (deployment, args.project)
+      logging.info("Trying url: %s", url)
       try:
         resp = requests.request(
-          METHOD, "https://%s.endpoints.%s.cloud.goog" % (deployment, args.project),
-          headers={'Authorization': 'Bearer {}'.format(
-            google_open_id_connect_token)})
+          METHOD, url, headers={'Authorization': 'Bearer {}'.format(
+            google_open_id_connect_token)}, verify=False)
         if resp.status_code == 200:
           success_deploy.add(deployment)
+          logging.info("IAP is ready for %s!", url)
         else:
           logging.info("%s: IAP not ready, request number: %s" % (deployment, num_req))
       except Exception:
         logging.info("%s: IAP not ready, exception caught, request number: %s" % (deployment, num_req))
-    deployments.difference(success_deploy)
+    deployments = deployments.difference(success_deploy)
 
   # Optionally upload ssl cert
   if len(deployments) == 0 and len(os.listdir(SSL_DIR)) < num_deployments:
@@ -463,6 +468,39 @@ def run_load_test(args):
       FAILURE_COUNT.inc()
       logging.error("prober request failed, retry in %s seconds" % args.wait_sec)
 
+def run_e2e_test(args):
+  sleep(args.wait_sec)
+  make_e2e_call(args)
+  insert_ssl_cert(args, args.deployment)
+  if not check_deploy_status(args, set([args.deployment])):
+    raise RuntimeError("IAP endpoint not ready after 30 minutes, time out...")
+  logging.info("Test finished.")
+
+def wrap_test(args):
+  """Run the tests given by args.func and output artifacts as necessary.
+  """
+  test_name = "bootstrapper"
+  test_case = test_util.TestCase()
+  test_case.class_name = "KubeFlow"
+  test_case.name = args.workflow_name + "-" + test_name
+  try:
+
+    def run():
+      args.func(args)
+
+    test_util.wrap_test(run, test_case)
+  finally:
+    # Test grid has problems with underscores in the name.
+    # https://github.com/kubeflow/kubeflow/issues/631
+    # TestGrid currently uses the regex junit_(^_)*.xml so we only
+    # want one underscore after junit.
+    junit_name = test_case.name.replace("_", "-")
+    junit_path = os.path.join(args.artifacts_dir,
+                              "junit_{0}.xml".format(
+                              junit_name))
+    logging.info("Writing test results to %s", junit_path)
+    test_util.create_junit_xml_file([test_case], junit_path)
+
 # Clone repos to tmp folder and build docker images
 def main(unparsed_args=None):
   parser = argparse.ArgumentParser(
@@ -499,6 +537,11 @@ def main(unparsed_args=None):
     type=int,
     help="oauth client secret")
   parser.add_argument(
+    "--iap_wait_min",
+    default=30,
+    type=int,
+    help="minutes to wait for IAP")
+  parser.add_argument(
     "--zone",
     default="us-east1-d",
     type=str,
@@ -518,17 +561,28 @@ def main(unparsed_args=None):
     default="e2e",
     type=str,
     help="offer three test mode: e2e, prober, and loadtest")
+  # args for e2e test
+  parser.set_defaults(func=run_e2e_test)
+  parser.add_argument(
+    "--artifacts_dir",
+    default="",
+    type=str,
+    help="Directory to use for artifacts that should be preserved after "
+         "the test runs. Defaults to test_dir if not set."
+  )
+  parser.add_argument(
+    "--workflow_name", default="deployapp", type=str, help="The name of the workflow.")
 
   args = parser.parse_args(args=unparsed_args)
 
+  if not args.artifacts_dir:
+    args.artifacts_dir = tempfile.gettempdir()
+
   util_run(('gcloud auth activate-service-account --key-file=' +
-            may_get_env_var("GOOGLE_APPLICATION_CREDENTIALS")).split(' '), cwd=FILE_PATH)
+            may_get_env_var("GOOGLE_APPLICATION_CREDENTIALS")).split(' '),
+           cwd=FILE_PATH)
   if args.mode == "e2e":
-    sleep(args.wait_sec)
-    make_e2e_call(args)
-    insert_ssl_cert(args, args.deployment)
-    if not check_deploy_status(args, set([args.deployment])):
-      raise RuntimeError("IAP endpoint not ready after 30 minutes, time out...")
+    wrap_test(args)
 
   if args.mode == "prober":
     start_http_server(8000)
