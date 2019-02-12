@@ -109,7 +109,7 @@ test-known-platforms-generate: test-known-platforms-init
 # By default we disable loading plugins and link foo into the kfctl binary (static)
 static:
 	@ex pkg/apis/apps/group.go <hack/static
-	@ex cmd/kfctl/cmd/root.go <hack/static || echo Plugin functionality disabled 
+	@ex cmd/kfctl/cmd/root.go <hack/static || echo Plugin functionality disabled
 
 plugins:
 	@ex pkg/apis/apps/group.go <hack/plugins

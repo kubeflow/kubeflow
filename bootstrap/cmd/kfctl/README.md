@@ -63,9 +63,9 @@ type KfApp interface {
 
 kfctl includes platforms that implement the KfApp interface. (gcp will be added in the next phase)
 
-- platform: **ksonnet** 
+- platform: **ksonnet**
   - bootstrap/pkg/client/ksonnet/ksonnet.go
-- platform: **minikube** 
+- platform: **minikube**
   - bootstrap/pkg/client/minikube/minikube.go
 - platform: **docker-for-desktop** (in progress)
   - bootstrap/pkg/client/dockerfordesktop/dockerfordesktop.go
@@ -219,17 +219,17 @@ make test-known-platforms-generate
 
 ## Debugging
 
-In order to debug in goland, the plugin code must be disabled. 
-See https://github.com/golang/go/issues/23733. 
+In order to debug in goland, the plugin code must be disabled.
+See https://github.com/golang/go/issues/23733.
 This is expected to be resolved with golang 1.12.X
-To disable the plugin code (which will cause foo.go to be linked statically in kfctl) 
+To disable the plugin code (which will cause foo.go to be linked statically in kfctl)
 and allow debugging in goland run:
 
 ```
 make static
 ```
 
-otherwise run 
+otherwise run
 
 ```
 make plugins
@@ -237,12 +237,12 @@ make plugins
 
 Note: the default is `make static`. Do not checkin code after doing `make plugins`.
 
-Note: static and plugins make targets result in 2 files being changed: 
+Note: static and plugins make targets result in 2 files being changed:
 - pkg/apis/apps/group.go
 - cmd/kfctl/cmd/root.go
 
 These files have comments that are toggled (effectively a golang macro hack).
-This will go away when the fix noted above is available and we've moved to 
+This will go away when the fix noted above is available and we've moved to
 this version of go.
 
 
