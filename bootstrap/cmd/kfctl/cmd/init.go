@@ -61,7 +61,7 @@ directory is name is a path.`,
 			string(kftypes.PROJECT):   project,
 		}
 		kfApp, kfAppErr := newKfApp(options)
-		if kfAppErr != nil {
+		if kfAppErr != nil || kfApp == nil {
 			log.Errorf("couldn't create KfApp: %v", kfAppErr)
 			return
 		}

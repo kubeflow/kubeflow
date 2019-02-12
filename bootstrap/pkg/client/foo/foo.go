@@ -3,12 +3,8 @@ package foo
 import (
 	"fmt"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	/* DEBUG
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksonnet"
-	-DEBUG */
-	// NO_DEBUG
 	log "github.com/sirupsen/logrus"
-	// NO_DEBUG //
 )
 
 // Foo implements KfApp Interface
@@ -19,20 +15,12 @@ type Foo struct {
 }
 
 func GetKfApp(options map[string]interface{}) kftypes.KfApp {
-	/* DEBUG
-		ksonnet := ksonnet.GetKfApp(options)
-	    -DEBUG */
-	// NO_DEBUG
 	options[string(kftypes.PLATFORM)] = "ksonnet"
-	ksonnet, ksonnetErr := kftypes.LoadPlatform(options)
-	if ksonnetErr != nil {
-		log.Errorf("loadplatform failed for ksonnet: %v", ksonnetErr)
-		return nil
-	}
+	log.Infof("getting ksonnet platform in foo")
+	_ksonnet := ksonnet.GetKfApp(options)
 	options[string(kftypes.PLATFORM)] = "foo"
-	// NO_DEBUG //
 	_foo := &Foo{
-		Ksonnet: ksonnet,
+		Ksonnet: _ksonnet,
 	}
 	return _foo
 }

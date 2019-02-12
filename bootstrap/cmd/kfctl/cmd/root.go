@@ -20,11 +20,11 @@ import (
 	"github.com/ksonnet/ksonnet/pkg/app"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
-	/* DEBUG
+	/* STATIC
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/foo"
+	-STATIC */
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksonnet"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/minikube"
-	-DEBUG */
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
@@ -37,18 +37,19 @@ import (
 	"strings"
 )
 
-func LoadPlatform(options map[string]interface{}) (kftypes.KfApp, error) {
+func GetPlatform(options map[string]interface{}) (kftypes.KfApp, error) {
 	platform := options[string(kftypes.PLATFORM)].(string)
 	switch platform {
-	/* DEBUG
-		case "ksonnet":
-			return ksonnet.GetKfApp(options), nil
-		case "foo":
-			return foo.GetKfApp(options), nil
-		case "minikube":
-			return minikube.GetKfApp(options), nil
-	-DEBUG */
+	case "ksonnet":
+		return ksonnet.GetKfApp(options), nil
+	case "minikube":
+		return minikube.GetKfApp(options), nil
+	/* STATIC
+	case "foo":
+		return foo.GetKfApp(options), nil
+	-STATIC */
 	default:
+		log.Infof("** loading %v.so for platform %v **", platform, platform)
 		return kftypes.LoadPlatform(options)
 	}
 }
@@ -108,7 +109,7 @@ and must start and end with an alphanumeric character`, appName)
 	options[string(kftypes.APPNAME)] = appName
 	options[string(kftypes.APPDIR)] = appDir
 	platform := options[string(kftypes.PLATFORM)].(string)
-	pApp, pAppErr := LoadPlatform(options)
+	pApp, pAppErr := GetPlatform(options)
 	if pAppErr != nil {
 		return nil, fmt.Errorf("unable to load platform %v Error: %v", platform, pAppErr)
 	}
@@ -144,7 +145,7 @@ func loadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	options[string(kftypes.APPDIR)] = appDir
 	options[string(kftypes.KAPP)] = kApp
 	options[string(kftypes.KSAPP)] = ksApp
-	pApp, pAppErr := LoadPlatform(options)
+	pApp, pAppErr := GetPlatform(options)
 	if pAppErr != nil {
 		return nil, fmt.Errorf("unable to load platform %v Error: %v", ksApp.Spec.Platform, pAppErr)
 	}
