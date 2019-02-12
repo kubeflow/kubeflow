@@ -20,6 +20,7 @@
             name: "ambassador",
             port: 80,
             targetPort: 80,
+            nodePort: params.ambassadorNodePort,
           },
         ],
         selector: {

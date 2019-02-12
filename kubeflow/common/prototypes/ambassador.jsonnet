@@ -5,6 +5,7 @@
 // @param name string Name
 // @optionalParam platform string none supported platforms {none|gke|minikube}
 // @optionalParam ambassadorServiceType string ClusterIP The service type for the API Gateway.
+// @optionalParam ambassadorNodePort number 30080 The port number to expose ambassador on when ambassadorServiceType is NodePort
 // @optionalParam ambassadorImage string quay.io/datawire/ambassador:0.37.0 The image for the API Gateway.
 // @optionalParam replicas number 3 The number of replicas.
 
