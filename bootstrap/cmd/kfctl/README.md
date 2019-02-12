@@ -25,15 +25,13 @@ New directories (`cmd/kfctl, pkg`):
 ```sh
 bootstrap/cmd/kfctl
 bootstrap/cmd/kfctl/cmd
-bootstrap/pkg
-bootstrap/pkg/apis
+bootstrap/cmd/plugins/foo
 bootstrap/pkg/apis/apps
 bootstrap/pkg/apis/apps/ksonnet/v1alpha1
 bootstrap/pkg/utils
-bootstrap/pkg/client
+bootstrap/pkg/client/dockerfordesktop
 bootstrap/pkg/client/ksonnet
 bootstrap/pkg/client/minikube
-bootstrap/plugins
 ```
 
 ### KfApp Interface
@@ -49,6 +47,7 @@ const (
 	K8S      ResourceEnum = "k8s"
 	PLATFORM ResourceEnum = "platform"
 )
+
 //
 // KfApp is used by commands under bootstrap/cmd/{bootstrap,kfctl}. KfApp provides a common
 // API for different implementations like Ksonnet, GcpApp, MinikubeApp, etc.
@@ -67,10 +66,8 @@ kfctl includes platforms that implement the KfApp interface. (gcp will be added 
   - bootstrap/pkg/client/ksonnet/ksonnet.go
 - platform: **minikube** 
   - bootstrap/pkg/client/minikube/minikube.go
-- platform: **docker-for-desktop** (in progress)
+- platform: **docker-for-desktop**
   - bootstrap/pkg/client/dockerfordesktop/dockerfordesktop.go
-- platform: **ack** (in progress)
-  - bootstrap/pkg/client/ack/ack.go
 
 ## Usage
 
@@ -116,11 +113,12 @@ Usage:
   kfctl init <[path/]name> [flags]
 
 Flags:
+      --debug              debug debug default is false
   -h, --help               help for init
   -n, --namespace string   namespace where kubeflow will be deployed (default "kubeflow")
   -p, --platform string    one of 'gcp|minikube|docker-for-desktop|ack' (default "none")
       --project string     name of the gcp project if --platform gcp
-  -r, --repo string        local github kubeflow repo  (default "$GOPATH/src/github.com/kubeflow/kubeflow/kubeflow")
+  -r, --repo string        local github kubeflow repo
   -V, --verbose            verbose output default is false
   -v, --version string     desired version Kubeflow or latest tag if not provided by user  (default "v0.4.1")
 ```
@@ -178,7 +176,7 @@ Flags:
 ## Extending kfctl
 
 `kfctl` can be extended to work with new platforms without requiring recompilation.
-An example is under bootstrap/cmd/plugins/fooapp.go. A particular platform
+An example is under bootstrap/cmd/plugins/foo/foo.go. A particular platform
 provides a shared library (.so) under the env var `PLUGINS_ENVIRONMENT`
 that kfctl would load and execute. The shared library needs to define
 
@@ -194,7 +192,7 @@ In this sample, running
 kfctl init ~/foo-app --platform foo
 ```
 
-will result in kfctl loading $PLUGINS_ENVIRONMENT/fooapp.so and calling its methods that
+will result in kfctl loading $PLUGINS_ENVIRONMENT/foo.so and calling its methods that
 implement the KfApp Interface.
 
 ### Building the sample plugin
