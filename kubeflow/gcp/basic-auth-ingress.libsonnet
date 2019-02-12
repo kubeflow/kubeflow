@@ -80,6 +80,93 @@
     },
     configMap:: configMap,
 
+    local whoamiService = {
+      apiVersion: "v1",
+      kind: "Service",
+      metadata: {
+        labels: {
+          app: "whoami",
+        },
+        name: "whoami-app",
+        namespace: params.namespace,
+        annotations: {
+          "getambassador.io/config":
+            std.join("\n", [
+              "---",
+              "apiVersion: ambassador/v0",
+              "kind:  Mapping",
+              "name: whoami-mapping",
+              "prefix: /whoami",
+              "rewrite: /whoami",
+              "service: whoami-app." + namespace,
+            ]),
+        },  //annotations
+      },
+      spec: {
+        ports: [
+          {
+            port: 80,
+            targetPort: 8081,
+          },
+        ],
+        selector: {
+          app: "whoami",
+        },
+        type: "ClusterIP",
+      },
+    },  // whoamiService
+    whoamiService:: whoamiService,
+
+    local whoamiApp = {
+      apiVersion: "extensions/v1beta1",
+      kind: "Deployment",
+      metadata: {
+        name: "whoami-app",
+        namespace: params.namespace,
+      },
+      spec: {
+        replicas: 1,
+        template: {
+          metadata: {
+            labels: {
+              app: "whoami",
+            },
+          },
+          spec: {
+            containers: [
+              {
+                env: [
+                  {
+                    name: "PORT",
+                    value: "8081",
+                  },
+                ],
+                image: "gcr.io/cloud-solutions-group/esp-sample-app:1.0.0",
+                name: "app",
+                ports: [
+                  {
+                    containerPort: 8081,
+                  },
+                ],
+                readinessProbe: {
+                  failureThreshold: 2,
+                  httpGet: {
+                    path: "/healthz",
+                    port: 8081,
+                    scheme: "HTTP",
+                  },
+                  periodSeconds: 10,
+                  successThreshold: 1,
+                  timeoutSeconds: 5,
+                },
+              },
+            ],
+          },
+        },
+      },
+    },
+    whoamiApp:: whoamiApp,
+
     // Run the process to update the backend service
     local backendUpdater = {
       apiVersion: "apps/v1",
@@ -128,7 +215,7 @@
                   },
                   {
                     name: "HEALTHCHECK_PATH",
-                    value: "/kflogin/",
+                    value: "/whoami",
                   },
                 ],
                 volumeMounts: [
@@ -343,6 +430,8 @@
       self.initServiceAccount,
       self.initClusterRoleBinding,
       self.initClusterRole,
+      self.whoamiService,
+      self.whoamiApp,
       self.backendUpdater,
       self.configMap,
       self.ingressBootstrapConfigMap,

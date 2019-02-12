@@ -348,10 +348,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           p.prototype = 'basic-auth-ingress';
         }
       }
-      this._configSpec.defaultApp.components.push({
-        name: 'basic-auth',
-        prototype: 'basic-auth',
-      });
       for (let i = 0, len = this._configSpec.defaultApp.parameters.length; i < len; i++) {
         const p = this._configSpec.defaultApp.parameters[i];
         if (p.component === 'iap-ingress') {
@@ -361,22 +357,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           p.value = 'null';
         }
       }
-      const passwordhash = btoa(encryptPassword(state.password));
-      this._configSpec.defaultApp.parameters.push({
-        component: 'ambassador',
-        name: 'ambassadorServiceType',
-        value: 'NodePort'
-      });
-      this._configSpec.defaultApp.parameters.push({
-        component: 'basic-auth',
-        name: 'username',
-        value: state.username
-      });
-      this._configSpec.defaultApp.parameters.push({
-        component: 'basic-auth',
-        name: 'pwhash',
-        value: passwordhash
-      });
     }
     // Customize config for v0.3 compatibility
     // TODO: remove after https://github.com/kubeflow/kubeflow/pull/2019 merged
@@ -650,10 +630,33 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     if (!resource) {
       return;
     }
+    const configSpec = JSON.parse(JSON.stringify(resource));
+    if (!this.state.iap) {
+      configSpec.defaultApp.components.push({
+        name: 'basic-auth',
+        prototype: 'basic-auth',
+      });
+      const passwordhash = btoa(encryptPassword(this.state.password));
+      configSpec.defaultApp.parameters.push({
+        component: 'ambassador',
+        name: 'ambassadorServiceType',
+        value: 'NodePort'
+      });
+      configSpec.defaultApp.parameters.push({
+        component: 'basic-auth',
+        name: 'username',
+        value: this.state.username
+      });
+      configSpec.defaultApp.parameters.push({
+        component: 'basic-auth',
+        name: 'pwhash',
+        value: passwordhash
+      });
+    }
 
     const createBody = JSON.stringify(
       {
-        AppConfig: this._configSpec.defaultApp,
+        AppConfig: configSpec.defaultApp,
         Apply: true,
         AutoConfigure: true,
         ClientId: btoa(this.state.clientId),
