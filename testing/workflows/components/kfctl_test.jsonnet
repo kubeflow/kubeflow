@@ -151,7 +151,7 @@ local componentTests = util.kfTests {
   testDir: testDir,
   kubeConfig: kubeConfig,
   image: image,
-  workflow_name: params.workflowName,
+  workflowName: params.workflowName,
   buildTemplate+: {
     argoTemplate+: {
       container+: {
