@@ -19,6 +19,7 @@ package notebook
 import (
 	"context"
 	"reflect"
+	"strings"
 
 	v1alpha1 "github.com/kubeflow/kubeflow/components/notebook-controller/pkg/apis/notebook/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -142,19 +143,23 @@ func (r *ReconcileNotebook) ReconcileStatefulSet(instance *v1alpha1.Notebook) er
 		},
 	}
 	container := ss.Spec.Template.Spec.Containers[0]
-	container.Env = append(container.Env, corev1.EnvVar{
-		Name:  "JUPYTER_ENABLE_LAB",
-		Value: "TRUE",
-	})
+	if instance.Spec.JupyterSpec.UseLab {
+		container.Env = append(container.Env, corev1.EnvVar{
+			Name:  "JUPYTER_ENABLE_LAB",
+			Value: "TRUE",
+		})
+	}
 	if container.WorkingDir == "" {
 		container.WorkingDir = "/home/jovyan"
 	}
-	container.Ports = []corev1.ContainerPort{
-		corev1.ContainerPort{
-			ContainerPort: 8888,
-			Name:          "notebook-port",
-			Protocol:      "TCP",
-		},
+	if container.Ports == nil {
+		container.Ports = []corev1.ContainerPort{
+			corev1.ContainerPort{
+				ContainerPort: 8888,
+				Name:          "notebook-port",
+				Protocol:      "TCP",
+			},
+		}
 	}
 	if err := controllerutil.SetControllerReference(instance, ss, r.scheme); err != nil {
 		return err
@@ -192,6 +197,20 @@ func (r *ReconcileNotebook) ReconcileService(instance *v1alpha1.Notebook) error 
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      instance.Name,
 			Namespace: instance.Namespace,
+			Annotations: map[string]string{
+				"getambassador.io/config": strings.Join(
+					[]string{
+						"---",
+						"apiVersion: ambassador/v0",
+						"kind:  Mapping",
+						"name: " + instance.Namespace + "_" + instance.Name + "_mapping",
+						"prefix: /" + instance.Namespace + "/" + instance.Name,
+						"rewrite: /" + instance.Namespace + "/" + instance.Name,
+						"timeout_ms: 300000",
+						"service: " + instance.Namespace + "." + instance.Name,
+						"use_websocket: true",
+					}, "\n"),
+			},
 		},
 		Spec: corev1.ServiceSpec{
 			ClusterIP: "None",

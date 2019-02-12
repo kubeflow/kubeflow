@@ -29,6 +29,9 @@ type NotebookSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 	Template NotebookTemplateSpec `json:"template,omitempty"`
+
+	// JupyterSpec specifies jupyter related fields
+	JupyterSpec JupyterSpec `json:"jupyterSpec,omitempty"`
 }
 
 type NotebookTemplateSpec struct {
@@ -39,6 +42,11 @@ type NotebookTemplateSpec struct {
 type NotebookStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+}
+
+type JupyterSpec struct {
+	// Whether to enable jupyter lab
+	UseLab bool `json:"useLab,omitempty"`
 }
 
 // +genclient
