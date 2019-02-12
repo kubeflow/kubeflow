@@ -1,7 +1,7 @@
 {
-  all(namespace, minioImage):: [
+  all(namespace, minioImage, minioPvcName):: [
     $.parts(namespace).service,
-    $.parts(namespace).deploy(minioImage),
+    $.parts(namespace).deploy(minioImage, minioPvcName),
     $.parts(namespace).secret,
   ],
 
@@ -30,7 +30,7 @@
       },
     },  //service
 
-    deploy(image): {
+    deploy(image, minioPvcName): {
       apiVersion: "apps/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -52,7 +52,7 @@
               {
                 name: "data",
                 persistentVolumeClaim: {
-                  claimName: "nfs-pvc",
+                  claimName: minioPvcName,
                 },
               },
             ],

@@ -25,9 +25,9 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"os"
 	"path/filepath"
-	// PLUGINS
+	/* PLUGINS
 	"plugin"
-	// PLUGINS //
+	/* PLUGINS */
 	"regexp"
 	"strings"
 )
@@ -82,7 +82,7 @@ type KfApp interface {
 }
 
 func LoadPlatform(options map[string]interface{}) (KfApp, error) {
-	// PLUGINS
+	/* PLUGINS
 	platform := options[string(PLATFORM)].(string)
 	plugindir := os.Getenv("PLUGINS_ENVIRONMENT")
 	pluginpath := filepath.Join(plugindir, platform+".so")
@@ -96,10 +96,10 @@ func LoadPlatform(options map[string]interface{}) (KfApp, error) {
 		return nil, fmt.Errorf("could not find symbol %v for platform %v Error %v", symName, platform, symbolErr)
 	}
 	return symbol.(func(map[string]interface{}) KfApp)(options), nil
-	// PLUGINS //
-	/* STATIC
+	/* PLUGINS */
+	// STATIC
 	return nil, fmt.Errorf("could not load platform")
-	-STATIC */
+	// -STATIC //
 }
 
 func KubeConfigPath() string {

@@ -398,7 +398,6 @@ func (ksApp *KsApp) Init(options map[string]interface{}) error {
 		return fmt.Errorf("couldn't rename %v to %v Error %v", extractedPath, newPath, renameErr)
 	}
 	ksApp.KsApp.Spec.Repo = path.Join(newPath, "kubeflow")
-
 	createConfigErr := ksApp.writeConfigFile()
 	if createConfigErr != nil {
 		return fmt.Errorf("cannot create config file app.yaml in %v", ksApp.AppDir)

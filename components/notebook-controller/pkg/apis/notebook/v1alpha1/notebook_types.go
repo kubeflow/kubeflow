@@ -46,6 +46,7 @@ type NotebookStatus struct {
 
 // Notebook is the Schema for the notebooks API
 // +k8s:openapi-gen=true
+// +kubebuilder:subresource:status
 type Notebook struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

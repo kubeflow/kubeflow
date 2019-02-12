@@ -878,7 +878,7 @@ func (s *ksServer) CloneRepoToLocal(project string, token string) (string, error
 		return nil
 	}, bo)
 	if err != nil {
-		log.Errorf("Fail to create repo: %v", GetRepoName(project))
+		log.Errorf("Fail to create repo: %v. Error: %v", GetRepoName(project), err)
 		return "", err
 	}
 	err = os.Chdir(repoDir)
@@ -1173,10 +1173,8 @@ func checkDeploymentFinished(svc KsService, req CreateRequest, deployName string
 		time.Sleep(10 * time.Second)
 		status, errMsg, err = svc.GetDeploymentStatus(ctx, req, deployName)
 		if err != nil {
-			log.Errorf("Failed to get deployment status: %v", err)
-			deployReqCounter.WithLabelValues("INTERNAL").Inc()
-			deploymentFailure.WithLabelValues("INTERNAL").Inc()
-			return err
+			log.Warningf("Failed to get deployment status: %v\nWill retry...", err)
+			continue
 		}
 		if status == "DONE" {
 			if errMsg == "" {

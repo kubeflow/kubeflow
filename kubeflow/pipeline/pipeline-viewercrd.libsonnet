@@ -1,63 +1,45 @@
 {
-  all(namespace, scheduledWorkflowImage):: [
+  all(namespace, viewerCrdControllerImage):: [
     $.parts(namespace).serviceAccount,
     $.parts(namespace).roleBinding,
     $.parts(namespace).role,
-    $.parts(namespace).deploy(scheduledWorkflowImage),
+    $.parts(namespace).deploy(viewerCrdControllerImage),
     $.parts(namespace).crd,
   ],
 
-  parts(namespace):: {
+   parts(namespace):: {
+    // Common label for all resources created as part of the Viewer CRD.
+    local app_label = "ml-pipeline-viewer-crd",
+
+    local viewer_service_account = "ml-pipeline-viewer-crd-service-account",
     serviceAccount: {
       apiVersion: "v1",
       kind: "ServiceAccount",
       metadata: {
-        name: "ml-pipeline-scheduledworkflow",
+        name: viewer_service_account,
         namespace: namespace,
       },
     },  // service account
 
-    roleBinding:: {
-      apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "ClusterRoleBinding",
-      metadata: {
-        labels: {
-          app: "ml-pipeline-scheduledworkflow",
-        },
-        name: "ml-pipeline-scheduledworkflow",
-      },
-      roleRef: {
-        apiGroup: "rbac.authorization.k8s.io",
-        kind: "ClusterRole",
-        // TODO: These permissions are too broad. This must be fixed.
-        name: "cluster-admin",
-      },
-      subjects: [
-        {
-          kind: "ServiceAccount",
-          name: "ml-pipeline-scheduledworkflow",
-          namespace: namespace,
-        },
-      ],
-    },  // role binding
-
+    // Role capturing permissions needed by the Viewer controller.
+    local viewer_controller_role = "ml-pipeline-viewer-controller-role",
     role: {
       apiVersion: "rbac.authorization.k8s.io/v1beta1",
-      kind: "Role",
+      kind: "ClusterRole",
       metadata: {
         labels: {
-          app: "ml-pipeline-scheduledworkflow",
+          app: app_label,
         },
-        name: "ml-pipeline-scheduledworkflow",
+        name: viewer_controller_role,
         namespace: namespace,
       },
       rules: [
         {
           apiGroups: [
-            "argoproj.io",
+            "",
           ],
           resources: [
-            "workflows",
+            "deployments", "services",
           ],
           verbs: [
             "create",
@@ -74,7 +56,7 @@
             "kubeflow.org",
           ],
           resources: [
-            "scheduledworkflows",
+            "viewers",
           ],
           verbs: [
             "create",
@@ -89,34 +71,57 @@
       ],
     },  // role
 
-    deploy(image): {
+     roleBinding: {
+      apiVersion: "rbac.authorization.k8s.io/v1beta1",
+      kind: "ClusterRoleBinding",
+      metadata: {
+        labels: {
+          app: app_label,
+        },
+        name: "ml-pipeline-viewer-crd-role-binding",
+      },
+      roleRef: {
+        apiGroup: "rbac.authorization.k8s.io",
+        kind: "ClusterRole",
+        name: viewer_controller_role,
+      },
+      subjects: [
+        {
+          kind: "ServiceAccount",
+          name: viewer_service_account,
+          namespace: namespace,
+        },
+      ],
+    },  // role binding
+
+     deploy(image): {
       apiVersion: "apps/v1beta2",
       kind: "Deployment",
       metadata: {
         labels: {
-          app: "ml-pipeline-scheduledworkflow",
+          app: app_label,
         },
-        name: "ml-pipeline-scheduledworkflow",
+        name: "ml-pipeline-viewer-controller-deployment",
         namespace: namespace,
       },
       spec: {
         selector: {
           matchLabels: {
-            app: "ml-pipeline-scheduledworkflow",
+            app: app_label,
           },
         },
         template: {
           metadata: {
             labels: {
-              app: "ml-pipeline-scheduledworkflow",
+              app: app_label,
             },
           },
           spec: {
             containers: [
               {
-                name: "ml-pipeline-scheduledworkflow",
+                name: "ml-pipeline-viewer-controller",
                 image: image,
-                imagePullPolicy: "IfNotPresent",
+                imagePullPolicy: "Always",
                 env: [
                   {
                     name: "POD_NAMESPACE",
@@ -129,37 +134,39 @@
                 ],
               },
             ],
-            serviceAccountName: "ml-pipeline-scheduledworkflow",
+            serviceAccountName: viewer_service_account,
           },
         },
       },
     },  // deploy
-    crd: {
+
+     crd: {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
       metadata: {
-        name: "scheduledworkflows.kubeflow.org",
+        name: "viewers.kubeflow.org",
       },
       spec: {
         group: "kubeflow.org",
-        names: {
-          kind: "ScheduledWorkflow",
-          listKind: "ScheduledWorkflowList",
-          plural: "scheduledworkflows",
-          shortNames: [
-            "swf",
-          ],
-          singular: "scheduledworkflow",
-        },
-        scope: "Namespaced",
         versions: [
           {
             name: "v1beta1",
-            served: true,
             storage: true,
+            served: true,
           },
-        ]
+        ],
+        scope: "Namespaced",
+        names: {
+          kind: "Viewer",
+          listKind: "ViewerList",
+          singular: "viewer",
+          plural: "viewers",
+          shortNames: [
+            "vi",
+          ],
+        },
       },
     },  // crd
-  },  // parts
+
+   },  // parts
 }

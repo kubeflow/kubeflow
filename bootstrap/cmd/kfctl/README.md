@@ -36,11 +36,11 @@ bootstrap/pkg/client/minikube
 bootstrap/plugins
 ```
 
-### KfApp Interface 
+### KfApp Interface
 
 Definition: github/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/group.go
 
-The `KfApp` golang Interface 
+The `KfApp` golang Interface
 
 ```golang
 type ResourceEnum string
@@ -63,7 +63,7 @@ type KfApp interface {
 
 kfctl includes platforms that implement the KfApp interface. (gcp will be added in the next phase)
 
-- platform: **none** 
+- platform: **ksonnet** 
   - bootstrap/pkg/client/ksonnet/ksonnet.go
 - platform: **minikube** 
   - bootstrap/pkg/client/minikube/minikube.go
@@ -94,13 +94,13 @@ Flags:
 Use "kfctl [command] --help" for more information about a command.
 ```
 
-Typical use-case, non-platform specific. 
+Typical use-case, non-platform specific.
 
 ```sh
-kfctl init ~/myapp 
+kfctl init ~/myapp
 cd ~/myapp
-kfctl generate 
-kfctl apply 
+kfctl generate
+kfctl apply
 ```
 
 ## Subcommands
@@ -173,20 +173,20 @@ Flags:
   -V, --verbose   verbose output default is false
 ```
 
---- 
+---
 
 ## Extending kfctl
 
-`kfctl` can be extended to work with new platforms without requiring recompilation. 
-An example is under bootstrap/cmd/plugins/fooapp.go. A particular platform 
-provides a shared library (.so) under the env var `PLUGINS_ENVIRONMENT` 
-that kfctl would load and execute. The shared library needs to define 
+`kfctl` can be extended to work with new platforms without requiring recompilation.
+An example is under bootstrap/cmd/plugins/fooapp.go. A particular platform
+provides a shared library (.so) under the env var `PLUGINS_ENVIRONMENT`
+that kfctl would load and execute. The shared library needs to define
 
 ```
-func GetKfApp(options map[string]interface{}) kftypes.KfApp 
+func GetKfApp(options map[string]interface{}) kftypes.KfApp
 ```
 
-where the return type implements the [KfApp Interface](#kfapp-interface). 
+where the return type implements the [KfApp Interface](#kfapp-interface).
 
 In this sample, running
 
@@ -194,7 +194,7 @@ In this sample, running
 kfctl init ~/foo-app --platform foo
 ```
 
-will result in kfctl loading $PLUGINS_ENVIRONMENT/fooapp.so and calling its methods that 
+will result in kfctl loading $PLUGINS_ENVIRONMENT/fooapp.so and calling its methods that
 implement the KfApp Interface.
 
 ### Building the sample plugin
@@ -203,7 +203,7 @@ implement the KfApp Interface.
 make build-foo-plugin
 ```
 
-## Testing 
+## Testing
 
 ### Testing init for all platforms including the `foo` platform plugin
 
