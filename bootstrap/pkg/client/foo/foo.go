@@ -9,6 +9,7 @@ import (
 	// NO_DEBUG
 	log "github.com/sirupsen/logrus"
 	// NO_DEBUG //
+	//TODO replace above with generate and stringer
 )
 
 // Foo implements KfApp Interface

@@ -32,8 +32,6 @@ import (
 	"strings"
 )
 
-
-
 const (
 	DefaultNamespace = "kubeflow"
 	DefaultPlatform  = "none"
@@ -88,11 +86,10 @@ type Platform string
 
 const (
 	DOCKER_FOR_DESKTOP Platform = "docker-for-desktop"
-	GCP Platform = "gcp"
-	KSONNET Platform = "ksonnet"
-	MINIKUBE Platform = "minikube"
+	GCP                Platform = "gcp"
+	KSONNET            Platform = "ksonnet"
+	MINIKUBE           Platform = "minikube"
 )
-
 
 type FullKfApp struct {
 	Children map[Platform]KfApp
