@@ -796,13 +796,15 @@ function postNotebook(form, data) {
       window.location.href = prefix + "/notebooks" +"?namespace=" + ns
     }
     else {
-      $("#error-msgs").empty();
-      var innerHTML = ''
-      innerHTML  = '<div class="alert alert-danger alert-dismissible">';
-      innerHTML += '<span class="close" '
-      innerHTML += 'onclick="this.parentElement.style.display=\'none\';">&times;</span>';
-      innerHTML += '<strong>Error: </strong>' + res.log + ' </div>';
-      $("#error-msgs").html(innerHTML);
+      innerHTML = `
+      <div class="alert alert-danger">
+        <span class="close" onclick="this.parentElement.style.display='none'">&times;</span>
+        <strong>Error: </strong><span class='danger-log'></span>
+      </div>`
+      
+      const $e = $("#error-msgs").html(innerHTML)
+      $('.danger-log', $e).text(res.log)
+
       window.scrollTo(0, 0);
     }
   })
