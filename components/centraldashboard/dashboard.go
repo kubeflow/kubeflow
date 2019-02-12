@@ -24,14 +24,13 @@ var (
 // SearchKatib will return a boolean true if Katib is deployed.
 
 func main() {
-
 	clientset := GetClient()
 	isKatibDeployed := SearchKatibPods(clientset)
 
 	indexServer := http.FileServer(http.Dir("frontend/"))
 
 	http.Handle("/", indexServer)
-	log.Println("Listening on", ":"+port)
+	log.Println("Listening on", ":"+port, isKatibDeployed?" (katlib is deployed)":"")
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
