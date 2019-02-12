@@ -96,7 +96,7 @@ test-known-platforms-init: install build-foo-plugin
 
 test-known-platforms-generate: test-known-platforms-init
 	@cd ~/foo && \
-	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V && \
+	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl generate all -V && \
 	cd ~/ksonnet && \
 	kfctl generate all -V && \
 	cd ~/minikube && \
