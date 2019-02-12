@@ -28,8 +28,8 @@ var initCfg = viper.New()
 var initCmd = &cobra.Command{
 	Use:   "init <[path/]name>",
 	Short: "Create a kubeflow application under <[path/]name>",
-	Long: `Create a kubeflow application under <[path/]name>. The <[path/]name> argument can either be a full path 
-or a name where the kubeflow application will be initialized in $PWD/name if <name> is not a path or in the parent 
+	Long: `Create a kubeflow application under <[path/]name>. The <[path/]name> argument can either be a full path
+or a name where the kubeflow application will be initialized in $PWD/name if <name> is not a path or in the parent
 directory is name is a path.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.InfoLevel)
@@ -48,6 +48,7 @@ directory is name is a path.`,
 		namespace := initCfg.GetString(string(kftypes.NAMESPACE))
 		version := initCfg.GetString(string(kftypes.VERSION))
 		repo := initCfg.GetString(string(kftypes.REPO))
+		debug := initCfg.GetBool(string(kftypes.DEBUG))
 		project := initCfg.GetString(string(kftypes.PROJECT))
 		options := map[string]interface{}{
 			string(kftypes.PLATFORM):  platform,
@@ -55,10 +56,11 @@ directory is name is a path.`,
 			string(kftypes.VERSION):   version,
 			string(kftypes.APPNAME):   appName,
 			string(kftypes.REPO):      repo,
+			string(kftypes.DEBUG):     debug,
 			string(kftypes.PROJECT):   project,
 		}
 		kfApp, kfAppErr := newKfApp(options)
-		if kfAppErr != nil {
+		if kfAppErr != nil || kfApp == nil {
 			log.Errorf("couldn't create KfApp: %v", kfAppErr)
 			return
 		}
@@ -123,6 +125,14 @@ func init() {
 	bindErr = initCfg.BindPFlag(string(kftypes.VERBOSE), initCmd.Flags().Lookup(string(kftypes.VERBOSE)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.VERBOSE), bindErr)
+		return
+	}
+
+	// debug output
+	initCmd.Flags().Bool(string(kftypes.DEBUG), false, string(kftypes.DEBUG)+" debug default is false")
+	bindErr = initCfg.BindPFlag(string(kftypes.DEBUG), initCmd.Flags().Lookup(string(kftypes.DEBUG)))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.DEBUG), bindErr)
 		return
 	}
 }
