@@ -56,6 +56,7 @@ export GCLOUD_PROJECT=mygcloudproject
 make push
 ```
 
-#### `make debug, make nodebug`
-These targets are for kfctl and lets goland debugger work by disabling plugins.
+#### `make static, make plugins`
+These targets are for kfctl and allows the goland debugger work by disabling plugins.
 This is a problem in the go compiler which should be fixed in 1.12.
+See the [kfctl/README.md](./cmd/kfctl) for additional information.

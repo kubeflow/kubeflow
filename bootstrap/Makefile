@@ -50,15 +50,6 @@ build-kfctl: generate fmt vet
 build-foo-plugin: generate fmt vet
 	$(GO) build -i -gcflags 'all=-N -l' -o bin/foo.so -buildmode=plugin cmd/plugins/foo/foo.go
 
-build-minikube-plugin: generate fmt vet
-	$(GO) build -i -gcflags 'all=-N -l' -o bin/minikube.so -buildmode=plugin cmd/plugins/minikube/minikube.go
-
-build-dockerfordesktop-plugin: generate fmt vet
-	$(GO) build -i -gcflags 'all=-N -l' -o bin/dockerfordesktop.so -buildmode=plugin cmd/plugins/dockerfordesktop/dockerfordesktop.go
-
-build-ksonnet-plugin: generate fmt vet
-	$(GO) build -i -gcflags 'all=-N -l' -o bin/ksonnet.so -buildmode=plugin cmd/plugins/ksonnet/ksonnet.go
-
 build-local: build-bootstrap build-kfctl
 
 # To edit which registries to add to bootstrapper, edit config (eg. config/default.yaml)
@@ -68,7 +59,11 @@ build: build-local
 	cp -r ../kubeflow reg_tmp/kubeflow
 	cp -r ../deployment reg_tmp/kubeflow
 	cp -r ../dependencies reg_tmp/kubeflow
-	docker build -t $(IMG):$(TAG) --build-arg GOLANG_VERSION=$(GOLANG_VERSION) --build-arg registries=reg_tmp --target=bootstrap .
+	docker build \
+		--build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
+		--build-arg registries=reg_tmp \
+		--target=bootstrap \
+		--tag $(IMG):$(TAG) .
 	@echo Built $(IMG):$(TAG)
 
 # Build but don't attach the latest tag. This allows manual testing/inspection of the image
@@ -90,41 +85,32 @@ run-local-docker:
 	  --mount type=bind,source=${HOME}/kf_app,target=/home/kubeflow \
 	  --entrypoint /bin/bash $(IMG):$(TAG)
 
-test-known-platforms-init: install build-ksonnet-plugin build-minikube-plugin build-dockerfordesktop-plugin build-foo-plugin
+test-known-platforms-init: install build-foo-plugin
 	@rm -rf $(HOME)/foo && \
 	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/foo -V --platform foo --version master && \
 	rm -rf $(HOME)/ksonnet && \
-	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/ksonnet -V --platform ksonnet --version master && \
+	kfctl init $(HOME)/ksonnet -V --platform ksonnet --version master && \
 	rm -rf $(HOME)/minikube && \
-	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/minikube -V --platform minikube --version master && \
-	rm -rf $(HOME)/docker-for-desktop && \
-	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/docker-for-desktop -V --platform docker-for-desktop --version master && \
+	kfctl init $(HOME)/minikube -V --platform minikube --version master && \
 	echo SUCCESS
 
-# generate all --email john@foo.com --ipName 35.233.240.120
 test-known-platforms-generate: test-known-platforms-init
-	@cd ~/ksonnet && \
+	@cd ~/foo && \
 	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V && \
+	cd ~/ksonnet && \
+	kfctl generate all -V && \
 	cd ~/minikube && \
-	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V --mount-local && \
-	cd ~/docker-for-desktop && \
-	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V --mount-local && \
-	cd ~/foo && \
-	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V && \
+	kfctl generate all -V --mount-local && \
 	echo SUCCESS
 
-# debug and nodebug are for kfctl and enable debugging in goland 
-# by disabling plugins. This is a golang compiler bug which will be fixed in 1.12.
-debug:
-	@ex pkg/apis/apps/group.go <hack/debug
-	@ex pkg/client/foo/foo.go <hack/debug
-	@ex pkg/client/minikube/minikube.go <hack/debug
-	@ex pkg/client/dockerfordesktop/dockerfordesktop.go <hack/debug
-	@ex cmd/kfctl/cmd/root.go <hack/debug || echo DEBUG ENABLED
 
-nodebug:
-	@ex pkg/apis/apps/group.go <hack/nodebug
-	@ex pkg/client/foo/foo.go <hack/nodebug
-	@ex pkg/client/minikube/minikube.go <hack/nodebug
-	@ex pkg/client/dockerfordesktop/dockerfordesktop.go <hack/nodebug
-	@ex cmd/kfctl/cmd/root.go <hack/nodebug || echo DEBUG DISABLED
+# static and plugins toogle whether we try and load a platform as a .so.
+# There is an example plugin 'foo' that can be loaded as a .so.
+# By default we disable loading plugins and link foo into the kfctl binary (static)
+static:
+	@ex pkg/apis/apps/group.go <hack/static
+	@ex cmd/kfctl/cmd/root.go <hack/static || echo Plugin functionality disabled 
+
+plugins:
+	@ex pkg/apis/apps/group.go <hack/plugins
+	@ex cmd/kfctl/cmd/root.go <hack/plugins || echo Plugin functionality enabled
