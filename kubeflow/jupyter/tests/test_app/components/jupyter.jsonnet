@@ -28,13 +28,6 @@ local jupyter = {
             "workingDir": "/home/jovyan"
           }
         ],
-        "securityContext": [
-          {
-            "fsGroup": 100,
-            "runAsUser": 1000
-          }
-        ],
-        "ttlSecondsAfterFinished": 300
       }
     }
   }
