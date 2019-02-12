@@ -25,12 +25,12 @@ var (
 
 func main() {
 	clientset := GetClient()
-	isKatibDeployed := SearchKatibPods(clientset)
+	// isKatibDeployed := SearchKatibPods(clientset)
 
 	indexServer := http.FileServer(http.Dir("frontend/"))
 
 	http.Handle("/", indexServer)
-	log.Println("Listening on", ":"+port, isKatibDeployed?" (katlib is deployed)":"")
+	log.Println("Listening on", ":"+port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
