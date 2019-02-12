@@ -556,7 +556,7 @@ def wrap_test(args):
   test_name = "bootstrapper"
   test_case = test_util.TestCase()
   test_case.class_name = "KubeFlow"
-  test_case.name = test_name
+  test_case.name = args.workflow_name + "-" + test_name
   try:
 
     def run():
@@ -568,7 +568,7 @@ def wrap_test(args):
     # https://github.com/kubeflow/kubeflow/issues/631
     # TestGrid currently uses the regex junit_(^_)*.xml so we only
     # want one underscore after junit.
-    junit_name = test_name.replace("_", "-")
+    junit_name = test_case.name.replace("_", "-")
     junit_path = os.path.join(
       args.artifacts_dir, "junit_kubeflow-deploy-{0}.xml".format(junit_name))
     logging.info("Writing test results to %s", junit_path)
@@ -628,6 +628,11 @@ def main(unparsed_args=None):
     type=str,
     help="Directory to use for artifacts that should be preserved after "
     "the test runs. Defaults to test_dir if not set.")
+  parser.add_argument(
+    "--workflow_name",
+    default="deployapp",
+    type=str,
+    help="The name of the workflow.")
 
   args = parser.parse_args(args=unparsed_args)
 
