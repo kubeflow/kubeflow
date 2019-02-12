@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 from kubernetes import client, config
 from kubernetes.config.config_exception import ConfigException
@@ -21,9 +22,10 @@ class Controller:
     pod using kubernetes API.
     """
 
-    def __init__(self, namespace, master, num_gpus, timeout_secs,
-                 download_data_from, download_data_to, upload_data_from,
-                 upload_data_to):
+    def __init__(
+      self, namespace, master, num_gpus, timeout_secs, download_data_from,
+      download_data_to, upload_data_from, upload_data_to
+    ):
         self.namespace = namespace
         self.master = master
         self.num_gpus = num_gpus
@@ -60,8 +62,8 @@ class Controller:
         self._upload_data()
 
     def _validate_args(self):
-        if (self.download_data_from and self.download_data_to) or (
-                self.upload_data_from and self.upload_data_to):
+        if (self.download_data_from and self.download_data_to
+           ) or (self.upload_data_from and self.upload_data_to):
             if not os.environ.get('AWS_ACCESS_KEY_ID'):
                 raise ValueError('AWS_ACCESS_KEY_ID not set')
 
@@ -70,8 +72,9 @@ class Controller:
 
     def _wait_nvidia_driver_present(self):
         log('waiting for nvidia driver to be installed')
-        long_poll(self._poll_nvidia_driver_version,
-                  timeout_secs=self.timeout_secs)
+        long_poll(
+          self._poll_nvidia_driver_version, timeout_secs=self.timeout_secs
+        )
 
     def _wait_master_terminated(self):
         log('waiting for master to terminate')
@@ -103,11 +106,15 @@ class Controller:
     def _download_data(self):
         if self.download_data_from and self.download_data_to:
             Path(self.download_data_to).mkdir(exist_ok=True)
-            log(f'downloading data from {self.download_data_from} to {self.download_data_to}')  # noqa: E501
+            log(
+              f'downloading data from {self.download_data_from} to {self.download_data_to}'
+            )  # noqa: E501
             s3_copy(self.download_data_from, self.download_data_to)
 
     def _upload_data(self):
         if self.upload_data_from and self.upload_data_to:
             if Path(self.upload_data_from).exists():
-                log(f'uploading data from {self.upload_data_from} to {self.upload_data_to}')  # noqa: E501
+                log(
+                  f'uploading data from {self.upload_data_from} to {self.upload_data_to}'
+                )  # noqa: E501
                 s3_copy(self.upload_data_from, self.upload_data_to)

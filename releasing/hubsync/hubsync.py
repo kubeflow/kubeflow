@@ -32,7 +32,7 @@ myRepo = 'gcr.io/<my_repo>'
 
 # Get Auth
 with open('keys.yaml', 'r') as keyfile:
-  kcfg = yaml.load(keyfile)
+    kcfg = yaml.load(keyfile)
 
 login = kcfg['username']
 pswd = kcfg['password']
@@ -46,64 +46,65 @@ repos = subprocess.run([
                        stderr=subprocess.STDOUT)
 my_json = json.loads(repos.stdout.decode('utf8').strip().replace("'", '"'))
 for data in my_json:
-  for name, image in data.items():
-    # get Tags and Repos
-    raw_images = subprocess.run([
-      "gcloud", "container", "images", "list", "--repository=" + image + "",
-      "--format=json"
-    ],
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT)
-    imgData = raw_images.stdout.decode("utf-8")
-    if "[]" not in imgData:
-      imgJson = json.loads(
-        raw_images.stdout.decode("utf-8").strip().replace("'", '"'))
-      for stuff in imgJson:
-        for a, b in stuff.items():
-          images.append(b)
-      images.append(image)
+    for name, image in data.items():
+        # get Tags and Repos
+        raw_images = subprocess.run([
+          "gcloud", "container", "images", "list", "--repository=" + image + "",
+          "--format=json"
+        ],
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT)
+        imgData = raw_images.stdout.decode("utf-8")
+        if "[]" not in imgData:
+            imgJson = json.loads(
+              raw_images.stdout.decode("utf-8").strip().replace("'", '"')
+            )
+            for stuff in imgJson:
+                for a, b in stuff.items():
+                    images.append(b)
+            images.append(image)
 
 for item in images:
-  getTags = subprocess.run([
-    "gcloud", "--project=kubeflow-images-public", "container", "images",
-    "list-tags", item, "--format=json", "--limit=1"
-  ],
-                           stdout=subprocess.PIPE,
-                           stderr=subprocess.STDOUT)
-  preTags = json.loads(getTags.stdout.decode('utf8').replace("'", '"'))
-  for datum in preTags:
-    t = datum['digest']
-    s = item[30:]
-    myTag = item + "@" + t
-    theyaml = {
-      'timeout':
-      timeout,
-      'steps': [
-        {
-          'name': builder,
-          'args': ['login', '-u', login, '-p', pswd],
-          'timeout': timeout,
-        },
-        {
-          'name': builder,
-          'args': ['pull', myTag],
-          'timeout': timeout,
-        },
-        {
-          'name': builder,
-          'args': ['tag', myTag, myRepo + s],
-          'timeout': timeout,
-        },
-        {
-          'name': builder,
-          'args': ['push', myRepo + s],
-          'timeout': timeout,
-        },
-      ]
-    }
-    with open(filename, 'a') as outfile:
-      yaml.dump(theyaml, outfile, default_flow_style=False)
+    getTags = subprocess.run([
+      "gcloud", "--project=kubeflow-images-public", "container", "images",
+      "list-tags", item, "--format=json", "--limit=1"
+    ],
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.STDOUT)
+    preTags = json.loads(getTags.stdout.decode('utf8').replace("'", '"'))
+    for datum in preTags:
+        t = datum['digest']
+        s = item[30:]
+        myTag = item + "@" + t
+        theyaml = {
+          'timeout':
+          timeout,
+          'steps': [
+            {
+              'name': builder,
+              'args': ['login', '-u', login, '-p', pswd],
+              'timeout': timeout,
+            },
+            {
+              'name': builder,
+              'args': ['pull', myTag],
+              'timeout': timeout,
+            },
+            {
+              'name': builder,
+              'args': ['tag', myTag, myRepo + s],
+              'timeout': timeout,
+            },
+            {
+              'name': builder,
+              'args': ['push', myRepo + s],
+              'timeout': timeout,
+            },
+          ]
+        }
+        with open(filename, 'a') as outfile:
+            yaml.dump(theyaml, outfile, default_flow_style=False)
 
-    subprocess.run(["gcloud", "builds", "submit", "--config", filename],
-                   stdout=subprocess.PIPE,
-                   stderr=subprocess.STDOUT)
+        subprocess.run(["gcloud", "builds", "submit", "--config", filename],
+                       stdout=subprocess.PIPE,
+                       stderr=subprocess.STDOUT)

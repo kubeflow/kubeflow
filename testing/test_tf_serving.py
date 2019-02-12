@@ -38,114 +38,127 @@ from kubeflow.testing import util
 
 
 def almost_equal(a, b, tol=0.001):
-  """
-    Compares two json objects (assuming same structure) with tolerance on numbers
     """
-  if isinstance(a, dict):
-    for key in a.keys():
-      if not almost_equal(a[key], b[key]):
-        return False
-    return True
-  elif isinstance(a, list):
-    for i in xrange(len(a)):
-      if not almost_equal(a[i], b[i]):
-        return False
-    return True
-  elif isinstance(a, numbers.Number):
-    return abs(a - b) < tol
-  else:
-    return a == b
+      Compares two json objects (assuming same structure) with tolerance on numbers
+      """
+    if isinstance(a, dict):
+        for key in a.keys():
+            if not almost_equal(a[key], b[key]):
+                return False
+        return True
+    elif isinstance(a, list):
+        for i in xrange(len(a)):
+            if not almost_equal(a[i], b[i]):
+                return False
+        return True
+    elif isinstance(a, numbers.Number):
+        return abs(a - b) < tol
+    else:
+        return a == b
 
 
 def main():
-  parser = argparse.ArgumentParser('Label an image using Inception')
-  parser.add_argument(
-    '-p',
-    '--port',
-    type=int,
-    default=9000,
-    help='Port at which Inception model is being served')
-  parser.add_argument(
-    "--namespace", required=True, type=str, help=("The namespace to use."))
-  parser.add_argument(
-    "--service_name",
-    required=True,
-    type=str,
-    help=("The TF serving service to use."))
-  parser.add_argument(
-    "--artifacts_dir",
-    default="",
-    type=str,
-    help="Directory to use for artifacts that should be preserved after "
-    "the test runs. Defaults to test_dir if not set.")
-  parser.add_argument(
-    "--input_path", required=True, type=str, help=("The input file to use."))
-  parser.add_argument("--result_path", type=str, help=("The expected result."))
+    parser = argparse.ArgumentParser('Label an image using Inception')
+    parser.add_argument(
+      '-p',
+      '--port',
+      type=int,
+      default=9000,
+      help='Port at which Inception model is being served'
+    )
+    parser.add_argument(
+      "--namespace", required=True, type=str, help=("The namespace to use.")
+    )
+    parser.add_argument(
+      "--service_name",
+      required=True,
+      type=str,
+      help=("The TF serving service to use.")
+    )
+    parser.add_argument(
+      "--artifacts_dir",
+      default="",
+      type=str,
+      help="Directory to use for artifacts that should be preserved after "
+      "the test runs. Defaults to test_dir if not set."
+    )
+    parser.add_argument(
+      "--input_path", required=True, type=str, help=("The input file to use.")
+    )
+    parser.add_argument(
+      "--result_path", type=str, help=("The expected result.")
+    )
 
-  args = parser.parse_args()
+    args = parser.parse_args()
 
-  t = test_util.TestCase()
-  t.class_name = "Kubeflow"
-  t.name = "tf-serving-image-" + args.service_name
+    t = test_util.TestCase()
+    t.class_name = "Kubeflow"
+    t.name = "tf-serving-image-" + args.service_name
 
-  start = time.time()
+    start = time.time()
 
-  util.load_kube_config(persist_config=False)
-  api_client = k8s_client.ApiClient()
-  core_api = k8s_client.CoreV1Api(api_client)
-  try:
-    with open(args.input_path) as f:
-      instances = json.loads(f.read())
+    util.load_kube_config(persist_config=False)
+    api_client = k8s_client.ApiClient()
+    core_api = k8s_client.CoreV1Api(api_client)
+    try:
+        with open(args.input_path) as f:
+            instances = json.loads(f.read())
 
-    service = core_api.read_namespaced_service(args.service_name,
-                                               args.namespace)
-    service_ip = service.spec.cluster_ip
-    model_urls = [
-      "http://" + service_ip +
-      ":8500/v1/models/mnist:predict",  # tf serving's http server
-    ]
-    for model_url in model_urls:
-      logging.info("Try predicting with endpoint {}".format(model_url))
-      num_try = 1
-      result = None
-      while True:
-        try:
-          result = requests.post(model_url, json=instances)
-          assert (result.status_code == 200)
-        except Exception as e:
-          num_try += 1
-          if num_try > 10:
-            raise
-          logging.info('prediction failed: {}. Retrying...'.format(e))
-          time.sleep(5)
-        else:
-          break
-      logging.info('Got result: {}'.format(result.text))
-      if args.result_path:
-        with open(args.result_path) as f:
-          expected_result = json.loads(f.read())
-          logging.info('Expected result: {}'.format(expected_result))
-          assert (almost_equal(expected_result, json.loads(result.text)))
-  except Exception as e:
-    t.failure = "Test failed; " + e.message
-    raise
-  finally:
-    t.time = time.time() - start
-    junit_path = os.path.join(
-      args.artifacts_dir,
-      "junit_kubeflow-tf-serving-image-{}.xml".format(args.service_name))
-    logging.info("Writing test results to %s", junit_path)
-    test_util.create_junit_xml_file([t], junit_path)
-    # Pause to collect Stackdriver logs.
-    time.sleep(60)
+        service = core_api.read_namespaced_service(
+          args.service_name, args.namespace
+        )
+        service_ip = service.spec.cluster_ip
+        model_urls = [
+          "http://" + service_ip +
+          ":8500/v1/models/mnist:predict",  # tf serving's http server
+        ]
+        for model_url in model_urls:
+            logging.info("Try predicting with endpoint {}".format(model_url))
+            num_try = 1
+            result = None
+            while True:
+                try:
+                    result = requests.post(model_url, json=instances)
+                    assert (result.status_code == 200)
+                except Exception as e:
+                    num_try += 1
+                    if num_try > 10:
+                        raise
+                    logging.info('prediction failed: {}. Retrying...'.format(e))
+                    time.sleep(5)
+                else:
+                    break
+            logging.info('Got result: {}'.format(result.text))
+            if args.result_path:
+                with open(args.result_path) as f:
+                    expected_result = json.loads(f.read())
+                    logging.info('Expected result: {}'.format(expected_result))
+                    assert (
+                      almost_equal(expected_result, json.loads(result.text))
+                    )
+    except Exception as e:
+        t.failure = "Test failed; " + e.message
+        raise
+    finally:
+        t.time = time.time() - start
+        junit_path = os.path.join(
+          args.artifacts_dir,
+          "junit_kubeflow-tf-serving-image-{}.xml".format(args.service_name)
+        )
+        logging.info("Writing test results to %s", junit_path)
+        test_util.create_junit_xml_file([t], junit_path)
+        # Pause to collect Stackdriver logs.
+        time.sleep(60)
 
 
 if __name__ == '__main__':
-  logging.basicConfig(
-    level=logging.INFO,
-    format=('%(levelname)s|%(asctime)s'
-            '|%(pathname)s|%(lineno)d| %(message)s'),
-    datefmt='%Y-%m-%dT%H:%M:%S',
-  )
-  logging.getLogger().setLevel(logging.INFO)
-  main()
+    logging.basicConfig(
+      level=logging.INFO,
+      format=(
+        '%(levelname)s|%(asctime)s'
+        '|%(pathname)s|%(lineno)d| %(message)s'
+      ),
+      datefmt='%Y-%m-%dT%H:%M:%S',
+    )
+    logging.getLogger().setLevel(logging.INFO)
+    main()

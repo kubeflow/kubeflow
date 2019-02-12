@@ -1,4 +1,14 @@
 [style]
 based_on_style = google
-indent_width: 2
+indent_width: 4
 continuation_indent_width: 2
+coalesce_brackets = true
+column_limit=80
+dedent_closing_brackets = true
+join_multiple_lines = false
+spaces_before_comment = 2
+split_arguments_when_comma_terminated = true
+# split_before_first_argument = true
+split_before_logical_operator = true
+split_before_named_assigns = true
+split_penalty_import_names = 2

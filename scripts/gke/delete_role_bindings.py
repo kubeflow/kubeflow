@@ -11,38 +11,40 @@ import json
 import subprocess
 
 if __name__ == "__main__":
-  parser = argparse.ArgumentParser()
-  parser.add_argument(
-    "--project", default=None, type=str, help=("The project."))
-  parser.add_argument(
-    "--service_account", type=str, help=("The service account."))
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+      "--project", default=None, type=str, help=("The project.")
+    )
+    parser.add_argument(
+      "--service_account", type=str, help=("The service account.")
+    )
 
-  args = parser.parse_args()
-  output = subprocess.check_output([
-    "gcloud",
-    "projects",
-    "get-iam-policy",
-    "--format=json",
-    args.project,
-  ])
-
-  bindings = json.loads(output)
-  roles = []
-  entry = "serviceAccount:" + args.service_account
-  for b in bindings["bindings"]:
-    if entry in b["members"]:
-      roles.append(b["role"])
-  # TODO(jlewi): Can we issue a single gcloud command.
-  for r in roles:
-    command = [
+    args = parser.parse_args()
+    output = subprocess.check_output([
       "gcloud",
       "projects",
-      "remove-iam-policy-binding",
+      "get-iam-policy",
+      "--format=json",
       args.project,
-      "--member",
-      entry,
-      "--role",
-      r,
-    ]
-    print(" ".join(command))
-    subprocess.call(command)
+    ])
+
+    bindings = json.loads(output)
+    roles = []
+    entry = "serviceAccount:" + args.service_account
+    for b in bindings["bindings"]:
+        if entry in b["members"]:
+            roles.append(b["role"])
+    # TODO(jlewi): Can we issue a single gcloud command.
+    for r in roles:
+        command = [
+          "gcloud",
+          "projects",
+          "remove-iam-policy-binding",
+          args.project,
+          "--member",
+          entry,
+          "--role",
+          r,
+        ]
+        print(" ".join(command))
+        subprocess.call(command)
