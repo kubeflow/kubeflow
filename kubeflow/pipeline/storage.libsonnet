@@ -140,7 +140,7 @@
       },
       spec: {
         capacity: {
-          storage: "200Gi",
+          storage: "20Gi",
         },
         accessModes: [
           "ReadWriteOnce",
