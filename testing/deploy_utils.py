@@ -18,7 +18,7 @@ from kubernetes.client import rest
 from kubernetes.config import kube_config
 from oauth2client.client import GoogleCredentials
 
-from kubeflow.testing import test_util, util  # pylint: disable=no-name-in-module
+from kubeflow.testing import test_util, util  # pylint: disable=no-name-in-module  # noqa: E501
 from testing import vm_util
 
 
@@ -51,9 +51,9 @@ def _setup_test(api_client, run_label):
   namespace.api_version = "v1"
   namespace.kind = "Namespace"
   namespace.metadata = k8s_client.V1ObjectMeta(
-    name=run_label, labels={
-      "app": "kubeflow-e2e-test",
-    })
+      name=run_label, labels={
+          "app": "kubeflow-e2e-test",
+      })
 
   try:
     logging.info("Creating namespace %s", namespace.metadata.name)
@@ -90,9 +90,9 @@ def setup_kubeflow_ks_app(dir, namespace, github_token, api_client):
   # Initialize a ksonnet app.
   app_name = "kubeflow-test-" + uuid.uuid4().hex[0:4]
   util.run([
-    "ks",
-    "init",
-    app_name,
+      "ks",
+      "init",
+      app_name,
   ], cwd=dir)
 
   app_dir = os.path.join(dir, app_name)
@@ -107,13 +107,13 @@ def setup_kubeflow_ks_app(dir, namespace, github_token, api_client):
 
   # Install required packages
   packages = [
-    "kubeflow/common", "kubeflow/gcp", "kubeflow/jupyter",
-    "kubeflow/tf-serving", "kubeflow/tf-job", "kubeflow/tf-training",
-    "kubeflow/pytorch-job", "kubeflow/argo", "kubeflow/katib"
+      "kubeflow/common", "kubeflow/gcp", "kubeflow/jupyter",
+      "kubeflow/tf-serving", "kubeflow/tf-job", "kubeflow/tf-training",
+      "kubeflow/pytorch-job", "kubeflow/argo", "kubeflow/katib"
   ]
 
-  # Instead of installing packages we edit the app.yaml file directly
-  # for p in packages:
+  # Instead of installing packages we edit the app.yaml file directly for p in
+  # packages:
   # util.run(["ks", "pkg", "install", p], cwd=app_dir)
   app_file = os.path.join(app_dir, "app.yaml")
   with open(app_file) as f:
@@ -123,20 +123,20 @@ def setup_kubeflow_ks_app(dir, namespace, github_token, api_client):
   for pkg in packages:
     pkg = pkg.split("/")[1]
     libraries[pkg] = {
-      'gitVersion': {
-        'commitSha': 'fake',
-        'refSpec': 'fake'
-      },
-      'name': pkg,
-      'registry': "kubeflow"
+        'gitVersion': {
+            'commitSha': 'fake',
+            'refSpec': 'fake'
+        },
+        'name': pkg,
+        'registry': "kubeflow"
     }
   app_yaml['libraries'] = libraries
 
   with open(app_file, "w") as f:
     yaml.dump(app_yaml, f)
 
-  # Create vendor directory with a symlink to the src
-  # so that we use the code at the desired commit.
+  # Create vendor directory with a symlink to the src so that we use the code
+  # at the desired commit.
   target_dir = os.path.join(app_dir, "vendor", "kubeflow")
 
   REPO_ORG = "kubeflow"
@@ -164,20 +164,20 @@ def wait_for_operation(client,
                        status_callback=log_operation_status):
   """Wait for the specified operation to complete.
 
-    Args:
-      client: Client for the API that owns the operation.
-      project: project
-      op_id: Operation id.
-      timeout: A datetime.timedelta expressing the amount of time to wait before
-        giving up.
-      polling_interval: A datetime.timedelta to represent the amount of time to
-        wait between requests polling for the operation status.
+  Args:
+    client: Client for the API that owns the operation.
+    project: project
+    op_id: Operation id.
+    timeout: A datetime.timedelta expressing the amount of time to wait before
+      giving up.
+    polling_interval: A datetime.timedelta to represent the amount of time to
+      wait between requests polling for the operation status.
 
-    Returns:
-      op: The final operation.
+  Returns:
+    op: The final operation.
 
-    Raises:
-      TimeoutError: if we timeout waiting for the operation to complete.
+  Raises:
+    TimeoutError: if we timeout waiting for the operation to complete.
   """
   endtime = datetime.datetime.now() + timeout
   while True:
@@ -195,9 +195,8 @@ def wait_for_operation(client,
       logging.error("Ignoring error %s", e)
     if datetime.datetime.now() > endtime:
       raise TimeoutError(
-        "Timed out waiting for op: {0} to complete.".format(op_id))
+          "Timed out waiting for op: {0} to complete.".format(op_id))
     time.sleep(polling_interval.total_seconds())
 
-  # Linter complains if we don't have a return here even though its
-  # unreachable.
+  # Linter complains if we don't have a return here even though its unreachable
   return None

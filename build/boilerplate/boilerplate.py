@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 #
 # Copyright 2016 The Kubeflow Authors All rights reserved.
 #
@@ -25,9 +25,9 @@ import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-  "filenames",
-  help="list of files to check, all files if unspecified",
-  nargs='*')
+    "filenames",
+    help="list of files to check, all files if unspecified",
+    nargs='*')
 args = parser.parse_args()
 
 rootdir = os.path.dirname(__file__) + "/../../"
@@ -130,10 +130,10 @@ def get_files(extensions):
     files = args.filenames
   else:
     for root, dirs, walkfiles in os.walk(rootdir):
-      # don't visit certain dirs. This is just a performance improvement
-      # as we would prune these later in normalize_files(). But doing it
-      # cuts down the amount of filesystem walking we do and cuts down
-      # the size of the file list
+      # don't visit certain dirs. This is just a performance improvement as we
+      # would prune these later in normalize_files(). But doing it cuts down the
+      # amount of filesystem walking we do and cuts down the size of the file
+      # list
       for d in skipped_dirs:
         if d in dirs:
           dirs.remove(d)

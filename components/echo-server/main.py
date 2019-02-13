@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 #
 # Copyright 2016 Google Inc. All Rights Reserved.
 #
@@ -89,14 +89,14 @@ def unexpected_error(e):
   """Handle exceptions by returning swagger-compliant json."""
   logging.exception('An error occurred while processing the request.')
   response = jsonify({
-    'code': http_client.INTERNAL_SERVER_ERROR,
-    'message': 'Exception: {}'.format(e)
+      'code': http_client.INTERNAL_SERVER_ERROR,
+      'message': 'Exception: {}'.format(e)
   })
   response.status_code = http_client.INTERNAL_SERVER_ERROR
   return response
 
 
 if __name__ == '__main__':
-  # This is used when running locally. Gunicorn is used to run the
-  # application on Google App Engine. See entrypoint in app.yaml.
+  # This is used when running locally. Gunicorn is used to run the application
+  # on Google App Engine. See entrypoint in app.yaml.
   app.run(host='127.0.0.1', port=8080, debug=True)

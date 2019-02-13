@@ -12,6 +12,7 @@
       prow: "JOB_NAME=kubeflow-presubmit-test,JOB_TYPE=presubmit,PULL_NUMBER=209,REPO_NAME=kubeflow,REPO_OWNER=kubeflow,BUILD_NUMBER=997a",
       prow_env: "JOB_NAME=kubeflow-gke-deploy-test,JOB_TYPE=presubmit,PULL_NUMBER=4,REPO_NAME=kubeflow,REPO_OWNER=jlewi,BUILD_NUMBER=3a8b",
       gkeApiVersion: "",
+      workflowName: "",
     },
     gke_deploy: {
       bucket: "kubeflow-ci_temp",
@@ -28,6 +29,7 @@
       prow_env: "",
       deleteKubeflow: true,
       gkeApiVersion: "v1",
+      workflowName: "kfctl",
     },
     click_deploy_test: {
       bucket: "kubeflow-ci_temp",
@@ -35,6 +37,7 @@
       namespace: "kubeflow-test-infra",
       prow_env: "",
       gkeApiVersion: "v1",
+      workflowName: "deployapp",
     },
     unit_tests: {
       bucket: "kubeflow-ci_temp",
@@ -42,6 +45,7 @@
       namespace: "kubeflow-test-infra",
       prow_env: "",
       gkeApiVersion: "",
+      workflowName: "unittest",
     },
     tfserving: {
       commit: "master",
@@ -49,6 +53,7 @@
       namespace: "kubeflow-test-infra",
       prow_env: "REPO_OWNER=kubeflow,REPO_NAME=kubeflow,PULL_BASE_SHA=master",
       gkeApiVersion: "",
+      workflowName: "tfserving",
     },
   },
 }

@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 #
 # Copyright 2016 Google Inc. All Rights Reserved.
 #
@@ -30,8 +30,8 @@ class TestRedirect(unittest.TestCase):
 
     self.assertEqual(302, r.status_code)
     self.assertEqual(
-      r.data,
-      '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">\n<title>Redirecting...</title>\n<h1>Redirecting...</h1>\n<p>You should be redirected automatically to target URL: <a href="https://localhost/hello/world">https://localhost/hello/world</a>.  If not click the link.'  # noqa: E501
+        r.data,
+        '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">\n<title>Redirecting...</title>\n<h1>Redirecting...</h1>\n<p>You should be redirected automatically to target URL: <a href="https://localhost/hello/world">https://localhost/hello/world</a>.  If not click the link.'  # noqa: E501
     )
 
   def test_empty_path(self):
@@ -43,8 +43,8 @@ class TestRedirect(unittest.TestCase):
 
     self.assertEqual(200, r.status_code)
     self.assertEqual(
-      r.data,
-      '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">\n<title>Redirecting...</title>\n<h1>Redirecting...</h1>\n<p>You should be redirected automatically to target URL: <a href="https://localhost/">https://localhost/</a>.  If not click the link.'  # noqa: E501
+        r.data,
+        '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">\n<title>Redirecting...</title>\n<h1>Redirecting...</h1>\n<p>You should be redirected automatically to target URL: <a href="https://localhost/">https://localhost/</a>.  If not click the link.'  # noqa: E501
     )
 
   def test_health_check(self):

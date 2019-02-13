@@ -4,8 +4,8 @@ Test jupyter custom resource.
 
 This file tests that we can create notebooks using the Jupyter custom resource.
 
-It is an integration test as it depends on having access to
-a Kubeflow cluster with the custom resource test installed.
+It is an integration test as it depends on having access to a Kubeflow cluster
+with the custom resource test installed.
 
 We use the pytest framework because
   1. It can output results in junit format for prow/gubernator
@@ -50,10 +50,10 @@ def is_retryable_result(r):
 
 
 @retry(
-  wait_exponential_multiplier=1000,
-  wait_exponential_max=10000,
-  stop_max_delay=5 * 60 * 1000,
-  retry_on_result=is_retryable_result)
+    wait_exponential_multiplier=1000,
+    wait_exponential_max=10000,
+    stop_max_delay=5 * 60 * 1000,
+    retry_on_result=is_retryable_result)
 def send_request(*args, **kwargs):
   """Send a request to the Jupyter server.
 
@@ -68,7 +68,7 @@ def send_request(*args, **kwargs):
   token = token.strip()
 
   headers = {
-    "Authorization": "Bearer " + token,
+      "Authorization": "Bearer " + token,
   }
 
   if "headers" not in kwargs:
@@ -96,8 +96,8 @@ def test_jupyter(env, namespace):
   if app_credentials:
     logging.info("Activate service account")
     util.run([
-      "gcloud", "auth", "activate-service-account",
-      "--key-file=" + app_credentials
+        "gcloud", "auth", "activate-service-account",
+        "--key-file=" + app_credentials
     ])
 
   # util.load_kube_config appears to hang on python3
@@ -128,23 +128,23 @@ def test_jupyter(env, namespace):
   # from outside the cluster.
   url = ("https://{master}/api/v1/namespaces/{namespace}/services/{service}:80"
          "/proxy/").format(
-           master=master, namespace=namespace, service=service)
+             master=master, namespace=namespace, service=service)
   logging.info("Request: %s", url)
   r = send_request(url, verify=False)
 
   if r.status_code != requests.codes.OK:
     msg = "Request to {0} exited with status code: {1} and content: {2}".format(
-      url, r.status_code, r.content)
+        url, r.status_code, r.content)
     logging.error(msg)
     raise RuntimeError(msg)
 
 
 if __name__ == "__main__":
   logging.basicConfig(
-    level=logging.INFO,
-    format=('%(levelname)s|%(asctime)s'
-            '|%(pathname)s|%(lineno)d| %(message)s'),
-    datefmt='%Y-%m-%dT%H:%M:%S',
+      level=logging.INFO,
+      format=('%(levelname)s|%(asctime)s'
+              '|%(pathname)s|%(lineno)d| %(message)s'),
+      datefmt='%Y-%m-%dT%H:%M:%S',
   )
   logging.getLogger().setLevel(logging.INFO)
   pytest.main()

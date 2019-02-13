@@ -31,16 +31,16 @@ class KubeFormSpawner(spawner.KubeFormSpawner):
         form_defaults = {}
 
     secret_name = self._expand_user_properties(
-      self.extra_spawner_config['rok_secret_name'])
+        self.extra_spawner_config['rok_secret_name'])
 
     rok_token = self._get_rok_token(name=secret_name, namespace=self.namespace)
 
     # Return the rendered template as a unicode string
     return j2_env.get_template('template.html').render(
-      form_defaults=form_defaults,
-      rok_token=rok_token,
-      username=self._expand_user_properties('{username}'),
-      namespace=self.namespace)
+        form_defaults=form_defaults,
+        rok_token=rok_token,
+        username=self._expand_user_properties('{username}'),
+        namespace=self.namespace)
 
   def options_from_form(self, formdata):
     options = {}
@@ -233,7 +233,7 @@ class KubeFormSpawner(spawner.KubeFormSpawner):
 
     # Set Rok annotations to PVC
     secret_name = self._expand_user_properties(
-      self.extra_spawner_config['rok_secret_name'])
+        self.extra_spawner_config['rok_secret_name'])
 
     rok_annotations = {'rok/creds-secret-name': secret_name}
 
@@ -261,15 +261,15 @@ class KubeFormSpawner(spawner.KubeFormSpawner):
 
       # Upon success, mount PVC as a volume
       self.volumes.append({
-        'name': 'volume-%d-{username}' % idx,
-        'persistentVolumeClaim': {
-          'claimName': volume['name']
-        }
+          'name': 'volume-%d-{username}' % idx,
+          'persistentVolumeClaim': {
+              'claimName': volume['name']
+          }
       })
 
       self.volume_mounts.append({
-        'mountPath': volume['mountPath'],
-        'name': 'volume-%d-{username}' % idx
+          'mountPath': volume['mountPath'],
+          'name': 'volume-%d-{username}' % idx
       })
 
   def _get_rok_token(self, name, namespace):
@@ -290,25 +290,25 @@ class KubeFormSpawner(spawner.KubeFormSpawner):
   def _attach_rok_token_secret(self):
     """Attach the existing Rok Secret as Notebook Volume."""
     secret_name = self._expand_user_properties(
-      self.extra_spawner_config['rok_secret_name'])
+        self.extra_spawner_config['rok_secret_name'])
     secret_volume_name = 'volume-%s' % secret_name
 
     secret_volume = {
-      'name': secret_volume_name,
-      'secret': {
-        'secretName': secret_name
-      }
+        'name': secret_volume_name,
+        'secret': {
+            'secretName': secret_name
+        }
     }
     self.volumes.append(secret_volume)
     self.volume_mounts.append({
-      'name': secret_volume_name,
-      'mountPath': ROK_SECRET_MOUNT
+        'name': secret_volume_name,
+        'mountPath': ROK_SECRET_MOUNT
     })
 
     rok_env = {
-      'ROK_GW_TOKEN': 'file:%s/token' % ROK_SECRET_MOUNT,
-      'ROK_GW_URL': 'file:%s/url' % ROK_SECRET_MOUNT,
-      'ROK_GW_PARAM_REGISTER_JUPYTER_LAB': self.pod_name
+        'ROK_GW_TOKEN': 'file:%s/token' % ROK_SECRET_MOUNT,
+        'ROK_GW_URL': 'file:%s/url' % ROK_SECRET_MOUNT,
+        'ROK_GW_PARAM_REGISTER_JUPYTER_LAB': self.pod_name
     }
     self.environment.update(rok_env)
 
@@ -319,10 +319,10 @@ class KubeFormSpawner(spawner.KubeFormSpawner):
     del_status = None
     try:
       del_status = yield self.asynchronize(
-        self.api.delete_namespaced_persistent_volume_claim,
-        name=pvc_name,
-        namespace=namespace,
-        body=delete_options)
+          self.api.delete_namespaced_persistent_volume_claim,
+          name=pvc_name,
+          namespace=namespace,
+          body=delete_options)
     except ApiException as e:
       if e.status == 404:
         # The PVC does not exist
@@ -334,9 +334,9 @@ class KubeFormSpawner(spawner.KubeFormSpawner):
     while True:
       try:
         yield self.asynchronize(
-          self.api.read_namespaced_persistent_volume_claim,
-          name=pvc_name,
-          namespace=namespace)
+            self.api.read_namespaced_persistent_volume_claim,
+            name=pvc_name,
+            namespace=namespace)
       except ApiException as e:
         if e.status == 404:
           self.log.info('PVC %s was successfully deleted', pvc_name)
@@ -349,18 +349,18 @@ class KubeFormSpawner(spawner.KubeFormSpawner):
     """Issue a K8s API request to create a new, namespaced PVC."""
     # Create a V1PersistentVolumeClaim for the API call
     pvc_manifest = self._get_pvc_manifest(
-      name=volume['name'],
-      storage_class=self.extra_spawner_config['storage_class'],
-      access_modes=['ReadWriteOnce'],
-      storage=volume['size'],
-      labels=labels,
-      annotations=annotations)
+        name=volume['name'],
+        storage_class=self.extra_spawner_config['storage_class'],
+        access_modes=['ReadWriteOnce'],
+        storage=volume['size'],
+        labels=labels,
+        annotations=annotations)
     pvc = None
     try:
       pvc = yield self.asynchronize(
-        self.api.create_namespaced_persistent_volume_claim,
-        namespace=namespace,
-        body=pvc_manifest)
+          self.api.create_namespaced_persistent_volume_claim,
+          namespace=namespace,
+          body=pvc_manifest)
 
     except ApiException as e:
       if e.status == 409:

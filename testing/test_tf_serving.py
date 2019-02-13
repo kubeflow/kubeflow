@@ -40,7 +40,7 @@ from kubeflow.testing import util
 def almost_equal(a, b, tol=0.001):
   """
     Compares two json objects (assuming same structure) with tolerance on numbers
-    """
+  """
   if isinstance(a, dict):
     for key in a.keys():
       if not almost_equal(a[key], b[key]):
@@ -60,33 +60,38 @@ def almost_equal(a, b, tol=0.001):
 def main():
   parser = argparse.ArgumentParser('Label an image using Inception')
   parser.add_argument(
-    '-p',
-    '--port',
-    type=int,
-    default=9000,
-    help='Port at which Inception model is being served')
+      '-p',
+      '--port',
+      type=int,
+      default=9000,
+      help='Port at which Inception model is being served')
   parser.add_argument(
-    "--namespace", required=True, type=str, help=("The namespace to use."))
+      "--namespace", required=True, type=str, help=("The namespace to use."))
   parser.add_argument(
-    "--service_name",
-    required=True,
-    type=str,
-    help=("The TF serving service to use."))
+      "--service_name",
+      required=True,
+      type=str,
+      help=("The TF serving service to use."))
   parser.add_argument(
-    "--artifacts_dir",
-    default="",
-    type=str,
-    help="Directory to use for artifacts that should be preserved after "
-    "the test runs. Defaults to test_dir if not set.")
+      "--artifacts_dir",
+      default="",
+      type=str,
+      help="Directory to use for artifacts that should be preserved after "
+      "the test runs. Defaults to test_dir if not set.")
   parser.add_argument(
-    "--input_path", required=True, type=str, help=("The input file to use."))
+      "--input_path", required=True, type=str, help=("The input file to use."))
   parser.add_argument("--result_path", type=str, help=("The expected result."))
+  parser.add_argument(
+      "--workflow_name",
+      default="tfserving",
+      type=str,
+      help="The name of the workflow.")
 
   args = parser.parse_args()
 
   t = test_util.TestCase()
   t.class_name = "Kubeflow"
-  t.name = "tf-serving-image-" + args.service_name
+  t.name = args.workflow_name + "-" + args.service_name
 
   start = time.time()
 
@@ -101,8 +106,8 @@ def main():
                                                args.namespace)
     service_ip = service.spec.cluster_ip
     model_urls = [
-      "http://" + service_ip +
-      ":8500/v1/models/mnist:predict",  # tf serving's http server
+        "http://" + service_ip +
+        ":8500/v1/models/mnist:predict",  # tf serving's http server
     ]
     for model_url in model_urls:
       logging.info("Try predicting with endpoint {}".format(model_url))
@@ -132,8 +137,8 @@ def main():
   finally:
     t.time = time.time() - start
     junit_path = os.path.join(
-      args.artifacts_dir,
-      "junit_kubeflow-tf-serving-image-{}.xml".format(args.service_name))
+        args.artifacts_dir,
+        "junit_kubeflow-tf-serving-image-{}.xml".format(args.service_name))
     logging.info("Writing test results to %s", junit_path)
     test_util.create_junit_xml_file([t], junit_path)
     # Pause to collect Stackdriver logs.
@@ -142,10 +147,10 @@ def main():
 
 if __name__ == '__main__':
   logging.basicConfig(
-    level=logging.INFO,
-    format=('%(levelname)s|%(asctime)s'
-            '|%(pathname)s|%(lineno)d| %(message)s'),
-    datefmt='%Y-%m-%dT%H:%M:%S',
+      level=logging.INFO,
+      format=('%(levelname)s|%(asctime)s'
+              '|%(pathname)s|%(lineno)d| %(message)s'),
+      datefmt='%Y-%m-%dT%H:%M:%S',
   )
   logging.getLogger().setLevel(logging.INFO)
   main()

@@ -43,8 +43,8 @@ class KubeFormSpawner(KubeSpawner):
           self._spawner_ui_config = yaml.safe_load(c)
       except yaml.YAMLError as e:
         self.log.warning(
-          'Spawner UI config file contains'
-          'invalid YAML syntax: {}', e)
+            'Spawner UI config file contains'
+            'invalid YAML syntax: {}', e)
         return None
 
     return self._spawner_ui_config
@@ -73,9 +73,9 @@ class KubeFormSpawner(KubeSpawner):
 
     # Return the rendered template as a unicode string
     return j2_env.get_template('template.html').render(
-      form_defaults=form_defaults,
-      existing_pvcs=existing_pvcs,
-      username=self._expand_user_properties('{username}'))
+        form_defaults=form_defaults,
+        existing_pvcs=existing_pvcs,
+        username=self._expand_user_properties('{username}'))
 
   def options_from_form(self, formdata):
     options = {}
@@ -285,7 +285,7 @@ class KubeFormSpawner(KubeSpawner):
     gcp_secret_name = self.extra_spawner_config['gcp_secret_name']
     if gcp_secret_name:
       env['GOOGLE_APPLICATION_CREDENTIALS'] = '{}/{}.json'.format(
-        SERVICE_ACCOUNT_SECRET_MOUNT, gcp_secret_name)
+          SERVICE_ACCOUNT_SECRET_MOUNT, gcp_secret_name)
     return env
 
   # TODO(kkasravi): add unit test
@@ -307,11 +307,11 @@ class KubeFormSpawner(KubeSpawner):
       servername = ''
 
     rname = template.format(
-      userid=self.user.id,
-      username=safe,
-      unescaped_username=name,
-      legacy_escape_username=legacy,
-      servername=servername,
+        userid=self.user.id,
+        username=safe,
+        unescaped_username=name,
+        legacy_escape_username=legacy,
+        servername=servername,
     )
     return rname
 
@@ -334,12 +334,12 @@ class KubeFormSpawner(KubeSpawner):
       This manifest will be used to create PVCs in the K8s cluster.
     """
     return make_pvc(
-      name=name,
-      storage_class=storage_class,
-      access_modes=access_modes,
-      storage=storage,
-      labels=labels,
-      annotations=annotations)
+        name=name,
+        storage_class=storage_class,
+        access_modes=access_modes,
+        storage=storage,
+        labels=labels,
+        annotations=annotations)
 
   def _list_pvcs_in_namespace(self, namespace):
     """
@@ -350,7 +350,7 @@ class KubeFormSpawner(KubeSpawner):
 
     try:
       resp = self.api.list_namespaced_persistent_volume_claim(
-        namespace=namespace, watch=False)
+          namespace=namespace, watch=False)
 
     except ApiException as e:
       self.log.warn('Could not list PVCs in %s: %s', namespace, e)
@@ -359,12 +359,12 @@ class KubeFormSpawner(KubeSpawner):
     # Iterate over all existing PVCs and return all non-failed ones
     for pvc in [pvc for pvc in resp.items if pvc.status.phase != 'Failed']:
       existing_pvcs.append({
-        "name":
-        pvc.metadata.name,
-        "size":
-        pvc.spec.resources.requests.get('storage')[:-2],
-        "access_modes":
-        pvc.spec.access_modes
+          "name":
+          pvc.metadata.name,
+          "size":
+          pvc.spec.resources.requests.get('storage')[:-2],
+          "access_modes":
+          pvc.spec.access_modes
       })
 
     return existing_pvcs
@@ -387,40 +387,40 @@ class KubeFormSpawner(KubeSpawner):
 
       # Upon success, mount PVC as a volume
       self.volumes.append({
-        'name': 'volume-%d-{username}' % idx,
-        'persistentVolumeClaim': {
-          'claimName': volume['name']
-        }
+          'name': 'volume-%d-{username}' % idx,
+          'persistentVolumeClaim': {
+              'claimName': volume['name']
+          }
       })
 
       self.volume_mounts.append({
-        'mountPath': volume['mountPath'],
-        'name': 'volume-%d-{username}' % idx
+          'mountPath': volume['mountPath'],
+          'name': 'volume-%d-{username}' % idx
       })
 
   @gen.coroutine
   def _provision_new_pvc(self, volume, namespace):
     """Issue a K8s API request to create a new, namespaced PVC."""
     labels = self._build_common_labels(
-      self._expand_all(self.user_storage_extra_labels))
+        self._expand_all(self.user_storage_extra_labels))
     labels.update({'component': 'singleuser-storage'})
     annotations = self._build_common_annotations({})
 
     # Create a V1PersistentVolumeClaim for the API call
     pvc_manifest = self._get_pvc_manifest(
-      name=volume['name'],
-      storage_class=self.extra_spawner_config['storage_class'],
-      access_modes=[volume['accessModes']],
-      storage=volume['size'],
-      labels=labels,
-      annotations=annotations)
+        name=volume['name'],
+        storage_class=self.extra_spawner_config['storage_class'],
+        access_modes=[volume['accessModes']],
+        storage=volume['size'],
+        labels=labels,
+        annotations=annotations)
 
     pvc = None
     try:
       pvc = yield self.asynchronize(
-        self.api.create_namespaced_persistent_volume_claim,
-        namespace=namespace,
-        body=pvc_manifest)
+          self.api.create_namespaced_persistent_volume_claim,
+          namespace=namespace,
+          body=pvc_manifest)
 
     except ApiException as e:
       if e.status == 409:
@@ -439,9 +439,9 @@ class KubeFormSpawner(KubeSpawner):
 
     try:
       pvc = yield self.asynchronize(
-        self.api.read_namespaced_persistent_volume_claim,
-        name=pvc_name,
-        namespace=namespace)
+          self.api.read_namespaced_persistent_volume_claim,
+          name=pvc_name,
+          namespace=namespace)
 
     except ApiException as e:
       self.log.warning('PVC %s could not be retrieved: %s', pvc_name, e)

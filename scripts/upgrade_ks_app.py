@@ -19,23 +19,24 @@ DEFAULT_REGISTRY_NAME = "kubeflow"
 
 def main():
   logging.basicConfig(
-    level=logging.INFO,
-    format="%(levelname)s|%(asctime)s %(message)s",
-    datefmt="%Y-%m-%dT%H:%M:%S",
+      level=logging.INFO,
+      format="%(levelname)s|%(asctime)s %(message)s",
+      datefmt="%Y-%m-%dT%H:%M:%S",
   )
   logging.getLogger().setLevel(logging.INFO)
 
   parser = argparse.ArgumentParser()
   parser.add_argument(
-    "--app_dir",
-    default=os.getcwd(),
-    type=str,
-    help="The directory of the ksonnet app.")
+      "--app_dir",
+      default=os.getcwd(),
+      type=str,
+      help="The directory of the ksonnet app.")
   parser.add_argument(
-    "--registry",
-    default=CURRENT_RELEASE,
-    type=str,
-    help=("The Kubeflow registry to use. This can be a GitHub link like "
+      "--registry",
+      default=CURRENT_RELEASE,
+      type=str,
+      help=(
+          "The Kubeflow registry to use. This can be a GitHub link like "
           "{0} that points at a specific version of the registry. "
           "To specify the name of the registry in your ksonnet app "
           "you can use the from <name>=<registry URL>").format(CURRENT_RELEASE))
@@ -63,8 +64,8 @@ def main():
 
     if registries[name]["uri"].startswith("file"):
       # File registries are not stored in .ksonnet
-      # TODO(jlewi): This messes with bootstrapper because we might want
-      # to switch from using the file URI to using the git location.
+      # TODO(jlewi): This messes with bootstrapper because we might want  to
+      # switch from using the file URI to using the git location.
       logging.info("Skipping registry %s because it is a file URI" % name)
       continue
     target = os.path.join(app_dir, ".ksonnet/registries", name)

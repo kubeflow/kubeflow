@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 #
 # Copyright 2016 Google Inc. All Rights Reserved.
 #
@@ -38,8 +38,8 @@ def all_handler(path=None):
 
   response = redirect(new_url)
 
-  # For "/" we return a 200 (ok) and not a 302 (redirect) because on GKE
-  # we want to be able to use this to redirect http://mydomain.com/ to
+  # For "/" we return a 200 (ok) and not a 302 (redirect) because on GKE we want
+  # to be able to use this to redirect http://mydomain.com/ to
   # https://mydomain.com/. However, the Ingress sets up the GCP loadbalancer
   # health check requires that a 200 be served on "/". So if we return a 302
   # the backend will be considered unhealthy.
@@ -50,10 +50,10 @@ def all_handler(path=None):
 
 if __name__ == '__main__':
   logging.basicConfig(
-    level=logging.INFO,
-    format=('%(levelname)s|%(asctime)s'
-            '|%(pathname)s|%(lineno)d| %(message)s'),
-    datefmt='%Y-%m-%dT%H:%M:%S',
+      level=logging.INFO,
+      format=('%(levelname)s|%(asctime)s'
+              '|%(pathname)s|%(lineno)d| %(message)s'),
+      datefmt='%Y-%m-%dT%H:%M:%S',
   )
   logging.getLogger().setLevel(logging.INFO)
   app.run(host='127.0.0.1', port=8080, debug=False)

@@ -16,10 +16,11 @@
 # limitations under the License.
 """
 Launch a simple katib studyjob and verify that it runs.
+
 TODO(ricliu): This code shares a lot in common with the e2etest for tf-operator.
 Consider merging the common code into a CRD library. There are only some minor
-differences - for example TFJob Status has a list of job conditions, whereas Katib
-Studyjob status only shows the most recent condition.
+differences - for example TFJob Status has a list of job conditions, whereas
+Katib Studyjob status only shows the most recent condition.
 """
 
 import argparse
@@ -61,12 +62,12 @@ class JobTimeoutError(TimeoutError):
 def parse_args():
   parser = argparse.ArgumentParser()
   parser.add_argument(
-    "--src_dir", default="", type=str, help="The kubeflow src directory")
+      "--src_dir", default="", type=str, help="The kubeflow src directory")
   parser.add_argument(
-    "--studyjob_version",
-    default="v1alpha1",
-    type=str,
-    help="Which katib study job version to use")
+      "--studyjob_version",
+      default="v1alpha1",
+      type=str,
+      help="Which katib study job version to use")
   args, _ = parser.parse_known_args()
   return args
 
@@ -75,8 +76,8 @@ def parse_args():
 def create_app_and_job(args, namespace, name):
   try:
     util.run([
-      "ks", "init", "katib-app", "--skip-default-registries",
-      "--namespace=" + namespace
+        "ks", "init", "katib-app", "--skip-default-registries",
+        "--namespace=" + namespace
     ])
   except subprocess.CalledProcessError as e:
     # Keep going if the app already exists. This is a sign the a previous
@@ -105,7 +106,7 @@ def create_app_and_job(args, namespace, name):
     prototype_name = "katib-studyjob-test-v1alpha1"
   else:
     raise ValueError(
-      "Unrecognized value for studyjob_version: %s" % args.studyjob_version)
+        "Unrecognized value for studyjob_version: %s" % args.studyjob_version)
 
   util.run(["ks", "generate", prototype_name, name])
   util.run(["ks", "apply", "default", "-c", "katib-studyjob-test"])
@@ -142,8 +143,8 @@ def wait_for_condition(client,
       timeout: How long to wait for the job.
       polling_interval: How often to poll for the status of the job.
       status_callback: (Optional): Callable. If supplied this callable is
-        invoked after we poll the job. Callable takes a single argument which
-        is the job.
+        invoked after we poll the job. Callable takes a single argument which is
+        the job.
   """
   crd_api = k8s_client.CustomObjectsApi(client)
   end_time = datetime.datetime.now() + timeout
@@ -152,12 +153,12 @@ def wait_for_condition(client,
     # If we don't set async_req=True then it could potentially block
     # forever.
     thread = crd_api.get_namespaced_custom_object(
-      STUDY_JOB_GROUP,
-      version,
-      namespace,
-      STUDY_JOB_PLURAL,
-      name,
-      async_req=True)
+        STUDY_JOB_GROUP,
+        version,
+        namespace,
+        STUDY_JOB_PLURAL,
+        name,
+        async_req=True)
 
     # Try to get the result but timeout.
     results = None
@@ -167,8 +168,8 @@ def wait_for_condition(client,
       logging.error("Timeout trying to get StudyJob.")
     except Exception as e:
       logging.error(
-        "There was a problem waiting for StudyJob %s.%s; Exception; %s", name,
-        name, e)
+          "There was a problem waiting for StudyJob %s.%s; Exception; %s", name,
+          name, e)
       raise
 
     if results:
@@ -181,8 +182,9 @@ def wait_for_condition(client,
 
     if datetime.datetime.now() + polling_interval > end_time:
       raise JobTimeoutError(
-        "Timeout waiting for job {0} in namespace {1} to enter one of the "
-        "conditions {2}.".format(name, namespace, expected_condition), results)
+          "Timeout waiting for job {0} in namespace {1} to enter one of the "
+          "conditions {2}.".format(name, namespace, expected_condition),
+          results)
 
     time.sleep(polling_interval.seconds)
 
@@ -201,7 +203,7 @@ def test_katib(test_case):  # pylint: disable=redefined-outer-name
   create_app_and_job(args, namespace, name)
   try:
     wait_for_condition(
-      api_client, namespace, name, ["Running"], status_callback=log_status)
+        api_client, namespace, name, ["Running"], status_callback=log_status)
     logging.info("StudyJob launched successfully")
   except Exception as e:
     logging.error("Test failed waiting for job; %s", e)

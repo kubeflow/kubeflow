@@ -14,7 +14,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """A simple utility to convert a manifest to corresponding jsonnet."""
 import argparse
 import json
@@ -23,9 +22,9 @@ import yaml
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description="Convert manifest.")
   parser.add_argument(
-    "--manifest",
-    type=str,
-    required=True,
+      "--manifest",
+      type=str,
+      required=True,
   )
 
   args = parser.parse_args()

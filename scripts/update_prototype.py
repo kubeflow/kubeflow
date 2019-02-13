@@ -21,14 +21,14 @@ import re
 
 def main():
   parser = argparse.ArgumentParser(
-    description="Update ksonnet prototypes parameters' values")
+      description="Update ksonnet prototypes parameters' values")
   parser.add_argument(
-    "--file", action="store", dest="file", help="Prototype file name")
+      "--file", action="store", dest="file", help="Prototype file name")
   parser.add_argument(
-    "--values",
-    action="store",
-    dest="values",
-    help="Comma separated param=value pairs. Ex.: a=b,c=1")
+      "--values",
+      action="store",
+      dest="values",
+      help="Comma separated param=value pairs. Ex.: a=b,c=1")
   args = parser.parse_args()
 
   if not os.path.exists(args.file):
@@ -53,9 +53,9 @@ def main():
         continue
       if line.startswith("//"):
         prototype[i] = re.sub(
-          r"(// @\w+ )" + param + r"( \w+ )[^ ]+(.*)",  # noqa: W605
-          r"\g<1>" + param + r"\2" + regexps[param][2] + r"\3",
-          line)
+            r"(// @\w+ )" + param + r"( \w+ )[^ ]+(.*)",  # noqa: W605
+            r"\g<1>" + param + r"\2" + regexps[param][2] + r"\3",
+            line)
         replacements += 1
         continue
       prototype[i] = re.sub(regexps[param][0], regexps[param][1], line)
@@ -63,7 +63,7 @@ def main():
         replacements += 1
   if replacements == 0:
     raise Exception(
-      "No replacements made, are you sure you specified correct param?")
+        "No replacements made, are you sure you specified correct param?")
   if replacements < len(regexps):
     raise Warning("Made less replacements then number of params. Typo?")
   temp_file = args.file + ".tmp"

@@ -15,13 +15,13 @@ import requests
 
 def main():
   parser = argparse.ArgumentParser(
-    description="Script to test sending requests to the ksonnet server.")
+      description="Script to test sending requests to the ksonnet server.")
 
   parser.add_argument(
-    "--endpoint",
-    default="http://localhost:8080",
-    type=str,
-    help="The endpoint of the server")
+      "--endpoint",
+      default="http://localhost:8080",
+      type=str,
+      help="The endpoint of the server")
 
   args = parser.parse_args()
 
@@ -30,21 +30,21 @@ def main():
   now = datetime.datetime.now()
 
   data = {
-    "Name": "test-app-" + now.strftime("%Y%m%d-%H%M%S"),
-    "AppConfig": {
-      "Registries": [
-        {
-          "Name": "kubeflow",
-          "RegUri": "/home/jlewi/git_kubeflow/kubeflow",
-        },
-      ],
-      "Packages": [{
-        "Name": "core",
-        "Registry": "kubeflow",
-      }],
-    },
-    "Namespace": "kubeflow",
-    "AutoConfigure": False,
+      "Name": "test-app-" + now.strftime("%Y%m%d-%H%M%S"),
+      "AppConfig": {
+          "Registries": [
+              {
+                  "Name": "kubeflow",
+                  "RegUri": "/home/jlewi/git_kubeflow/kubeflow",
+              },
+          ],
+          "Packages": [{
+              "Name": "core",
+              "Registry": "kubeflow",
+          }],
+      },
+      "Namespace": "kubeflow",
+      "AutoConfigure": False,
   }
   r = requests.post(create_endpoint, json=data)
   if r.status_code != requests.codes.OK:
@@ -55,10 +55,10 @@ def main():
 
 if __name__ == "__main__":
   logging.basicConfig(
-    level=logging.INFO,
-    format=('%(levelname)s|%(asctime)s'
-            '|%(pathname)s|%(lineno)d| %(message)s'),
-    datefmt='%Y-%m-%dT%H:%M:%S',
+      level=logging.INFO,
+      format=('%(levelname)s|%(asctime)s'
+              '|%(pathname)s|%(lineno)d| %(message)s'),
+      datefmt='%Y-%m-%dT%H:%M:%S',
   )
   logging.getLogger().setLevel(logging.INFO)
   main()

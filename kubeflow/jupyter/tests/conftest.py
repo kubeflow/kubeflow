@@ -4,10 +4,13 @@ import pytest
 
 def pytest_addoption(parser):
   parser.addoption(
-    "--namespace", action="store", default="", help="namespace  to use")
+      "--namespace", action="store", default="", help="namespace  to use")
 
   parser.addoption(
-    "--env", action="store", default="jupytertest", help="ksonnet environment")
+      "--env",
+      action="store",
+      default="jupytertest",
+      help="ksonnet environment")
 
 
 @pytest.fixture

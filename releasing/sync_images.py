@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""This script synchronizes Docker image in image_tags.yaml to your own registry.
+"""This script synchronizes Docker image in image_tags.yaml to your own registry
 
 Example:
 python sync_images.py --registry registry.aliyuncs.com
 
-This would sync up the docker images for kubeflow releasing to your own docker registry.
+This would sync up the docker images for kubeflow releasing to your own docker
+registry.
 """
 
 import sys
@@ -37,19 +38,19 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
   logging.getLogger().setLevel(logging.INFO)  # pylint: disable=too-many-locals
   # create the top-level parser
   parser = argparse.ArgumentParser(
-    description="sync up the kubeflow docker images to your own registry")
+      description="sync up the kubeflow docker images to your own registry")
 
   parser.add_argument(
-    "--images_file",
-    default="image_tags.yaml",
-    type=str,
-    help="Yaml file containing the tags to sync up.")
+      "--images_file",
+      default="image_tags.yaml",
+      type=str,
+      help="Yaml file containing the tags to sync up.")
 
   parser.add_argument(
-    "--registry",
-    default="registry.aliyuncs.com",
-    type=str,
-    help=("docker registry e.g. registry.aliyuncs.com"))
+      "--registry",
+      default="registry.aliyuncs.com",
+      type=str,
+      help=("docker registry e.g. registry.aliyuncs.com"))
 
   args = parser.parse_args()
 
@@ -93,10 +94,10 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
 
 if __name__ == "__main__":
   logging.basicConfig(
-    level=logging.INFO,
-    format=('%(levelname)s|%(asctime)s'
-            '|%(pathname)s|%(lineno)d| %(message)s'),
-    datefmt='%Y-%m-%dT%H:%M:%S',
+      level=logging.INFO,
+      format=('%(levelname)s|%(asctime)s'
+              '|%(pathname)s|%(lineno)d| %(message)s'),
+      datefmt='%Y-%m-%dT%H:%M:%S',
   )
   logging.getLogger().setLevel(logging.INFO)
   main()

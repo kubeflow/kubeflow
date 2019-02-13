@@ -16,10 +16,10 @@
 # limitations under the License.
 """Wait for kubeflow deployment.
 
-Right now, it only checks for the presence of tfjobs and pytorchjobs crd. More things can be added incrementally.
-
-python -m testing.wait_for_deployment --cluster=kubeflow-testing --project=kubeflow-ci --zone=us-east1-d --timeout=3
-
+Right now, it only checks for the presence of tfjobs and pytorchjobs crd. More
+things can be added incrementally.
+python -m testing.wait_for_deployment --cluster=kubeflow-testing \
+    --project=kubeflow-ci --zone=us-east1-d --timeout=3
 
 TODO(jlewi): Waiting for the CRD's to be created probably isn't that useful.
 I think that will be nearly instantaneous. If we're going to wait for something
@@ -42,7 +42,7 @@ from kubeflow.testing import test_helper, util
 def parse_args():
   parser = argparse.ArgumentParser()
   parser.add_argument(
-    "--timeout", default=5, type=int, help="Timeout in minutes")
+      "--timeout", default=5, type=int, help="Timeout in minutes")
   args, _ = parser.parse_known_args()
   return args
 
@@ -57,7 +57,7 @@ def wait_for_resource(resource, end_time):
         break
     except subprocess.CalledProcessError as e:
       logging.info(
-        "Could not find {}. Sleeping for 10 seconds..".format(resource))
+          "Could not find {}. Sleeping for 10 seconds..".format(resource))
       time.sleep(10)
 
 
@@ -74,6 +74,6 @@ def test_wait_for_deployment(test_case):  # pylint: disable=redefined-outer-name
 
 if __name__ == "__main__":
   test_case = test_helper.TestCase(
-    name="test_wait_for_deployment", test_func=test_wait_for_deployment)
+      name="test_wait_for_deployment", test_func=test_wait_for_deployment)
   test_suite = test_helper.init(name="", test_cases=[test_case])
   test_suite.run()

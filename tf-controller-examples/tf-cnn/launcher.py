@@ -31,7 +31,7 @@ import time
 def run_and_stream(cmd):
   logging.info("Running %s", " ".join(cmd))
   process = subprocess.Popen(
-    cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+      cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
   while process.poll() is None:
     process.stdout.flush()
@@ -53,16 +53,16 @@ def run_and_stream(cmd):
 
   if process.returncode != 0:
     raise ValueError("cmd: {0} exited with code {1}".format(
-      " ".join(cmd), process.returncode))
+        " ".join(cmd), process.returncode))
 
 
 if __name__ == "__main__":
   logging.getLogger().setLevel(logging.INFO)
   logging.basicConfig(
-    level=logging.INFO,
-    format=('%(levelname)s|%(asctime)s'
-            '|%(pathname)s|%(lineno)d| %(message)s'),
-    datefmt='%Y-%m-%dT%H:%M:%S',
+      level=logging.INFO,
+      format=('%(levelname)s|%(asctime)s'
+              '|%(pathname)s|%(lineno)d| %(message)s'),
+      datefmt='%Y-%m-%dT%H:%M:%S',
   )
   logging.info("Launcher started.")
   tf_config = os.environ.get('TF_CONFIG', '{}')

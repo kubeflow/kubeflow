@@ -33,8 +33,8 @@ IAM_SCOPE = 'https://www.googleapis.com/auth/iam'
 OAUTH_TOKEN_URI = 'https://www.googleapis.com/oauth2/v4/token'
 METHOD = 'GET'
 SERVICE_HEALTH = Gauge(
-  'deployment_service_status',
-  '0: normal; 1: deployment not successful; 2: service down')
+    'deployment_service_status',
+    '0: normal; 1: deployment not successful; 2: service down')
 PROBER_HEALTH = Gauge('prober_health', '0: normal; 1: not working')
 LOADTEST_HEALTH = Gauge('loadtest_health', '0: normal; 1: not working')
 LOADTEST_SUCCESS = Gauge('loadtest_success',
@@ -44,7 +44,7 @@ SUCCESS_COUNT = Counter('deployment_success_count',
 FAILURE_COUNT = Counter('deployment_failure_count',
                         'accumulative count of failed deployment')
 LOADTEST_ZONE = [
-  'us-central1-a', 'us-central1-c', 'us-east1-c', 'us-east1-d', 'us-west1-b'
+    'us-central1-a', 'us-central1-c', 'us-east1-c', 'us-east1-d', 'us-west1-b'
 ]
 
 
@@ -59,11 +59,12 @@ class requestThread(threading.Thread):
   def run(self):
     try:
       resp = requests.post(
-        "https://%s/kfctl/e2eDeploy" % self.target_url,
-        json=self.req_data,
-        headers={
-          'Authorization': 'Bearer {}'.format(self.google_open_id_connect_token)
-        })
+          "https://%s/kfctl/e2eDeploy" % self.target_url,
+          json=self.req_data,
+          headers={
+              'Authorization':
+              'Bearer {}'.format(self.google_open_id_connect_token)
+          })
       if resp.status_code != 200:
         # logging.error("%s failed; \ntext: %s" % (self.req_data["Name"], resp.text()))
         # Mark service down if return code abnormal
@@ -113,30 +114,30 @@ def prepare_request_data(args, deployment):
   defaultApp['registries'][0]['version'] = args.kfverison
 
   access_token = util_run(
-    'gcloud auth application-default print-access-token'.split(' '),
-    cwd=FILE_PATH)
+      'gcloud auth application-default print-access-token'.split(' '),
+      cwd=FILE_PATH)
 
   client_id = may_get_env_var("CLIENT_ID")
   client_secret = may_get_env_var("CLIENT_SECRET")
 
   return {
-    "AppConfig": defaultApp,
-    "Apply": True,
-    "AutoConfigure": True,
-    "ClientId": base64.b64encode(client_id.encode()).decode("utf-8"),
-    "ClientSecret": base64.b64encode(client_secret.encode()).decode("utf-8"),
-    "Cluster": deployment,
-    "Email": args.email,
-    "IpName": deployment + '-ip',
-    "Name": deployment,
-    "Namespace": 'kubeflow',
-    "Project": args.project,
-    "ProjectNumber": args.project_number,
-    # service account client id of account:
-    # kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
-    "SAClientId": args.sa_client_id,
-    "Token": access_token,
-    "Zone": getZone(args, deployment)
+      "AppConfig": defaultApp,
+      "Apply": True,
+      "AutoConfigure": True,
+      "ClientId": base64.b64encode(client_id.encode()).decode("utf-8"),
+      "ClientSecret": base64.b64encode(client_secret.encode()).decode("utf-8"),
+      "Cluster": deployment,
+      "Email": args.email,
+      "IpName": deployment + '-ip',
+      "Name": deployment,
+      "Namespace": 'kubeflow',
+      "Project": args.project,
+      "ProjectNumber": args.project_number,
+      # service account client id of account:
+      # kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
+      "SAClientId": args.sa_client_id,
+      "Token": access_token,
+      "Zone": getZone(args, deployment)
   }
 
 
@@ -145,9 +146,9 @@ def make_e2e_call(args):
     raise RuntimeError("Failed to cleanup resource")
   req_data = prepare_request_data(args, args.deployment)
   resp = requests.post(
-    "http://kubeflow-controller.%s.svc.cluster.local:8080/kfctl/e2eDeploy" %
-    args.namespace,
-    json=req_data)
+      "http://kubeflow-controller.%s.svc.cluster.local:8080/kfctl/e2eDeploy" %
+      args.namespace,
+      json=req_data)
   if resp.status_code != 200:
     raise RuntimeError("deploy request received status code: %s, message: %s" %
                        (resp.status_code, resp.text))
@@ -159,14 +160,14 @@ def make_prober_call(args, service_account_credentials):
   logging.info("start new prober call")
   req_data = prepare_request_data(args, args.deployment)
   google_open_id_connect_token = get_google_open_id_connect_token(
-    service_account_credentials)
+      service_account_credentials)
   try:
     resp = requests.post(
-      "https://%s/kfctl/e2eDeploy" % get_target_url(args),
-      json=req_data,
-      headers={
-        'Authorization': 'Bearer {}'.format(google_open_id_connect_token)
-      })
+        "https://%s/kfctl/e2eDeploy" % get_target_url(args),
+        json=req_data,
+        headers={
+            'Authorization': 'Bearer {}'.format(google_open_id_connect_token)
+        })
     if resp.status_code != 200:
       # Mark service down if return code abnormal
       SERVICE_HEALTH.set(2)
@@ -184,13 +185,13 @@ def make_prober_call(args, service_account_credentials):
 def make_loadtest_call(args, service_account_credentials, deployments):
   logging.info("start new prober call")
   google_open_id_connect_token = get_google_open_id_connect_token(
-    service_account_credentials)
+      service_account_credentials)
   threads = []
   for deployment in deployments:
     req_data = prepare_request_data(args, deployment)
     threads.append(
-      requestThread(
-        get_target_url(args), req_data, google_open_id_connect_token))
+        requestThread(
+            get_target_url(args), req_data, google_open_id_connect_token))
   for t in threads:
     t.start()
   for t in threads:
@@ -219,7 +220,7 @@ def insert_ssl_cert(args, deployment):
     sleep(5)
     try:
       request = service.deployments().get(
-        project=args.project, deployment=deployment)
+          project=args.project, deployment=deployment)
       response = request.execute()
       if response['operation']['status'] != 'DONE':
         logging.info("Deployment running")
@@ -254,8 +255,8 @@ def insert_ssl_cert(args, deployment):
 @retry(wait_fixed=2000, stop_max_delay=15000)
 def create_secret(args, deployment, ssl_local_dir):
   util_run(
-    ("gcloud container clusters get-credentials %s --zone %s --project %s" %
-     (deployment, getZone(args, deployment), args.project)).split(' '))
+      ("gcloud container clusters get-credentials %s --zone %s --project %s" %
+       (deployment, getZone(args, deployment), args.project)).split(' '))
   util_run(("kubectl create -f %s" % ssl_local_dir).split(' '))
 
 
@@ -267,11 +268,11 @@ def check_deploy_status(args, deployments):
   service_account_credentials = get_service_account_credentials("CLIENT_ID")
 
   google_open_id_connect_token = get_google_open_id_connect_token(
-    service_account_credentials)
+      service_account_credentials)
   # Wait up to 30 minutes for IAP access test.
   num_req = 0
   end_time = datetime.datetime.now() + datetime.timedelta(
-    minutes=args.iap_wait_min)
+      minutes=args.iap_wait_min)
   success_deploy = set()
   while datetime.datetime.now() < end_time and len(deployments) > 0:
     sleep(10)
@@ -282,18 +283,19 @@ def check_deploy_status(args, deployments):
       logging.info("Trying url: %s", url)
       try:
         resp = requests.request(
-          METHOD,
-          url,
-          headers={
-            'Authorization': 'Bearer {}'.format(google_open_id_connect_token)
-          },
-          verify=False)
+            METHOD,
+            url,
+            headers={
+                'Authorization':
+                'Bearer {}'.format(google_open_id_connect_token)
+            },
+            verify=False)
         if resp.status_code == 200:
           success_deploy.add(deployment)
           logging.info("IAP is ready for %s!", url)
         else:
           logging.info(
-            "%s: IAP not ready, request number: %s" % (deployment, num_req))
+              "%s: IAP not ready, request number: %s" % (deployment, num_req))
       except Exception:
         logging.info("%s: IAP not ready, exception caught, request number: %s" %
                      (deployment, num_req))
@@ -307,20 +309,20 @@ def check_deploy_status(args, deployments):
         if os.path.exists(ssl_local_dir):
           continue
         os.makedirs(ssl_local_dir)
-        util_run(
-          ("gcloud container clusters get-credentials %s --zone %s --project %s"
-           % (deployment, getZone(args, deployment), args.project)).split(' '))
+        util_run((
+            "gcloud container clusters get-credentials %s --zone %s --project %s"
+            % (deployment, getZone(args, deployment), args.project)).split(' '))
         for sec in ["envoy-ingress-tls", "letsencrypt-prod-secret"]:
           sec_data = util_run(
-            ("kubectl get secret %s -n kubeflow -o yaml" % sec).split(' '))
+              ("kubectl get secret %s -n kubeflow -o yaml" % sec).split(' '))
           with open(os.path.join(ssl_local_dir, sec + ".yaml"),
                     'w+') as sec_file:
             sec_file.write(sec_data)
             sec_file.close()
         # TODO: switch to client lib
         util_run(
-          ("gsutil cp %s/* gs://%s/" %
-           (ssl_local_dir, get_gcs_path(args.mode, deployment))).split(' '))
+            ("gsutil cp %s/* gs://%s/" %
+             (ssl_local_dir, get_gcs_path(args.mode, deployment))).split(' '))
       except Exception:
         logging.error("%s: failed uploading ssl cert" % deployment)
 
@@ -351,33 +353,33 @@ def get_service_account_credentials(client_id_key):
   # Construct OAuth 2.0 service account credentials using the signer
   # and email acquired from the bootstrap credentials.
   return google.oauth2.service_account.Credentials(
-    signer,
-    signer_email,
-    token_uri=OAUTH_TOKEN_URI,
-    additional_claims={'target_audience': may_get_env_var(client_id_key)})
+      signer,
+      signer_email,
+      token_uri=OAUTH_TOKEN_URI,
+      additional_claims={'target_audience': may_get_env_var(client_id_key)})
 
 
 def get_google_open_id_connect_token(service_account_credentials):
   service_account_jwt = (
-    service_account_credentials._make_authorization_grant_assertion())
+      service_account_credentials._make_authorization_grant_assertion())
   request = google.auth.transport.requests.Request()
   body = {
-    'assertion': service_account_jwt,
-    'grant_type': google.oauth2._client._JWT_GRANT_TYPE,
+      'assertion': service_account_jwt,
+      'grant_type': google.oauth2._client._JWT_GRANT_TYPE,
   }
   token_response = google.oauth2._client._token_endpoint_request(
-    request, OAUTH_TOKEN_URI, body)
+      request, OAUTH_TOKEN_URI, body)
   return token_response['id_token']
 
 
 def delete_gcloud_resource(args, keyword, filter='', dlt_params=[]):
   # TODO: switch to client lib
   get_cmd = 'gcloud compute %s list --project=%s --format="value(name)"' % (
-    keyword, args.project)
+      keyword, args.project)
   elements = util_run(get_cmd + filter, shell=True)
   for element in elements.split('\n'):
     dlt_cmd = 'gcloud compute %s delete -q --project=%s %s' % (
-      keyword, args.project, element)
+        keyword, args.project, element)
     try:
       util_run(dlt_cmd.split(' ') + dlt_params)
     except Exception as e:
@@ -395,11 +397,11 @@ def clean_up_resource(args, deployments):
       bool: True if cleanup is done
   """
   logging.info(
-    "Clean up project resource (source repo, backend service and deployment)")
+      "Clean up project resource (source repo, backend service and deployment)")
 
   # Delete source repo
   sr_cmd = 'gcloud -q source repos delete %s-kubeflow-config --project=%s' % (
-    args.project, args.project)
+      args.project, args.project)
   try:
     util_run(sr_cmd.split(' '), cwd=FILE_PATH)
   except Exception as e:
@@ -412,7 +414,7 @@ def clean_up_resource(args, deployments):
   for deployment in deployments:
     try:
       request = service.deployments().delete(
-        project=args.project, deployment=deployment)
+          project=args.project, deployment=deployment)
       request.execute()
     except Exception as e:
       logging.info("Deployment doesn't exist, continue")
@@ -441,10 +443,10 @@ def clean_up_resource(args, deployments):
   # Delete instance-groups
   for zone in LOADTEST_ZONE:
     delete_gcloud_resource(
-      args,
-      'instance-groups unmanaged',
-      filter=' --filter=INSTANCES:0',
-      dlt_params=['--zone=' + zone])
+        args,
+        'instance-groups unmanaged',
+        filter=' --filter=INSTANCES:0',
+        dlt_params=['--zone=' + zone])
   # Delete ssl-certificates
   delete_gcloud_resource(args, 'ssl-certificates')
   # Delete health-checks
@@ -478,12 +480,12 @@ def util_run(command,
     logging.info("Running: Environment:\n%s", "\n".join(lines))
 
   process = subprocess.Popen(
-    command,
-    cwd=cwd,
-    env=env,
-    shell=shell,
-    stdout=subprocess.PIPE,
-    stderr=subprocess.STDOUT)
+      command,
+      cwd=cwd,
+      env=env,
+      shell=shell,
+      stdout=subprocess.PIPE,
+      stderr=subprocess.STDOUT)
 
   # logging.info("Subprocess output:\n")
   output = []
@@ -502,8 +504,8 @@ def util_run(command,
 
   if process.returncode != 0:
     raise subprocess.CalledProcessError(
-      process.returncode, "cmd: {0} exited with code {1}".format(
-        " ".join(command), process.returncode), "\n".join(output))
+        process.returncode, "cmd: {0} exited with code {1}".format(
+            " ".join(command), process.returncode), "\n".join(output))
 
   return "\n".join(output)
 
@@ -514,16 +516,16 @@ def run_load_test(args):
   LOADTEST_SUCCESS.set(num_concurrent_requests)
   LOADTEST_HEALTH.set(0)
   service_account_credentials = get_service_account_credentials(
-    "SERVICE_CLIENT_ID")
+      "SERVICE_CLIENT_ID")
   deployments = set(
-    ['kubeflow' + str(i) for i in range(1, num_concurrent_requests + 1)])
+      ['kubeflow' + str(i) for i in range(1, num_concurrent_requests + 1)])
   while True:
     sleep(args.wait_sec)
     if not clean_up_resource(args, deployments):
       LOADTEST_HEALTH.set(1)
       FAILURE_COUNT.inc()
       logging.error(
-        "request cleanup failed, retry in %s seconds" % args.wait_sec)
+          "request cleanup failed, retry in %s seconds" % args.wait_sec)
       continue
     LOADTEST_HEALTH.set(0)
     if make_loadtest_call(args, service_account_credentials, deployments):
@@ -539,7 +541,7 @@ def run_load_test(args):
       LOADTEST_SUCCESS.set(0)
       FAILURE_COUNT.inc()
       logging.error(
-        "prober request failed, retry in %s seconds" % args.wait_sec)
+          "prober request failed, retry in %s seconds" % args.wait_sec)
 
 
 def run_e2e_test(args):
@@ -570,7 +572,7 @@ def wrap_test(args):
     # want one underscore after junit.
     junit_name = test_case.name.replace("_", "-")
     junit_path = os.path.join(
-      args.artifacts_dir, "junit_kubeflow-deploy-{0}.xml".format(junit_name))
+        args.artifacts_dir, "junit_kubeflow-deploy-{0}.xml".format(junit_name))
     logging.info("Writing test results to %s", junit_path)
     test_util.create_junit_xml_file([test_case], junit_path)
 
@@ -578,61 +580,67 @@ def wrap_test(args):
 # Clone repos to tmp folder and build docker images
 def main(unparsed_args=None):
   parser = argparse.ArgumentParser(
-    description="Start deployment api and make request to it.")
+      description="Start deployment api and make request to it.")
 
   parser.add_argument(
-    "--deployment", default="periodic-test", type=str, help="Deployment name.")
+      "--deployment",
+      default="periodic-test",
+      type=str,
+      help="Deployment name.")
   parser.add_argument(
-    "--email",
-    default="google-kubeflow-support@google.com",
-    type=str,
-    help="Email used during e2e test")
+      "--email",
+      default="google-kubeflow-support@google.com",
+      type=str,
+      help="Email used during e2e test")
   parser.add_argument(
-    "--project",
-    default="kubeflow-ci-deployment",
-    type=str,
-    help="e2e test project id")
+      "--project",
+      default="kubeflow-ci-deployment",
+      type=str,
+      help="e2e test project id")
   parser.add_argument(
-    "--project_number",
-    default="29647740582",
-    type=str,
-    help="e2e test project number")
+      "--project_number",
+      default="29647740582",
+      type=str,
+      help="e2e test project number")
   parser.add_argument(
-    "--namespace",
-    default="",
-    type=str,
-    help="namespace where deployment service is running")
+      "--namespace",
+      default="",
+      type=str,
+      help="namespace where deployment service is running")
   parser.add_argument(
-    "--wait_sec", default=120, type=int, help="oauth client secret")
+      "--wait_sec", default=120, type=int, help="oauth client secret")
   parser.add_argument(
-    "--iap_wait_min", default=30, type=int, help="minutes to wait for IAP")
+      "--iap_wait_min", default=30, type=int, help="minutes to wait for IAP")
   parser.add_argument(
-    "--zone", default="us-east1-d", type=str, help="GKE cluster zone")
+      "--zone", default="us-east1-d", type=str, help="GKE cluster zone")
   parser.add_argument(
-    "--sa_client_id",
-    default="111670663612681935351",
-    type=str,
-    help="Service account client id")
+      "--sa_client_id",
+      default="111670663612681935351",
+      type=str,
+      help="Service account client id")
   parser.add_argument(
-    "--kfverison", default="v0.3.2", type=str, help="Service account client id")
+      "--kfverison",
+      default="v0.3.2",
+      type=str,
+      help="Service account client id")
   parser.add_argument(
-    "--mode",
-    default="e2e",
-    type=str,
-    help="offer three test mode: e2e, prober, and loadtest")
+      "--mode",
+      default="e2e",
+      type=str,
+      help="offer three test mode: e2e, prober, and loadtest")
   # args for e2e test
   parser.set_defaults(func=run_e2e_test)
   parser.add_argument(
-    "--artifacts_dir",
-    default="",
-    type=str,
-    help="Directory to use for artifacts that should be preserved after "
-    "the test runs. Defaults to test_dir if not set.")
+      "--artifacts_dir",
+      default="",
+      type=str,
+      help="Directory to use for artifacts that should be preserved after "
+      "the test runs. Defaults to test_dir if not set.")
   parser.add_argument(
-    "--workflow_name",
-    default="deployapp",
-    type=str,
-    help="The name of the workflow.")
+      "--workflow_name",
+      default="deployapp",
+      type=str,
+      help="The name of the workflow.")
 
   args = parser.parse_args(args=unparsed_args)
 
@@ -640,9 +648,9 @@ def main(unparsed_args=None):
     args.artifacts_dir = tempfile.gettempdir()
 
   util_run(
-    ('gcloud auth activate-service-account --key-file=' +
-     may_get_env_var("GOOGLE_APPLICATION_CREDENTIALS")).split(' '),
-    cwd=FILE_PATH)
+      ('gcloud auth activate-service-account --key-file=' +
+       may_get_env_var("GOOGLE_APPLICATION_CREDENTIALS")).split(' '),
+      cwd=FILE_PATH)
   if args.mode == "e2e":
     wrap_test(args)
 
@@ -651,14 +659,14 @@ def main(unparsed_args=None):
     SERVICE_HEALTH.set(0)
     PROBER_HEALTH.set(0)
     service_account_credentials = get_service_account_credentials(
-      "SERVICE_CLIENT_ID")
+        "SERVICE_CLIENT_ID")
     while True:
       sleep(args.wait_sec)
       if not clean_up_resource(args, set([args.deployment])):
         PROBER_HEALTH.set(1)
         FAILURE_COUNT.inc()
         logging.error(
-          "request cleanup failed, retry in %s seconds" % args.wait_sec)
+            "request cleanup failed, retry in %s seconds" % args.wait_sec)
         continue
       PROBER_HEALTH.set(0)
       if make_prober_call(args, service_account_credentials):
@@ -680,7 +688,7 @@ def main(unparsed_args=None):
         SERVICE_HEALTH.set(2)
         FAILURE_COUNT.inc()
         logging.error(
-          "prober request failed, retry in %s seconds" % args.wait_sec)
+            "prober request failed, retry in %s seconds" % args.wait_sec)
 
   if args.mode == "loadtest":
     run_load_test(args)
@@ -688,10 +696,10 @@ def main(unparsed_args=None):
 
 if __name__ == '__main__':
   logging.basicConfig(
-    level=logging.INFO,
-    format=('%(levelname)s|%(asctime)s'
-            '|%(pathname)s|%(lineno)d| %(message)s'),
-    datefmt='%Y-%m-%dT%H:%M:%S',
+      level=logging.INFO,
+      format=('%(levelname)s|%(asctime)s'
+              '|%(pathname)s|%(lineno)d| %(message)s'),
+      datefmt='%Y-%m-%dT%H:%M:%S',
   )
   logging.getLogger('googleapiclient.discovery_cache').setLevel(logging.ERROR)
   logging.getLogger().setLevel(logging.INFO)

@@ -36,12 +36,12 @@ NAMESPACE = "default"
 def parse_args():
   parser = argparse.ArgumentParser()
   parser.add_argument(
-    "--src_dir", default="", type=str, help="The kubeflow src directory")
+      "--src_dir", default="", type=str, help="The kubeflow src directory")
   parser.add_argument(
-    "--tf_job_version",
-    default="v1beta1",
-    type=str,
-    help="Which TFJob version to use")
+      "--tf_job_version",
+      default="v1beta1",
+      type=str,
+      help="Which TFJob version to use")
   args, _ = parser.parse_known_args()
   return args
 
@@ -50,8 +50,8 @@ def parse_args():
 def create_app_and_job(args, namespace, name):
   try:
     util.run([
-      "ks", "init", "tf-job-simple-app", "--skip-default-registries",
-      "--namespace=" + namespace
+        "ks", "init", "tf-job-simple-app", "--skip-default-registries",
+        "--namespace=" + namespace
     ])
   except subprocess.CalledProcessError as e:
     # Keep going if the app already exists. This is a sign the a previous
@@ -82,7 +82,7 @@ def create_app_and_job(args, namespace, name):
     prototype_name = "tf-job-simple-v1beta1"
   else:
     raise ValueError(
-      "Unrecognized value for tf_job_version: %s" % args.tf_job_version)
+        "Unrecognized value for tf_job_version: %s" % args.tf_job_version)
 
   util.run(["ks", "generate", prototype_name, name])
   util.run(["ks", "apply", "default", "-c", "tf-job-simple"])
@@ -98,10 +98,10 @@ def test_tf_job_simple(test_case):  # pylint: disable=redefined-outer-name
   create_app_and_job(args, namespace, name)
   try:
     tf_job_client.wait_for_condition(
-      api_client,
-      namespace,
-      name, ["Running"],
-      status_callback=tf_job_client.log_status)
+        api_client,
+        namespace,
+        name, ["Running"],
+        status_callback=tf_job_client.log_status)
     logging.info("TFJob launched successfully")
   except Exception as e:
     logging.error("Test failed waiting for job; %s", e)
@@ -110,7 +110,7 @@ def test_tf_job_simple(test_case):  # pylint: disable=redefined-outer-name
 
 if __name__ == "__main__":
   test_case = test_helper.TestCase(
-    name="test_tf_job_simple", test_func=test_tf_job_simple)
+      name="test_tf_job_simple", test_func=test_tf_job_simple)
   test_suite = test_helper.init(
-    name="test_tf_job_simple", test_cases=[test_case])
+      name="test_tf_job_simple", test_cases=[test_case])
   test_suite.run()

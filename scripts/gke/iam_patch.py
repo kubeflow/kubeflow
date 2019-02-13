@@ -22,30 +22,31 @@ import yaml
 def parse_args():
   parser = argparse.ArgumentParser()
   parser.add_argument(
-    "--action",
-    default="add",
-    type=str,
-    help=("The action to take. Valid values: add, remove"))
+      "--action",
+      default="add",
+      type=str,
+      help=("The action to take. Valid values: add, remove"))
   parser.add_argument(
-    "--project", default=None, type=str, help=("The project."))
+      "--project", default=None, type=str, help=("The project."))
   parser.add_argument(
-    "--iam_bindings_file",
-    default=None,
-    type=str,
-    help=("The IAM bindings file."))
+      "--iam_bindings_file",
+      default=None,
+      type=str,
+      help=("The IAM bindings file."))
   parser.set_defaults(dry_run=False)
   parser.add_argument(
-    '--dry_run',
-    dest='dry_run',
-    action='store_true',
-    help=("Don't patch the final IAM policy, only print it"))  # noqa: E501
+      '--dry_run',
+      dest='dry_run',
+      action='store_true',
+      help=("Don't patch the final IAM policy, only print it"))  # noqa: E501
   return parser.parse_args()
 
 
 def get_current_iam_policy(project):
   """Fetches and returns the current iam policy as a yaml object"""
   return yaml.load(
-    subprocess.check_output(["gcloud", "projects", "get-iam-policy", project]))
+      subprocess.check_output(["gcloud", "projects", "get-iam-policy",
+                               project]))
 
 
 def iam_policy_to_dict(bindings):
@@ -98,24 +99,24 @@ def patch_iam_policy(args):
   current_policy = get_current_iam_policy(args.project)
   logging.info("Current IAM Policy")
   logging.info(
-    yaml.dump(current_policy, default_flow_style=False, default_style=''))
+      yaml.dump(current_policy, default_flow_style=False, default_style=''))
   current_policy_bindings_dict = iam_policy_to_dict(current_policy['bindings'])
   with open(args.iam_bindings_file) as iam_bindings_file:
     bindings_patch = yaml.load(iam_bindings_file.read())
   current_policy_bindings_dict = apply_iam_bindings_patch(
-    current_policy_bindings_dict, bindings_patch, args.action)
+      current_policy_bindings_dict, bindings_patch, args.action)
   current_policy['bindings'] = iam_dict_to_policy(current_policy_bindings_dict)
   logging.info("Updated Policy")
   logging.info("\n" + yaml.dump(
-    current_policy, default_flow_style=False, default_style=''))
+      current_policy, default_flow_style=False, default_style=''))
   updated_policy_file = tempfile.NamedTemporaryFile(delete=False)
   with open(updated_policy_file.name, 'w') as f:
     yaml.dump(current_policy, f, default_flow_style=False)
   logging.debug("Temp file %s", updated_policy_file.name)
   if not args.dry_run:
     subprocess.call([
-      "gcloud", "projects", "set-iam-policy", args.project,
-      updated_policy_file.name
+        "gcloud", "projects", "set-iam-policy", args.project,
+        updated_policy_file.name
     ])
   else:
     logging.info("Skipping patching the IAM policy because --dry_run was set")

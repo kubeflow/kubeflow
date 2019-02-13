@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 """Script to build images.
 
 For example,
@@ -39,7 +39,11 @@ def run(command,
     logging.info("Running: Environment:\n%s", "\n".join(lines))
 
   process = subprocess.Popen(
-    command, cwd=cwd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+      command,
+      cwd=cwd,
+      env=env,
+      stdout=subprocess.PIPE,
+      stderr=subprocess.STDOUT)
 
   logging.info("Subprocess output:\n")
   output = []
@@ -58,8 +62,8 @@ def run(command,
 
   if process.returncode != 0:
     raise subprocess.CalledProcessError(
-      process.returncode, "cmd: {0} exited with code {1}".format(
-        " ".join(command), process.returncode), "\n".join(output))
+        process.returncode, "cmd: {0} exited with code {1}".format(
+            " ".join(command), process.returncode), "\n".join(output))
 
   return "\n".join(output)
 
@@ -114,14 +118,15 @@ def build_tf_serving(args):
                                                     args.tag)
 
   command = list(
-    chain(["docker", "build", "--pull"], build_args,
+      chain(
+          ["docker", "build", "--pull"], build_args,
           ["-t", image_name, "-f", "Dockerfile.{}".format(args.platform), "."]))
   run(command, cwd=context_dir)
 
   if args.push_gcr:
     run([
-      "gcloud", "auth", "activate-service-account", "--key-file",
-      os.environ['GOOGLE_APPLICATION_CREDENTIALS']
+        "gcloud", "auth", "activate-service-account", "--key-file",
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS']
     ])
     run(["gcloud", "docker", "--", "push", image_name])
 
@@ -135,17 +140,17 @@ def build_tf_notebook(args):
   config = get_config(context_dir, version)
   build_args = get_build_args(config)
   image_name = "{}/tensorflow-{}-notebook-{}:{}".format(
-    args.registry, args.tf_version, args.platform, args.tag)
+      args.registry, args.tf_version, args.platform, args.tag)
 
   command = list(
-    chain(["docker", "build", "--pull"], build_args,
-          ["-t", image_name, "-f", "Dockerfile", "."]))
+      chain(["docker", "build", "--pull"], build_args,
+            ["-t", image_name, "-f", "Dockerfile", "."]))
   run(command, cwd=context_dir)
 
   if args.push_gcr:
     run([
-      "gcloud", "auth", "activate-service-account", "--key-file",
-      os.environ['GOOGLE_APPLICATION_CREDENTIALS']
+        "gcloud", "auth", "activate-service-account", "--key-file",
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS']
     ])
     run(["gcloud", "docker", "--", "push", image_name])
 
@@ -155,17 +160,17 @@ def main():
   subparsers = parser.add_subparsers()
 
   parser.add_argument(
-    "--registry",
-    default="gcr.io/kubeflow-images-public",
-    help="The registry of the image")
+      "--registry",
+      default="gcr.io/kubeflow-images-public",
+      help="The registry of the image")
   parser.add_argument("--tag", default="latest", help="The image tag")
   parser.add_argument("--tf_version", default="1.6", help="Tensorflow version")
   parser.add_argument("--platform", default="cpu", help="cpu or gpu")
   parser.add_argument(
-    "--push_gcr",
-    action='store_true',
-    default=False,
-    help="Whether to push the image after building.")
+      "--push_gcr",
+      action='store_true',
+      default=False,
+      help="Whether to push the image after building.")
 
   parser_tf_serving = subparsers.add_parser("tf_serving")
   parser_tf_serving.set_defaults(func=build_tf_serving)
@@ -179,10 +184,10 @@ def main():
 
 if __name__ == "__main__":
   logging.basicConfig(
-    level=logging.INFO,
-    format=('%(levelname)s|%(asctime)s'
-            '|%(pathname)s|%(lineno)d| %(message)s'),
-    datefmt='%Y-%m-%dT%H:%M:%S',
+      level=logging.INFO,
+      format=('%(levelname)s|%(asctime)s'
+              '|%(pathname)s|%(lineno)d| %(message)s'),
+      datefmt='%Y-%m-%dT%H:%M:%S',
   )
   logging.getLogger().setLevel(logging.INFO)
   main()

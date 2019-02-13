@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 #
 # Copyright 2016 Google Inc. All Rights Reserved.
 #
@@ -32,9 +32,9 @@ def client(monkeypatch):
 
 def test_echo(client):
   r = client.post(
-    '/echo',
-    data='{"message": "Hello"}',
-    headers={'Content-Type': 'application/json'})
+      '/echo',
+      data='{"message": "Hello"}',
+      headers={'Content-Type': 'application/json'})
 
   assert r.status_code == 200
   data = json.loads(r.data.decode('utf-8'))
@@ -43,7 +43,7 @@ def test_echo(client):
 
 def test_auth_info(client):
   endpoints = [
-    '/auth/info/googlejwt', '/auth/info/googleidtoken', '/auth/info/firebase'
+      '/auth/info/googlejwt', '/auth/info/googleidtoken', '/auth/info/firebase'
   ]
 
   encoded_info = base64.b64encode(json.dumps({'id': '123'}).encode('utf-8'))
@@ -56,11 +56,11 @@ def test_auth_info(client):
     assert data['id'] == 'anonymous'
 
     r = client.get(
-      endpoint,
-      headers={
-        'Content-Type': 'application/json',
-        'X-Endpoint-API-UserInfo': encoded_info
-      })
+        endpoint,
+        headers={
+            'Content-Type': 'application/json',
+            'X-Endpoint-API-UserInfo': encoded_info
+        })
 
     assert r.status_code == 200
     data = json.loads(r.data.decode('utf-8'))

@@ -16,13 +16,12 @@
 # limitations under the License.
 """Run flake8 tests
 
-This test goes through all Python files in the specified
-test_files_dirs directories and runs flake8 <filename> and
-reports the results
+This test goes through all Python files in the specified test_files_dirs
+directories and runs flake8 <filename> and reports the results
 
 Example invocation
 
-python -m testing.test_flake8 --test_files_dirs=/kubeflow/application/tests,/kubeflow/common/tests,/kubeflow/jupyter/tests,/kubeflow/iap/tests,/kubeflow/gcp/tests,/kubeflow/tensorboard/tests,/kubeflow/examples/tests,/kubeflow/metacontroller/tests,/kubeflow/profiles/tests,/kubeflow/tf-training/tests
+python -m testing.test_flake8 --test_files_dirs=/kubeflow/application/tests,/kubeflow/common/tests,/kubeflow/jupyter/tests,/kubeflow/iap/tests,/kubeflow/gcp/tests,/kubeflow/tensorboard/tests,/kubeflow/examples/tests,/kubeflow/metacontroller/tests,/kubeflow/profiles/tests,/kubeflow/tf-training/tests  # noqa: E501
 
 """
 
@@ -61,8 +60,8 @@ def run(test_files_dirs, flake8_path_args, test_case):
               parsed = json.loads(output)
             except AttributeError:
               logging.error(
-                "Output of flake8 could not be parsed as json; "
-                "output: %s", output)
+                  "Output of flake8 could not be parsed as json; "
+                  "output: %s", output)
               parsed = {}
 
             if not hasattr(parsed, "get"):
@@ -73,8 +72,8 @@ def run(test_files_dirs, flake8_path_args, test_case):
               # actually return an error in the case the test did
               # not pass.
               logging.warn(
-                "flake8 is using old style and not emitting an object. "
-                "Result was: %s. Output will be treated as a boolean", output)
+                  "flake8 is using old style and not emitting an object. "
+                  "Result was: %s. Output will be treated as a boolean", output)
               test_passed = parsed
             else:
               test_passed = parsed.get("pass", False)
@@ -83,7 +82,7 @@ def run(test_files_dirs, flake8_path_args, test_case):
               msg = '{} test failed'.format(test_file)
               test_case.add_failure_info(msg)
               logging.error(
-                '{}. See Subprocess output for details.'.format(msg))
+                  '{}. See Subprocess output for details.'.format(msg))
           except Exception as e:
             msg = '{} test failed'.format(test_file)
             test_case.add_failure_info(msg)
@@ -94,10 +93,10 @@ def run(test_files_dirs, flake8_path_args, test_case):
 def parse_args():
   parser = argparse.ArgumentParser()
   parser.add_argument(
-    "--test_files_dirs",
-    default=".",
-    type=str,
-    help="Comma separated directories containing Python files")
+      "--test_files_dirs",
+      default=".",
+      type=str,
+      help="Comma separated directories containing Python files")
   args, _ = parser.parse_known_args()
   return args
 
@@ -112,5 +111,5 @@ def test_flake8(test_case):  # pylint: disable=redefined-outer-name
 if __name__ == "__main__":
   test_case = test_helper.TestCase(name='test_flake8', test_func=test_flake8)
   test_suite = test_helper.init(
-    name='flake8_test_suite', test_cases=[test_case])
+      name='flake8_test_suite', test_cases=[test_case])
   test_suite.run()

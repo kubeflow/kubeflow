@@ -20,7 +20,7 @@ that you specify.
 
 Note: This file is a modification of the inception client available on the
 TensorFlow Serving GitHub repository:
-  https://github.com/tensorflow/serving/blob/master/tensorflow_serving/example/inception_client.py
+  https://github.com/tensorflow/serving/blob/master/tensorflow_serving/example/inception_client.py  # noqa: E501
 """
 
 from __future__ import print_function
@@ -49,7 +49,7 @@ def main(image_paths, server, port):
   request.model_spec.name = 'inception'
   request.model_spec.signature_name = 'predict_images'
   request.inputs['images'].CopyFrom(
-    tf.make_tensor_proto(raw_images, shape=[len(raw_images)]))
+      tf.make_tensor_proto(raw_images, shape=[len(raw_images)]))
   result = stub.Predict(request, 10.0)  # 10 secs timeout
   print(result)
 
@@ -57,17 +57,17 @@ def main(image_paths, server, port):
 if __name__ == '__main__':
   parser = argparse.ArgumentParser('Label an image using Inception')
   parser.add_argument(
-    '-s', '--server', help='URL of host serving the Inception model')
+      '-s', '--server', help='URL of host serving the Inception model')
   parser.add_argument(
-    '-p',
-    '--port',
-    type=int,
-    default=9000,
-    help='Port at which Inception model is being served')
+      '-p',
+      '--port',
+      type=int,
+      default=9000,
+      help='Port at which Inception model is being served')
   parser.add_argument(
-    'images',
-    nargs='+',
-    help='Paths (local or GCS) to images you would like to label')
+      'images',
+      nargs='+',
+      help='Paths (local or GCS) to images you would like to label')
 
   args = parser.parse_args()
 
