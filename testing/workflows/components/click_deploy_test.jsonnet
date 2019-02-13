@@ -32,7 +32,7 @@ local bootstrapDir = srcDir + "/bootstrap";
 
 local kubeConfig = testDir + "/click_deploy_test/.kube/kubeconfig";
 
-local image = "gcr.io/kubeflow-ci/test-worker:latest";
+local image = "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4";
 local bootstrapImage = "gcr.io/kubeflow-ci/bootstrapper";
 
 // The name of the NFS volume claim to use for test files.
@@ -212,8 +212,9 @@ local dagTemplates = [
         "-m",
         "testing.test_deploy_app",
         "--namespace=" + name,
-        "--artifacts_dir=" + outputDir,
+        "--artifacts_dir=" + artifactsDir,
         "--iap_wait_min=15",
+        "--workflow_name=" + params.workflowName,
       ],
       working_dir=testDir
     ),

@@ -59,6 +59,7 @@
     // name and platform should be given unique values.
     name: "somename",
     platform: "gke",
+    workflowName: "",
 
     // In order to refer to objects between the current and outer-most object, we use a variable to create a name for that level:
     local tests = self,
@@ -78,7 +79,7 @@
     srcRootDir: self.testDir + "/src",
     // The directory containing the kubeflow/kubeflow repo
     srcDir: self.srcRootDir + "/kubeflow/kubeflow",
-    image: "gcr.io/kubeflow-ci/test-worker:latest",
+    image: "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4",
 
     // value of KUBECONFIG environment variable. This should be  a full path.
     kubeConfig: self.testDir + "/.kube/kubeconfig",
@@ -239,6 +240,7 @@
             "--test_dir=" + tests.testDir,
             "--artifacts_dir=" + tests.artifactsDir,
             "--deploy_name=test-argo-deploy",
+            "--workflow_name=" + tests.workflowName,
             "deploy_argo",
           ],
         },
@@ -258,6 +260,7 @@
             "--test_dir=" + tests.testDir,
             "--artifacts_dir=" + tests.artifactsDir,
             "--deploy_name=test-katib",
+            "--workflow_name=" + tests.workflowName,
             "test_katib",
           ],
         },
@@ -276,6 +279,7 @@
             "--test_dir=" + tests.testDir,
             "--artifacts_dir=" + tests.artifactsDir,
             "--deploy_name=pytorch-job",
+            "--workflow_name=" + tests.workflowName,
             "deploy_pytorchjob",
             "--params=image=pytorch/pytorch:v0.2,num_workers=1",
           ],
@@ -365,7 +369,7 @@
     //
     // Create a new .jsonnet file for minikube and define the workflow there.
     // Reuse kfTests above to add the actual tests to that file.
-    e2e(prow_env, bucket, platform="minikube"):
+    e2e(prow_env, bucket, platform="minikube", workflowName="workflow"):
       // The name for the workspace to run the steps in
       local stepsNamespace = "kubeflow";
       // mountPath is the directory where the volume to store the test data
@@ -381,7 +385,7 @@
       // The directory containing the kubeflow/kubeflow repo
       local srcDir = srcRootDir + "/kubeflow/kubeflow";
       local bootstrapDir = srcDir + "/bootstrap";
-      local image = "gcr.io/kubeflow-ci/test-worker:latest";
+      local image = "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4";
       local bootstrapperImage = "gcr.io/kubeflow-ci/bootstrapper:" + name;
       // The last 4 digits of the name should be a unique id.
       local deploymentName = "e2e-" + std.substr(name, std.length(name) - 4, 4);
@@ -652,6 +656,7 @@
               "--namespace=" + stepsNamespace,
               "--test_dir=" + testDir,
               "--artifacts_dir=" + artifactsDir,
+              "--workflow_name=" + workflowName,
               "deploy_minikube",
               "--vm_name=" + vmName,
               "--zone=" + zone,
@@ -664,6 +669,7 @@
               "--namespace=" + stepsNamespace,
               "--test_dir=" + testDir,
               "--artifacts_dir=" + artifactsDir,
+              "--workflow_name=" + workflowName,
               "teardown_minikube",
               "--vm_name=" + vmName,
               "--zone=" + zone,
@@ -727,6 +733,7 @@
               "--test_dir=" + testDir,
               "--artifacts_dir=" + artifactsDir,
               "--deploy_name=pytorch-job",
+              "--workflow_name=" + workflowName,
               "deploy_pytorchjob",
               "--params=image=pytorch/pytorch:v0.2,num_workers=1",
             ]),  // pytorchjob-deploy
@@ -747,6 +754,7 @@
               "--test_dir=" + testDir,
               "--artifacts_dir=" + artifactsDir,
               "--deploy_name=test-argo-deploy",
+              "--workflow_name=" + workflowName,
               "deploy_argo",
             ]),  // test-argo-deploy
           ],  // templates
