@@ -23,28 +23,22 @@ Note: Additional issues have been opened so this README.md will have additional 
 New directories
 
 ```sh
-cmd/plugins/minikube
-cmd/plugins/gcp
-cmd/plugins/foo
-cmd/plugins/dockerfordesktop
-cmd/plugins/ksonnet
-cmd/kfctl/cmd
-cmd/kfctl/config
-pkg/apis/apps/ksonnet
-pkg/apis/apps/ksonnet/v1alpha1
-pkg/utils
-pkg/client/minikube
-pkg/client/gcp
-pkg/client/foo
-pkg/client/dockerfordesktop
-pkg/client/ksonnet
+bootstrap/cmd/kfctl
+bootstrap/cmd/kfctl/cmd
+bootstrap/cmd/plugins/foo
+bootstrap/pkg/apis/apps
+bootstrap/pkg/apis/apps/ksonnet/v1alpha1
+bootstrap/pkg/utils
+bootstrap/pkg/client/dockerfordesktop
+bootstrap/pkg/client/ksonnet
+bootstrap/pkg/client/minikube
 ```
 
-### KfApp Interface 
+### KfApp Interface
 
 Definition: github/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/group.go
 
-The `KfApp` golang Interface 
+The `KfApp` golang Interface
 
 ```golang
 type ResourceEnum string
@@ -82,6 +76,7 @@ These include:
 - platform: **ack** (in progress)
   - bootstrap/pkg/client/ack/ack.go
 
+
 ## Usage
 
 ```man
@@ -104,13 +99,13 @@ Flags:
 Use "kfctl [command] --help" for more information about a command.
 ```
 
-Typical use-case, non-platform specific. 
+Typical use-case, non-platform specific.
 
 ```sh
-kfctl init ~/myapp 
+kfctl init ~/myapp
 cd ~/myapp
-kfctl generate 
-kfctl apply 
+kfctl generate
+kfctl apply
 ```
 
 ## Subcommands
@@ -128,11 +123,12 @@ Usage:
   kfctl init <[path/]name> [flags]
 
 Flags:
+      --debug              debug debug default is false
   -h, --help               help for init
   -n, --namespace string   namespace where kubeflow will be deployed (default "kubeflow")
   -p, --platform string    one of 'gcp|minikube|docker-for-desktop|ack' (default "none")
       --project string     name of the gcp project if --platform gcp
-  -r, --repo string        local github kubeflow repo  (default "$GOPATH/src/github.com/kubeflow/kubeflow/kubeflow")
+  -r, --repo string        local github kubeflow repo
   -V, --verbose            verbose output default is false
   -v, --version string     desired version Kubeflow or latest tag if not provided by user  (default "v0.4.1")
 ```
@@ -191,22 +187,37 @@ Flags:
   -V, --verbose   verbose output default is false
 ```
 
---- 
+---
 
 ## Extending kfctl
 
-`kfctl` can be extended to new platforms without requiring recompilation. 
-Current platforms (ksonnet, gcp, minikube, docker-for-desktop) are loaded this way.
-Each platform provides a shared library (.so) under the env var `PLUGINS_ENVIRONMENT` 
-that kfctl loads and executes. The shared library needs to define 
+`kfctl` can be extended to work with new platforms without requiring recompilation.
+An example is under bootstrap/cmd/plugins/foo/foo.go. A particular platform
+provides a shared library (.so) under the env var `PLUGINS_ENVIRONMENT`
+that kfctl would load and execute. The shared library needs to define
 
 ```
-func GetKfApp(options map[string]interface{}) kftypes.KfApp 
+func GetKfApp(options map[string]interface{}) kftypes.KfApp
 ```
 
-where the return type implements the [KfApp Interface](#kfapp-interface). 
+where the return type implements the [KfApp Interface](#kfapp-interface).
 
-## Testing 
+In this sample, running
+
+```
+kfctl init ~/foo-app --platform foo
+```
+
+will result in kfctl loading $PLUGINS_ENVIRONMENT/foo.so and calling its methods that
+implement the KfApp Interface.
+
+### Building the sample plugin
+
+```
+make build-foo-plugin
+```
+
+## Testing
 
 ### Testing init for all platforms 
 
@@ -223,18 +234,31 @@ make test-known-platforms-generate
 ## Debugging
 
 In order to debug in goland, the plugin code must be disabled. 
-See https://github.com/golang/go/issues/23733. This is expected to be resolved with golang 1.12.
-To enable debug run
+See https://github.com/golang/go/issues/23733. 
+This is expected to be resolved with golang 1.12.X
+To disable the plugin code (which will cause foo.go to be linked statically in kfctl) 
+and allow debugging in goland run:
 
 ```
-make debug
+make static
 ```
 
-To go back to where plugins are loaded (this should be the default when checking in) run
+otherwise run 
 
 ```
-make nodebug
+make plugins
 ```
+
+Note: the default is `make static`. Do not checkin code after doing `make plugins`.
+
+Note: static and plugins make targets result in 2 files being changed: 
+- pkg/apis/apps/group.go
+- cmd/kfctl/cmd/root.go
+
+These files have comments that are toggled (effectively a golang macro hack).
+This will go away when the fix noted above is available and we've moved to 
+this version of go.
+
 
 ## KfApp Types used in app.yaml
 

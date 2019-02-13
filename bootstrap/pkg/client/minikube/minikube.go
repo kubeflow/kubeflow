@@ -20,12 +20,8 @@ import (
 	"fmt"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
-	/* DEBUG
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksonnet"
-	-DEBUG */
-	// NO_DEBUG
 	log "github.com/sirupsen/logrus"
-	// NO_DEBUG //
 	"os/user"
 	"strconv"
 	"strings"
@@ -39,25 +35,17 @@ type Minikube struct {
 }
 
 func GetKfApp(options map[string]interface{}) kftypes.KfApp {
-	/* DEBUG
-	_ksonnet := ksonnet.GetKfApp(options)
-	-DEBUG */
-	// NO_DEBUG
 	options[string(kftypes.PLATFORM)] = string(kftypes.KSONNET)
-	_ksonnet, ksonnetErr := kftypes.LoadPlatform(options)
-	if ksonnetErr != nil {
-		log.Errorf("load platform failed for %v: %v", string(kftypes.KSONNET), ksonnetErr)
-		return nil
-	}
-	options[string(kftypes.PLATFORM)] = "minikube"
-	// NO_DEBUG //
-	_minikubeapp := &Minikube{
+	log.Infof("getting ksonnet platform in minikube")
+	_ksonnet := ksonnet.GetKfApp(options)
+	options[string(kftypes.PLATFORM)] = string(kftypes.MINIKUBE)
+	_minikube := &Minikube{
 		FullKfApp: kftypes.FullKfApp{
 			Children: make(map[kftypes.Platform]kftypes.KfApp),
 		},
 	}
-	_minikubeapp.Children[kftypes.KSONNET] = _ksonnet
-	return _minikubeapp
+	_minikube.Children[kftypes.KSONNET] = _ksonnet
+	return _minikube
 }
 
 func (minikube *Minikube) Apply(resources kftypes.ResourceEnum, options map[string]interface{}) error {
