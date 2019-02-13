@@ -36,6 +36,14 @@ GROUP = "kubeflow.org"
 PLURAL = "notebooks"
 KIND = "Notebook"
 VERSION = "v1alpha1"
+
+logging.basicConfig(level=logging.INFO,
+                    format=('%(levelname)s|%(asctime)s'
+                            '|%(pathname)s|%(lineno)d| %(message)s'),
+                    datefmt='%Y-%m-%dT%H:%M:%S',
+                    )
+logging.getLogger().setLevel(logging.INFO)
+
 def is_retryable_result(r):
   if r.status_code in [requests.codes.NOT_FOUND, requests.codes.UNAVAILABLE]:
     message = "Request to {0} returned {1}".format(r.url, r.status_code)
@@ -128,12 +136,3 @@ def test_jupyter(env, namespace):
       url, r.status_code, r.content)
     logging.error(msg)
     raise RuntimeError(msg)
-
-if __name__ == "__main__":
-  logging.basicConfig(level=logging.INFO,
-                      format=('%(levelname)s|%(asctime)s'
-                              '|%(pathname)s|%(lineno)d| %(message)s'),
-                      datefmt='%Y-%m-%dT%H:%M:%S',
-                      )
-  logging.getLogger().setLevel(logging.INFO)
-  pytest.main()
