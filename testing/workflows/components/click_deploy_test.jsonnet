@@ -212,6 +212,7 @@ local dagTemplates = [
         "--namespace=" + name,
         "--artifacts_dir=" + artifactsDir,
         "--iap_wait_min=15",
+        "--workflow_name=" + params.workflowName,
       ],
       working_dir=testDir
     ),
