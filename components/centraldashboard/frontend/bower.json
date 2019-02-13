@@ -34,7 +34,8 @@
     "paper-item": "PolymerElements/paper-item#^2",
     "paper-dropdown-menu": "PolymerElements/paper-dropdown-menu#^2",
     "app-layout": "PolymerElements/app-layout#^2",
-    "neon-animation": "PolymerElements/neon-animation#^2",
-    "iron-icons": "PolymerElements/iron-icons#^2"
+    "neon-animation": "PolymerElements/neon-animation#2",
+    "iron-icons": "PolymerElements/iron-icons#^2",
+    "web-animations-js": "^2.3.1"
   }
 }

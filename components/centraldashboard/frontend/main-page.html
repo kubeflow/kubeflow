@@ -44,6 +44,7 @@
                     border-width: 3px;
                 }
             }
+            paper-tab {padding: 0 2em}
             paper-tab.iron-selected {color: var(--accent-color)}
             app-header-layout {@apply --layout-vertical}
             #Menu {position: absolute;right: 10px;top: 50%;transform: translateY(-50%)}
@@ -134,9 +135,9 @@
                     <app-toolbar>
                         <paper-tabs class="bottom" selected="{{primaryViewIndex}}" hides hidden$='[[!isZero(homeOrIframeViewIndex)]]'>
                             <paper-tab>Dashboard</paper-tab>
-                            <paper-tab>Activity</paper-tab>
+                            <paper-tab hidden$='[[!_devMode]]'>Activity</paper-tab>
                         </paper-tabs>
-                        <aside id="NamespaceSelector">
+                        <aside id="NamespaceSelector" hidden$='[[!_devMode]]'>
                             <paper-dropdown-menu label="Namespace"></paper-dropdown-menu>
                         </aside>
                         <paper-icon-button id="Menu" icon='menu' on-click="toggleSidebar" hides hidden$="[[!narrowMode]]"></paper-icon-button>
@@ -203,11 +204,18 @@
                 primaryViewIndex: {type: Number, value: 0},
                 homeOrIframeViewIndex: {type: Number, value: 0},
                 url: {type: String, value: ""},
-                buildVersion: {type: String, value: "1.0"},
+                buildVersion: {type: String, value: "0.4.1"},
+                _devMode: {type: Boolean, value: false},
             }}
+            openExternalLink(href) {
+                const a = document.createElement('a')
+                a.href = link
+                a.target='_blank'
+                a.click()
+            }
             openQuickLink(e) {
                 const {link} = e.model.item
-                ;(a => {a.href = link;a.target='_blank';a.click()})(document.createElement('a'))
+                openExternalLink(link)
             }
             openLink(e) {
                 const {link, defaultPage} = e.model.item
