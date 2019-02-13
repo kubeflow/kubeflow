@@ -142,7 +142,8 @@ func (r *ReconcileNotebook) ReconcileStatefulSet(instance *v1alpha1.Notebook) er
 			},
 		},
 	}
-	container := &ss.Spec.Template.Spec.Containers[0]
+	podSpec := &ss.Spec.Template.Spec
+	container := &podSpec.Containers[0]
 	if instance.Spec.JupyterSpec.UseLab {
 		container.Env = append(container.Env, corev1.EnvVar{
 			Name:  "JUPYTER_ENABLE_LAB",
@@ -161,6 +162,13 @@ func (r *ReconcileNotebook) ReconcileStatefulSet(instance *v1alpha1.Notebook) er
 			},
 		}
 	}
+	if podSpec.SecurityContext == nil {
+		fsGroup := int64(100)
+		podSpec.SecurityContext = &corev1.PodSecurityContext{
+			FSGroup: &fsGroup,
+		}
+	}
+
 	if err := controllerutil.SetControllerReference(instance, ss, r.scheme); err != nil {
 		return err
 	}
@@ -208,11 +216,11 @@ func (r *ReconcileNotebook) ReconcileService(instance *v1alpha1.Notebook) error 
 						"---",
 						"apiVersion: ambassador/v0",
 						"kind:  Mapping",
-						"name: " + instance.Namespace + "_" + instance.Name + "_mapping",
-						"prefix: /" + instance.Namespace + "/" + instance.Name,
+						"name: notebook_" + instance.Namespace + "_" + instance.Name + "_mapping",
+						"prefix: /notebook/" + instance.Namespace + "/" + instance.Name,
 						"rewrite: /" + instance.Namespace + "/" + instance.Name,
 						"timeout_ms: 300000",
-						"service: " + instance.Namespace + "." + instance.Name,
+						"service: " + instance.Name + "." + instance.Namespace,
 						"use_websocket: true",
 					}, "\n"),
 			},
