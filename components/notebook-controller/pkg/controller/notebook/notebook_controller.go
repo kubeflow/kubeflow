@@ -142,7 +142,7 @@ func (r *ReconcileNotebook) ReconcileStatefulSet(instance *v1alpha1.Notebook) er
 			},
 		},
 	}
-	container := ss.Spec.Template.Spec.Containers[0]
+	container := &ss.Spec.Template.Spec.Containers[0]
 	if instance.Spec.JupyterSpec.UseLab {
 		container.Env = append(container.Env, corev1.EnvVar{
 			Name:  "JUPYTER_ENABLE_LAB",
@@ -193,6 +193,11 @@ func (r *ReconcileNotebook) ReconcileStatefulSet(instance *v1alpha1.Notebook) er
 // ReconcileService reconciles the Service object for the notebook.
 func (r *ReconcileNotebook) ReconcileService(instance *v1alpha1.Notebook) error {
 	// Define the desired Service object
+	port := 8888
+	containerPorts := instance.Spec.Template.Spec.Containers[0].Ports
+	if containerPorts != nil {
+		port = int(containerPorts[0].ContainerPort)
+	}
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      instance.Name,
@@ -219,7 +224,7 @@ func (r *ReconcileNotebook) ReconcileService(instance *v1alpha1.Notebook) error 
 			Ports: []corev1.ServicePort{
 				corev1.ServicePort{
 					Port:       80,
-					TargetPort: intstr.FromInt(8888),
+					TargetPort: intstr.FromInt(port),
 					Protocol:   "TCP",
 				},
 			},
