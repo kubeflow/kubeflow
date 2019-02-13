@@ -14,7 +14,7 @@
     nfsVolumeClaim: "nfs-external",
     prowEnv: "REPO_OWNER=kubeflow,REPO_NAME=kubeflow,PULL_BASE_SHA=master",
     // The default image to use for the steps in the Argo workflow.
-    stepImage: "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4",
+    stepImage: "gcr.io/kubeflow-ci/test-worker:latest",
 
     // The registry to use (should not include the image name or version tag)
     registry: "gcr.io/kubeflow-images-public",
