@@ -20,22 +20,20 @@ import (
 	"fmt"
 	"github.com/ghodss/yaml"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
-	"io/ioutil"
-	"regexp"
-	/* DEBUG
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksonnet"
-	-DEBUG */
 	gcptypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/gcp/v1alpha1"
+	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksonnet"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/deploymentmanager/v2"
 	"io"
+	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -56,18 +54,10 @@ type Gcp struct {
 }
 
 func GetKfApp(options map[string]interface{}) kftypes.KfApp {
-	/* DEBUG
-	_ksonnet := ksonnet.GetKfApp(options)
-	-DEBUG */
-	// NO_DEBUG
 	options[string(kftypes.PLATFORM)] = string(kftypes.KSONNET)
-	_ksonnet, ksonnetErr := kftypes.LoadPlatform(options)
-	if ksonnetErr != nil {
-		log.Errorf("loadplatform failed for ksonnet: %v", ksonnetErr)
-		return nil
-	}
+	log.Infof("getting ksonnet platform in gcp")
+	_ksonnet := ksonnet.GetKfApp(options)
 	options[string(kftypes.PLATFORM)] = "gcp"
-	// NO_DEBUG //
 	_gcp := &Gcp{
 		FullKfApp: kftypes.FullKfApp{
 			Children: make(map[kftypes.Platform]kftypes.KfApp),
