@@ -146,7 +146,7 @@
                 <neon-animated-pages selected="[[homeOrIframeViewIndex]]" class="flex layout vertical" entry-animation="fade-in-animation" exit-animation="fade-out-animation">
                     <neon-animated-pages id='PrimaryView' selected="[[primaryViewIndex]]" class="flex layout vertical" entry-animation="fade-in-animation" exit-animation="fade-out-animation">
                         <article id='Dashboard'>
-                            <paper-card heading="Getting Started" class="Getting-Started">
+                            <paper-card heading="Getting Started" class="Getting-Started" hidden$='[[!_devMode]]'>
                                 <template is="dom-repeat" items="[[gettingStartedItems]]">
                                     <paper-icon-item>
                                         <iron-icon icon="[[item.icon]]" slot="item-icon"></iron-icon>
