@@ -128,7 +128,7 @@ def test_jupyter(env, namespace):
   # We proxy the request through the APIServer so that we can connect
   # from outside the cluster.
   url = ("https://{master}/api/v1/namespaces/{namespace}/services/{service}:80"
-         "/proxy/").format(
+         "/proxy/default/jupyter/lab?").format(
            master=master, namespace=namespace, service=service)
   logging.info("Request: %s", url)
   r = send_request(url, verify=False)

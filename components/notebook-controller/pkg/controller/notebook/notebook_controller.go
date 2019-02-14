@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	v1alpha1 "github.com/kubeflow/kubeflow/components/notebook-controller/pkg/apis/notebook/v1alpha1"
+	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/util"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -227,9 +228,8 @@ func (r *ReconcileNotebook) ReconcileService(instance *v1alpha1.Notebook) error 
 			},
 		},
 		Spec: corev1.ServiceSpec{
-			ClusterIP: "None",
-			Type:      "ClusterIP",
-			Selector:  map[string]string{"statefulset": instance.Name},
+			Type:     "ClusterIP",
+			Selector: map[string]string{"statefulset": instance.Name},
 			Ports: []corev1.ServicePort{
 				corev1.ServicePort{
 					Port:       80,
@@ -257,8 +257,7 @@ func (r *ReconcileNotebook) ReconcileService(instance *v1alpha1.Notebook) error 
 	}
 
 	// Update the found object and write the result back if there are any changes
-	if !reflect.DeepEqual(svc.Spec, found.Spec) {
-		found.Spec = svc.Spec
+	if util.CopyServiceFields(svc, found) {
 		log.Info("Updating Service", "namespace", svc.Namespace, "name", svc.Name)
 		err = r.Update(context.TODO(), found)
 		if err != nil {
