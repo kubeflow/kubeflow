@@ -150,6 +150,16 @@ func (ksApp *KsApp) Apply(resources kftypes.ResourceEnum, options map[string]int
 	if clientConfigErr != nil {
 		return fmt.Errorf("couldn't load client config Error: %v", clientConfigErr)
 	}
+	cwd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("could not get current directory %v", err)
+	}
+	if cwd != ksApp.KsApp.Spec.AppDir {
+		err = os.Chdir(ksApp.KsApp.Spec.AppDir)
+		if err != nil {
+			return fmt.Errorf("could not change directory to %v Error %v", ksApp.KsApp.Spec.AppDir, err)
+		}
+	}
 	applyErr := ksApp.applyComponent([]string{"metacontroller"}, clientConfig)
 	if applyErr != nil {
 		return fmt.Errorf("couldn't create metacontroller component Error: %v", applyErr)
