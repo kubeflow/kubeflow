@@ -259,9 +259,13 @@ def check_deploy_status(args, deployments):
     for deployment in success_deploy:
       try:
         ssl_local_dir = os.path.join(SSL_DIR, deployment)
-        if os.path.exists(ssl_local_dir):
-          continue
-        os.makedirs(ssl_local_dir)
+        try:
+          os.makedirs(ssl_local_dir)
+        except OSError as exc:  # Python >2.5
+          if exc.errno == errno.EEXIST and os.path.isdir(ssl_local_dir):
+            pass
+          else:
+            raise
         util_run(("gcloud container clusters get-credentials %s --zone %s --project %s" %
                   (deployment, getZone(args, deployment), args.project)).split(' '))
         for sec in ["envoy-ingress-tls", "letsencrypt-prod-secret"]:
