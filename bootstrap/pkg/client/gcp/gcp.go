@@ -42,6 +42,7 @@ const (
 	K8S_SPECS         = "k8s_specs"
 	SECRETS           = "secrets"
 	CONFIG_FILE       = "cluster-kubeflow.yaml"
+	STORAGE_FILE      = "storage-kubeflow.yaml"
 	ADMIN_SECRET_NAME = "admin-gcp-sa"
 	USER_SECRET_NAME  = "user-gcp-sa"
 )
@@ -405,7 +406,8 @@ func (gcp *Gcp) generateDMConfigs(options map[string]interface{}) error {
 	repo := gcp.GcpApp.Spec.Repo
 	parentDir := path.Dir(repo)
 	sourceDir := path.Join(parentDir, "deployment/gke/deployment_manager_configs")
-	files := []string{"cluster-kubeflow.yaml", "cluster.jinja", "cluster.jinja.schema"}
+	files := []string{"cluster-kubeflow.yaml", "cluster.jinja", "cluster.jinja.schema",
+		"storage-kubeflow.yaml", "storage.jinja", "storage.jinja.schema"}
 	for _, file := range files {
 		sourceFile := filepath.Join(sourceDir, file)
 		destFile := filepath.Join(gcpConfigDir, file)
@@ -449,8 +451,14 @@ func (gcp *Gcp) generateDMConfigs(options map[string]interface{}) error {
 	if configFileDataErr != nil {
 		return fmt.Errorf("could not read %v Error %v", configFile, configFileDataErr)
 	}
+	storageFile := filepath.Join(gcpConfigDir, STORAGE_FILE)
+	storageFileData, storageFileDataErr := ioutil.ReadFile(storageFile)
+	if storageFileDataErr != nil {
+		return fmt.Errorf("could not read %v Error %v", storageFile, storageFileDataErr)
+	}
 	repl = "zone: " + gcp.GcpApp.Spec.Zone
 	configFileData = gcp.replaceText("zone: SET_THE_ZONE", repl, configFileData)
+	storageFileData = gcp.replaceText("zone: SET_THE_ZONE", repl, configFileData)
 	repl = "users: [\"" + iamEntry + "\"]"
 	configFileData = gcp.replaceText("users:", repl, configFileData)
 	repl = "ipName:" + gcp.GcpApp.Spec.IpName
@@ -458,6 +466,13 @@ func (gcp *Gcp) generateDMConfigs(options map[string]interface{}) error {
 	configFileErr := ioutil.WriteFile(to, configFileData, 0644)
 	if configFileErr != nil {
 		return fmt.Errorf("cound not write to %v Error %v", configFile, configFileErr)
+	}
+	repl = "createPipelinePersistentStorage: true"
+	storageFileData = gcp.replaceText("createPipelinePersistentStorage: SET_CREATE_PIPELINE_PERSISTENT_STORAGE",
+		repl, configFileData)
+	storageFileErr := ioutil.WriteFile(to, storageFileData, 0644)
+	if storageFileErr != nil {
+		return fmt.Errorf("cound not write to %v Error %v", storageFile, storageFileErr)
 	}
 	return nil
 }
