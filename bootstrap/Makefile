@@ -53,7 +53,7 @@ build-foo-plugin: generate fmt vet
 build-local: build-bootstrap build-kfctl
 
 # To edit which registries to add to bootstrapper, edit config (eg. config/default.yaml)
-build: build-local
+build:
 	rm -rf reg_tmp
 	mkdir -p reg_tmp/kubeflow
 	cp -r ../kubeflow reg_tmp/kubeflow
