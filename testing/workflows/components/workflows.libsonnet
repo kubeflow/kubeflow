@@ -230,6 +230,7 @@
         local v1beta2Suffix = "-v1b2",
         template: tests.buildTemplate {
           name: "tfjob-test" + v1beta2Suffix,
+          pythonPath: tests.kubeflowPy + ":" + tests.kubeflowTestingPy + ":" + tests.tfOperatorPy,
           command: [
             "python",
             "-m",
