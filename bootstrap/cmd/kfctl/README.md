@@ -25,7 +25,7 @@ New directories (`cmd/kfctl, pkg`):
 ```sh
 bootstrap/cmd/kfctl
 bootstrap/cmd/kfctl/cmd
-bootstrap/cmd/plugins/foo
+bootstrap/cmd/plugins/dockerfordesktop
 bootstrap/pkg/apis/apps
 bootstrap/pkg/apis/apps/ksonnet/v1alpha1
 bootstrap/pkg/utils
@@ -176,7 +176,7 @@ Flags:
 ## Extending kfctl
 
 `kfctl` can be extended to work with new platforms without requiring recompilation.
-An example is under bootstrap/cmd/plugins/foo/foo.go. A particular platform
+An example is under bootstrap/cmd/plugins/dockerfordesktop/dockerfordesktop.go. A particular platform
 provides a shared library (.so) under the env var `PLUGINS_ENVIRONMENT`
 that kfctl would load and execute. The shared library needs to define
 
@@ -189,27 +189,27 @@ where the return type implements the [KfApp Interface](#kfapp-interface).
 In this sample, running
 
 ```
-kfctl init ~/foo-app --platform foo
+kfctl init ~/dockerfordesktop --platform dockerfordesktop
 ```
 
-will result in kfctl loading $PLUGINS_ENVIRONMENT/foo.so and calling its methods that
+will result in kfctl loading $PLUGINS_ENVIRONMENT/dockerfordesktop.so and calling its methods that
 implement the KfApp Interface.
 
 ### Building the sample plugin
 
 ```
-make build-foo-plugin
+make build-dockerfordesktop-plugin
 ```
 
 ## Testing
 
-### Testing init for all platforms including the `foo` platform plugin
+### Testing init for all platforms including the `dockerfordesktop` platform plugin
 
 ```
 make test-known-platforms-init
 ```
 
-### Testing generate for all platforms including the `foo` platform plugin
+### Testing generate for all platforms including the `dockerfordesktop` platform plugin
 
 ```
 make test-known-platforms-generate
@@ -220,7 +220,7 @@ make test-known-platforms-generate
 In order to debug in goland, the plugin code must be disabled. 
 See https://github.com/golang/go/issues/23733. 
 This is expected to be resolved with golang 1.12.X
-To disable the plugin code (which will cause foo.go to be linked statically in kfctl) 
+To disable the plugin code (which will cause dockerfordesktop.go to be linked statically in kfctl) 
 and allow debugging in goland run:
 
 ```

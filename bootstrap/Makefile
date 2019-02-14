@@ -87,7 +87,7 @@ run-local-docker:
 
 test-known-platforms-init: install build-dockerfordesktop-plugin
 	@rm -rf $(HOME)/dockerfordesktop && \
-	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/foo -V --platform foo --version master && \
+	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/dockerfordesktop -V --platform docker-for-desktop --version master && \
 	rm -rf $(HOME)/ksonnet && \
 	kfctl init $(HOME)/ksonnet -V --platform ksonnet --version master && \
 	rm -rf $(HOME)/minikube && \
@@ -95,7 +95,7 @@ test-known-platforms-init: install build-dockerfordesktop-plugin
 	echo SUCCESS
 
 test-known-platforms-generate: test-known-platforms-init
-	@cd ~/foo && \
+	@cd ~/dockerfordesktop && \
 	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl generate all -V && \
 	cd ~/ksonnet && \
 	kfctl generate all -V && \
@@ -105,8 +105,8 @@ test-known-platforms-generate: test-known-platforms-init
 
 
 # static and plugins toogle whether we try and load a platform as a .so.
-# There is an example plugin 'foo' that can be loaded as a .so.
-# By default we disable loading plugins and link foo into the kfctl binary (static)
+# There is an example plugin 'dockerfordesktop' that can be loaded as a .so.
+# By default we disable loading plugins and link dockerfordesktop into the kfctl binary (static)
 static:
 	@ex pkg/apis/apps/group.go <hack/static
 	@ex cmd/kfctl/cmd/root.go <hack/static || echo Plugin functionality disabled 
