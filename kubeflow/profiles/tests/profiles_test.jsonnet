@@ -130,7 +130,8 @@ std.assertEqual(
             status: {
               properties: {
                 observedGeneration: {
-                  type: "int64",
+                  type: "integer",
+                  format: "int64",
                 },
               },
               type: "object",
