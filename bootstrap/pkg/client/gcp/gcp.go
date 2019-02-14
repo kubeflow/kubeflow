@@ -27,6 +27,7 @@ import (
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/deploymentmanager/v2"
+	"google.golang.org/api/iam/v1"
 	"io"
 	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -201,7 +202,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 	return nil
 }
 
-func (gcp *Gcp) Apply(resources kftypes.ResourceEnum, options map[string]interface{}) error {
+func (gcp *Gcp) 	Apply(resources kftypes.ResourceEnum, options map[string]interface{}) error {
 	updateDMErr := gcp.updateDM(resources, options)
 	if updateDMErr != nil {
 		return fmt.Errorf("gcp apply could not update deployment manager Error %v", updateDMErr)
@@ -488,7 +489,38 @@ func (gcp *Gcp) downloadK8sManifests() error {
 }
 
 func (gcp *Gcp) createGcpSecret(email string, secretName string) error {
-
+	cli, cliErr := kftypes.GetClientOutOfCluster()
+	if cliErr != nil {
+		return fmt.Errorf("couldn't create client Error: %v", cliErr)
+	}
+	namespace := gcp.GcpApp.Name
+	secret, secretMissingErr := cli.CoreV1().Secrets(namespace).Get(secretName, metav1.GetOptions{})
+	if secretMissingErr != nil {
+		ctx := context.Background()
+		c, err := google.DefaultClient(ctx, iam.CloudPlatformScope)
+		if err != nil {
+			return err
+		}
+		iamService, err := iam.New(c)
+		if err != nil {
+			return err
+		}
+		name := "projects/" + gcp.GcpApp.Spec.Project + "/serviceAccounts/" + email
+		req := &iam.CreateServiceAccountKeyRequest{
+			// TODO: Fill request struct fields.
+		}
+		resp, err := iamService.Projects.ServiceAccounts.Keys.Create(name, req).Context(ctx).Do()
+		if err != nil {
+			return err
+		}
+		data, err := resp.MarshalJSON()
+		if err != nil {
+			return err
+		}
+		log.Infof("data = %v", data)
+	} else {
+		return fmt.Errorf("couldn't create %v it already exists with UID %v", secretName, secret.GetUID())
+	}
 	return nil
 }
 
@@ -501,7 +533,6 @@ func (gcp *Gcp) createSecrets() error {
 	}
 	adminEmail := gcp.GcpApp.Name + "admin@" + gcp.GcpApp.Spec.Project + ".iam.gserviceaccount.com"
 	userEmail := gcp.GcpApp.Name + "user@" + gcp.GcpApp.Spec.Project + ".iam.gserviceaccount.com"
-
 	adminSecretErr := gcp.createGcpSecret(adminEmail, ADMIN_SECRET_NAME)
 	if adminSecretErr != nil {
 		return fmt.Errorf("cannot create admin secret %v Error %v", ADMIN_SECRET_NAME, adminSecretErr)
