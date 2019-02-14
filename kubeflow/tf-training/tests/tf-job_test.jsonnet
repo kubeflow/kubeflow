@@ -222,6 +222,7 @@ std.assertEqual(
         ],
         resources: [
           "tfjobs",
+          "tfjobs/status",
         ],
         verbs: [
           "*",
