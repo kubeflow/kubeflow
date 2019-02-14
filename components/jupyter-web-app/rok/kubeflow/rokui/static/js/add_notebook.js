@@ -1,6 +1,6 @@
 
 $(window).on('load', function () {
-  // Fix the required inputs: 
+  // Fix the required inputs:
   // https://github.com/google/material-design-lite/issues/1502#issuecomment-211702642
   $('[data-required=true]').each(function() {
     $(this).attr('required', true);
@@ -50,7 +50,7 @@ $(window).on('load', function () {
       autofillForm();
     }, 250);
   });
-  
+
   // Configure Image input elements
   setImageType()
 
@@ -106,7 +106,7 @@ function  setWorkspaceEventListeners() {
   workspaceType.on('change', function() {
     // Set attributes for the Volume fields
     if (this.value == 'Existing') {
-      
+
       setAttributes(workspaceSize, {
         'readonly': true,
         'data-toggle': 'tooltip', 'data-placement': 'top',
@@ -125,7 +125,7 @@ function  setWorkspaceEventListeners() {
       $("#error-msg-vol").fadeOut("fast", function() {
         $(this).hide()
       })
-    } 
+    }
     else if (this.value == 'New') {
       unsetAttributes(workspaceName, 'readonly data-toggle data-placement title');
       unsetAttributes(workspaceSize, 'readonly data-toggle data-placement title');
@@ -142,12 +142,12 @@ function  setWorkspaceEventListeners() {
         'title': 'You can only enter a Rok URL when mounting an existing Rok Volume'
       });
       document.querySelector("#wsrokurl-input-div").MaterialTextfield.disable()
-    
+
       // Hide the warning from None option
       $("#error-msg-vol").fadeOut("fast", function() {
         $(this).hide()
       })
-    } 
+    }
     else if (this.value == "None") {
       var attrs = {
         'readonly': true,
@@ -275,7 +275,7 @@ function setDefaultFormValues() {
             $('#ws_type').attr({
               'readonly': defaultWorkspace.type.readOnly || defaultWorkspaceReadOnly,
               'immutable': defaultWorkspace.type.readOnly || defaultWorkspaceReadOnly,
-            }); 
+            });
 
             if ($('#ws_type').attr('readonly')) {
               $('#ws_type').on('mousedown', function(e) {
@@ -701,10 +701,10 @@ function addVolume() {
         'title': 'Size is autofilled when mounting existing Volumes'
       });
       document.querySelector("#vol_size_textfield"+vol_id).MaterialTextfield.disable()
-      
+
       unsetAttributes(volumeMode, 'readonly data-toggle data-placement title');
-      document.querySelector("#vol_rokurl_textfield"+vol_id).MaterialTextfield.enable()     
-    
+      document.querySelector("#vol_rokurl_textfield"+vol_id).MaterialTextfield.enable()
+
     } else if (this.value == 'New') {
       unsetAttributes(volumeSize, 'readonly data-toggle data-placement title');
       document.querySelector("#vol_size_textfield"+vol_id).MaterialTextfield.enable()
@@ -751,7 +751,7 @@ function removeVolume(id) {
       'onclick': 'removeVolume(' + i + ')'
     });
 
-    // The next two are for disabling the Size and Mount Textfields 
+    // The next two are for disabling the Size and Mount Textfields
     volumeElement.find('#vol_size_textfield' + (i+1)).attr({
       id: "vol_size_textfield" + i
     })
@@ -801,7 +801,7 @@ function postNotebook(form, data) {
         <span class="close" onclick="this.parentElement.style.display='none'">&times;</span>
         <strong>Error: </strong><span class='danger-log'></span>
       </div>`
-      
+
       const $e = $("#error-msgs").html(innerHTML)
       $('.danger-log', $e).text(res.log)
 
