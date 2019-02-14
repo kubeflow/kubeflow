@@ -591,16 +591,14 @@
                     {},
                   {
                     name: "tfjob-test",
-                    template: "tfjob-test" + v1beta1Suffix
-                    ,
+                    template: "tfjob-test" + v1beta1Suffix,
                     dependencies: [
                       "deploy-kubeflow",
                     ],
                   },
                   {
                     name: "tfjob-test",
-                    template: "tfjob-test" + v1beta2Suffix
-                    ,
+                    template: "tfjob-test" + v1beta2Suffix,
                     dependencies: [
                       "deploy-kubeflow",
                     ],
@@ -751,7 +749,7 @@
               "--artifacts_path=" + artifactsDir,
               // Skip GPU tests
               "--skip_tests=test_simple_tfjob_gpu",
-            ]),  // run tests
+            ]),  // tfjob-test-v1beta1
             buildTemplate("tfjob-test" + v1beta2Suffix, [
               "python",
               "-m",
@@ -767,7 +765,7 @@
               "--artifacts_path=" + artifactsDir,
               // Skip GPU tests
               "--skip_tests=test_simple_tfjob_gpu",
-            ]),  // run tests
+            ]),  // tfjob-test-v1beta2
             buildTemplate("pytorchjob-deploy", [
               "python",
               "-m",
