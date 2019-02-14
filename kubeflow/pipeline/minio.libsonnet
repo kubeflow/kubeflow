@@ -38,6 +38,11 @@
         namespace: namespace,
       },
       spec: {
+        selector: {
+          matchLabels: {
+            app: "minio",
+          },
+        },
         strategy: {
           type: "Recreate",
         },
