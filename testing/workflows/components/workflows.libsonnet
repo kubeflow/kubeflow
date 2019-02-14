@@ -208,7 +208,7 @@
       {
         local v1beta1Suffix = "-v1b1",
         template: tests.buildTemplate {
-          name: "tfjob-test",
+          name: "tfjob-test" + v1beta1Suffix,
           pythonPath: tests.kubeflowPy + ":" + tests.kubeflowTestingPy + ":" + tests.tfOperatorPy,
           command: [
             "python",
@@ -229,7 +229,7 @@
       {
         local v1beta2Suffix = "-v1b2",
         template: tests.buildTemplate {
-          name: "tfjob-test",
+          name: "tfjob-test" + v1beta2Suffix,
           command: [
             "python",
             "-m",
@@ -590,14 +590,14 @@
                   else
                     {},
                   {
-                    name: "tfjob-test",
+                    name: "tfjob-test" + v1beta1Suffix,
                     template: "tfjob-test" + v1beta1Suffix,
                     dependencies: [
                       "deploy-kubeflow",
                     ],
                   },
                   {
-                    name: "tfjob-test",
+                    name: "tfjob-test" + v1beta2Suffix,
                     template: "tfjob-test" + v1beta2Suffix,
                     dependencies: [
                       "deploy-kubeflow",
