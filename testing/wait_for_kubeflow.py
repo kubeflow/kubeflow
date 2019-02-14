@@ -22,7 +22,7 @@ def deploy_kubeflow(_):
 
   util.load_kube_config()
   # Verify that the TfJob operator is actually deployed.
-  tf_job_deployment_name = "tf-job-operator-v1beta1"
+  tf_job_deployment_name = "tf-job-operator"
   logging.info("Verifying TfJob controller started.")
   util.wait_for_deployment(api_client, namespace, tf_job_deployment_name)
 
