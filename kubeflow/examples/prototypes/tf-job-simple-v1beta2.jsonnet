@@ -1,5 +1,5 @@
 // @apiVersion 0.1
-// @name io.ksonnet.pkg.tf-job-simple-v1beta1
+// @name io.ksonnet.pkg.tf-job-simple-v1beta2
 // @description tf-job-simple
 // @shortDescription A simple TFJob to run CNN benchmark
 // @param name string Name for the job.
