@@ -6,10 +6,6 @@
 
 set -xe
 
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null && pwd)"
-ENV_FILE="env.sh"
-
-source ${ENV_FILE}
 export KUBEFLOW_KS_DIR=${KUBEFLOW_KS_DIR:-"$(pwd)/ks_app"}
 
 pushd ${KUBEFLOW_KS_DIR}
@@ -41,8 +37,10 @@ if [ -z "$1" ]
     ks pkg install kubeflow/pipeline@$1
 fi
 
-ks generate pipeline pipeline
 
+# Regenerate pipeline ksonnet component and recover default environment parameter
+ks generate pipeline pipeline
 mv environments/default/params_tmp.libsonnet environments/default/params.libsonnet
+ks apply default -c pipeline
 
 popd
