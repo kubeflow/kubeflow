@@ -83,12 +83,12 @@ func newKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	//appName can be a path
 	appName := options[string(kftypes.APPNAME)].(string)
 	appDir := path.Dir(appName)
-	if appDir == "" {
+	if appDir == "" || appDir == "." {
 		cwd, err := os.Getwd()
 		if err != nil {
 			return nil, fmt.Errorf("could not get current directory %v", err)
 		}
-		appDir = cwd
+		appDir = path.Join(cwd, appName)
 	} else {
 		if appDir == "~" {
 			home, homeErr := homedir.Dir()
