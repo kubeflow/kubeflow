@@ -7,7 +7,7 @@ local paramsv1beta2 = {
   deploymentNamespace:: "null",
 };
 local env = {
-  namespace:: "test-kf-001",
+  namespace: "test-kf-001",
 };
 
 local tfjobv1beta2 = tfjob.new(env, paramsv1beta2);

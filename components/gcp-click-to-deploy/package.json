@@ -4,8 +4,10 @@
   "private": true,
   "dependencies": {
     "@material-ui/core": "^3.1.0",
+    "@types/bcryptjs": "^2.4.2",
     "ajv": "^6.6.1",
     "ajv-keywords": "^3.2.0",
+    "bcryptjs": "^2.4.3",
     "glamor": "^2.20.40",
     "glamorous": "^4.13.1",
     "js-yaml": "^3.12.0",

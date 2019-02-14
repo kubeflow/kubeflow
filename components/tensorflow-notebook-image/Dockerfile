@@ -10,7 +10,7 @@ ARG TF_PACKAGE_PY_27=https://storage.googleapis.com/tensorflow/linux/cpu/tensorf
 ARG TF_SERVING_VERSION=0.0.0
 ARG TFMA_VERSION
 ARG TFDV_VERSION
-ARG PIPELINE_SDK_PACKAGE=https://storage.googleapis.com/ml-pipeline/release/0.1.7/kfp.tar.gz
+ARG PIPELINE_SDK_PACKAGE=https://storage.googleapis.com/ml-pipeline/release/0.1.8/kfp.tar.gz
 
 USER root
 
@@ -56,14 +56,13 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
   zip \
   && apt-get clean && \
   rm -rf /var/lib/apt/lists/*
-  
+
 ENV DOCKER_CREDENTIAL_GCR_VERSION=1.4.3
 RUN curl -LO https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/v${DOCKER_CREDENTIAL_GCR_VERSION}/docker-credential-gcr_linux_amd64-${DOCKER_CREDENTIAL_GCR_VERSION}.tar.gz && \
     tar -zxvf docker-credential-gcr_linux_amd64-${DOCKER_CREDENTIAL_GCR_VERSION}.tar.gz && \
     mv docker-credential-gcr /usr/local/bin/docker-credential-gcr && \
     rm docker-credential-gcr_linux_amd64-${DOCKER_CREDENTIAL_GCR_VERSION}.tar.gz && \
-    chmod +x /usr/local/bin/docker-credential-gcr && \
-    docker-credential-gcr configure-docker
+    chmod +x /usr/local/bin/docker-credential-gcr
 
 RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
     locale-gen
@@ -87,17 +86,20 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
 
 # Install Tini - used as entrypoint for container
 RUN cd /tmp && \
-    wget --quiet https://github.com/krallin/tini/releases/download/v0.10.0/tini && \
-    echo "1361527f39190a7338a0b434bd8c88ff7233ce7b9a4876f3315c22fce7eca1b0 *tini" | sha256sum -c - && \
+    wget --quiet https://github.com/krallin/tini/releases/download/v0.18.0/tini && \
+    echo "12d20136605531b09a2c2dac02ccee85e1b874eb322ef6baf7561cd93f93c855 *tini" | sha256sum -c - && \
     mv tini /usr/local/bin/tini && \
     chmod +x /usr/local/bin/tini
 
 # Install conda as jovyan user and check the md5 sum provided on the download site
-ENV MINICONDA_VERSION 4.4.10
+# After Miniconda v4.5.4 the default Python version is no longer 3.6, but TensorFlow
+# still doesn't support Python 3.7. If we still like to upgrade Miniconda we need
+# to add the line "conda install python==3.6" to RUN command below
+ENV MINICONDA_VERSION 4.5.4
 RUN cd /tmp && \
     mkdir -p $CONDA_DIR && \
     wget --quiet https://repo.continuum.io/miniconda/Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh && \
-    echo "bec6203dbb2f53011e974e9bf4d46e93 *Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh" | md5sum -c - && \
+    echo "a946ea1d0c4a642ddf0c3a26a18bb16d *Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh" | md5sum -c - && \
     /bin/bash Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh -f -b -p ${CONDA_DIR} && \
     rm Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh && \
     conda config --system --prepend channels conda-forge && \
@@ -112,7 +114,7 @@ RUN cd /tmp && \
 # The image size can grow significantly.
 
 # Install base python3 packages
-RUN pip install --upgrade pip && \
+RUN pip install --upgrade pip==19.0.1 && \
     pip --no-cache-dir install \
     # Tensorflow
     ${TF_PACKAGE} \
@@ -121,7 +123,8 @@ RUN pip install --upgrade pip && \
     jupyter-console==6.0.0 \
     jupyterhub \
     jupyterlab \
-    git+https://github.com/kubeflow/fairing@8087c0b4e4ae5007b7a21177047e8b8412be382e \
+    xgboost \
+    git+https://github.com/kubeflow/fairing@f82e75e78874f16ceaee756445100bb7fef96b58 \
     # Kubeflow pipeline SDK
     ${PIPELINE_SDK_PACKAGE} \
     # Cleanup
@@ -146,6 +149,8 @@ RUN rm -fr $(ls -A $HOME)
 # Copy over init scripts
 COPY --chown=jovyan:users start-singleuser.sh start-notebook.sh start.sh pvc-check.sh /usr/local/bin/
 RUN chmod a+rx /usr/local/bin/*
+
+RUN docker-credential-gcr configure-docker && chown jovyan:users $HOME/.docker/config.json
 
 # Configure container startup
 EXPOSE 8888

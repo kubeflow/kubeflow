@@ -24,6 +24,9 @@ Example invocation
 
 python -m testing.test_jsonnet --test_files_dirs=/kubeflow/application/tests,/kubeflow/common/tests,/kubeflow/jupyter/tests,/kubeflow/iap/tests,/kubeflow/gcp/tests,/kubeflow/tensorboard/tests,/kubeflow/examples/tests,/kubeflow/metacontroller/tests,/kubeflow/profiles/tests,/kubeflow/tf-training/tests --artifacts_dir=/tmp/artifacts
 
+TODO(jlewi): Should we use pytest to create a parameterized test with
+respect to directory?
+See https://docs.pytest.org/en/latest/example/parametrize.html
 """
 
 from __future__ import print_function
@@ -48,11 +51,20 @@ def should_test(file_path):
     raise ValueError('Invalid file : {}'.format(file_path))
   return parts[-2] != 'prototypes'
 
+def is_excluded(file_name, exclude_dirs):
+  for exclude_dir in exclude_dirs:
+    if file_name.startswith(exclude_dir):
+      return True
+  return False
 
-def run(test_files_dirs, jsonnet_path_args, test_case):
+def run(test_files_dirs, jsonnet_path_args, exclude_dirs, test_case):
   # Go through each jsonnet file in test_files_dirs and run jsonnet eval
   for test_files_dir in test_files_dirs:
     for root, _, files in os.walk(test_files_dir):
+      if is_excluded(root, exclude_dirs):
+        logging.info("Skipping %s", root)
+        continue
+
       for test_file in files:
         full_path = os.path.join(root, test_file)
         if should_test(full_path):
@@ -105,6 +117,13 @@ def parse_args():
     default="",
     type=str,
     help="Comma separated directories used by jsonnet to find additional libraries")
+
+  parser.add_argument(
+    "--exclude_dirs",
+    default="",
+    type=str,
+    help="Comma separated directories which should be excluded from the test")
+
   args, _ = parser.parse_known_args()
   return args
 
@@ -123,7 +142,11 @@ def test_jsonnet(test_case):  # pylint: disable=redefined-outer-name
       jsonnet_path_args.append('--jpath')
       jsonnet_path_args.append(jsonnet_path_dir)
 
-  run(test_files_dirs, jsonnet_path_args, test_case)
+  exclude_dirs = []
+  if args.exclude_dirs:
+    exclude_dirs = args.exclude_dirs.split(',')
+
+  run(test_files_dirs, jsonnet_path_args, exclude_dirs, test_case)
 
 
 if __name__ == "__main__":

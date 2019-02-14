@@ -9,7 +9,7 @@ spec:
     spec:
       containers:
       - name: test-container
-        image: gcr.io/kubeflow-ci/test-worker:latest
+        image: gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4
         command: ["tail", "-f", "/dev/null"]
         volumeMounts:
           - mountPath: /mnt/test-data-volume

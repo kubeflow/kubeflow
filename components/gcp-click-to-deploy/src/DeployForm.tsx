@@ -14,7 +14,7 @@ import * as React from 'react';
 import * as request from 'request';
 
 import Gapi from './Gapi';
-import { flattenDeploymentOperationError, log, wait } from './Utils';
+import { encryptPassword, flattenDeploymentOperationError, log, wait } from './Utils';
 
 // TODO(jlewi): Can we fetch these directly from GitHub so we always get the latest value?
 // When I tried using fetch API to do that I ran into errors that I interpreted as chrome blocking
@@ -37,8 +37,12 @@ interface DeployFormState {
   showLogs: boolean;
   zone: string;
   kfversion: string;
+  kfversionList: string[];
   clientId: string;
   clientSecret: string;
+  username: string;
+  password: string;
+  password2: string;
   iap: boolean;
 }
 
@@ -109,8 +113,12 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       dialogTitle: '',
       iap: true,
       kfversion: 'v0.3.5',
+      kfversionList: ['v0.3.5', 'v0.4.1'],
+      password: '',
+      password2: '',
       project: '',
       showLogs: false,
+      username: '',
       zone: 'us-central1-a',
     };
   }
@@ -121,6 +129,21 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     // be able to click submit until the fetches have succeeded. How can we do
     // that?
 
+    const params = new URLSearchParams(this.props.location.search);
+    let kfversionList = this.state.kfversionList;
+    let kfversion = this.state.kfversion;
+    if (process.env.REACT_APP_VERSIONS){
+      kfversionList = process.env.REACT_APP_VERSIONS.split(',');
+      kfversion = kfversionList[0];
+    }
+    if (params.get('version')) {
+      kfversion = String(params.get('version'));
+      kfversionList.push(kfversion);
+    }
+    this.setState({
+      kfversion,
+      kfversionList,
+    });
     fetch(appConfigPath, { mode: 'no-cors' })
       .then((response) => {
         log('Got response');
@@ -144,7 +167,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
   public render() {
     const zoneList = ['us-central1-a', 'us-central1-c', 'us-east1-c', 'us-east1-d', 'us-west1-b',
       'europe-west1-b', 'europe-west1-d', 'asia-east1-a', 'asia-east1-b'];
-    const versionList = ['v0.3.5'];
 
     return (
       <div>
@@ -176,6 +198,21 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           </div>
         </Collapse>
 
+        <Collapse in={!this.state.iap}>
+          <div style={styles.row}>
+            <TextField label="Kubeflow cluster Username" spellCheck={false} style={styles.input} variant="filled"
+             required={true} value={this.state.username} onChange={this._handleChange('username')} />
+          </div>
+          <div style={styles.row}>
+            <TextField label="Kubeflow cluster Password" spellCheck={false} style={styles.input} variant="filled" type="password"
+             required={true} value={this.state.password} onChange={this._handleChange('password')} />
+          </div>
+          <div style={styles.row}>
+            <TextField label="Confirm Password" spellCheck={false} style={styles.input} variant="filled" type="password"
+             required={true} value={this.state.password2} onChange={this._handleChange('password2')} />
+          </div>
+        </Collapse>
+
         <div style={styles.row}>
           <TextField select={true} label="GKE zone:" required={true} style={styles.input} variant="filled"
             value={this.state.zone} onChange={this._handleChange('zone')}>
@@ -188,11 +225,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         <div style={styles.row}>
           <TextField select={true} label="Kubeflow version:" required={true} style={styles.input} variant="filled"
             value={this.state.kfversion} onChange={this._handleChange('kfversion')}>
-            { process.env.REACT_APP_VERSIONS ?
-              process.env.REACT_APP_VERSIONS.split(',').map((version, i) => (
-                <MenuItem key={i} value={version}>{version}</MenuItem>
-              )) :
-              versionList.map((version, i) => (
+            { this.state.kfversionList.map((version, i) => (
                 <MenuItem key={i} value={version}>{version}</MenuItem>
               ))
             }
@@ -306,8 +339,21 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         p.value = email;
       }
 
-      if (p.name === 'jupyterHubAuthenticator') {
-        if (this.state.clientId === '' || this.state.clientSecret === '') {
+    }
+    if (!this.state.iap) {
+      for (let i = 0, len = this._configSpec.defaultApp.components.length; i < len; i++) {
+        const p = this._configSpec.defaultApp.components[i];
+        if (p.name === 'iap-ingress') {
+          p.name = 'basic-auth-ingress';
+          p.prototype = 'basic-auth-ingress';
+        }
+      }
+      for (let i = 0, len = this._configSpec.defaultApp.parameters.length; i < len; i++) {
+        const p = this._configSpec.defaultApp.parameters[i];
+        if (p.component === 'iap-ingress') {
+          p.component = 'basic-auth-ingress';
+        }
+        if (p.name === 'jupyterHubAuthenticator') {
           p.value = 'null';
         }
       }
@@ -584,10 +630,33 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     if (!resource) {
       return;
     }
+    const configSpec = JSON.parse(JSON.stringify(resource));
+    if (!this.state.iap) {
+      configSpec.defaultApp.components.push({
+        name: 'basic-auth',
+        prototype: 'basic-auth',
+      });
+      const passwordhash = btoa(encryptPassword(this.state.password));
+      configSpec.defaultApp.parameters.push({
+        component: 'ambassador',
+        name: 'ambassadorServiceType',
+        value: 'NodePort'
+      });
+      configSpec.defaultApp.parameters.push({
+        component: 'basic-auth',
+        name: 'username',
+        value: this.state.username
+      });
+      configSpec.defaultApp.parameters.push({
+        component: 'basic-auth',
+        name: 'pwhash',
+        value: passwordhash
+      });
+    }
 
     const createBody = JSON.stringify(
       {
-        AppConfig: this._configSpec.defaultApp,
+        AppConfig: configSpec.defaultApp,
         Apply: true,
         AutoConfigure: true,
         ClientId: btoa(this.state.clientId),

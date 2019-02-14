@@ -23,7 +23,7 @@ local testDir = mountPath + "/" + name;
 local outputDir = testDir + "/output";
 local artifactsDir = outputDir + "/artifacts";
 // Source directory where all repos should be checked out
-local srcRootDir = testDir + "/src";
+local srcRootDir = testDir + "/src/github.com";
 // The directory containing the kubeflow/kubeflow repo
 local srcDir = srcRootDir + "/kubeflow/kubeflow";
 
@@ -32,7 +32,7 @@ local bootstrapDir = srcDir + "/bootstrap";
 
 local kubeConfig = testDir + "/click_deploy_test/.kube/kubeconfig";
 
-local image = "gcr.io/kubeflow-ci/test-worker:latest";
+local image = "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4";
 local bootstrapImage = "gcr.io/kubeflow-ci/bootstrapper";
 
 // The name of the NFS volume claim to use for test files.
@@ -52,7 +52,7 @@ local project = "kubeflow-ci";
 // We use separate kubeConfig files for separate clusters
 local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=[]) = {
   name: step_name,
-  activeDeadlineSeconds: 1800,  // Set 30 minute timeout for each template
+  activeDeadlineSeconds: 2100,  // Set 35 minute timeout for each template. Waiting for IAP might take 30min.
   workingDir: working_dir,
   container: {
     command: command,
@@ -69,6 +69,10 @@ local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=
       {
         name: "GOOGLE_APPLICATION_CREDENTIALS",
         value: "/secret/gcp-credentials/key.json",
+      },
+      {
+        name: "GOPATH",
+        value: testDir,
       },
       {
         name: "CLIENT_ID",
@@ -163,7 +167,7 @@ local dagTemplates = [
         bootstrapImage,
         name,
       ],
-      working_dir=testDir,
+      working_dir=bootstrapDir,
       env_vars=[
         {
           name: "DOCKER_HOST",
@@ -206,6 +210,9 @@ local dagTemplates = [
         "-m",
         "testing.test_deploy_app",
         "--namespace=" + name,
+        "--artifacts_dir=" + artifactsDir,
+        "--iap_wait_min=15",
+        "--workflow_name=" + params.workflowName,
       ],
       working_dir=testDir
     ),
@@ -240,7 +247,7 @@ local exitTemplates =
         "--bucket=" + bucket,
       ]),  // copy-artifacts,
 
-      dependencies: ["deploy-delete"],
+      dependencies: null,
     },
     {
       template:
@@ -254,7 +261,7 @@ local exitTemplates =
           "-rf",
           testDir,
         ]),  // test-dir-delete
-      dependencies: ["copy-artifacts"],
+      dependencies: ["copy-artifacts", "deploy-delete"],
     },
   ];
 
