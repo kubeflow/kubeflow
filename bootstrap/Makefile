@@ -47,8 +47,8 @@ build-bootstrap: generate fmt vet
 build-kfctl: generate fmt vet
 	$(GO) build -i -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
 
-build-foo-plugin: generate fmt vet
-	$(GO) build -i -gcflags 'all=-N -l' -o bin/foo.so -buildmode=plugin cmd/plugins/foo/foo.go
+build-dockerfordesktop-plugin: generate fmt vet
+	$(GO) build -i -gcflags 'all=-N -l' -o bin/dockerfordesktop.so -buildmode=plugin cmd/plugins/dockerfordesktop/dockerfordesktop.go
 
 build-local: build-bootstrap build-kfctl
 
@@ -85,8 +85,8 @@ run-local-docker:
 	  --mount type=bind,source=${HOME}/kf_app,target=/home/kubeflow \
 	  --entrypoint /bin/bash $(IMG):$(TAG)
 
-test-known-platforms-init: install build-foo-plugin
-	@rm -rf $(HOME)/foo && \
+test-known-platforms-init: install build-dockerfordesktop-plugin
+	@rm -rf $(HOME)/dockerfordesktop && \
 	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/foo -V --platform foo --version master && \
 	rm -rf $(HOME)/ksonnet && \
 	kfctl init $(HOME)/ksonnet -V --platform ksonnet --version master && \
