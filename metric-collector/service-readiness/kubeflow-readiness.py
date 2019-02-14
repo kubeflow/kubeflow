@@ -143,25 +143,25 @@ def main(unparsed_args=None):
 
 def get_google_open_id_connect_token(service_account_credentials):
   """
-    Get an OpenID Connect token issued by Google for the service account.
+  Get an OpenID Connect token issued by Google for the service account.
 
-    This function:
+  This function:
 
-      1. Generates a JWT signed with the service account's private key containing
-         a special "target_audience" claim.
+    1. Generates a JWT signed with the service account's private key containing
+       a special "target_audience" claim.
 
-      2. Sends it to the OAUTH_TOKEN_URI endpoint. Because the JWT in #1 has a
-         target_audience claim, that endpoint will respond with an OpenID Connect
-         token for the service account -- in other words, a JWT signed by
-         *Google*. The aud claim in this JWT will be set to the value from the
-         target_audience claim in #1.
+    2. Sends it to the OAUTH_TOKEN_URI endpoint. Because the JWT in #1 has a
+       target_audience claim, that endpoint will respond with an OpenID Connect
+       token for the service account -- in other words, a JWT signed by
+       *Google*. The aud claim in this JWT will be set to the value from the
+       target_audience claim in #1.
 
-    For more information, see
-    https://developers.google.com/identity/protocols/OAuth2ServiceAccount
-    The HTTP/REST example on that page describes the JWT structure and
-    demonstrates how to call the token endpoint. (The example on that paga shows
-    how to get an OAuth2 access token; this code is using a modified version of it
-    to get an OpenID Connect token.)
+  For more information, see
+  https://developers.google.com/identity/protocols/OAuth2ServiceAccount
+  The HTTP/REST example on that page describes the JWT structure and
+  demonstrates how to call the token endpoint. (The example on that paga shows
+  how to get an OAuth2 access token; this code is using a modified version of it
+  to get an OpenID Connect token.)
   """
 
   service_account_jwt = (

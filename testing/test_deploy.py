@@ -374,17 +374,17 @@ def ks_deploy(app_dir,
               account=None,
               namespace=None):
   """Deploy the specified ksonnet component.
-    Args:
-      app_dir: The ksonnet directory
-      component: Name of the component to deployed
-      params: A dictionary of parameters to set; can be empty but should not be
-        None.
-      env: (Optional) The environment to use, if none is specified a new one
-        is created.
-      account: (Optional) The account to use.
-      namespace: (Optional) The namespace to use when adding the environment
-    Raises:
-      ValueError: If input arguments aren't valid.
+  Args:
+    app_dir: The ksonnet directory
+    component: Name of the component to deployed
+    params: A dictionary of parameters to set; can be empty but should not be
+      None.
+    env: (Optional) The environment to use, if none is specified a new one
+      is created.
+    account: (Optional) The account to use.
+    namespace: (Optional) The namespace to use when adding the environment
+  Raises:
+    ValueError: If input arguments aren't valid.
   """
   if not component:
     raise ValueError("component can't be None.")
@@ -419,11 +419,11 @@ def ks_deploy(app_dir,
 def modify_minikube_config(config_path, certs_dir):
   """Modify the kube config file used with minikube.
 
-    This function changes the location of the certificates to certs_dir.
+  This function changes the location of the certificates to certs_dir.
 
-    Args:
-      config_path: The path of the Kubernetes config file.
-      certs_dir: The directory where the certs to use with minikube are stored.
+  Args:
+    config_path: The path of the Kubernetes config file.
+    certs_dir: The directory where the certs to use with minikube are stored.
   """
   with open(config_path, "r") as hf:
     config = yaml.load(hf)

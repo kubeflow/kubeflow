@@ -22,23 +22,23 @@ def wait_for_operation(client,
                        timeout=datetime.timedelta(hours=1),
                        polling_interval=datetime.timedelta(seconds=5)):
   """
-    Wait for the specified operation to complete.
+  Wait for the specified operation to complete.
 
-    Args:
-      client: Client for the API that owns the operation.
-      project: project
-      zone: Zone. Set to none if its a global operation
-      op_id: Operation id/name.
-      timeout: A datetime.timedelta expressing the amount of time to wait
-          before giving up.
-      polling_interval: A datetime.timedelta to represent the amount of time
-          to wait between requests polling for the operation status.
+  Args:
+    client: Client for the API that owns the operation.
+    project: project
+    zone: Zone. Set to none if its a global operation
+    op_id: Operation id/name.
+    timeout: A datetime.timedelta expressing the amount of time to wait before
+        giving up.
+    polling_interval: A datetime.timedelta to represent the amount of time to
+        wait between requests polling for the operation status.
 
-    Returns:
-      op: The final operation.
+  Returns:
+    op: The final operation.
 
-    Raises:
-      TimeoutError: if we timeout waiting for the operation to complete.
+  Raises:
+    TimeoutError: if we timeout waiting for the operation to complete.
   """
   endtime = datetime.datetime.now() + timeout
   while True:
@@ -71,14 +71,14 @@ def wait_for_vm(project,
                 timeout=datetime.timedelta(minutes=5),
                 polling_interval=datetime.timedelta(seconds=10)):
   """
-    Wait for the VM to be ready. This is measured by trying to ssh into the VM
+  Wait for the VM to be ready. This is measured by trying to ssh into the VM
 
-    timeout: A datetime.timedelta expressing the amount of time to wait
-        before giving up.
-    polling_interval: A datetime.timedelta to represent the amount of time
-          to wait between requests polling for the operation status.
-    Raises:
-      TimeoutError: if we timeout waiting for the operation to complete.
+  timeout: A datetime.timedelta expressing the amount of time to wait
+      before giving up.
+  polling_interval: A datetime.timedelta to represent the amount of time
+        to wait between requests polling for the operation status.
+  Raises:
+    TimeoutError: if we timeout waiting for the operation to complete.
   """
   endtime = datetime.datetime.now() + timeout
   while True:

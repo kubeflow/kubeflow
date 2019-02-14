@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
+
 # A python script which manages IAM binding patches declaratively IAM policy
 # patch can be defined in a separate file declaratively and it can either be
 # added or removed from a projects iam policy
@@ -51,8 +51,8 @@ def get_current_iam_policy(project):
 
 def iam_policy_to_dict(bindings):
   """
-    iam_policy_to_dict takes an iam policy binding in the GCP API format and
-    converts it into a python dict so that it can be easily updated
+  iam_policy_to_dict takes an iam policy binding in the GCP API format and
+  converts it into a python dict so that it can be easily updated
   """
   bindings_dict = dict()
   for binding in bindings:
@@ -63,9 +63,9 @@ def iam_policy_to_dict(bindings):
 
 def iam_dict_to_policy(bindings_dict):
   """
-    iam_dict_to_policy takes an iam policy binding in the dict format and
-    converts it into GCP API format so that it can be sent to GCP IAM API for
-    an update
+  iam_dict_to_policy takes an iam policy binding in the dict format and
+  converts it into GCP API format so that it can be sent to GCP IAM API for
+  an update
   """
   bindings = []
   for k, v in bindings_dict.items():
@@ -75,8 +75,8 @@ def iam_dict_to_policy(bindings_dict):
 
 def apply_iam_bindings_patch(current_policy, bindings_patch, action):
   """
-    Patches the current policy with the supplied patch.
-    action can be add or remove.
+  Patches the current policy with the supplied patch.
+  action can be add or remove.
   """
   for item in bindings_patch['bindings']:
     members = item['members']
@@ -93,8 +93,8 @@ def apply_iam_bindings_patch(current_policy, bindings_patch, action):
 
 def patch_iam_policy(args):
   """
-    Fetches the current IAM policy, patches it with the bindings supplied in
-    --iam_bindings_file and updates the new iam policy
+  Fetches the current IAM policy, patches it with the bindings supplied in
+  --iam_bindings_file and updates the new iam policy
   """
   current_policy = get_current_iam_policy(args.project)
   logging.info("Current IAM Policy")

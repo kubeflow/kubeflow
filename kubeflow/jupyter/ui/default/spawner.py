@@ -330,8 +330,8 @@ class KubeFormSpawner(KubeSpawner):
   def _get_pvc_manifest(self, name, storage_class, access_modes, storage,
                         labels, annotations):
     """
-      Return a PVC spec based on the given parameters.
-      This manifest will be used to create PVCs in the K8s cluster.
+    Return a PVC spec based on the given parameters.
+    This manifest will be used to create PVCs in the K8s cluster.
     """
     return make_pvc(
         name=name,
@@ -343,8 +343,8 @@ class KubeFormSpawner(KubeSpawner):
 
   def _list_pvcs_in_namespace(self, namespace):
     """
-      Return a list with all non-failed PVCs in a K8s namespace.
-      Each list entry is a dict with `name`, `size` and `access_modes` keys.
+    Return a list with all non-failed PVCs in a K8s namespace.
+    Each list entry is a dict with `name`, `size` and `access_modes` keys.
     """
     existing_pvcs = []
 

@@ -390,11 +390,12 @@ def delete_gcloud_resource(args, keyword, filter='', dlt_params=[]):
 def clean_up_resource(args, deployments):
   """Clean up deployment / app config from previous test
 
-    Args:
-      args: The args from ArgParse.
-      deployments set(string): which contains all deployment names in current test round.
-    Returns:
-      bool: True if cleanup is done
+  Args:
+    args: The args from ArgParse.
+    deployments set(string): which contains all deployment names in current test
+    round.
+  Returns:
+    bool: True if cleanup is done
   """
   logging.info(
       "Clean up project resource (source repo, backend service and deployment)")
@@ -462,10 +463,10 @@ def util_run(command,
              polling_interval=datetime.timedelta(seconds=1)):
   """Run a subprocess.
 
-    Any subprocess output is emitted through the logging modules.
+  Any subprocess output is emitted through the logging modules.
 
-    Returns:
-      output: A string containing the output.
+  Returns:
+    output: A string containing the output.
   """
   logging.info("Running: %s \ncwd=%s", " ".join(command), cwd)
 

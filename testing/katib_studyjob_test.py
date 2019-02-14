@@ -134,17 +134,17 @@ def wait_for_condition(client,
                        polling_interval=datetime.timedelta(seconds=30),
                        status_callback=None):
   """Waits until any of the specified conditions occur.
-    Args:
-      client: K8s api client.
-      namespace: namespace for the job.
-      name: Name of the job.
-      expected_condition: A list of conditions. Function waits until any of the
-        supplied conditions is reached.
-      timeout: How long to wait for the job.
-      polling_interval: How often to poll for the status of the job.
-      status_callback: (Optional): Callable. If supplied this callable is
-        invoked after we poll the job. Callable takes a single argument which is
-        the job.
+  Args:
+    client: K8s api client.
+    namespace: namespace for the job.
+    name: Name of the job.
+    expected_condition: A list of conditions. Function waits until any of the
+      supplied conditions is reached.
+    timeout: How long to wait for the job.
+    polling_interval: How often to poll for the status of the job.
+    status_callback: (Optional): Callable. If supplied this callable is
+      invoked after we poll the job. Callable takes a single argument which is
+      the job.
   """
   crd_api = k8s_client.CustomObjectsApi(client)
   end_time = datetime.datetime.now() + timeout

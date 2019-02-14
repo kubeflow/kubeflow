@@ -42,8 +42,8 @@ def create_k8s_client():
 def _setup_test(api_client, run_label):
   """Create the namespace for the test.
 
-    Returns:
-      test_dir: The local test directory.
+  Returns:
+    test_dir: The local test directory.
   """
 
   api = k8s_client.CoreV1Api(api_client)

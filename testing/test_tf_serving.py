@@ -39,7 +39,7 @@ from kubeflow.testing import util
 
 def almost_equal(a, b, tol=0.001):
   """
-    Compares two json objects (assuming same structure) with tolerance on numbers
+  Compares two json objects (assuming same structure) with tolerance on numbers
   """
   if isinstance(a, dict):
     for key in a.keys():
