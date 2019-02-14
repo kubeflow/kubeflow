@@ -20,7 +20,10 @@
             name: "ambassador",
             port: 80,
             targetPort: 80,
-            nodePort: params.ambassadorNodePort,
+            [if (params.ambassadorServiceType == 'NodePort') && 
+                (params.ambassadorNodePort >= 30000) && 
+                (params.ambassadorNodePort <= 32767) 
+             then 'nodePort']: params.ambassadorNodePort,
           },
         ],
         selector: {
