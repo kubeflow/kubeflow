@@ -126,6 +126,23 @@ createKsApp() {
   echo "****************************************************************"
   echo ""
   ks generate application application
+
+  createKsEnv
+}
+
+createKsEnv(){
+  pushd ${KUBEFLOW_KS_DIR}
+  set +e
+  O=$(ks env describe default 2>&1)
+  RESULT=$?
+  set -e
+
+  if [ "${RESULT}" -eq 0 ]; then
+    echo environment default already exists
+  else
+    ks env add default --namespace "${K8S_NAMESPACE}"
+  fi
+  popd
 }
 
 removeKsEnv() {
