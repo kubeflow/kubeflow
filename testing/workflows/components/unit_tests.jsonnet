@@ -25,7 +25,7 @@ local srcRootDir = testDir + "/src";
 // The directory containing the kubeflow/kubeflow repo
 local srcDir = srcRootDir + "/kubeflow/kubeflow";
 
-local image = "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4";
+local image = "gcr.io/kubeflow-ci/test-worker:latest";
 local testing_image = "gcr.io/kubeflow-ci/kubeflow-testing";
 
 // The name of the NFS volume claim to use for test files.
