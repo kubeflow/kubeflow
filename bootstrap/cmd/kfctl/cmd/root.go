@@ -21,7 +21,7 @@ import (
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
 	// STATIC
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/foo"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/dockerfordesktop"
 	// -STATIC //
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksonnet"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/minikube"
@@ -45,8 +45,8 @@ func GetPlatform(options map[string]interface{}) (kftypes.KfApp, error) {
 	case "minikube":
 		return minikube.GetKfApp(options), nil
 	// STATIC
-	case "foo":
-		return foo.GetKfApp(options), nil
+	case "docker-for-desktop":
+		return dockerfordesktop.GetKfApp(options), nil
 	// -STATIC //
 	default:
 		log.Infof("** loading %v.so for platform %v **", platform, platform)
