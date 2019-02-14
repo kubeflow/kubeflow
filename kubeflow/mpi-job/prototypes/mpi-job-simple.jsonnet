@@ -20,7 +20,7 @@ local args = params.args;
 local containerCommand =
   if command != "null" then
     {
-      command: command,
+      command: std.split(command, ","),
     }
   else {};
 local containerArgs =

@@ -27,6 +27,7 @@ local k = import "k.libsonnet";
           resources: [
             "tfjobs",
             "pytorchjobs",
+            "mpijobs",
           ],
           verbs: [
             "*",
@@ -72,6 +73,7 @@ local k = import "k.libsonnet";
           resources: [
             "configmaps",
             "pods",
+            "pods/log",
             "pods/exec",
             "services",
             "endpoints",
