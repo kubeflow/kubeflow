@@ -31,12 +31,6 @@ local jupyter = {
               "--port=8888",
               "--no-browser",
             ],
-            env: [
-              {
-                name: "JUPYTER_ENABLE_LAB",
-                value: "true",
-              },
-            ],
             "resources": {
               "requests": {
                 "cpu": "500m",
@@ -47,7 +41,10 @@ local jupyter = {
           }
         ],
       }
-    }
+    },
+    "jupyterSpec": {
+      "useLab": true,
+    },
   }
 };
 
