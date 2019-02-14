@@ -8,9 +8,9 @@
   all(namespace, mysqlPvName=null, minioPvName=null, nfsPvName=null, mysqlPd=null, minioPd=null, nfsPd=null):: [
     $.parts(namespace).mysqlPvc(mysqlPd,mysqlPvName),
   ] +
-  [ if (minioPvName != "null") || (minioPd!= "null")
-    then $.parts(namespace).minioPvc(minioPd,minioPvName)
-    else $.parts(namespace).nfsServerPvc(nfsPd,nfsPvName),
+  [ if (nfsPvName != "null") || (nfsPd!= "null")
+    then $.parts(namespace).nfsServerPvc(nfsPd,nfsPvName)
+    else $.parts(namespace).minioPvc(minioPd,minioPvName),
   ] +
   [ if mysqlPd != "null" 
     then $.parts(namespace).mysqlPv(mysqlPd),
@@ -140,7 +140,7 @@
       },
       spec: {
         capacity: {
-          storage: "200Gi",
+          storage: "20Gi",
         },
         accessModes: [
           "ReadWriteOnce",

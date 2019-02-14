@@ -1,7 +1,7 @@
 {
-  all(namespace, minioImage, minioPd, minioPvName):: [
+  all(namespace, minioImage, minioPvcName):: [
     $.parts(namespace).service,
-    $.parts(namespace).deploy(minioImage, minioPd, minioPvName),
+    $.parts(namespace).deploy(minioImage, minioPvcName),
     $.parts(namespace).secret,
   ],
 
@@ -30,7 +30,7 @@
       },
     },  //service
 
-    deploy(image, minioPd, minioPvName): {
+    deploy(image, minioPvcName): {
       apiVersion: "apps/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -38,6 +38,11 @@
         namespace: namespace,
       },
       spec: {
+        selector: {
+          matchLabels: {
+            app: "minio",
+          },
+        },
         strategy: {
           type: "Recreate",
         },
@@ -52,7 +57,7 @@
               {
                 name: "data",
                 persistentVolumeClaim: {
-                  claimName: if (minioPvName != "null") || (minioPd != "null") then "minio-pvc" else "nfs-pvc",
+                  claimName: minioPvcName,
                 },
               },
             ],
