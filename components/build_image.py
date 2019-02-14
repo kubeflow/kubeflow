@@ -20,11 +20,11 @@ def run(command,
         env=None,
         polling_interval=datetime.timedelta(seconds=1)):
   """Run a subprocess.
-    Copied from kubeflow/test so it's easier to run locally.
-    TODO(lunkai): refactor to dedup.
-    Any subprocess output is emitted through the logging modules.
-    Returns:
-      output: A string containing the output.
+  Copied from kubeflow/test so it's easier to run locally.
+  TODO(lunkai): refactor to dedup.
+  Any subprocess output is emitted through the logging modules.
+  Returns:
+    output: A string containing the output.
   """
   logging.info("Running: %s \ncwd=%s", " ".join(command), cwd)
 
@@ -87,11 +87,11 @@ def wait_for_docker_daemon(timeout=60):
 
 def get_build_args(config):
   """
-    Make the list of params for docker build from config.
+  Make the list of params for docker build from config.
 
-    For example, if the config is {"a": 1, "b": 2}
-    This should return
-    ["--build-arg", "a=1", "--build-arg", "b=2"]
+  For example, if the config is {"a": 1, "b": 2}
+  This should return
+  ["--build-arg", "a=1", "--build-arg", "b=2"]
   """
   config_list = [key + "=" + val for key, val in config.items()]
   return list(chain.from_iterable([["--build-arg", x] for x in config_list]))

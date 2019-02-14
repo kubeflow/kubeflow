@@ -57,8 +57,7 @@ def is_retryable_result(r):
 def send_request(*args, **kwargs):
   """Send a request to the Jupyter server.
 
-    Sends a request to verify we can fetch the main page for the Jupyter
-    notebook.
+  Sends a request to verify we can fetch the main page for the Jupyter notebook
   """
   # We don't use util.run because that ends up including the access token
   # in the logs

@@ -16,10 +16,10 @@ NVIDIA_VERSION_PATH = '/proc/driver/nvidia/version'
 
 class Controller:
   """
-    Controller is a sidecar container that extends the "main" container
-    (openmpi-job). It communicates with the main container using a shared volume
-    mounted at the working directory. It communicates with the master pod using
-    kubernetes API.
+  Controller is a sidecar container that extends the "main" container
+  (openmpi-job). It communicates with the main container using a shared volume
+  mounted at the working directory. It communicates with the master pod using
+  kubernetes API.
   """
 
   def __init__(self, namespace, master, num_gpus, timeout_secs,
@@ -104,13 +104,11 @@ class Controller:
   def _download_data(self):
     if self.download_data_from and self.download_data_to:
       Path(self.download_data_to).mkdir(exist_ok=True)
-      log(f'downloading data from {self.download_data_from} to {self.download_data_to}'
-         )  # noqa: E501
+      log(f'downloading data from {self.download_data_from} to {self.download_data_to}')  # noqa: E501
       s3_copy(self.download_data_from, self.download_data_to)
 
   def _upload_data(self):
     if self.upload_data_from and self.upload_data_to:
       if Path(self.upload_data_from).exists():
-        log(f'uploading data from {self.upload_data_from} to {self.upload_data_to}'
-           )  # noqa: E501
+        log(f'uploading data from {self.upload_data_from} to {self.upload_data_to}')  # noqa: E501
         s3_copy(self.upload_data_from, self.upload_data_to)

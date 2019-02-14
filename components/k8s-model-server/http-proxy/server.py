@@ -120,11 +120,11 @@ def _fwrap(f, gf):
 
 def fwrap(gf, ioloop=None):
   """
-    Wraps a GRPC result in a future that can be yielded by tornado
-      Usage::
-        @coroutine
-        def my_fn(param):
-          result = yield fwrap(stub.function_name.future(param, timeout))
+  Wraps a GRPC result in a future that can be yielded by tornado
+  Usage::
+    @coroutine
+    def my_fn(param):
+      result = yield fwrap(stub.function_name.future(param, timeout))
   """
   f = gen.Future()
 
@@ -153,14 +153,14 @@ def decode_b64_if_needed(data):
 
 def get_signature_map(model_server_stub, model_name):
   """
-    Gets tensorflow signature map from the model server stub.
+  Gets tensorflow signature map from the model server stub.
 
-    Args:
-      model_server_stub: The grpc stub to call GetModelMetadata.
-      model_name: The model name.
+  Args:
+    model_server_stub: The grpc stub to call GetModelMetadata.
+    model_name: The model name.
 
-    Returns:
-      The signature map of the model.
+  Returns:
+    The signature map of the model.
   """
   request = get_model_metadata_pb2.GetModelMetadataRequest()
   request.model_spec.name = model_name
@@ -198,20 +198,20 @@ def get_signature_map(model_server_stub, model_name):
 
 def get_signature(signature_map, signature_name=None):
   """
-    Gets tensorflow signature for the given signature_name.
+  Gets tensorflow signature for the given signature_name.
 
-    Args:
-      signature_name: string The signature name to use to choose the signature
-          from the signature map.
+  Args:
+    signature_name: string The signature name to use to choose the signature
+        from the signature map.
 
-    Returns:
-      a pair of signature_name and signature. The first element is the
-      signature name in string that is actually used. The second one is the
-      signature.
+  Returns:
+    a pair of signature_name and signature. The first element is the
+    signature name in string that is actually used. The second one is the
+    signature.
 
-    Raises:
-      KeyError: when the signature is not found with the given signature name or
-          when there are more than one signatures in the signature map.
+  Raises:
+    KeyError: when the signature is not found with the given signature name or
+        when there are more than one signatures in the signature map.
   """
   # The way to find signature is:
   # 1) if signature_name is specified, try to find it in the signature_map. If
@@ -232,9 +232,9 @@ def get_signature(signature_map, signature_name=None):
 
 class MetadataHandler(tornado.web.RequestHandler):
   """
-    Metadata Handler proxy return Model metadata (Currently it only supports
-    signature map with latest version). Defined here:
-    https://github.com/tensorflow/serving/blob/master/tensorflow_serving/apis/prediction_service.proto#L29  # noqa: E501
+  Metadata Handler proxy return Model metadata (Currently it only supports
+  signature map with latest version). Defined here:
+  https://github.com/tensorflow/serving/blob/master/tensorflow_serving/apis/prediction_service.proto#L29  # noqa: E501
   """
 
   @gen.coroutine
@@ -250,9 +250,9 @@ class MetadataHandler(tornado.web.RequestHandler):
 
 class PredictHandler(tornado.web.RequestHandler):
   """
-    Predict Handler proxy predict method, the input of tf savedModel is
-    expected to be a `Map<strinbg, tf.Tensor>` protobuf. Defined here:
-        https://github.com/tensorflow/serving/blob/master/tensorflow_serving/apis/prediction_service.proto#L23  # noqa: E501
+  Predict Handler proxy predict method, the input of tf savedModel is
+  expected to be a `Map<strinbg, tf.Tensor>` protobuf. Defined here:
+      https://github.com/tensorflow/serving/blob/master/tensorflow_serving/apis/prediction_service.proto#L23  # noqa: E501
   """
 
   @gen.coroutine
@@ -308,9 +308,9 @@ class PredictHandler(tornado.web.RequestHandler):
 
 class ClassifyHandler(tornado.web.RequestHandler):
   """
-    Classify Handler proxy classify method, the input of tf savedModel is
-    expected to be a `tf.Examples` protobuf Defined here:
-        https://github.com/tensorflow/serving/blob/master/tensorflow_serving/apis/prediction_service.proto#L17  # noqa: E501
+  Classify Handler proxy classify method, the input of tf savedModel is
+  expected to be a `tf.Examples` protobuf Defined here:
+      https://github.com/tensorflow/serving/blob/master/tensorflow_serving/apis/prediction_service.proto#L17  # noqa: E501
   """
 
   @gen.coroutine
