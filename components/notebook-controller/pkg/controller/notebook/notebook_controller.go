@@ -19,6 +19,7 @@ package notebook
 import (
 	"context"
 	"reflect"
+	"strconv"
 	"strings"
 
 	v1alpha1 "github.com/kubeflow/kubeflow/components/notebook-controller/pkg/apis/notebook/v1alpha1"
@@ -220,7 +221,7 @@ func (r *ReconcileNotebook) ReconcileService(instance *v1alpha1.Notebook) error 
 						"prefix: /notebook/" + instance.Namespace + "/" + instance.Name,
 						"rewrite: /" + instance.Namespace + "/" + instance.Name,
 						"timeout_ms: 300000",
-						"service: " + instance.Name + "." + instance.Namespace,
+						"service: " + instance.Name + "." + instance.Namespace + ":" + strconv.Itoa(port),
 						"use_websocket: true",
 					}, "\n"),
 			},
