@@ -55,21 +55,22 @@ const (
 type CliOption string
 
 const (
-	EMAIL       CliOption = "email"
-	IPNAME      CliOption = "ipName"
-	HOSTNAME    CliOption = "hostname"
-	MOUNT_LOCAL CliOption = "mount-local"
-	DEBUG       CliOption = "debug"
-	VERBOSE     CliOption = "verbose"
-	NAMESPACE   CliOption = "namespace"
-	VERSION     CliOption = "version"
-	REPO        CliOption = "repo"
-	PROJECT     CliOption = "project"
-	APPNAME     CliOption = "appname"
-	APPDIR      CliOption = "appDir"
-	KAPP        CliOption = "KApp"
-	DATA        CliOption = "Data"
-	ZONE        CliOption = "zone"
+	EMAIL                 CliOption = "email"
+	IPNAME                CliOption = "ipName"
+	HOSTNAME              CliOption = "hostname"
+	MOUNT_LOCAL           CliOption = "mount-local"
+	DEBUG                 CliOption = "debug"
+	SKIP_INIT_GCP_PROJECT CliOption = "skip-init-gcp-project"
+	VERBOSE               CliOption = "verbose"
+	NAMESPACE             CliOption = "namespace"
+	VERSION               CliOption = "version"
+	REPO                  CliOption = "repo"
+	PROJECT               CliOption = "project"
+	APPNAME               CliOption = "appname"
+	APPDIR                CliOption = "appDir"
+	KAPP                  CliOption = "KApp"
+	DATA                  CliOption = "Data"
+	ZONE                  CliOption = "zone"
 )
 
 //
