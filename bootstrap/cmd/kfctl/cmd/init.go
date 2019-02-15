@@ -50,7 +50,6 @@ directory is name is a path.`,
 		repo := initCfg.GetString(string(kftypes.REPO))
 		debug := initCfg.GetBool(string(kftypes.DEBUG))
 		project := initCfg.GetString(string(kftypes.PROJECT))
-
 		options := map[string]interface{}{
 			string(kftypes.PLATFORM):  platform,
 			string(kftypes.NAMESPACE): namespace,
