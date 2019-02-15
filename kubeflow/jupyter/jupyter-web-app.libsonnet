@@ -83,6 +83,7 @@
       kind: "Service",
       metadata: {
         name: params.name,
+        namespace: params.namespace,
         labels: {
           run: params.name
         },
@@ -119,6 +120,7 @@
       kind: "Deployment",
       metadata: {
         name: params.name,
+        namespace: params.namespace,
         labels: {
           app: params.name,
         },
