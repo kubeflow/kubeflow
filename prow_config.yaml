@@ -25,7 +25,7 @@ workflows:
     - testing/*
     params:
       installIstio: true
-      workflowName: deployapp
+      workflowName: deployapp-istio
   # kfctl test runs tests on gke.
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: kfctl_test
