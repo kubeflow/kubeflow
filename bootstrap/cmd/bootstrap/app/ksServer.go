@@ -218,6 +218,8 @@ type CreateRequest struct {
 	ClientId     string
 	ClientSecret string
 	IpName       string
+	Username     string
+	PasswordHash string
 
 	// For test: GCP service account client id
 	SAClientId string
