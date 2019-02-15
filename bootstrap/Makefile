@@ -93,9 +93,9 @@ test-known-platforms-init: install build-foo-plugin
 	rm -rf $(HOME)/minikube && \
 	kfctl init $(HOME)/minikube -V --platform minikube --version master && \
 	rm -rf $(HOME)/dockerfordesktop && \
-    kfctl init $(HOME)/dockerfordesktop -V --platform docker-for-desktop --version master && \
-    rm -rf $(HOME)/gcp && \
-    kfctl init $(HOME)/gcp -V --platform gcp --version master --project kubeflow-111 && \
+	kfctl init $(HOME)/dockerfordesktop -V --platform docker-for-desktop --version master && \
+	rm -rf $(HOME)/gcp && \
+	kfctl init $(HOME)/gcp -V --platform gcp --version master --project kubeflow-111 && \
 	echo SUCCESS
 
 test-known-platforms-generate: test-known-platforms-init
