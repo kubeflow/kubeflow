@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package minikube
+package dockerfordesktop
 
 import (
 	"fmt"
@@ -27,43 +27,43 @@ import (
 	"strings"
 )
 
-// Minikube implements KfApp Interface
-// It includes the Ksonnet along with functionality needed for minikube
-type Minikube struct {
+// DockerForDesktop implements KfApp Interface
+// It includes the Ksonnet along with functionality needed for dockerfordesktop
+type DockerForDesktop struct {
 	Ksonnet kftypes.KfApp
-	//TODO add additional types required for minikube platform
+	//TODO add additional types required for dockerfordesktop platform
 }
 
 func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	options[string(kftypes.PLATFORM)] = "ksonnet"
 	log.Infof("getting ksonnet platform in minikube")
 	_ksonnet := ksonnet.GetKfApp(options)
-	options[string(kftypes.PLATFORM)] = "minikube"
-	_minikube := &Minikube{
+	options[string(kftypes.PLATFORM)] = "docker-for-desktop"
+	_dockerfordesktop := &DockerForDesktop{
 		Ksonnet: _ksonnet,
 	}
-	return _minikube
+	return _dockerfordesktop
 }
 
-func (minikube *Minikube) Apply(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	ksApplyErr := minikube.Ksonnet.Apply(resources, options)
+func (dockerfordesktop *DockerForDesktop) Apply(resources kftypes.ResourceEnum, options map[string]interface{}) error {
+	ksApplyErr := dockerfordesktop.Ksonnet.Apply(resources, options)
 	if ksApplyErr != nil {
-		return fmt.Errorf("minikube apply failed for ksonnet: %v", ksApplyErr)
+		return fmt.Errorf("dockerfordesktop apply failed for ksonnet: %v", ksApplyErr)
 	}
 	//mount_local_fs
 	//setup_tunnels
 	return nil
 }
 
-func (minikube *Minikube) Delete(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	ksDeleteErr := minikube.Ksonnet.Delete(resources, options)
+func (dockerfordesktop *DockerForDesktop) Delete(resources kftypes.ResourceEnum, options map[string]interface{}) error {
+	ksDeleteErr := dockerfordesktop.Ksonnet.Delete(resources, options)
 	if ksDeleteErr != nil {
-		return fmt.Errorf("minikube delete failed for ksonnet: %v", ksDeleteErr)
+		return fmt.Errorf("dockerfordesktop delete failed for ksonnet: %v", ksDeleteErr)
 	}
 	return nil
 }
 
-func (minikube *Minikube) generateKsApp(options map[string]interface{}) error {
+func (dockerfordesktop *DockerForDesktop) generateKsApp(options map[string]interface{}) error {
 	platform := options[string(kftypes.PLATFORM)].(string)
 	mountLocal := false
 	if options[string(kftypes.MOUNT_LOCAL)] != nil {
@@ -116,19 +116,19 @@ func (minikube *Minikube) generateKsApp(options map[string]interface{}) error {
 			Value: "1",
 		},
 	}
-	ksGenerateErr := minikube.Ksonnet.Generate(kftypes.ALL, options)
+	ksGenerateErr := dockerfordesktop.Ksonnet.Generate(kftypes.ALL, options)
 	if ksGenerateErr != nil {
-		return fmt.Errorf("minikube generate failed for ksonnet: %v", ksGenerateErr)
+		return fmt.Errorf("dockerfordesktop generate failed for ksonnet: %v", ksGenerateErr)
 	}
 	return nil
 }
 
-func (minikube *Minikube) Generate(resources kftypes.ResourceEnum, options map[string]interface{}) error {
+func (dockerfordesktop *DockerForDesktop) Generate(resources kftypes.ResourceEnum, options map[string]interface{}) error {
 	switch resources {
 	case kftypes.ALL:
 		fallthrough
 	case kftypes.K8S:
-		ksErr := minikube.generateKsApp(options)
+		ksErr := dockerfordesktop.generateKsApp(options)
 		if ksErr != nil {
 			return fmt.Errorf("could not generate kssonnet under %v Error: %v", kstypes.KsName, ksErr)
 		}
@@ -137,10 +137,10 @@ func (minikube *Minikube) Generate(resources kftypes.ResourceEnum, options map[s
 	return nil
 }
 
-func (minikube *Minikube) Init(options map[string]interface{}) error {
-	ksInitErr := minikube.Ksonnet.Init(options)
+func (dockerfordesktop *DockerForDesktop) Init(options map[string]interface{}) error {
+	ksInitErr := dockerfordesktop.Ksonnet.Init(options)
 	if ksInitErr != nil {
-		return fmt.Errorf("minikube init failed for ksonnet: %v", ksInitErr)
+		return fmt.Errorf("dockerfordesktop init failed for ksonnet: %v", ksInitErr)
 	}
 	return nil
 }

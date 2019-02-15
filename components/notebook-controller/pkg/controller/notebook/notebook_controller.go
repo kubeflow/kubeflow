@@ -19,8 +19,11 @@ package notebook
 import (
 	"context"
 	"reflect"
+	"strconv"
+	"strings"
 
 	v1alpha1 "github.com/kubeflow/kubeflow/components/notebook-controller/pkg/apis/notebook/v1alpha1"
+	"github.com/kubeflow/kubeflow/components/notebook-controller/pkg/util"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -39,6 +42,12 @@ import (
 )
 
 var log = logf.Log.WithName("controller")
+
+const DefaultContainerPort = 8888
+
+// The default fsGroup of PodSecurityContext.
+// https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#podsecuritycontext-v1-core
+const DefaultFSGroup = int64(100)
 
 // Add creates a new Notebook Controller and adds it to the Manager with default RBAC. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -141,21 +150,27 @@ func (r *ReconcileNotebook) ReconcileStatefulSet(instance *v1alpha1.Notebook) er
 			},
 		},
 	}
-	container := ss.Spec.Template.Spec.Containers[0]
-	container.Env = append(container.Env, corev1.EnvVar{
-		Name:  "JUPYTER_ENABLE_LAB",
-		Value: "TRUE",
-	})
+	podSpec := &ss.Spec.Template.Spec
+	container := &podSpec.Containers[0]
 	if container.WorkingDir == "" {
 		container.WorkingDir = "/home/jovyan"
 	}
-	container.Ports = []corev1.ContainerPort{
-		corev1.ContainerPort{
-			ContainerPort: 8888,
-			Name:          "notebook-port",
-			Protocol:      "TCP",
-		},
+	if container.Ports == nil {
+		container.Ports = []corev1.ContainerPort{
+			corev1.ContainerPort{
+				ContainerPort: DefaultContainerPort,
+				Name:          "notebook-port",
+				Protocol:      "TCP",
+			},
+		}
 	}
+	if podSpec.SecurityContext == nil {
+		fsGroup := DefaultFSGroup
+		podSpec.SecurityContext = &corev1.PodSecurityContext{
+			FSGroup: &fsGroup,
+		}
+	}
+
 	if err := controllerutil.SetControllerReference(instance, ss, r.scheme); err != nil {
 		return err
 	}
@@ -188,19 +203,37 @@ func (r *ReconcileNotebook) ReconcileStatefulSet(instance *v1alpha1.Notebook) er
 // ReconcileService reconciles the Service object for the notebook.
 func (r *ReconcileNotebook) ReconcileService(instance *v1alpha1.Notebook) error {
 	// Define the desired Service object
+	port := DefaultContainerPort
+	containerPorts := instance.Spec.Template.Spec.Containers[0].Ports
+	if containerPorts != nil {
+		port = int(containerPorts[0].ContainerPort)
+	}
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      instance.Name,
 			Namespace: instance.Namespace,
+			Annotations: map[string]string{
+				"getambassador.io/config": strings.Join(
+					[]string{
+						"---",
+						"apiVersion: ambassador/v0",
+						"kind:  Mapping",
+						"name: notebook_" + instance.Namespace + "_" + instance.Name + "_mapping",
+						"prefix: /notebook/" + instance.Namespace + "/" + instance.Name,
+						"rewrite: /" + instance.Namespace + "/" + instance.Name,
+						"timeout_ms: 300000",
+						"service: " + instance.Name + "." + instance.Namespace + ":" + strconv.Itoa(port),
+						"use_websocket: true",
+					}, "\n"),
+			},
 		},
 		Spec: corev1.ServiceSpec{
-			ClusterIP: "None",
-			Type:      "ClusterIP",
-			Selector:  map[string]string{"statefulset": instance.Name},
+			Type:     "ClusterIP",
+			Selector: map[string]string{"statefulset": instance.Name},
 			Ports: []corev1.ServicePort{
 				corev1.ServicePort{
 					Port:       80,
-					TargetPort: intstr.FromInt(8888),
+					TargetPort: intstr.FromInt(port),
 					Protocol:   "TCP",
 				},
 			},
@@ -224,8 +257,7 @@ func (r *ReconcileNotebook) ReconcileService(instance *v1alpha1.Notebook) error 
 	}
 
 	// Update the found object and write the result back if there are any changes
-	if !reflect.DeepEqual(svc.Spec, found.Spec) {
-		found.Spec = svc.Spec
+	if util.CopyServiceFields(svc, found) {
 		log.Info("Updating Service", "namespace", svc.Namespace, "name", svc.Name)
 		err = r.Update(context.TODO(), found)
 		if err != nil {
