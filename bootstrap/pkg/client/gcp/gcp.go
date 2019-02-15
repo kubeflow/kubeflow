@@ -25,9 +25,11 @@ import (
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksonnet"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
+	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/deploymentmanager/v2"
 	"google.golang.org/api/iam/v1"
+	"google.golang.org/api/serviceusage/v1"
 	"io"
 	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -202,7 +204,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 	return nil
 }
 
-func (gcp *Gcp) 	Apply(resources kftypes.ResourceEnum, options map[string]interface{}) error {
+func (gcp *Gcp) Apply(resources kftypes.ResourceEnum, options map[string]interface{}) error {
 	updateDMErr := gcp.updateDM(resources, options)
 	if updateDMErr != nil {
 		return fmt.Errorf("gcp apply could not update deployment manager Error %v", updateDMErr)
@@ -497,11 +499,12 @@ func (gcp *Gcp) createGcpSecret(email string, secretName string) error {
 	secret, secretMissingErr := cli.CoreV1().Secrets(namespace).Get(secretName, metav1.GetOptions{})
 	if secretMissingErr != nil {
 		ctx := context.Background()
-		c, err := google.DefaultClient(ctx, iam.CloudPlatformScope)
+		ts, err := google.DefaultTokenSource(ctx, iam.CloudPlatformScope)
 		if err != nil {
 			return err
 		}
-		iamService, err := iam.New(c)
+		client := oauth2.NewClient(ctx, ts)
+		iamService, err := iam.New(client)
 		if err != nil {
 			return err
 		}
@@ -587,6 +590,21 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum, options map[string]inte
 	return nil
 }
 
+func (gcp *Gcp) gcpInitProject() error {
+	ctx := context.Background()
+	// doesn't work currently - get invalid_grant
+	oauthClient, err := google.DefaultClient(ctx, serviceusage.CloudPlatformScope)
+	if err != nil {
+		return err
+	}
+	serviceusageService, err := serviceusage.New(oauthClient)
+	_, opErr := serviceusageService.Services.Enable("deploymentmanager.googleapis.com", &serviceusage.EnableServiceRequest{}).Context(ctx).Do()
+	if opErr != nil {
+		return fmt.Errorf("could not enable deploymentmanager %v", opErr)
+	}
+	return nil
+}
+
 func (gcp *Gcp) Init(options map[string]interface{}) error {
 	ks := gcp.Children[kftypes.KSONNET]
 	if ks != nil {
@@ -604,5 +622,11 @@ func (gcp *Gcp) Init(options map[string]interface{}) error {
 	if createConfigErr != nil {
 		return fmt.Errorf("cannot create config file app.yaml in %v", gcp.GcpApp.Spec.AppDir)
 	}
+	/* Currently doesn't work
+	initProjectErr := gcp.gcpInitProject()
+	if initProjectErr != nil {
+		return fmt.Errorf("cannot init gcp project %v", initProjectErr)
+	}
+	*/
 	return nil
 }
