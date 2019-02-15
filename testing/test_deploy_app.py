@@ -4,6 +4,7 @@ import base64
 import datetime
 import logging
 import os
+import errno
 import shutil
 import subprocess
 import tempfile
