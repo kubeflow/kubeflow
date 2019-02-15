@@ -30,13 +30,6 @@ spec:
           type: object
         spec:
           properties:
-            jupyterSpec:
-              description: JupyterSpec specifies jupyter related fields
-              properties:
-                useLab:
-                  description: Whether to enable jupyter lab
-                  type: boolean
-              type: object
             template:
               description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
                 Important: Run "make" to regenerate code after modifying this file'

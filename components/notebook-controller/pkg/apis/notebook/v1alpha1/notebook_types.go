@@ -29,9 +29,6 @@ type NotebookSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 	Template NotebookTemplateSpec `json:"template,omitempty"`
-
-	// JupyterSpec specifies jupyter related fields
-	JupyterSpec JupyterSpec `json:"jupyterSpec,omitempty"`
 }
 
 type NotebookTemplateSpec struct {
@@ -50,11 +47,6 @@ type NotebookCondition struct {
 }
 
 type NotebookConditionType string
-
-type JupyterSpec struct {
-	// Whether to enable jupyter lab
-	UseLab bool `json:"useLab,omitempty"`
-}
 
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

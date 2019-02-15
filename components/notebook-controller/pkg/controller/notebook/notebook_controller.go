@@ -43,6 +43,11 @@ import (
 
 var log = logf.Log.WithName("controller")
 
+const DefaultContainerPort = 8888
+
+// This is for GKE permission
+const DefaultFSGroup = int64(100)
+
 // Add creates a new Notebook Controller and adds it to the Manager with default RBAC. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
@@ -146,26 +151,20 @@ func (r *ReconcileNotebook) ReconcileStatefulSet(instance *v1alpha1.Notebook) er
 	}
 	podSpec := &ss.Spec.Template.Spec
 	container := &podSpec.Containers[0]
-	if instance.Spec.JupyterSpec.UseLab {
-		container.Env = append(container.Env, corev1.EnvVar{
-			Name:  "JUPYTER_ENABLE_LAB",
-			Value: "TRUE",
-		})
-	}
 	if container.WorkingDir == "" {
 		container.WorkingDir = "/home/jovyan"
 	}
 	if container.Ports == nil {
 		container.Ports = []corev1.ContainerPort{
 			corev1.ContainerPort{
-				ContainerPort: 8888,
+				ContainerPort: DefaultContainerPort,
 				Name:          "notebook-port",
 				Protocol:      "TCP",
 			},
 		}
 	}
 	if podSpec.SecurityContext == nil {
-		fsGroup := int64(100)
+		fsGroup := DefaultFSGroup
 		podSpec.SecurityContext = &corev1.PodSecurityContext{
 			FSGroup: &fsGroup,
 		}
@@ -203,7 +202,7 @@ func (r *ReconcileNotebook) ReconcileStatefulSet(instance *v1alpha1.Notebook) er
 // ReconcileService reconciles the Service object for the notebook.
 func (r *ReconcileNotebook) ReconcileService(instance *v1alpha1.Notebook) error {
 	// Define the desired Service object
-	port := 8888
+	port := DefaultContainerPort
 	containerPorts := instance.Spec.Template.Spec.Containers[0].Ports
 	if containerPorts != nil {
 		port = int(containerPorts[0].ContainerPort)
