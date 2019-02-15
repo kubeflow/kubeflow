@@ -138,3 +138,12 @@ def test_jupyter(env, namespace):
       url, r.status_code, r.content)
     logging.error(msg)
     raise RuntimeError(msg)
+
+if __name__ == "__main__":
+  logging.basicConfig(level=logging.INFO,
+                      format=('%(levelname)s|%(asctime)s'
+                              '|%(pathname)s|%(lineno)d| %(message)s'),
+                      datefmt='%Y-%m-%dT%H:%M:%S',
+                      )
+  logging.getLogger().setLevel(logging.INFO)
+  pytest.main()

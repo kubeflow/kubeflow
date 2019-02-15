@@ -45,7 +45,8 @@ var log = logf.Log.WithName("controller")
 
 const DefaultContainerPort = 8888
 
-// This is for GKE permission
+// The default fsGroup of PodSecurityContext.
+// https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#podsecuritycontext-v1-core
 const DefaultFSGroup = int64(100)
 
 // Add creates a new Notebook Controller and adds it to the Manager with default RBAC. The Manager will set fields on the Controller
