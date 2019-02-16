@@ -624,7 +624,7 @@ func (gcp *Gcp) gcpInitProject() error {
 		service := fmt.Sprintf("projects/%v/services/%v", gcp.GcpApp.Spec.Project, api)
 		_, opErr := serviceusageService.Services.Enable(service, &serviceusage.EnableServiceRequest{}).Context(ctx).Do()
 		if opErr != nil {
-			return fmt.Errorf("could not enable deploymentmanager %v", opErr)
+			return fmt.Errorf("could not enable API service %v: %v", api, opErr)
 		}
 	}
 	return nil
