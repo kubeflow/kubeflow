@@ -597,15 +597,35 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum, options map[string]inte
 
 func (gcp *Gcp) gcpInitProject() error {
 	ctx := context.Background()
-	// doesn't work currently - get invalid_grant
 	oauthClient, err := google.DefaultClient(ctx, serviceusage.CloudPlatformScope)
 	if err != nil {
 		return err
 	}
 	serviceusageService, err := serviceusage.New(oauthClient)
-	_, opErr := serviceusageService.Services.Enable("deploymentmanager.googleapis.com", &serviceusage.EnableServiceRequest{}).Context(ctx).Do()
-	if opErr != nil {
-		return fmt.Errorf("could not enable deploymentmanager %v", opErr)
+	if err != nil {
+		return fmt.Errorf("Create serviceusage error: %v", err)
+	}
+	if err != nil {
+		return fmt.Errorf("Create ComputeService error: %v", err)
+	}
+
+	enabledApis := []string{
+		"deploymentmanager.googleapis.com",
+		"servicemanagement.googleapis.com",
+		"container.googleapis.com",
+		"cloudresourcemanager.googleapis.com",
+		"endpoints.googleapis.com",
+		"file.googleapis.com",
+		"ml.googleapis.com",
+		"iam.googleapis.com",
+		"sqladmin.googleapis.com",
+	}
+	for _, api := range enabledApis {
+		service := fmt.Sprintf("projects/%v/services/%v", gcp.GcpApp.Spec.Project, api)
+		_, opErr := serviceusageService.Services.Enable(service, &serviceusage.EnableServiceRequest{}).Context(ctx).Do()
+		if opErr != nil {
+			return fmt.Errorf("could not enable deploymentmanager %v", opErr)
+		}
 	}
 	return nil
 }
@@ -628,7 +648,7 @@ func (gcp *Gcp) Init(options map[string]interface{}) error {
 		return fmt.Errorf("cannot create config file app.yaml in %v", gcp.GcpApp.Spec.AppDir)
 	}
 	if !gcp.GcpApp.Spec.SkipInitProject {
-		log.Infof("Not skipping GCP project init.")
+		log.Infof("Not skipping GCP project init, running gcpInitProject.")
 		initProjectErr := gcp.gcpInitProject()
 		if initProjectErr != nil {
 			return fmt.Errorf("cannot init gcp project %v", initProjectErr)
