@@ -85,6 +85,7 @@ var DefaultComponents = []string{
 	"argo",
 	"centraldashboard",
 	"jupyter",
+	"jupyter-web-app",
 	"katib",
 	"metacontroller",
 	"notebooks",
