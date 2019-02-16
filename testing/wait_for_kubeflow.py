@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Wait for Kubeflow to be deployed."""
 import argparse
 import logging
@@ -32,7 +31,7 @@ def deploy_kubeflow(_):
 
   # Verify that core components are actually deployed.
   deployment_names = [
-      "tf-job-operator-v1beta1", "pytorch-operator", "studyjob-controller"
+      "tf-job-operator", "pytorch-operator", "studyjob-controller"
   ]
   for deployment_name in deployment_names:
     logging.info("Verifying that %s started...", deployment_name)

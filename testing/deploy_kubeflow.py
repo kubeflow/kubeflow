@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Deploy Kubeflow and wait for it to be deployed.
 
 TODO(jlewi): This script is outdated. Its no longer used for GKE.
@@ -11,8 +10,8 @@ import os
 import yaml
 from kubernetes.config import kube_config
 # TODO(jlewi): We should be using absolute imports always.
-# So it should be from testing import deploy_utils because testing is the top
-# level python package.
+# So it should be from testing import deploy_utils because testing
+# is the top level python package.
 from . import deploy_utils
 from kubeflow.testing import test_helper
 from kubeflow.testing import util  # pylint: disable=no-name-in-module
@@ -35,12 +34,11 @@ def parse_args():
       "--github_token",
       default=None,
       type=str,
-      help=(
-          "The GitHub API token to use. This is needed since ksonnet uses the "
-          "GitHub API and without it we get rate limited. For more info see: "
-          "https://github.com/ksonnet/ksonnet/blob/master/docs"
-          "/troubleshooting.md. Can also be set using environment variable "
-          "GITHUB_TOKEN."))
+      help=("The GitHub API token to use. This is needed since ksonnet uses the"
+            " GitHub API and without it we get rate limited. For more info see:"
+            " https://github.com/ksonnet/ksonnet/blob/master/docs"
+            "/troubleshooting.md. Can also be set using environment variable "
+            "GITHUB_TOKEN."))
   parser.set_defaults(as_gcloud_user=False)
 
   args, _ = parser.parse_known_args()
@@ -108,10 +106,10 @@ def deploy_kubeflow(test_case):
     account = deploy_utils.get_gcp_identity()
     logging.info("Impersonate %s", account)
 
-    # If we don't use --as to impersonate the service account then we observe
-    # RBAC errors when doing certain operations. The problem appearsto be that
-    # we end up using the in cluster config (e.g. pod service account) and not
-    # the GCP service account which has more privileges.
+    # If we don't use --as to impersonate the service account then we
+    # observe RBAC errors when doing certain operations. The problem appears
+    # to be that we end up using the in cluster config (e.g. pod service account)
+    # and not the GCP service account which has more privileges.
     apply_command.append("--as=" + account)
   util.run(apply_command, cwd=app_dir)
 
@@ -122,7 +120,7 @@ def deploy_kubeflow(test_case):
 
   # Verify that core components are actually deployed.
   deployment_names = [
-      "tf-job-operator-v1beta1", "pytorch-operator", "studyjob-controller"
+      "tf-job-operator", "pytorch-operator", "studyjob-controller"
   ]
   for deployment_name in deployment_names:
     logging.info("Verifying that %s started...", deployment_name)

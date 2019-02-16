@@ -200,11 +200,11 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
 
         <Collapse in={!this.state.iap}>
           <div style={styles.row}>
-            <TextField label="Kubeflow cluster Username" spellCheck={false} style={styles.input} variant="filled"
+            <TextField label="Create Kubeflow Login Username" spellCheck={false} style={styles.input} variant="filled"
              required={true} value={this.state.username} onChange={this._handleChange('username')} />
           </div>
           <div style={styles.row}>
-            <TextField label="Kubeflow cluster Password" spellCheck={false} style={styles.input} variant="filled" type="password"
+            <TextField label="Create Password" spellCheck={false} style={styles.input} variant="filled" type="password"
              required={true} value={this.state.password} onChange={this._handleChange('password')} />
           </div>
           <div style={styles.row}>
@@ -442,6 +442,23 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           return;
         }
       }
+    } else {
+      for (const prop of ['username', 'password', 'password2']) {
+        if (this.state[prop] === '') {
+          this.setState({
+            dialogBody: 'Some required fields (username, password) are missing',
+            dialogTitle: 'Missing field',
+          });
+          return;
+        }
+      }
+      if (this.state.password !== this.state.password2) {
+        this.setState({
+          dialogBody: 'Two passwords does not match',
+          dialogTitle: 'Passwords not match',
+        });
+        return;
+      }
     }
     const deploymentNameKey = 'deploymentName';
     if (this.state[deploymentNameKey].length < 4 || this.state[deploymentNameKey].length > 20) {
@@ -636,46 +653,42 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         name: 'basic-auth',
         prototype: 'basic-auth',
       });
-      const passwordhash = btoa(encryptPassword(this.state.password));
       configSpec.defaultApp.parameters.push({
         component: 'ambassador',
         name: 'ambassadorServiceType',
         value: 'NodePort'
       });
-      configSpec.defaultApp.parameters.push({
-        component: 'basic-auth',
-        name: 'username',
-        value: this.state.username
-      });
-      configSpec.defaultApp.parameters.push({
-        component: 'basic-auth',
-        name: 'pwhash',
-        value: passwordhash
-      });
     }
 
-    const createBody = JSON.stringify(
-      {
-        AppConfig: configSpec.defaultApp,
-        Apply: true,
-        AutoConfigure: true,
+    let createBody = {
+      AppConfig: configSpec.defaultApp,
+      Apply: true,
+      AutoConfigure: true,
+      Cluster: deploymentName,
+      Email: email,
+      IpName: this.state.deploymentName + '-ip',
+      Name: deploymentName,
+      Namespace: 'kubeflow',
+      Project: project,
+      ProjectNumber: projectNumber,
+      SAClientId: saUniqueId,
+      Token: token,
+      Zone: this.state.zone,
+    };
+    if (this.state.iap) {
+      createBody = {...createBody, ...{
         ClientId: btoa(this.state.clientId),
         ClientSecret: btoa(this.state.clientSecret),
-        Cluster: deploymentName,
-        Email: email,
-        IpName: this.state.deploymentName + '-ip',
-        Name: deploymentName,
-        Namespace: 'kubeflow',
-        Project: project,
-        ProjectNumber: projectNumber,
-        SAClientId: saUniqueId,
-        Token: token,
-        Zone: this.state.zone,
-      }
-    );
+      }};
+    } else {
+      createBody = {...createBody, ...{
+        PasswordHash: btoa(encryptPassword(this.state.password)),
+        Username: btoa(this.state.username),
+      }};
+    }
     request(
       {
-        body: createBody,
+        body: JSON.stringify(createBody),
         headers: { 'content-type': 'application/json' },
         method: 'PUT',
         uri: this._configSpec.appAddress + '/kfctl/e2eDeploy',

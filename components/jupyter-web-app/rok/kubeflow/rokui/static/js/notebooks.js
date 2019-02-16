@@ -56,7 +56,7 @@ function deleteNotebook(ns, nb) {
 };
 
 function connectNotebook(ns, nb) {
-  window.open(`/${ns}/${nb}`, "_blank");
+  window.open(`/notebook/${ns}/${nb}`, "_blank");
 };
 
 function createNotebook(ns) {

@@ -19,6 +19,24 @@ local jupyter = {
           {
             "image": "gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu:v0.3.0",
             "name": "notebook",
+            args: [
+              "start.sh",
+              "jupyter",
+              "lab",
+              "--LabApp.token=''",
+              "--LabApp.allow_remote_access='True'",
+              "--LabApp.allow_root='True'",
+              "--LabApp.ip='*'",
+              "--LabApp.base_url=/" + env.namespace + "/" + params.name + "/",
+              "--port=8888",
+              "--no-browser",
+            ],
+            env: [
+              {
+                name: "JUPYTER_ENABLE_LAB",
+                value: "true",
+              },
+            ],
             "resources": {
               "requests": {
                 "cpu": "500m",
@@ -28,13 +46,6 @@ local jupyter = {
             "workingDir": "/home/jovyan"
           }
         ],
-        "securityContext": [
-          {
-            "fsGroup": 100,
-            "runAsUser": 1000
-          }
-        ],
-        "ttlSecondsAfterFinished": 300
       }
     }
   }
