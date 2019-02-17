@@ -14,7 +14,7 @@ import * as React from 'react';
 import * as request from 'request';
 
 import Gapi from './Gapi';
-import { flattenDeploymentOperationError, log, wait } from './Utils';
+import { encryptPassword, flattenDeploymentOperationError, log, wait } from './Utils';
 
 // TODO(jlewi): Can we fetch these directly from GitHub so we always get the latest value?
 // When I tried using fetch API to do that I ran into errors that I interpreted as chrome blocking
@@ -40,6 +40,9 @@ interface DeployFormState {
   kfversionList: string[];
   clientId: string;
   clientSecret: string;
+  username: string;
+  password: string;
+  password2: string;
   iap: boolean;
 }
 
@@ -110,9 +113,12 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       dialogTitle: '',
       iap: true,
       kfversion: 'v0.3.5',
-      kfversionList: ['v0.3.5'],
+      kfversionList: ['v0.3.5', 'v0.4.1'],
+      password: '',
+      password2: '',
       project: '',
       showLogs: false,
+      username: '',
       zone: 'us-central1-a',
     };
   }
@@ -189,6 +195,21 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           <div style={styles.row}>
             <TextField label="IAP OAuth client secret" spellCheck={false} style={styles.input} variant="filled"
              required={true} value={this.state.clientSecret} onChange={this._handleChange('clientSecret')} />
+          </div>
+        </Collapse>
+
+        <Collapse in={!this.state.iap}>
+          <div style={styles.row}>
+            <TextField label="Create Kubeflow Login Username" spellCheck={false} style={styles.input} variant="filled"
+             required={true} value={this.state.username} onChange={this._handleChange('username')} />
+          </div>
+          <div style={styles.row}>
+            <TextField label="Create Password" spellCheck={false} style={styles.input} variant="filled" type="password"
+             required={true} value={this.state.password} onChange={this._handleChange('password')} />
+          </div>
+          <div style={styles.row}>
+            <TextField label="Confirm Password" spellCheck={false} style={styles.input} variant="filled" type="password"
+             required={true} value={this.state.password2} onChange={this._handleChange('password2')} />
           </div>
         </Collapse>
 
@@ -318,8 +339,21 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         p.value = email;
       }
 
-      if (p.name === 'jupyterHubAuthenticator') {
-        if (this.state.clientId === '' || this.state.clientSecret === '') {
+    }
+    if (!this.state.iap) {
+      for (let i = 0, len = this._configSpec.defaultApp.components.length; i < len; i++) {
+        const p = this._configSpec.defaultApp.components[i];
+        if (p.name === 'iap-ingress') {
+          p.name = 'basic-auth-ingress';
+          p.prototype = 'basic-auth-ingress';
+        }
+      }
+      for (let i = 0, len = this._configSpec.defaultApp.parameters.length; i < len; i++) {
+        const p = this._configSpec.defaultApp.parameters[i];
+        if (p.component === 'iap-ingress') {
+          p.component = 'basic-auth-ingress';
+        }
+        if (p.name === 'jupyterHubAuthenticator') {
           p.value = 'null';
         }
       }
@@ -407,6 +441,23 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           });
           return;
         }
+      }
+    } else {
+      for (const prop of ['username', 'password', 'password2']) {
+        if (this.state[prop] === '') {
+          this.setState({
+            dialogBody: 'Some required fields (username, password) are missing',
+            dialogTitle: 'Missing field',
+          });
+          return;
+        }
+      }
+      if (this.state.password !== this.state.password2) {
+        this.setState({
+          dialogBody: 'Two passwords does not match',
+          dialogTitle: 'Passwords not match',
+        });
+        return;
       }
     }
     const deploymentNameKey = 'deploymentName';
@@ -596,29 +647,48 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     if (!resource) {
       return;
     }
+    const configSpec = JSON.parse(JSON.stringify(resource));
+    if (!this.state.iap) {
+      configSpec.defaultApp.components.push({
+        name: 'basic-auth',
+        prototype: 'basic-auth',
+      });
+      configSpec.defaultApp.parameters.push({
+        component: 'ambassador',
+        name: 'ambassadorServiceType',
+        value: 'NodePort'
+      });
+    }
 
-    const createBody = JSON.stringify(
-      {
-        AppConfig: this._configSpec.defaultApp,
-        Apply: true,
-        AutoConfigure: true,
+    let createBody = {
+      AppConfig: configSpec.defaultApp,
+      Apply: true,
+      AutoConfigure: true,
+      Cluster: deploymentName,
+      Email: email,
+      IpName: this.state.deploymentName + '-ip',
+      Name: deploymentName,
+      Namespace: 'kubeflow',
+      Project: project,
+      ProjectNumber: projectNumber,
+      SAClientId: saUniqueId,
+      Token: token,
+      Zone: this.state.zone,
+    };
+    if (this.state.iap) {
+      createBody = {...createBody, ...{
         ClientId: btoa(this.state.clientId),
         ClientSecret: btoa(this.state.clientSecret),
-        Cluster: deploymentName,
-        Email: email,
-        IpName: this.state.deploymentName + '-ip',
-        Name: deploymentName,
-        Namespace: 'kubeflow',
-        Project: project,
-        ProjectNumber: projectNumber,
-        SAClientId: saUniqueId,
-        Token: token,
-        Zone: this.state.zone,
-      }
-    );
+      }};
+    } else {
+      createBody = {...createBody, ...{
+        PasswordHash: btoa(encryptPassword(this.state.password)),
+        Username: btoa(this.state.username),
+      }};
+    }
     request(
       {
-        body: createBody,
+        body: JSON.stringify(createBody),
         headers: { 'content-type': 'application/json' },
         method: 'PUT',
         uri: this._configSpec.appAddress + '/kfctl/e2eDeploy',
