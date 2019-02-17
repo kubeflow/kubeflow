@@ -3,11 +3,11 @@
 // @description a Kubeflow pipeline deployment.
 // @shortDescription Kubeflow pipeline
 // @param name string Name to give to each of the components
-// @optionalParam apiImage string gcr.io/ml-pipeline/api-server:0.1.9 API docker image
-// @optionalParam scheduledWorkflowImage string gcr.io/ml-pipeline/scheduledworkflow:0.1.9 schedule workflow docker image
-// @optionalParam persistenceAgentImage string gcr.io/ml-pipeline/persistenceagent:0.1.9 persistence agent docker image
-// @optionalParam viewerCrdControllerImage string gcr.io/ml-pipeline/viewer-crd-controller:0.1.9 viewer CRD controller docker image
-// @optionalParam uiImage string gcr.io/ml-pipeline/frontend:0.1.9 UI docker image
+// @optionalParam apiImage string gcr.io/ml-pipeline/api-server:0.1.10 API docker image
+// @optionalParam scheduledWorkflowImage string gcr.io/ml-pipeline/scheduledworkflow:0.1.10 schedule workflow docker image
+// @optionalParam persistenceAgentImage string gcr.io/ml-pipeline/persistenceagent:0.1.10 persistence agent docker image
+// @optionalParam viewerCrdControllerImage string gcr.io/ml-pipeline/viewer-crd-controller:0.1.10 viewer CRD controller docker image
+// @optionalParam uiImage string gcr.io/ml-pipeline/frontend:0.1.10 UI docker image
 // @optionalParam mysqlImage string mysql:5.6 mysql image
 // @optionalParam minioImage string minio/minio:RELEASE.2018-02-09T22-40-05Z minio image
 // @optionalParam nfsImage string k8s.gcr.io/volume-nfs:0.8 nfs image
