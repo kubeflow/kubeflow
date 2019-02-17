@@ -28,6 +28,7 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/deploymentmanager/v2"
+	"google.golang.org/api/discovery/v1"
 	"google.golang.org/api/iam/v1"
 	"google.golang.org/api/serviceusage/v1"
 	"io"
@@ -597,6 +598,17 @@ func (gcp *Gcp) gcpInitProject() error {
 	if err != nil {
 		return err
 	}
+	service, serviceErr := discovery.New(oauthClient)
+	if serviceErr != nil {
+		return fmt.Errorf("could notcreate service using discovery %v", serviceErr)
+	}
+	services, servicesErr := service.Apis.List().Do()
+	if servicesErr != nil {
+		return fmt.Errorf("could not list services %v", servicesErr)
+
+	}
+	log.Infof("services = %v", services.Kind)
+
 	serviceusageService, err := serviceusage.New(oauthClient)
 	_, opErr := serviceusageService.Services.Enable("deploymentmanager.googleapis.com", &serviceusage.EnableServiceRequest{}).Context(ctx).Do()
 	if opErr != nil {
@@ -622,11 +634,11 @@ func (gcp *Gcp) Init(options map[string]interface{}) error {
 	if createConfigErr != nil {
 		return fmt.Errorf("cannot create config file app.yaml in %v", gcp.GcpApp.Spec.AppDir)
 	}
-	/* Currently doesn't work
-	initProjectErr := gcp.gcpInitProject()
-	if initProjectErr != nil {
-		return fmt.Errorf("cannot init gcp project %v", initProjectErr)
-	}
+	/*
+		initProjectErr := gcp.gcpInitProject()
+		if initProjectErr != nil {
+			return fmt.Errorf("cannot init gcp project %v", initProjectErr)
+		}
 	*/
 	return nil
 }

@@ -47,13 +47,13 @@ build-bootstrap: generate fmt vet
 build-kfctl: generate fmt vet
 	$(GO) build -i -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
 
-build-foo-plugin: generate fmt vet
-	$(GO) build -i -gcflags 'all=-N -l' -o bin/foo.so -buildmode=plugin cmd/plugins/foo/foo.go
+build-dockerfordesktop-plugin: generate fmt vet
+	$(GO) build -i -gcflags 'all=-N -l' -o bin/dockerfordesktop.so -buildmode=plugin cmd/plugins/dockerfordesktop/dockerfordesktop.go
 
 build-local: build-bootstrap build-kfctl
 
 # To edit which registries to add to bootstrapper, edit config (eg. config/default.yaml)
-build: build-local
+build:
 	rm -rf reg_tmp
 	mkdir -p reg_tmp/kubeflow
 	cp -r ../kubeflow reg_tmp/kubeflow
@@ -85,36 +85,31 @@ run-local-docker:
 	  --mount type=bind,source=${HOME}/kf_app,target=/home/kubeflow \
 	  --entrypoint /bin/bash $(IMG):$(TAG)
 
-test-known-platforms-init: install build-foo-plugin
-	@rm -rf $(HOME)/foo && \
-	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/foo -V --platform foo --version master && \
+test-known-platforms-init: install build-dockerfordesktop-plugin
+	@rm -rf $(HOME)/dockerfordesktop && \
+	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/dockerfordesktop -V --platform docker-for-desktop --version master && \
 	rm -rf $(HOME)/ksonnet && \
 	kfctl init $(HOME)/ksonnet -V --platform ksonnet --version master && \
 	rm -rf $(HOME)/minikube && \
 	kfctl init $(HOME)/minikube -V --platform minikube --version master && \
-	rm -rf $(HOME)/dockerfordesktop && \
-	kfctl init $(HOME)/dockerfordesktop -V --platform docker-for-desktop --version master && \
 	rm -rf $(HOME)/gcp && \
 	kfctl init $(HOME)/gcp -V --platform gcp --version master --project kubeflow-111 && \
 	echo SUCCESS
 
 test-known-platforms-generate: test-known-platforms-init
-	@cd ~/foo && \
+	@cd ~/dockerfordesktop && \
 	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl generate all -V && \
 	cd ~/ksonnet && \
 	kfctl generate all -V && \
 	cd ~/minikube && \
 	kfctl generate all -V --mount-local && \
-	cd ~/dockerfordesktop && \
-    kfctl generate all -V --mount-local && \
-    cd ~/gcp && \
-    kfctl generate all -V --email jsmith@foo.com --ipName gcp-ip --hostname gcp.endpoints.$(GCLOUD_PROJECT).cloud.goog --zone us-west1-a && \
+	cd ~/gcp && \
+	kfctl generate all -V --email jsmith@acme.com --ipName gcp-ip --hostname gcp.endpoints.$(GCLOUD_PROJECT).cloud.goog --zone us-west1-a && \
 	echo SUCCESS
 
-
 # static and plugins toogle whether we try and load a platform as a .so.
-# There is an example plugin 'foo' that can be loaded as a .so.
-# By default we disable loading plugins and link foo into the kfctl binary (static)
+# There is an example plugin 'dockerfordesktop' that can be loaded as a .so.
+# By default we disable loading plugins and link dockerfordesktop into the kfctl binary (static)
 static:
 	@ex pkg/apis/apps/group.go <hack/static
 	@ex cmd/kfctl/cmd/root.go <hack/static || echo Plugin functionality disabled 

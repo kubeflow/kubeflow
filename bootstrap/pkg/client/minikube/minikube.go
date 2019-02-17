@@ -148,7 +148,7 @@ func (minikube *Minikube) Generate(resources kftypes.ResourceEnum, options map[s
 	case kftypes.K8S:
 		ksErr := minikube.generateKsonnet(options)
 		if ksErr != nil {
-			return fmt.Errorf("could not generate kssonnet under %v Error: %v", kstypes.KsName, ksErr)
+			return fmt.Errorf("could not generate ksonnet under %v Error: %v", kstypes.KsName, ksErr)
 		}
 	case kftypes.PLATFORM:
 	}
