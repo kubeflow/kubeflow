@@ -35,6 +35,7 @@ type DockerForDesktop struct {
 }
 
 func GetKfApp(options map[string]interface{}) kftypes.KfApp {
+	options[string(kftypes.PLATFORM)] = string(kftypes.KSONNET)
 	log.Infof("getting ksonnet platform in dockerfordesktop")
 	_ksonnet := ksonnet.GetKfApp(options)
 	options[string(kftypes.PLATFORM)] = string(kftypes.DOCKER_FOR_DESKTOP)
@@ -147,7 +148,7 @@ func (dockerfordesktop *DockerForDesktop) Generate(resources kftypes.ResourceEnu
 	case kftypes.K8S:
 		ksErr := dockerfordesktop.generateKsApp(options)
 		if ksErr != nil {
-			return fmt.Errorf("could not generate kssonnet under %v Error: %v", kstypes.KsName, ksErr)
+			return fmt.Errorf("could not generate ksonnet under %v Error: %v", kstypes.KsName, ksErr)
 		}
 	case kftypes.PLATFORM:
 	}

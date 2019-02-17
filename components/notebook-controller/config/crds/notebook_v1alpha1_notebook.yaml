@@ -11,6 +11,8 @@ spec:
     kind: Notebook
     plural: notebooks
   scope: Namespaced
+  subresources:
+    status: {}
   validation:
     openAPIV3Schema:
       properties:
@@ -37,6 +39,20 @@ spec:
               type: object
           type: object
         status:
+          properties:
+            conditions:
+              description: Conditions is an array of current conditions
+              items:
+                properties:
+                  type:
+                    description: Type of the confition/
+                    type: string
+                required:
+                - type
+                type: object
+              type: array
+          required:
+          - conditions
           type: object
   version: v1alpha1
 status:

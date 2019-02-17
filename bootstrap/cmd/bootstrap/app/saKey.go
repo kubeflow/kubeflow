@@ -16,6 +16,7 @@ import (
 )
 
 const OauthSecretName = "kubeflow-oauth"
+const LoginSecretName = "kubeflow-login"
 
 func (s *ksServer) ConfigCluster(ctx context.Context, req CreateRequest) error {
 	k8sConfig, err := buildClusterConfig(ctx, req.Token, req.Project, req.Zone, req.Cluster)
@@ -34,6 +35,10 @@ func (s *ksServer) ConfigCluster(ctx context.Context, req CreateRequest) error {
 	}
 	log.Info("Inserting oauth credentails")
 	if err := InsertOauthCredentails(&req, k8sClientset); err != nil {
+		return err
+	}
+	log.Info("Inserting login credentails")
+	if err := InsertLoginCredentails(&req, k8sClientset); err != nil {
 		return err
 	}
 	log.Infof("Inserting sa keys...")
@@ -105,6 +110,33 @@ func InsertOauthCredentails(req *CreateRequest, k8sClientset *clientset.Clientse
 		})
 	if err != nil {
 		log.Errorf("Failed creating oauth credentails in GKE cluster: %v", err)
+		return err
+	}
+	return nil
+}
+
+func InsertLoginCredentails(req *CreateRequest, k8sClientset *clientset.Clientset) error {
+	if req.Username == "" || req.PasswordHash == "" {
+		return nil
+	}
+	secretData := make(map[string][]byte)
+	UsernameData, err := base64.StdEncoding.DecodeString(req.Username)
+	if err != nil {
+		log.Errorf("Failed decoding client id: %v", err)
+		return err
+	}
+	secretData["username"] = UsernameData
+	secretData["passwordhash"] = []byte(req.PasswordHash)
+	_, err = k8sClientset.CoreV1().Secrets(req.Namespace).Create(
+		&v1.Secret{
+			ObjectMeta: meta_v1.ObjectMeta{
+				Namespace: req.Namespace,
+				Name:      LoginSecretName,
+			},
+			Data: secretData,
+		})
+	if err != nil {
+		log.Errorf("Failed creating login credentails in GKE cluster: %v", err)
 		return err
 	}
 	return nil
