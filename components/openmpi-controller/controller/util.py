@@ -49,4 +49,5 @@ def s3_copy(copy_from, copy_to):
   exit_code, stdout, stderr = exec_command(
       f'aws s3 cp --recursive "{copy_from}" "{copy_to}"')
   if exit_code != 0:
-    raise S3Exception(f's3 copy failed with exit code {exit_code}:\nstdout:{stdout}\nstderr:{stderr}')  # noqa: E501
+    raise S3Exception(f's3 copy failed with exit code '
+                      '{exit_code}:\nstdout:{stdout}\nstderr:{stderr}')
