@@ -672,6 +672,7 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       Project: project,
       ProjectNumber: projectNumber,
       SAClientId: saUniqueId,
+      StorageOption: { CreatePipelinePersistentStorage: true },
       Token: token,
       Zone: this.state.zone,
     };
