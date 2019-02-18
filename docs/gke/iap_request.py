@@ -69,7 +69,7 @@ def get_service_account_token(client_id):
   # service_account_credentials gives us a JWT signed by the service
   # account. Next, we use that to obtain an OpenID Connect token,
   # which is a JWT signed by Google.
-  return get_google_open_id_connect_token(service_account_credentials)
+  return get_google_open_id_connect_token(service_account_credentials), signer_email
 
 
 def get_google_open_id_connect_token(service_account_credentials):
@@ -120,7 +120,7 @@ def main():
   )
   args = parser.parse_args()
 
-  token = get_service_account_token(args.client_id)
+  token, signer_email = get_service_account_token(args.client_id)
   if args.input:
     with open(args.input) as f:
       data = f.read()

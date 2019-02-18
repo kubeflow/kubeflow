@@ -5,7 +5,6 @@
     $.parts(namespace).role,
     $.parts(namespace).service,
     $.parts(namespace).deploy(apiImage),
-    $.parts(namespace).loadSampleJob(apiImage),
     $.parts(namespace).pipelineRunnerServiceAccount,
     $.parts(namespace).pipelineRunnerRole,
     $.parts(namespace).pipelineRunnerRoleBinding,
@@ -153,7 +152,7 @@
               {
                 name: "ml-pipeline-api-server",
                 image: image,
-                imagePullPolicy: "Always",
+                imagePullPolicy: "IfNotPresent",
                 ports: [
                   {
                     containerPort: 8888,
@@ -180,46 +179,6 @@
       },
     },  // deploy
 
-    loadSampleJob(image): {
-      apiVersion: "batch/v1",
-      kind: "Job",
-      metadata: {
-        name: "ml-pipelines-load-samples",
-        namespace: namespace,
-      },
-      spec: {
-        template: {
-          spec: {
-            restartPolicy: "Never",
-            containers: [
-              {
-                name: "ml-pipelines-load-samples",
-                image: image,
-                imagePullPolicy: "Always",
-                command: ["apiserver"],
-                args: [
-                  "--config=/config",
-                  "--sampleconfig=/config/sample_config.json",
-                ],
-                env: [
-                  {
-                    name: "POD_NAMESPACE",
-                    valueFrom: {
-                      fieldRef: {
-                        fieldPath: "metadata.namespace",
-                      },
-                    },
-                  },
-                ],
-              },
-            ],
-            serviceAccountName: "ml-pipeline",
-          },
-        },
-        backoffLimit: 0,
-      },
-    },  // loadSampleJob
-
     pipelineRunnerServiceAccount: {
       apiVersion: "v1",
       kind: "ServiceAccount",
@@ -239,7 +198,6 @@
           app: "pipeline-runner",
         },
         name: "pipeline-runner",
-        namespace: namespace,
       },
       rules: [
         {
@@ -350,7 +308,6 @@
           app: "pipeline-runner",
         },
         name: "pipeline-runner",
-        namespace: namespace,
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",

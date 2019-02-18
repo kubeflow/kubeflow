@@ -14,7 +14,7 @@ import * as React from 'react';
 import * as request from 'request';
 
 import Gapi from './Gapi';
-import { flattenDeploymentOperationError, log, wait } from './Utils';
+import { encryptPassword, flattenDeploymentOperationError, log, wait } from './Utils';
 
 // TODO(jlewi): Can we fetch these directly from GitHub so we always get the latest value?
 // When I tried using fetch API to do that I ran into errors that I interpreted as chrome blocking
@@ -37,8 +37,12 @@ interface DeployFormState {
   showLogs: boolean;
   zone: string;
   kfversion: string;
+  kfversionList: string[];
   clientId: string;
   clientSecret: string;
+  username: string;
+  password: string;
+  password2: string;
   iap: boolean;
 }
 
@@ -109,8 +113,12 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       dialogTitle: '',
       iap: true,
       kfversion: 'v0.3.5',
+      kfversionList: ['v0.3.5', 'v0.4.1'],
+      password: '',
+      password2: '',
       project: '',
       showLogs: false,
+      username: '',
       zone: 'us-central1-a',
     };
   }
@@ -121,6 +129,21 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     // be able to click submit until the fetches have succeeded. How can we do
     // that?
 
+    const params = new URLSearchParams(this.props.location.search);
+    let kfversionList = this.state.kfversionList;
+    let kfversion = this.state.kfversion;
+    if (process.env.REACT_APP_VERSIONS){
+      kfversionList = process.env.REACT_APP_VERSIONS.split(',');
+      kfversion = kfversionList[0];
+    }
+    if (params.get('version')) {
+      kfversion = String(params.get('version'));
+      kfversionList.push(kfversion);
+    }
+    this.setState({
+      kfversion,
+      kfversionList,
+    });
     fetch(appConfigPath, { mode: 'no-cors' })
       .then((response) => {
         log('Got response');
@@ -144,7 +167,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
   public render() {
     const zoneList = ['us-central1-a', 'us-central1-c', 'us-east1-c', 'us-east1-d', 'us-west1-b',
       'europe-west1-b', 'europe-west1-d', 'asia-east1-a', 'asia-east1-b'];
-    const versionList = ['v0.3.5'];
 
     return (
       <div>
@@ -176,6 +198,21 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           </div>
         </Collapse>
 
+        <Collapse in={!this.state.iap}>
+          <div style={styles.row}>
+            <TextField label="Create Kubeflow Login Username" spellCheck={false} style={styles.input} variant="filled"
+             required={true} value={this.state.username} onChange={this._handleChange('username')} />
+          </div>
+          <div style={styles.row}>
+            <TextField label="Create Password" spellCheck={false} style={styles.input} variant="filled" type="password"
+             required={true} value={this.state.password} onChange={this._handleChange('password')} />
+          </div>
+          <div style={styles.row}>
+            <TextField label="Confirm Password" spellCheck={false} style={styles.input} variant="filled" type="password"
+             required={true} value={this.state.password2} onChange={this._handleChange('password2')} />
+          </div>
+        </Collapse>
+
         <div style={styles.row}>
           <TextField select={true} label="GKE zone:" required={true} style={styles.input} variant="filled"
             value={this.state.zone} onChange={this._handleChange('zone')}>
@@ -188,11 +225,16 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         <div style={styles.row}>
           <TextField select={true} label="Kubeflow version:" required={true} style={styles.input} variant="filled"
             value={this.state.kfversion} onChange={this._handleChange('kfversion')}>
-            {versionList.map((version, i) => (
-              <MenuItem key={i} value={version}>{version}</MenuItem>
-            ))}
+            { this.state.kfversionList.map((version, i) => (
+                <MenuItem key={i} value={version}>{version}</MenuItem>
+              ))
+            }
           </TextField>
         </div>
+
+        <Collapse in={!this.state.iap}>
+          <div style={styles.row}>Kubeflow UI Access: after Deployment is done, click "Cloud Shell" and click "port forwarding" in new page.</div>
+        </Collapse>
 
         <div style={{ display: 'flex', padding: '20px 60px 40px' }}>
           <Button style={styles.btn} variant="contained" color="primary" onClick={this._createDeployment.bind(this)}>
@@ -249,9 +291,18 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     });
   }
 
+  private _currentTime() {
+    const d = new Date();
+    let timeStr = '';
+    timeStr += d.getFullYear() + '-' + ('0' + d.getMonth()).slice(-2) + '-' + ('0' + d.getDate()).slice(-2) + ' ';
+    timeStr += ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2) + ':' + ('0' + d.getSeconds()).slice(-2) + '.' + ('00' + d.getMilliseconds()).slice(-3);
+    timeStr += ': ';
+    return timeStr;
+  }
+
   private _appendLine(newLine: any) {
     const logsEl = document.querySelector('#logs') as HTMLInputElement;
-    logsEl.value += (!!logsEl.value ? '\n' : '') + newLine;
+    logsEl.value += (!!logsEl.value ? '\n' : '') + this._currentTime() + newLine;
     logsEl.scrollTop = logsEl.scrollHeight;
   }
 
@@ -274,7 +325,6 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
 
     const state = this.state;
     const email = await Gapi.getSignedInEmail();
-    let iapIdx = 0;
     for (let i = 0, len = this._configSpec.defaultApp.parameters.length; i < len; i++) {
       const p = this._configSpec.defaultApp.parameters[i];
       if (p.name === 'ipName') {
@@ -289,12 +339,51 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
         p.value = email;
       }
 
-      if (p.name === 'jupyterHubAuthenticator') {
-        iapIdx = i;
+    }
+    if (!this.state.iap) {
+      for (let i = 0, len = this._configSpec.defaultApp.components.length; i < len; i++) {
+        const p = this._configSpec.defaultApp.components[i];
+        if (p.name === 'iap-ingress') {
+          p.name = 'basic-auth-ingress';
+          p.prototype = 'basic-auth-ingress';
+        }
+      }
+      for (let i = 0, len = this._configSpec.defaultApp.parameters.length; i < len; i++) {
+        const p = this._configSpec.defaultApp.parameters[i];
+        if (p.component === 'iap-ingress') {
+          p.component = 'basic-auth-ingress';
+        }
+        if (p.name === 'jupyterHubAuthenticator') {
+          p.value = 'null';
+        }
       }
     }
-    if (this.state.clientId === '' || this.state.clientSecret === '') {
-      this._configSpec.defaultApp.parameters.splice(iapIdx, 1);
+    // Customize config for v0.3 compatibility
+    // TODO: remove after https://github.com/kubeflow/kubeflow/pull/2019 merged
+    if (this.state.kfversion.startsWith('v0.3')) {
+      let metacontrollerIdx = -1;
+      for (let i = 0, len = this._configSpec.defaultApp.components.length; i < len; i++) {
+        const component = this._configSpec.defaultApp.components[i];
+        if (component.name === 'jupyter') {
+          component.name = 'jupyterhub';
+          component.prototype = 'jupyterhub';
+        }
+        if (component.name === 'metacontroller') {
+          metacontrollerIdx = i;
+        }
+      }
+      for (let i = 0, len = this._configSpec.defaultApp.parameters.length; i < len; i++) {
+        const p = this._configSpec.defaultApp.parameters[i];
+        if (p.component === 'jupyter') {
+          p.component = 'jupyterhub';
+        }
+        if (p.name === 'platform') {
+          p.name = 'cloud';
+        }
+      }
+      if (metacontrollerIdx !== -1) {
+        this._configSpec.defaultApp.components.splice(metacontrollerIdx, 1);
+      }
     }
     this._configSpec.defaultApp.registries[0].version = this.state.kfversion;
 
@@ -310,9 +399,8 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
       });
       return;
     }
-    const cloudShellConfPath = this.state.kfversion + '/' + this.state.deploymentName + '/kf_util';
-    const cloudShellUrl = 'https://cloud.google.com/console/cloudshell/open?shellonly=true&git_repo=https://source.developers.google.com/p/' +
-      this.state.project + '/r/' + this.state.project + '-kubeflow-config&working_dir=' + cloudShellConfPath + '&tutorial=conn.md';
+    const cloudShellUrl = 'https://console.cloud.google.com/kubernetes/service/' +  this.state.zone + '/' +
+      this.state.deploymentName + '/kubeflow/ambassador?project=' + this.state.project + '&tab=overview';
     window.open(cloudShellUrl, '_blank');
   }
 
@@ -353,6 +441,23 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
           });
           return;
         }
+      }
+    } else {
+      for (const prop of ['username', 'password', 'password2']) {
+        if (this.state[prop] === '') {
+          this.setState({
+            dialogBody: 'Some required fields (username, password) are missing',
+            dialogTitle: 'Missing field',
+          });
+          return;
+        }
+      }
+      if (this.state.password !== this.state.password2) {
+        this.setState({
+          dialogBody: 'Two passwords does not match',
+          dialogTitle: 'Passwords not match',
+        });
+        return;
       }
     }
     const deploymentNameKey = 'deploymentName';
@@ -542,29 +647,48 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
     if (!resource) {
       return;
     }
+    const configSpec = JSON.parse(JSON.stringify(resource));
+    if (!this.state.iap) {
+      configSpec.defaultApp.components.push({
+        name: 'basic-auth',
+        prototype: 'basic-auth',
+      });
+      configSpec.defaultApp.parameters.push({
+        component: 'ambassador',
+        name: 'ambassadorServiceType',
+        value: 'NodePort'
+      });
+    }
 
-    const createBody = JSON.stringify(
-      {
-        AppConfig: this._configSpec.defaultApp,
-        Apply: true,
-        AutoConfigure: true,
+    let createBody = {
+      AppConfig: configSpec.defaultApp,
+      Apply: true,
+      AutoConfigure: true,
+      Cluster: deploymentName,
+      Email: email,
+      IpName: this.state.deploymentName + '-ip',
+      Name: deploymentName,
+      Namespace: 'kubeflow',
+      Project: project,
+      ProjectNumber: projectNumber,
+      SAClientId: saUniqueId,
+      Token: token,
+      Zone: this.state.zone,
+    };
+    if (this.state.iap) {
+      createBody = {...createBody, ...{
         ClientId: btoa(this.state.clientId),
         ClientSecret: btoa(this.state.clientSecret),
-        Cluster: deploymentName,
-        Email: email,
-        IpName: this.state.deploymentName + '-ip',
-        Name: deploymentName,
-        Namespace: 'kubeflow',
-        Project: project,
-        ProjectNumber: projectNumber,
-        SAClientId: saUniqueId,
-        Token: token,
-        Zone: this.state.zone,
-      }
-    );
+      }};
+    } else {
+      createBody = {...createBody, ...{
+        PasswordHash: btoa(encryptPassword(this.state.password)),
+        Username: btoa(this.state.username),
+      }};
+    }
     request(
       {
-        body: createBody,
+        body: JSON.stringify(createBody),
         headers: { 'content-type': 'application/json' },
         method: 'PUT',
         uri: this._configSpec.appAddress + '/kfctl/e2eDeploy',
@@ -609,9 +733,9 @@ export default class DeployForm extends React.Component<any, DeployFormState> {
               this._appendLine('your kubeflow app url should be ready within 20 minutes (by '
                 + readyTime.toLocaleTimeString() + '): https://'
                 + this.state.deploymentName + '.endpoints.' + this.state.project + '.cloud.goog');
+              this._redirectToKFDashboard(dashboardUri);
             }
             clearInterval(monitorInterval);
-            this._redirectToKFDashboard(dashboardUri);
           } else {
             this._appendLine(`Status of ${deploymentName}: ` + r.operation!.status!);
           }

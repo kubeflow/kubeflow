@@ -102,7 +102,7 @@ def setup_kubeflow_ks_app(dir, namespace, github_token, api_client):
     ["ks", "registry", "add", "kubeflow", kubeflow_registry], cwd=app_dir)
 
   # Install required packages
-  packages = ["kubeflow/common", "kubeflow/gcp", "kubeflow/jupyter", "kubeflow/tf-serving", "kubeflow/tf-job", "kubeflow/tf-training", "kubeflow/pytorch-job", "kubeflow/argo"]
+  packages = ["kubeflow/common", "kubeflow/gcp", "kubeflow/jupyter", "kubeflow/tf-serving", "kubeflow/tf-job", "kubeflow/tf-training", "kubeflow/pytorch-job", "kubeflow/argo", "kubeflow/katib"]
 
   # Instead of installing packages we edit the app.yaml file directly
   #for p in packages:
@@ -139,7 +139,7 @@ def log_operation_status(operation):
   name = operation.get("name", "")
   status = operation.get("status", "")
   logging.info("Operation %s status %s", name, status)
-  
+
 def wait_for_operation(client,
                        project,
                        op_id,

@@ -229,7 +229,39 @@
     local workflowControllerConfigmap = {
       apiVersion: "v1",
       data: {
-        config: @"executorImage: " + params.executorImage,
+        config: std.format(|||
+                             {
+                             executorImage: %s,
+                             artifactRepository:
+                             {
+                                 s3: {
+                                     bucket: %s,
+                                     keyPrefix: %s,
+                                     endpoint: %s,
+                                     insecure: %s,
+                                     accessKeySecret: {
+                                         name: %s,
+                                         key: %s
+                                     },
+                                     secretKeySecret: {
+                                         name: %s,
+                                         key: %s
+                                     }
+                                 }
+                             }
+                             }
+                           |||,
+                           [
+                             params.executorImage,
+                             params.artifactRepositoryBucket,
+                             params.artifactRepositoryKeyPrefix,
+                             params.artifactRepositoryEndpoint,
+                             params.artifactRepositoryInsecure,
+                             params.artifactRepositoryAccessKeySecretName,
+                             params.artifactRepositoryAccessKeySecretKey,
+                             params.artifactRepositorySecretKeySecretName,
+                             params.artifactRepositorySecretKeySecretKey,
+                           ]),
       },
       kind: "ConfigMap",
       metadata: {

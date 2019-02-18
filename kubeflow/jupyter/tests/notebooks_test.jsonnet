@@ -1,3 +1,4 @@
+local testSuite = import "kubeflow/common/testsuite.libsonnet";
 local notebooks = import "kubeflow/jupyter/notebooks.libsonnet";
 
 // TODO
@@ -11,7 +12,7 @@ local params = {
   repoName: "kubeflow-images-public",
   notebookUid: "-1",
   notebookGid: "-1",
-  accessLocalFs: "false",
+  accessLocalFs: "true",
 };
 
 local env = {
@@ -20,160 +21,162 @@ local env = {
 
 local instance = notebooks.new(env, params);
 
-std.assertEqual(
-  instance.parts.notebooksCRD,
+local testCases = [
   {
-    apiVersion: "apiextensions.k8s.io/v1beta1",
-    kind: "CustomResourceDefinition",
-    metadata: {
-      name: "notebooks.kubeflow.org",
-    },
-    spec: {
-      group: "kubeflow.org",
-      names: {
-        kind: "Notebook",
-        plural: "notebooks",
-        singular: "notebook",
+    actual: instance.parts.notebooksCRD,
+    expected: {
+      apiVersion: "apiextensions.k8s.io/v1beta1",
+      kind: "CustomResourceDefinition",
+      metadata: {
+        name: "notebooks.kubeflow.org",
       },
-      scope: "Namespaced",
-      validation: {
-        openAPIV3Schema: (import "kubeflow/jupyter/notebooks.schema"),
-      },
-      version: "v1alpha1",
-    },
-  }
-) &&
-
-std.assertEqual(
-  instance.parts.notebooksService,
-  {
-    apiVersion: "v1",
-    kind: "Service",
-    metadata: {
-      name: "notebooks",
-      namespace: "kf-100",
-    },
-    spec: {
-      ports: [
-        {
-          port: 80,
-          targetPort: 8080,
+      spec: {
+        group: "kubeflow.org",
+        names: {
+          kind: "Notebook",
+          plural: "notebooks",
+          singular: "notebook",
         },
-      ],
-      selector: {
-        app: "notebooks",
+        scope: "Namespaced",
+        validation: {
+          openAPIV3Schema: (import "kubeflow/jupyter/notebooks.schema"),
+        },
+        version: "v1alpha1",
       },
     },
-  }
-) &&
-
-std.assertEqual(
-  instance.parts.notebooksConfigMap,
+  },
   {
-    apiVersion: "v1",
-    data: {
-      "sync-notebook.jsonnet": (importstr "../sync-notebook.jsonnet"),
-    },
-    kind: "ConfigMap",
-    metadata: {
-      name: "notebooks",
-      namespace: "kf-100",
-    },
-  }
-) &&
-
-std.assertEqual(
-  instance.parts.notebooksDeployment,
-  {
-    apiVersion: "apps/v1beta1",
-    kind: "Deployment",
-    metadata: {
-      name: "notebooks",
-      namespace: "kf-100",
-    },
-    spec: {
-      selector: {
-        matchLabels: {
+    actual: instance.parts.notebooksService,
+    expected: {
+      apiVersion: "v1",
+      kind: "Service",
+      metadata: {
+        name: "notebooks",
+        namespace: "kf-100",
+      },
+      spec: {
+        ports: [
+          {
+            port: 80,
+            targetPort: 8080,
+          },
+        ],
+        selector: {
           app: "notebooks",
         },
       },
-      template: {
-        metadata: {
-          labels: {
+    },
+  },
+  {
+    actual: instance.parts.notebooksConfigMap,
+    expected: {
+      apiVersion: "v1",
+      data: {
+        "sync-notebook.jsonnet": (importstr "../sync-notebook.jsonnet"),
+        "util.libsonnet": (importstr "kubeflow/jupyter/util.libsonnet"),
+      },
+      kind: "ConfigMap",
+      metadata: {
+        name: "notebooks",
+        namespace: "kf-100",
+      },
+    },
+  },
+  {
+    actual: instance.parts.notebooksDeployment,
+    expected: {
+      apiVersion: "apps/v1beta1",
+      kind: "Deployment",
+      metadata: {
+        name: "notebooks",
+        namespace: "kf-100",
+      },
+      spec: {
+        selector: {
+          matchLabels: {
             app: "notebooks",
           },
         },
-        spec: {
-          containers: [
-            {
-              image: "metacontroller/jsonnetd:latest",
-              imagePullPolicy: "Always",
-              name: "hooks",
-              volumeMounts: [
-                {
-                  mountPath: "/opt/notebooks/hooks",
-                  name: "hooks",
-                },
-              ],
-              workingDir: "/opt/notebooks/hooks",
+        template: {
+          metadata: {
+            labels: {
+              app: "notebooks",
             },
-          ],
-          volumes: [
-            {
-              configMap: {
-                name: "notebooks",
+          },
+          spec: {
+            containers: [
+              {
+                image: "metacontroller/jsonnetd@sha256:25c25f217ad030a0f67e37078c33194785b494569b0c088d8df4f00da8fd15a0",
+                imagePullPolicy: "Always",
+                name: "hooks",
+                volumeMounts: [
+                  {
+                    mountPath: "/opt/notebooks/hooks",
+                    name: "hooks",
+                  },
+                ],
+                workingDir: "/opt/notebooks/hooks",
               },
-              name: "hooks",
-            },
-          ],
-        },
-      },
-    },
-  }
-) &&
-
-std.assertEqual(
-  instance.parts.notebooksController,
-  {
-    apiVersion: "metacontroller.k8s.io/v1alpha1",
-    kind: "CompositeController",
-    metadata: {
-      annotations: {
-        accessLocalFs: "false",
-        image: "gcr.io/kubeflow/jupyterhub-k8s:v20180531-3bb991b1",
-        namespace: "kf-100",
-        notebookGid: "-1",
-        notebookPVCMount: "/home/jovyan",
-        notebookUid: "-1",
-        registry: "gcr.io",
-        repoName: "kubeflow-images-public",
-        useJupyterLabAsDefault: true,
-      },
-      name: "notebook-controller",
-    },
-    spec: {
-      childResources: [
-        {
-          apiVersion: "v1",
-          resource: "services",
-        },
-        {
-          apiVersion: "extensions/v1beta1",
-          resource: "deployments",
-        },
-      ],
-      generateSelector: true,
-      hooks: {
-        sync: {
-          webhook: {
-            url: "http://notebooks.kf-100/sync-notebook",
+            ],
+            volumes: [
+              {
+                configMap: {
+                  name: "notebooks",
+                },
+                name: "hooks",
+              },
+            ],
           },
         },
       },
-      parentResource: {
-        apiVersion: "kubeflow.org/v1alpha1",
-        resource: "notebooks",
-      },
     },
-  }
-)
+  },
+  {
+    actual: instance.parts.notebooksController,
+    expected:
+      {
+        apiVersion: "metacontroller.k8s.io/v1alpha1",
+        kind: "CompositeController",
+        metadata: {
+          annotations: {
+            accessLocalFs: "true",
+            image: "gcr.io/kubeflow/jupyterhub-k8s:v20180531-3bb991b1",
+            namespace: "kf-100",
+            notebookGid: "-1",
+            notebookPVCMount: "/home/jovyan",
+            notebookUid: "-1",
+            registry: "gcr.io",
+            repoName: "kubeflow-images-public",
+            useJupyterLabAsDefault: true,
+          },
+          name: "notebook-controller",
+        },
+        spec: {
+          childResources: [
+            {
+              apiVersion: "v1",
+              resource: "services",
+            },
+            {
+              apiVersion: "extensions/v1beta1",
+              resource: "deployments",
+            },
+          ],
+          generateSelector: true,
+          hooks: {
+            sync: {
+              webhook: {
+                url: "http://notebooks.kf-100/sync-notebook",
+              },
+            },
+          },
+          parentResource: {
+            apiVersion: "kubeflow.org/v1alpha1",
+            resource: "notebooks",
+          },
+        },
+      },
+  },
+];
+
+testSuite.run(testCases)

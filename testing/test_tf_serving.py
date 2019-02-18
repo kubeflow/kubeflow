@@ -24,6 +24,8 @@ import numbers
 import os
 import time
 
+from six.moves import xrange
+
 from grpc.beta import implementations
 from kubernetes import client as k8s_client
 import requests
@@ -88,12 +90,14 @@ def main():
     "--result_path",
     type=str,
     help=("The expected result."))
+  parser.add_argument(
+    "--workflow_name", default="tfserving", type=str, help="The name of the workflow.")
 
   args = parser.parse_args()
 
   t = test_util.TestCase()
   t.class_name = "Kubeflow"
-  t.name = "tf-serving-image-" + args.service_name
+  t.name = args.workflow_name + "-" + args.service_name
 
   start = time.time()
 

@@ -2,19 +2,28 @@
 
 > Prototypes for running PyTorch jobs.
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-* [Quickstart](#quickstart)
-* [Using Prototypes](#using-prototypes)
-  * [io.ksonnet.pkg.pytorch-operator](#io.ksonnet.pkg.pytorch-operator)
-  * [io.ksonnet.pkg.pytorch-job](#io.ksonnet.pkg.pytorch-job)
+- [Quickstart](#quickstart)
+- [Using the library](#using-the-library)
+  - [io.ksonnet.pkg.pytorch-operator](#ioksonnetpkgpytorch-operator)
+    - [Example](#example)
+    - [Parameters](#parameters)
+  - [io.ksonnet.pkg.pytorch-job](#ioksonnetpkgpytorch-job)
+    - [Example](#example-1)
+    - [Parameters](#parameters-1)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Quickstart
 
 *The following commands use the `io.ksonnet.pkg.pytorch-job` prototype to generate Kubernetes YAML for pytorch-job, and then deploys it to your Kubernetes cluster.*
 
-First, create a cluster and install the ksonnet CLI (see root-level [README.md](rootReadme)).
+First, create a cluster and install the ksonnet CLI (see root-level [README.md](../../README.md)).
 
-If you haven't yet created a [ksonnet application](linkToSomewhere), do so using `ks init <app-name>`.
+If you haven't yet created a [ksonnet application](https://ksonnet.io/docs/tutorial#1-initialize-your-app), do so using `ks init <app-name>`.
 
 Finally, in the ksonnet application directory, run the following:
 

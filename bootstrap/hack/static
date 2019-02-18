@@ -1,0 +1,6 @@
+1,$s/\/\/ PLUGINS \/\//\/\* PLUGINS \*\//
+1,$s/\/\/ PLUGINS/\/* PLUGINS/
+1,$s/\/\* STATIC/\/\/ STATIC/
+1,$s/-STATIC \*\//\/\/ -STATIC \/\//
+w
+q

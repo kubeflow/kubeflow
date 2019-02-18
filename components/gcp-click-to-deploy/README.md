@@ -3,9 +3,9 @@
 A simple react webapp to make it easy to deploy Kubeflow on GCP.
 
 The webapp is a client side javascript. The webapp provides a UI
-to guide the user through the process of specifying the 
+to guide the user through the process of specifying the
 information needed to deploy Kubeflow e.g.
-  
+
   * The project they want to use
   * The name for deployment
 
@@ -18,7 +18,7 @@ Furthermore, the app makes it easy for the user to login to Google using the
 web auth flow and obtain a credential needed to perform the necessary GCP actions.
 This is needed to perform admin tasks needed to setup Kubeflow.
 
-The credential is never sent to Kubeflow servers. The credential is stored clientside 
+The credential is never sent to Kubeflow servers. The credential is stored clientside
 in the web app and used in requests to GCP services when needed.
 
 ## Development
@@ -31,7 +31,7 @@ npm install
 ```
 
 Before starting the server, make a config file `user_config/app-config.yaml` under `src/` with the content from
-[here](https://github.com/kubeflow/kubeflow/blob/master/components/gcp-click-to-deploy/kf_app.yaml#L10).
+[here](https://github.com/kubeflow/kubeflow/blob/master/components/gcp-click-to-deploy/app-config.yaml#L10).
 And then do
 
 ```
@@ -70,5 +70,5 @@ The script
 ```
 ./ks-app/create_gcp_deploy_sa.sh
 ```
-  
+
 Can be used to create a service account to work with external DNS.

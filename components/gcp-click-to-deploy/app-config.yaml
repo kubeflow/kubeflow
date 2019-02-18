@@ -2,8 +2,10 @@
 appAddress: http://localhost:8080
 defaultApp:
   components:
-  - name: jupyterhub
-    prototype: jupyterhub
+  - name: metacontroller
+    prototype: metacontroller
+  - name: jupyter
+    prototype: jupyter
   - name: ambassador
     prototype: ambassador
   - name: centraldashboard
@@ -22,8 +24,8 @@ defaultApp:
     prototype: argo
   - name: katib
     prototype: katib
-  - name: ml-pipeline
-    prototype: ml-pipeline
+  - name: pipeline
+    prototype: pipeline
   parameters:
   - component: cloud-endpoints
     name: secretName
@@ -40,14 +42,14 @@ defaultApp:
     name: hostname
     # TODO: replace with Name of GCP project. This is fully qualified domain name to use with ingress.
     value: kubeflow.endpoints.<Project>.cloud.goog
-  - component: jupyterhub
+  - component: jupyter
     name: jupyterHubAuthenticator
     value: iap
-  - component: jupyterhub
-    name: cloud
+  - component: jupyter
+    name: platform
     value: gke
   - component: ambassador
-    name: cloud
+    name: platform
     value: gke
   registries:
   - name: kubeflow

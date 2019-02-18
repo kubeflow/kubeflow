@@ -3,32 +3,34 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Image Auto Release](#image-auto-release)
-  - [Create Release Workflow](#create-release-workflow)
-  - [Update Release Config](#update-release-config)
-
+  - [Creating a release workflow using automation ksonnet package](#creating-a-release-workflow-using-automation-ksonnet-package)
 - [Release Kubeflow](#release-kubeflow)
   - [Authenticate to GCP](#authenticate-to-gcp)
   - [Update TFJob](#update-tfjob)
+  - [Update PyTorchJob](#update-pytorchjob)
   - [Build TF Serving Images](#build-tf-serving-images)
   - [Build the Jupyter Images](#build-the-jupyter-images)
   - [Create a release branch (if necessary)](#create-a-release-branch-if-necessary)
+    - [Enable Periodic tests on the release branch](#enable-periodic-tests-on-the-release-branch)
+  - [Updating ksonnet prototypes with docker image](#updating-ksonnet-prototypes-with-docker-image)
     - [Release branching policy](#release-branching-policy)
   - [Updating the release branch and tagging a release](#updating-the-release-branch-and-tagging-a-release)
     - [Tagging a release candidate](#tagging-a-release-candidate)
     - [Release votes and releases](#release-votes-and-releases)
   - [Updating the ksonnet configs for master](#updating-the-ksonnet-configs-for-master)
+  - [Releasing a new version of the website](#releasing-a-new-version-of-the-website)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Image Auto Release
 
-We use prow and Argo workflows to regularly push updated Docker images to the public registry 
+We use prow and Argo workflows to regularly push updated Docker images to the public registry
 **gcr.io/kubeflow-images-public**.
 
 You write and manage these Argo workflows just like [E2E test workflows](https://github.com/kubeflow/testing).
 
 In fact the recommended pattern is to have a single Argo workflow that builds and tests the docker image.
-This workflow should be parameterized such that in Prow postsubmit and periodic jobs the image is pushed 
+This workflow should be parameterized such that in Prow postsubmit and periodic jobs the image is pushed
 to **gcr.io/kubeflow-images-public** but the presubmit uses **gcr.io/kubeflow-ci**.
 
 Here are some guidelines for writing workflows that work well for auto-pushing images.
@@ -54,7 +56,7 @@ Here are some guidelines for writing workflows that work well for auto-pushing i
    *  postsubmits/periodic jobs - Use gcr.io/kubeflow-images-public
 
 1. As with E2E tests the workflow should be defined in the same repo as the source code for the image
-   
+
    * This ensures the workflow is triggered when source is modified
 
 1. There are a number of different ways to build docker images in cluster
@@ -80,7 +82,7 @@ This is a good place to start if you don't have an existing E2E workflow that is
    ```
    build_image.sh ${DOCKERFILE} ${IMAGE} ${TAG} ...EXTRA_ARGS
    ```
-    
+
    * build_image.sh should build image and push to gcr.
    * Example [build_image.sh](https://github.com/kubeflow/kubeflow/blob/master/bootstrap/build_image.sh) for bootstrapper
 
@@ -95,7 +97,7 @@ This is a good place to start if you don't have an existing E2E workflow that is
    ```
    cd ${APP}
    ks registry add kubeflow github.com/kubeflow/kubeflow/tree/master/kubeflow
-   ks pkg install kubeflow/automation   
+   ks pkg install kubeflow/automation
    ```
 
 1. Ensure vendor gets checked in
@@ -104,11 +106,11 @@ This is a good place to start if you don't have an existing E2E workflow that is
    git add -f vendor
    ```
 
-1. Create a component using the prototype  
+1. Create a component using the prototype
 
    ```
    cd ${APP}
-   export RELEASENAME=<name it>    
+   export RELEASENAME=<name it>
    ks generate release ${RELEASENAME} --image=<your image name> --dockerfileDir=kubeflow/${REPO_NAME}/<path to docker build context>
    ```
 
@@ -119,7 +121,7 @@ This is a good place to start if you don't have an existing E2E workflow that is
     ```
 
   * If your build context is not in kubeflow repo, like pytorch-operator, add param:
-    
+
     ```
     --extra_repos=kubeflow/testing@HEAD;kubeflow/pytorch-operator@HEAD
     ```
@@ -138,7 +140,7 @@ If you're new to using GKE or are new to the release team, you'll need to authen
 
 ```
 gcloud config set account your-account@yourdomain.org
-gcloud auth 
+gcloud auth
 ```
 
 This will open your browser to authenticate you.  Then you can proceed as follows:
@@ -155,18 +157,18 @@ create_context.sh $(kubectl config current-context) kubeflow-releasing
 ```
 
 
-## Update TFJob 
+## Update TFJob
 
 Identify the TFJob [release](https://github.com/kubeflow/tf-operator/releases) you
 want to use.
 
-  * If you need to cut a new TFJob release follow the instructions in 
+  * If you need to cut a new TFJob release follow the instructions in
 [kubeflow/tf-operator](https://github.com/kubeflow/tf-operator/blob/master/releasing.md)
 
 Update [all.jsonnet](https://github.com/kubeflow/kubeflow/blob/master/kubeflow/core/prototypes/all.jsonnet#L10)
 to point to the new image.
 
-Update [workflows.libsonnet](https://github.com/kubeflow/kubeflow/blob/master/testing/workflows/components/workflows.libsonnet#L183) 
+Update [workflows.libsonnet](https://github.com/kubeflow/kubeflow/blob/master/testing/workflows/components/workflows.libsonnet#L183)
 to checkout kubeflow/tf-operator at the tag corresponding to the release.
 
 **Note** We should make extra_repos and their versions a ksonnet parameter and
@@ -248,7 +250,7 @@ ks param set --env=${ENV} workflows prow_env  \
 ks apply ${ENV} -c workflows
 ```
 
-Create a PR to update [kubeform_spawner.py](https://github.com/kubeflow/kubeflow/blob/master/kubeflow/core/kubeform_spawner.py#L15) 
+Create a PR to update [kubeform_spawner.py](https://github.com/kubeflow/kubeflow/blob/master/kubeflow/core/kubeform_spawner.py#L15)
 to point to the newly built Jupyter notebook images.
 
 ## Create a release branch (if necessary)
@@ -260,12 +262,24 @@ If you aren't already working on a release branch (of the form `v${MAJOR}.${MINO
 2.  they allow sophisticated users to track the development of a release (by using the release branch as a `ksonnet` registry), and
 4.  they simplify backporting critical bugfixes to a patchlevel release particular release stream (e.g., producing a `v0.1.1` from `v0.1-branch`), when appropriate.
 
+### Enable Periodic tests on the release branch
+
+Once the release branch is cut we need to enable periodic tests on the release branch and setup a
+[testgrid dashboard](https://k8s-testgrid.appspot.com/sig-big-data)
+
+1. Modify [kubernetes/test-infra/blob/master/config/jobs/kubeflow/kubeflow-periodics.yaml](https://github.com/kubernetes/test-infra/blob/master/config/jobs/kubeflow/kubeflow-periodics.yaml) to define a new periodic
+   prow job.
+1. Modify [kubernetes/test-infra/blob/master/testgrid/config.yaml](https://github.com/kubernetes/test-infra/blob/master/testgrid/config.yaml)
+
+   * Copy the entries for the most recent release branch and change it to the new release branch
+1. Submit a PR with the above changes.
+
 ## Updating ksonnet prototypes with docker image
 
 Here is the general process for how we update our Docker prototypes to point to
 the correct Docker image. See sections below for component specific instructions.
 
-1. Build a Docker image using whatever tagging schema you like 
+1. Build a Docker image using whatever tagging schema you like
 
    * General convention is v${DATE}-${COMMIT}
 
@@ -277,15 +291,15 @@ the correct Docker image. See sections below for component specific instructions
      the prototypes
 
 1. Update [image_tags.yaml](https://github.com/kubeflow/kubeflow/blob/master/releasing/image_tags.yaml) **on the master branch**
-   
+
    * You can do this by updating and then running **update_image_tags.sh**
       * This invokes some python scripts that use regexes to match
         images and apply a tag to them
-      * You can use suitable regexes to get a group of images (e.g. all the 
+      * You can use suitable regexes to get a group of images (e.g. all the
         notebook) images.
    * There should be an entry for every image you want to use referenced by the sha of the image
    * If there was a previous release using an earlier image, remove the tag v${RELEASE}
-     from that entry   
+     from that entry
    * Run run_apply_image_tags.sh
 
      * This script actually creates the tags in the GCR registry based on the data in image_tags.yaml
@@ -320,9 +334,9 @@ You can create a release branch via the GitHub UI.
 1. Update the ksonnet configs on the release branch to use the latest images built in the previous steps.
 2. Presubmit tests should verify that the ksonnet configs work.
 3. Submit a PR to the release branch.
-4. Wait for a passing postsubmit of the submitted PR.  
+4. Wait for a passing postsubmit of the submitted PR.
 5. Once it passes, update this document on the release branch with specific image hashes.
-6. If no known blocker issues remain, tag a release candidate. 
+6. If no known blocker issues remain, tag a release candidate.
 
 ### Tagging a release candidate
 

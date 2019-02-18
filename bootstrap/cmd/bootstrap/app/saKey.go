@@ -2,6 +2,7 @@ package app
 
 import (
 	iamadmin "cloud.google.com/go/iam/admin/apiv1"
+	"encoding/base64"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
@@ -9,12 +10,13 @@ import (
 	"google.golang.org/api/option"
 	"google.golang.org/genproto/googleapis/iam/admin/v1"
 	"k8s.io/api/core/v1"
+	rbac_v1 "k8s.io/api/rbac/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
-	"encoding/base64"
 )
 
 const OauthSecretName = "kubeflow-oauth"
+const LoginSecretName = "kubeflow-login"
 
 func (s *ksServer) ConfigCluster(ctx context.Context, req CreateRequest) error {
 	k8sConfig, err := buildClusterConfig(ctx, req.Token, req.Project, req.Zone, req.Cluster)
@@ -35,12 +37,42 @@ func (s *ksServer) ConfigCluster(ctx context.Context, req CreateRequest) error {
 	if err := InsertOauthCredentails(&req, k8sClientset); err != nil {
 		return err
 	}
+	log.Info("Inserting login credentails")
+	if err := InsertLoginCredentails(&req, k8sClientset); err != nil {
+		return err
+	}
 	log.Infof("Inserting sa keys...")
 	if err := s.InsertSaKeys(ctx, &req, k8sClientset); err != nil {
 		log.Errorf("Failed to insert service account key: %v", err)
 		return err
 	}
-	return nil
+	log.Infof("Creating cluster admin role binding...")
+	bindAccount := req.Email
+	if req.SAClientId != "" {
+		bindAccount = req.SAClientId
+	}
+	roleBinding := rbac_v1.ClusterRoleBinding{
+		TypeMeta: meta_v1.TypeMeta{
+			APIVersion: "rbac.authorization.k8s.io/v1beta1",
+			Kind:       "ClusterRoleBinding",
+		},
+		ObjectMeta: meta_v1.ObjectMeta{
+			Name: "default-admin",
+		},
+		RoleRef: rbac_v1.RoleRef{
+			APIGroup: "rbac.authorization.k8s.io",
+			Kind:     "ClusterRole",
+			Name:     "cluster-admin",
+		},
+		Subjects: []rbac_v1.Subject{
+			{
+				Kind: rbac_v1.UserKind,
+				Name: bindAccount,
+			},
+		},
+	}
+	err = createK8sRoleBing(k8sConfig, &roleBinding)
+	return err
 }
 
 func CreateNamespace(req *CreateRequest, k8sClientset *clientset.Clientset) error {
@@ -78,6 +110,33 @@ func InsertOauthCredentails(req *CreateRequest, k8sClientset *clientset.Clientse
 		})
 	if err != nil {
 		log.Errorf("Failed creating oauth credentails in GKE cluster: %v", err)
+		return err
+	}
+	return nil
+}
+
+func InsertLoginCredentails(req *CreateRequest, k8sClientset *clientset.Clientset) error {
+	if req.Username == "" || req.PasswordHash == "" {
+		return nil
+	}
+	secretData := make(map[string][]byte)
+	UsernameData, err := base64.StdEncoding.DecodeString(req.Username)
+	if err != nil {
+		log.Errorf("Failed decoding client id: %v", err)
+		return err
+	}
+	secretData["username"] = UsernameData
+	secretData["passwordhash"] = []byte(req.PasswordHash)
+	_, err = k8sClientset.CoreV1().Secrets(req.Namespace).Create(
+		&v1.Secret{
+			ObjectMeta: meta_v1.ObjectMeta{
+				Namespace: req.Namespace,
+				Name:      LoginSecretName,
+			},
+			Data: secretData,
+		})
+	if err != nil {
+		log.Errorf("Failed creating login credentails in GKE cluster: %v", err)
 		return err
 	}
 	return nil

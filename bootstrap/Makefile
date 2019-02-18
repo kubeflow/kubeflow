@@ -13,70 +13,104 @@
 # limitations under the License.
 #
 GCLOUD_PROJECT ?= kubeflow-images-public
-GOLANG_VERSION ?= 1.10.3
-# set to GOLANG_GCFLAGS=-gcflags "all=-N -l" to debug
-GOLANG_GCFLAGS ?= ""
+GOLANG_VERSION ?= 1.11.5
+GOPATH ?= $(HOME)/go
+# To build without the cache set the environment variable
+# export DOCKER_BUILD_OPTS=--no-cache
 IMG ?= gcr.io/$(GCLOUD_PROJECT)/bootstrapper
-
-BUILDER_IMG ?= gcr.io/$(GCLOUD_PROJECT)/bootstrapper-builder
-BUILDER_IMG_VERSION ?= $(shell head -1 glide.lock | cut -d ' ' -f 2)
-
-TAG ?= $(shell date +v%Y%m%d)-$(shell git describe --tags --always --dirty)-$(shell git diff | shasum -a256 | cut -c -6)
+TAG ?= $(shell git describe --tags --always --dirty)
 PORT ?= 2345
-
-
-CHANGED_FILES := $(shell git diff-files)
-
-ifeq ($(strip $(CHANGED_FILES)),)
-# Changed files is empty; not dirty
-# Don't include --dirty because it could be dirty if files outside the ones we care
-# about changed.
-GIT_VERSION := $(shell git describe --always)
-else
-GIT_VERSION := $(shell git describe --always)-dirty-$(shell git diff | shasum -a256 | cut -c -6)
-endif
-
-TAG := $(shell date +v%Y%m%d)-$(GIT_VERSION)
+PLUGINS_ENVIRONMENT ?= $(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin
+export GO111MODULE = on
+export GO = go
 
 all: build
 
-# To build without the cache set the environment variable
-# export DOCKER_BUILD_OPTS=--no-cache
+auth:
+	gcloud auth configure-docker
+
+# Run go fmt against code
+fmt:
+	$(GO) fmt ./pkg/... ./cmd/...
+
+# Run go vet against code
+vet:
+	$(GO) vet ./pkg/... ./cmd/...
+
+generate:
+	$(GO) generate ./pkg/... ./cmd/...
+
+
+build-bootstrap: generate fmt vet
+	$(GO) build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
+
+build-kfctl: generate fmt vet
+	$(GO) build -i -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
+
+build-dockerfordesktop-plugin: generate fmt vet
+	$(GO) build -i -gcflags 'all=-N -l' -o bin/dockerfordesktop.so -buildmode=plugin cmd/plugins/dockerfordesktop/dockerfordesktop.go
+
+build-local: build-bootstrap build-kfctl
 
 # To edit which registries to add to bootstrapper, edit config (eg. config/default.yaml)
 build:
-	python build.py --build_args=BUILDER_IMG=$(BUILDER_IMG),BUILDER_IMG_VERSION=$(BUILDER_IMG_VERSION) --image=$(IMG):$(TAG) --build_opts=$(DOCKER_BUILD_OPTS) --config=image_registries.yaml --target=build
+	rm -rf reg_tmp
+	mkdir -p reg_tmp/kubeflow
+	cp -r ../kubeflow reg_tmp/kubeflow
+	cp -r ../deployment reg_tmp/kubeflow
+	cp -r ../dependencies reg_tmp/kubeflow
+	docker build \
+		--build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
+		--build-arg registries=reg_tmp \
+		--target=bootstrap \
+		--tag $(IMG):$(TAG) .
 	@echo Built $(IMG):$(TAG)
-
-
-build-builder:
-	docker build ${DOCKER_BUILD_OPTS} --build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
-           --build-arg GOLANG_GCFLAGS="$(GOLANG_GCFLAGS)" -t $(BUILDER_IMG):$(BUILDER_IMG_VERSION) \
-           --label=git-verions=$(GIT_VERSION) -f Dockerfile.Builder .
-	@echo Built $(BUILDER_IMG):$(BUILDER_IMG_VERSION)
-
-push-builder: build-builder
-	gcloud docker -- push $(BUILDER_IMG):$(BUILDER_IMG_VERSION)
-	@echo Pushed $(BUILDER_IMG):$(BUILDER_IMG_VERSION)
-
-push-builder-latest: push-builder
-	gcloud container images add-tag --quiet $(BUILDER_IMG):$(BUILDER_IMG_VERSION) $(BUILDER_IMG):latest --verbosity=info
-	@echo created $(BUILDER_IMG):latest
 
 # Build but don't attach the latest tag. This allows manual testing/inspection of the image
 # first.
 push: build
-	gcloud docker -- push $(IMG):$(TAG)
+	docker push $(IMG):$(TAG)
 	@echo Pushed $(IMG):$(TAG)
 
 push-latest: push
 	gcloud container images add-tag --quiet $(IMG):$(TAG) $(IMG):latest --verbosity=info
 	echo created $(IMG):latest
 
-debug:
-	@echo debugging $(IMG):$(TAG) using port $(PORT)
-	@./debug.sh $(IMG) $(TAG) $(PORT)
+install: build-kfctl
+	@echo copying bin/kfctl to /usr/local/bin
+	@cp bin/kfctl /usr/local/bin
 
-cleanup:
-	@echo Removing kubeflow-admin namespace
-	@kubectl delete ns kubeflow-admin
+run-local-docker:
+	docker run -d -it --name bootstrapper \
+	  --mount type=bind,source=${HOME}/kf_app,target=/home/kubeflow \
+	  --entrypoint /bin/bash $(IMG):$(TAG)
+
+test-known-platforms-init: install build-dockerfordesktop-plugin
+	@rm -rf $(HOME)/dockerfordesktop && \
+	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/dockerfordesktop -V --platform docker-for-desktop --version master && \
+	rm -rf $(HOME)/ksonnet && \
+	kfctl init $(HOME)/ksonnet -V --platform ksonnet --version master && \
+	rm -rf $(HOME)/minikube && \
+	kfctl init $(HOME)/minikube -V --platform minikube --version master && \
+	echo SUCCESS
+
+test-known-platforms-generate: test-known-platforms-init
+	@cd ~/dockerfordesktop && \
+	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl generate all -V && \
+	cd ~/ksonnet && \
+	kfctl generate all -V && \
+	cd ~/minikube && \
+	kfctl generate all -V --mount-local && \
+	echo SUCCESS
+
+
+# static and plugins toogle whether we try and load a platform as a .so.
+# There is an example plugin 'dockerfordesktop' that can be loaded as a .so.
+# By default we disable loading plugins and link dockerfordesktop into the kfctl binary (static)
+static:
+	@ex pkg/apis/apps/group.go <hack/static
+	@ex cmd/kfctl/cmd/root.go <hack/static || echo Plugin functionality disabled 
+
+plugins:
+	@ex pkg/apis/apps/group.go <hack/plugins
+	@ex cmd/kfctl/cmd/root.go <hack/plugins || echo Plugin functionality enabled

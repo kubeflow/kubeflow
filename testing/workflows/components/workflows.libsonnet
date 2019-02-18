@@ -59,6 +59,7 @@
     // name and platform should be given unique values.
     name: "somename",
     platform: "gke",
+    workflowName: "",
 
     // In order to refer to objects between the current and outer-most object, we use a variable to create a name for that level:
     local tests = self,
@@ -105,11 +106,13 @@
       command:: "",
       env_vars:: [],
       side_cars: [],
+      workingDir: null,
 
       activeDeadlineSeconds: 1800,  // Set 30 minute timeout for each template
 
       local template = self,
 
+      pythonPath: tests.kubeflowPy + ":" + tests.kubeflowTestingPy,
       // Actual template for Argo
       argoTemplate: {
         name: template.name,
@@ -118,11 +121,12 @@
           name: template.name,
           image: tests.image,
           imagePullPolicy: "Always",
+          workingDir: template.workingDir,
           env: [
             {
               // Add the source directories to the python path.
               name: "PYTHONPATH",
-              value: tests.kubeflowPy + ":" + tests.kubeflowTestingPy + ":" + tests.tfOperatorPy,
+              value: template.pythonPath,
             },
             {
               name: "GOOGLE_APPLICATION_CREDENTIALS",
@@ -204,7 +208,8 @@
       {
         local v1beta1Suffix = "-v1b1",
         template: tests.buildTemplate {
-          name: "tfjob-test",
+          name: "tfjob-test" + v1beta1Suffix,
+          pythonPath: tests.kubeflowPy + ":" + tests.kubeflowTestingPy + ":" + tests.tfOperatorPy,
           command: [
             "python",
             "-m",
@@ -220,7 +225,28 @@
           ],
         },  // run tests
         dependencies: ["wait-for-kubeflow"],
-      },  // tf-job-test
+      },  // tf-job-test-v1b1
+      {
+        local v1beta2Suffix = "-v1b2",
+        template: tests.buildTemplate {
+          name: "tfjob-test" + v1beta2Suffix,
+          pythonPath: tests.kubeflowPy + ":" + tests.kubeflowTestingPy + ":" + tests.tfOperatorPy,
+          command: [
+            "python",
+            "-m",
+            "py.simple_tfjob_tests",
+            "--app_dir=" + tests.tfOperatorRoot + "/test/workflows",
+            "--tfjob_version=v1beta2",
+            // Name is used for the test case name so it should be unique across
+            // all E2E tests.
+            "--params=name=smoke-tfjob-" + tests.platform + ",namespace=" + tests.stepsNamespace,
+            "--artifacts_path=" + tests.artifactsDir,
+            // Skip GPU tests
+            "--skip_tests=test_simple_tfjob_gpu",
+          ],
+        },  // run tests
+        dependencies: ["wait-for-kubeflow"],
+      },  // tf-job-test-v1b2
       {
 
         template: tests.buildTemplate {
@@ -235,6 +261,7 @@
             "--test_dir=" + tests.testDir,
             "--artifacts_dir=" + tests.artifactsDir,
             "--deploy_name=test-argo-deploy",
+            "--workflow_name=" + tests.workflowName,
             "deploy_argo",
           ],
         },
@@ -254,6 +281,7 @@
             "--test_dir=" + tests.testDir,
             "--artifacts_dir=" + tests.artifactsDir,
             "--deploy_name=test-katib",
+            "--workflow_name=" + tests.workflowName,
             "test_katib",
           ],
         },
@@ -272,9 +300,11 @@
             "--test_dir=" + tests.testDir,
             "--artifacts_dir=" + tests.artifactsDir,
             "--deploy_name=pytorch-job",
+            "--workflow_name=" + tests.workflowName,
             "deploy_pytorchjob",
             "--params=image=pytorch/pytorch:v0.2,num_workers=1",
           ],
+          pythonPath: tests.kubeflowPy + ":" + tests.kubeflowTestingPy + ":" + tests.tfOperatorPy,
         },
         dependencies: ["wait-for-kubeflow"],
       },  // pytorchjob - deploy,
@@ -291,10 +321,42 @@
             "--test_dir=" + tests.testDir,
             "--artifacts_dir=" + tests.artifactsDir,
           ],
+          pythonPath: tests.kubeflowPy + ":" + tests.kubeflowTestingPy + ":" + tests.tfOperatorPy,
         },
 
         dependencies: ["wait-for-kubeflow"],
       },  // tfjob-simple-prototype-test
+      {
+        template: tests.buildTemplate {
+          name: "katib-studyjob-test",
+          command: [
+            "python",
+            "-m",
+            "testing.katib_studyjob_test",
+            "--src_dir=" + tests.srcDir,
+            "--studyjob_version=v1alpha1",
+          ],
+        },
+        dependencies: ["wait-for-kubeflow"],
+      },  // katib-studyjob-test
+      {
+        template: tests.buildTemplate {
+          name: "notebooks-test",
+          command: [
+            "pytest",
+            // I think -s mean stdout/stderr will print out to aid in debugging.
+            // Failures still appear to be captured and stored in the junit file.
+            "-s",
+            "jupyter_test.py",
+            // Test timeout in seconds.
+            "--namespace=" + tests.stepsNamespace,
+            "--timeout=500",
+            "--junitxml=" + tests.artifactsDir + "/junit_jupyter-test.xml",
+          ],
+          workingDir: tests.srcDir + "/kubeflow/jupyter/tests",
+        },
+        dependencies: ["wait-for-kubeflow"],
+      },  // notebooks-test
     ],
 
     // An Argo template for the dag.
@@ -328,7 +390,7 @@
     //
     // Create a new .jsonnet file for minikube and define the workflow there.
     // Reuse kfTests above to add the actual tests to that file.
-    e2e(prow_env, bucket, platform="minikube"):
+    e2e(prow_env, bucket, platform="minikube", workflowName="workflow"):
       // The name for the workspace to run the steps in
       local stepsNamespace = "kubeflow";
       // mountPath is the directory where the volume to store the test data
@@ -348,7 +410,9 @@
       local bootstrapperImage = "gcr.io/kubeflow-ci/bootstrapper:" + name;
       // The last 4 digits of the name should be a unique id.
       local deploymentName = "e2e-" + std.substr(name, std.length(name) - 4, 4);
+      local v1alpha1Suffix = "-v1alpha1";
       local v1beta1Suffix = "-v1b1";
+      local v1beta2Suffix = "-v1b2";
 
       // The name of the NFS volume claim to use for test files.
       local nfsVolumeClaim = "nfs-external";
@@ -527,9 +591,15 @@
                   else
                     {},
                   {
-                    name: "tfjob-test",
-                    template: "tfjob-test" + v1beta1Suffix
-                    ,
+                    name: "tfjob-test" + v1beta1Suffix,
+                    template: "tfjob-test" + v1beta1Suffix,
+                    dependencies: [
+                      "deploy-kubeflow",
+                    ],
+                  },
+                  {
+                    name: "tfjob-test" + v1beta2Suffix,
+                    template: "tfjob-test" + v1beta2Suffix,
                     dependencies: [
                       "deploy-kubeflow",
                     ],
@@ -537,6 +607,13 @@
                   {
                     name: "tfjob-simple-prototype-test",
                     template: "tfjob-simple-prototype-test",
+                    dependencies: [
+                      "deploy-kubeflow",
+                    ],
+                  },
+                  {
+                    name: "katib-studyjob-test",
+                    template: "katib-studyjob-test" + v1alpha1Suffix,
                     dependencies: [
                       "deploy-kubeflow",
                     ],
@@ -607,6 +684,7 @@
               "--namespace=" + stepsNamespace,
               "--test_dir=" + testDir,
               "--artifacts_dir=" + artifactsDir,
+              "--workflow_name=" + workflowName,
               "deploy_minikube",
               "--vm_name=" + vmName,
               "--zone=" + zone,
@@ -619,6 +697,7 @@
               "--namespace=" + stepsNamespace,
               "--test_dir=" + testDir,
               "--artifacts_dir=" + artifactsDir,
+              "--workflow_name=" + workflowName,
               "teardown_minikube",
               "--vm_name=" + vmName,
               "--zone=" + zone,
@@ -671,7 +750,23 @@
               "--artifacts_path=" + artifactsDir,
               // Skip GPU tests
               "--skip_tests=test_simple_tfjob_gpu",
-            ]),  // run tests
+            ]),  // tfjob-test-v1beta1
+            buildTemplate("tfjob-test" + v1beta2Suffix, [
+              "python",
+              "-m",
+              "py.simple_tfjob_tests",
+              "--cluster=" + cluster,
+              "--zone=" + zone,
+              "--project=" + project,
+              "--app_dir=" + tfOperatorRoot + "/test/workflows",
+              "--tfjob_version=v1beta2",
+              // Name is used for the test case name so it should be unique across
+              // all E2E tests.
+              "--params=name=simple-tfjob-" + platform + ",namespace=" + stepsNamespace,
+              "--artifacts_path=" + artifactsDir,
+              // Skip GPU tests
+              "--skip_tests=test_simple_tfjob_gpu",
+            ]),  // tfjob-test-v1beta2
             buildTemplate("pytorchjob-deploy", [
               "python",
               "-m",
@@ -682,9 +777,17 @@
               "--test_dir=" + testDir,
               "--artifacts_dir=" + artifactsDir,
               "--deploy_name=pytorch-job",
+              "--workflow_name=" + workflowName,
               "deploy_pytorchjob",
               "--params=image=pytorch/pytorch:v0.2,num_workers=1",
             ]),  // pytorchjob-deploy
+            buildTemplate("katib-studyjob-test" + v1alpha1Suffix, [
+              "python",
+              "-m",
+              "testing.katib_studyjob_test",
+              "--src_dir=" + srcDir,
+              "--studyjob_version=v1alpha1",
+            ]),  // katib-studyjob-test
             buildTemplate("test-argo-deploy", [
               "python",
               "-m",
@@ -695,6 +798,7 @@
               "--test_dir=" + testDir,
               "--artifacts_dir=" + artifactsDir,
               "--deploy_name=test-argo-deploy",
+              "--workflow_name=" + workflowName,
               "deploy_argo",
             ]),  // test-argo-deploy
           ],  // templates

@@ -70,6 +70,16 @@ elif [ "${COMPONENT}" == "jupyter-notebooks" ]; then
     kubeflow/jupyter/ui/default/config.yaml
   echo "Done."
 
+elif [ "${COMPONENT}" == "kubebench" ]; then
+  echo "Updating KubeBench..."
+  python scripts/update_prototype.py \
+    --file=${ROOT_DIR}/kubeflow/kubebench/prototypes/kubebench-job.jsonnet \
+    --values=controllerImage=gcr.io/kubeflow-images-public/kubebench/kubebench-controller:${TAG}
+  python scripts/update_prototype.py \
+    --file=${ROOT_DIR}/kubeflow/kubebench/prototypes/kubebench-operator.jsonnet \
+    --values=image=gcr.io/kubeflow-images-public/kubebench/kubebench-operator:${TAG}
+  echo "Done."
+
 else
   echo "Component ${COMPONENT} is unsupported."
 fi

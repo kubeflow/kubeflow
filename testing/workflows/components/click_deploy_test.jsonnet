@@ -23,7 +23,7 @@ local testDir = mountPath + "/" + name;
 local outputDir = testDir + "/output";
 local artifactsDir = outputDir + "/artifacts";
 // Source directory where all repos should be checked out
-local srcRootDir = testDir + "/src";
+local srcRootDir = testDir + "/src/github.com";
 // The directory containing the kubeflow/kubeflow repo
 local srcDir = srcRootDir + "/kubeflow/kubeflow";
 
@@ -46,13 +46,15 @@ local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
 
 local project = "kubeflow-ci";
 
+local manifest = if util.toBool(params.installIstio) then "test_deploy_istio.yaml" else "test_deploy.yaml";
+
 // Build an Argo template to execute a particular command.
 // step_name: Name for the template
 // command: List to pass as the container command.
 // We use separate kubeConfig files for separate clusters
 local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=[]) = {
   name: step_name,
-  activeDeadlineSeconds: 1800,  // Set 30 minute timeout for each template
+  activeDeadlineSeconds: 2100,  // Set 35 minute timeout for each template. Waiting for IAP might take 30min.
   workingDir: working_dir,
   container: {
     command: command,
@@ -69,6 +71,10 @@ local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=
       {
         name: "GOOGLE_APPLICATION_CREDENTIALS",
         value: "/secret/gcp-credentials/key.json",
+      },
+      {
+        name: "GOPATH",
+        value: testDir,
       },
       {
         name: "CLIENT_ID",
@@ -163,7 +169,7 @@ local dagTemplates = [
         bootstrapImage,
         name,
       ],
-      working_dir=testDir,
+      working_dir=bootstrapDir,
       env_vars=[
         {
           name: "DOCKER_HOST",
@@ -187,7 +193,7 @@ local dagTemplates = [
       [
         runPath,
         bootstrapDir + "/test_setup.sh",
-        bootstrapDir + "/test_deploy.yaml",
+        bootstrapDir + "/" + manifest,
         name,
         "kubeflow-testing",
         "us-east1-d",
@@ -206,6 +212,9 @@ local dagTemplates = [
         "-m",
         "testing.test_deploy_app",
         "--namespace=" + name,
+        "--artifacts_dir=" + artifactsDir,
+        "--iap_wait_min=15",
+        "--workflow_name=" + params.workflowName,
       ],
       working_dir=testDir
     ),
@@ -240,7 +249,7 @@ local exitTemplates =
         "--bucket=" + bucket,
       ]),  // copy-artifacts,
 
-      dependencies: ["deploy-delete"],
+      dependencies: null,
     },
     {
       template:
@@ -254,7 +263,7 @@ local exitTemplates =
           "-rf",
           testDir,
         ]),  // test-dir-delete
-      dependencies: ["copy-artifacts"],
+      dependencies: ["copy-artifacts", "deploy-delete"],
     },
   ];
 

@@ -6,6 +6,14 @@
 // @optionalParam workflowControllerImage string argoproj/workflow-controller:v2.2.0 workflowControllerImage
 // @optionalParam uiImage string argoproj/argoui:v2.2.0 uiImage
 // @optionalParam executorImage string argoproj/argoexec:v2.2.0 executorImage
+// @optionalParam artifactRepositoryKeyPrefix string artifacts artifactRepositoryKeyPrefix
+// @optionalParam artifactRepositoryEndpoint string minio-service.kubeflow:9000 artifactRepositoryEndpoint
+// @optionalParam artifactRepositoryBucket string mlpipeline artifactRepositoryBucket
+// @optionalParam artifactRepositoryInsecure string true artifactRepositoryInsecure
+// @optionalParam artifactRepositoryAccessKeySecretName string mlpipeline-minio-artifact artifactRepositoryAccessKeySecretName
+// @optionalParam artifactRepositoryAccessKeySecretKey string accesskey artifactRepositoryAccessKeySecretKey
+// @optionalParam artifactRepositorySecretKeySecretName string mlpipeline-minio-artifact artifactRepositorySecretKeySecretName
+// @optionalParam artifactRepositorySecretKeySecretKey string secretkey artifactRepositorySecretKeySecretKey
 
 local argo = import "kubeflow/argo/argo.libsonnet";
 local instance = argo.new(env, params);

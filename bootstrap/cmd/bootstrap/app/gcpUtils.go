@@ -8,6 +8,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/cenkalti/backoff"
 	"github.com/ghodss/yaml"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
@@ -15,7 +16,7 @@ import (
 	"golang.org/x/oauth2"
 	"google.golang.org/api/cloudresourcemanager/v1"
 	"google.golang.org/api/deploymentmanager/v2"
-	"github.com/cenkalti/backoff"
+	"path/filepath"
 )
 
 type Resource struct {
@@ -30,7 +31,7 @@ type DmConf struct {
 }
 
 type IamBinding struct {
-	Members []string `type:"members`
+	Members []string `type:"members"`
 	Roles   []string `type:"roles"`
 }
 
@@ -43,7 +44,7 @@ type ApplyIamRequest struct {
 	Cluster string `json:"cluster"`
 	Email   string `json:"email"`
 	Token   string `json:"token"`
-	Action  string `json:"action`
+	Action  string `json:"action"`
 }
 
 var (
@@ -59,15 +60,16 @@ func init() {
 }
 
 // TODO: handle concurrent & repetitive deployment requests.
-func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) (*deploymentmanager.Deployment, error) {
+func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest, dmSpec DmSpec) (*deploymentmanager.Deployment, error) {
 	regPath := s.knownRegistries["kubeflow"].RegUri
 	var dmconf DmConf
-	err := LoadConfig(path.Join(regPath, "../deployment/gke/deployment_manager_configs/cluster-kubeflow.yaml"), &dmconf)
+	err := LoadConfig(path.Join(regPath, dmSpec.ConfigFile), &dmconf)
 
 	if err == nil {
 		dmconf.Resources[0].Name = req.Name
 		dmconf.Resources[0].Properties["zone"] = req.Zone
 		dmconf.Resources[0].Properties["ipName"] = req.IpName
+		dmconf.Resources[0].Properties["createPipelinePersistentStorage"] = req.StorageOption.CreatePipelinePersistentStorage
 		// https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters
 		if s.gkeVersionOverride != "" {
 			dmconf.Resources[0].Properties["cluster-version"] = s.gkeVersionOverride
@@ -76,13 +78,13 @@ func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) (*de
 	confByte, err := yaml.Marshal(dmconf)
 	if err != nil {
 		deployReqCounter.WithLabelValues("INTERNAL").Inc()
-		deploymentFailure.Inc()
+		deploymentFailure.WithLabelValues("INTERNAL").Inc()
 		return nil, err
 	}
-	templateData, err := ioutil.ReadFile(path.Join(regPath, "../deployment/gke/deployment_manager_configs/cluster.jinja"))
+	templateData, err := ioutil.ReadFile(path.Join(regPath, dmSpec.TemplateFile))
 	if err != nil {
 		deployReqCounter.WithLabelValues("INTERNAL").Inc()
-		deploymentFailure.Inc()
+		deploymentFailure.WithLabelValues("INTERNAL").Inc()
 		return nil, err
 	}
 	ts := oauth2.StaticTokenSource(&oauth2.Token{
@@ -91,11 +93,11 @@ func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) (*de
 	deploymentmanagerService, err := deploymentmanager.New(oauth2.NewClient(ctx, ts))
 	if err != nil {
 		deployReqCounter.WithLabelValues("INTERNAL").Inc()
-		deploymentFailure.Inc()
+		deploymentFailure.WithLabelValues("INTERNAL").Inc()
 		return nil, err
 	}
 	rb := &deploymentmanager.Deployment{
-		Name: req.Name,
+		Name: req.Name + dmSpec.DmNameSuffix,
 		Target: &deploymentmanager.TargetConfiguration{
 			Config: &deploymentmanager.ConfigFile{
 				Content: string(confByte),
@@ -103,7 +105,7 @@ func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) (*de
 			Imports: []*deploymentmanager.ImportFile{
 				{
 					Content: string(templateData),
-					Name:    "cluster.jinja",
+					Name:    filepath.Base(dmSpec.TemplateFile),
 				},
 			},
 		},
@@ -118,19 +120,24 @@ func (s *ksServer) InsertDeployment(ctx context.Context, req CreateRequest) (*de
 	return rb, nil
 }
 
-func (s *ksServer) GetDeploymentStatus(ctx context.Context, req CreateRequest) (string, error) {
+func (s *ksServer) GetDeploymentStatus(ctx context.Context, req CreateRequest, deployName string) (string, string, error) {
 	ts := oauth2.StaticTokenSource(&oauth2.Token{
 		AccessToken: req.Token,
 	})
 	deploymentmanagerService, err := deploymentmanager.New(oauth2.NewClient(ctx, ts))
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
-	dm, err := deploymentmanagerService.Deployments.Get(req.Project, req.Name).Context(ctx).Do()
+	dm, err := deploymentmanagerService.Deployments.Get(req.Project, deployName).Context(ctx).Do()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
-	return dm.Operation.Status, nil
+	if dm.Operation.Status == "DONE" {
+		if dm.Operation.Error != nil && len(dm.Operation.Error.Errors) > 0 {
+			return dm.Operation.Status, dm.Operation.Error.Errors[0].Message, nil
+		}
+	}
+	return dm.Operation.Status, "", nil
 }
 
 // Clear existing bindings for auto-generated service accounts of current deployment.

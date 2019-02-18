@@ -28,6 +28,12 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
     type=str,
     help="Yaml file containing the tags to attach.")
 
+  parser.add_argument(
+    "--repository",
+    default=None,
+    type=str,
+    help="GCR repository name (optional).")
+
   args = parser.parse_args()
 
   with open(args.images_file) as hf:
@@ -40,10 +46,16 @@ def main(unparsed_args=None):  # pylint: disable=too-many-locals
     for v in image["versions"]:
       existing_images[image["name"]][v["digest"]] = v
 
-  raw_images = util.run(["gcloud",
-                         "--project=kubeflow-images-public",
-                         "container", "images", "list",
-                         "--format=json"])
+  list_images_cmd = ["gcloud",
+                     "--project=kubeflow-images-public",
+                     "container", "images", "list",
+                     "--format=json"]
+  # By default gcloud uses gcr.io/[project] as the repository.
+  # However for images like katib, we may need to specify the
+  # repository as gcr.io/[project]/katib.
+  if args.repository:
+    list_images_cmd.append("--repository=" + args.repository)
+  raw_images = util.run(list_images_cmd)
 
   all_images = json.loads(raw_images)
   name_pattern, tag_pattern = args.pattern.split(":")

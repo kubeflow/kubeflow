@@ -1,3 +1,13 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Goals](#goals)
+- [Design](#design)
+  - [User Interaction](#user-interaction)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## Goals
 
 - provide a k8 native mechanism to spawning jupyter notebooks for users
@@ -29,7 +39,7 @@ spec:
             memory: 1Gi
         workingDir: "/home/jovyan"
       ttlSecondsAfterFinished: 300
-      securityContext: 
+      securityContext:
       - fsGroup: 100
         runAsUser: 1000
 ```
@@ -78,7 +88,7 @@ Subsequent browser requests to `https://<api-server>/<namespace>/<notebook>` are
 
 ![Jupyter Notebook](./docs/jupyter_notebook.png "Jupyter Notebook")
 
-The notebook component can use the [profiles component](https://github.com/kubeflow/kubeflow/tree/master/kubeflow/profiles/prototypes) to provide a protected namespace for the user. It can also spawn the notebook within the kubeflow namespace. 
+The notebook component can use the [profiles component](https://github.com/kubeflow/kubeflow/tree/master/kubeflow/profiles/prototypes) to provide a protected namespace for the user. It can also spawn the notebook within the kubeflow namespace.
 
 ```yaml
 apiVersion: kubeflow.org/v1alpha1

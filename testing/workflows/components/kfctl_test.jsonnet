@@ -2,6 +2,7 @@ local params = std.extVar("__ksonnet/params").components.kfctl_test;
 
 local k = import "k.libsonnet";
 local util = import "workflows.libsonnet";
+local newUtil = import "util.libsonnet";
 
 // TODO(jlewi): Can we get namespace from the environment rather than
 // params?
@@ -42,7 +43,7 @@ local appName = "kfctl-" + std.substr(name, std.length(name) - 4, 4);
 // we execute kfctl commands from
 local appDir = testDir + "/" + appName;
 
-local image = "gcr.io/kubeflow-ci/test-worker:latest";
+local image = "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4";
 local testing_image = "gcr.io/kubeflow-ci/kubeflow-testing";
 
 // The name of the NFS volume claim to use for test files.
@@ -55,6 +56,28 @@ local kubeflowPy = srcDir;
 local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
 
 local project = "kubeflow-ci";
+
+// Workflow template is the name of the workflow template; typically the name of the ks component.
+// This is used as a label to make it easy to identify all Argo workflows created from a given
+// template.
+local workflow_template = "kctl_test";
+
+// Create a dictionary of the different prow variables so we can refer to them in the workflow.
+//
+// Important: We want to initialize all variables we reference to some value. If we don't
+// and we reference a variable which doesn't get set then we get very hard to debug failure messages.
+// In particular, we've seen problems where if we add a new environment and evaluate one component eg. "workflows"
+// and another component e.g "code_search.jsonnet" doesn't have a default value for BUILD_ID then ksonnet
+// fails because BUILD_ID is undefined.
+local prowDict = {
+  BUILD_ID: "notset",
+  BUILD_NUMBER: "notset",
+  REPO_OWNER: "notset",
+  REPO_NAME: "notset",
+  JOB_NAME: "notset",
+  JOB_TYPE: "notset",
+  PULL_NUMBER: "notset",
+} + newUtil.listOfDictToMap(prowEnv);
 
 // Build an Argo template to execute a particular command.
 // step_name: Name for the template
@@ -70,6 +93,13 @@ local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=
     workingDir: working_dir,
     // TODO(jlewi): Change to IfNotPresent.
     imagePullPolicy: "Always",
+    metadata: {
+      labels: prowDict {
+        workflow: params.name,
+        workflow_template: workflow_template,
+        step_name: step_name,
+      },
+    },
     env: [
       {
         // Add the source directories to the python path.
@@ -120,6 +150,20 @@ local componentTests = util.kfTests {
   platform: "gke",
   testDir: testDir,
   kubeConfig: kubeConfig,
+  image: image,
+  workflowName: params.workflowName,
+  buildTemplate+: {
+    argoTemplate+: {
+      container+: {
+        metadata+: {
+          labels: prowDict {
+            workflow: params.name,
+            workflow_template: workflow_template,
+          },
+        },
+      },
+    },
+  },
 };
 
 // Create a list of dictionary.c
@@ -232,6 +276,52 @@ local dagTemplates = [
   },
   {
     template: buildTemplate(
+      "install-spark-operator",
+      [
+        // Install the operator
+        "ks",
+        "pkg",
+        "install",
+        "kubeflow/spark",
+      ],
+      working_dir=appDir + "/ks_app"
+    ),
+    dependencies: ["kfctl-generate-k8s"],
+  },  // install-spark-operator
+  {
+    template: buildTemplate(
+      "generate-spark-operator",
+      [
+        // Generate the operator
+        "ks",
+        "generate",
+        "spark-operator",
+        "spark-operator",
+        "--name=spark-operator",
+      ],
+      working_dir=appDir + "/ks_app"
+    ),
+    dependencies: ["install-spark-operator"],
+  },  // generate-spark-operator
+  {
+    template: buildTemplate(
+      "apply-spark-operator",
+      [
+        runPath,
+        // Apply the operator
+        "ks",
+        "apply",
+        "default",
+        "-c",
+        "spark-operator",
+        "--verbose",
+      ],
+      working_dir=appDir + "/ks_app"
+    ),
+    dependencies: ["generate-spark-operator"],
+  },  //apply-spark-operator
+  {
+    template: buildTemplate(
       "kfctl-apply-k8s",
       [
         runPath,
@@ -246,7 +336,7 @@ local dagTemplates = [
   // Run the nested tests.
   {
     template: componentTests.argoDagTemplate,
-    dependencies: ["kfctl-apply-k8s"],
+    dependencies: ["apply-spark-operator", "kfctl-apply-k8s"],
   },
 ];
 
@@ -270,8 +360,30 @@ local deleteStep = if deleteKubeflow then
   }]
 else [];
 
+// Clean up all the permanent storages to avoid accumulated resource
+// consumption in the test project
+local deleteStorageStep = if deleteKubeflow then
+  [{
+    template: buildTemplate(
+      "kfctl-delete-storage",
+      [
+        runPath,
+        "gcloud",
+        "deployment-manager",
+        "--project=" + project,
+        "deployments",
+        "delete",
+        appName + "-storage",
+        "--quiet",
+      ],
+      working_dir=appDir
+    ),
+    dependencies: ["kfctl-delete"],
+  }]
+else [];
+
 local exitTemplates =
-  deleteStep +
+  deleteStep + deleteStorageStep +
   [
     {
       template: buildTemplate("copy-artifacts", [
@@ -284,7 +396,7 @@ local exitTemplates =
       ]),  // copy-artifacts,
 
       dependencies: if deleteKubeflow then
-        ["kfctl-delete"]
+        ["kfctl-delete"] + ["kfctl-delete-storage"]
       else null,
     },
     {
@@ -345,16 +457,15 @@ local workflow = {
   metadata: {
     name: name,
     namespace: namespace,
-    labels: {
-      org: "kubeflow",
-      repo: "kubeflow",
-      workflow: "e2e",
-      // TODO(jlewi): Add labels for PR number and commit. Need to write a function
-      // to convert list of environment variables to labels.
+    labels: prowDict {
+      workflow: params.name,
+      workflow_template: workflow_template,
     },
   },
   spec: {
     entrypoint: "e2e",
+    // Have argo garbage collect old workflows otherwise we overload the API server.
+    ttlSecondsAfterFinished: 7 * 24 * 60 * 60,
     volumes: [
       {
         name: "github-token",

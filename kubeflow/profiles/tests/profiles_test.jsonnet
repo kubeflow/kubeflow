@@ -53,6 +53,42 @@ std.assertEqual(
                         namespace: {
                           type: "string",
                         },
+                        quota: {
+                          type: "object",
+                          properties: {
+                            name: {
+                              type: "string",
+                            },
+                            requests: {
+                              type: "object",
+                              properties: {
+                                cpu: {
+                                  type: "string",
+                                },
+                                memory: {
+                                  type: "string",
+                                },
+                                gpu: {
+                                  type: "string",
+                                },
+                              },
+                            },
+                            limits: {
+                              type: "object",
+                              properties: {
+                                cpu: {
+                                  type: "string",
+                                },
+                                memory: {
+                                  type: "string",
+                                },
+                                gpu: {
+                                  type: "string",
+                                },
+                              },
+                            },
+                          },
+                        },
                       },
                       type: "object",
                     },
@@ -94,7 +130,8 @@ std.assertEqual(
             status: {
               properties: {
                 observedGeneration: {
-                  type: "int64",
+                  type: "integer",
+                  format: "int64",
                 },
               },
               type: "object",
@@ -321,6 +358,10 @@ std.assertEqual(
         {
           apiVersion: "v1",
           resource: "namespaces",
+        },
+        {
+          apiVersion: "v1",
+          resource: "resourcequotas",
         },
         {
           apiVersion: "kubeflow.org/v1alpha1",
