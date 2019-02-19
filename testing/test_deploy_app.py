@@ -5,6 +5,7 @@ import base64
 import datetime
 import logging
 import os
+import errno
 import shutil
 import subprocess
 import tempfile
@@ -133,8 +134,7 @@ def prepare_request_data(args, deployment):
       "Namespace": 'kubeflow',
       "Project": args.project,
       "ProjectNumber": args.project_number,
-      # service account client id of account:
-      # kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
+      # service account client id of account: kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
       "SAClientId": args.sa_client_id,
       "Token": access_token,
       "Zone": getZone(args, deployment)
@@ -180,8 +180,7 @@ def make_prober_call(args, service_account_credentials):
   return True
 
 
-# For each deployment, make a request to service url, return if all
-# requests call successful.
+# For each deployment, make a request to service url, return if all requests call successful.
 def make_loadtest_call(args, service_account_credentials, deployments):
   logging.info("start new prober call")
   google_open_id_connect_token = get_google_open_id_connect_token(
@@ -260,8 +259,7 @@ def create_secret(args, deployment, ssl_local_dir):
   util_run(("kubectl create -f %s" % ssl_local_dir).split(' '))
 
 
-# deployments: set(string) which contains all deployment names in current
-# test round.
+# deployments: set(string) which contains all deployment names in current test round.
 def check_deploy_status(args, deployments):
   num_deployments = len(deployments)
   logging.info("check deployment status")
@@ -306,9 +304,13 @@ def check_deploy_status(args, deployments):
     for deployment in success_deploy:
       try:
         ssl_local_dir = os.path.join(SSL_DIR, deployment)
-        if os.path.exists(ssl_local_dir):
-          continue
-        os.makedirs(ssl_local_dir)
+        try:
+          os.makedirs(ssl_local_dir)
+        except OSError as exc:  # Python >2.5
+          if exc.errno == errno.EEXIST and os.path.isdir(ssl_local_dir):
+            pass
+          else:
+            raise
         util_run((
             "gcloud container clusters get-credentials %s --zone %s --project %s"
             % (deployment, getZone(args, deployment), args.project)).split(' '))
@@ -392,8 +394,7 @@ def clean_up_resource(args, deployments):
 
   Args:
     args: The args from ArgParse.
-    deployments set(string): which contains all deployment names in current test
-    round.
+    deployments set(string): which contains all deployment names in current test round.
   Returns:
     bool: True if cleanup is done
   """
@@ -555,7 +556,8 @@ def run_e2e_test(args):
 
 
 def wrap_test(args):
-  """Run the tests given by args.func and output artifacts as necessary."""
+  """Run the tests given by args.func and output artifacts as necessary.
+  """
   test_name = "bootstrapper"
   test_case = test_util.TestCase()
   test_case.class_name = "KubeFlow"
@@ -572,8 +574,8 @@ def wrap_test(args):
     # TestGrid currently uses the regex junit_(^_)*.xml so we only
     # want one underscore after junit.
     junit_name = test_case.name.replace("_", "-")
-    junit_path = os.path.join(
-        args.artifacts_dir, "junit_kubeflow-deploy-{0}.xml".format(junit_name))
+    junit_path = os.path.join(args.artifacts_dir,
+                              "junit_{0}.xml".format(junit_name))
     logging.info("Writing test results to %s", junit_path)
     test_util.create_junit_xml_file([test_case], junit_path)
 

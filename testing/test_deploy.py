@@ -17,12 +17,12 @@
 """Test deploying Kubeflow.
 
 Requirements:
-  This project assumes the py directory in github.com/kubeflow/tf-operator
-  corresponds to a top level Python package on the Python path.
+  This project assumes the py directory in github.com/kubeflow/tf-operator corresponds
+  to a top level Python package on the Python path.
 
-  TODO(jlewi): Come up with a better story for how we reuse the py package in
-  kubeflow/tf-operator. We should probably turn that into a legit Python pip
-  package that is built and released as part of the kubeflow/tf-operator project
+  TODO(jlewi): Come up with a better story for how we reuse the py package
+  in kubeflow/tf-operator. We should probably turn that into a legit Python pip
+  package that is built and released as part of the kubeflow/tf-operator project.
 """
 
 import argparse
@@ -30,6 +30,7 @@ import datetime
 import json
 import logging
 import os
+import errno
 import re
 import shutil
 import subprocess
@@ -45,15 +46,15 @@ from kubernetes.client import rest
 from kubernetes.config import kube_config
 from oauth2client.client import GoogleCredentials
 
-from kubeflow.testing import test_util, util  # pylint: disable=no-name-in-module  # noqa: E501
+from kubeflow.testing import test_util, util  # pylint: disable=no-name-in-module
 from testing import vm_util
 
 
 def _setup_test(api_client, run_label):
   """Create the namespace for the test.
 
-    Returns:
-      test_dir: The local test directory.
+  Returns:
+    test_dir: The local test directory.
   """
 
   api = k8s_client.CoreV1Api(api_client)
@@ -93,8 +94,13 @@ def create_k8s_client(_):
 # because we will probably want to use it in other places as well.
 def setup_kubeflow_ks_app(args, api_client):
   """Create a ksonnet app for Kubeflow"""
-  if not os.path.exists(args.test_dir):
+  try:
     os.makedirs(args.test_dir)
+  except OSError as exc:  # Python >2.5
+    if exc.errno == errno.EEXIST and os.path.isdir(args.test_dir):
+      pass
+    else:
+      raise
 
   logging.info("Using test directory: %s", args.test_dir)
 
@@ -132,7 +138,7 @@ def setup_kubeflow_ks_app(args, api_client):
   ]
 
   # Instead of installing packages we edit the app.yaml file directly
-  # for p in packages:
+  #for p in packages:
   # util.run(["ks", "pkg", "install", p], cwd=app_dir)
   app_file = os.path.join(app_dir, "app.yaml")
   with open(app_file) as f:
@@ -183,7 +189,7 @@ def deploy_model(args):
     else:
       namespace = v
 
-  if namespace is None:
+  if namespace == None:
     raise ValueError("namespace must be supplied in args.")
 
   # deployment component
@@ -279,16 +285,11 @@ def deploy_argo(args):
   ks_deploy(app_dir, component, {}, env=None, account=None, namespace=None)
 
   # Create a hello world workflow
-  util.run(
-      [
-          "kubectl",
-          "create",
-          "-n",
-          "default",
-          "-f",
-          "https://raw.githubusercontent.com/argoproj/argo/master/examples/hello-world.yaml"  # noqa: E501
-      ],
-      cwd=app_dir)
+  util.run([
+      "kubectl", "create", "-n", "default", "-f",
+      "https://raw.githubusercontent.com/argoproj/argo/master/examples/hello-world.yaml"
+  ],
+           cwd=app_dir)
 
   # Wait for 200 seconds to check if the hello-world pod was created
   retries = 20
@@ -342,7 +343,8 @@ def determine_test_name(args):
 # TODO(jlewi): We should probably make this a generic function in
 # kubeflow.testing.`
 def wrap_test(args):
-  """Run the tests given by args.func and output artifacts as necessary."""
+  """Run the tests given by args.func and output artifacts as necessary.
+  """
   test_name = determine_test_name(args)
   test_case = test_util.TestCase()
   test_case.class_name = "KubeFlow"
@@ -533,8 +535,13 @@ def deploy_minikube(args):
   # The .minikube directory contains some really large ISO and other files that we don't need; so we
   # only copy the files we need.
   minikube_dir = os.path.join(args.test_dir, ".minikube")
-  if not os.path.exists(minikube_dir):
+  try:
     os.makedirs(minikube_dir)
+  except OSError as exc:  # Python >2.5
+    if exc.errno == errno.EEXIST and os.path.isdir(minikube_dir):
+      pass
+    else:
+      raise
 
   for target in ["~/.minikube/*.crt", "~/.minikube/client.key"]:
     full_target = "{0}:{1}".format(args.vm_name, target)
@@ -740,8 +747,7 @@ def main():  # pylint: disable=too-many-locals,too-many-statements
     logging.info("--test_dir not set; using a temporary directory.")
 
     now = datetime.datetime.now()
-    label = "test_deploy-" + \
-        now.strftime("%m%d-%H%M-") + uuid.uuid4().hex[0:4]
+    label = "test_deploy-" + now.strftime("%m%d-%H%M-") + uuid.uuid4().hex[0:4]
 
     # Create a temporary directory for this test run
     args.test_dir = os.path.join(tempfile.gettempdir(), label)
@@ -752,8 +758,14 @@ def main():  # pylint: disable=too-many-locals,too-many-statements
   test_log = os.path.join(
       args.artifacts_dir, "logs",
       "test_deploy." + args.func.__name__ + args.deploy_name + ".log.txt")
-  if not os.path.exists(os.path.dirname(test_log)):
+
+  try:
     os.makedirs(os.path.dirname(test_log))
+  except OSError as exc:  # Python >2.5
+    if exc.errno == errno.EEXIST and os.path.isdir(os.path.dirname(test_log)):
+      pass
+    else:
+      raise
 
   # TODO(jlewi): We should make this a util routine in kubeflow.testing.util
   # Setup a logging file handler. This way we can upload the log outputs

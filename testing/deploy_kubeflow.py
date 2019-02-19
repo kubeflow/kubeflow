@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Deploy Kubeflow and wait for it to be deployed.
 
 TODO(jlewi): This script is outdated. Its no longer used for GKE.

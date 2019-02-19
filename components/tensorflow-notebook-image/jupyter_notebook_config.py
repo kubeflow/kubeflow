@@ -15,13 +15,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import errno
-import os
-import stat
-import subprocess
 from jupyter_core.paths import jupyter_data_dir
+import subprocess
+import os
+import errno
+import stat
 
-c = get_config()  # noqa: F821
+c = get_config()
 c.NotebookApp.ip = '*'
 c.NotebookApp.port = 8888
 c.NotebookApp.open_browser = False
@@ -40,21 +40,9 @@ if 'GEN_CERT' in os.environ:
       raise
   # Generate a certificate if one doesn't exist on disk
   subprocess.check_call([
-      'openssl',
-      'req',
-      '-new',
-      '-newkey',
-      'rsa:2048',
-      '-days',
-      '365',
-      '-nodes',
-      '-x509',
-      '-subj',
-      '/C=XX/ST=XX/L=XX/O=generated/CN=generated',  # noqa: E501
-      '-keyout',
-      pem_file,
-      '-out',
-      pem_file
+      'openssl', 'req', '-new', '-newkey', 'rsa:2048', '-days', '365', '-nodes',
+      '-x509', '-subj', '/C=XX/ST=XX/L=XX/O=generated/CN=generated', '-keyout',
+      pem_file, '-out', pem_file
   ])
   # Restrict access to the file
   os.chmod(pem_file, stat.S_IRUSR | stat.S_IWUSR)
