@@ -148,41 +148,47 @@ func (gcp *Gcp) writeConfigFile() error {
 	return nil
 }
 
-func (gcp *Gcp) createDeployment() error {
-	return nil
-}
-
 func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 	appDir := gcp.GcpApp.Spec.AppDir
 	gcpConfigDir := path.Join(appDir, GCP_CONFIG)
 	ctx := context.Background()
 	client, clientErr := google.DefaultClient(ctx, deploymentmanager.CloudPlatformScope)
 	if clientErr != nil {
-		return clientErr
+		return fmt.Errorf("Error getting DefaultClient: %v", clientErr)
 	}
 	deploymentmanagerService, err := deploymentmanager.New(client)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error creating deploymentmanagerService: %v", err)
 	}
+	filePath := filepath.Join(gcpConfigDir, yamlfile)
+	log.Infof("Reading from config yaml: %v", filePath)
+	buf, bufErr := ioutil.ReadFile(filePath)
+	if bufErr != nil {
+		return fmt.Errorf("Read yamlfile error: %v", bufErr)
+	}
+	dp := &deploymentmanager.Deployment{}
+	specErr := yaml.Unmarshal(buf, dp)
+	if specErr != nil {
+		return fmt.Errorf("couldn't unmarshal %v. Error: %v", filePath, specErr)
+	}
+
+	log.Infof("Deploying config: %v", dp)
+
 	project := gcp.GcpApp.Spec.Project
 	resp, err := deploymentmanagerService.Deployments.Get(project, deployment).Context(ctx).Do()
-	if err != nil {
-		return gcp.createDeployment()
-	}
-	if resp.Name == gcp.GcpApp.Name {
-		filePath := filepath.Join(gcpConfigDir, yamlfile)
-		buf, bufErr := ioutil.ReadFile(filePath)
-		if bufErr != nil {
-			return bufErr
+	if err == nil {
+		if resp.Name != gcp.GcpApp.Name {
+			return fmt.Errorf("Deployment name doesn't match: %v v.s. %v", resp.Name, gcp.GcpApp.Name)
 		}
-		dp := &deploymentmanager.Deployment{}
-		specErr := yaml.Unmarshal(buf, dp)
-		if specErr != nil {
-			return fmt.Errorf("couldn't unmarshal %v. Error: %v", filePath, specErr)
+		_, updateErr := deploymentmanagerService.Deployments.Update(project, deployment, dp).Context(ctx).Do()
+		if updateErr != nil {
+			return fmt.Errorf("Update deployment error: %v", updateErr)
 		}
-		_, err := deploymentmanagerService.Deployments.Update(project, deployment, dp).Context(ctx).Do()
-		if err != nil {
-			return err
+	} else {
+		log.Infof("Get deployment error, creating: %v", err)
+		_, insertErr := deploymentmanagerService.Deployments.Insert(project, dp).Context(ctx).Do()
+		if insertErr != nil {
+			return fmt.Errorf("Insert deployment error: %v", insertErr)
 		}
 	}
 	return nil
@@ -191,7 +197,7 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]interface{}) error {
 	err := gcp.updateDeployment(gcp.GcpApp.Name+"-storage", "storage-kubeflow.yaml")
 	if err != nil {
-		return fmt.Errorf("could not update %v", "storage-kubeflow.yaml")
+		return fmt.Errorf("could not update storage-kubeflow.yaml: %v", err)
 	}
 	err = gcp.updateDeployment(gcp.GcpApp.Name, CONFIG_FILE)
 	if err != nil {
