@@ -89,6 +89,7 @@ var DefaultComponents = []string{
 	"katib",
 	"metacontroller",
 	"notebooks",
+	"notebook-controller",
 	"openvino",
 	"pipeline",
 	"profiles",
