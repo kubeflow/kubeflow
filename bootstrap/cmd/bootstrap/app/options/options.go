@@ -65,5 +65,5 @@ func (s *ServerOption) AddFlags(fs *flag.FlagSet) {
 	// will be far more common then doing a one off batch job based on a config file.
 	fs.StringVar(&s.Config, "config", "", "Path to a YAML file describing an app to create on startup.")
 	// Whether to install istio. Remove after we always install it.
-	fs.BoolVar(&s.InstallIstio, "install-istio", false, "Whether to install istio.")
+	fs.BoolVar(&s.InstallIstio, "install-istio", true, "Whether to install istio.")
 }
