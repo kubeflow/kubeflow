@@ -21,11 +21,10 @@ directory and runs jsonnet eval <filename> and reports the results
 
 Example invocation
 
-python -m testing.test_jsonnet --test_files_dirs=/kubeflow/application/tests,/kubeflow/common/tests,/kubeflow/jupyter/tests,/kubeflow/iap/tests,/kubeflow/gcp/tests,/kubeflow/tensorboard/tests,/kubeflow/examples/tests,/kubeflow/metacontroller/tests,/kubeflow/profiles/tests,/kubeflow/tf-training/tests --artifacts_dir=/tmp/artifacts  # noqa: E501
+python -m testing.test_jsonnet --test_files_dirs=/kubeflow/application/tests,/kubeflow/common/tests,/kubeflow/jupyter/tests,/kubeflow/iap/tests,/kubeflow/gcp/tests,/kubeflow/tensorboard/tests,/kubeflow/examples/tests,/kubeflow/metacontroller/tests,/kubeflow/profiles/tests,/kubeflow/tf-training/tests,/kubeflow/kubebench/tests --artifacts_dir=/tmp/artifacts  # noqa: E501
 
 TODO(jlewi): Should we use pytest to create a parameterized test with respect
-to directory?
-See https://docs.pytest.org/en/latest/example/parametrize.html
+to directory? See https://docs.pytest.org/en/latest/example/parametrize.html
 """
 
 from __future__ import print_function
