@@ -28,14 +28,15 @@ import (
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
+	gke "google.golang.org/api/container/v1"
 	"google.golang.org/api/deploymentmanager/v2"
-	"google.golang.org/api/discovery/v1"
 	"google.golang.org/api/iam/v1"
 	"google.golang.org/api/serviceusage/v1"
 	"io"
 	"io/ioutil"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -637,27 +638,30 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum, options map[string]inte
 	return nil
 }
 
+func (gcp *Gcp) getServiceClient(ctx context.Context) (*http.Client, error) {
+
+	// See https://cloud.google.com/docs/authentication/.
+	// Use GOOGLE_APPLICATION_CREDENTIALS environment variable to specify
+	// a service account key file to authenticate to the API.
+
+	client, err := google.DefaultClient(ctx, gke.CloudPlatformScope)
+	if err != nil {
+		log.Fatalf("Could not get authenticated client: %v", err)
+		return nil, err
+	}
+	return client, nil
+}
+
 func (gcp *Gcp) gcpInitProject() error {
 	ctx := context.Background()
-	//TODO
-	// doesn't work currently - get invalid_grant
-	// may need to download the service-account
-	oauthClient, err := google.DefaultClient(ctx, serviceusage.CloudPlatformScope)
-	if err != nil {
-		return err
+	client, clientErr := gcp.getServiceClient(ctx)
+	if clientErr != nil {
+		return fmt.Errorf("could not create client %v", clientErr)
 	}
-	service, serviceErr := discovery.New(oauthClient)
-	if serviceErr != nil {
-		return fmt.Errorf("could notcreate service using discovery %v", serviceErr)
+	serviceusageService, serviceusageServiceErr := serviceusage.New(client)
+	if serviceusageServiceErr != nil {
+		return fmt.Errorf("could not create service usage service %v", serviceusageServiceErr)
 	}
-	services, servicesErr := service.Apis.List().Do()
-	if servicesErr != nil {
-		return fmt.Errorf("could not list services %v", servicesErr)
-
-	}
-	log.Infof("services = %v", services.Kind)
-
-	serviceusageService, err := serviceusage.New(oauthClient)
 	_, opErr := serviceusageService.Services.Enable("deploymentmanager.googleapis.com", &serviceusage.EnableServiceRequest{}).Context(ctx).Do()
 	if opErr != nil {
 		return fmt.Errorf("could not enable deploymentmanager %v", opErr)
@@ -682,11 +686,11 @@ func (gcp *Gcp) Init(options map[string]interface{}) error {
 	if createConfigErr != nil {
 		return fmt.Errorf("cannot create config file app.yaml in %v", gcp.GcpApp.Spec.AppDir)
 	}
-	/*
-		initProjectErr := gcp.gcpInitProject()
-		if initProjectErr != nil {
-			return fmt.Errorf("cannot init gcp project %v", initProjectErr)
-		}
-	*/
+
+	initProjectErr := gcp.gcpInitProject()
+	if initProjectErr != nil {
+		return fmt.Errorf("cannot init gcp project %v", initProjectErr)
+	}
+
 	return nil
 }
