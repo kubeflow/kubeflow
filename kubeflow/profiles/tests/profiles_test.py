@@ -23,6 +23,13 @@ PLURAL = "profiles"
 KIND = "Profile"
 VERSION = "v1alpha1"
 
+logging.basicConfig(level=logging.INFO,
+                    format=('%(levelname)s|%(asctime)s'
+                            '|%(pathname)s|%(lineno)d| %(message)s'),
+                    datefmt='%Y-%m-%dT%H:%M:%S',
+                    )
+logging.getLogger().setLevel(logging.INFO)
+
 def test_profiles():
   app_credentials = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
   if app_credentials:
@@ -46,7 +53,7 @@ def test_profiles():
   # Verifies the namespace is created.
   coreV1 = k8s_client.CoreV1Api(api_client)
   resp = coreV1.read_namespace(name)
-  logging.info("read namespace: %s", resp)
+  logging.info("found namespace: %s", resp)
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,

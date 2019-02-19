@@ -368,7 +368,7 @@
             "-s",
             // Test timeout in seconds.
             "--timeout=500",
-            "--junitxml=" + tests.artifactsDir + "/junit_jupyter-test.xml",
+            "--junitxml=" + tests.artifactsDir + "/junit_profile-test.xml",
           ],
           workingDir: tests.srcDir + "/kubeflow/profiles/tests",
         },
