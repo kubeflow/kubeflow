@@ -161,18 +161,18 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 		return fmt.Errorf("Error creating deploymentmanagerService: %v", err)
 	}
 	filePath := filepath.Join(gcpConfigDir, yamlfile)
-	log.Infof("Reading from config yaml: %v", filePath)
 	buf, bufErr := ioutil.ReadFile(filePath)
 	if bufErr != nil {
 		return fmt.Errorf("Read yamlfile error: %v", bufErr)
 	}
-	dp := &deploymentmanager.Deployment{}
-	specErr := yaml.Unmarshal(buf, dp)
-	if specErr != nil {
-		return fmt.Errorf("couldn't unmarshal %v. Error: %v", filePath, specErr)
+	dp := &deploymentmanager.Deployment{
+		Name: deployment,
+		Target: &deploymentmanager.TargetConfiguration{
+			Config: &deploymentmanager.ConfigFile{
+				Content: string(buf),
+			},
+		},
 	}
-
-	log.Infof("Deploying config: %v", dp)
 
 	project := gcp.GcpApp.Spec.Project
 	resp, err := deploymentmanagerService.Deployments.Get(project, deployment).Context(ctx).Do()
@@ -195,13 +195,13 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 }
 
 func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	err := gcp.updateDeployment(gcp.GcpApp.Name+"-storage", "storage-kubeflow.yaml")
+	err := gcp.updateDeployment(gcp.GcpApp.Name+"-storage", STORAGE_FILE)
 	if err != nil {
-		return fmt.Errorf("could not update storage-kubeflow.yaml: %v", err)
+		return fmt.Errorf("could not update %v: %v", STORAGE_FILE, err)
 	}
 	err = gcp.updateDeployment(gcp.GcpApp.Name, CONFIG_FILE)
 	if err != nil {
-		return fmt.Errorf("could not update %v", CONFIG_FILE)
+		return fmt.Errorf("could not update %v: %v", CONFIG_FILE, err)
 	}
 	err = gcp.updateDeployment(gcp.GcpApp.Name+"-network", "network.yaml")
 	if err != nil {
@@ -472,19 +472,19 @@ func (gcp *Gcp) generateDMConfigs(options map[string]interface{}) error {
 	}
 	repl = "zone: " + gcp.GcpApp.Spec.Zone
 	configFileData = gcp.replaceText("zone: SET_THE_ZONE", repl, configFileData)
-	storageFileData = gcp.replaceText("zone: SET_THE_ZONE", repl, configFileData)
+	storageFileData = gcp.replaceText("zone: SET_THE_ZONE", repl, storageFileData)
 	repl = "users: [\"" + iamEntry + "\"]"
 	configFileData = gcp.replaceText("users:", repl, configFileData)
 	repl = "ipName:" + gcp.GcpApp.Spec.IpName
 	configFileData = gcp.replaceText("ipName: kubeflow-ip", repl, configFileData)
-	configFileErr := ioutil.WriteFile(to, configFileData, 0644)
+	configFileErr := ioutil.WriteFile(configFile, configFileData, 0644)
 	if configFileErr != nil {
 		return fmt.Errorf("cound not write to %v Error %v", configFile, configFileErr)
 	}
 	repl = "createPipelinePersistentStorage: true"
 	storageFileData = gcp.replaceText("createPipelinePersistentStorage: SET_CREATE_PIPELINE_PERSISTENT_STORAGE",
-		repl, configFileData)
-	storageFileErr := ioutil.WriteFile(to, storageFileData, 0644)
+		repl, storageFileData)
+	storageFileErr := ioutil.WriteFile(storageFile, storageFileData, 0644)
 	if storageFileErr != nil {
 		return fmt.Errorf("cound not write to %v Error %v", storageFile, storageFileErr)
 	}
