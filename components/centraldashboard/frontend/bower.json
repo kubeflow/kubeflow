@@ -1,0 +1,41 @@
+{
+  "name": "kubeflow-landing-page",
+  "homepage": "https://github.com/kubeflow/kubeflow",
+  "authors": [
+    "Apoorv Verma [AP] <avdaredevil@gmail.com>"
+  ],
+  "description": "This is the landing page for Kubeflow",
+  "main": "frontend/index.html",
+  "keywords": [
+    "kubeflow",
+    "polymer",
+    "material",
+    "ai",
+    "kubernetes",
+    "tensorflow"
+  ],
+  "license": "Private",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "^2",
+    "iron-icon": "PolymerElements/iron-icon#^2",
+    "iron-collapse": "PolymerElements/iron-collapse#^2",
+    "iron-selector": "PolymerElements/iron-selector#^2",
+    "iron-flex-layout": "PolymerElements/iron-flex-layout#^2",
+    "paper-card": "PolymerElements/paper-card#^2",
+    "paper-tabs": "PolymerElements/paper-tabs#^2",
+    "paper-item": "PolymerElements/paper-item#^2",
+    "paper-dropdown-menu": "PolymerElements/paper-dropdown-menu#^2",
+    "app-layout": "PolymerElements/app-layout#^2",
+    "neon-animation": "PolymerElements/neon-animation#2",
+    "iron-icons": "PolymerElements/iron-icons#^2",
+    "web-animations-js": "^2.3.1"
+  }
+}

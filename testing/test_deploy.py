@@ -29,6 +29,7 @@ import datetime
 import json
 import logging
 import os
+import errno
 import re
 import shutil
 import subprocess
@@ -92,8 +93,13 @@ def create_k8s_client(_):
 # because we will probably want to use it in other places as well.
 def setup_kubeflow_ks_app(args, api_client):
   """Create a ksonnet app for Kubeflow"""
-  if not os.path.exists(args.test_dir):
+  try:
     os.makedirs(args.test_dir)
+  except OSError as exc:  # Python >2.5
+    if exc.errno == errno.EEXIST and os.path.isdir(args.test_dir):
+      pass
+    else:
+      raise
 
   logging.info("Using test directory: %s", args.test_dir)
 
@@ -307,7 +313,7 @@ def wrap_test(args):
   test_name = determine_test_name(args)
   test_case = test_util.TestCase()
   test_case.class_name = "KubeFlow"
-  test_case.name = "deploy-kubeflow-" + test_name
+  test_case.name = args.workflow_name + "-" + test_name
   try:
 
     def run():
@@ -319,9 +325,9 @@ def wrap_test(args):
     # https://github.com/kubeflow/kubeflow/issues/631
     # TestGrid currently uses the regex junit_(^_)*.xml so we only
     # want one underscore after junit.
-    junit_name = test_name.replace("_", "-")
+    junit_name = test_case.name.replace("_", "-")
     junit_path = os.path.join(args.artifacts_dir,
-                              "junit_kubeflow-deploy-{0}.xml".format(
+                              "junit_{0}.xml".format(
                               junit_name))
     logging.info("Writing test results to %s", junit_path)
     test_util.create_junit_xml_file([test_case], junit_path)
@@ -490,8 +496,13 @@ def deploy_minikube(args):
   # The .minikube directory contains some really large ISO and other files that we don't need; so we
   # only copy the files we need.
   minikube_dir = os.path.join(args.test_dir, ".minikube")
-  if not os.path.exists(minikube_dir):
+  try:
     os.makedirs(minikube_dir)
+  except OSError as exc:  # Python >2.5
+    if exc.errno == errno.EEXIST and os.path.isdir(minikube_dir):
+      pass
+    else:
+      raise
 
   for target in ["~/.minikube/*.crt", "~/.minikube/client.key"]:
     full_target = "{0}:{1}".format(args.vm_name, target)
@@ -622,6 +633,9 @@ def main():  # pylint: disable=too-many-locals,too-many-statements
   parser.add_argument(
     "--deploy_name", default="", type=str, help="The name of the deployment.")
 
+  parser.add_argument(
+    "--workflow_name", default="", type=str, help="The name of the workflow.")
+
   subparsers = parser.add_subparsers()
 
   parser_teardown = subparsers.add_parser(
@@ -700,8 +714,14 @@ def main():  # pylint: disable=too-many-locals,too-many-statements
   test_log = os.path.join(
     args.artifacts_dir, "logs",
     "test_deploy." + args.func.__name__ + args.deploy_name + ".log.txt")
-  if not os.path.exists(os.path.dirname(test_log)):
+
+  try:
     os.makedirs(os.path.dirname(test_log))
+  except OSError as exc:  # Python >2.5
+    if exc.errno == errno.EEXIST and os.path.isdir(os.path.dirname(test_log)):
+      pass
+    else:
+      raise
 
   # TODO(jlewi): We should make this a util routine in kubeflow.testing.util
   # Setup a logging file handler. This way we can upload the log outputs

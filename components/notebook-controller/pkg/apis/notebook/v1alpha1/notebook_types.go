@@ -37,15 +37,23 @@ type NotebookTemplateSpec struct {
 
 // NotebookStatus defines the observed state of Notebook
 type NotebookStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// Conditions is an array of current conditions
+	Conditions []NotebookCondition `json:"conditions"`
 }
+
+type NotebookCondition struct {
+	// Type of the confition/
+	Type NotebookConditionType `json:"type"`
+}
+
+type NotebookConditionType string
 
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // Notebook is the Schema for the notebooks API
 // +k8s:openapi-gen=true
+// +kubebuilder:subresource:status
 type Notebook struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

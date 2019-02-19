@@ -19,8 +19,11 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/ksonnet/ksonnet/pkg/app"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksapp/v1alpha1"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksapp"
+	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
+	// STATIC
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/dockerfordesktop"
+	// -STATIC //
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksonnet"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/minikube"
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
@@ -30,10 +33,26 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"plugin"
 	"regexp"
 	"strings"
 )
+
+func GetPlatform(options map[string]interface{}) (kftypes.KfApp, error) {
+	platform := options[string(kftypes.PLATFORM)].(string)
+	switch platform {
+	case "ksonnet":
+		return ksonnet.GetKfApp(options), nil
+	case "minikube":
+		return minikube.GetKfApp(options), nil
+	// STATIC
+	case "docker-for-desktop":
+		return dockerfordesktop.GetKfApp(options), nil
+	// -STATIC //
+	default:
+		log.Infof("** loading %v.so for platform %v **", platform, platform)
+		return kftypes.LoadPlatform(options)
+	}
+}
 
 func processResourceArg(args []string) (kftypes.ResourceEnum, error) {
 	if len(args) > 1 {
@@ -52,37 +71,6 @@ func processResourceArg(args []string) (kftypes.ResourceEnum, error) {
 		}
 	}
 	return resources, nil
-}
-
-func loadPlatform(options map[string]interface{}) (kftypes.KfApp, error) {
-	platform := options[string(kftypes.PLATFORM)].(string)
-	switch platform {
-	case "none":
-		_kfapp := ksapp.GetKfApp(options)
-		return _kfapp, nil
-	case "minikube":
-		_minikubeapp := minikube.GetKfApp(options)
-		return _minikubeapp, nil
-	default:
-		// To enable goland debugger:
-		// Comment out  this section and comment in the line
-		//   return nil, fmt.Errorf("unknown platform %v", platform
-
-		plugindir := os.Getenv("PLUGINS_ENVIRONMENT")
-		pluginpath := filepath.Join(plugindir, platform+"app.so")
-		p, err := plugin.Open(pluginpath)
-		if err != nil {
-			return nil, fmt.Errorf("could not load plugin %v for platform %v Error %v", pluginpath, platform, err)
-		}
-		symName := "GetKfApp"
-		symbol, symbolErr := p.Lookup(symName)
-		if symbolErr != nil {
-			return nil, fmt.Errorf("could not find symbol %v for platform %v Error %v", symName, platform, symbolErr)
-		}
-		return symbol.(func(map[string]interface{}) kftypes.KfApp)(options), nil
-
-		//return nil, fmt.Errorf("unknown platform %v", platform)
-	}
 }
 
 func newKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
@@ -121,7 +109,7 @@ and must start and end with an alphanumeric character`, appName)
 	options[string(kftypes.APPNAME)] = appName
 	options[string(kftypes.APPDIR)] = appDir
 	platform := options[string(kftypes.PLATFORM)].(string)
-	pApp, pAppErr := loadPlatform(options)
+	pApp, pAppErr := GetPlatform(options)
 	if pAppErr != nil {
 		return nil, fmt.Errorf("unable to load platform %v Error: %v", platform, pAppErr)
 	}
@@ -143,21 +131,21 @@ func loadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	if kAppErr != nil {
 		return nil, fmt.Errorf("there was a problem loading app %v. Error: %v", appName, kAppErr)
 	}
-	ksApp := &kstypes.KsApp{}
+	ksApp := &kstypes.Ksonnet{}
 	dat, datErr := ioutil.ReadFile(cfgfile)
 	if datErr != nil {
 		return nil, fmt.Errorf("couldn't read %v. Error: %v", cfgfile, datErr)
 	}
 	specErr := yaml.Unmarshal(dat, ksApp)
 	if specErr != nil {
-		return nil, fmt.Errorf("couldn't unmarshall KsApp. Error: %v", specErr)
+		return nil, fmt.Errorf("couldn't unmarshall Ksonnet. Error: %v", specErr)
 	}
 	options[string(kftypes.PLATFORM)] = ksApp.Spec.Platform
 	options[string(kftypes.APPNAME)] = appName
 	options[string(kftypes.APPDIR)] = appDir
 	options[string(kftypes.KAPP)] = kApp
 	options[string(kftypes.KSAPP)] = ksApp
-	pApp, pAppErr := loadPlatform(options)
+	pApp, pAppErr := GetPlatform(options)
 	if pAppErr != nil {
 		return nil, fmt.Errorf("unable to load platform %v Error: %v", ksApp.Spec.Platform, pAppErr)
 	}

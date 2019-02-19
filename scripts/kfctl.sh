@@ -28,7 +28,7 @@ source "${DIR}/gke/util.sh"
 source "${DIR}/util-minikube.sh"
 INPUT=()
 FORMAT=()
-export KUBEFLOW_COMPONENTS=${DEFAULT_KUBEFLOW_COMPONENTS:-'"ambassador","jupyter","notebooks","profiles","centraldashboard","tf-job-operator","pytorch-operator","spartakus","argo","pipeline"'}
+export KUBEFLOW_COMPONENTS=${DEFAULT_KUBEFLOW_COMPONENTS:-'"ambassador","jupyter","notebook-controller","jupyter-web-app","profiles","centraldashboard","tf-job-operator","pytorch-operator","spartakus","argo","pipeline"'}
 export KUBEFLOW_EXTENDEDINFO=${KUBEFLOW_EXTENDEDINFO:-false}
 
 # envsubst alternative if envsubst is not installed
@@ -463,32 +463,40 @@ main() {
     if [[ "${WHAT}" == "k8s" ]] || [[ "${WHAT}" == "all" ]]; then
       # Delete kubeflow namespace - this deletes all the ingress objects
       # in the namespace which deletes the associated GCP resources
+      if [[ "$OSTYPE" != "darwin"* ]]; then
+          # Fetch master information and strip away color markers
+          KUBE_INFO=$(kubectl cluster-info | sed 's/\x1B\[[0-9;]\+[A-Za-z]//g')
+          pushd ${KUBEFLOW_KS_DIR}
+          KS_ENV=default
+          KS_ENV_INFO=$(ks env describe ${KS_ENV})
+          popd
+          KS_MASTER=`expr match "${KS_ENV_INFO}" '.*server[^\.0-9]*\([\.0-9]\+\)'`
+          echo KS_MASTER=${KS_MASTER}
+          MASTER=`expr match "${KUBE_INFO}" '[^\.0-9]*\([\.0-9]\+\)'`
+          echo MASTER=${MASTER}
 
-      # Fetch master information and strip away color markers
-      KUBE_INFO=$(kubectl cluster-info | sed 's/\x1B\[[0-9;]\+[A-Za-z]//g')
-      pushd ${KUBEFLOW_KS_DIR}
-      KS_ENV=default
-      KS_ENV_INFO=$(ks env describe ${KS_ENV})
-      popd
-      KS_MASTER=`expr match "${KS_ENV_INFO}" '.*server[^\.0-9]*\([\.0-9]\+\)'`
-      echo KS_MASTER=${KS_MASTER}
-      MASTER=`expr match "${KUBE_INFO}" '[^\.0-9]*\([\.0-9]\+\)'`
-      echo MASTER=${MASTER}
-
-       if [[ "${MASTER}" != "${KS_MASTER}" ]]; then
-        echo "The current kubectl context doesn't match the ks environment"
-        echo "Please configure the context to match ks environment ${KS_ENV}"
-        exit -1
-      else
-        echo "kubectl context matches ks environment ${KS_ENV}"
+          if [[ "${MASTER}" != "${KS_MASTER}" ]]; then
+            echo "The current kubectl context doesn't match the ks environment"
+            echo "Please configure the context to match ks environment ${KS_ENV}"
+            exit -1
+          else
+            echo "kubectl context matches ks environment ${KS_ENV}"
+          fi
       fi
       set +e
       kubectl delete ns/${K8S_NAMESPACE}
       while kubectl get ns/${K8S_NAMESPACE}; do
         echo "namespace ${K8S_NAMESPACE} not yet deleted. sleeping 10 seconds..."
+        # wait for 100s at most
+        # https://github.com/kubeflow/kubeflow/issues/2408
+        ((c++)) && ((c==10)) && break
         sleep 10
       done
-      echo "namespace ${K8S_NAMESPACE} successfully deleted."
+      if kubectl get ns/${K8S_NAMESPACE}; then
+        echo "namespace ${K8S_NAMESPACE} failed to delete."
+      else
+        echo "namespace ${K8S_NAMESPACE} successfully deleted."
+      fi
       set -e
     fi
     if [[ "${WHAT}" == "platform" ]] || [[ "${WHAT}" == "all" ]]; then

@@ -77,7 +77,7 @@ local prowDict = {
   JOB_NAME: "notset",
   JOB_TYPE: "notset",
   PULL_NUMBER: "notset",
- } + newUtil.listOfDictToMap(prowEnv);
+} + newUtil.listOfDictToMap(prowEnv);
 
 // Build an Argo template to execute a particular command.
 // step_name: Name for the template
@@ -94,10 +94,10 @@ local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=
     // TODO(jlewi): Change to IfNotPresent.
     imagePullPolicy: "Always",
     metadata: {
-      labels: prowDict + {
+      labels: prowDict {
         workflow: params.name,
         workflow_template: workflow_template,
-        "step_name": step_name,
+        step_name: step_name,
       },
     },
     env: [
@@ -151,11 +151,12 @@ local componentTests = util.kfTests {
   testDir: testDir,
   kubeConfig: kubeConfig,
   image: image,
+  workflowName: params.workflowName,
   buildTemplate+: {
     argoTemplate+: {
       container+: {
         metadata+: {
-          labels: prowDict + {
+          labels: prowDict {
             workflow: params.name,
             workflow_template: workflow_template,
           },
@@ -275,6 +276,52 @@ local dagTemplates = [
   },
   {
     template: buildTemplate(
+      "install-spark-operator",
+      [
+        // Install the operator
+        "ks",
+        "pkg",
+        "install",
+        "kubeflow/spark",
+      ],
+      working_dir=appDir + "/ks_app"
+    ),
+    dependencies: ["kfctl-generate-k8s"],
+  },  // install-spark-operator
+  {
+    template: buildTemplate(
+      "generate-spark-operator",
+      [
+        // Generate the operator
+        "ks",
+        "generate",
+        "spark-operator",
+        "spark-operator",
+        "--name=spark-operator",
+      ],
+      working_dir=appDir + "/ks_app"
+    ),
+    dependencies: ["install-spark-operator"],
+  },  // generate-spark-operator
+  {
+    template: buildTemplate(
+      "apply-spark-operator",
+      [
+        runPath,
+        // Apply the operator
+        "ks",
+        "apply",
+        "default",
+        "-c",
+        "spark-operator",
+        "--verbose",
+      ],
+      working_dir=appDir + "/ks_app"
+    ),
+    dependencies: ["generate-spark-operator"],
+  },  //apply-spark-operator
+  {
+    template: buildTemplate(
       "kfctl-apply-k8s",
       [
         runPath,
@@ -289,7 +336,7 @@ local dagTemplates = [
   // Run the nested tests.
   {
     template: componentTests.argoDagTemplate,
-    dependencies: ["kfctl-apply-k8s"],
+    dependencies: ["apply-spark-operator", "kfctl-apply-k8s"],
   },
 ];
 
@@ -313,8 +360,30 @@ local deleteStep = if deleteKubeflow then
   }]
 else [];
 
+// Clean up all the permanent storages to avoid accumulated resource
+// consumption in the test project
+local deleteStorageStep = if deleteKubeflow then
+  [{
+    template: buildTemplate(
+      "kfctl-delete-storage",
+      [
+        runPath,
+        "gcloud",
+        "deployment-manager",
+        "--project=" + project,
+        "deployments",
+        "delete",
+        appName + "-storage",
+        "--quiet",
+      ],
+      working_dir=appDir
+    ),
+    dependencies: ["kfctl-delete"],
+  }]
+else [];
+
 local exitTemplates =
-  deleteStep +
+  deleteStep + deleteStorageStep +
   [
     {
       template: buildTemplate("copy-artifacts", [
@@ -327,7 +396,7 @@ local exitTemplates =
       ]),  // copy-artifacts,
 
       dependencies: if deleteKubeflow then
-        ["kfctl-delete"]
+        ["kfctl-delete"] + ["kfctl-delete-storage"]
       else null,
     },
     {
@@ -388,9 +457,9 @@ local workflow = {
   metadata: {
     name: name,
     namespace: namespace,
-    labels: prowDict + {
-        workflow: params.name,
-        workflow_template: workflow_template,
+    labels: prowDict {
+      workflow: params.name,
+      workflow_template: workflow_template,
     },
   },
   spec: {

@@ -20,7 +20,7 @@ resources:
   type: storage.jinja
   properties:
     zone: SET_THE_ZONE
-    createPipelinePersistentStorage: SET_CREAT_PIPELINE_PERSISTENT_STORAGE
+    createPipelinePersistentStorage: SET_CREATE_PIPELINE_PERSISTENT_STORAGE
     disks:
      - sizeGb: 20
        diskType: pd-standard
