@@ -119,14 +119,18 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	if options[string(kftypes.IPNAME)] != nil {
 		ipName := options[string(kftypes.IPNAME)].(string)
 		_gcp.GcpApp.Spec.IpName = ipName
-	}
-	if options[string(kftypes.HOSTNAME)] != nil {
-		hostname := options[string(kftypes.HOSTNAME)].(string)
-		_gcp.GcpApp.Spec.IpName = hostname
+	} else if _gcp.GcpApp.Name != "" {
+		_gcp.GcpApp.Spec.IpName = _gcp.GcpApp.Name + "-ip"
 	}
 	if options[string(kftypes.PROJECT)] != nil {
 		project := options[string(kftypes.PROJECT)].(string)
 		_gcp.GcpApp.Spec.Project = project
+	}
+	if options[string(kftypes.HOSTNAME)] != nil {
+		hostname := options[string(kftypes.HOSTNAME)].(string)
+		_gcp.GcpApp.Spec.Hostname = hostname
+	} else if _gcp.GcpApp.Name != "" && _gcp.GcpApp.Spec.Project != "" {
+		_gcp.GcpApp.Spec.Hostname = fmt.Sprintf("%v.endpoints.%v.cloud.goog", _gcp.GcpApp.Name, _gcp.GcpApp.Spec.Project)
 	}
 	if options[string(kftypes.SKIP_INIT_GCP_PROJECT)] != nil {
 		skipInitProject := options[string(kftypes.SKIP_INIT_GCP_PROJECT)].(bool)
