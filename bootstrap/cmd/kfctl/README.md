@@ -62,20 +62,20 @@ type KfApp interface {
 }
 ```
 
-kfctl will dynamically load platforms that implement the KfApp interface. 
+kfctl will statically include platforms that implement the KfApp interface. 
 These include:
 
 - platform: **ksonnet** 
   - bootstrap/pkg/client/ksonnet/ksonnet.go
 - platform: **minikube** 
   - bootstrap/pkg/client/minikube/minikube.go
-- platform: **docker-for-desktop** 
-  - bootstrap/pkg/client/dockerfordesktop/dockerfordesktop.go
 - platform: **gcp** 
   - bootstrap/pkg/client/gcp/gcp.go
 - platform: **ack** (in progress)
   - bootstrap/pkg/client/ack/ack.go
 
+kfctl can also dynamically load platforms that are not statically linked, as 
+described below in [Extending kfctl](#extending-kfctl).
 
 ## Usage
 
