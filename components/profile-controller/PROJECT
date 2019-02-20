@@ -1,0 +1,3 @@
+version: "1"
+domain: kubeflow.org
+repo: github.com/kubeflow/kubeflow/components/profile-controller
