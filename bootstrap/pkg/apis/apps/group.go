@@ -25,6 +25,9 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"os"
 	"path/filepath"
+	/* PLUGINS
+	"plugin"
+	/* PLUGINS */
 	"regexp"
 	"strings"
 )
@@ -55,6 +58,7 @@ const (
 	EMAIL       CliOption = "email"
 	IPNAME      CliOption = "ipName"
 	MOUNT_LOCAL CliOption = "mount-local"
+	DEBUG       CliOption = "debug"
 	VERBOSE     CliOption = "verbose"
 	NAMESPACE   CliOption = "namespace"
 	VERSION     CliOption = "version"
@@ -75,6 +79,28 @@ type KfApp interface {
 	Delete(resources ResourceEnum, options map[string]interface{}) error
 	Generate(resources ResourceEnum, options map[string]interface{}) error
 	Init(options map[string]interface{}) error
+}
+
+func LoadPlatform(options map[string]interface{}) (KfApp, error) {
+	/* PLUGINS
+	platform := options[string(PLATFORM)].(string)
+	platform = strings.Replace(platform, "-", "", -1)
+	plugindir := os.Getenv("PLUGINS_ENVIRONMENT")
+	pluginpath := filepath.Join(plugindir, platform+".so")
+	p, err := plugin.Open(pluginpath)
+	if err != nil {
+		return nil, fmt.Errorf("could not load plugin %v for platform %v Error %v", pluginpath, platform, err)
+	}
+	symName := "GetKfApp"
+	symbol, symbolErr := p.Lookup(symName)
+	if symbolErr != nil {
+		return nil, fmt.Errorf("could not find symbol %v for platform %v Error %v", symName, platform, symbolErr)
+	}
+	return symbol.(func(map[string]interface{}) KfApp)(options), nil
+	/* PLUGINS */
+	// STATIC
+	return nil, fmt.Errorf("could not load platform")
+	// -STATIC //
 }
 
 func KubeConfigPath() string {

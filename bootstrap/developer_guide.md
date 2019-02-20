@@ -13,11 +13,11 @@ ln -sf ${GIT_KUBEFLOW} ${GOPATH}/src/github.com/kubeflow/kubeflow
 
 ### Prerequisites
 
-golang to 1.11.2
+golang to 1.11.5
 
 ```sh
 $ ☞  go version
-go version go1.11.2 darwin/amd64
+go version go1.11.5 darwin/amd64
 ```
 
 On mac osx you can run
@@ -26,9 +26,9 @@ On mac osx you can run
 brew upgrade golang
 ```
 
-golang-1.11.2 uses go.mod, go.sum files which include dependencies.
+golang-1.11.5 uses go.mod, go.sum files which include dependencies.
 To install a new dependency use `go get <dependency>`.
-golang-1.11.2 no longer creates a vendor directory.
+golang-1.11.5 no longer creates a vendor directory.
 You should add the environment variable `GO111MODULE=on` to your shell init file
 
 ### Makefile targets
@@ -56,26 +56,7 @@ export GCLOUD_PROJECT=mygcloudproject
 make push
 ```
 
-#### `make debug`
-Depends on `make push` and `make cleanup`
-1. deploys a Namespace, PersistentVolumeClaim and StatefulSet using $(IMG), $(TAG), $(PORT)
-2. waits for pod kubeflow-bootstrapper-0 to be in phase 'Running'
-3. runs "kubectl port-forward ..." in the background, opening port 2345 to the pod's container
-4. wait - cleanup (kill port-forward command) on Ctrl-C
-5. when the script exits (Ctrl-C) it will kill "kubectl port-forward ..."
-6. in order to clean up all resources deployed in step 1 run `make cleanup`
-
-The StatefulSet will create a pod and start the following process in the pod's kubeflow-bootstrapper-0 container
-```sh
-/opt/kubeflow/dlv.sh
-```
-This script runs
-
-```sh
-dlv --listen=:2345 --headless=true --api-version=2 exec /opt/kubeflow/bootstrapper -- --in-cluster --namespace=kubeflow
-```
-
-[dlv](https://github.com/derekparker/delve) is a golang debugger that works with JetBrain's [Goland](https://www.jetbrains.com/go/)
-
-In order to connect to the remote bootstrapper process, in goland add a "Go Remote" debug configuration like below
-![bootstrapper](./bootstrapper.png)
+#### `make static, make plugins`
+These targets are for kfctl and allows the goland debugger work by disabling plugins.
+This is a problem in the go compiler which should be fixed in 1.12.
+See the [kfctl/README.md](./cmd/kfctl) for additional information.

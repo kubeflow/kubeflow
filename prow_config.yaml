@@ -11,6 +11,21 @@ workflows:
     - bootstrap/*
     - kubeflow/*
     - testing/*
+    params:
+      workflowName: deployapp
+  # deploy app test runs tests on gke.
+  - app_dir: kubeflow/kubeflow/testing/workflows
+    component: click_deploy_test
+    name: deployapp-istio
+    job_types:
+    - periodic
+    include_dirs:
+    - bootstrap/*
+    - kubeflow/*
+    - testing/*
+    params:
+      installIstio: true
+      workflowName: deployapp-istio
   # kfctl test runs tests on gke.
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: kfctl_test
@@ -27,6 +42,7 @@ workflows:
     params:
       platform: gke
       gkeApiVersion: v1
+      workflowName: kfctl
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: kfctl_test
     name: kfctl-beta
@@ -40,11 +56,14 @@ workflows:
     params:
       platform: gke
       gkeApiVersion: v1beta1
+      workflowName: kfctl-beta
   # Run unittests
   # TODO(jlewi): Need to add step to run go and python unittests
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: unit_tests
     name: unittests
+    params:
+      workflowName: unittest
   # TODO(jlewi): We should be running the minikube workflow
   # on presubmit when the minikube E2E test itself changes
   # so we verify the test is working before submitting
@@ -63,6 +82,7 @@ workflows:
       - periodic
     params:
       platform: minikube
+      workflowName: e2e-minikube
     include_dirs:
       # Run on presubmit if any files used by minikube change
       - kubeflow/core/*
@@ -82,6 +102,8 @@ workflows:
       - kubeflow/tf-serving/*
       - components/k8s-model-server/*
       - testing/*
+    params:
+      workflowName: tfserving
 
   # Image Auto Release workflows.
   # The workflows below are related to auto building our Docker images.
@@ -115,7 +137,7 @@ workflows:
       - presubmit
     params:
       registry: "gcr.io/kubeflow-ci"
-      step_image: "gcr.io/kubeflow-ci/test-worker:v20181017-bfeaaf5-dirty-4adcd0"
+      step_image: "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4"
     include_dirs:
       - components/tensorflow-notebook-image/*
   # The postsubmit run publishes the docker images to gcr.io/kubeflow-images-public
@@ -126,6 +148,6 @@ workflows:
       - postsubmit
     params:
       registry: "gcr.io/kubeflow-images-public"
-      step_image: "gcr.io/kubeflow-ci/test-worker:v20181017-bfeaaf5-dirty-4adcd0"
+      step_image: "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4"
     include_dirs:
       - components/tensorflow-notebook-image/*

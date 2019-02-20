@@ -48,16 +48,8 @@
         },
       },
     },
-    local crd(inst) = {
-      local version =
-        inst + if params.tfJobVersion == "v1alpha2" then
-          { spec+: { version: "v1alpha2" } }
-        else
-          {},
-      return:: version,
-    }.return,
 
-    local tfJobCrd = crd({
+    local tfJobCrd = {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
       metadata: {
@@ -72,14 +64,29 @@
           singular: "tfjob",
           plural: "tfjobs",
         },
+        subresources: {
+          status: {},
+        },
         validation: { openAPIV3Schema: openAPIV3Schema },
+        versions: [
+          {
+            name: "v1beta1",
+            served: true,
+            storage: true,
+          },
+          {
+            name: "v1beta2",
+            served: true,
+            storage: false,
+          },
+	],
       },
-    }),
+    },
     tfJobCrd:: tfJobCrd,
 
     local tfJobContainer = {
       command: [
-        "/opt/kubeflow/tf-operator.v1beta1",
+        "/opt/kubeflow/tf-operator.v1beta2",
         "--alsologtostderr",
         "-v=1",
       ] + if params.deploymentScope == "namespace" &&
@@ -128,7 +135,7 @@
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
-        name: "tf-job-operator-v1beta1",
+        name: "tf-job-operator",
         namespace: params.namespace,
       },
       spec: {
@@ -155,25 +162,7 @@
           },
         },
       },
-    } + if params.tfJobVersion == "v1alpha2" then
-      deployment.mixin.metadata.
-        withName("tf-job-operator-v1alpha2") +
-      deployment.mapContainers(
-        function(c) {
-          local container = deployment.mixin.spec.template.spec.containersType,
-          local cmd = [
-            "/opt/kubeflow/tf-operator.v2",
-            "--alsologtostderr",
-            "-v=1",
-          ] + if params.deploymentScope == "namespace" &&
-                 params.deploymentNamespace != null then [
-            "--namespace=" + params.deploymentNamespace,
-          ] else [],
-          result:: c + container.withCommand(cmd),
-        }.result,
-      )
-    else
-      {},
+    },
     tfJobDeployment:: tfJobDeployment,
 
     local tfConfigMap = {
@@ -231,6 +220,7 @@
       ],).
         withResourcesMixin([
         "tfjobs",
+        "tfjobs/status",
       ],).
         withVerbsMixin([
         "*",

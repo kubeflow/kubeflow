@@ -20,8 +20,9 @@ GOPATH ?= $(HOME)/go
 IMG ?= gcr.io/$(GCLOUD_PROJECT)/bootstrapper
 TAG ?= $(shell git describe --tags --always --dirty)
 PORT ?= 2345
-export GO111MODULE=on
-export GO=go
+PLUGINS_ENVIRONMENT ?= $(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin
+export GO111MODULE = on
+export GO = go
 
 all: build
 
@@ -46,13 +47,13 @@ build-bootstrap: generate fmt vet
 build-kfctl: generate fmt vet
 	$(GO) build -i -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
 
-build-foo-plugin: generate fmt vet
-	$(GO) build -i -gcflags 'all=-N -l' -o bin/foo.so -buildmode=plugin cmd/plugins/foo.go
+build-dockerfordesktop-plugin: generate fmt vet
+	$(GO) build -i -gcflags 'all=-N -l' -o bin/dockerfordesktop.so -buildmode=plugin cmd/plugins/dockerfordesktop/dockerfordesktop.go
 
 build-local: build-bootstrap build-kfctl
 
 # To edit which registries to add to bootstrapper, edit config (eg. config/default.yaml)
-build: build-local
+build:
 	rm -rf reg_tmp
 	mkdir -p reg_tmp/kubeflow
 	cp -r ../kubeflow reg_tmp/kubeflow
@@ -84,26 +85,32 @@ run-local-docker:
 	  --mount type=bind,source=${HOME}/kf_app,target=/home/kubeflow \
 	  --entrypoint /bin/bash $(IMG):$(TAG)
 
-# init ~/myapp --platform none
-test-known-platforms-init: install build-foo-plugin
-	@rm -rf $(HOME)/ksonnet && \
-	kfctl init $(HOME)/ksonnet -V --platform none --version master && \
+test-known-platforms-init: install build-dockerfordesktop-plugin
+	@rm -rf $(HOME)/dockerfordesktop && \
+	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/dockerfordesktop -V --platform docker-for-desktop --version master && \
+	rm -rf $(HOME)/ksonnet && \
+	kfctl init $(HOME)/ksonnet -V --platform ksonnet --version master && \
 	rm -rf $(HOME)/minikube && \
 	kfctl init $(HOME)/minikube -V --platform minikube --version master && \
-	rm -rf $(HOME)/foo && \
-	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl init $(HOME)/foo -V --platform foo --version master && \
 	echo SUCCESS
 
-# generate all --email john@foo.com --ipName 35.233.240.120
 test-known-platforms-generate: test-known-platforms-init
-	@cd ~/ksonnet && \
+	@cd ~/dockerfordesktop && \
+	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl generate all -V && \
+	cd ~/ksonnet && \
 	kfctl generate all -V && \
 	cd ~/minikube && \
 	kfctl generate all -V --mount-local && \
-	cd ~/foo && \
-	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl generate all -V && \
 	echo SUCCESS
 
-test-foo-plugin:
-	rm -rf $(HOME)/foo
-	PLUGINS_ENVIRONMENT=$(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin kfctl init $(HOME)/foo --platform foo
+
+# static and plugins toogle whether we try and load a platform as a .so.
+# There is an example plugin 'dockerfordesktop' that can be loaded as a .so.
+# By default we disable loading plugins and link dockerfordesktop into the kfctl binary (static)
+static:
+	@ex pkg/apis/apps/group.go <hack/static
+	@ex cmd/kfctl/cmd/root.go <hack/static || echo Plugin functionality disabled
+
+plugins:
+	@ex pkg/apis/apps/group.go <hack/plugins
+	@ex cmd/kfctl/cmd/root.go <hack/plugins || echo Plugin functionality enabled

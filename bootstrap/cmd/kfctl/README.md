@@ -25,15 +25,13 @@ New directories (`cmd/kfctl, pkg`):
 ```sh
 bootstrap/cmd/kfctl
 bootstrap/cmd/kfctl/cmd
-bootstrap/pkg
-bootstrap/pkg/apis
+bootstrap/cmd/plugins/dockerfordesktop
 bootstrap/pkg/apis/apps
 bootstrap/pkg/apis/apps/ksonnet/v1alpha1
 bootstrap/pkg/utils
-bootstrap/pkg/client
+bootstrap/pkg/client/dockerfordesktop
 bootstrap/pkg/client/ksonnet
 bootstrap/pkg/client/minikube
-bootstrap/plugins
 ```
 
 ### KfApp Interface
@@ -49,6 +47,7 @@ const (
 	K8S      ResourceEnum = "k8s"
 	PLATFORM ResourceEnum = "platform"
 )
+
 //
 // KfApp is used by commands under bootstrap/cmd/{bootstrap,kfctl}. KfApp provides a common
 // API for different implementations like Ksonnet, GcpApp, MinikubeApp, etc.
@@ -63,14 +62,12 @@ type KfApp interface {
 
 kfctl includes platforms that implement the KfApp interface. (gcp will be added in the next phase)
 
-- platform: **none**
+- platform: **ksonnet**
   - bootstrap/pkg/client/ksonnet/ksonnet.go
 - platform: **minikube**
   - bootstrap/pkg/client/minikube/minikube.go
-- platform: **docker-for-desktop** (in progress)
+- platform: **docker-for-desktop**
   - bootstrap/pkg/client/dockerfordesktop/dockerfordesktop.go
-- platform: **ack** (in progress)
-  - bootstrap/pkg/client/ack/ack.go
 
 ## Usage
 
@@ -116,11 +113,12 @@ Usage:
   kfctl init <[path/]name> [flags]
 
 Flags:
+      --debug              debug debug default is false
   -h, --help               help for init
   -n, --namespace string   namespace where kubeflow will be deployed (default "kubeflow")
   -p, --platform string    one of 'gcp|minikube|docker-for-desktop|ack' (default "none")
       --project string     name of the gcp project if --platform gcp
-  -r, --repo string        local github kubeflow repo  (default "$GOPATH/src/github.com/kubeflow/kubeflow/kubeflow")
+  -r, --repo string        local github kubeflow repo
   -V, --verbose            verbose output default is false
   -v, --version string     desired version Kubeflow or latest tag if not provided by user  (default "v0.4.1")
 ```
@@ -178,7 +176,7 @@ Flags:
 ## Extending kfctl
 
 `kfctl` can be extended to work with new platforms without requiring recompilation.
-An example is under bootstrap/cmd/plugins/fooapp.go. A particular platform
+An example is under bootstrap/cmd/plugins/dockerfordesktop/dockerfordesktop.go. A particular platform
 provides a shared library (.so) under the env var `PLUGINS_ENVIRONMENT`
 that kfctl would load and execute. The shared library needs to define
 
@@ -191,27 +189,27 @@ where the return type implements the [KfApp Interface](#kfapp-interface).
 In this sample, running
 
 ```
-kfctl init ~/foo-app --platform foo
+kfctl init ~/dockerfordesktop --platform dockerfordesktop
 ```
 
-will result in kfctl loading $PLUGINS_ENVIRONMENT/fooapp.so and calling its methods that
+will result in kfctl loading $PLUGINS_ENVIRONMENT/dockerfordesktop.so and calling its methods that
 implement the KfApp Interface.
 
 ### Building the sample plugin
 
 ```
-make build-foo-plugin
+make build-dockerfordesktop-plugin
 ```
 
 ## Testing
 
-### Testing init for all platforms including the `foo` platform plugin
+### Testing init for all platforms including the `dockerfordesktop` platform plugin
 
 ```
 make test-known-platforms-init
 ```
 
-### Testing generate for all platforms including the `foo` platform plugin
+### Testing generate for all platforms including the `dockerfordesktop` platform plugin
 
 ```
 make test-known-platforms-generate
@@ -221,30 +219,30 @@ make test-known-platforms-generate
 
 In order to debug in goland, the plugin code must be disabled.
 See https://github.com/golang/go/issues/23733.
-This is expected to be resolved with golang 1.12.
-You'll need to comment out a section in bootstrap/cmd/kfctl/cmd/root.go
-so that the plugin package is not imported.
-Change root.go (~#45) to look like below and goland debug should work.
+This is expected to be resolved with golang 1.12.X
+To disable the plugin code (which will cause dockerfordesktop.go to be linked statically in kfctl)
+and allow debugging in goland run:
 
-```golang
-	default:
-/*
-		plugindir := os.Getenv("PLUGINS_ENVIRONMENT")
-		pluginpath := filepath.Join(plugindir, platform+".so")
-		p, err := plugin.Open(pluginpath)
-		if err != nil {
-			return nil, fmt.Errorf("could not load plugin %v for platform %v Error %v", pluginpath, platform, err)
-		}
-		symName := "Get" + strings.ToUpper(platform[0:1]) + platform[1:] + "App"
-		symbol, symbolErr := p.Lookup(symName)
-		if symbolErr != nil {
-			return nil, fmt.Errorf("could not find symbol %v for platform %v Error %v", symName, platform, symbolErr)
-		}
-		return symbol.(func(map[string]interface{}) kftypes.KfApp)(options), nil
-*/
-		return nil, fmt.Errorf("unknown platform %v", platform)
-	}
 ```
+make static
+```
+
+otherwise run
+
+```
+make plugins
+```
+
+Note: the default is `make static`. Do not checkin code after doing `make plugins`.
+
+Note: static and plugins make targets result in 2 files being changed:
+- pkg/apis/apps/group.go
+- cmd/kfctl/cmd/root.go
+
+These files have comments that are toggled (effectively a golang macro hack).
+This will go away when the fix noted above is available and we've moved to
+this version of go.
+
 
 ## KfApp Types used in app.yaml
 

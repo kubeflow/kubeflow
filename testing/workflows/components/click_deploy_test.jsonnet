@@ -46,6 +46,8 @@ local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
 
 local project = "kubeflow-ci";
 
+local manifest = if util.toBool(params.installIstio) then "test_deploy_istio.yaml" else "test_deploy.yaml";
+
 // Build an Argo template to execute a particular command.
 // step_name: Name for the template
 // command: List to pass as the container command.
@@ -191,7 +193,7 @@ local dagTemplates = [
       [
         runPath,
         bootstrapDir + "/test_setup.sh",
-        bootstrapDir + "/test_deploy.yaml",
+        bootstrapDir + "/" + manifest,
         name,
         "kubeflow-testing",
         "us-east1-d",
@@ -210,8 +212,9 @@ local dagTemplates = [
         "-m",
         "testing.test_deploy_app",
         "--namespace=" + name,
-        "--artifacts_dir=" + outputDir,
+        "--artifacts_dir=" + artifactsDir,
         "--iap_wait_min=15",
+        "--workflow_name=" + params.workflowName,
       ],
       working_dir=testDir
     ),
