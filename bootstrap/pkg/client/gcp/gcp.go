@@ -184,6 +184,7 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 		if resp.Name != gcp.GcpApp.Name {
 			return fmt.Errorf("Deployment name doesn't match: %v v.s. %v", resp.Name, gcp.GcpApp.Name)
 		}
+		dp.Fingerprint = resp.Fingerprint
 		_, updateErr := deploymentmanagerService.Deployments.Update(project, deployment, dp).Context(ctx).Do()
 		if updateErr != nil {
 			return fmt.Errorf("Update deployment error: %v", updateErr)
