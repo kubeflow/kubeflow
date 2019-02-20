@@ -141,6 +141,10 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	return _gcp
 }
 
+func getSA(name string, nameSuffix string, project string) string {
+	return fmt.Sprintf("%v-%v@%v.iam.gserviceaccount.com", name, nameSuffix, project)
+}
+
 func (gcp *Gcp) writeConfigFile() error {
 	buf, bufErr := yaml.Marshal(gcp.GcpApp)
 	if bufErr != nil {
@@ -222,6 +226,12 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 			return fmt.Errorf("could not update %v: %v", GCFS_FILE, err)
 		}
 	}
+
+	// TODO(gabrielwen): Add iam_patch policy here.
+	// TODO(gabrielwen): Set credentials for kubectl context.
+	// TODO(gabrielwen): Create a named context.
+	// TODO(gabrielwen): Set user as cluster admin.
+	// TODO(gabrielwen): Create namespace if necessary.
 	return nil
 }
 
@@ -455,11 +465,14 @@ func (gcp *Gcp) generateDMConfigs(options map[string]interface{}) error {
 	if iamBindingsDataErr != nil {
 		return fmt.Errorf("could not read %v Error %v", to, iamBindingsDataErr)
 	}
-	repl := "serviceAccount:" + gcp.GcpApp.Name + "-admin@" + gcp.GcpApp.Spec.Project + ".iam.gserviceaccount.com"
+	adminEmail := getSA(gcp.GcpApp.Name, "admin", gcp.GcpApp.Spec.Project)
+	repl := "serviceAccount:" + adminEmail
 	iamBindingsData = gcp.replaceText("set-kubeflow-admin-service-account", repl, iamBindingsData)
-	repl = "serviceAccount:" + gcp.GcpApp.Name + "-user@" + gcp.GcpApp.Spec.Project + ".iam.gserviceaccount.com"
+	userEmail := getSA(gcp.GcpApp.Name, "user", gcp.GcpApp.Spec.Project)
+	repl = "serviceAccount:" + userEmail
 	iamBindingsData = gcp.replaceText("set-kubeflow-admin-service-account", repl, iamBindingsData)
-	repl = "serviceAccount:" + gcp.GcpApp.Name + "-vm@" + gcp.GcpApp.Spec.Project + ".iam.gserviceaccount.com"
+	vmEmail := getSA(gcp.GcpApp.Name, "vm", gcp.GcpApp.Spec.Project)
+	repl = "serviceAccount:" + vmEmail
 	iamBindingsData = gcp.replaceText("set-kubeflow-vm-service-account", repl, iamBindingsData)
 	iamEntry := "serviceAccount:" + gcp.GcpApp.Spec.Email
 	re := regexp.MustCompile("iam.gserviceaccount.com")
@@ -556,8 +569,8 @@ func (gcp *Gcp) createSecrets() error {
 	if secretsDirErr != nil {
 		return fmt.Errorf("cannot create directory %v Error %v", secretsDir, secretsDirErr)
 	}
-	adminEmail := gcp.GcpApp.Name + "admin@" + gcp.GcpApp.Spec.Project + ".iam.gserviceaccount.com"
-	userEmail := gcp.GcpApp.Name + "user@" + gcp.GcpApp.Spec.Project + ".iam.gserviceaccount.com"
+	adminEmail := getSA(gcp.GcpApp.Name, "admin", gcp.GcpApp.Spec.Project)
+	userEmail := getSA(gcp.GcpApp.Name, "user", gcp.GcpApp.Spec.Project)
 	adminSecretErr := gcp.createGcpSecret(adminEmail, ADMIN_SECRET_NAME)
 	if adminSecretErr != nil {
 		return fmt.Errorf("cannot create admin secret %v Error %v", ADMIN_SECRET_NAME, adminSecretErr)
