@@ -14,16 +14,20 @@ limitations under the License.
 package utils
 
 import (
-	"errors"
-	"fmt"
+	"bytes"
+	"encoding/json"
 	"github.com/ghodss/yaml"
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	"io/ioutil"
+	"strings"
 
-	"os"
-	"os/user"
-	"path"
+	ksUtil "github.com/ksonnet/ksonnet/utils"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/client-go/rest"
 
 	// Auth plugins
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -33,52 +37,99 @@ import (
 // RecommendedConfigPathEnvVar is a environment variable for path configuration
 const RecommendedConfigPathEnvVar = "KUBECONFIG"
 
-// GetKubeConfigFile tries to find a kubeconfig file.
-func GetKubeConfigFile() string {
-	configFile := ""
-	usr, err := user.Current()
-	if err != nil {
-		log.Warningf("Could not get current user; error %v", err)
-	} else {
-		configFile = path.Join(usr.HomeDir, ".kube", "config")
-	}
-	if len(os.Getenv(RecommendedConfigPathEnvVar)) > 0 {
-		configFile = os.Getenv(RecommendedConfigPathEnvVar)
-	}
-	return configFile
-}
+const (
+	yamlSeparator = "---"
+)
 
-func GetApiServer() (string, error) {
-	kubeconfig := viper.New()
-	path := GetKubeConfigFile()
-	kubeconfig.SetConfigType("yaml")
-	kubeconfig.SetConfigFile(path)
-	configErr := kubeconfig.ReadInConfig()
-	if configErr != nil {
-		return "", fmt.Errorf("could not read in %v. Error: %v", path, configErr)
-	}
-	currentContext := kubeconfig.GetString("current-context")
-	log.Infof("current-context is %v", currentContext)
-
-	clusters := kubeconfig.GetStringMap("clusters")
-	for cluster := range clusters {
-		log.Infof("cluster is %v", cluster)
-
-	}
-	return "", nil
-}
-
-// Load yaml config
-func LoadConfigFile(path string, o interface{}) error {
-	if path == "" {
-		return errors.New("empty path")
-	}
-	data, err := ioutil.ReadFile(path)
+// TODO COPIED from bootstrap/app/k8sUtil.go. Need to merge.
+// CreateResourceFromFile creates resources from a file, just like `kubectl create -f filename`
+// We use some libraries in an old way (e.g. the RestMapper is in discovery instead of restmapper)
+// because ksonnet (one of our dependency) is using the old library version.
+// TODO: it can't handle "kind: list" yet.
+func CreateResourceFromFile(config *rest.Config, filename string) error {
+	// Create a restmapper to determine the resource type.
+	discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
 	if err != nil {
 		return err
 	}
-	if err = yaml.Unmarshal(data, o); err != nil {
+	cacheClient := ksUtil.NewMemcachedDiscoveryClient(discoveryClient)
+	mapper := discovery.NewDeferredDiscoveryRESTMapper(cacheClient, dynamic.VersionInterfaces)
+
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
 		return err
 	}
+	objects := bytes.Split(data, []byte(yamlSeparator))
+	var o map[string]interface{}
+	for _, object := range objects {
+		if err = yaml.Unmarshal(object, &o); err != nil {
+			return err
+		}
+		a := o["apiVersion"]
+		if a == nil {
+			log.Warnf("Unknown resource: %v", object)
+			continue
+		}
+		apiVersion := strings.Split(a.(string), "/")
+		var group, version string
+		if len(apiVersion) == 1 {
+			// core v1, no group. e.g. namespace
+			group, version = "", apiVersion[0]
+		} else {
+			group, version = apiVersion[0], apiVersion[1]
+		}
+		kind := o["kind"].(string)
+		gk := schema.GroupKind{
+			Group: group,
+			Kind:  kind,
+		}
+		result, err := mapper.RESTMapping(gk, version)
+		// result.resource is the resource we need (e.g. pods, services)
+		if err != nil {
+			return err
+		}
+
+		// build config for restClient
+		c := rest.CopyConfig(config)
+		c.GroupVersion = &schema.GroupVersion{
+			Group:   group,
+			Version: version,
+		}
+		c.NegotiatedSerializer = serializer.DirectCodecFactory{CodecFactory: scheme.Codecs}
+		if group == "" {
+			c.APIPath = "/api"
+		} else {
+			c.APIPath = "/apis"
+		}
+		restClient, err := rest.RESTClientFor(c)
+		if err != nil {
+			return err
+		}
+
+		// build the request
+		metadata := o["metadata"].(map[string]interface{})
+		name := metadata["name"].(string)
+		log.Infof("creating %v\n", name)
+
+		var namespace string
+		if metadata["namespace"] != nil {
+			namespace = metadata["namespace"].(string)
+		} else {
+			namespace = "default"
+		}
+		body, err := json.Marshal(o)
+		if err != nil {
+			return err
+		}
+		request := restClient.Post().Resource(result.Resource).Body(body)
+		if result.Scope.Name() == "namespace" {
+			request = request.Namespace(namespace)
+		}
+		_, err = request.DoRaw()
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

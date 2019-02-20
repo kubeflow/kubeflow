@@ -40,6 +40,7 @@ const (
 	DefaultGitRepo  = "https://github.com/kubeflow/kubeflow/tarball"
 	KfConfigFile    = "app.yaml"
 	DefaultCacheDir = ".cache"
+	DefaultZone     = "us-east1-d"
 )
 
 type ResourceEnum string
