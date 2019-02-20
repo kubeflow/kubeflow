@@ -24,6 +24,7 @@ import (
 	gcptypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/gcp/v1alpha1"
 	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksonnet"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
@@ -206,6 +207,30 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 	if err != nil {
 		return fmt.Errorf("could not update %v", "gcfs.yaml")
 	}
+
+	client, clientErr := kftypes.BuildOutOfClusterConfig()
+	if clientErr != nil {
+		return fmt.Errorf("could not create client %v", clientErr)
+	}
+	appDir := gcp.GcpApp.Spec.AppDir
+	k8sSpecsDir := path.Join(appDir, K8S_SPECS)
+	daemonsetPreloaded := filepath.Join(k8sSpecsDir, "daemonset-preloaded.yaml")
+	daemonsetPreloadedErr := utils.CreateResourceFromFile(client, daemonsetPreloaded)
+	if daemonsetPreloadedErr != nil {
+		return fmt.Errorf("could not create resources in daemonset-preloaded.yaml %v", daemonsetPreloadedErr)
+	}
+	//TODO this needs to be kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/rbac-setup.yaml --as=admin --as-group=system:masters
+	rbacSetup := filepath.Join(k8sSpecsDir, "rbac-setup.yaml")
+	rbacSetupErr := utils.CreateResourceFromFile(client, rbacSetup)
+	if rbacSetupErr != nil {
+		return fmt.Errorf("could not create resources in rbac-setup.yaml %v", rbacSetupErr)
+	}
+	agents := filepath.Join(k8sSpecsDir, "agents.yaml")
+	agentsErr := utils.CreateResourceFromFile(client, agents)
+	if agentsErr != nil {
+		return fmt.Errorf("could not create resources in agents.yaml %v", agents)
+	}
+
 	return nil
 }
 
@@ -263,6 +288,13 @@ func (gcp *Gcp) copyFile(source string, dest string) error {
 }
 
 func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
+	project := gcp.GcpApp.Spec.Project
+	if options[string(kftypes.PROJECT)] != nil {
+		project = options[string(kftypes.PROJECT)].(string)
+		if project == "" {
+			return fmt.Errorf("project parameter required for iam_bindings")
+		}
+	}
 	email := gcp.GcpApp.Spec.Email
 	if options[string(kftypes.EMAIL)] != nil {
 		email = options[string(kftypes.EMAIL)].(string)
@@ -274,28 +306,24 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 	if options[string(kftypes.IPNAME)] != nil {
 		ipName = options[string(kftypes.IPNAME)].(string)
 		if ipName == "" {
-			return fmt.Errorf("ipName parameter required for iap-ingress")
+			gcp.GcpApp.Spec.IpName = gcp.GcpApp.Name + "-ip"
+			ipName = gcp.GcpApp.Spec.IpName
 		}
 	}
 	hostname := gcp.GcpApp.Spec.Hostname
 	if options[string(kftypes.HOSTNAME)] != nil {
 		hostname = options[string(kftypes.HOSTNAME)].(string)
 		if hostname == "" {
-			return fmt.Errorf("hostname parameter required for iap-ingress")
-		}
-	}
-	project := gcp.GcpApp.Spec.Project
-	if options[string(kftypes.PROJECT)] != nil {
-		project = options[string(kftypes.PROJECT)].(string)
-		if project == "" {
-			return fmt.Errorf("project parameter required for iam_bindings")
+			gcp.GcpApp.Spec.Hostname = gcp.GcpApp.Name + ".endpoints." + gcp.GcpApp.Spec.Project + ".cloud.goog"
+			hostname = gcp.GcpApp.Spec.Hostname
 		}
 	}
 	zone := gcp.GcpApp.Spec.Zone
 	if options[string(kftypes.ZONE)] != nil {
 		zone = options[string(kftypes.ZONE)].(string)
 		if zone == "" {
-			return fmt.Errorf("zone parameter required for iam_bindings")
+			gcp.GcpApp.Spec.Zone = kftypes.DefaultZone
+			zone = gcp.GcpApp.Spec.Zone
 		}
 	}
 	kstypes.DefaultPackages = append(kstypes.DefaultPackages, []string{"gcp"}...)
@@ -494,19 +522,19 @@ func (gcp *Gcp) downloadK8sManifests() error {
 	}
 	daemonsetPreloaded := filepath.Join(k8sSpecsDir, "daemonset-preloaded.yaml")
 	url := "https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/stable/nvidia-driver-installer/cos/daemonset-preloaded.yaml"
-	urlErr := gogetter.GetAny(daemonsetPreloaded, url)
+	urlErr := gogetter.GetFile(daemonsetPreloaded, url)
 	if urlErr != nil {
 		return fmt.Errorf("couldn't download %v Error %v", url, urlErr)
 	}
 	rbacSetup := filepath.Join(k8sSpecsDir, "rbac-setup.yaml")
 	url = "https://storage.googleapis.com/stackdriver-kubernetes/stable/rbac-setup.yaml"
-	urlErr = gogetter.GetAny(rbacSetup, url)
+	urlErr = gogetter.GetFile(rbacSetup, url)
 	if urlErr != nil {
 		return fmt.Errorf("couldn't download %v Error %v", url, urlErr)
 	}
 	agents := filepath.Join(k8sSpecsDir, "agents.yaml")
 	url = "https://storage.googleapis.com/stackdriver-kubernetes/stable/agents.yaml"
-	urlErr = gogetter.GetAny(agents, url)
+	urlErr = gogetter.GetFile(agents, url)
 	if urlErr != nil {
 		return fmt.Errorf("couldn't download %v Error %v", url, urlErr)
 	}
@@ -518,7 +546,7 @@ func (gcp *Gcp) downloadK8sManifests() error {
 	  # Install Stackdriver Kubernetes agents.
 	  kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/rbac-setup.yaml --as=admin --as-group=system:masters
 	  kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/agents.yaml
-	 */
+	*/
 
 	return nil
 }
@@ -557,11 +585,11 @@ func (gcp *Gcp) createGcpSecret(email string, secretName string) error {
 		if secretMissingErr != nil {
 			secretSpec := &v1.Secret{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: secretName,
+					Name:      secretName,
 					Namespace: gcp.GcpApp.Namespace,
 				},
 				Data: map[string][]byte{
-					v1.ServiceAccountTokenKey:[]byte(data),
+					v1.ServiceAccountTokenKey: []byte(data),
 				},
 			}
 			_, nsErr := cli.CoreV1().Secrets(gcp.GcpApp.Namespace).Create(secretSpec)
@@ -647,7 +675,7 @@ func (gcp *Gcp) getServiceClient(ctx context.Context) (*http.Client, error) {
 
 	client, err := google.DefaultClient(ctx, gke.CloudPlatformScope)
 	if err != nil {
-		log.Fatalf("Could not get authenticated client: %v", err)
+		log.Fatalf("Could not authenticate client: %v", err)
 		return nil, err
 	}
 	return client, nil
