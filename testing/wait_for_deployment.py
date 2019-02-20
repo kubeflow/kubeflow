@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-
+# -*- coding: utf-8 -*-
+#
 # Copyright 2018 The Kubeflow Authors All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,13 +14,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Wait for kubeflow deployment.
 
-Right now, it only checks for the presence of tfjobs and pytorchjobs crd. More things can be added incrementally.
-
-python -m testing.wait_for_deployment --cluster=kubeflow-testing --project=kubeflow-ci --zone=us-east1-d --timeout=3
-
+Right now, it only checks for the presence of tfjobs and pytorchjobs crd. More
+things can be added incrementally.
+python -m testing.wait_for_deployment --cluster=kubeflow-testing \
+    --project=kubeflow-ci --zone=us-east1-d --timeout=3
 
 TODO(jlewi): Waiting for the CRD's to be created probably isn't that useful.
 I think that will be nearly instantaneous. If we're going to wait for something
@@ -32,7 +32,6 @@ from __future__ import print_function
 import argparse
 import datetime
 import logging
-import os
 import subprocess
 import time
 
@@ -42,12 +41,10 @@ from kubeflow.testing import test_helper, util
 def parse_args():
   parser = argparse.ArgumentParser()
   parser.add_argument(
-    "--timeout",
-    default=5,
-    type=int,
-    help="Timeout in minutes")
+      "--timeout", default=5, type=int, help="Timeout in minutes")
   args, _ = parser.parse_known_args()
   return args
+
 
 def wait_for_resource(resource, end_time):
   while True:
@@ -58,22 +55,24 @@ def wait_for_resource(resource, end_time):
         logging.info("Found " + resource)
         break
     except subprocess.CalledProcessError as e:
-      logging.info("Could not find {}. Sleeping for 10 seconds..".format(resource))
+      logging.info(
+          "Could not find {}. Sleeping for 10 seconds..".format(resource))
       time.sleep(10)
 
-def test_wait_for_deployment(test_case): # pylint: disable=redefined-outer-name
+
+def test_wait_for_deployment(test_case):  # pylint: disable=redefined-outer-name
   args = parse_args()
   util.maybe_activate_service_account()
   util.load_kube_config()
-  end_time =  datetime.datetime.now() + datetime.timedelta(0, args.timeout*60)
+  end_time = datetime.datetime.now() + datetime.timedelta(0, args.timeout * 60)
   wait_for_resource("crd/tfjobs.kubeflow.org", end_time)
   wait_for_resource("crd/pytorchjobs.kubeflow.org", end_time)
   wait_for_resource("crd/studyjobs.kubeflow.org", end_time)
   logging.info("Found all resources successfully")
 
+
 if __name__ == "__main__":
   test_case = test_helper.TestCase(
-    name="test_wait_for_deployment", test_func=test_wait_for_deployment)
-  test_suite = test_helper.init(
-    name="", test_cases=[test_case])
+      name="test_wait_for_deployment", test_func=test_wait_for_deployment)
+  test_suite = test_helper.init(name="", test_cases=[test_case])
   test_suite.run()

@@ -39,7 +39,7 @@
               <!-- Text Inputs -->
               <div id="rokurl-input-div"
                   class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label wide">
-                <input class="mdl-textfield__input" type="url" 
+                <input class="mdl-textfield__input" type="url"
                        placeholder="Your Rok Jupyter Lab URL goes here"
                        id="rokLabURL" name="rokLabURL" data-required='true'>
                 <label class="mdl-textfield__label" for="rokLabURL">Rok URL
@@ -76,14 +76,14 @@
               <!-- Text Inputs -->
               <div id="name-input-div"
                   class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label wide">
-                <input class="mdl-textfield__input" type="text" 
+                <input class="mdl-textfield__input" type="text"
                       id="nm-inp" name="nm" data-required='true'>
                 <label class="mdl-textfield__label" for="nm-inp">Notebook Name
                 </label>
               </div>
 
               <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label wide">
-                <input class="mdl-textfield__input" type="text" data-required="true" 
+                <input class="mdl-textfield__input" type="text" data-required="true"
                       oninvalid="this.setCustomValidity('Please enter a Notebook Namespace')"
                       id="ns-inp" name="ns" value="{{ ns }}">
                 <label class="mdl-textfield__label" for="ns-inp">Namespace</label>
@@ -94,20 +94,20 @@
               <h5><i class="fab fa-docker"></i>Image</h5>
               <p class="text-muted nopad">
                 A starter Docker image for JupyterHub with a baseline deployment and typical ML packages.
-              </p>   
+              </p>
 
-              <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" 
+              <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect"
                     for="option_standard" id="custom-radio">
-                <input type="radio" class="mdl-radio__button" 
-                      name="imageType" value="standard" id="option_standard" 
+                <input type="radio" class="mdl-radio__button"
+                      name="imageType" value="standard" id="option_standard"
                       onclick="setImageType()" checked>
                 <span class="mdl-radio__label">Standard</span>
               </label>
               <!-- Radio Button Custom -->
-              <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" 
+              <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect"
                     for="option_custom" id="standard-radio">
-                <input type="radio" class="mdl-radio__button" 
-                      id="option_custom" name="imageType" 
+                <input type="radio" class="mdl-radio__button"
+                      id="option_custom" name="imageType"
                       value="custom" onclick="setImageType()">
                 <span class="mdl-radio__label">Custom</span>
               </label>
@@ -118,7 +118,7 @@
               <!-- Image Selector -->
               <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label wide"
                   id="img-sel-div">
-                <select class="mdl-textfield__input" 
+                <select class="mdl-textfield__input"
                         id="standardImages" name="standardImages" data-required="true">
                 </select>
                 <label class="mdl-textfield__label" for="standardImages">Image</label>
@@ -131,7 +131,7 @@
                       id="customImage" name="customImage" placeholder="repo/image:tag"
                       oninvalid="this.setCustomValidity('Select the Custom Image for the Notebook')">
                 <label class="mdl-textfield__label" for="customImage">Custom Image</label>
-              </div>    
+              </div>
 
               <!-- CPU -->
               <!-- Input Form -->
@@ -145,12 +145,12 @@
               <!-- Text Inputs -->
               <div id="cpu-input-div"
                   class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label wide">
-                <input class="mdl-textfield__input" type="text" 
-                      id='cpu' name='cpu' placeholder='200m, 2.5, etc' 
+                <input class="mdl-textfield__input" type="text"
+                      id='cpu' name='cpu' placeholder='200m, 2.5, etc'
                       data-required='true'>
                 <label class="mdl-textfield__label" for="cpu">CPU
                 </label>
-              </div>          
+              </div>
 
               <!-- Memory -->
               <h5><i class="fas fa-memory"></i>Memory</h5>
@@ -161,8 +161,8 @@
               <!-- Text Inputs -->
               <div id="memory-input-div"
                   class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label wide">
-                <input class="mdl-textfield__input" type="text" 
-                      id='memory' name='memory' placeholder='100Mi, 1.5Gi, etc' 
+                <input class="mdl-textfield__input" type="text"
+                      id='memory' name='memory' placeholder='100Mi, 1.5Gi, etc'
                       data-required='true'>
                 <label class="mdl-textfield__label" for="memory">Memory
                 </label>
@@ -183,10 +183,10 @@
               <div class="mdl-grid wide" style="padding: 0 0 0 0">
                 <!-- New - Existing select -->
                 <div class="mdl-cell mdl-cell--1-col" style="width: 14%">
-                  <div class="mdl-textfield mdl-js-textfield 
+                  <div class="mdl-textfield mdl-js-textfield
                               mdl-textfield--floating-label wide"
                       id="workspace-sel-div">
-                    <select class="mdl-textfield__input" 
+                    <select class="mdl-textfield__input"
                             id="ws_type" name="ws_type" data-required="true">
                       <option value="New" selected>New</option>
                       <option value="Existing">Existing</option>
@@ -198,9 +198,9 @@
                 <!-- RokURL Input -->
                 <div class="mdl-cell mdl-cell--1-col" style="width: 20%">
                     <div id="wsrokurl-input-div"
-                        class="mdl-textfield mdl-js-textfield 
+                        class="mdl-textfield mdl-js-textfield
                                 mdl-textfield--floating-label wide">
-                      <input class="mdl-textfield__input" type="text" 
+                      <input class="mdl-textfield__input" type="text"
                             id="ws_rok_url" name="ws_rok_url"
                             value="" placeholder="http://localhost:5005">
                       <label class="mdl-textfield__label" for="ws_rok_url">Rok Url</label>
@@ -209,9 +209,9 @@
                 <!-- Name Input -->
                 <div class="mdl-cell mdl-cell--1-col" style="width: 20%">
                   <div id="wsname-input-div"
-                      class="mdl-textfield mdl-js-textfield 
+                      class="mdl-textfield mdl-js-textfield
                               mdl-textfield--floating-label wide">
-                    <input class="mdl-textfield__input" type="text" 
+                    <input class="mdl-textfield__input" type="text"
                           id="ws_name" name="ws_name" data-required='true'
                           value=username + "-workspace">
                     <label class="mdl-textfield__label" for="ws_name">Name</label>
@@ -220,9 +220,9 @@
                 <!-- Size Input -->
                 <div class="mdl-cell mdl-cell--1-col" style="width: 8%">
                   <div id="size-input-div"
-                        class="mdl-textfield mdl-js-textfield 
+                        class="mdl-textfield mdl-js-textfield
                                 mdl-textfield--floating-label wide">
-                      <input class="mdl-textfield__input" type="number" step="0.5" 
+                      <input class="mdl-textfield__input" type="number" step="0.5"
                             id="ws_size" name="ws_size" data-required='true'
                             value=10>
                       <label class="mdl-textfield__label" for="ws_size">Size (Gi)</label>
@@ -231,9 +231,9 @@
                 <!-- Mount Path -->
                 <div class="mdl-cell mdl-cell--1-col" style="width: 20%">
                   <div id="mountpath-input-div"
-                      class="mdl-textfield mdl-js-textfield 
+                      class="mdl-textfield mdl-js-textfield
                               mdl-textfield--floating-label wide">
-                    <input class="mdl-textfield__input" type="text" 
+                    <input class="mdl-textfield__input" type="text"
                           id="ws_mount_path" name="ws_mount_path" data-required='true'
                           value="/home/jovyan">
                     <label class="mdl-textfield__label" for="ws_mount_path">Mount Path
@@ -245,12 +245,12 @@
               <!-- Error message when None Workspace Volume is selected -->
               <div id="error-msg-vol" class="wide" style="display: none">
                 <div class="alert alert-danger">
-                  <strong>Warning!</strong> Your workspace will not be persistent. 
-                  You will lose all data in it, if your notebook is terminated for 
+                  <strong>Warning!</strong> Your workspace will not be persistent.
+                  You will lose all data in it, if your notebook is terminated for
                   any reason.
                 </div>
               </div>
-            
+
               <!-- Data Volumes -->
               <h5><i class="far fa-hdd"></i>Data Volumes</h5>
               <p class="text-muted" style="padding: 10px;">
@@ -266,11 +266,11 @@
                       type="button" onclick="addVolume()" id="add_volume">
                 <i class="material-icons">add_circle</i>  <!-- class="material-icons"-->
               </button>
-              
+
               <!-- Data Volumes are added here -->
-              <div id="data_volumes">              
+              <div id="data_volumes">
               </div>
-            
+
               <h5><i class="fas fa-cogs"></i>Extra Resources</h5>
               <p class="text-muted nopad">
                 Reserve additional resources.</br>
@@ -279,7 +279,7 @@
               <!-- Text Inputs -->
               <div id="name-input-div"
                   class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label wide">
-                <input class="mdl-textfield__input" type="text" 
+                <input class="mdl-textfield__input" type="text"
                       id="extraResources" name="extraResources"
                       placeholder='{"nvidia.com/gpu": 2}' data-required="true">
                 <label class="mdl-textfield__label" for="nm-inp">Extra Resources
