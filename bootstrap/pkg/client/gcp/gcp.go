@@ -23,6 +23,7 @@ import (
 	gcptypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/gcp/v1alpha1"
 	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksonnet"
+	kfctlutils "github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
@@ -228,6 +229,19 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 	}
 
 	// TODO(gabrielwen): Add iam_patch policy here.
+	policy, policyErr := kfctlutils.GetIamPolicy(gcp.GcpApp.Spec.Project)
+	if policyErr != nil {
+		return fmt.Errorf("GetIamPolicy error: %v", policyErr)
+	}
+	appDir := gcp.GcpApp.Spec.AppDir
+	gcpConfigDir := path.Join(appDir, GCP_CONFIG)
+	iamPolicy, iamPolicyErr := kfctlutils.ReadIamBindingsYAML(
+		filepath.Join(gcpConfigDir, "iam_bindings.yaml"))
+	if iamPolicyErr != nil {
+		return fmt.Errorf("Read IAM policy YAML error: %v", iamPolicyErr)
+	}
+	kfctlutils.UpdateIamPolicy(policy, iamPolicy, nil)
+	log.Infof("Updating policy to: %v", policy)
 	// TODO(gabrielwen): Set credentials for kubectl context.
 	// TODO(gabrielwen): Create a named context.
 	// TODO(gabrielwen): Set user as cluster admin.
