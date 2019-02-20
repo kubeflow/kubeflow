@@ -153,7 +153,7 @@ func TestGetUpdatedPolicy(t *testing.T) {
 				}
 				binding := policy.Bindings[0]
 				if binding.Role != "admin" {
-					return fmt.Errorf("invalid role for the binding %q, expected to preserver 'admin'",
+					return fmt.Errorf("invalid role for the binding %q, expected to preserve 'admin'",
 						binding.Role)
 				}
 				if len(binding.Members) > 0 {
