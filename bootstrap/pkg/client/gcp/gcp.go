@@ -46,6 +46,8 @@ const (
 	SECRETS           = "secrets"
 	CONFIG_FILE       = "cluster-kubeflow.yaml"
 	STORAGE_FILE      = "storage-kubeflow.yaml"
+	NETWORK_FILE      = "network.yaml"
+	GCFS_FILE         = "gcfs.yaml"
 	ADMIN_SECRET_NAME = "admin-gcp-sa"
 	USER_SECRET_NAME  = "user-gcp-sa"
 )
@@ -208,13 +210,17 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 	if err != nil {
 		return fmt.Errorf("could not update %v: %v", CONFIG_FILE, err)
 	}
-	err = gcp.updateDeployment(gcp.GcpApp.Name+"-network", "network.yaml")
-	if err != nil {
-		return fmt.Errorf("could not update %v", "network.yaml")
+	if _, networkStatErr := os.Stat(path.Join(gcp.GcpApp.Spec.AppDir, NETWORK_FILE)); !os.IsNotExist(networkStatErr) {
+		err = gcp.updateDeployment(gcp.GcpApp.Name+"-network", NETWORK_FILE)
+		if err != nil {
+			return fmt.Errorf("could not update %v: %v", NETWORK_FILE, err)
+		}
 	}
-	err = gcp.updateDeployment(gcp.GcpApp.Name+"-gcfs", "gcfs.yaml")
-	if err != nil {
-		return fmt.Errorf("could not update %v", "gcfs.yaml")
+	if _, gcfsStatErr := os.Stat(path.Join(gcp.GcpApp.Spec.AppDir, GCFS_FILE)); !os.IsNotExist(gcfsStatErr) {
+		err = gcp.updateDeployment(gcp.GcpApp.Name+"-gcfs", GCFS_FILE)
+		if err != nil {
+			return fmt.Errorf("could not update %v: %v", GCFS_FILE, err)
+		}
 	}
 	return nil
 }
