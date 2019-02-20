@@ -150,13 +150,10 @@ func (gcp *Gcp) writeConfigFile() error {
 	return nil
 }
 
-func (gcp *Gcp) createDeployment() error {
-	return nil
-}
-
 func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 	appDir := gcp.GcpApp.Spec.AppDir
 	gcpConfigDir := path.Join(appDir, GCP_CONFIG)
+	dp := &deploymentmanager.Deployment{}
 	ctx := context.Background()
 	client, clientErr := google.DefaultClient(ctx, deploymentmanager.CloudPlatformScope)
 	if clientErr != nil {
@@ -169,7 +166,10 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 	project := gcp.GcpApp.Spec.Project
 	resp, err := deploymentmanagerService.Deployments.Get(project, deployment).Context(ctx).Do()
 	if err != nil {
-		return gcp.createDeployment()
+		_, deploymentErr := deploymentmanagerService.Deployments.Insert(project, dp).Context(ctx).Do()
+		if deploymentErr != nil {
+			return fmt.Errorf("couldn't create deployment Error: %v", deploymentErr)
+		}
 	}
 	if resp.Name == gcp.GcpApp.Name {
 		filePath := filepath.Join(gcpConfigDir, yamlfile)
@@ -177,7 +177,6 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 		if bufErr != nil {
 			return bufErr
 		}
-		dp := &deploymentmanager.Deployment{}
 		specErr := yaml.Unmarshal(buf, dp)
 		if specErr != nil {
 			return fmt.Errorf("couldn't unmarshal %v. Error: %v", filePath, specErr)
