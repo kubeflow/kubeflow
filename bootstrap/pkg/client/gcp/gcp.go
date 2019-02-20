@@ -28,6 +28,7 @@ import (
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
+	"google.golang.org/api/cloudresourcemanager/v1"
 	gke "google.golang.org/api/container/v1"
 	"google.golang.org/api/deploymentmanager/v2"
 	"google.golang.org/api/iam/v1"
@@ -41,6 +42,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -658,13 +660,36 @@ func (gcp *Gcp) gcpInitProject() error {
 	if clientErr != nil {
 		return fmt.Errorf("could not create client %v", clientErr)
 	}
+	resourceManager, resourceManagerErr := cloudresourcemanager.New(client)
+	if resourceManagerErr != nil {
+		return fmt.Errorf("could not fetch the resource manager %v", resourceManagerErr)
+	}
+	project, projectErr := resourceManager.Projects.Get(gcp.GcpApp.Spec.Project).Do()
+	if projectErr != nil {
+		return fmt.Errorf("could not fetch the project %v", projectErr)
+	}
+	projectNumber := strconv.FormatInt(project.ProjectNumber, 10)
 	serviceusageService, serviceusageServiceErr := serviceusage.New(client)
 	if serviceusageServiceErr != nil {
 		return fmt.Errorf("could not create service usage service %v", serviceusageServiceErr)
 	}
-	_, opErr := serviceusageService.Services.Enable("deploymentmanager.googleapis.com", &serviceusage.EnableServiceRequest{}).Context(ctx).Do()
-	if opErr != nil {
-		return fmt.Errorf("could not enable deploymentmanager %v", opErr)
+	services := []string{
+		"deploymentmanager.googleapis.com",
+		"servicemanagement.googleapis.com",
+		"container.googleapis.com",
+		"cloudresourcemanager.googleapis.com",
+		"endpoints.googleapis.com",
+		"file.googleapis.com",
+		"ml.googleapis.com",
+		"iam.googleapis.com",
+		"sqladmin.googleapis.com",
+	}
+	for _, service := range services {
+		_, opErr := serviceusageService.Services.Enable("projects/"+projectNumber+"/services/"+service,
+			&serviceusage.EnableServiceRequest{}).Context(ctx).Do()
+		if opErr != nil {
+			return fmt.Errorf("could not enable serviceusage %v", opErr)
+		}
 	}
 	return nil
 }
