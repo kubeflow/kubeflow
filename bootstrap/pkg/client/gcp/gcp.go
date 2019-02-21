@@ -78,7 +78,6 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 		},
 	}
 	_gcp.Children[kftypes.KSONNET] = _ksonnet
-	_gcp.GcpApp.Spec.UseBasicAuth = options[string(kftypes.USE_BASIC_AUTH)].(bool)
 	if options[string(kftypes.DATA)] != nil {
 		dat := options[string(kftypes.DATA)].([]byte)
 		specErr := yaml.Unmarshal(dat, _gcp.GcpApp)
@@ -142,6 +141,9 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	} else {
 		// Default to be v1beta1.
 		_gcp.GcpApp.Spec.GkeApiVersion = "v1beta1"
+	}
+	if options[string(kftypes.USE_BASIC_AUTH)] != nil {
+		_gcp.GcpApp.Spec.UseBasicAuth = options[string(kftypes.USE_BASIC_AUTH)].(bool)
 	}
 	if options[string(kftypes.SKIP_INIT_GCP_PROJECT)] != nil {
 		skipInitProject := options[string(kftypes.SKIP_INIT_GCP_PROJECT)].(bool)
@@ -332,6 +334,11 @@ func (gcp *Gcp) copyFile(source string, dest string) error {
 
 func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 	email := gcp.GcpApp.Spec.Email
+	if gcp.GcpApp.Spec.UseBasicAuth {
+		log.Infof("GG TEST: Use basic auth.")
+	} else {
+		log.Infof("GG TEST: Not use basic auth.")
+	}
 	if options[string(kftypes.EMAIL)] != nil {
 		email = options[string(kftypes.EMAIL)].(string)
 		if email == "" {
