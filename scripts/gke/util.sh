@@ -243,17 +243,7 @@ gcpKsApply() {
   # Apply the components generated
   pushd .
   cd "${KUBEFLOW_KS_DIR}"
-
-  set +e
-  O=$(ks env describe default 2>&1)
-  RESULT=$?
-  set -e
-
-  if [ "${RESULT}" -eq 0 ]; then
-    echo environment default already exists
-  else
-    ks env add default --namespace "${K8S_NAMESPACE}"
-  fi
+  createKsEnv
 
   if [[ -z $DEFAULT_KUBEFLOW_COMPONENTS ]]; then
     export KUBEFLOW_COMPONENTS+=',"cloud-endpoints","cert-manager","iap-ingress"'
