@@ -126,8 +126,6 @@ createKsApp() {
   echo "****************************************************************"
   echo ""
   ks generate application application
-
-  createKsEnv
 }
 
 createKsEnv(){
