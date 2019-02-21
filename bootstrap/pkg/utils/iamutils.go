@@ -111,7 +111,7 @@ func ReadIamBindingsYAML(filename string) (*cloudresourcemanager.Policy, error) 
 	return policy, nil
 }
 
-func UpdateIamPolicy(src *cloudresourcemanager.Policy,
+func RewriteIamPolicy(src *cloudresourcemanager.Policy,
 	adding *cloudresourcemanager.Policy,
 	deleting *cloudresourcemanager.Policy) error {
 	if src == nil {
@@ -121,6 +121,7 @@ func UpdateIamPolicy(src *cloudresourcemanager.Policy,
 	if adding != nil {
 		patch := GetBindingSet(adding)
 		for role, members := range patch {
+			log.Infof("%v adding: %+v", role, members)
 			if m, ok := curr[role]; ok {
 				m.Union(members)
 			} else {
@@ -138,4 +139,22 @@ func UpdateIamPolicy(src *cloudresourcemanager.Policy,
 	}
 
 	return nil
+}
+
+func SetIamPolicy(project string, policy *cloudresourcemanager.Policy) error {
+	ctx := context.Background()
+	client, clientErr := GetServiceClient(ctx)
+	if clientErr != nil {
+		return clientErr
+	}
+	service, serviceErr := cloudresourcemanager.New(client)
+	if serviceErr != nil {
+		return serviceErr
+	}
+
+	req := &cloudresourcemanager.SetIamPolicyRequest{
+		Policy: policy,
+	}
+	_, err := service.Projects.SetIamPolicy(project, req).Context(ctx).Do()
+	return err
 }

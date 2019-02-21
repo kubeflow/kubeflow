@@ -188,9 +188,6 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 	project := gcp.GcpApp.Spec.Project
 	resp, err := deploymentmanagerService.Deployments.Get(project, deployment).Context(ctx).Do()
 	if err == nil {
-		if resp.Name != gcp.GcpApp.Name {
-			return fmt.Errorf("Deployment name doesn't match: %v v.s. %v", resp.Name, gcp.GcpApp.Name)
-		}
 		dp.Fingerprint = resp.Fingerprint
 		_, updateErr := deploymentmanagerService.Deployments.Update(project, deployment, dp).Context(ctx).Do()
 		if updateErr != nil {
@@ -207,28 +204,25 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 }
 
 func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	err := gcp.updateDeployment(gcp.GcpApp.Name+"-storage", STORAGE_FILE)
-	if err != nil {
+	if err := gcp.updateDeployment(gcp.GcpApp.Name+"-storage", STORAGE_FILE); err != nil {
 		return fmt.Errorf("could not update %v: %v", STORAGE_FILE, err)
 	}
-	err = gcp.updateDeployment(gcp.GcpApp.Name, CONFIG_FILE)
-	if err != nil {
+	if err := gcp.updateDeployment(gcp.GcpApp.Name, CONFIG_FILE); err != nil {
 		return fmt.Errorf("could not update %v: %v", CONFIG_FILE, err)
 	}
 	if _, networkStatErr := os.Stat(path.Join(gcp.GcpApp.Spec.AppDir, NETWORK_FILE)); !os.IsNotExist(networkStatErr) {
-		err = gcp.updateDeployment(gcp.GcpApp.Name+"-network", NETWORK_FILE)
+		err := gcp.updateDeployment(gcp.GcpApp.Name+"-network", NETWORK_FILE)
 		if err != nil {
 			return fmt.Errorf("could not update %v: %v", NETWORK_FILE, err)
 		}
 	}
 	if _, gcfsStatErr := os.Stat(path.Join(gcp.GcpApp.Spec.AppDir, GCFS_FILE)); !os.IsNotExist(gcfsStatErr) {
-		err = gcp.updateDeployment(gcp.GcpApp.Name+"-gcfs", GCFS_FILE)
+		err := gcp.updateDeployment(gcp.GcpApp.Name+"-gcfs", GCFS_FILE)
 		if err != nil {
 			return fmt.Errorf("could not update %v: %v", GCFS_FILE, err)
 		}
 	}
 
-	// TODO(gabrielwen): Add iam_patch policy here.
 	policy, policyErr := kfctlutils.GetIamPolicy(gcp.GcpApp.Spec.Project)
 	if policyErr != nil {
 		return fmt.Errorf("GetIamPolicy error: %v", policyErr)
@@ -240,8 +234,11 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 	if iamPolicyErr != nil {
 		return fmt.Errorf("Read IAM policy YAML error: %v", iamPolicyErr)
 	}
-	kfctlutils.UpdateIamPolicy(policy, iamPolicy, nil)
-	log.Infof("Updating policy to: %v", policy)
+	kfctlutils.RewriteIamPolicy(policy, iamPolicy, nil)
+	if err := kfctlutils.SetIamPolicy(gcp.GcpApp.Spec.Project, policy); err != nil {
+		return fmt.Errorf("SetIamPolicy error: %v", err)
+	}
+
 	// TODO(gabrielwen): Set credentials for kubectl context.
 	// TODO(gabrielwen): Create a named context.
 	// TODO(gabrielwen): Set user as cluster admin.
@@ -484,7 +481,7 @@ func (gcp *Gcp) generateDMConfigs(options map[string]interface{}) error {
 	iamBindingsData = gcp.replaceText("set-kubeflow-admin-service-account", repl, iamBindingsData)
 	userEmail := getSA(gcp.GcpApp.Name, "user", gcp.GcpApp.Spec.Project)
 	repl = "serviceAccount:" + userEmail
-	iamBindingsData = gcp.replaceText("set-kubeflow-admin-service-account", repl, iamBindingsData)
+	iamBindingsData = gcp.replaceText("set-kubeflow-user-service-account", repl, iamBindingsData)
 	vmEmail := getSA(gcp.GcpApp.Name, "vm", gcp.GcpApp.Spec.Project)
 	repl = "serviceAccount:" + vmEmail
 	iamBindingsData = gcp.replaceText("set-kubeflow-vm-service-account", repl, iamBindingsData)

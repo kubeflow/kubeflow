@@ -424,29 +424,29 @@ main() {
     if [[ "${WHAT}" == "platform" ]] || [[ "${WHAT}" == "all" ]]; then
       if [[ "${PLATFORM}" == "gcp" ]]; then
         updateDM
-        createSecrets
+        # createSecrets
       fi
     fi
 
-    if [[ "${WHAT}" == "k8s" ]] || [[ "${WHAT}" == "all" ]]; then
-      ksApply
+    # if [[ "${WHAT}" == "k8s" ]] || [[ "${WHAT}" == "all" ]]; then
+    #   ksApply
 
-      if [[ "${PLATFORM}" == "gcp" ]]; then
-        gcpKsApply
-      fi
+    #   if [[ "${PLATFORM}" == "gcp" ]]; then
+    #     gcpKsApply
+    #   fi
 
-      # all components deployed
-      # deploy the application CR
-      pushd ${KUBEFLOW_KS_DIR}
-      ks param set application name ${DEPLOYMENT_NAME}
-      if [[ ${KUBEFLOW_EXTENDEDINFO} == true ]]; then
-        ks param set application extendedInfo true
-      fi
-      ks param set application components '['$KUBEFLOW_COMPONENTS']'
-      ks show default -c metacontroller -c application > default.yaml
-      kubectl apply --validate=false -f default.yaml
-      popd
-    fi
+    #   # all components deployed
+    #   # deploy the application CR
+    #   pushd ${KUBEFLOW_KS_DIR}
+    #   ks param set application name ${DEPLOYMENT_NAME}
+    #   if [[ ${KUBEFLOW_EXTENDEDINFO} == true ]]; then
+    #     ks param set application extendedInfo true
+    #   fi
+    #   ks param set application components '['$KUBEFLOW_COMPONENTS']'
+    #   ks show default -c metacontroller -c application > default.yaml
+    #   kubectl apply --validate=false -f default.yaml
+    #   popd
+    # fi
   fi
 
   if [[ "${COMMAND}" == "delete" ]]; then
