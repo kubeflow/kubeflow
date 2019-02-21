@@ -428,22 +428,22 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 		namevalues = append(namevalues,
 			kstypes.NameValue{
 				Name:  "mysqlPd",
-				Value: gcp.GcpApp.Name + "-storage-pipeline-db",
+				Value: gcp.GcpApp.Name + "-storage-metadata-store",
 			},
 			kstypes.NameValue{
 				Name:  "nfsPd",
-				Value: gcp.GcpApp.Name + "-storage-pipeline-nfs",
+				Value: gcp.GcpApp.Name + "-storage-artifact-store",
 			},
 		)
 	} else {
 		kstypes.DefaultParameters["pipeline"] = []kstypes.NameValue{
 			{
 				Name:  "mysqlPd",
-				Value: gcp.GcpApp.Name + "-storage-pipeline-db",
+				Value: gcp.GcpApp.Name + "-storage-metadata-store",
 			},
 			{
 				Name:  "nfsPd",
-				Value: gcp.GcpApp.Name + "-storage-pipeline-nfs",
+				Value: gcp.GcpApp.Name + "-storage-artifact-store",
 			},
 		}
 	}
