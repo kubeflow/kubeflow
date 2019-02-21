@@ -1,5 +1,5 @@
 # Kubeflow Landing-Page
-This component is the dashboard for Kubeflow deployents
+This component is the dashboard for Kubeflow deployments
 
 ## Getting Started
 For devmode, do these steps to spin up a stand-alone server locally:
