@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"github.com/ghodss/yaml"
 	gogetter "github.com/hashicorp/go-getter"
-	// configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
+	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	gcptypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/gcp/v1alpha1"
 	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
@@ -337,6 +337,21 @@ func (gcp *Gcp) copyFile(source string, dest string) error {
 	return nil
 }
 
+func setNameVal(entries []configtypes.NameValue, name string, val string) {
+	for i, nv := range entries {
+		if nv.Name == name {
+			log.Infof("Setting %v to %v", name, val)
+			entries[i].Value = val
+			return
+		}
+	}
+	log.Infof("Appending %v as %v", name, val)
+	entries = append(entries, configtypes.NameValue{
+		Name:  name,
+		Value: val,
+	})
+}
+
 func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 	email := gcp.GcpApp.Spec.Email
 	configPath := path.Join(gcp.GcpApp.Spec.AppDir,
@@ -348,18 +363,34 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 	} else {
 		configPath = path.Join(configPath, kftypes.GcpIapConfig)
 	}
+	config := &configtypes.Config{}
+	if buf, bufErr := ioutil.ReadFile(configPath); bufErr == nil {
+		if readErr := yaml.Unmarshal(buf, config); readErr != nil {
+			return fmt.Errorf("Unable to parse config: %v", readErr)
+		}
+	} else {
+		return fmt.Errorf("Unable to read config %v: %v", configPath, bufErr)
+	}
+
 	if options[string(kftypes.EMAIL)] != nil {
 		email = options[string(kftypes.EMAIL)].(string)
+		// TODO(gabrielwen): We should be able to make it optional.
 		if email == "" {
 			return fmt.Errorf("email parameter required for cert-manager")
 		}
 	}
+	setNameVal(config.ProtoParams["cert-manager"], "acmeEmail", email)
 	ipName := gcp.GcpApp.Spec.IpName
 	if options[string(kftypes.IPNAME)] != nil {
 		ipName = options[string(kftypes.IPNAME)].(string)
 		if ipName == "" {
 			return fmt.Errorf("ipName parameter required for iap-ingress")
 		}
+	}
+	if gcp.GcpApp.Spec.UseBasicAuth {
+		setNameVal(config.ProtoParams["basic-auth-ingress"], "ipName", ipName)
+	} else {
+		setNameVal(config.ProtoParams["iap-ingress"], "ipName", ipName)
 	}
 	hostname := gcp.GcpApp.Spec.Hostname
 	if options[string(kftypes.HOSTNAME)] != nil {
@@ -368,12 +399,19 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 			return fmt.Errorf("hostname parameter required for iap-ingress")
 		}
 	}
+	if gcp.GcpApp.Spec.UseBasicAuth {
+		setNameVal(config.ProtoParams["basic-auth-ingress"], "hostname", hostname)
+	} else {
+		setNameVal(config.ProtoParams["iap-ingress"], "hostname", hostname)
+	}
+	log.Infof("config afterwards: %+v", config)
 	project := gcp.GcpApp.Spec.Project
 	if options[string(kftypes.PROJECT)] != nil {
 		project = options[string(kftypes.PROJECT)].(string)
 		if project == "" {
 			return fmt.Errorf("project parameter required for iam_bindings")
 		}
+		// TODO: ????
 	}
 	zone := gcp.GcpApp.Spec.Zone
 	if options[string(kftypes.ZONE)] != nil {
@@ -381,6 +419,7 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 		if zone == "" {
 			return fmt.Errorf("zone parameter required for iam_bindings")
 		}
+		// TODO: ????
 	}
 	kstypes.DefaultPackages = append(kstypes.DefaultPackages, []string{"gcp"}...)
 	kstypes.DefaultComponents = append(kstypes.DefaultComponents, []string{"cloud-endpoints", "cert-manager", "iap-ingress"}...)

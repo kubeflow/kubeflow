@@ -15,5 +15,5 @@ type Config struct {
 	Components []string `json:"components,omitempty"`
 	ProtoParams Parameters `json:"protoParams,omitempty"`
 	CompParams Parameters `json:"compParams,omityempty"`
-	Platform []string `json:"platform,omitempty"`
+	Platform string `json:"platform,omitempty"`
 }
