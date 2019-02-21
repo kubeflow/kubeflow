@@ -234,8 +234,8 @@ gcpGenerateKsApp() {
   ks generate cert-manager cert-manager --acmeEmail=${EMAIL}
   ks generate iap-ingress iap-ingress --ipName=${KUBEFLOW_IP_NAME} --hostname=${KUBEFLOW_HOSTNAME}
   ks param set jupyter jupyterHubAuthenticator iap
-  ks param set pipeline mysqlPd "${DEPLOYMENT_NAME}-storage-pipeline-db"
-  ks param set pipeline nfsPd "${DEPLOYMENT_NAME}-storage-pipeline-nfs"
+  ks param set pipeline mysqlPd "${DEPLOYMENT_NAME}-storage-metadata-store"
+  ks param set pipeline minioPd "${DEPLOYMENT_NAME}-storage-artifact-store"
   popd
 }
 
