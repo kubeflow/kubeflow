@@ -3,6 +3,9 @@
 // @description a Kubeflow pipeline deployment.
 // @shortDescription Kubeflow pipeline
 // @param name string Name to give to each of the components
+// @optionalParam mysqlPd string null GCE PD name to host mysql DB
+// @optionalParam minioPd string null GCE PD name to host minio
+// @optionalParam nfsPd string null GCE PD name to host NFS
 
 local k = import "k.libsonnet";
 local pipelineBase = import "kubeflow/pipeline/pipeline.libsonnet";

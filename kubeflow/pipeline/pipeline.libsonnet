@@ -12,9 +12,6 @@
     mysqlPvName: null,
     minioPvName: null,
     nfsPvName: null,
-    mysqlPd: null,
-    minioPd: null,
-    nfsPd: null,
   },
 
   parts:: {
