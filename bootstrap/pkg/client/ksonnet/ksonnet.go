@@ -225,6 +225,7 @@ func (ksApp *KsApp) componentAdd(component kstypes.KsComponent, args []string) e
 	}
 	if exists, _ := afero.Exists(afero.NewOsFs(), componentPath); !exists {
 		log.Infof("Creating Component: %v ...", component.Name)
+		log.Infof("args: %v", componentArgs)
 		err := actions.RunPrototypeUse(map[string]interface{}{
 			actions.OptionAppRoot:   ksApp.ksRoot(),
 			actions.OptionArguments: componentArgs,
