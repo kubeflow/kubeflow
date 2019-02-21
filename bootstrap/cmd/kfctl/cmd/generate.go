@@ -26,8 +26,8 @@ var generateCfg = viper.New()
 // generateCmd represents the generate command
 var generateCmd = &cobra.Command{
 	Use:   "generate [all(=default)|k8s|platform]",
-	Short: "Generate a kubeflow application where resources is one of 'platform | k8s | all'.",
-	Long: `Generate a kubeflow application where resources is one of 'platform | k8s | all'.
+	Short: "Generate a kubeflow application where resources is one of 'platform|k8s|all'.",
+	Long: `Generate a kubeflow application where resources is one of 'platform|k8s|all'.
 
   platform: non kubernetes resources (eg --platform gcp)
   k8s: kubernetes resources
