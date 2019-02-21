@@ -39,6 +39,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 )
 
 const (
@@ -189,18 +190,41 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 	resp, err := deploymentmanagerService.Deployments.Get(project, deployment).Context(ctx).Do()
 	if err == nil {
 		dp.Fingerprint = resp.Fingerprint
-		_, updateErr := deploymentmanagerService.Deployments.Update(project, deployment, dp).Context(ctx).Do()
+		op, updateErr := deploymentmanagerService.Deployments.Update(project, deployment, dp).Context(ctx).Do()
 		if updateErr != nil {
 			return fmt.Errorf("Update deployment error: %v", updateErr)
 		}
+		for {
+			nextOp, err := deploymentmanagerService.Operations.Get(project, op.Name).Context(ctx).Do()
+			if nextOp.Status == "DONE" {
+				return nil
+			} else if err != nil {
+				return err
+			} else {
+				log.Infof("Updating deployment %v is on %v, sleep and poll...", deployment, nextOp.Status)
+				op = nextOp
+				time.Sleep(10000 * time.Millisecond)
+			}
+		}
 	} else {
 		log.Infof("Get deployment error, creating: %v", err)
-		_, insertErr := deploymentmanagerService.Deployments.Insert(project, dp).Context(ctx).Do()
+		op, insertErr := deploymentmanagerService.Deployments.Insert(project, dp).Context(ctx).Do()
 		if insertErr != nil {
 			return fmt.Errorf("Insert deployment error: %v", insertErr)
 		}
+		for {
+			nextOp, err := deploymentmanagerService.Operations.Get(project, op.Name).Context(ctx).Do()
+			if nextOp.Status == "DONE" {
+				return nil
+			} else if err != nil {
+				return err
+			} else {
+				log.Infof("Updating deployment %v is on %v, sleep and poll...", deployment, nextOp.Status)
+				op = nextOp
+				time.Sleep(10000 * time.Millisecond)
+			}
+		}
 	}
-	return nil
 }
 
 func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]interface{}) error {
@@ -443,6 +467,7 @@ func (gcp *Gcp) replaceText(regex string, repl string, src []byte) []byte {
 }
 
 func (gcp *Gcp) generateDMConfigs(options map[string]interface{}) error {
+	// TODO(gabrielwen): Use YAML support instead of string replacement.
 	appDir := gcp.GcpApp.Spec.AppDir
 	gcpConfigDir := path.Join(appDir, GCP_CONFIG)
 	gcpConfigDirErr := os.Mkdir(gcpConfigDir, os.ModePerm)
