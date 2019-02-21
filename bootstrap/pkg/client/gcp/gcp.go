@@ -372,6 +372,7 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 		return fmt.Errorf("Unable to read config %v: %v", configPath, bufErr)
 	}
 
+	config.Repo = gcp.GcpApp.Spec.Repo
 	if options[string(kftypes.EMAIL)] != nil {
 		email = options[string(kftypes.EMAIL)].(string)
 		// TODO(gabrielwen): We should be able to make it optional.
