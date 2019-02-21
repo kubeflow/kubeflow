@@ -16,10 +16,7 @@ components:
   - argo
   - katib
   - pipeline
-parameters:
-  cloud-endpoints:
-    - name: secretName
-      value: admin-gcp-sa
+protoParams:
   cert-manager:
     - name: acmeEmail
       # TODO change value on the fly: use your email for ssl cert
@@ -30,7 +27,11 @@ parameters:
       value: ipName
     - name: hostname
       # TODO change value on the fly: replace with user-provide parameters. This need to be fully qualified domain name to use with ingress.
-      value: <deployName>.endpoints.<Project>.cloud.goog
+      value: <deployName>.endpoints.<project>.cloud.goog
+compParams:
+  cloud-endpoints:
+    - name: secretName
+      value: admin-gcp-sa
   jupyter:
     - name: jupyterHubAuthenticator
       value: iap
@@ -39,4 +40,9 @@ parameters:
   ambassador:
     - name: platform
       value: gke
+  pipeline:
+    - name: mysqlPd
+      value: <deployName>-storage-metadata-store
+    - name: minioPd
+      value: <deployName>-storage-artifact-store
 platform: gcp
