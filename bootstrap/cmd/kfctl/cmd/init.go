@@ -51,6 +51,7 @@ or a name where the kubeflow application will be initialized in the current dire
 		project := initCfg.GetString(string(kftypes.PROJECT))
 		gkeApiVersion := initCfg.GetString(string(kftypes.GKE_API_VERSION))
 		init_gcp := initCfg.GetBool(string(kftypes.SKIP_INIT_GCP_PROJECT))
+		basic_auth := initCfg.GetBool(string(kftypes.USE_BASIC_AUTH))
 		options := map[string]interface{}{
 			string(kftypes.PLATFORM):              platform,
 			string(kftypes.NAMESPACE):             namespace,
@@ -61,6 +62,7 @@ or a name where the kubeflow application will be initialized in the current dire
 			string(kftypes.PROJECT):               project,
 			string(kftypes.GKE_API_VERSION):       gkeApiVersion,
 			string(kftypes.SKIP_INIT_GCP_PROJECT): init_gcp,
+			string(kftypes.USE_BASIC_AUTH):        basic_auth,
 		}
 		kfApp, kfAppErr := newKfApp(options)
 		if kfAppErr != nil || kfApp == nil {
@@ -146,6 +148,14 @@ func init() {
 		string(kftypes.SKIP_INIT_GCP_PROJECT)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.SKIP_INIT_GCP_PROJECT), bindErr)
+		return
+	}
+
+	initCmd.Flags().Bool(string(kftypes.USE_BASIC_AUTH), false,
+		string(kftypes.USE_BASIC_AUTH)+" use basic auth service instead of IAP.")
+	bindErr = initCfg.BindPFlag(string(kftypes.USE_BASIC_AUTH), initCmd.Flags().Lookup(string(kftypes.USE_BASIC_AUTH)))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.USE_BASIC_AUTH), bindErr)
 		return
 	}
 

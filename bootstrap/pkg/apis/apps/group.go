@@ -72,6 +72,7 @@ const (
 	DATA                  CliOption = "Data"
 	ZONE                  CliOption = "zone"
 	GKE_API_VERSION       CliOption = "gke_api_version"
+	USE_BASIC_AUTH        CliOption = "use_basic_auth"
 )
 
 //
