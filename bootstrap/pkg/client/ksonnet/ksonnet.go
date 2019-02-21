@@ -68,7 +68,6 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 		},
 	}
 	_kfapp.KsApp.Spec.Platform = options[string(kftypes.PLATFORM)].(string)
-	_kfapp.KsApp.Spec.UseBasicAuth = options[string(kftypes.USE_BASIC_AUTH)].(bool)
 	if options[string(kftypes.APPNAME)] != nil {
 		_kfapp.KsApp.Name = options[string(kftypes.APPNAME)].(string)
 	}

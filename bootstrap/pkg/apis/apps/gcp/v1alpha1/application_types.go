@@ -29,6 +29,7 @@ type GcpSpec struct {
 	Hostname            string `json:"hostname,omitempty"`
 	Zone                string `json:"zone,omitempty"`
 	GkeApiVersion       string `json:"gkeApiVersion,omitempty"`
+	UseBasicAuth        bool   `json:"useBasicAuth,omitempty"`
 	SkipInitProject     bool   `json:"skipInitProject,omitempty"`
 }
 
