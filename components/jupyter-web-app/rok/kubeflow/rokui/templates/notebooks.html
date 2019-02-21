@@ -1,0 +1,106 @@
+{% extends "layout.html" %}
+{% block javascript %}
+  {{ super() }}
+  <script src="{{ prefix + url_for('static', filename='js/notebooks.js') }}">
+  </script>
+  <script>
+    var username = "{{ username }}"
+  </script
+{% endblock %}
+
+{% block content %}
+{% if rok_token|length > 0 and form_defaults %}
+<!-- Namespaces Control Buttons -->
+<table class="ns" align="center">
+  <tr>
+    <td>
+
+    </td>
+    <td>
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <select class="mdl-textfield__input" id="ns-select" name="ns">
+          <!-- <option value="default">default</option> -->
+          <!-- Fill with the namespaces the user can see -->
+          {% for ns in namespaces %}
+            <option value="{{ ns }}">{{ ns }}</option>
+          {% endfor %}
+        </select>
+        <label class="mdl-textfield__label" for="ns">Namespace</label>
+      </div>
+    </td>
+    <td>
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--expandable">
+        <label class="mdl-button mdl-js-button mdl-button--icon" for="search-nb">
+          <i class="material-icons">search</i>
+        </label>
+        <div class="mdl-textfield__expandable-holder">
+          <input class="mdl-textfield__input" type="text" id="search-nb" >
+          <label class="mdl-textfield__label" for="search-nb">Enter your query...</label>
+        </div>
+      </div>
+    </td>
+  </tr>
+</table>
+
+<!-- The Notebooks Table -->
+<div class="mdl-grid center-items">
+  <div class="mdl-cell mdl-cell--8-col">
+    <!-- Table Card -->
+    <div class="demo-card-wide mdl-card mdl-shadow--3dp wide">
+
+      <div class="mdl-card__title mdl-card--table__header">
+        <h2 class="mdl-card__title-text mdl-typography--title">Notebooks</h2>
+        <button class="mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect"
+                id="create-nb-btn">
+          <i class="material-icons">add</i>
+        </button>
+      </div>
+
+      <div class="mdl-card__table">
+        <table class="mdl-data-table mdl-js-data-table wide">
+          <thead>
+            <tr>
+              <th class="mdl-data-table__cell--non-numeric">Name</th>
+              <th class="">Namespaces</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="nb-table-body">
+            <!-- Dynamically load the page -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Menus on top right of top card -->
+      <div class="mdl-card__menu">
+        <button class="mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect">
+          <i class="material-icons">filter_list</i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% else %}
+  <div class="mdl-grid center-items">
+    <div class="mdl-cell mdl-cell--8-col">
+      <div class="alert alert-warning alert-dismissible">
+        <span class="close" onclick="this.parentElement.style.display='none';">&times;</span>
+        <h3>
+          The Secret <code>"secret-rok-{{ username }}"</code> could not be found in the
+          Namespace <code>{{ ns }}</code>
+        </h3>
+        <h4>Please follow the steps below to address this issue:</h4>
+        <p class="help-block">
+          1. Log in to Rok</br>
+          2. Go to Settings -> API access</br>
+          3. From the dropdown box choose "Kubernetes secret", and download your secret to
+          your computer as a local file, e.g., <code>secret-rok-{{ username }}.yaml</code></br>
+          4. Create a new secret on Kubernetes: <code>kubectl -n {{ ns }} create -f secret-rok-{{ username }}.yaml</code></br>
+          5. Verify that your new secret has been created: <code>kubectl -n {{ ns }} get secret secret-rok-{{username}}</code></br>
+          6. Refresh this page
+        </p>
+      </div>
+    </div>
+  </div>
+{% endif %}
+{% endblock content %}

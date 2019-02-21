@@ -27,9 +27,9 @@ import (
 	"strings"
 )
 
-// MinikubeApp implements KfApp Interface
+// Minikube implements KfApp Interface
 // It includes the Ksonnet along with functionality needed for minikube
-type MinikubeApp struct {
+type Minikube struct {
 	Ksonnet kftypes.KfApp
 	//TODO add additional types required for minikube platform
 }
@@ -39,14 +39,14 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	log.Infof("getting ksonnet platform in minikube")
 	_ksonnet := ksonnet.GetKfApp(options)
 	options[string(kftypes.PLATFORM)] = "minikube"
-	_minikubeapp := &MinikubeApp{
+	_minikube := &Minikube{
 		Ksonnet: _ksonnet,
 	}
-	return _minikubeapp
+	return _minikube
 }
 
-func (minikubeApp *MinikubeApp) Apply(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	ksApplyErr := minikubeApp.Ksonnet.Apply(resources, options)
+func (minikube *Minikube) Apply(resources kftypes.ResourceEnum, options map[string]interface{}) error {
+	ksApplyErr := minikube.Ksonnet.Apply(resources, options)
 	if ksApplyErr != nil {
 		return fmt.Errorf("minikube apply failed for ksonnet: %v", ksApplyErr)
 	}
@@ -55,15 +55,15 @@ func (minikubeApp *MinikubeApp) Apply(resources kftypes.ResourceEnum, options ma
 	return nil
 }
 
-func (minikubeApp *MinikubeApp) Delete(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	ksDeleteErr := minikubeApp.Ksonnet.Delete(resources, options)
+func (minikube *Minikube) Delete(resources kftypes.ResourceEnum, options map[string]interface{}) error {
+	ksDeleteErr := minikube.Ksonnet.Delete(resources, options)
 	if ksDeleteErr != nil {
 		return fmt.Errorf("minikube delete failed for ksonnet: %v", ksDeleteErr)
 	}
 	return nil
 }
 
-func (minikubeApp *MinikubeApp) generateKsApp(options map[string]interface{}) error {
+func (minikube *Minikube) generateKsApp(options map[string]interface{}) error {
 	platform := options[string(kftypes.PLATFORM)].(string)
 	mountLocal := false
 	if options[string(kftypes.MOUNT_LOCAL)] != nil {
@@ -116,19 +116,19 @@ func (minikubeApp *MinikubeApp) generateKsApp(options map[string]interface{}) er
 			Value: "1",
 		},
 	}
-	ksGenerateErr := minikubeApp.Ksonnet.Generate(kftypes.ALL, options)
+	ksGenerateErr := minikube.Ksonnet.Generate(kftypes.ALL, options)
 	if ksGenerateErr != nil {
 		return fmt.Errorf("minikube generate failed for ksonnet: %v", ksGenerateErr)
 	}
 	return nil
 }
 
-func (minikubeApp *MinikubeApp) Generate(resources kftypes.ResourceEnum, options map[string]interface{}) error {
+func (minikube *Minikube) Generate(resources kftypes.ResourceEnum, options map[string]interface{}) error {
 	switch resources {
 	case kftypes.ALL:
 		fallthrough
 	case kftypes.K8S:
-		ksErr := minikubeApp.generateKsApp(options)
+		ksErr := minikube.generateKsApp(options)
 		if ksErr != nil {
 			return fmt.Errorf("could not generate kssonnet under %v Error: %v", kstypes.KsName, ksErr)
 		}
@@ -137,8 +137,8 @@ func (minikubeApp *MinikubeApp) Generate(resources kftypes.ResourceEnum, options
 	return nil
 }
 
-func (minikubeApp *MinikubeApp) Init(options map[string]interface{}) error {
-	ksInitErr := minikubeApp.Ksonnet.Init(options)
+func (minikube *Minikube) Init(options map[string]interface{}) error {
+	ksInitErr := minikube.Ksonnet.Init(options)
 	if ksInitErr != nil {
 		return fmt.Errorf("minikube init failed for ksonnet: %v", ksInitErr)
 	}

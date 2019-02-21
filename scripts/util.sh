@@ -93,6 +93,8 @@ createKsApp() {
   ks generate ambassador ambassador
   ks generate openvino openvino
   ks generate jupyter jupyter
+  ks generate notebook-controller notebook-controller
+  ks generate jupyter-web-app jupyter-web-app
   ks generate centraldashboard centraldashboard
   ks generate tf-job-operator tf-job-operator
   ks generate tensorboard tensorboard
@@ -126,8 +128,6 @@ createKsApp() {
   echo "****************************************************************"
   echo ""
   ks generate application application
-
-  createKsEnv
 }
 
 createKsEnv(){

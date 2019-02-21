@@ -25,7 +25,7 @@ local srcRootDir = testDir + "/src";
 // The directory containing the kubeflow/kubeflow repo
 local srcDir = srcRootDir + "/kubeflow/kubeflow";
 
-local image = "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4";
+local image = "gcr.io/kubeflow-ci/test-worker:latest";
 local testing_image = "gcr.io/kubeflow-ci/kubeflow-testing";
 
 // The name of the NFS volume claim to use for test files.
@@ -123,6 +123,7 @@ local dagTemplates = [
       srcDir + "/kubeflow/profiles/tests" + "," +
       srcDir + "/kubeflow/tensorboard/tests" + "," +
       srcDir + "/kubeflow/argo/tests" + "," +
+      srcDir + "/kubeflow/kubebench/tests" + "," +
       srcDir + "/kubeflow/tf-training/tests",
       "--jsonnet_path_dirs=" + srcDir + "," + srcRootDir + "/kubeflow/testing/workflows/lib/v1.7.0/",
       "--exclude_dirs=" + srcDir + "/kubeflow/jupyter/tests/test_app",
