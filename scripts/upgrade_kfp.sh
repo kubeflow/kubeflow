@@ -10,11 +10,6 @@ export KUBEFLOW_KS_DIR=${KUBEFLOW_KS_DIR:-"$(pwd)/ks_app"}
 
 pushd ${KUBEFLOW_KS_DIR}
 
-# persist the user specified parameters.
-# The "ks component rm" step below will remove all the parameters related to the component,
-# including environment specific ones.
-cp environments/default/params.libsonnet environments/default/params_tmp.libsonnet
-
 set +e
 # Point Kubeflow registry to the pipeline branch
 # Ksonnet doesn't allow registry name to be different from the import path
@@ -25,7 +20,6 @@ set -e
 
 # Remove old package and component in order to install new package and import new parameters
 ks pkg remove kubeflow/pipeline
-ks component rm pipeline
 
 # export GITHUB_TOKEN=[token]if hit rate limit
 if [ -z "$1" ]
@@ -37,10 +31,7 @@ if [ -z "$1" ]
     ks pkg install kubeflow/pipeline@$1
 fi
 
-
 # Regenerate pipeline ksonnet component and recover default environment parameter
-ks generate pipeline pipeline
-mv environments/default/params_tmp.libsonnet environments/default/params.libsonnet
 ks apply default -c pipeline
 
 popd
