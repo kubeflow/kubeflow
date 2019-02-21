@@ -32,7 +32,7 @@ local bootstrapDir = srcDir + "/bootstrap";
 
 local kubeConfig = testDir + "/click_deploy_test/.kube/kubeconfig";
 
-local image = "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4";
+local image = "gcr.io/kubeflow-ci/test-worker:latest";
 local bootstrapImage = "gcr.io/kubeflow-ci/bootstrapper";
 
 // The name of the NFS volume claim to use for test files.
@@ -45,6 +45,8 @@ local kubeflowPy = srcDir;
 local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
 
 local project = "kubeflow-ci";
+
+local manifest = if util.toBool(params.installIstio) then "test_deploy_istio.yaml" else "test_deploy.yaml";
 
 // Build an Argo template to execute a particular command.
 // step_name: Name for the template
@@ -191,7 +193,7 @@ local dagTemplates = [
       [
         runPath,
         bootstrapDir + "/test_setup.sh",
-        bootstrapDir + "/test_deploy.yaml",
+        bootstrapDir + "/" + manifest,
         name,
         "kubeflow-testing",
         "us-east1-d",

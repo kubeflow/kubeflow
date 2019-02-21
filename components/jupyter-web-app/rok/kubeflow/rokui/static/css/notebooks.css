@@ -1,0 +1,19 @@
+mdl-card--table__header{
+  height:64px
+}
+
+
+.demo-card-wide.mdl-card {
+  width: 512px;
+}
+
+.mdl-card__table, table{
+  width:100%;
+  margin:0em;
+}
+
+body {
+  padding: 20px;
+  background: #fafafa;
+  position: relative;
+}

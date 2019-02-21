@@ -79,7 +79,7 @@
     srcRootDir: self.testDir + "/src",
     // The directory containing the kubeflow/kubeflow repo
     srcDir: self.srcRootDir + "/kubeflow/kubeflow",
-    image: "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4",
+    image: "gcr.io/kubeflow-ci/test-worker:latest",
 
     // value of KUBECONFIG environment variable. This should be  a full path.
     kubeConfig: self.testDir + "/.kube/kubeconfig",
@@ -208,7 +208,7 @@
       {
         local v1beta1Suffix = "-v1b1",
         template: tests.buildTemplate {
-          name: "tfjob-test",
+          name: "tfjob-test" + v1beta1Suffix,
           pythonPath: tests.kubeflowPy + ":" + tests.kubeflowTestingPy + ":" + tests.tfOperatorPy,
           command: [
             "python",
@@ -225,7 +225,28 @@
           ],
         },  // run tests
         dependencies: ["wait-for-kubeflow"],
-      },  // tf-job-test
+      },  // tf-job-test-v1b1
+      {
+        local v1beta2Suffix = "-v1b2",
+        template: tests.buildTemplate {
+          name: "tfjob-test" + v1beta2Suffix,
+          pythonPath: tests.kubeflowPy + ":" + tests.kubeflowTestingPy + ":" + tests.tfOperatorPy,
+          command: [
+            "python",
+            "-m",
+            "py.simple_tfjob_tests",
+            "--app_dir=" + tests.tfOperatorRoot + "/test/workflows",
+            "--tfjob_version=v1beta2",
+            // Name is used for the test case name so it should be unique across
+            // all E2E tests.
+            "--params=name=smoke-tfjob-" + tests.platform + ",namespace=" + tests.stepsNamespace,
+            "--artifacts_path=" + tests.artifactsDir,
+            // Skip GPU tests
+            "--skip_tests=test_simple_tfjob_gpu",
+          ],
+        },  // run tests
+        dependencies: ["wait-for-kubeflow"],
+      },  // tf-job-test-v1b2
       {
 
         template: tests.buildTemplate {
@@ -323,10 +344,10 @@
           name: "notebooks-test",
           command: [
             "pytest",
-            "jupyter_test.py",
             // I think -s mean stdout/stderr will print out to aid in debugging.
             // Failures still appear to be captured and stored in the junit file.
             "-s",
+            "jupyter_test.py",
             // Test timeout in seconds.
             "--namespace=" + tests.stepsNamespace,
             "--timeout=500",
@@ -385,12 +406,13 @@
       // The directory containing the kubeflow/kubeflow repo
       local srcDir = srcRootDir + "/kubeflow/kubeflow";
       local bootstrapDir = srcDir + "/bootstrap";
-      local image = "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4";
+      local image = "gcr.io/kubeflow-ci/test-worker:latest";
       local bootstrapperImage = "gcr.io/kubeflow-ci/bootstrapper:" + name;
       // The last 4 digits of the name should be a unique id.
       local deploymentName = "e2e-" + std.substr(name, std.length(name) - 4, 4);
       local v1alpha1Suffix = "-v1alpha1";
       local v1beta1Suffix = "-v1b1";
+      local v1beta2Suffix = "-v1b2";
 
       // The name of the NFS volume claim to use for test files.
       local nfsVolumeClaim = "nfs-external";
@@ -569,9 +591,15 @@
                   else
                     {},
                   {
-                    name: "tfjob-test",
-                    template: "tfjob-test" + v1beta1Suffix
-                    ,
+                    name: "tfjob-test" + v1beta1Suffix,
+                    template: "tfjob-test" + v1beta1Suffix,
+                    dependencies: [
+                      "deploy-kubeflow",
+                    ],
+                  },
+                  {
+                    name: "tfjob-test" + v1beta2Suffix,
+                    template: "tfjob-test" + v1beta2Suffix,
                     dependencies: [
                       "deploy-kubeflow",
                     ],
@@ -722,7 +750,23 @@
               "--artifacts_path=" + artifactsDir,
               // Skip GPU tests
               "--skip_tests=test_simple_tfjob_gpu",
-            ]),  // tfjob-test
+            ]),  // tfjob-test-v1beta1
+            buildTemplate("tfjob-test" + v1beta2Suffix, [
+              "python",
+              "-m",
+              "py.simple_tfjob_tests",
+              "--cluster=" + cluster,
+              "--zone=" + zone,
+              "--project=" + project,
+              "--app_dir=" + tfOperatorRoot + "/test/workflows",
+              "--tfjob_version=v1beta2",
+              // Name is used for the test case name so it should be unique across
+              // all E2E tests.
+              "--params=name=simple-tfjob-" + platform + ",namespace=" + stepsNamespace,
+              "--artifacts_path=" + artifactsDir,
+              // Skip GPU tests
+              "--skip_tests=test_simple_tfjob_gpu",
+            ]),  // tfjob-test-v1beta2
             buildTemplate("pytorchjob-deploy", [
               "python",
               "-m",
