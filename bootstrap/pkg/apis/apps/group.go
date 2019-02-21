@@ -71,6 +71,7 @@ const (
 	KAPP                  CliOption = "KApp"
 	DATA                  CliOption = "Data"
 	ZONE                  CliOption = "zone"
+	GKE_API_VERSION       CliOption = "gke_api_version"
 )
 
 //

@@ -28,6 +28,7 @@ type GcpSpec struct {
 	IpName              string `json:"ipName,omitempty"`
 	Hostname            string `json:"hostname,omitempty"`
 	Zone                string `json:"zone,omitempty"`
+	GkeApiVersion       string `json:"gkeApiVersion,omitempty"`
 	SkipInitProject     bool   `json:"skipInitProject,omitempty"`
 }
 

@@ -136,6 +136,12 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	} else if _gcp.GcpApp.Name != "" && _gcp.GcpApp.Spec.Project != "" {
 		_gcp.GcpApp.Spec.Hostname = fmt.Sprintf("%v.endpoints.%v.cloud.goog", _gcp.GcpApp.Name, _gcp.GcpApp.Spec.Project)
 	}
+	if options[string(kftypes.GKE_API_VERSION)] != nil {
+		_gcp.GcpApp.Spec.GkeApiVersion = options[string(kftypes.GKE_API_VERSION)].(string)
+	} else {
+		// Default to be v1beta1.
+		_gcp.GcpApp.Spec.GkeApiVersion = "v1beta1"
+	}
 	if options[string(kftypes.SKIP_INIT_GCP_PROJECT)] != nil {
 		skipInitProject := options[string(kftypes.SKIP_INIT_GCP_PROJECT)].(bool)
 		_gcp.GcpApp.Spec.SkipInitProject = skipInitProject
@@ -530,6 +536,7 @@ func (gcp *Gcp) generateDMConfigs(options map[string]interface{}) error {
 	if storageFileDataErr != nil {
 		return fmt.Errorf("could not read %v Error %v", storageFile, storageFileDataErr)
 	}
+	configFileData = gcp.replaceText("SET_GKE_API_VERSION", gcp.GcpApp.Spec.GkeApiVersion, configFileData)
 	repl = "zone: " + gcp.GcpApp.Spec.Zone
 	configFileData = gcp.replaceText("zone: SET_THE_ZONE", repl, configFileData)
 	storageFileData = gcp.replaceText("zone: SET_THE_ZONE", repl, storageFileData)
