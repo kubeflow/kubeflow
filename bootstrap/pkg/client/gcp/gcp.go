@@ -56,6 +56,8 @@ const (
 	GCFS_FILE         = "gcfs.yaml"
 	ADMIN_SECRET_NAME = "admin-gcp-sa"
 	USER_SECRET_NAME  = "user-gcp-sa"
+	IMPORTS           = "imports"
+	PATH              = "path"
 )
 
 // Gcp implements KfApp Interface
@@ -173,6 +175,61 @@ func (gcp *Gcp) writeConfigFile() error {
 	return nil
 }
 
+// Simple deploymentmanager.TargetConfiguration factory method. This method assumes imported paths
+// are all within the same filesystem. From gcloud CLI source codes it appears URL is a possible
+// option. We might need to update this method or find a way to work with Python source code from
+// gcloud.
+func generateTarget(configPath string) (*deploymentmanager.TargetConfiguration, error) {
+	if !filepath.IsAbs(configPath) {
+		if p, err := filepath.Abs(configPath); err != nil {
+			return nil, fmt.Errorf("Getting absolute path error: %v", err)
+		} else {
+			configPath = p
+		}
+	}
+	log.Infof("Reading config file: %v", configPath)
+	configBuf, bufErr := ioutil.ReadFile(configPath)
+	if bufErr != nil {
+		return nil, fmt.Errorf("Reading config file error: %v", bufErr)
+	}
+	targetConfig := &deploymentmanager.TargetConfiguration{
+		Config: &deploymentmanager.ConfigFile{
+			Content: string(configBuf),
+		},
+	}
+
+	var config map[string]interface{}
+	if err := yaml.Unmarshal(configBuf, &config); err != nil {
+		return nil, fmt.Errorf("Unable to read YAML: %v", err)
+	}
+	if _, ok := config[IMPORTS]; !ok {
+		return targetConfig, nil
+	}
+
+	entries := config[IMPORTS].([]interface{})
+	dirName := filepath.Dir(configPath)
+	for _, entry := range entries {
+		entryMap := entry.(map[string]interface{})
+		if _, ok := entryMap[PATH]; !ok {
+			continue
+		}
+		importPath := entryMap[PATH].(string)
+		if !filepath.IsAbs(importPath) {
+			importPath = path.Join(dirName, importPath)
+		}
+		log.Infof("Reading import file: %v", importPath)
+		if buf, err := ioutil.ReadFile(importPath); err == nil {
+			targetConfig.Imports = append(targetConfig.Imports, &deploymentmanager.ImportFile{
+				Name:    entryMap[PATH].(string),
+				Content: string(buf),
+			})
+		} else {
+			return nil, fmt.Errorf("Erro reading import file: %v", err)
+		}
+	}
+	return targetConfig, nil
+}
+
 func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 	appDir := gcp.GcpApp.Spec.AppDir
 	gcpConfigDir := path.Join(appDir, GCP_CONFIG)
@@ -186,17 +243,13 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 		return fmt.Errorf("Error creating deploymentmanagerService: %v", err)
 	}
 	filePath := filepath.Join(gcpConfigDir, yamlfile)
-	buf, bufErr := ioutil.ReadFile(filePath)
-	if bufErr != nil {
-		return fmt.Errorf("Read yamlfile error: %v", bufErr)
-	}
 	dp := &deploymentmanager.Deployment{
 		Name: deployment,
-		Target: &deploymentmanager.TargetConfiguration{
-			Config: &deploymentmanager.ConfigFile{
-				Content: string(buf),
-			},
-		},
+	}
+	if target, targetErr := generateTarget(filePath); targetErr != nil {
+		return targetErr
+	} else {
+		dp.Target = target
 	}
 
 	project := gcp.GcpApp.Spec.Project
@@ -228,8 +281,11 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 		for {
 			nextOp, err := deploymentmanagerService.Operations.Get(project, op.Name).Context(ctx).Do()
 			if nextOp.Status == "DONE" {
+				log.Infof("Status is DONE: %v with msg %v", nextOp.HttpErrorStatusCode,
+					nextOp.HttpErrorMessage)
 				return nil
 			} else if err != nil {
+				log.Errorf("Poll error: %v", err)
 				return err
 			} else {
 				log.Infof("Updating deployment %v is on %v, sleep and poll...", deployment, nextOp.Status)
