@@ -3,6 +3,25 @@
 # All TODO fields need to be changed following user's input before apply
 # TODO change repo on the fly: set it to local tmp dir containing kubeflow registry
 repo: /path/to/local/tmp/containing/kubeflow
+packages:
+  - argo
+  - pipeline
+  - common
+  - examples
+  - jupyter
+  - katib
+  - mpi-job
+  - pytorch-job
+  - seldon
+  - tf-serving
+  - openvino
+  - tensorboard
+  - tf-training
+  - metacontroller
+  - profiles
+  - application
+  - modeldb
+  - gcp
 components:
   - pytorch-operator
   - ambassador

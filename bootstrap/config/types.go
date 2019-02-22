@@ -13,6 +13,7 @@ type Parameters map[string][]NameValue
 type Config struct {
 	Repo string `json:"repo,omitempty"`
 	Components []string `json:"components,omitempty"`
+	Packages [] string `json:"packages,omitempty"`
 	ProtoParams Parameters `json:"protoParams,omitempty"`
 	CompParams Parameters `json:"compParams,omityempty"`
 	Platform string `json:"platform,omitempty"`
