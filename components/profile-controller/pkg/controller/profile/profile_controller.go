@@ -109,7 +109,7 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 		return reconcile.Result{}, err
 	}
 
-	ns := corev1.Namespace{
+	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: instance.Spec.Namespace,
 		},
@@ -118,7 +118,7 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 		return reconcile.Result{}, err
 	}
 	foundNs := &corev1.Namespace{}
-	err = r.Get(context.TODO(), types.Name{Name: ns.Name}, foundNs)
+	err = r.Get(context.TODO(), types.NamespacedName{Name: ns.Name}, foundNs)
 	if err != nil && errors.IsNotFound(err) {
 		log.Info("Creating Namespace: " + ns.Name)
 		err = r.Create(context.TODO(), ns)
