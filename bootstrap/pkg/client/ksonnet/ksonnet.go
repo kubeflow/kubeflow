@@ -357,9 +357,14 @@ func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum, options map[string]
 	}
 	setNameVal(config.CompParams["pipline"], "mysqlPd", ksApp.KsApp.Name+"-storage-metadata-store")
 	setNameVal(config.CompParams["pipline"], "minioPd", ksApp.KsApp.Name+"-storage-artifact-store")
+	components := []string{}
+	for _, c := range config.Components {
+		components = append(components, fmt.Sprintf("\"%v\"", c))
+	}
 	setNameVal(config.CompParams["application"], "components",
-		"["+strings.Join(config.Components, ",")+"]")
-	log.Infof("config afterwards: %+v", config)
+		"["+strings.Join(components, " ,")+"]")
+
+	log.Infof("Configs for generation: %+v", config)
 
 	host, k8sSpec, err := kftypes.ServerVersion()
 	if err != nil {
@@ -403,6 +408,21 @@ func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum, options map[string]
 			return fmt.Errorf("couldn't add comp %v. Error: %v", comp.Name, componentAddErr)
 		}
 	}
+	for compName, namevals := range config.CompParams {
+		for _, nv := range namevals {
+			args := map[string]interface{}{
+				actions.OptionAppRoot: ksApp.ksRoot(),
+				actions.OptionName:    compName,
+				actions.OptionPath:    nv.Name,
+				actions.OptionValue:   nv.Value,
+			}
+			if err := actions.RunParamSet(args); err != nil {
+				return fmt.Errorf("Failed to set param %v %v %v: %v", compName, nv.Name,
+					nv.Value, err)
+			}
+		}
+	}
+
 	return nil
 }
 
