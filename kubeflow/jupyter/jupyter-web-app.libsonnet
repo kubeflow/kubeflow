@@ -68,7 +68,7 @@
         {
           kind: "ServiceAccount",
           name: params.name,
-          namespace: params.namespace 
+          namespace: params.namespace
         },
       ],
       roleRef: {
@@ -170,8 +170,8 @@
 
     parts:: self,
     all:: [
-      self.svc, 
-      self.depl, 
+      self.svc,
+      self.depl,
       self.jupyterConfig,
       self.serviceAccount,
       self.clusterRoleBinding,
