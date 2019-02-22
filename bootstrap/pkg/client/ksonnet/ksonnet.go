@@ -261,7 +261,6 @@ func (ksApp *KsApp) deleteGlobalResources() error {
 	if clientErr != nil {
 		return fmt.Errorf("couldn't get  client Error: %v", clientErr)
 	}
-	// crds
 	crds, crdsErr := client.CustomResourceDefinitions().List(metav1.ListOptions{})
 	if crdsErr != nil {
 		return fmt.Errorf("couldn't get list of customresourcedefinitions Error: %v", crdsErr)
@@ -276,7 +275,8 @@ func (ksApp *KsApp) deleteGlobalResources() error {
 		} else if crd.Name == "compositecontrollers.metacontroller.k8s.io" ||
 			crd.Name == "controllerrevisions.metacontroller.k8s.io" ||
 			crd.Name == "decoratorcontrollers.metacontroller.k8s.io" ||
-			crd.Name == "applications.app.k8s.io" {
+			crd.Name == "applications.app.k8s.io" ||
+			crd.Name == "scalingpolicies.scalingpolicy.kope.io" {
 			do := &metav1.DeleteOptions{}
 			dErr := client.CustomResourceDefinitions().Delete(crd.Name, do)
 			if dErr != nil {
@@ -300,6 +300,12 @@ func (ksApp *KsApp) deleteGlobalResources() error {
 				log.Errorf("could not delete %v Error %v", crb.Name, dErr)
 			}
 		}
+	}
+	crbName := "meta-controller-cluster-role-binding"
+	do := &metav1.DeleteOptions{}
+	dErr := cli.RbacV1().ClusterRoleBindings().Delete(crbName, do)
+	if dErr != nil {
+		log.Errorf("could not delete %v Error %v", crbName, dErr)
 	}
 	crs, crsErr := cli.RbacV1().ClusterRoles().List(metav1.ListOptions{})
 	if crsErr != nil {
