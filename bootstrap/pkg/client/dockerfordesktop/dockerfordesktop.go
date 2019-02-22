@@ -21,7 +21,6 @@ import (
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksonnet"
-	log "github.com/sirupsen/logrus"
 	"os/user"
 	"strconv"
 	"strings"
@@ -35,8 +34,7 @@ type DockerForDesktop struct {
 }
 
 func GetKfApp(options map[string]interface{}) kftypes.KfApp {
-	options[string(kftypes.PLATFORM)] = string(kftypes.KSONNET)
-	log.Infof("getting ksonnet platform in dockerfordesktop")
+	options[string(kftypes.PLATFORM)] = string(kftypes.NONE)
 	_ksonnet := ksonnet.GetKfApp(options)
 	options[string(kftypes.PLATFORM)] = string(kftypes.DOCKER_FOR_DESKTOP)
 	_dockerfordesktop := &DockerForDesktop{
@@ -44,12 +42,12 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 			Children: make(map[kftypes.Platform]kftypes.KfApp),
 		},
 	}
-	_dockerfordesktop.Children[kftypes.KSONNET] = _ksonnet
+	_dockerfordesktop.Children[kftypes.NONE] = _ksonnet
 	return _dockerfordesktop
 }
 
 func (dockerfordesktop *DockerForDesktop) Apply(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	ks := dockerfordesktop.Children[kftypes.KSONNET]
+	ks := dockerfordesktop.Children[kftypes.NONE]
 	if ks != nil {
 		ksApplyErr := ks.Apply(resources, options)
 		if ksApplyErr != nil {
@@ -64,7 +62,7 @@ func (dockerfordesktop *DockerForDesktop) Apply(resources kftypes.ResourceEnum, 
 }
 
 func (dockerfordesktop *DockerForDesktop) Delete(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	ks := dockerfordesktop.Children[kftypes.KSONNET]
+	ks := dockerfordesktop.Children[kftypes.NONE]
 	if ks != nil {
 		ksDeleteErr := ks.Delete(resources, options)
 		if ksDeleteErr != nil {
@@ -129,7 +127,7 @@ func (dockerfordesktop *DockerForDesktop) generateKsApp(options map[string]inter
 			Value: "1",
 		},
 	}
-	ks := dockerfordesktop.Children[kftypes.KSONNET]
+	ks := dockerfordesktop.Children[kftypes.NONE]
 	if ks != nil {
 		ksGenerateErr := ks.Generate(kftypes.ALL, options)
 		if ksGenerateErr != nil {
@@ -156,14 +154,14 @@ func (dockerfordesktop *DockerForDesktop) Generate(resources kftypes.ResourceEnu
 }
 
 func (dockerfordesktop *DockerForDesktop) Init(options map[string]interface{}) error {
-	ks := dockerfordesktop.Children["ksonnet"]
+	ks := dockerfordesktop.Children[kftypes.NONE]
 	if ks != nil {
 		ksInitErr := ks.Init(options)
 		if ksInitErr != nil {
-			return fmt.Errorf("dockerfordesktop init failed for ksonnet: %v", ksInitErr)
+			return fmt.Errorf("dockerfordesktop init failed for %v: %v", string(kftypes.NONE), ksInitErr)
 		}
 	} else {
-		return fmt.Errorf("ksonnet not in Children")
+		return fmt.Errorf("%v not in Children", string(kftypes.NONE))
 	}
 	return nil
 }

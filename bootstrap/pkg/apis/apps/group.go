@@ -37,7 +37,7 @@ import (
 
 const (
 	DefaultNamespace = "kubeflow"
-	DefaultPlatform  = "ksonnet"
+	DefaultPlatform  = "none"
 	// TODO: find the latest tag dynamically
 	DefaultVersion  = "master"
 	DefaultGitRepo  = "https://github.com/kubeflow/kubeflow/tarball"
@@ -53,7 +53,6 @@ const (
 	ALL      ResourceEnum = "all"
 	K8S      ResourceEnum = "k8s"
 	PLATFORM ResourceEnum = "platform"
-	NONE     ResourceEnum = "none"
 )
 
 type CliOption string
@@ -78,7 +77,7 @@ const (
 
 //
 // KfApp provides a common
-// API for platforms like ksonnet, gcp, minikube, docker-for-desktop, etc.
+// API for platforms like gcp or minikube
 // They all implementation the API below
 //
 type KfApp interface {
@@ -93,7 +92,7 @@ type Platform string
 const (
 	DOCKER_FOR_DESKTOP Platform = "docker-for-desktop"
 	GCP                Platform = "gcp"
-	KSONNET            Platform = "ksonnet"
+	NONE               Platform = DefaultPlatform
 	MINIKUBE           Platform = "minikube"
 )
 
