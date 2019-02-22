@@ -41,6 +41,9 @@ local expectedCrdV1beta2 = {
       plural: "pytorchjobs",
       singular: "pytorchjob",
     },
+    subresources: {
+      status: {},
+    },
     validation: {
       openAPIV3Schema: {
         properties: {
