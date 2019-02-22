@@ -76,6 +76,8 @@ const (
 	ZONE                  CliOption = "zone"
 	GKE_API_VERSION       CliOption = "gke_api_version"
 	USE_BASIC_AUTH        CliOption = "use_basic_auth"
+	// TODO(gabrielwen): Expose this as CLI flag?
+	DEFAULT_CONFIG CliOption = "default_config"
 )
 
 //

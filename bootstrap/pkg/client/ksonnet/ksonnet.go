@@ -314,9 +314,53 @@ func (ksApp *KsApp) Delete(resources kftypes.ResourceEnum, options map[string]in
 	return nil
 }
 
-func (ksApp *KsApp) NewGenerate(resources kftypes.ResourceEnum, config configtypes.Config) error {
-	log.Infof("Ksonnet.Generate Name %v AppDir %v Platform %v Repo %v", ksApp.KsApp.Name,
-		ksApp.KsApp.Spec.AppDir, config.Platform, config.Repo)
+func setNameVal(entries []configtypes.NameValue, name string, val string) {
+	for i, nv := range entries {
+		if nv.Name == name {
+			log.Infof("Setting %v to %v", name, val)
+			entries[i].Value = val
+			return
+		}
+	}
+	log.Infof("Appending %v as %v", name, val)
+	entries = append(entries, configtypes.NameValue{
+		Name:  name,
+		Value: val,
+	})
+}
+
+func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum, options map[string]interface{}) error {
+	log.Infof("Ksonnet.Generate Name %v AppDir %v Platform %v", ksApp.KsApp.Name,
+		ksApp.KsApp.Spec.AppDir, ksApp.KsApp.Spec.Platform)
+
+	configPath := options[string(kftypes.DEFAULT_CONFIG)].(string)
+	config := &configtypes.Config{}
+	if buf, bufErr := ioutil.ReadFile(configPath); bufErr == nil {
+		if readErr := yaml.Unmarshal(buf, config); readErr != nil {
+			return fmt.Errorf("Unable to parse config: %v", readErr)
+		}
+	} else {
+		return fmt.Errorf("Unable to read config %v: %v", configPath, bufErr)
+	}
+
+	config.Repo = ksApp.KsApp.Spec.Repo
+	email := options[string(kftypes.EMAIL)].(string)
+	setNameVal(config.ProtoParams["cert-manager"], "acmeEmail", email)
+	ipName := options[string(kftypes.IPNAME)].(string)
+	hostname := options[string(kftypes.HOSTNAME)].(string)
+	if val, ok := options[string(kftypes.USE_BASIC_AUTH)]; ok && val.(bool) {
+		setNameVal(config.ProtoParams["basic-auth-ingress"], "ipName", ipName)
+		setNameVal(config.ProtoParams["basic-auth-ingress"], "hostname", hostname)
+	} else {
+		setNameVal(config.ProtoParams["iap-ingress"], "ipName", ipName)
+		setNameVal(config.ProtoParams["iap-ingress"], "hostname", hostname)
+	}
+	setNameVal(config.CompParams["pipline"], "mysqlPd", ksApp.KsApp.Name+"-storage-metadata-store")
+	setNameVal(config.CompParams["pipline"], "minioPd", ksApp.KsApp.Name+"-storage-artifact-store")
+	setNameVal(config.CompParams["application"], "components",
+		"["+strings.Join(config.Components, ",")+"]")
+	log.Infof("config afterwards: %+v", config)
+
 	host, k8sSpec, err := kftypes.ServerVersion()
 	if err != nil {
 		return fmt.Errorf("couldn't get server version: %v", err)
@@ -332,7 +376,6 @@ func (ksApp *KsApp) NewGenerate(resources kftypes.ResourceEnum, config configtyp
 	if registryAddErr != nil {
 		return fmt.Errorf("couldn't add registry %v. Error: %v", ksRegistry.Name, registryAddErr)
 	}
-
 	for _, pkgName := range config.Packages {
 		pkg := kstypes.KsPackage{
 			Name:     pkgName,
@@ -343,95 +386,20 @@ func (ksApp *KsApp) NewGenerate(resources kftypes.ResourceEnum, config configtyp
 			return fmt.Errorf("couldn't add package %v. Error: %v", pkg.Name, packageAddErr)
 		}
 	}
-
 	for _, compName := range config.Components {
 		comp := kstypes.KsComponent{
 			Name:      compName,
 			Prototype: compName,
 		}
-		protoArgs := []string{}
+		parameterArgs := []string{}
 		if val, ok := config.ProtoParams[compName]; ok {
 			for _, nv := range val {
 				name := "--" + nv.Name
-				protoArgs = append(protoArgs, name)
-				protoArgs = append(protoArgs, nv.Value)
-			}
-		}
-		if err := ksApp.componentAdd(comp, protoArgs); err != nil {
-			return fmt.Errorf("couldn't add comp %v. Error: %v", comp.Name, err)
-		}
-	}
-	return nil
-}
-
-func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	log.Infof("Ksonnet.Generate Name %v AppDir %v Platform %v", ksApp.KsApp.Name,
-		ksApp.KsApp.Spec.AppDir, ksApp.KsApp.Spec.Platform)
-	host, k8sSpec, err := kftypes.ServerVersion()
-	if err != nil {
-		return fmt.Errorf("couldn't get server version: %v", err)
-	}
-	pkgs := ksApp.KsApp.Spec.Packages
-	if pkgs == nil || len(pkgs) == 0 {
-		ksApp.KsApp.Spec.Packages = kstypes.DefaultPackages
-	}
-	comps := ksApp.KsApp.Spec.Components
-	if comps == nil || len(comps) == 0 {
-		ksApp.KsApp.Spec.Components = kstypes.DefaultComponents
-	}
-	parameters := ksApp.KsApp.Spec.Parameters
-	if parameters == nil || len(parameters) == 0 {
-		ksApp.KsApp.Spec.Parameters = kstypes.DefaultParameters
-	}
-	initErr := ksApp.initKs("default", k8sSpec, host, ksApp.KsApp.Namespace)
-	if initErr != nil {
-		return fmt.Errorf("couldn't initialize KfApi: %v", initErr)
-	}
-	ksRegistry := kstypes.DefaultRegistry
-	ksRegistry.Version = ksApp.KsApp.Spec.Version
-	ksRegistry.RegUri = ksApp.KsApp.Spec.Repo
-	registryAddErr := ksApp.registryAdd(ksRegistry)
-	if registryAddErr != nil {
-		return fmt.Errorf("couldn't add registry %v. Error: %v", ksRegistry.Name, registryAddErr)
-	}
-	packageArray := ksApp.KsApp.Spec.Packages
-	for _, pkgName := range packageArray {
-		pkg := kstypes.KsPackage{
-			Name:     pkgName,
-			Registry: "kubeflow",
-		}
-		packageAddErr := ksApp.pkgInstall(pkg)
-		if packageAddErr != nil {
-			return fmt.Errorf("couldn't add package %v. Error: %v", pkg.Name, packageAddErr)
-		}
-	}
-	componentArray := ksApp.KsApp.Spec.Components
-	for _, compName := range componentArray {
-		comp := kstypes.KsComponent{
-			Name:      compName,
-			Prototype: compName,
-		}
-		parameterMap := ksApp.KsApp.Spec.Parameters
-		parameterArgs := []string{}
-		parameters := parameterMap[compName]
-		if parameters != nil {
-			for _, parameter := range parameters {
-				name := "--" + parameter.Name
 				parameterArgs = append(parameterArgs, name)
-				value := parameter.Value
-				parameterArgs = append(parameterArgs, value)
+				parameterArgs = append(parameterArgs, nv.Value)
 			}
 		}
-		if compName == "application" {
-			parameterArgs = append(parameterArgs, "--components")
-			prunedArray := kstypes.RemoveItems(componentArray, "application", "metacontroller")
-			quotedArray := kstypes.QuoteItems(prunedArray)
-			arrayString := "[" + strings.Join(quotedArray, ",") + "]"
-			parameterArgs = append(parameterArgs, arrayString)
-			log.Infof("For application: %+v", parameterArgs)
-		}
-		componentAddErr := ksApp.componentAdd(comp, parameterArgs)
-		if componentAddErr != nil {
+		if componentAddErr := ksApp.componentAdd(comp, parameterArgs); componentAddErr != nil {
 			return fmt.Errorf("couldn't add comp %v. Error: %v", comp.Name, componentAddErr)
 		}
 	}

@@ -43,7 +43,6 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
-	"strings"
 	"time"
 )
 
@@ -353,7 +352,6 @@ func setNameVal(entries []configtypes.NameValue, name string, val string) {
 }
 
 func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
-	email := gcp.GcpApp.Spec.Email
 	configPath := path.Join(gcp.GcpApp.Spec.AppDir,
 		kftypes.DefaultCacheDir,
 		gcp.GcpApp.Spec.Version,
@@ -363,47 +361,41 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 	} else {
 		configPath = path.Join(configPath, kftypes.GcpIapConfig)
 	}
-	config := &configtypes.Config{}
-	if buf, bufErr := ioutil.ReadFile(configPath); bufErr == nil {
-		if readErr := yaml.Unmarshal(buf, config); readErr != nil {
-			return fmt.Errorf("Unable to parse config: %v", readErr)
-		}
-	} else {
-		return fmt.Errorf("Unable to read config %v: %v", configPath, bufErr)
+	if options[string(kftypes.DEFAULT_CONFIG)] == nil {
+		options[string(kftypes.DEFAULT_CONFIG)] = configPath
 	}
 
-	config.Repo = gcp.GcpApp.Spec.Repo
 	if options[string(kftypes.EMAIL)] != nil {
-		email = options[string(kftypes.EMAIL)].(string)
+		email := options[string(kftypes.EMAIL)].(string)
 		// TODO(gabrielwen): We should be able to make it optional.
 		if email == "" {
 			return fmt.Errorf("email parameter required for cert-manager")
 		}
+	} else {
+		options[string(kftypes.EMAIL)] = gcp.GcpApp.Spec.Email
 	}
-	setNameVal(config.ProtoParams["cert-manager"], "acmeEmail", email)
 	ipName := gcp.GcpApp.Spec.IpName
 	if options[string(kftypes.IPNAME)] != nil {
 		ipName = options[string(kftypes.IPNAME)].(string)
 		if ipName == "" {
 			return fmt.Errorf("ipName parameter required for iap-ingress")
 		}
-	}
-	if gcp.GcpApp.Spec.UseBasicAuth {
-		setNameVal(config.ProtoParams["basic-auth-ingress"], "ipName", ipName)
 	} else {
-		setNameVal(config.ProtoParams["iap-ingress"], "ipName", ipName)
+		options[string(kftypes.IPNAME)] = gcp.GcpApp.Spec.IpName
 	}
-	hostname := gcp.GcpApp.Spec.Hostname
+
+	if gcp.GcpApp.Spec.UseBasicAuth {
+		options[string(kftypes.USE_BASIC_AUTH)] = true
+	} else {
+		options[string(kftypes.USE_BASIC_AUTH)] = false
+	}
 	if options[string(kftypes.HOSTNAME)] != nil {
-		hostname = options[string(kftypes.HOSTNAME)].(string)
+		hostname := options[string(kftypes.HOSTNAME)].(string)
 		if hostname == "" {
 			return fmt.Errorf("hostname parameter required for iap-ingress")
 		}
-	}
-	if gcp.GcpApp.Spec.UseBasicAuth {
-		setNameVal(config.ProtoParams["basic-auth-ingress"], "hostname", hostname)
 	} else {
-		setNameVal(config.ProtoParams["iap-ingress"], "hostname", hostname)
+		options[string(kftypes.HOSTNAME)] = gcp.GcpApp.Spec.Hostname
 	}
 	project := gcp.GcpApp.Spec.Project
 	if options[string(kftypes.PROJECT)] != nil {
@@ -503,17 +495,12 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 	// 		},
 	// 	}
 	// }
-	setNameVal(config.CompParams["pipline"], "mysqlPd", gcp.GcpApp.Name+"-storage-metadata-store")
-	setNameVal(config.CompParams["pipline"], "minioPd", gcp.GcpApp.Name+"-storage-artifact-store")
-	setNameVal(config.CompParams["application"], "components",
-		"["+strings.Join(kstypes.QuoteItems(kstypes.DefaultComponents), ",")+"]")
 	// kstypes.DefaultParameters["application"] = []kstypes.NameValue{
 	// 	{
 	// 		Name:  "components",
 	// 		Value: "[" + strings.Join(kstypes.QuoteItems(kstypes.DefaultComponents), ",") + "]",
 	// 	},
 	// }
-	log.Infof("config afterwards: %+v", config)
 	ks := gcp.Children[kftypes.KSONNET]
 	if ks != nil {
 		ksGenerateErr := ks.Generate(kftypes.ALL, options)
