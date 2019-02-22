@@ -230,6 +230,24 @@ func generateTarget(configPath string) (*deploymentmanager.TargetConfiguration, 
 	return targetConfig, nil
 }
 
+func blockingWait(project string, opName string, deploymentmanagerService *deploymentmanager.Service, ctx context.Context) error {
+	for {
+		op, err := deploymentmanagerService.Operations.Get(project, opName).Context(ctx).Do()
+		if op.Status == "DONE" {
+			if op.HttpErrorStatusCode > 0 {
+				return fmt.Errorf("Deployment error(%v): %v",
+					op.HttpErrorStatusCode, op.HttpErrorMessage)
+			}
+			return nil
+		} else if err != nil {
+			return fmt.Errorf("Deployment error: %v", err)
+		}
+		log.Infof("Deployment is not ready: %v", op.Status)
+		opName = op.Name
+		time.Sleep(30 * time.Second)
+	}
+}
+
 func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 	appDir := gcp.GcpApp.Spec.AppDir
 	gcpConfigDir := path.Join(appDir, GCP_CONFIG)
@@ -260,39 +278,14 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 		if updateErr != nil {
 			return fmt.Errorf("Update deployment error: %v", updateErr)
 		}
-		for {
-			nextOp, err := deploymentmanagerService.Operations.Get(project, op.Name).Context(ctx).Do()
-			if nextOp.Status == "DONE" {
-				return nil
-			} else if err != nil {
-				return err
-			} else {
-				log.Infof("Updating deployment %v is on %v, sleep and poll...", deployment, nextOp.Status)
-				op = nextOp
-				time.Sleep(10000 * time.Millisecond)
-			}
-		}
+		return blockingWait(project, op.Name, deploymentmanagerService, ctx)
 	} else {
 		log.Infof("Get deployment error, creating: %v", err)
 		op, insertErr := deploymentmanagerService.Deployments.Insert(project, dp).Context(ctx).Do()
 		if insertErr != nil {
 			return fmt.Errorf("Insert deployment error: %v", insertErr)
 		}
-		for {
-			nextOp, err := deploymentmanagerService.Operations.Get(project, op.Name).Context(ctx).Do()
-			if nextOp.Status == "DONE" {
-				log.Infof("Status is DONE: %v with msg %v", nextOp.HttpErrorStatusCode,
-					nextOp.HttpErrorMessage)
-				return nil
-			} else if err != nil {
-				log.Errorf("Poll error: %v", err)
-				return err
-			} else {
-				log.Infof("Updating deployment %v is on %v, sleep and poll...", deployment, nextOp.Status)
-				op = nextOp
-				time.Sleep(10000 * time.Millisecond)
-			}
-		}
+		return blockingWait(project, op.Name, deploymentmanagerService, ctx)
 	}
 }
 
@@ -469,94 +462,6 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 		}
 		// TODO: ????
 	}
-	// kstypes.DefaultPackages = append(kstypes.DefaultPackages, []string{"gcp"}...)
-	// kstypes.DefaultComponents = append(kstypes.DefaultComponents, []string{"cloud-endpoints", "cert-manager", "iap-ingress"}...)
-	// kstypes.DefaultParameters["cert-manager"] = []kstypes.NameValue{
-	// 	{
-	// 		Name:  "acmeEmail",
-	// 		Value: email,
-	// 	},
-	// }
-	// kstypes.DefaultParameters["iap-ingress"] = []kstypes.NameValue{
-	// 	{
-	// 		Name:  "ipName",
-	// 		Value: ipName,
-	// 	},
-	// 	{
-	// 		Name:  "hostname",
-	// 		Value: hostname,
-	// 	},
-	// }
-	// if kstypes.DefaultParameters["jupyter"] != nil {
-	// 	namevalues := kstypes.DefaultParameters["jupyter"]
-	// 	namevalues = append(namevalues,
-	// 		kstypes.NameValue{
-	// 			Name:  "jupyterHubAuthenticator",
-	// 			Value: "iap",
-	// 		},
-	// 		kstypes.NameValue{
-	// 			Name:  string(kftypes.PLATFORM),
-	// 			Value: gcp.GcpApp.Spec.Platform,
-	// 		},
-	// 	)
-	// } else {
-	// 	kstypes.DefaultParameters["jupyter"] = []kstypes.NameValue{
-	// 		{
-	// 			Name:  "jupyterHubAuthenticator",
-	// 			Value: "iap",
-	// 		},
-	// 		{
-	// 			Name:  string(kftypes.PLATFORM),
-	// 			Value: gcp.GcpApp.Spec.Platform,
-	// 		},
-	// 	}
-	// }
-	// if kstypes.DefaultParameters["ambassador"] != nil {
-	// 	namevalues := kstypes.DefaultParameters["ambassador"]
-	// 	namevalues = append(namevalues,
-	// 		kstypes.NameValue{
-	// 			Name:  string(kftypes.PLATFORM),
-	// 			Value: gcp.GcpApp.Spec.Platform,
-	// 		},
-	// 	)
-	// } else {
-	// 	kstypes.DefaultParameters["ambassador"] = []kstypes.NameValue{
-	// 		{
-	// 			Name:  string(kftypes.PLATFORM),
-	// 			Value: gcp.GcpApp.Spec.Platform,
-	// 		},
-	// 	}
-	// }
-	// if kstypes.DefaultParameters["pipeline"] != nil {
-	// 	namevalues := kstypes.DefaultParameters["pipeline"]
-	// 	namevalues = append(namevalues,
-	// 		kstypes.NameValue{
-	// 			Name:  "mysqlPd",
-	// 			Value: gcp.GcpApp.Name + "-storage-metadata-store",
-	// 		},
-	// 		kstypes.NameValue{
-	// 			Name:  "nfsPd",
-	// 			Value: gcp.GcpApp.Name + "-storage-artifact-store",
-	// 		},
-	// 	)
-	// } else {
-	// 	kstypes.DefaultParameters["pipeline"] = []kstypes.NameValue{
-	// 		{
-	// 			Name:  "mysqlPd",
-	// 			Value: gcp.GcpApp.Name + "-storage-metadata-store",
-	// 		},
-	// 		{
-	// 			Name:  "nfsPd",
-	// 			Value: gcp.GcpApp.Name + "-storage-artifact-store",
-	// 		},
-	// 	}
-	// }
-	// kstypes.DefaultParameters["application"] = []kstypes.NameValue{
-	// 	{
-	// 		Name:  "components",
-	// 		Value: "[" + strings.Join(kstypes.QuoteItems(kstypes.DefaultComponents), ",") + "]",
-	// 	},
-	// }
 	ks := gcp.Children[kftypes.KSONNET]
 	if ks != nil {
 		ksGenerateErr := ks.Generate(kftypes.ALL, options)
