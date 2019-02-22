@@ -355,8 +355,8 @@ func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum, options map[string]
 		setNameVal(config.ProtoParams["iap-ingress"], "ipName", ipName)
 		setNameVal(config.ProtoParams["iap-ingress"], "hostname", hostname)
 	}
-	setNameVal(config.CompParams["pipline"], "mysqlPd", ksApp.KsApp.Name+"-storage-metadata-store")
-	setNameVal(config.CompParams["pipline"], "minioPd", ksApp.KsApp.Name+"-storage-artifact-store")
+	setNameVal(config.CompParams["pipeline"], "mysqlPd", ksApp.KsApp.Name+"-storage-metadata-store")
+	setNameVal(config.CompParams["pipeline"], "minioPd", ksApp.KsApp.Name+"-storage-artifact-store")
 	components := []string{}
 	for _, c := range config.Components {
 		if c != "application" && c != "metacontroller" {
