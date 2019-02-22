@@ -21,3 +21,4 @@ if [[ ! -z "${JUPYTERHUB_API_TOKEN}" ]]; then
 else
   . /usr/local/bin/start.sh jupyter notebook $*
 fi
+
