@@ -314,7 +314,6 @@ local dagTemplates = [
         "default",
         "-c",
         "spark-operator",
-        "--verbose",
       ],
       working_dir=appDir + "/ks_app"
     ),
