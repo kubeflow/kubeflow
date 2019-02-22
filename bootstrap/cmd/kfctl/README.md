@@ -20,7 +20,7 @@ Note: Additional issues have been opened so this README.md will have additional 
 
 ## API and Packaging
 
-New directories (`cmd/kfctl, pkg`):
+New directories
 
 ```sh
 bootstrap/cmd/kfctl
@@ -42,15 +42,17 @@ The `KfApp` golang Interface
 
 ```golang
 type ResourceEnum string
+
 const (
 	ALL      ResourceEnum = "all"
 	K8S      ResourceEnum = "k8s"
 	PLATFORM ResourceEnum = "platform"
+	NONE     ResourceEnum = "none"
 )
 
 //
 // KfApp is used by commands under bootstrap/cmd/{bootstrap,kfctl}. KfApp provides a common
-// API for different implementations like Ksonnet, GcpApp, MinikubeApp, etc.
+// API for different implementations like ksonnet, gcp, minikube, docker-for-desktop, etc.
 //
 type KfApp interface {
 	Apply(resources ResourceEnum, options map[string]interface{}) error
@@ -60,14 +62,20 @@ type KfApp interface {
 }
 ```
 
-kfctl includes platforms that implement the KfApp interface. (gcp will be added in the next phase)
+kfctl will statically include platforms that implement the KfApp interface. 
+These include:
 
 - platform: **ksonnet**
   - bootstrap/pkg/client/ksonnet/ksonnet.go
 - platform: **minikube**
   - bootstrap/pkg/client/minikube/minikube.go
-- platform: **docker-for-desktop**
-  - bootstrap/pkg/client/dockerfordesktop/dockerfordesktop.go
+- platform: **gcp** 
+  - bootstrap/pkg/client/gcp/gcp.go
+- platform: **ack** (in progress)
+  - bootstrap/pkg/client/ack/ack.go
+
+kfctl can also dynamically load platforms that are not statically linked, as 
+described below in [Extending kfctl](#extending-kfctl).
 
 ## Usage
 
@@ -102,7 +110,9 @@ kfctl apply
 
 ## Subcommands
 
-### **init** (kubeflow/bootstrap/cmd/kfctl/cmd/init.go)
+### **init** 
+
+(kubeflow/bootstrap/cmd/kfctl/cmd/init.go)
 
 ```
 Create a kubeflow application under <[path/]name>. The <[path/]name> argument can either be a full path
@@ -123,7 +133,9 @@ Flags:
   -v, --version string     desired version Kubeflow or latest tag if not provided by user  (default "v0.4.1")
 ```
 
-### **generate** (kubeflow/bootstrap/cmd/kfctl/cmd/generate.go)
+### **generate**
+
+(kubeflow/bootstrap/cmd/kfctl/cmd/generate.go)
 
 ```
 Generate a kubeflow application where resources is one of 'platform | k8s | all'.
@@ -145,7 +157,9 @@ Flags:
   -V, --verbose         verbose output default is false
 ```
 
-### **apply** (kubeflow/bootstrap/cmd/kfctl/cmd/apply.go)
+### **apply** 
+
+(kubeflow/bootstrap/cmd/kfctl/cmd/apply.go)
 
 ```
 Deploy a generated kubeflow application.
@@ -158,7 +172,9 @@ Flags:
   -V, --verbose   verbose output default is false
 ```
 
-### **delete** (kubeflow/bootstrap/cmd/kfctl/cmd/delete.go)
+### **delete** 
+
+(kubeflow/bootstrap/cmd/kfctl/cmd/delete.go)
 
 ```
 Delete a kubeflow application.

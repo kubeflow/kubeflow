@@ -29,8 +29,7 @@ var initCmd = &cobra.Command{
 	Use:   "init <[path/]name>",
 	Short: "Create a kubeflow application under <[path/]name>",
 	Long: `Create a kubeflow application under <[path/]name>. The <[path/]name> argument can either be a full path
-or a name where the kubeflow application will be initialized in $PWD/name if <name> is not a path or in the parent
-directory is name is a path.`,
+or a name where the kubeflow application will be initialized in the current directory.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.InfoLevel)
 		log.Info("initializing kubeflow application")
@@ -79,7 +78,7 @@ func init() {
 	initCfg.SetConfigType("yaml")
 
 	initCmd.Flags().StringP(string(kftypes.PLATFORM), "p", kftypes.DefaultPlatform,
-		"one of 'gcp|minikube|docker-for-desktop|ack'")
+		"one of 'gcp|minikube|ksonnet'")
 	bindErr := initCfg.BindPFlag(string(kftypes.PLATFORM), initCmd.Flags().Lookup(string(kftypes.PLATFORM)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.PLATFORM), bindErr)

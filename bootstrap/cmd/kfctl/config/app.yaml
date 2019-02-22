@@ -1,61 +1,11 @@
-apiversion: apps.kubeflow.org/v1alpha1
+apiVersion: ksonnet.apps.kubeflow.org/v1alpha1
 kind: Ksonnet
 metadata:
-  name: kf-app
+  creationTimestamp: null
+  name: ksonnet
   namespace: kubeflow
-namespace: kubeflow
 spec:
-  app:
-    packages:
-    - name: argo
-      registry: kubeflow
-    - name: pipeline
-      registry: kubeflow
-    - name: common
-      registry: kubeflow
-    - name: examples
-      registry: kubeflow
-    - name: jupyter
-      registry: kubeflow
-    - name: katib
-      registry: kubeflow
-    - name: mpi-job
-      registry: kubeflow
-    - name: pytorch-job
-      registry: kubeflow
-    - name: seldon
-      registry: kubeflow
-    - name: tf-serving
-      registry: kubeflow
-    - name: openvino
-      registry: kubeflow
-    - name: tensorboard
-      registry: kubeflow
-    - name: tf-training
-      registry: kubeflow
-    - name: metacontroller
-      registry: kubeflow
-    - name: profiles
-      registry: kubeflow
-    - name: application
-      registry: kubeflow
-    - name: modeldb
-      registry: kubeflow
-    parameters:
-    - component: spartakus
-      name: usageId
-      value: 43606238
-    - component: spartakus
-      name: reportUsage
-      value: 1
-    registries:
-    - RegUri: /Users/fred/go/src/github.com/kubeflow/kubeflow/kubeflow
-      name: kubeflow
-      path: kubeflow
-      repo: https://github.com/kubeflow/kubeflow.git
-      version: v0.4.1
-  components:
-  - all
-  platform: none
-  repo: /Users/fred/go/src/github.com/kubeflow/kubeflow/kubeflow
-  version: v0.4.1
+  platform: ksonnet
+  repo: /Users/kdkasrav/ksonnet/.cache/master/kubeflow
+  version: master
+status: {}
