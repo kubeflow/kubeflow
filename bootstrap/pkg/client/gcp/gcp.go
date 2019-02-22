@@ -65,7 +65,7 @@ type Gcp struct {
 }
 
 func GetKfApp(options map[string]interface{}) kftypes.KfApp {
-	options[string(kftypes.PLATFORM)] = string(kftypes.KSONNET)
+	options[string(kftypes.PLATFORM)] = string(kftypes.NONE)
 	log.Infof("getting ksonnet platform in gcp")
 	_ksonnet := ksonnet.GetKfApp(options)
 	options[string(kftypes.PLATFORM)] = "gcp"
@@ -80,7 +80,7 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 			},
 		},
 	}
-	_gcp.Children[kftypes.KSONNET] = _ksonnet
+	_gcp.Children[kftypes.NONE] = _ksonnet
 	if options[string(kftypes.DATA)] != nil {
 		dat := options[string(kftypes.DATA)].([]byte)
 		specErr := yaml.Unmarshal(dat, _gcp.GcpApp)
@@ -253,27 +253,27 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum, options map[string]interfa
 	if secretsErr != nil {
 		return fmt.Errorf("gcp apply could not create secrets Error %v", secretsErr)
 	}
-	ks := gcp.Children[kftypes.KSONNET]
+	ks := gcp.Children[kftypes.NONE]
 	if ks != nil {
 		ksApplyErr := ks.Apply(resources, options)
 		if ksApplyErr != nil {
-			return fmt.Errorf("gcp apply failed for %v: %v", string(kftypes.KSONNET), ksApplyErr)
+			return fmt.Errorf("gcp apply failed for %v: %v", string(kftypes.NONE), ksApplyErr)
 		}
 	} else {
-		return fmt.Errorf("%v not in Children", string(kftypes.KSONNET))
+		return fmt.Errorf("%v not in Children", string(kftypes.NONE))
 	}
 	return nil
 }
 
 func (gcp *Gcp) Delete(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	ks := gcp.Children[kftypes.KSONNET]
+	ks := gcp.Children[kftypes.NONE]
 	if ks != nil {
 		ksDeleteErr := ks.Delete(resources, options)
 		if ksDeleteErr != nil {
-			return fmt.Errorf("gcp delete failed for %v: %v", string(kftypes.KSONNET), ksDeleteErr)
+			return fmt.Errorf("gcp delete failed for %v: %v", string(kftypes.NONE), ksDeleteErr)
 		}
 	} else {
-		return fmt.Errorf("%v not in Children", string(kftypes.KSONNET))
+		return fmt.Errorf("%v not in Children", string(kftypes.NONE))
 	}
 	return nil
 }
@@ -394,44 +394,20 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 			},
 		}
 	}
-	if kstypes.DefaultParameters["pipeline"] != nil {
-		namevalues := kstypes.DefaultParameters["pipeline"]
-		namevalues = append(namevalues,
-			kstypes.NameValue{
-				Name:  "mysqlPd",
-				Value: gcp.GcpApp.Name + "-storage-pipeline-db",
-			},
-			kstypes.NameValue{
-				Name:  "nfsPd",
-				Value: gcp.GcpApp.Name + "-storage-pipeline-nfs",
-			},
-		)
-	} else {
-		kstypes.DefaultParameters["pipeline"] = []kstypes.NameValue{
-			{
-				Name:  "mysqlPd",
-				Value: gcp.GcpApp.Name + "-storage-pipeline-db",
-			},
-			{
-				Name:  "nfsPd",
-				Value: gcp.GcpApp.Name + "-storage-pipeline-nfs",
-			},
-		}
-	}
 	kstypes.DefaultParameters["application"] = []kstypes.NameValue{
 		{
 			Name:  "components",
 			Value: "[" + strings.Join(kstypes.QuoteItems(kstypes.DefaultComponents), ",") + "]",
 		},
 	}
-	ks := gcp.Children[kftypes.KSONNET]
+	ks := gcp.Children[kftypes.NONE]
 	if ks != nil {
 		ksGenerateErr := ks.Generate(kftypes.ALL, options)
 		if ksGenerateErr != nil {
-			return fmt.Errorf("gcp generate failed for %v: %v", string(kftypes.KSONNET), ksGenerateErr)
+			return fmt.Errorf("gcp generate failed for %v: %v", string(kftypes.NONE), ksGenerateErr)
 		}
 	} else {
-		return fmt.Errorf("%v not in Children", string(kftypes.KSONNET))
+		return fmt.Errorf("%v not in Children", string(kftypes.NONE))
 	}
 	return nil
 }
@@ -650,7 +626,7 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum, options map[string]inte
 		}
 		ksonnetErr := gcp.generateKsonnet(options)
 		if ksonnetErr != nil {
-			return fmt.Errorf("could not generate kssonnet under %v Error: %v", kstypes.KsName, ksonnetErr)
+			return fmt.Errorf("could not generate ksonnet under %v Error: %v", kstypes.KsName, ksonnetErr)
 		}
 	case kftypes.ALL:
 		gcpConfigFilesErr := gcp.generateDMConfigs(options)
@@ -663,7 +639,7 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum, options map[string]inte
 		}
 		ksonnetErr := gcp.generateKsonnet(options)
 		if ksonnetErr != nil {
-			return fmt.Errorf("could not generate kssonnet under %v Error: %v", kstypes.KsName, ksonnetErr)
+			return fmt.Errorf("could not generate ksonnet under %v Error: %v", kstypes.KsName, ksonnetErr)
 		}
 	case kftypes.PLATFORM:
 		gcpConfigFilesErr := gcp.generateDMConfigs(options)
@@ -672,7 +648,7 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum, options map[string]inte
 		}
 		ksonnetErr := gcp.generateKsonnet(options)
 		if ksonnetErr != nil {
-			return fmt.Errorf("could not generate kssonnet under %v Error: %v", kstypes.KsName, ksonnetErr)
+			return fmt.Errorf("could not generate ksonnet under %v Error: %v", kstypes.KsName, ksonnetErr)
 		}
 	}
 	createConfigErr := gcp.writeConfigFile()
@@ -737,14 +713,14 @@ func (gcp *Gcp) gcpInitProject() error {
 }
 
 func (gcp *Gcp) Init(options map[string]interface{}) error {
-	ks := gcp.Children[kftypes.KSONNET]
+	ks := gcp.Children[kftypes.NONE]
 	if ks != nil {
 		ksInitErr := ks.Init(options)
 		if ksInitErr != nil {
-			return fmt.Errorf("gcp init failed for %v: %v", string(kftypes.KSONNET), ksInitErr)
+			return fmt.Errorf("gcp init failed for %v: %v", string(kftypes.NONE), ksInitErr)
 		}
 	} else {
-		return fmt.Errorf("%v not in Children", string(kftypes.KSONNET))
+		return fmt.Errorf("%v not in Children", string(kftypes.NONE))
 	}
 	cacheDir := path.Join(gcp.GcpApp.Spec.AppDir, kftypes.DefaultCacheDir)
 	newPath := filepath.Join(cacheDir, gcp.GcpApp.Spec.Version)

@@ -2,3 +2,7 @@
 /.ksonnet/registries
 /app.override.yaml
 /reg_tmp/**
+/ksonnet
+/gcp
+/minikube
+/dockerfordesktop

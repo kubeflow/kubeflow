@@ -47,12 +47,11 @@ const (
 	ALL      ResourceEnum = "all"
 	K8S      ResourceEnum = "k8s"
 	PLATFORM ResourceEnum = "platform"
-	NONE     ResourceEnum = "none"
 )
 
 //
 // KfApp is used by commands under bootstrap/cmd/{bootstrap,kfctl}. KfApp provides a common
-// API for different implementations like ksonnet, gcp, minikube, docker-for-desktop, etc.
+// API for different implementations like gcp, minikube, docker-for-desktop, etc.
 //
 type KfApp interface {
 	Apply(resources ResourceEnum, options map[string]interface{}) error
@@ -65,14 +64,12 @@ type KfApp interface {
 kfctl will statically include platforms that implement the KfApp interface. 
 These include:
 
-- platform: **ksonnet**
+- platform: **none**
   - bootstrap/pkg/client/ksonnet/ksonnet.go
 - platform: **minikube**
   - bootstrap/pkg/client/minikube/minikube.go
 - platform: **gcp** 
   - bootstrap/pkg/client/gcp/gcp.go
-- platform: **ack** (in progress)
-  - bootstrap/pkg/client/ack/ack.go
 
 kfctl can also dynamically load platforms that are not statically linked, as 
 described below in [Extending kfctl](#extending-kfctl).
@@ -126,7 +123,7 @@ Flags:
       --debug              debug debug default is false
   -h, --help               help for init
   -n, --namespace string   namespace where kubeflow will be deployed (default "kubeflow")
-  -p, --platform string    one of 'gcp|minikube|ksonnet' (default=ksonnet)
+  -p, --platform string    one of 'gcp|minikube|none' (default=none)
       --project string     name of the gcp project if --platform gcp
   -r, --repo string        local github kubeflow repo
   -V, --verbose            verbose output default is false
@@ -289,7 +286,7 @@ type KsonnetSpec struct {
 }
 ```
 
-#### app.yaml example for --platform ksonnet
+#### app.yaml example for --platform none
 
 ```
 apiVersion: ksonnet.apps.kubeflow.org/v1alpha1
@@ -299,9 +296,9 @@ metadata:
   name: ksonnet
   namespace: kubeflow
 spec:
-  appdir: /Users/kdkasrav/ksonnet
-  platform: ksonnet
-  repo: /Users/kdkasrav/ksonnet/.cache/master/kubeflow
+  appdir: /Users/kdkasrav/go/src/github.com/kubeflow/kubeflow/bootstrap/ksonnet
+  platform: none
+  repo: /Users/kdkasrav/go/src/github.com/kubeflow/kubeflow/bootstrap/ksonnet/.cache/master/kubeflow
   version: master
 status: {}
 ```

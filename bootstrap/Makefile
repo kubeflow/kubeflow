@@ -87,24 +87,24 @@ run-local-docker:
 	  --entrypoint /bin/bash $(IMG):$(TAG)
 
 test-known-platforms-init: install build-dockerfordesktop-plugin
-	@rm -rf $(HOME)/dockerfordesktop && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/dockerfordesktop -V --platform docker-for-desktop && \
-	rm -rf $(HOME)/ksonnet && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init $(HOME)/ksonnet -V --platform ksonnet && \
-	rm -rf $(HOME)/minikube && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init $(HOME)/minikube -V --platform minikube && \
-	rm -rf $(HOME)/gcp && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init $(HOME)/gcp -V --platform gcp --project $(GCLOUD_PROJECT) && \
+	@rm -rf dockerfordesktop && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init dockerfordesktop -V --platform docker-for-desktop && \
+	rm -rf ksonnet && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init `pwd`/ksonnet -V && \
+	rm -rf minikube && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init $(PWD)/minikube -V --platform minikube && \
+	rm -rf gcp && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init gcp -V --platform gcp --project $(GCLOUD_PROJECT) && \
 	echo SUCCESS
 
 test-known-platforms-generate: test-known-platforms-init
-	@cd ~/dockerfordesktop && \
+	@cd dockerfordesktop && \
 	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl generate all -V && \
-	cd ~/ksonnet && \
+	cd ../ksonnet && \
 	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl generate all -V && \
-	cd ~/minikube && \
+	cd ../minikube && \
 	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl generate all -V --mount-local && \
-	cd ~/gcp && \
+	cd ../gcp && \
 	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl generate all -V --email jsmith@acme.com && \
 	echo SUCCESS
 

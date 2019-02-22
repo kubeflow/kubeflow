@@ -41,14 +41,14 @@ import (
 func GetPlatform(options map[string]interface{}) (kftypes.KfApp, error) {
 	platform := options[string(kftypes.PLATFORM)].(string)
 	switch platform {
-	case "ksonnet":
+	case string(kftypes.NONE):
 		return ksonnet.GetKfApp(options), nil
-	case "minikube":
+	case string(kftypes.MINIKUBE):
 		return minikube.GetKfApp(options), nil
-	case "gcp":
+	case string(kftypes.GCP):
 		return gcp.GetKfApp(options), nil
 	// STATIC
-	case "docker-for-desktop":
+	case string(kftypes.DOCKER_FOR_DESKTOP):
 		return dockerfordesktop.GetKfApp(options), nil
 	// -STATIC //
 	default:
@@ -59,7 +59,7 @@ func GetPlatform(options map[string]interface{}) (kftypes.KfApp, error) {
 
 func processResourceArg(args []string) (kftypes.ResourceEnum, error) {
 	if len(args) > 1 {
-		return kftypes.NONE, fmt.Errorf("unknown extra args %v", args[1:])
+		return kftypes.ALL, fmt.Errorf("unknown extra args %v", args[1:])
 	}
 	resources := kftypes.ALL
 	if len(args) == 1 {
@@ -70,7 +70,7 @@ func processResourceArg(args []string) (kftypes.ResourceEnum, error) {
 		case kftypes.PLATFORM:
 			resources = kftypes.PLATFORM
 		default:
-			return kftypes.NONE, fmt.Errorf("unknown argument %v", args[0])
+			return kftypes.ALL, fmt.Errorf("unknown argument %v", args[0])
 		}
 	}
 	return resources, nil
