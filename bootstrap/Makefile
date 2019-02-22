@@ -88,13 +88,13 @@ run-local-docker:
 
 test-known-platforms-init: install build-dockerfordesktop-plugin
 	@rm -rf $(HOME)/dockerfordesktop && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/dockerfordesktop -V --platform docker-for-desktop --version master && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/dockerfordesktop -V --platform docker-for-desktop && \
 	rm -rf $(HOME)/ksonnet && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init $(HOME)/ksonnet -V --platform ksonnet --version master && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init $(HOME)/ksonnet -V --platform ksonnet && \
 	rm -rf $(HOME)/minikube && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init $(HOME)/minikube -V --platform minikube --version master && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init $(HOME)/minikube -V --platform minikube && \
 	rm -rf $(HOME)/gcp && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init $(HOME)/gcp -V --platform gcp --version master --project $(GCLOUD_PROJECT) && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init $(HOME)/gcp -V --platform gcp --project $(GCLOUD_PROJECT) && \
 	echo SUCCESS
 
 test-known-platforms-generate: test-known-platforms-init
