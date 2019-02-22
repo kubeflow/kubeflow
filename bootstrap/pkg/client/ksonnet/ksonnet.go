@@ -275,8 +275,7 @@ func (ksApp *KsApp) deleteGlobalResources() error {
 		} else if crd.Name == "compositecontrollers.metacontroller.k8s.io" ||
 			crd.Name == "controllerrevisions.metacontroller.k8s.io" ||
 			crd.Name == "decoratorcontrollers.metacontroller.k8s.io" ||
-			crd.Name == "applications.app.k8s.io" ||
-			crd.Name == "scalingpolicies.scalingpolicy.kope.io" {
+			crd.Name == "applications.app.k8s.io" {
 			do := &metav1.DeleteOptions{}
 			dErr := client.CustomResourceDefinitions().Delete(crd.Name, do)
 			if dErr != nil {
@@ -293,7 +292,7 @@ func (ksApp *KsApp) deleteGlobalResources() error {
 		return fmt.Errorf("couldn't get list of clusterrolebindings Error: %v", crbsErr)
 	}
 	for _, crb := range crbs.Items {
-		if crb.Labels["app.kubernetes.io/name"] == ksApp.KsApp.Name {
+		if crb.Labels[kftypes.DefaultAppLabel] == ksApp.KsApp.Name {
 			do := &metav1.DeleteOptions{}
 			dErr := cli.RbacV1().ClusterRoleBindings().Delete(crb.Name, do)
 			if dErr != nil {
@@ -324,12 +323,6 @@ func (ksApp *KsApp) deleteGlobalResources() error {
 }
 
 func (ksApp *KsApp) Delete(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	//TODO not deleting the following
-	//clusterrolebinding.rbac.authorization.k8s.io "meta-controller-cluster-role-binding" deleted
-	//customresourcedefinition.apiextensions.k8s.io "compositecontrollers.metacontroller.k8s.io" deleted
-	//customresourcedefinition.apiextensions.k8s.io "controllerrevisions.metacontroller.k8s.io" deleted
-	//customresourcedefinition.apiextensions.k8s.io "decoratorcontrollers.metacontroller.k8s.io" deleted
-
 	err := ksApp.deleteGlobalResources()
 	if err != nil {
 		log.Errorf("there was a problem deleting global resources: %v", err)
