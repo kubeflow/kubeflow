@@ -126,7 +126,7 @@ Flags:
       --debug              debug debug default is false
   -h, --help               help for init
   -n, --namespace string   namespace where kubeflow will be deployed (default "kubeflow")
-  -p, --platform string    one of 'gcp|minikube|docker-for-desktop|ack' (default "none")
+  -p, --platform string    one of 'gcp|minikube|ksonnet' (default=ksonnet)
       --project string     name of the gcp project if --platform gcp
   -r, --repo string        local github kubeflow repo
   -V, --verbose            verbose output default is false
@@ -289,19 +289,20 @@ type KsonnetSpec struct {
 }
 ```
 
-#### app.yaml example for --platform none
+#### app.yaml example for --platform ksonnet
 
 ```
 apiVersion: ksonnet.apps.kubeflow.org/v1alpha1
 kind: Ksonnet
 metadata:
   creationTimestamp: null
-  name: ks-app
+  name: ksonnet
   namespace: kubeflow
 spec:
-  platform: none
-  repo: /Users/kdkasrav/go/src/github.com/kubeflow/kubeflow/kubeflow
-  version: v0.4.1
+  appdir: /Users/kdkasrav/ksonnet
+  platform: ksonnet
+  repo: /Users/kdkasrav/ksonnet/.cache/master/kubeflow
+  version: master
 status: {}
 ```
 
