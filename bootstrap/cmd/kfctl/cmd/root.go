@@ -122,15 +122,7 @@ func loadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 		return nil, fmt.Errorf("could not get current directory %v", err)
 	}
 	appName := filepath.Base(appDir)
-	log.Infof("AppName %v AppDir %v", appName, appDir)
 	cfgfile := filepath.Join(appDir, kftypes.KfConfigFile)
-	log.Infof("reading from %v", cfgfile)
-	fs := afero.NewOsFs()
-	ksDir := path.Join(appDir, kstypes.KsName)
-	kApp, kAppErr := app.Load(fs, nil, ksDir)
-	if kAppErr != nil {
-		return nil, fmt.Errorf("there was a problem loading app %v. Error: %v", appName, kAppErr)
-	}
 	ksApp := &kstypes.Ksonnet{}
 	dat, datErr := ioutil.ReadFile(cfgfile)
 	if datErr != nil {
@@ -140,6 +132,13 @@ func loadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	if specErr != nil {
 		return nil, fmt.Errorf("couldn't unmarshall Ksonnet. Error: %v", specErr)
 	}
+	fs := afero.NewOsFs()
+	ksDir := path.Join(ksApp., kstypes.KsName)
+	kApp, kAppErr := app.Load(fs, nil, ksDir)
+	if kAppErr != nil {
+		return nil, fmt.Errorf("there was a problem loading app %v. Error: %v", appName, kAppErr)
+	}
+
 	options[string(kftypes.PLATFORM)] = ksApp.Spec.Platform
 	options[string(kftypes.APPNAME)] = appName
 	options[string(kftypes.APPDIR)] = appDir

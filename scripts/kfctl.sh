@@ -487,6 +487,19 @@ main() {
       else
         echo "namespace ${K8S_NAMESPACE} successfully deleted."
       fi
+      appname=$(ks param list application | grep '^application name'|awk '{print $NF}'|tr -d "'")
+      for i in $(kubectl get crds -lapp.kubernetes.io/name=$appname -oname); do 
+        crd=${i#*/}
+        kubectl delete crd $crd
+      done
+      for i in $(kubectl get clusterroles -lapp.kubernetes.io/name=$appname -oname); do 
+        clusterrole=${i#*/}
+        kubectl delete clusterrole $clusterrole
+      done
+      for i in $(kubectl get clusterrolebindings -lapp.kubernetes.io/name=$appname -oname); do 
+        clusterrolebinding=${i#*/}
+        kubectl delete clusterrolebinding $clusterrolebinding
+      done
       set -e
     fi
     if [[ "${WHAT}" == "platform" ]] || [[ "${WHAT}" == "all" ]]; then

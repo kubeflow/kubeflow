@@ -31,7 +31,9 @@ import (
 	"github.com/spf13/afero"
 	"io/ioutil"
 	"k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"os"
@@ -246,12 +248,52 @@ func (ksApp *KsApp) components() (map[string]*kstypes.KsComponent, error) {
 	return comps, nil
 }
 
+func (ksApp *KsApp) deleteGlobalResource(obj runtime.Object) error {
+	kind := obj.GetObjectKind()
+	log.Infof("object kind is %v", kind)
+	return nil
+}
+
+func (ksApp *KsApp) deleteGlobalResources() error {
+	label, labelErr := ksApp.paramGet("application", "name")
+	if labelErr != nil {
+		return fmt.Errorf("couldn't get application param name Error: %v", labelErr)
+	}
+	client, clientErr := kftypes.GetDynamicClientOutOfCluster()
+	if clientErr != nil {
+		return fmt.Errorf("couldn't get dynamic client Error: %v", clientErr)
+	}
+	// crds
+	gvr := &metav1.APIResource{
+		Name: "customresourcedefinitions",
+		SingularName: "customresourcedefinition",
+		Group:    "apiextensions.k8s.io",
+		Version:  "v1beta1",
+		Kind: "CustomResourceDefinition",
+	}
+	crds, crdsErr := client.Resource(gvr, "").List(metav1.ListOptions{
+		LabelSelector: "app.kubernetes.io/name="+label,
+	})
+	if crdsErr != nil {
+		return fmt.Errorf("couldn't get list of customresourcedefinitions Error: %v", crdsErr)
+	}
+	if meta.IsListType(crds) {
+		meta.EachListItem(crds, ksApp.deleteGlobalResource)
+	}
+	return nil
+}
+
 func (ksApp *KsApp) Delete(resources kftypes.ResourceEnum, options map[string]interface{}) error {
 	//TODO not deleting the following
 	//clusterrolebinding.rbac.authorization.k8s.io "meta-controller-cluster-role-binding" deleted
 	//customresourcedefinition.apiextensions.k8s.io "compositecontrollers.metacontroller.k8s.io" deleted
 	//customresourcedefinition.apiextensions.k8s.io "controllerrevisions.metacontroller.k8s.io" deleted
 	//customresourcedefinition.apiextensions.k8s.io "decoratorcontrollers.metacontroller.k8s.io" deleted
+
+	err := ksApp.deleteGlobalResources()
+	if err != nil {
+		log.Errorf("there was a problem deleting global resources: %v", err)
+	}
 	host, _, serverErr := kftypes.ServerVersion()
 	if serverErr != nil {
 		return fmt.Errorf("couldn't get server version: %v", serverErr)
@@ -269,7 +311,7 @@ func (ksApp *KsApp) Delete(resources kftypes.ResourceEnum, options map[string]in
 		return fmt.Errorf("couldn't load client config Error: %v", clientConfigErr)
 	}
 	components := []string{"application", "metacontroller"}
-	err := actions.RunDelete(map[string]interface{}{
+	err = actions.RunDelete(map[string]interface{}{
 		actions.OptionApp: ksApp.KApp,
 		actions.OptionClientConfig: &client.Config{
 			Overrides: &clientcmd.ConfigOverrides{},
@@ -291,6 +333,9 @@ func (ksApp *KsApp) Delete(resources kftypes.ResourceEnum, options map[string]in
 			return fmt.Errorf("couldn't delete namespace %v Error: %v", namespace, nsErr)
 		}
 	}
+
+
+
 	name := "meta-controller-cluster-role-binding"
 	crb, crbErr := cli.RbacV1().ClusterRoleBindings().Get(name, metav1.GetOptions{})
 	if crbErr == nil {
@@ -305,9 +350,9 @@ func (ksApp *KsApp) Delete(resources kftypes.ResourceEnum, options map[string]in
 func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum, options map[string]interface{}) error {
 	log.Infof("Ksonnet.Generate Name %v AppDir %v Platform %v", ksApp.KsApp.Name,
 		ksApp.AppDir, ksApp.KsApp.Spec.Platform)
-	host, k8sSpec, err := kftypes.ServerVersion()
-	if err != nil {
-		return fmt.Errorf("couldn't get server version: %v", err)
+	initErr := ksApp.initKs()
+	if initErr != nil {
+		return fmt.Errorf("couldn't initialize KfApi: %v", initErr)
 	}
 	pkgs := ksApp.KsApp.Spec.Packages
 	if pkgs == nil || len(pkgs) == 0 {
@@ -320,10 +365,6 @@ func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum, options map[string]
 	parameters := ksApp.KsApp.Spec.Parameters
 	if parameters == nil || len(parameters) == 0 {
 		ksApp.KsApp.Spec.Parameters = kstypes.DefaultParameters
-	}
-	initErr := ksApp.initKs("default", k8sSpec, host, ksApp.KsApp.Namespace)
-	if initErr != nil {
-		return fmt.Errorf("couldn't initialize KfApi: %v", initErr)
 	}
 	ksRegistry := kstypes.DefaultRegistry
 	ksRegistry.Version = ksApp.KsApp.Spec.Version
@@ -417,20 +458,24 @@ func (ksApp *KsApp) Init(options map[string]interface{}) error {
 	return nil
 }
 
-func (ksApp *KsApp) initKs(envName string, k8sSpecFlag string, host string, namespace string) error {
+func (ksApp *KsApp) initKs() error {
 	newRoot := path.Join(ksApp.AppDir, ksApp.KsName)
-	ksApp.KsEnvName = envName
+	ksApp.KsEnvName = kstypes.KsEnvName
+	host, k8sSpec, err := kftypes.ServerVersion()
+	if err != nil {
+		return fmt.Errorf("couldn't get server version: %v", err)
+	}
 	options := map[string]interface{}{
 		actions.OptionFs:                    afero.NewOsFs(),
 		actions.OptionName:                  ksApp.KsName,
 		actions.OptionEnvName:               ksApp.KsEnvName,
 		actions.OptionNewRoot:               newRoot,
 		actions.OptionServer:                host,
-		actions.OptionSpecFlag:              k8sSpecFlag,
-		actions.OptionNamespace:             namespace,
+		actions.OptionSpecFlag:              k8sSpec,
+		actions.OptionNamespace:             ksApp.KsApp.Namespace,
 		actions.OptionSkipDefaultRegistries: true,
 	}
-	err := actions.RunInit(options)
+	err = actions.RunInit(options)
 	if err != nil {
 		return fmt.Errorf("there was a problem initializing the app: %v", err)
 	}
@@ -506,6 +551,24 @@ func (ksApp *KsApp) paramSet(component string, name string, value string) error 
 		return fmt.Errorf("Error when setting Parameters %v for Component %v: %v", name, component, err)
 	}
 	return nil
+}
+
+func (ksApp *KsApp) paramGet(component string, name string) (string, error) {
+	capture := kftypes.Capture()
+	err := actions.RunParamList(map[string]interface{}{
+		actions.OptionEnvName: ksApp.KsEnvName,
+		actions.OptionComponentName:    component,
+		actions.OptionOutput: "json",
+		actions.OptionWithoutModules: true,
+	})
+	output, outputErr := capture()
+	if outputErr != nil {
+		return "", fmt.Errorf("Error when fetching captured output %v", outputErr)
+	}
+	if err != nil {
+		return "", fmt.Errorf("Error when getting Parameters %v for Component %v: %v", name, component, err)
+	}
+	return output, nil
 }
 
 func (ksApp *KsApp) pkgInstall(pkg kstypes.KsPackage) error {

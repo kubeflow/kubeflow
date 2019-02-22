@@ -19,6 +19,7 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"io"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -175,10 +176,25 @@ func GetClientOutOfCluster() (kubernetes.Interface, error) {
 	return clientset, nil
 }
 
-// capture replaces os.Stdout with a writer that buffers any data written
+// GetDynamicClientOutOfCluster returns client-go/dynamic client
+func GetDynamicClientOutOfCluster() (dynamic.Interface, error) {
+	config, err := BuildOutOfClusterConfig()
+	if err != nil {
+		log.Fatalf("Can not get kubernetes config: %v", err)
+	}
+
+	dynamicClient, err := dynamic.NewClient(config)
+	if err != nil {
+		log.Fatalf("Can not get dynamic client: %v", err)
+	}
+
+	return dynamicClient, nil
+}
+
+// Capture replaces os.Stdout with a writer that buffers any data written
 // to os.Stdout. Call the returned function to cleanup and get the data
 // as a string.
-func capture() func() (string, error) {
+func Capture() func() (string, error) {
 	r, w, err := os.Pipe()
 	if err != nil {
 		panic(err)
