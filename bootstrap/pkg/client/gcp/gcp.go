@@ -178,6 +178,9 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 		if bufErr != nil {
 			return bufErr
 		}
+		//TODO Unmarshal will not work here. YAML file is not in the format of Deployment.
+		// Instead, you should fill in the field Name with deployment name,
+		// Target.Config.Content to be the file content in string.
 		specErr := yaml.Unmarshal(buf, dp)
 		if specErr != nil {
 			return fmt.Errorf("couldn't unmarshal %v. Error: %v", filePath, specErr)
@@ -199,15 +202,22 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 	if err != nil {
 		return fmt.Errorf("could not update %v", CONFIG_FILE)
 	}
+	//TODO this should be optional - noop if the file doesn't exist.
 	err = gcp.updateDeployment(gcp.GcpApp.Name+"-network", "network.yaml")
 	if err != nil {
 		return fmt.Errorf("could not update %v", "network.yaml")
 	}
+	//TODO gcfs should be optional.
 	err = gcp.updateDeployment(gcp.GcpApp.Name+"-gcfs", "gcfs.yaml")
 	if err != nil {
 		return fmt.Errorf("could not update %v", "gcfs.yaml")
 	}
-
+	//TODO we should do the following after deployments above:
+	//Update iam policy
+	//Set credentials for kubectl context.
+	//Create a named context. - should always be done.
+	//Set user as cluster admin.
+	//Create namespace if not found.
 	client, clientErr := kftypes.BuildOutOfClusterConfig()
 	if clientErr != nil {
 		return fmt.Errorf("could not create client %v", clientErr)
@@ -426,6 +436,7 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 	return nil
 }
 
+//TODO(#2515)
 func (gcp *Gcp) replaceText(regex string, repl string, src []byte) []byte {
 	re := regexp.MustCompile(regex)
 	buf := re.ReplaceAll(src, []byte(repl))
@@ -497,8 +508,10 @@ func (gcp *Gcp) generateDMConfigs(options map[string]interface{}) error {
 	storageFileData = gcp.replaceText("zone: SET_THE_ZONE", repl, configFileData)
 	repl = "users: [\"" + iamEntry + "\"]"
 	configFileData = gcp.replaceText("users:", repl, configFileData)
+	//TODO a space after ipName: is needed.
 	repl = "ipName:" + gcp.GcpApp.Spec.IpName
 	configFileData = gcp.replaceText("ipName: kubeflow-ip", repl, configFileData)
+	//TODO replace to with correct path str.
 	configFileErr := ioutil.WriteFile(to, configFileData, 0644)
 	if configFileErr != nil {
 		return fmt.Errorf("cound not write to %v Error %v", configFile, configFileErr)
@@ -506,6 +519,7 @@ func (gcp *Gcp) generateDMConfigs(options map[string]interface{}) error {
 	repl = "createPipelinePersistentStorage: true"
 	storageFileData = gcp.replaceText("createPipelinePersistentStorage: SET_CREATE_PIPELINE_PERSISTENT_STORAGE",
 		repl, configFileData)
+	//TODO replace to with correct path str.
 	storageFileErr := ioutil.WriteFile(to, storageFileData, 0644)
 	if storageFileErr != nil {
 		return fmt.Errorf("cound not write to %v Error %v", storageFile, storageFileErr)
@@ -539,14 +553,13 @@ func (gcp *Gcp) downloadK8sManifests() error {
 		return fmt.Errorf("couldn't download %v Error %v", url, urlErr)
 	}
 
-	/*TODO
-	  # Install the GPU driver. It has no effect on non-GPU nodes.
-	  kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/daemonset-preloaded.yaml
-
-	  # Install Stackdriver Kubernetes agents.
-	  kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/rbac-setup.yaml --as=admin --as-group=system:masters
-	  kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/agents.yaml
-	*/
+	//TODO - copied from scripts/gke/util.sh. The rbac-setup command won't need admin since the user will be
+	// running as admin.
+	//  # Install the GPU driver. It has no effect on non-GPU nodes.
+	//  kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/daemonset-preloaded.yaml
+	//  # Install Stackdriver Kubernetes agents.
+	//  kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/rbac-setup.yaml --as=admin --as-group=system:masters
+	//  kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/agents.yaml
 
 	return nil
 }
@@ -613,6 +626,8 @@ func (gcp *Gcp) createSecrets() error {
 	}
 	adminEmail := gcp.GcpApp.Name + "admin@" + gcp.GcpApp.Spec.Project + ".iam.gserviceaccount.com"
 	userEmail := gcp.GcpApp.Name + "user@" + gcp.GcpApp.Spec.Project + ".iam.gserviceaccount.com"
+	//TODO email format is not the same as the ones in generateDMConfigs. might be better to
+	// have a helper function so that naming is unified?
 	adminSecretErr := gcp.createGcpSecret(adminEmail, ADMIN_SECRET_NAME)
 	if adminSecretErr != nil {
 		return fmt.Errorf("cannot create admin secret %v Error %v", ADMIN_SECRET_NAME, adminSecretErr)
