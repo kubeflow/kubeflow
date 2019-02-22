@@ -19,7 +19,9 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"io"
-	"k8s.io/client-go/dynamic"
+	ext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	"k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
+	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -38,10 +40,10 @@ const (
 	DefaultPlatform  = "none"
 	// TODO: find the latest tag dynamically
 	DefaultVersion  = "v0.4.1"
-	DefaultDevRepo  = "$GOPATH/src/github.com/kubeflow/kubeflow"
 	DefaultGitRepo  = "https://github.com/kubeflow/kubeflow/tarball"
 	KfConfigFile    = "app.yaml"
 	DefaultCacheDir = ".cache"
+	DefaultZone     = "us-east1-d"
 )
 
 type ResourceEnum string
@@ -58,6 +60,7 @@ type CliOption string
 const (
 	EMAIL       CliOption = "email"
 	IPNAME      CliOption = "ipName"
+	HOSTNAME    CliOption = "hostname"
 	MOUNT_LOCAL CliOption = "mount-local"
 	DEBUG       CliOption = "debug"
 	VERBOSE     CliOption = "verbose"
@@ -68,18 +71,33 @@ const (
 	APPNAME     CliOption = "appname"
 	APPDIR      CliOption = "appDir"
 	KAPP        CliOption = "KApp"
-	KSAPP       CliOption = "KsApp"
+	DATA        CliOption = "Data"
+	ZONE        CliOption = "zone"
 )
 
 //
-// KfApp is used by commands under bootstrap/cmd/{bootstrap,kfctl}. KfApp provides a common
-// API for different implementations like KsApp, GcpApp, MinikubeApp, etc.
+// KfApp provides a common
+// API for platforms like ksonnet, gcp, minikube, docker-for-desktop, etc.
+// They all implementation the API below
 //
 type KfApp interface {
 	Apply(resources ResourceEnum, options map[string]interface{}) error
 	Delete(resources ResourceEnum, options map[string]interface{}) error
 	Generate(resources ResourceEnum, options map[string]interface{}) error
 	Init(options map[string]interface{}) error
+}
+
+type Platform string
+
+const (
+	DOCKER_FOR_DESKTOP Platform = "docker-for-desktop"
+	GCP                Platform = "gcp"
+	KSONNET            Platform = "ksonnet"
+	MINIKUBE           Platform = "minikube"
+)
+
+type FullKfApp struct {
+	Children map[Platform]KfApp
 }
 
 func LoadPlatform(options map[string]interface{}) (KfApp, error) {
@@ -176,19 +194,19 @@ func GetClientOutOfCluster() (kubernetes.Interface, error) {
 	return clientset, nil
 }
 
-// GetDynamicClientOutOfCluster returns client-go/dynamic client
-func GetDynamicClientOutOfCluster() (dynamic.Interface, error) {
+func GetApiExtensionsClientOutOfCluster() (apiextensionsv1beta1.ApiextensionsV1beta1Interface, error) {
 	config, err := BuildOutOfClusterConfig()
 	if err != nil {
 		log.Fatalf("Can not get kubernetes config: %v", err)
 	}
-
-	dynamicClient, err := dynamic.NewClient(config)
+	v := ext.SchemeGroupVersion
+	config.GroupVersion = &v
+	crdClient, err := clientset.NewForConfig(config)
 	if err != nil {
 		log.Fatalf("Can not get dynamic client: %v", err)
 	}
 
-	return dynamicClient, nil
+	return crdClient.ApiextensionsV1beta1(), nil
 }
 
 // Capture replaces os.Stdout with a writer that buffers any data written
