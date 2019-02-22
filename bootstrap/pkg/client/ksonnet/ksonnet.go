@@ -321,7 +321,46 @@ func (ksApp *KsApp) NewGenerate(resources kftypes.ResourceEnum, config configtyp
 	if err != nil {
 		return fmt.Errorf("couldn't get server version: %v", err)
 	}
+	initErr := ksApp.initKs("default", k8sSpec, host, ksApp.KsApp.Namespace)
+	if initErr != nil {
+		return fmt.Errorf("couldn't initialize KfApi: %v", initErr)
+	}
+	ksRegistry := kstypes.DefaultRegistry
+	ksRegistry.Version = ksApp.KsApp.Spec.Version
+	ksRegistry.RegUri = ksApp.KsApp.Spec.Repo
+	registryAddErr := ksApp.registryAdd(ksRegistry)
+	if registryAddErr != nil {
+		return fmt.Errorf("couldn't add registry %v. Error: %v", ksRegistry.Name, registryAddErr)
+	}
 
+	for _, pkgName := range config.Packages {
+		pkg := kstypes.KsPackage{
+			Name:     pkgName,
+			Registry: "kubeflow",
+		}
+		packageAddErr := ksApp.pkgInstall(pkg)
+		if packageAddErr != nil {
+			return fmt.Errorf("couldn't add package %v. Error: %v", pkg.Name, packageAddErr)
+		}
+	}
+
+	for _, compName := range config.Components {
+		comp := kstypes.KsComponent{
+			Name:      compName,
+			Prototype: compName,
+		}
+		protoArgs := []string{}
+		if val, ok := config.ProtoParams[compName]; ok {
+			for _, nv := range val {
+				name := "--" + nv.Name
+				protoArgs = append(protoArgs, name)
+				protoArgs = append(protoArgs, nv.Value)
+			}
+		}
+		if err := ksApp.componentAdd(comp, protoArgs); err != nil {
+			return fmt.Errorf("couldn't add comp %v. Error: %v", comp.Name, err)
+		}
+	}
 	return nil
 }
 
@@ -389,6 +428,7 @@ func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum, options map[string]
 			quotedArray := kstypes.QuoteItems(prunedArray)
 			arrayString := "[" + strings.Join(quotedArray, ",") + "]"
 			parameterArgs = append(parameterArgs, arrayString)
+			log.Infof("For application: %+v", parameterArgs)
 		}
 		componentAddErr := ksApp.componentAdd(comp, parameterArgs)
 		if componentAddErr != nil {

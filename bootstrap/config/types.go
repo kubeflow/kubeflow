@@ -1,7 +1,6 @@
 package config
 
-import (
-)
+import ()
 
 type NameValue struct {
 	Name  string `json:"name,omitempty"`
@@ -11,10 +10,10 @@ type NameValue struct {
 type Parameters map[string][]NameValue
 
 type Config struct {
-	Repo string `json:"repo,omitempty"`
-	Components []string `json:"components,omitempty"`
-	Packages [] string `json:"packages,omitempty"`
+	Repo        string     `json:"repo,omitempty"`
+	Components  []string   `json:"components,omitempty"`
+	Packages    []string   `json:"packages,omitempty"`
 	ProtoParams Parameters `json:"protoParams,omitempty"`
-	CompParams Parameters `json:"compParams,omityempty"`
-	Platform string `json:"platform,omitempty"`
+	CompParams  Parameters `json:"compParams,omityempty"`
+	Platform    string     `json:"platform,omitempty"`
 }

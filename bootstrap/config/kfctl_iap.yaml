@@ -54,15 +54,15 @@ protoParams:
       # TODO change value on the fly: replace with user-provide parameters. This need to be fully qualified domain name to use with ingress.
       value: <deployName>.endpoints.<project>.cloud.goog
 compParams:
+  application:
+    - name: components
+      value: <list-of-components>
   cloud-endpoints:
     - name: secretName
       value: admin-gcp-sa
   jupyter:
     - name: jupyterHubAuthenticator
       value: iap
-    - name: platform
-      value: gke
-  ambassador:
     - name: platform
       value: gke
   pipeline:

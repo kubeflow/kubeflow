@@ -504,6 +504,7 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 			},
 		}
 	}
+	// TODO(gabrielwen): Need to set this value, others can ignore.
 	kstypes.DefaultParameters["application"] = []kstypes.NameValue{
 		{
 			Name:  "components",

@@ -32,7 +32,7 @@ auth:
 
 # Run go fmt against code
 fmt:
-	$(GO) fmt ./pkg/... ./cmd/...
+	$(GO) fmt ./pkg/... ./cmd/... ./config/...
 
 # Run go vet against code
 vet:
