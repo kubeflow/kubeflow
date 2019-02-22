@@ -25,6 +25,7 @@ import (
 	"github.com/ksonnet/ksonnet/pkg/app"
 	"github.com/ksonnet/ksonnet/pkg/client"
 	"github.com/ksonnet/ksonnet/pkg/component"
+	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
 	log "github.com/sirupsen/logrus"
@@ -310,6 +311,17 @@ func (ksApp *KsApp) Delete(resources kftypes.ResourceEnum, options map[string]in
 			return fmt.Errorf("couldn't delete clusterrolebinding %v Error: %v", name, crbDeleteErr)
 		}
 	}
+	return nil
+}
+
+func (ksApp *KsApp) NewGenerate(resources kftypes.ResourceEnum, config configtypes.Config) error {
+	log.Infof("Ksonnet.Generate Name %v AppDir %v Platform %v Repo %v", ksApp.KsApp.Name,
+		ksApp.KsApp.Spec.AppDir, config.Platform, config.Repo)
+	host, k8sSpec, err := kftypes.ServerVersion()
+	if err != nil {
+		return fmt.Errorf("couldn't get server version: %v", err)
+	}
+
 	return nil
 }
 
