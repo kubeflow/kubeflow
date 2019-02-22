@@ -42,6 +42,7 @@ components:
   - cert-manager
   - basic-auth
   - basic-auth-ingress
+  - application
 protoParams:
   cert-manager:
     - name: acmeEmail

@@ -41,6 +41,7 @@ components:
   - cloud-endpoints
   - cert-manager
   - iap-ingress
+  - application
 protoParams:
   cert-manager:
     - name: acmeEmail

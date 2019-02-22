@@ -359,7 +359,9 @@ func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum, options map[string]
 	setNameVal(config.CompParams["pipline"], "minioPd", ksApp.KsApp.Name+"-storage-artifact-store")
 	components := []string{}
 	for _, c := range config.Components {
-		components = append(components, fmt.Sprintf("\"%v\"", c))
+		if c != "application" && c != "metacontroller" {
+			components = append(components, fmt.Sprintf("\"%v\"", c))
+		}
 	}
 	setNameVal(config.CompParams["application"], "components",
 		"["+strings.Join(components, " ,")+"]")
