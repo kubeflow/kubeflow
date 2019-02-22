@@ -405,7 +405,6 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 	} else {
 		setNameVal(config.ProtoParams["iap-ingress"], "hostname", hostname)
 	}
-	log.Infof("config afterwards: %+v", config)
 	project := gcp.GcpApp.Spec.Project
 	if options[string(kftypes.PROJECT)] != nil {
 		project = options[string(kftypes.PROJECT)].(string)
@@ -422,95 +421,99 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 		}
 		// TODO: ????
 	}
-	kstypes.DefaultPackages = append(kstypes.DefaultPackages, []string{"gcp"}...)
-	kstypes.DefaultComponents = append(kstypes.DefaultComponents, []string{"cloud-endpoints", "cert-manager", "iap-ingress"}...)
-	kstypes.DefaultParameters["cert-manager"] = []kstypes.NameValue{
-		{
-			Name:  "acmeEmail",
-			Value: email,
-		},
-	}
-	kstypes.DefaultParameters["iap-ingress"] = []kstypes.NameValue{
-		{
-			Name:  "ipName",
-			Value: ipName,
-		},
-		{
-			Name:  "hostname",
-			Value: hostname,
-		},
-	}
-	if kstypes.DefaultParameters["jupyter"] != nil {
-		namevalues := kstypes.DefaultParameters["jupyter"]
-		namevalues = append(namevalues,
-			kstypes.NameValue{
-				Name:  "jupyterHubAuthenticator",
-				Value: "iap",
-			},
-			kstypes.NameValue{
-				Name:  string(kftypes.PLATFORM),
-				Value: gcp.GcpApp.Spec.Platform,
-			},
-		)
-	} else {
-		kstypes.DefaultParameters["jupyter"] = []kstypes.NameValue{
-			{
-				Name:  "jupyterHubAuthenticator",
-				Value: "iap",
-			},
-			{
-				Name:  string(kftypes.PLATFORM),
-				Value: gcp.GcpApp.Spec.Platform,
-			},
-		}
-	}
-	if kstypes.DefaultParameters["ambassador"] != nil {
-		namevalues := kstypes.DefaultParameters["ambassador"]
-		namevalues = append(namevalues,
-			kstypes.NameValue{
-				Name:  string(kftypes.PLATFORM),
-				Value: gcp.GcpApp.Spec.Platform,
-			},
-		)
-	} else {
-		kstypes.DefaultParameters["ambassador"] = []kstypes.NameValue{
-			{
-				Name:  string(kftypes.PLATFORM),
-				Value: gcp.GcpApp.Spec.Platform,
-			},
-		}
-	}
-	if kstypes.DefaultParameters["pipeline"] != nil {
-		namevalues := kstypes.DefaultParameters["pipeline"]
-		namevalues = append(namevalues,
-			kstypes.NameValue{
-				Name:  "mysqlPd",
-				Value: gcp.GcpApp.Name + "-storage-metadata-store",
-			},
-			kstypes.NameValue{
-				Name:  "nfsPd",
-				Value: gcp.GcpApp.Name + "-storage-artifact-store",
-			},
-		)
-	} else {
-		kstypes.DefaultParameters["pipeline"] = []kstypes.NameValue{
-			{
-				Name:  "mysqlPd",
-				Value: gcp.GcpApp.Name + "-storage-metadata-store",
-			},
-			{
-				Name:  "nfsPd",
-				Value: gcp.GcpApp.Name + "-storage-artifact-store",
-			},
-		}
-	}
-	// TODO(gabrielwen): Need to set this value, others can ignore.
-	kstypes.DefaultParameters["application"] = []kstypes.NameValue{
-		{
-			Name:  "components",
-			Value: "[" + strings.Join(kstypes.QuoteItems(kstypes.DefaultComponents), ",") + "]",
-		},
-	}
+	// kstypes.DefaultPackages = append(kstypes.DefaultPackages, []string{"gcp"}...)
+	// kstypes.DefaultComponents = append(kstypes.DefaultComponents, []string{"cloud-endpoints", "cert-manager", "iap-ingress"}...)
+	// kstypes.DefaultParameters["cert-manager"] = []kstypes.NameValue{
+	// 	{
+	// 		Name:  "acmeEmail",
+	// 		Value: email,
+	// 	},
+	// }
+	// kstypes.DefaultParameters["iap-ingress"] = []kstypes.NameValue{
+	// 	{
+	// 		Name:  "ipName",
+	// 		Value: ipName,
+	// 	},
+	// 	{
+	// 		Name:  "hostname",
+	// 		Value: hostname,
+	// 	},
+	// }
+	// if kstypes.DefaultParameters["jupyter"] != nil {
+	// 	namevalues := kstypes.DefaultParameters["jupyter"]
+	// 	namevalues = append(namevalues,
+	// 		kstypes.NameValue{
+	// 			Name:  "jupyterHubAuthenticator",
+	// 			Value: "iap",
+	// 		},
+	// 		kstypes.NameValue{
+	// 			Name:  string(kftypes.PLATFORM),
+	// 			Value: gcp.GcpApp.Spec.Platform,
+	// 		},
+	// 	)
+	// } else {
+	// 	kstypes.DefaultParameters["jupyter"] = []kstypes.NameValue{
+	// 		{
+	// 			Name:  "jupyterHubAuthenticator",
+	// 			Value: "iap",
+	// 		},
+	// 		{
+	// 			Name:  string(kftypes.PLATFORM),
+	// 			Value: gcp.GcpApp.Spec.Platform,
+	// 		},
+	// 	}
+	// }
+	// if kstypes.DefaultParameters["ambassador"] != nil {
+	// 	namevalues := kstypes.DefaultParameters["ambassador"]
+	// 	namevalues = append(namevalues,
+	// 		kstypes.NameValue{
+	// 			Name:  string(kftypes.PLATFORM),
+	// 			Value: gcp.GcpApp.Spec.Platform,
+	// 		},
+	// 	)
+	// } else {
+	// 	kstypes.DefaultParameters["ambassador"] = []kstypes.NameValue{
+	// 		{
+	// 			Name:  string(kftypes.PLATFORM),
+	// 			Value: gcp.GcpApp.Spec.Platform,
+	// 		},
+	// 	}
+	// }
+	// if kstypes.DefaultParameters["pipeline"] != nil {
+	// 	namevalues := kstypes.DefaultParameters["pipeline"]
+	// 	namevalues = append(namevalues,
+	// 		kstypes.NameValue{
+	// 			Name:  "mysqlPd",
+	// 			Value: gcp.GcpApp.Name + "-storage-metadata-store",
+	// 		},
+	// 		kstypes.NameValue{
+	// 			Name:  "nfsPd",
+	// 			Value: gcp.GcpApp.Name + "-storage-artifact-store",
+	// 		},
+	// 	)
+	// } else {
+	// 	kstypes.DefaultParameters["pipeline"] = []kstypes.NameValue{
+	// 		{
+	// 			Name:  "mysqlPd",
+	// 			Value: gcp.GcpApp.Name + "-storage-metadata-store",
+	// 		},
+	// 		{
+	// 			Name:  "nfsPd",
+	// 			Value: gcp.GcpApp.Name + "-storage-artifact-store",
+	// 		},
+	// 	}
+	// }
+	setNameVal(config.CompParams["pipline"], "mysqlPd", gcp.GcpApp.Name+"-storage-metadata-store")
+	setNameVal(config.CompParams["pipline"], "minioPd", gcp.GcpApp.Name+"-storage-artifact-store")
+	setNameVal(config.CompParams["application"], "components",
+		"["+strings.Join(kstypes.QuoteItems(kstypes.DefaultComponents), ",")+"]")
+	// kstypes.DefaultParameters["application"] = []kstypes.NameValue{
+	// 	{
+	// 		Name:  "components",
+	// 		Value: "[" + strings.Join(kstypes.QuoteItems(kstypes.DefaultComponents), ",") + "]",
+	// 	},
+	// }
+	log.Infof("config afterwards: %+v", config)
 	ks := gcp.Children[kftypes.KSONNET]
 	if ks != nil {
 		ksGenerateErr := ks.Generate(kftypes.ALL, options)
