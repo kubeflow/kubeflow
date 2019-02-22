@@ -494,7 +494,6 @@ main() {
       kubectl delete crd controllerrevisions.metacontroller.k8s.io
       kubectl delete crd decoratorcontrollers.metacontroller.k8s.io
       kubectl delete crd applications.app.k8s.io
-      kubectl delete crd scalingpolicies.scalingpolicy.kope.io
       kubectl delete ns/${K8S_NAMESPACE}
       while kubectl get ns/${K8S_NAMESPACE}; do
         echo "namespace ${K8S_NAMESPACE} not yet deleted. sleeping 10 seconds..."

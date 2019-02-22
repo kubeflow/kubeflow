@@ -44,6 +44,7 @@ const (
 	KfConfigFile    = "app.yaml"
 	DefaultCacheDir = ".cache"
 	DefaultZone     = "us-east1-d"
+	DefaultAppLabel = "app.kubernetes.io/name"
 )
 
 type ResourceEnum string
