@@ -20,6 +20,7 @@ import (
 	"github.com/ksonnet/ksonnet/pkg/app"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/gcp"
 	// STATIC
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/dockerfordesktop"
 	// -STATIC //
@@ -44,6 +45,8 @@ func GetPlatform(options map[string]interface{}) (kftypes.KfApp, error) {
 		return ksonnet.GetKfApp(options), nil
 	case "minikube":
 		return minikube.GetKfApp(options), nil
+	case "gcp":
+		return gcp.GetKfApp(options), nil
 	// STATIC
 	case "docker-for-desktop":
 		return dockerfordesktop.GetKfApp(options), nil
@@ -77,12 +80,12 @@ func newKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	//appName can be a path
 	appName := options[string(kftypes.APPNAME)].(string)
 	appDir := path.Dir(appName)
-	if appDir == "" {
+	if appDir == "" || appDir == "." {
 		cwd, err := os.Getwd()
 		if err != nil {
 			return nil, fmt.Errorf("could not get current directory %v", err)
 		}
-		appDir = cwd
+		appDir = path.Join(cwd, appName)
 	} else {
 		if appDir == "~" {
 			home, homeErr := homedir.Dir()
@@ -123,30 +126,33 @@ func loadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	}
 	appName := filepath.Base(appDir)
 	cfgfile := filepath.Join(appDir, kftypes.KfConfigFile)
-	ksApp := &kstypes.Ksonnet{}
-	dat, datErr := ioutil.ReadFile(cfgfile)
-	if datErr != nil {
-		return nil, fmt.Errorf("couldn't read %v. Error: %v", cfgfile, datErr)
+	log.Infof("reading from %v", cfgfile)
+	buf, bufErr := ioutil.ReadFile(cfgfile)
+	if bufErr != nil {
+		return nil, fmt.Errorf("couldn't read %v. Error: %v", cfgfile, bufErr)
 	}
-	specErr := yaml.Unmarshal(dat, ksApp)
-	if specErr != nil {
-		return nil, fmt.Errorf("couldn't unmarshall Ksonnet. Error: %v", specErr)
-	}
+	var v interface{}
+	yaml.Unmarshal(buf, &v)
+	data := v.(map[string]interface{})
+	metadata := data["metadata"].(map[string]interface{})
+	spec := data["spec"].(map[string]interface{})
+	platform := spec["platform"].(string)
+	appName = metadata["name"].(string)
+	appDir = spec["appdir"].(string)
 	fs := afero.NewOsFs()
-	ksDir := path.Join(ksApp., kstypes.KsName)
+	ksDir := path.Join(appDir, kstypes.KsName)
 	kApp, kAppErr := app.Load(fs, nil, ksDir)
 	if kAppErr != nil {
 		return nil, fmt.Errorf("there was a problem loading app %v. Error: %v", appName, kAppErr)
 	}
-
-	options[string(kftypes.PLATFORM)] = ksApp.Spec.Platform
+	options[string(kftypes.PLATFORM)] = platform
 	options[string(kftypes.APPNAME)] = appName
 	options[string(kftypes.APPDIR)] = appDir
 	options[string(kftypes.KAPP)] = kApp
-	options[string(kftypes.KSAPP)] = ksApp
+	options[string(kftypes.DATA)] = buf
 	pApp, pAppErr := GetPlatform(options)
 	if pAppErr != nil {
-		return nil, fmt.Errorf("unable to load platform %v Error: %v", ksApp.Spec.Platform, pAppErr)
+		return nil, fmt.Errorf("unable to load platform %v Error: %v", platform, pAppErr)
 	}
 	return pApp, nil
 }
