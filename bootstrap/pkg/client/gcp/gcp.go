@@ -626,6 +626,8 @@ func (gcp *Gcp) createSecrets() error {
 	}
 	adminEmail := gcp.GcpApp.Name + "admin@" + gcp.GcpApp.Spec.Project + ".iam.gserviceaccount.com"
 	userEmail := gcp.GcpApp.Name + "user@" + gcp.GcpApp.Spec.Project + ".iam.gserviceaccount.com"
+	//TODO email format is not the same as the ones in generateDMConfigs. might be better to
+	// have a helper function so that naming is unified?
 	adminSecretErr := gcp.createGcpSecret(adminEmail, ADMIN_SECRET_NAME)
 	if adminSecretErr != nil {
 		return fmt.Errorf("cannot create admin secret %v Error %v", ADMIN_SECRET_NAME, adminSecretErr)
