@@ -1,14 +1,17 @@
 # Build the manager binary
-FROM golang:1.10.3 as builder
+ARG GOLANG_VERSION=1.11.5
+FROM golang:${GOLANG_VERSION} as builder
 
 # Copy in the go src
 WORKDIR /go/src/github.com/kubeflow/kubeflow/components/profile-controller
 COPY pkg/    pkg/
 COPY cmd/    cmd/
-COPY vendor/ vendor/
+COPY go.mod .
+
+ENV GO111MODULE=on
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o manager github.com/kubeflow/kubeflow/components/profile-controller/cmd/manager
+RUN go build -gcflags 'all=-N -l' -o manager cmd/manager/main.go
 
 # Copy the controller-manager into a thin image
 FROM ubuntu:latest
