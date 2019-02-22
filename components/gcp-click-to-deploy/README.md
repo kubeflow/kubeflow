@@ -39,7 +39,7 @@ npm start
 ```
 
 A running local [backend service](../../bootstrap/cmd/bootstrap/main.go) is needed for complete deploy.
-See the [dev guide](../../bootstrapper/developer_guide.md) for more detail.
+See the [dev guide](../../bootstrap/developer_guide.md) for more detail.
 
 ## Deployment
 
