@@ -147,7 +147,7 @@ WORKDIR $HOME
 RUN rm -fr $(ls -A $HOME)
 
 # Copy over init scripts
-COPY --chown=jovyan:users start-singleuser.sh start-notebook.sh start.sh pvc-check.sh /usr/local/bin/
+COPY --chown=jovyan:users  pvc-check.sh /usr/local/bin/
 RUN chmod a+rx /usr/local/bin/*
 
 RUN docker-credential-gcr configure-docker && chown jovyan:users $HOME/.docker/config.json
@@ -155,4 +155,5 @@ RUN docker-credential-gcr configure-docker && chown jovyan:users $HOME/.docker/c
 # Configure container startup
 EXPOSE 8888
 ENTRYPOINT ["tini", "--"]
-CMD ["start-notebook.sh"]
+CMD ["sh","-c", "jupyter notebook --notebook-dir=/home/jovyan --ip=0.0.0.0 --no-browser --allow-root --port=8888"]
+
