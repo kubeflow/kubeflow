@@ -49,7 +49,7 @@ require (
 	golang.org/x/net v0.0.0-20190213061140-3a22650c66bd
 	golang.org/x/oauth2 v0.0.0-20190219183015-4b83411ed2b3
 	golang.org/x/sys v0.0.0-20190219203350-90b0e4468f99
-	golang.org/x/text v0.3.0
+	golang.org/x/text v0.3.1-0.20180807135948-17ff2d5776d2
 	golang.org/x/time v0.0.0-20181108054448-85acf8d2951c
 	golang.org/x/tools v0.0.0-20190219185102-9394956cfdc5
 	google.golang.org/appengine v1.4.0
@@ -59,7 +59,7 @@ require (
 	gopkg.in/yaml.v2 v2.2.2
 	k8s.io/api v0.0.0-20181213150558-05914d821849
 	k8s.io/apiextensions-apiserver v0.0.0-20181213153335-0fe22c71c476
-	k8s.io/apimachinery v0.0.0-20181127025237-2b1284ed4c93
+	k8s.io/apimachinery v0.0.0-20190221093215-450d01ad5771
 	k8s.io/client-go v0.0.0-20181213151034-8d9ed539ba31
 	k8s.io/code-generator v0.0.0-20190215220509-095ce2f23e83
 	k8s.io/gengo v0.0.0-20190128074634-0689ccc1d7d6

@@ -23,6 +23,7 @@ import (
 	kubeflowv1alpha1 "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/kubeflow/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -38,11 +39,6 @@ import (
 )
 
 var log = logf.Log.WithName("controller")
-
-/**
-* USER ACTION REQUIRED: This is a scaffold file intended for the user to modify with their own Controller
-* business logic.  Delete these comments after modifying this file.*
- */
 
 // Add creates a new Profile Controller and adds it to the Manager with default RBAC. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -113,57 +109,346 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 		return reconcile.Result{}, err
 	}
 
-	// TODO(user): Change this to be the object type created by your controller
-	// Define the desired Deployment object
-	deploy := &appsv1.Deployment{
+	ns := corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      instance.Name + "-deployment",
-			Namespace: instance.Namespace,
-		},
-		Spec: appsv1.DeploymentSpec{
-			Selector: &metav1.LabelSelector{
-				MatchLabels: map[string]string{"deployment": instance.Name + "-deployment"},
-			},
-			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{"deployment": instance.Name + "-deployment"}},
-				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{
-						{
-							Name:  "nginx",
-							Image: "nginx",
-						},
-					},
-				},
-			},
+			Name: instance.Spec.Namespace,
 		},
 	}
-	if err := controllerutil.SetControllerReference(instance, deploy, r.scheme); err != nil {
+	if err := controllerutil.SetControllerReference(instance, ns, r.scheme); err != nil {
 		return reconcile.Result{}, err
 	}
-
-	// TODO(user): Change this for the object type created by your controller
-	// Check if the Deployment already exists
-	found := &appsv1.Deployment{}
-	err = r.Get(context.TODO(), types.NamespacedName{Name: deploy.Name, Namespace: deploy.Namespace}, found)
+	foundNs := &corev1.Namespace{}
+	err = r.Get(context.TODO(), types.Name{Name: ns.Name}, foundNs)
 	if err != nil && errors.IsNotFound(err) {
-		log.Info("Creating Deployment", "namespace", deploy.Namespace, "name", deploy.Name)
-		err = r.Create(context.TODO(), deploy)
+		log.Info("Creating Namespace: " + ns.Name)
+		err = r.Create(context.TODO(), ns)
 		if err != nil {
 			return reconcile.Result{}, err
 		}
 	} else if err != nil {
 		return reconcile.Result{}, err
 	}
+	// No need to update namespace
 
-	// TODO(user): Change this for the object type created by your controller
-	// Update the found object and write the result back if there are any changes
-	if !reflect.DeepEqual(deploy.Spec, found.Spec) {
-		found.Spec = deploy.Spec
-		log.Info("Updating Deployment", "namespace", deploy.Namespace, "name", deploy.Name)
+	role := generateRole(instance)
+	if err := controllerutil.SetControllerReference(instance, role, r.scheme); err != nil {
+		return reconcile.Result{}, err
+	}
+	foundRole := &rbacv1.Role{}
+	err = r.Get(context.TODO(), types.NamespacedName{Name: role.Name, Namespace: role.Namespace}, foundRole)
+	if err != nil && errors.IsNotFound(err) {
+		log.Info("Creating Role", "namespace", role.Namespace, "name", role.Name)
+		err = r.Create(context.TODO(), role)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+	} else if err != nil {
+		return reconcile.Result{}, err
+	}
+	if !reflect.DeepEqual(role.Rules, foundRole.Rules) {
+		foundRole.Rules = role.Rules
+		log.Info("Updating Role", "namespace", role.Namespace, "name", role.Name)
+		err = r.Update(context.TODO(), foundRole)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+	}
+
+	roleBinding := &rbacv1.RoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "default",
+			Namespace: instance.Spec.Namespace,
+		},
+		RoleRef: rbacv1.RoleRef{
+			APIGroup: "rbac.authorization.k8s.io",
+			Kind:     "Role",
+			Name:     "edit",
+		},
+		Subjects: []rbacv1.Subject{
+			instance.Spec.Owner,
+		},
+	}
+	if err := controllerutil.SetControllerReference(instance, roleBinding, r.scheme); err != nil {
+		return reconcile.Result{}, err
+	}
+	found := &rbacv1.RoleBinding{}
+	err = r.Get(context.TODO(), types.NamespacedName{Name: roleBinding.Name, Namespace: roleBinding.Namespace}, found)
+	if err != nil && errors.IsNotFound(err) {
+		log.Info("Creating RoleBinding", "namespace", roleBinding.Namespace, "name", roleBinding.Name)
+		err = r.Create(context.TODO(), roleBinding)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+	} else if err != nil {
+		return reconcile.Result{}, err
+	}
+	if !(reflect.DeepEqual(roleBinding.RoleRef, found.RoleRef) && reflect.DeepEqual(roleBinding.Subjects, found.Subjects)) {
+		found.RoleRef = roleBinding.RoleRef
+		found.Subjects = roleBinding.Subjects
+		log.Info("Updating RoleBinding", "namespace", roleBinding.Namespace, "name", roleBinding.Name)
 		err = r.Update(context.TODO(), found)
 		if err != nil {
 			return reconcile.Result{}, err
 		}
 	}
 	return reconcile.Result{}, nil
+}
+
+func generateRole(instance *kubeflowv1alpha1.Profile) *rbacv1.Role {
+	role := &rbacv1.Role{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "edit",
+			Namespace: instance.Spec.Namespace,
+		},
+		Rules: []rbacv1.PolicyRule{
+			{
+				APIGroups: []string{
+					"metacontroller.k8s.io",
+				},
+				Resources: []string{
+					"compositecontrollers",
+					"decoratecontrollers",
+				},
+				Verbs: []string{
+					"create",
+					"delete",
+					"get",
+					"list",
+					"patch",
+					"update",
+					"watch",
+				},
+			},
+			{
+				APIGroups: []string{
+					"kubeflow.org",
+				},
+				Resources: []string{
+					"notebooks",
+				},
+				Verbs: []string{
+					"create",
+					"delete",
+					"get",
+					"list",
+					"patch",
+					"update",
+					"watch",
+				},
+			},
+			{
+				APIGroups: []string{
+					"app.k8s.io",
+				},
+				Resources: []string{
+					"applications",
+					"apps",
+				},
+				Verbs: []string{
+					"create",
+					"delete",
+					"get",
+					"list",
+					"patch",
+					"update",
+					"watch",
+				},
+			},
+			{
+				APIGroups: []string{
+					"",
+				},
+				Resources: []string{
+					"pods",
+					"pods/attach",
+					"pods/exec",
+					"pods/portforward",
+					"pods/proxy",
+				},
+				Verbs: []string{
+					"create",
+					"delete",
+					"get",
+					"list",
+					"patch",
+					"update",
+					"watch",
+				},
+			},
+			{
+				APIGroups: []string{
+					"",
+				},
+				Resources: []string{
+					"configmaps",
+					"endpoints",
+					"persistentvolumeclaims",
+					"replicationcontrollers",
+					"replicationcontrollers/scale",
+					"secrets",
+					"serviceaccounts",
+					"services",
+					"services/proxy",
+				},
+				Verbs: []string{
+					"create",
+					"delete",
+					"get",
+					"list",
+					"patch",
+					"update",
+					"watch",
+				},
+			},
+			{
+				APIGroups: []string{
+					"",
+				},
+				Resources: []string{
+					"bindings",
+					"events",
+					"limitranges",
+					"pods/log",
+					"pods/status",
+					"replicationcontrollers/status",
+					"resourcequotas",
+					"resourcequotas/status",
+				},
+				Verbs: []string{
+					"get",
+					"list",
+					"watch",
+				},
+			},
+			{
+				APIGroups: []string{
+					"",
+				},
+				Resources: []string{
+					"serviceaccounts",
+				},
+				Verbs: []string{
+					"impersonate",
+				},
+			},
+			{
+				APIGroups: []string{
+					"apps",
+				},
+				Resources: []string{
+					"daemonsets",
+					"deployments",
+					"deployments/rollback",
+					"deployments/scale",
+					"replicasets",
+					"replicasets/scale",
+					"statefulsets",
+				},
+				Verbs: []string{
+					"create",
+					"delete",
+					"get",
+					"list",
+					"patch",
+					"update",
+					"watch",
+				},
+			},
+			{
+				APIGroups: []string{
+					"autoscaling",
+				},
+				Resources: []string{
+					"horizontalpodautoscalers",
+				},
+				Verbs: []string{
+					"create",
+					"delete",
+					"get",
+					"list",
+					"patch",
+					"update",
+					"watch",
+				},
+			},
+			{
+				APIGroups: []string{
+					"batch",
+				},
+				Resources: []string{
+					"cronjobs",
+					"jobs",
+				},
+				Verbs: []string{
+					"create",
+					"delete",
+					"get",
+					"list",
+					"patch",
+					"update",
+					"watch",
+				},
+			},
+			{
+				APIGroups: []string{
+					"extensions",
+				},
+				Resources: []string{
+					"daemonsets",
+					"deployments",
+					"deployments/rollback",
+					"deployments/scale",
+					"ingresses",
+					"networkpolicies",
+					"replicasets",
+					"replicasets/scale",
+					"replicationcontrollers/scale",
+				},
+				Verbs: []string{
+					"create",
+					"delete",
+					"get",
+					"list",
+					"patch",
+					"update",
+					"watch",
+				},
+			},
+			{
+				APIGroups: []string{
+					"policy",
+				},
+				Resources: []string{
+					"poddistruptionbudgets",
+				},
+				Verbs: []string{
+					"create",
+					"delete",
+					"get",
+					"list",
+					"patch",
+					"update",
+					"watch",
+				},
+			},
+			{
+				APIGroups: []string{
+					"networking.k8s.io",
+				},
+				Resources: []string{
+					"networkpolicies",
+				},
+				Verbs: []string{
+					"create",
+					"delete",
+					"get",
+					"list",
+					"patch",
+					"update",
+					"watch",
+				},
+			},
+		},
+	}
+	return role
 }
