@@ -86,6 +86,17 @@ run-local-docker:
 	  --mount type=bind,source=${HOME}/kf_app,target=/home/kubeflow \
 	  --entrypoint /bin/bash $(IMG):$(TAG)
 
+# static and plugins toogle whether we try and load a platform as a .so.
+# There is an example plugin 'dockerfordesktop' that can be loaded as a .so.
+# By default we disable loading plugins and link dockerfordesktop into the kfctl binary (static)
+static:
+	@ex pkg/apis/apps/group.go <hack/static
+	@ex cmd/kfctl/cmd/root.go <hack/static || echo Plugin functionality disabled
+
+plugins:
+	@ex pkg/apis/apps/group.go <hack/plugins
+	@ex cmd/kfctl/cmd/root.go <hack/plugins || echo Plugin functionality enabled
+
 test-known-platforms-init: install build-dockerfordesktop-plugin
 	@rm -rf dockerfordesktop && \
 	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init dockerfordesktop -V --platform docker-for-desktop && \
@@ -108,13 +119,6 @@ test-known-platforms-generate: test-known-platforms-init
 	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl generate all -V --email jsmith@acme.com && \
 	echo SUCCESS
 
-# static and plugins toogle whether we try and load a platform as a .so.
-# There is an example plugin 'dockerfordesktop' that can be loaded as a .so.
-# By default we disable loading plugins and link dockerfordesktop into the kfctl binary (static)
-static:
-	@ex pkg/apis/apps/group.go <hack/static
-	@ex cmd/kfctl/cmd/root.go <hack/static || echo Plugin functionality disabled
+test-plugins-static: plugins test-known-platforms-generate static test-known-platforms-generate
 
-plugins:
-	@ex pkg/apis/apps/group.go <hack/plugins
-	@ex cmd/kfctl/cmd/root.go <hack/plugins || echo Plugin functionality enabled
+test-kfctl: test-plugins-static
