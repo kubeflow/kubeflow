@@ -114,21 +114,19 @@ kfctl apply
 
 ```
 Create a kubeflow application under <[path/]name>. The <[path/]name> argument can either be a full path
-or a name where the kubeflow application will be initialized in $PWD/name if <name> is not a path or in the parent
-directory is name is a path.
+or a <name>. If just <name> a directory <name> will be created in the current directory.
 
 Usage:
   kfctl init <[path/]name> [flags]
 
 Flags:
-      --debug              debug debug default is false
   -h, --help               help for init
   -n, --namespace string   namespace where kubeflow will be deployed (default "kubeflow")
-  -p, --platform string    one of 'gcp|minikube|none' (default=none)
+  -p, --platform string    one of 'gcp|minikube' (default "none")
       --project string     name of the gcp project if --platform gcp
   -r, --repo string        local github kubeflow repo
   -V, --verbose            verbose output default is false
-  -v, --version string     desired version Kubeflow or latest tag if not provided by user  (default "v0.4.1")
+  -v, --version string     desired version Kubeflow or latest tag if not provided by user  (default "master")
 ```
 
 ### **generate**
@@ -136,7 +134,7 @@ Flags:
 (kubeflow/bootstrap/cmd/kfctl/cmd/generate.go)
 
 ```
-Generate a kubeflow application where resources is one of 'platform | k8s | all'.
+Generate a kubeflow application where resources is one of 'platform|k8s|all'.
 
   platform: non kubernetes resources (eg --platform gcp)
   k8s: kubernetes resources
@@ -148,11 +146,13 @@ Usage:
   kfctl generate [all(=default)|k8s|platform] [flags]
 
 Flags:
-      --email string    email if '--platform gcp'
-  -h, --help            help for generate
-      --ipName string   ipName if '--platform gcp'
-      --mount-local     mount-local if '--platform minikube'
-  -V, --verbose         verbose output default is false
+      --email string      email if '--platform gcp'
+  -h, --help              help for generate
+      --hostname string   hostname if '--platform gcp'
+      --ipName string     ipName if '--platform gcp'
+      --mount-local       mount-local if '--platform minikube'
+  -V, --verbose           verbose output default is false
+      --zone string       zone if '--platform gcp' (default "us-east1-d")
 ```
 
 ### **apply** 
