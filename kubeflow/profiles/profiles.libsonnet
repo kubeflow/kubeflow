@@ -104,9 +104,10 @@
 
     local profilesRole = {
       apiVersion: "rbac.authorization.k8s.io/v1",
-      kind: "ClusterRole",
+      kind: "Role",
       metadata: {
         name: "profiles",
+        namespace: params.namespace,
       },
       rules: [
         {
@@ -162,13 +163,14 @@
 
     local roleBinding = {
       apiVersion: "rbac.authorization.k8s.io/v1",
-      kind: "ClusterRoleBinding",
+      kind: "RoleBinding",
       metadata: {
         name: "profiles",
+        namespace: params.namespace,
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
-        kind: "ClusterRole",
+        kind: "Role",
         name: "profiles",
       },
       subjects: [
