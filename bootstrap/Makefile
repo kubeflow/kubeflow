@@ -100,8 +100,8 @@ plugins:
 test-known-platforms-init: install build-dockerfordesktop-plugin
 	@rm -rf dockerfordesktop && \
 	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init dockerfordesktop -V --platform docker-for-desktop && \
-	rm -rf ksonnet && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init `pwd`/ksonnet -V && \
+	rm -rf none && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init `pwd`/none -V && \
 	rm -rf minikube && \
 	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init $(PWD)/minikube -V --platform minikube && \
 	rm -rf gcp && \
@@ -111,7 +111,7 @@ test-known-platforms-init: install build-dockerfordesktop-plugin
 test-known-platforms-generate: test-known-platforms-init
 	@cd dockerfordesktop && \
 	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl generate all -V && \
-	cd ../ksonnet && \
+	cd ../none && \
 	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl generate all -V && \
 	cd ../minikube && \
 	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl generate all -V --mount-local && \
