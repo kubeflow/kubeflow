@@ -122,7 +122,7 @@
         },
         {
           apiGroups: [
-            "rbac",
+            "rbac.authorization.k8s.io",
           ],
           resources: [
             "roles",
@@ -218,6 +218,27 @@
     },
     profilesDeployment:: profilesDeployment,
 
+    local profileClusterRoleBinding = {
+      apiVersion: "rbac.authorization.k8s.io/v1",
+      kind: "ClusterRoleBinding",
+      metadata: {
+        name: "profile-controller-cluster-role-binding",
+      },
+      roleRef: {
+        kind: "ClusterRole",
+        name: "cluster-admin",
+        apiGroup: "rbac.authorization.k8s.io",
+      },
+      subjects: [
+        {
+          kind: "ServiceAccount",
+          name: "profiles",
+          namespace: params.namespace,
+        },
+      ],
+    },
+    profileClusterRoleBinding:: profileClusterRoleBinding,
+
     parts:: self,
     local all = [
       self.profilesCRD,
@@ -226,6 +247,7 @@
       self.profilesDeployment,
       self.serviceAccount,
       self.roleBinding,
+      self.profileClusterRoleBinding,
     ],
     all:: all,
 

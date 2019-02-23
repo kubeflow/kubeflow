@@ -5,9 +5,9 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
-  - apps
+  - ""
   resources:
-  - deployments
+  - namespaces
   verbs:
   - get
   - list
@@ -17,15 +17,31 @@ rules:
   - patch
   - delete
 - apiGroups:
-  - apps
+  - rbac
   resources:
-  - deployments/status
+  - roles
   verbs:
   - get
+  - list
+  - watch
+  - create
   - update
   - patch
+  - delete
 - apiGroups:
-  - kubeflow.kubeflow.org
+  - rbac
+  resources:
+  - rolebindings
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - kubeflow.org
   resources:
   - profiles
   verbs:
@@ -37,7 +53,7 @@ rules:
   - patch
   - delete
 - apiGroups:
-  - kubeflow.kubeflow.org
+  - kubeflow.org
   resources:
   - profiles/status
   verbs:
