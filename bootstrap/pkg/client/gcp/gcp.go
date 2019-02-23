@@ -659,11 +659,9 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum, options map[string]inte
 }
 
 func (gcp *Gcp) getServiceClient(ctx context.Context) (*http.Client, error) {
-
 	// See https://cloud.google.com/docs/authentication/.
 	// Use GOOGLE_APPLICATION_CREDENTIALS environment variable to specify
 	// a service account key file to authenticate to the API.
-
 	client, err := google.DefaultClient(ctx, gke.CloudPlatformScope)
 	if err != nil {
 		log.Fatalf("Could not authenticate client: %v", err)
