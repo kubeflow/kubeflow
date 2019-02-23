@@ -37,7 +37,7 @@ import (
 
 const (
 	DefaultNamespace = "kubeflow"
-	DefaultPlatform  = "ksonnet"
+	DefaultPlatform  = "none"
 	// TODO: find the latest tag dynamically
 	DefaultVersion  = "master"
 	DefaultGitRepo  = "https://github.com/kubeflow/kubeflow/tarball"
