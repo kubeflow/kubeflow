@@ -47,6 +47,7 @@ const (
 	ALL      ResourceEnum = "all"
 	K8S      ResourceEnum = "k8s"
 	PLATFORM ResourceEnum = "platform"
+	NONE     ResourceEnum = "none"
 )
 
 //
@@ -286,18 +287,18 @@ type KsonnetSpec struct {
 }
 ```
 
-#### app.yaml example for --platform none
+#### app.yaml example for --platform minikube 
 
 ```
 apiVersion: ksonnet.apps.kubeflow.org/v1alpha1
 kind: Ksonnet
 metadata:
   creationTimestamp: null
-  name: ksonnet
+  name: minikube
   namespace: kubeflow
 spec:
   appdir: /Users/kdkasrav/go/src/github.com/kubeflow/kubeflow/bootstrap/ksonnet
-  platform: none
+  platform: minikube
   repo: /Users/kdkasrav/go/src/github.com/kubeflow/kubeflow/bootstrap/ksonnet/.cache/master/kubeflow
   version: master
 status: {}
