@@ -1,3 +1,20 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Developer guide for bootstrap](#developer-guide-for-bootstrap)
+  - [Building bootstrapper locally](#building-bootstrapper-locally)
+    - [Prerequisites](#prerequisites)
+    - [Makefile targets](#makefile-targets)
+      - [`make build-local`](#make-build-local)
+      - [`make build`](#make-build)
+      - [`make push`](#make-push)
+      - [`make push-latest`](#make-push-latest)
+      - [`make static, make plugins`](#make-static-make-plugins)
+  - [How to run bootstrapper with Click-to-deploy app locally](#how-to-run-bootstrapper-with-click-to-deploy-app-locally)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Developer guide for bootstrap
 
 ## Building bootstrapper locally
@@ -60,3 +77,24 @@ make push
 These targets are for kfctl and allows the goland debugger work by disabling plugins.
 This is a problem in the go compiler which should be fixed in 1.12.
 See the [kfctl/README.md](./cmd/kfctl) for additional information.
+
+## How to run bootstrapper with Click-to-deploy app locally
+
+Start the backend:
+
+```
+IMAGE=gcr.io/kubeflow-images-public/bootstrapper:latest  # change this
+
+docker run -d -it --name bootstrapper \
+    --mount type=bind,source=${HOME}/kf_app,target=/home/kubeflow -p 8080:8080 \
+    ${IMAGE} /opt/kubeflow/bootstrapper \
+    --install-istio --namespace=kubeflow  # change args if you want
+```
+
+Start the frontend:
+
+```
+cd ../components/gcp-click-to-deploy
+npm start
+```
+
