@@ -257,18 +257,18 @@ func (ksApp *KsApp) components() (map[string]*kstypes.KsComponent, error) {
 }
 
 func (ksApp *KsApp) deleteGlobalResources() error {
-	client, clientErr := kftypes.GetApiExtensionsClientOutOfCluster()
+	crdClient, clientErr := kftypes.GetApiExtensionsClientOutOfCluster()
 	if clientErr != nil {
 		return fmt.Errorf("couldn't get  client Error: %v", clientErr)
 	}
-	crds, crdsErr := client.CustomResourceDefinitions().List(metav1.ListOptions{})
+	crds, crdsErr := crdClient.CustomResourceDefinitions().List(metav1.ListOptions{})
 	if crdsErr != nil {
 		return fmt.Errorf("couldn't get list of customresourcedefinitions Error: %v", crdsErr)
 	}
 	for _, crd := range crds.Items {
 		if crd.Labels["app.kubernetes.io/name"] == ksApp.KsApp.Name {
 			do := &metav1.DeleteOptions{}
-			dErr := client.CustomResourceDefinitions().Delete(crd.Name, do)
+			dErr := crdClient.CustomResourceDefinitions().Delete(crd.Name, do)
 			if dErr != nil {
 				log.Errorf("could not delete %v Error %v", crd.Name, dErr)
 			}
@@ -277,7 +277,7 @@ func (ksApp *KsApp) deleteGlobalResources() error {
 			crd.Name == "decoratorcontrollers.metacontroller.k8s.io" ||
 			crd.Name == "applications.app.k8s.io" {
 			do := &metav1.DeleteOptions{}
-			dErr := client.CustomResourceDefinitions().Delete(crd.Name, do)
+			dErr := crdClient.CustomResourceDefinitions().Delete(crd.Name, do)
 			if dErr != nil {
 				log.Errorf("could not delete %v Error %v", crd.Name, dErr)
 			}
