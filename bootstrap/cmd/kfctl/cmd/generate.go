@@ -116,7 +116,7 @@ func init() {
 
 	// platforms minikube, docker-for-desktop
 	generateCmd.Flags().Bool(string(kftypes.MOUNT_LOCAL), false,
-		string(kftypes.MOUNT_LOCAL)+" if '--platform minikube || --platform docker-for-desktop'")
+		string(kftypes.MOUNT_LOCAL)+" if '--platform minikube'")
 	bindErr = generateCfg.BindPFlag(string(kftypes.MOUNT_LOCAL), generateCmd.Flags().Lookup(string(kftypes.MOUNT_LOCAL)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.MOUNT_LOCAL), bindErr)
