@@ -46,7 +46,7 @@
       namespace: "kubeflow-test-infra",
       prow_env: "",
       gkeApiVersion: "",
-      workflowName: "unittest",      
+      workflowName: "unittest",
     },
     tfserving: {
       commit: "master",

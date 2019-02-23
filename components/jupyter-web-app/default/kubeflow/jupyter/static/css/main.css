@@ -29,7 +29,7 @@
     top: 10px;
 }
 
-.mdl-textfield__label{  
+.mdl-textfield__label{
    margin-bottom:2px;
  }
 
@@ -44,7 +44,7 @@
 .alert-danger {
     color: #a94442;
     background-color: #f2dede;
-    border-color: #ebccd1;   
+    border-color: #ebccd1;
 }
 
 .alert-success {

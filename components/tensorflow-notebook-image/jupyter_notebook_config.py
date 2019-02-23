@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-
+# -*- coding: utf-8 -*-
+#
 # Copyright 2016 The Kubeflow Authors All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,23 +29,21 @@ c.NotebookApp.allow_origin_pat = ".*-dot-devshell.appspot.com$"
 
 # Generate a self-signed certificate
 if 'GEN_CERT' in os.environ:
-    dir_name = jupyter_data_dir()
-    pem_file = os.path.join(dir_name, 'notebook.pem')
-    try:
-      os.makedirs(dir_name)
-    except OSError as exc:  # Python >2.5
-      if exc.errno == errno.EEXIST and os.path.isdir(dir_name):
-        pass
-      else:
-        raise
-    # Generate a certificate if one doesn't exist on disk
-    subprocess.check_call(['openssl', 'req', '-new',
-                           '-newkey', 'rsa:2048',
-                           '-days', '365',
-                           '-nodes', '-x509',
-                           '-subj', '/C=XX/ST=XX/L=XX/O=generated/CN=generated',
-                           '-keyout', pem_file,
-                           '-out', pem_file])
-    # Restrict access to the file
-    os.chmod(pem_file, stat.S_IRUSR | stat.S_IWUSR)
-    c.NotebookApp.certfile = pem_file
+  dir_name = jupyter_data_dir()
+  pem_file = os.path.join(dir_name, 'notebook.pem')
+  try:
+    os.makedirs(dir_name)
+  except OSError as exc:  # Python >2.5
+    if exc.errno == errno.EEXIST and os.path.isdir(dir_name):
+      pass
+    else:
+      raise
+  # Generate a certificate if one doesn't exist on disk
+  subprocess.check_call([
+      'openssl', 'req', '-new', '-newkey', 'rsa:2048', '-days', '365', '-nodes',
+      '-x509', '-subj', '/C=XX/ST=XX/L=XX/O=generated/CN=generated', '-keyout',
+      pem_file, '-out', pem_file
+  ])
+  # Restrict access to the file
+  os.chmod(pem_file, stat.S_IRUSR | stat.S_IWUSR)
+  c.NotebookApp.certfile = pem_file
