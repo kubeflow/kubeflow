@@ -29,7 +29,7 @@ var initCmd = &cobra.Command{
 	Use:   "init <[path/]name>",
 	Short: "Create a kubeflow application under <[path/]name>",
 	Long: `Create a kubeflow application under <[path/]name>. The <[path/]name> argument can either be a full path
-or a name where the kubeflow application will be initialized in the current directory.`,
+or a <name>. If just <name> a directory <name> will be created in the current directory.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.InfoLevel)
 		log.Info("initializing kubeflow application")
@@ -47,7 +47,6 @@ or a name where the kubeflow application will be initialized in the current dire
 		namespace := initCfg.GetString(string(kftypes.NAMESPACE))
 		version := initCfg.GetString(string(kftypes.VERSION))
 		repo := initCfg.GetString(string(kftypes.REPO))
-		debug := initCfg.GetBool(string(kftypes.DEBUG))
 		project := initCfg.GetString(string(kftypes.PROJECT))
 		options := map[string]interface{}{
 			string(kftypes.PLATFORM):  platform,
@@ -55,7 +54,6 @@ or a name where the kubeflow application will be initialized in the current dire
 			string(kftypes.VERSION):   version,
 			string(kftypes.APPNAME):   appName,
 			string(kftypes.REPO):      repo,
-			string(kftypes.DEBUG):     debug,
 			string(kftypes.PROJECT):   project,
 		}
 		kfApp, kfAppErr := newKfApp(options)
@@ -124,14 +122,6 @@ func init() {
 	bindErr = initCfg.BindPFlag(string(kftypes.VERBOSE), initCmd.Flags().Lookup(string(kftypes.VERBOSE)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.VERBOSE), bindErr)
-		return
-	}
-
-	// debug output
-	initCmd.Flags().Bool(string(kftypes.DEBUG), false, string(kftypes.DEBUG)+" debug default is false")
-	bindErr = initCfg.BindPFlag(string(kftypes.DEBUG), initCmd.Flags().Lookup(string(kftypes.DEBUG)))
-	if bindErr != nil {
-		log.Errorf("couldn't set flag --%v: %v", string(kftypes.DEBUG), bindErr)
 		return
 	}
 }
