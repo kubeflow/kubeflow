@@ -387,15 +387,15 @@ func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum, options map[string]
 	}
 	pkgs := ksApp.KsApp.Spec.Packages
 	if pkgs == nil || len(pkgs) == 0 {
-		ksApp.KsApp.Spec.Packages = kstypes.DefaultPackages
+		ksApp.KsApp.Spec.Packages = kftypes.DefaultPackages
 	}
 	comps := ksApp.KsApp.Spec.Components
 	if comps == nil || len(comps) == 0 {
-		ksApp.KsApp.Spec.Components = kstypes.DefaultComponents
+		ksApp.KsApp.Spec.Components = kftypes.DefaultComponents
 	}
 	parameters := ksApp.KsApp.Spec.Parameters
 	if parameters == nil || len(parameters) == 0 {
-		ksApp.KsApp.Spec.Parameters = kstypes.DefaultParameters
+		ksApp.KsApp.Spec.Parameters = kftypes.DefaultParameters
 	}
 	ksRegistry := kstypes.DefaultRegistry
 	ksRegistry.Version = ksApp.KsApp.Spec.Version
@@ -434,8 +434,8 @@ func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum, options map[string]
 		}
 		if compName == "application" {
 			parameterArgs = append(parameterArgs, "--components")
-			prunedArray := kstypes.RemoveItems(componentArray, "application", "metacontroller")
-			quotedArray := kstypes.QuoteItems(prunedArray)
+			prunedArray := kftypes.RemoveItems(componentArray, "application", "metacontroller")
+			quotedArray := kftypes.QuoteItems(prunedArray)
 			arrayString := "[" + strings.Join(quotedArray, ",") + "]"
 			parameterArgs = append(parameterArgs, arrayString)
 		}
@@ -447,10 +447,8 @@ func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum, options map[string]
 	return nil
 }
 
-func (ksApp *KsApp) Init(options map[string]interface{}) error {
+func (ksApp *KsApp) Init(resources kftypes.ResourceEnum, options map[string]interface{}) error {
 	ksApp.KsApp.Spec.Platform = options[string(kftypes.PLATFORM)].(string)
-	log.Infof("Ksonnet.Init Name %v AppDir %v Platform %v", ksApp.KsApp.Name,
-		ksApp.KsApp.Spec.AppDir, ksApp.KsApp.Spec.Platform)
 	err := os.Mkdir(ksApp.KsApp.Spec.AppDir, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("couldn't create directory %v, most likely it already exists", ksApp.KsApp.Spec.AppDir)

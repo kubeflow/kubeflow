@@ -15,31 +15,32 @@
 package v1alpha1
 
 import (
-	client "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/client/v1alpha1"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// GcpSpec defines the desired state of Gcp
-type GcpSpec struct {
-	client.ClientSpec `json:",inline"`
-	Project           string `json:"project,omitempty"`
-	Email             string `json:"email,omitempty"`
-	IpName            string `json:"ipName,omitempty"`
-	Hostname          string `json:"hostname,omitempty"`
-	Zone              string `json:"zone,omitempty"`
+// ClientSpec defines the desired state of Client
+type ClientSpec struct {
+	AppDir     string                      `json:"appdir,omitempty"`
+	Platform   string                      `json:"platform,omitempty"`
+	Version    string                      `json:"version,omitempty"`
+	Repo       string                      `json:"repo,omitempty"`
+	Components []string                    `json:"components,omitempty"`
+	Packages   []string                    `json:"packages,omitempty"`
+	Parameters map[string][]apps.NameValue `json:"parameters,omitempty"`
 }
 
-// GcpStatus defines the observed state of Gcp
-type GcpStatus struct {
-	Conditions []GcpCondition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,6,rep,name=conditions"`
+// ClientStatus defines the observed state of Client
+type ClientStatus struct {
+	Conditions []ClientCondition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,6,rep,name=conditions"`
 }
 
-type GcpConditionType string
+type ClientConditionType string
 
-type GcpCondition struct {
+type ClientCondition struct {
 	// Type of deployment condition.
-	Type GcpConditionType `json:"type" protobuf:"bytes,1,opt,name=type,casttype=GcpConditionType"`
+	Type ClientConditionType `json:"type" protobuf:"bytes,1,opt,name=type,casttype=ClientConditionType"`
 	// Status of the condition, one of True, False, Unknown.
 	Status v1.ConditionStatus `json:"status" protobuf:"bytes,2,opt,name=status,casttype=k8s.io/api/core/v1.ConditionStatus"`
 	// The last time this condition was updated.
@@ -54,25 +55,25 @@ type GcpCondition struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// Gcp is the Schema for the applications API
+// Client is the Schema for the applications API
 // +k8s:openapi-gen=true
-type Gcp struct {
+type Client struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   GcpSpec   `json:"spec,omitempty"`
-	Status GcpStatus `json:"status,omitempty"`
+	Spec   ClientSpec   `json:"spec,omitempty"`
+	Status ClientStatus `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// GcpList contains a list of Gcp
-type GcpList struct {
+// ClientList contains a list of Client
+type ClientList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Gcp `json:"items"`
+	Items           []Client `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&Gcp{}, &GcpList{})
+	SchemeBuilder.Register(&Client{}, &ClientList{})
 }
