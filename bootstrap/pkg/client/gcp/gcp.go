@@ -57,7 +57,6 @@ import (
 const (
 	GCP_CONFIG        = "gcp_config"
 	K8S_SPECS         = "k8s_specs"
-	SECRETS           = "secrets"
 	CONFIG_FILE       = "cluster-kubeflow.yaml"
 	STORAGE_FILE      = "storage-kubeflow.yaml"
 	NETWORK_FILE      = "network.yaml"
@@ -239,6 +238,40 @@ func generateTarget(configPath string) (*deploymentmanager.TargetConfiguration, 
 		}
 	}
 	return targetConfig, nil
+}
+
+func (gcp *Gcp) getK8sClientset(ctx context.Context) (*clientset.Clientset, error) {
+	ts, err := google.DefaultTokenSource(ctx, iam.CloudPlatformScope)
+	if err != nil {
+		return nil, fmt.Errorf("Get token error: %v", err)
+	}
+	t, err := ts.Token()
+	if err != nil {
+		return nil, fmt.Errorf("Token retrieval error: %v", err)
+	}
+	c, err := container.NewClusterManagerClient(ctx, option.WithTokenSource(ts))
+	if err != nil {
+		return nil, err
+	}
+	getClusterReq := &containerpb.GetClusterRequest{
+		ProjectId: gcp.GcpApp.Spec.Project,
+		Zone:      gcp.GcpApp.Spec.Zone,
+		ClusterId: gcp.GcpApp.Name,
+	}
+	getClusterResp, err := c.GetCluster(ctx, getClusterReq)
+	if err != nil {
+		return nil, err
+	}
+	caDec, _ := base64.StdEncoding.DecodeString(getClusterResp.MasterAuth.ClusterCaCertificate)
+	config := &rest.Config{
+		Host:        "https://" + getClusterResp.Endpoint,
+		BearerToken: t.AccessToken,
+		TLSClientConfig: rest.TLSClientConfig{
+			CAData: []byte(string(caDec)),
+		},
+	}
+
+	return clientset.NewForConfig(config)
 }
 
 func blockingWait(project string, opName string, deploymentmanagerService *deploymentmanager.Service, ctx context.Context) error {
@@ -445,26 +478,26 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 	if err := gcp.ConfigK8s(); err != nil {
 		return fmt.Errorf("Configure K8s is failed: %v", err)
 	}
-	// TODO(gabrielwen): Check what these are about.
-	// TODO(gabrielwen): Change utils to kfctlutils.
+
+	// TODO(gabrielwen): Finish this.
 	// client, clientErr := kftypes.BuildOutOfClusterConfig()
 	// if clientErr != nil {
 	// 	return fmt.Errorf("could not create client %v", clientErr)
 	// }
 	// k8sSpecsDir := path.Join(appDir, K8S_SPECS)
 	// daemonsetPreloaded := filepath.Join(k8sSpecsDir, "daemonset-preloaded.yaml")
-	// daemonsetPreloadedErr := utils.CreateResourceFromFile(client, daemonsetPreloaded)
+	// daemonsetPreloadedErr := kfctlutils.CreateResourceFromFile(client, daemonsetPreloaded)
 	// if daemonsetPreloadedErr != nil {
 	// 	return fmt.Errorf("could not create resources in daemonset-preloaded.yaml %v", daemonsetPreloadedErr)
 	// }
 	// //TODO this needs to be kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/rbac-setup.yaml --as=admin --as-group=system:masters
 	// rbacSetup := filepath.Join(k8sSpecsDir, "rbac-setup.yaml")
-	// rbacSetupErr := utils.CreateResourceFromFile(client, rbacSetup)
+	// rbacSetupErr := kfctlutils.CreateResourceFromFile(client, rbacSetup)
 	// if rbacSetupErr != nil {
 	// 	return fmt.Errorf("could not create resources in rbac-setup.yaml %v", rbacSetupErr)
 	// }
 	// agents := filepath.Join(k8sSpecsDir, "agents.yaml")
-	// agentsErr := utils.CreateResourceFromFile(client, agents)
+	// agentsErr := kfctlutils.CreateResourceFromFile(client, agents)
 	// if agentsErr != nil {
 	// 	return fmt.Errorf("could not create resources in agents.yaml %v", agents)
 	// }
@@ -480,15 +513,15 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum, options map[string]interfa
 	if secretsErr != nil {
 		return fmt.Errorf("gcp apply could not create secrets Error %v", secretsErr)
 	}
-	ks := gcp.Children[kftypes.KSONNET]
-	if ks != nil {
-		ksApplyErr := ks.Apply(resources, options)
-		if ksApplyErr != nil {
-			return fmt.Errorf("gcp apply failed for %v: %v", string(kftypes.KSONNET), ksApplyErr)
-		}
-	} else {
-		return fmt.Errorf("%v not in Children", string(kftypes.KSONNET))
-	}
+	// ks := gcp.Children[kftypes.KSONNET]
+	// if ks != nil {
+	// 	ksApplyErr := ks.Apply(resources, options)
+	// 	if ksApplyErr != nil {
+	// 		return fmt.Errorf("gcp apply failed for %v: %v", string(kftypes.KSONNET), ksApplyErr)
+	// 	}
+	// } else {
+	// 	return fmt.Errorf("%v not in Children", string(kftypes.KSONNET))
+	// }
 	return nil
 }
 
@@ -739,75 +772,64 @@ func (gcp *Gcp) downloadK8sManifests() error {
 }
 
 func (gcp *Gcp) createGcpSecret(email string, secretName string) error {
-	cli, cliErr := kftypes.GetClientOutOfCluster()
-	if cliErr != nil {
-		return fmt.Errorf("couldn't create client Error: %v", cliErr)
+	ctx := context.Background()
+	k8sClient, err := gcp.getK8sClientset(ctx)
+	if err != nil {
+		return err
 	}
-	namespace := gcp.GcpApp.Name
-	secret, secretMissingErr := cli.CoreV1().Secrets(namespace).Get(secretName, metav1.GetOptions{})
-	if secretMissingErr != nil {
-		ctx := context.Background()
-		ts, err := google.DefaultTokenSource(ctx, iam.CloudPlatformScope)
-		if err != nil {
-			return err
-		}
-		client := oauth2.NewClient(ctx, ts)
-		iamService, err := iam.New(client)
-		if err != nil {
-			return err
-		}
-		name := "projects/" + gcp.GcpApp.Spec.Project + "/serviceAccounts/" + email
-		req := &iam.CreateServiceAccountKeyRequest{
-			// TODO: Fill request struct fields.
-		}
-		resp, err := iamService.Projects.ServiceAccounts.Keys.Create(name, req).Context(ctx).Do()
-		if err != nil {
-			return err
-		}
-		data, err := resp.MarshalJSON()
-		if err != nil {
-			return err
-		}
-		_, secretMissingErr := cli.CoreV1().Secrets(gcp.GcpApp.Namespace).Get(secretName, metav1.GetOptions{})
-		if secretMissingErr != nil {
-			secretSpec := &v1.Secret{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      secretName,
-					Namespace: gcp.GcpApp.Namespace,
-				},
-				Data: map[string][]byte{
-					v1.ServiceAccountTokenKey: []byte(data),
-				},
-			}
-			_, nsErr := cli.CoreV1().Secrets(gcp.GcpApp.Namespace).Create(secretSpec)
-			if nsErr != nil {
-				return fmt.Errorf("couldn't create "+string(kftypes.NAMESPACE)+" %v Error: %v", namespace, nsErr)
-			}
-		}
-		log.Infof("data = %v", data)
-	} else {
-		return fmt.Errorf("couldn't create %v it already exists with UID %v", secretName, secret.GetUID())
+	namespace := gcp.GcpApp.Namespace
+	_, err = k8sClient.CoreV1().Secrets(namespace).Get(secretName, metav1.GetOptions{})
+	if err == nil {
+		log.Infof("Secret for %v already exists ...", secretName)
+		return nil
 	}
-	return nil
+
+	log.Infof("Secret for %v not found, creating ...", secretName)
+	ts, err := google.DefaultTokenSource(ctx, iam.CloudPlatformScope)
+	if err != nil {
+		return fmt.Errorf("Get IAM token source error: %v", err)
+	}
+	oClient := oauth2.NewClient(ctx, ts)
+	iamService, err := iam.New(oClient)
+	if err != nil {
+		return fmt.Errorf("Get Oauth client error: %v", err)
+	}
+	name := fmt.Sprintf("projects/%v/serviceAccounts/%v", gcp.GcpApp.Spec.Project,
+		email)
+	req := &iam.CreateServiceAccountKeyRequest{
+		KeyAlgorithm:   "KEY_ALG_RSA_2048",
+		PrivateKeyType: "TYPE_GOOGLE_CREDENTIALS_FILE",
+	}
+	saKey, err := iamService.Projects.ServiceAccounts.Keys.Create(name, req).Context(ctx).Do()
+	if err != nil {
+		return fmt.Errorf("Service account key creation error: %v", err)
+	}
+	privateKeyData, err := base64.StdEncoding.DecodeString(saKey.PrivateKeyData)
+	if err != nil {
+		return fmt.Errorf("PrivateKeyData decoding error: %v", err)
+	}
+	s := &v1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      secretName,
+			Namespace: gcp.GcpApp.Namespace,
+		},
+		Data: map[string][]byte{
+			secretName + ".json": privateKeyData,
+		},
+	}
+	_, err = k8sClient.CoreV1().Secrets(namespace).Create(s)
+	return err
 }
 
 func (gcp *Gcp) createSecrets() error {
-	appDir := gcp.GcpApp.Spec.AppDir
-	secretsDir := path.Join(appDir, SECRETS)
-	secretsDirErr := os.Mkdir(secretsDir, os.ModePerm)
-	if secretsDirErr != nil {
-		return fmt.Errorf("cannot create directory %v Error %v", secretsDir, secretsDirErr)
-	}
 	adminEmail := getSA(gcp.GcpApp.Name, "admin", gcp.GcpApp.Spec.Project)
 	userEmail := getSA(gcp.GcpApp.Name, "user", gcp.GcpApp.Spec.Project)
-	adminSecretErr := gcp.createGcpSecret(adminEmail, ADMIN_SECRET_NAME)
-	if adminSecretErr != nil {
-		return fmt.Errorf("cannot create admin secret %v Error %v", ADMIN_SECRET_NAME, adminSecretErr)
+	if err := gcp.createGcpSecret(adminEmail, ADMIN_SECRET_NAME); err != nil {
+		return fmt.Errorf("cannot create admin secret %v Error %v", ADMIN_SECRET_NAME, err)
 
 	}
-	userSecretErr := gcp.createGcpSecret(userEmail, USER_SECRET_NAME)
-	if userSecretErr != nil {
-		return fmt.Errorf("cannot create user secret %v Error %v", USER_SECRET_NAME, userSecretErr)
+	if err := gcp.createGcpSecret(userEmail, USER_SECRET_NAME); err != nil {
+		return fmt.Errorf("cannot create user secret %v Error %v", USER_SECRET_NAME, err)
 
 	}
 	return nil
