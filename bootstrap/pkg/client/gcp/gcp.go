@@ -28,7 +28,6 @@ import (
 	gcptypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/gcp/v1alpha1"
 	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksonnet"
-	// "github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
 	kfctlutils "github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
@@ -43,6 +42,7 @@ import (
 	"io"
 	"io/ioutil"
 	v1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -300,6 +300,65 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 	}
 }
 
+func createNamespace(k8sClientset *clientset.Clientset, namespace string) error {
+	log.Infof("Creating namespace: %v", namespace)
+	_, err := k8sClientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
+	if err == nil {
+		log.Infof("Namespace already exists...")
+		return nil
+	}
+	log.Infof("Get namespace error: %v", err)
+	_, err = k8sClientset.CoreV1().Namespaces().Create(
+		&v1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: namespace,
+			},
+		},
+	)
+	return err
+}
+
+func bindAdmin(k8sClientset *clientset.Clientset, user string) error {
+	log.Infof("Binding admin role for %v ...", user)
+	defaultAdmin := "default-admin"
+	_, err := k8sClientset.RbacV1().ClusterRoleBindings().Get(defaultAdmin,
+		metav1.GetOptions{
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: "rbac.authorization.k8s.io/v1beta1",
+				Kind:       "ClusterRoleBinding",
+			},
+		})
+
+	binding := &rbacv1.ClusterRoleBinding{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "rbac.authorization.k8s.io/v1beta1",
+			Kind:       "ClusterRoleBinding",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "default-admin",
+		},
+		RoleRef: rbacv1.RoleRef{
+			APIGroup: "rbac.authorization.k8s.io",
+			Kind:     "ClusterRole",
+			Name:     "cluster-admin",
+		},
+		Subjects: []rbacv1.Subject{
+			{
+				Kind: rbacv1.UserKind,
+				Name: user,
+			},
+		},
+	}
+	if err == nil {
+		log.Infof("Updating default-admin...")
+		_, err = k8sClientset.RbacV1().ClusterRoleBindings().Update(binding)
+	} else {
+		log.Infof("default-admin not found, creating...")
+		_, err = k8sClientset.RbacV1().ClusterRoleBindings().Create(binding)
+	}
+	return err
+}
+
 func (gcp *Gcp) ConfigK8s() error {
 	ctx := context.Background()
 	ts, err := google.DefaultTokenSource(ctx, iam.CloudPlatformScope)
@@ -337,19 +396,12 @@ func (gcp *Gcp) ConfigK8s() error {
 		return err
 	}
 
-	log.Infof("Creating namespace: %v", gcp.GcpApp.Namespace)
-	if ns, err := k8sClientset.CoreV1().Namespaces().Create(
-		&v1.Namespace{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: gcp.GcpApp.Namespace,
-			},
-		},
-	); err != nil {
-		return err
-	} else {
-		log.Infof("Namespace creation status: %v", ns.Status)
+	if err = createNamespace(k8sClientset, gcp.GcpApp.Namespace); err != nil {
+		return fmt.Errorf("Creating namespace error: %v", err)
 	}
-	// TODO(gabrielwen): Set user as cluster admin.
+	if err = bindAdmin(k8sClientset, gcp.GcpApp.Spec.Email); err != nil {
+		return fmt.Errorf("Binding user as admin error: %v", err)
+	}
 
 	return nil
 }
@@ -394,6 +446,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 		return fmt.Errorf("Configure K8s is failed: %v", err)
 	}
 	// TODO(gabrielwen): Check what these are about.
+	// TODO(gabrielwen): Change utils to kfctlutils.
 	// client, clientErr := kftypes.BuildOutOfClusterConfig()
 	// if clientErr != nil {
 	// 	return fmt.Errorf("could not create client %v", clientErr)
