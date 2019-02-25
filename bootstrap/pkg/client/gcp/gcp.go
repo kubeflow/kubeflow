@@ -51,6 +51,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"time"
 )
 
@@ -63,8 +64,11 @@ const (
 	GCFS_FILE         = "gcfs.yaml"
 	ADMIN_SECRET_NAME = "admin-gcp-sa"
 	USER_SECRET_NAME  = "user-gcp-sa"
+	KUBEFLOW_OAUTH    = "kubeflow-oauth"
 	IMPORTS           = "imports"
 	PATH              = "path"
+	CLIENT_ID         = "CLIENT_ID"
+	CLIENT_SECRET     = "CLIENT_SECRET"
 )
 
 // Gcp implements KfApp Interface
@@ -288,7 +292,7 @@ func blockingWait(project string, opName string, deploymentmanagerService *deplo
 		}
 		log.Infof("Deployment is not ready: %v", op.Status)
 		opName = op.Name
-		time.Sleep(30 * time.Second)
+		time.Sleep(10 * time.Second)
 	}
 }
 
@@ -509,7 +513,7 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum, options map[string]interfa
 	if updateDMErr != nil {
 		return fmt.Errorf("gcp apply could not update deployment manager Error %v", updateDMErr)
 	}
-	secretsErr := gcp.createSecrets()
+	secretsErr := gcp.createSecrets(options)
 	if secretsErr != nil {
 		return fmt.Errorf("gcp apply could not create secrets Error %v", secretsErr)
 	}
@@ -771,14 +775,22 @@ func (gcp *Gcp) downloadK8sManifests() error {
 	return nil
 }
 
-func (gcp *Gcp) createGcpSecret(email string, secretName string) error {
-	ctx := context.Background()
-	k8sClient, err := gcp.getK8sClientset(ctx)
-	if err != nil {
-		return err
+func (gcp *Gcp) writeGcpSecret(client *clientset.Clientset, secretName string, data map[string][]byte) error {
+	secret := &v1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      secretName,
+			Namespace: gcp.GcpApp.Namespace,
+		},
+		Data: data,
 	}
+	_, err := client.CoreV1().Secrets(gcp.GcpApp.Namespace).Create(secret)
+	return err
+}
+
+func (gcp *Gcp) createGcpSecret(ctx context.Context, client *clientset.Clientset,
+	email string, secretName string) error {
 	namespace := gcp.GcpApp.Namespace
-	_, err = k8sClient.CoreV1().Secrets(namespace).Get(secretName, metav1.GetOptions{})
+	_, err := client.CoreV1().Secrets(namespace).Get(secretName, metav1.GetOptions{})
 	if err == nil {
 		log.Infof("Secret for %v already exists ...", secretName)
 		return nil
@@ -808,31 +820,61 @@ func (gcp *Gcp) createGcpSecret(email string, secretName string) error {
 	if err != nil {
 		return fmt.Errorf("PrivateKeyData decoding error: %v", err)
 	}
-	s := &v1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      secretName,
-			Namespace: gcp.GcpApp.Namespace,
-		},
-		Data: map[string][]byte{
-			secretName + ".json": privateKeyData,
-		},
-	}
-	_, err = k8sClient.CoreV1().Secrets(namespace).Create(s)
-	return err
+	return gcp.writeGcpSecret(client, secretName, map[string][]byte{
+		secretName + ".json": privateKeyData,
+	})
 }
 
-func (gcp *Gcp) createSecrets() error {
+func (gcp *Gcp) createSecrets(options map[string]interface{}) error {
+	ctx := context.Background()
+	k8sClient, err := gcp.getK8sClientset(ctx)
+	if err != nil {
+		return fmt.Errorf("Get K8s clientset error: %v", err)
+	}
 	adminEmail := getSA(gcp.GcpApp.Name, "admin", gcp.GcpApp.Spec.Project)
 	userEmail := getSA(gcp.GcpApp.Name, "user", gcp.GcpApp.Spec.Project)
-	if err := gcp.createGcpSecret(adminEmail, ADMIN_SECRET_NAME); err != nil {
+	if err := gcp.createGcpSecret(ctx, k8sClient, adminEmail, ADMIN_SECRET_NAME); err != nil {
 		return fmt.Errorf("cannot create admin secret %v Error %v", ADMIN_SECRET_NAME, err)
 
 	}
-	if err := gcp.createGcpSecret(userEmail, USER_SECRET_NAME); err != nil {
+	if err := gcp.createGcpSecret(ctx, k8sClient, userEmail, USER_SECRET_NAME); err != nil {
 		return fmt.Errorf("cannot create user secret %v Error %v", USER_SECRET_NAME, err)
 
 	}
-	return nil
+
+	_, err = k8sClient.CoreV1().Secrets(gcp.GcpApp.Namespace).Get(KUBEFLOW_OAUTH, metav1.GetOptions{})
+	if err == nil {
+		log.Infof("Secret for %v already exits ...", KUBEFLOW_OAUTH)
+		return nil
+	}
+
+	oauthId := ""
+	if options[string(kftypes.OAUTH_ID)] != nil &&
+		options[string(kftypes.OAUTH_ID)].(string) != "" {
+		oauthId = options[string(kftypes.OAUTH_ID)].(string)
+	} else {
+		oauthId = os.Getenv(CLIENT_ID)
+	}
+	if oauthId == "" {
+		return fmt.Errorf("At least one of --%v or ENV `%v` needs to be set.",
+			string(kftypes.OAUTH_ID), CLIENT_ID)
+	}
+	oauthSecret := ""
+	if options[string(kftypes.OAUTH_SECRET)] != nil &&
+		options[string(kftypes.OAUTH_SECRET)].(string) != "" {
+		oauthSecret = options[string(kftypes.OAUTH_SECRET)].(string)
+	} else {
+		oauthSecret = os.Getenv(CLIENT_SECRET)
+	}
+	if oauthSecret == "" {
+		return fmt.Errorf("At least one of --%v or ENV `%v` needs to be set.",
+			string(kftypes.OAUTH_SECRET), CLIENT_SECRET)
+	}
+
+	return gcp.writeGcpSecret(k8sClient, KUBEFLOW_OAUTH, map[string][]byte{
+		strings.ToLower(CLIENT_ID):     []byte(oauthId),
+		strings.ToLower(CLIENT_SECRET): []byte(oauthSecret),
+	})
 }
 
 func (gcp *Gcp) Generate(resources kftypes.ResourceEnum, options map[string]interface{}) error {

@@ -69,4 +69,20 @@ func init() {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.VERBOSE), bindErr)
 		return
 	}
+	applyCmd.Flags().String(string(kftypes.OAUTH_ID), "",
+		"OAuth Client ID, GCP only. Required if not ENV CLIENT_ID is not set. "+
+			"Value passed will take precedence to ENV.")
+	bindErr = applyCfg.BindPFlag(string(kftypes.OAUTH_ID), applyCmd.Flags().Lookup(string(kftypes.OAUTH_ID)))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.OAUTH_ID), bindErr)
+		return
+	}
+	applyCmd.Flags().String(string(kftypes.OAUTH_SECRET), "",
+		"OAuth Client ID, GCP only. Required if not ENV CLIENT_SECRET is not set. "+
+			"Value passed will take precedence to ENV.")
+	bindErr = applyCfg.BindPFlag(string(kftypes.OAUTH_SECRET), applyCmd.Flags().Lookup(string(kftypes.OAUTH_ID)))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.OAUTH_SECRET), bindErr)
+		return
+	}
 }
