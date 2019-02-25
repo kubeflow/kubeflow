@@ -17,6 +17,9 @@ limitations under the License.
 package gcp
 
 import (
+	"encoding/base64"
+
+	"cloud.google.com/go/container/apiv1"
 	"fmt"
 	"github.com/ghodss/yaml"
 	gogetter "github.com/hashicorp/go-getter"
@@ -25,21 +28,24 @@ import (
 	gcptypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/gcp/v1alpha1"
 	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksonnet"
+	// "github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
 	kfctlutils "github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
-	"k8s.io/api/rbac/v1"
-	clientset "k8s.io/client-go/kubernetes"
 	gke "google.golang.org/api/container/v1"
 	"google.golang.org/api/deploymentmanager/v2"
 	"google.golang.org/api/iam/v1"
+	"google.golang.org/api/option"
 	"google.golang.org/api/serviceusage/v1"
+	containerpb "google.golang.org/genproto/googleapis/container/v1"
 	"io"
 	"io/ioutil"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	clientset "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"net/http"
 	"os"
 	"path"
@@ -294,6 +300,60 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 	}
 }
 
+func (gcp *Gcp) ConfigK8s() error {
+	ctx := context.Background()
+	ts, err := google.DefaultTokenSource(ctx, iam.CloudPlatformScope)
+	if err != nil {
+		return fmt.Errorf("Get token error: %v", err)
+	}
+	t, err := ts.Token()
+	if err != nil {
+		return fmt.Errorf("Token retrieval error: %v", err)
+	}
+	c, err := container.NewClusterManagerClient(ctx, option.WithTokenSource(ts))
+	if err != nil {
+		return err
+	}
+	getClusterReq := &containerpb.GetClusterRequest{
+		ProjectId: gcp.GcpApp.Spec.Project,
+		Zone:      gcp.GcpApp.Spec.Zone,
+		ClusterId: gcp.GcpApp.Name,
+	}
+	getClusterResp, err := c.GetCluster(ctx, getClusterReq)
+	if err != nil {
+		return err
+	}
+	caDec, _ := base64.StdEncoding.DecodeString(getClusterResp.MasterAuth.ClusterCaCertificate)
+	config := &rest.Config{
+		Host:        "https://" + getClusterResp.Endpoint,
+		BearerToken: t.AccessToken,
+		TLSClientConfig: rest.TLSClientConfig{
+			CAData: []byte(string(caDec)),
+		},
+	}
+
+	k8sClientset, err := clientset.NewForConfig(config)
+	if err != nil {
+		return err
+	}
+
+	log.Infof("Creating namespace: %v", gcp.GcpApp.Namespace)
+	if ns, err := k8sClientset.CoreV1().Namespaces().Create(
+		&v1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: gcp.GcpApp.Namespace,
+			},
+		},
+	); err != nil {
+		return err
+	} else {
+		log.Infof("Namespace creation status: %v", ns.Status)
+	}
+	// TODO(gabrielwen): Set user as cluster admin.
+
+	return nil
+}
+
 func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]interface{}) error {
 	if err := gcp.updateDeployment(gcp.GcpApp.Name+"-storage", STORAGE_FILE); err != nil {
 		return fmt.Errorf("could not update %v: %v", STORAGE_FILE, err)
@@ -330,10 +390,31 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 		return fmt.Errorf("SetIamPolicy error: %v", err)
 	}
 
-	// TODO(gabrielwen): Set credentials for kubectl context.
-	// TODO(gabrielwen): Create a named context.
-	// TODO(gabrielwen): Set user as cluster admin.
-	// TODO(gabrielwen): Create namespace if necessary.
+	if err := gcp.ConfigK8s(); err != nil {
+		return fmt.Errorf("Configure K8s is failed: %v", err)
+	}
+	// TODO(gabrielwen): Check what these are about.
+	// client, clientErr := kftypes.BuildOutOfClusterConfig()
+	// if clientErr != nil {
+	// 	return fmt.Errorf("could not create client %v", clientErr)
+	// }
+	// k8sSpecsDir := path.Join(appDir, K8S_SPECS)
+	// daemonsetPreloaded := filepath.Join(k8sSpecsDir, "daemonset-preloaded.yaml")
+	// daemonsetPreloadedErr := utils.CreateResourceFromFile(client, daemonsetPreloaded)
+	// if daemonsetPreloadedErr != nil {
+	// 	return fmt.Errorf("could not create resources in daemonset-preloaded.yaml %v", daemonsetPreloadedErr)
+	// }
+	// //TODO this needs to be kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/rbac-setup.yaml --as=admin --as-group=system:masters
+	// rbacSetup := filepath.Join(k8sSpecsDir, "rbac-setup.yaml")
+	// rbacSetupErr := utils.CreateResourceFromFile(client, rbacSetup)
+	// if rbacSetupErr != nil {
+	// 	return fmt.Errorf("could not create resources in rbac-setup.yaml %v", rbacSetupErr)
+	// }
+	// agents := filepath.Join(k8sSpecsDir, "agents.yaml")
+	// agentsErr := utils.CreateResourceFromFile(client, agents)
+	// if agentsErr != nil {
+	// 	return fmt.Errorf("could not create resources in agents.yaml %v", agents)
+	// }
 	return nil
 }
 
@@ -459,13 +540,8 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 		}
 		// TODO: ????
 	}
-	zone := gcp.GcpApp.Spec.Zone
 	if options[string(kftypes.ZONE)] != nil {
-		zone = options[string(kftypes.ZONE)].(string)
-		if zone == "" {
-			return fmt.Errorf("zone parameter required for iam_bindings")
-		}
-		// TODO: ????
+		gcp.GcpApp.Spec.Zone = kftypes.DefaultZone
 	}
 	ks := gcp.Children[kftypes.KSONNET]
 	if ks != nil {
@@ -581,31 +657,30 @@ func (gcp *Gcp) downloadK8sManifests() error {
 	}
 	daemonsetPreloaded := filepath.Join(k8sSpecsDir, "daemonset-preloaded.yaml")
 	url := "https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/stable/nvidia-driver-installer/cos/daemonset-preloaded.yaml"
-	urlErr := gogetter.GetAny(daemonsetPreloaded, url)
+	urlErr := gogetter.GetFile(daemonsetPreloaded, url)
 	if urlErr != nil {
 		return fmt.Errorf("couldn't download %v Error %v", url, urlErr)
 	}
 	rbacSetup := filepath.Join(k8sSpecsDir, "rbac-setup.yaml")
 	url = "https://storage.googleapis.com/stackdriver-kubernetes/stable/rbac-setup.yaml"
-	urlErr = gogetter.GetAny(rbacSetup, url)
+	urlErr = gogetter.GetFile(rbacSetup, url)
 	if urlErr != nil {
 		return fmt.Errorf("couldn't download %v Error %v", url, urlErr)
 	}
 	agents := filepath.Join(k8sSpecsDir, "agents.yaml")
 	url = "https://storage.googleapis.com/stackdriver-kubernetes/stable/agents.yaml"
-	urlErr = gogetter.GetAny(agents, url)
+	urlErr = gogetter.GetFile(agents, url)
 	if urlErr != nil {
 		return fmt.Errorf("couldn't download %v Error %v", url, urlErr)
 	}
 
-	/*TODO
-	  # Install the GPU driver. It has no effect on non-GPU nodes.
-	  kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/daemonset-preloaded.yaml
-
-	  # Install Stackdriver Kubernetes agents.
-	  kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/rbac-setup.yaml --as=admin --as-group=system:masters
-	  kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/agents.yaml
-	*/
+	//TODO - copied from scripts/gke/util.sh. The rbac-setup command won't need admin since the user will be
+	// running as admin.
+	//  # Install the GPU driver. It has no effect on non-GPU nodes.
+	//  kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/daemonset-preloaded.yaml
+	//  # Install Stackdriver Kubernetes agents.
+	//  kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/rbac-setup.yaml --as=admin --as-group=system:masters
+	//  kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/agents.yaml
 
 	return nil
 }
@@ -734,7 +809,7 @@ func (gcp *Gcp) getServiceClient(ctx context.Context) (*http.Client, error) {
 
 	client, err := google.DefaultClient(ctx, gke.CloudPlatformScope)
 	if err != nil {
-		log.Fatalf("Could not get authenticated client: %v", err)
+		log.Fatalf("Could not authenticate client: %v", err)
 		return nil, err
 	}
 	return client, nil
