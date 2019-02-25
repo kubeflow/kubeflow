@@ -15,10 +15,9 @@
 package v1alpha1
 
 import (
-	"fmt"
+	client "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/client/v1alpha1"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"math/rand"
 )
 
 const (
@@ -26,90 +25,10 @@ const (
 	KsEnvName = "default"
 )
 
-func QuoteItems(items []string) []string {
-	withQuotes := []string{}
-	for _, item := range items {
-		withQuote := "\"" + item + "\""
-		withQuotes = append(withQuotes, withQuote)
-	}
-	return withQuotes
-}
-
-func RemoveItem(defaults []string, name string) []string {
-	pkgs := []string{}
-	for _, pkg := range defaults {
-		if pkg != name {
-			pkgs = append(pkgs, pkg)
-		}
-	}
-	return pkgs
-}
-
-func RemoveItems(defaults []string, names ...string) []string {
-	pkgs := make([]string, len(defaults))
-	copy(pkgs, defaults)
-	for _, name := range names {
-		pkgs = RemoveItem(pkgs, name)
-	}
-	return pkgs
-}
-
 var DefaultRegistry = &RegistryConfig{
 	Name: "kubeflow",
 	Repo: "https://github.com/kubeflow/kubeflow.git",
 	Path: "kubeflow",
-}
-
-var DefaultPackages = []string{
-	"application",
-	"argo",
-	"common",
-	"examples",
-	"jupyter",
-	"katib",
-	"metacontroller",
-	"modeldb",
-	"mpi-job",
-	"openvino",
-	"pipeline",
-	"profiles",
-	"pytorch-job",
-	"seldon",
-	"tensorboard",
-	"tf-serving",
-	"tf-training",
-}
-var DefaultComponents = []string{
-	"ambassador",
-	"application",
-	"argo",
-	"centraldashboard",
-	"jupyter",
-	"jupyter-web-app",
-	"katib",
-	"metacontroller",
-	"notebooks",
-	"notebook-controller",
-	"openvino",
-	"pipeline",
-	"profiles",
-	"pytorch-operator",
-	"spartakus",
-	"tensorboard",
-	"tf-job-operator",
-}
-
-var DefaultParameters = map[string][]NameValue{
-	"spartakus": {
-		NameValue{
-			Name:  "usageId",
-			Value: fmt.Sprintf("%08d", 10000000+rand.Intn(90000000)),
-		},
-		NameValue{
-			Name:  "reportUsage",
-			Value: "true",
-		},
-	},
 }
 
 // RegistryConfig is used for two purposes:
@@ -194,20 +113,9 @@ type AppConfig struct {
 	Parameters []KsParameter     `json:"parameters,omitempty"`
 }
 
-type NameValue struct {
-	Name  string `json:"name,omitempty"`
-	Value string `json:"value,omitempty"`
-}
-
 // KsonnetSpec defines the desired state of Ksonnet
 type KsonnetSpec struct {
-	AppDir     string                 `json:"appdir,omitempty"`
-	Platform   string                 `json:"platform,omitempty"`
-	Version    string                 `json:"version,omitempty"`
-	Repo       string                 `json:"repo,omitempty"`
-	Components []string               `json:"components,omitempty"`
-	Packages   []string               `json:"packages,omitempty"`
-	Parameters map[string][]NameValue `json:"parameters,omitempty"`
+	client.ClientSpec `json:",inline"`
 }
 
 // KsonnetStatus defines the observed state of Ksonnet
@@ -246,13 +154,13 @@ type Ksonnet struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// KsAppList contains a list of Ksonnet
-type KsAppList struct {
+// KsonnetList contains a list of Ksonnet
+type KsonnetList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []Ksonnet `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&Ksonnet{}, &KsAppList{})
+	SchemeBuilder.Register(&Ksonnet{}, &KsonnetList{})
 }

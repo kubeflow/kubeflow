@@ -22,8 +22,6 @@ import (
 	gogetter "github.com/hashicorp/go-getter"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	gcptypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/gcp/v1alpha1"
-	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksonnet"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
@@ -60,19 +58,11 @@ const (
 // Gcp implements KfApp Interface
 // It includes the KsApp along with additional Gcp types
 type Gcp struct {
-	kftypes.FullKfApp
 	GcpApp *gcptypes.Gcp
 }
 
 func GetKfApp(options map[string]interface{}) kftypes.KfApp {
-	options[string(kftypes.PLATFORM)] = string(kftypes.NONE)
-	log.Infof("getting ksonnet platform in gcp")
-	_ksonnet := ksonnet.GetKfApp(options)
-	options[string(kftypes.PLATFORM)] = "gcp"
 	_gcp := &Gcp{
-		FullKfApp: kftypes.FullKfApp{
-			Children: make(map[kftypes.Platform]kftypes.KfApp),
-		},
 		GcpApp: &gcptypes.Gcp{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "Gcp",
@@ -80,7 +70,6 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 			},
 		},
 	}
-	_gcp.Children[kftypes.NONE] = _ksonnet
 	if options[string(kftypes.DATA)] != nil {
 		dat := options[string(kftypes.DATA)].([]byte)
 		specErr := yaml.Unmarshal(dat, _gcp.GcpApp)
@@ -253,28 +242,10 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum, options map[string]interfa
 	if secretsErr != nil {
 		return fmt.Errorf("gcp apply could not create secrets Error %v", secretsErr)
 	}
-	ks := gcp.Children[kftypes.NONE]
-	if ks != nil {
-		ksApplyErr := ks.Apply(resources, options)
-		if ksApplyErr != nil {
-			return fmt.Errorf("gcp apply failed for %v: %v", string(kftypes.NONE), ksApplyErr)
-		}
-	} else {
-		return fmt.Errorf("%v not in Children", string(kftypes.NONE))
-	}
 	return nil
 }
 
 func (gcp *Gcp) Delete(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	ks := gcp.Children[kftypes.NONE]
-	if ks != nil {
-		ksDeleteErr := ks.Delete(resources, options)
-		if ksDeleteErr != nil {
-			return fmt.Errorf("gcp delete failed for %v: %v", string(kftypes.NONE), ksDeleteErr)
-		}
-	} else {
-		return fmt.Errorf("%v not in Children", string(kftypes.NONE))
-	}
 	return nil
 }
 
@@ -297,7 +268,7 @@ func (gcp *Gcp) copyFile(source string, dest string) error {
 	return nil
 }
 
-func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
+func (gcp *Gcp) generate(options map[string]interface{}) error {
 	project := gcp.GcpApp.Spec.Project
 	if options[string(kftypes.PROJECT)] != nil {
 		project = options[string(kftypes.PROJECT)].(string)
@@ -336,15 +307,15 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 			zone = gcp.GcpApp.Spec.Zone
 		}
 	}
-	kstypes.DefaultPackages = append(kstypes.DefaultPackages, []string{"gcp"}...)
-	kstypes.DefaultComponents = append(kstypes.DefaultComponents, []string{"cloud-endpoints", "cert-manager", "iap-ingress"}...)
-	kstypes.DefaultParameters["cert-manager"] = []kstypes.NameValue{
+	kftypes.DefaultPackages = append(kftypes.DefaultPackages, []string{"gcp"}...)
+	kftypes.DefaultComponents = append(kftypes.DefaultComponents, []string{"cloud-endpoints", "cert-manager", "iap-ingress"}...)
+	kftypes.DefaultParameters["cert-manager"] = []kftypes.NameValue{
 		{
 			Name:  "acmeEmail",
 			Value: email,
 		},
 	}
-	kstypes.DefaultParameters["iap-ingress"] = []kstypes.NameValue{
+	kftypes.DefaultParameters["iap-ingress"] = []kftypes.NameValue{
 		{
 			Name:  "ipName",
 			Value: ipName,
@@ -354,20 +325,20 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 			Value: hostname,
 		},
 	}
-	if kstypes.DefaultParameters["jupyter"] != nil {
-		namevalues := kstypes.DefaultParameters["jupyter"]
+	if kftypes.DefaultParameters["jupyter"] != nil {
+		namevalues := kftypes.DefaultParameters["jupyter"]
 		namevalues = append(namevalues,
-			kstypes.NameValue{
+			kftypes.NameValue{
 				Name:  "jupyterHubAuthenticator",
 				Value: "iap",
 			},
-			kstypes.NameValue{
+			kftypes.NameValue{
 				Name:  string(kftypes.PLATFORM),
 				Value: gcp.GcpApp.Spec.Platform,
 			},
 		)
 	} else {
-		kstypes.DefaultParameters["jupyter"] = []kstypes.NameValue{
+		kftypes.DefaultParameters["jupyter"] = []kftypes.NameValue{
 			{
 				Name:  "jupyterHubAuthenticator",
 				Value: "iap",
@@ -378,36 +349,27 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 			},
 		}
 	}
-	if kstypes.DefaultParameters["ambassador"] != nil {
-		namevalues := kstypes.DefaultParameters["ambassador"]
+	if kftypes.DefaultParameters["ambassador"] != nil {
+		namevalues := kftypes.DefaultParameters["ambassador"]
 		namevalues = append(namevalues,
-			kstypes.NameValue{
+			kftypes.NameValue{
 				Name:  string(kftypes.PLATFORM),
 				Value: gcp.GcpApp.Spec.Platform,
 			},
 		)
 	} else {
-		kstypes.DefaultParameters["ambassador"] = []kstypes.NameValue{
+		kftypes.DefaultParameters["ambassador"] = []kftypes.NameValue{
 			{
 				Name:  string(kftypes.PLATFORM),
 				Value: gcp.GcpApp.Spec.Platform,
 			},
 		}
 	}
-	kstypes.DefaultParameters["application"] = []kstypes.NameValue{
+	kftypes.DefaultParameters["application"] = []kftypes.NameValue{
 		{
 			Name:  "components",
-			Value: "[" + strings.Join(kstypes.QuoteItems(kstypes.DefaultComponents), ",") + "]",
+			Value: "[" + strings.Join(kftypes.QuoteItems(kftypes.DefaultComponents), ",") + "]",
 		},
-	}
-	ks := gcp.Children[kftypes.NONE]
-	if ks != nil {
-		ksGenerateErr := ks.Generate(kftypes.ALL, options)
-		if ksGenerateErr != nil {
-			return fmt.Errorf("gcp generate failed for %v: %v", string(kftypes.NONE), ksGenerateErr)
-		}
-	} else {
-		return fmt.Errorf("%v not in Children", string(kftypes.NONE))
 	}
 	return nil
 }
@@ -624,9 +586,9 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum, options map[string]inte
 		if generateK8sSpecsErr != nil {
 			return fmt.Errorf("could not generate files under %v Error: %v", K8S_SPECS, generateK8sSpecsErr)
 		}
-		ksonnetErr := gcp.generateKsonnet(options)
-		if ksonnetErr != nil {
-			return fmt.Errorf("could not generate ksonnet under %v Error: %v", kstypes.KsName, ksonnetErr)
+		generateErr := gcp.generate(options)
+		if generateErr != nil {
+			return fmt.Errorf("generate failed Error: %v", generateErr)
 		}
 	case kftypes.ALL:
 		gcpConfigFilesErr := gcp.generateDMConfigs(options)
@@ -637,18 +599,18 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum, options map[string]inte
 		if generateK8sSpecsErr != nil {
 			return fmt.Errorf("could not generate files under %v Error: %v", K8S_SPECS, generateK8sSpecsErr)
 		}
-		ksonnetErr := gcp.generateKsonnet(options)
-		if ksonnetErr != nil {
-			return fmt.Errorf("could not generate ksonnet under %v Error: %v", kstypes.KsName, ksonnetErr)
+		generateErr := gcp.generate(options)
+		if generateErr != nil {
+			return fmt.Errorf("generate failed Error: %v", generateErr)
 		}
 	case kftypes.PLATFORM:
 		gcpConfigFilesErr := gcp.generateDMConfigs(options)
 		if gcpConfigFilesErr != nil {
 			return fmt.Errorf("could not generate deployment manager configs under %v Error: %v", GCP_CONFIG, gcpConfigFilesErr)
 		}
-		ksonnetErr := gcp.generateKsonnet(options)
-		if ksonnetErr != nil {
-			return fmt.Errorf("could not generate ksonnet under %v Error: %v", kstypes.KsName, ksonnetErr)
+		generateErr := gcp.generate(options)
+		if generateErr != nil {
+			return fmt.Errorf("generate failed Error: %v", generateErr)
 		}
 	}
 	createConfigErr := gcp.writeConfigFile()
@@ -710,16 +672,7 @@ func (gcp *Gcp) gcpInitProject() error {
 	return nil
 }
 
-func (gcp *Gcp) Init(options map[string]interface{}) error {
-	ks := gcp.Children[kftypes.NONE]
-	if ks != nil {
-		ksInitErr := ks.Init(options)
-		if ksInitErr != nil {
-			return fmt.Errorf("gcp init failed for %v: %v", string(kftypes.NONE), ksInitErr)
-		}
-	} else {
-		return fmt.Errorf("%v not in Children", string(kftypes.NONE))
-	}
+func (gcp *Gcp) Init(resources kftypes.ResourceEnum, options map[string]interface{}) error {
 	cacheDir := path.Join(gcp.GcpApp.Spec.AppDir, kftypes.DefaultCacheDir)
 	newPath := filepath.Join(cacheDir, gcp.GcpApp.Spec.Version)
 	gcp.GcpApp.Spec.Repo = path.Join(newPath, "kubeflow")

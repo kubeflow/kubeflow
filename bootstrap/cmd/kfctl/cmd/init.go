@@ -15,11 +15,11 @@
 package cmd
 
 import (
-	"github.com/spf13/viper"
-
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/client"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var initCfg = viper.New()
@@ -32,7 +32,6 @@ var initCmd = &cobra.Command{
 or a <name>. If just <name> a directory <name> will be created in the current directory.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.InfoLevel)
-		log.Info("initializing kubeflow application")
 		if initCfg.GetBool(string(kftypes.VERBOSE)) == true {
 			log.SetLevel(log.InfoLevel)
 		} else {
@@ -56,12 +55,12 @@ or a <name>. If just <name> a directory <name> will be created in the current di
 			string(kftypes.REPO):      repo,
 			string(kftypes.PROJECT):   project,
 		}
-		kfApp, kfAppErr := newKfApp(options)
+		kfApp, kfAppErr := client.NewKfApp(options)
 		if kfAppErr != nil || kfApp == nil {
 			log.Errorf("couldn't create KfApp: %v", kfAppErr)
 			return
 		}
-		initErr := kfApp.Init(options)
+		initErr := kfApp.Init(kftypes.ALL, options)
 		if initErr != nil {
 			log.Errorf("KfApp initialization failed: %v", initErr)
 			return

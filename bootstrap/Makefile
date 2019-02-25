@@ -41,6 +41,9 @@ vet:
 generate:
 	$(GO) generate ./pkg/... ./cmd/...
 
+deepcopy:
+	@deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/pkg/apis/... -O zz_generated.deepcopy
+
 
 build-bootstrap: generate fmt vet
 	$(GO) build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
@@ -97,14 +100,16 @@ plugins:
 	@ex pkg/apis/apps/group.go <hack/plugins
 	@ex cmd/kfctl/cmd/root.go <hack/plugins || echo Plugin functionality enabled
 
-test-known-platforms-init: install build-dockerfordesktop-plugin
+clean:
 	@rm -rf dockerfordesktop && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init dockerfordesktop -V --platform docker-for-desktop && \
 	rm -rf none && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init `pwd`/none -V && \
-	rm -rf minikube && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init $(PWD)/minikube -V --platform minikube && \
 	rm -rf gcp && \
+	rm -rf minikube
+      
+test-known-platforms-init: clean install build-dockerfordesktop-plugin
+	@GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init dockerfordesktop -V --platform docker-for-desktop && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init `pwd`/none -V && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init $(PWD)/minikube -V --platform minikube && \
 	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init gcp -V --platform gcp --project $(GCLOUD_PROJECT) && \
 	echo SUCCESS
 
