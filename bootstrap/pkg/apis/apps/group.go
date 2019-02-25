@@ -26,6 +26,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	"math/rand"
 	"os"
 	"path/filepath"
 	/* PLUGINS
@@ -74,6 +75,63 @@ const (
 	ZONE        CliOption = "zone"
 )
 
+var DefaultPackages = []string{
+	"application",
+	"argo",
+	"common",
+	"examples",
+	"jupyter",
+	"katib",
+	"metacontroller",
+	"modeldb",
+	"mpi-job",
+	"openvino",
+	"pipeline",
+	"profiles",
+	"pytorch-job",
+	"seldon",
+	"tensorboard",
+	"tf-serving",
+	"tf-training",
+}
+var DefaultComponents = []string{
+	"ambassador",
+	"application",
+	"argo",
+	"centraldashboard",
+	"jupyter",
+	"jupyter-web-app",
+	"katib",
+	"metacontroller",
+	"notebooks",
+	"notebook-controller",
+	"openvino",
+	"pipeline",
+	"profiles",
+	"pytorch-operator",
+	"spartakus",
+	"tensorboard",
+	"tf-job-operator",
+}
+
+var DefaultParameters = map[string][]NameValue{
+	"spartakus": {
+		NameValue{
+			Name:  "usageId",
+			Value: fmt.Sprintf("%08d", 10000000+rand.Intn(90000000)),
+		},
+		NameValue{
+			Name:  "reportUsage",
+			Value: "true",
+		},
+	},
+}
+
+type NameValue struct {
+	Name  string `json:"name,omitempty"`
+	Value string `json:"value,omitempty"`
+}
+
 //
 // KfApp provides a common
 // API for platforms like gcp or minikube
@@ -83,20 +141,46 @@ type KfApp interface {
 	Apply(resources ResourceEnum, options map[string]interface{}) error
 	Delete(resources ResourceEnum, options map[string]interface{}) error
 	Generate(resources ResourceEnum, options map[string]interface{}) error
-	Init(options map[string]interface{}) error
+	Init(resources ResourceEnum, options map[string]interface{}) error
 }
 
-type Platform string
+func QuoteItems(items []string) []string {
+	var withQuotes []string
+	for _, item := range items {
+		withQuote := "\"" + item + "\""
+		withQuotes = append(withQuotes, withQuote)
+	}
+	return withQuotes
+}
+
+func RemoveItem(defaults []string, name string) []string {
+	var pkgs []string
+	for _, pkg := range defaults {
+		if pkg != name {
+			pkgs = append(pkgs, pkg)
+		}
+	}
+	return pkgs
+}
+
+func RemoveItems(defaults []string, names ...string) []string {
+	pkgs := make([]string, len(defaults))
+	copy(pkgs, defaults)
+	for _, name := range names {
+		pkgs = RemoveItem(pkgs, name)
+	}
+	return pkgs
+}
 
 const (
-	DOCKER_FOR_DESKTOP Platform = "docker-for-desktop"
-	GCP                Platform = "gcp"
-	NONE               Platform = DefaultPlatform
-	MINIKUBE           Platform = "minikube"
+	DOCKER_FOR_DESKTOP = "docker-for-desktop"
+	GCP                = "gcp"
+	NONE               = DefaultPlatform
+	MINIKUBE           = "minikube"
 )
 
-type FullKfApp struct {
-	Children map[Platform]KfApp
+type KfApps struct {
+	Children map[string]KfApp
 }
 
 func LoadPlatform(options map[string]interface{}) (KfApp, error) {
