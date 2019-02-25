@@ -252,10 +252,11 @@ class KubeFormSpawner(KubeSpawner):
     return options
 
   @property
-  def singleuser_image_spec(self):
+  def image(self):
     return self.user_options['image']
 
-  image_spec = singleuser_image_spec
+  image_spec = image
+  singleuser_image_spec = image
 
   @property
   def cpu_guarantee(self):
