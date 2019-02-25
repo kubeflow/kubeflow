@@ -8,17 +8,17 @@
   all(namespace, mysqlPvName=null, minioPvName=null, nfsPvName=null, mysqlPd=null, minioPd=null, nfsPd=null):: [
     $.parts(namespace).mysqlPvc(mysqlPd,mysqlPvName),
   ] +
-  [ if (nfsPvName != "null") || (nfsPd!= "null")
+  [ if (nfsPvName != null) || (nfsPd!= null)
     then $.parts(namespace).nfsServerPvc(nfsPd,nfsPvName)
     else $.parts(namespace).minioPvc(minioPd,minioPvName),
   ] +
-  [ if mysqlPd != "null" 
+  [ if mysqlPd != null
     then $.parts(namespace).mysqlPv(mysqlPd),
   ] +
-  [ if minioPd != "null"
+  [ if minioPd != null
     then $.parts(namespace).minioPv(minioPd),
   ] +
-  [ if nfsPd != "null"
+  [ if nfsPd != null
     then $.parts(namespace).nfsServerPv(nfsPd),
   ],
   parts(namespace):: {
@@ -66,10 +66,10 @@
         } + 
         // if GCE PD or PV is provided, use mysql-pv volume
         // Otherwise create PVC through default StorageClass
-        if (mysqlPvName != "null") || (mysqlPd != "null")  then {
+        if (mysqlPvName != null) || (mysqlPd != null)  then {
          storageClassName: "",
          volumeName:
-           if mysqlPd != "null"
+           if mysqlPd != null
            then "mysql-pv"
            else mysqlPvName,
         } else {}
@@ -119,10 +119,10 @@
         } +
         // if GCE PD or PV is provided, use minio-pv volume
         // Otherwise create PVC through default StorageClass
-        if (minioPvName != "null") || (minioPd != "null")  then {
+        if (minioPvName != null) || (minioPd != null)  then {
          storageClassName: "",
          volumeName:
-           if minioPd != "null"
+           if minioPd != null
            then "minio-pv"
            else minioPvName,
         } else {}
@@ -175,10 +175,10 @@
         } +
         // if GCE PD or PV is provided, use mysql-pv volume
         // Otherwise create PVC through default StorageClass
-        if (nfsPvName != "null") || (nfsPd != "null")  then {
+        if (nfsPvName != null) || (nfsPd != null)  then {
          storageClassName: "",
          volumeName:
-           if nfsPd != "null"
+           if nfsPd != null
            then "nfs-server-pv"
            else nfsPvName,
         }
