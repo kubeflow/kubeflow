@@ -173,10 +173,15 @@ func RemoveItems(defaults []string, names ...string) []string {
 }
 
 const (
-	DOCKER_FOR_DESKTOP = "docker-for-desktop"
-	GCP                = "gcp"
-	NONE               = DefaultPlatform
-	MINIKUBE           = "minikube"
+	// STATIC
+	DOCKER_FOR_DESKTOP = "dockerfordesktop"
+	// -STATIC //
+	GCP = "gcp"
+	// STATIC
+	KUSTOMIZE = "kustomize"
+	// -STATIC //
+	NONE     = DefaultPlatform
+	MINIKUBE = "minikube"
 )
 
 type KfApps struct {

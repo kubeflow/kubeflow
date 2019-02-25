@@ -37,7 +37,6 @@ var generateCmd = &cobra.Command{
 The default is 'all' for any selected platform.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.InfoLevel)
-		log.Info("generating kubeflow application")
 		if generateCfg.GetBool(string(kftypes.VERBOSE)) == true {
 			log.SetLevel(log.InfoLevel)
 		} else {
@@ -115,7 +114,7 @@ func init() {
 		return
 	}
 
-	// platforms minikube, docker-for-desktop
+	// platforms minikube
 	generateCmd.Flags().Bool(string(kftypes.MOUNT_LOCAL), false,
 		string(kftypes.MOUNT_LOCAL)+" if '--platform minikube'")
 	bindErr = generateCfg.BindPFlag(string(kftypes.MOUNT_LOCAL), generateCmd.Flags().Lookup(string(kftypes.MOUNT_LOCAL)))

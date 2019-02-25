@@ -25,7 +25,7 @@ import (
 )
 
 // DockerForDesktop implements KfApp Interface
-// It should include functionality needed for the docker-for-desktop platform
+// It should include functionality needed for the dockerfordesktop platform
 type DockerForDesktop struct {
 	//Add additional types required for dockerfordesktop platform
 }

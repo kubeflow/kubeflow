@@ -20,10 +20,26 @@ GOOGLE_APPLICATION_CREDENTIALS ?= $(HOME)/auth.json
 # export DOCKER_BUILD_OPTS=--no-cache
 IMG ?= gcr.io/$(GCLOUD_PROJECT)/bootstrapper
 TAG ?= $(shell git describe --tags --always --dirty)
-PORT ?= 2345
+# set to -V
+VERBOSE ?= 
 PLUGINS_ENVIRONMENT ?= $(GOPATH)/src/github.com/kubeflow/kubeflow/bootstrap/bin
 export GO111MODULE = on
 export GO = go
+
+%.so:
+	@$(GO) build -i -gcflags 'all=-N -l' -o bin/$*.so -buildmode=plugin cmd/plugins/$*/$*.go
+
+%.init:
+	@echo kfctl init $* $(VERBOSE) --platform $* --project $(GCLOUD_PROJECT)
+	@GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(PWD)/$* $(VERBOSE) --platform $* --project $(GCLOUD_PROJECT)
+
+%.generate:
+	@echo kfctl generate all $(VERBOSE) --mount-local --email gcp-deploy@$(GCLOUD_PROJECT).iam.gserviceaccount.com
+	@cd $* && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl generate all $(VERBOSE) --mount-local --email gcp-deploy@$(GCLOUD_PROJECT).iam.gserviceaccount.com
+
+%.clean:
+	@rm -rf $*
 
 all: build
 
@@ -32,27 +48,23 @@ auth:
 
 # Run go fmt against code
 fmt:
-	$(GO) fmt ./pkg/... ./cmd/...
+	@$(GO) fmt ./pkg/... ./cmd/...
 
 # Run go vet against code
 vet:
-	$(GO) vet ./pkg/... ./cmd/...
+	@$(GO) vet ./pkg/... ./cmd/...
 
 generate:
-	$(GO) generate ./pkg/... ./cmd/...
+	@$(GO) generate ./pkg/... ./cmd/...
 
 deepcopy:
 	@deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/pkg/apis/... -O zz_generated.deepcopy
-
 
 build-bootstrap: generate fmt vet
 	$(GO) build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 
 build-kfctl: generate fmt vet
 	$(GO) build -i -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
-
-build-dockerfordesktop-plugin: generate fmt vet
-	$(GO) build -i -gcflags 'all=-N -l' -o bin/dockerfordesktop.so -buildmode=plugin cmd/plugins/dockerfordesktop/dockerfordesktop.go
 
 build-local: build-bootstrap build-kfctl
 
@@ -94,36 +106,16 @@ run-local-docker:
 # By default we disable loading plugins and link dockerfordesktop into the kfctl binary (static)
 static:
 	@ex pkg/apis/apps/group.go <hack/static
-	@ex cmd/kfctl/cmd/root.go <hack/static || echo Plugin functionality disabled
+	@ex pkg/client/client.go <hack/static || echo Plugin functionality disabled
 
 plugins:
 	@ex pkg/apis/apps/group.go <hack/plugins
-	@ex cmd/kfctl/cmd/root.go <hack/plugins || echo Plugin functionality enabled
+	@ex pkg/client/client.go <hack/plugins || echo Plugin functionality enabled
 
-clean:
-	@rm -rf dockerfordesktop && \
-	rm -rf none && \
-	rm -rf gcp && \
-	rm -rf minikube
+clean: dockerfordesktop.clean kustomize.clean none.clean gcp.clean minikube.clean
       
-test-known-platforms-init: clean install build-dockerfordesktop-plugin
-	@GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init dockerfordesktop -V --platform docker-for-desktop && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init `pwd`/none -V && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init $(PWD)/minikube -V --platform minikube && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init gcp -V --platform gcp --project $(GCLOUD_PROJECT) && \
-	echo SUCCESS
+test-init: clean install dockerfordesktop.so kustomize.so dockerfordesktop.init kustomize.init none.init minikube.init gcp.init
 
-test-known-platforms-generate: test-known-platforms-init
-	@cd dockerfordesktop && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl generate all -V && \
-	cd ../none && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl generate all -V && \
-	cd ../minikube && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl generate all -V --mount-local && \
-	cd ../gcp && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl generate all -V --email jsmith@acme.com && \
-	echo SUCCESS
+test-generate: test-init dockerfordesktop.generate kustomize.generate none.generate minikube.generate gcp.generate
 
-test-plugins-static: plugins test-known-platforms-generate static test-known-platforms-generate
-
-test-kfctl: test-plugins-static
+test-kfctl: plugins test-generate static test-generate
