@@ -128,7 +128,8 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 		zone := options[string(kftypes.ZONE)].(string)
 		_gcp.GcpApp.Spec.Zone = zone
 	}
-	if options[string(kftypes.IPNAME)] != nil {
+	if options[string(kftypes.IPNAME)] != nil &&
+		options[string(kftypes.IPNAME)].(string) != "" {
 		ipName := options[string(kftypes.IPNAME)].(string)
 		_gcp.GcpApp.Spec.IpName = ipName
 	} else if _gcp.GcpApp.Name != "" {
@@ -138,11 +139,13 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 		project := options[string(kftypes.PROJECT)].(string)
 		_gcp.GcpApp.Spec.Project = project
 	}
-	if options[string(kftypes.HOSTNAME)] != nil {
+	if options[string(kftypes.HOSTNAME)] != nil &&
+		options[string(kftypes.HOSTNAME)].(string) != "" {
 		hostname := options[string(kftypes.HOSTNAME)].(string)
 		_gcp.GcpApp.Spec.Hostname = hostname
 	} else if _gcp.GcpApp.Name != "" && _gcp.GcpApp.Spec.Project != "" {
-		_gcp.GcpApp.Spec.Hostname = fmt.Sprintf("%v.endpoints.%v.cloud.goog", _gcp.GcpApp.Name, _gcp.GcpApp.Spec.Project)
+		_gcp.GcpApp.Spec.Hostname = fmt.Sprintf("%v.endpoints.%v.cloud.goog",
+			_gcp.GcpApp.Name, _gcp.GcpApp.Spec.Project)
 	}
 	if options[string(kftypes.GKE_API_VERSION)] != nil {
 		_gcp.GcpApp.Spec.GkeApiVersion = options[string(kftypes.GKE_API_VERSION)].(string)
@@ -416,22 +419,21 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 		options[string(kftypes.DEFAULT_CONFIG)] = configPath
 	}
 
-	if options[string(kftypes.EMAIL)] != nil {
-		email := options[string(kftypes.EMAIL)].(string)
-		// TODO(gabrielwen): We should be able to make it optional.
-		if email == "" {
-			return fmt.Errorf("email parameter required for cert-manager")
-		}
+	if options[string(kftypes.EMAIL)] != nil &&
+		options[string(kftypes.EMAIL)].(string) != "" {
+		gcp.GcpApp.Spec.Email = options[string(kftypes.EMAIL)].(string)
+	} else if gcp.GcpApp.Spec.Email == "" {
+		return fmt.Errorf("Email is not set in default nor passed.")
 	} else {
 		options[string(kftypes.EMAIL)] = gcp.GcpApp.Spec.Email
 	}
-	ipName := gcp.GcpApp.Spec.IpName
-	if options[string(kftypes.IPNAME)] != nil {
-		ipName = options[string(kftypes.IPNAME)].(string)
-		if ipName == "" {
-			return fmt.Errorf("ipName parameter required for iap-ingress")
-		}
+	if options[string(kftypes.IPNAME)] != nil &&
+		options[string(kftypes.IPNAME)].(string) != "" {
+		gcp.GcpApp.Spec.IpName = options[string(kftypes.IPNAME)].(string)
+	} else if gcp.GcpApp.Spec.IpName == "" {
+		return fmt.Errorf("ipName is not set in default nor passed.")
 	} else {
+		log.Infof("Using default ipName: %v", gcp.GcpApp.Spec.IpName)
 		options[string(kftypes.IPNAME)] = gcp.GcpApp.Spec.IpName
 	}
 
@@ -440,12 +442,13 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 	} else {
 		options[string(kftypes.USE_BASIC_AUTH)] = false
 	}
-	if options[string(kftypes.HOSTNAME)] != nil {
-		hostname := options[string(kftypes.HOSTNAME)].(string)
-		if hostname == "" {
-			return fmt.Errorf("hostname parameter required for iap-ingress")
-		}
+	if options[string(kftypes.HOSTNAME)] != nil &&
+		options[string(kftypes.HOSTNAME)].(string) != "" {
+		gcp.GcpApp.Spec.Hostname = options[string(kftypes.HOSTNAME)].(string)
+	} else if gcp.GcpApp.Spec.Hostname == "" {
+		return fmt.Errorf("hostname is not set in default nor passed.")
 	} else {
+		log.Infof("Using default hostname: %v", gcp.GcpApp.Spec.Hostname)
 		options[string(kftypes.HOSTNAME)] = gcp.GcpApp.Spec.Hostname
 	}
 	project := gcp.GcpApp.Spec.Project
