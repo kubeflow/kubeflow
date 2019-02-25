@@ -203,7 +203,7 @@ where the return type implements the [KfApp Interface](#kfapp-interface).
 In this sample, running
 
 ```
-kfctl init ~/dockerfordesktop --platform docker-for-desktop
+kfctl init ~/dockerfordesktop --platform dockerfordesktop
 ```
 
 will result in kfctl loading $PLUGINS_ENVIRONMENT/dockerfordesktop.so and calling its methods that
