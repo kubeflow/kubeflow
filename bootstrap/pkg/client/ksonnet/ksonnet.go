@@ -149,10 +149,10 @@ func (ksApp *KsApp) Apply(resources kftypes.ResourceEnum, options map[string]int
 			return fmt.Errorf("couldn't create "+string(kftypes.NAMESPACE)+" %v Error: %v", namespace, nsErr)
 		}
 	}
-	clientConfig, clientConfigErr := kftypes.GetClientConfig()
-	if clientConfigErr != nil {
-		return fmt.Errorf("couldn't load client config Error: %v", clientConfigErr)
-	}
+	// clientConfig, clientConfigErr := kftypes.GetClientConfig()
+	// if clientConfigErr != nil {
+	// 	return fmt.Errorf("couldn't load client config Error: %v", clientConfigErr)
+	// }
 	cwd, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("could not get current directory %v", err)
@@ -163,14 +163,41 @@ func (ksApp *KsApp) Apply(resources kftypes.ResourceEnum, options map[string]int
 			return fmt.Errorf("could not change directory to %v Error %v", ksApp.KsApp.Spec.AppDir, err)
 		}
 	}
-	applyErr := ksApp.applyComponent([]string{"metacontroller"}, clientConfig)
-	if applyErr != nil {
-		return fmt.Errorf("couldn't create metacontroller component Error: %v", applyErr)
+	return ksApp.showComponent([]string{"metacontroller", "application"})
+	// applyErr := ksApp.applyComponent([]string{"metacontroller"}, clientConfig)
+	// if applyErr != nil {
+	// 	return fmt.Errorf("couldn't create metacontroller component Error: %v", applyErr)
+	// }
+	// applyErr = ksApp.applyComponent([]string{"application"}, clientConfig)
+	// if applyErr != nil {
+	// 	return fmt.Errorf("couldn't create application component Error: %v", applyErr)
+	// }
+	// return nil
+}
+
+func (ksApp *KsApp) showComponent(components []string) error {
+	showOptions := map[string]interface{}{
+		actions.OptionApp:            ksApp.KApp,
+		actions.OptionComponentNames: components,
+		actions.OptionEnvName:        kstypes.KsEnvName,
+		actions.OptionFormat:         "yaml",
 	}
-	applyErr = ksApp.applyComponent([]string{"application"}, clientConfig)
-	if applyErr != nil {
-		return fmt.Errorf("couldn't create application component Error: %v", applyErr)
+
+	configFile, err := os.Create("default.yaml")
+	if err != nil {
+		return err
 	}
+
+	stdout := os.Stdout
+	os.Stdout = configFile
+
+	err = actions.RunShow(showOptions)
+	if err != nil {
+		os.Stdout = stdout
+		return err
+	}
+
+	os.Stdout = stdout
 	return nil
 }
 
