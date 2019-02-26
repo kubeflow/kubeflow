@@ -55,6 +55,7 @@ def test_profiles():
   time.sleep(5)
 
   # Verifies the namespace is created.
+  name = "john"  # The name of the profile, also the new namespace's name.
   coreV1 = k8s_client.CoreV1Api(api_client)
   resp = coreV1.read_namespace(name)
   logging.info("found namespace: %s", resp)
