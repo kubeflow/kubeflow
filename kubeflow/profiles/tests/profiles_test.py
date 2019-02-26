@@ -11,6 +11,7 @@ import re
 import requests
 from retrying import retry
 import six
+import time
 
 import pytest
 
@@ -43,17 +44,31 @@ def test_profiles():
 
   this_dir = os.path.dirname(__file__)
   util.run(["kubectl", "apply", "-f", "sample_profile.yaml"], cwd=this_dir)
-  conditions = ["Ready"]
-  namespace = "kubeflow"
-  name = "john"
-  results = util.wait_for_cr_condition(api_client, GROUP, PLURAL, VERSION,
-                                       namespace, name, conditions)
-  logging.info("Result of CRD:\n%s", results)
+
+  # TODO: check CR status/condition instead of sleep
+  # conditions = ["Ready"]
+  # namespace = "kubeflow"
+  # name = "john"
+  # results = util.wait_for_cr_condition(api_client, GROUP, PLURAL, VERSION,
+  #                                      namespace, name, conditions)
+  # logging.info("Result of CRD:\n%s", results)
+  time.sleep(5)
 
   # Verifies the namespace is created.
   coreV1 = k8s_client.CoreV1Api(api_client)
   resp = coreV1.read_namespace(name)
   logging.info("found namespace: %s", resp)
+
+  rbacV1 = k8s_client.RbacAuthorizationV1Api(api_client)
+  resp = rbacV1.read_namespaced_role("edit", name)
+  logging.info("role: %s", resp)
+  resp = rbacV1.read_namespaced_role_binding("default", name)
+  logging.info("role binding: %s", resp)
+
+  # delete the profile and make sure namespace is deleted
+  util.run(["kubectl", "delete", "-f", "sample_profile.yaml"], cwd=this_dir)
+  resp = coreV1.read_namespace(name)
+  logging.info("read namespace response: %s", resp)
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,
