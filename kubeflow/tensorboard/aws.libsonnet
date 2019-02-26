@@ -65,12 +65,7 @@
               },
             ]
           ) else [],
-        ),
-      }.result,
-    ) +
-    deployment.mapContainers(
-      function(c) {
-        result:: c + c.withVolumeMountsMixin(
+        ) + c.withVolumeMountsMixin(
           if params.efsEnabled then (
             [
               {
