@@ -29,7 +29,7 @@
         name: "envoy",
         namespace: namespace,
         annotations: {
-          "beta.cloud.google.com/backend-config": '{"ports": {"envoy":"envoy-iap"}}',
+          "beta.cloud.google.com/backend-config": '{"ports": {"envoy":"iap-backendconfig"}}',
         },
       },
       spec: {
@@ -824,7 +824,7 @@
       apiVersion: "cloud.google.com/v1beta1",
       kind: "BackendConfig",
       metadata: {
-        name: "envoy-iap",
+        name: "iap-backendconfig",
         namespace: namespace,
       },
       spec: {

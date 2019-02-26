@@ -6,21 +6,21 @@
                        $.parts(params, env).operatorRoleBinding(params.deploymentScope, params.deploymentNamespace),
                      ] +
 
-                     if params.pytorchJobVersion == "v1beta1" then
+                     if params.pytorchJobVersion == "v1beta2" then
                        [
-                         $.parts(params, env).crdV1beta1,
-                         $.parts(params, env).pytorchJobDeployV1beta1(params.pytorchJobImage, params.deploymentScope, params.deploymentNamespace),
+                         $.parts(params, env).crdV1beta2,
+                         $.parts(params, env).pytorchJobDeployV1beta2(params.pytorchJobImage, params.deploymentScope, params.deploymentNamespace),
                        ]
                      else
                        [
-                         $.parts(params, env).crdV1alpha2,
-                         $.parts(params, env).pytorchJobDeployV1alpha2(params.pytorchJobImage, params.deploymentScope, params.deploymentNamespace),
+                         $.parts(params, env).crdV1beta1,
+                         $.parts(params, env).pytorchJobDeployV1beta1(params.pytorchJobImage, params.deploymentScope, params.deploymentNamespace),
                        ],
 
   parts(params, env):: {
     local namespace = env.namespace,
 
-    crdV1alpha2: {
+    crdV1beta2: {
       apiVersion: "apiextensions.k8s.io/v1beta1",
       kind: "CustomResourceDefinition",
       metadata: {
@@ -29,11 +29,14 @@
       spec: {
         group: "kubeflow.org",
         scope: "Namespaced",
-        version: "v1alpha2",
+        version: "v1beta2",
         names: {
           kind: "PyTorchJob",
           singular: "pytorchjob",
           plural: "pytorchjobs",
+        },
+        subresources: {
+          status: {},
         },
         validation: {
           openAPIV3Schema: {
@@ -118,7 +121,7 @@
       },
     },
 
-    pytorchJobDeployV1alpha2(image, deploymentScope, deploymentNamespace): {
+    pytorchJobDeployV1beta2(image, deploymentScope, deploymentNamespace): {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
       metadata: {
@@ -137,7 +140,7 @@
             containers: [
               {
                 command: std.prune([
-                  "/pytorch-operator.v2",
+                  "/pytorch-operator.v1beta2",
                   "--alsologtostderr",
                   "-v=1",
                   if deploymentScope == "namespace" then ("--namespace=" + deploymentNamespace),
@@ -190,7 +193,7 @@
           },
         },
       },
-    },  // pytorchJobDeployV1alpha2
+    },  // pytorchJobDeployV1beta2
 
     pytorchJobDeployV1beta1(image, deploymentScope, deploymentNamespace): {
       apiVersion: "extensions/v1beta1",
@@ -316,6 +319,7 @@
           ],
           resources: [
             "pytorchjobs",
+            "pytorchjobs/status",
           ],
           verbs: [
             "*",

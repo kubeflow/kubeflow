@@ -87,7 +87,7 @@ IMAGE=gcr.io/kubeflow-images-public/bootstrapper:latest  # change this
 
 docker run -d -it --name bootstrapper \
     --mount type=bind,source=${HOME}/kf_app,target=/home/kubeflow -p 8080:8080 \
-    --entrypoint /opt/kubeflow/bootstrapper ${IMAGE} 
+    ${IMAGE} /opt/kubeflow/bootstrapper \
     --install-istio --namespace=kubeflow  # change args if you want
 ```
 

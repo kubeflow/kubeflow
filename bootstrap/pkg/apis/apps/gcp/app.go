@@ -12,15 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package apis
-
-import (
-	gcptypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
-	ksonnettypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
-)
-
-func init() {
-	// Register the types with the Scheme so the components can map objects to GroupVersionKinds and back
-	AddToSchemes = append(AddToSchemes, ksonnettypes.SchemeBuilder.AddToScheme)
-	AddToSchemes = append(AddToSchemes, gcptypes.SchemeBuilder.AddToScheme)
-}
+// Package gcp contains gcp related types
+package gcp
