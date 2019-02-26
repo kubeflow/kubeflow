@@ -52,7 +52,7 @@ def test_profiles():
   # results = util.wait_for_cr_condition(api_client, GROUP, PLURAL, VERSION,
   #                                      namespace, name, conditions)
   # logging.info("Result of CRD:\n%s", results)
-  time.sleep(5)
+  time.sleep(10)
 
   # Verifies the namespace is created.
   name = "john"  # The name of the profile, also the new namespace's name.
@@ -69,6 +69,7 @@ def test_profiles():
   # delete the profile and make sure namespace is deleted
   util.run(["kubectl", "delete", "-f", "sample_profile.yaml"], cwd=this_dir)
   resp = coreV1.read_namespace(name)
+  time.sleep(10)
   logging.info("read namespace response: %s", resp)
 
 if __name__ == "__main__":
