@@ -517,15 +517,15 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum, options map[string]interfa
 	if secretsErr != nil {
 		return fmt.Errorf("gcp apply could not create secrets Error %v", secretsErr)
 	}
-	// ks := gcp.Children[kftypes.KSONNET]
-	// if ks != nil {
-	// 	ksApplyErr := ks.Apply(resources, options)
-	// 	if ksApplyErr != nil {
-	// 		return fmt.Errorf("gcp apply failed for %v: %v", string(kftypes.KSONNET), ksApplyErr)
-	// 	}
-	// } else {
-	// 	return fmt.Errorf("%v not in Children", string(kftypes.KSONNET))
-	// }
+	ks := gcp.Children[kftypes.KSONNET]
+	if ks != nil {
+		ksApplyErr := ks.Apply(resources, options)
+		if ksApplyErr != nil {
+			return fmt.Errorf("gcp apply failed for %v: %v", string(kftypes.KSONNET), ksApplyErr)
+		}
+	} else {
+		return fmt.Errorf("%v not in Children", string(kftypes.KSONNET))
+	}
 	return nil
 }
 

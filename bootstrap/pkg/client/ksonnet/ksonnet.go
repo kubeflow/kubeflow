@@ -123,6 +123,7 @@ func (ksApp *KsApp) Apply(resources kftypes.ResourceEnum, options map[string]int
 	if err != nil {
 		return fmt.Errorf("couldn't get server version: %v", err)
 	}
+	log.Infof("ServerVersion: %v", host)
 	cli, cliErr := kftypes.GetClientOutOfCluster()
 	if cliErr != nil {
 		return fmt.Errorf("couldn't create client Error: %v", cliErr)
@@ -141,6 +142,7 @@ func (ksApp *KsApp) Apply(resources kftypes.ResourceEnum, options map[string]int
 	log.Infof(string(kftypes.NAMESPACE)+": %v", namespace)
 	_, nsMissingErr := cli.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
 	if nsMissingErr != nil {
+		log.Infof("Creating namespace: %v", namespace)
 		nsSpec := &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespace}}
 		_, nsErr := cli.CoreV1().Namespaces().Create(nsSpec)
 		if nsErr != nil {

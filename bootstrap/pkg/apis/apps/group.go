@@ -178,6 +178,7 @@ func ServerVersion() (host string, version string, err error) {
 
 func GetClientConfig() (*clientcmdapi.Config, error) {
 	kubeconfig := KubeConfigPath()
+	log.Infof("Reading config: %v", kubeconfig)
 	config, configErr := clientcmd.LoadFromFile(kubeconfig)
 	if configErr != nil {
 		return nil, fmt.Errorf("could not load config Error: %v", configErr)
