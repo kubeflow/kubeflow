@@ -28,7 +28,7 @@ std.assertEqual(
         ],
         singular: "profile",
       },
-      scope: "Namespaced",
+      scope: "Cluster",
       validation: {
         openAPIV3Schema: {
           properties: {
