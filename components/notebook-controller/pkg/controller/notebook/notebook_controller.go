@@ -182,9 +182,14 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 	// Update the status
 	oldConditions := instance.Status.Conditions
 	newCondition := v1alpha1.NotebookCondition{
-		Type: "READY",
+		Type: "Ready",
 	}
 	instance.Status.Conditions = append([]v1alpha1.NotebookCondition{newCondition}, oldConditions...)
+	// Using context.Background as: https://book.kubebuilder.io/basics/status_subresource.html
+	err = r.Status().Update(context.Background(), instance)
+	if err != nil {
+		return reconcile.Result{}, err
+	}
 
 	return reconcile.Result{}, nil
 }
