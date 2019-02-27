@@ -418,7 +418,7 @@ func (gcp *Gcp) generateDMConfigs(options map[string]interface{}) error {
 	repl := "serviceAccount:" + gcp.GcpApp.Name + "-admin@" + gcp.GcpApp.Spec.Project + ".iam.gserviceaccount.com"
 	iamBindingsData = gcp.replaceText("set-kubeflow-admin-service-account", repl, iamBindingsData)
 	repl = "serviceAccount:" + gcp.GcpApp.Name + "-user@" + gcp.GcpApp.Spec.Project + ".iam.gserviceaccount.com"
-	iamBindingsData = gcp.replaceText("set-kubeflow-admin-service-account", repl, iamBindingsData)
+	iamBindingsData = gcp.replaceText("set-kubeflow-user-service-account", repl, iamBindingsData)
 	repl = "serviceAccount:" + gcp.GcpApp.Name + "-vm@" + gcp.GcpApp.Spec.Project + ".iam.gserviceaccount.com"
 	iamBindingsData = gcp.replaceText("set-kubeflow-vm-service-account", repl, iamBindingsData)
 	iamEntry := "serviceAccount:" + gcp.GcpApp.Spec.Email
@@ -443,22 +443,22 @@ func (gcp *Gcp) generateDMConfigs(options map[string]interface{}) error {
 	}
 	repl = "zone: " + gcp.GcpApp.Spec.Zone
 	configFileData = gcp.replaceText("zone: SET_THE_ZONE", repl, configFileData)
-	storageFileData = gcp.replaceText("zone: SET_THE_ZONE", repl, configFileData)
+	storageFileData = gcp.replaceText("zone: SET_THE_ZONE", repl, storageFileData)
 	repl = "users: [\"" + iamEntry + "\"]"
 	configFileData = gcp.replaceText("users:", repl, configFileData)
 	//TODO a space after ipName: is needed.
-	repl = "ipName:" + gcp.GcpApp.Spec.IpName
+	repl = "ipName: " + gcp.GcpApp.Spec.IpName
 	configFileData = gcp.replaceText("ipName: kubeflow-ip", repl, configFileData)
 	//TODO replace to with correct path str.
-	configFileErr := ioutil.WriteFile(to, configFileData, 0644)
+	configFileErr := ioutil.WriteFile(configFile, configFileData, 0644)
 	if configFileErr != nil {
 		return fmt.Errorf("cound not write to %v Error %v", configFile, configFileErr)
 	}
 	repl = "createPipelinePersistentStorage: true"
 	storageFileData = gcp.replaceText("createPipelinePersistentStorage: SET_CREATE_PIPELINE_PERSISTENT_STORAGE",
-		repl, configFileData)
+		repl, storageFileData)
 	//TODO replace to with correct path str.
-	storageFileErr := ioutil.WriteFile(to, storageFileData, 0644)
+	storageFileErr := ioutil.WriteFile(storageFile, storageFileData, 0644)
 	if storageFileErr != nil {
 		return fmt.Errorf("cound not write to %v Error %v", storageFile, storageFileErr)
 	}
