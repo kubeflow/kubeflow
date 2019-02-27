@@ -79,5 +79,5 @@ def create_notebook(body):
 
 
 def create_pvc(body):
-  ns = body['metadata']['namespace']
+  ns = body.metadata.namespace
   return v1_core.create_namespaced_persistent_volume_claim(ns, body)

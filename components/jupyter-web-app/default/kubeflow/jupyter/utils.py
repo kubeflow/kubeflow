@@ -61,26 +61,6 @@ def create_notebook_template():
   return notebook
 
 
-def create_pvc_template():
-  pvc = {
-      "apiVersion": "v1",
-      "kind": "PersistentVolumeClaim",
-      "metadata": {
-          "name": "",
-          "namespace": "",
-      },
-      "spec": {
-          "accessModes": [],
-          "resources": {
-              "requests": {
-                  "storage": ""
-              }
-          },
-      }
-  }
-  return pvc
-
-
 def set_notebook_names(nb, body):
   nb['metadata']['name'] = body["nm"]
   nb['metadata']['labels']['app'] = body["nm"]

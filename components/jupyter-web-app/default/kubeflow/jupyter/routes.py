@@ -2,6 +2,7 @@
 import json
 from flask import jsonify, render_template, request
 from kubernetes.client.rest import ApiException
+from kubernetes import client
 from kubeflow.jupyter import app
 from kubeflow.jupyter.server import parse_error, \
     get_namespaces, \
@@ -11,7 +12,6 @@ from kubeflow.jupyter.server import parse_error, \
     create_notebook, \
     create_pvc
 from kubeflow.jupyter.utils import create_notebook_template, \
-    create_pvc_template, \
     set_notebook_names, \
     set_notebook_image, \
     set_notebook_cpu_ram, \
@@ -47,12 +47,20 @@ def post_notebook_route():
 
   # Workspacae Volume
   if body["ws_type"] == "New":
-    pvc = create_pvc_template()
-    pvc['metadata']['name'] = body['ws_name']
-    pvc['metadata']['namespace'] = body['ns']
-    pvc['spec']['accessModes'].append(body['ws_access_modes'])
-    pvc['spec']['resources']['requests']['storage'] = \
-        body['ws_size'] + 'Gi'
+    pvc = client.V1PersistentVolumeClaim(
+        metadata=client.V1ObjectMeta(
+            name=body['ws_name'],
+            namespace=body['ns']
+        ),
+        spec=client.V1PersistentVolumeClaimSpec(
+            access_modes=[body['ws_access_modes']],
+            resources=client.V1ResourceRequirements(
+                requests={
+                    'storage': body['ws_size'] + 'Gi'
+                }
+            )
+        )
+    )
 
     try:
       create_pvc(pvc)
@@ -82,12 +90,21 @@ def post_notebook_route():
     if body["vol_type" + i] == "New":
       size = body['vol_size' + i] + 'Gi'
       mode = body['vol_access_modes' + i]
-      pvc = create_pvc_template()
 
-      pvc['metadata']['name'] = pvc_nm
-      pvc['metadata']['namespace'] = body['ns']
-      pvc['spec']['accessModes'].append(mode)
-      pvc['spec']['resources']['requests']['storage'] = size
+      pvc = client.V1PersistentVolumeClaim(
+          metadata=client.V1ObjectMeta(
+              name=pvc_nm,
+              namespace=body['ns']
+          ),
+          spec=client.V1PersistentVolumeClaimSpec(
+              access_modes=[mode],
+              resources=client.V1ResourceRequirements(
+                  requests={
+                      'storage': size
+                  }
+              )
+          )
+      )
 
       try:
         create_pvc(pvc)
