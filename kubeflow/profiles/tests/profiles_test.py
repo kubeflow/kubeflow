@@ -17,6 +17,7 @@ import pytest
 
 from kubernetes.config import kube_config
 from kubernetes import client as k8s_client
+from kubernetes.client.rest import ApiException
 from kubeflow.testing import util
 
 GROUP = "kubeflow.org"
@@ -70,7 +71,7 @@ def test_profiles():
   util.run(["kubectl", "delete", "-f", "sample_profile.yaml"], cwd=this_dir)
   time.sleep(10)
 
-  with pytest.raises(client.rest.ApiException) as e:
+  with pytest.raises(ApiException) as e:
     resp = coreV1.read_namespace(name)
   assert e.status == 404
 
