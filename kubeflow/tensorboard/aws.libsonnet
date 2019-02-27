@@ -15,7 +15,7 @@
         [{
           name: params.efsVolumeName,
           persistentVolumeClaim: {
-            claimName: params.efsPvcName
+            claimName: params.efsPvcName,
           },
         }]
       ) else [],
@@ -70,8 +70,8 @@
             [
               {
                 mountPath: params.efsMountPath,
-                name: params.efsVolumeName
-              }
+                name: params.efsVolumeName,
+              },
             ]
           ) else [],
         ),
