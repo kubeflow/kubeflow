@@ -738,7 +738,7 @@
             buildTemplate("tfjob-test" + v1beta1Suffix, [
               "python",
               "-m",
-              "py.simple_tfjob_tests",
+              "kubeflow.tf_operator.simple_tfjob_tests",
               "--cluster=" + cluster,
               "--zone=" + zone,
               "--project=" + project,
@@ -754,7 +754,7 @@
             buildTemplate("tfjob-test" + v1beta2Suffix, [
               "python",
               "-m",
-              "py.simple_tfjob_tests",
+              "kubeflow.tf_operator.simple_tfjob_tests",
               "--cluster=" + cluster,
               "--zone=" + zone,
               "--project=" + project,
