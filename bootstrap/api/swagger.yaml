@@ -1,0 +1,133 @@
+swagger: "2.0"
+info:
+  description: "Deployment API."
+  version: "1.0.0"
+  title: "Kubeflow Deployment"
+  termsOfService: "https://www.kubeflow.org/"
+  contact:
+    email: "kubeflow-engineering@google.com"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "https://www.kubeflow.org/"
+basePath: "/kfctl"
+tags:
+- name: "deployment"
+  description: "A kubeflow deployment on GCP"
+  externalDocs:
+    description: "Find out more"
+    url: "https://www.kubeflow.org/docs/started/getting-started-gke/"
+schemes:
+- "https"
+paths:
+  /e2eDeploy:
+    post:
+      tags:
+      - "deployment"
+      summary: "Create a new kubeflow deployment on GCP"
+      description: ""
+      operationId: "createDeployment"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Pet object that needs to be added to the store"
+        required: true
+        schema:
+          $ref: "#/definitions/CreateDeployment"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/CreateOperation"
+        405:
+          description: "Invalid input"
+          schema:
+            $ref: "#/definitions/InvalidInput"
+definitions:
+  CreateDeployment:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+      namespace:
+        type: "string"
+      cluster:
+        type: "string"
+      project:
+        type: "string"
+      zone:
+        type: "string"
+      token:
+        type: "string"
+      email:
+        type: "string"
+      ipName:
+        type: "string"
+      sAClientId:
+        type: "string"
+      extraComponents:
+        type: "array"
+        items:
+          type: "string"
+      parameters:
+        type: "array"
+        items:
+          $ref: "#/definitions/Parameter"
+      iapIngress:
+        $ref: "#/definitions/IapIngress"
+      basicAuthIngress:
+        $ref: "#/definitions/BasicAuthIngress"
+      storageOption:
+        $ref: "#/definitions/StorageOption"
+  Parameter:
+    type: "object"
+    properties:
+      component:
+        type: "string"
+      name:
+        type: "string"
+      value:
+        type: "string"
+  IapIngress:
+    type: "object"
+    properties:
+      clientId:
+        type: "string"
+      clientSecret:
+        type: "string"
+  BasicAuthIngress:
+    type: "object"
+    properties:
+      username:
+        type: "string"
+      passwordHash:
+        type: "string"
+  StorageOption:
+    type: "object"
+    properties:
+      createPersistentStorage:
+        type: "boolean"
+  ApiResponse:
+    type: "object"
+    properties:
+      code:
+        type: "integer"
+        format: "int32"
+      type:
+        type: "string"
+      message:
+        type: "string"
+  CreateOperation:
+    type: "object"
+    properties:
+      operationId:
+        type: "string"
+  InvalidInput:
+    type: "object"
+    properties:
+      errorMessage:
+        type: "string"
