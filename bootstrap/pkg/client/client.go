@@ -31,7 +31,8 @@ import (
 func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	_client := &kfApp{
 		KfApps: kftypes.KfApps{
-			Children: make(map[string]kftypes.KfApp),
+			Platforms: make(map[string]kftypes.KfApp),
+			PackageManagers: make(map[string]kftypes.KfApp),
 		},
 		Client: &cltypes.Client{
 			TypeMeta: metav1.TypeMeta{
@@ -40,7 +41,7 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 			},
 		},
 	}
-	_client.Children[kftypes.NONE] = ksonnet.GetKfApp(options)
+	_client.PackageManagers[kftypes.KSONNET] = ksonnet.GetKfApp(options)
 	platform := options[string(kftypes.PLATFORM)].(string)
 	if !(platform == "" || platform == kftypes.NONE) {
 		_platform, _platformErr := GetPlatform(options)
@@ -49,7 +50,7 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 			return nil
 		}
 		if _platform != nil {
-			_client.Children[platform] = _platform
+			_client.Platforms[platform] = _platform
 		}
 	}
 	_client.Client.Spec.Platform = options[string(kftypes.PLATFORM)].(string)
@@ -192,24 +193,21 @@ func (kfApp *kfApp) Apply(resources kftypes.ResourceEnum, options map[string]int
 		fallthrough
 	case kftypes.ALL:
 		if !(kfApp.Client.Spec.Platform == "" || kfApp.Client.Spec.Platform == kftypes.NONE) {
-			platform := kfApp.Children[kfApp.Client.Spec.Platform]
+			platform := kfApp.Platforms[kfApp.Client.Spec.Platform]
 			if platform != nil {
 				platformErr := platform.Apply(resources, options)
 				if platformErr != nil {
 					return fmt.Errorf("kfApp Apply failed for %v: %v", kfApp.Client.Spec.Platform, platformErr)
 				}
 			} else {
-				return fmt.Errorf("%v not in Children", kfApp.Client.Spec.Platform)
+				return fmt.Errorf("%v not in Platforms", kfApp.Client.Spec.Platform)
 			}
 		}
-		none := kfApp.Children[kftypes.NONE]
-		if none != nil {
-			noneErr := none.Apply(kftypes.K8S, options)
-			if noneErr != nil {
-				return fmt.Errorf("kfApp Apply failed for %v: %v", string(kftypes.NONE), noneErr)
+		for packageManagerName, packageManager := range kfApp.PackageManagers {
+			packageManagerErr := packageManager.Apply(kftypes.K8S, options)
+			if packageManagerErr != nil {
+				return fmt.Errorf("kfApp Show failed for %v: %v", packageManagerName, packageManagerErr)
 			}
-		} else {
-			return fmt.Errorf("%v not in Children", string(kftypes.NONE))
 		}
 	}
 	return nil
@@ -223,24 +221,21 @@ func (kfApp *kfApp) Delete(resources kftypes.ResourceEnum, options map[string]in
 		fallthrough
 	case kftypes.ALL:
 		if !(kfApp.Client.Spec.Platform == "" || kfApp.Client.Spec.Platform == kftypes.NONE) {
-			platform := kfApp.Children[kfApp.Client.Spec.Platform]
+			platform := kfApp.Platforms[kfApp.Client.Spec.Platform]
 			if platform != nil {
 				platformErr := platform.Delete(resources, options)
 				if platformErr != nil {
 					return fmt.Errorf("kfApp Delete failed for %v: %v", kfApp.Client.Spec.Platform, platformErr)
 				}
 			} else {
-				return fmt.Errorf("%v not in Children", kfApp.Client.Spec.Platform)
+				return fmt.Errorf("%v not in Platforms", kfApp.Client.Spec.Platform)
 			}
 		}
-		none := kfApp.Children[kftypes.NONE]
-		if none != nil {
-			noneErr := none.Delete(kftypes.K8S, options)
-			if noneErr != nil {
-				return fmt.Errorf("kfApp Init failed for %v: %v", string(kftypes.NONE), noneErr)
+		for packageManagerName, packageManager := range kfApp.PackageManagers {
+			packageManagerErr := packageManager.Delete(kftypes.K8S, options)
+			if packageManagerErr != nil {
+				return fmt.Errorf("kfApp Show failed for %v: %v", packageManagerName, packageManagerErr)
 			}
-		} else {
-			return fmt.Errorf("%v not in Children", string(kftypes.NONE))
 		}
 	}
 	return nil
@@ -254,24 +249,21 @@ func (kfApp *kfApp) Generate(resources kftypes.ResourceEnum, options map[string]
 		fallthrough
 	case kftypes.ALL:
 		if !(kfApp.Client.Spec.Platform == "" || kfApp.Client.Spec.Platform == kftypes.NONE) {
-			platform := kfApp.Children[kfApp.Client.Spec.Platform]
+			platform := kfApp.Platforms[kfApp.Client.Spec.Platform]
 			if platform != nil {
 				platformErr := platform.Generate(resources, options)
 				if platformErr != nil {
 					return fmt.Errorf("kfApp Generate failed for %v: %v", kfApp.Client.Spec.Platform, platformErr)
 				}
 			} else {
-				return fmt.Errorf("%v not in Children", kfApp.Client.Spec.Platform)
+				return fmt.Errorf("%v not in Platforms", kfApp.Client.Spec.Platform)
 			}
 		}
-		none := kfApp.Children[kftypes.NONE]
-		if none != nil {
-			noneGenerateErr := none.Generate(kftypes.K8S, options)
-			if noneGenerateErr != nil {
-				return fmt.Errorf("kfApp Generate failed for %v: %v", string(kftypes.NONE), noneGenerateErr)
+		for packageManagerName, packageManager := range kfApp.PackageManagers {
+			packageManagerErr := packageManager.Delete(kftypes.K8S, options)
+			if packageManagerErr != nil {
+				return fmt.Errorf("kfApp Show failed for %v: %v", packageManagerName, packageManagerErr)
 			}
-		} else {
-			return fmt.Errorf("%v not in Children", string(kftypes.NONE))
 		}
 	}
 	return nil
@@ -284,24 +276,53 @@ func (kfApp *kfApp) Init(resources kftypes.ResourceEnum, options map[string]inte
 	case kftypes.PLATFORM:
 		fallthrough
 	case kftypes.ALL:
-		none := kfApp.Children[kftypes.NONE]
-		if none != nil {
-			noneErr := none.Init(kftypes.K8S, options)
-			if noneErr != nil {
-				return fmt.Errorf("kfApp Init failed for %v: %v", string(kftypes.NONE), noneErr)
-			}
-		} else {
-			return fmt.Errorf("%v not in Children", string(kftypes.NONE))
-		}
 		if !(kfApp.Client.Spec.Platform == "" || kfApp.Client.Spec.Platform == kftypes.NONE) {
-			platform := kfApp.Children[kfApp.Client.Spec.Platform]
+			platform := kfApp.Platforms[kfApp.Client.Spec.Platform]
 			if platform != nil {
 				platformErr := platform.Init(resources, options)
 				if platformErr != nil {
-					return fmt.Errorf("kfApp Init failed for %v: %v", kfApp.Client.Spec.Platform, platformErr)
+					return fmt.Errorf("kfApp Generate failed for %v: %v", kfApp.Client.Spec.Platform, platformErr)
 				}
 			} else {
-				return fmt.Errorf("%v not in Children", kfApp.Client.Spec.Platform)
+				return fmt.Errorf("%v not in Platforms", kfApp.Client.Spec.Platform)
+			}
+		}
+		for packageManagerName, packageManager := range kfApp.PackageManagers {
+			packageManagerErr := packageManager.Init(kftypes.K8S, options)
+			if packageManagerErr != nil {
+				return fmt.Errorf("kfApp Init failed for %v: %v", packageManagerName, packageManagerErr)
+			}
+		}
+	}
+	return nil
+}
+
+func (kfApp *kfApp) Show(resources kftypes.ResourceEnum, options map[string]interface{}) error {
+	switch resources {
+	case kftypes.K8S:
+		fallthrough
+	case kftypes.PLATFORM:
+		fallthrough
+	case kftypes.ALL:
+		for packageManagerName, packageManager := range kfApp.PackageManagers {
+			show, ok := packageManager.(kftypes.KfShow)
+			if ok && show != nil {
+				showErr := show.Show(kftypes.K8S, options)
+				if showErr != nil {
+					return fmt.Errorf("kfApp Show failed for %v: %v", packageManagerName, showErr)
+				}
+			}
+		}
+		if !(kfApp.Client.Spec.Platform == "" || kfApp.Client.Spec.Platform == kftypes.NONE) {
+			platform := kfApp.Platforms[kfApp.Client.Spec.Platform]
+			show, ok := platform.(kftypes.KfShow)
+			if ok && show != nil {
+				showErr := show.Show(resources, options)
+				if showErr != nil {
+					return fmt.Errorf("kfApp Init failed for %v: %v", kfApp.Client.Spec.Platform, showErr)
+				}
+			} else {
+				return fmt.Errorf("%v not in Platforms", kfApp.Client.Spec.Platform)
 			}
 		}
 	}
