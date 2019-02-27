@@ -130,10 +130,12 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 	}
 	// Check if the StatefulSet already exists
 	foundStateful := &appsv1.StatefulSet{}
+	justCreated := false
 	err = r.Get(context.TODO(), types.NamespacedName{Name: ss.Name, Namespace: ss.Namespace}, foundStateful)
 	if err != nil && errors.IsNotFound(err) {
 		log.Info("Creating StatefulSet", "namespace", ss.Namespace, "name", ss.Name)
 		err = r.Create(context.TODO(), ss)
+		justCreated = true
 		if err != nil {
 			return reconcile.Result{}, err
 		}
@@ -141,7 +143,7 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 		return reconcile.Result{}, err
 	}
 	// Update the foundStateful object and write the result back if there are any changes
-	if util.CopyStatefulSetFields(ss, foundStateful) {
+	if !justCreated && util.CopyStatefulSetFields(ss, foundStateful) {
 		log.Info("Updating StatefulSet", "namespace", ss.Namespace, "name", ss.Name)
 		err = r.Update(context.TODO(), foundStateful)
 		if err != nil {
@@ -156,10 +158,12 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 	}
 	// Check if the Service already exists
 	foundService := &corev1.Service{}
+	justCreated = false
 	err = r.Get(context.TODO(), types.NamespacedName{Name: service.Name, Namespace: service.Namespace}, foundService)
 	if err != nil && errors.IsNotFound(err) {
 		log.Info("Creating Service", "namespace", service.Namespace, "name", service.Name)
 		err = r.Create(context.TODO(), service)
+		justCreated = true
 		if err != nil {
 			return reconcile.Result{}, err
 		}
@@ -167,13 +171,20 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 		return reconcile.Result{}, err
 	}
 	// Update the foundService object and write the result back if there are any changes
-	if util.CopyServiceFields(service, foundService) {
+	if !justCreated && util.CopyServiceFields(service, foundService) {
 		log.Info("Updating Service\n", "namespace", service.Namespace, "name", service.Name)
 		err = r.Update(context.TODO(), foundService)
 		if err != nil {
 			return reconcile.Result{}, err
 		}
 	}
+
+	// Update the status
+	oldConditions := instance.Status.Conditions
+	newCondition := v1alpha1.NotebookCondition{
+		Type: "READY",
+	}
+	instance.Status.Conditions = append([]v1alpha1.NotebookCondition{newCondition}, oldConditions...)
 
 	return reconcile.Result{}, nil
 }
