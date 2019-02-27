@@ -93,6 +93,7 @@ func patchResource(mapping *meta.RESTMapping, config *rest.Config, group string,
 		Body(data).
 		Do().
 		Get()
+
 	return err
 }
 
@@ -110,7 +111,17 @@ func deleteResource(mapping *meta.RESTMapping, config *rest.Config, group string
 		Name(name).
 		Do().
 		Get()
-	return err
+
+	for {
+		time.Sleep(3 * time.Second)
+		err = getResource(mapping, config, group, version, namespace, name)
+		if k8serrors.IsNotFound(err) {
+			log.Infof("%v in namespace %v is deleted ...", name, namespace)
+			return nil
+		} else {
+			log.Infof("%v in namespace %v is being deleted ...", name, namespace)
+		}
+	}
 }
 
 func createResource(mapping *meta.RESTMapping, config *rest.Config, group string,
@@ -171,7 +182,6 @@ func patchOrCreate(mapping *meta.RESTMapping, config *rest.Config, group string,
 // TODO: it can't handle "kind: list" yet.
 func CreateResourceFromFile(config *rest.Config, filename string) error {
 	// Create a restmapper to determine the resource type.
-	log.Infof("config = %+v", config)
 	discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
 	if err != nil {
 		return err
@@ -194,8 +204,6 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 			log.Warnf("Unknown resource: %v", object)
 			continue
 		}
-
-		log.Infof("Parsed o = %v", o)
 
 		// Identify the name of deployment.
 		metadata := o["metadata"].(map[string]interface{})
@@ -236,8 +244,6 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 		if err != nil {
 			return err
 		}
-
-		log.Infof("Marshaled data = %v", string(data))
 
 		if err = patchOrCreate(result, config, group, version, namespace, name,
 			data); err != nil {

@@ -483,7 +483,6 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 		return fmt.Errorf("Configure K8s is failed: %v", err)
 	}
 
-	// TODO(gabrielwen): Finish this.
 	ctx := context.Background()
 	ts, err := google.DefaultTokenSource(ctx, iam.CloudPlatformScope)
 	if err != nil {
@@ -504,17 +503,17 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 	if daemonsetPreloadedErr != nil {
 		return fmt.Errorf("could not create resources in daemonset-preloaded.yaml %v", daemonsetPreloadedErr)
 	}
-	// //TODO this needs to be kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/rbac-setup.yaml --as=admin --as-group=system:masters
-	// rbacSetup := filepath.Join(k8sSpecsDir, "rbac-setup.yaml")
-	// rbacSetupErr := kfctlutils.CreateResourceFromFile(client, rbacSetup)
-	// if rbacSetupErr != nil {
-	// 	return fmt.Errorf("could not create resources in rbac-setup.yaml %v", rbacSetupErr)
-	// }
-	// agents := filepath.Join(k8sSpecsDir, "agents.yaml")
-	// agentsErr := kfctlutils.CreateResourceFromFile(client, agents)
-	// if agentsErr != nil {
-	// 	return fmt.Errorf("could not create resources in agents.yaml %v", agents)
-	// }
+	//TODO this needs to be kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/rbac-setup.yaml --as=admin --as-group=system:masters
+	rbacSetup := filepath.Join(k8sSpecsDir, "rbac-setup.yaml")
+	rbacSetupErr := kfctlutils.CreateResourceFromFile(client, rbacSetup)
+	if rbacSetupErr != nil {
+		return fmt.Errorf("could not create resources in rbac-setup.yaml %v", rbacSetupErr)
+	}
+	agents := filepath.Join(k8sSpecsDir, "agents.yaml")
+	agentsErr := kfctlutils.CreateResourceFromFile(client, agents)
+	if agentsErr != nil {
+		return fmt.Errorf("could not create resources in agents.yaml %v", agents)
+	}
 	return nil
 }
 
