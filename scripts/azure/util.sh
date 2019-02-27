@@ -25,6 +25,10 @@ validate_az_arg() {
       echo "Azure location must be provided using --azLocation <AZ_LOCATION>"
       exit 1
     fi
+    if [[ -z "$AZ_NODE_SIZE" ]]; then
+      echo "Azure node vm size must be provided using --azNodeSize <AZ_NODE_SIZE>. Ensure NVIDIA GPUs (N-series) are available in your subscription."
+      exit 1
+    fi
 }
 
 check_az_cli() {
@@ -58,7 +62,7 @@ createAKSCluster() {
     if ! az aks get-credentials --resource-group=${DEPLOYMENT_NAME} --name=${DEPLOYMENT_NAME} 2>/dev/null ;
     then
         echo "Kubernetes cluster not found, creating."
-        az aks create --resource-group ${DEPLOYMENT_NAME} --name=${DEPLOYMENT_NAME} --node-count 3 --node-vm-size "Standard_NC6" --kubernetes-version 1.12.5 --generate-ssh-keys -l "${AZ_LOCATION}" --service-principal ${AZ_CLIENT_ID} --client-secret "${AZ_CLIENT_SECRET}" 
+        az aks create --resource-group ${DEPLOYMENT_NAME} --name=${DEPLOYMENT_NAME} --node-count 3 --node-vm-size ${AZ_NODE_SIZE} --kubernetes-version 1.12.5 --generate-ssh-keys -l "${AZ_LOCATION}" --service-principal ${AZ_CLIENT_ID} --client-secret "${AZ_CLIENT_SECRET}" 
         if ! az aks get-credentials --resource-group=${DEPLOYMENT_NAME} --name=${DEPLOYMENT_NAME} 2>/dev/null ; then
             echo "az aks create failed."
             exit 1
