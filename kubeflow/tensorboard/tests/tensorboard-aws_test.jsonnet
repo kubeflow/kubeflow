@@ -17,9 +17,9 @@ local params = {
   s3VerifySsl: "true",
   s3Endpoint: "null",
   efsEnabled: true,
-  efsPvcName: 'qux',
-  efsVolumeName: 'quux',
-  efsMountPath: '/quuz',
+  efsPvcName: "qux",
+  efsVolumeName: "quux",
+  efsMountPath: "/quuz",
 };
 local env = {
   namespace: "test-kf-001",
