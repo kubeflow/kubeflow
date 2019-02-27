@@ -58,7 +58,11 @@ def test_profiles():
   # Verifies the namespace is created.
   name = "john"  # The name of the profile, also the new namespace's name.
   coreV1 = k8s_client.CoreV1Api(api_client)
-  resp = coreV1.read_namespace(name)
+  retry_read_namespace = retry(
+    wait_exponential_multiplier=1000,  # wait 2^i * 1000 ms, on the i-th retry
+    wait_exponential_max=60000,  # 60 sec max
+  )(coreV1.read_namespace)
+  resp = retry_read_namespace(name)
   logging.info("found namespace: %s", resp)
 
   rbacV1 = k8s_client.RbacAuthorizationV1Api(api_client)
@@ -69,7 +73,7 @@ def test_profiles():
 
   # delete the profile and make sure namespace is deleted
   util.run(["kubectl", "delete", "-f", "sample_profile.yaml"], cwd=this_dir)
-  time.sleep(10)
+  time.sleep(15)
 
   with pytest.raises(ApiException) as e:
     resp = coreV1.read_namespace(name)
