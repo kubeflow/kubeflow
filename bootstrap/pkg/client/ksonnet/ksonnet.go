@@ -104,19 +104,6 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	return _kfapp
 }
 
-func (ksApp *KsApp) writeConfigFile() error {
-	buf, bufErr := yaml.Marshal(ksApp.KsApp)
-	if bufErr != nil {
-		return bufErr
-	}
-	cfgFilePath := filepath.Join(ksApp.KsApp.Spec.AppDir, kftypes.KfConfigFile)
-	cfgFilePathErr := ioutil.WriteFile(cfgFilePath, buf, 0644)
-	if cfgFilePathErr != nil {
-		return cfgFilePathErr
-	}
-	return nil
-}
-
 func (ksApp *KsApp) Apply(resources kftypes.ResourceEnum, options map[string]interface{}) error {
 	host, _, err := kftypes.ServerVersion()
 	if err != nil {
@@ -610,6 +597,47 @@ func (ksApp *KsApp) registryAdd(registry *kstypes.RegistryConfig) error {
 	err := actions.RunRegistryAdd(options)
 	if err != nil {
 		return fmt.Errorf("there was a problem adding registry %v: %v", registry.Name, err)
+	}
+	return nil
+}
+
+func (ksApp *KsApp) Show(resources kftypes.ResourceEnum, options map[string]interface{}) error {
+	capture := kftypes.Capture()
+	err := actions.RunShow(map[string]interface{}{
+		actions.OptionApp: ksApp.KApp,
+		actions.OptionComponentNames: []string{},
+		actions.OptionEnvName:        kstypes.KsEnvName,
+		actions.OptionFormat:         "yaml",
+	})
+	if err != nil {
+		return fmt.Errorf("there was a problem calling show: %v", err)
+	}
+	yamlDir := filepath.Join(ksApp.KsApp.Spec.AppDir, "yamls")
+	err = os.Mkdir(yamlDir, os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("couldn't create directory %v, most likely it already exists", yamlDir)
+	}
+	output, outputErr := capture()
+	if outputErr != nil {
+		return fmt.Errorf("there was a problem calling capture: %v", outputErr)
+	}
+	yamlFile := filepath.Join(yamlDir, "default.yaml")
+	yamlFileErr := ioutil.WriteFile(yamlFile, []byte(output), 0644)
+	if yamlFileErr != nil {
+		return fmt.Errorf("could not write to %v Error %v", yamlFile, yamlFileErr)
+	}
+	return nil
+}
+
+func (ksApp *KsApp) writeConfigFile() error {
+	buf, bufErr := yaml.Marshal(ksApp.KsApp)
+	if bufErr != nil {
+		return bufErr
+	}
+	cfgFilePath := filepath.Join(ksApp.KsApp.Spec.AppDir, kftypes.KfConfigFile)
+	cfgFilePathErr := ioutil.WriteFile(cfgFilePath, buf, 0644)
+	if cfgFilePathErr != nil {
+		return cfgFilePathErr
 	}
 	return nil
 }

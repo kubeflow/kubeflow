@@ -135,13 +135,20 @@ type NameValue struct {
 //
 // KfApp provides a common
 // API for platforms like gcp or minikube
-// They all implementation the API below
+// They all implement the API below
 //
 type KfApp interface {
 	Apply(resources ResourceEnum, options map[string]interface{}) error
 	Delete(resources ResourceEnum, options map[string]interface{}) error
 	Generate(resources ResourceEnum, options map[string]interface{}) error
 	Init(resources ResourceEnum, options map[string]interface{}) error
+}
+
+//
+// This is used in the ksonnet implementation for `ks show`
+//
+type KfShow interface {
+	Show(resources ResourceEnum, options map[string]interface{}) error
 }
 
 func QuoteItems(items []string) []string {
@@ -172,20 +179,27 @@ func RemoveItems(defaults []string, names ...string) []string {
 	return pkgs
 }
 
+// Platforms
 const (
 	// STATIC
 	DOCKER_FOR_DESKTOP = "dockerfordesktop"
 	// -STATIC //
 	GCP = "gcp"
-	// STATIC
-	KUSTOMIZE = "kustomize"
-	// -STATIC //
 	NONE     = DefaultPlatform
 	MINIKUBE = "minikube"
 )
 
+// PackageManagers
+const (
+	// STATIC
+	KUSTOMIZE = "kustomize"
+	// -STATIC //
+	KSONNET = "ksonnet"
+)
+
 type KfApps struct {
-	Children map[string]KfApp
+	Platforms map[string]KfApp
+	PackageManagers map[string]KfApp
 }
 
 func LoadPlatform(options map[string]interface{}) (KfApp, error) {
