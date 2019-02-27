@@ -112,7 +112,7 @@
 
       local template = self,
 
-      pythonPath: tests.kubeflowPy + ":" + tests.kubeflowTestingPy,
+      pythonPath: tests.kubeflowPy + ":" + tests.kubeflowTestingPy + ":" tests.tfOperatorPy,
       // Actual template for Argo
       argoTemplate: {
         name: template.name,
