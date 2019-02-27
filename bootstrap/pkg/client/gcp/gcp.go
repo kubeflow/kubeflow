@@ -19,7 +19,6 @@ package gcp
 import (
 	"encoding/base64"
 
-	"cloud.google.com/go/container/apiv1"
 	"fmt"
 	"github.com/ghodss/yaml"
 	gogetter "github.com/hashicorp/go-getter"
@@ -36,16 +35,13 @@ import (
 	gke "google.golang.org/api/container/v1"
 	"google.golang.org/api/deploymentmanager/v2"
 	"google.golang.org/api/iam/v1"
-	"google.golang.org/api/option"
 	"google.golang.org/api/serviceusage/v1"
-	containerpb "google.golang.org/genproto/googleapis/container/v1"
 	"io"
 	"io/ioutil"
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
 	"net/http"
 	"os"
 	"path"
@@ -245,34 +241,14 @@ func generateTarget(configPath string) (*deploymentmanager.TargetConfiguration, 
 }
 
 func (gcp *Gcp) getK8sClientset(ctx context.Context) (*clientset.Clientset, error) {
-	ts, err := google.DefaultTokenSource(ctx, iam.CloudPlatformScope)
+	cluster, err := kftypes.GetClusterInfo(ctx, gcp.GcpApp.Spec.Project,
+		gcp.GcpApp.Spec.Zone, gcp.GcpApp.Name)
 	if err != nil {
-		return nil, fmt.Errorf("Get token error: %v", err)
+		return nil, fmt.Errorf("Get Cluster error: %v", err)
 	}
-	t, err := ts.Token()
+	config, err := kftypes.BuildConfigFromClusterInfo(ctx, cluster)
 	if err != nil {
-		return nil, fmt.Errorf("Token retrieval error: %v", err)
-	}
-	c, err := container.NewClusterManagerClient(ctx, option.WithTokenSource(ts))
-	if err != nil {
-		return nil, err
-	}
-	getClusterReq := &containerpb.GetClusterRequest{
-		ProjectId: gcp.GcpApp.Spec.Project,
-		Zone:      gcp.GcpApp.Spec.Zone,
-		ClusterId: gcp.GcpApp.Name,
-	}
-	getClusterResp, err := c.GetCluster(ctx, getClusterReq)
-	if err != nil {
-		return nil, err
-	}
-	caDec, _ := base64.StdEncoding.DecodeString(getClusterResp.MasterAuth.ClusterCaCertificate)
-	config := &rest.Config{
-		Host:        "https://" + getClusterResp.Endpoint,
-		BearerToken: t.AccessToken,
-		TLSClientConfig: rest.TLSClientConfig{
-			CAData: []byte(string(caDec)),
-		},
+		return nil, fmt.Errorf("Build ClientConfig error: %v", err)
 	}
 
 	return clientset.NewForConfig(config)
@@ -398,41 +374,10 @@ func bindAdmin(k8sClientset *clientset.Clientset, user string) error {
 
 func (gcp *Gcp) ConfigK8s() error {
 	ctx := context.Background()
-	ts, err := google.DefaultTokenSource(ctx, iam.CloudPlatformScope)
-	if err != nil {
-		return fmt.Errorf("Get token error: %v", err)
-	}
-	t, err := ts.Token()
-	if err != nil {
-		return fmt.Errorf("Token retrieval error: %v", err)
-	}
-	c, err := container.NewClusterManagerClient(ctx, option.WithTokenSource(ts))
+	k8sClientset, err := gcp.getK8sClientset(ctx)
 	if err != nil {
 		return err
 	}
-	getClusterReq := &containerpb.GetClusterRequest{
-		ProjectId: gcp.GcpApp.Spec.Project,
-		Zone:      gcp.GcpApp.Spec.Zone,
-		ClusterId: gcp.GcpApp.Name,
-	}
-	getClusterResp, err := c.GetCluster(ctx, getClusterReq)
-	if err != nil {
-		return err
-	}
-	caDec, _ := base64.StdEncoding.DecodeString(getClusterResp.MasterAuth.ClusterCaCertificate)
-	config := &rest.Config{
-		Host:        "https://" + getClusterResp.Endpoint,
-		BearerToken: t.AccessToken,
-		TLSClientConfig: rest.TLSClientConfig{
-			CAData: []byte(string(caDec)),
-		},
-	}
-
-	k8sClientset, err := clientset.NewForConfig(config)
-	if err != nil {
-		return err
-	}
-
 	if err = createNamespace(k8sClientset, gcp.GcpApp.Namespace); err != nil {
 		return fmt.Errorf("Creating namespace error: %v", err)
 	}

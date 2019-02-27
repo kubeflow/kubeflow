@@ -16,8 +16,16 @@
 package apps
 
 import (
+	"encoding/base64"
+
+	"cloud.google.com/go/container/apiv1"
 	"fmt"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/net/context"
+	"golang.org/x/oauth2/google"
+	"google.golang.org/api/iam/v1"
+	"google.golang.org/api/option"
+	containerpb "google.golang.org/genproto/googleapis/container/v1"
 	"io"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -144,6 +152,44 @@ func KubeConfigPath() string {
 		return kubeconfigPath
 	}
 	return kubeconfigEnv
+}
+
+func GetClusterInfo(ctx context.Context, project string, location string,
+	cluster string) (*containerpb.Cluster, error) {
+	ts, err := google.DefaultTokenSource(ctx, iam.CloudPlatformScope)
+	if err != nil {
+		return nil, fmt.Errorf("Get token error: %v", err)
+	}
+	c, err := container.NewClusterManagerClient(ctx, option.WithTokenSource(ts))
+	if err != nil {
+		return nil, err
+	}
+	getClusterReq := &containerpb.GetClusterRequest{
+		ProjectId: project,
+		Zone:      location,
+		ClusterId: cluster,
+	}
+	return c.GetCluster(ctx, getClusterReq)
+}
+
+func BuildConfigFromClusterInfo(ctx context.Context, cluster *containerpb.Cluster) (*rest.Config, error) {
+	ts, err := google.DefaultTokenSource(ctx, iam.CloudPlatformScope)
+	if err != nil {
+		return nil, fmt.Errorf("Get token error: %v", err)
+	}
+	t, err := ts.Token()
+	if err != nil {
+		return nil, fmt.Errorf("Token retrieval error: %v", err)
+	}
+	caDec, _ := base64.StdEncoding.DecodeString(cluster.MasterAuth.ClusterCaCertificate)
+	config := &rest.Config{
+		Host:        "https://" + cluster.Endpoint,
+		BearerToken: t.AccessToken,
+		TLSClientConfig: rest.TLSClientConfig{
+			CAData: []byte(string(caDec)),
+		},
+	}
+	return config, nil
 }
 
 // BuildOutOfClusterConfig returns k8s config
