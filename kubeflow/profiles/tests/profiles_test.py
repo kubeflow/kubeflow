@@ -68,9 +68,11 @@ def test_profiles():
 
   # delete the profile and make sure namespace is deleted
   util.run(["kubectl", "delete", "-f", "sample_profile.yaml"], cwd=this_dir)
-  resp = coreV1.read_namespace(name)
   time.sleep(10)
-  logging.info("read namespace response: %s", resp)
+
+  with pytest.raises(client.rest.ApiException) as e:
+    resp = coreV1.read_namespace(name)
+  assert e.status == 404
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,
