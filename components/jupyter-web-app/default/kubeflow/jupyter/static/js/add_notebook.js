@@ -1,11 +1,11 @@
 
 $(window).on('load', function () {
-  // Fix the required inputs: 
+  // Fix the required inputs:
   // https://github.com/google/material-design-lite/issues/1502#issuecomment-211702642
   $('[data-required=true]').each(function() {
     $(this).attr('required', true);
   });
-  
+
   // Configure Image input elements
   setImageType()
 
@@ -85,7 +85,7 @@ function  setWorkspaceEventListeners() {
       $("#error-msg-vol").fadeOut("fast", function() {
         $(this).hide()
       })
-    } 
+    }
     else if (this.value == 'New') {
       unsetAttributes(workspaceName, 'readonly data-toggle data-placement title');
       unsetAttributes(workspaceSize, 'readonly data-toggle data-placement title');
@@ -95,12 +95,12 @@ function  setWorkspaceEventListeners() {
       document.querySelector("#size-input-div").MaterialTextfield.enable()
       document.querySelector("#access-sel-div").MaterialTextfield.enable()
       document.querySelector("#mountpath-input-div").MaterialTextfield.enable()
-    
+
       // Hide the warning from None option
       $("#error-msg-vol").fadeOut("fast", function() {
         $(this).hide()
       })
-    } 
+    }
     else if (this.value == "None") {
       var attrs = {
         'readonly': true,
@@ -222,7 +222,7 @@ function setDefaultFormValues() {
             $('#ws_type').attr({
               'readonly': defaultWorkspace.type.readOnly || defaultWorkspaceReadOnly,
               'immutable': defaultWorkspace.type.readOnly || defaultWorkspaceReadOnly,
-            }); 
+            });
 
             if ($('#ws_type').attr('readonly')) {
               $('#ws_type').on('mousedown', function(e) {
@@ -684,7 +684,7 @@ function removeVolume(id) {
       'onclick': 'removeVolume(' + i + ')'
     });
 
-    // The next two are for disabling the Size and Mount Textfields 
+    // The next two are for disabling the Size and Mount Textfields
     volumeElement.find('#vol_size_textfield' + (i+1)).attr({
       id: "vol_size_textfield" + i
     })
@@ -734,10 +734,10 @@ function postNotebook(form, data) {
         <span class="close" onclick="this.parentElement.style.display='none'">&times;</span>
         <strong>Error: </strong><span class='danger-log'></span>
       </div>`
-      
+
       const $e = $("#error-msgs").html(innerHTML)
       $('.danger-log', $e).text(res.log)
-      
+
       window.scrollTo(0, 0);
     }
   })

@@ -37,12 +37,14 @@ PLURAL = "notebooks"
 KIND = "Notebook"
 VERSION = "v1alpha1"
 
-logging.basicConfig(level=logging.INFO,
-                    format=('%(levelname)s|%(asctime)s'
-                            '|%(pathname)s|%(lineno)d| %(message)s'),
-                    datefmt='%Y-%m-%dT%H:%M:%S',
-                    )
+logging.basicConfig(
+    level=logging.INFO,
+    format=('%(levelname)s|%(asctime)s'
+            '|%(pathname)s|%(lineno)d| %(message)s'),
+    datefmt='%Y-%m-%dT%H:%M:%S',
+)
 logging.getLogger().setLevel(logging.INFO)
+
 
 def is_retryable_result(r):
   if r.status_code in [requests.codes.NOT_FOUND, requests.codes.UNAVAILABLE]:
@@ -52,9 +54,12 @@ def is_retryable_result(r):
 
   return False
 
-@retry(wait_exponential_multiplier=1000, wait_exponential_max=10000,
-       stop_max_delay=5*60*1000,
-       retry_on_result=is_retryable_result)
+
+@retry(
+    wait_exponential_multiplier=1000,
+    wait_exponential_max=10000,
+    stop_max_delay=5 * 60 * 1000,
+    retry_on_result=is_retryable_result)
 def send_request(*args, **kwargs):
   """Send a request to the Jupyter server.
 
@@ -69,7 +74,7 @@ def send_request(*args, **kwargs):
   token = token.strip()
 
   headers = {
-    "Authorization": "Bearer " + token,
+      "Authorization": "Bearer " + token,
   }
 
   if "headers" not in kwargs:
@@ -91,12 +96,15 @@ def send_request(*args, **kwargs):
     r.status_code = 200
   return r
 
+
 def test_jupyter(env, namespace):
   app_credentials = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
   if app_credentials:
     logging.info("Activate service account")
-    util.run(["gcloud", "auth", "activate-service-account",
-              "--key-file=" + app_credentials])
+    util.run([
+        "gcloud", "auth", "activate-service-account",
+        "--key-file=" + app_credentials
+    ])
 
   # util.load_kube_config appears to hang on python3
   kube_config.load_kube_config()
@@ -116,7 +124,6 @@ def test_jupyter(env, namespace):
   params = ""
   ks_util.setup_ks_app(app_dir, env, namespace, component, params)
 
-
   util.run([ks_cmd, "apply", env, "-c", component], cwd=app_dir)
   # TODO: uncomment after we implement updating status in controller
   # conditions = ["Ready"]
@@ -129,21 +136,23 @@ def test_jupyter(env, namespace):
   # from outside the cluster.
   url = ("https://{master}/api/v1/namespaces/{namespace}/services/{service}:80"
          "/proxy/default/jupyter/lab?").format(
-           master=master, namespace=namespace, service=service)
+             master=master, namespace=namespace, service=service)
   logging.info("Request: %s", url)
   r = send_request(url, verify=False)
 
   if r.status_code != requests.codes.OK:
     msg = "Request to {0} exited with status code: {1} and content: {2}".format(
-      url, r.status_code, r.content)
+        url, r.status_code, r.content)
     logging.error(msg)
     raise RuntimeError(msg)
 
+
 if __name__ == "__main__":
-  logging.basicConfig(level=logging.INFO,
-                      format=('%(levelname)s|%(asctime)s'
-                              '|%(pathname)s|%(lineno)d| %(message)s'),
-                      datefmt='%Y-%m-%dT%H:%M:%S',
-                      )
+  logging.basicConfig(
+      level=logging.INFO,
+      format=('%(levelname)s|%(asctime)s'
+              '|%(pathname)s|%(lineno)d| %(message)s'),
+      datefmt='%Y-%m-%dT%H:%M:%S',
+  )
   logging.getLogger().setLevel(logging.INFO)
   pytest.main()

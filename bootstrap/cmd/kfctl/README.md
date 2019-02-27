@@ -20,7 +20,7 @@ Note: Additional issues have been opened so this README.md will have additional 
 
 ## API and Packaging
 
-New directories (`cmd/kfctl, pkg`):
+New directories
 
 ```sh
 bootstrap/cmd/kfctl
@@ -42,15 +42,17 @@ The `KfApp` golang Interface
 
 ```golang
 type ResourceEnum string
+
 const (
 	ALL      ResourceEnum = "all"
 	K8S      ResourceEnum = "k8s"
 	PLATFORM ResourceEnum = "platform"
+	NONE     ResourceEnum = "none"
 )
 
 //
 // KfApp is used by commands under bootstrap/cmd/{bootstrap,kfctl}. KfApp provides a common
-// API for different implementations like Ksonnet, GcpApp, MinikubeApp, etc.
+// API for different implementations like ksonnet, gcp, minikube, docker-for-desktop, etc.
 //
 type KfApp interface {
 	Apply(resources ResourceEnum, options map[string]interface{}) error
@@ -60,14 +62,20 @@ type KfApp interface {
 }
 ```
 
-kfctl includes platforms that implement the KfApp interface. (gcp will be added in the next phase)
+kfctl will statically include platforms that implement the KfApp interface. 
+These include:
 
-- platform: **ksonnet** 
+- platform: **ksonnet**
   - bootstrap/pkg/client/ksonnet/ksonnet.go
-- platform: **minikube** 
+- platform: **minikube**
   - bootstrap/pkg/client/minikube/minikube.go
-- platform: **docker-for-desktop**
-  - bootstrap/pkg/client/dockerfordesktop/dockerfordesktop.go
+- platform: **gcp** 
+  - bootstrap/pkg/client/gcp/gcp.go
+- platform: **ack** (in progress)
+  - bootstrap/pkg/client/ack/ack.go
+
+kfctl can also dynamically load platforms that are not statically linked, as 
+described below in [Extending kfctl](#extending-kfctl).
 
 ## Usage
 
@@ -102,7 +110,9 @@ kfctl apply
 
 ## Subcommands
 
-### **init** (kubeflow/bootstrap/cmd/kfctl/cmd/init.go)
+### **init** 
+
+(kubeflow/bootstrap/cmd/kfctl/cmd/init.go)
 
 ```
 Create a kubeflow application under <[path/]name>. The <[path/]name> argument can either be a full path
@@ -116,14 +126,16 @@ Flags:
       --debug              debug debug default is false
   -h, --help               help for init
   -n, --namespace string   namespace where kubeflow will be deployed (default "kubeflow")
-  -p, --platform string    one of 'gcp|minikube|docker-for-desktop|ack' (default "none")
+  -p, --platform string    one of 'gcp|minikube|ksonnet' (default=ksonnet)
       --project string     name of the gcp project if --platform gcp
   -r, --repo string        local github kubeflow repo
   -V, --verbose            verbose output default is false
   -v, --version string     desired version Kubeflow or latest tag if not provided by user  (default "v0.4.1")
 ```
 
-### **generate** (kubeflow/bootstrap/cmd/kfctl/cmd/generate.go)
+### **generate**
+
+(kubeflow/bootstrap/cmd/kfctl/cmd/generate.go)
 
 ```
 Generate a kubeflow application where resources is one of 'platform | k8s | all'.
@@ -145,7 +157,9 @@ Flags:
   -V, --verbose         verbose output default is false
 ```
 
-### **apply** (kubeflow/bootstrap/cmd/kfctl/cmd/apply.go)
+### **apply** 
+
+(kubeflow/bootstrap/cmd/kfctl/cmd/apply.go)
 
 ```
 Deploy a generated kubeflow application.
@@ -158,7 +172,9 @@ Flags:
   -V, --verbose   verbose output default is false
 ```
 
-### **delete** (kubeflow/bootstrap/cmd/kfctl/cmd/delete.go)
+### **delete** 
+
+(kubeflow/bootstrap/cmd/kfctl/cmd/delete.go)
 
 ```
 Delete a kubeflow application.
@@ -217,17 +233,17 @@ make test-known-platforms-generate
 
 ## Debugging
 
-In order to debug in goland, the plugin code must be disabled. 
-See https://github.com/golang/go/issues/23733. 
+In order to debug in goland, the plugin code must be disabled.
+See https://github.com/golang/go/issues/23733.
 This is expected to be resolved with golang 1.12.X
-To disable the plugin code (which will cause dockerfordesktop.go to be linked statically in kfctl) 
+To disable the plugin code (which will cause dockerfordesktop.go to be linked statically in kfctl)
 and allow debugging in goland run:
 
 ```
 make static
 ```
 
-otherwise run 
+otherwise run
 
 ```
 make plugins
@@ -235,12 +251,12 @@ make plugins
 
 Note: the default is `make static`. Do not checkin code after doing `make plugins`.
 
-Note: static and plugins make targets result in 2 files being changed: 
+Note: static and plugins make targets result in 2 files being changed:
 - pkg/apis/apps/group.go
 - cmd/kfctl/cmd/root.go
 
 These files have comments that are toggled (effectively a golang macro hack).
-This will go away when the fix noted above is available and we've moved to 
+This will go away when the fix noted above is available and we've moved to
 this version of go.
 
 
@@ -273,19 +289,20 @@ type KsonnetSpec struct {
 }
 ```
 
-#### app.yaml example for --platform none
+#### app.yaml example for --platform ksonnet
 
 ```
 apiVersion: ksonnet.apps.kubeflow.org/v1alpha1
 kind: Ksonnet
 metadata:
   creationTimestamp: null
-  name: ks-app
+  name: ksonnet
   namespace: kubeflow
 spec:
-  platform: none
-  repo: /Users/kdkasrav/go/src/github.com/kubeflow/kubeflow/kubeflow
-  version: v0.4.1
+  appdir: /Users/kdkasrav/ksonnet
+  platform: ksonnet
+  repo: /Users/kdkasrav/ksonnet/.cache/master/kubeflow
+  version: master
 status: {}
 ```
 

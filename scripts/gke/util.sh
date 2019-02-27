@@ -234,8 +234,8 @@ gcpGenerateKsApp() {
   ks generate cert-manager cert-manager --acmeEmail=${EMAIL}
   ks generate iap-ingress iap-ingress --ipName=${KUBEFLOW_IP_NAME} --hostname=${KUBEFLOW_HOSTNAME}
   ks param set jupyter jupyterHubAuthenticator iap
-  ks param set pipeline mysqlPd "${DEPLOYMENT_NAME}-storage-pipeline-db"
-  ks param set pipeline nfsPd "${DEPLOYMENT_NAME}-storage-pipeline-nfs"
+  ks param set pipeline mysqlPd "${DEPLOYMENT_NAME}-storage-metadata-store"
+  ks param set pipeline minioPd "${DEPLOYMENT_NAME}-storage-artifact-store"
   popd
 }
 
@@ -243,17 +243,7 @@ gcpKsApply() {
   # Apply the components generated
   pushd .
   cd "${KUBEFLOW_KS_DIR}"
-
-  set +e
-  O=$(ks env describe default 2>&1)
-  RESULT=$?
-  set -e
-
-  if [ "${RESULT}" -eq 0 ]; then
-    echo environment default already exists
-  else
-    ks env add default --namespace "${K8S_NAMESPACE}"
-  fi
+  createKsEnv
 
   if [[ -z $DEFAULT_KUBEFLOW_COMPONENTS ]]; then
     export KUBEFLOW_COMPONENTS+=',"cloud-endpoints","cert-manager","iap-ingress"'

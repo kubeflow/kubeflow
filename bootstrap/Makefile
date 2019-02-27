@@ -15,6 +15,7 @@
 GCLOUD_PROJECT ?= kubeflow-images-public
 GOLANG_VERSION ?= 1.11.5
 GOPATH ?= $(HOME)/go
+GOOGLE_APPLICATION_CREDENTIALS ?= $(HOME)/auth.json
 # To build without the cache set the environment variable
 # export DOCKER_BUILD_OPTS=--no-cache
 IMG ?= gcr.io/$(GCLOUD_PROJECT)/bootstrapper
@@ -87,29 +88,32 @@ run-local-docker:
 
 test-known-platforms-init: install build-dockerfordesktop-plugin
 	@rm -rf $(HOME)/dockerfordesktop && \
-	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/dockerfordesktop -V --platform docker-for-desktop --version master && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/dockerfordesktop -V --platform docker-for-desktop && \
 	rm -rf $(HOME)/ksonnet && \
-	kfctl init $(HOME)/ksonnet -V --platform ksonnet --version master && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init $(HOME)/ksonnet -V --platform ksonnet && \
 	rm -rf $(HOME)/minikube && \
-	kfctl init $(HOME)/minikube -V --platform minikube --version master && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init $(HOME)/minikube -V --platform minikube && \
+	rm -rf $(HOME)/gcp && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init $(HOME)/gcp -V --platform gcp --project $(GCLOUD_PROJECT) && \
 	echo SUCCESS
 
 test-known-platforms-generate: test-known-platforms-init
 	@cd ~/dockerfordesktop && \
-	PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl generate all -V && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl generate all -V && \
 	cd ~/ksonnet && \
-	kfctl generate all -V && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl generate all -V && \
 	cd ~/minikube && \
-	kfctl generate all -V --mount-local && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl generate all -V --mount-local && \
+	cd ~/gcp && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl generate all -V --email jsmith@acme.com && \
 	echo SUCCESS
-
 
 # static and plugins toogle whether we try and load a platform as a .so.
 # There is an example plugin 'dockerfordesktop' that can be loaded as a .so.
 # By default we disable loading plugins and link dockerfordesktop into the kfctl binary (static)
 static:
 	@ex pkg/apis/apps/group.go <hack/static
-	@ex cmd/kfctl/cmd/root.go <hack/static || echo Plugin functionality disabled 
+	@ex cmd/kfctl/cmd/root.go <hack/static || echo Plugin functionality disabled
 
 plugins:
 	@ex pkg/apis/apps/group.go <hack/plugins

@@ -26,8 +26,8 @@ var generateCfg = viper.New()
 // generateCmd represents the generate command
 var generateCmd = &cobra.Command{
 	Use:   "generate [all(=default)|k8s|platform]",
-	Short: "Generate a kubeflow application where resources is one of 'platform | k8s | all'.",
-	Long: `Generate a kubeflow application where resources is one of 'platform | k8s | all'.
+	Short: "Generate a kubeflow application where resources is one of 'platform|k8s|all'.",
+	Long: `Generate a kubeflow application where resources is one of 'platform|k8s|all'.
 
   platform: non kubernetes resources (eg --platform gcp)
   k8s: kubernetes resources
@@ -49,10 +49,14 @@ The default is 'all' for any selected platform.`,
 		}
 		email := generateCfg.GetString(string(kftypes.EMAIL))
 		ipName := generateCfg.GetString(string(kftypes.IPNAME))
-		mountLocal := generateCfg.GetBool("mount-local")
+		hostName := generateCfg.GetString(string(kftypes.HOSTNAME))
+		zone := generateCfg.GetString(string(kftypes.ZONE))
+		mountLocal := generateCfg.GetBool(string(kftypes.MOUNT_LOCAL))
 		options := map[string]interface{}{
 			string(kftypes.EMAIL):       email,
 			string(kftypes.IPNAME):      ipName,
+			string(kftypes.HOSTNAME):    hostName,
+			string(kftypes.ZONE):        zone,
 			string(kftypes.MOUNT_LOCAL): mountLocal,
 		}
 		kfApp, kfAppErr := loadKfApp(options)
@@ -84,11 +88,29 @@ func init() {
 	}
 
 	// platform gcp
+	generateCmd.Flags().String(string(kftypes.ZONE), "us-east1-d",
+		string(kftypes.ZONE)+" if '--platform gcp'")
+	bindErr = generateCfg.BindPFlag(string(kftypes.ZONE), generateCmd.Flags().Lookup(string(kftypes.ZONE)))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.ZONE), bindErr)
+		return
+	}
+
+	// platform gcp
 	generateCmd.Flags().String(string(kftypes.IPNAME), "",
 		string(kftypes.IPNAME)+" if '--platform gcp'")
 	bindErr = generateCfg.BindPFlag(string(kftypes.IPNAME), generateCmd.Flags().Lookup(string(kftypes.IPNAME)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.IPNAME), bindErr)
+		return
+	}
+
+	// platform gcp
+	generateCmd.Flags().String(string(kftypes.HOSTNAME), "",
+		string(kftypes.HOSTNAME)+" if '--platform gcp'")
+	bindErr = generateCfg.BindPFlag(string(kftypes.HOSTNAME), generateCmd.Flags().Lookup(string(kftypes.HOSTNAME)))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.HOSTNAME), bindErr)
 		return
 	}
 
