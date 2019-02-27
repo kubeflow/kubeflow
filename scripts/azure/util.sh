@@ -76,12 +76,8 @@ createAKSCluster() {
     kubectl get nodes
     
     # Install the nvidia device plugin
-    if [ `kubectl get ds --all-namespaces | grep nvidia-device-plugin` == "" ] ; then
+    if [ ! `kubectl get ds --all-namespaces | grep nvidia-device-plugin` ] ; then
         kubectl apply -f https://raw.githubusercontent.com/nvidia/k8s-device-plugin/v1.11/nvidia-device-plugin.yml
         echo "installed nvidia-device-plugin"
-    fi
-    if [ `kubectl get ds --all-namespaces | grep nvidia-device-plugin` == "" ] ; then
-        echo "nvidia-device-plugin was not installed properly."
-        exit 1
     fi
 }
