@@ -22,7 +22,7 @@ local params = {
   efsMountPath: '/quuz',
 };
 local env = {
-  namespace:: "test-kf-001",
+  namespace: "test-kf-001",
 };
 
 local instance = tensorboard.new(env, params) + aws;
