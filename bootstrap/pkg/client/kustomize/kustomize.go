@@ -28,6 +28,21 @@ import (
 
 // Kustomize implements KfApp Interface
 // It should include functionality needed for the kustomize platform
+// In addition to `kustomize build`, there is `kustomize edit ...`
+// As noted below there are lots of different ways to use edit
+//  kustomize edit add configmap my-configmap --from-file=my-key=file/path --from-literal=my-literal=12345
+//  kustomize edit add configmap my-configmap --from-file=file/path
+//  kustomize edit add configmap my-configmap --from-env-file=env/path.env
+//  kustomize edit add configmap NAME --from-literal=k=v
+//  kustomize edit add resource <filepath>
+//  kustomize edit add patch <filepath>
+//  kustomize edit add base <filepath1>,<filepath2>,<filepath3>
+//  kustomize edit set nameprefix <prefix-value>
+
+// A good example is kustomize/pkg/examplelayout/simple
+// which creates an instance from a package, this may be the most similar to ksonnet packages
+// and is taken from [Declarative Application Management in Kubernetes]
+// (https://docs.google.com/document/d/1cLPGweVEYrVqQvBLJg6sxV-TrE5Rm2MNOBA_cxZP2WU)
 type Kustomize struct {
 	//Add additional types required for kustomize
 }
