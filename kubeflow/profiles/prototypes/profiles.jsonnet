@@ -3,7 +3,7 @@
 // @description profiles Component
 // @shortDescription profiles Component
 // @param name string Name
-// @optionalParam image string gcr.io/kubeflow-images-public/notebook-controller:v20190222-v0.4.0-rc.1-151-g3d6f6656-dirty-4eb6ff The image to use for controller
+// @optionalParam image string gcr.io/kubeflow-images-public/notebook-controller:v20190227-v0.4.0-rc.1-168-gc99152ac-dirty-9de0df The image to use for controller
 
 local profile = import "kubeflow/profiles/profiles.libsonnet";
 local instance = profile.new(env, params);

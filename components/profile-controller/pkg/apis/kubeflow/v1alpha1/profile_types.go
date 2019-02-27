@@ -23,9 +23,6 @@ import (
 
 // ProfileSpec defines the desired state of Profile
 type ProfileSpec struct {
-	// The namespace for this user
-	Namespace string `json:"namespace,omitempty"`
-
 	// The profile owner
 	Owner rbacv1.Subject `json:"owner,omitempty"`
 }

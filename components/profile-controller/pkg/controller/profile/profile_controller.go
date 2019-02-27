@@ -121,7 +121,7 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: instance.Spec.Namespace,
+			Name: instance.Name,
 		},
 	}
 	if err := controllerutil.SetControllerReference(instance, ns, r.scheme); err != nil {
@@ -167,7 +167,7 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 	roleBinding := &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "default",
-			Namespace: instance.Spec.Namespace,
+			Namespace: instance.Name,
 		},
 		RoleRef: rbacv1.RoleRef{
 			APIGroup: "rbac.authorization.k8s.io",
@@ -208,7 +208,7 @@ func generateRole(instance *kubeflowv1alpha1.Profile) *rbacv1.Role {
 	role := &rbacv1.Role{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "edit",
-			Namespace: instance.Spec.Namespace,
+			Namespace: instance.Name,
 		},
 		Rules: []rbacv1.PolicyRule{
 			{

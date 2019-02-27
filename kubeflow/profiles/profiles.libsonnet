@@ -13,7 +13,7 @@
       spec: {
         group: "kubeflow.org",
         version: "v1alpha1",
-        scope: "Namespaced",
+        scope: "Cluster",
         names: {
           plural: "profiles",
           singular: "profile",

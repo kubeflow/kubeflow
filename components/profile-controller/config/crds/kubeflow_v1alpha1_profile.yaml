@@ -28,9 +28,6 @@ spec:
           type: object
         spec:
           properties:
-            namespace:
-              description: The namespace for this user
-              type: string
             owner:
               description: The profile owner
               type: object
