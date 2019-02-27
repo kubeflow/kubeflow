@@ -15,19 +15,23 @@ package utils
 
 import (
 	"bytes"
-	"encoding/json"
+	"fmt"
 	"github.com/ghodss/yaml"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"strings"
 
 	ksUtil "github.com/ksonnet/ksonnet/utils"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
+	k8stypes "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
+	"time"
 
 	// Auth plugins
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -38,8 +42,127 @@ import (
 const RecommendedConfigPathEnvVar = "KUBECONFIG"
 
 const (
-	yamlSeparator = "---"
+	yamlSeparator   = "---"
+	maxRetries      = 5
+	backoffInterval = 5 * time.Second
 )
+
+func getRESTClient(config *rest.Config, group string, version string) (*rest.RESTClient, error) {
+	c := rest.CopyConfig(config)
+	c.GroupVersion = &schema.GroupVersion{
+		Group:   group,
+		Version: version,
+	}
+	c.NegotiatedSerializer = serializer.DirectCodecFactory{CodecFactory: scheme.Codecs}
+	if group == "" {
+		c.APIPath = "/api"
+	} else {
+		c.APIPath = "/apis"
+	}
+	return rest.RESTClientFor(c)
+}
+
+func getResource(mapping *meta.RESTMapping, config *rest.Config, group string,
+	version string, namespace string, name string) error {
+	restClient, err := getRESTClient(config, group, version)
+	if err != nil {
+		return fmt.Errorf("getResource error: %v", err)
+	}
+
+	_, err = restClient.
+		Get().
+		Resource(mapping.Resource).
+		NamespaceIfScoped(namespace, mapping.Scope.Name() == "namespace").
+		Name(name).
+		Do().
+		Get()
+	return err
+}
+
+func patchResource(mapping *meta.RESTMapping, config *rest.Config, group string,
+	version string, namespace string, data []byte) error {
+	restClient, err := getRESTClient(config, group, version)
+	if err != nil {
+		return fmt.Errorf("patchResource error: %v", err)
+	}
+
+	_, err = restClient.
+		Patch(k8stypes.JSONPatchType).
+		Resource(mapping.Resource).
+		NamespaceIfScoped(namespace, mapping.Scope.Name() == "namespace").
+		Body(data).
+		Do().
+		Get()
+	return err
+}
+
+func deleteResource(mapping *meta.RESTMapping, config *rest.Config, group string,
+	version string, namespace string, name string) error {
+	restClient, err := getRESTClient(config, group, version)
+	if err != nil {
+		return fmt.Errorf("deleteResource error: %v", err)
+	}
+
+	_, err = restClient.
+		Delete().
+		Resource(mapping.Resource).
+		NamespaceIfScoped(namespace, mapping.Scope.Name() == "namespace").
+		Name(name).
+		Do().
+		Get()
+	return err
+}
+
+func createResource(mapping *meta.RESTMapping, config *rest.Config, group string,
+	version string, namespace string, data []byte) error {
+	restClient, err := getRESTClient(config, group, version)
+	if err != nil {
+		return fmt.Errorf("createResource error: %v", err)
+	}
+
+	_, err = restClient.
+		Post().
+		Resource(mapping.Resource).
+		NamespaceIfScoped(namespace, mapping.Scope.Name() == "namespace").
+		Body(data).
+		Do().
+		Get()
+	return err
+}
+
+func patchOrCreate(mapping *meta.RESTMapping, config *rest.Config, group string,
+	version string, namespace string, name string, data []byte) error {
+	log.Infof("Applying resource configuration for %v", name)
+	err := getResource(mapping, config, group, version, namespace, name)
+	if err != nil {
+		log.Infof("getResource error, treating as not found: %v", err)
+		err = createResource(mapping, config, group, version, namespace, data)
+	} else {
+		log.Infof("getResource succeeds, treating as found.")
+		err = patchResource(mapping, config, group, version, namespace, data)
+	}
+
+	for i := 1; i < maxRetries && k8serrors.IsConflict(err); i++ {
+		time.Sleep(backoffInterval)
+
+		log.Infof("Retrying patchOrCreate at %v attempt ...", i)
+		err = getResource(mapping, config, group, version, namespace, name)
+		if err != nil {
+			return fmt.Errorf("Resource creation error: %v", err)
+		}
+		err = patchResource(mapping, config, group, version, namespace, data)
+	}
+
+	if err != nil && (k8serrors.IsConflict(err) || k8serrors.IsInvalid(err) ||
+		k8serrors.IsMethodNotSupported(err)) {
+		log.Infof("Trying delete and create as last resort ...")
+		if err = deleteResource(mapping, config, group, version, namespace, name); err != nil {
+			return fmt.Errorf("Resource deletion error: %v", err)
+		}
+		err = createResource(mapping, config, group, version, namespace, data)
+	}
+	return err
+}
 
 // TODO COPIED from bootstrap/app/k8sUtil.go. Need to merge.
 // CreateResourceFromFile creates resources from a file, just like `kubectl create -f filename`
@@ -48,6 +171,7 @@ const (
 // TODO: it can't handle "kind: list" yet.
 func CreateResourceFromFile(config *rest.Config, filename string) error {
 	// Create a restmapper to determine the resource type.
+	log.Infof("config = %+v", config)
 	discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
 	if err != nil {
 		return err
@@ -70,6 +194,14 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 			log.Warnf("Unknown resource: %v", object)
 			continue
 		}
+
+		log.Infof("Parsed o = %v", o)
+
+		// Identify the name of deployment.
+		metadata := o["metadata"].(map[string]interface{})
+		name := metadata["name"].(string)
+		log.Infof("creating %v\n", name)
+
 		apiVersion := strings.Split(a.(string), "/")
 		var group, version string
 		if len(apiVersion) == 1 {
@@ -78,7 +210,18 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 		} else {
 			group, version = apiVersion[0], apiVersion[1]
 		}
+		log.Infof("using group (%v) and version (%v)", group, version)
+
+		var namespace string
+		if metadata["namespace"] != nil {
+			namespace = metadata["namespace"].(string)
+		} else {
+			namespace = "default"
+		}
+		log.Infof("namespace = %v", namespace)
+
 		kind := o["kind"].(string)
+		log.Infof("kind: %v", kind)
 		gk := schema.GroupKind{
 			Group: group,
 			Kind:  kind,
@@ -89,45 +232,16 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 			return err
 		}
 
-		// build config for restClient
-		c := rest.CopyConfig(config)
-		c.GroupVersion = &schema.GroupVersion{
-			Group:   group,
-			Version: version,
-		}
-		c.NegotiatedSerializer = serializer.DirectCodecFactory{CodecFactory: scheme.Codecs}
-		if group == "" {
-			c.APIPath = "/api"
-		} else {
-			c.APIPath = "/apis"
-		}
-		restClient, err := rest.RESTClientFor(c)
+		data, err := yaml.YAMLToJSON(object)
 		if err != nil {
 			return err
 		}
 
-		// build the request
-		metadata := o["metadata"].(map[string]interface{})
-		name := metadata["name"].(string)
-		log.Infof("creating %v\n", name)
+		log.Infof("Marshaled data = %v", string(data))
 
-		var namespace string
-		if metadata["namespace"] != nil {
-			namespace = metadata["namespace"].(string)
-		} else {
-			namespace = "default"
-		}
-		body, err := json.Marshal(o)
-		if err != nil {
-			return err
-		}
-		request := restClient.Post().Resource(result.Resource).Body(body)
-		if result.Scope.Name() == "namespace" {
-			request = request.Namespace(namespace)
-		}
-		_, err = request.DoRaw()
-		if err != nil {
-			return err
+		if err = patchOrCreate(result, config, group, version, namespace, name,
+			data); err != nil {
+			return fmt.Errorf("patchOrCreate error: %v", err)
 		}
 	}
 

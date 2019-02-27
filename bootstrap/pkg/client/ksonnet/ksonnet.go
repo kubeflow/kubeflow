@@ -28,6 +28,7 @@ import (
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
+	// kfutils "github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"io/ioutil"
@@ -128,6 +129,7 @@ func (ksApp *KsApp) Apply(resources kftypes.ResourceEnum, options map[string]int
 	if cliErr != nil {
 		return fmt.Errorf("couldn't create client Error: %v", cliErr)
 	}
+	// TODO(gabrielwen): Make env name an option.
 	envSetErr := ksApp.envSet(kstypes.KsEnvName, host)
 	if envSetErr != nil {
 		return fmt.Errorf("couldn't create ksonnet env %v Error: %v", kstypes.KsEnvName, envSetErr)
@@ -163,7 +165,17 @@ func (ksApp *KsApp) Apply(resources kftypes.ResourceEnum, options map[string]int
 			return fmt.Errorf("could not change directory to %v Error %v", ksApp.KsApp.Spec.AppDir, err)
 		}
 	}
-	return ksApp.showComponent([]string{"metacontroller", "application"})
+	if err = ksApp.showComponent([]string{"metacontroller", "application"}); err != nil {
+		return fmt.Errorf("Writing config file error: %v", err)
+	}
+
+	// restCli, err := kftypes.BuildOutOfClusterConfig()
+	// if err != nil {
+	// 	return fmt.Errorf("Error creating rest.Config: %v", err)
+	// }
+	return nil
+	// return kfutils.CreateResourceFromFile(restCli, ksApp.getCompsFilePath())
+	//
 	// applyErr := ksApp.applyComponent([]string{"metacontroller"}, clientConfig)
 	// if applyErr != nil {
 	// 	return fmt.Errorf("couldn't create metacontroller component Error: %v", applyErr)
@@ -175,6 +187,10 @@ func (ksApp *KsApp) Apply(resources kftypes.ResourceEnum, options map[string]int
 	// return nil
 }
 
+func (ksApp *KsApp) getCompsFilePath() string {
+	return filepath.Join(ksApp.KsApp.Spec.AppDir, kstypes.KsEnvName+".yaml")
+}
+
 func (ksApp *KsApp) showComponent(components []string) error {
 	showOptions := map[string]interface{}{
 		actions.OptionApp:            ksApp.KApp,
@@ -183,7 +199,9 @@ func (ksApp *KsApp) showComponent(components []string) error {
 		actions.OptionFormat:         "yaml",
 	}
 
-	configFile, err := os.Create("default.yaml")
+	configPath := ksApp.getCompsFilePath()
+	log.Infof("Writing deploying config to %v", configPath)
+	configFile, err := os.Create(configPath)
 	if err != nil {
 		return err
 	}

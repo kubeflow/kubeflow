@@ -292,7 +292,7 @@ func blockingWait(project string, opName string, deploymentmanagerService *deplo
 		}
 		log.Infof("Deployment is not ready: %v", op.Status)
 		opName = op.Name
-		time.Sleep(10 * time.Second)
+		time.Sleep(5 * time.Second)
 	}
 }
 
@@ -484,16 +484,26 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 	}
 
 	// TODO(gabrielwen): Finish this.
-	// client, clientErr := kftypes.BuildOutOfClusterConfig()
-	// if clientErr != nil {
-	// 	return fmt.Errorf("could not create client %v", clientErr)
-	// }
-	// k8sSpecsDir := path.Join(appDir, K8S_SPECS)
-	// daemonsetPreloaded := filepath.Join(k8sSpecsDir, "daemonset-preloaded.yaml")
-	// daemonsetPreloadedErr := kfctlutils.CreateResourceFromFile(client, daemonsetPreloaded)
-	// if daemonsetPreloadedErr != nil {
-	// 	return fmt.Errorf("could not create resources in daemonset-preloaded.yaml %v", daemonsetPreloadedErr)
-	// }
+	ctx := context.Background()
+	ts, err := google.DefaultTokenSource(ctx, iam.CloudPlatformScope)
+	if err != nil {
+		return fmt.Errorf("Get token error: %v", err)
+	}
+	t, err := ts.Token()
+	if err != nil {
+		return fmt.Errorf("Token retrieval error: %v", err)
+	}
+	client, clientErr := kftypes.BuildOutOfClusterConfig()
+	if clientErr != nil {
+		return fmt.Errorf("could not create client %v", clientErr)
+	}
+	client.BearerToken = t.AccessToken
+	k8sSpecsDir := path.Join(appDir, K8S_SPECS)
+	daemonsetPreloaded := filepath.Join(k8sSpecsDir, "daemonset-preloaded.yaml")
+	daemonsetPreloadedErr := kfctlutils.CreateResourceFromFile(client, daemonsetPreloaded)
+	if daemonsetPreloadedErr != nil {
+		return fmt.Errorf("could not create resources in daemonset-preloaded.yaml %v", daemonsetPreloadedErr)
+	}
 	// //TODO this needs to be kubectl apply -f ${KUBEFLOW_K8S_MANIFESTS_DIR}/rbac-setup.yaml --as=admin --as-group=system:masters
 	// rbacSetup := filepath.Join(k8sSpecsDir, "rbac-setup.yaml")
 	// rbacSetupErr := kfctlutils.CreateResourceFromFile(client, rbacSetup)
@@ -517,15 +527,15 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum, options map[string]interfa
 	if secretsErr != nil {
 		return fmt.Errorf("gcp apply could not create secrets Error %v", secretsErr)
 	}
-	ks := gcp.Children[kftypes.KSONNET]
-	if ks != nil {
-		ksApplyErr := ks.Apply(resources, options)
-		if ksApplyErr != nil {
-			return fmt.Errorf("gcp apply failed for %v: %v", string(kftypes.KSONNET), ksApplyErr)
-		}
-	} else {
-		return fmt.Errorf("%v not in Children", string(kftypes.KSONNET))
-	}
+	// ks := gcp.Children[kftypes.KSONNET]
+	// if ks != nil {
+	// 	ksApplyErr := ks.Apply(resources, options)
+	// 	if ksApplyErr != nil {
+	// 		return fmt.Errorf("gcp apply failed for %v: %v", string(kftypes.KSONNET), ksApplyErr)
+	// 	}
+	// } else {
+	// 	return fmt.Errorf("%v not in Children", string(kftypes.KSONNET))
+	// }
 	return nil
 }
 
@@ -621,14 +631,6 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 	} else {
 		log.Infof("Using default hostname: %v", gcp.GcpApp.Spec.Hostname)
 		options[string(kftypes.HOSTNAME)] = gcp.GcpApp.Spec.Hostname
-	}
-	project := gcp.GcpApp.Spec.Project
-	if options[string(kftypes.PROJECT)] != nil {
-		project = options[string(kftypes.PROJECT)].(string)
-		if project == "" {
-			return fmt.Errorf("project parameter required for iam_bindings")
-		}
-		// TODO: ????
 	}
 	if options[string(kftypes.ZONE)] != nil {
 		gcp.GcpApp.Spec.Zone = kftypes.DefaultZone
