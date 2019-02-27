@@ -113,18 +113,21 @@ createEnv() {
               'AZ_CLIENT_SECRET=$AZ_CLIENT_SECRET\n'
               'AZ_TENANT_ID=$AZ_TENANT_ID\n'
               'AZ_SUBSCRIPTION_ID=$AZ_SUBSCRIPTION_ID\n'
-              'AZ_LOCATION=$AZ_LOCATION\n')
+              'AZ_LOCATION=$AZ_LOCATION\n'
+              'AZ_NODE_SIZE=$AZ_NODE_SIZE\n')
       FORMAT+=('$AZ_CLIENT_ID'
                '$AZ_CLIENT_SECRET'
                '$AZ_TENANT_ID'
                '$AZ_SUBSCRIPTION_ID'
-               '$AZ_LOCATION')
+               '$AZ_LOCATION'
+               '$AZ_NODE_SIZE')
 
       export AZ_CLIENT_ID=${AZ_CLIENT_ID}
       export AZ_CLIENT_SECRET=${AZ_CLIENT_SECRET}
       export AZ_TENANT_ID=${AZ_TENANT_ID}
       export AZ_SUBSCRIPTION_ID=${AZ_SUBSCRIPTION_ID}
       export AZ_LOCATION=${AZ_LOCATION}
+      export AZ_NODE_SIZE=${AZ_NODE_SIZE}
       ;;
     gcp)
       INPUT+=('PROJECT=$PROJECT\n'
@@ -289,6 +292,10 @@ parseArgs() {
       --azLocation)
         shift
         AZ_LOCATION=$1
+        ;;
+      --azNodeSize)
+        shift
+        AZ_NODE_SIZE=$1
         ;;
     esac
     shift
