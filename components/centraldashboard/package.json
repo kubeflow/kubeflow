@@ -1,6 +1,6 @@
 {
   "name": "kubeflow-centraldashboard",
-  "version": "0.4.0",
+  "version": "0.0.1",
   "description": "Kubeflow Central Dashboard",
   "scripts": {
     "build": "NODE_ENV=production npx webpack && npm run tslint && npm run build-ts",

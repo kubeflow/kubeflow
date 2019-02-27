@@ -6,7 +6,7 @@ COPY app/ ./app
 COPY public/ ./public
 COPY webpack.config.js *.json ./
 
-RUN npm install && npm run build
+RUN npm install && npm run build && npm prune --production
 
 EXPOSE 8080
 
