@@ -93,7 +93,7 @@
     // py scripts to use.
     kubeflowTestingPy: self.srcRootDir + "/kubeflow/testing/py",
     tfOperatorRoot: self.srcRootDir + "/kubeflow/tf-operator",
-    tfOperatorPy: self.tfOperatorRoot,
+    tfOperatorPy: self.tfOperatorRoot+ "/py",
 
     // Build an Argo template to execute a particular command.
     // step_name: Name for the template
@@ -423,7 +423,7 @@
       // py scripts to use.
       local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
       local tfOperatorRoot = srcRootDir + "/kubeflow/tf-operator";
-      local tfOperatorPy = tfOperatorRoot;
+      local tfOperatorPy = tfOperatorRoot + "/py"; 
 
       // VM to use for minikube.
       local vmName =
