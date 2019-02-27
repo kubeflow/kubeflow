@@ -184,7 +184,7 @@ const (
 	// STATIC
 	DOCKER_FOR_DESKTOP = "dockerfordesktop"
 	// -STATIC //
-	GCP = "gcp"
+	GCP      = "gcp"
 	NONE     = DefaultPlatform
 	MINIKUBE = "minikube"
 )
@@ -198,7 +198,7 @@ const (
 )
 
 type KfApps struct {
-	Platforms map[string]KfApp
+	Platforms       map[string]KfApp
 	PackageManagers map[string]KfApp
 }
 

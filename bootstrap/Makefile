@@ -57,13 +57,16 @@ vet:
 generate:
 	@$(GO) generate ./pkg/... ./cmd/...
 
-deepcopy:
-	@deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/pkg/apis/... -O zz_generated.deepcopy
+$(GOPATH)/bin/deepcopy-gen:
+	GO111MODULE=off $(GO) get k8s.io/code-generator/cmd/deepcopy-gen
+
+deepcopy: $(GOPATH)/bin/deepcopy-gen
+	$(GOPATH)/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/pkg/apis/... -O zz_generated.deepcopy
 
 build-bootstrap: generate fmt vet
 	$(GO) build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 
-build-kfctl: generate fmt vet
+build-kfctl: deepcopy generate fmt vet
 	$(GO) build -i -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
 
 build-local: build-bootstrap build-kfctl

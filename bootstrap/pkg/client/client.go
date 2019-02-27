@@ -31,7 +31,7 @@ import (
 func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	_client := &kfApp{
 		KfApps: kftypes.KfApps{
-			Platforms: make(map[string]kftypes.KfApp),
+			Platforms:       make(map[string]kftypes.KfApp),
 			PackageManagers: make(map[string]kftypes.KfApp),
 		},
 		Client: &cltypes.Client{

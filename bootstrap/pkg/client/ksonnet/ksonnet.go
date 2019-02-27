@@ -604,7 +604,7 @@ func (ksApp *KsApp) registryAdd(registry *kstypes.RegistryConfig) error {
 func (ksApp *KsApp) Show(resources kftypes.ResourceEnum, options map[string]interface{}) error {
 	capture := kftypes.Capture()
 	err := actions.RunShow(map[string]interface{}{
-		actions.OptionApp: ksApp.KApp,
+		actions.OptionApp:            ksApp.KApp,
 		actions.OptionComponentNames: []string{},
 		actions.OptionEnvName:        kstypes.KsEnvName,
 		actions.OptionFormat:         "yaml",
