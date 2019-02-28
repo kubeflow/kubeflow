@@ -188,7 +188,7 @@ func (ksApp *KsApp) Apply(resources kftypes.ResourceEnum, options map[string]int
 }
 
 func (ksApp *KsApp) getCompsFilePath() string {
-	return filepath.Join(ksApp.KsApp.Spec.AppDir, kstypes.KsEnvName+".yaml")
+	return filepath.Join(ksApp.KsApp.Spec.AppDir, kstypes.KsName, kstypes.KsEnvName+".yaml")
 }
 
 func (ksApp *KsApp) showComponent(components []string) error {
