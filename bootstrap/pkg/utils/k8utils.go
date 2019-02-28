@@ -295,7 +295,7 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 					return nil
 				}
 				log.Infof("Resource creation for %v is failed, backoff and retry: %v",
-					name, retryErr)
+					name, retryErr.Error())
 				return retryErr
 			}, backoff.NewExponentialBackOff())
 		}(idx, gk, config, group, version, namespace, name, data)
