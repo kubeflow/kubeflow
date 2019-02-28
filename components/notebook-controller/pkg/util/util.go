@@ -40,10 +40,10 @@ func CopyStatefulSetFields(from, to *appsv1.StatefulSet) bool {
 	}
 	to.Annotations = from.Annotations
 
-	if !reflect.DeepEqual(to.Spec, from.Spec) {
+	if !reflect.DeepEqual(to.Spec.Template.Spec, from.Spec.Template.Spec) {
 		requireUpdate = true
 	}
-	to.Spec = from.Spec
+	to.Spec.Template.Spec = from.Spec.Template.Spec
 
 	return requireUpdate
 }

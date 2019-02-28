@@ -179,16 +179,18 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 		}
 	}
 
-	// Update the status
+	// Update the status if previous condition is not "Ready"
 	oldConditions := instance.Status.Conditions
-	newCondition := v1alpha1.NotebookCondition{
-		Type: "Ready",
-	}
-	instance.Status.Conditions = append([]v1alpha1.NotebookCondition{newCondition}, oldConditions...)
-	// Using context.Background as: https://book.kubebuilder.io/basics/status_subresource.html
-	err = r.Status().Update(context.Background(), instance)
-	if err != nil {
-		return reconcile.Result{}, err
+	if len(oldConditions) == 0 || oldConditions[0].Type != "Ready" {
+		newCondition := v1alpha1.NotebookCondition{
+			Type: "Ready",
+		}
+		instance.Status.Conditions = append([]v1alpha1.NotebookCondition{newCondition}, oldConditions...)
+		// Using context.Background as: https://book.kubebuilder.io/basics/status_subresource.html
+		err = r.Status().Update(context.Background(), instance)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
 	}
 
 	return reconcile.Result{}, nil
