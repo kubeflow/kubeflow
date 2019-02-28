@@ -48,18 +48,20 @@ The default is 'all' for any selected platform.`,
 			return
 		}
 		email := generateCfg.GetString(string(kftypes.EMAIL))
+		ipName := generateCfg.GetString(string(kftypes.IPNAME))
+		hostName := generateCfg.GetString(string(kftypes.HOSTNAME))
 		zone := generateCfg.GetString(string(kftypes.ZONE))
 		mountLocal := generateCfg.GetBool(string(kftypes.MOUNT_LOCAL))
 		options := map[string]interface{}{
 			string(kftypes.EMAIL):       email,
+			string(kftypes.IPNAME):      ipName,
+			string(kftypes.HOSTNAME):    hostName,
 			string(kftypes.ZONE):        zone,
 			string(kftypes.MOUNT_LOCAL): mountLocal,
 		}
-		ipName := generateCfg.GetString(string(kftypes.IPNAME))
 		if ipName != "" {
 			options[string(kftypes.IPNAME)] = ipName
 		}
-		hostName := generateCfg.GetString(string(kftypes.HOSTNAME))
 		if hostName != "" {
 			options[string(kftypes.HOSTNAME)] = hostName
 		}
