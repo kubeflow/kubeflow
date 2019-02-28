@@ -67,7 +67,7 @@ else
 
 local masterSpec = replicaSpec("MASTER", num_masters, args, image);
 
-local job = if jobVersion == "v1beta1" || jobVersion == "v1alpha2" then {
+local job = if jobVersion == "v1beta1" || jobVersion == "v1beta2" then {
   apiVersion: "kubeflow.org/" + jobVersion,
   kind: "PyTorchJob",
   metadata: {
