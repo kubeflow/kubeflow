@@ -280,7 +280,7 @@ func (kfApp *kfApp) Generate(resources kftypes.ResourceEnum, options map[string]
 			}
 		}
 		for packageManagerName, packageManager := range kfApp.PackageManagers {
-			packageManagerErr := packageManager.Delete(kftypes.K8S, options)
+			packageManagerErr := packageManager.Generate(kftypes.K8S, options)
 			if packageManagerErr != nil {
 				return fmt.Errorf("kfApp Show failed for %v: %v", packageManagerName, packageManagerErr)
 			}
