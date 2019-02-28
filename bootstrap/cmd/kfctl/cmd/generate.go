@@ -37,7 +37,6 @@ var generateCmd = &cobra.Command{
 The default is 'all' for any selected platform.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.InfoLevel)
-		log.Info("generating kubeflow application")
 		if generateCfg.GetBool(string(kftypes.VERBOSE)) == true {
 			log.SetLevel(log.InfoLevel)
 		} else {
