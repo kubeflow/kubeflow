@@ -18,7 +18,7 @@ def parse_args():
           " a cluster and uses that cluster."))
   parser.add_argument(
       "--zone",
-      default="us-east1-c",
+      default="us-east1-d",
       type=str,
       help="The zone for the cluster.")
   parser.add_argument(
