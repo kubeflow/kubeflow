@@ -101,27 +101,33 @@ plugins:
 	@ex cmd/kfctl/cmd/root.go <hack/plugins || echo Plugin functionality enabled
 
 clean:
-	@rm -rf dockerfordesktop && \
-	rm -rf none && \
-	rm -rf gcp && \
-	rm -rf minikube
+	@rm -rf test
       
 test-known-platforms-init: clean install build-dockerfordesktop-plugin
-	@GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init dockerfordesktop -V --platform docker-for-desktop && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init `pwd`/none -V && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init $(PWD)/minikube -V --platform minikube && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init gcp -V --platform gcp --project $(GCLOUD_PROJECT) && \
+	@mkdir test && \
+	echo kfctl init test/dockerfordesktop -V --platform docker-for-desktop && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init `pwd`/test/dockerfordesktop -V --platform docker-for-desktop && \
+	echo kfctl init test/none -V && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init `pwd`/test/none -V && \
+	echo kfctl init test/minikube -V --platform minikube && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init $(PWD)/test/minikube -V --platform minikube && \
+	echo kfctl init test/gcp -V --platform gcp --project $(GCLOUD_PROJECT) && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init $(PWD)/test/gcp -V --platform gcp --project $(GCLOUD_PROJECT) && \
 	echo SUCCESS
 
 test-known-platforms-generate: test-known-platforms-init
-	@cd dockerfordesktop && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl generate all -V && \
+	@cd test/dockerfordesktop && \
+	echo 'kfctl generate all (--platform dockerfordesktop)' && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl generate all && \
 	cd ../none && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl generate all -V && \
+	echo 'kfctl generate all (--platform none)' && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl generate all && \
 	cd ../minikube && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl generate all -V --mount-local && \
+	echo 'kfctl generate all (--platform minikube)' && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl generate all --mount-local && \
 	cd ../gcp && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl generate all -V --email jsmith@acme.com && \
+	echo 'kfctl generate all (--platform gcp)' && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl generate all --email jsmith@acme.com && \
 	echo SUCCESS
 
 test-plugins-static: plugins test-known-platforms-generate static test-known-platforms-generate
