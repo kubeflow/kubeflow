@@ -430,19 +430,16 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 	}
 
 	ctx := context.Background()
-	ts, err := google.DefaultTokenSource(ctx, iam.CloudPlatformScope)
+	cluster, err := kftypes.GetClusterInfo(ctx, gcp.GcpApp.Spec.Project,
+		gcp.GcpApp.Spec.Zone, gcp.GcpApp.Name)
 	if err != nil {
-		return fmt.Errorf("Get token error: %v", err)
+		return fmt.Errorf("Get Cluster error: %v", err)
 	}
-	t, err := ts.Token()
+	client, err := kftypes.BuildConfigFromClusterInfo(ctx, cluster)
 	if err != nil {
-		return fmt.Errorf("Token retrieval error: %v", err)
+		return fmt.Errorf("Build ClientConfig error: %v", err)
 	}
-	client, clientErr := kftypes.BuildOutOfClusterConfig()
-	if clientErr != nil {
-		return fmt.Errorf("could not create client %v", clientErr)
-	}
-	client.BearerToken = t.AccessToken
+
 	k8sSpecsDir := path.Join(appDir, K8S_SPECS)
 	daemonsetPreloaded := filepath.Join(k8sSpecsDir, "daemonset-preloaded.yaml")
 	daemonsetPreloadedErr := kfctlutils.CreateResourceFromFile(client, daemonsetPreloaded)
