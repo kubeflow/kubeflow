@@ -204,6 +204,20 @@ func BuildOutOfClusterConfig() (*rest.Config, error) {
 	return config, nil
 }
 
+func ServerVersionWithConfig(client *rest.Config) (host string, version string, err error) {
+	clnt, clntErr := kubernetes.NewForConfig(client)
+	if clntErr != nil {
+		return "", "", fmt.Errorf("couldn't get clientset. Error: %v", err)
+	}
+	serverVersion, serverVersionErr := clnt.ServerVersion()
+	if serverVersionErr != nil {
+		return "", "", fmt.Errorf("couldn't get server version info. Error: %v", serverVersionErr)
+	}
+	re := regexp.MustCompile("^v[0-9]+.[0-9]+.[0-9]+")
+	version = re.FindString(serverVersion.String())
+	return client.Host, "version:" + version, nil
+}
+
 func ServerVersion() (host string, version string, err error) {
 	restApi, err := BuildOutOfClusterConfig()
 	if err != nil {
@@ -243,6 +257,15 @@ func GetClientOutOfCluster() (kubernetes.Interface, error) {
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		log.Fatalf("Can not get kubernetes client: %v", err)
+	}
+
+	return clientset, nil
+}
+
+func GetClientOutOfClusterWithConfig(config *rest.Config) (kubernetes.Interface, error) {
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return nil, fmt.Errorf("Can not get kubernetes client: %v", err)
 	}
 
 	return clientset, nil

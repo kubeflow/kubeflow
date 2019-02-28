@@ -130,9 +130,12 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 		email := options[string(kftypes.EMAIL)].(string)
 		_gcp.GcpApp.Spec.Email = email
 	}
-	if options[string(kftypes.ZONE)] != nil {
+	if options[string(kftypes.ZONE)] != nil &&
+		options[string(kftypes.ZONE)].(string) != "" {
 		zone := options[string(kftypes.ZONE)].(string)
 		_gcp.GcpApp.Spec.Zone = zone
+	} else if _gcp.GcpApp.Spec.Zone != "" {
+		options[string(kftypes.ZONE)] = _gcp.GcpApp.Spec.Zone
 	}
 	if options[string(kftypes.IPNAME)] != nil &&
 		options[string(kftypes.IPNAME)].(string) != "" {
@@ -141,9 +144,12 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	} else if _gcp.GcpApp.Name != "" {
 		_gcp.GcpApp.Spec.IpName = _gcp.GcpApp.Name + "-ip"
 	}
-	if options[string(kftypes.PROJECT)] != nil {
+	if options[string(kftypes.PROJECT)] != nil &&
+		options[string(kftypes.PROJECT)].(string) != "" {
 		project := options[string(kftypes.PROJECT)].(string)
 		_gcp.GcpApp.Spec.Project = project
+	} else if _gcp.GcpApp.Spec.Project != "" {
+		options[string(kftypes.PROJECT)] = _gcp.GcpApp.Spec.Project
 	}
 	if options[string(kftypes.HOSTNAME)] != nil &&
 		options[string(kftypes.HOSTNAME)].(string) != "" {
@@ -471,15 +477,15 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum, options map[string]interfa
 	if secretsErr != nil {
 		return fmt.Errorf("gcp apply could not create secrets Error %v", secretsErr)
 	}
-	// ks := gcp.Children[kftypes.KSONNET]
-	// if ks != nil {
-	// 	ksApplyErr := ks.Apply(resources, options)
-	// 	if ksApplyErr != nil {
-	// 		return fmt.Errorf("gcp apply failed for %v: %v", string(kftypes.KSONNET), ksApplyErr)
-	// 	}
-	// } else {
-	// 	return fmt.Errorf("%v not in Children", string(kftypes.KSONNET))
-	// }
+	ks := gcp.Children[kftypes.KSONNET]
+	if ks != nil {
+		ksApplyErr := ks.Apply(resources, options)
+		if ksApplyErr != nil {
+			return fmt.Errorf("gcp apply failed for %v: %v", string(kftypes.KSONNET), ksApplyErr)
+		}
+	} else {
+		return fmt.Errorf("%v not in Children", string(kftypes.KSONNET))
+	}
 	return nil
 }
 

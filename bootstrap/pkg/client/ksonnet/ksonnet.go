@@ -28,9 +28,10 @@ import (
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
-	// kfutils "github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
+	kfctlutils "github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
+	"golang.org/x/net/context"
 	"io/ioutil"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -120,12 +121,32 @@ func (ksApp *KsApp) writeConfigFile() error {
 }
 
 func (ksApp *KsApp) Apply(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	host, _, err := kftypes.ServerVersion()
+	log.Infof("ks.Apply: project = %v, zone = %v name = %v", options[string(kftypes.PROJECT)],
+		options[string(kftypes.ZONE)], ksApp.KsApp.Name)
+	if options[string(kftypes.PROJECT)] == nil || options[string(kftypes.PROJECT)].(string) == "" {
+		return fmt.Errorf("Couldn't find %v in KSONNET options ...", string(kftypes.PROJECT))
+	}
+	if options[string(kftypes.ZONE)] == nil || options[string(kftypes.ZONE)].(string) == "" {
+		return fmt.Errorf("Couldn't find %v in KSONNET options ...", string(kftypes.ZONE))
+	}
+	project := options[string(kftypes.PROJECT)].(string)
+	zone := options[string(kftypes.ZONE)].(string)
+	name := ksApp.KsApp.Name
+	ctx := context.Background()
+	cluster, err := kftypes.GetClusterInfo(ctx, project, zone, name)
+	if err != nil {
+		return err
+	}
+	config, err := kftypes.BuildConfigFromClusterInfo(ctx, cluster)
+	if err != nil {
+		return err
+	}
+	host, _, err := kftypes.ServerVersionWithConfig(config)
 	if err != nil {
 		return fmt.Errorf("couldn't get server version: %v", err)
 	}
 	log.Infof("ServerVersion: %v", host)
-	cli, cliErr := kftypes.GetClientOutOfCluster()
+	cli, cliErr := kftypes.GetClientOutOfClusterWithConfig(config)
 	if cliErr != nil {
 		return fmt.Errorf("couldn't create client Error: %v", cliErr)
 	}
@@ -135,7 +156,6 @@ func (ksApp *KsApp) Apply(resources kftypes.ResourceEnum, options map[string]int
 		return fmt.Errorf("couldn't create ksonnet env %v Error: %v", kstypes.KsEnvName, envSetErr)
 	}
 	//ks param set application name ${DEPLOYMENT_NAME}
-	name := ksApp.KsApp.Name
 	paramSetErr := ksApp.paramSet("application", "name", name)
 	if paramSetErr != nil {
 		return fmt.Errorf("couldn't set application component's name to %v Error: %v", name, paramSetErr)
@@ -151,10 +171,6 @@ func (ksApp *KsApp) Apply(resources kftypes.ResourceEnum, options map[string]int
 			return fmt.Errorf("couldn't create "+string(kftypes.NAMESPACE)+" %v Error: %v", namespace, nsErr)
 		}
 	}
-	// clientConfig, clientConfigErr := kftypes.GetClientConfig()
-	// if clientConfigErr != nil {
-	// 	return fmt.Errorf("couldn't load client config Error: %v", clientConfigErr)
-	// }
 	cwd, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("could not get current directory %v", err)
@@ -169,22 +185,7 @@ func (ksApp *KsApp) Apply(resources kftypes.ResourceEnum, options map[string]int
 		return fmt.Errorf("Writing config file error: %v", err)
 	}
 
-	// restCli, err := kftypes.BuildOutOfClusterConfig()
-	// if err != nil {
-	// 	return fmt.Errorf("Error creating rest.Config: %v", err)
-	// }
-	return nil
-	// return kfutils.CreateResourceFromFile(restCli, ksApp.getCompsFilePath())
-	//
-	// applyErr := ksApp.applyComponent([]string{"metacontroller"}, clientConfig)
-	// if applyErr != nil {
-	// 	return fmt.Errorf("couldn't create metacontroller component Error: %v", applyErr)
-	// }
-	// applyErr = ksApp.applyComponent([]string{"application"}, clientConfig)
-	// if applyErr != nil {
-	// 	return fmt.Errorf("couldn't create application component Error: %v", applyErr)
-	// }
-	// return nil
+	return kfctlutils.CreateResourceFromFile(config, ksApp.getCompsFilePath())
 }
 
 func (ksApp *KsApp) getCompsFilePath() string {
