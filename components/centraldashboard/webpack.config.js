@@ -1,20 +1,20 @@
 'use strict';
 
-const { resolve } = require('path');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
-const DefinePlugin = require('webpack').DefinePlugin;
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const ScriptExtHtmlWebpackPlugin = require('script-ext-html-webpack-plugin');
+const {resolve} = require('path')
+const CleanWebpackPlugin = require('clean-webpack-plugin')
+const CopyWebpackPlugin = require('copy-webpack-plugin')
+const DefinePlugin = require('webpack').DefinePlugin
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+const MiniCssExtractPlugin = require("mini-css-extract-plugin")
+const ScriptExtHtmlWebpackPlugin = require('script-ext-html-webpack-plugin')
 
-const NODE_MODULES = /\/node_modules\//;
-const ENV = process.env.NODE_ENV || 'development';
-const PKG_VERSION = require('./package.json').version;
-const SRC = resolve(__dirname, 'public');
-const COMPONENTS = resolve(SRC, 'components');
-const DESTINATION = resolve(__dirname, 'dist', 'public');
-const WEBCOMPONENTS = './node_modules/@webcomponents/webcomponentsjs';
+const ENV           = process.env.NODE_ENV || 'development'
+const NODE_MODULES  = /\/node_modules\//
+const PKG_VERSION   = require('./package.json').version
+const SRC           = resolve(__dirname, 'public')
+const COMPONENTS    = resolve(SRC, 'components')
+const DESTINATION   = resolve(__dirname, 'dist', 'public')
+const WEBCOMPONENTS = './node_modules/@webcomponents/webcomponentsjs'
 const POLYFILLS = [
     {
         from: resolve(WEBCOMPONENTS, '*.{js,map}'),
@@ -26,13 +26,13 @@ const POLYFILLS = [
         to: resolve(DESTINATION, 'webcomponentsjs', 'bundles'),
         flatten: true
     }
-];
+]
 
 // Rules for processing Polymer components to allow
 // external Pug templates and CSS files.
 const COMPONENT_RULES = [
     {
-        test: /\/components\/.*\.pug$/,
+        test: /\.pug$/,
         use: ['pug-loader']
     },
     {
@@ -156,6 +156,6 @@ module.exports = {
     ],
     devServer: {
         port: 8081,
-        proxy: { '/api': 'http://localhost:8080' }
+        proxy: {'/api': 'http://localhost:8080'}
     }
-};
+}

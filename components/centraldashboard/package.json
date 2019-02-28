@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "Kubeflow Central Dashboard",
   "scripts": {
-    "build": "NODE_ENV=production npx webpack && npm run tslint && npm run build-ts",
+    "build": "cross-env NODE_ENV=production npx webpack && npm run tslint && npm run build-ts",
     "build-ts": "tsc",
     "build-webpack": "npx webpack",
     "debug": "npm run build && npm run watch-debug",
@@ -53,12 +53,14 @@
   "devDependencies": {
     "@babel/core": "^7.3.4",
     "@babel/plugin-transform-runtime": "^7.3.4",
+    "@babel/polyfill": "^7.2.5",
     "@babel/preset-env": "^7.3.4",
     "@types/express": "^4.16.1",
     "babel-loader": "^8.0.5",
     "clean-webpack-plugin": "^1.0.1",
     "concurrently": "^4.1.0",
     "copy-webpack-plugin": "^5.0.0",
+    "cross-env": "^5.2.0",
     "css-loader": "^2.1.0",
     "exports-loader": "^0.7.0",
     "file-loader": "^3.0.1",
