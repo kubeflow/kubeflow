@@ -588,7 +588,7 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 		options[string(kftypes.HOSTNAME)] = gcp.GcpApp.Spec.Hostname
 	}
 	if options[string(kftypes.ZONE)] != nil {
-		gcp.GcpApp.Spec.Zone = kftypes.DefaultZone
+		gcp.GcpApp.Spec.Zone = options[string(kftypes.ZONE)].(string)
 	}
 	ks := gcp.Children[kftypes.KSONNET]
 	if ks != nil {
