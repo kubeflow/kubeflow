@@ -20,6 +20,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"strings"
+	"sync"
 
 	ksUtil "github.com/ksonnet/ksonnet/utils"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -195,13 +196,19 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 	}
 	objects := bytes.Split(data, []byte(yamlSeparator))
 	var o map[string]interface{}
-	for _, object := range objects {
+	errors := make([]error, len(objects))
+	var wg sync.WaitGroup
+	log.Infof("%v of resources creation ...", len(objects))
+	wg.Add(len(objects))
+	for idx, object := range objects {
 		if err = yaml.Unmarshal(object, &o); err != nil {
-			return err
+			return fmt.Errorf("Resource marshal error: %v", err)
 		}
 		a := o["apiVersion"]
 		if a == nil {
 			log.Warnf("Unknown resource: %v", object)
+			errors[idx] = nil
+			wg.Done()
 			continue
 		}
 
@@ -234,22 +241,44 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 			Group: group,
 			Kind:  kind,
 		}
-		result, err := mapper.RESTMapping(gk, version)
-		// result.resource is the resource we need (e.g. pods, services)
-		if err != nil {
-			return err
-		}
 
 		data, err := yaml.YAMLToJSON(object)
 		if err != nil {
-			return err
+			return fmt.Errorf("YAMLToJSON error: %v", err)
 		}
 
-		if err = patchOrCreate(result, config, group, version, namespace, name,
-			data); err != nil {
-			return fmt.Errorf("patchOrCreate error: %v", err)
-		}
+		go func(idx int, gk schema.GroupKind, config *rest.Config, group string,
+			version string, namespace string, name string, data []byte) {
+			log.Infof("Goroutine for %v is started ...", name)
+			defer func() {
+				log.Infof("Goroutine for %v is DONE ...", name)
+				wg.Done()
+			}()
+			for i := 0; i < 10; i++ {
+				log.Infof("Resource creation for %v ...", name)
+				// result.resource is the resource we need (e.g. pods, services)
+				mapping, err := mapper.RESTMapping(gk, version)
+				errors[idx] = err
+				if errors[idx] == nil {
+					errors[idx] = patchOrCreate(mapping, config, group, version,
+						namespace, name, data)
+				}
+				if errors[idx] == nil {
+					log.Infof("Resource creation for %v is finished ...", name)
+					return
+				}
+				log.Infof("Resource creation for %v is failed at %v attempt: %v",
+					name, i, errors[idx])
+				time.Sleep(1 * time.Minute)
+			}
+		}(idx, gk, config, group, version, namespace, name, data)
 	}
 
+	wg.Wait()
+	for _, e := range errors {
+		if e != nil {
+			return fmt.Errorf("CreateResourceFromFile is failed: %v", e)
+		}
+	}
 	return nil
 }
