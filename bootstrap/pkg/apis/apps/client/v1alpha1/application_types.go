@@ -20,7 +20,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// ClientSpec defines the desired state of Client
+// ClientSpec holds common attributes used by each platform
 type ClientSpec struct {
 	AppDir     string                      `json:"appdir,omitempty"`
 	Platform   string                      `json:"platform,omitempty"`

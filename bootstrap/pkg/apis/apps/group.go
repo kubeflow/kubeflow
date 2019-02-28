@@ -70,7 +70,6 @@ const (
 	PROJECT     CliOption = "project"
 	APPNAME     CliOption = "appname"
 	APPDIR      CliOption = "appDir"
-	KAPP        CliOption = "KApp"
 	DATA        CliOption = "Data"
 	ZONE        CliOption = "zone"
 )
@@ -178,10 +177,6 @@ const (
 	NONE               = DefaultPlatform
 	MINIKUBE           = "minikube"
 )
-
-type KfApps struct {
-	Children map[string]KfApp
-}
 
 func LoadPlatform(options map[string]interface{}) (KfApp, error) {
 	/* PLUGINS

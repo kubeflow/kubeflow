@@ -73,9 +73,15 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	}
 	if options[string(kftypes.APPDIR)] != nil {
 		_kfapp.KsApp.Spec.AppDir = options[string(kftypes.APPDIR)].(string)
-	}
-	if options[string(kftypes.KAPP)] != nil {
-		_kfapp.KApp = options[string(kftypes.KAPP)].(app.App)
+		ksDir := path.Join(_kfapp.KsApp.Spec.AppDir, kstypes.KsName)
+		if _, err := os.Stat(ksDir); !os.IsNotExist(err) {
+			fs := afero.NewOsFs()
+			kApp, kAppErr := app.Load(fs, nil, ksDir)
+			if kAppErr != nil {
+				log.Fatalf("there was a problem loading ksonnet app from %v. Error: %v", ksDir, kAppErr)
+			}
+			_kfapp.KApp = kApp
+		}
 	}
 	if options[string(kftypes.NAMESPACE)] != nil {
 		namespace := options[string(kftypes.NAMESPACE)].(string)
