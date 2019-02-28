@@ -22,6 +22,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/cenkalti/backoff"
 	ksUtil "github.com/ksonnet/ksonnet/utils"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -113,16 +114,28 @@ func deleteResource(mapping *meta.RESTMapping, config *rest.Config, group string
 		Do().
 		Get()
 
-	for {
-		time.Sleep(3 * time.Second)
-		err = getResource(mapping, config, group, version, namespace, name)
+	if err != nil {
 		if k8serrors.IsNotFound(err) {
+			return nil
+		} else {
+			return fmt.Errorf("Resource deletion error: %v", err)
+		}
+	}
+
+	return backoff.Retry(func() error {
+		getErr := getResource(mapping, config, group, version, namespace, name)
+		if k8serrors.IsNotFound(getErr) {
 			log.Infof("%v in namespace %v is deleted ...", name, namespace)
 			return nil
 		} else {
-			log.Infof("%v in namespace %v is being deleted ...", name, namespace)
+			msg := fmt.Sprintf("%v in namespace %v is being deleted ...",
+				name, namespace)
+			if getErr != nil {
+				msg = msg + getErr.Error()
+			}
+			return fmt.Errorf(msg)
 		}
-	}
+	}, backoff.NewExponentialBackOff())
 }
 
 func createResource(mapping *meta.RESTMapping, config *rest.Config, group string,
@@ -262,27 +275,29 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 		go func(idx int, gk schema.GroupKind, config *rest.Config, group string,
 			version string, namespace string, name string, data []byte) {
 			log.Infof("Goroutine for %v is started ...", name)
+			var resourceErr error
+			resourceErr = nil
 			defer func() {
 				log.Infof("Goroutine for %v is DONE ...", name)
+				errors[idx] = resourceErr
 				wg.Done()
 			}()
-			for i := 0; i < 10; i++ {
-				log.Infof("Resource creation for %v ...", name)
+
+			resourceErr = backoff.Retry(func() error {
 				// result.resource is the resource we need (e.g. pods, services)
-				mapping, err := mapper.RESTMapping(gk, version)
-				errors[idx] = err
-				if errors[idx] == nil {
-					errors[idx] = patchOrCreate(mapping, config, group, version,
+				mapping, retryErr := mapper.RESTMapping(gk, version)
+				if retryErr == nil {
+					retryErr = patchOrCreate(mapping, config, group, version,
 						namespace, name, data)
 				}
-				if errors[idx] == nil {
+				if retryErr == nil {
 					log.Infof("Resource creation for %v is finished ...", name)
-					return
+					return nil
 				}
-				log.Infof("Resource creation for %v is failed at %v attempt: %v",
-					name, i, errors[idx])
-				time.Sleep(1 * time.Minute)
-			}
+				log.Infof("Resource creation for %v is failed, backoff and retry: %v",
+					name, retryErr)
+				return retryErr
+			}, backoff.NewExponentialBackOff())
 		}(idx, gk, config, group, version, namespace, name, data)
 	}
 
