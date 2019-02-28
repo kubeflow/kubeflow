@@ -202,7 +202,10 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 	wg.Add(len(objects))
 	for idx, object := range objects {
 		if err = yaml.Unmarshal(object, &o); err != nil {
-			return fmt.Errorf("Resource marshal error: %v", err)
+			log.Warnf("Resource marshal error: %v", err)
+			errors[idx] = nil
+			wg.Done()
+			continue
 		}
 		a := o["apiVersion"]
 		if a == nil {
@@ -214,6 +217,12 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 
 		// Identify the name of deployment.
 		metadata := o["metadata"].(map[string]interface{})
+		if metadata["name"] == nil {
+			log.Warnf("Cannot name in resource: %v", string(object))
+			errors[idx] = nil
+			wg.Done()
+			continue
+		}
 		name := metadata["name"].(string)
 		log.Infof("creating %v\n", name)
 
@@ -244,7 +253,10 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 
 		data, err := yaml.YAMLToJSON(object)
 		if err != nil {
-			return fmt.Errorf("YAMLToJSON error: %v", err)
+			log.Warnf("YAMLToJSON error for %v: %v", name, err)
+			errors[idx] = nil
+			wg.Done()
+			continue
 		}
 
 		go func(idx int, gk schema.GroupKind, config *rest.Config, group string,
