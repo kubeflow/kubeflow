@@ -6,6 +6,7 @@
     var username = "notebook"
     var namespace = "{{ ns }}"
     var existingPVCs = ""
+    var default_storage_class = "{{ default_storage_class }}"
   </script>
   <script src="{{ prefix + url_for('static', filename='js/add_notebook.js') }}"></script>
 {% endblock %}

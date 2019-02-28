@@ -13,6 +13,7 @@ except ConfigException:
 # Create the Apis
 v1_core = client.CoreV1Api()
 custom_api = client.CustomObjectsApi()
+storage_api = client.StorageV1Api()
 
 
 def parse_error(e):
@@ -28,6 +29,24 @@ def parse_error(e):
 
 def get_secret(nm, ns):
   return v1_core.read_namespaced_secret(nm, ns)
+
+
+def get_default_storageclass():
+  strg_classes = storage_api.list_storage_class().items
+  for strgclss in strg_classes:
+    annotations = strgclss.metadata.annotations
+    # List of possible annotations
+    keys = []
+    keys.append("storageclass.kubernetes.io/is-default-class")
+    keys.append("storageclass.beta.kubernetes.io/is-default-class")  # GKE
+
+    for key in keys:
+      is_default = annotations.get(key, False)
+      if is_default:
+        return strgclss.metadata.name
+
+  # No StorageClass is default
+  return ""
 
 
 def get_namespaces():

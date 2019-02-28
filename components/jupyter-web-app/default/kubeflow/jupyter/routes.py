@@ -4,18 +4,19 @@ from flask import jsonify, render_template, request
 from kubernetes.client.rest import ApiException
 from kubeflow.jupyter import app
 from kubeflow.jupyter.server import parse_error, \
-            get_namespaces, \
-            get_notebooks, \
-            delete_notebook, \
-            create_notebook, \
-            create_pvc
+    get_namespaces, \
+    get_notebooks, \
+    get_default_storageclass, \
+    delete_notebook, \
+    create_notebook, \
+    create_pvc
 from kubeflow.jupyter.utils import create_notebook_template, \
-            create_pvc_template, \
-            set_notebook_names, \
-            set_notebook_image, \
-            set_notebook_cpu_ram, \
-            add_notebook_volume, \
-            spawner_ui_config
+    create_pvc_template, \
+    set_notebook_names, \
+    set_notebook_image, \
+    set_notebook_cpu_ram, \
+    add_notebook_volume, \
+    spawner_ui_config
 
 
 # Helper function for getting the prefix of the webapp
@@ -128,9 +129,17 @@ def add_notebook_route():
   else:
     ns = "kubeflow"
 
+  is_default = False
+  try:
+    if get_default_storageclass() != "":
+      is_default = True
+  except ApiException:
+    pass
+
   form_defaults = spawner_ui_config("notebook")
   return render_template(
-      'add_notebook.html', prefix=prefix(), ns=ns, form_defaults=form_defaults)
+      'add_notebook.html', prefix=prefix(), ns=ns, form_defaults=form_defaults,
+      default_storage_class=is_default)
 
 
 @app.route("/delete-notebook", methods=['GET', 'POST'])
