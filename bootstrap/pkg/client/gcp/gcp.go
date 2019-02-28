@@ -278,9 +278,7 @@ func blockingWait(project string, opName string, deploymentmanagerService *deplo
 		} else if err != nil {
 			return backoff.Permanent(fmt.Errorf("Deployment error: %v", err))
 		}
-		// Need to format string in this way to add percentage character.
-		warn := fmt.Sprintf("Deployment service is not ready: %v at %v", op.Status, op.Progress) + "%"
-		log.Warn(warn)
+		log.Warnf("Deployment service is not ready: %v", op.Status)
 		name = op.Name
 		return fmt.Errorf("Deployment is not ready: %v", op.Status)
 	}, backoff.NewExponentialBackOff())
