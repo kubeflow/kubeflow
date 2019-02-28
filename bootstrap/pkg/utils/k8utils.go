@@ -155,6 +155,7 @@ func createResource(mapping *meta.RESTMapping, config *rest.Config, group string
 	return err
 }
 
+// TODO(#2585): Should try to have 3 way merge functionality.
 func patchOrCreate(mapping *meta.RESTMapping, config *rest.Config, group string,
 	version string, namespace string, name string, data []byte) error {
 	log.Infof("Applying resource configuration for %v", name)
@@ -189,7 +190,6 @@ func patchOrCreate(mapping *meta.RESTMapping, config *rest.Config, group string,
 	return err
 }
 
-// TODO COPIED from bootstrap/app/k8sUtil.go. Need to merge.
 // CreateResourceFromFile creates resources from a file, just like `kubectl create -f filename`
 // We use some libraries in an old way (e.g. the RestMapper is in discovery instead of restmapper)
 // because ksonnet (one of our dependency) is using the old library version.

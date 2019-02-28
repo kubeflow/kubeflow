@@ -1,3 +1,19 @@
+/*
+Copyright The Kubernetes Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package utils
 
 import (
@@ -12,7 +28,7 @@ import (
 	"net/http"
 )
 
-func GetServiceClient(ctx context.Context) (*http.Client, error) {
+func getServiceClient(ctx context.Context) (*http.Client, error) {
 	client, err := google.DefaultClient(ctx, cloudresourcemanager.CloudPlatformScope)
 	if err != nil {
 		log.Fatalf("Could not get authenticated client: %v", err)
@@ -21,7 +37,7 @@ func GetServiceClient(ctx context.Context) (*http.Client, error) {
 	return client, nil
 }
 
-func TransformSliceToInterface(slice []string) []interface{} {
+func transformSliceToInterface(slice []string) []interface{} {
 	ret := make([]interface{}, len(slice))
 	for i, m := range slice {
 		ret[i] = m
@@ -29,7 +45,7 @@ func TransformSliceToInterface(slice []string) []interface{} {
 	return ret
 }
 
-func TransformInterfaceToSlice(inter []interface{}) []string {
+func transformInterfaceToSlice(inter []interface{}) []string {
 	ret := make([]string, len(inter))
 	for i, m := range inter {
 		ret[i] = m.(string)
@@ -37,10 +53,10 @@ func TransformInterfaceToSlice(inter []interface{}) []string {
 	return ret
 }
 
-func GetBindingSet(policy *cloudresourcemanager.Policy) map[string]mapset.Set {
+func getBindingSet(policy *cloudresourcemanager.Policy) map[string]mapset.Set {
 	bindings := make(map[string]mapset.Set)
 	for _, binding := range policy.Bindings {
-		val := TransformSliceToInterface(binding.Members)
+		val := transformSliceToInterface(binding.Members)
 		if set, ok := bindings[binding.Role]; ok {
 			set.Union(mapset.NewSetFromSlice(val))
 		} else {
@@ -50,9 +66,10 @@ func GetBindingSet(policy *cloudresourcemanager.Policy) map[string]mapset.Set {
 	return bindings
 }
 
+// Gets IAM plicy from GCP for the whole project.
 func GetIamPolicy(project string) (*cloudresourcemanager.Policy, error) {
 	ctx := context.Background()
-	client, clientErr := GetServiceClient(ctx)
+	client, clientErr := getServiceClient(ctx)
 	if clientErr != nil {
 		return nil, clientErr
 	}
@@ -65,6 +82,7 @@ func GetIamPolicy(project string) (*cloudresourcemanager.Policy, error) {
 	return service.Projects.GetIamPolicy(project, req).Context(ctx).Do()
 }
 
+// TODO: Move type definitions to appropriate place.
 type Members []string
 type Roles []string
 
@@ -77,6 +95,7 @@ type IamBindingsYAML struct {
 	Bindings []Bindings
 }
 
+// Reads IAM bindings file in YAML format.
 func ReadIamBindingsYAML(filename string) (*cloudresourcemanager.Policy, error) {
 	buf, bufErr := ioutil.ReadFile(filename)
 	if bufErr != nil {
@@ -90,7 +109,7 @@ func ReadIamBindingsYAML(filename string) (*cloudresourcemanager.Policy, error) 
 
 	entries := make(map[string]mapset.Set)
 	for _, binding := range iam.Bindings {
-		membersSet := mapset.NewSetFromSlice(TransformSliceToInterface(binding.Members))
+		membersSet := mapset.NewSetFromSlice(transformSliceToInterface(binding.Members))
 		for _, role := range binding.Roles {
 			if m, ok := entries[role]; ok {
 				m.Union(membersSet)
@@ -104,22 +123,23 @@ func ReadIamBindingsYAML(filename string) (*cloudresourcemanager.Policy, error) 
 	for role, members := range entries {
 		policy.Bindings = append(policy.Bindings, &cloudresourcemanager.Binding{
 			Role:    role,
-			Members: TransformInterfaceToSlice(members.ToSlice()),
+			Members: transformInterfaceToSlice(members.ToSlice()),
 		})
 	}
 
 	return policy, nil
 }
 
+// Either patch or remove role bindings from `src` policy.
 func RewriteIamPolicy(src *cloudresourcemanager.Policy,
 	adding *cloudresourcemanager.Policy,
 	deleting *cloudresourcemanager.Policy) error {
 	if src == nil {
 		return fmt.Errorf("Source IAM policy is nil.")
 	}
-	curr := GetBindingSet(src)
+	curr := getBindingSet(src)
 	if adding != nil {
-		patch := GetBindingSet(adding)
+		patch := getBindingSet(adding)
 		for role, members := range patch {
 			log.Infof("%v adding: %+v", role, members)
 			if m, ok := curr[role]; ok {
@@ -130,7 +150,7 @@ func RewriteIamPolicy(src *cloudresourcemanager.Policy,
 		}
 	}
 	if deleting != nil {
-		removal := GetBindingSet(deleting)
+		removal := getBindingSet(deleting)
 		for role, members := range removal {
 			if m, ok := curr[role]; ok {
 				m.Difference(members)
@@ -141,9 +161,10 @@ func RewriteIamPolicy(src *cloudresourcemanager.Policy,
 	return nil
 }
 
+// "Override" project's IAM policy with given config.
 func SetIamPolicy(project string, policy *cloudresourcemanager.Policy) error {
 	ctx := context.Background()
-	client, clientErr := GetServiceClient(ctx)
+	client, clientErr := getServiceClient(ctx)
 	if clientErr != nil {
 		return clientErr
 	}
