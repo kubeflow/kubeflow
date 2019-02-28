@@ -137,6 +137,7 @@ func LoadPlatform(options map[string]interface{}) (KfApp, error) {
 	// -STATIC //
 }
 
+// TODO(#2586): Consolidate kubeconfig and API calls.
 func KubeConfigPath() string {
 	kubeconfigEnv := os.Getenv("KUBECONFIG")
 	if kubeconfigEnv == "" {
