@@ -27,7 +27,7 @@ import re
 import subprocess
 from kubeflow.testing import test_helper, util
 from kubernetes import client as k8s_client
-from kubflow.tf_operator import tf_job_client
+from kubeflow.tf_operator import tf_job_client
 from retrying import retry
 
 NAMESPACE = "default"
