@@ -42,7 +42,7 @@ We currently use the cluster
 
 ```
 PROJECT=kubeflow-ci
-ZONE=us-east1-c
+ZONE=us-east1-d
 CLUSTER=kubeflow-testing
 NAMESPACE=kubeflow-test-infra
 ```
@@ -88,7 +88,7 @@ Create a GKE cluster
 
 ```
 PROJECT=kubeflow-ci
-ZONE=us-east1-c
+ZONE=us-east1-d
 CLUSTER=kubeflow-testing
 NAMESPACE=kubeflow-test-infra
 

@@ -39,7 +39,7 @@
     tf_testing_image: "gcr.io/kubeflow-ci/tf-test-worker:1.0",
     project: "kubeflow-ci",
     cluster: "kubeflow-testing",
-    zone: "us-east1-c",
+    zone: "us-east1-d",
   },
 
   parts(namespace, name, overrides={}):: {

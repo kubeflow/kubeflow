@@ -23,7 +23,7 @@ set -ex
 if [ -f /src/${REPO_OWNER}/${REPO_NAME}/prow_config.yaml ]; then
   python -m kubeflow.testing.run_e2e_workflow \
     --project=kubeflow-ci \
-    --zone=us-east1-c \
+    --zone=us-east1-d \
     --cluster=kubeflow-testing \
     --bucket=kubernetes-jenkins \
     --config_file=/src/${REPO_OWNER}/${REPO_NAME}/prow_config.yaml \
@@ -31,7 +31,7 @@ if [ -f /src/${REPO_OWNER}/${REPO_NAME}/prow_config.yaml ]; then
 else
   python -m kubeflow.testing.run_e2e_workflow \
     --project=kubeflow-ci \
-    --zone=us-east1-c \
+    --zone=us-east1-d \
     --cluster=kubeflow-testing \
     --bucket=kubernetes-jenkins \
     --component=workflows \
