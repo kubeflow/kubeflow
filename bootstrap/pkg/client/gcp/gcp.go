@@ -680,11 +680,9 @@ func (gcp *Gcp) Init(resources kftypes.ResourceEnum, options map[string]interfac
 	if createConfigErr != nil {
 		return fmt.Errorf("cannot create config file app.yaml in %v", gcp.GcpApp.Spec.AppDir)
 	}
-
 	initProjectErr := gcp.gcpInitProject()
 	if initProjectErr != nil {
 		return fmt.Errorf("cannot init gcp project %v", initProjectErr)
 	}
-
 	return nil
 }

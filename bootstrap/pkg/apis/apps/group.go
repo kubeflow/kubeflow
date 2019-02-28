@@ -70,7 +70,6 @@ const (
 	PROJECT     CliOption = "project"
 	APPNAME     CliOption = "appname"
 	APPDIR      CliOption = "appDir"
-	KAPP        CliOption = "KApp"
 	DATA        CliOption = "Data"
 	ZONE        CliOption = "zone"
 )
@@ -196,11 +195,6 @@ const (
 	// -STATIC //
 	KSONNET = "ksonnet"
 )
-
-type KfApps struct {
-	Platforms       map[string]KfApp
-	PackageManagers map[string]KfApp
-}
 
 func LoadPlatform(options map[string]interface{}) (KfApp, error) {
 	/* PLUGINS

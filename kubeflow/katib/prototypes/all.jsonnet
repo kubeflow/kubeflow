@@ -3,16 +3,16 @@
 // @description Kubeflow hyperparameter tuning component
 // @shortDescription hp-tuning
 // @param name string Name to give to each of the components
-// @optionalParam suggestionRandomImage string gcr.io/kubeflow-images-public/katib/suggestion-random:v0.1.2-alpha-113-ga24c428 The image for random suggestion.
-// @optionalParam suggestionGridImage string gcr.io/kubeflow-images-public/katib/suggestion-grid:v0.1.2-alpha-113-ga24c428 The image for grid suggestion.
-// @optionalParam suggestionHyperbandImage string gcr.io/kubeflow-images-public/katib/suggestion-hyperband:v0.1.2-alpha-113-ga24c428 The image for grid suggestion.
-// @optionalParam suggestionBayesianOptimizationImage string gcr.io/kubeflow-images-public/katib/suggestion-bayesianoptimization:v0.1.2-alpha-113-ga24c428 The image for grid suggestion.
-// @optionalParam vizierCoreImage string gcr.io/kubeflow-images-public/katib/vizier-core:v0.1.2-alpha-113-ga24c428 The image for vizier core.
-// @optionalParam vizierCoreRestImage string gcr.io/kubeflow-images-public/katib/vizier-core-rest:v0.1.2-alpha-113-ga24c428 The image for vizier core rest.
-// @optionalParam katibUIImage string gcr.io/kubeflow-images-public/katib/katib-ui:v0.1.2-alpha-113-ga24c428 The image for katib ui.
+// @optionalParam suggestionRandomImage string gcr.io/kubeflow-images-public/katib/suggestion-random:v0.1.2-alpha-138-g26da3ea The image for random suggestion.
+// @optionalParam suggestionGridImage string gcr.io/kubeflow-images-public/katib/suggestion-grid:v0.1.2-alpha-138-g26da3ea The image for grid suggestion.
+// @optionalParam suggestionHyperbandImage string gcr.io/kubeflow-images-public/katib/suggestion-hyperband:v0.1.2-alpha-138-g26da3ea The image for grid suggestion.
+// @optionalParam suggestionBayesianOptimizationImage string gcr.io/kubeflow-images-public/katib/suggestion-bayesianoptimization:v0.1.2-alpha-138-g26da3ea The image for grid suggestion.
+// @optionalParam vizierCoreImage string gcr.io/kubeflow-images-public/katib/vizier-core:v0.1.2-alpha-138-g26da3ea The image for vizier core.
+// @optionalParam vizierCoreRestImage string gcr.io/kubeflow-images-public/katib/vizier-core-rest:v0.1.2-alpha-138-g26da3ea The image for vizier core rest.
+// @optionalParam katibUIImage string gcr.io/kubeflow-images-public/katib/katib-ui:v0.1.2-alpha-138-g26da3ea The image for katib ui.
 // @optionalParam vizierDbImage string mysql:8.0.3 The image for vizier db.
-// @optionalParam studyJobControllerImage string gcr.io/kubeflow-images-public/katib/studyjob-controller:v0.1.2-alpha-113-ga24c428 The image for studyjob-controller.
-// @optionalParam metricsCollectorImage string gcr.io/kubeflow-images-public/katib/metrics-collector:v0.1.2-alpha-113-ga24c428 The image for metrics-collector.
+// @optionalParam studyJobControllerImage string gcr.io/kubeflow-images-public/katib/studyjob-controller:v0.1.2-alpha-138-g26da3ea The image for studyjob-controller.
+// @optionalParam metricsCollectorImage string gcr.io/kubeflow-images-public/katib/metrics-collector:v0.1.2-alpha-138-g26da3ea The image for metrics-collector.
 
 local k = import "k.libsonnet";
 
