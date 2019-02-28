@@ -615,7 +615,7 @@ def main(unparsed_args=None):
   parser.add_argument(
       "--iap_wait_min", default=30, type=int, help="minutes to wait for IAP")
   parser.add_argument(
-      "--zone", default="us-east1-d", type=str, help="GKE cluster zone")
+      "--zone", default="us-east1-c", type=str, help="GKE cluster zone")
   parser.add_argument(
       "--sa_client_id",
       default="111670663612681935351",

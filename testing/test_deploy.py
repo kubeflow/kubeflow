@@ -723,7 +723,7 @@ def main():  # pylint: disable=too-many-locals,too-many-statements
 
   parser_minikube.add_argument(
       "--zone",
-      default="us-east1-d",
+      default="us-east1-c",
       type=str,
       help="The zone for the cluster.")
 
@@ -734,7 +734,7 @@ def main():  # pylint: disable=too-many-locals,too-many-statements
 
   parser_teardown_minikube.add_argument(
       "--zone",
-      default="us-east1-d",
+      default="us-east1-c",
       type=str,
       help="The zone for the cluster.")
 

@@ -202,7 +202,7 @@ local dagTemplates = [
         "--project",
         project,
         "--zone",
-        "us-east1-d",
+        "us-east1-c",
         // Temporary fix for https://github.com/kubeflow/kubeflow/issues/1562
         "--skipInitProject",
         "--gkeApiVersion",

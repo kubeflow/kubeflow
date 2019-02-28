@@ -196,7 +196,7 @@ local dagTemplates = [
         bootstrapDir + "/" + manifest,
         name,
         "kubeflow-testing",
-        "us-east1-d",
+        "us-east1-c",
         "kubeflow-ci",
         name,
       ],
@@ -233,7 +233,7 @@ local exitTemplates =
           bootstrapDir + "/test_delete.sh",
           "periodic-test",
           "kubeflow-testing",
-          "us-east1-d",
+          "us-east1-c",
           name,
         ],
         working_dir=testDir
