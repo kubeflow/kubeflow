@@ -443,7 +443,7 @@
           deploymentName
         else
           "";
-      local zone = "us-east1-d";
+      local zone = "us-east1-c";
       // Build an Argo template to execute a particular command.
       // step_name: Name for the template
       // command: List to pass as the container command.
