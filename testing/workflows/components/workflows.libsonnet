@@ -213,7 +213,7 @@
           command: [
             "python",
             "-m",
-            "kubflow.tf_operator.simple_tfjob_tests",
+            "kubeflow.tf_operator.simple_tfjob_tests",
             "--app_dir=" + tests.tfOperatorRoot + "/test/workflows",
             "--tfjob_version=v1beta1",
             // Name is used for the test case name so it should be unique across
