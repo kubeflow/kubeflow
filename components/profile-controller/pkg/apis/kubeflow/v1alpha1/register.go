@@ -21,7 +21,7 @@ limitations under the License.
 // +k8s:deepcopy-gen=package,register
 // +k8s:conversion-gen=github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/kubeflow
 // +k8s:defaulter-gen=TypeMeta
-// +groupName=kubeflow.kubeflow.org
+// +groupName=kubeflow.org
 package v1alpha1
 
 import (

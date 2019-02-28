@@ -4,13 +4,13 @@ metadata:
   creationTimestamp: null
   labels:
     controller-tools.k8s.io: "1.0"
-  name: profiles.kubeflow.kubeflow.org
+  name: profiles.kubeflow.org
 spec:
-  group: kubeflow.kubeflow.org
+  group: kubeflow.org
   names:
     kind: Profile
     plural: profiles
-  scope: Namespaced
+  scope: Cluster
   validation:
     openAPIV3Schema:
       properties:

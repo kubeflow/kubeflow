@@ -35,6 +35,7 @@ type ProfileStatus struct {
 
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +genclient:nonNamespaced
 
 // Profile is the Schema for the profiles API
 // +k8s:openapi-gen=true

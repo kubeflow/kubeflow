@@ -1,4 +1,4 @@
-apiVersion: kubeflow.kubeflow.org/v1alpha1
+apiVersion: kubeflow.org/v1alpha1
 kind: Profile
 metadata:
   labels:
