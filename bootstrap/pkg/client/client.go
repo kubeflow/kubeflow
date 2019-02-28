@@ -1,19 +1,32 @@
+/*
+Copyright The Kubernetes Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package client
 
 import (
 	"fmt"
 	"github.com/ghodss/yaml"
-	"github.com/ksonnet/ksonnet/pkg/app"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	cltypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/client/v1alpha1"
-	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/gcp"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksonnet"
 	// STATIC
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/kustomize"
 	// -STATIC //
 	"github.com/mitchellh/go-homedir"
-	"github.com/spf13/afero"
 	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
@@ -28,12 +41,13 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// The common entry point used to retrieve an implementation of KfApp.
+// In this case it returns a composite class (kfApp) which aggregates
+// platform and ksonnet implementations in Children.
 func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	_client := &kfApp{
-		KfApps: kftypes.KfApps{
-			Platforms:       make(map[string]kftypes.KfApp),
-			PackageManagers: make(map[string]kftypes.KfApp),
-		},
+		Platforms:       make(map[string]kftypes.KfApp),
+		PackageManagers: make(map[string]kftypes.KfApp),
 		Client: &cltypes.Client{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "Client",
@@ -87,6 +101,9 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	return _client
 }
 
+// GetPlatform will return an implementation of kftypes.KfApp that matches the platform string
+// It looks for statically compiled-in implementations, otherwise it delegates to
+// kftypes.LoadPlatform which will try and dynamically load a .so
 func GetPlatform(options map[string]interface{}) (kftypes.KfApp, error) {
 	platform := options[string(kftypes.PLATFORM)].(string)
 	switch platform {
@@ -106,6 +123,8 @@ func GetPlatform(options map[string]interface{}) (kftypes.KfApp, error) {
 	}
 }
 
+// NewKfApp is called from the Init subcommand and will create a directory based on
+// the path/name argument given to the Init subcommand
 func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	//appName can be a path
 	appName := options[string(kftypes.APPNAME)].(string)
@@ -145,6 +164,8 @@ and must start and end with an alphanumeric character`, appName)
 	return pApp, nil
 }
 
+// LoadKfApp is called from subcommands Apply, Delete, Generate and assumes the existence of an app.yaml
+// file which was created by the Init subcommand. It sets options needed by these subcommands
 func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	appDir, err := os.Getwd()
 	if err != nil {
@@ -158,31 +179,30 @@ func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 		return nil, fmt.Errorf("couldn't read %v. Error: %v", cfgfile, bufErr)
 	}
 	var v interface{}
-	yaml.Unmarshal(buf, &v)
+	err = yaml.Unmarshal(buf, &v)
+	if err != nil {
+		return nil, fmt.Errorf("could not unmarshal %v. Error: %v", cfgfile, err)
+	}
 	data := v.(map[string]interface{})
 	metadata := data["metadata"].(map[string]interface{})
 	spec := data["spec"].(map[string]interface{})
 	platform := spec["platform"].(string)
 	appName = metadata["name"].(string)
 	appDir = spec["appdir"].(string)
-	fs := afero.NewOsFs()
-	ksDir := path.Join(appDir, kstypes.KsName)
-	kApp, kAppErr := app.Load(fs, nil, ksDir)
-	if kAppErr != nil {
-		return nil, fmt.Errorf("there was a problem loading app %v. Error: %v", appName, kAppErr)
-	}
 	options[string(kftypes.PLATFORM)] = platform
 	options[string(kftypes.APPNAME)] = appName
 	options[string(kftypes.APPDIR)] = appDir
-	options[string(kftypes.KAPP)] = kApp
 	options[string(kftypes.DATA)] = buf
 	pApp := GetKfApp(options)
 	return pApp, nil
 }
 
+// this type holds platform implementations of KfApp and ksonnet (also an implementation of KfApp)
+// It also holds data attributes in cltypes.Client used by all implementations
 type kfApp struct {
-	kftypes.KfApps
-	Client *cltypes.Client
+	Platforms       map[string]kftypes.KfApp
+	PackageManagers map[string]kftypes.KfApp
+	Client          *cltypes.Client
 }
 
 func (kfApp *kfApp) Apply(resources kftypes.ResourceEnum, options map[string]interface{}) error {
@@ -276,6 +296,12 @@ func (kfApp *kfApp) Init(resources kftypes.ResourceEnum, options map[string]inte
 	case kftypes.PLATFORM:
 		fallthrough
 	case kftypes.ALL:
+		for packageManagerName, packageManager := range kfApp.PackageManagers {
+			packageManagerErr := packageManager.Init(kftypes.K8S, options)
+			if packageManagerErr != nil {
+				return fmt.Errorf("kfApp Init failed for %v: %v", packageManagerName, packageManagerErr)
+			}
+		}
 		if !(kfApp.Client.Spec.Platform == "" || kfApp.Client.Spec.Platform == kftypes.NONE) {
 			platform := kfApp.Platforms[kfApp.Client.Spec.Platform]
 			if platform != nil {
@@ -285,12 +311,6 @@ func (kfApp *kfApp) Init(resources kftypes.ResourceEnum, options map[string]inte
 				}
 			} else {
 				return fmt.Errorf("%v not in Platforms", kfApp.Client.Spec.Platform)
-			}
-		}
-		for packageManagerName, packageManager := range kfApp.PackageManagers {
-			packageManagerErr := packageManager.Init(kftypes.K8S, options)
-			if packageManagerErr != nil {
-				return fmt.Errorf("kfApp Init failed for %v: %v", packageManagerName, packageManagerErr)
 			}
 		}
 	}

@@ -2,8 +2,4 @@
 /.ksonnet/registries
 /app.override.yaml
 /reg_tmp/**
-/none
-/gcp
-/minikube
-/dockerfordesktop
-/kustomize
+/test

@@ -30,16 +30,13 @@ export GO = go
 	@$(GO) build -i -gcflags 'all=-N -l' -o bin/$*.so -buildmode=plugin cmd/plugins/$*/$*.go
 
 %.init:
-	@echo kfctl init $* $(VERBOSE) --platform $* --project $(GCLOUD_PROJECT)
-	@GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(PWD)/$* $(VERBOSE) --platform $* --project $(GCLOUD_PROJECT)
+	@echo kfctl init test/$* $(VERBOSE) --platform $* --project $(GCLOUD_PROJECT) && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(PWD)/test/$* $(VERBOSE) --platform $* --project $(GCLOUD_PROJECT)
 
 %.generate:
-	@echo kfctl generate all $(VERBOSE) --mount-local --email gcp-deploy@$(GCLOUD_PROJECT).iam.gserviceaccount.com
-	@cd $* && \
+	@echo kfctl generate all $(VERBOSE) --mount-local --email gcp-deploy@$(GCLOUD_PROJECT).iam.gserviceaccount.com && \
+	cd test/$* && \
 	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl generate all $(VERBOSE) --mount-local --email gcp-deploy@$(GCLOUD_PROJECT).iam.gserviceaccount.com
-
-%.clean:
-	@rm -rf $*
 
 all: build
 
@@ -115,10 +112,15 @@ plugins:
 	@ex pkg/apis/apps/group.go <hack/plugins
 	@ex pkg/client/client.go <hack/plugins || echo Plugin functionality enabled
 
-clean: dockerfordesktop.clean kustomize.clean none.clean gcp.clean minikube.clean
+clean: 
+	rm -rf test && mkdir test
       
 test-init: clean install dockerfordesktop.so kustomize.so dockerfordesktop.init kustomize.init none.init minikube.init gcp.init
 
 test-generate: test-init dockerfordesktop.generate kustomize.generate none.generate minikube.generate gcp.generate
 
 test-kfctl: plugins test-generate static test-generate
+      
+test-plugins-static: plugins test-known-platforms-generate static test-known-platforms-generate
+
+test-kfctl: test-plugins-static
