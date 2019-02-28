@@ -20,6 +20,7 @@ import (
 	"encoding/base64"
 
 	"fmt"
+	"github.com/cenkalti/backoff"
 	"github.com/ghodss/yaml"
 	gogetter "github.com/hashicorp/go-getter"
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
@@ -49,7 +50,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-	"time"
 )
 
 const (
@@ -261,22 +261,29 @@ func (gcp *Gcp) getK8sClientset(ctx context.Context) (*clientset.Clientset, erro
 	return clientset.NewForConfig(config)
 }
 
-func blockingWait(project string, opName string, deploymentmanagerService *deploymentmanager.Service, ctx context.Context) error {
-	for {
-		op, err := deploymentmanagerService.Operations.Get(project, opName).Context(ctx).Do()
+func blockingWait(project string, opName string, deploymentmanagerService *deploymentmanager.Service,
+	ctx context.Context) error {
+	// Explicitly copy string to avoid memory leak.
+	p := "" + project
+	name := "" + opName
+	return backoff.Retry(func() error {
+		op, err := deploymentmanagerService.Operations.Get(p, name).Context(ctx).Do()
 		if op.Status == "DONE" {
 			if op.HttpErrorStatusCode > 0 {
-				return fmt.Errorf("Deployment error(%v): %v",
-					op.HttpErrorStatusCode, op.HttpErrorMessage)
+				return backoff.Permanent(fmt.Errorf("Deployment error(%v): %v",
+					op.HttpErrorStatusCode, op.HttpErrorMessage))
 			}
+			log.Infof("Deployment service is finished: %v", op.Status)
 			return nil
 		} else if err != nil {
-			return fmt.Errorf("Deployment error: %v", err)
+			return backoff.Permanent(fmt.Errorf("Deployment error: %v", err))
 		}
-		log.Infof("Deployment is not ready: %v", op.Status)
-		opName = op.Name
-		time.Sleep(5 * time.Second)
-	}
+		// Need to format string in this way to add percentage character.
+		warn := fmt.Sprintf("Deployment service is not ready: %v at %v", op.Status, op.Progress) + "%"
+		log.Warn(warn)
+		name = op.Name
+		return fmt.Errorf("Deployment is not ready: %v", op.Status)
+	}, backoff.NewExponentialBackOff())
 }
 
 func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
