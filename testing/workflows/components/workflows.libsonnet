@@ -357,6 +357,23 @@
         },
         dependencies: ["wait-for-kubeflow"],
       },  // notebooks-test
+      {
+        template: tests.buildTemplate {
+          name: "profiles-test",
+          command: [
+            "pytest",
+            "profiles_test.py",
+            // I think -s mean stdout/stderr will print out to aid in debugging.
+            // Failures still appear to be captured and stored in the junit file.
+            "-s",
+            // Test timeout in seconds.
+            "--timeout=500",
+            "--junitxml=" + tests.artifactsDir + "/junit_profile-test.xml",
+          ],
+          workingDir: tests.srcDir + "/kubeflow/profiles/tests",
+        },
+        dependencies: ["wait-for-kubeflow"],
+      },  // profiles-test
     ],
 
     // An Argo template for the dag.
