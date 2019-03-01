@@ -2,7 +2,6 @@ apiVersion: kubeflow.org/v1alpha1
 kind: Profile
 metadata:
   name: john
-  namespace: kubeflow
 spec:
   owner:
     kind: User
