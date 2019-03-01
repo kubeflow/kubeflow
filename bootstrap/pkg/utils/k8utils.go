@@ -19,6 +19,8 @@ import (
 	"github.com/ghodss/yaml"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
+	"os"
+	"os/exec"
 	"strings"
 	"sync"
 
@@ -189,6 +191,12 @@ func patchOrCreate(mapping *meta.RESTMapping, config *rest.Config, group string,
 		err = createResource(mapping, config, group, version, namespace, data)
 	}
 	return err
+}
+
+func RunKubectlApply(filename string) error {
+	cmd := exec.Command("kubectl", "apply", "--validate=false", "-f", filename)
+	cmd.Stdout = os.Stdout
+	return cmd.Run()
 }
 
 // CreateResourceFromFile creates resources from a file, just like `kubectl create -f filename`

@@ -46,6 +46,7 @@ import (
 	"k8s.io/client-go/rest"
 	"net/http"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -451,9 +452,19 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 		return fmt.Errorf("Build ClientConfig error: %v", err)
 	}
 
+	cred_cmd := exec.Command("gcloud", "container", "clusters", "get-credentials",
+		gcp.GcpApp.Name,
+		"--zone="+gcp.GcpApp.Spec.Zone,
+		"--project="+gcp.GcpApp.Spec.Project)
+	cred_cmd.Stdout = os.Stdout
+	log.Infof("Running get-credentials ...")
+	if err = cred_cmd.Run(); err != nil {
+		return fmt.Errorf("Error when running gcloud container clusters get-credentials: %v", err)
+	}
+
 	k8sSpecsDir := path.Join(appDir, K8S_SPECS)
 	daemonsetPreloaded := filepath.Join(k8sSpecsDir, "daemonset-preloaded.yaml")
-	daemonsetPreloadedErr := kfctlutils.CreateResourceFromFile(client, daemonsetPreloaded)
+	daemonsetPreloadedErr := kfctlutils.RunKubectlApply(daemonsetPreloaded)
 	if daemonsetPreloadedErr != nil {
 		return fmt.Errorf("could not create resources in daemonset-preloaded.yaml %v", daemonsetPreloadedErr)
 	}
@@ -461,12 +472,12 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 	adminClient.Impersonate.UserName = "admin"
 	adminClient.Impersonate.Groups = []string{"system:masters"}
 	rbacSetup := filepath.Join(k8sSpecsDir, "rbac-setup.yaml")
-	rbacSetupErr := kfctlutils.CreateResourceFromFile(adminClient, rbacSetup)
+	rbacSetupErr := kfctlutils.RunKubectlApply(rbacSetup)
 	if rbacSetupErr != nil {
 		return fmt.Errorf("could not create resources in rbac-setup.yaml %v", rbacSetupErr)
 	}
 	agents := filepath.Join(k8sSpecsDir, "agents.yaml")
-	agentsErr := kfctlutils.CreateResourceFromFile(client, agents)
+	agentsErr := kfctlutils.RunKubectlApply(agents)
 	if agentsErr != nil {
 		return fmt.Errorf("could not create resources in agents.yaml %v", agents)
 	}

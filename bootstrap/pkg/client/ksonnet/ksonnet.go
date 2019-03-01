@@ -185,7 +185,7 @@ func (ksApp *KsApp) Apply(resources kftypes.ResourceEnum, options map[string]int
 		return fmt.Errorf("Writing config file error: %v", err)
 	}
 
-	return kfctlutils.CreateResourceFromFile(config, ksApp.getCompsFilePath())
+	return kfctlutils.RunKubectlApply(ksApp.getCompsFilePath())
 }
 
 func (ksApp *KsApp) getCompsFilePath() string {
