@@ -22,3 +22,5 @@ bin
 *.swp
 *.swo
 *~
+
+gcb_build
