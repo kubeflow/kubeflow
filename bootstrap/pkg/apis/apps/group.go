@@ -29,16 +29,15 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
-	/* PLUGINS
+	// PLUGINS
 	"plugin"
-	/* PLUGINS */
+	// PLUGINS //
 	"regexp"
 	"strings"
 )
 
 const (
 	DefaultNamespace = "kubeflow"
-	DefaultPlatform  = "none"
 	// TODO: find the latest tag dynamically
 	DefaultVersion  = "master"
 	DefaultGitRepo  = "https://github.com/kubeflow/kubeflow/tarball"
@@ -180,24 +179,23 @@ func RemoveItems(defaults []string, names ...string) []string {
 
 // Platforms
 const (
-	// STATIC
+	/* STATIC
 	DOCKER_FOR_DESKTOP = "dockerfordesktop"
-	// -STATIC //
+	-STATIC */
 	GCP      = "gcp"
-	NONE     = DefaultPlatform
 	MINIKUBE = "minikube"
 )
 
 // PackageManagers
 const (
-	// STATIC
-	KUSTOMIZE = "kustomize"
-	// -STATIC //
-	KSONNET = "ksonnet"
+/* STATIC
+KSONNET = "ksonnet"
+KUSTOMIZE = "kustomize"
+-STATIC */
 )
 
 func LoadKfApp(platform string, options map[string]interface{}) (KfApp, error) {
-	/* PLUGINS
+	// PLUGINS
 	platform = strings.Replace(platform, "-", "", -1)
 	plugindir := os.Getenv("PLUGINS_ENVIRONMENT")
 	pluginpath := filepath.Join(plugindir, platform+".so")
@@ -211,10 +209,10 @@ func LoadKfApp(platform string, options map[string]interface{}) (KfApp, error) {
 		return nil, fmt.Errorf("could not find symbol %v for platform %v Error %v", symName, platform, symbolErr)
 	}
 	return symbol.(func(map[string]interface{}) KfApp)(options), nil
-	/* PLUGINS */
-	// STATIC
+	// PLUGINS //
+	/* STATIC
 	return nil, fmt.Errorf("could not load platform")
-	// -STATIC //
+	-STATIC */
 }
 
 func KubeConfigPath() string {
@@ -298,7 +296,7 @@ func GetApiExtensionsClientOutOfCluster() (apiextensionsv1beta1.ApiextensionsV1b
 	config.GroupVersion = &v
 	crdClient, err := clientset.NewForConfig(config)
 	if err != nil {
-		log.Fatalf("Can not get dynamic client: %v", err)
+		log.Fatalf("Can not get apiextensions client: %v", err)
 	}
 
 	return crdClient.ApiextensionsV1beta1(), nil

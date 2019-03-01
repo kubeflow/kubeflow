@@ -31,6 +31,8 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-kit/kit v0.8.0
 	github.com/go-logfmt/logfmt v0.4.0 // indirect
+	github.com/go-logr/logr v0.1.0 // indirect
+	github.com/go-logr/zapr v0.1.0 // indirect
 	github.com/go-openapi/spec v0.18.0 // indirect
 	github.com/go-openapi/strfmt v0.18.0 // indirect
 	github.com/go-openapi/validate v0.18.0 // indirect
@@ -56,8 +58,6 @@ require (
 	github.com/jonboulle/clockwork v0.1.0 // indirect
 	github.com/json-iterator/go v1.1.5 // indirect
 	github.com/juju/ratelimit v1.0.1 // indirect
-	github.com/ksonnet/ksonnet v0.13.1
-	github.com/ksonnet/ksonnet-lib v0.1.12 // indirect
 	github.com/kubernetes/code-generator v0.0.0-20181206115026-3a2206dd6a78 // indirect
 	github.com/mitchellh/go-homedir v1.0.0
 	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
@@ -79,6 +79,9 @@ require (
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3
 	github.com/spf13/viper v1.3.1
+	go.uber.org/atomic v1.3.2 // indirect
+	go.uber.org/multierr v1.1.0 // indirect
+	go.uber.org/zap v1.9.1 // indirect
 	golang.org/x/net v0.0.0-20190110200230-915654e7eabc
 	golang.org/x/oauth2 v0.0.0-20190115181402-5dab4167f31c
 	golang.org/x/time v0.0.0-20181108054448-85acf8d2951c // indirect
@@ -93,6 +96,7 @@ require (
 	k8s.io/apiextensions-apiserver v0.0.0-20190116054503-cf30b7cf64c2
 	k8s.io/apimachinery v0.0.0-20190111195121-fa6ddc151d63
 	k8s.io/apiserver v0.0.0-20190116053355-a39732bdd925 // indirect
+	k8s.io/cli-runtime v0.0.0-20190227060459-9ff7d311e3cf // indirect
 	k8s.io/client-go v10.0.0+incompatible
 	k8s.io/code-generator v0.0.0-20180601180426-9de8e796a74d // indirect
 	k8s.io/gengo v0.0.0-20190116091435-f8a0810f38af // indirect
@@ -101,7 +105,7 @@ require (
 	k8s.io/kube-openapi v0.0.0-20190115222348-ced9eb3070a5 // indirect
 	k8s.io/kubernetes v1.10.2 // indirect
 	k8s.io/utils v0.0.0-20181221173059-8a16e7dd8fb6 // indirect
-	sigs.k8s.io/controller-runtime v0.1.1
+	sigs.k8s.io/controller-runtime v0.1.10
 	sigs.k8s.io/kustomize v2.0.2+incompatible
 	sigs.k8s.io/testing_frameworks v0.1.1 // indirect
 	sigs.k8s.io/yaml v1.1.0 // indirect
@@ -112,13 +116,12 @@ replace (
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v9.1.0+incompatible
 	github.com/mitchellh/go-homedir => github.com/mitchellh/go-homedir v1.0.0
 	github.com/russross/blackfriday => github.com/russross/blackfriday v1.5.2-0.20180428102519-11635eb403ff // indirect
-	k8s.io/api => k8s.io/api v0.0.0-20180308224125-73d903622b73
-	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20180426153726-e8ab413e0ae1
-	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20180228050457-302974c03f7e
-	k8s.io/apiserver => k8s.io/apiserver v0.0.0-20180426121757-0841753fc26e // indirect
-	k8s.io/client-go => github.com/kubernetes/client-go v6.0.0+incompatible
+	k8s.io/api => k8s.io/api v0.0.0-20190222213804-5cb15d344471
+	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20190228180357-d002e88f6236
+	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20190221213512-86fb29eff628
+	k8s.io/apiserver => k8s.io/apiserver v0.0.0-20190228174905-79427f02047f
+	k8s.io/cli-runtime => k8s.io/cli-runtime v0.0.0-20181004125037-79bf4e0b6454
+	k8s.io/client-go => k8s.io/client-go v10.0.0+incompatible
 	k8s.io/code-generator/cmd/client-gen => k8s.io/code-generator/cmd/client-gen v0.0.0-20180228050103-7ead8f38b01c
-	k8s.io/kubernetes => k8s.io/kubernetes v1.10.2+incompatible
-
-	sigs.k8s.io/kustomize => sigs.k8s.io/kustomize v2.0.2+incompatible
+	k8s.io/kubernetes => k8s.io/kubernetes v1.13.4
 )
