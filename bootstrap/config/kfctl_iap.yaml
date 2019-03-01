@@ -4,44 +4,44 @@
 # TODO change repo on the fly: set it to local tmp dir containing kubeflow registry
 repo: /path/to/local/tmp/containing/kubeflow
 packages:
+  - application
   - argo
-  - pipeline
   - common
   - examples
+  - gcp
   - jupyter
   - katib
+  - metacontroller
+  - modeldb
   - mpi-job
+  - openvino
+  - pipeline
+  - profiles
   - pytorch-job
   - seldon
+  - tensorboard
   - tf-serving
-  - openvino
-  - tensorboard
   - tf-training
-  - metacontroller
-  - profiles
-  - application
-  - modeldb
-  - gcp
 components:
-  - pytorch-operator
   - ambassador
-  - openvino
-  - jupyter
-  - notebook-controller
-  - jupyter-web-app
-  - centraldashboard
-  - tf-job-operator
-  - tensorboard
-  - metacontroller
-  - profiles
-  - notebooks
-  - argo
-  - pipeline
-  - katib
-  - cloud-endpoints
-  - cert-manager
-  - iap-ingress
   - application
+  - argo
+  - centraldashboard
+  - cert-manager
+  - cloud-endpoints
+  - iap-ingress
+  - jupyter
+  - jupyter-web-app
+  - katib
+  - metacontroller
+  - notebooks
+  - notebook-controller
+  - openvino
+  - pipeline
+  - profiles
+  - pytorch-operator
+  - tensorboard
+  - tf-job-operator
 protoParams:
   cert-manager:
     - name: acmeEmail

@@ -5,44 +5,44 @@
 repo: /path/to/local/tmp/containing/kubeflow
 packages:
   - argo
-  - pipeline
+  - application
   - common
   - examples
+  - gcp
   - jupyter
   - katib
+  - metacontroller
+  - modeldb
   - mpi-job
+  - openvino
+  - pipeline
+  - profiles
   - pytorch-job
   - seldon
+  - tensorboard
   - tf-serving
-  - openvino
-  - tensorboard
   - tf-training
-  - metacontroller
-  - profiles
-  - application
-  - modeldb
-  - gcp
 components:
-  - pytorch-operator
   - ambassador
-  - openvino
-  - jupyter
-  - notebook-controller
-  - jupyter-web-app
-  - centraldashboard
-  - tf-job-operator
-  - tensorboard
-  - metacontroller
-  - profiles
-  - notebooks
+  - application
   - argo
-  - pipeline
-  - katib
-  - cloud-endpoints
-  - cert-manager
   - basic-auth
   - basic-auth-ingress
-  - application
+  - centraldashboard
+  - cert-manager
+  - cloud-endpoints
+  - jupyter
+  - jupyter-web-app
+  - katib
+  - metacontroller
+  - notebooks
+  - notebook-controller
+  - openvino
+  - pipeline
+  - profiles
+  - pytorch-operator
+  - tensorboard
+  - tf-job-operator
 protoParams:
   cert-manager:
     - name: acmeEmail
