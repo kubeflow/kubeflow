@@ -153,6 +153,7 @@ module.exports = {
         new CopyWebpackPlugin(POLYFILLS),
         new DefinePlugin({
             VERSION: JSON.stringify(PKG_VERSION),
+            DEVMODE: JSON.stringify(ENV == 'development')
         }),
         new HtmlWebpackPlugin({
             filename: resolve(DESTINATION, 'index.html'),
@@ -177,6 +178,9 @@ module.exports = {
     ],
     devServer: {
         port: 8081,
-        proxy: {'/api': 'http://localhost:8082'},
-    },
-};
+        proxy: { '/api': 'http://localhost:8082' },
+        historyApiFallback: {
+            disableDotRule: true
+        }
+    }
+}

@@ -1,44 +1,40 @@
 app-drawer-layout.flex(narrow='{{narrowMode}}')
+    app-location(route='{{route}}')
+    app-route(route='{{route}}', pattern='/:page', data='{{routeData}}', tail='{{subRouteData}}')
+
+
     app-drawer#MainDrawer(slot='drawer')
         figure#Logo
             img(alt='Kubeflow Logo', src='assets/kf-logo_64px.svg')
             figcaption Kubeflow
-        iron-selector#SidebarSelector(selected='{{sidebarItemIndex}}')
-            template(is='dom-repeat', items='[[links]]')
-                paper-item.menu-item(on-click='openLink') [[item.text]]
-                template(is='dom-if', if='[[item.hasDivider]]')
-                    aside.divider
+        iron-selector(selected='{{sidebarItemIndex}}')
+            a(href='/', tabindex='-1')
+                paper-item.menu-item Home
+                aside.divider
+            template(is='dom-repeat', items='[[menuLinks]]')
+                a(href$='[[item.href]]', on-click='openInIframe', tabindex='-1')
+                    paper-item.menu-item [[item.text]]
         aside.flex
         footer.footer
             section.privacy Privacy
-            section.build build version 
-                span(title="Build: v[[buildVersion]] | Dashboard: v[[dashVersion]]") v[[buildVersion]]
+            section.build build version
+                span(title="Build: v[[buildVersion]] | Dashboard: v[[dashVersion]]")  v[[buildVersion]]
     app-header-layout(fullbleed)
-        app-header(slot='header', fixed)
+        app-header(slot='header')
             app-toolbar
-                paper-tabs.bottom(selected='{{primaryViewIndex}}', hides, hidden$='[[!isZero(homeOrIframeViewIndex)]]')
-                    paper-tab Dashboard
-                    paper-tab(hidden$='[[!_devMode]]') Activity
-                aside#NamespaceSelector(hidden$='[[!_devMode]]')
-                    paper-dropdown-menu(label='Namespace')
-                paper-icon-button#Menu(icon='menu', on-click='toggleSidebar', hides, hidden$='[[!narrowMode]]')
-        neon-animated-pages.flex.layout.vertical(selected='[[homeOrIframeViewIndex]]', entry-animation='fade-in-animation', exit-animation='fade-out-animation')
-            neon-animated-pages#PrimaryView.flex.layout.vertical(selected='[[primaryViewIndex]]', entry-animation='fade-in-animation', exit-animation='fade-out-animation')
-                article#Dashboard
-                    paper-card.Getting-Started(heading='Getting Started')
-                        template(is='dom-repeat', items='[[gettingStartedItems]]')
-                            paper-icon-item(on-click='openQuickLink')
-                                iron-icon(icon='[[item.icon]]', slot='item-icon')
-                                paper-item-body(two-line)
-                                    .heading [[item.text]]
-                                    aside(secondary) [[item.desc]]
-                    paper-card.thin.Quick-Links(heading='Quick Links')
-                        template(is='dom-repeat', items='[[quickLinks]]')
-                            article.link
-                                paper-item-body [[item.text]]
-                                paper-icon-button.button(icon='arrow-forward', alt='[[item.text]]', on-click='openQuickLink')
-                        article.link.more-coming
-                            paper-item-body More coming soon
-                            paper-icon-button.button(icon='arrow-forward', diabled)
-                article#Activity
-            iframe#PageFrame.flex(src='[[url]]')
+                header(hides, hidden$='[[hideToolbar]]')
+                    paper-tabs.bottom(selected='[[page]]', attr-for-selected='page')
+                        paper-tab(page='dashboard', link)
+                            a.link(tabindex='-1', href='/') DASHBOARD
+                        paper-tab(page='activity', link,hidden$='[[!_devMode]]')
+                            a.link(tabindex='-1', href='/activity') ACTIVITY
+                    aside#NamespaceSelector(hidden$='[[!_devMode]]')
+                        paper-dropdown-menu(label='Namespace')
+                    paper-icon-button#Menu(icon='menu', on-click='toggleSidebar', hides, hidden$='[[!narrowMode]]')
+        neon-animated-pages(selected='[[page]]', attr-for-selected='page', entry-animation='fade-in-animation', exit-animation='fade-out-animation')
+            neon-animatable(page='dashboard')
+                dashboard-view
+            neon-animatable(page='activity')
+                activity-view
+            neon-animatable#iframe-page(page='iframe')
+                iframe#PageFrame.flex(src='[[iframeUrl]]')
