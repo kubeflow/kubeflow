@@ -3,7 +3,7 @@
 // @description profiles Component
 // @shortDescription profiles Component
 // @param name string Name
-// @optionalParam image string metacontroller/jsonnetd@sha256:25c25f217ad030a0f67e37078c33194785b494569b0c088d8df4f00da8fd15a0 The image to use for jsonnet
+// @optionalParam image string gcr.io/kubeflow-images-public/profile-controller:v20190228-v0.4.0-rc.1-192-g1a802656-dirty-f95773 The image to use for controller
 
 local profile = import "kubeflow/profiles/profiles.libsonnet";
 local instance = profile.new(env, params);
