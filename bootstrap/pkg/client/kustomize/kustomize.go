@@ -149,7 +149,6 @@ func (kustomize *kustomize) generate(options map[string]interface{}) error {
 	if kustomizeFileErr != nil {
 		return kustomizeFileErr
 	}
-	_, err = kustomize.out.Write(res)
 	return err
 }
 
