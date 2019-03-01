@@ -155,5 +155,5 @@ RUN docker-credential-gcr configure-docker && chown jovyan:users $HOME/.docker/c
 # Configure container startup
 EXPOSE 8888
 ENTRYPOINT ["tini", "--"]
-CMD ["sh","-c", "jupyter notebook --notebook-dir=/home/jovyan --ip=0.0.0.0 --no-browser --allow-root --port=8888"]
+CMD ["sh","-c", "jupyter notebook --notebook-dir=/home/jovyan --ip=0.0.0.0 --no-browser --allow-root --port=8888 --NotebookApp.token='' --NotebookApp.password=''"]
 
