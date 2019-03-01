@@ -64,6 +64,7 @@ func getRESTClient(config *rest.Config, group string, version string) (*rest.RES
 	return rest.RESTClientFor(c)
 }
 
+// TODO: Might need to return response if needed.
 func getResource(mapping *meta.RESTMapping, config *rest.Config, group string,
 	version string, namespace string, name string) error {
 	restClient, err := getRESTClient(config, group, version)
