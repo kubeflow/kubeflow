@@ -451,27 +451,7 @@ func (ksApp *ksApp) Init(resources kftypes.ResourceEnum, options map[string]inte
 	if appDirErr == nil {
 		return fmt.Errorf("config file %v already exists in %v", kftypes.KfConfigFile, ksApp.KsApp.Spec.AppDir)
 	}
-	cacheDir := path.Join(ksApp.KsApp.Spec.AppDir, kftypes.DefaultCacheDir)
-	cacheDirErr := os.Mkdir(cacheDir, os.ModePerm)
-	if cacheDirErr != nil {
-		return fmt.Errorf("couldn't create directory %v Error %v", cacheDir, cacheDirErr)
-	}
-	tarballUrl := kftypes.DefaultGitRepo + "/" + ksApp.KsApp.Spec.Version + "?archive=tar.gz"
-	tarballUrlErr := gogetter.GetAny(cacheDir, tarballUrl)
-	if tarballUrlErr != nil {
-		return fmt.Errorf("couldn't download kubeflow repo %v Error %v", tarballUrl, tarballUrlErr)
-	}
-	files, filesErr := ioutil.ReadDir(cacheDir)
-	if filesErr != nil {
-		return fmt.Errorf("couldn't read %v Error %v", cacheDir, filesErr)
-	}
-	subdir := files[0].Name()
-	extractedPath := filepath.Join(cacheDir, subdir)
-	newPath := filepath.Join(cacheDir, ksApp.KsApp.Spec.Version)
-	renameErr := os.Rename(extractedPath, newPath)
-	if renameErr != nil {
-		return fmt.Errorf("couldn't rename %v to %v Error %v", extractedPath, newPath, renameErr)
-	}
+	newPath := path.Join(ksApp.KsApp.Spec.AppDir, kftypes.DefaultCacheDir, ksApp.KsApp.Spec.Version)
 	ksApp.KsApp.Spec.Repo = path.Join(newPath, "kubeflow")
 	createConfigErr := ksApp.writeConfigFile()
 	if createConfigErr != nil {
