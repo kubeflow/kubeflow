@@ -124,9 +124,9 @@ plugins:
 clean: 
 	rm -rf test && mkdir test
       
-test-init: clean install dockerfordesktop.init kustomize.init none.init minikube.init gcp.init
+test-init: clean install dockerfordesktop.init minikube.init gcp.init
 
-test-generate: test-init dockerfordesktop.generate kustomize.generate none.generate minikube.generate gcp.generate
+test-generate: test-init dockerfordesktop.generate minikube.generate gcp.generate
 
 test-kfctl: plugins test-generate static test-generate
       
