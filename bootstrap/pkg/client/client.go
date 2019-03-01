@@ -19,6 +19,7 @@ package client
 import (
 	"fmt"
 	"github.com/ghodss/yaml"
+	gogetter "github.com/hashicorp/go-getter"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	cltypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/client/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/gcp"
@@ -330,6 +331,31 @@ func (kfApp *kfApp) Generate(resources kftypes.ResourceEnum, options map[string]
 	return nil
 }
 
+func (kfApp *kfApp) downloadToCache() error {
+	cacheDir := path.Join(kfApp.Client.Spec.AppDir, kftypes.DefaultCacheDir)
+	cacheDirErr := os.Mkdir(cacheDir, os.ModePerm)
+	if cacheDirErr != nil {
+		return fmt.Errorf("couldn't create directory %v Error %v", cacheDir, cacheDirErr)
+	}
+	tarballUrl := kftypes.DefaultGitRepo + "/" + kfApp.Client.Spec.Version + "?archive=tar.gz"
+	tarballUrlErr := gogetter.GetAny(cacheDir, tarballUrl)
+	if tarballUrlErr != nil {
+		return fmt.Errorf("couldn't download kubeflow repo %v Error %v", tarballUrl, tarballUrlErr)
+	}
+	files, filesErr := ioutil.ReadDir(cacheDir)
+	if filesErr != nil {
+		return fmt.Errorf("couldn't read %v Error %v", cacheDir, filesErr)
+	}
+	subdir := files[0].Name()
+	extractedPath := filepath.Join(cacheDir, subdir)
+	newPath := filepath.Join(cacheDir, kfApp.Client.Spec.Version)
+	renameErr := os.Rename(extractedPath, newPath)
+	if renameErr != nil {
+		return fmt.Errorf("couldn't rename %v to %v Error %v", extractedPath, newPath, renameErr)
+	}
+	return nil
+}
+
 func (kfApp *kfApp) Init(resources kftypes.ResourceEnum, options map[string]interface{}) error {
 	switch resources {
 	case kftypes.K8S:
@@ -337,6 +363,10 @@ func (kfApp *kfApp) Init(resources kftypes.ResourceEnum, options map[string]inte
 	case kftypes.PLATFORM:
 		fallthrough
 	case kftypes.ALL:
+		cacheErr := kfApp.downloadToCache()
+		if cacheErr != nil {
+			log.Fatalf("could not download repo to cache Error %v", cacheErr)
+		}
 		for packageManagerName, packageManager := range kfApp.PackageManagers {
 			packageManagerErr := packageManager.Init(kftypes.K8S, options)
 			if packageManagerErr != nil {
