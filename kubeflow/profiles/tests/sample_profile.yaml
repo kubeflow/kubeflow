@@ -1,0 +1,23 @@
+apiVersion: kubeflow.org/v1alpha1
+kind: Profile
+metadata:
+  name: john
+  namespace: kubeflow
+spec:
+  template:
+    metadata:
+      namespace: john
+      quota:
+        name: compute-quota
+        requests:
+          cpu: "1"
+          memory: "1Gi"
+          gpu: "1"
+        limits:
+          cpu: "2"
+          memory: "2Gi"
+    spec:
+      owner:
+        kind: User
+        apiGroup: rbac.authorization.k8s.io
+        name: john@foo.com
