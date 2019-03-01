@@ -1,12 +1,13 @@
 'use strict';
 
-const {resolve} = require('path')
-const CleanWebpackPlugin = require('clean-webpack-plugin')
-const CopyWebpackPlugin = require('copy-webpack-plugin')
-const DefinePlugin = require('webpack').DefinePlugin
-const HtmlWebpackPlugin = require('html-webpack-plugin')
-const MiniCssExtractPlugin = require("mini-css-extract-plugin")
-const ScriptExtHtmlWebpackPlugin = require('script-ext-html-webpack-plugin')
+const { resolve } = require('path');
+const CleanWebpackPlugin = require('clean-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+const DefinePlugin = require('webpack').DefinePlugin;
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const ScriptExtHtmlWebpackPlugin = require('script-ext-html-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 
 const ENV           = process.env.NODE_ENV || 'development'
 const NODE_MODULES  = /\/node_modules\//
@@ -81,6 +82,19 @@ module.exports = {
                 }
             },
             {
+                enforce: 'pre',
+                test: /\.js$/,
+                exclude: NODE_MODULES,
+                use: {
+                    loader: 'eslint-loader',
+                    options: {
+                        extends: ['eslint:recommended', 'google'],
+                        failOnError: true,
+                        fix: true
+                    }
+                }
+            },
+            {
                 test: /\.js$/,
                 exclude: NODE_MODULES,
                 use: {
@@ -109,6 +123,12 @@ module.exports = {
         ])
     },
     optimization: {
+        minimizer: [new TerserPlugin({
+            cache: true,
+            parallel: true,
+            sourceMap: true,
+            extractComments: true
+        })],
         splitChunks: {
             cacheGroups: {
                 commons: {
