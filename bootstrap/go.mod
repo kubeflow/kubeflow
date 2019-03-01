@@ -102,6 +102,7 @@ require (
 	k8s.io/kubernetes v1.10.2 // indirect
 	k8s.io/utils v0.0.0-20181221173059-8a16e7dd8fb6 // indirect
 	sigs.k8s.io/controller-runtime v0.1.1
+	sigs.k8s.io/kustomize v2.0.2+incompatible
 	sigs.k8s.io/testing_frameworks v0.1.1 // indirect
 	sigs.k8s.io/yaml v1.1.0 // indirect
 	vbom.ml/util v0.0.0-20180919145318-efcd4e0f9787 // indirect
@@ -118,4 +119,6 @@ replace (
 	k8s.io/client-go => github.com/kubernetes/client-go v6.0.0+incompatible
 	k8s.io/code-generator/cmd/client-gen => k8s.io/code-generator/cmd/client-gen v0.0.0-20180228050103-7ead8f38b01c
 	k8s.io/kubernetes => k8s.io/kubernetes v1.10.2+incompatible
+
+	sigs.k8s.io/kustomize => sigs.k8s.io/kustomize v2.0.2+incompatible
 )
