@@ -56,9 +56,25 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 		},
 	}
 	_client.PackageManagers[kftypes.KSONNET] = ksonnet.GetKfApp(options)
+	//TODO we need a way to specific different types of package managers
+	// most likely by specifying them in the app.yaml per package
+	//
+	/* PLUGINS
+	_packagemanager, _packagemanagerErr := GetPackageManager("kustomize", options)
+	if _packagemanagerErr != nil {
+		log.Fatalf("could not get packagemanager %v Error %v **", "kustomize", _packagemanagerErr)
+
+	}
+	if _packagemanager != nil {
+		_client.PackageManagers["kustomize"] = _packagemanager
+	}
+	/* PLUGINS */
+	// STATIC
+	_client.PackageManagers[kftypes.KUSTOMIZE] = kustomize.GetKfApp(options)
+	// -STATIC //
 	platform := options[string(kftypes.PLATFORM)].(string)
 	if !(platform == "" || platform == kftypes.NONE) {
-		_platform, _platformErr := GetPlatform(options)
+		_platform, _platformErr := GetPlatform(platform, options)
 		if _platformErr != nil {
 			log.Fatalf("could not get platform %v Error %v **", platform, _platformErr)
 			return nil
@@ -103,9 +119,8 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 
 // GetPlatform will return an implementation of kftypes.KfApp that matches the platform string
 // It looks for statically compiled-in implementations, otherwise it delegates to
-// kftypes.LoadPlatform which will try and dynamically load a .so
-func GetPlatform(options map[string]interface{}) (kftypes.KfApp, error) {
-	platform := options[string(kftypes.PLATFORM)].(string)
+// kftypes.LoadKfApp which will try and dynamically load a .so
+func GetPlatform(platform string, options map[string]interface{}) (kftypes.KfApp, error) {
 	switch platform {
 	case string(kftypes.MINIKUBE):
 		return minikube.GetKfApp(options), nil
@@ -119,7 +134,22 @@ func GetPlatform(options map[string]interface{}) (kftypes.KfApp, error) {
 	// -STATIC //
 	default:
 		log.Infof("** loading %v.so for platform %v **", platform, platform)
-		return kftypes.LoadPlatform(options)
+		return kftypes.LoadKfApp(platform, options)
+	}
+}
+
+// GetPackageManager will return an implementation of kftypes.KfApp that matches the packagemanager string
+// It looks for statically compiled-in implementations, otherwise it delegates to
+// kftypes.LoadKfApp which will try and dynamically load a .so
+func GetPackageManager(packagemanager string, options map[string]interface{}) (kftypes.KfApp, error) {
+	switch packagemanager {
+	// STATIC
+	case string(kftypes.KUSTOMIZE):
+		return kustomize.GetKfApp(options), nil
+	// -STATIC //
+	default:
+		log.Infof("** loading %v.so for platform %v **", packagemanager, packagemanager)
+		return kftypes.LoadKfApp(packagemanager, options)
 	}
 }
 

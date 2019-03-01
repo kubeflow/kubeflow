@@ -196,9 +196,8 @@ const (
 	KSONNET = "ksonnet"
 )
 
-func LoadPlatform(options map[string]interface{}) (KfApp, error) {
+func LoadKfApp(platform string, options map[string]interface{}) (KfApp, error) {
 	/* PLUGINS
-	platform := options[string(PLATFORM)].(string)
 	platform = strings.Replace(platform, "-", "", -1)
 	plugindir := os.Getenv("PLUGINS_ENVIRONMENT")
 	pluginpath := filepath.Join(plugindir, platform+".so")

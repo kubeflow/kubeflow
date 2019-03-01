@@ -125,6 +125,8 @@ github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxv
 github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515/go.mod h1:+0opPa2QZZtGFBFZlji/RkVcI2GknAs/DXo4wKdlNEc=
 github.com/ksonnet/ksonnet v0.13.1/go.mod h1:T8FwyGOX8fMoDyp845QmYDnk8R7AF35pImyfWJ9fj7M=
 github.com/ksonnet/ksonnet-lib v0.1.12/go.mod h1:2p66Npe1xOUtQGlGzD5aJ3UHEBjG1b6o3nbC1rVNvz4=
+github.com/kubernetes-sigs/kustomize v2.0.2+incompatible h1:15xWNQsRwY7SPIzyoLTMRQSHfxL6jJlQ+bq7pLkmYv8=
+github.com/kubernetes-sigs/kustomize v2.0.2+incompatible/go.mod h1:LEfoFBposdQuHJ4ZX2gdT7eoybOslchqvocZtlLyTsk=
 github.com/kubernetes/client-go v6.0.0+incompatible/go.mod h1:kszVi2i+FeqECZHhjpkV5h5zM0GnURfJv897YzgoAQ8=
 github.com/kubernetes/code-generator v0.0.0-20181206115026-3a2206dd6a78/go.mod h1:GXXF2gdS/LDGLo7HilXGuIQfo5nLQDhB4eUn/2UMPnk=
 github.com/magiconair/properties v1.8.0/go.mod h1:PppfXfuXeibc/6YijjN8zIbojt8czPbwD3XqdrwzmxQ=
@@ -256,6 +258,8 @@ k8s.io/kubernetes v1.10.2+incompatible/go.mod h1:ocZa8+6APFNC2tX1DZASIbocyYT5jHz
 k8s.io/utils v0.0.0-20181221173059-8a16e7dd8fb6 h1:+jRzzMyx+I9J18BvwHYmZ5hpPwoZfh6g39WfNlsMCkY=
 k8s.io/utils v0.0.0-20181221173059-8a16e7dd8fb6/go.mod h1:8k8uAuAQ0rXslZKaEWd0c3oVhZz7sSzSiPnVZayjIX0=
 sigs.k8s.io/controller-runtime v0.1.1/go.mod h1:HFAYoOh6XMV+jKF1UjFwrknPbowfyHEHHRdJMf2jMX8=
+sigs.k8s.io/kustomize v2.0.2+incompatible h1:YrTTQRx0nfRqSuVa0X1IcaXnM+iEblO3tvEA1efnrxE=
+sigs.k8s.io/kustomize v2.0.2+incompatible/go.mod h1:MkjgH3RdOWrievjo6c9T245dYlB5QeXV4WCbnt/PEpU=
 sigs.k8s.io/testing_frameworks v0.1.1 h1:cP2l8fkA3O9vekpy5Ks8mmA0NW/F7yBdXf8brkWhVrs=
 sigs.k8s.io/testing_frameworks v0.1.1/go.mod h1:VVBKrHmJ6Ekkfz284YKhQePcdycOzNH9qL6ht1zEr/U=
 sigs.k8s.io/yaml v1.1.0/go.mod h1:UJmg0vDUVViEyp3mgSv9WPwZCDxu4rQW1olrI1uml+o=
