@@ -21,11 +21,12 @@ import (
 	"io/ioutil"
 	"strings"
 
-	ksUtil "github.com/ksonnet/ksonnet/utils"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/discovery"
-	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/discovery/cached"
+	"k8s.io/client-go/restmapper"
+
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 
@@ -52,8 +53,8 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 	if err != nil {
 		return err
 	}
-	cacheClient := ksUtil.NewMemcachedDiscoveryClient(discoveryClient)
-	mapper := discovery.NewDeferredDiscoveryRESTMapper(cacheClient, dynamic.VersionInterfaces)
+	cached := cached.NewMemCacheClient(discoveryClient)
+	mapper := restmapper.NewDeferredDiscoveryRESTMapper(cached)
 
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -121,7 +122,7 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 		if err != nil {
 			return err
 		}
-		request := restClient.Post().Resource(result.Resource).Body(body)
+		request := restClient.Post().Resource(result.Resource.Resource).Body(body)
 		if result.Scope.Name() == "namespace" {
 			request = request.Namespace(namespace)
 		}

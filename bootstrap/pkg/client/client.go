@@ -22,10 +22,10 @@ import (
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	cltypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/client/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/gcp"
+	/* STATIC
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksonnet"
-	// STATIC
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/kustomize"
-	// -STATIC //
+	-STATIC */
 	"github.com/mitchellh/go-homedir"
 	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -34,9 +34,9 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-	// STATIC
+	/* STATIC
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/dockerfordesktop"
-	// -STATIC //
+	-STATIC */
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/minikube"
 	log "github.com/sirupsen/logrus"
 )
@@ -55,11 +55,18 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 			},
 		},
 	}
-	_client.PackageManagers[kftypes.KSONNET] = ksonnet.GetKfApp(options)
 	//TODO we need a way to specific different types of package managers
 	// most likely by specifying them in the app.yaml per package
 	//
-	/* PLUGINS
+	// PLUGINS
+	//_packagemanager, _packagemanagerErr := GetPackageManager("ksonnet", options)
+	//if _packagemanagerErr != nil {
+	//	log.Fatalf("could not get packagemanager %v Error %v **", "ksonnet", _packagemanagerErr)
+	//
+	//}
+	//if _packagemanager != nil {
+	//	_client.PackageManagers["ksonnet"] = _packagemanager
+	//}
 	_packagemanager, _packagemanagerErr := GetPackageManager("kustomize", options)
 	if _packagemanagerErr != nil {
 		log.Fatalf("could not get packagemanager %v Error %v **", "kustomize", _packagemanagerErr)
@@ -68,12 +75,13 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	if _packagemanager != nil {
 		_client.PackageManagers["kustomize"] = _packagemanager
 	}
-	/* PLUGINS */
-	// STATIC
+	// PLUGINS //
+	/* STATIC
+	_client.PackageManagers[kftypes.KSONNET] = ksonnet.GetKfApp(options)
 	_client.PackageManagers[kftypes.KUSTOMIZE] = kustomize.GetKfApp(options)
-	// -STATIC //
+	-STATIC */
 	platform := options[string(kftypes.PLATFORM)].(string)
-	if !(platform == "" || platform == kftypes.NONE) {
+	if platform != "" {
 		_platform, _platformErr := GetPlatform(platform, options)
 		if _platformErr != nil {
 			log.Fatalf("could not get platform %v Error %v **", platform, _platformErr)
@@ -82,8 +90,8 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 		if _platform != nil {
 			_client.Platforms[platform] = _platform
 		}
+		_client.Client.Spec.Platform = options[string(kftypes.PLATFORM)].(string)
 	}
-	_client.Client.Spec.Platform = options[string(kftypes.PLATFORM)].(string)
 	if options[string(kftypes.APPNAME)] != nil {
 		_client.Client.Name = options[string(kftypes.APPNAME)].(string)
 	}
@@ -126,12 +134,10 @@ func GetPlatform(platform string, options map[string]interface{}) (kftypes.KfApp
 		return minikube.GetKfApp(options), nil
 	case string(kftypes.GCP):
 		return gcp.GetKfApp(options), nil
-	// STATIC
+	/* STATIC
 	case string(kftypes.DOCKER_FOR_DESKTOP):
 		return dockerfordesktop.GetKfApp(options), nil
-	case string(kftypes.KUSTOMIZE):
-		return kustomize.GetKfApp(options), nil
-	// -STATIC //
+	-STATIC */
 	default:
 		log.Infof("** loading %v.so for platform %v **", platform, platform)
 		return kftypes.LoadKfApp(platform, options)
@@ -143,12 +149,14 @@ func GetPlatform(platform string, options map[string]interface{}) (kftypes.KfApp
 // kftypes.LoadKfApp which will try and dynamically load a .so
 func GetPackageManager(packagemanager string, options map[string]interface{}) (kftypes.KfApp, error) {
 	switch packagemanager {
-	// STATIC
+	/* STATIC
+	case string(kftypes.KSONNET):
+		return ksonnet.GetKfApp(options), nil
 	case string(kftypes.KUSTOMIZE):
 		return kustomize.GetKfApp(options), nil
-	// -STATIC //
+	-STATIC */
 	default:
-		log.Infof("** loading %v.so for platform %v **", packagemanager, packagemanager)
+		log.Infof("** loading %v.so for package manager %v **", packagemanager, packagemanager)
 		return kftypes.LoadKfApp(packagemanager, options)
 	}
 }
@@ -216,7 +224,10 @@ func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	data := v.(map[string]interface{})
 	metadata := data["metadata"].(map[string]interface{})
 	spec := data["spec"].(map[string]interface{})
-	platform := spec["platform"].(string)
+	platform := ""
+	if spec["platform"] != nil {
+		platform = spec["platform"].(string)
+	}
 	appName = metadata["name"].(string)
 	appDir = spec["appdir"].(string)
 	options[string(kftypes.PLATFORM)] = platform
@@ -242,7 +253,7 @@ func (kfApp *kfApp) Apply(resources kftypes.ResourceEnum, options map[string]int
 	case kftypes.PLATFORM:
 		fallthrough
 	case kftypes.ALL:
-		if !(kfApp.Client.Spec.Platform == "" || kfApp.Client.Spec.Platform == kftypes.NONE) {
+		if kfApp.Client.Spec.Platform != "" {
 			platform := kfApp.Platforms[kfApp.Client.Spec.Platform]
 			if platform != nil {
 				platformErr := platform.Apply(resources, options)
@@ -270,7 +281,7 @@ func (kfApp *kfApp) Delete(resources kftypes.ResourceEnum, options map[string]in
 	case kftypes.PLATFORM:
 		fallthrough
 	case kftypes.ALL:
-		if !(kfApp.Client.Spec.Platform == "" || kfApp.Client.Spec.Platform == kftypes.NONE) {
+		if kfApp.Client.Spec.Platform != "" {
 			platform := kfApp.Platforms[kfApp.Client.Spec.Platform]
 			if platform != nil {
 				platformErr := platform.Delete(resources, options)
@@ -298,7 +309,7 @@ func (kfApp *kfApp) Generate(resources kftypes.ResourceEnum, options map[string]
 	case kftypes.PLATFORM:
 		fallthrough
 	case kftypes.ALL:
-		if !(kfApp.Client.Spec.Platform == "" || kfApp.Client.Spec.Platform == kftypes.NONE) {
+		if kfApp.Client.Spec.Platform != "" {
 			platform := kfApp.Platforms[kfApp.Client.Spec.Platform]
 			if platform != nil {
 				platformErr := platform.Generate(resources, options)
@@ -332,7 +343,7 @@ func (kfApp *kfApp) Init(resources kftypes.ResourceEnum, options map[string]inte
 				return fmt.Errorf("kfApp Init failed for %v: %v", packageManagerName, packageManagerErr)
 			}
 		}
-		if !(kfApp.Client.Spec.Platform == "" || kfApp.Client.Spec.Platform == kftypes.NONE) {
+		if kfApp.Client.Spec.Platform != "" {
 			platform := kfApp.Platforms[kfApp.Client.Spec.Platform]
 			if platform != nil {
 				platformErr := platform.Init(resources, options)
@@ -363,7 +374,7 @@ func (kfApp *kfApp) Show(resources kftypes.ResourceEnum, options map[string]inte
 				}
 			}
 		}
-		if !(kfApp.Client.Spec.Platform == "" || kfApp.Client.Spec.Platform == kftypes.NONE) {
+		if kfApp.Client.Spec.Platform != "" {
 			platform := kfApp.Platforms[kfApp.Client.Spec.Platform]
 			show, ok := platform.(kftypes.KfShow)
 			if ok && show != nil {

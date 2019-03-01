@@ -29,8 +29,11 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"sigs.k8s.io/kustomize/k8sdeps"
+	"sigs.k8s.io/kustomize/pkg/factory"
 	"sigs.k8s.io/kustomize/pkg/fs"
 	"sigs.k8s.io/kustomize/pkg/loader"
+	"sigs.k8s.io/kustomize/pkg/target"
 )
 
 // Kustomize implements KfApp Interface
@@ -51,20 +54,24 @@ import (
 // and is taken from [Declarative Application Management in Kubernetes]
 // (https://docs.google.com/document/d/1cLPGweVEYrVqQvBLJg6sxV-TrE5Rm2MNOBA_cxZP2WU)
 type kustomize struct {
-	fsys      fs.FileSystem
-	out       *os.File
-	err       *os.File
-	Kustomize *cltypes.Client
+	factory    *factory.KustFactory
+	fsys       fs.FileSystem
+	outputFile string
+	out        *os.File
+	err        *os.File
+	Kustomize  *cltypes.Client
 }
 
 func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	_kustomize := &kustomize{
-		fsys: fs.MakeRealFS(),
-		out:  os.Stdout,
-		err:  os.Stderr,
+		factory:    k8sdeps.NewFactory(),
+		fsys:       fs.MakeRealFS(),
+		outputFile: "output.yaml",
+		out:        os.Stdout,
+		err:        os.Stderr,
 		Kustomize: &cltypes.Client{
 			TypeMeta: metav1.TypeMeta{
-				Kind:       "KustomizE",
+				Kind:       "Kustomize",
 				APIVersion: "kustomize.apps.kubeflow.org/v1alpha1",
 			},
 		},
@@ -75,6 +82,12 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	}
 	if options[string(kftypes.APPDIR)] != nil {
 		_kustomize.Kustomize.Spec.AppDir = options[string(kftypes.APPDIR)].(string)
+		if _, err := os.Stat(_kustomize.Kustomize.Spec.AppDir); os.IsNotExist(err) {
+			appdirErr := os.Mkdir(_kustomize.Kustomize.Spec.AppDir, os.ModePerm)
+			if appdirErr != nil {
+				log.Fatalf("couldn't create directory %v Error %v", _kustomize.Kustomize.Spec.AppDir, appdirErr)
+			}
+		}
 	}
 	if options[string(kftypes.NAMESPACE)] != nil {
 		namespace := options[string(kftypes.NAMESPACE)].(string)
@@ -112,21 +125,41 @@ func (kustomize *kustomize) Delete(resources kftypes.ResourceEnum, options map[s
 }
 
 func (kustomize *kustomize) generate(options map[string]interface{}) error {
-	kustomizeDir := path.Join(kustomize.Kustomize.Spec.AppDir, "kustomize")
-	_, loaderErr := loader.NewLoader(kustomizeDir, kustomize.fsys)
+	kustomizeDir := path.Join(kustomize.Kustomize.Spec.AppDir, "manifests", kustomize.Kustomize.Spec.Version)
+	loader, loaderErr := loader.NewLoader(kustomizeDir, kustomize.fsys)
 	if loaderErr != nil {
 		return fmt.Errorf("could not load kustomize loader: %v", loaderErr)
 	}
-	return nil
+	defer loader.Cleanup()
+	kt, err := target.NewKustTarget(loader, kustomize.factory.ResmapF, kustomize.factory.TransformerF)
+	if err != nil {
+		return err
+	}
+	allResources, err := kt.MakeCustomizedResMap()
+	if err != nil {
+		return err
+	}
+	// Output the objects.
+	res, err := allResources.EncodeAsYaml()
+	if err != nil {
+		return err
+	}
+	kustomizeFile := filepath.Join(kustomize.Kustomize.Spec.AppDir, kustomize.outputFile)
+	kustomizeFileErr := kustomize.fsys.WriteFile(kustomizeFile, res)
+	if kustomizeFileErr != nil {
+		return kustomizeFileErr
+	}
+	_, err = kustomize.out.Write(res)
+	return err
 }
 
 // kfctl generate all -V --email <service_account_name>@<project>.iam.gserviceaccount.com
 func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum, options map[string]interface{}) error {
 	switch resources {
-	case kftypes.K8S:
+	case kftypes.PLATFORM:
 	case kftypes.ALL:
 		fallthrough
-	case kftypes.PLATFORM:
+	case kftypes.K8S:
 		generateErr := kustomize.generate(options)
 		if generateErr != nil {
 			return fmt.Errorf("kustomize generate failed Error: %v", generateErr)
@@ -137,12 +170,12 @@ func (kustomize *kustomize) Generate(resources kftypes.ResourceEnum, options map
 
 // kfctl init kustomize -V --platform kustomize --project <project>
 func (kustomize *kustomize) Init(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	kustomizeDir := path.Join(kustomize.Kustomize.Spec.AppDir, "kustomize")
+	kustomizeDir := path.Join(kustomize.Kustomize.Spec.AppDir, "manifests")
 	kustomizeDirErr := os.Mkdir(kustomizeDir, os.ModePerm)
 	if kustomizeDirErr != nil {
 		return fmt.Errorf("couldn't create directory %v Error %v", kustomizeDir, kustomizeDirErr)
 	}
-	tarballUrl := "https://github.com/kubeflow/kubeflow/tarball/" + kustomize.Kustomize.Spec.Version + "?archive=tar.gz"
+	tarballUrl := "https://github.com/kubeflow/manifests/tarball/" + kustomize.Kustomize.Spec.Version + "?archive=tar.gz"
 	tarballUrlErr := gogetter.GetAny(kustomizeDir, tarballUrl)
 	if tarballUrlErr != nil {
 		return fmt.Errorf("couldn't download kustomize manifests repo %v Error %v", tarballUrl, tarballUrlErr)
@@ -157,6 +190,23 @@ func (kustomize *kustomize) Init(resources kftypes.ResourceEnum, options map[str
 	renameErr := os.Rename(extractedPath, newPath)
 	if renameErr != nil {
 		return fmt.Errorf("couldn't rename %v to %v Error %v", extractedPath, newPath, renameErr)
+	}
+	createConfigErr := kustomize.writeConfigFile()
+	if createConfigErr != nil {
+		return fmt.Errorf("cannot create config file app.yaml in %v", kustomize.Kustomize.Spec.AppDir)
+	}
+	return nil
+}
+
+func (kustomize *kustomize) writeConfigFile() error {
+	buf, bufErr := yaml.Marshal(kustomize.Kustomize)
+	if bufErr != nil {
+		return bufErr
+	}
+	cfgFilePath := filepath.Join(kustomize.Kustomize.Spec.AppDir, kftypes.KfConfigFile)
+	cfgFilePathErr := ioutil.WriteFile(cfgFilePath, buf, 0644)
+	if cfgFilePathErr != nil {
+		return cfgFilePathErr
 	}
 	return nil
 }

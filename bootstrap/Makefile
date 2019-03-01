@@ -27,7 +27,8 @@ export GO111MODULE = on
 export GO = go
 
 %.so:
-	@$(GO) build -i -gcflags 'all=-N -l' -o bin/$*.so -buildmode=plugin cmd/plugins/$*/$*.go
+	cd cmd/plugins/$* && \
+	$(GO) build -i -gcflags 'all=-N -l' -o ../../../bin/$*.so -buildmode=plugin $*.go
 
 %.init:
 	@echo kfctl init test/$* $(VERBOSE) --platform $* --project $(GCLOUD_PROJECT) && \
@@ -45,20 +46,28 @@ auth:
 
 # Run go fmt against code
 fmt:
-	@$(GO) fmt ./pkg/... ./cmd/...
+	@$(GO) fmt ./pkg/apis/apps/client/... ./pkg/apis/apps/gcp/... ./pkg/utils/... ./pkg/client/minikube ./pkg/client/gcp/... ./cmd/kfctl/...
 
 # Run go vet against code
 vet:
-	@$(GO) vet ./pkg/... ./cmd/...
+	@$(GO) vet ./pkg/apis/apps/client/... ./pkg/apis/apps/gcp/... ./pkg/utils/... ./pkg/client/minikube ./pkg/client/gcp/... ./cmd/kfctl/...
 
 generate:
-	@$(GO) generate ./pkg/... ./cmd/...
+	@$(GO) generate ./pkg/apis/apps/client/... ./pkg/apis/apps/gcp/... ./pkg/utils/... ./pkg/client/minikube ./pkg/client/gcp/... ./cmd/kfctl/...
 
 $(GOPATH)/bin/deepcopy-gen:
 	GO111MODULE=off $(GO) get k8s.io/code-generator/cmd/deepcopy-gen
 
-deepcopy: $(GOPATH)/bin/deepcopy-gen
-	$(GOPATH)/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/pkg/apis/... -O zz_generated.deepcopy
+pkg/apis/apps/gcp/v1alpha1/zz_generated.deepcopy.go: pkg/apis/apps/gcp/v1alpha1/application_types.go
+	$(GOPATH)/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/gcp/... -O zz_generated.deepcopy
+
+pkg/apis/apps/ksonnet/v1alpha1/zz_generated.deepcopy.go: pkg/apis/apps/ksonnet/v1alpha1/application_types.go
+	$(GOPATH)/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/... -O zz_generated.deepcopy
+
+pkg/apis/apps/client/v1alpha1/zz_generated.deepcopy.go: pkg/apis/apps/client/v1alpha1/application_types.go
+	$(GOPATH)/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/client/... -O zz_generated.deepcopy
+
+deepcopy: $(GOPATH)/bin/deepcopy-gen pkg/apis/apps/gcp/v1alpha1/zz_generated.deepcopy.go pkg/apis/apps/client/v1alpha1/zz_generated.deepcopy.go
 
 build-bootstrap: generate fmt vet
 	$(GO) build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
@@ -92,7 +101,7 @@ push-latest: push
 	gcloud container images add-tag --quiet $(IMG):$(TAG) $(IMG):latest --verbosity=info
 	echo created $(IMG):latest
 
-install: build-kfctl
+install: build-kfctl dockerfordesktop.so kustomize.so ksonnet.so
 	@echo copying bin/kfctl to /usr/local/bin
 	@cp bin/kfctl /usr/local/bin
 
@@ -115,7 +124,7 @@ plugins:
 clean: 
 	rm -rf test && mkdir test
       
-test-init: clean install dockerfordesktop.so kustomize.so dockerfordesktop.init kustomize.init none.init minikube.init gcp.init
+test-init: clean install dockerfordesktop.init kustomize.init none.init minikube.init gcp.init
 
 test-generate: test-init dockerfordesktop.generate kustomize.generate none.generate minikube.generate gcp.generate
 
