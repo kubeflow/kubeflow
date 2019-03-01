@@ -1,4 +1,4 @@
-import {PolymerElement, html} from '@polymer/polymer/polymer-element.js';
+import {PolymerElement, html} from '@polymer/polymer/polymer-element.js'
 
 import '@polymer/app-layout/app-drawer/app-drawer.js'
 import '@polymer/app-layout/app-drawer-layout/app-drawer-layout.js'
@@ -91,7 +91,7 @@ export class MainPage extends PolymerElement {
     }
 
     openQuickLink(e) {
-        const link = e.model.item.link;
+        const {link} = e.model.item;
         this.openExternalLink(link);
     }
 

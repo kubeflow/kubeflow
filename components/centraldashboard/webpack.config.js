@@ -1,6 +1,6 @@
 'use strict';
 
-const { resolve } = require('path');
+const {resolve} = require('path');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const DefinePlugin = require('webpack').DefinePlugin;
@@ -9,12 +9,12 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const ScriptExtHtmlWebpackPlugin = require('script-ext-html-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 
-const ENV           = process.env.NODE_ENV || 'development'
-const NODE_MODULES  = /\/node_modules\//
-const PKG_VERSION   = require('./package.json').version
-const SRC           = resolve(__dirname, 'public')
-const COMPONENTS    = resolve(SRC, 'components')
-const DESTINATION   = resolve(__dirname, 'dist', 'public')
+const ENV = process.env.NODE_ENV || 'development';
+const NODE_MODULES = /\/node_modules\//;
+const PKG_VERSION = require('./package.json').version
+const SRC = resolve(__dirname, 'public')
+const COMPONENTS = resolve(SRC, 'components')
+const DESTINATION = resolve(__dirname, 'dist', 'public')
 const WEBCOMPONENTS = './node_modules/@webcomponents/webcomponentsjs'
 const POLYFILLS = [
     {
@@ -176,6 +176,6 @@ module.exports = {
     ],
     devServer: {
         port: 8081,
-        proxy: {'/api': 'http://localhost:8080'}
+        proxy: {'/api': 'http://localhost:8082'}
     }
 }
