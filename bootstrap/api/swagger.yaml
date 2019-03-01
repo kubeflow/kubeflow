@@ -10,7 +10,7 @@ info:
     name: "Apache 2.0"
     url: "http://www.apache.org/licenses/LICENSE-2.0.html"
 host: "https://www.kubeflow.org/"
-basePath: "/kfctl"
+basePath: "/kfctl/v1"
 tags:
 - name: "deployment"
   description: "A kubeflow deployment on GCP"
@@ -20,7 +20,7 @@ tags:
 schemes:
 - "https"
 paths:
-  /e2eDeploy:
+  /projects/{project}/deployments:
     post:
       tags:
       - "deployment"
@@ -32,9 +32,14 @@ paths:
       produces:
       - "application/json"
       parameters:
+      - in: "path"
+        name: "project"
+        description: "Project needs to be created"
+        required: true
+        type: "string"
       - in: "body"
         name: "body"
-        description: "Pet object that needs to be added to the store"
+        description: "Deployment needs to be created"
         required: true
         schema:
           $ref: "#/definitions/CreateDeployment"
@@ -53,19 +58,13 @@ definitions:
     properties:
       name:
         type: "string"
+      version:
+        type: "string"
       namespace:
-        type: "string"
-      cluster:
-        type: "string"
-      project:
         type: "string"
       zone:
         type: "string"
-      token:
-        type: "string"
       email:
-        type: "string"
-      ipName:
         type: "string"
       sAClientId:
         type: "string"
