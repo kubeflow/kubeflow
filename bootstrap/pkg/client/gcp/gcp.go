@@ -446,6 +446,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 		return fmt.Errorf("Build ClientConfig error: %v", err)
 	}
 
+	// TODO(#2604): Need to create a named context.
 	cred_cmd := exec.Command("gcloud", "container", "clusters", "get-credentials",
 		gcp.GcpApp.Name,
 		"--zone="+gcp.GcpApp.Spec.Zone,
