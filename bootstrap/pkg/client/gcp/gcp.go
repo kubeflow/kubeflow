@@ -90,9 +90,6 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 				Kind:       "Gcp",
 				APIVersion: "gcp.apps.kubeflow.org/v1alpha1",
 			},
-			Spec: gcptypes.GcpSpec{
-				GkeApiVersion: kftypes.DefaultGkeApiVer,
-			},
 		},
 	}
 	_gcp.Children[kftypes.KSONNET] = _ksonnet
@@ -681,7 +678,7 @@ func (gcp *Gcp) generateDMConfigs(options map[string]interface{}) error {
 	if storageFileDataErr != nil {
 		return fmt.Errorf("could not read %v Error %v", storageFile, storageFileDataErr)
 	}
-	configFileData = gcp.replaceText("SET_GKE_API_VERSION", gcp.GcpApp.Spec.GkeApiVersion, configFileData)
+	configFileData = gcp.replaceText("SET_GKE_API_VERSION", kftypes.DefaultGkeApiVer, configFileData)
 	repl = "zone: " + gcp.GcpApp.Spec.Zone
 	configFileData = gcp.replaceText("zone: SET_THE_ZONE", repl, configFileData)
 	storageFileData = gcp.replaceText("zone: SET_THE_ZONE", repl, storageFileData)
