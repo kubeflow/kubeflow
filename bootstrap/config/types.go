@@ -24,7 +24,7 @@ type NameValue struct {
 type Parameters map[string][]NameValue
 
 // Default components configuration definitions.
-type Config struct {
+type ComponentConfig struct {
 	// Name of repository.
 	Repo string `json:"repo,omitempty"`
 	// List of default components.

@@ -381,8 +381,8 @@ func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum, options map[string]
 	log.Infof("Ksonnet.Generate Name %v AppDir %v Platform %v", ksApp.KsApp.Name,
 		ksApp.KsApp.Spec.AppDir, ksApp.KsApp.Spec.Platform)
 
-	configPath := options[string(kftypes.DEFAULT_CONFIG)].(string)
-	config := &configtypes.Config{}
+	configPath := options[string(kftypes.DefaultConfig)].(string)
+	config := &configtypes.ComponentConfig{}
 	if buf, bufErr := ioutil.ReadFile(configPath); bufErr == nil {
 		if readErr := yaml.Unmarshal(buf, config); readErr != nil {
 			return fmt.Errorf("Unable to parse config: %v", readErr)

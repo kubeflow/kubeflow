@@ -49,7 +49,6 @@ or a name where the kubeflow application will be initialized in the current dire
 		repo := initCfg.GetString(string(kftypes.REPO))
 		debug := initCfg.GetBool(string(kftypes.DEBUG))
 		project := initCfg.GetString(string(kftypes.PROJECT))
-		gkeApiVersion := initCfg.GetString(string(kftypes.GKE_API_VERSION))
 		init_gcp := initCfg.GetBool(string(kftypes.SKIP_INIT_GCP_PROJECT))
 		basic_auth := initCfg.GetBool(string(kftypes.USE_BASIC_AUTH))
 		options := map[string]interface{}{
@@ -60,7 +59,6 @@ or a name where the kubeflow application will be initialized in the current dire
 			string(kftypes.REPO):                  repo,
 			string(kftypes.DEBUG):                 debug,
 			string(kftypes.PROJECT):               project,
-			string(kftypes.GKE_API_VERSION):       gkeApiVersion,
 			string(kftypes.SKIP_INIT_GCP_PROJECT): init_gcp,
 			string(kftypes.USE_BASIC_AUTH):        basic_auth,
 		}
@@ -130,14 +128,6 @@ func init() {
 	bindErr = initCfg.BindPFlag(string(kftypes.VERBOSE), initCmd.Flags().Lookup(string(kftypes.VERBOSE)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.VERBOSE), bindErr)
-		return
-	}
-
-	initCmd.Flags().String(string(kftypes.GKE_API_VERSION), "v1beta1",
-		"API version of GKE, used only when --platform gcp")
-	bindErr = initCfg.BindPFlag(string(kftypes.GKE_API_VERSION), initCmd.Flags().Lookup(string(kftypes.GKE_API_VERSION)))
-	if bindErr != nil {
-		log.Errorf("couldn't set flag --%v: %v", string(kftypes.GKE_API_VERSION), bindErr)
 		return
 	}
 

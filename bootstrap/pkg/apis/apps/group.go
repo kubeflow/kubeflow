@@ -44,14 +44,16 @@ const (
 	DefaultNamespace = "kubeflow"
 	DefaultPlatform  = "ksonnet"
 	// TODO: find the latest tag dynamically
-	DefaultVersion  = "master"
-	DefaultGitRepo  = "https://github.com/kubeflow/kubeflow/tarball"
-	KfConfigFile    = "app.yaml"
-	DefaultCacheDir = ".cache"
-	GcpConfigDir    = "bootstrap/config"
-	GcpIapConfig    = "kfctl_iap.yaml"
-	GcpBasicAuth    = "kfctl_basic_auth.yaml"
-	DefaultZone     = "us-east1-d"
+	DefaultVersion   = "master"
+	DefaultGitRepo   = "https://github.com/kubeflow/kubeflow/tarball"
+	KfConfigFile     = "app.yaml"
+	DefaultCacheDir  = ".cache"
+	GcpConfigDir     = "bootstrap/config"
+	GcpIapConfig     = "kfctl_iap.yaml"
+	GcpBasicAuth     = "kfctl_basic_auth.yaml"
+	DefaultZone      = "us-east1-d"
+	DefaultConfig    = "default_config"
+	DefaultGkeApiVer = "v1beta1"
 )
 
 type ResourceEnum string
@@ -82,12 +84,9 @@ const (
 	KAPP                  CliOption = "KApp"
 	DATA                  CliOption = "Data"
 	ZONE                  CliOption = "zone"
-	GKE_API_VERSION       CliOption = "gke_api_version"
 	USE_BASIC_AUTH        CliOption = "use_basic_auth"
 	OAUTH_ID              CliOption = "oauth_id"
 	OAUTH_SECRET          CliOption = "oauth_secret"
-	// TODO(gabrielwen): Expose this as CLI flag?
-	DEFAULT_CONFIG CliOption = "default_config"
 )
 
 //

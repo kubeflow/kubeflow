@@ -90,6 +90,9 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 				Kind:       "Gcp",
 				APIVersion: "gcp.apps.kubeflow.org/v1alpha1",
 			},
+			Spec: gcptypes.GcpSpec{
+				GkeApiVersion: kftypes.DefaultGkeApiVer,
+			},
 		},
 	}
 	_gcp.Children[kftypes.KSONNET] = _ksonnet
@@ -159,12 +162,6 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	} else if _gcp.GcpApp.Name != "" && _gcp.GcpApp.Spec.Project != "" {
 		_gcp.GcpApp.Spec.Hostname = fmt.Sprintf("%v.endpoints.%v.cloud.goog",
 			_gcp.GcpApp.Name, _gcp.GcpApp.Spec.Project)
-	}
-	if options[string(kftypes.GKE_API_VERSION)] != nil {
-		_gcp.GcpApp.Spec.GkeApiVersion = options[string(kftypes.GKE_API_VERSION)].(string)
-	} else {
-		// Default to be v1beta1.
-		_gcp.GcpApp.Spec.GkeApiVersion = "v1beta1"
 	}
 	if options[string(kftypes.USE_BASIC_AUTH)] != nil {
 		_gcp.GcpApp.Spec.UseBasicAuth = options[string(kftypes.USE_BASIC_AUTH)].(bool)
@@ -562,8 +559,8 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 	} else {
 		configPath = path.Join(configPath, kftypes.GcpIapConfig)
 	}
-	if options[string(kftypes.DEFAULT_CONFIG)] == nil {
-		options[string(kftypes.DEFAULT_CONFIG)] = configPath
+	if options[string(kftypes.DefaultConfig)] == nil {
+		options[string(kftypes.DefaultConfig)] = configPath
 	}
 
 	if options[string(kftypes.EMAIL)] != nil &&
