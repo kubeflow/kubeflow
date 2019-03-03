@@ -31,10 +31,10 @@ type ComponentConfig struct {
 	Components []string `json:"components,omitempty"`
 	// List of default packages.
 	Packages []string `json:"packages,omitempty"`
-	// Parameters to be passed into component prototypes.
-	ProtoParams Parameters `json:"protoParams,omitempty"`
 	// Parameters to be set to components using ks param set.
-	CompParams Parameters `json:"compParams,omityempty"`
+	ComponentParams Parameters `json:"componentParams,omitempty"`
+	// Parameters to be passed into component prototypes.
+	KsInitParams Parameters `json:"ksInitParams,omityempty"`
 	// Platform type.
 	Platform string `json:"platform,omitempty"`
 }

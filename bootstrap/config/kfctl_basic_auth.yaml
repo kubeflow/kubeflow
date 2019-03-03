@@ -38,7 +38,7 @@ components:
   - pytorch-operator
   - tensorboard
   - tf-job-operator
-protoParams:
+ksInitParams:
   cert-manager:
     - name: acmeEmail
       # TODO change value on the fly: use your email for ssl cert
@@ -50,7 +50,7 @@ protoParams:
     - name: hostname
       # TODO change value on the fly: replace with user-provide parameters. This need to be fully qualified domain name to use with ingress.
       value: <deployName>.endpoints.<Project>.cloud.goog
-compParams:
+componentParams:
   application:
     - name: components
       value: <list-of-components>

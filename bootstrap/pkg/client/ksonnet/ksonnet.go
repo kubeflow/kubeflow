@@ -393,25 +393,25 @@ func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum, options map[string]
 
 	config.Repo = ksApp.KsApp.Spec.Repo
 	email := options[string(kftypes.EMAIL)].(string)
-	setNameVal(config.ProtoParams["cert-manager"], "acmeEmail", email)
+	setNameVal(config.KsInitParams["cert-manager"], "acmeEmail", email)
 	ipName := options[string(kftypes.IPNAME)].(string)
 	hostname := options[string(kftypes.HOSTNAME)].(string)
 	if val, ok := options[string(kftypes.USE_BASIC_AUTH)]; ok && val.(bool) {
-		setNameVal(config.ProtoParams["basic-auth-ingress"], "ipName", ipName)
-		setNameVal(config.ProtoParams["basic-auth-ingress"], "hostname", hostname)
+		setNameVal(config.KsInitParams["basic-auth-ingress"], "ipName", ipName)
+		setNameVal(config.KsInitParams["basic-auth-ingress"], "hostname", hostname)
 	} else {
-		setNameVal(config.ProtoParams["iap-ingress"], "ipName", ipName)
-		setNameVal(config.ProtoParams["iap-ingress"], "hostname", hostname)
+		setNameVal(config.KsInitParams["iap-ingress"], "ipName", ipName)
+		setNameVal(config.KsInitParams["iap-ingress"], "hostname", hostname)
 	}
-	setNameVal(config.CompParams["pipeline"], "mysqlPd", ksApp.KsApp.Name+"-storage-metadata-store")
-	setNameVal(config.CompParams["pipeline"], "minioPd", ksApp.KsApp.Name+"-storage-artifact-store")
+	setNameVal(config.ComponentParams["pipeline"], "mysqlPd", ksApp.KsApp.Name+"-storage-metadata-store")
+	setNameVal(config.ComponentParams["pipeline"], "minioPd", ksApp.KsApp.Name+"-storage-artifact-store")
 	components := []string{}
 	for _, c := range config.Components {
 		if c != "application" && c != "metacontroller" {
 			components = append(components, fmt.Sprintf("\"%v\"", c))
 		}
 	}
-	setNameVal(config.CompParams["application"], "components",
+	setNameVal(config.ComponentParams["application"], "components",
 		"["+strings.Join(components, " ,")+"]")
 
 	log.Infof("Configs for generation: %+v", config)
@@ -447,7 +447,7 @@ func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum, options map[string]
 			Prototype: compName,
 		}
 		parameterArgs := []string{}
-		if val, ok := config.ProtoParams[compName]; ok {
+		if val, ok := config.KsInitParams[compName]; ok {
 			for _, nv := range val {
 				name := "--" + nv.Name
 				parameterArgs = append(parameterArgs, name)
@@ -458,7 +458,7 @@ func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum, options map[string]
 			return fmt.Errorf("couldn't add comp %v. Error: %v", comp.Name, componentAddErr)
 		}
 	}
-	for compName, namevals := range config.CompParams {
+	for compName, namevals := range config.ComponentParams {
 		for _, nv := range namevals {
 			args := map[string]interface{}{
 				actions.OptionAppRoot: ksApp.ksRoot(),
