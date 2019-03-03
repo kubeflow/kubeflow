@@ -27,7 +27,7 @@ const POLYFILLS = [
         to: resolve(DESTINATION, 'webcomponentsjs', 'bundles'),
         flatten: true
     }
-]
+];
 
 // Rules for processing Polymer components to allow
 // external Pug templates and CSS files.
@@ -81,19 +81,19 @@ module.exports = {
                     }
                 }
             },
-            // {
-            //     enforce: 'pre',
-            //     test: /\.js$/,
-            //     exclude: NODE_MODULES,
-            //     use: {
-            //         loader: 'eslint-loader',
-            //         options: {
-            //             extends: ['eslint:recommended', 'google'],
-            //             failOnError: true,
-            //             fix: true
-            //         }
-            //     }
-            // },
+            {
+                enforce: 'pre',
+                test: /\.js$/,
+                exclude: NODE_MODULES,
+                use: {
+                    loader: 'eslint-loader',
+                    options: {
+                        extends: ['eslint:recommended', 'google'],
+                        failOnError: true,
+                        fix: true
+                    }
+                }
+            },
             {
                 test: /\.js$/,
                 exclude: NODE_MODULES,
