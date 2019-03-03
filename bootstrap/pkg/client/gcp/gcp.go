@@ -615,6 +615,7 @@ func (gcp *Gcp) replaceText(regex string, repl string, src []byte) []byte {
 	return buf
 }
 
+// TODO(#2515): Switch from string replacement to YAML config.
 func (gcp *Gcp) generateDMConfigs(options map[string]interface{}) error {
 	// TODO(gabrielwen): Use YAML support instead of string replacement.
 	appDir := gcp.GcpApp.Spec.AppDir

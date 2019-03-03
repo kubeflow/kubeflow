@@ -181,6 +181,7 @@ func (ksApp *KsApp) Apply(resources kftypes.ResourceEnum, options map[string]int
 			return fmt.Errorf("could not change directory to %v Error %v", ksApp.KsApp.Spec.AppDir, err)
 		}
 	}
+	// TODO(#2391): Fix this and use ks.apply
 	if err = ksApp.showComponent([]string{"metacontroller", "application"}); err != nil {
 		return fmt.Errorf("Writing config file error: %v", err)
 	}

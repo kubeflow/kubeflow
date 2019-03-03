@@ -84,6 +84,9 @@ func getResource(mapping *meta.RESTMapping, config *rest.Config, group string,
 	return err
 }
 
+// TODO(#2391): kubectl is hard to be used as library - it's deeply integrated with
+// Cobra. Currently using RESTClient with `kubectl create` has some issues with YAML
+// generated with `ks show`.
 func patchResource(mapping *meta.RESTMapping, config *rest.Config, group string,
 	version string, namespace string, data []byte) error {
 	restClient, err := getRESTClient(config, group, version)
