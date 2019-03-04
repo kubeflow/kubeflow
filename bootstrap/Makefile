@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 GCLOUD_PROJECT ?= kubeflow-images-public
-GOLANG_VERSION ?= 1.11.5
+GOLANG_VERSION ?= 1.12
 GOPATH ?= $(HOME)/go
 GOOGLE_APPLICATION_CREDENTIALS ?= $(HOME)/auth.json
 # To build without the cache set the environment variable
@@ -110,26 +110,9 @@ run-local-docker:
 	  --mount type=bind,source=${HOME}/kf_app,target=/home/kubeflow \
 	  --entrypoint /bin/bash $(IMG):$(TAG)
 
-# static and plugins toogle whether we try and load a platform as a .so.
-# There is an example plugin 'dockerfordesktop' that can be loaded as a .so.
-# By default we disable loading plugins and link dockerfordesktop into the kfctl binary (static)
-static:
-	@ex pkg/apis/apps/group.go <hack/static
-	@ex pkg/client/client.go <hack/static || echo Plugin functionality disabled
-
-plugins:
-	@ex pkg/apis/apps/group.go <hack/plugins
-	@ex pkg/client/client.go <hack/plugins || echo Plugin functionality enabled
-
 clean: 
 	rm -rf test && mkdir test
       
 test-init: clean install dockerfordesktop.init minikube.init gcp.init
 
 test-generate: test-init dockerfordesktop.generate minikube.generate gcp.generate
-
-test-kfctl: plugins test-generate static test-generate
-      
-test-plugins-static: plugins test-known-platforms-generate static test-known-platforms-generate
-
-test-kfctl: test-plugins-static
