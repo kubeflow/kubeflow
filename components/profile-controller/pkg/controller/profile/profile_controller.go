@@ -21,6 +21,7 @@ import (
 	"reflect"
 
 	kubeflowv1alpha1 "github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis/kubeflow/v1alpha1"
+	"github.com/kubeflow/kubeflow/components/profile-controller/pkg/controller/options"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -41,13 +42,17 @@ var log = logf.Log.WithName("controller")
 
 // Add creates a new Profile Controller and adds it to the Manager with default RBAC. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
-func Add(mgr manager.Manager) error {
-	return add(mgr, newReconciler(mgr))
+func Add(mgr manager.Manager, s *options.ControllerOption) error {
+	return add(mgr, newReconciler(mgr, s))
 }
 
 // newReconciler returns a new reconcile.Reconciler
-func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcileProfile{Client: mgr.GetClient(), scheme: mgr.GetScheme()}
+func newReconciler(mgr manager.Manager, s *options.ControllerOption) reconcile.Reconciler {
+	return &ReconcileProfile{
+		Client: mgr.GetClient(),
+		scheme: mgr.GetScheme(),
+		option: s,
+	}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
@@ -95,6 +100,7 @@ var _ reconcile.Reconciler = &ReconcileProfile{}
 type ReconcileProfile struct {
 	client.Client
 	scheme *runtime.Scheme
+	option *options.ControllerOption
 }
 
 // Reconcile reads that state of the cluster for a Profile object and makes changes based on the state read
@@ -201,6 +207,13 @@ func (r *ReconcileProfile) Reconcile(request reconcile.Request) (reconcile.Resul
 			return reconcile.Result{}, err
 		}
 	}
+
+	// Reconcile Istio resources.
+	if r.option.UseIstio {
+		log.Info("Reconciling Istio resources...")
+		// TODO
+	}
+
 	return reconcile.Result{}, nil
 }
 

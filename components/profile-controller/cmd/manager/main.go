@@ -22,6 +22,7 @@ import (
 
 	"github.com/kubeflow/kubeflow/components/profile-controller/pkg/apis"
 	"github.com/kubeflow/kubeflow/components/profile-controller/pkg/controller"
+	"github.com/kubeflow/kubeflow/components/profile-controller/pkg/controller/options"
 	"github.com/kubeflow/kubeflow/components/profile-controller/pkg/webhook"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
@@ -31,9 +32,10 @@ import (
 )
 
 func main() {
-	var metricsAddr string
-	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
+	s := options.NewControllerOption()
+	s.AddFlags(flag.CommandLine)
 	flag.Parse()
+
 	logf.SetLogger(logf.ZapLogger(false))
 	log := logf.Log.WithName("entrypoint")
 
@@ -47,7 +49,7 @@ func main() {
 
 	// Create a new Cmd to provide shared dependencies and start components
 	log.Info("setting up manager")
-	mgr, err := manager.New(cfg, manager.Options{MetricsBindAddress: metricsAddr})
+	mgr, err := manager.New(cfg, manager.Options{MetricsBindAddress: s.MetricsAddr})
 	if err != nil {
 		log.Error(err, "unable to set up overall controller manager")
 		os.Exit(1)
@@ -64,7 +66,7 @@ func main() {
 
 	// Setup all Controllers
 	log.Info("Setting up controller")
-	if err := controller.AddToManager(mgr); err != nil {
+	if err := controller.AddToManager(mgr, s); err != nil {
 		log.Error(err, "unable to register controllers to the manager")
 		os.Exit(1)
 	}
