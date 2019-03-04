@@ -394,15 +394,15 @@ func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum, options map[string]
 
 	config.Repo = ksApp.KsApp.Spec.Repo
 	email := options[string(kftypes.EMAIL)].(string)
-	setNameVal(config.KsInitParams["cert-manager"], "acmeEmail", email)
+	setNameVal(config.ComponentParams["cert-manager"], "acmeEmail", email)
 	ipName := options[string(kftypes.IPNAME)].(string)
 	hostname := options[string(kftypes.HOSTNAME)].(string)
 	if val, ok := options[string(kftypes.USE_BASIC_AUTH)]; ok && val.(bool) {
-		setNameVal(config.KsInitParams["basic-auth-ingress"], "ipName", ipName)
-		setNameVal(config.KsInitParams["basic-auth-ingress"], "hostname", hostname)
+		setNameVal(config.ComponentParams["basic-auth-ingress"], "ipName", ipName)
+		setNameVal(config.ComponentParams["basic-auth-ingress"], "hostname", hostname)
 	} else {
-		setNameVal(config.KsInitParams["iap-ingress"], "ipName", ipName)
-		setNameVal(config.KsInitParams["iap-ingress"], "hostname", hostname)
+		setNameVal(config.ComponentParams["iap-ingress"], "ipName", ipName)
+		setNameVal(config.ComponentParams["iap-ingress"], "hostname", hostname)
 	}
 	setNameVal(config.ComponentParams["pipeline"], "mysqlPd", ksApp.KsApp.Name+"-storage-metadata-store")
 	setNameVal(config.ComponentParams["pipeline"], "minioPd", ksApp.KsApp.Name+"-storage-artifact-store")
@@ -448,11 +448,13 @@ func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum, options map[string]
 			Prototype: compName,
 		}
 		parameterArgs := []string{}
-		if val, ok := config.KsInitParams[compName]; ok {
+		if val, ok := config.ComponentParams[compName]; ok {
 			for _, nv := range val {
-				name := "--" + nv.Name
-				parameterArgs = append(parameterArgs, name)
-				parameterArgs = append(parameterArgs, nv.Value)
+				if nv.InitRequired {
+					name := "--" + nv.Name
+					parameterArgs = append(parameterArgs, name)
+					parameterArgs = append(parameterArgs, nv.Value)
+				}
 			}
 		}
 		if componentAddErr := ksApp.componentAdd(comp, parameterArgs); componentAddErr != nil {
