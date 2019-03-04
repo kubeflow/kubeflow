@@ -45,7 +45,7 @@ export class MainPage extends PolymerElement {
                         link: 'https://www.kubeflow.org/docs/about/kubeflow/',
                         text: 'Kubeflow docs',
                     },
-                    {link: '/jupyter/', text: 'JupyterHub'},
+                    {link: '/jupyter/', text: 'Notebooks'},
                     {link: '/tfjobs/ui/', text: 'TFJob Dashboard'},
                     {link: '/katib/', text: 'Katib Dashboard'},
                     {link: '/pipeline/', text: 'Pipeline Dashboard'},
