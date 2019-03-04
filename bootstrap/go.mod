@@ -58,6 +58,8 @@ require (
 	github.com/jonboulle/clockwork v0.1.0 // indirect
 	github.com/json-iterator/go v1.1.5 // indirect
 	github.com/juju/ratelimit v1.0.1 // indirect
+	github.com/ksonnet/ksonnet v0.13.1
+	github.com/ksonnet/ksonnet-lib v0.1.12 // indirect
 	github.com/kubernetes/code-generator v0.0.0-20181206115026-3a2206dd6a78 // indirect
 	github.com/mitchellh/go-homedir v1.0.0
 	github.com/mitchellh/go-wordwrap v1.0.0 // indirect

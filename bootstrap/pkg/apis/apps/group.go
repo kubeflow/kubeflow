@@ -29,9 +29,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
-	// PLUGINS
 	"plugin"
-	// PLUGINS //
 	"regexp"
 	"strings"
 )
@@ -179,23 +177,11 @@ func RemoveItems(defaults []string, names ...string) []string {
 
 // Platforms
 const (
-	/* STATIC
-	DOCKER_FOR_DESKTOP = "dockerfordesktop"
-	-STATIC */
 	GCP      = "gcp"
 	MINIKUBE = "minikube"
 )
 
-// PackageManagers
-const (
-/* STATIC
-KSONNET = "ksonnet"
-KUSTOMIZE = "kustomize"
--STATIC */
-)
-
 func LoadKfApp(platform string, options map[string]interface{}) (KfApp, error) {
-	// PLUGINS
 	platform = strings.Replace(platform, "-", "", -1)
 	plugindir := os.Getenv("PLUGINS_ENVIRONMENT")
 	pluginpath := filepath.Join(plugindir, platform+".so")
@@ -209,10 +195,6 @@ func LoadKfApp(platform string, options map[string]interface{}) (KfApp, error) {
 		return nil, fmt.Errorf("could not find symbol %v for platform %v Error %v", symName, platform, symbolErr)
 	}
 	return symbol.(func(map[string]interface{}) KfApp)(options), nil
-	// PLUGINS //
-	/* STATIC
-	return nil, fmt.Errorf("could not load platform")
-	-STATIC */
 }
 
 func KubeConfigPath() string {
