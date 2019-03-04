@@ -20,54 +20,253 @@ tags:
 schemes:
 - "https"
 paths:
-  /projects/{project}/deployments:
+  /projects/{project}/configs:
     post:
       tags:
-      - "deployment"
-      summary: "Create a new kubeflow deployment on GCP"
-      description: ""
-      operationId: "createDeployment"
+        - "config"
+      summary: "Create a new kubeflow config entry on source repo"
+      security:
+        - BearerToken: []
+      operationId: "createConfig"
       consumes:
-      - "application/json"
+        - "application/json"
       produces:
-      - "application/json"
+        - "application/json"
       parameters:
-      - in: "path"
-        name: "project"
-        description: "Project needs to be created"
-        required: true
-        type: "string"
-      - in: "body"
-        name: "body"
-        description: "Deployment needs to be created"
-        required: true
-        schema:
-          $ref: "#/definitions/CreateDeployment"
-      responses:
-        200:
-          description: "successful operation"
+        - in: "path"
+          name: "project"
+          description: "gcp project string id"
+          required: true
+          type: "string"
+        - in: "body"
+          name: "body"
+          description: "Config needs to be created"
+          required: true
           schema:
-            $ref: "#/definitions/CreateOperation"
+            $ref: "#/definitions/KfConfig"
+      responses:
         405:
           description: "Invalid input"
           schema:
-            $ref: "#/definitions/InvalidInput"
+            $ref: "#/definitions/ErrorMessage"
+    get:
+      tags:
+        - "config"
+      summary: "List kubeflow config entries in target project"
+      security:
+        - BearerToken: []
+      operationId: "listConfigs"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "project"
+          description: "gcp project string id"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Kubeflow config entries"
+          schema:
+            $ref: "#/definitions/KfConfigEntries"
+        405:
+          description: "Invalid input"
+          schema:
+            $ref: "#/definitions/ErrorMessage"
+  /projects/{project}/configs/{config}/version/{version}/file:
+    get:
+      tags:
+        - "config"
+      summary: "Get kubeflow config entry file"
+      security:
+        - BearerToken: []
+      operationId: "getConfigFile"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "project"
+          description: "gcp project string id"
+          required: true
+          type: "string"
+        - in: "path"
+          name: "config"
+          description: "config entry name"
+          required: true
+          type: "string"
+        - in: "path"
+          name: "version"
+          description: "config entry kubeflow version"
+          required: true
+          type: "string"
+        - in: "query"
+          name: "filepath"
+          description: "file relative path"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Kubeflow config entries"
+          schema:
+            $ref: "#/definitions/KfConfigFile"
+        404:
+          description: "Entry not found"
+          schema:
+            $ref: "#/definitions/ErrorMessage"
+        405:
+          description: "Invalid input"
+          schema:
+            $ref: "#/definitions/ErrorMessage"
+    put:
+      tags:
+        - "config"
+      description: "Update kubeflow config entry file"
+      security:
+        - BearerToken: []
+      operationId: "putConfigFile"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "project"
+          description: "gcp project string id"
+          required: true
+          type: "string"
+        - in: "path"
+          name: "config"
+          description: "config entry name"
+          required: true
+          type: "string"
+        - in: "path"
+          name: "version"
+          description: "config entry kubeflow version"
+          required: true
+          type: "string"
+        - in: "body"
+          name: "body"
+          description: "file object to update"
+          required: true
+          schema:
+            $ref: "#/definitions/KfConfigFile"
+      responses:
+        405:
+          description: "Invalid input"
+          schema:
+            $ref: "#/definitions/ErrorMessage"
+  /projects/{project}/deployments:
+    post:
+      tags:
+        - "deployment"
+      summary: "Create a new kubeflow deployment on GCP"
+      security:
+        - BearerToken: []
+      operationId: "createDeployment"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "project"
+          description: "gcp project string id"
+          required: true
+          type: "string"
+        - in: "body"
+          name: "body"
+          description: "Deployment name"
+          required: true
+          schema:
+            $ref: "#/definitions/KfDeployment"
+      responses:
+        405:
+          description: "Invalid input"
+          schema:
+            $ref: "#/definitions/ErrorMessage"
+  /projects/{project}/deployments/{deployment}:
+    get:
+      tags:
+        - "deployment"
+      description: "Get kubeflow deployment status"
+      security:
+        - BearerToken: []
+      operationId: "getDeployment"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "project"
+          description: "gcp project string id"
+          required: true
+          type: "string"
+        - in: "path"
+          name: "deployment"
+          description: "Deployment name"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "deployment status"
+          schema:
+            $ref: "#/definitions/KfDeployment"
+        405:
+          description: "Invalid input"
+          schema:
+            $ref: "#/definitions/ErrorMessage"
 definitions:
-  CreateDeployment:
+  BasicAuthIngress:
+    type: "object"
+    properties:
+      username:
+        type: "string"
+      passwordHash:
+        type: "string"
+  DeploymentMetadata:
     type: "object"
     properties:
       name:
         type: "string"
-      version:
-        type: "string"
       namespace:
         type: "string"
-      zone:
+      version:
         type: "string"
       email:
         type: "string"
+      zone:
+        type: "string"
+  KfDeployment:
+    type: "object"
+    properties:
+      metadata:
+        $ref: "#/definitions/DeploymentMetadata"
       sAClientId:
         type: "string"
+      status:
+        type: "string"
+  ErrorMessage:
+    type: "object"
+    properties:
+      errorMessage:
+        type: "string"
+  IapIngress:
+    type: "object"
+    properties:
+      clientId:
+        type: "string"
+      clientSecret:
+        type: "string"
+  KfConfig:
+    type: "object"
+    properties:
+      metadata:
+        $ref: "#/definitions/DeploymentMetadata"
       extraComponents:
         type: "array"
         items:
@@ -82,6 +281,21 @@ definitions:
         $ref: "#/definitions/BasicAuthIngress"
       storageOption:
         $ref: "#/definitions/StorageOption"
+  KfConfigEntries:
+    type: "object"
+    properties:
+      configs:
+        type: "array"
+        items:
+          $ref: "#/definitions/DeploymentMetadata"
+  KfConfigFile:
+    type: "object"
+    properties:
+      file:
+        type: "string"
+        format: "byte"
+      filepath:
+        type: "string"
   Parameter:
     type: "object"
     properties:
@@ -91,42 +305,14 @@ definitions:
         type: "string"
       value:
         type: "string"
-  IapIngress:
-    type: "object"
-    properties:
-      clientId:
-        type: "string"
-      clientSecret:
-        type: "string"
-  BasicAuthIngress:
-    type: "object"
-    properties:
-      username:
-        type: "string"
-      passwordHash:
-        type: "string"
   StorageOption:
     type: "object"
     properties:
       createPersistentStorage:
         type: "boolean"
-  ApiResponse:
-    type: "object"
-    properties:
-      code:
-        type: "integer"
-        format: "int32"
-      type:
-        type: "string"
-      message:
-        type: "string"
-  CreateOperation:
-    type: "object"
-    properties:
-      operationId:
-        type: "string"
-  InvalidInput:
-    type: "object"
-    properties:
-      errorMessage:
-        type: "string"
+securityDefinitions:
+  BearerToken:
+    description: "Bearer Token authentication"
+    type: apiKey
+    name: "authorization"
+    in: "header"
