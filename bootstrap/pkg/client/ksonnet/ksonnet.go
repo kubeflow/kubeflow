@@ -261,63 +261,43 @@ func (ksApp *KsApp) deleteGlobalResources() error {
 	if clientErr != nil {
 		return fmt.Errorf("couldn't get  client Error: %v", clientErr)
 	}
-	crds, crdsErr := crdClient.CustomResourceDefinitions().List(metav1.ListOptions{})
-	if crdsErr != nil {
-		return fmt.Errorf("couldn't get list of customresourcedefinitions Error: %v", crdsErr)
+	do := &metav1.DeleteOptions{}
+	lo := metav1.ListOptions{
+		LabelSelector: kftypes.DefaultAppLabel + "=" + ksApp.KsApp.Name,
 	}
-	for _, crd := range crds.Items {
-		if crd.Labels["app.kubernetes.io/name"] == ksApp.KsApp.Name {
-			do := &metav1.DeleteOptions{}
-			dErr := crdClient.CustomResourceDefinitions().Delete(crd.Name, do)
-			if dErr != nil {
-				log.Errorf("could not delete %v Error %v", crd.Name, dErr)
-			}
-		} else if crd.Name == "compositecontrollers.metacontroller.k8s.io" ||
-			crd.Name == "controllerrevisions.metacontroller.k8s.io" ||
-			crd.Name == "decoratorcontrollers.metacontroller.k8s.io" ||
-			crd.Name == "applications.app.k8s.io" {
-			do := &metav1.DeleteOptions{}
-			dErr := crdClient.CustomResourceDefinitions().Delete(crd.Name, do)
-			if dErr != nil {
-				log.Errorf("could not delete %v Error %v", crd.Name, dErr)
-			}
+	crdsErr := crdClient.CustomResourceDefinitions().DeleteCollection(do, lo)
+	if crdsErr != nil {
+		return fmt.Errorf("couldn't delete customresourcedefinitions Error: %v", crdsErr)
+	}
+	crdsByName := []string{
+		"compositecontrollers.metacontroller.k8s.io",
+		"controllerrevisions.metacontroller.k8s.io",
+		"decoratorcontrollers.metacontroller.k8s.io",
+		"applications.app.k8s.io",
+	}
+	for _, crd := range crdsByName {
+		do := &metav1.DeleteOptions{}
+		dErr := crdClient.CustomResourceDefinitions().Delete(crd, do)
+		if dErr != nil {
+			log.Errorf("could not delete %v Error %v", crd, dErr)
 		}
 	}
 	cli, cliErr := kftypes.GetClientOutOfCluster()
 	if cliErr != nil {
 		return fmt.Errorf("couldn't create client Error: %v", cliErr)
 	}
-	crbs, crbsErr := cli.RbacV1().ClusterRoleBindings().List(metav1.ListOptions{})
+	crbsErr := cli.RbacV1().ClusterRoleBindings().DeleteCollection(do, lo)
 	if crbsErr != nil {
 		return fmt.Errorf("couldn't get list of clusterrolebindings Error: %v", crbsErr)
 	}
-	for _, crb := range crbs.Items {
-		if crb.Labels[kftypes.DefaultAppLabel] == ksApp.KsApp.Name {
-			do := &metav1.DeleteOptions{}
-			dErr := cli.RbacV1().ClusterRoleBindings().Delete(crb.Name, do)
-			if dErr != nil {
-				log.Errorf("could not delete %v Error %v", crb.Name, dErr)
-			}
-		}
-	}
 	crbName := "meta-controller-cluster-role-binding"
-	do := &metav1.DeleteOptions{}
 	dErr := cli.RbacV1().ClusterRoleBindings().Delete(crbName, do)
 	if dErr != nil {
 		log.Errorf("could not delete %v Error %v", crbName, dErr)
 	}
-	crs, crsErr := cli.RbacV1().ClusterRoles().List(metav1.ListOptions{})
+	crsErr := cli.RbacV1().ClusterRoles().DeleteCollection(do, lo)
 	if crsErr != nil {
-		return fmt.Errorf("couldn't get list of clusterroles Error: %v", crsErr)
-	}
-	for _, cr := range crs.Items {
-		if cr.Labels["app.kubernetes.io/name"] == ksApp.KsApp.Name {
-			do := &metav1.DeleteOptions{}
-			dErr := cli.RbacV1().ClusterRoles().Delete(cr.Name, do)
-			if dErr != nil {
-				log.Errorf("could not delete %v Error %v", cr.Name, dErr)
-			}
-		}
+		return fmt.Errorf("couldn't delete clusterroles Error: %v", crsErr)
 	}
 	return nil
 }
