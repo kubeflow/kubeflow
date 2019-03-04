@@ -17,8 +17,9 @@ limitations under the License.
 package config
 
 type NameValue struct {
-	Name  string `json:"name,omitempty"`
-	Value string `json:"value,omitempty"`
+	Name         string `json:"name,omitempty"`
+	Value        string `json:"value,omitempty"`
+	InitRequired bool   `json:"initRequired,omitempty"`
 }
 
 type Parameters map[string][]NameValue
