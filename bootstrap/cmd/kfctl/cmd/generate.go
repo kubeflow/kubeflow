@@ -59,6 +59,12 @@ The default is 'all' for any selected platform.`,
 			string(kftypes.ZONE):        zone,
 			string(kftypes.MOUNT_LOCAL): mountLocal,
 		}
+		if ipName != "" {
+			options[string(kftypes.IPNAME)] = ipName
+		}
+		if hostName != "" {
+			options[string(kftypes.HOSTNAME)] = hostName
+		}
 		kfApp, kfAppErr := loadKfApp(options)
 		if kfAppErr != nil {
 			log.Errorf("couldn't load KfApp: %v", kfAppErr)
@@ -88,7 +94,7 @@ func init() {
 	}
 
 	// platform gcp
-	generateCmd.Flags().String(string(kftypes.ZONE), "us-east1-d",
+	generateCmd.Flags().String(string(kftypes.ZONE), kftypes.DefaultZone,
 		string(kftypes.ZONE)+" if '--platform gcp'")
 	bindErr = generateCfg.BindPFlag(string(kftypes.ZONE), generateCmd.Flags().Lookup(string(kftypes.ZONE)))
 	if bindErr != nil {
