@@ -78,7 +78,8 @@ export class MainPage extends PolymerElement {
             primaryViewIndex: {type: Number, value: 0},
             homeOrIframeViewIndex: {type: Number, value: 0},
             url: {type: String, value: ''},
-            buildVersion: {type: String, value: VERSION},
+            buildVersion: {type: String, value: '0.4.1'},
+            dashVersion: {type: String, value: VERSION},
             _devMode: {type: Boolean, value: false},
         };
     }
@@ -91,7 +92,7 @@ export class MainPage extends PolymerElement {
     }
 
     openQuickLink(e) {
-        const link = e.model.item.link;
+        const {link} = e.model.item;
         this.openExternalLink(link);
     }
 

@@ -17,7 +17,7 @@ hot-module reloading:
     the [public](./public) folder and starts the
     [webpack-dev-server](https://webpack.js.org/configuration/dev-server/) at
     http://localhost:8081.
-  - It also starts the Express API server at http://localhost:8080. Requests
+  - It also starts the Express API server at http://localhost:8082. Requests
     from the front-end starting with `/api` are proxied to the Express server.
 
 ### Front-End Components
@@ -33,4 +33,4 @@ for an example.
 
 Run `npm run build && npm start`. This packages the project for production
 and serves both the front-end and API server on Express at
-http://localhost:8080.
+http://localhost:8082.
