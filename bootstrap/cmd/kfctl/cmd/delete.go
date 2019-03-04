@@ -16,7 +16,7 @@ package cmd
 
 import (
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/client"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/coordinator"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -43,7 +43,7 @@ var deleteCmd = &cobra.Command{
 			return
 		}
 		options := map[string]interface{}{}
-		kfApp, kfAppErr := client.LoadKfApp(options)
+		kfApp, kfAppErr := coordinator.LoadKfApp(options)
 		if kfAppErr != nil {
 			log.Errorf("couldn't load KfApp: %v", kfAppErr)
 			return
