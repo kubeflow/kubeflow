@@ -34,8 +34,6 @@ type ComponentConfig struct {
 	Packages []string `json:"packages,omitempty"`
 	// Parameters to be set to components using ks param set.
 	ComponentParams Parameters `json:"componentParams,omitempty"`
-	// Parameters to be passed into component prototypes.
-	KsInitParams Parameters `json:"ksInitParams,omityempty"`
 	// Platform type.
 	Platform string `json:"platform,omitempty"`
 }

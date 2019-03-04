@@ -38,19 +38,22 @@ components:
   - pytorch-operator
   - tensorboard
   - tf-job-operator
-ksInitParams:
+componentParams:
   cert-manager:
     - name: acmeEmail
       # TODO change value on the fly: use your email for ssl cert
       value: johnDoe@acme.com
+      initRequired: true
   basic-auth-ingress:
     - name: ipName
       # TODO change value on the fly: value of ipName need to match resource name in deployment entry.
       value: ipName
+      initRequired: true
     - name: hostname
       # TODO change value on the fly: replace with user-provide parameters. This need to be fully qualified domain name to use with ingress.
       value: <deployName>.endpoints.<Project>.cloud.goog
-componentParams:
+      initRequired: true
+
   application:
     - name: components
       value: <list-of-components>
