@@ -93,7 +93,7 @@
     // py scripts to use.
     kubeflowTestingPy: self.srcRootDir + "/kubeflow/testing/py",
     tfOperatorRoot: self.srcRootDir + "/kubeflow/tf-operator",
-    tfOperatorPy: self.tfOperatorRoot,
+    tfOperatorPy: self.tfOperatorRoot + "/py",
 
     // Build an Argo template to execute a particular command.
     // step_name: Name for the template
@@ -209,11 +209,11 @@
         local v1beta1Suffix = "-v1b1",
         template: tests.buildTemplate {
           name: "tfjob-test" + v1beta1Suffix,
-          pythonPath: tests.kubeflowPy + ":" + tests.kubeflowTestingPy + ":" + tests.tfOperatorPy,
+          pythonPath: tests.kubeflowPy + ":" + tests.tfOperatorPy + ":" + tests.kubeflowTestingPy,
           command: [
             "python",
             "-m",
-            "py.simple_tfjob_tests",
+            "kubeflow.tf_operator.simple_tfjob_tests",
             "--app_dir=" + tests.tfOperatorRoot + "/test/workflows",
             "--tfjob_version=v1beta1",
             // Name is used for the test case name so it should be unique across
@@ -230,11 +230,11 @@
         local v1beta2Suffix = "-v1b2",
         template: tests.buildTemplate {
           name: "tfjob-test" + v1beta2Suffix,
-          pythonPath: tests.kubeflowPy + ":" + tests.kubeflowTestingPy + ":" + tests.tfOperatorPy,
+          pythonPath: tests.kubeflowPy + ":" + tests.tfOperatorPy + ":" + tests.kubeflowTestingPy,
           command: [
             "python",
             "-m",
-            "py.simple_tfjob_tests",
+            "kubeflow.tf_operator.simple_tfjob_tests",
             "--app_dir=" + tests.tfOperatorRoot + "/test/workflows",
             "--tfjob_version=v1beta2",
             // Name is used for the test case name so it should be unique across
@@ -321,7 +321,7 @@
             "--test_dir=" + tests.testDir,
             "--artifacts_dir=" + tests.artifactsDir,
           ],
-          pythonPath: tests.kubeflowPy + ":" + tests.kubeflowTestingPy + ":" + tests.tfOperatorPy,
+          pythonPath: tests.kubeflowPy + ":" + tests.tfOperatorPy + ":" + tests.kubeflowTestingPy,
         },
 
         dependencies: ["wait-for-kubeflow"],
@@ -357,6 +357,23 @@
         },
         dependencies: ["wait-for-kubeflow"],
       },  // notebooks-test
+      {
+        template: tests.buildTemplate {
+          name: "profiles-test",
+          command: [
+            "pytest",
+            "profiles_test.py",
+            // I think -s mean stdout/stderr will print out to aid in debugging.
+            // Failures still appear to be captured and stored in the junit file.
+            "-s",
+            // Test timeout in seconds.
+            "--timeout=500",
+            "--junitxml=" + tests.artifactsDir + "/junit_profile-test.xml",
+          ],
+          workingDir: tests.srcDir + "/kubeflow/profiles/tests",
+        },
+        dependencies: ["wait-for-kubeflow"],
+      },  // profiles-test
     ],
 
     // An Argo template for the dag.
@@ -423,7 +440,7 @@
       // py scripts to use.
       local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
       local tfOperatorRoot = srcRootDir + "/kubeflow/tf-operator";
-      local tfOperatorPy = tfOperatorRoot;
+      local tfOperatorPy = tfOperatorRoot + "/py";
 
       // VM to use for minikube.
       local vmName =
@@ -459,7 +476,7 @@
             {
               // Add the source directories to the python path.
               name: "PYTHONPATH",
-              value: kubeflowPy + ":" + kubeflowTestingPy + ":" + tfOperatorPy,
+              value: kubeflowPy + ":" + tfOperatorPy+ ":"+kubeflowTestingPy,
             },
             {
               name: "GOOGLE_APPLICATION_CREDENTIALS",
@@ -647,7 +664,7 @@
               ["/usr/local/bin/checkout.sh", srcRootDir],
               env_vars=[{
                 name: "EXTRA_REPOS",
-                value: "kubeflow/tf-operator@4652bad;kubeflow/testing@HEAD",
+                value: "kubeflow/tf-operator@HEAD;kubeflow/testing@HEAD",
               }],
             ),
             buildTemplate("test-dir-delete", [
@@ -738,7 +755,7 @@
             buildTemplate("tfjob-test" + v1beta1Suffix, [
               "python",
               "-m",
-              "py.simple_tfjob_tests",
+              "kubeflow.tf_operator.simple_tfjob_tests",
               "--cluster=" + cluster,
               "--zone=" + zone,
               "--project=" + project,
@@ -754,7 +771,7 @@
             buildTemplate("tfjob-test" + v1beta2Suffix, [
               "python",
               "-m",
-              "py.simple_tfjob_tests",
+              "kubeflow.tf_operator.simple_tfjob_tests",
               "--cluster=" + cluster,
               "--zone=" + zone,
               "--project=" + project,
