@@ -21,19 +21,19 @@ import (
 	"github.com/ghodss/yaml"
 	gogetter "github.com/hashicorp/go-getter"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	cltypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/client/v1alpha1"
+	cltypes "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/client/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/v2/pkg/apis/meta/v1"
 	"os"
 	"path"
 	"path/filepath"
 	"regexp"
-	"sigs.k8s.io/kustomize/k8sdeps"
-	"sigs.k8s.io/kustomize/pkg/factory"
-	"sigs.k8s.io/kustomize/pkg/fs"
-	"sigs.k8s.io/kustomize/pkg/loader"
-	"sigs.k8s.io/kustomize/pkg/target"
+	"sigs.k8s.io/kustomize/v2/k8sdeps"
+	"sigs.k8s.io/kustomize/v2/pkg/factory"
+	"sigs.k8s.io/kustomize/v2/pkg/fs"
+	"sigs.k8s.io/kustomize/v2/pkg/loader"
+	"sigs.k8s.io/kustomize/v2/pkg/target"
 )
 
 // Kustomize implements KfApp Interface
@@ -82,12 +82,6 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	}
 	if options[string(kftypes.APPDIR)] != nil {
 		_kustomize.Kustomize.Spec.AppDir = options[string(kftypes.APPDIR)].(string)
-		if _, err := os.Stat(_kustomize.Kustomize.Spec.AppDir); os.IsNotExist(err) {
-			appdirErr := os.Mkdir(_kustomize.Kustomize.Spec.AppDir, os.ModePerm)
-			if appdirErr != nil {
-				log.Fatalf("couldn't create directory %v Error %v", _kustomize.Kustomize.Spec.AppDir, appdirErr)
-			}
-		}
 	}
 	if options[string(kftypes.NAMESPACE)] != nil {
 		namespace := options[string(kftypes.NAMESPACE)].(string)
@@ -190,6 +184,8 @@ func (kustomize *kustomize) Init(resources kftypes.ResourceEnum, options map[str
 	if renameErr != nil {
 		return fmt.Errorf("couldn't rename %v to %v Error %v", extractedPath, newPath, renameErr)
 	}
+	repoPath := path.Join(kustomize.Kustomize.Spec.AppDir, kftypes.DefaultCacheDir, kustomize.Kustomize.Spec.Version)
+	kustomize.Kustomize.Spec.Repo = path.Join(repoPath, "kubeflow")
 	createConfigErr := kustomize.writeConfigFile()
 	if createConfigErr != nil {
 		return fmt.Errorf("cannot create config file app.yaml in %v", kustomize.Kustomize.Spec.AppDir)

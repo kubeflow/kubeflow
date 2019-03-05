@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"github.com/cenkalti/backoff"
 	"github.com/ghodss/yaml"
-	gogetter "github.com/hashicorp/go-getter"
 	"github.com/ksonnet/ksonnet/pkg/actions"
 	"github.com/ksonnet/ksonnet/pkg/app"
 	"github.com/ksonnet/ksonnet/pkg/client"
@@ -422,17 +421,8 @@ func (ksApp *ksApp) Generate(resources kftypes.ResourceEnum, options map[string]
 
 func (ksApp *ksApp) Init(resources kftypes.ResourceEnum, options map[string]interface{}) error {
 	ksApp.KsApp.Spec.Platform = options[string(kftypes.PLATFORM)].(string)
-	err := os.Mkdir(ksApp.KsApp.Spec.AppDir, os.ModePerm)
-	if err != nil {
-		return fmt.Errorf("couldn't create directory %v, most likely it already exists", ksApp.KsApp.Spec.AppDir)
-	}
-	cfgFilePath := filepath.Join(ksApp.KsApp.Spec.AppDir, kftypes.KfConfigFile)
-	_, appDirErr := afero.NewOsFs().Stat(cfgFilePath)
-	if appDirErr == nil {
-		return fmt.Errorf("config file %v already exists in %v", kftypes.KfConfigFile, ksApp.KsApp.Spec.AppDir)
-	}
-	newPath := path.Join(ksApp.KsApp.Spec.AppDir, kftypes.DefaultCacheDir, ksApp.KsApp.Spec.Version)
-	ksApp.KsApp.Spec.Repo = path.Join(newPath, "kubeflow")
+	repoPath := path.Join(ksApp.KsApp.Spec.AppDir, kftypes.DefaultCacheDir, ksApp.KsApp.Spec.Version)
+	ksApp.KsApp.Spec.Repo = path.Join(repoPath, "kubeflow")
 	createConfigErr := ksApp.writeConfigFile()
 	if createConfigErr != nil {
 		return fmt.Errorf("cannot create config file app.yaml in %v", ksApp.KsApp.Spec.AppDir)

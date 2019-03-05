@@ -19,7 +19,8 @@ require (
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3
 	github.com/spf13/viper v1.3.1
-	golang.org/x/net v0.0.0-20190110200230-915654e7eabc
+	golang.org/x/crypto v0.0.0
+	golang.org/x/net v0.0.0-20190108225652-1e06a53dbb7e
 	golang.org/x/oauth2 v0.0.0-20190115181402-5dab4167f31c
 	google.golang.org/api v0.1.0
 	google.golang.org/genproto v0.0.0-20190111180523-db91494dd46c
@@ -28,21 +29,23 @@ require (
 	k8s.io/api v0.0.0-20180308224125-73d903622b73
 	k8s.io/apiextensions-apiserver v0.0.0-20190116054503-cf30b7cf64c2
 	k8s.io/apimachinery v0.0.0-20190111195121-fa6ddc151d63
-	k8s.io/cli-runtime v0.0.0-20190227060459-9ff7d311e3cf // indirect
 	k8s.io/client-go v10.0.0+incompatible
 	sigs.k8s.io/controller-runtime v0.1.1
 )
 
 replace (
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v9.1.0+incompatible
+	github.com/kubeflow/kubeflow/bootstrap => ../../../../bootstrap
 	github.com/mitchellh/go-homedir => github.com/mitchellh/go-homedir v1.0.0
 	github.com/russross/blackfriday => github.com/russross/blackfriday v1.5.2-0.20180428102519-11635eb403ff // indirect
-	k8s.io/api => github.com/kubernetes/api v0.0.0-20180601181742-8b7507fac302
-	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20180426153726-e8ab413e0ae1
+	golang.org/x/crypto => golang.org/x/crypto v0.0.0-20181203042331-505ab145d0a9
+	golang.org/x/net => golang.org/x/net v0.0.0-20180124060956-0ed95abb35c4
+	k8s.io/api => k8s.io/api v0.0.0-20180601181742-8b7507fac302
+	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20180601203502-8e7f43002fec
 	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20180601181227-17529ec7eadb
 	k8s.io/apiserver => k8s.io/apiserver v0.0.0-20180601190550-8378ef881d4f
-	k8s.io/cli-runtime => github.com/kubernetes/cli-runtime v0.0.0-20181004125037-79bf4e0b6454
-	k8s.io/client-go => github.com/kubernetes/client-go v7.0.0+incompatible
+	k8s.io/cli-runtime => k8s.io/cli-runtime v0.0.0-20180907072557-b3b289918979
+	k8s.io/client-go => k8s.io/client-go v7.0.0+incompatible
 	k8s.io/code-generator/cmd/client-gen => k8s.io/code-generator/cmd/client-gen v0.0.0-20180228050103-7ead8f38b01c
 	k8s.io/kubernetes => k8s.io/kubernetes v1.10.4
 )

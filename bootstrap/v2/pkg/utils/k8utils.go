@@ -19,20 +19,20 @@ import (
 	"github.com/ghodss/yaml"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
-	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/v2/dynamic"
 	"strings"
 
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
-	"k8s.io/client-go/discovery"
-	"k8s.io/client-go/discovery/cached"
+	"k8s.io/apimachinery/v2/pkg/runtime/schema"
+	"k8s.io/apimachinery/v2/pkg/runtime/serializer"
+	"k8s.io/client-go/v2/discovery"
+	"k8s.io/client-go/v2/discovery/cached"
 
-	"k8s.io/client-go/kubernetes/scheme"
-	"k8s.io/client-go/rest"
+	"k8s.io/client-go/v2/kubernetes/scheme"
+	"k8s.io/client-go/v2/rest"
 
 	// Auth plugins
-	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
-	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
+	_ "k8s.io/client-go/v2/plugin/pkg/client/auth/gcp"
+	_ "k8s.io/client-go/v2/plugin/pkg/client/auth/oidc"
 )
 
 // RecommendedConfigPathEnvVar is a environment variable for path configuration

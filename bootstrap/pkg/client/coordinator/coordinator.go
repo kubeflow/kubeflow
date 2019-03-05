@@ -52,15 +52,15 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	//TODO we need a way to specific different types of package managers
 	// most likely by specifying them in the app.yaml per package
 	//
-	//_packagemanager, _packagemanagerErr := GetPackageManager("ksonnet", options)
-	//if _packagemanagerErr != nil {
-	//	log.Fatalf("could not get packagemanager %v Error %v **", "ksonnet", _packagemanagerErr)
-	//
-	//}
-	//if _packagemanager != nil {
-	//	_client.PackageManagers["ksonnet"] = _packagemanager
-	//}
-	_packagemanager, _packagemanagerErr := GetPackageManager("kustomize", options)
+	_packagemanager, _packagemanagerErr := GetPackageManager("ksonnet", options)
+	if _packagemanagerErr != nil {
+		log.Fatalf("could not get packagemanager %v Error %v **", "ksonnet", _packagemanagerErr)
+
+	}
+	if _packagemanager != nil {
+		_client.PackageManagers["ksonnet"] = _packagemanager
+	}
+	_packagemanager, _packagemanagerErr = GetPackageManager("kustomize", options)
 	if _packagemanagerErr != nil {
 		log.Fatalf("could not get packagemanager %v Error %v **", "kustomize", _packagemanagerErr)
 
@@ -245,7 +245,7 @@ func (kfApp *kfApp) Apply(resources kftypes.ResourceEnum, options map[string]int
 		for packageManagerName, packageManager := range kfApp.PackageManagers {
 			packageManagerErr := packageManager.Apply(kftypes.K8S, options)
 			if packageManagerErr != nil {
-				return fmt.Errorf("kfApp Show failed for %v: %v", packageManagerName, packageManagerErr)
+				return fmt.Errorf("kfApp Apply failed for %v: %v", packageManagerName, packageManagerErr)
 			}
 		}
 	}
@@ -273,7 +273,7 @@ func (kfApp *kfApp) Delete(resources kftypes.ResourceEnum, options map[string]in
 		for packageManagerName, packageManager := range kfApp.PackageManagers {
 			packageManagerErr := packageManager.Delete(kftypes.K8S, options)
 			if packageManagerErr != nil {
-				return fmt.Errorf("kfApp Show failed for %v: %v", packageManagerName, packageManagerErr)
+				return fmt.Errorf("kfApp Delete failed for %v: %v", packageManagerName, packageManagerErr)
 			}
 		}
 	}
@@ -301,7 +301,7 @@ func (kfApp *kfApp) Generate(resources kftypes.ResourceEnum, options map[string]
 		for packageManagerName, packageManager := range kfApp.PackageManagers {
 			packageManagerErr := packageManager.Generate(kftypes.K8S, options)
 			if packageManagerErr != nil {
-				return fmt.Errorf("kfApp Show failed for %v: %v", packageManagerName, packageManagerErr)
+				return fmt.Errorf("kfApp Generate failed for %v: %v", packageManagerName, packageManagerErr)
 			}
 		}
 	}
@@ -309,6 +309,12 @@ func (kfApp *kfApp) Generate(resources kftypes.ResourceEnum, options map[string]
 }
 
 func (kfApp *kfApp) downloadToCache() error {
+	if _, err := os.Stat(kfApp.Client.Spec.AppDir); os.IsNotExist(err) {
+		appdirErr := os.Mkdir(kfApp.Client.Spec.AppDir, os.ModePerm)
+		if appdirErr != nil {
+			log.Fatalf("couldn't create directory %v Error %v", kfApp.Client.Spec.AppDir, appdirErr)
+		}
+	}
 	cacheDir := path.Join(kfApp.Client.Spec.AppDir, kftypes.DefaultCacheDir)
 	cacheDirErr := os.Mkdir(cacheDir, os.ModePerm)
 	if cacheDirErr != nil {
