@@ -18,7 +18,6 @@ package notebook
 
 import (
 	"context"
-	"strconv"
 	"strings"
 
 	v1alpha1 "github.com/kubeflow/kubeflow/components/notebook-controller/pkg/apis/notebook/v1alpha1"
@@ -226,6 +225,10 @@ func generateStatefulSet(instance *v1alpha1.Notebook) *appsv1.StatefulSet {
 			},
 		}
 	}
+	container.Env = append(container.Env, corev1.EnvVar{
+		Name:  "NB_PREFIX",
+		Value: "/notebook/" + instance.Namespace + "/" + instance.Name,
+	})
 	if podSpec.SecurityContext == nil {
 		fsGroup := DefaultFSGroup
 		podSpec.SecurityContext = &corev1.PodSecurityContext{
@@ -254,9 +257,9 @@ func generateService(instance *v1alpha1.Notebook) *corev1.Service {
 						"kind:  Mapping",
 						"name: notebook_" + instance.Namespace + "_" + instance.Name + "_mapping",
 						"prefix: /notebook/" + instance.Namespace + "/" + instance.Name,
-						"rewrite: /" + instance.Namespace + "/" + instance.Name,
+						"rewrite: /notebook/" + instance.Namespace + "/" + instance.Name,
 						"timeout_ms: 300000",
-						"service: " + instance.Name + "." + instance.Namespace + ":" + strconv.Itoa(port),
+						"service: " + instance.Name + "." + instance.Namespace,
 						"use_websocket: true",
 					}, "\n"),
 			},
