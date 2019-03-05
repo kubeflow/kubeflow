@@ -67,6 +67,9 @@ pkg/apis/apps/ksonnet/v1alpha1/zz_generated.deepcopy.go: pkg/apis/apps/ksonnet/v
 pkg/apis/apps/client/v1alpha1/zz_generated.deepcopy.go: pkg/apis/apps/client/v1alpha1/application_types.go
 	$(GOPATH)/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/client/... -O zz_generated.deepcopy
 
+v2/pkg/apis/apps/client/v1alpha1/zz_generated.deepcopy.go: v2/pkg/apis/apps/client/v1alpha1/application_types.go
+	$(GOPATH)/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/client/... -O zz_generated.deepcopy
+
 deepcopy: $(GOPATH)/bin/deepcopy-gen pkg/apis/apps/gcp/v1alpha1/zz_generated.deepcopy.go pkg/apis/apps/client/v1alpha1/zz_generated.deepcopy.go
 
 build-bootstrap: generate fmt vet

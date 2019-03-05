@@ -285,3 +285,23 @@ status: {}
 
 Ksonnet types have been moved to `github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1`
 
+## golang modules and versioned packages
+
+Both ksonnet and kustomize package managers are loaded as .so's.
+(They can also be statically linked in)
+The complication is that ksonnet and kustomize do not have an overlap of kubernetes versions.
+
+- **ksonnet** (highest version)
+  - k8s.io/api kubernetes-1.10.4
+  - k8s.io/apimachinery kubernetes-1.10.4
+  - k8s.io/client-go v7.0.0
+  - sigs.k8s.io/controller-runtime v0.1.1
+
+- **kustomize** (cannot downgrade to kubernetes-1.10.4, client-go v7.0.0)
+  - k8s.io/api kubernetes-1.13.4
+  - k8s.io/apimachinery kubernetes-1.13.4
+  - k8s.io/client-go v10.0.0
+  - sigs.k8s.io/controller-runtime v0.1.10
+
+kustomize leverages golang modules by creating v2 versions of 
+the above libraries.
