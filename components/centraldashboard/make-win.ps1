@@ -26,6 +26,7 @@ $CHANGED_FILES = git diff-files --relative=components/centraldashboard
 $GIT_VERSION = git describe --always
 if ($CHANGED_FILES) {
     $GIT_VERSION = "$GIT_VERSION-dirty-$(git diff | sha256sum | cut -c -6)"
+    Write-AP "!You are building from a dirty branch, it's recommended that you commit and push all changes before building!"
 }
 
 $Date = (Get-Date).ToString("vyyyyMMdd")
@@ -40,21 +41,30 @@ switch($step) {
             --build-arg kubeflowversion=$(git describe --abbrev=0 --tags) `
             --label=git-verions=$GIT_VERSION
         docker tag "${IMG}:$TAG" "${IMG}:latest"
-        Write-AP "+Built '${IMG}:latest'"
-        Write-AP "+Built '${IMG}:$TAG'"
-        break
+        if ($?) {
+            Write-AP "x+","nx_Built ","n+${IMG}:latest"
+            Write-AP "x+","nx_Built ","n+${IMG}:$TAG"
+        } else {
+            Write-AP "-Failed to build [${IMG}:$TAG]"
+        }
     }
     "push" {
         # Build but don't attach the latest tag. This allows manual testing/inspection of the image
         # first.
         gcloud docker -- push "${IMG}:$TAG"
-        Write-AP "+Pushed $IMG with :$TAG tags"
+        Write-AP $(if ($?)
+            {"x+","nx_Pushed ","nx+$IMG","nx_ with tag ","nx+:$TAG","n_ tags"}else
+            {"-Failed to push ${IMG}:$TAG"}
+        )
     }
     "push-latest" {
         # Build but don't attach the latest tag. This allows manual testing/inspection of the image
         # first.
         gcloud container images add-tag --quiet "${IMG}:$TAG" "${IMG}:latest" --verbosity=info
-        Write-AP "+Created ${IMG}:latest tags"
+        Write-AP $(if ($?)
+            {"x+","nx_Pushed ","nx+${IMG}:latest","n_ tags"}else
+            {"-Failed to push ${IMG}:latest tags"}
+        )
     }
 }
 
