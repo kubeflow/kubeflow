@@ -19,7 +19,7 @@ local testCases = [
           service: "envoy",
         },
         annotations: {
-          "beta.cloud.google.com/backend-config": '{"ports": {"envoy":"envoy-iap"}}',
+          "beta.cloud.google.com/backend-config": '{"ports": {"envoy":"iap-backendconfig"}}',
         },
         name: "envoy",
         namespace: "namespace",

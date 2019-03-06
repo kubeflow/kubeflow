@@ -28,6 +28,8 @@ type GcpSpec struct {
 	IpName              string `json:"ipName,omitempty"`
 	Hostname            string `json:"hostname,omitempty"`
 	Zone                string `json:"zone,omitempty"`
+	UseBasicAuth        bool   `json:"useBasicAuth"`
+	SkipInitProject     bool   `json:"skipInitProject,omitempty"`
 }
 
 // GcpStatus defines the observed state of Gcp
