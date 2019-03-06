@@ -12,6 +12,8 @@ Note: Additional issues have been opened so this README.md will have additional 
 
  - Separate different platform implementations of the [KfApp Interface](#kfapp-interface).
 
+ - Separate different package manager implementations of the [KfApp Interface](#kfapp-interface).
+ 
  - Allow new platforms to be added to kfctl without rebuilding or reshipping kfctl (see [Extending kfctl](#extending-kfctl) below).
 
  - Do not change existing `REST` entrypoints or the `KsService` interface in `ksServer.go` at this time.
@@ -20,25 +22,10 @@ Note: Additional issues have been opened so this README.md will have additional 
 
 ## API and Packaging
 
-New directories
-
-```sh
-bootstrap/cmd/kfctl
-bootstrap/cmd/kfctl/cmd
-bootstrap/cmd/plugins/dockerfordesktop
-bootstrap/pkg/apis/apps
-bootstrap/pkg/apis/apps/ksonnet/v1alpha1
-bootstrap/pkg/utils
-bootstrap/pkg/client/dockerfordesktop
-bootstrap/pkg/client/ksonnet
-bootstrap/pkg/client/minikube
-```
 
 ### KfApp Interface
 
-Definition: github/kubeflow/kubeflow/bootstrap/pkg/client/kfapi/typed/apps/group.go
-
-The `KfApp` golang Interface
+The `KfApp` golang Interface is defined below:
 
 ```golang
 type ResourceEnum string
@@ -47,12 +34,12 @@ const (
 	ALL      ResourceEnum = "all"
 	K8S      ResourceEnum = "k8s"
 	PLATFORM ResourceEnum = "platform"
-	NONE     ResourceEnum = "none"
 )
 
 //
 // KfApp is used by commands under bootstrap/cmd/{bootstrap,kfctl}. KfApp provides a common
-// API for different implementations like gcp and minikube
+// API for different platforms implementations like gcp and minikube. 
+// KfApp is also implemented by different package managers (ksonnet, kustomize).
 //
 type KfApp interface {
 	Apply(resources ResourceEnum, options map[string]interface{}) error
@@ -65,45 +52,43 @@ type KfApp interface {
 kfctl will statically include platforms that implement the KfApp interface. 
 These include:
 
-- platform: **none**
-  - bootstrap/pkg/client/ksonnet/ksonnet.go
 - platform: **minikube**
   - bootstrap/pkg/client/minikube/minikube.go
 - platform: **gcp** 
   - bootstrap/pkg/client/gcp/gcp.go
 
-kfctl can also dynamically load platforms that are not statically linked, as 
+kfctl can dynamically load platforms and package managers that are not statically linked, as 
 described below in [Extending kfctl](#extending-kfctl).
 
 ## Usage
 
-```man
-kubeflow client tool
-
-Usage:
-  kfctl [command]
-
-Available Commands:
-  apply       Deploy a generated kubeflow application.
-  delete      Delete a kubeflow application.
-  generate    Generate a kubeflow application where resources is one of 'platform | k8s | all'.
-  help        Help about any command
-  init        Create a kubeflow application under <[path/]name>
-  version     Prints the version of kfctl.
-
-Flags:
-  -h, --help   help for kfctl
-
-Use "kfctl [command] --help" for more information about a command.
+```kubeflow client tool
+   
+   Usage:
+     kfctl [command]
+   
+   Available Commands:
+     apply       Deploy a generated kubeflow application.
+     delete      Delete a kubeflow application.
+     generate    Generate a kubeflow application where resources is one of 'platform|k8s|all'.
+     help        Help about any command
+     init        Create a kubeflow application under <[path/]name>
+     show        Deploy a generated kubeflow application.
+     version     Prints the version of kfctl.
+   
+   Flags:
+     -h, --help   help for kfctl
+   
+   Use "kfctl [command] --help" for more information about a command.
 ```
 
 Typical use-case, non-platform specific.
 
 ```sh
-kfctl init ~/myapp
-cd ~/myapp
-kfctl generate
-kfctl apply
+kfctl init ~/myapp && \
+cd ~/myapp && \
+kfctl generate all && \
+kfctl apply all
 ```
 
 ## Subcommands
@@ -152,8 +137,7 @@ Flags:
       --ipName string     ipName if '--platform gcp'
       --mount-local       mount-local if '--platform minikube'
   -V, --verbose           verbose output default is false
-      --zone string       zone if '--platform gcp' (default "us-east1-d")
-```
+      --zone string       zone if '--platform gcp' (default "us-east1-d")```
 
 ### **apply** 
 
@@ -166,9 +150,10 @@ Usage:
   kfctl apply [all(=default)|k8s|platform] [flags]
 
 Flags:
-  -h, --help      help for apply
-  -V, --verbose   verbose output default is false
-```
+  -h, --help                  help for apply
+      --oauth_id string       OAuth Client ID, GCP only. Required if ENV CLIENT_ID is not set. Value passed will take precedence to ENV.
+      --oauth_secret string   OAuth Client ID, GCP only. Required if ENV CLIENT_SECRET is not set. Value passed will take precedence to ENV.
+  -V, --verbose               verbose output default is false```
 
 ### **delete** 
 
@@ -182,14 +167,13 @@ Usage:
 
 Flags:
   -h, --help      help for delete
-  -V, --verbose   verbose output default is false
-```
+  -V, --verbose   verbose output default is false```
 
 ---
 
 ## Extending kfctl
 
-`kfctl` can be extended to work with new platforms without requiring recompilation.
+`kfctl` can be extended to work with new platforms or package managers without requiring recompilation.
 An example is under bootstrap/cmd/plugins/dockerfordesktop/dockerfordesktop.go. A particular platform
 provides a shared library (.so) under the env var `PLUGINS_ENVIRONMENT`
 that kfctl would load and execute. The shared library needs to define
@@ -288,8 +272,9 @@ Ksonnet types have been moved to `github.com/kubeflow/kubeflow/bootstrap/pkg/api
 ## golang modules and versioned packages
 
 Both ksonnet and kustomize package managers are loaded as .so's.
-(They can also be statically linked in)
-The complication is that ksonnet and kustomize do not have an overlap of kubernetes versions.
+(They will be statically linked soon see [#2635](https://github.com/kubeflow/kubeflow/issues/2635))
+The complication is that ksonnet and kustomize do not have an overlap of kubernetes versions as well 
+as client-go, and controller-runtime.
 
 - **ksonnet** (highest version)
   - k8s.io/api kubernetes-1.10.4
@@ -303,5 +288,17 @@ The complication is that ksonnet and kustomize do not have an overlap of kuberne
   - k8s.io/client-go v10.0.0
   - sigs.k8s.io/controller-runtime v0.1.10
 
-kustomize leverages golang modules by creating v2 versions of 
+kustomize leverages golang modules by using 'v2' versions of 
 the above libraries.
+
+We insert golang package versioning for these libraries despite the fact that kubernetes has yet to move to golang modules. Updating these libraries to use golang modules is straight-forward and can be done using local git clones. Background information on how this is done can be found [here](https://github.com/golang/go/wiki/Modules#releasing-modules-v2-or-higher).
+
+Currently a build artifact was hand built and checked into PR #2548 as bootstrap/hack/v2.zip.
+This build artifact holds versioned packages for the above libraries. This hand-built artifact needs to be removed and replaced with a golang tool such as [mod](https://github.com/marwan-at-work/mod) that can do this algorithmically and as part of building kfctl.  
+
+The  [mod](https://github.com/marwan-at-work/mod) tool needs to be modified in the following ways:
+1. Update literal references to versioned packages as found [here](https://github.com/kubernetes/api/blob/kubernetes-1.13.4/apps/v1/generated.pb.go#L62) and [here](https://github.com/kubernetes/api/blob/kubernetes-1.13.4/apps/v1/generated.pb.go#L63).
+2. Move a subset of libraries tagged as [+incompatible](https://groups.google.com/forum/#!topic/golang-codereviews/t-xcPhCn3FI) within the go.mod file, instead of all of them.
+3. Create a local archive of these versioned packages 
+4. Update go.mod files that reference the versioned packages with a replace directive pointing to the the local archive location. 
+5. Do not update the git repos or push changes back to git
