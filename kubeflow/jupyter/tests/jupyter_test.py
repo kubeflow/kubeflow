@@ -125,12 +125,11 @@ def test_jupyter(env, namespace):
   ks_util.setup_ks_app(app_dir, env, namespace, component, params)
 
   util.run([ks_cmd, "apply", env, "-c", component], cwd=app_dir)
-  # TODO: uncomment after we implement updating status in controller
-  # conditions = ["Ready"]
-  # results = util.wait_for_cr_condition(api_client, GROUP, PLURAL, VERSION,
-  #                                      namespace, name, conditions)
+  conditions = ["Ready"]
+  results = util.wait_for_cr_condition(api_client, GROUP, PLURAL, VERSION,
+                                       namespace, name, conditions)
 
-  # logging.info("Result of CRD:\n%s", results)
+  logging.info("Result of CRD:\n%s", results)
 
   # We proxy the request through the APIServer so that we can connect
   # from outside the cluster.
