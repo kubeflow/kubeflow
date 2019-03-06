@@ -16,7 +16,7 @@ package cmd
 
 import (
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/client"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/coordinator"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -59,7 +59,7 @@ or a <name>. If just <name> a directory <name> will be created in the current di
 			string(kftypes.SKIP_INIT_GCP_PROJECT): init_gcp,
 			string(kftypes.USE_BASIC_AUTH):        basic_auth,
 		}
-		kfApp, kfAppErr := client.NewKfApp(options)
+		kfApp, kfAppErr := coordinator.NewKfApp(options)
 		if kfAppErr != nil || kfApp == nil {
 			log.Errorf("couldn't create KfApp: %v", kfAppErr)
 			return
