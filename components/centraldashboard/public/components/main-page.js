@@ -54,11 +54,11 @@ export class MainPage extends PolymerElement {
             gettingStartedItems: {
                 type: Array,
                 value: [
-                    {text: 'Build a model in a notebook', icon: 'donut-large'},
-                    {text: 'Launch a pipeline', icon: 'donut-large'},
-                    {text: 'Deploy a solution', icon: 'donut-large'},
-                    {text: 'Compare run output', icon: 'donut-large'},
-                    {text: 'Share solution on AI Hub', icon: 'donut-large'},
+                    {text: 'Getting started with Kubeflow', desc: 'Quickly get running with your ML workflow on an existing Kubernetes installation', icon: 'launch'},
+                    {text: 'Microk8s for Kubeflow', desc: 'Quickly get Kubeflow running locally on native hypervisors', icon: 'launch'},
+                    {text: 'Minikube for Kubeflow', desc: 'Quickly get Kubeflow running locally', icon: 'launch'},
+                    {text: 'Kubernetes Engine for Kubeflow', desc: 'Get Kubeflow running on Google Cloud Platform. This guide is a quickstart to deploying Kubeflow on Google Kubernetes Engine', icon: 'launch'},
+                    {text: 'Requirements for Kubeflow', desc: 'Get more detailed information about using Kubeflow and its components', icon: 'launch'},
                 ],
             },
             quickLinks: {

@@ -25,7 +25,7 @@ app-drawer-layout.flex(narrow='{{narrowMode}}')
         neon-animated-pages.flex.layout.vertical(selected='[[homeOrIframeViewIndex]]', entry-animation='fade-in-animation', exit-animation='fade-out-animation')
             neon-animated-pages#PrimaryView.flex.layout.vertical(selected='[[primaryViewIndex]]', entry-animation='fade-in-animation', exit-animation='fade-out-animation')
                 article#Dashboard
-                    paper-card.Getting-Started(heading='Getting Started', hidden$='[[!_devMode]]')
+                    paper-card.Getting-Started(heading='Getting Started')
                         template(is='dom-repeat', items='[[gettingStartedItems]]')
                             paper-icon-item
                                 iron-icon(icon='[[item.icon]]', slot='item-icon')

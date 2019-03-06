@@ -81,7 +81,7 @@ module.exports = {
                     }
                 }
             },
-            {
+            (process.platform == 'win32'?{}:{
                 enforce: 'pre',
                 test: /\.js$/,
                 exclude: NODE_MODULES,
@@ -93,7 +93,7 @@ module.exports = {
                         fix: true
                     }
                 }
-            },
+            }),
             {
                 test: /\.js$/,
                 exclude: NODE_MODULES,
