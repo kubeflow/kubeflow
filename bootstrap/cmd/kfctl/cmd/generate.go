@@ -88,7 +88,7 @@ func init() {
 	}
 
 	// platform gcp
-	generateCmd.Flags().String(string(kftypes.ZONE), "us-east1-d",
+	generateCmd.Flags().String(string(kftypes.ZONE), kftypes.DefaultZone,
 		string(kftypes.ZONE)+" if '--platform gcp'")
 	bindErr = generateCfg.BindPFlag(string(kftypes.ZONE), generateCmd.Flags().Lookup(string(kftypes.ZONE)))
 	if bindErr != nil {

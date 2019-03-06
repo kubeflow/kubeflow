@@ -11,16 +11,17 @@ app-drawer-layout.flex(narrow='{{narrowMode}}')
         aside.flex
         footer.footer
             section.privacy Privacy
-            section.build build version v[[buildVersion]]
-    app-header-layout(fullbleed='')
-        app-header(slot='header', fixed='')
+            section.build build version 
+                span(title="Build: v[[buildVersion]] | Dashboard: v[[dashVersion]]") v[[buildVersion]]
+    app-header-layout(fullbleed)
+        app-header(slot='header', fixed)
             app-toolbar
-                paper-tabs.bottom(selected='{{primaryViewIndex}}', hides='', hidden$='[[!isZero(homeOrIframeViewIndex)]]')
+                paper-tabs.bottom(selected='{{primaryViewIndex}}', hides, hidden$='[[!isZero(homeOrIframeViewIndex)]]')
                     paper-tab Dashboard
                     paper-tab(hidden$='[[!_devMode]]') Activity
                 aside#NamespaceSelector(hidden$='[[!_devMode]]')
                     paper-dropdown-menu(label='Namespace')
-                paper-icon-button#Menu(icon='menu', on-click='toggleSidebar', hides='', hidden$='[[!narrowMode]]')
+                paper-icon-button#Menu(icon='menu', on-click='toggleSidebar', hides, hidden$='[[!narrowMode]]')
         neon-animated-pages.flex.layout.vertical(selected='[[homeOrIframeViewIndex]]', entry-animation='fade-in-animation', exit-animation='fade-out-animation')
             neon-animated-pages#PrimaryView.flex.layout.vertical(selected='[[primaryViewIndex]]', entry-animation='fade-in-animation', exit-animation='fade-out-animation')
                 article#Dashboard
@@ -28,9 +29,9 @@ app-drawer-layout.flex(narrow='{{narrowMode}}')
                         template(is='dom-repeat', items='[[gettingStartedItems]]')
                             paper-icon-item
                                 iron-icon(icon='[[item.icon]]', slot='item-icon')
-                                paper-item-body(two-line='')
+                                paper-item-body(two-line)
                                     div [[item.text]]
-                                    aside(secondary='') Lorem ipsum...
+                                    aside(secondary) Lorem ipsum...
                     paper-card.Quick-Links(heading='Quick Links')
                         template(is='dom-repeat', items='[[quickLinks]]')
                             article.link
@@ -38,6 +39,6 @@ app-drawer-layout.flex(narrow='{{narrowMode}}')
                                 paper-icon-button.button(icon='arrow-forward', alt='[[item.text]]', on-click='openQuickLink')
                         article.link.more-coming
                             paper-item-body More coming soon
-                            paper-icon-button.button(icon='arrow-forward', diabled='')
+                            paper-icon-button.button(icon='arrow-forward', diabled)
                 article#Activity
             iframe#PageFrame.flex(src='[[url]]')

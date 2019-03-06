@@ -67,6 +67,18 @@
         subresources: {
           status: {},
         },
+        additionalPrinterColumns: [
+          {
+            JSONPath: ".status.conditions[-1:].type",
+            name: "State",
+            type: "string",
+          },
+          {
+            JSONPath: ".metadata.creationTimestamp",
+            name: "Age",
+            type: "date",
+          },
+        ],
         validation: { openAPIV3Schema: openAPIV3Schema },
         versions: [
           {
@@ -79,7 +91,7 @@
             served: true,
             storage: false,
           },
-	],
+        ],
       },
     },
     tfJobCrd:: tfJobCrd,
