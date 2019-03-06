@@ -47,17 +47,17 @@ const (
 	DefaultNamespace = "kubeflow"
 	DefaultPlatform  = "none"
 	// TODO: find the latest tag dynamically
-	DefaultVersion   = "master"
-	DefaultGitRepo   = "https://github.com/kubeflow/kubeflow/tarball"
-	KfConfigFile     = "app.yaml"
-	DefaultCacheDir  = ".cache"
-	GcpConfigDir     = "bootstrap/config"
-	GcpIapConfig     = "kfctl_iap.yaml"
-	GcpBasicAuth     = "kfctl_basic_auth.yaml"
-	DefaultZone      = "us-east1-d"
-	DefaultConfig    = "default_config"
-	DefaultGkeApiVer = "v1beta1"
-	DefaultAppLabel  = "app.kubernetes.io/name"
+	DefaultVersion    = "master"
+	DefaultGitRepo    = "https://github.com/kubeflow/kubeflow/tarball"
+	KfConfigFile      = "app.yaml"
+	DefaultCacheDir   = ".cache"
+	DefaultConfigDir  = "bootstrap/config"
+	DefaultConfigFile = "kfctl_default.yaml"
+	GcpIapConfig      = "kfctl_iap.yaml"
+	GcpBasicAuth      = "kfctl_basic_auth.yaml"
+	DefaultZone       = "us-east1-d"
+	DefaultGkeApiVer  = "v1beta1"
+	DefaultAppLabel   = "app.kubernetes.io/name"
 )
 
 type ResourceEnum string
@@ -90,6 +90,7 @@ const (
 	USE_BASIC_AUTH        CliOption = "use_basic_auth"
 	OAUTH_ID              CliOption = "oauth_id"
 	OAUTH_SECRET          CliOption = "oauth_secret"
+	DEFAULT_CONFIG        CliOption = "default_config"
 )
 
 //
