@@ -26,13 +26,7 @@ import (
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	gcptypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/gcp/v1alpha1"
-<<<<<<< HEAD
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
-=======
-	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksonnet"
-	kfctlutils "github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
->>>>>>> origin/kfctl_delete
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
@@ -231,7 +225,7 @@ func generateTarget(configPath string) (*deploymentmanager.TargetConfiguration, 
 				Content: string(buf),
 			})
 		} else {
-			return nil, fmt.Errorf("Erro reading import file: %v", err)
+			return nil, fmt.Errorf("error reading import file: %v", err)
 		}
 	}
 	return targetConfig, nil
@@ -241,11 +235,11 @@ func (gcp *Gcp) getK8sClientset(ctx context.Context) (*clientset.Clientset, erro
 	cluster, err := kftypes.GetClusterInfo(ctx, gcp.GcpApp.Spec.Project,
 		gcp.GcpApp.Spec.Zone, gcp.GcpApp.Name)
 	if err != nil {
-		return nil, fmt.Errorf("Get Cluster error: %v", err)
+		return nil, fmt.Errorf("get Cluster error: %v", err)
 	}
 	config, err := kftypes.BuildConfigFromClusterInfo(ctx, cluster)
 	if err != nil {
-		return nil, fmt.Errorf("Build ClientConfig error: %v", err)
+		return nil, fmt.Errorf("build ClientConfig error: %v", err)
 	}
 
 	return clientset.NewForConfig(config)
@@ -410,19 +404,19 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 		}
 	}
 
-	policy, policyErr := kfctlutils.GetIamPolicy(gcp.GcpApp.Spec.Project)
+	policy, policyErr := utils.GetIamPolicy(gcp.GcpApp.Spec.Project)
 	if policyErr != nil {
 		return fmt.Errorf("GetIamPolicy error: %v", policyErr)
 	}
 	appDir := gcp.GcpApp.Spec.AppDir
 	gcpConfigDir := path.Join(appDir, GCP_CONFIG)
-	iamPolicy, iamPolicyErr := kfctlutils.ReadIamBindingsYAML(
+	iamPolicy, iamPolicyErr := utils.ReadIamBindingsYAML(
 		filepath.Join(gcpConfigDir, "iam_bindings.yaml"))
 	if iamPolicyErr != nil {
 		return fmt.Errorf("Read IAM policy YAML error: %v", iamPolicyErr)
 	}
-	kfctlutils.RewriteIamPolicy(policy, iamPolicy, nil)
-	if err := kfctlutils.SetIamPolicy(gcp.GcpApp.Spec.Project, policy); err != nil {
+	utils.RewriteIamPolicy(policy, iamPolicy, nil)
+	if err := utils.SetIamPolicy(gcp.GcpApp.Spec.Project, policy); err != nil {
 		return fmt.Errorf("SetIamPolicy error: %v", err)
 	}
 
@@ -454,7 +448,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 
 	k8sSpecsDir := path.Join(appDir, K8S_SPECS)
 	daemonsetPreloaded := filepath.Join(k8sSpecsDir, "daemonset-preloaded.yaml")
-	daemonsetPreloadedErr := kfctlutils.RunKubectlApply(daemonsetPreloaded)
+	daemonsetPreloadedErr := utils.RunKubectlApply(daemonsetPreloaded)
 	if daemonsetPreloadedErr != nil {
 		return fmt.Errorf("could not create resources in daemonset-preloaded.yaml %v", daemonsetPreloadedErr)
 	}
@@ -462,12 +456,12 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 	adminClient.Impersonate.UserName = "admin"
 	adminClient.Impersonate.Groups = []string{"system:masters"}
 	rbacSetup := filepath.Join(k8sSpecsDir, "rbac-setup.yaml")
-	rbacSetupErr := kfctlutils.RunKubectlApply(rbacSetup)
+	rbacSetupErr := utils.RunKubectlApply(rbacSetup)
 	if rbacSetupErr != nil {
 		return fmt.Errorf("could not create resources in rbac-setup.yaml %v", rbacSetupErr)
 	}
 	agents := filepath.Join(k8sSpecsDir, "agents.yaml")
-	agentsErr := kfctlutils.RunKubectlApply(agents)
+	agentsErr := utils.RunKubectlApply(agents)
 	if agentsErr != nil {
 		return fmt.Errorf("could not create resources in agents.yaml %v", agents)
 	}
@@ -509,36 +503,12 @@ func (gcp *Gcp) copyFile(source string, dest string) error {
 	return nil
 }
 
-<<<<<<< HEAD
-func (gcp *Gcp) generate(options map[string]interface{}) error {
-	project := gcp.GcpApp.Spec.Project
-	if options[string(kftypes.PROJECT)] != nil {
-		project = options[string(kftypes.PROJECT)].(string)
-		if project == "" {
-			return fmt.Errorf("project parameter required for iam_bindings")
-		}
-	}
-	email := gcp.GcpApp.Spec.Email
-	if options[string(kftypes.EMAIL)] != nil {
-		email = options[string(kftypes.EMAIL)].(string)
-		if email == "" {
-			return fmt.Errorf("email parameter required for cert-manager")
-		}
-	}
-	ipName := gcp.GcpApp.Spec.IpName
-	if options[string(kftypes.IPNAME)] != nil {
-		ipName = options[string(kftypes.IPNAME)].(string)
-		if ipName == "" {
-			gcp.GcpApp.Spec.IpName = gcp.GcpApp.Name + "-ip"
-			ipName = gcp.GcpApp.Spec.IpName
-=======
 func setNameVal(entries []configtypes.NameValue, name string, val string) {
 	for i, nv := range entries {
 		if nv.Name == name {
 			log.Infof("Setting %v to %v", name, val)
 			entries[i].Value = val
 			return
->>>>>>> origin/kfctl_delete
 		}
 	}
 	log.Infof("Appending %v as %v", name, val)
@@ -548,7 +518,7 @@ func setNameVal(entries []configtypes.NameValue, name string, val string) {
 	})
 }
 
-func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
+func (gcp *Gcp) generate(options map[string]interface{}) error {
 	configPath := path.Join(gcp.GcpApp.Spec.AppDir,
 		kftypes.DefaultCacheDir,
 		gcp.GcpApp.Spec.Version,
@@ -561,71 +531,6 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 	if options[string(kftypes.DEFAULT_CONFIG)] == nil {
 		options[string(kftypes.DEFAULT_CONFIG)] = configPath
 	}
-<<<<<<< HEAD
-	kftypes.DefaultPackages = append(kftypes.DefaultPackages, []string{"gcp"}...)
-	kftypes.DefaultComponents = append(kftypes.DefaultComponents, []string{"cloud-endpoints", "cert-manager", "iap-ingress"}...)
-	kftypes.DefaultParameters["cert-manager"] = []kftypes.NameValue{
-		{
-			Name:  "acmeEmail",
-			Value: email,
-		},
-	}
-	kftypes.DefaultParameters["iap-ingress"] = []kftypes.NameValue{
-		{
-			Name:  "ipName",
-			Value: ipName,
-		},
-		{
-			Name:  "hostname",
-			Value: hostname,
-		},
-	}
-	if kftypes.DefaultParameters["jupyter"] != nil {
-		namevalues := kftypes.DefaultParameters["jupyter"]
-		namevalues = append(namevalues,
-			kftypes.NameValue{
-				Name:  "jupyterHubAuthenticator",
-				Value: "iap",
-			},
-			kftypes.NameValue{
-				Name:  string(kftypes.PLATFORM),
-				Value: gcp.GcpApp.Spec.Platform,
-			},
-		)
-	} else {
-		kftypes.DefaultParameters["jupyter"] = []kftypes.NameValue{
-			{
-				Name:  "jupyterHubAuthenticator",
-				Value: "iap",
-			},
-			{
-				Name:  string(kftypes.PLATFORM),
-				Value: gcp.GcpApp.Spec.Platform,
-			},
-		}
-	}
-	if kftypes.DefaultParameters["ambassador"] != nil {
-		namevalues := kftypes.DefaultParameters["ambassador"]
-		namevalues = append(namevalues,
-			kftypes.NameValue{
-				Name:  string(kftypes.PLATFORM),
-				Value: gcp.GcpApp.Spec.Platform,
-			},
-		)
-	} else {
-		kftypes.DefaultParameters["ambassador"] = []kftypes.NameValue{
-			{
-				Name:  string(kftypes.PLATFORM),
-				Value: gcp.GcpApp.Spec.Platform,
-			},
-		}
-	}
-	kftypes.DefaultParameters["application"] = []kftypes.NameValue{
-		{
-			Name:  "components",
-			Value: "[" + strings.Join(kftypes.QuoteItems(kftypes.DefaultComponents), ",") + "]",
-		},
-=======
 
 	if options[string(kftypes.EMAIL)] != nil &&
 		options[string(kftypes.EMAIL)].(string) != "" {
@@ -661,7 +566,6 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 	}
 	if options[string(kftypes.ZONE)] != nil {
 		gcp.GcpApp.Spec.Zone = options[string(kftypes.ZONE)].(string)
->>>>>>> origin/kfctl_delete
 	}
 	return nil
 }
