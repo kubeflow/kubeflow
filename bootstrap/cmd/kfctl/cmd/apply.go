@@ -41,7 +41,10 @@ var applyCmd = &cobra.Command{
 			log.Errorf("invalid resource: %v", resourceErr)
 			return
 		}
-		options := map[string]interface{}{}
+		options := map[string]interface{}{
+			string(kftypes.OAUTH_ID):     applyCfg.GetString(string(kftypes.OAUTH_ID)),
+			string(kftypes.OAUTH_SECRET): applyCfg.GetString(string(kftypes.OAUTH_SECRET)),
+		}
 		kfApp, kfAppErr := loadKfApp(options)
 		if kfAppErr != nil {
 			log.Errorf("couldn't load KfApp: %v", kfAppErr)
