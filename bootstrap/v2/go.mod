@@ -13,9 +13,9 @@ require (
 
 replace (
 	github.com/kubeflow/kubeflow/bootstrap => ../../bootstrap
-	k8s.io/api/v2 => ../../../../../k8s.io/api/v2
-	k8s.io/apiextensions-apiserver/v2 => ../../../../../k8s.io/apiextensions-apiserver/v2
-	k8s.io/apimachinery/v2 => ../../../../../k8s.io/apimachinery/v2
-	k8s.io/client-go/v2 => ../../../../../k8s.io/client-go/v2
-	sigs.k8s.io/controller-runtime/v2 => ../../../../../sigs.k8s.io/controller-runtime/v2
+	k8s.io/api/v2 => /tmp/v2/k8s.io/api/v2
+	k8s.io/apiextensions-apiserver/v2 => /tmp/v2/k8s.io/apiextensions-apiserver/v2
+	k8s.io/apimachinery/v2 => /tmp/v2/k8s.io/apimachinery/v2
+	k8s.io/client-go/v2 => /tmp/v2/k8s.io/client-go/v2
+	sigs.k8s.io/controller-runtime/v2 => /tmp/v2/sigs.k8s.io/controller-runtime/v2
 )

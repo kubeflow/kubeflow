@@ -41,13 +41,13 @@ replace (
 	golang.org/x/time => golang.org/x/time v0.0.0-20181108054448-85acf8d2951c
 	gopkg.in/yaml.v2 => gopkg.in/yaml.v2 v2.2.2
 	k8s.io/api => k8s.io/api v0.0.0-20180601181742-8b7507fac302
-	k8s.io/api/v2 => ../../../../../../../k8s.io/api/v2
+	k8s.io/api/v2 => /tmp/v2/k8s.io/api/v2
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20180601203502-8e7f43002fec
-	k8s.io/apiextensions-apiserver/v2 => ../../../../../../../k8s.io/apiextensions-apiserver/v2
+	k8s.io/apiextensions-apiserver/v2 => /tmp/v2/k8s.io/apiextensions-apiserver/v2
 	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20180601181227-17529ec7eadb
-	k8s.io/apimachinery/v2 => ../../../../../../../k8s.io/apimachinery/v2
-	k8s.io/client-go/v2 => ../../../../../../../k8s.io/client-go/v2
+	k8s.io/apimachinery/v2 => /tmp/v2/k8s.io/apimachinery/v2
+	k8s.io/client-go/v2 => /tmp/v2/k8s.io/client-go/v2
 	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20190115222348-ced9eb3070a5
-	sigs.k8s.io/controller-runtime/v2 => ../../../../../../../sigs.k8s.io/controller-runtime/v2
-	sigs.k8s.io/kustomize/v2 => ../../../../../../../sigs.k8s.io/kustomize/v2
+	sigs.k8s.io/controller-runtime/v2 => /tmp/v2/sigs.k8s.io/controller-runtime/v2
+	sigs.k8s.io/kustomize/v2 => /tmp/v2/sigs.k8s.io/kustomize/v2
 )
