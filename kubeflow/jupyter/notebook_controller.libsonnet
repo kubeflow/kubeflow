@@ -23,6 +23,14 @@
           kind: "Notebook",
         },
       },
+      status: {
+        acceptedNames: {
+          kind: "",
+          plural: "",
+        },
+        conditions: [],
+        storedVersions: [],
+      },
     },
     notebooksCRD:: notebooksCRD,
 
@@ -132,6 +140,7 @@
           ],
           resources: [
             "notebooks",
+            "notebooks/status",
           ],
           verbs: [
             "*",

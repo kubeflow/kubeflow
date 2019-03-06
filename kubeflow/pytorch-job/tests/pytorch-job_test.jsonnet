@@ -44,6 +44,18 @@ local expectedCrdV1beta2 = {
     subresources: {
       status: {},
     },
+    additionalPrinterColumns: [
+      {
+        JSONPath: ".status.conditions[-1:].type",
+        name: "State",
+        type: "string",
+      },
+      {
+        JSONPath: ".metadata.creationTimestamp",
+        name: "Age",
+        type: "date",
+      },
+    ],
     validation: {
       openAPIV3Schema: {
         properties: {

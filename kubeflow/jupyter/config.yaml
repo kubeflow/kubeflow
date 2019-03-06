@@ -21,25 +21,25 @@ spawnerFormDefaults:
   image:
     # The container Image for the user's Jupyter Notebook
     # If readonly, this value must be a member of the list below
-    value: gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu:v-base-0524257-1200
+    value: gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu:v-base-97b94c0-1202
     # The list of available standard container Images
     options:
-      - gcr.io/kubeflow-images-public/tensorflow-1.5.1-notebook-cpu:v-base-0524257-1200
-      - gcr.io/kubeflow-images-public/tensorflow-1.5.1-notebook-gpu:v-base-0524257-1200
-      - gcr.io/kubeflow-images-public/tensorflow-1.6.0-notebook-cpu:v-base-0524257-1200
-      - gcr.io/kubeflow-images-public/tensorflow-1.6.0-notebook-gpu:v-base-0524257-1200
-      - gcr.io/kubeflow-images-public/tensorflow-1.7.0-notebook-cpu:v-base-0524257-1200
-      - gcr.io/kubeflow-images-public/tensorflow-1.7.0-notebook-gpu:v-base-0524257-1200
-      - gcr.io/kubeflow-images-public/tensorflow-1.8.0-notebook-cpu:v-base-0524257-1200
-      - gcr.io/kubeflow-images-public/tensorflow-1.8.0-notebook-gpu:v-base-0524257-1200
-      - gcr.io/kubeflow-images-public/tensorflow-1.9.0-notebook-cpu:v-base-0524257-1200
-      - gcr.io/kubeflow-images-public/tensorflow-1.9.0-notebook-gpu:v-base-0524257-1200
-      - gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu:v-base-0524257-1200
-      - gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-gpu:v-base-0524257-1200
-      - gcr.io/kubeflow-images-public/tensorflow-1.11.0-notebook-cpu:v-base-0524257-1200
-      - gcr.io/kubeflow-images-public/tensorflow-1.11.0-notebook-gpu:v-base-0524257-1200
-      - gcr.io/kubeflow-images-public/tensorflow-1.12.0-notebook-cpu:v-base-0524257-1200
-      - gcr.io/kubeflow-images-public/tensorflow-1.12.0-notebook-gpu:v-base-0524257-1200
+      - gcr.io/kubeflow-images-public/tensorflow-1.5.1-notebook-cpu:v-base-97b94c0-1202
+      - gcr.io/kubeflow-images-public/tensorflow-1.5.1-notebook-gpu:v-base-97b94c0-1202
+      - gcr.io/kubeflow-images-public/tensorflow-1.6.0-notebook-cpu:v-base-97b94c0-1202
+      - gcr.io/kubeflow-images-public/tensorflow-1.6.0-notebook-gpu:v-base-97b94c0-1202
+      - gcr.io/kubeflow-images-public/tensorflow-1.7.0-notebook-cpu:v-base-97b94c0-1202
+      - gcr.io/kubeflow-images-public/tensorflow-1.7.0-notebook-gpu:v-base-97b94c0-1202
+      - gcr.io/kubeflow-images-public/tensorflow-1.8.0-notebook-cpu:v-base-97b94c0-1202
+      - gcr.io/kubeflow-images-public/tensorflow-1.8.0-notebook-gpu:v-base-97b94c0-1202
+      - gcr.io/kubeflow-images-public/tensorflow-1.9.0-notebook-cpu:v-base-97b94c0-1202
+      - gcr.io/kubeflow-images-public/tensorflow-1.9.0-notebook-gpu:v-base-97b94c0-1202
+      - gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-cpu:v-base-97b94c0-1202
+      - gcr.io/kubeflow-images-public/tensorflow-1.10.1-notebook-gpu:v-base-97b94c0-1202
+      - gcr.io/kubeflow-images-public/tensorflow-1.11.0-notebook-cpu:v-base-97b94c0-1202
+      - gcr.io/kubeflow-images-public/tensorflow-1.11.0-notebook-gpu:v-base-97b94c0-1202
+      - gcr.io/kubeflow-images-public/tensorflow-1.12.0-notebook-cpu:v-base-97b94c0-1202
+      - gcr.io/kubeflow-images-public/tensorflow-1.12.0-notebook-gpu:v-base-97b94c0-1202
     # By default, custom container Images are allowed
     # Uncomment the following line to only enable standard container Images
     readOnly: false

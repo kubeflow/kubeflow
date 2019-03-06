@@ -18,8 +18,6 @@ package notebook
 
 import (
 	"context"
-	"reflect"
-	"strconv"
 	"strings"
 
 	v1alpha1 "github.com/kubeflow/kubeflow/components/notebook-controller/pkg/apis/notebook/v1alpha1"
@@ -123,18 +121,81 @@ func (r *ReconcileNotebook) Reconcile(request reconcile.Request) (reconcile.Resu
 		// Error reading the object - requeue the request.
 		return reconcile.Result{}, err
 	}
-	if err = r.ReconcileStatefulSet(instance); err != nil {
+
+	// Reconcile StatefulSet
+	ss := generateStatefulSet(instance)
+	if err := controllerutil.SetControllerReference(instance, ss, r.scheme); err != nil {
 		return reconcile.Result{}, err
 	}
-	if err = r.ReconcileService(instance); err != nil {
+	// Check if the StatefulSet already exists
+	foundStateful := &appsv1.StatefulSet{}
+	justCreated := false
+	err = r.Get(context.TODO(), types.NamespacedName{Name: ss.Name, Namespace: ss.Namespace}, foundStateful)
+	if err != nil && errors.IsNotFound(err) {
+		log.Info("Creating StatefulSet", "namespace", ss.Namespace, "name", ss.Name)
+		err = r.Create(context.TODO(), ss)
+		justCreated = true
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+	} else if err != nil {
 		return reconcile.Result{}, err
 	}
+	// Update the foundStateful object and write the result back if there are any changes
+	if !justCreated && util.CopyStatefulSetFields(ss, foundStateful) {
+		log.Info("Updating StatefulSet", "namespace", ss.Namespace, "name", ss.Name)
+		err = r.Update(context.TODO(), foundStateful)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+	}
+
+	// Reconcile service
+	service := generateService(instance)
+	if err := controllerutil.SetControllerReference(instance, service, r.scheme); err != nil {
+		return reconcile.Result{}, err
+	}
+	// Check if the Service already exists
+	foundService := &corev1.Service{}
+	justCreated = false
+	err = r.Get(context.TODO(), types.NamespacedName{Name: service.Name, Namespace: service.Namespace}, foundService)
+	if err != nil && errors.IsNotFound(err) {
+		log.Info("Creating Service", "namespace", service.Namespace, "name", service.Name)
+		err = r.Create(context.TODO(), service)
+		justCreated = true
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+	} else if err != nil {
+		return reconcile.Result{}, err
+	}
+	// Update the foundService object and write the result back if there are any changes
+	if !justCreated && util.CopyServiceFields(service, foundService) {
+		log.Info("Updating Service\n", "namespace", service.Namespace, "name", service.Name)
+		err = r.Update(context.TODO(), foundService)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+	}
+
+	// Update the status if previous condition is not "Ready"
+	oldConditions := instance.Status.Conditions
+	if len(oldConditions) == 0 || oldConditions[0].Type != "Ready" {
+		newCondition := v1alpha1.NotebookCondition{
+			Type: "Ready",
+		}
+		instance.Status.Conditions = append([]v1alpha1.NotebookCondition{newCondition}, oldConditions...)
+		// Using context.Background as: https://book.kubebuilder.io/basics/status_subresource.html
+		err = r.Status().Update(context.Background(), instance)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+	}
+
 	return reconcile.Result{}, nil
 }
 
-// ReconcileStatefulSet reconciles the StatefulSet object for the notebook.
-func (r *ReconcileNotebook) ReconcileStatefulSet(instance *v1alpha1.Notebook) error {
-	// Define the desired StatefulSet object
+func generateStatefulSet(instance *v1alpha1.Notebook) *appsv1.StatefulSet {
 	ss := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      instance.Name,
@@ -164,44 +225,20 @@ func (r *ReconcileNotebook) ReconcileStatefulSet(instance *v1alpha1.Notebook) er
 			},
 		}
 	}
+	container.Env = append(container.Env, corev1.EnvVar{
+		Name:  "NB_PREFIX",
+		Value: "/notebook/" + instance.Namespace + "/" + instance.Name,
+	})
 	if podSpec.SecurityContext == nil {
 		fsGroup := DefaultFSGroup
 		podSpec.SecurityContext = &corev1.PodSecurityContext{
 			FSGroup: &fsGroup,
 		}
 	}
-
-	if err := controllerutil.SetControllerReference(instance, ss, r.scheme); err != nil {
-		return err
-	}
-
-	// Check if the StatefulSet already exists
-	found := &appsv1.StatefulSet{}
-	err := r.Get(context.TODO(), types.NamespacedName{Name: ss.ObjectMeta.Name, Namespace: ss.ObjectMeta.Namespace}, found)
-	if err != nil && errors.IsNotFound(err) {
-		log.Info("Creating StatefulSet", "namespace", ss.ObjectMeta.Namespace, "name", ss.ObjectMeta.Name)
-		err = r.Create(context.TODO(), ss)
-		if err != nil {
-			return err
-		}
-	} else if err != nil {
-		return err
-	}
-
-	// Update the found object and write the result back if there are any changes
-	if !reflect.DeepEqual(ss.Spec, found.Spec) {
-		found.Spec = ss.Spec
-		log.Info("Updating StatefulSet", "namespace", ss.Namespace, "name", ss.Name)
-		err = r.Update(context.TODO(), found)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	return ss
 }
 
-// ReconcileService reconciles the Service object for the notebook.
-func (r *ReconcileNotebook) ReconcileService(instance *v1alpha1.Notebook) error {
+func generateService(instance *v1alpha1.Notebook) *corev1.Service {
 	// Define the desired Service object
 	port := DefaultContainerPort
 	containerPorts := instance.Spec.Template.Spec.Containers[0].Ports
@@ -220,9 +257,9 @@ func (r *ReconcileNotebook) ReconcileService(instance *v1alpha1.Notebook) error 
 						"kind:  Mapping",
 						"name: notebook_" + instance.Namespace + "_" + instance.Name + "_mapping",
 						"prefix: /notebook/" + instance.Namespace + "/" + instance.Name,
-						"rewrite: /" + instance.Namespace + "/" + instance.Name,
+						"rewrite: /notebook/" + instance.Namespace + "/" + instance.Name,
 						"timeout_ms: 300000",
-						"service: " + instance.Name + "." + instance.Namespace + ":" + strconv.Itoa(port),
+						"service: " + instance.Name + "." + instance.Namespace,
 						"use_websocket: true",
 					}, "\n"),
 			},
@@ -239,30 +276,5 @@ func (r *ReconcileNotebook) ReconcileService(instance *v1alpha1.Notebook) error 
 			},
 		},
 	}
-	if err := controllerutil.SetControllerReference(instance, svc, r.scheme); err != nil {
-		return err
-	}
-
-	// Check if the Service already exists
-	found := &corev1.Service{}
-	err := r.Get(context.TODO(), types.NamespacedName{Name: svc.Name, Namespace: svc.Namespace}, found)
-	if err != nil && errors.IsNotFound(err) {
-		log.Info("Creating Service", "namespace", svc.Namespace, "name", svc.Name)
-		err = r.Create(context.TODO(), svc)
-		if err != nil {
-			return err
-		}
-	} else if err != nil {
-		return err
-	}
-
-	// Update the found object and write the result back if there are any changes
-	if util.CopyServiceFields(svc, found) {
-		log.Info("Updating Service", "namespace", svc.Namespace, "name", svc.Name)
-		err = r.Update(context.TODO(), found)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	return svc
 }

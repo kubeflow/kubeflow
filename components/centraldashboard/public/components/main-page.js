@@ -45,7 +45,7 @@ export class MainPage extends PolymerElement {
                         link: 'https://www.kubeflow.org/docs/about/kubeflow/',
                         text: 'Kubeflow docs',
                     },
-                    {link: '/jupyter/', text: 'JupyterHub'},
+                    {link: '/jupyter/', text: 'Notebooks'},
                     {link: '/tfjobs/ui/', text: 'TFJob Dashboard'},
                     {link: '/katib/', text: 'Katib Dashboard'},
                     {link: '/pipeline/', text: 'Pipeline Dashboard'},
@@ -78,7 +78,8 @@ export class MainPage extends PolymerElement {
             primaryViewIndex: {type: Number, value: 0},
             homeOrIframeViewIndex: {type: Number, value: 0},
             url: {type: String, value: ''},
-            buildVersion: {type: String, value: VERSION},
+            buildVersion: {type: String, value: '0.4.1'},
+            dashVersion: {type: String, value: VERSION},
             _devMode: {type: Boolean, value: false},
         };
     }
@@ -91,7 +92,7 @@ export class MainPage extends PolymerElement {
     }
 
     openQuickLink(e) {
-        const link = e.model.item.link;
+        const {link} = e.model.item;
         this.openExternalLink(link);
     }
 

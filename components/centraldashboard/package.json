@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "Kubeflow Central Dashboard",
   "scripts": {
-    "build": "NODE_ENV=production webpack && npm run tslint && npm run build-ts",
+    "build": "cross-env NODE_ENV=production webpack && npm run tslint && npm run build-ts",
     "build-ts": "tsc",
     "build-webpack": "webpack",
     "debug": "npm run build && npm run watch-debug",
@@ -49,7 +49,6 @@
     "@webcomponents/webcomponentsjs": "^2.0.0",
     "body-parser": "^1.18.3",
     "express": "^4.16.4",
-    "terser-webpack-plugin": "^1.2.3",
     "web-animations-js": "^2.3.1"
   },
   "devDependencies": {
@@ -61,6 +60,7 @@
     "clean-webpack-plugin": "^1.0.1",
     "concurrently": "^4.1.0",
     "copy-webpack-plugin": "^5.0.0",
+    "cross-env": "^5.2.0",
     "css-loader": "^2.1.0",
     "eslint": "^5.14.1",
     "eslint-config-google": "^0.12.0",
@@ -73,6 +73,7 @@
     "pug": "^2.0.3",
     "pug-loader": "^2.4.0",
     "script-ext-html-webpack-plugin": "^2.1.3",
+    "terser-webpack-plugin": "^1.2.3",
     "ts-node": "^8.0.2",
     "tslint": "^5.12.1",
     "typescript": "^3.3.3333",
