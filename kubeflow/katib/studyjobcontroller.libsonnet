@@ -122,6 +122,7 @@
               failedJobsHistoryLimit: 1
               jobTemplate:
                 spec:
+                  backoffLimit: 0
                   template:
                     spec:
                       serviceAccountName: metrics-collector

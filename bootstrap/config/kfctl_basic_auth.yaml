@@ -3,41 +3,72 @@
 # All TODO fields need to be changed following user's input before apply
 # TODO change repo on the fly: set it to local tmp dir containing kubeflow registry
 repo: /path/to/local/tmp/containing/kubeflow
-components:
-  - metacontroller
-  - jupyter
-  - ambassador
-  - centraldashboard
-  - tf-job-operator
-  - cloud-endpoints
-  - cert-manager
-  - basic-auth-ingress
-  - pytorch-operator
+packages:
   - argo
+  - application
+  - common
+  - examples
+  - gcp
+  - jupyter
   - katib
+  - metacontroller
+  - modeldb
+  - mpi-job
   - pipeline
+  - pytorch-job
+  - seldon
+  - tensorboard
+  - tf-serving
+  - tf-training
+components:
+  - ambassador
+  - application
+  - argo
   - basic-auth
-parameters:
-  cloud-endpoints:
-    - name: secretName
-      value: admin-gcp-sa
+  - basic-auth-ingress
+  - centraldashboard
+  - cert-manager
+  - cloud-endpoints
+  - jupyter
+  - jupyter-web-app
+  - katib
+  - metacontroller
+  - notebook-controller
+  - pipeline
+  - pytorch-operator
+  - tensorboard
+  - tf-job-operator
+componentParams:
   cert-manager:
     - name: acmeEmail
       # TODO change value on the fly: use your email for ssl cert
       value: johnDoe@acme.com
+      initRequired: true
   basic-auth-ingress:
     - name: ipName
       # TODO change value on the fly: value of ipName need to match resource name in deployment entry.
       value: ipName
+      initRequired: true
     - name: hostname
       # TODO change value on the fly: replace with user-provide parameters. This need to be fully qualified domain name to use with ingress.
       value: <deployName>.endpoints.<Project>.cloud.goog
+      initRequired: true
+
+  application:
+    - name: components
+      value: <list-of-components>
+  cloud-endpoints:
+    - name: secretName
+      value: admin-gcp-sa
   jupyter:
     - name: platform
       value: gke
   ambassador:
-    - name: platform
-      value: gke
     - name: ambassadorServiceType
       value: NodePort
+  pipeline:
+    - name: mysqlPd
+      value: <deployName>-storage-metadata-store
+    - name: minioPd
+      value: <deployName>-storage-artifact-store
 platform: gcp

@@ -47,13 +47,17 @@ or a <name>. If just <name> a directory <name> will be created in the current di
 		version := initCfg.GetString(string(kftypes.VERSION))
 		repo := initCfg.GetString(string(kftypes.REPO))
 		project := initCfg.GetString(string(kftypes.PROJECT))
+		init_gcp := initCfg.GetBool(string(kftypes.SKIP_INIT_GCP_PROJECT))
+		basic_auth := initCfg.GetBool(string(kftypes.USE_BASIC_AUTH))
 		options := map[string]interface{}{
-			string(kftypes.PLATFORM):  platform,
-			string(kftypes.NAMESPACE): namespace,
-			string(kftypes.VERSION):   version,
-			string(kftypes.APPNAME):   appName,
-			string(kftypes.REPO):      repo,
-			string(kftypes.PROJECT):   project,
+			string(kftypes.PLATFORM):              platform,
+			string(kftypes.NAMESPACE):             namespace,
+			string(kftypes.VERSION):               version,
+			string(kftypes.APPNAME):               appName,
+			string(kftypes.REPO):                  repo,
+			string(kftypes.PROJECT):               project,
+			string(kftypes.SKIP_INIT_GCP_PROJECT): init_gcp,
+			string(kftypes.USE_BASIC_AUTH):        basic_auth,
 		}
 		kfApp, kfAppErr := client.NewKfApp(options)
 		if kfAppErr != nil || kfApp == nil {
@@ -121,6 +125,24 @@ func init() {
 	bindErr = initCfg.BindPFlag(string(kftypes.VERBOSE), initCmd.Flags().Lookup(string(kftypes.VERBOSE)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.VERBOSE), bindErr)
+		return
+	}
+
+	// Skip initGcpProject.
+	initCmd.Flags().BoolP(string(kftypes.SKIP_INIT_GCP_PROJECT), "", false,
+		"Set if you want to skip project initialization. Only meaningful if --platform gcp. Default to false")
+	bindErr = initCfg.BindPFlag(string(kftypes.SKIP_INIT_GCP_PROJECT), initCmd.Flags().Lookup(
+		string(kftypes.SKIP_INIT_GCP_PROJECT)))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.SKIP_INIT_GCP_PROJECT), bindErr)
+		return
+	}
+
+	initCmd.Flags().Bool(string(kftypes.USE_BASIC_AUTH), false,
+		string(kftypes.USE_BASIC_AUTH)+" use basic auth service instead of IAP.")
+	bindErr = initCfg.BindPFlag(string(kftypes.USE_BASIC_AUTH), initCmd.Flags().Lookup(string(kftypes.USE_BASIC_AUTH)))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.USE_BASIC_AUTH), bindErr)
 		return
 	}
 }
