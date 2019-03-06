@@ -30,9 +30,7 @@ function _generateActivities(): Activity[] {
             source: systems[Math.floor(Math.random() * 3)]
         });
     }
-    return activities.sort((a, b) => {
-        return a.time > b.time ? -1 : 1;
-    });
+    return activities.sort((a, b) => b.time.getTime() - a.time.getTime());
 }
 
 app.use(express.json());

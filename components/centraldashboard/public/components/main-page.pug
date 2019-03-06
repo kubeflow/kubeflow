@@ -1,7 +1,7 @@
 app-drawer-layout.flex(narrow='{{narrowMode}}')
     app-location(route='{{route}}')
-    app-route(route='{{route}}', pattern='/:page', data='{{routeData}}', tail='{{subRouteData}}')
-
+    app-route(route='{{route}}', pattern='/:page', data='{{routeData}}',
+        tail='{{subRouteData}}')
 
     app-drawer#MainDrawer(slot='drawer')
         figure#Logo
@@ -17,21 +17,25 @@ app-drawer-layout.flex(narrow='{{narrowMode}}')
         aside.flex
         footer.footer
             section.privacy Privacy
-            section.build build version
-                span(title="Build: v[[buildVersion]] | Dashboard: v[[dashVersion]]")  v[[buildVersion]]
+            section.build build version&nbsp;
+                span(title="Build: v[[buildVersion]] | Dashboard: v[[dashVersion]]") v[[buildVersion]]
     app-header-layout(fullbleed)
         app-header(slot='header')
             app-toolbar
                 header(hides, hidden$='[[hideToolbar]]')
                     paper-tabs.bottom(selected='[[page]]', attr-for-selected='page')
                         paper-tab(page='dashboard', link)
-                            a.link(tabindex='-1', href='/') DASHBOARD
+                            a.link(tabindex='-1', href='/') Dashboard
                         paper-tab(page='activity', link,hidden$='[[!_devMode]]')
-                            a.link(tabindex='-1', href='/activity') ACTIVITY
+                            a.link(tabindex='-1', href='/activity') Activity
                     aside#NamespaceSelector(hidden$='[[!_devMode]]')
                         paper-dropdown-menu(label='Namespace')
-                    paper-icon-button#Menu(icon='menu', on-click='toggleSidebar', hides, hidden$='[[!narrowMode]]')
-        neon-animated-pages(selected='[[page]]', attr-for-selected='page', entry-animation='fade-in-animation', exit-animation='fade-out-animation')
+                    paper-icon-button#Menu(icon='menu',
+                        on-click='toggleSidebar', hides,
+                        hidden$='[[!narrowMode]]')
+        neon-animated-pages(selected='[[page]]', attr-for-selected='page',
+                            entry-animation='fade-in-animation',
+                            exit-animation='fade-out-animation')
             neon-animatable(page='dashboard')
                 dashboard-view
             neon-animatable(page='activity')

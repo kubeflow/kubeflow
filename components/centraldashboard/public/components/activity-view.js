@@ -98,15 +98,15 @@ export class ActivityView extends PolymerElement {
     _onResponse(responseEvent) {
         const {status, response} = responseEvent.detail;
         this.activities = [];
-        if (status === 200) {
-            this.activities = response.map((a) => {
-                const activity = {
-                    formattedTime: new Date(a.time).toLocaleString(),
-                    icon: a.isError ? 'error' : 'build',
-                };
-                return Object.assign(activity, a);
-            });
-        }
+        // TODO: Surface the error in some manner
+        if (status !== 200) return;
+        this.activities = response.map((a) => {
+            const activity = {
+                formattedTime: new Date(a.time).toLocaleString(),
+                icon: a.isError ? 'error' : 'build',
+            };
+            return Object.assign(activity, a);
+        });
     }
 }
 
