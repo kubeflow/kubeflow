@@ -448,97 +448,103 @@ func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum, options map[string]
 	log.Infof("Ksonnet.Generate Name %v AppDir %v Platform %v", ksApp.KsApp.Name,
 		ksApp.KsApp.Spec.AppDir, ksApp.KsApp.Spec.Platform)
 
+	configPath := path.Join(ksApp.KsApp.Spec.AppDir,
+		kftypes.DefaultCacheDir,
+		ksApp.KsApp.Spec.Version,
+		kftypes.DefaultConfigDir)
+
 	initErr := ksApp.initKs()
 	if initErr != nil {
 		return fmt.Errorf("couldn't initialize KfApi: %v", initErr)
 	}
-	if options[string(kftypes.DefaultConfig)] != nil {
-		configPath := options[string(kftypes.DefaultConfig)].(string)
-		config := &configtypes.ComponentConfig{}
-		if buf, bufErr := ioutil.ReadFile(configPath); bufErr == nil {
-			if readErr := yaml.Unmarshal(buf, config); readErr != nil {
-				return fmt.Errorf("Unable to parse config: %v", readErr)
-			}
-		} else {
-			return fmt.Errorf("Unable to read config %v: %v", configPath, bufErr)
-		}
-		config.Repo = ksApp.KsApp.Spec.Repo
-		email := options[string(kftypes.EMAIL)].(string)
-		setNameVal(config.ComponentParams["cert-manager"], "acmeEmail", email)
-		ipName := options[string(kftypes.IPNAME)].(string)
-		hostname := options[string(kftypes.HOSTNAME)].(string)
-		if val, ok := options[string(kftypes.USE_BASIC_AUTH)]; ok && val.(bool) {
-			setNameVal(config.ComponentParams["basic-auth-ingress"], "ipName", ipName)
-			setNameVal(config.ComponentParams["basic-auth-ingress"], "hostname", hostname)
-		} else {
-			setNameVal(config.ComponentParams["iap-ingress"], "ipName", ipName)
-			setNameVal(config.ComponentParams["iap-ingress"], "hostname", hostname)
-		}
-		setNameVal(config.ComponentParams["pipeline"], "mysqlPd", ksApp.KsApp.Name+"-storage-metadata-store")
-		setNameVal(config.ComponentParams["pipeline"], "minioPd", ksApp.KsApp.Name+"-storage-artifact-store")
-		components := []string{}
-		for _, c := range config.Components {
-			if c != "application" && c != "metacontroller" {
-				components = append(components, fmt.Sprintf("\"%v\"", c))
-			}
-		}
-		setNameVal(config.ComponentParams["application"], "components",
-			"["+strings.Join(components, " ,")+"]")
-
-		log.Infof("Configs for generation: %+v", config)
-
-		ksRegistry := kstypes.DefaultRegistry
-		ksRegistry.Version = ksApp.KsApp.Spec.Version
-		ksRegistry.RegUri = ksApp.KsApp.Spec.Repo
-		registryAddErr := ksApp.registryAdd(ksRegistry)
-		if registryAddErr != nil {
-			return fmt.Errorf("couldn't add registry %v. Error: %v", ksRegistry.Name, registryAddErr)
-		}
-		for _, pkgName := range config.Packages {
-			pkg := kstypes.KsPackage{
-				Name:     pkgName,
-				Registry: "kubeflow",
-			}
-			packageAddErr := ksApp.pkgInstall(pkg)
-			if packageAddErr != nil {
-				return fmt.Errorf("couldn't add package %v. Error: %v", pkg.Name, packageAddErr)
-			}
-		}
-		for _, compName := range config.Components {
-			comp := kstypes.KsComponent{
-				Name:      compName,
-				Prototype: compName,
-			}
-			parameterArgs := []string{}
-			if val, ok := config.ComponentParams[compName]; ok {
-				for _, nv := range val {
-					if nv.InitRequired {
-						name := "--" + nv.Name
-						parameterArgs = append(parameterArgs, name)
-						parameterArgs = append(parameterArgs, nv.Value)
-					}
-				}
-			}
-			if componentAddErr := ksApp.componentAdd(comp, parameterArgs); componentAddErr != nil {
-				return fmt.Errorf("couldn't add comp %v. Error: %v", comp.Name, componentAddErr)
-			}
-		}
-		for compName, namevals := range config.ComponentParams {
-			for _, nv := range namevals {
-				args := map[string]interface{}{
-					actions.OptionAppRoot: ksApp.ksRoot(),
-					actions.OptionName:    compName,
-					actions.OptionPath:    nv.Name,
-					actions.OptionValue:   nv.Value,
-				}
-				if err := actions.RunParamSet(args); err != nil {
-					return fmt.Errorf("Failed to set param %v %v %v: %v", compName, nv.Name,
-						nv.Value, err)
-				}
-			}
+	if options[string(kftypes.DEFAULT_CONFIG)] == nil {
+		configPath = filepath.Join(configPath, kftypes.DefaultConfigFile)
+		options[string(kftypes.DEFAULT_CONFIG)] = configPath
+	} else {
+		configPath = options[string(kftypes.DEFAULT_CONFIG)].(string)
+	}
+	config := &configtypes.ComponentConfig{}
+	if buf, bufErr := ioutil.ReadFile(configPath); bufErr == nil {
+		if readErr := yaml.Unmarshal(buf, config); readErr != nil {
+			return fmt.Errorf("Unable to parse config: %v", readErr)
 		}
 	} else {
-		log.Fatalf("%v not set.", kftypes.DefaultConfig)
+		return fmt.Errorf("Unable to read config %v: %v", configPath, bufErr)
+	}
+	config.Repo = ksApp.KsApp.Spec.Repo
+	email := options[string(kftypes.EMAIL)].(string)
+	setNameVal(config.ComponentParams["cert-manager"], "acmeEmail", email)
+	ipName := options[string(kftypes.IPNAME)].(string)
+	hostname := options[string(kftypes.HOSTNAME)].(string)
+	if val, ok := options[string(kftypes.USE_BASIC_AUTH)]; ok && val.(bool) {
+		setNameVal(config.ComponentParams["basic-auth-ingress"], "ipName", ipName)
+		setNameVal(config.ComponentParams["basic-auth-ingress"], "hostname", hostname)
+	} else {
+		setNameVal(config.ComponentParams["iap-ingress"], "ipName", ipName)
+		setNameVal(config.ComponentParams["iap-ingress"], "hostname", hostname)
+	}
+	setNameVal(config.ComponentParams["pipeline"], "mysqlPd", ksApp.KsApp.Name+"-storage-metadata-store")
+	setNameVal(config.ComponentParams["pipeline"], "minioPd", ksApp.KsApp.Name+"-storage-artifact-store")
+	components := []string{}
+	for _, c := range config.Components {
+		if c != "application" && c != "metacontroller" {
+			components = append(components, fmt.Sprintf("\"%v\"", c))
+		}
+	}
+	setNameVal(config.ComponentParams["application"], "components",
+		"["+strings.Join(components, " ,")+"]")
+
+	log.Infof("Configs for generation: %+v", config)
+
+	ksRegistry := kstypes.DefaultRegistry
+	ksRegistry.Version = ksApp.KsApp.Spec.Version
+	ksRegistry.RegUri = ksApp.KsApp.Spec.Repo
+	registryAddErr := ksApp.registryAdd(ksRegistry)
+	if registryAddErr != nil {
+		return fmt.Errorf("couldn't add registry %v. Error: %v", ksRegistry.Name, registryAddErr)
+	}
+	for _, pkgName := range config.Packages {
+		pkg := kstypes.KsPackage{
+			Name:     pkgName,
+			Registry: "kubeflow",
+		}
+		packageAddErr := ksApp.pkgInstall(pkg)
+		if packageAddErr != nil {
+			return fmt.Errorf("couldn't add package %v. Error: %v", pkg.Name, packageAddErr)
+		}
+	}
+	for _, compName := range config.Components {
+		comp := kstypes.KsComponent{
+			Name:      compName,
+			Prototype: compName,
+		}
+		parameterArgs := []string{}
+		if val, ok := config.ComponentParams[compName]; ok {
+			for _, nv := range val {
+				if nv.InitRequired {
+					name := "--" + nv.Name
+					parameterArgs = append(parameterArgs, name)
+					parameterArgs = append(parameterArgs, nv.Value)
+				}
+			}
+		}
+		if componentAddErr := ksApp.componentAdd(comp, parameterArgs); componentAddErr != nil {
+			return fmt.Errorf("couldn't add comp %v. Error: %v", comp.Name, componentAddErr)
+		}
+	}
+	for compName, namevals := range config.ComponentParams {
+		for _, nv := range namevals {
+			args := map[string]interface{}{
+				actions.OptionAppRoot: ksApp.ksRoot(),
+				actions.OptionName:    compName,
+				actions.OptionPath:    nv.Name,
+				actions.OptionValue:   nv.Value,
+			}
+			if err := actions.RunParamSet(args); err != nil {
+				return fmt.Errorf("Failed to set param %v %v %v: %v", compName, nv.Name,
+					nv.Value, err)
+			}
+		}
 	}
 
 	return nil

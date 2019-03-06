@@ -551,14 +551,14 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 	configPath := path.Join(gcp.GcpApp.Spec.AppDir,
 		kftypes.DefaultCacheDir,
 		gcp.GcpApp.Spec.Version,
-		kftypes.GcpConfigDir)
+		kftypes.DefaultConfigDir)
 	if gcp.GcpApp.Spec.UseBasicAuth {
 		configPath = path.Join(configPath, kftypes.GcpBasicAuth)
 	} else {
 		configPath = path.Join(configPath, kftypes.GcpIapConfig)
 	}
-	if options[string(kftypes.DefaultConfig)] == nil {
-		options[string(kftypes.DefaultConfig)] = configPath
+	if options[string(kftypes.DEFAULT_CONFIG)] == nil {
+		options[string(kftypes.DEFAULT_CONFIG)] = configPath
 	}
 
 	if options[string(kftypes.EMAIL)] != nil &&
