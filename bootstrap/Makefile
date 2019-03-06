@@ -55,6 +55,9 @@ vet:
 generate:
 	@$(GO) generate ./pkg/apis/apps/client/... ./pkg/apis/apps/gcp/... ./pkg/utils/... ./pkg/client/minikube ./pkg/client/gcp/... ./cmd/kfctl/...
 
+/tmp/v2:
+	@[ ! -d /tmp/v2 ] && unzip -q -d /tmp hack/v2.zip
+
 $(GOPATH)/bin/deepcopy-gen:
 	GO111MODULE=off $(GO) get k8s.io/code-generator/cmd/deepcopy-gen
 
@@ -75,7 +78,7 @@ deepcopy: $(GOPATH)/bin/deepcopy-gen pkg/apis/apps/gcp/v1alpha1/zz_generated.dee
 build-bootstrap: generate fmt vet
 	$(GO) build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 
-build-kfctl: deepcopy generate fmt vet
+build-kfctl: /tmp/v2 deepcopy generate fmt vet
 	$(GO) build -i -gcflags 'all=-N -l' -o bin/kfctl cmd/kfctl/main.go
 
 build-local: build-bootstrap build-kfctl
