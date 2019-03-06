@@ -79,6 +79,7 @@ paths:
       tags:
         - "config"
       summary: "Get kubeflow config entry file"
+      description: "internal use only, alpha stage"
       security:
         - BearerToken: []
       operationId: "getConfigFile"
@@ -123,7 +124,8 @@ paths:
     put:
       tags:
         - "config"
-      description: "Update kubeflow config entry file"
+      summary: "Update kubeflow config entry file"
+      description: "internal use only, alpha stage"
       security:
         - BearerToken: []
       operationId: "putConfigFile"
@@ -245,8 +247,11 @@ definitions:
     properties:
       metadata:
         $ref: "#/definitions/DeploymentMetadata"
-      sAClientId:
-        type: "string"
+      spec:
+        type: "object"
+        properties:
+          sAClientId:
+            type: "string"
       status:
         type: "string"
   ErrorMessage:
@@ -266,20 +271,25 @@ definitions:
     properties:
       metadata:
         $ref: "#/definitions/DeploymentMetadata"
-      extraComponents:
-        type: "array"
-        items:
-          type: "string"
-      parameters:
-        type: "array"
-        items:
-          $ref: "#/definitions/Parameter"
-      iapIngress:
-        $ref: "#/definitions/IapIngress"
-      basicAuthIngress:
-        $ref: "#/definitions/BasicAuthIngress"
-      storageOption:
-        $ref: "#/definitions/StorageOption"
+      spec:
+        type: "object"
+        properties:
+          extraComponents:
+            type: "array"
+            items:
+              type: "string"
+          parameters:
+            type: "array"
+            items:
+              $ref: "#/definitions/Parameter"
+          iapIngress:
+            $ref: "#/definitions/IapIngress"
+          basicAuthIngress:
+            $ref: "#/definitions/BasicAuthIngress"
+          storageOption:
+            $ref: "#/definitions/StorageOption"
+      status:
+        type: "string"
   KfConfigEntries:
     type: "object"
     properties:
