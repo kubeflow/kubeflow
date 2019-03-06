@@ -113,31 +113,45 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 }
 
 func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	log.Infof("ks.Apply: project = %v, zone = %v name = %v", options[string(kftypes.PROJECT)],
-		options[string(kftypes.ZONE)], ksApp.KsApp.Name)
-	if options[string(kftypes.PROJECT)] == nil || options[string(kftypes.PROJECT)].(string) == "" {
-		return fmt.Errorf("Couldn't find %v in KSONNET options ...", string(kftypes.PROJECT))
-	}
-	if options[string(kftypes.ZONE)] == nil || options[string(kftypes.ZONE)].(string) == "" {
-		return fmt.Errorf("Couldn't find %v in KSONNET options ...", string(kftypes.ZONE))
-	}
-	project := options[string(kftypes.PROJECT)].(string)
-	zone := options[string(kftypes.ZONE)].(string)
 	name := ksApp.KsApp.Name
 	ctx := context.Background()
-	cluster, err := kftypes.GetClusterInfo(ctx, project, zone, name)
-	if err != nil {
-		return err
+	var host string
+	if options[string(kftypes.PLATFORM)] != nil && options[string(kftypes.PLATFORM)].(string) != "" {
+		log.Infof("ks.Apply: platform = %v project = %v, zone = %v name = %v",
+			options[string(kftypes.PLATFORM)],
+			options[string(kftypes.PROJECT)],
+			options[string(kftypes.ZONE)], ksApp.KsApp.Name)
+		if options[string(kftypes.PROJECT)] == nil || options[string(kftypes.PROJECT)].(string) == "" {
+			return fmt.Errorf("Couldn't find %v in KSONNET options ...", string(kftypes.PROJECT))
+		}
+		if options[string(kftypes.ZONE)] == nil || options[string(kftypes.ZONE)].(string) == "" {
+			return fmt.Errorf("Couldn't find %v in KSONNET options ...", string(kftypes.ZONE))
+		}
+		project := options[string(kftypes.PROJECT)].(string)
+		zone := options[string(kftypes.ZONE)].(string)
+		cluster, err := kftypes.GetClusterInfo(ctx, project, zone, name)
+		if err != nil {
+			return err
+		}
+		config, err := kftypes.BuildConfigFromClusterInfo(ctx, cluster)
+		if err != nil {
+			return err
+		}
+		host, _, err = kftypes.ServerVersionWithConfig(config)
+		if err != nil {
+			return fmt.Errorf("couldn't get server version: %v", err)
+		}
+		log.Infof("ServerVersion: %v", host)
+	} else {
+		config, err := kftypes.BuildOutOfClusterConfig()
+		if err != nil {
+			return err
+		}
+		host, _, err = kftypes.ServerVersionWithConfig(config)
+		if err != nil {
+			return fmt.Errorf("couldn't get server version: %v", err)
+		}
 	}
-	config, err := kftypes.BuildConfigFromClusterInfo(ctx, cluster)
-	if err != nil {
-		return err
-	}
-	host, _, err := kftypes.ServerVersionWithConfig(config)
-	if err != nil {
-		return fmt.Errorf("couldn't get server version: %v", err)
-	}
-	log.Infof("ServerVersion: %v", host)
 	cli, cliErr := kftypes.GetClientOutOfCluster()
 	if cliErr != nil {
 		return fmt.Errorf("couldn't create client Error: %v", cliErr)
