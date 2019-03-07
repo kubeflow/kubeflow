@@ -22,11 +22,11 @@ paths:
   /projects/{project}/configs:
     post:
       tags:
-        - "config"
+        - "configEntry"
       summary: "Create a new kubeflow config entry on source repo"
       security:
         - BearerToken: []
-      operationId: "createConfig"
+      operationId: "createConfigEntry"
       consumes:
         - "application/json"
       produces:
@@ -44,17 +44,23 @@ paths:
           schema:
             $ref: "#/definitions/KfConfig"
       responses:
-        405:
-          description: "Invalid input"
+        200:
+          description: "OK"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
           schema:
             $ref: "#/definitions/ErrorMessage"
+        500:
+          description: "Internal Server Error"
     get:
       tags:
-        - "config"
+        - "configEntry"
       summary: "List kubeflow config entries in target project"
       security:
         - BearerToken: []
-      operationId: "listConfigs"
+      operationId: "listConfigEntries"
       consumes:
         - "application/json"
       produces:
@@ -67,17 +73,55 @@ paths:
           type: "string"
       responses:
         200:
-          description: "Kubeflow config entries"
+          description: "OK"
           schema:
             $ref: "#/definitions/KfConfigEntries"
-        405:
-          description: "Invalid input"
-          schema:
-            $ref: "#/definitions/ErrorMessage"
+        401:
+          description: "Unauthorized"
+        500:
+          description: "Internal Server Error"
+  /projects/{project}/configs/{config}/version/{version}:
+    delete:
+      tags:
+        - "configEntry"
+      summary: "Delete kubeflow config entry"
+      description: "internal use only, alpha stage"
+      security:
+        - BearerToken: []
+      operationId: "deleteConfigEntry"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "project"
+          description: "gcp project string id"
+          required: true
+          type: "string"
+        - in: "path"
+          name: "config"
+          description: "config entry name"
+          required: true
+          type: "string"
+        - in: "path"
+          name: "version"
+          description: "config entry kubeflow version"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "OK"
+        401:
+          description: "Unauthorized"
+        404:
+          description: "Entry not found"
+        500:
+          description: "Internal Server Error"
   /projects/{project}/configs/{config}/version/{version}/file:
     get:
       tags:
-        - "config"
+        - "configFile"
       summary: "Get kubeflow config entry file"
       description: "internal use only, alpha stage"
       security:
@@ -110,20 +154,18 @@ paths:
           type: "string"
       responses:
         200:
-          description: "Kubeflow config entries"
+          description: "OK"
           schema:
             $ref: "#/definitions/KfConfigFile"
+        401:
+          description: "Unauthorized"
         404:
           description: "Entry not found"
-          schema:
-            $ref: "#/definitions/ErrorMessage"
-        405:
-          description: "Invalid input"
-          schema:
-            $ref: "#/definitions/ErrorMessage"
+        500:
+          description: "Internal Server Error"
     put:
       tags:
-        - "config"
+        - "configFile"
       summary: "Update kubeflow config entry file"
       description: "internal use only, alpha stage"
       security:
@@ -156,10 +198,16 @@ paths:
           schema:
             $ref: "#/definitions/KfConfigFile"
       responses:
-        405:
-          description: "Invalid input"
+        200:
+          description: "OK"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
           schema:
             $ref: "#/definitions/ErrorMessage"
+        500:
+          description: "Internal Server Error"
   /projects/{project}/deployments:
     post:
       tags:
@@ -185,10 +233,16 @@ paths:
           schema:
             $ref: "#/definitions/KfDeployment"
       responses:
-        405:
-          description: "Invalid input"
+        200:
+          description: "OK"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
           schema:
             $ref: "#/definitions/ErrorMessage"
+        500:
+          description: "Internal Server Error"
   /projects/{project}/deployments/{deployment}:
     get:
       tags:
@@ -214,13 +268,46 @@ paths:
           type: "string"
       responses:
         200:
-          description: "deployment status"
+          description: "OK"
           schema:
             $ref: "#/definitions/KfDeployment"
-        405:
-          description: "Invalid input"
-          schema:
-            $ref: "#/definitions/ErrorMessage"
+        401:
+          description: "Unauthorized"
+        404:
+          description: "Entry not found"
+        500:
+          description: "Internal Server Error"
+    delete:
+      tags:
+        - "deployment"
+      description: "Delete a kubeflow deployment instance"
+      security:
+        - BearerToken: []
+      operationId: "deleteDeployment"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "project"
+          description: "gcp project string id"
+          required: true
+          type: "string"
+        - in: "path"
+          name: "deployment"
+          description: "Deployment name"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "OK"
+        401:
+          description: "Unauthorized"
+        404:
+          description: "Entry not found"
+        500:
+          description: "Internal Server Error"
 definitions:
   BasicAuthIngress:
     type: "object"
