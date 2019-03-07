@@ -481,12 +481,25 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 				actions.OptionServer:  config.Host,
 				// TODO(jlewi): What is the proper version to use? It shouldn't be a version like v1.9.0-gke as that
 				// will create an error because ksonnet will be unable to fetch a swagger spec.
-				actions.OptionSpecFlag:              "version:v1.10.6",
+				actions.OptionSpecFlag:              "version:v1.11.7",
 				actions.OptionNamespace:             request.Namespace,
 				actions.OptionSkipDefaultRegistries: true,
 			}
+			// Add retry around ks init as sometimes fetching k8s API from github will fail
+			bo := backoff.WithMaxRetries(backoff.NewConstantBackOff(2*time.Second), 5)
+			err = backoff.Retry(func() error {
+				// Clean up leftovers from previous run if exists
+				if initErr := os.RemoveAll(appDir); initErr != nil {
+					log.Warnf("Failed to cleanup app dir from previous run, error: %v. will retry up to 5 times", initErr)
+					return initErr
+				}
+				if initErr := actions.RunInit(options); initErr != nil {
+					log.Warnf("app init failed with error: %v. will retry up to 5 times", initErr)
+					return initErr
+				}
+				return nil
+			}, bo)
 
-			err := actions.RunInit(options)
 			if err != nil {
 				return fmt.Errorf("There was a problem initializing the app: %v", err)
 			}
