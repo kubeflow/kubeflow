@@ -490,11 +490,11 @@ func (s *ksServer) CreateApp(ctx context.Context, request CreateRequest, dmDeplo
 			err = backoff.Retry(func() error {
 				// Clean up leftovers from previous run if exists
 				if initErr := os.RemoveAll(appDir); initErr != nil {
-					log.Warnf("app init target directory is not clean, error: %v. will retry", initErr)
+					log.Warnf("Failed to cleanup app dir from previous run, error: %v. will retry up to 5 times", initErr)
 					return initErr
 				}
 				if initErr := actions.RunInit(options); initErr != nil {
-					log.Warnf("app init failed with error: %v. will retry", initErr)
+					log.Warnf("app init failed with error: %v. will retry up to 5 times", initErr)
 					return initErr
 				}
 				return nil
