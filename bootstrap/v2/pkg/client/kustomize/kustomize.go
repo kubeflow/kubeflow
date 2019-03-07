@@ -172,9 +172,9 @@ func (kustomize *kustomize) Init(resources kftypes.ResourceEnum, options map[str
 	//TODO see #2629
 	version := "master" //kustomize.Kustomize.Spec.Version
 	cacheName := version
-	if strings.HasPrefix(kustomize.Kustomize.Spec.Version, "pull") {
-		if !strings.HasSuffix(kustomize.Kustomize.Spec.Version, "head") {
-			version = kustomize.Kustomize.Spec.Version + "/head"
+	if strings.HasPrefix(version, "pull") {
+		if !strings.HasSuffix(version, "head") {
+			version = version + "/head"
 		}
 		parts := strings.Split(version, "/")
 		cacheName = parts[1]
