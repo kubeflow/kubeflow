@@ -982,7 +982,7 @@
     },  // certificate
     certificate:: certificate,
 
-    local cloudEndpoint {
+    local cloudEndpoint = {
       local makeEndpointParams(str) = {
         local toks = std.split(str, "."),
         result:: {
