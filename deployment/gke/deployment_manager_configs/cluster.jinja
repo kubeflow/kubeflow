@@ -28,6 +28,7 @@ limitations under the License.
 {% set KF_ADMIN_NAME = NAME_PREFIX + '-admin' %}
 {% set KF_USER_NAME = NAME_PREFIX + '-user' %}
 {% set KF_VM_SA_NAME = NAME_PREFIX + '-vm' %}
+{% set IP_NAME = NAME_PREFIX + '-ip' %}
 
 resources:
 - name: {{ KF_ADMIN_NAME }}
@@ -101,7 +102,7 @@ resources:
           {% endfor %}
       {% endif %}
       nodePools:
-      - name: default-pool
+      - name: {{ CPU_POOL }}
         initialNodeCount: {{ properties['cpu-pool-initialNodeCount'] }}
         autoscaling:
           enabled: {{ properties['cpu-pool-enable-autoscaling'] }}
@@ -159,8 +160,8 @@ resources:
         # Set min cpu platform to ensure AVX2 is supported.
         minCpuPlatform: 'Intel Broadwell'
         accelerators:
-          - acceleratorCount: 1
-            acceleratorType: {{ properties['gpu-type'] }}
+          - acceleratorCount: {{ properties['gpu-number-per-node'] }}
+            acceleratorType: nvidia-tesla-k80
 
   metadata:
     dependsOn:
@@ -169,7 +170,7 @@ resources:
 {% endif %}
 
 {# Project defaults to the project of the deployment. #}
-- name: {{ properties['ipName']  }}
+- name: {{ IP_NAME }}
   type: compute.v1.globalAddress
   properties:
     description: "Static IP for Kubeflow ingress."

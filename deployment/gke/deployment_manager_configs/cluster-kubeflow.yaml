@@ -40,19 +40,22 @@ resources:
     # This will cause existing node pools to be deleted and new ones to be created.
     # Use prefix v so it will be treated as a string.
     pool-version: v1
+    # CPU Pool Configs
     # Two is small enough to fit within default quota.
     cpu-pool-initialNodeCount: 2
-    gpu-pool-initialNodeCount: 0
     # Autoscaling parameters
     cpu-pool-enable-autoscaling: true
     cpu-pool-min-nodes: 0
     cpu-pool-max-nodes: 10
+    # GPU Pool Configs
+    gpu-pool-initialNodeCount: 0
     # GPUs are not enabled by default. To add GPUs
     # set gpu-pool-max-nodes to a none-zero value.
     gpu-pool-enable-autoscaling: true
     gpu-pool-min-nodes: 0
     gpu-pool-max-nodes: 0
-    gpu-type: nvidia-tesla-k80
+    # Controls gpu number per node, valid input: [1, 8]
+    gpu-number-per-node: 1
     # Autoprovisioning parameters (only supported in gkeApiVersion v1beta1).
     # This is configured by the gkeApiVersion setting.
     autoprovisioning-config:
@@ -88,4 +91,3 @@ resources:
       # - group:data-scientists@acme.com
     # This is the name of the GCP static ip address reserved for your domain.
     # Each Kubeflow deployment in your project should use one unique ipName among all configs.
-    ipName: kubeflow-ip
