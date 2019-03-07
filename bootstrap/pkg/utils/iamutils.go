@@ -66,7 +66,7 @@ func getBindingSet(policy *cloudresourcemanager.Policy) map[string]mapset.Set {
 	return bindings
 }
 
-// Gets IAM plicy from GCP for the whole project.
+// GetIamPolicy gets IAM plicy from GCP for the whole project.
 func GetIamPolicy(project string) (*cloudresourcemanager.Policy, error) {
 	ctx := context.Background()
 	client, clientErr := getServiceClient(ctx)
@@ -95,7 +95,7 @@ type IamBindingsYAML struct {
 	Bindings []Bindings
 }
 
-// Reads IAM bindings file in YAML format.
+// ReadIamBindingsYAML reads IAM bindings file in YAML format.
 func ReadIamBindingsYAML(filename string) (*cloudresourcemanager.Policy, error) {
 	buf, bufErr := ioutil.ReadFile(filename)
 	if bufErr != nil {

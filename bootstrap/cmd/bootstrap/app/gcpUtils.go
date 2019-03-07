@@ -140,7 +140,7 @@ func (s *ksServer) GetDeploymentStatus(ctx context.Context, req CreateRequest, d
 	return dm.Operation.Status, "", nil
 }
 
-// Clear existing bindings for auto-generated service accounts of current deployment.
+// GetClearServiceAccountpolicy clears existing bindings for auto-generated service accounts of current deployment.
 // Those bindings could be leftover from previous actions.
 func GetClearServiceAccountpolicy(currentPolicy *cloudresourcemanager.Policy, req ApplyIamRequest) cloudresourcemanager.Policy {
 	serviceAccounts := map[string]bool{
