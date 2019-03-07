@@ -67,7 +67,7 @@ app-header-layout {@apply --layout-vertical}
 #Dashboard {
     background: #f1f3f4;
     padding: 1em;
-    grid-gap: .5em;
+    grid-gap: 1em;
     display: grid;
     min-height: 0;
     min-width: 0;
