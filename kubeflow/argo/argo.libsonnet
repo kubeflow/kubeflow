@@ -168,6 +168,12 @@
                 resources: {},
                 terminationMessagePath: "/dev/termination-log",
                 terminationMessagePolicy: "File",
+                readinessProbe: {
+                  httpGet: {
+                    path: "/",
+                    port: 8001,
+                  },
+                },
               },
             ],
             dnsPolicy: "ClusterFirst",
@@ -177,12 +183,6 @@
             serviceAccount: "argo-ui",
             serviceAccountName: "argo-ui",
             terminationGracePeriodSeconds: 30,
-            readinessProbe: {
-              httpGet: {
-                path: "/",
-                port: 8001,
-              },
-            },
           },
         },
       },
