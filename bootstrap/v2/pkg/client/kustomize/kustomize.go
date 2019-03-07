@@ -170,7 +170,7 @@ func (kustomize *kustomize) Init(resources kftypes.ResourceEnum, options map[str
 		return fmt.Errorf("couldn't create directory %v Error %v", kustomizeDir, kustomizeDirErr)
 	}
 	//TODO see #2629
-	version := "master" //kustomize.Kustomize.Spec.Version
+	version := kustomize.Kustomize.Spec.Version
 	cacheName := version
 	if strings.HasPrefix(version, "pull") {
 		if !strings.HasSuffix(version, "head") {
@@ -178,8 +178,11 @@ func (kustomize *kustomize) Init(resources kftypes.ResourceEnum, options map[str
 		}
 		parts := strings.Split(version, "/")
 		cacheName = parts[1]
+		kustomize.Kustomize.Spec.Version = cacheName
 	}
-	tarballUrl := "https://github.com/kubeflow/manifests/tarball/" + version + "?archive=tar.gz"
+	//TODO see #2629
+	//tarballUrl := "https://github.com/kubeflow/manifests/tarball/" + version + "?archive=tar.gz"
+	tarballUrl := "https://github.com/kubeflow/manifests/tarball/master?archive=tar.gz"
 	tarballUrlErr := gogetter.GetAny(kustomizeDir, tarballUrl)
 	if tarballUrlErr != nil {
 		return fmt.Errorf("couldn't download kustomize manifests repo %v Error %v", tarballUrl, tarballUrlErr)
@@ -195,7 +198,7 @@ func (kustomize *kustomize) Init(resources kftypes.ResourceEnum, options map[str
 	if renameErr != nil {
 		return fmt.Errorf("couldn't rename %v to %v Error %v", extractedPath, newPath, renameErr)
 	}
-	repoPath := path.Join(kustomize.Kustomize.Spec.AppDir, kftypes.DefaultCacheDir, kustomize.Kustomize.Spec.Version)
+	repoPath := path.Join(kustomize.Kustomize.Spec.AppDir, kftypes.DefaultCacheDir, cacheName)
 	kustomize.Kustomize.Spec.Repo = path.Join(repoPath, "kubeflow")
 	createConfigErr := kustomize.writeConfigFile()
 	if createConfigErr != nil {

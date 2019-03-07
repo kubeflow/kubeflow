@@ -329,6 +329,7 @@ func (kfapp *coordinator) downloadToCache() error {
 		}
 		parts := strings.Split(version, "/")
 		cacheName = parts[1]
+		kfapp.Client.Spec.Version = cacheName
 	}
 	tarballUrl := kftypes.DefaultGitRepo + "/" + version + "?archive=tar.gz"
 	tarballUrlErr := gogetter.GetAny(cacheDir, tarballUrl)
