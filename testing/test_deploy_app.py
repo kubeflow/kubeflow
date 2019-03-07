@@ -181,23 +181,25 @@ def make_prober_call(args, service_account_credentials):
 
 
 # For each deployment, make a request to service url, return if all requests call successful.
-def make_loadtest_call(args, service_account_credentials, deployments):
-  logging.info("start new prober call")
+def make_loadtest_call(args, service_account_credentials, projects, deployments):
+  logging.info("start new load test call")
   google_open_id_connect_token = get_google_open_id_connect_token(
       service_account_credentials)
   threads = []
-  for deployment in deployments:
-    req_data = prepare_request_data(args, deployment)
-    threads.append(
-        requestThread(
-            get_target_url(args), req_data, google_open_id_connect_token))
+  for project in projects:
+    args.project = project
+    for deployment in deployments:
+      req_data = prepare_request_data(args, deployment)
+      threads.append(
+          requestThread(
+              get_target_url(args), req_data, google_open_id_connect_token))
   for t in threads:
     t.start()
   for t in threads:
     t.join()
   if SERVICE_HEALTH._value.get() == 2:
     return False
-  logging.info("prober call done")
+  logging.info("load test call done")
   return True
 
 
@@ -511,39 +513,53 @@ def util_run(command,
 
   return "\n".join(output)
 
+def clean_up_project_resource(args, projects, deployments):
+  for project in projects:
+    args.project = project
+    if not clean_up_resource(args, deployments):
+      return False
+  return True
 
 def run_load_test(args):
-  num_concurrent_requests = 5
+  num_deployments = args.num_deployments_per_project
+  num_projects = args.num_projects
   start_http_server(8000)
-  LOADTEST_SUCCESS.set(num_concurrent_requests)
+  LOADTEST_SUCCESS.set(num_deployments)
   LOADTEST_HEALTH.set(0)
   service_account_credentials = get_service_account_credentials(
       "SERVICE_CLIENT_ID")
   deployments = set(
-      ['kubeflow' + str(i) for i in range(1, num_concurrent_requests + 1)])
+      ['kubeflow' + str(i) for i in range(1, num_deployments + 1)])
+  projects = ["kf-gcp-deploy-test" + str(i)
+             for i in range(1, num_projects + 1)]
   while True:
     sleep(args.wait_sec)
-    if not clean_up_resource(args, deployments):
+    if not clean_up_project_resource(args, projects, deployments):
       LOADTEST_HEALTH.set(1)
       FAILURE_COUNT.inc()
       logging.error(
           "request cleanup failed, retry in %s seconds" % args.wait_sec)
       continue
     LOADTEST_HEALTH.set(0)
-    if make_loadtest_call(args, service_account_credentials, deployments):
-      for deployment in deployments:
-        insert_ssl_cert(args, deployment)
-      num_success = check_deploy_status(args, deployments)
-      LOADTEST_SUCCESS.set(num_success)
-      if num_success == num_concurrent_requests:
-        SUCCESS_COUNT.inc()
-      else:
-        FAILURE_COUNT.inc()
-    else:
+
+    if not make_loadtest_call(
+      args, service_account_credentials, projects, deployments):
       LOADTEST_SUCCESS.set(0)
       FAILURE_COUNT.inc()
       logging.error(
           "prober request failed, retry in %s seconds" % args.wait_sec)
+      continue
+
+    for project in projects:
+      args.project = project
+      for deployment in deployments:
+        insert_ssl_cert(args, deployment)
+      num_success = check_deploy_status(args, deployments)
+      LOADTEST_SUCCESS.set(num_success)
+      if num_success == num_deployments:
+        SUCCESS_COUNT.inc()
+      else:
+        FAILURE_COUNT.inc()
 
 
 def run_e2e_test(args):
@@ -605,6 +621,21 @@ def main(unparsed_args=None):
       default="29647740582",
       type=str,
       help="e2e test project number")
+  parser.add_argument(
+      "--project_prefix",
+      default="",
+      type=str,
+      help="project prefix for load test")
+  parser.add_argument(
+      "--number_projects",
+      default="2",
+      type=int,
+      help="number of projects used in load test")
+  parser.add_argument(
+      "--number_deployments_per_project",
+      default="5",
+      type=int,
+      help="number of deployments per project used in load test")
   parser.add_argument(
       "--namespace",
       default="",
