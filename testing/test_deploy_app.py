@@ -2,7 +2,9 @@
 # Script to start deployment api and make request to it.
 import argparse
 import base64
+import creds
 import datetime
+import httplib2
 import logging
 import os
 import errno
@@ -120,7 +122,10 @@ def prepare_request_data(args, deployment):
 
   client_id = may_get_env_var("CLIENT_ID")
   client_secret = may_get_env_var("CLIENT_SECRET")
+  crm = discovery.build(
+    'cloudresourcemanager', 'v1', http=creds.authorize(httplib2.Http()))
 
+  project = crm.projects().get(projectId=args.project).execute()
   return {
       "AppConfig": defaultApp,
       "Apply": True,
@@ -133,7 +138,7 @@ def prepare_request_data(args, deployment):
       "Name": deployment,
       "Namespace": 'kubeflow',
       "Project": args.project,
-      "ProjectNumber": args.project_number,
+      "ProjectNumber": project.projectNumber,
       # service account client id of account: kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
       "SAClientId": args.sa_client_id,
       "Token": access_token,
@@ -530,7 +535,7 @@ def run_load_test(args):
       "SERVICE_CLIENT_ID")
   deployments = set(
       ['kubeflow' + str(i) for i in range(1, num_deployments + 1)])
-  projects = ["kf-gcp-deploy-test" + str(i)
+  projects = [args.project_prefix + str(i)
              for i in range(1, num_projects + 1)]
   while True:
     sleep(args.wait_sec)
@@ -617,13 +622,8 @@ def main(unparsed_args=None):
       type=str,
       help="e2e test project id")
   parser.add_argument(
-      "--project_number",
-      default="29647740582",
-      type=str,
-      help="e2e test project number")
-  parser.add_argument(
       "--project_prefix",
-      default="",
+      default="kf-gcp-deploy-test",
       type=str,
       help="project prefix for load test")
   parser.add_argument(
