@@ -42,7 +42,10 @@ var applyCmd = &cobra.Command{
 			log.Errorf("invalid resource: %v", resourceErr)
 			return
 		}
-		options := map[string]interface{}{}
+		options := map[string]interface{}{
+			string(kftypes.OAUTH_ID):     applyCfg.GetString(string(kftypes.OAUTH_ID)),
+			string(kftypes.OAUTH_SECRET): applyCfg.GetString(string(kftypes.OAUTH_SECRET)),
+		}
 		kfApp, kfAppErr := coordinator.LoadKfApp(options)
 		if kfAppErr != nil {
 			log.Errorf("couldn't load KfApp: %v", kfAppErr)
@@ -79,9 +82,9 @@ func init() {
 		return
 	}
 	applyCmd.Flags().String(string(kftypes.OAUTH_SECRET), "",
-		"OAuth Client ID, GCP only. Required if ENV CLIENT_SECRET is not set. "+
+		"OAuth Client Secret, GCP only. Required if ENV CLIENT_SECRET is not set. "+
 			"Value passed will take precedence to ENV.")
-	bindErr = applyCfg.BindPFlag(string(kftypes.OAUTH_SECRET), applyCmd.Flags().Lookup(string(kftypes.OAUTH_ID)))
+	bindErr = applyCfg.BindPFlag(string(kftypes.OAUTH_SECRET), applyCmd.Flags().Lookup(string(kftypes.OAUTH_SECRET)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.OAUTH_SECRET), bindErr)
 		return

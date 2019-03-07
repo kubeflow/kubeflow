@@ -1,11 +1,11 @@
 {
   // Parameters are intended to be late bound.
   params:: {
-    apiImage: "gcr.io/ml-pipeline/api-server:0.1.10",
-    scheduledWorkflowImage: "gcr.io/ml-pipeline/scheduledworkflow:0.1.10",
-    persistenceAgentImage: "gcr.io/ml-pipeline/persistenceagent:0.1.10",
-    viewerCrdControllerImage: "gcr.io/ml-pipeline/viewer-crd-controller:0.1.10",
-    uiImage: "gcr.io/ml-pipeline/frontend:0.1.10",
+    apiImage: "gcr.io/ml-pipeline/api-server:0.1.12",
+    scheduledWorkflowImage: "gcr.io/ml-pipeline/scheduledworkflow:0.1.12",
+    persistenceAgentImage: "gcr.io/ml-pipeline/persistenceagent:0.1.12",
+    viewerCrdControllerImage: "gcr.io/ml-pipeline/viewer-crd-controller:0.1.12",
+    uiImage: "gcr.io/ml-pipeline/frontend:0.1.12",
     mysqlImage: "mysql:5.6",
     minioImage: "minio/minio:RELEASE.2018-02-09T22-40-05Z",
     nfsImage: "k8s.gcr.io/volume-nfs:0.8",

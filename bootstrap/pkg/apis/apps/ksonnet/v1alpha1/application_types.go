@@ -107,10 +107,12 @@ type RegistriesConfigFile struct {
 }
 
 type AppConfig struct {
-	Registries []*RegistryConfig `json:"registries,omitempty"`
-	Packages   []KsPackage       `json:"packages,omitempty"`
-	Components []KsComponent     `json:"components,omitempty"`
-	Parameters []KsParameter     `json:"parameters,omitempty"`
+	Registries      []*RegistryConfig `json:"registries,omitempty"`
+	Packages        []KsPackage       `json:"packages,omitempty"`
+	Components      []KsComponent     `json:"components,omitempty"`
+	Parameters      []KsParameter     `json:"parameters,omitempty"`
+	// Parameters to apply when creating the ksonnet components
+	ApplyParameters []KsParameter     `json:"applyParameters,omitempty"`
 }
 
 // KsonnetSpec defines the desired state of Ksonnet
@@ -158,7 +160,7 @@ type Ksonnet struct {
 type KsonnetList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Ksonnet `json:"items"`
+	Items []Ksonnet `json:"items"`
 }
 
 func init() {
