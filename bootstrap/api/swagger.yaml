@@ -106,7 +106,7 @@ paths:
           type: "string"
         - in: "path"
           name: "version"
-          description: "config entry kubeflow version"
+          description: "kubeflow git version that config entry based on"
           required: true
           type: "string"
       responses:
@@ -144,7 +144,7 @@ paths:
           type: "string"
         - in: "path"
           name: "version"
-          description: "config entry kubeflow version"
+          description: "kubeflow git version that config entry based on"
           required: true
           type: "string"
         - in: "query"
@@ -188,7 +188,7 @@ paths:
           type: "string"
         - in: "path"
           name: "version"
-          description: "config entry kubeflow version"
+          description: "kubeflow git version that config entry based on"
           required: true
           type: "string"
         - in: "body"
@@ -318,6 +318,7 @@ definitions:
         type: "string"
   DeploymentMetadata:
     type: "object"
+    description: "kubeflow Deployment share same metadata as kubeflow config"
     properties:
       name:
         type: "string"
@@ -340,7 +341,13 @@ definitions:
           sAClientId:
             type: "string"
       status:
-        type: "string"
+        type: "object"
+        properties:
+          message:
+            type: "string"
+          condition:
+            description: "Status of the condition, one of Healthy, Unhealthy, Unknown."
+            type: "string"
   ErrorMessage:
     type: "object"
     properties:
@@ -376,7 +383,15 @@ definitions:
           storageOption:
             $ref: "#/definitions/StorageOption"
       status:
-        type: "string"
+        type: "object"
+        properties:
+          version:
+            type: "string"
+          message:
+            type: "string"
+          condition:
+            description: "Status of the condition, one of Clean, Dirty, Unknown."
+            type: "string"
   KfConfigEntries:
     type: "object"
     properties:
