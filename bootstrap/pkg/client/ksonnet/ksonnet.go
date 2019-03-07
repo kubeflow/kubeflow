@@ -434,6 +434,7 @@ func (ksApp *ksApp) Generate(resources kftypes.ResourceEnum, options map[string]
 	log.Infof("Ksonnet.Generate Name %v AppDir %v Platform %v", ksApp.KsApp.Name,
 		ksApp.KsApp.Spec.AppDir, ksApp.KsApp.Spec.Platform)
 
+	//TODO see #2629
 	configPath := path.Join(ksApp.KsApp.Spec.AppDir,
 		kftypes.DefaultCacheDir,
 		ksApp.KsApp.Spec.Version,
