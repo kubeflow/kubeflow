@@ -19,6 +19,7 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV NB_USER jovyan
 ENV NB_UID 1000
 ENV HOME /home/$NB_USER
+ENV NB_PREFIX /
 # We prefer to have a global conda install
 # to minimize the amount of content in $HOME
 ENV CONDA_DIR=/opt/conda
@@ -155,5 +156,5 @@ RUN docker-credential-gcr configure-docker && chown jovyan:users $HOME/.docker/c
 # Configure container startup
 EXPOSE 8888
 ENTRYPOINT ["tini", "--"]
-CMD ["sh","-c", "jupyter notebook --notebook-dir=/home/jovyan --ip=0.0.0.0 --no-browser --allow-root --port=8888 --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.allow_origin='*'"]
+CMD ["sh","-c", "jupyter notebook --notebook-dir=/home/jovyan --ip=0.0.0.0 --no-browser --allow-root --port=8888 --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.allow_origin='*' --NotebookApp.base_url=${NB_PREFIX}"]
 
