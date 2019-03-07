@@ -750,7 +750,7 @@ func (s *ksServer) appGenerate(kfApp kApp.App, appConfig *kstypes.AppConfig) err
 		}
 	}
 	// Apply Params
-	for _, p := range appConfig.Parameters {
+	for _, p := range appConfig.ApplyParameters {
 		err = actions.RunParamSet(map[string]interface{}{
 			actions.OptionAppRoot: kfApp.Root(),
 			actions.OptionName:    p.Component,
@@ -1296,14 +1296,14 @@ func makeDeployEndpoint(svc KsService) endpoint.Endpoint {
 				r.Err = err.Error()
 				return r, err
 			}
-			req.AppConfig.Parameters = append(
-				req.AppConfig.Parameters,
+			req.AppConfig.ApplyParameters = append(
+				req.AppConfig.ApplyParameters,
 				kstypes.KsParameter{
 					Component: "pipeline",
 					Name:      "mysqlPd",
 					Value:     req.Name + StorageDmSpec.DmNameSuffix + MetadataStoreDiskSuffix})
-			req.AppConfig.Parameters = append(
-				req.AppConfig.Parameters,
+			req.AppConfig.ApplyParameters = append(
+				req.AppConfig.ApplyParameters,
 				kstypes.KsParameter{
 					Component: "pipeline",
 					Name:      "minioPd",
