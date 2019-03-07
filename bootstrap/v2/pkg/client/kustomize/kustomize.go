@@ -170,8 +170,7 @@ func (kustomize *kustomize) Init(resources kftypes.ResourceEnum, options map[str
 		return fmt.Errorf("couldn't create directory %v Error %v", kustomizeDir, kustomizeDirErr)
 	}
 	//TODO see #2629
-	kustomize.Kustomize.Spec.Version = "master"
-	version := kustomize.Kustomize.Spec.Version
+	version := "master" //kustomize.Kustomize.Spec.Version
 	cacheName := version
 	if strings.HasPrefix(kustomize.Kustomize.Spec.Version, "pull") {
 		if !strings.HasSuffix(kustomize.Kustomize.Spec.Version, "head") {
