@@ -151,3 +151,25 @@ workflows:
       step_image: "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4"
     include_dirs:
       - components/tensorflow-notebook-image/*
+  # Jupyter-web-app presubmit
+  - app_dir: kubeflow/kubeflow/components/jupyter-web-app/releaser
+    component: workflows
+    name: jupyter-web-app-release
+    job_types:
+      - presubmit
+    params:
+      registry: "gcr.io/kubeflow-ci"
+      step_image: "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4"
+    include_dirs:
+      - components/jupyter-web-app/*
+  # Jupyter-web-app postsubmit that publishes the docker image to gcr.io/kubeflow-images-public
+  - app_dir: kubeflow/kubeflow/components/jupyter-web-app/releaser
+    component: workflows
+    name: jupyter-web-app-release
+    job_types:
+      - postsubmit
+    params:
+      registry: "gcr.io/kubeflow-images-public"
+      step_image: "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4"
+    include_dirs:
+      - components/jupyter-web-app/*
