@@ -236,7 +236,7 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 		options[string(kftypes.EMAIL)].(string) != "" {
 		gcp.GcpApp.Spec.Email = options[string(kftypes.EMAIL)].(string)
 	} else if gcp.GcpApp.Spec.Email == "" {
-		return fmt.Errorf("Email is not set in default nor passed.")
+		return fmt.Errorf("email is not set in default nor passed")
 	} else {
 		options[string(kftypes.EMAIL)] = gcp.GcpApp.Spec.Email
 	}
@@ -244,7 +244,7 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 		options[string(kftypes.IPNAME)].(string) != "" {
 		gcp.GcpApp.Spec.IpName = options[string(kftypes.IPNAME)].(string)
 	} else if gcp.GcpApp.Spec.IpName == "" {
-		return fmt.Errorf("ipName is not set in default nor passed.")
+		return fmt.Errorf("ipName is not set in default nor passed")
 	} else {
 		log.Infof("Using default ipName: %v", gcp.GcpApp.Spec.IpName)
 		options[string(kftypes.IPNAME)] = gcp.GcpApp.Spec.IpName
@@ -254,7 +254,7 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 		options[string(kftypes.HOSTNAME)].(string) != "" {
 		gcp.GcpApp.Spec.Hostname = options[string(kftypes.HOSTNAME)].(string)
 	} else if gcp.GcpApp.Spec.Hostname == "" {
-		return fmt.Errorf("hostname is not set in default nor passed.")
+		return fmt.Errorf("hostname is not set in default nor passed")
 	} else {
 		log.Infof("Using default hostname: %v", gcp.GcpApp.Spec.Hostname)
 		options[string(kftypes.HOSTNAME)] = gcp.GcpApp.Spec.Hostname
@@ -262,6 +262,8 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 	if options[string(kftypes.ZONE)] != nil {
 		gcp.GcpApp.Spec.Zone = options[string(kftypes.ZONE)].(string)
 	}
+	options[string(kftypes.USE_ISTIO)] = gcp.GcpApp.Spec.UseIstio
+
 	ks := gcp.Children[kftypes.KSONNET]
 	if ks != nil {
 		ksGenerateErr := ks.Generate(kftypes.ALL, options)
