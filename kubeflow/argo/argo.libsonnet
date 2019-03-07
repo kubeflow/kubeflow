@@ -35,10 +35,10 @@
     local workflowController = {
       apiVersion: "extensions/v1beta1",
       kind: "Deployment",
-      labels: {
-        app: "workflow-controller",
-      },
       metadata: {
+        labels: {
+          app: "workflow-controller",
+        },
         name: "workflow-controller",
         namespace: params.namespace,
       },
