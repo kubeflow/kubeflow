@@ -187,8 +187,16 @@ func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum, options map[string]int
 			return fmt.Errorf("could not change directory to %v Error %v", ksApp.KsApp.Spec.AppDir, err)
 		}
 	}
+	clientConfig, clientConfigErr := kftypes.GetClientConfig()
+	if clientConfigErr != nil {
+		return fmt.Errorf("couldn't load client config Error: %v", clientConfigErr)
+	}
+	applyErr := ksApp.applyComponent([]string{"metacontroller"}, clientConfig)
+	if applyErr != nil {
+		return fmt.Errorf("couldn't create metacontroller component Error: %v", applyErr)
+	}
 	// TODO(#2391): Fix this and use ks.apply
-	if err = ksApp.showComponent([]string{"metacontroller", "application"}); err != nil {
+	if err = ksApp.showComponent([]string{"application"}); err != nil {
 		return fmt.Errorf("Writing config file error: %v", err)
 	}
 
