@@ -16,9 +16,8 @@
 package apps
 
 import (
-	"encoding/base64"
-
 	"cloud.google.com/go/container/apiv1"
+	"encoding/base64"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
