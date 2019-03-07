@@ -186,23 +186,23 @@
                   },
                 },
               },
+              readinessProbe: {
+                httpGet: {
+                  path: "/ambassador/v0/check_ready",
+                  port: 8877,
+                },
+                initialDelaySeconds: 30,
+                periodSeconds: 30,
+              },
+              livenessProbe: {
+                httpGet: {
+                  path: "/ambassador/v0/check_alive",
+                  port: 8877,
+                },
+                initialDelaySeconds: 30,
+                periodSeconds: 30,
+              },
             ],
-            livenessProbe: {
-              httpGet: {
-                path: "/ambassador/v0/check_alive",
-                port: 8877,
-              },
-              initialDelaySeconds: 30,
-              periodSeconds: 30,
-            },
-            readinessProbe: {
-              httpGet: {
-                path: "/ambassador/v0/check_ready",
-                port: 8877,
-              },
-              initialDelaySeconds: 30,
-              periodSeconds: 30,
-            },
             restartPolicy: "Always",
             serviceAccountName: "ambassador",
           },
