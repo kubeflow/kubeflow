@@ -27,12 +27,12 @@ app-drawer-layout.flex(narrow='{{narrowMode}}')
                 article#Dashboard
                     paper-card.Getting-Started(heading='Getting Started')
                         template(is='dom-repeat', items='[[gettingStartedItems]]')
-                            paper-icon-item
+                            paper-icon-item(on-click='openQuickLink')
                                 iron-icon(icon='[[item.icon]]', slot='item-icon')
                                 paper-item-body(two-line)
-                                    div [[item.text]]
-                                    aside(secondary) Lorem ipsum...
-                    paper-card.Quick-Links(heading='Quick Links')
+                                    .heading [[item.text]]
+                                    aside(secondary) [[item.desc]]
+                    paper-card.thin.Quick-Links(heading='Quick Links')
                         template(is='dom-repeat', items='[[quickLinks]]')
                             article.link
                                 paper-item-body [[item.text]]
