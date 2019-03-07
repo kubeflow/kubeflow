@@ -16,7 +16,7 @@ package v1alpha1
 
 import (
 	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -30,6 +30,7 @@ type GcpSpec struct {
 	Zone                string `json:"zone,omitempty"`
 	UseBasicAuth        bool   `json:"useBasicAuth"`
 	SkipInitProject     bool   `json:"skipInitProject,omitempty"`
+	UseIstio            bool   `json:"useIstio,omitempty"`
 }
 
 // GcpStatus defines the observed state of Gcp

@@ -49,8 +49,9 @@ or a name where the kubeflow application will be initialized in the current dire
 		repo := initCfg.GetString(string(kftypes.REPO))
 		debug := initCfg.GetBool(string(kftypes.DEBUG))
 		project := initCfg.GetString(string(kftypes.PROJECT))
-		init_gcp := initCfg.GetBool(string(kftypes.SKIP_INIT_GCP_PROJECT))
-		basic_auth := initCfg.GetBool(string(kftypes.USE_BASIC_AUTH))
+		initGcp := initCfg.GetBool(string(kftypes.SKIP_INIT_GCP_PROJECT))
+		basicAuth := initCfg.GetBool(string(kftypes.USE_BASIC_AUTH))
+		useIstio := initCfg.GetBool(string(kftypes.USE_ISTIO))
 		options := map[string]interface{}{
 			string(kftypes.PLATFORM):              platform,
 			string(kftypes.NAMESPACE):             namespace,
@@ -59,8 +60,9 @@ or a name where the kubeflow application will be initialized in the current dire
 			string(kftypes.REPO):                  repo,
 			string(kftypes.DEBUG):                 debug,
 			string(kftypes.PROJECT):               project,
-			string(kftypes.SKIP_INIT_GCP_PROJECT): init_gcp,
-			string(kftypes.USE_BASIC_AUTH):        basic_auth,
+			string(kftypes.SKIP_INIT_GCP_PROJECT): initGcp,
+			string(kftypes.USE_BASIC_AUTH):        basicAuth,
+			string(kftypes.USE_ISTIO):             useIstio,
 		}
 		kfApp, kfAppErr := newKfApp(options)
 		if kfAppErr != nil || kfApp == nil {
@@ -141,11 +143,21 @@ func init() {
 		return
 	}
 
+	// Basic auth
 	initCmd.Flags().Bool(string(kftypes.USE_BASIC_AUTH), false,
 		string(kftypes.USE_BASIC_AUTH)+" use basic auth service instead of IAP.")
 	bindErr = initCfg.BindPFlag(string(kftypes.USE_BASIC_AUTH), initCmd.Flags().Lookup(string(kftypes.USE_BASIC_AUTH)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.USE_BASIC_AUTH), bindErr)
+		return
+	}
+
+	// Use istio
+	initCmd.Flags().Bool(string(kftypes.USE_ISTIO), false,
+		string(kftypes.USE_ISTIO)+" use Istio for auth and routing.")
+	bindErr = initCfg.BindPFlag(string(kftypes.USE_ISTIO), initCmd.Flags().Lookup(string(kftypes.USE_ISTIO)))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.USE_ISTIO), bindErr)
 		return
 	}
 

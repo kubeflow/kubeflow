@@ -87,6 +87,7 @@ const (
 	USE_BASIC_AUTH        CliOption = "use_basic_auth"
 	OAUTH_ID              CliOption = "oauth_id"
 	OAUTH_SECRET          CliOption = "oauth_secret"
+	USE_ISTIO             CliOption = "use_istio"
 )
 
 //
