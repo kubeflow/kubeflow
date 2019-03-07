@@ -1,0 +1,23 @@
+apiVersion: 0.3.0
+environments:
+  default:
+    destination:
+      namespace: default
+      server: https://35.242.136.114
+    k8sVersion: v1.8.0
+    path: default
+kind: ksonnet.io/app
+libraries:
+  kubeflow/automation:
+    name: automation
+    registry: kubeflow
+    version: 51b410ade94fdd42556ac2f2fc3d21bf5b649042
+name: releaser
+registries:
+  incubator:
+    protocol: github
+    uri: github.com/ksonnet/parts/tree/master/incubator
+  kubeflow:
+    protocol: github
+    uri: github.com/kubeflow/kubeflow/tree/master/kubeflow
+version: 0.0.1
