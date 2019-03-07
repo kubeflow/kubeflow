@@ -23,7 +23,9 @@ import (
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	cltypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/client/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/gcp"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/minikube"
 	"github.com/mitchellh/go-homedir"
+	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
@@ -31,8 +33,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/minikube"
-	log "github.com/sirupsen/logrus"
 )
 
 // The common entry point used to retrieve an implementation of KfApp.
@@ -321,7 +321,16 @@ func (kfapp *coordinator) downloadToCache() error {
 	if cacheDirErr != nil {
 		return fmt.Errorf("couldn't create directory %v Error %v", cacheDir, cacheDirErr)
 	}
-	tarballUrl := kftypes.DefaultGitRepo + "/" + kfapp.Client.Spec.Version + "?archive=tar.gz"
+	version := kfapp.Client.Spec.Version
+	cacheName := version
+	if strings.HasPrefix(kfapp.Client.Spec.Version, "pull") {
+		if !strings.HasSuffix(kfapp.Client.Spec.Version, "head") {
+			version = kfapp.Client.Spec.Version + "/head"
+		}
+		parts := strings.Split(version, "/")
+		cacheName = parts[1]
+	}
+	tarballUrl := kftypes.DefaultGitRepo + "/" + version + "?archive=tar.gz"
 	tarballUrlErr := gogetter.GetAny(cacheDir, tarballUrl)
 	if tarballUrlErr != nil {
 		return fmt.Errorf("couldn't download kubeflow repo %v Error %v", tarballUrl, tarballUrlErr)
@@ -332,7 +341,7 @@ func (kfapp *coordinator) downloadToCache() error {
 	}
 	subdir := files[0].Name()
 	extractedPath := filepath.Join(cacheDir, subdir)
-	newPath := filepath.Join(cacheDir, kfapp.Client.Spec.Version)
+	newPath := filepath.Join(cacheDir, cacheName)
 	renameErr := os.Rename(extractedPath, newPath)
 	if renameErr != nil {
 		return fmt.Errorf("couldn't rename %v to %v Error %v", extractedPath, newPath, renameErr)
