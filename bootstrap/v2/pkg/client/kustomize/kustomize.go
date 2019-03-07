@@ -34,6 +34,7 @@ import (
 	"sigs.k8s.io/kustomize/v2/pkg/fs"
 	"sigs.k8s.io/kustomize/v2/pkg/loader"
 	"sigs.k8s.io/kustomize/v2/pkg/target"
+	"strings"
 )
 
 // Kustomize implements KfApp Interface
@@ -170,7 +171,16 @@ func (kustomize *kustomize) Init(resources kftypes.ResourceEnum, options map[str
 	}
 	//TODO see #2629
 	kustomize.Kustomize.Spec.Version = "master"
-	tarballUrl := "https://github.com/kubeflow/manifests/tarball/" + kustomize.Kustomize.Spec.Version + "?archive=tar.gz"
+	version := kustomize.Kustomize.Spec.Version
+	cacheName := version
+	if strings.HasPrefix(kustomize.Kustomize.Spec.Version, "pull") {
+		if !strings.HasSuffix(kustomize.Kustomize.Spec.Version, "head") {
+			version = kustomize.Kustomize.Spec.Version + "/head"
+		}
+		parts := strings.Split(version, "/")
+		cacheName = parts[1]
+	}
+	tarballUrl := "https://github.com/kubeflow/manifests/tarball/" + version + "?archive=tar.gz"
 	tarballUrlErr := gogetter.GetAny(kustomizeDir, tarballUrl)
 	if tarballUrlErr != nil {
 		return fmt.Errorf("couldn't download kustomize manifests repo %v Error %v", tarballUrl, tarballUrlErr)
@@ -181,7 +191,7 @@ func (kustomize *kustomize) Init(resources kftypes.ResourceEnum, options map[str
 	}
 	subdir := files[0].Name()
 	extractedPath := filepath.Join(kustomizeDir, subdir)
-	newPath := filepath.Join(kustomizeDir, kustomize.Kustomize.Spec.Version)
+	newPath := filepath.Join(kustomizeDir, cacheName)
 	renameErr := os.Rename(extractedPath, newPath)
 	if renameErr != nil {
 		return fmt.Errorf("couldn't rename %v to %v Error %v", extractedPath, newPath, renameErr)
