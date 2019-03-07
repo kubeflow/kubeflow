@@ -38,15 +38,33 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+// Apply the gcp kfapp
 func (gcp *Gcp) Apply(resources kftypes.ResourceEnum, options map[string]interface{}) error {
+	// Update deployment manager
 	updateDMErr := gcp.updateDM(resources, options)
 	if updateDMErr != nil {
 		return fmt.Errorf("gcp apply could not update deployment manager Error %v", updateDMErr)
 	}
+	// Insert secrets into the cluster
 	secretsErr := gcp.createSecrets(options)
 	if secretsErr != nil {
 		return fmt.Errorf("gcp apply could not create secrets Error %v", secretsErr)
 	}
+	// Install Istio
+	if gcp.GcpApp.Spec.UseIstio {
+		log.Infof("Installing istio...")
+		istioDir := path.Join(gcp.GcpApp.Spec.AppDir, ISTIO_DIR)
+		err := kfctlutils.RunKubectlApply(path.Join(istioDir, ISTIO_CRD))
+		if err != nil {
+			return fmt.Errorf("gcp apply could not install istio, Error %v", err)
+		}
+		err = kfctlutils.RunKubectlApply(path.Join(istioDir, ISTIO_INSTALL))
+		if err != nil {
+			return fmt.Errorf("gcp apply could not install istio, Error %v", err)
+		}
+		log.Infof("Done installing istio.")
+	}
+	// Apply ksonnet components
 	ks := gcp.Children[kftypes.KSONNET]
 	if ks != nil {
 		ksApplyErr := ks.Apply(resources, options)
