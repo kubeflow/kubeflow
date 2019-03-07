@@ -99,6 +99,8 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	if options[string(kftypes.VERSION)] != nil {
 		kubeflowVersion := options[string(kftypes.VERSION)].(string)
 		_kustomize.Kustomize.Spec.Version = kubeflowVersion
+		//TODO see #2629
+		_kustomize.Kustomize.Spec.Version = "master"
 	}
 	if options[string(kftypes.DATA)] != nil {
 		dat := options[string(kftypes.DATA)].([]byte)
