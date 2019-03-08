@@ -645,7 +645,6 @@ func (gcp *Gcp) generateDMConfigs(options map[string]interface{}) error {
 	storageFileData = gcp.replaceText("zone: SET_THE_ZONE", repl, storageFileData)
 	repl = "users: [\"" + iamEntry + "\"]"
 	configFileData = gcp.replaceText("users:", repl, configFileData)
-
 	repl = "ipName: " + gcp.GcpApp.Spec.IpName
 	configFileData = gcp.replaceText("ipName: kubeflow-ip", repl, configFileData)
 	configFileErr := ioutil.WriteFile(configFile, configFileData, 0644)

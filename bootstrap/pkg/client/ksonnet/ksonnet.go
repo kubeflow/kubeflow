@@ -152,6 +152,7 @@ func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum, options map[string]int
 			return fmt.Errorf("couldn't get server version: %v", err)
 		}
 	}
+	log.Infof("ServerVersion: %v", host)
 	cli, cliErr := kftypes.GetClientOutOfCluster()
 	if cliErr != nil {
 		return fmt.Errorf("couldn't create client Error: %v", cliErr)
@@ -230,7 +231,6 @@ func (ksApp *ksApp) showComponent(components []string) error {
 		os.Stdout = stdout
 		return err
 	}
-
 	os.Stdout = stdout
 	return nil
 }
