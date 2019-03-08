@@ -38,8 +38,6 @@ componentParams:
   application:
     - name: components
       value: <list-of-components>
-    - name: extendedInfo
-      value: true
   jupyter:
     - name: platform
       value: none

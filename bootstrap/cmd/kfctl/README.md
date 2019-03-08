@@ -22,7 +22,6 @@ Note: Additional issues have been opened so this README.md will have additional 
 
 ## API and Packaging
 
-
 ### KfApp Interface
 
 The `KfApp` golang Interface is defined below:
@@ -138,6 +137,7 @@ Flags:
       --mount-local       mount-local if '--platform minikube'
   -V, --verbose           verbose output default is false
       --zone string       zone if '--platform gcp' (default "us-east1-d")```
+```
 
 ### **apply** 
 
@@ -187,7 +187,7 @@ where the return type implements the [KfApp Interface](#kfapp-interface).
 In this sample, running
 
 ```
-kfctl init ~/dockerfordesktop --platform dockerfordesktop
+kfctl init ~/dockerfordesktop --platform docker-for-desktop
 ```
 
 will result in kfctl loading $PLUGINS_ENVIRONMENT/dockerfordesktop.so and calling its methods that

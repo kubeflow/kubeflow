@@ -560,9 +560,6 @@ func (gcp *Gcp) generate(options map[string]interface{}) error {
 		gcp.GcpApp.Spec.Hostname = options[string(kftypes.HOSTNAME)].(string)
 	} else if gcp.GcpApp.Spec.Hostname == "" {
 		return fmt.Errorf("hostname is not set in default nor passed.")
-	} else {
-		log.Infof("Using default hostname: %v", gcp.GcpApp.Spec.Hostname)
-		options[string(kftypes.HOSTNAME)] = gcp.GcpApp.Spec.Hostname
 	}
 	if options[string(kftypes.ZONE)] != nil {
 		gcp.GcpApp.Spec.Zone = options[string(kftypes.ZONE)].(string)
