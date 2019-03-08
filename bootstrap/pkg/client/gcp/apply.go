@@ -39,6 +39,7 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+// The namespace for Istio
 const IstioNamespace = "istio-system"
 
 // Apply the gcp kfapp
@@ -47,11 +48,6 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum, options map[string]interfa
 	updateDMErr := gcp.updateDM(resources, options)
 	if updateDMErr != nil {
 		return fmt.Errorf("gcp apply could not update deployment manager Error %v", updateDMErr)
-	}
-	// Insert secrets into the cluster
-	secretsErr := gcp.createSecrets(options)
-	if secretsErr != nil {
-		return fmt.Errorf("gcp apply could not create secrets Error %v", secretsErr)
 	}
 	// Install Istio
 	if gcp.GcpApp.Spec.UseIstio {
@@ -66,6 +62,11 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum, options map[string]interfa
 			return fmt.Errorf("gcp apply could not install istio, Error %v", err)
 		}
 		log.Infof("Done installing istio.")
+	}
+	// Insert secrets into the cluster
+	secretsErr := gcp.createSecrets(options)
+	if secretsErr != nil {
+		return fmt.Errorf("gcp apply could not create secrets Error %v", secretsErr)
 	}
 	// Apply ksonnet components
 	ks := gcp.Children[kftypes.KSONNET]
@@ -132,13 +133,13 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 	}
 
 	// TODO(#2604): Need to create a named context.
-	cred_cmd := exec.Command("gcloud", "container", "clusters", "get-credentials",
+	credCmd := exec.Command("gcloud", "container", "clusters", "get-credentials",
 		gcp.GcpApp.Name,
 		"--zone="+gcp.GcpApp.Spec.Zone,
 		"--project="+gcp.GcpApp.Spec.Project)
-	cred_cmd.Stdout = os.Stdout
+	credCmd.Stdout = os.Stdout
 	log.Infof("Running get-credentials ...")
-	if err = cred_cmd.Run(); err != nil {
+	if err = credCmd.Run(); err != nil {
 		return fmt.Errorf("Error when running gcloud container clusters get-credentials: %v", err)
 	}
 
@@ -282,15 +283,15 @@ func (gcp *Gcp) createSecrets(options map[string]interface{}) error {
 		return nil
 	}
 
-	oauthId := ""
+	oauthID := ""
 	if options[string(kftypes.OAUTH_ID)] != nil &&
 		options[string(kftypes.OAUTH_ID)].(string) != "" {
-		oauthId = options[string(kftypes.OAUTH_ID)].(string)
+		oauthID = options[string(kftypes.OAUTH_ID)].(string)
 	} else {
-		oauthId = os.Getenv(CLIENT_ID)
+		oauthID = os.Getenv(CLIENT_ID)
 	}
-	if oauthId == "" {
-		return fmt.Errorf("At least one of --%v or ENV `%v` needs to be set.",
+	if oauthID == "" {
+		return fmt.Errorf("at least one of --%v or ENV `%v` needs to be set",
 			string(kftypes.OAUTH_ID), CLIENT_ID)
 	}
 	oauthSecret := ""
@@ -301,7 +302,7 @@ func (gcp *Gcp) createSecrets(options map[string]interface{}) error {
 		oauthSecret = os.Getenv(CLIENT_SECRET)
 	}
 	if oauthSecret == "" {
-		return fmt.Errorf("At least one of --%v or ENV `%v` needs to be set.",
+		return fmt.Errorf("at least one of --%v or ENV `%v` needs to be set",
 			string(kftypes.OAUTH_SECRET), CLIENT_SECRET)
 	}
 
@@ -310,7 +311,7 @@ func (gcp *Gcp) createSecrets(options map[string]interface{}) error {
 		oauthSecretNamespace = IstioNamespace
 	}
 	return gcp.insertSecret(k8sClient, KUBEFLOW_OAUTH, oauthSecretNamespace, map[string][]byte{
-		strings.ToLower(CLIENT_ID):     []byte(oauthId),
+		strings.ToLower(CLIENT_ID):     []byte(oauthID),
 		strings.ToLower(CLIENT_SECRET): []byte(oauthSecret),
 	})
 }
