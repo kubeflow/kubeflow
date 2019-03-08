@@ -43,6 +43,7 @@ generate:
   
 deepcopy:
 	@deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/pkg/apis/... -O zz_generated.deepcopy
+
 build-bootstrap: generate fmt vet
 	$(GO) build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 
