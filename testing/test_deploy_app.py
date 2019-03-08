@@ -60,14 +60,15 @@ class requestThread(threading.Thread):
   def run(self):
     try:
       resp = requests.post(
-          "https://%s/kfctl/e2eDeploy" % self.target_url,
+          'https://%s/kfctl/e2eDeploy' % self.target_url,
           json=self.req_data,
           headers={
               'Authorization':
               'Bearer {}'.format(self.google_open_id_connect_token)
           })
       if resp.status_code != 200:
-        # logging.error("%s failed; \ntext: %s" % (self.req_data["Name"], resp.text()))
+        logging.error("request failed:%s\n request data:%s"
+                      % (resp, self.req_data))
         # Mark service down if return code abnormal
         SERVICE_HEALTH.set(2)
     except Exception as e:
@@ -124,7 +125,7 @@ def prepare_request_data(args, deployment):
   crm = discovery.build('cloudresourcemanager', 'v1', credentials=credentials)
   project = crm.projects().get(projectId=args.project).execute()
   logging.info("project info: %s", project)
-  return {
+  request_data = {
       "AppConfig": defaultApp,
       "Apply": True,
       "AutoConfigure": True,
@@ -142,6 +143,8 @@ def prepare_request_data(args, deployment):
       "Token": access_token,
       "Zone": getZone(args, deployment)
   }
+  logging.info("request data: %s", request_data)
+  return request_data
 
 
 def make_e2e_call(args):
