@@ -60,7 +60,7 @@ class requestThread(threading.Thread):
   def run(self):
     try:
       resp = requests.post(
-          'https://%s/kfctl/e2eDeploy' % self.target_url,
+          "https://%s/kfctl/e2eDeploy" % self.target_url,
           json=self.req_data,
           headers={
               'Authorization':
