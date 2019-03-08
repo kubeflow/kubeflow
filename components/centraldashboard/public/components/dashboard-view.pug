@@ -1,12 +1,14 @@
 article
-    paper-card#Getting-Started(heading='Getting Started', hidden$='[[!_devMode]]')
+    paper-card#Getting-Started(heading='Getting Started')
         template(is='dom-repeat', items='[[gettingStartedItems]]')
-            paper-icon-item
-                iron-icon(icon='[[item.icon]]', slot='item-icon')
-                paper-item-body(two-line)
-                    div [[item.text]]
-                    aside(secondary) Lorem ipsum...
-    paper-card#Quick-Links(heading='Quick Links')
+            a.heading(href$='[[item.link]]', tabindex='-1',
+                        target='_blank')
+                paper-icon-item
+                    iron-icon(icon='launch', slot='item-icon')
+                    paper-item-body(two-line)
+                        .header [[item.text]]
+                        aside(secondary) [[item.desc]]
+    paper-card.thin#Quick-Links(heading='Quick Links')
         template(is='dom-repeat', items='[[quickLinks]]')
             article.link
                 paper-item-body [[item.text]]
