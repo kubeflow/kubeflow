@@ -26,9 +26,9 @@ import '@polymer/neon-animation/animations/fade-out-animation.js';
 import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
 
 import css from './main-page.css';
-
 import template from './main-page.pug';
 
+import './namespace-selector.js';
 import './dashboard-view.js';
 import './activity-view.js';
 
@@ -49,6 +49,10 @@ export class MainPage extends PolymerElement {
             page: String,
             routeData: Object,
             subRouteData: Object,
+            queryParams: {
+                type: Object,
+                value: null,
+            },
             iframeRoute: Object,
             menuLinks: {
                 type: Array,
@@ -90,9 +94,9 @@ export class MainPage extends PolymerElement {
     }
 
     /**
-   * Array of strings describing multi-property observer methods and their
-   * dependant properties
-   */
+     * Array of strings describing multi-property observer methods and their
+     * dependant properties
+     */
     static get observers() {
         return [
             '_routePageChanged(routeData.page)',
@@ -100,10 +104,10 @@ export class MainPage extends PolymerElement {
     }
 
     /**
-   * Intercepts any external links and ensures that they are captured in
-   * the route and sent to the iframe source.
-   * @param {MouseEvent} e
-   */
+     * Intercepts any external links and ensures that they are captured in
+     * the route and sent to the iframe source.
+     * @param {MouseEvent} e
+     */
     openInIframe(e) {
         const url = new URL(e.currentTarget.href);
         window.history.pushState({}, null, `_${url.pathname}`);
@@ -116,30 +120,30 @@ export class MainPage extends PolymerElement {
     }
 
     /**
-   * Handles route changes by evaluating the page path component
-   * @param {string} newPage
-   */
+     * Handles route changes by evaluating the page path component
+     * @param {string} newPage
+     */
     _routePageChanged(newPage) {
         this.hideToolbar = false;
         switch (newPage) {
-        case 'activity':
-            this.sidebarItemIndex = 0;
-            this.page = 'activity';
-            break;
-        case '_': // iframe case
-            this._setIframeFromRoute(this.subRouteData.path);
-            break;
-        default:
-            this.sidebarItemIndex = 0;
-            this.page = 'dashboard';
+            case 'activity':
+                this.sidebarItemIndex = 0;
+                this.page = 'activity';
+                break;
+            case '_': // iframe case
+                this._setIframeFromRoute(this.subRouteData.path);
+                break;
+            default:
+                this.sidebarItemIndex = 0;
+                this.page = 'dashboard';
         }
     }
 
     /**
-   * Sets the iframeUrl and sidebarItem based on the subpage component
-   * provided.
-   * @param {string} href
-   */
+     * Sets the iframeUrl and sidebarItem based on the subpage component
+     * provided.
+     * @param {string} href
+     */
     _setIframeFromRoute(href) {
         const menuLinkIndex =
         this.menuLinks.findIndex((m) => m.href === this.subRouteData.path);

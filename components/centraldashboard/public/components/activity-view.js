@@ -14,11 +14,12 @@ export class ActivityView extends PolymerElement {
             <style>
                 :host {
                     @apply --layout-vertical;
-                    background: #f1f3f4;
                     --accent-color: #007dfc;
                     --primary-background-color: #003c75;
                     --sidebar-default-color: #ffffff4f;
                     --border-color: #f4f4f6;
+                    background: #f1f3f4;
+                    min-height: 50%;
                     padding: 1em;
                 }
                 paper-progress {
@@ -26,7 +27,7 @@ export class ActivityView extends PolymerElement {
                     --paper-progress-active-color: var(--accent-color)
                 }
                 #list {
-                    overflow-y: scroll;
+                    overflow-y: auto;
                 }
                 .activity-row {
                     background: #fff;
@@ -37,6 +38,7 @@ export class ActivityView extends PolymerElement {
                     padding: 5px;
                 }
                 .activity-row div {
+                    margin: auto;
                     padding: 0 5px;
                 }
                 .event {
@@ -60,8 +62,9 @@ export class ActivityView extends PolymerElement {
                     pointer-events: none
                 }
             </style>
-            <iron-ajax auto url="/api/activities" handle-as="json"
-                loading="{{loading}}" on-response="_onResponse">
+            <iron-ajax id="ajax" url="/api/activities/[[namespace]]"
+                handle-as="json" loading="{{loading}}"
+                on-response="_onResponse">
             </iron-ajax>
             <paper-progress indeterminate class="slow"
                 hidden$="[[!loading]]"></paper-progress>
@@ -69,12 +72,27 @@ export class ActivityView extends PolymerElement {
                 <template is="dom-repeat" items="[[activities]]">
                     <div class="activity-row layout horizontal">
                         <div class="flex">[[item.formattedTime]]</div>
-                        <div class="flex flex-auto event">
+                        <div class="flex flex-auto event layout horizontal">
                             <iron-icon class$="event-icon [[item.icon]]"
                                 icon="[[item.icon]]">
-                            </iron-icon>[[item.event]]
+                            </iron-icon>
+                            <span>[[item.event]]</span>
                         </div>
                         <div class="flex">[[item.source]]</div>
+                    </div>
+                </template>
+                <template is="dom-if" if="[[!namespace]]">
+                    <div class="activity-row layout horizontal">
+                        <div class="flex">
+                            Select a namespace to see recent events
+                        </div>
+                    </div>
+                </template>
+                <template is="dom-if" if="[[!activities.length]]">
+                    <div class="activity-row layout horizontal">
+                        <div class="flex">
+                            No events for [[namespace]] namespace
+                        </div>
                     </div>
                 </template>
             </div>
@@ -82,13 +100,31 @@ export class ActivityView extends PolymerElement {
     }
 
     /**
-      * Object describing property-related metadata used by Polymer features
-      */
+     * Object describing property-related metadata used by Polymer features
+     */
     static get properties() {
         return {
-            loading: Boolean,
+            namespace: {
+                type: String,
+                observer: '_namespaceChanged',
+                value: null,
+            },
+            loading: {
+                type: Boolean,
+                value: false,
+            },
             activities: Array,
         };
+    }
+
+    /**
+     * Retrieves Events when namespace is selected.
+     * @param {string} newNamespace
+     */
+    _namespaceChanged(newNamespace) {
+        if (newNamespace) {
+            this.$['ajax'].generateRequest();
+        }
     }
 
     /**
@@ -101,11 +137,12 @@ export class ActivityView extends PolymerElement {
         // TODO: Surface the error in some manner
         if (status !== 200) return;
         this.activities = response.map((a) => {
-            const activity = {
-                formattedTime: new Date(a.time).toLocaleString(),
-                icon: a.isError ? 'error' : 'build',
+            return {
+                formattedTime: new Date(a.lastTimestamp).toLocaleString(),
+                event: a.message,
+                icon: a.type === 'Normal' ? 'build' : 'error',
+                source: a.source.host,
             };
-            return Object.assign(activity, a);
         });
     }
 }

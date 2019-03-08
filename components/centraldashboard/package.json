@@ -9,6 +9,7 @@
     "debug": "npm run build && npm run watch-debug",
     "dev": "concurrently -k -p \"[{name}]\" -n \"Webpack,TypeScript,Express\" -c \"green.bold,yellow.bold,cyan.bold\" \"webpack-dev-server\" \"npm run watch-ts\" \"npm run watch-node\"",
     "dev-debug": "concurrently -k -p \"[{name}]\" -n \"Webpack,TypeScript,Express\" -c \"green.bold,yellow.bold,cyan.bold\" \"webpack-dev-server\" \"npm run watch-ts\" \"npm run serve-debug\"",
+    "dev-server-debug": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Express\" -c \"yellow.bold,cyan.bold\" \"npm run watch-ts\" \"npm run serve-debug\"",
     "serve": "node dist/server.js",
     "serve-debug": "nodemon --inspect dist/server.js",
     "start": "npm run serve",
@@ -29,6 +30,7 @@
   "homepage": "https://github.com/kubeflow/kubeflow#readme",
   "dependencies": {
     "@babel/polyfill": "^7.2.5",
+    "@kubernetes/client-node": "^0.8.1",
     "@polymer/app-layout": "^3.0.0",
     "@polymer/app-route": "^3.0.0",
     "@polymer/iron-ajax": "^3.0.1",
@@ -44,6 +46,7 @@
     "@polymer/paper-dropdown-menu": "^3.0.1",
     "@polymer/paper-icon-button": "^3.0.0",
     "@polymer/paper-item": "^3.0.1",
+    "@polymer/paper-listbox": "^3.0.1",
     "@polymer/paper-progress": "^3.0.1",
     "@polymer/paper-tabs": "^3.0.1",
     "@polymer/polymer": "^3.1.0",
