@@ -1,4 +1,4 @@
- /* eslint-disable linebreak-style,no-undef */
+/* eslint-disable linebreak-style,no-undef */
 'use strict';
 
 const {resolve} = require('path');

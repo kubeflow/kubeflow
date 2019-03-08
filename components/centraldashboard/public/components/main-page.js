@@ -1,4 +1,4 @@
- /* eslint-disable max-len */
+/* eslint-disable max-len */
 import {PolymerElement, html} from '@polymer/polymer/polymer-element.js';
 
 import '@polymer/app-layout/app-drawer/app-drawer.js';
