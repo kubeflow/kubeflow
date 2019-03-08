@@ -130,7 +130,7 @@ def add_notebook_route():
     ns = "kubeflow"
 
   # Load the Rok Token
-  rok_token = {}
+  rok_token = get_rok_token('kubeflow')
 
   form_defaults = spawner_ui_config("notebook")
   return render_template(
@@ -191,4 +191,5 @@ def notebooks_route():
       prefix=prefix(),
       title='Notebooks',
       namespaces=nmsps,
-      username="webapp")
+      username="user",
+      rok_token=get_rok_token('kubeflow'))
