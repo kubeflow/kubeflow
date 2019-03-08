@@ -33,6 +33,10 @@ def spawner_ui_config(username):
     return None
 
 
+def parse_user_template(string):
+  return string.format(username="user")
+
+
 # Helper functions for the /post-notebook route.
 def create_notebook_template():
   notebook = {

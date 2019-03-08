@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 import json
+import base64
+import os
 from kubernetes import client, config
 from kubernetes.config import ConfigException
+from kubernetes.client.rest import ApiException
+from kubeflow.rokui.utils import parse_user_template
 
 try:
   # Load configuration inside the Pod
@@ -18,6 +22,8 @@ custom_api = client.CustomObjectsApi()
 def parse_error(e):
   try:
     err = json.loads(e.body)['message']
+  except json.JSONDecodeError:
+    err = str(e)
   except KeyError:
     err = str(e)
 
@@ -26,6 +32,24 @@ def parse_error(e):
 
 def get_secret(nm, ns):
   return v1_core.read_namespaced_secret(nm, ns)
+
+
+def get_rok_token(ns):
+  """Retrieve the token to authenticate with Rok."""
+  secret = None
+  nm = ''
+  if os.environ.get('ROK_SECRET_NAME') != 'null':
+    nm = os.environ.get('ROK_SECRET_NAME')
+    nm = parse_user_template(nm)
+  
+  try:
+    secret = v1_core.read_namespaced_secret(name=nm, namespace=ns)
+  except ApiException:
+    return ''
+
+  token = secret.data.get('token', '')
+
+  return base64.b64decode(token).decode('utf-8')
 
 
 def get_namespaces():
