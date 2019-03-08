@@ -16,6 +16,7 @@ package cmd
 
 import (
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/coordinator"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -36,7 +37,6 @@ var generateCmd = &cobra.Command{
 The default is 'all' for any selected platform.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.InfoLevel)
-		log.Info("generating kubeflow application")
 		if generateCfg.GetBool(string(kftypes.VERBOSE)) == true {
 			log.SetLevel(log.InfoLevel)
 		} else {
@@ -59,13 +59,7 @@ The default is 'all' for any selected platform.`,
 			string(kftypes.ZONE):        zone,
 			string(kftypes.MOUNT_LOCAL): mountLocal,
 		}
-		if ipName != "" {
-			options[string(kftypes.IPNAME)] = ipName
-		}
-		if hostName != "" {
-			options[string(kftypes.HOSTNAME)] = hostName
-		}
-		kfApp, kfAppErr := loadKfApp(options)
+		kfApp, kfAppErr := coordinator.LoadKfApp(options)
 		if kfAppErr != nil {
 			log.Errorf("couldn't load KfApp: %v", kfAppErr)
 			return
@@ -122,7 +116,7 @@ func init() {
 
 	// platforms minikube, docker-for-desktop
 	generateCmd.Flags().Bool(string(kftypes.MOUNT_LOCAL), false,
-		string(kftypes.MOUNT_LOCAL)+" if '--platform minikube || --platform docker-for-desktop'")
+		string(kftypes.MOUNT_LOCAL)+" if '--platform minikube'")
 	bindErr = generateCfg.BindPFlag(string(kftypes.MOUNT_LOCAL), generateCmd.Flags().Lookup(string(kftypes.MOUNT_LOCAL)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.MOUNT_LOCAL), bindErr)
