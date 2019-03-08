@@ -119,12 +119,12 @@
           ] + prow_env + env_vars,
           resources: {
             requests: {
-              memory: "2Gi",
-              cpu: "2",
+              memory: "1Gi",
+              cpu: "0.5",
             },
             limits: {
-              memory: "32Gi",
-              cpu: "16",
+              memory: "4Gi",
+              cpu: "2",
             },
           },
           volumeMounts: [
@@ -174,12 +174,12 @@
             },
             resources: {
               requests: {
-                memory: "2Gi",
-                cpu: "2",
+                memory: "1Gi",
+                cpu: "0.5",
               },
               limits: {
-                memory: "32Gi",
-                cpu: "16",
+                memory: "4Gi",
+                cpu: "2",
               },
             },
             mirrorVolumeMounts: true,
