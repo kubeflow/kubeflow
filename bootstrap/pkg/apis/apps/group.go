@@ -90,6 +90,7 @@ const (
 	OAUTH_ID              CliOption = "oauth_id"
 	OAUTH_SECRET          CliOption = "oauth_secret"
 	DEFAULT_CONFIG        CliOption = "default_config"
+	USE_ISTIO             CliOption = "use_istio"
 )
 
 var DefaultPackages = []string{

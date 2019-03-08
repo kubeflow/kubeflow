@@ -415,21 +415,28 @@ func (ksApp *KsApp) Delete(resources kftypes.ResourceEnum, options map[string]in
 	return nil
 }
 
-func setNameVal(entries []configtypes.NameValue, name string, val string) {
+// Set or append (name,value) in the entries.
+// Usage: entries = setNameVal(entries, name, value)
+// setNameVal(entries, name, value) has no effect when appending.
+func setNameVal(entries []configtypes.NameValue, name string, val string) []configtypes.NameValue {
 	for i, nv := range entries {
 		if nv.Name == name {
 			log.Infof("Setting %v to %v", name, val)
 			entries[i].Value = val
-			return
+			return entries
 		}
 	}
 	log.Infof("Appending %v as %v", name, val)
+	// This makes the slice header (entries) point to the new array.
+	// So we need to return and use the new entries.
 	entries = append(entries, configtypes.NameValue{
 		Name:  name,
 		Value: val,
 	})
+	return entries
 }
 
+// Generate generates the ksonnet kfapp
 func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum, options map[string]interface{}) error {
 	log.Infof("Ksonnet.Generate Name %v AppDir %v Platform %v", ksApp.KsApp.Name,
 		ksApp.KsApp.Spec.AppDir, ksApp.KsApp.Spec.Platform)
@@ -459,25 +466,37 @@ func (ksApp *KsApp) Generate(resources kftypes.ResourceEnum, options map[string]
 	}
 	config.Repo = ksApp.KsApp.Spec.Repo
 	email := options[string(kftypes.EMAIL)].(string)
-	setNameVal(config.ComponentParams["cert-manager"], "acmeEmail", email)
+	config.ComponentParams["cert-manager"] = setNameVal(config.ComponentParams["cert-manager"], "acmeEmail", email)
 	ipName := options[string(kftypes.IPNAME)].(string)
 	hostname := options[string(kftypes.HOSTNAME)].(string)
 	if val, ok := options[string(kftypes.USE_BASIC_AUTH)]; ok && val.(bool) {
-		setNameVal(config.ComponentParams["basic-auth-ingress"], "ipName", ipName)
-		setNameVal(config.ComponentParams["basic-auth-ingress"], "hostname", hostname)
+		config.ComponentParams["basic-auth-ingress"] = setNameVal(
+			config.ComponentParams["basic-auth-ingress"], "ipName", ipName)
+		config.ComponentParams["basic-auth-ingress"] = setNameVal(
+			config.ComponentParams["basic-auth-ingress"], "hostname", hostname)
 	} else {
-		setNameVal(config.ComponentParams["iap-ingress"], "ipName", ipName)
-		setNameVal(config.ComponentParams["iap-ingress"], "hostname", hostname)
+		config.ComponentParams["iap-ingress"] = setNameVal(
+			config.ComponentParams["iap-ingress"], "ipName", ipName)
+		config.ComponentParams["iap-ingress"] = setNameVal(
+			config.ComponentParams["iap-ingress"], "hostname", hostname)
 	}
-	setNameVal(config.ComponentParams["pipeline"], "mysqlPd", ksApp.KsApp.Name+"-storage-metadata-store")
-	setNameVal(config.ComponentParams["pipeline"], "minioPd", ksApp.KsApp.Name+"-storage-artifact-store")
+	// Use Istio for ingress and authn
+	if val, ok := options[string(kftypes.USE_ISTIO)]; ok && val.(bool) {
+		config.ComponentParams["iap-ingress"] = setNameVal(config.ComponentParams["iap-ingress"], "useIstio", "true")
+	}
+	config.ComponentParams["pipeline"] = setNameVal(
+		config.ComponentParams["pipeline"], "mysqlPd", ksApp.KsApp.Name+"-storage-metadata-store")
+	config.ComponentParams["pipeline"] = setNameVal(
+		config.ComponentParams["pipeline"], "minioPd", ksApp.KsApp.Name+"-storage-artifact-store")
 	components := []string{}
 	for _, c := range config.Components {
 		if c != "application" && c != "metacontroller" {
 			components = append(components, fmt.Sprintf("\"%v\"", c))
 		}
 	}
-	setNameVal(config.ComponentParams["application"], "components",
+	config.ComponentParams["application"] = setNameVal(
+		config.ComponentParams["application"],
+		"components",
 		"["+strings.Join(components, " ,")+"]")
 
 	log.Infof("Configs for generation: %+v", config)

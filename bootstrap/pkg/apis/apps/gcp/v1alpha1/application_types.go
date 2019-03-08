@@ -30,6 +30,7 @@ type GcpSpec struct {
 	Zone              string `json:"zone,omitempty"`
 	UseBasicAuth      bool   `json:"useBasicAuth"`
 	SkipInitProject   bool   `json:"skipInitProject,omitempty"`
+	UseIstio          bool   `json:"useIstio,omitempty"`
 }
 
 // GcpStatus defines the observed state of Gcp
