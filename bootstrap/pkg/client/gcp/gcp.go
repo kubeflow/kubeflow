@@ -26,9 +26,7 @@ import (
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	gcptypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/gcp/v1alpha1"
-	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksonnet"
-	kfctlutils "github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
@@ -72,19 +70,11 @@ const (
 // Gcp implements KfApp Interface
 // It includes the KsApp along with additional Gcp types
 type Gcp struct {
-	kftypes.FullKfApp
 	GcpApp *gcptypes.Gcp
 }
 
 func GetKfApp(options map[string]interface{}) kftypes.KfApp {
-	options[string(kftypes.PLATFORM)] = string(kftypes.KSONNET)
-	log.Infof("getting ksonnet platform in gcp")
-	_ksonnet := ksonnet.GetKfApp(options)
-	options[string(kftypes.PLATFORM)] = "gcp"
 	_gcp := &Gcp{
-		FullKfApp: kftypes.FullKfApp{
-			Children: make(map[kftypes.Platform]kftypes.KfApp),
-		},
 		GcpApp: &gcptypes.Gcp{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "Gcp",
@@ -92,7 +82,6 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 			},
 		},
 	}
-	_gcp.Children[kftypes.KSONNET] = _ksonnet
 	if options[string(kftypes.DATA)] != nil {
 		dat := options[string(kftypes.DATA)].([]byte)
 		specErr := yaml.Unmarshal(dat, _gcp.GcpApp)
@@ -236,7 +225,7 @@ func generateTarget(configPath string) (*deploymentmanager.TargetConfiguration, 
 				Content: string(buf),
 			})
 		} else {
-			return nil, fmt.Errorf("Erro reading import file: %v", err)
+			return nil, fmt.Errorf("error reading import file: %v", err)
 		}
 	}
 	return targetConfig, nil
@@ -246,11 +235,11 @@ func (gcp *Gcp) getK8sClientset(ctx context.Context) (*clientset.Clientset, erro
 	cluster, err := kftypes.GetClusterInfo(ctx, gcp.GcpApp.Spec.Project,
 		gcp.GcpApp.Spec.Zone, gcp.GcpApp.Name)
 	if err != nil {
-		return nil, fmt.Errorf("Get Cluster error: %v", err)
+		return nil, fmt.Errorf("get Cluster error: %v", err)
 	}
 	config, err := kftypes.BuildConfigFromClusterInfo(ctx, cluster)
 	if err != nil {
-		return nil, fmt.Errorf("Build ClientConfig error: %v", err)
+		return nil, fmt.Errorf("build ClientConfig error: %v", err)
 	}
 
 	return clientset.NewForConfig(config)
@@ -415,19 +404,19 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 		}
 	}
 
-	policy, policyErr := kfctlutils.GetIamPolicy(gcp.GcpApp.Spec.Project)
+	policy, policyErr := utils.GetIamPolicy(gcp.GcpApp.Spec.Project)
 	if policyErr != nil {
 		return fmt.Errorf("GetIamPolicy error: %v", policyErr)
 	}
 	appDir := gcp.GcpApp.Spec.AppDir
 	gcpConfigDir := path.Join(appDir, GCP_CONFIG)
-	iamPolicy, iamPolicyErr := kfctlutils.ReadIamBindingsYAML(
+	iamPolicy, iamPolicyErr := utils.ReadIamBindingsYAML(
 		filepath.Join(gcpConfigDir, "iam_bindings.yaml"))
 	if iamPolicyErr != nil {
 		return fmt.Errorf("Read IAM policy YAML error: %v", iamPolicyErr)
 	}
-	kfctlutils.RewriteIamPolicy(policy, iamPolicy, nil)
-	if err := kfctlutils.SetIamPolicy(gcp.GcpApp.Spec.Project, policy); err != nil {
+	utils.RewriteIamPolicy(policy, iamPolicy, nil)
+	if err := utils.SetIamPolicy(gcp.GcpApp.Spec.Project, policy); err != nil {
 		return fmt.Errorf("SetIamPolicy error: %v", err)
 	}
 
@@ -459,7 +448,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 
 	k8sSpecsDir := path.Join(appDir, K8S_SPECS)
 	daemonsetPreloaded := filepath.Join(k8sSpecsDir, "daemonset-preloaded.yaml")
-	daemonsetPreloadedErr := kfctlutils.RunKubectlApply(daemonsetPreloaded)
+	daemonsetPreloadedErr := utils.RunKubectlApply(daemonsetPreloaded)
 	if daemonsetPreloadedErr != nil {
 		return fmt.Errorf("could not create resources in daemonset-preloaded.yaml %v", daemonsetPreloadedErr)
 	}
@@ -467,12 +456,12 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 	adminClient.Impersonate.UserName = "admin"
 	adminClient.Impersonate.Groups = []string{"system:masters"}
 	rbacSetup := filepath.Join(k8sSpecsDir, "rbac-setup.yaml")
-	rbacSetupErr := kfctlutils.RunKubectlApply(rbacSetup)
+	rbacSetupErr := utils.RunKubectlApply(rbacSetup)
 	if rbacSetupErr != nil {
 		return fmt.Errorf("could not create resources in rbac-setup.yaml %v", rbacSetupErr)
 	}
 	agents := filepath.Join(k8sSpecsDir, "agents.yaml")
-	agentsErr := kfctlutils.RunKubectlApply(agents)
+	agentsErr := utils.RunKubectlApply(agents)
 	if agentsErr != nil {
 		return fmt.Errorf("could not create resources in agents.yaml %v", agents)
 	}
@@ -488,28 +477,10 @@ func (gcp *Gcp) Apply(resources kftypes.ResourceEnum, options map[string]interfa
 	if secretsErr != nil {
 		return fmt.Errorf("gcp apply could not create secrets Error %v", secretsErr)
 	}
-	ks := gcp.Children[kftypes.KSONNET]
-	if ks != nil {
-		ksApplyErr := ks.Apply(resources, options)
-		if ksApplyErr != nil {
-			return fmt.Errorf("gcp apply failed for %v: %v", string(kftypes.KSONNET), ksApplyErr)
-		}
-	} else {
-		return fmt.Errorf("%v not in Children", string(kftypes.KSONNET))
-	}
 	return nil
 }
 
 func (gcp *Gcp) Delete(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	ks := gcp.Children[kftypes.KSONNET]
-	if ks != nil {
-		ksDeleteErr := ks.Delete(resources, options)
-		if ksDeleteErr != nil {
-			return fmt.Errorf("gcp delete failed for %v: %v", string(kftypes.KSONNET), ksDeleteErr)
-		}
-	} else {
-		return fmt.Errorf("%v not in Children", string(kftypes.KSONNET))
-	}
 	return nil
 }
 
@@ -547,25 +518,25 @@ func setNameVal(entries []configtypes.NameValue, name string, val string) {
 	})
 }
 
-func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
+func (gcp *Gcp) generate(options map[string]interface{}) error {
 	configPath := path.Join(gcp.GcpApp.Spec.AppDir,
 		kftypes.DefaultCacheDir,
 		gcp.GcpApp.Spec.Version,
-		kftypes.GcpConfigDir)
+		kftypes.DefaultConfigDir)
 	if gcp.GcpApp.Spec.UseBasicAuth {
 		configPath = path.Join(configPath, kftypes.GcpBasicAuth)
 	} else {
 		configPath = path.Join(configPath, kftypes.GcpIapConfig)
 	}
-	if options[string(kftypes.DefaultConfig)] == nil {
-		options[string(kftypes.DefaultConfig)] = configPath
+	if options[string(kftypes.DEFAULT_CONFIG)] == nil {
+		options[string(kftypes.DEFAULT_CONFIG)] = configPath
 	}
 
 	if options[string(kftypes.EMAIL)] != nil &&
 		options[string(kftypes.EMAIL)].(string) != "" {
 		gcp.GcpApp.Spec.Email = options[string(kftypes.EMAIL)].(string)
 	} else if gcp.GcpApp.Spec.Email == "" {
-		return fmt.Errorf("Email is not set in default nor passed.")
+		return fmt.Errorf("email is not set in default nor passed.")
 	} else {
 		options[string(kftypes.EMAIL)] = gcp.GcpApp.Spec.Email
 	}
@@ -589,21 +560,9 @@ func (gcp *Gcp) generateKsonnet(options map[string]interface{}) error {
 		gcp.GcpApp.Spec.Hostname = options[string(kftypes.HOSTNAME)].(string)
 	} else if gcp.GcpApp.Spec.Hostname == "" {
 		return fmt.Errorf("hostname is not set in default nor passed.")
-	} else {
-		log.Infof("Using default hostname: %v", gcp.GcpApp.Spec.Hostname)
-		options[string(kftypes.HOSTNAME)] = gcp.GcpApp.Spec.Hostname
 	}
 	if options[string(kftypes.ZONE)] != nil {
 		gcp.GcpApp.Spec.Zone = options[string(kftypes.ZONE)].(string)
-	}
-	ks := gcp.Children[kftypes.KSONNET]
-	if ks != nil {
-		ksGenerateErr := ks.Generate(kftypes.ALL, options)
-		if ksGenerateErr != nil {
-			return fmt.Errorf("gcp generate failed for %v: %v", string(kftypes.KSONNET), ksGenerateErr)
-		}
-	} else {
-		return fmt.Errorf("%v not in Children", string(kftypes.KSONNET))
 	}
 	return nil
 }
@@ -848,9 +807,9 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum, options map[string]inte
 		if generateK8sSpecsErr != nil {
 			return fmt.Errorf("could not generate files under %v Error: %v", K8S_SPECS, generateK8sSpecsErr)
 		}
-		ksonnetErr := gcp.generateKsonnet(options)
-		if ksonnetErr != nil {
-			return fmt.Errorf("could not generate kssonnet under %v Error: %v", kstypes.KsName, ksonnetErr)
+		generateErr := gcp.generate(options)
+		if generateErr != nil {
+			return fmt.Errorf("generate failed Error: %v", generateErr)
 		}
 	case kftypes.ALL:
 		gcpConfigFilesErr := gcp.generateDMConfigs(options)
@@ -861,18 +820,18 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum, options map[string]inte
 		if generateK8sSpecsErr != nil {
 			return fmt.Errorf("could not generate files under %v Error: %v", K8S_SPECS, generateK8sSpecsErr)
 		}
-		ksonnetErr := gcp.generateKsonnet(options)
-		if ksonnetErr != nil {
-			return fmt.Errorf("could not generate kssonnet under %v Error: %v", kstypes.KsName, ksonnetErr)
+		generateErr := gcp.generate(options)
+		if generateErr != nil {
+			return fmt.Errorf("generate failed Error: %v", generateErr)
 		}
 	case kftypes.PLATFORM:
 		gcpConfigFilesErr := gcp.generateDMConfigs(options)
 		if gcpConfigFilesErr != nil {
 			return fmt.Errorf("could not generate deployment manager configs under %v Error: %v", GCP_CONFIG, gcpConfigFilesErr)
 		}
-		ksonnetErr := gcp.generateKsonnet(options)
-		if ksonnetErr != nil {
-			return fmt.Errorf("could not generate kssonnet under %v Error: %v", kstypes.KsName, ksonnetErr)
+		generateErr := gcp.generate(options)
+		if generateErr != nil {
+			return fmt.Errorf("generate failed Error: %v", generateErr)
 		}
 	}
 	createConfigErr := gcp.writeConfigFile()
@@ -883,11 +842,9 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum, options map[string]inte
 }
 
 func (gcp *Gcp) getServiceClient(ctx context.Context) (*http.Client, error) {
-
 	// See https://cloud.google.com/docs/authentication/.
 	// Use GOOGLE_APPLICATION_CREDENTIALS environment variable to specify
 	// a service account key file to authenticate to the API.
-
 	client, err := google.DefaultClient(ctx, gke.CloudPlatformScope)
 	if err != nil {
 		log.Fatalf("Could not authenticate client: %v", err)
@@ -928,16 +885,7 @@ func (gcp *Gcp) gcpInitProject() error {
 	return nil
 }
 
-func (gcp *Gcp) Init(options map[string]interface{}) error {
-	ks := gcp.Children[kftypes.KSONNET]
-	if ks != nil {
-		ksInitErr := ks.Init(options)
-		if ksInitErr != nil {
-			return fmt.Errorf("gcp init failed for %v: %v", string(kftypes.KSONNET), ksInitErr)
-		}
-	} else {
-		return fmt.Errorf("%v not in Children", string(kftypes.KSONNET))
-	}
+func (gcp *Gcp) Init(resources kftypes.ResourceEnum, options map[string]interface{}) error {
 	cacheDir := path.Join(gcp.GcpApp.Spec.AppDir, kftypes.DefaultCacheDir)
 	newPath := filepath.Join(cacheDir, gcp.GcpApp.Spec.Version)
 	gcp.GcpApp.Spec.Repo = path.Join(newPath, "kubeflow")

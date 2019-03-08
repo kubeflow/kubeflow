@@ -15,11 +15,11 @@
 package cmd
 
 import (
-	"github.com/spf13/viper"
-
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
+	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/coordinator"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var initCfg = viper.New()
@@ -29,10 +29,9 @@ var initCmd = &cobra.Command{
 	Use:   "init <[path/]name>",
 	Short: "Create a kubeflow application under <[path/]name>",
 	Long: `Create a kubeflow application under <[path/]name>. The <[path/]name> argument can either be a full path
-or a name where the kubeflow application will be initialized in the current directory.`,
+or a <name>. If just <name> a directory <name> will be created in the current directory.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.InfoLevel)
-		log.Info("initializing kubeflow application")
 		if initCfg.GetBool(string(kftypes.VERBOSE)) == true {
 			log.SetLevel(log.InfoLevel)
 		} else {
@@ -47,7 +46,6 @@ or a name where the kubeflow application will be initialized in the current dire
 		namespace := initCfg.GetString(string(kftypes.NAMESPACE))
 		version := initCfg.GetString(string(kftypes.VERSION))
 		repo := initCfg.GetString(string(kftypes.REPO))
-		debug := initCfg.GetBool(string(kftypes.DEBUG))
 		project := initCfg.GetString(string(kftypes.PROJECT))
 		init_gcp := initCfg.GetBool(string(kftypes.SKIP_INIT_GCP_PROJECT))
 		basic_auth := initCfg.GetBool(string(kftypes.USE_BASIC_AUTH))
@@ -57,17 +55,16 @@ or a name where the kubeflow application will be initialized in the current dire
 			string(kftypes.VERSION):               version,
 			string(kftypes.APPNAME):               appName,
 			string(kftypes.REPO):                  repo,
-			string(kftypes.DEBUG):                 debug,
 			string(kftypes.PROJECT):               project,
 			string(kftypes.SKIP_INIT_GCP_PROJECT): init_gcp,
 			string(kftypes.USE_BASIC_AUTH):        basic_auth,
 		}
-		kfApp, kfAppErr := newKfApp(options)
+		kfApp, kfAppErr := coordinator.NewKfApp(options)
 		if kfAppErr != nil || kfApp == nil {
 			log.Errorf("couldn't create KfApp: %v", kfAppErr)
 			return
 		}
-		initErr := kfApp.Init(options)
+		initErr := kfApp.Init(kftypes.ALL, options)
 		if initErr != nil {
 			log.Errorf("KfApp initialization failed: %v", initErr)
 			return
@@ -82,7 +79,7 @@ func init() {
 	initCfg.SetConfigType("yaml")
 
 	initCmd.Flags().StringP(string(kftypes.PLATFORM), "p", kftypes.DefaultPlatform,
-		"one of 'gcp|minikube|ksonnet'")
+		"one of 'gcp|minikube'")
 	bindErr := initCfg.BindPFlag(string(kftypes.PLATFORM), initCmd.Flags().Lookup(string(kftypes.PLATFORM)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.PLATFORM), bindErr)
@@ -146,14 +143,6 @@ func init() {
 	bindErr = initCfg.BindPFlag(string(kftypes.USE_BASIC_AUTH), initCmd.Flags().Lookup(string(kftypes.USE_BASIC_AUTH)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.USE_BASIC_AUTH), bindErr)
-		return
-	}
-
-	// debug output
-	initCmd.Flags().Bool(string(kftypes.DEBUG), false, string(kftypes.DEBUG)+" debug default is false")
-	bindErr = initCfg.BindPFlag(string(kftypes.DEBUG), initCmd.Flags().Lookup(string(kftypes.DEBUG)))
-	if bindErr != nil {
-		log.Errorf("couldn't set flag --%v: %v", string(kftypes.DEBUG), bindErr)
 		return
 	}
 }

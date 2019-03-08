@@ -27,10 +27,14 @@ import (
 	"google.golang.org/api/option"
 	containerpb "google.golang.org/genproto/googleapis/container/v1"
 	"io"
+	ext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	"k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
+	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	"math/rand"
 	"os"
 	"path/filepath"
 	/* PLUGINS
@@ -42,18 +46,19 @@ import (
 
 const (
 	DefaultNamespace = "kubeflow"
-	DefaultPlatform  = "ksonnet"
+	DefaultPlatform  = "none"
 	// TODO: find the latest tag dynamically
-	DefaultVersion   = "master"
-	DefaultGitRepo   = "https://github.com/kubeflow/kubeflow/tarball"
-	KfConfigFile     = "app.yaml"
-	DefaultCacheDir  = ".cache"
-	GcpConfigDir     = "bootstrap/config"
-	GcpIapConfig     = "kfctl_iap.yaml"
-	GcpBasicAuth     = "kfctl_basic_auth.yaml"
-	DefaultZone      = "us-east1-d"
-	DefaultConfig    = "default_config"
-	DefaultGkeApiVer = "v1beta1"
+	DefaultVersion    = "master"
+	DefaultGitRepo    = "https://github.com/kubeflow/kubeflow/tarball"
+	KfConfigFile      = "app.yaml"
+	DefaultCacheDir   = ".cache"
+	DefaultConfigDir  = "bootstrap/config"
+	DefaultConfigFile = "kfctl_default.yaml"
+	GcpIapConfig      = "kfctl_iap.yaml"
+	GcpBasicAuth      = "kfctl_basic_auth.yaml"
+	DefaultZone       = "us-east1-d"
+	DefaultGkeApiVer  = "v1beta1"
+	DefaultAppLabel   = "app.kubernetes.io/name"
 )
 
 type ResourceEnum string
@@ -62,7 +67,6 @@ const (
 	ALL      ResourceEnum = "all"
 	K8S      ResourceEnum = "k8s"
 	PLATFORM ResourceEnum = "platform"
-	NONE     ResourceEnum = "none"
 )
 
 type CliOption string
@@ -72,7 +76,6 @@ const (
 	IPNAME                CliOption = "ipName"
 	HOSTNAME              CliOption = "hostname"
 	MOUNT_LOCAL           CliOption = "mount-local"
-	DEBUG                 CliOption = "debug"
 	SKIP_INIT_GCP_PROJECT CliOption = "skip-init-gcp-project"
 	VERBOSE               CliOption = "verbose"
 	NAMESPACE             CliOption = "namespace"
@@ -81,38 +84,117 @@ const (
 	PROJECT               CliOption = "project"
 	APPNAME               CliOption = "appname"
 	APPDIR                CliOption = "appDir"
-	KAPP                  CliOption = "KApp"
 	DATA                  CliOption = "Data"
 	ZONE                  CliOption = "zone"
 	USE_BASIC_AUTH        CliOption = "use_basic_auth"
 	OAUTH_ID              CliOption = "oauth_id"
 	OAUTH_SECRET          CliOption = "oauth_secret"
+	DEFAULT_CONFIG        CliOption = "default_config"
 )
+
+var DefaultPackages = []string{
+	"application",
+	"argo",
+	"common",
+	"examples",
+	"jupyter",
+	"katib",
+	"metacontroller",
+	"modeldb",
+	"mpi-job",
+	"openvino",
+	"pipeline",
+	"profiles",
+	"pytorch-job",
+	"seldon",
+	"tensorboard",
+	"tf-serving",
+	"tf-training",
+}
+var DefaultComponents = []string{
+	"ambassador",
+	"application",
+	"argo",
+	"centraldashboard",
+	"jupyter",
+	"jupyter-web-app",
+	"katib",
+	"metacontroller",
+	"notebooks",
+	"notebook-controller",
+	"openvino",
+	"pipeline",
+	"profiles",
+	"pytorch-operator",
+	"spartakus",
+	"tensorboard",
+	"tf-job-operator",
+}
+
+var DefaultParameters = map[string][]NameValue{
+	"spartakus": {
+		NameValue{
+			Name:  "usageId",
+			Value: fmt.Sprintf("%08d", 10000000+rand.Intn(90000000)),
+		},
+		NameValue{
+			Name:  "reportUsage",
+			Value: "true",
+		},
+	},
+}
+
+type NameValue struct {
+	Name  string `json:"name,omitempty"`
+	Value string `json:"value,omitempty"`
+}
 
 //
 // KfApp provides a common
-// API for platforms like ksonnet, gcp, minikube, docker-for-desktop, etc.
+// API for platforms like gcp or minikube
 // They all implementation the API below
 //
 type KfApp interface {
 	Apply(resources ResourceEnum, options map[string]interface{}) error
 	Delete(resources ResourceEnum, options map[string]interface{}) error
 	Generate(resources ResourceEnum, options map[string]interface{}) error
-	Init(options map[string]interface{}) error
+	Init(resources ResourceEnum, options map[string]interface{}) error
 }
 
-type Platform string
+func QuoteItems(items []string) []string {
+	var withQuotes []string
+	for _, item := range items {
+		withQuote := "\"" + item + "\""
+		withQuotes = append(withQuotes, withQuote)
+	}
+	return withQuotes
+}
+
+func RemoveItem(defaults []string, name string) []string {
+	var pkgs []string
+	for _, pkg := range defaults {
+		if pkg != name {
+			pkgs = append(pkgs, pkg)
+		}
+	}
+	return pkgs
+}
+
+func RemoveItems(defaults []string, names ...string) []string {
+	pkgs := make([]string, len(defaults))
+	copy(pkgs, defaults)
+	for _, name := range names {
+		pkgs = RemoveItem(pkgs, name)
+	}
+	return pkgs
+}
 
 const (
-	DOCKER_FOR_DESKTOP Platform = "docker-for-desktop"
-	GCP                Platform = "gcp"
-	KSONNET            Platform = "ksonnet"
-	MINIKUBE           Platform = "minikube"
+	DOCKER_FOR_DESKTOP = "docker-for-desktop"
+	GCP                = "gcp"
+	NONE               = DefaultPlatform
+	MINIKUBE           = "minikube"
 )
-
-type FullKfApp struct {
-	Children map[Platform]KfApp
-}
 
 func LoadPlatform(options map[string]interface{}) (KfApp, error) {
 	/* PLUGINS
@@ -262,19 +344,26 @@ func GetClientOutOfCluster() (kubernetes.Interface, error) {
 	return clientset, nil
 }
 
-func GetClientOutOfClusterWithConfig(config *rest.Config) (kubernetes.Interface, error) {
-	clientset, err := kubernetes.NewForConfig(config)
+// Gets a client which can query for CRDs
+func GetApiExtensionsClientOutOfCluster() (apiextensionsv1beta1.ApiextensionsV1beta1Interface, error) {
+	config, err := BuildOutOfClusterConfig()
 	if err != nil {
-		return nil, fmt.Errorf("Can not get kubernetes client: %v", err)
+		log.Fatalf("Can not get kubernetes config: %v", err)
+	}
+	v := ext.SchemeGroupVersion
+	config.GroupVersion = &v
+	crdClient, err := clientset.NewForConfig(config)
+	if err != nil {
+		log.Fatalf("Can not get dynamic client: %v", err)
 	}
 
-	return clientset, nil
+	return crdClient.ApiextensionsV1beta1(), nil
 }
 
-// capture replaces os.Stdout with a writer that buffers any data written
+// Capture replaces os.Stdout with a writer that buffers any data written
 // to os.Stdout. Call the returned function to cleanup and get the data
 // as a string.
-func capture() func() (string, error) {
+func Capture() func() (string, error) {
 	r, w, err := os.Pipe()
 	if err != nil {
 		panic(err)

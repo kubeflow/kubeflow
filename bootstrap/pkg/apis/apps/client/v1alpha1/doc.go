@@ -12,18 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package apis
+// Package v1alpha1 contains API Schema definitions for the client v1alpha1 API group
+// +k8s:openapi-gen=true
+// +k8s:deepcopy-gen=package,register
+// +k8s:conversion-gen=github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/client
+// +k8s:defaulter-gen=TypeMeta
+// +groupName=client.apps.kubeflow.org
 
-import (
-	client "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/client/v1alpha1"
-	gcp "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/gcp/v1alpha1"
-	ksonnet "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
-)
-
-func init() {
-	// Register the types with the Scheme so the components can map objects to GroupVersionKinds and back
-	AddToSchemes = append(AddToSchemes, ksonnet.SchemeBuilder.AddToScheme)
-	AddToSchemes = append(AddToSchemes, gcp.SchemeBuilder.AddToScheme)
-	AddToSchemes = append(AddToSchemes, client.SchemeBuilder.AddToScheme)
-
-}
+package v1alpha1

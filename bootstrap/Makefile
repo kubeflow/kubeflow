@@ -40,7 +40,9 @@ vet:
 
 generate:
 	$(GO) generate ./pkg/... ./cmd/... ./config/...
-
+  
+deepcopy:
+	@deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/pkg/apis/... -O zz_generated.deepcopy
 
 build-bootstrap: generate fmt vet
 	$(GO) build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
@@ -86,28 +88,6 @@ run-local-docker:
 	  --mount type=bind,source=${HOME}/kf_app,target=/home/kubeflow \
 	  --entrypoint /bin/bash $(IMG):$(TAG)
 
-test-known-platforms-init: install build-dockerfordesktop-plugin
-	@rm -rf $(HOME)/dockerfordesktop && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(HOME)/dockerfordesktop -V --platform docker-for-desktop && \
-	rm -rf $(HOME)/ksonnet && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init $(HOME)/ksonnet -V --platform ksonnet && \
-	rm -rf $(HOME)/minikube && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init $(HOME)/minikube -V --platform minikube && \
-	rm -rf $(HOME)/gcp && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init $(HOME)/gcp -V --platform gcp --project $(GCLOUD_PROJECT) && \
-	echo SUCCESS
-
-test-known-platforms-generate: test-known-platforms-init
-	@cd ~/dockerfordesktop && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl generate all -V && \
-	cd ~/ksonnet && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl generate all -V && \
-	cd ~/minikube && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl generate all -V --mount-local && \
-	cd ~/gcp && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl generate all -V --email jsmith@acme.com && \
-	echo SUCCESS
-
 # static and plugins toogle whether we try and load a platform as a .so.
 # There is an example plugin 'dockerfordesktop' that can be loaded as a .so.
 # By default we disable loading plugins and link dockerfordesktop into the kfctl binary (static)
@@ -118,3 +98,37 @@ static:
 plugins:
 	@ex pkg/apis/apps/group.go <hack/plugins
 	@ex cmd/kfctl/cmd/root.go <hack/plugins || echo Plugin functionality enabled
+
+clean:
+	@rm -rf test
+      
+test-known-platforms-init: clean install build-dockerfordesktop-plugin
+	@mkdir test && \
+	echo kfctl init test/dockerfordesktop -V --platform docker-for-desktop && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init `pwd`/test/dockerfordesktop -V --platform docker-for-desktop && \
+	echo kfctl init test/none -V && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init `pwd`/test/none -V && \
+	echo kfctl init test/minikube -V --platform minikube && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init $(PWD)/test/minikube -V --platform minikube && \
+	echo kfctl init test/gcp -V --platform gcp --project $(GCLOUD_PROJECT) && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl init $(PWD)/test/gcp -V --platform gcp --project $(GCLOUD_PROJECT) && \
+	echo SUCCESS
+
+test-known-platforms-generate: test-known-platforms-init
+	@cd test/dockerfordesktop && \
+	echo 'kfctl generate all (--platform dockerfordesktop)' && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl generate all && \
+	cd ../none && \
+	echo 'kfctl generate all (--platform none)' && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl generate all && \
+	cd ../minikube && \
+	echo 'kfctl generate all (--platform minikube)' && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl generate all --mount-local && \
+	cd ../gcp && \
+	echo 'kfctl generate all (--platform gcp)' && \
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) kfctl generate all --email jsmith@acme.com && \
+	echo SUCCESS
+
+test-plugins-static: plugins test-known-platforms-generate static test-known-platforms-generate
+
+test-kfctl: test-plugins-static

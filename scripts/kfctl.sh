@@ -532,6 +532,26 @@ main() {
           fi
       fi
       set +e
+      pushd ${KUBEFLOW_KS_DIR}
+      appname=$(ks param list application | grep '^application name'|awk '{print $NF}'|tr -d "'")
+      popd
+      for i in $(kubectl get crds -lapp.kubernetes.io/name=$appname -oname); do 
+        crd=${i#*/}
+        kubectl delete crd $crd
+      done
+      for i in $(kubectl get clusterroles -lapp.kubernetes.io/name=$appname -oname); do 
+        clusterrole=${i#*/}
+        kubectl delete clusterrole $clusterrole
+      done
+      for i in $(kubectl get clusterrolebindings -lapp.kubernetes.io/name=$appname -oname); do 
+        clusterrolebinding=${i#*/}
+        kubectl delete clusterrolebinding $clusterrolebinding
+      done
+      kubectl delete clusterrolebinding meta-controller-cluster-role-binding
+      kubectl delete crd compositecontrollers.metacontroller.k8s.io
+      kubectl delete crd controllerrevisions.metacontroller.k8s.io
+      kubectl delete crd decoratorcontrollers.metacontroller.k8s.io
+      kubectl delete crd applications.app.k8s.io
       kubectl delete ns/${K8S_NAMESPACE}
       while kubectl get ns/${K8S_NAMESPACE}; do
         echo "namespace ${K8S_NAMESPACE} not yet deleted. sleeping 10 seconds..."
