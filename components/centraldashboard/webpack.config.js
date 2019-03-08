@@ -1,3 +1,4 @@
+ /* eslint-disable linebreak-style,no-undef */
 'use strict';
 
 const {resolve} = require('path');
@@ -5,28 +6,28 @@ const CleanWebpackPlugin = require('clean-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const DefinePlugin = require('webpack').DefinePlugin;
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const ScriptExtHtmlWebpackPlugin = require('script-ext-html-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 
 const ENV = process.env.NODE_ENV || 'development';
 const NODE_MODULES = /\/node_modules\//;
-const PKG_VERSION = require('./package.json').version
-const SRC = resolve(__dirname, 'public')
-const COMPONENTS = resolve(SRC, 'components')
-const DESTINATION = resolve(__dirname, 'dist', 'public')
-const WEBCOMPONENTS = './node_modules/@webcomponents/webcomponentsjs'
+const PKG_VERSION = require('./package.json').version;
+const SRC = resolve(__dirname, 'public');
+const COMPONENTS = resolve(SRC, 'components');
+const DESTINATION = resolve(__dirname, 'dist', 'public');
+const WEBCOMPONENTS = './node_modules/@webcomponents/webcomponentsjs';
 const POLYFILLS = [
     {
         from: resolve(WEBCOMPONENTS, '*.{js,map}'),
         to: resolve(DESTINATION, 'webcomponentsjs'),
-        flatten: true
+        flatten: true,
     },
     {
         from: resolve(WEBCOMPONENTS, 'bundles', '*.{js,map}'),
         to: resolve(DESTINATION, 'webcomponentsjs', 'bundles'),
-        flatten: true
-    }
+        flatten: true,
+    },
 ];
 
 // Rules for processing Polymer components to allow
@@ -34,21 +35,21 @@ const POLYFILLS = [
 const COMPONENT_RULES = [
     {
         test: /\.pug$/,
-        use: ['pug-loader']
+        use: ['pug-loader'],
     },
     {
         test: /\.css$/,
         include: COMPONENTS,
-        use: ['css-loader', 'exports-loader']
-    }
-]
+        use: ['css-loader', 'exports-loader'],
+    },
+];
 
 module.exports = {
     mode: ENV,
     entry: resolve(SRC, 'index.js'),
     output: {
         filename: '[name].bundle.js',
-        path: DESTINATION
+        path: DESTINATION,
     },
     devtool: 'cheap-source-map',
     module: {
@@ -58,17 +59,17 @@ module.exports = {
                 exclude: COMPONENTS,
                 use: [
                     MiniCssExtractPlugin.loader,
-                    'css-loader'
-                ]
+                    'css-loader',
+                ],
             },
             {
                 test: /\.(gif|jpg|png|svg)$/,
                 use: {
                     loader: 'file-loader',
                     options: {
-                        name: '[folder]/[name].[ext]'
-                    }
-                }
+                        name: '[folder]/[name].[ext]',
+                    },
+                },
             },
             // Roboto Font and Material Icons
             {
@@ -77,9 +78,9 @@ module.exports = {
                     loader: 'url-loader',
                     options: {
                         name: 'fonts/[name].[ext]',
-                        limit: 8192
-                    }
-                }
+                        limit: 8192,
+                    },
+                },
             },
             {
                 enforce: 'pre',
@@ -90,9 +91,9 @@ module.exports = {
                     options: {
                         extends: ['eslint:recommended', 'google'],
                         failOnError: true,
-                        fix: true
-                    }
-                }
+                        fix: true,
+                    },
+                },
             },
             {
                 test: /\.js$/,
@@ -110,48 +111,48 @@ module.exports = {
                                         // Best practice: https://github.com/babel/babel/issues/7789
                                         '>=1%',
                                         'not ie 11',
-                                        'not op_mini all'
-                                    ]
+                                        'not op_mini all',
+                                    ],
                                 },
-                                debug: true
-                            }
+                                debug: true,
+                            },
                         ]],
-                        plugins: ['@babel/plugin-transform-runtime']
-                    }
-                }
-            }
-        ])
+                        plugins: ['@babel/plugin-transform-runtime'],
+                    },
+                },
+            },
+        ]),
     },
     optimization: {
         minimizer: [new TerserPlugin({
             cache: true,
             parallel: true,
             sourceMap: true,
-            extractComments: true
+            extractComments: true,
         })],
         splitChunks: {
             cacheGroups: {
                 commons: {
-                    chunks: "all",
+                    chunks: 'all',
                     minChunks: 2,
                     maxInitialRequests: 5,
-                    minSize: 0
+                    minSize: 0,
                 },
                 vendor: {
                     test: NODE_MODULES,
-                    chunks: "all",
-                    name: "vendor",
+                    chunks: 'all',
+                    name: 'vendor',
                     priority: 10,
-                    enforce: true
-                }
-            }
-        }
+                    enforce: true,
+                },
+            },
+        },
     },
     plugins: [
         new CleanWebpackPlugin([DESTINATION]),
         new CopyWebpackPlugin(POLYFILLS),
         new DefinePlugin({
-            VERSION: JSON.stringify(PKG_VERSION)
+            VERSION: JSON.stringify(PKG_VERSION),
         }),
         new HtmlWebpackPlugin({
             filename: resolve(DESTINATION, 'index.html'),
@@ -163,19 +164,19 @@ module.exports = {
                 removeRedundantAttributes: true,
                 removeScriptTypeAttributes: true,
                 removeStyleLinkTypeAttributes: true,
-                useShortDoctype: true
-            }
+                useShortDoctype: true,
+            },
         }),
         new MiniCssExtractPlugin({
-            filename: "[name].css",
-            chunkFilename: "[id].css"
+            filename: '[name].css',
+            chunkFilename: '[id].css',
         }),
         new ScriptExtHtmlWebpackPlugin({
-            defaultAttribute: 'defer'
-        })
+            defaultAttribute: 'defer',
+        }),
     ],
     devServer: {
         port: 8081,
-        proxy: {'/api': 'http://localhost:8082'}
-    }
-}
+        proxy: {'/api': 'http://localhost:8082'},
+    },
+};
