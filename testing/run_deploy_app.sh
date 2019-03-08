@@ -1,8 +1,10 @@
 #!/bin/bash
 #
-# Scripts to start a load test for 1-click-deployment service.
+# This script shows how to manually trigger a load test for 1-click-deployment service.
 #
-# GOOGLE_APPLICATION_CREDNTIALS and SERVICE_CLIENT_ID both point to
+# All the projects created for load tests have one owner
+# "load-test-owner@kf-gcp-deploy0.iam.gserviceaccount.com".So in order to run the load
+# test you have to set GOOGLE_APPLICATION_CREDNTIALS and SERVICE_CLIENT_ID both point to
 # service account "load-test-owner@kf-gcp-deploy0.iam.gserviceaccount.com"
 # https://pantheon.corp.google.com/iam-admin/serviceaccounts/details/112401461927766705527?organizationId=714441643818&project=kf-gcp-deploy0
 #
