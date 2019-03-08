@@ -5,7 +5,8 @@
     },
     "extends": ["eslint:recommended", "google"],
     "globals": {
-        "VERSION": true,
+        "VERSION": "readonly",
+        "DEVMODE": "readonly",
         "Atomics": "readonly",
         "SharedArrayBuffer": "readonly"
     },
