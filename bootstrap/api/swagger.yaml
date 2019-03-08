@@ -11,22 +11,22 @@ info:
     url: "http://www.apache.org/licenses/LICENSE-2.0.html"
 basePath: "/kfctl/v1"
 tags:
-- name: "deployment"
-  description: "A kubeflow deployment on GCP"
-  externalDocs:
-    description: "Find out more"
-    url: "https://www.kubeflow.org/docs/started/getting-started-gke/"
+  - name: "deployment"
+    description: "A kubeflow deployment on GCP"
+    externalDocs:
+      description: "Find out more"
+      url: "https://www.kubeflow.org/docs/started/getting-started-gke/"
 schemes:
-- "https"
+  - "https"
 paths:
   /projects/{project}/configs:
     post:
       tags:
-        - "configEntry"
+        - "KfConfig"
       summary: "Create a new kubeflow config entry on source repo"
       security:
         - BearerToken: []
-      operationId: "createConfigEntry"
+      operationId: "createKfConfig"
       consumes:
         - "application/json"
       produces:
@@ -35,6 +35,11 @@ paths:
         - in: "path"
           name: "project"
           description: "gcp project string id"
+          required: true
+          type: "string"
+        - in: "query"
+          name: "email"
+          description: "Email of user who make the request"
           required: true
           type: "string"
         - in: "body"
@@ -56,11 +61,11 @@ paths:
           description: "Internal Server Error"
     get:
       tags:
-        - "configEntry"
+        - "KfConfig"
       summary: "List kubeflow config entries in target project"
       security:
         - BearerToken: []
-      operationId: "listConfigEntries"
+      operationId: "listKfConfigs"
       consumes:
         - "application/json"
       produces:
@@ -80,15 +85,15 @@ paths:
           description: "Unauthorized"
         500:
           description: "Internal Server Error"
-  /projects/{project}/configs/{config}/version/{version}:
+  /projects/{project}/configs/{config}/kfversion/{kfversion}:
     delete:
       tags:
-        - "configEntry"
+        - "KfConfig"
       summary: "Delete kubeflow config entry"
       description: "internal use only, alpha stage"
       security:
         - BearerToken: []
-      operationId: "deleteConfigEntry"
+      operationId: "deleteKfConfig"
       consumes:
         - "application/json"
       produces:
@@ -105,7 +110,7 @@ paths:
           required: true
           type: "string"
         - in: "path"
-          name: "version"
+          name: "kfversion"
           description: "kubeflow git version that config entry based on"
           required: true
           type: "string"
@@ -118,7 +123,7 @@ paths:
           description: "Entry not found"
         500:
           description: "Internal Server Error"
-  /projects/{project}/configs/{config}/version/{version}/file:
+  /projects/{project}/configs/{config}/kfversion/{kfversion}/file:
     get:
       tags:
         - "configFile"
@@ -143,7 +148,7 @@ paths:
           required: true
           type: "string"
         - in: "path"
-          name: "version"
+          name: "kfversion"
           description: "kubeflow git version that config entry based on"
           required: true
           type: "string"
@@ -187,7 +192,7 @@ paths:
           required: true
           type: "string"
         - in: "path"
-          name: "version"
+          name: "kfversion"
           description: "kubeflow git version that config entry based on"
           required: true
           type: "string"
@@ -224,6 +229,11 @@ paths:
         - in: "path"
           name: "project"
           description: "gcp project string id"
+          required: true
+          type: "string"
+        - in: "query"
+          name: "email"
+          description: "Email of user who make the request and should have access to kubeflow service"
           required: true
           type: "string"
         - in: "body"
@@ -316,7 +326,7 @@ definitions:
         type: "string"
       passwordHash:
         type: "string"
-  DeploymentMetadata:
+  Metadata:
     type: "object"
     description: "kubeflow Deployment share same metadata as kubeflow config"
     properties:
@@ -324,20 +334,16 @@ definitions:
         type: "string"
       namespace:
         type: "string"
-      version:
-        type: "string"
-      email:
-        type: "string"
-      zone:
-        type: "string"
   KfDeployment:
     type: "object"
     properties:
       metadata:
-        $ref: "#/definitions/DeploymentMetadata"
+        $ref: "#/definitions/Metadata"
       spec:
         type: "object"
         properties:
+          kfConfigRef:
+            $ref: "#/definitions/KfConfigRef"
           sAClientId:
             type: "string"
       status:
@@ -364,10 +370,12 @@ definitions:
     type: "object"
     properties:
       metadata:
-        $ref: "#/definitions/DeploymentMetadata"
+        $ref: "#/definitions/Metadata"
       spec:
         type: "object"
         properties:
+          kfConfigRef:
+            $ref: "#/definitions/KfConfigRef"
           extraComponents:
             type: "array"
             items:
@@ -385,7 +393,7 @@ definitions:
       status:
         type: "object"
         properties:
-          version:
+          kfversion:
             type: "string"
           message:
             type: "string"
@@ -398,7 +406,7 @@ definitions:
       configs:
         type: "array"
         items:
-          $ref: "#/definitions/DeploymentMetadata"
+          $ref: "#/definitions/KfConfigRef"
   KfConfigFile:
     type: "object"
     properties:
@@ -406,6 +414,15 @@ definitions:
         type: "string"
         format: "byte"
       filepath:
+        type: "string"
+  KfConfigRef:
+    type: "object"
+    description: "kubeflow config location in source repo of target project"
+    properties:
+      name:
+        type: "string"
+      kfversion:
+        description: "kubeflow git version that config entry based on"
         type: "string"
   Parameter:
     type: "object"
