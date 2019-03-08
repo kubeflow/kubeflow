@@ -8,7 +8,15 @@ user=$1
 password=$2
 
 PASSWORDB64=`echo "${password}" | base64`
-kubectl -n kubeflow create secret generic kubeflow-login --from-literal=username=${USER} --from-literal=passwordhash=${PASSWORDB64}
+
+#PASSWORDB64="${password}"
+
+set +e
+kubectl -n kubeflow delete secret kubeflow-login
+set -e
+
+kubectl -n kubeflow create secret generic kubeflow-login --from-literal=username=${USER} --from-literal=passwordhash="${PASSWORDB64}"
 
 # Delete the pod to load the new secret
 kubectl -n kubeflow delete pods -l app=basic-auth-login
+kubectl -n kubeflow delete pods -l app=basic-auth
