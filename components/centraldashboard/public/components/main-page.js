@@ -1,6 +1,3 @@
-/* eslint-disable max-len */
-import {PolymerElement, html} from '@polymer/polymer/polymer-element.js';
-
 import '@polymer/app-layout/app-drawer/app-drawer.js';
 import '@polymer/app-layout/app-drawer-layout/app-drawer-layout.js';
 import '@polymer/app-layout/app-header/app-header.js';
@@ -26,7 +23,10 @@ import '@polymer/neon-animation/neon-animated-pages.js';
 import '@polymer/neon-animation/animations/fade-in-animation.js';
 import '@polymer/neon-animation/animations/fade-out-animation.js';
 
+import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
+
 import css from './main-page.css';
+
 import template from './main-page.pug';
 
 import './dashboard-view.js';
@@ -58,46 +58,6 @@ export class MainPage extends PolymerElement {
                         text: 'Kubeflow docs',
                         href: '/docs',
                     },
-                    {link: '/jupyter/', text: 'Notebooks'},
-                    {link: '/tfjobs/ui/', text: 'TFJob Dashboard'},
-                    {link: '/katib/', text: 'Katib Dashboard'},
-                    {link: '/pipeline/', text: 'Pipeline Dashboard'},
-                ],
-            },
-            gettingStartedItems: {
-                type: Array,
-                value: [
-                    {
-                        text: 'Getting started with Kubeflow',
-                        desc: 'Quickly get running with your ML workflow on an existing Kubernetes installation',
-                        link: 'https://www.kubeflow.org/docs/started/getting-started/',
-                        icon: 'launch',
-                    }, {
-                        text: 'Microk8s for Kubeflow',
-                        desc: 'Quickly get Kubeflow running locally on native hypervisors',
-                        link: 'https://www.kubeflow.org/docs/started/getting-started-multipass/',
-                        icon: 'launch',
-                    }, {
-                        text: 'Minikube for Kubeflow',
-                        desc: 'Quickly get Kubeflow running locally',
-                        link: 'https://www.kubeflow.org/docs/started/getting-started-minikube/',
-                        icon: 'launch',
-                    }, {
-                        text: 'Kubernetes Engine for Kubeflow',
-                        desc: 'Get Kubeflow running on Google Cloud Platform. This guide is a quickstart to deploying Kubeflow on Google Kubernetes Engine',
-                        link: 'https://www.kubeflow.org/docs/started/getting-started-gke/',
-                        icon: 'launch',
-                    }, {
-                        text: 'Requirements for Kubeflow',
-                        desc: 'Get more detailed information about using Kubeflow and its components',
-                        link: 'https://www.kubeflow.org/docs/started/requirements/',
-                        icon: 'launch',
-                    },
-                ],
-            },
-            quickLinks: {
-                type: Array,
-                value: [
                     {
                         iframeUrl: '/jupyter/',
                         text: 'Notebooks',
@@ -130,9 +90,9 @@ export class MainPage extends PolymerElement {
     }
 
     /**
-      * Array of strings describing multi-property observer methods and their
-      * dependant properties
-      */
+   * Array of strings describing multi-property observer methods and their
+   * dependant properties
+   */
     static get observers() {
         return [
             '_routePageChanged(routeData.page)',
@@ -140,10 +100,10 @@ export class MainPage extends PolymerElement {
     }
 
     /**
-     * Intercepts any external links and ensures that they are captured in
-     * the route and sent to the iframe source.
-     * @param {MouseEvent} e
-     */
+   * Intercepts any external links and ensures that they are captured in
+   * the route and sent to the iframe source.
+   * @param {MouseEvent} e
+   */
     openInIframe(e) {
         const url = new URL(e.currentTarget.href);
         window.history.pushState({}, null, `_${url.pathname}`);
@@ -156,9 +116,9 @@ export class MainPage extends PolymerElement {
     }
 
     /**
-     * Handles route changes by evaluating the page path component
-     * @param {string} newPage
-     */
+   * Handles route changes by evaluating the page path component
+   * @param {string} newPage
+   */
     _routePageChanged(newPage) {
         this.hideToolbar = false;
         switch (newPage) {
@@ -176,14 +136,13 @@ export class MainPage extends PolymerElement {
     }
 
     /**
-     * Sets the iframeUrl and sidebarItem based on the subpage component
-     * provided.
-     * @param {string} href
-     */
+   * Sets the iframeUrl and sidebarItem based on the subpage component
+   * provided.
+   * @param {string} href
+   */
     _setIframeFromRoute(href) {
-        const menuLinkIndex = this.menuLinks.findIndex((m) =>
-            m.href === this.subRouteData.path
-        );
+        const menuLinkIndex =
+        this.menuLinks.findIndex((m) => m.href === this.subRouteData.path);
         if (menuLinkIndex >= 0) {
             this.page = 'iframe';
             this.iframeUrl = this.menuLinks[menuLinkIndex].iframeUrl;

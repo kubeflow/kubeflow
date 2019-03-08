@@ -45,7 +45,7 @@ app-drawer .menu-item:hover {
     background: #ffffff1b
 }
 
-app-drawer .iron-selected > .menu-item {
+app-drawer .iron-selected>.menu-item {
     background: #ffffff3b;
     color: white;
     font-weight: 100
@@ -99,7 +99,7 @@ paper-tab[link] a {
     @apply --layout-center-center;
     color: var(--paper-tabs-selection-bar);
     text-decoration: none;
-  }
+}
 
 app-header-layout {
     @apply --layout-vertical
@@ -108,10 +108,12 @@ app-header-layout {
 neon-animated-pages {
     height: 100%;
 }
+
 neon-animatable {
     @apply --layout-vertical;
     height: 100%;
 }
+
 neon-animatable#iframe-page {
     top: -64px;
 }
@@ -146,6 +148,7 @@ neon-animatable#iframe-page {
     font-size: 1.3em;
     font-family: Google Sans;
 }
+
 #Dashboard {
     background: #f1f3f4;
     padding: 1em;
@@ -155,7 +158,8 @@ neon-animatable#iframe-page {
     min-width: 0;
     --primary-background-color: white;
 }
-#Dashboard > paper-card {
+
+#Dashboard>paper-card {
     border-radius: 5px;
     grid-column: 1 / span 2;
     max-width: 100%;
@@ -165,27 +169,37 @@ neon-animatable#iframe-page {
         font-family: "Google Sans"
     }
 }
-#Dashboard > paper-card.thin {grid-column: 3;min-width: 19em}
-#Dashboard > .Getting-Started paper-icon-item {
+
+#Dashboard>paper-card.thin {
+    grid-column: 3;
+    min-width: 19em
+}
+
+#Dashboard>.Getting-Started paper-icon-item {
     cursor: pointer;
 }
-#Dashboard > .Getting-Started paper-icon-item:not(:last-of-type) {
+
+#Dashboard>.Getting-Started paper-icon-item:not(:last-of-type) {
     border-bottom: 1px solid var(--border-color);
 }
-#Dashboard > .Getting-Started paper-icon-item iron-icon {
+
+#Dashboard>.Getting-Started paper-icon-item iron-icon {
     color: var(--accent-color)
 }
-#Dashboard > .Getting-Started paper-icon-item:hover .heading {
+
+#Dashboard>.Getting-Started paper-icon-item:hover .heading {
     color: var(--paper-blue-700);
     text-decoration: underline;
 }
-#Dashboard > .Getting-Started [secondary] {
-word-break: break-word;
+
+#Dashboard>.Getting-Started [secondary] {
+    word-break: break-word;
     width: 100%;
     white-space: normal;
     font-size: .8em;
 }
-#Dashboard > .Quick-Links .link {
+
+#Dashboard>.Quick-Links .link {
     width: 80%;
     margin: .5em auto;
     border: 1px solid #eeeeef;
@@ -193,24 +207,44 @@ word-break: break-word;
     border-radius: 5px;
     @apply --layout-horizontal;
 }
-#Dashboard > .Quick-Links .link.more-coming {opacity: .4;font-style: italic;pointer-events: none}
-#Dashboard > .Quick-Links .link .button {color: var(--accent-color);background: rgba(0, 125, 252, 0.25);border-radius: 50%}
-#Dashboard:after {content: '';grid-column: 1 span 3}
-#Activity {@apply --layout-vertical;@apply --layout-center-center}
-#Activity:before, #Activity:after {font-size: 3em;opacity: .3;font-family: Google Sans}
-#Activity:before {content: ":(";font-size: 6em;transform: rotateZ(90deg)}
-#Activity:after {content: "No content here yet..."}
 
-[hides] {transition: opacity .25s}
-[hidden] {opacity: 0;pointer-events: none}
-[hidden]:not([hides]) {display: none}
-a[href] {
-    text-decoration: none;
-    color: initial;
+#Dashboard>.Quick-Links .link.more-coming {
+    opacity: .4;
+    font-style: italic;
+    pointer-events: none
 }
-a[href]:hover {
-    color: var(--paper-blue-700);
-    text-decoration: underline;
+
+#Dashboard>.Quick-Links .link .button {
+    color: var(--accent-color);
+    background: rgba(0, 125, 252, 0.25);
+    border-radius: 50%
+}
+
+#Dashboard:after {
+    content: '';
+    grid-column: 1 span 3
+}
+
+#Activity {
+    @apply --layout-vertical;
+    @apply --layout-center-center
+}
+
+#Activity:before, #Activity:after {
+    font-size: 3em;
+    opacity: .3;
+    font-family: Google Sans
+}
+
+#Activity:before {
+    content: ":(";
+    font-size: 6em;
+    transform: rotateZ(90deg)
+}
+
+#Activity:after {
+    content: "No content here yet..."
+}
 
 [hides] {
     transition: opacity .25s;
