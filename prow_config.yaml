@@ -154,7 +154,7 @@ workflows:
   # Jupyter-web-app presubmit
   - app_dir: kubeflow/kubeflow/components/jupyter-web-app/releaser
     component: workflows
-    name: jupyter-web-app-release
+    name: jupyterui-release
     job_types:
       - presubmit
     params:
@@ -165,7 +165,7 @@ workflows:
   # Jupyter-web-app postsubmit that publishes the docker image to gcr.io/kubeflow-images-public
   - app_dir: kubeflow/kubeflow/components/jupyter-web-app/releaser
     component: workflows
-    name: jupyter-web-app-release
+    name: jupyterui-release
     job_types:
       - postsubmit
     params:
