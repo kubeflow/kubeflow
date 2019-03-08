@@ -11,7 +11,7 @@
       cluster: "kubeflow-releasing",
       dockerfile: "Dockerfile",
       dockerfileDir: "kubeflow/components/jupyter-web-app",
-      extra_args: "null",
+      extra_args: "",
       extra_repos: "kubeflow/testing@HEAD",
       gcpCredentialsSecretName: "gcp-credentials",
       image: "jupyter-web-app",

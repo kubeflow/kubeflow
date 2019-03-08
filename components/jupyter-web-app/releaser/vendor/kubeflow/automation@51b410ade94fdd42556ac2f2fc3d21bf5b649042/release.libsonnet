@@ -154,36 +154,14 @@
             // build_image.sh is not in the container its a volume mounted file.
             "/bin/bash",
             "-c",
-            imageDir + "/build_image.sh "
-            + imageDir + "/" + dockerfile + " "
-            + image + " "
-            + params.versionTag
+            srcRootDir + "/kubeflow/scripts/build_image.sh "
+            + "--dockerfile=" + imageDir + "/" + dockerfile + " "
+            + "--image=" + image + " "
+            + "--tag=" + params.versionTag
             + params.extra_args,
           ],
-          [
-            {
-              name: "DOCKER_HOST",
-              value: "127.0.0.1",
-            },
-          ],
-          [{
-            name: "dind",
-            image: "docker:17.10-dind",
-            securityContext: {
-              privileged: true,
-            },
-            resources: {
-              requests: {
-                memory: "1Gi",
-                cpu: "0.5",
-              },
-              limits: {
-                memory: "4Gi",
-                cpu: "2",
-              },
-            },
-            mirrorVolumeMounts: true,
-          }],
+          [],
+          [],
         );  // buildImageTemplate
       {
         apiVersion: "argoproj.io/v1alpha1",
