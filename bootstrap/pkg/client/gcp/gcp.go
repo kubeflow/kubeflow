@@ -405,18 +405,6 @@ func (gcp *Gcp) replaceText(regex string, repl string, src []byte) []byte {
 	return buf
 }
 
-func (gcp *Gcp) writeGcpSecret(client *clientset.Clientset, secretName string, data map[string][]byte) error {
-	secret := &v1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      secretName,
-			Namespace: gcp.GcpApp.Namespace,
-		},
-		Data: data,
-	}
-	_, err := client.CoreV1().Secrets(gcp.GcpApp.Namespace).Create(secret)
-	return err
-}
-
 func (gcp *Gcp) getServiceClient(ctx context.Context) (*http.Client, error) {
 
 	// See https://cloud.google.com/docs/authentication/.

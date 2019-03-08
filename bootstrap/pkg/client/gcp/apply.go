@@ -33,10 +33,13 @@ import (
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/deploymentmanager/v2"
 	"google.golang.org/api/iam/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
+
+const IstioNamespace = "istio-system"
 
 // Apply the gcp kfapp
 func (gcp *Gcp) Apply(resources kftypes.ResourceEnum, options map[string]interface{}) error {
@@ -202,6 +205,8 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 	}
 }
 
+// createGcpSecret creates a gcp service account and inserts the service acount key
+// into the cluster as a secret.
 func (gcp *Gcp) createGcpSecret(ctx context.Context, client *clientset.Clientset,
 	email string, secretName string) error {
 	namespace := gcp.GcpApp.Namespace
@@ -235,11 +240,27 @@ func (gcp *Gcp) createGcpSecret(ctx context.Context, client *clientset.Clientset
 	if err != nil {
 		return fmt.Errorf("PrivateKeyData decoding error: %v", err)
 	}
-	return gcp.writeGcpSecret(client, secretName, map[string][]byte{
+
+	err = gcp.insertSecret(client, secretName, gcp.GcpApp.Namespace, map[string][]byte{
 		secretName + ".json": privateKeyData,
 	})
+	if err != nil {
+		return err
+	}
+	// If using istio, also creates the secret in istio's namespace
+	if gcp.GcpApp.Spec.UseIstio {
+		err = gcp.insertSecret(client, secretName, IstioNamespace, map[string][]byte{
+			secretName + ".json": privateKeyData,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
+// createSecrets inserts the following secret into the cluster:
+//   admin-gcp-sa, user-gcp-sa, kubeflow-oauth
 func (gcp *Gcp) createSecrets(options map[string]interface{}) error {
 	ctx := context.Background()
 	k8sClient, err := gcp.getK8sClientset(ctx)
@@ -250,11 +271,9 @@ func (gcp *Gcp) createSecrets(options map[string]interface{}) error {
 	userEmail := getSA(gcp.GcpApp.Name, "user", gcp.GcpApp.Spec.Project)
 	if err := gcp.createGcpSecret(ctx, k8sClient, adminEmail, ADMIN_SECRET_NAME); err != nil {
 		return fmt.Errorf("cannot create admin secret %v Error %v", ADMIN_SECRET_NAME, err)
-
 	}
 	if err := gcp.createGcpSecret(ctx, k8sClient, userEmail, USER_SECRET_NAME); err != nil {
 		return fmt.Errorf("cannot create user secret %v Error %v", USER_SECRET_NAME, err)
-
 	}
 
 	_, err = k8sClient.CoreV1().Secrets(gcp.GcpApp.Namespace).Get(KUBEFLOW_OAUTH, metav1.GetOptions{})
@@ -286,8 +305,26 @@ func (gcp *Gcp) createSecrets(options map[string]interface{}) error {
 			string(kftypes.OAUTH_SECRET), CLIENT_SECRET)
 	}
 
-	return gcp.writeGcpSecret(k8sClient, KUBEFLOW_OAUTH, map[string][]byte{
+	oauthSecretNamespace := gcp.GcpApp.Namespace
+	if gcp.GcpApp.Spec.UseIstio {
+		oauthSecretNamespace = IstioNamespace
+	}
+	return gcp.insertSecret(k8sClient, KUBEFLOW_OAUTH, oauthSecretNamespace, map[string][]byte{
 		strings.ToLower(CLIENT_ID):     []byte(oauthId),
 		strings.ToLower(CLIENT_SECRET): []byte(oauthSecret),
 	})
+}
+
+// insertSecret inserts a k8s secret into the cluster.
+func (gcp *Gcp) insertSecret(client *clientset.Clientset, secretName string, namespace string,
+	data map[string][]byte) error {
+	secret := &v1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      secretName,
+			Namespace: namespace,
+		},
+		Data: data,
+	}
+	_, err := client.CoreV1().Secrets(namespace).Create(secret)
+	return err
 }
