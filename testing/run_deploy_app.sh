@@ -17,6 +17,7 @@ CLIENT_ID=459682233032-a76ps35eh3j8odvudf4292bgq0jam74i.apps.googleusercontent.c
 CLIENT_SECRET=eEWmsMuOo7s1o04bRctfehuD \
   python test_deploy_app.py \
   --mode="loadtest" \
+  --kfversion="v0.4.1" \
   --project_prefix="kf-gcp-deploy-loadtest-" \
   --number_projects="1" \
   --number_deployments_per_project="3" \
