@@ -10,8 +10,8 @@ export class DashboardView extends PolymerElement {
     }
 
     /**
-   * Object describing property-related metadata used by Polymer features
-   */
+     * Object describing property-related metadata used by Polymer features
+     */
     static get properties() {
         const kubeflowDocs = 'https://www.kubeflow.org/docs/started';
 

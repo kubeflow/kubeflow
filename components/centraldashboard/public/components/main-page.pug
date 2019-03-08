@@ -1,5 +1,5 @@
 app-drawer-layout.flex(narrow='{{narrowMode}}')
-    app-location(route='{{route}}')
+    app-location(route='{{route}}', query-params='{{queryParams}}')
     app-route(route='{{route}}', pattern='/:page', data='{{routeData}}',
         tail='{{subRouteData}}')
 
@@ -29,7 +29,7 @@ app-drawer-layout.flex(narrow='{{narrowMode}}')
                         paper-tab(page='activity', link,hidden$='[[!_devMode]]')
                             a.link(tabindex='-1', href='/activity') Activity
                     aside#NamespaceSelector(hidden$='[[!_devMode]]')
-                        paper-dropdown-menu(label='Namespace')
+                        namespace-selector(query-params='{{queryParams}}')
                     paper-icon-button#Menu(icon='menu',
                         on-click='toggleSidebar', hides,
                         hidden$='[[!narrowMode]]')
@@ -39,6 +39,6 @@ app-drawer-layout.flex(narrow='{{narrowMode}}')
             neon-animatable(page='dashboard')
                 dashboard-view
             neon-animatable(page='activity')
-                activity-view
+                activity-view(namespace='[[queryParams.ns]]')
             neon-animatable#iframe-page(page='iframe')
                 iframe#PageFrame.flex(src='[[iframeUrl]]')
