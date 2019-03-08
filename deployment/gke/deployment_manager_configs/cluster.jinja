@@ -115,7 +115,7 @@ resources:
           workloadMetadataConfig:
             nodeMetadata: SECURE
           {% endif %}
-          machineType: n1-standard-8
+          machineType: {{ properties['cpu-pool-machine-type'] }}
           serviceAccount: {{ KF_VM_SA_NAME }}@{{ env['project'] }}.iam.gserviceaccount.com
           oauthScopes: {{ VM_OAUTH_SCOPES }}
           # Set min cpu platform to ensure AVX2 is supported.
@@ -154,14 +154,14 @@ resources:
         workloadMetadataConfig:
           nodeMetadata: SECURE
         {% endif %}
-        machineType: n1-standard-8
+        machineType: {{ properties['gpu-pool-machine-type'] }}
         serviceAccount: {{ KF_VM_SA_NAME }}@{{ env['project'] }}.iam.gserviceaccount.com
         oauthScopes: {{ VM_OAUTH_SCOPES }}
         # Set min cpu platform to ensure AVX2 is supported.
         minCpuPlatform: 'Intel Broadwell'
         accelerators:
           - acceleratorCount: {{ properties['gpu-number-per-node'] }}
-            acceleratorType: nvidia-tesla-k80
+            acceleratorType: {{ properties['gpu-type'] }}
 
   metadata:
     dependsOn:
