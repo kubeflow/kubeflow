@@ -2,9 +2,7 @@
 # Script to start deployment api and make request to it.
 import argparse
 import base64
-import creds
 import datetime
-import httplib2
 import logging
 import os
 import errno
@@ -122,10 +120,10 @@ def prepare_request_data(args, deployment):
 
   client_id = may_get_env_var("CLIENT_ID")
   client_secret = may_get_env_var("CLIENT_SECRET")
-  crm = discovery.build(
-    'cloudresourcemanager', 'v1', http=creds.authorize(httplib2.Http()))
-
+  credentials = GoogleCredentials.get_application_default()
+  crm = discovery.build('cloudresourcemanager', 'v1', credentials=credentials)
   project = crm.projects().get(projectId=args.project).execute()
+  logging.info("project info: %s", project)
   return {
       "AppConfig": defaultApp,
       "Apply": True,
@@ -138,7 +136,7 @@ def prepare_request_data(args, deployment):
       "Name": deployment,
       "Namespace": 'kubeflow',
       "Project": args.project,
-      "ProjectNumber": project.projectNumber,
+      "ProjectNumber": project["projectNumber"],
       # service account client id of account: kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
       "SAClientId": args.sa_client_id,
       "Token": access_token,
@@ -526,8 +524,8 @@ def clean_up_project_resource(args, projects, deployments):
   return True
 
 def run_load_test(args):
-  num_deployments = args.num_deployments_per_project
-  num_projects = args.num_projects
+  num_deployments = args.number_deployments_per_project
+  num_projects = args.number_projects
   start_http_server(8000)
   LOADTEST_SUCCESS.set(num_deployments)
   LOADTEST_HEALTH.set(0)
@@ -537,7 +535,10 @@ def run_load_test(args):
       ['kubeflow' + str(i) for i in range(1, num_deployments + 1)])
   projects = [args.project_prefix + str(i)
              for i in range(1, num_projects + 1)]
+  logging.info("deployments: %s" % deployments)
+  logging.info("projects: %s" % projects)
   while True:
+    logging.info("waiting for %s seconds" % args.wait_sec)
     sleep(args.wait_sec)
     if not clean_up_project_resource(args, projects, deployments):
       LOADTEST_HEALTH.set(1)
@@ -552,7 +553,7 @@ def run_load_test(args):
       LOADTEST_SUCCESS.set(0)
       FAILURE_COUNT.inc()
       logging.error(
-          "prober request failed, retry in %s seconds" % args.wait_sec)
+          "load test request failed, retry in %s seconds" % args.wait_sec)
       continue
 
     for project in projects:
