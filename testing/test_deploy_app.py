@@ -104,7 +104,7 @@ def prepare_request_data(args, deployment):
   with open(
       os.path.join(FILE_PATH, "../bootstrap/config/gcp_prototype.yaml"),
       'r') as conf_input:
-    defaultApp = yaml.load(conf_input)["app"]
+    defaultApp = yaml.load(conf_input)["defaultApp"]
 
   for param in defaultApp["parameters"]:
     if param["name"] == "acmeEmail":
