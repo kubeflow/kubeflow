@@ -116,7 +116,8 @@ func (ksApp *ksApp) Apply(resources kftypes.ResourceEnum, options map[string]int
 	name := ksApp.KsApp.Name
 	ctx := context.Background()
 	var host string
-	if options[string(kftypes.PLATFORM)] != nil && options[string(kftypes.PLATFORM)].(string) != "" {
+	//TODO Gcp specifics shouldn't be in ksonnet
+	if options[string(kftypes.PLATFORM)] != nil && options[string(kftypes.PLATFORM)].(string) == kftypes.GCP {
 		log.Infof("ks.Apply: platform = %v project = %v, zone = %v name = %v",
 			options[string(kftypes.PLATFORM)],
 			options[string(kftypes.PROJECT)],
