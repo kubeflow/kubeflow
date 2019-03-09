@@ -15,19 +15,19 @@ If you are a member of the Kubeflow org you can use these search queries
 
 ## Kubeflow 1.0
 
-We are working diligently to get Kubeflow to its first major version release 1.0 and plan to have this ready in early half of 2019. This will be a significant milestone for the project. Here are some critical areas for the release:
+We are working diligently to get Kubeflow to its first major version release 1.0. Here's how we are approaching 1.0.
+
+* Individual applications within Kubeflow (e.g. TFJob, kfctl, Pipelines, etc...) will graduate to 1.0
+* We expect to start graduating some components in the second half of 2019
+* Once we have a set of graduated applications covering core CUJ's for Kubeflow we will graduate Kubeflow to 1.0
 
 
-*   Stabilized APIs for training (TFJob/PyTorch operators) and serving.
+We are working on defining criterion for graduating applications. Here are some areas we think are important
 
-	* [PyTorch issues](https://github.com/issues?utf8=%E2%9C%93&q=org%3Akubeflow+label%3Aarea%2Fpytorch)
-	* [TFJob issues](https://github.com/issues?utf8=%E2%9C%93&q=org%3Akubeflow+label%3Aarea%2Ftfjob+)
+
+*   Stabilized APIs   
 *   Robust support for monitoring and logging.
 *   Scale and load testing.
-*   Integration with hyperparameter tuning with Katib.
-	* [Katib Issues](https://github.com/issues?utf8=%E2%9C%93&q=org%3Akubeflow+label%3Aarea%2Fkatib+)
-*   A new [dashboard experience](http://bit.ly/kf-landing-page-cuj)
-    *   [Tracker Issue](https://github.com/kubeflow/kubeflow/issues/2359)
 
 ## Enterprise Readiness
 
