@@ -1,5 +1,5 @@
 // E2E test for the new go based version of kfctl.
-local params = std.extVar("__ksonnet/params").components.kfctl_test;
+local params = std.extVar("__ksonnet/params").components.kfctl_go_test;
 
 local k = import "k.libsonnet";
 local util = import "workflows.libsonnet";
