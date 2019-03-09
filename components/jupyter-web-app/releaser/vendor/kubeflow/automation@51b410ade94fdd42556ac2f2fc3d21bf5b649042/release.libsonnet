@@ -152,7 +152,7 @@
             "/bin/bash",
             "-c",
             srcDir + "/scripts/build_image.sh "
-            + "--dockerfile=" + srcDir + params.doeckerfileDir + "/" dockerfile + " "
+            + "--dockerfile=" + srcDir + params.dockerfileDir + "/" + dockerfile + " "
             + "--image=" + image + " "
             + "--tag=" + params.versionTag
             + params.extra_args,
