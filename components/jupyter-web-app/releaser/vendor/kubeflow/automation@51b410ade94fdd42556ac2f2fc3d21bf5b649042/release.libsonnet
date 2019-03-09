@@ -86,6 +86,7 @@
         container: {
           command: command,
           image: testing_image,
+          workingDir: srcDir,
           env: [
             {
               // Add the source directories to the python path.
@@ -150,8 +151,9 @@
             // We need to explicitly specify bash because
             // build_image.sh is not in the container its a volume mounted file.
             "/bin/bash",
-            srcDir + "/scripts/build_image.sh "
-            + "--dockerfile=" + srcDir + params.dockerfileDir + "/" + dockerfile + " "
+            "-c",
+            "scripts/build_image.sh "
+            + "--dockerfile=" + params.dockerfileDir + "/" + dockerfile + " "
             + "--image=" + image + " "
             + "--tag=" + params.versionTag
             + params.extra_args,
