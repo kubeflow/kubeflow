@@ -47,6 +47,7 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 				Kind:       "Client",
 				APIVersion: "client.apps.kubeflow.org/v1alpha1",
 			},
+			Spec: cltypes.ClientSpec{},
 		},
 	}
 	//TODO we need a way to specific different types of package managers
@@ -103,6 +104,13 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 		kubeflowVersion := options[string(kftypes.VERSION)].(string)
 		_client.Client.Spec.Version = kubeflowVersion
 	}
+	if options[string(kftypes.CONFIG)] != nil {
+		dat := options[string(kftypes.CONFIG)].([]byte)
+		configErr := yaml.Unmarshal(dat, &_client.Client.Spec)
+		if configErr != nil {
+			log.Errorf("couldn't unmarshal config. Error: %v", configErr)
+		}
+	}
 	if options[string(kftypes.DATA)] != nil {
 		dat := options[string(kftypes.DATA)].([]byte)
 		specErr := yaml.Unmarshal(dat, _client.Client)
@@ -112,6 +120,69 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	}
 	return _client
 }
+
+
+func downloadToCache(options map[string]interface{}) error {
+	appDir := options[string(kftypes.APPDIR)].(string)
+	if _, err := os.Stat(appDir); os.IsNotExist(err) {
+		appdirErr := os.Mkdir(options[string(kftypes.APPDIR)].(string), os.ModePerm)
+		if appdirErr != nil {
+			log.Fatalf("couldn't create directory %v Error %v",appDir, appdirErr)
+		}
+	}
+	cacheDir := path.Join(appDir, kftypes.DefaultCacheDir)
+	cacheDirErr := os.Mkdir(cacheDir, os.ModePerm)
+	if cacheDirErr != nil {
+		return fmt.Errorf("couldn't create directory %v Error %v", cacheDir, cacheDirErr)
+	}
+	version := options[string(kftypes.VERSION)].(string)
+	cacheName := version
+	if strings.HasPrefix(version, "pull") {
+		if !strings.HasSuffix(version, "head") {
+			version = version + "/head"
+		}
+		parts := strings.Split(version, "/")
+		cacheName = parts[1]
+	}
+	options[string(kftypes.VERSION)] = cacheName
+	tarballUrl := kftypes.DefaultGitRepo + "/" + version + "?archive=tar.gz"
+	tarballUrlErr := gogetter.GetAny(cacheDir, tarballUrl)
+	if tarballUrlErr != nil {
+		return fmt.Errorf("couldn't download kubeflow repo %v Error %v", tarballUrl, tarballUrlErr)
+	}
+	files, filesErr := ioutil.ReadDir(cacheDir)
+	if filesErr != nil {
+		return fmt.Errorf("couldn't read %v Error %v", cacheDir, filesErr)
+	}
+	subdir := files[0].Name()
+	extractedPath := filepath.Join(cacheDir, subdir)
+	newPath := filepath.Join(cacheDir, cacheName)
+	renameErr := os.Rename(extractedPath, newPath)
+	if renameErr != nil {
+		return fmt.Errorf("couldn't rename %v to %v Error %v", extractedPath, newPath, renameErr)
+	}
+	//TODO see #2629
+	configPath := filepath.Join(newPath, kftypes.DefaultConfigDir)
+	if options[string(kftypes.PLATFORM)] != nil && options[string(kftypes.PLATFORM)].(string) != "" {
+		if options[string(kftypes.USE_BASIC_AUTH)] != nil {
+			useBasicAuth := options[string(kftypes.USE_BASIC_AUTH)].(bool)
+			if useBasicAuth {
+				configPath = filepath.Join(configPath, kftypes.GcpBasicAuth)
+			} else {
+				configPath = filepath.Join(configPath, kftypes.GcpIapConfig)
+			}
+		}
+	} else {
+		configPath = filepath.Join(configPath, kftypes.DefaultConfigFile)
+	}
+	buf, bufErr := ioutil.ReadFile(configPath)
+	if bufErr != nil {
+		return fmt.Errorf("Unable to read config %v: %v", configPath, bufErr)
+	}
+	options[string(kftypes.CONFIG)] = buf
+	return nil
+}
+
 
 // GetPlatform will return an implementation of kftypes.KfApp that matches the platform string
 // It looks for statically compiled-in implementations, otherwise it delegates to
@@ -141,7 +212,8 @@ func GetPackageManager(packagemanager string, options map[string]interface{}) (k
 
 // NewKfApp is called from the Init subcommand and will create a directory based on
 // the path/name argument given to the Init subcommand
-func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
+func
+NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	//appName can be a path
 	appName := options[string(kftypes.APPNAME)].(string)
 	appDir := path.Dir(appName)
@@ -176,6 +248,11 @@ and must start and end with an alphanumeric character`, appName)
 	}
 	options[string(kftypes.APPNAME)] = appName
 	options[string(kftypes.APPDIR)] = appDir
+
+	cacheErr := downloadToCache(options)
+	if cacheErr != nil {
+		log.Fatalf("could not download repo to cache Error %v", cacheErr)
+	}
 	pApp := GetKfApp(options)
 	return pApp, nil
 }
@@ -237,7 +314,8 @@ func (kfapp *coordinator) Apply(resources kftypes.ResourceEnum, options map[stri
 			if platform != nil {
 				platformErr := platform.Apply(resources, options)
 				if platformErr != nil {
-					return fmt.Errorf("coordinator Apply failed for %v: %v", kfapp.Client.Spec.Platform, platformErr)
+					return fmt.Errorf("coordinator Apply failed for %v: %v",
+						kfapp.Client.Spec.Platform, platformErr)
 				}
 			} else {
 				return fmt.Errorf("%v not in Platforms", kfapp.Client.Spec.Platform)
@@ -265,7 +343,8 @@ func (kfapp *coordinator) Delete(resources kftypes.ResourceEnum, options map[str
 			if platform != nil {
 				platformErr := platform.Delete(resources, options)
 				if platformErr != nil {
-					return fmt.Errorf("coordinator Delete failed for %v: %v", kfapp.Client.Spec.Platform, platformErr)
+					return fmt.Errorf("coordinator Delete failed for %v: %v",
+						kfapp.Client.Spec.Platform, platformErr)
 				}
 			} else {
 				return fmt.Errorf("%v not in Platforms", kfapp.Client.Spec.Platform)
@@ -293,7 +372,8 @@ func (kfapp *coordinator) Generate(resources kftypes.ResourceEnum, options map[s
 			if platform != nil {
 				platformErr := platform.Generate(resources, options)
 				if platformErr != nil {
-					return fmt.Errorf("coordinator Generate failed for %v: %v", kfapp.Client.Spec.Platform, platformErr)
+					return fmt.Errorf("coordinator Generate failed for %v: %v",
+						kfapp.Client.Spec.Platform, platformErr)
 				}
 			} else {
 				return fmt.Errorf("%v not in Platforms", kfapp.Client.Spec.Platform)
@@ -309,47 +389,6 @@ func (kfapp *coordinator) Generate(resources kftypes.ResourceEnum, options map[s
 	return nil
 }
 
-func (kfapp *coordinator) downloadToCache() error {
-	if _, err := os.Stat(kfapp.Client.Spec.AppDir); os.IsNotExist(err) {
-		appdirErr := os.Mkdir(kfapp.Client.Spec.AppDir, os.ModePerm)
-		if appdirErr != nil {
-			log.Fatalf("couldn't create directory %v Error %v", kfapp.Client.Spec.AppDir, appdirErr)
-		}
-	}
-	cacheDir := path.Join(kfapp.Client.Spec.AppDir, kftypes.DefaultCacheDir)
-	cacheDirErr := os.Mkdir(cacheDir, os.ModePerm)
-	if cacheDirErr != nil {
-		return fmt.Errorf("couldn't create directory %v Error %v", cacheDir, cacheDirErr)
-	}
-	version := kfapp.Client.Spec.Version
-	cacheName := version
-	if strings.HasPrefix(kfapp.Client.Spec.Version, "pull") {
-		if !strings.HasSuffix(kfapp.Client.Spec.Version, "head") {
-			version = kfapp.Client.Spec.Version + "/head"
-		}
-		parts := strings.Split(version, "/")
-		cacheName = parts[1]
-		kfapp.Client.Spec.Version = cacheName
-	}
-	tarballUrl := kftypes.DefaultGitRepo + "/" + version + "?archive=tar.gz"
-	tarballUrlErr := gogetter.GetAny(cacheDir, tarballUrl)
-	if tarballUrlErr != nil {
-		return fmt.Errorf("couldn't download kubeflow repo %v Error %v", tarballUrl, tarballUrlErr)
-	}
-	files, filesErr := ioutil.ReadDir(cacheDir)
-	if filesErr != nil {
-		return fmt.Errorf("couldn't read %v Error %v", cacheDir, filesErr)
-	}
-	subdir := files[0].Name()
-	extractedPath := filepath.Join(cacheDir, subdir)
-	newPath := filepath.Join(cacheDir, cacheName)
-	renameErr := os.Rename(extractedPath, newPath)
-	if renameErr != nil {
-		return fmt.Errorf("couldn't rename %v to %v Error %v", extractedPath, newPath, renameErr)
-	}
-	return nil
-}
-
 func (kfapp *coordinator) Init(resources kftypes.ResourceEnum, options map[string]interface{}) error {
 	switch resources {
 	case kftypes.K8S:
@@ -357,10 +396,6 @@ func (kfapp *coordinator) Init(resources kftypes.ResourceEnum, options map[strin
 	case kftypes.PLATFORM:
 		fallthrough
 	case kftypes.ALL:
-		cacheErr := kfapp.downloadToCache()
-		if cacheErr != nil {
-			log.Fatalf("could not download repo to cache Error %v", cacheErr)
-		}
 		for packageManagerName, packageManager := range kfapp.PackageManagers {
 			packageManagerErr := packageManager.Init(kftypes.K8S, options)
 			if packageManagerErr != nil {
@@ -372,7 +407,8 @@ func (kfapp *coordinator) Init(resources kftypes.ResourceEnum, options map[strin
 			if platform != nil {
 				platformErr := platform.Init(resources, options)
 				if platformErr != nil {
-					return fmt.Errorf("kfApp Generate failed for %v: %v", kfapp.Client.Spec.Platform, platformErr)
+					return fmt.Errorf("kfApp Generate failed for %v: %v",
+						kfapp.Client.Spec.Platform, platformErr)
 				}
 			} else {
 				return fmt.Errorf("%v not in Platforms", kfapp.Client.Spec.Platform)
@@ -404,7 +440,8 @@ func (kfapp *coordinator) Show(resources kftypes.ResourceEnum, options map[strin
 			if ok && show != nil {
 				showErr := show.Show(resources, options)
 				if showErr != nil {
-					return fmt.Errorf("kfApp Init failed for %v: %v", kfapp.Client.Spec.Platform, showErr)
+					return fmt.Errorf("kfApp Init failed for %v: %v",
+						kfapp.Client.Spec.Platform, showErr)
 				}
 			} else {
 				return fmt.Errorf("%v not in Platforms", kfapp.Client.Spec.Platform)

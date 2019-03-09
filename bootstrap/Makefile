@@ -61,6 +61,9 @@ generate:
 $(GOPATH)/bin/deepcopy-gen:
 	GO111MODULE=off $(GO) get k8s.io/code-generator/cmd/deepcopy-gen
 
+config/zz_generated.deepcopy.go: config/types.go
+	$(GOPATH)/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/config/... -O zz_generated.deepcopy
+
 pkg/apis/apps/gcp/v1alpha1/zz_generated.deepcopy.go: pkg/apis/apps/gcp/v1alpha1/application_types.go
 	$(GOPATH)/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/gcp/... -O zz_generated.deepcopy
 
@@ -73,7 +76,7 @@ pkg/apis/apps/client/v1alpha1/zz_generated.deepcopy.go: pkg/apis/apps/client/v1a
 v2/pkg/apis/apps/client/v1alpha1/zz_generated.deepcopy.go: v2/pkg/apis/apps/client/v1alpha1/application_types.go
 	$(GOPATH)/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/client/... -O zz_generated.deepcopy
 
-deepcopy: $(GOPATH)/bin/deepcopy-gen pkg/apis/apps/gcp/v1alpha1/zz_generated.deepcopy.go pkg/apis/apps/client/v1alpha1/zz_generated.deepcopy.go
+deepcopy: $(GOPATH)/bin/deepcopy-gen config/zz_generated.deepcopy.go pkg/apis/apps/ksonnet/v1alpha1/zz_generated.deepcopy.go pkg/apis/apps/gcp/v1alpha1/zz_generated.deepcopy.go pkg/apis/apps/client/v1alpha1/zz_generated.deepcopy.go 
 
 build-bootstrap: generate fmt vet
 	$(GO) build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go

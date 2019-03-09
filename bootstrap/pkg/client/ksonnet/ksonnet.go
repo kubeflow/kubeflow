@@ -452,11 +452,11 @@ func (ksApp *ksApp) Generate(resources kftypes.ResourceEnum, options map[string]
 	if initErr != nil {
 		return fmt.Errorf("couldn't initialize KfApi: %v", initErr)
 	}
-	if options[string(kftypes.DEFAULT_CONFIG)] == nil {
+	if options[string(kftypes.CONFIG)] == nil {
 		configPath = filepath.Join(configPath, kftypes.DefaultConfigFile)
-		options[string(kftypes.DEFAULT_CONFIG)] = configPath
+		options[string(kftypes.CONFIG)] = configPath
 	} else {
-		configPath = options[string(kftypes.DEFAULT_CONFIG)].(string)
+		configPath = options[string(kftypes.CONFIG)].(string)
 	}
 	config := &configtypes.ComponentConfig{}
 	if buf, bufErr := ioutil.ReadFile(configPath); bufErr == nil {

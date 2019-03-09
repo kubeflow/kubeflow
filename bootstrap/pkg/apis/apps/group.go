@@ -19,6 +19,7 @@ import (
 	"cloud.google.com/go/container/apiv1"
 	"encoding/base64"
 	"fmt"
+	"github.com/kubeflow/kubeflow/bootstrap/config"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2/google"
@@ -74,18 +75,18 @@ const (
 	MOUNT_LOCAL           CliOption = "mount-local"
 	SKIP_INIT_GCP_PROJECT CliOption = "skip-init-gcp-project"
 	VERBOSE               CliOption = "verbose"
-	NAMESPACE             CliOption = "namespace"
-	VERSION               CliOption = "version"
-	REPO                  CliOption = "repo"
-	PROJECT               CliOption = "project"
-	APPNAME               CliOption = "appname"
-	APPDIR                CliOption = "appDir"
-	DATA                  CliOption = "Data"
-	ZONE                  CliOption = "zone"
-	USE_BASIC_AUTH        CliOption = "use_basic_auth"
-	OAUTH_ID              CliOption = "oauth_id"
-	OAUTH_SECRET          CliOption = "oauth_secret"
-	DEFAULT_CONFIG        CliOption = "default_config"
+	NAMESPACE      CliOption = "namespace"
+	VERSION        CliOption = "version"
+	REPO           CliOption = "repo"
+	PROJECT        CliOption = "project"
+	APPNAME        CliOption = "appname"
+	APPDIR         CliOption = "appDir"
+	DATA           CliOption = "Data"
+	ZONE           CliOption = "zone"
+	USE_BASIC_AUTH CliOption = "use_basic_auth"
+	OAUTH_ID       CliOption = "oauth_id"
+	OAUTH_SECRET   CliOption = "oauth_secret"
+	CONFIG         CliOption = "config"
 )
 
 var DefaultPackages = []string{
@@ -127,22 +128,17 @@ var DefaultComponents = []string{
 	"tf-job-operator",
 }
 
-var DefaultParameters = map[string][]NameValue{
+var DefaultParameters = map[string][]config.NameValue{
 	"spartakus": {
-		NameValue{
+		config.NameValue{
 			Name:  "usageId",
 			Value: fmt.Sprintf("%08d", 10000000+rand.Intn(90000000)),
 		},
-		NameValue{
+		config.NameValue{
 			Name:  "reportUsage",
 			Value: "true",
 		},
 	},
-}
-
-type NameValue struct {
-	Name  string `json:"name,omitempty"`
-	Value string `json:"value,omitempty"`
 }
 
 //

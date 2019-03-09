@@ -44,4 +44,3 @@ componentParams:
   ambassador:
     - name: ambassadorServiceType
       value: NodePort
-platform: none

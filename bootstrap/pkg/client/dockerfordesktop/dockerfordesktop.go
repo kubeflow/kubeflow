@@ -18,6 +18,7 @@ package dockerfordesktop
 
 import (
 	"fmt"
+	"github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	"os/user"
 	"strconv"
@@ -53,7 +54,7 @@ func (dockerfordesktop *DockerForDesktop) generate(options map[string]interface{
 	// remove Katib package and component
 	kftypes.DefaultPackages = kftypes.RemoveItem(kftypes.DefaultPackages, "katib")
 	kftypes.DefaultComponents = kftypes.RemoveItem(kftypes.DefaultComponents, "katib")
-	kftypes.DefaultParameters["application"] = []kftypes.NameValue{
+	kftypes.DefaultParameters["application"] = []config.NameValue{
 		{
 			Name:  "components",
 			Value: "[" + strings.Join(kftypes.QuoteItems(kftypes.DefaultComponents), ",") + "]",
@@ -65,7 +66,7 @@ func (dockerfordesktop *DockerForDesktop) generate(options map[string]interface{
 	}
 	uid := usr.Uid
 	gid := usr.Gid
-	kftypes.DefaultParameters["jupyter"] = []kftypes.NameValue{
+	kftypes.DefaultParameters["jupyter"] = []config.NameValue{
 		{
 			Name:  string(kftypes.PLATFORM),
 			Value: platform,
@@ -87,7 +88,7 @@ func (dockerfordesktop *DockerForDesktop) generate(options map[string]interface{
 			Value: gid,
 		},
 	}
-	kftypes.DefaultParameters["ambassador"] = []kftypes.NameValue{
+	kftypes.DefaultParameters["ambassador"] = []config.NameValue{
 		{
 			Name:  string(kftypes.PLATFORM),
 			Value: platform,

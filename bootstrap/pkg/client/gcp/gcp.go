@@ -518,55 +518,6 @@ func setNameVal(entries []configtypes.NameValue, name string, val string) {
 	})
 }
 
-func (gcp *Gcp) generate(options map[string]interface{}) error {
-	configPath := path.Join(gcp.GcpApp.Spec.AppDir,
-		kftypes.DefaultCacheDir,
-		gcp.GcpApp.Spec.Version,
-		kftypes.DefaultConfigDir)
-	if gcp.GcpApp.Spec.UseBasicAuth {
-		configPath = path.Join(configPath, kftypes.GcpBasicAuth)
-	} else {
-		configPath = path.Join(configPath, kftypes.GcpIapConfig)
-	}
-	if options[string(kftypes.DEFAULT_CONFIG)] == nil {
-		options[string(kftypes.DEFAULT_CONFIG)] = configPath
-	}
-
-	if options[string(kftypes.EMAIL)] != nil &&
-		options[string(kftypes.EMAIL)].(string) != "" {
-		gcp.GcpApp.Spec.Email = options[string(kftypes.EMAIL)].(string)
-	} else if gcp.GcpApp.Spec.Email == "" {
-		return fmt.Errorf("email is not set in default nor passed.")
-	} else {
-		options[string(kftypes.EMAIL)] = gcp.GcpApp.Spec.Email
-	}
-	if options[string(kftypes.IPNAME)] != nil &&
-		options[string(kftypes.IPNAME)].(string) != "" {
-		gcp.GcpApp.Spec.IpName = options[string(kftypes.IPNAME)].(string)
-	} else if gcp.GcpApp.Spec.IpName == "" {
-		return fmt.Errorf("ipName is not set in default nor passed.")
-	} else {
-		log.Infof("Using default ipName: %v", gcp.GcpApp.Spec.IpName)
-		options[string(kftypes.IPNAME)] = gcp.GcpApp.Spec.IpName
-	}
-
-	if gcp.GcpApp.Spec.UseBasicAuth {
-		options[string(kftypes.USE_BASIC_AUTH)] = true
-	} else {
-		options[string(kftypes.USE_BASIC_AUTH)] = false
-	}
-	if options[string(kftypes.HOSTNAME)] != nil &&
-		options[string(kftypes.HOSTNAME)].(string) != "" {
-		gcp.GcpApp.Spec.Hostname = options[string(kftypes.HOSTNAME)].(string)
-	} else if gcp.GcpApp.Spec.Hostname == "" {
-		return fmt.Errorf("hostname is not set in default nor passed.")
-	}
-	if options[string(kftypes.ZONE)] != nil {
-		gcp.GcpApp.Spec.Zone = options[string(kftypes.ZONE)].(string)
-	}
-	return nil
-}
-
 //TODO(#2515)
 func (gcp *Gcp) replaceText(regex string, repl string, src []byte) []byte {
 	re := regexp.MustCompile(regex)
@@ -807,10 +758,6 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum, options map[string]inte
 		if generateK8sSpecsErr != nil {
 			return fmt.Errorf("could not generate files under %v Error: %v", K8S_SPECS, generateK8sSpecsErr)
 		}
-		generateErr := gcp.generate(options)
-		if generateErr != nil {
-			return fmt.Errorf("generate failed Error: %v", generateErr)
-		}
 	case kftypes.ALL:
 		gcpConfigFilesErr := gcp.generateDMConfigs(options)
 		if gcpConfigFilesErr != nil {
@@ -820,18 +767,10 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum, options map[string]inte
 		if generateK8sSpecsErr != nil {
 			return fmt.Errorf("could not generate files under %v Error: %v", K8S_SPECS, generateK8sSpecsErr)
 		}
-		generateErr := gcp.generate(options)
-		if generateErr != nil {
-			return fmt.Errorf("generate failed Error: %v", generateErr)
-		}
 	case kftypes.PLATFORM:
 		gcpConfigFilesErr := gcp.generateDMConfigs(options)
 		if gcpConfigFilesErr != nil {
 			return fmt.Errorf("could not generate deployment manager configs under %v Error: %v", GCP_CONFIG, gcpConfigFilesErr)
-		}
-		generateErr := gcp.generate(options)
-		if generateErr != nil {
-			return fmt.Errorf("generate failed Error: %v", generateErr)
 		}
 	}
 	createConfigErr := gcp.writeConfigFile()

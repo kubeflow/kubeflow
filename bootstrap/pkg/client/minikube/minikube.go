@@ -18,6 +18,7 @@ package minikube
 
 import (
 	"fmt"
+	"github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	"os/user"
 	"strconv"
@@ -29,7 +30,7 @@ type Minikube struct {
 	//TODO add additional types required for minikube platform
 }
 
-func GetKfApp(options map[string]interface{}) kftypes.KfApp {
+func GetKfApp(_ map[string]interface{}) kftypes.KfApp {
 	return &Minikube{}
 }
 
@@ -52,7 +53,7 @@ func (minikube *Minikube) generate(options map[string]interface{}) error {
 	// remove Katib package and component
 	kftypes.DefaultPackages = kftypes.RemoveItem(kftypes.DefaultPackages, "katib")
 	kftypes.DefaultComponents = kftypes.RemoveItem(kftypes.DefaultComponents, "katib")
-	kftypes.DefaultParameters["application"] = []kftypes.NameValue{
+	kftypes.DefaultParameters["application"] = []config.NameValue{
 		{
 			Name:  "components",
 			Value: "[" + strings.Join(kftypes.QuoteItems(kftypes.DefaultComponents), ",") + "]",
@@ -64,7 +65,7 @@ func (minikube *Minikube) generate(options map[string]interface{}) error {
 	}
 	uid := usr.Uid
 	gid := usr.Gid
-	kftypes.DefaultParameters["jupyter"] = []kftypes.NameValue{
+	kftypes.DefaultParameters["jupyter"] = []config.NameValue{
 		{
 			Name:  string(kftypes.PLATFORM),
 			Value: platform,
@@ -86,7 +87,7 @@ func (minikube *Minikube) generate(options map[string]interface{}) error {
 			Value: gid,
 		},
 	}
-	kftypes.DefaultParameters["ambassador"] = []kftypes.NameValue{
+	kftypes.DefaultParameters["ambassador"] = []config.NameValue{
 		{
 			Name:  string(kftypes.PLATFORM),
 			Value: platform,
