@@ -122,12 +122,6 @@ run-local-docker:
 clean: 
 	rm -rf test && mkdir test
 
-# hack until kfctl_default.yaml is merged to master
-config-update:
-	cp config/kfctl_default.yaml test/dockerfordesktop/.cache/master/bootstrap/config && \
-	cp config/kfctl_default.yaml test/minikube/.cache/master/bootstrap/config && \
-	cp config/kfctl_default.yaml test/gcp/.cache/master/bootstrap/config
-
 test-init: clean install dockerfordesktop.init minikube.init gcp.init
 
-test-generate: test-init config-update dockerfordesktop.generate minikube.generate gcp.generate
+test-generate: test-init dockerfordesktop.generate minikube.generate gcp.generate

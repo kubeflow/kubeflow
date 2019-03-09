@@ -69,6 +69,13 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	if _packagemanager != nil {
 		_client.PackageManagers["kustomize"] = _packagemanager
 	}
+	if options[string(kftypes.CONFIG)] != nil {
+		dat := options[string(kftypes.CONFIG)].([]byte)
+		configErr := yaml.Unmarshal(dat, &_client.Client.Spec)
+		if configErr != nil {
+			log.Errorf("couldn't unmarshal config. Error: %v", configErr)
+		}
+	}
 	platform := options[string(kftypes.PLATFORM)].(string)
 	if platform != "" {
 		_platform, _platformErr := GetPlatform(platform, options)
@@ -103,13 +110,6 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	if options[string(kftypes.VERSION)] != nil {
 		kubeflowVersion := options[string(kftypes.VERSION)].(string)
 		_client.Client.Spec.Version = kubeflowVersion
-	}
-	if options[string(kftypes.CONFIG)] != nil {
-		dat := options[string(kftypes.CONFIG)].([]byte)
-		configErr := yaml.Unmarshal(dat, &_client.Client.Spec)
-		if configErr != nil {
-			log.Errorf("couldn't unmarshal config. Error: %v", configErr)
-		}
 	}
 	if options[string(kftypes.DATA)] != nil {
 		dat := options[string(kftypes.DATA)].([]byte)
@@ -163,7 +163,7 @@ func downloadToCache(options map[string]interface{}) error {
 	}
 	//TODO see #2629
 	configPath := filepath.Join(newPath, kftypes.DefaultConfigDir)
-	if options[string(kftypes.PLATFORM)] != nil && options[string(kftypes.PLATFORM)].(string) != "" {
+	if options[string(kftypes.PLATFORM)] != nil && options[string(kftypes.PLATFORM)].(string) == "gcp" {
 		if options[string(kftypes.USE_BASIC_AUTH)] != nil {
 			useBasicAuth := options[string(kftypes.USE_BASIC_AUTH)].(bool)
 			if useBasicAuth {
@@ -294,7 +294,8 @@ func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 }
 
 // this type holds platform implementations of KfApp and ksonnet (also an implementation of KfApp)
-// eg Children[kftypes.GCP], Children[kftypes.MINIKUBE], Children[kftypes.NONE] (ksonnet)
+// eg Platforms[kftypes.GCP], Platforms[kftypes.MINIKUBE], PackageManagers["ksonnet"],
+// PackageManagers["kustomize"]
 // The data attributes in cltypes.Client are used by different KfApp implementations
 type coordinator struct {
 	Platforms       map[string]kftypes.KfApp
