@@ -162,7 +162,7 @@ workflows:
       step_image: "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4"
     include_dirs:
       - components/jupyter-web-app/*
-      - scripts/
+      - scripts/*
   # Jupyter-web-app postsubmit that publishes the docker image to gcr.io/kubeflow-images-public
   - app_dir: kubeflow/kubeflow/components/jupyter-web-app/releaser
     component: workflows
@@ -174,4 +174,4 @@ workflows:
       step_image: "gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4"
     include_dirs:
       - components/jupyter-web-app/*
-      - scripts/
+      - scripts/*
