@@ -27,6 +27,57 @@ def parse_error(e):
   return err
 
 
+def create_workspace_pvc(body):
+  """If the type is New, then create a new PVC, else use an existing one"""
+  if body["ws_type"] == "New":
+    pvc = client.V1PersistentVolumeClaim(
+        metadata=client.V1ObjectMeta(
+            name=body['ws_name'],
+            namespace=body['ns']
+        ),
+        spec=client.V1PersistentVolumeClaimSpec(
+            access_modes=[body['ws_access_modes']],
+            resources=client.V1ResourceRequirements(
+                requests={
+                    'storage': body['ws_size'] + 'Gi'
+                }
+            )
+        )
+    )
+
+    create_pvc(pvc)
+
+  return
+
+
+def create_datavol_pvc(body, i):
+  pvc_nm = body['vol_name' + i]
+
+  # Create a PVC if its a new Data Volume
+  if body["vol_type" + i] == "New":
+    size = body['vol_size' + i] + 'Gi'
+    mode = body['vol_access_modes' + i]
+
+    pvc = client.V1PersistentVolumeClaim(
+        metadata=client.V1ObjectMeta(
+            name=pvc_nm,
+            namespace=body['ns']
+        ),
+        spec=client.V1PersistentVolumeClaimSpec(
+            access_modes=[mode],
+            resources=client.V1ResourceRequirements(
+                requests={
+                    'storage': size
+                }
+            )
+        )
+    )
+
+    create_pvc(pvc)
+
+  return
+
+
 def get_secret(nm, ns):
   return v1_core.read_namespaced_secret(nm, ns)
 
