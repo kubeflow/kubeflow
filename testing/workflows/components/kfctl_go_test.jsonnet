@@ -192,7 +192,7 @@ local dagTemplates = [
   },  // create-pr-symlink
   {
     template: buildTemplate(
-      "build-kfct",
+      "build-kfctl",
       [        
         "pytest",
         "kfctl_go_test.py",
@@ -252,7 +252,7 @@ local deleteStorageStep = if deleteKubeflow then
 else [];
 
 local exitTemplates =
-  deleteStep + deleteStorageStep +
+  // deleteStep + deleteStorageStep +
   [
     {
       template: buildTemplate("copy-artifacts", [
@@ -264,9 +264,11 @@ local exitTemplates =
         "--bucket=" + bucket,
       ]),  // copy-artifacts,
 
-      dependencies: if deleteKubeflow then
-        ["kfctl-delete"] + ["kfctl-delete-storage"]
-      else null,
+      // TODO(jlewi): Uncomment when we actually set up Kubeflow.
+      dependencies: null,
+      // dependencies: if deleteKubeflow then
+      //  ["kfctl-delete"] + ["kfctl-delete-storage"]
+      // else null,
     },
     {
       template:
@@ -313,8 +315,12 @@ local exitDag = {
 };
 
 // A list of templates for the actual steps
+//
+// TODO(jlewi): Add componentTests.argoTaskTemplates
 local stepTemplates = std.map(function(i) i.template
-                              , dagTemplates);
+                              , dagTemplates)  +
+                      std.map(function(i) i.template
+                              , exitTemplates);
 
 
 // Add a task to a dag.
