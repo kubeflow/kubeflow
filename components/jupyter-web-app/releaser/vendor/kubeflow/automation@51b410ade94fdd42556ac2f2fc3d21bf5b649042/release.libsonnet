@@ -150,7 +150,6 @@
             // We need to explicitly specify bash because
             // build_image.sh is not in the container its a volume mounted file.
             "/bin/bash",
-            "-c",
             srcDir + "/scripts/build_image.sh "
             + "--dockerfile=" + srcDir + params.dockerfileDir + "/" + dockerfile + " "
             + "--image=" + image + " "
