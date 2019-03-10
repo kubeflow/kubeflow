@@ -17,12 +17,10 @@ package apis
 import (
 	client "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/client/v1alpha1"
 	gcp "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/gcp/v1alpha1"
-	ksonnet "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
 )
 
 func init() {
 	// Register the types with the Scheme so the components can map objects to GroupVersionKinds and back
-	AddToSchemes = append(AddToSchemes, ksonnet.SchemeBuilder.AddToScheme)
 	AddToSchemes = append(AddToSchemes, gcp.SchemeBuilder.AddToScheme)
 	AddToSchemes = append(AddToSchemes, client.SchemeBuilder.AddToScheme)
 

@@ -18,20 +18,50 @@ package dockerfordesktop
 
 import (
 	"fmt"
+	"github.com/ghodss/yaml"
+	"github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
+	cltypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/client/v1alpha1"
+	log "github.com/sirupsen/logrus"
+	"io/ioutil"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os/user"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
 
 // DockerForDesktop implements KfApp Interface
-// It should include functionality needed for the docker-for-desktop platform
+// It should include functionality needed for the dockerfordesktop platform
 type DockerForDesktop struct {
-	//Add additional types required for dockerfordesktop platform
+	cltypes.Client
 }
 
-func GetKfApp(_ map[string]interface{}) kftypes.KfApp {
-	return &DockerForDesktop{}
+func GetKfApp(options map[string]interface{}) kftypes.KfApp {
+	_dockerfordesktop := &DockerForDesktop{
+		Client: cltypes.Client{
+			TypeMeta:metav1.TypeMeta{
+				Kind:       "Client",
+				APIVersion: "client.apps.kubeflow.org/v1alpha1",
+			},
+			Spec: cltypes.ClientSpec{},
+		},
+	}
+	if options[string(kftypes.DATA)] != nil {
+		dat := options[string(kftypes.DATA)].([]byte)
+		specErr := yaml.Unmarshal(dat, _dockerfordesktop)
+		if specErr != nil {
+			log.Errorf("couldn't unmarshal Ksonnet. Error: %v", specErr)
+		}
+	}
+	if options[string(kftypes.CONFIG)] != nil {
+		dat := options[string(kftypes.CONFIG)].([]byte)
+		specErr := yaml.Unmarshal(dat, &_dockerfordesktop.Spec)
+		if specErr != nil {
+			log.Errorf("couldn't unmarshal Ksonnet. Error: %v", specErr)
+		}
+	}
+	return _dockerfordesktop
 }
 
 func (dockerfordesktop *DockerForDesktop) Apply(resources kftypes.ResourceEnum, options map[string]interface{}) error {
@@ -51,12 +81,12 @@ func (dockerfordesktop *DockerForDesktop) generate(options map[string]interface{
 		mountLocal = options[string(kftypes.MOUNT_LOCAL)].(bool)
 	}
 	// remove Katib package and component
-	kftypes.DefaultPackages = kftypes.RemoveItem(kftypes.DefaultPackages, "katib")
-	kftypes.DefaultComponents = kftypes.RemoveItem(kftypes.DefaultComponents, "katib")
-	kftypes.DefaultParameters["application"] = []kftypes.NameValue{
+	dockerfordesktop.Spec.Packages = kftypes.RemoveItem(dockerfordesktop.Spec.Packages, "katib")
+	dockerfordesktop.Spec.Components = kftypes.RemoveItem(dockerfordesktop.Spec.Components, "katib")
+	dockerfordesktop.Spec.ComponentParams["application"] = []config.NameValue{
 		{
 			Name:  "components",
-			Value: "[" + strings.Join(kftypes.QuoteItems(kftypes.DefaultComponents), ",") + "]",
+			Value: "[" + strings.Join(kftypes.QuoteItems(dockerfordesktop.Spec.Components), ",") + "]",
 		},
 	}
 	usr, err := user.Current()
@@ -65,7 +95,7 @@ func (dockerfordesktop *DockerForDesktop) generate(options map[string]interface{
 	}
 	uid := usr.Uid
 	gid := usr.Gid
-	kftypes.DefaultParameters["jupyter"] = []kftypes.NameValue{
+	dockerfordesktop.Spec.ComponentParams["jupyter"] = []config.NameValue{
 		{
 			Name:  string(kftypes.PLATFORM),
 			Value: platform,
@@ -87,7 +117,7 @@ func (dockerfordesktop *DockerForDesktop) generate(options map[string]interface{
 			Value: gid,
 		},
 	}
-	kftypes.DefaultParameters["ambassador"] = []kftypes.NameValue{
+	dockerfordesktop.Spec.ComponentParams["ambassador"] = []config.NameValue{
 		{
 			Name:  string(kftypes.PLATFORM),
 			Value: platform,
@@ -111,9 +141,27 @@ func (dockerfordesktop *DockerForDesktop) Generate(resources kftypes.ResourceEnu
 			return fmt.Errorf("dockerfordesktop generate failed Error: %v", generateErr)
 		}
 	}
+	createConfigErr := dockerfordesktop.writeConfigFile(options)
+	if createConfigErr != nil {
+		return fmt.Errorf("cannot create config file app.yaml in %v", dockerfordesktop.Client.Spec.AppDir)
+	}
 	return nil
 }
 
 func (dockerfordesktop *DockerForDesktop) Init(resources kftypes.ResourceEnum, options map[string]interface{}) error {
+	return nil
+}
+
+func (dockerfordesktop *DockerForDesktop) writeConfigFile(options map[string]interface{}) error {
+	buf, bufErr := yaml.Marshal(dockerfordesktop.Client)
+	if bufErr != nil {
+		return bufErr
+	}
+	options[string(kftypes.CONFIG)] = buf
+	cfgFilePath := filepath.Join(dockerfordesktop.Client.Spec.AppDir, kftypes.KfConfigFile)
+	cfgFilePathErr := ioutil.WriteFile(cfgFilePath, buf, 0644)
+	if cfgFilePathErr != nil {
+		return cfgFilePathErr
+	}
 	return nil
 }

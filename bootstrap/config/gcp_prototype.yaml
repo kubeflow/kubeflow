@@ -29,10 +29,12 @@ app:
       name: ipName
         # TODO: make sure value of ipName is the same as property <ipName>.
       value: ipName
+      initRequired: true
     - component: iap-ingress
       name: hostname
         # TODO: replace with Name of GCP project. This is fully qualified domain name to use with ingress.
       value: kubeflow.endpoints.<Project>.cloud.goog
+      initRequired: true
     - component: jupyterhub
       name: jupyterHubAuthenticator
       value: iap

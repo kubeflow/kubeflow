@@ -44,9 +44,3 @@ componentParams:
   ambassador:
     - name: ambassadorServiceType
       value: NodePort
-  pipeline:
-    - name: mysqlPd
-      value: <deployName>-storage-metadata-store
-    - name: minioPd
-      value: <deployName>-storage-artifact-store
-platform: none
