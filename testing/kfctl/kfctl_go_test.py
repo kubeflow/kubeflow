@@ -21,9 +21,9 @@ def test_build_kfctl_go():
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,
-                      format=('%(levelname)s|%(asctime)s'
-                              '|%(pathname)s|%(lineno)d| %(message)s'),
-                      datefmt='%Y-%m-%dT%H:%M:%S',
-                      )
+                      #format=('%(levelname)s|%(asctime)s'
+                              #'|%(pathname)s|%(lineno)d| %(message)s'),
+                      #datefmt='%Y-%m-%dT%H:%M:%S',
+                      #)
   logging.getLogger().setLevel(logging.INFO)
   pytest.main()
