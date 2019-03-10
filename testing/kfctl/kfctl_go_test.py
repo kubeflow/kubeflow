@@ -13,7 +13,7 @@ import pytest
 
 from kubeflow.testing import util
 
-def test_build():
+def test_build_kfctl_go():
   this_dir = os.path.dirname(__file__)
   root = os.path.abspath(os.path.join(this_dir, "..", ".."))
   build_dir = os.path.join(root, "bootstrap")
