@@ -145,7 +145,7 @@
     ambassadorRoleBinding:: ambassadorRoleBinding,
 
     local ambassadorDeployment = {
-      apiVersion: "extensions/v1beta1",
+      apiVersion: "apps/v1beta1",
       kind: "Deployment",
       metadata: {
         name: "ambassador",
@@ -174,23 +174,7 @@
                   },
                 ],
                 image: params.ambassadorImage,
-                livenessProbe: {
-                  httpGet: {
-                    path: "/ambassador/v0/check_alive",
-                    port: 8877,
-                  },
-                  initialDelaySeconds: 30,
-                  periodSeconds: 30,
-                },
                 name: "ambassador",
-                readinessProbe: {
-                  httpGet: {
-                    path: "/ambassador/v0/check_ready",
-                    port: 8877,
-                  },
-                  initialDelaySeconds: 30,
-                  periodSeconds: 30,
-                },
                 resources: {
                   limits: {
                     cpu: 1,
@@ -200,6 +184,22 @@
                     cpu: "200m",
                     memory: "100Mi",
                   },
+                },
+                readinessProbe: {
+                  httpGet: {
+                    path: "/ambassador/v0/check_ready",
+                    port: 8877,
+                  },
+                  initialDelaySeconds: 30,
+                  periodSeconds: 30,
+                },
+                livenessProbe: {
+                  httpGet: {
+                    path: "/ambassador/v0/check_alive",
+                    port: 8877,
+                  },
+                  initialDelaySeconds: 30,
+                  periodSeconds: 30,
                 },
               },
             ],
