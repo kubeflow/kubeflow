@@ -93,14 +93,7 @@ local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=
     image: image,
     workingDir: working_dir,
     // TODO(jlewi): Change to IfNotPresent.
-    imagePullPolicy: "Always",
-    metadata: {
-      labels: prowDict {
-        workflow: params.name,
-        workflow_template: workflow_template,
-        step_name: step_name,
-      },
-    },
+    imagePullPolicy: "Always",    
     env: [
       {
         // Add the source directories to the python path.
@@ -142,6 +135,13 @@ local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=
         mountPath: "/secret/gcp-credentials",
       },
     ],
+  },
+  metadata: {
+    labels: prowDict {
+      workflow: params.name,
+      workflow_template: workflow_template,
+      step_name: step_name,
+    },
   },
   sidecars: sidecars,
 };  // buildTemplate
