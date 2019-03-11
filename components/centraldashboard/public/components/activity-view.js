@@ -1,10 +1,10 @@
-import {PolymerElement, html} from '@polymer/polymer';
-
 import '@polymer/iron-flex-layout/iron-flex-layout-classes.js';
 import '@polymer/iron-ajax/iron-ajax.js';
 import '@polymer/iron-icon/iron-icon.js';
 import '@polymer/iron-icons/iron-icons.js';
 import '@polymer/paper-progress/paper-progress.js';
+
+import {html, PolymerElement} from '@polymer/polymer';
 
 export class ActivityView extends PolymerElement {
     static get template() {
@@ -13,21 +13,21 @@ export class ActivityView extends PolymerElement {
             </style>
             <style>
                 :host {
-                    @apply --layout-vertical;
+                    @apply --layout-fit;
                     --accent-color: #007dfc;
                     --primary-background-color: #003c75;
                     --sidebar-default-color: #ffffff4f;
                     --border-color: #f4f4f6;
                     background: #f1f3f4;
                     min-height: 50%;
-                    padding: 1em;
                 }
                 paper-progress {
                     width: 100%;
                     --paper-progress-active-color: var(--accent-color)
                 }
                 #list {
-                    overflow-y: auto;
+                    padding: 1em;
+                    background:  #f1f3f4;
                 }
                 .activity-row {
                     background: #fff;
@@ -69,18 +69,6 @@ export class ActivityView extends PolymerElement {
             <paper-progress indeterminate class="slow"
                 hidden$="[[!loading]]"></paper-progress>
             <div id="list" role="listbox">
-                <template is="dom-repeat" items="[[activities]]">
-                    <div class="activity-row layout horizontal">
-                        <div class="flex">[[item.formattedTime]]</div>
-                        <div class="flex flex-auto event layout horizontal">
-                            <iron-icon class$="event-icon [[item.icon]]"
-                                icon="[[item.icon]]">
-                            </iron-icon>
-                            <span>[[item.event]]</span>
-                        </div>
-                        <div class="flex">[[item.source]]</div>
-                    </div>
-                </template>
                 <template is="dom-if" if="[[!namespace]]">
                     <div class="activity-row layout horizontal">
                         <div class="flex">
@@ -95,13 +83,25 @@ export class ActivityView extends PolymerElement {
                         </div>
                     </div>
                 </template>
+                <template is="dom-repeat" items="[[activities]]">
+                    <div class="activity-row layout horizontal">
+                        <div class="flex">[[item.formattedTime]]</div>
+                        <div class="flex flex-auto event layout horizontal">
+                            <iron-icon class$="event-icon [[item.icon]]"
+                                icon="[[item.icon]]">
+                            </iron-icon>
+                            <span>[[item.event]]</span>
+                        </div>
+                        <div class="flex">[[item.source]]</div>
+                    </div>
+                </template>
             </div>
             `;
     }
 
     /**
-     * Object describing property-related metadata used by Polymer features
-     */
+   * Object describing property-related metadata used by Polymer features
+   */
     static get properties() {
         return {
             namespace: {
@@ -118,9 +118,9 @@ export class ActivityView extends PolymerElement {
     }
 
     /**
-     * Retrieves Events when namespace is selected.
-     * @param {string} newNamespace
-     */
+   * Retrieves Events when namespace is selected.
+   * @param {string} newNamespace
+   */
     _namespaceChanged(newNamespace) {
         if (newNamespace) {
             this.$['ajax'].generateRequest();
@@ -128,9 +128,9 @@ export class ActivityView extends PolymerElement {
     }
 
     /**
-     * Handles the Activities response to set date format and icon.
-     * @param {Event} responseEvent
-     */
+   * Handles the Activities response to set date format and icon.
+   * @param {Event} responseEvent
+   */
     _onResponse(responseEvent) {
         const {status, response} = responseEvent.detail;
         this.activities = [];

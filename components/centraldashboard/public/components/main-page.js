@@ -126,16 +126,16 @@ export class MainPage extends PolymerElement {
     _routePageChanged(newPage) {
         this.hideToolbar = false;
         switch (newPage) {
-            case 'activity':
-                this.sidebarItemIndex = 0;
-                this.page = 'activity';
-                break;
-            case '_': // iframe case
-                this._setIframeFromRoute(this.subRouteData.path);
-                break;
-            default:
-                this.sidebarItemIndex = 0;
-                this.page = 'dashboard';
+        case 'activity':
+            this.sidebarItemIndex = 0;
+            this.page = 'activity';
+            break;
+        case '_': // iframe case
+            this._setIframeFromRoute(this.subRouteData.path);
+            break;
+        default:
+            this.sidebarItemIndex = 0;
+            this.page = 'dashboard';
         }
     }
 
