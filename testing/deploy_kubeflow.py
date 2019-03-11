@@ -114,6 +114,10 @@ def deploy_kubeflow(test_case):
     apply_command.append("--as=" + account)
   util.run(apply_command, cwd=app_dir)
 
+  show_command = ["ks", "show", "default", "-c", "pytorch-operator"]
+
+  util.run(show_command, cwd=app_dir)
+
   # Verify that Jupyter is actually deployed.
   jupyter_name = "jupyter"
   logging.info("Verifying TfHub started.")
