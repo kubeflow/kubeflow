@@ -31,8 +31,12 @@ export GO = go
 	$(GO) build -i -gcflags 'all=-N -l' -o ../../../bin/$*.so -buildmode=plugin $*.go
 
 %.init:
-	@echo kfctl init test/$* $(VERBOSE) --platform $* --project $(GCLOUD_PROJECT) && \
+	@echo kfctl init test/$* $(VERBOSE) --platform $* --project $(GCLOUD_PROJECT) --version pull/2673 && \
 	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(PWD)/test/$* $(VERBOSE) --platform $* --project $(GCLOUD_PROJECT) --version pull/2673
+
+%.init-no-platform:
+	@echo kfctl init test/$* $(VERBOSE) --version pull/2673 && \
+	kfctl init $(PWD)/test/$* $(VERBOSE) --version pull/2673
 
 %.generate:
 	@echo kfctl generate all $(VERBOSE) '(--platform '$*')' && \
@@ -122,6 +126,6 @@ run-local-docker:
 clean: 
 	rm -rf test && mkdir test
 
-test-init: clean install dockerfordesktop.init minikube.init gcp.init
+test-init: clean install dockerfordesktop.init minikube.init gcp.init none.init-no-platform
 
-test-generate: test-init dockerfordesktop.generate minikube.generate gcp.generate
+test-generate: test-init dockerfordesktop.generate minikube.generate gcp.generate none.generate
