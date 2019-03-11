@@ -186,7 +186,8 @@ func GetServerVersion(c *clientset.Clientset) string {
 		log.Fatalf("couldn't get server version info. Error: %v", serverVersionErr)
 	}
 	re := regexp.MustCompile("^v[0-9]+.[0-9]+.[0-9]+")
-	return re.FindString("version:"+serverVersion.String())
+	version := re.FindString(serverVersion.String())
+	return "version:"+version
 }
 
 // Get $HOME/.kube/config

@@ -129,69 +129,61 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	return _client
 }
 
-func downloadToCache(options map[string]interface{}) error {
-	appDir := options[string(kftypes.APPDIR)].(string)
+func downloadToCache(platform string, appDir string, version string, useBasicAuth bool) ([]byte, error) {
 	if _, err := os.Stat(appDir); os.IsNotExist(err) {
-		appdirErr := os.Mkdir(options[string(kftypes.APPDIR)].(string), os.ModePerm)
+		appdirErr := os.Mkdir(appDir, os.ModePerm)
 		if appdirErr != nil {
-			log.Fatalf("couldn't create directory %v Error %v",appDir, appdirErr)
+			log.Fatalf("couldn't create directory %v Error %v", appDir, appdirErr)
 		}
 	}
 	cacheDir := path.Join(appDir, kftypes.DefaultCacheDir)
 	cacheDirErr := os.Mkdir(cacheDir, os.ModePerm)
 	if cacheDirErr != nil {
-		return fmt.Errorf("couldn't create directory %v Error %v", cacheDir, cacheDirErr)
+		return nil, fmt.Errorf("couldn't create directory %v Error %v", cacheDir, cacheDirErr)
 	}
 	// Version can be
 	// --version master
 	// --version tag
-	// --version pull/<ID>
-	version := options[string(kftypes.VERSION)].(string)
-	cacheName := version
-	if strings.HasPrefix(version, "pull") {
-		if !strings.HasSuffix(version, "head") {
-			version = version + "/head"
-		}
-		parts := strings.Split(version, "/")
-		cacheName = parts[1]
-	}
-	options[string(kftypes.VERSION)] = cacheName
+	// --version pull/<ID>/head
 	tarballUrl := kftypes.DefaultGitRepo + "/" + version + "?archive=tar.gz"
 	tarballUrlErr := gogetter.GetAny(cacheDir, tarballUrl)
 	if tarballUrlErr != nil {
-		return fmt.Errorf("couldn't download kubeflow repo %v Error %v", tarballUrl, tarballUrlErr)
+		return nil, fmt.Errorf("couldn't download kubeflow repo %v Error %v", tarballUrl, tarballUrlErr)
 	}
 	files, filesErr := ioutil.ReadDir(cacheDir)
 	if filesErr != nil {
-		return fmt.Errorf("couldn't read %v Error %v", cacheDir, filesErr)
+		return nil, fmt.Errorf("couldn't read %v Error %v", cacheDir, filesErr)
 	}
 	subdir := files[0].Name()
 	extractedPath := filepath.Join(cacheDir, subdir)
-	newPath := filepath.Join(cacheDir, cacheName)
+	newPath := filepath.Join(cacheDir, version)
+	if strings.Contains(version, "/") {
+		parts := strings.Split(version, "/")
+		versionPath := cacheDir
+		for i := 0; i < len(parts)-1; i++ {
+			versionPath = filepath.Join(versionPath, parts[i])
+			versionPathErr := os.Mkdir(versionPath, os.ModePerm)
+			if versionPathErr != nil {
+				return nil, fmt.Errorf("couldn't create directory %v Error %v", versionPath, versionPathErr)
+			}
+		}
+	}
 	renameErr := os.Rename(extractedPath, newPath)
 	if renameErr != nil {
-		return fmt.Errorf("couldn't rename %v to %v Error %v", extractedPath, newPath, renameErr)
+		return nil, fmt.Errorf("couldn't rename %v to %v Error %v", extractedPath, newPath, renameErr)
 	}
 	//TODO see #2629
 	configPath := filepath.Join(newPath, kftypes.DefaultConfigDir)
-	if options[string(kftypes.PLATFORM)] != nil && options[string(kftypes.PLATFORM)].(string) == "gcp" {
-		if options[string(kftypes.USE_BASIC_AUTH)] != nil {
-			useBasicAuth := options[string(kftypes.USE_BASIC_AUTH)].(bool)
-			if useBasicAuth {
-				configPath = filepath.Join(configPath, kftypes.GcpBasicAuth)
-			} else {
-				configPath = filepath.Join(configPath, kftypes.GcpIapConfig)
-			}
+	if platform == "gcp" {
+		if useBasicAuth {
+			configPath = filepath.Join(configPath, kftypes.GcpBasicAuth)
+		} else {
+			configPath = filepath.Join(configPath, kftypes.GcpIapConfig)
 		}
 	} else {
 		configPath = filepath.Join(configPath, kftypes.DefaultConfigFile)
 	}
-	buf, bufErr := ioutil.ReadFile(configPath)
-	if bufErr != nil {
-		return fmt.Errorf("Unable to read config %v: %v", configPath, bufErr)
-	}
-	options[string(kftypes.CONFIG)] = buf
-	return nil
+	return ioutil.ReadFile(configPath)
 }
 
 // GetPlatform will return an implementation of kftypes.KfApp that matches the platform string
@@ -261,11 +253,21 @@ and must start and end with an alphanumeric character`, appName)
 	}
 	options[string(kftypes.APPNAME)] = appName
 	options[string(kftypes.APPDIR)] = appDir
+	platform := options[string(kftypes.PLATFORM)].(string)
+	version := options[string(kftypes.VERSION)].(string)
+	if strings.HasPrefix(version, "pull") {
+		if !strings.HasSuffix(version, "head") {
+			version = version + "/head"
+			options[string(kftypes.VERSION)] = version
+		}
+	}
+	useBasicAuth := options[string(kftypes.USE_BASIC_AUTH)].(bool)
 
-	cacheErr := downloadToCache(options)
+	cache, cacheErr := downloadToCache(platform, appDir, version, useBasicAuth)
 	if cacheErr != nil {
 		log.Fatalf("could not download repo to cache Error %v", cacheErr)
 	}
+	options[string(kftypes.CONFIG)] = cache
 	pApp := GetKfApp(options)
 	return pApp, nil
 }

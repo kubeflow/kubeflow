@@ -34,7 +34,6 @@ import (
 	"sigs.k8s.io/kustomize/v2/pkg/fs"
 	"sigs.k8s.io/kustomize/v2/pkg/loader"
 	"sigs.k8s.io/kustomize/v2/pkg/target"
-	"strings"
 )
 
 // Kustomize implements KfApp Interface
@@ -127,7 +126,8 @@ func (kustomize *kustomize) Delete(resources kftypes.ResourceEnum, options map[s
 }
 
 func (kustomize *kustomize) generate(options map[string]interface{}) error {
-	kustomizeDir := path.Join(kustomize.Kustomize.Spec.AppDir, "manifests", kustomize.Kustomize.Spec.Version)
+	//TODO see #2629
+	kustomizeDir := path.Join(kustomize.Kustomize.Spec.AppDir, "manifests", "master")
 	loader, loaderErr := loader.NewLoader(kustomizeDir, kustomize.fsys)
 	if loaderErr != nil {
 		return fmt.Errorf("could not load kustomize loader: %v", loaderErr)
@@ -185,16 +185,6 @@ func (kustomize *kustomize) Init(resources kftypes.ResourceEnum, options map[str
 	}
 	//TODO see #2629
 	version := kustomize.Kustomize.Spec.Version
-	cacheName := version
-	if strings.HasPrefix(version, "pull") {
-		if !strings.HasSuffix(version, "head") {
-			version = version + "/head"
-		}
-		parts := strings.Split(version, "/")
-		cacheName = parts[1]
-		kustomize.Kustomize.Spec.Version = cacheName
-	}
-	//TODO see #2629
 	//tarballUrl := "https://github.com/kubeflow/manifests/tarball/" + version + "?archive=tar.gz"
 	tarballUrl := "https://github.com/kubeflow/manifests/tarball/master?archive=tar.gz"
 	tarballUrlErr := gogetter.GetAny(kustomizeDir, tarballUrl)
@@ -207,12 +197,12 @@ func (kustomize *kustomize) Init(resources kftypes.ResourceEnum, options map[str
 	}
 	subdir := files[0].Name()
 	extractedPath := filepath.Join(kustomizeDir, subdir)
-	newPath := filepath.Join(kustomizeDir, cacheName)
+	newPath := filepath.Join(kustomizeDir, "master")
 	renameErr := os.Rename(extractedPath, newPath)
 	if renameErr != nil {
 		return fmt.Errorf("couldn't rename %v to %v Error %v", extractedPath, newPath, renameErr)
 	}
-	repoPath := path.Join(kustomize.Kustomize.Spec.AppDir, kftypes.DefaultCacheDir, cacheName)
+	repoPath := path.Join(kustomize.Kustomize.Spec.AppDir, kftypes.DefaultCacheDir, version)
 	kustomize.Kustomize.Spec.Repo = path.Join(repoPath, "kubeflow")
 	createConfigErr := kustomize.writeConfigFile()
 	if createConfigErr != nil {
