@@ -101,6 +101,10 @@ paper-tab[link] a {
     text-decoration: none;
 }
 
+paper-tab[link] a:hover {
+    text-decoration: none;
+}
+
 app-header-layout {
     @apply --layout-vertical
 }
@@ -110,8 +114,8 @@ neon-animated-pages {
 }
 
 neon-animatable {
-    @apply --layout-vertical;
-    height: 100%;
+    @apply --layout-fit;
+    overflow: auto;
 }
 
 neon-animatable#iframe-page {
@@ -126,10 +130,11 @@ neon-animatable#iframe-page {
 }
 
 #PageFrame {
+    @apply --layout-fit;
     border: 0;
     display: inline-block;
-    width: 100%;
     height: 100%;
+    width: 100%;
 }
 
 #Logo {

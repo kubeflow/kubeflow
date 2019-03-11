@@ -1,5 +1,5 @@
 :host {
-    @apply --layout-vertical;
+    @apply(--layout-fit);
     background: #f1f3f4;
     --accent-color: #007dfc;
     --primary-background-color: #003c75;
@@ -10,6 +10,7 @@
 article {
     background: #f1f3f4;
     padding: 1em;
+    overflow: auto;
     grid-gap: 1em;
     display: grid;
     min-height: 0;
