@@ -52,8 +52,8 @@ gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS
 
 cd $CONTEXT_DIR
 
-echo "GCP Project: "$PROJECT
+echo "GCP Project: kubeflow-ci"
 
 echo "Building ${image} using gcloud build"
-gcloud builds submit --tag=${image}:${tag} --project=${PROJECT} .
+gcloud builds submit --tag=${image}:${tag} --project=kubeflow-ci .
 echo "Finished building image"
