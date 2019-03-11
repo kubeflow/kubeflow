@@ -54,6 +54,6 @@ cd $CONTEXT_DIR
 
 echo "GCP Project: "$PROJECT
 
-echo "Building jupyter-web-app using gcloud build"
+echo "Building ${image} using gcloud build"
 gcloud builds submit --tag=${image}:${tag} --project=${PROJECT} .
 echo "Finished building image"
