@@ -318,7 +318,7 @@ def deploy_pytorchjob(args):
 
   util.run(generate_command, cwd=app_dir)
 
-  show_command = ["ks", "show", "default"]
+  show_command = ["kubectl", "get", "crd", "-o", "yaml"]
 
   util.run(show_command, cwd=app_dir)
 
