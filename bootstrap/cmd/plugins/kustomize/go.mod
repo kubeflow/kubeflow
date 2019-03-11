@@ -5,7 +5,8 @@ require (
 	github.com/go-openapi/jsonpointer v0.18.0
 	github.com/go-openapi/jsonreference v0.18.0
 	github.com/go-openapi/swag v0.17.2
-	github.com/kubeflow/kubeflow/bootstrap/v2 v2.0.0 // indirect
+	github.com/howeyc/gopass v0.0.0-20170109162249-bf9dde6d0d2c // indirect
+	github.com/kubeflow/kubeflow/bootstrap v0.0.0 // indirect
 	github.com/sirupsen/logrus v1.3.0
 	github.com/spf13/pflag v1.0.3
 	golang.org/x/crypto v0.0.0

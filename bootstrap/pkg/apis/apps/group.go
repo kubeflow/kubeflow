@@ -80,60 +80,6 @@ const (
 	OAUTH_SECRET   CliOption = "oauth_secret"
 	CONFIG         CliOption = "config"
 )
-/*
-var DefaultPackages = []string{
-	"application",
-	"argo",
-	"common",
-	"examples",
-	"jupyter",
-	"katib",
-	"metacontroller",
-	"modeldb",
-	"mpi-job",
-	"openvino",
-	"pipeline",
-	"profiles",
-	"pytorch-job",
-	"seldon",
-	"tensorboard",
-	"tf-serving",
-	"tf-training",
-}
-var DefaultComponents = []string{
-	"ambassador",
-	"application",
-	"argo",
-	"centraldashboard",
-	"jupyter",
-	"jupyter-web-app",
-	"katib",
-	"metacontroller",
-	"notebooks",
-	"notebook-controller",
-	"openvino",
-	"pipeline",
-	"profiles",
-	"pytorch-operator",
-	"spartakus",
-	"tensorboard",
-	"tf-job-operator",
-}
-
-var DefaultParameters = map[string][]config.NameValue{
-	"spartakus": {
-		config.NameValue{
-			Name:  "usageId",
-			Value: fmt.Sprintf("%08d", 10000000+rand.Intn(90000000)),
-		},
-		config.NameValue{
-			Name:  "reportUsage",
-			Value: "true",
-		},
-	},
-}
-
- */
 
 //
 // KfApp provides a common

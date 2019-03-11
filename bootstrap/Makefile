@@ -32,7 +32,7 @@ export GO = go
 
 %.init:
 	@echo kfctl init test/$* $(VERBOSE) --platform $* --project $(GCLOUD_PROJECT) && \
-	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(PWD)/test/$* $(VERBOSE) --platform $* --project $(GCLOUD_PROJECT)
+	GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) PLUGINS_ENVIRONMENT=$(PLUGINS_ENVIRONMENT) kfctl init $(PWD)/test/$* $(VERBOSE) --platform $* --project $(GCLOUD_PROJECT) --version pull/2673
 
 %.generate:
 	@echo kfctl generate all $(VERBOSE) '(--platform '$*')' && \
@@ -110,7 +110,7 @@ push-latest: push
 	gcloud container images add-tag --quiet $(IMG):$(TAG) $(IMG):latest --verbosity=info
 	echo created $(IMG):latest
 
-install: build-kfctl dockerfordesktop.so kustomize.so ksonnet.so
+install: build-kfctl dockerfordesktop.so
 	@echo copying bin/kfctl to /usr/local/bin
 	@cp bin/kfctl /usr/local/bin
 

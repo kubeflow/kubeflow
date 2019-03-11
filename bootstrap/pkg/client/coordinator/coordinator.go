@@ -25,6 +25,7 @@ import (
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/gcp"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksonnet"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/minikube"
+	"github.com/kubeflow/kubeflow/bootstrap/v2/pkg/client/kustomize"
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
@@ -211,6 +212,8 @@ func GetPackageManager(packagemanager string, options map[string]interface{}) (k
 	switch packagemanager {
 	case "ksonnet":
 		return ksonnet.GetKfApp(options), nil
+	case "kustomize":
+		return kustomize.GetKfApp(options), nil
 	default:
 		log.Infof("** loading %v.so for package manager %v **", packagemanager, packagemanager)
 		return kftypes.LoadKfApp(packagemanager, options)
