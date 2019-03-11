@@ -318,6 +318,14 @@ def deploy_pytorchjob(args):
 
   util.run(generate_command, cwd=app_dir)
 
+  show_command = ["ks", "show", "default", "-c", component]
+
+  util.run(show_command, cwd=app_dir)
+
+  show_command = ["ks", "show", "default", "-c", "pytorch-operator"]
+
+  util.run(show_command, cwd=app_dir)
+
   params = {}
   for pair in args.params.split(","):
     k, v = pair.split("=", 1)
