@@ -142,6 +142,10 @@ func downloadToCache(options map[string]interface{}) error {
 	if cacheDirErr != nil {
 		return fmt.Errorf("couldn't create directory %v Error %v", cacheDir, cacheDirErr)
 	}
+	// Version can be
+	// --version master
+	// --version tag
+	// --version pull/<ID>
 	version := options[string(kftypes.VERSION)].(string)
 	cacheName := version
 	if strings.HasPrefix(version, "pull") {
