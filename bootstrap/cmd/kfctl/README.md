@@ -4,7 +4,7 @@
 
 The new `kfctl` client replaces `kfctl.sh` and is implemented in golang.
 
-Note: Additional issues have been opened so this README.md will have additional updates.
+Note: This README.md will be updated on an ongoing basis to reflect features, bug fixes.
 
 ## Requirements
 
@@ -55,6 +55,14 @@ These include:
   - bootstrap/pkg/client/minikube/minikube.go
 - platform: **gcp** 
   - bootstrap/pkg/client/gcp/gcp.go
+
+kfctl also statically links package managers that are used by the platforms
+These include:
+
+- package manager: **ksonnet**
+  - bootstrap/pkg/client/ksonnet/ksonnet.go
+- package manager: **kustomize** 
+  - bootstrap/v2/pkg/client/kustomize/kustomize.go
 
 kfctl can dynamically load platforms and package managers that are not statically linked, as 
 described below in [Extending kfctl](#extending-kfctl).
@@ -210,60 +218,99 @@ make test-kfctl
 ### Testing `kfctl init` for all platforms 
 
 ```
-make test-known-platforms-init
+make test-init
 ```
 
 ### Testing `kfctl generate` for all platforms 
 
 ```
-make test-known-platforms-generate
+make test-generate
 ```
 
-## KfApp Types used in app.yaml
-
-### ksonnet related types (originally under bootstrap/cmd/bootstrap, moved to pkg/apis/apps/ksonnet/v1alpha1)
-
-```golang
-type Ksonnet struct {
-	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
-
-	Spec   KsonnetSpec `json:"spec,omitempty"`
-	Status KsonnetStatus `json:"status,omitempty"`
-}
-
-type NameValue struct {
-	Name  string `json:"name,omitempty"`
-	Value string `json:"value,omitempty"`
-}
-
-// KsonnetSpec defines the desired state of Ksonnet
-type KsonnetSpec struct {
-	Platform   string                 `json:"platform,omitempty"`
-	Version    string                 `json:"version,omitempty"`
-	Repo       string                 `json:"repo,omitempty"`
-	Components []string               `json:"components,omitempty"`
-	Packages   []string               `json:"packages,omitempty"`
-	Parameters map[string][]NameValue `json:"parameters,omitempty"`
-}
-```
-
-#### app.yaml example for --platform minikube 
+#### app.yaml example for --platform gcp 
 
 ```
-apiVersion: ksonnet.apps.kubeflow.org/v1alpha1
-kind: Ksonnet
+apiVersion: client.apps.kubeflow.org/v1alpha1
+kind: Client
 metadata:
   creationTimestamp: null
-  name: minikube
+  name: gcp
   namespace: kubeflow
 spec:
-  appdir: /Users/kdkasrav/go/src/github.com/kubeflow/kubeflow/bootstrap/ksonnet
-  platform: minikube
-  repo: /Users/kdkasrav/go/src/github.com/kubeflow/kubeflow/bootstrap/ksonnet/.cache/master/kubeflow
-  version: master
-status: {}
-```
+  appdir: /Users/kdkasrav/go/src/github.com/kubeflow/kubeflow/bootstrap/test/gcp
+  componentParams:
+    application:
+    - name: components
+      value: <list-of-components>
+    cert-manager:
+    - initRequired: true
+      name: acmeEmail
+      value: gcp-deploy@constant-cubist-173123.iam.gserviceaccount.com
+    cloud-endpoints:
+    - name: secretName
+      value: admin-gcp-sa
+    iap-ingress:
+    - initRequired: true
+      name: ipName
+      value: gcp-ip
+    - initRequired: true
+      name: hostname
+      value: gcp.endpoints.constant-cubist-173123.cloud.goog
+    jupyter:
+    - name: jupyterHubAuthenticator
+      value: iap
+    - name: platform
+      value: gke
+    pipeline:
+    - name: mysqlPd
+      value: gcp-storage-metadata-store
+    - name: minioPd
+      value: gcp-storage-artifact-store
+  components:
+    - ambassador
+    - application
+    - argo
+    - centraldashboard
+    - cert-manager
+    - cloud-endpoints
+    - iap-ingress
+    - jupyter
+    - jupyter-web-app
+    - katib
+    - metacontroller
+    - notebook-controller
+    - pipeline
+    - pytorch-operator
+    - tensorboard
+    - tf-job-operator
+    email: gcp-deploy@constant-cubist-173123.iam.gserviceaccount.com
+    hostname: gcp.endpoints.constant-cubist-173123.cloud.goog
+    ipName: gcp-ip
+    packages:
+    - application
+    - argo
+    - common
+    - examples
+    - gcp
+    - jupyter
+    - katib
+    - metacontroller
+    - modeldb
+    - mpi-job
+    - pipeline
+    - pytorch-job
+    - seldon
+    - tensorboard
+    - tf-serving
+    - tf-training
+    platform: gcp
+      project: XXXXXX
+      repo: /Users/kdkasrav/go/src/github.com/kubeflow/kubeflow/bootstrap/test/gcp/.cache/2673/kubeflow
+      useBasicAuth: false
+      version: "2673"
+      zone: us-east1-d
+    status: {}
+  ```
 
 ## gcp-click-to-deploy (no changes)
 
