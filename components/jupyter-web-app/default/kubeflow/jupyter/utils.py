@@ -1,7 +1,19 @@
 # -*- coding: utf-8 -*-
 import yaml
+import logging
+import sys
 
 CONFIG = "/etc/config/spawner_ui_config.yaml"
+
+
+def create_logger(name):
+  handler = logging.StreamHandler(sys.stdout)
+  handler.setFormatter(logging.Formatter(
+      '%(asctime)s | %(name)s | %(levelname)s | %(message)s'))
+  logger = logging.getLogger(name)
+  logger.setLevel(logging.INFO)
+  logger.addHandler(handler)
+  return logger
 
 
 # Functions for handling the JWT token

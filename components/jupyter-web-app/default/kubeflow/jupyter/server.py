@@ -2,6 +2,9 @@
 import json
 from kubernetes import client, config
 from kubernetes.config import ConfigException
+from kubeflow.jupyter.utils import create_logger
+
+logger = create_logger(__name__)
 
 try:
   # Load configuration inside the Pod

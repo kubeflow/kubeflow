@@ -16,7 +16,10 @@ from kubeflow.jupyter.utils import create_notebook_template, \
     set_notebook_image, \
     set_notebook_cpu_ram, \
     add_notebook_volume, \
-    spawner_ui_config
+    spawner_ui_config, \
+    create_logger
+
+logger = create_logger(__name__)
 
 
 # Helper function for getting the prefix of the webapp
@@ -118,8 +121,8 @@ def add_notebook_route():
   try:
     if get_default_storageclass() != "":
       is_default = True
-  except ApiException:
-    pass
+  except ApiException as e:
+    logger.warning("Can't  list storageclasses: %s" % parse_error(e))
 
   form_defaults = spawner_ui_config("notebook")
   return render_template(
@@ -168,8 +171,9 @@ def notebooks_route():
   # Get the namespaces the token can see
   try:
     nmsps = get_namespaces()
-  except ApiException:
+  except ApiException as e:
     nmsps = [base_ns]
+    logger.warning("Can't  list namespaces: %s" % parse_error(e))
 
   return render_template(
       'notebooks.html', prefix=prefix(), title='Notebooks', namespaces=nmsps)
