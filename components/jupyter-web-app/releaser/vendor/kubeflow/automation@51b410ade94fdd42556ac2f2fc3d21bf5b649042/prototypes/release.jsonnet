@@ -11,7 +11,7 @@
 // @optionalParam nfsVolumeClaim string nfs-external Volumn name.
 // @optionalParam project string kubeflow-releasing Self explanatory.
 // @optionalParam registry string gcr.io/kubeflow-images-public Registry where the image will be pushed to.
-// @optionalParam testing_image string gcr.io/kubeflow-releasing/worker:latest The image where we run the workflow.
+// @optionalParam testing_image string gcr.io/kubeflow-ci/test-worker/test-worker:v20190116-b7abb8d-e3b0c4The image where we run the workflow.
 // @optionalParam zone string us-central1-a GKE zone.
 // @optionalParam bucket string kubeflow-releasing-artifacts GCS bucket storing artifacts.
 // @optionalParam prow_env string REPO_OWNER=kubeflow,REPO_NAME=kubeflow,PULL_BASE_SHA=master Self explanatory.

@@ -76,9 +76,6 @@
       // py scripts to use.
       local kubeflowTestingPy = srcRootDir + "/kubeflow/testing/py";
 
-      // Location where build_image.sh
-      local imageDir = srcRootDir + "/" + params.dockerfileDir;
-
       local releaseImage = params.registry + "/" + params.image;
 
       // Build an Argo template to execute a particular command.
@@ -89,6 +86,7 @@
         container: {
           command: command,
           image: testing_image,
+          workingDir: srcDir,
           env: [
             {
               // Add the source directories to the python path.
@@ -146,7 +144,7 @@
       };  // buildTemplate
 
 
-      local buildImageTemplate(step_name, imageDir, dockerfile, image) =
+      local buildImageTemplate(step_name, dockerfile, image) =
         buildTemplate(
           step_name,
           [
@@ -154,14 +152,12 @@
             // build_image.sh is not in the container its a volume mounted file.
             "/bin/bash",
             "-c",
-            srcRootDir + "/kubeflow/scripts/build_image.sh "
-            + "--dockerfile=" + imageDir + "/" + dockerfile + " "
+            "scripts/build_image.sh "
+            + "--dockerfile=" + params.dockerfileDir + "/" + dockerfile + " "
             + "--image=" + image + " "
             + "--tag=" + params.versionTag
             + params.extra_args,
           ],
-          [],
-          [],
         );  // buildImageTemplate
       {
         apiVersion: "argoproj.io/v1alpha1",
@@ -245,7 +241,7 @@
               },
             },  // checkout
 
-            buildImageTemplate("image-build-release", imageDir, params.dockerfile, releaseImage),
+            buildImageTemplate("image-build-release", params.dockerfile, releaseImage),
 
             buildTemplate(
               "copy-artifacts",
