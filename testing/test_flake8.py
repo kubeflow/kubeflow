@@ -45,7 +45,7 @@ def should_test(file_path):
   return ext in ('.py', '')
 
 
-def run(test_files_dirs, flake8_path_args, test_case):
+def run(test_files_dirs, test_case):
   # Go through each Python file in test_files_dirs and run flake8
   for test_files_dir in test_files_dirs:
     for root, _, files in os.walk(test_files_dir):
@@ -86,7 +86,7 @@ def run(test_files_dirs, flake8_path_args, test_case):
           except Exception as e:
             msg = '{} test failed'.format(test_file)
             test_case.add_failure_info(msg)
-            logging.error('{} with exception %s. See Subprocess output for '
+            logging.error('{} with exception {}. See Subprocess output for '
                           'details.'.format(msg, e))
 
 
