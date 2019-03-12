@@ -15,7 +15,7 @@ export function routes(k8sService: KubernetesService): express.Router {
   routes.use(express.static(frontEnd));
   routes.get(
       '/api/namespaces',
-      async (req: express.Request, res: express.Response) => {
+      async (_: express.Request, res: express.Response) => {
         res.json(await k8sService.getNamespaces());
       });
   routes.get(
@@ -23,7 +23,7 @@ export function routes(k8sService: KubernetesService): express.Router {
       async (req: express.Request, res: express.Response) => {
         res.json(await k8sService.getEventsForNamespace(req.params.namespace));
       });
-  routes.get('/*', (req: express.Request, res: express.Response) => {
+  routes.get('/*', (_: express.Request, res: express.Response) => {
     res.sendFile(resolve(frontEnd, 'index.html'));
   });
   return routes;
