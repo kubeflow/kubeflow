@@ -783,7 +783,7 @@ func (gcp *Gcp) createSecrets(options map[string]interface{}) error {
 	} else {
 		oauthId = os.Getenv(CLIENT_ID)
 	}
-	if oauthId == "" {
+	if oauthId == "" && !gcp.GcpApp.Spec.UseBasicAuth {
 		return fmt.Errorf("At least one of --%v or ENV `%v` needs to be set.",
 			string(kftypes.OAUTH_ID), CLIENT_ID)
 	}
@@ -794,7 +794,7 @@ func (gcp *Gcp) createSecrets(options map[string]interface{}) error {
 	} else {
 		oauthSecret = os.Getenv(CLIENT_SECRET)
 	}
-	if oauthSecret == "" {
+	if oauthSecret == "" && !gcp.GcpApp.Spec.UseBasicAuth {
 		return fmt.Errorf("At least one of --%v or ENV `%v` needs to be set.",
 			string(kftypes.OAUTH_SECRET), CLIENT_SECRET)
 	}
