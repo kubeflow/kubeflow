@@ -69,8 +69,8 @@ func GetIamPolicy(project string) (*cloudresourcemanager.Policy, error) {
 	return service.Projects.GetIamPolicy(project, req).Context(ctx).Do()
 }
 
-// Gets IAM plicy from GCP for the whole project.
-func GetClearIamPolicy(currentPolicy *cloudresourcemanager.Policy, pendingPolicy *cloudresourcemanager.Policy) *cloudresourcemanager.Policy {
+// Remove existing bindings associated with service accounts of current deployment, and return the new policy
+func GetClearedIamPolicy(currentPolicy *cloudresourcemanager.Policy, pendingPolicy *cloudresourcemanager.Policy) *cloudresourcemanager.Policy {
 	serviceAccounts := make(map[string]bool)
 	for _, binding := range pendingPolicy.Bindings {
 		for _, member := range binding.Members {
