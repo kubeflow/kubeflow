@@ -78,7 +78,7 @@ func init() {
 	initCfg.SetConfigName("app")
 	initCfg.SetConfigType("yaml")
 
-	initCmd.Flags().StringP(string(kftypes.PLATFORM), "p", kftypes.DefaultPlatform,
+	initCmd.Flags().StringP(string(kftypes.PLATFORM), "p", "",
 		"one of 'gcp|minikube'")
 	bindErr := initCfg.BindPFlag(string(kftypes.PLATFORM), initCmd.Flags().Lookup(string(kftypes.PLATFORM)))
 	if bindErr != nil {
@@ -95,7 +95,8 @@ func init() {
 	}
 
 	initCmd.Flags().StringP(string(kftypes.VERSION), "v", kftypes.DefaultVersion,
-		"desired "+string(kftypes.VERSION)+" Kubeflow or latest tag if not provided by user ")
+		"desired "+string(kftypes.VERSION)+" of Kubeflow or master if not specified. Version can be "+
+			"master (eg --version master) or a git tag (eg --version=v0.5.0), or a PR (eg --version pull/<id>).")
 	bindErr = initCfg.BindPFlag(string(kftypes.VERSION), initCmd.Flags().Lookup(string(kftypes.VERSION)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.VERSION), bindErr)

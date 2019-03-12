@@ -15,20 +15,16 @@
 package v1alpha1
 
 import (
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
+	"github.com/kubeflow/kubeflow/bootstrap/config"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // ClientSpec holds common attributes used by each platform
 type ClientSpec struct {
-	AppDir     string                      `json:"appdir,omitempty"`
-	Platform   string                      `json:"platform,omitempty"`
-	Version    string                      `json:"version,omitempty"`
-	Repo       string                      `json:"repo,omitempty"`
-	Components []string                    `json:"components,omitempty"`
-	Packages   []string                    `json:"packages,omitempty"`
-	Parameters map[string][]apps.NameValue `json:"parameters,omitempty"`
+	config.ComponentConfig `json:",inline"`
+	AppDir                 string `json:"appdir,omitempty"`
+	Version                string `json:"version,omitempty"`
 }
 
 // ClientStatus defines the observed state of Client

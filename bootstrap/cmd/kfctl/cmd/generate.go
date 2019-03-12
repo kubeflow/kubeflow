@@ -114,7 +114,7 @@ func init() {
 		return
 	}
 
-	// platforms minikube, docker-for-desktop
+	// platforms minikube
 	generateCmd.Flags().Bool(string(kftypes.MOUNT_LOCAL), false,
 		string(kftypes.MOUNT_LOCAL)+" if '--platform minikube'")
 	bindErr = generateCfg.BindPFlag(string(kftypes.MOUNT_LOCAL), generateCmd.Flags().Lookup(string(kftypes.MOUNT_LOCAL)))

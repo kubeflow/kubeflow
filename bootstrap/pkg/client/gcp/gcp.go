@@ -17,8 +17,8 @@ limitations under the License.
 package gcp
 
 import (
+	"cloud.google.com/go/container/apiv1"
 	"encoding/base64"
-
 	"fmt"
 	"github.com/cenkalti/backoff"
 	"github.com/ghodss/yaml"
@@ -34,7 +34,9 @@ import (
 	gke "google.golang.org/api/container/v1"
 	"google.golang.org/api/deploymentmanager/v2"
 	"google.golang.org/api/iam/v1"
+	"google.golang.org/api/option"
 	"google.golang.org/api/serviceusage/v1"
+	containerpb "google.golang.org/genproto/googleapis/container/v1"
 	"io"
 	"io/ioutil"
 	v1 "k8s.io/api/core/v1"
@@ -77,8 +79,8 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	_gcp := &Gcp{
 		GcpApp: &gcptypes.Gcp{
 			TypeMeta: metav1.TypeMeta{
-				Kind:       "Gcp",
-				APIVersion: "gcp.apps.kubeflow.org/v1alpha1",
+				Kind:       "Client",
+				APIVersion: "client.apps.kubeflow.org/v1alpha1",
 			},
 		},
 	}
@@ -88,6 +90,13 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 		if specErr != nil {
 			log.Errorf("couldn't unmarshal GcpApp. Error: %v", specErr)
 			return nil
+		}
+	}
+	if options[string(kftypes.CONFIG)] != nil {
+		dat := options[string(kftypes.CONFIG)].([]byte)
+		specErr := yaml.Unmarshal(dat, &_gcp.GcpApp.Spec)
+		if specErr != nil {
+			log.Errorf("couldn't unmarshal Ksonnet. Error: %v", specErr)
 		}
 	}
 	if options[string(kftypes.PLATFORM)] != nil {
@@ -159,11 +168,50 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	return _gcp
 }
 
+func GetClusterInfo(ctx context.Context, project string, loc string, cluster string) (*containerpb.Cluster, error) {
+	ts, err := google.DefaultTokenSource(ctx, iam.CloudPlatformScope)
+	if err != nil {
+		return nil, fmt.Errorf("Get token error: %v", err)
+	}
+	c, err := container.NewClusterManagerClient(ctx, option.WithTokenSource(ts))
+	if err != nil {
+		return nil, err
+	}
+	getClusterReq := &containerpb.GetClusterRequest{
+		ProjectId: project,
+		Zone:      loc,
+		ClusterId: cluster,
+	}
+	return c.GetCluster(ctx, getClusterReq)
+}
+
+// BuildConfigFromClusterInfo returns k8s config using gcloud Application Default Credentials
+// typically $HOME/.config/gcloud/application_default_credentials.json
+func BuildConfigFromClusterInfo(ctx context.Context, cluster *containerpb.Cluster) (*rest.Config, error) {
+	ts, err := google.DefaultTokenSource(ctx, iam.CloudPlatformScope)
+	if err != nil {
+		return nil, fmt.Errorf("Get token error: %v", err)
+	}
+	t, err := ts.Token()
+	if err != nil {
+		return nil, fmt.Errorf("Token retrieval error: %v", err)
+	}
+	caDec, _ := base64.StdEncoding.DecodeString(cluster.MasterAuth.ClusterCaCertificate)
+	config := &rest.Config{
+		Host:        "https://" + cluster.Endpoint,
+		BearerToken: t.AccessToken,
+		TLSClientConfig: rest.TLSClientConfig{
+			CAData: []byte(string(caDec)),
+		},
+	}
+	return config, nil
+}
+
 func getSA(name string, nameSuffix string, project string) string {
 	return fmt.Sprintf("%v-%v@%v.iam.gserviceaccount.com", name, nameSuffix, project)
 }
 
-func (gcp *Gcp) writeConfigFile() error {
+func (gcp *Gcp) writeConfigFile(options map[string]interface{}) error {
 	buf, bufErr := yaml.Marshal(gcp.GcpApp)
 	if bufErr != nil {
 		return bufErr
@@ -173,6 +221,11 @@ func (gcp *Gcp) writeConfigFile() error {
 	if cfgFilePathErr != nil {
 		return cfgFilePathErr
 	}
+	buf, bufErr = yaml.Marshal(&gcp.GcpApp.Spec)
+	if bufErr != nil {
+		return bufErr
+	}
+	options[string(kftypes.CONFIG)] = buf
 	return nil
 }
 
@@ -232,12 +285,12 @@ func generateTarget(configPath string) (*deploymentmanager.TargetConfiguration, 
 }
 
 func (gcp *Gcp) getK8sClientset(ctx context.Context) (*clientset.Clientset, error) {
-	cluster, err := kftypes.GetClusterInfo(ctx, gcp.GcpApp.Spec.Project,
+	cluster, err := GetClusterInfo(ctx, gcp.GcpApp.Spec.Project,
 		gcp.GcpApp.Spec.Zone, gcp.GcpApp.Name)
 	if err != nil {
 		return nil, fmt.Errorf("get Cluster error: %v", err)
 	}
-	config, err := kftypes.BuildConfigFromClusterInfo(ctx, cluster)
+	config, err := BuildConfigFromClusterInfo(ctx, cluster)
 	if err != nil {
 		return nil, fmt.Errorf("build ClientConfig error: %v", err)
 	}
@@ -425,12 +478,12 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 	}
 
 	ctx := context.Background()
-	cluster, err := kftypes.GetClusterInfo(ctx, gcp.GcpApp.Spec.Project,
+	cluster, err := GetClusterInfo(ctx, gcp.GcpApp.Spec.Project,
 		gcp.GcpApp.Spec.Zone, gcp.GcpApp.Name)
 	if err != nil {
 		return fmt.Errorf("Get Cluster error: %v", err)
 	}
-	client, err := kftypes.BuildConfigFromClusterInfo(ctx, cluster)
+	client, err := BuildConfigFromClusterInfo(ctx, cluster)
 	if err != nil {
 		return fmt.Errorf("Build ClientConfig error: %v", err)
 	}
@@ -503,68 +556,20 @@ func (gcp *Gcp) copyFile(source string, dest string) error {
 	return nil
 }
 
-func setNameVal(entries []configtypes.NameValue, name string, val string) {
-	for i, nv := range entries {
+func setNameVal(entries *[]configtypes.NameValue, name string, val string, required bool) {
+	for i, nv := range *entries {
 		if nv.Name == name {
 			log.Infof("Setting %v to %v", name, val)
-			entries[i].Value = val
+			(*entries)[i].Value = val
 			return
 		}
 	}
 	log.Infof("Appending %v as %v", name, val)
-	entries = append(entries, configtypes.NameValue{
-		Name:  name,
-		Value: val,
+	*entries = append(*entries, configtypes.NameValue{
+		Name:         name,
+		Value:        val,
+		InitRequired: required,
 	})
-}
-
-func (gcp *Gcp) generate(options map[string]interface{}) error {
-	configPath := path.Join(gcp.GcpApp.Spec.AppDir,
-		kftypes.DefaultCacheDir,
-		gcp.GcpApp.Spec.Version,
-		kftypes.DefaultConfigDir)
-	if gcp.GcpApp.Spec.UseBasicAuth {
-		configPath = path.Join(configPath, kftypes.GcpBasicAuth)
-	} else {
-		configPath = path.Join(configPath, kftypes.GcpIapConfig)
-	}
-	if options[string(kftypes.DEFAULT_CONFIG)] == nil {
-		options[string(kftypes.DEFAULT_CONFIG)] = configPath
-	}
-
-	if options[string(kftypes.EMAIL)] != nil &&
-		options[string(kftypes.EMAIL)].(string) != "" {
-		gcp.GcpApp.Spec.Email = options[string(kftypes.EMAIL)].(string)
-	} else if gcp.GcpApp.Spec.Email == "" {
-		return fmt.Errorf("email is not set in default nor passed.")
-	} else {
-		options[string(kftypes.EMAIL)] = gcp.GcpApp.Spec.Email
-	}
-	if options[string(kftypes.IPNAME)] != nil &&
-		options[string(kftypes.IPNAME)].(string) != "" {
-		gcp.GcpApp.Spec.IpName = options[string(kftypes.IPNAME)].(string)
-	} else if gcp.GcpApp.Spec.IpName == "" {
-		return fmt.Errorf("ipName is not set in default nor passed.")
-	} else {
-		log.Infof("Using default ipName: %v", gcp.GcpApp.Spec.IpName)
-		options[string(kftypes.IPNAME)] = gcp.GcpApp.Spec.IpName
-	}
-
-	if gcp.GcpApp.Spec.UseBasicAuth {
-		options[string(kftypes.USE_BASIC_AUTH)] = true
-	} else {
-		options[string(kftypes.USE_BASIC_AUTH)] = false
-	}
-	if options[string(kftypes.HOSTNAME)] != nil &&
-		options[string(kftypes.HOSTNAME)].(string) != "" {
-		gcp.GcpApp.Spec.Hostname = options[string(kftypes.HOSTNAME)].(string)
-	} else if gcp.GcpApp.Spec.Hostname == "" {
-		return fmt.Errorf("hostname is not set in default nor passed.")
-	}
-	if options[string(kftypes.ZONE)] != nil {
-		gcp.GcpApp.Spec.Zone = options[string(kftypes.ZONE)].(string)
-	}
-	return nil
 }
 
 //TODO(#2515)
@@ -807,10 +812,6 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum, options map[string]inte
 		if generateK8sSpecsErr != nil {
 			return fmt.Errorf("could not generate files under %v Error: %v", K8S_SPECS, generateK8sSpecsErr)
 		}
-		generateErr := gcp.generate(options)
-		if generateErr != nil {
-			return fmt.Errorf("generate failed Error: %v", generateErr)
-		}
 	case kftypes.ALL:
 		gcpConfigFilesErr := gcp.generateDMConfigs(options)
 		if gcpConfigFilesErr != nil {
@@ -820,21 +821,36 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum, options map[string]inte
 		if generateK8sSpecsErr != nil {
 			return fmt.Errorf("could not generate files under %v Error: %v", K8S_SPECS, generateK8sSpecsErr)
 		}
-		generateErr := gcp.generate(options)
-		if generateErr != nil {
-			return fmt.Errorf("generate failed Error: %v", generateErr)
-		}
 	case kftypes.PLATFORM:
 		gcpConfigFilesErr := gcp.generateDMConfigs(options)
 		if gcpConfigFilesErr != nil {
 			return fmt.Errorf("could not generate deployment manager configs under %v Error: %v", GCP_CONFIG, gcpConfigFilesErr)
 		}
-		generateErr := gcp.generate(options)
-		if generateErr != nil {
-			return fmt.Errorf("generate failed Error: %v", generateErr)
-		}
 	}
-	createConfigErr := gcp.writeConfigFile()
+	email := options[string(kftypes.EMAIL)].(string)
+	nv := gcp.GcpApp.Spec.ComponentParams["cert-manager"]
+	setNameVal(&nv, "acmeEmail", email, true)
+	ipName := options[string(kftypes.IPNAME)].(string)
+	if ipName == "" {
+		ipName = gcp.GcpApp.Name + "-ip"
+	}
+	hostname := options[string(kftypes.HOSTNAME)].(string)
+	if hostname == "" {
+		hostname = gcp.GcpApp.Name + ".endpoints." + gcp.GcpApp.Spec.Project + ".cloud.goog"
+	}
+	if val, ok := options[string(kftypes.USE_BASIC_AUTH)]; ok && val.(bool) {
+		nv = gcp.GcpApp.Spec.ComponentParams["basic-auth-ingress"]
+		setNameVal(&nv, "ipName", ipName, true)
+		setNameVal(&nv, "hostname", hostname, true)
+	} else {
+		nv = gcp.GcpApp.Spec.ComponentParams["iap-ingress"]
+		setNameVal(&nv, "ipName", ipName, true)
+		setNameVal(&nv, "hostname", hostname, true)
+	}
+	nv = gcp.GcpApp.Spec.ComponentParams["pipeline"]
+	setNameVal(&nv, "mysqlPd", gcp.GcpApp.Name+"-storage-metadata-store", false)
+	setNameVal(&nv, "minioPd", gcp.GcpApp.Name+"-storage-artifact-store", false)
+	createConfigErr := gcp.writeConfigFile(options)
 	if createConfigErr != nil {
 		return fmt.Errorf("cannot create config file app.yaml in %v", gcp.GcpApp.Spec.AppDir)
 	}
@@ -889,7 +905,7 @@ func (gcp *Gcp) Init(resources kftypes.ResourceEnum, options map[string]interfac
 	cacheDir := path.Join(gcp.GcpApp.Spec.AppDir, kftypes.DefaultCacheDir)
 	newPath := filepath.Join(cacheDir, gcp.GcpApp.Spec.Version)
 	gcp.GcpApp.Spec.Repo = path.Join(newPath, "kubeflow")
-	createConfigErr := gcp.writeConfigFile()
+	createConfigErr := gcp.writeConfigFile(options)
 	if createConfigErr != nil {
 		return fmt.Errorf("cannot create config file app.yaml in %v", gcp.GcpApp.Spec.AppDir)
 	}
@@ -901,6 +917,5 @@ func (gcp *Gcp) Init(resources kftypes.ResourceEnum, options map[string]interfac
 			return fmt.Errorf("cannot init gcp project %v", initProjectErr)
 		}
 	}
-
 	return nil
 }
