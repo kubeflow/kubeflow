@@ -155,12 +155,67 @@
     },  // role binding
     centralDashboardRoleBinding:: centralDashboardRoleBinding,
 
+    local centralDashboardClusterRole = {
+      apiVersion: "rbac.authorization.k8s.io/v1",
+      kind: "ClusterRole",
+      metadata: {
+        labels: {
+          app: "centraldashboard",
+        },
+        name: "centraldashboard",
+        namespace: params.namespace,
+      },
+      rules: [
+        {
+          apiGroups: [""],
+          resources: [
+            "namespaces",
+            "events"
+          ],
+          verbs: [
+            "get",
+            "list",
+            "watch",
+          ],
+        }
+      ],
+    },  // clusterrole
+    centralDashboardClusterRole:: centralDashboardClusterRole,
+
+    local centralDashboardClusterRoleBinding = {
+      apiVersion: "rbac.authorization.k8s.io/v1",
+      kind: "ClusterRoleBinding",
+      metadata: {
+        labels: {
+          app: "centraldashboard",
+        },
+        name: "centraldashboard",
+        namespace: params.namespace,
+      },
+      roleRef: {
+        apiGroup: "rbac.authorization.k8s.io",
+        kind: "ClusterRole",
+        name: "centraldashboard",
+      },
+      subjects: [
+        {
+          kind: "ServiceAccount",
+          name: "centraldashboard",
+          namespace: params.namespace,
+        },
+      ],
+    },  // clusterrolebinding
+    centralDashboardClusterRoleBinding:: centralDashboardClusterRoleBinding,
+
     parts:: self,
     all:: [
       self.centralDashboardDeployment,
       self.centralDashboardService,
       self.centralDashboardServiceAccount,
       self.centralDashboardRole,
+      self.centralDashboardRoleBinding,
+      self.centralDashboardClusterRole,
+      self.centralDashboardClusterRoleBinding,
     ],
 
     list(obj=self.all):: util.list(obj),
