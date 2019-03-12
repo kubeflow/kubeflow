@@ -26,6 +26,7 @@ import (
 	"google.golang.org/api/cloudresourcemanager/v1"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 func getServiceClient(ctx context.Context) (*http.Client, error) {
@@ -74,7 +75,9 @@ func GetClearedIamPolicy(currentPolicy *cloudresourcemanager.Policy, pendingPoli
 	serviceAccounts := make(map[string]bool)
 	for _, binding := range pendingPolicy.Bindings {
 		for _, member := range binding.Members {
-			serviceAccounts[member] = true
+			if strings.HasPrefix(member, "serviceAccount:") {
+				serviceAccounts[member] = true
+			}
 		}
 	}
 	clearedPolicy := cloudresourcemanager.Policy{}
