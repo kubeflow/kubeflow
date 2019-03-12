@@ -415,9 +415,17 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 	if iamPolicyErr != nil {
 		return fmt.Errorf("Read IAM policy YAML error: %v", iamPolicyErr)
 	}
-	utils.RewriteIamPolicy(policy, iamPolicy, nil)
-	if err := utils.SetIamPolicy(gcp.GcpApp.Spec.Project, policy); err != nil {
-		return fmt.Errorf("SetIamPolicy error: %v", err)
+	clearedPolicy := utils.GetClearIamPolicy(policy, iamPolicy)
+	if err := utils.SetIamPolicy(gcp.GcpApp.Spec.Project, clearedPolicy); err != nil {
+		return fmt.Errorf("Set Cleared IamPolicy error: %v", err)
+	}
+	newPolicy, err := utils.RewriteIamPolicy(policy, iamPolicy)
+	if newPolicy != nil {
+		cp, _ := newPolicy.MarshalJSON()
+		return fmt.Errorf("Hack: newPolicy IamPolicy: %v", string(cp))
+	}
+	if err := utils.SetIamPolicy(gcp.GcpApp.Spec.Project, newPolicy); err != nil {
+		return fmt.Errorf("Set New IamPolicy error: %v", err)
 	}
 
 	if err := gcp.ConfigK8s(); err != nil {
