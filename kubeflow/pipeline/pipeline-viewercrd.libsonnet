@@ -36,7 +36,7 @@
       rules: [
         {
           apiGroups: [
-            "",
+            "*",
           ],
           resources: [
             "deployments", "services",
