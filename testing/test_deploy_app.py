@@ -526,6 +526,42 @@ def clean_up_project_resource(args, projects, deployments):
       return False
   return True
 
+def upload_load_test_ssl_cert(args, projects, deployments):
+  for project in projects:
+    args.project = project
+    for deployment in deployments:
+      insert_ssl_cert(args, deployment)
+
+def check_load_test_results(args, projects, deployments):
+  num_deployments = len(deployments)
+  total_success = 0
+  # deadline for checking all the results.
+  end_time = datetime.datetime.now() + datetime.timedelta(
+      minutes=args.iap_wait_min)
+  for project in projects:
+    args.project = project
+    # set the deadline for each check.
+    now = datetime.datetime.now()
+    if end_time < now:
+      args.iap_wait_min = 1
+    else:
+      delta = end_time - now
+      args.iap_wait_min = delta.seconds / 60 + 1
+    num_success = check_deploy_status(args, deployments)
+    total_success += num_success
+    logging.info("%s out of %s deployments succeed for project %s",
+                 num_success, num_deployments, project)
+    # We only wait 1 minute for subsequent checks because we already waited forIAP since we already
+    args.iap_wait_min = 1
+    LOADTEST_SUCCESS.set(num_success)
+    if num_success == num_deployments:
+      SUCCESS_COUNT.inc()
+    else:
+      FAILURE_COUNT.inc()
+  logging.info("%s out of %s deployments succeed in total",
+                total_success, num_deployments * len(projects))
+
+
 def run_load_test(args):
   num_deployments = args.number_deployments_per_project
   num_projects = args.number_projects
@@ -540,35 +576,29 @@ def run_load_test(args):
              for i in range(1, num_projects + 1)]
   logging.info("deployments: %s" % deployments)
   logging.info("projects: %s" % projects)
-  while True:
-    logging.info("waiting for %s seconds" % args.wait_sec)
-    sleep(args.wait_sec)
-    if not clean_up_project_resource(args, projects, deployments):
-      LOADTEST_HEALTH.set(1)
-      FAILURE_COUNT.inc()
-      logging.error(
-          "request cleanup failed, retry in %s seconds" % args.wait_sec)
-      continue
-    LOADTEST_HEALTH.set(0)
 
-    if not make_loadtest_call(
-      args, service_account_credentials, projects, deployments):
-      LOADTEST_SUCCESS.set(0)
-      FAILURE_COUNT.inc()
-      logging.error(
-          "load test request failed, retry in %s seconds" % args.wait_sec)
-      continue
+  if not clean_up_project_resource(args, projects, deployments):
+    LOADTEST_HEALTH.set(1)
+    FAILURE_COUNT.inc()
+    logging.error("initial cleanup failed")
+    return
+  LOADTEST_HEALTH.set(0)
 
-    for project in projects:
-      args.project = project
-      for deployment in deployments:
-        insert_ssl_cert(args, deployment)
-      num_success = check_deploy_status(args, deployments)
-      LOADTEST_SUCCESS.set(num_success)
-      if num_success == num_deployments:
-        SUCCESS_COUNT.inc()
-      else:
-        FAILURE_COUNT.inc()
+  if not make_loadtest_call(
+    args, service_account_credentials, projects, deployments):
+    LOADTEST_SUCCESS.set(0)
+    FAILURE_COUNT.inc()
+    logging.error("load test request failed")
+    return
+
+  upload_load_test_ssl_cert(args, projects, deployments)
+
+  check_load_test_results(args, projects, deployments)
+
+  if not clean_up_project_resource(args, projects, deployments):
+    logging.error("final cleanup failed")
+
+
 
 
 def run_e2e_test(args):
