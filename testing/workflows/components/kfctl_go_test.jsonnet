@@ -215,44 +215,6 @@ local dagTemplates = [
 // to execute on exit
 local deleteKubeflow = util.toBool(params.deleteKubeflow);
 
-local deleteStep = if deleteKubeflow then
-  [{
-    template: buildTemplate(
-      "kfctl-delete",
-      [
-        runPath,
-        kfCtlPath,
-        "delete",
-        "all",
-      ],
-      working_dir=appDir
-    ),
-    dependencies: null,
-  }]
-else [];
-
-// Clean up all the permanent storages to avoid accumulated resource
-// consumption in the test project
-local deleteStorageStep = if deleteKubeflow then
-  [{
-    template: buildTemplate(
-      "kfctl-delete-storage",
-      [
-        runPath,
-        "gcloud",
-        "deployment-manager",
-        "--project=" + project,
-        "deployments",
-        "delete",
-        appName + "-storage",
-        "--quiet",
-      ],
-      working_dir=appDir
-    ),
-    dependencies: ["kfctl-delete"],
-  }]
-else [];
-
 local testDirDeleteStep = {
       template:
         buildTemplate("test-dir-delete", [
@@ -270,7 +232,6 @@ local testDirDeleteStep = {
 
 // TODO(jlewi): Add testDirDeleteStep
 local exitTemplates =
-  // deleteStep + deleteStorageStep +
   [
     {
       template: buildTemplate("copy-artifacts", [
