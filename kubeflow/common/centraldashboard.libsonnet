@@ -163,7 +163,6 @@
           app: "centraldashboard",
         },
         name: "centraldashboard",
-        namespace: params.namespace,
       },
       rules: [
         {
@@ -190,7 +189,6 @@
           app: "centraldashboard",
         },
         name: "centraldashboard",
-        namespace: params.namespace,
       },
       roleRef: {
         apiGroup: "rbac.authorization.k8s.io",
