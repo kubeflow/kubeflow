@@ -791,6 +791,48 @@ func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset
 	})
 }
 
+func (gcp *Gcp) createBasicAuthSecret(client *clientset.Clientset, options map[string]interface{}) error {
+	if !gcp.GcpApp.Spec.UseBasicAuth {
+		log.Infof("Not using basic auth, skip creating basic auth login secret.")
+		return nil
+	}
+	username := ""
+	if options[string(kftypes.BASIC_AUTH_USERNAME)] != nil &&
+		options[string(kftypes.BASIC_AUTH_USERNAME)].(string) != "" {
+		username = options[string(kftypes.BASIC_AUTH_USERNAME)].(string)
+	} else {
+		username = os.Getenv(BASIC_AUTH_USERNAME)
+	}
+	if username == "" {
+		return fmt.Errorf("At least one of --%v or ENV `%v` needs to be set.",
+			string(kftypes.BASIC_AUTH_USERNAME), BASIC_AUTH_USERNAME)
+	}
+
+	password := ""
+	if options[string(kftypes.BASIC_AUTH_PASSWORD)] != nil &&
+		options[string(kftypes.BASIC_AUTH_PASSWORD)].(string) != "" {
+		password = options[string(kftypes.BASIC_AUTH_PASSWORD)].(string)
+	} else {
+		password = os.Getenv(BASIC_AUTH_PASSWORD)
+	}
+	if password == "" {
+		return fmt.Errorf("At least one of --%v or ENV `%v` needs to be set.",
+			string(kftypes.BASIC_AUTH_PASSWORD), BASIC_AUTH_PASSWORD)
+	}
+	secret := &v1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      BASIC_AUTH_SECRET,
+			Namespace: gcp.GcpApp.Namespace,
+		},
+		Data: map[string][]byte{
+			"username":     []byte(username),
+			"passwordhash": []byte(password),
+		},
+	}
+	_, err := client.CoreV1().Secrets(gcp.GcpApp.Namespace).Update(secret)
+	return err
+}
+
 func (gcp *Gcp) createSecrets(options map[string]interface{}) error {
 	ctx := context.Background()
 	k8sClient, err := gcp.getK8sClientset(ctx)
@@ -807,9 +849,11 @@ func (gcp *Gcp) createSecrets(options map[string]interface{}) error {
 		return fmt.Errorf("cannot create user secret %v Error %v", USER_SECRET_NAME, err)
 
 	}
-
 	if err := gcp.createIapSecret(ctx, k8sClient, options); err != nil {
 		return fmt.Errorf("cannot create IAP auth secret: %v", err)
+	}
+	if err := gcp.createBasicAuthSecret(k8sClient, options); err != nil {
+		return fmt.Errorf("cannot create basic auth login secret: %v", err)
 	}
 	return nil
 }
