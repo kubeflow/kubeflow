@@ -74,7 +74,7 @@ func init() {
 		return
 	}
 	applyCmd.Flags().String(string(kftypes.OAUTH_ID), "",
-		"OAuth Client ID, GCP only. Required if ENV CLIENT_ID is not set. "+
+		"OAuth Client ID, GCP only. Required if using IAP but ENV CLIENT_ID is not set. "+
 			"Value passed will take precedence to ENV.")
 	bindErr = applyCfg.BindPFlag(string(kftypes.OAUTH_ID), applyCmd.Flags().Lookup(string(kftypes.OAUTH_ID)))
 	if bindErr != nil {
@@ -82,11 +82,23 @@ func init() {
 		return
 	}
 	applyCmd.Flags().String(string(kftypes.OAUTH_SECRET), "",
-		"OAuth Client Secret, GCP only. Required if ENV CLIENT_SECRET is not set. "+
+		"OAuth Client Secret, GCP only. Required if using IAP but ENV CLIENT_SECRET is not set. "+
 			"Value passed will take precedence to ENV.")
 	bindErr = applyCfg.BindPFlag(string(kftypes.OAUTH_SECRET), applyCmd.Flags().Lookup(string(kftypes.OAUTH_SECRET)))
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.OAUTH_SECRET), bindErr)
 		return
+	}
+	applyCmd.Flags().String(string(kftypes.BASIC_AUTH_USERNAME), "",
+		"Basic auth login username. Required if using basic auth.")
+	bindErr = applyCfg.BindPFlag(string(kftypes.BASIC_AUTH_USERNAME), applyCmd.Flags().Lookup(string(kftypes.BASIC_AUTH_USERNAME)))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.BASIC_AUTH_USERNAME), bindErr)
+	}
+	applyCmd.Flags().String(string(kftypes.BASIC_AUTH_PASSWORD), "",
+		"Basic auth login password. Required if using basic auth.")
+	bindErr = applyCfg.BindPFlag(string(kftypes.BASIC_AUTH_PASSWORD), applyCmd.Flags().Lookup(string(kftypes.BASIC_AUTH_PASSWORD)))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.BASIC_AUTH_PASSWORD), bindErr)
 	}
 }
