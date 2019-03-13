@@ -835,6 +835,10 @@ func (gcp *Gcp) createBasicAuthSecret(client *clientset.Clientset, options map[s
 		},
 	}
 	_, err = client.CoreV1().Secrets(gcp.GcpApp.Namespace).Update(secret)
+	if err != nil {
+		log.Warnf("Updating basic auth login is failed, trying to create one: %v", err)
+		_, err = client.CoreV1().Secrets(gcp.GcpApp.Namespace).Create(secret)
+	}
 	return err
 }
 
