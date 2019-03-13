@@ -15,6 +15,7 @@ packages:
   - modeldb
   - mpi-job
   - pipeline
+  - profiles
   - pytorch-job
   - seldon
   - tensorboard
@@ -35,6 +36,7 @@ components:
   - metacontroller
   - notebook-controller
   - pipeline
+  - profiles
   - pytorch-operator
   - tensorboard
   - tf-job-operator

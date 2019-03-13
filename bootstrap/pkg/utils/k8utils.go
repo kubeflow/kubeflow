@@ -16,23 +16,23 @@ package utils
 import (
 	"bytes"
 	"fmt"
+	"github.com/cenkalti/backoff"
 	"github.com/ghodss/yaml"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
-	"os"
-	"os/exec"
-	"strings"
-	"sync"
-
-	"github.com/cenkalti/backoff"
-	ksUtil "github.com/ksonnet/ksonnet/utils"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	k8stypes "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/discovery/cached"
 	"k8s.io/client-go/dynamic"
+	"os"
+	"os/exec"
+	"strings"
+	"sync"
+
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"time"
@@ -213,8 +213,8 @@ func CreateResourceFromFile(config *rest.Config, filename string) error {
 	if err != nil {
 		return err
 	}
-	cacheClient := ksUtil.NewMemcachedDiscoveryClient(discoveryClient)
-	mapper := discovery.NewDeferredDiscoveryRESTMapper(cacheClient, dynamic.VersionInterfaces)
+	cached := cached.NewMemCacheClient(discoveryClient)
+	mapper := discovery.NewDeferredDiscoveryRESTMapper(cached, dynamic.VersionInterfaces)
 
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {

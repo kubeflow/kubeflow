@@ -18,77 +18,75 @@ package dockerfordesktop
 
 import (
 	"fmt"
+	"github.com/ghodss/yaml"
+	"github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksonnet"
+	cltypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/client/v1alpha1"
 	log "github.com/sirupsen/logrus"
+	"io/ioutil"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os/user"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
 
 // DockerForDesktop implements KfApp Interface
-// It includes the Ksonnet along with functionality needed for dockerfordesktop
+// It should include functionality needed for the dockerfordesktop platform
 type DockerForDesktop struct {
-	kftypes.FullKfApp
-	//TODO add additional types required for dockerfordesktop platform
+	cltypes.Client
 }
 
 func GetKfApp(options map[string]interface{}) kftypes.KfApp {
-	options[string(kftypes.PLATFORM)] = string(kftypes.KSONNET)
-	log.Infof("getting ksonnet platform in dockerfordesktop")
-	_ksonnet := ksonnet.GetKfApp(options)
-	options[string(kftypes.PLATFORM)] = string(kftypes.DOCKER_FOR_DESKTOP)
 	_dockerfordesktop := &DockerForDesktop{
-		FullKfApp: kftypes.FullKfApp{
-			Children: make(map[kftypes.Platform]kftypes.KfApp),
+		Client: cltypes.Client{
+			TypeMeta:metav1.TypeMeta{
+				Kind:       "Client",
+				APIVersion: "client.apps.kubeflow.org/v1alpha1",
+			},
+			Spec: cltypes.ClientSpec{},
 		},
 	}
-	_dockerfordesktop.Children[kftypes.KSONNET] = _ksonnet
+	if options[string(kftypes.DATA)] != nil {
+		dat := options[string(kftypes.DATA)].([]byte)
+		specErr := yaml.Unmarshal(dat, _dockerfordesktop)
+		if specErr != nil {
+			log.Errorf("couldn't unmarshal Ksonnet. Error: %v", specErr)
+		}
+	}
+	if options[string(kftypes.CONFIG)] != nil {
+		dat := options[string(kftypes.CONFIG)].([]byte)
+		specErr := yaml.Unmarshal(dat, &_dockerfordesktop.Spec)
+		if specErr != nil {
+			log.Errorf("couldn't unmarshal Ksonnet. Error: %v", specErr)
+		}
+	}
 	return _dockerfordesktop
 }
 
 func (dockerfordesktop *DockerForDesktop) Apply(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	ks := dockerfordesktop.Children[kftypes.KSONNET]
-	if ks != nil {
-		ksApplyErr := ks.Apply(resources, options)
-		if ksApplyErr != nil {
-			return fmt.Errorf("dockerfordesktop apply failed for ksonnet: %v", ksApplyErr)
-		}
-	} else {
-		return fmt.Errorf("ksonnet not in Children")
-	}
 	//mount_local_fs
 	//setup_tunnels
 	return nil
 }
 
 func (dockerfordesktop *DockerForDesktop) Delete(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	ks := dockerfordesktop.Children[kftypes.KSONNET]
-	if ks != nil {
-		ksDeleteErr := ks.Delete(resources, options)
-		if ksDeleteErr != nil {
-			return fmt.Errorf("dockerfordesktop delete failed for ksonnet: %v", ksDeleteErr)
-		}
-	} else {
-		return fmt.Errorf("ksonnet not in Children")
-	}
 	return nil
 }
 
-func (dockerfordesktop *DockerForDesktop) generateKsApp(options map[string]interface{}) error {
+func (dockerfordesktop *DockerForDesktop) generate(options map[string]interface{}) error {
 	platform := options[string(kftypes.PLATFORM)].(string)
 	mountLocal := false
 	if options[string(kftypes.MOUNT_LOCAL)] != nil {
 		mountLocal = options[string(kftypes.MOUNT_LOCAL)].(bool)
 	}
 	// remove Katib package and component
-	kstypes.DefaultPackages = kstypes.RemoveItem(kstypes.DefaultPackages, "katib")
-	kstypes.DefaultComponents = kstypes.RemoveItem(kstypes.DefaultComponents, "katib")
-	kstypes.DefaultParameters["application"] = []kstypes.NameValue{
+	dockerfordesktop.Spec.Packages = kftypes.RemoveItem(dockerfordesktop.Spec.Packages, "katib")
+	dockerfordesktop.Spec.Components = kftypes.RemoveItem(dockerfordesktop.Spec.Components, "katib")
+	dockerfordesktop.Spec.ComponentParams["application"] = []config.NameValue{
 		{
 			Name:  "components",
-			Value: "[" + strings.Join(kstypes.QuoteItems(kstypes.DefaultComponents), ",") + "]",
+			Value: "[" + strings.Join(kftypes.QuoteItems(dockerfordesktop.Spec.Components), ",") + "]",
 		},
 	}
 	usr, err := user.Current()
@@ -97,7 +95,7 @@ func (dockerfordesktop *DockerForDesktop) generateKsApp(options map[string]inter
 	}
 	uid := usr.Uid
 	gid := usr.Gid
-	kstypes.DefaultParameters["jupyter"] = []kstypes.NameValue{
+	dockerfordesktop.Spec.ComponentParams["jupyter"] = []config.NameValue{
 		{
 			Name:  string(kftypes.PLATFORM),
 			Value: platform,
@@ -119,7 +117,7 @@ func (dockerfordesktop *DockerForDesktop) generateKsApp(options map[string]inter
 			Value: gid,
 		},
 	}
-	kstypes.DefaultParameters["ambassador"] = []kstypes.NameValue{
+	dockerfordesktop.Spec.ComponentParams["ambassador"] = []config.NameValue{
 		{
 			Name:  string(kftypes.PLATFORM),
 			Value: platform,
@@ -129,41 +127,41 @@ func (dockerfordesktop *DockerForDesktop) generateKsApp(options map[string]inter
 			Value: "1",
 		},
 	}
-	ks := dockerfordesktop.Children[kftypes.KSONNET]
-	if ks != nil {
-		ksGenerateErr := ks.Generate(kftypes.ALL, options)
-		if ksGenerateErr != nil {
-			return fmt.Errorf("dockerfordesktop generate failed for ksonnet: %v", ksGenerateErr)
-		}
-	} else {
-		return fmt.Errorf("ksonnet not in Children")
-	}
 	return nil
 }
 
 func (dockerfordesktop *DockerForDesktop) Generate(resources kftypes.ResourceEnum, options map[string]interface{}) error {
 	switch resources {
+	case kftypes.K8S:
 	case kftypes.ALL:
 		fallthrough
-	case kftypes.K8S:
-		ksErr := dockerfordesktop.generateKsApp(options)
-		if ksErr != nil {
-			return fmt.Errorf("could not generate ksonnet under %v Error: %v", kstypes.KsName, ksErr)
-		}
 	case kftypes.PLATFORM:
+		generateErr := dockerfordesktop.generate(options)
+		if generateErr != nil {
+			return fmt.Errorf("dockerfordesktop generate failed Error: %v", generateErr)
+		}
+	}
+	createConfigErr := dockerfordesktop.writeConfigFile(options)
+	if createConfigErr != nil {
+		return fmt.Errorf("cannot create config file app.yaml in %v", dockerfordesktop.Client.Spec.AppDir)
 	}
 	return nil
 }
 
-func (dockerfordesktop *DockerForDesktop) Init(options map[string]interface{}) error {
-	ks := dockerfordesktop.Children["ksonnet"]
-	if ks != nil {
-		ksInitErr := ks.Init(options)
-		if ksInitErr != nil {
-			return fmt.Errorf("dockerfordesktop init failed for ksonnet: %v", ksInitErr)
-		}
-	} else {
-		return fmt.Errorf("ksonnet not in Children")
+func (dockerfordesktop *DockerForDesktop) Init(resources kftypes.ResourceEnum, options map[string]interface{}) error {
+	return nil
+}
+
+func (dockerfordesktop *DockerForDesktop) writeConfigFile(options map[string]interface{}) error {
+	buf, bufErr := yaml.Marshal(dockerfordesktop.Client)
+	if bufErr != nil {
+		return bufErr
+	}
+	options[string(kftypes.CONFIG)] = buf
+	cfgFilePath := filepath.Join(dockerfordesktop.Client.Spec.AppDir, kftypes.KfConfigFile)
+	cfgFilePathErr := ioutil.WriteFile(cfgFilePath, buf, 0644)
+	if cfgFilePathErr != nil {
+		return cfgFilePathErr
 	}
 	return nil
 }

@@ -25,6 +25,7 @@ GCP_DEFAULT_ZONE="us-east1-d"
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null && pwd)"
 source "${DIR}/util.sh"
 source "${DIR}/gke/util.sh"
+source "${DIR}/azure/util.sh"
 source "${DIR}/util-minikube.sh"
 INPUT=()
 FORMAT=()
@@ -105,6 +106,28 @@ createEnv() {
       export KUBEFLOW_PLATFORM=ack
       export KUBEFLOW_DOCKER_REGISTRY=registry.aliyuncs.com
       export DOCKER_REGISTRY_KATIB_NAMESPACE=katib
+      ;;
+    azure)
+      export KUBEFLOW_PLATFORM=azure
+      INPUT+=('AZ_CLIENT_ID=$AZ_CLIENT_ID\n'
+              'AZ_CLIENT_SECRET=$AZ_CLIENT_SECRET\n'
+              'AZ_TENANT_ID=$AZ_TENANT_ID\n'
+              'AZ_SUBSCRIPTION_ID=$AZ_SUBSCRIPTION_ID\n'
+              'AZ_LOCATION=$AZ_LOCATION\n'
+              'AZ_NODE_SIZE=$AZ_NODE_SIZE\n')
+      FORMAT+=('$AZ_CLIENT_ID'
+               '$AZ_CLIENT_SECRET'
+               '$AZ_TENANT_ID'
+               '$AZ_SUBSCRIPTION_ID'
+               '$AZ_LOCATION'
+               '$AZ_NODE_SIZE')
+
+      export AZ_CLIENT_ID=${AZ_CLIENT_ID}
+      export AZ_CLIENT_SECRET=${AZ_CLIENT_SECRET}
+      export AZ_TENANT_ID=${AZ_TENANT_ID}
+      export AZ_SUBSCRIPTION_ID=${AZ_SUBSCRIPTION_ID}
+      export AZ_LOCATION=${AZ_LOCATION}
+      export AZ_NODE_SIZE=${AZ_NODE_SIZE}
       ;;
     gcp)
       INPUT+=('PROJECT=$PROJECT\n'
@@ -250,6 +273,30 @@ parseArgs() {
       --skipInitProject)
         SKIP_INIT_PROJECT=true
         ;;
+      --azClientId)
+        shift
+        AZ_CLIENT_ID=$1
+        ;;
+      --azClientSecret)
+        shift
+        AZ_CLIENT_SECRET=$1
+        ;;
+      --azTenantId)
+        shift
+        AZ_TENANT_ID=$1
+        ;;
+      --azSubscriptionId)
+        shift
+        AZ_SUBSCRIPTION_ID=$1
+        ;;
+      --azLocation)
+        shift
+        AZ_LOCATION=$1
+        ;;
+      --azNodeSize)
+        shift
+        AZ_NODE_SIZE=$1
+        ;;
     esac
     shift
   done
@@ -301,6 +348,9 @@ parseArgs() {
         fi
       done
     fi
+  fi
+  if [[ "${PLATFORM}" == "azure" ]]; then
+    validate_az_arg
   fi
 }
 
@@ -389,6 +439,10 @@ main() {
   if [[ "${PLATFORM}" == "gcp" ]]; then
     checkInstallPy pyyaml yaml
   fi
+  if [[ "${PLATFORM}" == "azure" ]]; then
+    check_az_cli
+    az_login
+  fi
 
   if [[ "${COMMAND}" == "generate" ]]; then
     if [[ "${WHAT}" == "platform" ]] || [[ "${WHAT}" == "all" ]]; then
@@ -396,6 +450,10 @@ main() {
         generateDMConfigs
         downloadK8sManifests
       fi
+    fi
+    if [[ "${PLATFORM}" == "azure" ]]; then
+        echo "generate for Azure"
+        createAKSCluster
     fi
 
     if [[ "${WHAT}" == "k8s" ]] || [[ "${WHAT}" == "all" ]]; then
@@ -474,6 +532,26 @@ main() {
           fi
       fi
       set +e
+      pushd ${KUBEFLOW_KS_DIR}
+      appname=$(ks param list application | grep '^application name'|awk '{print $NF}'|tr -d "'")
+      popd
+      for i in $(kubectl get crds -lapp.kubernetes.io/name=$appname -oname); do 
+        crd=${i#*/}
+        kubectl delete crd $crd
+      done
+      for i in $(kubectl get clusterroles -lapp.kubernetes.io/name=$appname -oname); do 
+        clusterrole=${i#*/}
+        kubectl delete clusterrole $clusterrole
+      done
+      for i in $(kubectl get clusterrolebindings -lapp.kubernetes.io/name=$appname -oname); do 
+        clusterrolebinding=${i#*/}
+        kubectl delete clusterrolebinding $clusterrolebinding
+      done
+      kubectl delete clusterrolebinding meta-controller-cluster-role-binding
+      kubectl delete crd compositecontrollers.metacontroller.k8s.io
+      kubectl delete crd controllerrevisions.metacontroller.k8s.io
+      kubectl delete crd decoratorcontrollers.metacontroller.k8s.io
+      kubectl delete crd applications.app.k8s.io
       kubectl delete ns/${K8S_NAMESPACE}
       while kubectl get ns/${K8S_NAMESPACE}; do
         echo "namespace ${K8S_NAMESPACE} not yet deleted. sleeping 10 seconds..."

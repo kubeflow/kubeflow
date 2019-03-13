@@ -15,21 +15,21 @@
 package v1alpha1
 
 import (
-	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
+	client "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/client/v1alpha1"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // GcpSpec defines the desired state of Gcp
 type GcpSpec struct {
-	kstypes.KsonnetSpec `json:",inline"`
-	Project             string `json:"project,omitempty"`
-	Email               string `json:"email,omitempty"`
-	IpName              string `json:"ipName,omitempty"`
-	Hostname            string `json:"hostname,omitempty"`
-	Zone                string `json:"zone,omitempty"`
-	UseBasicAuth        bool   `json:"useBasicAuth"`
-	SkipInitProject     bool   `json:"skipInitProject,omitempty"`
+	client.ClientSpec `json:",inline"`
+	Project           string `json:"project,omitempty"`
+	Email             string `json:"email,omitempty"`
+	IpName            string `json:"ipName,omitempty"`
+	Hostname          string `json:"hostname,omitempty"`
+	Zone              string `json:"zone,omitempty"`
+	UseBasicAuth      bool   `json:"useBasicAuth"`
+	SkipInitProject   bool   `json:"skipInitProject,omitempty"`
 }
 
 // GcpStatus defines the observed state of Gcp

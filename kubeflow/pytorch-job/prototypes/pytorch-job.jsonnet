@@ -8,7 +8,7 @@
 // @optionalParam numMasters number 1 The number of masters to use
 // @optionalParam numWorkers number 1 The number of workers to use
 // @optionalParam numGpus number 0 The number of GPUs to attach to workers.
-// @optionalParam jobVersion string v1beta1 The pytorch operator version to use
+// @optionalParam jobVersion string v1beta2 The pytorch operator version to use
 
 local k = import "k.libsonnet";
 

@@ -18,77 +18,74 @@ package minikube
 
 import (
 	"fmt"
+	"github.com/ghodss/yaml"
+	"github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	kstypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/ksonnet/v1alpha1"
-	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/ksonnet"
+	cltypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/client/v1alpha1"
 	log "github.com/sirupsen/logrus"
+	"io/ioutil"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os/user"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
 
 // Minikube implements KfApp Interface
-// It includes the Ksonnet along with functionality needed for minikube
 type Minikube struct {
-	kftypes.FullKfApp
-	//TODO add additional types required for minikube platform
+	cltypes.Client
 }
 
 func GetKfApp(options map[string]interface{}) kftypes.KfApp {
-	options[string(kftypes.PLATFORM)] = string(kftypes.KSONNET)
-	log.Infof("getting ksonnet platform in minikube")
-	_ksonnet := ksonnet.GetKfApp(options)
-	options[string(kftypes.PLATFORM)] = string(kftypes.MINIKUBE)
 	_minikube := &Minikube{
-		FullKfApp: kftypes.FullKfApp{
-			Children: make(map[kftypes.Platform]kftypes.KfApp),
+		Client: cltypes.Client{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "Client",
+				APIVersion: "client.apps.kubeflow.org/v1alpha1",
+			},
+			Spec: cltypes.ClientSpec{},
 		},
 	}
-	_minikube.Children[kftypes.KSONNET] = _ksonnet
+	if options[string(kftypes.DATA)] != nil {
+		dat := options[string(kftypes.DATA)].([]byte)
+		specErr := yaml.Unmarshal(dat, _minikube)
+		if specErr != nil {
+			log.Errorf("couldn't unmarshal Ksonnet. Error: %v", specErr)
+		}
+	}
+	if options[string(kftypes.CONFIG)] != nil {
+		dat := options[string(kftypes.CONFIG)].([]byte)
+		specErr := yaml.Unmarshal(dat, &_minikube.Spec)
+		if specErr != nil {
+			log.Errorf("couldn't unmarshal Ksonnet. Error: %v", specErr)
+		}
+	}
 	return _minikube
 }
 
 func (minikube *Minikube) Apply(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	ks := minikube.Children[kftypes.KSONNET]
-	if ks != nil {
-		ksApplyErr := ks.Apply(resources, options)
-		if ksApplyErr != nil {
-			return fmt.Errorf("minikube apply failed for %v: %v", string(kftypes.KSONNET), ksApplyErr)
-		}
-	} else {
-		return fmt.Errorf("%v not in Children", string(kftypes.KSONNET))
-	}
 	//mount_local_fs
 	//setup_tunnels
 	return nil
 }
 
 func (minikube *Minikube) Delete(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	ks := minikube.Children[kftypes.KSONNET]
-	if ks != nil {
-		ksDeleteErr := ks.Delete(resources, options)
-		if ksDeleteErr != nil {
-			return fmt.Errorf("minikube delete failed for %v: %v", string(kftypes.KSONNET), ksDeleteErr)
-		}
-	} else {
-		return fmt.Errorf("%v not in Children", string(kftypes.KSONNET))
-	}
 	return nil
 }
 
-func (minikube *Minikube) generateKsonnet(options map[string]interface{}) error {
+func (minikube *Minikube) generate(options map[string]interface{}) error {
 	platform := options[string(kftypes.PLATFORM)].(string)
 	mountLocal := false
 	if options[string(kftypes.MOUNT_LOCAL)] != nil {
 		mountLocal = options[string(kftypes.MOUNT_LOCAL)].(bool)
 	}
 	// remove Katib package and component
-	kstypes.DefaultPackages = kstypes.RemoveItem(kstypes.DefaultPackages, "katib")
-	kstypes.DefaultComponents = kstypes.RemoveItem(kstypes.DefaultComponents, "katib")
-	kstypes.DefaultParameters["application"] = []kstypes.NameValue{
+	minikube.Spec.Packages = kftypes.RemoveItem(minikube.Spec.Packages, "katib")
+	minikube.Spec.Components = kftypes.RemoveItem(minikube.Spec.Components, "katib")
+	minikube.Spec.ComponentParams["application"] = []config.NameValue{
 		{
 			Name:  "components",
-			Value: "[" + strings.Join(kstypes.QuoteItems(kstypes.DefaultComponents), ",") + "]",
+			Value: "[" + strings.Join(kftypes.QuoteItems(minikube.Spec.Components), ",") + "]",
 		},
 	}
 	usr, err := user.Current()
@@ -97,7 +94,7 @@ func (minikube *Minikube) generateKsonnet(options map[string]interface{}) error 
 	}
 	uid := usr.Uid
 	gid := usr.Gid
-	kstypes.DefaultParameters["jupyter"] = []kstypes.NameValue{
+	minikube.Spec.ComponentParams["jupyter"] = []config.NameValue{
 		{
 			Name:  string(kftypes.PLATFORM),
 			Value: platform,
@@ -119,7 +116,7 @@ func (minikube *Minikube) generateKsonnet(options map[string]interface{}) error 
 			Value: gid,
 		},
 	}
-	kstypes.DefaultParameters["ambassador"] = []kstypes.NameValue{
+	minikube.Spec.ComponentParams["ambassador"] = []config.NameValue{
 		{
 			Name:  string(kftypes.PLATFORM),
 			Value: platform,
@@ -129,41 +126,45 @@ func (minikube *Minikube) generateKsonnet(options map[string]interface{}) error 
 			Value: "1",
 		},
 	}
-	ks := minikube.Children[kftypes.KSONNET]
-	if ks != nil {
-		ksGenerateErr := ks.Generate(kftypes.ALL, options)
-		if ksGenerateErr != nil {
-			return fmt.Errorf("minikube generate failed for %v: %v", string(kftypes.KSONNET), ksGenerateErr)
-		}
-	} else {
-		return fmt.Errorf("%v not in Children", string(kftypes.KSONNET))
-	}
 	return nil
 }
 
 func (minikube *Minikube) Generate(resources kftypes.ResourceEnum, options map[string]interface{}) error {
 	switch resources {
+	case kftypes.K8S:
 	case kftypes.ALL:
 		fallthrough
-	case kftypes.K8S:
-		ksErr := minikube.generateKsonnet(options)
-		if ksErr != nil {
-			return fmt.Errorf("could not generate ksonnet under %v Error: %v", kstypes.KsName, ksErr)
-		}
 	case kftypes.PLATFORM:
+		generateErr := minikube.generate(options)
+		if generateErr != nil {
+			return fmt.Errorf("minikube generate failed Error: %v", generateErr)
+		}
+	}
+	createConfigErr := minikube.writeConfigFile(options)
+	if createConfigErr != nil {
+		return fmt.Errorf("cannot create config file app.yaml in %v", minikube.Client.Spec.AppDir)
 	}
 	return nil
 }
 
-func (minikube *Minikube) Init(options map[string]interface{}) error {
-	ks := minikube.Children[kftypes.KSONNET]
-	if ks != nil {
-		ksInitErr := ks.Init(options)
-		if ksInitErr != nil {
-			return fmt.Errorf("minikube init failed for %v: %v", string(kftypes.KSONNET), ksInitErr)
-		}
-	} else {
-		return fmt.Errorf("%v not in Children", string(kftypes.KSONNET))
+func (minikube *Minikube) Init(kftypes.ResourceEnum, map[string]interface{}) error {
+	return nil
+}
+
+func (minikube *Minikube) writeConfigFile(options map[string]interface{}) error {
+	buf, bufErr := yaml.Marshal(minikube.Client)
+	if bufErr != nil {
+		return bufErr
 	}
+	cfgFilePath := filepath.Join(minikube.Client.Spec.AppDir, kftypes.KfConfigFile)
+	cfgFilePathErr := ioutil.WriteFile(cfgFilePath, buf, 0644)
+	if cfgFilePathErr != nil {
+		return cfgFilePathErr
+	}
+	buf, bufErr = yaml.Marshal(&minikube.Client.Spec)
+	if bufErr != nil {
+		return bufErr
+	}
+	options[string(kftypes.CONFIG)] = buf
 	return nil
 }

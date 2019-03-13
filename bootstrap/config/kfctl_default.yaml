@@ -1,0 +1,48 @@
+# Config entry used for deploying with no platform specified (or --platform none) and no basic auth enabled
+# Load this file as object (KsonnetSpec)[https://github.com/kubeflow/kubeflow/blob/master/bootstrap/pkg/apis/apps/ksonnet/v1alpha1/application_types.go#L201]
+# All TODO fields need to be changed following user's input before apply
+# TODO change repo on the fly: set it to local tmp dir containing kubeflow registry
+repo: /path/to/local/tmp/containing/kubeflow
+packages:
+  - argo
+  - application
+  - common
+  - examples
+  - gcp
+  - jupyter
+  - katib
+  - metacontroller
+  - modeldb
+  - mpi-job
+  - pipeline
+  - profiles
+  - pytorch-job
+  - seldon
+  - tensorboard
+  - tf-serving
+  - tf-training
+components:
+  - ambassador
+  - application
+  - argo
+  - centraldashboard
+  - jupyter
+  - jupyter-web-app
+  - katib
+  - metacontroller
+  - notebook-controller
+  - pipeline
+  - profiles
+  - pytorch-operator
+  - tensorboard
+  - tf-job-operator
+componentParams:
+  application:
+    - name: components
+      value: <list-of-components>
+  jupyter:
+    - name: platform
+      value: none
+  ambassador:
+    - name: ambassadorServiceType
+      value: NodePort
