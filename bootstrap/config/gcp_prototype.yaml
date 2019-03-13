@@ -7,6 +7,8 @@ app:
       prototype: jupyterhub
     - name: ambassador
       prototype: ambassador
+    - name: profiles
+      prototype: profiles
     - name: centraldashboard
       prototype: centraldashboard
     - name: tf-job-operator
