@@ -54,19 +54,22 @@ import (
 )
 
 const (
-	GCP_CONFIG        = "gcp_config"
-	K8S_SPECS         = "k8s_specs"
-	CONFIG_FILE       = "cluster-kubeflow.yaml"
-	STORAGE_FILE      = "storage-kubeflow.yaml"
-	NETWORK_FILE      = "network.yaml"
-	GCFS_FILE         = "gcfs.yaml"
-	ADMIN_SECRET_NAME = "admin-gcp-sa"
-	USER_SECRET_NAME  = "user-gcp-sa"
-	KUBEFLOW_OAUTH    = "kubeflow-oauth"
-	IMPORTS           = "imports"
-	PATH              = "path"
-	CLIENT_ID         = "CLIENT_ID"
-	CLIENT_SECRET     = "CLIENT_SECRET"
+	GCP_CONFIG          = "gcp_config"
+	K8S_SPECS           = "k8s_specs"
+	CONFIG_FILE         = "cluster-kubeflow.yaml"
+	STORAGE_FILE        = "storage-kubeflow.yaml"
+	NETWORK_FILE        = "network.yaml"
+	GCFS_FILE           = "gcfs.yaml"
+	ADMIN_SECRET_NAME   = "admin-gcp-sa"
+	USER_SECRET_NAME    = "user-gcp-sa"
+	KUBEFLOW_OAUTH      = "kubeflow-oauth"
+	IMPORTS             = "imports"
+	PATH                = "path"
+	CLIENT_ID           = "CLIENT_ID"
+	CLIENT_SECRET       = "CLIENT_SECRET"
+	BASIC_AUTH_USERNAME = "BASIC_AUTH_USERNAME"
+	BASIC_AUTH_PASSWORD = "BASIC_AUTH_PASSWORD"
+	BASIC_AUTH_SECRET   = "kubeflow-login"
 )
 
 // Gcp implements KfApp Interface
