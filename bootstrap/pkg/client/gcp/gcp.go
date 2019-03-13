@@ -831,7 +831,7 @@ func (gcp *Gcp) createBasicAuthSecret(client *clientset.Clientset, options map[s
 		},
 		Data: map[string][]byte{
 			"username":     []byte(username),
-			"passwordhash": passwordHash,
+			"passwordhash": []byte(base64.StdEncoding.EncodeToString(passwordHash)),
 		},
 	}
 	_, err = client.CoreV1().Secrets(gcp.GcpApp.Namespace).Update(secret)
