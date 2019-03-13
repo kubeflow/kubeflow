@@ -584,7 +584,7 @@ func (gcp *Gcp) generateDMConfigs(options map[string]interface{}) error {
 	// TODO(gabrielwen): Use YAML support instead of string replacement.
 	appDir := gcp.GcpApp.Spec.AppDir
 	gcpConfigDir := path.Join(appDir, GCP_CONFIG)
-	gcpConfigDirErr := os.Mkdir(gcpConfigDir, os.ModePerm)
+	gcpConfigDirErr := os.MkdirAll(gcpConfigDir, os.ModePerm)
 	if gcpConfigDirErr != nil {
 		return fmt.Errorf("cannot create directory %v", gcpConfigDirErr)
 	}
@@ -669,7 +669,7 @@ func (gcp *Gcp) generateDMConfigs(options map[string]interface{}) error {
 func (gcp *Gcp) downloadK8sManifests() error {
 	appDir := gcp.GcpApp.Spec.AppDir
 	k8sSpecsDir := path.Join(appDir, K8S_SPECS)
-	k8sSpecsDirErr := os.Mkdir(k8sSpecsDir, os.ModePerm)
+	k8sSpecsDirErr := os.MkdirAll(k8sSpecsDir, os.ModePerm)
 	if k8sSpecsDirErr != nil {
 		return fmt.Errorf("cannot create directory %v Error %v", k8sSpecsDir, k8sSpecsDirErr)
 	}
@@ -783,7 +783,7 @@ func (gcp *Gcp) createSecrets(options map[string]interface{}) error {
 	} else {
 		oauthId = os.Getenv(CLIENT_ID)
 	}
-	if oauthId == "" {
+	if oauthId == "" && !gcp.GcpApp.Spec.UseBasicAuth {
 		return fmt.Errorf("At least one of --%v or ENV `%v` needs to be set.",
 			string(kftypes.OAUTH_ID), CLIENT_ID)
 	}
@@ -794,7 +794,7 @@ func (gcp *Gcp) createSecrets(options map[string]interface{}) error {
 	} else {
 		oauthSecret = os.Getenv(CLIENT_SECRET)
 	}
-	if oauthSecret == "" {
+	if oauthSecret == "" && !gcp.GcpApp.Spec.UseBasicAuth {
 		return fmt.Errorf("At least one of --%v or ENV `%v` needs to be set.",
 			string(kftypes.OAUTH_SECRET), CLIENT_SECRET)
 	}
