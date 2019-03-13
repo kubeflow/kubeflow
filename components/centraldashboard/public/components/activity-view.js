@@ -20,14 +20,14 @@ export class ActivityView extends PolymerElement {
                     --sidebar-default-color: #ffffff4f;
                     --border-color: #f4f4f6;
                     background: #f1f3f4;
-                    min-height: 50%;
                     padding: 1em;
+                    overflow: auto;
                 }
                 paper-progress {
                     width: 100%;
                     --paper-progress-active-color: var(--accent-color)
                 }
-                p {
+                p.message {
                     background: #fff;
                     border-top: 1px solid rgba(0,0,0,.12);
                     box-shadow: 0 3px 3px rgba(0,0,0,.12);
@@ -44,11 +44,11 @@ export class ActivityView extends PolymerElement {
             </style>
             <iron-ajax id="ajax" url="/api/activities/[[namespace]]"
                 handle-as="json" loading="{{loading}}"
-                on-response="_onResponse">
+                on-response="_onResponse" on-error="_onError">
             </iron-ajax>
             <paper-progress indeterminate class="slow"
                 hidden$="[[!loading]]"></paper-progress>
-            <p hidden$="[[!message]]">[[message]]</p>
+            <p class="message" hidden$="[[!message]]">[[message]]</p>
             <activities-list activities="[[activities]]"></activities-list>
             `;
     }
@@ -83,27 +83,32 @@ export class ActivityView extends PolymerElement {
      * @param {string} newNamespace
      */
     _namespaceChanged(newNamespace) {
-        if (newNamespace) {
-            this.message = '';
-            this.$['ajax'].generateRequest();
-        }
+        if (!newNamespace) return;
+        this.message = '';
+        this.$['ajax'].generateRequest();
     }
 
     /**
-     * Handles the Activities response to set date format and icon.
+     * Handles a successful Activities response.
      * @param {Event} responseEvent
      */
     _onResponse(responseEvent) {
-        const {status, response} = responseEvent.detail;
+        const response = responseEvent.detail.response;
         this.splice('activities', 0);
-        if (status !== 200) {
-            this.message =
-                `Error retrieving activities for namespace ${this.namespace}`;
-        } else if (!response.length) {
+        if (!response.length) {
             this.message = `No activities for namespace ${this.namespace}`;
         } else {
             this.push('activities', ...response);
         }
+    }
+
+    /**
+     * Handles an Activities error response.
+     */
+    _onError() {
+        this.splice('activities', 0);
+        this.message =
+            `Error retrieving activities for namespace ${this.namespace}`;
     }
 }
 

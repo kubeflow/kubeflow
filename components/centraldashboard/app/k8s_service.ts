@@ -2,11 +2,9 @@ import * as k8s from '@kubernetes/client-node';
 
 /** Wrap Kubernetes API calls in a simpler interface for use in routes. */
 export class KubernetesService {
-  private kubeConfig: k8s.KubeConfig;
   private k8sApi: k8s.Core_v1Api;
 
-  constructor() {
-    this.kubeConfig = new k8s.KubeConfig();
+  constructor(private kubeConfig: k8s.KubeConfig) {
     console.info('Initializing Kubernetes configuration');
     this.kubeConfig.loadFromDefault();
     this.k8sApi = this.kubeConfig.makeApiClient(k8s.Core_v1Api);
