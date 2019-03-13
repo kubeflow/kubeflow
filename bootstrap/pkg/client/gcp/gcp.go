@@ -28,6 +28,7 @@ import (
 	gcptypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/gcp/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -819,6 +820,10 @@ func (gcp *Gcp) createBasicAuthSecret(client *clientset.Clientset, options map[s
 		return fmt.Errorf("At least one of --%v or ENV `%v` needs to be set.",
 			string(kftypes.BASIC_AUTH_PASSWORD), BASIC_AUTH_PASSWORD)
 	}
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
+	if err != nil {
+		return fmt.Errorf("error when hashing password: %v", err)
+	}
 	secret := &v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      BASIC_AUTH_SECRET,
@@ -826,10 +831,10 @@ func (gcp *Gcp) createBasicAuthSecret(client *clientset.Clientset, options map[s
 		},
 		Data: map[string][]byte{
 			"username":     []byte(username),
-			"passwordhash": []byte(password),
+			"passwordhash": passwordHash,
 		},
 	}
-	_, err := client.CoreV1().Secrets(gcp.GcpApp.Namespace).Update(secret)
+	_, err = client.CoreV1().Secrets(gcp.GcpApp.Namespace).Update(secret)
 	return err
 }
 
