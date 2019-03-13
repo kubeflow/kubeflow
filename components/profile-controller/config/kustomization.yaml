@@ -18,6 +18,7 @@ commonLabels:
 # YAML string, with resources separated by document
 # markers ("---").
 resources:
+- crds/kubeflow_v1alpha1_profile.yaml
 - rbac/rbac_role.yaml
 - rbac/rbac_role_binding.yaml
 - manager/manager.yaml
