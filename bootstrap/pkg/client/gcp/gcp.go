@@ -312,6 +312,12 @@ func blockingWait(project string, opName string, deploymentmanagerService *deplo
 	name := "" + opName
 	return backoff.Retry(func() error {
 		op, err := deploymentmanagerService.Operations.Get(p, name).Context(ctx).Do()
+
+		if op.Error != nil {
+			for _, e := range op.Error.Errors {
+				log.Errorf("Deployment error: %+v", e)
+			}
+		}
 		if op.Status == "DONE" {
 			if op.HttpErrorStatusCode > 0 {
 				return backoff.Permanent(fmt.Errorf("Deployment error(%v): %v",
@@ -322,9 +328,9 @@ func blockingWait(project string, opName string, deploymentmanagerService *deplo
 		} else if err != nil {
 			return backoff.Permanent(fmt.Errorf("Deployment error: %v", err))
 		}
-		log.Warnf("Deployment service is not ready: %v", op.Status)
+		log.Warnf("Deployment operation name: %v status: %v", op.Name, op.Status)
 		name = op.Name
-		return fmt.Errorf("Deployment is not ready: %v", op.Status)
+		return fmt.Errorf("Deployment operation did not succeed; name: %v status: %v", op.Name, op.Status)
 	}, backoff.NewExponentialBackOff())
 }
 
@@ -354,13 +360,14 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 	resp, err := deploymentmanagerService.Deployments.Get(project, deployment).Context(ctx).Do()
 	if err == nil {
 		dp.Fingerprint = resp.Fingerprint
+		log.Infof("Updating deployment %v", deployment)
 		op, updateErr := deploymentmanagerService.Deployments.Update(project, deployment, dp).Context(ctx).Do()
 		if updateErr != nil {
 			return fmt.Errorf("Update deployment error: %v", updateErr)
 		}
 		return blockingWait(project, op.Name, deploymentmanagerService, ctx)
 	} else {
-		log.Infof("Get deployment error, creating: %v", err)
+		log.Infof("Creating deployment %v", deployment)
 		op, insertErr := deploymentmanagerService.Deployments.Insert(project, dp).Context(ctx).Do()
 		if insertErr != nil {
 			return fmt.Errorf("Insert deployment error: %v", insertErr)
