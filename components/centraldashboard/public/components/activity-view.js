@@ -26,19 +26,21 @@ export class ActivityView extends PolymerElement {
                     --paper-progress-active-color: var(--accent-color)
                 }
                 #list {
-                    overflow-y: scroll;
+                    overflow-y: auto;
                 }
                 .activity-row {
                     background: #fff;
-                    border-top: 1px solid rgba(0,0,0,.12);
                     box-shadow: 0 3px 3px rgba(0,0,0,.12);
                     transition: margin .2s cubic-bezier(0.4, 0, 0.2, 1);
                     font-size: 13px;
                     padding: 5px;
+                    align-items: center;
                 }
-                .activity-row div {
-                    padding: 0 5px;
+                .activity-row:not(:first-of-type) {
+                    border-top: 1px solid rgba(0,0,0,.12);
                 }
+                .activity-row > .flex {padding: 0 5px}
+                .activity-row > .src {color: #616161}
                 .event {
                     flex-basis: 50%;
                 }
@@ -68,17 +70,16 @@ export class ActivityView extends PolymerElement {
             <div id="list" role="listbox">
                 <template is="dom-repeat" items="[[activities]]">
                     <div class="activity-row layout horizontal">
-                        <div class="flex">[[item.formattedTime]]</div>
+                        <div class="flex time">[[item.formattedTime]]</div>
                         <div class="flex flex-auto event">
                             <iron-icon class$="event-icon [[item.icon]]"
                                 icon="[[item.icon]]">
                             </iron-icon>[[item.event]]
                         </div>
-                        <div class="flex">[[item.source]]</div>
+                        <div class="flex src">[[item.source]]</div>
                     </div>
                 </template>
-            </div>
-            `;
+            </div>`;
     }
 
     /**

@@ -11,6 +11,7 @@ import '@polymer/iron-collapse/iron-collapse.js';
 import '@polymer/iron-selector/iron-selector.js';
 import '@polymer/iron-flex-layout/iron-flex-layout-classes.js';
 import '@polymer/iron-flex-layout/iron-flex-layout.js';
+import '@polymer/iron-media-query/iron-media-query.js';
 import '@polymer/paper-card/paper-card.js';
 import '@polymer/paper-tabs/paper-tabs.js';
 import '@polymer/paper-item/paper-item.js';
@@ -80,30 +81,52 @@ export class MainPage extends PolymerElement {
                     },
                 ],
             },
-            hideToolbar: {type: Boolean, value: false},
             sidebarItemIndex: {type: Number, value: 0},
             iframeUrl: {type: String, value: ''},
             buildVersion: {type: String, value: '0.4.1'},
             dashVersion: {type: String, value: VERSION},
+            inIframe: {type: Boolean, value: false, readOnly: true},
             _devMode: {type: Boolean, value: DEVMODE},
         };
     }
 
+
     /**
-   * Array of strings describing multi-property observer methods and their
-   * dependant properties
-   */
+     * Array of strings describing multi-property observer methods and their
+     * dependant properties
+     */
     static get observers() {
         return [
             '_routePageChanged(routeData.page)',
         ];
     }
 
+    ready() {
+        Promise.resolve(super.ready())
+            .then(fetch.bind(window, 'assets/kf-logo_64px.svg'))
+            .then((r) => r.text())
+            .then((svg) => {
+                this.$['Narrow-Slider'].querySelector('.Logo').innerHTML += [
+                    svg,
+                    `<figcaption>Kubeflow</figcaption>`,
+                ].join('');
+            });
+    }
+
     /**
-   * Intercepts any external links and ensures that they are captured in
-   * the route and sent to the iframe source.
-   * @param {MouseEvent} e
-   */
+     * Provide a logical OR functionality for the Polymer DOM
+     * @param {...boolean} a
+     * @return {boolean}
+     */
+    OR(...e) {
+        return e.some((i) => Boolean(i));
+    }
+
+    /**
+     * Intercepts any external links and ensures that they are captured in
+     * the route and sent to the iframe source.
+     * @param {MouseEvent} e
+     */
     openInIframe(e) {
         const url = new URL(e.currentTarget.href);
         window.history.pushState({}, null, `_${url.pathname}`);
@@ -111,16 +134,11 @@ export class MainPage extends PolymerElement {
         e.preventDefault();
     }
 
-    toggleSidebar() {
-        this.$.MainDrawer.toggle();
-    }
-
     /**
-   * Handles route changes by evaluating the page path component
-   * @param {string} newPage
-   */
+     * Handles route changes by evaluating the page path component
+     * @param {string} newPage
+     */
     _routePageChanged(newPage) {
-        this.hideToolbar = false;
         switch (newPage) {
         case 'activity':
             this.sidebarItemIndex = 0;
@@ -133,13 +151,17 @@ export class MainPage extends PolymerElement {
             this.sidebarItemIndex = 0;
             this.page = 'dashboard';
         }
+        const isIframe = newPage == '_';
+        const iframeStateChanged = isIframe !== this.inIframe;
+        this._setInIframe(isIframe);
+        iframeStateChanged && this.$.MainDrawer.close();
     }
 
     /**
-   * Sets the iframeUrl and sidebarItem based on the subpage component
-   * provided.
-   * @param {string} href
-   */
+     * Sets the iframeUrl and sidebarItem based on the subpage component
+     * provided.
+     * @param {string} href
+     */
     _setIframeFromRoute(href) {
         const menuLinkIndex =
         this.menuLinks.findIndex((m) => m.href === this.subRouteData.path);
@@ -147,7 +169,6 @@ export class MainPage extends PolymerElement {
             this.page = 'iframe';
             this.iframeUrl = this.menuLinks[menuLinkIndex].iframeUrl;
             this.sidebarItemIndex = menuLinkIndex + 1;
-            this.hideToolbar = true;
         } else {
             this.sidebarItemIndex = 0;
             this.page = 'dashboard';

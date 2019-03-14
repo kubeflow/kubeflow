@@ -1,7 +1,5 @@
 import {html, PolymerElement} from '@polymer/polymer';
-
 import css from './dashboard-view.css';
-
 import template from './dashboard-view.pug';
 
 export class DashboardView extends PolymerElement {
@@ -10,8 +8,8 @@ export class DashboardView extends PolymerElement {
     }
 
     /**
-   * Object describing property-related metadata used by Polymer features
-   */
+     * Object describing property-related metadata used by Polymer features
+     */
     static get properties() {
         const kubeflowDocs = 'https://www.kubeflow.org/docs/started';
 
@@ -22,13 +20,13 @@ export class DashboardView extends PolymerElement {
                     {
                         text: 'Getting started with Kubeflow',
                         desc: 'Quickly get running with your ML workflow on ' +
-                'an existing Kubernetes installation',
+                            'an existing Kubernetes installation',
                         link: `${kubeflowDocs}/getting-started/`,
                     },
                     {
                         text: 'Microk8s for Kubeflow',
                         desc: 'Quickly get Kubeflow running locally on ' +
-                'native hypervisors',
+                            'native hypervisors',
                         link: `${kubeflowDocs}/getting-started-multipass/`,
                     },
                     {
@@ -39,8 +37,9 @@ export class DashboardView extends PolymerElement {
                     {
                         text: 'Kubernetes Engine for Kubeflow',
                         desc: 'Get Kubeflow running on Google Cloud ' +
-                'Platform. This guide is a quickstart to deploying Kubeflow ' +
-                'on Google Kubernetes Engine',
+                                'Platform. This guide is a quickstart' +
+                                ' to deploying Kubeflow on Google' +
+                                ' Kubernetes Engine',
                         link: `${kubeflowDocs}/getting-started-gke/`,
                     },
                     {
@@ -68,4 +67,4 @@ export class DashboardView extends PolymerElement {
     }
 }
 
-window.customElements.define('dashboard-view', DashboardView);
+customElements.define('dashboard-view', DashboardView);

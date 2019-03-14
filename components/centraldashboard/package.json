@@ -36,7 +36,7 @@
     "@polymer/iron-flex-layout": "^3.0.0",
     "@polymer/iron-icons": "^3.0.1",
     "@polymer/iron-iconset-svg": "^3.0.0",
-    "@polymer/iron-media-query": "^3.0.0",
+    "@polymer/iron-media-query": "^3.0.1",
     "@polymer/iron-pages": "^3.0.0",
     "@polymer/iron-selector": "^3.0.0",
     "@polymer/neon-animation": "^3.0.1",
