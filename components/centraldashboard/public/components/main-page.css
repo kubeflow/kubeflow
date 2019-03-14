@@ -101,13 +101,12 @@ app-toolbar > header {
     padding: .5em;
     height: 100%;
     box-sizing: border-box;
-    margin-left: 2em;
     color: var(--primary-background-color);
     @apply --layout-horizontal;
     @apply --layout-center-center;
 }
 #Narrow-Slider > .Logo > svg {
-    width: 2.5em;
+    width: 1.5em;
     height: 100%;
     margin-right: .5em;
 }
