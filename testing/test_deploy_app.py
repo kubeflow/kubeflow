@@ -10,6 +10,8 @@ import shutil
 import subprocess
 import tempfile
 import threading
+from functools import partial
+from multiprocessing import Process
 from time import sleep
 from google.auth.transport.requests import Request
 from googleapiclient import discovery
@@ -462,6 +464,9 @@ def clean_up_resource(args, deployments):
   # Delete health-checks
   delete_gcloud_resource(args, 'health-checks')
 
+  if not delete_done:
+    logging.error("failed to clean up resources for project %s deployments %s",
+                  args.project, deployments)
   return delete_done
 
 
@@ -520,11 +525,15 @@ def util_run(command,
   return "\n".join(output)
 
 def clean_up_project_resource(args, projects, deployments):
+  proc = []
   for project in projects:
     args.project = project
-    if not clean_up_resource(args, deployments):
-      return False
-  return True
+    p = Process(target = partial(clean_up_resource, args, deployments))
+    p.start()
+    proc.append(p)
+
+  for p in proc:
+    p.join()
 
 def upload_load_test_ssl_cert(args, projects, deployments):
   for project in projects:
@@ -577,12 +586,7 @@ def run_load_test(args):
   logging.info("deployments: %s" % deployments)
   logging.info("projects: %s" % projects)
 
-  if not clean_up_project_resource(args, projects, deployments):
-    LOADTEST_HEALTH.set(1)
-    FAILURE_COUNT.inc()
-    logging.error("initial cleanup failed")
-    return
-  LOADTEST_HEALTH.set(0)
+  clean_up_project_resource(args, projects, deployments)
 
   if not make_loadtest_call(
     args, service_account_credentials, projects, deployments):
@@ -595,8 +599,7 @@ def run_load_test(args):
 
   check_load_test_results(args, projects, deployments)
 
-  if not clean_up_project_resource(args, projects, deployments):
-    logging.error("final cleanup failed")
+  clean_up_project_resource(args, projects, deployments)
 
 
 
