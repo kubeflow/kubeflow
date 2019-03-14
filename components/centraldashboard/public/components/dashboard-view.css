@@ -16,11 +16,6 @@
     background: #f1f3f4;
 }
 
-/* article:after {
-    content: '';
-    grid-column: 1 span 3
-} */
-
 paper-card {
     border-radius: 5px;
     grid-column: 1 / span 2;
