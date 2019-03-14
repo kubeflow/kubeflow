@@ -30,7 +30,7 @@ local srcRootDir = testDir + "/src";
 local srcDir = srcRootDir + "/kubeflow/kubeflow";
 
 local runPath = srcDir + "/testing/workflows/run.sh";
-
+local kfCtlPath = srcDir + "/bootstrap/bin/kfctl";
 local kubeConfig = testDir + "/kfctl_test/.kube/kubeconfig";
 
 // Name for the Kubeflow app.
@@ -191,7 +191,7 @@ local dagTemplates = [
   },  // create-pr-symlink
   {
     template: buildTemplate(
-      "build-kfctl",
+      "kfctl-build-deploy",
       [        
         "pytest",
         "kfctl_go_test.py",
@@ -203,6 +203,7 @@ local dagTemplates = [
         // Test timeout in seconds.
         "--timeout=500",
         "--junitxml=" + artifactsDir + "/junit_kfctl-build-test.xml",
+        "--app_path=" + appDir,
       ],
       working_dir=srcDir+ "/testing/kfctl",
     ),
@@ -213,6 +214,30 @@ local dagTemplates = [
 // Each item is a dictionary describing one step in the graph
 // to execute on exit
 local deleteKubeflow = util.toBool(params.deleteKubeflow);
+
+local deleteStep = if deleteKubeflow then
+  [{
+    template: buildTemplate(
+      "kfctl-delete",
+      [
+        "pytest",
+        "kfctl_delete_test.py",
+        // I think -s mean stdout/stderr will print out to aid in debugging.
+        // Failures still appear to be captured and stored in the junit file.
+        "-s",
+        // Increase the log level so that info level log statements show up.
+        "--log-cli-level=info",
+        // Test timeout in seconds.
+        "--timeout=500",
+        "--junitxml=" + artifactsDir + "/junit_kfctl-go-delete-test.xml",
+        "--app_path=" + appDir,
+        "--kfctl_path=" + kfCtlPath,
+      ],
+      working_dir=srcDir+ "/testing/kfctl",
+    ),
+    dependencies: null,
+  }]
+else [];
 
 local testDirDeleteStep = {
       template:
@@ -231,6 +256,7 @@ local testDirDeleteStep = {
 
 // TODO(jlewi): Add testDirDeleteStep
 local exitTemplates =
+  deleteStep +
   [
     {
       template: buildTemplate("copy-artifacts", [
@@ -243,10 +269,9 @@ local exitTemplates =
       ]),  // copy-artifacts,
 
       // TODO(jlewi): Uncomment when we actually set up Kubeflow.
-      dependencies: null,
-      // dependencies: if deleteKubeflow then
-      //  ["kfctl-delete"] + ["kfctl-delete-storage"]
-      // else null,
+      dependencies: if deleteKubeflow then
+         ["kfctl-delete"]
+      else null,
     },    
   ];
 
