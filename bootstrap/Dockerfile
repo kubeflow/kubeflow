@@ -4,7 +4,9 @@
 ARG GOLANG_VERSION=1.11.5
 FROM golang:$GOLANG_VERSION as bootstrap_base
 
-RUN apt-get update
+RUN apt-get clean && \
+    apt-get update -y && \
+    apt-get install --no-install-recommends --fix-missing unzip -y
 
 # We need gcloud to get gke credentials.
 RUN \
@@ -23,7 +25,7 @@ WORKDIR ${GOPATH}/src/github.com/kubeflow/kubeflow/bootstrap
 ENV GO111MODULE=on
 
 COPY . .
-RUN go mod download
+RUN unzip -q -d /tmp hack/v2.zip && go mod download
 RUN go build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go
 
 #
