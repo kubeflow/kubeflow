@@ -43,10 +43,8 @@ var applyCmd = &cobra.Command{
 			return
 		}
 		options := map[string]interface{}{
-			string(kftypes.OAUTH_ID):            applyCfg.GetString(string(kftypes.OAUTH_ID)),
-			string(kftypes.OAUTH_SECRET):        applyCfg.GetString(string(kftypes.OAUTH_SECRET)),
-			string(kftypes.BASIC_AUTH_USERNAME): applyCfg.GetString(string(kftypes.BASIC_AUTH_USERNAME)),
-			string(kftypes.BASIC_AUTH_PASSWORD): applyCfg.GetString(string(kftypes.BASIC_AUTH_PASSWORD)),
+			string(kftypes.OAUTH_ID):     applyCfg.GetString(string(kftypes.OAUTH_ID)),
+			string(kftypes.OAUTH_SECRET): applyCfg.GetString(string(kftypes.OAUTH_SECRET)),
 		}
 		kfApp, kfAppErr := coordinator.LoadKfApp(options)
 		if kfAppErr != nil {
