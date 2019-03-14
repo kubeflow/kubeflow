@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
 import json
 from kubernetes import client, config
 from kubernetes.config import ConfigException
-from kubeflow.jupyter.utils import create_logger
+from baseui.utils import create_logger
 
 logger = create_logger(__name__)
 

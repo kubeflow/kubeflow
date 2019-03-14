@@ -4,15 +4,15 @@ from flask import jsonify, render_template, request
 from kubernetes.client.rest import ApiException
 # from kubernetes import client
 from kubeflow.rokui import app
-from kubeflow.rokui.server import parse_error, \
+from kubeflow.rokui.api import get_rok_token
+from baseui.api import parse_error, \
     get_namespaces, \
     get_notebooks, \
-    get_rok_token, \
     delete_notebook, \
     create_notebook, \
     create_datavol_pvc, \
     create_workspace_pvc
-from kubeflow.rokui.utils import create_notebook_template, \
+from baseui.utils import create_notebook_template, \
     set_notebook_names, \
     set_notebook_image, \
     set_notebook_cpu_ram, \

@@ -2,8 +2,8 @@
 import json
 from flask import jsonify, render_template, request
 from kubernetes.client.rest import ApiException
-from kubeflow.jupyter import app
-from kubeflow.jupyter.server import parse_error, \
+from kubeflow.jupyterui import app
+from baseui.api import parse_error, \
     get_namespaces, \
     get_notebooks, \
     get_default_storageclass, \
@@ -11,7 +11,7 @@ from kubeflow.jupyter.server import parse_error, \
     create_notebook, \
     create_datavol_pvc, \
     create_workspace_pvc
-from kubeflow.jupyter.utils import create_notebook_template, \
+from baseui.utils import create_notebook_template, \
     set_notebook_names, \
     set_notebook_image, \
     set_notebook_cpu_ram, \
