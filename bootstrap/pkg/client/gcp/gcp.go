@@ -804,10 +804,6 @@ func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset
 
 // Use username and password provided by user and create secret for basic auth.
 func (gcp *Gcp) createBasicAuthSecret(client *clientset.Clientset, options map[string]interface{}) error {
-	if !gcp.GcpApp.Spec.UseBasicAuth {
-		log.Infof("Not using basic auth, skip creating basic auth login secret.")
-		return nil
-	}
 	encodedPasswordHash := base64.StdEncoding.EncodeToString([]byte(gcp.GcpApp.Spec.BasicAuthPassword))
 	secret := &v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
@@ -843,13 +839,14 @@ func (gcp *Gcp) createSecrets(options map[string]interface{}) error {
 		return fmt.Errorf("cannot create user secret %v Error %v", USER_SECRET_NAME, err)
 
 	}
-	// TODO(gabrielwen): This secret is also used by metric-controller. Need to check if metric-controller
-	// is part of components. If it is, should bail out if CLIENT_ID/CLIENT_SECRET are not set.
-	if err := gcp.createIapSecret(ctx, k8sClient, options); err != nil {
-		return fmt.Errorf("cannot create IAP auth secret: %v", err)
-	}
-	if err := gcp.createBasicAuthSecret(k8sClient, options); err != nil {
-		return fmt.Errorf("cannot create basic auth login secret: %v", err)
+	if gcp.GcpApp.Spec.UseBasicAuth {
+		if err := gcp.createBasicAuthSecret(k8sClient, options); err != nil {
+			return fmt.Errorf("cannot create basic auth login secret: %v", err)
+		}
+	} else {
+		if err := gcp.createIapSecret(ctx, k8sClient, options); err != nil {
+			return fmt.Errorf("cannot create IAP auth secret: %v", err)
+		}
 	}
 	return nil
 }
