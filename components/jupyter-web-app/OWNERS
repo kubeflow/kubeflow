@@ -2,6 +2,6 @@ approvers:
   - ioandr
   - kimwnasptd
 reviewers:
-  - vkoukis
-  - prodonjs
   - avdaredevil
+  - prodonjs
+  - vkoukis
