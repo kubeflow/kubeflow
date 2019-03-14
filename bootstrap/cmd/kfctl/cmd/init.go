@@ -48,7 +48,15 @@ or a <name>. If just <name> a directory <name> will be created in the current di
 		repo := initCfg.GetString(string(kftypes.REPO))
 		project := initCfg.GetString(string(kftypes.PROJECT))
 		init_gcp := initCfg.GetBool(string(kftypes.SKIP_INIT_GCP_PROJECT))
-		basic_auth := initCfg.GetBool(string(kftypes.USE_BASIC_AUTH))
+
+		useBasicAuth := initCfg.GetBool(string(kftypes.USE_BASIC_AUTH))
+		basicAuthUsername := applyCfg.GetString(string(kftypes.BASIC_AUTH_USERNAME))
+		basicAuthPassword := applyCfg.GetString(string(kftypes.BASIC_AUTH_PASSWORD))
+		if useBasicAuth && (basicAuthUsername == "" || basicAuthPassword == "") {
+			log.Errorf("If using basic auth, need to specify username and password for it.")
+			return
+		}
+
 		options := map[string]interface{}{
 			string(kftypes.PLATFORM):              platform,
 			string(kftypes.NAMESPACE):             namespace,
@@ -57,7 +65,9 @@ or a <name>. If just <name> a directory <name> will be created in the current di
 			string(kftypes.REPO):                  repo,
 			string(kftypes.PROJECT):               project,
 			string(kftypes.SKIP_INIT_GCP_PROJECT): init_gcp,
-			string(kftypes.USE_BASIC_AUTH):        basic_auth,
+			string(kftypes.USE_BASIC_AUTH):        useBasicAuth,
+			string(kftypes.BASIC_AUTH_USERNAME):   basicAuthUsername,
+			string(kftypes.BASIC_AUTH_PASSWORD):   basicAuthPassword,
 		}
 		kfApp, kfAppErr := coordinator.NewKfApp(options)
 		if kfAppErr != nil || kfApp == nil {
@@ -145,5 +155,17 @@ func init() {
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.USE_BASIC_AUTH), bindErr)
 		return
+	}
+	applyCmd.Flags().String(string(kftypes.BASIC_AUTH_USERNAME), "",
+		"Basic auth login username. Required if using basic auth.")
+	bindErr = applyCfg.BindPFlag(string(kftypes.BASIC_AUTH_USERNAME), applyCmd.Flags().Lookup(string(kftypes.BASIC_AUTH_USERNAME)))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.BASIC_AUTH_USERNAME), bindErr)
+	}
+	applyCmd.Flags().String(string(kftypes.BASIC_AUTH_PASSWORD), "",
+		"Basic auth login password. Required if using basic auth.")
+	bindErr = applyCfg.BindPFlag(string(kftypes.BASIC_AUTH_PASSWORD), applyCmd.Flags().Lookup(string(kftypes.BASIC_AUTH_PASSWORD)))
+	if bindErr != nil {
+		log.Errorf("couldn't set flag --%v: %v", string(kftypes.BASIC_AUTH_PASSWORD), bindErr)
 	}
 }
