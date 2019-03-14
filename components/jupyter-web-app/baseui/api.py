@@ -20,7 +20,7 @@ storage_api = client.StorageV1Api()
 
 def parse_error(e):
   try:
-    err = json.loads(e.body)['message']
+    err = json.loads(e.body)["message"]
   except json.JSONDecodeError:
     err = str(e)
   except KeyError:
@@ -30,18 +30,19 @@ def parse_error(e):
 
 
 def create_workspace_pvc(body):
+  # body: Dict (request body)
   """If the type is New, then create a new PVC, else use an existing one"""
   if body["ws_type"] == "New":
     pvc = client.V1PersistentVolumeClaim(
         metadata=client.V1ObjectMeta(
-            name=body['ws_name'],
-            namespace=body['ns']
+            name=body["ws_name"],
+            namespace=body["ns"]
         ),
         spec=client.V1PersistentVolumeClaimSpec(
-            access_modes=[body['ws_access_modes']],
+            access_modes=[body["ws_access_modes"]],
             resources=client.V1ResourceRequirements(
                 requests={
-                    'storage': body['ws_size'] + 'Gi'
+                    "storage": body["ws_size"] + "Gi"
                 }
             )
         )
@@ -53,23 +54,24 @@ def create_workspace_pvc(body):
 
 
 def create_datavol_pvc(body, i):
-  pvc_nm = body['vol_name' + i]
+  # body: Dict (request body)
+  pvc_nm = body["vol_name" + i]
 
   # Create a PVC if its a new Data Volume
   if body["vol_type" + i] == "New":
-    size = body['vol_size' + i] + 'Gi'
-    mode = body['vol_access_modes' + i]
+    size = body["vol_size" + i] + "Gi"
+    mode = body["vol_access_modes" + i]
 
     pvc = client.V1PersistentVolumeClaim(
         metadata=client.V1ObjectMeta(
             name=pvc_nm,
-            namespace=body['ns']
+            namespace=body["ns"]
         ),
         spec=client.V1PersistentVolumeClaimSpec(
             access_modes=[mode],
             resources=client.V1ResourceRequirements(
                 requests={
-                    'storage': size
+                    "storage": size
                 }
             )
         )
@@ -81,6 +83,8 @@ def create_datavol_pvc(body, i):
 
 
 def get_secret(nm, ns):
+  # nm: string
+  # ns: string
   return v1_core.read_namespaced_secret(nm, ns)
 
 
@@ -108,29 +112,33 @@ def get_namespaces():
 
 
 def get_notebooks(ns):
+  # ns: string
   custom_api = client.CustomObjectsApi()
 
   notebooks = \
       custom_api.list_namespaced_custom_object("kubeflow.org", "v1alpha1",
                                                ns, "notebooks")
-  return [nb['metadata']['name'] for nb in notebooks['items']]
+  return [nb["metadata"]["name"] for nb in notebooks["items"]]
 
 
 def delete_notebook(nb, ns):
-  body = client.V1DeleteOptions()
+  # nb: Dict
+  options = client.V1DeleteOptions()
 
   return \
       custom_api.delete_namespaced_custom_object("kubeflow.org", "v1alpha1",
-                                                 ns, "notebooks", nb, body)
+                                                 ns, "notebooks", nb, options)
 
 
-def create_notebook(body):
-  ns = body['metadata']['namespace']
+def create_notebook(nb):
+  # nb: Dict
+  ns = nb["metadata"]["namespace"]
   return \
       custom_api.create_namespaced_custom_object("kubeflow.org", "v1alpha1",
-                                                 ns, "notebooks", body)
+                                                 ns, "notebooks", nb)
 
 
-def create_pvc(body):
-  ns = body.metadata.namespace
-  return v1_core.create_namespaced_persistent_volume_claim(ns, body)
+def create_pvc(pvc):
+  # pvc: V1PersistentVolumeClaim
+  ns = pvc.metadata.namespace
+  return v1_core.create_namespaced_persistent_volume_claim(ns, pvc)
