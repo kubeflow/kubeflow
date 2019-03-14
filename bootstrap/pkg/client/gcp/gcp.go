@@ -711,6 +711,7 @@ func (gcp *Gcp) downloadK8sManifests() error {
 	return nil
 }
 
+// Write configuration to GCP as secret.
 func (gcp *Gcp) writeGcpSecret(client *clientset.Clientset, secretName string, data map[string][]byte) error {
 	secret := &v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
@@ -723,6 +724,7 @@ func (gcp *Gcp) writeGcpSecret(client *clientset.Clientset, secretName string, d
 	return err
 }
 
+// Create key for service account and write to GCP as secret.
 func (gcp *Gcp) createGcpServiceAcctSecret(ctx context.Context, client *clientset.Clientset,
 	email string, secretName string) error {
 	namespace := gcp.GcpApp.Namespace
@@ -761,6 +763,7 @@ func (gcp *Gcp) createGcpServiceAcctSecret(ctx context.Context, client *clientse
 	})
 }
 
+// User CLIENT_ID and CLIENT_SECRET from GCP to create a secret for IAP.
 func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset,
 	options map[string]interface{}) error {
 	if _, err := client.CoreV1().Secrets(gcp.GcpApp.Namespace).
@@ -796,6 +799,7 @@ func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset
 	})
 }
 
+// Use username and password provided by user and create secret for basic auth.
 func (gcp *Gcp) createBasicAuthSecret(client *clientset.Clientset, options map[string]interface{}) error {
 	if !gcp.GcpApp.Spec.UseBasicAuth {
 		log.Infof("Not using basic auth, skip creating basic auth login secret.")
