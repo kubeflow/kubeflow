@@ -83,7 +83,7 @@ export class MainPage extends PolymerElement {
             },
             sidebarItemIndex: {type: Number, value: 0},
             iframeUrl: {type: String, value: ''},
-            buildVersion: {type: String, value: '0.4.1'},
+            buildVersion: {type: String, value: '0.5.0'},
             dashVersion: {type: String, value: VERSION},
             inIframe: {type: Boolean, value: false, readOnly: true},
             _devMode: {type: Boolean, value: DEVMODE},
@@ -154,7 +154,7 @@ export class MainPage extends PolymerElement {
         const isIframe = newPage == '_';
         const iframeStateChanged = isIframe !== this.inIframe;
         this._setInIframe(isIframe);
-        iframeStateChanged && this.$.MainDrawer.close();
+        (iframeStateChanged || isIframe) && this.$.MainDrawer.close();
     }
 
     /**
@@ -163,8 +163,7 @@ export class MainPage extends PolymerElement {
      * @param {string} href
      */
     _setIframeFromRoute(href) {
-        const menuLinkIndex =
-        this.menuLinks.findIndex((m) => m.href === this.subRouteData.path);
+        const menuLinkIndex = this.menuLinks.findIndex((m) => m.href === href);
         if (menuLinkIndex >= 0) {
             this.page = 'iframe';
             this.iframeUrl = this.menuLinks[menuLinkIndex].iframeUrl;
