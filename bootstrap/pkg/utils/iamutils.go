@@ -26,6 +26,7 @@ import (
 	"google.golang.org/api/cloudresourcemanager/v1"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 func getServiceClient(ctx context.Context) (*http.Client, error) {
@@ -53,19 +54,6 @@ func transformInterfaceToSlice(inter []interface{}) []string {
 	return ret
 }
 
-func getBindingSet(policy *cloudresourcemanager.Policy) map[string]mapset.Set {
-	bindings := make(map[string]mapset.Set)
-	for _, binding := range policy.Bindings {
-		val := transformSliceToInterface(binding.Members)
-		if set, ok := bindings[binding.Role]; ok {
-			set.Union(mapset.NewSetFromSlice(val))
-		} else {
-			bindings[binding.Role] = mapset.NewSetFromSlice(val)
-		}
-	}
-	return bindings
-}
-
 // Gets IAM plicy from GCP for the whole project.
 func GetIamPolicy(project string) (*cloudresourcemanager.Policy, error) {
 	ctx := context.Background()
@@ -80,6 +68,33 @@ func GetIamPolicy(project string) (*cloudresourcemanager.Policy, error) {
 
 	req := &cloudresourcemanager.GetIamPolicyRequest{}
 	return service.Projects.GetIamPolicy(project, req).Context(ctx).Do()
+}
+
+// Remove existing bindings associated with service accounts of current deployment, and return the new policy
+func GetClearedIamPolicy(currentPolicy *cloudresourcemanager.Policy, pendingPolicy *cloudresourcemanager.Policy) *cloudresourcemanager.Policy {
+	serviceAccounts := make(map[string]bool)
+	for _, binding := range pendingPolicy.Bindings {
+		for _, member := range binding.Members {
+			if strings.HasPrefix(member, "serviceAccount:") {
+				serviceAccounts[member] = true
+			}
+		}
+	}
+	clearedPolicy := cloudresourcemanager.Policy{}
+	for _, binding := range currentPolicy.Bindings {
+		newBinding := cloudresourcemanager.Binding{
+			Role: binding.Role,
+		}
+		for _, member := range binding.Members {
+			// Skip bindings for service accounts of current deployment.
+			// We'll reset bindings for them in following steps.
+			if _, ok := serviceAccounts[member]; !ok {
+				newBinding.Members = append(newBinding.Members, member)
+			}
+		}
+		clearedPolicy.Bindings = append(clearedPolicy.Bindings, &newBinding)
+	}
+	return &clearedPolicy
 }
 
 // TODO: Move type definitions to appropriate place.
@@ -131,34 +146,38 @@ func ReadIamBindingsYAML(filename string) (*cloudresourcemanager.Policy, error) 
 }
 
 // Either patch or remove role bindings from `src` policy.
-func RewriteIamPolicy(src *cloudresourcemanager.Policy,
-	adding *cloudresourcemanager.Policy,
-	deleting *cloudresourcemanager.Policy) error {
-	if src == nil {
-		return fmt.Errorf("Source IAM policy is nil.")
+func RewriteIamPolicy(currentPolicy *cloudresourcemanager.Policy, adding *cloudresourcemanager.Policy) (*cloudresourcemanager.Policy, error) {
+	if currentPolicy == nil {
+		return nil, fmt.Errorf("Source IAM policy is nil.")
 	}
-	curr := getBindingSet(src)
-	if adding != nil {
-		patch := getBindingSet(adding)
-		for role, members := range patch {
-			log.Infof("%v adding: %+v", role, members)
-			if m, ok := curr[role]; ok {
-				m.Union(members)
-			} else {
-				curr[role] = members
-			}
-		}
-	}
-	if deleting != nil {
-		removal := getBindingSet(deleting)
-		for role, members := range removal {
-			if m, ok := curr[role]; ok {
-				m.Difference(members)
-			}
+	policyMap := map[string]map[string]bool{}
+	for _, binding := range currentPolicy.Bindings {
+		policyMap[binding.Role] = make(map[string]bool)
+		for _, member := range binding.Members {
+			policyMap[binding.Role][member] = true
 		}
 	}
 
-	return nil
+	for _, binding := range adding.Bindings {
+		for _, member := range binding.Members {
+			if _, ok := policyMap[binding.Role]; !ok {
+				policyMap[binding.Role] = make(map[string]bool)
+			}
+			policyMap[binding.Role][member] = true
+		}
+	}
+	newPolicy := cloudresourcemanager.Policy{}
+	for role, memberSet := range policyMap {
+		binding := cloudresourcemanager.Binding{}
+		binding.Role = role
+		for member, exists := range memberSet {
+			if exists {
+				binding.Members = append(binding.Members, member)
+			}
+		}
+		newPolicy.Bindings = append(newPolicy.Bindings, &binding)
+	}
+	return &newPolicy, nil
 }
 
 // "Override" project's IAM policy with given config.
