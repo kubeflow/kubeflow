@@ -887,7 +887,7 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum, options map[string]inte
 	if hostname == "" {
 		hostname = gcp.GcpApp.Name + ".endpoints." + gcp.GcpApp.Spec.Project + ".cloud.goog"
 	}
-	if val, ok := options[string(kftypes.USE_BASIC_AUTH)]; ok && val.(bool) {
+	if gcp.GcpApp.Spec.UseBasicAuth {
 		nv = gcp.GcpApp.Spec.ComponentParams["basic-auth-ingress"]
 		setNameVal(&nv, "ipName", ipName, true)
 		setNameVal(&nv, "hostname", hostname, true)
