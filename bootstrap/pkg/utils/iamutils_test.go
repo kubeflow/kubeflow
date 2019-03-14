@@ -16,26 +16,24 @@ package utils
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 
 	"google.golang.org/api/cloudresourcemanager/v1"
 )
 
 func Test(t *testing.T) {
-	tests := []struct {
-		// Name of the test.
-		name string
-
+	type TestCase struct {
 		// Arguments for GetUpdatedPolicy function.
 		currentPolicy *cloudresourcemanager.Policy
 		// service account policy pending change
 		saPolicy      *cloudresourcemanager.Policy
 
-		// Check function that checks if the result from GetUpdatedPolicy is valid.
-		check func(*cloudresourcemanager.Policy) error
-	}{
+		// Expected output policy
+		expectedPolicy *cloudresourcemanager.Policy
+	}
+	tests := []TestCase{
 		{
-			name: "test clear iam policy",
 			currentPolicy: &cloudresourcemanager.Policy{
 				Bindings: []*cloudresourcemanager.Binding{
 					&cloudresourcemanager.Binding{
@@ -71,33 +69,40 @@ func Test(t *testing.T) {
 					},
 				},
 			},
-			check: func(policy *cloudresourcemanager.Policy) error {
-				if len(policy.Bindings) != 2 {
-					return fmt.Errorf("bindings should have 2 elements")
-				}
-				if len(policy.Bindings[0].Members) != 1 {
-					return fmt.Errorf("'kfctl' service accounts binding wasn't deleted")
-				}
-				if policy.Bindings[0].Members[0] != "serviceAccount:should-stay@project.iam.gserviceaccount.com" {
-					return fmt.Errorf("'should-stay' service accounts binding should not be deleted")
-				}
-				if policy.Bindings[1].Members[0] != "user:user1@google.com" {
-					return fmt.Errorf("'user1@google.com' binding should not be deleted")
-				}
-				return nil
+			expectedPolicy: &cloudresourcemanager.Policy{
+				Bindings: []*cloudresourcemanager.Binding{
+					// 'kfctl' service accounts binding should be deleted
+					// 'should-stay' service accounts binding should not be deleted
+					&cloudresourcemanager.Binding{
+						Role: "roles/source.admin",
+						Members: []string{
+							"serviceAccount:should-stay@project.iam.gserviceaccount.com",
+						},
+					},
+					// 'user1@google.com' binding should not be deleted
+					&cloudresourcemanager.Binding{
+						Role: "roles/editor",
+						Members: []string{
+							"user:user1@google.com",
+						},
+					},
+				},
 			},
 		},
 	}
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			clearedPolicy := GetClearedIamPolicy(test.currentPolicy, test.saPolicy)
-			if test.check == nil {
-				t.Errorf("no check implemented")
-				return
-			}
-			if err := test.check(clearedPolicy); err != nil {
-				t.Error(err)
-			}
-		})
+		clearedPolicy := GetClearedIamPolicy(test.currentPolicy, test.saPolicy)
+		if !reflect.DeepEqual(&clearedPolicy, &(test.expectedPolicy)) {
+			t.Errorf("Expect:\n%v; Output:\n%v", PolicyToString(test.expectedPolicy),
+				PolicyToString(clearedPolicy))
+		}
 	}
+}
+
+func PolicyToString(input *cloudresourcemanager.Policy) string {
+	policy, err := input.MarshalJSON()
+	if err != nil {
+		return fmt.Sprintf("Unable to parse policy: %v", err)
+	}
+	return string(policy)
 }
