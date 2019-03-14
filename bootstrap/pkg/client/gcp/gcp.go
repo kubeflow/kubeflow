@@ -866,6 +866,8 @@ func (gcp *Gcp) createSecrets(options map[string]interface{}) error {
 		return fmt.Errorf("cannot create user secret %v Error %v", USER_SECRET_NAME, err)
 
 	}
+	// TODO(gabrielwen): This secret is also used by metric-controller. Need to check if metric-controller
+	// is part of components. If it is, should bail out if CLIENT_ID/CLIENT_SECRET are not set.
 	if err := gcp.createIapSecret(ctx, k8sClient, options); err != nil {
 		return fmt.Errorf("cannot create IAP auth secret: %v", err)
 	}
