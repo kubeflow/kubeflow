@@ -42,13 +42,12 @@ var deleteCmd = &cobra.Command{
 			log.Errorf("invalid resource: %v", resourceErr)
 			return
 		}
-		options := map[string]interface{}{}
-		kfApp, kfAppErr := coordinator.LoadKfApp(options)
+		kfApp, kfAppErr := coordinator.LoadKfApp(map[string]interface{}{})
 		if kfAppErr != nil {
 			log.Errorf("couldn't load KfApp: %v", kfAppErr)
 			return
 		}
-		deleteErr := kfApp.Delete(resource, options)
+		deleteErr := kfApp.Delete(resource)
 		if deleteErr != nil {
 			log.Errorf("couldn't delete KfApp: %v", deleteErr)
 			return

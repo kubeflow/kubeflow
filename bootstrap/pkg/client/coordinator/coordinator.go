@@ -40,64 +40,16 @@ import (
 // The common entry point used to retrieve an implementation of KfApp.
 // In this case it returns a composite class (coordinator) which aggregates
 // platform and ksonnet implementations in Children.
-func GetKfApp(options map[string]interface{}) kftypes.KfApp {
+func GetKfApp(client *cltypes.Client) kftypes.KfApp {
 	_client := &coordinator{
 		Platforms:       make(map[string]kftypes.KfApp),
-		PackageManagers: make(map[string]kftypes.KfApp),
-		Client: &cltypes.Client{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       "Client",
-				APIVersion: "client.apps.kubeflow.org/v1alpha1",
-			},
-			Spec: cltypes.ClientSpec{},
-		},
-	}
-	// options[string(kftypes.DATA)] value is the contents of app.yaml
-	// called from LoadKfApp. Subcommands: {Apply, Delete, Generate}
-	if options[string(kftypes.DATA)] != nil {
-		dat := options[string(kftypes.DATA)].([]byte)
-		specErr := yaml.Unmarshal(dat, _client.Client)
-		if specErr != nil {
-			log.Errorf("couldn't unmarshal app.yaml. Error: %v", specErr)
-		}
-	}
-	// options[string(kftypes.DATA)] value is the contents of one of the config files in bootstrap/config/
-	// called from NewKfApp Subcommands: {Init}
-	if options[string(kftypes.CONFIG)] != nil {
-		dat := options[string(kftypes.CONFIG)].([]byte)
-		configErr := yaml.Unmarshal(dat, &_client.Client.Spec)
-		if configErr != nil {
-			log.Errorf("couldn't unmarshal config file. Error: %v", configErr)
-		}
-	}
-	// CLI options, REPO will override the CONFIG file value
-	if options[string(kftypes.APPNAME)] != nil {
-		_client.Client.Name = options[string(kftypes.APPNAME)].(string)
-	}
-	if options[string(kftypes.APPDIR)] != nil {
-		_client.Client.Spec.AppDir = options[string(kftypes.APPDIR)].(string)
-	}
-	if options[string(kftypes.NAMESPACE)] != nil {
-		namespace := options[string(kftypes.NAMESPACE)].(string)
-		_client.Client.Namespace = namespace
-	}
-	if options[string(kftypes.REPO)] != nil {
-		kubeflowRepo := options[string(kftypes.REPO)].(string)
-		re := regexp.MustCompile(`(^\$GOPATH)(.*$)`)
-		goPathVar := os.Getenv("GOPATH")
-		if goPathVar != "" {
-			kubeflowRepo = re.ReplaceAllString(kubeflowRepo, goPathVar+`$2`)
-		}
-		_client.Client.Spec.Repo = path.Join(kubeflowRepo, "kubeflow")
-	}
-	if options[string(kftypes.VERSION)] != nil {
-		kubeflowVersion := options[string(kftypes.VERSION)].(string)
-		_client.Client.Spec.Version = kubeflowVersion
+		PackageManagers: nil,
+		Client: client,
 	}
 	// fetch the platform [gcp,minikube]
-	platform := options[string(kftypes.PLATFORM)].(string)
+	platform := _client.Client.Spec.Platform
 	if platform != "" {
-		_platform, _platformErr := GetPlatform(platform, options)
+		_platform, _platformErr := getPlatform(_client.Client)
 		if _platformErr != nil {
 			log.Fatalf("could not get platform %v Error %v **", platform, _platformErr)
 			return nil
@@ -105,26 +57,6 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 		if _platform != nil {
 			_client.Platforms[platform] = _platform
 		}
-		_client.Client.Spec.Platform = options[string(kftypes.PLATFORM)].(string)
-	}
-	//TODO we need a way to specific different types of package managers
-	// most likely by specifying them in the app.yaml per package
-	//
-	_packagemanager, _packagemanagerErr := GetPackageManager("ksonnet", options)
-	if _packagemanagerErr != nil {
-		log.Fatalf("could not get packagemanager %v Error %v **", "ksonnet", _packagemanagerErr)
-
-	}
-	if _packagemanager != nil {
-		_client.PackageManagers["ksonnet"] = _packagemanager
-	}
-	_packagemanager, _packagemanagerErr = GetPackageManager("kustomize", options)
-	if _packagemanagerErr != nil {
-		log.Fatalf("could not get packagemanager %v Error %v **", "kustomize", _packagemanagerErr)
-
-	}
-	if _packagemanager != nil {
-		_client.PackageManagers["kustomize"] = _packagemanager
 	}
 	return _client
 }
@@ -189,34 +121,59 @@ func downloadToCache(platform string, appDir string, version string, useBasicAut
 // GetPlatform will return an implementation of kftypes.KfApp that matches the platform string
 // It looks for statically compiled-in implementations, otherwise it delegates to
 // kftypes.LoadKfApp which will try and dynamically load a .so
-func GetPlatform(platform string, options map[string]interface{}) (kftypes.KfApp, error) {
-	switch platform {
+func getPlatform(client *cltypes.Client) (kftypes.KfApp, error) {
+	switch client.Spec.Platform {
 	case string(kftypes.MINIKUBE):
-		return minikube.GetKfApp(options), nil
+		return minikube.GetKfApp(client), nil
 	case string(kftypes.GCP):
-		return gcp.GetKfApp(options), nil
+		return gcp.GetKfApp(client), nil
 	default:
-		log.Infof("** loading %v.so for platform %v **", platform, platform)
-		return kftypes.LoadKfApp(platform, options)
+		log.Infof("** loading %v.so for platform %v **", client.Spec.Platform, client.Spec.Platform)
+		return kftypes.LoadKfApp(client)
 	}
 }
 
-// GetPackageManager will return an implementation of kftypes.KfApp that matches the packagemanager string
+func getPackageManagers(client *cltypes.Client) *map[string]kftypes.KfApp {
+	appyaml := filepath.Join(client.Spec.AppDir, kftypes.KfConfigFile)
+	err := unmarshalAppYaml(appyaml, &client.Spec)
+	if err != nil {
+		log.Fatalf("failed unmarshalling %v Error %v", appyaml, err)
+	}
+	var packagemanagers = make(map[string]kftypes.KfApp)
+	_packagemanager, _packagemanagerErr := getPackageManager("ksonnet", client)
+	if _packagemanagerErr != nil {
+		log.Fatalf("could not get packagemanager %v Error %v **", "ksonnet", _packagemanagerErr)
+	}
+	if _packagemanager != nil {
+		packagemanagers["ksonnet"] = _packagemanager
+	}
+	_packagemanager, _packagemanagerErr = getPackageManager("kustomize", client)
+	if _packagemanagerErr != nil {
+		log.Fatalf("could not get packagemanager %v Error %v **", "kustomize", _packagemanagerErr)
+
+	}
+	if _packagemanager != nil {
+		packagemanagers["kustomize"] = _packagemanager
+	}
+	return &packagemanagers
+}
+
+// getPackageManager will return an implementation of kftypes.KfApp that matches the packagemanager string
 // It looks for statically compiled-in implementations, otherwise it delegates to
 // kftypes.LoadKfApp which will try and dynamically load a .so
-func GetPackageManager(packagemanager string, options map[string]interface{}) (kftypes.KfApp, error) {
+func getPackageManager(packagemanager string, client *cltypes.Client) (kftypes.KfApp, error) {
 	switch packagemanager {
 	case "ksonnet":
-		return ksonnet.GetKfApp(options), nil
+		return ksonnet.GetKfApp(client), nil
 	case "kustomize":
-		return kustomize.GetKfApp(options), nil
+		return kustomize.GetKfApp(client), nil
 	default:
 		log.Infof("** loading %v.so for package manager %v **", packagemanager, packagemanager)
-		return kftypes.LoadKfApp(packagemanager, options)
+		return kftypes.LoadKfApp(client)
 	}
 }
 
-// NewKfApp is called from the Init subcommand and will create a directory based on
+// newKfApp is called from the Init subcommand and will create a directory based on
 // the path/name argument given to the Init subcommand
 func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	//appName can be a path
@@ -251,8 +208,6 @@ func NewKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 		return nil, fmt.Errorf(`invalid name %v must consist of lower case alphanumeric characters, '-' or '.',
 and must start and end with an alphanumeric character`, appName)
 	}
-	options[string(kftypes.APPNAME)] = appName
-	options[string(kftypes.APPDIR)] = appDir
 	platform := options[string(kftypes.PLATFORM)].(string)
 	version := options[string(kftypes.VERSION)].(string)
 	if strings.HasPrefix(version, "pull") {
@@ -261,15 +216,60 @@ and must start and end with an alphanumeric character`, appName)
 			options[string(kftypes.VERSION)] = version
 		}
 	}
+	if options[string(kftypes.REPO)] != nil {
+		kubeflowRepo := options[string(kftypes.REPO)].(string)
+		re := regexp.MustCompile(`(^\$GOPATH)(.*$)`)
+		goPathVar := os.Getenv("GOPATH")
+		if goPathVar != "" {
+			kubeflowRepo = re.ReplaceAllString(kubeflowRepo, goPathVar+`$2`)
+		}
+		options[string(kftypes.REPO)] = path.Join(kubeflowRepo, "kubeflow")
+	}
 	useBasicAuth := options[string(kftypes.USE_BASIC_AUTH)].(bool)
-
 	cache, cacheErr := downloadToCache(platform, appDir, version, useBasicAuth)
 	if cacheErr != nil {
 		log.Fatalf("could not download repo to cache Error %v", cacheErr)
 	}
-	options[string(kftypes.CONFIG)] = cache
-	pApp := GetKfApp(options)
+	client := &cltypes.Client{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Client",
+			APIVersion: "client.apps.kubeflow.org/v1alpha1",
+		},
+		Spec: cltypes.ClientSpec{
+		},
+	}
+	specErr := yaml.Unmarshal(cache, &client.Spec)
+	if specErr != nil {
+		log.Errorf("couldn't unmarshal app.yaml. Error: %v", specErr)
+	}
+	client.Name = appName
+	client.Spec.AppDir = appDir
+	client.Spec.Platform = options[string(kftypes.PLATFORM)].(string)
+	client.Namespace = options[string(kftypes.NAMESPACE)].(string)
+	client.Spec.Version = options[string(kftypes.VERSION)].(string)
+	client.Spec.Repo = options[string(kftypes.REPO)].(string)
+	client.Spec.Project = options[string(kftypes.PROJECT)].(string)
+	client.Spec.SkipInitProject = options[string(kftypes.SKIP_INIT_GCP_PROJECT)].(bool)
+	client.Spec.UseBasicAuth = options[string(kftypes.USE_BASIC_AUTH)].(bool)
+	client.Spec.BasicAuthUsername = options[string(kftypes.BASIC_AUTH_USERNAME)].(string)
+	client.Spec.BasicAuthPassword = options[string(kftypes.BASIC_AUTH_PASSWORD)].(string)
+	pApp := GetKfApp(client)
 	return pApp, nil
+}
+
+func unmarshalAppYaml(cfgfile string, spec *cltypes.ClientSpec) error {
+	if _, err := os.Stat(cfgfile); err == nil {
+		log.Infof("reading from %v", cfgfile)
+		buf, bufErr := ioutil.ReadFile(cfgfile)
+		if bufErr != nil {
+			return fmt.Errorf("couldn't read %v. Error: %v", cfgfile, bufErr)
+		}
+		err := yaml.Unmarshal(buf, spec)
+		if err != nil {
+			return fmt.Errorf("could not unmarshal %v. Error: %v", cfgfile, err)
+		}
+	}
+	return nil
 }
 
 // LoadKfApp is called from subcommands Apply, Delete, Generate and assumes the existence of an app.yaml
@@ -279,32 +279,56 @@ func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not get current directory %v", err)
 	}
-	appName := filepath.Base(appDir)
 	cfgfile := filepath.Join(appDir, kftypes.KfConfigFile)
-	log.Infof("reading from %v", cfgfile)
-	buf, bufErr := ioutil.ReadFile(cfgfile)
-	if bufErr != nil {
-		return nil, fmt.Errorf("couldn't read %v. Error: %v", cfgfile, bufErr)
+	client := &cltypes.Client{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Client",
+			APIVersion: "client.apps.kubeflow.org/v1alpha1",
+		},
+		Spec: cltypes.ClientSpec{
+		},
 	}
-	var v interface{}
-	err = yaml.Unmarshal(buf, &v)
+	err = unmarshalAppYaml(cfgfile, &client.Spec)
 	if err != nil {
 		return nil, fmt.Errorf("could not unmarshal %v. Error: %v", cfgfile, err)
 	}
-	data := v.(map[string]interface{})
-	metadata := data["metadata"].(map[string]interface{})
-	spec := data["spec"].(map[string]interface{})
-	platform := ""
-	if spec["platform"] != nil {
-		platform = spec["platform"].(string)
+	if options[string(kftypes.EMAIL)] != nil && options[string(kftypes.EMAIL)].(string) != "" {
+		client.Spec.Email = options[string(kftypes.EMAIL)].(string)
 	}
-	appName = metadata["name"].(string)
-	appDir = spec["appdir"].(string)
-	options[string(kftypes.PLATFORM)] = platform
-	options[string(kftypes.APPNAME)] = appName
-	options[string(kftypes.APPDIR)] = appDir
-	options[string(kftypes.DATA)] = buf
-	pApp := GetKfApp(options)
+	if options[string(kftypes.IPNAME)] != nil && options[string(kftypes.IPNAME)].(string) != "" {
+		client.Spec.IpName = options[string(kftypes.IPNAME)].(string)
+	} else if client.Name != "" {
+		client.Spec.IpName = client.Name + "-ip"
+	}
+	if options[string(kftypes.PROJECT)] != nil && options[string(kftypes.PROJECT)].(string) != "" {
+		client.Spec.Project = options[string(kftypes.PROJECT)].(string)
+	}
+	if options[string(kftypes.HOSTNAME)] != nil && options[string(kftypes.HOSTNAME)].(string) != "" {
+		client.Spec.Hostname = options[string(kftypes.HOSTNAME)].(string)
+	} else if client.Name != "" && client.Spec.Project != "" {
+		client.Spec.Hostname = fmt.Sprintf("%v.endpoints.%v.cloud.goog", client.Name, client.Spec.Project)
+	}
+	if options[string(kftypes.ZONE)] != nil && options[string(kftypes.ZONE)].(string) != "" {
+		client.Spec.Zone = options[string(kftypes.HOSTNAME)].(string)
+	} else  {
+		client.Spec.Zone = kftypes.DefaultZone
+	}
+	if options[string(kftypes.USE_BASIC_AUTH)] != nil {
+		client.Spec.UseBasicAuth = options[string(kftypes.USE_BASIC_AUTH)].(bool)
+	}
+	if options[string(kftypes.BASIC_AUTH_USERNAME)] != nil {
+		client.Spec.BasicAuthUsername = options[string(kftypes.BASIC_AUTH_USERNAME)].(string)
+	}
+	if options[string(kftypes.BASIC_AUTH_PASSWORD)] != nil {
+		client.Spec.BasicAuthPassword = options[string(kftypes.BASIC_AUTH_PASSWORD)].(string)
+	}
+	if options[string(kftypes.SKIP_INIT_GCP_PROJECT)] != nil {
+		client.Spec.SkipInitProject = options[string(kftypes.SKIP_INIT_GCP_PROJECT)].(bool)
+	}
+	if options[string(kftypes.MOUNT_LOCAL)] != nil {
+		client.Spec.MountLocal = options[string(kftypes.MOUNT_LOCAL)].(bool)
+	}
+	pApp := GetKfApp(client)
 	return pApp, nil
 }
 
@@ -318,7 +342,7 @@ type coordinator struct {
 	Client          *cltypes.Client
 }
 
-func (kfapp *coordinator) Apply(resources kftypes.ResourceEnum, options map[string]interface{}) error {
+func (kfapp *coordinator) Apply(resources kftypes.ResourceEnum) error {
 	switch resources {
 	case kftypes.K8S:
 		fallthrough
@@ -328,7 +352,7 @@ func (kfapp *coordinator) Apply(resources kftypes.ResourceEnum, options map[stri
 		if kfapp.Client.Spec.Platform != "" {
 			platform := kfapp.Platforms[kfapp.Client.Spec.Platform]
 			if platform != nil {
-				platformErr := platform.Apply(resources, options)
+				platformErr := platform.Apply(resources)
 				if platformErr != nil {
 					return fmt.Errorf("coordinator Apply failed for %v: %v",
 						kfapp.Client.Spec.Platform, platformErr)
@@ -337,8 +361,9 @@ func (kfapp *coordinator) Apply(resources kftypes.ResourceEnum, options map[stri
 				return fmt.Errorf("%v not in Platforms", kfapp.Client.Spec.Platform)
 			}
 		}
+		kfapp.PackageManagers = *getPackageManagers(kfapp.Client)
 		for packageManagerName, packageManager := range kfapp.PackageManagers {
-			packageManagerErr := packageManager.Apply(kftypes.K8S, options)
+			packageManagerErr := packageManager.Apply(kftypes.K8S)
 			if packageManagerErr != nil {
 				return fmt.Errorf("kfApp Apply failed for %v: %v", packageManagerName, packageManagerErr)
 			}
@@ -347,7 +372,7 @@ func (kfapp *coordinator) Apply(resources kftypes.ResourceEnum, options map[stri
 	return nil
 }
 
-func (kfapp *coordinator) Delete(resources kftypes.ResourceEnum, options map[string]interface{}) error {
+func (kfapp *coordinator) Delete(resources kftypes.ResourceEnum) error {
 	switch resources {
 	case kftypes.K8S:
 		fallthrough
@@ -357,7 +382,7 @@ func (kfapp *coordinator) Delete(resources kftypes.ResourceEnum, options map[str
 		if kfapp.Client.Spec.Platform != "" {
 			platform := kfapp.Platforms[kfapp.Client.Spec.Platform]
 			if platform != nil {
-				platformErr := platform.Delete(resources, options)
+				platformErr := platform.Delete(resources)
 				if platformErr != nil {
 					return fmt.Errorf("coordinator Delete failed for %v: %v",
 						kfapp.Client.Spec.Platform, platformErr)
@@ -366,8 +391,9 @@ func (kfapp *coordinator) Delete(resources kftypes.ResourceEnum, options map[str
 				return fmt.Errorf("%v not in Platforms", kfapp.Client.Spec.Platform)
 			}
 		}
+		kfapp.PackageManagers = *getPackageManagers(kfapp.Client)
 		for packageManagerName, packageManager := range kfapp.PackageManagers {
-			packageManagerErr := packageManager.Delete(kftypes.K8S, options)
+			packageManagerErr := packageManager.Delete(kftypes.K8S)
 			if packageManagerErr != nil {
 				return fmt.Errorf("kfApp Delete failed for %v: %v", packageManagerName, packageManagerErr)
 			}
@@ -376,7 +402,7 @@ func (kfapp *coordinator) Delete(resources kftypes.ResourceEnum, options map[str
 	return nil
 }
 
-func (kfapp *coordinator) Generate(resources kftypes.ResourceEnum, options map[string]interface{}) error {
+func (kfapp *coordinator) Generate(resources kftypes.ResourceEnum) error {
 	switch resources {
 	case kftypes.K8S:
 		fallthrough
@@ -386,7 +412,7 @@ func (kfapp *coordinator) Generate(resources kftypes.ResourceEnum, options map[s
 		if kfapp.Client.Spec.Platform != "" {
 			platform := kfapp.Platforms[kfapp.Client.Spec.Platform]
 			if platform != nil {
-				platformErr := platform.Generate(resources, options)
+				platformErr := platform.Generate(resources)
 				if platformErr != nil {
 					return fmt.Errorf("coordinator Generate failed for %v: %v",
 						kfapp.Client.Spec.Platform, platformErr)
@@ -395,8 +421,9 @@ func (kfapp *coordinator) Generate(resources kftypes.ResourceEnum, options map[s
 				return fmt.Errorf("%v not in Platforms", kfapp.Client.Spec.Platform)
 			}
 		}
+		kfapp.PackageManagers = *getPackageManagers(kfapp.Client)
 		for packageManagerName, packageManager := range kfapp.PackageManagers {
-			packageManagerErr := packageManager.Generate(kftypes.K8S, options)
+			packageManagerErr := packageManager.Generate(kftypes.K8S)
 			if packageManagerErr != nil {
 				return fmt.Errorf("coordinator Generate failed for %v: %v", packageManagerName, packageManagerErr)
 			}
@@ -405,29 +432,30 @@ func (kfapp *coordinator) Generate(resources kftypes.ResourceEnum, options map[s
 	return nil
 }
 
-func (kfapp *coordinator) Init(resources kftypes.ResourceEnum, options map[string]interface{}) error {
+func (kfapp *coordinator) Init(resources kftypes.ResourceEnum) error {
 	switch resources {
 	case kftypes.K8S:
 		fallthrough
 	case kftypes.PLATFORM:
 		fallthrough
 	case kftypes.ALL:
-		for packageManagerName, packageManager := range kfapp.PackageManagers {
-			packageManagerErr := packageManager.Init(kftypes.K8S, options)
-			if packageManagerErr != nil {
-				return fmt.Errorf("kfApp Init failed for %v: %v", packageManagerName, packageManagerErr)
-			}
-		}
 		if kfapp.Client.Spec.Platform != "" {
 			platform := kfapp.Platforms[kfapp.Client.Spec.Platform]
 			if platform != nil {
-				platformErr := platform.Init(resources, options)
+				platformErr := platform.Init(resources)
 				if platformErr != nil {
 					return fmt.Errorf("kfApp Generate failed for %v: %v",
 						kfapp.Client.Spec.Platform, platformErr)
 				}
 			} else {
 				return fmt.Errorf("%v not in Platforms", kfapp.Client.Spec.Platform)
+			}
+		}
+		kfapp.PackageManagers = *getPackageManagers(kfapp.Client)
+		for packageManagerName, packageManager := range kfapp.PackageManagers {
+			packageManagerErr := packageManager.Init(kftypes.K8S)
+			if packageManagerErr != nil {
+				return fmt.Errorf("kfApp Init failed for %v: %v", packageManagerName, packageManagerErr)
 			}
 		}
 	}
@@ -441,15 +469,6 @@ func (kfapp *coordinator) Show(resources kftypes.ResourceEnum, options map[strin
 	case kftypes.PLATFORM:
 		fallthrough
 	case kftypes.ALL:
-		for packageManagerName, packageManager := range kfapp.PackageManagers {
-			show, ok := packageManager.(kftypes.KfShow)
-			if ok && show != nil {
-				showErr := show.Show(kftypes.K8S, options)
-				if showErr != nil {
-					return fmt.Errorf("kfApp Show failed for %v: %v", packageManagerName, showErr)
-				}
-			}
-		}
 		if kfapp.Client.Spec.Platform != "" {
 			platform := kfapp.Platforms[kfapp.Client.Spec.Platform]
 			show, ok := platform.(kftypes.KfShow)
@@ -463,6 +482,18 @@ func (kfapp *coordinator) Show(resources kftypes.ResourceEnum, options map[strin
 				return fmt.Errorf("%v not in Platforms", kfapp.Client.Spec.Platform)
 			}
 		}
+		kfapp.PackageManagers = *getPackageManagers(kfapp.Client)
+		for packageManagerName, packageManager := range kfapp.PackageManagers {
+			show, ok := packageManager.(kftypes.KfShow)
+			if ok && show != nil {
+				showErr := show.Show(kftypes.K8S, options)
+				if showErr != nil {
+					return fmt.Errorf("kfApp Show failed for %v: %v", packageManagerName, showErr)
+				}
+			}
+		}
 	}
 	return nil
 }
+
+
