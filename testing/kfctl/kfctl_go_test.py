@@ -1,17 +1,11 @@
-import json
+import datetime
 import logging
 import os
 import subprocess
-import requests
+import tempfile
 import uuid
 from retrying import retry
-import six
 
-from kubernetes.config import kube_config
-from kubernetes import client as k8s_client
-
-import datetime
-import tempfile
 import pytest
 
 from kubeflow.testing import util
