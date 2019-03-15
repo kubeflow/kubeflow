@@ -51,8 +51,6 @@ or a <name>. If just <name> a directory <name> will be created in the current di
 		init_gcp := initCfg.GetBool(string(kftypes.SKIP_INIT_GCP_PROJECT))
 
 		useBasicAuth := initCfg.GetBool(string(kftypes.USE_BASIC_AUTH))
-		basicAuthUsername := initCfg.GetString(string(kftypes.BASIC_AUTH_USERNAME))
-		basicAuthPassword := initCfg.GetString(string(kftypes.BASIC_AUTH_PASSWORD))
 		if useBasicAuth && (basicAuthUsername == "" || basicAuthPassword == "") {
 			log.Errorf("If using basic auth, need to specify username and password for it.")
 			return
@@ -72,8 +70,6 @@ or a <name>. If just <name> a directory <name> will be created in the current di
 			string(kftypes.PROJECT):               project,
 			string(kftypes.SKIP_INIT_GCP_PROJECT): init_gcp,
 			string(kftypes.USE_BASIC_AUTH):        useBasicAuth,
-			string(kftypes.BASIC_AUTH_USERNAME):   basicAuthUsername,
-			string(kftypes.BASIC_AUTH_PASSWORD):   string(passwordHash),
 		}
 		kfApp, kfAppErr := coordinator.NewKfApp(options)
 		if kfAppErr != nil || kfApp == nil {
@@ -161,17 +157,5 @@ func init() {
 	if bindErr != nil {
 		log.Errorf("couldn't set flag --%v: %v", string(kftypes.USE_BASIC_AUTH), bindErr)
 		return
-	}
-	initCmd.Flags().String(string(kftypes.BASIC_AUTH_USERNAME), "",
-		"Basic auth login username. Required if using basic auth.")
-	bindErr = initCfg.BindPFlag(string(kftypes.BASIC_AUTH_USERNAME), initCmd.Flags().Lookup(string(kftypes.BASIC_AUTH_USERNAME)))
-	if bindErr != nil {
-		log.Errorf("couldn't set flag --%v: %v", string(kftypes.BASIC_AUTH_USERNAME), bindErr)
-	}
-	initCmd.Flags().String(string(kftypes.BASIC_AUTH_PASSWORD), "",
-		"Basic auth login password. Required if using basic auth.")
-	bindErr = initCfg.BindPFlag(string(kftypes.BASIC_AUTH_PASSWORD), initCmd.Flags().Lookup(string(kftypes.BASIC_AUTH_PASSWORD)))
-	if bindErr != nil {
-		log.Errorf("couldn't set flag --%v: %v", string(kftypes.BASIC_AUTH_PASSWORD), bindErr)
 	}
 }
