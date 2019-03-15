@@ -135,7 +135,7 @@ func getPlatform(client *cltypes.Client) (kftypes.KfApp, error) {
 
 func getPackageManagers(client *cltypes.Client) *map[string]kftypes.KfApp {
 	appyaml := filepath.Join(client.Spec.AppDir, kftypes.KfConfigFile)
-	err := unmarshalAppYaml(appyaml, &client.Spec)
+	err := unmarshalAppYaml(appyaml, client)
 	if err != nil {
 		log.Fatalf("failed unmarshalling %v Error %v", appyaml, err)
 	}
@@ -257,14 +257,14 @@ and must start and end with an alphanumeric character`, appName)
 	return pApp, nil
 }
 
-func unmarshalAppYaml(cfgfile string, spec *cltypes.ClientSpec) error {
+func unmarshalAppYaml(cfgfile string, client *cltypes.Client) error {
 	if _, err := os.Stat(cfgfile); err == nil {
 		log.Infof("reading from %v", cfgfile)
 		buf, bufErr := ioutil.ReadFile(cfgfile)
 		if bufErr != nil {
 			return fmt.Errorf("couldn't read %v. Error: %v", cfgfile, bufErr)
 		}
-		err := yaml.Unmarshal(buf, spec)
+		err := yaml.Unmarshal(buf, client)
 		if err != nil {
 			return fmt.Errorf("could not unmarshal %v. Error: %v", cfgfile, err)
 		}
@@ -288,7 +288,7 @@ func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 		Spec: cltypes.ClientSpec{
 		},
 	}
-	err = unmarshalAppYaml(cfgfile, &client.Spec)
+	err = unmarshalAppYaml(cfgfile, client)
 	if err != nil {
 		return nil, fmt.Errorf("could not unmarshal %v. Error: %v", cfgfile, err)
 	}
