@@ -203,6 +203,7 @@ local dagTemplates = [
         // Test timeout in seconds.
         "--timeout=500",
         "--junitxml=" + artifactsDir + "/junit_kfctl-build-test.xml",
+        "--app_path=" + appDir,
       ],
       working_dir=srcDir+ "/testing/kfctl",
     ),
@@ -213,6 +214,44 @@ local dagTemplates = [
 // Each item is a dictionary describing one step in the graph
 // to execute on exit
 local deleteKubeflow = util.toBool(params.deleteKubeflow);
+
+local deleteStep = if deleteKubeflow then
+  [{
+    template: buildTemplate(
+      "kfctl-delete",
+      [
+        runPath,
+        kfCtlPath,
+        "delete",
+        "all",
+      ],
+      working_dir=appDir
+    ),
+    dependencies: null,
+  }]
+else [];
+
+// Clean up all the permanent storages to avoid accumulated resource
+// consumption in the test project
+local deleteStorageStep = if deleteKubeflow then
+  [{
+    template: buildTemplate(
+      "kfctl-delete-storage",
+      [
+        runPath,
+        "gcloud",
+        "deployment-manager",
+        "--project=" + project,
+        "deployments",
+        "delete",
+        appName + "-storage",
+        "--quiet",
+      ],
+      working_dir=appDir
+    ),
+    dependencies: ["kfctl-delete"],
+  }]
+else [];
 
 local testDirDeleteStep = {
       template:
@@ -231,6 +270,7 @@ local testDirDeleteStep = {
 
 // TODO(jlewi): Add testDirDeleteStep
 local exitTemplates =
+  deleteStep + deleteStorageStep +
   [
     {
       template: buildTemplate("copy-artifacts", [
@@ -243,10 +283,9 @@ local exitTemplates =
       ]),  // copy-artifacts,
 
       // TODO(jlewi): Uncomment when we actually set up Kubeflow.
-      dependencies: null,
-      // dependencies: if deleteKubeflow then
-      //  ["kfctl-delete"] + ["kfctl-delete-storage"]
-      // else null,
+      dependencies: if deleteKubeflow then
+         ["kfctl-delete"] + ["kfctl-delete-storage"]
+      else null,
     },    
   ];
 
