@@ -1,7 +1,6 @@
 import {KubeConfig} from '@kubernetes/client-node';
 import express from 'express';
 import {resolve} from 'path';
-import process from 'process';
 
 import {api} from './api';
 
