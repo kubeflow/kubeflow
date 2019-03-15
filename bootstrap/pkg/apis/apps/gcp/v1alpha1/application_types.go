@@ -32,6 +32,7 @@ type GcpSpec struct {
 	BasicAuthPassword string `json:"basicAuthPassword,omitempty"`
 	UseBasicAuth      bool   `json:"useBasicAuth"`
 	SkipInitProject   bool   `json:"skipInitProject,omitempty"`
+	Foo               string `json:"foo,omitempty"`
 }
 
 // GcpStatus defines the observed state of Gcp
