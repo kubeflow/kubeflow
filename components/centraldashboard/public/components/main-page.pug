@@ -1,4 +1,4 @@
-app-drawer-layout.flex(narrow='{{narrowMode}}', force-narrow='[[OR(inIframe, thinView)]]', thin$='[[thinView]]')
+app-drawer-layout.flex(narrow='{{narrowMode}}', force-narrow='[[or(inIframe, thinView)]]', thin$='[[thinView]]')
     app-location(route='{{route}}')
     app-route(route='{{route}}', pattern='/:page', data='{{routeData}}',
         tail='{{subRouteData}}')

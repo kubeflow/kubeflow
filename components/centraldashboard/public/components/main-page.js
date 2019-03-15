@@ -118,7 +118,7 @@ export class MainPage extends PolymerElement {
      * @param {...boolean} a
      * @return {boolean}
      */
-    OR(...e) {
+    or(...e) {
         return e.some((i) => Boolean(i));
     }
 
@@ -139,6 +139,7 @@ export class MainPage extends PolymerElement {
      * @param {string} newPage
      */
     _routePageChanged(newPage) {
+        let isIframe = false;
         switch (newPage) {
         case 'activity':
             this.sidebarItemIndex = 0;
@@ -146,15 +147,17 @@ export class MainPage extends PolymerElement {
             break;
         case '_': // iframe case
             this._setIframeFromRoute(this.subRouteData.path);
+            isIframe = true;
             break;
         default:
             this.sidebarItemIndex = 0;
             this.page = 'dashboard';
         }
-        const isIframe = newPage == '_';
-        const iframeStateChanged = isIframe !== this.inIframe;
         this._setInIframe(isIframe);
-        (iframeStateChanged || isIframe) && this.$.MainDrawer.close();
+        // If iframe <-> [non-frame OR other iframe]
+        if (isIframe !== this.inIframe || isIframe) {
+            this.$.MainDrawer.close();
+        }
     }
 
     /**
