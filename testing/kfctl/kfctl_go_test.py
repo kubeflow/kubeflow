@@ -1,17 +1,11 @@
 import datetime
 import logging
 import os
-<<<<<<< HEAD
-import tempfile
-=======
 import subprocess
-import requests
->>>>>>> b550a275... Improve logging in kfctl with go binary
+import tempfile
 import uuid
 from retrying import retry
 
-import datetime
-import tempfile
 import pytest
 
 from kubeflow.testing import util
