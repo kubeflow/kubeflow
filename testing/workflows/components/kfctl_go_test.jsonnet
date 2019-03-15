@@ -229,11 +229,11 @@ local deleteStep = if deleteKubeflow then
         "--log-cli-level=info",
         // Test timeout in seconds.
         "--timeout=500",
+        "--junitxml=" + artifactsDir + "/junit_kfctl-go-delete-test.xml",
         "--app_path=" + appDir,
         "--kfctl_path=" + kfCtlPath,
-        "--junitxml=" + artifactsDir + "/junit_kfctl-go-delete-test.xml",
       ],
-      working_dir=appDir
+      working_dir=srcDir+ "/testing/kfctl",
     ),
     dependencies: null,
   }]
