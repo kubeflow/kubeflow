@@ -30,7 +30,7 @@ local srcRootDir = testDir + "/src";
 local srcDir = srcRootDir + "/kubeflow/kubeflow";
 
 local runPath = srcDir + "/testing/workflows/run.sh";
-local kfCtlPath = srcDir + "bootstrap/bin/kfctl";
+local kfCtlPath = srcDir + "/bootstrap/bin/kfctl";
 local kubeConfig = testDir + "/kfctl_test/.kube/kubeconfig";
 
 // Name for the Kubeflow app.
