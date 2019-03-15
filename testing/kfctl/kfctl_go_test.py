@@ -39,15 +39,12 @@ def test_build_kfctl_go(app_path, project):
                          "--basic_auth_username=kf-test-user",
                          "--basic_auth_password=" + uuid.uuid4().hex])
 
-  util.run([kfctl_path, "generate", "-V", "platform", ],
+  # TODO(jlewi): We need to specify a valid email otherwise we get an error
+  # when trying to apply the IAM policy.
+  util.run([kfctl_path, "generate", "-V", "all", "--email=jlewi@kubeflow.org"],
             cwd=app_path)
 
-  util.run([kfctl_path, "apply", "-V", "platform"], cwd=app_path)
-
-  util.run([kfctl_path, "generate", "-V", "k8s", ],
-            cwd=app_path)
-
-  util.run([kfctl_path, "apply", "-V", "k8s"], cwd=app_path)
+  util.run([kfctl_path, "apply", "-V", "all"], cwd=app_path)
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,
