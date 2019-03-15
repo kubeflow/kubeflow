@@ -50,7 +50,7 @@ var applyCmd = &cobra.Command{
 		if kfAppErr != nil {
 			return fmt.Errorf("couldn't load KfApp: %v", kfAppErr)
 		}
-		applyErr := kfApp.Apply(resource, options)
+		applyErr := kfApp.Apply(resource)
 		if applyErr != nil {
 			return fmt.Errorf("couldn't apply KfApp: %v", applyErr)
 		}

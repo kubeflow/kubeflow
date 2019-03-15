@@ -63,7 +63,7 @@ The default is 'all' for any selected platform.`,
 		if kfAppErr != nil {
 			return fmt.Errorf("couldn't load KfApp: %v", kfAppErr)
 		}
-		generateErr := kfApp.Generate(resource, options)
+		generateErr := kfApp.Generate(resource)
 		if generateErr != nil {
 			return fmt.Errorf("couldn't generate KfApp: %v", generateErr)
 		}
