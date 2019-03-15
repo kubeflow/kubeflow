@@ -319,12 +319,7 @@ type coordinator struct {
 }
 
 func (kfapp *coordinator) Apply(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	switch resources {
-	case kftypes.K8S:
-		fallthrough
-	case kftypes.PLATFORM:
-		fallthrough
-	case kftypes.ALL:
+	platform := func() error {
 		if kfapp.Client.Spec.Platform != "" {
 			platform := kfapp.Platforms[kfapp.Client.Spec.Platform]
 			if platform != nil {
@@ -337,23 +332,35 @@ func (kfapp *coordinator) Apply(resources kftypes.ResourceEnum, options map[stri
 				return fmt.Errorf("%v not in Platforms", kfapp.Client.Spec.Platform)
 			}
 		}
+		return nil
+	}
+
+	k8s := func() error {
 		for packageManagerName, packageManager := range kfapp.PackageManagers {
 			packageManagerErr := packageManager.Apply(kftypes.K8S, options)
 			if packageManagerErr != nil {
 				return fmt.Errorf("kfApp Apply failed for %v: %v", packageManagerName, packageManagerErr)
 			}
 		}
+		return nil
+	}
+
+	switch resources {
+	case kftypes.ALL:
+		if err := platform(); err != nil {
+			return err
+		}
+		return k8s()
+	case kftypes.PLATFORM:
+		return platform()
+	case kftypes.K8S:
+		return k8s()
 	}
 	return nil
 }
 
 func (kfapp *coordinator) Delete(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	switch resources {
-	case kftypes.K8S:
-		fallthrough
-	case kftypes.PLATFORM:
-		fallthrough
-	case kftypes.ALL:
+	platform := func() error {
 		if kfapp.Client.Spec.Platform != "" {
 			platform := kfapp.Platforms[kfapp.Client.Spec.Platform]
 			if platform != nil {
@@ -366,23 +373,36 @@ func (kfapp *coordinator) Delete(resources kftypes.ResourceEnum, options map[str
 				return fmt.Errorf("%v not in Platforms", kfapp.Client.Spec.Platform)
 			}
 		}
+		return nil
+	}
+
+	k8s := func() error {
 		for packageManagerName, packageManager := range kfapp.PackageManagers {
 			packageManagerErr := packageManager.Delete(kftypes.K8S, options)
 			if packageManagerErr != nil {
 				return fmt.Errorf("kfApp Delete failed for %v: %v", packageManagerName, packageManagerErr)
 			}
 		}
+		return nil
+	}
+
+	switch resources {
+		case kftypes.ALL:
+			if err := platform(); err != nil {
+				return err
+			}
+			return k8s()
+		case kftypes.PLATFORM:
+			return platform()
+		case kftypes.K8S:
+			return k8s()
 	}
 	return nil
 }
 
 func (kfapp *coordinator) Generate(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	switch resources {
-	case kftypes.K8S:
-		fallthrough
-	case kftypes.PLATFORM:
-		fallthrough
-	case kftypes.ALL:
+
+	platform := func() error {
 		if kfapp.Client.Spec.Platform != "" {
 			platform := kfapp.Platforms[kfapp.Client.Spec.Platform]
 			if platform != nil {
@@ -395,12 +415,29 @@ func (kfapp *coordinator) Generate(resources kftypes.ResourceEnum, options map[s
 				return fmt.Errorf("%v not in Platforms", kfapp.Client.Spec.Platform)
 			}
 		}
+		return nil
+	}
+
+	k8s := func() error {
 		for packageManagerName, packageManager := range kfapp.PackageManagers {
 			packageManagerErr := packageManager.Generate(kftypes.K8S, options)
 			if packageManagerErr != nil {
 				return fmt.Errorf("coordinator Generate failed for %v: %v", packageManagerName, packageManagerErr)
 			}
 		}
+		return nil
+	}
+
+	switch resources {
+	case kftypes.ALL:
+		if err := platform(); err != nil {
+			return err
+		}
+		return k8s()
+	case kftypes.PLATFORM:
+		return platform()
+	case kftypes.K8S:
+		return k8s()
 	}
 	return nil
 }

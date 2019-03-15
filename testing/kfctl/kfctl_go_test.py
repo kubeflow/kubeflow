@@ -39,10 +39,15 @@ def test_build_kfctl_go(app_path, project):
                          "--basic_auth_username=kf-test-user",
                          "--basic_auth_password=" + uuid.uuid4().hex])
 
-  util.run([kfctl_path, "generate", "-V", "all", ],
+  util.run([kfctl_path, "generate", "-V", "platform", ],
             cwd=app_path)
 
-  util.run([kfctl_path, "apply", "-V", "all"], cwd=app_path)
+  util.run([kfctl_path, "apply", "-V", "platform"], cwd=app_path)
+
+  util.run([kfctl_path, "generate", "-V", "k8s", ],
+            cwd=app_path)
+
+  util.run([kfctl_path, "apply", "-V", "k8s"], cwd=app_path)
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,
