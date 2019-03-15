@@ -37,11 +37,15 @@ def test_build_kfctl_go(app_path, project):
 
   kfctl_path = os.path.join(build_dir, "bin", "kfctl")
 
-  util.run([kfctl_path, "init", app_path, "-V", "--platform=gcp",
-            "--use_basic_auth", "--skip-init-gcp-project",
-            "--project=" + project])
+  # We don't want the password to show up in the logs because the logs
+  # are public. So we use subprocess and not util.run
+  subprocess.check_call([kfctl_path, "init", app_path, "-V", "--platform=gcp",
+                         "--use_basic_auth", "--skip-init-gcp-project",
+                         "--project=" + project,
+                         "--basic_auth_username=kf-test-user",
+                         "--basic_auth_password=" + uuid.uuid4().hex])
 
-  util.run([kfctl_path, "generate", "-V", "all", "--email=test@kubeflow.org"],
+  util.run([kfctl_path, "generate", "-V", "all", ],
             cwd=app_path)
 
   util.run([kfctl_path, "apply", "-V", "all"], cwd=app_path)
