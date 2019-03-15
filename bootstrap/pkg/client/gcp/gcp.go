@@ -28,6 +28,7 @@ import (
 	gcptypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/gcp/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -534,6 +535,11 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 }
 
 func (gcp *Gcp) Apply(resources kftypes.ResourceEnum, options map[string]interface{}) error {
+	if gcp.GcpApp.Spec.UseBasicAuth && (os.Getenv(kftypes.BASIC_AUTH_USERNAME) == "" ||
+		os.Getenv(kftypes.BASIC_AUTH_PASSWORD) == "") {
+		return fmt.Errorf("gcp apply needs ENV %v and %v set when using basic auth.",
+			kftypes.BASIC_AUTH_USERNAME, kftypes.BASIC_AUTH_PASSWORD)
+	}
 	updateDMErr := gcp.updateDM(resources, options)
 	if updateDMErr != nil {
 		return fmt.Errorf("gcp apply could not update deployment manager Error %v", updateDMErr)
@@ -805,18 +811,24 @@ func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset
 
 // Use username and password provided by user and create secret for basic auth.
 func (gcp *Gcp) createBasicAuthSecret(client *clientset.Clientset, options map[string]interface{}) error {
-	encodedPasswordHash := base64.StdEncoding.EncodeToString([]byte(gcp.GcpApp.Spec.BasicAuthPassword))
+	username := os.Getenv(kftypes.BASIC_AUTH_USERNAME)
+	password := os.Getenv(kftypes.BASIC_AUTH_PASSWORD)
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
+	if err != nil {
+		return fmt.Errorf("Error when hashing password: %v", err)
+	}
+	encodedPasswordHash := base64.StdEncoding.EncodeToString(passwordHash)
 	secret := &v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      BASIC_AUTH_SECRET,
 			Namespace: gcp.GcpApp.Namespace,
 		},
 		Data: map[string][]byte{
-			"username":     []byte(gcp.GcpApp.Spec.BasicAuthUsername),
+			"username":     []byte(username),
 			"passwordhash": []byte(encodedPasswordHash),
 		},
 	}
-	_, err := client.CoreV1().Secrets(gcp.GcpApp.Namespace).Update(secret)
+	_, err = client.CoreV1().Secrets(gcp.GcpApp.Namespace).Update(secret)
 	if err != nil {
 		log.Warnf("Updating basic auth login is failed, trying to create one: %v", err)
 		_, err = client.CoreV1().Secrets(gcp.GcpApp.Namespace).Create(secret)
