@@ -423,6 +423,10 @@ func (ksApp *ksApp) Generate(resources kftypes.ResourceEnum) error {
 			}
 		}
 	}
+	createConfigErr := ksApp.writeConfigFile()
+	if createConfigErr != nil {
+		return fmt.Errorf("cannot write to config file app.yaml in %v", ksApp.Spec.AppDir)
+	}
 	return nil
 }
 
