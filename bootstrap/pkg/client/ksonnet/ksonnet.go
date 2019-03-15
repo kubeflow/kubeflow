@@ -388,8 +388,7 @@ func setNameVal(entries []configtypes.NameValue, name string, val string) {
 func (ksApp *ksApp) Generate(resources kftypes.ResourceEnum, options map[string]interface{}) error {
 	log.Infof("Ksonnet.Generate Name %v AppDir %v Platform %v", ksApp.KsApp.Name,
 		ksApp.KsApp.Spec.AppDir, ksApp.KsApp.Spec.Platform)
-	config := kftypes.GetConfig()
-	initErr := ksApp.initKs(config)
+	initErr := ksApp.initKs()
 	if initErr != nil {
 		return fmt.Errorf("couldn't initialize KfApi: %v", initErr)
 	}
@@ -484,7 +483,7 @@ func (ksApp *ksApp) Init(resources kftypes.ResourceEnum, options map[string]inte
 	return nil
 }
 
-func (ksApp *ksApp) initKs(config *rest.Config) error {
+func (ksApp *ksApp) initKs() error {
 	newRoot := path.Join(ksApp.KsApp.Spec.AppDir, ksApp.KsName)
 	ksApp.KsEnvName = kstypes.KsEnvName
 	// We hard code the K8s spec because we won't have a cluster to talk to when calling init.
