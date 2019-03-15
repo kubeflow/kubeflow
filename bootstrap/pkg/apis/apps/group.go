@@ -67,18 +67,20 @@ const (
 	MOUNT_LOCAL           CliOption = "mount-local"
 	SKIP_INIT_GCP_PROJECT CliOption = "skip-init-gcp-project"
 	VERBOSE               CliOption = "verbose"
-	NAMESPACE      CliOption = "namespace"
-	VERSION        CliOption = "version"
-	REPO           CliOption = "repo"
-	PROJECT        CliOption = "project"
-	APPNAME        CliOption = "appname"
-	APPDIR         CliOption = "appDir"
-	DATA           CliOption = "Data"
-	ZONE           CliOption = "zone"
-	USE_BASIC_AUTH CliOption = "use_basic_auth"
-	OAUTH_ID       CliOption = "oauth_id"
-	OAUTH_SECRET   CliOption = "oauth_secret"
-	CONFIG         CliOption = "config"
+	NAMESPACE             CliOption = "namespace"
+	VERSION               CliOption = "version"
+	REPO                  CliOption = "repo"
+	PROJECT               CliOption = "project"
+	APPNAME               CliOption = "appname"
+	APPDIR                CliOption = "appDir"
+	DATA                  CliOption = "Data"
+	ZONE                  CliOption = "zone"
+	USE_BASIC_AUTH        CliOption = "use_basic_auth"
+	OAUTH_ID              CliOption = "oauth_id"
+	OAUTH_SECRET          CliOption = "oauth_secret"
+	BASIC_AUTH_USERNAME   CliOption = "basic_auth_username"
+	BASIC_AUTH_PASSWORD   CliOption = "basic_auth_password"
+	CONFIG                CliOption = "config"
 )
 
 //
@@ -169,7 +171,7 @@ func KubeConfigPath() string {
 }
 
 // GetConfig returns rest.Config using $HOME/.kube/config
-func GetConfig() (*rest.Config) {
+func GetConfig() *rest.Config {
 	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
 	loadingRules.ExplicitPath = KubeConfigPath()
 	overrides := &clientcmd.ConfigOverrides{}
@@ -187,7 +189,7 @@ func GetServerVersion(c *clientset.Clientset) string {
 	}
 	re := regexp.MustCompile("^v[0-9]+.[0-9]+.[0-9]+")
 	version := re.FindString(serverVersion.String())
-	return "version:"+version
+	return "version:" + version
 }
 
 // Get $HOME/.kube/config
