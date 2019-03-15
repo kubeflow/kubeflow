@@ -487,13 +487,15 @@ func (ksApp *ksApp) Init(resources kftypes.ResourceEnum, options map[string]inte
 func (ksApp *ksApp) initKs(config *rest.Config) error {
 	newRoot := path.Join(ksApp.KsApp.Spec.AppDir, ksApp.KsName)
 	ksApp.KsEnvName = kstypes.KsEnvName
-	k8sSpec := kftypes.GetServerVersion(kftypes.GetClientset(config))
+	// We hard code the K8s spec because we won't have a cluster to talk to when calling init.
+	k8sSpec := "version:v1.11.7"
 	options := map[string]interface{}{
 		actions.OptionFs:                    afero.NewOsFs(),
 		actions.OptionName:                  ksApp.KsName,
 		actions.OptionEnvName:               ksApp.KsEnvName,
 		actions.OptionNewRoot:               newRoot,
-		actions.OptionServer:                config.Host,
+		// Using local host appears to fool ksonnet on init. We will add a new environment later.
+		actions.OptionServer:                "127.0.0.1",
 		actions.OptionSpecFlag:              k8sSpec,
 		actions.OptionNamespace:             ksApp.KsApp.Namespace,
 		actions.OptionSkipDefaultRegistries: true,
