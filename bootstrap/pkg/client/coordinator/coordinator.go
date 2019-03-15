@@ -118,14 +118,14 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	if _packagemanager != nil {
 		_client.PackageManagers["ksonnet"] = _packagemanager
 	}
-	// _packagemanager, _packagemanagerErr = GetPackageManager("kustomize", options)
-	// if _packagemanagerErr != nil {
-	// 	log.Fatalf("could not get packagemanager %v Error %v **", "kustomize", _packagemanagerErr)
+	_packagemanager, _packagemanagerErr = GetPackageManager("kustomize", options)
+	if _packagemanagerErr != nil {
+		log.Fatalf("could not get packagemanager %v Error %v **", "kustomize", _packagemanagerErr)
 
-	// }
-	// if _packagemanager != nil {
-	// 	_client.PackageManagers["kustomize"] = _packagemanager
-	// }
+	}
+	if _packagemanager != nil {
+		_client.PackageManagers["kustomize"] = _packagemanager
+	}
 	return _client
 }
 
