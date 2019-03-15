@@ -12,7 +12,7 @@ from kubeflow.testing import util
 
 @retry(stop_max_attempt_number=7)
 def run_with_retries(*args, **kwargs):
-  util.run(["make", "build-kfctl"], cwd=build_dir)
+  util.run(*args, **kwargs)
 
 def test_build_kfctl_go(app_path, project):
   if not app_path:
