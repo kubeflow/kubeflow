@@ -21,6 +21,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
+	"os"
 )
 
 var initCfg = viper.New()
@@ -51,14 +52,12 @@ or a <name>. If just <name> a directory <name> will be created in the current di
 		init_gcp := initCfg.GetBool(string(kftypes.SKIP_INIT_GCP_PROJECT))
 
 		useBasicAuth := initCfg.GetBool(string(kftypes.USE_BASIC_AUTH))
-		if useBasicAuth && (basicAuthUsername == "" || basicAuthPassword == "") {
-			log.Errorf("If using basic auth, need to specify username and password for it.")
-			return
-		}
-		passwordHash, err := bcrypt.GenerateFromPassword([]byte(basicAuthPassword), 10)
-		if err != nil {
-			log.Errorf("error when hashing password: %v", err)
-			return
+		if useBasicAuth && os.Getenv(kftypes.BASIC_AUTH_USERNAME) == "" &&
+			os.Getenv(kftypes.BASIC_AUTH_PASSWORD) == "" {
+			// Printing warning message instead of bailing out as both ENV are used in apply,
+			// not init.
+			log.Warnf("If using basic auth, need to set ENV %v and %v when running kfctl apply",
+				kftypes.BASIC_AUTH_USERNAME, kftypes.BASIC_AUTH_PASSWORD)
 		}
 
 		options := map[string]interface{}{
