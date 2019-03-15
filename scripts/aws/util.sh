@@ -54,16 +54,15 @@ install_k8s_manifests() {
   # Create secret to store aws credentials
   #create_secrets
 
+  # Only install cluster level kubernetes addons here
   install_gpu_driver
   install_fluentd_cloudwatch
-  install_alb_ingress_controller
-  install_csi_driver
+  #install_alb_ingress_controller
+  #install_csi_driver
 }
 
 create_secrets() {
-  # Need to install secrets in different namespaces
   create_aws_secret ${K8S_NAMESPACE} aws_secret
-  create_aws_secret kubeflow aws_secret
 }
 
 # TensorFlow Serving, TensorBoard and CSI FSx for Lustre both use AWS secret.
@@ -145,9 +144,15 @@ aws_generate_ks_app() {
   cd "${KUBEFLOW_KS_DIR}"
 
   # Install the aws package
-  #ks pkg install kubeflow/aws
+  ks pkg install kubeflow/aws
 
-  # TODO: create ingress, fsx libsconnet
+  ks generate aws-alb-ingress-controller aws-alb-ingress-controller --namespace=${K8S_NAMESPACE} --clusterName=${DEPLOYMENT_NAME}
+  ks generate aws-fsx-csi-driver aws-fsx-csi-driver --namespace=${K8S_NAMESPACE}
+  # we need ingress
+
+  #ks param set jupyter jupyterHubAuthenticator cognito
+  #ks param set pipeline mysqlPd "${DEPLOYMENT_NAME}-storage-metadata-store"
+  #ks param set pipeline minioPd "${DEPLOYMENT_NAME}-storage-artifact-store"
 
   popd
 }
@@ -156,7 +161,14 @@ aws_generate_ks_app() {
 aws_ks_apply() {
   # Apply the components generated
   pushd .
+  cd "${KUBEFLOW_KS_DIR}"
+  createKsEnv
 
+  if [[ -z $DEFAULT_KUBEFLOW_COMPONENTS ]]; then
+    export KUBEFLOW_COMPONENTS+=',"aws-alb-ingress-controller","aws-fsx-csi-driver"'
+    writeEnv
+    ks param set application components '['$KUBEFLOW_COMPONENTS']'
+  fi
   popd
 }
 
@@ -223,6 +235,7 @@ check_aws_credential() {
     fi
 }
 
+# don't enabled cluster create by default. Use flags to control it.
 create_eks_cluster() {
   OPTIONS="${aws_ssh_public_key_option} ${aws_node_zones_option} ${aws_num_nodes_option} ${aws_node_type_option}"
 
