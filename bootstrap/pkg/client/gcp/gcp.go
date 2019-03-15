@@ -25,7 +25,7 @@ import (
 	gogetter "github.com/hashicorp/go-getter"
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	gcptypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/gcp/v1alpha1"
+	cltypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/client/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
@@ -73,104 +73,12 @@ const (
 // Gcp implements KfApp Interface
 // It includes the KsApp along with additional Gcp types
 type Gcp struct {
-	GcpApp *gcptypes.Gcp
+	cltypes.Client
 }
 
-func GetKfApp(options map[string]interface{}) kftypes.KfApp {
+func GetKfApp(client *cltypes.Client) kftypes.KfApp {
 	_gcp := &Gcp{
-		GcpApp: &gcptypes.Gcp{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       "Client",
-				APIVersion: "client.apps.kubeflow.org/v1alpha1",
-			},
-		},
-	}
-	if options[string(kftypes.DATA)] != nil {
-		dat := options[string(kftypes.DATA)].([]byte)
-		specErr := yaml.Unmarshal(dat, _gcp.GcpApp)
-		if specErr != nil {
-			log.Errorf("couldn't unmarshal GcpApp. Error: %v", specErr)
-			return nil
-		}
-	}
-	if options[string(kftypes.CONFIG)] != nil {
-		dat := options[string(kftypes.CONFIG)].([]byte)
-		specErr := yaml.Unmarshal(dat, &_gcp.GcpApp.Spec)
-		if specErr != nil {
-			log.Errorf("couldn't unmarshal Ksonnet. Error: %v", specErr)
-		}
-	}
-	if options[string(kftypes.PLATFORM)] != nil {
-		_gcp.GcpApp.Spec.Platform = options[string(kftypes.PLATFORM)].(string)
-	}
-	if options[string(kftypes.APPNAME)] != nil {
-		_gcp.GcpApp.Name = options[string(kftypes.APPNAME)].(string)
-	}
-	if options[string(kftypes.APPDIR)] != nil {
-		_gcp.GcpApp.Spec.AppDir = options[string(kftypes.APPDIR)].(string)
-	}
-	if options[string(kftypes.NAMESPACE)] != nil {
-		namespace := options[string(kftypes.NAMESPACE)].(string)
-		_gcp.GcpApp.Namespace = namespace
-	}
-	if options[string(kftypes.REPO)] != nil {
-		kubeflowRepo := options[string(kftypes.REPO)].(string)
-		re := regexp.MustCompile(`(^\$GOPATH)(.*$)`)
-		goPathVar := os.Getenv("GOPATH")
-		if goPathVar != "" {
-			kubeflowRepo = re.ReplaceAllString(kubeflowRepo, goPathVar+`$2`)
-		}
-		_gcp.GcpApp.Spec.Repo = path.Join(kubeflowRepo, "kubeflow")
-	}
-	if options[string(kftypes.VERSION)] != nil {
-		kubeflowVersion := options[string(kftypes.VERSION)].(string)
-		_gcp.GcpApp.Spec.Version = kubeflowVersion
-	}
-	if options[string(kftypes.EMAIL)] != nil {
-		email := options[string(kftypes.EMAIL)].(string)
-		_gcp.GcpApp.Spec.Email = email
-	}
-	if options[string(kftypes.ZONE)] != nil &&
-		options[string(kftypes.ZONE)].(string) != "" {
-		zone := options[string(kftypes.ZONE)].(string)
-		_gcp.GcpApp.Spec.Zone = zone
-	} else if _gcp.GcpApp.Spec.Zone != "" {
-		options[string(kftypes.ZONE)] = _gcp.GcpApp.Spec.Zone
-	}
-	if options[string(kftypes.IPNAME)] != nil &&
-		options[string(kftypes.IPNAME)].(string) != "" {
-		ipName := options[string(kftypes.IPNAME)].(string)
-		_gcp.GcpApp.Spec.IpName = ipName
-	} else if _gcp.GcpApp.Name != "" {
-		_gcp.GcpApp.Spec.IpName = _gcp.GcpApp.Name + "-ip"
-	}
-	if options[string(kftypes.PROJECT)] != nil &&
-		options[string(kftypes.PROJECT)].(string) != "" {
-		project := options[string(kftypes.PROJECT)].(string)
-		_gcp.GcpApp.Spec.Project = project
-	} else if _gcp.GcpApp.Spec.Project != "" {
-		options[string(kftypes.PROJECT)] = _gcp.GcpApp.Spec.Project
-	}
-	if options[string(kftypes.HOSTNAME)] != nil &&
-		options[string(kftypes.HOSTNAME)].(string) != "" {
-		hostname := options[string(kftypes.HOSTNAME)].(string)
-		_gcp.GcpApp.Spec.Hostname = hostname
-	} else if _gcp.GcpApp.Name != "" && _gcp.GcpApp.Spec.Project != "" {
-		_gcp.GcpApp.Spec.Hostname = fmt.Sprintf("%v.endpoints.%v.cloud.goog",
-			_gcp.GcpApp.Name, _gcp.GcpApp.Spec.Project)
-	}
-	if options[string(kftypes.USE_BASIC_AUTH)] != nil {
-		_gcp.GcpApp.Spec.UseBasicAuth = options[string(kftypes.USE_BASIC_AUTH)].(bool)
-	}
-	if options[string(kftypes.BASIC_AUTH_USERNAME)] != nil {
-		_gcp.GcpApp.Spec.BasicAuthUsername = options[string(kftypes.BASIC_AUTH_USERNAME)].(string)
-	}
-	if options[string(kftypes.BASIC_AUTH_PASSWORD)] != nil {
-		_gcp.GcpApp.Spec.BasicAuthPassword = options[string(kftypes.BASIC_AUTH_PASSWORD)].(string)
-	}
-	if options[string(kftypes.SKIP_INIT_GCP_PROJECT)] != nil {
-		skipInitProject := options[string(kftypes.SKIP_INIT_GCP_PROJECT)].(bool)
-		_gcp.GcpApp.Spec.SkipInitProject = skipInitProject
+		Client: *client,
 	}
 	return _gcp
 }
@@ -218,21 +126,16 @@ func getSA(name string, nameSuffix string, project string) string {
 	return fmt.Sprintf("%v-%v@%v.iam.gserviceaccount.com", name, nameSuffix, project)
 }
 
-func (gcp *Gcp) writeConfigFile(options map[string]interface{}) error {
-	buf, bufErr := yaml.Marshal(gcp.GcpApp)
+func (gcp *Gcp) writeConfigFile() error {
+	buf, bufErr := yaml.Marshal(gcp)
 	if bufErr != nil {
 		return bufErr
 	}
-	cfgFilePath := filepath.Join(gcp.GcpApp.Spec.AppDir, kftypes.KfConfigFile)
+	cfgFilePath := filepath.Join(gcp.Spec.AppDir, kftypes.KfConfigFile)
 	cfgFilePathErr := ioutil.WriteFile(cfgFilePath, buf, 0644)
 	if cfgFilePathErr != nil {
 		return cfgFilePathErr
 	}
-	buf, bufErr = yaml.Marshal(&gcp.GcpApp.Spec)
-	if bufErr != nil {
-		return bufErr
-	}
-	options[string(kftypes.CONFIG)] = buf
 	return nil
 }
 
@@ -292,8 +195,8 @@ func generateTarget(configPath string) (*deploymentmanager.TargetConfiguration, 
 }
 
 func (gcp *Gcp) getK8sClientset(ctx context.Context) (*clientset.Clientset, error) {
-	cluster, err := GetClusterInfo(ctx, gcp.GcpApp.Spec.Project,
-		gcp.GcpApp.Spec.Zone, gcp.GcpApp.Name)
+	cluster, err := GetClusterInfo(ctx, gcp.Spec.Project,
+		gcp.Spec.Zone, gcp.Name)
 	if err != nil {
 		return nil, fmt.Errorf("get Cluster error: %v", err)
 	}
@@ -335,7 +238,7 @@ func blockingWait(project string, opName string, deploymentmanagerService *deplo
 }
 
 func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
-	appDir := gcp.GcpApp.Spec.AppDir
+	appDir := gcp.Spec.AppDir
 	gcpConfigDir := path.Join(appDir, GCP_CONFIG)
 	ctx := context.Background()
 	client, clientErr := google.DefaultClient(ctx, deploymentmanager.CloudPlatformScope)
@@ -356,7 +259,7 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 		dp.Target = target
 	}
 
-	project := gcp.GcpApp.Spec.Project
+	project := gcp.Spec.Project
 	resp, err := deploymentmanagerService.Deployments.Get(project, deployment).Context(ctx).Do()
 	if err == nil {
 		dp.Fingerprint = resp.Fingerprint
@@ -441,41 +344,41 @@ func (gcp *Gcp) ConfigK8s() error {
 	if err != nil {
 		return err
 	}
-	if err = createNamespace(k8sClientset, gcp.GcpApp.Namespace); err != nil {
+	if err = createNamespace(k8sClientset, gcp.Namespace); err != nil {
 		return fmt.Errorf("Creating namespace error: %v", err)
 	}
-	if err = bindAdmin(k8sClientset, gcp.GcpApp.Spec.Email); err != nil {
+	if err = bindAdmin(k8sClientset, gcp.Spec.Email); err != nil {
 		return fmt.Errorf("Binding user as admin error: %v", err)
 	}
 
 	return nil
 }
 
-func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	if err := gcp.updateDeployment(gcp.GcpApp.Name+"-storage", STORAGE_FILE); err != nil {
+func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
+	if err := gcp.updateDeployment(gcp.Name+"-storage", STORAGE_FILE); err != nil {
 		return fmt.Errorf("could not update %v: %v", STORAGE_FILE, err)
 	}
-	if err := gcp.updateDeployment(gcp.GcpApp.Name, CONFIG_FILE); err != nil {
+	if err := gcp.updateDeployment(gcp.Name, CONFIG_FILE); err != nil {
 		return fmt.Errorf("could not update %v: %v", CONFIG_FILE, err)
 	}
-	if _, networkStatErr := os.Stat(path.Join(gcp.GcpApp.Spec.AppDir, NETWORK_FILE)); !os.IsNotExist(networkStatErr) {
-		err := gcp.updateDeployment(gcp.GcpApp.Name+"-network", NETWORK_FILE)
+	if _, networkStatErr := os.Stat(path.Join(gcp.Spec.AppDir, NETWORK_FILE)); !os.IsNotExist(networkStatErr) {
+		err := gcp.updateDeployment(gcp.Name+"-network", NETWORK_FILE)
 		if err != nil {
 			return fmt.Errorf("could not update %v: %v", NETWORK_FILE, err)
 		}
 	}
-	if _, gcfsStatErr := os.Stat(path.Join(gcp.GcpApp.Spec.AppDir, GCFS_FILE)); !os.IsNotExist(gcfsStatErr) {
-		err := gcp.updateDeployment(gcp.GcpApp.Name+"-gcfs", GCFS_FILE)
+	if _, gcfsStatErr := os.Stat(path.Join(gcp.Spec.AppDir, GCFS_FILE)); !os.IsNotExist(gcfsStatErr) {
+		err := gcp.updateDeployment(gcp.Name+"-gcfs", GCFS_FILE)
 		if err != nil {
 			return fmt.Errorf("could not update %v: %v", GCFS_FILE, err)
 		}
 	}
 
-	policy, policyErr := utils.GetIamPolicy(gcp.GcpApp.Spec.Project)
+	policy, policyErr := utils.GetIamPolicy(gcp.Spec.Project)
 	if policyErr != nil {
 		return fmt.Errorf("GetIamPolicy error: %v", policyErr)
 	}
-	appDir := gcp.GcpApp.Spec.AppDir
+	appDir := gcp.Spec.AppDir
 	gcpConfigDir := path.Join(appDir, GCP_CONFIG)
 	iamPolicy, iamPolicyErr := utils.ReadIamBindingsYAML(
 		filepath.Join(gcpConfigDir, "iam_bindings.yaml"))
@@ -483,11 +386,11 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 		return fmt.Errorf("Read IAM policy YAML error: %v", iamPolicyErr)
 	}
 	clearedPolicy := utils.GetClearedIamPolicy(policy, iamPolicy)
-	if err := utils.SetIamPolicy(gcp.GcpApp.Spec.Project, clearedPolicy); err != nil {
+	if err := utils.SetIamPolicy(gcp.Spec.Project, clearedPolicy); err != nil {
 		return fmt.Errorf("Set Cleared IamPolicy error: %v", err)
 	}
 	newPolicy, err := utils.RewriteIamPolicy(policy, iamPolicy)
-	if err := utils.SetIamPolicy(gcp.GcpApp.Spec.Project, newPolicy); err != nil {
+	if err := utils.SetIamPolicy(gcp.Spec.Project, newPolicy); err != nil {
 		return fmt.Errorf("Set New IamPolicy error: %v", err)
 	}
 
@@ -496,8 +399,8 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 	}
 
 	ctx := context.Background()
-	cluster, err := GetClusterInfo(ctx, gcp.GcpApp.Spec.Project,
-		gcp.GcpApp.Spec.Zone, gcp.GcpApp.Name)
+	cluster, err := GetClusterInfo(ctx, gcp.Spec.Project,
+		gcp.Spec.Zone, gcp.Name)
 	if err != nil {
 		return fmt.Errorf("Get Cluster error: %v", err)
 	}
@@ -508,9 +411,9 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 
 	// TODO(#2604): Need to create a named context.
 	cred_cmd := exec.Command("gcloud", "container", "clusters", "get-credentials",
-		gcp.GcpApp.Name,
-		"--zone="+gcp.GcpApp.Spec.Zone,
-		"--project="+gcp.GcpApp.Spec.Project)
+		gcp.Name,
+		"--zone="+gcp.Spec.Zone,
+		"--project="+gcp.Spec.Project)
 	cred_cmd.Stdout = os.Stdout
 	log.Infof("Running get-credentials ...")
 	if err = cred_cmd.Run(); err != nil {
@@ -539,19 +442,19 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum, options map[string]inte
 	return nil
 }
 
-func (gcp *Gcp) Apply(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	updateDMErr := gcp.updateDM(resources, options)
+func (gcp *Gcp) Apply(resources kftypes.ResourceEnum) error {
+	updateDMErr := gcp.updateDM(resources)
 	if updateDMErr != nil {
 		return fmt.Errorf("gcp apply could not update deployment manager Error %v", updateDMErr)
 	}
-	secretsErr := gcp.createSecrets(options)
+	secretsErr := gcp.createSecrets()
 	if secretsErr != nil {
 		return fmt.Errorf("gcp apply could not create secrets Error %v", secretsErr)
 	}
 	return nil
 }
 
-func (gcp *Gcp) Delete(resources kftypes.ResourceEnum, options map[string]interface{}) error {
+func (gcp *Gcp) Delete(resources kftypes.ResourceEnum) error {
 	return nil
 }
 
@@ -598,15 +501,15 @@ func (gcp *Gcp) replaceText(regex string, repl string, src []byte) []byte {
 }
 
 // TODO(#2515): Switch from string replacement to YAML config.
-func (gcp *Gcp) generateDMConfigs(options map[string]interface{}) error {
+func (gcp *Gcp) generateDMConfigs() error {
 	// TODO(gabrielwen): Use YAML support instead of string replacement.
-	appDir := gcp.GcpApp.Spec.AppDir
+	appDir := gcp.Spec.AppDir
 	gcpConfigDir := path.Join(appDir, GCP_CONFIG)
 	gcpConfigDirErr := os.MkdirAll(gcpConfigDir, os.ModePerm)
 	if gcpConfigDirErr != nil {
 		return fmt.Errorf("cannot create directory %v", gcpConfigDirErr)
 	}
-	repo := gcp.GcpApp.Spec.Repo
+	repo := gcp.Spec.Repo
 	parentDir := path.Dir(repo)
 	sourceDir := path.Join(parentDir, "deployment/gke/deployment_manager_configs")
 	files := []string{"cluster-kubeflow.yaml", "cluster.jinja", "cluster.jinja.schema",
@@ -633,19 +536,19 @@ func (gcp *Gcp) generateDMConfigs(options map[string]interface{}) error {
 	if iamBindingsDataErr != nil {
 		return fmt.Errorf("could not read %v Error %v", to, iamBindingsDataErr)
 	}
-	adminEmail := getSA(gcp.GcpApp.Name, "admin", gcp.GcpApp.Spec.Project)
+	adminEmail := getSA(gcp.Name, "admin", gcp.Spec.Project)
 	repl := "serviceAccount:" + adminEmail
 	iamBindingsData = gcp.replaceText("set-kubeflow-admin-service-account", repl, iamBindingsData)
-	userEmail := getSA(gcp.GcpApp.Name, "user", gcp.GcpApp.Spec.Project)
+	userEmail := getSA(gcp.Name, "user", gcp.Spec.Project)
 	repl = "serviceAccount:" + userEmail
 	iamBindingsData = gcp.replaceText("set-kubeflow-user-service-account", repl, iamBindingsData)
-	vmEmail := getSA(gcp.GcpApp.Name, "vm", gcp.GcpApp.Spec.Project)
+	vmEmail := getSA(gcp.Name, "vm", gcp.Spec.Project)
 	repl = "serviceAccount:" + vmEmail
 	iamBindingsData = gcp.replaceText("set-kubeflow-vm-service-account", repl, iamBindingsData)
-	iamEntry := "serviceAccount:" + gcp.GcpApp.Spec.Email
+	iamEntry := "serviceAccount:" + gcp.Spec.Email
 	re := regexp.MustCompile("iam.gserviceaccount.com")
-	if !re.MatchString(gcp.GcpApp.Spec.Email) {
-		iamEntry = "user:" + gcp.GcpApp.Spec.Email
+	if !re.MatchString(gcp.Spec.Email) {
+		iamEntry = "user:" + gcp.Spec.Email
 	}
 	iamBindingsData = gcp.replaceText("set-kubeflow-iap-account", iamEntry, iamBindingsData)
 	srcErr := ioutil.WriteFile(to, iamBindingsData, 0644)
@@ -663,12 +566,12 @@ func (gcp *Gcp) generateDMConfigs(options map[string]interface{}) error {
 		return fmt.Errorf("could not read %v Error %v", storageFile, storageFileDataErr)
 	}
 	configFileData = gcp.replaceText("SET_GKE_API_VERSION", kftypes.DefaultGkeApiVer, configFileData)
-	repl = "zone: " + gcp.GcpApp.Spec.Zone
+	repl = "zone: " + gcp.Spec.Zone
 	configFileData = gcp.replaceText("zone: SET_THE_ZONE", repl, configFileData)
 	storageFileData = gcp.replaceText("zone: SET_THE_ZONE", repl, storageFileData)
 	repl = "users: [\"" + iamEntry + "\"]"
 	configFileData = gcp.replaceText("users:", repl, configFileData)
-	repl = "ipName: " + gcp.GcpApp.Spec.IpName
+	repl = "ipName: " + gcp.Spec.IpName
 	configFileData = gcp.replaceText("ipName: kubeflow-ip", repl, configFileData)
 	configFileErr := ioutil.WriteFile(configFile, configFileData, 0644)
 	if configFileErr != nil {
@@ -685,7 +588,7 @@ func (gcp *Gcp) generateDMConfigs(options map[string]interface{}) error {
 }
 
 func (gcp *Gcp) downloadK8sManifests() error {
-	appDir := gcp.GcpApp.Spec.AppDir
+	appDir := gcp.Spec.AppDir
 	k8sSpecsDir := path.Join(appDir, K8S_SPECS)
 	k8sSpecsDirErr := os.MkdirAll(k8sSpecsDir, os.ModePerm)
 	if k8sSpecsDirErr != nil {
@@ -726,18 +629,18 @@ func (gcp *Gcp) writeGcpSecret(client *clientset.Clientset, secretName string, d
 	secret := &v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      secretName,
-			Namespace: gcp.GcpApp.Namespace,
+			Namespace: gcp.Namespace,
 		},
 		Data: data,
 	}
-	_, err := client.CoreV1().Secrets(gcp.GcpApp.Namespace).Create(secret)
+	_, err := client.CoreV1().Secrets(gcp.Namespace).Create(secret)
 	return err
 }
 
 // Create key for service account and write to GCP as secret.
 func (gcp *Gcp) createGcpServiceAcctSecret(ctx context.Context, client *clientset.Clientset,
 	email string, secretName string) error {
-	namespace := gcp.GcpApp.Namespace
+	namespace := gcp.Namespace
 	_, err := client.CoreV1().Secrets(namespace).Get(secretName, metav1.GetOptions{})
 	if err == nil {
 		log.Infof("Secret for %v already exists ...", secretName)
@@ -754,7 +657,7 @@ func (gcp *Gcp) createGcpServiceAcctSecret(ctx context.Context, client *clientse
 	if err != nil {
 		return fmt.Errorf("Get Oauth client error: %v", err)
 	}
-	name := fmt.Sprintf("projects/%v/serviceAccounts/%v", gcp.GcpApp.Spec.Project,
+	name := fmt.Sprintf("projects/%v/serviceAccounts/%v", gcp.Spec.Project,
 		email)
 	req := &iam.CreateServiceAccountKeyRequest{
 		KeyAlgorithm:   "KEY_ALG_RSA_2048",
@@ -774,32 +677,19 @@ func (gcp *Gcp) createGcpServiceAcctSecret(ctx context.Context, client *clientse
 }
 
 // User CLIENT_ID and CLIENT_SECRET from GCP to create a secret for IAP.
-func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset,
-	options map[string]interface{}) error {
-	if _, err := client.CoreV1().Secrets(gcp.GcpApp.Namespace).
+func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset) error {
+	if _, err := client.CoreV1().Secrets(gcp.Namespace).
 		Get(KUBEFLOW_OAUTH, metav1.GetOptions{}); err == nil {
 		log.Infof("Secret for %v already exits ...", KUBEFLOW_OAUTH)
 		return nil
 	}
-	oauthId := ""
-	if options[string(kftypes.OAUTH_ID)] != nil &&
-		options[string(kftypes.OAUTH_ID)].(string) != "" {
-		oauthId = options[string(kftypes.OAUTH_ID)].(string)
-	} else {
-		oauthId = os.Getenv(CLIENT_ID)
-	}
-	if oauthId == "" && !gcp.GcpApp.Spec.UseBasicAuth {
+	oauthId := os.Getenv(CLIENT_ID)
+	if oauthId == "" && !gcp.Spec.UseBasicAuth {
 		return fmt.Errorf("At least one of --%v or ENV `%v` needs to be set.",
 			string(kftypes.OAUTH_ID), CLIENT_ID)
 	}
-	oauthSecret := ""
-	if options[string(kftypes.OAUTH_SECRET)] != nil &&
-		options[string(kftypes.OAUTH_SECRET)].(string) != "" {
-		oauthSecret = options[string(kftypes.OAUTH_SECRET)].(string)
-	} else {
-		oauthSecret = os.Getenv(CLIENT_SECRET)
-	}
-	if oauthSecret == "" && !gcp.GcpApp.Spec.UseBasicAuth {
+	oauthSecret := os.Getenv(CLIENT_SECRET)
+	if oauthSecret == "" && !gcp.Spec.UseBasicAuth {
 		return fmt.Errorf("At least one of --%v or ENV `%v` needs to be set.",
 			string(kftypes.OAUTH_SECRET), CLIENT_SECRET)
 	}
@@ -810,34 +700,34 @@ func (gcp *Gcp) createIapSecret(ctx context.Context, client *clientset.Clientset
 }
 
 // Use username and password provided by user and create secret for basic auth.
-func (gcp *Gcp) createBasicAuthSecret(client *clientset.Clientset, options map[string]interface{}) error {
-	encodedPasswordHash := base64.StdEncoding.EncodeToString([]byte(gcp.GcpApp.Spec.BasicAuthPassword))
+func (gcp *Gcp) createBasicAuthSecret(client *clientset.Clientset) error {
+	encodedPasswordHash := base64.StdEncoding.EncodeToString([]byte(gcp.Spec.BasicAuthPassword))
 	secret := &v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      BASIC_AUTH_SECRET,
-			Namespace: gcp.GcpApp.Namespace,
+			Namespace: gcp.Namespace,
 		},
 		Data: map[string][]byte{
-			"username":     []byte(gcp.GcpApp.Spec.BasicAuthUsername),
+			"username":     []byte(gcp.Spec.BasicAuthUsername),
 			"passwordhash": []byte(encodedPasswordHash),
 		},
 	}
-	_, err := client.CoreV1().Secrets(gcp.GcpApp.Namespace).Update(secret)
+	_, err := client.CoreV1().Secrets(gcp.Namespace).Update(secret)
 	if err != nil {
 		log.Warnf("Updating basic auth login is failed, trying to create one: %v", err)
-		_, err = client.CoreV1().Secrets(gcp.GcpApp.Namespace).Create(secret)
+		_, err = client.CoreV1().Secrets(gcp.Namespace).Create(secret)
 	}
 	return err
 }
 
-func (gcp *Gcp) createSecrets(options map[string]interface{}) error {
+func (gcp *Gcp) createSecrets() error {
 	ctx := context.Background()
 	k8sClient, err := gcp.getK8sClientset(ctx)
 	if err != nil {
 		return fmt.Errorf("Get K8s clientset error: %v", err)
 	}
-	adminEmail := getSA(gcp.GcpApp.Name, "admin", gcp.GcpApp.Spec.Project)
-	userEmail := getSA(gcp.GcpApp.Name, "user", gcp.GcpApp.Spec.Project)
+	adminEmail := getSA(gcp.Name, "admin", gcp.Spec.Project)
+	userEmail := getSA(gcp.Name, "user", gcp.Spec.Project)
 	if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, adminEmail, ADMIN_SECRET_NAME); err != nil {
 		return fmt.Errorf("cannot create admin secret %v Error %v", ADMIN_SECRET_NAME, err)
 
@@ -846,19 +736,19 @@ func (gcp *Gcp) createSecrets(options map[string]interface{}) error {
 		return fmt.Errorf("cannot create user secret %v Error %v", USER_SECRET_NAME, err)
 
 	}
-	if gcp.GcpApp.Spec.UseBasicAuth {
-		if err := gcp.createBasicAuthSecret(k8sClient, options); err != nil {
+	if gcp.Spec.UseBasicAuth {
+		if err := gcp.createBasicAuthSecret(k8sClient); err != nil {
 			return fmt.Errorf("cannot create basic auth login secret: %v", err)
 		}
 	} else {
-		if err := gcp.createIapSecret(ctx, k8sClient, options); err != nil {
+		if err := gcp.createIapSecret(ctx, k8sClient); err != nil {
 			return fmt.Errorf("cannot create IAP auth secret: %v", err)
 		}
 	}
 	return nil
 }
 
-func (gcp *Gcp) Generate(resources kftypes.ResourceEnum, options map[string]interface{}) error {
+func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
 	switch resources {
 	case kftypes.K8S:
 		generateK8sSpecsErr := gcp.downloadK8sManifests()
@@ -866,7 +756,7 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum, options map[string]inte
 			return fmt.Errorf("could not generate files under %v Error: %v", K8S_SPECS, generateK8sSpecsErr)
 		}
 	case kftypes.ALL:
-		gcpConfigFilesErr := gcp.generateDMConfigs(options)
+		gcpConfigFilesErr := gcp.generateDMConfigs()
 		if gcpConfigFilesErr != nil {
 			return fmt.Errorf("could not generate deployment manager configs under %v Error: %v", GCP_CONFIG, gcpConfigFilesErr)
 		}
@@ -875,37 +765,34 @@ func (gcp *Gcp) Generate(resources kftypes.ResourceEnum, options map[string]inte
 			return fmt.Errorf("could not generate files under %v Error: %v", K8S_SPECS, generateK8sSpecsErr)
 		}
 	case kftypes.PLATFORM:
-		gcpConfigFilesErr := gcp.generateDMConfigs(options)
+		gcpConfigFilesErr := gcp.generateDMConfigs()
 		if gcpConfigFilesErr != nil {
 			return fmt.Errorf("could not generate deployment manager configs under %v Error: %v", GCP_CONFIG, gcpConfigFilesErr)
 		}
 	}
-	email := options[string(kftypes.EMAIL)].(string)
-	nv := gcp.GcpApp.Spec.ComponentParams["cert-manager"]
-	setNameVal(&nv, "acmeEmail", email, true)
-	ipName := options[string(kftypes.IPNAME)].(string)
-	if ipName == "" {
-		ipName = gcp.GcpApp.Name + "-ip"
+	nv := gcp.Spec.ComponentParams["cert-manager"]
+	setNameVal(&nv, "acmeEmail", gcp.Spec.Email, true)
+	if gcp.Spec.IpName == "" {
+		gcp.Spec.IpName = gcp.Name + "-ip"
 	}
-	hostname := options[string(kftypes.HOSTNAME)].(string)
-	if hostname == "" {
-		hostname = gcp.GcpApp.Name + ".endpoints." + gcp.GcpApp.Spec.Project + ".cloud.goog"
+	if gcp.Spec.Hostname == "" {
+		gcp.Spec.Hostname = gcp.Name + ".endpoints." + gcp.Spec.Project + ".cloud.goog"
 	}
-	if gcp.GcpApp.Spec.UseBasicAuth {
-		nv = gcp.GcpApp.Spec.ComponentParams["basic-auth-ingress"]
-		setNameVal(&nv, "ipName", ipName, true)
-		setNameVal(&nv, "hostname", hostname, true)
+	if gcp.Spec.UseBasicAuth {
+		nv = gcp.Spec.ComponentParams["basic-auth-ingress"]
+		setNameVal(&nv, "ipName", gcp.Spec.IpName, true)
+		setNameVal(&nv, "hostname", gcp.Spec.Hostname, true)
 	} else {
-		nv = gcp.GcpApp.Spec.ComponentParams["iap-ingress"]
-		setNameVal(&nv, "ipName", ipName, true)
-		setNameVal(&nv, "hostname", hostname, true)
+		nv = gcp.Spec.ComponentParams["iap-ingress"]
+		setNameVal(&nv, "ipName", gcp.Spec.IpName, true)
+		setNameVal(&nv, "hostname", gcp.Spec.Hostname, true)
 	}
-	nv = gcp.GcpApp.Spec.ComponentParams["pipeline"]
-	setNameVal(&nv, "mysqlPd", gcp.GcpApp.Name+"-storage-metadata-store", false)
-	setNameVal(&nv, "minioPd", gcp.GcpApp.Name+"-storage-artifact-store", false)
-	createConfigErr := gcp.writeConfigFile(options)
+	nv = gcp.Spec.ComponentParams["pipeline"]
+	setNameVal(&nv, "mysqlPd", gcp.Name+"-storage-metadata-store", false)
+	setNameVal(&nv, "minioPd", gcp.Name+"-storage-artifact-store", false)
+	createConfigErr := gcp.writeConfigFile()
 	if createConfigErr != nil {
-		return fmt.Errorf("cannot create config file app.yaml in %v", gcp.GcpApp.Spec.AppDir)
+		return fmt.Errorf("cannot create config file app.yaml in %v", gcp.Spec.AppDir)
 	}
 	return nil
 }
@@ -945,7 +832,7 @@ func (gcp *Gcp) gcpInitProject() error {
 		"sqladmin.googleapis.com",
 	}
 	for _, api := range enabledApis {
-		service := fmt.Sprintf("projects/%v/services/%v", gcp.GcpApp.Spec.Project, api)
+		service := fmt.Sprintf("projects/%v/services/%v", gcp.Spec.Project, api)
 		_, opErr := serviceusageService.Services.Enable(service, &serviceusage.EnableServiceRequest{}).Context(ctx).Do()
 		if opErr != nil {
 			return fmt.Errorf("could not enable API service %v: %v", api, opErr)
@@ -954,16 +841,16 @@ func (gcp *Gcp) gcpInitProject() error {
 	return nil
 }
 
-func (gcp *Gcp) Init(resources kftypes.ResourceEnum, options map[string]interface{}) error {
-	cacheDir := path.Join(gcp.GcpApp.Spec.AppDir, kftypes.DefaultCacheDir)
-	newPath := filepath.Join(cacheDir, gcp.GcpApp.Spec.Version)
-	gcp.GcpApp.Spec.Repo = path.Join(newPath, "kubeflow")
-	createConfigErr := gcp.writeConfigFile(options)
+func (gcp *Gcp) Init(resources kftypes.ResourceEnum) error {
+	cacheDir := path.Join(gcp.Spec.AppDir, kftypes.DefaultCacheDir)
+	newPath := filepath.Join(cacheDir, gcp.Spec.Version)
+	gcp.Spec.Repo = path.Join(newPath, "kubeflow")
+	createConfigErr := gcp.writeConfigFile()
 	if createConfigErr != nil {
-		return fmt.Errorf("cannot create config file app.yaml in %v", gcp.GcpApp.Spec.AppDir)
+		return fmt.Errorf("cannot create config file app.yaml in %v", gcp.Spec.AppDir)
 	}
 
-	if !gcp.GcpApp.Spec.SkipInitProject {
+	if !gcp.Spec.SkipInitProject {
 		log.Infof("Not skipping GCP project init, running gcpInitProject.")
 		initProjectErr := gcp.gcpInitProject()
 		if initProjectErr != nil {

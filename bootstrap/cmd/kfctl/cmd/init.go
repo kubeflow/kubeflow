@@ -77,7 +77,7 @@ or a <name>. If just <name> a directory <name> will be created in the current di
 		if kfAppErr != nil || kfApp == nil {
 			return fmt.Errorf("couldn't create KfApp: %v", kfAppErr)
 		}
-		initErr := kfApp.Init(kftypes.ALL, options)
+		initErr := kfApp.Init(kftypes.ALL)
 		if initErr != nil {
 			return fmt.Errorf("KfApp initialization failed: %v", initErr)
 		}
