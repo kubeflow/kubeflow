@@ -77,7 +77,9 @@ workflows:
     component: workflows
     name: kubeflow-e2e-minikube
     job_types:
-      - presubmit
+      # TODO(https://github.com/kubeflow/kubeflow/issues/2703): Reenable minikube on presubmit
+      # when the test is fixed.
+      # - presubmit
       - postsubmit
       - periodic
     params:
