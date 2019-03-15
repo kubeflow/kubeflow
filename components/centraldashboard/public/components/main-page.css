@@ -84,7 +84,16 @@ app-drawer .footer>.build {
 
 app-toolbar {
     display: flex;
-    justify-content: center
+    justify-content: center;
+    background: white;
+    transition: background .25s;
+}
+app-toolbar[blue] {
+    color: white;
+    background: var(--primary-background-color);
+    --primary-color: white;
+    --accent-color: white;
+    --logo-color: white;
 }
 app-toolbar > header {
     margin-top: auto;
@@ -101,7 +110,7 @@ app-toolbar > header {
     padding: .5em;
     height: 100%;
     box-sizing: border-box;
-    color: var(--primary-background-color);
+    color: var(--logo-color, var(--primary-background-color));
     @apply --layout-horizontal;
     @apply --layout-center-center;
 }
