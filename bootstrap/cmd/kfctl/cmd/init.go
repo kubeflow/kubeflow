@@ -80,7 +80,7 @@ or a <name>. If just <name> a directory <name> will be created in the current di
 			log.Errorf("couldn't create KfApp: %v", kfAppErr)
 			return
 		}
-		initErr := kfApp.Init(kftypes.ALL, options)
+		initErr := kfApp.Init(kftypes.ALL)
 		if initErr != nil {
 			log.Errorf("KfApp initialization failed: %v", initErr)
 			return

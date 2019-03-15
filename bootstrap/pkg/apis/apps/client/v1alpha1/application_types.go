@@ -25,6 +25,106 @@ type ClientSpec struct {
 	config.ComponentConfig `json:",inline"`
 	AppDir                 string `json:"appdir,omitempty"`
 	Version                string `json:"version,omitempty"`
+	MountLocal             bool   `json:"mountLocal,omitempty"`
+	Project                string `json:"project,omitempty"`
+	Email                  string `json:"email,omitempty"`
+	IpName                 string `json:"ipName,omitempty"`
+	Hostname               string `json:"hostname,omitempty"`
+	Zone                   string `json:"zone,omitempty"`
+	BasicAuthUsername      string `json:"basicAuthUsername,omitempty"`
+	BasicAuthPassword      string `json:"basicAuthPassword,omitempty"`
+	UseBasicAuth           bool   `json:"useBasicAuth"`
+	SkipInitProject        bool   `json:"skipInitProject,omitempty"`
+}
+
+var DefaultRegistry = &RegistryConfig{
+	Name: "kubeflow",
+	Repo: "https://github.com/kubeflow/kubeflow.git",
+	Path: "kubeflow",
+}
+
+// RegistryConfig is used for two purposes:
+// 1. used during image build, to configure registries that should be baked into the bootstrapper docker image.
+//  (See: https://github.com/kubeflow/kubeflow/blob/master/bootstrap/image_registries.yaml)
+// 2. used during app create rpc call, specifies a registry to be added to an app.
+//      required info for registry: Name, Repo, Version, Path
+//  Additionally if any of required fields is blank we will try to map with one of
+//  the registries baked into the Docker image using the name.
+type RegistryConfig struct {
+	Name    string `json:"name,omitempty"`
+	Repo    string `json:"repo,omitempty"`
+	Version string `json:"version,omitempty"`
+	Path    string `json:"path,omitempty"`
+	RegUri  string `json:"reguri,omitempty"`
+}
+
+type KsComponent struct {
+	Name      string `json:"name,omitempty"`
+	Prototype string `json:"prototype,omitempty"`
+}
+
+type KsLibrary struct {
+	Name     string `json:"name"`
+	Registry string `json:"registry"`
+	Version  string `json:"version"`
+}
+
+type KsParameter struct {
+	// nested components are referenced as "a.b.c" where "a" or "b" may be a module name
+	Component string `json:"component,omitempty"`
+	Name      string `json:"name,omitempty"`
+	Value     string `json:"value,omitempty"`
+}
+
+type KsModule struct {
+	Name       string         `json:"name"`
+	Components []*KsComponent `json:"components,omitempty"`
+	Modules    []*KsModule    `json:"modules,omitempty"`
+}
+
+type KsPackage struct {
+	Name string `json:"name,omitempty"`
+	// Registry should be the name of the registry containing the package.
+	Registry string `json:"registry,omitempty"`
+}
+
+type Registry struct {
+	// Name is the user defined name of a registry.
+	Name string `json:"-"`
+	// Protocol is the registry protocol for this registry. Currently supported
+	// values are `github`, `fs`, `helm`.
+	Protocol string `json:"protocol"`
+	// URI is the location of the registry.
+	URI string `json:"uri"`
+}
+
+type LibrarySpec struct {
+	Version string
+	Path    string
+}
+
+// KsRegistry corresponds to ksonnet.io/registry
+// which is the registry.yaml file found in every registry.
+type KsRegistry struct {
+	ApiVersion string
+	Kind       string
+	Libraries  map[string]LibrarySpec
+}
+
+// RegistriesConfigFile corresponds to a YAML file specifying information
+// about known registries.
+type RegistriesConfigFile struct {
+	// Registries provides information about known registries.
+	Registries []*RegistryConfig
+}
+
+type AppConfig struct {
+	Registries []*RegistryConfig `json:"registries,omitempty"`
+	Packages   []KsPackage       `json:"packages,omitempty"`
+	Components []KsComponent     `json:"components,omitempty"`
+	Parameters []KsParameter     `json:"parameters,omitempty"`
+	// Parameters to apply when creating the ksonnet components
+	ApplyParameters []KsParameter `json:"applyParameters,omitempty"`
 }
 
 // ClientStatus defines the observed state of Client
