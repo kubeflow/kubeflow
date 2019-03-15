@@ -191,7 +191,7 @@ local dagTemplates = [
   },  // create-pr-symlink
   {
     template: buildTemplate(
-      "build-kfctl",
+      "kfctl-build-deploy",
       [        
         "pytest",
         "kfctl_go_test.py",
