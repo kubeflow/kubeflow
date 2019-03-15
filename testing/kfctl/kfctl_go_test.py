@@ -1,17 +1,10 @@
-import json
+import datetime
 import logging
 import os
-import subprocess
-import requests
+import tempfile
 import uuid
 from retrying import retry
-import six
 
-from kubernetes.config import kube_config
-from kubernetes import client as k8s_client
-
-import datetime
-import tempfile
 import pytest
 
 from kubeflow.testing import util
@@ -22,7 +15,7 @@ from kubeflow.testing import util
 def build(build_dir):
   util.run(["make", "build-kfctl"], cwd=build_dir)
 
-def test_build_kfctl_go(app_path, project):
+def test_build_kfctl_go():
   if not app_path:
     logging.info("--app_path not specified")
     stamp = datetime.datetime.now().strftime("%H%M")
