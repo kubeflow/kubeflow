@@ -220,10 +220,18 @@ local deleteStep = if deleteKubeflow then
     template: buildTemplate(
       "kfctl-delete",
       [
-        runPath,
-        kfCtlPath,
-        "delete",
-        "all",
+        "pytest",
+        "kfctl_delete_test.py",
+        // I think -s mean stdout/stderr will print out to aid in debugging.
+        // Failures still appear to be captured and stored in the junit file.
+        "-s",
+        // Increase the log level so that info level log statements show up.
+        "--log-cli-level=info",
+        // Test timeout in seconds.
+        "--timeout=500",
+        "--app_path=" + appDir,
+        "--kfctl_path=" + kfCtlPath,
+        "--junitxml=" + artifactsDir + "/junit_kfctl-go-delete-test.xml",
       ],
       working_dir=appDir
     ),
