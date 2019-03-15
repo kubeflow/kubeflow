@@ -16,6 +16,12 @@ import pytest
 
 from kubeflow.testing import util
 
+# We need to use retry builds because when building in the test cluster
+# we see intermittent failures pulling dependencies
+@retry(stop_max_attempt_number=7)
+def build(build_dir):
+  util.run(["make", "build-kfctl"], cwd=build_dir)
+
 def test_build_kfctl_go(app_path, project):
   if not app_path:
     logging.info("--app_path not specified")
@@ -27,15 +33,19 @@ def test_build_kfctl_go(app_path, project):
   this_dir = os.path.dirname(__file__)
   root = os.path.abspath(os.path.join(this_dir, "..", ".."))
   build_dir = os.path.join(root, "bootstrap")
-  util.run(["make", "build-kfctl"], cwd=build_dir)
+  build(build_dir)
 
   kfctl_path = os.path.join(build_dir, "bin", "kfctl")
 
-  util.run([kfctl_path, "init", app_path, "-V", "--platform=gcp",
-            "--use_basic_auth", "--skip-init-gcp-project",
-            "--project=" + project])
+  # We don't want the password to show up in the logs because the logs
+  # are public. So we use subprocess and not util.run
+  subprocess.check_call([kfctl_path, "init", app_path, "-V", "--platform=gcp",
+                         "--use_basic_auth", "--skip-init-gcp-project",
+                         "--project=" + project,
+                         "--basic_auth_username=kf-test-user",
+                         "--basic_auth_password=" + uuid.uuid4().hex])
 
-  util.run([kfctl_path, "generate", "-V", "all", "--email=test@kubeflow.org"],
+  util.run([kfctl_path, "generate", "-V", "all", ],
             cwd=app_path)
 
   util.run([kfctl_path, "apply", "-V", "all"], cwd=app_path)
