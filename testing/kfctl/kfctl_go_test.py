@@ -10,10 +10,8 @@ import pytest
 
 from kubeflow.testing import util
 
-# We need to use retry builds because when building in the test cluster
-# we see intermittent failures pulling dependencies
 @retry(stop_max_attempt_number=7)
-def build(build_dir):
+def run_with_retries(*args, **kwargs):
   util.run(["make", "build-kfctl"], cwd=build_dir)
 
 def test_build_kfctl_go(app_path, project):
@@ -27,8 +25,10 @@ def test_build_kfctl_go(app_path, project):
   this_dir = os.path.dirname(__file__)
   root = os.path.abspath(os.path.join(this_dir, "..", ".."))
   build_dir = os.path.join(root, "bootstrap")
-  build(build_dir)
 
+  # We need to use retry builds because when building in the test cluster
+  # we see intermittent failures pulling dependencies
+  run_with_retries(["make", "build-kfctl"], cwd=build_dir)
   kfctl_path = os.path.join(build_dir, "bin", "kfctl")
 
   # We don't want the password to show up in the logs because the logs
@@ -41,10 +41,13 @@ def test_build_kfctl_go(app_path, project):
 
   # TODO(jlewi): We need to specify a valid email otherwise we get an error
   # when trying to apply the IAM policy.
-  util.run([kfctl_path, "generate", "-V", "all", "--email=jlewi@kubeflow.org"],
-            cwd=app_path)
+  run_with_retries([kfctl_path, "generate", "-V", "all",
+                    "--email=jlewi@kubeflow.org"],
+                    cwd=app_path)
 
-  util.run([kfctl_path, "apply", "-V", "all"], cwd=app_path)
+  # We need to use retries because if we don't we see random failures
+  # where kfctl just appears to die.
+  run_with_retries([kfctl_path, "apply", "-V", "all"], cwd=app_path)
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO,
