@@ -21,8 +21,8 @@ params {
     },
     kfctl_go_test+: {
       namespace: 'kubeflow-test-infra',
-      name: 'jlewi-kfctl-test-2705-0315-140851',
-      prow_env: 'JOB_NAME=kfctl-test,JOB_TYPE=presubmit,REPO_NAME=kubeflow,REPO_OWNER=kubeflow,BUILD_NUMBER=0315-140851,PULL_NUMBER=2705',
+      name: 'jlewi-kfctl-test-2705-0315-142445',
+      prow_env: 'JOB_NAME=kfctl-test,JOB_TYPE=presubmit,REPO_NAME=kubeflow,REPO_OWNER=kubeflow,BUILD_NUMBER=0315-142445,PULL_NUMBER=2705',
       deleteKubeflow: true,
     },
   },

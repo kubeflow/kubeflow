@@ -239,28 +239,6 @@ local deleteStep = if deleteKubeflow then
   }]
 else [];
 
-// Clean up all the permanent storages to avoid accumulated resource
-// consumption in the test project
-local deleteStorageStep = if deleteKubeflow then
-  [{
-    template: buildTemplate(
-      "kfctl-delete-storage",
-      [
-        runPath,
-        "gcloud",
-        "deployment-manager",
-        "--project=" + project,
-        "deployments",
-        "delete",
-        appName + "-storage",
-        "--quiet",
-      ],
-      working_dir=appDir
-    ),
-    dependencies: ["kfctl-delete"],
-  }]
-else [];
-
 local testDirDeleteStep = {
       template:
         buildTemplate("test-dir-delete", [
@@ -292,7 +270,7 @@ local exitTemplates =
 
       // TODO(jlewi): Uncomment when we actually set up Kubeflow.
       dependencies: if deleteKubeflow then
-         ["kfctl-delete"] + ["kfctl-delete-storage"]
+         ["kfctl-delete"]
       else null,
     },    
   ];
