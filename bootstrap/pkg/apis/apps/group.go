@@ -78,8 +78,6 @@ const (
 	USE_BASIC_AUTH        CliOption = "use_basic_auth"
 	OAUTH_ID              CliOption = "oauth_id"
 	OAUTH_SECRET          CliOption = "oauth_secret"
-	BASIC_AUTH_USERNAME   CliOption = "basic_auth_username"
-	BASIC_AUTH_PASSWORD   CliOption = "basic_auth_password"
 	CONFIG                CliOption = "config"
 )
 

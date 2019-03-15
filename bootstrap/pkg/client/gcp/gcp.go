@@ -162,12 +162,6 @@ func GetKfApp(options map[string]interface{}) kftypes.KfApp {
 	if options[string(kftypes.USE_BASIC_AUTH)] != nil {
 		_gcp.GcpApp.Spec.UseBasicAuth = options[string(kftypes.USE_BASIC_AUTH)].(bool)
 	}
-	if options[string(kftypes.BASIC_AUTH_USERNAME)] != nil {
-		_gcp.GcpApp.Spec.BasicAuthUsername = options[string(kftypes.BASIC_AUTH_USERNAME)].(string)
-	}
-	if options[string(kftypes.BASIC_AUTH_PASSWORD)] != nil {
-		_gcp.GcpApp.Spec.BasicAuthPassword = options[string(kftypes.BASIC_AUTH_PASSWORD)].(string)
-	}
 	if options[string(kftypes.SKIP_INIT_GCP_PROJECT)] != nil {
 		skipInitProject := options[string(kftypes.SKIP_INIT_GCP_PROJECT)].(bool)
 		_gcp.GcpApp.Spec.SkipInitProject = skipInitProject
