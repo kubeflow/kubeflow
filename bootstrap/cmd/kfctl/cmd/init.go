@@ -22,6 +22,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
+	"os"
 )
 
 var initCfg = viper.New()
@@ -32,7 +33,7 @@ var initCmd = &cobra.Command{
 	Short: "Create a kubeflow application under <[path/]name>",
 	Long: `Create a kubeflow application under <[path/]name>. The <[path/]name> argument can either be a full path
 or a <name>. If just <name> a directory <name> will be created in the current directory.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.InfoLevel)
 		if initCfg.GetBool(string(kftypes.VERBOSE)) == true {
 			log.SetLevel(log.InfoLevel)
@@ -40,7 +41,8 @@ or a <name>. If just <name> a directory <name> will be created in the current di
 			log.SetLevel(log.WarnLevel)
 		}
 		if len(args) == 0 {
-			return fmt.Errorf("name is required")
+			log.Errorf("name is required")
+			return
 		}
 		appName := args[0]
 		platform := initCfg.GetString(string(kftypes.PLATFORM))
@@ -51,12 +53,12 @@ or a <name>. If just <name> a directory <name> will be created in the current di
 		init_gcp := initCfg.GetBool(string(kftypes.SKIP_INIT_GCP_PROJECT))
 
 		useBasicAuth := initCfg.GetBool(string(kftypes.USE_BASIC_AUTH))
-		if useBasicAuth && (basicAuthUsername == "" || basicAuthPassword == "") {
-			return fmt.Errorf("If using basic auth, need to specify username and password for it.")
-		}
-		passwordHash, err := bcrypt.GenerateFromPassword([]byte(basicAuthPassword), 10)
-		if err != nil {
-			return fmt.Errorf("error when hashing password: %v", err)
+		if useBasicAuth && os.Getenv(kftypes.BASIC_AUTH_USERNAME) == "" &&
+			os.Getenv(kftypes.BASIC_AUTH_PASSWORD) == "" {
+			// Printing warning message instead of bailing out as both ENV are used in apply,
+			// not init.
+			log.Warnf("If using basic auth, need to set ENV %v and %v when running kfctl apply",
+				kftypes.BASIC_AUTH_USERNAME, kftypes.BASIC_AUTH_PASSWORD)
 		}
 
 		options := map[string]interface{}{
@@ -71,11 +73,13 @@ or a <name>. If just <name> a directory <name> will be created in the current di
 		}
 		kfApp, kfAppErr := coordinator.NewKfApp(options)
 		if kfAppErr != nil || kfApp == nil {
-			return fmt.Errorf("couldn't create KfApp: %v", kfAppErr)
+			log.Errorf("couldn't create KfApp: %v", kfAppErr)
+			return
 		}
 		initErr := kfApp.Init(kftypes.ALL, options)
 		if initErr != nil {
-			return fmt.Errorf("KfApp initialization failed: %v", initErr)
+			log.Errorf("KfApp initialization failed: %v", initErr)
+			return
 		}
 		return nil
 	},
