@@ -147,6 +147,7 @@ func getPackageManagers(client *cltypes.Client) *map[string]kftypes.KfApp {
 	if _packagemanager != nil {
 		packagemanagers["ksonnet"] = _packagemanager
 	}
+	/*
 	_packagemanager, _packagemanagerErr = getPackageManager("kustomize", client)
 	if _packagemanagerErr != nil {
 		log.Fatalf("could not get packagemanager %v Error %v **", "kustomize", _packagemanagerErr)
@@ -155,6 +156,7 @@ func getPackageManagers(client *cltypes.Client) *map[string]kftypes.KfApp {
 	if _packagemanager != nil {
 		packagemanagers["kustomize"] = _packagemanager
 	}
+	 */
 	return &packagemanagers
 }
 
