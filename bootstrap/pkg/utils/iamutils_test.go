@@ -27,7 +27,7 @@ func Test(t *testing.T) {
 		// Arguments for GetUpdatedPolicy function.
 		currentPolicy *cloudresourcemanager.Policy
 		// service account policy pending change
-		saPolicy      *cloudresourcemanager.Policy
+		saPolicy *cloudresourcemanager.Policy
 
 		// Expected output policy
 		expectedPolicy *cloudresourcemanager.Policy
