@@ -593,7 +593,7 @@ func (ksApp *ksApp) Show(resources kftypes.ResourceEnum, options map[string]inte
 }
 
 func (ksApp *ksApp) writeConfigFile() error {
-	buf, bufErr := yaml.Marshal(ksApp)
+	buf, bufErr := yaml.Marshal(&ksApp.Client)
 	if bufErr != nil {
 		return bufErr
 	}
