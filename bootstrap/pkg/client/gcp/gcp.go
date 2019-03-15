@@ -72,6 +72,7 @@ const (
 
 // Gcp implements KfApp Interface
 // It includes the KsApp along with additional Gcp types
+// Foo
 type Gcp struct {
 	GcpApp *gcptypes.Gcp
 }
