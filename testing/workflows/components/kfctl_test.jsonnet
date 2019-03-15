@@ -301,7 +301,9 @@ local dagTemplates = [
       ],
       working_dir=appDir + "/ks_app"
     ),
-    dependencies: ["install-spark-operator"],
+    // Need to wait on kfctl-apply-k8s because that step creates
+    // the ksonnet environment.
+    dependencies: ["install-spark-operator", "kfctl-apply-k8s"],
   },  // generate-spark-operator
   {
     template: buildTemplate(

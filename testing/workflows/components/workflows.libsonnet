@@ -247,26 +247,27 @@
         },  // run tests
         dependencies: ["wait-for-kubeflow"],
       },  // tf-job-test-v1b2
-      {
-
-        template: tests.buildTemplate {
-          name: "test-argo-deploy",
-          command: [
-            "python",
-            "-m",
-            "testing.test_deploy",
-            "--project=kubeflow-ci",
-            "--github_token=$(GITHUB_TOKEN)",
-            "--namespace=" + tests.stepsNamespace,
-            "--test_dir=" + tests.testDir,
-            "--artifacts_dir=" + tests.artifactsDir,
-            "--deploy_name=test-argo-deploy",
-            "--workflow_name=" + tests.workflowName,
-            "deploy_argo",
-          ],
-        },
-        dependencies: ["wait-for-kubeflow"],
-      },  // test-argo-deploy
+      // TODO(https://github.com/kubeflow/kubeflow/issues/1407): argo-deploy is flaky so disable it.
+      // {
+      //
+      //  template: tests.buildTemplate {
+      //    name: "test-argo-deploy",
+      //    command: [
+      //      "python",
+      //      "-m",
+      //      "testing.test_deploy",
+      //      "--project=kubeflow-ci",
+      //      "--github_token=$(GITHUB_TOKEN)",
+      //      "--namespace=" + tests.stepsNamespace,
+      //      "--test_dir=" + tests.testDir,
+      //      "--artifacts_dir=" + tests.artifactsDir,
+      //      "--deploy_name=test-argo-deploy",
+      //      "--workflow_name=" + tests.workflowName,
+      //      "deploy_argo",
+      //    ],
+      //  },
+      //  dependencies: ["wait-for-kubeflow"],
+      //},  // test-argo-deploy
       {
 
         template: tests.buildTemplate {
