@@ -102,8 +102,8 @@ export class MainPage extends PolymerElement {
     }
 
     ready() {
-        Promise.resolve(super.ready())
-            .then(fetch.bind(window, 'assets/kf-logo_64px.svg'))
+        super.ready();
+        fetch('assets/kf-logo_64px.svg')
             .then((r) => r.text())
             .then((svg) => {
                 this.$['Narrow-Slider'].querySelector('.Logo').innerHTML += [
