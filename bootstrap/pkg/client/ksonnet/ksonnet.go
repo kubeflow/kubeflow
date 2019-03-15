@@ -408,8 +408,6 @@ func (ksApp *ksApp) Generate(resources kftypes.ResourceEnum, options map[string]
 	setNameVal(ksApp.KsApp.Spec.ComponentParams["application"], "components",
 		"["+strings.Join(components, " ,")+"]")
 
-	log.Infof("Configs for generation: %+v", config)
-
 	ksRegistry := kstypes.DefaultRegistry
 	ksRegistry.Version = ksApp.KsApp.Spec.Version
 	ksRegistry.RegUri = ksApp.KsApp.Spec.Repo
