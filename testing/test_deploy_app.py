@@ -246,8 +246,8 @@ def insert_ssl_cert(args, deployment):
   logging.info("donwload ssl cert and insert to GKE cluster")
   try:
     # TODO: switch to client lib
-    destination = get_gcs_path(args.mode, args.project, deployment)
-    util_run(("gsutil cp gs://%s/* %s" % (destination, ssl_local_dir)).split(' '))
+    gcs_path = get_gcs_path(args.mode, args.project, deployment)
+    util_run(("gsutil cp gs://%s/* %s" % (gcs_path, ssl_local_dir)).split(' '))
   except Exception:
     logging.warning("ssl cert for %s doesn't exist in gcs" % args.mode)
     # clean up local dir
@@ -332,10 +332,9 @@ def check_deploy_status(args, deployments):
             sec_file.write(sec_data)
             sec_file.close()
         # TODO: switch to client lib
-        destination = get_gcs_path(args.mode, args.project, deployment)
+        gcs_path = get_gcs_path(args.mode, args.project, deployment)
         util_run(
-            ("gsutil cp %s/* gs://%s/" %
-             (ssl_local_dir, destination)).split(' '))
+            ("gsutil cp %s/* gs://%s/" % (ssl_local_dir, gcs_path)).split(' '))
       except Exception:
         logging.error("%s: failed uploading ssl cert" % deployment)
 
