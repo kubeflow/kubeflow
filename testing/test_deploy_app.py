@@ -211,10 +211,10 @@ def make_loadtest_call(args, service_account_credentials, projects, deployments)
   return True
 
 
-def get_gcs_path(mode, deployment):
+def get_gcs_path(mode, project, deployment):
   if mode == "loadtest":
-    return os.path.join(SSL_BUCKET, mode, deployment)
-  return os.path.join(SSL_BUCKET, mode)
+    return os.path.join(SSL_BUCKET, mode, project, deployment)
+  return os.path.join(SSL_BUCKET, project, mode)
 
 
 # Insert ssl cert into GKE cluster
@@ -239,15 +239,15 @@ def insert_ssl_cert(args, deployment):
       continue
     break
 
-  ssl_local_dir = os.path.join(SSL_DIR, deployment)
+  ssl_local_dir = os.path.join(SSL_DIR, args.project, deployment)
   if os.path.exists(ssl_local_dir):
     shutil.rmtree(ssl_local_dir)
   os.makedirs(ssl_local_dir)
   logging.info("donwload ssl cert and insert to GKE cluster")
   try:
     # TODO: switch to client lib
-    util_run(("gsutil cp gs://%s/* %s" % (get_gcs_path(args.mode, deployment),
-                                          ssl_local_dir)).split(' '))
+    destination = get_gcs_path(args.mode, args.project, deployment)
+    util_run(("gsutil cp gs://%s/* %s" % (destination, ssl_local_dir)).split(' '))
   except Exception:
     logging.warning("ssl cert for %s doesn't exist in gcs" % args.mode)
     # clean up local dir
@@ -332,9 +332,10 @@ def check_deploy_status(args, deployments):
             sec_file.write(sec_data)
             sec_file.close()
         # TODO: switch to client lib
+        destination = get_gcs_path(args.mode, args.project, deployment)
         util_run(
             ("gsutil cp %s/* gs://%s/" %
-             (ssl_local_dir, get_gcs_path(args.mode, deployment))).split(' '))
+             (ssl_local_dir, destination)).split(' '))
       except Exception:
         logging.error("%s: failed uploading ssl cert" % deployment)
 
