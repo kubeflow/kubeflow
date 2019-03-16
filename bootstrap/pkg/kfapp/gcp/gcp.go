@@ -25,7 +25,7 @@ import (
 	gogetter "github.com/hashicorp/go-getter"
 	configtypes "github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	cltypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
+	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
@@ -73,10 +73,10 @@ const (
 // Gcp implements KfApp Interface
 // It includes the KsApp along with additional Gcp types
 type Gcp struct {
-	cltypes.KfDef
+	kfdefs.KfDef
 }
 
-func GetKfApp(kfdef *cltypes.KfDef) kftypes.KfApp {
+func GetKfApp(kfdef *kfdefs.KfDef) kftypes.KfApp {
 	_gcp := &Gcp{
 		KfDef: *kfdef,
 	}
