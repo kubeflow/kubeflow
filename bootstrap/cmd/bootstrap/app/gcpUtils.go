@@ -242,7 +242,7 @@ func (s *ksServer) ApplyIamPolicy(ctx context.Context, req ApplyIamRequest) erro
 	})
 	resourceManager, err := cloudresourcemanager.New(oauth2.NewClient(ctx, ts))
 	if err != nil {
-		log.Errorf("Cannot create resource manager kfdef: %v", err)
+		log.Errorf("Cannot create resource manager client: %v", err)
 		return err
 	}
 	projLock := s.GetProjectLock(req.Project)
