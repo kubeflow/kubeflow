@@ -36,7 +36,7 @@ func (s *ksServer) BindRole(ctx context.Context, project string, token string, s
 	})
 	resourcManger, err := cloudresourcemanager.New(oauth2.NewClient(ctx, ts))
 	if err != nil {
-		log.Errorf("Cannot create resourc manger client: %v", err)
+		log.Errorf("Cannot create resourc manger kfdef: %v", err)
 		return err
 	}
 
