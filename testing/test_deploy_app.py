@@ -10,6 +10,8 @@ import shutil
 import subprocess
 import tempfile
 import threading
+from functools import partial
+from multiprocessing import Process
 from time import sleep
 from google.auth.transport.requests import Request
 from googleapiclient import discovery
@@ -67,7 +69,8 @@ class requestThread(threading.Thread):
               'Bearer {}'.format(self.google_open_id_connect_token)
           })
       if resp.status_code != 200:
-        # logging.error("%s failed; \ntext: %s" % (self.req_data["Name"], resp.text()))
+        logging.error("request failed:%s\n request data:%s"
+                      % (resp, self.req_data))
         # Mark service down if return code abnormal
         SERVICE_HEALTH.set(2)
     except Exception as e:
@@ -103,7 +106,7 @@ def prepare_request_data(args, deployment):
   with open(
       os.path.join(FILE_PATH, "../bootstrap/config/gcp_prototype.yaml"),
       'r') as conf_input:
-    defaultApp = yaml.load(conf_input)["app"]
+    defaultApp = yaml.load(conf_input)["defaultApp"]
 
   for param in defaultApp["parameters"]:
     if param["name"] == "acmeEmail":
@@ -112,7 +115,7 @@ def prepare_request_data(args, deployment):
       param["value"] = deployment + "-ip"
     if param["name"] == "hostname":
       param["value"] = "%s.endpoints.%s.cloud.goog" % (deployment, args.project)
-  defaultApp['registries'][0]['version'] = args.kfverison
+  defaultApp['registries'][0]['version'] = args.kfversion
 
   access_token = util_run(
       'gcloud auth application-default print-access-token'.split(' '),
@@ -120,8 +123,11 @@ def prepare_request_data(args, deployment):
 
   client_id = may_get_env_var("CLIENT_ID")
   client_secret = may_get_env_var("CLIENT_SECRET")
-
-  return {
+  credentials = GoogleCredentials.get_application_default()
+  crm = discovery.build('cloudresourcemanager', 'v1', credentials=credentials)
+  project = crm.projects().get(projectId=args.project).execute()
+  logging.info("project info: %s", project)
+  request_data = {
       "AppConfig": defaultApp,
       "Apply": True,
       "AutoConfigure": True,
@@ -133,12 +139,14 @@ def prepare_request_data(args, deployment):
       "Name": deployment,
       "Namespace": 'kubeflow',
       "Project": args.project,
-      "ProjectNumber": args.project_number,
+      "ProjectNumber": project["projectNumber"],
       # service account client id of account: kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com
       "SAClientId": args.sa_client_id,
       "Token": access_token,
       "Zone": getZone(args, deployment)
   }
+  logging.info("request data: %s", request_data)
+  return request_data
 
 
 def make_e2e_call(args):
@@ -181,30 +189,30 @@ def make_prober_call(args, service_account_credentials):
 
 
 # For each deployment, make a request to service url, return if all requests call successful.
-def make_loadtest_call(args, service_account_credentials, deployments):
-  logging.info("start new prober call")
+def make_loadtest_call(args, service_account_credentials, projects, deployments):
+  logging.info("start new load test call")
   google_open_id_connect_token = get_google_open_id_connect_token(
       service_account_credentials)
   threads = []
-  for deployment in deployments:
-    req_data = prepare_request_data(args, deployment)
-    threads.append(
-        requestThread(
-            get_target_url(args), req_data, google_open_id_connect_token))
+  for project in projects:
+    args.project = project
+    for deployment in deployments:
+      req_data = prepare_request_data(args, deployment)
+      threads.append(
+          requestThread(
+              get_target_url(args), req_data, google_open_id_connect_token))
   for t in threads:
     t.start()
   for t in threads:
     t.join()
   if SERVICE_HEALTH._value.get() == 2:
     return False
-  logging.info("prober call done")
+  logging.info("load test call done")
   return True
 
 
-def get_gcs_path(mode, deployment):
-  if mode == "loadtest":
-    return os.path.join(SSL_BUCKET, mode, deployment)
-  return os.path.join(SSL_BUCKET, mode)
+def get_gcs_path(mode, project, deployment):
+  return os.path.join(SSL_BUCKET, mode, project, deployment)
 
 
 # Insert ssl cert into GKE cluster
@@ -229,15 +237,15 @@ def insert_ssl_cert(args, deployment):
       continue
     break
 
-  ssl_local_dir = os.path.join(SSL_DIR, deployment)
+  ssl_local_dir = os.path.join(SSL_DIR, args.project, deployment)
   if os.path.exists(ssl_local_dir):
     shutil.rmtree(ssl_local_dir)
   os.makedirs(ssl_local_dir)
   logging.info("donwload ssl cert and insert to GKE cluster")
   try:
     # TODO: switch to client lib
-    util_run(("gsutil cp gs://%s/* %s" % (get_gcs_path(args.mode, deployment),
-                                          ssl_local_dir)).split(' '))
+    gcs_path = get_gcs_path(args.mode, args.project, deployment)
+    util_run(("gsutil cp gs://%s/* %s" % (gcs_path, ssl_local_dir)).split(' '))
   except Exception:
     logging.warning("ssl cert for %s doesn't exist in gcs" % args.mode)
     # clean up local dir
@@ -299,34 +307,32 @@ def check_deploy_status(args, deployments):
                      (deployment, num_req))
     deployments = deployments.difference(success_deploy)
 
-  # Optionally upload ssl cert
-  if len(deployments) == 0 and len(os.listdir(SSL_DIR)) < num_deployments:
-    for deployment in success_deploy:
+  for deployment in success_deploy:
+    try:
+      ssl_local_dir = os.path.join(SSL_DIR, deployment)
       try:
-        ssl_local_dir = os.path.join(SSL_DIR, deployment)
-        try:
-          os.makedirs(ssl_local_dir)
-        except OSError as exc:  # Python >2.5
-          if exc.errno == errno.EEXIST and os.path.isdir(ssl_local_dir):
-            pass
-          else:
-            raise
-        util_run((
-            "gcloud container clusters get-credentials %s --zone %s --project %s"
-            % (deployment, getZone(args, deployment), args.project)).split(' '))
-        for sec in ["envoy-ingress-tls", "letsencrypt-prod-secret"]:
-          sec_data = util_run(
-              ("kubectl get secret %s -n kubeflow -o yaml" % sec).split(' '))
-          with open(os.path.join(ssl_local_dir, sec + ".yaml"),
-                    'w+') as sec_file:
-            sec_file.write(sec_data)
-            sec_file.close()
-        # TODO: switch to client lib
-        util_run(
-            ("gsutil cp %s/* gs://%s/" %
-             (ssl_local_dir, get_gcs_path(args.mode, deployment))).split(' '))
-      except Exception:
-        logging.error("%s: failed uploading ssl cert" % deployment)
+        os.makedirs(ssl_local_dir)
+      except OSError as exc:  # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(ssl_local_dir):
+          pass
+        else:
+          raise
+      util_run((
+          "gcloud container clusters get-credentials %s --zone %s --project %s"
+          % (deployment, getZone(args, deployment), args.project)).split(' '))
+      for sec in ["envoy-ingress-tls", "letsencrypt-prod-secret"]:
+        sec_data = util_run(
+            ("kubectl get secret %s -n kubeflow -o yaml" % sec).split(' '))
+        with open(os.path.join(ssl_local_dir, sec + ".yaml"),
+                  'w+') as sec_file:
+          sec_file.write(sec_data)
+          sec_file.close()
+      # TODO: switch to client lib
+      gcs_path = get_gcs_path(args.mode, args.project, deployment)
+      util_run(
+          ("gsutil cp %s/* gs://%s/" % (ssl_local_dir, gcs_path)).split(' '))
+    except Exception:
+      logging.error("%s: failed uploading ssl cert" % deployment)
 
   # return number of successful deployments
   return num_deployments - len(deployments)
@@ -454,6 +460,9 @@ def clean_up_resource(args, deployments):
   # Delete health-checks
   delete_gcloud_resource(args, 'health-checks')
 
+  if not delete_done:
+    logging.error("failed to clean up resources for project %s deployments %s",
+                  args.project, deployments)
   return delete_done
 
 
@@ -511,39 +520,84 @@ def util_run(command,
 
   return "\n".join(output)
 
+def clean_up_project_resource(args, projects, deployments):
+  proc = []
+  for project in projects:
+    args.project = project
+    p = Process(target = partial(clean_up_resource, args, deployments))
+    p.start()
+    proc.append(p)
+
+  for p in proc:
+    p.join()
+
+def upload_load_test_ssl_cert(args, projects, deployments):
+  for project in projects:
+    args.project = project
+    for deployment in deployments:
+      insert_ssl_cert(args, deployment)
+
+def check_load_test_results(args, projects, deployments):
+  num_deployments = len(deployments)
+  total_success = 0
+  # deadline for checking all the results.
+  end_time = datetime.datetime.now() + datetime.timedelta(
+      minutes=args.iap_wait_min)
+  for project in projects:
+    args.project = project
+    # set the deadline for each check.
+    now = datetime.datetime.now()
+    if end_time < now:
+      args.iap_wait_min = 1
+    else:
+      delta = end_time - now
+      args.iap_wait_min = delta.seconds / 60 + 1
+    num_success = check_deploy_status(args, deployments)
+    total_success += num_success
+    logging.info("%s out of %s deployments succeed for project %s",
+                 num_success, num_deployments, project)
+    # We only wait 1 minute for subsequent checks because we already waited forIAP since we already
+    args.iap_wait_min = 1
+    LOADTEST_SUCCESS.set(num_success)
+    if num_success == num_deployments:
+      SUCCESS_COUNT.inc()
+    else:
+      FAILURE_COUNT.inc()
+  logging.info("%s out of %s deployments succeed in total",
+                total_success, num_deployments * len(projects))
+
 
 def run_load_test(args):
-  num_concurrent_requests = 5
+  num_deployments = args.number_deployments_per_project
+  num_projects = args.number_projects
   start_http_server(8000)
-  LOADTEST_SUCCESS.set(num_concurrent_requests)
+  LOADTEST_SUCCESS.set(num_deployments)
   LOADTEST_HEALTH.set(0)
   service_account_credentials = get_service_account_credentials(
       "SERVICE_CLIENT_ID")
   deployments = set(
-      ['kubeflow' + str(i) for i in range(1, num_concurrent_requests + 1)])
-  while True:
-    sleep(args.wait_sec)
-    if not clean_up_resource(args, deployments):
-      LOADTEST_HEALTH.set(1)
-      FAILURE_COUNT.inc()
-      logging.error(
-          "request cleanup failed, retry in %s seconds" % args.wait_sec)
-      continue
-    LOADTEST_HEALTH.set(0)
-    if make_loadtest_call(args, service_account_credentials, deployments):
-      for deployment in deployments:
-        insert_ssl_cert(args, deployment)
-      num_success = check_deploy_status(args, deployments)
-      LOADTEST_SUCCESS.set(num_success)
-      if num_success == num_concurrent_requests:
-        SUCCESS_COUNT.inc()
-      else:
-        FAILURE_COUNT.inc()
-    else:
-      LOADTEST_SUCCESS.set(0)
-      FAILURE_COUNT.inc()
-      logging.error(
-          "prober request failed, retry in %s seconds" % args.wait_sec)
+      ['kubeflow' + str(i) for i in range(1, num_deployments + 1)])
+  projects = [args.project_prefix + str(i)
+             for i in range(1, num_projects + 1)]
+  logging.info("deployments: %s" % deployments)
+  logging.info("projects: %s" % projects)
+
+  clean_up_project_resource(args, projects, deployments)
+
+  if not make_loadtest_call(
+    args, service_account_credentials, projects, deployments):
+    LOADTEST_SUCCESS.set(0)
+    FAILURE_COUNT.inc()
+    logging.error("load test request failed")
+    return
+
+  upload_load_test_ssl_cert(args, projects, deployments)
+
+  check_load_test_results(args, projects, deployments)
+
+  clean_up_project_resource(args, projects, deployments)
+
+
 
 
 def run_e2e_test(args):
@@ -601,10 +655,20 @@ def main(unparsed_args=None):
       type=str,
       help="e2e test project id")
   parser.add_argument(
-      "--project_number",
-      default="29647740582",
+      "--project_prefix",
+      default="kf-gcp-deploy-test",
       type=str,
-      help="e2e test project number")
+      help="project prefix for load test")
+  parser.add_argument(
+      "--number_projects",
+      default="2",
+      type=int,
+      help="number of projects used in load test")
+  parser.add_argument(
+      "--number_deployments_per_project",
+      default="5",
+      type=int,
+      help="number of deployments per project used in load test")
   parser.add_argument(
       "--namespace",
       default="",
@@ -622,8 +686,8 @@ def main(unparsed_args=None):
       type=str,
       help="Service account client id")
   parser.add_argument(
-      "--kfverison",
-      default="v0.3.2",
+      "--kfversion",
+      default="v0.4.1",
       type=str,
       help="Service account client id")
   parser.add_argument(
