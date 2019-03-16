@@ -212,9 +212,7 @@ def make_loadtest_call(args, service_account_credentials, projects, deployments)
 
 
 def get_gcs_path(mode, project, deployment):
-  if mode == "loadtest":
-    return os.path.join(SSL_BUCKET, mode, project, deployment)
-  return os.path.join(SSL_BUCKET, project, mode)
+  return os.path.join(SSL_BUCKET, mode, project, deployment)
 
 
 # Insert ssl cert into GKE cluster
