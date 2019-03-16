@@ -307,34 +307,32 @@ def check_deploy_status(args, deployments):
                      (deployment, num_req))
     deployments = deployments.difference(success_deploy)
 
-  # Optionally upload ssl cert
-  if len(deployments) == 0 and len(os.listdir(SSL_DIR)) < num_deployments:
-    for deployment in success_deploy:
+  for deployment in success_deploy:
+    try:
+      ssl_local_dir = os.path.join(SSL_DIR, deployment)
       try:
-        ssl_local_dir = os.path.join(SSL_DIR, deployment)
-        try:
-          os.makedirs(ssl_local_dir)
-        except OSError as exc:  # Python >2.5
-          if exc.errno == errno.EEXIST and os.path.isdir(ssl_local_dir):
-            pass
-          else:
-            raise
-        util_run((
-            "gcloud container clusters get-credentials %s --zone %s --project %s"
-            % (deployment, getZone(args, deployment), args.project)).split(' '))
-        for sec in ["envoy-ingress-tls", "letsencrypt-prod-secret"]:
-          sec_data = util_run(
-              ("kubectl get secret %s -n kubeflow -o yaml" % sec).split(' '))
-          with open(os.path.join(ssl_local_dir, sec + ".yaml"),
-                    'w+') as sec_file:
-            sec_file.write(sec_data)
-            sec_file.close()
-        # TODO: switch to client lib
-        gcs_path = get_gcs_path(args.mode, args.project, deployment)
-        util_run(
-            ("gsutil cp %s/* gs://%s/" % (ssl_local_dir, gcs_path)).split(' '))
-      except Exception:
-        logging.error("%s: failed uploading ssl cert" % deployment)
+        os.makedirs(ssl_local_dir)
+      except OSError as exc:  # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(ssl_local_dir):
+          pass
+        else:
+          raise
+      util_run((
+          "gcloud container clusters get-credentials %s --zone %s --project %s"
+          % (deployment, getZone(args, deployment), args.project)).split(' '))
+      for sec in ["envoy-ingress-tls", "letsencrypt-prod-secret"]:
+        sec_data = util_run(
+            ("kubectl get secret %s -n kubeflow -o yaml" % sec).split(' '))
+        with open(os.path.join(ssl_local_dir, sec + ".yaml"),
+                  'w+') as sec_file:
+          sec_file.write(sec_data)
+          sec_file.close()
+      # TODO: switch to client lib
+      gcs_path = get_gcs_path(args.mode, args.project, deployment)
+      util_run(
+          ("gsutil cp %s/* gs://%s/" % (ssl_local_dir, gcs_path)).split(' '))
+    except Exception:
+      logging.error("%s: failed uploading ssl cert" % deployment)
 
   # return number of successful deployments
   return num_deployments - len(deployments)
