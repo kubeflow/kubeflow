@@ -31,7 +31,6 @@
           app: app_label,
         },
         name: viewer_controller_role,
-        namespace: namespace,
       },
       rules: [
         {
