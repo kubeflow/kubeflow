@@ -15,6 +15,7 @@
 package cmd
 
 import (
+	"fmt"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/coordinator"
 	log "github.com/sirupsen/logrus"
@@ -29,7 +30,7 @@ var showCmd = &cobra.Command{
 	Use:   "show [all(=default)|k8s|platform]",
 	Short: "Deploy a generated kubeflow application.",
 	Long:  `Deploy a generated kubeflow application.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		log.SetLevel(log.InfoLevel)
 		log.Info("show kubeflow application")
 		if showCfg.GetBool(string(kftypes.VERBOSE)) == true {
@@ -39,23 +40,21 @@ var showCmd = &cobra.Command{
 		}
 		resource, resourceErr := processResourceArg(args)
 		if resourceErr != nil {
-			log.Errorf("invalid resource: %v", resourceErr)
-			return
+			return fmt.Errorf("invalid resource: %v", resourceErr)
 		}
 		options := map[string]interface{}{}
 		kfApp, kfAppErr := coordinator.LoadKfApp(options)
 		if kfAppErr != nil {
-			log.Errorf("couldn't load KfApp: %v", kfAppErr)
-			return
+			return fmt.Errorf("couldn't load KfApp: %v", kfAppErr)
 		}
 		show, ok := kfApp.(kftypes.KfShow)
 		if ok && show != nil {
 			showErr := show.Show(resource, options)
 			if showErr != nil {
-				log.Errorf("couldn't show KfApp: %v", showErr)
-				return
+				return fmt.Errorf("couldn't show KfApp: %v", showErr)
 			}
 		}
+		return nil
 	},
 }
 

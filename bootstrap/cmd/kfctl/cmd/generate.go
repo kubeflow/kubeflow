@@ -15,6 +15,7 @@
 package cmd
 
 import (
+	"fmt"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/coordinator"
 	log "github.com/sirupsen/logrus"
@@ -35,7 +36,7 @@ var generateCmd = &cobra.Command{
   all: both platform and k8s
 
 The default is 'all' for any selected platform.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		log.SetLevel(log.InfoLevel)
 		if generateCfg.GetBool(string(kftypes.VERBOSE)) == true {
 			log.SetLevel(log.InfoLevel)
@@ -44,8 +45,7 @@ The default is 'all' for any selected platform.`,
 		}
 		resource, resourceErr := processResourceArg(args)
 		if resourceErr != nil {
-			log.Errorf("invalid resource: %v", resourceErr)
-			return
+			return fmt.Errorf("invalid resource: %v", resourceErr)
 		}
 		email := generateCfg.GetString(string(kftypes.EMAIL))
 		ipName := generateCfg.GetString(string(kftypes.IPNAME))
@@ -61,14 +61,13 @@ The default is 'all' for any selected platform.`,
 		}
 		kfApp, kfAppErr := coordinator.LoadKfApp(options)
 		if kfAppErr != nil {
-			log.Errorf("couldn't load KfApp: %v", kfAppErr)
-			return
+			return fmt.Errorf("couldn't load KfApp: %v", kfAppErr)
 		}
 		generateErr := kfApp.Generate(resource, options)
 		if generateErr != nil {
-			log.Errorf("couldn't generate KfApp: %v", generateErr)
-			return
+			return fmt.Errorf("couldn't generate KfApp: %v", generateErr)
 		}
+		return nil
 	},
 }
 
