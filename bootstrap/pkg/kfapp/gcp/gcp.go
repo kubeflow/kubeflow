@@ -857,6 +857,8 @@ func (gcp *Gcp) gcpInitProject() error {
 func (gcp *Gcp) Init(resources kftypes.ResourceEnum) error {
 	cacheDir := path.Join(gcp.Spec.AppDir, kftypes.DefaultCacheDir)
 	newPath := filepath.Join(cacheDir, gcp.Spec.Version)
+	swaggerFile := filepath.Join(newPath, kftypes.DefaultSwaggerFile)
+	gcp.Spec.ServerVersion = "file:" + swaggerFile
 	gcp.Spec.Repo = path.Join(newPath, "kubeflow")
 	createConfigErr := gcp.writeConfigFile()
 	if createConfigErr != nil {

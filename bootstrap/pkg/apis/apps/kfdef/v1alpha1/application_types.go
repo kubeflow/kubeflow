@@ -35,6 +35,7 @@ type KfDefSpec struct {
 	BasicAuthPassword      string `json:"basicAuthPassword,omitempty"`
 	UseBasicAuth           bool   `json:"useBasicAuth"`
 	SkipInitProject        bool   `json:"skipInitProject,omitempty"`
+	ServerVersion          string `json:"serverVersion,omitempty"`
 }
 
 var DefaultRegistry = &RegistryConfig{
