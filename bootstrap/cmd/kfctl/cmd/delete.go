@@ -15,6 +15,7 @@
 package cmd
 
 import (
+	"fmt"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
 	"github.com/kubeflow/kubeflow/bootstrap/pkg/client/coordinator"
 	log "github.com/sirupsen/logrus"
@@ -29,7 +30,7 @@ var deleteCmd = &cobra.Command{
 	Use:   "delete [all(=default)|k8s|platform]",
 	Short: "Delete a kubeflow application.",
 	Long:  `Delete a kubeflow application.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		log.SetLevel(log.InfoLevel)
 		log.Info("deleting kubeflow application")
 		if deleteCfg.GetBool(string(kftypes.VERBOSE)) == true {
@@ -39,20 +40,18 @@ var deleteCmd = &cobra.Command{
 		}
 		resource, resourceErr := processResourceArg(args)
 		if resourceErr != nil {
-			log.Errorf("invalid resource: %v", resourceErr)
-			return
+			return fmt.Errorf("invalid resource: %v", resourceErr)
 		}
 		options := map[string]interface{}{}
 		kfApp, kfAppErr := coordinator.LoadKfApp(options)
 		if kfAppErr != nil {
-			log.Errorf("couldn't load KfApp: %v", kfAppErr)
-			return
+			return fmt.Errorf("couldn't load KfApp: %v", kfAppErr)
 		}
 		deleteErr := kfApp.Delete(resource, options)
 		if deleteErr != nil {
-			log.Errorf("couldn't delete KfApp: %v", deleteErr)
-			return
+			return fmt.Errorf("couldn't delete KfApp: %v", deleteErr)
 		}
+		return nil
 	},
 }
 
