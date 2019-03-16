@@ -194,7 +194,7 @@ func generateTarget(configPath string) (*deploymentmanager.TargetConfiguration, 
 	return targetConfig, nil
 }
 
-func (gcp *Gcp) getK8sKfDefset(ctx context.Context) (*clientset.Clientset, error) {
+func (gcp *Gcp) getK8sClientset(ctx context.Context) (*clientset.Clientset, error) {
 	cluster, err := GetClusterInfo(ctx, gcp.Spec.Project,
 		gcp.Spec.Zone, gcp.Name)
 	if err != nil {
@@ -202,7 +202,7 @@ func (gcp *Gcp) getK8sKfDefset(ctx context.Context) (*clientset.Clientset, error
 	}
 	config, err := BuildConfigFromClusterInfo(ctx, cluster)
 	if err != nil {
-		return nil, fmt.Errorf("build KfDefConfig error: %v", err)
+		return nil, fmt.Errorf("build ClientConfig error: %v", err)
 	}
 
 	return clientset.NewForConfig(config)
@@ -243,7 +243,7 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 	ctx := context.Background()
 	client, clientErr := google.DefaultClient(ctx, deploymentmanager.CloudPlatformScope)
 	if clientErr != nil {
-		return fmt.Errorf("Error getting DefaultKfDef: %v", clientErr)
+		return fmt.Errorf("Error getting DefaultClient: %v", clientErr)
 	}
 	deploymentmanagerService, err := deploymentmanager.New(client)
 	if err != nil {
@@ -279,15 +279,15 @@ func (gcp *Gcp) updateDeployment(deployment string, yamlfile string) error {
 	}
 }
 
-func createNamespace(k8sKfDefset *clientset.Clientset, namespace string) error {
+func createNamespace(k8sClientset *clientset.Clientset, namespace string) error {
 	log.Infof("Creating namespace: %v", namespace)
-	_, err := k8sKfDefset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
+	_, err := k8sClientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
 	if err == nil {
 		log.Infof("Namespace already exists...")
 		return nil
 	}
 	log.Infof("Get namespace error: %v", err)
-	_, err = k8sKfDefset.CoreV1().Namespaces().Create(
+	_, err = k8sClientset.CoreV1().Namespaces().Create(
 		&v1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: namespace,
@@ -297,10 +297,10 @@ func createNamespace(k8sKfDefset *clientset.Clientset, namespace string) error {
 	return err
 }
 
-func bindAdmin(k8sKfDefset *clientset.Clientset, user string) error {
+func bindAdmin(k8sClientset *clientset.Clientset, user string) error {
 	log.Infof("Binding admin role for %v ...", user)
 	defaultAdmin := "default-admin"
-	_, err := k8sKfDefset.RbacV1().ClusterRoleBindings().Get(defaultAdmin,
+	_, err := k8sClientset.RbacV1().ClusterRoleBindings().Get(defaultAdmin,
 		metav1.GetOptions{
 			TypeMeta: metav1.TypeMeta{
 				APIVersion: "rbac.authorization.k8s.io/v1beta1",
@@ -330,24 +330,24 @@ func bindAdmin(k8sKfDefset *clientset.Clientset, user string) error {
 	}
 	if err == nil {
 		log.Infof("Updating default-admin...")
-		_, err = k8sKfDefset.RbacV1().ClusterRoleBindings().Update(binding)
+		_, err = k8sClientset.RbacV1().ClusterRoleBindings().Update(binding)
 	} else {
 		log.Infof("default-admin not found, creating...")
-		_, err = k8sKfDefset.RbacV1().ClusterRoleBindings().Create(binding)
+		_, err = k8sClientset.RbacV1().ClusterRoleBindings().Create(binding)
 	}
 	return err
 }
 
 func (gcp *Gcp) ConfigK8s() error {
 	ctx := context.Background()
-	k8sKfDefset, err := gcp.getK8sKfDefset(ctx)
+	k8sClientset, err := gcp.getK8sClientset(ctx)
 	if err != nil {
 		return err
 	}
-	if err = createNamespace(k8sKfDefset, gcp.Namespace); err != nil {
+	if err = createNamespace(k8sClientset, gcp.Namespace); err != nil {
 		return fmt.Errorf("Creating namespace error: %v", err)
 	}
-	if err = bindAdmin(k8sKfDefset, gcp.Spec.Email); err != nil {
+	if err = bindAdmin(k8sClientset, gcp.Spec.Email); err != nil {
 		return fmt.Errorf("Binding user as admin error: %v", err)
 	}
 
@@ -406,7 +406,7 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 	}
 	client, err := BuildConfigFromClusterInfo(ctx, cluster)
 	if err != nil {
-		return fmt.Errorf("Build KfDefConfig error: %v", err)
+		return fmt.Errorf("Build ClientConfig error: %v", err)
 	}
 
 	// TODO(#2604): Need to create a named context.
@@ -426,9 +426,9 @@ func (gcp *Gcp) updateDM(resources kftypes.ResourceEnum) error {
 	if daemonsetPreloadedErr != nil {
 		return fmt.Errorf("could not create resources in daemonset-preloaded.yaml %v", daemonsetPreloadedErr)
 	}
-	adminKfDef := rest.CopyConfig(client)
-	adminKfDef.Impersonate.UserName = "admin"
-	adminKfDef.Impersonate.Groups = []string{"system:masters"}
+	adminClient := rest.CopyConfig(client)
+	adminClient.Impersonate.UserName = "admin"
+	adminClient.Impersonate.Groups = []string{"system:masters"}
 	rbacSetup := filepath.Join(k8sSpecsDir, "rbac-setup.yaml")
 	rbacSetupErr := utils.RunKubectlApply(rbacSetup)
 	if rbacSetupErr != nil {
@@ -652,10 +652,10 @@ func (gcp *Gcp) createGcpServiceAcctSecret(ctx context.Context, client *clientse
 	if err != nil {
 		return fmt.Errorf("Get IAM token source error: %v", err)
 	}
-	oKfDef := oauth2.NewClient(ctx, ts)
-	iamService, err := iam.New(oKfDef)
+	oClient := oauth2.NewClient(ctx, ts)
+	iamService, err := iam.New(oClient)
 	if err != nil {
-		return fmt.Errorf("Get Oauth kfdef error: %v", err)
+		return fmt.Errorf("Get Oauth Client error: %v", err)
 	}
 	name := fmt.Sprintf("projects/%v/serviceAccounts/%v", gcp.Spec.Project,
 		email)
@@ -722,26 +722,26 @@ func (gcp *Gcp) createBasicAuthSecret(client *clientset.Clientset) error {
 
 func (gcp *Gcp) createSecrets() error {
 	ctx := context.Background()
-	k8sKfDef, err := gcp.getK8sKfDefset(ctx)
+	k8sClient, err := gcp.getK8sClientset(ctx)
 	if err != nil {
 		return fmt.Errorf("Get K8s clientset error: %v", err)
 	}
 	adminEmail := getSA(gcp.Name, "admin", gcp.Spec.Project)
 	userEmail := getSA(gcp.Name, "user", gcp.Spec.Project)
-	if err := gcp.createGcpServiceAcctSecret(ctx, k8sKfDef, adminEmail, ADMIN_SECRET_NAME); err != nil {
+	if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, adminEmail, ADMIN_SECRET_NAME); err != nil {
 		return fmt.Errorf("cannot create admin secret %v Error %v", ADMIN_SECRET_NAME, err)
 
 	}
-	if err := gcp.createGcpServiceAcctSecret(ctx, k8sKfDef, userEmail, USER_SECRET_NAME); err != nil {
+	if err := gcp.createGcpServiceAcctSecret(ctx, k8sClient, userEmail, USER_SECRET_NAME); err != nil {
 		return fmt.Errorf("cannot create user secret %v Error %v", USER_SECRET_NAME, err)
 
 	}
 	if gcp.Spec.UseBasicAuth {
-		if err := gcp.createBasicAuthSecret(k8sKfDef); err != nil {
+		if err := gcp.createBasicAuthSecret(k8sClient); err != nil {
 			return fmt.Errorf("cannot create basic auth login secret: %v", err)
 		}
 	} else {
-		if err := gcp.createIapSecret(ctx, k8sKfDef); err != nil {
+		if err := gcp.createIapSecret(ctx, k8sClient); err != nil {
 			return fmt.Errorf("cannot create IAP auth secret: %v", err)
 		}
 	}
@@ -803,7 +803,7 @@ func (gcp *Gcp) getServiceClient(ctx context.Context) (*http.Client, error) {
 	// a service account key file to authenticate to the API.
 	client, err := google.DefaultClient(ctx, gke.CloudPlatformScope)
 	if err != nil {
-		log.Fatalf("Could not authenticate kfdef: %v", err)
+		log.Fatalf("Could not authenticate Client: %v", err)
 		return nil, err
 	}
 	return client, nil
@@ -813,7 +813,7 @@ func (gcp *Gcp) gcpInitProject() error {
 	ctx := context.Background()
 	client, clientErr := gcp.getServiceClient(ctx)
 	if clientErr != nil {
-		return fmt.Errorf("could not create kfdef %v", clientErr)
+		return fmt.Errorf("could not create Client %v", clientErr)
 	}
 	serviceusageService, serviceusageServiceErr := serviceusage.New(client)
 	if serviceusageServiceErr != nil {
