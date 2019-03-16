@@ -100,6 +100,16 @@ func GetClusterInfo(ctx context.Context, project string, loc string, cluster str
 	return c.GetCluster(ctx, getClusterReq)
 }
 
+// if --email is not supplied try and the get account info using gmail
+func GetAccount() (string, error) {
+	output, err := exec.Command("gcloud", "config", "get-value", "account").Output()
+	if err != nil {
+		return "", fmt.Errorf("could not call 'gcloud config get-value account': %v", err)
+	}
+	account := string(output)
+	return strings.TrimSpace(account), nil
+}
+
 // BuildConfigFromClusterInfo returns k8s config using gcloud Application Default Credentials
 // typically $HOME/.config/gcloud/application_default_credentials.json
 func BuildConfigFromClusterInfo(ctx context.Context, cluster *containerpb.Cluster) (*rest.Config, error) {
@@ -749,6 +759,13 @@ func (gcp *Gcp) createSecrets() error {
 }
 
 func (gcp *Gcp) Generate(resources kftypes.ResourceEnum) error {
+	if gcp.Spec.Email == "" {
+		account, err := GetAccount()
+		if err != nil {
+			return fmt.Errorf("--email not specified and cannot get gcloud value. Error: %v", err)
+		}
+		gcp.Spec.Email = account
+	}
 	switch resources {
 	case kftypes.K8S:
 		generateK8sSpecsErr := gcp.downloadK8sManifests()
