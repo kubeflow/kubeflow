@@ -117,7 +117,7 @@ func GetClientOutOfCluster() (kubernetes.Interface, error) {
 
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		log.Fatalf("Can not get kubernetes client: %v", err)
+		log.Fatalf("Can not get kubernetes kfdef: %v", err)
 	}
 
 	return clientset, nil
@@ -132,7 +132,7 @@ func GetApiExtensionsClientOutOfCluster() (apiextensionsv1beta1.ApiextensionsV1b
 	config.GroupVersion = &v
 	crdClient, err := clientset.NewForConfig(config)
 	if err != nil {
-		log.Fatalf("Can not get apiextensions client: %v", err)
+		log.Fatalf("Can not get apiextensions kfdef: %v", err)
 	}
 
 	return crdClient.ApiextensionsV1beta1(), nil
