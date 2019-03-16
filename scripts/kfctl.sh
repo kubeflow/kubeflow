@@ -483,6 +483,8 @@ main() {
       if [[ "${PLATFORM}" == "gcp" ]]; then
         updateDM
         createSecrets
+      elif [[ "${PLATFORM}" == "azure" ]]; then
+        createAzSecrets
       fi
     fi
 

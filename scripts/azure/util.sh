@@ -81,3 +81,22 @@ createAKSCluster() {
         echo "installed nvidia-device-plugin"
     fi
 }
+
+createAzSecrets() {
+  # creates a secret "azcreds" that holds Azure credentials for use in Kubeflow Pipelines (and other places)
+  check_variable "${AZ_CLIENT_ID}" "AZ_CLIENT_ID"
+  check_variable "${AZ_CLIENT_SECRET}" "AZ_CLIENT_SECRET"
+  check_variable "${AZ_TENANT_ID}" "AZ_TENANT_ID"
+  check_variable "${AZ_SUBSCRIPTION_ID}" "AZ_SUBSCRIPTION_ID"
+
+  set +e
+  O=$(kubectl get secret --namespace=${K8S_NAMESPACE} azcreds 2>&1)
+  RESULT=$?
+  set -e
+
+  if [ "${RESULT}" -eq 0 ]; then
+    echo Secret azcreds already exists
+  else
+    kubectl create secret generic --namespace=${K8S_NAMESPACE} azcreds --from-literal=AZ_CLIENT_ID=${AZ_CLIENT_ID} --from-literal=AZ_CLIENT_SECRET=${AZ_CLIENT_SECRET} --from-literal=AZ_TENANT_ID=${AZ_TENANT_ID} --from-literal=AZ_SUBSCRIPTION_ID=${AZ_SUBSCRIPTION_ID}
+  fi
+}

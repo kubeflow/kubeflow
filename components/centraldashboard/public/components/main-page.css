@@ -21,10 +21,21 @@
 
 app-drawer {
     color: white;
+    --app-drawer-content-container: {
+        background: var(--primary-background-color) !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+}
+app-drawer-layout[narrow] app-drawer {
+    --app-drawer-content-container: {
+        box-shadow: 0 0 6px -1px #000;
+    }
+}
+app-drawer-layout[thin] app-drawer {
     background: var(--primary-background-color);
     --app-drawer-content-container: {
-        background: transparent;
-        @apply --layout-vertical;
+        background: transparent !important;
     }
 }
 
@@ -66,16 +77,53 @@ app-drawer .footer>.build {
 
 #NamespaceSelector {
     position: absolute;
-    left: 1em;
+    right: 1em;
     top: 50%;
     transform: translateY(-50%)
 }
 
 app-toolbar {
     display: flex;
-    justify-content: center
+    justify-content: center;
+    background: white;
+    transition: background .25s;
 }
-
+app-toolbar[blue] {
+    color: white;
+    background: var(--primary-background-color);
+    --primary-color: white;
+    --accent-color: white;
+    --logo-color: white;
+}
+app-toolbar > header {
+    margin-top: auto;
+}
+#Narrow-Slider {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    top: 0;
+    width: 256px;
+}
+#Narrow-Slider > .Logo {
+    margin: 0;
+    padding: .5em;
+    height: 100%;
+    box-sizing: border-box;
+    color: var(--logo-color, var(--primary-background-color));
+    @apply --layout-horizontal;
+    @apply --layout-center-center;
+}
+#Narrow-Slider > .Logo > svg {
+    width: 1.5em;
+    height: 100%;
+    margin-right: .5em;
+}
+#Narrow-Slider > .Logo > svg * {fill: currentColor}
+#NamespaceSelector > paper-dropdown-menu {
+    color: var(--accent-color);
+    --paper-input-container-focus-color: var(--accent-color);
+}
 paper-tabs {
     --paper-tabs-selection-bar-color: var(--accent-color);
     --paper-tab-ink: var(--accent-color);
@@ -111,16 +159,13 @@ neon-animated-pages {
 
 neon-animatable {
     @apply --layout-vertical;
+    background: #f1f3f4;
     height: 100%;
-}
-
-neon-animatable#iframe-page {
-    top: -64px;
 }
 
 #Menu {
     position: absolute;
-    right: 10px;
+    left: 10px;
     top: 50%;
     transform: translateY(-50%)
 }
@@ -262,6 +307,7 @@ neon-animatable#iframe-page {
 a[href] {
     text-decoration: none;
     color: initial;
+    outline: none;
 }
 
 a[href]:hover {

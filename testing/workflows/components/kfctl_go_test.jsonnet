@@ -1,4 +1,5 @@
-local params = std.extVar("__ksonnet/params").components.kfctl_test;
+// E2E test for the new go based version of kfctl.
+local params = std.extVar("__ksonnet/params").components.kfctl_go_test;
 
 local k = import "k.libsonnet";
 local util = import "workflows.libsonnet";
@@ -29,7 +30,6 @@ local srcRootDir = testDir + "/src";
 local srcDir = srcRootDir + "/kubeflow/kubeflow";
 
 local runPath = srcDir + "/testing/workflows/run.sh";
-local kfCtlPath = srcDir + "/scripts/kfctl.sh";
 
 local kubeConfig = testDir + "/kfctl_test/.kube/kubeconfig";
 
@@ -136,11 +136,11 @@ local buildTemplate(step_name, command, working_dir=null, env_vars=[], sidecars=
     ],
   },
   metadata: {
-      labels: prowDict {
-        workflow: params.name,
-        workflow_template: workflow_template,
-        step_name: step_name,
-      },
+    labels: prowDict {
+      workflow: params.name,
+      workflow_template: workflow_template,
+      step_name: step_name,
+    },
   },
   sidecars: sidecars,
 };  // buildTemplate
@@ -191,153 +191,22 @@ local dagTemplates = [
   },  // create-pr-symlink
   {
     template: buildTemplate(
-      "kfctl-init",
-      [
-        runPath,
-        kfCtlPath,
-        "init",
-        appName,
-        "--platform",
-        "gcp",
-        "--project",
-        project,
-        "--zone",
-        "us-east1-d",
-        // Temporary fix for https://github.com/kubeflow/kubeflow/issues/1562
-        "--skipInitProject",
-        "--gkeApiVersion",
-        params.gkeApiVersion,
+      "build-kfctl",
+      [        
+        "pytest",
+        "kfctl_go_test.py",
+        // I think -s mean stdout/stderr will print out to aid in debugging.
+        // Failures still appear to be captured and stored in the junit file.
+        "-s",
+        // Increase the log level so that info level log statements show up.
+        "--log-cli-level=info",
+        // Test timeout in seconds.
+        "--timeout=500",
+        "--junitxml=" + artifactsDir + "/junit_kfctl-build-test.xml",
       ],
-      working_dir=testDir,
+      working_dir=srcDir+ "/testing/kfctl",
     ),
     dependencies: ["checkout"],
-  },
-  {
-    template: buildTemplate(
-      "kfctl-generate-gcp",
-      [
-        runPath,
-        kfCtlPath,
-        "generate",
-        "platform",
-      ],
-      working_dir=appDir
-    ),
-    dependencies: ["kfctl-init"],
-  },
-  {
-    template: buildTemplate(
-      "kfctl-apply-gcp",
-      [
-        runPath,
-        kfCtlPath,
-        "apply",
-        "platform",
-      ],
-      env_vars=[
-        {
-          name: "CLIENT_ID",
-          value: "dummy",
-        },
-        {
-          name: "CLIENT_SECRET",
-          value: "dummy",
-        },
-      ],
-      working_dir=appDir
-    ),
-    dependencies: ["kfctl-generate-gcp"],
-  },
-  // We can't generate the ksonnet app
-  // until we create the GKE cluster because we need
-  // a KubeConfig file
-  {
-    template: buildTemplate(
-      "kfctl-generate-k8s",
-      [
-        runPath,
-        kfCtlPath,
-        "generate",
-        "k8s",
-        // Disable spartakus metrics so CI clusters won't be counted.
-        "&&",
-        "cd",
-        "ks_app",
-        "ks",
-        "param",
-        "set",
-        "spartakus",
-        "reportUsage",
-        "false",
-      ],
-      working_dir=appDir
-    ),
-    dependencies: ["kfctl-apply-gcp"],
-  },
-  {
-    template: buildTemplate(
-      "install-spark-operator",
-      [
-        // Install the operator
-        "ks",
-        "pkg",
-        "install",
-        "kubeflow/spark",
-      ],
-      working_dir=appDir + "/ks_app"
-    ),
-    dependencies: ["kfctl-generate-k8s"],
-  },  // install-spark-operator
-  {
-    template: buildTemplate(
-      "generate-spark-operator",
-      [
-        // Generate the operator
-        "ks",
-        "generate",
-        "spark-operator",
-        "spark-operator",
-        "--name=spark-operator",
-      ],
-      working_dir=appDir + "/ks_app"
-    ),
-    // Need to wait on kfctl-apply-k8s because that step creates
-    // the ksonnet environment.
-    dependencies: ["install-spark-operator", "kfctl-apply-k8s"],
-  },  // generate-spark-operator
-  {
-    template: buildTemplate(
-      "apply-spark-operator",
-      [
-        runPath,
-        // Apply the operator
-        "ks",
-        "apply",
-        "default",
-        "-c",
-        "spark-operator",
-      ],
-      working_dir=appDir + "/ks_app"
-    ),
-    dependencies: ["generate-spark-operator"],
-  },  //apply-spark-operator
-  {
-    template: buildTemplate(
-      "kfctl-apply-k8s",
-      [
-        runPath,
-        kfCtlPath,
-        "apply",
-        "k8s",
-      ],
-      working_dir=appDir
-    ),
-    dependencies: ["kfctl-generate-k8s"],
-  },
-  // Run the nested tests.
-  {
-    template: componentTests.argoDagTemplate,
-    dependencies: ["apply-spark-operator", "kfctl-apply-k8s"],
   },
 ];
 
@@ -345,62 +214,7 @@ local dagTemplates = [
 // to execute on exit
 local deleteKubeflow = util.toBool(params.deleteKubeflow);
 
-local deleteStep = if deleteKubeflow then
-  [{
-    template: buildTemplate(
-      "kfctl-delete",
-      [
-        runPath,
-        kfCtlPath,
-        "delete",
-        "all",
-      ],
-      working_dir=appDir
-    ),
-    dependencies: null,
-  }]
-else [];
-
-// Clean up all the permanent storages to avoid accumulated resource
-// consumption in the test project
-local deleteStorageStep = if deleteKubeflow then
-  [{
-    template: buildTemplate(
-      "kfctl-delete-storage",
-      [
-        runPath,
-        "gcloud",
-        "deployment-manager",
-        "--project=" + project,
-        "deployments",
-        "delete",
-        appName + "-storage",
-        "--quiet",
-      ],
-      working_dir=appDir
-    ),
-    dependencies: ["kfctl-delete"],
-  }]
-else [];
-
-local exitTemplates =
-  deleteStep + deleteStorageStep +
-  [
-    {
-      template: buildTemplate("copy-artifacts", [
-        "python",
-        "-m",
-        "kubeflow.testing.prow_artifacts",
-        "--artifacts_dir=" + outputDir,
-        "copy_artifacts",
-        "--bucket=" + bucket,
-      ]),  // copy-artifacts,
-
-      dependencies: if deleteKubeflow then
-        ["kfctl-delete"] + ["kfctl-delete-storage"]
-      else null,
-    },
-    {
+local testDirDeleteStep = {
       template:
         buildTemplate("test-dir-delete", [
           "python",
@@ -413,7 +227,27 @@ local exitTemplates =
           testDir,
         ]),  // test-dir-delete
       dependencies: ["copy-artifacts"],
-    },
+    };
+
+// TODO(jlewi): Add testDirDeleteStep
+local exitTemplates =
+  [
+    {
+      template: buildTemplate("copy-artifacts", [
+        "python",
+        "-m",
+        "kubeflow.testing.prow_artifacts",
+        "--artifacts_dir=" + outputDir,
+        "copy_artifacts",
+        "--bucket=" + bucket,
+      ]),  // copy-artifacts,
+
+      // TODO(jlewi): Uncomment when we actually set up Kubeflow.
+      dependencies: null,
+      // dependencies: if deleteKubeflow then
+      //  ["kfctl-delete"] + ["kfctl-delete-storage"]
+      // else null,
+    },    
   ];
 
 // Dag defines the tasks in the graph
@@ -445,10 +279,12 @@ local exitDag = {
 };
 
 // A list of templates for the actual steps
+//
+// TODO(jlewi): Add componentTests.argoTaskTemplates
 local stepTemplates = std.map(function(i) i.template
-                              , dagTemplates) +
+                              , dagTemplates)  +
                       std.map(function(i) i.template
-                              , exitTemplates) + componentTests.argoTaskTemplates;
+                              , exitTemplates);
 
 
 // Add a task to a dag.

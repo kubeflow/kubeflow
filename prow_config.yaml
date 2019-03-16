@@ -26,6 +26,23 @@ workflows:
     params:
       installIstio: true
       workflowName: deployapp-istio
+  # kfctl test runs tests on gke using the new kfctl go binary
+  - app_dir: kubeflow/kubeflow/testing/workflows
+    component: kfctl_go_test
+    name: kfctl-go
+    job_types:
+      - presubmit
+      - postsubmit
+      - periodic
+    include_dirs:
+      - bootstrap/*
+      - deployment/*
+      - kubeflow/*
+      - testing/*
+    params:
+      platform: gke
+      gkeApiVersion: v1
+      workflowName: kfctl-go
   # kfctl test runs tests on gke.
   - app_dir: kubeflow/kubeflow/testing/workflows
     component: kfctl_test
@@ -77,7 +94,9 @@ workflows:
     component: workflows
     name: kubeflow-e2e-minikube
     job_types:
-      - presubmit
+      # TODO(https://github.com/kubeflow/kubeflow/issues/2703): Reenable minikube on presubmit
+      # when the test is fixed.
+      # - presubmit
       - postsubmit
       - periodic
     params:
