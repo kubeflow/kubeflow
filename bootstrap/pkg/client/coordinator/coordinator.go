@@ -40,25 +40,25 @@ import (
 // The common entry point used to retrieve an implementation of KfApp.
 // In this case it returns a composite class (coordinator) which aggregates
 // platform and ksonnet implementations in Children.
-func GetKfApp(client *cltypes.Client) kftypes.KfApp {
-	_client := &coordinator{
+func GetKfApp(kfdef *cltypes.Client) kftypes.KfApp {
+	_coordinator := &coordinator{
 		Platforms:       make(map[string]kftypes.KfApp),
 		PackageManagers: nil,
-		Client: client,
+		Client: kfdef,
 	}
 	// fetch the platform [gcp,minikube]
-	platform := _client.Client.Spec.Platform
+	platform := _coordinator.Client.Spec.Platform
 	if platform != "" {
-		_platform, _platformErr := getPlatform(_client.Client)
+		_platform, _platformErr := getPlatform(_coordinator.Client)
 		if _platformErr != nil {
 			log.Fatalf("could not get platform %v Error %v **", platform, _platformErr)
 			return nil
 		}
 		if _platform != nil {
-			_client.Platforms[platform] = _platform
+			_coordinator.Platforms[platform] = _platform
 		}
 	}
-	return _client
+	return _coordinator
 }
 
 func downloadToCache(platform string, appDir string, version string, useBasicAuth bool) ([]byte, error) {
@@ -121,32 +121,33 @@ func downloadToCache(platform string, appDir string, version string, useBasicAut
 // GetPlatform will return an implementation of kftypes.KfApp that matches the platform string
 // It looks for statically compiled-in implementations, otherwise it delegates to
 // kftypes.LoadKfApp which will try and dynamically load a .so
-func getPlatform(client *cltypes.Client) (kftypes.KfApp, error) {
-	switch client.Spec.Platform {
+func getPlatform(kfdef *cltypes.Client) (kftypes.KfApp, error) {
+	switch kfdef.Spec.Platform {
 	case string(kftypes.MINIKUBE):
-		return minikube.GetKfApp(client), nil
+		return minikube.GetKfApp(kfdef), nil
 	case string(kftypes.GCP):
-		return gcp.GetKfApp(client), nil
+		return gcp.GetKfApp(kfdef), nil
 	default:
-		log.Infof("** loading %v.so for platform %v **", client.Spec.Platform, client.Spec.Platform)
-		return kftypes.LoadKfApp(client)
+		log.Infof("** loading %v.so for platform %v **", kfdef.Spec.Platform, kfdef.Spec.Platform)
+		return kftypes.LoadKfApp(kfdef)
 	}
 }
 
-func getPackageManagers(client *cltypes.Client) *map[string]kftypes.KfApp {
-	appyaml := filepath.Join(client.Spec.AppDir, kftypes.KfConfigFile)
-	err := unmarshalAppYaml(appyaml, client)
+func getPackageManagers(kfdef *cltypes.Client) *map[string]kftypes.KfApp {
+	appyaml := filepath.Join(kfdef.Spec.AppDir, kftypes.KfConfigFile)
+	err := unmarshalAppYaml(appyaml, kfdef)
 	if err != nil {
 		log.Fatalf("failed unmarshalling %v Error %v", appyaml, err)
 	}
 	var packagemanagers = make(map[string]kftypes.KfApp)
-	_packagemanager, _packagemanagerErr := getPackageManager("ksonnet", client)
+	_packagemanager, _packagemanagerErr := getPackageManager("ksonnet", kfdef)
 	if _packagemanagerErr != nil {
 		log.Fatalf("could not get packagemanager %v Error %v **", "ksonnet", _packagemanagerErr)
 	}
 	if _packagemanager != nil {
 		packagemanagers["ksonnet"] = _packagemanager
 	}
+	//TODO provide a global flag that adds kustomize so either kustomize or ksonnet can be selected
 	/*
 	_packagemanager, _packagemanagerErr = getPackageManager("kustomize", client)
 	if _packagemanagerErr != nil {
@@ -163,15 +164,15 @@ func getPackageManagers(client *cltypes.Client) *map[string]kftypes.KfApp {
 // getPackageManager will return an implementation of kftypes.KfApp that matches the packagemanager string
 // It looks for statically compiled-in implementations, otherwise it delegates to
 // kftypes.LoadKfApp which will try and dynamically load a .so
-func getPackageManager(packagemanager string, client *cltypes.Client) (kftypes.KfApp, error) {
+func getPackageManager(packagemanager string, kfdef *cltypes.Client) (kftypes.KfApp, error) {
 	switch packagemanager {
 	case "ksonnet":
-		return ksonnet.GetKfApp(client), nil
+		return ksonnet.GetKfApp(kfdef), nil
 	case "kustomize":
-		return kustomize.GetKfApp(client), nil
+		return kustomize.GetKfApp(kfdef), nil
 	default:
 		log.Infof("** loading %v.so for package manager %v **", packagemanager, packagemanager)
-		return kftypes.LoadKfApp(client)
+		return kftypes.LoadKfApp(kfdef)
 	}
 }
 
@@ -259,14 +260,14 @@ and must start and end with an alphanumeric character`, appName)
 	return pApp, nil
 }
 
-func unmarshalAppYaml(cfgfile string, client *cltypes.Client) error {
+func unmarshalAppYaml(cfgfile string, kfdef *cltypes.Client) error {
 	if _, err := os.Stat(cfgfile); err == nil {
 		log.Infof("reading from %v", cfgfile)
 		buf, bufErr := ioutil.ReadFile(cfgfile)
 		if bufErr != nil {
 			return fmt.Errorf("couldn't read %v. Error: %v", cfgfile, bufErr)
 		}
-		err := yaml.Unmarshal(buf, client)
+		err := yaml.Unmarshal(buf, kfdef)
 		if err != nil {
 			return fmt.Errorf("could not unmarshal %v. Error: %v", cfgfile, err)
 		}
@@ -282,7 +283,7 @@ func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 		return nil, fmt.Errorf("could not get current directory %v", err)
 	}
 	cfgfile := filepath.Join(appDir, kftypes.KfConfigFile)
-	client := &cltypes.Client{
+	kfdef := &cltypes.Client{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Client",
 			APIVersion: "client.apps.kubeflow.org/v1alpha1",
@@ -290,47 +291,47 @@ func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 		Spec: cltypes.ClientSpec{
 		},
 	}
-	err = unmarshalAppYaml(cfgfile, client)
+	err = unmarshalAppYaml(cfgfile, kfdef)
 	if err != nil {
 		return nil, fmt.Errorf("could not unmarshal %v. Error: %v", cfgfile, err)
 	}
 	if options[string(kftypes.EMAIL)] != nil && options[string(kftypes.EMAIL)].(string) != "" {
-		client.Spec.Email = options[string(kftypes.EMAIL)].(string)
+		kfdef.Spec.Email = options[string(kftypes.EMAIL)].(string)
 	}
 	if options[string(kftypes.IPNAME)] != nil && options[string(kftypes.IPNAME)].(string) != "" {
-		client.Spec.IpName = options[string(kftypes.IPNAME)].(string)
-	} else if client.Name != "" {
-		client.Spec.IpName = client.Name + "-ip"
+		kfdef.Spec.IpName = options[string(kftypes.IPNAME)].(string)
+	} else if kfdef.Name != "" {
+		kfdef.Spec.IpName = kfdef.Name + "-ip"
 	}
 	if options[string(kftypes.PROJECT)] != nil && options[string(kftypes.PROJECT)].(string) != "" {
-		client.Spec.Project = options[string(kftypes.PROJECT)].(string)
+		kfdef.Spec.Project = options[string(kftypes.PROJECT)].(string)
 	}
 	if options[string(kftypes.HOSTNAME)] != nil && options[string(kftypes.HOSTNAME)].(string) != "" {
-		client.Spec.Hostname = options[string(kftypes.HOSTNAME)].(string)
-	} else if client.Name != "" && client.Spec.Project != "" {
-		client.Spec.Hostname = fmt.Sprintf("%v.endpoints.%v.cloud.goog", client.Name, client.Spec.Project)
+		kfdef.Spec.Hostname = options[string(kftypes.HOSTNAME)].(string)
+	} else if kfdef.Name != "" && kfdef.Spec.Project != "" {
+		kfdef.Spec.Hostname = fmt.Sprintf("%v.endpoints.%v.cloud.goog", kfdef.Name, kfdef.Spec.Project)
 	}
 	if options[string(kftypes.ZONE)] != nil && options[string(kftypes.ZONE)].(string) != "" {
-		client.Spec.Zone = options[string(kftypes.HOSTNAME)].(string)
+		kfdef.Spec.Zone = options[string(kftypes.HOSTNAME)].(string)
 	} else  {
-		client.Spec.Zone = kftypes.DefaultZone
+		kfdef.Spec.Zone = kftypes.DefaultZone
 	}
 	if options[string(kftypes.USE_BASIC_AUTH)] != nil {
-		client.Spec.UseBasicAuth = options[string(kftypes.USE_BASIC_AUTH)].(bool)
+		kfdef.Spec.UseBasicAuth = options[string(kftypes.USE_BASIC_AUTH)].(bool)
 	}
 	if options[string(kftypes.BASIC_AUTH_USERNAME)] != nil {
-		client.Spec.BasicAuthUsername = options[string(kftypes.BASIC_AUTH_USERNAME)].(string)
+		kfdef.Spec.BasicAuthUsername = options[string(kftypes.BASIC_AUTH_USERNAME)].(string)
 	}
 	if options[string(kftypes.BASIC_AUTH_PASSWORD)] != nil {
-		client.Spec.BasicAuthPassword = options[string(kftypes.BASIC_AUTH_PASSWORD)].(string)
+		kfdef.Spec.BasicAuthPassword = options[string(kftypes.BASIC_AUTH_PASSWORD)].(string)
 	}
 	if options[string(kftypes.SKIP_INIT_GCP_PROJECT)] != nil {
-		client.Spec.SkipInitProject = options[string(kftypes.SKIP_INIT_GCP_PROJECT)].(bool)
+		kfdef.Spec.SkipInitProject = options[string(kftypes.SKIP_INIT_GCP_PROJECT)].(bool)
 	}
 	if options[string(kftypes.MOUNT_LOCAL)] != nil {
-		client.Spec.MountLocal = options[string(kftypes.MOUNT_LOCAL)].(bool)
+		kfdef.Spec.MountLocal = options[string(kftypes.MOUNT_LOCAL)].(bool)
 	}
-	pApp := GetKfApp(client)
+	pApp := GetKfApp(kfdef)
 	return pApp, nil
 }
 
