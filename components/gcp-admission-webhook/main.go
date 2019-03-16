@@ -48,7 +48,7 @@ var codecs = serializer.NewCodecFactory(scheme)
 
 // patchString patches: Add volume, volumeMount, and environment variable
 const patchString = `[
-{"op":"add","path":"/spec/volumes/-","value":{"name":"gcp-credentials","secret":{"secretName": "%s"}}},
+{"op":"add","path":"/spec/volumes","value":{"name":"gcp-credentials","secret":{"secretName": "%s"}}},
 {"op":"add","path":"/spec/containers/0/env","value":[{"name":"GOOGLE_APPLICATION_CREDENTIALS","value":"/secrets/gcp-service-account-credentials/%s"}]},
 {"op":"add","path":"/spec/containers/0/volumeMounts","value":[{"name":"gcp-credentials","readOnly": true,"mountPath":"/secrets/gcp-service-account-credentials"}]}
 ]`
