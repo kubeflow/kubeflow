@@ -22,7 +22,7 @@ import (
 	ext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	crdclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apiext "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
-	cltypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/client/v1alpha1"
+	cltypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
 	"k8s.io/client-go/kubernetes"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -137,7 +137,7 @@ const (
 	MINIKUBE = "minikube"
 )
 
-func LoadKfApp(client *cltypes.Client) (KfApp, error) {
+func LoadKfApp(client *cltypes.KfDef) (KfApp, error) {
 	platform := strings.Replace(client.Spec.Platform, "-", "", -1)
 	plugindir := os.Getenv("PLUGINS_ENVIRONMENT")
 	pluginpath := filepath.Join(plugindir, platform+".so")
@@ -150,7 +150,7 @@ func LoadKfApp(client *cltypes.Client) (KfApp, error) {
 	if symbolErr != nil {
 		return nil, fmt.Errorf("could not find symbol %v for platform %v Error %v", symName, platform, symbolErr)
 	}
-	return symbol.(func(*cltypes.Client) KfApp)(client), nil
+	return symbol.(func(*cltypes.KfDef) KfApp)(client), nil
 }
 
 // TODO(#2586): Consolidate kubeconfig and API calls.
@@ -207,7 +207,7 @@ func GetKubeConfig() *clientcmdapi.Config {
 func GetClientset(config *rest.Config) *clientset.Clientset {
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		log.Fatalf("Can not get kubernetes client: %v", err)
+		log.Fatalf("Can not get kubernetes kfdef: %v", err)
 	}
 	return clientset
 }
@@ -218,7 +218,7 @@ func GetApiExtClientset(config *rest.Config) apiext.ApiextensionsV1beta1Interfac
 	config.GroupVersion = &v
 	crdClient, err := crdclientset.NewForConfig(config)
 	if err != nil {
-		log.Fatalf("Can not get apiextensions client: %v", err)
+		log.Fatalf("Can not get apiextensions kfdef: %v", err)
 	}
 	return crdClient.ApiextensionsV1beta1()
 }

@@ -90,12 +90,12 @@ func InsertOauthCredentails(req *CreateRequest, k8sClientset *clientset.Clientse
 	secretData := make(map[string][]byte)
 	ClientIdData, err := base64.StdEncoding.DecodeString(req.ClientId)
 	if err != nil {
-		log.Errorf("Failed decoding client id: %v", err)
+		log.Errorf("Failed decoding kfdef id: %v", err)
 		return err
 	}
 	ClientSecretData, err := base64.StdEncoding.DecodeString(req.ClientSecret)
 	if err != nil {
-		log.Errorf("Failed decoding client secret: %v", err)
+		log.Errorf("Failed decoding kfdef secret: %v", err)
 		return err
 	}
 	secretData["client_id"] = ClientIdData
@@ -122,7 +122,7 @@ func InsertLoginCredentails(req *CreateRequest, k8sClientset *clientset.Clientse
 	secretData := make(map[string][]byte)
 	UsernameData, err := base64.StdEncoding.DecodeString(req.Username)
 	if err != nil {
-		log.Errorf("Failed decoding client id: %v", err)
+		log.Errorf("Failed decoding kfdef id: %v", err)
 		return err
 	}
 	secretData["username"] = UsernameData
@@ -161,7 +161,7 @@ func (s *ksServer) InsertSaKey(ctx context.Context, request *CreateRequest, secr
 
 	c, err := iamadmin.NewIamClient(ctx, option.WithTokenSource(ts))
 	if err != nil {
-		log.Errorf("Cannot create iam admin client: %v", err)
+		log.Errorf("Cannot create iam admin kfdef: %v", err)
 		return err
 	}
 	createServiceAccountKeyRequest := admin.CreateServiceAccountKeyRequest{

@@ -12,14 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package apis
+// Package v1alpha1 contains API Schema definitions for the kfdef v1alpha1 API group
+// +k8s:openapi-gen=true
+// +k8s:deepcopy-gen=package,register
+// +k8s:conversion-gen=github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef
+// +k8s:defaulter-gen=TypeMeta
+// +groupName=kfdef.apps.kubeflow.org
 
-import (
-	kfdef "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
-)
-
-func init() {
-	// Register the types with the Scheme so the components can map objects to GroupVersionKinds and back
-	AddToSchemes = append(AddToSchemes, kfdef.SchemeBuilder.AddToScheme)
-
-}
+package v1alpha1

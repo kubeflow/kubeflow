@@ -50,14 +50,14 @@ auth:
 
 # Run go fmt against code
 fmt:
-	@$(GO) fmt ./config/... ./pkg/apis/apps/client/... ./pkg/utils/... ./pkg/client/minikube ./pkg/client/gcp/... ./cmd/kfctl/...
+	@$(GO) fmt ./config/... ./pkg/apis/apps/kfdef/... ./pkg/utils/... ./pkg/kfapp/minikube ./pkg/kfapp/gcp/... ./cmd/kfctl/...
 
 # Run go vet against code
 vet:
-	@$(GO) vet ./config/... ./pkg/apis/apps/client/... ./pkg/utils/... ./pkg/client/minikube ./pkg/client/gcp/... ./cmd/kfctl/...
+	@$(GO) vet ./config/... ./pkg/apis/apps/kfdef/... ./pkg/utils/... ./pkg/kfapp/minikube ./pkg/kfapp/gcp/... ./cmd/kfctl/...
 
 generate:
-	@$(GO) generate ./config/... ./pkg/apis/apps/client/... ./pkg/utils/... ./pkg/client/minikube ./pkg/client/gcp/... ./cmd/kfctl/...
+	@$(GO) generate ./config/... ./pkg/apis/apps/kfdef/... ./pkg/utils/... ./pkg/kfapp/minikube ./pkg/kfapp/gcp/... ./cmd/kfctl/...
 
 /tmp/v2:
 	@[ ! -d /tmp/v2 ] && unzip -q -d /tmp hack/v2.zip
@@ -68,13 +68,13 @@ $(GOPATH)/bin/deepcopy-gen:
 config/zz_generated.deepcopy.go: config/types.go
 	$(GOPATH)/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/config/... -O zz_generated.deepcopy
 
-pkg/apis/apps/client/v1alpha1/zz_generated.deepcopy.go: pkg/apis/apps/client/v1alpha1/application_types.go
-	$(GOPATH)/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/client/... -O zz_generated.deepcopy
+pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go: pkg/apis/apps/kfdef/v1alpha1/application_types.go
+	$(GOPATH)/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/... -O zz_generated.deepcopy
 
-v2/pkg/apis/apps/client/v1alpha1/zz_generated.deepcopy.go: v2/pkg/apis/apps/client/v1alpha1/application_types.go
-	$(GOPATH)/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/client/... -O zz_generated.deepcopy
+v2/pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go: v2/pkg/apis/apps/kfdef/v1alpha1/application_types.go
+	$(GOPATH)/bin/deepcopy-gen -i github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/... -O zz_generated.deepcopy
 
-deepcopy: $(GOPATH)/bin/deepcopy-gen config/zz_generated.deepcopy.go pkg/apis/apps/client/v1alpha1/zz_generated.deepcopy.go 
+deepcopy: $(GOPATH)/bin/deepcopy-gen config/zz_generated.deepcopy.go pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go v2/pkg/apis/apps/kfdef/v1alpha1/zz_generated.deepcopy.go 
 
 build-bootstrap: generate fmt vet
 	$(GO) build -gcflags 'all=-N -l' -o bin/bootstrapper cmd/bootstrap/main.go

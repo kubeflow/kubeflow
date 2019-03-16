@@ -32,7 +32,7 @@ import (
 func getServiceClient(ctx context.Context) (*http.Client, error) {
 	client, err := google.DefaultClient(ctx, cloudresourcemanager.CloudPlatformScope)
 	if err != nil {
-		log.Fatalf("Could not get authenticated client: %v", err)
+		log.Fatalf("Could not get authenticated kfdef: %v", err)
 		return nil, err
 	}
 	return client, nil

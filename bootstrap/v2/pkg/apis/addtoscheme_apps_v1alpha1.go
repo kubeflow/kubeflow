@@ -15,7 +15,7 @@
 package apis
 
 import (
-	client "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/client/v1alpha1"
+	client "github.com/kubeflow/kubeflow/bootstrap/v2/pkg/apis/apps/kfdef/v1alpha1"
 )
 
 func init() {

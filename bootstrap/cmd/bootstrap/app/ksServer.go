@@ -221,7 +221,7 @@ type CreateRequest struct {
 	Username     string
 	PasswordHash string
 
-	// For test: GCP service account client id
+	// For test: GCP service account kfdef id
 	SAClientId string
 
 	StorageOption StorageOption
@@ -264,7 +264,7 @@ type ApplyRequest struct {
 	Token string
 	Email string
 
-	// For test: GCP service account client id
+	// For test: GCP service account kfdef id
 	SAClientId string
 
 	// pass *appInfo if ks app is already on disk.
