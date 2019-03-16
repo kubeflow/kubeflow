@@ -21,7 +21,7 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/kubeflow/kubeflow/bootstrap/config"
 	kftypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps"
-	cltypes "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
+	kfdefs "github.com/kubeflow/kubeflow/bootstrap/pkg/apis/apps/kfdef/v1alpha1"
 	"io/ioutil"
 	"os/user"
 	"path/filepath"
@@ -32,10 +32,10 @@ import (
 // DockerForDesktop implements KfApp Interface
 // It should include functionality needed for the dockerfordesktop platform
 type DockerForDesktop struct {
-	cltypes.KfDef
+	kfdefs.KfDef
 }
 
-func GetKfApp(kfdef *cltypes.KfDef) kftypes.KfApp {
+func GetKfApp(kfdef *kfdefs.KfDef) kftypes.KfApp {
 	_dockerfordesktop := &DockerForDesktop{
 		KfDef: *kfdef,
 	}
