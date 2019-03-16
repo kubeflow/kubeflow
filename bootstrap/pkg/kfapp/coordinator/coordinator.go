@@ -111,7 +111,7 @@ func downloadToCache(platform string, appDir string, version string, useBasicAut
 	}
 	//TODO see #2629
 	configPath := filepath.Join(newPath, kftypes.DefaultConfigDir)
-	if platform == "gcp" {
+	if platform == kftypes.GCP {
 		if useBasicAuth {
 			configPath = filepath.Join(configPath, kftypes.GcpBasicAuth)
 		} else {

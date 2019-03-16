@@ -446,8 +446,10 @@ func (ksApp *ksApp) initKs() error {
 		os.RemoveAll(newRoot)
 	}
 	ksApp.KsEnvName = KsEnvName
-	// We hard code the K8s spec because we won't have a cluster to talk to when calling init.
-	k8sSpec := "version:v1.11.7"
+	k8sSpec := ksApp.Spec.ServerVersion
+	if k8sSpec == "" {
+		k8sSpec = kftypes.GetServerVersion(kftypes.GetClientset(config))
+	}
 	options := map[string]interface{}{
 		actions.OptionFs:                    afero.NewOsFs(),
 		actions.OptionName:                  ksApp.KsName,
