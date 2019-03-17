@@ -448,7 +448,7 @@ func (ksApp *ksApp) initKs() error {
 	ksApp.KsEnvName = KsEnvName
 	k8sSpec := ksApp.Spec.ServerVersion
 	if k8sSpec == "" {
-		k8sSpec = kftypes.GetServerVersion(kftypes.GetClientset(config))
+		k8sSpec = kftypes.GetServerVersion(kftypes.GetClientset(kftypes.GetConfig()))
 	}
 	options := map[string]interface{}{
 		actions.OptionFs:                    afero.NewOsFs(),
