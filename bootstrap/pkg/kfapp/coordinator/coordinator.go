@@ -314,7 +314,7 @@ func LoadKfApp(options map[string]interface{}) (kftypes.KfApp, error) {
 		kfdef.Spec.Hostname = fmt.Sprintf("%v.endpoints.%v.cloud.goog", kfdef.Name, kfdef.Spec.Project)
 	}
 	if options[string(kftypes.ZONE)] != nil && options[string(kftypes.ZONE)].(string) != "" {
-		kfdef.Spec.Zone = options[string(kftypes.HOSTNAME)].(string)
+		kfdef.Spec.Zone = options[string(kftypes.ZONE)].(string)
 	} else  {
 		kfdef.Spec.Zone = kftypes.DefaultZone
 	}
