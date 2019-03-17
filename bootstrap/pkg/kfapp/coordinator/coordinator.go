@@ -349,8 +349,8 @@ type coordinator struct {
 
 func (kfapp *coordinator) Apply(resources kftypes.ResourceEnum) error {
 	platform := func() error {
-		if kfapp.Client.Spec.Platform != "" {
-			platform := kfapp.Platforms[kfapp.Client.Spec.Platform]
+		if kfapp.KfDef.Spec.Platform != "" {
+			platform := kfapp.Platforms[kfapp.KfDef.Spec.Platform]
 			if platform != nil {
 				platformErr := platform.Apply(resources)
 				if platformErr != nil {
@@ -365,7 +365,7 @@ func (kfapp *coordinator) Apply(resources kftypes.ResourceEnum) error {
 	}
 
 	k8s := func() error {
-		kfapp.PackageManagers = *getPackageManagers(kfapp.Client)
+		kfapp.PackageManagers = *getPackageManagers(kfapp.KfDef)
 		for packageManagerName, packageManager := range kfapp.PackageManagers {
 			packageManagerErr := packageManager.Apply(kftypes.K8S)
 			if packageManagerErr != nil {
@@ -391,8 +391,8 @@ func (kfapp *coordinator) Apply(resources kftypes.ResourceEnum) error {
 
 func (kfapp *coordinator) Delete(resources kftypes.ResourceEnum) error {
 	platform := func() error {
-		if kfapp.Client.Spec.Platform != "" {
-			platform := kfapp.Platforms[kfapp.Client.Spec.Platform]
+		if kfapp.KfDef.Spec.Platform != "" {
+			platform := kfapp.Platforms[kfapp.KfDef.Spec.Platform]
 			if platform != nil {
 				platformErr := platform.Delete(resources)
 				if platformErr != nil {
@@ -407,7 +407,7 @@ func (kfapp *coordinator) Delete(resources kftypes.ResourceEnum) error {
 	}
 
 	k8s := func() error {
-		kfapp.PackageManagers = *getPackageManagers(kfapp.Client)
+		kfapp.PackageManagers = *getPackageManagers(kfapp.KfDef)
 		for packageManagerName, packageManager := range kfapp.PackageManagers {
 			packageManagerErr := packageManager.Delete(kftypes.K8S)
 			if packageManagerErr != nil {
@@ -433,8 +433,8 @@ func (kfapp *coordinator) Delete(resources kftypes.ResourceEnum) error {
 
 func (kfapp *coordinator) Generate(resources kftypes.ResourceEnum) error {
 	platform := func() error {
-		if kfapp.Client.Spec.Platform != "" {
-			platform := kfapp.Platforms[kfapp.Client.Spec.Platform]
+		if kfapp.KfDef.Spec.Platform != "" {
+			platform := kfapp.Platforms[kfapp.KfDef.Spec.Platform]
 			if platform != nil {
 				platformErr := platform.Generate(resources)
 				if platformErr != nil {
@@ -449,7 +449,7 @@ func (kfapp *coordinator) Generate(resources kftypes.ResourceEnum) error {
 	}
 
 	k8s := func() error {
-		kfapp.PackageManagers = *getPackageManagers(kfapp.Client)
+		kfapp.PackageManagers = *getPackageManagers(kfapp.KfDef)
 		for packageManagerName, packageManager := range kfapp.PackageManagers {
 			packageManagerErr := packageManager.Generate(kftypes.K8S)
 			if packageManagerErr != nil {
