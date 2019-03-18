@@ -32,7 +32,7 @@ var initCmd = &cobra.Command{
 	Short: "Create a kubeflow application under <[path/]name>",
 	Long: `Create a kubeflow application under <[path/]name>. The <[path/]name> argument can either be a full path
 or a <name>. If just <name> a directory <name> will be created in the current directory.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		log.SetLevel(log.InfoLevel)
 		if initCfg.GetBool(string(kftypes.VERBOSE)) == true {
 			log.SetLevel(log.InfoLevel)
@@ -40,8 +40,7 @@ or a <name>. If just <name> a directory <name> will be created in the current di
 			log.SetLevel(log.WarnLevel)
 		}
 		if len(args) == 0 {
-			log.Errorf("name is required")
-			return
+			return fmt.Errorf("name is required")
 		}
 		appName := args[0]
 		platform := initCfg.GetString(string(kftypes.PLATFORM))
@@ -72,13 +71,11 @@ or a <name>. If just <name> a directory <name> will be created in the current di
 		}
 		kfApp, kfAppErr := coordinator.NewKfApp(options)
 		if kfAppErr != nil || kfApp == nil {
-			log.Errorf("couldn't create KfApp: %v", kfAppErr)
-			return
+			return fmt.Errorf("couldn't create KfApp: %v", kfAppErr)
 		}
 		initErr := kfApp.Init(kftypes.ALL, options)
 		if initErr != nil {
-			log.Errorf("KfApp initialization failed: %v", initErr)
-			return
+			return fmt.Errorf("KfApp initialization failed: %v", initErr)
 		}
 		return nil
 	},
