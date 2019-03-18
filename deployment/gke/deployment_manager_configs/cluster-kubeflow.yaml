@@ -97,3 +97,4 @@ resources:
       # - group:data-scientists@acme.com
     # This is the name of the GCP static ip address reserved for your domain.
     # Each Kubeflow deployment in your project should use one unique ipName among all configs.
+    ipName: kubeflow-ip

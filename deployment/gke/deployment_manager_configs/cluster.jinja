@@ -28,7 +28,6 @@ limitations under the License.
 {% set KF_ADMIN_NAME = NAME_PREFIX + '-admin' %}
 {% set KF_USER_NAME = NAME_PREFIX + '-user' %}
 {% set KF_VM_SA_NAME = NAME_PREFIX + '-vm' %}
-{% set IP_NAME = NAME_PREFIX + '-ip' %}
 
 resources:
 - name: {{ KF_ADMIN_NAME }}
@@ -61,6 +60,8 @@ resources:
     cluster:
       name: {{ CLUSTER_NAME }}
       initialClusterVersion: "{{ properties['cluster-version'] }}"
+      resourceLabels:
+        application: 'kubeflow'
       {% if properties['gkeApiVersion'] == 'v1beta1' %}
       # We need 1.10.2 to support Stackdriver GKE.
       loggingService: logging.googleapis.com/kubernetes
@@ -170,7 +171,7 @@ resources:
 {% endif %}
 
 {# Project defaults to the project of the deployment. #}
-- name: {{ IP_NAME }}
+- name: {{ properties['ipName']  }}
   type: compute.v1.globalAddress
   properties:
     description: "Static IP for Kubeflow ingress."
