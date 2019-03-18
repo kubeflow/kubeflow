@@ -35,7 +35,7 @@ def test_build_kfctl_go(app_path, project):
   # are public. So we use subprocess and not util.run
   subprocess.check_call([kfctl_path, "init", app_path, "-V", "--platform=gcp",
                          "--use_basic_auth", "--skip-init-gcp-project",
-                         "--project=kubeflow-ci",
+                         "--project=" + project,
                          "--basic_auth_username=kf-test-user",
                          "--basic_auth_password=" + uuid.uuid4().hex])
 
