@@ -176,6 +176,19 @@ local k = import "k.libsonnet";
         },
         {
           apiGroups: [
+            "policy",
+          ],
+          resources: [
+            "poddisruptionbudgets",
+          ],
+          verbs: [
+            "create",
+            "list",
+            "watch",
+          ],
+        },
+        {
+          apiGroups: [
             "apiextensions.k8s.io",
           ],
           resources: [
