@@ -46,7 +46,7 @@ def test_build_kfctl_go(app_path, project):
   # TODO(jlewi): We need to specify a valid email otherwise we get an error
   # when trying to apply the IAM policy.
   run_with_retries([kfctl_path, "generate", "-V", "all",
-                    "--email=jlewi@kubeflow.org"],
+                    "--email=kubeflow-testing@kubeflow-ci.iam.gserviceaccount.com"],
                     cwd=app_path)
 
   # We need to use retries because if we don't we see random failures
