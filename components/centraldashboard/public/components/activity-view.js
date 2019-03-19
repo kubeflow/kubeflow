@@ -2,6 +2,7 @@ import '@polymer/iron-flex-layout/iron-flex-layout-classes.js';
 import '@polymer/iron-ajax/iron-ajax.js';
 import '@polymer/iron-icon/iron-icon.js';
 import '@polymer/iron-icons/iron-icons.js';
+import '@polymer/paper-card/paper-card.js';
 import '@polymer/paper-progress/paper-progress.js';
 
 import {html, PolymerElement} from '@polymer/polymer';
@@ -14,27 +15,30 @@ export class ActivityView extends PolymerElement {
             </style>
             <style>
                 :host {
-                    @apply --layout-vertical;
-                    --accent-color: #007dfc;
-                    --primary-background-color: #003c75;
-                    --sidebar-default-color: #ffffff4f;
-                    --border-color: #f4f4f6;
                     background: #f1f3f4;
                     padding: 1em;
                     overflow: auto;
+                    --accent-color: #007dfc;
+                    --border-color: #f4f4f6;
+                    --sidebar-default-color: #ffffff4f;
+                    --primary-background-color: #003c75;
+                    @apply --layout-vertical;
                 }
                 paper-progress {
                     width: 100%;
                     --paper-progress-active-color: var(--accent-color)
                 }
-                p.message {
-                    background: #fff;
-                    box-shadow: 0 3px 3px rgba(0,0,0,.12);
-                    transition: margin .2s cubic-bezier(0.4, 0, 0.2, 1);
-                    font-size: 13px;
-                    margin: 0px;
-                    padding: 5px;
-                    align-items: center;
+                .message {
+                    color: var(--google-grey-500);
+                    font-style: italic;
+                    font-size: 2em;
+                    font-family: Google Sans;
+                    padding: 1em;
+                    text-align: center;
+                    align-self: center;
+                    position: absolute;
+                    top: 50%;
+                    transform: translateY(-50%);
                 }
                 [hidden] {
                     display: none;
@@ -48,7 +52,9 @@ export class ActivityView extends PolymerElement {
             </iron-ajax>
             <paper-progress indeterminate class="slow"
                 hidden$="[[!loading]]"></paper-progress>
-            <p class="message" hidden$="[[!message]]">[[message]]</p>
+            <aside class="message" hidden$="[[!message]]">
+                [[message]]
+            </aside>
             <activities-list activities="[[activities]]"></activities-list>
             `;
     }
