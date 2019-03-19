@@ -65,13 +65,17 @@ module.exports = {
                 ],
             },
             {
-                test: /\.(gif|jpg|png|svg)$/,
+                test: /\.(gif|jpg|png)$/,
                 use: {
                     loader: 'file-loader',
                     options: {
                         name: '[folder]/[name].[ext]',
                     },
                 },
+            },
+            {
+                test: /\.svg$/,
+                use: 'raw-loader',
             },
             // Roboto Font and Material Icons
             {
