@@ -4,7 +4,7 @@ WORKDIR /centraldashboard
 
 COPY app/ ./app
 COPY public/ ./public
-COPY webpack.config.js *.json ./
+COPY webpack.config.js *.json .nycrc ./
 
 ARG kubeflowversion
 ENV BUILD_VERSION=$kubeflowversion

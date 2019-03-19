@@ -6,7 +6,7 @@ app-drawer-layout.flex(narrow='{{narrowMode}}',
         tail='{{subRouteData}}')
     app-drawer#MainDrawer(slot='drawer')
         figure#Logo
-            img(alt='Kubeflow Logo', src='assets/kf-logo_64px.svg')
+            | !{logo}
             figcaption Kubeflow
         iron-selector(selected='{{sidebarItemIndex}}')
             a(href='/', tabindex='-1')

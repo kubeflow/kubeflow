@@ -28,6 +28,7 @@ import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
 
 import css from './main-page.css';
 import template from './main-page.pug';
+import logo from '../assets/kf-logo_64px.svg';
 
 import './namespace-selector.js';
 import './dashboard-view.js';
@@ -39,11 +40,11 @@ import './not-found-view.js';
  */
 export class MainPage extends PolymerElement {
     static get template() {
+        const pugVariables = {logo: logo};
         return html([`
         <style is="custom-style"
             include="iron-flex iron-flex-alignment iron-positioning">
-        <style>${css.toString()}</style>${template()}
-        `]);
+        <style>${css.toString()}</style>${template(pugVariables)}`]);
     }
 
     static get properties() {
@@ -105,18 +106,6 @@ export class MainPage extends PolymerElement {
         return [
             '_routePageChanged(routeData.page)',
         ];
-    }
-
-    ready() {
-        super.ready();
-        fetch('assets/kf-logo_64px.svg')
-            .then((r) => r.text())
-            .then((svg) => {
-                this.$['Narrow-Slider'].querySelector('.Logo').innerHTML += [
-                    svg,
-                    `<figcaption>Kubeflow</figcaption>`,
-                ].join('');
-            });
     }
 
     /**
