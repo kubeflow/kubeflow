@@ -16,7 +16,7 @@ export class KubernetesService {
       const {body} = await this.k8sApi.listNamespace();
       return body.items;
     } catch (err) {
-      console.error('Unable to fetch Namespaces', err.body ? err.body : err);
+      console.error('Unable to fetch Namespaces:', err.body ? err.body : err);
       return [];
     }
   }
@@ -27,7 +27,9 @@ export class KubernetesService {
       const {body} = await this.k8sApi.listNamespacedEvent(namespace);
       return body.items;
     } catch (err) {
-      console.error('Unable to fetch Namespaces', err.body ? err.body : err);
+      console.error(
+          `Unable to fetch Events for ${namespace}:`,
+          err.body ? err.body : err);
       return [];
     }
   }
