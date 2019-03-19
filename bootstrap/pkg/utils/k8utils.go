@@ -204,6 +204,7 @@ func RunKubectlApply(filename string, args ...string) error {
 	}
 	cmd := exec.Command("kubectl", cmdargs...)
 	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stdout
 	return cmd.Run()
 }
 
